@@ -56,12 +56,12 @@ Body
 
 Public method "abracadabra.txt" is
 [
-	a file named test directory ++ "abracadabra.txt"
+	./test directory/"abracadabra.txt"
 ];
 
 Public method "scratch.txt" is
 [
-	a file named test directory ++ "scratch.txt"
+	./test directory/"scratch.txt"
 ];
 
 Public method "Try_" is

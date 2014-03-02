@@ -139,9 +139,9 @@ Test "bounded iterator basics" in bounded iterator test suite is
 	[
 		element : [1..100]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "bounded iterator(map)" in bounded iterator test suite is
@@ -154,9 +154,9 @@ Test "bounded iterator(map)" in bounded iterator test suite is
 	[
 		element : [1..10000]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "bounded iterator(filter)" in bounded iterator test suite is
@@ -169,9 +169,9 @@ Test "bounded iterator(filter)" in bounded iterator test suite is
 	[
 		element : [1..100]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "bounded iterator(concatenation)" in bounded iterator test suite is
@@ -193,9 +193,9 @@ Test "bounded iterator(concatenation)" in bounded iterator test suite is
 	[
 		element : [1..100]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "bounded iterator(lexical concatenation)" in bounded iterator test suite is
@@ -225,9 +225,9 @@ Test "bounded iterator(lexical concatenation)" in bounded iterator test suite is
 	[
 		element : [1..100]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "bounded iterator(zip)" in bounded iterator test suite is
@@ -245,9 +245,9 @@ Test "bounded iterator(zip)" in bounded iterator test suite is
 	[
 		element : <[1..100], [1..10000]…|2>
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "bounded iterator(lexical zip)" in bounded iterator test suite is
@@ -265,9 +265,9 @@ Test "bounded iterator(lexical zip)" in bounded iterator test suite is
 	[
 		element : <[1..100], [1..10000]…|2>
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "bounded iterator(take_from_)" in bounded iterator test suite is
@@ -280,9 +280,9 @@ Test "bounded iterator(take_from_)" in bounded iterator test suite is
 	[
 		element : [1..100]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: 6 = iter's current element;
+	Require: iter's current element = 6;
 	Require: [take 6 from iter] raises exhausted-iterator exception;
 ];
 
@@ -296,9 +296,9 @@ Test "bounded iterator(take from_while_)" in bounded iterator test suite is
 	[
 		element : [1..100]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: 6 = iter's current element;
+	Require: iter's current element = 6;
 ];
 
 Test "bounded iterator(take from_until_)" in bounded iterator test suite is
@@ -311,9 +311,9 @@ Test "bounded iterator(take from_until_)" in bounded iterator test suite is
 	[
 		element : [1..100]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: 6 = iter's current element;
+	Require: iter's current element = 6;
 ];
 
 Test "bounded iterator(Drop_from_)" in bounded iterator test suite is
@@ -326,9 +326,9 @@ Test "bounded iterator(Drop_from_)" in bounded iterator test suite is
 	[
 		element : [1..100]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 	Require: [Drop 6 from iter;] raises exhausted-iterator exception;
 ];
 
@@ -342,9 +342,9 @@ Test "bounded iterator(Drop from_while_)" in bounded iterator test suite is
 	[
 		element : [1..100]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "bounded iterator(Drop from_until_)" in bounded iterator test suite is
@@ -357,7 +357,7 @@ Test "bounded iterator(Drop from_until_)" in bounded iterator test suite is
 	[
 		element : [1..100]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];

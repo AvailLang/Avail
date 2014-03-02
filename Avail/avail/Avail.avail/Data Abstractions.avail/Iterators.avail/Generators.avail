@@ -249,9 +249,9 @@ Test "generator basics" in generator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "generator raises exception" in generator test suite is
@@ -268,7 +268,7 @@ Test "generator raises exception" in generator test suite is
 	[
 		element : [0..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
 ]
 must raise cannot-divide-by-zero exception;
@@ -288,9 +288,9 @@ Test "generator with multiple yields" in generator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "generator with no yields" in generator test suite is

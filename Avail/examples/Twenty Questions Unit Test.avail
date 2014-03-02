@@ -60,8 +60,8 @@ Test "incorrect first guess" in Twenty Questions test suite is
 	Play Twenty Questions with
 		input [input[(↑inputIndex++)]]
 		and output [o : string | Require: output[(↑outputIndex++)] = o;];
-	Require: 4 = inputIndex;
-	Require: 4 = outputIndex;
+	Require: inputIndex = 4;
+	Require: outputIndex = 4;
 ];
 
 Print: test suite-oriented “report on all tests in Twenty Questions test suite”;

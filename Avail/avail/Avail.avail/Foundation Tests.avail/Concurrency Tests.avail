@@ -58,7 +58,7 @@ must raise reentry exception;
 Test "reenter reentrant mutex" in concurrency test suite is
 [
 	mutex ::= a reentrant mutex;
-	Require: 5 = lock mutex for [lock mutex for [5]];
+	Require: lock mutex for [lock mutex for [5]] = 5;
 ];
 
 Test "basic fork and join" in concurrency test suite is
@@ -74,7 +74,7 @@ Test "fork and join with result" in concurrency test suite is
 	Join forked;
 	Require: forked has terminated;
 	Require: forked has result;
-	Require: 24 = forked's result;
+	Require: forked's result = 24;
 ];
 
 Test "fork and multiple join" in concurrency test suite is
@@ -87,10 +87,10 @@ Test "fork and multiple join" in concurrency test suite is
 			invoke [Join target;] with <>, forked at priority 50
 		];
 	For each waiters do [f : fiber | Join f;];
-	Require: {true} = map waiters→set + target
-		through [f : fiber | f has terminated];
+	Require: map waiters→set + target
+		through [f : fiber | f has terminated] = {true};
 	Require: target has result;
-	Require: 3^20 = target's result;
+	Require: target's result = 3^20;
 ];
 
 Test "basic binary semaphore" in concurrency test suite is
@@ -170,9 +170,9 @@ Test "heritable fiber variables" in concurrency test suite is
 	Require: forked has terminated;
 	Require: ¬forked has result;
 	Require: h1 ∈ inherited;
-	Require: fiberLocals[h1] = inherited[h1];
+	Require: inherited[h1] = fiberLocals[h1];
 	Require: h2 ∈ inherited;
-	Require: fiberLocals[h2] = inherited[h2];
+	Require: inherited[h2] = fiberLocals[h2];
 	Require: ¬u1 ∈ inherited;
 	Require: ¬u2 ∈ inherited;
 ];
@@ -222,9 +222,9 @@ Test "heritable fiber variables(orphan)" in concurrency test suite is
 	forked at priority 50;
 	Lock mutex for [Await done;];
 	Require: h1 ∈ inherited;
-	Require: fiberLocals[h1] = inherited[h1];
+	Require: inherited[h1] = fiberLocals[h1];
 	Require: h2 ∈ inherited;
-	Require: fiberLocals[h2] = inherited[h2];
+	Require: inherited[h2] = fiberLocals[h2];
 	Require: ¬u1 ∈ inherited;
 	Require: ¬u2 ∈ inherited;
 ];
@@ -314,9 +314,9 @@ Test "heritable fiber variables(delayed fork)" in concurrency test suite is
 	Require: ¬forked has result;
 	Require: now - then ≥ delay;
 	Require: h1 ∈ inherited;
-	Require: fiberLocals[h1] = inherited[h1];
+	Require: inherited[h1] = fiberLocals[h1];
 	Require: h2 ∈ inherited;
-	Require: fiberLocals[h2] = inherited[h2];
+	Require: inherited[h2] = fiberLocals[h2];
 	Require: ¬u1 ∈ inherited;
 	Require: ¬u2 ∈ inherited;
 ];
@@ -373,9 +373,9 @@ Test "heritable fiber variables(delayed fork,orphan)"
 	Lock mutex for [Await done;];
 	Require: now - then ≥ delay;
 	Require: h1 ∈ inherited;
-	Require: fiberLocals[h1] = inherited[h1];
+	Require: inherited[h1] = fiberLocals[h1];
 	Require: h2 ∈ inherited;
-	Require: fiberLocals[h2] = inherited[h2];
+	Require: inherited[h2] = fiberLocals[h2];
 	Require: ¬u1 ∈ inherited;
 	Require: ¬u2 ∈ inherited;
 ];
@@ -383,7 +383,7 @@ Test "heritable fiber variables(delayed fork,orphan)"
 Test "basic future" in concurrency test suite is
 [
 	f : future of whole number := the future of [10^100];
-	Require: 10^100 = f's value;
+	Require: f's value = 10^100;
 ];
 
 Test "future raises" in concurrency test suite is
@@ -410,7 +410,7 @@ Test "for-each in parallel" in concurrency test suite is
 	|
 		Lock mutex for [count := count + i;];
 	];
-	Require: ∑ 1 to 10 = count;
+	Require: count = ∑ 1 to 10;
 ];
 
 Test "for-each in parallel(worker exception)" in concurrency test suite is
@@ -439,7 +439,7 @@ Test "map in parallel" in concurrency test suite is
 [
 	result ::= map 1 to 10 in parallel through [i : [1..10] | i × 5];
 	expected ::= map 1 to 10 through [i : [1..10] | i × 5];
-	Require: expected = result;
+	Require: result = expected;
 ];
 
 Test "map in parallel(worker exception)" in concurrency test suite is
@@ -468,7 +468,7 @@ Test "request termination of running fiber" in concurrency test suite is
 		Join forked;
 		Require: forked has terminated;
 		Require: forked has result;
-		Require: "仕上がります" = forked's result;
+		Require: forked's result = "仕上がります";
 	] 10 times;
 ];
 

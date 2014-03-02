@@ -46,21 +46,21 @@ New test suite math test suite extends foundation test suite;
 
 Test "integer range bounds" in math test suite is
 [
-	Require: ⎣extended integer⎦ = -∞;
+	Require: -∞ = ⎣extended integer⎦;
 	Require: ⎣extended integer⎦ is inclusive;
-	Require: ⎡extended integer⎤ = ∞;
+	Require: ∞ = ⎡extended integer⎤;
 	Require: ⎡extended integer⎤ is inclusive;
-	Require: ⎣integer⎦ = -∞;
+	Require: -∞ = ⎣integer⎦;
 	Require: ¬⎣integer⎦ is inclusive;
-	Require: ⎡integer⎤ = ∞;
+	Require: ∞ = ⎡integer⎤;
 	Require: ¬⎡integer⎤ is inclusive;
-	Require: ⎣whole number⎦ = 0;
+	Require: 0 = ⎣whole number⎦;
 	Require: ⎣whole number⎦ is inclusive;
-	Require: ⎡whole number⎤ = ∞;
+	Require: ∞ = ⎡whole number⎤;
 	Require: ¬⎡whole number⎤ is inclusive;
-	Require: ⎣natural number⎦ = 1;
+	Require: 1 = ⎣natural number⎦;
 	Require: ⎣natural number⎦ is inclusive;
-	Require: ⎡natural number⎤ = ∞;
+	Require: ∞ = ⎡natural number⎤;
 	Require: ¬⎡natural number⎤ is inclusive;
 	From 1 to 10 do
 	[
@@ -80,30 +80,30 @@ Test "integer range bounds" in math test suite is
 			]
 			else
 			[
-				Require: ⎣t1⎦ = i;
+				Require: i = ⎣t1⎦;
 				Require: ⎣t1⎦ is inclusive;
-				Require: ⎡t1⎤ = j;
+				Require: j = ⎡t1⎤;
 				Require: ⎡t1⎤ is inclusive;
 				If i = j then [ Require: t2 = t3 = t4 = ⊥; ]
 				else
 				[
 					Require: t2 ≠ ⊥;
 					Require: t3 ≠ ⊥;
-					Require: ⎣t2⎦ = i;
+					Require: i = ⎣t2⎦;
 					Require: ⎣t2⎦ is inclusive;
-					Require: ⎡t2⎤ = j - 1;
+					Require: j - 1 = ⎡t2⎤;
 					Require: ⎡t2⎤ is inclusive;
-					Require: ⎣t3⎦ = i + 1;
+					Require: i + 1 = ⎣t3⎦;
 					Require: ⎣t3⎦ is inclusive;
-					Require: ⎡t3⎤ = j;
+					Require: j = ⎡t3⎤;
 					Require: ⎡t3⎤ is inclusive;
 					If j - i = 1 then [ Require: t4 = ⊥; ]
 					else
 					[
 						Require: t4 ≠ ⊥;
-						Require: ⎣t4⎦ = i + 1;
+						Require: i + 1 = ⎣t4⎦;
 						Require: ⎣t4⎦ is inclusive;
-						Require: ⎡t4⎤ = j - 1;
+						Require: j - 1 = ⎡t4⎤;
 						Require: ⎡t4⎤ is inclusive;
 					];
 				];
@@ -390,7 +390,7 @@ Test "simple exponentiation" in math test suite is
 		[
 			j : [2..10]
 		|
-			Require: i^j = ∏ j occurrences of i;
+			Require: ∏ j occurrences of i = i^j;
 		];
 	];
 	Require: 2^16 = 65536;

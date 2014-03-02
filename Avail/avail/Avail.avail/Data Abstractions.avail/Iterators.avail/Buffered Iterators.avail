@@ -406,5 +406,5 @@ Test "buffered iterator basics" in buffered iterator test suite is
 			From 1 to end do [x : [1..∞] | yield(x);];
 		]
 		that buffers 5 elements;
-	Require: ref = take 10 from iter;
+	Require: take 10 from iter = ref;
 ];

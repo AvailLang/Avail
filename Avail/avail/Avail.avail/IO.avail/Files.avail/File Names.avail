@@ -41,6 +41,8 @@ Names
 
 	/* File name construction. */
 	"a file named_",
+	"./_",
+	"«_‡/»",
 
 	/* File existence. */
 	"_exists(follow if symlink=_)",
@@ -95,6 +97,29 @@ Public stable method "a file named_" is
 ] : file name;
 
 Semantic restriction "a file named_" is
+[
+	n : string's type
+|
+	extend file name with name : n
+];
+
+/**
+ * Construct and answer a {@type "file name"} from the specified {@type
+ * "string"}.
+ *
+ * @method "./_"
+ * @param "n" "string"
+ * @returns "file name"
+ *          The requested file name.
+ */
+Public stable method "./_" is
+[
+	n : string
+|
+	a file name with name ::= n
+] : file name;
+
+Semantic restriction "./_" is
 [
 	n : string's type
 |
@@ -377,14 +402,14 @@ Method "concatenate_" is
  * Concatenate the specified {@type "tuple"} of {@type "string"}s to obtain a
  * {@type "file name"}.
  *
- * @method "concatenate_"
+ * @method "«_‡/»"
  * @param "fns" "<file name…|2..>"
  * @returns "file name"
  * @raises "invalid-path exception"
  *         If any of the elements of {@param "fns"} cannot be understood as a
  *         path.
  */
-Method "«_‡++»" is
+Method "«_‡/»" is
 [
 	fns : <file name…|2..>
 |
@@ -395,14 +420,14 @@ Method "«_‡++»" is
  * Concatenate the specified {@type "tuple"} of {@type "string"}s to obtain a
  * {@type "file name"}.
  *
- * @method "concatenate_"
+ * @method "«_‡/»"
  * @param "fns" "<file name, string…|2..>"
  * @returns "file name"
  * @raises "invalid-path exception"
  *         If any of the elements of {@param "fns"} cannot be understood as a
  *         path.
  */
-Method "«_‡++»" is
+Method "«_‡/»" is
 [
 	fns : <file name, string…|2..>
 |
@@ -416,4 +441,5 @@ Method "«_‡++»" is
 	a file named path
 ] : file name;
 
-Grammatical restriction "a file named_" is <{"«_‡++»"}>;
+Grammatical restriction {"a file named_", "./_"} is <{"«_‡++»"}>;
+Grammatical restriction "«_‡/»" is <{"«_‡/»"}>;

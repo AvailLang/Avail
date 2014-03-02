@@ -336,12 +336,12 @@ Test "optional(present)" in optional test suite is
 [
 	opt : optional 5's type := +5;
 	value ::= when opt is present do [t : 5's type | t] else ["no"];
-	Require: 5 = value;
+	Require: value = 5;
 ];
 
 Test "optional(absent)" in optional test suite is
 [
 	opt : optional 5's type := none;
 	value ::= when opt is present do [t : 5's type | t] else ["no"];
-	Require: "no" = value;
+	Require: value = "no";
 ];

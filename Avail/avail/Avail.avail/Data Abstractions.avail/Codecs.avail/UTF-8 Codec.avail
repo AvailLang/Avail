@@ -785,7 +785,7 @@ Test "string encoding" in UTF8 codec test suite is
 	expectedEncoding ::=  <226,138,164,226,138,165,226,134,147,226,134,145,194,
 			177,226,136,133,226,136,138,226,136,176,226,136,161,226,132,128,80,
 			111,103,63>;
-	Require: expectedEncoding = encodedTestString;
+	Require: encodedTestString = expectedEncoding;
 ];
 
 Test "byte decoding" in UTF8 codec test suite is
@@ -795,7 +795,7 @@ Test "byte decoding" in UTF8 codec test suite is
 		63>;
 	decodedTestEncoding ::= decode testEncoding using a UTF-8 codec;
 	expectedDecodedString ::= "⊤⊥↓↑±∅∊∰∡℀Pog?";
-	Require: expectedDecodedString = decodedTestEncoding;
+	Require: decodedTestEncoding = expectedDecodedString;
 ];
 
 Test "full decoding iterator" in UTF8 codec test suite is
@@ -806,7 +806,7 @@ Test "full decoding iterator" in UTF8 codec test suite is
 	decodedTestEncoding ::= take at most ∞ from a decoding iterator of 
 			testEncodingIterator using a UTF-8 codec;
 	expectedDecodedString ::= "⊤⊥↓↑±∅∊∰∡℀Pog?";
-	Require: expectedDecodedString = decodedTestEncoding;
+	Require: decodedTestEncoding = expectedDecodedString;
 ];
 
 Test "partial decoding iterator" in UTF8 codec test suite is
@@ -817,7 +817,7 @@ Test "partial decoding iterator" in UTF8 codec test suite is
 	decodedTestEncoding ::= take at most 4 from a decoding iterator of 
 			testEncodingIterator using a UTF-8 codec;
 	expectedDecodedString ::= "⊤⊥↓?";
-	Require: expectedDecodedString = decodedTestEncoding;
+	Require: decodedTestEncoding = expectedDecodedString;
 ];
 
 Test "full encoding iterator" in UTF8 codec test suite is
@@ -829,7 +829,7 @@ Test "full encoding iterator" in UTF8 codec test suite is
 	expectedEncoding ::=  <226,138,164,226,138,165,226,134,147,226,134,145,194,
 			177,226,136,133,226,136,138,226,136,176,226,136,161,226,132,128,80,
 			111,103,63>;
-	Require: expectedEncoding = encodedTestString;
+	Require: encodedTestString = expectedEncoding;
 ];
 
 Test "partial encoding iterator" in UTF8 codec test suite is
@@ -839,5 +839,5 @@ Test "partial encoding iterator" in UTF8 codec test suite is
 		that buffers 10 characters of an iterator over testString using a UTF-8 
 		codec;
 	expectedEncoding ::=  <226,138,164,226,138,165,226,134,147,63>;
-	Require: expectedEncoding = encodedTestString;
+	Require: encodedTestString = expectedEncoding;
 ];

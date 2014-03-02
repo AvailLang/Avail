@@ -49,23 +49,23 @@ New test suite map test suite extends foundation test suite;
 Test "map cardinality" in map test suite is
 [
 	a ::= {1→"foo",2→"bar",3→"frog",4→"prince"};
-	Require: |a| = 4;
-	Require: |{}| = 0;
-	Require: {} is empty = true;
+	Require: 4 = |a|;
+	Require: 0 = |{}|;
+	Require: true = {} is empty;
 ];
 
 Test "keys values and bindings" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
 	b ::= a's values;
-	Require: a's keys = {"foo","bar","frog","prince"};
-	Require: {}'s keys = ∅;
-	Require: merge sort a's values = <1,2,3,4>;
-	Require: {}'s values = <>;
+	Require: {"foo","bar","frog","prince"} = a's keys;
+	Require: ∅ = {}'s keys;
+	Require: <1,2,3,4> = merge sort a's values;
+	Require: <> = {}'s values;
 	/*Require: a's type's key type ⊆ string;*/
 	/*Require: a's type's value type ⊆ [1..4];*/
 	Require: "foo" ∈ a;
-	Require: a's bindings = <<"foo",1>,<"bar",2>,<"frog",3>,<"prince",4>>;
+	Require: <<"foo",1>,<"bar",2>,<"frog",3>,<"prince",4>> = a's bindings;
 
 ];
 
@@ -74,15 +74,15 @@ Test "add and remove from map" in map test suite is
 	a : map := {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
 	b ::= a + "bird"→5;
 	c ::= a - "foo";
-	Require: b = {"foo"→1,"bar"→2,"frog"→3,"prince"→4,"bird"→5};
-	Require: c = {"bar"→2,"frog"→3,"prince"→4};
+	Require: {"foo"→1,"bar"→2,"frog"→3,"prince"→4,"bird"→5} = b;
+	Require: {"bar"→2,"frog"→3,"prince"→4} = c;
 ];
 
 Test "alternative answer via else" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
-	Require: a["foo"] else [5] = 1;
-	Require: a["club"] else [5] = 5;
+	Require: 1 = a["foo"] else [5];
+	Require: 5 = a["club"] else [5];
 ];
 
 Test "map through" in map test suite is
@@ -130,7 +130,7 @@ Test "for each of do" in map test suite is
 	 |
 	 	b := b + s→n;
 	];
-	Require: b = a;
+	Require: a = b;
 ];
 
 Test "count of where" in map test suite is
@@ -188,14 +188,14 @@ Test "integrate maps" in map test suite is
 	 	chosenValue ::= if a[k] > v then [a[k]] else [v]; 
 	 	m + k → chosenValue
 	];
-	Require: c = {"foo"→9,"bar"→2,"frog"→3,"prince"→4,"sharks are awesome!"→40};
+	Require: {"foo"→9,"bar"→2,"frog"→3,"prince"→4,"sharks are awesome!"→40} = c;
 ];
 
 Test "quasi-destructive simple map at key replace" in map test suite is
 [
 	m : {string→natural number|} := {"foo"→1,"boo"→2,"zoo"→3};
 	n ::= m["foo"] → 4;
-	Require: {"foo"→4,"boo"→2,"zoo"→3} = n;
+	Require: n = {"foo"→4,"boo"→2,"zoo"→3};
 ];
 
 Test "quasi-destructive n-ary complex map update" in map test suite is
@@ -213,7 +213,7 @@ Test "quasi-destructive n-ary complex map update" in map test suite is
 		};
 
 	n ::= t["boo"][1]["zippo"][1] → "jawa";
-	Require: {
+	Require: n = {
 		"foo"→<
 			{"hippo"→<"submarine","bunnies">,
 			"raven"→<"lolipop","turkey">},
@@ -222,7 +222,7 @@ Test "quasi-destructive n-ary complex map update" in map test suite is
 			{"tree"→<"jet","fury">,
 			"zippo"→<"jawa","sarlak">},
 			5>
-		} = n;
+		};
 ];
 
 Test "quasi-destructive n-ary very complex map update" in map test suite is
@@ -239,7 +239,7 @@ Test "quasi-destructive n-ary very complex map update" in map test suite is
 				5>
 		};
 		n ::= t["boo"][1]["tree"] → <"boat","jaws">;
-		Require: {
+		Require: n = {
 			"foo"→<
 				{"hippo"→<"submarine","bunnies">,
 				"raven"→<"lolipop","turkey">},
@@ -248,5 +248,5 @@ Test "quasi-destructive n-ary very complex map update" in map test suite is
 				{"tree"→<"boat","jaws">,
 				"zippo"→<"weevil","sarlak">},
 				5>
-		} = n;
+		};
 ];

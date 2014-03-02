@@ -50,7 +50,7 @@ Test "one intercept,no exception(side-effect)" in exception test suite is
 	Guard [ref := 10 + 14;]
 	intercept [e : cannot-add-unlike-infinities exception | Require: false];
 	Require: ↑ref is assigned;
-	Require: 24 = ref;
+	Require: ref = 24;
 ];
 
 Test "one intercept,no exception(value-producing)" in exception test suite is
@@ -64,7 +64,7 @@ Test "one intercept,no exception(value-producing)" in exception test suite is
 			Require: false
 		];
 	Require: ↑ref is assigned;
-	Require: 42 = ref;
+	Require: ref = 42;
 ];
 
 Test "one intercept(side-effect)" in exception test suite is
@@ -73,7 +73,7 @@ Test "one intercept(side-effect)" in exception test suite is
 	Guard [Raise a descriptive exception with error message ::= "fnord"]
 	intercept [e : descriptive exception | ref := e;];
 	Require: ↑ref is assigned;
-	Require: "fnord" = ref's error message;
+	Require: ref's error message = "fnord";
 ];
 
 Test "one intercept(value-producing)" in exception test suite is
@@ -82,7 +82,7 @@ Test "one intercept(value-producing)" in exception test suite is
 		guard [Raise a descriptive exception with error message ::= "fnord"]
 		intercept [e : descriptive exception | e];
 	Require: ↑ref is assigned;
-	Require: "fnord" = ref's error message;
+	Require: ref's error message = "fnord";
 ];
 
 Test "two intercepts(side-effect)" in exception test suite is
@@ -106,7 +106,7 @@ Test "two intercepts(side-effect)" in exception test suite is
 		ref := 7;
 	];
 	Require: ↑ref is assigned;
-	Require: 7 = ref;
+	Require: ref = 7;
 	Clear ↑ref;
 	Guard
 	[
@@ -126,7 +126,7 @@ Test "two intercepts(side-effect)" in exception test suite is
 		Require: false
 	];
 	Require: ↑ref is assigned;
-	Require: 7 = ref;
+	Require: ref = 7;
 ];
 
 Test "two intercepts(value-producing)" in exception test suite is
@@ -150,7 +150,7 @@ Test "two intercepts(value-producing)" in exception test suite is
 			7
 		];
 	Require: ↑ref is assigned;
-	Require: 7 = ref;
+	Require: ref = 7;
 	Clear ↑ref;
 	ref :=
 		guard
@@ -171,7 +171,7 @@ Test "two intercepts(value-producing)" in exception test suite is
 			Require: false
 		];
 	Require: ↑ref is assigned;
-	Require: 7 = ref;
+	Require: ref = 7;
 ];
 
 Test "unwind,no exception(side-effect)" in exception test suite is
@@ -181,9 +181,9 @@ Test "unwind,no exception(side-effect)" in exception test suite is
 	Guard [curry := "lemon";]
 	ensure [rice := "basmati";];
 	Require: ↑curry is assigned;
-	Require: "lemon" = curry;
+	Require: curry = "lemon";
 	Require: ↑rice is assigned;
-	Require: "basmati" = rice;
+	Require: rice = "basmati";
 ];
 
 Test "unwind,no exception(value-producing)"
@@ -194,9 +194,9 @@ in exception test suite is
 		guard ["lemon"]
 		ensure [rice := "basmati";];
 	Require: ↑curry is assigned;
-	Require: "lemon" = curry;
+	Require: curry = "lemon";
 	Require: ↑rice is assigned;
-	Require: "basmati" = rice;
+	Require: rice = "basmati";
 ];
 
 Test "unwind" in exception test suite is
@@ -219,9 +219,9 @@ Test "one intercept,unwind,no exception(side-effect)" in exception test suite is
 	intercept [e : exception | Require: false]
 	ensure [rice := "basmati";];
 	Require: ↑curry is assigned;
-	Require: "lemon" = curry;
+	Require: curry = "lemon";
 	Require: ↑rice is assigned;
-	Require: "basmati" = rice;
+	Require: rice = "basmati";
 ];
 
 Test "one intercept,unwind,no exception(value-producing)"
@@ -233,9 +233,9 @@ in exception test suite is
 		intercept [e : exception | Require: false]
 		ensure [rice := "basmati";];
 	Require: ↑curry is assigned;
-	Require: "lemon" = curry;
+	Require: curry = "lemon";
 	Require: ↑rice is assigned;
-	Require: "basmati" = rice;
+	Require: rice = "basmati";
 ];
 
 Test "one intercept,unwind(side-effect)" in exception test suite is
@@ -246,9 +246,9 @@ Test "one intercept,unwind(side-effect)" in exception test suite is
 	intercept [e : exception | curry := "lemon";]
 	ensure [rice := "basmati";];
 	Require: ↑curry is assigned;
-	Require: "lemon" = curry;
+	Require: curry = "lemon";
 	Require: ↑rice is assigned;
-	Require: "basmati" = rice;
+	Require: rice = "basmati";
 ];
 
 Test "one intercept,unwind(value-producing)" in exception test suite is
@@ -259,9 +259,9 @@ Test "one intercept,unwind(value-producing)" in exception test suite is
 		intercept [e : exception | "lemon"]
 		ensure [rice := "basmati";];
 	Require: ↑curry is assigned;
-	Require: "lemon" = curry;
+	Require: curry = "lemon";
 	Require: ↑rice is assigned;
-	Require: "basmati" = rice;
+	Require: rice = "basmati";
 ];
 
 Test "two intercepts,unwind(side-effect)" in exception test suite is
@@ -290,9 +290,9 @@ Test "two intercepts,unwind(side-effect)" in exception test suite is
 		rice := "basmati";
 	];
 	Require: ↑curry is assigned;
-	Require: "lemon" = curry;
+	Require: curry = "lemon";
 	Require: ↑rice is assigned;
-	Require: "basmati" = rice;
+	Require: rice = "basmati";
 	Clear ↑curry;
 	Clear ↑rice;
 	Guard
@@ -317,9 +317,9 @@ Test "two intercepts,unwind(side-effect)" in exception test suite is
 		rice := "basmati";
 	];
 	Require: ↑curry is assigned;
-	Require: "lemon" = curry;
+	Require: curry = "lemon";
 	Require: ↑rice is assigned;
-	Require: "basmati" = rice;
+	Require: rice = "basmati";
 ];
 
 Test "two intercepts,unwind(value-producing)" in exception test suite is
@@ -348,9 +348,9 @@ Test "two intercepts,unwind(value-producing)" in exception test suite is
 			rice := "basmati";
 		];
 	Require: ↑curry is assigned;
-	Require: "lemon" = curry;
+	Require: curry = "lemon";
 	Require: ↑rice is assigned;
-	Require: "basmati" = rice;
+	Require: rice = "basmati";
 	Clear ↑curry;
 	Clear ↑rice;
 	curry :=
@@ -376,9 +376,9 @@ Test "two intercepts,unwind(value-producing)" in exception test suite is
 			rice := "basmati";
 		];
 	Require: ↑curry is assigned;
-	Require: "lemon" = curry;
+	Require: curry = "lemon";
 	Require: ↑rice is assigned;
-	Require: "basmati" = rice;
+	Require: rice = "basmati";
 ];
 
 Test "bad intercept,unwind" in exception test suite is

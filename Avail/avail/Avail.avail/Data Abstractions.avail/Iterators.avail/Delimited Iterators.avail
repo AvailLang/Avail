@@ -170,9 +170,9 @@ Test "delimited iterator basics" in delimited iterator test suite is
 	[
 		element : <[0..10]…|>
 	|
-		Require: <ref[(↑index++)]> = element;
+		Require: element = <ref[(↑index++)]>;
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "delimited iterator(no occurrences)" in delimited iterator test suite is
@@ -180,7 +180,7 @@ Test "delimited iterator(no occurrences)" in delimited iterator test suite is
 	ref ::= 1 to 10;
 	iter ::= an iterator over 1 to 10 delimited by <0>;
 	element ::= iter's current element;
-	Require: ref = element;
+	Require: element = ref;
 	Advance iter;
 	Require: iter is exhausted;
 ];

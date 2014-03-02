@@ -111,19 +111,17 @@ Method "Require:_(_)" is
  * Require that the arguments are equal.
  *
  * @method "Require:_=_"
- * @param "expected" "any"
- *        A value.
  * @param "actual" "any"
- *        A value.
+ * @param "expected" "any"
  * @raises "failed-requirement exception"
  *         If {@param "expected"} ≠ {@param "value"}.
  */
 Public method "Require:_=_" is
 [
-	expected : any,
-	actual : any
+	actual : any,
+	expected : any
 |
-	If expected ≠ actual then
+	If actual ≠ expected then
 	[
 		Raise a descriptive failed-requirement exception with
 			error message ::=
@@ -140,10 +138,10 @@ Public method "Require:_=_" is
  */
 Semantic restriction "Require:_=_" is
 [
-	expected : any's type,
-	actual : any's type
+	actual : any's type,
+	expected : any's type
 |
-	If expected ∩ actual = ⊥ then
+	If actual ∩ expected = ⊥ then
 	[
 		Reject parse, expected: "a predicate that could ever be true"
 	];
@@ -154,10 +152,8 @@ Semantic restriction "Require:_=_" is
  * Require that the arguments are equal.
  *
  * @method "Require:_=_(_)"
- * @param "expected" "any"
- *        A value.
  * @param "actual" "any"
- *        A value.
+ * @param "expected" "any"
  * @param "message" "string"
  *        Additional information that should be attached to the exception in the
  *        event of failure.
@@ -166,11 +162,11 @@ Semantic restriction "Require:_=_" is
  */
 Public method "Require:_=_(_)" is
 [
-	expected : any,
 	actual : any,
+	expected : any,
 	message : string
 |
-	If expected ≠ actual then
+	If actual ≠ expected then
 	[
 		Raise a descriptive failed-requirement exception with
 			error message ::=
@@ -183,14 +179,14 @@ Public method "Require:_=_(_)" is
  * Reject the current parse if the arguments are guaranteed unequal.
  *
  * @method "Require:_=_(_)"
- * @restricts "expected" "any's type"
  * @restricts "actual" "any's type"
+ * @restricts "expected" "any's type"
  * @restricts "message" "string's type"
  */
 Semantic restriction "Require:_=_(_)" is
 [
-	expected : any's type,
 	actual : any's type,
+	expected : any's type,
 	message : string's type
 |
 	If expected ∩ actual = ⊥ then

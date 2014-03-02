@@ -56,7 +56,7 @@ extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_445_CurrentWorkingDirectory().init(
-			0, CannotFail, CanInline, HasSideEffect);
+			0, CannotFail, CanInline, CanFold);
 
 	/**
 	 * The current working directory of the Avail virtual machine. Because Java
