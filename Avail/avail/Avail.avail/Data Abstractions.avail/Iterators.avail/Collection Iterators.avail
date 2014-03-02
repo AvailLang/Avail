@@ -233,9 +233,9 @@ Test "tuple iterator basics" in tuple iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "tuple iterator(map)" in tuple iterator test suite is
@@ -247,9 +247,9 @@ Test "tuple iterator(map)" in tuple iterator test suite is
 	[
 		element : [1..100]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "tuple iterator(filter)" in tuple iterator test suite is
@@ -262,9 +262,9 @@ Test "tuple iterator(filter)" in tuple iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "tuple iterator(concatenation)" in tuple iterator test suite is
@@ -286,9 +286,9 @@ Test "tuple iterator(concatenation)" in tuple iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "tuple iterator(lexical concatenation)"
@@ -319,9 +319,9 @@ Test "tuple iterator(lexical concatenation)"
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "tuple iterator(zip)" in tuple iterator test suite is
@@ -339,9 +339,9 @@ Test "tuple iterator(zip)" in tuple iterator test suite is
 	[
 		element : <[1..10], [1..100]…|2>
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "tuple iterator(lexical zip)" in tuple iterator test suite is
@@ -359,9 +359,9 @@ Test "tuple iterator(lexical zip)" in tuple iterator test suite is
 	[
 		element : <[1..10], [1..100]…|2>
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "tuple iterator(take_from_)" in tuple iterator test suite is
@@ -374,9 +374,9 @@ Test "tuple iterator(take_from_)" in tuple iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: 6 = iter's current element;
+	Require: iter's current element = 6;
 	Require: [take 6 from iter] raises exhausted-iterator exception;
 ];
 
@@ -390,9 +390,9 @@ Test "tuple iterator(take from_while_)" in tuple iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: 6 = iter's current element;
+	Require: iter's current element = 6;
 ];
 
 Test "tuple iterator(take from_until_)" in tuple iterator test suite is
@@ -405,9 +405,9 @@ Test "tuple iterator(take from_until_)" in tuple iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: 6 = iter's current element;
+	Require: iter's current element = 6;
 ];
 
 Test "tuple iterator(Drop_from_)" in tuple iterator test suite is
@@ -420,9 +420,9 @@ Test "tuple iterator(Drop_from_)" in tuple iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 	Require: [Drop 6 from iter;] raises exhausted-iterator exception;
 ];
 
@@ -436,9 +436,9 @@ Test "tuple iterator(Drop from_while_)" in tuple iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "tuple iterator(Drop from_until_)" in tuple iterator test suite is
@@ -451,35 +451,35 @@ Test "tuple iterator(Drop from_until_)" in tuple iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "tuple iterator(size)" in tuple iterator test suite is
 [
 	iter : sizable iterator of [1..10] := an iterator over 1 to 10;
-	Require: |iter| = 10;
+	Require: 10 = |iter|;
 ];
 
 Test "tuple iterator(position)" in tuple iterator test suite is
 [
 	iter : sizable iterator of [1..10] positioned by [1..∞) :=
 		an iterator over 1 to 10;
-	Require: |iter| = 10;
+	Require: 10 = |iter|;
 	Repeat [Advance iter;] 5 times;
 	position ::= iter's position;
 	ref : tuple := 6 to 10;
 	tail : tuple := take 5 from iter;
-	Require: ref = tail;
+	Require: tail = ref;
 	iter's position := position;
 	tail := take 5 from iter;
-	Require: ref = tail;
+	Require: tail = ref;
 	iter's position := 8;
 	ref := 8 to 10;
 	tail := take 3 from iter;
-	Require: ref = tail;
-	Require: |iter| = 10;
+	Require: tail = ref;
+	Require: 10 = |iter|;
 	iter's position := 50;
 ]
 must raise invalid-position exception;
@@ -492,9 +492,9 @@ Test "tuple iterator(remaining elements)" in tuple iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: remaining = |iter's remaining elements|;
+		Require: |iter's remaining elements| = remaining;
 		↑remaining--;
 	];
 	Require: iter is exhausted;
-	Require: remaining = |iter's remaining elements|;
+	Require: |iter's remaining elements| = remaining;
 ];

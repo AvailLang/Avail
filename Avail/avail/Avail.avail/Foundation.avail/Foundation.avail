@@ -358,7 +358,9 @@ Extends
 		"Cast|cast each of_into_",
 		"Cast|cast each of_into_else_",
 		"Cast|cast_into_",
-		"bad-cast exception"
+		"Cast|cast_into«_‡,»«else_»",
+		"bad-cast exception",
+		"bad-multiway-cast exception"
 	),
 	"Characters" =
 	(
@@ -404,7 +406,6 @@ Extends
 	"Control Structures" =
 	(
 		"Cast|cast_into_else_",
-		"Cast|cast_into«_‡,»«else_»",
 		"Do_until_",
 		"Do_until_alternate with_",
 		"Do_while_",
@@ -696,6 +697,7 @@ Extends
 		"trace exception",
 		"type-restriction-must-accept-only-types exception",
 		"unbalanced-guillemets exception",
+		"unsupported-operation exception",
 		"unwind-sentinel exception",
 		"variable-use exception",
 		"vertical-bar-must-follow-a-simple-or-simple-group exception",
@@ -705,7 +707,8 @@ Extends
 		"_'s⁇error message",
 		"_'s⁇stack summary",
 		"_'s⁇throwable",
-		"“_”(stack summary)"
+		"“_”(stack summary)",
+		"“_”(frames_of stack summary«,⁇renumbered starting at_»)"
 	),
 	"Functions" =
 	(

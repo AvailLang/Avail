@@ -33,7 +33,6 @@
 package com.avail.builder;
 
 import java.io.File;
-import com.avail.annotations.*;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.persistence.IndexedRepositoryManager;
 
@@ -48,11 +47,9 @@ public final class ResolvedModuleName
 extends ModuleName
 {
 	/**
-	 * The {@linkplain ModuleNameResolver#resolve(ModuleName,
-	 * ResolvedModuleName) resolved} {@linkplain IndexedRepositoryManager
-	 * repository}.
+	 * The {@link ModuleRoot} within which this module occurs.
 	 */
-	private final IndexedRepositoryManager repository;
+	private final ModuleRoot moduleRoot;
 
 	/**
 	 * Answer the {@linkplain ModuleNameResolver#resolve(ModuleName,
@@ -63,7 +60,7 @@ extends ModuleName
 	 */
 	public IndexedRepositoryManager repository ()
 	{
-		return repository;
+		return moduleRoot.repository();
 	}
 
 	/**
@@ -75,14 +72,8 @@ extends ModuleName
 	 */
 	public File repositoryReference ()
 	{
-		return repository.fileName();
+		return repository().fileName();
 	}
-
-	/**
-	 * The {@linkplain ModuleNameResolver#resolve(ModuleName,
-	 * ResolvedModuleName) resolved} source {@linkplain File file reference}.
-	 */
-	private final @Nullable File sourceReference;
 
 	/**
 	 * Answer the {@linkplain ModuleNameResolver#resolve(ModuleName,
@@ -90,9 +81,19 @@ extends ModuleName
 	 *
 	 * @return The resolved source file reference.
 	 */
-	public @Nullable File sourceReference ()
+	public File sourceReference ()
 	{
-		return sourceReference;
+		final StringBuilder builder = new StringBuilder(100);
+		final File sourceDirectory = moduleRoot.sourceDirectory();
+		assert sourceDirectory != null;
+		builder.append(sourceDirectory.toString());
+		for (final String part : rootRelativeName().split("/"))
+		{
+			builder.append('/');
+			builder.append(part);
+			builder.append(ModuleNameResolver.availExtension);
+		}
+		return new File(builder.toString());
 	}
 
 	/**
@@ -123,9 +124,7 @@ extends ModuleName
 	 */
 	public long moduleSize ()
 	{
-		final File ref = sourceReference;
-		assert ref != null
-			: "Source file \"" + qualifiedName() + "\" is missing";
+		final File ref = sourceReference();
 		return ref.length();
 	}
 
@@ -134,42 +133,25 @@ extends ModuleName
 	 *
 	 * @param qualifiedName
 	 *        The just-resolved {@linkplain ModuleName module name}.
-	 * @param isPackage
-	 *        {@code true} if the {@linkplain ModuleName module name} represents
-	 *        a package, {@code false} otherwise.
-	 * @param repository
-	 *        The {@linkplain ModuleNameResolver#resolve(ModuleName,
-	 *        ResolvedModuleName) resolved} {@linkplain IndexedRepositoryManager
-	 *        repository}.
-	 * @param sourceReference
-	 *        The {@linkplain ModuleNameResolver#resolve(ModuleName,
-	 *        ResolvedModuleName) resolved} source {@linkplain File file
-	 *        reference}, or {@code null} if no source file is available.
+	 * @param moduleRoot
+	 *        The {@linkplain ModuleRoot} within which this module occurs.
 	 */
 	ResolvedModuleName (
 		final ModuleName qualifiedName,
-		final boolean isPackage,
-		final IndexedRepositoryManager repository,
-		final @Nullable File sourceReference)
+		final ModuleRoot moduleRoot)
 	{
 		super(qualifiedName.qualifiedName());
-		this.isPackage = isPackage;
-		this.repository = repository;
-		this.sourceReference = sourceReference;
-		if (sourceReference != null)
+		this.moduleRoot = moduleRoot;
+		final File ref = sourceReference();
+		if (!ref.isFile())
 		{
-			assert sourceReference.isFile();
-			final String fileName = sourceReference.getName();
-			final File directoryName = sourceReference.getParentFile();
-			if (directoryName != null)
-			{
-				if (isPackage != (fileName.equals(directoryName.getName())))
-				{
-					// Debug
-					assert isPackage == (fileName.equals(directoryName.getName()));
-				}
-			}
+			// TODO [MvG] Debug - Remove condition and leave assertion.
+			assert ref.isFile();
 		}
+		final String fileName = ref.getName();
+		final File directoryName = ref.getParentFile();
+		this.isPackage = directoryName != null
+			&& fileName.equals(directoryName.getName());
 	}
 
 	/**

@@ -82,6 +82,9 @@ extends Descriptor
 	/** A simple counter for identifying fibers by creation order. */
 	public static AtomicInteger uniqueDebugCounter = new AtomicInteger(0);
 
+	/** The priority of module tracing tasks. */
+	public static final int tracerPriority = 50;
+
 	/** The priority of compilation tasks. */
 	public static final int compilerPriority = 50;
 

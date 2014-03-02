@@ -158,9 +158,9 @@ Test "stream iterator basics" in stream iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "stream iterator(map)" in stream iterator test suite is
@@ -173,9 +173,9 @@ Test "stream iterator(map)" in stream iterator test suite is
 	[
 		element : [1..100]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "stream iterator(filter)" in stream iterator test suite is
@@ -188,9 +188,9 @@ Test "stream iterator(filter)" in stream iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "stream iterator(concatenation)" in stream iterator test suite is
@@ -212,9 +212,9 @@ Test "stream iterator(concatenation)" in stream iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "stream iterator(lexical concatenation)" in stream iterator test suite is
@@ -244,9 +244,9 @@ Test "stream iterator(lexical concatenation)" in stream iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "stream iterator(zip)" in stream iterator test suite is
@@ -264,9 +264,9 @@ Test "stream iterator(zip)" in stream iterator test suite is
 	[
 		element : <[1..10], [1..100]…|2>
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "stream iterator(lexical zip)" in stream iterator test suite is
@@ -284,9 +284,9 @@ Test "stream iterator(lexical zip)" in stream iterator test suite is
 	[
 		element : <[1..10], [1..100]…|2>
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "stream iterator(take_from_)" in stream iterator test suite is
@@ -299,9 +299,9 @@ Test "stream iterator(take_from_)" in stream iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: 6 = iter's current element;
+	Require: iter's current element = 6;
 	Require: [take 6 from iter] raises exhausted-iterator exception;
 ];
 
@@ -315,9 +315,9 @@ Test "stream iterator(take from_while_)" in stream iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: 6 = iter's current element;
+	Require: iter's current element = 6;
 ];
 
 Test "stream iterator(take from_until_)" in stream iterator test suite is
@@ -330,9 +330,9 @@ Test "stream iterator(take from_until_)" in stream iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: 6 = iter's current element;
+	Require: iter's current element = 6;
 ];
 
 Test "stream iterator(Drop_from_)" in stream iterator test suite is
@@ -345,9 +345,9 @@ Test "stream iterator(Drop_from_)" in stream iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 	Require: [Drop 6 from iter;] raises exhausted-iterator exception;
 ];
 
@@ -361,9 +361,9 @@ Test "stream iterator(Drop from_while_)" in stream iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "stream iterator(Drop from_until_)" in stream iterator test suite is
@@ -376,9 +376,9 @@ Test "stream iterator(Drop from_until_)" in stream iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "stream iterator(position)" in stream iterator test suite is
@@ -389,10 +389,10 @@ Test "stream iterator(position)" in stream iterator test suite is
 	[
 		value : [1..10]
 	|
-		Require: i = value;
+		Require: value = i;
 		pos ::= iter's position;
 		ref ::= i to 10;
-		Require: ref = take 10 - i + 1 from iter;
+		Require: take 10 - i + 1 from iter = ref;
 		Require: iter is exhausted;
 		iter's position := pos;
 		↑i++;

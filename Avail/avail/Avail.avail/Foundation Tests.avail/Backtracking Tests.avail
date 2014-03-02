@@ -48,7 +48,7 @@ Test "Cartesian product" in backtracking test suite is
 [
 	ref ::= (5 of true ++ 5 of false) zip (1 to 5 ++ 1 to 5);
 	product ::= all values of [<first try, trial# of 5>];
-	Require: ref = product;
+	Require: product = ref;
 ];
 
 Test "partial Cartesian product" in backtracking test suite is
@@ -60,7 +60,7 @@ Test "partial Cartesian product" in backtracking test suite is
 	|
 		product ::= first i values of
 			[<trial element of <true, false>, trial# of 5>];
-		Require: ref[1..|i|] = product;
+		Require: product = ref[1..i];
 	];
 ];
 
@@ -98,5 +98,5 @@ Semantic restriction "_queens" is
 Test "eight queens" in backtracking test suite is
 [
 	solution : <[1..8]…|8> := 8 queens;
-	Require: <1, 3, 5, 2, 8, 6, 4, 7> = solution;
+	Require: solution = <1, 3, 5, 2, 8, 6, 4, 7>;
 ];

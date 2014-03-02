@@ -41,7 +41,7 @@ Extends
 		"Before running each test in_,⁇do_",
 		"Before running_,⁇do_",
 		"New test suite,⁇_,⁇extends_",
-		"Test_in_is_«must raise_»",
+		"Test_in_«,⁇if supported«on this platform»⁇,⁇»?is_«must raise_»",
 		"_is a new test suite"
 	),
 	"Runners" =
@@ -72,6 +72,10 @@ Extends
 		"Require:_=_(_)",
 		"Require:_raises_",
 		"Require:_raises_(_)",
+		"Require if supported«on this platform»⁇:_",
+		"Require if supported«on this platform»⁇:_(_)",
+		"Require if supported«on this platform»⁇:_raises_",
+		"Require if supported«on this platform»⁇:_raises_(_)",
 
 		/* Exceptions. */
 		"failed-requirement exception"

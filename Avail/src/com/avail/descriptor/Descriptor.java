@@ -2170,10 +2170,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailObject potentialInstance)
 	{
-		// The potentialInstance is a user-defined object. See if it is an
-		// instance of me.
-
-		return false;
+		throw unsupportedOperationException();
 	}
 
 	@Override

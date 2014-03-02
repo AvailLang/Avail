@@ -43,7 +43,7 @@ Names
 	"Before running each test in_,⁇do_",
 	"Before running_,⁇do_",
 	"New test suite,⁇_,⁇extends_",
-	"Test_in_is_«must raise_»",
+	"Test_in_«,⁇if supported«on this platform»⁇,⁇»?is_«must raise_»",
 	"_is a new test suite"
 Body
 
@@ -369,7 +369,7 @@ Private method "Forget_" is
 /**
  * Define a unit test.
  *
- * @method "Test_in_is_«must raise_»"
+ * @method "Test_in_«,⁇if supported«on this platform»⁇,⁇»?is_«must raise_»"
  * @param "name" "string"
  *        The name of the test. This name will be resolved to an atom in the
  *        context of the current module. Since an atom retains its provenance,
@@ -387,10 +387,13 @@ Private method "Forget_" is
  * @raises "test-already-exists exception"
  *         If {@param "name"} names an existing unit test.
  */
-Public method "Test_in_is_«must raise_»" is
+Public method
+	"Test_in_«,⁇if supported«on this platform»⁇,⁇»?is_«must raise_»"
+is
 [
 	name : string,
 	suiteID : atom,
+	platformOptionality : boolean,
 	test : []→⊤,
 	optionalException : <exception's type…|0..1>
 |
@@ -406,6 +409,7 @@ Public method "Test_in_is_«must raise_»" is
 			test ID ::= trueName,
 			suite ID ::= suiteID,
 			body ::= test,
+			platform optionality ::= platformOptionality,
 			expected exception type ::= optionalException;
 		tests by atom := tests by atom + trueName→unitTest;
 		suite ::= suites by atom[suiteID] else

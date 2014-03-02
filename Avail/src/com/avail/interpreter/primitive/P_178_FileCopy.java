@@ -37,15 +37,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.IOException;
-import java.nio.file.CopyOption;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.FileVisitOption;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -189,7 +181,7 @@ extends Primitive
 				return interpreter.primitiveFailure(E_PARTIAL_SUCCESS);
 			}
 		}
-		catch (final SecurityException e)
+		catch (final SecurityException|AccessDeniedException e)
 		{
 			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 		}
@@ -205,8 +197,8 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()),
-				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()),
+				TupleTypeDescriptor.stringType(),
+				TupleTypeDescriptor.stringType(),
 				EnumerationTypeDescriptor.booleanObject(),
 				EnumerationTypeDescriptor.booleanObject(),
 				EnumerationTypeDescriptor.booleanObject()),

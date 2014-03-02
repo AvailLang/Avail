@@ -1472,36 +1472,52 @@ Semantic restriction "_to_" is
 	start : integer's type,
 	end : integer's type
 |
+	$body : type;
+	/* If the arguments are instance types, then bail immediately; let the
+	 * stable semantic restriction produce an instance type.
+	 */
+	If {|start|, |end|} = {1} then [Exit body with ⊤];
 	min ::= ⎣start⎦;
 	max ::= ⎡end⎤;
 	uncertainty ::= ⎡start⎤ - ⎣start⎦;
 	sizes ::= [0 max (⎣end⎦ - ⎡start⎤ + 1) .. max - min + 2);
 	if uncertainty is finite
-		∧ [ sizes ≠ ⊥
-		∧ [ ⎡sizes⎤ is finite ] ] then
+		∧ [sizes ≠ ⊥
+		∧ [⎡sizes⎤ is finite]] then
 	[
-		finiteMin ::= cast min into [ t : integer | t ];
-		finiteMax ::= cast max into [ t : integer | t ];
+		finiteMin ::= cast min into [t : integer | t];
+		finiteMax ::= cast max into [t : integer | t];
+		/* Don't obsess — just compute the first 100 prefix types. */
+		limitedMax ::= finiteMax min (finiteMin + 100);
 		types ::=
-			map finiteMin to finiteMax through
+			map finiteMin to limitedMax through
 			[
 				x : integer
 			|
 				[x .. (finiteMax min (x + uncertainty)) + 1)
 			];
+		defaultType ::=
+			if finiteMax ≠ limitedMax then
+			[
+				[limitedMax .. finiteMax + 1)
+			]
+			else
+			[
+				types[|types|] else [⊥]
+			];
 		cast types
-		into [t : <integer's type…|1..> | <t[1..|t|-1], t[|t|]…|sizes>]
+		into [t : <integer's type…|1..> | <t[1..|t|-1], defaultType…|sizes>]
 		else [<>'s type]
 	]
 	else if [sizes = ⊥] then
 	[
-		<⊥…|0>
+		<>'s type
 	]
 	else
 	[
 		<<>, [min..max + 1)…|sizes>
 	]
-];
+] : type;
 
 Method "_to_by_" is stable at [integer, integer, integer]→<integer…|>;
 

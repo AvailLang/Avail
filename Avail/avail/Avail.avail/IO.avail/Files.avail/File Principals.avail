@@ -128,7 +128,7 @@ Public method "_'s⁇owner(follow if symlink=_)" is
 |
 	userName ::=
 		[
-			s : nonempty string,
+			s : string,
 			f : boolean
 		|
 			Primitive 437 (e : {
@@ -200,7 +200,7 @@ Public method "_'s⁇owner:=_(follow if symlink=_)" is
 	followIfSymlink : boolean
 |
 	[
-		s : nonempty string,
+		s : string,
 		p : string,
 		f : boolean
 	|
@@ -273,7 +273,7 @@ Public method "_'s⁇group(follow if symlink=_)" is
 |
 	groupName ::=
 		[
-			s : nonempty string,
+			s : string,
 			f : boolean
 		|
 			Primitive 439 (e : {
@@ -345,7 +345,7 @@ Public method "_'s⁇group:=_(follow if symlink=_)" is
 	followIfSymlink : boolean
 |
 	[
-		s : nonempty string,
+		s : string,
 		p : string,
 		f : boolean
 	|

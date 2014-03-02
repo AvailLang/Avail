@@ -53,7 +53,7 @@ New test suite file access rights test suite extends I/O test suite;
 
 After running file access rights test suite, do
 [
-	abracadabra.txt's access rights := {owner read, group read};
+	Set standard file access rights;
 ];
 
 Test "owner read" in file access rights test suite is
@@ -110,7 +110,7 @@ Test "others execute" in file access rights test suite is
 	Require: others execute's permission = execute;
 ];
 
-Test "owner readable" in file access rights test suite is
+Test "owner readable" in file access rights test suite, if supported, is
 [
 	fn ::= abracadabra.txt;
 	fn's access rights := {owner read};
@@ -120,7 +120,7 @@ Test "owner readable" in file access rights test suite is
 	Require: ¬fn is executable;
 ];
 
-Test "group readable" in file access rights test suite is
+Test "group readable" in file access rights test suite, if supported, is
 [
 	fn ::= abracadabra.txt;
 	fn's access rights := {group read};
@@ -130,7 +130,7 @@ Test "group readable" in file access rights test suite is
 	Require: ¬fn is executable;
 ];
 
-Test "others readable" in file access rights test suite is
+Test "others readable" in file access rights test suite, if supported, is
 [
 	fn ::= abracadabra.txt;
 	fn's access rights := {others read};
@@ -140,7 +140,7 @@ Test "others readable" in file access rights test suite is
 	Require: ¬fn is executable;
 ];
 
-Test "owner writable" in file access rights test suite is
+Test "owner writable" in file access rights test suite, if supported, is
 [
 	fn ::= abracadabra.txt;
 	fn's access rights := {owner write};
@@ -150,7 +150,7 @@ Test "owner writable" in file access rights test suite is
 	Require: ¬fn is executable;
 ];
 
-Test "group writable" in file access rights test suite is
+Test "group writable" in file access rights test suite, if supported, is
 [
 	fn ::= abracadabra.txt;
 	fn's access rights := {group write};
@@ -160,7 +160,7 @@ Test "group writable" in file access rights test suite is
 	Require: ¬fn is executable;
 ];
 
-Test "others writable" in file access rights test suite is
+Test "others writable" in file access rights test suite, if supported, is
 [
 	fn ::= abracadabra.txt;
 	fn's access rights := {others write};
@@ -170,7 +170,7 @@ Test "others writable" in file access rights test suite is
 	Require: ¬fn is executable;
 ];
 
-Test "owner executable" in file access rights test suite is
+Test "owner executable" in file access rights test suite, if supported, is
 [
 	fn ::= abracadabra.txt;
 	fn's access rights := {owner execute};
@@ -180,7 +180,7 @@ Test "owner executable" in file access rights test suite is
 	Require: fn is executable;
 ];
 
-Test "group executable" in file access rights test suite is
+Test "group executable" in file access rights test suite, if supported, is
 [
 	fn ::= abracadabra.txt;
 	fn's access rights := {group execute};
@@ -190,7 +190,7 @@ Test "group executable" in file access rights test suite is
 	Require: ¬fn is executable;
 ];
 
-Test "others executable" in file access rights test suite is
+Test "others executable" in file access rights test suite, if supported, is
 [
 	fn ::= abracadabra.txt;
 	fn's access rights := {others execute};
@@ -200,7 +200,7 @@ Test "others executable" in file access rights test suite is
 	Require: ¬fn is executable;
 ];
 
-Test "no permissions" in file access rights test suite is
+Test "no permissions" in file access rights test suite, if supported, is
 [
 	fn ::= abracadabra.txt;
 	fn's access rights := ∅;
@@ -210,7 +210,7 @@ Test "no permissions" in file access rights test suite is
 	Require: ¬fn is executable;
 ];
 
-Test "permutations" in file access rights test suite is
+Test "permutations" in file access rights test suite, if supported, is
 [
 	fn ::= abracadabra.txt;
 	Randomly permute file access rights for

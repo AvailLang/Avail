@@ -60,43 +60,42 @@ Test "continuations" in control structure test suite is
 			];
 		];
 	]();
-	Require: value = 6;
+	Require: 6 = value;
 
- 	action2 ::= [i : integer | value := value + i; value > end];
- 	value := 0;
- 	end := 3;
+	action2 ::= [i : integer | value := value + i; value > end];
+	value := 0;
+	end := 3;
 	[
 		$loop : ⊤;
 		continue ::= action2(1);
 		If continue then [Exit loop] else [Restart loop]
 	] : ⊤ ();
 	Require: value = 4;
-	
+
 	locate : [⊥,⊥]→boolean := 
-	[ 
+	[
 		queryValue : integer,
 		t : <integer…|3..>
-	 |
-	 	$find : boolean;
-	 	For each of t do
-	 	[
-	 	 	i : integer
-	 	 |
-	 	 	If i = queryValue then [Exit find with true];
-	 	];
-	 	false
+	|
+		$find : boolean;
+		For each of t do
+		[
+			i : integer
+		|
+			If i = queryValue then [Exit find with true];
+		];
+		false
 	]:boolean;
 	Require: locate(5,<1,4,5,7>);
-	Require: (locate(2,<1,4,5,7>) = false);
-	
+	Require: ¬locate(2,<1,4,5,7>);
+
 	checkFunction : [⊥]→boolean :=
 	[
-	 	checkValue : integer
-	 |
-	 	$check : boolean;
-	 	If checkValue = 2 then [Exit check with true]
-	 	else [Restart check with <2>]
-	 	
+		checkValue : integer
+	|
+		$check : boolean;
+		If checkValue = 2 then [Exit check with true]
+		else [Restart check with <2>]
 	]:boolean;
 	Require: checkFunction(1);	
 ];
@@ -234,7 +233,7 @@ Test "repeat" in control structure test suite is
 [
 	a : whole number := 0;
 	Repeat [a := a + 2;] 10 times;
-	Require: a = 20;
+	Require: 20 = a;
 ];
 
 Test "choose from where" in control structure test suite is
@@ -283,9 +282,9 @@ Test "from to do" in control structure test suite is
 [
 	a : whole number := 0;
 	From 1 to 5 do [n : natural number | a := n;];
-	Require: a = 5;
+	Require: 5 = a;
 	
 	b : whole number := 0;
 	From 1 to 8 by 2 do [n : natural number | b := b + 1;];
-	Require: b = 4;
+	Require: 4 = b;
 ];

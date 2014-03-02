@@ -36,6 +36,10 @@ Versions
 Uses
 	"Avail",
 	"Dimensional Analysis"
+Entries
+	"Run all tests"
+Names
+	"Run all tests"
 Body
 
 /* Report on all tests. */
@@ -49,4 +53,9 @@ Repeat
 */
 
 /* Report on all tests. */
-Print: test suite-oriented “report on all tests”;
+Public method "Run all tests" is
+[
+	Print: test suite-oriented “report on all tests”;
+];
+
+Run all tests;

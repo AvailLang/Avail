@@ -63,7 +63,7 @@ Before running file metadata test suite, do
 
 After running file metadata test suite, do
 [
-	abracadabra.txt's access rights := {owner read, group read};
+	Set standard file access rights;
 	/* TODO: [TLS] Remove the symbolic link for file type testing. */
 ];
 
@@ -73,22 +73,22 @@ Test "file ID" in file metadata test suite is
 	Require: fn1's file ID = fn1's file ID;
 	m1 ::= fn1's metadata;
 	Require: m1's file ID = m1's file ID;
-	Require: fn1's file ID = m1's file ID;
+	Require: m1's file ID = fn1's file ID;
 	fn2 ::= scratch.txt;
 	Require: fn2's file ID = fn2's file ID;
 	Require: fn1's file ID ≠ fn2's file ID;
 	m2 ::= fn2's metadata;
 	Require: m2's file ID = m2's file ID;
-	Require: fn2's file ID = m2's file ID;
+	Require: m2's file ID = fn2's file ID;
 	Require: m1's file ID ≠ m2's file ID;
 ];
 
 Test "file types" in file metadata test suite is
 [
 	fn1 ::= abracadabra.txt;
-	Require: regular file = fn1's file type;
-	fn2 ::= a file named test directory;
-	Require: directory = fn2's file type;
+	Require: fn1's file type = regular file;
+	fn2 ::= ./test directory;
+	Require: fn2's file type = directory;
 	fn4 ::= a file named "/dev/null";
 	If fn4 exists then [Require: special file = fn4's file type;];
 ];
@@ -107,20 +107,20 @@ Test "file times" in file metadata test suite is
 		≤ m's last modification time
 		≤ m's last access time
 		≤ milliseconds since the Epoch;
-	Require: fn's creation time = m's creation time;
-	Require: fn's last modification time = m's last modification time;
-	Require: fn's last access time = m's last access time;
+	Require: m's creation time = fn's creation time;
+	Require: m's last modification time = fn's last modification time;
+	Require: m's last access time = fn's last access time;
 ];
 
 Test "file size" in file metadata test suite is
 [
 	fn ::= abracadabra.txt;
-	Require: 11 = fn's size;
+	Require: fn's size = 11;
 	m ::= fn's metadata;
-	Require: 11 = m's size;
+	Require: m's size = 11;
 ];
 
-Test "file access rights" in file metadata test suite is
+Test "file access rights" in file metadata test suite, if supported, is
 [
 	fn ::= abracadabra.txt;
 	m ::= fn's metadata;
@@ -133,10 +133,10 @@ Test "file access rights" in file metadata test suite is
 	] 10 times;
 ];
 
-Test "file principals" in file metadata test suite is
+Test "file principals" in file metadata test suite, if supported, is
 [
 	fn ::= abracadabra.txt;
 	m ::= fn's metadata;
 	Require: m's owner = fn's owner;
-	Require: m's group = m's group;
+	Require: m's group = fn's group;
 ];

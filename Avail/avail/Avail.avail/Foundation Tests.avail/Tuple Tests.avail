@@ -499,14 +499,14 @@ Test "integer interval tuple" in tuple test suite is
 				Guard
 				[
 					actual ::= start to end by delta;
-					Require: expected = actual;
+					Require: actual = expected;
 					Require: 0 ≠ delta;
 				]
 				intercept
 				[
 					e : incorrect-argument-type exception
 				|
-					Require: 0 = delta;
+					Require: delta = 0;
 				];
 			];
 		];
@@ -516,7 +516,7 @@ Test "integer interval tuple" in tuple test suite is
 	 * Test a delta that results in an actual end value that precedes the
 	 * supplied end.
 	 */
-	Require: <83, 66, 49, 32, 15, -2, -19> = 83 to -29 by -17;
+	Require: 83 to -29 by -17 = <83, 66, 49, 32, 15, -2, -19>;
 
 	/*
 	 * Create a simple integer interval tuple that is not small.
@@ -528,7 +528,7 @@ Test "integer interval tuple" in tuple test suite is
 	|
 		expected := expected ++ <i>;
 	];
-	Require: expected = 12345678901 to 12345678907 by 2;
+	Require: 12345678901 to 12345678907 by 2 = expected;
 
 	/*
 	 * Test concatenation of a small and a regular integer interval tuple.
@@ -544,7 +544,7 @@ Test "integer interval tuple" in tuple test suite is
 	intMaxInterval ::= 2147483640 to 2147483647 by 1;
 	tooBigInterval ::= 2147483648 to 2147483655 by 1;
 	concatTwo ::= intMaxInterval ++ tooBigInterval;
-	Require: concatTwo = 2147483640 to 2147483655 by 1;
+	Require: 2147483640 to 2147483655 by 1 = concatTwo;
 
 	/* 
 	 * Test concatenation of two small integer interval tuples.
@@ -552,5 +552,5 @@ Test "integer interval tuple" in tuple test suite is
 	left ::= 1 to 5 by 1;
 	right ::= 6 to 10 by 1;
 	concatThree ::= left ++ right;
-	Require: concatThree = 1 to 10 by 1;
+	Require: 1 to 10 by 1 = concatThree;
 ];

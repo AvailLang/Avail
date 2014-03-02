@@ -36,6 +36,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.CopyOption;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -99,7 +100,7 @@ extends Primitive
 				destinationPath,
 				options);
 		}
-		catch (final SecurityException e)
+		catch (final SecurityException|AccessDeniedException e)
 		{
 			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 		}
@@ -123,8 +124,8 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()),
-				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()),
+				TupleTypeDescriptor.stringType(),
+				TupleTypeDescriptor.stringType(),
 				EnumerationTypeDescriptor.booleanObject()),
 			TOP.o());
 	}

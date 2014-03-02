@@ -62,7 +62,7 @@ Test "server socket(set option)" in network test suite is
 	[
 		s's receive buffer size := 32768;
 		s's address reusability := true;
-		Require: "bogus" = s's name;
+		Require: s's name = "bogus";
 	]
 	ensure [Close s;];
 ];
@@ -70,7 +70,7 @@ Test "server socket(set option)" in network test suite is
 Test "server socket(bind IPv4)" in network test suite is
 [
 	s ::= a server socket named "bogus";
-	Require: "bogus" = s's name;
+	Require: s's name = "bogus";
 	addr ::= 127 .0 .0 .1:0;
 	Guard
 	[
@@ -83,7 +83,7 @@ Test "server socket(bind IPv4)" in network test suite is
 Test "server socket(rebind reusable IPv4)" in network test suite is
 [
 	s : server socket := a server socket named "bind";
-	Require: "bind" = s's name;
+	Require: s's name = "bind";
 	addr ::=
 		guard
 		[
@@ -93,12 +93,12 @@ Test "server socket(rebind reusable IPv4)" in network test suite is
 		]
 		ensure [Close s;];
 	s := a server socket named "rebind";
-	Require: "rebind" = s's name;
+	Require: s's name = "rebind";
 	Guard
 	[
 		s's address reusability := true;
 		Bind s to addr;
-		Require: addr = s's address;
+		Require: s's address = addr;
 	]
 	ensure [Close s;];
 ];
@@ -264,7 +264,7 @@ Test "basic transmission" in network test suite is
 			↑killer is assigned ∨ [|read| = |data|]
 		];
 		If ↑killer is assigned then [Raise killer];
-		Require: data = read;
+		Require: read = data;
 	]
 	ensure
 	[

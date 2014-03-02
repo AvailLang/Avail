@@ -35,44 +35,61 @@ Versions
 	"dev"
 Uses
 	"Assertions",
+	"Atoms",
 	"Bootstrap",
 	"Control Structures" =
 	(
 		"From_to_do_",
-		"If|if_then_«else if_then_»«else_»"
+		"If|if_then_«else if_then_»«else_»",
+		"(_)"
 	),
 	"Definers",
 	"Exceptions",
 	"Functions",
 	"Literals",
 	"Logic",
+	"Math",
 	"Objects",
 	"Strings",
 	"Tuples",
-	"Types"
+	"Types",
+	"Variables"
 Names
+	/* Casts. */
 	"Cast|cast each of_into_",
 	"Cast|cast each of_into_else_",
 	"Cast|cast_into_",
-	"bad-cast exception"
+	"Cast|cast_into«_‡,»«else_»",
+
+	/* Exception types. */
+	"bad-cast exception",
+	"bad-multiway-cast exception"
 Body
 
-_sourceType ::= $"source type";
-_destinationType ::= $"destination type";
+"source type" is a new field atom;
+"destination type" is a new field atom;
 
-Private method "source type" is [_sourceType];
-Private method "destination type" is [_destinationType];
+/**
+ * {@method "Cast|cast_into«_‡,»«else_»"} raises a bad-multiway-cast exception
+ * when no default case has been supplied and none of the cast functions accept
+ * the supplied value.
+ *
+ * @type "bad-multiway-cast exception"
+ * @supertype "exception"
+ */
+Public class "bad-multiway-cast exception" extends exception
+	with field
+		source type : type;
 
 /**
  * {@method "Cast|cast_into_"} raises a bad-cast exception when the specified
  * function does not accept the supplied value.
  *
  * @type "bad-cast exception"
- * @supertype "exception"
+ * @supertype "bad-multiway-cast exception"
  */
-Public class "bad-cast exception" extends exception
-	with fields
-		source type : type,
+Public class "bad-cast exception" extends bad-multiway-cast exception
+	with field
 		destination type : type;
 
 /**
@@ -136,6 +153,106 @@ Semantic restriction "Cast|cast_into_" is
 			with valueType, acceptType[1]
 	];
 	acceptType's return type
+];
+
+/**
+ * Invoke the first function of {@param "caseTuple"} that accepts {@param
+ * "value"}. If no such function is specified, then invoke {@param "else"}. If
+ * {@param "else"} is not specified, then raise a {@type
+ * "bad-multiway-cast exception"}.
+ * 
+ * @method "Cast|cast_into«_‡,»«else_»"
+ * @param "value" "any"
+ *        An arbitrary value.
+ * @param "caseTuple" "<[⊥]→⊤…|2..>"
+ *        A tuple of arity-1 functions. The first of these able to accept
+ *        {@param "value"} will be applied to it.
+ * @param "else" "<[]→⊤…|0..1>"
+ *        An optional arity-0 function. If provided, then it will be invoked iff
+ *        no function of `caseTuple` is able to accept {@param "value"}.
+ * @returns "⊤"
+ *          The result of whatever function is applied.
+ * @raises "bad-multiway-cast exception"
+ *         If no {@param "else"} function was supplied and no function of
+ *         {@param "caseTuple"} was able to accept {@param "value"}.
+ */
+Public method "Cast|cast_into«_‡,»«else_»" is
+[
+	value : any,
+	caseTuple : <[⊥]→⊤…|2..>,
+	else : <[]→⊤…|0..1>
+|
+	index : natural number := 1;
+	[
+		$body;
+		If index > |caseTuple| then
+		[
+			(else[1] else
+			[
+				[
+					Raise a bad-multiway-cast exception with
+						source type ::= value's type
+				]
+			])();
+		]
+		else if [value ∈ caseTuple[index]'s type[1]] then
+		[
+			caseTuple[index](value);
+		]
+		else
+		[
+			↑index++;
+			Restart body
+		];
+	]();
+] : ⊤;
+
+/**
+ * Strengthen the return type of `Cast|cast_into«_‡,»«else_»` so that it may be
+ * used as a value-producing expression. If any case is unnecessary or invalid,
+ * then reject the current parse.
+ * 
+ * @method "Cast|cast_into«_‡,»«else_»" 
+ * @restricts "any meta"
+ * @restricts "<[⊥]→⊤…|2..>'s type"
+ * @restricts "<[]→⊤…|0..1>'s type"
+ */
+Semantic restriction "Cast|cast_into«_‡,»«else_»" is
+[
+	valueType : any meta,
+	caseTuple : <[⊥]→⊤…|2..>'s type,
+	else : <[]→⊤…|0..1>'s type
+|
+	acceptSize ::= relevant |caseTuple|;
+	union : type := ⊥;
+	From 1 to acceptSize do
+	[
+		index : natural number
+	|
+		functionType ::= caseTuple[index];
+		If valueType ⊆ functionType[1] then
+		[
+			Reject parse, expected:
+				"necessary cast expression, but "
+				++ “valueType”
+				++ " is a subtype of "
+				++ “functionType[1]”
+		];
+		If valueType ∩ (functionType[1]) = ⊥ then
+		[
+			Reject parse, expected:
+				"allowed cast expression, but "
+				++ “valueType”
+				++ " is not a supertype of "
+				++ “functionType[1]”
+		];
+		union := eject ↑union ∪ functionType's return type;
+	];
+	If ⎣else⎦ = 1 then
+	[
+		union := eject ↑union ∪ else[1]'s return type;
+	];
+	union
 ];
 
 /**

@@ -376,9 +376,9 @@ Test "counting iterator basics" in counting iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "counting iterator(map)" in counting iterator test suite is
@@ -390,9 +390,9 @@ Test "counting iterator(map)" in counting iterator test suite is
 	[
 		element : [1..100]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "counting iterator(filter)" in counting iterator test suite is
@@ -405,9 +405,9 @@ Test "counting iterator(filter)" in counting iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "counting iterator(concatenation)" in counting iterator test suite is
@@ -429,9 +429,9 @@ Test "counting iterator(concatenation)" in counting iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "counting iterator(lexical concatenation)"
@@ -462,9 +462,9 @@ Test "counting iterator(lexical concatenation)"
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "counting iterator(zip)" in counting iterator test suite is
@@ -482,9 +482,9 @@ Test "counting iterator(zip)" in counting iterator test suite is
 	[
 		element : <[1..10], [1..100]…|2>
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "counting iterator(lexical zip)" in counting iterator test suite is
@@ -502,9 +502,9 @@ Test "counting iterator(lexical zip)" in counting iterator test suite is
 	[
 		element : <[1..10], [1..100]…|2>
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "counting iterator(take_from_)" in counting iterator test suite is
@@ -517,9 +517,9 @@ Test "counting iterator(take_from_)" in counting iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: 6 = iter's current element;
+	Require: iter's current element = 6;
 	Require: [take 6 from iter] raises exhausted-iterator exception;
 ];
 
@@ -533,9 +533,9 @@ Test "counting iterator(take from_while_)" in counting iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: 6 = iter's current element;
+	Require: iter's current element = 6;
 ];
 
 Test "counting iterator(take from_until_)" in counting iterator test suite is
@@ -548,9 +548,9 @@ Test "counting iterator(take from_until_)" in counting iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: 6 = iter's current element;
+	Require: iter's current element = 6;
 ];
 
 Test "counting iterator(Drop_from_)" in counting iterator test suite is
@@ -563,9 +563,9 @@ Test "counting iterator(Drop_from_)" in counting iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 	Require: [Drop 6 from iter;] raises exhausted-iterator exception;
 ];
 
@@ -579,9 +579,9 @@ Test "counting iterator(Drop from_while_)" in counting iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "counting iterator(Drop from_until_)" in counting iterator test suite is
@@ -594,23 +594,23 @@ Test "counting iterator(Drop from_until_)" in counting iterator test suite is
 	[
 		element : [1..10]
 	|
-		Require: ref[(↑index++)] = element;
+		Require: element = ref[(↑index++)];
 	];
-	Require: (|ref| + 1) = index;
+	Require: index = (|ref| + 1);
 ];
 
 Test "counting iterator(size)" in counting iterator test suite is
 [
 	iter : sizable iterator := a counting iterator from 1 to 10;
-	Require: 10 = |iter|;
+	Require: |iter| = 10;
 	iter := a counting iterator from 3 to 16;
-	Require: 14 = |iter|;
+	Require: |iter| = 14;
 	iter := a counting iterator from 2 to 16 by 3;
-	Require: 5 = |iter|;
+	Require: |iter| = 5;
 	iter := a counting iterator from -5 to 25 by 5;
-	Require: 7 = |iter|;
+	Require: |iter| = 7;
 	iter := a counting iterator from -6.25 to 21.4 by 3.1;
-	Require: 9 = |iter|;
+	Require: |iter| = 9;
 ];
 
 Test "counting iterator(position)" in counting iterator test suite is
@@ -622,7 +622,7 @@ Test "counting iterator(position)" in counting iterator test suite is
 		i : [1..5]
 	|
 		iter's position := i;
-		Require: i to 5 = take 5 - i + 1 from iter;
+		Require: take 5 - i + 1 from iter = i to 5;
 		Require: iter is exhausted;
 	];
 	iter := a counting iterator from 2 to 16 by 3;
@@ -631,7 +631,7 @@ Test "counting iterator(position)" in counting iterator test suite is
 		i : [2..16]
 	|
 		iter's position := i;
-		Require: i to 16 by 3 = take (16 - i + 3) ÷ 3 from iter;
+		Require: take (16 - i + 3) ÷ 3 from iter = i to 16 by 3;
 		Require: iter is exhausted;
 	];
 	iter's position := 4;
@@ -646,9 +646,9 @@ Test "counting iterator(remaining elements)" in counting iterator test suite is
 	[
 		element : [2..10]
 	|
-		Require: remaining = |iter's remaining elements|;
+		Require: |iter's remaining elements| = remaining;
 		↑remaining--;
 	];
 	Require: iter is exhausted;
-	Require: remaining = |iter's remaining elements|;
+	Require: |iter's remaining elements| = remaining;
 ];

@@ -564,11 +564,6 @@ public class IndexedRepositoryManager
 			final byte [] sourceDigest)
 		{
 			assert sourceDigest.length == DIGEST_SIZE;
-			final String rootRelative = moduleName.rootRelativeName();
-			final File file = new File(rootRelative);
-			final File parent = file.getParentFile();
-			assert parent == null || !parent.getName().equals(file.getName())
-				: "Representative module encountered – should be package name";
 			this.sourceDigest = sourceDigest;
 			this.isPackage = moduleName.isPackage();
 			this.hash = computeHash();
@@ -760,6 +755,17 @@ public class IndexedRepositoryManager
 		public List<String> getImports ()
 		{
 			return localImportNames;
+		}
+
+		/**
+		 * Answer the list of entry point names declared by this version of the
+		 * module.
+		 *
+		 * @return The list of entry point names.
+		 */
+		public List<String> getEntryPoints ()
+		{
+			return entryPoints;
 		}
 
 		/**

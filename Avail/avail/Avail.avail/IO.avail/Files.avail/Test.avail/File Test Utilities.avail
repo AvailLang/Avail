@@ -43,17 +43,42 @@ Names
 	/* File names. */
 	"abracadabra.txt",
 	"scratch.txt",
+
+	/* Potentially unsupported operations. */
+	"Try_",
+
+	/* Initialization. */
+	"Set standard file access rights",
+
+	/* Utilities. */
 	"Randomly permute file access rights for__times"
 Body
 
 Public method "abracadabra.txt" is
 [
-	a file named test directory ++ "/abracadabra.txt"
+	./test directory/"abracadabra.txt"
 ];
 
 Public method "scratch.txt" is
 [
-	a file named test directory ++ "/scratch.txt"
+	./test directory/"scratch.txt"
+];
+
+Public method "Try_" is
+[
+	aFunction : []→⊤
+|
+	Guard aFunction
+	intercept [e : unsupported-operation exception | /* Ignore. */];
+] : ⊤;
+
+Public method "Set standard file access rights" is
+[
+	Try
+	[
+		abracadabra.txt's access rights := {owner read, group read};
+		scratch.txt's access rights := {owner read, group read};
+	];
 ];
 
 Public method "Randomly permute file access rights for__times" is

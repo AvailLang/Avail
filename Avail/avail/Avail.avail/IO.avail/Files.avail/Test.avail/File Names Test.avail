@@ -54,14 +54,13 @@ New test suite file names test suite extends I/O test suite;
 
 Before running each test in file names test suite, do
 [
-	fn ::= abracadabra.txt;
-	fn's access rights := {owner read, group read, others read};
+	Set standard file access rights;
 ];
 
 Test "exists" in file names test suite is
 [
 	fn1 ::= abracadabra.txt;
-	fn2 ::= a file named test directory ++ "/doesnotexist.txt";
+	fn2 ::= ./test directory/"doesnotexist.txt";
 	Require: fn1 exists;
 	Require: ¬fn2 exists;
 ];
@@ -70,12 +69,12 @@ Test "absolute path" in file names test suite is
 [
 	fn ::= abracadabra.txt;
 	Require: ¬fn is absolute;
-	absoluteTest ::= a file named test directory's absolute path;
+	absoluteTest ::= ./test directory's absolute path;
 	Require: absoluteTest is absolute;
 	absoluteFile ::= fn's absolute path;
 	Require: absoluteFile is absolute;
-	Require: absoluteFile's name = absoluteTest's name ++ "/abracadabra.txt";
-	Require: absoluteTest names the same file as a file named test directory;
+	Require: absoluteFile = absoluteTest / "abracadabra.txt";
+	Require: absoluteTest names the same file as ./test directory;
 	Require: absoluteFile names the same file as fn;
 ];
 
@@ -109,10 +108,12 @@ Test "current working directory" in file names test suite is
 	Require: ¬fn is absolute;
 	cwd ::= current working directory;
 	Require: cwd is absolute;
-	fn2 ::= a file named cwd's name
-		++ "/avail/Avail.avail/IO.avail/Files.avail/test/abracadabra.txt";
+	fn2 ::= cwd/"avail"/"Avail.avail"/"IO.avail"
+		/"Files.avail"/"test"/"abracadabra.txt";
 	Require: fn2 is absolute;
 	Require: fn names the same file as fn2;
 	dot ::= a file named ".";
 	Require: cwd names the same file as dot;
+	empty ::= a file named "";
+	Require: cwd names the same file as empty;
 ];

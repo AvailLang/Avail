@@ -32,10 +32,10 @@
 
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -87,13 +87,13 @@ extends Primitive
 		{
 			realPath = path.toRealPath(options);
 		}
+		catch (final SecurityException|AccessDeniedException e)
+		{
+			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
+		}
 		catch (final IOException e)
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR);
-		}
-		catch (final SecurityException e)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 		}
 		return interpreter.primitiveSuccess(StringDescriptor.from(
 			realPath.toString()));
@@ -104,9 +104,9 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()),
+				TupleTypeDescriptor.stringType(),
 				EnumerationTypeDescriptor.booleanObject()),
-			TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()));
+			TupleTypeDescriptor.stringType());
 	}
 
 	@Override

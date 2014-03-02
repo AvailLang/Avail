@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.IOError;
@@ -82,13 +81,13 @@ extends Primitive
 		{
 			absolutePath = path.toAbsolutePath();
 		}
-		catch (final IOError e)
-		{
-			return interpreter.primitiveFailure(E_IO_ERROR);
-		}
 		catch (final SecurityException e)
 		{
 			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
+		}
+		catch (final IOError e)
+		{
+			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
 		return interpreter.primitiveSuccess(StringDescriptor.from(
 			absolutePath.toString()));
@@ -99,8 +98,8 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o())),
-			TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()));
+				TupleTypeDescriptor.stringType()),
+			TupleTypeDescriptor.stringType());
 	}
 
 	@Override

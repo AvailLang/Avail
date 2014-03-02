@@ -225,7 +225,7 @@ Test "file iterator(readable)" in file iterator test suite is
 	fn ::= testDir ++ "/abracadabra.txt" as file name;
 	iter ::= a file iterator for fn;
 	Require: iter is open;
-	Require: ref = take at most ∞ from iter;
+	Require: take at most ∞ from iter = ref;
 	Require: iter is exhausted;
 	Require: iter is open;
 	Close iter;
@@ -238,7 +238,7 @@ Test "file iterator(readable,small buffer)" in file iterator test suite is
 	fn ::= testDir ++ "/abracadabra.txt" as file name;
 	iter ::= a file iterator for fn that buffers 3 bytes;
 	Require: iter is open;
-	Require: ref = take at most ∞ from iter;
+	Require: take at most ∞ from iter = ref;
 	Require: iter is exhausted;
 	Require: iter is open;
 	Close iter;
@@ -251,11 +251,11 @@ Test "file iterator(readable,reposition)" in file iterator test suite is
 	fn ::= testDir ++ "/abracadabra.txt" as file name;
 	iter ::= a file iterator for fn;
 	Require: iter is open;
-	Require: ref = take at most ∞ from iter;
+	Require: take at most ∞ from iter = ref;
 	Require: iter is exhausted;
 	Require: iter is open;
 	iter's position := 1;
-	Require: ref = take at most ∞ from iter;
+	Require: take at most ∞ from iter = ref;
 	Require: iter is exhausted;
 	Require: iter is open;
 	Close iter;

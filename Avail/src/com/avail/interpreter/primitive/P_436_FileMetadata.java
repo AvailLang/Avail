@@ -32,10 +32,11 @@
 
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import java.io.IOError;
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.LinkOption;
@@ -89,20 +90,45 @@ extends Primitive
 			attributes = Files.readAttributes(
 				path, BasicFileAttributes.class, options);
 		}
+		catch (final SecurityException|AccessDeniedException e)
+		{
+			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
+		}
 		catch (final IOException e)
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
-		catch (final SecurityException e)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
-		}
 		// Build the attribute tuple.
 		final Object fileId = attributes.fileKey();
+		final Object raw;
+		final Class<?> rawClass;
+		// The file key may be null, in which case just use the path itself.
+		// Try to use the absolute path if it's available, otherwise just use
+		// the one supplied.
+		if (fileId != null)
+		{
+			raw = fileId;
+			rawClass = fileId.getClass();
+		}
+		else
+		{
+			// Curse you, Java, for your incomplete flow analysis.
+			Object temp;
+			try
+			{
+				temp = path.toAbsolutePath();
+			}
+			catch (final SecurityException|IOError e)
+			{
+				temp = path;
+			}
+			raw = temp;
+			rawClass = Path.class;
+		}
 		final A_Tuple tuple = TupleDescriptor.from(
 			PojoDescriptor.newPojo(
-				RawPojoDescriptor.equalityWrap(fileId),
-				PojoTypeDescriptor.forClass(fileId.getClass())),
+				RawPojoDescriptor.equalityWrap(raw),
+				PojoTypeDescriptor.forClass(rawClass)),
 			IntegerDescriptor.fromInt(
 				attributes.isRegularFile() ? 1
 				: attributes.isDirectory() ? 2
@@ -124,7 +150,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()),
+				TupleTypeDescriptor.stringType(),
 				EnumerationTypeDescriptor.booleanObject()),
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.singleInt(6),

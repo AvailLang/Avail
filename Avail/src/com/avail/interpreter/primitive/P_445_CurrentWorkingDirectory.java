@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.IOException;
 import java.nio.file.FileSystem;
@@ -57,7 +56,7 @@ extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_445_CurrentWorkingDirectory().init(
-			0, CannotFail, CanInline, HasSideEffect);
+			0, CannotFail, CanInline, CanFold);
 
 	/**
 	 * The current working directory of the Avail virtual machine. Because Java
@@ -102,6 +101,6 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.empty(),
-			TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()));
+			TupleTypeDescriptor.stringType());
 	}
 }

@@ -81,8 +81,8 @@ Public method "Rename_to_" is
 	dest : file name
 |
 	[
-		s : nonempty string,
-		d : nonempty string
+		s : string,
+		d : string
 	|
 		Primitive 174 (e : {
 			invalid-path code,
@@ -124,8 +124,8 @@ Public method "Move_to_(overwrite=_)" is
 	overwrite : boolean
 |
 	[
-		s : nonempty string,
-		d : nonempty string,
+		s : string,
+		d : string,
 		o : boolean
 	|
 		Primitive 177 (e : {
@@ -217,8 +217,8 @@ is
 	copyAttributes : boolean
 |
 	[
-		s : nonempty string,
-		d : nonempty string,
+		s : string,
+		d : string,
 		f : boolean,
 		o : boolean,
 		c : boolean
@@ -328,7 +328,7 @@ Public method "Unlink_(recursive=_,must exist=_,follow symlinks=_)" is
 |
 	[
 		r : boolean,
-		s : nonempty string,
+		s : string,
 		d : boolean,
 		f : boolean
 	|

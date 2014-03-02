@@ -36,6 +36,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.LinkOption;
@@ -120,7 +121,7 @@ extends Primitive
 		{
 			view.setPermissions(permissions);
 		}
-		catch (final SecurityException e)
+		catch (final SecurityException|AccessDeniedException e)
 		{
 			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
 		}
@@ -136,7 +137,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()),
+				TupleTypeDescriptor.stringType(),
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.create(
 						IntegerDescriptor.fromInt(0),
