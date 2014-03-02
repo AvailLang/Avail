@@ -612,7 +612,6 @@ public final class AvailBuilder
 			AbstractAvailCompiler.create(
 				resolvedName,
 				true,
-				true, //TODO [RAA] Need to create builder ability to toggle this to true
 				new Continuation1<AbstractAvailCompiler>()
 				{
 					@Override
@@ -1247,7 +1246,6 @@ public final class AvailBuilder
 			AbstractAvailCompiler.create(
 				moduleName,
 				false,
-				true, //TODO [RAA] Need to create builder ability to toggle this to true
 				continuation,
 				new Continuation0()
 				{

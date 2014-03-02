@@ -109,18 +109,15 @@ extends Exception
 	 *            The original problem to be treated as a scanner problem.
 	 * @param moduleName
 	 *            The name of the module that failed lexical scanning.
-	 * @param captureAvailComments
-	 * 			  Tokenize and collect Avail comments?
 	 */
 	public AvailScannerException (
 		final Throwable cause,
-		final String moduleName,
-		final boolean captureAvailComments)
+		final String moduleName)
 	{
 		super(cause);
 		try
 		{
-			AvailScanner.scanString("", moduleName, true, captureAvailComments);
+			AvailScanner.scanString("", moduleName, true);
 			assert false : "Should have thrown exception";
 			// And throw in case assertions are off.  Keeps Java compiler happy.
 			throw new RuntimeException("Should have thrown exception");

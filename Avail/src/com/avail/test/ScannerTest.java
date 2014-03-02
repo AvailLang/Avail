@@ -435,7 +435,6 @@ public final class ScannerTest
 				scannedTokens = AvailScanner.scanString(
 					input,
 					"A module synthesized in ScannerTest.testScanner()",
-					false,
 					false);
 				if (c.tokenGenerators.length == 1
 					&& c.tokenGenerators[0] == null)

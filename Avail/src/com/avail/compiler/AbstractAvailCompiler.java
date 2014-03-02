@@ -1061,7 +1061,6 @@ public abstract class AbstractAvailCompiler
 	public static void create (
 		final ResolvedModuleName resolvedName,
 		final boolean stopAfterBodyToken,
-		final boolean captureAvailComments,
 		final Continuation1<AbstractAvailCompiler> succeed,
 		final Continuation0 afterFail,
 		final ProblemHandler problemHandler)
@@ -1080,8 +1079,7 @@ public abstract class AbstractAvailCompiler
 						tokens = tokenize(
 							sourceText,
 							resolvedName.qualifiedName(),
-							stopAfterBodyToken,
-							captureAvailComments);
+							stopAfterBodyToken);
 					}
 					catch (final AvailScannerException e)
 					{
@@ -2289,8 +2287,6 @@ public abstract class AbstractAvailCompiler
 	 *        The name of the module to tokenize.
 	 * @param stopAfterBodyToken
 	 *        Stop scanning after encountering the BODY token?
-	 * @param captureAvailComments
-	 * 		  Tokenize and collect Avail comments?
 	 * @return The {@linkplain ResolvedModuleName resolved module name}.
 	 * @throws AvailScannerException
 	 *         If tokenization failed for any reason.
@@ -2298,16 +2294,14 @@ public abstract class AbstractAvailCompiler
 	static List<A_Token> tokenize (
 			final String source,
 			final String moduleName,
-			final boolean stopAfterBodyToken,
-			final boolean captureAvailComments)
+			final boolean stopAfterBodyToken)
 		throws AvailScannerException
 	{
 		return AvailScanner
 			.scanString(
 				source,
 				moduleName,
-				stopAfterBodyToken,
-				captureAvailComments);
+				stopAfterBodyToken);
 	}
 
 	/**

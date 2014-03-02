@@ -65,12 +65,6 @@ public class AvailScanner
 	final boolean stopAfterBodyToken;
 
 	/**
-	 * Whether to tokenize Avail comments into {@link CommentTokenDescriptor}
-	 * and populating commentTokens.
-	 */
-	final boolean captureAvailComments;
-
-	/**
 	 * The tokens that have been parsed so far.
 	 */
 	final List<A_Token> outputTokens;
@@ -214,21 +208,6 @@ public class AvailScanner
 			startOfToken,
 			startLine,
 			StringDescriptor.from(moduleName()));
-
-//TODO Remove
-		if (moduleName.equals("/avail/Avail/Foundation/Tuples"))
-		{
-			try
-			{
-				final List<com.avail.stacks.AbstractStacksToken> stacksToken =
-					com.avail.stacks.StacksScanner.scanCommentString(token);
-			}
-			catch (final Exception e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
 
 		token.makeShared();
 		commentTokens.add(token);
@@ -817,7 +796,7 @@ public class AvailScanner
 						}
 						if (depth == 0)
 						{
-							if (capture && scanner.captureAvailComments)
+							if (capture)
 							{
 								scanner.addCurrentCommentToken(startLine);
 							}
@@ -950,8 +929,6 @@ public class AvailScanner
 	 *            The name of the module being lexically scanned.
 	 * @param stopAfterBodyTokenFlag
 	 *            Stop scanning after encountering the <em>Names</em> token?
-	 * @param captureAvailComments
-	 * 			  Tokenize and collect Avail comments?
 	 * @return A {@linkplain List list} of {@linkplain TokenDescriptor tokens}
 	 *         terminated by a token of type {@link TokenType#END_OF_FILE}.
 	 * @throws AvailScannerException If scanning fails.
@@ -959,16 +936,14 @@ public class AvailScanner
 	public static List<A_Token> scanString (
 			final String string,
 			final String moduleName,
-			final boolean stopAfterBodyTokenFlag,
-			final boolean captureAvailComments)
+			final boolean stopAfterBodyTokenFlag)
 		throws AvailScannerException
 	{
 		final AvailScanner scanner =
 			new AvailScanner(
 				string,
 				moduleName,
-				stopAfterBodyTokenFlag,
-				captureAvailComments);
+				stopAfterBodyTokenFlag);
 		scanner.scan();
 		return scanner.outputTokens;
 	}
@@ -982,15 +957,12 @@ public class AvailScanner
 	 *            The name of the module being scanned.
 	 * @param stopAfterBodyToken
 	 *            Whether to skip parsing the body.
-	 * @param captureAvailComments
-	 * 			  Whether collect Avail comment tokens.
 	 * @throws AvailScannerException If scanning fails.
 	 */
 	private AvailScanner (
 			final String inputString,
 			final String moduleName,
-			final boolean stopAfterBodyToken,
-			final boolean captureAvailComments)
+			final boolean stopAfterBodyToken)
 		throws AvailScannerException
 	{
 		this.inputString = inputString;
@@ -998,7 +970,6 @@ public class AvailScanner
 		this.stopAfterBodyToken = stopAfterBodyToken;
 		this.outputTokens = new ArrayList<A_Token>(inputString.length() / 20);
 		this.commentTokens = new ArrayList<A_Token>(10);
-		this.captureAvailComments = captureAvailComments;
 	}
 
 	/**
