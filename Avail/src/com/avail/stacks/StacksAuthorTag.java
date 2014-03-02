@@ -32,6 +32,8 @@
 
 package com.avail.stacks;
 
+import java.util.ArrayList;
+
 /**
  * he Avail comment "@author" tag
  *
@@ -40,32 +42,27 @@ package com.avail.stacks;
 public class StacksAuthorTag extends AbstractStacksTag
 {
 	/**
-	 * The author of the method/type
+	 * Excess tokens of unknown purpose
 	 */
-	final private QuotedStacksToken author;
+	final private ArrayList<AbstractStacksToken> author;
 
 	/**
 	 * Construct a new {@link StacksAuthorTag}.
 	 *
-	 * @param tag
-	 * 		The Avail comment tag
 	 * @param author
 	 * 		The author of the method/type
 	 */
 	public StacksAuthorTag (
-		final KeywordStacksToken tag,
-		final QuotedStacksToken author)
+		final ArrayList<AbstractStacksToken> author)
 	{
-		super(tag);
 		this.author = author;
 	}
 
 	/**
 	 * @return the author
 	 */
-	public QuotedStacksToken author ()
+	public ArrayList<AbstractStacksToken> author ()
 	{
 		return author;
 	}
-
 }

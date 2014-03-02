@@ -32,7 +32,9 @@
 
 package com.avail.stacks;
 
-import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.AtomDescriptor;
 
 /**
  * The defining characteristic of a comment as it pertains to the
@@ -46,12 +48,12 @@ public class CommentSignature
 	/**
 	 * The name of the class/method the comment describes.
 	 */
-	final String name;
+	final A_Atom name;
 
 	/**
 	 *  The module this implementation appears in.
 	 */
-	final A_Module module;
+	final A_String module;
 
 	/**
 	 * Construct a new {@link CommentSignature}.
@@ -63,9 +65,9 @@ public class CommentSignature
 	 */
 	public CommentSignature (
 		final String name,
-		final A_Module module)
+		final A_String module)
 	{
-		this.name = name;
+		this.name = AtomDescriptor.createSpecialAtom(name);
 		this.module = module;
 	}
 }

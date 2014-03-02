@@ -32,7 +32,7 @@
 
 package com.avail.stacks;
 
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * A comment implementation of grammatical restrictions
@@ -45,7 +45,7 @@ public class SemanticRestrictionCommentImplementation extends
 	/**
 	 *  The list of input types in the semantic restriction.
 	 */
-	final List<StacksRestrictsTag> restricts;
+	final ArrayList<StacksRestrictsTag> restricts;
 
 	/**
 	 * Construct a new {@link SemanticRestrictionCommentImplementation}.
@@ -54,17 +54,17 @@ public class SemanticRestrictionCommentImplementation extends
 	 * 		The {@link SemanticRestrictionCommentSignature signature} of the
 	 * 		class/method the comment describes.
 	 * @param author
-	 * 		The {@link StacksAuthorTag author} of the implementation.
+	 * 		The {@link StacksAuthorTag authors} of the implementation.
 	 * @param sees
-	 * 		A {@link List} of any {@link StacksSeeTag "@sees"} references.
+	 * 		A {@link ArrayList} of any {@link StacksSeeTag "@sees"} references.
 	 * @param restricts
 	 * 		The list of input types in the semantic restriction.
 	 */
 	public SemanticRestrictionCommentImplementation (
 		final SemanticRestrictionCommentSignature signature,
-		final StacksAuthorTag author,
-		final List<StacksSeeTag> sees,
-		final List<StacksRestrictsTag> restricts)
+		final ArrayList<StacksAuthorTag> author,
+		final ArrayList<StacksSeeTag> sees,
+		final ArrayList<StacksRestrictsTag> restricts)
 	{
 		super(signature, author, sees);
 		this.restricts = restricts;

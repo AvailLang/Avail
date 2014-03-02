@@ -32,7 +32,7 @@
 
 package com.avail.stacks;
 
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * A comment implementation of grammatical restrictions
@@ -54,16 +54,16 @@ public class GrammaticalRestrictionCommentImplementation extends
 	 * 		The {@link CommentSignature signature} of the class/method the
 	 * 		comment describes.
 	 * @param author
-	 * 		The {@link StacksAuthorTag author} of the implementation.
+	 * 		The {@link StacksAuthorTag authors} of the implementation.
 	 * @param sees
-	 * 		A {@link List} of any {@link StacksSeeTag "@sees"} references.
+	 * 		A {@link ArrayList} of any {@link StacksSeeTag "@sees"} references.
 	 * @param forbids
 	 * 		The forbids tag contents
 	 */
 	public GrammaticalRestrictionCommentImplementation (
 		final CommentSignature signature,
-		final StacksAuthorTag author,
-		final List<StacksSeeTag> sees,
+		final ArrayList<StacksAuthorTag> author,
+		final ArrayList<StacksSeeTag> sees,
 		final StacksForbidsTag forbids)
 	{
 		super(signature, author, sees);

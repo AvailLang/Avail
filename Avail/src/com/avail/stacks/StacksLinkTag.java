@@ -47,13 +47,11 @@ public class StacksLinkTag extends AbstractStacksTag
 	 * is what is displayed, otherwise the text following the web address will
 	 * be used as the linking text.
 	 */
-	final private List<QuotedStacksToken> linkTokens;
+	final private List<AbstractStacksToken> linkTokens;
 
 	/**
 	 * Construct a new {@link StacksLinkTag}.
 	 *
-	 * @param tag
-	 * 		The Avail comment tag
 	 * @param linkTokens
 	 * 		The external site to be linked to along with any way you want the
 	 * 		link to be represented.  If only the web address is listed, the web
@@ -61,17 +59,15 @@ public class StacksLinkTag extends AbstractStacksTag
 	 * 		address will be used as the linking text.
 	 */
 	public StacksLinkTag (
-		final KeywordStacksToken tag,
-		final List<QuotedStacksToken> linkTokens)
+		final List<AbstractStacksToken> linkTokens)
 	{
-		super(tag);
 		this.linkTokens = linkTokens;
 	}
 
 	/**
 	 * @return the linkTokens
 	 */
-	public List<QuotedStacksToken> linkTokens ()
+	public List<AbstractStacksToken> linkTokens ()
 	{
 		return linkTokens;
 	}

@@ -32,7 +32,8 @@
 
 package com.avail.stacks;
 
-import java.util.List;
+import java.util.ArrayList;
+
 
 /**
  * The "@raises" tag in an Avail comment indicates an exception that is thrown
@@ -43,30 +44,26 @@ import java.util.List;
 public class StacksRaisesTag extends AbstractStacksTag
 {
 	/**
-	 * The description of the exception.
-	 */
-	final private List<AbstractStacksToken> exceptionDescription;
-
-	/**
 	 * The name of the exception.
 	 */
 	final private QuotedStacksToken exceptionName;
 
 	/**
+	 * The description of the exception.
+	 */
+	final private ArrayList<AbstractStacksToken> exceptionDescription;
+
+	/**
 	 * Construct a new {@link StacksRaisesTag}.
 	 *
-	 * @param tag
-	 * 		The Avail comment tag
 	 * @param exceptionName
 	 * 		The name of the exception.
 	 * @param exceptionDescription
 	 */
 	public StacksRaisesTag (
-		final KeywordStacksToken tag,
 		final QuotedStacksToken exceptionName,
-		final List<AbstractStacksToken> exceptionDescription)
+		final ArrayList<AbstractStacksToken> exceptionDescription)
 	{
-		super(tag);
 		this.exceptionDescription = exceptionDescription;
 		this.exceptionName = exceptionName;
 	}
@@ -74,7 +71,7 @@ public class StacksRaisesTag extends AbstractStacksTag
 	/**
 	 * @return the exceptionDescription
 	 */
-	public List<AbstractStacksToken> exceptionDescription ()
+	public ArrayList<AbstractStacksToken> exceptionDescription ()
 	{
 		return exceptionDescription;
 	}

@@ -44,19 +44,17 @@ public class StacksTypeTag extends AbstractStacksTag
 	 */
 	final private QuotedStacksToken typeName;
 
+
+
 	/**
 	 * Construct a new {@link StacksTypeTag}.
 	 *
-	 * @param tag
-	 * 		The Avail comment tag
 	 * @param typeName
 	 * 		The name of the type
 	 */
 	public StacksTypeTag (
-		final KeywordStacksToken tag,
 		final QuotedStacksToken typeName)
 	{
-		super(tag);
 		this.typeName = typeName;
 	}
 
@@ -67,5 +65,4 @@ public class StacksTypeTag extends AbstractStacksTag
 	{
 		return typeName;
 	}
-
 }

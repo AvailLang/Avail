@@ -47,16 +47,12 @@ public class StacksSeeTag extends AbstractStacksTag
 	/**
 	 * Construct a new {@link StacksSeeTag}.
 	 *
-	 * @param tag
-	 *		The Avail comment tag
 	 * @param thingToSee
 	 * 		The thing that should be 'seen'
 	 */
 	public StacksSeeTag (
-		final KeywordStacksToken tag,
 		final RegionStacksToken thingToSee)
 	{
-		super(tag);
 		this.thingToSee = thingToSee;
 	}
 

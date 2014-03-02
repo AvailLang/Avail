@@ -1,5 +1,5 @@
 /**
- * StacksParameterTag.java
+ * GlobalCommentSignature.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,71 +32,31 @@
 
 package com.avail.stacks;
 
-import java.util.List;
+import com.avail.descriptor.A_String;
 
 /**
- * The contents of an Avail comment "@param" tag
+ * Global Comment Signature
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksParameterTag extends AbstractStacksTag
+public class GlobalCommentSignature extends CommentSignature
 {
 	/**
-	 * The name of the parameter variable.
+	 * The type of the global module variable.
 	 */
-	final private QuotedStacksToken paramName;
-
+	final String globalType;
 	/**
-	 * The type of the parameter
-	 */
-	final private QuotedStacksToken paramType;
-
-	/**
-	 * The description of the parameter.
-	 */
-	final private List<AbstractStacksToken> paramDescription;
-
-	/**
-	 * Construct a new {@link StacksParameterTag}.
+	 * Construct a new {@link GlobalCommentSignature}.
 	 *
-	 * @param paramType
-	 * 		The type of the parameter
-	 * @param paramDescription
-	 * 		The description of the parameter.
-	 * @param paramName
-	 * 		The name of the parameter variable.
+	 * @param name
+	 * @param module
+	 * @param globalType
 	 */
-	public StacksParameterTag (
-		final QuotedStacksToken paramName,
-		final QuotedStacksToken paramType,
-		final List<AbstractStacksToken> paramDescription)
+	public GlobalCommentSignature (final String name, final A_String module,
+		final String globalType)
 	{
-		this.paramType = paramType;
-		this.paramDescription = paramDescription;
-		this.paramName = paramName;
+		super(name, module);
+		this.globalType = globalType;
 	}
 
-	/**
-	 * @return the returnDescription
-	 */
-	public List<AbstractStacksToken> paramDescription ()
-	{
-		return paramDescription;
-	}
-
-	/**
-	 * @return the returnType
-	 */
-	public QuotedStacksToken paramType ()
-	{
-		return paramType;
-	}
-
-	/**
-	 * @return the paramName
-	 */
-	public QuotedStacksToken paramName ()
-	{
-		return paramName;
-	}
 }

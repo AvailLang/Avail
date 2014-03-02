@@ -32,7 +32,7 @@
 
 package com.avail.stacks;
 
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * A comment that describes a particular method implementation
@@ -44,13 +44,13 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 	/**
 	 * The overall description of the implementation
 	 */
-	final List<AbstractStacksToken> description;
+	final ArrayList<AbstractStacksToken> description;
 
 	/**
 	 * The list of {@link StacksParameterTag parameters} of the method
 	 * implementation.
 	 */
-	final List<StacksParameterTag> parameters;
+	final ArrayList<StacksParameterTag> parameters;
 
 	/**
 	 * The {@link StacksReturnTag "@returns"} content
@@ -60,7 +60,7 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 	/**
 	 *
 	 */
-	final List<StacksRaisesTag> exceptions;
+	final ArrayList<StacksRaisesTag> exceptions;
 
 	/**
 	 * Construct a new {@link MethodCommentImplementation}.
@@ -71,7 +71,7 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 	 * @param author
 	 * 		The {@link StacksAuthorTag author} of the implementation.
 	 * @param sees
-	 * 		A {@link List} of any {@link StacksSeeTag "@sees"} references.
+	 * 		A {@link ArrayList} of any {@link StacksSeeTag "@sees"} references.
 	 * @param description
 	 * 		The overall description of the implementation
 	 * @param parameters
@@ -80,17 +80,17 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 	 * @param returnsContent
 	 * 		The {@link StacksReturnTag "@returns"} content
 	 * @param exceptions
-	 * 		A {@link List} of any {@link StacksRaisesTag exceptions} the method
+	 * 		A {@link ArrayList} of any {@link StacksRaisesTag exceptions} the method
 	 * 		throws.
 	 */
 	public MethodCommentImplementation (
 		final MethodCommentSignature signature,
-		final StacksAuthorTag author,
-		final List<StacksSeeTag> sees,
-		final List<AbstractStacksToken> description,
-		final List<StacksParameterTag> parameters,
+		final ArrayList<StacksAuthorTag> author,
+		final ArrayList<StacksSeeTag> sees,
+		final ArrayList<AbstractStacksToken> description,
+		final ArrayList<StacksParameterTag> parameters,
 		final StacksReturnTag returnsContent,
-		final List<StacksRaisesTag> exceptions)
+		final ArrayList<StacksRaisesTag> exceptions)
 	{
 		super(signature,author,sees);
 		this.description = description;

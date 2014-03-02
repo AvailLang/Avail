@@ -32,6 +32,7 @@
 
 package com.avail.stacks;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -50,12 +51,12 @@ public abstract class AbstractCommentImplementation
 	/**
 	 * The author of the implementation.
 	 */
-	final StacksAuthorTag author;
+	final ArrayList<StacksAuthorTag> author;
 
 	/**
 	 * Any "@sees" references.
 	 */
-	final List<StacksSeeTag> sees;
+	final ArrayList<StacksSeeTag> sees;
 
 	/**
 	 *
@@ -71,8 +72,8 @@ public abstract class AbstractCommentImplementation
 	 */
 	AbstractCommentImplementation(
 		final CommentSignature signature,
-		final StacksAuthorTag author,
-		final List<StacksSeeTag> sees)
+		final ArrayList<StacksAuthorTag> author,
+		final ArrayList<StacksSeeTag> sees)
 	{
 		this.signature = signature;
 		this.author = author;

@@ -66,6 +66,21 @@ public abstract class AbstractStacksToken
 	final int startOfTokenLinePostion;
 
 	/**
+	 * Is this a section token tag?
+	 */
+	boolean isSectionToken;
+
+	/**
+	 *
+	 * @return
+	 * 		Is this a section token tag?
+	 */
+	public boolean isSectionToken ()
+	{
+		return isSectionToken;
+	}
+
+	/**
 	 * Construct a new {@link AbstractStacksToken}.
 	 * @param string
 	 * 		The string to be tokenized.
@@ -90,6 +105,7 @@ public abstract class AbstractStacksToken
 		this.position = postion;
 		this.startOfTokenLinePostion = startOfTokenLinePostion;
 		this.moduleName = moduleName;
+		this.isSectionToken = false;
 	}
 
 	/**
@@ -99,6 +115,19 @@ public abstract class AbstractStacksToken
 	public String lexeme()
 	{
 		return lexeme;
+	}
+
+	/**
+	 * Provide the token's string representation.
+	 * @return
+	 */
+	public String quotedLexeme()
+	{
+		return new StringBuilder()
+	    	.append('"')
+	    	.append(lexeme)
+	    	.append('"')
+	    	.toString();
 	}
 
 	/**

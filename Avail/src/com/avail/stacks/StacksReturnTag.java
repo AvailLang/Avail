@@ -32,7 +32,7 @@
 
 package com.avail.stacks;
 
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * The "@returns" component of an Avail comment.
@@ -49,23 +49,20 @@ public class StacksReturnTag extends AbstractStacksTag
 	/**
 	 * The description of the return.
 	 */
-	final private List<AbstractStacksToken> returnDescription;
+	final private ArrayList<AbstractStacksToken> returnDescription;
 
 	/**
 	 * Construct a new {@link StacksReturnTag}.
-	 * @param tag
-	 * 		The Avail comment @ tag.
 	 * @param returnType
 	 * 		The type of the return
 	 * @param returnDescription
 	 * 		The description of the return.
 	 *
 	 */
-	public StacksReturnTag (final KeywordStacksToken tag,
+	public StacksReturnTag (
 		final QuotedStacksToken returnType,
-		final List<AbstractStacksToken> returnDescription)
+		final ArrayList<AbstractStacksToken> returnDescription)
 	{
-		super(tag);
 		this.returnType = returnType;
 		this.returnDescription = returnDescription;
 	}
@@ -73,7 +70,7 @@ public class StacksReturnTag extends AbstractStacksTag
 	/**
 	 * @return the returnDescription
 	 */
-	public List<AbstractStacksToken> returnDescription ()
+	public ArrayList<AbstractStacksToken> returnDescription ()
 	{
 		return returnDescription;
 	}

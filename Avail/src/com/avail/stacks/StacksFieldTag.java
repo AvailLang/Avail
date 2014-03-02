@@ -32,7 +32,7 @@
 
 package com.avail.stacks;
 
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * The "@field" tag in an Avail Class comment.
@@ -47,20 +47,18 @@ public class StacksFieldTag extends AbstractStacksTag
 	final private QuotedStacksToken fieldType;
 
 	/**
-	 * The description of the field.
-	 */
-	final private List<AbstractStacksToken> fieldDescription;
-
-	/**
 	 * The name of the field.
 	 */
 	final private QuotedStacksToken fieldName;
 
 	/**
+	 * The description of the field.
+	 */
+	final private ArrayList<AbstractStacksToken> fieldDescription;
+
+	/**
 	 * Construct a new {@link StacksFieldTag}.
 	 *
-	 * @param tag
-	 * 		The Avail comment tag
 	 * @param fieldType
 	 *		The type of the field
 	 * @param fieldDescription
@@ -69,12 +67,10 @@ public class StacksFieldTag extends AbstractStacksTag
 	 * 		The name of the field.
 	 */
 	public StacksFieldTag (
-		final KeywordStacksToken tag,
+		final QuotedStacksToken fieldName,
 		final QuotedStacksToken fieldType,
-		final List<AbstractStacksToken> fieldDescription,
-		final QuotedStacksToken fieldName)
+		final ArrayList<AbstractStacksToken> fieldDescription)
 	{
-		super(tag);
 		this.fieldDescription = fieldDescription;
 		this.fieldName = fieldName;
 		this.fieldType = fieldType;
@@ -91,7 +87,7 @@ public class StacksFieldTag extends AbstractStacksTag
 	/**
 	 * @return the fieldDescription
 	 */
-	public List<AbstractStacksToken> fieldDescription ()
+	public ArrayList<AbstractStacksToken> fieldDescription ()
 	{
 		return fieldDescription;
 	}

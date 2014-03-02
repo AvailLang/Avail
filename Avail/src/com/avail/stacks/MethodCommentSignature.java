@@ -32,8 +32,8 @@
 
 package com.avail.stacks;
 
-import java.util.List;
-import com.avail.descriptor.A_Module;
+import java.util.ArrayList;
+import com.avail.descriptor.A_String;
 
 /**
  * The defining characteristic of a method comment as it pertains to the
@@ -46,7 +46,7 @@ public class MethodCommentSignature extends CommentSignature
 	/**
 	 * The method parameter input types in order of input
 	 */
-	final List<String> orderedInputTypes;
+	final ArrayList<String> orderedInputTypes;
 
 	/**
 	 * The return type, if none,⊤.
@@ -67,8 +67,8 @@ public class MethodCommentSignature extends CommentSignature
 	 */
 	public MethodCommentSignature (
 		final String name,
-		final A_Module module,
-		final List<String> orderedInputTypes,
+		final A_String module,
+		final ArrayList<String> orderedInputTypes,
 		final String returnType)
 	{
 		super(name, module);

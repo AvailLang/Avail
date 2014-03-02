@@ -63,6 +63,7 @@ public class SectionKeywordStacksToken extends KeywordStacksToken
 		final String moduleName)
 	{
 		super(string, lineNumber, postion, startOfTokenLinePostion,moduleName);
+		this.isSectionToken = true;
 	}
 
 	/**

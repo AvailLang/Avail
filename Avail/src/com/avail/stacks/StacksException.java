@@ -1,5 +1,5 @@
 /**
- * StacksScannerException.java
+ * StacksException.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -40,7 +40,7 @@ import com.avail.descriptor.CommentTokenDescriptor;
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksScannerException extends Exception
+public class StacksException extends Exception
 {
 
 	/**
@@ -84,7 +84,7 @@ public class StacksScannerException extends Exception
 	}
 
 	/**
-	 * Construct a new {@link StacksScannerException}.
+	 * Construct a new {@link StacksException}.
 	 *
 	 * @param message
 	 *            The error message indicating why the {@link StacksScanner}
@@ -92,7 +92,7 @@ public class StacksScannerException extends Exception
 	 * @param failedScanner
 	 *            The AbstractStacksScanner that failed, positioned to the failure point.
 	 */
-	public StacksScannerException (
+	public StacksException (
 		final String message,
 		final AbstractStacksScanner failedScanner)
 	{
@@ -101,7 +101,7 @@ public class StacksScannerException extends Exception
 	}
 
 	/**
-	 * Construct a new {@link StacksScannerException}.  Plug in a dummy {@link
+	 * Construct a new {@link StacksException}.  Plug in a dummy {@link
 	 * StacksScanner}.
 	 * @param cause
 	 *            The original problem to be treated as a scanner problem.
@@ -110,7 +110,7 @@ public class StacksScannerException extends Exception
 	 * @param availComment
 	 *		The {@link CommentTokenDescriptor Avail comment} to be tokenized.
 	 */
-	public StacksScannerException (
+	public StacksException (
 		final Throwable cause,
 		final String moduleName,
 		final A_Token availComment)
@@ -123,7 +123,7 @@ public class StacksScannerException extends Exception
 			// And throw in case assertions are off.  Keeps Java compiler happy.
 			throw new RuntimeException("Should have thrown exception");
 		}
-		catch (final StacksScannerException contrivedException)
+		catch (final StacksException contrivedException)
 		{
 			this.failedScanner = contrivedException.failedScanner;
 		}

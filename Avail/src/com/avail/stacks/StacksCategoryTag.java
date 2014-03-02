@@ -49,16 +49,12 @@ public class StacksCategoryTag extends AbstractStacksTag
 	/**
 	 * Construct a new {@link StacksCategoryTag}.
 	 *
-	 * @param tag
-	 * 		The Avail comment tag
 	 * @param categories
 	 * 		The list of the categories for which the method/type is applicable
 	 */
 	public StacksCategoryTag (
-		final KeywordStacksToken tag,
 		final List<QuotedStacksToken> categories)
 	{
-		super(tag);
 		this.categories = categories;
 	}
 

@@ -48,17 +48,13 @@ public class StacksCodeTag extends AbstractStacksTag
 	/**
 	 * Construct a new {@link StacksCodeTag}.
 	 *
-	 * @param tag
-	 * 		The Avail comment tag
 	 * @param codeStyledText
 	 * 		The text that is intended to be styled as code.  Can either be
 	 * 		quoted text or numerical value.  Multiple tokens should be quoted.
 	 */
 	public StacksCodeTag (
-		final KeywordStacksToken tag,
 		final AbstractStacksToken codeStyledText)
 	{
-		super(tag);
 		this.codeStyledText = codeStyledText;
 	}
 

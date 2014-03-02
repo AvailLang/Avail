@@ -32,7 +32,7 @@
 
 package com.avail.stacks;
 
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * The "@forbids" tag in an Avail Class comment.
@@ -45,29 +45,25 @@ public class StacksForbidsTag extends AbstractStacksTag
 	 * The list of the methods for which the method is "forbbiden" to used in
 	 * conjunction with.
 	 */
-	final private List<QuotedStacksToken> forbidMethods;
+	final private ArrayList<QuotedStacksToken> forbidMethods;
 
 	/**
 	 * Construct a new {@link StacksForbidsTag}.
 	 *
-	 * @param tag
-	 * 		The Avail comment tag
 	 * @param forbidMethods
 	 * 		The list of the methods for which the method is "forbbiden" to used
 	 * 		in conjunction with.
 	 */
 	public StacksForbidsTag (
-		final KeywordStacksToken tag,
-		final List<QuotedStacksToken> forbidMethods)
+		final ArrayList<QuotedStacksToken> forbidMethods)
 	{
-		super(tag);
 		this.forbidMethods = forbidMethods;
 	}
 
 	/**
 	 * @return the forbidMethods
 	 */
-	public List<QuotedStacksToken> forbidMethods ()
+	public ArrayList<QuotedStacksToken> forbidMethods ()
 	{
 		return forbidMethods;
 	}

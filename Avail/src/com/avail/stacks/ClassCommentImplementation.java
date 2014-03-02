@@ -32,6 +32,7 @@
 
 package com.avail.stacks;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -49,12 +50,12 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 	/**
 	 * The {@link List} of the class's {@link StacksSuperTypeTag supertypes}
 	 */
-	final List<StacksSuperTypeTag> supertypes;
+	final ArrayList<StacksSuperTypeTag> supertypes;
 
 	/**
 	 * The {@link List} of the class's {@link StacksFieldTag fields}
 	 */
-	final StacksFieldTag fields;
+	final ArrayList<StacksFieldTag> fields;
 
 	/**
 	 * Construct a new {@link ClassCommentImplementation}.
@@ -76,11 +77,11 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 	 */
 	public ClassCommentImplementation (
 		final CommentSignature signature,
-		final StacksAuthorTag author,
-		final List<StacksSeeTag> sees,
-		final List<AbstractStacksToken> description,
-		final List<StacksSuperTypeTag> supertypes,
-		final StacksFieldTag fields)
+		final ArrayList<StacksAuthorTag> author,
+		final ArrayList<StacksSeeTag> sees,
+		final ArrayList<AbstractStacksToken> description,
+		final ArrayList<StacksSuperTypeTag> supertypes,
+		final ArrayList<StacksFieldTag> fields)
 	{
 		super(signature, author, sees);
 		this.description = description;

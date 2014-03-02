@@ -1,5 +1,5 @@
 /**
- * StacksParameterTag.java
+ * StacksGlobalTag.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,71 +32,53 @@
 
 package com.avail.stacks;
 
-import java.util.List;
-
 /**
- * The contents of an Avail comment "@param" tag
+ * A global module variable comment tag
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksParameterTag extends AbstractStacksTag
+public class StacksGlobalTag extends AbstractStacksTag
 {
 	/**
-	 * The name of the parameter variable.
+	 * The name of the global module variable
 	 */
-	final private QuotedStacksToken paramName;
+	final private QuotedStacksToken globalName;
 
 	/**
-	 * The type of the parameter
+	 * The name of the global module variable
 	 */
-	final private QuotedStacksToken paramType;
+	final private QuotedStacksToken globalType;
 
 	/**
-	 * The description of the parameter.
-	 */
-	final private List<AbstractStacksToken> paramDescription;
-
-	/**
-	 * Construct a new {@link StacksParameterTag}.
+	 * Construct a new {@link StacksGlobalTag}.
+	 * @param globalName
+	 * 		The name of the global module variable
+	 * @param globalType
+	 * 		The name of the global module variable
 	 *
-	 * @param paramType
-	 * 		The type of the parameter
-	 * @param paramDescription
-	 * 		The description of the parameter.
-	 * @param paramName
-	 * 		The name of the parameter variable.
 	 */
-	public StacksParameterTag (
-		final QuotedStacksToken paramName,
-		final QuotedStacksToken paramType,
-		final List<AbstractStacksToken> paramDescription)
+	public StacksGlobalTag (
+		final QuotedStacksToken globalName,
+		final QuotedStacksToken globalType)
 	{
-		this.paramType = paramType;
-		this.paramDescription = paramDescription;
-		this.paramName = paramName;
+		this.globalName = globalName;
+		this.globalType = globalType;
 	}
 
 	/**
-	 * @return the returnDescription
+	 * @return the globalName
 	 */
-	public List<AbstractStacksToken> paramDescription ()
+	public QuotedStacksToken globalName ()
 	{
-		return paramDescription;
+		return globalName;
 	}
 
 	/**
-	 * @return the returnType
+	 * @return the globalType
 	 */
-	public QuotedStacksToken paramType ()
+	public QuotedStacksToken globalType ()
 	{
-		return paramType;
+		return globalType;
 	}
 
-	/**
-	 * @return the paramName
-	 */
-	public QuotedStacksToken paramName ()
-	{
-		return paramName;
-	}
 }

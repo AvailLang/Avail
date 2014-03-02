@@ -32,8 +32,8 @@
 
 package com.avail.stacks;
 
-import java.util.List;
-import com.avail.descriptor.A_Module;
+import java.util.ArrayList;
+import com.avail.descriptor.A_String;
 
 /**
  * The defining characteristic of a semantic restriction comment as it pertains
@@ -46,7 +46,7 @@ public class SemanticRestrictionCommentSignature extends CommentSignature
 	/**
 	 * The method parameter input types in order of input
 	 */
-	final List<String> orderedInputTypes;
+	final ArrayList<String> orderedInputTypes;
 
 	/**
 	 * Construct a new {@link SemanticRestrictionCommentSignature}.
@@ -60,8 +60,8 @@ public class SemanticRestrictionCommentSignature extends CommentSignature
 	 */
 	public SemanticRestrictionCommentSignature (
 		final String name,
-		final A_Module module,
-		final List<String> orderedInputTypes)
+		final A_String module,
+		final ArrayList<String> orderedInputTypes)
 	{
 		super(name, module);
 		this.orderedInputTypes = orderedInputTypes;

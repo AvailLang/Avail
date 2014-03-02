@@ -47,16 +47,11 @@ public class StacksMethodTag extends AbstractStacksTag
 	/**
 	 * Construct a new {@link StacksMethodTag}.
 	 *
-	 * @param tag
-	 * 		The Avail comment tag
 	 * @param methodName
 	 * 		The name of the method
 	 */
-	public StacksMethodTag (
-		final KeywordStacksToken tag,
-		final QuotedStacksToken methodName)
+	public StacksMethodTag (final QuotedStacksToken methodName)
 	{
-		super(tag);
 		this.methodName = methodName;
 	}
 
@@ -67,5 +62,4 @@ public class StacksMethodTag extends AbstractStacksTag
 	{
 		return methodName;
 	}
-
 }

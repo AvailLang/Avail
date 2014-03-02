@@ -365,7 +365,7 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 		}
 
 		/**
-		 * Create the appropriate
+		 * Create the appropriate keyword token
 		 * @param lineNumber
 		 * 		The line number where the token occurs/begins
 		 * @param postion

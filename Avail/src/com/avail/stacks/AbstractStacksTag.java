@@ -40,19 +40,6 @@ package com.avail.stacks;
 public class AbstractStacksTag
 {
 	/**
-	 * The Avail comment tag
+	 * Creating a shared super class to move all Tags.
 	 */
-	KeywordStacksToken tag;
-
-	/**
-	 * Construct a new {@link AbstractStacksTag}.
-	 * @param tag
-	 * 		The Avail comment @ tag.
-	 *
-	 */
-	public AbstractStacksTag (final KeywordStacksToken tag)
-	{
-		this.tag = tag;
-	}
-
 }

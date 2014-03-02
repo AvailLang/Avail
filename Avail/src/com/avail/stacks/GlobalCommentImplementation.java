@@ -1,5 +1,5 @@
 /**
- * StacksParameterTag.java
+ * GlobalCommentImplementation.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,71 +32,50 @@
 
 package com.avail.stacks;
 
-import java.util.List;
+import java.util.ArrayList;
 
 /**
- * The contents of an Avail comment "@param" tag
+ * A module global variable comment
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksParameterTag extends AbstractStacksTag
+public class GlobalCommentImplementation extends AbstractCommentImplementation
 {
 	/**
-	 * The name of the parameter variable.
+	 * A global module variable comment tag
 	 */
-	final private QuotedStacksToken paramName;
+	final StacksGlobalTag globalTag;
 
 	/**
-	 * The type of the parameter
+	 * The overall description of the implementation
 	 */
-	final private QuotedStacksToken paramType;
+	final ArrayList<AbstractStacksToken> description;
 
 	/**
-	 * The description of the parameter.
-	 */
-	final private List<AbstractStacksToken> paramDescription;
-
-	/**
-	 * Construct a new {@link StacksParameterTag}.
+	 * Construct a new {@link GlobalCommentImplementation}.
 	 *
-	 * @param paramType
-	 * 		The type of the parameter
-	 * @param paramDescription
-	 * 		The description of the parameter.
-	 * @param paramName
-	 * 		The name of the parameter variable.
+	 * @param signature
+	 * 		The {@link MethodCommentSignature signature} of the class/method the
+	 * 		comment describes.
+	 * @param author
+	 * 		The {@link StacksAuthorTag author} of the implementation.
+	 * @param sees
+	 * 		A {@link ArrayList} of any {@link StacksSeeTag "@sees"} references.
+	 * @param description
+	 * 		The overall description of the implementation
+	 * @param globalTag
+	 * 		A global module variable comment tag
 	 */
-	public StacksParameterTag (
-		final QuotedStacksToken paramName,
-		final QuotedStacksToken paramType,
-		final List<AbstractStacksToken> paramDescription)
+	public GlobalCommentImplementation (
+		final CommentSignature signature,
+		final ArrayList<StacksAuthorTag> author,
+		final ArrayList<StacksSeeTag> sees,
+		final ArrayList<AbstractStacksToken> description,
+		final StacksGlobalTag globalTag)
 	{
-		this.paramType = paramType;
-		this.paramDescription = paramDescription;
-		this.paramName = paramName;
+		super(signature, author, sees);
+		this.description = description;
+		this.globalTag = globalTag;
 	}
 
-	/**
-	 * @return the returnDescription
-	 */
-	public List<AbstractStacksToken> paramDescription ()
-	{
-		return paramDescription;
-	}
-
-	/**
-	 * @return the returnType
-	 */
-	public QuotedStacksToken paramType ()
-	{
-		return paramType;
-	}
-
-	/**
-	 * @return the paramName
-	 */
-	public QuotedStacksToken paramName ()
-	{
-		return paramName;
-	}
 }

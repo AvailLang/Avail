@@ -48,16 +48,13 @@ public class StacksSuperTypeTag extends AbstractStacksTag
 	/**
 	 * Construct a new {@link StacksSuperTypeTag}.
 	 *
-	 * @param tag
 	 * @param superType
 	 * 		The supertype keyword indicates the supertype of the class
 	 * 		implementation
 	 */
 	public StacksSuperTypeTag (
-		final KeywordStacksToken tag,
 		final QuotedStacksToken superType)
 	{
-		super(tag);
 		this.superType = superType;
 	}
 
@@ -68,5 +65,4 @@ public class StacksSuperTypeTag extends AbstractStacksTag
 	{
 		return superType;
 	}
-
 }

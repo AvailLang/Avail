@@ -89,4 +89,21 @@ public class QuotedStacksToken extends RegionStacksToken
 		return new QuotedStacksToken(
 			string, lineNumber, postion, startOfTokenLinePostion, moduleName);
 	}
+
+	/**
+	 * unquoted lexeme.
+	 */
+
+
+	@Override
+	public String quotedLexeme()
+	{
+		return lexeme;
+	}
+
+	@Override
+	public String lexeme()
+	{
+		return lexeme.substring(1,lexeme().length()-1);
+	}
 }

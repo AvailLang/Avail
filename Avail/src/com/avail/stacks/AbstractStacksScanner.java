@@ -33,7 +33,6 @@
 package com.avail.stacks;
 
 import java.util.ArrayList;
-import java.util.List;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 
@@ -44,19 +43,6 @@ import com.avail.descriptor.*;
  */
 public abstract class AbstractStacksScanner
 {
-
-	/**
-	 * Construct a new {@link AbstractStacksScanner}.
-	 *
-	 */
-	AbstractStacksScanner ()
-	{
-		this.outputTokens = new ArrayList<AbstractStacksToken>(5);
-		this.filePosition = 0;
-		this.tokenString = "";
-		this.moduleName = null;
-	}
-
 	/**
 	 * The {@link CommentTokenDescriptor comment token} text that has been
 	 * lexed as one long token.
@@ -71,7 +57,7 @@ public abstract class AbstractStacksScanner
 	/**
 	 * The tokens that have been parsed so far.
 	 */
-	List<AbstractStacksToken> outputTokens;
+	ArrayList<AbstractStacksToken> outputTokens;
 
 	/**
 	 * The current position in the input string.
@@ -278,10 +264,10 @@ public abstract class AbstractStacksScanner
 	 * token}.
 	 *
 	 * @return The newly added token.
-	 * @throws StacksScannerException
+	 * @throws StacksException
 	 */
 	@InnerAccess
-	BracketedStacksToken addBracketedToken () throws StacksScannerException
+	BracketedStacksToken addBracketedToken () throws StacksException
 	{
 		final BracketedStacksToken token = BracketedStacksToken.create(
 			currentTokenString(),
@@ -344,15 +330,15 @@ public abstract class AbstractStacksScanner
 	 * Extract the current character and increment the {@link #position}.
 	 *
 	 * @return The consumed character.
-	 * @throws StacksScannerException If scanning fails.
+	 * @throws StacksException If scanning fails.
 	 */
 	@InnerAccess
 	int next ()
-		throws StacksScannerException
+		throws StacksException
 	{
 		if (atEnd())
 		{
-			throw new StacksScannerException(
+			throw new StacksException(
 				"Attempted to read past end of file",
 				this);
 		}
@@ -385,11 +371,11 @@ public abstract class AbstractStacksScanner
 	 *            The character to look for, as an int to allow code points
 	 *            beyond the Basic Multilingual Plane (U+0000 - U+FFFF).
 	 * @return Whether the specified character was found and skipped.
-	 * @throws StacksScannerException If scanning fails.
+	 * @throws StacksException If scanning fails.
 	 */
 	@InnerAccess
 	boolean peekFor (final int aCharacter)
-		throws StacksScannerException
+		throws StacksException
 	{
 		if (atEnd())
 		{
@@ -433,13 +419,13 @@ public abstract class AbstractStacksScanner
 		{
 			@Override
 			void scan (final AbstractStacksScanner scanner)
-				throws StacksScannerException
+				throws StacksException
 			{
 				final int literalStartingLine = scanner.lineNumber();
 				if (scanner.atEnd())
 				{
 					// Just the open quote, then end of file.
-					throw new StacksScannerException(
+					throw new StacksException(
 						String.format("Unterminated string literal at " +
 								"line, %d, in module, ",
 								scanner.lineNumber(),
@@ -456,7 +442,7 @@ public abstract class AbstractStacksScanner
 					{
 						if (scanner.atEnd())
 						{
-							throw new StacksScannerException(
+							throw new StacksException(
 								"Encountered end of file after backslash"
 								+ " in string literal",
 								scanner);
@@ -502,7 +488,7 @@ public abstract class AbstractStacksScanner
 								}
 								else
 								{
-									throw new StacksScannerException(
+									throw new StacksException(
 										"The input line before \"\\|\" "
 										+ "contains non-whitespace",
 										scanner);
@@ -513,11 +499,11 @@ public abstract class AbstractStacksScanner
 								break;
 							case '[':
 								scanner.lineNumber(literalStartingLine);
-								throw new StacksScannerException(
+								throw new StacksException(
 									"Power strings are not yet supported",
 									scanner);
 							default:
-								throw new StacksScannerException(
+								throw new StacksException(
 									"Backslash escape should be followed by"
 									+ " one of n, r, t, \\, \", (, [, |, or a"
 									+ " line break",
@@ -562,7 +548,7 @@ public abstract class AbstractStacksScanner
 								"line, %d, in module, %s\n",
 								scanner.lineNumber(),
 								scanner.moduleName);
-						throw new StacksScannerException(errorString,
+						throw new StacksException(errorString,
 							scanner);
 					}
 					c = scanner.next();
@@ -588,12 +574,12 @@ public abstract class AbstractStacksScanner
 			private void parseUnicodeEscapes (
 					final AbstractStacksScanner scanner,
 					final StringBuilder stringBuilder)
-				throws StacksScannerException
+				throws StacksException
 			{
 				int c;
 				if (scanner.atEnd())
 				{
-					throw new StacksScannerException(
+					throw new StacksException(
 						"Expected hexadecimal Unicode codepoints separated by"
 						+ " commas",
 						scanner);
@@ -622,14 +608,14 @@ public abstract class AbstractStacksScanner
 						}
 						else
 						{
-							throw new StacksScannerException(
+							throw new StacksException(
 								"Expected a hex digit or comma or closing"
 								+ " parenthesis",
 								scanner);
 						}
 						if (digitCount > 6)
 						{
-							throw new StacksScannerException(
+							throw new StacksException(
 								"Expected at most six hex digits per"
 								+ " comma-separated Unicode entry",
 								scanner);
@@ -638,7 +624,7 @@ public abstract class AbstractStacksScanner
 					}
 					if (digitCount == 0)
 					{
-						throw new StacksScannerException(
+						throw new StacksException(
 							"Expected a comma-separated list of Unicode code"
 							+ " points, each being one to six (upper case)"
 							+ " hexadecimal digits",
@@ -647,7 +633,7 @@ public abstract class AbstractStacksScanner
 					assert digitCount >= 1 && digitCount <= 6;
 					if (value > CharacterDescriptor.maxCodePointInt)
 					{
-						throw new StacksScannerException(
+						throw new StacksException(
 							"The maximum allowed code point for a Unicode"
 							+ " character is U+10FFFF",
 							scanner);
@@ -671,7 +657,7 @@ public abstract class AbstractStacksScanner
 		{
 			@Override
 			void scan (final AbstractStacksScanner scanner)
-				throws StacksScannerException
+				throws StacksException
 			{
 				final int startOfBracket = scanner.position();
 				final int startOfBracketLineNumber = scanner.lineNumber();
@@ -728,7 +714,7 @@ public abstract class AbstractStacksScanner
 		{
 			@Override
 			void scan (final AbstractStacksScanner scanner)
-				throws StacksScannerException
+				throws StacksException
 			{
 				while (!Character.isSpaceChar(scanner.peek())
 					&& !Character.isWhitespace(scanner.peek()))
@@ -747,7 +733,7 @@ public abstract class AbstractStacksScanner
 		{
 			@Override
 			void scan (final AbstractStacksScanner scanner)
-				throws StacksScannerException
+				throws StacksException
 			{
 				while (Character.isSpaceChar(scanner.peek())
 					|| Character.isWhitespace(scanner.peek()))
@@ -773,7 +759,7 @@ public abstract class AbstractStacksScanner
 		{
 			@Override
 			void scan (final AbstractStacksScanner scanner)
-				throws StacksScannerException
+				throws StacksException
 			{
 				if (!scanner.peekFor('*'))
 				{
@@ -792,7 +778,7 @@ public abstract class AbstractStacksScanner
 					{
 						if (scanner.atEnd())
 						{
-							throw new StacksScannerException(
+							throw new StacksException(
 								"Expected a close comment (*/) to correspond"
 									+ " with the open comment (/*) on line #"
 									+ startLine,
@@ -831,7 +817,7 @@ public abstract class AbstractStacksScanner
 		{
 			@Override
 			void scan (final AbstractStacksScanner scanner)
-				throws StacksScannerException
+				throws StacksException
 			{
 				while (!Character.isSpaceChar(scanner.peek())
 					&& !Character.isWhitespace(scanner.peek())
@@ -850,7 +836,7 @@ public abstract class AbstractStacksScanner
 		{
 			@Override
 			void scan (final AbstractStacksScanner scanner)
-				throws StacksScannerException
+				throws StacksException
 			{
 				// do nothing.
 			}
@@ -869,7 +855,7 @@ public abstract class AbstractStacksScanner
 		{
 			@Override
 			void scan (final AbstractStacksScanner scanner)
-				throws StacksScannerException
+				throws StacksException
 			{
 				// do nothing
 			}
@@ -880,10 +866,10 @@ public abstract class AbstractStacksScanner
 		 *
 		 * @param scanner
 		 *            The scanner processing this character.
-		 * @throws StacksScannerException If scanning fails.
+		 * @throws StacksException If scanning fails.
 		 */
 		abstract void scan (AbstractStacksScanner scanner)
-			throws StacksScannerException;
+			throws StacksException;
 
 		/**
 		 * Figure out the {@link ScannerAction} to invoke for the specified code
