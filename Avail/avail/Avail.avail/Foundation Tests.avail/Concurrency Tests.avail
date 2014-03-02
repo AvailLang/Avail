@@ -177,7 +177,7 @@ Test "heritable fiber variables" in concurrency test suite is
 	Require: ¬u2 ∈ inherited;
 ];
 
-Test "heritable fiber variables(orphan)" in concurrency test suite is
+Test "heritable fiber variables (orphan)" in concurrency test suite is
 [
 	h1 ::= new heritable atom named next hname;
 	h2 ::= new heritable atom named next hname;
@@ -255,7 +255,7 @@ Test "delayed fork" in concurrency test suite is
 	Require: now - then ≥ delay;
 ];
 
-Test "delayed fork(orphan)" in concurrency test suite is
+Test "delayed fork (orphan)" in concurrency test suite is
 [
 	delay ::= 10;
 	then ::= milliseconds since the Epoch;
@@ -268,7 +268,7 @@ Test "delayed fork(orphan)" in concurrency test suite is
 	Require: now - then ≥ delay;
 ];
 
-Test "heritable fiber variables(delayed fork)" in concurrency test suite is
+Test "heritable fiber variables (delayed fork)" in concurrency test suite is
 [
 	h1 ::= new heritable atom named next hname;
 	h2 ::= new heritable atom named next hname;
@@ -321,7 +321,7 @@ Test "heritable fiber variables(delayed fork)" in concurrency test suite is
 	Require: ¬u2 ∈ inherited;
 ];
 
-Test "heritable fiber variables(delayed fork,orphan)"
+Test "heritable fiber variables (delayed fork, orphan)"
 	in concurrency test suite is
 [
 	h1 ::= new heritable atom named next hname;
@@ -413,7 +413,7 @@ Test "for-each in parallel" in concurrency test suite is
 	Require: count = ∑ 1 to 10;
 ];
 
-Test "for-each in parallel(worker exception)" in concurrency test suite is
+Test "for-each in parallel (worker exception)" in concurrency test suite is
 [
 	killer : worker exception;
 	Guard
@@ -442,7 +442,7 @@ Test "map in parallel" in concurrency test suite is
 	Require: result = expected;
 ];
 
-Test "map in parallel(worker exception)" in concurrency test suite is
+Test "map in parallel (worker exception)" in concurrency test suite is
 [
 	result ::=
 		guard [map 1 to 10 in parallel through [i : [1..10] | i ÷ (i - 1)]]
@@ -510,8 +510,7 @@ Test "request termination of joining fiber" in concurrency test suite is
 	] 10 times;
 ];
 
-Test "request termination of sleeping fiber"
-	in concurrency test suite is
+Test "request termination of sleeping fiber" in concurrency test suite is
 [
 	/* Try it a few times so that races can resolve differently. */
 	Repeat

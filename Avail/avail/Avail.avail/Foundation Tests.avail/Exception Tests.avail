@@ -44,7 +44,7 @@ Body
 "exception test suite" is a new atom;
 New test suite exception test suite extends foundation test suite;
 
-Test "one intercept,no exception(side-effect)" in exception test suite is
+Test "one intercept, no exception (side-effect)" in exception test suite is
 [
 	ref : integer;
 	Guard [ref := 10 + 14;]
@@ -53,7 +53,7 @@ Test "one intercept,no exception(side-effect)" in exception test suite is
 	Require: ref = 24;
 ];
 
-Test "one intercept,no exception(value-producing)" in exception test suite is
+Test "one intercept, no exception (value-producing)" in exception test suite is
 [
 	ref : integer :=
 		guard [51 - 9]
@@ -67,7 +67,7 @@ Test "one intercept,no exception(value-producing)" in exception test suite is
 	Require: ref = 42;
 ];
 
-Test "one intercept(side-effect)" in exception test suite is
+Test "one intercept (side-effect)" in exception test suite is
 [
 	ref : descriptive exception;
 	Guard [Raise a descriptive exception with error message ::= "fnord"]
@@ -76,7 +76,7 @@ Test "one intercept(side-effect)" in exception test suite is
 	Require: ref's error message = "fnord";
 ];
 
-Test "one intercept(value-producing)" in exception test suite is
+Test "one intercept (value-producing)" in exception test suite is
 [
 	ref : descriptive exception :=
 		guard [Raise a descriptive exception with error message ::= "fnord"]
@@ -85,7 +85,7 @@ Test "one intercept(value-producing)" in exception test suite is
 	Require: ref's error message = "fnord";
 ];
 
-Test "two intercepts(side-effect)" in exception test suite is
+Test "two intercepts (side-effect)" in exception test suite is
 [
 	ref : integer;
 	Guard
@@ -129,7 +129,7 @@ Test "two intercepts(side-effect)" in exception test suite is
 	Require: ref = 7;
 ];
 
-Test "two intercepts(value-producing)" in exception test suite is
+Test "two intercepts (value-producing)" in exception test suite is
 [
 	ref : integer :=
 		guard
@@ -174,7 +174,7 @@ Test "two intercepts(value-producing)" in exception test suite is
 	Require: ref = 7;
 ];
 
-Test "unwind,no exception(side-effect)" in exception test suite is
+Test "unwind, no exception (side-effect)" in exception test suite is
 [
 	curry : string;
 	rice : string;
@@ -186,7 +186,7 @@ Test "unwind,no exception(side-effect)" in exception test suite is
 	Require: rice = "basmati";
 ];
 
-Test "unwind,no exception(value-producing)"
+Test "unwind, no exception (value-producing)"
 in exception test suite is
 [
 	rice : string;
@@ -211,7 +211,8 @@ Test "unwind" in exception test suite is
 ]
 must raise cannot-add-unlike-infinities exception;
 
-Test "one intercept,unwind,no exception(side-effect)" in exception test suite is
+Test "one intercept, unwind, no exception (side-effect)"
+	in exception test suite is
 [
 	curry : string;
 	rice : string;
@@ -224,8 +225,8 @@ Test "one intercept,unwind,no exception(side-effect)" in exception test suite is
 	Require: rice = "basmati";
 ];
 
-Test "one intercept,unwind,no exception(value-producing)"
-in exception test suite is
+Test "one intercept, unwind, no exception (value-producing)"
+	in exception test suite is
 [
 	rice : string;
 	curry : string :=
@@ -238,7 +239,7 @@ in exception test suite is
 	Require: rice = "basmati";
 ];
 
-Test "one intercept,unwind(side-effect)" in exception test suite is
+Test "one intercept, unwind (side-effect)" in exception test suite is
 [
 	curry : string;
 	rice : string;
@@ -251,7 +252,7 @@ Test "one intercept,unwind(side-effect)" in exception test suite is
 	Require: rice = "basmati";
 ];
 
-Test "one intercept,unwind(value-producing)" in exception test suite is
+Test "one intercept, unwind (value-producing)" in exception test suite is
 [
 	rice : string;
 	curry : string :=
@@ -264,7 +265,7 @@ Test "one intercept,unwind(value-producing)" in exception test suite is
 	Require: rice = "basmati";
 ];
 
-Test "two intercepts,unwind(side-effect)" in exception test suite is
+Test "two intercepts, unwind (side-effect)" in exception test suite is
 [
 	curry : string;
 	rice : string;
@@ -322,7 +323,7 @@ Test "two intercepts,unwind(side-effect)" in exception test suite is
 	Require: rice = "basmati";
 ];
 
-Test "two intercepts,unwind(value-producing)" in exception test suite is
+Test "two intercepts, unwind (value-producing)" in exception test suite is
 [
 	rice : string;
 	curry : string :=
@@ -381,7 +382,7 @@ Test "two intercepts,unwind(value-producing)" in exception test suite is
 	Require: rice = "basmati";
 ];
 
-Test "bad intercept,unwind" in exception test suite is
+Test "bad intercept, unwind" in exception test suite is
 [
 	ensured : boolean := false;
 	Guard
@@ -408,7 +409,7 @@ Test "bad intercept,unwind" in exception test suite is
 ]
 must raise subscript-out-of-bounds exception;
 
-Test "bad intercept,bad unwind" in exception test suite is
+Test "bad intercept, bad unwind" in exception test suite is
 [
 	Guard
 	[
@@ -432,7 +433,7 @@ Test "bad intercept,bad unwind" in exception test suite is
 ]
 must raise cannot-subtract-like-infinities exception;
 
-Test "bad intercept,no unwind,don't reenter" in exception test suite is
+Test "bad intercept, no unwind, don't reenter" in exception test suite is
 [
 	Guard
 	[
