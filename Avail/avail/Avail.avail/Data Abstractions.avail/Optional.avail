@@ -332,14 +332,14 @@ Private method "optional test suite" is [_testSuite];
 
 New test suite optional test suite extends data abstractions test suite;
 
-Test "optional(present)" in optional test suite is
+Test "optional (present)" in optional test suite is
 [
 	opt : optional 5's type := +5;
 	value ::= when opt is present do [t : 5's type | t] else ["no"];
 	Require: value = 5;
 ];
 
-Test "optional(absent)" in optional test suite is
+Test "optional (absent)" in optional test suite is
 [
 	opt : optional 5's type := none;
 	value ::= when opt is present do [t : 5's type | t] else ["no"];
