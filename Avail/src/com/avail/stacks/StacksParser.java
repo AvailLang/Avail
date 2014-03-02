@@ -101,8 +101,9 @@ public class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens)
-					 throws ClassCastException
+					 throws ClassCastException, StacksCommentBuilderException
 			{
+
 				builder.addStacksFieldTag(tagContentTokens);
 			}
 		},
@@ -131,7 +132,7 @@ public class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens)
-					 throws ClassCastException
+					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksGlobalTag(tagContentTokens);
 			}
@@ -146,7 +147,7 @@ public class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens)
-					 throws ClassCastException
+					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksMethodTag(tagContentTokens);
 			}
@@ -162,7 +163,7 @@ public class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens)
-					 throws ClassCastException
+					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksParameterTag(tagContentTokens);
 			}
@@ -178,7 +179,7 @@ public class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens)
-					 throws ClassCastException
+					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksRaisesTag(tagContentTokens);
 			}
@@ -194,7 +195,7 @@ public class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens)
-					 throws ClassCastException
+					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksRestrictsTag(tagContentTokens);
 			}
@@ -210,7 +211,7 @@ public class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens)
-					 throws ClassCastException
+					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksReturnsTag(tagContentTokens);
 			}
@@ -226,7 +227,7 @@ public class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens)
-					 throws ClassCastException
+					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksSeesTag(tagContentTokens);
 			}
@@ -242,7 +243,7 @@ public class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens)
-					 throws ClassCastException
+					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksSupertypeTag(tagContentTokens);
 			}
@@ -257,7 +258,7 @@ public class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens)
-					 throws ClassCastException
+					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksTypeTag(tagContentTokens);
 			}
@@ -299,11 +300,12 @@ public class StacksParser
 		 * @param tagContentTokens
 		 * 		The tokens contained in the indicated section.
 		 * @throws ClassCastException
+		 * @throws StacksCommentBuilderException
 		 */
 		 abstract void addTokensToBuilder (
 			 CommentImplementationBuilder builder,
 			 ArrayList<AbstractStacksToken> tagContentTokens)
-		 throws ClassCastException;
+		 throws ClassCastException, StacksCommentBuilderException;
 	}
 
 	/**
@@ -323,6 +325,11 @@ public class StacksParser
 	private final A_String moduleName;
 
 	/**
+	 * The start line in the module the comment being parsed appears.
+	 */
+	private final int commentStartLine;
+
+	/**
 	 * Construct a new {@link StacksParser}.
 	 * @param tokens
 	 * 		The tokens to be parsed.
@@ -331,16 +338,23 @@ public class StacksParser
 	 * 		section} begins in in the token list to be parsed.
 	 * @param moduleName
 	 * 		The name of the module the comment occurs in.
+	 * @param commentStartLine
+	 * 		The line the comment being parsed appears on
+	 * @throws StacksCommentBuilderException
 	 */
 	private StacksParser (
 		final ArrayList<AbstractStacksToken> tokens,
 		final ArrayList<Integer> sectionStartLocations,
-		final A_String moduleName)
+		final A_String moduleName,
+		final int commentStartLine) throws StacksCommentBuilderException
 	{
 		this.tokens = tokens;
 		this.sectionStartLocations = sectionStartLocations;
 		this.moduleName = moduleName;
-		this.builder = new CommentImplementationBuilder(moduleName);
+		this.commentStartLine = commentStartLine;
+		this.builder =
+			CommentImplementationBuilder
+				.createBuilder(moduleName,commentStartLine);
 	}
 
 	/**
@@ -371,26 +385,31 @@ public class StacksParser
 	 * 		section} begins in in the token list to be parsed.
 	 * @param moduleName
 	 * 		The name of the module from which the comment originates.
+	 * @param commentStartLine
+	 * 		The line where the comment being parsed starts in the module.
 	 * @return
 	 * 		The resulting {@link AbstractCommentImplementation} of the token
 	 * 		parsing.
-	 * @throws StacksException If scanning fails.
+	 * @throws StacksCommentBuilderException if the builder fails.
 	 */
 	public static AbstractCommentImplementation parseCommentString (
 		final ArrayList<AbstractStacksToken> tokens,
 		final ArrayList<Integer> sectionStartLocations,
-		final A_String moduleName)
-		throws StacksException
+		final A_String moduleName,
+		final int commentStartLine)
+		throws StacksCommentBuilderException
 	{
 		final StacksParser parser =
-			new StacksParser(tokens, sectionStartLocations, moduleName);
+			new StacksParser(tokens, sectionStartLocations, moduleName,
+				commentStartLine);
 		return parser.parse();
 	}
 
 	/**
 	 * @return
+	 * @throws StacksCommentBuilderException
 	 */
-	private AbstractCommentImplementation parse ()
+	private AbstractCommentImplementation parse () throws StacksCommentBuilderException
 	{
 		int nextSectionStartLocationsIndex = -1;
 		final int currentSectionStartLocationsIndex = 0;
@@ -419,5 +438,13 @@ public class StacksParser
 		}
 
 		return builder.createStacksComment();
+	}
+
+	/**
+	 * @return the commentStartLine
+	 */
+	public int commentStartLine ()
+	{
+		return commentStartLine;
 	}
 }

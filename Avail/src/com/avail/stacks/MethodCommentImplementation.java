@@ -68,6 +68,8 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 	 * @param signature
 	 * 		The {@link MethodCommentSignature signature} of the class/method the
 	 * 		comment describes.
+	 * @param commentStartLine
+	 * 		The start line in the module the comment being parsed appears.
 	 * @param author
 	 * 		The {@link StacksAuthorTag author} of the implementation.
 	 * @param sees
@@ -85,6 +87,7 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 	 */
 	public MethodCommentImplementation (
 		final MethodCommentSignature signature,
+		final int commentStartLine,
 		final ArrayList<StacksAuthorTag> author,
 		final ArrayList<StacksSeeTag> sees,
 		final ArrayList<AbstractStacksToken> description,
@@ -92,7 +95,7 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		final StacksReturnTag returnsContent,
 		final ArrayList<StacksRaisesTag> exceptions)
 	{
-		super(signature,author,sees);
+		super(signature, commentStartLine, author, sees);
 		this.description = description;
 		this.parameters = parameters;
 		this.returnsContent = returnsContent;

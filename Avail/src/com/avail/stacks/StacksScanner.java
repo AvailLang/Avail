@@ -55,11 +55,24 @@ public class StacksScanner extends AbstractStacksScanner
 	private final boolean commentStartsStandardly;
 
 	/**
+	 * The start line of the overall comment
+	 */
+	private final int commentStartLine;
+
+	/**
 	 * @return the commentEndsStandardly
 	 */
 	public boolean commentEndsStandardly ()
 	{
 		return commentEndsStandardly;
+	}
+
+	/**
+	 * @return the commentStartLine
+	 */
+	public int commentStartLine ()
+	{
+		return commentStartLine;
 	}
 
 	/**
@@ -80,6 +93,7 @@ public class StacksScanner extends AbstractStacksScanner
 		final String commentString =
 			commentToken.string().asNativeString();
 		tokenString(commentString);
+		this.commentStartLine = commentToken.lineNumber();
 		this.moduleName = commentToken.moduleName();
 		this.outputTokens = new ArrayList<AbstractStacksToken>(
 			tokenString().length() / 20);
@@ -113,10 +127,10 @@ public class StacksScanner extends AbstractStacksScanner
 	 * Scan the already-specified {@link String} to produce {@linkplain
 	 * #outputTokens tokens}.
 	 *
-	 * @throws StacksException
+	 * @throws StacksScannerException
 	 */
 	private void scan ()
-		throws StacksException
+		throws StacksScannerException
 	{
 		if (commentStartsStandardly)
 		{
@@ -163,13 +177,13 @@ public class StacksScanner extends AbstractStacksScanner
 		{
 			@Override
 			void scan (final StacksScanner scanner)
-				throws StacksException
+				throws StacksScannerException
 			{
 				final int literalStartingLine = scanner.lineNumber();
 				if (scanner.atEnd())
 				{
 					// Just the open quote, then end of file.
-					throw new StacksException(
+					throw new StacksScannerException(
 						"Unterminated string literal",
 						scanner);
 				}
@@ -183,7 +197,7 @@ public class StacksScanner extends AbstractStacksScanner
 					{
 						if (scanner.atEnd())
 						{
-							throw new StacksException(
+							throw new StacksScannerException(
 								"Encountered end of file after backslash"
 								+ " in string literal",
 								scanner);
@@ -229,7 +243,7 @@ public class StacksScanner extends AbstractStacksScanner
 								}
 								else
 								{
-									throw new StacksException(
+									throw new StacksScannerException(
 										"The input line before \"\\|\" "
 										+ "contains non-whitespace",
 										scanner);
@@ -240,11 +254,11 @@ public class StacksScanner extends AbstractStacksScanner
 								break;
 							case '[':
 								scanner.lineNumber(literalStartingLine);
-								throw new StacksException(
+								throw new StacksScannerException(
 									"Power strings are not yet supported",
 									scanner);
 							default:
-								throw new StacksException(
+								throw new StacksScannerException(
 									"Backslash escape should be followed by"
 									+ " one of n, r, t, \\, \", (, [, |, or a"
 									+ " line break",
@@ -284,7 +298,7 @@ public class StacksScanner extends AbstractStacksScanner
 						// Indicate where the quoted string started, to make it
 						// easier to figure out where the end-quote is missing.
 						scanner.lineNumber(literalStartingLine);
-						throw new StacksException(
+						throw new StacksScannerException(
 							"Unterminated string literal",
 							scanner);
 					}
@@ -311,12 +325,12 @@ public class StacksScanner extends AbstractStacksScanner
 			private void parseUnicodeEscapes (
 					final StacksScanner scanner,
 					final StringBuilder stringBuilder)
-				throws StacksException
+				throws StacksScannerException
 			{
 				int c;
 				if (scanner.atEnd())
 				{
-					throw new StacksException(
+					throw new StacksScannerException(
 						"Expected hexadecimal Unicode codepoints separated by"
 						+ " commas",
 						scanner);
@@ -345,14 +359,14 @@ public class StacksScanner extends AbstractStacksScanner
 						}
 						else
 						{
-							throw new StacksException(
+							throw new StacksScannerException(
 								"Expected a hex digit or comma or closing"
 								+ " parenthesis",
 								scanner);
 						}
 						if (digitCount > 6)
 						{
-							throw new StacksException(
+							throw new StacksScannerException(
 								"Expected at most six hex digits per"
 								+ " comma-separated Unicode entry",
 								scanner);
@@ -361,7 +375,7 @@ public class StacksScanner extends AbstractStacksScanner
 					}
 					if (digitCount == 0)
 					{
-						throw new StacksException(
+						throw new StacksScannerException(
 							"Expected a comma-separated list of Unicode code"
 							+ " points, each being one to six (upper case)"
 							+ " hexadecimal digits",
@@ -370,7 +384,7 @@ public class StacksScanner extends AbstractStacksScanner
 					assert digitCount >= 1 && digitCount <= 6;
 					if (value > CharacterDescriptor.maxCodePointInt)
 					{
-						throw new StacksException(
+						throw new StacksScannerException(
 							"The maximum allowed code point for a Unicode"
 							+ " character is U+10FFFF",
 							scanner);
@@ -394,7 +408,7 @@ public class StacksScanner extends AbstractStacksScanner
 		{
 			@Override
 			void scan (final StacksScanner scanner)
-				throws StacksException
+				throws StacksScannerException
 			{
 				final int startOfBracket = scanner.position();
 				final int startOfBracketLineNumber = scanner.lineNumber();
@@ -451,7 +465,7 @@ public class StacksScanner extends AbstractStacksScanner
 		{
 			@Override
 			void scan (final StacksScanner scanner)
-				throws StacksException
+				throws StacksScannerException
 			{
 				while (!Character.isSpaceChar(scanner.peek())
 					&& !Character.isWhitespace(scanner.peek()))
@@ -477,7 +491,7 @@ public class StacksScanner extends AbstractStacksScanner
 		{
 			@Override
 			void scan (final StacksScanner scanner)
-				throws StacksException
+				throws StacksScannerException
 			{
 				while (Character.isSpaceChar(scanner.peek())
 					|| Character.isWhitespace(scanner.peek()))
@@ -503,7 +517,7 @@ public class StacksScanner extends AbstractStacksScanner
 		{
 			@Override
 			void scan (final StacksScanner scanner)
-				throws StacksException
+				throws StacksScannerException
 			{
 				if (!scanner.peekFor('*'))
 				{
@@ -522,7 +536,7 @@ public class StacksScanner extends AbstractStacksScanner
 					{
 						if (scanner.atEnd())
 						{
-							throw new StacksException(
+							throw new StacksScannerException(
 								"Expected a close comment (*/) to correspond"
 									+ " with the open comment (/*) on line #"
 									+ startLine,
@@ -561,7 +575,7 @@ public class StacksScanner extends AbstractStacksScanner
 		{
 			@Override
 			void scan (final StacksScanner scanner)
-				throws StacksException
+				throws StacksScannerException
 			{
 				while (!Character.isSpaceChar(scanner.peek())
 					&& !Character.isWhitespace(scanner.peek()))
@@ -579,7 +593,7 @@ public class StacksScanner extends AbstractStacksScanner
 		{
 			@Override
 			void scan (final StacksScanner scanner)
-				throws StacksException
+				throws StacksScannerException
 			{
 				// do nothing.
 			}
@@ -598,7 +612,7 @@ public class StacksScanner extends AbstractStacksScanner
 		{
 			@Override
 			void scan (final StacksScanner scanner)
-				throws StacksException
+				throws StacksScannerException
 			{
 				// do nothing
 			}
@@ -609,10 +623,10 @@ public class StacksScanner extends AbstractStacksScanner
 		 *
 		 * @param scanner
 		 *            The scanner processing this character.
-		 * @throws StacksException If scanning fails.
+		 * @throws StacksScannerException If scanning fails.
 		 */
 		abstract void scan (StacksScanner scanner)
-			throws StacksException;
+			throws StacksScannerException;
 
 		/**
 		 * Figure out the {@link ScannerAction} to invoke for the specified code
@@ -651,10 +665,10 @@ public class StacksScanner extends AbstractStacksScanner
 	 *		tokenized.
 	 * @return a {@link List list} of all tokenized words in the {@link
 	 * 		CommentTokenDescriptor Avail comment}.
-	 * @throws StacksException If scanning fails.
+	 * @throws StacksScannerException If scanning fails.
 	 */
 	public static List<AbstractStacksToken> scanCommentString (final A_Token commentToken)
-		throws StacksException
+		throws StacksScannerException
 	{
 		final StacksScanner scanner =
 			new StacksScanner(commentToken);

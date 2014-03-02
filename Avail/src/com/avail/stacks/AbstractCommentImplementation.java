@@ -49,6 +49,11 @@ public abstract class AbstractCommentImplementation
 	final CommentSignature signature;
 
 	/**
+	 * The start line in the module the comment being parsed appears.
+	 */
+	final int commentStartLine;
+
+	/**
 	 * The author of the implementation.
 	 */
 	final ArrayList<StacksAuthorTag> author;
@@ -65,6 +70,8 @@ public abstract class AbstractCommentImplementation
 	 * @param signature
 	 * 		The {@link CommentSignature signature} of the class/method the
 	 * 		comment describes.
+	 * @param commentStartLine
+	 * 		The start line in the module the comment being parsed appears.
 	 * @param author
 	 * 		The {@link StacksAuthorTag author} of the implementation.
 	 * @param sees
@@ -72,10 +79,12 @@ public abstract class AbstractCommentImplementation
 	 */
 	AbstractCommentImplementation(
 		final CommentSignature signature,
+		final int commentStartLine,
 		final ArrayList<StacksAuthorTag> author,
 		final ArrayList<StacksSeeTag> sees)
 	{
 		this.signature = signature;
+		this.commentStartLine = commentStartLine;
 		this.author = author;
 		this.sees = sees;
 	}

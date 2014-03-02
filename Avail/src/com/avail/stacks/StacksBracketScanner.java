@@ -85,11 +85,11 @@ public class StacksBracketScanner extends AbstractStacksScanner
 	 *		tokenized.
 	 * @return a {@link List list} of all tokenized words in the {@link
 	 * 		CommentTokenDescriptor Avail comment}.
-	 * @throws StacksException If scanning fails.
+	 * @throws StacksScannerException If scanning fails.
 	 */
 	public static List<AbstractStacksToken> scanBracketString (
 		final BracketedStacksToken bracketToken)
-		throws StacksException
+		throws StacksScannerException
 	{
 		final StacksBracketScanner scanner =
 			new StacksBracketScanner(bracketToken);
@@ -101,10 +101,10 @@ public class StacksBracketScanner extends AbstractStacksScanner
 	 * Scan the already-specified {@link String} to produce {@linkplain
 	 * #outputTokens tokens}.
 	 *
-	 * @throws StacksException
+	 * @throws StacksScannerException
 	 */
 	private void scan ()
-		throws StacksException
+		throws StacksScannerException
 	{
 		while (!atEnd())
 		{

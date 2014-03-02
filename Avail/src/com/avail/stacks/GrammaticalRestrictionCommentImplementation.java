@@ -53,6 +53,8 @@ public class GrammaticalRestrictionCommentImplementation extends
 	 * @param signature
 	 * 		The {@link CommentSignature signature} of the class/method the
 	 * 		comment describes.
+	 * @param commentStartLine
+	 * 		The start line in the module the comment being parsed appears.
 	 * @param author
 	 * 		The {@link StacksAuthorTag authors} of the implementation.
 	 * @param sees
@@ -62,11 +64,12 @@ public class GrammaticalRestrictionCommentImplementation extends
 	 */
 	public GrammaticalRestrictionCommentImplementation (
 		final CommentSignature signature,
+		final int commentStartLine,
 		final ArrayList<StacksAuthorTag> author,
 		final ArrayList<StacksSeeTag> sees,
 		final StacksForbidsTag forbids)
 	{
-		super(signature, author, sees);
+		super(signature, commentStartLine, author, sees);
 		this.forbids = forbids;
 	}
 

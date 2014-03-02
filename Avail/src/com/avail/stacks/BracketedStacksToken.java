@@ -59,14 +59,14 @@ public class BracketedStacksToken extends RegionStacksToken
 	 * @param startOfTokenLinePostion
 	 * 		The position on the line where the token starts.
 	 * @param moduleName
-	 * @throws StacksException
+	 * @throws StacksScannerException
 	 */
 	public BracketedStacksToken (
 		final String string,
 		final int lineNumber,
 		final int position,
 		final int startOfTokenLinePostion,
-		final String moduleName) throws StacksException
+		final String moduleName) throws StacksScannerException
 	{
 		super(string, lineNumber, position,
 			startOfTokenLinePostion, moduleName, '\"', '\"');
@@ -85,14 +85,14 @@ public class BracketedStacksToken extends RegionStacksToken
 	 * @param moduleName
 	 * 		The name of the module the token is in.
 	 * @return a new {@link BracketedStacksToken stacks token}
-	 * @throws StacksException
+	 * @throws StacksScannerException
 	 */
 	public static BracketedStacksToken create (
 		final String string,
 		final int lineNumber,
 		final int position,
 		final int startOfTokenLinePostion,
-		final String moduleName) throws StacksException
+		final String moduleName) throws StacksScannerException
 	{
 		return new BracketedStacksToken(
 			string, lineNumber, position, startOfTokenLinePostion, moduleName);

@@ -63,6 +63,8 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 	 * @param signature
 	 * 		The {@link CommentSignature signature} of the class/method the
 	 * 		comment describes.
+	 * @param commentStartLine
+	 * 		The start line in the module the comment being parsed appears.
 	 * @param author
 	 * 		The {@link StacksAuthorTag author} of the implementation.
 	 * @param sees
@@ -77,13 +79,14 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 	 */
 	public ClassCommentImplementation (
 		final CommentSignature signature,
+		final int commentStartLine,
 		final ArrayList<StacksAuthorTag> author,
 		final ArrayList<StacksSeeTag> sees,
 		final ArrayList<AbstractStacksToken> description,
 		final ArrayList<StacksSuperTypeTag> supertypes,
 		final ArrayList<StacksFieldTag> fields)
 	{
-		super(signature, author, sees);
+		super(signature, commentStartLine, author, sees);
 		this.description = description;
 		this.supertypes = supertypes;
 		this.fields = fields;

@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import com.avail.descriptor.A_String;
 
 /**
- * TODO: Document CommentImplementationBuilder!
+ * A builder class for an {@link AbstractCommentImplementation}.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
@@ -109,16 +109,21 @@ public class CommentImplementationBuilder
 	/**
 	 * @param tagContentTokens
 	 * @throws ClassCastException
+	 * @throws StacksCommentBuilderException
 	 */
 	public void addStacksFieldTag(
 		 final ArrayList<AbstractStacksToken> tagContentTokens)
-			 throws ClassCastException
+			 throws ClassCastException, StacksCommentBuilderException
 	{
 		final int tokenCount = tagContentTokens.size();
 
 		if (tokenCount < 2)
 		{
-			//TODO Make an Error
+			final String errorMessage = String.format("Stacks field tag in " +
+					"comment on line number, %d, in module, %s, has too few " +
+					"@field components", commentStartLine(),
+					moduleName().asNativeString());
+			throw new StacksCommentBuilderException(errorMessage, this);
 		}
 
 		final QuotedStacksToken tempName =
@@ -174,16 +179,21 @@ public class CommentImplementationBuilder
 	/**
 	 * @param tagContentTokens
 	 * @throws ClassCastException
+	 * @throws StacksCommentBuilderException
 	 */
 	public void addStacksGlobalTag (
 		final ArrayList<AbstractStacksToken> tagContentTokens)
-			 throws ClassCastException
+			 throws ClassCastException, StacksCommentBuilderException
 	{
 		final int tokenCount = tagContentTokens.size();
 
 		if (tokenCount < 2)
 		{
-			//TODO Make an Error
+			final String errorMessage = String.format("Stacks field tag in " +
+				"comment on line number, %d, in module, %s, has too few " +
+				"@global components", commentStartLine(),
+				moduleName().asNativeString());
+			throw new StacksCommentBuilderException(errorMessage, this);
 		}
 
 		final QuotedStacksToken tempName =
@@ -203,10 +213,11 @@ public class CommentImplementationBuilder
 	/**
 	 * @param tagContentTokens
 	 * @throws ClassCastException
+	 * @throws StacksCommentBuilderException
 	 */
 	public void addStacksMethodTag(
 		 final ArrayList<AbstractStacksToken> tagContentTokens)
-			 throws ClassCastException
+			 throws ClassCastException, StacksCommentBuilderException
 	{
 		if (tagContentTokens.size() == 1)
 		{
@@ -215,7 +226,11 @@ public class CommentImplementationBuilder
 		}
 		else
 		{
-			//TODO throw error
+			final String errorMessage = String.format("Stacks field tag in " +
+				"comment on line number, %d, in module, %s, has wrong # of " +
+				"@method components", commentStartLine(),
+				moduleName().asNativeString());
+			throw new StacksCommentBuilderException(errorMessage, this);
 		}
 	}
 
@@ -228,16 +243,21 @@ public class CommentImplementationBuilder
 	/**
 	 * @param tagContentTokens
 	 * @throws ClassCastException
+	 * @throws StacksCommentBuilderException
 	 */
 	public void addStacksParameterTag(
 		 final ArrayList<AbstractStacksToken> tagContentTokens)
-			 throws ClassCastException
+			 throws ClassCastException, StacksCommentBuilderException
 	{
 		final int tokenCount = tagContentTokens.size();
 
 		if (tokenCount < 2)
 		{
-			//TODO Make an Error
+			final String errorMessage = String.format("Stacks field tag in " +
+				"comment on line number, %d, in module, %s, has too few " +
+				"@param components", commentStartLine(),
+				moduleName().asNativeString());
+		throw new StacksCommentBuilderException(errorMessage, this);
 		}
 
 		final QuotedStacksToken tempName =
@@ -269,16 +289,21 @@ public class CommentImplementationBuilder
 	/**
 	 * @param tagContentTokens
 	 * @throws ClassCastException
+	 * @throws StacksCommentBuilderException
 	 */
 	public void addStacksRaisesTag(
 		 final ArrayList<AbstractStacksToken> tagContentTokens)
-			 throws ClassCastException
+			 throws ClassCastException, StacksCommentBuilderException
 	{
 		final int tokenCount = tagContentTokens.size();
 
 		if (tokenCount < 1)
 		{
-			//TODO Make an Error
+			final String errorMessage = String.format("Stacks field tag in " +
+				"comment on line number, %d, in module, %s, has too few " +
+				"@raises components", commentStartLine(),
+				moduleName().asNativeString());
+			throw new StacksCommentBuilderException(errorMessage, this);
 		}
 
 		final QuotedStacksToken tempName =
@@ -308,16 +333,21 @@ public class CommentImplementationBuilder
 	/**
 	 * @param tagContentTokens
 	 * @throws ClassCastException
+	 * @throws StacksCommentBuilderException
 	 */
 	public void addStacksRestrictsTag(
 		 final ArrayList<AbstractStacksToken> tagContentTokens)
-			 throws ClassCastException
+			 throws ClassCastException, StacksCommentBuilderException
 	{
 		final int tokenCount = tagContentTokens.size();
 
 		if (tokenCount < 1)
 		{
-			//TODO Make an Error
+			final String errorMessage = String.format("Stacks field tag in " +
+				"comment on line number, %d, in module, %s, has too few " +
+				"@restricts components", commentStartLine(),
+				moduleName().asNativeString());
+			throw new StacksCommentBuilderException(errorMessage, this);
 		}
 
 		final QuotedStacksToken tempName =
@@ -346,16 +376,21 @@ public class CommentImplementationBuilder
 	/**
 	 * @param tagContentTokens
 	 * @throws ClassCastException
+	 * @throws StacksCommentBuilderException
 	 */
 	public void addStacksReturnsTag(
 		 final ArrayList<AbstractStacksToken> tagContentTokens)
-			 throws ClassCastException
+			 throws ClassCastException, StacksCommentBuilderException
 	{
 		final int tokenCount = tagContentTokens.size();
 
 		if (tokenCount < 1)
 		{
-			//TODO Make an Error
+			final String errorMessage = String.format("Stacks field tag in " +
+				"comment on line number, %d, in module, %s, has too few " +
+				"@returns components", commentStartLine(),
+				moduleName().asNativeString());
+			throw new StacksCommentBuilderException(errorMessage, this);
 		}
 
 		final QuotedStacksToken tempName =
@@ -384,10 +419,11 @@ public class CommentImplementationBuilder
 	/**
 	 * @param tagContentTokens
 	 * @throws ClassCastException
+	 * @throws StacksCommentBuilderException
 	 */
 	public void addStacksSeesTag(
 		 final ArrayList<AbstractStacksToken> tagContentTokens)
-			 throws ClassCastException
+			 throws ClassCastException, StacksCommentBuilderException
 	{
 		if (tagContentTokens.size() == 1)
 		{
@@ -396,7 +432,11 @@ public class CommentImplementationBuilder
 		}
 		else
 		{
-			//TODO throw error
+			final String errorMessage = String.format("Stacks field tag in " +
+				"comment on line number, %d, in module, %s, has wrong # of " +
+				"@sees components", commentStartLine(),
+				moduleName().asNativeString());
+			throw new StacksCommentBuilderException(errorMessage, this);
 		}
 	}
 
@@ -409,10 +449,11 @@ public class CommentImplementationBuilder
 	/**
 	 * @param tagContentTokens
 	 * @throws ClassCastException
+	 * @throws StacksCommentBuilderException
 	 */
 	public void addStacksSupertypeTag(
 		 final ArrayList<AbstractStacksToken> tagContentTokens)
-			 throws ClassCastException
+			 throws ClassCastException, StacksCommentBuilderException
 	{
 		if (tagContentTokens.size() == 1)
 		{
@@ -421,7 +462,11 @@ public class CommentImplementationBuilder
 		}
 		else
 		{
-			//TODO throw error
+			final String errorMessage = String.format("Stacks field tag in " +
+				"comment on line number, %d, in module, %s, has wrong # of " +
+				"@supertype components", commentStartLine(),
+				moduleName().asNativeString());
+			throw new StacksCommentBuilderException(errorMessage, this);
 		}
 	}
 
@@ -433,10 +478,11 @@ public class CommentImplementationBuilder
 	/**
 	 * @param tagContentTokens
 	 * @throws ClassCastException
+	 * @throws StacksCommentBuilderException
 	 */
 	public void addStacksTypeTag(
 		 final ArrayList<AbstractStacksToken> tagContentTokens)
-			 throws ClassCastException
+			 throws ClassCastException, StacksCommentBuilderException
 	{
 		if (tagContentTokens.size() == 1)
 		{
@@ -445,7 +491,11 @@ public class CommentImplementationBuilder
 		}
 		else
 		{
-			//TODO throw error
+			final String errorMessage = String.format("Stacks field tag in " +
+				"comment on line number, %d, in module, %s, has wrong # of " +
+				"@type components", commentStartLine(),
+				moduleName().asNativeString());
+			throw new StacksCommentBuilderException(errorMessage, this);
 		}
 	}
 
@@ -455,14 +505,23 @@ public class CommentImplementationBuilder
 	private final A_String moduleName;
 
 	/**
+	 * The start line in the module the comment being parsed appears.
+	 */
+	private final int commentStartLine;
+
+	/**
 	 * Construct a new {@link CommentImplementationBuilder}.
 	 * @param moduleName
 	 * 		The name of the module the comment is in.
+	 * @param commentStartLine
+	 * 		The start line in the module of the comment being built
 	 *
 	 */
-	public CommentImplementationBuilder (final A_String moduleName)
+	private CommentImplementationBuilder (final A_String moduleName,
+		final int commentStartLine)
 	{
 		this.moduleName = moduleName;
+		this.commentStartLine = commentStartLine;
 		this.authors = new ArrayList<StacksAuthorTag>(0);
 		this.categories = new ArrayList<StacksCategoryTag>(0);
 		this.description = new ArrayList<AbstractStacksToken>(0);
@@ -480,6 +539,32 @@ public class CommentImplementationBuilder
 	}
 
 	/**
+	 *
+	 * @param moduleName
+	 * 		The name of the module the comment is in.
+	 * @param commentStartLine
+	 * 		The start line in the module of the comment being built
+	 * @return
+	 * 		A {@link CommentImplementationBuilder}
+	 * @throws StacksCommentBuilderException
+	 */
+	public static CommentImplementationBuilder createBuilder (
+		final A_String moduleName,
+		final int commentStartLine)
+			throws StacksCommentBuilderException
+	{
+		return new CommentImplementationBuilder (moduleName, commentStartLine);
+	}
+
+	/**
+	 * @return the commentStartLine
+	 */
+	public int commentStartLine ()
+	{
+		return commentStartLine;
+	}
+
+	/**
 	 * @return the moduleName
 	 */
 	public A_String moduleName ()
@@ -491,8 +576,10 @@ public class CommentImplementationBuilder
 	 * @return
 	 * 		The appropriately built {@link AbstractCommentImplementation
 	 * 		Comment Implementation}
+	 * @throws StacksCommentBuilderException
 	 */
 	public AbstractCommentImplementation createStacksComment ()
+		throws StacksCommentBuilderException
 	{
 
 		if (!types.isEmpty() && methods.isEmpty() && globalVariables.isEmpty())
@@ -505,20 +592,29 @@ public class CommentImplementationBuilder
 						moduleName());
 				return new ClassCommentImplementation (
 					signature,
+					commentStartLine (),
 					authors,
 					sees,
 					description,
 					supertypes,
 					fields);
 			}
-			//TODO Throw Exception
+			final String errorMessage = String.format("Stacks class comment " +
+				"on line number, %d, in module, %s, has wrong # of " +
+				"@types top-level tags", commentStartLine(),
+				moduleName().asNativeString());
+			throw new StacksCommentBuilderException(errorMessage, this);
 		}
 
 		if (types.isEmpty() && !methods.isEmpty() && globalVariables.isEmpty())
 		{
 			if (methods.size() > 1)
 			{
-				//TODO Throw exception
+				final String errorMessage = String.format("Stacks commment " +
+					"on line number, %d, in module, %s, has wrong # of " +
+					"@method top-level tags", commentStartLine(),
+					moduleName().asNativeString());
+				throw new StacksCommentBuilderException(errorMessage, this);
 			}
 			if (!restricts.isEmpty() && parameters.isEmpty() &&
 				forbids.isEmpty())
@@ -537,7 +633,7 @@ public class CommentImplementationBuilder
 						orderedInputTypes);
 
 				return new SemanticRestrictionCommentImplementation(signature,
-					authors, sees,restricts);
+					commentStartLine (), authors, sees,restricts);
 			}
 
 			if (restricts.isEmpty() && !parameters.isEmpty() &&
@@ -558,7 +654,8 @@ public class CommentImplementationBuilder
 						returns.get(0).returnType().lexeme());
 
 				return new MethodCommentImplementation(signature,
-					authors, sees,description,parameters,returns.get(0),raises);
+					commentStartLine (), authors, sees, description, parameters,
+					returns.get(0), raises);
 
 			}
 
@@ -573,12 +670,18 @@ public class CommentImplementationBuilder
 							moduleName());
 
 					return new GrammaticalRestrictionCommentImplementation(
-						signature, authors, sees, forbids.get(0));
+						signature, commentStartLine (), authors, sees,
+						forbids.get(0));
 				}
-				//TODO throws exception.
+				final String errorMessage = String.format("Stacks " +
+					"grammatical restriction commment on line number, %d, " +
+					"in module, %s, has wrong # of @forbids top-level tags",
+					commentStartLine(),
+					moduleName().asNativeString());
+				throw new StacksCommentBuilderException(errorMessage, this);
 			}
 
-			//TODO throw exception
+			//TODO throw exception maybe?
 		}
 
 		if (types.isEmpty() && methods.isEmpty() && !globalVariables.isEmpty())
@@ -591,12 +694,17 @@ public class CommentImplementationBuilder
 						moduleName(),
 						globalVariables.get(0).globalType().lexeme());
 
-				return new GlobalCommentImplementation(signature, authors, sees,
-					description, globalVariables.get(0));
+				return new GlobalCommentImplementation(signature,
+					commentStartLine (), authors, sees,description,
+					globalVariables.get(0));
 			}
-			//TODO Throw error
+			final String errorMessage = String.format("Stacks " +
+				"global module variable commment on line number, %d, " +
+				"in module, %s, has wrong # of @global top-level tags",
+				commentStartLine(),
+				moduleName().asNativeString());
+			throw new StacksCommentBuilderException(errorMessage, this);
 		}
 		return null;
-
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * StacksException.java
+ * StacksScannerException.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -40,13 +40,12 @@ import com.avail.descriptor.CommentTokenDescriptor;
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksException extends Exception
+public class StacksScannerException extends Exception
 {
-
 	/**
-	 * The serial version identifier.
+	 *
 	 */
-	private static final long serialVersionUID = 8191896822852052633L;
+	private static final long serialVersionUID = 1941203667489406705L;
 
 	/**
 	 * The {@link StacksScanner} that failed.
@@ -84,7 +83,7 @@ public class StacksException extends Exception
 	}
 
 	/**
-	 * Construct a new {@link StacksException}.
+	 * Construct a new {@link StacksScannerException}.
 	 *
 	 * @param message
 	 *            The error message indicating why the {@link StacksScanner}
@@ -92,7 +91,7 @@ public class StacksException extends Exception
 	 * @param failedScanner
 	 *            The AbstractStacksScanner that failed, positioned to the failure point.
 	 */
-	public StacksException (
+	public StacksScannerException (
 		final String message,
 		final AbstractStacksScanner failedScanner)
 	{
@@ -101,7 +100,7 @@ public class StacksException extends Exception
 	}
 
 	/**
-	 * Construct a new {@link StacksException}.  Plug in a dummy {@link
+	 * Construct a new {@link StacksScannerException}.  Plug in a dummy {@link
 	 * StacksScanner}.
 	 * @param cause
 	 *            The original problem to be treated as a scanner problem.
@@ -110,7 +109,7 @@ public class StacksException extends Exception
 	 * @param availComment
 	 *		The {@link CommentTokenDescriptor Avail comment} to be tokenized.
 	 */
-	public StacksException (
+	public StacksScannerException (
 		final Throwable cause,
 		final String moduleName,
 		final A_Token availComment)
@@ -123,7 +122,7 @@ public class StacksException extends Exception
 			// And throw in case assertions are off.  Keeps Java compiler happy.
 			throw new RuntimeException("Should have thrown exception");
 		}
-		catch (final StacksException contrivedException)
+		catch (final StacksScannerException contrivedException)
 		{
 			this.failedScanner = contrivedException.failedScanner;
 		}
