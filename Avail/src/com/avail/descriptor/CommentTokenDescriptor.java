@@ -103,12 +103,7 @@ public class CommentTokenDescriptor extends TokenDescriptor
 		 * optimization for case insensitive parsing.
 		 */
 		@HideFieldInDebugger
-		LOWER_CASE_STRING,
-
-		/**
-		 * The module where this comment token appears.
-		 */
-		MODULE_NAME;
+		LOWER_CASE_STRING;
 
 		static
 		{
@@ -125,14 +120,12 @@ public class CommentTokenDescriptor extends TokenDescriptor
 	 * @param string The token text.
 	 * @param start The token's starting character position in the file.
 	 * @param lineNumber The line number on which the token occurred.
-	 * @param moduleName The name of the module the comment appears in.
 	 * @return The new token.
 	 */
 	public static A_Token create (
 		final A_String string,
 		final int start,
-		final int lineNumber,
-		final A_String moduleName)
+		final int lineNumber)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(STRING, string);
@@ -140,7 +133,6 @@ public class CommentTokenDescriptor extends TokenDescriptor
 		instance.setSlot(START, start);
 		instance.setSlot(LINE_NUMBER, lineNumber);
 		instance.setSlot(TOKEN_TYPE_CODE, TokenType.COMMENT.ordinal());
-		instance.setSlot(MODULE_NAME, moduleName);
 		return instance;
 	}
 
@@ -196,11 +188,5 @@ public class CommentTokenDescriptor extends TokenDescriptor
 	CommentTokenDescriptor shared ()
 	{
 		return shared;
-	}
-
-	@Override @AvailMethod
-	A_String o_ModuleName (final AvailObject object)
-	{
-		return object.slot(MODULE_NAME);
 	}
 }

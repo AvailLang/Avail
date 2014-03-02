@@ -206,8 +206,7 @@ public class AvailScanner
 		final A_Token token = CommentTokenDescriptor.create(
 			StringDescriptor.from(currentTokenString()),
 			startOfToken,
-			startLine,
-			StringDescriptor.from(moduleName()));
+			startLine);
 
 		token.makeShared();
 		commentTokens.add(token);
