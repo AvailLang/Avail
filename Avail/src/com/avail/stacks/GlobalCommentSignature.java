@@ -35,7 +35,7 @@ package com.avail.stacks;
 import com.avail.descriptor.A_String;
 
 /**
- * Global Comment Signature
+ * GLOBAL Comment Signature
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */

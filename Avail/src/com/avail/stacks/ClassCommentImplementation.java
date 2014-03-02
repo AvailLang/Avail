@@ -33,7 +33,6 @@
 package com.avail.stacks;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A comment that describes a particular class.
@@ -45,15 +44,15 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 	/**
 	 * The overall description of the implementation
 	 */
-	final List<AbstractStacksToken> description;
+	final ArrayList<AbstractStacksToken> description;
 
 	/**
-	 * The {@link List} of the class's {@link StacksSuperTypeTag supertypes}
+	 * The {@link ArrayList} of the class's {@link StacksSuperTypeTag supertypes}
 	 */
 	final ArrayList<StacksSuperTypeTag> supertypes;
 
 	/**
-	 * The {@link List} of the class's {@link StacksFieldTag fields}
+	 * The {@link ArrayList} of the class's {@link StacksFieldTag fields}
 	 */
 	final ArrayList<StacksFieldTag> fields;
 
@@ -68,14 +67,14 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 	 * @param author
 	 * 		The {@link StacksAuthorTag author} of the implementation.
 	 * @param sees
-	 * 		A {@link List} of any {@link StacksSeeTag "@sees"} references.
+	 * 		A {@link ArrayList} of any {@link StacksSeeTag "@sees"} references.
 	 * @param description
 	 * 		The overall description of the implementation
 	 * @param supertypes
-	 * 		The {@link List} of the class's
+	 * 		The {@link ArrayList} of the class's
 	 * 		{@link StacksSuperTypeTag supertypes}
 	 * @param fields
-	 * 		The {@link List} of the class's {@link StacksFieldTag fields}
+	 * 		The {@link ArrayList} of the class's {@link StacksFieldTag fields}
 	 */
 	public ClassCommentImplementation (
 		final CommentSignature signature,

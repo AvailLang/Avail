@@ -104,6 +104,6 @@ public class QuotedStacksToken extends RegionStacksToken
 	@Override
 	public String lexeme()
 	{
-		return lexeme.substring(1,lexeme().length()-1);
+		return lexeme.substring(1,lexeme.length()-1);
 	}
 }

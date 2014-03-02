@@ -118,15 +118,15 @@ public class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				final ArrayList<AbstractStacksToken> tagContentTokens)
-					 throws ClassCastException
+					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksForbidTag(tagContentTokens);
 			}
 		},
 		/**
-		 * The method keyword indicates the name of the method implementation.
+		 * The global keyword represents a module variable
 		 */
-		Global("@global")
+		GLOBAL("@global")
 		{
 			@Override
 			void addTokensToBuilder (
@@ -409,33 +409,52 @@ public class StacksParser
 	 * @return
 	 * @throws StacksCommentBuilderException
 	 */
-	private AbstractCommentImplementation parse () throws StacksCommentBuilderException
+	private AbstractCommentImplementation parse ()
+		throws StacksCommentBuilderException
 	{
 		int nextSectionStartLocationsIndex = -1;
-		final int currentSectionStartLocationsIndex = 0;
+		int currentSectionStartLocationsIndex = 0;
 
 		if (sectionStartLocations.get(0) != 0)
 		{
-			builder.addStacksCommentDescription(
-				(ArrayList<AbstractStacksToken>) tokens()
-					.subList(0, currentSectionStartLocationsIndex));
+			final ArrayList<AbstractStacksToken> description =
+				new ArrayList<AbstractStacksToken>(tokens()
+					.subList(0, sectionStartLocations
+						.get(currentSectionStartLocationsIndex)));
+			builder.addStacksCommentDescription(description);
 		}
 
-		while (nextSectionStartLocationsIndex != sectionStartLocations.size())
+		while (nextSectionStartLocationsIndex < sectionStartLocations.size()-1)
 		{
 			nextSectionStartLocationsIndex =
 				currentSectionStartLocationsIndex + 1;
 
 			final String key =
-				tokens().get(currentSectionStartLocationsIndex).lexeme();
+				tokens().get(sectionStartLocations
+					.get(currentSectionStartLocationsIndex)).lexeme();
 
 			//Add the new tag section to the map.
 			StacksTagKeyword.keywordTable.get(key)
 				.addTokensToBuilder(builder,
-					(ArrayList<AbstractStacksToken>) tokens()
-						.subList(currentSectionStartLocationsIndex,
-							nextSectionStartLocationsIndex));
+					new ArrayList<AbstractStacksToken>(tokens()
+						.subList(sectionStartLocations
+								.get(currentSectionStartLocationsIndex) + 1,
+							sectionStartLocations.
+								get(nextSectionStartLocationsIndex))));
+			currentSectionStartLocationsIndex = nextSectionStartLocationsIndex;
 		}
+
+		final String key =
+			tokens().get(sectionStartLocations
+				.get(currentSectionStartLocationsIndex)).lexeme();
+
+		//Add the new tag section to the map.
+		StacksTagKeyword.keywordTable.get(key)
+			.addTokensToBuilder(builder,
+				new ArrayList<AbstractStacksToken>(tokens()
+					.subList(sectionStartLocations
+							.get(currentSectionStartLocationsIndex) + 1,
+						tokens().size())));
 
 		return builder.createStacksComment();
 	}

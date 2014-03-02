@@ -657,7 +657,7 @@ public class StacksScanner extends AbstractStacksScanner
 	}
 
 	/**
-	 * Answer the {@linkplain List list} of {@linkplain TokenDescriptor tokens}
+	 * Answer the {@linkplain AbstractCommentImplementation}
 	 * that comprise a {@linkplain CommentTokenDescriptor Avail comment}.
 	 *
 	 * @param commentToken
@@ -666,13 +666,19 @@ public class StacksScanner extends AbstractStacksScanner
 	 * @return a {@link List list} of all tokenized words in the {@link
 	 * 		CommentTokenDescriptor Avail comment}.
 	 * @throws StacksScannerException If scanning fails.
+	 * @throws StacksCommentBuilderException
 	 */
-	public static List<AbstractStacksToken> scanCommentString (final A_Token commentToken)
-		throws StacksScannerException
+	public static AbstractCommentImplementation scanCommentString (
+		final A_Token commentToken)
+		throws StacksScannerException, StacksCommentBuilderException
 	{
 		final StacksScanner scanner =
 			new StacksScanner(commentToken);
 		scanner.scan();
-		return scanner.outputTokens;
+		return StacksParser.parseCommentString(
+			scanner.outputTokens,
+			scanner.sectionStartLocations,
+			scanner.moduleName(),
+			scanner.commentStartLine());
 	}
 }

@@ -108,11 +108,12 @@ public class StacksScannerException extends Exception
 	 *            The name of the module that failed lexical scanning.
 	 * @param availComment
 	 *		The {@link CommentTokenDescriptor Avail comment} to be tokenized.
+	 * @throws StacksCommentBuilderException
 	 */
 	public StacksScannerException (
 		final Throwable cause,
 		final String moduleName,
-		final A_Token availComment)
+		final A_Token availComment) throws StacksCommentBuilderException
 	{
 		super(cause);
 		try

@@ -42,7 +42,9 @@ import com.avail.descriptor.A_String;
  */
 public class CommentImplementationBuilder
 {
-
+//TODO go through and transform all ClassCast exceptions to
+	//StacksCommentBuilderException by catching them.
+	//Still need to handle StacksCommentBuilderException
 	/**
 	 * The author keyword indicates the method implementation author.
 	 */
@@ -88,17 +90,17 @@ public class CommentImplementationBuilder
 	/**
 	 * The general description provided by the comment
 	 */
-	private final ArrayList<AbstractStacksToken> description;
+	private ArrayList<AbstractStacksToken> description;
 
 	/**
-	 * @param tagContentTokens
+	 * @param list
 	 * @throws ClassCastException
 	 */
 	public void addStacksCommentDescription(
-		 final ArrayList<AbstractStacksToken> tagContentTokens)
+		 final ArrayList<AbstractStacksToken> list)
 			 throws ClassCastException
 	{
-		description.addAll(tagContentTokens);
+		description = list;
 	}
 
 	/**
@@ -117,32 +119,45 @@ public class CommentImplementationBuilder
 	{
 		final int tokenCount = tagContentTokens.size();
 
-		if (tokenCount < 2)
+		try
 		{
-			final String errorMessage = String.format("Stacks field tag in " +
-					"comment on line number, %d, in module, %s, has too few " +
-					"@field components", commentStartLine(),
-					moduleName().asNativeString());
+			if (tokenCount < 2)
+			{
+				final String errorMessage = String.format("Stacks field tag in " +
+						"comment on line number, %d, in module, %s, has too few " +
+						"@field components", commentStartLine(),
+						moduleName().asNativeString());
+				throw new StacksCommentBuilderException(errorMessage, this);
+			}
+
+			final QuotedStacksToken tempName =
+				(QuotedStacksToken) tagContentTokens.get(0);
+
+			final QuotedStacksToken tempType =
+				(QuotedStacksToken) tagContentTokens.get(1);
+
+			if (tokenCount == 2)
+			{
+				fields.add(new StacksFieldTag (tempName, tempType,
+					new ArrayList<AbstractStacksToken>(0)));
+			}
+			else
+			{
+				final ArrayList<AbstractStacksToken> rest =
+					new ArrayList<AbstractStacksToken>(
+						tagContentTokens.subList(2, tokenCount));
+				fields.add(new StacksFieldTag (tempName, tempType,rest));
+			}
+		}
+		catch (final ClassCastException e)
+		{
+			final String errorMessage = String.format("Token, %s,  " +
+				"comment on line number, %d, in module, %s, in the @field " +
+				"section failed casting to QuotedStacksToken ",
+				tagContentTokens.get(0).lexeme(),
+				commentStartLine(),
+				moduleName().asNativeString());
 			throw new StacksCommentBuilderException(errorMessage, this);
-		}
-
-		final QuotedStacksToken tempName =
-			(QuotedStacksToken) tagContentTokens.get(0);
-
-		final QuotedStacksToken tempType =
-			(QuotedStacksToken) tagContentTokens.get(1);
-
-		if (tokenCount == 2)
-		{
-			fields.add(new StacksFieldTag (tempName, tempType,
-				new ArrayList<AbstractStacksToken>(0)));
-		}
-		else
-		{
-			final ArrayList<AbstractStacksToken> rest =
-				(ArrayList<AbstractStacksToken>)
-					tagContentTokens.subList(2, tokenCount);
-			fields.add(new StacksFieldTag (tempName, tempType,rest));
 		}
 	}
 
@@ -155,20 +170,34 @@ public class CommentImplementationBuilder
 	/**
 	 * @param tagContentTokens
 	 * @throws ClassCastException
+	 * @throws StacksCommentBuilderException
 	 */
 	public void addStacksForbidTag(
 		 final ArrayList<AbstractStacksToken> tagContentTokens)
-			 throws ClassCastException
+			 throws ClassCastException, StacksCommentBuilderException
 	{
-		final ArrayList<QuotedStacksToken> tempTokens =
-			new ArrayList<QuotedStacksToken>(1);
-
-		for (final AbstractStacksToken token : tagContentTokens)
+		try
 		{
-			tempTokens.add((QuotedStacksToken) token);
-		}
+			final ArrayList<QuotedStacksToken> tempTokens =
+				new ArrayList<QuotedStacksToken>(1);
 
-		forbids.add(new StacksForbidsTag (tempTokens));
+			for (final AbstractStacksToken token : tagContentTokens)
+			{
+				tempTokens.add((QuotedStacksToken) token);
+			}
+
+			forbids.add(new StacksForbidsTag (tempTokens));
+		}
+		catch (final ClassCastException e)
+		{
+			final String errorMessage = String.format("Token, %s,  " +
+				"comment on line number, %d, in module, %s, in the @forbids " +
+				"section failed casting to QuotedStacksToken ",
+				tagContentTokens.get(0).lexeme(),
+				commentStartLine(),
+				moduleName().asNativeString());
+			throw new StacksCommentBuilderException(errorMessage, this);
+		}
 	}
 
 	/**
@@ -187,22 +216,35 @@ public class CommentImplementationBuilder
 	{
 		final int tokenCount = tagContentTokens.size();
 
-		if (tokenCount < 2)
+		try
 		{
-			final String errorMessage = String.format("Stacks field tag in " +
-				"comment on line number, %d, in module, %s, has too few " +
-				"@global components", commentStartLine(),
+			if (tokenCount < 2)
+			{
+				final String errorMessage = String.format("Stacks field tag in " +
+					"comment on line number, %d, in module, %s, has too few " +
+					"@global components", commentStartLine(),
+					moduleName().asNativeString());
+				throw new StacksCommentBuilderException(errorMessage, this);
+			}
+
+			final QuotedStacksToken tempName =
+				(QuotedStacksToken) tagContentTokens.get(0);
+
+			final QuotedStacksToken tempType =
+				(QuotedStacksToken) tagContentTokens.get(1);
+
+				globalVariables.add(new StacksGlobalTag (tempName, tempType));
+		}
+		catch (final ClassCastException e)
+		{
+			final String errorMessage = String.format("Token, %s,  " +
+				"comment on line number, %d, in module, %s, in the @global " +
+				"section failed casting to QuotedStacksToken ",
+				tagContentTokens.get(0).lexeme(),
+				commentStartLine(),
 				moduleName().asNativeString());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
-
-		final QuotedStacksToken tempName =
-			(QuotedStacksToken) tagContentTokens.get(0);
-
-		final QuotedStacksToken tempType =
-			(QuotedStacksToken) tagContentTokens.get(1);
-
-			globalVariables.add(new StacksGlobalTag (tempName, tempType));
 	}
 
 	/**
@@ -219,16 +261,29 @@ public class CommentImplementationBuilder
 		 final ArrayList<AbstractStacksToken> tagContentTokens)
 			 throws ClassCastException, StacksCommentBuilderException
 	{
-		if (tagContentTokens.size() == 1)
+		try
 		{
-			methods.add(new StacksMethodTag (
-					(QuotedStacksToken) tagContentTokens.get(0)));
+			if (tagContentTokens.size() == 1)
+			{
+				methods.add(new StacksMethodTag (
+						(QuotedStacksToken) tagContentTokens.get(0)));
+			}
+			else
+			{
+				final String errorMessage = String.format("Stacks field tag in " +
+					"comment on line number, %d, in module, %s, has wrong # of " +
+					"@method components", commentStartLine(),
+					moduleName().asNativeString());
+				throw new StacksCommentBuilderException(errorMessage, this);
+			}
 		}
-		else
+		catch (final ClassCastException e)
 		{
-			final String errorMessage = String.format("Stacks field tag in " +
-				"comment on line number, %d, in module, %s, has wrong # of " +
-				"@method components", commentStartLine(),
+			final String errorMessage = String.format("Token, %s,  " +
+				"comment on line number, %d, in module, %s, in the @method " +
+				"section failed casting to QuotedStacksToken ",
+				tagContentTokens.get(0).lexeme(),
+				commentStartLine(),
 				moduleName().asNativeString());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -250,21 +305,46 @@ public class CommentImplementationBuilder
 			 throws ClassCastException, StacksCommentBuilderException
 	{
 		final int tokenCount = tagContentTokens.size();
-
 		if (tokenCount < 2)
 		{
-			final String errorMessage = String.format("Stacks field tag in " +
-				"comment on line number, %d, in module, %s, has too few " +
-				"@param components", commentStartLine(),
+			final String errorMessage = String.format("Stacks field tag " +
+				"in comment on line number, %d, in module, %s, has too " +
+				"few @param components", commentStartLine(),
 				moduleName().asNativeString());
-		throw new StacksCommentBuilderException(errorMessage, this);
+			throw new StacksCommentBuilderException(errorMessage, this);
 		}
 
-		final QuotedStacksToken tempName =
-			(QuotedStacksToken) tagContentTokens.get(0);
+		final QuotedStacksToken tempName;
+		try
+		{
+			tempName = (QuotedStacksToken) tagContentTokens.get(0);
+		}
+		catch (final ClassCastException e)
+		{
+			final String errorMessage = String.format("Token, %s,  " +
+				"comment on line number, %d, in module, %s, in the @param " +
+				"section failed casting to QuotedStacksToken ",
+				tagContentTokens.get(0).lexeme(),
+				commentStartLine(),
+				moduleName().asNativeString());
+			throw new StacksCommentBuilderException(errorMessage, this);
+		}
 
-		final QuotedStacksToken tempType =
-			(QuotedStacksToken) tagContentTokens.get(1);
+		final QuotedStacksToken tempType;
+		try
+		{
+			tempType = (QuotedStacksToken) tagContentTokens.get(1);
+		}
+		catch (final ClassCastException e)
+		{
+			final String errorMessage = String.format("Token, %s,  " +
+				"comment on line number, %d, in module, %s, in the @param " +
+				"section failed casting to QuotedStacksToken ",
+				tagContentTokens.get(1).lexeme(),
+				commentStartLine(),
+				moduleName().asNativeString());
+			throw new StacksCommentBuilderException(errorMessage, this);
+		}
 
 		if (tokenCount == 2)
 		{
@@ -274,8 +354,8 @@ public class CommentImplementationBuilder
 		else
 		{
 			final ArrayList<AbstractStacksToken> rest =
-				(ArrayList<AbstractStacksToken>)
-					tagContentTokens.subList(2, tokenCount);
+				new ArrayList<AbstractStacksToken>(
+					tagContentTokens.subList(2, tokenCount));
 			parameters.add(new StacksParameterTag (tempName, tempType,rest));
 		}
 	}
@@ -297,29 +377,42 @@ public class CommentImplementationBuilder
 	{
 		final int tokenCount = tagContentTokens.size();
 
-		if (tokenCount < 1)
+		try
 		{
-			final String errorMessage = String.format("Stacks field tag in " +
-				"comment on line number, %d, in module, %s, has too few " +
-				"@raises components", commentStartLine(),
+			if (tokenCount < 1)
+			{
+				final String errorMessage = String.format("Stacks field tag " +
+					"in comment on line number, %d, in module, %s, has too " +
+					"few @raises components", commentStartLine(),
+					moduleName().asNativeString());
+				throw new StacksCommentBuilderException(errorMessage, this);
+			}
+
+			final QuotedStacksToken tempName =
+				(QuotedStacksToken) tagContentTokens.get(0);
+
+			if (tokenCount == 1)
+			{
+				raises.add(new StacksRaisesTag (tempName,
+					new ArrayList<AbstractStacksToken>(0)));
+			}
+			else
+			{
+				final ArrayList<AbstractStacksToken> rest =
+					new ArrayList<AbstractStacksToken>(
+						tagContentTokens.subList(1, tokenCount));
+				raises.add(new StacksRaisesTag (tempName,rest));
+			}
+		}
+		catch (final ClassCastException e)
+		{
+			final String errorMessage = String.format("Token, %s,  " +
+				"comment on line number, %d, in module, %s, in the " +
+				"@raises section failed final casting to QuotedStacksToken ",
+				tagContentTokens.get(0).lexeme(),
+				commentStartLine(),
 				moduleName().asNativeString());
 			throw new StacksCommentBuilderException(errorMessage, this);
-		}
-
-		final QuotedStacksToken tempName =
-			(QuotedStacksToken) tagContentTokens.get(0);
-
-		if (tokenCount == 1)
-		{
-			raises.add(new StacksRaisesTag (tempName,
-				new ArrayList<AbstractStacksToken>(0)));
-		}
-		else
-		{
-			final ArrayList<AbstractStacksToken> rest =
-				(ArrayList<AbstractStacksToken>)
-					tagContentTokens.subList(1, tokenCount);
-			raises.add(new StacksRaisesTag (tempName,rest));
 		}
 	}
 
@@ -341,29 +434,42 @@ public class CommentImplementationBuilder
 	{
 		final int tokenCount = tagContentTokens.size();
 
-		if (tokenCount < 1)
+		try
 		{
-			final String errorMessage = String.format("Stacks field tag in " +
-				"comment on line number, %d, in module, %s, has too few " +
-				"@restricts components", commentStartLine(),
+			if (tokenCount < 1)
+			{
+				final String errorMessage = String.format("Stacks field tag in " +
+					"comment on line number, %d, in module, %s, has too few " +
+					"@restricts components", commentStartLine(),
+					moduleName().asNativeString());
+				throw new StacksCommentBuilderException(errorMessage, this);
+			}
+
+			final QuotedStacksToken tempName =
+				(QuotedStacksToken) tagContentTokens.get(0);
+
+			if (tokenCount == 1)
+			{
+				restricts.add(new StacksRestrictsTag (tempName,
+					new ArrayList<AbstractStacksToken>(0)));
+			}
+			else
+			{
+				final ArrayList<AbstractStacksToken> rest =
+					new ArrayList<AbstractStacksToken>(
+						tagContentTokens.subList(1, tokenCount));
+				restricts.add(new StacksRestrictsTag (tempName,rest));
+			}
+		}
+		catch (final ClassCastException e)
+		{
+			final String errorMessage = String.format("Token, %s,  " +
+				"comment on line number, %d, in module, %s, in the " +
+				"@restricts section failed casting to QuotedStacksToken ",
+				tagContentTokens.get(0).lexeme(),
+				commentStartLine(),
 				moduleName().asNativeString());
 			throw new StacksCommentBuilderException(errorMessage, this);
-		}
-
-		final QuotedStacksToken tempName =
-			(QuotedStacksToken) tagContentTokens.get(0);
-
-		if (tokenCount == 1)
-		{
-			restricts.add(new StacksRestrictsTag (tempName,
-				new ArrayList<AbstractStacksToken>(0)));
-		}
-		else
-		{
-			final ArrayList<AbstractStacksToken> rest =
-				(ArrayList<AbstractStacksToken>)
-					tagContentTokens.subList(1, tokenCount);
-			restricts.add(new StacksRestrictsTag (tempName,rest));
 		}
 	}
 
@@ -384,29 +490,42 @@ public class CommentImplementationBuilder
 	{
 		final int tokenCount = tagContentTokens.size();
 
-		if (tokenCount < 1)
+		try
 		{
-			final String errorMessage = String.format("Stacks field tag in " +
-				"comment on line number, %d, in module, %s, has too few " +
-				"@returns components", commentStartLine(),
+			if (tokenCount < 1)
+			{
+				final String errorMessage = String.format("Stacks field tag in " +
+					"comment on line number, %d, in module, %s, has too few " +
+					"@returns components", commentStartLine(),
+					moduleName().asNativeString());
+				throw new StacksCommentBuilderException(errorMessage, this);
+			}
+
+			final QuotedStacksToken tempName =
+				(QuotedStacksToken) tagContentTokens.get(0);
+
+			if (tokenCount == 1)
+			{
+				returns.add(new StacksReturnTag (tempName,
+					new ArrayList<AbstractStacksToken>(0)));
+			}
+			else
+			{
+				final ArrayList<AbstractStacksToken> rest =
+					new ArrayList<AbstractStacksToken>(
+						tagContentTokens.subList(1, tokenCount));
+				returns.add(new StacksReturnTag (tempName,rest));
+			}
+		}
+		catch (final ClassCastException e)
+		{
+			final String errorMessage = String.format("Token, %s,  " +
+				"comment on line number, %d, in module, %s, in the @returns " +
+				"section failed casting to QuotedStacksToken ",
+				tagContentTokens.get(0).lexeme(),
+				commentStartLine(),
 				moduleName().asNativeString());
 			throw new StacksCommentBuilderException(errorMessage, this);
-		}
-
-		final QuotedStacksToken tempName =
-			(QuotedStacksToken) tagContentTokens.get(0);
-
-		if (tokenCount == 1)
-		{
-			returns.add(new StacksReturnTag (tempName,
-				new ArrayList<AbstractStacksToken>(0)));
-		}
-		else
-		{
-			final ArrayList<AbstractStacksToken> rest =
-				(ArrayList<AbstractStacksToken>)
-					tagContentTokens.subList(1, tokenCount);
-			returns.add(new StacksReturnTag (tempName,rest));
 		}
 	}
 
@@ -425,16 +544,29 @@ public class CommentImplementationBuilder
 		 final ArrayList<AbstractStacksToken> tagContentTokens)
 			 throws ClassCastException, StacksCommentBuilderException
 	{
-		if (tagContentTokens.size() == 1)
+		try
 		{
-			sees.add(new StacksSeeTag (
-					(RegionStacksToken) tagContentTokens.get(0)));
+			if (tagContentTokens.size() == 1)
+			{
+				sees.add(new StacksSeeTag (
+						(RegionStacksToken) tagContentTokens.get(0)));
+			}
+			else
+			{
+				final String errorMessage = String.format("Stacks field tag " +
+					"in comment on line number, %d, in module, %s, has " +
+					"wrong # of @sees components", commentStartLine(),
+					moduleName().asNativeString());
+				throw new StacksCommentBuilderException(errorMessage, this);
+			}
 		}
-		else
+		catch (final ClassCastException e)
 		{
-			final String errorMessage = String.format("Stacks field tag in " +
-				"comment on line number, %d, in module, %s, has wrong # of " +
-				"@sees components", commentStartLine(),
+			final String errorMessage = String.format("Token, %s,  " +
+				"comment on line number, %d, in module, %s, in the @sees " +
+				"section failed casting to RegionStacksToken ",
+				tagContentTokens.get(0).lexeme(),
+				commentStartLine(),
 				moduleName().asNativeString());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -455,16 +587,29 @@ public class CommentImplementationBuilder
 		 final ArrayList<AbstractStacksToken> tagContentTokens)
 			 throws ClassCastException, StacksCommentBuilderException
 	{
-		if (tagContentTokens.size() == 1)
+		try
 		{
-			supertypes.add(new StacksSuperTypeTag (
-					(QuotedStacksToken) tagContentTokens.get(0)));
+			if (tagContentTokens.size() == 1)
+			{
+				supertypes.add(new StacksSuperTypeTag (
+						(QuotedStacksToken) tagContentTokens.get(0)));
+			}
+			else
+			{
+				final String errorMessage = String.format("Stacks field tag in " +
+					"comment on line number, %d, in module, %s, has wrong # of " +
+					"@supertype components", commentStartLine(),
+					moduleName().asNativeString());
+				throw new StacksCommentBuilderException(errorMessage, this);
+			}
 		}
-		else
+		catch (final ClassCastException e)
 		{
-			final String errorMessage = String.format("Stacks field tag in " +
-				"comment on line number, %d, in module, %s, has wrong # of " +
-				"@supertype components", commentStartLine(),
+			final String errorMessage = String.format("Token, %s,  " +
+				"comment on line number, %d, in module, %s, in the " +
+				"@supertype section failed casting to QuotedStacksToken ",
+				tagContentTokens.get(0).lexeme(),
+				commentStartLine(),
 				moduleName().asNativeString());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -484,16 +629,29 @@ public class CommentImplementationBuilder
 		 final ArrayList<AbstractStacksToken> tagContentTokens)
 			 throws ClassCastException, StacksCommentBuilderException
 	{
-		if (tagContentTokens.size() == 1)
+		try
 		{
-			types.add(new StacksTypeTag (
-					(QuotedStacksToken) tagContentTokens.get(0)));
+			if (tagContentTokens.size() == 1)
+			{
+				types.add(new StacksTypeTag (
+						(QuotedStacksToken) tagContentTokens.get(0)));
+			}
+			else
+			{
+				final String errorMessage = String.format("Stacks field tag " +
+					"in comment on line number, %d, in module, %s, has wrong " +
+					"# of @type components", commentStartLine(),
+					moduleName().asNativeString());
+				throw new StacksCommentBuilderException(errorMessage, this);
+			}
 		}
-		else
+		catch (final ClassCastException e)
 		{
-			final String errorMessage = String.format("Stacks field tag in " +
-				"comment on line number, %d, in module, %s, has wrong # of " +
-				"@type components", commentStartLine(),
+			final String errorMessage = String.format("Token, %s,  " +
+				"comment on line number, %d, in module, %s, in the @returns " +
+				"section failed casting to QuotedStacksToken ",
+				tagContentTokens.get(0).lexeme(),
+				commentStartLine(),
 				moduleName().asNativeString());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
