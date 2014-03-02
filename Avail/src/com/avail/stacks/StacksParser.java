@@ -86,7 +86,7 @@ public class StacksParser
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
 				 final ArrayList<AbstractStacksToken> tagContentTokens)
-					 throws ClassCastException
+					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksCategoryTag(tagContentTokens);
 			}
