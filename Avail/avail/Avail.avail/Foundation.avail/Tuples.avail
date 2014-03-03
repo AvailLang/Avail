@@ -1539,9 +1539,6 @@ Method "_to_by_" is
 ] : ⊥;
 
 /**
- * Leverage the uncertainty of `start` to produce good leading types when the
- * upper bound of the result's cardinality can be determined.
- * 
  * @method "_to_by_"
  * @restricts "integer's type"
  * @restricts "integer's type"
