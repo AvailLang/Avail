@@ -96,4 +96,10 @@ extends A_BasicObject
 	 * @return The value of the literal token.
 	 */
 	AvailObject literal ();
+
+	/**
+	 * Answer this token's module of origin.
+	 * @return The module this token appears in
+	 */
+	A_String moduleName ();
 }

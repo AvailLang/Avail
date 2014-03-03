@@ -144,7 +144,7 @@ Test "bounded iterator basics" in bounded iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "bounded iterator(map)" in bounded iterator test suite is
+Test "bounded iterator (map)" in bounded iterator test suite is
 [
 	ref ::= <1, 4, 9, 16, 25, 36, 49, 64, 81, 100>;
 	index : natural number := 1;
@@ -159,7 +159,7 @@ Test "bounded iterator(map)" in bounded iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "bounded iterator(filter)" in bounded iterator test suite is
+Test "bounded iterator (filter)" in bounded iterator test suite is
 [
 	ref ::= <2, 4, 6, 8, 10>;
 	index : natural number := 1;
@@ -174,7 +174,7 @@ Test "bounded iterator(filter)" in bounded iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "bounded iterator(concatenation)" in bounded iterator test suite is
+Test "bounded iterator (concatenation)" in bounded iterator test suite is
 [
 	ref ::= 1 to 10;
 	index : natural number := 1;
@@ -198,7 +198,8 @@ Test "bounded iterator(concatenation)" in bounded iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "bounded iterator(lexical concatenation)" in bounded iterator test suite is
+Test "bounded iterator (lexical concatenation)"
+	in bounded iterator test suite is
 [
 	ref ::= 1 to 10;
 	index : natural number := 1;
@@ -230,7 +231,7 @@ Test "bounded iterator(lexical concatenation)" in bounded iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "bounded iterator(zip)" in bounded iterator test suite is
+Test "bounded iterator (zip)" in bounded iterator test suite is
 [
 	ref ::= <
 		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
@@ -250,7 +251,7 @@ Test "bounded iterator(zip)" in bounded iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "bounded iterator(lexical zip)" in bounded iterator test suite is
+Test "bounded iterator (lexical zip)" in bounded iterator test suite is
 [
 	ref ::= <
 		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
@@ -270,7 +271,7 @@ Test "bounded iterator(lexical zip)" in bounded iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "bounded iterator(take_from_)" in bounded iterator test suite is
+Test "bounded iterator (take_from_)" in bounded iterator test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
@@ -286,7 +287,7 @@ Test "bounded iterator(take_from_)" in bounded iterator test suite is
 	Require: [take 6 from iter] raises exhausted-iterator exception;
 ];
 
-Test "bounded iterator(take from_while_)" in bounded iterator test suite is
+Test "bounded iterator (take from_while_)" in bounded iterator test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
@@ -301,7 +302,7 @@ Test "bounded iterator(take from_while_)" in bounded iterator test suite is
 	Require: iter's current element = 6;
 ];
 
-Test "bounded iterator(take from_until_)" in bounded iterator test suite is
+Test "bounded iterator (take from_until_)" in bounded iterator test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
@@ -316,7 +317,7 @@ Test "bounded iterator(take from_until_)" in bounded iterator test suite is
 	Require: iter's current element = 6;
 ];
 
-Test "bounded iterator(Drop_from_)" in bounded iterator test suite is
+Test "bounded iterator (Drop_from_)" in bounded iterator test suite is
 [
 	ref ::= 6 to 10;
 	index : natural number := 1;
@@ -332,7 +333,7 @@ Test "bounded iterator(Drop_from_)" in bounded iterator test suite is
 	Require: [Drop 6 from iter;] raises exhausted-iterator exception;
 ];
 
-Test "bounded iterator(Drop from_while_)" in bounded iterator test suite is
+Test "bounded iterator (Drop from_while_)" in bounded iterator test suite is
 [
 	ref ::= 6 to 10;
 	index : natural number := 1;
@@ -347,7 +348,7 @@ Test "bounded iterator(Drop from_while_)" in bounded iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "bounded iterator(Drop from_until_)" in bounded iterator test suite is
+Test "bounded iterator (Drop from_until_)" in bounded iterator test suite is
 [
 	ref ::= 6 to 10;
 	index : natural number := 1;

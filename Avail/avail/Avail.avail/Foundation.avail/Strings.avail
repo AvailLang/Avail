@@ -103,8 +103,7 @@ interpolationMode ::= enumeration of {description, text, escape};
  *      the result.
  * 
  * @method "interpolation mode"
- * Returns:
- *    An enumeration of the atoms listed above.
+ * @returns An enumeration of the atoms listed above.
  */
 Private method "interpolation mode" is [ interpolationMode ];
 

@@ -70,6 +70,12 @@ public class AvailScanner
 	final List<A_Token> outputTokens;
 
 	/**
+	 * The comment tokens that have been parsed so far.
+	 */
+	final List<A_Token> commentTokens;
+
+
+	/**
 	 * The current position in the input string.
 	 */
 	private int position;
@@ -185,6 +191,25 @@ public class AvailScanner
 			anAvailObject);
 		token.makeShared();
 		outputTokens.add(token);
+		return token;
+	}
+
+	/**
+	 * Add the provided {@linkplain CommentTokenDescriptor comment
+	 * token}.
+	 *@param startLine The line the token started.
+	 * @return The newly added token.
+	 */
+	@InnerAccess
+	A_Token addCurrentCommentToken (final int startLine)
+	{
+		final A_Token token = CommentTokenDescriptor.create(
+			StringDescriptor.from(currentTokenString()),
+			startOfToken,
+			startLine);
+
+		token.makeShared();
+		commentTokens.add(token);
 		return token;
 	}
 
@@ -742,6 +767,8 @@ public class AvailScanner
 				}
 				else
 				{
+					final boolean capture = scanner.peekFor('*');
+
 					final int startLine = scanner.lineNumber;
 					int depth = 1;
 					while (true)
@@ -771,10 +798,16 @@ public class AvailScanner
 						}
 						if (depth == 0)
 						{
+							if (capture)
+							{
+								scanner.addCurrentCommentToken(startLine);
+							}
 							break;
 						}
 					}
+
 				}
+
 			}
 		},
 
@@ -909,7 +942,10 @@ public class AvailScanner
 		throws AvailScannerException
 	{
 		final AvailScanner scanner =
-			new AvailScanner(string, moduleName, stopAfterBodyTokenFlag);
+			new AvailScanner(
+				string,
+				moduleName,
+				stopAfterBodyTokenFlag);
 		scanner.scan();
 		return scanner.outputTokens;
 	}
@@ -935,6 +971,7 @@ public class AvailScanner
 		this.moduleName = moduleName;
 		this.stopAfterBodyToken = stopAfterBodyToken;
 		this.outputTokens = new ArrayList<A_Token>(inputString.length() / 20);
+		this.commentTokens = new ArrayList<A_Token>(10);
 	}
 
 	/**

@@ -59,6 +59,12 @@ Uses
 	"Foundation",
 	"Primitives"
 Names
+	/* Metadata queries. */
+	"_is directory",
+	"_is regular file",
+	"_is special file",
+	"_is symbolic link",
+
 	/* Metadata accessors. */
 	"_'s⁇access rights",
 	"_'s⁇group",
@@ -69,6 +75,150 @@ Names
 	"_'s⁇group:=_",
 	"_'s⁇owner:=_"
 Body
+
+/**
+ * Is the file associated with the specified {@type "file metadata"} a {@method
+ * "regular file"}?
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_is regular file"
+ * @param "m" "file metadata"
+ * @returns "boolean"
+ */
+Public method "_is regular file" is
+[
+	m : file metadata
+|
+	m's file type = regular file
+] : boolean;
+
+/**
+ * Is the file indicated by the specified {@type "file name"} a {@method
+ * "regular file"}?
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_is regular file"
+ * @param "fn" "file name"
+ * @returns "boolean"
+ */
+Public method "_is regular file" is
+[
+	fn : file name
+|
+	fn's metadata's file type = regular file
+] : boolean;
+
+/**
+ * Is the file associated with the specified {@type "file metadata"} a {@method
+ * "directory"}?
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_is directory"
+ * @param "m" "file metadata"
+ * @returns "boolean"
+ */
+Public method "_is directory" is
+[
+	m : file metadata
+|
+	m's file type = directory
+] : boolean;
+
+/**
+ * Is the file indicated by the specified {@type "file name"} a {@method
+ * "directory"}?
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_is directory"
+ * @param "fn" "file name"
+ * @returns "boolean"
+ */
+Public method "_is directory" is
+[
+	fn : file name
+|
+	fn's metadata's file type = directory
+] : boolean;
+
+/**
+ * Is the file associated with the specified {@type "file metadata"} a {@method
+ * "symbolic link"}?
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_is symbolic link"
+ * @param "m" "file metadata"
+ * @returns "boolean"
+ */
+Public method "_is symbolic link" is
+[
+	m : file metadata
+|
+	m's file type = symbolic link
+] : boolean;
+
+/**
+ * Is the file indicated by the specified {@type "file name"} a {@method
+ * "symbolic link"}?
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_is symbolic link"
+ * @param "fn" "file name"
+ * @returns "boolean"
+ */
+Public method "_is symbolic link" is
+[
+	fn : file name
+|
+	fn's metadata's file type = symbolic link
+] : boolean;
+
+/**
+ * Is the file associated with the specified {@type "file metadata"} a {@method
+ * "special file"}?
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_is special file"
+ * @param "m" "file metadata"
+ * @returns "boolean"
+ */
+Public method "_is special file" is
+[
+	m : file metadata
+|
+	m's file type = special file
+] : boolean;
+
+/**
+ * Is the file indicated by the specified {@type "file name"} a {@method
+ * "special file"}?
+ *
+ * Note that the answer is only guaranteed valid at the time of the underlying
+ * file system query, and is outdated immediately thereafter.
+ *
+ * @method "_is special file"
+ * @param "fn" "file name"
+ * @returns "boolean"
+ */
+Public method "_is special file" is
+[
+	fn : file name
+|
+	fn's metadata's file type = special file
+] : boolean;
 
 /**
  * Answer the {@type "file access rights"} associated with the specified

@@ -135,7 +135,15 @@ extends Descriptor
 		 * A synthetic literal token. Such a token does not occur in the source
 		 * text. Only applicable for a {@link LiteralTokenDescriptor}.
 		 */
-		SYNTHETIC_LITERAL;
+		SYNTHETIC_LITERAL,
+
+		/**
+		 * A token that is the entirety an Avail method/class comment.  This is
+		 * text contained between forward slash-asterisk-asterisk and
+		 * asterisk-forward slash.  Only applicable for {@link
+		 * CommentTokenDescriptor}.
+		 */
+		COMMENT;
 	}
 
 	@Override

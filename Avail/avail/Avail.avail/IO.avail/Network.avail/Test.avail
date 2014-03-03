@@ -48,14 +48,14 @@ Body
 "network test suite" is a new atom;
 New test suite network test suite extends I/O test suite;
 
-Test "server socket(create)" in network test suite is
+Test "server socket (create)" in network test suite is
 [
 	s ::= a server socket named "bogus";
 	Guard [Require: "bogus" = s's name;]
 	ensure [Close s;];
 ];
 
-Test "server socket(set option)" in network test suite is
+Test "server socket (set option)" in network test suite is
 [
 	s ::= a server socket named "bogus";
 	Guard
@@ -67,7 +67,7 @@ Test "server socket(set option)" in network test suite is
 	ensure [Close s;];
 ];
 
-Test "server socket(bind IPv4)" in network test suite is
+Test "server socket (bind IPv4)" in network test suite is
 [
 	s ::= a server socket named "bogus";
 	Require: s's name = "bogus";
@@ -80,7 +80,7 @@ Test "server socket(bind IPv4)" in network test suite is
 	ensure [Close s;];
 ];
 
-Test "server socket(rebind reusable IPv4)" in network test suite is
+Test "server socket (rebind reusable IPv4)" in network test suite is
 [
 	s : server socket := a server socket named "bind";
 	Require: s's name = "bind";
@@ -103,7 +103,7 @@ Test "server socket(rebind reusable IPv4)" in network test suite is
 	ensure [Close s;];
 ];
 
-Test "server socket(bind closed IPv4)" in network test suite is
+Test "server socket (bind closed IPv4)" in network test suite is
 [
 	s ::= a server socket named "doomed";
 	Close s;

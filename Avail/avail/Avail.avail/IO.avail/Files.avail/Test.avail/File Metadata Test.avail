@@ -87,10 +87,19 @@ Test "file types" in file metadata test suite is
 [
 	fn1 ::= abracadabra.txt;
 	Require: fn1's file type = regular file;
+	Require: fn1 is regular file;
+	Require: fn1's metadata is regular file;
 	fn2 ::= ./test directory;
 	Require: fn2's file type = directory;
+	Require: fn2 is directory;
+	Require: fn2's metadata is directory;
 	fn4 ::= a file named "/dev/null";
-	If fn4 exists then [Require: special file = fn4's file type;];
+	If fn4 exists then
+	[
+		Require: special file = fn4's file type;
+		Require: fn4 is special file;
+		Require: fn4's metadata is special file;
+	];
 ];
 
 Test "file times" in file metadata test suite is

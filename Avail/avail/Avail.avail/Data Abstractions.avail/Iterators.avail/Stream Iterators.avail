@@ -163,7 +163,7 @@ Test "stream iterator basics" in stream iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "stream iterator(map)" in stream iterator test suite is
+Test "stream iterator (map)" in stream iterator test suite is
 [
 	ref ::= <1, 4, 9, 16, 25, 36, 49, 64, 81, 100>;
 	index : natural number := 1;
@@ -178,7 +178,7 @@ Test "stream iterator(map)" in stream iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "stream iterator(filter)" in stream iterator test suite is
+Test "stream iterator (filter)" in stream iterator test suite is
 [
 	ref ::= <2, 4, 6, 8, 10>;
 	index : natural number := 1;
@@ -193,7 +193,7 @@ Test "stream iterator(filter)" in stream iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "stream iterator(concatenation)" in stream iterator test suite is
+Test "stream iterator (concatenation)" in stream iterator test suite is
 [
 	ref ::= 1 to 10;
 	index : natural number := 1;
@@ -217,7 +217,7 @@ Test "stream iterator(concatenation)" in stream iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "stream iterator(lexical concatenation)" in stream iterator test suite is
+Test "stream iterator (lexical concatenation)" in stream iterator test suite is
 [
 	ref ::= 1 to 10;
 	index : natural number := 1;
@@ -249,7 +249,7 @@ Test "stream iterator(lexical concatenation)" in stream iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "stream iterator(zip)" in stream iterator test suite is
+Test "stream iterator (zip)" in stream iterator test suite is
 [
 	ref ::= <
 		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
@@ -269,7 +269,7 @@ Test "stream iterator(zip)" in stream iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "stream iterator(lexical zip)" in stream iterator test suite is
+Test "stream iterator (lexical zip)" in stream iterator test suite is
 [
 	ref ::= <
 		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
@@ -289,7 +289,7 @@ Test "stream iterator(lexical zip)" in stream iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "stream iterator(take_from_)" in stream iterator test suite is
+Test "stream iterator (take_from_)" in stream iterator test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
@@ -305,7 +305,7 @@ Test "stream iterator(take_from_)" in stream iterator test suite is
 	Require: [take 6 from iter] raises exhausted-iterator exception;
 ];
 
-Test "stream iterator(take from_while_)" in stream iterator test suite is
+Test "stream iterator (take from_while_)" in stream iterator test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
@@ -320,7 +320,7 @@ Test "stream iterator(take from_while_)" in stream iterator test suite is
 	Require: iter's current element = 6;
 ];
 
-Test "stream iterator(take from_until_)" in stream iterator test suite is
+Test "stream iterator (take from_until_)" in stream iterator test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
@@ -335,7 +335,7 @@ Test "stream iterator(take from_until_)" in stream iterator test suite is
 	Require: iter's current element = 6;
 ];
 
-Test "stream iterator(Drop_from_)" in stream iterator test suite is
+Test "stream iterator (Drop_from_)" in stream iterator test suite is
 [
 	ref ::= 6 to 10;
 	index : natural number := 1;
@@ -351,7 +351,7 @@ Test "stream iterator(Drop_from_)" in stream iterator test suite is
 	Require: [Drop 6 from iter;] raises exhausted-iterator exception;
 ];
 
-Test "stream iterator(Drop from_while_)" in stream iterator test suite is
+Test "stream iterator (Drop from_while_)" in stream iterator test suite is
 [
 	ref ::= 6 to 10;
 	index : natural number := 1;
@@ -366,7 +366,7 @@ Test "stream iterator(Drop from_while_)" in stream iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "stream iterator(Drop from_until_)" in stream iterator test suite is
+Test "stream iterator (Drop from_until_)" in stream iterator test suite is
 [
 	ref ::= 6 to 10;
 	index : natural number := 1;
@@ -381,7 +381,7 @@ Test "stream iterator(Drop from_until_)" in stream iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "stream iterator(position)" in stream iterator test suite is
+Test "stream iterator (position)" in stream iterator test suite is
 [
 	iter ::= an iterator over a counting stream from 1 to 10;
 	i : [1..11] := 1;

@@ -1151,11 +1151,43 @@ public enum SerializerOperation
 	},
 
 	/**
+	 * A {@linkplain TokenDescriptor token}.
+	 */
+	COMMENT_TOKEN (41,
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("token string"),
+		SIGNED_INT.as("start position"),
+		SIGNED_INT.as("line number"))
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			return array(
+				object.string(),
+				IntegerDescriptor.fromInt(object.start()),
+				IntegerDescriptor.fromInt(object.lineNumber()));
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final AvailObject string = subobjects[0];
+			final int start = subobjects[1].extractInt();
+			final int lineNumber = subobjects[2].extractInt();
+			return CommentTokenDescriptor.create(
+				string,
+				start,
+				lineNumber);
+		}
+	},
+
+	/**
 	 * This special opcode causes a previously built variable to have a
 	 * previously built value to be assigned to it at this point during
 	 * deserialization.
 	 */
-	ASSIGN_TO_VARIABLE (41,
+	ASSIGN_TO_VARIABLE (42,
 		OBJECT_REFERENCE.as("variable to assign"),
 		OBJECT_REFERENCE.as("value to assign"))
 	{
@@ -1182,7 +1214,7 @@ public enum SerializerOperation
 	/**
 	 * The representation of a continuation, which is just its level one state.
 	 */
-	CONTINUATION (42,
+	CONTINUATION (43,
 		OBJECT_REFERENCE.as("calling continuation"),
 		OBJECT_REFERENCE.as("continuation's function"),
 		TUPLE_OF_OBJECTS.as("continuation frame slots"),
@@ -1243,7 +1275,7 @@ public enum SerializerOperation
 	 * during serialization, chosen arbitrarily.  During deserialization, the
 	 * message bundle is looked up, and its method is extracted.
 	 */
-	METHOD (43,
+	METHOD (44,
 		OBJECT_REFERENCE.as("random method bundle"))
 	{
 		@Override
@@ -1267,7 +1299,7 @@ public enum SerializerOperation
 	 * A reference to a {@linkplain MethodDefinitionDescriptor method
 	 * definition}, which should be reconstructed by looking it up.
 	 */
-	METHOD_DEFINITION (44,
+	METHOD_DEFINITION (45,
 		OBJECT_REFERENCE.as("method"),
 		OBJECT_REFERENCE.as("signature"))
 	{
@@ -1307,7 +1339,7 @@ public enum SerializerOperation
 	 * A reference to a {@linkplain MacroDefinitionDescriptor macro
 	 * definition}, which should be reconstructed by looking it up.
 	 */
-	MACRO_DEFINITION (45,
+	MACRO_DEFINITION (46,
 		OBJECT_REFERENCE.as("method"),
 		OBJECT_REFERENCE.as("signature"))
 	{
@@ -1347,7 +1379,7 @@ public enum SerializerOperation
 	 * A reference to an {@linkplain AbstractDefinitionDescriptor abstract
 	 * declaration}, which should be reconstructed by looking it up.
 	 */
-	ABSTRACT_DEFINITION (46,
+	ABSTRACT_DEFINITION (47,
 		OBJECT_REFERENCE.as("method"),
 		OBJECT_REFERENCE.as("signature"))
 	{
@@ -1387,7 +1419,7 @@ public enum SerializerOperation
 	 * A reference to a {@linkplain ForwardDefinitionDescriptor forward
 	 * declaration}, which should be reconstructed by looking it up.
 	 */
-	FORWARD_DEFINITION (47,
+	FORWARD_DEFINITION (48,
 		OBJECT_REFERENCE.as("method"),
 		OBJECT_REFERENCE.as("signature"))
 	{
@@ -1427,7 +1459,7 @@ public enum SerializerOperation
 	 * A reference to a {@linkplain MessageBundleDescriptor message bundle},
 	 * which should be reconstructed by looking it up.
 	 */
-	MESSAGE_BUNDLE (48,
+	MESSAGE_BUNDLE (49,
 		OBJECT_REFERENCE.as("message atom"))
 	{
 		@Override
@@ -1444,26 +1476,6 @@ public enum SerializerOperation
 		{
 			final A_Atom atom = subobjects[0];
 			return atom.bundleOrCreate();
-		}
-	},
-
-	/**
-	 * Reserved for future use.
-	 */
-	RESERVED_49 (49)
-	{
-		@Override
-		A_BasicObject[] decompose (final AvailObject object)
-		{
-			throw new RuntimeException("Reserved serializer operation");
-		}
-
-		@Override
-		A_BasicObject compose (
-			final AvailObject[] subobjects,
-			final Deserializer deserializer)
-		{
-			throw new RuntimeException("Reserved serializer operation");
 		}
 	},
 

@@ -119,8 +119,8 @@ Method "“_”" is
 ] : string;
 
 /**
- * Is the specified tuple empty?
- *
+ * Is the specified {@param "tuple"} empty?
+ * 
  * @method "_is empty"
  * @param "aTuple" "tuple"
  * @returns "boolean"
@@ -1539,9 +1539,6 @@ Method "_to_by_" is
 ] : ⊥;
 
 /**
- * Leverage the uncertainty of `start` to produce good leading types when the
- * upper bound of the result's cardinality can be determined.
- * 
  * @method "_to_by_"
  * @restricts "integer's type"
  * @restricts "integer's type"
@@ -3362,7 +3359,7 @@ Semantic restriction "_-_" is
  * @param "end" "integer"
  *        An {@type "integer"}.
  * @param "else" "[]→any"
- *        The function to apply if {@param "start"} through {@param "end} is not
+ *        The function to apply if {@param "start"} through {@param "end"} is not
  *        a valid range of {@param "aTuple"}.
  * @returns "any"
  *          The {@param "start"}-th throught the {@param "end"}-th elements of 
@@ -3433,7 +3430,7 @@ Semantic restriction "_[_.._]else_" is
  * @param "end" "integer"
  *        An {@type "integer"}.
  * @param "else" "[]→any"
- *        The function to apply if 1 through {@param "end} is not
+ *        The function to apply if 1 through {@param "end"} is not
  *        a valid range of {@param "aTuple"}.
  * @returns "any"
  *          The first through the {@param "end"}-th element of 
