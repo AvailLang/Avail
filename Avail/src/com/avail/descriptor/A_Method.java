@@ -79,7 +79,7 @@ extends A_ChunkDependable
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	List<A_Definition> filterByTypes (List<A_Type> argTypes);
+	List<A_Definition> filterByTypes (List<? extends A_Type> argTypes);
 
 	/**
 	 * Dispatch to the descriptor.

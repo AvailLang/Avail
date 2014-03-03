@@ -1131,7 +1131,7 @@ extends Descriptor
 	@Override @AvailMethod
 	List<A_Definition> o_FilterByTypes (
 		final AvailObject object,
-		final List<A_Type> argTypes)
+		final List<? extends A_Type> argTypes)
 	{
 		final List<A_Definition> result = new ArrayList<>(3);
 		// Use the accessor instead of reading the slot directly (to acquire the

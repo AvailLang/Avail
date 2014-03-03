@@ -596,7 +596,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsListOfArgTypes (
 		final AvailObject object,
-		final List<A_Type> argTypes)
+		final List<? extends A_Type> argTypes)
 	{
 		return getSuperkind(object).acceptsListOfArgTypes(argTypes);
 	}

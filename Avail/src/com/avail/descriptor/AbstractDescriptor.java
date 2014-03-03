@@ -982,7 +982,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_AcceptsListOfArgTypes (
 		AvailObject object,
-		List<A_Type> argTypes);
+		List<? extends A_Type> argTypes);
 
 	/**
 	 * Answer whether these are acceptable arguments for invoking a {@linkplain
@@ -1611,7 +1611,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract List<A_Definition> o_FilterByTypes (
 		AvailObject object,
-		List<A_Type> argTypes);
+		List<? extends A_Type> argTypes);
 
 	/**
 	 * Answer whether the {@linkplain AvailObject receiver} contains the

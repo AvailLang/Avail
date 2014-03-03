@@ -143,11 +143,7 @@ extends ModuleName
 		super(qualifiedName.qualifiedName());
 		this.moduleRoot = moduleRoot;
 		final File ref = sourceReference();
-		if (!ref.isFile())
-		{
-			// TODO [MvG] Debug - Remove condition and leave assertion.
-			assert ref.isFile();
-		}
+		assert ref.isFile();
 		final String fileName = ref.getName();
 		final File directoryName = ref.getParentFile();
 		this.isPackage = directoryName != null

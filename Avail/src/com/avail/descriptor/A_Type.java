@@ -71,7 +71,7 @@ extends A_BasicObject
 	 *         general than those within the {@code argTypes} list, {@code
 	 *         false} otherwise.
 	 */
-	boolean acceptsListOfArgTypes (List<A_Type> argTypes);
+	boolean acceptsListOfArgTypes (List<? extends A_Type> argTypes);
 
 	/**
 	 * Answer whether these are acceptable arguments for invoking a {@linkplain

@@ -268,7 +268,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_AcceptsListOfArgTypes (
 		final AvailObject object,
-		final List<A_Type> argTypes)
+		final List<? extends A_Type> argTypes)
 	{
 		return o_Traversed(object).acceptsListOfArgTypes(argTypes);
 	}
@@ -1000,7 +1000,7 @@ extends AbstractDescriptor
 	@Override
 	List<A_Definition> o_FilterByTypes (
 		final AvailObject object,
-		final List<A_Type> argTypes)
+		final List<? extends A_Type> argTypes)
 	{
 		return o_Traversed(object).filterByTypes(argTypes);
 	}

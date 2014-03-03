@@ -1233,45 +1233,183 @@ extends JFrame
 	}
 
 	/**
-	 * Figure out where to initially place the frame.  Use the current screen
-	 * resolutions/positions to preserve placement information.  Place it on the
-	 * primary screen if this configuration has not yet been encountered.
-	 *
-	 * @return The default rectangle into which to position this {@link
-	 *         AvailBuilderFrame} for the current monitor configuration, or null
-	 *         if it has no saved position yet for that configuration.
+	 * Information about the window layout.
 	 */
-	@InnerAccess
-	@Nullable Rectangle getInitialRectangle ()
+	private static class LayoutConfiguration
 	{
-		final List<Rectangle> rectangles = allMonitorRectangles();
-		final Preferences preferences =
-			placementPreferencesNodeForRectangles(rectangles);
+		/** The preferred location and size of the window, if specified. */
+		@Nullable Rectangle placement = null;
 
-		final String locationString = preferences.get(
+		/**
+		 * The width of the left region of the builder frame in pixels, if
+		 * specified
+		 */
+		@Nullable Integer leftSectionWidth = null;
+
+		/**
+		 * Answer this configuration's recommended width in pixels for the left
+		 * region of the window, supplying a suitable default if necessary.
+		 *
+		 * @return The recommended width of the left part.
+		 */
+		int leftSectionWidth ()
+		{
+			final Integer w = leftSectionWidth;
+			return w != null ? w : 200;
+		}
+
+		/**
+		 * The proportion, if specified, as a float between {@code 0.0} and
+		 * {@code 1.0} of the height of the top left module region in relative
+		 * proportional to the height of the entire builder frame.
+		 */
+		@Nullable Double moduleVerticalProportion = null;
+
+		/**
+		 * Add this configuration's recommended proportion of height of the
+		 * modules list versus the entire frame's height, supplying a default
+		 * if necessary.  It must be between 0.0 and 1.0 inclusive.
+		 *
+		 * @return The vertical proportion of the modules area.
+		 */
+		double moduleVerticalProportion ()
+		{
+			final Double h = moduleVerticalProportion;
+			return h != null ? max(0.0, min(1.0, h)) : 0.5;
+		}
+
+		/**
+		 * Answer a string representation of this configuration that is suitable
+		 * for being stored and restored via the {@link
+		 * LayoutConfiguration#LayoutConfiguration(String)} constructor.
+		 *
+		 * <p>
+		 * The layout should be fairly stable to avoid treating older versions
+		 * as malformed.  To that end, we use a simple list of strings, adding
+		 * entries for new purposes to the end, and never removing or changing
+		 * the meaning of existing entries.
+		 * </p>
+		 *
+		 * @return A string.
+		 */
+		public String stringToStore ()
+		{
+			final String [] strings = new String [6];
+			final Rectangle p = placement;
+			if (p != null)
+			{
+				strings[0] = Integer.toString(p.x);
+				strings[1] = Integer.toString(p.y);
+				strings[2] = Integer.toString(p.width);
+				strings[3] = Integer.toString(p.height);
+			}
+			final Integer w = leftSectionWidth;
+			if (w != null)
+			{
+				strings[4] = Integer.toString(w);
+			}
+			final Double h = moduleVerticalProportion;
+			if (h != null)
+			{
+				strings[5] = Double.toString(h);
+			}
+			final StringBuilder builder = new StringBuilder();
+			boolean first = true;
+			for (final String string : strings)
+			{
+				if (!first)
+				{
+					builder.append(',');
+				}
+				if (string != null)
+				{
+					builder.append(string);
+				}
+				first = false;
+			}
+			return builder.toString();
+		}
+
+		/**
+		 * Construct a new {@link AvailBuilderFrame.LayoutConfiguration} with
+		 * no preferences specified.
+		 */
+		public LayoutConfiguration ()
+		{
+			// all null
+		}
+
+		/**
+		 * Construct a new {@link AvailBuilderFrame.LayoutConfiguration} with
+		 * preferences specified by some private encoding in the provided {@link
+		 * String}.
+		 *
+		 * @param input
+		 *        A string in some encoding compatible with that produced
+		 *        by {@link #stringToStore()}.
+		 */
+		public LayoutConfiguration (final String input)
+		{
+			final String [] substrings = input.split(",");
+			try
+			{
+				if (substrings.length >= 4)
+				{
+					final int x = Integer.parseInt(substrings[0]);
+					final int y = Integer.parseInt(substrings[1]);
+					final int w = Integer.parseInt(substrings[2]);
+					final int h = Integer.parseInt(substrings[3]);
+					placement = new Rectangle(x, y, w, h);
+				}
+			}
+			catch (final NumberFormatException e)
+			{
+				// ignore
+			}
+			try
+			{
+				if (substrings.length >= 5)
+				{
+					leftSectionWidth = Integer.parseInt(substrings[4]);
+				}
+			}
+			catch (final NumberFormatException e)
+			{
+				// ignore
+			}
+			try
+			{
+				if (substrings.length >= 6)
+				{
+					moduleVerticalProportion =
+						Double.parseDouble(substrings[5]);
+				}
+			}
+			catch (final NumberFormatException e)
+			{
+				// ignore
+			}
+		}
+	}
+
+	/**
+	 * Figure out how to initially lay out the frame, based on previously saved
+	 * preference information.
+	 *
+	 * @return The initial {@link LayoutConfiguration}.
+	 */
+	@InnerAccess LayoutConfiguration getInitialConfiguration ()
+	{
+		final Preferences preferences =
+			placementPreferencesNodeForRectangles(allMonitorRectangles());
+		final String configurationString = preferences.get(
 			placementLeafKeyString,
 			null);
-		if (locationString == null)
+		if (configurationString == null)
 		{
-			return null;
+			return new LayoutConfiguration();
 		}
-		final String[] substrings = locationString.split(",");
-		if (substrings.length != 4)
-		{
-			return null;
-		}
-		try
-		{
-			final int x = Integer.parseInt(substrings[0]);
-			final int y = Integer.parseInt(substrings[1]);
-			final int w = Integer.parseInt(substrings[2]);
-			final int h = Integer.parseInt(substrings[3]);
-			return new Rectangle(x, y, w, h);
-		}
-		catch (final NumberFormatException e)
-		{
-			return null;
-		}
+		return new LayoutConfiguration(configurationString);
 	}
 
 	/**
@@ -1358,7 +1496,12 @@ extends JFrame
 				}
 			});
 
+		// Get the existing preferences early for plugging in at the right
+		// times during construction.
+		final LayoutConfiguration configuration = getInitialConfiguration();
+
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
 		// Set *just* the window title...
 		setTitle("Avail Builder");
 		setResizable(true);
@@ -1428,12 +1571,6 @@ extends JFrame
 		moduleTree.setEditable(false);
 		moduleTree.setEnabled(true);
 		moduleTree.setFocusable(true);
-		moduleTree.setFocusTraversalKeys(
-			FORWARD_TRAVERSAL_KEYS,
-			Collections.singleton(getAWTKeyStroke("TAB")));
-		moduleTree.setFocusTraversalKeys(
-			BACKWARD_TRAVERSAL_KEYS,
-			Collections.singleton(getAWTKeyStroke("shift TAB")));
 		moduleTree.getSelectionModel().setSelectionMode(
 			TreeSelectionModel.SINGLE_TREE_SELECTION);
 		moduleTree.setShowsRootHandles(true);
@@ -1502,12 +1639,6 @@ extends JFrame
 		entryPointsTree.setEditable(false);
 		entryPointsTree.setEnabled(true);
 		entryPointsTree.setFocusable(true);
-		entryPointsTree.setFocusTraversalKeys(
-			FORWARD_TRAVERSAL_KEYS,
-			Collections.singleton(getAWTKeyStroke("TAB")));
-		entryPointsTree.setFocusTraversalKeys(
-			BACKWARD_TRAVERSAL_KEYS,
-			Collections.singleton(getAWTKeyStroke("shift TAB")));
 		entryPointsTree.getSelectionModel().setSelectionMode(
 			TreeSelectionModel.SINGLE_TREE_SELECTION);
 		entryPointsTree.setShowsRootHandles(true);
@@ -1653,35 +1784,29 @@ extends JFrame
 		redirectStandardStreams();
 		runtime.setStandardStreams(System.out, System.err, System.in);
 
-		// Save placement when closing.
-		addWindowListener(new WindowAdapter()
-		{
-			@Override
-			public void windowClosing (final @Nullable WindowEvent e)
-			{
-				final List<Rectangle> monitorRectangles =
-					allMonitorRectangles();
-				final Preferences preferences =
-					placementPreferencesNodeForRectangles(monitorRectangles);
-				final Rectangle rectangle = getBounds();
-				final String locationString = String.format(
-					"%d,%d,%d,%d",
-					rectangle.x,
-					rectangle.y,
-					rectangle.width,
-					rectangle.height);
-				preferences.put(placementLeafKeyString, locationString);
-				super.windowClosing(e);
-			}
-		});
-
 		final JSplitPane leftPane = new JSplitPane(
 			JSplitPane.VERTICAL_SPLIT,
+			true,
 			moduleTreeScrollArea,
 			entryPointsScrollArea);
-		leftPane.setContinuousLayout(true);
-		leftPane.setResizeWeight(1.0);  // Hide the entry points for now.
-
+		leftPane.setDividerLocation(configuration.moduleVerticalProportion());
+		leftPane.setResizeWeight(configuration.moduleVerticalProportion());
+//		addPropertyChangeListener(
+//			JSplitPane.DIVIDER_LOCATION_PROPERTY,
+//			new PropertyChangeListener()
+//			{
+//				@Override
+//				public void propertyChange (
+//					final @Nullable PropertyChangeEvent evt)
+//				{
+//					if (isValid())
+//					{
+//						final double proportion = leftPane.getDividerLocation()
+//							/ max(leftPane.getWidth(), 1.0);
+//						leftPane.setResizeWeight(proportion);
+//					}
+//				}
+//			});
 		final JPanel rightPane = new JPanel();
 		final GroupLayout rightPaneLayout = new GroupLayout(rightPane);
 		rightPane.setLayout(rightPaneLayout);
@@ -1712,11 +1837,40 @@ extends JFrame
 
 		final JSplitPane mainSplit = new JSplitPane(
 			JSplitPane.HORIZONTAL_SPLIT,
+			true,
 			leftPane,
 			rightPane);
-		mainSplit.setDividerLocation(200);
-		mainSplit.setContinuousLayout(true);
+		mainSplit.setDividerLocation(configuration.leftSectionWidth());
 		getContentPane().add(mainSplit);
+		pack();
+		if (configuration.placement != null)
+		{
+			setBounds(configuration.placement);
+		}
+
+		// Save placement when closing.
+		addWindowListener(new WindowAdapter()
+		{
+			@Override
+			public void windowClosing (final @Nullable WindowEvent e)
+			{
+				final Preferences preferences =
+					placementPreferencesNodeForRectangles(
+						allMonitorRectangles());
+				final LayoutConfiguration saveConfiguration =
+					new LayoutConfiguration();
+				saveConfiguration.placement = getBounds();
+				saveConfiguration.leftSectionWidth =
+					mainSplit.getDividerLocation();
+				saveConfiguration.moduleVerticalProportion =
+					leftPane.getDividerLocation()
+						/ max(leftPane.getHeight(), 1.0);
+				preferences.put(
+					placementLeafKeyString,
+					saveConfiguration.stringToStore());
+				super.windowClosing(e);
+			}
+		});
 	}
 
 	/**
@@ -1804,13 +1958,6 @@ extends JFrame
 			{
 				final AvailBuilderFrame frame = new AvailBuilderFrame(
 					resolver, initial);
-				frame.pack();
-				final @Nullable Rectangle preferredRectangle =
-					frame.getInitialRectangle();
-				if (preferredRectangle != null)
-				{
-					frame.setBounds(preferredRectangle);
-				}
 				frame.setVisible(true);
 			}
 		});

@@ -372,7 +372,7 @@ public final class AvailRuntime
 
 	{
 		// Schedule a fixed-rate timer task to increment the runtime clock.
-		timer.scheduleAtFixedRate(
+		timer.schedule(
 			new TimerTask()
 			{
 				@Override

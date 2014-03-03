@@ -149,7 +149,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_AcceptsListOfArgTypes (
 		final AvailObject object,
-		final List<A_Type> argTypes)
+		final List<? extends A_Type> argTypes)
 	{
 		throw unsupportedOperationException();
 	}
@@ -482,7 +482,7 @@ extends AbstractDescriptor
 	@Override
 	List<A_Definition> o_FilterByTypes (
 		final AvailObject object,
-		final List<A_Type> argTypes)
+		final List<? extends A_Type> argTypes)
 	{
 		throw unsupportedOperationException();
 	}

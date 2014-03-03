@@ -349,7 +349,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsListOfArgTypes (
 		final AvailObject object,
-		final List<A_Type> argTypes)
+		final List<? extends A_Type> argTypes)
 	{
 		final A_Type tupleType = object.slot(ARGS_TUPLE_TYPE);
 		for (int i = 1, end = argTypes.size(); i <= end; i++)

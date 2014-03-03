@@ -77,7 +77,7 @@ extends Descriptor
 	/**
 	 * Debug flag for tracing some mysterious fiber problems (MvG 2013.06.30).
 	 * */
-	public static boolean debugFibers = true;
+	public static boolean debugFibers = false;
 
 	/** A simple counter for identifying fibers by creation order. */
 	public static AtomicInteger uniqueDebugCounter = new AtomicInteger(0);

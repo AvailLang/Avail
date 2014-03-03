@@ -445,7 +445,7 @@ implements
 	 */
 	@Override
 	public boolean acceptsListOfArgTypes (
-		final List<A_Type> argTypes)
+		final List<? extends A_Type> argTypes)
 	{
 		return descriptor.o_AcceptsListOfArgTypes(this, argTypes);
 	}
@@ -2070,7 +2070,7 @@ implements
 	 */
 	@Override
 	public List<A_Definition> filterByTypes (
-		final List<A_Type> argTypes)
+		final List<? extends A_Type> argTypes)
 	{
 		return descriptor.o_FilterByTypes(this, argTypes);
 	}

@@ -2303,7 +2303,11 @@ public abstract class AbstractAvailCompiler
 			final boolean stopAfterBodyToken)
 		throws AvailScannerException
 	{
-		return AvailScanner.scanString(source, moduleName, stopAfterBodyToken);
+		return AvailScanner
+			.scanString(
+				source,
+				moduleName,
+				stopAfterBodyToken);
 	}
 
 	/**
@@ -2469,11 +2473,13 @@ public abstract class AbstractAvailCompiler
 		final StringBuilder snippet = new StringBuilder(100);
 		@SuppressWarnings("resource")
 		final Formatter formatter = new Formatter(snippet);
+		final int lineBreaksInsideToken =
+			token.string().asNativeString().split("\n").length - 1;
 		final int lastLineNumber = (startOfNextLine != startOfSecondNextLine)
-			? lineNumber + 1
-			: lineNumber;
+			? lineNumber + lineBreaksInsideToken + 1
+			: lineNumber + lineBreaksInsideToken;
 		final int lineNumberWidth = Integer.toString(lastLineNumber).length();
-		final String pattern = ">>> %" + lineNumberWidth + "d:";
+		final String pattern = ">>> %" + lineNumberWidth + "d: ";
 		int currentPosition = startOfFirstLine;
 		int currentLine = startLineNumber;
 		do
@@ -2487,8 +2493,8 @@ public abstract class AbstractAvailCompiler
 			if (currentLine == lineNumber)
 			{
 				snippet.append(source, currentPosition, charPos);
-				// Give the user a hand.
-				snippet.append("☞⃝ ");
+				// Indicate where the error is.
+				snippet.append("⤷ ");
 				snippet.append(source, charPos, nextStart);
 			}
 			else
@@ -2505,7 +2511,7 @@ public abstract class AbstractAvailCompiler
 			currentLine++;
 		}
 		while (currentPosition < source.length()
-			&& currentLine <= lineNumber + 1);
+			&& currentLine <= lastLineNumber);
 
 		@SuppressWarnings("resource")
 		final Formatter text = new Formatter();
@@ -2815,6 +2821,7 @@ public abstract class AbstractAvailCompiler
 					synchronized (AbstractAvailCompiler.this)
 					{
 						workUnitsCompleted++;
+						assert workUnitsCompleted <= workUnitsQueued;
 						if (workUnitsCompleted == workUnitsQueued)
 						{
 							quiescent = true;
@@ -3028,7 +3035,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	protected void evaluateSemanticRestrictionFunctionThen (
 		final A_SemanticRestriction restriction,
-		final List<AvailObject> args,
+		final List<? extends A_BasicObject> args,
 		final Continuation1<AvailObject> onSuccess,
 		final Continuation1<Throwable> onFailure)
 	{
@@ -4253,7 +4260,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	private void validateArgumentTypes (
 		final A_Bundle bundle,
-		final List<A_Type> argTypes,
+		final List<? extends A_Type> argTypes,
 		final ParserState state,
 		final Continuation1<A_Type> onSuccess,
 		final Continuation1<Describer> onFailure)
@@ -4603,17 +4610,12 @@ public abstract class AbstractAvailCompiler
 						}
 					}
 				});
-		final List<AvailObject> strongArgs = new ArrayList<>(argTypes.size());
-		for (final A_Type argType : argTypes)
-		{
-			strongArgs.add((AvailObject)argType);
-		}
 		startWorkUnits(restrictionsToTry.size());
 		for (final A_SemanticRestriction restriction : restrictionsToTry)
 		{
 			evaluateSemanticRestrictionFunctionThen(
 				restriction,
-				strongArgs,
+				argTypes,
 				intersectAndDecrement,
 				failed);
 		}
