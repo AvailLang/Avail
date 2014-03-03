@@ -41,6 +41,7 @@ Names
 
 	/* File name construction. */
 	"a file named_",
+	"concatenate_",
 	"./_",
 	"«_‡/»",
 
@@ -51,6 +52,8 @@ Names
 	/* File name queries. */
 	"_is absolute",
 	"_names the⁇same file as_",
+	"_'s⁇parent path",
+	"_'s⁇path components",
 
 	/* File name conversion. */
 	"_'s⁇absolute path",
@@ -86,6 +89,9 @@ Stable method "“_”" is
  *
  * @method "a file named_"
  * @param "n" "string"
+ *        The name of the file. If empty, then the resultant {@type "file name"}
+ *        represents the {@method "current working directory"} (but as a
+ *        relative path rather than an {@method "_is absolute" absolute} one).
  * @returns "file name"
  *          The requested file name.
  */
@@ -109,6 +115,9 @@ Semantic restriction "a file named_" is
  *
  * @method "./_"
  * @param "n" "string"
+ *        The name of the file. If empty, then the resultant {@type "file name"}
+ *        represents the {@method "current working directory"} (but as a
+ *        relative path rather than an {@method "_is absolute" absolute} one).
  * @returns "file name"
  *          The requested file name.
  */
@@ -374,8 +383,9 @@ Public method "current working directory" is
 ] : file name;
 
 /**
- * Concatenate the specified {@type "tuple"} of {@type "string"}s to obtain a
- * {@type "file name"}.
+ * Concatenate the specified {@type "tuple"} of {@type "string" path component}s
+ * to obtain a {@type "file name"}. If no path components are specified, then
+ * answer the {@method "current working directory"}.
  *
  * @method "concatenate_"
  * @param "fns" "<file name…|0..>"
@@ -384,7 +394,7 @@ Public method "current working directory" is
  *         If any of the elements of {@param "fns"} cannot be understood as a
  *         path.
  */
-Method "concatenate_" is
+Public stable method "concatenate_" is
 [
 	fns : <file name…|>
 |
@@ -409,12 +419,36 @@ Method "concatenate_" is
  *         If any of the elements of {@param "fns"} cannot be understood as a
  *         path.
  */
-Method "«_‡/»" is
+Public method "«_‡/»" is
 [
 	fns : <file name…|2..>
 |
 	concatenate fns
 ] : file name;
+
+Semantic restriction "«_‡/»" is
+[
+	fns : <file name…|2..>'s type
+|
+	instanceCounts : {[0..∞]|} := ∅;
+	size ::= |fns's leading types| + 1;
+	From 1 to size do
+	[
+		i : natural number
+	|
+		instanceCounts := eject ↑instanceCounts + |fns[i]|;
+	];
+	If instanceCounts = {1} then
+	[
+		instances ::=
+			map 1 to size through [i : natural number | fns[i]'s instance];
+		{concatenate instances}ᵀ
+	]
+	else
+	[
+		⊤
+	]
+];
 
 /**
  * Concatenate the specified {@type "tuple"} of {@type "string"}s to obtain a
@@ -427,7 +461,7 @@ Method "«_‡/»" is
  *         If any of the elements of {@param "fns"} cannot be understood as a
  *         path.
  */
-Method "«_‡/»" is
+Public method "«_‡/»" is
 [
 	fns : <file name, string…|2..>
 |
@@ -441,5 +475,70 @@ Method "«_‡/»" is
 	a file named path
 ] : file name;
 
-Grammatical restriction {"a file named_", "./_"} is <{"«_‡++»"}>;
+Semantic restriction "«_‡/»" is
+[
+	fns : <file name, string…|2..>'s type
+|
+	instanceCounts : {[0..∞]|} := ∅;
+	size ::= |fns's leading types| + 1;
+	From 1 to size do
+	[
+		i : natural number
+	|
+		instanceCounts := eject ↑instanceCounts + |fns[i]|;
+	];
+	If instanceCounts = {1} then
+	[
+		instances ::= <fns[1]'s instance> ++ map 2 to size through
+			[i : [2..∞) | a file named fns[i]'s instance];
+		{concatenate instances}ᵀ
+	]
+	else
+	[
+		⊤
+	]
+];
+
+/**
+ * Answer the path components of the specified {@type "file name"}, preserving
+ * order.
+ *
+ * @method "_'s⁇path components"
+ * @param "fn" "file name"
+ * @returns "<file name…|1..>"
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} cannot be understood as a path.
+ */
+Public stable method "_'s⁇path components" is
+[
+	fn : file name
+|
+	components ::=
+		[
+			n : string
+		|
+			Primitive 447 (e : {invalid-path code}ᵀ);
+			Raise an exception for e
+		] : <string…|1..> (fn's name);
+	map components through [c : string | a file named c]
+] : <file name…|1..>;
+
+/**
+ * Answer the parent path of the specified {@type "file name"}. This path
+ * includes every {@method "_'s⁇path components" path component} except for the
+ * path component furthest from a file system root. The operation is schematic
+ * only; no file system operations are performed.
+ *
+ * @method "_'s⁇parent path"
+ * @param "fn" "file name"
+ * @returns "file name"
+ */
+Public stable method "_'s⁇parent path" is
+[
+	fn : file name
+|
+	components ::= fn's path components;
+	concatenate components[1..|components| - 1]
+] : file name;
+
 Grammatical restriction "«_‡/»" is <{"«_‡/»"}>;
