@@ -429,13 +429,13 @@ public final class ScannerTest
 		for (final Case c : tests)
 		{
 			final String input = c.inputString;
-			List<A_Token> scannedTokens = null;
 			try
 			{
-				scannedTokens = AvailScanner.scanString(
+				final AvailScannerResult result = AvailScanner.scanString(
 					input,
 					"A module synthesized in ScannerTest.testScanner()",
 					false);
+				List<A_Token> scannedTokens = result.outputTokens();
 				if (c.tokenGenerators.length == 1
 					&& c.tokenGenerators[0] == null)
 				{

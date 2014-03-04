@@ -1152,6 +1152,15 @@ extends AbstractList<byte[]>
 		add((long) index, record);
 	}
 
+	/**
+	 * Add the given record to the end of the {@linkplain IndexedFile indexed
+	 * file}. <em>Do not {@linkplain #commit() commit} the data.</em>
+	 *
+	 * @param record
+	 *        The record which should be added to the indexed file.
+	 * @throws IndexedFileException
+	 *         If something else goes wrong.
+	 */
 	@Override
 	public boolean add (final @Nullable byte[] record)
 		throws IndexedFileException
