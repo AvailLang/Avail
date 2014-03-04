@@ -1087,6 +1087,58 @@ extends AbstractList<byte[]>
 	}
 
 	/**
+	 * Add a portion of the given record to the {@linkplain IndexedFile indexed
+	 * file}. <em>Do not {@linkplain #commit() commit} the data.</em>
+	 *
+	 * @param index
+	 *        The index at which to add the specified record. Must be equal to
+	 *        the {@linkplain #longSize() size} of the indexed file.
+	 * @param record
+	 *        The record which contains data that should be added to the indexed
+	 *        file.
+	 * @param start
+	 *        The start position within the record of the source data.
+	 * @param length
+	 *        The size of the source data, in bytes.
+	 * @throws IndexOutOfBoundsException
+	 *         If the specified index is not equal to the size of the indexed
+	 *         file.
+	 * @throws IndexedFileException
+	 *         If something else goes wrong.
+	 */
+	public void add (
+			final long index,
+			final byte[] record,
+			final int start,
+			final int length)
+		throws IndexOutOfBoundsException, IndexedFileException
+	{
+		lock.writeLock().lock();
+		try
+		{
+			if (index != longSize())
+			{
+				throw new IndexOutOfBoundsException(
+					"indexed files may only append records.");
+			}
+			final RecordCoordinates coords = new RecordCoordinates(
+				master().fileLimit, master().rawBytes.size());
+			master().uncompressedData.writeInt(length);
+			master().uncompressedData.write(record, start, length);
+			compressAndFlushIfFull();
+			addOrphan(coords, 0);
+		}
+		catch (final IOException e)
+		{
+			throw new IndexedFileException(e);
+		}
+		finally
+		{
+			lock.writeLock().unlock();
+		}
+	}
+
+	/**
 	 * Add the given record to the {@linkplain IndexedFile indexed file}.
 	 * <em>Do not {@linkplain #commit() commit} the data.</em>
 	 *
@@ -1104,29 +1156,7 @@ extends AbstractList<byte[]>
 	public void add (final long index, final byte[] record)
 		throws IndexOutOfBoundsException, IndexedFileException
 	{
-		lock.writeLock().lock();
-		try
-		{
-			if (index != longSize())
-			{
-				throw new IndexOutOfBoundsException(
-					"indexed files may only append records.");
-			}
-			final RecordCoordinates coords = new RecordCoordinates(
-				master().fileLimit, master().rawBytes.size());
-			master().uncompressedData.writeInt(record.length);
-			master().uncompressedData.write(record);
-			compressAndFlushIfFull();
-			addOrphan(coords, 0);
-		}
-		catch (final IOException e)
-		{
-			throw new IndexedFileException(e);
-		}
-		finally
-		{
-			lock.writeLock().unlock();
-		}
+		add(index, record, 0, record.length);
 	}
 
 	/**

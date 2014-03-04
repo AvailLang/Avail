@@ -1555,6 +1555,21 @@ public final class AvailBuilder
 										versionKey,
 										compilationKey,
 										compilation);
+
+									// Serialize the Stacks comments.
+									final ByteArrayOutputStream out =
+										new ByteArrayOutputStream(5000);
+									final Serializer serializer =
+										new Serializer(out);
+									final A_Tuple comments =
+										TupleDescriptor.fromList(
+											result.commentTokens());
+									serializer.serialize(comments);
+									final ModuleVersion version =
+										archive.getVersion(versionKey);
+									assert version != null;
+									version.putComments(out.toByteArray());
+
 									repository.commitIfStaleChanges(
 										maximumStaleRepositoryMs);
 									postLoad(moduleName, lastPosition.value);

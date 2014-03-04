@@ -43,7 +43,9 @@ import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
 import com.avail.builder.*;
 import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.serialization.Serializer;
 
 /**
@@ -769,6 +771,59 @@ public class IndexedRepositoryManager
 		}
 
 		/**
+		 * The persistent record number of the Stacks {@linkplain
+		 * CommentTokenDescriptor comments} associated with this {@linkplain
+		 * ModuleVersion version} of the {@linkplain ModuleDescriptor module}.
+		 */
+		private long stacksRecordNumber = -1L;
+
+		/**
+		 * Write the specified byte array (encoding a {@linkplain
+		 * TupleDescriptor tuple} of {@linkplain CommentTokenDescriptor comment
+		 * tokens}) into the indexed file. Record the record position for
+		 * subsequent retrieval.
+		 *
+		 * @param bytes
+		 *        A {@linkplain Serializer serialized} tuple of comment tokens.
+		 */
+		public void putComments (final byte[] bytes)
+		{
+			// Write the comment tuple to the end of the repository.
+			final IndexedRepository repo = repository();
+			lock.lock();
+			try
+			{
+				stacksRecordNumber = repo.longSize();
+				repo.add(stacksRecordNumber, bytes);
+			}
+			finally
+			{
+				lock.unlock();
+			}
+		}
+
+		/**
+		 * Answer the {@linkplain Serializer serialized} {@linkplain
+		 * TupleDescriptor tuple} of {@linkplain CommentTokenDescriptor comment
+		 * tokens} associated with this {@linkplain ModuleVersion version}.
+		 *
+		 * @return A serialized tuple of comment tokens.
+		 */
+		public byte[] getComments ()
+		{
+			assert stacksRecordNumber != -1;
+			lock.lock();
+			try
+			{
+				return repository().get(stacksRecordNumber);
+			}
+			finally
+			{
+				lock.unlock();
+			}
+		}
+
+		/**
 		 * Output this module version to the provided {@link
 		 * DataOutputStream}.  It can later be reconstructed via the constructor
 		 * taking a {@link DataInputStream}.
@@ -798,6 +853,7 @@ public class IndexedRepositoryManager
 				entry.getKey().write(binaryStream);
 				entry.getValue().write(binaryStream);
 			}
+			binaryStream.writeLong(stacksRecordNumber);
 		}
 
 		@Override
@@ -842,6 +898,7 @@ public class IndexedRepositoryManager
 					new ModuleCompilationKey(binaryStream),
 					new ModuleCompilation(binaryStream));
 			}
+			stacksRecordNumber = binaryStream.readLong();
 		}
 
 		/**

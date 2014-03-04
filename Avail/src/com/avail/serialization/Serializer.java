@@ -396,8 +396,7 @@ public class Serializer
 	 *
 	 * @param output An {@link OutputStream} on which to write the module.
 	 */
-	public Serializer (
-		final OutputStream output)
+	public Serializer (final OutputStream output)
 	{
 		this.output = output;
 	}
@@ -408,8 +407,7 @@ public class Serializer
 	 *
 	 * @param object An object to serialize.
 	 */
-	public void serialize (
-		final A_BasicObject object)
+	public void serialize (final A_BasicObject object)
 	{
 		traceOne(object);
 		while (!workStack.isEmpty())
