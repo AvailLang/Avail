@@ -339,7 +339,7 @@ public abstract class AbstractStacksScanner
 		if (atEnd())
 		{
 			throw new StacksScannerException(
-				"Attempted to read past end of file",
+				"\nAttempted to read past end of file",
 				this);
 		}
 		final int c = Character.codePointAt(tokenString, position);
@@ -426,10 +426,10 @@ public abstract class AbstractStacksScanner
 				{
 					// Just the open quote, then end of file.
 					throw new StacksScannerException(
-						String.format("Unterminated string literal at " +
-								"line, %d, in module, ",
-								scanner.lineNumber(),
-								scanner.moduleName()),
+						String.format("\nUnterminated string literal at "
+							+ "line, %d, in module, %s.\n",
+							scanner.lineNumber(),
+							scanner.moduleName().asNativeString()),
 						scanner);
 				}
 				int c = scanner.next();
@@ -443,8 +443,10 @@ public abstract class AbstractStacksScanner
 						if (scanner.atEnd())
 						{
 							throw new StacksScannerException(
-								"Encountered end of file after backslash"
-								+ " in string literal",
+								String.format("\nEncountered end of file after "
+									+ " backslashin string literal in "
+									+ "module, %s.\n",
+									scanner.moduleName().asNativeString()),
 								scanner);
 						}
 						switch (c = scanner.next())
@@ -489,8 +491,13 @@ public abstract class AbstractStacksScanner
 								else
 								{
 									throw new StacksScannerException(
-										"The input line before \"\\|\" "
-										+ "contains non-whitespace",
+										String.format(
+											"\nThe input line, #%D before "
+											+ " \"\\|\" contains "
+											+ "non-whitespace in module, %d.\n",
+											scanner.lineNumber(),
+											scanner.moduleName()
+												.asNativeString()),
 										scanner);
 								}
 								break;
@@ -504,9 +511,12 @@ public abstract class AbstractStacksScanner
 									scanner);
 							default:
 								throw new StacksScannerException(
-									"Backslash escape should be followed by"
+									String.format(
+									"\nBackslash escape should be followed by"
 									+ " one of n, r, t, \\, \", (, [, |, or a"
-									+ " line break",
+									+ " line break.  Module: %s line# %d.\n",
+										scanner.lineNumber(),
+										scanner.moduleName().asNativeString()),
 									scanner);
 						}
 						erasurePosition = stringBuilder.length();
@@ -580,8 +590,11 @@ public abstract class AbstractStacksScanner
 				if (scanner.atEnd())
 				{
 					throw new StacksScannerException(
-						"Expected hexadecimal Unicode codepoints separated by"
-						+ " commas",
+						String.format(
+						"\nExpected hexadecimal Unicode codepoints separated "
+						+ "by commas. Module: %s line# %d.\n",
+							scanner.lineNumber(),
+							scanner.moduleName().asNativeString()),
 						scanner);
 				}
 				c = scanner.next();
@@ -609,15 +622,21 @@ public abstract class AbstractStacksScanner
 						else
 						{
 							throw new StacksScannerException(
-								"Expected a hex digit or comma or closing"
-								+ " parenthesis",
+								String.format("Expected a hex digit or comma "
+								+ "or closing parenthesis. "
+								+ "Module: %s line# %d.\n",
+									scanner.lineNumber(),
+									scanner.moduleName().asNativeString()),
 								scanner);
 						}
 						if (digitCount > 6)
 						{
 							throw new StacksScannerException(
-								"Expected at most six hex digits per"
-								+ " comma-separated Unicode entry",
+								String.format("\nExpected at most six hex "
+								+ "digits per comma-separated Unicode entry"
+								+ "Module: %s line# %d.\n",
+									scanner.lineNumber(),
+									scanner.moduleName().asNativeString()),
 								scanner);
 						}
 						c = scanner.next();
@@ -625,17 +644,23 @@ public abstract class AbstractStacksScanner
 					if (digitCount == 0)
 					{
 						throw new StacksScannerException(
-							"Expected a comma-separated list of Unicode code"
-							+ " points, each being one to six (upper case)"
-							+ " hexadecimal digits",
+							String.format("\nExpected a comma-separated list "
+							+ "of Unicode code points, each being "
+							+ "one to six (upper case) hexadecimal digits "
+							+ "Module: %s line# %d.\n",
+								scanner.lineNumber(),
+								scanner.moduleName().asNativeString()),
 							scanner);
 					}
 					assert digitCount >= 1 && digitCount <= 6;
 					if (value > CharacterDescriptor.maxCodePointInt)
 					{
 						throw new StacksScannerException(
-							"The maximum allowed code point for a Unicode"
-							+ " character is U+10FFFF",
+							String.format("\nThe maximum allowed code point "
+							+ "for a Unicode character is U+10FFFF"
+							+ "Module: %s line# %d.\n",
+							scanner.lineNumber(),
+							scanner.moduleName().asNativeString()),
 							scanner);
 					}
 					stringBuilder.appendCodePoint(value);
@@ -772,16 +797,17 @@ public abstract class AbstractStacksScanner
 				}
 				else
 				{
-					final int startLine = scanner.lineNumber();
 					int depth = 1;
 					while (true)
 					{
 						if (scanner.atEnd())
 						{
 							throw new StacksScannerException(
-								"Expected a close comment (*/) to correspond"
-									+ " with the open comment (/*) on line #"
-									+ startLine,
+								String.format("Expected a close comment (*/) "
+									+ "to correspond with the open comment "
+									+ "(/*). Module: %s line# %d.\n",
+										scanner.lineNumber(),
+										scanner.moduleName().asNativeString()),
 								scanner);
 						}
 						if (scanner.peekFor('/') && scanner.peekFor('*'))
