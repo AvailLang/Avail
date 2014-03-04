@@ -42,6 +42,7 @@ import java.util.*;
 import com.avail.annotations.*;
 import com.avail.builder.*;
 import com.avail.compiler.AbstractAvailCompiler.ParserState;
+import com.avail.compiler.scanning.AvailScannerResult;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Flag;
@@ -64,18 +65,18 @@ extends AbstractAvailCompiler
 	 *        The {@link ResolvedModuleName} of the module to compile.
 	 * @param source
 	 *        The {@link String} of source code to be parsed.
-	 * @param tokens
-	 *        The list of {@linkplain TokenDescriptor tokens} to be parsed.
+	 * @param scannerResult
+	 *        An {@link AvailScannerResult}.
 	 * @param problemHandler
 	 *        The {@linkplain ProblemHandler problem handler}.
 	 */
 	public AvailSystemCompiler (
 		final ResolvedModuleName moduleName,
 		final String source,
-		final List<A_Token> tokens,
+		final AvailScannerResult scannerResult,
 		final ProblemHandler problemHandler)
 	{
-		super(moduleName, source, tokens, problemHandler);
+		super(moduleName, source, scannerResult, problemHandler);
 	}
 
 	@Override

@@ -83,6 +83,10 @@ public final class AvailBuilder
 	 */
 	@InnerAccess static final long maximumStaleRepositoryMs = 2000L;
 
+	/**
+	 * The file extension for an Avail source {@linkplain ModuleDescriptor
+	 * module}.
+	 */
 	@InnerAccess static final String availExtension =
 		ModuleNameResolver.availExtension;
 
@@ -1491,7 +1495,7 @@ public final class AvailBuilder
 			final IndexedRepositoryManager repository = moduleName.repository();
 			final ModuleArchive archive = repository.getArchive(
 				moduleName.rootRelativeName());
-			final byte [] digest = archive.digestForFile(moduleName);
+			final byte[] digest = archive.digestForFile(moduleName);
 			final ModuleVersionKey versionKey =
 				new ModuleVersionKey(moduleName, digest);
 			final Mutable<Long> lastPosition = new Mutable<>(0L);
@@ -1531,13 +1535,13 @@ public final class AvailBuilder
 									lastPosition.value = localPosition;
 								}
 							},
-							new Continuation1<A_Module>()
+							new Continuation1<AvailCompilerResult>()
 							{
 								@Override
 								public void value (
-									final @Nullable A_Module module)
+									final @Nullable AvailCompilerResult result)
 								{
-									assert module != null;
+									assert result != null;
 									final ByteArrayOutputStream stream =
 										compiler.serializerOutputStream;
 									// This is the moment of compilation.
@@ -1551,6 +1555,21 @@ public final class AvailBuilder
 										versionKey,
 										compilationKey,
 										compilation);
+
+									// Serialize the Stacks comments.
+									final ByteArrayOutputStream out =
+										new ByteArrayOutputStream(5000);
+									final Serializer serializer =
+										new Serializer(out);
+									final A_Tuple comments =
+										TupleDescriptor.fromList(
+											result.commentTokens());
+									serializer.serialize(comments);
+									final ModuleVersion version =
+										archive.getVersion(versionKey);
+									assert version != null;
+									version.putComments(out.toByteArray());
+
 									repository.commitIfStaleChanges(
 										maximumStaleRepositoryMs);
 									postLoad(moduleName, lastPosition.value);
@@ -1559,7 +1578,7 @@ public final class AvailBuilder
 										new LoadedModule(
 											moduleName,
 											versionKey.sourceDigest,
-											module,
+											result.module(),
 											compilation));
 									completionAction.value();
 								}

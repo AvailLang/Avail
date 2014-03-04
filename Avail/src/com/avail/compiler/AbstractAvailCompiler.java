@@ -817,9 +817,15 @@ public abstract class AbstractAvailCompiler
 
 	/**
 	 * The complete {@linkplain List list} of {@linkplain TokenDescriptor
-	 * tokens} parsed from the source text.
+	 * tokens} extracted from the source text.
 	 */
-	@InnerAccess List<A_Token> tokens;
+	@InnerAccess final List<A_Token> tokens;
+
+	/**
+	 * The complete {@linkplain List list} of {@linkplain CommentTokenDescriptor
+	 * comment tokens} extracted from the source text.
+	 */
+	@InnerAccess final List<A_Token> commentTokens;
 
 	/**
 	 * The position of the rightmost {@linkplain TokenDescriptor token} reached
@@ -1079,13 +1085,15 @@ public abstract class AbstractAvailCompiler
 				public void value (final @Nullable String sourceText)
 				{
 					assert sourceText != null;
+					final AvailScannerResult result;
 					final List<A_Token> tokens;
 					try
 					{
-						tokens = tokenize(
+						result = tokenize(
 							sourceText,
 							resolvedName.qualifiedName(),
 							stopAfterBodyToken);
+						tokens = result.outputTokens();
 					}
 					catch (final AvailScannerException e)
 					{
@@ -1113,7 +1121,7 @@ public abstract class AbstractAvailCompiler
 						compiler = new AvailSystemCompiler(
 							resolvedName,
 							sourceText,
-							tokens,
+							result,
 							problemHandler);
 					}
 					else
@@ -1121,7 +1129,7 @@ public abstract class AbstractAvailCompiler
 						compiler = new AvailCompiler(
 							resolvedName,
 							sourceText,
-							tokens,
+							result,
 							problemHandler);
 					}
 					succeed.value(compiler);
@@ -1140,21 +1148,22 @@ public abstract class AbstractAvailCompiler
 	 *        compile.
 	 * @param source
 	 *        The source code {@linkplain StringDescriptor string}.
-	 * @param tokens
-	 *        The list of {@linkplain TokenDescriptor tokens}.
+	 * @param scannerResult
+	 *        An {@link AvailScannerResult}.
 	 * @param problemHandler
 	 *        The {@link ProblemHandler} used for reporting compilation
 	 *        problems.
 	 */
-	public AbstractAvailCompiler (
+	protected AbstractAvailCompiler (
 		final ResolvedModuleName moduleName,
 		final String source,
-		final List<A_Token> tokens,
+		final AvailScannerResult scannerResult,
 		final ProblemHandler problemHandler)
 	{
 		this.moduleHeader = new ModuleHeader(moduleName);
 		this.source = source;
-		this.tokens = tokens;
+		this.tokens = scannerResult.outputTokens();
+		this.commentTokens = scannerResult.commentTokens();
 		this.problemHandler = problemHandler;
 
 		this.module = ModuleDescriptor.newModule(
@@ -2293,21 +2302,20 @@ public abstract class AbstractAvailCompiler
 	 *        The name of the module to tokenize.
 	 * @param stopAfterBodyToken
 	 *        Stop scanning after encountering the BODY token?
-	 * @return The {@linkplain ResolvedModuleName resolved module name}.
+	 * @return A {@linkplain AvailScannerResult scanner result}.
 	 * @throws AvailScannerException
 	 *         If tokenization failed for any reason.
 	 */
-	static List<A_Token> tokenize (
+	static AvailScannerResult tokenize (
 			final String source,
 			final String moduleName,
 			final boolean stopAfterBodyToken)
 		throws AvailScannerException
 	{
-		return AvailScanner
-			.scanString(
-				source,
-				moduleName,
-				stopAfterBodyToken);
+		return AvailScanner.scanString(
+			source,
+			moduleName,
+			stopAfterBodyToken);
 	}
 
 	/**
@@ -5603,13 +5611,14 @@ public abstract class AbstractAvailCompiler
 	 *        parse (in bytes), and the size of the module (in bytes).
 	 * @param succeed
 	 *        What to do after compilation succeeds. This {@linkplain
-	 *        Continuation1 continuation} is invoked with the completed module.
+	 *        Continuation1 continuation} is invoked with an {@link
+	 *        AvailCompilerResult} that includes the completed module.
 	 * @param afterFail
 	 *        What to do after compilation fails.
 	 */
 	public synchronized void parseModule (
 		final CompilerProgressReporter reporter,
-		final Continuation1<A_Module> succeed,
+		final Continuation1<AvailCompilerResult> succeed,
 		final Continuation0 afterFail)
 	{
 		progressReporter = reporter;
@@ -5620,7 +5629,7 @@ public abstract class AbstractAvailCompiler
 			{
 				serializePublicationFunction(true);
 				commitModuleTransaction();
-				succeed.value(module);
+				succeed.value(new AvailCompilerResult(module, commentTokens));
 			}
 		};
 		startModuleTransaction();

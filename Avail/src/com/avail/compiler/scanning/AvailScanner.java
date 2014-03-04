@@ -52,28 +52,27 @@ public class AvailScanner
 	 * The string being parsed, usually the entire contents of an Avail source
 	 * file.
 	 */
-	final String inputString;
+	private final String inputString;
 
 	/**
 	 * The name of the module being lexically scanned.
 	 */
-	final String moduleName;
+	private final String moduleName;
 
 	/**
 	 * Whether to stop scanning after encountering the keyword "Body".
 	 */
-	final boolean stopAfterBodyToken;
+	@InnerAccess final boolean stopAfterBodyToken;
 
 	/**
 	 * The tokens that have been parsed so far.
 	 */
-	final List<A_Token> outputTokens;
+	private final List<A_Token> outputTokens;
 
 	/**
 	 * The comment tokens that have been parsed so far.
 	 */
-	final List<A_Token> commentTokens;
-
+	private final List<A_Token> commentTokens;
 
 	/**
 	 * The current position in the input string.
@@ -88,13 +87,13 @@ public class AvailScanner
 	/**
 	 * The line number of the start of the token currently being parsed.
 	 */
-	int lineNumber;
+	@InnerAccess int lineNumber;
 
 	/**
 	 * Whether the BODY token has already been encountered. Only set if
 	 * {@link #stopAfterBodyToken} is set.
 	 */
-	boolean encounteredBodyToken;
+	@InnerAccess boolean encounteredBodyToken;
 
 	/**
 	 * Alter the scanner's position in the input String.
@@ -931,11 +930,11 @@ public class AvailScanner
 	 *            The name of the module being lexically scanned.
 	 * @param stopAfterBodyTokenFlag
 	 *            Stop scanning after encountering the <em>Names</em> token?
-	 * @return A {@linkplain List list} of {@linkplain TokenDescriptor tokens}
-	 *         terminated by a token of type {@link TokenType#END_OF_FILE}.
-	 * @throws AvailScannerException If scanning fails.
+	 * @return A {@linkplain AvailScannerResult result}.
+	 * @throws AvailScannerException
+	 *         If scanning fails.
 	 */
-	public static List<A_Token> scanString (
+	public static AvailScannerResult scanString (
 			final String string,
 			final String moduleName,
 			final boolean stopAfterBodyTokenFlag)
@@ -947,7 +946,8 @@ public class AvailScanner
 				moduleName,
 				stopAfterBodyTokenFlag);
 		scanner.scan();
-		return scanner.outputTokens;
+		return new AvailScannerResult(
+			scanner.outputTokens, scanner.commentTokens);
 	}
 
 	/**

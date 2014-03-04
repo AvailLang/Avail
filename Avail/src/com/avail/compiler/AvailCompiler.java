@@ -37,6 +37,7 @@ import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import java.util.*;
 import com.avail.annotations.Nullable;
 import com.avail.builder.ResolvedModuleName;
+import com.avail.compiler.scanning.AvailScannerResult;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.utility.evaluation.*;
@@ -56,19 +57,18 @@ extends AbstractAvailCompiler
 	 *        The {@link ResolvedModuleName} of the module to compile.
 	 * @param source
 	 *        The {@link String} containing the module's source.
-	 * @param tokens
-	 *        The {@link List} of {@linkplain TokenDescriptor tokens} scanned
-	 *        from the module's source.
+	 * @param scannerResult
+	 *        An {@link AvailScannerResult}.
 	 * @param problemHandler
 	 *        The {@linkplain ProblemHandler problem handler}.
 	 */
 	public AvailCompiler (
 		final ResolvedModuleName moduleName,
 		final String source,
-		final List<A_Token> tokens,
+		final AvailScannerResult scannerResult,
 		final ProblemHandler problemHandler)
 	{
-		super(moduleName, source, tokens, problemHandler);
+		super(moduleName, source, scannerResult, problemHandler);
 	}
 
 	/**

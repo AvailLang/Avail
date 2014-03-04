@@ -1087,21 +1087,30 @@ extends AbstractList<byte[]>
 	}
 
 	/**
-	 * Add the given record to the {@linkplain IndexedFile indexed file}.
-	 * <em>Do not {@linkplain #commit() commit} the data.</em>
+	 * Add a portion of the given record to the {@linkplain IndexedFile indexed
+	 * file}. <em>Do not {@linkplain #commit() commit} the data.</em>
 	 *
 	 * @param index
 	 *        The index at which to add the specified record. Must be equal to
 	 *        the {@linkplain #longSize() size} of the indexed file.
 	 * @param record
-	 *        The record which should be added to the indexed file.
+	 *        The record which contains data that should be added to the indexed
+	 *        file.
+	 * @param start
+	 *        The start position within the record of the source data.
+	 * @param length
+	 *        The size of the source data, in bytes.
 	 * @throws IndexOutOfBoundsException
 	 *         If the specified index is not equal to the size of the indexed
 	 *         file.
 	 * @throws IndexedFileException
 	 *         If something else goes wrong.
 	 */
-	public void add (final long index, final byte[] record)
+	public void add (
+			final long index,
+			final byte[] record,
+			final int start,
+			final int length)
 		throws IndexOutOfBoundsException, IndexedFileException
 	{
 		lock.writeLock().lock();
@@ -1114,8 +1123,8 @@ extends AbstractList<byte[]>
 			}
 			final RecordCoordinates coords = new RecordCoordinates(
 				master().fileLimit, master().rawBytes.size());
-			master().uncompressedData.writeInt(record.length);
-			master().uncompressedData.write(record);
+			master().uncompressedData.writeInt(length);
+			master().uncompressedData.write(record, start, length);
 			compressAndFlushIfFull();
 			addOrphan(coords, 0);
 		}
@@ -1144,6 +1153,27 @@ extends AbstractList<byte[]>
 	 * @throws IndexedFileException
 	 *         If something else goes wrong.
 	 */
+	public void add (final long index, final byte[] record)
+		throws IndexOutOfBoundsException, IndexedFileException
+	{
+		add(index, record, 0, record.length);
+	}
+
+	/**
+	 * Add the given record to the {@linkplain IndexedFile indexed file}.
+	 * <em>Do not {@linkplain #commit() commit} the data.</em>
+	 *
+	 * @param index
+	 *        The index at which to add the specified record. Must be equal to
+	 *        the {@linkplain #longSize() size} of the indexed file.
+	 * @param record
+	 *        The record which should be added to the indexed file.
+	 * @throws IndexOutOfBoundsException
+	 *         If the specified index is not equal to the size of the indexed
+	 *         file.
+	 * @throws IndexedFileException
+	 *         If something else goes wrong.
+	 */
 	@Override
 	public void add (final int index, final @Nullable byte[] record)
 		throws IndexOutOfBoundsException, IndexedFileException
@@ -1152,6 +1182,15 @@ extends AbstractList<byte[]>
 		add((long) index, record);
 	}
 
+	/**
+	 * Add the given record to the end of the {@linkplain IndexedFile indexed
+	 * file}. <em>Do not {@linkplain #commit() commit} the data.</em>
+	 *
+	 * @param record
+	 *        The record which should be added to the indexed file.
+	 * @throws IndexedFileException
+	 *         If something else goes wrong.
+	 */
 	@Override
 	public boolean add (final @Nullable byte[] record)
 		throws IndexedFileException
