@@ -2031,7 +2031,6 @@ extends ExtendedIntegerDescriptor
 			}
 		}
 		return d;
-
 	}
 
 	/**

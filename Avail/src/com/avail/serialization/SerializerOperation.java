@@ -322,24 +322,14 @@ public enum SerializerOperation
 	 * An Avail integer in the range 256..65535.  Note that 0..255 have their
 	 * own special cases already which require less space.  Don't try to
 	 * compress the short value for this reason.
-	 *
-	 * <p>
-	 * Separated into two {@code BYTE_OR_BOOLEAN}s instead of one {@code
-	 * UNCOMPRESSED_SHORT} <em>just</em> so that the intermediate objects can be
-	 * the Avail {@linkplain IntegerDescriptor integers} that efficiently fit in
-	 * a byte.
-	 * </p>
 	 */
-	SHORT_INTEGER (12, BYTE.as("high byte"), BYTE.as("low byte"))
+	SHORT_INTEGER (12, UNCOMPRESSED_SHORT.as("the unsigned short"))
 	{
 		@Override
 		A_BasicObject[] decompose (
 			final AvailObject object)
 		{
-			final int shortValue = object.extractUnsignedShort();
-			return array(
-				IntegerDescriptor.fromInt((shortValue >> 8) & 0xFF),
-				IntegerDescriptor.fromInt(shortValue & 0xFF));
+			return array(object);
 		}
 
 		@Override
@@ -347,9 +337,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final int intValue = (subobjects[0].extractUnsignedByte() << 8)
-				+ subobjects[1].extractUnsignedByte();
-			return IntegerDescriptor.fromInt(intValue);
+			return subobjects[0];
 		}
 	},
 

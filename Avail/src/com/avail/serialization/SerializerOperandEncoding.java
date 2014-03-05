@@ -95,11 +95,11 @@ enum SerializerOperandEncoding
 		{
 			final int shortValue = object.extractInt();
 			assert (shortValue & 0xFFFF) == shortValue;
-			if (shortValue < 128)
+			if (shortValue < 0x80)
 			{
 				serializer.writeByte(shortValue);
 			}
-			else if (shortValue < 0x7EFF)
+			else if (shortValue < 0x7F00)
 			{
 				serializer.writeByte((shortValue >> 8) + 128);
 				serializer.writeByte(shortValue & 0xFF);
