@@ -102,4 +102,13 @@ public class StacksGenerator
 		// TODO [RAA]: Implement the other two argument checking cases.
 		// TODO [RAA]: Implement everything else.
 	}
+
+	/**
+	 * Clear all internal data structures and reinitialize the {@linkplain
+	 * StacksGenerator generator} for subsequent usage.
+	 */
+	public void clear ()
+	{
+		// TODO [RAA]: Implement this.
+	}
 }
