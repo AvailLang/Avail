@@ -76,7 +76,14 @@ import com.avail.utility.evaluation.*;
  *     path has valid source directories specified. This option can be used in
  *     isolation and will cause the repositories to be emptied. In an
  *     invocation with a valid target module name, the repositories will be
- *     cleared before compilation is attempted.
+ *     cleared before compilation is attempted. Mutually exclusive with -f.
+ *
+ * -g
+ * --generateDocumentation
+ *     The option to generate Stacks documentation for the target module and its
+ *     ancestors. The relevant repositories must already contain compilations
+ *     for every module implied by the request. Do not compile any modules.
+ *     Mutually exclusive with -g and -s.
  *
  * -q
  * --quiet
@@ -99,8 +106,9 @@ import com.avail.utility.evaluation.*;
  *
  * -t
  * --showTiming
- *     Emits the time taken to clear the repositories, or the elapsed build
- *     time following a successful or failed build.
+ *     Emits the time taken to clear the repositories, or the elapsed build time
+ *     following a successful or failed build, or the elapsed generation time
+ *     following successful or failed documentation generation.
  *
  * -v
  * --verboseMode
@@ -303,6 +311,89 @@ public class Compiler
 	}
 
 	/**
+	 * Recursively build the {@linkplain ModuleName named} {@linkplain
+	 * ModuleDescriptor module}.
+	 *
+	 * @param runtime
+	 *        An {@linkplain AvailRuntime Avail runtime}.
+	 * @param moduleName
+	 *        The target module.
+	 * @param configuration
+	 *        The {@linkplain CompilerConfiguration compiler configuration}.
+	 */
+	private static void buildModule (
+		final AvailRuntime runtime,
+		final ModuleName moduleName,
+		final CompilerConfiguration configuration)
+	{
+		final AvailBuilder builder = new AvailBuilder(
+			runtime,
+			localTracker(configuration),
+			globalTracker(configuration));
+		builder.buildTarget(moduleName);
+
+		// Successful compilation.
+		if (configuration.hasReports())
+		{
+			printReports(configuration);
+		}
+	}
+
+	/**
+	 * Recursively generate Stacks documentation for the {@linkplain ModuleName
+	 * named} {@linkplain ModuleDescriptor module}.
+	 *
+	 * @param runtime
+	 *        An {@linkplain AvailRuntime Avail runtime}.
+	 * @param moduleName
+	 *        The target module.
+	 * @param configuration
+	 *        The {@linkplain CompilerConfiguration compiler configuration}.
+	 */
+	private static void generateDocumentation (
+		final AvailRuntime runtime,
+		final ModuleName moduleName,
+		final CompilerConfiguration configuration)
+	{
+		// TODO: [TLS/LAS] This should do whatever Stacks is supposed to do to
+		// report on progress.
+		final AvailBuilder builder = new AvailBuilder(
+			runtime,
+			new CompilerProgressReporter()
+			{
+				@Override
+				public void value (
+					final @Nullable ModuleName module,
+					final @Nullable Long lineNumber,
+					final @Nullable Long parsePosition,
+					final @Nullable Long moduleSize)
+				{
+					assert module != null;
+					assert lineNumber != null;
+					assert parsePosition != null;
+					assert moduleSize != null;
+					// Do nothing.
+				}
+			},
+			new Continuation3<ModuleName, Long, Long>()
+			{
+				@Override
+				public void value (
+					@Nullable final ModuleName module,
+					@Nullable final Long processedBytes,
+					@Nullable final Long totalBytes)
+				{
+					assert module != null;
+					assert processedBytes != null;
+					assert totalBytes != null;
+					// Do nothing.
+				}
+			});
+		builder.generateDocumentation(
+			moduleName, configuration.documentationPath());
+	}
+
+	/**
 	 * The entry point for command-line invocation of the Avail compiler.
 	 *
 	 * @param args The command-line arguments.
@@ -340,7 +431,6 @@ public class Compiler
 		}
 
 		final ModuleName moduleName = configuration.targetModuleName();
-
 		final AvailRuntime runtime = new AvailRuntime(resolver);
 
 		// Mute user output, if requested.
@@ -352,16 +442,13 @@ public class Compiler
 
 		try
 		{
-			final AvailBuilder builder = new AvailBuilder(
-				runtime,
-				localTracker(configuration),
-				globalTracker(configuration));
-			builder.buildTarget(moduleName);
-
-			// Successful compilation.
-			if (configuration.hasReports())
+			if (configuration.generateDocumentation())
 			{
-				printReports(configuration);
+				generateDocumentation(runtime, moduleName, configuration);
+			}
+			else
+			{
+				buildModule(runtime, moduleName, configuration);
 			}
 
 			// Output timing details, if requested.

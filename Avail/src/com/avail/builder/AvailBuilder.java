@@ -1998,27 +1998,18 @@ public final class AvailBuilder
 		 * @param target
 		 *        The outermost {@linkplain ModuleDescriptor module} for the
 		 *        generation request.
-		 * @param modulesPath
+		 * @param documentationPath
 		 *        The {@linkplain Path path} to the output {@linkplain
-		 *        BasicFileAttributes#isDirectory() directory} for
-		 *        module-oriented documentation and data files.
-		 * @param categoriesPath
-		 *        The path to the output directory for category-oriented
-		 *        documentation and data files.
-		 * @param errorLogPath
-		 *        The path to the Stacks error log for accumulation of Avail
-		 *        documentation errors.
+		 *        BasicFileAttributes#isDirectory() directory} for documentation
+		 *        and data files.
 		 */
 		void generate (
 			final ModuleName target,
-			final Path modulesPath,
-			final Path categoriesPath,
-			final Path errorLogPath)
+			final Path documentationPath)
 		{
 			try
 			{
-				generator.generate(
-					target, modulesPath, categoriesPath, errorLogPath);
+				generator.generate(target, documentationPath);
 			}
 			catch (final IllegalArgumentException e)
 			{
@@ -2114,22 +2105,14 @@ public final class AvailBuilder
 	 *        The {@linkplain ModuleName canonical name} of the module for which
 	 *        the {@linkplain AvailBuilder builder} must (recursively) generate
 	 *        documentation.
-	 * @param modulesPath
+	 * @param documentationPath
 	 *        The {@linkplain Path path} to the output {@linkplain
-	 *        BasicFileAttributes#isDirectory() directory} for module-oriented
+	 *        BasicFileAttributes#isDirectory() directory} for Stacks
 	 *        documentation and data files.
-	 * @param categoriesPath
-	 *        The path to the output directory for category-oriented
-	 *        documentation and data files.
-	 * @param errorLogPath
-	 *        The path to the Stacks error log for accumulation of Avail
-	 *        documentation errors.
 	 */
 	public void generateDocumentation (
 		final ModuleName target,
-		final Path modulesPath,
-		final Path categoriesPath,
-		final Path errorLogPath)
+		final Path documentationPath)
 	{
 		shouldStopBuild = false;
 		tracer.trace(target);
@@ -2139,8 +2122,7 @@ public final class AvailBuilder
 		}
 		if (!shouldStopBuild)
 		{
-			documentationTracer.generate(
-				target, modulesPath, categoriesPath, errorLogPath);
+			documentationTracer.generate(target, documentationPath);
 		}
 	}
 

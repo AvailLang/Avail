@@ -35,6 +35,9 @@ package com.avail.tools.compiler.configuration;
 import static java.util.Arrays.asList;
 import static com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.*;
 import java.io.File;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.EnumSet;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
@@ -84,6 +87,26 @@ implements Configurator<CompilerConfiguration>
 		 * roots path has valid source directories specified.
 		 */
 		CLEAR_REPOSITORIES,
+
+		/**
+		 * The option to generate Stacks documentation.
+		 */
+		GENERATE_DOCUMENTATION,
+
+		/**
+		 * The option to set the Stacks module-oriented documentation path.
+		 */
+		DOCUMENTATION_PATH,
+
+		/**
+		 * The option to set the Stacks category-oriented documentation path.
+		 */
+		STACKS_CATEGORY_PATH,
+
+		/**
+		 * The option to set the Stacks error log path.
+		 */
+		STACKS_ERROR_LOG_PATH,
 
 		/**
 		 * The option to mute all output originating from user code.
@@ -201,7 +224,7 @@ implements Configurator<CompilerConfiguration>
 			+ "option can be used in isolation and will cause the repositories "
 			+ "to be emptied. In an invocation with a valid target module "
 			+ "name, the repositories will be cleared before compilation "
-			+ "is attempted.",
+			+ "is attempted. Mutually exclusive with -g.",
 			new Continuation2<String, String>()
 			{
 				@Override
@@ -210,6 +233,8 @@ implements Configurator<CompilerConfiguration>
 					final @Nullable String unused)
 				{
 					processor.value().checkEncountered(CLEAR_REPOSITORIES, 0);
+					processor.value().checkEncountered(
+						GENERATE_DOCUMENTATION, 0);
 					if (unused != null)
 					{
 						throw new OptionProcessingException(
@@ -217,6 +242,64 @@ implements Configurator<CompilerConfiguration>
 									"are permitted.");
 					}
 					configuration.setClearRepositoriesFlag();
+				}
+			}));
+
+		factory.addOption(new GenericOption<OptionKey>(
+			GENERATE_DOCUMENTATION,
+			asList("g", "generateDocumentation"),
+			"The option to generate Stacks documentation for the target module "
+			+ "and its ancestors. The relevant repositories must already "
+			+ "contain compilations for every module implied by the request. "
+			+ "Do not compile any modules. Mutually exclusive with -f and -s.",
+			new Continuation2<String, String>()
+			{
+				@Override
+				public void value (
+					final @Nullable String keyword,
+					final @Nullable String unused)
+				{
+					processor.value().checkEncountered(
+						GENERATE_DOCUMENTATION, 0);
+					processor.value().checkEncountered(CLEAR_REPOSITORIES, 0);
+					processor.value().checkEncountered(SHOW_STATISTICS, 0);
+					if (unused != null)
+					{
+						throw new OptionProcessingException(
+							keyword + ": An argument was specified, but none " +
+									"are permitted.");
+					}
+					configuration.setGenerateDocumenationFlag();
+				}
+			}));
+
+		factory.addOption(new GenericOption<OptionKey>(
+			DOCUMENTATION_PATH,
+			asList("G", "documentationPath"),
+			"The option to set the path to the output directory where "
+			+ "documentation and data files will appear when Stacks "
+			+ "documentation is generated. Requires -g.",
+			new Continuation2<String, String>()
+			{
+				@Override
+				public void value (
+					final @Nullable String keyword,
+					final @Nullable String pathString)
+				{
+					processor.value().checkEncountered(DOCUMENTATION_PATH, 0);
+					final Path path;
+					try
+					{
+						path = Paths.get(pathString);
+					}
+					catch (final InvalidPathException e)
+					{
+						throw new OptionProcessingException(
+							keyword
+							+ ": invalid path: "
+							+ e.getLocalizedMessage());
+					}
+					configuration.setDocumentationPath(path);
 				}
 			}));
 
@@ -258,7 +341,7 @@ implements Configurator<CompilerConfiguration>
 			"\nPrimitives - The primitives that are the most time-intensive " +
 			"to run overall." +
 			"\nPrimitiveReturnTypeChecks - The primitives that take the most " +
-			"time checking return types.",
+			"time checking return types. Mutually exclusive with -g.",
 			new Continuation2<String, String>()
 			{
 				@Override
@@ -267,6 +350,8 @@ implements Configurator<CompilerConfiguration>
 					final @Nullable String reportsString)
 				{
 					processor.value().checkEncountered(SHOW_STATISTICS, 0);
+					processor.value().checkEncountered(
+						GENERATE_DOCUMENTATION, 0);
 					EnumSet<StatisticReport> reports;
 					if (reportsString == null)
 					{
@@ -298,8 +383,10 @@ implements Configurator<CompilerConfiguration>
 		factory.addOption(new GenericOption<OptionKey>(
 			SHOW_TIMING,
 			asList("t", "showTiming"),
-			"Emits the time taken to clear the repositories, or the elapsed " +
-				"build time following a successful or failed build.",
+			"Emits the time taken to clear the repositories, or the elapsed "
+			+ "build time following a successful or failed build, or the "
+			+ "elapsed generation time following successful or failed "
+			+ "documentation generation.",
 			new Continuation2<String, String>()
 			{
 				@Override
