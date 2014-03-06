@@ -75,6 +75,15 @@ public class StacksCommentsModule
 	private final A_String moduleName;
 
 	/**
+	 * The get method for moduleName
+	 * @return
+	 */
+	public A_String moduleName()
+	{
+		return moduleName;
+	}
+
+	/**
 	 *
 	 */
 	HashMap<A_String,List<AbstractCommentImplementation>>

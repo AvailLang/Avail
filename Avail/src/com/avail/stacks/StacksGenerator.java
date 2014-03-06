@@ -47,7 +47,8 @@ import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 
 /**
- * TODO: Document StacksGenerator!
+ * An Avail documentation generator.  It takes tokenized method/class comments
+ * in .avail files and creates navigable documentation from them.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
@@ -69,7 +70,7 @@ public class StacksGenerator
 	 * A map of {@linkplain ModuleName module names} to a list of all the method
 	 * names exported from said module
 	 */
-	HashMap<A_String,StacksModuleComment> moduleToComments;
+	HashMap<A_String,StacksCommentsModule> moduleToComments;
 
 	/**
 	 * Construct a new {@link StacksGenerator}.
@@ -78,7 +79,7 @@ public class StacksGenerator
 	public StacksGenerator()
 	{
 		this.moduleToComments =
-			new HashMap<A_String,StacksModuleComment>();
+			new HashMap<A_String,StacksCommentsModule>();
 
 		this.moduleToExportedMethodsMap =
 			new HashMap<A_String,A_Set>();
@@ -94,12 +95,29 @@ public class StacksGenerator
 	 *        The complete {@linkplain TupleDescriptor collection} of
 	 *        {@linkplain CommentTokenDescriptor comments} produced for the
 	 *        given module.
+	 * @throws StacksCommentBuilderException
+	 * @throws StacksScannerException
 	 */
 	public synchronized void add (
 		final ModuleHeader header,
 		final A_Tuple commentTokens)
+			throws StacksScannerException, StacksCommentBuilderException
 	{
-		// TODO [RAA]: Implement this.
+		final StacksCommentsModule commentsModule =
+			new StacksCommentsModule(
+				header,commentTokens,moduleToExportedMethodsMap);
+		updateModuleToComments(commentsModule);
+	}
+
+	/**
+	 * Update moduleToComments with a new {@linkplain StacksCommentsModule}.
+	 * @param commentModule
+	 * 		A new {@linkplain StacksCommentsModule} to add to moduleToComments;
+	 */
+	private void updateModuleToComments (
+		final StacksCommentsModule commentModule)
+	{
+		moduleToComments.put(commentModule.moduleName(), commentModule);
 	}
 
 	/**
@@ -137,6 +155,10 @@ public class StacksGenerator
 	 */
 	public synchronized void clear ()
 	{
-		// TODO [RAA]: Implement this.
+		this.moduleToComments =
+			new HashMap<A_String,StacksCommentsModule>();
+
+		this.moduleToExportedMethodsMap =
+			new HashMap<A_String,A_Set>();
 	}
 }
