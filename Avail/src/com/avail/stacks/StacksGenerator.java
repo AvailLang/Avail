@@ -37,8 +37,9 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.List;
-import com.avail.builder.ResolvedModuleName;
+import com.avail.builder.ModuleName;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
+import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CommentTokenDescriptor;
@@ -56,7 +57,7 @@ public class StacksGenerator
 	 * A map of {@linkplain ResolvedModuleName module names} to a list of
 	 * all the method names exported from said module
 	 */
-	HashMap<A_String,List<A_String>> moduleToExportedMethodsMap;
+	HashMap<A_String,A_Set> moduleToExportedMethodsMap;
 
 	/**
 	 * A map of {@linkplain ResolvedModuleName module names} to a list of
@@ -74,7 +75,7 @@ public class StacksGenerator
 			new HashMap<A_String,StacksModuleComment>();
 
 		this.moduleToExportedMethodsMap =
-			new HashMap<A_String,List<A_String>>();
+			new HashMap<A_String,A_Set>();
 	}
 
 	/**
@@ -117,7 +118,7 @@ public class StacksGenerator
 	 *         specify a regular file.
 	 */
 	public synchronized void generate (
-		final ResolvedModuleName outermostModule,
+		final ModuleName outermostModule,
 		final Path modulesPath,
 		final Path categoriesPath,
 		final Path errorLogPath)

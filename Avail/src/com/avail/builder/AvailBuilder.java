@@ -55,6 +55,7 @@ import com.avail.interpreter.*;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.persistence.IndexedRepositoryManager.*;
 import com.avail.serialization.*;
+import com.avail.stacks.StacksGenerator;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
 
@@ -148,6 +149,54 @@ public final class AvailBuilder
 	public void cancel ()
 	{
 		shouldStopBuild = true;
+	}
+
+	/**
+	 * Given a byte array, compute the {@link CRC32} checksum and append
+	 * the {@code int} value as four bytes (Big Endian), answering the
+	 * new augmented byte array.
+	 *
+	 * @param bytes The input bytes.
+	 * @return The bytes followed by the checksum.
+	 */
+	@InnerAccess byte[] appendCRC (final byte[] bytes)
+	{
+		final CRC32 checksum = new CRC32();
+		checksum.update(bytes);
+		final int checksumInt = (int)checksum.getValue();
+		final ByteBuffer combined = ByteBuffer.allocate(bytes.length + 4);
+		combined.put(bytes);
+		combined.putInt(checksumInt);
+		final byte[] combinedBytes = new byte[bytes.length + 4];
+		combined.flip();
+		combined.get(combinedBytes);
+		return combinedBytes;
+	}
+
+	/**
+	 * Given an array of bytes, check that the last four bytes, when
+	 * treated as a Big Endian unsigned int, agree with the {@link
+	 * CRC32} checksum of the bytes excluding the last four.  Fail if
+	 * they disagree.  Answer a ByteArrayInputStream on the bytes
+	 * excluding the last four.
+	 *
+	 * @param bytes An array of bytes.
+	 * @return A ByteArrayInputStream on the non-CRC portion of the
+	 *         bytes.
+	 * @throws MalformedSerialStreamException If the CRC check fails.
+	 */
+	@InnerAccess ByteArrayInputStream validatedBytesFrom (final byte[] bytes)
+		throws MalformedSerialStreamException
+	{
+		final int storedChecksum =
+			ByteBuffer.wrap(bytes).getInt(bytes.length - 4);
+		final Checksum checksum = new CRC32();
+		checksum.update(bytes, 0, bytes.length - 4);
+		if ((int)checksum.getValue() != storedChecksum)
+		{
+			throw new MalformedSerialStreamException(null);
+		}
+		return new ByteArrayInputStream(bytes, 0, bytes.length - 4);
 	}
 
 	/**
@@ -767,7 +816,6 @@ public final class AvailBuilder
 	 */
 	@InnerAccess class BuildTracer
 	{
-
 		/**
 		 * The number of trace requests that have been scheduled.
 		 */
@@ -797,8 +845,7 @@ public final class AvailBuilder
 		 * @param resolvedSuccessor
 		 *        The resolved name of the module using or extending this
 		 *        module, or {@code null} if this module is the start of the
-		 *        recursive
-		 *        resolution (i.e., it will be the last one compiled).
+		 *        recursive resolution (i.e., it will be the last one compiled).
 		 * @param recursionSet
 		 *        An insertion-ordered {@linkplain Set set} that remembers
 		 *        all modules visited along this branch of the trace.
@@ -891,7 +938,7 @@ public final class AvailBuilder
 			// Detect recursion into this module.
 			if (recursionSet.contains(resolvedName))
 			{
-				final Problem problem = new Problem (
+				final Problem problem = new Problem(
 					resolvedName,
 					TokenDescriptor.createSyntheticStart(),
 					ProblemType.TRACE,
@@ -1367,7 +1414,7 @@ public final class AvailBuilder
 			{
 				final ByteArrayInputStream inputStream =
 					validatedBytesFrom(bytes);
-				deserializer = new Deserializer( inputStream, runtime);
+				deserializer = new Deserializer(inputStream, runtime);
 				deserializer.currentModule(module);
 				A_Atom tag = deserializer.deserialize();
 				if (tag != null &&
@@ -1568,7 +1615,8 @@ public final class AvailBuilder
 									final ModuleVersion version =
 										archive.getVersion(versionKey);
 									assert version != null;
-									version.putComments(out.toByteArray());
+									version.putComments(appendCRC(
+										out.toByteArray()));
 
 									repository.commitIfStaleChanges(
 										maximumStaleRepositoryMs);
@@ -1632,57 +1680,6 @@ public final class AvailBuilder
 		}
 
 		/**
-		 * Given a byte array, compute the {@link CRC32} checksum and append
-		 * the {@code int} value as four bytes (Big Endian), answering the
-		 * new augmented byte array.
-		 *
-		 * @param bytes The input bytes.
-		 * @return The bytes followed by the checksum.
-		 */
-		@InnerAccess byte[] appendCRC (final byte[] bytes)
-		{
-			final CRC32 checksum = new CRC32();
-			checksum.update(bytes);
-			final int checksumInt =
-				(int)checksum.getValue();
-			final ByteBuffer combined =
-				ByteBuffer.allocate(bytes.length + 4);
-			combined.put(bytes);
-			combined.putInt(checksumInt);
-			final byte[] combinedBytes =
-				new byte[bytes.length + 4];
-			combined.flip();
-			combined.get(combinedBytes);
-			return combinedBytes;
-		}
-
-		/**
-		 * Given an array of bytes, check that the last four bytes, when
-		 * treated as a Big Endian unsigned int, agree with the {@link
-		 * CRC32} checksum of the bytes excluding the last four.  Fail if
-		 * they disagree.  Answer a ByteArrayInputStream on the bytes
-		 * excluding the last four.
-		 *
-		 * @param bytes An array of bytes.
-		 * @return A ByteArrayInputStream on the non-CRC portion of the
-		 *         bytes.
-		 * @throws MalformedSerialStreamException If the CRC check fails.
-		 */
-		private ByteArrayInputStream validatedBytesFrom (final byte[] bytes)
-			throws MalformedSerialStreamException
-		{
-			final int storedChecksum =
-				ByteBuffer.wrap(bytes).getInt(bytes.length - 4);
-			final Checksum checksum = new CRC32();
-			checksum.update(bytes, 0, bytes.length - 4);
-			if ((int)checksum.getValue() != storedChecksum)
-			{
-				throw new MalformedSerialStreamException(null);
-			}
-			return new ByteArrayInputStream(bytes, 0, bytes.length - 4);
-		}
-
-		/**
 		 * Load the modules found by the {@link #tracer}.
 		 */
 		@InnerAccess void load ()
@@ -1729,6 +1726,327 @@ public final class AvailBuilder
 	 * Used for loading the modules discovered by the {@link #tracer}.
 	 */
 	private final BuildLoader loader = new BuildLoader();
+
+	/**
+	 * Used for parallel documentation generation. Operates on modules
+	 * discovered by the {@linkplain #tracer}.
+	 */
+	class DocumentationTracer
+	{
+		/**
+		 * The {@linkplain StacksGenerator Stacks documentation generator}.
+		 */
+		private final StacksGenerator generator = new StacksGenerator();
+
+		/**
+		 * Get the {@linkplain ModuleVersion module version} for the {@linkplain
+		 * ResolvedModuleName named} {@linkplain ModuleDescriptor module}.
+		 *
+		 * @param moduleName
+		 *        A resolved module name.
+		 * @return A module version, or {@code null} if no version was
+		 *         available.
+		 */
+		private @Nullable ModuleVersion getVersion (
+			final ResolvedModuleName moduleName)
+		{
+			final IndexedRepositoryManager repository =
+				moduleName.repository();
+			final ModuleArchive archive = repository.getArchive(
+				moduleName.rootRelativeName());
+			final byte [] digest = archive.digestForFile(moduleName);
+			final ModuleVersionKey versionKey =
+				new ModuleVersionKey(moduleName, digest);
+			final ModuleVersion version = archive.getVersion(versionKey);
+			return version;
+		}
+
+		/**
+		 * Get the active {@linkplain ModuleCompilation compilation} for the
+		 * {@linkplain ResolvedModuleName named} {@linkplain ModuleDescriptor
+		 * module}.
+		 *
+		 * @param moduleName
+		 *        A resolved module name.
+		 * @param version
+		 *        A {@linkplain ModuleVersion module version}.
+		 * @return A module compilation, or {@code null} if no compilation was
+		 *         available.
+		 */
+		private @Nullable ModuleCompilation getCompilation (
+			final ResolvedModuleName moduleName,
+			final ModuleVersion version)
+		{
+			final Map<String, LoadedModule> loadedModulesByName =
+				new HashMap<>();
+			for (final ResolvedModuleName predecessorName :
+				moduleGraph.predecessorsOf(moduleName))
+			{
+				final String localName = predecessorName.localName();
+				final LoadedModule loadedPredecessor =
+					loadedModules.get(predecessorName);
+				assert loadedPredecessor != null;
+				loadedModulesByName.put(localName, loadedPredecessor);
+			}
+			final List<String> imports = version.getImports();
+			final long [] predecessorCompilationTimes =
+				new long [imports.size()];
+			for (int i = 0; i < predecessorCompilationTimes.length; i++)
+			{
+				final LoadedModule loadedPredecessor =
+					loadedModulesByName.get(imports.get(i));
+				predecessorCompilationTimes[i] =
+					loadedPredecessor.compilation.compilationTime;
+			}
+			final ModuleCompilationKey compilationKey =
+				new ModuleCompilationKey(predecessorCompilationTimes);
+			final ModuleCompilation compilation =
+				version.getCompilation(compilationKey);
+			return compilation;
+		}
+
+		/**
+		 * Load {@linkplain CommentTokenDescriptor comments} for the {@linkplain
+		 * ResolvedModuleName named} {@linkplain ModuleDescriptor module} into
+		 * the {@linkplain StacksGenerator Stacks documentation generator}.
+		 *
+		 * @param moduleName
+		 *        A module name.
+		 * @param completionAction
+		 *        What to do when comments have been loaded for the named
+		 *        module (or an error occurs).
+		 */
+		@InnerAccess void loadComments (
+			final ResolvedModuleName moduleName,
+			final Continuation0 completionAction)
+		{
+			final ModuleVersion version = getVersion(moduleName);
+			if (version == null)
+			{
+				final Problem problem = new Problem(
+					moduleName,
+					TokenDescriptor.createSyntheticStart(),
+					ProblemType.TRACE,
+					"Module \"{0}\" should have been compiled already",
+					moduleName)
+				{
+					@Override
+					public void abortCompilation ()
+					{
+						shouldStopBuild = true;
+						completionAction.value();
+					}
+				};
+				problem.report(problemHandler);
+				problem.abortCompilation();
+				return;
+			}
+			final A_Tuple tuple;
+			try
+			{
+				final ByteArrayInputStream in =
+					validatedBytesFrom(version.getComments());
+				final Deserializer deserializer = new Deserializer(in, runtime);
+				tuple = deserializer.deserialize();
+				assert tuple != null;
+				assert tuple.isTuple();
+				assert deserializer.deserialize() == null;
+			}
+			catch (final MalformedSerialStreamException e)
+			{
+				final Problem problem = new Problem(
+					moduleName,
+					TokenDescriptor.createSyntheticStart(),
+					ProblemType.INTERNAL,
+					"Couldn't deserialize comment tuple for module \"{0}\"",
+					moduleName)
+				{
+					@Override
+					public void abortCompilation ()
+					{
+						shouldStopBuild = true;
+						completionAction.value();
+					}
+				};
+				problem.report(problemHandler);
+				problem.abortCompilation();
+				return;
+			}
+			final ModuleCompilation compilation = getCompilation(
+				moduleName, version);
+			if (compilation == null)
+			{
+				final Problem problem = new Problem(
+					moduleName,
+					TokenDescriptor.createSyntheticStart(),
+					ProblemType.TRACE,
+					"Module \"{0}\" should have a compilation associated with "
+					+ "the current versions of its predecessors",
+					moduleName)
+				{
+					@Override
+					public void abortCompilation ()
+					{
+						shouldStopBuild = true;
+						completionAction.value();
+					}
+				};
+				problem.report(problemHandler);
+				problem.abortCompilation();
+				return;
+			}
+			final ModuleHeader header;
+			try
+			{
+				final ByteArrayInputStream in =
+					validatedBytesFrom(compilation.getBytes());
+				final Deserializer deserializer = new Deserializer(in, runtime);
+				header = new ModuleHeader(moduleName);
+				header.deserializeHeaderFrom(deserializer);
+			}
+			catch (final MalformedSerialStreamException e)
+			{
+				final Problem problem = new Problem(
+					moduleName,
+					TokenDescriptor.createSyntheticStart(),
+					ProblemType.INTERNAL,
+					"Couldn't deserialize header for module \"{0}\"",
+					moduleName)
+				{
+					@Override
+					public void abortCompilation ()
+					{
+						shouldStopBuild = true;
+						completionAction.value();
+					}
+				};
+				problem.report(problemHandler);
+				problem.abortCompilation();
+				return;
+			}
+			generator.add(header, tuple);
+			completionAction.value();
+		}
+
+		/**
+		 * Schedule a load of the {@linkplain CommentTokenDescriptor comments}
+		 * for the {@linkplain ResolvedModuleName named} {@linkplain
+		 * ModuleDescriptor module}.
+		 *
+		 * @param moduleName
+		 *        A module name.
+		 * @param completionAction
+		 *        What to do when comments have been loaded for the named
+		 *        module.
+		 */
+		@InnerAccess void scheduleLoadComments (
+			final ResolvedModuleName moduleName,
+			final Continuation0 completionAction)
+		{
+			// Avoid scheduling new tasks if an exception has happened.
+			if (shouldStopBuild)
+			{
+				completionAction.value();
+				return;
+			}
+			runtime.execute(new AvailTask(
+				FiberDescriptor.loaderPriority,
+				new Continuation0()
+				{
+					@Override
+					public void value ()
+					{
+						if (shouldStopBuild)
+						{
+							// An exception has been encountered since the
+							// earlier check.  Exit quickly.
+							completionAction.value();
+						}
+						else
+						{
+							loadComments(moduleName, completionAction);
+						}
+					}
+				}));
+		}
+
+		/**
+		 * Load the {@linkplain CommentTokenDescriptor comments} for all
+		 * {@linkplain ModuleDescriptor modules} found by the {@linkplain
+		 * #tracer}.
+		 */
+		void load ()
+		{
+			moduleGraph.parallelVisit(
+				new Continuation2<ResolvedModuleName, Continuation0>()
+				{
+					@Override
+					public void value (
+						final @Nullable ResolvedModuleName moduleName,
+						final @Nullable Continuation0 completionAction)
+					{
+						assert moduleName != null;
+						assert completionAction != null;
+						scheduleLoadComments(moduleName, completionAction);
+					}
+				});
+		}
+
+		/**
+		 * Generate Stacks documentation.
+		 *
+		 * @param target
+		 *        The outermost {@linkplain ModuleDescriptor module} for the
+		 *        generation request.
+		 * @param modulesPath
+		 *        The {@linkplain Path path} to the output {@linkplain
+		 *        BasicFileAttributes#isDirectory() directory} for
+		 *        module-oriented documentation and data files.
+		 * @param categoriesPath
+		 *        The path to the output directory for category-oriented
+		 *        documentation and data files.
+		 * @param errorLogPath
+		 *        The path to the Stacks error log for accumulation of Avail
+		 *        documentation errors.
+		 */
+		void generate (
+			final ModuleName target,
+			final Path modulesPath,
+			final Path categoriesPath,
+			final Path errorLogPath)
+		{
+			try
+			{
+				generator.generate(
+					target, modulesPath, categoriesPath, errorLogPath);
+			}
+			catch (final IllegalArgumentException e)
+			{
+				final Problem problem = new Problem(
+					target,
+					TokenDescriptor.createSyntheticStart(),
+					ProblemType.TRACE,
+					"Could not generate Stacks documentation: {0}",
+					e.getLocalizedMessage())
+				{
+					@Override
+					public void abortCompilation ()
+					{
+						shouldStopBuild = true;
+					}
+				};
+				problem.report(problemHandler);
+				problem.abortCompilation();
+			}
+		}
+	}
+
+	/**
+	 * Used for parallel documentation generation. Operates on modules
+	 * discovered by the {@linkplain #tracer}.
+	 */
+	private final DocumentationTracer documentationTracer =
+		new DocumentationTracer();
 
 	/**
 	 * Construct an {@link AvailBuilder} for the provided runtime.  During a
@@ -1789,13 +2107,51 @@ public final class AvailBuilder
 	}
 
 	/**
-	 * Scan all module files in all visible source directories, passing the
+	 * Generate Stacks documentation for the {@linkplain ModuleDescriptor
+	 * target} and its dependencies.
+	 *
+	 * @param target
+	 *        The {@linkplain ModuleName canonical name} of the module for which
+	 *        the {@linkplain AvailBuilder builder} must (recursively) generate
+	 *        documentation.
+	 * @param modulesPath
+	 *        The {@linkplain Path path} to the output {@linkplain
+	 *        BasicFileAttributes#isDirectory() directory} for module-oriented
+	 *        documentation and data files.
+	 * @param categoriesPath
+	 *        The path to the output directory for category-oriented
+	 *        documentation and data files.
+	 * @param errorLogPath
+	 *        The path to the Stacks error log for accumulation of Avail
+	 *        documentation errors.
+	 */
+	public void generateDocumentation (
+		final ModuleName target,
+		final Path modulesPath,
+		final Path categoriesPath,
+		final Path errorLogPath)
+	{
+		shouldStopBuild = false;
+		tracer.trace(target);
+		if (!shouldStopBuild)
+		{
+			documentationTracer.load();
+		}
+		if (!shouldStopBuild)
+		{
+			documentationTracer.generate(
+				target, modulesPath, categoriesPath, errorLogPath);
+		}
+	}
+
+	/**
+	 * Scan all module files in all visible source directories, passing
 	 * each {@link ResolvedModuleName} and corresponding {@link ModuleVersion}
 	 * to the provided {@link Continuation2}.
 	 *
 	 * <p>Note that the action may be invoked from multiple {@link Thread}s
-	 * simultaneously, so suitable synchronization may need to be provided by
-	 * the client.</p>
+	 * simultaneously, so the client may need to provide suitable
+	 * synchronization.</p>
 	 *
 	 * @param action What to do with each module version.
 	 */

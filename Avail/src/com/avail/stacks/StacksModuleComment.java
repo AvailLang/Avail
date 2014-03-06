@@ -39,9 +39,12 @@ import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
 import com.avail.compiler.AbstractAvailCompiler.ModuleImport;
 import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.A_String;
+import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.SetDescriptor;
 
 /**
  * A representation of all the fully parsed {@linkplain CommentTokenDescriptor
@@ -54,12 +57,12 @@ public class StacksModuleComment
 	/**
 	 * all the named methods exported from the file
 	 */
-	private final List<A_String> exportedNames;
+	private final A_Set exportedNames;
 
 	/**
 	 * @return the exportedNames
 	 */
-	public List<A_String> exportedNames ()
+	public A_Set exportedNames ()
 	{
 		return exportedNames;
 	}
@@ -117,37 +120,69 @@ public class StacksModuleComment
 	 *
 	 * @param header
 	 * @param commentTokens
+	 * @param moduleToMethodMap
 	 */
 	public StacksModuleComment(
 		final ModuleHeader header,
-		final A_Tuple commentTokens)
+		final A_Tuple commentTokens,
+		final HashMap<A_String,A_Set> moduleToMethodMap)
 	{
 		this.commentTokens = commentTokens;
-		this.exportedNames = header.exportedNames;
+		this.exportedNames = allExportedNames(header,moduleToMethodMap);
 		this.moduleName = header.moduleName;
+
+
 
 	}
 
-	private List<A_String> allExportedNames (final ModuleHeader header,
-		final HashMap<A_String,List<A_String>> moduleToMethodMap)
+	/**
+	 * @param header
+	 * @param moduleToMethodMap
+	 * @return
+	 */
+	private A_Set allExportedNames (final ModuleHeader header,
+		final HashMap<A_String,A_Set> moduleToMethodMap)
 	{
-		final List<A_String> collectedExtendedNames =
-			new ArrayList<A_String>();
+		final A_Set collectedExtendedNames =
+			SetDescriptor.empty();
 		for (final ModuleImport moduleImport : header.importedModules)
 		{
 			if (moduleImport.isExtension)
 			{
 				if (moduleImport.wildcard)
 				{
-					collectedExtendedNames.addAll(moduleToMethodMap
-						.get(moduleImport.moduleName));
+					collectedExtendedNames.setUnionCanDestroy(
+						moduleToMethodMap
+							.get(moduleImport.moduleName),
+						true);
 				}
-				else
-				{
 
+				if (moduleImport.excludes != NilDescriptor.nil())
+				{
+					collectedExtendedNames
+						.setMinusCanDestroy(moduleImport.excludes, true);
+				}
+
+				if (moduleImport.renames != NilDescriptor.nil())
+				{
+					collectedExtendedNames
+						.setMinusCanDestroy(
+							moduleImport.renames.keysAsSet(),true);
+					collectedExtendedNames.setUnionCanDestroy(
+						moduleImport.renames.valuesAsTuple().asSet(),true);
+				}
+
+				if (moduleImport.names != NilDescriptor.nil())
+				{
+					collectedExtendedNames.setUnionCanDestroy(
+						moduleImport.names,
+						true);
 				}
 			}
 		}
+		collectedExtendedNames.setUnionCanDestroy(
+			SetDescriptor.fromCollection(header.exportedNames), true);
+
 		return collectedExtendedNames;
 	}
 }

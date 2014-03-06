@@ -387,8 +387,7 @@ public abstract class AbstractAvailCompiler
 		 * undergoing compilation.  This includes both modules being extended
 		 * and modules being simply used.
 		 */
-		public final List<ModuleImport> importedModules =
-			new ArrayList<>();
+		public final List<ModuleImport> importedModules = new ArrayList<>();
 
 		/**
 		 * Answer the list of local module {@linkplain String names} imported by
