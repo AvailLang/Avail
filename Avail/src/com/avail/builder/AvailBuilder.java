@@ -1858,7 +1858,7 @@ public final class AvailBuilder
 					moduleName,
 					TokenDescriptor.createSyntheticStart(),
 					ProblemType.INTERNAL,
-					"Couldn't deserialize comment tuple for module \"{0}\"",
+					"Couldn''t deserialize comment tuple for module \"{0}\"",
 					moduleName)
 				{
 					@Override
@@ -1901,6 +1901,12 @@ public final class AvailBuilder
 				final ByteArrayInputStream in =
 					validatedBytesFrom(compilation.getBytes());
 				final Deserializer deserializer = new Deserializer(in, runtime);
+				final A_Atom tag = deserializer.deserialize();
+				if (tag != null &&
+					!tag.equals(AtomDescriptor.moduleHeaderSectionAtom()))
+				{
+					throw new MalformedSerialStreamException(null);
+				}
 				header = new ModuleHeader(moduleName);
 				header.deserializeHeaderFrom(deserializer);
 			}
@@ -1910,7 +1916,7 @@ public final class AvailBuilder
 					moduleName,
 					TokenDescriptor.createSyntheticStart(),
 					ProblemType.INTERNAL,
-					"Couldn't deserialize header for module \"{0}\"",
+					"Couldn''t deserialize header for module \"{0}\"",
 					moduleName)
 				{
 					@Override

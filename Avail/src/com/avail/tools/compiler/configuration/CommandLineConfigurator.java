@@ -99,16 +99,6 @@ implements Configurator<CompilerConfiguration>
 		DOCUMENTATION_PATH,
 
 		/**
-		 * The option to set the Stacks category-oriented documentation path.
-		 */
-		STACKS_CATEGORY_PATH,
-
-		/**
-		 * The option to set the Stacks error log path.
-		 */
-		STACKS_ERROR_LOG_PATH,
-
-		/**
 		 * The option to mute all output originating from user code.
 		 */
 		QUIET,
@@ -251,7 +241,7 @@ implements Configurator<CompilerConfiguration>
 			"The option to generate Stacks documentation for the target module "
 			+ "and its ancestors. The relevant repositories must already "
 			+ "contain compilations for every module implied by the request. "
-			+ "Do not compile any modules. Mutually exclusive with -f and -s.",
+			+ "Do not compile any modules. Mutually exclusive with -f.",
 			new Continuation2<String, String>()
 			{
 				@Override
@@ -341,7 +331,7 @@ implements Configurator<CompilerConfiguration>
 			"\nPrimitives - The primitives that are the most time-intensive " +
 			"to run overall." +
 			"\nPrimitiveReturnTypeChecks - The primitives that take the most " +
-			"time checking return types. Mutually exclusive with -g.",
+			"time checking return types.",
 			new Continuation2<String, String>()
 			{
 				@Override
