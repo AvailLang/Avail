@@ -35,10 +35,8 @@ package com.avail.stacks;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
 import com.avail.compiler.AbstractAvailCompiler.ModuleImport;
-import com.avail.descriptor.A_Map;
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
@@ -60,6 +58,11 @@ public class StacksCommentsModule
 	 * all the named methods exported from the file
 	 */
 	private final A_Set exportedNames;
+
+	/**
+	 * Stacks Error log
+	 */
+	String erroLog;
 
 	/**
 	 * @return the exportedNames
@@ -140,12 +143,18 @@ public class StacksCommentsModule
 
 		for (final A_Token aToken : commentTokens)
 		{
-			//TODO [RAA} Handle errors by logging them.
-			final AbstractCommentImplementation implementation =
-				StacksScanner.processCommentString(aToken);
+			try
+			{
+				final AbstractCommentImplementation implementation =
+					StacksScanner.processCommentString(aToken);
 
-			addNamedImplementation(
-				implementation.signature.name, implementation);
+				addNamedImplementation(
+					implementation.signature.name, implementation);
+			}
+			catch (final StacksScannerException e)
+			{
+				e.getLocalizedMessage();
+			}
 		}
 	}
 

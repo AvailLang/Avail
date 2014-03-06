@@ -95,18 +95,16 @@ public class StacksGenerator
 	 *        The complete {@linkplain TupleDescriptor collection} of
 	 *        {@linkplain CommentTokenDescriptor comments} produced for the
 	 *        given module.
-	 * @throws StacksCommentBuilderException
-	 * @throws StacksScannerException
 	 */
 	public synchronized void add (
 		final ModuleHeader header,
 		final A_Tuple commentTokens)
-			throws StacksScannerException, StacksCommentBuilderException
 	{
-		final StacksCommentsModule commentsModule =
+		//TODO [RAA]remove comment
+		/*final StacksCommentsModule commentsModule =
 			new StacksCommentsModule(
 				header,commentTokens,moduleToExportedMethodsMap);
-		updateModuleToComments(commentsModule);
+		updateModuleToComments(commentsModule);*/
 	}
 
 	/**
