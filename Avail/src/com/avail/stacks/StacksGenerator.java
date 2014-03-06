@@ -35,8 +35,11 @@ package com.avail.stacks;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.HashMap;
+import java.util.List;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
+import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
@@ -50,6 +53,31 @@ import com.avail.descriptor.TupleDescriptor;
 public class StacksGenerator
 {
 	/**
+	 * A map of {@linkplain ResolvedModuleName module names} to a list of
+	 * all the method names exported from said module
+	 */
+	HashMap<A_String,List<A_String>> moduleToExportedMethodsMap;
+
+	/**
+	 * A map of {@linkplain ResolvedModuleName module names} to a list of
+	 * all the method names exported from said module
+	 */
+	HashMap<A_String,StacksModuleComment> moduleToComments;
+
+	/**
+	 * Construct a new {@link StacksGenerator}.
+	 *
+	 */
+	public StacksGenerator()
+	{
+		this.moduleToComments =
+			new HashMap<A_String,StacksModuleComment>();
+
+		this.moduleToExportedMethodsMap =
+			new HashMap<A_String,List<A_String>>();
+	}
+
+	/**
 	 * Inform the {@linkplain StacksGenerator generator} about the documentation
 	 * and linkage of a {@linkplain ModuleDescriptor module}.
 	 *
@@ -60,7 +88,7 @@ public class StacksGenerator
 	 *        {@linkplain CommentTokenDescriptor comments} produced for the
 	 *        given module.
 	 */
-	public void add (
+	public synchronized void add (
 		final ModuleHeader header,
 		final A_Tuple commentTokens)
 	{
@@ -88,11 +116,12 @@ public class StacksGenerator
 	 *         specify a directory, or if the error log path exists and does not
 	 *         specify a regular file.
 	 */
-	public void generate (
+	public synchronized void generate (
 		final ResolvedModuleName outermostModule,
 		final Path modulesPath,
 		final Path categoriesPath,
 		final Path errorLogPath)
+			throws IllegalArgumentException
 	{
 		if (Files.exists(modulesPath) && !Files.isDirectory(modulesPath))
 		{
@@ -107,7 +136,7 @@ public class StacksGenerator
 	 * Clear all internal data structures and reinitialize the {@linkplain
 	 * StacksGenerator generator} for subsequent usage.
 	 */
-	public void clear ()
+	public synchronized void clear ()
 	{
 		// TODO [RAA]: Implement this.
 	}
