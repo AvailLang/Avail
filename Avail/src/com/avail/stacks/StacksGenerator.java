@@ -35,7 +35,7 @@ package com.avail.stacks;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import com.avail.builder.ResolvedModuleName;
+import com.avail.builder.ModuleName;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CommentTokenDescriptor;
@@ -89,7 +89,7 @@ public class StacksGenerator
 	 *         specify a regular file.
 	 */
 	public void generate (
-		final ResolvedModuleName outermostModule,
+		final ModuleName outermostModule,
 		final Path modulesPath,
 		final Path categoriesPath,
 		final Path errorLogPath)

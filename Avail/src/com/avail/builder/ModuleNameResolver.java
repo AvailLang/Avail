@@ -449,7 +449,8 @@ public final class ModuleNameResolver
 	 *        The name of the module that requires this resolution, if any.
 	 * @return A {@linkplain ResolvedModuleName resolved module name} if the
 	 *         resolution was successful.
-	 * @throws UnresolvedDependencyException when the resolution has failed.
+	 * @throws UnresolvedDependencyException
+	 *         If resolution fails.
 	 */
 	public ResolvedModuleName resolve (
 			final ModuleName qualifiedName,
