@@ -75,9 +75,23 @@ public class StacksGenerator
 	/**
 	 * Construct a new {@link StacksGenerator}.
 	 *
+	 * @param outputPath
+	 *        The {@linkplain Path path} to the output {@linkplain
+	 *        BasicFileAttributes#isDirectory() directory} for documentation and
+	 *        data files.
+	 * @throws IllegalArgumentException
+	 *         If the output path exists but does not specify a directory.
 	 */
-	public StacksGenerator()
+	public StacksGenerator(final Path outputPath)
 	{
+		if (Files.exists(outputPath) && !Files.isDirectory(outputPath))
+		{
+			throw new IllegalArgumentException(
+				outputPath + " exists and is not a directory");
+		}
+
+		// TODO: [RAA] Create this directory if necessary, also the error log.
+
 		this.moduleToComments =
 			new HashMap<A_String,StacksCommentsModule>();
 
@@ -124,26 +138,9 @@ public class StacksGenerator
 	 * @param outermostModule
 	 *        The outermost {@linkplain ModuleDescriptor module} for the
 	 *        generation request.
-	 * @param outputPath
-	 *        The {@linkplain Path path} to the output {@linkplain
-	 *        BasicFileAttributes#isDirectory() directory} for documentation and
-	 *        data files.
-	 * @throws IllegalArgumentException
-	 *         If the modules path or the categories path exist but do not
-	 *         specify a directory, or if the error log path exists and does not
-	 *         specify a regular file.
 	 */
-	public synchronized void generate (
-			final ModuleName outermostModule,
-			final Path outputPath)
-		throws IllegalArgumentException
+	public synchronized void generate (final ModuleName outermostModule)
 	{
-		if (Files.exists(outputPath) && !Files.isDirectory(outputPath))
-		{
-			throw new IllegalArgumentException(
-				outputPath + " exists and is not a directory");
-		}
-		// TODO [RAA]: Implement the other two argument checking cases.
 		// TODO [RAA]: Implement everything else.
 	}
 

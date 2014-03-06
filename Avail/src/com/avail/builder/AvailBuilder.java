@@ -1736,7 +1736,20 @@ public final class AvailBuilder
 		/**
 		 * The {@linkplain StacksGenerator Stacks documentation generator}.
 		 */
-		private final StacksGenerator generator = new StacksGenerator();
+		private final StacksGenerator generator;
+
+		/**
+		 * Construct a new {@link DocumentationTracer}.
+		 *
+		 * @param documentationPath
+		 *        The {@linkplain Path path} to the output {@linkplain
+		 *        BasicFileAttributes#isDirectory() directory} for documentation
+		 *        and data files.
+		 */
+		DocumentationTracer (final Path documentationPath)
+		{
+			generator = new StacksGenerator(documentationPath);
+		}
 
 		/**
 		 * Get the {@linkplain ModuleVersion module version} for the {@linkplain
@@ -2004,18 +2017,12 @@ public final class AvailBuilder
 		 * @param target
 		 *        The outermost {@linkplain ModuleDescriptor module} for the
 		 *        generation request.
-		 * @param documentationPath
-		 *        The {@linkplain Path path} to the output {@linkplain
-		 *        BasicFileAttributes#isDirectory() directory} for documentation
-		 *        and data files.
 		 */
-		void generate (
-			final ModuleName target,
-			final Path documentationPath)
+		void generate (final ModuleName target)
 		{
 			try
 			{
-				generator.generate(target, documentationPath);
+				generator.generate(target);
 			}
 			catch (final IllegalArgumentException e)
 			{
@@ -2037,13 +2044,6 @@ public final class AvailBuilder
 			}
 		}
 	}
-
-	/**
-	 * Used for parallel documentation generation. Operates on modules
-	 * discovered by the {@linkplain #tracer}.
-	 */
-	private final DocumentationTracer documentationTracer =
-		new DocumentationTracer();
 
 	/**
 	 * Construct an {@link AvailBuilder} for the provided runtime.  During a
@@ -2122,13 +2122,15 @@ public final class AvailBuilder
 	{
 		shouldStopBuild = false;
 		tracer.trace(target);
+		final DocumentationTracer documentationTracer =
+			new DocumentationTracer(documentationPath);
 		if (!shouldStopBuild)
 		{
 			documentationTracer.load();
 		}
 		if (!shouldStopBuild)
 		{
-			documentationTracer.generate(target, documentationPath);
+			documentationTracer.generate(target);
 		}
 	}
 
