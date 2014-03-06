@@ -1,5 +1,5 @@
 /**
- * StacksModuleComment.java
+ * StacksCommentsModule.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -35,16 +35,16 @@ package com.avail.stacks;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
 import com.avail.compiler.AbstractAvailCompiler.ModuleImport;
-import com.avail.descriptor.A_Map;
 import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.NilDescriptor;
 import com.avail.descriptor.SetDescriptor;
+import com.avail.descriptor.StringDescriptor;
 
 /**
  * A representation of all the fully parsed {@linkplain CommentTokenDescriptor
@@ -52,12 +52,17 @@ import com.avail.descriptor.SetDescriptor;
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksModuleComment
+public class StacksCommentsModule
 {
 	/**
 	 * all the named methods exported from the file
 	 */
 	private final A_Set exportedNames;
+
+	/**
+	 * Stacks Error log
+	 */
+	String erroLog;
 
 	/**
 	 * @return the exportedNames
@@ -68,28 +73,26 @@ public class StacksModuleComment
 	}
 
 	/**
-	 * all
+	 *	The name of the module that contains these Stacks Comments.
 	 */
-	private final List<ModuleImport> extensensionModules =
-		new ArrayList<ModuleImport>();
+	private final A_String moduleName;
+
+	/**
+	 * The get method for moduleName
+	 * @return
+	 */
+	public A_String moduleName()
+	{
+		return moduleName;
+	}
 
 	/**
 	 *
 	 */
-	private final ResolvedModuleName moduleName;
-
-	/**
-	 * The {@linkplain A_Tuple tuple} of {@linkplain CommentTokenDescriptor
-	 * comment tokens}.
-	 */
-	private final A_Tuple commentTokens;
-
-	/**
-	 *
-	 */
-	HashMap<String,List<AbstractCommentImplementation>>
+	HashMap<A_String,List<AbstractCommentImplementation>>
 		namedCommentImplementations =
-			new HashMap<String,List<AbstractCommentImplementation>>();
+			new HashMap<A_String,List<AbstractCommentImplementation>>();
+
 
 	/**
 	 * @param name
@@ -99,7 +102,7 @@ public class StacksModuleComment
 	 * 		implementation}.
 	 */
 	void addNamedImplementation(
-		final String name,
+		final A_String name,
 		final AbstractCommentImplementation comment)
 	{
 		if (namedCommentImplementations.containsKey(name))
@@ -116,23 +119,43 @@ public class StacksModuleComment
 	}
 
 	/**
-	 * Construct a new {@link StacksModuleComment}.
+	 * Construct a new {@link StacksCommentsModule}.
 	 *
 	 * @param header
 	 * @param commentTokens
 	 * @param moduleToMethodMap
+	 * @throws StacksCommentBuilderException
+	 * @throws StacksScannerException
 	 */
-	public StacksModuleComment(
+	public StacksCommentsModule(
 		final ModuleHeader header,
 		final A_Tuple commentTokens,
 		final HashMap<A_String,A_Set> moduleToMethodMap)
+			throws StacksScannerException, StacksCommentBuilderException
 	{
-		this.commentTokens = commentTokens;
 		this.exportedNames = allExportedNames(header,moduleToMethodMap);
-		this.moduleName = header.moduleName;
+		this.moduleName = StringDescriptor
+			.from(header.moduleName.qualifiedName());
 
+		moduleToMethodMap.put(
+			this.moduleName,
+			SetDescriptor.fromCollection(header.exportedNames));
 
+		for (final A_Token aToken : commentTokens)
+		{
+			try
+			{
+				final AbstractCommentImplementation implementation =
+					StacksScanner.processCommentString(aToken);
 
+				addNamedImplementation(
+					implementation.signature.name, implementation);
+			}
+			catch (final StacksScannerException e)
+			{
+				e.getLocalizedMessage();
+			}
+		}
 	}
 
 	/**

@@ -949,7 +949,7 @@ public final class AvailBuilder
 				indicateTraceCompleted();
 				return;
 			}
-			boolean alreadyTraced;
+			final boolean alreadyTraced;
 			synchronized (AvailBuilder.this)
 			{
 				alreadyTraced = moduleGraph.includesVertex(resolvedName);
