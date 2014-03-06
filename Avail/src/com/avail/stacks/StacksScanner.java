@@ -668,7 +668,7 @@ public class StacksScanner extends AbstractStacksScanner
 	 * @throws StacksScannerException If scanning fails.
 	 * @throws StacksCommentBuilderException
 	 */
-	public static AbstractCommentImplementation scanCommentString (
+	public static AbstractCommentImplementation processCommentString (
 		final A_Token commentToken)
 		throws StacksScannerException, StacksCommentBuilderException
 	{
