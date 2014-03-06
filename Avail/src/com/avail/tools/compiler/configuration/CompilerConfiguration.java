@@ -33,13 +33,13 @@
 package com.avail.tools.compiler.configuration;
 
 import static com.avail.tools.compiler.configuration.VerbosityLevel.*;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.file.Path;
 import java.util.EnumSet;
 import com.avail.annotations.Nullable;
 import com.avail.builder.ModuleName;
@@ -48,6 +48,7 @@ import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
 import com.avail.builder.RenamesFileParserException;
 import com.avail.descriptor.ModuleDescriptor;
+import com.avail.stacks.StacksGenerator;
 import com.avail.tools.configuration.Configuration;
 import com.avail.tools.compiler.Compiler;
 
@@ -181,7 +182,7 @@ implements Configuration
 	 *
 	 * @return The module name.
 	 */
-	public ModuleName targetModuleName()
+	public ModuleName targetModuleName ()
 	{
 		final ModuleName name = targetModuleName;
 		assert name != null;
@@ -194,7 +195,7 @@ implements Configuration
 	 *
 	 * @param target The new module name.
 	 */
-	public void setTargetModuleName(final ModuleName target)
+	public void setTargetModuleName (final ModuleName target)
 	{
 		targetModuleName = target;
 	}
@@ -202,17 +203,16 @@ implements Configuration
 	/**
 	 * The flag indicating whether the compiler should clear all repositories
 	 * for which a valid source directory has been specified. This option is
-	 * false by default and is changed to true upon inclusion of the option
-	 * keyword in the arguments invoking the compiler.
+	 * false by default.
 	 */
 	private boolean clearRepositories = false;
 
 	/**
 	 * Answer whether the compiler is set to clear the repositories.
 	 *
-	 * @return The status of the clearRepositories flag.
+	 * @return The status of the {@link #clearRepositories} flag.
 	 */
-	public boolean clearRepositories()
+	public boolean clearRepositories ()
 	{
 		return clearRepositories;
 	}
@@ -221,9 +221,58 @@ implements Configuration
 	 * Instruct the compiler to clear all repositories for which a valid source
 	 * directory has been specified.
 	 */
-	public void setClearRepositoriesFlag()
+	public void setClearRepositoriesFlag ()
 	{
 		clearRepositories = true;
+	}
+
+	/**
+	 * The flag indicating whether Stacks documentation should be generated.
+	 * This option is false by default.
+	 */
+	private boolean generateDocumentation = false;
+
+	/**
+	 * Answer whether Stacks documentation should be generated.
+	 *
+	 * @return The status of the {@link #generateDocumentation} flag.
+	 */
+	public boolean generateDocumentation ()
+	{
+		return generateDocumentation;
+	}
+
+	/**
+	 * Instruct the compiler to generate Stacks documentation instead of
+	 * compiling Avail modules.
+	 */
+	public void setGenerateDocumenationFlag ()
+	{
+		generateDocumentation = true;
+	}
+
+	/** The Stacks documentation path. */
+	private Path documentationPath = StacksGenerator.defaultDocumentationPath;
+
+	/**
+	 * Answer the Stacks documentation path.
+	 *
+	 * @return A path.
+	 */
+	public Path documentationPath ()
+	{
+		return documentationPath;
+	}
+
+	/**
+	 * Set the Stacks documentation path.
+	 *
+	 * @param documentationPath
+	 *        The path.
+	 */
+	public void setDocumentationPath (final Path documentationPath)
+	{
+		this.documentationPath = documentationPath;
 	}
 
 	/**
@@ -237,7 +286,7 @@ implements Configuration
 	 *
 	 * @return The status of the quiet flag.
 	 */
-	public boolean quiet()
+	public boolean quiet ()
 	{
 		return quiet;
 	}
@@ -245,7 +294,7 @@ implements Configuration
 	/**
 	 * Instruct the compiler to mute all output originating from user code.
 	 */
-	public void setQuietFlag()
+	public void setQuietFlag ()
 	{
 		quiet = true;
 	}
@@ -263,7 +312,7 @@ implements Configuration
 	 *
 	 * @return The set of report names.
 	 */
-	public EnumSet<StatisticReport> reports()
+	public EnumSet<StatisticReport> reports ()
 	{
 		return reports;
 	}
@@ -274,7 +323,7 @@ implements Configuration
 	 *
 	 * @param reports The set of report names.
 	 */
-	public void setReports(final EnumSet<StatisticReport> reports)
+	public void setReports (final EnumSet<StatisticReport> reports)
 	{
 		this.reports = reports;
 	}
@@ -283,7 +332,7 @@ implements Configuration
 	 * @return True if the configuration has been set to output any {@linkplain
 	 *         StatisticReport reports}, false otherwise;
 	 */
-	public boolean hasReports()
+	public boolean hasReports ()
 	{
 		return !reports.isEmpty();
 	}
@@ -299,7 +348,7 @@ implements Configuration
 	 *
 	 * @return The status of the showTiming flag.
 	 */
-	public boolean showTiming()
+	public boolean showTiming ()
 	{
 		return showTiming;
 	}
@@ -307,7 +356,7 @@ implements Configuration
 	/**
 	 * Instruct the compiler to show the time elapsed for the process.
 	 */
-	public void setShowTimingFlag()
+	public void setShowTimingFlag ()
 	{
 		showTiming = true;
 	}
@@ -322,7 +371,7 @@ implements Configuration
 	 *
 	 * @return The verbosity level.
 	 */
-	public VerbosityLevel verbosityLevel()
+	public VerbosityLevel verbosityLevel ()
 	{
 		return verbosityLevel;
 	}
@@ -332,7 +381,7 @@ implements Configuration
 	 *
 	 * @param level The requested verbosity level.
 	 */
-	public void setVerbosityLevel(final VerbosityLevel level)
+	public void setVerbosityLevel (final VerbosityLevel level)
 	{
 		verbosityLevel = level;
 	}

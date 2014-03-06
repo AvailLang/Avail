@@ -34,9 +34,9 @@ package com.avail.stacks;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
-import java.util.List;
 import com.avail.builder.ModuleName;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
 import com.avail.descriptor.A_Set;
@@ -54,14 +54,20 @@ import com.avail.descriptor.TupleDescriptor;
 public class StacksGenerator
 {
 	/**
-	 * A map of {@linkplain ResolvedModuleName module names} to a list of
-	 * all the method names exported from said module
+	 * The default path to the output directory for module-oriented
+	 * documentation and data files.
+	 */
+	public static final Path defaultDocumentationPath = Paths.get("stacks");
+
+	/**
+	 * A map of {@linkplain ModuleName module names} to a list of all the method
+	 * names exported from said module
 	 */
 	HashMap<A_String,A_Set> moduleToExportedMethodsMap;
 
 	/**
-	 * A map of {@linkplain ResolvedModuleName module names} to a list of
-	 * all the method names exported from said module
+	 * A map of {@linkplain ModuleName module names} to a list of all the method
+	 * names exported from said module
 	 */
 	HashMap<A_String,StacksModuleComment> moduleToComments;
 
@@ -102,32 +108,24 @@ public class StacksGenerator
 	 * @param outermostModule
 	 *        The outermost {@linkplain ModuleDescriptor module} for the
 	 *        generation request.
-	 * @param modulesPath
+	 * @param outputPath
 	 *        The {@linkplain Path path} to the output {@linkplain
-	 *        BasicFileAttributes#isDirectory() directory} for module-oriented
-	 *        documentation and data files.
-	 * @param categoriesPath
-	 *        The path to the output directory for category-oriented
-	 *        documentation and data files.
-	 * @param errorLogPath
-	 *        The path to the Stacks error log for accumulation of Avail
-	 *        documentation errors.
+	 *        BasicFileAttributes#isDirectory() directory} for documentation and
+	 *        data files.
 	 * @throws IllegalArgumentException
 	 *         If the modules path or the categories path exist but do not
 	 *         specify a directory, or if the error log path exists and does not
 	 *         specify a regular file.
 	 */
 	public synchronized void generate (
-		final ModuleName outermostModule,
-		final Path modulesPath,
-		final Path categoriesPath,
-		final Path errorLogPath)
-			throws IllegalArgumentException
+			final ModuleName outermostModule,
+			final Path outputPath)
+		throws IllegalArgumentException
 	{
-		if (Files.exists(modulesPath) && !Files.isDirectory(modulesPath))
+		if (Files.exists(outputPath) && !Files.isDirectory(outputPath))
 		{
 			throw new IllegalArgumentException(
-				modulesPath + " exists and is not a directory");
+				outputPath + " exists and is not a directory");
 		}
 		// TODO [RAA]: Implement the other two argument checking cases.
 		// TODO [RAA]: Implement everything else.
