@@ -59,7 +59,7 @@ import com.avail.utility.evaluation.*;
  * The Avail command-line compiler understands the following options:
  *
  * --availRenames
- *     The absolute path to the renames file. This option overrides environment
+ *     The path to the renames file. This option overrides environment
  *     variables.
  *
  * --availRoots
@@ -70,31 +70,38 @@ import com.avail.utility.evaluation.*;
  *     optionally a comma (,) and the absolute path to a source package. This
  *     option overrides environment variables.
  *
+ * -c
+ * --compile
+ *     Compile the target module and its ancestors.
+ *
  * -f
  * --clearRepositories
- *     The option to force removal of all repositories for which the Avail root
- *     path has valid source directories specified. This option can be used in
- *     isolation and will cause the repositories to be emptied. In an
- *     invocation with a valid target module name, the repositories will be
- *     cleared before compilation is attempted. Mutually exclusive with -f.
+ *     Force removal of all repositories for which the Avail root path has valid
+ *     source directories specified. This option can be used in isolation and
+ *     will cause the repositories to be emptied. In an invocation with a valid
+ *     target module name, the repositories will be cleared before compilation
+ *     is attempted. Mutually exclusive with -f.
  *
  * -g
  * --generateDocumentation
- *     The option to generate Stacks documentation for the target module and its
- *     ancestors. The relevant repositories must already contain compilations
- *     for every module implied by the request. Do not compile any modules.
- *     Mutually exclusive with -f.
+ *     Generate Stacks documentation for the target module and its ancestors.
+ *     The relevant repositories must already contain compilations for every
+ *     module implied by the request. Mutually exclusive with -f.
+ *
+ * -G
+ * --documentationPath
+ *     The path to the output directory where documentation and data files will
+ *     appear when Stacks documentation is generated. Requires -g.
  *
  * -q
  * --quiet
- *     The option to mute all output originating from user code.
+ *     Mute all output originating from user code.
  *
  * -s
  * --showStatistics
- *     The option to request statistics about the most time-intensive
- *     operations in all categories ( -s or --showStatistics ) or for specific
- *     categories, using a comma-separated list of keywords
- *     ( --showStatistics=#,# ). This option overrides environment variables.
+ *     Request statistics about the most time-intensive operations in all
+ *     categories ( -s or --showStatistics ) or for specific categories, using a
+ *     comma-separated list of keywords ( --showStatistics=#,# ). Requires -c.
  *
  *     Possible values in # include:
  *     L2Operations - The most time-intensive level-two operations.
@@ -104,17 +111,10 @@ import com.avail.utility.evaluation.*;
  *     PrimitiveReturnTypeChecks - The primitives that take the most time
  *                                 checking return types.
  *
- * -t
- * --showTiming
- *     Emits the time taken to clear the repositories, or the elapsed build time
- *     following a successful or failed build, or the elapsed generation time
- *     following successful or failed documentation generation.
- *
  * -v
  * --verboseMode
- *     The option to request minimum verbosity ( -v or --verboseMode ) or
- *     manually set the verbosity level ( --verboseMode=# ). This option
- *     overrides environment variables.
+ *     Request minimum verbosity ( -v or --verboseMode ) or manually set the
+ *     verbosity level ( --verboseMode=# ).
  *
  *     Possible values for # include:
  *     0 - Zero extra verbosity. Only error messages will be output. This is
@@ -165,8 +165,8 @@ public class Compiler
 	}
 
 	/**
-	 * @param configuration The configuration from which to read the verbosity
-	 *                      level.
+	 * @param configuration
+	 *        The configuration from which to read the verbosity level.
 	 * @return A local tracker to store information about the progress of the
 	 *         compilation of the current module.
 	 */
@@ -311,42 +311,6 @@ public class Compiler
 	}
 
 	/**
-	 * Recursively build the {@linkplain ModuleName named} {@linkplain
-	 * ModuleDescriptor module}.
-	 *
-	 * @param runtime
-	 *        An {@linkplain AvailRuntime Avail runtime}.
-	 * @param moduleName
-	 *        The target module.
-	 * @param configuration
-	 *        The {@linkplain CompilerConfiguration compiler configuration}.
-	 */
-	private static void buildModule (
-		final AvailRuntime runtime,
-		final ModuleName moduleName,
-		final CompilerConfiguration configuration)
-	{
-		final AvailBuilder builder = new AvailBuilder(
-			runtime,
-			localTracker(configuration),
-			globalTracker(configuration));
-		builder.buildTarget(moduleName);
-
-		// Successful compilation.
-		if (configuration.hasReports())
-		{
-			printReports(configuration);
-		}
-
-		// Generate Stacks documentation.
-		if (configuration.generateDocumentation())
-		{
-			builder.generateDocumentation(
-				moduleName, configuration.documentationPath());
-		}
-	}
-
-	/**
 	 * The entry point for command-line invocation of the Avail compiler.
 	 *
 	 * @param args The command-line arguments.
@@ -373,10 +337,6 @@ public class Compiler
 			return;
 		}
 
-		// Obtain the start time.
-		final long startTimeMillis = configuration.showTiming()
-			? System.currentTimeMillis() : 0;
-
 		// Clear the repositories, if requested.
 		if (configuration.clearRepositories())
 		{
@@ -395,15 +355,39 @@ public class Compiler
 
 		try
 		{
-			buildModule(runtime, moduleName, configuration);
-
-			// Output timing details, if requested.
-			if (configuration.showTiming())
+			final AvailBuilder builder;
+			if (configuration.compileModules()
+				|| configuration.generateDocumentation())
 			{
-				final long stopTimeMillis = System.currentTimeMillis();
-				final long timeElapsed = stopTimeMillis - startTimeMillis;
-				System.out.printf("Time elapsed: %d.%03d s%n",
-					timeElapsed / 1000, timeElapsed % 1000);
+				builder = new AvailBuilder(runtime);
+			}
+			else
+			{
+				builder = null;
+			}
+
+			// Compile modules.
+			if (configuration.compileModules())
+			{
+				assert builder != null;
+				builder.buildTarget(
+					moduleName,
+					localTracker(configuration),
+					globalTracker(configuration));
+
+				// Successful compilation.
+				if (configuration.hasReports())
+				{
+					printReports(configuration);
+				}
+			}
+
+			// Generate Stacks documentation.
+			if (configuration.generateDocumentation())
+			{
+				assert builder != null;
+				builder.generateDocumentation(
+					moduleName, configuration.documentationPath());
 			}
 		}
 		finally

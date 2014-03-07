@@ -83,6 +83,11 @@ implements Configurator<CompilerConfiguration>
 		AVAIL_ROOTS,
 
 		/**
+		 * The option to compile the target module and its ancestors.
+		 */
+		COMPILE_MODULES,
+
+		/**
 		 * The option to force removal of all repositories for which the Avail
 		 * roots path has valid source directories specified.
 		 */
@@ -108,12 +113,6 @@ implements Configurator<CompilerConfiguration>
 		 * Machine.
 		 */
 		SHOW_STATISTICS,
-
-		/**
-		 * The option to emit the time taken to clear the repositories, or the
-		 * elapsed build time following a successful or failed build.
-		 */
-		SHOW_TIMING,
 
 		/**
 		 * The option to request standard verbosity or set the {@linkplain
@@ -150,8 +149,8 @@ implements Configurator<CompilerConfiguration>
 		factory.addOption(new GenericOption<OptionKey>(
 			AVAIL_RENAMES,
 			asList("availRenames"),
-			"The absolute path to the renames file. This option overrides " +
-			"environment variables.",
+			"The path to the renames file. This option overrides environment "
+			+ "variables.",
 			new Continuation2<String, String>()
 			{
 				@Override
@@ -161,16 +160,7 @@ implements Configurator<CompilerConfiguration>
 				{
 					assert renamesString != null;
 					processor.value().checkEncountered(AVAIL_RENAMES, 0);
-					try
-					{
-						configuration.setRenamesFilePath(renamesString);
-					}
-					catch (final OptionProcessingException e)
-					{
-						throw new OptionProcessingException(
-							keyword + ": " + e.getMessage(),
-							e);
-					}
+					configuration.setRenamesFilePath(renamesString);
 				}
 			}));
 
@@ -193,28 +183,41 @@ implements Configurator<CompilerConfiguration>
 				{
 					assert rootsString != null;
 					processor.value().checkEncountered(AVAIL_ROOTS, 0);
-					try
-					{
-						configuration.setAvailRootsPath(rootsString);
-					}
-					catch (final OptionProcessingException e)
+					configuration.setAvailRootsPath(rootsString);
+				}
+			}));
+
+		factory.addOption(new GenericOption<OptionKey>(
+			COMPILE_MODULES,
+			asList("c", "compile"),
+			"Compile the target module and its ancestors.",
+			new Continuation2<String, String>()
+			{
+				@Override
+				public void value (
+					final @Nullable String keyword,
+					final @Nullable String unused)
+				{
+					processor.value().checkEncountered(COMPILE_MODULES, 0);
+					if (unused != null)
 					{
 						throw new OptionProcessingException(
-							keyword + ": " + e.getMessage(),
-							e);
+							keyword + ": An argument was specified, but none " +
+									"are permitted.");
 					}
+					configuration.setCompileModulesFlag();
 				}
 			}));
 
 		factory.addOption(new GenericOption<OptionKey>(
 			CLEAR_REPOSITORIES,
 			asList("f", "clearRepositories"),
-			"The option to force removal of all repositories for which the "
-			+ "Avail root path has valid source directories specified. This "
-			+ "option can be used in isolation and will cause the repositories "
-			+ "to be emptied. In an invocation with a valid target module "
-			+ "name, the repositories will be cleared before compilation "
-			+ "is attempted. Mutually exclusive with -g.",
+			"Force removal of all repositories for which the Avail root path "
+			+ "has valid source directories specified. This option can be used "
+			+ "in isolation and will cause the repositories to be emptied. In "
+			+ "an invocation with a valid target module name, the repositories "
+			+ "will be cleared before compilation is attempted. Mutually "
+			+ "exclusive with -g.",
 			new Continuation2<String, String>()
 			{
 				@Override
@@ -238,10 +241,10 @@ implements Configurator<CompilerConfiguration>
 		factory.addOption(new GenericOption<OptionKey>(
 			GENERATE_DOCUMENTATION,
 			asList("g", "generateDocumentation"),
-			"The option to generate Stacks documentation for the target module "
-			+ "and its ancestors. The relevant repositories must already "
-			+ "contain compilations for every module implied by the request. "
-			+ "Do not compile any modules. Mutually exclusive with -f.",
+			"Generate Stacks documentation for the target module and its "
+			+ "ancestors. The relevant repositories must already contain "
+			+ "compilations for every module implied by the request. Mutually "
+			+ "exclusive with -f.",
 			new Continuation2<String, String>()
 			{
 				@Override
@@ -266,9 +269,9 @@ implements Configurator<CompilerConfiguration>
 		factory.addOption(new GenericOption<OptionKey>(
 			DOCUMENTATION_PATH,
 			asList("G", "documentationPath"),
-			"The option to set the path to the output directory where "
-			+ "documentation and data files will appear when Stacks "
-			+ "documentation is generated. Requires -g.",
+			"The path to the output directory where documentation and data "
+			+ "files will appear when Stacks documentation is generated. "
+			+ "Requires -g.",
 			new Continuation2<String, String>()
 			{
 				@Override
@@ -296,7 +299,7 @@ implements Configurator<CompilerConfiguration>
 		factory.addOption(new GenericOption<OptionKey>(
 			QUIET,
 			asList("q", "quiet"),
-			"The option to mute all output originating from user code.",
+			"Mute all output originating from user code.",
 			new Continuation2<String, String>()
 			{
 				@Override
@@ -318,20 +321,18 @@ implements Configurator<CompilerConfiguration>
 		factory.addOption(new GenericOption<OptionKey>(
 			SHOW_STATISTICS,
 			asList("s", "showStatistics"),
-			"The option to request statistics about the most time-intensive " +
-			"operations in all categories ( -s or --showStatistics ) or for " +
-			"specific categories, using a comma-separated list of keywords ( " +
-			"--showStatistics=#,# ). This option overrides environment " +
-			"variables." +
-			"\n" +
-			"\nPossible values in # include:" +
-			"\nL2Operations - The most time-intensive level-two operations." +
-			"\nDynamicLookups - The most time-intensive dynamic method " +
-			"lookups." +
-			"\nPrimitives - The primitives that are the most time-intensive " +
-			"to run overall." +
-			"\nPrimitiveReturnTypeChecks - The primitives that take the most " +
-			"time checking return types.",
+			"Request statistics about the most time-intensive operations in "
+			+ "all categories ( -s or --showStatistics ) or for specific "
+			+ "categories, using a comma-separated list of keywords "
+			+ "( --showStatistics=#,# ). Requires -c.\n"
+			+ "\nPossible values in # include:"
+			+ "\nL2Operations - The most time-intensive level-two operations."
+			+ "\nDynamicLookups - The most time-intensive dynamic method "
+			+ "lookups."
+			+ "\nPrimitives - The primitives that are the most time-intensive "
+			+ "to run overall."
+			+ "\nPrimitiveReturnTypeChecks - The primitives that take the most "
+			+ "time checking return types.",
 			new Continuation2<String, String>()
 			{
 				@Override
@@ -371,46 +372,19 @@ implements Configurator<CompilerConfiguration>
 			}));
 
 		factory.addOption(new GenericOption<OptionKey>(
-			SHOW_TIMING,
-			asList("t", "showTiming"),
-			"Emits the time taken to clear the repositories, or the elapsed "
-			+ "build time following a successful or failed build, or the "
-			+ "elapsed generation time following successful or failed "
-			+ "documentation generation.",
-			new Continuation2<String, String>()
-			{
-				@Override
-				public void value (
-					final @Nullable String keyword,
-					final @Nullable String unused)
-				{
-					processor.value().checkEncountered(SHOW_TIMING, 0);
-					if (unused != null)
-					{
-						throw new OptionProcessingException(
-							keyword + ": An argument was specified, but none " +
-									"are permitted.");
-					}
-					configuration.setShowTimingFlag();
-				}
-			}));
-
-		factory.addOption(new GenericOption<OptionKey>(
 			VERBOSE_MODE,
 			asList("v", "verboseMode"),
-			"The option to request minimum verbosity ( -v or --verboseMode ) " +
-			"or manually set the verbosity level ( --verboseMode=# ). This " +
-			"option overrides environment variables. " +
-			"\n" +
-			"\nPossible values for # include:" +
-			"\n0 - Zero extra verbosity. Only error messages will be " +
-			"output. This is the default level for the compiler and is " +
-			"used when the verboseMode option is not used." +
-			"\n1 - The minimum verbosity level. The global progress and " +
-			"any error messages will be output. This is the default level " +
-			"for this option when a level is not specified." +
-			"\n2 - Global progress is output along with the local module " +
-			"compilation progress and any error messages.",
+			"Request minimum verbosity ( -v or --verboseMode ) "
+			+ "or manually set the verbosity level ( --verboseMode=# ).\n"
+			+ "\nPossible values for # include:"
+			+ "\n0 - Zero extra verbosity. Only error messages will be "
+			+ "output. This is the default level for the compiler and is "
+			+ "used when the verboseMode option is not used."
+			+ "\n1 - The minimum verbosity level. The global progress and "
+			+ "any error messages will be output. This is the default level "
+			+ "for this option when a level is not specified."
+			+ "\n2 - Global progress is output along with the local module "
+			+ "compilation progress and any error messages.",
 			new Continuation2<String, String>()
 			{
 				@Override
@@ -453,12 +427,13 @@ implements Configurator<CompilerConfiguration>
 
 		factory.addOption(new DefaultOption<OptionKey>(
 			TARGET_MODULE_NAME,
-			"The target module name for compilation. The module is specified " +
-			"via a path relative to an AVAIL_ROOTS root name. For example, " +
-			"if AVAIL_ROOTS specifies a root named \"foo\" at path " +
-			"/usr/local/avail/stuff/, and module \"frog\" is in the root " +
-			"folder as /usr/local/avail/stuff/frog, the target module name " +
-			"would be /foo/frog.",
+			"The target module name for compilation and/or documentation "
+			+ "generation. The module is specified via a path relative to an "
+			+ "AVAIL_ROOTS root name. For example, if AVAIL_ROOTS specifies a "
+			+ "root named \"foo\" at path /usr/local/avail/stuff/, and module "
+			+ "\"frog\" is in the root directory as "
+			+ "/usr/local/avail/stuff/frog, the target module name would be "
+			+ "/foo/frog.",
 			new Continuation2<String, String>()
 			{
 				@Override

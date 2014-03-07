@@ -480,6 +480,90 @@ extends JFrame
 		/** The {@linkplain Throwable exception} that terminated the build. */
 		private @Nullable Throwable terminator;
 
+		/**
+		 * Answer a suitable {@linkplain CompilerProgressReporter compiler
+		 * progress reporter}.
+		 *
+		 * @return A compiler progress reporter.
+		 */
+		private CompilerProgressReporter compilerProgressReporter ()
+		{
+			return new CompilerProgressReporter()
+			{
+				@Override
+				public void value (
+					final @Nullable ModuleName moduleName,
+					final @Nullable Long lineNumber,
+					final @Nullable Long position,
+					final @Nullable Long moduleSize)
+				{
+					assert moduleName != null;
+					assert lineNumber != null;
+					assert position != null;
+					assert moduleSize != null;
+					if (Thread.currentThread().isInterrupted())
+					{
+						if (Thread.currentThread() == buildTask().runnerThread)
+						{
+							throw new CancellationException();
+						}
+					}
+					invokeLater(new Runnable()
+					{
+						@Override
+						public void run ()
+						{
+							updateModuleProgress(
+								moduleName,
+								lineNumber,
+								position,
+								moduleSize);
+						}
+					});
+				}
+			};
+		}
+
+		/**
+		 * Answer a suitable {@linkplain Continuation3 global tracker}.
+		 *
+		 * @return A global tracker.
+		 */
+		private Continuation3<ModuleName, Long, Long> globalTracker ()
+		{
+			return new Continuation3<ModuleName, Long, Long>()
+			{
+				@Override
+				public void value (
+					final @Nullable ModuleName moduleName,
+					final @Nullable Long position,
+					final @Nullable Long globalCodeSize)
+				{
+					assert moduleName != null;
+					assert position != null;
+					assert globalCodeSize != null;
+					if (Thread.currentThread().isInterrupted())
+					{
+						if (Thread.currentThread() == buildTask().runnerThread)
+						{
+							throw new CancellationException();
+						}
+					}
+					invokeLater(new Runnable()
+					{
+						@Override
+						public void run ()
+						{
+							updateBuildProgress(
+								moduleName,
+								position,
+								globalCodeSize);
+						}
+					});
+				}
+			};
+		}
+
 		@Override
 		protected @Nullable Void doInBackground () throws Exception
 		{
@@ -491,7 +575,10 @@ extends JFrame
 				{
 					root.repository().reopenIfNecessary();
 				}
-				availBuilder.buildTarget(new ModuleName(targetModuleName()));
+				availBuilder.buildTarget(
+					new ModuleName(targetModuleName()),
+					compilerProgressReporter(),
+					globalTracker());
 				return null;
 			}
 			finally
@@ -1428,73 +1515,7 @@ extends JFrame
 		// Set module components.
 		this.resolver = resolver;
 		final AvailRuntime runtime = new AvailRuntime(resolver);
-		availBuilder = new AvailBuilder(
-			runtime,
-			new CompilerProgressReporter()
-			{
-				@Override
-				public void value (
-					final @Nullable ModuleName moduleName,
-					final @Nullable Long lineNumber,
-					final @Nullable Long position,
-					final @Nullable Long moduleSize)
-				{
-					assert moduleName != null;
-					assert lineNumber != null;
-					assert position != null;
-					assert moduleSize != null;
-					if (Thread.currentThread().isInterrupted())
-					{
-						if (Thread.currentThread() == buildTask().runnerThread)
-						{
-							throw new CancellationException();
-						}
-					}
-					invokeLater(new Runnable()
-					{
-						@Override
-						public void run ()
-						{
-							updateModuleProgress(
-								moduleName,
-								lineNumber,
-								position,
-								moduleSize);
-						}
-					});
-				}
-			},
-			new Continuation3<ModuleName, Long, Long>()
-			{
-				@Override
-				public void value (
-					final @Nullable ModuleName moduleName,
-					final @Nullable Long position,
-					final @Nullable Long globalCodeSize)
-				{
-					assert moduleName != null;
-					assert position != null;
-					assert globalCodeSize != null;
-					if (Thread.currentThread().isInterrupted())
-					{
-						if (Thread.currentThread() == buildTask().runnerThread)
-						{
-							throw new CancellationException();
-						}
-					}
-					invokeLater(new Runnable()
-					{
-						@Override
-						public void run ()
-						{
-							updateBuildProgress(
-								moduleName,
-								position,
-								globalCodeSize);
-						}
-					});
-				}
-			});
+		availBuilder = new AvailBuilder(runtime);
 
 		// Get the existing preferences early for plugging in at the right
 		// times during construction.

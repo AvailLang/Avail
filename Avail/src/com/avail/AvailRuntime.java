@@ -1133,7 +1133,7 @@ public final class AvailRuntime
 		// serialized references to special atoms will not deserialize
 		// correctly.
 		assert specialAtomsList.isEmpty();
-		final A_Atom[] atoms = new A_Atom[19];
+		final A_Atom[] atoms = new A_Atom[17];
 		atoms[0] = AtomDescriptor.trueObject();
 		atoms[1] = AtomDescriptor.falseObject();
 		atoms[2] = PojoTypeDescriptor.selfAtom();
@@ -1143,16 +1143,14 @@ public final class AvailRuntime
 		atoms[6] = MethodDescriptor.vmMethodDefinerAtom();
 		atoms[7] = MethodDescriptor.vmMacroDefinerAtom();
 		atoms[8] = MethodDescriptor.vmPublishAtomsAtom();
-		atoms[9] = AtomDescriptor.moduleHeaderSectionAtom();
-		atoms[10] = AtomDescriptor.moduleBodySectionAtom();
-		atoms[11] = ObjectTypeDescriptor.stackDumpAtom();
-		atoms[12] = AtomDescriptor.fileKey();
-		atoms[13] = AtomDescriptor.fileModeReadKey();
-		atoms[14] = AtomDescriptor.fileModeWriteKey();
-		atoms[15] = CompiledCodeDescriptor.methodNameKeyAtom();
-		atoms[16] = CompiledCodeDescriptor.lineNumberKeyAtom();
-		atoms[17] = AtomDescriptor.messageBundleKey();
-		atoms[18] = MethodDescriptor.vmDeclareStringifierAtom();
+		atoms[9] = ObjectTypeDescriptor.stackDumpAtom();
+		atoms[10] = AtomDescriptor.fileKey();
+		atoms[11] = AtomDescriptor.fileModeReadKey();
+		atoms[12] = AtomDescriptor.fileModeWriteKey();
+		atoms[13] = CompiledCodeDescriptor.methodNameKeyAtom();
+		atoms[14] = CompiledCodeDescriptor.lineNumberKeyAtom();
+		atoms[15] = AtomDescriptor.messageBundleKey();
+		atoms[16] = MethodDescriptor.vmDeclareStringifierAtom();
 
 		// Populate the specialAtomsList.
 		for (int i = 0; i < atoms.length; i++)

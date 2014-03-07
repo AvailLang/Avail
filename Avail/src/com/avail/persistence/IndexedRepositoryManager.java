@@ -42,6 +42,7 @@ import javax.xml.bind.DatatypeConverter;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
 import com.avail.builder.*;
+import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
@@ -771,6 +772,57 @@ public class IndexedRepositoryManager
 		}
 
 		/**
+		 * The persistent record number of the {@linkplain ModuleHeader module
+		 * header} for this {@linkplain ModuleVersion version}.
+		 */
+		private long moduleHeaderRecordNumber = -1;
+
+		/**
+		 * Write the specified byte array (encoding a {@linkplain
+		 * ModuleHeader module header}) into the indexed file. Record the record
+		 * position for subsequent retrieval.
+		 *
+		 * @param bytes
+		 *        A {@linkplain Serializer serialized} module header.
+		 */
+		public void putModuleHeader (final byte[] bytes)
+		{
+			// Write the serialized data to the end of the repository.
+			final IndexedRepository repo = repository();
+			lock.lock();
+			try
+			{
+				moduleHeaderRecordNumber = repo.longSize();
+				repo.add(moduleHeaderRecordNumber, bytes);
+			}
+			finally
+			{
+				lock.unlock();
+			}
+		}
+
+		/**
+		 * Answer the {@linkplain Serializer serialized} {@linkplain
+		 * ModuleHeader module header} associated with this {@linkplain
+		 * ModuleVersion version}.
+		 *
+		 * @return A serialized module header.
+		 */
+		public byte[] getModuleHeader ()
+		{
+			assert moduleHeaderRecordNumber != -1;
+			lock.lock();
+			try
+			{
+				return repository().get(moduleHeaderRecordNumber);
+			}
+			finally
+			{
+				lock.unlock();
+			}
+		}
+
+		/**
 		 * The persistent record number of the Stacks {@linkplain
 		 * CommentTokenDescriptor comments} associated with this {@linkplain
 		 * ModuleVersion version} of the {@linkplain ModuleDescriptor module}.
@@ -853,6 +905,7 @@ public class IndexedRepositoryManager
 				entry.getKey().write(binaryStream);
 				entry.getValue().write(binaryStream);
 			}
+			binaryStream.writeLong(moduleHeaderRecordNumber);
 			binaryStream.writeLong(stacksRecordNumber);
 		}
 
@@ -860,12 +913,18 @@ public class IndexedRepositoryManager
 		public String toString ()
 		{
 			return String.format(
-				"Version:%n\t\timports=%s%s%n\t\tcompilations=%s",
+				"Version:%n"
+				+"\t\timports=%s%s%n"
+				+ "\t\tcompilations=%s%n"
+				+ "\t\tmoduleHeaderRecordNumber=%d%n"
+				+ "\t\tstacksRecordNumber=%d%n",
 				localImportNames,
 				entryPoints.isEmpty()
 					? ""
 					: "\n\t\tentry points=" + entryPoints.toString(),
-				compilations.values());
+				compilations.values(),
+				moduleHeaderRecordNumber,
+				stacksRecordNumber);
 		}
 
 		/**
@@ -898,6 +957,7 @@ public class IndexedRepositoryManager
 					new ModuleCompilationKey(binaryStream),
 					new ModuleCompilation(binaryStream));
 			}
+			moduleHeaderRecordNumber = binaryStream.readLong();
 			stacksRecordNumber = binaryStream.readLong();
 		}
 
