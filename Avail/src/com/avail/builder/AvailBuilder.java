@@ -99,30 +99,6 @@ public final class AvailBuilder
 	public final AvailRuntime runtime;
 
 	/**
-	 * A {@linkplain Continuation4 continuation} that is updated to show
-	 * progress while compiling or loading a module.  It accepts:
-	 * <ol>
-	 * <li>the name of the module currently undergoing {@linkplain
-	 * AbstractAvailCompiler compilation} as part of the recursive build
-	 * of target,</li>
-	 * <li>the current line number within the current module,</li>
-	 * <li>the position of the ongoing parse (in bytes), and</li>
-	 * <li>the size of the module in bytes.</li>
-	 */
-	@InnerAccess final Continuation4<ModuleName, Long, Long, Long> localTracker;
-
-	/**
-	 * A {@linkplain Continuation3} that is updated to show global progress
-	 * while compiling or loading modules.  It accepts:
-	 * <ol>
-	 * <li>the name of the module undergoing compilation,</li>
-	 * <li>the number of bytes globally processed, and</li>
-	 * <li>the global size (in bytes) of all modules that will be
-	 * built.</li>
-	 */
-	@InnerAccess final Continuation3<ModuleName, Long, Long> globalTracker;
-
-	/**
 	 * A {@link Graph} of {@link ResolvedModuleName}s, representing the
 	 * relationships between all modules currently loaded or involved in the
 	 * current build action.  Modules are only added here after they have been
@@ -197,6 +173,26 @@ public final class AvailBuilder
 			throw new MalformedSerialStreamException(null);
 		}
 		return new ByteArrayInputStream(bytes, 0, bytes.length - 4);
+	}
+
+	/**
+	 * Serialize the specified {@linkplain ModuleHeader module header} into the
+	 * {@linkplain ModuleVersion module version}.
+	 *
+	 * @param header
+	 *        A module header.
+	 * @param version
+	 *        A module version.
+	 */
+	@InnerAccess void serialize (
+		final ModuleHeader header,
+		final ModuleVersion version)
+	{
+		final ByteArrayOutputStream out = new ByteArrayOutputStream(1000);
+		final Serializer serializer = new Serializer(out);
+		header.serializeHeaderOn(serializer);
+		final byte[] bytes = appendCRC(out.toByteArray());
+		version.putModuleHeader(bytes);
 	}
 
 	/**
@@ -585,6 +581,7 @@ public final class AvailBuilder
 											sourceFile.length(),
 											importNames,
 											entryPoints);
+									serialize(header, newVersion);
 									archive.putVersion(
 										versionKey,
 										newVersion);
@@ -646,13 +643,6 @@ public final class AvailBuilder
 			}
 		}
 	}
-
-	/**
-	 * Used for tracing all modules within a repository's root directory and all
-	 * subdirectories.
-	 */
-	private final BuildDirectoryTracer directoryTracer =
-		new BuildDirectoryTracer();
 
 	/**
 	 * Used for unloading changed modules prior to tracing.
@@ -805,11 +795,6 @@ public final class AvailBuilder
 			}
 		}
 	}
-
-	/**
-	 * Used for unloading changed modules prior to tracing.
-	 */
-	private final BuildUnloader unloader = new BuildUnloader();
 
 	/**
 	 * Used for constructing the module dependency graph.
@@ -1014,12 +999,13 @@ public final class AvailBuilder
 										header.importedModuleNames();
 									final List<String> entryPoints =
 										header.entryPointNames();
-									archive.putVersion(
-										versionKey,
+									final ModuleVersion newVersion =
 										repository.new ModuleVersion(
 											sourceFile.length(),
 											importNames,
-											entryPoints));
+											entryPoints);
+									serialize(header, newVersion);
+									archive.putVersion(versionKey, newVersion);
 									traceModuleNames(
 										resolvedName,
 										importNames,
@@ -1166,15 +1152,67 @@ public final class AvailBuilder
 	}
 
 	/**
-	 * Used for tracing the module dependency graph.
-	 */
-	private final BuildTracer tracer = new BuildTracer();
-
-	/**
-	 * Used for parallel-loading modules discovered by the {@link #tracer}.
+	 * Used for parallel-loading modules in the {@linkplain #moduleGraph module
+	 * graph}.
 	 */
 	class BuildLoader
 	{
+		/**
+		 * A {@linkplain Continuation4 continuation} that is updated to show
+		 * progress while compiling or loading a module.  It accepts:
+		 * <ol>
+		 * <li>the name of the module currently undergoing {@linkplain
+		 * AbstractAvailCompiler compilation} as part of the recursive build
+		 * of target,</li>
+		 * <li>the current line number within the current module,</li>
+		 * <li>the position of the ongoing parse (in bytes), and</li>
+		 * <li>the size of the module in bytes.</li>
+		 */
+		@InnerAccess final Continuation4<ModuleName, Long, Long, Long>
+			localTracker;
+
+		/**
+		 * A {@linkplain Continuation3} that is updated to show global progress
+		 * while compiling or loading modules.  It accepts:
+		 * <ol>
+		 * <li>the name of the module undergoing compilation,</li>
+		 * <li>the number of bytes globally processed, and</li>
+		 * <li>the global size (in bytes) of all modules that will be
+		 * built.</li>
+		 */
+		@InnerAccess final Continuation3<ModuleName, Long, Long> globalTracker;
+
+		/**
+		 * Construct a new {@link BuildLoader}.
+		 *
+		 * @param localTracker
+		 *        A {@linkplain CompilerProgressReporter continuation} that
+		 *        accepts
+		 *        <ol>
+		 *        <li>the name of the module currently undergoing {@linkplain
+		 *        AbstractAvailCompiler compilation} as part of the recursive build
+		 *        of target,</li>
+		 *        <li>the current line number within the current module,</li>
+		 *        <li>the position of the ongoing parse (in bytes), and</li>
+		 *        <li>the size of the module in bytes.</li>
+		 *        </ol>
+		 * @param globalTracker
+		 *        A {@linkplain Continuation3 continuation} that accepts
+		 *        <ol>
+		 *        <li>the name of the module undergoing compilation,</li>
+		 *        <li>the number of bytes globally processed, and</li>
+		 *        <li>the global size (in bytes) of all modules that will be
+		 *        built.</li>
+		 *        </ol>
+		 */
+		public BuildLoader (
+			final CompilerProgressReporter localTracker,
+			final Continuation3<ModuleName, Long, Long> globalTracker)
+		{
+			this.localTracker = localTracker;
+			this.globalTracker = globalTracker;
+		}
+
 		/** The size, in bytes, of all source files that will be built. */
 		private long globalCodeSize = 0L;
 
@@ -1323,6 +1361,7 @@ public final class AvailBuilder
 					// compiled, so load the repository's version.
 					loadRepositoryModule(
 						moduleName,
+						version,
 						compilation,
 						versionKey.sourceDigest,
 						completionAction);
@@ -1351,6 +1390,9 @@ public final class AvailBuilder
 		 * @param moduleName
 		 *        The {@linkplain ResolvedModuleName resolved name} of the
 		 *        module that should be loaded.
+		 * @param version
+		 *        The {@link ModuleVersion} containing information about this
+		 *        module.
 		 * @param compilation
 		 *        The {@link ModuleCompilation} containing information about
 		 *        the particular stored compilation of this module in the
@@ -1362,18 +1404,15 @@ public final class AvailBuilder
 		 */
 		private void loadRepositoryModule (
 				final ResolvedModuleName moduleName,
+				final ModuleVersion version,
 				final ModuleCompilation compilation,
 				final byte[] sourceDigest,
 				final Continuation0 completionAction)
 		{
 			localTracker.value(moduleName, -1L, -1L, -1L);
-			// Read the module data from the repository.
-			final byte[] bytes = compilation.getBytes();
-			assert bytes != null;
 			final A_Module module = ModuleDescriptor.newModule(
 				StringDescriptor.from(moduleName.qualifiedName()));
 			final AvailLoader availLoader = new AvailLoader(module);
-			final Deserializer deserializer;
 			final Continuation1<Throwable> fail =
 				new Continuation1<Throwable>()
 				{
@@ -1410,19 +1449,15 @@ public final class AvailBuilder
 							});
 					}
 				};
+			// Read the module header from the repository.
 			try
 			{
+				final byte[] bytes = version.getModuleHeader();
+				assert bytes != null;
 				final ByteArrayInputStream inputStream =
 					validatedBytesFrom(bytes);
-				deserializer = new Deserializer(inputStream, runtime);
-				deserializer.currentModule(module);
-				A_Atom tag = deserializer.deserialize();
-				if (tag != null &&
-					!tag.equals(AtomDescriptor.moduleHeaderSectionAtom()))
-				{
-					throw new RuntimeException(
-						"Expected module header tag");
-				}
+				final Deserializer deserializer =
+					new Deserializer(inputStream, runtime);
 				final ModuleHeader header = new ModuleHeader(moduleName);
 				header.deserializeHeaderFrom(deserializer);
 				module.isSystemModule(header.isSystemModule);
@@ -1432,13 +1467,22 @@ public final class AvailBuilder
 				{
 					throw new RuntimeException(errorString);
 				}
-				tag = deserializer.deserialize();
-				if (tag != null &&
-					!tag.equals(AtomDescriptor.moduleBodySectionAtom()))
-				{
-					throw new RuntimeException(
-						"Expected module body tag");
-				}
+			}
+			catch (final MalformedSerialStreamException | RuntimeException e)
+			{
+				fail.value(e);
+				return;
+			}
+			final Deserializer deserializer;
+			try
+			{
+				// Read the module data from the repository.
+				final byte[] bytes = compilation.getBytes();
+				assert bytes != null;
+				final ByteArrayInputStream inputStream =
+					validatedBytesFrom(bytes);
+				deserializer = new Deserializer(inputStream, runtime);
+				deserializer.currentModule(module);
 			}
 			catch (final MalformedSerialStreamException | RuntimeException e)
 			{
@@ -1680,7 +1724,7 @@ public final class AvailBuilder
 		}
 
 		/**
-		 * Load the modules found by the {@link #tracer}.
+		 * Load the modules in the {@linkplain #moduleGraph module graph}.
 		 */
 		@InnerAccess void load ()
 		{
@@ -1723,13 +1767,7 @@ public final class AvailBuilder
 	}
 
 	/**
-	 * Used for loading the modules discovered by the {@link #tracer}.
-	 */
-	private final BuildLoader loader = new BuildLoader();
-
-	/**
-	 * Used for parallel documentation generation. Operates on modules
-	 * discovered by the {@linkplain #tracer}.
+	 * Used for parallel documentation generation.
 	 */
 	class DocumentationTracer
 	{
@@ -1772,50 +1810,6 @@ public final class AvailBuilder
 				new ModuleVersionKey(moduleName, digest);
 			final ModuleVersion version = archive.getVersion(versionKey);
 			return version;
-		}
-
-		/**
-		 * Get the active {@linkplain ModuleCompilation compilation} for the
-		 * {@linkplain ResolvedModuleName named} {@linkplain ModuleDescriptor
-		 * module}.
-		 *
-		 * @param moduleName
-		 *        A resolved module name.
-		 * @param version
-		 *        A {@linkplain ModuleVersion module version}.
-		 * @return A module compilation, or {@code null} if no compilation was
-		 *         available.
-		 */
-		private @Nullable ModuleCompilation getCompilation (
-			final ResolvedModuleName moduleName,
-			final ModuleVersion version)
-		{
-			final Map<String, LoadedModule> loadedModulesByName =
-				new HashMap<>();
-			for (final ResolvedModuleName predecessorName :
-				moduleGraph.predecessorsOf(moduleName))
-			{
-				final String localName = predecessorName.localName();
-				final LoadedModule loadedPredecessor =
-					loadedModules.get(predecessorName);
-				assert loadedPredecessor != null;
-				loadedModulesByName.put(localName, loadedPredecessor);
-			}
-			final List<String> imports = version.getImports();
-			final long [] predecessorCompilationTimes =
-				new long [imports.size()];
-			for (int i = 0; i < predecessorCompilationTimes.length; i++)
-			{
-				final LoadedModule loadedPredecessor =
-					loadedModulesByName.get(imports.get(i));
-				predecessorCompilationTimes[i] =
-					loadedPredecessor.compilation.compilationTime;
-			}
-			final ModuleCompilationKey compilationKey =
-				new ModuleCompilationKey(predecessorCompilationTimes);
-			final ModuleCompilation compilation =
-				version.getCompilation(compilationKey);
-			return compilation;
 		}
 
 		/**
@@ -1885,41 +1879,12 @@ public final class AvailBuilder
 				problem.abortCompilation();
 				return;
 			}
-			final ModuleCompilation compilation = getCompilation(
-				moduleName, version);
-			if (compilation == null)
-			{
-				final Problem problem = new Problem(
-					moduleName,
-					TokenDescriptor.createSyntheticStart(),
-					ProblemType.TRACE,
-					"Module \"{0}\" should have a compilation associated with "
-					+ "the current versions of its predecessors",
-					moduleName)
-				{
-					@Override
-					public void abortCompilation ()
-					{
-						shouldStopBuild = true;
-						completionAction.value();
-					}
-				};
-				problem.report(problemHandler);
-				problem.abortCompilation();
-				return;
-			}
 			final ModuleHeader header;
 			try
 			{
 				final ByteArrayInputStream in =
-					validatedBytesFrom(compilation.getBytes());
+					validatedBytesFrom(version.getModuleHeader());
 				final Deserializer deserializer = new Deserializer(in, runtime);
-				final A_Atom tag = deserializer.deserialize();
-				if (tag != null &&
-					!tag.equals(AtomDescriptor.moduleHeaderSectionAtom()))
-				{
-					throw new MalformedSerialStreamException(null);
-				}
 				header = new ModuleHeader(moduleName);
 				header.deserializeHeaderFrom(deserializer);
 			}
@@ -1991,8 +1956,8 @@ public final class AvailBuilder
 
 		/**
 		 * Load the {@linkplain CommentTokenDescriptor comments} for all
-		 * {@linkplain ModuleDescriptor modules} found by the {@linkplain
-		 * #tracer}.
+		 * {@linkplain ModuleDescriptor modules} in the {@linkplain
+		 * #moduleGraph module graph}.
 		 */
 		void load ()
 		{
@@ -2046,12 +2011,24 @@ public final class AvailBuilder
 	}
 
 	/**
-	 * Construct an {@link AvailBuilder} for the provided runtime.  During a
-	 * build, the passed trackers will be invoked to show progress.
+	 * Construct an {@link AvailBuilder} for the provided runtime.
 	 *
 	 * @param runtime
 	 *        The {@link AvailRuntime} in which to load modules and execute
 	 *        commands.
+	 */
+	public AvailBuilder (final AvailRuntime runtime)
+	{
+		this.runtime = runtime;
+	}
+
+	/**
+	 * Build the {@linkplain ModuleDescriptor target} and its dependencies.
+	 *
+	 * @param target
+	 *        The {@linkplain ModuleName canonical name} of the module that the
+	 *        {@linkplain AvailBuilder builder} must (recursively) load into the
+	 *        {@linkplain AvailRuntime runtime}.
 	 * @param localTracker
 	 *        A {@linkplain CompilerProgressReporter continuation} that accepts
 	 *        <ol>
@@ -2071,34 +2048,23 @@ public final class AvailBuilder
 	 *        built.</li>
 	 *        </ol>
 	 */
-	public AvailBuilder (
-		final AvailRuntime runtime,
+	public void buildTarget (
+		final ModuleName target,
 		final CompilerProgressReporter localTracker,
 		final Continuation3<ModuleName, Long, Long> globalTracker)
 	{
-		this.runtime = runtime;
-		this.localTracker = localTracker;
-		this.globalTracker = globalTracker;
-	}
-
-	/**
-	 * Build the {@linkplain ModuleDescriptor target} and its dependencies.
-	 *
-	 * @param target
-	 *        The {@linkplain ModuleName canonical name} of the module that the
-	 *        {@linkplain AvailBuilder builder} must (recursively) load into the
-	 *        {@linkplain AvailRuntime runtime}.
-	 */
-	public void buildTarget (final ModuleName target)
-	{
 		shouldStopBuild = false;
+		final BuildUnloader unloader = new BuildUnloader();
 		unloader.unload();
 		if (!shouldStopBuild)
 		{
+			final BuildTracer tracer = new BuildTracer();
 			tracer.trace(target);
 		}
 		if (!shouldStopBuild)
 		{
+			final BuildLoader loader =
+				new BuildLoader(localTracker, globalTracker);
 			loader.load();
 		}
 	}
@@ -2121,6 +2087,7 @@ public final class AvailBuilder
 		final Path documentationPath)
 	{
 		shouldStopBuild = false;
+		final BuildTracer tracer = new BuildTracer();
 		tracer.trace(target);
 		final DocumentationTracer documentationTracer =
 			new DocumentationTracer(documentationPath);
@@ -2148,6 +2115,7 @@ public final class AvailBuilder
 	public void traceDirectories (
 		final Continuation2<ResolvedModuleName, ModuleVersion> action)
 	{
-		directoryTracer.traceAllModuleHeaders(action);
+		final BuildDirectoryTracer tracer = new BuildDirectoryTracer();
+		tracer.traceAllModuleHeaders(action);
 	}
 }

@@ -5383,14 +5383,6 @@ public abstract class AbstractAvailCompiler
 			reportError(afterFail);
 			return;
 		}
-		synchronized (this)
-		{
-			serializer.serialize(
-				AtomDescriptor.moduleHeaderSectionAtom());
-			moduleHeader.serializeHeaderOn(serializer);
-			serializer.serialize(
-				AtomDescriptor.moduleBodySectionAtom());
-		}
 		loader().createFilteredBundleTree();
 		applyPragmasThen(
 			afterHeader,

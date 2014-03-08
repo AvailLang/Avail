@@ -509,20 +509,6 @@ extends Descriptor
 		createSpecialAtom("object names");
 
 	/**
-	 * The atom used as a tag in module files to indicate that the header
-	 * information follows.
-	 */
-	private static final A_Atom moduleHeaderSectionAtom =
-		createSpecialAtom("Module header section");
-
-	/**
-	 * The atom used as a tag in module files to indicate that the module's
-	 * body follows.
-	 */
-	private static final A_Atom moduleBodySectionAtom =
-		createSpecialAtom("Module body section");
-
-	/**
 	 * The atom used as a key in a {@link ParserState}'s {@linkplain
 	 * ParserState#clientDataMap} to store the current map of declarations that
 	 * are in scope.
@@ -617,28 +603,6 @@ extends Descriptor
 	public static A_Atom objectTypeNamePropertyKey ()
 	{
 		return objectTypeNamePropertyKey;
-	}
-
-	/**
-	 * Answer the atom used to indicate the start of a module header in a
-	 * compiled module file.
-	 *
-	 * @return An atom that's special because it's known by the virtual machine.
-	 */
-	public static A_Atom moduleHeaderSectionAtom ()
-	{
-		return moduleHeaderSectionAtom;
-	}
-
-	/**
-	 * Answer the atom used to indicate the start of a module body in a
-	 * compiled module file.
-	 *
-	 * @return An atom that's special because it's known by the virtual machine.
-	 */
-	public static A_Atom moduleBodySectionAtom ()
-	{
-		return moduleBodySectionAtom;
 	}
 
 	/**

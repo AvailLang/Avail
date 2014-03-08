@@ -201,6 +201,31 @@ implements Configuration
 	}
 
 	/**
+	 * The flag indicating whether the compiler should compile the target
+	 * module and its ancestors.
+	 */
+	private boolean compileModules = false;
+
+	/**
+	 * Answer whether the compiler should compile the target module and its
+	 * ancestors.
+	 *
+	 * @return The status of the {@link #compileModules} flag.
+	 */
+	public boolean compileModules ()
+	{
+		return compileModules;
+	}
+
+	/**
+	 * Instruct the compiler to compile the target module and its ancestors.
+	 */
+	public void setCompileModulesFlag ()
+	{
+		compileModules = true;
+	}
+
+	/**
 	 * The flag indicating whether the compiler should clear all repositories
 	 * for which a valid source directory has been specified. This option is
 	 * false by default.
@@ -338,30 +363,6 @@ implements Configuration
 	}
 
 	/**
-	 * The flag indicating whether the compiler should show the time elapsed
-	 * for the process.
-	 */
-	private boolean showTiming = false;
-
-	/**
-	 * Answer whether the compiler is set to show timing.
-	 *
-	 * @return The status of the showTiming flag.
-	 */
-	public boolean showTiming ()
-	{
-		return showTiming;
-	}
-
-	/**
-	 * Instruct the compiler to show the time elapsed for the process.
-	 */
-	public void setShowTimingFlag ()
-	{
-		showTiming = true;
-	}
-
-	/**
 	 * The level of verbosity specified for the compiler.
 	 */
 	private VerbosityLevel verbosityLevel = ERROR_ONLY;
@@ -396,6 +397,10 @@ implements Configuration
 			moduleNameResolver();
 		}
 		catch (final FileNotFoundException|RenamesFileParserException e)
+		{
+			return false;
+		}
+		if (!compileModules && !generateDocumentation && !clearRepositories)
 		{
 			return false;
 		}
