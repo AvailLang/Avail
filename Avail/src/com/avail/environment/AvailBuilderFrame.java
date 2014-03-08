@@ -42,6 +42,13 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.lang.reflect.*;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.List;
 import java.util.prefs.Preferences;
@@ -59,7 +66,8 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.persistence.*;
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
-import com.avail.utility.MutableOrNull;
+import com.avail.stacks.StacksGenerator;
+import com.avail.utility.Mutable;
 import com.avail.utility.evaluation.*;
 
 /**
@@ -99,6 +107,7 @@ extends JFrame
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
+			assert documentationTask == null;
 			final String selectedModule = selectedModule();
 			assert selectedModule != null;
 
@@ -131,6 +140,7 @@ extends JFrame
 			task.execute();
 			cancelAction.setEnabled(true);
 			cleanAction.setEnabled(false);
+			documentAction.setEnabled(false);
 		}
 
 		/**
@@ -147,6 +157,68 @@ extends JFrame
 	}
 
 	/**
+	 * A {@code GenerateDocumentationAction} instructs the {@linkplain
+	 * AvailBuilder Avail builder} to recursively {@linkplain StacksGenerator
+	 * generate Stacks documentation}.
+	 */
+	private final class GenerateDocumentationAction
+	extends AbstractAction
+	{
+		/** The serial version identifier. */
+		private static final long serialVersionUID = -8808148989587783276L;
+
+		@Override
+		public void actionPerformed (final @Nullable ActionEvent event)
+		{
+			assert buildTask == null;
+			final String selectedModule = selectedModule();
+			assert selectedModule != null;
+
+			// Update the UI.
+			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+			setEnabled(false);
+			moduleProgress.setEnabled(true);
+			moduleProgress.setValue(0);
+			buildProgress.setEnabled(true);
+			buildProgress.setValue(0);
+			final StyledDocument doc = transcript.getStyledDocument();
+			try
+			{
+				doc.remove(0, doc.getLength());
+			}
+			catch (final BadLocationException e)
+			{
+				// Shouldn't happen.
+				assert false;
+			}
+
+			// Generate documentation for the target module in a Swing worker
+			// thread.
+			final DocumentationTask task =
+				new DocumentationTask(selectedModule);
+			documentationTask = task;
+			task.execute();
+			buildAction.setEnabled(false);
+			cleanAction.setEnabled(false);
+			setDocumentationPathAction.setEnabled(false);
+			cancelAction.setEnabled(true);
+		}
+
+		/**
+		 * Construct a new {@link GenerateDocumentationAction}.
+		 */
+		public GenerateDocumentationAction ()
+		{
+			super("Generate documentation");
+			putValue(
+				SHORT_DESCRIPTION,
+				"Generate API documentation for the selected module and "
+				+ "its ancestors.");
+			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control G"));
+		}
+	}
+
+	/**
 	 * A {@code CancelAction} cancels a background {@linkplain BuildTask build
 	 * task}.
 	 */
@@ -159,7 +231,12 @@ extends JFrame
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
-			final BuildTask task = buildTask;
+			BuilderTask task = buildTask;
+			if (task != null)
+			{
+				task.cancel();
+			}
+			task = documentationTask;
 			if (task != null)
 			{
 				task.cancel();
@@ -192,6 +269,7 @@ extends JFrame
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
 			assert buildTask == null;
+			assert documentationTask == null;
 			try
 			{
 				// Clear all repositories.
@@ -274,6 +352,47 @@ extends JFrame
 			putValue(
 				SHORT_DESCRIPTION,
 				"Report any diagnostic information collected by the VM.");
+		}
+	}
+
+	/**
+	 * A {@code SetDocumentationPathAction} displays a {@linkplain
+	 * JOptionPane modal dialog} that prompts the user for the Stacks
+	 * documentation path.
+	 */
+	private final class SetDocumentationPathAction
+	extends AbstractAction
+	{
+		/** The serial version identifier. */
+		private static final long serialVersionUID = -1485162395297266607L;
+
+		@Override
+		public void actionPerformed (final @Nullable ActionEvent event)
+		{
+			final JTextField pathField =
+				new JTextField(documentationPath.toString());
+			final JComponent[] widgets = new JComponent[]
+			{
+				new JLabel("Path:"),
+				pathField
+			};
+			JOptionPane.showMessageDialog(
+				AvailBuilderFrame.this,
+				widgets,
+				"Set documentation path",
+				JOptionPane.PLAIN_MESSAGE);
+			documentationPath = Paths.get(pathField.getText());
+		}
+
+		/**
+		 * Construct a new {@link SetDocumentationPathAction}.
+		 */
+		public SetDocumentationPathAction ()
+		{
+			super("Set documentation path…");
+			putValue(
+				SHORT_DESCRIPTION,
+				"Set the Stacks documentation path.");
 		}
 	}
 
@@ -396,11 +515,8 @@ extends JFrame
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
 			final String selection = selectedModule();
-			final MutableOrNull<TreeNode> modules = new MutableOrNull<>();
-			final MutableOrNull<TreeNode> entryPoints = new MutableOrNull<>();
-			populateModuleTreeAndEntryPoints(modules, entryPoints);
-
-			moduleTree.setModel(new DefaultTreeModel(modules.value));
+			final TreeNode modules = newModuleTree();
+			moduleTree.setModel(new DefaultTreeModel(modules));
 			for (int i = moduleTree.getRowCount() - 1; i >= 0; i--)
 			{
 				moduleTree.expandRow(i);
@@ -414,7 +530,8 @@ extends JFrame
 				}
 			}
 
-			entryPointsTree.setModel(new DefaultTreeModel(entryPoints.value));
+			final TreeNode entryPoints = newEntryPointsTree();
+			entryPointsTree.setModel(new DefaultTreeModel(entryPoints));
 			for (int i = entryPointsTree.getRowCount() - 1; i >= 0; i--)
 			{
 				entryPointsTree.expandRow(i);
@@ -435,38 +552,28 @@ extends JFrame
 	}
 
 	/**
-	 * A {@code BuildTask} launches the actual build of the target {@linkplain
-	 * ModuleDescriptor module}.
+	 * {@code BuilderTask} is a foundation for long running {@link AvailBuilder}
+	 * operations.
 	 */
-	private final class BuildTask
+	private abstract class BuilderTask
 	extends SwingWorker<Void, Void>
 	{
 		/**
 		 * The fully-qualified name of the target {@linkplain ModuleDescriptor
 		 * module}.
 		 */
-		private final @Nullable String targetModuleName;
-
-		/**
-		 * @return The name of the target module.
-		 */
-		private String targetModuleName ()
-		{
-			final String name = targetModuleName;
-			assert name != null;
-			return name;
-		}
+		protected final String targetModuleName;
 
 		/**
 		 * The {@linkplain Thread thread} running the {@linkplain BuildTask
 		 * build task}.
 		 */
-		@InnerAccess @Nullable Thread runnerThread;
+		protected @Nullable Thread runnerThread;
 
 		/**
 		 * Cancel the {@linkplain BuildTask build task}.
 		 */
-		public void cancel ()
+		public final void cancel ()
 		{
 			availBuilder.cancel();
 		}
@@ -478,8 +585,101 @@ extends JFrame
 		private long stopTimeMillis;
 
 		/** The {@linkplain Throwable exception} that terminated the build. */
-		private @Nullable Throwable terminator;
+		protected @Nullable Throwable terminator;
 
+		/**
+		 * Report completion (and timing) to the {@linkplain #transcript
+		 * transcript}.
+		 */
+		protected void reportDone ()
+		{
+			final StyledDocument doc = transcript.getStyledDocument();
+			final long durationMillis = stopTimeMillis - startTimeMillis;
+			final String status;
+			if (terminator instanceof CancellationException)
+			{
+				status = "Canceled";
+			}
+			else if (terminator != null)
+			{
+				status = "Aborted";
+			}
+			else
+			{
+				status = "Done";
+			}
+			try
+			{
+				doc.insertString(
+					doc.getLength(),
+					String.format(
+						"%s (%d.%03ds).%n",
+						status,
+						durationMillis / 1000,
+						durationMillis % 1000),
+					doc.getStyle(infoStyleName));
+			}
+			catch (final BadLocationException e)
+			{
+				// Shouldn't happen.
+				assert false;
+			}
+		}
+
+		@Override
+		protected final @Nullable Void doInBackground () throws Exception
+		{
+			runnerThread = Thread.currentThread();
+			startTimeMillis = System.currentTimeMillis();
+			try
+			{
+				// Reopen the repositories if necessary.
+				for (final ModuleRoot root : resolver.moduleRoots().roots())
+				{
+					root.repository().reopenIfNecessary();
+				}
+				executeTask();
+				return null;
+			}
+			finally
+			{
+				// Close all the repositories.
+				for (final ModuleRoot root : resolver.moduleRoots().roots())
+				{
+					root.repository().close();
+				}
+				stopTimeMillis = System.currentTimeMillis();
+			}
+		}
+
+		/**
+		 * Execute the {@link BuilderTask}.
+		 *
+		 * @throws Exception
+		 *         If anything goes wrong.
+		 */
+		protected abstract void executeTask () throws Exception;
+
+		/**
+		 * Construct a new {@link BuildTask}.
+		 *
+		 * @param targetModuleName
+		 *        The fully-qualified name of the target {@linkplain
+		 *        ModuleDescriptor module}.
+		 */
+		protected BuilderTask (final String targetModuleName)
+		{
+			this.targetModuleName = targetModuleName;
+		}
+	}
+
+	/**
+	 * A {@code BuildTask} launches the actual build of the target {@linkplain
+	 * ModuleDescriptor module}.
+	 */
+	private final class BuildTask
+	extends BuilderTask
+	{
 		/**
 		 * Answer a suitable {@linkplain CompilerProgressReporter compiler
 		 * progress reporter}.
@@ -565,70 +765,12 @@ extends JFrame
 		}
 
 		@Override
-		protected @Nullable Void doInBackground () throws Exception
+		protected void executeTask () throws Exception
 		{
-			startTimeMillis = System.currentTimeMillis();
-			try
-			{
-				// Reopen the repositories if necessary.
-				for (final ModuleRoot root : resolver.moduleRoots().roots())
-				{
-					root.repository().reopenIfNecessary();
-				}
-				availBuilder.buildTarget(
-					new ModuleName(targetModuleName()),
-					compilerProgressReporter(),
-					globalTracker());
-				return null;
-			}
-			finally
-			{
-				// Close all the repositories.
-				for (final ModuleRoot root : resolver.moduleRoots().roots())
-				{
-					root.repository().close();
-				}
-				stopTimeMillis = System.currentTimeMillis();
-			}
-		}
-
-		/**
-		 * Report build completion (and timing) to the {@linkplain #transcript
-		 * transcript}.
-		 */
-		private void reportDone ()
-		{
-			final StyledDocument doc = transcript.getStyledDocument();
-			final long durationMillis = stopTimeMillis - startTimeMillis;
-			final String status;
-			if (terminator instanceof CancellationException)
-			{
-				status = "Cancelled";
-			}
-			else if (terminator != null)
-			{
-				status = "Aborted";
-			}
-			else
-			{
-				status = "Done";
-			}
-			try
-			{
-				doc.insertString(
-					doc.getLength(),
-					String.format(
-						"%s (%d.%03ds).%n",
-						status,
-						durationMillis / 1000,
-						durationMillis % 1000),
-					doc.getStyle(infoStyleName));
-			}
-			catch (final BadLocationException e)
-			{
-				// Shouldn't happen.
-				assert false;
-			}
+			availBuilder.buildTarget(
+				new ModuleName(targetModuleName),
+				compilerProgressReporter(),
+				globalTracker());
 		}
 
 		@Override
@@ -640,8 +782,9 @@ extends JFrame
 			buildProgress.setEnabled(false);
 			inputField.setEnabled(false);
 			cancelAction.setEnabled(false);
-			buildAction.setEnabled(targetModuleName != null);
+			buildAction.setEnabled(true);
 			cleanAction.setEnabled(true);
+			documentAction.setEnabled(true);
 			if (terminator == null)
 			{
 				moduleProgress.setString("Module Progress: 100%");
@@ -659,7 +802,55 @@ extends JFrame
 		 */
 		public BuildTask (final String targetModuleName)
 		{
-			this.targetModuleName = targetModuleName;
+			super(targetModuleName);
+		}
+	}
+
+	/**
+	 * A {@code DocumentationTask} initiates and manages documentation
+	 * generation for the target {@linkplain ModuleDescriptor module}.
+	 */
+	private final class DocumentationTask
+	extends BuilderTask
+	{
+		@Override
+		protected void executeTask () throws Exception
+		{
+			availBuilder.generateDocumentation(
+				new ModuleName(targetModuleName),
+				documentationPath);
+		}
+
+		@Override
+		protected void done ()
+		{
+			documentationTask = null;
+			reportDone();
+			moduleProgress.setEnabled(false);
+			buildProgress.setEnabled(false);
+			cancelAction.setEnabled(false);
+			buildAction.setEnabled(true);
+			cleanAction.setEnabled(true);
+			setDocumentationPathAction.setEnabled(true);
+			documentAction.setEnabled(true);
+			if (terminator == null)
+			{
+				moduleProgress.setString("Module Progress: 100%");
+				moduleProgress.setValue(100);
+			}
+			setCursor(null);
+		}
+
+		/**
+		 * Construct a new {@link DocumentationTask}.
+		 *
+		 * @param targetModuleName
+		 *        The fully-qualified name of the target {@linkplain
+		 *        ModuleDescriptor module}.
+		 */
+		public DocumentationTask (final String targetModuleName)
+		{
+			super(targetModuleName);
 		}
 	}
 
@@ -921,6 +1112,29 @@ extends JFrame
 		return task;
 	}
 
+	/** The current {@linkplain DocumentationTask documentation task}. */
+	@InnerAccess volatile @Nullable DocumentationTask documentationTask;
+
+	/**
+	 * Answer the current {@link DocumentationTask} in progress. Only applicable
+	 * during documentation generation.
+	 *
+	 * @return THe current documentation task.
+	 */
+	@InnerAccess DocumentationTask documentationTask ()
+	{
+		final DocumentationTask task = documentationTask;
+		assert task != null;
+		return task;
+	}
+
+	/**
+	 * The documentation {@linkplain Path path} for the {@linkplain
+	 * StacksGenerator Stacks generator}.
+	 */
+	@InnerAccess Path documentationPath =
+		StacksGenerator.defaultDocumentationPath;
+
 	/** The {@linkplain BuildInputStream standard input stream}. */
 	private @Nullable BuildInputStream inputStream;
 
@@ -989,6 +1203,18 @@ extends JFrame
 	/** The {@linkplain CleanAction clean action}. */
 	@InnerAccess final CleanAction cleanAction;
 
+	/**
+	 * The {@linkplain GenerateDocumentationAction generate documentation
+	 * action}.
+	 */
+	@InnerAccess final GenerateDocumentationAction documentAction;
+
+	/**
+	 * The {@linkplain SetDocumentationPathAction documentation path dialog
+	 * action}.
+	 */
+	@InnerAccess final SetDocumentationPathAction setDocumentationPathAction;
+
 	/** The {@linkplain ReportAction report action}. */
 	@InnerAccess final ReportAction reportAction;
 
@@ -999,55 +1225,156 @@ extends JFrame
 	@InnerAccess final InsertEntryPointAction insertEntryPointAction;
 
 	/**
-	 * Rebuild the {@linkplain #moduleTree module tree}, storing its (invisible)
-	 * root into {@code modules}' value slot.  Also update the entryPoints the
-	 * same way.
+	 * Answer a {@link FileVisitor} suitable for recursively exploring an
+	 * Avail root. A new {@code FileVisitor} should be obtained for each Avail
+	 * root.
 	 *
-	 * @param modulesTreeHolder
-	 *        Where to store the root of the module tree.
-	 * @param entryPointsTreeHolder
-	 *        Where to store the root of the entry points tree.
+	 * @param stack
+	 *        The stack on which to place Avail roots and packages.
+	 * @return A {@code FileVisitor}.
 	 */
-	@InnerAccess void populateModuleTreeAndEntryPoints (
-		final MutableOrNull<TreeNode> modulesTreeHolder,
-		final MutableOrNull<TreeNode> entryPointsTreeHolder)
+	private FileVisitor<Path> moduleTreeVisitor (
+		final Deque<DefaultMutableTreeNode> stack)
+	{
+		final String extension = ModuleNameResolver.availExtension;
+		final Mutable<Boolean> isRoot = new Mutable<Boolean>(true);
+		final FileVisitor<Path> visitor = new FileVisitor<Path>()
+		{
+			@Override
+			public FileVisitResult preVisitDirectory (
+					final @Nullable Path dir,
+					final @Nullable BasicFileAttributes unused)
+				throws IOException
+			{
+				assert dir != null;
+				if (isRoot.value)
+				{
+					isRoot.value = false;
+					final String rootName = dir.getFileName().toString();
+					final DefaultMutableTreeNode node =
+						new DefaultMutableTreeNode(rootName);
+					// Add the new node to the children of the parent node, then
+					// push the new node onto the stack.
+					stack.peekFirst().add(node);
+					stack.addFirst(node);
+					return FileVisitResult.CONTINUE;
+				}
+				final String fileName = dir.getFileName().toString();
+				if (fileName.endsWith(extension))
+				{
+					final String moduleName = fileName.substring(
+						0, fileName.length() - extension.length());
+					final DefaultMutableTreeNode node =
+						new DefaultMutableTreeNode(moduleName);
+					// Add the new node to the children of the parent node, then
+					// push the new node onto the stack.
+					stack.peekFirst().add(node);
+					stack.addFirst(node);
+					return FileVisitResult.CONTINUE;
+				}
+				return FileVisitResult.SKIP_SUBTREE;
+			}
+
+			@Override
+			public FileVisitResult postVisitDirectory (
+					final @Nullable Path dir,
+					final @Nullable IOException ex)
+				throws IOException
+			{
+				assert dir != null;
+				// Pop the node from the stack.
+				stack.removeFirst();
+				if (ex != null)
+				{
+					ex.printStackTrace();
+				}
+				return FileVisitResult.CONTINUE;
+			}
+
+			@Override
+			public FileVisitResult visitFile (
+					final @Nullable Path file,
+					final @Nullable BasicFileAttributes attrs)
+				throws IOException
+			{
+				assert file != null;
+				final String fileName = file.getFileName().toString();
+				if (fileName.endsWith(extension))
+				{
+					final String moduleName = fileName.substring(
+						0, fileName.length() - extension.length());
+					final DefaultMutableTreeNode node =
+						new DefaultMutableTreeNode(moduleName);
+					// Add the new node to the children of the parent node.
+					stack.peekFirst().add(node);
+				}
+				return FileVisitResult.CONTINUE;
+			}
+
+			@Override
+			public FileVisitResult visitFileFailed (
+					final @Nullable Path file,
+					final @Nullable IOException ex)
+				throws IOException
+			{
+				if (ex != null)
+				{
+					System.err.printf("couldn't visit \"%s\"", file);
+					ex.printStackTrace();
+				}
+				return FileVisitResult.CONTINUE;
+			}
+		};
+		return visitor;
+	}
+
+	/**
+	 * Answer a {@linkplain TreeNode tree node} that represents the (invisible)
+	 * root of the Avail module tree.
+	 *
+	 * @return The (invisible) root of the module tree.
+	 */
+	@InnerAccess TreeNode newModuleTree ()
 	{
 		final ModuleRoots roots = resolver.moduleRoots();
-		final DefaultMutableTreeNode moduleTreeRoot =
-			new DefaultMutableTreeNode();
+		final DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode(
+			"(all roots)");
+		// Put the invisible root onto the work stack.
+		final Deque<DefaultMutableTreeNode> stack = new ArrayDeque<>();
+		stack.add(treeRoot);
 		for (final String rootName : roots.rootNames())
 		{
-			final DefaultMutableTreeNode rootNode =
-				new DefaultMutableTreeNode(rootName);
-			moduleTreeRoot.add(rootNode);
-			final String extension = ModuleNameResolver.availExtension;
+			// Obtain the path associated with the module root.
 			final ModuleRoot root = roots.moduleRootFor(rootName);
 			assert root != null;
 			final File rootDirectory = root.sourceDirectory();
 			assert rootDirectory != null;
-			final File[] files = rootDirectory.listFiles(new FilenameFilter()
+			try
 			{
-				@Override
-				public boolean accept (
-					final @Nullable File dir,
-					final @Nullable String name)
-				{
-					assert name != null;
-					return name.endsWith(extension);
-				}
-			});
-			for (final File file : files)
+				Files.walkFileTree(
+					Paths.get(rootDirectory.getAbsolutePath()),
+					EnumSet.of(FileVisitOption.FOLLOW_LINKS),
+					Integer.MAX_VALUE,
+					moduleTreeVisitor(stack));
+			}
+			catch (final IOException e)
 			{
-				final String fileName = file.getName();
-				final String label = fileName.substring(
-					0, fileName.length() - extension.length());
-				final DefaultMutableTreeNode moduleNode =
-					new DefaultMutableTreeNode(label);
-				rootNode.add(moduleNode);
+				e.printStackTrace();
+				stack.clear();
+				stack.add(treeRoot);
 			}
 		}
-		modulesTreeHolder.value = moduleTreeRoot;
+		return treeRoot;
+	}
 
+	/**
+	 * Answer a {@linkplain TreeNode tree node} that represents the (invisible)
+	 * root of the Avail entry points tree.
+	 *
+	 * @return The (invisible) root of the entry points tree.
+	 */
+	@InnerAccess TreeNode newEntryPointsTree ()
+	{
 		final Object mutex = new Object();
 		final Map<String, DefaultMutableTreeNode> moduleNodes = new HashMap<>();
 		availBuilder.traceDirectories(
@@ -1089,7 +1416,7 @@ extends JFrame
 		{
 			entryPointsTreeRoot.add(moduleNodes.get(moduleLabel));
 		}
-		entryPointsTreeHolder.value = entryPointsTreeRoot;
+		return entryPointsTreeRoot;
 	}
 
 	/**
@@ -1100,32 +1427,26 @@ extends JFrame
 	 * @return A tree path, or {@code null} if the module name is not present in
 	 *         the tree.
 	 */
+	@SuppressWarnings("unchecked")
 	@InnerAccess @Nullable TreePath modulePath (final String moduleName)
 	{
 		final String[] path = moduleName.split("/");
-		assert path.length == 3;
 		final TreeModel model = moduleTree.getModel();
 		final DefaultMutableTreeNode treeRoot =
 			(DefaultMutableTreeNode) model.getRoot();
-		@SuppressWarnings("unchecked")
-		final Enumeration<DefaultMutableTreeNode> roots = treeRoot.children();
-		while (roots.hasMoreElements())
+		Enumeration<DefaultMutableTreeNode> nodes = treeRoot.children();
+		int index = 1;
+		while (nodes.hasMoreElements())
 		{
-			final DefaultMutableTreeNode rootNode = roots.nextElement();
-			if (path[1].equals(rootNode.getUserObject()))
+			final DefaultMutableTreeNode node = nodes.nextElement();
+			if (path[index].equals(node.getUserObject()))
 			{
-				@SuppressWarnings("unchecked")
-				final Enumeration<DefaultMutableTreeNode> modules =
-					rootNode.children();
-				while (modules.hasMoreElements())
+				index++;
+				if (index == path.length)
 				{
-					final DefaultMutableTreeNode moduleNode =
-						modules.nextElement();
-					if (path[2].equals(moduleNode.getUserObject()))
-					{
-						return new TreePath(moduleNode.getPath());
-					}
+					return new TreePath(node.getPath());
 				}
+				nodes = node.children();
 			}
 		}
 		return null;
@@ -1145,10 +1466,6 @@ extends JFrame
 			return null;
 		}
 		final Object[] nodes = path.getPath();
-		if (nodes.length != 3)
-		{
-			return null;
-		}
 		final StringBuilder builder = new StringBuilder();
 		for (int i = 1; i < nodes.length; i++)
 		{
@@ -1534,6 +1851,10 @@ extends JFrame
 		cancelAction.setEnabled(false);
 		cleanAction = new CleanAction();
 		cleanAction.setEnabled(true);
+		documentAction = new GenerateDocumentationAction();
+		documentAction.setEnabled(true);
+		setDocumentationPathAction = new SetDocumentationPathAction();
+		setDocumentationPathAction.setEnabled(true);
 		refreshAction = new RefreshAction();
 		reportAction = new ReportAction();
 		reportAction.setEnabled(true);
@@ -1544,22 +1865,30 @@ extends JFrame
 
 		// Create the menu bar and its menus.
 		final JMenuBar menuBar = new JMenuBar();
-		final JMenu menu = new JMenu("Build");
-		menu.add(new JMenuItem(buildAction));
-		menu.add(new JMenuItem(cancelAction));
-		menu.add(new JMenuItem(cleanAction));
-		menu.addSeparator();
-		menu.add(new JMenuItem(refreshAction));
-		menu.addSeparator();
-		menu.add(new JMenuItem(reportAction));
-		menu.add(new JMenuItem(clearReportAction));
-		menu.addSeparator();
-		menu.add(new JMenuItem(insertEntryPointAction));
-		menuBar.add(menu);
+		final JMenu buildMenu = new JMenu("Build");
+		buildMenu.add(new JMenuItem(buildAction));
+		buildMenu.add(new JMenuItem(cancelAction));
+		buildMenu.add(new JMenuItem(cleanAction));
+		buildMenu.addSeparator();
+		buildMenu.add(new JMenuItem(refreshAction));
+		buildMenu.addSeparator();
+		buildMenu.add(new JMenuItem(reportAction));
+		buildMenu.add(new JMenuItem(clearReportAction));
+		menuBar.add(buildMenu);
+		final JMenu documentationMenu = new JMenu("Document");
+		documentationMenu.add(new JMenuItem(documentAction));
+		documentationMenu.addSeparator();
+		documentationMenu.add(new JMenuItem(setDocumentationPathAction));
+		menuBar.add(documentationMenu);
+		final JMenu runMenu = new JMenu("Run");
+		runMenu.add(new JMenuItem(insertEntryPointAction));
+		menuBar.add(runMenu);
 		setJMenuBar(menuBar);
 
-		final JPopupMenu buildPopup = new JPopupMenu("Build");
+		final JPopupMenu buildPopup = new JPopupMenu("Modules");
 		buildPopup.add(new JMenuItem(buildAction));
+		buildPopup.add(new JMenuItem(documentAction));
+		buildPopup.addSeparator();
 		buildPopup.add(new JMenuItem(refreshAction));
 		// The refresh item needs a little help ...
 		InputMap inputMap = getRootPane().getInputMap(
@@ -1573,9 +1902,8 @@ extends JFrame
 		entryPointsPopup.add(new JMenuItem(insertEntryPointAction));
 
 		// Collect the modules and entry points.
-		final MutableOrNull<TreeNode> modules = new MutableOrNull<>();
-		final MutableOrNull<TreeNode> entryPoints = new MutableOrNull<>();
-		populateModuleTreeAndEntryPoints(modules, entryPoints);
+		final TreeNode modules = newModuleTree();
+		final TreeNode entryPoints = newEntryPointsTree();
 
 		// Create the module tree.
 		final JScrollPane moduleTreeScrollArea = new JScrollPane();
@@ -1585,7 +1913,7 @@ extends JFrame
 			VERTICAL_SCROLLBAR_AS_NEEDED);
 		moduleTreeScrollArea.setVisible(true);
 		moduleTreeScrollArea.setMinimumSize(new Dimension(100, 0));
-		moduleTree = new JTree(modules.value);
+		moduleTree = new JTree(modules);
 		moduleTree.setToolTipText(
 			"All top-level modules, organized by module root.");
 		moduleTree.setComponentPopupMenu(buildPopup);
@@ -1653,7 +1981,7 @@ extends JFrame
 			VERTICAL_SCROLLBAR_AS_NEEDED);
 		entryPointsScrollArea.setVisible(true);
 		entryPointsScrollArea.setMinimumSize(new Dimension(100, 0));
-		entryPointsTree = new JTree(entryPoints.value);
+		entryPointsTree = new JTree(entryPoints);
 		entryPointsTree.setToolTipText(
 			"All entry points, organized by defining module.");
 		entryPointsTree.setComponentPopupMenu(entryPointsPopup);
