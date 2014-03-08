@@ -859,10 +859,16 @@ public class IndexedRepositoryManager
 		 * TupleDescriptor tuple} of {@linkplain CommentTokenDescriptor comment
 		 * tokens} associated with this {@linkplain ModuleVersion version}.
 		 *
-		 * @return A serialized tuple of comment tokens.
+		 * @return A serialized tuple of comment tokens, or {@code null} if the
+		 *         {@linkplain ModuleDescriptor module} has not been compiled
+		 *         yet.
 		 */
-		public byte[] getComments ()
+		public @Nullable byte[] getComments ()
 		{
+			if (stacksRecordNumber == -1)
+			{
+				return null;
+			}
 			assert stacksRecordNumber != -1;
 			lock.lock();
 			try

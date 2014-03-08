@@ -1828,7 +1828,7 @@ public final class AvailBuilder
 			final Continuation0 completionAction)
 		{
 			final ModuleVersion version = getVersion(moduleName);
-			if (version == null)
+			if (version == null || version.getComments() == null)
 			{
 				final Problem problem = new Problem(
 					moduleName,
@@ -1851,8 +1851,9 @@ public final class AvailBuilder
 			final A_Tuple tuple;
 			try
 			{
-				final ByteArrayInputStream in =
-					validatedBytesFrom(version.getComments());
+				final byte[] bytes = version.getComments();
+				assert bytes != null;
+				final ByteArrayInputStream in = validatedBytesFrom(bytes);
 				final Deserializer deserializer = new Deserializer(in, runtime);
 				tuple = deserializer.deserialize();
 				assert tuple != null;
