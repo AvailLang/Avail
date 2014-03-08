@@ -86,15 +86,17 @@ public class StacksScanner extends AbstractStacksScanner
 	 * @param commentToken
 	 * 		the {@link CommentTokenDescriptor comment token} to be scanned and
 	 * 		tokenized.
-	 *
+	 * @param moduleName
+	 *		The name of the module the comment is in.
 	 */
-	private StacksScanner (final A_Token commentToken)
+	private StacksScanner (final A_Token commentToken,
+		final A_String moduleName)
 	{
 		final String commentString =
 			commentToken.string().asNativeString();
 		tokenString(commentString);
 		this.commentStartLine = commentToken.lineNumber();
-		this.moduleName = commentToken.moduleName();
+		this.moduleName = moduleName;
 		this.outputTokens = new ArrayList<AbstractStacksToken>(
 			tokenString().length() / 20);
 		this.commentEndsStandardly = tokenString().substring(
@@ -663,18 +665,28 @@ public class StacksScanner extends AbstractStacksScanner
 	 * @param commentToken
 	 *		An {@linkplain CommentTokenDescriptor Avail comment} to be
 	 *		tokenized.
+	 * @param moduleName
+	 * 		The name of the module this comment appears in.
 	 * @return a {@link List list} of all tokenized words in the {@link
 	 * 		CommentTokenDescriptor Avail comment}.
 	 * @throws StacksScannerException If scanning fails.
 	 * @throws StacksCommentBuilderException
 	 */
 	public static AbstractCommentImplementation processCommentString (
-		final A_Token commentToken)
+		final A_Token commentToken, final A_String moduleName)
 		throws StacksScannerException, StacksCommentBuilderException
 	{
 		final StacksScanner scanner =
-			new StacksScanner(commentToken);
+			new StacksScanner(commentToken,moduleName);
 		scanner.scan();
+
+		if (scanner.sectionStartLocations.isEmpty())
+		{
+			throw new StacksScannerException(
+				"Malformed Avail comment does not have appropriate tags",
+				scanner);
+		}
+
 		return StacksParser.parseCommentString(
 			scanner.outputTokens,
 			scanner.sectionStartLocations,

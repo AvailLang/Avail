@@ -40,7 +40,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Calendar;
 import java.util.HashMap;
 import com.avail.builder.ModuleName;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
@@ -75,23 +74,12 @@ public class StacksGenerator
 	/**
 	 *  The location useds for storing any log files such as error-logs.
 	 */
-	public static final Path defaultLogPath = Paths.get("logs");
+	public final Path logPath;
 
 	/**
 	 * The error log file for the malformed comments.
 	 */
 	AsynchronousFileChannel errorLog;
-
-	/**
-	 * Create a new error log path.
-	 * @return the path for the newly created error log.
-	 */
-	private Path createErrorLogPath ()
-	{
-		return defaultLogPath
-			.resolve("error log "
-				+ Calendar.getInstance().getTime().toString());
-	}
 
 	/**
 	 * File position tracker for error log
@@ -132,20 +120,25 @@ public class StacksGenerator
 	public StacksGenerator(final Path outputPath)
 		throws IllegalArgumentException
 	{
+		System.out.println("Creating Generator");
 
 		if (Files.exists(outputPath) && !Files.isDirectory(outputPath))
 		{
 			throw new IllegalArgumentException(
 				outputPath + " exists and is not a directory");
 		}
+
+		providedDocumentPath = outputPath;
+		logPath = outputPath.resolve("logs");
+
 		try
 		{
-			this.providedDocumentPath = Files.createDirectories(outputPath);
-			this.errorLog =
-				AsynchronousFileChannel
-					.open(createErrorLogPath(),
-						StandardOpenOption.CREATE,
-						StandardOpenOption.WRITE);
+			final Path errorLogPath = logPath.resolve("error.log");
+			Files.createDirectories(logPath);
+			errorLog = AsynchronousFileChannel.open(
+				errorLogPath,
+				StandardOpenOption.CREATE,
+				StandardOpenOption.WRITE);
 		}
 		catch (final IOException e)
 		{
@@ -176,11 +169,13 @@ public class StacksGenerator
 		final ModuleHeader header,
 		final A_Tuple commentTokens)
 	{
+		System.out.println("Entering add()");
 		StacksCommentsModule commentsModule = null;
 		try
 		{
 			commentsModule = new StacksCommentsModule(
 				header,commentTokens,moduleToExportedMethodsMap);
+			updateModuleToComments(commentsModule);
 		}
 		catch (StacksScannerException | StacksCommentBuilderException e)
 		{
@@ -196,7 +191,6 @@ public class StacksGenerator
 				e1.printStackTrace();
 			}
 		}
-		updateModuleToComments(commentsModule);
 	}
 
 	/**
@@ -207,6 +201,7 @@ public class StacksGenerator
 	private void updateModuleToComments (
 		final StacksCommentsModule commentModule)
 	{
+
 		moduleToComments.put(commentModule.moduleName(), commentModule);
 	}
 
@@ -219,7 +214,17 @@ public class StacksGenerator
 	 */
 	public synchronized void generate (final ModuleName outermostModule)
 	{
-		// TODO [RAA]: Implement everything else.
+		try
+		{
+			errorLog.close();
+		}
+		catch (final IOException e)
+		{
+			e.printStackTrace();
+		}
+		System.out.println("Done!  Yay!");
+		clear();
+
 	}
 
 	/**

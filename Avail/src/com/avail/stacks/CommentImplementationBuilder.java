@@ -847,6 +847,8 @@ public class CommentImplementationBuilder
 					orderedInputTypes.add(param.paramType().lexeme());
 				}
 
+				try
+				{
 				final MethodCommentSignature signature =
 					new MethodCommentSignature(
 						methods.get(0).methodName().lexeme(),
@@ -857,6 +859,11 @@ public class CommentImplementationBuilder
 				return new MethodCommentImplementation(signature,
 					commentStartLine (), authors, sees, description, parameters,
 					returns.get(0), raises);
+				}
+				catch (final IndexOutOfBoundsException e)
+				{
+					final int r = 1+1;
+				}
 
 			}
 

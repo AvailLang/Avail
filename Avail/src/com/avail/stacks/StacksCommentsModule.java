@@ -133,9 +133,9 @@ public class StacksCommentsModule
 		final HashMap<A_String,A_Set> moduleToMethodMap)
 			throws StacksScannerException, StacksCommentBuilderException
 	{
-		this.exportedNames = allExportedNames(header,moduleToMethodMap);
 		this.moduleName = StringDescriptor
 			.from(header.moduleName.qualifiedName());
+		this.exportedNames = allExportedNames(header,moduleToMethodMap);
 
 		moduleToMethodMap.put(
 			this.moduleName,
@@ -146,7 +146,7 @@ public class StacksCommentsModule
 			try
 			{
 				final AbstractCommentImplementation implementation =
-					StacksScanner.processCommentString(aToken);
+					StacksScanner.processCommentString(aToken,moduleName);
 
 				addNamedImplementation(
 					implementation.signature.name, implementation);
@@ -168,8 +168,15 @@ public class StacksCommentsModule
 	{
 		final A_Set collectedExtendedNames =
 			SetDescriptor.empty();
+
 		for (final ModuleImport moduleImport : header.importedModules)
 		{
+			if (moduleToMethodMap.get(moduleImport.moduleName) == null)
+			{
+				moduleToMethodMap
+					.put(moduleImport.moduleName,SetDescriptor.empty());
+			}
+
 			if (moduleImport.isExtension)
 			{
 				if (moduleImport.wildcard)
