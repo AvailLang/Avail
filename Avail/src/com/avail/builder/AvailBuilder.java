@@ -2054,8 +2054,11 @@ public final class AvailBuilder
 		final Continuation3<ModuleName, Long, Long> globalTracker)
 	{
 		shouldStopBuild = false;
-		final BuildUnloader unloader = new BuildUnloader();
-		unloader.unload();
+		if (!loadedModules.isEmpty())
+		{
+			final BuildUnloader unloader = new BuildUnloader();
+			unloader.unload();
+		}
 		if (!shouldStopBuild)
 		{
 			final BuildTracer tracer = new BuildTracer();
