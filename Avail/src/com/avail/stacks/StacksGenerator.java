@@ -32,10 +32,15 @@
 
 package com.avail.stacks;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Calendar;
 import java.util.HashMap;
 import com.avail.builder.ModuleName;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
@@ -45,6 +50,8 @@ import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.TupleDescriptor;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
  * An Avail documentation generator.  It takes tokenized method/class comments
@@ -59,6 +66,46 @@ public class StacksGenerator
 	 * documentation and data files.
 	 */
 	public static final Path defaultDocumentationPath = Paths.get("stacks");
+
+	/**
+	 * The path for documentation storage as provided by the user.
+	 */
+	Path providedDocumentPath;
+
+	/**
+	 *  The location useds for storing any log files such as error-logs.
+	 */
+	public static final Path defaultLogPath = Paths.get("logs");
+
+	/**
+	 * The error log file for the malformed comments.
+	 */
+	AsynchronousFileChannel errorLog;
+
+	/**
+	 * Create a new error log path.
+	 * @return the path for the newly created error log.
+	 */
+	private Path createErrorLogPath ()
+	{
+		return defaultLogPath
+			.resolve("error log "
+				+ Calendar.getInstance().getTime().toString());
+	}
+
+	/**
+	 * File position tracker for error log
+	 */
+	private long errorFilePosition;
+
+	/**
+	 * Set errorFilePosition to a new postion.
+	 * @param newPosition
+	 */
+	private void errorFilePosition(final long newPosition)
+	{
+		errorFilePosition = newPosition;
+	}
 
 	/**
 	 * A map of {@linkplain ModuleName module names} to a list of all the method
@@ -83,20 +130,35 @@ public class StacksGenerator
 	 *         If the output path exists but does not specify a directory.
 	 */
 	public StacksGenerator(final Path outputPath)
+		throws IllegalArgumentException
 	{
+
 		if (Files.exists(outputPath) && !Files.isDirectory(outputPath))
 		{
 			throw new IllegalArgumentException(
 				outputPath + " exists and is not a directory");
 		}
-
-		// TODO: [RAA] Create this directory if necessary, also the error log.
+		try
+		{
+			this.providedDocumentPath = Files.createDirectories(outputPath);
+			this.errorLog =
+				AsynchronousFileChannel
+					.open(createErrorLogPath(),
+						StandardOpenOption.CREATE,
+						StandardOpenOption.WRITE);
+		}
+		catch (final IOException e)
+		{
+			e.printStackTrace();
+		}
 
 		this.moduleToComments =
 			new HashMap<A_String,StacksCommentsModule>();
 
 		this.moduleToExportedMethodsMap =
 			new HashMap<A_String,A_Set>();
+
+		this.errorFilePosition = 0;
 	}
 
 	/**
@@ -114,11 +176,27 @@ public class StacksGenerator
 		final ModuleHeader header,
 		final A_Tuple commentTokens)
 	{
-		//TODO [RAA]remove comment
-		/*final StacksCommentsModule commentsModule =
-			new StacksCommentsModule(
+		StacksCommentsModule commentsModule = null;
+		try
+		{
+			commentsModule = new StacksCommentsModule(
 				header,commentTokens,moduleToExportedMethodsMap);
-		updateModuleToComments(commentsModule);*/
+		}
+		catch (StacksScannerException | StacksCommentBuilderException e)
+		{
+			try
+			{
+				final Future<Integer> newFilePostion = errorLog.write(
+			    	  ByteBuffer.wrap(e.getMessage().getBytes()),
+			    	  errorFilePosition);
+				errorFilePosition(newFilePostion.get());
+			}
+			catch (InterruptedException | ExecutionException e1)
+			{
+				e1.printStackTrace();
+			}
+		}
+		updateModuleToComments(commentsModule);
 	}
 
 	/**
@@ -150,10 +228,8 @@ public class StacksGenerator
 	 */
 	public synchronized void clear ()
 	{
-		this.moduleToComments =
-			new HashMap<A_String,StacksCommentsModule>();
+		this.moduleToComments.clear();
 
-		this.moduleToExportedMethodsMap =
-			new HashMap<A_String,A_Set>();
+		this.moduleToExportedMethodsMap.clear();
 	}
 }
