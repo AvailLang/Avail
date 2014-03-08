@@ -89,9 +89,10 @@ public class CommentImplementationBuilder
 			catch (final ClassCastException e)
 			{
 				final String errorMessage = String.format("\nToken, %s, "
-					+ "comment on line number, %d, in module, %s, in the "
-					+ "@category section failed casting to "
-					+ "QuotedStacksToken.\n",
+					+ "comment on line number, %d, in module, %s, has mal-formed "
+					+ "@category section; expected a series of quoted category "
+					+ "names immediately following the @category tag, however "
+					+ "does not start with a quoted category is listed.\n",
 					tagContentTokens.get(0).lexeme(),
 					commentStartLine(),
 					moduleName().asNativeString());
@@ -166,8 +167,10 @@ public class CommentImplementationBuilder
 		catch (final ClassCastException e)
 		{
 			final String errorMessage = String.format("\nToken, %s, comment "
-				+ "on line number, %d, in module, %s, in the @field "
-				+ "section failed casting to QuotedStacksToken.\n",
+				+ "on line number, %d, in module, %s, has mal-formed "
+				+ "@field section; expected a quoted type "
+				+ "immediately following the @field tag, however no such "
+				+ "quoted type is listed.\n",
 				tagContentTokens.get(0).lexeme(),
 				commentStartLine(),
 				moduleName().asNativeString());
@@ -218,8 +221,10 @@ public class CommentImplementationBuilder
 		catch (final ClassCastException e)
 		{
 			final String errorMessage = String.format("\nToken, %s, comment "
-				+ "on line number, %d, in module, %s, in the @forbids "
-				+ "section failed casting to QuotedStacksToken.\n",
+				+ "on line number, %d, in module, %s, has mal-formed "
+				+ "@forbids section; expected a series of quoted method names "
+				+ "immediately following the @forbids tag, however the first "
+				+ "argument following the @forbids tag is not quoted.\n",
 				tagContentTokens.get(0).lexeme(),
 				commentStartLine(),
 				moduleName().asNativeString());
@@ -276,8 +281,10 @@ public class CommentImplementationBuilder
 		catch (final ClassCastException e)
 		{
 			final String errorMessage = String.format("\nToken, %s, comment "
-				+ "on line number, %d, in module, %s, in the @global "
-				+ "section failed casting to QuotedStacksToken.\n",
+				+ "on line number, %d, in module, %s, has mal-formed "
+				+ "@global section; expected a quoted type "
+				+ "immediately following the @global tag, however no such "
+				+ "quoted type is listed.\n",
 				tagContentTokens.get(0).lexeme(),
 				commentStartLine(),
 				moduleName().asNativeString());
@@ -377,8 +384,10 @@ public class CommentImplementationBuilder
 		catch (final ClassCastException e)
 		{
 			final String errorMessage = String.format("\nToken, %s, comment "
-				 + "on line number, %d, in module, %s, in the @param section "
-				+ "failed casting to QuotedStacksToken.\n",
+				 + "on line number, %d, in module, %s, has mal-formed "
+				+ "@param section; expected a quoted type "
+				+ "immediately following the @param tag, however no such "
+				+ "quoted type is listed.\n",
 				tagContentTokens.get(1).lexeme(),
 				commentStartLine(),
 				moduleName().asNativeString());
@@ -434,9 +443,10 @@ public class CommentImplementationBuilder
 		catch (final ClassCastException e)
 		{
 			final String errorMessage = String.format("\nToken, %s, comment "
-				+ "on line number, %d, in module, %s, in the "
-				+ "@raises section failed final casting to "
-				+ "QuotedStacksToken.\n",
+				+ "on line number, %d, in module, %s, has mal-formed "
+				+ "@raises section; expected a quoted exception type "
+				+ "immediately following the @raises tag, however no such "
+				+ "quoted exception type is listed.\n",
 				tagContentTokens.get(0).lexeme(),
 				commentStartLine(),
 				moduleName().asNativeString());
@@ -492,8 +502,10 @@ public class CommentImplementationBuilder
 		catch (final ClassCastException e)
 		{
 			final String errorMessage = String.format("\nToken, %s, comment "
-				+ "on line number, %d, in module, %s, in the "
-				+ "@restricts section failed casting to QuotedStacksToken.\n",
+				+ "on line number, %d, in module, %s, has mal-formed "
+				+ "@restricts section; expected a quoted type "
+				+ "immediately following the @restricts tag, however no such "
+				+ "quoted type is listed.\n",
 				tagContentTokens.get(0).lexeme(),
 				commentStartLine(),
 				moduleName().asNativeString());
@@ -548,8 +560,10 @@ public class CommentImplementationBuilder
 		catch (final ClassCastException e)
 		{
 			final String errorMessage = String.format("\nToken, %s, comment "
-				+ "on line number, %d, in module, %s, in the @returns "
-				+ "section failed casting to QuotedStacksToken.\n",
+				+ "on line number, %d, in module, %s, has mal-formed @returns "
+				+ "section; expected a quoted return type immediately  "
+				+ "following the @returns tag, however no such quoted "
+				+ "return type is listed.\n",
 				tagContentTokens.get(0).lexeme(),
 				commentStartLine(),
 				moduleName().asNativeString());
@@ -840,6 +854,15 @@ public class CommentImplementationBuilder
 			if (restricts.isEmpty() && !parameters.isEmpty() &&
 				forbids.isEmpty())
 			{
+				if (returns.isEmpty())
+				{
+					final String errorMessage = String.format("\nStacks "
+						+ "method comment on line number, %d, in "
+						+ "module, %s, has no/malformed @returns tag.\n",
+						commentStartLine(),
+						moduleName().asNativeString());
+					throw new StacksCommentBuilderException(errorMessage, this);
+				}
 				final ArrayList<String> orderedInputTypes =
 					new ArrayList<String>(0);
 				for (final StacksParameterTag param : parameters)
@@ -847,8 +870,6 @@ public class CommentImplementationBuilder
 					orderedInputTypes.add(param.paramType().lexeme());
 				}
 
-				try
-				{
 				final MethodCommentSignature signature =
 					new MethodCommentSignature(
 						methods.get(0).methodName().lexeme(),
@@ -859,12 +880,6 @@ public class CommentImplementationBuilder
 				return new MethodCommentImplementation(signature,
 					commentStartLine (), authors, sees, description, parameters,
 					returns.get(0), raises);
-				}
-				catch (final IndexOutOfBoundsException e)
-				{
-					final int r = 1+1;
-				}
-
 			}
 
 			if (restricts.isEmpty() && parameters.isEmpty() &&
@@ -890,7 +905,23 @@ public class CommentImplementationBuilder
 				throw new StacksCommentBuilderException(errorMessage, this);
 			}
 
-			//TODO throw exception maybe?
+			if (restricts.isEmpty() && parameters.isEmpty() &&
+				forbids.isEmpty() && !returns.isEmpty())
+			{
+				final ArrayList<String> orderedInputTypes =
+					new ArrayList<String>(0);
+
+				final MethodCommentSignature signature =
+					new MethodCommentSignature(
+						methods.get(0).methodName().lexeme(),
+						moduleName(),
+						orderedInputTypes,
+						returns.get(0).returnType().lexeme());
+
+				return new MethodCommentImplementation(signature,
+					commentStartLine (), authors, sees, description, parameters,
+					returns.get(0), raises);
+			}
 		}
 
 		if (types.isEmpty() && methods.isEmpty() && !globalVariables.isEmpty())

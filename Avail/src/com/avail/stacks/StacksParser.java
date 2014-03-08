@@ -433,14 +433,25 @@ public class StacksParser
 				tokens().get(sectionStartLocations
 					.get(currentSectionStartLocationsIndex)).lexeme();
 
+			final int getDataStartingFrom = sectionStartLocations
+				.get(currentSectionStartLocationsIndex) + 1;
+
+			int getDataUntil = 0;
+			if (nextSectionStartLocationsIndex > sectionStartLocations.size()-1)
+			{
+				getDataUntil = tokens().size() - 1;
+			}
+			else
+			{
+				getDataUntil = sectionStartLocations
+					.get(nextSectionStartLocationsIndex);
+			}
+
 			//Add the new tag section to the map.
 			StacksTagKeyword.keywordTable.get(key)
 				.addTokensToBuilder(builder,
 					new ArrayList<AbstractStacksToken>(tokens()
-						.subList(sectionStartLocations
-								.get(currentSectionStartLocationsIndex) + 1,
-							sectionStartLocations.
-								get(nextSectionStartLocationsIndex))));
+						.subList(getDataStartingFrom,getDataUntil)));
 			currentSectionStartLocationsIndex = nextSectionStartLocationsIndex;
 		}
 

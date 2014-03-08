@@ -32,6 +32,9 @@
 
 package com.avail.stacks;
 
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -141,6 +144,8 @@ public class StacksCommentsModule
 			this.moduleName,
 			SetDescriptor.fromCollection(header.exportedNames));
 
+		this.errorLogString = "";
+
 		for (final A_Token aToken : commentTokens)
 		{
 			try
@@ -151,11 +156,34 @@ public class StacksCommentsModule
 				addNamedImplementation(
 					implementation.signature.name, implementation);
 			}
-			catch (final StacksScannerException e)
+			catch (StacksScannerException | StacksCommentBuilderException e)
 			{
-				e.getLocalizedMessage();
+				this.errorLogString = new StringBuilder()
+					.append(errorLogString).toString();
 			}
 		}
+
+		this.errorBuffer= ByteBuffer.wrap(
+			errorLogString.getBytes(StandardCharsets.UTF_8));
+	}
+
+	/**
+	 *
+	 */
+	String errorLogString;
+
+	/**
+	 *
+	 */
+	ByteBuffer errorBuffer;
+
+	/**
+	 * Return all the error comments captured in the buffer.
+	 * @return
+	 */
+	public ByteBuffer errorBuffer()
+	{
+		return errorBuffer;
 	}
 
 	/**

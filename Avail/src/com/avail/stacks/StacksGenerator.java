@@ -35,6 +35,7 @@ package com.avail.stacks;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -49,8 +50,6 @@ import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.TupleDescriptor;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 /**
  * An Avail documentation generator.  It takes tokenized method/class comments
@@ -85,15 +84,6 @@ public class StacksGenerator
 	 * File position tracker for error log
 	 */
 	private long errorFilePosition;
-
-	/**
-	 * Set errorFilePosition to a new postion.
-	 * @param newPosition
-	 */
-	private void errorFilePosition(final long newPosition)
-	{
-		errorFilePosition = newPosition;
-	}
 
 	/**
 	 * A map of {@linkplain ModuleName module names} to a list of all the method
@@ -169,7 +159,8 @@ public class StacksGenerator
 		final ModuleHeader header,
 		final A_Tuple commentTokens)
 	{
-		System.out.println("Entering add()");
+		System.out.println("Starting scanning of comments in "
+			+ header.moduleName.qualifiedName());
 		StacksCommentsModule commentsModule = null;
 		try
 		{
@@ -179,17 +170,11 @@ public class StacksGenerator
 		}
 		catch (StacksScannerException | StacksCommentBuilderException e)
 		{
-			try
-			{
-				final Future<Integer> newFilePostion = errorLog.write(
-			    	  ByteBuffer.wrap(e.getMessage().getBytes()),
-			    	  errorFilePosition);
-				errorFilePosition(newFilePostion.get());
-			}
-			catch (InterruptedException | ExecutionException e1)
-			{
-				e1.printStackTrace();
-			}
+			final long position = errorFilePosition;
+			final ByteBuffer buffer = ByteBuffer.wrap(
+				e.getLocalizedMessage().getBytes(StandardCharsets.UTF_8));
+			errorFilePosition += buffer.limit();
+			errorLog.write(buffer, position);
 		}
 	}
 
@@ -214,13 +199,22 @@ public class StacksGenerator
 	 */
 	public synchronized void generate (final ModuleName outermostModule)
 	{
+		System.out.println("In generate()");
 		try
 		{
-			errorLog.close();
+			//do nothing
 		}
-		catch (final IOException e)
+		finally
 		{
-			e.printStackTrace();
+			try
+			{
+				errorLog.close();
+			}
+			catch (final IOException e)
+			{
+				// TODO [RAA] Remove in favor of other convention
+				e.printStackTrace();
+			}
 		}
 		System.out.println("Done!  Yay!");
 		clear();
@@ -233,8 +227,8 @@ public class StacksGenerator
 	 */
 	public synchronized void clear ()
 	{
-		this.moduleToComments.clear();
-
-		this.moduleToExportedMethodsMap.clear();
+		moduleToComments.clear();
+		moduleToExportedMethodsMap.clear();
+		errorFilePosition = 0;
 	}
 }

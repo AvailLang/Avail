@@ -488,7 +488,7 @@ Semantic restriction "Private abstract method_is_" is
  *        The atom that uniquely names the abstract method to declare.
  * @param "aFunctionType" "function meta"
  *        The signature.
- * @return "⊤"
+ * @returns "⊤"
  */
 Public method "Private abstract method_is_" is
 [

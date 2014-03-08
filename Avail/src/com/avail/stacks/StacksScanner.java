@@ -682,9 +682,12 @@ public class StacksScanner extends AbstractStacksScanner
 
 		if (scanner.sectionStartLocations.isEmpty())
 		{
-			throw new StacksScannerException(
-				"Malformed Avail comment does not have appropriate tags",
-				scanner);
+			final String errorMessage = String.format("\nComment"
+				+ "on line number, %d, in module, %s, is mal-formed; "
+				+ "it has no distinguishing section keywords.\n ",
+				scanner.commentStartLine,
+				scanner.moduleName().asNativeString());
+			throw new StacksScannerException(errorMessage,scanner);
 		}
 
 		return StacksParser.parseCommentString(
