@@ -33,7 +33,6 @@
 package com.avail.stacks;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousFileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -127,14 +126,13 @@ public class StacksCommentsModule
 	 * @param header
 	 * @param commentTokens
 	 * @param moduleToMethodMap
-	 * @throws StacksCommentBuilderException
-	 * @throws StacksScannerException
+	 * @param errorLog
 	 */
 	public StacksCommentsModule(
 		final ModuleHeader header,
 		final A_Tuple commentTokens,
-		final HashMap<A_String,A_Set> moduleToMethodMap)
-			throws StacksScannerException, StacksCommentBuilderException
+		final HashMap<A_String,A_Set> moduleToMethodMap,
+		final StacksErrorLog errorLog)
 	{
 		this.moduleName = StringDescriptor
 			.from(header.moduleName.qualifiedName());
@@ -143,8 +141,6 @@ public class StacksCommentsModule
 		moduleToMethodMap.put(
 			this.moduleName,
 			SetDescriptor.fromCollection(header.exportedNames));
-
-		this.errorLogString = "";
 
 		for (final A_Token aToken : commentTokens)
 		{
@@ -158,32 +154,11 @@ public class StacksCommentsModule
 			}
 			catch (StacksScannerException | StacksCommentBuilderException e)
 			{
-				this.errorLogString = new StringBuilder()
-					.append(errorLogString).toString();
+				final ByteBuffer errorBuffer = ByteBuffer
+					.wrap(e.getMessage().getBytes(StandardCharsets.UTF_8));
+				errorLog.addLogEntry(errorBuffer);
 			}
 		}
-
-		this.errorBuffer= ByteBuffer.wrap(
-			errorLogString.getBytes(StandardCharsets.UTF_8));
-	}
-
-	/**
-	 *
-	 */
-	String errorLogString;
-
-	/**
-	 *
-	 */
-	ByteBuffer errorBuffer;
-
-	/**
-	 * Return all the error comments captured in the buffer.
-	 * @return
-	 */
-	public ByteBuffer errorBuffer()
-	{
-		return errorBuffer;
 	}
 
 	/**

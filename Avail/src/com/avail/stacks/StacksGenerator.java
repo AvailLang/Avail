@@ -34,12 +34,10 @@ package com.avail.stacks;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousFileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import com.avail.builder.ModuleName;
@@ -78,12 +76,7 @@ public class StacksGenerator
 	/**
 	 * The error log file for the malformed comments.
 	 */
-	AsynchronousFileChannel errorLog;
-
-	/**
-	 * File position tracker for error log
-	 */
-	private long errorFilePosition;
+	StacksErrorLog errorLog;
 
 	/**
 	 * A map of {@linkplain ModuleName module names} to a list of all the method
@@ -110,38 +103,22 @@ public class StacksGenerator
 	public StacksGenerator(final Path outputPath)
 		throws IllegalArgumentException
 	{
-		System.out.println("Creating Generator");
-
 		if (Files.exists(outputPath) && !Files.isDirectory(outputPath))
 		{
 			throw new IllegalArgumentException(
 				outputPath + " exists and is not a directory");
 		}
 
-		providedDocumentPath = outputPath;
-		logPath = outputPath.resolve("logs");
+		this.logPath = outputPath
+			.resolve("logs");
+		this.errorLog = new StacksErrorLog(logPath);
 
-		try
-		{
-			final Path errorLogPath = logPath.resolve("error.log");
-			Files.createDirectories(logPath);
-			errorLog = AsynchronousFileChannel.open(
-				errorLogPath,
-				StandardOpenOption.CREATE,
-				StandardOpenOption.WRITE);
-		}
-		catch (final IOException e)
-		{
-			e.printStackTrace();
-		}
 
 		this.moduleToComments =
 			new HashMap<A_String,StacksCommentsModule>();
 
 		this.moduleToExportedMethodsMap =
 			new HashMap<A_String,A_Set>();
-
-		this.errorFilePosition = 0;
 	}
 
 	/**
@@ -162,20 +139,10 @@ public class StacksGenerator
 		System.out.println("Starting scanning of comments in "
 			+ header.moduleName.qualifiedName());
 		StacksCommentsModule commentsModule = null;
-		try
-		{
-			commentsModule = new StacksCommentsModule(
-				header,commentTokens,moduleToExportedMethodsMap);
-			updateModuleToComments(commentsModule);
-		}
-		catch (StacksScannerException | StacksCommentBuilderException e)
-		{
-			final long position = errorFilePosition;
-			final ByteBuffer buffer = ByteBuffer.wrap(
-				e.getLocalizedMessage().getBytes(StandardCharsets.UTF_8));
-			errorFilePosition += buffer.limit();
-			errorLog.write(buffer, position);
-		}
+
+		commentsModule = new StacksCommentsModule(
+			header,commentTokens,moduleToExportedMethodsMap,errorLog);
+		updateModuleToComments(commentsModule);
 	}
 
 	/**
@@ -208,7 +175,11 @@ public class StacksGenerator
 		{
 			try
 			{
-				errorLog.close();
+				final ByteBuffer closeHTML = ByteBuffer.wrap(
+					"</ol></body></html>"
+						.getBytes(StandardCharsets.UTF_8));
+				errorLog.addLogEntry(closeHTML);
+				errorLog.file().close();
 			}
 			catch (final IOException e)
 			{
@@ -229,6 +200,5 @@ public class StacksGenerator
 	{
 		moduleToComments.clear();
 		moduleToExportedMethodsMap.clear();
-		errorFilePosition = 0;
 	}
 }
