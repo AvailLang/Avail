@@ -55,6 +55,11 @@ public class StacksErrorLog
 	private AsynchronousFileChannel errorLog;
 
 	/**
+	 * The amount of errors listed in the file
+	 */
+	private int errorCount;
+
+	/**
 	 * File position tracker for error log
 	 */
 	private long errorFilePosition;
@@ -78,6 +83,7 @@ public class StacksErrorLog
 	public StacksErrorLog (final Path logPath)
 	{
 		this.errorFilePosition = 0;
+		this.errorCount = 0;
 		try
 		{
 			final Path errorLogPath = logPath.resolve("errorlog.html");
@@ -86,10 +92,14 @@ public class StacksErrorLog
 				errorLogPath,
 				StandardOpenOption.CREATE,
 				StandardOpenOption.WRITE);
+
 			final ByteBuffer openHTML = ByteBuffer.wrap(
-				"<!DOCTYPE html><html><body><ol>"
-					.getBytes(StandardCharsets.UTF_8));
-			addLogEntry(openHTML);
+				("<!DOCTYPE html ng-app>\n<head><style>h3 "
+				+ "{text-decoration:underline;}\n "
+				+ "strong, em {color:blue;}</style>\n"
+				+ "</head>\n<body>\n")
+				.getBytes(StandardCharsets.UTF_8));
+			addLogEntry(openHTML,0);
 		}
 		catch (final IOException e)
 		{
@@ -98,13 +108,26 @@ public class StacksErrorLog
 	}
 
 	/**
+	 * Add a new error log entry to the error error log.
 	 * @param buffer
+	 * 		The error log buffer
+	 * @param addToErrorCount
+	 * 		The amount of errors added with this log update.
 	 */
-	public synchronized void addLogEntry(final ByteBuffer buffer)
+	public synchronized void addLogEntry(final ByteBuffer buffer,
+		final int addToErrorCount)
 	{
+		errorCount += addToErrorCount;
 		final long position = errorFilePosition;
 		errorFilePosition += buffer.limit();
 		errorLog.write(buffer, position);
 	}
 
+	/**
+	 * @return the errorCount
+	 */
+	public int errorCount ()
+	{
+		return errorCount;
+	}
 }

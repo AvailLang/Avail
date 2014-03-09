@@ -76,6 +76,11 @@ public class StacksScanner extends AbstractStacksScanner
 	}
 
 	/**
+	 * The module file name without the path.
+	 */
+	private final String moduleLeafName;
+
+	/**
 	 * The index locations where a new {@link SectionKeywordStacksToken section}
 	 * begins in in the
 	 */
@@ -92,6 +97,17 @@ public class StacksScanner extends AbstractStacksScanner
 	private StacksScanner (final A_Token commentToken,
 		final A_String moduleName)
 	{
+		final String modName = moduleName.asNativeString();
+		final int modNameLength = modName.length();
+		int i = modName.length() - 1;
+		while (modName.charAt(i) != '\\' && modName.charAt(i) != '/' &&
+			i > -1)
+		{
+			i--;
+		}
+
+		this.moduleLeafName = modName.substring(i+1, modNameLength);
+
 		final String commentString =
 			commentToken.string().asNativeString();
 		tokenString(commentString);
@@ -186,9 +202,9 @@ public class StacksScanner extends AbstractStacksScanner
 				{
 					// Just the open quote, then end of file.
 					throw new StacksScannerException(String.format("\n<li><strong>%s"
-						+ "</strong><em> Line #: %d</em>: Unterminated string "
+						+ "</strong><em> Line #: %d</em>: Scanner Error: Unterminated string "
 						+ "literal.</li>",
-						scanner.moduleName.asNativeString(),
+						scanner.moduleLeafName(),
 						scanner.lineNumber()),
 						scanner);
 				}
@@ -205,10 +221,10 @@ public class StacksScanner extends AbstractStacksScanner
 							throw new StacksScannerException(
 								String.format(
 									"\n<li><strong>%s</strong><em> Line #: %d"
-									+ "</em>: Encountered end of file after "
+									+ "</em>: Scanner Error: Encountered end of file after "
 									+ " backslashin string literal in "
 									+ "module, %s.\n",
-									scanner.moduleName.asNativeString(),
+									scanner.moduleLeafName(),
 									scanner.lineNumber()),
 								scanner);
 						}
@@ -256,10 +272,10 @@ public class StacksScanner extends AbstractStacksScanner
 									throw new StacksScannerException(
 										String.format(
 											"\n<li><strong>%s</strong><em> "
-											+ "Line #: %d</em>: The input "
+											+ "Line #: %d</em>: Scanner Error: The input "
 											+ "before  \"\\|\" "
 											+ "contains non-whitespace.</li>",
-											scanner.moduleName.asNativeString(),
+											scanner.moduleLeafName(),
 											scanner.lineNumber()),
 										scanner);
 								}
@@ -276,10 +292,10 @@ public class StacksScanner extends AbstractStacksScanner
 								throw new StacksScannerException(
 									String.format(
 									"\n<li><strong>%s</strong><em> Line #: "
-									+ "%d</em>:Backslash escape should be "
+									+ "%d</em>: Scanner Error:Backslash escape should be "
 									+ "followed by one of n, r, t, \\, \", (, "
 									+ "[, |, or a line break.</li>",
-									scanner.moduleName.asNativeString(),
+									scanner.moduleLeafName(),
 									scanner.lineNumber()),
 									scanner);
 						}
@@ -319,9 +335,9 @@ public class StacksScanner extends AbstractStacksScanner
 						scanner.lineNumber(literalStartingLine);
 						throw new StacksScannerException(String.format(
 							"\n<li><strong>%s"
-							+ "</strong><em> Line #: %d</em>: Unterminated "
+							+ "</strong><em> Line #: %d</em>: Scanner Error: Unterminated "
 							+ "string literal.</li>",
-								scanner.moduleName.asNativeString(),
+								scanner.moduleLeafName(),
 								scanner.lineNumber()),
 							scanner);
 					}
@@ -355,9 +371,9 @@ public class StacksScanner extends AbstractStacksScanner
 				{
 					throw new StacksScannerException(String.format(
 						"\n<li><strong>%s</strong><em> Line #: "
-						+ "%d</em>: Expected hexadecimal Unicode codepoints "
-						+ "separated by commas</li>",
-						scanner.moduleName.asNativeString(),
+						+ "%d</em>: Scanner Error: Expected hexadecimal "
+						+ "Unicode codepoints separated by commas</li>",
+						scanner.moduleLeafName(),
 						scanner.lineNumber()),
 						scanner);
 				}
@@ -387,9 +403,10 @@ public class StacksScanner extends AbstractStacksScanner
 						{
 							throw new StacksScannerException(String.format(
 								"\n<li><strong>%s</strong><em> Line #: "
-									+ "%d</em>: Expected a hex digit or comma "
-									+ "or closing parenthesis</li>",
-									scanner.moduleName.asNativeString(),
+									+ "%d</em>: Scanner Error: Expected a hex "
+									+ "digit or comma or closing "
+									+ "parenthesis</li>",
+									scanner.moduleLeafName(),
 									scanner.lineNumber()),
 								scanner);
 						}
@@ -397,10 +414,10 @@ public class StacksScanner extends AbstractStacksScanner
 						{
 							throw new StacksScannerException(String.format(
 									"\n<li><strong>%s</strong><em> Line #: "
-									+ "%d</em>: Expected at most six hex "
-									+ "digits per comma-separated Unicode "
-									+ "entry</li>",
-									scanner.moduleName.asNativeString(),
+									+ "%d</em>: Scanner Error: Expected at "
+									+ "most six hex digits per "
+									+ "comma-separated Unicode entry</li>",
+									scanner.moduleLeafName(),
 									scanner.lineNumber()),
 								scanner);
 						}
@@ -410,10 +427,11 @@ public class StacksScanner extends AbstractStacksScanner
 					{
 						throw new StacksScannerException(String.format(
 							"\n<li><strong>%s</strong><em> Line #: "
-							+ "%d</em>: Expected a comma-separated list of "
-							+ "Unicode code points, each being one to six "
-							+ "(upper case) hexadecimal digits</li>",
-							scanner.moduleName.asNativeString(),
+							+ "%d</em>: Scanner Error: Expected a "
+							+ "comma-separated list of Unicode code points, "
+							+ "each being one to six (upper case) "
+							+ "hexadecimal digits</li>",
+							scanner.moduleLeafName(),
 							scanner.lineNumber()),
 						scanner);
 					}
@@ -423,9 +441,10 @@ public class StacksScanner extends AbstractStacksScanner
 						throw new StacksScannerException(
 							String.format(
 								"\n<li><strong>%s</strong><em> Line #: "
-								+ "%d</em>: The maximum allowed code point for "
-								+ "a Unicode character is U+10FFFF</li>",
-								scanner.moduleName.asNativeString(),
+								+ "%d</em>: Scanner Error: The maximum allowed "
+								+ "code point for a Unicode character is "
+								+ "U+10FFFF</li>",
+								scanner.moduleLeafName(),
 								scanner.lineNumber()),
 							scanner);
 					}
@@ -576,10 +595,14 @@ public class StacksScanner extends AbstractStacksScanner
 					{
 						if (scanner.atEnd())
 						{
-							throw new StacksScannerException(
-								"Expected a close comment (*/) to correspond"
-									+ " with the open comment (/*) on line #"
-									+ startLine,
+							throw new StacksScannerException(String.format(
+								"\n<li><strong>%s</strong><em> Line #: "
+								+ "%d</em>: Scanner Error: Expected a close "
+								+ "comment (*/) to correspond with the open "
+								+ "comment (/*) on line #%d</li>",
+								scanner.moduleLeafName(),
+								scanner.lineNumber(),
+								startLine),
 								scanner);
 						}
 						if (scanner.peekFor('/') && scanner.peekFor('*'))
@@ -720,10 +743,10 @@ public class StacksScanner extends AbstractStacksScanner
 
 		if (scanner.sectionStartLocations.isEmpty())
 		{
-			final String errorMessage = String.format("<li><strong>%s"
-				+ "</strong><em> Line #: %d</em>: Malformed comment; "
-				+ "has no distinguishing main tags.</li>",
-				scanner.moduleName().asNativeString(),
+			final String errorMessage = String.format("\n<li><strong>%s"
+				+ "</strong><em> Line #: %d</em>: Scanner Error: Malformed "
+				+ "comment; has no distinguishing main tags.</li>",
+				scanner.moduleLeafName(),
 				scanner.commentStartLine);
 			throw new StacksScannerException(errorMessage,scanner);
 		}
@@ -733,5 +756,13 @@ public class StacksScanner extends AbstractStacksScanner
 			scanner.sectionStartLocations,
 			scanner.moduleName(),
 			scanner.commentStartLine());
+	}
+
+	/**
+	 * @return the module file name without the path
+	 */
+	public String moduleLeafName ()
+	{
+		return moduleLeafName;
 	}
 }

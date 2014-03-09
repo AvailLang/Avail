@@ -428,7 +428,7 @@ public class StacksParser
 
 		int getDataUntil = 0;
 
-		while (nextSectionStartLocationsIndex < sectionStartLocations.size()-1)
+		while (nextSectionStartLocationsIndex < sectionStartLocations.size())
 		{
 			nextSectionStartLocationsIndex =
 				currentSectionStartLocationsIndex + 1;
@@ -444,7 +444,7 @@ public class StacksParser
 			if (nextSectionStartLocationsIndex >
 				sectionStartLocations.size()-1)
 			{
-				getDataUntil = tokens().size()-1;
+				getDataUntil = tokens().size();
 			}
 			else
 			{

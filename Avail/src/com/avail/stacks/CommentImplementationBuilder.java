@@ -90,7 +90,7 @@ public class CommentImplementationBuilder
 					+ "tag section; expected a series of quoted category "
 					+ "names immediately following the @category tag, however "
 					+ "does not start with a quoted category is listed.</li>",
-					moduleName().asNativeString(),
+					moduleLeafName,
 					commentStartLine());
 				throw new StacksCommentBuilderException(errorMessage, this);
 			}
@@ -135,7 +135,7 @@ public class CommentImplementationBuilder
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed @field tag section; "
 				+ "too few components.</li>",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -150,7 +150,7 @@ public class CommentImplementationBuilder
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed @field "
 				+ "tag section; expected quoted field name.</li>",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -165,7 +165,7 @@ public class CommentImplementationBuilder
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed "
 				+ "@field tag section; expected a quoted field type\n.",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -218,7 +218,7 @@ public class CommentImplementationBuilder
 				+ "@forbids tag section; expected a series of quoted method names "
 				+ "immediately following the @forbids tag, however the first "
 				+ "argument following the @forbids tag is not quoted.</li>",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -245,7 +245,7 @@ public class CommentImplementationBuilder
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed "
 				+ "@global tag section; has too few components.</li>",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -262,7 +262,7 @@ public class CommentImplementationBuilder
 				+ "@global tag section; expected a quoted module variable name "
 				+ "immediately following the @global tag, however no such "
 				+ "quoted name is listed.</li>",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -279,7 +279,7 @@ public class CommentImplementationBuilder
 				+ "@global tag section; expected a quoted type "
 				+ "immediately following the @global tag, however no such "
 				+ "quoted type is listed.</li>",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -313,7 +313,7 @@ public class CommentImplementationBuilder
 					+ "</strong><em> Line #: %d</em>: Malformed @method "
 					+ "tag section; expected a quoted method name immediately "
 					+ "following the @method tag.</li>",
-					moduleName().asNativeString(),
+					moduleLeafName,
 					commentStartLine());
 				throw new StacksCommentBuilderException(errorMessage, this);
 			}
@@ -323,7 +323,7 @@ public class CommentImplementationBuilder
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed @method tag section; "
 				+ "has wrong # of @method components.</li>",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -350,7 +350,7 @@ public class CommentImplementationBuilder
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed @param tag section; "
 				+ " has too few @param components.</li>",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -365,7 +365,7 @@ public class CommentImplementationBuilder
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed @param tag section; "
 				+ "expected a quoted parameter type/name.",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -380,7 +380,7 @@ public class CommentImplementationBuilder
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed "
 				+ "@param tag section; expected a quoted parameter type/name.</li>",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -422,7 +422,7 @@ public class CommentImplementationBuilder
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed @raises tag section; "
 				+ "has too few components.</li>",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -439,7 +439,7 @@ public class CommentImplementationBuilder
 				+ "@raises tag section; expected a quoted exception type "
 				+ "immediately following the @raises tag, however no such "
 				+ "quoted exception type is listed.</li>",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -481,7 +481,7 @@ public class CommentImplementationBuilder
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed @restricts "
 				+ "tag section; has too few components.</li>",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -498,7 +498,7 @@ public class CommentImplementationBuilder
 				+ "@restricts tag section; expected a quoted type "
 				+ "immediately following the @restricts tag, however no such "
 				+ "quoted type is listed.</li>",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -539,7 +539,7 @@ public class CommentImplementationBuilder
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed "
 				+ "@returns tag section; has too few components.</li>",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -556,7 +556,7 @@ public class CommentImplementationBuilder
 				+ "tag section; expected a quoted return type immediately  "
 				+ "following the @returns tag, however no such quoted "
 				+ "return type is identifiable.</li>",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -603,7 +603,7 @@ public class CommentImplementationBuilder
 						+ "</strong><em> Line #: %d</em>: Malformed @sees "
 						+ "tag section; expected a semnatic link (bracketed "
 						+ "{}) or quoted @sees content.</li>",
-						moduleName().asNativeString(),
+						moduleLeafName,
 						commentStartLine());
 					throw new StacksCommentBuilderException(errorMessage, this);
 				}
@@ -613,7 +613,7 @@ public class CommentImplementationBuilder
 				final String errorMessage = String.format("\n<li><strong>%s"
 					+ "</strong><em> Line #: %d</em>: Malformed @sees tag section; "
 					+ "wrong # of @sees components.</li>",
-					moduleName().asNativeString(),
+					moduleLeafName,
 					commentStartLine());
 				throw new StacksCommentBuilderException(errorMessage, this);
 			}
@@ -646,7 +646,7 @@ public class CommentImplementationBuilder
 				final String errorMessage = String.format("\n<li><strong>%s"
 					+ "</strong><em> Line #: %d</em>: Malformed "
 					+ "@supertype tag section; expected quoted type.</li>",
-					moduleName().asNativeString(),
+					moduleLeafName,
 					commentStartLine());
 				throw new StacksCommentBuilderException(errorMessage, this);
 			}
@@ -656,7 +656,7 @@ public class CommentImplementationBuilder
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed @supertype "
 				+ "tag section; has wrong # of components.</li>",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -688,7 +688,7 @@ public class CommentImplementationBuilder
 				final String errorMessage = String.format("\n<li><strong>%s"
 					+ "</strong><em> Line #: %d</em>: Malformed @returns "
 					+ "tag section; expected quoted type.</li>",
-					moduleName().asNativeString(),
+					moduleLeafName,
 					commentStartLine());
 				throw new StacksCommentBuilderException(errorMessage, this);
 			}
@@ -698,7 +698,7 @@ public class CommentImplementationBuilder
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed @type tag section; "
 				+ "has wrong # components.</li>",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -715,6 +715,11 @@ public class CommentImplementationBuilder
 	private final int commentStartLine;
 
 	/**
+	 * The module file name without the path.
+	 */
+	final String moduleLeafName;
+
+	/**
 	 * Construct a new {@link CommentImplementationBuilder}.
 	 * @param moduleName
 	 * 		The name of the module the comment is in.
@@ -725,6 +730,16 @@ public class CommentImplementationBuilder
 	private CommentImplementationBuilder (final A_String moduleName,
 		final int commentStartLine)
 	{
+		final String modName = moduleName.asNativeString();
+		final int modNameLength = modName.length();
+		int i = modName.length() - 1;
+		while (modName.charAt(i) != '\\' && modName.charAt(i) != '/' &&
+			i > -1)
+		{
+			i--;
+		}
+
+		this.moduleLeafName = modName.substring(i+1, modNameLength);
 		this.moduleName = moduleName;
 		this.commentStartLine = commentStartLine;
 		this.authors = new ArrayList<StacksAuthorTag>(0);
@@ -807,7 +822,7 @@ public class CommentImplementationBuilder
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed has wrong # of "
 				+ "@types indentifying tags.</li>",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -819,7 +834,7 @@ public class CommentImplementationBuilder
 				final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed has wrong # of "
 					+ "@method indentifying tags.</li>",
-					moduleName().asNativeString(),
+					moduleLeafName,
 					commentStartLine());
 				throw new StacksCommentBuilderException(errorMessage, this);
 			}
@@ -851,7 +866,7 @@ public class CommentImplementationBuilder
 					final String errorMessage = String.format("\n<li><strong>%s"
 						+ "</strong><em> Line #: %d</em>: Malformed comment; "
 						+ "has no obvious @returns tag.</li>",
-						moduleName().asNativeString(),
+						moduleLeafName,
 						commentStartLine());
 					throw new StacksCommentBuilderException(errorMessage, this);
 				}
@@ -891,7 +906,7 @@ public class CommentImplementationBuilder
 				final String errorMessage = String.format("\n<li><strong>%s"
 					+ "</strong><em> Line #: %d</em>: Malformed comment; has "
 					+ "wrong # of @forbids indentifying tags.</li>",
-					moduleName().asNativeString(),
+					moduleLeafName,
 					commentStartLine());
 				throw new StacksCommentBuilderException(errorMessage, this);
 			}
@@ -932,7 +947,7 @@ public class CommentImplementationBuilder
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed comment; has "
 				+ "wrong # of @global indentifying tags.</li>",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
@@ -941,7 +956,7 @@ public class CommentImplementationBuilder
 				+ "</strong><em> Line #: %d</em>: Malformed comment has no "
 				+ "distinguishing indentifying tags that indicate the type of "
 				+ "comment.</li>",
-				moduleName().asNativeString(),
+				moduleLeafName,
 				commentStartLine());
 		throw new StacksCommentBuilderException(errorMessage, this);
 	}

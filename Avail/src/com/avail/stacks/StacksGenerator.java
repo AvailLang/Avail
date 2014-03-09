@@ -136,8 +136,11 @@ public class StacksGenerator
 		final ModuleHeader header,
 		final A_Tuple commentTokens)
 	{
+
+
 		System.out.println("Starting scanning of comments in "
 			+ header.moduleName.qualifiedName());
+
 		StacksCommentsModule commentsModule = null;
 
 		commentsModule = new StacksCommentsModule(
@@ -175,10 +178,11 @@ public class StacksGenerator
 		{
 			try
 			{
-				final ByteBuffer closeHTML = ByteBuffer.wrap(
-					"</ol></body></html>"
-						.getBytes(StandardCharsets.UTF_8));
-				errorLog.addLogEntry(closeHTML);
+				final ByteBuffer closeHTML = ByteBuffer.wrap(String.format(
+					"</ol>\n<h4>Error Count: %d</h4>\n</body>\n</html>"
+						,errorLog.errorCount())
+					.getBytes(StandardCharsets.UTF_8));
+				errorLog.addLogEntry(closeHTML,0);
 				errorLog.file().close();
 			}
 			catch (final IOException e)
