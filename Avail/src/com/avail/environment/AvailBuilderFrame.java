@@ -131,6 +131,7 @@ extends JFrame
 			task.execute();
 			cancelAction.setEnabled(true);
 			cleanAction.setEnabled(false);
+			refreshAction.setEnabled(false);
 		}
 
 		/**
@@ -642,6 +643,7 @@ extends JFrame
 			cancelAction.setEnabled(false);
 			buildAction.setEnabled(targetModuleName != null);
 			cleanAction.setEnabled(true);
+			refreshAction.setEnabled(true);
 			if (terminator == null)
 			{
 				moduleProgress.setString("Module Progress: 100%");

@@ -1533,6 +1533,20 @@ public final class AvailBuilder
 							function,
 							Collections.<AvailObject>emptyList());
 					}
+					else if (shouldStopBuild)
+					{
+						module.removeFrom(
+							availLoader,
+							new Continuation0()
+							{
+								@Override
+								public void value ()
+								{
+									postLoad(moduleName, 0L);
+									completionAction.value();
+								}
+							});
+					}
 					else
 					{
 						runtime.addModule(module);
