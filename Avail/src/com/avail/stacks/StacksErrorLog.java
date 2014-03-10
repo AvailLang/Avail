@@ -91,7 +91,8 @@ public class StacksErrorLog
 			this.errorLog = AsynchronousFileChannel.open(
 				errorLogPath,
 				StandardOpenOption.CREATE,
-				StandardOpenOption.WRITE);
+				StandardOpenOption.WRITE,
+				StandardOpenOption.TRUNCATE_EXISTING);
 
 			final ByteBuffer openHTML = ByteBuffer.wrap(
 				("<!DOCTYPE html ng-app>\n<head><style>h3 "

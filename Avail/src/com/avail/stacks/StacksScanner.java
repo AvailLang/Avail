@@ -201,9 +201,9 @@ public class StacksScanner extends AbstractStacksScanner
 				if (scanner.atEnd())
 				{
 					// Just the open quote, then end of file.
-					throw new StacksScannerException(String.format("\n<li><strong>%s"
-						+ "</strong><em> Line #: %d</em>: Scanner Error: Unterminated string "
-						+ "literal.</li>",
+					throw new StacksScannerException(String.format(
+						"\n<li><strong>%s</strong><em> Line #: %d</em>: "
+						+ "Scanner Error: Unterminated string literal.</li>",
 						scanner.moduleLeafName(),
 						scanner.lineNumber()),
 						scanner);
@@ -221,9 +221,9 @@ public class StacksScanner extends AbstractStacksScanner
 							throw new StacksScannerException(
 								String.format(
 									"\n<li><strong>%s</strong><em> Line #: %d"
-									+ "</em>: Scanner Error: Encountered end of file after "
-									+ " backslashin string literal in "
-									+ "module, %s.\n",
+									+ "</em>: Scanner Error: Encountered end "
+									+ "of file after backslash in string "
+									+ "literal in module, %s.\n",
 									scanner.moduleLeafName(),
 									scanner.lineNumber()),
 								scanner);
@@ -272,8 +272,8 @@ public class StacksScanner extends AbstractStacksScanner
 									throw new StacksScannerException(
 										String.format(
 											"\n<li><strong>%s</strong><em> "
-											+ "Line #: %d</em>: Scanner Error: The input "
-											+ "before  \"\\|\" "
+											+ "Line #: %d</em>: Scanner Error: "
+											+ "The input zbefore  \"\\|\" "
 											+ "contains non-whitespace.</li>",
 											scanner.moduleLeafName(),
 											scanner.lineNumber()),
@@ -292,9 +292,10 @@ public class StacksScanner extends AbstractStacksScanner
 								throw new StacksScannerException(
 									String.format(
 									"\n<li><strong>%s</strong><em> Line #: "
-									+ "%d</em>: Scanner Error:Backslash escape should be "
-									+ "followed by one of n, r, t, \\, \", (, "
-									+ "[, |, or a line break.</li>",
+									+ "%d</em>: Scanner Error:Backslash escape "
+									+ "should be followed by one of "
+									+ "n , r, t, \\, \", (, [, |, or "
+									+ "a line break.</li>",
 									scanner.moduleLeafName(),
 									scanner.lineNumber()),
 									scanner);
@@ -323,7 +324,7 @@ public class StacksScanner extends AbstractStacksScanner
 					else
 					{
 						stringBuilder.appendCodePoint(c);
-						if (canErase && !Character.isWhitespace(c))
+						if (canErase && !Character.isWhitespace(c) && c != '*')
 						{
 							canErase = false;
 						}
@@ -335,8 +336,8 @@ public class StacksScanner extends AbstractStacksScanner
 						scanner.lineNumber(literalStartingLine);
 						throw new StacksScannerException(String.format(
 							"\n<li><strong>%s"
-							+ "</strong><em> Line #: %d</em>: Scanner Error: Unterminated "
-							+ "string literal.</li>",
+							+ "</strong><em> Line #: %d</em>: Scanner Error: "
+							+ "Unterminated string literal.</li>",
 								scanner.moduleLeafName(),
 								scanner.lineNumber()),
 							scanner);
