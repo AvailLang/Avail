@@ -794,6 +794,7 @@ public class IndexedRepositoryManager
 			{
 				moduleHeaderRecordNumber = repo.longSize();
 				repo.add(moduleHeaderRecordNumber, bytes);
+				markDirty();
 			}
 			finally
 			{
@@ -847,6 +848,7 @@ public class IndexedRepositoryManager
 			{
 				stacksRecordNumber = repo.longSize();
 				repo.add(stacksRecordNumber, bytes);
+				markDirty();
 			}
 			finally
 			{
