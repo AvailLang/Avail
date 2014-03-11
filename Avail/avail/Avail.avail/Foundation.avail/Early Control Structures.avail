@@ -384,7 +384,7 @@ Semantic restriction "Invoke|invoke_with_" is
  *        A function that accepts a value in the specified range. If it answers
  *        `true`, then continue to iterate; if it answers `false`, then
  *        terminate iteration early.
- * @param "⊤"
+ * @returns "⊤"
  */
 Public method "From_to_do_" is
 [

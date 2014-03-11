@@ -32,6 +32,9 @@
 
 package com.avail.stacks;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -61,6 +64,21 @@ public class StacksGenerator
 	public static final Path defaultDocumentationPath = Paths.get("stacks");
 
 	/**
+	 * The path for documentation storage as provided by the user.
+	 */
+	Path providedDocumentPath;
+
+	/**
+	 *  The location useds for storing any log files such as error-logs.
+	 */
+	public final Path logPath;
+
+	/**
+	 * The error log file for the malformed comments.
+	 */
+	StacksErrorLog errorLog;
+
+	/**
 	 * A map of {@linkplain ModuleName module names} to a list of all the method
 	 * names exported from said module
 	 */
@@ -83,6 +101,7 @@ public class StacksGenerator
 	 *         If the output path exists but does not specify a directory.
 	 */
 	public StacksGenerator(final Path outputPath)
+		throws IllegalArgumentException
 	{
 		if (Files.exists(outputPath) && !Files.isDirectory(outputPath))
 		{
@@ -90,7 +109,10 @@ public class StacksGenerator
 				outputPath + " exists and is not a directory");
 		}
 
-		// TODO: [RAA] Create this directory if necessary, also the error log.
+		this.logPath = outputPath
+			.resolve("logs");
+		this.errorLog = new StacksErrorLog(logPath);
+
 
 		this.moduleToComments =
 			new HashMap<A_String,StacksCommentsModule>();
@@ -114,11 +136,16 @@ public class StacksGenerator
 		final ModuleHeader header,
 		final A_Tuple commentTokens)
 	{
-		//TODO [RAA]remove comment
-		/*final StacksCommentsModule commentsModule =
-			new StacksCommentsModule(
-				header,commentTokens,moduleToExportedMethodsMap);
-		updateModuleToComments(commentsModule);*/
+
+
+		System.out.println("Starting scanning of comments in "
+			+ header.moduleName.qualifiedName());
+
+		StacksCommentsModule commentsModule = null;
+
+		commentsModule = new StacksCommentsModule(
+			header,commentTokens,moduleToExportedMethodsMap,errorLog);
+		updateModuleToComments(commentsModule);
 	}
 
 	/**
@@ -129,6 +156,7 @@ public class StacksGenerator
 	private void updateModuleToComments (
 		final StacksCommentsModule commentModule)
 	{
+
 		moduleToComments.put(commentModule.moduleName(), commentModule);
 	}
 
@@ -141,7 +169,41 @@ public class StacksGenerator
 	 */
 	public synchronized void generate (final ModuleName outermostModule)
 	{
-		// TODO [RAA]: Implement everything else.
+		System.out.println("In generate()");
+		final StacksOutputFile myMapFile = new StacksOutputFile(
+			logPath,
+			"Header Map.txt",
+			moduleToExportedMethodsMap.toString());
+
+		final StacksOutputFile myMethodsFile = new StacksOutputFile(
+			logPath,
+			"Methods Map.txt",
+			moduleToComments.toString());
+		try
+		{
+			//do nothing
+		}
+		finally
+		{
+			try
+			{
+				final ByteBuffer closeHTML = ByteBuffer.wrap(String.format(
+					"</ol>\n<h4>Error Count: %d</h4>\n</body>\n</html>"
+						,errorLog.errorCount())
+					.getBytes(StandardCharsets.UTF_8));
+				errorLog.addLogEntry(closeHTML,0);
+				errorLog.file().close();
+				myMapFile.file().close();
+				myMethodsFile.file().close();
+			}
+			catch (final IOException e)
+			{
+				// TODO [RAA] Remove in favor of other convention
+				e.printStackTrace();
+			}
+		}
+		clear();
+
 	}
 
 	/**
@@ -150,10 +212,7 @@ public class StacksGenerator
 	 */
 	public synchronized void clear ()
 	{
-		this.moduleToComments =
-			new HashMap<A_String,StacksCommentsModule>();
-
-		this.moduleToExportedMethodsMap =
-			new HashMap<A_String,A_Set>();
+		moduleToComments.clear();
+		moduleToExportedMethodsMap.clear();
 	}
 }
