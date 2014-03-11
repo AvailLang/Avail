@@ -101,9 +101,21 @@ public class StacksCommentsModule
 	@Override
 	public String toString()
 	{
-		return new StringBuilder().append(moduleName().asNativeString())
-			.append("[\"").append(namedCommentImplementations.toString())
-			.append("\"],").toString();
+		final StringBuilder stringBuilder = new StringBuilder().append("<h3>")
+			.append(moduleName().asNativeString())
+			.append("</h3>\n<ol>");
+
+		for (final List<AbstractCommentImplementation> value :
+			namedCommentImplementations.values())
+		{
+		   for(final AbstractCommentImplementation method : value)
+		   {
+			   stringBuilder.append("<li>")
+			   		.append(method.toString())
+			   		.append("</li>\n");
+		   }
+		}
+		return stringBuilder.append("</ol>\n").toString();
 	}
 
 

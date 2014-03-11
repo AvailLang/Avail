@@ -40,6 +40,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import com.avail.builder.ModuleName;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
 import com.avail.descriptor.A_Set;
@@ -170,15 +172,55 @@ public class StacksGenerator
 	public synchronized void generate (final ModuleName outermostModule)
 	{
 		System.out.println("In generate()");
+		final ByteBuffer closeHTML = ByteBuffer.wrap(String.format(
+			"</ol>\n<h4>Error Count: %d</h4>\n</body>\n</html>"
+				,errorLog.errorCount())
+			.getBytes(StandardCharsets.UTF_8));
+		errorLog.addLogEntry(closeHTML,0);
+
+		final StringBuilder stringBuilder = new StringBuilder();
+		for (final Entry<A_String, A_Set> entry :
+			moduleToExportedMethodsMap.entrySet())
+		{
+			stringBuilder.append("<h3>").append(entry.getKey().toString())
+				.append("</h3>\n");
+
+		    final A_Tuple value = entry.getValue().asTuple();
+			if (value.tupleSize() == 0)
+			{
+				//Do nothing
+			}
+			else
+			{
+				stringBuilder.append("<ol>\n");
+				for (int i = 1, limit = value.tupleSize(); i <= limit; i++)
+				{
+					stringBuilder.append("<li>");
+					stringBuilder.append(value.tupleAt(i).asNativeString());
+					stringBuilder.append("</li>\n");
+				}
+				stringBuilder.append("</ol>\n");
+			}
+		}
+
+
 		final StacksOutputFile myMapFile = new StacksOutputFile(
 			logPath,
-			"Header Map.txt",
-			moduleToExportedMethodsMap.toString());
+			"Header Map.html",
+			("<!DOCTYPE html>\n<head><style>h3 "
+				+ "{text-decoration:underline;}\n "
+				+ "strong, em {color:blue;}</style>\n"
+				+ "</head>\n<body>\n" + stringBuilder.toString()
+				+ "</body>\n</html>"));
 
 		final StacksOutputFile myMethodsFile = new StacksOutputFile(
 			logPath,
-			"Methods Map.txt",
-			moduleToComments.toString());
+			"Methods Map.html",
+			("<!DOCTYPE html>\n<head><style>h3 "
+				+ "{text-decoration:underline;}\n "
+				+ "strong, em {color:blue;}</style>\n"
+				+ "</head>\n<body>\n" + moduleToComments.toString()
+				+ "</body>\n</html>"));
 		try
 		{
 			//do nothing
@@ -187,11 +229,6 @@ public class StacksGenerator
 		{
 			try
 			{
-				final ByteBuffer closeHTML = ByteBuffer.wrap(String.format(
-					"</ol>\n<h4>Error Count: %d</h4>\n</body>\n</html>"
-						,errorLog.errorCount())
-					.getBytes(StandardCharsets.UTF_8));
-				errorLog.addLogEntry(closeHTML,0);
 				errorLog.file().close();
 				myMapFile.file().close();
 				myMethodsFile.file().close();

@@ -42,6 +42,10 @@ import java.util.ArrayList;
 public class StacksForbidsTag extends AbstractStacksTag
 {
 	/**
+	 * The forbids arity index.
+	 */
+	final private AbstractStacksToken arityIndex;
+	/**
 	 * The list of the methods for which the method is "forbbiden" to used in
 	 * conjunction with.
 	 */
@@ -49,14 +53,16 @@ public class StacksForbidsTag extends AbstractStacksTag
 
 	/**
 	 * Construct a new {@link StacksForbidsTag}.
-	 *
+	 * @param arityIndex
+	 *		The forbids arity index.
 	 * @param forbidMethods
 	 * 		The list of the methods for which the method is "forbbiden" to used
 	 * 		in conjunction with.
 	 */
-	public StacksForbidsTag (
+	public StacksForbidsTag (final AbstractStacksToken arityIndex,
 		final ArrayList<QuotedStacksToken> forbidMethods)
 	{
+		this.arityIndex = arityIndex;
 		this.forbidMethods = forbidMethods;
 	}
 
@@ -66,6 +72,14 @@ public class StacksForbidsTag extends AbstractStacksTag
 	public ArrayList<QuotedStacksToken> forbidMethods ()
 	{
 		return forbidMethods;
+	}
+
+	/**
+	 * @return the arityIndex
+	 */
+	public AbstractStacksToken arityIndex ()
+	{
+		return arityIndex;
 	}
 
 }

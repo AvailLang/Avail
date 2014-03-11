@@ -199,25 +199,42 @@ public class CommentImplementationBuilder
 		 final ArrayList<AbstractStacksToken> tagContentTokens)
 			 throws ClassCastException, StacksCommentBuilderException
 	{
+
+		try
+		{
+			Integer.parseInt(tagContentTokens.get(0).lexeme);
+		}
+		catch(final NumberFormatException e) {
+				final String errorMessage = String.format("\n<li><strong>%s"
+					+ "</strong><em> Line #: %d</em>: Malformed "
+					+ "@forbids tag section; expected a number immediately "
+					+ "the @forbids tag, but did not receive one.</li>",
+					moduleLeafName,
+					commentStartLine());
+				throw new StacksCommentBuilderException(errorMessage, this);
+		}
+
 		try
 		{
 			final ArrayList<QuotedStacksToken> tempTokens =
 				new ArrayList<QuotedStacksToken>(1);
 
-			for (final AbstractStacksToken token : tagContentTokens)
+			for (int i =1 ; i < tagContentTokens.size(); i++)
 			{
-				tempTokens.add((QuotedStacksToken) token);
+				tempTokens.add((QuotedStacksToken) tagContentTokens.get(i));
 			}
 
-			forbids.add(new StacksForbidsTag (tempTokens));
+			forbids.add(
+				new StacksForbidsTag (tagContentTokens.get(0), tempTokens));
 		}
 		catch (final ClassCastException e)
 		{
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed "
-				+ "@forbids tag section; expected a series of quoted method names "
-				+ "immediately following the @forbids tag, however the first "
-				+ "argument following the @forbids tag is not quoted.</li>",
+				+ "@forbids tag section; expected a series of quoted method "
+				+ "names immediately following the @forbids tag arity number, "
+				+ "however the first argument following the @forbids tag is "
+				+ "not quoted.</li>",
 				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);

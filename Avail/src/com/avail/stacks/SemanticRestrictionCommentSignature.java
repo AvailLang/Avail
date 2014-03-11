@@ -67,4 +67,10 @@ public class SemanticRestrictionCommentSignature extends CommentSignature
 		this.orderedInputTypes = orderedInputTypes;
 	}
 
+	@Override
+	public String toString ()
+	{
+		return String.format("%s -> %s\n", name.asNativeString(),
+			orderedInputTypes.toString());
+	}
 }
