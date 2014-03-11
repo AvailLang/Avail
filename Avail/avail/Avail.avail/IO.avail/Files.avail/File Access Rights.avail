@@ -409,6 +409,7 @@ Public method "_'s⁇access rights«(don't follow if symlink)»?" is
  * @param "followIfSymlink" "boolean"
  *        {@method "true"} if {@param "fn"} should be followed if it refers to a
  *        symbolic link, {@method "false"} otherwise.
+ * @returns "⊤"
  * @raises "invalid-path exception"
  *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
@@ -450,6 +451,7 @@ Public method "_'s⁇access rights:=_(follow if symlink=_)" is
  * @param "dontFollowIfSymlink" "boolean"
  *        {@method "true"} if {@param "fn"} should not be followed if it refers
  *        to a symbolic link, {@method "false"} otherwise.
+ * @returns "⊤"
  * @raises "invalid-path exception"
  *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
@@ -537,7 +539,7 @@ Public method "“_”(file access rights summary)" is
  *
  * @method "_→file access rights"
  * @param "s" "file access rights summary"
- * @returns "{file access right|0..9}
+ * @returns "{file access right|0..9}"
  */
 Public stable method "_→file access rights" is
 [

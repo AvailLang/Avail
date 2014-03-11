@@ -65,6 +65,7 @@ Body
  *        The source {@type "file name"}.
  * @param "dest" "file name"
  *        The destination {@type "file name"}.
+ * @returns "⊤"
  * @raises "invalid-path exception"
  *         If either {@param "src"} or {@param "dest"} cannot be understood as a
  *         path.
@@ -104,6 +105,7 @@ Public method "Rename_to_" is
  * @param "overwrite" "boolean"
  *        {@method "true"} if {@param "dest"} should be overwritten if it
  *        exists, {@method "false"} otherwise.
+ * @returns "⊤"
  * @raises "invalid-path exception"
  *         If either {@param "src"} or {@param "dest"} cannot be understood as a
  *         path.
@@ -149,6 +151,7 @@ Public method "Move_to_(overwrite=_)" is
  * @param "overwrite" "boolean"
  *        {@method "true"} if {@param "dest"} should be overwritten if it
  *        exists, {@method "false"} otherwise.
+ * @returns "⊤"
  * @raises "invalid-path exception"
  *         If either {@param "src"} or {@param "dest"} cannot be understood as a
  *         path.
@@ -303,6 +306,7 @@ is
  *        {@method "true"} if symbolic links should be followed during
  *        traversal, {@method "false"} otherwise. Applies to recursive unlinking
  *        only.
+ * @returns "⊤"
  * @raises "invalid-path exception"
  *         If {@param "fn"} cannot be understood as a path.
  * @raises "partial-success exception"
@@ -359,6 +363,7 @@ Public method "Unlink_(recursive=_,must exist=_,follow symlinks=_)" is
  *        {@method "true"} if symbolic links should be followed during
  *        traversal, {@method "false"} otherwise. Applies to recursive unlinking
  *        only.
+ * @returns "⊤"
  * @raises "invalid-path exception"
  *         If {@param "fn"} cannot be understood as a path.
  * @raises "partial-success exception"

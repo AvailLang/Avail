@@ -60,6 +60,10 @@ Body
  * Utility method for "Method_is stable at_".  Test whether the tuple of types
  * have exactly one instance each.  Even though ⊥'s type is technically a
  * metatype rather than a pure enumeration, it only has one instance (⊥).
+ * 
+ * @method "«_‡,»are all singular"
+ * @returns "boolean"
+ *
  */
 Private method "«_‡,»are all singular" is
 [
@@ -485,6 +489,7 @@ Semantic restriction "Stable forward method_is_" is
  *        The name of the new method.
  * @param "implementation" "function"
  *        An implementation of the method.
+ * @returns "⊤"
  */
 Public method "Stable method_is_" is
 [
@@ -528,6 +533,7 @@ Semantic restriction "Stable method_is_" is
  *        The name of the abstract method to declare.
  * @param "aFunctionType" "function meta"
  *        The signature.
+ * @returns "⊤"
  */
 Public method "Public stable abstract method_is_" is
 [
@@ -634,6 +640,7 @@ Semantic restriction "Public stable forward method_is_" is
  *        The name of the new method.
  * @param "implementation" "function"
  *        The original implementation of the method.
+ * @returns "⊤"
  */
 Public method "Public stable method_is_" is
 [
@@ -785,6 +792,7 @@ Semantic restriction "Private stable forward method_is_" is
  *        The name of the new method.
  * @param "implementation" "function"
  *        The original implementation of the method.
+ * @returns "⊤"
  */
 Public method "Private stable method_is_" is
 [

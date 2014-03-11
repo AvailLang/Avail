@@ -259,6 +259,7 @@ Method "“_”" is [o : private socket option | o's option name];
  *
  * @method "Require:_are sensible"
  * @param "options" "<<server socket option, any…|2>…|>'s type"
+ * @returns "⊤"
  */
 Public method "Require:_are sensible" is
 [

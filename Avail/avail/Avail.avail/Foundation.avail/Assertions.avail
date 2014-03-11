@@ -131,8 +131,8 @@ Public method "Assert:_(_)" is
 
 /**
  * @method "Assert:_(_)"
- * @restricts false's type's type
- * @restricts string's type
+ * @restricts "false's type's type"
+ * @restricts "string's type"
  */
 Semantic restriction "Assert:_(_)" is
 [
@@ -147,6 +147,7 @@ Semantic restriction "Assert:_(_)" is
  * It results in an assertion failure.
  *
  * @method "Shouldn't happen"
+ * @returns "⊥"
  * @raises "assertion-failed exception"
  *         Always.
  */

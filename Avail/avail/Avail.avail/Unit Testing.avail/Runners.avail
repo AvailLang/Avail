@@ -170,6 +170,7 @@ Private method "tear down for_" is
  * @method "Setup:_"
  * @param "aSuite" "unit test suite"
  *        A {@type "unit test suite"}.
+ * @returns "⊤"
  * @raises "test-fixture-setup exception"
  *         If any of the test-fixture setup functions fail.
  */
@@ -197,6 +198,7 @@ Private method "Setup:_" is
  * @method "Setup:_"
  * @param "aTest" "unit test"
  *        A {@type "unit test"}.
+ * @returns "⊤"
  * @raises "test-fixture-setup exception"
  *         If any of the test-fixture setup functions fail.
  */
@@ -224,6 +226,7 @@ Private method "Setup:_" is
  * @method "Setup:_"
  * @param "aSuite" "unit test suite"
  *        A {@type "unit test suite"}.
+ * @returns "⊤"
  * @raises "test-fixture-tear-down exception"
  *         If any of the test-fixture tear-down functions fail.
  */
@@ -251,6 +254,7 @@ Private method "Tear down:_" is
  * @method "Setup:_"
  * @param "aTest" "unit test"
  *        A {@type "unit test"}.
+ * @returns "⊤"
  * @raises "test-fixture-tear-down exception"
  *         If any of the test-fixture tear-down functions fail.
  */
@@ -408,6 +412,7 @@ Public method "report on_" is
  *        A tuple of arity-0 functions.
  * @param "exceptionType" "test-suite exception's type"
  *        An exception type.
+ * @returns "⊤"
  * @raises "test-suite exception"
  *         If any of the functions fails.
  */
@@ -629,7 +634,7 @@ Public method "_'s⁇metrics by test suite" is
  * present in the argument, preserving their order.
  *
  * @method "bad results of_"
- * @param "<unit test result…|>"
+ * @param "results" "<unit test result…|>"
  * @returns "<unit test failure…|>"
  */
 Private method "bad results of_" is

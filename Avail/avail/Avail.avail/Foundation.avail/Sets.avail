@@ -737,7 +737,7 @@ Semantic restriction "_⊂_" is
  * @method "_⊇_"
  * @param "a" "set"
  * @param "b" "set"
- * @retrurns "boolean"
+ * @returns "boolean"
  *           `true` if `a` is a superset of or equal to `b`, `false` otherwise.
  */
 Public stable method "_⊇_" is
@@ -789,7 +789,7 @@ Semantic restriction "_⊇_" is
  * @method "_⊉_"
  * @param "a" "set"
  * @param "b" "set"
- * @retrurns "boolean"
+ * @returns "boolean"
  *	`true` if `a` is neither a superset of nor equal to `b`, `false` otherwise.
  */
 Public stable method "_⊉_" is
@@ -841,7 +841,7 @@ Semantic restriction "_⊉_" is
  * @method "_⊈_"
  * @param "a" "set"
  * @param "b" "set"
- * @retrurns "boolean"
+ * @returns "boolean"
  *	`true` if `a` is neither a superset of nor equal to `b`, `false` otherwise.
  */
 Public stable method "_⊈_" is

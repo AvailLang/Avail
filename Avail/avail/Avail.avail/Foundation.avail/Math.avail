@@ -594,10 +594,10 @@ Semantic restriction "_×_" is
 /**
  * Compute and answer the integer range type of the quotient.
  * 
- * @method 
+ * @method "_÷_"
  * @param "numeratorRange" "extended integer's type"
  *        An integral type.
- * @param "denomintor" "extended integer"
+ * @param "denominator" "extended integer"
  *        An integer.
  * Returns:
  *    The narrowest integer range type general enough to hold all possible
@@ -648,10 +648,10 @@ Method "_÷_" is
 /**
  * Compute and answer the integer range type of the quotient.
  * 
- * @method 
+ * @method "_÷_"
  * @param "numeratorRange" "extended integer's type"
  *        An integral type.
- * @param "denomintor" "extended integer's type"
+ * @param "denominator" "extended integer's type"
  *        An integral type.
  * Returns:
  *    The narrowest integer range type general enough to hold all possible
@@ -813,6 +813,9 @@ Semantic restriction "`|_`|" is
 /**
  * Catch accidental use of absolute value on expressions that are strictly
  * non-negative.
+ *
+ * @method "`|_`|"
+ * @restricts "extended integer's type"
  */
 Semantic restriction "`|_`|" is
 [
@@ -884,6 +887,7 @@ Public method "«_‡«=|≤|<»!»" is
  * non-numerics.
  * 
  * @method "comparison chain semantic restriction function"
+ * @param "args" "<<any, [1..1]…|1..2>…|3..∞>'s type"
  * 
  */
 Private method "comparison chain semantic restriction function" is

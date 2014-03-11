@@ -65,8 +65,8 @@ _2_32_1 ::= _2_32 - 1;
  *
  * @type "Mersenne Twister"
  * @supertype "stream"
- * @category Data Abstractions
- * @category Pseudorandom Number Generation
+ * @category "Data Abstractions"
+ * @category "Pseudorandom Number Generation"
  * @see
  * M. Matsumoto and T. Nishimura, "Mersenne Twister: A 623-dimensionally
  * equidistributed uniform pseudorandom number generator", ACM Trans. on
@@ -183,6 +183,7 @@ Private method "a Mersenne Twister stream from_" is
  * generator. If no argument is supplied, then the {@"milliseconds since the
  * Epoch" current time} is used to initialize the generator.
  * 
+ * @method "a Mersenne Twister«from_»"
  * @param "optionalSeed" "<[0.._2_32)…|0..1>"
  *        An optional seed.
  * @returns "Mersenne Twister"
@@ -240,6 +241,7 @@ Private method "a Mersenne Twister stream from_" is
  * Construct and answer a {@type "Mersenne Twister"} pseudorandom number
  * generator. The argument is a seed used to initialize the generator.
  * 
+ * @method "a Mersenne Twister from_"
  * @param "seed" "<[0.._2_32)…|1..>"
  *        A seed.
  * @returns "Mersenne Twister"

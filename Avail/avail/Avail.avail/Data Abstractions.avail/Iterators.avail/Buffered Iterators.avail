@@ -110,6 +110,7 @@ Private abstract method privateNextBufferName is [buffered iterator]→tuple;
  *        The iterator's type, as a cross check for the implementation.
  * @param "implementation" "[⊥, ⊥]→tuple"
  *        The new method extension. The argument is the iterator.
+ * @returns "⊤"
  */
 Public method "_'s⁇next buffer method is_" is
 [
@@ -147,6 +148,7 @@ Semantic restriction "_'s⁇next buffer method is_" is
  *
  * @method "Seal_'s⁇next buffer method"
  * @param "iteratorType" "buffered iterator's type"
+ * @returns "⊤"
  */
 Public method "Seal_'s⁇next buffer method" is
 [
@@ -373,6 +375,7 @@ Semantic restriction "_'s⁇set position method is_" is
  *
  * @method "Seal_'s⁇next buffer method"
  * @param "iteratorType" "positionable buffered iterator's type"
+ * @returns "⊤"
  */
 Public method "Seal_'s⁇set position method" is
 [

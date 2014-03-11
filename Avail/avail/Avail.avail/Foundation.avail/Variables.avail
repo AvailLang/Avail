@@ -72,9 +72,13 @@ Semantic restriction "↓_" is
  * Construct and answer a new variable with the specified containment type and
  * initial value.
  *
+ * @method "(↓new↑_:=_)"
+ * @param "containmentType" "any meta"
+ * @param "initialValue" "any"
  * Parameters:
  *    containmentType - The containment type.
  *    initialValue - The initial value.
+ * @returns "variable"
  * Returns:
  *    A new variable capable of retrieving and storing values of the specified
  *    containment type. The variable contains `initialValue`.
@@ -119,9 +123,13 @@ Semantic restriction "(↓new↑_:=_)" is
  * Construct and answer a new variable with the specified containment type and
  * initial value.
  *
+ * @method "(↓new↑_`?=_)"
+ * @param "containmentType" "any meta"
+ * @param "initialValue" "any"
  * Parameters:
  *    containmentType - The containment type.
  *    initialValue - The initial value.
+ * @returns "variable"
  * Returns:
  *    A new variable capable of retrieving and storing values of the specified
  *    containment type. The variable contains `initialValue`.
@@ -139,8 +147,11 @@ Public method "(↓new↑_`?=_)" is
 /**
  * Does the specified variable contain a value?
  *
+ * @method "_is assigned"
+ * @param "var" "variable"
  * Parameters:
  *    var - A variable.
+ * @returns "boolean"
  * Returns:
  *    `true` if the variable contains a value (i.e. because it has previously
  *    been assigned), `false` otherwise.
@@ -181,6 +192,9 @@ Semantic restriction "swap_and_" is
 /**
  * Answer a function that accepts a variable and increments it.
  * 
+ * @method "increment function"
+ * @param "var" "variable"
+ * @returns "⊤"
  * Returns:
  *    The requested function.
  */
@@ -197,6 +211,9 @@ Private method "increment function" is
  * Answer a function suitable for semantically restricting increment/decrement
  * statements.
  * 
+ * @method "increment/decrement semantic restriction"
+ * @param "varType" "variable meta"
+ * @returns "⊤"
  * Returns:
  *    A function that accepts a variable type and requires that it be able to
  *    read/write numbers. It answers ⊤.
@@ -219,6 +236,8 @@ Private method "increment/decrement semantic restriction" is
 /**
  * Increment the variable by one. This is intended for use as a statement.
  * 
+ * @method "_++"
+ * @param "var" "variable"
  * Parameters:
  *    var - A numeric variable.
  */
@@ -237,8 +256,11 @@ Semantic restriction "_++" is increment/decrement semantic restriction;
  * by one, and answer the remembered value. This is intended for use as an
  * expression.
  * 
+ * @method "(_++)"
+ * @param "var" "variable"
  * Parameters:
  *    var - A numeric variable.
+ * @returns "⊤"
  * Returns:
  *    The value of the argument prior to the increment.
  */
@@ -274,6 +296,8 @@ Semantic restriction "(_++)" is
 /**
  * Increment the variable by one. This is intended for use as a statement.
  * 
+ * @method "++_"
+ * @param "var" "variable"
  * Parameters:
  *    var - A numeric variable.
  */
@@ -290,6 +314,8 @@ Semantic restriction "++_" is increment/decrement semantic restriction;
 /**
  * Increment the specified value and answer its new value.
  * 
+ * @method "(++_)"
+ * @param "var" "variable"
  * Parameters:
  *    var - A numeric variable.
  * Returns:
@@ -339,6 +365,8 @@ Semantic restriction "(++_)" is
 /**
  * Answer a function that accepts a variable and decrements it.
  * 
+ * @method "decrement function"
+ * @param "var" "variable"
  * Returns:
  *    The requested function.
  */
@@ -354,6 +382,8 @@ Private method "decrement function" is
 /**
  * Decrement the variable by one. This is intended for use as a statement.
  * 
+ * @method "_--"
+ * @param "var" "variable"
  * Parameters:
  *    var - A numeric variable.
  */
@@ -372,8 +402,11 @@ Semantic restriction "_--" is increment/decrement semantic restriction;
  * by one, and answer the remembered value. This is intended for use as an
  * expression.
  * 
+ * @method "(_--)"
+ * @param "var" "variable"
  * Parameters:
  *    var - A numeric variable.
+ * @returns "⊤"
  * Returns:
  *    The value of the argument prior to the decrement.
  */
@@ -411,6 +444,10 @@ Semantic restriction "(_--)" is
  * 
  * Parameters:
  *    var - A numeric variable.
+ *
+ * @method "--_"
+ * @param "var" "variable"
+ * @returns "⊤"
  */
 Public method "--_" is decrement function;
 
@@ -429,6 +466,9 @@ Semantic restriction "--_" is increment/decrement semantic restriction;
  *    var - A numeric variable.
  * Returns:
  *    The value of the argument after the decrement.
+ *
+ * @method "(--_)"
+ * @param "var" "variable"
  */
 Public method "(--_)" is
 [

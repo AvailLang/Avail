@@ -145,7 +145,7 @@ Public method "{«_‡,»}ᵀ" is
 
 /**
  * @method "{«_‡,»}ᵀ"
- * @restricts <<>, nontype…|whole number>'s type
+ * @restricts "<<>, nontype…|whole number>'s type"
  */
 Semantic restriction "{«_‡,»}ᵀ" is
 [

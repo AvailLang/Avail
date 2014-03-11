@@ -81,6 +81,7 @@ Public explicit class "no-backtracking-fence exception" extends exception;
  * Ensure that a backtracking fence is active.
  *
  * @method "Require:inside fence"
+ * @returns "⊤"
  * @raises "no-backtracking-fence exception"
  *         If the method was invoked outside of a {@method
  *         "Backtracking fence_" backtracking fence}.
@@ -113,6 +114,7 @@ Forward method "Try again" is []→⊥;
  * @param "action" "[]→⊤"
  *        A function within which checkpoints and {@method "Try again"} are
  *        permitted.
+ * @returns "⊤"
  */
 Public method "Backtracking fence_" is
 [
@@ -259,6 +261,7 @@ Semantic restriction "trial`#of_" is
  * @method "trial element of_"
  * @param "aTuple" "tuple"
  *        A tuple.
+ * @returns "any"
  * @raises "no-backtracking-fence exception"
  *         If {@method "trial element of_"} is not invoked from within a
  *         function governed by {@method "Backtracking fence_"}.
@@ -298,6 +301,7 @@ Semantic restriction "trial element of_" is
  * @method "trial element of_"
  * @param "aSet" "set"
  *        A set.
+ * @returns "any"
  * @raises "no-backtracking-fence exception"
  *         If {@method "trial element of_"} is not invoked from within a
  *         function governed by {@method "Backtracking fence_"}.
@@ -331,6 +335,8 @@ Semantic restriction "trial element of_" is
  * Restart the previous checkpoint, but answer something different from last
  * time.
  *
+ * @method "Try again"
+ * @returns "⊥"
  * @raises "no-backtracking-fence exception"
  *         If {@method "Try again"} is not invoked from within a function
  *         governed by {@method "Backtracking fence_"}.

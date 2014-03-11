@@ -53,6 +53,7 @@ Body
  * when it is unloaded.
  *
  * @method "Remember the current module"
+ * @returns "⊤"
  */
 Private method "Remember the current module" is
 [
@@ -73,7 +74,9 @@ Private method "Remember the current module" is
 /**
  * Forget about the specifed {@type "unit test suite"}.
  *
- * @method "suite" "unit test suite"
+ * @method "Forget_"
+ * @param "suite" "unit test suite"
+ * @returns "⊤"
  */
 Private method "Forget_" is
 [
@@ -118,6 +121,7 @@ Private method "Forget_" is
  *        The identifier of the parent test suite. When a test suite is run,
  *        then all of its child test suites are also run (and their unit tests
  *        are treated as the parent's own).
+ * @returns "⊤"
  * @raises "bad-argument exception"
  *         If {@param "id"} = {@param "parentID"}.
  * @raises "test-suite-already-exists exception"
@@ -190,6 +194,7 @@ Public method "New test suite,⁇_,⁇extends_" is
  * @method "_is a new test suite"
  * @param "id" "atom"
  *        The identifier of the test suite.
+ * @returns "⊤"
  * @raises "test-suite-already-exists exception"
  *         If {@param "id"} references an existing unit test suite.
  * @raises "no-such-test-element exception"
@@ -212,6 +217,7 @@ Public method "_is a new test suite" is
  *        The test suite identifier of an existing test suite.
  * @param "setup" "[]→⊤"
  *        A test-fixture setup function.
+ * @returns "⊤"
  * @raises "no-such-test-suite exception"
  *         If {@param "id"} does not reference an existing test suite.
  */
@@ -259,6 +265,7 @@ Semantic restriction "Before running_,⁇do_"
  *        The test suite identifier of an existing test suite.
  * @param "setup" "[]→⊤"
  *        A test-fixture setup function.
+ * @returns "⊤"
  * @raises "no-such-test-suite exception"
  *         If {@param "id"} does not reference an existing test suite.
  */
@@ -289,6 +296,7 @@ Semantic restriction "Before running each test in_,⁇do_"
  *        The test suite identifier of an existing test suite.
  * @param "tearDown" "[]→⊤"
  *        A test-fixture tear-down function.
+ * @returns "⊤"
  * @raises "no-such-test-suite exception"
  *         If {@param "id"} does not reference an existing test suite.
  */
@@ -321,6 +329,7 @@ Semantic restriction "After running_,⁇do_"
  *        The test suite identifier of an existing test suite.
  * @param "tearDown" "[]→⊤"
  *        A test-fixture tear-down function.
+ * @returns "⊤"
  * @raises "no-such-test-suite exception"
  *         If {@param "id"} does not reference an existing test suite.
  */
@@ -345,7 +354,9 @@ Semantic restriction "After running each test in_,⁇do_"
 /**
  * Forget about the specifed {@type "unit test"}.
  *
- * @method "test" "unit test"
+ * @method "Forget_"
+ * @param "test" "unit test"
+ * @returns "⊤"
  */
 Private method "Forget_" is
 [
@@ -384,6 +395,7 @@ Private method "Forget_" is
  *        If specified, then {@param "test"} must raise an exception of this
  *        type when applied. If not specified, then "test" must not raise any
  *        exceptions.
+ * @returns "⊤"
  * @raises "test-already-exists exception"
  *         If {@param "name"} names an existing unit test.
  */
