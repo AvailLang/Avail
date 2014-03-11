@@ -147,7 +147,7 @@ Method "⎣_⎦" is
  * Shouldn't happen.
  * 
  * @method "⎣_⎦"
- * @param "⊥'s type"
+ * @param "bottom" "⊥'s type"
  */
 Method "⎣_⎦" is
 [
@@ -160,7 +160,7 @@ Method "⎣_⎦" is
  * Shouldn't happen.
  * 
  * @method "⎡_⎤"
- * @param "⊥'s type"
+ * @param "bottom" "⊥'s type"
  */
 Method "⎡_⎤" is
 [
@@ -491,6 +491,8 @@ Method "_[_]" is
  * statically well-known elements the same force as lexical literals, e.g.,
  * numbers and strings.
  *
+ * @method "<«_‡,»>"
+ * @restricts "tuple meta"
  * Parameters:
  *    elements -
  * Returns:
@@ -561,6 +563,10 @@ y ::= 1 min 2 min 3;
  * is the type union of the elements within the slice indicated by the range of
  * the subscript. Forbid any access that could never be correct, i.e., the
  * minimum value of the subscript exceeds the maximum cardinality of the tuple.
+ *
+ * @method "_[_]"
+ * @restricts "tuple meta"
+ * @restricts "natural number's type"
  */
 Semantic restriction "_[_]" is
 [
@@ -604,6 +610,9 @@ Semantic restriction "_[_]" is
  * be correct, i.e., the minimum value of the subscript exceeds the maximum
  * cardinality of the tuple.
  *
+ * @method "|[_]"
+ * @restricts "tuple meta's type"
+ * @restricts "natural number's type"
  * Parameters:
  *    aTuple -
  *    index -
@@ -666,6 +675,7 @@ with <>;
  * statically well-known elements the same force as lexical literals, e.g.,
  * numbers and strings.
  *
+ * @method "{«_‡,»}"
  * Parameters:
  *    elements -
  * Returns:
@@ -776,8 +786,11 @@ Semantic restriction "{«_‡,»}" is
 /**
  * Construct and answer a map from the lexically specified key-value bindings.
  * 
+ * @method "{«_→_‡,»}"
+ * @param "key-value tuple"
  * Parameters:
  *    bindings - The key-value bindings that constitute the answer.
+ * @returns "map"
  * Returns:
  *    A map comprising the specified key-value bindings.
  */
@@ -800,6 +813,11 @@ Public method "{«_→_‡,»}" is
  * Returns:
  *    The most specific possible type of the lexical set, possibly an instance
  *    type.
+ *
+ * @method "{«_→_‡,»}"
+ * @restricts "key-value tuple's type"
+ * @returns "set's type"
+ * 
  */
 Semantic restriction "{«_→_‡,»}" is
 [

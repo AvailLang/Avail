@@ -251,7 +251,7 @@ Public method "_'s⁇access rights" is
  *
  * @method "_'s⁇access rights:=_"
  * @param "m" "file metadata"
- * @param "rights "{file access right|0..9}"
+ * @param "rights" "{file access right|0..9}"
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
@@ -300,6 +300,7 @@ Public method "_'s⁇owner" is
  * @method "_'s⁇owner:=_"
  * @param "m" "file metadata"
  * @param "owner" "user principal"
+ * @returns "⊤"
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
@@ -348,6 +349,7 @@ Public method "_'s⁇group" is
  * @method "_'s⁇group:=_"
  * @param "m" "file metadata"
  * @param "group" "group principal"
+ * @returns "⊤"
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"

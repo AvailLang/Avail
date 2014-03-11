@@ -185,6 +185,7 @@ Public method "relevant`|_`|" is
  *        The integral range of the start subscript.
  * @param "sliceEnd" "whole number's type"
  *        The integral range of the end subscript.
+ * @returns "⊤"
  */
 Public method "Require:_[_.._]is ever valid" is
 [
@@ -644,7 +645,7 @@ Method "_→map" is stable at
 
 /**
  * @method "_→map"
- * @restricts "key-value tuple's type
+ * @restricts "key-value tuple's type"
  */
 Semantic restriction "_→map" is
 [

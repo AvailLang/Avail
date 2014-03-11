@@ -116,8 +116,9 @@ Public method "sequence«_»of_" is
  * @method "⎣_⎦"
  * @param "sequenceType" "sequence's type"
  *        A {@type "sequence"} type.
- * @returns The lower bound of {@param "sequenceType"}'s cardinality
- *          restriction.
+ * @returns "[0..∞]"
+ *        The lower bound of {@param "sequenceType"}'s cardinality
+ *        restriction.
  */
 Method "⎣_⎦" is
 [
@@ -133,8 +134,9 @@ Method "⎣_⎦" is
  * @method "⎣_⎦"
  * @param "sequenceType" "sequence's type"
  *        A {@type "sequence"} type.
- * @returns The upper bound of {@param "sequenceType"}'s cardinality
- *          restriction.
+ * @returns "[0..∞]"
+ *        The upper bound of {@param "sequenceType"}'s cardinality
+ *        restriction.
  */
 Method "⎡_⎤" is
 [
@@ -184,6 +186,7 @@ Abstract method _privateSubscriptName is [sequence, natural number]→any;
  *        The sequence's type, as a cross check for the implementation.
  * @param "implementation" "[⊥]→any"
  *        The new method extension.
+ * @returns "⊤"
  */
 Public method "_'s⁇subscript method is_" is
 [
@@ -349,6 +352,7 @@ Method "`|_`|" is
  *        An {@type "empty sequence"}.
  * @param "index" "natural number"
  *        A proposed subscript, guaranteed to be out of range.
+ * @returns "⊥"
  * @raises "subscript-out-of-bounds exception"
  *         Always.
  */

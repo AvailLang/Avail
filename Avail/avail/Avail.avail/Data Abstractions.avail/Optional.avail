@@ -246,6 +246,7 @@ Method "_'s⁇value" is
  * @param "presentBlock" "[⊥]→⊤"
  *        The function that should be applied to {@param "anOptional"}'s
  *        content if {@param "anOptional"} is an instance of {@param "present"}.
+ * @returns "⊤"
  */
 Public method "When_is present do_" is
 [

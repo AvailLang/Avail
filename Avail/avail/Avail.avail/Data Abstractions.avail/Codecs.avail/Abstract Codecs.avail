@@ -308,7 +308,7 @@ Public class "encoding iterator" extends buffered iterator ∩ iterator of byte
  * size
  *
  * @method "a decoding iterator that buffers_element|elements of_using_"
- * @categories "Codec"
+ * @category "Codec"
  * @param "size" "natural number" 
  *        The size of the iterator buffer
  * @param "src" "iterator of byte" 
@@ -372,7 +372,7 @@ Public class "decoding iterator" extends
  * size
  *
  * @method "a decoding iterator that buffers_element|elements of_using_"
- * @categories "Codec"
+ * @category "Codec"
  * @param "size" "natural number" 
  *        The size of the iterator buffer
  * @param "src" "iterator of byte" 
@@ -403,7 +403,7 @@ Public method "a decoding iterator that buffers_element|elements of_using_" is
  * of 32,768.
  *
  * @method "a decoding iterator of_using_"
- * @categories "Codec"
+ * @category "Codec"
  * @param "src" "iterator of byte" 
  *        The source iterator to be decoded
  * @returns "decoding iterator"

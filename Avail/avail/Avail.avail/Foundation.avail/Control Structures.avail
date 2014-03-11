@@ -464,6 +464,7 @@ Abstract method "From_to_by_do_" is
  *        The amount by which to adjust the value after each iteration.
  * @param "action" "[⊥]→⊤"
  *        A function that accepts a value in the specified range.
+ * @returns "⊤"
  */
 Public method "From_to_by_do_" is
 [
@@ -606,6 +607,7 @@ Semantic restriction "From_to_by_do_" is
  *        A function that accepts a value in the specified range. If it answers
  *        `true`, then continue to iterate; if it answers `false`, then
  *        terminate iteration early.
+ * @returns "⊤"
  */
 Public method "From_to_do_" is
 [
@@ -666,6 +668,7 @@ Semantic restriction "From_to_do_" is
  *        The end value, inclusive.
  * @param "action" "[⊥]→⊤"
  *        A function that accepts a value in the specified range.
+ * @returns "⊤"
  */
 Public method "From_to_do_" is
 [
@@ -732,6 +735,7 @@ Semantic restriction "From_to_do_" is
  *        The continuation to restart.
  * @param "arguments" "tuple"
  *        The new arguments with which to restart `aContinuation`.
+ * @returns "⊥"
  */
 Method "_(«_‡,»)" is
 [
@@ -801,6 +805,7 @@ Semantic restriction "_(«_‡,»)" is
  * @param "action" "function meta"
  *        A function type whose last parameter type must permit a one-argument
  *        procedure.
+ * @returns "⊤"
  */
 Public method "Require:_'s⁇keeper is valid" is
 [
@@ -1041,7 +1046,7 @@ Semantic restriction "If|if_then_«else if_then_»«else_»" is
  * the predicate is `false`. This is the inverse of `If_then_`.
  * 
  * @method "Unless_then_"
- * @param "predicate "boolean"
+ * @param "predicate" "boolean"
  *        A predicate value.
  * @param "action" "[]→⊤"
  *        The function to invoke if `predicate` is `false`.
@@ -1586,6 +1591,7 @@ Semantic restriction "Do_while_" is
  *        The function that guards repeated application of `action`.
  * @param "between" "[]→⊤"
  *        The function to apply between applications of `action`.
+ * @returns "⊤"
  */
 Public method "Do_while_alternate with_" is
 [
@@ -1639,6 +1645,7 @@ Semantic restriction "Do_while_alternate with_" is
  *        The function that guards repeated application of `action`.
  * @param "between" "[]→⊤"
  *        The function to apply between applications of `action`.
+ * @returns "⊤"
  */
 Public method "While_do_alternate with_" is
 [
@@ -1694,6 +1701,7 @@ Semantic restriction "While_do_alternate with_" is
  *        `false`.
  * @param "predicate" "[]→boolean"
  *        The function that guards repeated application of `action`.
+ * @returns "⊤"
  */
 Public method "Do_until_" is
 [
@@ -1744,6 +1752,7 @@ Semantic restriction "Do_until_" is
  *        The function that guards repeated application of `action`.
  * @param "between" "[]→⊤"
  *        The function to apply between applications of `action`.
+ * @returns "⊤"
  */
 Public method "Do_until_alternate with_" is
 [
@@ -1797,6 +1806,7 @@ Semantic restriction "Do_until_alternate with_" is
  *        The function that guards repeated application of `action`.
  * @param "between" "[]→⊤"
  *        The function to apply between applications of `action`.
+ * @returns "⊤"
  */
 Public method "Until_do_alternate with_" is
 [

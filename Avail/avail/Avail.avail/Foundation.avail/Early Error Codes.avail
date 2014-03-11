@@ -55,6 +55,8 @@ Body
 /** 
  * A map from the error codes to their names (corresponding to the method
  * names).
+ *
+ * @global "errorCodes" "map"
  */
 errorCodes : {natural number→string|whole number} := {};
 
@@ -76,6 +78,7 @@ Public method "error codes" is [ errorCodes ];
  *        The name of the new method (without the trailing " code").
  * @param "code" "natural number"
  *        The error code.
+ * @returns "⊤"
  */
 Private method "Next error code is_(_)" is
 [

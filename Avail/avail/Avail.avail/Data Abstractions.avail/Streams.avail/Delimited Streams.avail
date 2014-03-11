@@ -49,6 +49,12 @@ Private method "delimiter|delimiters" is [ _delimiter ];
 /**
  * A delimited stream answers tuples of elements from its decorated stream.
  * These tuples are separated by occurrences of the delimiter.
+ *
+ * @type "delimited stream"
+ * @supertype "stream"
+ * @field "element type" "tuple's type"
+ * @field "reconstructible decorated stream" "stream"
+ * @field "delimiter" "<any…|1..>"
  */
 Class "delimited stream" extends stream
 	with fields
@@ -100,10 +106,12 @@ delimited stream's tail method is
  * These tuples are separated by occurrences of `delimiterTuple` (which will
  * never be produced as output from the answered stream).
  * 
- * Parameters:
+ * @method "_delimited by_"
+ * @param "aStream" "stream"
  *    aStream - A stream.
+ * @param "delimiterTuple" "<any…|1..>"
  *    delimiterTuple - The delimiter.
- * Returns:
+ * @returns "stream of tuple"
  *    The requested stream.
  */
 Public method "_delimited by_" is
@@ -131,6 +139,10 @@ Semantic restriction "_delimited by_" is
 /**
  * A delimited stream answers tuples of elements from its decorated stream.
  * These tuples are separated by occurrences of any delimiter.
+ *
+ * @type "multiply delimited stream"
+ * @supertype "delimited stream"
+ * @field "delimiters" "<<any…|1..>…|1..>;"
  */
 Explicit class "multiply delimited stream" extends delimited stream
 	with fields
@@ -192,10 +204,12 @@ multiply delimited stream's tail method is
  * These tuples are separated by occurrences of `delimiterTuple` (which will
  * never be produced as output from the answered stream).
  * 
- * Parameters:
+ * @method "_delimited by any of_"
+ * @param "aStream" "stream"
  *    aStream - A stream.
+ * @param "delimitersTuple" "<<any…|1..>…|1..>"
  *    delimiterTuple - The delimiter.
- * Returns:
+ * @returns "stream of tuple"
  *    The requested stream.
  */
 Public method "_delimited by any of_" is

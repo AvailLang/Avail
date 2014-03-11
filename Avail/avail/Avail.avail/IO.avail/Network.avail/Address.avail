@@ -232,6 +232,7 @@ Semantic restriction "a socket address from_and_" is
  * @method "a socket address from_and_"
  * @param "o" "<byte…|5..13>"
  * @param "portNumber" "[0..65535]"
+ * @returns "⊥"
  */
 Method "a socket address from_and_" is
 [
@@ -245,6 +246,7 @@ Method "a socket address from_and_" is
  * @method "a socket address from_and_"
  * @param "o" "<byte…|4>"
  * @param "portNumber" "[0..65535]"
+ * @returns "socket address"
  */
 Method "a socket address from_and_" is
 [
@@ -260,6 +262,7 @@ Method "a socket address from_and_" is
  * @method "a socket address from_and_"
  * @param "o" "<byte…|16>"
  * @param "portNumber" "[0..65535]"
+ * @returns "socket address"
  */
 Method "a socket address from_and_" is
 [

@@ -91,6 +91,7 @@ Semantic restriction "_'s⁇result" is
  * @method "Require:_accepts_"
  * @param "functionType" "function's type"
  * @param "argumentsType" "tuple's type"
+ * @returns "⊤"
  */
 Private method "Require:forked_accepts_" is
 [
@@ -235,7 +236,7 @@ Grammatical restriction "_∈_" is <∅, {"current fiber"}>;
  * @param "else" "[]→any"
  *        The function to apply if {@param "key"} is not a property of {@param
  *        "aFiber"}.
- * @returns Either the requested property value or the result of applying
+ * returns Either the requested property value or the result of applying
  *          {@param "else"}.
  */
 Method "current fiber[_]else_" is
@@ -255,6 +256,7 @@ Method "current fiber[_]else_" is
  *
  * @method "Fork_"
  * @param "aFunction" "[]→⊤"
+ * @returns "⊤"
  */
 Public method "Fork_" is
 [
@@ -446,6 +448,7 @@ Semantic restriction "_'s⁇value" is
  *
  * @method "Cancel_"
  * @param "aFuture" "future"
+ * @returns "⊤"
  */
 Public method "Cancel_" is
 [
@@ -474,6 +477,7 @@ Public method "Cancel_" is
  * @param "action" "[⊥, ⊥]→⊤"
  *        A function that accepts 1) an element of the tuple and 2) the index of
  *        that element.
+ * @returns "⊤"
  * @raises "worker exception"
  *         If any of the forked workers raise an exception.
  * @raises "termination-requested exception"
@@ -575,6 +579,7 @@ Public method "For each of⁇_in parallel do_" is
  * @param "aTuple" "tuple"
  * @param "action" "[⊥]→⊤"
  *        A function that accepts the elements of the tuple.
+ * @returns "⊤"
  * @raises "worker exception"
  *         If any of the forked workers raise an exception.
  * @raises "termination-requested exception"
@@ -622,6 +627,7 @@ Semantic restriction "For each of⁇_in parallel do_" is
  * @param "aMap" "map"
  * @param "action" "[⊥, ⊥]→⊤"
  *        A function that accepts 1) a map key and 2) the value at that key
+ * @returns "⊤"
  * @raises "worker exception"
  *         If any of the forked workers raise an exception.
  * @raises "termination-requested exception"
@@ -672,6 +678,7 @@ Semantic restriction "For each of⁇_in parallel do_" is
  * @param "aSet" "set"
  * @param "action" "[⊥]→⊤"
  *        A function that accepts the elements of the set
+ * @returns "⊤"
  * @raises "worker exception"
  *         If any of the forked workers raise an exception.
  * @raises "termination-requested exception"
@@ -1031,6 +1038,6 @@ Semantic restriction "map_in parallel through_" is
 
 /**
  * @method "a|an_«with«_«:»?:=_‡,»»"
- * @restricts 1 "future"
+ * @forbids 1 "future"
  */
 Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is <{"future"}, ∅, ∅>;

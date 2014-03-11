@@ -79,7 +79,7 @@ Body
  * 	The lexically specified argument types.
  * @param "returnType" "type"
  * 	The return type.
- * @return "function meta"
+ * @returns "function meta"
  *  The requested function type.
  */
 Public method "[«_‡,»]→_" is
@@ -181,6 +181,7 @@ Semantic restriction "<_,_`…`|_>" is
 
 /**
  * Tuple type constructor.
+ * @method "<«_‡,»`…`|_.._>"
  * @param "leadingAndDefaultTypes" "<<>, any's type…|natural number>" 
  *		a tuple of the types in the tuple
  * @param "minimumSize" "whole number" 
@@ -205,7 +206,7 @@ Public method "<«_‡,»`…`|_.._>" is
 ] : tuple meta;
 
 /**
- * @method
+ * @method "<«_‡,»`…`|_.._>"
  * @restricts "<<>, any's type…|natural number>'s type"
  * @restricts "whole number's type"
  * @restricts "[0..∞]'s type"
@@ -272,6 +273,7 @@ Semantic restriction "<«_‡,»`…`|_.._>" is
 /**
  * Tuple type constructor with max cardinality of ∞.
  *
+ * @method "<«_‡,»`…`|_..>"
  * Parameters:
  * @param "leadingAndDefaultTypes" "<<>, any's type…|natural number>" 
  *		a tuple of the types in the tuple
@@ -356,6 +358,7 @@ Semantic restriction "<«_‡,»`…`|_..>" is
 /**
  * Tuple type constructor with minimum cardinality of 0.
  *
+ * @method "<«_‡,»`…`|.._>"
  * @param "leadingAndDefaultTypes" "<<>, any's type…|natural number>" 
  *		a tuple of the types in the tuple 
  * @param "maximumSize" "[0..∞]"
@@ -440,6 +443,7 @@ Semantic restriction "<«_‡,»`…`|.._>" is
 /**
  * Tuple type constructor with exact tuple size for cardinality.
  *
+ * @method "<«_‡,»`…`|_>"
  * @param "leadingAndDefaultTypes" "<<>, any's type…|natural number>" 
  *		a tuple of the types in the tuple
  * @param "exactSize" "whole number" 
@@ -525,6 +529,7 @@ Semantic restriction "<«_‡,»`…`|_>" is
 /**
  * Tuple type constructor with cardinality [0..∞).
  *
+ * @method "<«_‡,»`…`|>"
  * @param "leadingAndDefaultTypes" "<<>, any's type…|natural number>" 
  *		a tuple of the types in the tuple
  * @return "tuple meta"
@@ -619,6 +624,7 @@ Semantic restriction "{_`|_}" is
  * Construct and answer a set type with the specified element type and the 
  * specified minimum value and maximum value of the cardinalities.
  * 
+ * @method "{_`|_.._}"
  * @param "elementType" "any's type" 
  *		The element type.
  * @param "minimumSize" "whole number" 
@@ -685,6 +691,7 @@ Semantic restriction "{_`|_.._}" is
  * specified minimum value of the cardinality. The maximum value of the 
  * cardinality is automatically set to ∞.
  *
+ * @method "{_`|_..}"
  * @param "elementType" "any's type" 
  *		The element type.
  * @param "minimumSize" "whole number" 
@@ -721,6 +728,7 @@ Semantic restriction "{_`|_..}" is
  * specified minimum value of the cardinality. The maximum value of the 
  * cardinality is automatically set to ∞.
  *
+ * @method "{_`|.._}"
  * @param "elementType" "any's type" 
  *		The element type.
  * @param "maximumSize" "[0..∞]"
@@ -810,6 +818,7 @@ Semantic restriction "{_`|_}" is
  * specified minimum value of the cardinality. The maximum value of the 
  * cardinality is automatically set to ∞.
  * 
+ * @method "{_`|}"
  * @param "elementType" "any's type" 
  *		The element type.
  * @return "set meta"
@@ -839,6 +848,7 @@ Semantic restriction "{_`|}" is
  * Construct and answer a set type with the specified element type and range of
  * cardinalities.
  *
+ * @method "set«_»of_"
  * Parameters:
  * @param "optionalSizes" "<whole number meta…|0..1>"
  *	If specified, then the range of allowed cardinalities. Defaults to whole 
@@ -899,6 +909,7 @@ Semantic restriction "{_→_`|_}" is
  * Construct and answer a map type with the specified key type, value type, and
  * uses all whole numbers as the value of the cardinality.
  *
+ * @method "{_→_`|_.._}"
  * @param "keyType" "any meta"
  * 	A type to which all keys of instances must conform.
  * @param "valueType" "any meta"
@@ -945,6 +956,7 @@ Semantic restriction "{_→_`|_.._}" is
  * the specified minimum value of the cardinality and ∞ as the maximum value of 
  * the cardinality.
  * 
+ * @method "{_→_`|_..}"
  * @param "keyType" "any meta"
  * 	A type to which all keys of instances must conform.
  * @param "valueType" "any meta"
@@ -984,6 +996,7 @@ Semantic restriction "{_→_`|_..}" is
  * the specified maximum value of the cardinality and 0 as the minimum value of 
  * the cardinality.
  *
+ * @method "{_→_`|.._}"
  * @param "keyType" "any meta"
  * 	A type to which all keys of instances must conform.
  * @param "valueType" "any meta"
@@ -1023,6 +1036,7 @@ Semantic restriction "{_→_`|.._}" is
  * Construct and answer a map type with the specified key type, value type, and
  * the exact size of the cardinality.
  * 
+ * @method "{_→_`|_}"
  * @param "keyType" "any meta"
  * 	A type to which all keys of instances must conform.
  * @param "valueType" "any meta"
@@ -1062,6 +1076,7 @@ Semantic restriction "{_→_`|_}" is
  * Construct and answer a map type with the specified key type, value type, and
  * uses all whole numbers as the value of the cardinality.
  * 
+ * @method "{_→_`|}"
  * @param "keyType" "any meta"
  * 	A type to which all keys of instances must conform.
  * @param "valueType" "any meta"

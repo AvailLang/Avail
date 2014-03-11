@@ -85,7 +85,7 @@ bounded iterator's advance method is
  * Construct and answer an {@type "iterator"} that can answer at most the first
  * {@param "limit"} elements of {@param "anIterator"}.
  *
- * @method "_limited to_elements" is
+ * @method "_limited to_elements"
  * @param "anIterator" "iterator"
  *        A iterator.
  * @param "limit" "[0..∞]"

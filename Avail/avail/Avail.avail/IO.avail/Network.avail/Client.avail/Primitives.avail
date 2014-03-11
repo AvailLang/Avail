@@ -138,6 +138,7 @@ Public method "a client socket«named_»" is
  * @method "_'s⁇«_:=_‡,»"
  * @param "s" "client socket"
  * @param "options" "<<client socket option, any…|2>…|1..5>"
+ * @returns "⊤"
  */
 Method "_'s⁇«_:=_‡,»" is
 [
@@ -198,6 +199,7 @@ Private abstract method "Bind_to_on port_"
  * @param "s" "client socket"
  * @param "ipAddress" "IPv4 address"
  * @param "port" "[0..65535]"
+ * @returns "⊤"
  */
 Method "Bind_to_on port_" is
 [
@@ -228,6 +230,7 @@ Method "Bind_to_on port_" is
  * @param "s" "client socket"
  * @param "ipAddress" "IPv6 address"
  * @param "port" "[0..65535]"
+ * @returns "⊤"
  */
 Method "Bind_to_on port_" is
 [
@@ -257,6 +260,7 @@ Method "Bind_to_on port_" is
  * @method "Bind_to_"
  * @param "s" "client socket"
  * @param "localAddress" "socket address"
+ * @returns "⊤"
  */
 Public method "Bind_to_" is
 [
@@ -723,6 +727,7 @@ Public method "_'s⁇remote address" is
  *
  * @method "Close_"
  * @param "s" "client socket"
+ * @returns "⊤"
  */
 Method "Close_" is
 [

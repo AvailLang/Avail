@@ -48,6 +48,13 @@ Body
 /**
  * A counting number stream is an immutable lazy list of arbitarily many
  * numbers, each of which is a fixed distance from its neighbors.
+ *
+ * @type "counting number stream"
+ * @supertype "stream"
+ * @field "element type" "number's type"
+ * @field "reconstructible next" "number"
+ * @field "step" "number"
+ * @field "maximum" "number"
  */
 Class "counting number stream" extends stream
 	with fields
@@ -61,6 +68,13 @@ Class "counting number stream" extends stream
 /**
  * An counting integer stream is an immutable lazy list of arbitrarily many
  * integers, each of which is a fixed distance from its neighbors.
+ *
+ * @type "counting integer stream"
+ * @supertype "counting number stream"
+ * @field "element type" "integer's type"
+ * @field "next" "integer"
+ * @field "step" "integer"
+ * @field "maximum" "extended integer"
  */
 Class "counting integer stream" extends counting number stream
 	with fields
@@ -157,12 +171,14 @@ Semantic restriction "For each of⁇_do_" is
  * Construct and answer a stream that lazily produces all consecutive values
  * between `start` and `end`.
  * 
- * Parameters:
+ * @method "a counting stream from_to_"
+ * @param "start" "integer"
  *    start - The start value, inclusive. This is the first value that will be
  *       answered by the stream.
+ * @param "end" "extended integer"
  *    end - The end value, inclusive. This is the last value that will be
  *       answered by the stream.
- * Returns:
+ * @returns "stream of integer"
  *    The requested stream.
  */
 Public method "a counting stream from_to_" is
@@ -204,15 +220,18 @@ Semantic restriction "a counting stream from_to_" is
  * stream. It is only guaranteed that no larger values than `end` will be
  * answered.
  * 
- * Parameters:
+ * @method "a counting stream from_to_by_"
+ * @param "start" "number"
  *    start - The start value, inclusive. This is the first value that will be
  *       answered by the stream.
+ * @param "end" "number"
  *    end - The end value, inclusive. If `delta ≥ 0`, then no values larger than
  *       this will be answered by the stream. If `delta < 0`, then no values
  *       smaller than this will be answered by the stream.
+ * @param "delta" "number"
  *    delta - The amount by which successive values anwered by the stream will
  *       differ.
- * Returns:
+ * @returns "stream of number"
  *    The requested stream.
  */
 Public method "a counting stream from_to_by_" is
@@ -277,15 +296,18 @@ Semantic restriction "a counting stream from_to_by_" is
  * stream. It is only guaranteed that no larger values than `end` will be
  * answered.
  * 
- * Parameters:
+ * @method "a counting stream from_to_by_"
+ * @param "start" "integer"
  *    start - The start value, inclusive. This is the first value that will be
  *       answered by the stream.
+ * @param "end" "number"
  *    end - The end value, inclusive. If `delta ≥ 0`, then no values larger than
  *       this will be answered by the stream. If `delta < 0`, then no values
  *       smaller than this will be answered by the stream.
+ * @param "delta" "integer"
  *    delta - The amount by which successive values anwered by the stream will
  *       differ.
- * Returns:
+ * @returns "stream of integer"
  *    The requested stream.
  */
 Public method "a counting stream from_to_by_" is
