@@ -79,7 +79,7 @@ public class MethodCommentSignature extends CommentSignature
 	@Override
 	public String toString ()
 	{
-		return String.format("%s -> %s : %s\n", name.asNativeString(),
+		return String.format("%s -> %s : %s", name.asNativeString(),
 			orderedInputTypes.toString(),returnType);
 	}
 }

@@ -203,6 +203,15 @@ public class StacksGenerator
 			}
 		}
 
+		final StringBuilder stringBuilderImplementations = new StringBuilder();
+		for (final Entry<A_String, StacksCommentsModule> entry :
+			moduleToComments.entrySet())
+		{
+			stringBuilderImplementations.append("<h3>")
+				.append(entry.getKey().toString())
+				.append("</h3>\n")
+				.append(entry.getValue().toString());
+		}
 
 		final StacksOutputFile myMapFile = new StacksOutputFile(
 			logPath,
@@ -219,7 +228,7 @@ public class StacksGenerator
 			("<!DOCTYPE html>\n<head><style>h3 "
 				+ "{text-decoration:underline;}\n "
 				+ "strong, em {color:blue;}</style>\n"
-				+ "</head>\n<body>\n" + moduleToComments.toString()
+				+ "</head>\n<body>\n" + stringBuilderImplementations.toString()
 				+ "</body>\n</html>"));
 		try
 		{

@@ -73,6 +73,6 @@ public class CommentSignature
 	@Override
 	public String toString ()
 	{
-		return String.format("%s\n", name.asNativeString());
+		return String.format("%s", name.asNativeString());
 	}
 }

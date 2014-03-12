@@ -1,5 +1,5 @@
 /**
- * SemanticRestrictionCommentSignature.java
+ * AbstractStacksOutputFile.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,45 +32,43 @@
 
 package com.avail.stacks;
 
-import java.util.ArrayList;
-import com.avail.descriptor.A_String;
+import java.nio.ByteBuffer;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 
 /**
- * The defining characteristic of a semantic restriction comment as it pertains
- * to the implementation it describes.
+ * TODO: Document AbstractStacksOutputFile!
  *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ * @author TODO &lt;TODO@availlang.org&gt;
  */
-public class SemanticRestrictionCommentSignature extends CommentSignature
+public abstract class AbstractStacksOutputFile
 {
 	/**
-	 * The method parameter input types in order of input
+	 * The {@linkplain Path path} to the output {@linkplain
+	 * BasicFileAttributes#isDirectory() directory} for documentation and
+	 * data files.
 	 */
-	final ArrayList<String> orderedInputTypes;
+	final Path outputPath;
+	/**
+	 * Construct a new {@link AbstractStacksOutputFile}.
+	 * @param outputPath
+	 * 	 The {@linkplain Path path} to the output {@linkplain
+	 *   BasicFileAttributes#isDirectory() directory} for documentation and
+	 *   data files.
+	 *
+	 */
+	public AbstractStacksOutputFile (final Path outputPath)
+	{
+		this.outputPath = outputPath;
+	}
 
 	/**
-	 * Construct a new {@link SemanticRestrictionCommentSignature}.
-	 *
-	 * @param name
-	 * 		The name of the class/method the comment describes.
-	 * @param module
-	 * 		The module this implementation appears in.
-	 * @param orderedInputTypes
-	 * 		The semantic restriction parameter input types in order of input
+	 * Add a new error log entry to the error error log.
+	 * @param buffer
+	 * 		The error log buffer
+	 * @param addToErrorCount
+	 * 		The amount of errors added with this log update.
 	 */
-	public SemanticRestrictionCommentSignature (
-		final String name,
-		final A_String module,
-		final ArrayList<String> orderedInputTypes)
-	{
-		super(name, module);
-		this.orderedInputTypes = orderedInputTypes;
-	}
-
-	@Override
-	public String toString ()
-	{
-		return String.format("%s -> %s", name.asNativeString(),
-			orderedInputTypes.toString());
-	}
+	public abstract void addLogEntry(final ByteBuffer buffer,
+		final int addToErrorCount);
 }
