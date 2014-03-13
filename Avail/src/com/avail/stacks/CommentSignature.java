@@ -69,4 +69,10 @@ public class CommentSignature
 		this.name = StringDescriptor.from(name);
 		this.module = module;
 	}
+
+	@Override
+	public String toString ()
+	{
+		return String.format("%s", name.asNativeString());
+	}
 }

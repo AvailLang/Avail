@@ -59,4 +59,10 @@ public class GlobalCommentSignature extends CommentSignature
 		this.globalType = globalType;
 	}
 
+	@Override
+	public String toString ()
+	{
+		return String.format("%s -> %s", name.asNativeString(),
+			globalType);
+	}
 }

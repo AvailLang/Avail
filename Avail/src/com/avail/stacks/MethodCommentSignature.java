@@ -76,4 +76,10 @@ public class MethodCommentSignature extends CommentSignature
 		this.returnType = returnType;
 	}
 
+	@Override
+	public String toString ()
+	{
+		return String.format("%s -> %s : %s", name.asNativeString(),
+			orderedInputTypes.toString(),returnType);
+	}
 }

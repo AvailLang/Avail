@@ -40,8 +40,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import com.avail.builder.ModuleName;
+import com.avail.builder.ModuleNameResolver;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
+import com.avail.compiler.AbstractAvailCompiler.ModuleImport;
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Tuple;
@@ -74,6 +77,12 @@ public class StacksGenerator
 	public final Path logPath;
 
 	/**
+	 * A {@linkplain ModuleNameResolver} to resolve {@linkplain
+	 * 			ModuleImport}
+	 */
+	final ModuleNameResolver resolver;
+
+	/**
 	 * The error log file for the malformed comments.
 	 */
 	StacksErrorLog errorLog;
@@ -97,10 +106,14 @@ public class StacksGenerator
 	 *        The {@linkplain Path path} to the output {@linkplain
 	 *        BasicFileAttributes#isDirectory() directory} for documentation and
 	 *        data files.
+	 * @param resolver
+	 * 			A {@linkplain ModuleNameResolver} to resolve {@linkplain
+	 * 			ModuleImport}
 	 * @throws IllegalArgumentException
 	 *         If the output path exists but does not specify a directory.
 	 */
-	public StacksGenerator(final Path outputPath)
+	public StacksGenerator(final Path outputPath,
+		final ModuleNameResolver resolver)
 		throws IllegalArgumentException
 	{
 		if (Files.exists(outputPath) && !Files.isDirectory(outputPath))
@@ -108,6 +121,8 @@ public class StacksGenerator
 			throw new IllegalArgumentException(
 				outputPath + " exists and is not a directory");
 		}
+
+		this.resolver = resolver;
 
 		this.logPath = outputPath
 			.resolve("logs");
@@ -144,7 +159,7 @@ public class StacksGenerator
 		StacksCommentsModule commentsModule = null;
 
 		commentsModule = new StacksCommentsModule(
-			header,commentTokens,moduleToExportedMethodsMap,errorLog);
+			header,commentTokens,moduleToExportedMethodsMap,errorLog, resolver);
 		updateModuleToComments(commentsModule);
 	}
 
@@ -170,15 +185,64 @@ public class StacksGenerator
 	public synchronized void generate (final ModuleName outermostModule)
 	{
 		System.out.println("In generate()");
+		final ByteBuffer closeHTML = ByteBuffer.wrap(String.format(
+			"</ol>\n<h4>Error Count: %d</h4>\n</body>\n</html>"
+				,errorLog.errorCount())
+			.getBytes(StandardCharsets.UTF_8));
+		errorLog.addLogEntry(closeHTML,0);
+
+		final StringBuilder stringBuilder = new StringBuilder();
+		for (final Entry<A_String, A_Set> entry :
+			moduleToExportedMethodsMap.entrySet())
+		{
+			stringBuilder.append("<h3>").append(entry.getKey().toString())
+				.append("</h3>\n");
+
+		    final A_Tuple value = entry.getValue().asTuple();
+			if (value.tupleSize() == 0)
+			{
+				//Do nothing
+			}
+			else
+			{
+				stringBuilder.append("<ol>\n");
+				for (int i = 1, limit = value.tupleSize(); i <= limit; i++)
+				{
+					stringBuilder.append("<li>");
+					stringBuilder.append(value.tupleAt(i).asNativeString());
+					stringBuilder.append("</li>\n");
+				}
+				stringBuilder.append("</ol>\n");
+			}
+		}
+
+		final StringBuilder stringBuilderImplementations = new StringBuilder();
+		for (final Entry<A_String, StacksCommentsModule> entry :
+			moduleToComments.entrySet())
+		{
+			stringBuilderImplementations.append("<h3>")
+				.append(entry.getKey().toString())
+				.append("</h3>\n")
+				.append(entry.getValue().toString());
+		}
+
 		final StacksOutputFile myMapFile = new StacksOutputFile(
 			logPath,
-			"Header Map.txt",
-			moduleToExportedMethodsMap.toString());
+			"Header Map.html",
+			("<!DOCTYPE html>\n<head><style>h3 "
+				+ "{text-decoration:underline;}\n "
+				+ "strong, em {color:blue;}</style>\n"
+				+ "</head>\n<body>\n" + stringBuilder.toString()
+				+ "</body>\n</html>"));
 
 		final StacksOutputFile myMethodsFile = new StacksOutputFile(
 			logPath,
-			"Methods Map.txt",
-			moduleToComments.toString());
+			"Methods Map.html",
+			("<!DOCTYPE html>\n<head><style>h3 "
+				+ "{text-decoration:underline;}\n "
+				+ "strong, em {color:blue;}</style>\n"
+				+ "</head>\n<body>\n" + stringBuilderImplementations.toString()
+				+ "</body>\n</html>"));
 		try
 		{
 			//do nothing
@@ -187,11 +251,6 @@ public class StacksGenerator
 		{
 			try
 			{
-				final ByteBuffer closeHTML = ByteBuffer.wrap(String.format(
-					"</ol>\n<h4>Error Count: %d</h4>\n</body>\n</html>"
-						,errorLog.errorCount())
-					.getBytes(StandardCharsets.UTF_8));
-				errorLog.addLogEntry(closeHTML,0);
 				errorLog.file().close();
 				myMapFile.file().close();
 				myMethodsFile.file().close();

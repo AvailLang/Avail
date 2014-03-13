@@ -1,5 +1,5 @@
 /**
- * StacksErrorLog.java
+ * StacksOutputFile.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -42,22 +42,16 @@ import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 
 /**
- * A Stacks log file that contains errors from processing comments in Avail
- * modules.
+ * The way a file is created.
  *
- * @author Richard A Arriaga &lt;rich@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksErrorLog extends AbstractStacksOutputFile
+public class StacksOutputFile extends AbstractStacksOutputFile
 {
 	/**
 	 * The error log file for the malformed comments.
 	 */
-	private AsynchronousFileChannel errorLog;
-
-	/**
-	 * The amount of errors listed in the file
-	 */
-	private int errorCount;
+	private AsynchronousFileChannel outputFile;
 
 	/**
 	 * File position tracker for error log
@@ -69,44 +63,7 @@ public class StacksErrorLog extends AbstractStacksOutputFile
 	 */
 	public AsynchronousFileChannel file ()
 	{
-		return errorLog;
-	}
-
-	/**
-	 * Construct a new {@link StacksErrorLog}.
-	 * @param outputPath
-	 *        The {@linkplain Path path} to the output {@linkplain
-	 *        BasicFileAttributes#isDirectory() directory} for documentation and
-	 *        data files.
-	 *
-	 */
-	public StacksErrorLog (final Path outputPath)
-	{
-		super(outputPath);
-		this.errorFilePosition = 0;
-		this.errorCount = 0;
-		try
-		{
-			final Path errorLogPath = outputPath.resolve("errorlog.html");
-			Files.createDirectories(outputPath);
-			this.errorLog = AsynchronousFileChannel.open(
-				errorLogPath,
-				StandardOpenOption.CREATE,
-				StandardOpenOption.WRITE,
-				StandardOpenOption.TRUNCATE_EXISTING);
-
-			final ByteBuffer openHTML = ByteBuffer.wrap(
-				("<!DOCTYPE html>\n<head><style>h3 "
-				+ "{text-decoration:underline;}\n "
-				+ "strong, em {color:blue;}</style>\n"
-				+ "</head>\n<body>\n")
-				.getBytes(StandardCharsets.UTF_8));
-			addLogEntry(openHTML,0);
-		}
-		catch (final IOException e)
-		{
-			e.printStackTrace();
-		}
+		return outputFile;
 	}
 
 	/**
@@ -120,17 +77,46 @@ public class StacksErrorLog extends AbstractStacksOutputFile
 	public synchronized void addLogEntry(final ByteBuffer buffer,
 		final int addToErrorCount)
 	{
-		errorCount += addToErrorCount;
 		final long position = errorFilePosition;
 		errorFilePosition += buffer.limit();
-		errorLog.write(buffer, position);
+		outputFile.write(buffer, position);
 	}
 
 	/**
-	 * @return the errorCount
+	 * Construct a new {@link StacksOutputFile}.
+	 *
+	 * @param outputPath
+	 *        The {@linkplain Path path} to the output {@linkplain
+	 *        BasicFileAttributes#isDirectory() directory} for documentation and
+	 *        data files.
+	 * @param fileName
+	 * 		The name of the new file
+	 * @param outputText
+	 * 		The text to be written to the file.
 	 */
-	public int errorCount ()
+	public StacksOutputFile (final Path outputPath, final String fileName,
+		final String outputText)
 	{
-		return errorCount;
+		super(outputPath);
+
+		this.errorFilePosition = 0;
+		try
+		{
+			final Path errorLogPath = outputPath.resolve(fileName);
+			Files.createDirectories(outputPath);
+			this.outputFile = AsynchronousFileChannel.open(
+				errorLogPath,
+				StandardOpenOption.CREATE,
+				StandardOpenOption.WRITE,
+				StandardOpenOption.TRUNCATE_EXISTING);
+
+			final ByteBuffer openHTML = ByteBuffer.wrap(
+				(outputText.getBytes(StandardCharsets.UTF_8)));
+			addLogEntry(openHTML,0);
+		}
+		catch (final IOException e)
+		{
+			e.printStackTrace();
+		}
 	}
 }

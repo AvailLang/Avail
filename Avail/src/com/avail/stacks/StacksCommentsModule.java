@@ -37,6 +37,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import com.avail.builder.ModuleName;
+import com.avail.builder.ModuleNameResolver;
+import com.avail.builder.ResolvedModuleName;
+import com.avail.builder.UnresolvedDependencyException;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
 import com.avail.compiler.AbstractAvailCompiler.ModuleImport;
 import com.avail.descriptor.A_Set;
@@ -101,9 +105,17 @@ public class StacksCommentsModule
 	@Override
 	public String toString()
 	{
-		return new StringBuilder().append(moduleName().asNativeString())
-			.append("[\"").append(namedCommentImplementations.toString())
-			.append("\"],").toString();
+		final StringBuilder stringBuilder = new StringBuilder().append("<ol>");
+
+		for (final List<AbstractCommentImplementation> value :
+			namedCommentImplementations.values())
+		{
+		   for(final AbstractCommentImplementation method : value)
+		   {
+			   stringBuilder.append(method.toString());
+		   }
+		}
+		return stringBuilder.append("</ol>\n").toString();
 	}
 
 
@@ -138,20 +150,23 @@ public class StacksCommentsModule
 	 * @param commentTokens
 	 * @param moduleToMethodMap
 	 * @param errorLog
+	 * @param resolver
 	 */
 	public StacksCommentsModule(
 		final ModuleHeader header,
 		final A_Tuple commentTokens,
 		final HashMap<A_String,A_Set> moduleToMethodMap,
-		final StacksErrorLog errorLog)
+		final StacksErrorLog errorLog,
+		final ModuleNameResolver resolver)
 	{
 		this.moduleName = StringDescriptor
 			.from(header.moduleName.qualifiedName());
-		this.exportedNames = allExportedNames(header,moduleToMethodMap);
+		this.exportedNames = allExportedNames(
+			header,moduleToMethodMap,resolver);
 
 		moduleToMethodMap.put(
 			this.moduleName,
-			SetDescriptor.fromCollection(header.exportedNames));
+			this.exportedNames);
 
 		final StringBuilder errorMessages = new StringBuilder().append("");
 		int errorCount = 0;
@@ -194,20 +209,36 @@ public class StacksCommentsModule
 	/**
 	 * @param header
 	 * @param moduleToMethodMap
+	 * @param resolver
 	 * @return
 	 */
 	private A_Set allExportedNames (final ModuleHeader header,
-		final HashMap<A_String,A_Set> moduleToMethodMap)
+		final HashMap<A_String,A_Set> moduleToMethodMap,
+		final ModuleNameResolver resolver)
 	{
-		final A_Set collectedExtendedNames =
+		/*final A_Set collectedExtendedNames =
 			SetDescriptor.empty();
 
 		for (final ModuleImport moduleImport : header.importedModules)
 		{
-			if (moduleToMethodMap.get(moduleImport.moduleName) == null)
+		final A_String moduleImportName;
+			try
 			{
+				moduleImportName = StringDescriptor.from(resolver.resolve(
+					header.moduleName
+						.asSibling(moduleImport.moduleName.asNativeString()),
+					header.moduleName).qualifiedName());
+			}
+			catch (final UnresolvedDependencyException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if (moduleToMethodMap.get(moduleImportName) == null)
+			{
+
 				moduleToMethodMap
-					.put(moduleImport.moduleName,SetDescriptor.empty());
+					.put(moduleImportName,SetDescriptor.empty());
 			}
 
 			if (moduleImport.isExtension)
@@ -216,7 +247,7 @@ public class StacksCommentsModule
 				{
 					collectedExtendedNames.setUnionCanDestroy(
 						moduleToMethodMap
-							.get(moduleImport.moduleName),
+							.get(moduleImportName),
 						true);
 				}
 
@@ -243,9 +274,8 @@ public class StacksCommentsModule
 				}
 			}
 		}
-		collectedExtendedNames.setUnionCanDestroy(
-			SetDescriptor.fromCollection(header.exportedNames), true);
-
-		return collectedExtendedNames;
+		return collectedExtendedNames.setUnionCanDestroy(
+			SetDescriptor.fromCollection(header.exportedNames), true);*/
+			return null;
 	}
 }

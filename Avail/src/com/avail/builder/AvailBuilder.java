@@ -1800,7 +1800,8 @@ public final class AvailBuilder
 		 */
 		DocumentationTracer (final Path documentationPath)
 		{
-			generator = new StacksGenerator(documentationPath);
+			generator = new StacksGenerator(documentationPath,
+				runtime.moduleNameResolver());
 		}
 
 		/**

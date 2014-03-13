@@ -88,4 +88,12 @@ public abstract class AbstractCommentImplementation
 		this.author = author;
 		this.sees = sees;
 	}
+
+	@Override
+	public String toString ()
+	{
+		return new StringBuilder().append("<li>")
+			.append(signature.toString())
+			.append("\n</li>").toString();
+	}
 }
