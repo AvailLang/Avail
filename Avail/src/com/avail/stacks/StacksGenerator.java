@@ -40,10 +40,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Map.Entry;
 import com.avail.builder.ModuleName;
+import com.avail.builder.ModuleNameResolver;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
+import com.avail.compiler.AbstractAvailCompiler.ModuleImport;
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Tuple;
@@ -76,6 +77,12 @@ public class StacksGenerator
 	public final Path logPath;
 
 	/**
+	 * A {@linkplain ModuleNameResolver} to resolve {@linkplain
+	 * 			ModuleImport}
+	 */
+	final ModuleNameResolver resolver;
+
+	/**
 	 * The error log file for the malformed comments.
 	 */
 	StacksErrorLog errorLog;
@@ -99,10 +106,14 @@ public class StacksGenerator
 	 *        The {@linkplain Path path} to the output {@linkplain
 	 *        BasicFileAttributes#isDirectory() directory} for documentation and
 	 *        data files.
+	 * @param resolver
+	 * 			A {@linkplain ModuleNameResolver} to resolve {@linkplain
+	 * 			ModuleImport}
 	 * @throws IllegalArgumentException
 	 *         If the output path exists but does not specify a directory.
 	 */
-	public StacksGenerator(final Path outputPath)
+	public StacksGenerator(final Path outputPath,
+		final ModuleNameResolver resolver)
 		throws IllegalArgumentException
 	{
 		if (Files.exists(outputPath) && !Files.isDirectory(outputPath))
@@ -110,6 +121,8 @@ public class StacksGenerator
 			throw new IllegalArgumentException(
 				outputPath + " exists and is not a directory");
 		}
+
+		this.resolver = resolver;
 
 		this.logPath = outputPath
 			.resolve("logs");
@@ -146,7 +159,7 @@ public class StacksGenerator
 		StacksCommentsModule commentsModule = null;
 
 		commentsModule = new StacksCommentsModule(
-			header,commentTokens,moduleToExportedMethodsMap,errorLog);
+			header,commentTokens,moduleToExportedMethodsMap,errorLog, resolver);
 		updateModuleToComments(commentsModule);
 	}
 
