@@ -367,8 +367,6 @@ public final class AvailBuilder
 		 *        {@link ModuleVersion} from a valid module file.
 		 */
 		@InnerAccess void traceAllModuleHeaders (
-//			final Continuation1<ModuleRoot> rootPreAction,
-//			final Continuation1<ResolvedModuleName> packagePreAction,
 			final Continuation2<ResolvedModuleName, ModuleVersion> moduleAction)
 		{
 			traceRequests = 0;
@@ -410,45 +408,46 @@ public final class AvailBuilder
 					{
 						assert file != null;
 						final String localName = file.toFile().getName();
-						if (localName.endsWith(availExtension))
+						if (!localName.endsWith(availExtension))
 						{
-							synchronized (this)
-							{
-								traceRequests++;
-							}
-							runtime.execute(new AvailTask(0, new Continuation0()
-							{
-								@Override
-								public void value ()
-								{
-									final StringBuilder builder =
-										new StringBuilder(100);
-									builder.append("/");
-									builder.append(moduleRoot.name());
-									final Path relative =
-										rootPath.relativize(file);
-									for (final Path element : relative)
-									{
-										final String part = element.toString();
-										builder.append("/");
-										part.endsWith(availExtension);
-										final String noExtension =
-											part.substring(
-												0,
-												part.length()
-													- availExtension.length());
-										builder.append(noExtension);
-									}
-									final ModuleName moduleName =
-										new ModuleName(builder.toString());
-									final ResolvedModuleName resolved =
-										new ResolvedModuleName(
-											moduleName,
-											moduleRoot);
-									traceOneModuleHeader(resolved, moduleAction);
-								}
-							}));
+							return CONTINUE;
 						}
+						// It's a module file.
+						synchronized (this)
+						{
+							traceRequests++;
+						}
+						runtime.execute(new AvailTask(0, new Continuation0()
+						{
+							@Override
+							public void value ()
+							{
+								final StringBuilder builder =
+									new StringBuilder(100);
+								builder.append("/");
+								builder.append(moduleRoot.name());
+								final Path relative = rootPath.relativize(file);
+								for (final Path element : relative)
+								{
+									final String part = element.toString();
+									builder.append("/");
+									part.endsWith(availExtension);
+									final String noExtension =
+										part.substring(
+											0,
+											part.length()
+												- availExtension.length());
+									builder.append(noExtension);
+								}
+								final ModuleName moduleName =
+									new ModuleName(builder.toString());
+								final ResolvedModuleName resolved =
+									new ResolvedModuleName(
+										moduleName,
+										moduleRoot);
+								traceOneModuleHeader(resolved, moduleAction);
+							}
+						}));
 						return CONTINUE;
 					}
 
@@ -1842,7 +1841,7 @@ public final class AvailBuilder
 			final Continuation0 completionAction)
 		{
 			final ModuleVersion version = getVersion(moduleName);
-			if (version == null)
+			if (version == null || version.getComments() == null)
 			{
 				final Problem problem = new Problem(
 					moduleName,
@@ -1865,8 +1864,9 @@ public final class AvailBuilder
 			final A_Tuple tuple;
 			try
 			{
-				final ByteArrayInputStream in =
-					validatedBytesFrom(version.getComments());
+				final byte[] bytes = version.getComments();
+				assert bytes != null;
+				final ByteArrayInputStream in = validatedBytesFrom(bytes);
 				final Deserializer deserializer = new Deserializer(in, runtime);
 				tuple = deserializer.deserialize();
 				assert tuple != null;
@@ -2068,8 +2068,11 @@ public final class AvailBuilder
 		final Continuation3<ModuleName, Long, Long> globalTracker)
 	{
 		shouldStopBuild = false;
-		final BuildUnloader unloader = new BuildUnloader();
-		unloader.unload();
+		if (!loadedModules.isEmpty())
+		{
+			final BuildUnloader unloader = new BuildUnloader();
+			unloader.unload();
+		}
 		if (!shouldStopBuild)
 		{
 			final BuildTracer tracer = new BuildTracer();

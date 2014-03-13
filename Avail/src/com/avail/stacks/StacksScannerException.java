@@ -32,6 +32,7 @@
 
 package com.avail.stacks;
 
+import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.CommentTokenDescriptor;
 
@@ -57,9 +58,9 @@ public class StacksScannerException extends Exception
 	 *
 	 * @return A {@link String} describing which module failed lexical scanning.
 	 */
-	public String moduleName ()
+	public A_String moduleName ()
 	{
-		return failedScanner.moduleName().asNativeString();
+		return failedScanner.moduleName();
 	}
 
 	/**
@@ -118,7 +119,7 @@ public class StacksScannerException extends Exception
 		super(cause);
 		try
 		{
-			StacksScanner.processCommentString(availComment);
+			StacksScanner.processCommentString(availComment,moduleName());
 			assert false : "Should have thrown exception";
 			// And throw in case assertions are off.  Keeps Java compiler happy.
 			throw new RuntimeException("Should have thrown exception");

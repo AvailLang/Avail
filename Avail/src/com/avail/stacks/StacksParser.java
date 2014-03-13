@@ -424,7 +424,11 @@ public class StacksParser
 			builder.addStacksCommentDescription(description);
 		}
 
-		while (nextSectionStartLocationsIndex < sectionStartLocations.size()-1)
+		int getDataStartingFrom = 0;
+
+		int getDataUntil = 0;
+
+		while (nextSectionStartLocationsIndex < sectionStartLocations.size())
 		{
 			nextSectionStartLocationsIndex =
 				currentSectionStartLocationsIndex + 1;
@@ -433,28 +437,28 @@ public class StacksParser
 				tokens().get(sectionStartLocations
 					.get(currentSectionStartLocationsIndex)).lexeme();
 
+			getDataStartingFrom = sectionStartLocations
+				.get(currentSectionStartLocationsIndex) + 1;
+
+			getDataUntil = 0;
+			if (nextSectionStartLocationsIndex >
+				sectionStartLocations.size()-1)
+			{
+				getDataUntil = tokens().size();
+			}
+			else
+			{
+				getDataUntil = sectionStartLocations
+					.get(nextSectionStartLocationsIndex);
+			}
+
 			//Add the new tag section to the map.
 			StacksTagKeyword.keywordTable.get(key)
 				.addTokensToBuilder(builder,
 					new ArrayList<AbstractStacksToken>(tokens()
-						.subList(sectionStartLocations
-								.get(currentSectionStartLocationsIndex) + 1,
-							sectionStartLocations.
-								get(nextSectionStartLocationsIndex))));
+						.subList(getDataStartingFrom,getDataUntil)));
 			currentSectionStartLocationsIndex = nextSectionStartLocationsIndex;
 		}
-
-		final String key =
-			tokens().get(sectionStartLocations
-				.get(currentSectionStartLocationsIndex)).lexeme();
-
-		//Add the new tag section to the map.
-		StacksTagKeyword.keywordTable.get(key)
-			.addTokensToBuilder(builder,
-				new ArrayList<AbstractStacksToken>(tokens()
-					.subList(sectionStartLocations
-							.get(currentSectionStartLocationsIndex) + 1,
-						tokens().size())));
 
 		return builder.createStacksComment();
 	}

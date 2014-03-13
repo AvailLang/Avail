@@ -241,6 +241,25 @@ public abstract class AbstractStacksScanner
 	}
 
 	/**
+	 * From the full directory path of a module name, obtain the leaf portion
+	 * that represents the file name in the directory.
+	 * @return the module leaf name
+	 */
+	public String obtainModuleSimpleName ()
+	{
+		final String modName = moduleName.asNativeString();
+		final int modNameLength = modName.length();
+		int i = modName.length() - 1;
+		while (modName.charAt(i) != '\\' && modName.charAt(i) != '/' &&
+			i > -1)
+		{
+			i--;
+		}
+
+		return modName.substring(i+1, modNameLength);
+	}
+
+	/**
 	 * Add the provided uninitialized {@linkplain StacksToken quoted
 	 * token}.
 	 *
@@ -338,8 +357,12 @@ public abstract class AbstractStacksScanner
 	{
 		if (atEnd())
 		{
-			throw new StacksScannerException(
-				"\nAttempted to read past end of file",
+
+			throw new StacksScannerException(String.format("\n<li><strong>%s"
+				+ "</strong><em>Line #: %d</em>: Scanner Error: Attempted to "
+				+ "read past end of file.</li>",
+				this.obtainModuleSimpleName(),
+				this.lineNumber()),
 				this);
 		}
 		final int c = Character.codePointAt(tokenString, position);
@@ -425,11 +448,12 @@ public abstract class AbstractStacksScanner
 				if (scanner.atEnd())
 				{
 					// Just the open quote, then end of file.
-					throw new StacksScannerException(
-						String.format("\nUnterminated string literal at "
-							+ "line, %d, in module, %s.\n",
-							scanner.lineNumber(),
-							scanner.moduleName().asNativeString()),
+					throw new StacksScannerException(String.format(
+						"\n<li><strong>%s"
+						+ "</strong><em>Line #: %d</em>: Scanner Error: "
+						+ "Unterminated string literal.</li>",
+						scanner.obtainModuleSimpleName(),
+						scanner.lineNumber()),
 						scanner);
 				}
 				int c = scanner.next();
@@ -443,10 +467,13 @@ public abstract class AbstractStacksScanner
 						if (scanner.atEnd())
 						{
 							throw new StacksScannerException(
-								String.format("\nEncountered end of file after "
-									+ " backslashin string literal in "
-									+ "module, %s.\n",
-									scanner.moduleName().asNativeString()),
+								String.format(
+									"\n<li><strong>%s</strong><em>Line #: %d"
+									+ "</em>: Scanner Error: Encountered end "
+									+ "of file after backslashin string literal"
+									+ " in module, %s.\n",
+									scanner.obtainModuleSimpleName(),
+									scanner.lineNumber()),
 								scanner);
 						}
 						switch (c = scanner.next())
@@ -492,12 +519,12 @@ public abstract class AbstractStacksScanner
 								{
 									throw new StacksScannerException(
 										String.format(
-											"\nThe input line, #%D before "
-											+ " \"\\|\" contains "
-											+ "non-whitespace in module, %d.\n",
-											scanner.lineNumber(),
-											scanner.moduleName()
-												.asNativeString()),
+											"\n<li><strong>%s</strong><em> "
+											+ "Line #: %d</em>: Scanner Error: " +
+											"The input before  \"\\|\" "
+											+ "contains non-whitespace.</li>",
+											scanner.obtainModuleSimpleName(),
+											scanner.lineNumber()),
 										scanner);
 								}
 								break;
@@ -512,11 +539,13 @@ public abstract class AbstractStacksScanner
 							default:
 								throw new StacksScannerException(
 									String.format(
-									"\nBackslash escape should be followed by"
-									+ " one of n, r, t, \\, \", (, [, |, or a"
-									+ " line break.  Module: %s line# %d.\n",
-										scanner.lineNumber(),
-										scanner.moduleName().asNativeString()),
+									"\n<li><strong>%s</strong><em> Line #: "
+									+ "%d</em>: Scanner Error: Backslash "
+									+ "escape should be followed by "
+									+ "one of n, r, t, \\, \", (, "
+									+ "[, |, or a line break.</li>",
+									scanner.obtainModuleSimpleName(),
+									scanner.lineNumber()),
 									scanner);
 						}
 						erasurePosition = stringBuilder.length();
@@ -553,12 +582,12 @@ public abstract class AbstractStacksScanner
 						// Indicate where the quoted string started, to make it
 						// easier to figure out where the end-quote is missing.
 						scanner.lineNumber(literalStartingLine);
-						final String errorString =
-							String.format("Unterminated string literal at " +
-								"line, %d, in module, %s\n",
-								scanner.lineNumber(),
-								scanner.moduleName);
-						throw new StacksScannerException(errorString,
+						throw new StacksScannerException(String.format(
+							"\n<li><strong>%s"
+							+ "</strong><em>Line #: %d</em>: Scanner Error: "
+							+ "Unterminated string literal.</li>",
+								scanner.obtainModuleSimpleName(),
+								scanner.lineNumber()),
 							scanner);
 					}
 					c = scanner.next();
@@ -589,12 +618,12 @@ public abstract class AbstractStacksScanner
 				int c;
 				if (scanner.atEnd())
 				{
-					throw new StacksScannerException(
-						String.format(
-						"\nExpected hexadecimal Unicode codepoints separated "
-						+ "by commas. Module: %s line# %d.\n",
-							scanner.lineNumber(),
-							scanner.moduleName().asNativeString()),
+					throw new StacksScannerException(String.format(
+						"\n<li><strong>%s</strong><em> Line #: "
+						+ "%d</em>: Scanner Error: Expected hexadecimal "
+						+ "Unicode codepoints separated by commas</li>",
+						scanner.obtainModuleSimpleName(),
+						scanner.lineNumber()),
 						scanner);
 				}
 				c = scanner.next();
@@ -621,46 +650,51 @@ public abstract class AbstractStacksScanner
 						}
 						else
 						{
-							throw new StacksScannerException(
-								String.format("Expected a hex digit or comma "
-								+ "or closing parenthesis. "
-								+ "Module: %s line# %d.\n",
-									scanner.lineNumber(),
-									scanner.moduleName().asNativeString()),
+							throw new StacksScannerException(String.format(
+								"\n<li><strong>%s</strong><em> Line #: "
+									+ "%d</em>: Scanner Error: Expected a "
+									+ "hex digit or comma or closing "
+									+ "parenthesis</li>",
+									scanner.obtainModuleSimpleName(),
+									scanner.lineNumber()),
 								scanner);
 						}
 						if (digitCount > 6)
 						{
-							throw new StacksScannerException(
-								String.format("\nExpected at most six hex "
-								+ "digits per comma-separated Unicode entry"
-								+ "Module: %s line# %d.\n",
-									scanner.lineNumber(),
-									scanner.moduleName().asNativeString()),
+							throw new StacksScannerException(String.format(
+									"\n<li><strong>%s</strong><em> Line #: "
+									+ "%d</em>: Scanner Error: Expected at "
+									+ "most six hex digits per comma-separated "
+									+ "Unicode entry</li>",
+									scanner.obtainModuleSimpleName(),
+									scanner.lineNumber()),
 								scanner);
 						}
 						c = scanner.next();
 					}
 					if (digitCount == 0)
 					{
-						throw new StacksScannerException(
-							String.format("\nExpected a comma-separated list "
-							+ "of Unicode code points, each being "
-							+ "one to six (upper case) hexadecimal digits "
-							+ "Module: %s line# %d.\n",
-								scanner.lineNumber(),
-								scanner.moduleName().asNativeString()),
-							scanner);
+						throw new StacksScannerException(String.format(
+							"\n<li><strong>%s</strong><em> Line #: "
+							+ "%d</em>: Scanner Error: Expected a "
+							+ "comma-separated list of Unicode code points, "
+							+ "each being one to six (upper case) hexadecimal "
+							+ "digits</li>",
+							scanner.obtainModuleSimpleName(),
+							scanner.lineNumber()),
+						scanner);
 					}
 					assert digitCount >= 1 && digitCount <= 6;
 					if (value > CharacterDescriptor.maxCodePointInt)
 					{
 						throw new StacksScannerException(
-							String.format("\nThe maximum allowed code point "
-							+ "for a Unicode character is U+10FFFF"
-							+ "Module: %s line# %d.\n",
-							scanner.lineNumber(),
-							scanner.moduleName().asNativeString()),
+							String.format(
+								"\n<li><strong>%s</strong><em> Line #: "
+								+ "%d</em>: Scanner Error: The maximum "
+								+ "allowed code point for a Unicode character "
+								+ "is U+10FFFF</li>",
+								scanner.obtainModuleSimpleName(),
+								scanner.lineNumber()),
 							scanner);
 					}
 					stringBuilder.appendCodePoint(value);
@@ -797,17 +831,20 @@ public abstract class AbstractStacksScanner
 				}
 				else
 				{
+					final int startLine = scanner.lineNumber();
 					int depth = 1;
 					while (true)
 					{
 						if (scanner.atEnd())
 						{
-							throw new StacksScannerException(
-								String.format("Expected a close comment (*/) "
-									+ "to correspond with the open comment "
-									+ "(/*). Module: %s line# %d.\n",
-										scanner.lineNumber(),
-										scanner.moduleName().asNativeString()),
+							throw new StacksScannerException(String.format(
+								"\n<li><strong>%s</strong><em> Line #: "
+								+ "%d</em>: Scanner Error: Expected a close "
+								+ "comment (*/) to correspond with the open "
+								+ "comment (/*) on line #%d</li>",
+									scanner.obtainModuleSimpleName(),
+									scanner.lineNumber(),
+									startLine),
 								scanner);
 						}
 						if (scanner.peekFor('/') && scanner.peekFor('*'))

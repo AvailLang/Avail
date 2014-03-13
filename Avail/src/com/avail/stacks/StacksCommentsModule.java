@@ -32,6 +32,8 @@
 
 package com.avail.stacks;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -124,37 +126,57 @@ public class StacksCommentsModule
 	 * @param header
 	 * @param commentTokens
 	 * @param moduleToMethodMap
-	 * @throws StacksCommentBuilderException
-	 * @throws StacksScannerException
+	 * @param errorLog
 	 */
 	public StacksCommentsModule(
 		final ModuleHeader header,
 		final A_Tuple commentTokens,
-		final HashMap<A_String,A_Set> moduleToMethodMap)
-			throws StacksScannerException, StacksCommentBuilderException
+		final HashMap<A_String,A_Set> moduleToMethodMap,
+		final StacksErrorLog errorLog)
 	{
-		this.exportedNames = allExportedNames(header,moduleToMethodMap);
 		this.moduleName = StringDescriptor
 			.from(header.moduleName.qualifiedName());
+		this.exportedNames = allExportedNames(header,moduleToMethodMap);
 
 		moduleToMethodMap.put(
 			this.moduleName,
 			SetDescriptor.fromCollection(header.exportedNames));
+
+		final StringBuilder errorMessages = new StringBuilder().append("");
+		int errorCount = 0;
 
 		for (final A_Token aToken : commentTokens)
 		{
 			try
 			{
 				final AbstractCommentImplementation implementation =
-					StacksScanner.processCommentString(aToken);
+					StacksScanner.processCommentString(
+						aToken,moduleName);
 
 				addNamedImplementation(
 					implementation.signature.name, implementation);
 			}
-			catch (final StacksScannerException e)
+			catch (StacksScannerException | StacksCommentBuilderException e)
 			{
-				e.getLocalizedMessage();
+				errorMessages.append(e.getMessage());
+				errorCount++;
 			}
+		}
+
+		if (errorCount > 0)
+		{
+			final StringBuilder newLogEntry = new StringBuilder()
+				.append("<h3>")
+				.append(header.moduleName.qualifiedName())
+				.append(" <em>(")
+				.append(errorCount)
+				.append(")</em></h3>\n<ol>");
+			errorMessages.append("</ol>\n");
+			newLogEntry.append(errorMessages);
+
+			final ByteBuffer errorBuffer = ByteBuffer.wrap(
+				newLogEntry.toString().getBytes(StandardCharsets.UTF_8));
+			errorLog.addLogEntry(errorBuffer,errorCount);
 		}
 	}
 
@@ -168,8 +190,15 @@ public class StacksCommentsModule
 	{
 		final A_Set collectedExtendedNames =
 			SetDescriptor.empty();
+
 		for (final ModuleImport moduleImport : header.importedModules)
 		{
+			if (moduleToMethodMap.get(moduleImport.moduleName) == null)
+			{
+				moduleToMethodMap
+					.put(moduleImport.moduleName,SetDescriptor.empty());
+			}
+
 			if (moduleImport.isExtension)
 			{
 				if (moduleImport.wildcard)
