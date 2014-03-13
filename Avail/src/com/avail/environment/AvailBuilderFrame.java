@@ -1964,7 +1964,7 @@ extends JFrame
 		actionMap = moduleTree.getActionMap();
 		inputMap.put(KeyStroke.getKeyStroke("ENTER"), "build");
 		actionMap.put("build", buildAction);
-		for (int i = 0; i < moduleTree.getRowCount(); i++)
+		for (int i = moduleTree.getRowCount() - 1; i >= 0; i--)
 		{
 			moduleTree.expandRow(i);
 		}
@@ -2145,22 +2145,6 @@ extends JFrame
 			entryPointsScrollArea);
 		leftPane.setDividerLocation(configuration.moduleVerticalProportion());
 		leftPane.setResizeWeight(configuration.moduleVerticalProportion());
-//		addPropertyChangeListener(
-//			JSplitPane.DIVIDER_LOCATION_PROPERTY,
-//			new PropertyChangeListener()
-//			{
-//				@Override
-//				public void propertyChange (
-//					final @Nullable PropertyChangeEvent evt)
-//				{
-//					if (isValid())
-//					{
-//						final double proportion = leftPane.getDividerLocation()
-//							/ max(leftPane.getWidth(), 1.0);
-//						leftPane.setResizeWeight(proportion);
-//					}
-//				}
-//			});
 		final JPanel rightPane = new JPanel();
 		final GroupLayout rightPaneLayout = new GroupLayout(rightPane);
 		rightPane.setLayout(rightPaneLayout);
