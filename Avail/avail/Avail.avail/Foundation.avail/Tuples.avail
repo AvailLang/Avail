@@ -763,7 +763,7 @@ Method "each of_satisfies_" is
  * @param "predicate" "[⊥, ⊥]→boolean"
  *        A function that accepts 1) an element of the tuple and 2) the index of
  *        that element and answers a boolean.
- * @returns boolean
+ * @returns "boolean"
  *          `true` if `predicate` answers `true` for each element of `aTuple`,
  *          `false` otherwise.
  */
@@ -904,7 +904,7 @@ Public stable method "distinct_" is
  * Answer a function that computes the zip of a tuple of tuples.
  * 
  * @method "zip function"
- * @returns [<tuple…|1..>]→tuple
+ * @returns "[<tuple…|1..>]→tuple"
  *          The requested function.
  */
 Private method "zip function" is
@@ -973,7 +973,7 @@ Grammatical restriction {"«_‡zip»"} is <{"«_‡zip»"}>;
  * Answer the semantic restriction function for zipping tuples.
  * 
  * @method "zip semantic restriction"
- * @returns [<tuple…|1..>'s type]→type;
+ * @returns "[<tuple…|1..>'s type]→type"
  *          The semantic restriction function.
  */
 Private method "zip semantic restriction" is
@@ -1331,7 +1331,7 @@ Semantic restriction "last index of_where_" is
  * 		The tuple to search
  * @param "predicate" "[⊥]→boolean"
  *        A function that accepts the elements of the tuple.
- * @returns <natural number…|0..∞>
+ * @returns "<natural number…|0..∞>"
  *          The indices of all the satisfactory elements of the predicate.
  */
 Public method "all indices of_where_" is
@@ -1416,7 +1416,7 @@ Semantic restriction "_occurrences⁇of_" is
  *        The first value of the resulting tuple.
  * @param "end" "integer"
  *        The last value of the resulting tuple.
- * @returns <integer…|>
+ * @returns "<integer…|>"
  *          The interval from `start` (inclusive) up to `end` (inclusive).
  */
 Public stable method "_to_" is
@@ -1439,7 +1439,7 @@ Public stable method "_to_" is
  *        The first value of the resulting tuple.
  * @param "end" "character"
  *        The last value of the resulting tuple.
- * @returns <character…|>
+ * @returns "<character…|>"
  *          The interval from `start` (inclusive) up to `end` (inclusive).
  */
 Public stable method "_to_" is
@@ -1525,7 +1525,7 @@ Method "_to_by_" is stable at [integer, integer, integer]→<integer…|>;
  * @method "_to_by_"
  * @param "start" "integer"
  * @param "end" "integer"
- * @param "0's type"
+ * @param "delta" "0's type"
  * @returns "⊥"
  * @raises "incorrect-argument-type"
  */
@@ -1901,7 +1901,7 @@ Public stable method "split_before_" is
  * these element types.
  * 
  * @method "split_before_"
- * @resticts "tuple meta"
+ * @restricts "tuple meta"
  * @restricts "natural number's type"
  */
 Semantic restriction "split_before_" is
@@ -2119,6 +2119,9 @@ Public method "take from_while_" is
  * Answer a semantic restriction suitable for use by the predicated-based
  * take/drop methods.
  *
+ * @method "take|drop-while|until semantic restriction"
+ * @param "tupleType" "tuple meta"
+ * @param "predicate" "[⊥]→boolean's type"
  * Returns:
  *    The requested function.
  */
@@ -2633,7 +2636,7 @@ Semantic restriction "_'s⁇last" is
  * Sum the elements of the specified tuple of integers.
  *
  * @method "∑_"
- * @param "intTuple" <extended integer…|1..∞>
+ * @param "intTuple" "<extended integer…|1..∞>"
  *        A tuple of integers.
  * @returns "extended integer"
  *          An integer.
@@ -2695,7 +2698,7 @@ Method "∑_" is
 /**
  * Strengthen the return type
  *
- * @method <extended integer…|1..∞>
+ * @method "∑_"
  * @restricts "<extended integer…|1..∞>'s type"
  */
 Semantic restriction "∑_" is
@@ -2731,7 +2734,7 @@ Public stable method "∏_" is
  * Strengthen the return type
  *
  * @method "∏_"
- * @restricts <integer…|1..∞>'s type
+ * @restricts "<integer…|1..∞>'s type"
  */ /* TODO [RAA]
 Semantic restriction "∏_" is
 [
@@ -2797,7 +2800,7 @@ Print: “z”;
  * small tuples.
  *
  * @method "insertion sort_with_"
- * @categories "category"
+ * @category "category"
  * @param "aTuple" "<any…|2..15>" 
  *        The tuple to be sorted.
  * @param "comparator" "[⊥, ⊥]→boolean"
@@ -2934,7 +2937,6 @@ Seal method "quicksort_" at <<any…|0..1>>;
 /**
  * @method "quicksort_"
  * @param "numbers" "<number…|2..>"
- * @param "<number…|2..>"
  */
 Method "quicksort_" is
 [
@@ -3083,7 +3085,7 @@ Seal method "quicksort_with_" at <tuple, [⊥, ⊥]→boolean>;
  * criteria provided in the comparison function.
  *
  * @method "merge_with_"
- * @categories "Tuples"
+ * @category "Tuples"
  * @param "splitInput" "<tuple…|2>>" 
  *        The two ordered tuples to merge.
  * @param "comparator" "[⊥, ⊥]→boolean"
@@ -3131,7 +3133,7 @@ Private method "merge_with_" is
  * merge sort algorithm and specified comparison function.
  *
  * @method "merge sort_with_"
- * @categories "Tuples"
+ * @category "Tuples"
  * @param "aTuple" "tuple" 
  *        The tuple to sort.
  * @param "comparator" "[⊥, ⊥]→boolean"
@@ -3225,7 +3227,7 @@ Public method "merge sort_with_" is
  * the merge sort algorithm where n ≤ m.
  *
  * @method "merge sort_"
- * @categories "Tuples"
+ * @category "Tuples"
  * @param "aTuple" "<number…|>" 
  *         A tuple.
  * @returns "<number…|>"
@@ -3551,7 +3553,7 @@ Semantic restriction "_[_..]else_" is
  * itself.  
  *
  * @method "self overlap_"
- * @categories "Tuples"
+ * @category "Tuples"
  * @param "aTuple" "tuple" 
  *        A tuple.
  * @returns "{tuple→natural number|}"
@@ -3596,7 +3598,7 @@ Private method "self overlap_" is
  * tuple (a substring of a string).  This is the abstract implementation.
  *
  * @method "first index of_in_"
- * @categories "Tuples"
+ * @category "Tuples"
  * @param "aTuple" "tuple" 
  *        The tuple within which to search for the subtuple.
  * @param "subtuple" "tuple"
@@ -3613,7 +3615,7 @@ Public stable abstract method "first index of_in_" is [tuple,tuple]→whole numb
  * target tuple and the subtuple are empty 
  *
  * @method "first index of_in_"
- * @categories "Tuples"
+ * @category "Tuples"
  * @param "aTuple" "<any…|0>" 
  *        The tuple to search within for the subtuple.
  * @param "subtuple" "<any…|0>"
@@ -3637,7 +3639,7 @@ Method "first index of_in_" is
  * both the target tuple is empty 
  *
  * @method "first index of_in_"
- * @categories "Tuples"
+ * @category "Tuples"
  * @param "aTuple" "<any…|1..>" 
  *        The tuple to search within for the subtuple.
  * @param "subtuple" "<any…|0>"
@@ -3661,7 +3663,7 @@ Method "first index of_in_" is
  * subtuple is empty 
  *
  * @method "first index of_in_"
- * @categories "Tuples"
+ * @category "Tuples"
  * @param "aTuple" "<any…|0>" 
  *        The tuple to search within for the subtuple.
  * @param "subtuple" "<any…|1..>"
@@ -3686,7 +3688,7 @@ Method "first index of_in_" is
  * Knuth-Moris-Pratt algorithm} is used for this implementation. 
  *
  * @method "first index of_in_"
- * @categories "Tuples"
+ * @category "Tuples"
  * @param "aTuple" "<any…|1..>" 
  *        the tuple to search for the subtuple
  * @param "subtuple" "<any…|1..>"
@@ -3754,7 +3756,7 @@ Method "first index of_in_" is
  * a string).  This is the abstract implemenation of this method.
  *
  * @method "all indices of_in_"
- * @categories "Tuples"
+ * @category "Tuples"
  * @param "aTuple" "tuple" 
  *        The tuple to search for the subtuple.
  * @param "subtuple" "tuple"
@@ -3773,7 +3775,7 @@ Public stable abstract method "all indices of_in_" is
  * subtuple are empty 
  *
  * @method "all indices of_in_"
- * @categories "Tuples"
+ * @category "Tuples"
  * @param "aTuple" "<any…|0>" 
  *        The tuple to search for the subtuple.
  * @param "subtuple" "<any…|0>"
@@ -3796,7 +3798,7 @@ Method "all indices of_in_" is
  * subtuple are empty 
  *
  * @method "all indices of_in_"
- * @categories "Tuples"
+ * @category "Tuples"
  * @param "aTuple" "<any…|1..>" 
  *        The tuple to search for the subtuple.
  * @param "subtuple" "<any…|0>"
@@ -3819,7 +3821,7 @@ Method "all indices of_in_" is
  * subtuple are empty 
  *
  * @method "all indices of_in_"
- * @categories "Tuples"
+ * @category "Tuples"
  * @param "aTuple" "<any…|0>" 
  *        The tuple to search for the subtuple
  * @param "subtuple" "<any…|1..>"
@@ -3843,7 +3845,7 @@ Method "all indices of_in_" is
  * Knuth-Moris-Pratt algorithm} is used for this implementation. 
  *
  * @method "all indices of_in_"
- * @categories "Tuples"
+ * @category "Tuples"
  * @param "aTuple" "<any…|1..>" 
  *        The tuple to search for the subtuple
  * @param "subtuple" "<any…|1..>"
@@ -3900,7 +3902,7 @@ Method "all indices of_in_" is
  * with a new substring).
  *
  * @method "replace the first occurrence of_in_with_"
- * @categories "Tuples"
+ * @category "Tuples"
  * @param "subtuple" "<any…|1..>"
  *        The subtuple to locate in aTuple
  * @param "aTuple" "tuple" 
@@ -3993,7 +3995,7 @@ Semantic restriction "replace the first occurrence of_in_with_" is
  * new substring). 
  *
  * @method "replace all occurrences of_in_with_"
- * @categories "Tuples"
+ * @category "Tuples"
  * @param "subtuple" "<any…|1..>"
  *        The subtuple to locate in aTuple
  * @param "aTuple" "tuple" 

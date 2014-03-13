@@ -45,6 +45,11 @@ Body
 /**
  * A bounded stream artificially limits the number of elements that its
  * decorated stream may produce.
+ *
+ * @type "bounded stream"
+ * @supertype "stream"
+ * @field "decorated stream" "stream"
+ * @field "remaining elements" "whole number"
  */
 Class "bounded stream" extends stream
 	with fields
@@ -79,10 +84,12 @@ bounded stream's tail method is
  * Construct and answer a stream that can answer at most the first `limit`
  * elements of `aStream`.
  * 
- * Parameters:
+ * @method "_limited to_elements"
+ * @param "aStream" "stream"
  *    aStream - A stream.
+ * @param "limit" "[0..∞]"
  *    limit - The effective size of the result.
- * Returns:
+ * @returns "stream"
  *    A stream incapable of producing no more than `limit` elements of
  *    `aStream`.
  */

@@ -46,6 +46,12 @@ Body
 /**
  * A tuple stream operates over the elements of a tuple. It is finite by
  * definition, since tuples are finite.
+ *
+ * @type "tuple stream"
+ * @supertype "stream"
+ * @field "element type" "any's type"
+ * @field "collection" "<any…|>"
+ * @field "index" "natural number"
  */
 Class "tuple stream" extends stream
 	with fields
@@ -84,9 +90,10 @@ tuple stream's tail method is
  * Construct and answer a stream that produces all elements of the specified
  * tuple.
  * 
- * Parameters:
+ * @method "a stream over_"
+ * @param "aTuple" "<any…|>"
  *    aTuple - A tuple.
- * Returns:
+ * @returns "stream"
  *    The requested stream.
  */
 Public stable method "a stream over_" is
@@ -115,9 +122,10 @@ Semantic restriction "a stream over_" is
  * set, but not in any particular order. This operation is unstable and two
  * invocations with the same arguments may produce differently ordered streams.
  * 
- * Parameters:
+ * @method "a stream over_"
+ * @param "aSet" "{any|}"
  *    aSet - A set.
- * Returns:
+ * @returns "stream"
  *    The requested stream.
  */
 Public method "a stream over_" is
@@ -145,9 +153,10 @@ Semantic restriction "a stream over_" is
  * map, but not in any particular order. This operation is unstable and two
  * invocations with the same arguments may produce differently ordered streams.
  * 
- * Parameters:
+ * @method "a stream over_"
+ * @param "aMap" "{any→any|}"
  *    aMap - A map.
- * Returns:
+ * @returns "stream"
  *    The requested stream.
  */
 Public method "a stream over_" is

@@ -79,6 +79,7 @@ Public method "write reactor" is [nullary procedure];
  *        The key that identifies the write reactor, provided only for
  *        subsequent removal.
  * @param "reactor" "write reactor"
+ * @returns "⊤"
  * @raises "special-atom exception"
  *         If {@param "key"} is a special atom.
  */
@@ -99,6 +100,7 @@ Public method "_'s⁇write reactors+=_→_" is
  * @param "var" "variable"
  * @param "key" "atom"
  *        The key that identifies the write reactor.
+ * @returns "⊤"
  * @raises "special-atom exception"
  *         If {@param "key"} is a special atom.
  * @raises "key-not-found exception"
@@ -118,6 +120,7 @@ Public method "_'s⁇write reactors-=_" is
  * this mode, track every {@type "variable"} that is read before it is written.
  *
  * @method "Track variables that are read before written"
+ * @returns "⊤"
  * @raises "illegal-trace-mode exception"
  *         If the {@method "current fiber"} is already tracing (any mode).
  */
@@ -137,6 +140,7 @@ Private method "Track variables that are read before written" is
  * @param "key" "atom"
  *        The key that identifies the write reactor.
  * @param "reactor" "write reactor"
+ * @returns "⊤"
  * @raises "illegal-trace-mode exception"
  *         If the {@method "current fiber"} is not already in read-before-write
  *         trace mode.
@@ -174,6 +178,7 @@ sentinel ::= new atom named "sentinel";
  *        An arbitrary function that is invoked whenever {@param
  *        "traceFunction"} produces a new value. It is applied to the value
  *        produced by {@param "traceFunction"}.
+ * @returns "⊤"
  * @raises "exception"
  *         If {@param "traceFunction"} raises an {@type "exception"} during the
  *         initial trace. Subsequently, {@param "traceFunction"} will be invoked
@@ -237,6 +242,7 @@ Semantic restriction "Whenever_changes,⁇do_" is
  * track every {@type "variable"} that is written.
  *
  * @method "Track variables that are written"
+ * @returns "⊤"
  * @raises "illegal-trace-mode exception"
  *         If the {@method "current fiber"} is already tracing (any mode).
  */
@@ -275,6 +281,7 @@ Private method "stop tracking and answer all write reactors" is
  *
  * @method "Observe|observe_"
  * @param "observeFunction" "[]→⊤"
+ * @returns "⊤"
  * @raises "exception"
  *         If {@param "observeFunction"} raises an {@type "exception"}.
  * @see {@method "Whenever_changes,⁇do_"}
@@ -303,6 +310,10 @@ Semantic restriction "Observe|observe_" is
 /**
  * Set the function that should be invoked whenever a variable with write
  * reactors is written when write tracing is not enabled.
+ *
+ * @method "implicit observe function:=_"
+ * @param "aFunction" "[variable, any]→⊤"
+ * @returns "⊤"
  */
 Private method "implicit observe function:=_" is
 [

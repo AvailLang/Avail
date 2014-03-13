@@ -1760,6 +1760,7 @@ public final class AvailBuilder
 						scheduleLoadModule(moduleName, completionAction);
 					}
 				});
+			runtime.moduleNameResolver().commitRepositories();
 			// Parallel load has now completed or failed.
 			if (shouldStopBuild)
 			{

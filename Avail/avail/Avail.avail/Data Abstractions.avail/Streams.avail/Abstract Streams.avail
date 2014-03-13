@@ -172,7 +172,7 @@ Semantic restriction "_'s⁇head" is
 
 /**
  * Define a method to provide the head of a nonempty stream. The public
- * operation, {@"_'s⁇head"}, does not permit extension (to ensure that streams
+ * operation, {@method "_'s⁇head"}, does not permit extension (to ensure that streams
  * are always checked for exhaustion), but the private operation should not be
  * called directly from client code. This special defining method allows the
  * private operation to be overridden for specific stream implementations
@@ -269,7 +269,7 @@ Semantic restriction "_'s⁇tail" is
 
 /**
  * Define a method to provide the tail of a nonempty stream. The public
- * operation, {@"_'s⁇tail"}, does not permit extension (to ensure that streams
+ * operation, {@method "_'s⁇tail"}, does not permit extension (to ensure that streams
  * are always checked for exhaustion), but the private operation should not be
  * called directly from client code. This special defining method allows the
  * private operation to be overridden for specific stream implementations
@@ -324,7 +324,7 @@ Semantic restriction "_'s⁇tail method is_" is
  * 
  * @type "empty stream"
  * @supertype "stream"
- * @field "element type"
+ * @field "element type" "⊥'s type"
  */
 Public explicit class "empty stream" extends stream
 	with fields
@@ -350,6 +350,7 @@ Method "_is empty" is
  * 
  * @method "_'s⁇head"
  * @param "aStream" "empty stream"
+ * @returns "⊥"
  * @raises "empty-stream exception"
  */
 Method "_'s⁇head" is
@@ -376,6 +377,7 @@ Semantic restriction "_'s⁇head" is
  * 
  * @method "_'s⁇tail"
  * @param "aStream" "empty stream"
+ * @returns "⊥"
  * @raises "empty-stream exception"
  */
 Method "_'s⁇tail" is
@@ -422,9 +424,12 @@ Seal method "_'s⁇tail" at <stream>;
 /**
  * Iteratively apply `action` to each consecutive element of `aStream`.
  *
- * Parameters:
+ * @method "For each of⁇_do_"
+ * @param "aStream" "stream"
  *    aStream - A stream.
+ * @param "action" "[⊥]→⊤"
  *    action - A function that accepts the elements of the stream.
+ * @returns "⊤"
  */
 Method "For each of⁇_do_" is
 [
@@ -444,10 +449,13 @@ Method "For each of⁇_do_" is
  * Helper method for semantic restrictions: If `action` does not accept the
  * element type of `streamType`, then reject the current parse.
  * 
- * Parameters:
+ * @method "Require:_accepts_"
+ * @param "actionType" "[⊥]→⊤'s type"
  *    action - A function type whose sole parameter must correspond to the
  *       element type of `streamType`.
+ * @param "streamType" "stream's type"
  *    streamType - A stream type.
+ * @returns "⊤"
  */
 Method "Require:_accepts_" is
 [
@@ -479,6 +487,11 @@ Semantic restriction "For each of⁇_do_" is
  * stream and retains a transformer function. When it is asked for its head,
  * it answers the result of applying the function to the head of the decorated
  * stream.
+ * 
+ * @type "mapped stream"
+ * @supertype "stream"
+ * @field "decorated stream" "stream"
+ * @field "transformer" "[⊥]→any"
  */
 Class "mapped stream" extends stream
 	with fields
@@ -514,10 +527,12 @@ mapped stream's tail method is
  * consecutive elements of `aStream`. The result is lazy, so `aStream` may be
  * infinite.
  * 
- * Parameters:
+ * @method "map_through_"
+ * @param "aStream" "stream"
  *    aStream - The source stream.
+ * @param "theTransformer" "[⊥]→any"
  *    theTransformer - A function that accepts the elements of `aStream`.
- * Returns:
+ * @returns "stream"
  *    A stream that applies `transformer` to the head of `aStream` when asked
  *    for its own head.
  */
@@ -546,6 +561,11 @@ Semantic restriction "map_through_" is
  * stream and retains a filter function. When it is asked for its head,
  * it answers the first element of the decorated stream that satisfies the
  * filter function.
+ *
+ * @type "filtered stream"
+ * @supertype "stream"
+ * @field "decorated stream" "stream"
+ * @field "filter" "[⊥]→boolean"
  */
 Class "filtered stream" extends stream
 	with fields
@@ -555,6 +575,9 @@ Class "filtered stream" extends stream
 /**
  * A headed filtered stream is a filtered stream that has already been forwarded
  * to the next element that passes the filter.
+ *
+ * @type "headed filtered stream"
+ * @supertype "filtered stream"
  */
 Explicit class "headed filtered stream" extends filtered stream;
 
@@ -639,11 +662,13 @@ headed filtered stream's head method is
  * Also, filtered streams are slow in general (because they must rescan for each
  * public operation). Consider using filtered iterators instead.
  *
- * Parameters:
+ * @method "filter_by_"
+ * @param "aStream" "stream"
  *    aStream - The source stream.
+ * @param "predicate" "[⊥]→boolean"
  *    predicate - A function that accepts the elements of `aStream` and answers
  *       `true` iff they should be obtainable via the result stream.
- * Returns:
+ * @returns "stream"
  *    A stream capable of producing exactly those elements of `aStream` for
  *    which `predicate` answers `true`.
  */
@@ -670,6 +695,11 @@ Semantic restriction "filter_by_" is
 /**
  * A concatenation stream produces values from a sequenced collection of
  * streams.
+ *
+ * @type "concatenation stream"
+ * @supertype "stream"
+ * @field "decorated streams" "<stream…|>"
+ * @field "stream index" "natural number"
  */
 Class "concatenation stream" extends stream
 	with fields
@@ -713,9 +743,10 @@ concatenation stream's tail method is
  * of streams. The result first produces the values of the first element of the
  * tuple, then the second, etc.
  * 
- * Parameters:
+ * @method "concatenate_"
+ * @param "streams" "<stream…|>"
  *    streams - A tuple of streams.
- * Returns:
+ * @returns "stream"
  *    The requested stream.
  */
 Method "concatenate_" is
@@ -741,9 +772,10 @@ Method "concatenate_" is
  * of streams. The result first produces the values of the first lexical
  * argument, then the second, etc.
  * 
- * Parameters:
+ * @method "«_‡++»"
+ * @param "streams" "<stream…|2..>"
  *    streams - A tuple of streams.
- * Returns:
+ * @returns "stream"
  *    The requested stream.
  */
 Method "«_‡++»" is
@@ -763,6 +795,7 @@ Method "«_‡++»" is
  * Answer a function suitable for use as a semantic restriction for the
  * `concatenate_` and `«_‡++»` methods.
  * 
+ * @method "concatenation semantic restriction"
  * Returns:
  *    The requested funcion.
  */
@@ -791,6 +824,10 @@ Semantic restriction "«_‡++»" is concatenation semantic restriction;
 /**
  * A zipped stream produces zipped tuples from a sequenced collection of
  * streams.
+ * @type "zipped stream"
+ * @supertype "stream"
+ * @field "element type" "tuple's type"
+ * @field "decorated streams" "<stream…|>"
  */
 Explicit class "zipped stream" extends stream
 	with fields
@@ -827,9 +864,10 @@ zipped stream's tail method is
  * element from each consecutive input stream. The answer is empty when any of
  * the input streams becomes empty.
  * 
- * Parameters:
+ * @method "zip_"
+ * @param "streams" "<stream…|1..>"
  *    streams - A tuple of streams.
- * Returns:
+ * @returns "stream"
  *    The requested stream.
  */
 Method "zip_" is
@@ -849,9 +887,10 @@ Method "zip_" is
  * element from each consecutive input stream. The answer is empty when any of
  * the input streams becomes empty.
  * 
- * Parameters:
+ * @method "«_‡zip»"
+ * @param "streams" "<stream…|2..>"
  *    streams - A tuple of streams.
- * Returns:
+ * @returns "stream"
  *    The requested stream.
  */
 Method "«_‡zip»" is
@@ -869,6 +908,7 @@ Method "«_‡zip»" is
  * Answer a function suitable for use as a semantic restriction for the `zip_`
  * and `«_‡zip»` methods.
  * 
+ * @method "zip semantic restriction"
  * Returns:
  *    The requested funcion.
  */
@@ -900,15 +940,18 @@ Semantic restriction "«_‡zip»" is zip semantic restriction;
 /**
  * Answer a tuple containing the first `count` elements of `aStream`.
  * 
- * Parameters:
+ * @method "take«at most»?_from_"
+ * @param "isLax" "boolean"
  *    isLax - `false` if an `empty-stream exception` should be raised if
  *       `count` exceeds the number of elements remaining, `true` otherwise.
+ * @param "count" "[0..∞]"
  *    count - The size of the requested tuple.
+ * @param "aStream" "stream"
  *    aStream - A stream.
- * Returns:
+ * @returns "tuple"
  *    A tuple containing the first `count` elements of `aStream`, preserving the
  *    original order.
- * Raises:
+ * @raises "empty-stream exception"
  *    empty-stream exception - If `isLax` is `false` and `aStream` does not
  *       contain `count` elements.
  */
@@ -952,12 +995,14 @@ Semantic restriction "take«at most»?_from_" is
  * Answer a tuple containing the prefix of `aStream` that answered `true` to
  * `predicate`.
  *
- * Parameters:
+ * @method "take from_while_"
+ * @param "aStream" "stream"
  *    aTuple - A tuple.
+ * @param "predicate" "[⊥]→boolean"
  *    predicate - A function that can accept each element of the specified
  *       stream. It should answer `true` to keep the element (and continue
  *       scanning) or `false` to abort.
- * Returns:
+ * @returns "tuple"
  *    A tuple containing the prefix of `aStream` that satisfied `predicate`.
  */
 Method "take from_while_" is
@@ -989,12 +1034,14 @@ Semantic restriction "take from_while_" is
  * Answer a tuple containing the prefix of `aStream` that answered `false` to
  * `predicate`.
  *
- * Parameters:
+ * @method "take from_until_"
+ * @param "aStream" "stream"
  *    aStream - A stream.
+ * @param "predicate" "[⊥]→boolean"
  *    predicate - A function that can accept each element of the specified
  *       stream. It should answer `false` to keep the element (and continue
  *       scanning) or `true` to abort.
- * Returns:
+ * @returns "tuple"
  *    A tuple containing the prefix of `aStream` that satisfied `predicate`.
  */
 Method "take from_until_" is
@@ -1026,16 +1073,19 @@ Semantic restriction "take from_until_" is
  * Answer a stream containing every element of `aStream` except for the first
  * `count` elements.
  * 
- * Parameters:
+ * @method "drop«at most»?_from_"
+ * @param "isLax" "boolean"
  *    isLax - `false` if an `empty-stream exception` should be raised if
  *       `count` exceeds the number of elements remaining, `true` otherwise.
+ * @param "count" "whole number"
  *    count - The size of the prefix of `aStream` that should be omitted from
  *       the result stream.
+ * @param "aStream" "stream"
  *    aStream - A stream.
- * Returns:
+ * @returns "stream"
  *    A stream containing every element but the first `count` elements of
  *    `aStream`, preserving the original order.
- * Raises:
+ * @raises "empty-stream exception"
  *    empty-stream exception - If `isLax` is `false` and `aStream` does not
  *       contain `count` elements.
  */
@@ -1075,12 +1125,14 @@ Semantic restriction "drop«at most»?_from_" is
  * Compute and answer the suffix of `aStream` that begins with the element that
  * answers `false` to `predicate`.
  * 
- * Parameters:
+ * @method "drop from_while_"
+ * @param "aStream" "stream"
  *    aStream - A stream.
+ * @param "predicate" "[⊥]→boolean"
  *    predicate - A function that can accept each element of the specified
  *       stream. It should answer `true` to discard the element (and continue
  *       scanning) or `false` to abort.
- * Returns:
+ * @returns "stream"
  *    The requested suffix.
  */
 Method "drop from_while_" is
@@ -1110,12 +1162,14 @@ Semantic restriction "drop from_while_" is
  * Compute and answer the suffix of `aStream` that begins with the element that
  * answers `true` to `predicate`.
  * 
- * Parameters:
+ * @method "drop from_until_"
+ * @param "aStream" "stream"
  *    aStream - A stream.
+ * @param "predicate" "[⊥]→boolean"
  *    predicate - A function that can accept each element of the specified
  *       stream. It should answer `false` to discard the element (and continue
  *       scanning) or `true` to abort.
- * Returns:
+ * @returns "stream"
  *    The requested suffix.
  */
 Method "drop from_until_" is
@@ -1144,10 +1198,12 @@ Semantic restriction "drop from_until_" is
 /**
  * Does `aStream` start with the subsequence `prefix`?
  * 
- * Parameters:
+ * @method "_starts with_"
+ * @param "aStream" "stream"
  *    aStream - The stream whose prefix should be checked against `prefix`.
+ * @param "prefix" "tuple"
  *    prefix - The search tuple.
- * Returns:
+ * @returns "boolean"
  *    `true` if `aStream` starts with the subsequence `prefix`, `false`
  *    otherwise.
  */

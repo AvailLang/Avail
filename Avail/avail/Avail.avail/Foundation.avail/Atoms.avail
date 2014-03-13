@@ -60,7 +60,8 @@ Body
  * @param "else" "[]→any"
  *        The function to apply if {@param "key"} is not a property of {@param
  *        "anAtom"}.
- * @returns Either the requested property value or the result of applying
+ * @returns "any"
+ *        Either the requested property value or the result of applying
  *          {@param "else"}.
  */
 Method "_[_]else_" is
@@ -86,6 +87,7 @@ Method "_[_]else_" is
  * @method "_is a|an new⁇field⁇atom"
  * @param "atomName" "string"
  *        The name by which this atom is known locally.
+ * @returns "⊤"
  */
 Public method "«Public»?_is a|an new⁇field⁇atom" is
 [
@@ -149,6 +151,7 @@ Semantic restriction "«Public»?_is a|an new⁇field⁇atom" is
  * @method "«Public»?_is a new⁇heritable«fiber-local»⁇atom"
  * @param "atomName" "string"
  *        The atom's name, provided primarily for debugging purposes.
+ * @returns "⊤"
  */
 Public method "«Public»?_is a new⁇heritable«fiber-local»⁇atom" is
 [

@@ -95,6 +95,17 @@ public class StacksCommentsModule
 		namedCommentImplementations =
 			new HashMap<A_String,List<AbstractCommentImplementation>>();
 
+	/**
+	 *
+	 */
+	@Override
+	public String toString()
+	{
+		return new StringBuilder().append(moduleName().asNativeString())
+			.append("[\"").append(namedCommentImplementations.toString())
+			.append("\"],").toString();
+	}
+
 
 	/**
 	 * @param name

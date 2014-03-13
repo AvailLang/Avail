@@ -513,6 +513,7 @@ Private method "generate_field accessor restriction for_:_(mutable=_)" is
  *        `true` if the field is mutable, `false` otherwise.
  * @param "fieldAtom" "atom"
  *        A field atom.
+ * @returns "⊤"
  */
 Private method "Generate and install_accessor for«mutable»?_" is
 [
@@ -614,6 +615,7 @@ Private method "referer name for_" is
  * @method "Generate and install_referer for_"
  * @param "objectType" "object's type"
  * @param "fieldAtom" "atom"
+ * @returns "⊤"
  */
 Private method "Generate and install_referer for mutable_" is
 [
@@ -670,6 +672,7 @@ Private method "mutator name for_" is
  * @method "Generate and install_mutator for_"
  * @param "objectType" "object's type"
  * @param "fieldAtom" "atom"
+ * @returns "⊤"
  */
 Private method "Generate and install_mutator for mutable_" is
 [
@@ -785,6 +788,7 @@ Private method "_reconstructor arguments for_«(for semantic restriction)»?" is
  * @method "Generate and install_reconstructor for_"
  * @param "objectType" "object's type"
  * @param "fieldAtoms" "<atom…|1..>"
+ * @returns "⊤"
  */
 Private method "Generate and install_reconstructor for_" is
 [
@@ -851,6 +855,7 @@ Private method "Generate and install_reconstructor for_" is
  *        An object type.
  * @param "fieldAtoms" "<atom…|1..>"
  *        A field atoms.
+ * @returns "⊤"
  */
 Private method
 	"Generate and install_reconstructor's semantic restriction for_"

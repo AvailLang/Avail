@@ -103,7 +103,7 @@ interpolationMode ::= enumeration of {description, text, escape};
  *      the result.
  * 
  * @method "interpolation mode"
- * @returns An enumeration of the atoms listed above.
+ * Returns an enumeration of the atoms listed above.
  */
 Private method "interpolation mode" is [ interpolationMode ];
 
@@ -135,6 +135,7 @@ Private method "format site" is
  *    - ¢` : Indicates a format site whose interpolation mode is $escape.
  *    - ¢① .. ¢㊿ : Indicates a positional format variable.
  *
+ * @method "format metacharacters"
  * Returns:
  *    An enumeration of the characters listed above.
  */
@@ -149,7 +150,7 @@ Private method "format metacharacters" is
  * @method "format sites for_"
  * @param "template" "string"
  *        A template.
- * @returns "<<string, interpolation mode, natural number, natural number…|4>…|>
+ * @returns "<<string, interpolation mode, natural number, natural number…|4>…|>"
  *    A tuple comprising the format sites for the specified template.
  */
 Private stable method "format sites for_" is
@@ -1770,6 +1771,7 @@ vowels ::=
  *        If specified, then the text that will be displayed if {@param "value"}
  *        or its rendering via {@method "“_”"} is an empty string. If not
  *        specified, then {@code "(nothing)"} will be used if necessary.
+ * @returns "string"
  */
 Public method "(a`|an)“_”«else_»" is
 [
@@ -1793,6 +1795,7 @@ Public method "(a`|an)“_”«else_»" is
  *        If specified, then the text that will be displayed if {@param "value"}
  *        or its rendering via {@method "“_”"} is an empty string. If not
  *        specified, then {@code "(nothing)"} will be used if necessary.
+ * @returns "string"
  */
 Public method "(A`|An)“_”«else_»" is
 [
@@ -1816,6 +1819,7 @@ Public method "(A`|An)“_”«else_»" is
  *        If specified, then the text that will be displayed if {@param "value"}
  *        or its rendering via {@method "“_”"} is an empty string. If not
  *        specified, then {@code "(nothing)"} will be used if necessary.
+ * @returns "string"
  */
 Public method "(the)“_”«else_»" is
 [
@@ -1839,6 +1843,7 @@ Public method "(the)“_”«else_»" is
  *        If specified, then the text that will be displayed if {@param "value"}
  *        or its rendering via {@method "“_”"} is an empty string. If not
  *        specified, then {@code "(nothing)"} will be used if necessary.
+ * @returns "string"
  */
 Public method "(The)“_”«else_»" is
 [

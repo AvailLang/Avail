@@ -123,9 +123,10 @@ Method "_'s⁇position:=_" is
  * Construct and answer an iterator that destructively consumes the elements of
  * the specified stream.
  * 
- * Parameters:
+ * @method "an iterator over_"
+ * @param "aStream" "stream"
  *    aStream - A stream.
- * Returns:
+ * @returns "stream iterator"
  *    The requested iterator.
  */
 Public method "an iterator over_" is

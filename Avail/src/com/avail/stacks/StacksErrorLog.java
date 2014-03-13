@@ -47,7 +47,7 @@ import java.nio.file.attribute.BasicFileAttributes;
  *
  * @author Richard A Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksErrorLog
+public class StacksErrorLog extends AbstractStacksOutputFile
 {
 	/**
 	 * The error log file for the malformed comments.
@@ -74,24 +74,26 @@ public class StacksErrorLog
 
 	/**
 	 * Construct a new {@link StacksErrorLog}.
-	 * @param logPath
+	 * @param outputPath
 	 *        The {@linkplain Path path} to the output {@linkplain
 	 *        BasicFileAttributes#isDirectory() directory} for documentation and
 	 *        data files.
 	 *
 	 */
-	public StacksErrorLog (final Path logPath)
+	public StacksErrorLog (final Path outputPath)
 	{
+		super(outputPath);
 		this.errorFilePosition = 0;
 		this.errorCount = 0;
 		try
 		{
-			final Path errorLogPath = logPath.resolve("errorlog.html");
-			Files.createDirectories(logPath);
+			final Path errorLogPath = outputPath.resolve("errorlog.html");
+			Files.createDirectories(outputPath);
 			this.errorLog = AsynchronousFileChannel.open(
 				errorLogPath,
 				StandardOpenOption.CREATE,
-				StandardOpenOption.WRITE);
+				StandardOpenOption.WRITE,
+				StandardOpenOption.TRUNCATE_EXISTING);
 
 			final ByteBuffer openHTML = ByteBuffer.wrap(
 				("<!DOCTYPE html ng-app>\n<head><style>h3 "
@@ -114,6 +116,7 @@ public class StacksErrorLog
 	 * @param addToErrorCount
 	 * 		The amount of errors added with this log update.
 	 */
+	@Override
 	public synchronized void addLogEntry(final ByteBuffer buffer,
 		final int addToErrorCount)
 	{

@@ -183,7 +183,7 @@ Public method "unsafely atomically read_and store_" is
  * @method "unsafely atomically compare_to_and,⁇if equal,⁇store_"
  * @param "var" "variable"
  *        A variable.
- * @param "reference"
+ * @param "reference" "any"
  *        The value against which the content of {@param "var"} should be
  *        compared.
  * @param "newValue" "any"
@@ -209,6 +209,7 @@ Public method "unsafely atomically compare_to_and,⁇if equal,⁇store_" is
  * @method "Atomically update_using_"
  * @param "var" "variable"
  * @param "f" "[any]→any"
+ * @returns "⊤"
  */
 Public method "Atomically update_using_" is
 [
@@ -265,7 +266,7 @@ Public method "parking queue" is [<fiber…|>];
  *        The {@type "fiber"} to enqueue for possible parking.
  * @param "queue" "parking queue"
  *        A {@type "parking queue"}.
- * @return "boolean"
+ * @returns "boolean"
  *         `true` if the queue was empty at the time of enqueuing,
  *         `false` otherwise.
  */
@@ -302,7 +303,7 @@ Public method "priority enqueue_on_" is
  *        A fiber.
  * @param "queue" "↑parking queue"
  *        A parking queue.
- * @return "boolean"
+ * @returns "boolean"
  *         `true` if the queue was empty after the removal, {@method
  *         "false"} otherwise.
  */
@@ -330,6 +331,7 @@ Public method "dequeue_from_" is
  * termination has not been requested, then return control to the caller.
  *
  * @method "Park current fiber,then honor a termination request"
+ * @returns "⊤"
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
  */
@@ -348,6 +350,7 @@ Public method "Park current fiber,then honor a termination request" is
  * @method "Join_"
  * @param "joinee" "fiber"
  *        The fiber to join.
+ * @returns "⊤"
  */
 Public method "Join_" is
 [
@@ -366,6 +369,7 @@ Public method "Join_" is
  * @method "Join_,then honor a termination request"
  * @param "joinee" "fiber"
  *        The fiber to join.
+ * @returns "⊤"
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
  */
@@ -509,6 +513,7 @@ Public class "reentry exception" extends synchronization exception
  *
  * @method "Schedule next parked fiber or release_"
  * @param "mutex" "non-reentrant mutex"
+ * @returns "⊤"
  */
 Private method "Schedule next parked fiber or release_" is
 [
@@ -539,6 +544,7 @@ Private method "Schedule next parked fiber or release_" is
  *
  * @method "Acquire_"
  * @param "mutex" "non-reentrant mutex"
+ * @returns "⊤"
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
  */
@@ -586,6 +592,7 @@ Private method "Acquire_" is
  * @param "mutex" "non-reentrant mutex"
  * @param "criticalSection" "[]→⊤"
  *        The critical section.
+ * @returns "⊤"
  * @raises "reentry exception"
  *         If the owning fiber reenters the mutex.
  * @raises "termination-requested exception"
@@ -685,7 +692,7 @@ Semantic restriction "a reentrant mutex«named_»" is
  *
  * @method "Lock|lock_for_"
  * @param "mutex" "reentrant mutex"
- * @param "criticalSection"
+ * @param "criticalSection" "[]→⊤"
  *        The critical section.
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
@@ -800,6 +807,7 @@ Semantic restriction "a monitor«named_»" is
  *
  * @method "Schedule next parked fiber or release_"
  * @param "mutex" "monitor"
+ * @returns "⊤"
  */
 Private method "Schedule next parked fiber or release_" is
 [
@@ -908,6 +916,7 @@ extends condition exception;
  *
  * @method "Await_"
  * @param "aCondition" "condition"
+ * @returns "⊤"
  * @raises "cannot-await-condition exception"
  *         If the current fiber does not own the condition's {@type "monitor"}.
  * @raises "termination-requested exception"
@@ -982,6 +991,7 @@ extends condition exception;
  *
  * @method "Signal_"
  * @param "aCondition" "condition"
+ * @returns "⊤"
  * @raises "cannot-signal-condition exception"
  *         If the current fiber is not the owner of the condition's monitor.
  * @raises "condition-unsatisfied exception"
@@ -1049,6 +1059,7 @@ Public method "Signal_" is
  *
  * @method "Signal_if satisfied"
  * @param "aCondition" "condition"
+ * @returns "⊤"
  * @raises "cannot-signal-condition exception"
  *         If the current fiber is not the owner of the condition's monitor.
  * @raises "condition-unsatisfied exception"
@@ -1175,6 +1186,7 @@ Semantic restriction "a semaphore«named_»with_«out of_»permit|permits" is
  *
  * @method "Await_"
  * @param "sem" "semaphore"
+ * @returns "⊤"
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
  */
@@ -1198,6 +1210,7 @@ Method "Await_" is
  * @param "sem" "semaphore"
  * @param "permits" "whole number"
  *        The number of permits to consume.
+ * @returns "⊤"
  * @see "Await_"
  */
 Public method "Await__time|times" is
@@ -1243,6 +1256,7 @@ extends semaphore exception
  *
  * @method "Signal_"
  * @param "sem" "semaphore"
+ * @returns "⊤"
  * @raises "cannot-exceed-maximum-permits exception"
  *         If releasing a permit would exceed the maximum number of permits
  *         allowed by the specified semaphore.
@@ -1279,6 +1293,7 @@ Method "Signal_" is
  * @param "sem" "semaphore"
  * @param "permits" "whole number"
  *        The number of permits to release.
+ * @returns "⊤"
  * @raises "cannot-exceed-maximum-permits exception"
  *         If releasing a permit would exceed the maximum number of permits
  *         allowed by the specified semaphore.
@@ -1317,6 +1332,7 @@ Public method "Signal__time|times" is
  * @param "sem" "semaphore"
  * @param "criticalSection" "[]→⊤"
  *        The critical section.
+ * @returns "⊤"
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
  */

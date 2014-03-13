@@ -177,6 +177,7 @@ Semantic restriction "_'s⁇current element" is
  *        The iterator's type, as a cross check for the implementation.
  * @param "implementation" "[⊥]→any"
  *        The new method extension.
+ * @returns "⊤"
  */
 Public method "_'s⁇current element method is_" is
 [
@@ -213,6 +214,7 @@ Semantic restriction "_'s⁇current element method is_" is
  *
  * @method "Seal_'s⁇current element method"
  * @param "iteratorType" "iterator's type"
+ * @returns "⊤"
  */
 Public method "Seal_'s⁇current element method" is
 [
@@ -229,6 +231,7 @@ Private abstract method privateAdvanceName is [iterator]→⊤;
  * @method "Advance_"
  * @param "anIterator" "iterator"
  *        An iterator.
+ * @returns "⊤"
  * @raises "exhausted-iterator exception"
  *         If the iterator is exhausted.
  */
@@ -248,7 +251,7 @@ Method "Advance_" is
 
 /**
  * Define a method to advance the state of a non-exhausted iterator. The public
- * operation, {@"Advance_"}, does not permit extension (to ensure that iterators
+ * operation, {@method "Advance_"}, does not permit extension (to ensure that iterators
  * are always checked for exhaustion), but the private operation should not be
  * called directly from client code. This special defining method allows the
  * private operation to be overridden for specific iterator implementations
@@ -296,6 +299,7 @@ Semantic restriction "_'s⁇advance method is_" is
  *
  * @method "Seal_'s⁇advance method"
  * @param "iteratorType" "iterator's type"
+ * @returns "⊤"
  */
 Public method "Seal_'s⁇advance method" is
 [
@@ -336,6 +340,7 @@ Method "_is exhausted" is
  * @method "_s⁇current element"
  * @param "anIterator" "exhausted iterator"
  *        An exhausted iterator.
+ * @returns "⊥"
  * @raises "exhausted-iterator exception"
  *         Always.
  */
@@ -360,6 +365,7 @@ Semantic restriction "_s⁇current element" is
  * @method "Advance_"
  * @param "anIterator" "exhausted iterator"
  *        An exhausted iterator.
+ * @returns "⊥"
  * @raises "exhausted-iterator exception"
  *         Always.
  */
@@ -405,6 +411,7 @@ Seal method "Advance_" at <iterator>;
  *        An iterator.
  * @param "action" "[⊥]→⊤"
  *        A function that accepts the elements of the iterator.
+ * @returns "⊤"
  */
 Method "For each of⁇_do_" is
 [
@@ -429,6 +436,7 @@ Method "For each of⁇_do_" is
  *        type of `iteratorType`.
  * @param "iteratorType" "iterator's type"
  *        An iterator type.
+ * @returns "⊤"
  */
 Method "Require:_accepts_" is
 [
@@ -731,6 +739,7 @@ Method "«_‡++»" is
  * Answer a function suitable for use as a semantic restriction for the
  * {@method "concatenate_"} and {@method "«_‡++»"} methods.
  *
+ * @method "concatenation semantic restriction"
  * @returns "[<iterator…|>'s type]→(concatenation iterator's type)"
  *          The requested function.
  */
@@ -844,6 +853,7 @@ Method "«_‡zip»" is
  * Answer a function suitable for use as a semantic restriction for the
  * {@method "zip_"} and {@method "«_‡zip»"} methods.
  *
+ * @method "zip semantic restriction"
  * @returns "[<iterator…|>'s type]→(zipped iterator's type)"
  *          The requested function.
  */
@@ -933,14 +943,14 @@ Semantic restriction "take«at most»?_from_" is
  * @method "_is not exhausted"
  * @public
  * @category "Annals"
- * @param "iter" iterator of character
+ * @param "anIterator" "iterator"
  * @returns "boolean"
  * @author "Richard Arriaga"
  */
 Public method "_is not exhausted" is
 [
  	anIterator : iterator
- |
+|
  	¬anIterator is exhausted
 ]:boolean;
 
@@ -1042,6 +1052,7 @@ Semantic restriction "take from_until_" is
  *        from the result iterator.
  * @param "anIterator" "iterator"
  *        An iterator.
+ * @returns "⊤"
  * @raises "exhausted-iterator exception"
  *         If {@param "isLax"} is {@code false} and {@param "anIterator"} does
  *         not contain {@param "count"} elements.
@@ -1075,6 +1086,7 @@ Method "Drop«at most»?_from_" is
  *        A function that can accept each element of the specified iterator. It
  *        should answer {@code true} to discard the element (and continue
  *        scanning) or {@code false} to abort.
+ * @returns "⊤"
  */
 Method "Drop from_while_" is
 [
@@ -1111,6 +1123,7 @@ Semantic restriction "Drop from_while_" is
  *        A function that can accept each element of the specified iterator. It
  *        should answer {@code false} to discard the element (and continue
  *        scanning) or {@code true} to abort.
+ * @returns "⊤"
  */
 Method "Drop from_until_" is
 [

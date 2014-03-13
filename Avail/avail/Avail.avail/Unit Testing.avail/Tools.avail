@@ -113,6 +113,7 @@ Method "Require:_(_)" is
  * @method "Require:_=_"
  * @param "actual" "any"
  * @param "expected" "any"
+ * @returns "⊤"
  * @raises "failed-requirement exception"
  *         If {@param "expected"} ≠ {@param "value"}.
  */
@@ -157,6 +158,7 @@ Semantic restriction "Require:_=_" is
  * @param "message" "string"
  *        Additional information that should be attached to the exception in the
  *        event of failure.
+ * @returns "⊤"
  * @raises "failed-requirement exception"
  *         If {@param "expected"} ≠ {@param "value"}.
  */
@@ -205,6 +207,7 @@ Semantic restriction "Require:_=_(_)" is
  *        A function.
  * @param "exceptionType" "exception's type"
  *        An exception type.
+ * @returns "⊤"
  * @raises "failed-requirement exception"
  *         If {@param "aFunction"} does not produce an exception of the
  *         appropriate type.
@@ -249,6 +252,7 @@ Public method "Require:_raises_" is
  * @param "message" "string"
  *        Additional information that should be attached to the exception in the
  *        event of failure.
+ * @returns "⊤"
  * @raises "failed-requirement exception"
  *         If {@param "aFunction"} does not produce an exception of the
  *         appropriate type.
@@ -288,6 +292,7 @@ Public method "Require:_raises_(_)" is
  *
  * @method "Require if supported«on this platform»⁇:_"
  * @param "aFunction" "[]→boolean"
+ * @returns "⊤"
  * @raises "failed-requirement exception"
  *         If {@param "aFunction"} answers {@method "false"}.
  */
@@ -319,6 +324,7 @@ Public method "Require if supported«on this platform»⁇:_" is
  * @param "message" "string"
  *        Additional information that should be attached to the exception in the
  *        event of failure.
+ * @returns "⊤"
  * @raises "failed-requirement exception"
  *         If {@param "aFunction"} answers {@method "false"}.
  */
@@ -351,6 +357,7 @@ Public method "Require if supported«on this platform»⁇:_(_)" is
  * @method "Require if supported«on this platform»⁇:_"
  * @param "aFunction" "[]→boolean"
  * @param "exceptionType" "exception's type"
+ * @returns "⊤"
  * @raises "failed-requirement exception"
  *         If {@param "aFunction"} does not raise an {@type "exception"} or
  *         raises an {@type "exception"} that is not a subtype of either
@@ -402,6 +409,7 @@ Public method "Require if supported«on this platform»⁇:_raises_" is
  * @param "message" "string"
  *        Additional information that should be attached to the exception in the
  *        event of failure.
+ * @returns "⊤"
  * @raises "failed-requirement exception"
  *         If {@param "aFunction"} does not raise an {@type "exception"} or
  *         raises an {@type "exception"} that is not a subtype of either

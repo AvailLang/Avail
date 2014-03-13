@@ -283,7 +283,7 @@ Public method "[_.._]" is
  * Strengthen integer range types.
  *
  * @method "[_.._]"
- * @restricts extended integer meta"
+ * @restricts "extended integer meta"
  * @restricts "extended integer meta"
  */
 Semantic restriction "[_.._]" is
@@ -300,6 +300,7 @@ Semantic restriction "[_.._]" is
 /**
  * Construct and answer an integer range type with the specified bounds.
  * 
+ * @method "[_.._)"
  * @param "lowerBound" "extended integer"
  *        The lower bound, inclusive.
  * @param "upperBound" "extended integer"
@@ -936,8 +937,10 @@ Method "_is infinite" is stable at
  * Is the argument infinite?
  * 
  * @method "_is infinite"
+ * @param "a" "double"
  * Parameters:
  *    a - A double.
+ * @returns "boolean"
  * Returns:
  *    `true` if the argument is infinite, `false` otherwise.
  */

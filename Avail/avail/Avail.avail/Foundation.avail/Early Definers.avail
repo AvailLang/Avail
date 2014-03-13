@@ -529,6 +529,7 @@ Semantic restriction "Private abstract method_is_" is
  *        The name of the method to forward declare.
  * @param "aFunctionType" "function meta"
  *        The signature.
+ * @returns "⊤"
  */
 Public method "Private forward method_is_" is
 [

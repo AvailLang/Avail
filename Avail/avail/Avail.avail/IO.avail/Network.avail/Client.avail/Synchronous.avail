@@ -51,6 +51,7 @@ Body
  * @method "Connect_to_"
  * @param "s" "client socket"
  * @param "peerAddress" "socket address"
+ * @returns "⊤"
  */
 Public method "Connect_to_" is
 [
@@ -72,6 +73,7 @@ Public method "Connect_to_" is
  *
  * @method "Write_to_"
  * @param "data" "<byte…|>"
+ * @returns "⊤"
  */
 Method "Write_to_" is
 [
@@ -101,6 +103,7 @@ Method "Write_to_" is
  * @param "count" "whole number"
  *        The maximum number of bytes to read from the connection.
  * @param "s" "client socket"
+ * @returns "<byte…|>"
  */
 Method "read«at most»?_byte|bytes from_" is
 [

@@ -520,9 +520,10 @@ public abstract class AbstractStacksScanner
 									throw new StacksScannerException(
 										String.format(
 											"\n<li><strong>%s</strong><em> "
-											+ "Line #: %d</em>: Scanner Error: " +
-											"The input before  \"\\|\" "
-											+ "contains non-whitespace.</li>",
+											+ "Line #: %d</em>: Scanner Error: "
+											+ "The input before  \"\\|\" "
+											+ "contains non-whitespace"
+											+ "/not-'*'.</li>",
 											scanner.obtainModuleSimpleName(),
 											scanner.lineNumber()),
 										scanner);
@@ -572,7 +573,7 @@ public abstract class AbstractStacksScanner
 					else
 					{
 						stringBuilder.appendCodePoint(c);
-						if (canErase && !Character.isWhitespace(c))
+						if (canErase && !Character.isWhitespace(c) && c != '*')
 						{
 							canErase = false;
 						}

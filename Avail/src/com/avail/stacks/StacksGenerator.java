@@ -170,6 +170,15 @@ public class StacksGenerator
 	public synchronized void generate (final ModuleName outermostModule)
 	{
 		System.out.println("In generate()");
+		final StacksOutputFile myMapFile = new StacksOutputFile(
+			logPath,
+			"Header Map.txt",
+			moduleToExportedMethodsMap.toString());
+
+		final StacksOutputFile myMethodsFile = new StacksOutputFile(
+			logPath,
+			"Methods Map.txt",
+			moduleToComments.toString());
 		try
 		{
 			//do nothing
@@ -184,6 +193,8 @@ public class StacksGenerator
 					.getBytes(StandardCharsets.UTF_8));
 				errorLog.addLogEntry(closeHTML,0);
 				errorLog.file().close();
+				myMapFile.file().close();
+				myMethodsFile.file().close();
 			}
 			catch (final IOException e)
 			{
@@ -191,7 +202,6 @@ public class StacksGenerator
 				e.printStackTrace();
 			}
 		}
-		System.out.println("Done!  Yay!");
 		clear();
 
 	}

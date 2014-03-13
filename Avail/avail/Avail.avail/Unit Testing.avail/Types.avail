@@ -248,6 +248,8 @@ Public method "short“_”" is
  * unit test suite). It maintains only its test suite identifier and its child
  * test suite identifiers. Note that these are the test suites created using
  * {@method "_is a new test suite"}.
+ *
+ * @type "root unit test suite"
  */
 Public class "root unit test suite" extends object
 	with fields
@@ -357,6 +359,7 @@ Public explicit class "unit test success" extends unit test result;
  *
  * @type "unit test failure"
  * @supertype "unit test result"
+ * @field "causal exception" "unit-test exception"
  */
 Public class "unit test failure" extends unit test result
 	with fields

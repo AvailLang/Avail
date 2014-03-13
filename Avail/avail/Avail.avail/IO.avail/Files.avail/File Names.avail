@@ -369,7 +369,7 @@ Public method "_names the⁇same file as_" is
  * virtual machine starts, and no mechanism is provided to change it.
  *
  * @method "current working directory"
- * @param "file name"
+ * @returns "file name"
  *        The {@method "_'s⁇real path(follow if symlink=_)" real path} of the
  *        current working directory.
  */

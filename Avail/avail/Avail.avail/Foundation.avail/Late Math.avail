@@ -71,10 +71,12 @@ Forward method "_^_" is [double, whole number]→double;
 /**
  * Compute and answer the result of exponentiating `base` by `exponent`.
  * 
- * Parameters:
+ * @method "_^_"
+ * @param "base" "number"
  *    base - The base.
+ * @param "exponent" "number"
  *    exponent - The exponent.
- * Returns:
+ * @returns "number"
  *    The result of raising `base` to the `exponent` power.
  */
 Method "_^_" is
@@ -90,6 +92,9 @@ Method "_^_" is
  * Establish type promotion rules for exponentiation. Also handle instance
  * types.
  * 
+ * @method "_^_"
+ * @restricts "number"
+ * @restricts "number"
  * Parameters:
  *    a - The base's type.
  *    b - The exponent's type.
@@ -127,10 +132,12 @@ Semantic restriction "_^_" is type promotion function for
  * Compute and answer the result of exponentiating `base` by `exponent`.
  * In this case, the base is an extended integer but the exponent is ∞.
  * 
- * Parameters:
+ * @method "_^_"
+ * @param "base" "extended integer"
  *    base - The base.
+ * @param "exponent" "[∞..∞]"
  *    exponent - The exponent, which is ∞.
- * Returns:
+ * @returns "{0, ∞}ᵀ"
  *    The result of raising `base` to ∞.
  */
 Method "_^_" is
@@ -152,10 +159,12 @@ Forward method "_recursive^_"
 /**
  * Compute and answer the result of exponentiating `base` by `exponent`.
  * 
- * Parameters:
+ * @method "_^_"
+ * @param "base" "extended integer"
  *    base - The base.
+ * @param "exponent" "whole number"
  *    exponent - The exponent.
- * Returns:
+ * @returns "extended integer"
  *    The result of raising `base` to the `exponent` power.
  */
 Method "_^_" is
@@ -190,10 +199,12 @@ Method "_^_" is
  * complain about indeterminate values, under the assumption that those are
  * dealt with by the actual "_^_" method.
  * 
- * Parameters:
+ * @method "_recursive^_"
+ * @param "base" "extended integer"
  *    base - The base.
+ * @param "exponent" "whole number"
  *    exponent - The exponent.
- * Returns:
+ * @returns "extended integer"
  *    The result of raising `base` to the `exponent` power.
  */
 Method "_recursive^_" is
@@ -215,10 +226,12 @@ Method "_recursive^_" is
 /**
  * Compute and answer the result of exponentiating `base` by `exponent`.
  * 
- * Parameters:
+ * @method "_^_"
+ * @param "base" "float"
  *    base - The base.
+ * @param "exponent" whole number"
  *    exponent - The exponent.
- * Returns:
+ * @returns "float"
  *    The result of raising `base` to the `exponent` power.
  */
 Method "_^_" is
@@ -241,10 +254,12 @@ Method "_^_" is
 /**
  * Compute and answer the result of exponentiating `base` by `exponent`.
  * 
- * Parameters:
+ * @method "_^_"
+ * @param "base" double"
  *    base - The base.
+ * @param "exponent" "whole number"
  *    exponent - The exponent.
- * Returns:
+ * @returns "double"
  *    The result of raising `base` to the `exponent` power.
  */
 Method "_^_" is
@@ -267,6 +282,11 @@ Method "_^_" is
 /**
  * Support exponentiation of ranges of integral arguments.  This could be useful
  * for semantic restrictions in clients that compose things with exponentiation.
+ *
+ * @method "_^_"
+ * @param "base" "extended integer's type"
+ * @param "power" "whole number's type"
+ * @returns "extended integer's type"
  */
 Method "_^_" is
 [
@@ -359,6 +379,10 @@ Method "_^_" is
 /**
  * Restrict integral exponentiation, in particular when the power is a whole
  * number.
+ *
+ * @method "_^_"
+ * @restricts "extended integer's type"
+ * @restricts "whole number's type"
  */
 Semantic restriction "_^_" is
 [
