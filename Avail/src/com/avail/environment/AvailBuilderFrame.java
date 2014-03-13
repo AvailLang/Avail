@@ -140,6 +140,7 @@ extends JFrame
 			task.execute();
 			cancelAction.setEnabled(true);
 			cleanAction.setEnabled(false);
+			refreshAction.setEnabled(false);
 			documentAction.setEnabled(false);
 		}
 
@@ -784,6 +785,7 @@ extends JFrame
 			cancelAction.setEnabled(false);
 			buildAction.setEnabled(true);
 			cleanAction.setEnabled(true);
+			refreshAction.setEnabled(true);
 			documentAction.setEnabled(true);
 			if (terminator == null)
 			{
@@ -1231,10 +1233,13 @@ extends JFrame
 	 *
 	 * @param stack
 	 *        The stack on which to place Avail roots and packages.
+	 * @param moduleRoot
+	 *        The {@link ModuleRoot} within which to scan recursively.
 	 * @return A {@code FileVisitor}.
 	 */
 	private FileVisitor<Path> moduleTreeVisitor (
-		final Deque<DefaultMutableTreeNode> stack)
+		final Deque<DefaultMutableTreeNode> stack,
+		final ModuleRoot moduleRoot)
 	{
 		final String extension = ModuleNameResolver.availExtension;
 		final Mutable<Boolean> isRoot = new Mutable<Boolean>(true);
@@ -1250,7 +1255,8 @@ extends JFrame
 				if (isRoot.value)
 				{
 					isRoot.value = false;
-					final String rootName = dir.getFileName().toString();
+					assert stack.size() == 1;
+					final String rootName = moduleRoot.name();
 					final DefaultMutableTreeNode node =
 						new DefaultMutableTreeNode(rootName);
 					// Add the new node to the children of the parent node, then
@@ -1342,10 +1348,9 @@ extends JFrame
 		// Put the invisible root onto the work stack.
 		final Deque<DefaultMutableTreeNode> stack = new ArrayDeque<>();
 		stack.add(treeRoot);
-		for (final String rootName : roots.rootNames())
+		for (final ModuleRoot root : roots.roots())
 		{
 			// Obtain the path associated with the module root.
-			final ModuleRoot root = roots.moduleRootFor(rootName);
 			assert root != null;
 			final File rootDirectory = root.sourceDirectory();
 			assert rootDirectory != null;
@@ -1355,7 +1360,7 @@ extends JFrame
 					Paths.get(rootDirectory.getAbsolutePath()),
 					EnumSet.of(FileVisitOption.FOLLOW_LINKS),
 					Integer.MAX_VALUE,
-					moduleTreeVisitor(stack));
+					moduleTreeVisitor(stack, root));
 			}
 			catch (final IOException e)
 			{
@@ -1959,7 +1964,7 @@ extends JFrame
 		actionMap = moduleTree.getActionMap();
 		inputMap.put(KeyStroke.getKeyStroke("ENTER"), "build");
 		actionMap.put("build", buildAction);
-		for (int i = 0; i < moduleTree.getRowCount(); i++)
+		for (int i = moduleTree.getRowCount() - 1; i >= 0; i--)
 		{
 			moduleTree.expandRow(i);
 		}
@@ -2140,22 +2145,6 @@ extends JFrame
 			entryPointsScrollArea);
 		leftPane.setDividerLocation(configuration.moduleVerticalProportion());
 		leftPane.setResizeWeight(configuration.moduleVerticalProportion());
-//		addPropertyChangeListener(
-//			JSplitPane.DIVIDER_LOCATION_PROPERTY,
-//			new PropertyChangeListener()
-//			{
-//				@Override
-//				public void propertyChange (
-//					final @Nullable PropertyChangeEvent evt)
-//				{
-//					if (isValid())
-//					{
-//						final double proportion = leftPane.getDividerLocation()
-//							/ max(leftPane.getWidth(), 1.0);
-//						leftPane.setResizeWeight(proportion);
-//					}
-//				}
-//			});
 		final JPanel rightPane = new JPanel();
 		final GroupLayout rightPaneLayout = new GroupLayout(rightPane);
 		rightPane.setLayout(rightPaneLayout);

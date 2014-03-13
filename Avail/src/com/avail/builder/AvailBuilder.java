@@ -367,8 +367,6 @@ public final class AvailBuilder
 		 *        {@link ModuleVersion} from a valid module file.
 		 */
 		@InnerAccess void traceAllModuleHeaders (
-//			final Continuation1<ModuleRoot> rootPreAction,
-//			final Continuation1<ResolvedModuleName> packagePreAction,
 			final Continuation2<ResolvedModuleName, ModuleVersion> moduleAction)
 		{
 			traceRequests = 0;
@@ -410,45 +408,46 @@ public final class AvailBuilder
 					{
 						assert file != null;
 						final String localName = file.toFile().getName();
-						if (localName.endsWith(availExtension))
+						if (!localName.endsWith(availExtension))
 						{
-							synchronized (this)
-							{
-								traceRequests++;
-							}
-							runtime.execute(new AvailTask(0, new Continuation0()
-							{
-								@Override
-								public void value ()
-								{
-									final StringBuilder builder =
-										new StringBuilder(100);
-									builder.append("/");
-									builder.append(moduleRoot.name());
-									final Path relative =
-										rootPath.relativize(file);
-									for (final Path element : relative)
-									{
-										final String part = element.toString();
-										builder.append("/");
-										part.endsWith(availExtension);
-										final String noExtension =
-											part.substring(
-												0,
-												part.length()
-													- availExtension.length());
-										builder.append(noExtension);
-									}
-									final ModuleName moduleName =
-										new ModuleName(builder.toString());
-									final ResolvedModuleName resolved =
-										new ResolvedModuleName(
-											moduleName,
-											moduleRoot);
-									traceOneModuleHeader(resolved, moduleAction);
-								}
-							}));
+							return CONTINUE;
 						}
+						// It's a module file.
+						synchronized (this)
+						{
+							traceRequests++;
+						}
+						runtime.execute(new AvailTask(0, new Continuation0()
+						{
+							@Override
+							public void value ()
+							{
+								final StringBuilder builder =
+									new StringBuilder(100);
+								builder.append("/");
+								builder.append(moduleRoot.name());
+								final Path relative = rootPath.relativize(file);
+								for (final Path element : relative)
+								{
+									final String part = element.toString();
+									builder.append("/");
+									part.endsWith(availExtension);
+									final String noExtension =
+										part.substring(
+											0,
+											part.length()
+												- availExtension.length());
+									builder.append(noExtension);
+								}
+								final ModuleName moduleName =
+									new ModuleName(builder.toString());
+								final ResolvedModuleName resolved =
+									new ResolvedModuleName(
+										moduleName,
+										moduleRoot);
+								traceOneModuleHeader(resolved, moduleAction);
+							}
+						}));
 						return CONTINUE;
 					}
 
@@ -1532,6 +1531,20 @@ public final class AvailBuilder
 							fiber,
 							function,
 							Collections.<AvailObject>emptyList());
+					}
+					else if (shouldStopBuild)
+					{
+						module.removeFrom(
+							availLoader,
+							new Continuation0()
+							{
+								@Override
+								public void value ()
+								{
+									postLoad(moduleName, 0L);
+									completionAction.value();
+								}
+							});
 					}
 					else
 					{
