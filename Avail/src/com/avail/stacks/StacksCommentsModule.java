@@ -37,9 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleNameResolver;
-import com.avail.builder.ResolvedModuleName;
 import com.avail.builder.UnresolvedDependencyException;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
 import com.avail.compiler.AbstractAvailCompiler.ModuleImport;
@@ -216,66 +214,67 @@ public class StacksCommentsModule
 		final HashMap<A_String,A_Set> moduleToMethodMap,
 		final ModuleNameResolver resolver)
 	{
-		/*final A_Set collectedExtendedNames =
+		A_Set collectedExtendedNames =
 			SetDescriptor.empty();
 
 		for (final ModuleImport moduleImport : header.importedModules)
 		{
-		final A_String moduleImportName;
+			final A_String moduleImportName;
 			try
 			{
 				moduleImportName = StringDescriptor.from(resolver.resolve(
 					header.moduleName
 						.asSibling(moduleImport.moduleName.asNativeString()),
 					header.moduleName).qualifiedName());
+
+				if (moduleToMethodMap.get(moduleImportName) == null)
+				{
+
+					moduleToMethodMap
+						.put(moduleImportName,SetDescriptor.empty());
+				}
+
+				if (moduleImport.isExtension)
+				{
+					if (moduleImport.wildcard)
+					{
+						collectedExtendedNames =
+							collectedExtendedNames.setUnionCanDestroy(
+								moduleToMethodMap
+								.get(moduleImportName),
+							true);
+					}
+
+					if (moduleImport.excludes != NilDescriptor.nil())
+					{
+						collectedExtendedNames = collectedExtendedNames
+							.setMinusCanDestroy(moduleImport.excludes, true);
+					}
+
+					if (moduleImport.renames != NilDescriptor.nil())
+					{
+						collectedExtendedNames = collectedExtendedNames
+							.setMinusCanDestroy(
+								moduleImport.renames.keysAsSet(),true);
+						collectedExtendedNames = collectedExtendedNames
+							.setUnionCanDestroy(moduleImport.renames
+								.valuesAsTuple().asSet(),true);
+					}
+
+					if (moduleImport.names != NilDescriptor.nil())
+					{
+						collectedExtendedNames = collectedExtendedNames
+							.setUnionCanDestroy(moduleImport.names,true);
+					}
+				}
 			}
 			catch (final UnresolvedDependencyException e)
 			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			if (moduleToMethodMap.get(moduleImportName) == null)
-			{
-
-				moduleToMethodMap
-					.put(moduleImportName,SetDescriptor.empty());
-			}
-
-			if (moduleImport.isExtension)
-			{
-				if (moduleImport.wildcard)
-				{
-					collectedExtendedNames.setUnionCanDestroy(
-						moduleToMethodMap
-							.get(moduleImportName),
-						true);
-				}
-
-				if (moduleImport.excludes != NilDescriptor.nil())
-				{
-					collectedExtendedNames
-						.setMinusCanDestroy(moduleImport.excludes, true);
-				}
-
-				if (moduleImport.renames != NilDescriptor.nil())
-				{
-					collectedExtendedNames
-						.setMinusCanDestroy(
-							moduleImport.renames.keysAsSet(),true);
-					collectedExtendedNames.setUnionCanDestroy(
-						moduleImport.renames.valuesAsTuple().asSet(),true);
-				}
-
-				if (moduleImport.names != NilDescriptor.nil())
-				{
-					collectedExtendedNames.setUnionCanDestroy(
-						moduleImport.names,
-						true);
-				}
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 			}
 		}
 		return collectedExtendedNames.setUnionCanDestroy(
-			SetDescriptor.fromCollection(header.exportedNames), true);*/
-			return null;
+			SetDescriptor.fromCollection(header.exportedNames), true);
 	}
 }
