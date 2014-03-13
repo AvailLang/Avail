@@ -779,14 +779,7 @@ extends JFrame
 		{
 			buildTask = null;
 			reportDone();
-			moduleProgress.setEnabled(false);
-			buildProgress.setEnabled(false);
-			inputField.setEnabled(false);
-			cancelAction.setEnabled(false);
-			buildAction.setEnabled(true);
-			cleanAction.setEnabled(true);
-			refreshAction.setEnabled(true);
-			documentAction.setEnabled(true);
+			setIdleEnablements();
 			if (terminator == null)
 			{
 				moduleProgress.setString("Module Progress: 100%");
@@ -828,13 +821,7 @@ extends JFrame
 		{
 			documentationTask = null;
 			reportDone();
-			moduleProgress.setEnabled(false);
-			buildProgress.setEnabled(false);
-			cancelAction.setEnabled(false);
-			buildAction.setEnabled(true);
-			cleanAction.setEnabled(true);
-			setDocumentationPathAction.setEnabled(true);
-			documentAction.setEnabled(true);
+			setIdleEnablements();
 			if (terminator == null)
 			{
 				moduleProgress.setString("Module Progress: 100%");
@@ -1227,6 +1214,24 @@ extends JFrame
 	@InnerAccess final InsertEntryPointAction insertEntryPointAction;
 
 	/**
+	 *
+	 */
+	public void setIdleEnablements ()
+	{
+		moduleProgress.setEnabled(false);
+		buildProgress.setEnabled(false);
+		inputField.setEnabled(false);
+
+		cancelAction.setEnabled(false);
+		buildAction.setEnabled(selectedModule() != null);
+		cleanAction.setEnabled(true);
+		refreshAction.setEnabled(true);
+		setDocumentationPathAction.setEnabled(true);
+		documentAction.setEnabled(true);
+		insertEntryPointAction.setEnabled(selectedEntryPoint() != null);
+	}
+
+	/**
 	 * Answer a {@link FileVisitor} suitable for recursively exploring an
 	 * Avail root. A new {@code FileVisitor} should be obtained for each Avail
 	 * root.
@@ -1352,6 +1357,7 @@ extends JFrame
 		{
 			// Obtain the path associated with the module root.
 			assert root != null;
+			root.repository().reopenIfNecessary();
 			final File rootDirectory = root.sourceDirectory();
 			assert rootDirectory != null;
 			try
@@ -1471,6 +1477,11 @@ extends JFrame
 			return null;
 		}
 		final Object[] nodes = path.getPath();
+		if (nodes.length <= 2)
+		{
+			// It's a root, not a module or package.
+			return null;
+		}
 		final StringBuilder builder = new StringBuilder();
 		for (int i = 1; i < nodes.length; i++)
 		{
@@ -1935,11 +1946,7 @@ extends JFrame
 			@Override
  			public void valueChanged (final @Nullable TreeSelectionEvent event)
 			{
-				final boolean newEnablement = selectedModule() != null;
-				if (buildAction.isEnabled() != newEnablement)
-				{
-					buildAction.setEnabled(newEnablement);
-				}
+				buildAction.setEnabled(selectedModule() != null);
 			}
 		});
 		moduleTree.addMouseListener(new MouseAdapter()
@@ -2003,11 +2010,7 @@ extends JFrame
 			@Override
  			public void valueChanged (final @Nullable TreeSelectionEvent event)
 			{
-				final boolean newEnablement = selectedEntryPoint() != null;
-				if (insertEntryPointAction.isEnabled() != newEnablement)
-				{
-					insertEntryPointAction.setEnabled(newEnablement);
-				}
+				insertEntryPointAction.setEnabled(selectedEntryPoint() != null);
 			}
 		});
 		entryPointsTree.addMouseListener(new MouseAdapter()

@@ -37,19 +37,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleNameResolver;
-import com.avail.builder.ResolvedModuleName;
-import com.avail.builder.UnresolvedDependencyException;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
-import com.avail.compiler.AbstractAvailCompiler.ModuleImport;
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.A_String;
-import com.avail.descriptor.NilDescriptor;
-import com.avail.descriptor.SetDescriptor;
 import com.avail.descriptor.StringDescriptor;
 
 /**
