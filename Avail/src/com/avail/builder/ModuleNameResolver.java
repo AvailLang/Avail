@@ -207,8 +207,8 @@ public final class ModuleNameResolver
 			});
 
 	/**
-	 * Actually resolve the qualified module name.  This is @InnerAccess to
-	 * ensure clients always go through the cache.
+	 * Actually resolve the qualified module name.  This is @{@link InnerAccess}
+	 * to ensure clients always go through the cache.
 	 *
 	 * @param qualifiedName
 	 *        The qualified name of the module.
