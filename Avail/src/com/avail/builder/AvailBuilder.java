@@ -111,8 +111,59 @@ public final class AvailBuilder
 	 * A map from each {@link ResolvedModuleName} to its currently loaded
 	 * {@link LoadedModule}.
 	 */
-	public final Map<ResolvedModuleName, LoadedModule> loadedModules =
+	private final Map<ResolvedModuleName, LoadedModule> _loadedModules =
 		new HashMap<ResolvedModuleName, LoadedModule>();
+
+	private final Set<Continuation2<LoadedModule, Boolean>> subscriptions =
+		new HashSet<>();
+
+	public void subscribeToModuleLoading (
+		final Continuation2<LoadedModule, Boolean> subscription)
+	{
+		subscriptions.add(subscription);
+	}
+
+	public void unsubscribeToModuleLoading (
+		final Continuation2<LoadedModule, Boolean> subscription)
+	{
+		subscriptions.remove(subscription);
+	}
+
+	public List<LoadedModule> loadedModulesCopy ()
+	{
+		return new ArrayList<>(_loadedModules.values());
+	}
+
+	public synchronized @Nullable LoadedModule getLoadedModule (
+		final ResolvedModuleName resolvedModuleName)
+	{
+		return _loadedModules.get(resolvedModuleName);
+	}
+
+	@InnerAccess synchronized void putLoadedModule (
+		final ResolvedModuleName resolvedModuleName,
+		final LoadedModule loadedModule)
+	{
+		_loadedModules.put(resolvedModuleName, loadedModule);
+		for (final Continuation2<LoadedModule, Boolean> subscription
+			: subscriptions)
+		{
+			subscription.value(loadedModule, true);
+		}
+	}
+
+	@InnerAccess synchronized void removeLoadedModule (
+		final ResolvedModuleName resolvedModuleName)
+	{
+		final LoadedModule loadedModule =
+			_loadedModules.get(resolvedModuleName);
+		_loadedModules.remove(resolvedModuleName);
+		for (final Continuation2<LoadedModule, Boolean> subscription
+			: subscriptions)
+		{
+			subscription.value(loadedModule, false);
+		}
+	}
 
 	/**
 	 * Whether the current build should stop, versus continuing with problems.
@@ -271,7 +322,7 @@ public final class AvailBuilder
 	 * A LoadedModule holds state about what the builder knows about a currently
 	 * loaded Avail module.
 	 */
-	static class LoadedModule
+	public static class LoadedModule
 	{
 		/**
 		 * The resolved name of this module.
@@ -291,6 +342,9 @@ public final class AvailBuilder
 		 */
 		final @InnerAccess A_Module module;
 
+		/** This module's version, which corresponds to the source code. */
+		final ModuleVersion version;
+
 		/**
 		 * The {@link ModuleCompilation} which was loaded for this module.  This
 		 * indicates when the compilation happened, and where in the {@linkplain
@@ -306,6 +360,19 @@ public final class AvailBuilder
 		boolean deletionRequest = false;
 
 		/**
+		 * Answer the entry points defined by this loaded module.  Since the
+		 * header structure does not depend on syntax declared in other modules,
+		 * the entry points are a property of the {@link ModuleVersion}.  That's
+		 * the entity associated with particular module source code.
+		 *
+		 * @return The {@link List} of {@link String}s that are entry points.
+		 */
+		public List<String> entryPoints ()
+		{
+			return version.getEntryPoints();
+		}
+
+		/**
 		 * Construct a new {@link AvailBuilder.LoadedModule} to represent
 		 * information about an Avail module that has been loaded.
 		 *
@@ -313,6 +380,7 @@ public final class AvailBuilder
 		 * @param sourceDigest The module source's cryptographic digest.
 		 * @param module The actual {@link A_Module} loaded in the {@link
 		 *        AvailRuntime}.
+		 * @param version The version of the module source.
 		 * @param compilation Information about the specific {@link
 		 *        ModuleCompilation} that is loaded.
 		 */
@@ -320,11 +388,13 @@ public final class AvailBuilder
 			final ResolvedModuleName name,
 			final byte [] sourceDigest,
 			final A_Module module,
+			final ModuleVersion version,
 			final ModuleCompilation compilation)
 		{
 			this.name = name;
 			this.sourceDigest = sourceDigest;
 			this.module = module;
+			this.version = version;
 			this.compilation = compilation;
 		}
 	}
@@ -413,7 +483,7 @@ public final class AvailBuilder
 							return CONTINUE;
 						}
 						// It's a module file.
-						synchronized (this)
+						synchronized (BuildDirectoryTracer.this)
 						{
 							traceRequests++;
 						}
@@ -486,7 +556,7 @@ public final class AvailBuilder
 				}
 			}
 			boolean interrupted = false;
-			synchronized (this)
+			synchronized (BuildDirectoryTracer.this)
 			{
 				while (traceRequests != traceCompletions)
 				{
@@ -682,7 +752,8 @@ public final class AvailBuilder
 											moduleName))
 									{
 										final LoadedModule loadedModule =
-											loadedModules.get(predecessor);
+											getLoadedModule(predecessor);
+										assert loadedModule != null;
 										if (loadedModule.deletionRequest)
 										{
 											dirty = true;
@@ -694,7 +765,7 @@ public final class AvailBuilder
 										// Look at the file to determine if it's
 										// changed.
 										final LoadedModule loadedModule =
-											loadedModules.get(moduleName);
+											getLoadedModule(moduleName);
 										assert loadedModule != null;
 										final IndexedRepositoryManager
 											repository =
@@ -703,13 +774,12 @@ public final class AvailBuilder
 											repository.getArchive(
 												moduleName.rootRelativeName());
 										final byte [] latestDigest =
-											archive.digestForFile(
-												moduleName);
+											archive.digestForFile(moduleName);
 										dirty = !Arrays.equals(
 											latestDigest,
 											loadedModule.sourceDigest);
 									}
-									loadedModules.get(moduleName)
+									getLoadedModule(moduleName)
 										.deletionRequest = dirty;
 									completionAction.value();
 								}
@@ -738,7 +808,8 @@ public final class AvailBuilder
 								public void value()
 								{
 									final LoadedModule loadedModule =
-										loadedModules.get(moduleName);
+										getLoadedModule(moduleName);
+									assert loadedModule != null;
 									if (loadedModule.deletionRequest)
 									{
 										if (debugBuilder)
@@ -782,13 +853,12 @@ public final class AvailBuilder
 				});
 			// Unloading of each A_Module is complete.  Update my local
 			// structures to agree.
-			for (final Map.Entry<ResolvedModuleName, LoadedModule> entry
-				: new ArrayList<>(loadedModules.entrySet()))
+			for (final LoadedModule loadedModule : loadedModulesCopy())
 			{
-				if (entry.getValue().deletionRequest)
+				if (loadedModule.deletionRequest)
 				{
-					final ResolvedModuleName moduleName = entry.getKey();
-					loadedModules.remove(moduleName);
+					final ResolvedModuleName moduleName = loadedModule.name;
+					removeLoadedModule(moduleName);
 					moduleGraph.exciseVertex(moduleName);
 				}
 			}
@@ -946,8 +1016,7 @@ public final class AvailBuilder
 					// Note that a module can be both Extended and Used from
 					// the same module.  That's to support selective import
 					// and renames.
-					moduleGraph.includeEdge(
-						resolvedName, resolvedSuccessor);
+					moduleGraph.includeEdge(resolvedName, resolvedSuccessor);
 				}
 			}
 			if (alreadyTraced)
@@ -1301,8 +1370,14 @@ public final class AvailBuilder
 				moduleName, bytesCompiled.get(), globalCodeSize());
 			// If the module is already loaded into the runtime, then we
 			// must not reload it.
-			if (runtime.includesModuleNamed(
-				StringDescriptor.from(moduleName.qualifiedName())))
+			final boolean isLoaded;
+			synchronized (AvailBuilder.this)
+			{
+				isLoaded = getLoadedModule(moduleName) != null;
+			}
+			assert isLoaded == runtime.includesModuleNamed(
+				StringDescriptor.from(moduleName.qualifiedName()));
+			if (isLoaded)
 			{
 				// The module is already loaded.
 				if (debugBuilder)
@@ -1312,13 +1387,11 @@ public final class AvailBuilder
 							"Already loaded: %s",
 							moduleName.qualifiedName()));
 				}
-				assert loadedModules.containsKey(moduleName);
 				postLoad(moduleName, 0L);
 				completionAction.value();
 			}
 			else
 			{
-				assert !loadedModules.containsKey(moduleName);
 				final IndexedRepositoryManager repository =
 					moduleName.repository();
 				final ModuleArchive archive = repository.getArchive(
@@ -1336,7 +1409,7 @@ public final class AvailBuilder
 				{
 					final String localName = predecessorName.localName();
 					final LoadedModule loadedPredecessor =
-						loadedModules.get(predecessorName);
+						getLoadedModule(predecessorName);
 					assert loadedPredecessor != null;
 					loadedModulesByName.put(localName, loadedPredecessor);
 				}
@@ -1555,8 +1628,9 @@ public final class AvailBuilder
 								moduleName,
 								sourceDigest,
 								module,
+								version,
 								compilation);
-							loadedModules.put(moduleName, loadedModule);
+							putLoadedModule(moduleName, loadedModule);
 						}
 						postLoad(moduleName, 0L);
 						completionAction.value();
@@ -1678,12 +1752,13 @@ public final class AvailBuilder
 									repository.commitIfStaleChanges(
 										maximumStaleRepositoryMs);
 									postLoad(moduleName, lastPosition.value);
-									loadedModules.put(
+									putLoadedModule(
 										moduleName,
 										new LoadedModule(
 											moduleName,
 											versionKey.sourceDigest,
 											result.module(),
+											version,
 											compilation));
 									completionAction.value();
 								}
@@ -2070,21 +2145,14 @@ public final class AvailBuilder
 		final Continuation3<ModuleName, Long, Long> globalTracker)
 	{
 		shouldStopBuild = false;
-		if (!loadedModules.isEmpty())
+		new BuildUnloader().unload();
+		if (!shouldStopBuild)
 		{
-			final BuildUnloader unloader = new BuildUnloader();
-			unloader.unload();
+			new BuildTracer().trace(target);
 		}
 		if (!shouldStopBuild)
 		{
-			final BuildTracer tracer = new BuildTracer();
-			tracer.trace(target);
-		}
-		if (!shouldStopBuild)
-		{
-			final BuildLoader loader =
-				new BuildLoader(localTracker, globalTracker);
-			loader.load();
+			new BuildLoader(localTracker, globalTracker).load();
 		}
 	}
 
