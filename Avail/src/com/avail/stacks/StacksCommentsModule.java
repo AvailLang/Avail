@@ -138,7 +138,9 @@ public class StacksCommentsModule
 		final A_String name,
 		final AbstractCommentImplementation comment)
 	{
-		final A_String nameToCheck =StringDescriptor.from(name.asNativeString().substring(1, name.tupleSize()-1));
+		final A_String nameToCheck =
+			StringDescriptor.from(name.asNativeString()
+				.substring(1, name.tupleSize()-1));
 		if (exportedNames.hasElement(nameToCheck))
 		{
 			if (namedPulbicCommentImplementations.containsKey(nameToCheck))

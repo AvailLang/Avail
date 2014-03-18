@@ -32,8 +32,6 @@
 
 package com.avail.environment;
 
-import static java.awt.KeyboardFocusManager.*;
-import static java.awt.AWTKeyStroke.*;
 import static java.lang.Math.*;
 import static java.lang.System.arraycopy;
 import static javax.swing.SwingUtilities.*;
@@ -59,6 +57,7 @@ import javax.swing.tree.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.builder.*;
+import com.avail.builder.AvailBuilder.LoadedModule;
 import com.avail.compiler.AbstractAvailCompiler.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
@@ -113,12 +112,8 @@ extends JFrame
 
 			// Update the UI.
 			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-			setEnabled(false);
-			moduleProgress.setEnabled(true);
 			moduleProgress.setValue(0);
-			buildProgress.setEnabled(true);
 			buildProgress.setValue(0);
-			inputField.setEnabled(true);
 			inputField.requestFocusInWindow();
 			final StyledDocument doc = transcript.getStyledDocument();
 			try
@@ -137,11 +132,8 @@ extends JFrame
 			// Build the target module in a Swing worker thread.
 			final BuildTask task = new BuildTask(selectedModule);
 			buildTask = task;
+			setEnablements();
 			task.execute();
-			cancelAction.setEnabled(true);
-			cleanAction.setEnabled(false);
-			refreshAction.setEnabled(false);
-			documentAction.setEnabled(false);
 		}
 
 		/**
@@ -177,10 +169,8 @@ extends JFrame
 
 			// Update the UI.
 			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-			setEnabled(false);
-			moduleProgress.setEnabled(true);
+			setEnablements();
 			moduleProgress.setValue(0);
-			buildProgress.setEnabled(true);
 			buildProgress.setValue(0);
 			final StyledDocument doc = transcript.getStyledDocument();
 			try
@@ -198,11 +188,9 @@ extends JFrame
 			final DocumentationTask task =
 				new DocumentationTask(selectedModule);
 			documentationTask = task;
+			isBuilding = true;
+			setEnablements();
 			task.execute();
-			buildAction.setEnabled(false);
-			cleanAction.setEnabled(false);
-			setDocumentationPathAction.setEnabled(false);
-			cancelAction.setEnabled(true);
 		}
 
 		/**
@@ -779,14 +767,7 @@ extends JFrame
 		{
 			buildTask = null;
 			reportDone();
-			moduleProgress.setEnabled(false);
-			buildProgress.setEnabled(false);
-			inputField.setEnabled(false);
-			cancelAction.setEnabled(false);
-			buildAction.setEnabled(true);
-			cleanAction.setEnabled(true);
-			refreshAction.setEnabled(true);
-			documentAction.setEnabled(true);
+			setEnablements();
 			if (terminator == null)
 			{
 				moduleProgress.setString("Module Progress: 100%");
@@ -828,13 +809,7 @@ extends JFrame
 		{
 			documentationTask = null;
 			reportDone();
-			moduleProgress.setEnabled(false);
-			buildProgress.setEnabled(false);
-			cancelAction.setEnabled(false);
-			buildAction.setEnabled(true);
-			cleanAction.setEnabled(true);
-			setDocumentationPathAction.setEnabled(true);
-			documentAction.setEnabled(true);
+			setEnablements();
 			if (terminator == null)
 			{
 				moduleProgress.setString("Module Progress: 100%");
@@ -1226,6 +1201,29 @@ extends JFrame
 	/** The {@linkplain InsertEntryPointAction insert entry point action}. */
 	@InnerAccess final InsertEntryPointAction insertEntryPointAction;
 
+	/** Whether a build is currently in progress. */
+	boolean isBuilding = false;
+
+	/**
+	 * Enable or disable controls and menu items based on the current state.
+	 */
+	public void setEnablements ()
+	{
+		final boolean busy = buildTask != null || documentationTask != null;
+		moduleProgress.setEnabled(busy);
+		buildProgress.setEnabled(busy);
+		inputField.setEnabled(true);
+
+		cancelAction.setEnabled(busy);
+		buildAction.setEnabled(!busy && selectedModule() != null);
+		cleanAction.setEnabled(!busy);
+		refreshAction.setEnabled(!busy);
+		setDocumentationPathAction.setEnabled(!busy);
+		documentAction.setEnabled(!busy);
+		insertEntryPointAction.setEnabled(
+			!busy && selectedEntryPoint() != null);
+	}
+
 	/**
 	 * Answer a {@link FileVisitor} suitable for recursively exploring an
 	 * Avail root. A new {@code FileVisitor} should be obtained for each Avail
@@ -1252,29 +1250,57 @@ extends JFrame
 				throws IOException
 			{
 				assert dir != null;
+				final DefaultMutableTreeNode parentNode = stack.peekFirst();
 				if (isRoot.value)
 				{
+					// Add a ModuleRoot.
 					isRoot.value = false;
 					assert stack.size() == 1;
-					final String rootName = moduleRoot.name();
-					final DefaultMutableTreeNode node =
-						new DefaultMutableTreeNode(rootName);
-					// Add the new node to the children of the parent node, then
-					// push the new node onto the stack.
-					stack.peekFirst().add(node);
+					final ModuleRootNode node = new ModuleRootNode(moduleRoot);
+					parentNode.add(node);
 					stack.addFirst(node);
 					return FileVisitResult.CONTINUE;
 				}
 				final String fileName = dir.getFileName().toString();
 				if (fileName.endsWith(extension))
 				{
-					final String moduleName = fileName.substring(
+					final String localName = fileName.substring(
 						0, fileName.length() - extension.length());
-					final DefaultMutableTreeNode node =
-						new DefaultMutableTreeNode(moduleName);
-					// Add the new node to the children of the parent node, then
-					// push the new node onto the stack.
-					stack.peekFirst().add(node);
+					final ModuleName moduleName;
+					if (parentNode instanceof ModuleRootNode)
+					{
+						// Add a top-level package.
+						final ModuleRootNode strongParentNode =
+							(ModuleRootNode)parentNode;
+						final ModuleRoot thisRoot = strongParentNode.moduleRoot;
+						assert thisRoot == moduleRoot;
+						moduleName = new ModuleName(
+							"/" + moduleRoot.name() + "/" + localName);
+					}
+					else
+					{
+						// Add a non-top-level package.
+						assert parentNode instanceof ModuleOrPackageNode;
+						final ModuleOrPackageNode strongParentNode =
+							(ModuleOrPackageNode)parentNode;
+						assert strongParentNode.isPackage;
+						final ResolvedModuleName parentModuleName =
+							strongParentNode.resolvedModuleName;
+						moduleName = new ModuleName(
+							parentModuleName.qualifiedName(), localName);
+					}
+					final ResolvedModuleName resolved;
+					try
+					{
+						resolved = resolver.resolve(moduleName, null);
+					}
+					catch (final UnresolvedDependencyException e)
+					{
+						throw new RuntimeException(e);
+					}
+					final ModuleOrPackageNode node =
+						new ModuleOrPackageNode(resolved, true);
+					parentNode.add(node);
 					stack.addFirst(node);
 					return FileVisitResult.CONTINUE;
 				}
@@ -1304,15 +1330,51 @@ extends JFrame
 				throws IOException
 			{
 				assert file != null;
+				final DefaultMutableTreeNode parentNode = stack.peekFirst();
+				if (isRoot.value)
+				{
+					throw new IOException("Avail root should be a directory");
+				}
 				final String fileName = file.getFileName().toString();
 				if (fileName.endsWith(extension))
 				{
-					final String moduleName = fileName.substring(
+					final String localName = fileName.substring(
 						0, fileName.length() - extension.length());
-					final DefaultMutableTreeNode node =
-						new DefaultMutableTreeNode(moduleName);
-					// Add the new node to the children of the parent node.
-					stack.peekFirst().add(node);
+					final ModuleName moduleName;
+					if (parentNode instanceof ModuleRootNode)
+					{
+						// Add a top-level module (directly in a root).
+						final ModuleRootNode strongParentNode =
+							(ModuleRootNode)parentNode;
+						final ModuleRoot thisRoot = strongParentNode.moduleRoot;
+						assert thisRoot == moduleRoot;
+						moduleName = new ModuleName(
+							"/" + moduleRoot.name() + "/" + localName);
+					}
+					else
+					{
+						// Add a non-top-level module.
+						assert parentNode instanceof ModuleOrPackageNode;
+						final ModuleOrPackageNode strongParentNode =
+							(ModuleOrPackageNode)parentNode;
+						assert strongParentNode.isPackage;
+						final ResolvedModuleName parentModuleName =
+							strongParentNode.resolvedModuleName;
+						moduleName = new ModuleName(
+							parentModuleName.qualifiedName(), localName);
+					}
+					final ResolvedModuleName resolved;
+					try
+					{
+						resolved = resolver.resolve(moduleName, null);
+					}
+					catch (final UnresolvedDependencyException e)
+					{
+						throw new RuntimeException(e);
+					}
+					final ModuleOrPackageNode node =
+						new ModuleOrPackageNode(resolved, false);
+					parentNode.add(node);
 				}
 				return FileVisitResult.CONTINUE;
 			}
@@ -1344,7 +1406,7 @@ extends JFrame
 	{
 		final ModuleRoots roots = resolver.moduleRoots();
 		final DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode(
-			"(all roots)");
+			"(packages hidden root)");
 		// Put the invisible root onto the work stack.
 		final Deque<DefaultMutableTreeNode> stack = new ArrayDeque<>();
 		stack.add(treeRoot);
@@ -1352,6 +1414,7 @@ extends JFrame
 		{
 			// Obtain the path associated with the module root.
 			assert root != null;
+			root.repository().reopenIfNecessary();
 			final File rootDirectory = root.sourceDirectory();
 			assert rootDirectory != null;
 			try
@@ -1396,18 +1459,18 @@ extends JFrame
 						moduleVersion.getEntryPoints();
 					if (!entryPoints.isEmpty())
 					{
-						final String moduleLabel = resolvedName.qualifiedName();
-						final DefaultMutableTreeNode moduleNode =
-							new DefaultMutableTreeNode(moduleLabel);
+						final EntryPointModuleNode moduleNode =
+							new EntryPointModuleNode(resolvedName);
 						for (final String entryPoint : entryPoints)
 						{
-							final DefaultMutableTreeNode entryPointNode =
-								new DefaultMutableTreeNode(entryPoint);
+							final EntryPointNode entryPointNode =
+								new EntryPointNode(resolvedName, entryPoint);
 							moduleNode.add(entryPointNode);
 						}
 						synchronized (mutex)
 						{
-							moduleNodes.put(moduleLabel, moduleNode);
+							moduleNodes.put(
+								resolvedName.qualifiedName(), moduleNode);
 						}
 					}
 				}
@@ -1416,7 +1479,7 @@ extends JFrame
 			new String [moduleNodes.size()]);
 		Arrays.sort(mapKeys);
 		final DefaultMutableTreeNode entryPointsTreeRoot =
-			new DefaultMutableTreeNode();
+			new DefaultMutableTreeNode("(entry points hidden root)");
 		for (final String moduleLabel : mapKeys)
 		{
 			entryPointsTreeRoot.add(moduleNodes.get(moduleLabel));
@@ -1470,16 +1533,14 @@ extends JFrame
 		{
 			return null;
 		}
-		final Object[] nodes = path.getPath();
-		final StringBuilder builder = new StringBuilder();
-		for (int i = 1; i < nodes.length; i++)
+		final DefaultMutableTreeNode selection =
+			(DefaultMutableTreeNode) path.getLastPathComponent();
+		if (!(selection instanceof ModuleOrPackageNode))
 		{
-			final DefaultMutableTreeNode node =
-				(DefaultMutableTreeNode) nodes[i];
-			builder.append('/');
-			builder.append((String) node.getUserObject());
+			return null;
 		}
-		return builder.toString();
+		final ModuleOrPackageNode strongSelection = (ModuleOrPackageNode) selection;
+		return strongSelection.resolvedModuleName.qualifiedName();
 	}
 
 	/**
@@ -1495,14 +1556,14 @@ extends JFrame
 		{
 			return null;
 		}
-		final Object[] nodes = path.getPath();
-		if (nodes.length != 3)
+		final DefaultMutableTreeNode selection =
+			(DefaultMutableTreeNode) path.getLastPathComponent();
+		if (!(selection instanceof EntryPointNode))
 		{
 			return null;
 		}
-		final DefaultMutableTreeNode node =
-			(DefaultMutableTreeNode)nodes[nodes.length - 1];
-		return (String)node.getUserObject();
+		final EntryPointNode strongSelection = (EntryPointNode) selection;
+		return strongSelection.entryPointString;
 	}
 
 	/**
@@ -1822,6 +1883,48 @@ extends JFrame
 	}
 
 	/**
+	 * The {@link DefaultTreeCellRenderer} that knows how to render tree nodes
+	 * for my {@link #moduleTree} and my {@link #entryPointsTree}.
+	 */
+	final DefaultTreeCellRenderer treeRenderer = new DefaultTreeCellRenderer()
+	{
+		/** Suppress warning about serializing this. */
+		private static final long serialVersionUID = -2871802756675559090L;
+
+		@Override
+	    public Component getTreeCellRendererComponent(
+			final @Nullable JTree tree,
+			final @Nullable Object value,
+			final boolean selected1,
+			final boolean expanded,
+			final boolean leaf,
+			final int row,
+			final boolean hasFocus1)
+		{
+			assert value != null;
+			if (value instanceof AbstractBuilderFrameTreeNode)
+			{
+				final AbstractBuilderFrameTreeNode node =
+					(AbstractBuilderFrameTreeNode) value;
+				String html = node.htmlText(availBuilder);
+				html = "<html>" + html + "</html>";
+				final JComponent component =
+					(JComponent) super.getTreeCellRendererComponent(
+						tree,
+						html,
+						selected1,
+						expanded,
+						leaf,
+						row,
+						hasFocus1);
+				return component;
+			}
+			return super.getTreeCellRendererComponent(
+				tree, value, selected1, expanded, leaf, row, hasFocus1);
+		}
+	};
+
+	/**
 	 * Construct a new {@link AvailBuilderFrame}.
 	 *
 	 * @param resolver
@@ -1851,22 +1954,16 @@ extends JFrame
 
 		// Create the actions.
 		buildAction = new BuildAction();
-		buildAction.setEnabled(false);
 		cancelAction = new CancelAction();
-		cancelAction.setEnabled(false);
 		cleanAction = new CleanAction();
-		cleanAction.setEnabled(true);
 		documentAction = new GenerateDocumentationAction();
-		documentAction.setEnabled(true);
 		setDocumentationPathAction = new SetDocumentationPathAction();
-		setDocumentationPathAction.setEnabled(true);
 		refreshAction = new RefreshAction();
 		reportAction = new ReportAction();
 		reportAction.setEnabled(true);
 		clearReportAction = new ClearReportAction();
 		clearReportAction.setEnabled(true);
 		insertEntryPointAction = new InsertEntryPointAction();
-		insertEntryPointAction.setEnabled(false);
 
 		// Create the menu bar and its menus.
 		final JMenuBar menuBar = new JMenuBar();
@@ -1920,7 +2017,7 @@ extends JFrame
 		moduleTreeScrollArea.setMinimumSize(new Dimension(100, 0));
 		moduleTree = new JTree(modules);
 		moduleTree.setToolTipText(
-			"All top-level modules, organized by module root.");
+			"All modules, organized by module root.");
 		moduleTree.setComponentPopupMenu(buildPopup);
 		moduleTree.setEditable(false);
 		moduleTree.setEnabled(true);
@@ -1935,13 +2032,10 @@ extends JFrame
 			@Override
  			public void valueChanged (final @Nullable TreeSelectionEvent event)
 			{
-				final boolean newEnablement = selectedModule() != null;
-				if (buildAction.isEnabled() != newEnablement)
-				{
-					buildAction.setEnabled(newEnablement);
-				}
+				setEnablements();
 			}
 		});
+		moduleTree.setCellRenderer(treeRenderer);
 		moduleTree.addMouseListener(new MouseAdapter()
 		{
 			@SuppressWarnings("null")
@@ -1952,9 +2046,8 @@ extends JFrame
 					&& e.getClickCount() == 2
 					&& e.getButton() == MouseEvent.BUTTON1)
 				{
-					final ActionEvent actionEvent = new ActionEvent(
-						moduleTree, -1, "Build");
-					buildAction.actionPerformed(actionEvent);
+					buildAction.actionPerformed(
+						new ActionEvent(moduleTree, -1, "Build"));
 					e.consume();
 				}
 			}
@@ -2003,13 +2096,10 @@ extends JFrame
 			@Override
  			public void valueChanged (final @Nullable TreeSelectionEvent event)
 			{
-				final boolean newEnablement = selectedEntryPoint() != null;
-				if (insertEntryPointAction.isEnabled() != newEnablement)
-				{
-					insertEntryPointAction.setEnabled(newEnablement);
-				}
+				setEnablements();
 			}
 		});
+		entryPointsTree.setCellRenderer(treeRenderer);
 		entryPointsTree.addMouseListener(new MouseAdapter()
 		{
 			@SuppressWarnings("null")
@@ -2022,7 +2112,11 @@ extends JFrame
 				{
 					final ActionEvent actionEvent = new ActionEvent(
 						entryPointsTree, -1, "Insert entry point");
-					insertEntryPointAction.actionPerformed(actionEvent);
+					if (insertEntryPointAction.isEnabled())
+					{
+						insertEntryPointAction.actionPerformed(actionEvent);
+					}
+					e.consume();
 				}
 			}
 		});
@@ -2077,12 +2171,6 @@ extends JFrame
 		transcript.setEditable(false);
 		transcript.setEnabled(true);
 		transcript.setFocusable(true);
-		transcript.setFocusTraversalKeys(
-			FORWARD_TRAVERSAL_KEYS,
-			Collections.singleton(getAWTKeyStroke("TAB")));
-		transcript.setFocusTraversalKeys(
-			BACKWARD_TRAVERSAL_KEYS,
-			Collections.singleton(getAWTKeyStroke("shift TAB")));
 		transcript.setPreferredSize(new Dimension(0, 500));
 		transcript.setVisible(true);
 		transcriptScrollArea.setViewportView(transcript);
@@ -2091,21 +2179,32 @@ extends JFrame
 		final JLabel inputLabel = new JLabel("Console Input:");
 		inputField = new JTextField();
 		inputField.setToolTipText(
-			"Characters entered here form the standard input of the build "
-			+ "process. Characters are not made available until ENTER is "
-			+ "pressed.");
+			"Enter commands and interact with Avail programs.  Press "
+			+ "ENTER to submit.");
 		inputField.setAction(new SubmitInputAction());
 		inputField.setColumns(60);
 		inputField.setEditable(true);
-		inputField.setEnabled(false);
+		inputField.setEnabled(true);
 		inputField.setFocusable(true);
-		inputField.setFocusTraversalKeys(
-			FORWARD_TRAVERSAL_KEYS,
-			Collections.singleton(getAWTKeyStroke("TAB")));
-		inputField.setFocusTraversalKeys(
-			BACKWARD_TRAVERSAL_KEYS,
-			Collections.singleton(getAWTKeyStroke("shift TAB")));
 		inputField.setVisible(true);
+
+		// Subscribe to module loading events.
+		availBuilder.subscribeToModuleLoading(
+			new Continuation2<LoadedModule, Boolean>()
+			{
+				@Override
+				public void value (
+					@Nullable final LoadedModule loadedModule,
+					@Nullable final Boolean loaded)
+				{
+					assert loadedModule != null;
+					moduleTree.repaint();
+					if (loadedModule.entryPoints().size() > 0)
+					{
+						entryPointsTree.repaint();
+					}
+				}
+			});
 
 		// Set up styles for the transcript.
 		final StyledDocument doc = transcript.getStyledDocument();
@@ -2130,13 +2229,13 @@ extends JFrame
 		final Style errorStyle = doc.addStyle(errorStyleName, defaultStyle);
 		StyleConstants.setForeground(errorStyle, Color.RED);
 		final Style inputStyle = doc.addStyle(inputStyleName, defaultStyle);
-		StyleConstants.setForeground(inputStyle, Color.GREEN);
+		StyleConstants.setForeground(inputStyle, new Color(32, 144, 32));
 		final Style infoStyle = doc.addStyle(infoStyleName, defaultStyle);
 		StyleConstants.setForeground(infoStyle, Color.BLUE);
 
 		// Redirect the standard streams.
 		redirectStandardStreams();
-		runtime.setStandardStreams(System.out, System.err, System.in);
+		runtime.setStandardStreams(System.out, System.err, null);
 
 		final JSplitPane leftPane = new JSplitPane(
 			JSplitPane.VERTICAL_SPLIT,
@@ -2209,6 +2308,7 @@ extends JFrame
 				super.windowClosing(e);
 			}
 		});
+		setEnablements();
 	}
 
 	/**
