@@ -47,11 +47,6 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 	final StacksGlobalTag globalTag;
 
 	/**
-	 * The overall description of the implementation
-	 */
-	final ArrayList<AbstractStacksToken> description;
-
-	/**
 	 * Construct a new {@link GlobalCommentImplementation}.
 	 *
 	 * @param signature
@@ -76,8 +71,7 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 		final ArrayList<AbstractStacksToken> description,
 		final StacksGlobalTag globalTag)
 	{
-		super(signature, commentStartLine, author, sees);
-		this.description = description;
+		super(signature, commentStartLine, author, sees, description);
 		this.globalTag = globalTag;
 	}
 

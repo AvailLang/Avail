@@ -151,15 +151,14 @@ public class StacksGenerator
 		final ModuleHeader header,
 		final A_Tuple commentTokens)
 	{
-
-
 		System.out.println("Starting scanning of comments in "
 			+ header.moduleName.qualifiedName());
 
 		StacksCommentsModule commentsModule = null;
 
 		commentsModule = new StacksCommentsModule(
-			header,commentTokens,moduleToExportedMethodsMap,errorLog, resolver);
+			header,commentTokens,moduleToExportedMethodsMap,errorLog, resolver,
+			moduleToComments);
 		updateModuleToComments(commentsModule);
 	}
 
@@ -185,10 +184,12 @@ public class StacksGenerator
 	public synchronized void generate (final ModuleName outermostModule)
 	{
 		System.out.println("In generate()");
+
 		final ByteBuffer closeHTML = ByteBuffer.wrap(String.format(
 			"</ol>\n<h4>Error Count: %d</h4>\n</body>\n</html>"
 				,errorLog.errorCount())
 			.getBytes(StandardCharsets.UTF_8));
+
 		errorLog.addLogEntry(closeHTML,0);
 
 		final StringBuilder stringBuilder = new StringBuilder();

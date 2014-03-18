@@ -42,11 +42,6 @@ import java.util.ArrayList;
 public class ClassCommentImplementation extends AbstractCommentImplementation
 {
 	/**
-	 * The overall description of the implementation
-	 */
-	final ArrayList<AbstractStacksToken> description;
-
-	/**
 	 * The {@link ArrayList} of the class's {@link StacksSuperTypeTag supertypes}
 	 */
 	final ArrayList<StacksSuperTypeTag> supertypes;
@@ -85,8 +80,7 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 		final ArrayList<StacksSuperTypeTag> supertypes,
 		final ArrayList<StacksFieldTag> fields)
 	{
-		super(signature, commentStartLine, author, sees);
-		this.description = description;
+		super(signature, commentStartLine, author, sees, description);
 		this.supertypes = supertypes;
 		this.fields = fields;
 	}

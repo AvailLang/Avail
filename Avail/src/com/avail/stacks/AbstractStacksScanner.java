@@ -197,6 +197,27 @@ public abstract class AbstractStacksScanner
 	}
 
 	/**
+	 *
+	 */
+	StringBuilder beingTokenized;
+
+	/**
+	 * @return
+	 */
+	public StringBuilder beingTokenized ()
+	{
+		return beingTokenized;
+	}
+
+	/**
+	 *
+	 */
+	public void resetBeingTokenized ()
+	{
+		beingTokenized = new StringBuilder();
+	}
+
+	/**
 	 * Extract a native {@link String} from the input, from the
 	 * {@link #startOfToken} to the current {@link #position}.
 	 *
@@ -204,7 +225,12 @@ public abstract class AbstractStacksScanner
 	 */
 	private String currentTokenString ()
 	{
-		return tokenString.substring(startOfToken, position);
+		final String alternateToken =  beingTokenized.toString();
+		if (alternateToken.isEmpty())
+		{
+			return tokenString.substring(startOfToken, position);
+		}
+		return alternateToken;
 	}
 
 	/**
@@ -270,7 +296,7 @@ public abstract class AbstractStacksScanner
 	{
 		final StacksToken token = StacksToken.create(
 			currentTokenString(),
-			startOfToken() + filePosition(),
+			position () + filePosition(),
 			lineNumber(),
 			startOfTokenLinePostion(),
 			moduleName.toString());
@@ -291,7 +317,7 @@ public abstract class AbstractStacksScanner
 		final BracketedStacksToken token = BracketedStacksToken.create(
 			currentTokenString(),
 			lineNumber(),
-			startOfToken() + filePosition(),
+			position () + filePosition(),
 			startOfTokenLinePostion(),
 			moduleName.toString());
 		outputTokens.add(token);
@@ -309,7 +335,7 @@ public abstract class AbstractStacksScanner
 	{
 		final QuotedStacksToken token = QuotedStacksToken.create(
 			currentTokenString(),
-			startOfToken() + filePosition(),
+			position () + filePosition(),
 			lineNumber(),
 			startOfTokenLinePostion(),
 			moduleName.toString());
@@ -328,7 +354,7 @@ public abstract class AbstractStacksScanner
 	{
 		final AbstractStacksToken token = KeywordStacksToken.create(
 			currentTokenString(),
-			startOfToken() + filePosition(),
+			position () + filePosition(),
 			lineNumber(),
 			startOfTokenLinePostion(),
 			moduleName.toString());
@@ -457,7 +483,7 @@ public abstract class AbstractStacksScanner
 						scanner);
 				}
 				int c = scanner.next();
-				final StringBuilder stringBuilder = new StringBuilder(40);
+				scanner.resetBeingTokenized();
 				boolean canErase = true;
 				int erasurePosition = 0;
 				while (c != '\"')
@@ -479,19 +505,19 @@ public abstract class AbstractStacksScanner
 						switch (c = scanner.next())
 						{
 							case 'n':
-								stringBuilder.append('\n');
+								scanner.beingTokenized().append('\n');
 								break;
 							case 'r':
-								stringBuilder.append('\r');
+								scanner.beingTokenized().append('\r');
 								break;
 							case 't':
-								stringBuilder.append('\t');
+								scanner.beingTokenized().append('\t');
 								break;
 							case '\\':
-								stringBuilder.append('\\');
+								scanner.beingTokenized().append('\\');
 								break;
 							case '\"':
-								stringBuilder.append('\"');
+								scanner.beingTokenized().append('\"');
 								break;
 							case '\r':
 								// Treat \r or \r\n in the source just like \n.
@@ -512,7 +538,7 @@ public abstract class AbstractStacksScanner
 								// from this line.
 								if (canErase)
 								{
-									stringBuilder.setLength(erasurePosition);
+									scanner.beingTokenized().setLength(erasurePosition);
 									canErase = false;
 								}
 								else
@@ -530,7 +556,8 @@ public abstract class AbstractStacksScanner
 								}
 								break;
 							case '(':
-								parseUnicodeEscapes(scanner, stringBuilder);
+								parseUnicodeEscapes(scanner,
+									scanner.beingTokenized());
 								break;
 							case '[':
 								scanner.lineNumber(literalStartingLine);
@@ -549,7 +576,7 @@ public abstract class AbstractStacksScanner
 									scanner.lineNumber()),
 									scanner);
 						}
-						erasurePosition = stringBuilder.length();
+						erasurePosition = scanner.beingTokenized().length();
 					}
 					else if (c == '\r')
 					{
@@ -558,21 +585,26 @@ public abstract class AbstractStacksScanner
 						{
 							scanner.peekFor('\n');
 						}
-						stringBuilder.appendCodePoint('\n');
+						scanner.beingTokenized().appendCodePoint('\n');
 						canErase = true;
-						erasurePosition = stringBuilder.length();
+						erasurePosition = scanner.beingTokenized().length();
 					}
 					else if (c == '\n')
 					{
 						// Just like a regular character, but limit how much
 						// can be removed by a subsequent '\|'.
-						stringBuilder.appendCodePoint(c);
+						scanner.beingTokenized().appendCodePoint(c);
 						canErase = true;
-						erasurePosition = stringBuilder.length();
+						erasurePosition = scanner.beingTokenized().length();
+					}
+					else if (c == '<')
+					{
+						// Make safe for HTML
+						scanner.beingTokenized().append("&lt;");
 					}
 					else
 					{
-						stringBuilder.appendCodePoint(c);
+						scanner.beingTokenized().appendCodePoint(c);
 						if (canErase && !Character.isWhitespace(c) && c != '*')
 						{
 							canErase = false;
@@ -593,10 +625,8 @@ public abstract class AbstractStacksScanner
 					}
 					c = scanner.next();
 				}
-				final String string = stringBuilder.toString();
-				final A_String availValue = StringDescriptor.from(string);
-				availValue.makeImmutable();
 				scanner.addQuotedToken();
+				scanner.resetBeingTokenized();
 			}
 
 			/**
@@ -698,7 +728,7 @@ public abstract class AbstractStacksScanner
 								scanner.lineNumber()),
 							scanner);
 					}
-					stringBuilder.appendCodePoint(value);
+					scanner.beingTokenized().appendCodePoint(value);
 					assert c == ',' || c == ')';
 					if (c == ',')
 					{
@@ -883,11 +913,13 @@ public abstract class AbstractStacksScanner
 			void scan (final AbstractStacksScanner scanner)
 				throws StacksScannerException
 			{
+				scanner.resetBeingTokenized();
 				while (!Character.isSpaceChar(scanner.peek())
 					&& !Character.isWhitespace(scanner.peek())
 					&& !scanner.atEnd())
 				{
-					scanner.next();
+
+					final int c = scanner.next();
 				}
 				scanner.addCurrentToken();
 			}

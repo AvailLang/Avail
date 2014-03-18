@@ -80,6 +80,7 @@ public class StacksBracketScanner extends AbstractStacksScanner
 		this.lineNumber(bracketToken.lineNumber());
 		this.filePosition(bracketToken.position());
 		this.position(1);
+		this.beingTokenized = new StringBuilder();
 	}
 
 	/**

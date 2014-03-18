@@ -46,7 +46,7 @@ import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.A_String;
-import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.MapDescriptor;
 import com.avail.descriptor.SetDescriptor;
 import com.avail.descriptor.StringDescriptor;
 
@@ -91,11 +91,21 @@ public class StacksCommentsModule
 	}
 
 	/**
-	 *
+	 * All public methods/classes from this module.
 	 */
-	HashMap<A_String,List<AbstractCommentImplementation>>
-		namedCommentImplementations =
-			new HashMap<A_String,List<AbstractCommentImplementation>>();
+	private final HashMap<A_String,List<AbstractCommentImplementation>>
+		namedPulbicCommentImplementations;
+
+
+	/**
+	 * Get namedPulbicCommentImplementations
+	 * @return
+	 */
+	public HashMap<A_String,List<AbstractCommentImplementation>>
+		namedPulbicCommentImplementations()
+	{
+		return namedPulbicCommentImplementations;
+	}
 
 	/**
 	 *
@@ -106,7 +116,7 @@ public class StacksCommentsModule
 		final StringBuilder stringBuilder = new StringBuilder().append("<ol>");
 
 		for (final List<AbstractCommentImplementation> value :
-			namedCommentImplementations.values())
+			namedPulbicCommentImplementations.values())
 		{
 		   for(final AbstractCommentImplementation method : value)
 		   {
@@ -124,20 +134,24 @@ public class StacksCommentsModule
 	 * 		The final parsed {@linkplain AbstractCommentImplementation comment
 	 * 		implementation}.
 	 */
-	void addNamedImplementation(
+	void addPublicNamedImplementation(
 		final A_String name,
 		final AbstractCommentImplementation comment)
 	{
-		if (namedCommentImplementations.containsKey(name))
+		final A_String nameToCheck =StringDescriptor.from(name.asNativeString().substring(1, name.tupleSize()-1));
+		if (exportedNames.hasElement(nameToCheck))
 		{
-			namedCommentImplementations.get(name).add(comment);
-		}
-		else
-		{
-			final ArrayList<AbstractCommentImplementation> newCommentList =
-				new ArrayList<AbstractCommentImplementation>(1);
-			newCommentList.add(comment);
-			namedCommentImplementations.put(name,newCommentList);
+			if (namedPulbicCommentImplementations.containsKey(nameToCheck))
+			{
+				namedPulbicCommentImplementations.get(nameToCheck).add(comment);
+			}
+			else
+			{
+				final ArrayList<AbstractCommentImplementation> newCommentList =
+					new ArrayList<AbstractCommentImplementation>(1);
+				newCommentList.add(comment);
+				namedPulbicCommentImplementations.put(nameToCheck,newCommentList);
+			}
 		}
 	}
 
@@ -149,18 +163,23 @@ public class StacksCommentsModule
 	 * @param moduleToMethodMap
 	 * @param errorLog
 	 * @param resolver
+	 * @param publicComments
 	 */
 	public StacksCommentsModule(
 		final ModuleHeader header,
 		final A_Tuple commentTokens,
 		final HashMap<A_String,A_Set> moduleToMethodMap,
 		final StacksErrorLog errorLog,
-		final ModuleNameResolver resolver)
+		final ModuleNameResolver resolver,
+		final HashMap<A_String,StacksCommentsModule> publicComments)
 	{
 		this.moduleName = StringDescriptor
 			.from(header.moduleName.qualifiedName());
+
+		this.namedPulbicCommentImplementations =
+			new HashMap<A_String,List<AbstractCommentImplementation>>();
 		this.exportedNames = allExportedNames(
-			header,moduleToMethodMap,resolver);
+			header,moduleToMethodMap,resolver, publicComments);
 
 		moduleToMethodMap.put(
 			this.moduleName,
@@ -177,7 +196,7 @@ public class StacksCommentsModule
 					StacksScanner.processCommentString(
 						aToken,moduleName);
 
-				addNamedImplementation(
+				addPublicNamedImplementation(
 					implementation.signature.name, implementation);
 			}
 			catch (StacksScannerException | StacksCommentBuilderException e)
@@ -208,11 +227,13 @@ public class StacksCommentsModule
 	 * @param header
 	 * @param moduleToMethodMap
 	 * @param resolver
+	 * @param publicComments
 	 * @return
 	 */
 	private A_Set allExportedNames (final ModuleHeader header,
 		final HashMap<A_String,A_Set> moduleToMethodMap,
-		final ModuleNameResolver resolver)
+		final ModuleNameResolver resolver,
+		final HashMap<A_String,StacksCommentsModule> publicComments)
 	{
 		A_Set collectedExtendedNames =
 			SetDescriptor.empty();
@@ -244,14 +265,13 @@ public class StacksCommentsModule
 								.get(moduleImportName),
 							true);
 					}
-
-					if (moduleImport.excludes != NilDescriptor.nil())
+					if (!moduleImport.names.equals(SetDescriptor.empty()))
 					{
 						collectedExtendedNames = collectedExtendedNames
-							.setMinusCanDestroy(moduleImport.excludes, true);
+							.setUnionCanDestroy(moduleImport.names,true);
 					}
 
-					if (moduleImport.renames != NilDescriptor.nil())
+					if (!moduleImport.renames.equals(MapDescriptor.empty()))
 					{
 						collectedExtendedNames = collectedExtendedNames
 							.setMinusCanDestroy(
@@ -260,12 +280,46 @@ public class StacksCommentsModule
 							.setUnionCanDestroy(moduleImport.renames
 								.valuesAsTuple().asSet(),true);
 					}
-
-					if (moduleImport.names != NilDescriptor.nil())
+					if (!moduleImport.excludes.equals(SetDescriptor.empty()))
 					{
 						collectedExtendedNames = collectedExtendedNames
-							.setUnionCanDestroy(moduleImport.names,true);
+							.setMinusCanDestroy(moduleImport.excludes, true);
 					}
+					for (final A_String implementationName :
+						collectedExtendedNames)
+					{
+
+						if (publicComments.get(moduleImportName)
+							.namedPulbicCommentImplementations()
+							.containsKey(implementationName))
+						{
+							if (namedPulbicCommentImplementations()
+								.containsKey(implementationName))
+							{
+								namedPulbicCommentImplementations()
+									.get(implementationName)
+									.addAll(publicComments
+										.get(moduleImportName)
+										.namedPulbicCommentImplementations()
+										.get(implementationName));
+							}
+							else
+							{
+								final ArrayList<AbstractCommentImplementation>
+									newCommentList =
+									new ArrayList
+										<AbstractCommentImplementation>(1);
+								newCommentList.addAll(publicComments
+									.get(moduleImportName)
+									.namedPulbicCommentImplementations()
+									.get(implementationName));
+								namedPulbicCommentImplementations
+									.put(implementationName,newCommentList);
+							}
+						}
+					}
+					collectedExtendedNames = collectedExtendedNames
+						.setUnionCanDestroy(collectedExtendedNames, true);
 				}
 			}
 			catch (final UnresolvedDependencyException e)

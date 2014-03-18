@@ -42,11 +42,6 @@ import java.util.ArrayList;
 public class MethodCommentImplementation extends AbstractCommentImplementation
 {
 	/**
-	 * The overall description of the implementation
-	 */
-	final ArrayList<AbstractStacksToken> description;
-
-	/**
 	 * The list of {@link StacksParameterTag parameters} of the method
 	 * implementation.
 	 */
@@ -95,8 +90,7 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		final StacksReturnTag returnsContent,
 		final ArrayList<StacksRaisesTag> exceptions)
 	{
-		super(signature, commentStartLine, author, sees);
-		this.description = description;
+		super(signature, commentStartLine, author, sees, description);
 		this.parameters = parameters;
 		this.returnsContent = returnsContent;
 		this.exceptions = exceptions;

@@ -124,6 +124,7 @@ public class StacksScanner extends AbstractStacksScanner
 		this.filePosition(commentToken.start());
 		this.startOfTokenLinePostion(0);
 		this.sectionStartLocations = new ArrayList<Integer>(9);
+		this.beingTokenized = new StringBuilder();
 	}
 
 	/**
@@ -209,7 +210,7 @@ public class StacksScanner extends AbstractStacksScanner
 						scanner);
 				}
 				int c = scanner.next();
-				final StringBuilder stringBuilder = new StringBuilder(40);
+				scanner.resetBeingTokenized();
 				boolean canErase = true;
 				int erasurePosition = 0;
 				while (c != '\"')
@@ -231,19 +232,19 @@ public class StacksScanner extends AbstractStacksScanner
 						switch (c = scanner.next())
 						{
 							case 'n':
-								stringBuilder.append('\n');
+								scanner.beingTokenized().append('\n');
 								break;
 							case 'r':
-								stringBuilder.append('\r');
+								scanner.beingTokenized().append('\r');
 								break;
 							case 't':
-								stringBuilder.append('\t');
+								scanner.beingTokenized().append('\t');
 								break;
 							case '\\':
-								stringBuilder.append('\\');
+								scanner.beingTokenized().append('\\');
 								break;
 							case '\"':
-								stringBuilder.append('\"');
+								scanner.beingTokenized().append('\"');
 								break;
 							case '\r':
 								// Treat \r or \r\n in the source just like \n.
@@ -264,7 +265,8 @@ public class StacksScanner extends AbstractStacksScanner
 								// from this line.
 								if (canErase)
 								{
-									stringBuilder.setLength(erasurePosition);
+									scanner.beingTokenized()
+										.setLength(erasurePosition);
 									canErase = false;
 								}
 								else
@@ -273,7 +275,7 @@ public class StacksScanner extends AbstractStacksScanner
 										String.format(
 											"\n<li><strong>%s</strong><em> "
 											+ "Line #: %d</em>: Scanner Error: "
-											+ "The input zbefore  \"\\|\" "
+											+ "The input before  \"\\|\" "
 											+ "contains non-whitespace.</li>",
 											scanner.moduleLeafName(),
 											scanner.lineNumber()),
@@ -281,7 +283,8 @@ public class StacksScanner extends AbstractStacksScanner
 								}
 								break;
 							case '(':
-								parseUnicodeEscapes(scanner, stringBuilder);
+								parseUnicodeEscapes(scanner,
+									scanner.beingTokenized());
 								break;
 							case '[':
 								scanner.lineNumber(literalStartingLine);
@@ -300,7 +303,7 @@ public class StacksScanner extends AbstractStacksScanner
 									scanner.lineNumber()),
 									scanner);
 						}
-						erasurePosition = stringBuilder.length();
+						erasurePosition = scanner.beingTokenized().length();
 					}
 					else if (c == '\r')
 					{
@@ -309,22 +312,37 @@ public class StacksScanner extends AbstractStacksScanner
 						{
 							scanner.peekFor('\n');
 						}
-						stringBuilder.appendCodePoint('\n');
+						scanner.beingTokenized().appendCodePoint('\n');
 						canErase = true;
-						erasurePosition = stringBuilder.length();
+						erasurePosition = scanner.beingTokenized().length();
 					}
 					else if (c == '\n')
 					{
 						// Just like a regular character, but limit how much
 						// can be removed by a subsequent '\|'.
-						stringBuilder.appendCodePoint(c);
+						scanner.beingTokenized().appendCodePoint(c);
 						canErase = true;
-						erasurePosition = stringBuilder.length();
+						erasurePosition = scanner.beingTokenized().length();
+					}
+					else if (c == '*')
+					{
+						// Just like a regular character, but limit how much
+						// can be removed by a subsequent '\|'.
+						if (!canErase)
+						{
+							scanner.beingTokenized().appendCodePoint(c);
+							erasurePosition = scanner.beingTokenized().length();
+						}
+					}
+					else if (c == '<')
+					{
+						// Make safe for HTML
+						scanner.beingTokenized().append("&lt;");
 					}
 					else
 					{
-						stringBuilder.appendCodePoint(c);
-						if (canErase && !Character.isWhitespace(c) && c != '*')
+						scanner.beingTokenized().appendCodePoint(c);
+						if (canErase && !Character.isWhitespace(c))
 						{
 							canErase = false;
 						}
@@ -344,10 +362,8 @@ public class StacksScanner extends AbstractStacksScanner
 					}
 					c = scanner.next();
 				}
-				final String string = stringBuilder.toString();
-				final A_String availValue = StringDescriptor.from(string);
-				availValue.makeImmutable();
 				scanner.addQuotedToken();
+				scanner.resetBeingTokenized();
 			}
 
 			/**
@@ -502,7 +518,47 @@ public class StacksScanner extends AbstractStacksScanner
 				}
 				while (!scanner.peekFor('}'))
 				{
-					scanner.next();
+					int c = scanner.next();
+					if (c == '\"')
+					{
+						final int literalStartingLine = scanner.lineNumber();
+						while (c != '\"')
+						{
+							if (c == '\\')
+							{
+								if (scanner.atEnd())
+								{
+									throw new StacksScannerException(
+										String.format(
+											"\n<li><strong>%s</strong><em> "
+											+ "Line #: %d </em>: Scanner "
+											+ "Error: Encountered end of "
+											+ "file after backslash in string "
+											+ "literal in module, %s.\n",
+											scanner.moduleLeafName(),
+											scanner.lineNumber()),
+										scanner);
+								}
+								c = scanner.next();
+							}
+							if (scanner.atEnd())
+							{
+								// Indicate where the quoted string started, to
+								// make it easier to figure out where the
+								// end-quote is missing.
+								scanner.lineNumber(literalStartingLine);
+								throw new StacksScannerException(
+									String.format("\n<li><strong>%s"
+									+ "</strong><em> Line #: %d</em>: Scanner "
+									+ "Error: Unterminated string "
+									+ "literal.</li>",
+										scanner.moduleLeafName(),
+										scanner.lineNumber()),
+									scanner);
+							}
+							c = scanner.next();
+						}
+					}
 					if (scanner.atEnd())
 					{
 						scanner.position(startOfBracket);
@@ -512,7 +568,6 @@ public class StacksScanner extends AbstractStacksScanner
 						return;
 					}
 				}
-
 				scanner.addBracketedToken();
 			}
 		},

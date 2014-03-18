@@ -838,7 +838,7 @@ public class CommentImplementationBuilder
 			}
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed has wrong # of "
-				+ "@types indentifying tags.</li>",
+				+ "@types identifying tags.</li>",
 				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
@@ -850,7 +850,7 @@ public class CommentImplementationBuilder
 			{
 				final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed has wrong # of "
-					+ "@method indentifying tags.</li>",
+					+ "@method identifying tags.</li>",
 					moduleLeafName,
 					commentStartLine());
 				throw new StacksCommentBuilderException(errorMessage, this);
@@ -867,12 +867,12 @@ public class CommentImplementationBuilder
 
 				final SemanticRestrictionCommentSignature signature =
 					new SemanticRestrictionCommentSignature(
-						methods.get(0).methodName().lexeme(),
+						methods.get(0).methodName().quotedLexeme(),
 						moduleName(),
 						orderedInputTypes);
 
 				return new SemanticRestrictionCommentImplementation(signature,
-					commentStartLine (), authors, sees,restricts);
+					commentStartLine (), authors, sees, description, restricts);
 			}
 
 			if (restricts.isEmpty() && !parameters.isEmpty() &&
@@ -896,7 +896,7 @@ public class CommentImplementationBuilder
 
 				final MethodCommentSignature signature =
 					new MethodCommentSignature(
-						methods.get(0).methodName().lexeme(),
+						methods.get(0).methodName().quotedLexeme(),
 						moduleName(),
 						orderedInputTypes,
 						returns.get(0).returnType().lexeme());
@@ -913,16 +913,16 @@ public class CommentImplementationBuilder
 				{
 					final CommentSignature signature =
 						new CommentSignature(
-							methods.get(0).methodName().lexeme(),
+							methods.get(0).methodName().quotedLexeme(),
 							moduleName());
 
 					return new GrammaticalRestrictionCommentImplementation(
 						signature, commentStartLine (), authors, sees,
-						forbids.get(0));
+						description, forbids.get(0));
 				}
 				final String errorMessage = String.format("\n<li><strong>%s"
 					+ "</strong><em> Line #: %d</em>: Malformed comment; has "
-					+ "wrong # of @forbids indentifying tags.</li>",
+					+ "wrong # of @forbids identifying tags.</li>",
 					moduleLeafName,
 					commentStartLine());
 				throw new StacksCommentBuilderException(errorMessage, this);
@@ -936,7 +936,7 @@ public class CommentImplementationBuilder
 
 				final MethodCommentSignature signature =
 					new MethodCommentSignature(
-						methods.get(0).methodName().lexeme(),
+						methods.get(0).methodName().quotedLexeme(),
 						moduleName(),
 						orderedInputTypes,
 						returns.get(0).returnType().lexeme());
@@ -963,7 +963,7 @@ public class CommentImplementationBuilder
 			}
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed comment; has "
-				+ "wrong # of @global indentifying tags.</li>",
+				+ "wrong # of @global identifying tags.</li>",
 				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
@@ -971,7 +971,7 @@ public class CommentImplementationBuilder
 
 		final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed comment has no "
-				+ "distinguishing indentifying tags that indicate the type of "
+				+ "distinguishing identifying tags that indicate the type of "
 				+ "comment.</li>",
 				moduleLeafName,
 				commentStartLine());
