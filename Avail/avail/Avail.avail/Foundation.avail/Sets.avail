@@ -174,7 +174,9 @@ Semantic restriction "_→tuple" is
  * @method "_is empty"
  * @param "aSet" "set"
  * @returns "boolean"
- *          `true` if the argument is empty, `false` otherwise.
+ *          {@method "true"} if the argument is empty, {@method "false"}
+ *          otherwise.
+ * @category "Sets" "Queries"
  */
 Stable method "_is empty" is
 [
@@ -184,14 +186,15 @@ Stable method "_is empty" is
 ];
 
 /**
- * Iteratively apply `action` to each element of `aSet`, but in no particular
- * order.
+ * Iteratively apply {@param "action"} to each element of {@param "aSet"}, but
+ * in no particular order.
  * 
  * @method "For each of⁇_do_"
  * @param "aSet" "set"
  * @param "action" "[⊥]→⊤"
  *        A function that accepts the elements of the set.
  * @returns "⊤"
+ * @category "Collections" "Sets" "Control Structures"
  */
 Method "For each of⁇_do_" is
 [
@@ -213,15 +216,16 @@ Method "For each of⁇_do_" is
 ] : ⊤;
 
 /**
- * Helper method for semantic restrictions: If `action` does not accept the
- * element types of `setType`, then reject the current parse.
+ * Helper method for semantic restrictions: If {@param "action"} does not accept
+ * the element types of {@param "setType"}, then reject the current parse.
  * 
  * @method "Require:_accepts_"
  * @param "action" "function meta"
  *        A function type whose first argument must correspond to the element
- *        type of `setType`.
+ *        type of {@param "setType"}.
  * @param "setType" "set meta"
  * @returns "⊤"
+ * @category "Assertions" "Sets" "Types"
  */
 Method "Require:_accepts_" is
 [
@@ -270,17 +274,18 @@ Semantic restriction "For each of⁇_do_" is
 ];
 
 /**
- * Iteratively apply `transformer` to each element of `aSet`, collecting the
- * results into a new tuple. The set is traversed in no particular order. Answer
- * the resultant set.
+ * Iteratively apply {@param "transformer"} to each element of {@param "aSet"},
+ * collecting the results into a new tuple. The set is traversed in no
+ * particular order. Answer the resultant set.
  *
  * @method "map_through_"
  * @param "aSet" "set"
  * @param "transformer" "[⊥]→any"
  *        A function that accepts the elements of the set.
  * @returns "set"
- *          A set of results of applications of `transformer` to the elements of
- *          `aSet`.
+ *          A set of results of applications of {@param "transformer"} to the
+ *          elements of {@param "aSet"}.
+ * @category "Collections" "Sets" "Control Structures"
  */
 Method "map_through_" is
 [
@@ -330,18 +335,19 @@ Semantic restriction "map_through_" is
 ];
 
 /**
- * Iteratively apply `predicate` to each element of `aSet`, in no particular
- * order, collecting those elements for which `predicate` answers `true` into a
- * new set. Answer the new set.
+ * Iteratively apply {@param "predicate"} to each element of {@param "aSet"}, in
+ * no particular order, collecting those elements for which {@param "predicate"}
+ * answers {@param "true"} into a new set. Answer the new set.
  * 
  * @method "filter_by_"
  * @param "aSet" "set"
  * @param "predicate" "[⊥]→boolean"
- *        A function that accepts the elements of the set and answers `true` iff
- *        they should be accumulated into the output set.
+ *        A function that accepts the elements of the set and answers {@param
+ *        "true"} iff they should be accumulated into the output set.
  * @returns "set"
- *          A set containing exactly those elements of `aSet` for which 
- *          `predicate` answered `true`.
+ *          A set containing exactly those elements of {@param "aSet"} for which 
+ *          {@param "predicate"} answered {@method "true"}.
+ * @category "Collections" "Sets" "Control Structures"
  */
 Method "filter_by_" is
 [
@@ -389,22 +395,24 @@ Semantic restriction "filter_by_" is
 ];
 
 /**
- * Iteratively apply `accumulator` to the elements of `aSet`, in no particular
- * order, in order to transform and filter its elements into a new set. When
- * `accumulator` is invoked, it is passed a "keeper" function. The keeper
- * function may be invoked to "save" a particular value, i.e., a value that will
- * be copied into the output set. The keeper function will save at most one
- * value per element of `aSet`, i.e., each time that `accumulator` is invoked,
- * it may invoke the keeper function at most one time. Answer the new set.
+ * Iteratively apply {@param "accumulator"} to the elements of {@param "aSet"},
+ * in no particular order, in order to transform and filter its elements into a
+ * new set. When {@param "accumulator"} is invoked, it is passed a "keeper"
+ * function. The keeper function may be invoked to "save" a particular value,
+ * i.e., a value that will be copied into the output set. The keeper function
+ * will save at most one value per element of {@param "aSet"}, i.e., each time
+ * that {@param "accumulator"} is invoked, it may invoke the keeper function at
+ * most one time. Answer the new set.
  * 
  * @method "map and filter_by_"
  * @param "aSet" "set"
  * @param "accumulator" "[⊥, ⊥]→⊤"
- *        A function that accepts 1) an element from `aSet` and 2) a keeper
- *        function. The keeper function accepts an argument of the type that
- *        should be saved.
+ *        A function that accepts 1) an element from {@param "aSet"} and 2) a
+ *        keeper function. The keeper function accepts an argument of the type
+ *        that should be saved.
  * @returns "set"
- *          A set whose elements are those saved by the `accumulator`.
+ *          A set whose elements are those saved by the {@param "accumulator"}.
+ * @category "Collections" "Sets" "Control Structures"
  */
 Method "map and filter_by_" is
 [
@@ -467,16 +475,17 @@ Semantic restriction "map and filter_by_" is
 ];
 
 /**
- * Compute and answer whether any of the elements of `aSet` satisfies the
- * specified function. Do not examine more elements than necessary.
+ * Compute and answer whether any of the elements of {@param "aSet"} satisfies
+ * the specified function. Do not examine more elements than necessary.
  * 
  * @method "any of_satisfies_"
  * @param "aSet" "set"
  * @param "predicate" "[⊥]→boolean"
  *        A function that accepts the elements of the set and answers a boolean.
  * @returns "boolean"
- *          `true` if `predicate` answers `true` for any element of `aSet`,
- *          `false` otherwise.
+ *          {@method "true"} if {@param "predicate"} answers {@method "true"}
+ *          for any element of {@param "aSet"}, {@method "false"} otherwise.
+ * @category "Collections" "Sets" "Queries"
  */
 Method "any of_satisfies_" is
 [
@@ -513,16 +522,17 @@ Semantic restriction "any of_satisfies_" is
 ];
 
 /**
- * Compute and answer whether each of the elements of `aSet` satisfies the
- * specified function. Do not examine more elements than necessary.
+ * Compute and answer whether each of the elements of {@param "aSet"} satisfies
+ * the specified function. Do not examine more elements than necessary.
  * 
  * @method "each of_satisfies_"
  * @param "aSet" "set"
  * @param "predicate" "[⊥]→boolean"
  *        A function that accepts the elements of the set and answers a boolean.
  * @returns "boolean"
- *          `true` if `predicate` answers `true` for each element of `aSet`,
- *          `false` otherwise.
+ *          {@method "true"} if {@param "predicate"} answers {@method "true"}
+ *          for each element of {@param "aSet"}, {@method "false"} otherwise.
+ * @category "Collections" "Sets" "Queries"
  */
 Method "each of_satisfies_" is
 [
@@ -559,17 +569,18 @@ Semantic restriction "each of_satisfies_" is
 ];
 
 /**
- * Compute and answer the count of elements of `aSet` that satisfy the given
- * predicate.
+ * Compute and answer the count of elements of {@param "aSet"} that satisfy the
+ * given predicate.
  * 
  * @method "count of_where_"
  * @param "aSet" "set"
  * @param "predicate" "[⊥]→boolean"
- *        A function that accepts the elements of the set and answers `true` if
- *        the element should be represented in the resulting count.
+ *        A function that accepts the elements of the set and answers {@method
+ *        "true"} if the element should be represented in the resulting count.
  * @returns "whole number"
- *          The number of elements of `aSet` for which `predicate` answers
- *          `true`.
+ *          The number of elements of {@param "aSet"} for which {@param
+ *          "predicate"} answers {@method "true"}.
+ * @category "Collections" "Sets" "Queries"
  */
 Method "count of_where_" is
 [
@@ -604,8 +615,9 @@ Semantic restriction "count of_where_" is
  * @param "a" "set"
  * @param "b" "set"
  * @returns "set"
- *          The symmetric difference of `a` and `b`.
+ *          The symmetric difference of {@param "a"} and {@param "b"}.
  * @author Leslie Schultz
+ * @category "Sets" "Transformers"
  */
 Public stable method "_Δ_" is
 [
@@ -639,14 +651,16 @@ Semantic restriction "_Δ_" is
 ];
 
 /**
- * Does `aSet` contain `value`?
+ * Does {@param "aSet"} contain {@param "value"}?
  * 
  * @method "_∋_"
  * @param "aSet" "set"
  * @param "value" "any"
  *        An arbitrary value.
  * @returns "boolean"
- *          `true` if `aSet` contains `value` as a member, `false` otherwise.
+ *          {@method "true"} if {@param "aSet"} contains {@param "value"} as a
+ *          member, {@method "false"} otherwise.
+ * @category "Sets" "Queries"
  */
 Public stable method "_∋_" is
 [
@@ -678,13 +692,15 @@ Semantic restriction "_∋_" is
 ];
 
 /**
- * Is `a` a proper subset of `b`?
+ * Is {@method "a"} a proper subset of {@method "b"}?
  *
  * @method "_⊂_"
  * @param "a" "set"
  * @param "b" "set"
  * @returns "boolean"
- *          `true` if `a` is a proper subset of `b`, `false` otherwise.
+ *          {@method "true"} if {@param "a"} is a proper subset of {@param "b"},
+ *          {@method "false"} otherwise.
+ * @category "Sets" "Queries"
  */
 Public stable method "_⊂_" is
 [
@@ -695,8 +711,6 @@ Public stable method "_⊂_" is
 ] : boolean;
 
 /**
- * Is `a` a proper subset of `b`?
- *
  * @method "_⊂_"
  * @restricts "set meta"
  * @restricts "set meta"
@@ -732,13 +746,15 @@ Semantic restriction "_⊂_" is
 ];
 
 /**
- * Is `a` a superset of or equal to `b`?
+ * Is {@param "a"} a superset of or equal to {@param "b"}?
  *
  * @method "_⊇_"
  * @param "a" "set"
  * @param "b" "set"
  * @returns "boolean"
- *           `true` if `a` is a superset of or equal to `b`, `false` otherwise.
+ *           {@method "true"} if {@param "a"} is a superset of or equal to
+ *           {@param "b"}, {@method "false"} otherwise.
+ * @category "Sets" "Queries"
  */
 Public stable method "_⊇_" is
 [
@@ -784,13 +800,15 @@ Semantic restriction "_⊇_" is
 ];
 	
 /**
- * Is `a` neither a superset nor equal to `b`?
+ * Is {@param "a"} neither a superset nor equal to {@param "b"}?
  *
  * @method "_⊉_"
  * @param "a" "set"
  * @param "b" "set"
  * @returns "boolean"
- *	`true` if `a` is neither a superset of nor equal to `b`, `false` otherwise.
+ *          {@method "true"} if {@param "a"} is neither a superset of nor equal
+ *          to {@param "b"}, {@method "false"} otherwise.
+ * @category "Sets" "Queries"
  */
 Public stable method "_⊉_" is
 [
@@ -834,15 +852,17 @@ Semantic restriction "_⊉_" is
 	]
 	else basicRule
 ];
-	
+
 /**
- * Is `a` neither a superset nor equal to `b`?
+ * Is {@param "a"} neither a superset nor equal to {@param "b"}?
  *
  * @method "_⊈_"
  * @param "a" "set"
  * @param "b" "set"
  * @returns "boolean"
- *	`true` if `a` is neither a superset of nor equal to `b`, `false` otherwise.
+ *          {@method "true"} if {@param "a"} is neither a superset of nor equal
+ *          to {@param "b"}, {@method "false"} otherwise.
+ * @category "Sets" "Queries"
  */
 Public stable method "_⊈_" is
 [
@@ -888,13 +908,15 @@ Semantic restriction "_⊈_" is
 ];
 
 /**
- * Is `a` a proper superset of `b`?
+ * Is {@param "a"} a proper superset of {@param "b"}?
  *
  * @method "_⊃_"
  * @param "a" "set"
  * @param "b" "set"
  * @returns "boolean"
- *          `true` if `a` is a proper superset of `b`, `false` otherwise.
+ *          {@method "true"} if {@param "a"} is a proper superset of {@param
+ *          "b"}, {@method "false"} otherwise.
+ * @category "Sets" "Queries"
  */
 Public stable method "_⊃_" is
 [
@@ -940,14 +962,16 @@ Semantic restriction "_⊃_" is
 ];
 
 /**
- * Is `element` not an element of `aSet`?
+ * Is {@param "element"} not an element of {@param "aSet"}?
  *
  * @method "_∉_"
  * @param "element" "any"
  *        An arbitrary value.
  * @param "aSet" "set"
  * @returns "boolean"
- *          `true` if `element` is not an element of `aSet`, `false` otherwise.
+ *          {@method "true"} if {@param "element"} is not an element of {@param
+ *          "aSet"}, {@method "false"} otherwise.
+ * @category "Sets" "Queries"
  */
 Stable method "_∉_" is
 [
@@ -979,13 +1003,15 @@ Semantic restriction "_∉_" is
 ];
 
 /**
- * Is `a` not a proper subset of `b`?
+ * Is {@param "a"} not a proper subset of {@param "b"}?
  *
  * @method "_⊄_"
  * @param "a" "set"
  * @param "b" "set"
  * @returns "boolean"
- *          `true` if `a` is not a proper subset of `b`, `false` otherwise.
+ *          {@method "true"} if {@param "a"} is not a proper subset of {@param
+ *          "b"}, {@method "false"} otherwise.
+ * @category "Sets" "Queries"
  */
 Public stable method "_⊄_" is
 [
@@ -1031,13 +1057,15 @@ Semantic restriction "_⊄_" is
 ];
 
 /**
- * Determines of a set contains an element.
+ * Does {@param "aSet"} contain {@param "element"}?
  *
  * @method "_∌_"
  * @param "aSet" "set"
  * @param "element" "any"
  * @returns "boolean"
- *    a boolean indicating the outcome of the test.
+ *          {@method "true"} if {@param "aSet"} contains {@param "element"},
+ *          {@method "false"} otherwise.
+ * @category "Sets" "Queries"
  */
 Public method "_∌_" is
 [
@@ -1073,13 +1101,15 @@ Semantic restriction "_∌_" is
 ];
 
 /**
- * Is `a` not a proper subset of `b`?
+ * Is {@param "a"} not a proper subset of {@param "b"}?
  *
  * @method "_⊅_"
  * @param "a" "set"
  * @param "b" "set"
  * @returns "boolean"
- *          `true` if `a` is not a proper subset of `b`, `false` otherwise.
+ *          {@method "true"} if {@param "a"} is not a proper subset of {@param
+ *          "b"}, {@method "false"} otherwise.
+ * @category "Sets" "Queries"
  */
 Public method "_⊅_" is
 [
@@ -1124,19 +1154,45 @@ Semantic restriction "_⊅_" is
 	else basicRule
 ];
 
+Grammatical restriction {"_∋_", "_⊂_", "_⊇_", "_⊃_", "_∉_", "_∌_", "_⊄_", "_⊅_"}
+	is <{"¬_"}, ∅>;
+
 /**
- * Make various boolean-valued set operations bind more tightly than logical
- * negation.
  * @method "_∋_"
+ * @forbids "1" "¬_"
+ */
+
+/**
  * @method "_⊂_"
+ * @forbids "1" "¬_"
+ */
+
+/**
  * @method "_⊇_"
+ * @forbids "1" "¬_"
+ */
+
+/**
  * @method "_⊃_"
+ * @forbids "1" "¬_"
+ */
+
+/**
  * @method "_∉_"
+ * @forbids "1" "¬_"
+ */
+
+/**
  * @method "_∌_"
+ * @forbids "1" "¬_"
+ */
+
+/**
  * @method "_⊄_"
+ * @forbids "1" "¬_"
+ */
+
+/**
  * @method "_⊅_"
  * @forbids "1" "¬_"
  */
-Grammatical restriction 
-	{"_∋_", "_⊂_", "_⊇_", "_⊃_", "_∉_", "_∌_", "_⊄_", "_⊅_"} is
-	<{"¬_"}, ∅>;

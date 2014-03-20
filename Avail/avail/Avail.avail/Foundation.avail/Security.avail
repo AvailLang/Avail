@@ -63,6 +63,7 @@ Body
  *        types are actually used to place the seal, but the semantic
  *        restriction cross-checks the return type if possible.
  * @returns "⊤"
+ * @category "Declarations" "Methods"
  */
 Method "Seal method_at_" is
 [
@@ -127,6 +128,7 @@ Semantic restriction "Seal method_at_" is
  *        The method name. This name will be resolved to an atom in the context
  *        of the current module.
  * @returns "⊤"
+ * @category "Declarations" "Methods"
  */
 Public method "Completely seal method_" is
 [

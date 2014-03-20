@@ -58,6 +58,7 @@ Body
  *        context of the current module.
  * @returns "method"
  *          The requested method.
+ * @category "Methods" "Queries"
  */
 Method "method for_" is
 [
@@ -121,13 +122,14 @@ Semantic restriction "_'s⁇function" is
  * @param "aMethod" "method"
  *        A method.
  * @param "negation" "boolean"
- *        `true` if the sense of the query is reversed.
+ *        {@method "true"} if the sense of the query is reversed.
  * @param "argTypes" "<any's type…|>"
  *        The parameter types of the target {@type "method site"}.
  * @returns "boolean"
- *          `true` if the specified {@type "method site"} of {@param
- *          "aMethod"} is an {@type "implementation site"}, `false`
+ *          {@method "true"} if the specified {@type "method site"} of {@param
+ *          "aMethod"} is an {@type "implementation site"}, {@method "false"}
  *          otherwise.
+ * @category "Methods" "Queries"
  */
 Public method "_is«not»?implemented at_" is
 [
