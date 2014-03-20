@@ -64,6 +64,7 @@ Semantic restriction "_'s⁇type" is
  *        criterion.
  * @returns "any"
  *          The sole instance of the argument.
+ * @category "Enumerations" "Types" "Queries"
  */
 Public method "_'s⁇instance" is
 [
@@ -74,18 +75,15 @@ Public method "_'s⁇instance" is
 ] : any;
 
 /**
- * Is `value` an instance of `aType`?
+ * Is {@param "value"} an instance of {@param "aType"}?
  * 
- * Parameters:
- *    value - An arbitrary value.
- *    aType - An arbitrary type.
- * Returns:
- *    `true` if `value` is an instance of `aType`, `false` otherwise.
- *
  * @method "_∈_"
  * @param "value" "any"
  * @param "aType" "type"
  * @returns "boolean"
+ *          {@method "true"} if {@param "value"} is an instance of {@param
+ *          "aType"}, {@method "false"} otherwise.
+ * @category "Types" "Queries"
  */
 Method "_∈_" is
 [

@@ -237,7 +237,8 @@ Grammatical restriction "_∈_" is <∅, {"current fiber"}>;
  *        The function to apply if {@param "key"} is not a property of {@param
  *        "aFiber"}.
  * returns Either the requested property value or the result of applying
- *          {@param "else"}.
+ *         {@param "else"}.
+ * @category "Concurrency" "Queries"
  */
 Method "current fiber[_]else_" is
 [
@@ -257,6 +258,7 @@ Method "current fiber[_]else_" is
  * @method "Fork_"
  * @param "aFunction" "[]→⊤"
  * @returns "⊤"
+ * @category "Concurrency" "Control Structures"
  */
 Public method "Fork_" is
 [
@@ -274,6 +276,7 @@ Public method "Fork_" is
  * @param "aFunction" "[]→⊤"
  * @returns "fiber"
  *          The new fiber.
+ * @category "Concurrency" "Control Structures"
  */
 Public method "fork_" is
 [
@@ -299,6 +302,7 @@ Semantic restriction "fork_" is
  *
  * @type "worker exception"
  * @supertype "cascade exception"
+ * @category "Concurrency" "Exceptions"
  */
 Public explicit class "worker exception" extends cascade exception;
 
@@ -316,6 +320,8 @@ Public explicit class "worker exception" extends cascade exception;
  *
  * @type "future"
  * @supertype "object"
+ * @category "Concurrency"
+ * @category "Data Abstractions" "Futures"
  */
 Public class "future" extends object
 	with fields
@@ -336,6 +342,8 @@ Public class "future" extends object
  *        The type of value produced by futures of the answered type.
  * @returns "future's type"
  *          The requested future type.
+ * @category "Concurrency"
+ * @category "Data Abstractions" "Futures" "Types"
  */
 Public method "future of_" is
 [
@@ -353,6 +361,8 @@ Public method "future of_" is
  *        The future whose result is desired.
  * @returns "future"
  *          The requested future.
+ * @category "Concurrency" "Control Structures"
+ * @category "Data Abstractions" "Futures"
  */
 Public method "the future of_" is
 [
@@ -401,7 +411,8 @@ Semantic restriction "the future of_" is
 
 /**
  * Obtain the value of the specified {@type "future"}, parking the current fiber
- * until a value is available if necessary. This method is idempotent.
+ * until a value is available if necessary. This method is idempotent, and never
+ * parks on a subsequent send.
  *
  * @method "_'s⁇value"
  * @param "aFuture" "future"
@@ -410,6 +421,8 @@ Semantic restriction "the future of_" is
  * @raises "worker exception"
  *         If the {@type "fiber"} forked to evaluate the future raised an
  *         {@type "exception"}.
+ * @category "Concurrency" "Control Structures"
+ * @category "Data Abstractions" "Futures" "Queries"
  */
 Method "_'s⁇value" is
 [
@@ -449,6 +462,8 @@ Semantic restriction "_'s⁇value" is
  * @method "Cancel_"
  * @param "aFuture" "future"
  * @returns "⊤"
+ * @category "Concurrency" "Control Structures"
+ * @category "Data Abstractions" "Futures"
  */
 Public method "Cancel_" is
 [
@@ -483,6 +498,8 @@ Public method "Cancel_" is
  * @raises "termination-requested exception"
  *         If termination of the current fiber is requested during an internal
  *         synchronization operation.
+ * @category "Concurrency" "Control Structures" "Loops"
+ * @category "Collections" "Tuples"
  */
 Public method "For each of⁇_in parallel do_" is
 [
@@ -585,6 +602,8 @@ Public method "For each of⁇_in parallel do_" is
  * @raises "termination-requested exception"
  *         If termination of the current fiber is requested during an internal
  *         synchronization operation.
+ * @category "Concurrency" "Control Structures" "Loops"
+ * @category "Collections" "Tuples"
  */
 Public method "For each of⁇_in parallel do_" is
 [
@@ -634,6 +653,8 @@ Semantic restriction "For each of⁇_in parallel do_" is
  *         If termination of the current fiber is requested during an internal
  *         synchronization operation.
  * @author "Richard Arriaga"
+ * @category "Concurrency" "Control Structures" "Loops"
+ * @category "Collections" "Maps"
  */
 Public method "For each of⁇_in parallel do_" is
 [
@@ -685,6 +706,8 @@ Semantic restriction "For each of⁇_in parallel do_" is
  *         If termination of the current fiber is requested during an internal
  *         synchronization operation.
  * @author "Richard Arriaga"
+ * @category "Concurrency" "Control Structures" "Loops"
+ * @category "Collections" "Sets"
  */
 Public method "For each of⁇_in parallel do_" is
 [
@@ -738,6 +761,8 @@ Semantic restriction "For each of⁇_in parallel do_" is
  * @raises "termination-requested exception"
  *         If termination of the current fiber is requested during an internal
  *         synchronization operation.
+ * @category "Concurrency" "Control Structures" "Loops"
+ * @category "Collections" "Tuples"
  */
 Public method "map_in parallel through_" is
 [
@@ -869,6 +894,8 @@ Public method "map_in parallel through_" is
  * @raises "termination-requested exception"
  *         If termination of the current fiber is requested during an internal
  *         synchronization operation.
+ * @category "Concurrency" "Control Structures" "Loops"
+ * @category "Collections" "Tuples"
  */
 Public method "map_in parallel through_" is
 [
@@ -929,6 +956,8 @@ Semantic restriction "map_in parallel through_" is
  *         If termination of the current fiber is requested during an internal
  *         synchronization operation.
  * @author "Richard Arriaga"
+ * @category "Concurrency" "Control Structures" "Loops"
+ * @category "Collections" "Maps"
  */
 Public method "map_in parallel through_" is
 [
@@ -996,6 +1025,8 @@ Semantic restriction "map_in parallel through_" is
  *         If termination of the current fiber is requested during an internal
  *         synchronization operation.
  * @author "Richard Arriaga"
+ * @category "Concurrency" "Control Structures" "Loops"
+ * @category "Collections" "Sets"
  */
 Public method "map_in parallel through_" is
 [

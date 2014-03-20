@@ -910,6 +910,7 @@ whitespaceCharacter ::=
  * @method "_is Arabic numeral"
  * @param "c" "character"
  * @returns "boolean"
+ * @category "Unicode"
  */
 Public stable method "_is an Arabic numeral" is
 [
@@ -925,6 +926,7 @@ Public stable method "_is an Arabic numeral" is
  * @method "_is a letter"
  * @param "character" "c"
  * @returns "boolean"
+ * @category "Unicode"
  */
 Public stable method "_is a letter" is 
 [
@@ -969,6 +971,7 @@ Public stable method "_is a letter" is
  * @method "_is uppercase"
  * @param "c" "character"
  * @returns "boolean"
+ * @category "Unicode"
  */
 Public stable method "_is uppercase" is 
 [
@@ -985,6 +988,7 @@ Public stable method "_is uppercase" is
  * @method "_is lowercase"
  * @param "c" "character"
  * @returns "boolean"
+ * @category "Unicode"
  */
 Public stable method "_is lowercase" is 
 [
@@ -1005,6 +1009,7 @@ Public stable method "_is lowercase" is
  * @method "_is titlecase"
  * @param "c" "character"
  * @returns "boolean"
+ * @category "Unicode"
  */
 Public stable method "_is titlecase" is 
 [
@@ -1021,6 +1026,7 @@ Public stable method "_is titlecase" is
  * @method "_is whitespace"
  * @param "c" "character"
  * @returns "boolean"
+ * @category "Unicode"
  */
 Public stable method "_is whitespace" is
 [
@@ -1078,6 +1084,7 @@ Private method "recase restriction for elements∈_using_" is
  * @method "uppercase_"
  * @param "c" "character"
  * @returns "string"
+ * @category "Unicode"
  */
 Public stable method "uppercase_" is
 [
@@ -1092,6 +1099,7 @@ Public stable method "uppercase_" is
  * @method "uppercase_"
  * @param "s" "string"
  * @returns "string"
+ * @category "Unicode"
  */
 Stable method "uppercase_" is
 [
@@ -1110,6 +1118,7 @@ Semantic restriction "uppercase_" is recase restriction
  * @method "capitalize_"
  * @param "s" "string"
  * @returns "string"
+ * @category "Unicode"
  */
 Stable method "capitalize_" is
 [
@@ -1129,6 +1138,7 @@ Semantic restriction "capitalize_" is recase restriction
  * @method "lowercase_"
  * @param "c" "character"
  * @returns "string"
+ * @category "Unicode"
  */
 Public stable method "lowercase_" is
 [
@@ -1143,6 +1153,7 @@ Public stable method "lowercase_" is
  * @method "lowercase_"
  * @param "s" "string"
  * @returns "string"
+ * @category "Unicode"
  */
 Stable method "lowercase_" is
 [
@@ -1166,6 +1177,7 @@ Semantic restriction "lowercase_" is recase restriction
  * @method "titlecase_"
  * @param "c" "character"
  * @returns "string"
+ * @category "Unicode"
  */
 Public stable method "titlecase_" is
 [
@@ -1180,6 +1192,7 @@ Public stable method "titlecase_" is
  * @method "titlecase_"
  * @param "s" "string"
  * @returns "string"
+ * @category "Unicode"
  */
 Stable method "titlecase_" is
 [

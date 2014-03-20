@@ -67,8 +67,9 @@ errorCodes : {natural number→string|whole number} := {};
  * @method "error codes"
  * @returns "{natural number→string|whole number}"
  *          The requested map.
+ * @category "Bootstrap" "Exceptions"
  */
-Public method "error codes" is [ errorCodes ];
+Public method "error codes" is [errorCodes];
 
 /**
  * Define a method named `name` that stably answers `code`.
@@ -79,6 +80,7 @@ Public method "error codes" is [ errorCodes ];
  * @param "code" "natural number"
  *        The error code.
  * @returns "⊤"
+ * @category "Bootstrap" "Declarations" "Exceptions"
  */
 Private method "Next error code is_(_)" is
 [
@@ -235,6 +237,7 @@ Invoke [
  * Ensure that all VM error codes have names.
  * 
  * @method "Ensure:all VM error codes are named"
+ * @category "Bootstrap" "Assertions"
  */
 Private method "Ensure:all VM error codes are named" is [];
 

@@ -49,6 +49,7 @@ Body
  * @param "predicate" "boolean"
  *        `true`.
  * @returns "⊤"
+ * @category "Bootstrap" "Assertions"
  */
 Public method "Assert:_" is
 [
@@ -94,6 +95,7 @@ Semantic restriction "Assert:_(_)" is
  * 
  * @method "Shouldn't happen"
  * @returns "⊥"
+ * @category "Bootstrap" "Assertions"
  */
 Public method "Shouldn't happen" is
 [
