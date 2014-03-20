@@ -309,7 +309,7 @@ $returnType ::= whole number;
 
 r2 : return document := a return document with
 $name ::= "return2",
-$description ::= "You ain't get shit!",
+$description ::= "You ain't get squat!",
 $returnType ::= ⊤;
 
 m1 : method document := a method document with
