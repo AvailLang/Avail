@@ -55,6 +55,7 @@ Body
  * @param "value" "any"
  *        An arbitrary value which will be ignored.
  * @returns "⊤"
+ * @category "Control Structures" "Conversions"
  */
 Public method "Ignore:_" is
 [
@@ -73,6 +74,7 @@ Public method "Ignore:_" is
  *        A value, usually produced by a method send expression.
  * @returns "any"
  *        The argument.
+ * @category "Control Structures"
  */
 Public method "(_)" is
 [
@@ -152,9 +154,8 @@ Semantic restriction "If|if_then_else_" is
 /*
  * This is used very frequently in the system library, so strengthen it early.
  */
+
 /**
- * 
- * 
  * @method "eject_"
  * @restricts "variable meta"
  */
@@ -185,6 +186,7 @@ Semantic restriction "eject_" is
  *        The function to invoke if `value` is not a subtype of the parameter
  *        type of `accept`.
  * @returns "⊤"
+ * @category "Bootstrap" "Casts" "Conditionals"
  */
 Public method "Cast|cast_into_else_" is
 [
@@ -212,6 +214,7 @@ Public method "Cast|cast_into_else_" is
  *        The function to invoke if `value` is a subtype of the its parameter
  *        type.
  * @returns "⊤"
+ * @category "Bootstrap" "Casts" "Conditionals"
  */
 Public method "Cast|cast_into_" is
 [
@@ -332,6 +335,7 @@ Semantic restriction "Cast|cast_into_" is
 	];
 	accept's return type
 ];
+
 /* Nesting parentheses directly is bad style, and leads to confusing
  * expressions, so forbid it.
  */
@@ -348,6 +352,7 @@ with <>;
  * @method "`|`|_`|`|"
  * @param "bottomMeta" "⊥'s type"
  * @returns "⊥"
+ * @category "Types" "Queries"
  */
 Method "`|`|_`|`|" is
 [
@@ -385,6 +390,7 @@ Semantic restriction "Invoke|invoke_with_" is
  *        `true`, then continue to iterate; if it answers `false`, then
  *        terminate iteration early.
  * @returns "⊤"
+ * @category "Bootstrap" "Control Structures" "Loops"
  */
 Public method "From_to_do_" is
 [

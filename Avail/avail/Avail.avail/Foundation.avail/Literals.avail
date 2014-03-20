@@ -53,6 +53,7 @@ Body
 
 Method "`|_`|" is stable at
 	function accepting <tuple> and returning whole number;
+
 /**
  * @method "`|_`|"
  * @restricts "tuple meta"
@@ -103,6 +104,7 @@ Semantic restriction "`|_`|" is
  *        A tuple type.
  * @returns "whole number"
  *          The lower bound of the argument.
+ * @category "Tuples" "Types" "Queries"
  */
 Method "⎣_⎦" is
 [
@@ -119,6 +121,7 @@ Method "⎣_⎦" is
  *        A set type.
  * @returns "whole number"
  *          The lower bound of the argument.
+ * @category "Sets" "Types" "Queries"
  */
 Method "⎣_⎦" is
 [
@@ -135,6 +138,7 @@ Method "⎣_⎦" is
  *        A map type.
  * @returns "whole number"
  *    The lower bound of the argument.
+ * @category "Maps" "Types" "Queries"
  */
 Method "⎣_⎦" is
 [
@@ -143,12 +147,6 @@ Method "⎣_⎦" is
 	⎣||aMapType||⎦
 ] : whole number;
 
-/**
- * Shouldn't happen.
- * 
- * @method "⎣_⎦"
- * @param "bottom" "⊥'s type"
- */
 Method "⎣_⎦" is
 [
 	bottom : ⊥'s type
@@ -156,12 +154,6 @@ Method "⎣_⎦" is
 	Shouldn't happen
 ];
 
-/**
- * Shouldn't happen.
- * 
- * @method "⎡_⎤"
- * @param "bottom" "⊥'s type"
- */
 Method "⎡_⎤" is
 [
 	bottom : ⊥'s type
@@ -201,6 +193,7 @@ Semantic restriction "⎡_⎤" is
  *        A tuple type.
  * @returns "[0..∞]"
  *          The upper bound of the argument.
+ * @category "Tuples" "Types" "Queries"
  */
 Method "⎡_⎤" is
 [
@@ -217,6 +210,7 @@ Method "⎡_⎤" is
  *        A set type.
  * @returns "[0..∞]"
  *          The upper bound of the argument.
+ * @category "Sets" "Types" "Queries"
  */
 Method "⎡_⎤" is
 [
@@ -233,6 +227,7 @@ Method "⎡_⎤" is
  *        A map type.
  * @returns "[0..∞]"
  *          The upper bound of the argument.
+ * @category "Maps" "Types" "Queries"
  */
 Method "⎡_⎤" is
 [
@@ -332,6 +327,7 @@ Semantic restriction "⎡_⎤" is
  *        An arbitrary token.
  * @returns "atom"
  *          An atom.
+ * @category "Atoms" "Constructors"
  */
 Public method "$…" is
 [
@@ -350,7 +346,8 @@ Public method "$…" is
  * @param "aToken" "literal token"
  *        An arbitrary literal token.
  * @returns "atom"
- *    An atom.
+ *          An atom.
+ * @category "Atoms" "Constructors"
  */
 Public method "$…" is
 [
@@ -398,6 +395,7 @@ Semantic restriction "$…" is
  *        An arbitary token.
  * @returns "character"
  *          A character.
+ * @category "Unicode" "Constructors"
  */
 Public method "¢…" is
 [
@@ -417,6 +415,7 @@ Public method "¢…" is
  *        An arbitrary literal token.
  * @returns "character"
  *          A character.
+ * @category "Unicode" "Constructors"
  */
 Public method "¢…" is
 [
@@ -475,6 +474,7 @@ Semantic restriction "¢…" is
  * @param "index" "natural number"
  *        The subscript (ignored).
  * @returns "⊥"
+ * @category "Types" "Queries"
  */
 Method "_[_]" is
 [
@@ -493,11 +493,6 @@ Method "_[_]" is
  *
  * @method "<«_‡,»>"
  * @restricts "tuple meta"
- * Parameters:
- *    elements -
- * Returns:
- *    The most specific possible type of the lexical tuple, possibly an instance
- *    type.
  */
 Semantic restriction "<«_‡,»>" is
 [
@@ -553,11 +548,6 @@ Semantic restriction "<«_‡,»>" is
 Method "_[_]" is stable at
 	function accepting <tuple, natural number> and returning any;
 
-/** TODO[MvG] REMOVE DEBUG **/
-x ::= 1 min 2;
-y ::= 1 min 2 min 3;
-
-
 /**
  * Strengthen the tuple subscript operation. The strongest available static type
  * is the type union of the elements within the slice indicated by the range of
@@ -610,15 +600,9 @@ Semantic restriction "_[_]" is
  * be correct, i.e., the minimum value of the subscript exceeds the maximum
  * cardinality of the tuple.
  *
- * @method "|[_]"
+ * @method "_[_]"
  * @restricts "tuple meta's type"
  * @restricts "natural number's type"
- * Parameters:
- *    aTuple -
- *    index -
- * Returns:
- *    The instance type of the type union of the elements accessible by an
- *    actual subscript of the specified type.
  */
 Semantic restriction "_[_]" is
 [
@@ -676,11 +660,7 @@ with <>;
  * numbers and strings.
  *
  * @method "{«_‡,»}"
- * Parameters:
- *    elements -
- * Returns:
- *    The most specific possible type of the lexical set, possibly an instance
- *    type.
+ * @restricts "<any…|1..>'s type"
  */
 Semantic restriction "{«_‡,»}" is
 [
@@ -787,12 +767,11 @@ Semantic restriction "{«_‡,»}" is
  * Construct and answer a map from the lexically specified key-value bindings.
  * 
  * @method "{«_→_‡,»}"
- * @param "key-value tuple"
- * Parameters:
- *    bindings - The key-value bindings that constitute the answer.
+ * @param "bindings" "key-value tuple"
+ *        The key-value bindings that constitute the answer.
  * @returns "map"
- * Returns:
- *    A map comprising the specified key-value bindings.
+ *          A map comprising the specified key-value bindings.
+ * @category "Maps" "Constructors"
  */
 Public method "{«_→_‡,»}" is
 [
@@ -808,16 +787,9 @@ Public method "{«_→_‡,»}" is
  * statically well-known elements the same force as lexical literals, e.g.,
  * numbers and strings.
  *
- * Parameters:
- *    elements -
- * Returns:
- *    The most specific possible type of the lexical set, possibly an instance
- *    type.
- *
  * @method "{«_→_‡,»}"
  * @restricts "key-value tuple's type"
  * @returns "set's type"
- * 
  */
 Semantic restriction "{«_→_‡,»}" is
 [

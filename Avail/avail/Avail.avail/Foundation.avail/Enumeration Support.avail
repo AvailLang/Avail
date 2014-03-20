@@ -135,6 +135,7 @@ Semantic restriction "_'s⁇instance" is
  *        The instances of the resultant type.
  * @returns "type"
  *          The requested enumeration.
+ * @category "Enumerations" "Constructors"
  */
 Public method "{«_‡,»}ᵀ" is
 [
@@ -178,6 +179,7 @@ Semantic restriction "{«_‡,»}ᵀ" is
  *        An arbitrary type.
  * @returns "type"
  *        The precise instance type of the supplied type.
+ * @category "Primitives" "Enumerations" "Types" "Constructors"
  */
 Public method "{_}ᵀ" is
 [
