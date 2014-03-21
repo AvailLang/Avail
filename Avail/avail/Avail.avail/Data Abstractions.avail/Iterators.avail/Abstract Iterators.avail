@@ -956,7 +956,7 @@ Public method "_is not exhausted" is
 
 /**
  * Answer a tuple containing the prefix of {@param "anIterator"} that answered
- * {@code "true"} to {@param "predicate"}.
+ * {@method "true"} to {@param "predicate"}.
  *
  * @method "take from_while_"
  * @param "anIterator" "iterator"
@@ -998,7 +998,7 @@ Semantic restriction "take from_while_" is
 
 /**
  * Answer a tuple containing the prefix of {@param "anIterator"} that answered
- * {@code "false"} to {@param "predicate"}.
+ * {@method "false"} to {@param "predicate"}.
  *
  * @method "take from_until_"
  * @param "anIterator" "iterator"
