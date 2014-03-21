@@ -873,8 +873,10 @@ public abstract class AbstractAvailCompiler
 	/**
 	 * Answer whether this is a {@linkplain AvailSystemCompiler system
 	 * compiler}.  A system compiler is used for modules that start with the
-	 * keyword "{@linkplain ExpectedToken#SYSTEM System}".  Such modules use a
-	 * predefined syntax.
+	 * keyword "{@linkplain ExpectedToken#MODULE Module}".  The experimental
+	 * macro compiler is the other option, and is specified by "{@linkplain
+	 * ExpectedToken#EXPERIMENTAL Experimental} {@linkplain ExpectedToken#MODULE
+	 * Module}".
 	 *
 	 * @return Whether this is a system compiler.
 	 */
