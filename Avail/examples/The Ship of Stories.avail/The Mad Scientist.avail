@@ -1,0 +1,533 @@
+/*
+ * The Mad Scientist.avail
+ * Copyright © 2013-2014, Cislyn Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Redistributions with modification must include attribution of the parties
+ *   responsible for that modification.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "The Mad Scientist"
+Versions
+	"dev"
+Uses
+	"Avail",
+	"Choosable Path",
+	"Game Context"
+Body
+
+/**
+ * @module "The Mad Scientist"
+ * @author Cislyn Smith <cislyn@gmail.com>
+ */
+
+Let 
+	"Assistant Help", 
+	"Self Starter",
+	"Mundane Science",
+	"Oblivious Tinkering",
+	"Narrator Threat",
+	"Narrator Sympathy",
+	"Email",
+	"Email Epilogue",
+	"Cry Baby",
+	"Trap Door",
+	"Monologue",
+	"Sauntering",
+	"Room Ransacking",
+	"Gadget Solution",
+	"Gadget Win",
+	"Smelly Betrayal",
+	"Shifty",
+	"Positive Shifty",
+	"Negative Shifty",
+	"Mob Rules",
+	"Assistant Win",
+	"Assistant Epilogue"
+be scenes;
+
+The Mad Scientist
+is described by
+	"Lightning flashes through the window, illuminating terrifyingly large
+	stacks of unread journal articles, notebooks full of data, and a computer
+	screen displaying a frightfully clunky database filled with the fruits of
+	your latest scientific endeavors. You’re furious; the last batch of results
+	you entered have disappeared entirely! Is it sabotage by one of those pesky
+	grad students, lousy software, or simple incompetence on your part? In the
+	end, it doesn’t matter. What matters is…
+
+	What’s that? This isn’t the sort of mad scientist you were after? Oh. Well,
+	why didn’t you say so?
+
+	Ahem.
+
+	Lightning flashes through the cobwebbed window, illuminating your
+	laboratory. Test tubes glisten with faintly luminous green liquid,
+	complicated devices crackle with energies, and you stand in the midst of it
+	all, cackling. You need but one final component to finish your masterwork,
+	the Super Death Doom Laser. The Perspex Gem is the only focus that will do.
+	And according to The Oppressed Village Daily News, to which you have a
+	subscription, The Perspex Gem is currently being displayed in the Museum!"
+and has transitions
+	to Assistant Help
+	described by "Send your assistant to get the gem."
+and
+	to Self Starter
+	described by "Go get the gem yourself. If you want something done right, do it 
+	yourself."
+and
+	to Mundane Science
+	described by "Actually, that first kind of Mad Scientist is really more my type. I’d 
+	like to play that way, please. You slip out of your wild hair-do and lab coat 
+	spattered with dubious substances and into something a little more mundane...";
+
+Assistant Help	
+is titled by "A little help here?"
+and is described by
+	"The Assistant shuffles into the lab, muttering to himself quietly. 
+
+	You say unto him \"Ah, there you are. The Perspex Gem is currently in the village 
+	museum. I require it to finish my masterpiece! Go get it for me!\"
+
+	The Assistant stares at you, then grins and bares his teeth. \"Oh yesssss, Master, 
+	that’s exactly what I’ll do. Right away.\" 
+
+	As he shuffles away from you again, you think you hear a quiet \"fwahaha\" from his 
+	direction. Could be your imagination, though, or that weird laughing robot you built 
+	last month. That thing never did work right..."
+	
+and has transitions
+	to Self Starter
+	described by "You like a good scheme, but only when it’s your own. That Assistant 
+	isn’t even bothering to hide his contempt for you! Well, you’ll show him. He’ll be 
+	updating his resume and looking for a new lab, and you’ll be ruling the world. Hrmph. 
+	Go get the Perspex Gem yourself!"
+and
+	to Oblivious Tinkering
+	described by "Oh, it’s probably nothing. The Assistant is always laughing that way. 
+	What a pleasant fellow! I think I’ll tinker for a while. So many experiments, so 
+	little time! As soon as your assistant is out of sight, he is firmly out of your 
+	mind.";
+
+Mundane Science
+is titled by "Science! Of the angry variety!"
+and is described by
+	"Oh, really? Well, bonus points for your dedication to realism, but I think not. It 
+	doesn’t really fit the archetype, you know? I mean, sure, there’s room for maniacal 
+	cackling while grubbing over grants or doing data entry but… really? Look, you’re not 
+	Narrator yet, buddy. Arguing with me is just a waste of time and energy, and I need 
+	to focus here. The Ship of Stories doesn’t steer itself, you know."
+and has transitions
+	to Narrator Sympathy
+	described by "Say, \"you seem pretty tired of the job,\" in a sympathetic tone of 
+	voice."
+and 
+	to Narrator Threat
+	described by "Say \"Well, I could help you with that problem, you know. Tell me where 
+	the Perspex Gem is, and this will all go a lot easier for you.\""
+and 
+	to The Mad Scientist
+	described by "Be an obliging little spirit-infested Archetype and go back to the 
+	beginning of this story and choose a different option.";
+		
+Narrator Threat
+is titled by "Grubbing for the loot, eh? It won't be that easy."
+and is described by
+	"Thunder rumbles in the distance. The lights flicker.
+
+	You feel kind of ridiculous sitting there and talking out loud to yourself in an 
+	empty lab. Just then, a brilliant flash of lightning is coupled with a loud boom. 
+	The power goes out, and now you’ve lost the data you were working on twice. 
+
+	This really isn’t any fun, is it? Go back and play as a properly twisted mad 
+	scientist, leaving behind funding woes and tedium."
+and has a transition
+	to The Mad Scientist
+	described by "More zapping, less peer review!";
+
+Narrator Sympathy
+is titled by "A friendly chat with the Narrator..."
+and is described by 
+	"\"Is The Narrator's position not all it’s cracked up to be?\"
+
+	Now that you mention it, no, it really isn’t. For a year now I’ve been doing this 
+	Narration thing, and I have to tell you, I never imagined how much work it would be! 
+	So many stories, so many demands! It would be nice to just settle into an Archetype 
+	and relax for a change, you know? 
+
+	You nod sympathetically. 
+
+	Honestly, just telling a coherent story is hard enough - making it engaging, too, 
+	well, I just don’t know what I was thinking! I know it’s tradition to compete in the 
+	games, but ... well, you don’t want to hear me complain. You came here to try to win 
+	my position. We should get on with it.
+
+	You shrug. \"If you want to. I mean, we can take it easy, instead. You’ve got all 
+	those stories to tell, and with this storm out there I’m probably not going to get 
+	any more data entered tonight. It’s bound to just make me upset if we lose power, and 
+	I already have something of an anger management problem.\"
+
+	That’s... very nice of you. Tell you what, let’s make this nice and simple.
+
+	Your computer dings. You have email!"
+and has a transition
+	to Email
+	described by "Check the email.";
+
+Email
+is titled by "You've got mail!"
+and is described by
+	"The email is a congratulatory letter from the National Science Foundation. You’re 
+	funded for the next ten years! There’s an attachment to the email. 
+
+	After an appropriate amount of undignified celebratory yelling, you click on the 
+	attachment and download the file. You have acquired The_Perspex_Gem!
+
+	Congratulations! You win! I quit. Hahahahaha! Suckers!"
+and has a transition
+	to Email Epilogue
+	described by "THE END!";
+	
+Email Epilogue
+is titled by "Epilogue: Science."
+and is described by
+	"Your tenure as The Narrator is pretty calm, all things considered. You mostly let 
+	The Archetypes do as they're inclined and don't interfere much. You do push an agenda 
+	of realism onto the stories, but there aren't many complaints. You're very easy to 
+	get along with, after all. 
+
+	And when it's time for the games again, you pass on the mantle of Narrator without 
+	much fuss. 
+
+	Congratulations!";
+
+Oblivious Tinkering
+is titled by "Home is where the robots are..."
+and is described by
+	"You spend a while tuning your laughing robot and then considering your plans for 
+	world domination once The Perspex Gem is in your hands. Ah yes, there shall be only 
+	one subject in school: SCIENCE! You’ll teach those establishment fools who laughed at 
+	you, who called you mad. And the cafeterias shall serve only lime jello and pizza, 
+	the best and most fiendishly nurturing of foods! And...
+
+	You’re startled out of your reverie by a crash from the far side of the lab.
+
+	The Action Hero stands triumphantly over the ruins of the door. \"Your villainy and 
+	reign of terror will soon be at an end, you Mad Scientist!\" he proclaims. 
+
+	The Laughing Robot giggles and moves to intercept him, but The Action Hero punches it 
+	in the processor and it laughs no more. This calls for decisive action!
+
+	You..."
+and has transitions
+	to Cry Baby
+	described by "Screech a little and cry out for your Assistant to come and do his job 
+	and ASSIST you already!"
+and
+	to Trap Door
+	described by "Wait for just the right moment and then open the trap door under The 
+	Action Hero."
+and
+	to Monologue
+	described by "Start monologuing.";
+	
+Cry Baby
+is titled by "Help! Help! I'm being oppressed!"
+and is described by
+	"You let out a high-pitched squawk and jump up on one of the tables, kicking over a 
+	complicated mess of glassware filled with bubbling fluid and ruining your good shoes. 
+	You call out for your assistant, but The Action Hero just laughs at you while he 
+	strides confidently across the lab.
+
+	\"Who do you think told me where to find you, and how to avoid the monstrosities and 
+	abominations here in your lair of wickedness? Haha! You have been betrayed, Mad 
+	Scientist, and now you shall die knowing that your only friend in the world turned on 
+	you in the end!\"
+
+	You really should have given The Assistant a raise or something, huh? Fair labor 
+	practices might have saved you, but alas, it is all over now. The Action Hero 
+	performs some really stunning moves which (somehow) result in a lot of explosions. At 
+	least you went out with a bang!
+
+	That was kind of a bummer, though.";
+
+Monologue
+is titled by "My grand plans, let me tell you all about them!"
+and is described by
+	"You leap nimbly up onto a table. \"You blundering fool! No thick-skulled do-gooder 
+	is going to get in my way! For I know where the Perspex Gem is, and I alone shall 
+	steer The Ship of Stories to its ultimate destination! When I have completed my Super 
+	Death Doom Laser none shall stand before me - no longer will I be constrained to one 
+	simple oppressed village. First, I will take over the world, and then I will take over 
+	all the stories! What resources do you bring to this quest, I ask you? None, that's 
+	what!\"
+
+	You continue in this way for quite some time. The Action Hero stands before you, head 
+	tilted, hands on his hips, apparently thinking through your very cogent points. 
+
+	Honestly, you're a little surprised. This sort of thing usually doesn't work out so 
+	well for you. 
+
+	You take a breath from a great cackle after outlining your plan (such as it is) in 
+	great detail three or four times. The Action Hero nods decisively. \"I see. I was so 
+	in character that I had actually forgotten about the game. Well, thank you for 
+	reminding me.\"
+
+	Then he punches you in the face, blows up your lab, and strides off into the sunset 
+	intent to acquire The Perspex Gem and win the game. 
+
+	Bonus points for style, there, but I'm afraid you've lost.";
+
+Trap Door
+is titled by "Into the pit of despair with you!"
+and is described by
+	"You watch with a sly smile as The Action Hero strides confidently across the 
+	laboratory. The fool! As soon as he's over the trap door, you pull the lever under 
+	your desk to send him down into the pit of platyporpions! (Really, what a mess that 
+	experiment was. It seemed like a good idea at the time, combining platypus and 
+	scorpion DNA...)
+
+	Unfortunately, this is The Action Hero you're dealing with here. He leaps nimbly over 
+	the pit and promptly starts throttling you. \"For great justice!\" are the last words 
+	you hear. He tosses your body casually into the platyporpion pit, explodes your lab, 
+	and marries The Assistant. 
+
+	Well, that was kind of a bummer.";
+
+Self Starter
+is titled by "Go get the Perspex Gem yourself..."
+and is described by
+	"You stare dubiously at the front door. There are all those ravenous Beartaurs on the 
+	grounds to consider... for some reason they seem to think The Assistant tastes 
+	horrible, and won’t go near him. You’ve had problems with them from the first, though. 
+	Who knew that half-bear half-horse creatures would be so ferocious?
+
+	This calls for cunning, and you have a very cunning plan indeed."
+and has transitions
+	to Sauntering
+	described by "Whose lab is this anyway? No scheming Assistant or hideous herd of 
+	beartaurs is going to keep you from sauntering out the front door of your own 
+	not-so-secret hideout!"
+and
+	to Room Ransacking
+	described by "Ransack your Assistant’s room. The secret to passing the Beartaurs must 
+	be in there somewhere!"
+and
+	to Gadget Solution
+	described by "You recall that you have just the gadget for this problem!"
+and
+	to Assistant Help
+	described by "Eh, this seems like an awful lot of work. This is what assistants are 
+	FOR, after all.";
+	
+Sauntering
+is titled by "Out the front door you go!"
+and is described by
+	"You straighten your lab coat, adjust your goggles, and stroll confidently out 
+	through the front door. Almost immediately, you are swarmed by ravenous Beartaurs, who 
+	trample you to death in the mud. Your last sight is of dreadful hooves and great 
+	rending claws. Whoops.
+
+	Well, that was kind of a bummer, wasn’t it?";
+	
+Gadget Solution
+is titled by "Go-go gadget..."
+and is described by
+	"You smile out the window at the frolicking beartaurs. Yes, you have just the thing. 
+	In a dusty corner of the laboratory is a cobwebbed weather machine. You haven't used 
+	it much - really, you should get out more - but it seems apropos for this occasion. 
+
+	You turn a dial, flip a switch, and call down a blizzard. With a cup of hot cocoa in 
+	hand, you watch the beartaurs canter off to find a place to hibernate. The way to the 
+	village is clear now! Well, except for all that snow, of course.
+
+	With that thought in mind, you trivially repurpose The Laughing Robot to work as a 
+	sled, and fwahaha all the way down into town in grand style.
+
+	The Museum is quite deserted. You spot a few pitchforks and torches on the ground - 
+	perhaps a mob was forming? Those are always so pesky - but the bizarre and sudden 
+	snowthunder storm seems to have chased everyone inside.
+
+	You stroll in, shatter the glass case with a quick tap of a socket wrench, and seize 
+	The Perspex Gem."
+and has a transition 
+	to Gadget Win
+	described by "You have won, with both style and consistency of character! Well 
+	played!";
+
+Gadget Win
+is titled by "Epilogue: Science!!!"
+and is described by
+	"Your time as Narrator is chaotic and thrilling! You twist all the stories to have at 
+	least a small element of genius, and you favor villains and anti-heroes over those 
+	goody-goody types. There are a lot of complaints, but you silence most of them with 
+	fiendish experiments and mutated horrors rampaging through the stories they favor 
+	most. 
+
+	Mwahahahaha!";
+
+Room Ransacking
+is titled by "Privacy is for other Archetypes."
+and is described by
+	"A quick rampage through The Assistant's meager belongings reveals very little of 
+	interest."
+and has transitions 
+	to Smelly Betrayal
+	described by "You could try his cologne."
+and
+	to Shifty
+	described by "Perhaps the secret is in his truly appalling crusty clothes?"
+and
+	to Sauntering
+	described by "This seems like a waste of time.
+	
+	Really, you're putting too much thought into this. Just walk out the front door!"
+and
+	to Gadget Solution
+	described by "Hmmm... perhaps it is time to try SCIENCE?!";
+	
+Smelly Betrayal
+is titled by "Smells like betrayal."
+and is described by
+	"Yes, the trick must be in the scent! You liberally sprinkle yourself with the 
+	contents of a small glass vial labeled \"Old Familiar\", and then stroll confidently 
+	out the front door. To your delight, the beartaurs show no interest in you whatsoever. 
+
+	You are deep in thought, considering the heady possibilities of daily walks without 
+	the threat of dismemberment, as you stroll into the village. Which is probably why you 
+	didn't notice the rather large mob gathered in front of the museum, complete with 
+	pitchforks and burning torches sizzling in the last remnants of the night's storm.
+
+	The voice of The Assistant crying out \"There he is! Now's your chance! Get him!\" snaps 
+	you out of your reverie. Unfortunately, you are too slow to escape the angry 
+	villagers, who trample you to death in the mud and tear you to pieces. Much like the 
+	beartaurs would have, actually. 
+
+	Bummer.";
+
+Shifty
+is titled by "Shifty"
+and is described by
+	"You slip into The Assistant's tattered clothing and, with only a tiny modicum of 
+	effort, into his role.
+
+	You are now The Assistant!
+
+	That fool The Mad Scientist doesn't suspect a thing. The villagers are sick and tired 
+	of all those machinations - not to mention the machines - and are more than ready to 
+	dispose of your nemesis once and for all. 
+
+	And once the competition is out of the picture, you can seize The Perspex Gem for your 
+	very own, of course. Mwahahaha..."
+and has transitions
+	to Positive Shifty
+	described by "This seems like a fine plan, with no drawbacks. Hurry into the village."
+and 
+	to Negative Shifty
+	described by "Whoa. This is uncomfortable and weird.";
+	
+Negative Shifty
+is titled by "This identity seems fraught and problematic."
+and is described by
+	"Now that you know what The Assistant is up to, you feel..."
+and has transitions
+	to Oblivious Tinkering
+	described by "Depressed. I just want to get out of these disgusting clothes, back 
+	into my labcoat, and go play in the lab to cheer myself up. Fight off a wave of 
+	self-pity and trudge back to your toys."
+and
+	to Gadget Solution
+	described by "Delighted. I have just the gadget to deal with this whole situation, 
+	once I'm feeling more like the main character again. It's time to get back into the 
+	goggles and try some science!";
+
+Positive Shifty
+is titled by "Never underestimate the staff"
+and is described by
+	"You remember to sprinkle some of the beartaur deterrent cologne on yourself before 
+	you hurry down to the village. Those pesky critters can be quite a nuisance. When 
+	you're in charge of things, you'll keep them in a stable. Really, you'll change quite 
+	a lot of things, once you're in charge.
+
+	The plaza in front of the museum is crowded with restless villagers hefting 
+	pitchforks and passing around torches."
+and has transitions
+	to Mob Rules
+	described by "Take your place in front of them, and incite them to violence!"
+and
+	to Assistant Win
+	described by "Come to think of it, crowds aren't really your thing. Sneak past them 
+	and into the Museum.";
+
+Mob Rules
+is titled by "I think I'm a clone now."
+and is described by
+	"You push through the crowd and start to deliver your speech. You wax eloquent about 
+	The Mad Scientist's penchant for performing terrible experiments on their children, 
+	pets, and grandparents. Clearly this must end, and end now! 
+
+	It's going great, until The Assistant arrives. Whoops. You forgot that there was 
+	another instance of this Archetype wandering around. 
+
+	The crowd, already armed and inclined towards violence, tears you both apart, and 
+	then rampages off to do unspeakable things to your boss. 
+
+	Ah well.";
+
+Assistant Win
+is titled by "Yes, precioussss, yes..."
+and is described by
+	"Those people look positively blood-thirsty, and you want no part of that. Besides, 
+	there's probably another one of The Assistant around here somewhere, and you'd hate 
+	to run into them.
+
+	You get past the crowd easily and slip into the darkened museum. Most of the space is 
+	dedicated to the so-called triumphs of The Mad Scientist, but it's a nice walk down 
+	memory lane anyway. You assisted with pretty much everything here, after all. The 
+	gene scrambler, the incineration ray, the robotic wombat... none of them would exist 
+	without you! That unappreciative scientist jerk is going to get quite a surprise soon.
+
+	You carefully lift the glass cover and set it aside, then take the Perspex Gem off 
+	its pedestal and put it in your pocket. You leave the museum by the side door, safely 
+	and sneakily.
+
+	Congratulations!"
+and has a transition
+	to Assistant Epilogue described by "You have won with style and level-crossing 
+	appropriate for one who would be The Narrator!";
+
+Assistant Epilogue
+is titled by "Epilogue: Sneaky Science"
+and is described by	
+	"Your time as Narrator is filled with unexpected plot twists and backstabbing. Your 
+	fondness for The Underdog is noted and appreciated, but your dedication to anti-heroes 
+	makes you a little unpopular with some of the other Archetypes. You tell a lot of 
+	interesting stories and invent some wacky new genres, though. For science!
+
+	Congratulations!";

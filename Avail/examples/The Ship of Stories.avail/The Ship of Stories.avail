@@ -1,6 +1,6 @@
 /*
- * Avail Evaluator.avail
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * The Ship of Stories.avail
+ * Copyright © 2013-2014, Cislyn Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,6 +12,9 @@
  * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
+ *
+ * * Redistributions with modification must include attribution of the parties
+ *   responsible for that modification.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
@@ -30,13 +33,33 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Avail Evaluator"
+Module "The Ship of Stories"
 Versions
 	"dev"
-Extends
-	"Avail"
+Uses
+	"Avail",
+	"Choosable Path",
+	"Game Context",
+	"The Detective",
+	"The Princess",
+	"The Mad Scientist"
 Entries
-	"`!_"
+	"Play the Ship of Stories"
 Body
 
-Method "`!_" is [x : any | x];
+/**
+ * @module "The Ship of Stories"
+ * @author Cislyn Smith <cislyn@gmail.com>
+ */
+
+Verify story;
+
+Method "Play the Ship of Stories" is
+[
+	Print:
+		"[\"The Ship of Stories\" is copyright © 2013-2014, Cislyn Smith. It is \
+		\|redistributed by The Avail Foundation, LLC, with her permission.]\n\n";
+	Play a game,
+		creating a context with [a game context],
+		interacting with standard console interface;
+];
