@@ -77,7 +77,7 @@ Names
 	"Await_",
 	"Signal_",
 	"Signal_if satisfied",
-	"a condition of_is_",
+	"a condition of_such that_",
 	"condition",
 	"_is satisfied",
 
@@ -160,9 +160,10 @@ Semantic restriction "atomically compare_to_and,⁇if equal,⁇store_" is
  * @param "var" "variable"
  *        A variable.
  * @param "newValue" "any"
- *        The new value to store into `var`.
+ *        The new value to store into {@param "var"}.
  * @returns "any"
- *          The value originally stored in `var`.
+ *          The value originally stored in {@param "var"}.
+ * @category "Synchronization" "Primitives" "Variables" "Queries" "Mutators"
  */
 Public method "unsafely atomically read_and store_" is
 [
@@ -187,10 +188,11 @@ Public method "unsafely atomically read_and store_" is
  *        The value against which the content of {@param "var"} should be
  *        compared.
  * @param "newValue" "any"
- *        The new value to store into `var`.
+ *        The new value to store into {@param "var"}.
  * @returns "boolean"
- *          `true` if the operation succeeded and {@param "newValue"}
- *          was stored into {@param "var"}, `false` otherwise.
+ *          {@method "true"} if the operation succeeded and {@param "newValue"}
+ *          was stored into {@param "var"}, {@method "false"} otherwise.
+ * @category "Synchronization" "Primitives" "Variables" "Queries" "Mutators"
  */
 Public method "unsafely atomically compare_to_and,⁇if equal,⁇store_" is
 [
@@ -210,6 +212,7 @@ Public method "unsafely atomically compare_to_and,⁇if equal,⁇store_" is
  * @param "var" "variable"
  * @param "f" "[any]→any"
  * @returns "⊤"
+ * @category "Synchronization" "Variables" "Mutators" "Queries"
  */
 Public method "Atomically update_using_" is
 [
@@ -253,6 +256,7 @@ Semantic restriction "Atomically update_using_" is
  *
  * @type "parking queue"
  * @supertype "<fiber…|>"
+ * @category "Synchronization" "Types" "Constants"
  */
 Public method "parking queue" is [<fiber…|>];
 
@@ -267,8 +271,9 @@ Public method "parking queue" is [<fiber…|>];
  * @param "queue" "parking queue"
  *        A {@type "parking queue"}.
  * @returns "boolean"
- *         `true` if the queue was empty at the time of enqueuing,
- *         `false` otherwise.
+ *         {@method "true"} if the queue was empty at the time of enqueuing,
+ *         {@method "false"} otherwise.
+ * @category "Synchronization"
  */
 Public method "priority enqueue_on_" is
 [
@@ -304,8 +309,9 @@ Public method "priority enqueue_on_" is
  * @param "queue" "↑parking queue"
  *        A parking queue.
  * @returns "boolean"
- *         `true` if the queue was empty after the removal, {@method
+ *         {@method "true"} if the queue was empty after the removal, {@method
  *         "false"} otherwise.
+ * @category "Synchronization"
  */
 Public method "dequeue_from_" is
 [
@@ -334,6 +340,7 @@ Public method "dequeue_from_" is
  * @returns "⊤"
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
+ * @category "Synchronization"
  */
 Public method "Park current fiber,then honor a termination request" is
 [
@@ -351,6 +358,7 @@ Public method "Park current fiber,then honor a termination request" is
  * @param "joinee" "fiber"
  *        The fiber to join.
  * @returns "⊤"
+ * @category "Synchronization"
  */
 Public method "Join_" is
 [
@@ -372,6 +380,7 @@ Public method "Join_" is
  * @returns "⊤"
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
+ * @category "Synchronization"
  */
 Public method "Join_,then honor a termination request" is
 [
@@ -394,6 +403,7 @@ Public method "Join_,then honor a termination request" is
  *
  * @type "synchronization device"
  * @supertype "object"
+ * @category "Synchronization" "Data Abstractions" "Types"
  */
 Public explicit class "synchronization device" extends object;
 
@@ -403,6 +413,7 @@ Public explicit class "synchronization device" extends object;
  *
  * @type "non-reentrant mutex"
  * @supertype "object"
+ * @category "Synchronization" "Data Abstractions" "Types"
  */
 Public class "non-reentrant mutex" extends synchronization device
 	with fields
@@ -418,6 +429,7 @@ Public class "non-reentrant mutex" extends synchronization device
  * @method "_'⁇s owner's name"
  * @param "mutex" "non-reentrant mutex"
  * @returns "string"
+ * @category "Synchronization" "Queries"
  */
 Public method "_'s⁇owner's name" is
 [
@@ -461,6 +473,7 @@ defaultName ::= "«unnamed»";
  *        If specified, then the name of the mutex, for improved diagnostics.
  *        If not specified, then {@code "«unnamed»"}.
  * @returns "non-reentrant mutex"
+ * @category "Synchronization" "Data Abstractions" "Constructors"
  */
 Public method "a non-reentrant mutex«named_»" is
 [
@@ -489,6 +502,7 @@ Semantic restriction "a non-reentrant mutex«named_»" is
  *
  * @type "synchronization exception"
  * @supertype "exception"
+ * @category "Synchronization" "Exceptions"
  */
 Public explicit class "synchronization exception" extends exception;
 
@@ -501,6 +515,7 @@ Public explicit class "synchronization exception" extends exception;
  *
  * @type "reentry exception"
  * @supertype "synchronization exception"
+ * @category "Synchronization" "Exceptions"
  */
 Public class "reentry exception" extends synchronization exception
 	with fields
@@ -514,6 +529,7 @@ Public class "reentry exception" extends synchronization exception
  * @method "Schedule next parked fiber or release_"
  * @param "mutex" "non-reentrant mutex"
  * @returns "⊤"
+ * @category "Synchronization"
  */
 Private method "Schedule next parked fiber or release_" is
 [
@@ -547,6 +563,7 @@ Private method "Schedule next parked fiber or release_" is
  * @returns "⊤"
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
+ * @category "Synchronization"
  */
 Private method "Acquire_" is
 [
@@ -597,6 +614,7 @@ Private method "Acquire_" is
  *         If the owning fiber reenters the mutex.
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
+ * @category "Synchronization"
  */
 Public method "Lock|lock_for_" is
 [
@@ -631,6 +649,7 @@ Semantic restriction "Lock|lock_for_" is
  *
  * @type "reentrant mutex"
  * @supertype "non-reentrant mutex"
+ * @category "Synchronization" "Data Abstractions" "Types"
  */
 Public class "reentrant mutex" extends non-reentrant mutex
 	with mutable fields
@@ -657,6 +676,7 @@ Method "“_”" is
  *        If specified, then the name of the mutex, for improved diagnostics.
  *        If not specified, then {@code "«unnamed»"}.
  * @returns "reentrant mutex"
+ * @category "Synchronization" "Data Abstractions" "Constructors"
  */
 Public method "a reentrant mutex«named_»" is
 [
@@ -696,6 +716,7 @@ Semantic restriction "a reentrant mutex«named_»" is
  *        The critical section.
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
+ * @category "Synchronization"
  */
 Public method "Lock|lock_for_" is
 [
@@ -734,6 +755,7 @@ Public method "Lock|lock_for_" is
  *
  * @type "condition"
  * @supertype "object"
+ * @category "Synchronization" "Data Abstractions" "Types"
  */
 Public class "condition" extends object
 	with fields
@@ -749,6 +771,7 @@ Public class "condition" extends object
  *
  * @type "monitor"
  * @supertype "reentrant mutex"
+ * @category "Synchronization" "Data Abstractions" "Types"
  */
 Public class "monitor" extends reentrant mutex
 	with mutable field
@@ -773,6 +796,7 @@ Semantic restriction "_'s⁇originating monitor" is
  *        If specified, then the name of the monitor, for improved diagnostics.
  *        If not specified, then {@code "«unnamed»"}.
  * @returns "monitor"
+ * @category "Synchronization" "Data Abstractions" "Constructors"
  */
 Public method "a monitor«named_»" is
 [
@@ -808,6 +832,7 @@ Semantic restriction "a monitor«named_»" is
  * @method "Schedule next parked fiber or release_"
  * @param "mutex" "monitor"
  * @returns "⊤"
+ * @category "Synchronization"
  */
 Private method "Schedule next parked fiber or release_" is
 [
@@ -851,15 +876,16 @@ Private method "Schedule next parked fiber or release_" is
 /**
  * Construct and answer a {@type "condition"}.
  *
- * @method "a condition of_is_"
+ * @method "a condition of_such that_"
  * @param "aMonitor" "monitor"
  *        The originating monitor.
  * @param "predicate" "[]→boolean"
  *        The predicate that should be asserted before signaling and after
  *        waking.
  * @returns "condition"
+ * @category "Synchronization" "Constructors" "Data Abstractions"
  */
-Public method "a condition of_is_" is
+Public method "a condition of_such that_" is
 [
 	aMonitor : monitor,
 	predicate : []→boolean
@@ -876,8 +902,9 @@ Public method "a condition of_is_" is
  * @method "_is satisfied"
  * @param "aCondition" "condition"
  * @returns "boolean"
- *          `true` if the condition is satisfied, `false`
+ *          {@method "true"} if the condition is satisfied, {@method "false"}
  *          otherwise.
+ * @category "Synchronization" "Queries"
  */
 Public method "_is satisfied" is
 [
@@ -894,6 +921,7 @@ Public method "_is satisfied" is
  *
  * @type "condition exception"
  * @supertype "synchronization exception"
+ * @category "Synchronization" "Exceptions"
  */
 Public class "condition exception" extends synchronization exception
 	with field
@@ -905,6 +933,7 @@ Public class "condition exception" extends synchronization exception
  *
  * @type "cannot-await-condition exception"
  * @supertype "condition exception"
+ * @category "Synchronization" "Exceptions"
  */
 Public explicit class "cannot-await-condition exception"
 extends condition exception;
@@ -921,6 +950,7 @@ extends condition exception;
  *         If the current fiber does not own the condition's {@type "monitor"}.
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
+ * @category "Synchronization"
  */
 Public method "Await_" is
 [
@@ -967,6 +997,7 @@ Public method "Await_" is
  *
  * @type "cannot-signal-condition exception"
  * @supertype "condition exception"
+ * @category "Synchronization" "Exceptions"
  */
 Public explicit class "cannot-signal-condition exception"
 extends condition exception;
@@ -977,6 +1008,7 @@ extends condition exception;
  *
  * @type "condition-unsatisfied exception"
  * @supertype "condition exception"
+ * @category "Synchronization" "Exceptions"
  */
 Public explicit class "condition-unsatisfied exception"
 extends condition exception;
@@ -998,6 +1030,7 @@ extends condition exception;
  *         If the condition is not actually satisfied.
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
+ * @category "Synchronization"
  */
 Public method "Signal_" is
 [
@@ -1064,6 +1097,7 @@ Public method "Signal_" is
  *         If the current fiber is not the owner of the condition's monitor.
  * @raises "condition-unsatisfied exception"
  *         If the condition is not actually satisfied.
+ * @category "Synchronization"
  */
 Public method "Signal_if satisfied" is
 [
@@ -1083,6 +1117,7 @@ Public method "Signal_if satisfied" is
  *
  * @type "counting sempahore"
  * @supertype "synchronization device"
+ * @category "Synchronization" "Types" "Data Abstractions"
  */
 Public class "semaphore" extends synchronization device
 	with fields
@@ -1124,6 +1159,7 @@ Public method "counting semaphore" is [semaphore];
  *
  * @type "binary semaphore"
  * @supertype "semaphore"
+ * @category "Synchronization" "Types" "Data Abstractions"
  */
 Public class "binary semaphore" extends semaphore
 	with field
@@ -1142,6 +1178,7 @@ Public class "binary semaphore" extends semaphore
  *        If specified, then the maximum number of permits supported by the new
  *        semaphore. If not specified, then {@method "∞"}.
  * @returns "semaphore"
+ * @category "Synchronization" "Constructors" "Data Abstractions"
  */
 Public method "a semaphore«named_»with_«out of_»permit|permits" is
 [
@@ -1154,7 +1191,7 @@ Public method "a semaphore«named_»with_«out of_»permit|permits" is
 	mutex ::= a monitor named "monitor for semaphore named " ++ myName;
 	/* Create a variable explicitly so that the condition can reference it. */
 	availablePermits : extended integer := permits;
-	cond ::= a condition of mutex is [availablePermits > 0];
+	cond ::= a condition of mutex such that [availablePermits > 0];
 	Assert: permits ≤ maximumPermits;
 	a semaphore with
 		name ::= myName,
@@ -1189,6 +1226,7 @@ Semantic restriction "a semaphore«named_»with_«out of_»permit|permits" is
  * @returns "⊤"
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
+ * @category "Synchronization"
  */
 Method "Await_" is
 [
@@ -1212,6 +1250,7 @@ Method "Await_" is
  *        The number of permits to consume.
  * @returns "⊤"
  * @see "Await_"
+ * @category "Synchronization"
  */
 Public method "Await__time|times" is
 [
@@ -1229,6 +1268,7 @@ Public method "Await__time|times" is
  *
  * @type "semaphore exception"
  * @supertype "synchronization exception"
+ * @category "Synchronization" "Exceptions"
  */
 Public class "semaphore exception" extends synchronization exception
 	with field
@@ -1240,6 +1280,7 @@ Public class "semaphore exception" extends synchronization exception
  *
  * @type "cannot-exceed-maximum-permits exception"
  * @supertype "semaphore exception"
+ * @category "Synchronization" "Exceptions"
  */
 Public explicit class "cannot-exceed-maximum-permits exception"
 extends semaphore exception
@@ -1262,6 +1303,7 @@ extends semaphore exception
  *         allowed by the specified semaphore.
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
+ * @category "Synchronization"
  */
 Method "Signal_" is
 [
@@ -1300,6 +1342,7 @@ Method "Signal_" is
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
  * @see "Signal_"
+ * @category "Synchronization"
  */
 Public method "Signal__time|times" is
 [
@@ -1335,6 +1378,7 @@ Public method "Signal__time|times" is
  * @returns "⊤"
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
+ * @category "Synchronization"
  */
 Method "Lock|lock_for_" is
 [

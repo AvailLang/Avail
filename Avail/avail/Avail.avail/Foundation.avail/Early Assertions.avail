@@ -47,7 +47,7 @@ Body
  * 
  * @method "Assert:_"
  * @param "predicate" "boolean"
- *        `true`.
+ *        {@method "true"}.
  * @returns "⊤"
  * @category "Bootstrap" "Assertions"
  */

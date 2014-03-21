@@ -103,8 +103,8 @@ Public class "bad-cast exception" extends bad-multiway-cast exception
  * @param "value" "any"
  *        A value.
  * @param "accept" "[⊥]→⊤"
- *        The function to invoke if `value` is a subtype of the its parameter
- *        type.
+ *        The function to invoke if {@param "value"} is a subtype of the its 
+ *        parameter type.
  * returns The result of {@param "accept"}.
  * @raises "bad-cast exception"
  *         If {@param "value"} is not an instance of {@param "accept"}'s
@@ -172,7 +172,8 @@ Semantic restriction "Cast|cast_into_" is
  *        {@param "value"} will be applied to it.
  * @param "else" "<[]→⊤…|0..1>"
  *        An optional arity-0 function. If provided, then it will be invoked iff
- *        no function of `caseTuple` is able to accept {@param "value"}.
+ *        no function of {@param "caseTuple"} is able to accept {@param 
+ *        "value"}.
  * @returns "⊤"
  *          The result of whatever function is applied.
  * @raises "bad-multiway-cast exception"
@@ -212,9 +213,9 @@ Public method "Cast|cast_into«_‡,»«else_»" is
 ] : ⊤;
 
 /**
- * Strengthen the return type of `Cast|cast_into«_‡,»«else_»` so that it may be
- * used as a value-producing expression. If any case is unnecessary or invalid,
- * then reject the current parse.
+ * Strengthen the return type so the method may be used as a value-producing 
+ * expression. If any case is unnecessary or invalid, then reject the current 
+ * parse.
  * 
  * @method "Cast|cast_into«_‡,»«else_»" 
  * @restricts "any meta"
