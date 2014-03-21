@@ -71,4 +71,10 @@ class ModuleRootNode extends AbstractBuilderFrameTreeNode
 	{
 		return "Module root: " + moduleRoot.name();
 	}
+
+	@Override
+	public boolean isSpecifiedByString (final String string)
+	{
+		return moduleRoot.name().equals(string);
+	}
 }

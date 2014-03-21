@@ -157,7 +157,7 @@ extends Primitive
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "${moduleName}"
+Module "${moduleName}"
 Versions
 	/* TODO: Set versions */
 Extends

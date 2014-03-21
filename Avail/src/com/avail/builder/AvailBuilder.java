@@ -2350,7 +2350,6 @@ public final class AvailBuilder
 			onFailure.value();
 			return;
 		}
-		final List<A_Token> tokens = scanResult.outputTokens();
 		final Continuation2<A_Phrase, Exception> decrement =
 			new Continuation2<A_Phrase, Exception>()
 			{

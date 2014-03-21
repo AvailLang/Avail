@@ -91,4 +91,10 @@ class ModuleOrPackageNode extends AbstractBuilderFrameTreeNode
 		}
 		return "Module: " + resolvedModuleName;
 	}
+
+	@Override
+	public boolean isSpecifiedByString (final String string)
+	{
+		return resolvedModuleName.localName().equals(string);
+	}
 }
