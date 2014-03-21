@@ -1484,7 +1484,10 @@ extends JFrame
 					}
 					final ModuleOrPackageNode node =
 						new ModuleOrPackageNode(resolved, false);
-					parentNode.add(node);
+					if (!resolved.isPackage())
+					{
+						parentNode.add(node);
+					}
 				}
 				return FileVisitResult.CONTINUE;
 			}
@@ -1616,8 +1619,9 @@ extends JFrame
 		int index = 1;
 		while (nodes.hasMoreElements())
 		{
-			final DefaultMutableTreeNode node = nodes.nextElement();
-			if (path[index].equals(node.getUserObject()))
+			final AbstractBuilderFrameTreeNode node =
+				(AbstractBuilderFrameTreeNode) nodes.nextElement();
+			if (node.isSpecifiedByString(path[index]))
 			{
 				index++;
 				if (index == path.length)
@@ -2136,6 +2140,7 @@ extends JFrame
 		moduleTree.setFocusable(true);
 		moduleTree.getSelectionModel().setSelectionMode(
 			TreeSelectionModel.SINGLE_TREE_SELECTION);
+		moduleTree.setToggleClickCount(0);
 		moduleTree.setShowsRootHandles(true);
 		moduleTree.setRootVisible(false);
 		moduleTree.setVisible(true);
@@ -2150,17 +2155,17 @@ extends JFrame
 		moduleTree.setCellRenderer(treeRenderer);
 		moduleTree.addMouseListener(new MouseAdapter()
 		{
-			@SuppressWarnings("null")
 			@Override
 			public void mouseClicked (final @Nullable MouseEvent e)
 			{
+				assert e != null;
 				if (buildAction.isEnabled()
 					&& e.getClickCount() == 2
 					&& e.getButton() == MouseEvent.BUTTON1)
 				{
+					e.consume();
 					buildAction.actionPerformed(
 						new ActionEvent(moduleTree, -1, "Build"));
-					e.consume();
 				}
 			}
 		});
@@ -2172,14 +2177,6 @@ extends JFrame
 		for (int i = moduleTree.getRowCount() - 1; i >= 0; i--)
 		{
 			moduleTree.expandRow(i);
-		}
-		if (!initialTarget.isEmpty())
-		{
-			final TreePath path = modulePath(initialTarget);
-			if (path != null)
-			{
-				moduleTree.setSelectionPath(path);
-			}
 		}
 		moduleTreeScrollArea.setViewportView(moduleTree);
 
@@ -2200,6 +2197,7 @@ extends JFrame
 		entryPointsTree.setFocusable(true);
 		entryPointsTree.getSelectionModel().setSelectionMode(
 			TreeSelectionModel.SINGLE_TREE_SELECTION);
+		entryPointsTree.setToggleClickCount(0);
 		entryPointsTree.setShowsRootHandles(true);
 		entryPointsTree.setRootVisible(false);
 		entryPointsTree.setVisible(true);
@@ -2214,21 +2212,21 @@ extends JFrame
 		entryPointsTree.setCellRenderer(treeRenderer);
 		entryPointsTree.addMouseListener(new MouseAdapter()
 		{
-			@SuppressWarnings("null")
 			@Override
 			public void mouseClicked (final @Nullable MouseEvent e)
 			{
+				assert e != null;
 				if (insertEntryPointAction.isEnabled()
 					&& e.getClickCount() == 2
 					&& e.getButton() == MouseEvent.BUTTON1)
 				{
+					e.consume();
 					final ActionEvent actionEvent = new ActionEvent(
 						entryPointsTree, -1, "Insert entry point");
 					if (insertEntryPointAction.isEnabled())
 					{
 						insertEntryPointAction.actionPerformed(actionEvent);
 					}
-					e.consume();
 				}
 			}
 		});
@@ -2422,6 +2420,15 @@ extends JFrame
 				super.windowClosing(e);
 			}
 		});
+		// Select an initial module if specified.
+		if (!initialTarget.isEmpty())
+		{
+			final TreePath path = modulePath(initialTarget);
+			if (path != null)
+			{
+				moduleTree.setSelectionPath(path);
+			}
+		}
 		setEnablements();
 	}
 
@@ -2467,7 +2474,8 @@ extends JFrame
 	 * @throws Exception
 	 *         If something goes wrong.
 	 */
-	public static void main (final String[] args) throws Exception
+	public static void main (final String[] args)
+	throws Exception
 	{
 		final String platform = System.getProperty("os.name");
 		if (platform.toLowerCase().matches("mac os x.*"))
@@ -2508,8 +2516,8 @@ extends JFrame
 			@Override
 			public void run ()
 			{
-				final AvailBuilderFrame frame = new AvailBuilderFrame(
-					resolver, initial);
+				final AvailBuilderFrame frame =
+					new AvailBuilderFrame(resolver, initial);
 				frame.setVisible(true);
 			}
 		});

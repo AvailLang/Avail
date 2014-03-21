@@ -59,4 +59,15 @@ extends DefaultMutableTreeNode
 
 	@Override
 	public abstract String toString ();
+
+	/**
+	 * Answer whether string is an appropriate semantic label for this node.
+	 *
+	 * @param string The string.
+	 * @return Whether this is the indicated node.
+	 */
+	public boolean isSpecifiedByString (final String string)
+	{
+		return toString().equals(string);
+	}
 }
