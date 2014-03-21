@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Type Tests"
+Module "Type Tests"
 Versions
 	"dev"
 Uses

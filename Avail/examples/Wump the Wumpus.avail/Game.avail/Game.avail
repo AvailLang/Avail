@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Game"
+Module "Game"
 Versions
 	"dev"
 Uses

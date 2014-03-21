@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Assertions"
+Module "Early Assertions"
 Versions
 	"dev"
 Uses

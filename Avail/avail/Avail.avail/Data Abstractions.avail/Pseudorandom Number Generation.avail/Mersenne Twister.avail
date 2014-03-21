@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Mersenne Twister"
+Module "Mersenne Twister"
 Versions
 	"dev"
 Uses

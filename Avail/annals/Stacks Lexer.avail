@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Stacks Lexer"
+Module "Stacks Lexer"
 Versions
 	"Dev"
 Extends

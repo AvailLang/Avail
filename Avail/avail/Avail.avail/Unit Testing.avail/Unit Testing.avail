@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Unit Testing"
+Module "Unit Testing"
 Versions
 	"dev"
 Extends

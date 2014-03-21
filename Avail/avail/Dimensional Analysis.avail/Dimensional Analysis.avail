@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Dimensional Analysis"
+Module "Dimensional Analysis"
 Versions
 	"dev"
 Extends

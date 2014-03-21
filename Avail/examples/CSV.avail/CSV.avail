@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "CSV"
+Module "CSV"
 Extends
 	"CSV Language" =
 	(

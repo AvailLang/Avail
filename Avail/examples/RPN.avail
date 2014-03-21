@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "RPN"
+Module "RPN"
 Uses
 	"RPN Language"
 Body

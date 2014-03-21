@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Control Structure Tests"
+Module "Control Structure Tests"
 Versions
 	"dev"
 Uses

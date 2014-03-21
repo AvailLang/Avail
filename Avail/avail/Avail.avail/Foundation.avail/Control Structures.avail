@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Control Structures"
+Module "Control Structures"
 Versions
 	"dev"
 Extends

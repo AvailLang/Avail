@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Characters"
+Module "Characters"
 Versions
 	"dev"
 Uses

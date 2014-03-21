@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Standard Input"
+Module "Standard Input"
 Versions
 	"dev"
 Uses

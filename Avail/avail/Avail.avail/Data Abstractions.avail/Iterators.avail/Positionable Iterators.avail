@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Positionable Iterators"
+Module "Positionable Iterators"
 Versions
 	"dev"
 Uses

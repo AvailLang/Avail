@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "TestFileRead"
+Module "TestFileRead"
 Versions
 /* TODO: Set versions */
 Extends

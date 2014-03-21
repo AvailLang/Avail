@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "File Access Rights Test"
+Module "File Access Rights Test"
 Versions
 	"dev"
 Uses

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Abstract Graphs"
+Module "Abstract Graphs"
 Versions
 	"dev"
 Uses

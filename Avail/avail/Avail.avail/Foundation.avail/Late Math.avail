@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Late Math"
+Module "Late Math"
 Versions
 	"dev"
 Extends

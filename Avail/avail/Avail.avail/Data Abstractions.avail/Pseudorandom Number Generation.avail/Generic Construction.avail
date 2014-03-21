@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Generic Construction"
+Module "Generic Construction"
 Versions
 	"dev"
 Uses

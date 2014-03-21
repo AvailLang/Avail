@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "bootstrap-syntax"
+Experimental Module "bootstrap-syntax"
 Versions "dev"
 Extends
 	"Origin"

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Logic"
+Module "Early Logic"
 Versions
 	"dev"
 Uses

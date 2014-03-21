@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "UTF-8 Codec"
+Module "UTF-8 Codec"
 Versions
 	"dev"
 Uses

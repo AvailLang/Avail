@@ -58,6 +58,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.builder.*;
 import com.avail.builder.AvailBuilder.LoadedModule;
+import com.avail.compiler.FiberTerminationException;
 import com.avail.compiler.AbstractAvailCompiler.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
@@ -92,6 +93,9 @@ extends JFrame
 
 	/** The {@linkplain Style style} to use for notifications. */
 	private static final String infoStyleName = "info";
+
+	/** The {@linkplain Style style} to use for user-supplied commands. */
+	private static final String commandStyleName = "command";
 
 	/**
 	 * A {@code BuildAction} launches a {@linkplain BuildTask build task} in a
@@ -473,7 +477,80 @@ extends JFrame
 		{
 			if (inputField.isFocusOwner())
 			{
-				inputStream().update();
+				assert !isBuilding;
+				if (isRunning)
+				{
+					// Program is running.  Feed this new line of text to the
+					// input stream to be consumed by the running command, or
+					// possibly discarded when that command completes.
+					inputStream().update();
+					return;
+				}
+				// No program is running.  Treat this as a command and try to
+				// run it.  Do not feed the string into the input stream.
+				final String string = inputField.getText();
+				inputStream().feedbackForCommand(string);
+				inputField.setText("");
+				isRunning = true;
+				setEnablements();
+				availBuilder.attemptCommand(
+					string,
+					new Continuation1<A_BasicObject>()
+					{
+						@Override
+						public void value (final @Nullable A_BasicObject result)
+						{
+							assert result != null;
+							if (result.equalsNil())
+							{
+								isRunning = false;
+								setEnablements();
+								inputStream().clear();
+								return;
+							}
+							Interpreter.stringifyThen(
+								availBuilder.runtime,
+								result,
+								new Continuation1<String>()
+								{
+									@Override
+									public void value (
+										final @Nullable String resultString)
+									{
+										invokeLater(new Runnable()
+										{
+											@Override
+											public void run ()
+											{
+												final String str =
+													resultString + "\n";
+												outputStream().append(str);
+												isRunning = false;
+												setEnablements();
+												inputStream().clear();
+											}
+										});
+									}
+								});
+						}
+					},
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							invokeLater(new Runnable()
+							{
+								@Override
+								public void run ()
+								{
+									isRunning = false;
+									setEnablements();
+									inputStream().clear();
+								}
+							});
+						}
+					});
 			}
 		}
 
@@ -554,12 +631,6 @@ extends JFrame
 		protected final String targetModuleName;
 
 		/**
-		 * The {@linkplain Thread thread} running the {@linkplain BuildTask
-		 * build task}.
-		 */
-		protected @Nullable Thread runnerThread;
-
-		/**
 		 * Cancel the {@linkplain BuildTask build task}.
 		 */
 		public final void cancel ()
@@ -585,7 +656,7 @@ extends JFrame
 			final StyledDocument doc = transcript.getStyledDocument();
 			final long durationMillis = stopTimeMillis - startTimeMillis;
 			final String status;
-			if (terminator instanceof CancellationException)
+			if (availBuilder.shouldStopBuild)
 			{
 				status = "Canceled";
 			}
@@ -618,7 +689,6 @@ extends JFrame
 		@Override
 		protected final @Nullable Void doInBackground () throws Exception
 		{
-			runnerThread = Thread.currentThread();
 			startTimeMillis = System.currentTimeMillis();
 			try
 			{
@@ -690,13 +760,6 @@ extends JFrame
 					assert lineNumber != null;
 					assert position != null;
 					assert moduleSize != null;
-					if (Thread.currentThread().isInterrupted())
-					{
-						if (Thread.currentThread() == buildTask().runnerThread)
-						{
-							throw new CancellationException();
-						}
-					}
 					invokeLater(new Runnable()
 					{
 						@Override
@@ -731,13 +794,6 @@ extends JFrame
 					assert moduleName != null;
 					assert position != null;
 					assert globalCodeSize != null;
-					if (Thread.currentThread().isInterrupted())
-					{
-						if (Thread.currentThread() == buildTask().runnerThread)
-						{
-							throw new CancellationException();
-						}
-					}
 					invokeLater(new Runnable()
 					{
 						@Override
@@ -957,9 +1013,15 @@ extends JFrame
 			count += bytes.length;
 			try
 			{
+				String textToInsert = text;
+				final int length = doc.getLength();
+				if (length > 0 && !doc.getText(length - 1, 1).equals("\n"))
+				{
+					textToInsert = "\n" + textToInsert;
+				}
 				doc.insertString(
 					doc.getLength(),
-					text,
+					textToInsert,
 					doc.getStyle(inputStyleName));
 			}
 			catch (final BadLocationException e)
@@ -969,6 +1031,39 @@ extends JFrame
 			}
 			inputField.setText("");
 			notifyAll();
+		}
+
+		/**
+		 * The specified command string was just entered.  Present it in the
+		 * {@link #commandStyleName}.  Force a leading new line if necessary to
+		 * keep the text area from looking stupid.  Always end with a new line.
+		 * The passed command should not itself have a new line included.
+		 *
+		 * @param commandText
+		 *        The command that was entered, with no leading or trailing line
+		 *        breaks.
+		 */
+		public synchronized void feedbackForCommand (
+			final String commandText)
+		{
+			try
+			{
+				String textToInsert = commandText + "\n";
+				final int length = doc.getLength();
+				if (length > 0 && !doc.getText(length - 1, 1).equals("\n"))
+				{
+					textToInsert = "\n" + textToInsert;
+				}
+				doc.insertString(
+					doc.getLength(),
+					textToInsert,
+					doc.getStyle(commandStyleName));
+			}
+			catch (final BadLocationException e)
+			{
+				// Should never happen.
+				assert false;
+			}
 		}
 
 		@Override
@@ -1047,25 +1142,6 @@ extends JFrame
 		}
 	}
 
-	/**
-	 * {@code CancellationException} is thrown when the user cancels the
-	 * background {@linkplain BuildTask build task}.
-	 */
-	private final static class CancellationException
-	extends RuntimeException
-	{
-		/** The serial version identifier. */
-		private static final long serialVersionUID = -2886473176972814637L;
-
-		/**
-		 * Construct a new {@link CancellationException}.
-		 */
-		public CancellationException ()
-		{
-			// No implementation required.
-		}
-	}
-
 	/*
 	 * Model components.
 	 */
@@ -1123,6 +1199,36 @@ extends JFrame
 	@InnerAccess BuildInputStream inputStream ()
 	{
 		final BuildInputStream stream = inputStream;
+		assert stream != null;
+		return stream;
+	}
+
+	/** The {@linkplain PrintStream standard error stream}. */
+	private @Nullable PrintStream errorStream;
+
+	/**
+	 * Answer the {@linkplain PrintStream standard error stream}.
+	 *
+	 * @return The error stream.
+	 */
+	@InnerAccess PrintStream errorStream ()
+	{
+		final PrintStream stream = errorStream;
+		assert stream != null;
+		return stream;
+	}
+
+	/** The {@linkplain PrintStream standard output stream}. */
+	private @Nullable PrintStream outputStream;
+
+	/**
+	 * Answer the {@linkplain PrintStream standard output stream}.
+	 *
+	 * @return The output stream.
+	 */
+	@InnerAccess PrintStream outputStream ()
+	{
+		final PrintStream stream = outputStream;
 		assert stream != null;
 		return stream;
 	}
@@ -1204,16 +1310,20 @@ extends JFrame
 	/** Whether a build is currently in progress. */
 	boolean isBuilding = false;
 
+	/** Whether an entry point invocation (command line) is executing. */
+	boolean isRunning = false;
+
 	/**
 	 * Enable or disable controls and menu items based on the current state.
 	 */
 	public void setEnablements ()
 	{
-		final boolean busy = buildTask != null || documentationTask != null;
+		final boolean busy = buildTask != null
+			|| documentationTask != null
+			|| isRunning;
 		moduleProgress.setEnabled(busy);
 		buildProgress.setEnabled(busy);
-		inputField.setEnabled(true);
-
+		inputField.setEnabled(!busy || isRunning);
 		cancelAction.setEnabled(busy);
 		buildAction.setEnabled(!busy && selectedModule() != null);
 		cleanAction.setEnabled(!busy);
@@ -1571,9 +1681,11 @@ extends JFrame
 	 */
 	@InnerAccess void redirectStandardStreams ()
 	{
-		System.setOut(new PrintStream(new BuildOutputStream(false)));
-		System.setErr(new PrintStream(new BuildOutputStream(true)));
+		outputStream = new PrintStream(new BuildOutputStream(false));
+		errorStream = new PrintStream(new BuildOutputStream(true));
 		inputStream = new BuildInputStream();
+		System.setOut(outputStream);
+		System.setErr(errorStream);
 		System.setIn(inputStream);
 	}
 
@@ -2232,6 +2344,8 @@ extends JFrame
 		StyleConstants.setForeground(inputStyle, new Color(32, 144, 32));
 		final Style infoStyle = doc.addStyle(infoStyleName, defaultStyle);
 		StyleConstants.setForeground(infoStyle, Color.BLUE);
+		final Style commandStyle = doc.addStyle(commandStyleName, defaultStyle);
+		StyleConstants.setForeground(commandStyle, Color.MAGENTA);
 
 		// Redirect the standard streams.
 		redirectStandardStreams();

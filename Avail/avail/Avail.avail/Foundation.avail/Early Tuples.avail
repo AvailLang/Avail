@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Tuples"
+Module "Early Tuples"
 Versions
 	"dev"
 Extends

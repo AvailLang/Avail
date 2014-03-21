@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Collections"
+Module "Collections"
 Versions
 	"dev"
 

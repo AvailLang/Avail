@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Math Tests"
+Module "Math Tests"
 Versions
 	"dev"
 Uses

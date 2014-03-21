@@ -47,7 +47,7 @@ import com.avail.utility.evaluation.*;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class AvailTask
+public abstract class AvailTask
 implements Comparable<AvailTask>, Runnable
 {
 	/**
@@ -75,7 +75,7 @@ implements Comparable<AvailTask>, Runnable
 		final boolean scheduled =
 			fiber.getAndSetSynchronizationFlag(SCHEDULED, true);
 		assert !scheduled;
-		final Continuation0 taskContinuation = new Continuation0()
+		return new AvailTask(fiber.priority())
 		{
 			@Override
 			public void value ()
@@ -147,7 +147,6 @@ implements Comparable<AvailTask>, Runnable
 				});
 			}
 		};
-		return new AvailTask(fiber.priority(), taskContinuation);
 	}
 
 	/**
@@ -174,7 +173,7 @@ implements Comparable<AvailTask>, Runnable
 		final boolean scheduled =
 			fiber.getAndSetSynchronizationFlag(SCHEDULED, true);
 		assert !scheduled;
-		final Continuation0 taskContinuation = new Continuation0()
+		return new AvailTask(fiber.priority())
 		{
 			@Override
 			public void value ()
@@ -196,7 +195,6 @@ implements Comparable<AvailTask>, Runnable
 				}
 			}
 		};
-		return new AvailTask(fiber.priority(), taskContinuation);
 	}
 
 	/**
@@ -208,22 +206,16 @@ implements Comparable<AvailTask>, Runnable
 	/** The priority of the {@linkplain AvailTask task}. */
 	public final int priority;
 
-	/** The continuation to run. */
-	private final Continuation0 continuation;
-
 	/**
 	 * Construct a new {@link AvailTask}.
 	 *
 	 * @param priority The desired priority, a nonnegative integer.
-	 * @param continuation The continuation to run.
 	 */
 	public AvailTask (
-		final int priority,
-		final Continuation0 continuation)
+		final int priority)
 	{
 		assert priority >= 0;
 		this.priority = priority;
-		this.continuation = continuation;
 	}
 
 	@SuppressWarnings("null")
@@ -243,7 +235,7 @@ implements Comparable<AvailTask>, Runnable
 		}
 		try
 		{
-			continuation.value();
+			value();
 		}
 		catch (final Throwable e)
 		{
@@ -251,4 +243,7 @@ implements Comparable<AvailTask>, Runnable
 			throw e;
 		}
 	}
+
+	/** Subclasses must override this to provide specific behavior. */
+	public abstract void value ();
 }

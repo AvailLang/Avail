@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Tools"
+Module "Tools"
 Versions
 	"dev"
 Uses

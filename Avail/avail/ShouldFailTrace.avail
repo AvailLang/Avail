@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "ShouldFailTrace"
+Module "ShouldFailTrace"
 Versions
 	"dev"
 Uses

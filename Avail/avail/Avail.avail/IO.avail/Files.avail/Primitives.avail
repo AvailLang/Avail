@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Primitives"
+Module "Primitives"
 Versions
 	"dev"
 Extends

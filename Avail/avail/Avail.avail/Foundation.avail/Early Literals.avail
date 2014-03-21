@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Literals"
+Module "Early Literals"
 Versions
 	"dev"
 Uses

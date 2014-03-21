@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "HTML Construction"
+Module "HTML Construction"
 Versions
 	"Dev"
 Extends

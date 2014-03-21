@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Definers"
+Module "Early Definers"
 Versions
 	"dev"
 Extends

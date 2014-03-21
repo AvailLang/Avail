@@ -33,6 +33,8 @@
 package com.avail.builder;
 
 import static java.nio.file.FileVisitResult.*;
+import static com.avail.compiler.ProblemType.PARSE;
+import static com.avail.descriptor.FiberDescriptor.*;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.file.FileVisitOption;
@@ -50,6 +52,9 @@ import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.compiler.AbstractAvailCompiler.CompilerProgressReporter;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
+import com.avail.compiler.scanning.AvailScanner;
+import com.avail.compiler.scanning.AvailScannerException;
+import com.avail.compiler.scanning.AvailScannerResult;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.persistence.IndexedRepositoryManager;
@@ -111,40 +116,72 @@ public final class AvailBuilder
 	 * A map from each {@link ResolvedModuleName} to its currently loaded
 	 * {@link LoadedModule}.
 	 */
-	private final Map<ResolvedModuleName, LoadedModule> _loadedModules =
+	private final Map<ResolvedModuleName, LoadedModule> allLoadedModules =
 		new HashMap<ResolvedModuleName, LoadedModule>();
 
+	/** Who to notify when modules load and unload. */
 	private final Set<Continuation2<LoadedModule, Boolean>> subscriptions =
 		new HashSet<>();
 
+	/**
+	 * Record a new party to notify about module loading and unloading.
+	 *
+	 * @param subscription What to invoke during loads and unloads.
+	 */
 	public void subscribeToModuleLoading (
 		final Continuation2<LoadedModule, Boolean> subscription)
 	{
 		subscriptions.add(subscription);
 	}
 
+	/**
+	 * No longer notify the specified party about module loading and unloading.
+	 *
+	 * @param subscription What to no longer invoke during loads and unloads.
+	 */
 	public void unsubscribeToModuleLoading (
 		final Continuation2<LoadedModule, Boolean> subscription)
 	{
 		subscriptions.remove(subscription);
 	}
 
-	public List<LoadedModule> loadedModulesCopy ()
+	/**
+	 * Return a list of modules that are currently loaded.  The returned list is
+	 * a snapshot of the state and does not change due to subsequent loads or
+	 * unloads.
+	 *
+	 * @return The list of modules currently loaded.
+	 */
+	public synchronized List<LoadedModule> loadedModulesCopy ()
 	{
-		return new ArrayList<>(_loadedModules.values());
+		return new ArrayList<>(allLoadedModules.values());
 	}
 
+	/**
+	 * Look up the currently loaded module with the specified {@linkplain
+	 * ResolvedModuleName resolved module name}.  Return {@code null} if the
+	 * module is not currently loaded.
+	 *
+	 * @param resolvedModuleName The name of the module to locate.
+	 * @return The loaded module or null.
+	 */
 	public synchronized @Nullable LoadedModule getLoadedModule (
 		final ResolvedModuleName resolvedModuleName)
 	{
-		return _loadedModules.get(resolvedModuleName);
+		return allLoadedModules.get(resolvedModuleName);
 	}
 
+	/**
+	 * Record a freshly loaded module.  Notify subscribers.
+	 *
+	 * @param resolvedModuleName The module's resolved name.
+	 * @param loadedModule The loaded module.
+	 */
 	@InnerAccess synchronized void putLoadedModule (
 		final ResolvedModuleName resolvedModuleName,
 		final LoadedModule loadedModule)
 	{
-		_loadedModules.put(resolvedModuleName, loadedModule);
+		allLoadedModules.put(resolvedModuleName, loadedModule);
 		for (final Continuation2<LoadedModule, Boolean> subscription
 			: subscriptions)
 		{
@@ -152,12 +189,18 @@ public final class AvailBuilder
 		}
 	}
 
+	/**
+	 * Record the fresh unloading of a module with the given name.  Notify
+	 * subscribers.
+	 *
+	 * @param resolvedModuleName The unloaded module's resolved name.
+	 */
 	@InnerAccess synchronized void removeLoadedModule (
 		final ResolvedModuleName resolvedModuleName)
 	{
 		final LoadedModule loadedModule =
-			_loadedModules.get(resolvedModuleName);
-		_loadedModules.remove(resolvedModuleName);
+			allLoadedModules.get(resolvedModuleName);
+		allLoadedModules.remove(resolvedModuleName);
 		for (final Continuation2<LoadedModule, Boolean> subscription
 			: subscriptions)
 		{
@@ -253,6 +296,35 @@ public final class AvailBuilder
 	@InnerAccess class BuilderProblemHandler
 	implements ProblemHandler
 	{
+		/**
+		 * The {@linkplain Formatter pattern} with which to format {@linkplain
+		 * Problem problem} reports. The pattern will be applied to the
+		 * following problem components:
+		 *
+		 * <ol>
+		 * <li>The {@linkplain ProblemType problem type}.</li>
+		 * <li>The {@linkplain Problem#moduleName module name}, or {@code null}
+		 *     if there is no specific module in context.</li>
+		 * <li>The {@linkplain Problem#lineNumber line number} in the source at
+		 *     which the problem occurs.</li>
+		 * <li>A {@linkplain Problem#toString() general description} of the
+		 *     problem.</li>
+		 * </ol>
+		 */
+		final String pattern;
+
+		/**
+		 * Construct a new {@link BuilderProblemHandler}.  The supplied pattern
+		 * is used to format the problem text as specified {@linkplain #pattern
+		 * here}.
+		 *
+		 * @param pattern The {@link String} with which to report the problem.
+		 */
+		public BuilderProblemHandler (final String pattern)
+		{
+			this.pattern = pattern;
+		}
+
 		@Override
 		public boolean handleWarning (final Problem problem)
 		{
@@ -299,7 +371,7 @@ public final class AvailBuilder
 		{
 			final Formatter formatter = new Formatter();
 			formatter.format(
-				"[%s]: module \"%s\", line %d:%n%s%n",
+				pattern,
 				problem.type,
 				problem.moduleName,
 				problem.lineNumber,
@@ -315,8 +387,14 @@ public final class AvailBuilder
 	/**
 	 * How to handle problems during a build.
 	 */
-	@InnerAccess final ProblemHandler problemHandler =
-		new BuilderProblemHandler();
+	@InnerAccess final ProblemHandler buildProblemHandler =
+		new BuilderProblemHandler("[%s]: module \"%s\", line %d:%n%s%n");
+
+	/**
+	 * How to handle problems during command execution.
+	 */
+	@InnerAccess final ProblemHandler commandProblemHandler =
+		new BuilderProblemHandler("[%1$s]: %4$s%n");
 
 	/**
 	 * A LoadedModule holds state about what the builder knows about a currently
@@ -487,7 +565,7 @@ public final class AvailBuilder
 						{
 							traceRequests++;
 						}
-						runtime.execute(new AvailTask(0, new Continuation0()
+						runtime.execute(new AvailTask(0)
 						{
 							@Override
 							public void value ()
@@ -517,7 +595,7 @@ public final class AvailBuilder
 										moduleRoot);
 								traceOneModuleHeader(resolved, moduleAction);
 							}
-						}));
+						});
 						return CONTINUE;
 					}
 
@@ -676,7 +754,7 @@ public final class AvailBuilder
 						indicateTraceCompleted();
 					}
 				},
-				new BuilderProblemHandler()
+				new BuilderProblemHandler("")
 				{
 					@Override
 					protected synchronized boolean handleGeneric (
@@ -739,9 +817,8 @@ public final class AvailBuilder
 					{
 						assert moduleName != null;
 						assert completionAction != null;
-						runtime.execute(new AvailTask(
-							FiberDescriptor.loaderPriority,
-							new Continuation0()
+						runtime.execute(
+							new AvailTask(loaderPriority)
 							{
 								@Override
 								public void value()
@@ -783,7 +860,7 @@ public final class AvailBuilder
 										.deletionRequest = dirty;
 									completionAction.value();
 								}
-							}));
+							});
 					}
 				});
 			// We now have the set of modules to be unloaded.  Do so in reverse
@@ -800,55 +877,51 @@ public final class AvailBuilder
 						// purely read-only at this point.
 						assert moduleName != null;
 						assert completionAction != null;
-						runtime.whenLevelOneSafeDo(new AvailTask(
-							FiberDescriptor.loaderPriority,
-							new Continuation0()
+						runtime.whenLevelOneSafeDo(new AvailTask(loaderPriority)
+						{
+							@Override
+							public void value()
 							{
-								@Override
-								public void value()
+								final LoadedModule loadedModule =
+									getLoadedModule(moduleName);
+								assert loadedModule != null;
+								if (loadedModule.deletionRequest)
 								{
-									final LoadedModule loadedModule =
-										getLoadedModule(moduleName);
-									assert loadedModule != null;
-									if (loadedModule.deletionRequest)
+									if (debugBuilder)
 									{
-										if (debugBuilder)
+										System.out.println(
+											"Beginning unload of: "
+											+ moduleName);
+									}
+									final A_Module module = loadedModule.module;
+									assert module != null;
+									// It's legal to just create a loader
+									// here, since it won't have any pending
+									// forwards to remove.
+									module.removeFrom(
+										AvailLoader.forUnloading(module),
+										new Continuation0()
 										{
-											System.out.println(
-												"Beginning unload of: "
-												+ moduleName);
-										}
-										final A_Module module =
-											loadedModule.module;
-										assert module != null;
-										// It's legal to just create a loader
-										// here, since it won't have any pending
-										// forwards to remove.
-										module.removeFrom(
-											AvailLoader.forUnloading(module),
-											new Continuation0()
+											@Override
+											public void value ()
 											{
-												@Override
-												public void value ()
+												runtime.unlinkModule(module);
+												if (debugBuilder)
 												{
-													runtime.unlinkModule(
-														module);
-													if (debugBuilder)
-													{
-														System.out.println(
-															"Done unload of: "
-															+ moduleName);
-													}
-													completionAction.value();
+													System.out.println(
+														"Done unload of: "
+														+ moduleName);
 												}
-											});
-									}
-									else
-									{
-										completionAction.value();
-									}
+												completionAction.value();
+											}
+										});
 								}
-							}));
+								else
+								{
+									completionAction.value();
+								}
+							}
+						});
 					}
 				});
 			// Unloading of each A_Module is complete.  Update my local
@@ -909,60 +982,58 @@ public final class AvailBuilder
 			final @Nullable ResolvedModuleName resolvedSuccessor,
 			final LinkedHashSet<ResolvedModuleName> recursionSet)
 		{
-			runtime.execute(new AvailTask(
-				FiberDescriptor.tracerPriority,
-				new Continuation0()
+			runtime.execute(new AvailTask(tracerPriority)
+			{
+				@Override
+				public void value ()
 				{
-					@Override
-					public void value ()
+					if (!shouldStopBuild)
 					{
-						if (!shouldStopBuild)
+						ResolvedModuleName resolvedName = null;
+						try
 						{
-							ResolvedModuleName resolvedName = null;
-							try
-							{
-								if (debugBuilder)
-								{
-									System.out.println(
-										"Resolve: " + qualifiedName);
-								}
-								resolvedName =
-									runtime.moduleNameResolver().resolve(
-										qualifiedName, resolvedSuccessor);
-							}
-							catch (final Exception e)
-							{
-								if (debugBuilder)
-								{
-									System.out.println(
-										"Fail resolution: " + e);
-								}
-								shouldStopBuild = true;
-								final Problem problem = new Problem (
-									resolvedSuccessor != null
-										? resolvedSuccessor
-										: qualifiedName,
-									TokenDescriptor.createSyntheticStart(),
-									ProblemType.TRACE,
-									"Module resolution problem:\n{0}",
-									e);
-								problem.report(problemHandler);
-								problem.abortCompilation();
-								indicateTraceCompleted();
-								return;
-							}
 							if (debugBuilder)
 							{
 								System.out.println(
-									"Trace: " + resolvedName);
+									"Resolve: " + qualifiedName);
 							}
-							traceModuleImports(
-								resolvedName,
-								resolvedSuccessor,
-								recursionSet);
+							resolvedName =
+								runtime.moduleNameResolver().resolve(
+									qualifiedName, resolvedSuccessor);
 						}
+						catch (final Exception e)
+						{
+							if (debugBuilder)
+							{
+								System.out.println(
+									"Fail resolution: " + e);
+							}
+							shouldStopBuild = true;
+							final Problem problem = new Problem (
+								resolvedSuccessor != null
+									? resolvedSuccessor
+									: qualifiedName,
+								TokenDescriptor.createSyntheticStart(),
+								ProblemType.TRACE,
+								"Module resolution problem:\n{0}",
+								e);
+							problem.report(buildProblemHandler);
+							problem.abortCompilation();
+							indicateTraceCompleted();
+							return;
+						}
+						if (debugBuilder)
+						{
+							System.out.println(
+								"Trace: " + resolvedName);
+						}
+						traceModuleImports(
+							resolvedName,
+							resolvedSuccessor,
+							recursionSet);
 					}
-				}));
+				}
+			});
 		}
 
 		/**
@@ -998,7 +1069,7 @@ public final class AvailBuilder
 					ProblemType.TRACE,
 					"Recursive module dependency:\n{0}",
 					recursionSet);
-				problem.report(problemHandler);
+				problem.report(buildProblemHandler);
 				problem.abortCompilation();
 				indicateTraceCompleted();
 				return;
@@ -1099,7 +1170,7 @@ public final class AvailBuilder
 						indicateTraceCompleted();
 					}
 				},
-				problemHandler);
+				buildProblemHandler);
 		}
 
 		/**
@@ -1322,25 +1393,23 @@ public final class AvailBuilder
 				completionAction.value();
 				return;
 			}
-			runtime.execute(new AvailTask(
-				FiberDescriptor.loaderPriority,
-				new Continuation0()
+			runtime.execute(new AvailTask(loaderPriority)
+			{
+				@Override
+				public void value ()
 				{
-					@Override
-					public void value ()
+					if (shouldStopBuild)
 					{
-						if (shouldStopBuild)
-						{
-							// An exception has been encountered since the
-							// earlier check.  Exit quickly.
-							completionAction.value();
-						}
-						else
-						{
-							loadModule(target, completionAction);
-						}
+						// An exception has been encountered since the
+						// earlier check.  Exit quickly.
+						completionAction.value();
 					}
-				}));
+					else
+					{
+						loadModule(target, completionAction);
+					}
+				}
+			});
 		}
 
 		/**
@@ -1515,7 +1584,7 @@ public final class AvailBuilder
 											completionAction.value();
 										}
 									};
-									problem.report(problemHandler);
+									problem.report(buildProblemHandler);
 									problem.abortCompilation();
 								}
 							});
@@ -1589,7 +1658,7 @@ public final class AvailBuilder
 					if (function != null)
 					{
 						final A_RawFunction code = function.code();
-						final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
+						final A_Fiber fiber = newLoaderFiber(
 							function.kind().returnType(),
 							availLoader,
 							StringDescriptor.format(
@@ -1787,7 +1856,7 @@ public final class AvailBuilder
 						completionAction.value();
 					}
 				},
-				problemHandler);
+				buildProblemHandler);
 		}
 
 		/**
@@ -1934,7 +2003,7 @@ public final class AvailBuilder
 						completionAction.value();
 					}
 				};
-				problem.report(problemHandler);
+				problem.report(buildProblemHandler);
 				problem.abortCompilation();
 				return;
 			}
@@ -1966,7 +2035,7 @@ public final class AvailBuilder
 						completionAction.value();
 					}
 				};
-				problem.report(problemHandler);
+				problem.report(buildProblemHandler);
 				problem.abortCompilation();
 				return;
 			}
@@ -1995,7 +2064,7 @@ public final class AvailBuilder
 						completionAction.value();
 					}
 				};
-				problem.report(problemHandler);
+				problem.report(buildProblemHandler);
 				problem.abortCompilation();
 				return;
 			}
@@ -2024,25 +2093,23 @@ public final class AvailBuilder
 				completionAction.value();
 				return;
 			}
-			runtime.execute(new AvailTask(
-				FiberDescriptor.loaderPriority,
-				new Continuation0()
+			runtime.execute(new AvailTask(loaderPriority)
+			{
+				@Override
+				public void value ()
 				{
-					@Override
-					public void value ()
+					if (shouldStopBuild)
 					{
-						if (shouldStopBuild)
-						{
-							// An exception has been encountered since the
-							// earlier check.  Exit quickly.
-							completionAction.value();
-						}
-						else
-						{
-							loadComments(moduleName, completionAction);
-						}
+						// An exception has been encountered since the
+						// earlier check.  Exit quickly.
+						completionAction.value();
 					}
-				}));
+					else
+					{
+						loadComments(moduleName, completionAction);
+					}
+				}
+			});
 		}
 
 		/**
@@ -2095,7 +2162,7 @@ public final class AvailBuilder
 						shouldStopBuild = true;
 					}
 				};
-				problem.report(problemHandler);
+				problem.report(buildProblemHandler);
 				problem.abortCompilation();
 			}
 		}
@@ -2204,5 +2271,124 @@ public final class AvailBuilder
 	{
 		final BuildDirectoryTracer tracer = new BuildDirectoryTracer();
 		tracer.traceAllModuleHeaders(action);
+	}
+
+	/**
+	 * Attempt to unambiguously parse a command.  Each currently loaded module
+	 * that defines at least one entry point takes a shot at parsing the
+	 * command.  If more than one is successful, report the ambiguity via the
+	 * {@code onFailure} continuation.  If none are successful, report the
+	 * failure.  If there was exactly one, compile it into a function and invoke
+	 * it in a new fiber.  If the function evaluation succeeds, run the {@code
+	 * onSuccess} continuation with the function's result, except that if the
+	 * function has static type ⊤ always pass {@code nil} instead of the actual
+	 * value returned by the function.  If the function evaluation failed,
+	 * report the failure.
+	 *
+	 * @param command The command to attempt to parse and run.
+	 * @param onSuccess What to do if the command parsed and ran to completion.
+	 * @param onFailure What to do otherwise.
+	 */
+	public void attemptCommand (
+		final String command,
+		final Continuation1<A_BasicObject> onSuccess,
+		final Continuation0 onFailure)
+	{
+		final Set<LoadedModule> modulesWithEntryPoints = new HashSet<>();
+		for (final LoadedModule loadedModule : loadedModulesCopy())
+		{
+			if (!loadedModule.entryPoints().isEmpty())
+			{
+				modulesWithEntryPoints.add(loadedModule);
+			}
+		}
+		if (modulesWithEntryPoints.isEmpty())
+		{
+			final Problem problem = new Problem(
+				null,
+				1,
+				1,
+				ProblemType.EXECUTION,
+				"No entry points are defined by loaded modules")
+			{
+				@Override
+				public void abortCompilation ()
+				{
+					assert false : "Should not invoke this";
+				}
+			};
+			problem.report(commandProblemHandler);
+			onFailure.value();
+			return;
+		}
+
+		final AvailScannerResult scanResult;
+		try
+		{
+			scanResult = AvailScanner.scanString(
+				command,
+				"synthetic module for commands",
+				false);
+		}
+		catch (final AvailScannerException e)
+		{
+			final Problem problem = new Problem(
+				null,
+				e.failureLineNumber(),
+				e.failurePosition(),
+				PARSE,
+				"Scanner error: {0}",
+				e.getMessage())
+			{
+				@Override
+				public void abortCompilation ()
+				{
+					assert false : "Should not invoke this";
+				}
+			};
+			problem.report(commandProblemHandler);
+			onFailure.value();
+			return;
+		}
+		final List<A_Token> tokens = scanResult.outputTokens();
+		final Continuation2<A_Phrase, Exception> decrement =
+			new Continuation2<A_Phrase, Exception>()
+			{
+				int outstanding = modulesWithEntryPoints.size();
+
+				List<A_Phrase> solutions = new ArrayList<>();
+
+				List<Exception> problems = new ArrayList<>();
+
+				@Override
+				public synchronized void value (
+					final @Nullable A_Phrase phrase,
+					final @Nullable Exception exception)
+				{
+					// Supply either a phrase or an exception.
+					assert phrase != null || exception != null;
+					if (phrase != null)
+					{
+						solutions.add(phrase);
+					}
+					else
+					{
+						problems.add(exception);
+					}
+					if (--outstanding == 0)
+					{
+						final AbstractAvailCompiler compiler;
+						compiler = new AvailSystemCompiler(
+							null,
+							command,
+							scanResult,
+							buildProblemHandler);
+
+					}
+				}
+			};
+
+		onSuccess.value(StringDescriptor.from("Pretend it worked"));
+
 	}
 }

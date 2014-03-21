@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Origin"
+Experimental Module "Origin"
 Pragma
 	"method=253=Primitive_is_",
 	"method=240=special object_",
