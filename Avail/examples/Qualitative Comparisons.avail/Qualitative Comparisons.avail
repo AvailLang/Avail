@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Qualitative Comparisons"
+Module "Qualitative Comparisons"
 Versions
 	"dev"
 Uses

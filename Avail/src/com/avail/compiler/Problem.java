@@ -34,6 +34,7 @@ package com.avail.compiler;
 
 import java.nio.charset.Charset;
 import java.text.MessageFormat;
+import com.avail.annotations.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.CharacterDescriptor;
@@ -61,7 +62,7 @@ public class Problem
 	 * The {@linkplain ModuleName unresolved, canonical name} of the module in
 	 * which the problem occurred.
 	 */
-	public final ModuleName moduleName;
+	public final @Nullable ModuleName moduleName;
 
 	/**
 	 * The one-based line number within the file in which the problem occurred.
@@ -107,7 +108,8 @@ public class Problem
 	 * Construct a new {@link Problem}.
 	 *
 	 * @param moduleName
-	 *        The name of the module in which the problem was encountered.
+	 *        The name of the module in which the problem was encountered, or
+	 *        {@code null} if no module is in context.
 	 * @param lineNumber
 	 *        The one-based line number on which the problem occurred, or zero
 	 *        if there is no suitable line to blame.
@@ -123,7 +125,7 @@ public class Problem
 	 *        The arguments with which to parameterize the messagePattern.
 	 */
 	public Problem (
-		final ModuleName moduleName,
+		final @Nullable ModuleName moduleName,
 		final int lineNumber,
 		final int characterInFile,
 		final ProblemType type,

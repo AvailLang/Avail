@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Map Tests"
+Module "Map Tests"
 Versions
 	"dev"
 Uses

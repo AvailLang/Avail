@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Maps"
+Module "Maps"
 Versions
 	"dev"
 Extends

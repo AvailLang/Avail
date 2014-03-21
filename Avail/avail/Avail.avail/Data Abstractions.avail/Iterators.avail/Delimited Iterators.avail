@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Delimited Iterators"
+Module "Delimited Iterators"
 Versions
 	"dev"
 Uses

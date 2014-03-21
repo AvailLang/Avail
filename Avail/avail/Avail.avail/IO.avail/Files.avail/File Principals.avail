@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "File Principals"
+Module "File Principals"
 Versions
 	"dev"
 Uses

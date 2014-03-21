@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Pojos"
+Module "Pojos"
 Versions
 	"dev"
 Uses

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Buffered Iterators"
+Module "Buffered Iterators"
 Versions
 	"dev"
 Uses

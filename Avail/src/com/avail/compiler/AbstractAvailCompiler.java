@@ -891,8 +891,17 @@ public abstract class AbstractAvailCompiler
 	 */
 	public enum ExpectedToken
 	{
-		/** Module header token. Must be the first token of a system module. */
-		SYSTEM("System", KEYWORD),
+		/**
+		 * Module header token. Currently must be the first token of modules
+		 * for which we want to use the experimental {@link AvailCompiler}
+		 * rather than the {@link AvailSystemCompiler}.
+		 *
+		 * <p>
+		 * TODO[MvG] - When we have a fully working macro compiler we should
+		 * make it be default and remove this special token.
+		 * </p>
+		 */
+		EXPERIMENTAL("Experimental", KEYWORD),
 
 		/** Module header token: Precedes the name of the defined module. */
 		MODULE("Module", KEYWORD),
@@ -1115,7 +1124,7 @@ public abstract class AbstractAvailCompiler
 					}
 					final AbstractAvailCompiler compiler;
 					if (!tokens.isEmpty()
-						&& tokens.get(0).string().equals(SYSTEM.lexeme()))
+						&& !tokens.get(0).string().equals(EXPERIMENTAL.lexeme()))
 					{
 						compiler = new AvailSystemCompiler(
 							resolvedName,
@@ -1221,7 +1230,7 @@ public abstract class AbstractAvailCompiler
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
-	private static class ParsingTask
+	private static abstract class ParsingTask
 	extends AvailTask
 	{
 		/**
@@ -1237,14 +1246,12 @@ public abstract class AbstractAvailCompiler
 		 *
 		 * @param description What this task will do.
 		 * @param state The {@linkplain ParserState parser state} for this task.
-		 * @param continuation What to do.
 		 */
 		public ParsingTask (
 			final String description,
-			final ParserState state,
-			final Continuation0 continuation)
+			final ParserState state)
 		{
-			super(FiberDescriptor.compilerPriority, continuation);
+			super(FiberDescriptor.compilerPriority);
 			this.description = description;
 			this.state = state;
 		}
@@ -2223,17 +2230,15 @@ public abstract class AbstractAvailCompiler
 						sourceBuilder.append(output);
 						file.close();
 						runtime.execute(
-							new AvailTask(
-								FiberDescriptor.compilerPriority,
-								new Continuation0()
+							new AvailTask(FiberDescriptor.compilerPriority)
+							{
+								@Override
+								public void value ()
 								{
-									@Override
-									public void value ()
-									{
-										continuation.value(
-											sourceBuilder.toString());
-									}
-								}));
+									continuation.value(
+										sourceBuilder.toString());
+								}
+							});
 					}
 				}
 				catch (final IOException e)
@@ -2746,23 +2751,21 @@ public abstract class AbstractAvailCompiler
 		final A_Token token,
 		final Continuation0 continuation)
 	{
-		runtime.execute(new AvailTask(
-			FiberDescriptor.compilerPriority,
-			new Continuation0()
+		runtime.execute(new AvailTask(FiberDescriptor.compilerPriority)
+		{
+			@Override
+			public void value ()
 			{
-				@Override
-				public void value ()
+				try
 				{
-					try
-					{
-						continuation.value();
-					}
-					catch (final Exception e)
-					{
-						reportInternalProblem(token, e);
-					}
+					continuation.value();
 				}
-			}));
+				catch (final Exception e)
+				{
+					reportInternalProblem(token, e);
+				}
+			}
+		});
 	}
 
 	/**
@@ -2880,17 +2883,14 @@ public abstract class AbstractAvailCompiler
 					continuation.value();
 				}
 			});
-		runtime.execute(new ParsingTask(
-			description,
-			where,
-			new Continuation0()
+		runtime.execute(new ParsingTask(description, where)
+		{
+			@Override
+			public void value ()
 			{
-				@Override
-				public void value ()
-				{
-					workUnit.value(null);
-				}
-			}));
+				workUnit.value(null);
+			}
+		});
 	}
 
 	/**
@@ -5672,11 +5672,11 @@ public abstract class AbstractAvailCompiler
 
 		firstRelevantTokenOfSection = tokens.isEmpty() ? null : tokens.get(0);
 
-		// The module header must begin with either SYSTEM MODULE or MODULE,
-		// followed by the local name of the module.
-		if (isSystemCompiler())
+		// The module header must begin with either EXPERIMENTAL MODULE or
+		// MODULE, followed by the local name of the module.
+		if (!isSystemCompiler())
 		{
-			if (!state.peekToken(SYSTEM, "System keyword"))
+			if (!state.peekToken(EXPERIMENTAL, "Experimental keyword"))
 			{
 				return null;
 			}

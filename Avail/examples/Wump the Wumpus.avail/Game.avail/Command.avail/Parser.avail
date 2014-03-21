@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Parser"
+Module "Parser"
 Versions
 	"dev"
 Uses

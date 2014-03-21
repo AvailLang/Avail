@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Pseudorandom Number Generation"
+Module "Pseudorandom Number Generation"
 Versions
 	"dev"
 Extends

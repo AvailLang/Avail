@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Very Early Definers"
+Module "Very Early Definers"
 Versions
 	"dev"
 Uses

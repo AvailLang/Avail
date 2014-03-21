@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Client"
+Module "Client"
 Versions
 	"dev"
 Extends

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Stacks Module Headers" 
+Module "Stacks Module Headers" 
 Versions
 	"Dev"
 Extends

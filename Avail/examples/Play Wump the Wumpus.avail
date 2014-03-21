@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Play Wump the Wumpus"
+Module "Play Wump the Wumpus"
 Versions
 	"dev"
 Uses

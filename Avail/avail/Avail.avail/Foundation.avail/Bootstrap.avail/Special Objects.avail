@@ -38,7 +38,7 @@
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
 
-System Module "Special Objects"
+Module "Special Objects"
 Versions
 	"dev"
 Extends

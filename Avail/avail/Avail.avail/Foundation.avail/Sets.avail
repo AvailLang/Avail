@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Sets"
+Module "Sets"
 Versions
 	"dev"
 Extends

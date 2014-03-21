@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Enumeration Support"
+Module "Enumeration Support"
 Versions
 	"dev"
 Extends

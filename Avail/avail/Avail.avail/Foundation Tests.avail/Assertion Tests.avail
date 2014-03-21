@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Assertion Tests"
+Module "Assertion Tests"
 Versions
 	"dev"
 Uses

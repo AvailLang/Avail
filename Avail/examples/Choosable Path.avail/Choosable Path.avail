@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Choosable Path"
+Module "Choosable Path"
 Versions
 	"dev"
 Extends

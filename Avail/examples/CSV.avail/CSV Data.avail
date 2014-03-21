@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "CSV Data"
+Module "CSV Data"
 Uses "CSV Language" = ("«_‡,»")
 Body
 

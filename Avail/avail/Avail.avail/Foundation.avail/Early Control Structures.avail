@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Control Structures"
+Module "Early Control Structures"
 Versions
 	"dev"
 Uses

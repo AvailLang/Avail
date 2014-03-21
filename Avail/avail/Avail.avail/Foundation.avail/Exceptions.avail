@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Exceptions"
+Module "Exceptions"
 Versions
 	"dev"
 Uses

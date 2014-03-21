@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Runners"
+Module "Runners"
 Versions
 	"dev"
 Uses

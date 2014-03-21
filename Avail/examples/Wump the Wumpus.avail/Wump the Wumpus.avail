@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Wump the Wumpus"
+Module "Wump the Wumpus"
 Versions
 	"dev"
 Extends

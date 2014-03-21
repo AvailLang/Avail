@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Abstract Random"
+Module "Abstract Random"
 Versions
 	"dev"
 Uses

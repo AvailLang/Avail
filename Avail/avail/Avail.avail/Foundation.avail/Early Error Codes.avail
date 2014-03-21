@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Error Codes"
+Module "Early Error Codes"
 Versions
 	"dev"
 Uses

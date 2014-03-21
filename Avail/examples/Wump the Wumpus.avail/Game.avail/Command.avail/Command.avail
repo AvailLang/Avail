@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Command"
+Module "Command"
 Versions
 	"dev"
 Uses

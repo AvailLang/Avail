@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Literals"
+Module "Literals"
 Versions
 	"dev"
 Extends

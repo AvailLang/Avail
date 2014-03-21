@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Red Dwarf Choosable Path"
+Module "Red Dwarf Choosable Path"
 Versions
 	"dev"
 Uses

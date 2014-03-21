@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Abstract Streams"
+Module "Abstract Streams"
 Versions
 	"dev"
 Extends

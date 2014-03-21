@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Counting Iterators"
+Module "Counting Iterators"
 Versions
 	"dev"
 Uses

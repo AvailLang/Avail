@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Logic"
+Module "Logic"
 Versions
 	"dev"
 Extends

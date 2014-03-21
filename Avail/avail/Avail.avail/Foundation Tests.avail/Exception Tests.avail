@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Exception Tests"
+Module "Exception Tests"
 Versions
 	"dev"
 Uses

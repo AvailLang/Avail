@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Streams"
+Module "Streams"
 Versions
 	"dev"
 Extends

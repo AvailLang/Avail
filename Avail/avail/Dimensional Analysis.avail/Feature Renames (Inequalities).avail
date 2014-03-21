@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Feature Renames (Inequalities)"
+Module "Feature Renames (Inequalities)"
 Versions
 	"dev"
 Uses

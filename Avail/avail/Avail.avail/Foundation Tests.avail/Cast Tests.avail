@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Cast Tests"
+Module "Cast Tests"
 Versions
 	"dev"
 Uses

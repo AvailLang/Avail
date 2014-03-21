@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Function Tests"
+Module "Function Tests"
 Versions
 	"dev"
 Uses

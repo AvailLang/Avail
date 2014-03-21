@@ -38,7 +38,7 @@
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
 
-System Module "Bootstrap"
+Module "Bootstrap"
 Versions
 	"dev"
 Extends

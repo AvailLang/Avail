@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Late Restrictions"
+Module "Late Restrictions"
 Versions
 	"dev"
 Uses

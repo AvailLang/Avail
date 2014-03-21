@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Math"
+Module "Early Math"
 Versions
 	"dev"
 Uses

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Phrases"
+Module "Phrases"
 Versions
 	"dev"
 Extends

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Casts"
+Module "Casts"
 Versions
 	"dev"
 Uses

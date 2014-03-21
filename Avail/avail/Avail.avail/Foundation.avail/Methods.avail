@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Methods"
+Module "Methods"
 Versions
 	"dev"
 Uses

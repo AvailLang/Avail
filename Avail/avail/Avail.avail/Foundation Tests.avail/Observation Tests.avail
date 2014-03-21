@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Observation Tests"
+Module "Observation Tests"
 Versions
 	"dev"
 Uses

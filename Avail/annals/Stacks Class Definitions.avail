@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Stacks Class Definitions"
+Module "Stacks Class Definitions"
 Versions
 	"Dev"
 Extends

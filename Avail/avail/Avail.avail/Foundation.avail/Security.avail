@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Security"
+Module "Security"
 Versions
 	"dev"
 Uses
