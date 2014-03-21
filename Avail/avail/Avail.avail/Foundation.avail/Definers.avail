@@ -104,11 +104,12 @@ typeAtom ::= atom for "_'s⁇type";
 areAllSingularAtom ::= atom for "«_‡,»are all singular";
 
 /**
- * Declare that the method referenced by `methodName` is stable for the given
- * signature. A stable method produces the same value for the same arguments on
- * every call. Automatically generate and install a semantic restriction that
- * will statically strengthen the answer produced at a call site to a precisely
- * known value when all arguments are themselves precisely known.
+ * Declare that the method referenced by {@param "methodName"} is stable for the 
+ * given signature. A stable method produces the same value for the same
+ * arguments on every call. Automatically generate and install a semantic 
+ * restriction that will statically strengthen the answer produced at a call 
+ * site to a precisely known value when all arguments are themselves precisely 
+ * known.
  * 
  * @method "Method_is stable at_"
  * @param "methodName" "string"
@@ -236,11 +237,12 @@ Public method "Method_is stable at_" is
 ] : ⊤;
 
 /**
- * Declare that the method referenced by `methodName` is stable for the given
- * signature. A stable method produces the same value for the same arguments on
- * every call. Automatically generate and install a semantic restriction that
- * will statically strengthen the answer produced at a call site to a precisely
- * known value when all arguments are themselves precisely known.
+ * Declare that the method referenced by {@param "methodName"} is stable for the
+ * given signature. A stable method produces the same value for the same 
+ * arguments on every call. Automatically generate and install a semantic 
+ * restriction that will statically strengthen the answer produced at a call 
+ * site to a precisely known value when all arguments are themselves precisely 
+ * known.
  * 
  * @method "Method_is stable at_"
  * @param "methodName" "string"
