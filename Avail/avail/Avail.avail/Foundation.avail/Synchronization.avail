@@ -160,9 +160,10 @@ Semantic restriction "atomically compare_to_and,⁇if equal,⁇store_" is
  * @param "var" "variable"
  *        A variable.
  * @param "newValue" "any"
- *        The new value to store into `var`.
+ *        The new value to store into {@param "var"}.
  * @returns "any"
- *          The value originally stored in `var`.
+ *          The value originally stored in {@param "var"}.
+ * @category "Synchronization" "Primitives" "Variables" "Queries" "Mutators"
  */
 Public method "unsafely atomically read_and store_" is
 [
@@ -187,10 +188,11 @@ Public method "unsafely atomically read_and store_" is
  *        The value against which the content of {@param "var"} should be
  *        compared.
  * @param "newValue" "any"
- *        The new value to store into `var`.
+ *        The new value to store into {@param "var"}.
  * @returns "boolean"
- *          `true` if the operation succeeded and {@param "newValue"}
- *          was stored into {@param "var"}, `false` otherwise.
+ *          {@method "true"} if the operation succeeded and {@param "newValue"}
+ *          was stored into {@param "var"}, {@method "false"} otherwise.
+ * @category "Synchronization" "Primitives" "Variables" "Queries" "Mutators"
  */
 Public method "unsafely atomically compare_to_and,⁇if equal,⁇store_" is
 [
@@ -210,6 +212,7 @@ Public method "unsafely atomically compare_to_and,⁇if equal,⁇store_" is
  * @param "var" "variable"
  * @param "f" "[any]→any"
  * @returns "⊤"
+ * @category "Synchronization" "Variables" "Mutators" "Queries"
  */
 Public method "Atomically update_using_" is
 [
@@ -253,6 +256,7 @@ Semantic restriction "Atomically update_using_" is
  *
  * @type "parking queue"
  * @supertype "<fiber…|>"
+ * @category "Synchronization" "Tuples" "Types" "Constants"
  */
 Public method "parking queue" is [<fiber…|>];
 
@@ -267,8 +271,9 @@ Public method "parking queue" is [<fiber…|>];
  * @param "queue" "parking queue"
  *        A {@type "parking queue"}.
  * @returns "boolean"
- *         `true` if the queue was empty at the time of enqueuing,
- *         `false` otherwise.
+ *         {@method "true"} if the queue was empty at the time of enqueuing,
+ *         {@method "false"} otherwise.
+ * @category "Synchronization"
  */
 Public method "priority enqueue_on_" is
 [
@@ -304,8 +309,9 @@ Public method "priority enqueue_on_" is
  * @param "queue" "↑parking queue"
  *        A parking queue.
  * @returns "boolean"
- *         `true` if the queue was empty after the removal, {@method
+ *         {@method "true"} if the queue was empty after the removal, {@method
  *         "false"} otherwise.
+ * @category "Synchronization"
  */
 Public method "dequeue_from_" is
 [
@@ -334,6 +340,7 @@ Public method "dequeue_from_" is
  * @returns "⊤"
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
+ * @category "Synchronization"
  */
 Public method "Park current fiber,then honor a termination request" is
 [
@@ -351,6 +358,7 @@ Public method "Park current fiber,then honor a termination request" is
  * @param "joinee" "fiber"
  *        The fiber to join.
  * @returns "⊤"
+ * @category "Synchronization"
  */
 Public method "Join_" is
 [
@@ -372,6 +380,7 @@ Public method "Join_" is
  * @returns "⊤"
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
+ * @category "Synchronization"
  */
 Public method "Join_,then honor a termination request" is
 [
@@ -394,6 +403,7 @@ Public method "Join_,then honor a termination request" is
  *
  * @type "synchronization device"
  * @supertype "object"
+ * @category "Synchronization" "Data Abstractions" "Types"
  */
 Public explicit class "synchronization device" extends object;
 
@@ -403,6 +413,7 @@ Public explicit class "synchronization device" extends object;
  *
  * @type "non-reentrant mutex"
  * @supertype "object"
+ * @category "Synchronization" "Data Abstractions" "Types"
  */
 Public class "non-reentrant mutex" extends synchronization device
 	with fields
@@ -418,6 +429,7 @@ Public class "non-reentrant mutex" extends synchronization device
  * @method "_'⁇s owner's name"
  * @param "mutex" "non-reentrant mutex"
  * @returns "string"
+ * @category "Synchronization" "Queries"
  */
 Public method "_'s⁇owner's name" is
 [
@@ -461,6 +473,7 @@ defaultName ::= "«unnamed»";
  *        If specified, then the name of the mutex, for improved diagnostics.
  *        If not specified, then {@code "«unnamed»"}.
  * @returns "non-reentrant mutex"
+ * @category "Synchronization" "Data Abstractions" "Constructors"
  */
 Public method "a non-reentrant mutex«named_»" is
 [
@@ -489,6 +502,7 @@ Semantic restriction "a non-reentrant mutex«named_»" is
  *
  * @type "synchronization exception"
  * @supertype "exception"
+ * @category "Synchronization" "Exceptions"
  */
 Public explicit class "synchronization exception" extends exception;
 
@@ -501,6 +515,7 @@ Public explicit class "synchronization exception" extends exception;
  *
  * @type "reentry exception"
  * @supertype "synchronization exception"
+ * @category "Synchronization" "Exceptions"
  */
 Public class "reentry exception" extends synchronization exception
 	with fields
@@ -514,6 +529,7 @@ Public class "reentry exception" extends synchronization exception
  * @method "Schedule next parked fiber or release_"
  * @param "mutex" "non-reentrant mutex"
  * @returns "⊤"
+ * @category "Synchronization"
  */
 Private method "Schedule next parked fiber or release_" is
 [
@@ -547,6 +563,7 @@ Private method "Schedule next parked fiber or release_" is
  * @returns "⊤"
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
+ * @category "Synchronization"
  */
 Private method "Acquire_" is
 [
@@ -597,6 +614,7 @@ Private method "Acquire_" is
  *         If the owning fiber reenters the mutex.
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
+ * @category "Synchronization"
  */
 Public method "Lock|lock_for_" is
 [
@@ -631,6 +649,7 @@ Semantic restriction "Lock|lock_for_" is
  *
  * @type "reentrant mutex"
  * @supertype "non-reentrant mutex"
+ * @category "Synchronization" "Data Abstractions" "Types"
  */
 Public class "reentrant mutex" extends non-reentrant mutex
 	with mutable fields
