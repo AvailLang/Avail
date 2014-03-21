@@ -41,5 +41,3 @@ Method "Greet" is
 [
 	Print: "Hello, world!\n";
 ];
-
-Greet;

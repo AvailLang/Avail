@@ -33,7 +33,7 @@ package com.avail.compiler;
 
 import static com.avail.compiler.AbstractAvailCompiler.ExpectedToken.*;
 import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.compiler.ProblemType.*;
+import static com.avail.compiler.problems.ProblemType.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
@@ -51,6 +51,9 @@ import com.avail.AvailTask;
 import com.avail.annotations.Nullable;
 import com.avail.annotations.InnerAccess;
 import com.avail.builder.*;
+import com.avail.compiler.problems.Problem;
+import com.avail.compiler.problems.ProblemHandler;
+import com.avail.compiler.problems.ProblemType;
 import com.avail.compiler.scanning.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
@@ -190,15 +193,13 @@ public abstract class AbstractAvailCompiler
 		 *            StringDescriptor strings}) imported from the module.  They
 		 *            will be cause atoms to be looked up within the predecessor
 		 *            module, and will be re-exported verbatim if isExtension is
-		 *            true.  {@linkplain NilDescriptor#nil() Nil} indicates that
-		 *            neither names nor renames were specified.
+		 *            true.
 		 * @param renames
 		 *            The {@linkplain MapDescriptor map} from new names to old
 		 *            names (both {@linkplain StringDescriptor strings}) that
 		 *            are imported from the module.  The new names will become
 		 *            new atoms in the importing module, and exported if
-		 *            isExtension is true.  {@linkplain NilDescriptor#nil() Nil}
-		 *            indicates that neither names nor renames were specified.
+		 *            isExtension is true.
 		 * @param excludes
 		 *            The {@linkplain SetDescriptor set} of names ({@linkplain
 		 *            StringDescriptor strings}) to exclude from being imported.
@@ -226,6 +227,37 @@ public abstract class AbstractAvailCompiler
 			this.excludes = excludes.makeShared();
 			this.wildcard = wildcard;
 			validate();
+		}
+
+		/**
+		 * Produce an {@linkplain ModuleImport import} that represents an
+		 * {@link ExpectedToken#EXTENDS Extend} of the provided {@linkplain
+		 * A_Module module}.
+		 *
+		 * @param module
+		 *        A module.
+		 * @return The desired import.
+		 */
+		public static ModuleImport extend (final A_Module module)
+		{
+			try
+			{
+				final ModuleName name =
+					new ModuleName(module.moduleName().asNativeString());
+				return new ModuleImport(
+					StringDescriptor.from(name.localName()),
+					module.versions(),
+					true,
+					SetDescriptor.empty(),
+					MapDescriptor.empty(),
+					SetDescriptor.empty(),
+					true);
+			}
+			catch (final ImportValidationException e)
+			{
+				assert false : "This shouldn't happen";
+				throw new RuntimeException(e);
+			}
 		}
 
 		/**
@@ -746,15 +778,10 @@ public abstract class AbstractAvailCompiler
 					}
 					else if (size == 1)
 					{
+						// Just validate the name.
+						@SuppressWarnings("unused")
 						final MessageSplitter splitter =
 							new MessageSplitter(name);
-						if (splitter.numberOfArguments() > 0)
-						{
-							return
-								"entry point \"" + name.asNativeString()
-								+ "\" to be private to the current module "
-								+ "(because its arity is not zero)";
-						}
 						trueName = trueNames.iterator().next();
 					}
 					else
@@ -780,12 +807,36 @@ public abstract class AbstractAvailCompiler
 	/**
 	 * The header information for the current module being parsed.
 	 */
-	public final ModuleHeader moduleHeader;
+	private final @Nullable ModuleHeader moduleHeader;
+
+	/**
+	 * Answer the {@linkplain ModuleHeader module header} for the current
+	 * {@linkplain ModuleDescriptor module} being parsed.
+	 *
+	 * @return the moduleHeader
+	 */
+	@InnerAccess ModuleHeader moduleHeader ()
+	{
+		final ModuleHeader header = moduleHeader;
+		assert header != null;
+		return header;
+	}
 
 	/**
 	 * The Avail {@linkplain ModuleDescriptor module} undergoing compilation.
 	 */
 	@InnerAccess final A_Module module;
+
+	/**
+	 * Answer the fully-qualified name of the {@linkplain ModuleDescriptor
+	 * module} undergoing compilation.
+	 *
+	 * @return The module name.
+	 */
+	@InnerAccess ModuleName moduleName ()
+	{
+		return new ModuleName(module.moduleName().asNativeString());
+	}
 
 	/**
 	 * The {@linkplain AvailLoader loader} created and operated by this
@@ -1121,7 +1172,7 @@ public abstract class AbstractAvailCompiler
 								afterFail.value();
 							}
 						};
-						reportProblem(problem, problemHandler);
+						handleProblem(problem, problemHandler);
 						return;
 					}
 					final AbstractAvailCompiler compiler;
@@ -1130,7 +1181,6 @@ public abstract class AbstractAvailCompiler
 					{
 						compiler = new AvailSystemCompiler(
 							resolvedName,
-							sourceText,
 							result,
 							problemHandler);
 					}
@@ -1138,7 +1188,6 @@ public abstract class AbstractAvailCompiler
 					{
 						compiler = new AvailCompiler(
 							resolvedName,
-							sourceText,
 							result,
 							problemHandler);
 					}
@@ -1150,14 +1199,36 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Construct a new {@link AbstractAvailCompiler} which will use the given
-	 * {@link Interpreter} to evaluate expressions.
+	 * Construct a new {@link AbstractAvailCompiler}.
+	 *
+	 * @param module
+	 *        The current {@linkplain ModuleDescriptor module}.
+	 * @param scannerResult
+	 *        An {@link AvailScannerResult}.
+	 * @param problemHandler
+	 *        The {@link ProblemHandler} used for reporting compilation
+	 *        problems.
+	 */
+	protected AbstractAvailCompiler (
+		final A_Module module,
+		final AvailScannerResult scannerResult,
+		final ProblemHandler problemHandler)
+	{
+		this.moduleHeader = null;
+		this.module = module;
+		this.source = scannerResult.source();
+		this.tokens = scannerResult.outputTokens();
+		this.commentTokens = scannerResult.commentTokens();
+		this.problemHandler = problemHandler;
+		module.isSystemModule(isSystemCompiler());
+	}
+
+	/**
+	 * Construct a new {@link AbstractAvailCompiler}.
 	 *
 	 * @param moduleName
 	 *        The {@link ResolvedModuleName resolved name} of the module to
 	 *        compile.
-	 * @param source
-	 *        The source code {@linkplain StringDescriptor string}.
 	 * @param scannerResult
 	 *        An {@link AvailScannerResult}.
 	 * @param problemHandler
@@ -1166,19 +1237,16 @@ public abstract class AbstractAvailCompiler
 	 */
 	protected AbstractAvailCompiler (
 		final ResolvedModuleName moduleName,
-		final String source,
 		final AvailScannerResult scannerResult,
 		final ProblemHandler problemHandler)
 	{
 		this.moduleHeader = new ModuleHeader(moduleName);
-		this.source = source;
+		this.module = ModuleDescriptor.newModule(
+			StringDescriptor.from(moduleName.qualifiedName()));
+		this.source = scannerResult.source();
 		this.tokens = scannerResult.outputTokens();
 		this.commentTokens = scannerResult.commentTokens();
 		this.problemHandler = problemHandler;
-
-		this.module = ModuleDescriptor.newModule(
-			StringDescriptor.from(moduleHeader.moduleName.qualifiedName()));
-		module.isSystemModule(isSystemCompiler());
 	}
 
 	/**
@@ -2157,7 +2225,7 @@ public abstract class AbstractAvailCompiler
 					fail.value();
 				}
 			};
-			reportProblem(problem, problemHandler);
+			handleProblem(problem, problemHandler);
 			return;
 		}
 		final MutableOrNull<CompletionHandler<Integer, Void>> handler =
@@ -2263,7 +2331,7 @@ public abstract class AbstractAvailCompiler
 							fail.value();
 						}
 					};
-					reportProblem(problem, problemHandler);
+					handleProblem(problem, problemHandler);
 				}
 			}
 
@@ -2290,7 +2358,7 @@ public abstract class AbstractAvailCompiler
 						fail.value();
 					}
 				};
-				reportProblem(problem, problemHandler);
+				handleProblem(problem, problemHandler);
 			}
 		};
 		// Kick off the asynchronous read.
@@ -2557,9 +2625,10 @@ public abstract class AbstractAvailCompiler
 					assert outstanding.value >= 0;
 					if (outstanding.value == 0)
 					{
+						final ModuleName moduleName = moduleName();
 						text.format(
 							"%n(file=\"%s\", line=%d)",
-							moduleHeader.moduleName.qualifiedName(),
+							moduleName.qualifiedName(),
 							token.lineNumber());
 						text.format("%n>>>%s", rowOfDashes);
 						int endOfLine = source.indexOf('\n', charPos);
@@ -2568,8 +2637,8 @@ public abstract class AbstractAvailCompiler
 							endOfLine = source.length();
 						}
 						compilationIsInvalid = true;
-						reportProblem(new Problem(
-							moduleHeader.moduleName,
+						handleProblem(new Problem(
+							moduleName,
 							token,
 							PARSE,
 							"{0}",
@@ -5116,8 +5185,8 @@ public abstract class AbstractAvailCompiler
 		}
 		catch (final IllegalArgumentException e)
 		{
-			reportProblem(new Problem(
-				moduleHeader.moduleName,
+			handleProblem(new Problem(
+				moduleName(),
 				pragmaToken,
 				PARSE,
 				"Expected method pragma to have the form {0}=<digits>=name",
@@ -5270,7 +5339,7 @@ public abstract class AbstractAvailCompiler
 		final Continuation0 success,
 		final Continuation0 failure)
 	{
-		final Iterator<A_Token> iterator = moduleHeader.pragmas.iterator();
+		final Iterator<A_Token> iterator = moduleHeader().pragmas.iterator();
 		final MutableOrNull<Continuation0> body = new MutableOrNull<>();
 		final Continuation0 next = new Continuation0()
 		{
@@ -5370,7 +5439,7 @@ public abstract class AbstractAvailCompiler
 			final CompilerProgressReporter reporter = progressReporter;
 			assert reporter != null;
 			reporter.value(
-				moduleHeader.moduleName,
+				moduleName(),
 				(long) token.lineNumber(),
 				(long) token.start(),
 				(long) source.length());
@@ -5378,7 +5447,7 @@ public abstract class AbstractAvailCompiler
 		assert afterHeader != null;
 		// Run any side-effects implied by this module header against the
 		// module.
-		final String errorString = moduleHeader.applyToModule(module, runtime);
+		final String errorString = moduleHeader().applyToModule(module, runtime);
 		if (errorString != null)
 		{
 			afterHeader.expected(errorString);
@@ -5482,7 +5551,7 @@ public abstract class AbstractAvailCompiler
 										progressReporter;
 								assert reporter != null;
 								reporter.value(
-									moduleHeader.moduleName,
+									moduleName(),
 									(long) token.lineNumber(),
 									(long) token.start() + 2,
 									(long) source.length());
@@ -5581,7 +5650,7 @@ public abstract class AbstractAvailCompiler
 		clearExpectations();
 		if (parseModuleHeader(true) != null)
 		{
-			onSuccess.value(moduleHeader);
+			onSuccess.value(moduleHeader());
 		}
 		else
 		{
@@ -5646,6 +5715,110 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
+	 * Parse a command, compiling it into the current {@linkplain
+	 * ModuleDescriptor module}, from the {@linkplain
+	 * TokenDescriptor token} list.
+	 *
+	 * @param succeed
+	 *        What to do after compilation succeeds. This {@linkplain
+	 *        Continuation1 continuation} is invoked with a {@linkplain List
+	 *        list} of {@link A_Phrase phrases} that represent the possible
+	 *        solutions of compiling the command and a {@linkplain Continuation1
+	 *        continuation} that cleans up this compiler and its module (and
+	 *        then continues with a post-cleanup {@linkplain Continuation0
+	 *        continuation}).
+	 * @param afterFail
+	 *        What to do after compilation fails.
+	 */
+	public synchronized void parseCommand (
+		final Continuation2<
+			List<A_Phrase>,
+			Continuation1<Continuation0>> succeed,
+		final Continuation0 afterFail)
+	{
+		assert workUnitsQueued == workUnitsCompleted;
+		assert workUnitsQueued == 0;
+		// Start a module transaction, just to complete any necessary
+		// initialization. We are going to rollback this transaction no matter
+		// what happens.
+		startModuleTransaction();
+		loader().createFilteredBundleTree();
+		final List<A_Phrase> solutions = new ArrayList<>();
+		noMoreWorkUnits = new Continuation0()
+		{
+			@Override
+			public void value ()
+			{
+				synchronized (AbstractAvailCompiler.this)
+				{
+					assert workUnitsQueued == workUnitsCompleted;
+				}
+				// If no solutions were found, then report an error.
+				if (solutions.isEmpty())
+				{
+					reportError(new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							rollbackModuleTransaction(afterFail);
+						}
+					});
+					return;
+				}
+				succeed.value(
+					solutions,
+					new Continuation1<Continuation0>()
+					{
+						@Override
+						public void value (
+							final @Nullable Continuation0 postCleanup)
+						{
+							assert postCleanup != null;
+							rollbackModuleTransaction(postCleanup);
+						}
+					});
+			}
+		};
+		eventuallyDo(
+			TokenDescriptor.createSyntheticStart(),
+			new Continuation0()
+			{
+				@Override
+				public void value ()
+				{
+					final ParserState initialState =
+						new ParserState(0, MapDescriptor.empty());
+					// Rollback the module transaction no matter what happens.
+					parseExpressionThen(
+						initialState,
+						new Con<A_Phrase>("Reached end")
+						{
+							@SuppressWarnings("null")
+							@Override
+							public void value (
+								final @Nullable ParserState afterExpression,
+								final @Nullable A_Phrase expression)
+							{
+								if (afterExpression.atEnd())
+								{
+									synchronized (solutions)
+									{
+										solutions.add(expression);
+									}
+								}
+								else
+								{
+									afterExpression.expected("end of command");
+								}
+							}
+						});
+				}
+			});
+	}
+
+
+	/**
 	 * Parse the header of the module from the token stream. If successful,
 	 * return the {@link ParserState} just after the header, otherwise return
 	 * {@code null}.
@@ -5696,7 +5869,7 @@ public abstract class AbstractAvailCompiler
 			return null;
 		}
 		final A_String localName = localNameToken.literal();
-		if (!moduleHeader.moduleName.localName().equals(
+		if (!moduleName().localName().equals(
 			localName.asNativeString()))
 		{
 			state.expected("declared local module name to agree with "
@@ -5781,34 +5954,34 @@ public abstract class AbstractAvailCompiler
 			// On VERSIONS, record the versions.
 			else if (lexeme.equals(VERSIONS.lexeme()))
 			{
-				state = parseStringLiterals(state, moduleHeader.versions);
+				state = parseStringLiterals(state, moduleHeader().versions);
 			}
 			// On EXTENDS, record the imports.
 			else if (lexeme.equals(EXTENDS.lexeme()))
 			{
 				state = parseModuleImports(
-					state, moduleHeader.importedModules, true);
+					state, moduleHeader().importedModules, true);
 			}
 			// On USES, record the imports.
 			else if (lexeme.equals(USES.lexeme()))
 			{
 				state = parseModuleImports(
-					state, moduleHeader.importedModules, false);
+					state, moduleHeader().importedModules, false);
 			}
 			// On NAMES, record the names.
 			else if (lexeme.equals(NAMES.lexeme()))
 			{
-				state = parseStringLiterals(state, moduleHeader.exportedNames);
+				state = parseStringLiterals(state, moduleHeader().exportedNames);
 			}
 			// ON ENTRIES, record the names.
 			else if (lexeme.equals(ENTRIES.lexeme()))
 			{
-				state = parseStringLiterals(state, moduleHeader.entryPoints);
+				state = parseStringLiterals(state, moduleHeader().entryPoints);
 			}
 			// On PRAGMA, record the pragma string literals.
 			else if (lexeme.equals(PRAGMA.lexeme()))
 			{
-				state = parseStringLiteralTokens(state, moduleHeader.pragmas);
+				state = parseStringLiteralTokens(state, moduleHeader().pragmas);
 			}
 			// If the parser state is now null, then fail the parse.
 			if (state == null)
@@ -6152,40 +6325,28 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Report a {@link Problem} via the provided {@link ProblemHandler}.  Also
-	 * use the problem handler's response to either {@linkplain
-	 * Problem#abortCompilation() abort} or {@linkplain
-	 * Problem#continueCompilation() continue} compilation.
+	 * Handle a {@link Problem} via the provided {@link ProblemHandler}.
 	 *
-	 * @param problem The problem to report.
-	 * @param handler The handler to which to report it.
+	 * @param problem The problem to handle.
+	 * @param handler The handler which should handle the problem.
 	 */
-	protected static void reportProblem (
+	protected static void handleProblem (
 		final Problem problem,
 		final ProblemHandler handler)
 	{
-		if (problem.report(handler))
-		{
-			problem.continueCompilation();
-		}
-		else
-		{
-			problem.abortCompilation();
-		}
+		handler.handle(problem);
 	}
 
 	/**
-	 * Report a {@linkplain Problem problem} via the {@linkplain #problemHandler
-	 * problem handler}.  Also use the problem handler's response to either
-	 * {@linkplain Problem#abortCompilation() abort} or {@linkplain
-	 * Problem#continueCompilation() continue} compilation.
+	 * Handle a {@linkplain Problem problem} via the {@linkplain #problemHandler
+	 * problem handler}.
 	 *
 	 * @param problem
-	 *        The problem to report.
+	 *        The problem to handle.
 	 */
-	protected void reportProblem (final Problem problem)
+	protected void handleProblem (final Problem problem)
 	{
-		reportProblem(problem, problemHandler);
+		handleProblem(problem, problemHandler);
 	}
 
 	/**
@@ -6207,8 +6368,8 @@ public abstract class AbstractAvailCompiler
 		compilationIsInvalid = true;
 		final CharArrayWriter trace = new CharArrayWriter();
 		e.printStackTrace(new PrintWriter(trace));
-		reportProblem(new Problem(
-			moduleHeader.moduleName,
+		handleProblem(new Problem(
+			moduleName(),
 			token.lineNumber(),
 			token.start(),
 			INTERNAL,
@@ -6235,8 +6396,8 @@ public abstract class AbstractAvailCompiler
 		compilationIsInvalid = true;
 		final CharArrayWriter trace = new CharArrayWriter();
 		e.printStackTrace(new PrintWriter(trace));
-		reportProblem(new Problem(
-			moduleHeader.moduleName,
+		handleProblem(new Problem(
+			moduleName(),
 			token.lineNumber(),
 			token.start(),
 			EXECUTION,
@@ -6267,8 +6428,8 @@ public abstract class AbstractAvailCompiler
 		final AvailAssertionFailedException e)
 	{
 		compilationIsInvalid = true;
-		reportProblem(new Problem(
-			moduleHeader.moduleName,
+		handleProblem(new Problem(
+			moduleName(),
 			token.lineNumber(),
 			token.start(),
 			EXECUTION,
@@ -6299,8 +6460,8 @@ public abstract class AbstractAvailCompiler
 		final AvailEmergencyExitException e)
 	{
 		compilationIsInvalid = true;
-		reportProblem(new Problem(
-			moduleHeader.moduleName,
+		handleProblem(new Problem(
+			moduleName(),
 			token.lineNumber(),
 			token.start(),
 			EXECUTION,

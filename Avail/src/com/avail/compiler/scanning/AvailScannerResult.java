@@ -49,6 +49,23 @@ import com.avail.descriptor.TokenDescriptor;
 public final class AvailScannerResult
 {
 	/**
+	 * The complete source code that produced the {@linkplain TokenDescriptor
+	 * tokens}.
+	 */
+	private final String source;
+
+	/**
+	 * Answer the complete source code that produced the {@linkplain
+	 * TokenDescriptor tokens}.
+	 *
+	 * @return The source.
+	 */
+	public String source ()
+	{
+		return source;
+	}
+
+	/**
 	 * The complete {@linkplain Collections#unmodifiableList(List) unmodifiable}
 	 * collection of {@linkplain TokenDescriptor tokens} that were produced by
 	 * the {@linkplain AvailScanner scanner}.
@@ -89,6 +106,9 @@ public final class AvailScannerResult
 	/**
 	 * Construct a new {@link AvailScannerResult}.
 	 *
+	 * @param source
+	 *        The complete source code that produced the {@linkplain
+	 *        TokenDescriptor tokens}.
 	 * @param outputTokens
 	 *        The complete collection of {@linkplain TokenDescriptor tokens}
 	 *        that were produced by the {@linkplain AvailScanner scanner}.
@@ -98,9 +118,11 @@ public final class AvailScannerResult
 	 *        scanner}.
 	 */
 	AvailScannerResult (
+		final String source,
 		final List<A_Token> outputTokens,
 		final List<A_Token> commentTokens)
 	{
+		this.source = source;
 		this.outputTokens = Collections.unmodifiableList(outputTokens);
 		this.commentTokens = Collections.unmodifiableList(commentTokens);
 	}

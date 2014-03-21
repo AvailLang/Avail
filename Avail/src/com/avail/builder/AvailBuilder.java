@@ -33,8 +33,9 @@
 package com.avail.builder;
 
 import static java.nio.file.FileVisitResult.*;
-import static com.avail.compiler.ProblemType.PARSE;
+import static com.avail.compiler.problems.ProblemType.*;
 import static com.avail.descriptor.FiberDescriptor.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.file.FileVisitOption;
@@ -52,6 +53,10 @@ import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.compiler.AbstractAvailCompiler.CompilerProgressReporter;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
+import com.avail.compiler.AbstractAvailCompiler.ModuleImport;
+import com.avail.compiler.problems.Problem;
+import com.avail.compiler.problems.ProblemHandler;
+import com.avail.compiler.problems.ProblemType;
 import com.avail.compiler.scanning.AvailScanner;
 import com.avail.compiler.scanning.AvailScannerException;
 import com.avail.compiler.scanning.AvailScannerResult;
@@ -294,7 +299,7 @@ public final class AvailBuilder
 	 * encountered during a build.
 	 */
 	@InnerAccess class BuilderProblemHandler
-	implements ProblemHandler
+	extends ProblemHandler
 	{
 		/**
 		 * The {@linkplain Formatter pattern} with which to format {@linkplain
@@ -1017,8 +1022,7 @@ public final class AvailBuilder
 								ProblemType.TRACE,
 								"Module resolution problem:\n{0}",
 								e);
-							problem.report(buildProblemHandler);
-							problem.abortCompilation();
+							buildProblemHandler.handle(problem);
 							indicateTraceCompleted();
 							return;
 						}
@@ -1069,8 +1073,7 @@ public final class AvailBuilder
 					ProblemType.TRACE,
 					"Recursive module dependency:\n{0}",
 					recursionSet);
-				problem.report(buildProblemHandler);
-				problem.abortCompilation();
+				buildProblemHandler.handle(problem);
 				indicateTraceCompleted();
 				return;
 			}
@@ -1584,8 +1587,7 @@ public final class AvailBuilder
 											completionAction.value();
 										}
 									};
-									problem.report(buildProblemHandler);
-									problem.abortCompilation();
+									buildProblemHandler.handle(problem);
 								}
 							});
 					}
@@ -2003,8 +2005,7 @@ public final class AvailBuilder
 						completionAction.value();
 					}
 				};
-				problem.report(buildProblemHandler);
-				problem.abortCompilation();
+				buildProblemHandler.handle(problem);
 				return;
 			}
 			final A_Tuple tuple;
@@ -2035,8 +2036,7 @@ public final class AvailBuilder
 						completionAction.value();
 					}
 				};
-				problem.report(buildProblemHandler);
-				problem.abortCompilation();
+				buildProblemHandler.handle(problem);
 				return;
 			}
 			final ModuleHeader header;
@@ -2064,8 +2064,7 @@ public final class AvailBuilder
 						completionAction.value();
 					}
 				};
-				problem.report(buildProblemHandler);
-				problem.abortCompilation();
+				buildProblemHandler.handle(problem);
 				return;
 			}
 			generator.add(header, tuple);
@@ -2162,8 +2161,7 @@ public final class AvailBuilder
 						shouldStopBuild = true;
 					}
 				};
-				problem.report(buildProblemHandler);
-				problem.abortCompilation();
+				buildProblemHandler.handle(problem);
 			}
 		}
 	}
@@ -2285,13 +2283,58 @@ public final class AvailBuilder
 	 * value returned by the function.  If the function evaluation failed,
 	 * report the failure.
 	 *
-	 * @param command The command to attempt to parse and run.
-	 * @param onSuccess What to do if the command parsed and ran to completion.
+	 * @param command
+	 *        The command to attempt to parse and run.
+	 * @param onSuccess
+	 *        What to do if the command parsed and ran to completion.  It should
+	 *        be passed both the result of execution and a {@linkplain
+	 *        Continuation1 cleanup continuation} to invoke with a {@linkplain
+	 *        Continuation0 post-cleanup continuation}.
 	 * @param onFailure What to do otherwise.
 	 */
 	public void attemptCommand (
 		final String command,
-		final Continuation1<A_BasicObject> onSuccess,
+		final Continuation2<
+			AvailObject, Continuation1<Continuation0>> onSuccess,
+		final Continuation0 onFailure)
+	{
+		runtime.execute(new AvailTask(commandPriority)
+		{
+			@Override
+			public void value ()
+			{
+				scheduleAttemptCommand(command, onSuccess, onFailure);
+			}
+		});
+
+	}
+
+	/**
+	 * Schedule an attempt to unambiguously parse a command. Each currently
+	 * loaded module that defines at least one entry point takes a shot at
+	 * parsing the command.  If more than one is successful, report the
+	 * ambiguity via the {@code onFailure} continuation.  If none are
+	 * successful, report the failure.  If there was exactly one, compile it
+	 * into a function and invoke it in a new fiber.  If the function evaluation
+	 * succeeds, run the {@code onSuccess} continuation with the function's
+	 * result, except that if the function has static type ⊤ always pass {@code
+	 * nil} instead of the actual value returned by the function.  If the
+	 * function evaluation failed, report the failure.
+	 *
+	 * @param command
+	 *        The command to attempt to parse and run.
+	 * @param onSuccess
+	 *        What to do if the command parsed and ran to completion.  It should
+	 *        be passed both the result of execution and a {@linkplain
+	 *        Continuation1 cleanup continuation} to invoke with a {@linkplain
+	 *        Continuation0 post-cleanup continuation}.
+	 * @param onFailure
+	 *        What to do otherwise.
+	 */
+	@InnerAccess void scheduleAttemptCommand (
+		final String command,
+		final Continuation2<
+			AvailObject, Continuation1<Continuation0>> onSuccess,
 		final Continuation0 onFailure)
 	{
 		final Set<LoadedModule> modulesWithEntryPoints = new HashSet<>();
@@ -2317,7 +2360,7 @@ public final class AvailBuilder
 					assert false : "Should not invoke this";
 				}
 			};
-			problem.report(commandProblemHandler);
+			commandProblemHandler.handle(problem);
 			onFailure.value();
 			return;
 		}
@@ -2346,48 +2389,325 @@ public final class AvailBuilder
 					assert false : "Should not invoke this";
 				}
 			};
-			problem.report(commandProblemHandler);
+			commandProblemHandler.handle(problem);
 			onFailure.value();
 			return;
 		}
-		final Continuation2<A_Phrase, Exception> decrement =
-			new Continuation2<A_Phrase, Exception>()
+
+		final Map<LoadedModule, List<A_Phrase>> allSolutions = new HashMap<>();
+		final List<Continuation1<Continuation0>> allCleanups =
+			new ArrayList<>();
+		final Map<LoadedModule, List<Problem>> allProblems = new HashMap<>();
+		final Continuation0 decrement = new Continuation0()
+		{
+			private int outstanding = modulesWithEntryPoints.size();
+
+			@Override
+			public synchronized void value ()
 			{
-				int outstanding = modulesWithEntryPoints.size();
-
-				List<A_Phrase> solutions = new ArrayList<>();
-
-				List<Exception> problems = new ArrayList<>();
-
-				@Override
-				public synchronized void value (
-					final @Nullable A_Phrase phrase,
-					final @Nullable Exception exception)
+				if (--outstanding == 0)
 				{
-					// Supply either a phrase or an exception.
-					assert phrase != null || exception != null;
-					if (phrase != null)
-					{
-						solutions.add(phrase);
-					}
-					else
-					{
-						problems.add(exception);
-					}
-					if (--outstanding == 0)
-					{
-						final AbstractAvailCompiler compiler;
-						compiler = new AvailSystemCompiler(
-							null,
-							command,
-							scanResult,
-							buildProblemHandler);
+					processParsedCommand(
+						allSolutions,
+						allProblems,
+						onSuccess,
+						parallelCombine(allCleanups),
+						onFailure);
+				}
+			}
+		};
 
+		for (final LoadedModule loadedModule : modulesWithEntryPoints)
+		{
+			final A_Module module = ModuleDescriptor.anonymousModule();
+			final ModuleImport moduleImport =
+				ModuleImport.extend(loadedModule.module);
+			// TODO: This should really be some kind of fake ModuleName…
+			final ModuleHeader header = new ModuleHeader(loadedModule.name);
+			header.importedModules.add(moduleImport);
+			header.applyToModule(module, runtime);
+			for (final MapDescriptor.Entry entry :
+				loadedModule.module.entryPoints().mapIterable())
+			{
+				module.addImportedName(entry.value());
+			}
+			final AbstractAvailCompiler compiler = new AvailSystemCompiler(
+				module,
+				scanResult,
+				new BuilderProblemHandler("«collection only»")
+				{
+					@Override
+					protected synchronized boolean handleGeneric (
+						final Problem problem)
+					{
+						// Clone the problem message into a new problem to
+						// avoid running any cleanup associated with aborting
+						// the problem a second time.
+						final Problem copy = new Problem(
+							problem.moduleName,
+							problem.lineNumber,
+							problem.characterInFile,
+							problem.type,
+							"{0}",
+							problem.toString())
+						{
+							@Override
+							protected void abortCompilation ()
+							{
+								// Do nothing.
+							}
+						};
+						List<Problem> problems;
+						synchronized (allProblems)
+						{
+							problems = allProblems.get(loadedModule);
+							if (problems == null)
+							{
+								problems = new ArrayList<>();
+								allProblems.put(loadedModule, problems);
+							}
+						}
+						problems.add(copy);
+						return false;
+					}
+				});
+			compiler.parseCommand(
+				new Continuation2<
+					List<A_Phrase>, Continuation1<Continuation0>>()
+				{
+					@Override
+					public void value (
+						final @Nullable List<A_Phrase> solutions,
+						final @Nullable Continuation1<Continuation0> cleanup)
+					{
+						assert solutions != null;
+						synchronized (allSolutions)
+						{
+							allSolutions.put(loadedModule, solutions);
+							allCleanups.add(cleanup);
+						}
+						decrement.value();
+					}
+				},
+				decrement);
+		}
+	}
+
+	/**
+	 * Given a {@linkplain Collection collection} of {@linkplain Continuation1
+	 * continuation}s, each of which expects a {@linkplain Continuation0
+	 * continuation} (called the post-continuation activity) that instructs it
+	 * on how to proceed when it has completed, produce a single continuation
+	 * that evaluates this collection in parallel and defers the
+	 * post-continuation activity until every member has completed.
+	 *
+	 * @param continuations
+	 *        A collection of continuations.
+	 * @return The combined continuation.
+	 */
+	@InnerAccess Continuation1<Continuation0> parallelCombine (
+		final Collection<Continuation1<Continuation0>> continuations)
+	{
+		return new Continuation1<Continuation0>()
+		{
+			@Override
+			public void value (final @Nullable Continuation0 postAction)
+			{
+				assert postAction != null;
+
+				final Continuation0 decrement = new Continuation0()
+				{
+					private int count = continuations.size();
+
+					@Override
+					public synchronized void value ()
+					{
+						if (--count == 0)
+						{
+							postAction.value();
+						}
+					}
+				};
+				for (final Continuation1<Continuation0> continuation :
+					continuations)
+				{
+					runtime.execute(new AvailTask(commandPriority)
+					{
+						@Override
+						public void value ()
+						{
+							continuation.value(decrement);
+						}
+					});
+				}
+			}
+		};
+	}
+
+	/**
+	 * Process a parsed command, executing it if there is a single
+	 * unambiguous entry point send.
+	 *
+	 * @param solutions
+	 *        A {@linkplain Map map} from {@linkplain LoadedModule loaded
+	 *        modules} to the {@linkplain A_Phrase solutions} that they
+	 *        produced.
+	 * @param problems
+	 *        A map from loaded modules to the {@linkplain Problem problems}
+	 *        that they encountered.
+	 * @param onSuccess
+	 *        What to do with the result of a successful unambiguous command.
+	 * @param postSuccessCleanup
+	 *        How to cleanup after running a successful unambiguous command.
+	 * @param onFailure
+	 *        What to do after a failure.
+	 */
+	@InnerAccess void processParsedCommand (
+		final Map<LoadedModule, List<A_Phrase>> solutions,
+		final Map<LoadedModule, List<Problem>> problems,
+		final Continuation2<
+			AvailObject, Continuation1<Continuation0>> onSuccess,
+		final Continuation1<Continuation0> postSuccessCleanup,
+		final Continuation0 onFailure)
+	{
+		// If there were no solutions, then report every problem that was
+		// encountered.
+		if (solutions.isEmpty())
+		{
+			for (final Map.Entry<LoadedModule, List<Problem>> entry :
+				problems.entrySet())
+			{
+				for (final Problem problem : entry.getValue())
+				{
+					buildProblemHandler.handle(problem);
+				}
+			}
+			onFailure.value();
+			return;
+		}
+		// Filter the solutions to invocations of entry points.
+		final List<A_Phrase> entryPointSends = new ArrayList<>();
+		final Set<String> namesOfModulesWithValidSends = new HashSet<>();
+		for (final Map.Entry<LoadedModule, List<A_Phrase>> entry :
+			solutions.entrySet())
+		{
+			final List<String> moduleEntryPoints = entry.getKey().entryPoints();
+			for (final A_Phrase solution : entry.getValue())
+			{
+				if (solution.isInstanceOfKind(SEND_NODE.mostGeneralType()))
+				{
+					final A_Bundle bundle = solution.bundle();
+					final A_Atom name = bundle.message();
+					final String nameString = name.atomName().asNativeString();
+					if (moduleEntryPoints.contains(nameString))
+					{
+						entryPointSends.add(solution);
+						namesOfModulesWithValidSends.add(
+							entry.getKey().name.qualifiedName());
 					}
 				}
+			}
+		}
+		// If there were no entry point sends, then report a problem.
+		if (entryPointSends.isEmpty())
+		{
+			final Problem problem = new Problem(
+				null,
+				1,
+				1,
+				PARSE,
+				"The command could be parsed, but not as an invocation of "
+				+ "an entry point.")
+			{
+				@Override
+				public void abortCompilation ()
+				{
+					// do nothing.
+				}
 			};
+			commandProblemHandler.handle(problem);
+			onFailure.value();
+			return;
+		}
+		// If the entry point send was ambiguous, then report a problem.
+		if (entryPointSends.size() > 1)
+		{
+			final Problem problem = new Problem(
+				null,
+				1,
+				1,
+				PARSE,
+				"The command could be parsed in multiple ways, using entry "
+				+ "points of the following modules:\n{0}",
+				namesOfModulesWithValidSends)
+			{
+				@Override
+				public void abortCompilation ()
+				{
+					// do nothing.
+				}
+			};
+			commandProblemHandler.handle(problem);
+			onFailure.value();
+			return;
+		}
 
-		onSuccess.value(StringDescriptor.from("Pretend it worked"));
-
+		// Right! We have a single interpretation of the command. Compile the
+		// command and execute it on a fiber.
+		assert entryPointSends.size() == 1;
+		final A_Phrase phrase = entryPointSends.get(0);
+		final A_Function function = FunctionDescriptor.createFunctionForPhrase(
+			phrase, NilDescriptor.nil(), 1);
+		final A_Fiber fiber = FiberDescriptor.newFiber(
+			function.kind().returnType(),
+			FiberDescriptor.commandPriority,
+			StringDescriptor.format(
+				"Running command: %s",
+				phrase));
+		fiber.resultContinuation(
+			new Continuation1<AvailObject>()
+			{
+				@Override
+				public void value (final @Nullable AvailObject result)
+				{
+					assert result != null;
+					onSuccess.value(result, postSuccessCleanup);
+				}
+			});
+		fiber.failureContinuation(new Continuation1<Throwable>()
+		{
+			@Override
+			public void value (@Nullable final Throwable e)
+			{
+				assert e != null;
+				if (!(e instanceof FiberTerminationException))
+				{
+					final CharArrayWriter trace = new CharArrayWriter();
+					e.printStackTrace(new PrintWriter(trace));
+					final Problem problem = new Problem(
+						null,
+						1,
+						1,
+						EXECUTION,
+						"Error executing command: {0}\n{1}",
+						e.getMessage(),
+						trace)
+					{
+						@Override
+						public void abortCompilation ()
+						{
+							// do nothing.
+						}
+					};
+					commandProblemHandler.handle(problem);
+				}
+				onFailure.value();
+			}
+		});
+		Interpreter.runOutermostFunction(
+			runtime,
+			fiber,
+			function,
+			Collections.<AvailObject>emptyList());
 	}
 }

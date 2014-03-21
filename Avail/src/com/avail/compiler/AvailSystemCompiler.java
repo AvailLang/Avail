@@ -42,6 +42,7 @@ import java.util.*;
 import com.avail.annotations.*;
 import com.avail.builder.*;
 import com.avail.compiler.AbstractAvailCompiler.ParserState;
+import com.avail.compiler.problems.ProblemHandler;
 import com.avail.compiler.scanning.AvailScannerResult;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -61,10 +62,27 @@ extends AbstractAvailCompiler
 	/**
 	 * Construct a new {@link AvailSystemCompiler}.
 	 *
+	 * @param module
+	 *        The current {@linkplain ModuleDescriptor module}.
+	 * @param scannerResult
+	 *        An {@link AvailScannerResult}.
+	 * @param problemHandler
+	 *        The {@link ProblemHandler} used for reporting compilation
+	 *        problems.
+	 */
+	public AvailSystemCompiler (
+		final A_Module module,
+		final AvailScannerResult scannerResult,
+		final ProblemHandler problemHandler)
+	{
+		super(module, scannerResult, problemHandler);
+	}
+
+	/**
+	 * Construct a new {@link AvailSystemCompiler}.
+	 *
 	 * @param moduleName
 	 *        The {@link ResolvedModuleName} of the module to compile.
-	 * @param source
-	 *        The {@link String} of source code to be parsed.
 	 * @param scannerResult
 	 *        An {@link AvailScannerResult}.
 	 * @param problemHandler
@@ -72,11 +90,10 @@ extends AbstractAvailCompiler
 	 */
 	public AvailSystemCompiler (
 		final ResolvedModuleName moduleName,
-		final String source,
 		final AvailScannerResult scannerResult,
 		final ProblemHandler problemHandler)
 	{
-		super(moduleName, source, scannerResult, problemHandler);
+		super(moduleName, scannerResult, problemHandler);
 	}
 
 	@Override

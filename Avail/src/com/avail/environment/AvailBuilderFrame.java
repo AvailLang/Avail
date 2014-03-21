@@ -58,7 +58,6 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.builder.*;
 import com.avail.builder.AvailBuilder.LoadedModule;
-import com.avail.compiler.FiberTerminationException;
 import com.avail.compiler.AbstractAvailCompiler.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
@@ -493,19 +492,47 @@ extends JFrame
 				inputField.setText("");
 				isRunning = true;
 				setEnablements();
+				availBuilder.runtime.setStandardStreams(
+					outputStream(), errorStream(), inputStream());
 				availBuilder.attemptCommand(
 					string,
-					new Continuation1<A_BasicObject>()
+					new Continuation2<
+						AvailObject, Continuation1<Continuation0>>()
 					{
 						@Override
-						public void value (final @Nullable A_BasicObject result)
+						public void value (
+							final @Nullable
+								AvailObject result,
+							final @Nullable
+								Continuation1<Continuation0> cleanup)
 						{
+							assert cleanup != null;
+							final Continuation0 afterward = new Continuation0()
+							{
+								@Override
+								public void value ()
+								{
+									isRunning = false;
+									invokeLater(new Runnable()
+									{
+										@Override
+										public void run ()
+										{
+											inputStream().clear();
+											availBuilder.runtime
+												.setStandardStreams(
+													outputStream(),
+													errorStream(),
+													null);
+											setEnablements();
+										}
+									});
+								}
+							};
 							assert result != null;
 							if (result.equalsNil())
 							{
-								isRunning = false;
-								setEnablements();
-								inputStream().clear();
+								cleanup.value(afterward);
 								return;
 							}
 							Interpreter.stringifyThen(
@@ -517,19 +544,9 @@ extends JFrame
 									public void value (
 										final @Nullable String resultString)
 									{
-										invokeLater(new Runnable()
-										{
-											@Override
-											public void run ()
-											{
-												final String str =
-													resultString + "\n";
-												outputStream().append(str);
-												isRunning = false;
-												setEnablements();
-												inputStream().clear();
-											}
-										});
+										outputStream().append(
+											resultString + "\n");
+										cleanup.value(afterward);
 									}
 								});
 						}
@@ -545,8 +562,12 @@ extends JFrame
 								public void run ()
 								{
 									isRunning = false;
-									setEnablements();
 									inputStream().clear();
+									availBuilder.runtime.setStandardStreams(
+										outputStream(),
+										errorStream(),
+										null);
+									setEnablements();
 								}
 							});
 						}
@@ -1013,15 +1034,9 @@ extends JFrame
 			count += bytes.length;
 			try
 			{
-				String textToInsert = text;
-				final int length = doc.getLength();
-				if (length > 0 && !doc.getText(length - 1, 1).equals("\n"))
-				{
-					textToInsert = "\n" + textToInsert;
-				}
 				doc.insertString(
 					doc.getLength(),
-					textToInsert,
+					text,
 					doc.getStyle(inputStyleName));
 			}
 			catch (final BadLocationException e)

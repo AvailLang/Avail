@@ -1,5 +1,5 @@
-/*
- * RPN Language.avail
+/**
+ * package-info.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,28 +30,4 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "RPN Language"
-Uses
-	"Avail" =
-	(
-		"_+_" → "__+",
-		"_-_" → "__-",
-		"_×_" → "__×",
-		"_÷_" → "__÷",
-		…
-	)
-Names
-		"__+",
-		"__-",
-		"__×",
-		"__÷",
-		"RPN_"
-Body
-
-Method "RPN_" is
-[
-	expression : number
-|
-	Print: “expression”;
-	Print: "\n";
-];
+@com.avail.annotations.NotNullByDefault package com.avail.compiler.problems;

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.compiler.problems;
 
 import java.nio.charset.Charset;
 import java.text.MessageFormat;
@@ -71,7 +71,7 @@ public class Problem
 	 * <p>If the problem involves the entire file (file not found, no read
 	 * access, etc.), a line number of 0 can indicate this.</p>
 	 */
-	public final long lineNumber;
+	public final int lineNumber;
 
 	/**
 	 * The approximate location of the problem within the source file as a
@@ -127,7 +127,7 @@ public class Problem
 	public Problem (
 		final @Nullable ModuleName moduleName,
 		final int lineNumber,
-		final int characterInFile,
+		final long characterInFile,
 		final ProblemType type,
 		final String messagePattern,
 		final Object... arguments)
@@ -178,7 +178,7 @@ public class Problem
 	 * @param handler The problem handler.
 	 * @return Whether to continue parsing.
 	 */
-	public final boolean report (final ProblemHandler handler)
+	final boolean report (final ProblemHandler handler)
 	{
 		return type.report(this, handler);
 	}
@@ -188,7 +188,7 @@ public class Problem
 	 * compile is inappropriate or impossible for the receiver, then as a
 	 * convenience, this method simply calls {@link #abortCompilation()}.
 	 */
-	public void continueCompilation ()
+	protected void continueCompilation ()
 	{
 		abortCompilation();
 	}
@@ -198,7 +198,7 @@ public class Problem
 	 * or the {@link #abortCompilation()} method must be invoked by code
 	 * handling {@link Problem}s.
 	 */
-	public void abortCompilation ()
+	protected void abortCompilation ()
 	{
 		// Do nothing by default.
 	}

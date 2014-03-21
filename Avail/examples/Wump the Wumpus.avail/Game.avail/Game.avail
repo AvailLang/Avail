@@ -43,7 +43,7 @@ Uses
 	"Movable Entities",
 	"RNG",
 	"Turn"
-Names
+Entries
 	"Play Wump the Wumpus«with reader_with reporter_»"
 Body
 
@@ -148,7 +148,7 @@ Private method "Report defeat" is
  *
  * @method "Play Wump the Wumpus«with reader_with reporter_»"
  */
-Public method "Play Wump the Wumpus«with reader_with reporter_»" is
+Method "Play Wump the Wumpus«with reader_with reporter_»" is
 [
 	optionalIOActions : <<[]→string, [string]→⊤…|2>…|0..1>
 |

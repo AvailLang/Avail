@@ -108,6 +108,8 @@ Extends
 	)
 Uses
 	"Foundation"
+Entries
+	"Run all tests"
 Body
 
 For each
@@ -143,4 +145,9 @@ do
 	methodName : string
 |
 	Completely seal method methodName;
+];
+
+Private method "Run all tests" is
+[
+	Print: test suite-oriented “report on all tests”;
 ];

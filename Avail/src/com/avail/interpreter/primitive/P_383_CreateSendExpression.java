@@ -89,28 +89,6 @@ extends Primitive
 			return interpreter.primitiveFailure(e.errorCode());
 		}
 		final A_Bundle bundle = messageName.bundleOrCreate();
-		final A_Method method = bundle.bundleMethod();
-		final A_Set allAncestors = interpreter.module().allAncestors();
-		final List<A_Type> argTypes = new ArrayList<>(argsCount);
-		for (final A_Phrase expression : argExpressions)
-		{
-			argTypes.add(expression.expressionType());
-		}
-		boolean anyMatchingDefinitions = false;
-		for (final A_Definition definition : method.definitionsTuple())
-		{
-			if (allAncestors.hasElement(definition.definitionModule())
-				&& definition.bodySignature().acceptsListOfArgTypes(argTypes))
-			{
-				anyMatchingDefinitions = true;
-				break;
-			}
-		}
-		if (!anyMatchingDefinitions)
-		{
-			return interpreter.primitiveFailure(
-				E_INCORRECT_ARGUMENT_TYPE);
-		}
 		return interpreter.primitiveSuccess(
 			SendNodeDescriptor.from(
 				bundle,
