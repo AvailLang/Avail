@@ -56,8 +56,6 @@ Names
 Body
 
 /**
- * Strengthen `_'s⁇default type`.
- * 
  * @method "_'s⁇default type"
  * @restricts "tuple meta's type"
  */
@@ -114,7 +112,7 @@ Public method "«_‡++»" is
 ] : tuple;
 
 /**
- * Don't parse `«_‡++»` recursively.
+ * Don't parse {@method "«_‡++»"} recursively.
  * 
  * @method "«_‡++»"
  * @forbids 1 "«_‡++»"

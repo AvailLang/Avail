@@ -473,7 +473,7 @@ Public method "min_" is minimum function;
  */
 Public method "«_‡min»" is minimum function;
 
-/* Don't parse `«_‡min»` recursively. */
+/* Don't parse «_‡min» recursively. */
 Invoke
 [
 	cast ::= [ t : {string|natural number} | t ];
@@ -532,7 +532,7 @@ Public method "max_" is maximum function;
  */
 Public method "«_‡max»" is maximum function;
 
-/* Don't parse `«_‡max»` recursively. */
+/* Don't parse «_‡max» recursively. */
 Invoke
 [
 	cast ::= [ t : {string|natural number} | t ];

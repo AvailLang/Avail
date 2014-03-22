@@ -42,8 +42,8 @@ Names
 Body
 
 /**
- * Use the same primitive that implements `_'s⁇type` to implement its semantic
- * restriction function.
+ * Use the same primitive that implements {@method "_'s⁇type"} to implement its 
+ * semantic restriction function.
  * 
  * @method "_'s⁇type"
  * @restricts "type"
@@ -60,8 +60,8 @@ Semantic restriction "_'s⁇type" is
  *
  * @method "_'s⁇instance"
  * @param "enum" "type"
- *        An enumeration. Anything answered by `_'s⁇type` satisfies this 
- *        criterion.
+ *        An enumeration. Anything answered by {@method "_'s⁇type"} satisfies 
+ *        this criterion.
  * @returns "any"
  *          The sole instance of the argument.
  * @category "Enumerations" "Types" "Queries"

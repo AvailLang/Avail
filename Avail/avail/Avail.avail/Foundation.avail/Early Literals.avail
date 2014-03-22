@@ -43,9 +43,9 @@ Body
 
 /**
  * Produce a description of the argument. The default implementation uses
- * `primitive description of_` to obtain a mechanically constructed description
- * from the Avail virtual machine. Overrides should provide semantic information
- * that is appropriately localized for the default locale.
+ * {@method "primitive description of_"} to obtain a mechanically constructed 
+ * description from the Avail virtual machine. Overrides should provide semantic
+ * information that is appropriately localized for the default locale.
  *
  * @method "“_”"
  * @param "value" "any"
@@ -87,10 +87,10 @@ Method "<«_‡,»>" is
 ] : tuple;
 
 /**
- * Strengthen the type of `<«_‡,»>` to the most exact possible. The hard work
- * here is done automatically by the Avail compiler, which examines the lexical
- * arguments and produces instance types for literals and applies semantic
- * restrictions to any method sends.
+ * Strengthen the type of {@method "<«_‡,»>"} to the most exact possible. The 
+ * hard work here is done automatically by the Avail compiler, which examines 
+ * the lexical arguments and produces instance types for literals and applies 
+ * semantic restrictions to any method sends.
  * 
  * @method "<«_‡,»>"
  * @restricts "tuple meta"

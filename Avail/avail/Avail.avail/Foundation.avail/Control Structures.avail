@@ -1621,11 +1621,11 @@ Semantic restriction "Do_while_" is
  * @method "Do_while_alternate with_"
  * @param "action" "[]→⊤"
  *        The function to apply once and then again repeatedly while
- *        `predicate` answers `true`.
+ *        {@param "predicate"} answers {@method "true"}.
  * @param "predicate" "[]→boolean"
- *        The function that guards repeated application of `action`.
+ *        The function that guards repeated application of {@param "action"}.
  * @param "between" "[]→⊤"
- *        The function to apply between applications of `action`.
+ *        The function to apply between applications of {@param "action"}.
  * @returns "⊤"
  * @category "Control Structures" "Loops"
  */
@@ -2041,8 +2041,8 @@ Public method "Choose|choose_from_where«_is_‡,»«,else_»" is
 /**
  * Reject the current parse unless all of the following are true:
  *
- * - `meta`'s sole instance is an enumeration.
- * - `valueType` is an instance of `meta`.
+ * - the second parameter's type's sole instance is an enumeration.
+ * - the first parameter's type is an instance of meta.
  * - Each case's selector is a statically known value.
  * - Each case's selector is an instance of the enumeration.
  * - Every value of the enumeration is handled by a case, either explicitly or

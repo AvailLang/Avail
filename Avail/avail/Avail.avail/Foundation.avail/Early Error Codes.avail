@@ -72,7 +72,7 @@ errorCodes : {natural number→string|whole number} := {};
 Public method "error codes" is [errorCodes];
 
 /**
- * Define a method named `name` that stably answers `code`.
+ * Define a method named {@method "name"} that stably answers {@param "code"}.
  * 
  * @method "Next error code is_(_)"
  * @param "baseName" "string"

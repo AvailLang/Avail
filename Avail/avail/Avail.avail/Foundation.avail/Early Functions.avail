@@ -84,7 +84,7 @@ Semantic restriction "Invoke|invoke_with_" is
 |
 	parametersType ::= functionType's parameters' type;
 	parametersSizes ::= ||parametersType||;
-	/* If `parameterSizes` = ⊥, then `parametersType` = ⊥. In this case, we
+	/* If parameterSizes = ⊥, then parametersType = ⊥. In this case, we
 	 * cannot statically ascertain anything interesting about the function and
 	 * the arguments to apply.
 	 */
@@ -137,7 +137,7 @@ Semantic restriction "_(«_‡,»)" is
 |
 	parametersType ::= functionType's parameters' type;
 	parametersSizes ::= ||parametersType||;
-	/* If `parameterSizes` = ⊥, then `parametersType` = ⊥. In this case, we
+	/* If parameterSizes = ⊥, then parametersType = ⊥. In this case, we
 	 * cannot statically ascertain anything interesting about the function and
 	 * the arguments to apply.
 	 */
@@ -185,7 +185,7 @@ Semantic restriction "_[_]" is
 |
 	functionType ::= functionMeta's instance;
 	parametersType ::= functionType's parameters' type;
-	/* If `functionType` is maximally generic, then `parametersType` may be ⊥.
+	/* If functionType is maximally generic, then parametersType may be ⊥.
 	 * In this case we don't know anything about the types of the parameters, so
 	 * don't strengthen the primitive's answer.
 	 */
@@ -220,7 +220,7 @@ Semantic restriction "_[_]" is
 			result := eject ↑result ∪ functionType[subscript];
 			true
 		];
-		/* If `result` is ⊥, then we don't know anything about the types of the
+		/* If result is ⊥, then we don't know anything about the types of the
 		 * parameters in the specified range. In this case, don't strengthen the
 		 * primitive's answer.
 		 */

@@ -153,7 +153,7 @@ Public method "Method_is stable at_" is
 	 *    [
 	 *       arg1 : <tuple…|[2..∞)>'s type
 	 *    |
-	 *        /* `counts` is initialized to the instance counts of the arguments
+	 *        /* counts is initialized to the instance counts of the arguments
 	 *         * that do not correspond to lexical groups. (In this case, there
 	 *         * aren't any, so use the empty set.)
 	 *         */

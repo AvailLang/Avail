@@ -154,8 +154,8 @@ Semantic restriction "_⊕_" is
 
 /**
  * Compute and answer the logical NAND of the arguments. This is equivalent to
- * ¬(`a` ∧ `b`). Short-circuit the computation, i.e., only evaluate `b` if `a`
- * is `true`.
+ * ¬({@param "a"} ∧ {@param "b"}). Short-circuit the computation, i.e., only 
+ * evaluate {@param "b"} if {@param "a"} is {@method "true"}.
  * 
  * @method "_↑_"
  * @param "a" "boolean"
@@ -180,8 +180,9 @@ Method "_↑_" is
 ] : boolean;
 
 /**
- * If the left-hand argument of `_↑_` is known statically to be `false`, then
- * the expression is also known statically to be `true`.
+ * If the left-hand argument of {@method "_↑_"} is known statically to be 
+ * {@method "false"}, then the expression is also known statically to be 
+ * {@method "true"}.
  * 
  * @method "_↑_"
  * @restricts "false's type's type"
@@ -196,8 +197,9 @@ Semantic restriction "_↑_" is
 ];
 
 /**
- * If the left-hand argument of `_↑_` is known statically to be `true`, then
- * the static type of the expression is the negation of `b`'s return type.
+ * If the left-hand argument of {@method "_↑_"} is known statically to be 
+ * {@method "true"}, then the static type of the expression is the negation of 
+ * {@param "b"}'s return type.
  *
  * @method "_↑_"
  * @restricts "true's type's type"
@@ -212,8 +214,9 @@ Semantic restriction "_↑_" is
 ];
 
 /**
- * If the right-hand argument of `_↑_` is known statically to be `true`, then
- * the static type of the expression is the negation of `b`'s return type.
+ * If the right-hand argument of {@method "_↑_"} is known statically to be 
+ * {@method "true"}, then the static type of the expression is the negation of 
+ * {@param "b"}'s return type.
  *
  * @method "_↑_"
  * @restricts "boolean's type"
@@ -229,8 +232,8 @@ Semantic restriction "_↑_" is
 
 /**
  * Compute and answer the logical NOR of the arguments. This is equivalent to
- * ¬(`a` ∨ `b`). Short-circuit the computation, i.e., only evaluate `b` if `a`
- * is `false`.
+ * ¬({@param "a"} ∨ {@param "b"}). Short-circuit the computation, i.e., only 
+ * evaluate {@param "b"} if {@param "a"} is {@method "false"}.
  *
  * @method "_↓_"
  * @param "a" "boolean"
@@ -255,8 +258,9 @@ Method "_↓_" is
 ] : boolean;
 
 /**
- * If the left-hand argument of `_↓_` is known statically to be `true`, then
- * the expression is known statically to be `false`.
+ * If the left-hand argument of {@method "_↓_"} is known statically to be 
+ * {@method "true"}, then the expression is known statically to be {@method 
+ * "false"}.
  * 
  * @method "_↓_"
  * @restricts "true's type's type"
@@ -271,8 +275,9 @@ Semantic restriction "_↓_" is
 ];
 
 /**
- * If the left-hand argument of `_↓_` is known statically to be `false`, then
- * the static type of the expression is the negation of `b`'s return type.
+ * If the left-hand argument of {@method "_↓_"} is known statically to be 
+ * {@method "false"}, then the static type of the expression is the negation of 
+ * {@param "b"}'s return type.
  * 
  * @method "_↓_"
  * @restricts "false's type's type"
@@ -287,8 +292,9 @@ Semantic restriction "_↓_" is
 ];
 
 /**
- * If the left-hand argument of `_↓_` is known statically to be `false`, then
- * the static type of the expression is the negation of `b`'s return type.
+ * If the left-hand argument of {@method "_↓_"} is known statically to be 
+ * {@method "false"}, then the static type of the expression is the negation of
+ * {@param "b"}'s return type.
  * 
  * @method "_↓_"
  * @restricts "false's type's type"
@@ -303,8 +309,9 @@ Semantic restriction "_↓_" is
 ];
 
 /**
- * If the right-hand argument of `_↓_` is known statically to be `false`, then
- * the static type of the expression is `false`.
+ * If the right-hand argument of {@method "_↓_"} is known statically to be 
+ * {@method "false"}, then the static type of the expression is {@method 
+ * "false"}.
  * 
  * @method "_↓_"
  * @restricts "boolean's type"
@@ -320,8 +327,8 @@ Semantic restriction "_↓_" is
 
 /**
  * Compute and answer the material conditional of the arguments. This is the
- * equivalent of (¬`a`) ∨ `b`. Short-circuit the computation, i.e., only
- * evaluate `b` if `a` is `true`.
+ * equivalent of (¬{@param "a"}) ∨ {@param "b"}. Short-circuit the computation, 
+ * i.e., only evaluate {@param "b"} if {@param "a"} is {@method "true"}.
  *
  * @method "_→_"
  * @param "a" "boolean"
@@ -346,8 +353,9 @@ Method "_→_" is
 ] : boolean;
 
 /**
- * If the left-hand argument of `_→_` is known statically to be `false`, then
- * the expression is known statically to be `true`.
+ * If the left-hand argument of {@method "_→_"} is known statically to be 
+ * {@method "false"}, then the expression is known statically to be {@method 
+ * "true"}.
  * 
  * @method "_→_"
  * @restricts "false's type's type"
@@ -362,8 +370,9 @@ Semantic restriction "_→_" is
 ];
 
 /**
- * If the right-hand argument of `_→_` is known statically to be `true`, then
- * the expression is known statically to be `true`.
+ * If the right-hand argument of {@method "_→_"} is known statically to be 
+ * {@method "true"}, then the expression is known statically to be {@method 
+ * "true"}.
  * 
  * @method "_→_"
  * @restricts "boolean's type"
@@ -379,8 +388,8 @@ Semantic restriction "_→_" is
 
 /**
  * Compute and answer the converse implication of the arguments. This is
- * equivalent to `a` ∨ ¬`b`. Short-circuit the computation, i.e., only evaluate
- * `b` if `a`  is false.
+ * equivalent to {@param "a"} ∨ ¬{@param "b"}. Short-circuit the computation, 
+ * i.e., only evaluate {@param "b"} if {@param "a"}  is false.
  *
  * @method "_←_"
  * @param "a" "boolean"
@@ -405,8 +414,8 @@ Method "_←_" is
 ] : boolean;
 
 /**
- * If the left-hand argument of `_←_` is known statically to be `true`, then
- * the static type of the expression is `true`.
+ * If the left-hand argument of {@method "_←_"} is known statically to be 
+ * {@method "true"}, then the static type of the expression is {@method "true"}.
  * 
  * @method "_←_"
  * @restricts "true's type's type"
@@ -421,8 +430,9 @@ Semantic restriction "_←_" is
 ];
 
 /**
- * If the right-hand argument of `_←_` is known statically to be `false`, then
- * the static type of the expression is `true`.
+ * If the right-hand argument of {@method "_←_"} is known statically to be 
+ * {@method "false"}, then the static type of the expression is {@method 
+ * "true"}.
  * 
  * @method "_←_"
  * @restricts "boolean's type"
@@ -438,8 +448,8 @@ Semantic restriction "_←_" is
 
 /**
  * Compute and answer the logical biconditional of the arguments. This is the
- * negation of XOR and equivalent to (`a` ∧ `b`) ∨ ((¬`a`) ∧ ¬`b`), which is
- * a = b.
+ * negation of XOR and equivalent to ({@param "a"} ∧ {@param "b"}) ∨ ((¬{@param 
+ * "a"}) ∧ ¬{@param "b"}), which is a = b.
  *
  * @method "_↔_"
  * @param "boolean" "a"
@@ -479,8 +489,8 @@ Semantic restriction "_↔_" is
 
 /**
  * Compute and answer the material nonimplication of the arguments. This is
- * equivalent to `a` ∧ ¬`b`. Short-circuit the computation, i.e., only evaluate
- * `b` if `a` is `true`.
+ * equivalent to {@param "a"} ∧ ¬{@param "b"}. Short-circuit the computation, 
+ * i.e., only evaluate {@param "b"} if {@param "a"} is {@method "true"}.
  *
  * @method "_↛_"
  * @param "boolean" "a"
@@ -505,8 +515,9 @@ Method "_↛_" is
 ] : boolean;
 
 /**
- * If the left-hand argument of `_↛_` is known statically to be `false`, then
- * the static type of the expression is `false`.
+ * If the left-hand argument of {@method "_↛_"} is known statically to be 
+ * {@method "false"}, then the static type of the expression is {@method 
+ * "false"}.
  *
  * @method "_↛_"
  * @restricts "false's type's type"
@@ -521,8 +532,9 @@ Semantic restriction "_↛_" is
 ];
 
 /**
- * If the right-hand argument of `_↛_` is known statically to be `true`, then
- * the static type of the expression is `false`.
+ * If the right-hand argument of {@method "_↛_"} is known statically to be 
+ * {@method "true"}, then the static type of the expression is {@method 
+ * "false"}.
  *
  * @method "_↛_"
  * @restricts "boolean's type"
@@ -538,8 +550,8 @@ Semantic restriction "_↛_" is
 
 /**
  * Compute and answer the converse nonimplication of the arguments. This is
- * equivalent to (¬`a`) ∧ `b`. Short-circuit the computation, i.e., only
- * evaluate `b` if `a` is `false`.
+ * equivalent to (¬{@param "a"}) ∧ {@param "b"}. Short-circuit the computation, 
+ * i.e., only evaluate {@param "b"} if {@param "a"} is {@method "false"}.
  *
  * @method "_↚_"
  * @param "boolean" "a"
@@ -564,8 +576,9 @@ Method "_↚_" is
 ] : boolean;
 
 /**
- * If the left-hand argument of `_↚_` is known statically to be `true`, then
- * the static type of the expression is `false`.
+ * If the left-hand argument of {@method "_↚_"} is known statically to be 
+ * {@method "true"}, then the static type of the expression is {@method 
+ * "false"}.
  * 
  * @method "_↚_"
  * @restricts "true's type's type"
@@ -580,8 +593,9 @@ Semantic restriction "_↚_" is
 ];
 
 /**
- * If the right-hand argument of `_↚_` is known statically to be `false`, then
- * the static type of the expression is `false`.
+ * If the right-hand argument of {@method "_↚_"} is known statically to be 
+ * {@method "false"}, then the static type of the expression is {@method 
+ * "false"}.
  * 
  * @method "_↚_"
  * @restricts "boolean's type"
@@ -596,9 +610,10 @@ Semantic restriction "_↚_" is
 ];
 
 /**
- * If the right-hand argument of `_↚_` is known statically to be `true` and the
- * left-hand argument is known statically to be `false`, then the static type
- * of the expression is `true`.
+ * If the right-hand argument of {@method "_↚_"} is known statically to be 
+ * {@method "true"} and the left-hand argument is known statically to be 
+ * {@method "false"}, then the static type of the expression is {@method 
+ * "true"}.
  * 
  * @method "_↚_"
  * @restricts "false's type's type"
@@ -613,7 +628,7 @@ Semantic restriction "_↚_" is
 ];
 
 /**
- * Negation has the highest precedence.
+ * Negation has the highest precedence among logical operators.
  * 
  * @method "¬_"
  * @forbids 1 "_∧_" "_∨_" "_⊕_" "_↑_" "_↓_" "_→_" "_←_" "_↔_" "_↛_" "_↚_",
@@ -624,7 +639,8 @@ Grammatical restriction "¬_" is
 	 "_=_", "_≠_"}>;
 
 /**
- * AND operation is second highest precedence.
+ * AND operation is second highest precedence among logical operators, after
+ * negation.
  * 
  * @method "_∧_"
  * @forbids 1 "_∨_" "_→_" "_↔_" "_←_" "_⊕_" "_↛_" "_↚_"
@@ -635,7 +651,8 @@ Grammatical restriction "_∧_" is
 	{"_∧_", "_∨_", "_⊕_", "_→_", "_↔_", "_←_", "_↛_", "_↚_"}>;
 
 /**
- * OR operation is third highest precedence.
+ * OR operation is third highest precedence among logical operators, after
+ * AND and negation.
  * 
  * @method "_∨_"
  * @forbids 1 "_∨_" "_→_" "_↔_" "_←_" "_⊕_" "_↛_" "_↚_"

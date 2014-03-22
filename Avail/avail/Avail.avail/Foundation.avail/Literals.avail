@@ -319,8 +319,8 @@ Semantic restriction "⎡_⎤" is
 
 /**
  * Construct an atom literal from an arbitrary token. The atom is obtained via
- * `atom for_`, i.e., it is looked up using in the current module's context. The
- * name of the atom is provided by the argument's lexeme.
+ * {@method "atom for_"}, i.e., it is looked up using in the current module's 
+ * context. The name of the atom is provided by the argument's lexeme.
  * 
  * @method "$…"
  * @param "aToken" "token"
@@ -338,9 +338,9 @@ Public method "$…" is
 
 /**
  * Construct an atom literal from an arbitrary token. The atom is obtained via
- * `atom for_`, i.e., it is looked up using in the current module's context. If
- * the token is a string literal, then use its value instead of its lexeme for
- * the name of the atom.
+ * {@method "atom for_"}, i.e., it is looked up using in the current module's 
+ * context. If the token is a string literal, then use its value instead of its 
+ * lexeme for the name of the atom.
  * 
  * @method "$…"
  * @param "aToken" "literal token"
