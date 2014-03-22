@@ -71,6 +71,8 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 	 * 		A {@link ArrayList} of any {@link StacksSeeTag "@sees"} references.
 	 * @param description
 	 * 		The overall description of the implementation
+	 * @param categories
+	 * 		The categories the implementation appears in
 	 * @param parameters
 	 * 		The list of {@link StacksParameterTag parameters} of the method
 	 * 		implementation.
@@ -86,11 +88,13 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		final ArrayList<StacksAuthorTag> author,
 		final ArrayList<StacksSeeTag> sees,
 		final ArrayList<AbstractStacksToken> description,
+		final ArrayList<StacksCategoryTag> categories,
 		final ArrayList<StacksParameterTag> parameters,
 		final StacksReturnTag returnsContent,
 		final ArrayList<StacksRaisesTag> exceptions)
 	{
-		super(signature, commentStartLine, author, sees, description);
+		super(signature, commentStartLine, author, sees, description,
+			categories);
 		this.parameters = parameters;
 		this.returnsContent = returnsContent;
 		this.exceptions = exceptions;

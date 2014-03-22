@@ -60,6 +60,8 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 	 * 		A {@link ArrayList} of any {@link StacksSeeTag "@sees"} references.
 	 * @param description
 	 * 		The overall description of the implementation
+	 * @param categories
+	 * 		The categories the implementation appears in
 	 * @param globalTag
 	 * 		A global module variable comment tag
 	 */
@@ -69,9 +71,11 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 		final ArrayList<StacksAuthorTag> author,
 		final ArrayList<StacksSeeTag> sees,
 		final ArrayList<AbstractStacksToken> description,
+		final ArrayList<StacksCategoryTag> categories,
 		final StacksGlobalTag globalTag)
 	{
-		super(signature, commentStartLine, author, sees, description);
+		super(signature, commentStartLine, author, sees, description,
+			categories);
 		this.globalTag = globalTag;
 	}
 

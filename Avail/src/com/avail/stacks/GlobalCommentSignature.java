@@ -32,8 +32,6 @@
 
 package com.avail.stacks;
 
-import com.avail.descriptor.A_String;
-
 /**
  * GLOBAL Comment Signature
  *
@@ -52,7 +50,7 @@ public class GlobalCommentSignature extends CommentSignature
 	 * @param module
 	 * @param globalType
 	 */
-	public GlobalCommentSignature (final String name, final A_String module,
+	public GlobalCommentSignature (final String name, final String module,
 		final String globalType)
 	{
 		super(name, module);
@@ -62,7 +60,7 @@ public class GlobalCommentSignature extends CommentSignature
 	@Override
 	public String toString ()
 	{
-		return String.format("%s -> %s", name.asNativeString(),
+		return String.format("%s -> %s", name,
 			globalType);
 	}
 }

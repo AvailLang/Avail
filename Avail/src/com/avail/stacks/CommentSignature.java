@@ -32,9 +32,6 @@
 
 package com.avail.stacks;
 
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.StringDescriptor;
-
 /**
  * The defining characteristic of a comment as it pertains to the
  * implementation it describes.
@@ -47,12 +44,12 @@ public class CommentSignature
 	/**
 	 * The name of the class/method the comment describes.
 	 */
-	final A_String name;
+	final String name;
 
 	/**
 	 *  The module this implementation appears in.
 	 */
-	final A_String module;
+	final String module;
 
 	/**
 	 * Construct a new {@link CommentSignature}.
@@ -64,15 +61,9 @@ public class CommentSignature
 	 */
 	public CommentSignature (
 		final String name,
-		final A_String module)
+		final String module)
 	{
-		this.name = StringDescriptor.from(name);
+		this.name = name;
 		this.module = module;
-	}
-
-	@Override
-	public String toString ()
-	{
-		return String.format("%s", name.asNativeString());
 	}
 }

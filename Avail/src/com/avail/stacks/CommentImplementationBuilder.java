@@ -75,7 +75,7 @@ public class CommentImplementationBuilder
 			 throws ClassCastException, StacksCommentBuilderException
 	{
 		final ArrayList<QuotedStacksToken> tempTokens =
-			new ArrayList<QuotedStacksToken>(1);
+			new ArrayList<QuotedStacksToken>();
 
 		for (final AbstractStacksToken token : tagContentTokens)
 		{
@@ -94,6 +94,12 @@ public class CommentImplementationBuilder
 					commentStartLine());
 				throw new StacksCommentBuilderException(errorMessage, this);
 			}
+		}
+		if (tempTokens.isEmpty())
+		{
+			//There are no categories so give it one.
+			QuotedStacksToken.create("Unclassified", 0, 0, 0,
+				moduleName.asNativeString());
 		}
 		categories.add(new StacksCategoryTag (tempTokens));
 	}
@@ -826,13 +832,14 @@ public class CommentImplementationBuilder
 				final CommentSignature signature =
 					new CommentSignature(
 							types.get(0).typeName().lexeme(),
-						moduleName());
+						moduleName().asNativeString());
 				return new ClassCommentImplementation (
 					signature,
 					commentStartLine (),
 					authors,
 					sees,
 					description,
+					categories,
 					supertypes,
 					fields);
 			}
@@ -867,12 +874,13 @@ public class CommentImplementationBuilder
 
 				final SemanticRestrictionCommentSignature signature =
 					new SemanticRestrictionCommentSignature(
-						methods.get(0).methodName().quotedLexeme(),
-						moduleName(),
+						methods.get(0).methodName().lexeme(),
+						moduleName().asNativeString(),
 						orderedInputTypes);
 
 				return new SemanticRestrictionCommentImplementation(signature,
-					commentStartLine (), authors, sees, description, restricts);
+					commentStartLine (), authors, sees, description,
+					categories, restricts);
 			}
 
 			if (restricts.isEmpty() && !parameters.isEmpty() &&
@@ -896,14 +904,14 @@ public class CommentImplementationBuilder
 
 				final MethodCommentSignature signature =
 					new MethodCommentSignature(
-						methods.get(0).methodName().quotedLexeme(),
-						moduleName(),
+						methods.get(0).methodName().lexeme(),
+						moduleName().asNativeString(),
 						orderedInputTypes,
 						returns.get(0).returnType().lexeme());
 
 				return new MethodCommentImplementation(signature,
-					commentStartLine (), authors, sees, description, parameters,
-					returns.get(0), raises);
+					commentStartLine (), authors, sees, description, categories,
+					parameters,returns.get(0), raises);
 			}
 
 			if (restricts.isEmpty() && parameters.isEmpty() &&
@@ -913,12 +921,12 @@ public class CommentImplementationBuilder
 				{
 					final CommentSignature signature =
 						new CommentSignature(
-							methods.get(0).methodName().quotedLexeme(),
-							moduleName());
+							methods.get(0).methodName().lexeme(),
+							moduleName().asNativeString());
 
 					return new GrammaticalRestrictionCommentImplementation(
 						signature, commentStartLine (), authors, sees,
-						description, forbids.get(0));
+						description, categories, forbids.get(0));
 				}
 				final String errorMessage = String.format("\n<li><strong>%s"
 					+ "</strong><em> Line #: %d</em>: Malformed comment; has "
@@ -936,14 +944,14 @@ public class CommentImplementationBuilder
 
 				final MethodCommentSignature signature =
 					new MethodCommentSignature(
-						methods.get(0).methodName().quotedLexeme(),
-						moduleName(),
+						methods.get(0).methodName().lexeme(),
+						moduleName().asNativeString(),
 						orderedInputTypes,
 						returns.get(0).returnType().lexeme());
 
 				return new MethodCommentImplementation(signature,
-					commentStartLine (), authors, sees, description, parameters,
-					returns.get(0), raises);
+					commentStartLine (), authors, sees, description, categories,
+					parameters, returns.get(0), raises);
 			}
 		}
 
@@ -954,11 +962,11 @@ public class CommentImplementationBuilder
 				final GlobalCommentSignature signature =
 					new GlobalCommentSignature(
 						globalVariables.get(0).globalName().lexeme(),
-						moduleName(),
+						moduleName().asNativeString(),
 						globalVariables.get(0).globalType().lexeme());
 
 				return new GlobalCommentImplementation(signature,
-					commentStartLine (), authors, sees,description,
+					commentStartLine (), authors, sees,description, categories,
 					globalVariables.get(0));
 			}
 			final String errorMessage = String.format("\n<li><strong>%s"

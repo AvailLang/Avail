@@ -61,6 +61,8 @@ public class GrammaticalRestrictionCommentImplementation extends
 	 * 		A {@link ArrayList} of any {@link StacksSeeTag "@sees"} references.
 	 * @param description
 	 * 		The overall description of the implementation
+	 * @param categories
+	 * 		The categories the implementation appears in
 	 * @param forbids
 	 * 		The forbids tag contents
 	 */
@@ -70,9 +72,11 @@ public class GrammaticalRestrictionCommentImplementation extends
 		final ArrayList<StacksAuthorTag> author,
 		final ArrayList<StacksSeeTag> sees,
 		final ArrayList<AbstractStacksToken> description,
+		final ArrayList<StacksCategoryTag> categories,
 		final StacksForbidsTag forbids)
 	{
-		super(signature, commentStartLine, author, sees, description);
+		super(signature, commentStartLine, author, sees, description,
+			categories);
 		this.forbids = forbids;
 	}
 

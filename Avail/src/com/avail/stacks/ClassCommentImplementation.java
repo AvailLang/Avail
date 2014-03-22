@@ -65,6 +65,8 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 	 * 		A {@link ArrayList} of any {@link StacksSeeTag "@sees"} references.
 	 * @param description
 	 * 		The overall description of the implementation
+	 * @param categories
+	 * 		The categories the implementation appears in
 	 * @param supertypes
 	 * 		The {@link ArrayList} of the class's
 	 * 		{@link StacksSuperTypeTag supertypes}
@@ -77,10 +79,12 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 		final ArrayList<StacksAuthorTag> author,
 		final ArrayList<StacksSeeTag> sees,
 		final ArrayList<AbstractStacksToken> description,
+		final ArrayList<StacksCategoryTag> categories,
 		final ArrayList<StacksSuperTypeTag> supertypes,
 		final ArrayList<StacksFieldTag> fields)
 	{
-		super(signature, commentStartLine, author, sees, description);
+		super(signature, commentStartLine, author, sees, description,
+			categories);
 		this.supertypes = supertypes;
 		this.fields = fields;
 	}

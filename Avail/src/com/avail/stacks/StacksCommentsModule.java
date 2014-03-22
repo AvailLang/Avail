@@ -34,9 +34,7 @@ package com.avail.stacks;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.UnresolvedDependencyException;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
@@ -59,21 +57,36 @@ import com.avail.descriptor.StringDescriptor;
 public class StacksCommentsModule
 {
 	/**
-	 * all the named methods exported from the file
-	 */
-	private final A_Set exportedNames;
-
-	/**
 	 * Stacks Error log
 	 */
 	String erroLog;
 
 	/**
+	 * all the named methods exported from the file
+	 */
+	private final HashMap <A_String, A_String> exportedNamesToExtendsModule;
+
+	/**
 	 * @return the exportedNames
 	 */
-	public A_Set exportedNames ()
+	public HashMap <A_String, A_String> exportedNamesToExtendsModule ()
 	{
-		return exportedNames;
+		return exportedNamesToExtendsModule;
+	}
+
+	/**
+	 * all the named methods extended from the file
+	 */
+	private final HashMap<A_String, StacksExtendsModule>
+		extendedNamesImplementations;
+
+	/**
+	 * @return the exportedNames
+	 */
+	public HashMap<A_String, StacksExtendsModule>
+		extendedNamesImplementations ()
+	{
+		return extendedNamesImplementations;
 	}
 
 	/**
@@ -93,7 +106,7 @@ public class StacksCommentsModule
 	/**
 	 * All public methods/classes from this module.
 	 */
-	private final HashMap<A_String,List<AbstractCommentImplementation>>
+	private final HashMap<A_String,ImplementationGroup>
 		namedPulbicCommentImplementations;
 
 
@@ -101,31 +114,11 @@ public class StacksCommentsModule
 	 * Get namedPulbicCommentImplementations
 	 * @return
 	 */
-	public HashMap<A_String,List<AbstractCommentImplementation>>
+	public HashMap<A_String,ImplementationGroup>
 		namedPulbicCommentImplementations()
 	{
 		return namedPulbicCommentImplementations;
 	}
-
-	/**
-	 *
-	 */
-	@Override
-	public String toString()
-	{
-		final StringBuilder stringBuilder = new StringBuilder().append("<ol>");
-
-		for (final List<AbstractCommentImplementation> value :
-			namedPulbicCommentImplementations.values())
-		{
-		   for(final AbstractCommentImplementation method : value)
-		   {
-			   stringBuilder.append(method.toString());
-		   }
-		}
-		return stringBuilder.append("</ol>\n").toString();
-	}
-
 
 	/**
 	 * @param name
@@ -135,17 +128,18 @@ public class StacksCommentsModule
 	 * 		implementation}.
 	 */
 	void addPublicNamedImplementation(
-		final A_String name,
+		final String name,
 		final AbstractCommentImplementation comment)
 	{
 		final A_String nameToCheck =
-			StringDescriptor.from(name.asNativeString()
-				.substring(1, name.tupleSize()-1));
-		if (exportedNames.hasElement(nameToCheck))
+			StringDescriptor.from(name);
+/*		if (exportedNames.hasElement(nameToCheck))
 		{
 			if (namedPulbicCommentImplementations.containsKey(nameToCheck))
 			{
-				namedPulbicCommentImplementations.get(nameToCheck).add(comment);
+				namedPulbicCommentImplementations.get(nameToCheck)
+
+				.add(comment);
 			}
 			else
 			{
@@ -154,7 +148,7 @@ public class StacksCommentsModule
 				newCommentList.add(comment);
 				namedPulbicCommentImplementations.put(nameToCheck,newCommentList);
 			}
-		}
+		}*/
 	}
 
 	/**
@@ -179,13 +173,25 @@ public class StacksCommentsModule
 			.from(header.moduleName.qualifiedName());
 
 		this.namedPulbicCommentImplementations =
-			new HashMap<A_String,List<AbstractCommentImplementation>>();
-		this.exportedNames = allExportedNames(
+			new HashMap<A_String,ImplementationGroup>();
+
+		for (final A_String implementationName : header.exportedNames)
+		{
+			this.namedPulbicCommentImplementations.put(
+				implementationName,
+				new ImplementationGroup(implementationName));
+		}
+
+		this.exportedNamesToExtendsModule =
+			new HashMap<A_String,A_String>();
+
+		this.extendedNamesImplementations = allExportedNames(
 			header,moduleToMethodMap,resolver, publicComments);
 
 		moduleToMethodMap.put(
 			this.moduleName,
-			this.exportedNames);
+			SetDescriptor.fromCollection(
+				this.exportedNamesToExtendsModule.keySet()));
 
 		final StringBuilder errorMessages = new StringBuilder().append("");
 		int errorCount = 0;
@@ -232,13 +238,17 @@ public class StacksCommentsModule
 	 * @param publicComments
 	 * @return
 	 */
-	private A_Set allExportedNames (final ModuleHeader header,
+	private HashMap<A_String,StacksExtendsModule> allExportedNames (
+		final ModuleHeader header,
 		final HashMap<A_String,A_Set> moduleToMethodMap,
 		final ModuleNameResolver resolver,
 		final HashMap<A_String,StacksCommentsModule> publicComments)
 	{
 		A_Set collectedExtendedNames =
 			SetDescriptor.empty();
+
+		final HashMap<A_String,StacksExtendsModule> extendsMap =
+			new HashMap<A_String,StacksExtendsModule>();
 
 		for (final ModuleImport moduleImport : header.importedModules)
 		{
@@ -272,56 +282,44 @@ public class StacksCommentsModule
 						collectedExtendedNames = collectedExtendedNames
 							.setUnionCanDestroy(moduleImport.names,true);
 					}
-
-					if (!moduleImport.renames.equals(MapDescriptor.empty()))
-					{
-						collectedExtendedNames = collectedExtendedNames
-							.setMinusCanDestroy(
-								moduleImport.renames.keysAsSet(),true);
-						collectedExtendedNames = collectedExtendedNames
-							.setUnionCanDestroy(moduleImport.renames
-								.valuesAsTuple().asSet(),true);
-					}
 					if (!moduleImport.excludes.equals(SetDescriptor.empty()))
 					{
 						collectedExtendedNames = collectedExtendedNames
 							.setMinusCanDestroy(moduleImport.excludes, true);
 					}
-					for (final A_String implementationName :
-						collectedExtendedNames)
-					{
 
-						if (publicComments.get(moduleImportName)
-							.namedPulbicCommentImplementations()
-							.containsKey(implementationName))
+					final HashMap<A_String,ImplementationGroup> extendsGroup =
+						new HashMap<A_String,ImplementationGroup>();
+
+					for (final A_String implementation : collectedExtendedNames)
+					{
+						extendsGroup.put(implementation,
+							publicComments.get(moduleImportName)
+								.namedPulbicCommentImplementations()
+									.get(implementation));
+					}
+					if (!moduleImport.renames.equals(MapDescriptor.empty()))
+					{
+						for (final A_String implementation :
+							moduleImport.renames.keysAsSet())
 						{
-							if (namedPulbicCommentImplementations()
-								.containsKey(implementationName))
-							{
-								namedPulbicCommentImplementations()
-									.get(implementationName)
-									.addAll(publicComments
-										.get(moduleImportName)
-										.namedPulbicCommentImplementations()
-										.get(implementationName));
-							}
-							else
-							{
-								final ArrayList<AbstractCommentImplementation>
-									newCommentList =
-									new ArrayList
-										<AbstractCommentImplementation>(1);
-								newCommentList.addAll(publicComments
-									.get(moduleImportName)
-									.namedPulbicCommentImplementations()
-									.get(implementationName));
-								namedPulbicCommentImplementations
-									.put(implementationName,newCommentList);
-							}
+							final A_String rename =
+								moduleImport.renames.mapAt(implementation);
+							extendsGroup.put(
+								rename, extendsGroup.get(implementation));
+							extendsGroup.remove(implementation);
+							extendsGroup.get(rename).rename(rename);
+
+						}
+
+						for (final A_String implementation : extendsGroup.keySet())
+						{
+							exportedNamesToExtendsModule
+								.put(implementation, moduleImportName);
 						}
 					}
-					collectedExtendedNames = collectedExtendedNames
-						.setUnionCanDestroy(collectedExtendedNames, true);
+					extendsMap.put(moduleImportName,
+						new StacksExtendsModule(moduleImportName,extendsGroup));
 				}
 			}
 			catch (final UnresolvedDependencyException e)
@@ -330,7 +328,6 @@ public class StacksCommentsModule
 					e.printStackTrace();
 			}
 		}
-		return collectedExtendedNames.setUnionCanDestroy(
-			SetDescriptor.fromCollection(header.exportedNames), true);
+		return extendsMap;
 	}
 }

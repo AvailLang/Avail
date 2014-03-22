@@ -33,7 +33,6 @@
 package com.avail.stacks;
 
 import java.util.ArrayList;
-import com.avail.descriptor.A_String;
 
 /**
  * The defining characteristic of a semantic restriction comment as it pertains
@@ -60,7 +59,7 @@ public class SemanticRestrictionCommentSignature extends CommentSignature
 	 */
 	public SemanticRestrictionCommentSignature (
 		final String name,
-		final A_String module,
+		final String module,
 		final ArrayList<String> orderedInputTypes)
 	{
 		super(name, module);
@@ -70,7 +69,7 @@ public class SemanticRestrictionCommentSignature extends CommentSignature
 	@Override
 	public String toString ()
 	{
-		return String.format("%s -> %s", name.asNativeString(),
+		return String.format("%s -> %s", name,
 			orderedInputTypes.toString());
 	}
 }

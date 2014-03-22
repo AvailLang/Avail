@@ -61,6 +61,8 @@ public class SemanticRestrictionCommentImplementation extends
 	 * 		A {@link ArrayList} of any {@link StacksSeeTag "@sees"} references.
 	 * @param description
 	 * 		The overall description of the implementation
+	 * @param categories
+	 * 		The categories the implementation appears in
 	 * @param restricts
 	 * 		The list of input types in the semantic restriction.
 	 */
@@ -70,9 +72,11 @@ public class SemanticRestrictionCommentImplementation extends
 		final ArrayList<StacksAuthorTag> author,
 		final ArrayList<StacksSeeTag> sees,
 		final ArrayList<AbstractStacksToken> description,
+		final ArrayList<StacksCategoryTag> categories,
 		final ArrayList<StacksRestrictsTag> restricts)
 	{
-		super(signature, commentStartLine, author, sees, description);
+		super(signature, commentStartLine, author, sees, description,
+			categories);
 		this.restricts = restricts;
 	}
 

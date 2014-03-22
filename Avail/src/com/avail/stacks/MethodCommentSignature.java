@@ -33,7 +33,6 @@
 package com.avail.stacks;
 
 import java.util.ArrayList;
-import com.avail.descriptor.A_String;
 
 /**
  * The defining characteristic of a method comment as it pertains to the
@@ -67,7 +66,7 @@ public class MethodCommentSignature extends CommentSignature
 	 */
 	public MethodCommentSignature (
 		final String name,
-		final A_String module,
+		final String module,
 		final ArrayList<String> orderedInputTypes,
 		final String returnType)
 	{
@@ -79,7 +78,7 @@ public class MethodCommentSignature extends CommentSignature
 	@Override
 	public String toString ()
 	{
-		return String.format("%s -> %s : %s", name.asNativeString(),
+		return String.format("%s -> %s : %s", name,
 			orderedInputTypes.toString(),returnType);
 	}
 }
