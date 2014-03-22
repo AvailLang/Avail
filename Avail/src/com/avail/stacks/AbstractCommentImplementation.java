@@ -69,6 +69,11 @@ public abstract class AbstractCommentImplementation
 	final ArrayList<AbstractStacksToken> description;
 
 	/**
+	 * The list of categories the implementation applies to.
+	 */
+	final ArrayList<StacksCategoryTag> categories;
+
+	/**
 	 *
 	 * Construct a new {@link AbstractCommentImplementation}.
 	 *
@@ -83,19 +88,23 @@ public abstract class AbstractCommentImplementation
 	 * 		A {@link List} of any {@link StacksSeeTag "@sees"} references.
 	 * @param description
 	 * 		The overall description of the implementation
+	 * @param categories
+	 * 		The categories the implementation appears in
 	 */
 	AbstractCommentImplementation(
 		final CommentSignature signature,
 		final int commentStartLine,
 		final ArrayList<StacksAuthorTag> author,
 		final ArrayList<StacksSeeTag> sees,
-		final ArrayList<AbstractStacksToken> description)
+		final ArrayList<AbstractStacksToken> description,
+		final ArrayList<StacksCategoryTag> categories)
 	{
 		this.signature = signature;
 		this.commentStartLine = commentStartLine;
 		this.author = author;
 		this.sees = sees;
 		this.description = description;
+		this.categories = categories;
 	}
 
 	@Override
