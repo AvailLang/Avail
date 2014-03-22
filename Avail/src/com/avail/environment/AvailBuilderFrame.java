@@ -1408,6 +1408,9 @@ extends JFrame
 		documentAction.setEnabled(!busy);
 		insertEntryPointAction.setEnabled(
 			!busy && selectedEntryPoint() != null);
+		inputField.setBackground(isRunning
+			? new Color(192, 255, 192)
+			: null);
 	}
 
 	/**
