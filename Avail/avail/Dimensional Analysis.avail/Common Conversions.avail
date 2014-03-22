@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Common Conversions"
+Module "Common Conversions"
 Versions
 	"dev"
 Uses

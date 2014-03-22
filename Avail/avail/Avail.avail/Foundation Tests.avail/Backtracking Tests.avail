@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Backtracking Tests"
+Module "Backtracking Tests"
 Versions
 	"dev"
 Uses

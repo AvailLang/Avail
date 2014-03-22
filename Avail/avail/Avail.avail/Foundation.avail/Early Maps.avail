@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Maps"
+Module "Early Maps"
 Versions
 	"dev"
 Extends
@@ -259,8 +259,8 @@ Semantic restriction "_-_" is
 ];
 
 /**
- * If `key` is a key of `aMap`, then answer its associated value. Otherwise,
- * invoke `else` and answer its return value.
+ * If {@param "key"} is a key of {@param "aMap"}, then answer its associated
+ * value. Otherwise, invoke {@param "else"} and answer its return value.
  * 
  * @method "_[_]else_"
  * @param "aMap" "map"
@@ -270,6 +270,7 @@ Semantic restriction "_-_" is
  * @param "default" "[]→any"
  *        A function that answers the 
  * @returns "any"
+ * @category "Maps" "Queries"
  */
 Method "_[_]else_" is
 [

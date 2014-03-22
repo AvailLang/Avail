@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Apples to Apples - 2"
+Module "Apples to Apples - 2"
 Versions
 	"dev"
 Uses

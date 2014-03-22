@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Types"
+Module "Types"
 Versions
 	"dev"
 Extends

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "CSV"
+Module "CSV"
 Extends
 	"CSV Language" =
 	(
@@ -38,4 +38,6 @@ Extends
 		"Display CSV(as a table«with headers»?)"
 	),
 	"CSV Data"
+Entries
+	"Display CSV(as a table«with headers»?)"
 Body

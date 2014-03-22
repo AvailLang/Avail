@@ -1,0 +1,96 @@
+/*
+ * Game Context.avail
+ * Copyright © 2013-2014, Cislyn Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Redistributions with modification must include attribution of the parties
+ *   responsible for that modification.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Game Context"
+Versions
+	"dev"
+Uses
+	"Avail",
+	"Choosable Path"
+Body
+
+/**
+ * @module "Game Context"
+ * @author Cislyn Smith <cislyn@gmail.com>
+ */
+
+Let the game context include
+	boolean state
+		"the Princess is in the party" /
+		"the Princess is not in the party"  ✔ ,
+		"the Assistant is in the party" /
+		"the Assistant is not in the party"  ✔
+	;
+
+Let
+	"The Ship of Stories",
+	"The Princess",
+	"The Mad Scientist",
+	and "The Detective" be scenes;
+
+The Ship of Stories
+is described by
+	"It’s time for the Annual Games again, time to choose a new Narrator for the
+	Ship of Stories. The Archetypes are all out of their halls and mingling here
+	in the lobby, waiting for the stages to be set in the different story rooms,
+	the choices to be made. You know your task: to earn as many points by the
+	end of your story arc as possible while searching for the Perspex Gem. It is
+	the tool with which The Narrator steers the ship, directs the stories, and
+	sets the tone for all the travelers and archetypes aboard. Your fellow
+	travelers have mostly already chosen their vessels for the game, and only a
+	few options remain to you. You’re sure you could win with any of them,
+	though. Perspective and Narration could be yours soon! Who will you be?"
+has transitions
+	to The Princess described by
+		"The Princess has far more than nobility of birth going for her; it takes
+		some serious dedication and strength to endure all that the various (and
+		nefarious) Narrators have inflicted on her through the ages. Nobody ever
+		claims it will be easy being The Princess - you might be called on to
+		silently weave shirts of nettles for seven years, or be harangued
+		constantly by The Wicked Stepmother - but The Narrator is sure to come
+		up with a classic story arc for you, and you can think of lots of ways
+		to earn points in this role.",
+	to The Mad Scientist described by
+		"Yes, yesssss! Who better to determine the tone and set the course for
+		the Ship of Stories than a scientist gleefully creating monstrosities
+		and twisting the forces of nature to do his bidding?! Nothing shall
+		stand in the way of your SCIENCE!",
+	to The Detective described by
+		"What we have here is a real mystery, and it’s going to take some
+		serious brainwork to figure this out. A sharp mind, keen observational
+		skills, and a penchant for addictive substances are all sure to work in
+		your favor.";
+
+Let The Ship of Stories be the opening scene;

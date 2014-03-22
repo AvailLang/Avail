@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Printing"
+Module "Printing"
 Versions
 	"dev"
 Uses

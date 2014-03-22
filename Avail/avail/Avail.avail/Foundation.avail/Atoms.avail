@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Atoms"
+Module "Atoms"
 Versions
 	"dev"
 Uses
@@ -63,6 +63,7 @@ Body
  * @returns "any"
  *        Either the requested property value or the result of applying
  *          {@param "else"}.
+ * @category "Atoms" "Queries"
  */
 Method "_[_]else_" is
 [
@@ -88,6 +89,7 @@ Method "_[_]else_" is
  * @param "atomName" "string"
  *        The name by which this atom is known locally.
  * @returns "⊤"
+ * @category "Atoms" "Declarations"
  */
 Public method "«Public»?_is a|an new⁇field⁇atom" is
 [
@@ -152,6 +154,7 @@ Semantic restriction "«Public»?_is a|an new⁇field⁇atom" is
  * @param "atomName" "string"
  *        The atom's name, provided primarily for debugging purposes.
  * @returns "⊤"
+ * @category "Atoms" "Declarations"
  */
 Public method "«Public»?_is a new⁇heritable«fiber-local»⁇atom" is
 [

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Definers"
+Module "Definers"
 Versions
 	"dev"
 Extends
@@ -63,7 +63,6 @@ Body
  * 
  * @method "«_‡,»are all singular"
  * @returns "boolean"
- *
  */
 Private method "«_‡,»are all singular" is
 [
@@ -105,11 +104,12 @@ typeAtom ::= atom for "_'s⁇type";
 areAllSingularAtom ::= atom for "«_‡,»are all singular";
 
 /**
- * Declare that the method referenced by `methodName` is stable for the given
- * signature. A stable method produces the same value for the same arguments on
- * every call. Automatically generate and install a semantic restriction that
- * will statically strengthen the answer produced at a call site to a precisely
- * known value when all arguments are themselves precisely known.
+ * Declare that the method referenced by {@param "methodName"} is stable for the 
+ * given signature. A stable method produces the same value for the same
+ * arguments on every call. Automatically generate and install a semantic 
+ * restriction that will statically strengthen the answer produced at a call 
+ * site to a precisely known value when all arguments are themselves precisely 
+ * known.
  * 
  * @method "Method_is stable at_"
  * @param "methodName" "string"
@@ -117,6 +117,7 @@ areAllSingularAtom ::= atom for "«_‡,»are all singular";
  * @param "functionType" "function meta"
  *        The signature of the method that is being declared stable.
  * @returns "⊤"
+ * @category "Declarations" "Methods"
  */
 Public method "Method_is stable at_" is
 [
@@ -236,11 +237,12 @@ Public method "Method_is stable at_" is
 ] : ⊤;
 
 /**
- * Declare that the method referenced by `methodName` is stable for the given
- * signature. A stable method produces the same value for the same arguments on
- * every call. Automatically generate and install a semantic restriction that
- * will statically strengthen the answer produced at a call site to a precisely
- * known value when all arguments are themselves precisely known.
+ * Declare that the method referenced by {@param "methodName"} is stable for the
+ * given signature. A stable method produces the same value for the same 
+ * arguments on every call. Automatically generate and install a semantic 
+ * restriction that will statically strengthen the answer produced at a call 
+ * site to a precisely known value when all arguments are themselves precisely 
+ * known.
  * 
  * @method "Method_is stable at_"
  * @param "methodName" "string"
@@ -248,6 +250,7 @@ Public method "Method_is stable at_" is
  * @param "functionType" "function meta"
  *        The signature of the method that is being declared stable.
  * @returns "⊤"
+ * @category "Declarations" "Methods"
  */
 Public method "Method_is stable at_" is
 [
@@ -394,6 +397,7 @@ Semantic restriction "Method_is stable at_" is
  * @param "aFunctionType" "function meta"
  *        The signature.
  * @returns "⊤"
+ * @category "Declarations" "Methods"
  */
 Public method "Stable abstract method_is_" is
 [
@@ -405,8 +409,6 @@ Public method "Stable abstract method_is_" is
 ] : ⊤;
 
 /**
- * 
- * 
  * @method "Stable abstract method_is_"
  * @restricts "string's type"
  * @restricts "function meta's type"
@@ -446,6 +448,7 @@ Semantic restriction "Stable abstract method_is_" is
  * @param "aFunctionType" "function meta"
  *        The signature.
  * @returns "⊤"
+ * @category "Declarations" "Methods"
  */
 Public method "Stable forward method_is_" is
 [
@@ -490,6 +493,7 @@ Semantic restriction "Stable forward method_is_" is
  * @param "implementation" "function"
  *        An implementation of the method.
  * @returns "⊤"
+ * @category "Declarations" "Methods"
  */
 Public method "Stable method_is_" is
 [
@@ -501,8 +505,6 @@ Public method "Stable method_is_" is
 ];
 
 /**
- * 
- * 
  * @method "Stable method_is_"
  * @restricts "string's type"
  * @restricts "function meta"
@@ -534,6 +536,7 @@ Semantic restriction "Stable method_is_" is
  * @param "aFunctionType" "function meta"
  *        The signature.
  * @returns "⊤"
+ * @category "Declarations" "Methods"
  */
 Public method "Public stable abstract method_is_" is
 [
@@ -593,6 +596,7 @@ Semantic restriction "Public stable abstract method_is_" is
  * @param "aFunctionType" "function meta"
  *        The signature.
  * @returns "⊤"
+ * @category "Declarations" "Methods"
  */
 Public method "Public stable forward method_is_" is
 [
@@ -641,6 +645,7 @@ Semantic restriction "Public stable forward method_is_" is
  * @param "implementation" "function"
  *        The original implementation of the method.
  * @returns "⊤"
+ * @category "Declarations" "Methods"
  */
 Public method "Public stable method_is_" is
 [
@@ -686,6 +691,7 @@ Semantic restriction "Public stable method_is_" is
  * @param "aFunctionType" "function meta"
  *        The signature.
  * @returns "⊤"
+ * @category "Declarations" "Methods"
  */
 Public method "Private stable abstract method_is_" is
 [
@@ -745,6 +751,7 @@ Semantic restriction "Private stable abstract method_is_" is
  * @param "aFunctionType" "function meta"
  *        The signature.
  * @returns "⊤"
+ * @category "Declarations" "Methods"
  */
 Public method "Private stable forward method_is_" is
 [
@@ -793,6 +800,7 @@ Semantic restriction "Private stable forward method_is_" is
  * @param "implementation" "function"
  *        The original implementation of the method.
  * @returns "⊤"
+ * @category "Declarations" "Methods"
  */
 Public method "Private stable method_is_" is
 [
@@ -833,6 +841,7 @@ Semantic restriction "Private stable method_is_" is
  *        The name of the accessor. The name of the mutator will be 
  *        {@param "accessorName"} ++ ":=_".
  * @returns "⊤"
+ * @category "Declarations" "Variables"
  */
 Public method "Public variable_is_" is
 [
@@ -883,6 +892,7 @@ Semantic restriction "Public variable_is_" is
  * @param "accessorName" "string"
  *        The name of the accessor.
  * @returns "⊤"
+ * @category "Declarations" "Variables"
  */
 Public method "Public read-only variable_is_" is
 [

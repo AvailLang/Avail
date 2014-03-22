@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Late Math"
+Module "Late Math"
 Versions
 	"dev"
 Extends
@@ -69,15 +69,16 @@ Forward method "_^_" is [float, whole number]→float;
 Forward method "_^_" is [double, whole number]→double;
 
 /**
- * Compute and answer the result of exponentiating `base` by `exponent`.
+ * Compute and answer the result of exponentiating {@param "base"} by {@param
+ * "exponent"}.
  * 
  * @method "_^_"
  * @param "base" "number"
- *    base - The base.
  * @param "exponent" "number"
- *    exponent - The exponent.
  * @returns "number"
- *    The result of raising `base` to the `exponent` power.
+ *          The result of raising {@param "base"} to the {@param "exponent"}
+ *          power.
+ * @category "Mathematics" "Numbers"
  */
 Method "_^_" is
 [
@@ -95,12 +96,6 @@ Method "_^_" is
  * @method "_^_"
  * @restricts "number"
  * @restricts "number"
- * Parameters:
- *    a - The base's type.
- *    b - The exponent's type.
- * Returns:
- *    A numeric type that is not an integral kind. (These are dealt with by
- *    another restriction.)
  */
 Semantic restriction "_^_" is type promotion function for
 [
@@ -128,18 +123,6 @@ Semantic restriction "_^_" is type promotion function for
 	a ^ b
 ];
 
-/**
- * Compute and answer the result of exponentiating `base` by `exponent`.
- * In this case, the base is an extended integer but the exponent is ∞.
- * 
- * @method "_^_"
- * @param "base" "extended integer"
- *    base - The base.
- * @param "exponent" "[∞..∞]"
- *    exponent - The exponent, which is ∞.
- * @returns "{0, ∞}ᵀ"
- *    The result of raising `base` to ∞.
- */
 Method "_^_" is
 [
 	base : extended integer,
@@ -156,17 +139,6 @@ Method "_^_" is
 Forward method "_recursive^_"
 	is [extended integer, whole number]→extended integer;
 
-/**
- * Compute and answer the result of exponentiating `base` by `exponent`.
- * 
- * @method "_^_"
- * @param "base" "extended integer"
- *    base - The base.
- * @param "exponent" "whole number"
- *    exponent - The exponent.
- * @returns "extended integer"
- *    The result of raising `base` to the `exponent` power.
- */
 Method "_^_" is
 [
 	base : extended integer,
@@ -193,21 +165,19 @@ Method "_^_" is
 	]
 ] : extended integer;
 
-	
 /**
- * Compute and answer the result of exponentiating `base` by `exponent`.  Do not
- * complain about indeterminate values, under the assumption that those are
- * dealt with by the actual "_^_" method.
- * 
+ * Compute and answer the result of exponentiating {@param "base"} by {@param
+ * "exponent"}. Do not complain about indeterminate values, under the assumption
+ * that those are dealt with by the actual {@param "_^_"} method.
+ *
  * @method "_recursive^_"
  * @param "base" "extended integer"
- *    base - The base.
  * @param "exponent" "whole number"
- *    exponent - The exponent.
  * @returns "extended integer"
- *    The result of raising `base` to the `exponent` power.
+ *          The result of raising {@param "base"} to the {@param "exponent"}
+ *          power.
  */
-Method "_recursive^_" is
+Private method "_recursive^_" is
 [
 	base : extended integer,
 	exponent : whole number
@@ -223,17 +193,6 @@ Method "_recursive^_" is
 	]
 ] : extended integer;
 
-/**
- * Compute and answer the result of exponentiating `base` by `exponent`.
- * 
- * @method "_^_"
- * @param "base" "float"
- *    base - The base.
- * @param "exponent" whole number"
- *    exponent - The exponent.
- * @returns "float"
- *    The result of raising `base` to the `exponent` power.
- */
 Method "_^_" is
 [
 	base : float,
@@ -251,17 +210,6 @@ Method "_^_" is
 	]
 ] : float;
 
-/**
- * Compute and answer the result of exponentiating `base` by `exponent`.
- * 
- * @method "_^_"
- * @param "base" double"
- *    base - The base.
- * @param "exponent" "whole number"
- *    exponent - The exponent.
- * @returns "double"
- *    The result of raising `base` to the `exponent` power.
- */
 Method "_^_" is
 [
 	base : double,
@@ -331,7 +279,8 @@ Method "_^_" is
 				[
 					Guard
 					[
-						value : extended integer := interestingBase ^ interestingPower;
+						value : extended integer :=
+							interestingBase ^ interestingPower;
 						If baseInclusive ∧ [interestingPower ∈ power] then
 						[
 							range := range ∪ [value..value];

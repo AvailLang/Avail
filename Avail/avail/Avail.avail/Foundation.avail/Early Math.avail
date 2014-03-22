@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Math"
+Module "Early Math"
 Versions
 	"dev"
 Uses
@@ -63,7 +63,7 @@ Body
 
 /**
  * Answer the semantic restriction function that should be used for each of
- * `_'s⁇genuine lower bound` and `_'s⁇genuine upper bound`.
+ * {@method "_'s⁇genuine lower bound"} and {@method "_'s⁇genuine upper bound"}.
  *
  * @method "integer range genuine«lower»?«upper»?\
 		\|bound semantic restriction function"
@@ -125,14 +125,16 @@ Semantic restriction "_'s⁇genuine upper bound" is
 
 /**
  * Answer the lower bound of the specified integral range type. Note that unlike
- * `_'s⁇genuine lower bound`, this method explicitly forbids the argument from
- * being ⊥. It is intended as a practical (but not universal) replacement.
+ * {@method "_'s⁇genuine lower bound"}, this method explicitly forbids the
+ * argument from being ⊥. It is intended as a practical (but not universal)
+ * replacement.
  *
  * @method "⎣_⎦"
  * @param "range" "extended integer meta"
  *        An integral range type. Must not be ⊥.
  * @returns "extended integer"
  *          The lower bound of the argument.
+ * @category "Integers" "Types" "Queries"
  */
 Method "⎣_⎦" is
 [
@@ -144,14 +146,16 @@ Method "⎣_⎦" is
 
 /**
  * Answer the upper bound of the specified integral range type. Note that unlike
- * `_'s⁇genuine upper bound`, this method explicitly forbids the argument from
- * being ⊥. It is intended as a practical (but not universal) replacement.
+ * {@method "_'s⁇genuine upper bound"}, this method explicitly forbids the
+ * argument from being ⊥. It is intended as a practical (but not universal)
+ * replacement.
  *
  * @method "⎡_⎤"
  * @param "range" "extended integer meta"
  *        An integral range type. Must not be ⊥.
  * @returns "extended integer"
- *    The upper bound of the argument.
+ *          The upper bound of the argument.
+ * @category "Integers" "Types" "Queries"
  */
 Method "⎡_⎤" is
 [
@@ -165,16 +169,18 @@ Method "⎡_⎤" is
  * Is the lower bound of the argument inclusive?
  *
  * Note that integer ranges canonize each bound as inclusive unless the bound is
- * ±∞. So `(3..6)` is really `[4..5]` and will answer `true` if asked whether
- * its lower bound is inclusive. But `(-∞..0]` will answer `false` if asked
- * whether its lower bound is inclusive.
+ * {@code "±∞"}. So {@code "(3..6)"} is really {@code "[4..5]"} and will answer
+ * {@method "true"} if asked whether its lower bound is inclusive. But {@code
+ * "(-∞..0]"} will answer {@method "false"} if asked whether its lower bound is
+ * inclusive.
  *
  * @method "⎣_⎦is inclusive"
  * @param "range" "extended integer meta"
  *        An integer range.
  * @returns "boolean"
- *          `false` if the lower bound is infinite and exclusive, `true`
- *          otherwise.
+ *          {@method "false"} if the lower bound is infinite and exclusive,
+ *          {@method "true"} otherwise.
+ * @category "Integers" "Types" "Queries"
  */
 Public method "⎣_⎦is inclusive" is
 [
@@ -188,16 +194,18 @@ Public method "⎣_⎦is inclusive" is
  * Is the upper bound of the argument inclusive?
  *
  * Note that integer ranges canonize each bound as inclusive unless the bound is
- * ±∞. So `(3..6)` is really `[4..5]` and will answer `true` if asked whether
- * its upper bound is inclusive. But `[0..∞)` will answer `false` if asked
- * whether its upper bound is inclusive.
+ * {@code "±∞"}. So {@code "(3..6)"} is really {@code "[4..5]"} and will answer
+ * {@method "true"} if asked whether its upper bound is inclusive. But {@code
+ * "[0..∞)"} will answer {@method "false"} if asked whether its upper bound is
+ * inclusive.
  *
  * @method "⎡_⎤is inclusive"
  * @param "range" "extended integer meta"
  *        An integer range.
  * @returns "boolean"
- *          `false` if the upper bound is infinite and exclusive, `true`
- *          otherwise.
+ *          {@method "false"} if the upper bound is infinite and exclusive,
+ *          {@method "true"} otherwise.
+ * @category "Integers" "Types" "Queries"
  */
 Public method "⎡_⎤is inclusive" is
 [
@@ -209,12 +217,12 @@ Public method "⎡_⎤is inclusive" is
 
 /**
  * Answer the semantic restriction function that should be used for each of
- * `⎣_⎦` and `⎡_⎤`.
+ * {@method "⎣_⎦"} and {@method "⎡_⎤"}.
  *
  * @method "integer range bound semantic restriction function"
  * @param "range" "extended integer meta's type"
- * Returns:
- *    A function that strengthens the integer range bounds methods.
+ * @returns "[extended integer meta's type]→extended integer meta"
+ *          A function that strengthens the integer range bounds methods.
  */
 Private method
 "integer range«lower|upper»!bound semantic restriction function" is
@@ -268,6 +276,7 @@ Semantic restriction "⎡_⎤" is
  *        The upper bound, inclusive.
  * @returns "extended integer meta"
  *          The requested integer range.
+ * @category "Integers" "Types" "Constructors"
  */
 Public method "[_.._]" is
 [
@@ -307,6 +316,7 @@ Semantic restriction "[_.._]" is
  *        The upper bound, exclusive.
  * @returns "extended integer meta"
  *          The requested integer range.
+ * @category "Integers" "Types" "Constructors"
  */
 Public method "[_.._)" is
 [
@@ -345,6 +355,7 @@ Semantic restriction "[_.._)" is
  *        The upper bound, inclusive.
  * @returns "extended integer meta"
  *          The requested integer range.
+ * @category "Integers" "Types" "Constructors"
  */
 Public method "(_.._]" is
 [
@@ -384,6 +395,7 @@ Semantic restriction "(_.._]" is
  *        The upper bound, inclusive.
  * @returns "extended integer meta"
  *          The requested integer range.
+ * @category "Integers" "Types" "Constructors"
  */
 Public method "(_.._)" is
 [
@@ -416,8 +428,8 @@ Semantic restriction "(_.._)" is
  * Answer a function that computes the minimum of a tuple of numbers.
  * 
  * @method "minimum function"
- * Returns:
- *    The requested function.
+ * @returns "[<number…|1..>]→number"
+ *          The requested function.
  */
 Private method "minimum function" is
 [
@@ -444,7 +456,8 @@ Private method "minimum function" is
  * @param "numbers" "<<>, number…|[1..∞)>"
  *        A tuple of numbers.
  * @returns "number"
- *    The minimum of the specified numbers.
+ *          The minimum of the specified numbers.
+ * @category "Mathematics" "Relations" "Tuples" "Numbers"
  */
 Public method "min_" is minimum function;
 
@@ -455,7 +468,8 @@ Public method "min_" is minimum function;
  * @param "numbers" "<<>, number…|[1..∞)>"
  *        A tuple of numbers.
  * @returns "number"
- *    The minimum of the specified numbers.
+ *          The minimum of the specified numbers.
+ * @category "Mathematics" "Relations" "Numbers"
  */
 Public method "«_‡min»" is minimum function;
 
@@ -473,8 +487,8 @@ with <>;
  * Answer a function that computes the maximum of a tuple of numbers.
  * 
  * @method "maximum function"
- * Returns:
- *    The requested function.
+ * @returns "[<number…|1..>]→number"
+ *          The requested function.
  */
 Private method "maximum function" is
 [
@@ -502,6 +516,7 @@ Private method "maximum function" is
  *        A tuple of numbers.
  * @returns "number"
  *          The maximum of the specified numbers.
+ * @category "Mathematics" "Relations" "Tuples" "Numbers"
  */
 Public method "max_" is maximum function;
 
@@ -513,6 +528,7 @@ Public method "max_" is maximum function;
  *        A tuple of numbers.
  * @returns "number"
  *          The maximum of the specified numbers.
+ * @category "Mathematics" "Relations" "Numbers"
  */
 Public method "«_‡max»" is maximum function;
 
@@ -531,8 +547,8 @@ with <>;
  * values are extended integers.
  * 
  * @method "minimum semantic restriction"
- * Returns:
- *    The semantic restriction function.
+ * @returns "[<<>, extended integer…|[1..∞)>'s type]→type"
+ *          The semantic restriction function.
  */
 Private method "minimum semantic restriction" is
 [
@@ -620,8 +636,8 @@ Semantic restriction "«_‡min»" is minimum semantic restriction;
  * values are single-precision floating point numbers.
  * 
  * @method "extremum semantic restriction(float)"
- * Returns:
- *    The semantic restriction function.
+ * @returns "[<<>, float…|[2..∞)>'s type]→float's type"
+ *          The semantic restriction function.
  */
 Private method "extremum semantic restriction(float)" is
 [
@@ -637,8 +653,8 @@ Private method "extremum semantic restriction(float)" is
  * values are double-precision floating point numbers.
  * 
  * @method "extremum semantic restriction(double)"
- * Returns:
- *    The semantic restriction function.
+ * @returns "[<<>, double…|[2..∞)>'s type]→double's type"
+ *          The semantic restriction function.
  */
 Private method "extremum semantic restriction(double)" is
 [
@@ -654,7 +670,6 @@ Private method "extremum semantic restriction(double)" is
  *
  * @method "min_"
  * @restricts "<<>, float…|[2..∞)>'s type"
- *            The static types of the operand expressions.
  */
 Semantic restriction "min_" is extremum semantic restriction (float);
 
@@ -663,7 +678,6 @@ Semantic restriction "min_" is extremum semantic restriction (float);
  *
  * @method "«_‡min»"
  * @restricts "<<>, float…|[2..∞)>'s type"
- *            The static types of the operand expressions.
  */
 Semantic restriction "«_‡min»" is extremum semantic restriction (float);
 
@@ -672,7 +686,6 @@ Semantic restriction "«_‡min»" is extremum semantic restriction (float);
  *
  * @method "min_"
  * @restricts "<<>, double…|[2..∞)>'s type"
- *            The static types of the operand expressions.
  */
 Semantic restriction "min_" is extremum semantic restriction (double);
 
@@ -681,7 +694,6 @@ Semantic restriction "min_" is extremum semantic restriction (double);
  *
  * @method "«_‡min»"
  * @restricts "<<>, double…|[2..∞)>'s type"
- *            The static types of the operand expressions.
  */
 Semantic restriction "«_‡min»" is extremum semantic restriction (double);
 
@@ -690,32 +702,31 @@ Semantic restriction "«_‡min»" is extremum semantic restriction (double);
  * values are extended integers.
  * 
  * @method "maximum semantic restriction"
- * Returns:
- *    The semantic restriction function.
+ * @returns "[<extended integer…|2..>'s type]→extended integer's type"
+ *          The semantic restriction function.
  */
 Private method "maximum semantic restriction" is
 [
 	[
 		numbers : <<>, extended integer…|[1..∞)>'s type
 	|
-		first ::= cast numbers[1] into [ t : extended integer meta | t ];
+		first ::= cast numbers[1] into [t : extended integer meta | t];
 		min : extended integer := ⎣first⎦;
 		minInclusive : boolean := ⎣first⎦ is inclusive;
 		max : extended integer := ⎡first⎤;
 		maxInclusive : boolean := ⎡first⎤ is inclusive;
 		limit ::= cast |numbers' leading types| + 1
-			into [ t : natural number | t ];
+			into [t : natural number | t];
 		From 2 to limit do
 		[
 			index : natural number
 		|
 			value ::= cast numbers[index]
-				into [ t : extended integer meta | t ];
+				into [t : extended integer meta | t];
 			lower ::= ⎣value⎦;
 			If min = lower then
 			[
-				minInclusive :=
-					minInclusive ∧ [ ⎣value⎦ is inclusive ];
+				minInclusive := minInclusive ∧ [⎣value⎦ is inclusive];
 			]
 			else
 			[
@@ -728,8 +739,7 @@ Private method "maximum semantic restriction" is
 			upper ::= ⎡value⎤;
 			If max = upper then
 			[
-				maxInclusive :=
-					maxInclusive ∨ [ ⎡value⎤ is inclusive ];
+				maxInclusive := maxInclusive ∨ [⎡value⎤ is inclusive];
 			]
 			else
 			[
@@ -741,7 +751,7 @@ Private method "maximum semantic restriction" is
 			];
 			true
 		];
-		if (min = max) ∧ [ minInclusive = maxInclusive ] then
+		if (min = max) ∧ [minInclusive = maxInclusive] then
 		[
 			min's type
 		]
@@ -760,8 +770,7 @@ Private method "maximum semantic restriction" is
  * Answer an instance type if possible.
  *
  * @method "max_"
- * @restricts "<<>, extended integer…|[1..∞)>'s type"
- *            The static types of the operand expressions.
+ * @restricts "<extended integer…|1..>'s type"
  */
 Semantic restriction "max_" is maximum semantic restriction;
 
@@ -771,8 +780,7 @@ Semantic restriction "max_" is maximum semantic restriction;
  * Answer an instance type if possible.
  *
  * @method "«_‡max»"
- * @restricts "<<>, extended integer…|[1..∞)>'s type"
- *            The static types of the operand expressions.
+ * @restricts "<extended integer…|1..>'s type"
  */
 Semantic restriction "«_‡max»" is maximum semantic restriction;
 
@@ -780,8 +788,7 @@ Semantic restriction "«_‡max»" is maximum semantic restriction;
  * Given only floats, the maximum must be a float.
  * 
  * @method "max_"
- * @restricts "<<>, float…|[2..∞)>'s type"
- *            The static types of the operand expressions.
+ * @restricts "<float…|2..>'s type"
  */
 Semantic restriction "max_" is extremum semantic restriction (float);
 
@@ -789,8 +796,7 @@ Semantic restriction "max_" is extremum semantic restriction (float);
  * Given only floats, the maximum must be a float.
  * 
  * @method "«_‡max»"
- * @restricts "<<>, float…|[2..∞)>'s type"
- *            The static types of the operand expressions.
+ * @restricts "<float…|2..>'s type"
  */
 Semantic restriction "«_‡max»" is extremum semantic restriction (float);
 
@@ -798,8 +804,7 @@ Semantic restriction "«_‡max»" is extremum semantic restriction (float);
  * Given only doubles, the maximum must be a double.
  *
  * @method "max_"
- * @restricts "<<>, float…|[2..∞)>'s type"
- *            The static types of the operand expressions.
+ * @restricts "<float…|2..>'s type"
  */
 Semantic restriction "max_" is extremum semantic restriction (double);
 
@@ -807,13 +812,12 @@ Semantic restriction "max_" is extremum semantic restriction (double);
  * Given only doubles, the maximum must be a double.
  *
  * @method "«_‡max»"
- * @restricts "<<>, float…|[2..∞)>'s type"
- *            The static types of the operand expressions.
+ * @restricts "<float…|2..>'s type"
  */
 Semantic restriction "«_‡max»" is extremum semantic restriction (double);
 
 /**
- * Is `a` greater than `b`?
+ * Is {@param "a"} greater than {@param "b"}?
  * 
  * @method "_>_"
  * @param "a" "number"
@@ -821,7 +825,9 @@ Semantic restriction "«_‡max»" is extremum semantic restriction (double);
  * @param "b" "number"
  *        A number.
  * @returns "boolean"
- *          `true` if `a` is greater than `b`, `false` otherwise.
+ *          {@method "true"} if {@param "a"} is greater than {@param "b"},
+ *          {@method "false"} otherwise.
+ * @category "Mathematics" "Relations" "Numbers"
  */
 Public stable method "_>_" is
 [
@@ -832,7 +838,7 @@ Public stable method "_>_" is
 ] : boolean;
 
 /**
- * Is `a` greater than or equal to `b`?
+ * Is {@param "a"} greater than or equal to {@param "b"}?
  * 
  * @method "_≥_"
  * @param "a" "number"
@@ -840,7 +846,9 @@ Public stable method "_>_" is
  * @param "b" "number"
  *        A number.
  * @returns "boolean"
- *          `true` if `a` is greater than or equal to `b`, `false` otherwise.
+ *          {@method "true"} if {@param "a"} is greater than or equal to {@param
+ *          "b"}, {@method "false"} otherwise.
+ * @category "Mathematics" "Relations" "Numbers"
  */
 Public stable method "_≥_" is
 [
@@ -859,20 +867,21 @@ Invoke
 ]
 with <>;
 
+/**
+ * Is the argument finite?
+ * 
+ * @method "_is finite"
+ * @param "a" "number"
+ * @returns "boolean"
+ *          {@method "true"} if the argument is finite, {@method "false"}
+ *          otherwise.
+ * @category "Mathematics" "Queries" "Numbers"
+ */
 Public abstract method "_is finite" is
 	function accepting <number> and returning boolean;
 Method "_is finite" is stable at
 	function accepting <number> and returning boolean;
 
-/**
- * Is the argument finite?
- * 
- * @method "_is finite"
- * @param "a" "double"
- *        A double.
- * @returns "boolean"
- *          `true` if the argument is finite, `false` otherwise.
- */
 Method "_is finite" is
 [
 	a : double
@@ -880,15 +889,6 @@ Method "_is finite" is
 	¬a→extended integer ∈ {-∞, ∞}
 ];
 
-/**
- * Is the argument finite?
- * 
- * @method "_is finite"
- * @param "a" "float"
- *        A float.
- * @returns "boolean"
- *          `true` if the argument is finite, `false` otherwise.
- */
 Method "_is finite" is
 [
 	a : float
@@ -896,15 +896,6 @@ Method "_is finite" is
 	¬a→extended integer ∈ {-∞, ∞}
 ];
 
-/**
- * Is the argument finite?
- * 
- * @method "_is finite"
- * @param "a" "extended integer"
- *        An extended integer.
- * @returns "boolean"
- *          `true` if the argument is finite, `false` otherwise.
- */
 Method "_is finite" is
 [
 	a : extended integer
@@ -912,15 +903,6 @@ Method "_is finite" is
 	false
 ] : boolean;
 
-/**
- * Is the argument finite?
- * 
- * @method "_is finite"
- * @param "a" "integer"
- *        An integer.
- * @returns "boolean"
- *          `true` if the argument is finite, `false` otherwise.
- */
 Method "_is finite" is
 [
 	a : integer
@@ -928,22 +910,21 @@ Method "_is finite" is
 	true
 ] : true's type;
 
+/**
+ * Is the argument infinite?
+ * 
+ * @method "_is infinite"
+ * @param "a" "number"
+ * @returns "boolean"
+ *          {@method "true"} if the argument is infinite, {@method "false"}
+ *          otherwise.
+ * @category "Mathematics" "Queries" "Numbers"
+ */
 Public abstract method "_is infinite" is
 	function accepting <number> and returning boolean;
 Method "_is infinite" is stable at
 	function accepting <number> and returning boolean;
 
-/**
- * Is the argument infinite?
- * 
- * @method "_is infinite"
- * @param "a" "double"
- * Parameters:
- *    a - A double.
- * @returns "boolean"
- * Returns:
- *    `true` if the argument is infinite, `false` otherwise.
- */
 Method "_is infinite" is
 [
 	a : double
@@ -951,15 +932,6 @@ Method "_is infinite" is
 	a→extended integer ∈ {-∞, ∞}
 ];
 
-/**
- * Is the argument infinite?
- * 
- * @method "_is infinite"
- * @param "a" "float"
- *         A float.
- * @returns "boolean"
- *    `true` if the argument is infinite, `false` otherwise.
- */
 Method "_is infinite" is
 [
 	a : float
@@ -967,15 +939,6 @@ Method "_is infinite" is
 	a→extended integer ∈ {-∞, ∞}
 ];
 
-/**
- * Is the argument infinite?
- * 
- * @method "_is infinite"
- * @param "a" "extended integer"
- *         An extended integer.
- * @returns "boolean"
- *    `true` if the argument is infinite, `false` otherwise.
- */
 Method "_is infinite" is
 [
 	a : extended integer
@@ -983,15 +946,6 @@ Method "_is infinite" is
 	true
 ] : boolean;
 
-/**
- * Is the argument infinite?
- * 
- * @method "_is infinite"
- * @param "a" "integer"
- *         An integer.
- * @returns "boolean"
- *    `true` if the argument is infinite, `false` otherwise.
- */
 Method "_is infinite" is
 [
 	a : integer
@@ -1008,8 +962,8 @@ Method "_is infinite" is
  * @param "operator" "function accepting <number, number> and returning number"
  *        A function that performs one of the basic arithmetic operations and
  *        answers the result.
- * Returns:
- *    A function that handles type promotions for the given operator.
+ * @returns "[number's type, number's type]→number's type"
+ *          A function that handles type promotions for the given operator.
  */
 Public method "type promotion function for_" is
 [
@@ -1074,7 +1028,6 @@ cannotDivideTwoInfinitiesMessage ::=
 	"either numerator or denominator to be finite";
 
 /**
- * 
  * @method "_+_"
  * @restricts "number"
  * @restricts "number"
@@ -1092,7 +1045,6 @@ Semantic restriction "_+_" is type promotion function for
 ];
 
 /**
- * 
  * @method "_-_"
  * @restricts "number"
  * @restricts "number"
@@ -1110,7 +1062,6 @@ Semantic restriction "_-_" is type promotion function for
 ];
 
 /**
- * 
  * @method "_×_"
  * @restricts "number"
  * @restricts "number"
@@ -1129,7 +1080,6 @@ Semantic restriction "_×_" is type promotion function for
 ];
 
 /**
- * 
  * @method "_÷_"
  * @restricts "number"
  * @restricts "number"
@@ -1151,18 +1101,19 @@ Semantic restriction "_÷_" is type promotion function for
 	a ÷ b
 ];
 
+/**
+ * Convert the argument to an extended integer by truncating, i.e., discarding
+ * the fractional part.
+ * 
+ * @method "_→extended integer"
+ * @param "number" "aNumber"
+ * @returns "extended integer"
+ *          The argument, as an extended integer.
+ * @category "Mathematics" "Conversions" "Numbers"
+ */
 Abstract method "_→extended integer" is
 	function accepting <number> and returning extended integer;
 
-/**
- * Answer the argument.
- * 
- * @method "_→extended integer"
- * @param "extended integer" "anExtendedInteger"
- *        An extended integer.
- * @returns "extended integer"
- *          The argument.
- */
 Method "_→extended integer" is
 [
 	anExtendedInteger : extended integer

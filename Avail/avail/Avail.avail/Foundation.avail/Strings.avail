@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Strings"
+Module "Strings"
 Versions
 	"dev"
 Uses
@@ -92,29 +92,33 @@ interpolationMode ::= enumeration of {description, text, escape};
 
 /**
  * Answer the enumeration of variable interpolation modes:
- * 
- *    - $description : The result of converting the corresponding argument,
- *      which may be any value, to a string via `“_”` will be copied into the
- *      formatted output.
- *    - $text : The corresponding argument is a string and should be copied
- *      directly into the formatted output.
- *    - $escape : There is no corresponding argument. There is an escaped
- *      metacharacter at the format site that should be copied, unescaped, into
- *      the result.
+ *
+ * <ul>
+ * <li>{@method "description"} : The result of converting the corresponding
+ *     argument, which may be any value, to a string via {@method "“_”"} will be
+ *     copied into the formatted output.</li>
+ * <li>{@method "text"} : The corresponding argument is a string and should be
+ *     copied directly into the formatted output.</li>
+ * <li>{@method "escape"} : There is no corresponding argument. There is an
+ *     escaped metacharacter at the format site that should be copied,
+ *     unescaped, into the result.</li>
+ * <ul>
  * 
  * @method "interpolation mode"
- * Returns an enumeration of the atoms listed above.
+ * @returns "{description, text, escape}ᵀ"
  */
-Private method "interpolation mode" is [ interpolationMode ];
+Private method "interpolation mode" is [interpolationMode];
 
 /**
  * Answer the type of a format site. Each instance is a 4-tuple whose elements
  * are:
  *
- *    [1] The format variable whose value should be interpolated at this site.
- *    [2] The variable interpolation type.
- *    [3] The start subscript of the site.
- *    [4] The end subscript of the site.
+ * <ol>
+ * <li>The format variable whose value should be interpolated at this site.</li>
+ * <li>The variable interpolation type.</li>
+ * <li>The start subscript of the site.</li>
+ * <li>The end subscript of the site.</li>
+ * </ol>
  * 
  * @method "format site"
  * @returns "<string, interpolation mode, natural number, natural number…|4>"
@@ -127,17 +131,24 @@ Private method "format site" is
 
 /**
  * Answer the enumeration of format metacharacters:
- * 
- *    - ¢“ : Begins a format site whose interpolation mode is $description.
- *    - ¢” : Ends a format site whose interpolation mode is $description.
- *    - ¢‘ : Begins a format site whose interpolation mode is $text.
- *    - ¢’ : Ends a format site whose interpolation mode is $text.
- *    - ¢` : Indicates a format site whose interpolation mode is $escape.
- *    - ¢① .. ¢㊿ : Indicates a positional format variable.
+ *
+ * <ul>
+ * <li>{@code "¢“"} : Begins a format site whose interpolation mode is
+ *     {@method "description"}.</li>
+ * <li>{@code "¢”"} : Ends a format site whose interpolation mode is {@method
+ *     "description"}.</li>
+ * <li>{@code "¢‘"} : Begins a format site whose interpolation mode is {@method
+ *     "text"}.</li>
+ * <li>{@code "¢’"} : Ends a format site whose interpolation mode is {@method
+ *     "text"}.</li>
+ * <li>{@code "¢`"} : Indicates a format site whose interpolation mode is
+ *     {@method "$escape"}.</li>
+ * <li>{@code "¢① .. ¢㊿"} : Indicates a positional format variable.</li>
+ * </ul>
  *
  * @method "format metacharacters"
- * Returns:
- *    An enumeration of the characters listed above.
+ * @returns "character's type"
+ *          An enumeration of the characters listed above.
  */
 Private method "format metacharacters" is
 [
@@ -151,7 +162,7 @@ Private method "format metacharacters" is
  * @param "template" "string"
  *        A template.
  * @returns "<<string, interpolation mode, natural number, natural number…|4>…|>"
- *    A tuple comprising the format sites for the specified template.
+ *          A tuple comprising the format sites for the specified template.
  */
 Private stable method "format sites for_" is
 [
@@ -266,6 +277,7 @@ Private stable method "format sites for_" is
  * @returns "string"
  *          The result of partially formatting the template usings the specified
  *          bindings.
+ * @category "Formatting" "Strings"
  */
 Public stable method "partially format_with_" is
 [
@@ -385,6 +397,7 @@ Semantic restriction "partially format_with_" is
  *        binding for every variable mentioned within the template.
  * @returns "string"
  *          The result of formatting the template usings the specified bindings.
+ * @category "Formatting" "Strings"
  */
 Public stable method "format_with_" is
 [
@@ -519,6 +532,7 @@ Private method "format variable for_" is
  * @returns "string"
  *          The result of partially formatting the template usings the specified
  *          bindings.
+ * @category "Formatting" "Strings"
  */
 Public method "partially format_with«…::=_‡,»" is
 [
@@ -618,6 +632,7 @@ Semantic restriction "partially format_with«…::=_‡,»" is
  *        The complete format variable bindings.
  * @returns "string"
  *          The result of formatting the template usings the specified bindings.
+ * @category "Formatting" "Strings"
  */
 Public method "format_with«…::=_‡,»" is
 [
@@ -727,6 +742,7 @@ Semantic restriction "format_with«…::=_‡,»" is
  *        template.
  * @returns "string"
  *          The result of formatting the template usings the specified bindings.
+ * @category "Formatting" "Strings"
  */
 Public stable method "format_with unchecked_" is
 [
@@ -832,6 +848,7 @@ Semantic restriction "format_with unchecked_" is
  *        template.
  * @returns "string"
  *          The result of formatting the template usings the specified bindings.
+ * @category "Formatting" "Strings"
  */
 Public method "format_with«_‡,»" is
 [
@@ -927,6 +944,7 @@ cp_Z ::= ¢Z's code point;
  *        ∪ ¢A .. ¢F ∪ ¢a .. ¢f.
  * @returns "extended integer"
  *          An extended integer.
+ * @category "Numbers" "Integers" "Conversions" "Stringification"
  */
 Public stable method "_(base_)" is
 [
@@ -974,6 +992,7 @@ Public stable method "_(base_)" is
  * @param "str" "string"
  *        A string of base-10 digits.
  * @returns "integer"
+ * @category "Numbers" "Integers" "Conversions" "Stringification"
  */
 Public stable method "_→integer" is
 [
@@ -991,6 +1010,7 @@ Public stable method "_→integer" is
  * @param "str" "string"
  *        A string of base-10 digits.
  * @returns "extended integer"
+ * @category "Numbers" "Integers" "Conversions" "Stringification"
  */
 Stable method "_→extended integer" is
 [
@@ -1008,8 +1028,9 @@ Stable method "_→extended integer" is
  * @param "s1" "string"
  * @param "s2" "string"
  * @returns "boolean"
- *          `true` if {@param "s1"} collates before {@param "s2"},
- *          `false` otherwise.
+ *          {@method "true"} if {@param "s1"} collates before {@param "s2"},
+ *          {@method "false"} otherwise.
+ * @category "Strings" "Relations"
  */
 Method "_≤_" is
 [
@@ -1036,8 +1057,9 @@ Method "_≤_" is
  * @param "s1" "string"
  * @param "s2" "string"
  * @returns "boolean"
- *          `true` if {@param "s1"} collates strictly before
- *          {@param "s2"}, `false` otherwise.
+ *          {@method "true"} if {@param "s1"} collates strictly before
+ *          {@param "s2"}, {@method "false"} otherwise.
+ * @category "Strings" "Relations"
  */
 Method "_<_" is
 [
@@ -1054,8 +1076,9 @@ Method "_<_" is
  * @param "s1" "string"
  * @param "s2" "string"
  * @returns "boolean"
- *          `true` if {@param "s1"} collates after {@param "s2"},
- *          `false` otherwise.
+ *          {@method "true"} if {@param "s1"} collates after {@param "s2"},
+ *          {@method "false"} otherwise.
+ * @category "Strings" "Relations"
  */
 Method "_≥_" is
 [
@@ -1082,8 +1105,9 @@ Method "_≥_" is
  * @param "s1" "string"
  * @param "s2" "string"
  * @returns "boolean"
- *          `true` if {@param "s1"} collates strictly after
- *          {@param "s2"}, `false` otherwise.
+ *          {@method "true"} if {@param "s1"} collates strictly after
+ *          {@param "s2"}, {@method "false"} otherwise.
+ * @category "Strings" "Relations"
  */
 Method "_>_" is
 [
@@ -1099,6 +1123,7 @@ Method "_>_" is
  * @method "quicksort_"
  * @param "strings" "<string…|>"
  * @returns "<string…|>"
+ * @category "Strings" "Sorting"
  */
 Method "quicksort_" is
 [
@@ -1108,11 +1133,12 @@ Method "quicksort_" is
 ] : <string…|>;
 
 /**
- * Convert a tuple to a string.
+ * Stringify the argument.
  * 
  * @method "“_”"
  * @param "aTuple" "tuple"
  * @returns "string"
+ * @category "Tuples" "Stringification"
  */
 Method "“_”" is
 [
@@ -1152,6 +1178,7 @@ Method "“_”" is
  *        specified, then {@code ["(empty)"]} will be used.
  * @returns "string"
  *          The requested textual rendition.
+ * @category "Tuples" "Stringification"
  */
 Public method "“_”«else_»(as simple list)" is
 [
@@ -1168,11 +1195,12 @@ Public method "“_”«else_»(as simple list)" is
 ] : string;
 
 /**
- * Convert a set to a string.
+ * Stringify the argument.
  * 
  * @method "“_”"
  * @param "aSet" "set"
  * @returns "string"
+ * @category "Sets" "Stringification"
  */
 Method "“_”" is
 [
@@ -1194,6 +1222,7 @@ Method "“_”" is
  *        specified, then {@code ["(empty)"]} will be used.
  * @returns "string"
  *          The requested textual rendition.
+ * @category "Sets" "Stringification"
  */
 Public method "“_”«else_»(as simple list)" is
 [
@@ -1205,11 +1234,12 @@ Public method "“_”«else_»(as simple list)" is
 ] : string;
 
 /**
- * Convert a {@type "map"} to a {@type "string"}.
+ * Stringify the argument.
  * 
  * @method "“_”"
  * @param "aMap" "map"
  * @returns "string"
+ * @category "Maps" "Stringification"
  */
 Method "“_”" is
 [
@@ -1253,19 +1283,13 @@ Method "“_”" is
  *        multi-element tuple.
  * @returns "string"
  *          The requested textual rendition.
+ * @category "Tuples" "Stringification"
  */
 Public abstract method
 	"“_”«else_»\
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
 is [tuple, <[]→string…|0..1>, [1..2]]→string;
 
-/**
- * @method "“_”«else_»|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
- * @param "tuple" "<⊥…|0>"
- * @param "optionalEmptyText" "<[]→string…|0..1>"
- * @param "mode" "[1..2]"
- * @returns "string"
- */
 Method
 	"“_”«else_»\
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
@@ -1278,13 +1302,6 @@ is
 	optionalEmptyText[1] else [["(empty)"]]()
 ] : string;
 
-/**
- * @method "“_”«else_»|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
- * @param "aTuple" "<any…|1>"
- * @param "optionalEmptyText" "<[]→string…|0..1>"
- * @param "mode" "[1..2]"
- * @returns "string"
- */
 Method
 	"“_”«else_»\
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
@@ -1298,13 +1315,6 @@ is
 	cast elem into [t : string | t] else [“elem”]
 ] : string;
 
-/**
- * @method "“_”«else_»|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
- * @param "aTuple" "<any…|2>"
- * @param "optionalEmptyText" "<[]→string…|0..1>"
- * @param "mode" "[1..2]"
- * @returns "string"
- */
 Method
 	"“_”«else_»\
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
@@ -1319,13 +1329,6 @@ is
 	s1 ++ <" and ", " or ">[mode] ++ s2
 ] : string;
 
-/**
- * @method "“_”«else_»|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
- * @param "aTuple" "<any…|3..>"
- * @param "optionalEmptyText" "<[]→string…|0..1>"
- * @param "mode" "[1..2]"
- * @returns "string"
- */
 Method
 	"“_”«else_»\
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
@@ -1368,20 +1371,13 @@ is
  *        multi-element tuple.
  * @returns "string"
  *          The requested textual rendition.
+ * @category "Sets" "Stringification"
  */
 Abstract method
 	"“_”«else_»\
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
-is
-[set, <[]→string…|0..1>, [1..2]]→string;
+is [set, <[]→string…|0..1>, [1..2]]→string;
 
-/**
- * @method "“_”«else_»|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
- * @param "aSet" "{⊥|0}"
- * @param "optionalEmptyText" "<[]→string…|0..1>"
- * @param "mode" "[1..2]"
- * @returns "string"
- */
 Method
 	"“_”«else_»\
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
@@ -1394,13 +1390,6 @@ is
 	optionalEmptyText[1] else [["(empty)"]]()
 ] : string;
 
-/**
- * @method "“_”«else_»|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
- * @param "aSet" "{any|1}"
- * @param "optionalEmptyText" "<[]→string…|0..1>"
- * @param "mode" "[1..2]"
- * @returns "string"
- */
 Method
 	"“_”«else_»\
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
@@ -1415,13 +1404,6 @@ is
 	cast elem into [t : string | t] else [“elem”]
 ] : string;
 
-/**
- * @method "“_”«else_»|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
- * @param "aSet" "{any|2}"
- * @param "optionalEmptyText" "<[]→string…|0..1>"
- * @param "mode" "[1..2]"
- * @returns "string"
- */
 Method
 	"“_”«else_»\
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
@@ -1437,13 +1419,6 @@ is
 	s1 ++ <" and ", " or ">[mode] ++ s2
 ] : string;
 
-/**
- * @method "“_”«else_»|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
- * @param "aSet" "{any|3..}"
- * @param "optionalEmptyText" "<[]→string…|0..1>"
- * @param "mode" "[1..2]"
- * @returns "string"
- */
 Method
 	"“_”«else_»\
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
@@ -1487,25 +1462,11 @@ is
  *        multi-element tuple.
  * @returns "string"
  *          The requested textual rendition.
+ * @category "Tuples" "Stringification"
  */
 Public abstract method "“_”«else_»(as«conjunctive|disjunctive»!list)"
 	is [tuple, <[]→string…|0..1>, [1..2]]→string;
 
-/**
- * @method "“_”«else_»(as«conjunctive|disjunctive»!list)"
- * @param "aTuple" "<⊥…|0>"
- *        An arbitrary tuple.
- * @param "optionalEmptyText" "<[]→string…|0..1>"
- *        If specified, then the function to apply if the tuple is empty. If not
- *        specified, then {@code ["(empty)"]} will be used.
- * @param "mode" "[1..2]"
- *        If the mode is {@code 1}, then output the word {@code "and"} before
- *        the final element of a multi-element tuple. If the mode is {@code 2},
- *        then output the word {@code "or"} before the final element of a
- *        multi-element tuple.
- * @returns "string"
- *          The requested textual rendition.
- */
 Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 [
 	aTuple : <⊥…|0>,
@@ -1515,21 +1476,6 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 	optionalEmptyText[1] else [["(empty)"]]()
 ] : string;
 
-/**
- * @method "“_”«else_»(as«conjunctive|disjunctive»!list)"
- * @param "aTuple" "<any…|1>"
- *        An arbitrary tuple.
- * @param "optionalEmptyText" "<[]→string…|0..1>"
- *        If specified, then the function to apply if the tuple is empty. If not
- *        specified, then {@code ["(empty)"]} will be used.
- * @param "mode" "[1..2]"
- *        If the mode is {@code 1}, then output the word {@code "and"} before
- *        the final element of a multi-element tuple. If the mode is {@code 2},
- *        then output the word {@code "or"} before the final element of a
- *        multi-element tuple.
- * @returns "string"
- *          The requested textual rendition.
- */
 Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 [
 	aTuple : <any…|1>,
@@ -1540,21 +1486,6 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 	cast elem into [t : string | t] else [“elem”]
 ] : string;
 
-/**
- * @method "“_”«else_»(as«conjunctive|disjunctive»!list)"
- * @param "aTuple" "<any…|2>"
- *        An arbitrary tuple.
- * @param "optionalEmptyText" "<[]→string…|0..1>"
- *        If specified, then the function to apply if the tuple is empty. If not
- *        specified, then {@code ["(empty)"]} will be used.
- * @param "mode" "[1..2]"
- *        If the mode is {@code 1}, then output the word {@code "and"} before
- *        the final element of a multi-element tuple. If the mode is {@code 2},
- *        then output the word {@code "or"} before the final element of a
- *        multi-element tuple.
- * @returns "string"
- *          The requested textual rendition.
- */
 Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 [
 	aTuple : <any…|2>,
@@ -1566,21 +1497,6 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 	s1 ++ <" and ", " or ">[mode] ++ s2
 ] : string;
 
-/**
- * @method "“_”«else_»(as«conjunctive|disjunctive»!list)"
- * @param "aTuple" "<any…|3..>"
- *        An arbitrary tuple.
- * @param "optionalEmptyText" "<[]→string…|0..1>"
- *        If specified, then the function to apply if the tuple is empty. If not
- *        specified, then {@code ["(empty)"]} will be used.
- * @param "mode" "[1..2]"
- *        If the mode is {@code 1}, then output the word {@code "and"} before
- *        the final element of a multi-element tuple. If the mode is {@code 2},
- *        then output the word {@code "or"} before the final element of a
- *        multi-element tuple.
- * @returns "string"
- *          The requested textual rendition.
- */
 Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 [
 	aTuple : <any…|3..>,
@@ -1623,6 +1539,7 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
  *        multi-element tuple.
  * @returns "string"
  *          The requested textual rendition.
+ * @category "Sets" "Stringification"
  */
 Abstract method "“_”«else_»(as«conjunctive|disjunctive»!list)"
 	is [set, <[]→string…|0..1>, [1..2]]→string;
@@ -1698,6 +1615,7 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
  *        "aTuple"}.
  * @returns "string"
  *          The requested textual rendition.
+ * @category "Tuples" "Stringification"
  */
 Method "“_”«else_»(as list partitioned by_)" is
 [
@@ -1737,6 +1655,7 @@ Method "“_”«else_»(as list partitioned by_)" is
  *        "aSet"}.
  * @returns "string"
  *          The requested textual rendition.
+ * @category "Sets" "Stringification"
  */
 Method "“_”«else_»(as list partitioned by_)" is
 [
@@ -1772,6 +1691,7 @@ vowels ::=
  *        or its rendering via {@method "“_”"} is an empty string. If not
  *        specified, then {@code "(nothing)"} will be used if necessary.
  * @returns "string"
+ * @category "Tuples" "Stringification"
  */
 Public method "(a`|an)“_”«else_»" is
 [
@@ -1796,6 +1716,7 @@ Public method "(a`|an)“_”«else_»" is
  *        or its rendering via {@method "“_”"} is an empty string. If not
  *        specified, then {@code "(nothing)"} will be used if necessary.
  * @returns "string"
+ * @category "Tuples" "Stringification"
  */
 Public method "(A`|An)“_”«else_»" is
 [
@@ -1813,13 +1734,14 @@ Public method "(A`|An)“_”«else_»" is
  * definite article. If {@param "value"} is a string, then it will not be
  * quoted.
  *
- * @method "(The)“_”«else_»"
+ * @method "(the)“_”«else_»"
  * @param "value" "any"
  * @param "optionalMissingText" "<string…|0..1>"
  *        If specified, then the text that will be displayed if {@param "value"}
  *        or its rendering via {@method "“_”"} is an empty string. If not
  *        specified, then {@code "(nothing)"} will be used if necessary.
  * @returns "string"
+ * @category "Tuples" "Stringification"
  */
 Public method "(the)“_”«else_»" is
 [
@@ -1844,6 +1766,7 @@ Public method "(the)“_”«else_»" is
  *        or its rendering via {@method "“_”"} is an empty string. If not
  *        specified, then {@code "(nothing)"} will be used if necessary.
  * @returns "string"
+ * @category "Tuples" "Stringification"
  */
 Public method "(The)“_”«else_»" is
 [
@@ -1862,6 +1785,7 @@ Public method "(The)“_”«else_»" is
  * @method "“_”"
  * @param "anObjectType" "object's type"
  * @returns "string"
+ * @category "Objects" "Types" "Stringification"
  */
 Method "“_”" is
 [
@@ -1876,6 +1800,7 @@ Method "“_”" is
  * @method "“_”"
  * @param "anObject" "object"
  * @returns "string"
+ * @category "Objects" "Stringification"
  */
 Stable method "“_”" is
 [

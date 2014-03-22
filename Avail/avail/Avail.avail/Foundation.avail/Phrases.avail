@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Phrases"
+Module "Phrases"
 Versions
 	"dev"
 Extends
@@ -76,7 +76,8 @@ Semantic restriction "_'s⁇value" is
  *        Any value, irrespective of whether an Avail compiler would be able to
  *        construct such a literal.
  * @returns "literal token"
- *    A literal token that embeds the argument.
+ *        A literal token that embeds the argument.
+ * @category "Phrases" "Constructors"
  */
 Public method "``_``" is
 [
@@ -121,6 +122,7 @@ Semantic restriction "‘_’" is
  *        The declaration that introduced the referenced entity.
  * @returns "variable use phrase"
  *          A variable use expression.
+ * @category "Phrases" "Constructors"
  */
 Public method "`«↓_`»" is
 [
@@ -137,6 +139,7 @@ Public method "`«↓_`»" is
  *        A tuple of expressions.
  * @returns "list phrase"
  *          The requested list.
+ * @category "Phrases" "Constructors"
  */
 Public method "`«<«_‡,»>`»" is
 [
@@ -158,6 +161,7 @@ Public method "`«<«_‡,»>`»" is
  *        The return type of the function described by the block.
  * @returns "block phrase"
  *          A block.
+ * @category "Phrases" "Constructors"
  */
 Public method "`«[_`|_]:_`»" is
 [
@@ -198,7 +202,8 @@ Semantic restriction "`«[_`|_]:_`»" is
  * @param "returnType" "type"
  *        The return type of the function described by the block.
  * @returns "block phrase"
- *    A block.
+ *          A block.
+ * @category "Phrases" "Constructors"
  */
 Public method "`«[_]:_`»" is
 [
@@ -227,8 +232,6 @@ Semantic restriction "`«[_]:_`»" is
 ];
 
 /**
- * The requested send node has a semantic type of `returnType`.
- * 
  * @method "send_with_:_"
  * @restricts "atom's type"
  * @restricts "list phrase's type"

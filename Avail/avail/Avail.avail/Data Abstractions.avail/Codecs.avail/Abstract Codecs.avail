@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Abstract Codecs"
+Module "Abstract Codecs"
 Versions
 	"dev"
 Uses

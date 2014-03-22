@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Definers"
+Module "Early Definers"
 Versions
 	"dev"
 Extends
@@ -57,6 +57,7 @@ Body
  * @param "nameType" "string's type"
  *        The type of the name.
  * @returns "⊤"
+ * @category "Assertions" "Types"
  */
 Method "Require:_is public" is
 [
@@ -101,6 +102,7 @@ Method "Require:_is public" is
  * @param "nameType" "atom's type"
  *        The type of the name.
  * @returns "⊤"
+ * @category "Assertions" "Types"
  */
 Method "Require:_is public" is
 [
@@ -152,6 +154,7 @@ Method "Require:_is public" is
  * @param "nameType" "string's type"
  *        The type of the name.
  * @returns "⊤"
+ * @category "Assertions" "Types"
  */
 Method "Require:_is private" is
 [
@@ -196,6 +199,7 @@ Method "Require:_is private" is
  * @param "nameType" "atom's type"
  *        The type of the name.
  * @returns "⊤"
+ * @category "Assertions" "Types"
  */
 Method "Require:_is private" is
 [
@@ -254,6 +258,7 @@ Method "Require:_is private" is
  * @param "aFunctionType" "function meta"
  *        The signature.
  * @returns "⊤"
+ * @category "Primitives" "Declarations" "Methods"
  */
 Method "Public abstract method_is_" is
 [
@@ -294,6 +299,7 @@ Semantic restriction "Public abstract method_is_" is
  * @param "aFunctionType" "function meta"
  *        The signature.
  * @returns "⊤"
+ * @category "Primitives" "Declarations" "Methods"
  */
 Method "Public abstract method_is_" is
 [
@@ -335,6 +341,7 @@ Semantic restriction "Public abstract method_is_" is
  * @param "aFunctionType" "function meta"
  *        The signature.
  * @returns "⊤"
+ * @category "Primitives" "Declarations" "Methods"
  */
 Method "Public forward method_is_" is
 [
@@ -372,6 +379,7 @@ Semantic restriction "Public forward method_is_" is
  * @param "function" "function"
  *        The original implementation of the method.
  * @returns "⊤"
+ * @category "Primitives" "Declarations" "Methods"
  */
 Method "Public method_is_" is
 [
@@ -409,6 +417,7 @@ Semantic restriction "Public method_is_" is
  * @param "function" "function"
  *        The original implementation of the method.
  * @returns "⊤"
+ * @category "Primitives" "Declarations" "Methods"
  */
 Public method "Public method_is_" is
 [
@@ -449,6 +458,7 @@ Semantic restriction "Public method_is_" is
  * @param "aFunctionType" "function meta"
  *        The signature.
  * @returns "⊤"
+ * @category "Primitives" "Declarations" "Methods"
  */
 Public method "Private abstract method_is_" is
 [
@@ -489,6 +499,7 @@ Semantic restriction "Private abstract method_is_" is
  * @param "aFunctionType" "function meta"
  *        The signature.
  * @returns "⊤"
+ * @category "Primitives" "Declarations" "Methods"
  */
 Public method "Private abstract method_is_" is
 [
@@ -530,6 +541,7 @@ Semantic restriction "Private abstract method_is_" is
  * @param "aFunctionType" "function meta"
  *        The signature.
  * @returns "⊤"
+ * @category "Primitives" "Declarations" "Methods"
  */
 Public method "Private forward method_is_" is
 [
@@ -567,6 +579,7 @@ Semantic restriction "Private forward method_is_" is
  * @param "function" "function"
  *        The original implementation of the method.
  * @returns "⊤"
+ * @category "Primitives" "Declarations" "Methods"
  */
 Public method "Private method_is_" is
 [
@@ -604,6 +617,7 @@ Semantic restriction "Private method_is_" is
  * @param "function" "function"
  *        The original implementation of the method.
  * @returns "⊤"
+ * @category "Primitives" "Declarations" "Methods"
  */
 Public method "Private method_is_" is
 [
@@ -648,6 +662,7 @@ Semantic restriction "Private method_is_" is
  *        are restricted from occurring grammatically at the `n`-th argument
  *        position of any invocation of the method named by `methodName`.
  * @returns "⊤"
+ * @category "Declarations" "Methods"
  */
 Method "Grammatical restriction_is_" is
 [
@@ -681,6 +696,7 @@ Method "Grammatical restriction_is_" is
  *        are restricted from occurring grammatically at the `n`-th argument
  *        position of any invocation of the method named by `methodName`.
  * @returns "⊤"
+ * @category "Declarations" "Methods"
  */
 Method "Grammatical restriction_is_" is
 [

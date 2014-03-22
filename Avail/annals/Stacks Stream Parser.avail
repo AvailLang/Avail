@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Stacks Stream Parser"
+Module "Stacks Stream Parser"
 Versions
 "Dev"
 Extends

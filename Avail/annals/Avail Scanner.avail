@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Avail Scanner"
+Module "Avail Scanner"
 Versions
 	"Dev"
 Extends

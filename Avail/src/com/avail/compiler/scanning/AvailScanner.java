@@ -947,7 +947,7 @@ public class AvailScanner
 				stopAfterBodyTokenFlag);
 		scanner.scan();
 		return new AvailScannerResult(
-			scanner.outputTokens, scanner.commentTokens);
+			string, scanner.outputTokens, scanner.commentTokens);
 	}
 
 	/**

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Maps"
+Module "Maps"
 Versions
 	"dev"
 Extends
@@ -73,9 +73,10 @@ Method "“_”" is
  *
  * @method "_is empty"
  * @param "aMap" "map"
- *    aMap - A map.
  * @returns "boolean"
- *    `true` if the argument is empty, `false` otherwise.
+ *          {@method "true"} if the argument is empty, {@method "false"}
+ *          otherwise.
+ * @category "Maps" "Queries"
  */
 Method "_is empty" is
 [
@@ -85,15 +86,15 @@ Method "_is empty" is
 ];
 
 /**
- * Is `key` not a key of `aMap`?
+ * Is {@param "key"} not a key of {@param "aMap"}?
  *
  * @method "_∉_"
  * @param "key" "any"
- *    key - An arbitrary value.
  * @param "aMap" "map"
- *    aMap - A map.
  * @returns "boolean"
- *    `true` if `key` is not an element of `aMap`, `false` otherwise.
+ *          {@method "true"} if {@param "key"} is not an element of {@param
+ *          "aMap"}, {@method "false"} otherwise.
+ * @category "Maps" "Queries"
  */
 Stable method "_∉_" is
 [
@@ -120,16 +121,16 @@ Semantic restriction "_∉_" is
 ];
 
 /**
- * Iteratively apply `action` to each binding of `aMap`, but in no particular
- * order.
+ * Iteratively apply {@param "action"} to each binding of {@param "aMap"}, but
+ * in no particular order.
  * 
  * @method "For each of⁇_do_"
  * @param "aMap" "map"
  * @param "action" "[⊥, ⊥]→⊤"
- *    aMap - A map.
- *    action - A function that accepts the bindings of the map. The first
- *       argument is a key from the map, the second is a value from the map.
+ *        A function that accepts the bindings of the map. The first argument is
+ *        a key from the map, the second is a value from the map.
  * @returns "⊤"
+ * @category "Collections" "Maps" "Control Structures"
  */
 Method "For each of⁇_do_" is
 [
@@ -157,10 +158,9 @@ Method "For each of⁇_do_" is
  * 
  * @method "Require:_accepts_"
  * @param "action" "function meta"
- *    action - A function type whose first two arguments must correspond to the
- *       key and value types of `mapType`.
+ *        A function type whose first two arguments must correspond to the key
+ *        and value types of {@param "mapType"}.
  * @param "mapType" "map meta"
- *    mapType - A map type.
  * @returns "⊤"
  */
 Private method "Require:_accepts_" is
@@ -201,11 +201,6 @@ Private method "Require:_accepts_" is
  * @method "For each of⁇_do_"
  * @restricts "map meta"
  * @restricts "[⊥, ⊥]→⊤'s type"
- * Parameters:
- *    mapType -
- *    action -
- * Returns:
- *    Either ⊤ or ⊥.
  */
 Semantic restriction "For each of⁇_do_" is
 [
@@ -224,20 +219,21 @@ Semantic restriction "For each of⁇_do_" is
 ];
 
 /**
- * Iteratively apply `transformer` to each binding of `aMap`, in no particular
- * order, collecting the results into a new map. The resultant map has the same
- * keys as the original, but its values have been transformed via `transformer`.
+ * Iteratively apply {@param "transformer"} to each binding of {@param "aMap"},
+ * in no particular order, collecting the results into a new map. The resultant
+ * map has the same keys as the original, but its values have been transformed
+ * via {@param "transformer"}.
  * 
  * @method "map_through_"
  * @param "aMap" map"
- *    aMap - A map.
  * @param "transformer" "[⊥, ⊥]→any"
- *    transformer - A function that accepts the bindings of the map. The first
- *       argument is a key from the map, the second is a value from the map.
- *       This function answers a replacement value for the given binding.
+ *        A function that accepts the bindings of the map. The first argument is
+ *        a key from the map, the second is a value from the map. This function
+ *        answers a replacement value for the given binding.
  * @returns "map"
- *    A map of results of applications of `transformer` to the elements of
- *    `aMap`.
+ *          A map of results of applications of `transformer` to the elements of
+ *          {@param "aMap"}.
+ * @category "Collections" "Maps" "Control Structures"
  */
 Method "map_through_" is
 [
@@ -270,13 +266,6 @@ Method "map_through_" is
  * @method "map_through_"
  * @restricts "map meta"
  * @restricts "[⊥, ⊥]→any's type"
- * Parameters:
- *    mapType -
- *    transformer -
- * Returns:
- *    A map type whose key type is the key type of `mapType`, whose value
- *    type is the return type of `transformer`, and whose cardinality is the
- *    same as `mapType`'s.
  */
 Semantic restriction "map_through_" is
 [
@@ -297,19 +286,19 @@ Semantic restriction "map_through_" is
 ];
 
 /**
- * Iteratively apply `predicate` to each binding of `aMap`, in no particular
- * order, collecting those bindings for which `predicate` answers `true` into a
- * new map. Answer the new map.
+ * Iteratively apply {@param "predicate"} to each binding of {@param "aMap"}, in
+ * no particular order, collecting those bindings for which {@param "predicate"}
+ * answers {@method "true"} into a new map. Answer the new map.
  *
  * @method "filter_by_"
  * @param "aMap" "map"
- *    aMap - A map.
  * @param "predicate" "[⊥, ⊥]→boolean"
- *    predicate - A function that accepts the bindings of the map and answers
- *       `true` iff they should be accumulated into the output map.
+ *        A function that accepts the bindings of the map and answers {@method
+ *        "true"} iff they should be accumulated into the output map.
  * @returns "map"
- *    A map containing exactly those bindings of `aMap` for which `predicate`
- *    answered `true`.
+ *          A map containing exactly those bindings of {@param "aMap"} for which
+ *          {@param "predicate"} answered {@method "true"}.
+ * @category "Collections" "Maps" "Control Structures"
  */
 Method "filter_by_" is
 [
@@ -344,12 +333,6 @@ Method "filter_by_" is
  * @method "filter_by_"
  * @restricts "map meta"
  * @restricts "[⊥, ⊥]→boolean's type"
- * Parameters:
- *    mapType -
- *    predicate -
- * Returns:
- *    A map type whose key and value types are the same as `mapType`'s and which
- *    has cardinality `[0..⎡mapType⎤ + 1)`.
  */
 Semantic restriction "filter_by_" is
 [
@@ -365,24 +348,24 @@ Semantic restriction "filter_by_" is
 ];
 
 /**
- * Iteratively apply `accumulator` to the bindings of `aMap`, in no particular
- * order, in order to transform and filter its bindings into a new map. When
- * `accumulator` is invoked, it is passed a "keeper" function. The keeper
- * function may be invoked to "save" a particular value, i.e., a value that will
- * be associated with the current key in the output set. The keeper function
- * will save at most one value per binding of `aSet`, i.e., each time that
- * `accumulator` is invoked, it may invoke the keeper function at most one time.
- * Answer the new map.
+ * Iteratively apply {@param "accumulator"} to the bindings of {@param "aMap"},
+ * in no particular order, in order to transform and filter its bindings into a
+ * new map. When {@param "accumulator"} is invoked, it is passed a "keeper"
+ * function. The keeper function may be invoked to "save" a particular value,
+ * i.e., a value that will be associated with the current key in the output set.
+ * The keeper function will save at most one value per binding of {@param
+ * "aSet"}, i.e., each time that {@param "accumulator"} is invoked, it may
+ * invoke the keeper function at most one time. Answer the new map.
  * 
  * @method "map and filter_by_"
  * @param "aMap" "map"
- *    aMap - A map.
  * @param "accumulator" "[⊥, ⊥, ⊥]→⊤"
- *    accumulator - A function that accepts 1) a key from `aMap`, 2) the value
- *       associated with that key, and 3) a keeper function. The keeper function
- *       accepts an argument of the (value) type that should be saved.
+ *        A function that accepts 1) a key from {@param "aMap"}, 2) the value
+ *        associated with that key, and 3) a keeper function. The keeper
+ *        function accepts an argument of the (value) type that should be saved.
  * @returns "map"
- *    A map whose bindings are those saved by the `accumulator`.
+ *          A map whose bindings are those saved by the {@param "accumulator"}.
+ * @category "Collections" "Maps" "Control Structures"
  */
 Method "map and filter_by_" is
 [
@@ -428,13 +411,6 @@ Method "map and filter_by_" is
  * @method "map and filter_by_"
  * @restricts "map meta"
  * @restricts "[⊥, ⊥, ⊥]→⊤'s type"
- * Parameters:
- *    mapType -
- *    accumulator -
- * Returns:
- *    A map type whose key type is the key type of `mapType`, whose value type
- *    is the parameter type of the keeper function, and whose cardinality is
- *    `[0..⎡mapType⎤ + 1)`.
  */
 Semantic restriction "map and filter_by_" is
 [
@@ -456,18 +432,17 @@ Semantic restriction "map and filter_by_" is
 ];
 
 /**
- * Compute and answer whether any of the elements of `aMap` satisfies the
- * specified function. Do not examine more elements than necessary.
+ * Compute and answer whether any of the elements of {@param "aMap"} satisfies
+ * the specified function. Do not examine more elements than necessary.
  * 
  * @method "any of_satisfies_"
  * @param "aMap" "map"
- *    aMap - A map.
  * @param "predicate" "[⊥, ⊥]→boolean"
- *    predicate - A function that accepts the elements of the map and answers
- *       a boolean.
+ *        A function that accepts the elements of the map and answers a boolean.
  * @returns "boolean"
- *    `true` if `predicate` answers `true` for any element of `aMap`, `false`
- *    otherwise.
+ *          {@method "true"} if {@param "predicate"} answers {@method "true"}
+ *          for any element of {@param "aMap"}, {@method "false"} otherwise.
+ * @category "Collections" "Maps" "Queries"
  */
 Method "any of_satisfies_" is
 [
@@ -494,11 +469,6 @@ Method "any of_satisfies_" is
  * @method "any of_satisfies_"
  * @restricts "map meta"
  * @restricts "[⊥, ⊥]→boolean's type" 
- * Parameters:
- *    mapType -
- *    predicate -
- * Returns:
- *    The function's return type.
  */
 Semantic restriction "any of_satisfies_" is
 [
@@ -510,18 +480,17 @@ Semantic restriction "any of_satisfies_" is
 ];
 
 /**
- * Compute and answer whether each of the elements of `aMap` satisfies the
- * specified function. Do not examine more elements than necessary.
+ * Compute and answer whether each of the elements of {@param "aMap"} satisfies
+ * the specified function. Do not examine more elements than necessary.
  * 
  * @method "each of_satisfies_"
  * @param "aMap" "map"
- *    aMap - A map.
  * @param "predicate" "[⊥, ⊥]→boolean"
- *    predicate - A function that accepts the bindings of the map and answers
- *       a boolean.
+ *        A function that accepts the bindings of the map and answers a boolean.
  * @returns "boolean"
- *    `true` if `predicate` answers `true` for each element of `aMap`, `false`
- *    otherwise.
+ *          {@method "true"} if {@param "predicate"} answers {@method "true"}
+ *          for each element of {@param "aMap"}, {@method "false"} otherwise.
+ * @category "Collections" "Maps" "Queries"
  */
 Method "each of_satisfies_" is
 [
@@ -548,11 +517,6 @@ Method "each of_satisfies_" is
  * @method "each of_satisfies_"
  * @restricts "map meta"
  * @restricts "[⊥, ⊥]→boolean's type"
- * Parameters:
- *    mapType -
- *    predicate -
- * Returns:
- *    The function's return type.
  */
 Semantic restriction "each of_satisfies_" is
 [
@@ -564,17 +528,18 @@ Semantic restriction "each of_satisfies_" is
 ];
 
 /**
- * Compute and answer the count of bindings of `aMap` that satisfy the given
- * predicate.
+ * Compute and answer the count of bindings of {@param "aMap"} that satisfy the
+ * given predicate.
  * 
  * @method "count of_where_"
  * @param "aMap" "map"
- *    aMap - A map.
  * @param "predicate" "[⊥, ⊥]→boolean"
- *    predicate - A function that accepts the bindings of the map and answers
- *       `true` if the binding should be represented in the resulting count.
+ *        A function that accepts the bindings of the map and answers {@method
+ *       "true"} if the binding should be represented in the resulting count.
  * @returns "whole number"
- *    The number of bindings of `aMap` for which `predicate` answers `true`.
+ *          The number of bindings of {@param "aMap"} for which {@param
+ *          "predicate"} answers {@method "true"}.
+ * @category "Collections" "Maps" "Queries"
  */
 Method "count of_where_" is
 [
@@ -590,11 +555,6 @@ Method "count of_where_" is
  * @method "count of_where_"
  * @restricts "map meta"
  * @restricts "[⊥, ⊥]→boolean's type"
- * Parameters:
- *    mapType -
- *    predicate -
- * Returns:
- *    `[0..⎡mapType⎤ + 1)`.
  */
 Semantic restriction "count of_where_" is
 [
@@ -635,18 +595,19 @@ Semantic restriction "_∈_" is
 ];
 
 /**
- * Categorize the elements of `aTuple` via `discriminator`.
+ * Categorize the elements of {@param "aTuple"} via {@param "discriminator"}.
  *
  * @method "group_by_"
  * @param "aTuple" "tuple"
- *    aTuple - The tuple to categorize.
+ *        The tuple to categorize.
  * @param "discriminator" "[⊥]→any"
- *    discriminator - A function that accepts each element of the tuple and
- *       answers a value that represents the group to which the element belongs.
+ *        A function that accepts each element of the tuple and answers a value
+ *        that represents the group to which the element belongs.
  * @returns "map"
- *    A map whose keys describe groups and whose elements are the groups
- *    themselves, i.e., the tuples of elements that constitute the described
- *    group.
+ *          A map whose keys describe groups and whose elements are the groups
+ *          themselves, i.e., the tuples of elements that constitute the
+ *          described group.
+ * @category "Collections" "Tuples" "Maps" "Transformers"
  */
 Method "group_by_" is
 [
@@ -684,18 +645,19 @@ Semantic restriction "group_by_" is
 ];
 
 /**
- * Categorize the elements of `aSet` via `discriminator`.
+ * Categorize the elements of {@param "aSet"} via {@param "discriminator"}.
  *
  * @method "group_by_"
  * @param "aSet" "set"
- *    aSet - The set to categorize.
+ *        The set to categorize.
  * @param "discriminator" "[⊥]→any"
- *    discriminator - A function that accepts each element of the set and
- *       answers a value that represents the group to which the element belongs.
+ *        A function that accepts each element of the set and answers a value
+ *        that represents the group to which the element belongs.
  * @returns "map"
- *    A map whose keys describe groups and whose elements are the groups
- *    themselves, i.e., the sets of elements that constitute the described
- *    group.
+ *          A map whose keys describe groups and whose elements are the groups
+ *          themselves, i.e., the sets of elements that constitute the described
+ *          group.
+ * @category "Collections" "Sets" "Maps" "Transformers"
  */
 Method "group_by_" is
 [
@@ -720,44 +682,33 @@ Method "group_by_" is
  * @method "group_by_"
  * @restricts "set's type"
  * @restricts "[⊥]→any's type"
- * Parameters:
- *    aSetType - The set to categorize's type.
- *    discriminator - A function that accepts each element of the set and
- *       answers a value that represents the group to which the element belongs.
- * Returns:
- *    Most specific map type.
  */
 Semantic restriction "group_by_" is
 [
 	aSetType : set's type,
 	discriminatorType : [⊥]→any's type
- |
-
- 	Require: discriminatorType accepts aSetType;
- 	
- 	setCardinality ::= ||aSetType||;
- 	setUpperBound ::= ⎡setCardinality⎤;
+|
+	Require: discriminatorType accepts aSetType;
+	setCardinality ::= ||aSetType||;
+	setUpperBound ::= ⎡setCardinality⎤;
 	keyType ::= discriminatorType's return type;
-	
- 	lowerBound ::= if ⎣setCardinality⎦ = 0 then [0] else [1];
+	lowerBound ::= if ⎣setCardinality⎦ = 0 then [0] else [1];
 	upperBound ::= if setUpperBound > |keyType| 
 		then [|keyType|]
 		else [setUpperBound];
-
- 	valueType ::= {aSetType's element type | 1..setUpperBound};
-
- 	{keyType→valueType | lowerBound..upperBound}
- ];
+	valueType ::= {aSetType's element type | 1..setUpperBound};
+	{keyType→valueType | lowerBound..upperBound}
+];
 
 /**
- * Count the elements of a tuple.
+ * Group the elements of {@param "aTuple"} by their frequency.
  *
  * @method "counts for_"
  * @param "aTuple" "tuple"
- *    aTuple - the tuple whose elements you will count
  * @returns "map"
- *    a map with keys that are the elements of the tuple that maps to the values
- *    that are the counts that each element occurs in the tuple.
+ *          A map whose keys are elements of the tuple and whose values are
+ *          their frequencies.
+ * @category "Collections" "Tuples" "Maps" "Transformers"
  */
 Public stable method "counts for_" is
 [
@@ -779,22 +730,28 @@ Semantic restriction "counts for_" is
 ];
 
 /**
- * Combine two maps.  If there are duplicate keys, perform action block to
- * handle duplicates.  
+ * Combine two {@param "map"}s. If there are duplicate keys, invoke {@param
+ * "action"} to handle duplicates.
+ * 
  * @method "integrate_and_with_"
- * @category "Maps"
- * @param "baseMap" "map" base map to add new bindings to.
- * @param "supplementMap" "map" secondary map that provides new map bindings
- * @param "action" "[⊥,⊥,⊥]→map" action to perform in the event that there is a
- * 		duplicate key.  Inputs are [map,any,any]
- * @returns "map" the resultant map
- * @raises ""
+ * @param "baseMap" "map"
+ * @param "supplementMap" "map"
+ * @param "action" "[⊥,⊥,⊥]→map"
+ *         The function to apply when a duplicate key is encountered. The first
+ *         argument is the partially combined map. The second argument is a key
+ *         from {@param "supplementMap"} that was present in {@param "baseMap"}.
+ *         The third argument is the value associated with the second argument
+ *         within {@param "supplementValue"}. The answer is a complete
+ *         replacement for the partially combined map.
+ * @returns "map"
+ *          The fully combined map.
+ * @category "Collections" "Maps" "Transformers"
  */
 Public method "integrate_and_with_" is
 [
 	baseMap : map,
 	supplementMap : map,
-	action : [⊥,⊥,⊥]→map
+	action : [⊥, ⊥, ⊥]→map
 |
 	baseMapkeys ::= baseMap's keys;
 	newMap : map := baseMap;
@@ -817,13 +774,10 @@ Public method "integrate_and_with_" is
 ] : map;
 
 /**
- *
  * @method "integrate_and_with_"
- * @category "Maps"
  * @restricts "map's type"
  * @restricts "map's type"
  * @restricts "[⊥,⊥,⊥]→map's type"
- * @raises ""
  */
 Semantic restriction "integrate_and_with_" is
 [

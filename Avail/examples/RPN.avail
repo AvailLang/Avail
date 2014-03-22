@@ -30,12 +30,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "RPN"
+Module "RPN"
 Uses
-	"RPN Language"
+	"Avail" =
+	(
+		"_+_" → "__+",
+		"_-_" → "__-",
+		"_×_" → "__×",
+		"_÷_" → "__÷",
+		…
+	)
+Names
+	"__+",
+	"__-",
+	"__×",
+	"__÷"
+Entries
+	"RPN_"
 Body
 
-RPN 5 5 3 × +;
-RPN 2 6 - 4 +;
-RPN 144 8 8 8 × + ÷;
-RPN 72 80 -;
+Method "RPN_" is
+[
+	expression : number
+|
+	Print: “expression”;
+	Print: "\n";
+];

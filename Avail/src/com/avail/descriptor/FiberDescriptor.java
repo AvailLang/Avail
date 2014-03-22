@@ -94,6 +94,9 @@ extends Descriptor
 	/** The priority of stringifying objects. */
 	public static final int stringificationPriority = 50;
 
+	/** The priority of command execution tasks. */
+	public static final int commandPriority = 50;
+
 	/**
 	 * The advisory interrupt request flags. The flags declared as enumeration
 	 * values within this {@code enum} are the interrupt request flags.

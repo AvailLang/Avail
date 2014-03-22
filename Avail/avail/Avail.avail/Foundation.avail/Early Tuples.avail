@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Tuples"
+Module "Early Tuples"
 Versions
 	"dev"
 Extends
@@ -99,10 +99,12 @@ Grammatical restriction {"_++_"} is <∅, {"_++_"}>;
  * Concatenate the lexically specified tuples. Answer the result.
  * 
  * @method "«_‡++»"
- * @param "tuples" "<<>, tuple…|[2..∞)>"
+ * @param "tuples" "<tuple…|2..>"
  *        Some tuples.
  * @returns "tuple"
- *    The result of concatenating the lexically specified tuples left-to-right.
+ *          The result of concatenating the lexically specified tuples
+ *          left-to-right.
+ * @category "Tuples" "Strings" "Transformers"
  */
 Public method "«_‡++»" is
 [
@@ -123,7 +125,7 @@ Grammatical restriction "«_‡++»" is <{"«_‡++»"}>;
  * Strengthen the lexical tuple concatenation operation.
  * 
  * @method "«_‡++»"
- * @restricts "<<>, tuple…|[2..∞)>'s type"
+ * @restricts "<tuple…|2..>'s type"
  */
 Semantic restriction "«_‡++»" is
 [
@@ -141,15 +143,15 @@ Semantic restriction "«_‡++»" is
 ];
 
 /**
- * Compute and answer the minimum size of `tupleType` for efficient traversal of
- * its relevant element types.
+ * Compute and answer the minimum size of {@param "tupleType"} for efficient
+ * traversal of its relevant element types.
  * 
  * @method "relevant`|_`|"
  * @param "tupleType" "tuple meta"
- *        A tuple type.
  * @returns "whole number"
  *    The smaller of the lower bound of the argument's cardinality and one more
  *    than the size of its leading types.
+ * @category "Tuples" "Types" "Queries"
  */
 Public method "relevant`|_`|" is
 [
@@ -186,6 +188,7 @@ Public method "relevant`|_`|" is
  * @param "sliceEnd" "whole number's type"
  *        The integral range of the end subscript.
  * @returns "⊤"
+ * @category "Assertions" "Tuples" "Types"
  */
 Public method "Require:_[_.._]is ever valid" is
 [
@@ -247,7 +250,9 @@ Public method "Require:_[_.._]is ever valid" is
  * @param "sliceEnd" "whole number's type"
  *        The type of the slice end subscript.
  * @returns "tuple meta"
- *          The strongest tuple type that can be constructed from the argument types.
+ *          The strongest tuple type that can be constructed from the argument
+ *          types.
+ * @category "Assertions" "Tuples" "Types"
  */
 Public method "tuple type of_[_.._]" is
 [
@@ -326,6 +331,7 @@ Semantic restriction "_[_.._]" is
 ];
 
 /* Helper for restriction of "_[_.._]" on a tuple type. */
+
 /**
  * @method "tuple meta of_[_.._]"
  * @param "aTupleMeta" "tuple meta's type"
@@ -411,7 +417,7 @@ Semantic restriction "_[_.._]" is
 
 /**
  * Construct and answer a slice (i.e., tuple type) that begins at subscript
- * `sliceStart` and continues to the end of the tuple type.
+ * {@param "sliceStart"} and continues to the end of the tuple type.
  * 
  * @method "_[_..]"
  * @param "aTupleType" "tuple meta"
@@ -420,6 +426,7 @@ Semantic restriction "_[_.._]" is
  *        The one-based start index (inclusive) of the desired slice.
  * @returns "tuple of any meta"
  *          The requested tuple.
+ * @category "Tuples" "Types" "Queries"
  */
 Public method "_[_..]" is
 [
@@ -431,7 +438,7 @@ Public method "_[_..]" is
 
 /**
  * Construct and answer a slice (i.e., subtuple) that begins at subscript
- * `sliceStart` and continues to the end of the tuple.
+ * {@param "sliceStart"} and continues to the end of the tuple.
  * 
  * @method "_[_..]"
  * @param "aTuple" "tuple"
@@ -440,6 +447,7 @@ Public method "_[_..]" is
  *        The one-based start index (inclusive) of the desired slice.
  * @returns "tuple"
  *          The requested tuple.
+ * @category "Tuples" "Types" "Queries"
  */
 Public stable method "_[_..]" is
 [
@@ -450,8 +458,8 @@ Public stable method "_[_..]" is
 ] : tuple;
 
 /**
- * Strengthen the tuple type produced by `_[_..]` to the strongest possible
- * given the argument types.
+ * Strengthen the tuple type produced by {@param "_[_..]"} to the strongest
+ * possible given the argument types.
  *
  * @method "_[_..]"
  * @param "aTupleType" "tuple meta"
@@ -467,7 +475,7 @@ Semantic restriction "_[_..]" is
 
 /**
  * Construct and answer a slice (i.e., tuple type) that begins at the start of
- * the tuple type and continues to subscript `sliceEnd`.
+ * the tuple type and continues to subscript {@param "sliceEnd"}.
  * 
  * @method "_[.._]"
  * @param "aTupleType" "tuple meta"
@@ -476,6 +484,7 @@ Semantic restriction "_[_..]" is
  *        The one-based end index (inclusive) of the desired slice.
  * @returns "tuple of any meta"
  *          The requested tuple.
+ * @category "Tuples" "Types" "Queries"
  */
 Public method "_[.._]" is
 [
@@ -487,7 +496,7 @@ Public method "_[.._]" is
 
 /**
  * Construct and answer a slice (i.e., subtuple) that begins at the start of the
- * tuple and continues to subscript `sliceEnd`.
+ * tuple and continues to subscript {@param "sliceEnd"}.
  * 
  * @method "_[.._]"
  * @param "aTuple" "tuple"
@@ -496,6 +505,7 @@ Public method "_[.._]" is
  *        The one-based end index (inclusive) of the desired slice.
  * @returns "tuple"
  *           The requested tuple.
+ * @category "Tuples" "Types" "Queries"
  */
 Public stable method "_[.._]" is
 [
@@ -506,8 +516,8 @@ Public stable method "_[.._]" is
 ] : tuple;
 
 /**
- * Strengthen the tuple type produced by `_[.._]` to the strongest possible
- * given the argument types.
+ * Strengthen the tuple type produced by {@param "_[.._]"} to the strongest
+ * possible given the argument types.
  *
  * @method "_[.._]"
  * @restricts "aTupleType" "tuple meta"
@@ -521,7 +531,8 @@ Semantic restriction "_[.._]" is
 	tuple type of aTupleType[1's type..sliceEnd]
 ];
 
-/** Bind subscripting and slicing tighter than concatenation.
+/**
+ * Bind subscripting and slicing tighter than concatenation.
  * 
  * @method "_[_]"
  * @method "_[_..]"
@@ -530,7 +541,8 @@ Semantic restriction "_[.._]" is
  */
 Grammatical restriction {"_[_]", "_[_..]", "_[.._]"} is <{"«_‡++»"}, ∅>;
 
-/** Bind subscripting and slicing tighter than concatenation.
+/**
+ * Bind subscripting and slicing tighter than concatenation.
  * 
  * @method "_[_.._]"
  * @forbids 1 "«_‡++»"
@@ -675,7 +687,7 @@ Semantic restriction "_→map" is
 ];
 
 /** 
- * Disambiguate `_→_` and `_→tuple`. 
+ * Disambiguate {@method "_→_"} and {@method "_→tuple"}. 
  * 
  * @method "_→_"
  * @forbids 2 "tuple"
@@ -698,6 +710,7 @@ Grammatical restriction "_→_" is <∅, {"tuple"}>;
  * @returns "any"
  *          The {@param "index"}-th element of {@param "aTuple"}, or the result
  *          of applying {@param "else"} (if {@param "index"} is invalid).
+ * @category "Tuples" "Queries"
  */
 Method "_[_]else_" is
 [

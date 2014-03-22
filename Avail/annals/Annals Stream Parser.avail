@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Annals Stream Parser"
+Module "Annals Stream Parser"
 Versions
 "Dev"
 Extends

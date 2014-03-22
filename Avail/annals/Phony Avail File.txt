@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module
+Module
    "MyModule"
 Versions
    "Current Version", "Supported Previous Version"

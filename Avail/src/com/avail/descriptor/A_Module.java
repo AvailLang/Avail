@@ -51,11 +51,12 @@ extends A_BasicObject
 {
 	/**
 	 * Answer whether this module is a system module.  System modules use the
-	 * built-in syntax of the {@link AvailSystemCompiler} rather than the macro
-	 * syntax of the {@link AvailCompiler}.  System modules start (not counting
-	 * comments) with the tokens {@linkplain ExpectedToken#SYSTEM "System"} and
-	 * {@linkplain ExpectedToken#MODULE "Module"}.  The "System" token is
-	 * omitted for non-system modules.
+	 * built-in syntax of the {@link AvailSystemCompiler} rather than the
+	 * experimental macro syntax of the {@link AvailCompiler}.  System modules
+	 * start (not counting comments) with the token "{@link
+	 * ExpectedToken#MODULE Module}".  The experimental macro compiler is
+	 * specified with "{@link ExpectedToken#EXPERIMENTAL Experimental} {@link
+	 * ExpectedToken#MODULE Module}".
 	 *
 	 * @return Whether this is a system module.
 	 */

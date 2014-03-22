@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Exploration"
+Module "Exploration"
 Versions
 	"dev"
 Uses

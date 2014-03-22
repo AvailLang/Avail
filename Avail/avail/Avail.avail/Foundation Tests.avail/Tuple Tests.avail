@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Tuple Tests"
+Module "Tuple Tests"
 Versions
 	"dev"
 Uses

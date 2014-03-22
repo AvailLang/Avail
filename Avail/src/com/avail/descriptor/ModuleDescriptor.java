@@ -874,6 +874,18 @@ extends Descriptor
 	}
 
 	/**
+	 * Construct a new empty anonymous {@linkplain ModuleDescriptor module}.
+	 * Pre-add the module itself to its {@linkplain SetDescriptor set} of
+	 * ancestor modules.
+	 *
+	 * @return The new module.
+	 */
+	public static A_Module anonymousModule ()
+	{
+		return newModule(StringDescriptor.from("/«fake-root»/«anonymous»"));
+	}
+
+	/**
 	 * Construct a new empty {@linkplain ModuleDescriptor module}.  Pre-add
 	 * the module itself to its {@linkplain SetDescriptor set} of ancestor
 	 * modules.

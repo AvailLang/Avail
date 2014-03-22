@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Hello World"
+Module "Hello World"
 Uses
 	"Avail"
 Entries
@@ -41,5 +41,3 @@ Method "Greet" is
 [
 	Print: "Hello, world!\n";
 ];
-
-Greet;

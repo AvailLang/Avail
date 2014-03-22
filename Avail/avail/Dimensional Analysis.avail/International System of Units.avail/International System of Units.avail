@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "International System of Units"
+Module "International System of Units"
 Versions
 	"dev"
 Extends

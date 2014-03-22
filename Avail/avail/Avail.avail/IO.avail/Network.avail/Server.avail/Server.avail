@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Server"
+Module "Server"
 Versions
 	"dev"
 Extends

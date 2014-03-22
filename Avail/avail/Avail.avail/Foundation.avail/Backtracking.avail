@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Backtracking"
+Module "Backtracking"
 Versions
 	"dev"
 Uses
@@ -74,6 +74,7 @@ Body
  *
  * @type "no-backtracking-fence exception"
  * @supertype "exception"
+ * @category "Backtracking" "Exceptions"
  */
 Public explicit class "no-backtracking-fence exception" extends exception;
 
@@ -85,6 +86,7 @@ Public explicit class "no-backtracking-fence exception" extends exception;
  * @raises "no-backtracking-fence exception"
  *         If the method was invoked outside of a {@method
  *         "Backtracking fence_" backtracking fence}.
+ * @category "Backtracking"
  */
 Private method "Require:inside fence" is
 [
@@ -100,6 +102,7 @@ Private method "Require:inside fence" is
  *
  * @type "no-checkpoint exception"
  * @supertype "exception"
+ * @category "Backtracking" "Exceptions"
  */
 Public explicit class "no-checkpoint exception" extends exception;
 
@@ -115,6 +118,7 @@ Forward method "Try again" is []→⊥;
  *        A function within which checkpoints and {@method "Try again"} are
  *        permitted.
  * @returns "⊤"
+ * @category "Backtracking" "Control Structures"
  */
 Public method "Backtracking fence_" is
 [
@@ -158,15 +162,16 @@ Public method "Backtracking fence_" is
  * Establish a checkpoint for subsequent backtracking. Must be invoked within
  * the dynamic scope of {@method "Backtracking fence_"}. Answer {@method
  * "true"}. On a subsequent invocation of {@method "Try again"} occurring within
- * the same dynamic scope, restart the checkpoint but answer `false`.
+ * the same dynamic scope, restart the checkpoint but answer {@method false}.
  *
  * @method "first try"
  * @returns "boolean"
- *          `true` on the first invocation, `false` when
+ *          {@method "true"} on the first invocation, {@method "false"} when
  *          retried.
  * @raises "no-backtracking-fence exception"
  *         If {@method "first try"} is not invoked from within a function
  *         governed by {@method "Backtracking fence_"}.
+ * @category "Backtracking" "Control Structures"
  */
 Public method "first try" is
 [
@@ -214,6 +219,7 @@ Public method "first try" is
  * @raises "no-backtracking-fence exception"
  *         If {@method "trial`#of_"} is not invoked from within a function
  *         governed by {@method "Backtracking fence_"}.
+ * @category "Backtracking" "Control Structures"
  */
 Public method "trial`#of_" is
 [
@@ -265,6 +271,7 @@ Semantic restriction "trial`#of_" is
  * @raises "no-backtracking-fence exception"
  *         If {@method "trial element of_"} is not invoked from within a
  *         function governed by {@method "Backtracking fence_"}.
+ * @category "Backtracking" "Control Structures" "Tuples"
  */
 Public method "trial element of_" is
 [
@@ -305,6 +312,7 @@ Semantic restriction "trial element of_" is
  * @raises "no-backtracking-fence exception"
  *         If {@method "trial element of_"} is not invoked from within a
  *         function governed by {@method "Backtracking fence_"}.
+ * @category "Backtracking" "Control Structures" "Sets"
  */
 Public method "trial element of_" is
 [
@@ -342,6 +350,7 @@ Semantic restriction "trial element of_" is
  *         governed by {@method "Backtracking fence_"}.
  * @raises "no-checkpoint exception"
  *         If no checkpoint has been set.
+ * @category "Backtracking" "Control Structures"
  */
 Public method "Try again" is
 [
@@ -366,6 +375,7 @@ Public method "Try again" is
  * @returns "tuple"
  *          A tuple comprising all values of {@param "aFunction"} producible
  *          through backtracking.
+ * @category "Backtracking" "Control Structures"
  */
 Public method "all values of_" is
 [
@@ -416,6 +426,7 @@ Semantic restriction "all values of_" is
  * @returns "tuple"
  *          A tuple comprising some of the values of {@param "aFunction"}
  *          producible through backtracking.
+ * @category "Backtracking" "Control Structures"
  */
 Public method "first«_»value|values of_" is
 [

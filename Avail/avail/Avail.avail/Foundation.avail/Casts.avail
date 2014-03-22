@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Casts"
+Module "Casts"
 Versions
 	"dev"
 Uses
@@ -76,6 +76,7 @@ Body
  *
  * @type "bad-multiway-cast exception"
  * @supertype "exception"
+ * @category "Casts" "Exceptions"
  */
 Public class "bad-multiway-cast exception" extends exception
 	with field
@@ -87,6 +88,7 @@ Public class "bad-multiway-cast exception" extends exception
  *
  * @type "bad-cast exception"
  * @supertype "bad-multiway-cast exception"
+ * @category "Casts" "Exceptions"
  */
 Public class "bad-cast exception" extends bad-multiway-cast exception
 	with field
@@ -101,12 +103,13 @@ Public class "bad-cast exception" extends bad-multiway-cast exception
  * @param "value" "any"
  *        A value.
  * @param "accept" "[⊥]→⊤"
- *        The function to invoke if `value` is a subtype of the its parameter
- *        type.
+ *        The function to invoke if {@param "value"} is a subtype of the its 
+ *        parameter type.
  * returns The result of {@param "accept"}.
  * @raises "bad-cast exception"
  *         If {@param "value"} is not an instance of {@param "accept"}'s
  *         parameter type.
+ * @category "Casts" "Control Structures" "Conditionals"
  */
 Public method "Cast|cast_into_" is
 [
@@ -169,12 +172,14 @@ Semantic restriction "Cast|cast_into_" is
  *        {@param "value"} will be applied to it.
  * @param "else" "<[]→⊤…|0..1>"
  *        An optional arity-0 function. If provided, then it will be invoked iff
- *        no function of `caseTuple` is able to accept {@param "value"}.
+ *        no function of {@param "caseTuple"} is able to accept {@param 
+ *        "value"}.
  * @returns "⊤"
  *          The result of whatever function is applied.
  * @raises "bad-multiway-cast exception"
  *         If no {@param "else"} function was supplied and no function of
  *         {@param "caseTuple"} was able to accept {@param "value"}.
+ * @category "Casts" "Control Structures" "Conditionals"
  */
 Public method "Cast|cast_into«_‡,»«else_»" is
 [
@@ -208,9 +213,9 @@ Public method "Cast|cast_into«_‡,»«else_»" is
 ] : ⊤;
 
 /**
- * Strengthen the return type of `Cast|cast_into«_‡,»«else_»` so that it may be
- * used as a value-producing expression. If any case is unnecessary or invalid,
- * then reject the current parse.
+ * Strengthen the return type so the method may be used as a value-producing 
+ * expression. If any case is unnecessary or invalid, then reject the current 
+ * parse.
  * 
  * @method "Cast|cast_into«_‡,»«else_»" 
  * @restricts "any meta"
@@ -271,6 +276,7 @@ Semantic restriction "Cast|cast_into«_‡,»«else_»" is
  * @raises "bad-cast exception"
  *         If any element of {@param "values"} is not an instance of the
  *         corresponding parameter type of {@param "accept"}.
+ * @category "Casts" "Control Structures" "Conditionals"
  */
 Public method "Cast|cast each of_into_" is
 [
@@ -362,7 +368,8 @@ Semantic restriction "Cast|cast each of_into_" is
  * @param "reject" "[]→⊤"
  *        The function to invoke if any element of {@param "values"} is not a
  *        subtype of the corresponding parameter type of {@param "accept"}.
- * Returns The result of {@param "accept"} or {@param "reject"}.
+ * @returns The result of {@param "accept"} or {@param "reject"}.
+ * @category "Casts" "Control Structures" "Conditionals"
  */
 Public method "Cast|cast each of_into_else_" is
 [

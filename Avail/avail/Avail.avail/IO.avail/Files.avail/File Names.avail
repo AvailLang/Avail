@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "File Names"
+Module "File Names"
 Versions
 	"dev"
 Uses

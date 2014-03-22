@@ -1487,42 +1487,40 @@ public final class AvailRuntime
 	 */
 	public void whenLevelOneUnsafeDo (final AvailTask unsafeTask)
 	{
-		final AvailTask wrapped = new AvailTask(
-			unsafeTask.priority,
-			new Continuation0()
+		final AvailTask wrapped = new AvailTask(unsafeTask.priority)
+		{
+			@Override
+			public void value ()
 			{
-				@Override
-				public void value ()
+				try
 				{
+					unsafeTask.run();
+				}
+				finally
+				{
+					levelOneSafeLock.lock();
 					try
 					{
-						unsafeTask.run();
+						incompleteLevelOneUnsafeTasks--;
+						if (incompleteLevelOneUnsafeTasks == 0)
+						{
+							assert incompleteLevelOneSafeTasks == 0;
+							incompleteLevelOneSafeTasks =
+								levelOneSafeTasks.size();
+							for (final AvailTask task : levelOneSafeTasks)
+							{
+								execute(task);
+							}
+							levelOneSafeTasks.clear();
+						}
 					}
 					finally
 					{
-						levelOneSafeLock.lock();
-						try
-						{
-							incompleteLevelOneUnsafeTasks--;
-							if (incompleteLevelOneUnsafeTasks == 0)
-							{
-								assert incompleteLevelOneSafeTasks == 0;
-								incompleteLevelOneSafeTasks =
-									levelOneSafeTasks.size();
-								for (final AvailTask task : levelOneSafeTasks)
-								{
-									execute(task);
-								}
-								levelOneSafeTasks.clear();
-							}
-						}
-						finally
-						{
-							levelOneSafeLock.unlock();
-						}
+						levelOneSafeLock.unlock();
 					}
 				}
-			});
+			}
+		};
 		levelOneSafeLock.lock();
 		try
 		{
@@ -1557,43 +1555,41 @@ public final class AvailRuntime
 	 */
 	public void whenLevelOneSafeDo (final AvailTask safeTask)
 	{
-		final AvailTask wrapped = new AvailTask(
-			safeTask.priority,
-			new Continuation0()
+		final AvailTask wrapped = new AvailTask(safeTask.priority)
+		{
+			@Override
+			public void value ()
 			{
-				@Override
-				public void value ()
+				try
 				{
+					safeTask.run();
+				}
+				finally
+				{
+					levelOneSafeLock.lock();
 					try
 					{
-						safeTask.run();
+						incompleteLevelOneSafeTasks--;
+						if (incompleteLevelOneSafeTasks == 0)
+						{
+							assert incompleteLevelOneUnsafeTasks == 0;
+							levelOneSafetyRequested = false;
+							incompleteLevelOneUnsafeTasks =
+								levelOneUnsafeTasks.size();
+							for (final AvailTask task : levelOneUnsafeTasks)
+							{
+								execute(task);
+							}
+							levelOneUnsafeTasks.clear();
+						}
 					}
 					finally
 					{
-						levelOneSafeLock.lock();
-						try
-						{
-							incompleteLevelOneSafeTasks--;
-							if (incompleteLevelOneSafeTasks == 0)
-							{
-								assert incompleteLevelOneUnsafeTasks == 0;
-								levelOneSafetyRequested = false;
-								incompleteLevelOneUnsafeTasks =
-									levelOneUnsafeTasks.size();
-								for (final AvailTask task : levelOneUnsafeTasks)
-								{
-									execute(task);
-								}
-								levelOneUnsafeTasks.clear();
-							}
-						}
-						finally
-						{
-							levelOneSafeLock.unlock();
-						}
+						levelOneSafeLock.unlock();
 					}
 				}
-			});
+			}
+		};
 		levelOneSafeLock.lock();
 		try
 		{

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Foundation"
+Module "Foundation"
 Versions
 	"dev"
 
@@ -861,7 +861,7 @@ Extends
 		"Signal_",
 		"Signal__time|times",
 		"Signal_if satisfied",
-		"a condition of_is_",
+		"a condition of_such that_",
 		"a monitor«named_»",
 		"a non-reentrant mutex«named_»",
 		"a reentrant mutex«named_»",

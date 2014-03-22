@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Definitions"
+Module "Definitions"
 Versions
 	"dev"
 Uses
@@ -1608,7 +1608,7 @@ Private method "Verify all scenes in_are reachable from_" is
 		scenesByName := scenesByName + internalName→aScene;
 		namesByScene := namesByScene + aScene→internalName;
 	];
-	Assert: |sceneVault| = |scenesByName|;
+	Assert: |sceneVault| = |namesByScene|;
 	/* Recursively explore the specified function to find references to methods
 	 * that answer scene variables.
 	 */

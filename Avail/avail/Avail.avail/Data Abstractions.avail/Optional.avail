@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Optional"
+Module "Optional"
 Versions
 	"dev"
 Uses
@@ -45,7 +45,10 @@ Names
 	"+_",
 	"When_is present do_",
 	"When|when_is present do_else_",
-	"_'s⁇value"
+	"_'s⁇value",
+
+	/* Test suites. */
+	"optional test suite"
 Body
 
 _actualValue ::= $"actual value";
@@ -328,9 +331,7 @@ Semantic restriction "When|when_is present do_else_" is
 	else [presentBlock's return type ∪ elseBlock's return type]
 ];
 
-_testSuite ::= $"optional test suite";
-Private method "optional test suite" is [_testSuite];
-
+"optional test suite" is a new atom;
 New test suite optional test suite extends data abstractions test suite;
 
 Test "optional (present)" in optional test suite is

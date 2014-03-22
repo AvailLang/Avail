@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Options"
+Module "Options"
 Versions
 	"dev"
 Uses

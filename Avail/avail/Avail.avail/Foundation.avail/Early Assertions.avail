@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Assertions"
+Module "Early Assertions"
 Versions
 	"dev"
 Uses
@@ -47,8 +47,9 @@ Body
  * 
  * @method "Assert:_"
  * @param "predicate" "boolean"
- *        `true`.
+ *        {@method "true"}.
  * @returns "⊤"
+ * @category "Bootstrap" "Assertions"
  */
 Public method "Assert:_" is
 [
@@ -94,6 +95,7 @@ Semantic restriction "Assert:_(_)" is
  * 
  * @method "Shouldn't happen"
  * @returns "⊥"
+ * @category "Bootstrap" "Assertions"
  */
 Public method "Shouldn't happen" is
 [

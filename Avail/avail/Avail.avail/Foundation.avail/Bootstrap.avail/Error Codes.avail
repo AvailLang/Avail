@@ -38,7 +38,7 @@
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
 
-System Module "Error Codes"
+Module "Error Codes"
 Versions
 	"dev"
 Extends

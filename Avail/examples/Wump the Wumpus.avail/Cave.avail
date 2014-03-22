@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Cave"
+Module "Cave"
 Versions
 	"dev"
 Uses

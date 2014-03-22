@@ -1,5 +1,5 @@
-/*
- * Twenty Questions Unit Test.avail
+/**
+ * package-info.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,38 +30,4 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Twenty Questions Unit Test"
-Uses
-	"Avail",
-	"Twenty Questions"
-Body
-
-"Twenty Questions test suite" is a new atom;
-Twenty Questions test suite is a new test suite;
-
-Test "correct first guess" in Twenty Questions test suite is
-[
-	output : string;
-	Play Twenty Questions with
-		input ["y"]
-		and output [o : string | output := o;];
-	Require: output = "Yay!\n";
-];
-
-Test "incorrect first guess" in Twenty Questions test suite is
-[
-	input : <string…|> := <"n", "teh", "Is it a common misspelling of the?">;
-	output : <string…|> := <
-		"Is it Avail? ",
-		"I give up. What was it? ",
-		"Okay. What is a question to distinguish it from Avail? ">;
-	inputIndex : natural number := 1;
-	outputIndex : natural number := 1;
-	Play Twenty Questions with
-		input [input[(↑inputIndex++)]]
-		and output [o : string | Require: output[(↑outputIndex++)] = o;];
-	Require: inputIndex = 4;
-	Require: outputIndex = 4;
-];
-
-Print: test suite-oriented “report on all tests in Twenty Questions test suite”;
+@com.avail.annotations.NotNullByDefault package com.avail.compiler.problems;

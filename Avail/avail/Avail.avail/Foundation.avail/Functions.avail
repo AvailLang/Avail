@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Functions"
+Module "Functions"
 Versions
 	"dev"
 Extends
@@ -92,6 +92,7 @@ invokeAtom ::= atom for "Invoke|invoke_with_";
  *          A function that takes some arguments destined for the original
  *          function and returns another function that takes the remainder of
  *          the arguments and invokes the original function.
+ * @category "Bootstrap" "Function Application"
  */
 Private method "_partially evaluate with_" is
 [
@@ -165,6 +166,7 @@ Private method "_partially evaluate with_" is
  *          A function that takes some arguments destined for the original
  *          function and returns another function that takes the remainder of
  *          the arguments and invokes the original function.
+ * @category "Function Application"
  */
 Public method "_(««_»«`_»?‡,»)" is
 [
@@ -253,9 +255,10 @@ Semantic restriction "_(««_»«`_»?‡,»)" is
  *        The function to ultimately invoke.
  * @param "firstValue" "any"
  *        The first argument to supply to the function.
- * Returns:
+ * @returns "function"
  *    A function that takes the remaining N-1 arguments and invokes the original
  *    function.
+ * @category "Function Application"
  */
 Public method "_(_,`…)" is [
 	originalFunction : function,
@@ -306,6 +309,7 @@ Semantic restriction "_(_,`…)" is
  * @method "_(`…,_)"
  * @param "originalFunction" "function"
  * @param "lastValue" "any"
+ * @category "Function Application"
  */
 Public method "_(`…,_)" is [
 	originalFunction : function,

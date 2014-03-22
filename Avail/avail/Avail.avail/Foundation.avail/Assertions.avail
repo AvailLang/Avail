@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Assertions"
+Module "Assertions"
 Versions
 	"dev"
 Extends
@@ -61,6 +61,7 @@ Body
  * 
  * @type "assertion-failed exception"
  * @supertype "exception"
+ * @category "Assertions" "Exceptions"
  */
 Public explicit class "assertion-failed exception" extends exception;
 
@@ -73,6 +74,7 @@ Public explicit class "assertion-failed exception" extends exception;
  *        A predicate.
  * @raises "assertion-failed exception"
  *         If {@param "predicate"} is {@code false}.
+ * @category "Assertions"
  */
 Public method "Assert:_" is
 [
@@ -111,6 +113,7 @@ Semantic restriction "Assert:_" is
  *        An error message.
  * @raises "assertion-failed exception"
  *         If {@param "predicate"} is {@code false}.
+ * @category "Assertions"
  */
 Public method "Assert:_(_)" is
 [
@@ -150,6 +153,7 @@ Semantic restriction "Assert:_(_)" is
  * @returns "⊥"
  * @raises "assertion-failed exception"
  *         Always.
+ * @category "Assertions"
  */
 Public method "Shouldn't happen" is
 [

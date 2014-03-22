@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Unsanctioned Common Units"
+Module "Unsanctioned Common Units"
 Versions
 	"dev"
 Uses

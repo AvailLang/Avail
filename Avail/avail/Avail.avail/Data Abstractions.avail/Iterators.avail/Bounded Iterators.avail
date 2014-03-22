@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Bounded Iterators"
+Module "Bounded Iterators"
 Versions
 	"dev"
 Uses

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "File Test Utilities"
+Module "File Test Utilities"
 Versions
 	"dev"
 Uses

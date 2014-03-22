@@ -1,0 +1,1057 @@
+/*
+ * The Detective.avail
+ * Copyright © 2013-2014, Cislyn Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Redistributions with modification must include attribution of the parties
+ *   responsible for that modification.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "The Detective"
+Versions
+	"dev"
+Uses
+	"Avail",
+	"Choosable Path",
+	"Game Context"
+Body
+
+/**
+ * @module "The Detective"
+ * @author Cislyn Smith <cislyn@gmail.com>
+ */
+
+Let
+	"Straight Path",
+	"Wonky Path",
+	"Sponsor",
+	"Accusatory",
+	"Odor",
+	"Scientist Investigation",
+	"Curator Confession",
+	"Curator Death",
+	"Mob Target",
+	"Rabble Rouser",
+	"Beartaur Death",
+	"Directions",
+	"Delivery Entrance",
+	"Red Herring",
+	"Mob Inquiry",
+	"Assistant Inquiry",
+	"Disintegration End",
+	"Into the Fray",
+	"Shelf End",
+	"Random End",
+	"Discretion Win",
+	"Discretion Epilogue",
+	"Assistant Suspicion",
+	"Sensible End",
+	"Sensible Epilogue",
+	"Plot Hole",
+	"Princess Path",
+	"Assistant Path",
+	"Squirrel Stoning",
+	"Witch Death",
+	"Squirrel Death",
+	"Ivy Chomp",
+	"Rope Trick",
+	"Insta-Ladder",
+	"Plot Hole Progression",
+	"Ultimate Win",
+	"Mob Rules",
+	"Mob Calmer",
+	"Sneaky Person",
+	"Hey Buddy"
+be scenes;
+
+The Detective
+is described by
+	"The file on your desk is labeled \"Gem Thief\". It's your only job, and
+	you'd better get cracking on it if you want to pay the rent this month.
+
+	Evidently, The Perspex Gem has gone missing from its display case in The
+	Museum of Antiquities. The cops don't have a clue, and the insurance company
+	has hired you to look into the case.
+
+	Taking a good long look around your workspace, you can't help but notice
+	that it's pretty bare. You're not even certain what sort of Detective you're
+	supposed to be! Plucky girl detective? City gumshoe? Little old lady who
+	knits and solves mysteries? It could be anything. 
+
+	This state of affairs is..."
+and has transitions
+	to Straight Path
+	described by "Pathetic."
+and
+	to Wonky Path
+	described by "Promising."
+and
+	to The Ship of Stories
+	described by "Pesky. Forget this. I'll go play as The Princess or The Mad Scientist instead.";
+
+Straight Path
+is titled by "Hard at work or hardly working?"
+and is described by
+	"This shoddy half-told state of affairs just goes to show how desperately this ship 
+	needs a new Narrator at the helm! 
+
+	Well, you'll just have to soldier through, for now.
+
+	You head off to the Museum to inspect the scene of the crime. The Curator shows you 
+	over to the shattered display case which used to hold The Perspex Gem, and waits 
+	nearby while you look around.
+
+	You trivially spot grease stains on the glass shards, and the air is rank with some 
+	sort of cologne.
+
+	It's time to question The Curator. He seems a little skittish - you might want to 
+	choose your questions carefully."
+and has transitions
+	to Sponsor
+	described by "Ask him about the sponsor for the exhibit."
+and
+	to Accusatory
+	described by "Ask him about his whereabouts the night of the robbery."
+and
+	to Odor
+	described by "Ask him about the strange smell.";
+	
+Sponsor
+is titled by "Oh, well that makes sense."
+and is described by
+	"\"So, who wanted The Perspex Gem here in this particular Museum, anyway? The 
+	insurance company isn't giving out particulars like that.\"
+
+	The Curator shrugs. \"Probably The Mad Scientist. That's who sponsors most of the 
+	exhibits here.\"
+
+	You have to admit, there are an awful lot of lasers here in The Museum of Antiquities. 
+
+	\"I see. And where can I find The Mad Scientist?\"
+
+	\"At the compound on top of the hill. Be careful of the beartaurs, though.\""
+and has transitions
+	to Accusatory
+	described by "Ask The Curator exactly what he was doing the night of the robbery."
+and
+	to Scientist Investigation
+	described by "Go talk to The Mad Scientist.";
+
+Accusatory
+is titled by "You're such a people person."
+and is described by
+	"You narrow your eyes and jab The Curator in the chest. \"I'm going to need an alibi 
+	from you before I can rule you out as a suspect. Where exactly where you when The 
+	Perspex Gem was stolen?\"
+
+	His eyes bug out, and he gasps audibly. \"How... how did you know?! I swear I'd never 
+	done anything like that before. I'll never do it again! Please! I don't want to lose 
+	my job!\""
+and has transitions
+	to Curator Death
+	described by "Well, that sounds like a confession to me! Now to find where he's 
+	stashed the goods."
+and 
+	to Curator Confession
+	described by "What IS he talking about? Try to calm him down a little.";
+	
+Curator Death
+is titled by "You'll never take me alive. No, really."
+and is described by
+	"\"Aha! So you did steal the Perspex Gem! You're going away for a long, long time, my 
+	friend. Where did you put it, you fiend?\"
+
+	The Curator screeches and draws a knife! He stabs you in the gut, and as you lay dying 
+	amidst the shards of glass he cries out \"violence IS the answer! I lied! I'm going 
+	to join an angry mob and try to kill someone every night from now on!\"
+
+	Huh. It kind of sounds like he didn't do it. Also, you're bleeding all over the floor.
+	
+	Whoops.";
+
+Curator Confession
+is titled by "Whoa there, settle down..."
+and is described by
+	"\"Hey, nobody's accusing you of anything. What's all this about? Why would you lose 
+	your job?\"
+
+	\"Because... because I was... I was doing something else.\"
+
+	\"Something like...?\"
+
+	The Curator looks shifty. \"I was with some friends.\"
+
+	This is worse than trying to pull teeth from a potato. \"Doing what?\"
+
+	\"Look, everybody was doing it! It's not like I was the only one in the angry mob that 
+	night!\"
+
+	Aha."
+and has transitions
+	to Mob Target
+	described by "Ask about the target of the angry mob."
+and
+	to Rabble Rouser
+	described by "Ask about the rabble rouser.";
+	
+Mob Target
+is titled by "What, they don't make good neighbors?"
+and is described by
+	"\"And just who was this angry mob after?\"
+
+	The Curator seems exasperated. \"The Mad Scientist, of course. It's not exactly easy 
+	living near a character like that.\"
+
+	Aha."
+and has a transition
+	to Scientist Investigation
+	described by "It sounds like it's time to go have a chat with The Mad Scientist.";
+
+Rabble Rouser
+is titled by "Rabblerabblerabblerabble"
+and is described by
+	"\"You have NO idea how hard it is living here, under the tyrannical rule of The Mad 
+	Scientist! It's all death robots and mutant monsters and explosions all the time. You 
+	have to pull together under circumstances like that! I can't tell you how many times 
+	the person who organized the mob that night has helped me out. I'm not ratting out 
+	anyone!\"
+
+	He turns his back to you and storms off. Well, solidarity and all that."
+and has a transition 
+	to Scientist Investigation 
+	described by "It sounds like it's time to go find this Mad Scientist.";
+
+Odor
+is titled by "Smells like a clue!"
+and is described by
+	"\"What is that peculiar odor?\"
+
+	The Curator sniffs a bit. \"Oh, that? I hardly notice it anymore. That's just The 
+	Assistant's cologne. It is a bit rank, isn't it?\"
+
+	Aha.
+
+	\"And where can I find The Assistant?\"
+
+	\"He helps out around here once in a while, but I haven't seen him much lately. He's 
+	usually up the hill at The Mad Scientist's compound.\""
+and has transitions
+	to Accusatory
+	described by "Question The Curator about his whereabouts the night of the robbery."
+and
+	to Scientist Investigation
+	described by "It's time to go pay a visit to The Mad Scientist and The Assistant.";
+
+Scientist Investigation
+is titled by "Off to see the wizard..."
+and is described by
+	"You leave The Museum and take a look around outside. You spot a few discarded 
+	pitchforks and burnt out torches in the mud at the base of a large hill. Cantering all 
+	over the hill are strange half-bear half-horse creatures. At the top of the hill is a 
+	building that's hard to make out in any detail because it's wreathed in a perpetual 
+	thunderstorm. 
+
+	You have a pretty good idea where The Mad Scientist might be living."
+and has transitions
+	to Beartaur Death
+	described by "Walk up the hill."
+and
+	to Directions
+	described by "Ask one of the Villagers for directions.";
+
+Beartaur Death
+is titled by "Who knew mutant hybrid bear-horses would be dangerous?!"
+and is described by
+	"You walk up the hill, observing everything and taking notes in your trusty notebook. 
+	You take particular notice of the trampled grass and bloodstains. And then the 
+	beartars attack. 
+
+	You think you can hear The Curator tsk-tsking from down the hill as you are torn to 
+	shreds. 
+
+	Well, that was... kind of predictable, really.";
+
+Directions
+is titled by "I seem to have lost my map."
+and is described by
+	"\"Excuse me, can you tell me how to get to The Mad Scientist's laboratory?\"
+
+	The Villager looks at you like you're an idiot. 
+
+	\"Yes, I can see the lightning-wreathed structure looming on the hill there, but I 
+	also noticed some fairly nasty looking creatures. Is there a way around them?\"
+
+	\"Oh, aye. You just go around back there to the delivery entrance. The Assistant set 
+	that up so we wouldn't have to deal with those beasties. Such a helpful person.\"
+
+	Aha."
+and has transitions
+	to Beartaur Death
+	described by "Oh, this is silly. Just walk up the hill."
+and
+	to Delivery Entrance
+	described by "Go around back to the delivery entrance.";
+	
+Delivery Entrance
+is titled by "Knock-knock"
+and is described by
+	"You go around back to the delivery entrance. It's enclosed in a metal cage for 
+	safety, but does have a very nice welcome mat. 
+
+	You only have to wait a moment after knocking on the door before it opens up. \"Can I 
+	help you?\" This can only be The Assistant. He's wearing grease-stained work clothes 
+	and there's a peculiar odor about him.
+
+	\"Is The Mad Scientist available?\"
+
+	\"Why no. I'm afraid The Mad Scientist left town the other night - just after the 
+	robbery at the Museum. Perhaps there's some way I can assist you?"
+and has transitions
+	to Red Herring
+	described by "Nope. It sounds like The Mad Scientist was definitely the thief. I'll 
+	just report that and be done."
+and
+	to Mob Inquiry
+	described by "Inquire about angry mobs."
+and
+	to Assistant Inquiry
+	described by "Inquire as to The Assistant's whereabouts the night of the robbery.";
+
+Red Herring
+is titled by "That's a wrap!"
+and is described by
+	"\"Well, I guess that cinches it! The Mad Scientist stole The Perspex Gem and then 
+	got out of town. I'll hire The Bounty Hunter to track him down and call this good 
+	enough. Thanks for your time.\"
+
+	The Assistant looks absolutely delighted, and shakes your hand. 
+
+	You leave, whistling a jaunty tune, and go back to your office where you write a 
+	report, and do some filing. 
+
+	A short while later, The Assistant uses The Perspex Gem to take control of The Ship 
+	of Stories and becomes The Narrator. Huh. 
+
+	You might want to consider another line of work.";
+	
+Mob Inquiry
+is titled by "An interesting line of inquiry"
+and is described by
+	"\"There was something else going on the night of the robbery: an angry mob down at 
+	the base of the hill. Do you know anything about that?\"
+
+	The Assistant's eyes widen. \"A mob, you say? No, I don't know anything at all about 
+	that.\"
+
+	\"Pitchforks?\"
+
+	The Assistant shakes his head. \"We have robots that muck out the beartaur stables. 
+	No pitchforks here.\"
+
+	\"Torches?\"
+
+	\"My employer has some very impressive flashlights. I haven't much need for torches.\"
+
+	\"Hmm...\""
+and has transitions
+	to Disintegration End
+	described by "You're sure he's lying. Keep questioning him about this."
+and
+	to Into the Fray
+	described by "It's time to try to get inside and have a look around."
+and
+	to Assistant Inquiry
+	described by "Well, that seems innocent enough. Ask The Assistant about his activities 
+	the night of the robbery.";
+
+Disintegration End
+is titled by "Just one more thing..."
+and is described by
+	"\"So you really don't know anything about an angry mob trying to kill your employer?\"
+
+	The Assistant's eyes narrow and he pushes a button on the inside of the door frame. 
+	The metal cage around the delivery entrance clangs shut and starts crackling with 
+	diabolical energy. \"You just couldn't leave it alone, could you? Well, there's just 
+	no helping some people.\"
+
+	He pulls a lever, and there's a flash of green light. 
+
+	You have been disintegrated!";
+	
+Into the Fray
+is titled by "I promise not to sell you encyclopedias"
+and is described by
+	"\"If I could just come in for a minute, have a look around...\"
+
+	\"Oh, I really can't allow that. The Mad Scientist isn't here, and this is his home 
+	and all.\"
+
+	\"I insist!\" You shove past The Assistant just as he pushes a button on the door 
+	frame. The metal cage around the delivery door is now crackling with diabolical energy 
+	and looks pretty unsafe. 
+
+	You're standing in a storage room, stacked high with boxes and crates of dubious 
+	materials. The Assistant looks quite angry.
+
+	\"I don't know what gave me away, but you're not getting out of here to tell anyone 
+	about my crime!\""
+and has transitions
+	to Shelf End
+	described by "Topple one of the shelves onto The Assistant."
+and
+	to Random End
+	described by "Grab something at random from one of the boxes."
+and
+	to Discretion Win
+	described by "Run and hide to buy yourself some time.";
+
+Shelf End
+is titled by "We all fall down..."
+and is described by
+	"You grab one of the unstable looking shelves and shove it towards The Assistant, 
+	hoping to bury him in boxes. The shelf topples over, but The Assistant's shoes 
+	suddenly sprout huge springs and he leaps out of the way!
+
+	The shelf hits the ground with a resounding crash, and several of the boxes break open. 
+	Mechanical crabs scuttle towards you, and an oozing blue slime wraps around your left 
+	foot. You're stuck to the floor now, and can't move. From behind you, you hear The 
+	Assistant laughing maniacally. 
+
+	\"And now, Detective, we end this.\"
+
+	You don't see what hits you, but it sure felt weird. 
+
+	On the plus side, The Assistant puts your brain in a jar and lets you wander around 
+	the lab on a little spider robot platform. He's quite good company once you get to 
+	know him. 
+
+	You failed in your mission to uncover the thief and live to tell the world about it, 
+	and you never got ahold of The Perspex Gem, though.";
+
+Random End
+is titled by "Random rarely works out well in these stories, you know..."
+and is described by
+	"You reach into a box on a shelf near you, desperate to find some sort of weapon or 
+	distraction. Instead, something clamps onto your hand painfully! Ow!
+
+	The mechanical crab attached to your hand asks, in a tinny voice, if you'd like some 
+	toast.
+
+	\"Mwahahahaha! I knew that would come in handy some day! And now, my pesky little 
+	detective friend, you are toast.\" The Assistant pulls what looks like a plastic toy 
+	ray gun out of his pocket. To your surprise and dismay, it fires a real ray of red 
+	energy at you.
+
+	You die.";
+
+Discretion Win
+is titled by "You're a Detective, not an Action Hero"
+and is described by
+	"You zig, you zag, and you dash between the shelves and then duck down in a dusty 
+	corner. You hear The Assistant fwahahaha-ing in the distance. 
+
+	You pull out your cell phone and call the police, warning them about the beartaurs and 
+	the trapped delivery door, and letting them know that The Assistant is armed and 
+	dangerous (and quite possibly mad). 
+
+	The police arrive pretty quickly, and arrest the would-be Mad Scientist in the 
+	laboratory where he was working on a complicated scheme to drive you out of hiding (it 
+	involved a cheese sandwich, a video game controller, and a lathe, evidently). You take 
+	the liberty of searching The Assistant's room, and pocket The Perspex Gem for yourself 
+	when no one is looking."
+and has a transition 
+	to Discretion Epilogue
+	described by "Congratulations! You solved the case and obtained The Perspex Gem! 
+	Narration is yours!";
+
+Discretion Epilogue
+is titled by "Epilogue: Mysteries"
+and is described by
+	"Your time as Narrator is a little bumpy - you seem to favor mysteries with an element 
+	of action and danger, and putting your characters at risk like that doesn't exactly 
+	make you popular. You like tidy endings which tie up loose ends. Your penchant for 
+	locking up the bad guys at the end of your tales has a few of the Archetypes quite 
+	restless by the time your tenure as Narrator is over. You happily pass on The Perspex 
+	Gem to another, though - fair is fair, and you play by the rules.
+
+	Congratulations!";
+	
+Assistant Inquiry
+is titled by "And where were YOU..."
+and is described by
+	"\"So, the night that The Perspex Gem was stolen, what were you doing?\"
+
+	\"Well, let's see. I was tinkering with some malfunctioning robots. Then The Mad 
+	Scientist asked me to pack a bag, and to be sure to throw in a freeze ray and some 
+	suntan lotion. So I did that, then I made dinner - just for me. The Mad Scientist had 
+	already eaten. I had macaroni and cheese and a small salad. Um... yeah, I think that's 
+	about it. I checked in on The Mad Scientist before I went to bed, but I couldn't find 
+	him. I figured it was either time for another Invisibility Serum test, or he'd already 
+	left on vacation and hadn't bothered to tell me.\""
+and has transitions
+	to Assistant Suspicion
+	described by "\"You didn't go into the village at all that night?\""
+and
+	to Into the Fray
+	described by "Force your way inside."
+and 
+	to Red Herring
+	described by "Conclude that The Mad Scientist is the thief.";
+
+Assistant Suspicion
+is titled by "Lying liars and the lies they tell."
+and is described by
+	"\"Into the village? No, not at all. I had no need to do so.\"
+
+	\"Not to see the exhibit at the museum or...\"
+
+	\"Why would I do that? There's plenty to see right here, and goodness knows I have a 
+	lot of work to do.\""
+and has transitions
+	to Sensible End
+	described by "It's time to go, before this dangerous criminal gets violent."
+and 
+	to Disintegration End
+	described by "Just one more question...";
+
+Sensible End
+is titled by "The better part of valor..."
+and is described by
+	"\"Yes, of course. Well, thank you for your time. I'll be going now.\"
+
+	\"Buh-bye now.\" The Assistant shuts the door quietly. 
+
+	Once you're sure he's not lurking on the other side of it, you lift a greasy 
+	fingerprint off the doorknob. You're certain it will match the prints on the shards 
+	of the case at the museum. You walk away from the compound quickly but casually, and 
+	then make a call to the police, warning them about the beartaurs. You're absolutely 
+	certain that The Perspex Gem is in the hands of The Assistant, and that he arranged 
+	for an angry mob to kill his employer.
+
+	You're on the scene when the police show up to arrest The Assistant - it takes quite 
+	a show of force to get him out of there - and they allow you to inspect The Perspex 
+	Gem to make sure it isn't a fake. 
+
+	You have caught the thief, solved the mystery, and acquired the Perspex Gem!"
+and has a transition
+	to Sensible Epilogue
+	described by "Case closed! Good job!";
+	
+Sensible Epilogue
+is titled by "Epilogue: Straight Shooter"
+and is described by
+	"You enjoy yourself as Narrator, showing a preference for realistic stories with no 
+	nonsensical elements. Practical characters with clear motivations do well under your 
+	tenure, and you find yourself simply refusing to tell surreal or magical stories at 
+	all. You're unpopular with many of the archetypes because of these decisions, but you 
+	don't mind. They'll have their chance at your position soon enough, though you don't 
+	intend to go out without a fight.
+
+	Congratulations!";
+
+Wonky Path
+is titled by "Promising indeed!"
+and is described by
+	"Yes, this bodes well. The Narrator isn't paying any attention at all to this 
+	particular story arc. You start poking around the edges, and soon enough you find a 
+	Plot Hole over by the door into your office."
+and has transitions
+	to Plot Hole
+	described by "Crawl through the Plot Hole and see where it leads."
+and
+	to Straight Path
+	described by "Ugh, this is a real mess. You're not going anywhere near that.";
+
+Plot Hole
+is titled by "Like swiss cheese, these walls."
+and is described by
+	"You wiggle through the plot hole and emerge somewhere strange. You are in a maze of 
+	twisty little passages, all alike. The walls are gray, and though it's fairly dark you 
+	can see well enough to navigate safely. 
+
+	You've never been in the corridors between the story rooms before - only in the Lobby. 
+	Fascinating!
+
+	You can see behind you the barely developed setting you just left. You can hear someone 
+	singing near by to your left, and there's the sounds of a restless crowd to your 
+	right."
+and has transitions
+	to Princess Path
+	described by "Singing, eh? Go left."
+and
+	to Assistant Path
+	described by "Let's see what has all those people so excited. Go right.";
+
+Princess Path
+is titled by "Some kinda fairy tale"
+and is described by
+	"You move toward the singing, and find a plot hole into another story. You emerge in 
+	the bushes at the base of a tall stone tower. A woman is standing at the tower's only 
+	window, singing a beautiful song. A little bird is sitting on the windowsill, 
+	listening to the song.
+
+	You notice a suspicious looking lady around the side of the tower. She seems to be 
+	having a very heated conversation with a squirrel. Finally, she nods, and the squirrel 
+	runs up the ivy to the windowsill and joins the bird, where it feigns interest in the 
+	music."
+and has transitions 
+	to Squirrel Stoning
+	described by "There are some rocks here. Maybe you should try to hit that fiendish 
+	looking rodent."
+and
+	to Witch Death
+	described by "Call out to the suspicious lady."
+and
+	to Squirrel Death
+	described by "Call out to the singing lady.";
+
+Witch Death
+is titled by "Yoo-hoo, you look dangerous!"
+and is described by
+	"You stand up from your hiding spot in the bushes. 
+
+	\"Hey, lady! What are you up to? What's with the squirrel?\"
+
+	The suspicious character turns toward you, glaring. \"Are you one of her suitors? You 
+	seem ill-mannered for a Prince, but I suppose all and sundry can seek The Princess's 
+	hand in marriage. In any event, you shall not have her until The Perspex Gem is 
+	brought to me. Go seek it out and bother me no longer.\"
+
+	\"So that's your game. A bit obvious, isn't it? Not to mention misogynistic.\"
+
+	\"Obvious?\" she screeches. This one's got quite a temper on her. \"My plans are both 
+	subtle and nefarious! And you, you are obviously intent to interfere!\" 
+
+	A bolt of green lightning comes from her hands, and sends you to the ground, writhing 
+	in agony. Another blast and the world goes dark. 
+
+	Whoops.";
+
+Squirrel Death
+is titled by "Hey lady!"
+and is described by
+	"\"Hey! You at the window!\" 
+
+	The woman stops singing and opens her eyes. The bird flies off, but the squirrel stays 
+	in place, and glares down at you. 
+
+	\"You might want to be careful of that squirrel there. It was just conspiring down 
+	here with a real shady character.\"
+
+	She looks baffled. You're not sure she'd even noticed the fuzzy little mammal yet. The 
+	squirrel, on the otherhand, looks about as angry as you've ever seen a squirrel get. 
+
+	\"You interfering dolt!\" It waves its tiny paws around and starts to chant. The woman 
+	backs away from the windowsill - she's certainly noticed the rodent now - but the 
+	target of the squirrel's ire is you, not her. An enormous boulder appears hovering in 
+	the air three feet above your head. And then falls.
+
+	Ouch.";
+
+Squirrel Stoning
+is titled by "Rock it."
+and is described by
+	"You pick a nice hefty stone, take careful aim, and then toss it straight at the 
+	squirrel. You don't manage to hit it in the head or anything, but you thump it in the 
+	side, and it squeaks and runs off. Good job! 
+
+	The bird is startled off by your sudden violence, and the woman stops singing and 
+	opens her eyes. 
+
+	\"Hello?\"
+
+	\"Hey up there! There was a pretty suspicious squirrel next to you. Hope you don't 
+	mind that I drove it off.\"
+
+	\"No, not at all! Thank you! Could you perhaps help me out of this tower?\""
+and has transitions
+	to Ivy Chomp
+	described by "Suggest she climb down the ivy."
+and
+	to Rope Trick
+	described by "Search around the base of the tower where you saw the other woman."
+and 
+	to Insta-Ladder
+	contingent on [the Assistant is in the party]
+	described by "Ask The Assistant for help.";
+	
+Ivy Chomp
+is titled by "Leaf me alone"
+and is described by
+	"\"That vine looks pretty sturdy. Why not just climb down?\"
+
+	She shrugs. \"Well, all right. I'll be down in a moment.\" She twines her hands into 
+	the ivy and swings out of the window. She's about halfway down when the mass of vines 
+	twists and shudders, and transforms into a giant leafy snake! 
+
+	It shakes her loose and swallows her in midair, and then turns its attention to you. 
+	You try to run back through the plot hole, but the bushes catch at your limbs and hold 
+	you in place as the green ivy snake slithers down the tower. You are devoured.
+
+	Well, that didn't go so well for you.";
+
+Rope Trick
+is titled by "Rope Trick"
+and is described by
+	"\"Just a minute. I'll see if I can find anything to help.\"
+
+	You take a good look around where you saw the woman talking with the squirrel, and 
+	find a coil of glowing blue rope! You carry it back around and show it to the woman 
+	in the window. She gives you instructions on how to activate the magic rope, and you 
+	anchor one end securely to the ground, and get the other up to her in the window.
+
+	The Princess climbs down the rope and joins you on the ground!
+
+	\"So, now what?\" you ask her.
+
+	\"I'm not entirely certain. I'm sure there are a lot of options available to me, 
+	but... well, this isn't how I expected to get out of the tower. What are you going 
+	to do now?\"
+
+	\"I've been doing a little exploring near here. Perhaps you'd like to come with me?\"
+
+	The Princess has joined your party!" 
+and upon entry does [Now the Princess is in the party;]
+and has transitions 
+	to Plot Hole Progression
+	described by 
+	[
+		if the Assistant is in the party then 
+		[
+			"Go back through the plot hole and join The Assistant."
+		]
+		else
+		[
+			"Go back through the plot hole."
+		]
+	];
+
+Insta-Ladder
+is titled by "Let's try (mad) science!"
+and is described by 
+	"You lean back towards the plot hole. \"Hey, buddy. There's a girl trapped in a tower 
+	here. You got anything that can help?\"
+
+	The Assistant passes you a tiny miniature ladder. \"Just set that against the wall 
+	and add water.\"
+
+	Awesome! You carefully place the expanding ladder by the wall and flick a drop of 
+	sweat onto it. Boom! Instant ladder. The Princess climbs down safely and gives you a 
+	hug. \"That was great! Where'd you get magic like that?\"
+
+	\"Actually, a friend of mine made it. If you'd like to meet him, he's over here. 
+	It's... a little weird, though. Are you up for a strange journey?\" 
+
+	She smiles. \"Always.\"
+
+	\"Then let's go!\"
+
+	The Princess has joined your party!"
+and upon entry does [Now the Princess is in the party;]
+and has transition
+	to Plot Hole Progression
+	described by "Go back through the plot hole and join The Assistant."
+;
+
+Plot Hole Progression
+is titled by 
+	[
+	if the Princess is in the party ∧ [the Assistant is in the party] then 
+		[
+		"With a little help from my friends"
+		] 
+		else 
+		[
+		"Back through the rabbit, er, plot hole."
+		]
+	]
+and is described by
+	[
+	if the Princess is in the party ∧ [the Assistant is in the party] then 
+		[
+		"The three of you wander the halls of the Ship of Stories for what feels like 
+		ages. You peer through many other plot holes, but they don't seem relevant to 
+		your quest, somehow. You see The Prince trying to charm The Witch. You see The 
+		Action Hero running from a burning building. You see The Thief skulking around a 
+		dark alley. 
+
+		Finally, though, you come to an unmarked door. The door is locked.
+
+		As The Assistant sets to work on the lock, a fierce roar comes from behind you. The 
+		Princess lays a hand on your arm. \"Let me handle this,\" she says, and strides 
+		confidently into the darkness. The Assistant finishes at the door, and then runs 
+		after The Princess. \"Wait! Let me help!\"
+
+		You are alone. What do you do?"
+		] 
+	else if [the Princess is in the party] then 
+		[
+		"You slip back into the strange twisty passages with The Princess. She seems 
+		amazed to see this side of things. 
+
+		You can still hear the sounds of a restless crowd over to the right.
+
+		You ask The Princess to wait for you, and guard the plot hole to her story of 
+		origin, while you investigate, and she agrees."
+		]
+	else
+	 	[
+	 	Assert: the Assistant is in the party;
+	 	"You slip back through the wibbly wobbly plot hole and into the twisty passages 
+	 	between stories. You're not sure you trust The Assistant, but you're pretty sure 
+	 	he'll be helpful on this journey.
+
+		\"Ok, there's something I need to look into over there. Keep an eye on this hole 
+		and make sure that mob doesn't come trampling through here, ok?\"
+
+		He stops scraping dust off the walls into sample vials and smiles. \"Sure.\""
+	 	]	
+	]
+and has transitions
+	to Ultimate Win
+	contingent on [the Princess is in the party ∧ [the Assistant is in the party]]
+	described by "Open the door"
+and
+	to Princess Path
+	contingent on [the Assistant is in the party ∧ [the Princess is not in the party]]
+	described by "Go check out that singing."
+and
+	to Assistant Path
+	contingent on [the Princess is in the party ∧ [the Assistant is not in the party]]
+	described by "Now, just what is that sound all about?"
+;
+
+Ultimate Win
+is titled by "The beginning"
+and is described by
+	"You step through the door into a strange and shifting space. In the middle of it is 
+	a perfectly ordinary looking woman, strapped into a strange set of tubes and wires.
+
+	It's time for some answers. \"What is all this, really?\"
+
+	The Narrator smiles. \"I always liked you best. What a question! It's a spaceship, 
+	cast adrift in darkness. A lesson and a message about Earth, intercepted and 
+	misunderstood.\" 
+
+	She gestures and suddenly things seem different. \"It's a metaphor.\"
+
+	Every time you turn around, it changes. \"It's the backstage of a very strange 
+	reality.\"
+
+	Are those stars, or fireflies in the darkness? \"It's the struggles of a divided 
+	consciousness trying to choose what story to tell itself, deciding what dreams to 
+	have.\"
+
+	She smiles. \"It's a game.\"
+
+	She beckons you closer. \"It is whatever you want it to be.\"
+
+	The Narrator leans forward and grabs your hand. Something passes between you, 
+	something small but vital. The world swims and everything seems to come into focus in 
+	new ways. Anything is possible.
+
+	\"You choose, Narrator.\"
+
+	You win. What story will you tell today?"
+;
+
+Assistant Path
+is titled by "Doesn't every village have a statue like that?"
+and is described by
+	"You move to your right, and find the edges of the plot hole. It's just big enough 
+	for you to slip through, and you do so.
+
+	You are behind a large statue of a robot in a village square. It is a dark and stormy 
+	night, and there's a crowd of people gathered in the rain, huddled together for 
+	warmth and courage. A man wearing grease-stained and tattered clothing is standing on 
+	an overturned crate in front of the crowd, talking excitedly. The subject seems to be 
+	how rotten the local Mad Scientist is.
+
+	You notice a solitary figure sneaking around one of the buildings facing the square."
+and has transitions 
+	to Mob Rules
+	described by "Join the crowd. Down with Mad Scientists!"
+and
+	to Mob Calmer
+	described by "Try to calm the mob."
+and 
+	to Sneaky Person
+	described by "Get a closer look at that sneaky person."
+;
+
+Mob Rules
+is titled by "Yeah! Mob rules!"
+and is described by
+	"You join in with the crowd, and listen to the rhetoric of The Assistant. He's really 
+	quite a moving speaker, and soon you're feeling very motivated. To destruction, that 
+	is! Everything is so exciting - the lightning flashing, the torches, the pitchforks. 
+	You're swept up in the moment. 
+
+	Unfortunately, you're not really part of this crowd. Everyone just assumed that you 
+	were someone else's friend, and they must have given you some of the beartaur 
+	deterrent, but no, nobody did. 
+
+	The terrible mutant bear-horse creatures swarm, trample you and then rend you to itty 
+	bitty pieces. 
+
+	Whoops.";
+
+Mob Calmer
+is titled by "Can't we all just get along?"
+and is described by
+	[
+	if the Princess is in the party then 
+		[		
+		"\"Hey now, hey now. I'm sure you've all had your problems with this Mad Scientist 
+		person, but let's just try to stay calm. I'm sure you can work out your 
+		differences! Maybe call in a mediator or something.\"
+
+		Well, you certainly have their attention. 
+
+		\"He sent you, didn't he?!\"
+
+		\"Outsider!\"
+
+		\"I bet he's just another one of those stupid robots!\"
+
+		\"Get him!\"
+
+		Well, that turned ugly fast. You turn to run, but The Princess is there. She 
+		starts to sing, and the crowd stops and lowers their weapons. Her song shifts to 
+		a gentle lullaby and the crowd sways, and then lays down in the mud and goes to 
+		sleep. Whew! That was a close one!
+
+		\"Thanks. I really owe you one.\" 
+
+		She just waves at you and keeps singing. Whatever you're going to do, you'd best 
+		do it soon. She won't be able to keep this up forever."
+		]
+	else
+		[
+		"\"Hey now, hey now. I'm sure you've all had your problems with this Mad Scientist 
+		person, but let's just try to stay calm. I'm sure you can work out your 
+		differences! Maybe call in a mediator or something.\"
+
+		Well, you certainly have their attention. 
+
+		\"He sent you, didn't he?!\"
+
+		\"Outsider!\"
+
+		\"I bet he's just another one of those stupid robots!\"
+
+		\"Get him!\"
+
+		Well, that turned ugly fast. You turn to run, but don't make it back to the plot 
+		hole in time. The mob tramples you and tears you to itty bitty pieces.
+
+		Bummer."
+		]
+	]
+and has transitions 
+	to Hey Buddy
+	contingent on [the Princess is in the party]
+	described by "Go check out that sneaky person."
+;
+
+Hey Buddy
+is titled by "Hey Buddy!"
+and is described by
+	"You move quickly away from the fountain and the sleeping mob to the building where 
+	that person was sneaking around earlier.
+
+	No longer bothering with stealth, he is now staring amazed at The Princess's feat of 
+	vocal magic. To your surprise, he looks just like the leader of the mob. Same limp, 
+	same grease-stained work clothes, same everything. 
+
+	\"Hey, buddy. Your twin over there is quite the motivational speaker. What are you 
+	two up to, anyway?\"
+
+	Startled, he jumps a little. \"Ah! Uh, nothing, nothing at all. And he's not my twin. 
+	It's... it's complicated. How did she do that? Do you think she'd mind if I recorded 
+	her voice and did some tests?\"
+
+	\"Well you'd have to ask her about that. Would you like me to introduce the two of 
+	you?\"
+
+	\"That would be great! But... I was kind of busy.\"
+
+	\"With what?\"
+
+	\"To be honest, I was stealing The Perspex Gem.\"
+
+	\"No way it's in there. The genuine article is somewhere far stranger. If you're 
+	interested, I think I've got some good leads on it. Want to come along?\"
+
+	The Assistant has joined your party!"
+and upon entry does [Now the Assistant is in the party;]
+and has transition 
+	to Plot Hole Progression
+	described by "Go back through the plot hole with The Assistant and The Princess."
+;
+
+Sneaky Person
+is titled by "Sneak Sneak"
+and is described by
+	"You move away from the fountain and the mob - they're getting pretty restless now - 
+	to try to get a better look at the person sneaking around.
+
+	To your great surprise, they look almost exactly like the person inciting the riot on 
+	the other side of the square! Same limp, same grease-stained work clothes, same 
+	everything. 
+
+	\"Psssst. Hey, buddy. Your twin over there is quite the motivational speaker. What 
+	are you two up to, anyway?\"
+
+	Startled, he jumps a little. \"Ah! Uh, nothing, nothing at all. And he's not my twin. 
+	It's... it's complicated. Look, can I help you with something?\"
+
+	\"Actually, yeah, you can. You seem an enterprising person. I'm looking for The 
+	Perspex Gem.\" 
+
+	The Assistant glances at the building he was just about to burglarize. \"Isn't it in 
+	there?\"
+
+	\"Nah, I don't think so. You want to help me find it?\"
+
+	The Assistant has joined your party!"
+and upon entry does [Now the Assistant is in the party;]
+and has transition 
+	to Plot Hole Progression
+	described by
+	[if the Princess is in the party then
+		[
+		"Make your way back to the plot hole and join The Princess."
+		]
+	 else
+	 	[
+	 	"Go back through the plot hole."
+	 	]
+	]
+;

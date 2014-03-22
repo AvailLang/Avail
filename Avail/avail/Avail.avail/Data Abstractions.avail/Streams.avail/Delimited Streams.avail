@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Delimited Streams"
+Module "Delimited Streams"
 Versions
 	"dev"
 Uses

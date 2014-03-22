@@ -1,5 +1,5 @@
 /*
- * Red Dwarf Choosable Path.avail
+ * Crimson Short One Choosable Path.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,12 +30,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Red Dwarf Choosable Path"
+Module "Crimson Short One Choosable Path"
 Versions
 	"dev"
 Uses
 	"Avail",
 	"Choosable Path"
+Entries
+	"Play Crimson Short One"
 Body
 
 Let the game context include
@@ -106,6 +108,9 @@ Let Just Waking Up be the opening scene;
 
 Verify story;
 
-Play a game,
-	creating a context with [a game context],
-	interacting with standard console interface;
+Method "Play Crimson Short One" is
+[
+	Play a game,
+		creating a context with [a game context],
+		interacting with standard console interface;
+];

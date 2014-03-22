@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Definers"
+Module "Definers"
 Versions
 	"dev"
 Uses

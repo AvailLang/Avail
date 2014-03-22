@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Collection Streams"
+Module "Collection Streams"
 Versions
 	"dev"
 Uses

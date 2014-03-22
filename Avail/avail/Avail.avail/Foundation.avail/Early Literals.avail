@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Literals"
+Module "Early Literals"
 Versions
 	"dev"
 Uses
@@ -52,6 +52,7 @@ Body
  *        A value.
  * @returns "string"
  *          A description of the argument.
+ * @category "Stringification"
  */
 Method "“_”" is
 [
@@ -60,14 +61,6 @@ Method "“_”" is
 	primitive description of value
 ] : string;
 
-/**
- * 
- * @method "“_”"
- * @param "value" "⊥'s type"
- *        A value.
- * @returns "string"
- *          A description of the argument.
- */
 Method "“_”" is
 [
 	value : ⊥'s type
@@ -84,6 +77,7 @@ Method "“_”" is
  *        The desired tuple, lexically constructed by the compiler.
  * @returns "tuple"
  *          The argument.
+ * @category "Constructors" "Tuples"
  */
 Method "<«_‡,»>" is
 [
@@ -117,6 +111,7 @@ Semantic restriction "<«_‡,»>" is
  *        should be unique members of the answer.
  * @returns "set"
  *          The requested set.
+ * @category "Constructors" "Sets"
  */
 Method "{«_‡,»}" is
 [

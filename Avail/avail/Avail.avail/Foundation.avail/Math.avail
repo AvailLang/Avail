@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Math"
+Module "Math"
 Versions
 	"dev"
 Extends
@@ -177,6 +177,7 @@ Semantic restriction "_mod_" is type promotion function for
  *        A number.
  * @returns "number"
  *          The negation of the argument.
+ * @category "Mathematics" "Numbers"
  */
 Method "-_" is
 [
@@ -221,18 +222,17 @@ Semantic restriction "-_" is
 	]
 ];
 
-Stable abstract method "⎣_⎦" is [number]→number;
-
 /**
- * Compute and answer the floor of the argument. Note that integers and
- * infinities are their own floors.
+ * Compute and answer the floor of the argument.
  * 
  * @method "⎣_⎦"
- * @param "value" "extended integer"
- *        An integral value.
+ * @param "value" "number"
  * @returns "extended integer"
- *          The argument.
+ *          The floor of the argument.
+ * @category "Mathematics" "Numbers"
  */
+Stable abstract method "⎣_⎦" is [number]→number;
+
 Method "⎣_⎦" is
 [
 	value : extended integer
@@ -253,18 +253,17 @@ Semantic restriction "⎣_⎦" is
 	valueType
 ];
 
-Stable abstract method "⎡_⎤" is [number]→number;
-
 /**
- * Compute and answer the ceiling of the argument. Note that integers and
- * infinities are their own ceilings.
+ * Compute and answer the ceiling of the argument.
  * 
  * @method "⎡_⎤"
- * @param "value" "extended integer"
- *        An integral value.
+ * @param "value" "number"
  * @returns "extended integer"
- *          The argument.
+ *          The ceiling of the argument.
+ * @category "Mathematics" "Numbers"
  */
+Stable abstract method "⎡_⎤" is [number]→number;
+
 Method "⎡_⎤" is
 [
 	value : extended integer
@@ -286,15 +285,15 @@ Semantic restriction "⎡_⎤" is
 ];
 
 /**
- * Compute and answer the remainder after dividing the dividend by the divisor.
+ * Compute and answer the remainder after dividing {@param "dividend"} by 
+ * {@param "divisor"}.
  * 
  * @method "_mod_"
  * @param "dividend" "number"
- *        The dividend.
  * @param "divisor" "number"
- *        The divisor.
  * @returns "number"
  *          The remainder.
+ * @category "Mathematics" "Numbers"
  */
 Method "_mod_" is
 [
@@ -304,16 +303,6 @@ Method "_mod_" is
 	dividend - divisor × ⎣dividend ÷ divisor⎦
 ] : number;
 
-/**
- * Compute and answer the remainder after dividing the dividend by the divisor.
- * 
- * @method "_mod_"
- * @param "dividend" "extended integer"
- *        The dividend.
- * @param "divisor" "∞'s type"
- * @returns "extended integer"
- *          The dividend.
- */
 Method "_mod_" is
 [
 	dividend : extended integer,
@@ -327,9 +316,10 @@ Method "_mod_" is
  * 
  * @method "_is odd"
  * @param "a" "integer"
- *        An integer.
  * @returns "boolean"
- *          `true` if the argument is odd, `false` otherwise.
+ *          {@method "true"} if the argument is odd, {@method "false"}
+ *          otherwise.
+ * @category "Mathematics" "Integers"
  */
 Public stable method "_is odd" is
 [
@@ -343,9 +333,10 @@ Public stable method "_is odd" is
  * 
  * @method "_is even"
  * @param "a" "integer"
- *        An integer.
  * @returns "boolean"
- *          `true` if the argument is even, `false` otherwise.
+ *          {@method "true"} if the argument is even, {@method "false"}
+ *          otherwise.
+ * @category "Mathematics" "Integers"
  */
 Public stable method "_is even" is
 [
@@ -359,12 +350,11 @@ Public stable method "_is even" is
  * 
  * @method "_+_"
  * @param "a" "extended integer's type"
- *        An integral type.
  * @param "b" "extended integer's type"
- *        An integral type.
- * @returns 
- *    The narrowest integer range type general enough to hold all possible
- *    sums of the arguments' instances.
+ * @returns "extended integer's type"
+ *          The narrowest integer range type general enough to hold all possible
+ *          sums of the arguments' instances.
+ * @category "Mathematics" "Integers" "Types"
  */
 Method "_+_" is
 [
@@ -390,12 +380,11 @@ Method "_+_" is
  * 
  * @method "_×_"
  * @param "a" "extended integer's type"
- *        An integral type.
  * @param "b" "extended integer's type"
- *        An integral type.
- * Returns:
- *    The narrowest integer range type general enough to hold all possible
- *    products of the arguments' instances.
+ * @returns "extended integer's type"
+ *          The narrowest integer range type general enough to hold all possible
+ *          products of the arguments' instances.
+ * @category "Mathematics" "Integers" "Types"
  */
 Method "_×_" is
 [
@@ -480,9 +469,10 @@ Method "_×_" is
  * 
  * @method "-_"
  * @param "a" "extended integer's type"
- *        An integral type.
- * Returns:
- *    The negation of the argument, e.g., the negation of [3..5] is [-5..-3].
+ * @returns "extended integer's type"
+ *          The negation of the argument, e.g., the negation of {@code "[3..5]"}
+ *          is {@code "[-5..-3]"}.
+ * @category "Mathematics" "Integers" "Types"
  */
 Public method "-_" is
 [
@@ -510,12 +500,11 @@ Semantic restriction "-_" is
  * 
  * @method "_-_"
  * @param "a" "extended integer's type"
- *        An integral type.
  * @param "b" "extended integer's type"
- *        An integral type.
- * Returns:
- *    The narrowest integer range type general enough to hold all possible
- *    differences of the arguments' instances.
+ * @returns "extended integer's type"
+ *          The narrowest integer range type general enough to hold all possible
+ *          differences of the arguments' instances.
+ * @category "Mathematics" "Integers" "Types"
  */
 Method "_-_" is
 [
@@ -596,12 +585,12 @@ Semantic restriction "_×_" is
  * 
  * @method "_÷_"
  * @param "numeratorRange" "extended integer's type"
- *        An integral type.
  * @param "denominator" "extended integer"
- *        An integer.
- * Returns:
- *    The narrowest integer range type general enough to hold all possible
- *    quotients of `numeratorRange`'s instances and `denominator`.
+ * @returns "extended integer's type"
+ *          The narrowest integer range type general enough to hold all possible
+ *          quotients of {@param "numeratorRange"}'s instances and {@param
+ *          "denominator"}.
+ * @category "Mathematics" "Integers" "Types"
  */
 Method "_÷_" is
 [
@@ -650,12 +639,11 @@ Method "_÷_" is
  * 
  * @method "_÷_"
  * @param "numeratorRange" "extended integer's type"
- *        An integral type.
  * @param "denominator" "extended integer's type"
- *        An integral type.
- * Returns:
- *    The narrowest integer range type general enough to hold all possible
- *    quotients of `numeratorRange`'s instances and `denominator`.
+ * @returns "extended integer's type"
+ *          The narrowest integer range type general enough to hold all possible
+ *          quotients of `numeratorRange`'s instances and `denominator`.
+ * @category "Mathematics" "Integers" "Types"
  */
 Method "_÷_" is
 [
@@ -748,7 +736,7 @@ Semantic restriction "_mod_" is
 ];
 
 /**
- * Disambiguate `_→_` and several conversion operations.
+ * Disambiguate {@method "_→_"} and several conversion operations.
  * 
  * @method "_→_"
  * @forbids "1" "double" "extended integer" "float"
@@ -760,9 +748,9 @@ Grammatical restriction "_→_" is <∅, {"double", "extended integer", "float"}
  * 
  * @method "`|_`|"
  * @param "a" "number"
- *        A number.
  * @returns "number"
- *          The absolute value of `a`.
+ *          The absolute value of the argument.
+ * @category "Mathematics" "Numbers"
  */
 Stable method "`|_`|" is
 [
@@ -847,11 +835,13 @@ predicates ::=
  * @param "args" "<<number, [1..3]…|1..2>…|3..∞>"
  *        A tuple whose elements are a sequence of 2-tuples following by an
  *        ending 1-tuple. The first element of these 1,2-tuples is a number.
- *        If present, the second element will be an integer in the range [1..3]
- *        to indicate =, ≤, or <, respectively, as the comparison to be checked
- *        with the next number.
+ *        If present, the second element will be an integer in the range {@code
+ *        "[1..3]"} to indicate {@code "="}, {@code "≤"}, or {@code "<"},
+ *        respectively, as the comparison to be checked with the next number.
  * @returns "boolean"
- *    `true` if the entire chain of comparisons is true, `false` otherwise.
+ *          {@method "true"} if the entire chain of comparisons is true,
+ *          {@method "false"} otherwise.
+ * @category "Mathematics" "Relations" "Numbers"
  */
 Public method "«_‡«=|≤|<»!»" is
 [
@@ -882,9 +872,9 @@ Public method "«_‡«=|≤|<»!»" is
 /**
  * Note that this accepts a very broad type of argument (so it's applicable for
  * non-numeric uses of this selector), but a very specific numbered choice of
- * operator (i.e., only "=").  It always rejects the parse if it's just a chain
- * of equalities, since there's a separate operator for that which can deal with
- * non-numerics.
+ * operator (i.e., only {@code "="}).  It always rejects the parse if it's just
+ * a chain of equalities, since there's a separate operator for that which can
+ * deal with non-numerics.
  * 
  * @method "comparison chain semantic restriction function"
  * @param "args" "<<any, [1..1]…|1..2>…|3..∞>'s type"
@@ -923,8 +913,9 @@ Semantic restriction "«_‡«=|≤|<»!»" is
  *        that indicates this this number should be compared against the next
  *        number to see if it is strictly greater.
  * @returns "boolean"
- *          `true` if the entire chain of comparisons is true, `false`
- *          otherwise.
+ *          {@method "true"} if the entire chain of comparisons is true,
+ *          {@method "false"} otherwise.
+ * @category "Mathematics" "Relations" "Numbers"
  */
 Public method "«_‡«=|≥|>»!»" is
 [
@@ -968,7 +959,8 @@ Semantic restriction "«_‡«=|≥|>»!»" is
  * @param "n" "float"
  *        The number whose logarithm should be computed.
  * @returns "float"
- *          The logarithm of `n` to base `b`.
+ *          The logarithm of {@param "n"} to base {@param "b"}.
+ * @category "Mathematics" "Numbers"
  */
 Public stable method "log_of_" is
 [
@@ -987,7 +979,8 @@ Public stable method "log_of_" is
  * @param "n" "double"
  *        The number whose logarithm should be computed.
  * @returns "double"
- *          The logarithm of `n` to base `b`.
+ *          The logarithm of {@param "n"} to base {@param "b"}.
+ * @category "Mathematics" "Numbers"
  */
 Stable method "log_of_" is
 [
@@ -1003,10 +996,10 @@ Stable method "log_of_" is
  *
  * @method "π"
  * @returns "3.141592653589793's type"
- *          {@code 3.141592653589793}.
+ *          {@code "3.141592653589793"}.
+ * @category "Mathematics" "Constants" "Numbers"
  */
 Public method "π" is [3.141592653589793];
-
 
 /**
  * Strengthen the result type of bitshift.
@@ -1097,31 +1090,6 @@ Semantic restriction "_<<_" is
 	outerBlock(⎡baseIntegerType⎤);
 	(low - 1 .. high + 1)
 ] : integer's type;
-
-/* TODO [MvG] Remove - TEMPORARY TESTS */
-Assert: 1 << 0 = 1;
-Assert: 1 << 1 = 2;
-Assert: 1 << 2 = 4;
-Assert: 3 << 3 = 24;
-Assert: 0 << 0 = 0;
-Assert: 0 << 3 = 0;
-x : [13..19] := 17;
-y : [-3..4] := 0;
-z : [13 << -3 .. 19 << 4] := x << y;
-Assert: z = 17;
-y := 4;
-Assert: x << y = 272;
-y := -3;
-Assert: x << y = 2;
-xi : integer := x;
-yi : integer := y;
-z2 : integer := xi << yi;
-Assert: z2 = 2;
-z3 : [0..∞) := x << yi;
-Assert: z3 = 2;
-z4 : integer := xi << y;
-Assert: z4 = 2;
-
 
 Private forward method "_positive range pairs"
 	is [whole number's type] → <whole number's type…|0..∞>;
@@ -1225,9 +1193,10 @@ Private method "_positive range pairs" is
  * The low and high values may be the same, indicating a range consisting of a
  * single value.
  *
- * In the special case that the upper end of the subrange is ∞, the lower end
- * must be a non-negative power of two.  In the case that the lower end is -∞,
- * the upper end must be one less than the negation of a power of two.
+ * In the special case that the upper end of the subrange is {@code "∞"}, the
+ * lower end must be a non-negative power of two.  In the case that the lower
+ * end is {@code "-∞"}, the upper end must be one less than the negation of a
+ * power of two.
  * 
  * Produce the minimum number of such ranges.
  * 
@@ -1256,20 +1225,6 @@ Private method "_range pairs" is
 	pairs := pairs ++ positiveRegion positive range pairs;
 	pairs
 ] : <extended integer's type…|0..∞>;
-
-/* TODO [MvG] Remove - TEMPORARY TESTS */
-Assert: [0..0] range pairs = <[0..0]>;
-Assert: [0..10] range pairs = <[0..7], [8..9], [10..10]>;
-Assert: [10..20] range pairs = <[10..11], [12..15], [16..19], [20..20]>;
-Assert: [-10..0] range pairs = <[-10..-9], [-8..-1], [0..0]>;
-Assert: [-20..-10] range pairs = <[-20..-17], [-16..-13], [-12..-11], [-10..-10]>;
-Assert: [-21..11] range pairs = <[-21..-21], [-20..-17], [-16..-1], [0..7], [8..11]>;
-Assert: [0..∞) range pairs = <[0..∞)>;
-Assert: [10..∞) range pairs = <[10..11], [12..15], [16..∞)>;
-Assert: integer range pairs = <(-∞..-1], [0..∞)>;
-Assert: {-6, 4, 5, 6, 7}ᵀ range pairs = <[-6..-5], [-4..-1], [0..7]>;
-
-
 
 /**
  * Strengthen bitwise-and operation.
@@ -1395,16 +1350,6 @@ Semantic restriction "_bit∧_" is
 	(⎣contentType⎦ - 1 .. ⎡contentType⎤ + 1)
 ] : integer's type;
 
-/* TODO [MvG] Remove - TEMPORARY TESTS */
-Assert: 0 bit∧ 0 = 0;
-Assert: 0 bit∧ 1 = 0;
-Assert: 1 bit∧ 0 = 0;
-Assert: 1 bit∧ 1 = 1;
-Assert: 15 bit∧ 30 = 14;
-
-
-
-
 /**
  * Strengthen the result type of bounded bitshift, primarily based on the
  * truncation bit count.
@@ -1451,5 +1396,22 @@ Semantic restriction "_<<_keeping_bits" is
 	[low..high+1)
 ] : whole number's type;
 
+/**
+ * {@code "negative integer"} includes every finite {@method "integer"} strictly
+ * less than {@code "0"}.
+ * 
+ * @type "negative integer"
+ * @supertype "(-∞..-1]"
+ * @category "Mathematics" "Integers" "Types" "Constants"
+ */
 Public method "negative integer" is [(-∞..-1]];
+
+/**
+ * {@code "nonpositive integer"} includes every finite {@method "integer"}
+ * strictly less than {@code "1"}.
+ * 
+ * @type "nonpositive integer"
+ * @supertype "(-∞..0]"
+ * @category "Mathematics" "Integers" "Types" "Constants"
+ */
 Public method "nonpositive integer" is [(-∞..0]];

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Control Structures"
+Module "Early Control Structures"
 Versions
 	"dev"
 Uses
@@ -55,6 +55,7 @@ Body
  * @param "value" "any"
  *        An arbitrary value which will be ignored.
  * @returns "⊤"
+ * @category "Control Structures" "Conversions"
  */
 Public method "Ignore:_" is
 [
@@ -73,6 +74,7 @@ Public method "Ignore:_" is
  *        A value, usually produced by a method send expression.
  * @returns "any"
  *        The argument.
+ * @category "Control Structures"
  */
 Public method "(_)" is
 [
@@ -152,9 +154,8 @@ Semantic restriction "If|if_then_else_" is
 /*
  * This is used very frequently in the system library, so strengthen it early.
  */
+
 /**
- * 
- * 
  * @method "eject_"
  * @restricts "variable meta"
  */
@@ -166,25 +167,27 @@ Semantic restriction "eject_" is
 ];
 
 /**
- * If the function `accept` accepts `value` as an argument (based on its
- * runtime type), then invoke `accept` with `value`. Otherwise, invoke `reject`
- * instead.
+ * If the function {@param "accept"} accepts {@param "value"} as an argument 
+ * (based on its runtime type), then invoke {@param "accept"} with {@param 
+ * "value"}. Otherwise, invoke {@param "reject"} instead.
  * 
- * This method effects a dynamic type cast of `value` to the type of `accept`'s
- * only parameter. While type casts are occasionally necessary even in runtime
- * code, this facility is primarily intended for use by semantic restriction
- * functions. Used in this way it leads to a stronger static type system.
+ * This method effects a dynamic type cast of {@param "value"} to the type of 
+ * {@param "accept"}'s only parameter. While type casts are occasionally 
+ * necessary even in runtime code, this facility is primarily intended for use 
+ * by semantic restriction functions. Used in this way it leads to a stronger 
+ * static type system.
  *
  * @method "Cast|cast_into_else_"
  * @param "value" "any"
  *        A value.
  * @param "accept" "function accepting <⊥> and returning ⊤"
- *        The function to invoke if `value` is a subtype of the its parameter
- *        type.
+ *        The function to invoke if {@param "value"} is a subtype of the its 
+ *        parameter type.
  * @param "reject" "nullary procedure"
- *        The function to invoke if `value` is not a subtype of the parameter
- *        type of `accept`.
+ *        The function to invoke if {@param "value"} is not a subtype of the 
+ *        parameter type of {@param "accept"}.
  * @returns "⊤"
+ * @category "Bootstrap" "Casts" "Conditionals"
  */
 Public method "Cast|cast_into_else_" is
 [
@@ -200,18 +203,19 @@ Public method "Cast|cast_into_else_" is
 ] : ⊤;
 
 /**
- * If the function `accept` accepts `value` as an argument (based on its
- * runtime type), then invoke `accept` with `value`. Otherwise, cause an
- * assertion failure. This is obsolete once exceptions are available, and should
- * not be exported beyond this package.
+ * If the function {@param "accept"} accepts {@param "value"} as an argument 
+ * (based on its runtime type), then invoke {@param "accept"} with {@param 
+ * "value"}. Otherwise, cause an assertion failure. This is obsolete once 
+ * exceptions are available, and should not be exported beyond this package.
  *
  * @method "Cast|cast_into_"
  * @param "value" "any"
  *        A value.
  * @param "accept" "function accepting <⊥> and returning ⊤"
- *        The function to invoke if `value` is a subtype of the its parameter
- *        type.
+ *        The function to invoke if {@param "value"} is a subtype of the its 
+ *        parameter type.
  * @returns "⊤"
+ * @category "Bootstrap" "Casts" "Conditionals"
  */
 Public method "Cast|cast_into_" is
 [
@@ -236,9 +240,9 @@ Public method "Cast|cast_into_" is
 ] : ⊤;
 
 /**
- * Strengthen the return type of `Cast|cast_into_else` so that it may be used as
- * a value-producing expression. If the type cast is unnecessary, then reject
- * the current parse.
+ * Strengthen the return type of {@method "Cast|cast_into_else"} so that it may 
+ * be used as a value-producing expression. If the type cast is unnecessary, 
+ * then reject the current parse.
  * 
  * @method "Cast|cast_into_else_"
  * @restricts "any meta"
@@ -332,6 +336,7 @@ Semantic restriction "Cast|cast_into_" is
 	];
 	accept's return type
 ];
+
 /* Nesting parentheses directly is bad style, and leads to confusing
  * expressions, so forbid it.
  */
@@ -348,6 +353,7 @@ with <>;
  * @method "`|`|_`|`|"
  * @param "bottomMeta" "⊥'s type"
  * @returns "⊥"
+ * @category "Types" "Queries"
  */
 Method "`|`|_`|`|" is
 [
@@ -357,7 +363,8 @@ Method "`|`|_`|`|" is
 ];
 
 /**
- * Strengthen `Invoke|invoke_with_` to the invoked function's return type.
+ * Strengthen {@method "Invoke|invoke_with_"} to the invoked function's return 
+ * type.
  * 
  * @method "Invoke|invoke_with_"
  * @restricts "function meta"
@@ -372,8 +379,9 @@ Semantic restriction "Invoke|invoke_with_" is
 ];
 
 /**
- * Basic counting loop with early exit support. Invoke `action` once with each
- * consecutive number in the range established by `start` and `end`.
+ * Basic counting loop with early exit support. Invoke {@param "action"} once 
+ * with each consecutive number in the range established by {@param "start"} and
+ * {@param "end"}.
  * 
  * @method "From_to_do_"
  * @param "start" "natural number"
@@ -382,9 +390,10 @@ Semantic restriction "Invoke|invoke_with_" is
  *        The end value, inclusive.
  * @param "action" "function accepting <⊥> and returning boolean"
  *        A function that accepts a value in the specified range. If it answers
- *        `true`, then continue to iterate; if it answers `false`, then
- *        terminate iteration early.
+ *        {@method "true"}, then continue to iterate; if it answers {@method 
+ *        "false"}, then terminate iteration early.
  * @returns "⊤"
+ * @category "Bootstrap" "Control Structures" "Loops"
  */
 Public method "From_to_do_" is
 [

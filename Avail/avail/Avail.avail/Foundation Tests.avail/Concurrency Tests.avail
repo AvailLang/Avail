@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Concurrency Tests"
+Module "Concurrency Tests"
 Versions
 	"dev"
 Uses
@@ -199,7 +199,7 @@ Test "heritable fiber variables (orphan)" in concurrency test suite is
 	];
 	mutex ::= a monitor named "heritable fiber variables";
 	isDone : boolean := false;
-	done ::= a condition of mutex is [isDone];
+	done ::= a condition of mutex such that [isDone];
 	inherited : {atom→any|} := {};
 	Invoke
 	[
@@ -344,7 +344,7 @@ Test "heritable fiber variables (delayed fork, orphan)"
 	];
 	mutex ::= a monitor named "heritable fiber variables";
 	isDone : boolean := false;
-	done ::= a condition of mutex is [isDone];
+	done ::= a condition of mutex such that [isDone];
 	inherited : {atom→any|} := {};
 	delay ::= 10;
 	then ::= milliseconds since the Epoch;

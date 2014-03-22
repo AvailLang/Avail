@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Observing"
+Module "Observing"
 Versions
 	"dev"
 Uses
@@ -63,6 +63,7 @@ Body
  *
  * @type "write reactor"
  * @supertype "[]→⊤"
+ * @category "Functions" "Types" "Observing" "Constants"
  */
 Public method "write reactor" is [nullary procedure];
 
@@ -82,6 +83,7 @@ Public method "write reactor" is [nullary procedure];
  * @returns "⊤"
  * @raises "special-atom exception"
  *         If {@param "key"} is a special atom.
+ * @category "Primitives" "Variables" "Observing" "Mutators"
  */
 Public method "_'s⁇write reactors+=_→_" is
 [
@@ -105,6 +107,7 @@ Public method "_'s⁇write reactors+=_→_" is
  *         If {@param "key"} is a special atom.
  * @raises "key-not-found exception"
  *         If {@param "key"} is not associated with a write reactor.
+ * @category "Primitives" "Variables" "Observing" "Mutators"
  */
 Public method "_'s⁇write reactors-=_" is
 [
@@ -184,6 +187,7 @@ sentinel ::= new atom named "sentinel";
  *         initial trace. Subsequently, {@param "traceFunction"} will be invoked
  *         by {@method "Observe_"} as a consequence of evaluating the relevant
  *         write reactors.
+ * @category "Observing"
  */
 Public method "Whenever_changes,⁇do_" is
 [
@@ -285,6 +289,7 @@ Private method "stop tracking and answer all write reactors" is
  * @raises "exception"
  *         If {@param "observeFunction"} raises an {@type "exception"}.
  * @see {@method "Whenever_changes,⁇do_"}
+ * @category "Observing"
  */
 Public method "Observe|observe_" is
 [

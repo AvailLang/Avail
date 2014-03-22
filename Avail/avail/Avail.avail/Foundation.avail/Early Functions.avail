@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Functions"
+Module "Early Functions"
 Versions
 	"dev"
 Uses
@@ -111,6 +111,7 @@ Semantic restriction "Invoke|invoke_with_" is
  *        The tuple of arguments.
  * @returns "⊤"
  *          The value produced by applying the arguments to the function.
+ * @category "Primitives" "Function Application"
  */
 Public method "_(«_‡,»)" is
 [

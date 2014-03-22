@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Set Tests"
+Module "Set Tests"
 Versions
 	"dev"
 Uses

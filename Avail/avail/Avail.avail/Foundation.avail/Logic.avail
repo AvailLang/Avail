@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Logic"
+Module "Logic"
 Versions
 	"dev"
 Extends
@@ -65,7 +65,9 @@ Body
  * @method "«_‡=»"
  * @param "<any…|3..>" "aTuple"
  * @returns "boolean"
- *          `true` if all arguments are equal, `false` otherwise.
+ *          {@method "true"} if all arguments are equal, {@method "false"}
+ *          otherwise.
+ * @category "Mathematics" "Relations"
  */
 Public method "«_‡=»" is
 [
@@ -113,9 +115,10 @@ Semantic restriction "«_‡=»" is
  * arguments. This is equivalent to (a ∧ ¬b) ∨ ((¬a) ∧ b)
  * 
  * @method "_⊕_"
- * @param "boolean" "a"
- * @param "boolean" "b"
+ * @param "a" "boolean"
+ * @param "a" "boolean"
  * @returns "boolean"
+ * @category "Logic"
  */
 Public stable method "_⊕_" is
 [
@@ -155,9 +158,10 @@ Semantic restriction "_⊕_" is
  * is `true`.
  * 
  * @method "_↑_"
- * @param "boolean" "a"
- * @param "[]→boolean" "b"
+ * @param "a" "boolean"
+ * @param "b" "[]→boolean"
  * @returns "boolean"
+ * @category "Logic"
  */
 Public method "_↑_" is
 [
@@ -167,16 +171,6 @@ Public method "_↑_" is
 	¬(a ∧ b)
 ] : boolean;
 
-/**
- * Compute and answer the logical NAND of the arguments. This is equivalent to
- * ¬(a ∧ b). Short-circuit the computation, i.e., only evaluate `b` if `a` is
- * `true`.
- * 
- * @method "_↑_"
- * @param "false's type" "a"
- * @param "[]→boolean" "b"
- * @returns "boolean"
- */
 Method "_↑_" is
 [
 	a : false's type,
@@ -239,9 +233,10 @@ Semantic restriction "_↑_" is
  * is `false`.
  *
  * @method "_↓_"
- * @param "boolean" "a"
- * @param "[]→boolean" "b"
+ * @param "a" "boolean"
+ * @param "b" "[]→boolean"
  * @returns "boolean"
+ * @category "Logic"
  */
 Public method "_↓_" is
 [
@@ -251,16 +246,6 @@ Public method "_↓_" is
 	¬(a ∨ b)
 ] : boolean;
 
-/**
- * Compute and answer the logical NOR of the arguments. This is equivalent to
- * ¬(`a` ∨ `b`). Short-circuit the computation, i.e., only evaluate `b` if `a`
- * is `false`.
- *
- * @method "_↓_"
- * @param "true's type" "a"
- * @param "[]→boolean" "b"
- * @returns "boolean"
- */
 Method "_↓_" is
 [
 	a : true's type,
@@ -339,9 +324,10 @@ Semantic restriction "_↓_" is
  * evaluate `b` if `a` is `true`.
  *
  * @method "_→_"
- * @param "boolean" "a"
- * @param "[]→boolean" "b"
+ * @param "a" "boolean"
+ * @param "b" "[]→boolean"
  * @returns "boolean"
+ * @category "Logic"
  */
 Public method "_→_" is
 [
@@ -351,16 +337,6 @@ Public method "_→_" is
 	(¬a) ∨ b
 ] : boolean;
 
-/**
- * Compute and answer the material conditional of the arguments. This is the
- * equivalent of (¬`a`) ∨ `b`. Short-circuit the computation, i.e., only
- * evaluate `b` if `a` is `true`.
- *
- * @method "_→_"
- * @param "false's type" "a"
- * @param "[]→boolean" "b"
- * @returns "boolean"
- */
 Method "_→_" is
 [
 	a : false's type,
@@ -407,9 +383,10 @@ Semantic restriction "_→_" is
  * `b` if `a`  is false.
  *
  * @method "_←_"
- * @param "boolean" "a"
- * @param "[]→boolean" "b"
+ * @param "a" "boolean"
+ * @param "b" "[]→boolean"
  * @returns "boolean"
+ * @category "Logic"
  */
 Public method "_←_" is
 [
@@ -419,16 +396,6 @@ Public method "_←_" is
 	a ∨ [¬b()]
 ] : boolean;
 
-/**
- * Compute and answer the converse implication of the arguments. This is
- * equivalent to `a` ∨ ¬`b`. Short-circuit the computation, i.e., only evaluate
- * `b` if `a`  is false.
- *
- * @method "_←_"
- * @param "true's type" "a"
- * @param "[]→boolean" "b"
- * @returns "boolean"
- */
 Method "_←_" is
 [
 	a : true's type,
@@ -478,6 +445,7 @@ Semantic restriction "_←_" is
  * @param "boolean" "a"
  * @param "boolean" "b"
  * @returns "boolean"
+ * @category "Logic"
  */
 Public stable method "_↔_" is
 [
@@ -518,6 +486,7 @@ Semantic restriction "_↔_" is
  * @param "boolean" "a"
  * @param "[]→boolean" "b"
  * @returns "boolean"
+ * @category "Logic"
  */
 Public method "_↛_" is
 [
@@ -527,16 +496,6 @@ Public method "_↛_" is
 	a ∧ [¬b()]
 ] : boolean;
 
-/**
- * Compute and answer the material nonimplication of the arguments. This is
- * equivalent to `a` ∧ ¬`b`. Short-circuit the computation, i.e., only evaluate
- * `b` if `a` is `true`.
- *
- * @method "_↛_"
- * @param "false's type" "a"
- * @param "[]→boolean" "b"
- * @returns "boolean"
- */
 Method "_↛_" is
 [
 	a : false's type,
@@ -586,6 +545,7 @@ Semantic restriction "_↛_" is
  * @param "boolean" "a"
  * @param "[]→boolean" "b"
  * @returns "boolean"
+ * @category "Logic"
  */
 Public method "_↚_" is
 [
@@ -595,16 +555,6 @@ Public method "_↚_" is
 	(¬a) ∧ [b()]
 ] : boolean;
 
-/**
- * Compute and answer the converse nonimplication of the arguments. This is
- * equivalent to (¬`a`) ∧ `b`. Short-circuit the computation, i.e., only
- * evaluate `b` if `a` is `false`.
- *
- * @method "_↚_"
- * @param "true's type" "a"
- * @param "[]→boolean" "b"
- * @returns "boolean"
- */
 Method "_↚_" is
 [
 	a : true's type,

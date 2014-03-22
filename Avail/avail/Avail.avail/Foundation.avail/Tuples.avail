@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Tuples"
+Module "Tuples"
 Versions
 	"dev"
 Extends
@@ -96,6 +96,7 @@ Body
  * @method "“_”"
  * @param "t" "tuple meta"
  * @returns "string"
+ * @category "Tuples" "Stringification"
  */
 Method "“_”" is
 [
@@ -124,7 +125,9 @@ Method "“_”" is
  * @method "_is empty"
  * @param "aTuple" "tuple"
  * @returns "boolean"
- *          `true` if the argument is empty, `false` otherwise.
+ *          {@method "true"} if the argument is empty, {@method "false"} 
+ *          otherwise.
+ * @category "Tuples" "Queries" "Collections"
  */
 Stable method "_is empty" is
 [
@@ -141,6 +144,7 @@ Stable method "_is empty" is
  * @param "action" "[⊥]→⊤"
  *        A function that accepts the elements of the tuple.
  * @returns "⊤"
+ * @category "Tuples" "Collections" "Control Structures"
  */
 Method "For each of⁇_do_" is
 [
@@ -169,6 +173,7 @@ Method "For each of⁇_do_" is
  *        A function that accepts 1) an element of the tuple and 2) the index of
  *        that element.
  * @returns "⊤"
+ * @category "Tuples" "Collections" "Control Structures"
  */
 Method "For each of⁇_do_" is
 [
@@ -189,18 +194,19 @@ Method "For each of⁇_do_" is
 ] : ⊤;
 
 /**
- * Helper method for semantic restrictions: If `action` does not accept the
- * type union of all element types of `tupleType` and their indices, then reject
- * the current parse.
+ * Helper method for semantic restrictions: If {@param "action"} does not accept 
+ * the type union of all element types of {@param "tupleType"} and their
+ * indices, then reject the current parse.
  * 
  * @method "Require:_accepts_"
  * @param "action" "function meta"
  *        A function type whose first parameter must correspond to the type
- *        union of the element types of `tupleType` and whose second parameter,
- *        if provided, must correspond to `indices`.
+ *        union of the element types of {@param "tupleType"} and whose second 
+ *        parameter, if provided, must correspond to their indices.
  * @param "tupleType" "tuple meta"
  *        A tuple type.
  * @returns "⊤"
+ * @category "Tuples" "Collections" "Types" "Assertions"
  */
 Method "Require:_accepts_" is
 [
@@ -262,17 +268,18 @@ Semantic restriction "For each of⁇_do_" is
 ];
 
 /**
- * Iteratively apply `transformer` to each consecutive element of `aTuple`,
- * collecting the results into a new tuple (and preserving ordering of the
- * transformed elements). Answer this tuple.
+ * Iteratively apply {@param "transformer"} to each consecutive element of 
+ * {@param "aTuple"}, collecting the results into a new tuple (and preserving 
+ * ordering of the transformed elements). Answer this tuple.
  * 
  * @method "map_through_"
  * @param "aTuple" "tuple"
  * @param "transformer" "[⊥]→any"
  *        A function that accepts the elements of the tuple.
  * @returns "tuple"
- *          A tuple of results of applications of `transformer` to the elements
- *          of `aTuple`.
+ *          A tuple of results of applications of {@param "transformer"} to the
+ *          elements of {@param "aTuple"}.
+ * @category "Tuples" "Control Structures" "Collections" "Transformers"
  */
 Method "map_through_" is
 [
@@ -295,9 +302,9 @@ Method "map_through_" is
 ] : tuple;
 
 /**
- * Iteratively apply `transformer` to each consecutive element of `aTuple`,
- * collecting the results into a new tuple (and preserving ordering of the
- * transformed elements). Answer this tuple.
+ * Iteratively apply {@param "transformer"} to each consecutive element of 
+ * {@param "aTuple"}, collecting the results into a new tuple (and preserving 
+ * ordering of the transformed elements). Answer this tuple.
  * 
  * @method "map_through_"
  * @param "aTuple" "tuple"
@@ -305,8 +312,9 @@ Method "map_through_" is
  *        A function that accepts 1) an element of the tuple and 2) the index of
  *        that element.
  * @returns "tuple"
- *          A tuple of results of applications of `transformer` to the elements
- *          and indices of `aTuple`.
+ *          A tuple of results of applications of {@param "transformer"} to the
+ *          elements and indices of {@param "aTuple"}.
+ * @category "Tuples" "Control Structures" "Collections" "Transformers"
  */
 Method "map_through_" is
 [
@@ -355,18 +363,20 @@ Semantic restriction "map_through_" is
 ];
 
 /**
- * Iteratively apply `predicate` to each consecutive element of `aTuple`,
- * collecting those elements for which `predicate` answers `true` into a new
- * tuple (and preserving ordering). Answer the new tuple.
+ * Iteratively apply {@param "predicate"} to each consecutive element of 
+ * {@param "aTuple"}, collecting those elements for which {@param "predicate"} 
+ * answers {@method "true"} into a new tuple (and preserving ordering). Answer 
+ * the new tuple.
  * 
  * @method "filter_by_"
  * @param "aTuple" "tuple"
  * @param "predicate" "[⊥]→boolean"
- *        A function that accepts the elements of the tuple and answers `true`
- *        iff they should be accumulated into the output tuple.
+ *        A function that accepts the elements of the tuple and answers 
+ *        {@method "true"} iff they should be accumulated into the output tuple.
  * @returns "tuple"
- *          A tuple containing exactly those elements of `aTuple` for which
- *          `predicate` answered `true`.
+ *          A tuple containing exactly those elements of {@param "aTuple"} for 
+ *          which {@param "predicate"} answered {@method "true"}.
+ * @category "Tuples" "Control Structures" "Collections" "Transformers"
  */
 Method "filter_by_" is
 [
@@ -393,19 +403,21 @@ Method "filter_by_" is
 ] : tuple;
 
 /**
- * Iteratively apply `predicate` to each consecutive element and index of
- * `aTuple`, collecting those elements for which `predicate` answers `true` into
- * a new tuple (and preserving ordering). Answer the new tuple.
+ * Iteratively apply {@param "predicate"} to each consecutive element and index
+ * of {@param "aTuple"}, collecting those elements for which {@param 
+ * "predicate"} answers {@method "true"} into a new tuple (and preserving 
+ * ordering). Answer the new tuple.
  * 
  * @method "filter_by_"
  * @param "aTuple" "tuple"
  * @param "predicate" "[⊥, ⊥]→boolean"
  *        A function that accepts 1) an element of the tuple and 2) the index of
- *        that element and which answers `true` iff the elements should be
- *        accumulated into the output tuple.
+ *        that element and which answers {@method "true"} iff the elements 
+ *        should be accumulated into the output tuple.
  * @returns "tuple"
- *          A tuple containing exactly those elements of `aTuple` for which
- *          `predicate` answered `true`.
+ *          A tuple containing exactly those elements of {@param "aTuple"} for 
+ *          which {@param "predicate"} answered {@method "true"}.
+ * @category "Tuples" "Control Structures" "Collections" "Transformers"
  */
 Method "filter_by_" is
 [
@@ -459,22 +471,25 @@ Semantic restriction "filter_by_" is
 ];
 
 /**
- * Iteratively apply `accumulator` to the consecutive elements of `aTuple` in
- * order to transform and filter its elements into a new tuple. When
- * `accumulator` is invoked, it is passed a "keeper" function. The keeper
- * function may be invoked to "save" a particular value, i.e., a value that will
- * be copied into the output tuple. The keeper function will save at most one
- * value per element of `aTuple`, i.e., each time that `accumulator` is invoked,
- * it may invoke the keeper function at most one time. Answer the new tuple.
+ * Iteratively apply {@param "accumulator"} to the consecutive elements of 
+ * {@param "aTuple"} in order to transform and filter its elements into a new 
+ * tuple. When {@param "accumulator"} is invoked, it is passed a "keeper" 
+ * function. The keeper function may be invoked to "save" a particular value, 
+ * i.e., a value that will be copied into the output tuple. The keeper function 
+ * will save at most one value per element of {@param "aTuple"}, i.e., each time 
+ * that {@param "accumulator"} is invoked, it may invoke the keeper function at 
+ * most one time. Answer the new tuple.
  * 
  * @method "map and filter_by_"
  * @param "aTuple" "tuple"
  * @param "accumulator" "[⊥, ⊥]→⊤"
- *        A function that accepts 1) an element from `aTuple` and 2) a keeper
- *        function. The keeper function accepts an argument of the type that
- *        should be saved.
+ *        A function that accepts 1) an element from {@param "aTuple"} and 2) a 
+ *        keeper function. The keeper function accepts an argument of the type
+ *        that should be saved.
  * @returns "tuple"
- *          A tuple whose elements are those saved by the `accumulator`.
+ *          A tuple whose elements are those saved by the {@param 
+ *          "accumulator"}.
+ * @category "Tuples" "Control Structures" "Collections" "Transformers"
  */
 Method "map and filter_by_" is
 [
@@ -510,22 +525,25 @@ Method "map and filter_by_" is
 ] : tuple;
 
 /**
- * Iteratively apply `accumulator` to the consecutive elements and indices of
- * `aTuple` in order to transform and filter its elements into a new tuple. When
- * `accumulator` is invoked, it is passed a "keeper" function. The keeper
- * function may be invoked to "save" a particular value, i.e., a value that will
- * be copied into the output tuple. The keeper function will save at most one
- * value per element of `aTuple`, i.e., each time that `accumulator` is invoked,
- * it may invoke the keeper function at most one time. Answer the new tuple.
+ * Iteratively apply {@param "accumulator"} to the consecutive elements and 
+ * indices of {@param "aTuple"} in order to transform and filter its elements 
+ * into a new tuple. When {@param "accumulator"} is invoked, it is passed a 
+ * "keeper" function. The keeper function may be invoked to "save" a particular 
+ * value, i.e., a value that will be copied into the output tuple. The keeper 
+ * function will save at most one value per element of {@param "aTuple"}, i.e., 
+ * each time that {@param "accumulator"} is invoked, it may invoke the keeper 
+ * function at most one time. Answer the new tuple.
  * 
  * @method "map and filter_by_"
  * @param "aTuple" "tuple"
  * @param "accumulator" "[⊥, ⊥, ⊥]→⊤"
- *        A function that accepts 1) an element from `aTuple`, 2) the index of
- *        that element, and 3) a keeper function. The keeper function accepts an
- *        argument of the type that should be saved.
+ *        A function that accepts 1) an element from {@param "aTuple"}, 2) the 
+ *        index of that element, and 3) a keeper function. The keeper function 
+ *        accepts an argument of the type that should be saved.
  * @returns "tuple"
- *          A tuple whose elements are those saved by the `accumulator`.
+ *          A tuple whose elements are those saved by the {@param 
+ *          "accumulator"}.
+ * @category "Tuples" "Control Structures" "Collections" "Transformers"
  */
 Method "map and filter_by_" is
 [
@@ -645,8 +663,8 @@ Semantic restriction "map and filter_by_" is
 ];
 
 /**
- * Compute and answer whether any of the elements of `aTuple` satisfies the
- * specified function. Do not examine more elements than necessary.
+ * Compute and answer whether any of the elements of {@param "aTuple"} satisfies
+ * the specified function. Do not examine more elements than necessary.
  * 
  * @method "any of_satisfies_"
  * @param "aTuple" "tuple"
@@ -654,8 +672,9 @@ Semantic restriction "map and filter_by_" is
  *        A function that accepts the elements of the tuple and answers a
  *        boolean.
  * @returns "boolean"
- *          `true` if `predicate` answers `true` for any element of `aTuple`,
- *          `false` otherwise.
+ *          {@method "true"} if {@param "predicate"} answers {@method "true"} 
+ *          for any element of {@apram "aTuple"}, {@method "false"} otherwise.
+ * @category "Tuples" "Control Structures" "Collections" "Queries"
  */
 Method "any of_satisfies_" is
 [
@@ -676,8 +695,9 @@ Method "any of_satisfies_" is
 ] : boolean;
 
 /**
- * Compute and answer whether any of the elements (and indices) of `aTuple`
- * satisfy the specified function. Do not examine more elements than necessary.
+ * Compute and answer whether any of the elements (and indices) of {@param 
+ * "aTuple"} satisfies the specified function. Do not examine more elements than 
+ * necessary.
  * 
  * @method "any of_satisfies_"
  * @param "aTuple" "tuple"
@@ -685,8 +705,9 @@ Method "any of_satisfies_" is
  *        A function that accepts 1) an element of the tuple and 2) the index of
  *        that element.
  * @returns "boolean"
- *          `true` if `predicate` answers `true` for any element of `aTuple`,
- *          `false` otherwise.
+ *          {@method "true"} if {@param "predicate"} answers {@method "true"} 
+ *          for any element of {@apram "aTuple"}, {@method "false"} otherwise.
+ * @category "Tuples" "Control Structures" "Collections" "Queries"
  */
 Method "any of_satisfies_" is
 [
@@ -724,8 +745,9 @@ Semantic restriction "any of_satisfies_" is
 ];
 
 /**
- * Compute and answer whether each of the elements of `aTuple` satisfies the
- * specified function. Do not examine more elements than necessary.
+ * Compute and answer whether each of the elements of {@param "aTuple"} 
+ * satisfies the specified function. Do not examine more elements than 
+ * necessary.
  * 
  * @method "each of_satisfies_"
  * @param "aTuple" "tuple"
@@ -733,8 +755,9 @@ Semantic restriction "any of_satisfies_" is
  *        A function that accepts the elements of the tuple and answers a
  *        boolean.
  * @returns "boolean"
- *          `true` if `predicate` answers `true` for each element of `aTuple`,
- *          `false` otherwise.
+ *          {@method "true"} if {@param "predicate"} answers {@method "true"} 
+ *          for each element of {@apram "aTuple"}, {@method "false"} otherwise.
+ * @category "Tuples" "Control Structures" "Collections" "Queries"
  */
 Method "each of_satisfies_" is
 [
@@ -755,8 +778,9 @@ Method "each of_satisfies_" is
 ] : boolean;
 
 /**
- * Compute and answer whether each of the elements (and indices) of `aTuple`
- * satisfy the specified function. Do not examine more elements than necessary.
+ * Compute and answer whether each of the elements (and indices) of {@param 
+ * "aTuple"} satisfy the specified function. Do not examine more elements than 
+ * necessary.
  * 
  * @method "each of_satisfies_"
  * @param "aTuple" "tuple"
@@ -764,8 +788,9 @@ Method "each of_satisfies_" is
  *        A function that accepts 1) an element of the tuple and 2) the index of
  *        that element and answers a boolean.
  * @returns "boolean"
- *          `true` if `predicate` answers `true` for each element of `aTuple`,
- *          `false` otherwise.
+ *          {@method "true"} if {@param "predicate"} answers {@method "true"} 
+ *          for each element of {@apram "aTuple"}, {@method "false"} otherwise.
+ * @category "Tuples" "Control Structures" "Collections" "Queries"
  */
 Method "each of_satisfies_" is
 [
@@ -803,17 +828,18 @@ Semantic restriction "each of_satisfies_" is
 ];
 
 /**
- * Compute and answer the count of elements of `aTuple` that satisfy the given
- * predicate.
+ * Compute and answer the count of elements of {@param "aTuple"} that satisfy 
+ * the given predicate.
  * 
  * @method "count of_where_"
  * @param "aTuple" "tuple"
  * @param "predicate" "[⊥]→boolean"
- *        A function that accepts the elements of the tuple and answers `true`
- *        if the element should be represented in the resulting count.
+ *        A function that accepts the elements of the tuple and answers {@method 
+ *        "true"} if the element should be represented in the resulting count.
  * @returns "whole number"
- *          The number of elements of `aTuple` for which `predicate` answers
- *          `true`.
+ *          The number of elements of {@apram "aTuple"} for which {@param 
+ *          "predicate"} answers {@method "true"}
+ * @category "Tuples" "Control Structures" "Collections" "Queries"
  */
 Method "count of_where_" is
 [
@@ -824,18 +850,19 @@ Method "count of_where_" is
 ] : whole number;
 
 /**
- * Compute and answer the count of elements (and indices) of `aTuple` that
- * satisfy the given predicate.
+ * Compute and answer the count of elements (and indices) of {@param "aTuple"}
+ * that satisfy the given predicate.
  * 
  * @method "count of_where_"
  * @param "aTuple" "tuple"
  * @param "predicate" "[⊥, ⊥]→boolean"
  *        A function that accepts 1) an element of the tuple and 2) the index of
- *        that element and answers `true` if the element should be represented
- *        in the resulting count.
+ *        that element and answers {@method "true"} if the element should be 
+ *        represented in the resulting count.
  * @returns "whole number"
- *          The number of elements of `aTuple` for which `predicate` answers
- *          `true`.
+ *          The number of elements of {@param "aTuple"} for which {@param 
+ *          "predicate"} answers {@method "true"}.
+ * @category "Tuples" "Control Structures" "Collections" "Queries"
  */
 Method "count of_where_" is
 [
@@ -862,13 +889,15 @@ Semantic restriction "count of_where_" is
 ];
 
 /**
- * Compute and answer the distinct elements of `aTuple`, preserving order.
+ * Compute and answer the distinct elements of {@param "aTuple"}, preserving 
+ * order.
  * 
  * @method "distinct_"
  * @param "aTuple" "tuple"
  * @returns "tuple"
- *          A tuple that contains only the distinct elements of `aTuple`, and in
- *          the order in which they were encountered.
+ *          A tuple that contains only the distinct elements of {@param 
+ *          "aTuple"}, and in the order in which they were encountered.
+ * @category "Tuples" "Transformers"
  */
 Public stable method "distinct_" is
 [
@@ -943,6 +972,7 @@ Private method "zip function" is
  *        A tuple of tuples.
  * @returns "tuple"
  *          The zip of the input tuples.
+ * @category "Tuples" "Transformers"
  */
 Public method "zip_" is zip function;
 
@@ -958,11 +988,12 @@ Public method "zip_" is zip function;
  *        A tuple of tuples.
  * @returns "tuple"
  *          The zip of the input tuples.
+ * @category "Tuples" "Transformers"
  */
 Public method "«_‡zip»" is zip function;
 
 /** 
- * Don't parse `«_‡zip»` recursively. 
+ * Don't parse {@param "«_‡zip»"} recursively. 
  * 
  * @method "«_‡zip»"
  * @forbids "1" "«_‡zip»"
@@ -1057,8 +1088,8 @@ Semantic restriction "zip_" is zip semantic restriction;
 Semantic restriction "«_‡zip»" is zip semantic restriction;
 
 /**
- * Reduce `aTuple` via the binary function, traversing the tuple from left to
- * right. Answer the result of the reduction.
+ * Reduce {@param "aTuple"} via the binary function, traversing the tuple from 
+ * left to right. Answer the result of the reduction.
  *
  * @method "left fold_through_"
  * @param "aTuple" "<any…|1..>"
@@ -1066,12 +1097,14 @@ Semantic restriction "«_‡zip»" is zip semantic restriction;
  * @param "transformer" "[⊥, ⊥]→any"
  *        A binary function whose second parameter type matches its return type.
  *        The first parameter type must be general enough to accept each element
- *        of `aTuple`.
+ *        of {@param "aTuple"}.
  * @returns "any"
- *          The only element of `aTuple` if `aTuple` contains only one element.
- *          Otherwise, the result of iteratively applying `transformer` to 1)
- *          the left-to-right consecutive elements of `aTuple` and 2) the
- *          previous results of applying `transformer`.
+ *          The only element of {@param "aTuple"} if {@param "aTuple"} contains 
+ *          only one element. Otherwise, the result of iteratively applying 
+ *          {@param "transformer"} to 1) the left-to-right consecutive elements 
+ *          of {@param "aTuple"} and 2) the previous results of applying 
+ *          {@param "transformer"}.
+ * @category "Tuples" "Transformers"
  */
 Public method "left fold_through_" is
 [
@@ -1142,8 +1175,8 @@ Semantic restriction "left fold_through_" is
 ];
 
 /**
- * Reduce `aTuple` via the binary function, traversing the tuple from right to
- * left. Answer the result of the reduction.
+ * Reduce {@param "aTuple"} via the binary function, traversing the tuple from 
+ * right to left. Answer the result of the reduction.
  *
  * @method "right fold_through_"
  * @param "aTuple" "<any…|1..>"
@@ -1151,12 +1184,14 @@ Semantic restriction "left fold_through_" is
  * @param "transformer" "[⊥, ⊥]→any"
  *        A binary function whose second parameter type matches its return type.
  *        The first parameter type must be general enough to accept each element
- *        of `aTuple`.
+ *        of {@param "aTuple"}.
  * @returns "any"
- *          The only element of `aTuple` if `aTuple` contains only one element.
- *          Otherwise, the result of iteratively applying `transformer` to 1)
- *          the right-to-left consecutive elements of `aTuple` and 2) the
- *          previous results of applying `transformer`.
+ *          The only element of {@param "aTuple"} if {@param "aTuple"} contains 
+ *          only one element. Otherwise, the result of iteratively applying 
+ *          {@param "transformer"} to 1) the right-to-left consecutive elements 
+ *          of {@param "aTuple"} and 2) the previous results of applying 
+ *          {@param "transformer"}.
+ * @category "Tuples" "Transformers"
  */
 Public method "right fold_through_" is
 [
@@ -1230,8 +1265,8 @@ Semantic restriction "right fold_through_" is
 ];
 
 /**
- * Compute and answer the index of the first element of `aTuple` that satisfies
- * the specified predicate.
+ * Compute and answer the index of the first element of {@param "aTuple"} that
+ * satisfies the specified predicate.
  * 
  * @method "first index of_where_"
  * @param "aTuple" "tuple"
@@ -1240,6 +1275,7 @@ Semantic restriction "right fold_through_" is
  * @returns "whole number"
  *          The index of the first satisfactory element, or 0 if no element
  *          satisfied the predicate.
+ * @category "Tuples" "Queries"
  */
 Public method "first index of_where_" is
 [
@@ -1276,8 +1312,8 @@ Semantic restriction "first index of_where_" is
 ];
 
 /**
- * Compute and answer the index of the last element of `aTuple` that satisfies
- * the specified predicate.
+ * Compute and answer the index of the last element of {@param "aTuple"} that 
+ * satisfies the specified predicate.
  * 
  * @method "last index of_where_"
  * @param "aTuple" "tuple"
@@ -1286,6 +1322,7 @@ Semantic restriction "first index of_where_" is
  * @returns "whole number"
  *          The index of the last satisfactory element, or 0 if no element
  *          satisfied the predicate.
+ * @category "Tuples" "Queries"
  */
 Public method "last index of_where_" is
 [
@@ -1323,8 +1360,8 @@ Semantic restriction "last index of_where_" is
 	
 	
 /**
- * Compute and answer the indices of all the elements of `aTuple` that satisfies
- * the specified predicate.
+ * Compute and answer the indices of all the elements of {@param "aTuple"} that 
+ * satisfies the specified predicate.
  * 
  * @method "all indices of_where_"
  * @param "aTuple" "tuple"
@@ -1333,6 +1370,7 @@ Semantic restriction "last index of_where_" is
  *        A function that accepts the elements of the tuple.
  * @returns "<natural number…|0..∞>"
  *          The indices of all the satisfactory elements of the predicate.
+ * @category "Tuples" "Queries"
  */
 Public method "all indices of_where_" is
 [
@@ -1369,7 +1407,7 @@ Semantic restriction "all indices of_where_" is
 ];
 
 /**
- * Construct and answer a tuple whose elements are each `value`.
+ * Construct and answer a tuple whose elements are each {@param "value"}.
  * 
  * @method "_occurrences⁇of_"
  * @param "count" "whole number"
@@ -1377,7 +1415,8 @@ Semantic restriction "all indices of_where_" is
  * @param "value" "any"
  *        The repeated value.
  * @returns "tuple"
- *          A tuple containing `count` occurrences of `value`.
+ *          A tuple containing {@param "count"} occurrences of {@param "value"}.
+ * @category "Tuples" "Constructors"
  */
 Public stable method "_occurrences⁇of_" is
 [
@@ -1408,8 +1447,9 @@ Semantic restriction "_occurrences⁇of_" is
 
 /**
  * Construct and answer a tuple that contains the consecutive integers from
- * `start` (inclusive) up to `end` (inclusive), counting up by 1. If
- * `end < start`, then answer the empty tuple.
+ * {@param "start"} (inclusive) up to {@param "end"} (inclusive), counting up by 
+ * 1. If {@param "end"}{@code " < "}{@param "start"}, then answer the empty 
+ * tuple.
  * 
  * @method "_to_"
  * @param "start" "integer"
@@ -1417,7 +1457,9 @@ Semantic restriction "_occurrences⁇of_" is
  * @param "end" "integer"
  *        The last value of the resulting tuple.
  * @returns "<integer…|>"
- *          The interval from `start` (inclusive) up to `end` (inclusive).
+ *          The interval from {@param "start"} (inclusive) up to {@param "end"} 
+ *          (inclusive).
+ * @category "Tuples" "Constructors"
  */
 Public stable method "_to_" is
 [
@@ -1429,10 +1471,10 @@ Public stable method "_to_" is
 
 /**
  * Construct and answer a string that contains the consecutive characters from
- * `start` (inclusive) to `end` (inclusive). If
- * `start's code point ≤ end's code point`, then
- * `result[i]'s code point < result[i+1]'s code point`; otherwise,
- * `result[i]'s code point > result[i+1]'s code point`.
+ * {@param "start"} (inclusive) to {@param "end"} (inclusive). If 
+ * {@param "start"}{@code "'s code point ≤ "}{@param "end"}{@code "'s code 
+ * point"}, then {@code "result[i]'s code point < result[i+1]'s code point"}; 
+ * otherwise, {@code "result[i]'s code point > result[i+1]'s code point"}.
  * 
  * @method "_to_"
  * @param "start" "character"
@@ -1440,7 +1482,9 @@ Public stable method "_to_" is
  * @param "end" "character"
  *        The last value of the resulting tuple.
  * @returns "<character…|>"
- *          The interval from `start` (inclusive) up to `end` (inclusive).
+ *          The interval from {@param "start"} (inclusive) up to {@param "end"}
+ *          (inclusive).
+ * @category "Tuples" "Constructors"
  */
 Public stable method "_to_" is
 [
@@ -1460,8 +1504,8 @@ Public stable method "_to_" is
 ] : string;
 
 /**
- * Leverage the uncertainty of `start` to produce good leading types when the
- * upper bound of the result's cardinality can be determined.
+ * Leverage the uncertainty of {@param "start"} to produce good leading types 
+ * when the upper bound of the result's cardinality can be determined.
  * 
  * @method "_to_"
  * @restricts "integer's type"
@@ -1521,14 +1565,6 @@ Semantic restriction "_to_" is
 
 Method "_to_by_" is stable at [integer, integer, integer]→<integer…|>;
 
-/**
- * @method "_to_by_"
- * @param "start" "integer"
- * @param "end" "integer"
- * @param "delta" "0's type"
- * @returns "⊥"
- * @raises "incorrect-argument-type"
- */
 Method "_to_by_" is
 [
 	start : integer,
@@ -1539,6 +1575,9 @@ Method "_to_by_" is
 ] : ⊥;
 
 /**
+ * Reject invocations with size-zero step, and narrow the return type if 
+ * possible.
+ * 
  * @method "_to_by_"
  * @restricts "integer's type"
  * @restricts "integer's type"
@@ -1589,14 +1628,16 @@ Semantic restriction "_to_by_" is
 ];
 
 /**
- * Is `value` an element of `aTuple`?
+ * Is {@param "value"} an element of {@param "aTuple"}?
  * 
  * @method "_∈_"
  * @param "value" "any"
  *        An arbitrary value.
  * @param "aTuple" "tuple"
  * @returns "boolean"
- *          `true` if `value` is an element of `aTuple`, `false` otherwise.
+ *          {@method "true"} if {@param "value"} is an element of {@param 
+ *          "aTuple"}, {@method "false"} otherwise.
+ * @category "Tuples" "Collections" "Queries"
  */
 Stable method "_∈_" is
 [
@@ -1628,16 +1669,17 @@ Semantic restriction "_∈_" is
 ];
 
 /**
- * Is `subtuple` a subsequence of `aTuple`?
+ * Is {@param "subtuple"} a subsequence of {@param "aTuple"}?
  * 
  * @method "_⊆_"
  * @param "subtuple" "tuple"
  *        The search tuple.
  * @param "aTuple" "tuple"
- *        The tuple which should be searched for `subtuple`.
+ *        The tuple which should be searched for {@param "subtuple"}.
  * @returns "boolean"
- *          `true` if some subsequence of `aTuple` equals `subtuple`, `false`
- *          otherwise.
+ *          {@method "true"} if some subsequence of {@param "aTuple"} equals 
+ *          {@param "subtuple"}, {@method "false"} otherwise.
+ * @category "Tuples" "Collections" "Queries"
  */
 Method "_⊆_" is
 [
@@ -1656,16 +1698,17 @@ Method "_⊆_" is
 ] : boolean;
 
 /**
- * Is `subtuple` a subsequence of `aTuple`?
+ * Is {@param "subtuple"} a subsequence of {@param "aTuple"}?
  * 
- * @method "_⊇_"
+ * @method "_⊆_"
  * @param "aTuple" "tuple"
- *        The tuple which should be searched for `subtuple`.
+ *        The tuple which should be searched for {@param "subtuple"}.
  * @param "subtuple" "tuple"
  *        The search tuple.
  * @returns "boolean"
- *          `true` if some subsequence of `aTuple` equals `subtuple`, `false`
- *          otherwise.
+ *          {@method "true"} if some subsequence of {@param "aTuple"} equals 
+ *          {@param "subtuple"}, {@method "false"} otherwise.
+ * @category "Tuples" "Collections" "Queries"
  */
 Method "_⊇_" is
 [
@@ -1717,16 +1760,17 @@ Private method "subsequence restriction function" is
 ] : [tuple meta, tuple meta]→type;
 
 /**
- * Does `aTuple` start with the subsequence `prefix`?
+ * Does {@param "aTuple"} start with the subsequence {@param "prefix"}?
  * 
  * @method "_starts with_"
  * @param "aTuple" "tuple"
- *        The tuple whose prefix should be checked against `prefix`.
+ *        The tuple whose prefix should be checked against {@param "prefix"}.
  * @param "prefix" "tuple"
  *        The search tuple.
  * @returns "boolean"
- *          `true` if `aTuple` starts with the subsequence `prefix`, `false`
- *          otherwise.
+ *          {@method "true"} if {@param "aTuple"} starts with the subsequence 
+ *          {@param "prefix"}, {@method "false"} otherwise.
+ * @category "Tuples" "Queries"
  */
 Public method "_starts with_" is
 [
@@ -1737,16 +1781,17 @@ Public method "_starts with_" is
 ] : boolean;
 
 /**
- * Does `aTuple` end with the subsequence `suffix`?
+ * Does {@param "aTuple"} end with the subsequence {@param "suffix"}?
  * 
  * @method "_ends with_"
  * @param "aTuple" "tuple"
- *        The tuple whose suffix should be checked against `suffix`.
+ *        The tuple whose suffix should be checked against {@param "suffix"}.
  * @param "suffix" "tuple"
  *        The search tuple.
  * @returns "boolean"
- *          `true` if `aTuple` ends with the subsequence `suffix`, `false`
- *          otherwise.
+ *          {@method "true"} if {@param "aTuple"} ends with the subsequence 
+ *          {@param "suffix"}, {@method "false"} otherwise.
+ * @category "Tuples" "Queries"
  */
 Public method "_ends with_" is
 [
@@ -1757,9 +1802,10 @@ Public method "_ends with_" is
 ] : boolean;
 
 /**
- * If `subtuple` is guaranteed longer than `aTuple` or if the element types of
- * `subtuple` and `aTuple` are completely disjoint, then `subtuple`'s instance
- * cannot possibly be a subsequence of `aTuple`'s instance.
+ * If {@param "subtuple"} is guaranteed longer than {@param "aTuple"} or if the 
+ * element types of {@param "subtuple"} and {@param "aTuple"} are completely 
+ * disjoint, then {@param "subtuple"}'s instance cannot possibly be a 
+ * subsequence of {@param "aTuple"}'s instance.
  * 
  * @method "_⊆_"
  * @restricts "tuple meta"
@@ -1768,9 +1814,10 @@ Public method "_ends with_" is
 Semantic restriction "_⊆_" is subsequence restriction function;
 
 /**
- * If `subtuple` is guaranteed longer than `aTuple` or if the element types of
- * `subtuple` and `aTuple` are completely disjoint, then `subtuple`'s instance
- * cannot possibly be a subsequence of `aTuple`'s instance.
+ * If {@param "subtuple"} is guaranteed longer than {@param "aTuple"} or if the 
+ * element types of {@param "subtuple"} and {@param "aTuple"} are completely 
+ * disjoint, then {@param "subtuple"}'s instance cannot possibly be a 
+ * subsequence of {@param "aTuple"}'s instance.
  * 
  * @method "_⊇_"
  * @restricts "tuple meta"
@@ -1785,9 +1832,10 @@ Semantic restriction "_⊇_" is
 ];
 
 /**
- * If `subtuple` is guaranteed longer than `aTuple` or if the element types of
- * `subtuple` and `aTuple` are completely disjoint, then `subtuple`'s instance
- * cannot possibly be a subsequence of `aTuple`'s instance.
+ * If {@param "subtuple"} is guaranteed longer than {@param "aTuple"} or if the 
+ * element types of {@param "subtuple"} and {@param "aTuple"} are completely 
+ * disjoint, then {@param "subtuple"}'s instance cannot possibly be a 
+ * prefix of {@param "aTuple"}'s instance.
  * 
  * @method "_starts with_"
  * @restricts "tuple meta"
@@ -1802,9 +1850,10 @@ Semantic restriction "_starts with_" is
 ];
 
 /**
- * If `subtuple` is guaranteed longer than `aTuple` or if the element types of
- * `subtuple` and `aTuple` are completely disjoint, then `subtuple`'s instance
- * cannot possibly be a subsequence of `aTuple`'s instance.
+ * If {@param "subtuple"} is guaranteed longer than {@param "aTuple"} or if the 
+ * element types of {@param "subtuple"} and {@param "aTuple"} are completely 
+ * disjoint, then {@param "subtuple"}'s instance cannot possibly be a 
+ * suffix of {@param "aTuple"}'s instance.
  * 
  * @method "_ends with_"
  * @restricts "tuple meta"
@@ -1819,17 +1868,18 @@ Semantic restriction "_ends with_" is
 ];
 
 /**
- * Split a `aTuple` into two tuples between `pivot` and `pivot + 1` and answer
- * a 2-tuple containing the results.
+ * Split a {@param "aTuple"} into two tuples between {@param "pivot"} and 
+ * {@param "pivot"}{@code " + 1"} and answer a 2-tuple containing the results.
  *
  * @method "split_after_"
  * @param "aTuple" "tuple"
  * @param "pivot" "whole number"
- *        The index (inclusive) at which to split `aTuple`.
+ *        The index (inclusive) at which to split {@param "aTuple"}.
  * @returns "<tuple…|2>"
- *          A 2-tuple. The first tuple contains the first `pivot` elements of
- *          `aTuple`. The second tuple contains the remaining elements of
- *          `aTuple`.
+ *          A 2-tuple. The first tuple contains the first {@param "pivot"} 
+ *          elements of {@param "aTuple"}. The second tuple contains the 
+ *          remaining elements of {@param "aTuple"}.
+ * @category "Tuples" "Transformers"
  */
 Public stable method "split_after_" is
 [
@@ -1872,17 +1922,18 @@ Semantic restriction "split_after_" is
 ];
 
 /**
- * Split a `aTuple` into two tuples between `pivot - 1` and `pivot` and answer
- * a 2-tuple containing the results.
+ * Split a {@param "aTuple"} into two tuples between {@param "pivot"}{@code 
+ * " - 1"} and {@param "pivot"} and answer a 2-tuple containing the results.
  *
  * @method "split_before_"
  * @param "aTuple" "tuple"
  * @param "pivot" "natural number"
- *        The index (exclusive) at which to split `aTuple`.
+ *        The index (exclusive) at which to split {@param "aTuple"}.
  * @returns "<tuple…|2>"
- *          A 2-tuple. The first tuple contains the first `pivot - 1` elements
- *          of `aTuple`. The second tuple contains the remaining elements of 
- *          `aTuple`.
+ *          A 2-tuple. The first tuple contains the first {@param "pivot"}{@code
+ *          " - 1"} elements of {@param "aTuple"}. The second tuple contains the 
+ *          remaining elements of {@param "aTuple"}.
+ * @category "Tuples" "Transformers"
  */
 Public stable method "split_before_" is
 [
@@ -1925,18 +1976,22 @@ Semantic restriction "split_before_" is
 ];
 
 /**
- * Split a `aTuple` into two tuples.
+ * Split a {@param "aTuple"} into two tuples.
  *
  * @method "split_before_"
  * @param "aTuple" "tuple"
  * @param "predicate" "[⊥]→boolean"
  *        A function that accepts each element of the tuple. It must answer
- *        `true` when the pivot position has been reached. The function will not
- *        be applied again answer it has answered `true`.
+ *        {@method "true"} when the pivot position has been reached. The 
+ *        function will not be applied again after it has answered {@param 
+ *        "true"}.
  * @returns "<tuple…|2>"
- *          A 2-tuple. The first tuple contains the elements of `aTuple` to
- *          which `predicate` was applied. The second tuple contains the 
- *          remaining elements of `aTuple`.
+ *          A 2-tuple. The first tuple contains the elements of {@param 
+ *          "aTuple"} to which {@param "predicate"} was applied without a 
+ *          {@method "true"} result. The second tuple contains the element for 
+ *          which a {@method "true"} result was obtained along with the 
+ *          remaining, untested, elements of {@param "aTuple"}.
+ * @category "Tuples" "Transformers"
  */
 Method "split_before_" is
 [
@@ -1957,7 +2012,7 @@ Method "split_before_" is
  * tuple type. The second element type is a tuple type whose element type are
  * smears (i.e., type unions) of the trailing element types of the original
  * tuple type. The cardinality of each tuple varies from 0 to the upper bound of
- * `tupleType`'s cardinality range.
+ * {@param "tupleType"}'s cardinality range.
  * 
  * @method "split_before_"
  * @restricts "tuple meta"
@@ -1987,7 +2042,7 @@ Semantic restriction "split_before_" is
 ];
 
 /**
- * Compute and answer the specified stripe of `aTuple`.
+ * Compute and answer the specified stripe of {@param "aTuple"}.
  * 
  * @method "stripe_at_"
  * @param "aTuple" "<<any…|1..>…|>"
@@ -1995,7 +2050,9 @@ Semantic restriction "split_before_" is
  * @param "index" "natural number"
  *        The stripe index.
  * @returns "tuple"
- *    A tuple comprising the `index`-th elements of each element of `aTuple`.
+ *          A tuple comprising the {@param "index"}-th elements of each element 
+ *          of {@param "aTuple"}.
+ * @category "Tuples" "Transformers"
  */
 Public stable method "stripe_at_" is
 [
@@ -2055,7 +2112,8 @@ Semantic restriction "stripe_at_" is
 ];
 
 /**
- * Answer a tuple containing the first `count` elements of `aTuple`.
+ * Answer a tuple containing the first {@param "count"} elements of {@param 
+ * "aTuple"}.
  * 
  * @method "take_from_"
  * @param "count" "whole number"
@@ -2063,8 +2121,9 @@ Semantic restriction "stripe_at_" is
  * @param "aTuple" "tuple"
  *        The source tuple.
  * @returns "tuple"
- *          A tuple containing the first `count` elements of `aTuple`,
- *          preserving the original order.
+ *          A tuple containing the first {@param "count"} elements of {@param 
+ *          "aTuple"}, preserving the original order.
+ * @category "Tuples" "Transformers"
  */
 Public stable method "take_from_" is
 [
@@ -2088,18 +2147,19 @@ Semantic restriction "take_from_" is
 ];
 
 /**
- * Answer a tuple containing the prefix of `aTuple` that answered `true` to
- * `predicate`.
+ * Answer a tuple containing the prefix of {@param "aTuple"} that answered 
+ * {@method "true"} to {@param "predicate"}.
  *
  * @method "take from_while_"
  * @param "aTuple" "tuple"
  * @param "predicate" "[⊥]→boolean"
  *        A function that can accept each element of the specified tuple. It
- *        should answer `true` to keep the element (and continue scanning) or 
- *        `false` to abort.
+ *        should answer {@method "true"} to keep the element (and continue 
+ *        scanning) or {@method "false"} to abort.
  * @returns "tuple"
- *          A tuple containing the prefix of `aTuple` that satisfied 
- *          `predicate`.
+ *          A tuple containing the prefix of {@param "aTuple"} that satisfied 
+ *          {@param "predicate"}.
+ * @category "Tuples" "Transformers"
  */
 Public method "take from_while_" is
 [
@@ -2151,11 +2211,12 @@ Semantic restriction "take from_while_" is take-while semantic restriction;
  * @param "aTuple" "tuple"
  * @param "predicate" "[⊥]→boolean"
  *        A function that can accept each element of the specified tuple. It 
- *        should answer `false` to keep the element (and continue scanning) or 
- *        `true` to abort.
+ *        should answer {@method "false"} to keep the element (and continue 
+ *        scanning) or {@method "true"} to abort.
  * @returns "tuple"
- *          A tuple containing the prefix of `aTuple` that satisfied
- *          `predicate`.
+ *          A tuple containing the prefix of {@param "aTuple"} that satisfied
+ *          {@param "predicate"}.
+ * @category "Tuples" "Transformers"
  */
 Public method "take from_until_" is
 [
@@ -2178,17 +2239,18 @@ Public method "take from_until_" is
 Semantic restriction "take from_until_" is take-until semantic restriction;
 
 /**
- * Compute and answer the suffix of `aTuple` that begins with the element that
- * answers `false` to `predicate`.
+ * Compute and answer the suffix of {@param "aTuple"} that begins with the 
+ * element that answers {@method "false"} to {@param "predicate"}.
  * 
  * @method "drop from_while_"
  * @param "aTuple" "tuple"
  * @param "predicate" "[⊥]→boolean"
  *        A function that can accept each element of the specified tuple. It 
- *        should answer `true` to discard the element (and continue scanning) or
- *        `false` to abort.
+ *        should answer {@method "true"} to discard the element (and continue 
+ *        scanning) or {@method "false"} to abort.
  * @returns "tuple"
  *          The requested suffix.
+ * @category "Tuples" "Transformers"
  */
 Public method "drop from_while_" is
 [
@@ -2212,17 +2274,18 @@ Public method "drop from_while_" is
 Semantic restriction "drop from_while_" is drop-while semantic restriction;
 
 /**
- * Compute and answer the suffix of `aTuple` that begins with the element that
- * answers `true` to `predicate`.
+ * Compute and answer the suffix of {@param "aTuple"} that begins with the 
+ * element that answers {@method "true"} to {@param "predicate"}.
  * 
  * @method "drop from_until_"
  * @param "aTuple" "tuple"
  * @param "predicate" "[⊥]→boolean"
  *        A function that can accept each element of the specified tuple. It
- *        should answer `false` to discard the element (and continue scanning)
- *        or `true` to abort.
+ *        should answer {@method "false"} to discard the element (and continue 
+ *        scanning) or {@method "true"} to abort.
  * @returns "tuple"
  *          The requested suffix.
+ * @category "Tuples" "Transformers"
  */
 Public method "drop from_until_" is
 [
@@ -2245,18 +2308,19 @@ Public method "drop from_until_" is
 Semantic restriction "drop from_until_" is drop-until semantic restriction;
 
 /**
- * Answer a tuple containing every element of `aTuple` except for the first
- * `count` elements.
+ * Answer a tuple containing every element of {@param "aTuple"} except for the 
+ * first {@param "count"} elements.
  * 
  * @method "drop_from_"
  * @param "count" "whole number"
- *        The size of the prefix of `aTuple` that should be omitted from the
- *        result tuple.
+ *        The size of the prefix of {@param "aTuple"} that should be omitted 
+ *        from the result tuple.
  * @param "aTuple" "tuple"
  *        The source tuple.
  * @returns "tuple"
- *          A tuple containing every element but the first `count` elements of
- *         `aTuple`, preserving the original order.
+ *          A tuple containing every element but the first {@param "count"} 
+ *          elements of {@param "aTuple"}, preserving the original order.
+ * @category "Tuples" "Transformers"
  */
 Public stable method "drop_from_" is
 [
@@ -2284,10 +2348,10 @@ Method "_[_]→_" is stable at [tuple, natural number, any]→tuple;
 
 /**
  * Tuple element replacement affects only those elements whose subscripts are
- * instances of `indexType`. If multiple subscripts could be affected, then
- * update the element types via type union with `valueType`. If only a single
- * subscript could be affected, then simply replace the corresponding element
- * type with `valueType`. Leverage instance types if possible.
+ * instances of the index's type. If multiple subscripts could be affected, then
+ * update the element types via type union with the result type. If only a 
+ * single subscript could be affected, then simply replace the corresponding 
+ * element type with the result type. Leverage instance types if possible.
  * 
  * @method "_[_]→_"
  * @restricts "tuple meta"
@@ -2381,7 +2445,7 @@ Semantic restriction "_[_]→_" is
 
 /**
  * Compute and answer a tuple that is the result of replacing the specified
- * slice of `aTuple` with `replacement`.
+ * slice of {@param "aTuple"} with {@param "replacement"}.
  * 
  * @method "_[_.._]→_"
  * @param "aTuple" "tuple"
@@ -2390,13 +2454,15 @@ Semantic restriction "_[_]→_" is
  * @param "sliceEnd" "whole number"
  *        The subscript of the last element of the target slice.
  * @param "replacement" "tuple"
- *        The tuple that should be spliced into `aTuple` instead of the
+ *        The tuple that should be spliced into {@param "aTuple"} instead of the
  *        specified slice.
  * @returns "tuple"
- *          A variant of `aTuple` whose elements from `sliceStart` (inclusive)
- *          to `sliceEnd` (inclusive) have been replaced with those of 
- *          `replacement`. Elements before `sliceStart` and after `sliceEnd` 
- *          will be present in the answer.
+ *          A variant of {@param "aTuple"} whose elements from {@param 
+ *          "sliceStart"} (inclusive) to {@param "sliceEnd"} (inclusive) have 
+ *          been replaced with those of {@param "replacement"}. Elements before 
+ *          {@param "sliceStart"} and after {@param "sliceEnd"} will be present 
+ *          in the answer.
+ * @category "Tuples" "Transformers"
  */
 Public stable method "_[_.._]→_" is
 [
@@ -2453,6 +2519,7 @@ Semantic restriction "_[_.._]→_" is
  *          A variant of {@param "aTuple"} whose elements at indices {@param
  *          "index1"} and {@param "index2"} have been exchanged. No other
  *          elements are affected.
+ * @category "Tuples" "Transformers"
  */
 Public stable method "_[_↔_]" is
 [
@@ -2515,7 +2582,8 @@ Semantic restriction "_[_↔_]" is
  * @method "_'s⁇head"
  * @param "aTuple" "<any…|1..>"
  * @returns "any"
- *          The first element of `aTuple`.
+ *          The first element of {@param "aTuple"}.
+ * @category "Tuples" "Queries"
  */
 Public stable method "_'s⁇head" is
 [
@@ -2545,19 +2613,10 @@ Semantic restriction "_'s⁇head" is
  *        A nonempty tuple.
  * @returns "tuple"
  *          The requested tuple slice.
+ * @category "Tuples" "Queries"
  */
 Public stable abstract method "_'s⁇tail" is [<any…|1..>]→tuple;
 
-/**
- * Construct and answer a tuple slice that contains all but the first element of
- * the specified tuple.
- *
- * @method "_'s⁇tail"
- * @param "aTuple" "<any…|1>"
- *        A tuple containing a single element.
- * @returns "<>'s type"
- *          An empty tuple.
- */
 Method "_'s⁇tail" is
 [
 	aTuple : <any…|1>
@@ -2565,16 +2624,6 @@ Method "_'s⁇tail" is
 	<>
 ] : <>'s type;
 
-/**
- * Construct and answer a tuple slice that contains all but the first element of
- * the specified tuple.
- *
- * @method "_'s⁇tail"
- * @param "aTuple" "<any…|2..>"
- *        A tuple containing at least two elements.
- * @returns "tuple"
- *          The requested tuple slice.
- */
 Method "_'s⁇tail" is
 [
 	aTuple : <any…|2..>
@@ -2611,7 +2660,8 @@ Semantic restriction "_'s⁇tail" is
  * @method "_'s⁇last"
  * @param "aTuple" "<any…|1..>"
  * @returns "any"
- *          The last element of a `aTuple`.
+ *          The last element of a {@param "aTuple"}.
+ * @category "Tuples" "Queries"
  */
 Public stable method "_'s⁇last" is
 [
@@ -2640,6 +2690,7 @@ Semantic restriction "_'s⁇last" is
  *        A tuple of integers.
  * @returns "extended integer"
  *          An integer.
+ * @category "Tuples" "Integers" "Mathematics"
  */
 Public stable method "∑_" is
 [
@@ -2657,6 +2708,7 @@ Public stable method "∑_" is
  *        A tuple type whose default type is {@type "extended integer"}.
  * @returns "extended integer's type"
  *          The strongest integer range that can be computed for the argument.
+ * @category "Tuples" "Mathematics" "Types"
  */
 Method "∑_" is
 [
@@ -2716,6 +2768,7 @@ Semantic restriction "∑_" is
  *        A tuple of integers.
  * @returns "extended integer"
  *          An integer.
+ * @category "Tuples" "Mathematics" "Integers"
  */
 Public stable method "∏_" is
 [
@@ -2730,12 +2783,13 @@ Public stable method "∏_" is
 	]
 ] : extended integer;
 
-/**
+/* TODO [RAA]
+ * 
  * Strengthen the return type
  *
  * @method "∏_"
  * @restricts "<integer…|1..∞>'s type"
- */ /* TODO [RAA]
+ *
 Semantic restriction "∏_" is
 [
 	intTupleType : <integer…|1..∞>'s type
@@ -2791,12 +2845,9 @@ Print: “z”;
 	[lowBound..upBound+1)
 ];*/
 
-
-
-
 /**
  * An implementation of insertion sort that accepts a tuple to be sorted and
- * the predicate that defines how sorting occurs.  This only used for sorting
+ * the predicate that defines how sorting occurs. This only used for sorting
  * small tuples.
  *
  * @method "insertion sort_with_"
@@ -2805,10 +2856,11 @@ Print: “z”;
  *        The tuple to be sorted.
  * @param "comparator" "[⊥, ⊥]→boolean"
  *        A comparison function that accepts two elements of {@param "aTuple"}
- *        and answers {@code "true"} if the first ≤ second and {@code "false"}
- *        otherwise.
+ *        and answers {@method "true"} if the first ≤ second and {@method
+ *        "false"} otherwise.
  * @returns "<any|2..15>"
  *          The sorted tuple.
+ * @category "Tuples" "Transformers"
  */
 Private method "insertion sort_with_" is
 [
@@ -2976,8 +3028,8 @@ Method "quicksort_" is
  *        A tuple.
  * @param "comparator" "[⊥, ⊥]→boolean"
  *        A comparison function that accepts two elements of {@param "aTuple"}
- *        and answers {@code "true"} if the first ≤ second and {@code "false"}
- *        otherwise.
+ *        and answers {@method "true"} if the first ≤ second and {@method 
+ *        "false"} otherwise.
  * @returns "tuple"
  *          A sorted variant of {@param "aTuple"}.
  */
@@ -3090,8 +3142,8 @@ Seal method "quicksort_with_" at <tuple, [⊥, ⊥]→boolean>;
  *        The two ordered tuples to merge.
  * @param "comparator" "[⊥, ⊥]→boolean"
  *        A comparison function that accepts two elements of {@param "aTuple"}
- *        and answers {@code "true"} if the first ≤ second and {@code "false"}
- *        otherwise.
+ *        and answers {@method "true"} if the first ≤ second and {@method 
+ *        "false"} otherwise.
  * @returns "tuple"
  *          The merged tuple.
  * @author "Richard Arriaga"
@@ -3138,11 +3190,12 @@ Private method "merge_with_" is
  *        The tuple to sort.
  * @param "comparator" "[⊥, ⊥]→boolean"
  *        A comparison function that accepts two elements of {@param "aTuple"}
- *        and answers {@code "true"} if the first ≤ second and {@code "false"}
- *        otherwise.
+ *        and answers {@method "true"} if the first ≤ second and {@method 
+ *        "false"} otherwise.
  * @returns "tuple"
  *          The sorted tuple.
  * @author "Richard Arriaga"
+ * @category "Tuples" "Transformations"
  */
 Public abstract method "merge sort_with_" is [tuple, [⊥, ⊥]→boolean]→tuple;
 
@@ -3178,12 +3231,6 @@ Semantic restriction "merge sort_with_" is
 	<union… | ⎣tupleType⎦..⎡tupleType⎤>
 ];
 
-/**
- * @method "merge sort_with_"
- * @param "trivial" "<any…|..1>"
- * @param "comparator" "[⊥, ⊥]→boolean"
- * @returns "<any…|0..1>"
- */
 Method "merge sort_with_" is
 [
 	trivial : <any…|0..1>,
@@ -3192,12 +3239,6 @@ Method "merge sort_with_" is
 	trivial
 ] : <any…|0..1>;
 
-/**
- * @method "merge sort_with_"
- * @param "aTuple" "<any…|2..10>"
- * @param "comparator" "[⊥, ⊥]→boolean"
- * @returns "tuple"
- */
 Method "merge sort_with_" is
 [
 	aTuple : <any…|2..10>,
@@ -3206,12 +3247,6 @@ Method "merge sort_with_" is
 	insertion sort aTuple with comparator
 ]: tuple;
 
-/**
- * @method "merge sort_with_"
- * @param "aTuple" "<any…|11..>"
- * @param "comparator" "[⊥, ⊥]→boolean"
- * @returns "tuple"
- */
 Public method "merge sort_with_" is
 [
 	aTuple : <any…|11..>,
@@ -3233,6 +3268,7 @@ Public method "merge sort_with_" is
  * @returns "<number…|>"
  *          The sorted tuple.
  * @author "Richard Arriaga"
+ * @category "Tuples" "Transformations"
  */
 Public abstract method "merge sort_" is [<number…|>]→<number…|>;
 
@@ -3256,11 +3292,8 @@ Semantic restriction "merge sort_" is
 	<<>, union… | ||tupleType||>
 ];
 
-/**
+/*
  * An empty tuple is already sorted.
- * 
- * @method "merge sort_"
- * @param "trivial" "<⊥…|0>"
  */
 Method "merge sort_" is
 [
@@ -3269,11 +3302,8 @@ Method "merge sort_" is
 	trivial
 ] : <number…|0>;
 
-/**
+/*
  * A tuple with one element is already sorted.
- * 
- * @method "merge sort_"
- * @param "trivial" "<number…|1>"
  */
 Method "merge sort_" is
 [
@@ -3282,10 +3312,6 @@ Method "merge sort_" is
 	trivial
 ] : <number…|1>;
 
-/**
- * @method "merge sort_"
- * @param "aTuple" "<number…|2..>"
- */
 Method "merge sort_" is
 [
 	aTuple : <number…|2..>
@@ -3305,6 +3331,7 @@ Method "merge sort_" is
  * @returns "tuple"
  *          The requested tuple, which will be {@param "aTuple"} if there were
  *          no occurrences of {@param "doomed"}.
+ * @category "Tuples" "Transformations"
  */
 Method "_-_" is
 [
@@ -3350,7 +3377,7 @@ Semantic restriction "_-_" is
 
 /**
  * If {@param "start"} and {@param "end"} are valid subscripts representing a 
- * valid range for {@param "aTuple"}, then answer the corresponding element. 
+ * valid range for {@param "aTuple"}, then answer the corresponding subtuple. 
  * Otherwise, answer the result obtained by applying {@param "else"}.
  *
  * @method "_[_.._]else_"
@@ -3367,6 +3394,7 @@ Semantic restriction "_-_" is
  *          The {@param "start"}-th throught the {@param "end"}-th elements of 
  *          {@param "aTuple"}, or the result of applying {@param "else"} 
  *          (if {@param "index"} is invalid).
+ * @category "Tuples" "Queries"
  */
 Public method "_[_.._]else_" is
 [
@@ -3422,9 +3450,9 @@ Semantic restriction "_[_.._]else_" is
 ];
 
 /**
- * If {@param "end"} is a valid subscript representing the end of a  
- * valid range for {@param "aTuple"}, then answer the corresponding element. 
- * Otherwise, answer the result obtained by applying {@param "else"}.
+ * If {@param "end"} is a valid subscript representing the end of a valid range
+ * for {@param "aTuple"}, then answer the corresponding subtuple. Otherwise,
+ * answer the result obtained by applying {@param "else"}.
  *
  * @method "_[.._]else_"
  * @param "aTuple" "tuple"
@@ -3438,6 +3466,7 @@ Semantic restriction "_[_.._]else_" is
  *          The first through the {@param "end"}-th element of 
  *          {@param "aTuple"}, or the result of applying {@param "else"} 
  *          (if {@param "index"} is invalid).
+ * @category "Tuples" "Queries"
  */
 Public method "_[.._]else_" is
 [
@@ -3486,7 +3515,7 @@ Semantic restriction "_[.._]else_" is
 
 /**
  * If {@param "start"} is a valid subscript representing the start of a  
- * valid range for {@param "aTuple"}, then answer the corresponding element. 
+ * valid range for {@param "aTuple"}, then answer the corresponding subtuple. 
  * Otherwise, answer the result obtained by applying {@param "else"}.
  *
  * @method "_[_..]else_"
@@ -3501,6 +3530,7 @@ Semantic restriction "_[.._]else_" is
  *          The {@param "start"}-th through the last element of 
  *          {@param "aTuple"}, or the result of applying {@param "else"} 
  *          (if {@param "start"} is invalid).
+ * @category "Tuples" "Queries"
  */
 Public method "_[_..]else_" is
 [
@@ -3550,7 +3580,7 @@ Semantic restriction "_[_..]else_" is
 
 /**
  * A method that calculates all instances of overlap that a tuple has with
- * itself.  
+ * itself. 
  *
  * @method "self overlap_"
  * @category "Tuples"
@@ -3595,7 +3625,7 @@ Private method "self overlap_" is
 
 /**
  * Obtain the location of the start of the first occuring subtuple in a 
- * tuple (a substring of a string).  This is the abstract implementation.
+ * tuple.
  *
  * @method "first index of_in_"
  * @category "Tuples"
@@ -3606,25 +3636,10 @@ Private method "self overlap_" is
  * @returns "whole number"
  *          The index of the start of the first subtuple, 0 if none.
  * @author "Richard Arriaga"
+ * @category "Tuples" "Queries"
  */
 Public stable abstract method "first index of_in_" is [tuple,tuple]→whole number;
 
-/**
- * Obtain the location of the start of the first occuring subtuple in a 
- * tuple (a substring of a string). This implementation is called when both the 
- * target tuple and the subtuple are empty 
- *
- * @method "first index of_in_"
- * @category "Tuples"
- * @param "aTuple" "<any…|0>" 
- *        The tuple to search within for the subtuple.
- * @param "subtuple" "<any…|0>"
- *        The subtuple to locate in aTuple.
- * @returns "0's type"
- *          The index of the start of the first subtuple, 0 for this
- *          implementation.
- * @author "Richard Arriaga"
- */
 Method "first index of_in_" is
 [
 	subtuple : <any…|0>,
@@ -3633,22 +3648,6 @@ Method "first index of_in_" is
 	0
 ] : 0's type;
 
-/**
- * Obtain the location of the start of the first occuring subtuple in a 
- * tuple (a substring of a string).  The This implementation is called when 
- * both the target tuple is empty 
- *
- * @method "first index of_in_"
- * @category "Tuples"
- * @param "aTuple" "<any…|1..>" 
- *        The tuple to search within for the subtuple.
- * @param "subtuple" "<any…|0>"
- *        The subtuple to locate in aTuple.
- * @returns "0's type"
- *          The index of the start of the first subtuple, 0 for this
- *          implementation.
- * @author "Richard Arriaga"
- */
 Method "first index of_in_" is
 [
 	subtuple : <any…|1..>,
@@ -3657,22 +3656,6 @@ Method "first index of_in_" is
 	0
 ] : 0's type;
 
-/**
- * Obtain the location of the start of the first occuring subtuple in a 
- * tuple (a substring of a string). This implementation is called when the 
- * subtuple is empty 
- *
- * @method "first index of_in_"
- * @category "Tuples"
- * @param "aTuple" "<any…|0>" 
- *        The tuple to search within for the subtuple.
- * @param "subtuple" "<any…|1..>"
- *        The subtuple to locate in aTuple.
- * @returns "0's type"
- *          The index of the start of the first subtuple, 0 for this
- *          implementation.
- * @author "Richard Arriaga"
- */
 Method "first index of_in_" is
 [
 	subtuple : <any…|0>,
@@ -3681,21 +3664,11 @@ Method "first index of_in_" is
 	0
 ] : 0's type;
 
-/**
+/*
  * Obtain the location of the start of the first occuring subtuple in a 
  * tuple (a substring of a string).  The
  * {@link "http://en.wikipedia.org/wiki/Knuth-Morris-Pratt_algorithm" 
  * Knuth-Moris-Pratt algorithm} is used for this implementation. 
- *
- * @method "first index of_in_"
- * @category "Tuples"
- * @param "aTuple" "<any…|1..>" 
- *        the tuple to search for the subtuple
- * @param "subtuple" "<any…|1..>"
- *        The subtuple to locate in aTuple
- * @returns "whole number"
- *          The index of the start of the first subtuple, 0 if none.
- * @author "Richard Arriaga"
  */
 Method "first index of_in_" is
 [
@@ -3738,7 +3711,6 @@ Method "first index of_in_" is
 						[w : whole number | w];
 				]
 				else [↑subtupleIndex++;];
-				
 			]
 			else
 			[
@@ -3753,7 +3725,7 @@ Method "first index of_in_" is
 
 /**
  * Obtain the location of the start of every instance of subtuple occuring in a 
- * a string).  This is the abstract implemenation of this method.
+ * tuple.
  *
  * @method "all indices of_in_"
  * @category "Tuples"
@@ -3765,25 +3737,11 @@ Method "first index of_in_" is
  *          A tuple of the indices of the start of every instance of subtuple,
  *          <> if none.
  * @author "Richard Arriaga"
+ * @category "Tuples" "Queries"
  */
 Public stable abstract method "all indices of_in_" is 
 	[tuple,tuple]→<natural number…|>;
 
-/**
- * Obtain the location of the start of every instance of subtuple occuring in a 
- * a string).  This implementation is called when both the target tuple and the
- * subtuple are empty 
- *
- * @method "all indices of_in_"
- * @category "Tuples"
- * @param "aTuple" "<any…|0>" 
- *        The tuple to search for the subtuple.
- * @param "subtuple" "<any…|0>"
- *        The subtuple to locate in aTuple.
- * @returns "<>'s type"
- *          Empty tuple for this implementation.
- * @author "Richard Arriaga"
- */
 Method "all indices of_in_" is
 [
 	subtuple : <any…|0>,
@@ -3792,21 +3750,6 @@ Method "all indices of_in_" is
 	<>
 ] : <>'s type;
 
-/**
- * Obtain the location of the start of every instance of subtuple occuring in a 
- * a string).  This implementation is called when both the target tuple and the
- * subtuple are empty 
- *
- * @method "all indices of_in_"
- * @category "Tuples"
- * @param "aTuple" "<any…|1..>" 
- *        The tuple to search for the subtuple.
- * @param "subtuple" "<any…|0>"
- *        The subtuple to locate in aTuple.
- * @returns "<>'s type"
- *          The <> for this implementation.
- * @author "Richard Arriaga"
- */
 Method "all indices of_in_" is
 [
 	subtuple : <any…|1..>,
@@ -3815,21 +3758,6 @@ Method "all indices of_in_" is
 	<>
 ] : <>'s type;
 
-/**
- * Obtain the location of the start of every instance of subtuple occuring in a 
- * a string).  This implementation is called when both the target tuple and the
- * subtuple are empty 
- *
- * @method "all indices of_in_"
- * @category "Tuples"
- * @param "aTuple" "<any…|0>" 
- *        The tuple to search for the subtuple
- * @param "subtuple" "<any…|1..>"
- *        The subtuple to locate in aTuple
- * @returns "<>'s type"
- *          The empty tuple for this implementation.
- * @author "Richard Arriaga"
- */
 Method "all indices of_in_" is
 [
 	subtuple : <any…|0>,
@@ -3838,22 +3766,11 @@ Method "all indices of_in_" is
 	<>
 ] : <>'s type;
 
-/**
+/*
  * Obtain the location of the start of every instance of subtuple occuring in a 
  * tuple (a substring of a string).  The 
  * {@link "http://en.wikipedia.org/wiki/Knuth-Morris-Pratt_algorithm" 
  * Knuth-Moris-Pratt algorithm} is used for this implementation. 
- *
- * @method "all indices of_in_"
- * @category "Tuples"
- * @param "aTuple" "<any…|1..>" 
- *        The tuple to search for the subtuple
- * @param "subtuple" "<any…|1..>"
- *        The subtuple to locate in aTuple
- * @returns "<natural number…|>"
- *          A tuple of the indices of the start of every instance of subtuple,
- *          <> if none.
- * @author "Richard Arriaga"
  */
 Method "all indices of_in_" is
 [
@@ -3898,21 +3815,21 @@ Method "all indices of_in_" is
 
 /**
  * Locate of the first instance of a nonempty subtuple occuring in a nonempty 
- * tuple and replace it with the new replacement tuple (replace a substring 
- * with a new substring).
+ * tuple and replace it with the supplied replacement tuple.
  *
  * @method "replace the first occurrence of_in_with_"
  * @category "Tuples"
  * @param "subtuple" "<any…|1..>"
- *        The subtuple to locate in aTuple
+ *        The subtuple to locate.
  * @param "aTuple" "tuple" 
- *        The tuple to search for the subtuple
+ *        The tuple to be searched.
  * @param "replacementTuple" "tuple"
- *        The tuple to swap out all subtuples with
+ *        The tuple to be swapped with the search tuple.
  * @returns "tuple"
- *        the new tuple with the first occurrence of the subtuple replaced with
- *        the replacement tuple
+ *        The new tuple with the first occurrence of the subtuple replaced with
+ *        the replacement tuple.
  * @author "Richard Arriaga"
+ * @category "Tuples" "Transformers"
  */
 Public stable abstract method "replace the first occurrence of_in_with_" is 
 	[<any…|1..>,tuple,tuple]→tuple;
@@ -3990,22 +3907,22 @@ Semantic restriction "replace the first occurrence of_in_with_" is
 ];
 
 /**
- * Locate every instance of a nonempty subtuple occuring in a nonempty tuple 
- * and replace it with the new replacement tuple (replace a substring with a 
- * new substring). 
+ * Replace every instance of a nonempty subtuple occuring in a nonempty tuple 
+ * and with the supplied replacement tuple.
  *
  * @method "replace all occurrences of_in_with_"
  * @category "Tuples"
  * @param "subtuple" "<any…|1..>"
- *        The subtuple to locate in aTuple
+ *        The subtuple to be replaced.
  * @param "aTuple" "tuple" 
- *        The tuple to search for the subtuple
+ *        The tuple to be searched.
  * @param "replacementTuple" "tuple"
- *        The tuple to swap out all subtuples with
+ *        The replacement tuple.
  * @returns "tuple"
- *        the new tuple with the all occurrences of the subtuple replaced with
+ *        The new tuple with the all occurrences of the subtuple replaced with
  *        the replacement tuple.
  * @author "Richard Arriaga"
+ * @category "Tuples" "Transformers"
  */
 Public stable abstract method "replace all occurrences of_in_with_" is 
 	[<any…|1..>,tuple,tuple]→tuple;

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Runners"
+Module "Runners"
 Versions
 	"dev"
 Uses
@@ -52,6 +52,7 @@ Names
 	"test suite-oriented“_”",
 
 	/* Interrogation. */
+	"all test suites",
 	"all test suites in_",
 	"all tests in_"
 Body
@@ -902,3 +903,16 @@ Public method "all test suites in_" is
 			/* No implementation required. */
 		]
 ] : <atom…|>;
+
+/**
+ * Compute and answer the complete collection of {@type "unit test suite"}
+ * identifiers.
+ *
+ * @method "all test suites"
+ * @returns "{atom|}"
+ *          The test suite identifiers of all unit test suites.
+ */
+Public method "all test suites" is
+[
+	suites by atom's keys
+] : {atom|};

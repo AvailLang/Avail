@@ -93,6 +93,9 @@ extends JFrame
 	/** The {@linkplain Style style} to use for notifications. */
 	private static final String infoStyleName = "info";
 
+	/** The {@linkplain Style style} to use for user-supplied commands. */
+	private static final String commandStyleName = "command";
+
 	/**
 	 * A {@code BuildAction} launches a {@linkplain BuildTask build task} in a
 	 * Swing worker thread.
@@ -107,7 +110,7 @@ extends JFrame
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
 			assert documentationTask == null;
-			final String selectedModule = selectedModule();
+			final ResolvedModuleName selectedModule = selectedModule();
 			assert selectedModule != null;
 
 			// Update the UI.
@@ -164,7 +167,7 @@ extends JFrame
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
 			assert buildTask == null;
-			final String selectedModule = selectedModule();
+			final ResolvedModuleName selectedModule = selectedModule();
 			assert selectedModule != null;
 
 			// Update the UI.
@@ -440,10 +443,72 @@ extends JFrame
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
+			assert documentationTask == null;
+			assert buildTask == null;
+
 			final String selectedEntryPoint = selectedEntryPoint();
-			assert selectedEntryPoint != null;
-			inputField.replaceSelection(selectedEntryPoint);
+			if (selectedEntryPoint == null)
+			{
+				return;
+			}
+			// Strip back-ticks as a nicety.  Also put spaces around underscores
+			// that are adjacent to words (Note that underscore is itself
+			// considered a word character, so we want \B to see if the
+			// character adjacent to the underscore is also a word character.
+			// We could do more, but this should be sufficient for now.
+			final String entryPointText = selectedEntryPoint
+				.replaceAll("`", "")
+				.replaceAll("\\B_", " _")
+				.replaceAll("_\\B", "_ ");
+			assert entryPointText != null;
+			final int startOfPastedArea = inputField.getSelectionStart();
+			inputField.replaceSelection(entryPointText);
+			final int offsetToUnderscore = entryPointText.indexOf("_");
+			if (offsetToUnderscore == -1)
+			{
+				final int offset =
+					startOfPastedArea + entryPointText.length();
+				inputField.select(offset, offset);
+			}
+			else
+			{
+				// Select the underscore.
+				final int offset = startOfPastedArea + offsetToUnderscore;
+				inputField.select(offset, offset + 1);
+			}
 			inputField.requestFocusInWindow();
+
+			final ResolvedModuleName moduleName = selectedEntryPointModule();
+			if (moduleName != null)
+			{
+				if (availBuilder.getLoadedModule(moduleName) == null)
+				{
+					// Start loading the module as a convenience.
+					setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+					moduleProgress.setValue(0);
+					buildProgress.setValue(0);
+					inputField.requestFocusInWindow();
+					final StyledDocument doc = transcript.getStyledDocument();
+					try
+					{
+						doc.remove(0, doc.getLength());
+					}
+					catch (final BadLocationException e)
+					{
+						// Shouldn't happen.
+						assert false;
+					}
+
+					// Clear the build input stream.
+					inputStream().clear();
+
+					// Build the target module in a Swing worker thread.
+					final BuildTask task = new BuildTask(moduleName);
+					buildTask = task;
+					setEnablements();
+					task.execute();
+				}
+			}
 		}
 
 		/**
@@ -473,7 +538,102 @@ extends JFrame
 		{
 			if (inputField.isFocusOwner())
 			{
-				inputStream().update();
+				assert !isBuilding;
+				if (isRunning)
+				{
+					// Program is running.  Feed this new line of text to the
+					// input stream to be consumed by the running command, or
+					// possibly discarded when that command completes.
+					inputStream().update();
+					return;
+				}
+				// No program is running.  Treat this as a command and try to
+				// run it.  Do not feed the string into the input stream.
+				final String string = inputField.getText();
+				inputStream().feedbackForCommand(string);
+				inputField.setText("");
+				isRunning = true;
+				setEnablements();
+				availBuilder.runtime.setStandardStreams(
+					outputStream(), errorStream(), inputStream());
+				availBuilder.attemptCommand(
+					string,
+					new Continuation2<
+						AvailObject, Continuation1<Continuation0>>()
+					{
+						@Override
+						public void value (
+							final @Nullable
+								AvailObject result,
+							final @Nullable
+								Continuation1<Continuation0> cleanup)
+						{
+							assert cleanup != null;
+							final Continuation0 afterward = new Continuation0()
+							{
+								@Override
+								public void value ()
+								{
+									isRunning = false;
+									invokeLater(new Runnable()
+									{
+										@Override
+										public void run ()
+										{
+											inputStream().clear();
+											availBuilder.runtime
+												.setStandardStreams(
+													outputStream(),
+													errorStream(),
+													null);
+											setEnablements();
+										}
+									});
+								}
+							};
+							assert result != null;
+							if (result.equalsNil())
+							{
+								cleanup.value(afterward);
+								return;
+							}
+							Interpreter.stringifyThen(
+								availBuilder.runtime,
+								result,
+								new Continuation1<String>()
+								{
+									@Override
+									public void value (
+										final @Nullable String resultString)
+									{
+										outputStream().append(
+											resultString + "\n");
+										cleanup.value(afterward);
+									}
+								});
+						}
+					},
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							invokeLater(new Runnable()
+							{
+								@Override
+								public void run ()
+								{
+									isRunning = false;
+									inputStream().clear();
+									availBuilder.runtime.setStandardStreams(
+										outputStream(),
+										errorStream(),
+										null);
+									setEnablements();
+								}
+							});
+						}
+					});
 			}
 		}
 
@@ -503,7 +663,7 @@ extends JFrame
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
-			final String selection = selectedModule();
+			final ResolvedModuleName selection = selectedModule();
 			final TreeNode modules = newModuleTree();
 			moduleTree.setModel(new DefaultTreeModel(modules));
 			for (int i = moduleTree.getRowCount() - 1; i >= 0; i--)
@@ -512,7 +672,7 @@ extends JFrame
 			}
 			if (selection != null)
 			{
-				final TreePath path = modulePath(selection);
+				final TreePath path = modulePath(selection.qualifiedName());
 				if (path != null)
 				{
 					moduleTree.setSelectionPath(path);
@@ -548,16 +708,9 @@ extends JFrame
 	extends SwingWorker<Void, Void>
 	{
 		/**
-		 * The fully-qualified name of the target {@linkplain ModuleDescriptor
-		 * module}.
+		 * The resolved name of the target {@linkplain ModuleDescriptor module}.
 		 */
-		protected final String targetModuleName;
-
-		/**
-		 * The {@linkplain Thread thread} running the {@linkplain BuildTask
-		 * build task}.
-		 */
-		protected @Nullable Thread runnerThread;
+		protected final ResolvedModuleName targetModuleName;
 
 		/**
 		 * Cancel the {@linkplain BuildTask build task}.
@@ -585,7 +738,7 @@ extends JFrame
 			final StyledDocument doc = transcript.getStyledDocument();
 			final long durationMillis = stopTimeMillis - startTimeMillis;
 			final String status;
-			if (terminator instanceof CancellationException)
+			if (availBuilder.shouldStopBuild)
 			{
 				status = "Canceled";
 			}
@@ -618,7 +771,6 @@ extends JFrame
 		@Override
 		protected final @Nullable Void doInBackground () throws Exception
 		{
-			runnerThread = Thread.currentThread();
 			startTimeMillis = System.currentTimeMillis();
 			try
 			{
@@ -653,10 +805,10 @@ extends JFrame
 		 * Construct a new {@link BuildTask}.
 		 *
 		 * @param targetModuleName
-		 *        The fully-qualified name of the target {@linkplain
-		 *        ModuleDescriptor module}.
+		 *        The resolved name of the target {@linkplain ModuleDescriptor
+		 *        module}.
 		 */
-		protected BuilderTask (final String targetModuleName)
+		protected BuilderTask (final ResolvedModuleName targetModuleName)
 		{
 			this.targetModuleName = targetModuleName;
 		}
@@ -690,13 +842,6 @@ extends JFrame
 					assert lineNumber != null;
 					assert position != null;
 					assert moduleSize != null;
-					if (Thread.currentThread().isInterrupted())
-					{
-						if (Thread.currentThread() == buildTask().runnerThread)
-						{
-							throw new CancellationException();
-						}
-					}
 					invokeLater(new Runnable()
 					{
 						@Override
@@ -731,13 +876,6 @@ extends JFrame
 					assert moduleName != null;
 					assert position != null;
 					assert globalCodeSize != null;
-					if (Thread.currentThread().isInterrupted())
-					{
-						if (Thread.currentThread() == buildTask().runnerThread)
-						{
-							throw new CancellationException();
-						}
-					}
 					invokeLater(new Runnable()
 					{
 						@Override
@@ -757,7 +895,7 @@ extends JFrame
 		protected void executeTask () throws Exception
 		{
 			availBuilder.buildTarget(
-				new ModuleName(targetModuleName),
+				targetModuleName,
 				compilerProgressReporter(),
 				globalTracker());
 		}
@@ -780,10 +918,10 @@ extends JFrame
 		 * Construct a new {@link BuildTask}.
 		 *
 		 * @param targetModuleName
-		 *        The fully-qualified name of the target {@linkplain
-		 *        ModuleDescriptor module}.
+		 *        The resolved name of the target {@linkplain ModuleDescriptor
+		 *        module}.
 		 */
-		public BuildTask (final String targetModuleName)
+		public BuildTask (final ResolvedModuleName targetModuleName)
 		{
 			super(targetModuleName);
 		}
@@ -800,7 +938,7 @@ extends JFrame
 		protected void executeTask () throws Exception
 		{
 			availBuilder.generateDocumentation(
-				new ModuleName(targetModuleName),
+				targetModuleName,
 				documentationPath);
 		}
 
@@ -822,10 +960,10 @@ extends JFrame
 		 * Construct a new {@link DocumentationTask}.
 		 *
 		 * @param targetModuleName
-		 *        The fully-qualified name of the target {@linkplain
-		 *        ModuleDescriptor module}.
+		 *        The resolved name of the target {@linkplain ModuleDescriptor
+		 *        module}.
 		 */
-		public DocumentationTask (final String targetModuleName)
+		public DocumentationTask (final ResolvedModuleName targetModuleName)
 		{
 			super(targetModuleName);
 		}
@@ -971,6 +1109,39 @@ extends JFrame
 			notifyAll();
 		}
 
+		/**
+		 * The specified command string was just entered.  Present it in the
+		 * {@link #commandStyleName}.  Force a leading new line if necessary to
+		 * keep the text area from looking stupid.  Always end with a new line.
+		 * The passed command should not itself have a new line included.
+		 *
+		 * @param commandText
+		 *        The command that was entered, with no leading or trailing line
+		 *        breaks.
+		 */
+		public synchronized void feedbackForCommand (
+			final String commandText)
+		{
+			try
+			{
+				String textToInsert = commandText + "\n";
+				final int length = doc.getLength();
+				if (length > 0 && !doc.getText(length - 1, 1).equals("\n"))
+				{
+					textToInsert = "\n" + textToInsert;
+				}
+				doc.insertString(
+					doc.getLength(),
+					textToInsert,
+					doc.getStyle(commandStyleName));
+			}
+			catch (final BadLocationException e)
+			{
+				// Should never happen.
+				assert false;
+			}
+		}
+
 		@Override
 		public boolean markSupported ()
 		{
@@ -1047,25 +1218,6 @@ extends JFrame
 		}
 	}
 
-	/**
-	 * {@code CancellationException} is thrown when the user cancels the
-	 * background {@linkplain BuildTask build task}.
-	 */
-	private final static class CancellationException
-	extends RuntimeException
-	{
-		/** The serial version identifier. */
-		private static final long serialVersionUID = -2886473176972814637L;
-
-		/**
-		 * Construct a new {@link CancellationException}.
-		 */
-		public CancellationException ()
-		{
-			// No implementation required.
-		}
-	}
-
 	/*
 	 * Model components.
 	 */
@@ -1123,6 +1275,36 @@ extends JFrame
 	@InnerAccess BuildInputStream inputStream ()
 	{
 		final BuildInputStream stream = inputStream;
+		assert stream != null;
+		return stream;
+	}
+
+	/** The {@linkplain PrintStream standard error stream}. */
+	private @Nullable PrintStream errorStream;
+
+	/**
+	 * Answer the {@linkplain PrintStream standard error stream}.
+	 *
+	 * @return The error stream.
+	 */
+	@InnerAccess PrintStream errorStream ()
+	{
+		final PrintStream stream = errorStream;
+		assert stream != null;
+		return stream;
+	}
+
+	/** The {@linkplain PrintStream standard output stream}. */
+	private @Nullable PrintStream outputStream;
+
+	/**
+	 * Answer the {@linkplain PrintStream standard output stream}.
+	 *
+	 * @return The output stream.
+	 */
+	@InnerAccess PrintStream outputStream ()
+	{
+		final PrintStream stream = outputStream;
 		assert stream != null;
 		return stream;
 	}
@@ -1204,16 +1386,20 @@ extends JFrame
 	/** Whether a build is currently in progress. */
 	boolean isBuilding = false;
 
+	/** Whether an entry point invocation (command line) is executing. */
+	boolean isRunning = false;
+
 	/**
 	 * Enable or disable controls and menu items based on the current state.
 	 */
 	public void setEnablements ()
 	{
-		final boolean busy = buildTask != null || documentationTask != null;
+		final boolean busy = buildTask != null
+			|| documentationTask != null
+			|| isRunning;
 		moduleProgress.setEnabled(busy);
 		buildProgress.setEnabled(busy);
-		inputField.setEnabled(true);
-
+		inputField.setEnabled(!busy || isRunning);
 		cancelAction.setEnabled(busy);
 		buildAction.setEnabled(!busy && selectedModule() != null);
 		cleanAction.setEnabled(!busy);
@@ -1222,6 +1408,9 @@ extends JFrame
 		documentAction.setEnabled(!busy);
 		insertEntryPointAction.setEnabled(
 			!busy && selectedEntryPoint() != null);
+		inputField.setBackground(isRunning
+			? new Color(192, 255, 192)
+			: null);
 	}
 
 	/**
@@ -1374,7 +1563,10 @@ extends JFrame
 					}
 					final ModuleOrPackageNode node =
 						new ModuleOrPackageNode(resolved, false);
-					parentNode.add(node);
+					if (!resolved.isPackage())
+					{
+						parentNode.add(node);
+					}
 				}
 				return FileVisitResult.CONTINUE;
 			}
@@ -1506,8 +1698,9 @@ extends JFrame
 		int index = 1;
 		while (nodes.hasMoreElements())
 		{
-			final DefaultMutableTreeNode node = nodes.nextElement();
-			if (path[index].equals(node.getUserObject()))
+			final AbstractBuilderFrameTreeNode node =
+				(AbstractBuilderFrameTreeNode) nodes.nextElement();
+			if (node.isSpecifiedByString(path[index]))
 			{
 				index++;
 				if (index == path.length)
@@ -1526,7 +1719,7 @@ extends JFrame
 	 * @return A fully-qualified module name, or {@code null} if no module is
 	 *         selected.
 	 */
-	@InnerAccess @Nullable String selectedModule ()
+	@InnerAccess @Nullable ResolvedModuleName selectedModule ()
 	{
 		final TreePath path = moduleTree.getSelectionPath();
 		if (path == null)
@@ -1535,12 +1728,11 @@ extends JFrame
 		}
 		final DefaultMutableTreeNode selection =
 			(DefaultMutableTreeNode) path.getLastPathComponent();
-		if (!(selection instanceof ModuleOrPackageNode))
+		if (selection instanceof ModuleOrPackageNode)
 		{
-			return null;
+			return ((ModuleOrPackageNode) selection).resolvedModuleName;
 		}
-		final ModuleOrPackageNode strongSelection = (ModuleOrPackageNode) selection;
-		return strongSelection.resolvedModuleName.qualifiedName();
+		return null;
 	}
 
 	/**
@@ -1567,13 +1759,42 @@ extends JFrame
 	}
 
 	/**
+	 * Answer the resolved name of the module selected in the {@link
+	 * #entryPointsTree}, or the module defining the entry point that's
+	 * selected, or {@code null} if none.
+	 *
+	 * @return A {@link ResolvedModuleName} or {@code null}.
+	 */
+	@InnerAccess @Nullable ResolvedModuleName selectedEntryPointModule ()
+	{
+		final TreePath path = entryPointsTree.getSelectionPath();
+		if (path == null)
+		{
+			return null;
+		}
+		final DefaultMutableTreeNode selection =
+			(DefaultMutableTreeNode) path.getLastPathComponent();
+		if (selection instanceof EntryPointNode)
+		{
+			return ((EntryPointNode)selection).resolvedModuleName;
+		}
+		else if (selection instanceof EntryPointModuleNode)
+		{
+			return ((EntryPointModuleNode)selection).resolvedModuleName;
+		}
+		return null;
+	}
+
+	/**
 	 * Redirect the standard streams.
 	 */
 	@InnerAccess void redirectStandardStreams ()
 	{
-		System.setOut(new PrintStream(new BuildOutputStream(false)));
-		System.setErr(new PrintStream(new BuildOutputStream(true)));
+		outputStream = new PrintStream(new BuildOutputStream(false));
+		errorStream = new PrintStream(new BuildOutputStream(true));
 		inputStream = new BuildInputStream();
+		System.setOut(outputStream);
+		System.setErr(errorStream);
 		System.setIn(inputStream);
 	}
 
@@ -2024,6 +2245,7 @@ extends JFrame
 		moduleTree.setFocusable(true);
 		moduleTree.getSelectionModel().setSelectionMode(
 			TreeSelectionModel.SINGLE_TREE_SELECTION);
+		moduleTree.setToggleClickCount(0);
 		moduleTree.setShowsRootHandles(true);
 		moduleTree.setRootVisible(false);
 		moduleTree.setVisible(true);
@@ -2038,17 +2260,17 @@ extends JFrame
 		moduleTree.setCellRenderer(treeRenderer);
 		moduleTree.addMouseListener(new MouseAdapter()
 		{
-			@SuppressWarnings("null")
 			@Override
 			public void mouseClicked (final @Nullable MouseEvent e)
 			{
+				assert e != null;
 				if (buildAction.isEnabled()
 					&& e.getClickCount() == 2
 					&& e.getButton() == MouseEvent.BUTTON1)
 				{
+					e.consume();
 					buildAction.actionPerformed(
 						new ActionEvent(moduleTree, -1, "Build"));
-					e.consume();
 				}
 			}
 		});
@@ -2060,14 +2282,6 @@ extends JFrame
 		for (int i = moduleTree.getRowCount() - 1; i >= 0; i--)
 		{
 			moduleTree.expandRow(i);
-		}
-		if (!initialTarget.isEmpty())
-		{
-			final TreePath path = modulePath(initialTarget);
-			if (path != null)
-			{
-				moduleTree.setSelectionPath(path);
-			}
 		}
 		moduleTreeScrollArea.setViewportView(moduleTree);
 
@@ -2088,6 +2302,7 @@ extends JFrame
 		entryPointsTree.setFocusable(true);
 		entryPointsTree.getSelectionModel().setSelectionMode(
 			TreeSelectionModel.SINGLE_TREE_SELECTION);
+		entryPointsTree.setToggleClickCount(0);
 		entryPointsTree.setShowsRootHandles(true);
 		entryPointsTree.setRootVisible(false);
 		entryPointsTree.setVisible(true);
@@ -2102,21 +2317,21 @@ extends JFrame
 		entryPointsTree.setCellRenderer(treeRenderer);
 		entryPointsTree.addMouseListener(new MouseAdapter()
 		{
-			@SuppressWarnings("null")
 			@Override
 			public void mouseClicked (final @Nullable MouseEvent e)
 			{
+				assert e != null;
 				if (insertEntryPointAction.isEnabled()
 					&& e.getClickCount() == 2
 					&& e.getButton() == MouseEvent.BUTTON1)
 				{
+					e.consume();
 					final ActionEvent actionEvent = new ActionEvent(
 						entryPointsTree, -1, "Insert entry point");
 					if (insertEntryPointAction.isEnabled())
 					{
 						insertEntryPointAction.actionPerformed(actionEvent);
 					}
-					e.consume();
 				}
 			}
 		});
@@ -2232,6 +2447,8 @@ extends JFrame
 		StyleConstants.setForeground(inputStyle, new Color(32, 144, 32));
 		final Style infoStyle = doc.addStyle(infoStyleName, defaultStyle);
 		StyleConstants.setForeground(infoStyle, Color.BLUE);
+		final Style commandStyle = doc.addStyle(commandStyleName, defaultStyle);
+		StyleConstants.setForeground(commandStyle, Color.MAGENTA);
 
 		// Redirect the standard streams.
 		redirectStandardStreams();
@@ -2308,6 +2525,15 @@ extends JFrame
 				super.windowClosing(e);
 			}
 		});
+		// Select an initial module if specified.
+		if (!initialTarget.isEmpty())
+		{
+			final TreePath path = modulePath(initialTarget);
+			if (path != null)
+			{
+				moduleTree.setSelectionPath(path);
+			}
+		}
 		setEnablements();
 	}
 
@@ -2353,7 +2579,8 @@ extends JFrame
 	 * @throws Exception
 	 *         If something goes wrong.
 	 */
-	public static void main (final String[] args) throws Exception
+	public static void main (final String[] args)
+	throws Exception
 	{
 		final String platform = System.getProperty("os.name");
 		if (platform.toLowerCase().matches("mac os x.*"))
@@ -2394,8 +2621,8 @@ extends JFrame
 			@Override
 			public void run ()
 			{
-				final AvailBuilderFrame frame = new AvailBuilderFrame(
-					resolver, initial);
+				final AvailBuilderFrame frame =
+					new AvailBuilderFrame(resolver, initial);
 				frame.setVisible(true);
 			}
 		});

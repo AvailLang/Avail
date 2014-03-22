@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Stream Iterators"
+Module "Stream Iterators"
 Versions
 	"dev"
 Uses

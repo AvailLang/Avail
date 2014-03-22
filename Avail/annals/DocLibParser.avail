@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "DocLibParser"
+Module "DocLibParser"
 Versions
 	"Dev"
 Extends

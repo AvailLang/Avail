@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "File Metadata Test"
+Module "File Metadata Test"
 Versions
 	"dev"
 Uses

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Logic Tests"
+Module "Logic Tests"
 Versions
 	"dev"
 Uses

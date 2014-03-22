@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Late Restrictions"
+Module "Late Restrictions"
 Versions
 	"dev"
 Uses
@@ -42,7 +42,7 @@ Names
 Body
 
 /** 
- * Give nary update a higher precedence than subscript. 
+ * Give n-ary update a higher precedence than subscript. 
  * 
  * @method "_«[_]»→_"
  * @forbids "1" "_[_]"

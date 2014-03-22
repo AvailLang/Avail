@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "File Access Rights"
+Module "File Access Rights"
 Versions
 	"dev"
 Uses

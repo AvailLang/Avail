@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Quiz DSL"
+Module "Quiz DSL"
 Versions
 	"dev"
 Uses
