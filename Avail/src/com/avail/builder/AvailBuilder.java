@@ -2357,11 +2357,10 @@ public final class AvailBuilder
 				@Override
 				public void abortCompilation ()
 				{
-					assert false : "Should not invoke this";
+					onFailure.value();
 				}
 			};
 			commandProblemHandler.handle(problem);
-			onFailure.value();
 			return;
 		}
 
@@ -2386,11 +2385,10 @@ public final class AvailBuilder
 				@Override
 				public void abortCompilation ()
 				{
-					assert false : "Should not invoke this";
+					onFailure.value();
 				}
 			};
 			commandProblemHandler.handle(problem);
-			onFailure.value();
 			return;
 		}
 

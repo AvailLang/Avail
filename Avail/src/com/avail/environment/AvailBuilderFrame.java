@@ -110,7 +110,7 @@ extends JFrame
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
 			assert documentationTask == null;
-			final String selectedModule = selectedModule();
+			final ResolvedModuleName selectedModule = selectedModule();
 			assert selectedModule != null;
 
 			// Update the UI.
@@ -167,7 +167,7 @@ extends JFrame
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
 			assert buildTask == null;
-			final String selectedModule = selectedModule();
+			final ResolvedModuleName selectedModule = selectedModule();
 			assert selectedModule != null;
 
 			// Update the UI.
@@ -443,10 +443,72 @@ extends JFrame
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
+			assert documentationTask == null;
+			assert buildTask == null;
+
 			final String selectedEntryPoint = selectedEntryPoint();
-			assert selectedEntryPoint != null;
-			inputField.replaceSelection(selectedEntryPoint);
+			if (selectedEntryPoint == null)
+			{
+				return;
+			}
+			// Strip back-ticks as a nicety.  Also put spaces around underscores
+			// that are adjacent to words (Note that underscore is itself
+			// considered a word character, so we want \B to see if the
+			// character adjacent to the underscore is also a word character.
+			// We could do more, but this should be sufficient for now.
+			final String entryPointText = selectedEntryPoint
+				.replaceAll("`", "")
+				.replaceAll("\\B_", " _")
+				.replaceAll("_\\B", "_ ");
+			assert entryPointText != null;
+			final int startOfPastedArea = inputField.getSelectionStart();
+			inputField.replaceSelection(entryPointText);
+			final int offsetToUnderscore = entryPointText.indexOf("_");
+			if (offsetToUnderscore == -1)
+			{
+				final int offset =
+					startOfPastedArea + entryPointText.length();
+				inputField.select(offset, offset);
+			}
+			else
+			{
+				// Select the underscore.
+				final int offset = startOfPastedArea + offsetToUnderscore;
+				inputField.select(offset, offset + 1);
+			}
 			inputField.requestFocusInWindow();
+
+			final ResolvedModuleName moduleName = selectedEntryPointModule();
+			if (moduleName != null)
+			{
+				if (availBuilder.getLoadedModule(moduleName) == null)
+				{
+					// Start loading the module as a convenience.
+					setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+					moduleProgress.setValue(0);
+					buildProgress.setValue(0);
+					inputField.requestFocusInWindow();
+					final StyledDocument doc = transcript.getStyledDocument();
+					try
+					{
+						doc.remove(0, doc.getLength());
+					}
+					catch (final BadLocationException e)
+					{
+						// Shouldn't happen.
+						assert false;
+					}
+
+					// Clear the build input stream.
+					inputStream().clear();
+
+					// Build the target module in a Swing worker thread.
+					final BuildTask task = new BuildTask(moduleName);
+					buildTask = task;
+					setEnablements();
+					task.execute();
+				}
+			}
 		}
 
 		/**
@@ -601,7 +663,7 @@ extends JFrame
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
-			final String selection = selectedModule();
+			final ResolvedModuleName selection = selectedModule();
 			final TreeNode modules = newModuleTree();
 			moduleTree.setModel(new DefaultTreeModel(modules));
 			for (int i = moduleTree.getRowCount() - 1; i >= 0; i--)
@@ -610,7 +672,7 @@ extends JFrame
 			}
 			if (selection != null)
 			{
-				final TreePath path = modulePath(selection);
+				final TreePath path = modulePath(selection.qualifiedName());
 				if (path != null)
 				{
 					moduleTree.setSelectionPath(path);
@@ -646,10 +708,9 @@ extends JFrame
 	extends SwingWorker<Void, Void>
 	{
 		/**
-		 * The fully-qualified name of the target {@linkplain ModuleDescriptor
-		 * module}.
+		 * The resolved name of the target {@linkplain ModuleDescriptor module}.
 		 */
-		protected final String targetModuleName;
+		protected final ResolvedModuleName targetModuleName;
 
 		/**
 		 * Cancel the {@linkplain BuildTask build task}.
@@ -744,10 +805,10 @@ extends JFrame
 		 * Construct a new {@link BuildTask}.
 		 *
 		 * @param targetModuleName
-		 *        The fully-qualified name of the target {@linkplain
-		 *        ModuleDescriptor module}.
+		 *        The resolved name of the target {@linkplain ModuleDescriptor
+		 *        module}.
 		 */
-		protected BuilderTask (final String targetModuleName)
+		protected BuilderTask (final ResolvedModuleName targetModuleName)
 		{
 			this.targetModuleName = targetModuleName;
 		}
@@ -834,7 +895,7 @@ extends JFrame
 		protected void executeTask () throws Exception
 		{
 			availBuilder.buildTarget(
-				new ModuleName(targetModuleName),
+				targetModuleName,
 				compilerProgressReporter(),
 				globalTracker());
 		}
@@ -857,10 +918,10 @@ extends JFrame
 		 * Construct a new {@link BuildTask}.
 		 *
 		 * @param targetModuleName
-		 *        The fully-qualified name of the target {@linkplain
-		 *        ModuleDescriptor module}.
+		 *        The resolved name of the target {@linkplain ModuleDescriptor
+		 *        module}.
 		 */
-		public BuildTask (final String targetModuleName)
+		public BuildTask (final ResolvedModuleName targetModuleName)
 		{
 			super(targetModuleName);
 		}
@@ -877,7 +938,7 @@ extends JFrame
 		protected void executeTask () throws Exception
 		{
 			availBuilder.generateDocumentation(
-				new ModuleName(targetModuleName),
+				targetModuleName,
 				documentationPath);
 		}
 
@@ -899,10 +960,10 @@ extends JFrame
 		 * Construct a new {@link DocumentationTask}.
 		 *
 		 * @param targetModuleName
-		 *        The fully-qualified name of the target {@linkplain
-		 *        ModuleDescriptor module}.
+		 *        The resolved name of the target {@linkplain ModuleDescriptor
+		 *        module}.
 		 */
-		public DocumentationTask (final String targetModuleName)
+		public DocumentationTask (final ResolvedModuleName targetModuleName)
 		{
 			super(targetModuleName);
 		}
@@ -1655,7 +1716,7 @@ extends JFrame
 	 * @return A fully-qualified module name, or {@code null} if no module is
 	 *         selected.
 	 */
-	@InnerAccess @Nullable String selectedModule ()
+	@InnerAccess @Nullable ResolvedModuleName selectedModule ()
 	{
 		final TreePath path = moduleTree.getSelectionPath();
 		if (path == null)
@@ -1664,12 +1725,11 @@ extends JFrame
 		}
 		final DefaultMutableTreeNode selection =
 			(DefaultMutableTreeNode) path.getLastPathComponent();
-		if (!(selection instanceof ModuleOrPackageNode))
+		if (selection instanceof ModuleOrPackageNode)
 		{
-			return null;
+			return ((ModuleOrPackageNode) selection).resolvedModuleName;
 		}
-		final ModuleOrPackageNode strongSelection = (ModuleOrPackageNode) selection;
-		return strongSelection.resolvedModuleName.qualifiedName();
+		return null;
 	}
 
 	/**
@@ -1693,6 +1753,33 @@ extends JFrame
 		}
 		final EntryPointNode strongSelection = (EntryPointNode) selection;
 		return strongSelection.entryPointString;
+	}
+
+	/**
+	 * Answer the resolved name of the module selected in the {@link
+	 * #entryPointsTree}, or the module defining the entry point that's
+	 * selected, or {@code null} if none.
+	 *
+	 * @return A {@link ResolvedModuleName} or {@code null}.
+	 */
+	@InnerAccess @Nullable ResolvedModuleName selectedEntryPointModule ()
+	{
+		final TreePath path = entryPointsTree.getSelectionPath();
+		if (path == null)
+		{
+			return null;
+		}
+		final DefaultMutableTreeNode selection =
+			(DefaultMutableTreeNode) path.getLastPathComponent();
+		if (selection instanceof EntryPointNode)
+		{
+			return ((EntryPointNode)selection).resolvedModuleName;
+		}
+		else if (selection instanceof EntryPointModuleNode)
+		{
+			return ((EntryPointModuleNode)selection).resolvedModuleName;
+		}
+		return null;
 	}
 
 	/**
