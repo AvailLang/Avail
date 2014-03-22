@@ -50,3 +50,8 @@ Body
  *          The argument.
  */
 Method "`!_" is [x : any | x];
+
+/* Just in case the library ever wants to export its own "`!_", have the
+ * Avail expression evaluator forbid a recursive send of itself.
+ */
+Grammatical restriction "`!_" is <{"`!_"}>;

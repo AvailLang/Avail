@@ -33,7 +33,7 @@
 Module "Test"
 Versions
 	"dev"
-Uses
+Extends
 	"File Access Rights Test",
 	"File Metadata Test",
 	"File Names Test"
