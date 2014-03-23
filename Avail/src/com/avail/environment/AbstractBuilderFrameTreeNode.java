@@ -79,11 +79,7 @@ extends DefaultMutableTreeNode
 	 */
 	String htmlStyle (final boolean selected)
 	{
-//		if (selected)
-//		{
-//			return "color:#ff0000;background-color:#C0C0FF";
-//		}
-//		return "color:initial;background-color:initial";
+		// no-op, but can't be blank.
 		return "font-weight:normal";
 	}
 
