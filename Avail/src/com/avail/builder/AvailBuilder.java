@@ -802,133 +802,145 @@ public final class AvailBuilder
 	class BuildUnloader
 	{
 		/**
-		 * Find all loaded modules that have changed since compilation, then
-		 * unload them and all successors in reverse dependency order.
+		 * A {@link Continuation2} suitable for use by {@link
+		 * Graph#parallelVisit(Continuation2)} on the module graph.  It should
+		 * determine which modules should be unloaded.
 		 */
-		@InnerAccess void unload ()
-		{
-			// Scan modules in dependency order, checking if either that module
-			// file has changed since loading, or a predecessor is already
-			// flagged for unloading.  We do the propagation here to avoid
-			// having to look at the actual files downstream from a module known
-			// to have changed.
-			moduleGraph.parallelVisit(
+		private final Continuation2<ResolvedModuleName, Continuation0>
+			determineDirtyModules =
 				new Continuation2<ResolvedModuleName, Continuation0>()
+		{
+			@Override
+			public void value (
+				final @Nullable ResolvedModuleName moduleName,
+				final @Nullable Continuation0 completionAction)
+			{
+				assert moduleName != null;
+				assert completionAction != null;
+				runtime.execute(
+					new AvailTask(loaderPriority)
+					{
+						@Override
+						public void value()
+						{
+							boolean dirty = false;
+							for (final ResolvedModuleName predecessor
+								: moduleGraph.predecessorsOf(moduleName))
+							{
+								final LoadedModule loadedModule =
+									getLoadedModule(predecessor);
+								assert loadedModule != null;
+								if (loadedModule.deletionRequest)
+								{
+									dirty = true;
+									break;
+								}
+							}
+							if (!dirty)
+							{
+								// Look at the file to determine if it's
+								// changed.
+								final LoadedModule loadedModule =
+									getLoadedModule(moduleName);
+								assert loadedModule != null;
+								final IndexedRepositoryManager
+									repository = moduleName.repository();
+								final ModuleArchive archive =
+									repository.getArchive(
+										moduleName.rootRelativeName());
+								final File sourceFile =
+									moduleName.sourceReference();
+								if (!sourceFile.isFile())
+								{
+									dirty = true;
+								}
+								else
+								{
+									final byte [] latestDigest =
+										archive.digestForFile(moduleName);
+									dirty = !Arrays.equals(
+										latestDigest,
+										loadedModule.sourceDigest);
+								}
+							}
+							getLoadedModule(moduleName).deletionRequest = dirty;
+							completionAction.value();
+						}
+					});
+			}
+		};
+
+		/**
+		 * A {@link Continuation2} suitable for use by {@link
+		 * Graph#parallelVisit(Continuation2)} on the {@linkplain
+		 * Graph#reverse() reverse} of the module graph.  It should unload each
+		 * module previously determined to be dirty.
+		 */
+		private final Continuation2<ResolvedModuleName, Continuation0>
+			unloadModules =
+				new Continuation2<ResolvedModuleName, Continuation0>()
+		{
+			@Override
+			public void value (
+				final @Nullable ResolvedModuleName moduleName,
+				final @Nullable Continuation0 completionAction)
+			{
+				// No need to lock dirtyModules any more, since it's
+				// purely read-only at this point.
+				assert moduleName != null;
+				assert completionAction != null;
+				runtime.whenLevelOneSafeDo(new AvailTask(loaderPriority)
 				{
 					@Override
-					public void value (
-						final @Nullable ResolvedModuleName moduleName,
-						final @Nullable Continuation0 completionAction)
+					public void value()
 					{
-						assert moduleName != null;
-						assert completionAction != null;
-						runtime.execute(
-							new AvailTask(loaderPriority)
+						final LoadedModule loadedModule =
+							getLoadedModule(moduleName);
+						assert loadedModule != null;
+						if (!loadedModule.deletionRequest)
+						{
+							completionAction.value();
+							return;
+						}
+						if (debugBuilder)
+						{
+							System.out.println(
+								"Beginning unload of: " + moduleName);
+						}
+						final A_Module module = loadedModule.module;
+						assert module != null;
+						// It's legal to just create a loader
+						// here, since it won't have any pending
+						// forwards to remove.
+						module.removeFrom(
+							AvailLoader.forUnloading(module),
+							new Continuation0()
 							{
 								@Override
-								public void value()
+								public void value ()
 								{
-									boolean dirty = false;
-									for (final ResolvedModuleName predecessor
-										: moduleGraph.predecessorsOf(
-											moduleName))
+									runtime.unlinkModule(module);
+									if (debugBuilder)
 									{
-										final LoadedModule loadedModule =
-											getLoadedModule(predecessor);
-										assert loadedModule != null;
-										if (loadedModule.deletionRequest)
-										{
-											dirty = true;
-											break;
-										}
+										System.out.println(
+											"Done unload of: " + moduleName);
 									}
-									if (!dirty)
-									{
-										// Look at the file to determine if it's
-										// changed.
-										final LoadedModule loadedModule =
-											getLoadedModule(moduleName);
-										assert loadedModule != null;
-										final IndexedRepositoryManager
-											repository =
-												moduleName.repository();
-										final ModuleArchive archive =
-											repository.getArchive(
-												moduleName.rootRelativeName());
-										final byte [] latestDigest =
-											archive.digestForFile(moduleName);
-										dirty = !Arrays.equals(
-											latestDigest,
-											loadedModule.sourceDigest);
-									}
-									getLoadedModule(moduleName)
-										.deletionRequest = dirty;
 									completionAction.value();
 								}
 							});
 					}
 				});
-			// We now have the set of modules to be unloaded.  Do so in reverse
-			// dependency order.
-			moduleGraph.reverse().parallelVisit(
-				new Continuation2<ResolvedModuleName, Continuation0>()
-				{
-					@Override
-					public void value (
-						final @Nullable ResolvedModuleName moduleName,
-						final @Nullable Continuation0 completionAction)
-					{
-						// No need to lock dirtyModules any more, since it's
-						// purely read-only at this point.
-						assert moduleName != null;
-						assert completionAction != null;
-						runtime.whenLevelOneSafeDo(new AvailTask(loaderPriority)
-						{
-							@Override
-							public void value()
-							{
-								final LoadedModule loadedModule =
-									getLoadedModule(moduleName);
-								assert loadedModule != null;
-								if (loadedModule.deletionRequest)
-								{
-									if (debugBuilder)
-									{
-										System.out.println(
-											"Beginning unload of: "
-											+ moduleName);
-									}
-									final A_Module module = loadedModule.module;
-									assert module != null;
-									// It's legal to just create a loader
-									// here, since it won't have any pending
-									// forwards to remove.
-									module.removeFrom(
-										AvailLoader.forUnloading(module),
-										new Continuation0()
-										{
-											@Override
-											public void value ()
-											{
-												runtime.unlinkModule(module);
-												if (debugBuilder)
-												{
-													System.out.println(
-														"Done unload of: "
-														+ moduleName);
-												}
-												completionAction.value();
-											}
-										});
-								}
-								else
-								{
-									completionAction.value();
-								}
-							}
-						});
-					}
-				});
+			}
+		};
+
+		/**
+		 * Find all loaded modules that have changed since compilation, then
+		 * unload them and all successors in reverse dependency order.
+		 */
+		@InnerAccess void unload ()
+		{
+			moduleGraph.parallelVisit(determineDirtyModules);
+			moduleGraph.reverse().parallelVisit(unloadModules);
 			// Unloading of each A_Module is complete.  Update my local
 			// structures to agree.
 			for (final LoadedModule loadedModule : loadedModulesCopy())
@@ -2430,7 +2442,10 @@ public final class AvailBuilder
 
 		for (final LoadedModule loadedModule : modulesWithEntryPoints)
 		{
-			final A_Module module = ModuleDescriptor.anonymousModule();
+			final A_Module module = ModuleDescriptor.newModule(
+				StringDescriptor.from(
+					loadedModule.module.moduleName().asNativeString()
+						+ " (command)"));
 			final ModuleImport moduleImport =
 				ModuleImport.extend(loadedModule.module);
 			// TODO: This should really be some kind of fake ModuleName…
