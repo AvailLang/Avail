@@ -1021,15 +1021,21 @@ public final class AvailBuilder
 								TokenDescriptor.createSyntheticStart(),
 								ProblemType.TRACE,
 								"Module resolution problem:\n{0}",
-								e);
+								e)
+							{
+								@Override
+								protected void abortCompilation ()
+								{
+									// Ignore problems during trace.
+								}
+							};
 							buildProblemHandler.handle(problem);
 							indicateTraceCompleted();
 							return;
 						}
 						if (debugBuilder)
 						{
-							System.out.println(
-								"Trace: " + resolvedName);
+							System.out.println("Trace: " + resolvedName);
 						}
 						traceModuleImports(
 							resolvedName,
@@ -1072,7 +1078,14 @@ public final class AvailBuilder
 					TokenDescriptor.createSyntheticStart(),
 					ProblemType.TRACE,
 					"Recursive module dependency:\n{0}",
-					recursionSet);
+					recursionSet)
+				{
+					@Override
+					protected void abortCompilation ()
+					{
+						shouldStopBuild = true;
+					}
+				};
 				buildProblemHandler.handle(problem);
 				indicateTraceCompleted();
 				return;
@@ -2467,6 +2480,16 @@ public final class AvailBuilder
 						}
 						problems.add(copy);
 						return false;
+					}
+
+					@Override
+					public boolean handleInternal (final Problem problem)
+					{
+						// First, report it immediately to the user.
+						System.err.println(problem.toString());
+						System.err.flush();
+						// Now pass it along to report normally.
+						return handleGeneric(problem);
 					}
 				});
 			compiler.parseCommand(

@@ -50,23 +50,26 @@ class EntryPointModuleNode extends AbstractBuilderFrameTreeNode
 	/**
 	 * Construct a new {@link EntryPointNode}.
 	 *
+	 * @param builder The builder for which this node is being built.
 	 * @param resolvedModuleName The name of the represented module.
 	 */
 	public EntryPointModuleNode (
+		final AvailBuilder builder,
 		final ResolvedModuleName resolvedModuleName)
 	{
+		super(builder);
 		this.resolvedModuleName = resolvedModuleName;
 	}
 
 	@Override
-	String htmlText (final AvailBuilder builder)
+	String text (final boolean selected)
 	{
-		return "<b>" + resolvedModuleName.qualifiedName() + "</b>";
+		return resolvedModuleName.qualifiedName();
 	}
 
 	@Override
-	public String toString ()
+	String htmlStyle (final boolean selected)
 	{
-		return "Entry point module: " + resolvedModuleName;
+		return super.htmlStyle(selected) + ";font-weight:bold";
 	}
 }

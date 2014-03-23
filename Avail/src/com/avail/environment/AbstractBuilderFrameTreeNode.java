@@ -45,20 +45,67 @@ import com.avail.builder.AvailBuilder;
 abstract class AbstractBuilderFrameTreeNode
 extends DefaultMutableTreeNode
 {
+	/** The {@link AvailBuilder} for which this node presents information. */
+	final AvailBuilder builder;
+
 	/**
-	 * Render this node as an <A href="http://www.w3.org/TR/html401/">HTML</a>
-	 * string.
+	 * Construct a new {@link AbstractBuilderFrameTreeNode} on behalf of the
+	 * given {@link AvailBuilder}.
 	 *
-	 * @param builder
-	 *        The {@link AvailBuilder} that is active in the user interface in
-	 *        which this node is to be shown.
+	 * @param builder The builder for which this node is being built.
+	 */
+	public AbstractBuilderFrameTreeNode (final AvailBuilder builder)
+	{
+		this.builder = builder;
+	}
+
+	/**
+	 * Extract text to display for this node.  Presentation styling will be
+	 * applied separately.
+	 *
+	 * @param selected
+	 *        Whether the node is selected.
 	 * @return A {@link String}.
 	 *
 	 */
-	abstract String htmlText(AvailBuilder builder);
+	abstract String text (boolean selected);
+
+	/**
+	 * Produce a string for use in a <span style=…> tag for this node.
+	 *
+	 * @param selected
+	 *        Whether the node is selected.
+	 * @return The span style attribute text.
+	 */
+	String htmlStyle (final boolean selected)
+	{
+//		if (selected)
+//		{
+//			return "color:#ff0000;background-color:#C0C0FF";
+//		}
+//		return "color:initial;background-color:initial";
+		return "font-weight:normal";
+	}
+
+	/**
+	 * Construct HTML text to present for this node.
+	 *
+	 * @param selected
+	 *        Whether the node is selected.
+	 * @return
+	 */
+	final String htmlText (final boolean selected)
+	{
+		return "<div style='" + htmlStyle(selected) + "'>"
+			+ text(selected)
+			+ "</div>";
+	}
 
 	@Override
-	public abstract String toString ();
+	final public String toString ()
+	{
+		return getClass().getSimpleName() + ": " + text(false);
+	}
 
 	/**
 	 * Answer whether string is an appropriate semantic label for this node.
@@ -66,8 +113,8 @@ extends DefaultMutableTreeNode
 	 * @param string The string.
 	 * @return Whether this is the indicated node.
 	 */
-	public boolean isSpecifiedByString (final String string)
+	final public boolean isSpecifiedByString (final String string)
 	{
-		return toString().equals(string);
+		return text(false).equals(string);
 	}
 }

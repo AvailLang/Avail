@@ -918,7 +918,7 @@ public abstract class AbstractStacksScanner
 					&& !Character.isWhitespace(scanner.peek())
 					&& !scanner.atEnd())
 				{
-
+					@SuppressWarnings("unused")
 					final int c = scanner.next();
 				}
 				scanner.addCurrentToken();

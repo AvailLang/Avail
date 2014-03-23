@@ -1445,7 +1445,8 @@ extends JFrame
 					// Add a ModuleRoot.
 					isRoot.value = false;
 					assert stack.size() == 1;
-					final ModuleRootNode node = new ModuleRootNode(moduleRoot);
+					final ModuleRootNode node =
+						new ModuleRootNode(availBuilder, moduleRoot);
 					parentNode.add(node);
 					stack.addFirst(node);
 					return FileVisitResult.CONTINUE;
@@ -1488,7 +1489,7 @@ extends JFrame
 						throw new RuntimeException(e);
 					}
 					final ModuleOrPackageNode node =
-						new ModuleOrPackageNode(resolved, true);
+						new ModuleOrPackageNode(availBuilder, resolved, true);
 					parentNode.add(node);
 					stack.addFirst(node);
 					return FileVisitResult.CONTINUE;
@@ -1562,7 +1563,7 @@ extends JFrame
 						throw new RuntimeException(e);
 					}
 					final ModuleOrPackageNode node =
-						new ModuleOrPackageNode(resolved, false);
+						new ModuleOrPackageNode(availBuilder, resolved, false);
 					if (!resolved.isPackage())
 					{
 						parentNode.add(node);
@@ -1652,11 +1653,13 @@ extends JFrame
 					if (!entryPoints.isEmpty())
 					{
 						final EntryPointModuleNode moduleNode =
-							new EntryPointModuleNode(resolvedName);
+							new EntryPointModuleNode(
+								availBuilder, resolvedName);
 						for (final String entryPoint : entryPoints)
 						{
 							final EntryPointNode entryPointNode =
-								new EntryPointNode(resolvedName, entryPoint);
+								new EntryPointNode(
+									availBuilder, resolvedName, entryPoint);
 							moduleNode.add(entryPointNode);
 						}
 						synchronized (mutex)
@@ -2127,7 +2130,7 @@ extends JFrame
 			{
 				final AbstractBuilderFrameTreeNode node =
 					(AbstractBuilderFrameTreeNode) value;
-				String html = node.htmlText(availBuilder);
+				String html = node.htmlText(selected1);
 				html = "<html>" + html + "</html>";
 				final JComponent component =
 					(JComponent) super.getTreeCellRendererComponent(

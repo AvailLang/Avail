@@ -2584,7 +2584,8 @@ public abstract class AbstractAvailCompiler
 				snippet.append(source, currentPosition, nextStart);
 			}
 			if (nextStart == source.length()
-				&& source.charAt(source.length() - 1) != '\n')
+				&& (source.isEmpty()
+					|| source.charAt(source.length() - 1) != '\n'))
 			{
 				// Final line didn't end with a line break.
 				snippet.append('\n');
@@ -6368,14 +6369,22 @@ public abstract class AbstractAvailCompiler
 		compilationIsInvalid = true;
 		final CharArrayWriter trace = new CharArrayWriter();
 		e.printStackTrace(new PrintWriter(trace));
-		handleProblem(new Problem(
+		final Problem problem = new Problem(
 			moduleName(),
 			token.lineNumber(),
 			token.start(),
 			INTERNAL,
 			"Internal error: {0}\n{1}",
 			e.getMessage(),
-			trace));
+			trace)
+		{
+			@Override
+			protected void abortCompilation ()
+			{
+				isShuttingDown = true;
+			}
+		};
+		handleProblem(problem, problemHandler);
 	}
 
 	/**

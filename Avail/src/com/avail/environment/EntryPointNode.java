@@ -54,38 +54,43 @@ class EntryPointNode extends AbstractBuilderFrameTreeNode
 	 * Construct a new {@link EntryPointNode}, given the name of the module and
 	 * the name of the entry point.
 	 *
+	 * @param builder The builder for which this node is being built.
 	 * @param resolvedModuleName
 	 *        The name of the module defining the entry point.
 	 * @param entryPointString
 	 *        The name of the entry point.
 	 */
 	public EntryPointNode (
+		final AvailBuilder builder,
 		final ResolvedModuleName resolvedModuleName,
 		final String entryPointString)
 	{
+		super(builder);
 		this.resolvedModuleName = resolvedModuleName;
 		this.entryPointString = entryPointString;
 	}
 
 	@Override
-	String htmlText (final AvailBuilder builder)
+	String text (final boolean selected)
 	{
-		String html = entryPointString;
-		synchronized (builder)
-		{
-			if (builder.getLoadedModule(resolvedModuleName) == null)
-			{
-				html = "<em>" + html + "</em>";
-				html = "<font color=gray>" + html + "</font>";
-			}
-		}
-		return html;
+		return entryPointString;
 	}
 
 	@Override
-	public String toString ()
+	String htmlStyle (final boolean selected)
 	{
-		return "Entry point: " + entryPointString
-			+ " (in " + resolvedModuleName + ")";
+		synchronized (builder)
+		{
+			String base = super.htmlStyle(selected);
+			if (builder.getLoadedModule(resolvedModuleName) == null)
+			{
+				base = base + ";font-style:italic";
+				if (!selected)
+				{
+					base = base + ";color:gray";
+				}
+			}
+			return base;
+		}
 	}
 }
