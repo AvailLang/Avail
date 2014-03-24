@@ -413,6 +413,22 @@ Test "for-each in parallel" in concurrency test suite is
 	Require: count = ∑ 1 to 10;
 ];
 
+Test "for-each in parallel (small window)" in concurrency test suite is
+[
+	ref ::= "abcdefghijklmnopqrstuvwxyz";
+	s : string := "";
+	/* Test the windowing mechanism by making the loop completely serial, so
+	 * that we don't need a mutex.
+	 */
+	For each of 1 to |ref| in parallel 1-way do
+	[
+		i : natural number
+	|
+		s := s ++ ref[i..i];
+	];
+	Require: s = ref;
+];
+
 Test "for-each in parallel (worker exception)" in concurrency test suite is
 [
 	killer : worker exception;
@@ -435,17 +451,156 @@ Test "for-each in parallel (worker exception)" in concurrency test suite is
 	Require: killer's causal exception ∈ cannot-divide-by-zero exception;
 ];
 
-Test "map in parallel" in concurrency test suite is
+Test "map in parallel (tuple)" in concurrency test suite is
 [
 	result ::= map 1 to 10 in parallel through [i : [1..10] | i × 5];
 	expected ::= map 1 to 10 through [i : [1..10] | i × 5];
 	Require: result = expected;
 ];
 
-Test "map in parallel (worker exception)" in concurrency test suite is
+Test "map in parallel (tuple, small window)" in concurrency test suite is
+[
+	result ::= map 1 to 10 in parallel 2-way through [i : [1..10] | i × 5];
+	expected ::= map 1 to 10 through [i : [1..10] | i × 5];
+	Require: result = expected;
+];
+
+Test "map in parallel (tuple, worker exception)" in concurrency test suite is
 [
 	result ::=
 		guard [map 1 to 10 in parallel through [i : [1..10] | i ÷ (i - 1)]]
+		intercept [e : worker exception | e];
+	killer ::= cast result into [e : worker exception | e];
+	Require: killer's causal exception ∈ cannot-divide-by-zero exception;
+];
+
+Test "map in parallel (set)" in concurrency test suite is
+[
+	result ::= map 1 to 10→set in parallel through [i : [1..10] | i × 5];
+	expected ::= map 1 to 10→set through [i : [1..10] | i × 5];
+	Require: result = expected;
+];
+
+Test "map in parallel (set, small window)" in concurrency test suite is
+[
+	result ::= map 1 to 10→set in parallel 3-way through [i : [1..10] | i × 5];
+	expected ::= map 1 to 10→set through [i : [1..10] | i × 5];
+	Require: result = expected;
+];
+
+Test "map in parallel (set, worker exception)" in concurrency test suite is
+[
+	result ::=
+		guard [map 1 to 10→set in parallel through [i : [1..10] | i ÷ (i - 1)]]
+		intercept [e : worker exception | e];
+	killer ::= cast result into [e : worker exception | e];
+	Require: killer's causal exception ∈ cannot-divide-by-zero exception;
+];
+
+Test "map in parallel (map)" in concurrency test suite is
+[
+	m ::= 1 to 10 zip map 1 to 10 through [n : [1..10] | n × n]→map;
+	result ::= map m in parallel through [k : [1..10], v : [1..100] | k × v];
+	expected ::= map m through [k : [1..10], v : [1..100] | k × v];
+	Require: result = expected;
+];
+
+Test "map in parallel (map, small window)" in concurrency test suite is
+[
+	m ::= 1 to 10 zip map 1 to 10 through [n : [1..10] | n × n]→map;
+	result ::= map m in parallel 5-way
+		through [k : [1..10], v : [1..100] | k × v];
+	expected ::= map m through [k : [1..10], v : [1..100] | k × v];
+	Require: result = expected;
+];
+
+Test "map in parallel (map, worker exception)" in concurrency test suite is
+[
+	m ::= 1 to 10 zip 0 to 9→map;
+	result ::=
+		guard [map m in parallel through [i : [1..10], j : [0..9] | i ÷ j]]
+		intercept [e : worker exception | e];
+	killer ::= cast result into [e : worker exception | e];
+	Require: killer's causal exception ∈ cannot-divide-by-zero exception;
+];
+
+Test "filter in parallel (tuple)" in concurrency test suite is
+[
+	result ::= filter 1 to 10 in parallel by [i : [1..10] | i is odd];
+	expected ::= filter 1 to 10 by [i : [1..10] | i is odd];
+	Require: result = expected;
+];
+
+Test "filter in parallel (tuple, small window)" in concurrency test suite is
+[
+	result ::= filter 1 to 10 in parallel by [i : [1..10] | i is odd];
+	expected ::= filter 1 to 10 in parallel by [i : [1..10] | i is odd];
+	Require: result = expected;
+];
+
+Test "filter in parallel (tuple, worker exception)" in concurrency test suite is
+[
+	result ::=
+		guard
+		[
+			filter 1 to 10 in parallel by [i : [1..10] | i ÷ (i - 1) is odd]
+		]
+		intercept [e : worker exception | e];
+	killer ::= cast result into [e : worker exception | e];
+	Require: killer's causal exception ∈ cannot-divide-by-zero exception;
+];
+
+Test "filter in parallel (set)" in concurrency test suite is
+[
+	result ::= filter 1 to 10→set in parallel by [i : [1..10] | i is odd];
+	expected ::= filter 1 to 10→set by [i : [1..10] | i is odd];
+	Require: result = expected;
+];
+
+Test "filter in parallel (set, small window)" in concurrency test suite is
+[
+	result ::= filter 1 to 10→set in parallel by [i : [1..10] | i is odd];
+	expected ::= filter 1 to 10→set in parallel by [i : [1..10] | i is odd];
+	Require: result = expected;
+];
+
+Test "filter in parallel (set, worker exception)" in concurrency test suite is
+[
+	result ::=
+		guard
+		[
+			filter 1 to 10→set in parallel by [i : [1..10] | i ÷ (i - 1) is odd]
+		]
+		intercept [e : worker exception | e];
+	killer ::= cast result into [e : worker exception | e];
+	Require: killer's causal exception ∈ cannot-divide-by-zero exception;
+];
+
+Test "filter in parallel (map)" in concurrency test suite is
+[
+	m ::= 1 to 10 zip map 1 to 10 through [i : [1..10] | i is odd]→map;
+	result ::= filter m in parallel by [k : [1..10], v : boolean | v];
+	expected ::= filter m by [k : [1..10], v : boolean | v];
+	Require: result = expected;
+];
+
+Test "filter in parallel (map, small window)" in concurrency test suite is
+[
+	m ::= 1 to 10 zip map 1 to 10 through [i : [1..10] | i is odd]→map;
+	result ::= filter m in parallel 3-way by [k : [1..10], v : boolean | v];
+	expected ::= filter m by [k : [1..10], v : boolean | v];
+	Require: result = expected;
+];
+
+Test "filter in parallel (map, worker exception)" in concurrency test suite is
+[
+	m ::= 1 to 10 zip 10 of [i : [0..10] | i is odd]→map;
+	result ::=
+		guard
+		[
+			filter m in parallel
+				by [k : [1..10], v : [[0..10]]→boolean | v(k ÷ (k - 1))]
+		]
 		intercept [e : worker exception | e];
 	killer ::= cast result into [e : worker exception | e];
 	Require: killer's causal exception ∈ cannot-divide-by-zero exception;

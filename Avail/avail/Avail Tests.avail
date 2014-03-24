@@ -100,8 +100,9 @@ Private method "Show all test suites" is
 			a : atom,
 			b : atom
 		|
-			a's name ≤ b's name
-				∧ [a's issuing module's name ≤ b's issuing module's name]
+			if a's name < b's name then [true]
+			else if [a's name > b's name] then [false]
+			else [a's issuing module's name ≤ b's issuing module's name]
 		];
 	Print: “sorted” else ["«no test suites»"] (as list partitioned by "\n");
 ] : ⊤;

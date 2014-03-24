@@ -472,7 +472,7 @@ Method "long“_”" is
 		name := “cause's type's names” (as list partitioned by " ∩ ");
 		message :=
 			cast e's causal exception
-			into [t : descriptive exception | ": " ++ t's error message]
+			into [t : descriptive exception | t's error message]
 			else [""];
 		trace :=
 			guard
@@ -486,8 +486,10 @@ Method "long“_”" is
 							of "[#1] of \"test metric for_\" []"
 							in s ≠ 0
 					];
-				":\n" ++ “cause” (frames [base + 1..∞) of stack summary,
-					renumbered starting at 1)
+				": \n" ++ “cause”
+					(frames [base + 1..∞) of stack summary,
+					renumbered starting at 1,
+					cascaded)
 			]
 			intercept
 			[

@@ -328,7 +328,7 @@ Method "filter_by_" is
 ] : map;
 
 /**
- * Ensure that the function will accept all elements of the map.
+ * Ensure that the function will accept all bindings of the map.
  * 
  * @method "filter_by_"
  * @restricts "map meta"
@@ -340,11 +340,9 @@ Semantic restriction "filter_by_" is
 	predicate : [⊥, ⊥]→boolean's type
 |
 	Require: predicate accepts mapType;
-	sizes ::=
-		if predicate's return type = true's type then [ ||mapType|| ]
-		else if [ predicate's return type = false's type ] then [ 0's type ]
-		else [ [0..⎡mapType⎤ + 1) ];
-	{mapType's key type → mapType's value type|sizes}
+	if predicate's return type = true's type then [mapType]
+	else if [predicate's return type = false's type] then [{}'s type]
+	else [{mapType's key type → mapType's value type|[0..⎡mapType⎤ + 1)}]
 ];
 
 /**
