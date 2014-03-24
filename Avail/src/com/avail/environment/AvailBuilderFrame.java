@@ -75,12 +75,10 @@ import com.avail.utility.evaluation.*;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@SuppressWarnings("serial")
 public class AvailBuilderFrame
 extends JFrame
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = 5144194637595188046L;
-
 	/** The {@linkplain Style style} to use for standard output. */
 	private static final String outputStyleName = "output";
 
@@ -103,9 +101,6 @@ extends JFrame
 	private final class BuildAction
 	extends AbstractAction
 	{
-		/** The serial version identifier. */
-		private static final long serialVersionUID = -204031361554497888L;
-
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
@@ -160,9 +155,6 @@ extends JFrame
 	private final class GenerateDocumentationAction
 	extends AbstractAction
 	{
-		/** The serial version identifier. */
-		private static final long serialVersionUID = -8808148989587783276L;
-
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
@@ -217,9 +209,6 @@ extends JFrame
 	private final class CancelAction
 	extends AbstractAction
 	{
-		/** The serial version identifier. */
-		private static final long serialVersionUID = 4866074044124292436L;
-
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
@@ -254,9 +243,6 @@ extends JFrame
 	private final class CleanAction
 	extends AbstractAction
 	{
-		/** The serial version identifier. */
-		private static final long serialVersionUID = 5674981650560448737L;
-
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
@@ -307,9 +293,6 @@ extends JFrame
 	private final class ReportAction
 	extends AbstractAction
 	{
-		/** The serial version identifier. */
-		private static final long serialVersionUID = 4345746948972392951L;
-
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
@@ -355,9 +338,6 @@ extends JFrame
 	private final class SetDocumentationPathAction
 	extends AbstractAction
 	{
-		/** The serial version identifier. */
-		private static final long serialVersionUID = -1485162395297266607L;
-
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
@@ -395,9 +375,6 @@ extends JFrame
 	private final class ClearReportAction
 	extends AbstractAction
 	{
-		/** The serial version identifier. */
-		private static final long serialVersionUID = -8233767636511326637L;
-
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
@@ -437,9 +414,6 @@ extends JFrame
 	private final class InsertEntryPointAction
 	extends AbstractAction
 	{
-		/** The serial version identifier. */
-		private static final long serialVersionUID = 5141044753199192996L;
-
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
@@ -524,15 +498,62 @@ extends JFrame
 	}
 
 	/**
+	 * Retrieve the most recently executed command, or if this action has been
+	 * performed already, retrieve the command before the one most recently
+	 * shown.  If the earliest command is passed, clear the command line and
+	 * wrap around on the next retrieval.
+	 */
+	@InnerAccess final class RetrievePreviousCommand
+	extends AbstractAction
+	{
+		@Override
+		public void actionPerformed (final @Nullable ActionEvent e)
+		{
+			if (commandHistoryIndex == -1)
+			{
+				commandHistoryIndex = commandHistory.size();
+			}
+			commandHistoryIndex--;
+			final String retrievedText = commandHistoryIndex == -1
+				? ""
+				: commandHistory.get(commandHistoryIndex);
+			inputField.setText(retrievedText);
+			inputField.select(retrievedText.length(), retrievedText.length());
+		}
+	}
+
+	/**
+	 * Retrieve the earliest executed command, or if this action has been
+	 * performed already, retrieve the command after the one most recently
+	 * shown.  If the latest command is reached, clear the command line and wrap
+	 * around on the next retrieval.
+	 */
+	@InnerAccess final class RetrieveNextCommand
+	extends AbstractAction
+	{
+		@Override
+		public void actionPerformed (final @Nullable ActionEvent e)
+		{
+			commandHistoryIndex++;
+			if (commandHistoryIndex == commandHistory.size())
+			{
+				commandHistoryIndex = -1;
+			}
+			final String retrievedText = commandHistoryIndex == -1
+				? ""
+				: commandHistory.get(commandHistoryIndex);
+			inputField.setText(retrievedText);
+			inputField.select(retrievedText.length(), retrievedText.length());
+		}
+	}
+
+	/**
 	 * A {@code SubmitInputAction} sends a line of text from the {@linkplain
 	 * #inputField input field} to standard input.
 	 */
 	private final class SubmitInputAction
 	extends AbstractAction
 	{
-		/** The serial version identifier. */
-		private static final long serialVersionUID = -3755146238252467204L;
-
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
@@ -550,6 +571,8 @@ extends JFrame
 				// No program is running.  Treat this as a command and try to
 				// run it.  Do not feed the string into the input stream.
 				final String string = inputField.getText();
+				commandHistory.add(string);
+				commandHistoryIndex = -1;
 				inputStream().feedbackForCommand(string);
 				inputField.setText("");
 				isRunning = true;
@@ -657,9 +680,6 @@ extends JFrame
 	private final class RefreshAction
 	extends AbstractAction
 	{
-		/** The serial version identifier. */
-		private static final long serialVersionUID = 8414764326820529464L;
-
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
@@ -1346,6 +1366,32 @@ extends JFrame
 	/** The {@linkplain JTextField text field} that accepts standard input. */
 	@InnerAccess final JTextField inputField;
 
+	/**
+	 * Keep track of recent commands in a history buffer.  Each submitted
+	 * command is added to the end of the list.  Cursor-up retrieves the most
+	 * recent selected line, and subsequent cursors-up retrieve previous lines,
+	 * back to the first entry, then an empty command line, then the last entry
+	 * again an so on.  An initial cursor-down selects the first entry and goes
+	 * from there.
+	 */
+	@InnerAccess final List<String> commandHistory = new ArrayList<>();
+
+	/**
+	 * Which command was most recently retrieved by a cursor key since the last
+	 * command was submitted.  -1 indicates no command has been retrieved by a
+	 * cursor key, or that the entire list has been cycled an integral number of
+	 * times (and the command line was blanked upon reaching -1).
+	 */
+	@InnerAccess int commandHistoryIndex = -1;
+
+	/** Cycle one step backward in the command history. */
+	final RetrievePreviousCommand retrievePreviousAction =
+		new RetrievePreviousCommand();
+
+	/** Cycle one step forward in the command history. */
+	final RetrieveNextCommand retrieveNextAction =
+		new RetrieveNextCommand();
+
 	/*
 	 * Actions.
 	 */
@@ -1400,6 +1446,8 @@ extends JFrame
 		moduleProgress.setEnabled(busy);
 		buildProgress.setEnabled(busy);
 		inputField.setEnabled(!busy || isRunning);
+		retrievePreviousAction.setEnabled(!busy);
+		retrieveNextAction.setEnabled(!busy);
 		cancelAction.setEnabled(busy);
 		buildAction.setEnabled(!busy && selectedModule() != null);
 		cleanAction.setEnabled(!busy);
@@ -2112,9 +2160,6 @@ extends JFrame
 	 */
 	final DefaultTreeCellRenderer treeRenderer = new DefaultTreeCellRenderer()
 	{
-		/** Suppress warning about serializing this. */
-		private static final long serialVersionUID = -2871802756675559090L;
-
 		@Override
 	    public Component getTreeCellRendererComponent(
 			final @Nullable JTree tree,
@@ -2400,6 +2445,12 @@ extends JFrame
 			"Enter commands and interact with Avail programs.  Press "
 			+ "ENTER to submit.");
 		inputField.setAction(new SubmitInputAction());
+		inputMap = inputField.getInputMap(JComponent.WHEN_FOCUSED);
+		actionMap = inputField.getActionMap();
+		inputMap.put(KeyStroke.getKeyStroke("UP"), "up");
+		actionMap.put("up", retrievePreviousAction);
+		inputMap.put(KeyStroke.getKeyStroke("DOWN"), "down");
+		actionMap.put("down", retrieveNextAction);
 		inputField.setColumns(60);
 		inputField.setEditable(true);
 		inputField.setEnabled(true);
