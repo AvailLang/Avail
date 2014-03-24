@@ -2160,7 +2160,7 @@ extends JFrame
 	final DefaultTreeCellRenderer treeRenderer = new DefaultTreeCellRenderer()
 	{
 		@Override
-	    public Component getTreeCellRendererComponent(
+		public Component getTreeCellRendererComponent(
 			final @Nullable JTree tree,
 			final @Nullable Object value,
 			final boolean selected1,
@@ -2466,7 +2466,16 @@ extends JFrame
 					@Nullable final Boolean loaded)
 				{
 					assert loadedModule != null;
-					moduleTree.repaint();
+					final TreePath path = modulePath(
+						loadedModule.name.qualifiedName());
+					if (path != null)
+					{
+						final Rectangle bounds = moduleTree.getPathBounds(path);
+						if (bounds != null)
+						{
+							moduleTree.repaint(bounds);
+						}
+					}
 					if (loadedModule.entryPoints().size() > 0)
 					{
 						entryPointsTree.repaint();

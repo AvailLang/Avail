@@ -410,20 +410,20 @@ public final class AvailBuilder
 		/**
 		 * The resolved name of this module.
 		 */
-		final @InnerAccess ResolvedModuleName name;
+		public final ResolvedModuleName name;
 
 		/**
 		 * The cryptographic {@link ModuleArchive#digestForFile(
 		 * ResolvedModuleName) digest} of this module's source code when it was
 		 * compiled.
 		 */
-		final @InnerAccess byte [] sourceDigest;
+		@InnerAccess final byte [] sourceDigest;
 
 		/**
 		 * The actual {@link A_Module} that was plugged into the {@link
 		 * AvailRuntime}.
 		 */
-		final @InnerAccess A_Module module;
+		@InnerAccess final A_Module module;
 
 		/** This module's version, which corresponds to the source code. */
 		final ModuleVersion version;
