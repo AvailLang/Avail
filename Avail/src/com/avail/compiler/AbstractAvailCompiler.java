@@ -3662,9 +3662,7 @@ public abstract class AbstractAvailCompiler
 					continuation);
 			}
 		}
-		if (anyIncomplete
-			&& firstArgOrNull == null
-			&& !start.atEnd())
+		if (anyIncomplete && firstArgOrNull == null)
 		{
 			boolean keywordRecognized = false;
 			final A_Token keywordToken = start.peekToken();
@@ -3692,9 +3690,7 @@ public abstract class AbstractAvailCompiler
 				expectedKeywordsOf(start, incomplete, false);
 			}
 		}
-		if (anyCaseInsensitive
-			&& firstArgOrNull == null
-			&& !start.atEnd())
+		if (anyCaseInsensitive && firstArgOrNull == null)
 		{
 			boolean keywordRecognized = false;
 			final A_Token keywordToken = start.peekToken();
