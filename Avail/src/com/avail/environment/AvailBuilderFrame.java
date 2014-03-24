@@ -586,8 +586,7 @@ extends JFrame
 					{
 						@Override
 						public void value (
-							final @Nullable
-								AvailObject result,
+							final @Nullable AvailObject result,
 							final @Nullable
 								Continuation1<Continuation0> cleanup)
 						{

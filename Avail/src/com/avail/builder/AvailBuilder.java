@@ -2606,17 +2606,32 @@ public final class AvailBuilder
 		final Continuation1<Continuation0> postSuccessCleanup,
 		final Continuation0 onFailure)
 	{
-		// If there were no solutions, then report every problem that was
-		// encountered.
 		if (solutions.isEmpty())
 		{
+			// There were no solutions, so report every problem that was
+			// encountered.  Actually, choose the modules that tied for the
+			// deepest parse, and only show those problems.
+			long deepestPosition = Long.MIN_VALUE;
+			final List<Problem> deepestProblems = new ArrayList<>();
 			for (final Map.Entry<LoadedModule, List<Problem>> entry :
 				problems.entrySet())
 			{
 				for (final Problem problem : entry.getValue())
 				{
-					buildProblemHandler.handle(problem);
+					if (problem.characterInFile > deepestPosition)
+					{
+						deepestPosition = problem.characterInFile;
+						deepestProblems.clear();
+					}
+					if (problem.characterInFile == deepestPosition)
+					{
+						deepestProblems.add(problem);
+					}
 				}
+			}
+			for (final Problem problem : deepestProblems)
+			{
+				buildProblemHandler.handle(problem);
 			}
 			onFailure.value();
 			return;
