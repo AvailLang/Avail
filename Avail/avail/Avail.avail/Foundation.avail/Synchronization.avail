@@ -100,6 +100,7 @@ Names
 
 	/* Low-level synchronization. */
 	"Atomically update_using_",
+	"Honor a termination request",
 	"Join_",
 	"Join_,then honor a termination request",
 	"Park current fiber,then honor a termination request",
@@ -345,7 +346,7 @@ Public method "dequeue_from_" is
 Public method "Park current fiber,then honor a termination request" is
 [
 	Park current fiber;
-	Raise termination-requested exception if appropriate;
+	Honor a termination request;
 ] : ⊤;
 
 /**
@@ -390,7 +391,7 @@ Public method "Join_,then honor a termination request" is
 	do
 	[
 		Attempt to join joinee;
-		Raise termination-requested exception if appropriate;
+		Honor a termination request;
 	];
 ];
 

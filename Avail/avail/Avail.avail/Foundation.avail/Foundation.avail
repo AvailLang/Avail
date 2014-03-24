@@ -358,6 +358,7 @@ Extends
 		"Cast|cast each of_into_",
 		"Cast|cast each of_into_else_",
 		"Cast|cast_into_",
+		"Cast|cast_into_else_",
 		"Cast|cast_into«_‡,»«else_»",
 		"bad-cast exception",
 		"bad-multiway-cast exception"
@@ -393,19 +394,24 @@ Extends
 	"Concurrency" =
 	(
 		"Cancel_",
-		"For each of⁇_in parallel do_",
+		"For each of⁇_in parallel«_-way»do_",
 		"Fork_",
-		"fork_",
+		"Store a runner of_work units into_,\
+			\|⁇store a waiter into_,\
+			\|⁇store an exception into_",
 		"current fiber[_]else_",
+		"filter_in parallel«_-way»by_",
+		"fork_",
 		"future",
 		"future of_",
-		"map_in parallel through_",
+		"injector from_to_by_doing_in parallel_-way",
+		"map_in parallel«_-way»through_",
 		"the future of_",
 		"worker exception"
 	),
 	"Control Structures" =
 	(
-		"Cast|cast_into_else_",
+		"Choose|choose_from_where«_is_‡,»«,else_»",
 		"Do_until_",
 		"Do_until_alternate with_",
 		"Do_while_",
@@ -413,9 +419,14 @@ Extends
 		"Exit_",
 		"From_to_by_do_",
 		"From_to_do_",
+		"If|if_then_«else if_then_»«else_»",
 		"Ignore:_",
 		"Repeat_",
 		"Repeat__times",
+		"Require:_accepts subscripts from_to_by_",
+		"Require:_'s⁇keeper is valid",
+		"Unless|unless_then_else_",
+		"Unless|unless_then_«else unless_then_»«else_»",
 		"Unless_then_",
 		"Until_",
 		"Until_do_",
@@ -423,11 +434,7 @@ Extends
 		"While_",
 		"While_do_",
 		"While_do_alternate with_",
-		"Choose|choose_from_where«_is_‡,»«,else_»",
 		"here",
-		"If|if_then_«else if_then_»«else_»",
-		"Unless|unless_then_else_",
-		"Unless|unless_then_«else unless_then_»«else_»",
 		"(_)"
 	),
 	"Definers" =
@@ -572,6 +579,7 @@ Extends
 	"Exceptions" =
 	(
 		"Current fiber's unhandled exception handler is_",
+		"Honor a termination request",
 		"Java exception",
 		"Java-class-not-available exception",
 		"Java-field-not-available exception",
@@ -581,7 +589,6 @@ Extends
 		"Java-method-reference-is-ambiguous exception",
 		"Guard|guard_«intercept_»«ensure_»",
 		"Raise_",
-		"Raise termination-requested exception if appropriate",
 		"a Java exception caused by_",
 		"abstract-method-definition exception",
 		"alternative-must-not-contain-arguments exception",
@@ -708,7 +715,8 @@ Extends
 		"_'s⁇stack summary",
 		"_'s⁇throwable",
 		"“_”(stack summary)",
-		"“_”(frames_of stack summary«,⁇renumbered starting at_»)"
+		"“_”(frames_of stack summary«,⁇renumbered starting at_»)",
+		"“_”(frames_of stack summary«,⁇renumbered starting at_»,⁇cascaded)"
 	),
 	"Functions" =
 	(
