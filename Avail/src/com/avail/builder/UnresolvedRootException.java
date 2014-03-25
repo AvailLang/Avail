@@ -51,7 +51,6 @@ import com.avail.annotations.Nullable;
 public class UnresolvedRootException
 extends UnresolvedDependencyException
 {
-
 	/** The serial version identifier. */
 	private static final long serialVersionUID = 1774549045775411642L;
 

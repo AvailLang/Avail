@@ -272,7 +272,7 @@ Semantic restriction "Cast|cast_into_else_" is
 	If value ∪ accept[1] = value then
 	[
 		/* This is the expected case, i.e., the function argument is a subtype
-		 * of `value`, but logical negation isn't available yet.
+		 * of value, but logical negation isn't available yet.
 		 */
 	]
 	else
@@ -293,9 +293,9 @@ Semantic restriction "Cast|cast_into_else_" is
 ];
 
 /**
- * Strengthen the return type of `Cast|cast_into_` so that it may be used as a
- * value-producing expression. If the type cast is unnecessary or invalid, then
- * reject the current parse.
+ * Strengthen the return type of {@method "Cast|cast_into_"} so that it may be 
+ * used as a value-producing expression. If the type cast is unnecessary or 
+ * invalid, then reject the current parse.
  * 
  * @method "Cast|cast_into_"
  * @restricts "any meta"
@@ -467,7 +467,7 @@ Semantic restriction "From_to_do_" is
 	⊤
 ];
 
-/* Don't permit `(_)` as the second argument of `Assert:_(_)`. */
+/* Don't permit (_)  as the second argument of  Assert:_(_). */
 Invoke
 [
 	cast ::= [ t : {string|natural number} | t ];

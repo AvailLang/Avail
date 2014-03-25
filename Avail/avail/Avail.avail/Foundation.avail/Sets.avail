@@ -387,11 +387,9 @@ Semantic restriction "filter_by_" is
 	predicate : [⊥]→boolean's type
 |
 	Require: predicate accepts setType;
-	sizes ::=
-		if predicate's return type = true's type then [ ||setType|| ]
-		else if [ predicate's return type = false's type ] then [ 0's type ]
-		else [ [0..⎡setType⎤ + 1) ];
-	{setType's element type|sizes}
+	if predicate's return type = true's type then [setType]
+	else if [predicate's return type = false's type] then [∅'s type]
+	else [{setType's element type|[0..⎡setType⎤ + 1)}]
 ];
 
 /**

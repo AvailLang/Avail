@@ -67,6 +67,7 @@ Names
 	"_'s⁇stack summary",
 	"“_”(stack summary)",
 	"“_”(frames_of stack summary«,⁇renumbered starting at_»)",
+	"“_”(frames_of stack summary«,⁇renumbered starting at_»,⁇cascaded)",
 
 	/* System exception categories. */
 	"arithmetic exception",
@@ -89,7 +90,7 @@ Names
 	"variable-use exception",
 
 	/* Voluntary termination. */
-	"Raise termination-requested exception if appropriate",
+	"Honor a termination request",
 	"termination-requested exception",
 
 	/* Java exceptions. */
@@ -1302,7 +1303,7 @@ Public method "“_”(stack summary)" is
  * Obtain a printed representation of the specified {@type "exception"}'s stack
  * summary, suitable for printing. Only summarize frames in the given range.
  *
- * @method "“_”(stack summary)"
+ * @method "“_”(frames_of stack summary«,⁇renumbered starting at_»)"
  * @param "e" "exception"
  * @param "range" "natural number's type"
  *        The range of the stack to summarize. The ordinal of the base frame is
@@ -1339,6 +1340,66 @@ Public method "“_”(frames_of stack summary«,⁇renumbered starting at_»)" 
 ];
 
 /**
+ * Obtain a printed representation of the specified {@type "exception"}'s
+ * cascaded stack summary, suitable for printing. Only summarize frames of the
+ * outmost {@type "exception"} in the given range; all originating {@type
+ * "exception"}s are fully summarized.
+ *
+ * @method "“_”(frames_of stack summary«,⁇renumbered starting at_»,⁇cascaded)"
+ * @param "ex" "exception"
+ *        An {@type "exception"} raised by the {@method "current fiber"}.
+ * @param "range" "natural number's type"
+ *        The range of {@param "ex"}'s stack to summarize. The ordinal of the
+ *        base frame is {@code 1}. If the ceiling of the range is out of bounds
+ *        for the stack, then substitute the actual size of the stack.
+ * @param "start" "natural number"
+ *        If specified, then the ordinal to present for the {@code ⎣range⎦}-th
+ *        frame of {@param "e"}'s stack.
+ * @returns "string"
+ * @category "Exceptions" "Stringification"
+ */
+Public method
+	"“_”(frames_of stack summary«,⁇renumbered starting at_»,⁇cascaded)"
+is
+[
+	ex : exception,
+	range : [1..∞)'s type,
+	start : <natural number…|0..1>
+|
+	e : exception := ex;
+	msg : string := "";
+	firstTime : boolean := true;
+	While [↑e is assigned] do
+	[
+		name ::= “e's type's names” (as list partitioned by " ∩ ");
+		msg := eject ↑msg ++ (a|an) “name” ++ "\n";
+		msg := eject ↑msg ++
+			if firstTime then
+			[
+				firstTime := false;
+				“e” (frames range of stack summary,
+					renumbered starting at start[1] else [1])
+			]
+			else
+			[
+				“e” (stack summary)
+			];
+		Cast e into
+		[
+			cascade : cascade exception
+		|
+			msg := eject ↑msg ++ "\ncaused by…\n";
+			e := cascade's causal exception;
+		]
+		else
+		[
+			Clear ↑e;
+		];
+	];
+	msg
+] : string;
+
+/**
  * A termination-requested exception indicates that termination has been
  * requested for the current fiber.
  *
@@ -1352,19 +1413,19 @@ Public explicit class "termination-requested exception" extends exception;
  * Raise a {@type "termination-requested exception"} iff {@method
  * "termination requested" termination has been requested}.
  *
- * @method "Raise termination-requested exception if appropriate"
+ * @method "Honor a termination request"
  * @returns "⊤"
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
  * @category "Exceptions" "Control Structures"
  */
-Public method "Raise termination-requested exception if appropriate" is
+Public method "Honor a termination request" is
 [
 	If termination requested then
 	[
 		Raise a termination-requested exception
 	];
-];
+] : ⊤;
 
 /**
  * Set the function that should be invoked whenever an unassigned variable is
@@ -1481,29 +1542,14 @@ noUnhandledExceptionHandler :=
 				with m's name;
 		]
 		intercept [e : loading-is-over exception |];
-		e : exception := unhandled;
-		firstTime : boolean := true;
-		While [↑e is assigned] do
-		[
-			spec ::= if firstTime
-				then ["unhandled exception [“ex”]:\n"]
-				else ["“ex”:\n"];
-			firstTime := false;
-			msg := eject ↑msg ++ format spec with ex ::= e;
-			msg := eject ↑msg ++ “e” (stack summary);
-			Cast e into
-			[
-				cascade : cascade exception
-			|
-				msg := eject ↑msg ++ "\ncaused by…\n";
-				e := cascade's causal exception;
-			]
-			else
-			[
-				Clear ↑e;
-			];
-		];
-		msg := eject ↑msg ++ "\nThe current fiber will be terminated.\n";
+		msg := eject ↑msg ++ "unhandled exception: ";
+		msg := eject ↑msg ++
+			cast unhandled into [e : descriptive exception | e's error message]
+			else [""];
+		msg := eject ↑msg
+			++ "\n"
+			++ “unhandled” (frames [1..∞) of stack summary, cascaded)
+			++ "\nThe current fiber will be terminated.\n";
 		/* If the current fiber was launched in order to apply a semantic
 		 * restriction, then reject the current parse. Otherwise, emit the
 		 * error message to the stardard error stream and terminate the current

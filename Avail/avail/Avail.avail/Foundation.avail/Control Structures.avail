@@ -79,9 +79,10 @@ Names
 	"Unless|unless_then_else_",
 	"Unless|unless_then_«else unless_then_»«else_»",
 
-	/* This is provided to support implementation of semantic restrictions of
-	 * `map and filter_by_`. Not for export beyond this package.
+	/* Support methods for semantic restrictions, exported for use by other
+	 * library- and user-defined control structures.
 	 */
+	"Require:_accepts subscripts from_to_by_",
 	"Require:_'s⁇keeper is valid"
 Body
 
@@ -430,17 +431,11 @@ Semantic restriction "From_to_by_do_" is
 	 * 4. The action is definitely invoked and it never terminates.
 	 */
 	if step ⊆ [0..0]
-		∨ [ (step ⊆ [0..∞) ∧ [ endSet = {∞} ∧ [ return = true's type ] ])
-		∨ [ (step ⊆ (-∞..-1] ∧ [ endSet = {-∞} ∧ [ return = true's type ] ])
-		∨ [ definitelyRuns ∧ [ return = ⊥ ] ] ] ]
-	then
-	[
-		⊥
-	]
-	else
-	[
-		⊤
-	]
+		∨ [(step ⊆ [0..∞) ∧ [endSet = {∞} ∧ [return = true's type]])
+		∨ [(step ⊆ (-∞..-1] ∧ [endSet = {-∞} ∧ [return = true's type]])
+		∨ [definitelyRuns ∧ [return = ⊥]]]]
+	then [⊥]
+	else [⊤]
 ];
 
 /**
@@ -455,7 +450,7 @@ Semantic restriction "From_to_by_do_" is
  * @param "step" "integer"
  *        The amount by which to adjust the value after each iteration.
  * @param "action" "[⊥]→⊤"
- *        A function that accepts a value in the specified range.
+ *        A function that accepts a value in the implied range.
  * @returns "⊤"
  * @category "Control Structures" "Loops"
  */
@@ -527,21 +522,21 @@ Public method "From_to_by_do_" is
 ];
 
 /**
- * If possible, then enforce that the specified function will accept all values
- * in the implied range.
- * 
- * @method "From_to_by_do_"
- * @restricts "integer's type"
- * @restricts "extended integer's type"
- * @restricts "integer's type"
- * @restricts "[⊥]→⊤'s type"
+ * Reject the current parse if {@param "action"} cannot accept every {@type
+ * "integer"} implied by the specified range and step.
+ *
+ * @method "Require:_accepts subscripts from_to_by_"
+ * @param "action" "[⊥]→⊤"
+ * @param "start" "integer's type"
+ * @param "end" "extended integer's type"
+ * @param "step" "integer's type"
  */
-Semantic restriction "From_to_by_do_" is
+Public method "Require:_accepts subscripts from_to_by_" is
 [
+	action : [⊥]→⊤'s type,
 	start : integer's type,
 	end : extended integer's type,
-	step : integer's type,
-	action : [⊥]→⊤'s type
+	step : integer's type
 |
 	subscripts ::=
 		if step ⊆ [0..∞) then
@@ -559,7 +554,7 @@ Semantic restriction "From_to_by_do_" is
 				(start ∪ end) ∩ integer
 			]
 		];
-	If action[1] ≠ ⊥ ∧ [ ¬subscripts ⊆ action[1] ] then
+	If action[1] ≠ ⊥ ∧ [¬subscripts ⊆ action[1]] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all values in the range "
@@ -567,6 +562,26 @@ Semantic restriction "From_to_by_do_" is
 			++ ", but it only accepts "
 			++ “action[1]”
 	];
+] : ⊤;
+
+/**
+ * If possible, then enforce that the specified function will accept all values
+ * in the implied range.
+ * 
+ * @method "From_to_by_do_"
+ * @restricts "integer's type"
+ * @restricts "extended integer's type"
+ * @restricts "integer's type"
+ * @restricts "[⊥]→⊤'s type"
+ */
+Semantic restriction "From_to_by_do_" is
+[
+	start : integer's type,
+	end : extended integer's type,
+	step : integer's type,
+	action : [⊥]→⊤'s type
+|
+	Require: action accepts subscripts from start to end by step;
 	return ::= action's return type;
 	endSet ::= {⎣end⎦, ⎡end⎤};
 	definitelyRuns ::=
@@ -593,17 +608,11 @@ Semantic restriction "From_to_by_do_" is
 	 * 4. The action is definitely invoked and it never terminates.
 	 */
 	if step ⊆ [0..0]
-		∨ [ (step ⊆ [0..∞) ∧ [ endSet = {∞} ])
-		∨ [ (step ⊆ (-∞..-1] ∧ [ endSet = {-∞} ])
-		∨ [ definitelyRuns ∧ [ return = ⊥ ] ] ] ]
-	then
-	[
-		⊥
-	]
-	else
-	[
-		⊤
-	]
+		∨ [(step ⊆ [0..∞) ∧ [endSet = {∞}])
+		∨ [(step ⊆ (-∞..-1] ∧ [endSet = {-∞}])
+		∨ [definitelyRuns ∧ [return = ⊥]]]]
+	then [⊥]
+	else [⊤]
 ];
 
 /**
@@ -648,28 +657,13 @@ Semantic restriction "From_to_do_" is
 	end : extended integer's type,
 	action : [⊥]→boolean's type
 |
-	subscripts ::= (⎣start⎦ - 1 .. ⎡end⎤ + 1);
-	If action[1] ≠ ⊥ ∧ [ ¬subscripts ⊆ action[1] ] then
-	[
-		Reject parse, expected:
-			"repeatedly applied function to accept all values in the range "
-			++ “subscripts”
-			++ ", but it only accepts "
-			++ “action[1]”
-	];
+	Require: action accepts subscripts from start to end by 1's type;
 	return ::= action's return type;
 	endSet ::= {⎣end⎦, ⎡end⎤};
 	definitelyRuns ::= ⎡start⎤ ≤ ⎣end⎦;
-	if (endSet = {∞} ∧ [ return = true's type ])
-		∨ [ definitelyRuns ∧ [ return = ⊥ ] ]
-	then
-	[
-		⊥
-	]
-	else
-	[
-		⊤
-	]
+	if (endSet = {∞} ∧ [return = true's type]) ∨ [definitelyRuns ∧ [return = ⊥]]
+	then [⊥]
+	else [⊤]
 ];
 
 /**
@@ -717,27 +711,11 @@ Semantic restriction "From_to_do_" is
 	end : extended integer's type,
 	action : [⊥]→⊤'s type
 |
-	subscripts ::= (⎣start⎦ - 1 .. ⎡end⎤ + 1);
-	If action[1] ≠ ⊥ ∧ [ ¬subscripts ⊆ action[1] ] then
-	[
-		Reject parse, expected:
-			"repeatedly applied function to accept all values in the range "
-			++ “subscripts”
-			++ ", but it only accepts "
-			++ “action[1]”
-	];
+	Require: action accepts subscripts from start to end by 1's type;
 	return ::= action's return type;
 	endSet ::= {⎣end⎦, ⎡end⎤};
 	definitelyRuns ::= ⎡start⎤ ≤ ⎣end⎦;
-	if endSet = {∞} ∨ [ definitelyRuns ∧ [ return = ⊥ ] ]
-	then
-	[
-		⊥
-	]
-	else
-	[
-		⊤
-	]
+	if endSet = {∞} ∨ [definitelyRuns ∧ [return = ⊥]] then [⊥] else [⊤]
 ];
 
 /**
@@ -1621,11 +1599,11 @@ Semantic restriction "Do_while_" is
  * @method "Do_while_alternate with_"
  * @param "action" "[]→⊤"
  *        The function to apply once and then again repeatedly while
- *        `predicate` answers `true`.
+ *        {@param "predicate"} answers {@method "true"}.
  * @param "predicate" "[]→boolean"
- *        The function that guards repeated application of `action`.
+ *        The function that guards repeated application of {@param "action"}.
  * @param "between" "[]→⊤"
- *        The function to apply between applications of `action`.
+ *        The function to apply between applications of {@param "action"}.
  * @returns "⊤"
  * @category "Control Structures" "Loops"
  */
@@ -2041,8 +2019,8 @@ Public method "Choose|choose_from_where«_is_‡,»«,else_»" is
 /**
  * Reject the current parse unless all of the following are true:
  *
- * - `meta`'s sole instance is an enumeration.
- * - `valueType` is an instance of `meta`.
+ * - the second parameter's type's sole instance is an enumeration.
+ * - the first parameter's type is an instance of meta.
  * - Each case's selector is a statically known value.
  * - Each case's selector is an instance of the enumeration.
  * - Every value of the enumeration is handled by a case, either explicitly or

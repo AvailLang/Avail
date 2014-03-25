@@ -59,6 +59,7 @@ Names
 	"Cast|cast each of_into_",
 	"Cast|cast each of_into_else_",
 	"Cast|cast_into_",
+	"Cast|cast_into_else_",
 	"Cast|cast_into«_‡,»«else_»",
 
 	/* Exception types. */
@@ -103,9 +104,9 @@ Public class "bad-cast exception" extends bad-multiway-cast exception
  * @param "value" "any"
  *        A value.
  * @param "accept" "[⊥]→⊤"
- *        The function to invoke if {@param "value"} is a subtype of the its 
+ *        The function to invoke if {@param "value"} is an instance of the its
  *        parameter type.
- * returns The result of {@param "accept"}.
+ * @returns The result of {@param "accept"}.
  * @raises "bad-cast exception"
  *         If {@param "value"} is not an instance of {@param "accept"}'s
  *         parameter type.
@@ -156,6 +157,67 @@ Semantic restriction "Cast|cast_into_" is
 			with valueType, acceptType[1]
 	];
 	acceptType's return type
+];
+
+/**
+ * If the function {@param "accept"} accepts {@param "value"} as an argument
+ * (based on its runtime type), then invoke {@param "accept"} with {@param
+ * "value"}. Otherwise, invoke {@param "else"}.
+ *
+ * @method "Cast|cast_into_else_"
+ * @param "value" "any"
+ *        A value.
+ * @param "accept" "[⊥]→⊤"
+ *        The function to invoke if {@param "value"} is an instance of the its 
+ *        parameter type.
+ * @param "else" "[]→⊤"
+ *        The function to invoke if {@param "value"} is not an instance of
+ *        {@param "accept"}'s parameter type.
+ * @returns The result of {@param "accept"} or {@param "else"}.
+ * @category "Casts" "Control Structures" "Conditionals"
+ */
+Public method "Cast|cast_into_else_" is
+[
+	value : any,
+	accept : [⊥]→⊤,
+	else : []→⊤
+|
+	valueType ::= value's type;
+	paramType ::= accept's type[1];
+	if valueType ⊆ paramType then
+	[
+		accept(value);
+	]
+	else else;
+] : ⊤;
+
+/**
+ * Reject the parse if the cast is either unnecessary or disallowed.
+ *
+ * @method "Cast|cast_into_"
+ * @restricts "any's type"
+ * @restricts "[⊥]→⊤'s type"
+ */
+Semantic restriction "Cast|cast_into_else_" is
+[
+	valueType : any's type,
+	acceptType : [⊥]→⊤'s type,
+	elseType : []→⊤'s type
+|
+	targetType ::= acceptType[1];
+	If valueType ⊆ targetType then
+	[
+		Reject parse, expected:
+			format "necessary cast expression, but “①” is a subtype of “②”"
+			with valueType, acceptType[1]
+	];
+	If valueType ∩ targetType = ⊥ then
+	[
+		Reject parse, expected:
+			format "allowed cast expression, but “①” and “②” are disjoint"
+			with valueType, acceptType[1]
+	];
+	(acceptType's return type) ∪ (elseType's return type)
 ];
 
 /**

@@ -49,32 +49,27 @@ class ModuleRootNode extends AbstractBuilderFrameTreeNode
 	/**
 	 * Construct a new {@link ModuleRootNode}.
 	 *
+	 * @param builder The builder for which this node is being built.
 	 * @param moduleRoot The {@link ModuleRoot} that this represents.
 	 */
 	public ModuleRootNode (
+		final AvailBuilder builder,
 		final ModuleRoot moduleRoot)
 	{
+		super(builder);
 		this.moduleRoot = moduleRoot;
 	}
 
 	@Override
-	String htmlText (final AvailBuilder builder)
+	String text (final boolean selected)
 	{
-		String html = moduleRoot.name();
-		html = "<b>" + html + "</b>";
-		html = "<font size=+1>" + html + "</font>";
-		return html;
+		return moduleRoot.name();
 	}
 
 	@Override
-	public String toString ()
+	String htmlStyle (final boolean selected)
 	{
-		return "Module root: " + moduleRoot.name();
-	}
-
-	@Override
-	public boolean isSpecifiedByString (final String string)
-	{
-		return moduleRoot.name().equals(string);
+		return super.htmlStyle(selected)
+			+ ";font-weight:900;font-size:110%;text-decoration:underline";
 	}
 }

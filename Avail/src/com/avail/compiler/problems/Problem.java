@@ -56,7 +56,7 @@ import com.avail.descriptor.TokenDescriptor;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class Problem
+public abstract class Problem
 {
 	/**
 	 * The {@linkplain ModuleName unresolved, canonical name} of the module in
@@ -198,10 +198,7 @@ public class Problem
 	 * or the {@link #abortCompilation()} method must be invoked by code
 	 * handling {@link Problem}s.
 	 */
-	protected void abortCompilation ()
-	{
-		// Do nothing by default.
-	}
+	protected abstract void abortCompilation ();
 
 	@Override
 	public String toString ()

@@ -52,49 +52,45 @@ class ModuleOrPackageNode extends AbstractBuilderFrameTreeNode
 	/**
 	 * Construct a new {@link ModuleOrPackageNode}.
 	 *
+	 * @param builder The builder for which this node is being built.
 	 * @param resolvedModuleName The name of the module or package.
 	 * @param isPackage Whether it's a package.
 	 */
 	public ModuleOrPackageNode (
+		final AvailBuilder builder,
 		final ResolvedModuleName resolvedModuleName,
 		final boolean isPackage)
 	{
+		super(builder);
 		this.resolvedModuleName = resolvedModuleName;
 		this.isPackage = isPackage;
 	}
 
 	@Override
-	String htmlText (final AvailBuilder builder)
+	String text (final boolean selected)
 	{
-		String html = resolvedModuleName.localName();
+		return resolvedModuleName.localName();
+	}
+
+	@Override
+	String htmlStyle (final boolean selected)
+	{
 		synchronized (builder)
 		{
+			String base = super.htmlStyle(selected);
 			if (isPackage)
 			{
-				html = "<b>" + html + "</b>";
+				base = base + ";font-weight:bold";
 			}
 			else if (builder.getLoadedModule(resolvedModuleName) == null)
 			{
-				html = "<em>" + html + "</em>";
-				html = "<font color=gray>" + html + "</font>";
+				base = base + ";font-style:italic";
+				if (!selected)
+				{
+					base = base + ";color:gray";
+				}
 			}
+			return base;
 		}
-		return html;
-	}
-
-	@Override
-	public String toString ()
-	{
-		if (isPackage)
-		{
-			return "Package: " + resolvedModuleName;
-		}
-		return "Module: " + resolvedModuleName;
-	}
-
-	@Override
-	public boolean isSpecifiedByString (final String string)
-	{
-		return resolvedModuleName.localName().equals(string);
 	}
 }

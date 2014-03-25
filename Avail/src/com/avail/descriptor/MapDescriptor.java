@@ -443,7 +443,7 @@ extends Descriptor
 		// Answer a map like this one but with keyObject->newValueObject instead
 		// of any existing mapping for keyObject. The original map can be
 		// destroyed or recycled if canDestroy is true and it's mutable.
-		assert !newValueObject.equalsNil();
+//		assert !newValueObject.equalsNil();
 		final A_BasicObject oldRoot = rootBin(object);
 		final A_BasicObject newRoot = oldRoot.mapBinAtHashPutLevelCanDestroy(
 			keyObject,
