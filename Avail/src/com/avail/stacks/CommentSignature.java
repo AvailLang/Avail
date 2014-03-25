@@ -66,4 +66,16 @@ public class CommentSignature
 		this.name = name;
 		this.module = module;
 	}
+
+	/**
+	 * Create the HTML representation of the signarture.
+	 * @return
+	 */
+	public String toHTML ()
+	{
+		final StringBuilder stringBuilder = new StringBuilder()
+			.append("<div class=\"ModuleLocation\">")
+			.append(module).append('.').append(name).append("</div>");
+		return stringBuilder.toString();
+	}
 }

@@ -37,9 +37,15 @@ package com.avail.stacks;
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class AbstractStacksTag
+public abstract class AbstractStacksTag
 {
 	/**
 	 * Creating a shared super class to move all Tags.
 	 */
+
+	/**
+	 * Create HTML content from implementation
+	 * @return the HTML tagged content
+	 */
+	public abstract String toHTML();
 }

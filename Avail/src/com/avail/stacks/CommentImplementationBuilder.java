@@ -33,6 +33,7 @@
 package com.avail.stacks;
 
 import java.util.ArrayList;
+import java.util.TreeMap;
 import com.avail.descriptor.A_String;
 
 /**
@@ -107,7 +108,7 @@ public class CommentImplementationBuilder
 	/**
 	 * The general description provided by the comment
 	 */
-	private ArrayList<AbstractStacksToken> description;
+	private StacksDescription description;
 
 	/**
 	 * @param list
@@ -117,7 +118,7 @@ public class CommentImplementationBuilder
 		 final ArrayList<AbstractStacksToken> list)
 			 throws ClassCastException
 	{
-		description = list;
+		description = new StacksDescription(list);
 	}
 
 	/**
@@ -179,14 +180,15 @@ public class CommentImplementationBuilder
 		if (tokenCount == 2)
 		{
 			fields.add(new StacksFieldTag (tempName, tempType,
-				new ArrayList<AbstractStacksToken>(0)));
+				new StacksDescription(new ArrayList<AbstractStacksToken>(0))));
 		}
 		else
 		{
 			final ArrayList<AbstractStacksToken> rest =
 				new ArrayList<AbstractStacksToken>(
 					tagContentTokens.subList(2, tokenCount));
-			fields.add(new StacksFieldTag (tempName, tempType,rest));
+			fields.add(new StacksFieldTag (tempName, tempType,
+				new StacksDescription(rest)));
 		}
 	}
 
@@ -194,7 +196,7 @@ public class CommentImplementationBuilder
 	 * The forbids keyword indicates the methods forbidden by a
 	 * Grammatical Restriction for the method implementation.
 	 */
-	private final ArrayList<StacksForbidsTag> forbids;
+	private final TreeMap<Integer,StacksForbidsTag> forbids;
 
 	/**
 	 * @param tagContentTokens
@@ -205,12 +207,13 @@ public class CommentImplementationBuilder
 		 final ArrayList<AbstractStacksToken> tagContentTokens)
 			 throws ClassCastException, StacksCommentBuilderException
 	{
-
+		int arity;
 		try
 		{
-			Integer.parseInt(tagContentTokens.get(0).lexeme);
+			arity = Integer.parseInt(tagContentTokens.get(0).lexeme);
 		}
-		catch(final NumberFormatException e) {
+		catch(final NumberFormatException e)
+		{
 				final String errorMessage = String.format("\n<li><strong>%s"
 					+ "</strong><em> Line #: %d</em>: Malformed "
 					+ "@forbids tag section; expected a number immediately "
@@ -230,7 +233,7 @@ public class CommentImplementationBuilder
 				tempTokens.add((QuotedStacksToken) tagContentTokens.get(i));
 			}
 
-			forbids.add(
+			forbids.put(arity,
 				new StacksForbidsTag (tagContentTokens.get(0), tempTokens));
 		}
 		catch (final ClassCastException e)
@@ -411,14 +414,15 @@ public class CommentImplementationBuilder
 		if (tokenCount == 2)
 		{
 			parameters.add(new StacksParameterTag (tempName, tempType,
-				new ArrayList<AbstractStacksToken>(0)));
+				new StacksDescription(new ArrayList<AbstractStacksToken>(0))));
 		}
 		else
 		{
 			final ArrayList<AbstractStacksToken> rest =
 				new ArrayList<AbstractStacksToken>(
 					tagContentTokens.subList(2, tokenCount));
-			parameters.add(new StacksParameterTag (tempName, tempType,rest));
+			parameters.add(new StacksParameterTag (tempName, tempType,
+				new StacksDescription(rest)));
 		}
 	}
 
@@ -470,14 +474,15 @@ public class CommentImplementationBuilder
 		if (tokenCount == 1)
 		{
 			raises.add(new StacksRaisesTag (tempName,
-				new ArrayList<AbstractStacksToken>(0)));
+				new StacksDescription(new ArrayList<AbstractStacksToken>(0))));
 		}
 		else
 		{
 			final ArrayList<AbstractStacksToken> rest =
 				new ArrayList<AbstractStacksToken>(
 					tagContentTokens.subList(1, tokenCount));
-			raises.add(new StacksRaisesTag (tempName,rest));
+			raises.add(new StacksRaisesTag (tempName,
+				new StacksDescription(rest)));
 		}
 	}
 
@@ -529,14 +534,15 @@ public class CommentImplementationBuilder
 		if (tokenCount == 1)
 		{
 			restricts.add(new StacksRestrictsTag (tempName,
-				new ArrayList<AbstractStacksToken>(0)));
+				new StacksDescription(new ArrayList<AbstractStacksToken>(0))));
 		}
 		else
 		{
 			final ArrayList<AbstractStacksToken> rest =
 				new ArrayList<AbstractStacksToken>(
 					tagContentTokens.subList(1, tokenCount));
-			restricts.add(new StacksRestrictsTag (tempName,rest));
+			restricts.add(new StacksRestrictsTag (tempName,
+				new StacksDescription(rest)));
 		}
 	}
 
@@ -587,14 +593,15 @@ public class CommentImplementationBuilder
 		if (tokenCount == 1)
 		{
 			returns.add(new StacksReturnTag (tempName,
-				new ArrayList<AbstractStacksToken>(0)));
+				new StacksDescription(new ArrayList<AbstractStacksToken>(0))));
 		}
 		else
 		{
 			final ArrayList<AbstractStacksToken> rest =
 				new ArrayList<AbstractStacksToken>(
 					tagContentTokens.subList(1, tokenCount));
-			returns.add(new StacksReturnTag (tempName,rest));
+			returns.add(new StacksReturnTag (tempName,
+				new StacksDescription(rest)));
 		}
 	}
 
@@ -767,9 +774,8 @@ public class CommentImplementationBuilder
 		this.commentStartLine = commentStartLine;
 		this.authors = new ArrayList<StacksAuthorTag>(0);
 		this.categories = new ArrayList<StacksCategoryTag>(0);
-		this.description = new ArrayList<AbstractStacksToken>(0);
 		this.fields = new ArrayList<StacksFieldTag>(0);
-		this.forbids = new ArrayList<StacksForbidsTag>(0);
+		this.forbids = new TreeMap<Integer,StacksForbidsTag>();
 		this.globalVariables = new ArrayList<StacksGlobalTag>(0);
 		this.methods = new ArrayList<StacksMethodTag>(0);
 		this.parameters = new ArrayList<StacksParameterTag>(0);
@@ -867,9 +873,9 @@ public class CommentImplementationBuilder
 			{
 				final ArrayList<String> orderedInputTypes =
 					new ArrayList<String>(0);
-				for (final StacksParameterTag param : parameters)
+				for (final StacksRestrictsTag restrict : restricts)
 				{
-					orderedInputTypes.add(param.paramType().lexeme());
+					orderedInputTypes.add(restrict.paramMetaType().lexeme());
 				}
 
 				final SemanticRestrictionCommentSignature signature =
@@ -880,7 +886,7 @@ public class CommentImplementationBuilder
 
 				return new SemanticRestrictionCommentImplementation(signature,
 					commentStartLine (), authors, sees, description,
-					categories, restricts);
+					categories, restricts,returns);
 			}
 
 			if (restricts.isEmpty() && !parameters.isEmpty() &&
@@ -926,7 +932,7 @@ public class CommentImplementationBuilder
 
 					return new GrammaticalRestrictionCommentImplementation(
 						signature, commentStartLine (), authors, sees,
-						description, categories, forbids.get(0));
+						description, categories, forbids);
 				}
 				final String errorMessage = String.format("\n<li><strong>%s"
 					+ "</strong><em> Line #: %d</em>: Malformed comment; has "

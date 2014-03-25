@@ -32,8 +32,6 @@
 
 package com.avail.stacks;
 
-import java.util.List;
-
 /**
  * The contents of an Avail comment "@param" tag
  *
@@ -54,7 +52,7 @@ public class StacksParameterTag extends AbstractStacksTag
 	/**
 	 * The description of the parameter.
 	 */
-	final private List<AbstractStacksToken> paramDescription;
+	final private StacksDescription paramDescription;
 
 	/**
 	 * Construct a new {@link StacksParameterTag}.
@@ -69,7 +67,7 @@ public class StacksParameterTag extends AbstractStacksTag
 	public StacksParameterTag (
 		final QuotedStacksToken paramName,
 		final QuotedStacksToken paramType,
-		final List<AbstractStacksToken> paramDescription)
+		final StacksDescription paramDescription)
 	{
 		this.paramType = paramType;
 		this.paramDescription = paramDescription;
@@ -79,7 +77,7 @@ public class StacksParameterTag extends AbstractStacksTag
 	/**
 	 * @return the returnDescription
 	 */
-	public List<AbstractStacksToken> paramDescription ()
+	public StacksDescription paramDescription ()
 	{
 		return paramDescription;
 	}
@@ -98,5 +96,19 @@ public class StacksParameterTag extends AbstractStacksTag
 	public QuotedStacksToken paramName ()
 	{
 		return paramName;
+	}
+
+	@Override
+	public String toHTML()
+	{
+		final StringBuilder stringBuilder = new StringBuilder()
+			.append("<tr class=\"methodParameters\"><td class=\"ICode\">")
+			.append(paramName.lexeme())
+			.append("</td><td class=\"ICode\">")
+			.append(paramType)
+			.append("</td><td class=\"IDesc\">")
+			.append(paramDescription.toHTML())
+			.append("</td></tr>");
+		return stringBuilder.toString();
 	}
 }

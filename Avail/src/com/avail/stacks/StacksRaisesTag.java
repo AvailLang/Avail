@@ -32,9 +32,6 @@
 
 package com.avail.stacks;
 
-import java.util.ArrayList;
-
-
 /**
  * The "@raises" tag in an Avail comment indicates an exception that is thrown
  * by the method.
@@ -51,7 +48,7 @@ public class StacksRaisesTag extends AbstractStacksTag
 	/**
 	 * The description of the exception.
 	 */
-	final private ArrayList<AbstractStacksToken> exceptionDescription;
+	final private StacksDescription exceptionDescription;
 
 	/**
 	 * Construct a new {@link StacksRaisesTag}.
@@ -62,7 +59,7 @@ public class StacksRaisesTag extends AbstractStacksTag
 	 */
 	public StacksRaisesTag (
 		final QuotedStacksToken exceptionName,
-		final ArrayList<AbstractStacksToken> exceptionDescription)
+		final StacksDescription exceptionDescription)
 	{
 		this.exceptionDescription = exceptionDescription;
 		this.exceptionName = exceptionName;
@@ -71,7 +68,7 @@ public class StacksRaisesTag extends AbstractStacksTag
 	/**
 	 * @return the exceptionDescription
 	 */
-	public ArrayList<AbstractStacksToken> exceptionDescription ()
+	public StacksDescription exceptionDescription ()
 	{
 		return exceptionDescription;
 	}
@@ -82,6 +79,18 @@ public class StacksRaisesTag extends AbstractStacksTag
 	public QuotedStacksToken exceptionName ()
 	{
 		return exceptionName;
+	}
+
+	@Override
+	public String toHTML ()
+	{
+		final StringBuilder stringBuilder = new StringBuilder()
+			.append("<tr class=\"methodParameters\"><td class=\"ICode\">")
+			.append(exceptionName.lexeme())
+			.append("</td><td class=\"IDesc\">")
+			.append(exceptionDescription.toHTML())
+			.append("</td></tr>");
+		return stringBuilder.toString();
 	}
 
 }

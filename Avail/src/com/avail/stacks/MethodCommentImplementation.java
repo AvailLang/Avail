@@ -87,7 +87,7 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		final int commentStartLine,
 		final ArrayList<StacksAuthorTag> author,
 		final ArrayList<StacksSeeTag> sees,
-		final ArrayList<AbstractStacksToken> description,
+		final StacksDescription description,
 		final ArrayList<StacksCategoryTag> categories,
 		final ArrayList<StacksParameterTag> parameters,
 		final StacksReturnTag returnsContent,
@@ -100,4 +100,64 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		this.exceptions = exceptions;
 	}
 
+	@Override
+	public void addToImplementationGroup(
+		final ImplementationGroup implementationGroup)
+	{
+		implementationGroup.addMethod(this);
+	}
+
+	@Override
+	public String toHTML ()
+	{
+		final int paramCount = parameters.size();
+		final int exceptionCount = exceptions.size();
+		int colSpan = 1;
+		final StringBuilder stringBuilder = new StringBuilder()
+			.append(signature.toHTML());
+
+		if (categories.size() > 0)
+		{
+			stringBuilder.append(categories.get(0).toHTML());
+		}
+
+		stringBuilder.append("<div class=\"SignatureDescription\">")
+			.append(description.toHTML()).append("</div")
+			.append("<table><thead><tr><th class=\"Transparent\" scope=\"col\">"
+				+ "</th>");
+		if (paramCount > 0)
+		{
+			stringBuilder.append("<th class=\"IColLabelNarrow\" "
+				+ "scope=\"col\">Name</th>");
+			colSpan = 2;
+		}
+
+		stringBuilder
+			.append("<th class=\"IColLabelNarrow\" scope=\"col\">Type</th>"
+				+ "<th class=\"IColLabelWide\" scope=\"col\">Description</th>"
+				+ "</tr></thead><tbody><tr><th class=\"IRowLabel\" rowspan=\"")
+			.append(paramCount).append("\">Parameters</th></tr>");
+
+		for (final StacksParameterTag paramTag : parameters)
+		{
+			stringBuilder.append(paramTag.toHTML());
+		}
+
+		stringBuilder.append("<tr><th class=\"IRowLabel\" colspan=\"")
+			.append(colSpan).append("\">Returns</th>")
+			.append(returnsContent.toHTML());
+
+		if (exceptionCount > 0)
+		{
+			stringBuilder.append("<th class=\"IRowLabel\" colspan=\"")
+				.append(colSpan).append("\">Raises</th>");
+
+			for (final StacksRaisesTag exception : exceptions)
+			{
+				stringBuilder.append(exception);
+			}
+		}
+
+		return stringBuilder.toString();
+	}
 }

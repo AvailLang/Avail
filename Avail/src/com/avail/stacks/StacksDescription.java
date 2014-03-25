@@ -1,5 +1,5 @@
 /**
- * StacksSuperTypeTag.java
+ * StacksDescription.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,43 +32,48 @@
 
 package com.avail.stacks;
 
+import java.util.ArrayList;
+
 /**
- * The "@supertype" keyword of an Avail class comment.
+ * A collection of {@linkplain AbstractStacksToken tokens} that make up a
+ * comment description.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksSuperTypeTag extends AbstractStacksTag
+public class StacksDescription
 {
-	/**
-	 * The supertype keyword indicates the supertype of the class
-	 * implementation
-	 */
-	final private QuotedStacksToken superType;
 
 	/**
-	 * Construct a new {@link StacksSuperTypeTag}.
+	 * The tokens that make up a description in a comment.
+	 */
+	final ArrayList<AbstractStacksToken> descriptionTokens;
+
+	/**
+	 * Construct a new {@link StacksDescription}.
+	 * @param descriptionTokens
+	 * 		The tokens that make up a description in a comment.
 	 *
-	 * @param superType
-	 * 		The supertype keyword indicates the supertype of the class
-	 * 		implementation
 	 */
-	public StacksSuperTypeTag (
-		final QuotedStacksToken superType)
+	public StacksDescription (
+		final ArrayList<AbstractStacksToken> descriptionTokens)
 	{
-		this.superType = superType;
+		this.descriptionTokens = descriptionTokens;
 	}
 
 	/**
-	 * @return the superType
+	 * Create HTML content from the description.
+	 * @return
 	 */
-	public QuotedStacksToken superType ()
-	{
-		return superType;
-	}
-
-	@Override
 	public String toHTML ()
 	{
-		return superType.lexeme();
+		final int listSize = descriptionTokens.size();
+		final StringBuilder stringBuilder = new StringBuilder();
+		for (int i = 0; i < listSize - 1; i++)
+		{
+			stringBuilder.append(descriptionTokens.get(i).toHTML()).append(" ");
+		}
+		stringBuilder.append(descriptionTokens.get(listSize - 1).toHTML());
+		return stringBuilder.toString();
 	}
+
 }

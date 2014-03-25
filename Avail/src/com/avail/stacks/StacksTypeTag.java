@@ -44,8 +44,6 @@ public class StacksTypeTag extends AbstractStacksTag
 	 */
 	final private QuotedStacksToken typeName;
 
-
-
 	/**
 	 * Construct a new {@link StacksTypeTag}.
 	 *
@@ -64,5 +62,11 @@ public class StacksTypeTag extends AbstractStacksTag
 	public QuotedStacksToken typeName ()
 	{
 		return typeName;
+	}
+
+	@Override
+	public String toHTML ()
+	{
+		return typeName.lexeme();
 	}
 }

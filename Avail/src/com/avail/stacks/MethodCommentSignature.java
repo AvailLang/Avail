@@ -81,4 +81,20 @@ public class MethodCommentSignature extends CommentSignature
 		return String.format("%s -> %s : %s", name,
 			orderedInputTypes.toString(),returnType);
 	}
+
+	@Override
+	public String toHTML ()
+	{
+		final int listSize = orderedInputTypes.size();
+		final StringBuilder stringBuilder = new StringBuilder()
+			.append("<div class=\"SignatureHeading\">");
+		for (int i = 0; i < listSize - 1; i++)
+		{
+			stringBuilder.append(orderedInputTypes.get(i)).append(", ");
+		}
+		stringBuilder.append(orderedInputTypes.get(listSize - 1))
+			.append("</div><div class=\"ModuleLocation\">")
+			.append(module).append('.').append(name).append("</div>");
+		return stringBuilder.toString();
+	}
 }

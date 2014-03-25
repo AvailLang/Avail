@@ -70,7 +70,7 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 		final int commentStartLine,
 		final ArrayList<StacksAuthorTag> author,
 		final ArrayList<StacksSeeTag> sees,
-		final ArrayList<AbstractStacksToken> description,
+		final StacksDescription description,
 		final ArrayList<StacksCategoryTag> categories,
 		final StacksGlobalTag globalTag)
 	{
@@ -79,4 +79,27 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 		this.globalTag = globalTag;
 	}
 
+	@Override
+	public void addToImplementationGroup(
+		final ImplementationGroup implementationGroup)
+	{
+		implementationGroup.global(this);
+	}
+
+	@Override
+	public String toHTML ()
+	{
+		final StringBuilder stringBuilder = new StringBuilder()
+		.append(signature.toHTML());
+
+		if (categories.size() > 0)
+		{
+			stringBuilder.append(categories.get(0).toHTML());
+		}
+
+		stringBuilder.append("<div class=\"SignatureDescription\">")
+			.append(description.toHTML()).append("</div");
+
+		return stringBuilder.toString();
+	}
 }

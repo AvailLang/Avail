@@ -65,4 +65,10 @@ public class StacksAuthorTag extends AbstractStacksTag
 	{
 		return author;
 	}
+
+	@Override
+	public String toHTML ()
+	{
+		return "";
+	}
 }

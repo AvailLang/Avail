@@ -66,4 +66,10 @@ public class StacksCodeTag extends AbstractStacksTag
 		return codeStyledText;
 	}
 
+	@Override
+	public String toHTML ()
+	{
+		return ("<code>" + codeStyledText + "</code>");
+	}
+
 }

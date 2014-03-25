@@ -50,7 +50,6 @@ import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
-import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 
 /**
@@ -184,8 +183,8 @@ public class StacksGenerator
 	 */
 	public synchronized void generate (final ModuleName outermostModule)
 	{
-		final A_String targetModule =
-			StringDescriptor.from(outermostModule.qualifiedName());
+		/*final A_String targetModule =
+			StringDescriptor.from(outermostModule.qualifiedName());*/
 
 		System.out.println("In generate()");
 

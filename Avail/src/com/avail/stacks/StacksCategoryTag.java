@@ -66,4 +66,18 @@ public class StacksCategoryTag extends AbstractStacksTag
 		return categories;
 	}
 
+	@Override
+	public String toHTML ()
+	{
+		final int listSize = categories.size();
+		final StringBuilder stringBuilder = new StringBuilder()
+			.append("<div class=\"CategoryList\"><em>Categories:</em> ");
+		for (int i = 0; i < listSize - 1; i++)
+		{
+			stringBuilder.append(categories.get(i)).append(", ");
+		}
+		stringBuilder.append("</div>");
+		return stringBuilder.toString();
+	}
+
 }

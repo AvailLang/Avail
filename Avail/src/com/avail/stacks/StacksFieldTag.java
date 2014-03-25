@@ -32,8 +32,6 @@
 
 package com.avail.stacks;
 
-import java.util.ArrayList;
-
 /**
  * The "@field" tag in an Avail Class comment.
  *
@@ -54,7 +52,7 @@ public class StacksFieldTag extends AbstractStacksTag
 	/**
 	 * The description of the field.
 	 */
-	final private ArrayList<AbstractStacksToken> fieldDescription;
+	final private StacksDescription fieldDescription;
 
 	/**
 	 * Construct a new {@link StacksFieldTag}.
@@ -69,7 +67,7 @@ public class StacksFieldTag extends AbstractStacksTag
 	public StacksFieldTag (
 		final QuotedStacksToken fieldName,
 		final QuotedStacksToken fieldType,
-		final ArrayList<AbstractStacksToken> fieldDescription)
+		final StacksDescription fieldDescription)
 	{
 		this.fieldDescription = fieldDescription;
 		this.fieldName = fieldName;
@@ -87,7 +85,7 @@ public class StacksFieldTag extends AbstractStacksTag
 	/**
 	 * @return the fieldDescription
 	 */
-	public ArrayList<AbstractStacksToken> fieldDescription ()
+	public StacksDescription fieldDescription ()
 	{
 		return fieldDescription;
 	}
@@ -98,5 +96,19 @@ public class StacksFieldTag extends AbstractStacksTag
 	public QuotedStacksToken fieldName ()
 	{
 		return fieldName;
+	}
+
+	@Override
+	public String toHTML()
+	{
+		final StringBuilder stringBuilder = new StringBuilder()
+			.append("<tr class=\"methodParameters\"><td class=\"ICode\">")
+			.append(fieldName.lexeme())
+			.append("</td><td class=\"ICode\">")
+			.append(fieldType)
+			.append("</td><td class=\"IDesc\">")
+			.append(fieldDescription)
+			.append("</td></tr>");
+		return stringBuilder.toString();
 	}
 }

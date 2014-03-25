@@ -48,6 +48,11 @@ public class SemanticRestrictionCommentImplementation extends
 	final ArrayList<StacksRestrictsTag> restricts;
 
 	/**
+	 * The {@link StacksReturnTag "@returns"} content
+	 */
+	final ArrayList<StacksReturnTag> returnsContent;
+
+	/**
 	 * Construct a new {@link SemanticRestrictionCommentImplementation}.
 	 *
 	 * @param signature
@@ -65,19 +70,63 @@ public class SemanticRestrictionCommentImplementation extends
 	 * 		The categories the implementation appears in
 	 * @param restricts
 	 * 		The list of input types in the semantic restriction.
+	 * @param returnsContent
+	 * 		The {@link StacksReturnTag "@returns"} content
 	 */
 	public SemanticRestrictionCommentImplementation (
 		final SemanticRestrictionCommentSignature signature,
 		final int commentStartLine,
 		final ArrayList<StacksAuthorTag> author,
 		final ArrayList<StacksSeeTag> sees,
-		final ArrayList<AbstractStacksToken> description,
+		final StacksDescription description,
 		final ArrayList<StacksCategoryTag> categories,
-		final ArrayList<StacksRestrictsTag> restricts)
+		final ArrayList<StacksRestrictsTag> restricts,
+		final ArrayList<StacksReturnTag> returnsContent)
 	{
 		super(signature, commentStartLine, author, sees, description,
 			categories);
 		this.restricts = restricts;
+		this.returnsContent = returnsContent;
 	}
 
+	@Override
+	public void addToImplementationGroup(
+		final ImplementationGroup implementationGroup)
+	{
+		implementationGroup.addSemanticRestriction(this);
+	}
+
+	@Override
+	public String toHTML ()
+	{
+		final int paramCount = restricts.size();
+		final int colSpan = 1;
+		final StringBuilder stringBuilder = new StringBuilder()
+			.append(signature.toHTML());
+
+		stringBuilder.append("<div class=\"SignatureDescription\">")
+			.append(description.toHTML()).append("</div")
+			.append("<table><thead><tr><th class=\"Transparent\" scope=\"col\">"
+				+ "</th>");
+
+		stringBuilder
+			.append("<th class=\"IColLabelNarrow\" scope=\"col\">Type</th>"
+				+ "<th class=\"IColLabelWide\" scope=\"col\">Description</th>"
+				+ "</tr></thead><tbody><tr><th class=\"IRowLabel\" rowspan=\"")
+			.append(paramCount).append("\">Parameter Types</th></tr>");
+
+		for (final StacksRestrictsTag restrictsTag : restricts)
+		{
+			stringBuilder.append(restrictsTag.toHTML());
+		}
+
+		if (!returnsContent.isEmpty())
+		{
+			stringBuilder.append("<tr><th class=\"IRowLabel\" colspan=\"")
+				.append(colSpan).append("\">Returns</th>")
+				.append(returnsContent.get(0).toHTML());
+		}
+
+		return stringBuilder.toString();
+	}
 }

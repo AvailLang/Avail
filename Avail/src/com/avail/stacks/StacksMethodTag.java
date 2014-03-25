@@ -62,4 +62,10 @@ public class StacksMethodTag extends AbstractStacksTag
 	{
 		return methodName;
 	}
+
+	@Override
+	public String toHTML ()
+	{
+		return methodName.lexeme();
+	}
 }

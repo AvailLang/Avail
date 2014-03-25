@@ -78,7 +78,7 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 		final int commentStartLine,
 		final ArrayList<StacksAuthorTag> author,
 		final ArrayList<StacksSeeTag> sees,
-		final ArrayList<AbstractStacksToken> description,
+		final StacksDescription description,
 		final ArrayList<StacksCategoryTag> categories,
 		final ArrayList<StacksSuperTypeTag> supertypes,
 		final ArrayList<StacksFieldTag> fields)
@@ -89,4 +89,57 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 		this.fields = fields;
 	}
 
+	@Override
+	public void addToImplementationGroup(
+		final ImplementationGroup implementationGroup)
+	{
+		implementationGroup.classImplemenataion(this);
+	}
+
+	@Override
+	public String toHTML ()
+	{
+		final int fieldCount = fields.size();
+		final StringBuilder stringBuilder = new StringBuilder()
+			.append(signature.toHTML());
+
+		if (categories.size() > 0)
+		{
+			stringBuilder.append(categories.get(0).toHTML());
+		}
+
+		final int listSize = supertypes.size();
+		stringBuilder
+			.append("<div class=\"SignatureHeading\">Supertypes: ");
+
+		//Right now there is no link information for supertypes
+		for (int i = 0; i < listSize - 1; i++)
+		{
+			stringBuilder.append(supertypes.get(i)).append(", ");
+		}
+		stringBuilder.append(supertypes.get(listSize - 1)).append("</div>");
+
+		stringBuilder.append("<div class=\"SignatureDescription\">")
+			.append(description.toHTML()).append("</div")
+			.append("<table><thead><tr><th class=\"Transparent\" scope=\"col\">"
+				+ "</th>");
+		if (fieldCount > 0)
+		{
+			stringBuilder.append("<th class=\"IColLabelNarrow\" "
+				+ "scope=\"col\">Name</th>");
+
+			stringBuilder
+				.append("<th class=\"IColLabelNarrow\" scope=\"col\">Type</th>"
+					+ "<th class=\"IColLabelWide\" scope=\"col\">Description</th>"
+					+ "</tr></thead><tbody><tr><th class=\"IRowLabel\" rowspan=\"")
+				.append(fieldCount).append("\">Fields</th></tr>");
+
+			for (final StacksFieldTag fieldTag : fields)
+			{
+				stringBuilder.append(fieldTag.toHTML());
+			}
+		}
+
+		return stringBuilder.toString();
+	}
 }

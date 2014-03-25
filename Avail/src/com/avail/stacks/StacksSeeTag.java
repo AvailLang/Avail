@@ -64,4 +64,11 @@ public class StacksSeeTag extends AbstractStacksTag
 		return thingToSee;
 	}
 
+	@Override
+	public String toHTML ()
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

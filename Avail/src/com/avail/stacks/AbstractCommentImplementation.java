@@ -66,7 +66,7 @@ public abstract class AbstractCommentImplementation
 	/**
 	 * The overall description of the implementation
 	 */
-	final ArrayList<AbstractStacksToken> description;
+	final StacksDescription description;
 
 	/**
 	 * The list of categories the implementation applies to.
@@ -96,7 +96,7 @@ public abstract class AbstractCommentImplementation
 		final int commentStartLine,
 		final ArrayList<StacksAuthorTag> author,
 		final ArrayList<StacksSeeTag> sees,
-		final ArrayList<AbstractStacksToken> description,
+		final StacksDescription description,
 		final ArrayList<StacksCategoryTag> categories)
 	{
 		this.signature = signature;
@@ -107,11 +107,16 @@ public abstract class AbstractCommentImplementation
 		this.categories = categories;
 	}
 
-	@Override
-	public String toString ()
-	{
-		return new StringBuilder().append("<li>")
-			.append(signature.toString())
-			.append("\n</li>").toString();
-	}
+	/**
+	 * Add the implementastion to the provided group.
+	 * @param implementationGroup
+	 */
+	public abstract void addToImplementationGroup(
+		ImplementationGroup implementationGroup);
+
+	/**
+	 * Create HTML content from implementation
+	 * @return the HTML tagged content
+	 */
+	public abstract String toHTML();
 }

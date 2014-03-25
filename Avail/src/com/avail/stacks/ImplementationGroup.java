@@ -1,0 +1,367 @@
+/**
+ * ImplementationGroup.java
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package com.avail.stacks;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import com.avail.descriptor.A_String;
+
+/**
+ * A grouping of {@linkplain AbstractCommentImplementation implementations}
+ * consisting of {@linkplain MethodCommentImplementation methods},
+ * {@linkplain SemanticRestrictionCommentImplementation semantic restrictions},
+ * {@linkplain GrammaticalRestrictionCommentImplementation grammatical
+ * restrictions}, {@linkplain GlobalCommentImplementation globals}, and
+ * {@linkplain ClassCommentImplementation classes}.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ */
+public class ImplementationGroup
+{
+	/**
+	 * The name of the implementation.  It is not final because it can be
+	 * renamed.
+	 */
+	private A_String name;
+	/**
+	 * @return the name
+	 */
+	public A_String name ()
+	{
+		return name;
+	}
+	/**
+	 * @param newName the name to set
+	 */
+	public void rename (final A_String newName)
+	{
+		this.name = newName;
+	}
+	/**
+	 * A list of {@linkplain MethodCommentImplementation methods}
+	 */
+	private ArrayList<MethodCommentImplementation> methods;
+
+	/**
+	 * @return the {@linkplain MethodCommentImplementation methods}
+	 */
+	public ArrayList<MethodCommentImplementation> methods ()
+	{
+		return methods;
+	}
+
+	/**
+	 * @param newMethods the {@linkplain MethodCommentImplementation methods}
+	 * to add
+	 */
+	public void addMethods (
+		final ArrayList<MethodCommentImplementation> newMethods)
+	{
+		methods.addAll(newMethods);
+	}
+
+	/**
+	 * @param newMethod the {@linkplain MethodCommentImplementation method}
+	 * to add
+	 */
+	public void addMethod (final MethodCommentImplementation newMethod)
+	{
+		methods.add(newMethod);
+	}
+
+	/**
+	 * A list of {@linkplain SemanticRestrictionCommentImplementation
+	 * semantic restrictions}
+	 */
+	private ArrayList<SemanticRestrictionCommentImplementation>
+		semanticRestrictions;
+
+	/**
+	 * @return the {@linkplain SemanticRestrictionCommentImplementation
+	 * semantic restrictions}
+	 */
+	public ArrayList<SemanticRestrictionCommentImplementation>
+		semanticRestrictions ()
+	{
+		return semanticRestrictions;
+	}
+
+	/**
+	 * @param newSemanticRestrictions the {@linkplain
+	 * SemanticRestrictionCommentImplementation semantic restrictions} to add
+	 */
+	public void addSemanticRestrictions (
+		final ArrayList<SemanticRestrictionCommentImplementation>
+			newSemanticRestrictions)
+	{
+		semanticRestrictions.addAll(newSemanticRestrictions);
+	}
+
+	/**
+	 * @param newSemanticRestriction the new {@linkplain
+	 * SemanticRestrictionCommentImplementation semantic restriction} to add
+	 */
+	public void addSemanticRestriction (
+		final SemanticRestrictionCommentImplementation newSemanticRestriction)
+	{
+		semanticRestrictions.add(newSemanticRestriction);
+	}
+
+	/**
+	 * A list of {@linkplain GrammaticalRestrictionCommentImplementation
+	 * grammatical restrictions}
+	 */
+	private ArrayList<GrammaticalRestrictionCommentImplementation>
+		grammaticalRestrictions;
+
+	/**
+	 * @return the {@linkplain GrammaticalRestrictionCommentImplementation
+	 * grammatical restrictions}
+	 */
+	public ArrayList<GrammaticalRestrictionCommentImplementation>
+		grammaticalRestrictions ()
+	{
+		return grammaticalRestrictions;
+	}
+
+	/**
+	 * @param newGrammaticalRestrictions the {@linkplain
+	 * GrammaticalRestrictionCommentImplementation grammatical restrictions}
+	 * to add
+	 */
+	public void addGrammaticalRestrictions (
+		final ArrayList<GrammaticalRestrictionCommentImplementation>
+			newGrammaticalRestrictions)
+	{
+		grammaticalRestrictions.addAll(newGrammaticalRestrictions);
+	}
+
+	/**
+	 * @param newGrammaticalRestriction the {@linkplain
+	 * GrammaticalRestrictionCommentImplementation grammatical restrictions}
+	 * to add
+	 */
+	public void addGrammaticalRestriction (
+		final GrammaticalRestrictionCommentImplementation
+			newGrammaticalRestriction)
+	{
+		grammaticalRestrictions.add(newGrammaticalRestriction);
+	}
+
+	/**
+	 * A {@linkplain ClassCommentImplementation class comment}
+	 */
+	private ClassCommentImplementation classImplementation;
+
+	/**
+	 * @return the classImplementation
+	 */
+	public ClassCommentImplementation classImplementation ()
+	{
+		return classImplementation;
+	}
+	/**
+	 * @param aClassImplemenataion the classImplementation to set
+	 */
+	public void classImplemenataion (
+		final ClassCommentImplementation aClassImplemenataion)
+	{
+		this.classImplementation = aClassImplemenataion;
+	}
+
+	/**
+	 * A module {@linkplain GlobalCommentImplementation global}.
+	 */
+	private GlobalCommentImplementation global;
+
+	/**
+	 * @return the global
+	 */
+	public GlobalCommentImplementation global ()
+	{
+		return global;
+	}
+	/**
+	 * @param aGlobal the global to set
+	 */
+	public void global (final GlobalCommentImplementation aGlobal)
+	{
+		this.global = aGlobal;
+	}
+
+	/**
+	 * Construct a new {@link ImplementationGroup}.
+	 *
+	 * @param name The name of the implementation
+	 */
+	public ImplementationGroup (final A_String name)
+	{
+		this.name = name;
+		this.methods = new ArrayList<MethodCommentImplementation>();
+		this.semanticRestrictions =
+			new ArrayList<SemanticRestrictionCommentImplementation>();
+		this.grammaticalRestrictions =
+			new ArrayList<GrammaticalRestrictionCommentImplementation>();
+	}
+
+	/**
+	 * Construct a new {@link ImplementationGroup} holding a {@linkplain
+	 * ClassCommentImplementation class comment}.
+	 *
+	 * @param name The name of the implementation
+	 * @param classImplementation the {@linkplain ClassCommentImplementation
+	 * class comment}
+	 */
+	public ImplementationGroup (final A_String name,
+		final ClassCommentImplementation classImplementation)
+	{
+		this.name = name;
+		this.classImplementation = classImplementation;
+	}
+
+	/**
+	 * Construct a new {@link ImplementationGroup} holding a {@linkplain
+	 * GlobalCommentImplementation global comment}.
+	 *
+	 * @param name The name of the implementation
+	 * @param global the {@linkplain GlobalCommentImplementation global comment}
+	 */
+	public ImplementationGroup (final A_String name,
+		final GlobalCommentImplementation global)
+	{
+		this.name = name;
+		this.global = global;
+	}
+
+	/**
+	 * Create HTML file from implementation
+	 * @param outputPath
+	 *        The {@linkplain Path path} to the output {@linkplain
+	 *        BasicFileAttributes#isDirectory() directory} for documentation and
+	 *        data files.
+	 * @param qualifiedMethodName
+	 * 		The full name of the method, module path and method name
+	 * @param htmlOpenContent
+	 * 		HTML document opening tags (e.g. header etc)
+	 * @param htmlCloseContent
+	 * 		HTML document closing the document tags
+	 *
+	 */
+	public void toHTML(final Path outputPath,
+		final String qualifiedMethodName,
+		final String htmlOpenContent, final String htmlCloseContent)
+	{
+		final StringBuilder stringBuilder = new StringBuilder()
+			.append(htmlOpenContent)
+			.append("<h2 class=\"MethodHeading\">")
+			.append(name.asNativeString())
+			.append("</h2><br>");
+
+		if (!methods.isEmpty())
+		{
+			if (!grammaticalRestrictions.isEmpty())
+			{
+				final int listSize = grammaticalRestrictions.size();
+				if (listSize > 1)
+				{
+					for (int i = 1; i < listSize; i++)
+					{
+						grammaticalRestrictions.get(0)
+							.mergeGrammaticalRestrictionImplementations(
+								grammaticalRestrictions.get(i));
+					}
+
+				}
+				stringBuilder
+					.append(grammaticalRestrictions.get(0).toHTML());
+			}
+
+			stringBuilder.append("<div class=\"MethodSectionHeader\">"
+					+ "Implementations:</div>");
+
+			for (final MethodCommentImplementation implementation : methods)
+			{
+				stringBuilder.append(implementation.toHTML());
+			}
+
+			if (!semanticRestrictions.isEmpty())
+			{
+				stringBuilder.append("<div class=\"MethodSectionHeader\">"
+					+ "Semantic restrictions:</div>");
+
+				for (final SemanticRestrictionCommentImplementation implementation :
+					semanticRestrictions)
+				{
+					stringBuilder.append(implementation.toHTML());
+				}
+			}
+		}
+		else if (!(global == null))
+		{
+			stringBuilder.append(global().toHTML());
+		}
+		else
+		{
+			stringBuilder.append(classImplementation.toHTML());
+		}
+
+		final String hashedFileName = String.valueOf(name.hash()) + ".html";
+		final String localPath = qualifiedMethodName
+			.substring(0, qualifiedMethodName.lastIndexOf('/') + 1);
+
+		final StacksOutputFile htmlFile = new StacksOutputFile(
+			outputPath.resolve(localPath),
+			hashedFileName,
+			stringBuilder.append(htmlCloseContent).toString());
+
+		try
+		{
+			//do nothing
+		}
+		finally
+		{
+			try
+			{
+				htmlFile.file().close();
+			}
+			catch (final IOException e)
+			{
+				// TODO [RAA] Remove in favor of other convention
+				e.printStackTrace();
+			}
+		}
+	}
+
+}

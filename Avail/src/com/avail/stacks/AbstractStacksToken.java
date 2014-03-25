@@ -157,4 +157,12 @@ public abstract class AbstractStacksToken
 		return startOfTokenLinePostion;
 	}
 
+	/**
+	 * Create HTML content of the token
+	 * @return the HTML tagged content
+	 */
+	public String toHTML()
+	{
+		return lexeme();
+	}
 }

@@ -32,10 +32,6 @@
 
 package com.avail.stacks;
 
-import java.util.ArrayList;
-
-
-
 /**
  * The "@restricts" tag in an Avail comment that represents the meta type of an
  * Avail method's paramater's type as used in a semantic restriction.
@@ -52,7 +48,7 @@ public class StacksRestrictsTag extends AbstractStacksTag
 	/**
 	 * Excess tokens of unknown purpose
 	 */
-	final private ArrayList<AbstractStacksToken> description;
+	final private StacksDescription description;
 
 	/**
 	 * Construct a new {@link StacksRestrictsTag}.
@@ -64,7 +60,7 @@ public class StacksRestrictsTag extends AbstractStacksTag
 	 */
 	public StacksRestrictsTag (
 		final QuotedStacksToken paramMetaType,
-		final ArrayList<AbstractStacksToken> description)
+		final StacksDescription description)
 	{
 		this.paramMetaType = paramMetaType;
 		this.description = description;
@@ -81,8 +77,20 @@ public class StacksRestrictsTag extends AbstractStacksTag
 	/**
 	 * @return the extraUnspecifiedTokens
 	 */
-	public ArrayList<AbstractStacksToken> description ()
+	public StacksDescription description ()
 	{
 		return description;
 	}
+
+	@Override
+	public String toHTML ()
+	{
+		final StringBuilder stringBuilder = new StringBuilder()
+		.append("<tr class=\"methodParameters\"><td class=\"ICode\">")
+		.append(paramMetaType.lexeme())
+		.append("</td><td class=\"IDesc\">")
+		.append(description.toHTML())
+		.append("</td></tr>");
+	return stringBuilder.toString();
+}
 }

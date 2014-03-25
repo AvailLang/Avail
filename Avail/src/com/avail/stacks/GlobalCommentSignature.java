@@ -63,4 +63,16 @@ public class GlobalCommentSignature extends CommentSignature
 		return String.format("%s -> %s", name,
 			globalType);
 	}
+
+	@Override
+	public String toHTML ()
+	{
+		final StringBuilder stringBuilder = new StringBuilder()
+			.append("<div class=\"SignatureHeading\">")
+			.append(globalType)
+			.append("</div>")
+			.append("<div class=\"ModuleLocation\">")
+			.append(module).append('.').append(name).append("</div>");
+		return stringBuilder.toString();
+	}
 }

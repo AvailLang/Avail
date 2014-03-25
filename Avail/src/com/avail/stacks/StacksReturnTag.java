@@ -32,8 +32,6 @@
 
 package com.avail.stacks;
 
-import java.util.ArrayList;
-
 /**
  * The "@returns" component of an Avail comment.
  *
@@ -49,7 +47,7 @@ public class StacksReturnTag extends AbstractStacksTag
 	/**
 	 * The description of the return.
 	 */
-	final private ArrayList<AbstractStacksToken> returnDescription;
+	final private StacksDescription returnDescription;
 
 	/**
 	 * Construct a new {@link StacksReturnTag}.
@@ -61,7 +59,7 @@ public class StacksReturnTag extends AbstractStacksTag
 	 */
 	public StacksReturnTag (
 		final QuotedStacksToken returnType,
-		final ArrayList<AbstractStacksToken> returnDescription)
+		final StacksDescription returnDescription)
 	{
 		this.returnType = returnType;
 		this.returnDescription = returnDescription;
@@ -70,7 +68,7 @@ public class StacksReturnTag extends AbstractStacksTag
 	/**
 	 * @return the returnDescription
 	 */
-	public ArrayList<AbstractStacksToken> returnDescription ()
+	public StacksDescription returnDescription ()
 	{
 		return returnDescription;
 	}
@@ -81,5 +79,17 @@ public class StacksReturnTag extends AbstractStacksTag
 	public QuotedStacksToken returnType ()
 	{
 		return returnType;
+	}
+
+	@Override
+	public String toHTML()
+	{
+		final StringBuilder stringBuilder = new StringBuilder()
+			.append("<td class=\"ICode\">")
+			.append(returnType.lexeme())
+			.append("</td><td class=\"IDesc\">")
+			.append(returnDescription.toHTML())
+			.append("</td></tr>");
+		return stringBuilder.toString();
 	}
 }

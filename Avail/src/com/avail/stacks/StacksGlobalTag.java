@@ -81,4 +81,10 @@ public class StacksGlobalTag extends AbstractStacksTag
 		return globalType;
 	}
 
+	@Override
+	public String toHTML ()
+	{
+		return globalName.lexeme();
+	}
+
 }

@@ -33,6 +33,7 @@
 package com.avail.stacks;
 
 import java.util.ArrayList;
+import java.util.TreeMap;
 
 /**
  * A comment implementation of grammatical restrictions
@@ -45,7 +46,7 @@ public class GrammaticalRestrictionCommentImplementation extends
 	/**
 	 * The forbids tag contents
 	 */
-	final StacksForbidsTag forbids;
+	final TreeMap<Integer,StacksForbidsTag> forbids;
 
 	/**
 	 * Construct a new {@link GrammaticalRestrictionCommentImplementation}.
@@ -71,13 +72,64 @@ public class GrammaticalRestrictionCommentImplementation extends
 		final int commentStartLine,
 		final ArrayList<StacksAuthorTag> author,
 		final ArrayList<StacksSeeTag> sees,
-		final ArrayList<AbstractStacksToken> description,
+		final StacksDescription description,
 		final ArrayList<StacksCategoryTag> categories,
-		final StacksForbidsTag forbids)
+		final TreeMap<Integer,StacksForbidsTag> forbids)
 	{
 		super(signature, commentStartLine, author, sees, description,
 			categories);
 		this.forbids = forbids;
 	}
 
+	@Override
+	public void addToImplementationGroup(
+		final ImplementationGroup implementationGroup)
+	{
+		implementationGroup.addGrammaticalRestriction(this);
+	}
+
+	/**
+	 * Merge two {@linkplain GrammaticalRestrictionCommentImplementation}
+	 * @param implementation
+	 * 		The {@linkplain GrammaticalRestrictionCommentImplementation} to
+	 * 		merge with
+	 */
+	public void mergeGrammaticalRestrictionImplementations(
+		final GrammaticalRestrictionCommentImplementation implementation)
+	{
+		for (final Integer arity : implementation.forbids.keySet())
+		{
+			if(forbids.containsKey(arity))
+			{
+				forbids.get(arity).forbidMethods()
+					.addAll(implementation.forbids.get(arity).forbidMethods());
+			}
+			else
+			{
+				forbids.put(arity,
+					implementation.forbids.get(arity));
+			}
+		}
+	}
+
+	@Override
+	public String toHTML ()
+	{
+		final StringBuilder stringBuilder = new StringBuilder();
+
+		stringBuilder.append("<div class=\"MethodSectionHeader\">Grammatical "
+			+ "restrictions:</div><div class=\"MethodSectionContent\">"
+            + "<table><thead><tr><th style=\"white-space:nowrap\" "
+            + "class=\"GColLabelNarrow\" scope=\"col\">Argument Position</th>"
+            + "<th class=\"GColLabelWide\" scope=\"col\">Prohibited "
+            + "Expression</th></tr></thead><tbody><tr>");
+
+		for (final int arity : forbids.navigableKeySet())
+		{
+			stringBuilder.append(forbids.get(arity).toHTML());
+		}
+
+		stringBuilder.append("</tbody></table></div>");
+		return stringBuilder.toString();
+	}
 }

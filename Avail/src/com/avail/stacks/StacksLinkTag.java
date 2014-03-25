@@ -72,4 +72,11 @@ public class StacksLinkTag extends AbstractStacksTag
 		return linkTokens;
 	}
 
+	@Override
+	public String toHTML ()
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

@@ -1,5 +1,5 @@
-/**
- * StacksSuperTypeTag.java
+/*
+ * Dimensional Analysis Calculator.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,45 +30,30 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.stacks;
+Module "Dimensional Analysis Calculator"
+Versions
+	"dev"
+Extends
+	"Dimensional Analysis"
+Uses
+	"Avail"
+Entries
+	"`!_"
+Body
 
 /**
- * The "@supertype" keyword of an Avail class comment.
+ * A simple Dimensional Analysis calculator that lets the Avail
+ * compiler do all of the heavy lifting. Just answer the argument.
  *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ * @method "`!_"
+ * @param "x" "any"
+ *        An arbitrary value.
+ * @returns "any"
+ *          The argument.
  */
-public class StacksSuperTypeTag extends AbstractStacksTag
-{
-	/**
-	 * The supertype keyword indicates the supertype of the class
-	 * implementation
-	 */
-	final private QuotedStacksToken superType;
+Method "`!_" is [x : any | x];
 
-	/**
-	 * Construct a new {@link StacksSuperTypeTag}.
-	 *
-	 * @param superType
-	 * 		The supertype keyword indicates the supertype of the class
-	 * 		implementation
-	 */
-	public StacksSuperTypeTag (
-		final QuotedStacksToken superType)
-	{
-		this.superType = superType;
-	}
-
-	/**
-	 * @return the superType
-	 */
-	public QuotedStacksToken superType ()
-	{
-		return superType;
-	}
-
-	@Override
-	public String toHTML ()
-	{
-		return superType.lexeme();
-	}
-}
+/* Just in case the library ever wants to export its own "`!_", have the
+ * Avail expression evaluator forbid a recursive send of itself.
+ */
+Grammatical restriction "`!_" is <{"`!_"}>;

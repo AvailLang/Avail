@@ -46,7 +46,7 @@ public class StacksForbidsTag extends AbstractStacksTag
 	 */
 	final private AbstractStacksToken arityIndex;
 	/**
-	 * The list of the methods for which the method is "forbbiden" to used in
+	 * The list of the methods for which the method is "forbidden" to used in
 	 * conjunction with.
 	 */
 	final private ArrayList<QuotedStacksToken> forbidMethods;
@@ -56,7 +56,7 @@ public class StacksForbidsTag extends AbstractStacksTag
 	 * @param arityIndex
 	 *		The forbids arity index.
 	 * @param forbidMethods
-	 * 		The list of the methods for which the method is "forbbiden" to used
+	 * 		The list of the methods for which the method is "forbidden" to used
 	 * 		in conjunction with.
 	 */
 	public StacksForbidsTag (final AbstractStacksToken arityIndex,
@@ -80,6 +80,38 @@ public class StacksForbidsTag extends AbstractStacksTag
 	public AbstractStacksToken arityIndex ()
 	{
 		return arityIndex;
+	}
+
+	/**
+	 * Merge two {@linkplain StacksForbidsTag forbids tags} of the same arity
+	 * @param tag
+	 * 		The {@linkplain StacksForbidsTag} to merge with
+	 */
+	public void mergeForbidsTag(final StacksForbidsTag tag)
+	{
+		forbidMethods.addAll(tag.forbidMethods());
+	}
+
+	@Override
+	public String toHTML ()
+	{
+		final int rowSize = forbidMethods.size();
+		final StringBuilder stringBuilder = new StringBuilder()
+			.append("<td class=\"GCode\" rowspan=\"")
+			.append(rowSize).append("\">Argument ").append(arityIndex)
+			.append("</td>").append( "<td class=\"GCode\">")
+			.append(forbidMethods.get(0).lexeme).append("</td></tr>");
+
+		if (rowSize > 1)
+		{
+			for (int i = 1; i < rowSize; i++)
+			{
+				stringBuilder.append("<tr> <td class=\"GCode\">")
+					.append(forbidMethods.get(i).lexeme)
+					.append("</td></tr>");
+			}
+		}
+		return stringBuilder.toString();
 	}
 
 }
