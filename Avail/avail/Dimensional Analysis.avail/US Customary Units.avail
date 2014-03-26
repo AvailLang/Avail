@@ -35,22 +35,41 @@ Versions
 	"dev"
 Uses
 	"Avail",
-	"Core"
+	"Core",
+	"International System of Units" = ("m")
 Names
-	/* Length. */
+	/* International units: length. */
 	"point", "p",
 	"pica", "P",
 	"inch", "in",
 	"foot", "ft",
 	"yard", "yd",
-	"mile", "mi"
+	"mile", "mi",
+
+	/* US survey units: length. */
+	"link", "li",
+	"survey foot", "sft",
+	"rod", "rd",
+	"chain", "ch",
+	"furlong", "fur",
+	"survey mile", "smi",
+	"league", "lea",
+
+	/* International nautical units. */
+	"fathom", "ftm",
+	"cable", "cb",
+	"nautical mile", "nmi"
 Body
+
+/*
+ * International units.
+ *
+ * TODO: [TLS] Pica should use "P̸", but Avail can't call the method yet. Maybe
+ * we need Unicode 6 (i.e., Java 7) to resolve this problem?
+ */
 
 "point" ("p") is a base unit;
 
-/* TODO: [TLS] Pica should use "P̸", but Avail can't call the method yet. Maybe
- * we need Unicode 6 (i.e., Java 7) to resolve this problem?
- */
 "pica" ("P") is a base unit;
 Conversion rule: 1 P ≍ 12 p;
 
@@ -77,22 +96,70 @@ Conversion rule: 1 mi ≍ 380160 P;
 Conversion rule: 1 mi ≍ 4561920 p;
 
 /*
-1 point (p)		352.777778 µm
-1 pica (P̸)	12 p	4.233333 mm
-1 inch (in)	6 P̸	2.54 cm
-1 foot (ft)	12 in	0.3048 m[8]
-1 yard (yd)	3 ft	0.9144 m[8]
-1 mile (mi)	5280 ft or 1760 yd	1.609344 km
-US Survey
-1 link (li)	33⁄50 ft or 7.92 in	0.2012 m
-1 (survey) foot (ft)	1200⁄3937 m	0.30480061 m[8]
-1 rod (rd)	25 li or 16.5 ft	5.02921 m
-1 chain (ch)	4 rd	20.11684 m
-1 furlong (fur)	10 ch	201.1684 m
-1 survey (or statute) mile (mi)	8 fur	1.609347 km[8]
-1 league (lea)	3 mi	4.828042 km
-Nautical
-1 fathom (ftm)	2 yd	1.8288 m
-1 cable (cb)	120 ftm or 1.091 fur	219.456 m
-1 nautical mile (NM or nmi)	8.439 cb or 1.151 mi	1.852 km
-*/
+ * US survey units.
+ */
+
+"link" ("li") is a base unit;
+Conversion rule: 1 li ≍ 0.2012 m;
+Conversion rule: 1 li ≍ 7.92 in;
+Conversion rule: 1 li ≍ 95.04 ft;
+
+"survey foot" ("sft") is a base unit;
+Conversion rule: 1 sft ≍ 0.30480061 m;
+Conversion rule: 1 sft ≍ (50.0 ÷ 33) li;
+
+"rod" ("rd") is a base unit;
+Conversion rule: 1 rd ≍ 5.02921 m;
+Conversion rule: 1 rd ≍ 16.5 sft;
+Conversion rule: 1 rd ≍ 25 li;
+
+"chain" ("ch") is a base unit;
+Conversion rule: 1 ch ≍ 20.11684 m;
+Conversion rule: 1 ch ≍ 4 rd;
+Conversion rule: 1 ch ≍ 60 sft;
+Conversion rule: 1 ch ≍ 100 li;
+
+"furlong" ("fur") is a base unit;
+Conversion rule: 1 fur ≍ 201.1684 m;
+Conversion rule: 1 fur ≍ 10 ch;
+Conversion rule: 1 fur ≍ 40 rd;
+Conversion rule: 1 fur ≍ 600 sft;
+Conversion rule: 1 fur ≍ 1000 li;
+
+"survey mile" ("smi") is a base unit;
+Conversion rule: 1 smi ≍ 1609.347 m;
+Conversion rule: 1 smi ≍ 8 fur;
+Conversion rule: 1 smi ≍ 80 ch;
+Conversion rule: 1 smi ≍ 320 rd;
+Conversion rule: 1 smi ≍ 4800 sft;
+Conversion rule: 1 smi ≍ 8000 li;
+
+"league" ("lea") is a base unit;
+Conversion rule: 1 lea ≍ 4828.042 m;
+Conversion rule: 1 lea ≍ 3 smi;
+Conversion rule: 1 lea ≍ 24 fur;
+Conversion rule: 1 lea ≍ 240 ch;
+Conversion rule: 1 lea ≍ 960 rd;
+Conversion rule: 1 lea ≍ 14400 sft;
+Conversion rule: 1 lea ≍ 24000 li;
+
+/*
+ * International nautical units.
+ */
+
+"fathom" ("ftm") is a base unit;
+Conversion rule: 1 ftm ≍ 1.8288 m;
+Conversion rule: 1 ftm ≍ 72 in;
+Conversion rule: 1 ftm ≍ 6 ft;
+Conversion rule: 1 ftm ≍ 2 yd;
+
+"cable" ("cb") is a base unit;
+Conversion rule: 1 cb ≍ 219.456 m;
+Conversion rule: 1 cb ≍ 1.091 fur;
+Conversion rule: 1 cb ≍ 120 ftm;
+
+"nautical mile" ("nmi") is a base unit;
+Conversion rule: 1 nmi ≍ 1852 m;
+Conversion rule: 1 nmi ≍ 1.151 smi;
+Conversion rule: 1 nmi ≍ 8.439 cb;
+Conversion rule: 1 nmi ≍ 1012.68 ftm;
