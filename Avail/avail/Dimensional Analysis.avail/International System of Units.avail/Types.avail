@@ -84,7 +84,7 @@ Public class "SI dimensioned quantity" extends dimensioned quantity
  * Construct and answer an {@type "SI dimensioned quantity"} type with the
  * specified {@type "number" extent} type.
  *
- * @method "dimensioned_"
+ * @method "SI dimensioned_"
  * @param "magnitudeType" "number's type"
  *        The magnitude type.
  * @returns "dimensioned quantity"
