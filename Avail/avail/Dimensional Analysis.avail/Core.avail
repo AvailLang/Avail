@@ -307,7 +307,13 @@ Semantic restriction "__" is
 	]
 ];
 
-nameLock : non-reentrant mutex := a non-reentrant mutex named "name lock";
+/**
+ * The {@type "non-reentrant mutex" mutex} that guards against concurrent access
+ * to global variables.
+ *
+ * @global "stateLock" "non-reentrant mutex"
+ */
+stateLock : non-reentrant mutex := a non-reentrant mutex named "state lock";
 
 /**
  * A map from {@type "unit"}s to the names that should be used to describe them.
@@ -315,7 +321,8 @@ nameLock : non-reentrant mutex := a non-reentrant mutex named "name lock";
  * @global "namesByUnit" "{unit→string|}"
  */
 namesByUnit : {unit→string|} := {};
-Public read-only variable ↑namesByUnit is "names by unit";
+
+Public method "names by unit" is [Lock stateLock for[namesByUnit]];
 
 /**
  * Prefer {@param "name"} for printing the specified {@type "unit"}.
@@ -331,10 +338,10 @@ Public method "Prefer_for printing_" is
 	symbol : string,
 	aUnit : unit
 |
-	Lock nameLock for [namesByUnit := namesByUnit + aUnit→symbol;];
+	Lock stateLock for [namesByUnit := namesByUnit + aUnit→symbol;];
+	After the current module is unloaded,
+		do [Lock stateLock for [namesByUnit := namesByUnit - aUnit (Avail);];];
 ] : ⊤;
-
-symbolLock : non-reentrant mutex := a non-reentrant mutex named "symbol lock";
 
 /**
  * A map from {@type "unit"}s to the symbols that should be used to describe
@@ -343,7 +350,8 @@ symbolLock : non-reentrant mutex := a non-reentrant mutex named "symbol lock";
  * @global "symbolsByUnit" "{unit→string|}"
  */
 symbolsByUnit : {unit→string|} := {};
-Public read-only variable ↑symbolsByUnit is "symbols by unit";
+
+Public method "symbols by unit" is [Lock stateLock for [symbolsByUnit]];
 
 /**
  * Prefer {@param "symbol"} for printing {@type "dimensioned quantity"
@@ -361,19 +369,64 @@ Public method "Prefer_for printing_in a dimensioned quantity" is
 	symbol : string,
 	aUnit : unit
 |
+	bogus ::= new atom named "bogus";
+	unitAtom : atom;
+	oldSymbol : any;
 	Cast aUnit into
 	[
 		baseUnit : base unit
 	|
-		unitAtom ::= baseUnit's unit map's keys→tuple[1];
-		unitAtom[preferred symbol] := symbol;
+		unitAtom := baseUnit's unit map's keys→tuple[1];
+		oldSymbol := unitAtom[preferred symbol] else [bogus];
+		Lock stateLock for [unitAtom[preferred symbol] := symbol;];
 	]
 	else
 	[
 		/* No implementation required. */
 	];
-	Lock symbolLock for [symbolsByUnit := symbolsByUnit + aUnit→symbol;];
+	Lock stateLock for [symbolsByUnit := symbolsByUnit + aUnit→symbol;];
+	After the current module is unloaded, do
+	[
+		Lock stateLock for
+		[
+			symbolsByUnit := symbolsByUnit - aUnit (Avail);
+			If ↑unitAtom is assigned then
+			[
+				If oldSymbol ≠ bogus then
+				[
+					unitAtom[preferred symbol] := oldSymbol;
+				]
+				else
+				[
+					Remove unitAtom[preferred symbol];
+				];
+			];
+		];
+	];
 ] : ⊤;
+
+/**
+ * Answer a reasonable description of the specified unit atom.
+ *
+ * @method "“_”(unit atom)"
+ * @param "unitAtom" "atom"
+ * @returns "string"
+ *          {@param "unitAtom"}'s preferred symbol, or its name if no preferred
+ *          symbol has been set.
+ */
+Private method "“_”(unit atom)" is
+[
+	unitAtom : atom
+|
+	unitAtom[preferred symbol] else [unitAtom's name]
+];
+
+Semantic restriction "“_”(unit atom)" is
+[
+	unitAtom : atom's type
+|
+	string
+];
 
 /* This table is used by "unit map“_”". The first character can technically be
  * anything, since the algorithm doesn't use it, but it's best to use
@@ -395,27 +448,35 @@ Public method "unit map“_”" is
 [
 	unitMap : {atom→integer|}
 |
-	if unitMap ∈ {atom→1's type|1} then
+	if unitMap = {} then
+	[
+		""
+	]
+	else if [unitMap ∈ {atom→1's type|1}] then
 	[
 		/* This is an unnamed base unit. Answer its atom's preferred symbol. */
 		unitAtom ::= unitMap's keys→tuple[1];
-		desc ::= unitAtom[preferred symbol] else [unitAtom's name];
-		cast desc into [t : string | t]
+		“unitAtom” (unit atom)
 	]
 	else
 	[
 		/* This is an unnamed derived unit. Compose its description from its
 		 * base units.
 		 */
-		expr ::= left fold <""> ++ unitMap's keys→tuple through
+		sortedAtoms ::= merge sort unitMap's keys→tuple with
+			[
+				a : atom,
+				b : atom
+			|
+				“a” (unit atom) ≤ “b” (unit atom)
+			];
+		expr ::= left fold <""> ++ sortedAtoms through
 			[
 				unitAtom : atom,
 				partial : string
 			|
 				pow ::= unitMap[unitAtom];
-				name ::=
-					cast unitAtom[preferred symbol] else [unitAtom's name]
-					into [t : string | t];
+				name ::= “unitAtom” (unit atom);
 				term ::=
 					cast pow into
 					[t : 1's type | name],
@@ -431,7 +492,7 @@ Method "“_”" is
 [
 	arg : unit
 |
-	namesByUnit[arg] else [unit map “arg's unit map”]
+	names by unit[arg] else [unit map “arg's unit map”]
 ];
 
 Method "“_”" is
@@ -506,7 +567,7 @@ Public method "_(_)is a base unit" is
 	aUnit ::= a unitType with unit map ::= def;
 	aUnit has symbol name;
 	Unless name = symbol then [aUnit has symbol symbol;];
-	Unless aUnit ∈ namesByUnit then
+	Unless aUnit ∈ names by unit then
 	[
 		Prefer name for printing aUnit;
 		Prefer symbol for printing aUnit in a dimensioned quantity;
@@ -727,7 +788,7 @@ Public method "_(_)is a derived unit equivalent to_" is
 |
 	aUnit has symbol name;
 	Unless name = symbol then [aUnit has symbol symbol;];
-	Unless aUnit ∈ namesByUnit then
+	Unless aUnit ∈ names by unit then
 	[
 		Prefer name for printing aUnit;
 		Prefer symbol for printing aUnit in a dimensioned quantity;
@@ -1834,15 +1895,16 @@ Public explicit class "no-such-conversion exception" extends exception
 		public source unit : unit,
 		public target unit : unit;
 
-converterLock : non-reentrant mutex :=
-	a non-reentrant mutex named "converter lock";
-
 /**
  * The table of defined conversions.
  *
  * @global "converters" "{<unit, unit…|2> → unit conversion function}"
  */
 converters : {<unit, unit…|2> → unit conversion function|} := {};
+
+Private method "all converters" is [Lock stateLock for [converters]];
+
+conversionAtom ::= $"_converted to_";
 
 /**
  * Convert the specified {@type "dimensioned quantity"} to the specified {@type
@@ -1865,12 +1927,17 @@ Public stable method "_converted to_" is
 	quantity : dimensioned quantity,
 	targetUnit : unit
 |
+	$body : dimensioned quantity;
 	key ::= <quantity's metric, targetUnit>;
-	converter ::= converters[key] else
+	converter ::= all converters[key] else
 		[
-			Raise a no-such-conversion exception with
-				source unit ::= key[1],
-				target unit ::= key[2]
+			If quantity's metric = targetUnit then [Exit body with quantity]
+			else
+			[
+				Raise a no-such-conversion exception with
+					source unit ::= key[1],
+					target unit ::= key[2]
+			]
 		];
 	converter(quantity, targetUnit)
 ] : dimensioned quantity;
@@ -1891,7 +1958,16 @@ Semantic restriction "_converted to_" is
 	If {|quantityType's metric|, |unitType|} = {1} then
 	[
 		key ::= <quantityType's metric's instance, unitType's instance>;
-		Unless key ∈ converters then
+		If key[1] = key[2] then
+		[
+			Reject parse, expected:
+				format
+					"source and target units to be distinct (but both are “①”)"
+				with key[1]
+		];
+		Unless key ∈ all converters ∨
+			[conversionAtom is implemented at <quantityType, unitType>]
+		then
 		[
 			Reject parse, expected:
 				format
@@ -1945,10 +2021,18 @@ Public method "Conversion method is_,⁇inverse is_" is
 		Assert: quantityType's metric = crossUnitType;
 		Assert: unitType = crossQuantityType's metric;
 		key ::= <quantityType's metric's instance, unitType's instance>;
-		Lock converterLock for
+		Lock stateLock for
 		[
-			converters := converters + key→aFunction;
-			converters := converters + <key[2], key[1]>→inverseFunction;
+			converters :=
+				converters + key→aFunction + <key[2], key[1]>→inverseFunction;
+		];
+		After the current module is unloaded, do
+		[
+			Lock stateLock for
+			[
+				converters :=
+					converters - key (Avail) - <key[2], key[1]> (Avail);
+			];
 		];
 	];
 ] : ⊤;
@@ -2079,13 +2163,30 @@ Completely seal method "_≍_";
 /* These methods are needed for scaling function synthesis. */
 extentAtom ::= $"_'s⁇extent";
 juxtapositionAtom ::= $"__";
+timesAtom ::= $"_×_(Avail)";
+divideAtom ::= $"_÷_(Avail)";
 
+/**
+ * Construct and answer a {@type "function"} suitable for converting between
+ * two {@type "unit"}s by merely scaling.
+ *
+ * @method "function for scaling from_to_by_using_"
+ * @param "a" "unit"
+ *        The source unit.
+ * @param "b" "unit"
+ *        The destination unit.
+ * @param "scaleFactor" "number"
+ *        The scale factor.
+ * @param "scaleOperator" "atom"
+ *        The scale operator.
+ * @returns "function" "unit conversion function"
+ */
 Private method "function for scaling from_to_by_using_" is
 [
 	a : unit,
 	b : unit,
 	scaleFactor : number,
-	scaleOperator : atom
+	scaleOperator : {timesAtom, divideAtom}ᵀ
 |
 	/* Construct the argument declarations. The first argument is a dimensioned
 	 * quantity, the second is the target unit.
@@ -2104,10 +2205,6 @@ Private method "function for scaling from_to_by_using_" is
 	newBlock ::= «[ args | <juxtapositionSend> ] : dimensioned quantity»;
 	cast generate newBlock into [t : unit conversion function | t]
 ] : unit conversion function;
-
-/* These methods are needed for conversion rule synthesis. */
-timesAtom ::= $"_×_(Avail)";
-divideAtom ::= $"_÷_(Avail)";
 
 /**
  * Define {@method "_converted to_" methods} for converting {@type
@@ -2130,19 +2227,17 @@ Public method "Conversion rule:_≍_" is
 	metricA ::= a's metric;
 	metricB ::= b's metric;
 	scaleFactor ::= b's extent;
-	op1 ::= if 0 ≤ scaleFactor ≤ 1 then [divideAtom] else [timesAtom];
-	op2 ::= if 0 ≤ scaleFactor ≤ 1 then [timesAtom] else [divideAtom];
 	Conversion method
 		is function for scaling
 			from metricA
 			to metricB
 			by scaleFactor
-			using op1
+			using timesAtom
 		inverse is function for scaling
 			from metricB
 			to metricA
 			by scaleFactor
-			using op2;
+			using divideAtom;
 ] : ⊤;
 
 _testSuite ::= $"dimensional analysis test suite";

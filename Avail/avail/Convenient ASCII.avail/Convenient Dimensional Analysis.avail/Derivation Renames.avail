@@ -1,5 +1,5 @@
 /*
- * Dimensional Analysis Calculator.avail
+ * Derivation Renames.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,30 +30,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Dimensional Analysis Calculator"
+Module "Derivation Renames"
 Versions
 	"dev"
 Extends
-	"Dimensional Analysis"
+	"Dimensional Analysis" =
+	(
+		"_·_" → "_*_",
+		"_/_",
+		"_·_"
+	)
 Uses
 	"Avail"
-Entries
-	"`!_"
 Body
 
-/**
- * A simple Dimensional Analysis calculator that lets the Avail
- * compiler do all of the heavy lifting. Just answer the argument.
- *
- * @method "`!_"
- * @param "x" "any"
- *        An arbitrary value.
- * @returns "any"
- *          The argument.
- */
-Method "`!_" is [x : any | x];
+[
+	prettyPowers ::= "¹²³⁴⁵⁶⁷⁸⁹";
+	asciiProduct ::= {"_*_"};
+	product      ::= {"_·_", "_/_"} ∪ asciiProduct;
+	power        ::= {"_^_"};
+	superscript  ::=
+		(map prettyPowers[2..] through [x : character | "_" ++ <x>])→set;
 
-/* Just in case the library ever wants to export its own "`!_", have the
- * Avail expression evaluator forbid a recursive send of itself.
- */
-Grammatical restriction "`!_" is <{"`!_"}>;
+	Grammatical restriction product is <∅, product>;
+	Grammatical restriction power is <product ∪ power, product>;
+	Grammatical restriction superscript is <product ∪ power ∪ superscript>;
+]();
