@@ -33,11 +33,10 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
+import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.*;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.*;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import java.util.*;
-import java.util.logging.Level;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
@@ -80,11 +79,14 @@ extends Primitive
 					PERMIT_UNAVAILABLE, false);
 				if (FiberDescriptor.debugFibers)
 				{
-					FiberDescriptor.log(
-						fiber,
-						Level.FINE,
-						"Prim 608 executionState was {0}",
-						oldState);
+					final StringBuilder builder =
+						FiberDescriptor.getLog((AvailObject)fiber);
+					synchronized (builder)
+					{
+						builder.append("PRIM 608 execution state was ");
+						builder.append(oldState);
+						builder.append("\n");
+					}
 				}
 				switch (oldState)
 				{

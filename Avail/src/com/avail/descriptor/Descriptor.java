@@ -134,7 +134,11 @@ extends AbstractDescriptor
 			final AvailObject child = object.slot(
 				FakeObjectSlotsForScanning.ALL_OBJECT_SLOTS_,
 				i);
-			visitor.invoke(object, child);
+			final AvailObject replacementChild = visitor.invoke(child);
+			object.writeBackSlot(
+				FakeObjectSlotsForScanning.ALL_OBJECT_SLOTS_,
+				i,
+				replacementChild);
 		}
 	}
 

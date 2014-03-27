@@ -135,8 +135,18 @@ extends AtomDescriptor
 		// The layout of the destination descriptor is the same, so nothing
 		// special needs to happen, i.e., object doesn't need to become an
 		// indirection.
+		final AvailObject propertyMapPojo = object.slot(PROPERTY_MAP_POJO);
+		propertyMapPojo.makeShared();
+		@SuppressWarnings("unchecked")
+		final Map<A_Atom, AvailObject> propertyMap =
+			(Map<A_Atom, AvailObject>) propertyMapPojo.javaObject();
+		for (final Map.Entry<A_Atom, AvailObject> entry :
+			propertyMap.entrySet())
+		{
+			entry.getKey().makeShared();
+			entry.setValue(entry.getValue().makeShared());
+		}
 		object.descriptor = AtomWithPropertiesSharedDescriptor.shared;
-		object.slot(PROPERTY_MAP_POJO).makeShared();
 		return object;
 	}
 
@@ -165,7 +175,7 @@ extends AtomDescriptor
 		}
 		else
 		{
-			propertyMap.put(key, value);
+			propertyMap.put(key.makeImmutable(), value.makeImmutable());
 		}
 	}
 
@@ -207,7 +217,7 @@ extends AtomDescriptor
 	 */
 	public static AvailObject create (
 		final A_String name,
-		final A_BasicObject issuingModule)
+		final A_Module issuingModule)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(NAME, name);
@@ -243,7 +253,7 @@ extends AtomDescriptor
 	 */
 	public static AvailObject createWithNameAndModuleAndHash (
 		final A_String name,
-		final A_BasicObject issuingModule,
+		final A_Module issuingModule,
 		final int originalHash)
 	{
 		final AvailObject instance = mutable.create();

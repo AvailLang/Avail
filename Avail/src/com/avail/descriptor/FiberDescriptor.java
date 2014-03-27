@@ -77,7 +77,7 @@ extends Descriptor
 	/**
 	 * Debug flag for tracing some mysterious fiber problems (MvG 2013.06.30).
 	 * */
-	public static boolean debugFibers = false;
+	public static boolean debugFibers = true;
 
 	/** A simple counter for identifying fibers by creation order. */
 	public static AtomicInteger uniqueDebugCounter = new AtomicInteger(0);
@@ -258,22 +258,6 @@ extends Descriptor
 		DEBUG_UNIQUE_ID,
 
 		/**
-		 * The most recently executed primitive.
-		 */
-		@EnumField(
-			describedBy=Primitive.class,
-			lookupMethodName="byPrimitiveNumberOrNull")
-		DEBUG_LAST_PRIMITIVE,
-
-		/**
-		 * The second-most recently executed primitive.
-		 */
-		@EnumField(
-			describedBy=Primitive.class,
-			lookupMethodName="byPrimitiveNumberOrNull")
-		DEBUG_SECOND_LAST_PRIMITIVE,
-
-		/**
 		 * Flags for use by Avail code. Includes the advisory termination
 		 * requested interrupt flag and the parking permit.
 		 */
@@ -442,7 +426,16 @@ extends Descriptor
 		 * <p>The non-emptiness of this set must agree with the value of the
 		 * {@link InterruptRequestFlag#REIFICATION_REQUESTED} flag.
 		 */
-		REIFICATION_WAITERS;
+		REIFICATION_WAITERS,
+
+		/**
+		 * The in-memory debug log for this fiber.  This reduces contention
+		 * between fibers versus a global log.  The log is merely a {@link
+		 * RawPojoDescriptor raw pojo} holding a StringBuilder.  We don't even
+		 * bother making it circular, since fiber generally don't usually run
+		 * for very long in Avail.
+		 */
+		DEBUG_LOG;
 	}
 
 	/**
@@ -720,12 +713,16 @@ extends Descriptor
 				object.setSlot(EXECUTION_STATE, value.ordinal());
 				if (debugFibers)
 				{
-					log(
-						object,
-						Level.FINE,
-						"ExecutionState {0} -> {1} (protected/shared)",
-						current,
-						value);
+					final StringBuilder builder = getLog(object);
+					synchronized (builder)
+					{
+						builder.append("ExecState: ");
+						builder.append(current);
+						builder.append(" -> ");
+						builder.append(value);
+						builder.append(" (protected/shared)");
+						builder.append("\n");
+					}
 				}
 			}
 		}
@@ -737,14 +734,29 @@ extends Descriptor
 			object.setSlot(EXECUTION_STATE, value.ordinal());
 			if (debugFibers)
 			{
-				log(
-					object,
-					Level.FINE,
-					"ExecutionState {0} -> {1} (unprotected/unshared)",
-					current,
-					value);
+				final StringBuilder builder = getLog(object);
+				synchronized (builder)
+				{
+					builder.append("ExecState: ");
+					builder.append(current);
+					builder.append(" -> ");
+					builder.append(value);
+					builder.append(" (UNprotected/UNshared)");
+					builder.append("\n");
+				}
 			}
 		}
+	}
+
+	/**
+	 * Extract the in-memory log for this fiber.
+	 *
+	 * @param fiber The fiber.
+	 * @return A {@link StringBuilder} on which to log this fiber's transitions.
+	 */
+	public static StringBuilder getLog (final AvailObject fiber)
+	{
+		return (StringBuilder)fiber.slot(DEBUG_LOG).javaObject();
 	}
 
 	@Override @AvailMethod
@@ -778,12 +790,15 @@ extends Descriptor
 		}
 		if (debugFibers)
 		{
-			log(
-				object,
-				Level.FINE,
-				"Get interrupt flag {0} ({1})",
-				flag,
-				value);
+			final StringBuilder builder = getLog(object);
+			synchronized (builder)
+			{
+				builder.append("Get interrupt flag: ");
+				builder.append(flag);
+				builder.append(" (");
+				builder.append(value);
+				builder.append(")\n");
+			}
 		}
 		return value == 1;
 	}
@@ -806,11 +821,13 @@ extends Descriptor
 		}
 		if (debugFibers)
 		{
-			log(
-				object,
-				Level.FINE,
-				"Set interrupt flag {0}",
-				flag);
+			final StringBuilder builder = getLog(object);
+			synchronized (builder)
+			{
+				builder.append("Set interrupt flag: ");
+				builder.append(flag);
+				builder.append("\n");
+			}
 		}
 	}
 
@@ -835,12 +852,15 @@ extends Descriptor
 		}
 		if (debugFibers)
 		{
-			log(
-				object,
-				Level.FINE,
-				"Get & clear interrupt flag {0} (was {1})",
-				flag,
-				value);
+			final StringBuilder builder = getLog(object);
+			synchronized (builder)
+			{
+				builder.append("Get & clear interrupt flag ");
+				builder.append(flag);
+				builder.append("(was ");
+				builder.append(value);
+				builder.append(")\n");
+			}
 		}
 		return value == 1;
 	}
@@ -868,13 +888,17 @@ extends Descriptor
 		}
 		if (debugFibers)
 		{
-			log(
-				object,
-				Level.FINE,
-				"Get & set synch flag {0} ({1} -> {2})",
-				flag,
-				value,
-				newBit);
+			final StringBuilder builder = getLog(object);
+			synchronized (builder)
+			{
+				builder.append("Get & set synch flag: ");
+				builder.append(flag);
+				builder.append(" (");
+				builder.append(value);
+				builder.append(" -> ");
+				builder.append(newBit);
+				builder.append(")\n");
+			}
 		}
 		return value == 1;
 	}
@@ -915,11 +939,13 @@ extends Descriptor
 		}
 		if (debugFibers)
 		{
-			log(
-				object,
-				Level.FINE,
-				"Set general flag {0}",
-				flag);
+			final StringBuilder builder = getLog(object);
+			synchronized (builder)
+			{
+				builder.append("Set general flag: ");
+				builder.append(flag);
+				builder.append("\n");
+			}
 		}
 	}
 
@@ -941,11 +967,13 @@ extends Descriptor
 		}
 		if (debugFibers)
 		{
-			log(
-				object,
-				Level.FINE,
-				"Clear general flag {0}",
-				flag);
+			final StringBuilder builder = getLog(object);
+			synchronized (builder)
+			{
+				builder.append("Clear general flag: ");
+				builder.append(flag);
+				builder.append("\n");
+			}
 		}
 	}
 
@@ -985,11 +1013,13 @@ extends Descriptor
 		}
 		if (debugFibers)
 		{
-			log(
-				object,
-				Level.FINE,
-				"Set trace flag {0}",
-				flag);
+			final StringBuilder builder = getLog(object);
+			synchronized (builder)
+			{
+				builder.append("Set trace flag: ");
+				builder.append(flag);
+				builder.append("\n");
+			}
 		}
 	}
 
@@ -1011,11 +1041,13 @@ extends Descriptor
 		}
 		if (debugFibers)
 		{
-			log(
-				object,
-				Level.FINE,
-				"Clear trace flag {0}",
-				flag);
+			final StringBuilder builder = getLog(object);
+			synchronized (builder)
+			{
+				builder.append("Clear trace flag: ");
+				builder.append(flag);
+				builder.append("\n");
+			}
 		}
 	}
 
@@ -1148,11 +1180,18 @@ extends Descriptor
 		}
 		if (debugFibers)
 		{
-			log(
-				object,
-				Level.FINE,
-				"Succeed {0}",
-				object.slot(DEBUG_UNIQUE_ID));
+			final StringBuilder builder = getLog(object);
+			synchronized (builder)
+			{
+				builder.append("Succeeded:");
+				for (final StackTraceElement frame :
+					Thread.currentThread().getStackTrace())
+				{
+					builder.append("\t");
+					builder.append(frame);
+					builder.append("\n");
+				}
+			}
 		}
 		return (Continuation1<AvailObject>) pojo.javaObject();
 	}
@@ -1203,11 +1242,18 @@ extends Descriptor
 		}
 		if (debugFibers)
 		{
-			log(
-				object,
-				Level.FINE,
-				"Failed {0}",
-				object.slot(DEBUG_UNIQUE_ID));
+			final StringBuilder builder = getLog(object);
+			synchronized (builder)
+			{
+				builder.append("Failed:");
+				for (final StackTraceElement frame :
+					Thread.currentThread().getStackTrace())
+				{
+					builder.append("\t");
+					builder.append(frame);
+					builder.append("\n");
+				}
+			}
 		}
 		return (Continuation1<Throwable>) pojo.javaObject();
 	}
@@ -1426,10 +1472,13 @@ extends Descriptor
 		final AvailObject object,
 		final short primitiveNumber)
 	{
-		object.setSlot(
-			DEBUG_SECOND_LAST_PRIMITIVE,
-			object.slot(DEBUG_LAST_PRIMITIVE));
-		object.setSlot(DEBUG_LAST_PRIMITIVE, primitiveNumber);
+		final StringBuilder builder = getLog(object);
+		synchronized (builder)
+		{
+			builder.append("Prim: ");
+			builder.append(primitiveNumber);
+			builder.append("\n");
+		}
 	}
 
 	/**
@@ -1567,11 +1616,12 @@ extends Descriptor
 		fiber.setSlot(DEBUG_FIBER_PURPOSE, purpose);
 		if (debugFibers)
 		{
-			log(
-				fiber,
-				Level.FINE,
-				"newFiber: {0}",
-				purpose);
+			final StringBuilder builder = new StringBuilder(200);
+			builder.append("new: ");
+			builder.append(purpose);
+			builder.append("\n");
+			final AvailObject pojo = RawPojoDescriptor.identityWrap(builder);
+			fiber.setSlot(DEBUG_LOG, pojo);
 		}
 		return fiber;
 	}
@@ -1628,11 +1678,12 @@ extends Descriptor
 		fiber.setSlot(DEBUG_FIBER_PURPOSE, purpose);
 		if (debugFibers)
 		{
-			log(
-				fiber,
-				Level.FINE,
-				"newLoaderFiber: {0}",
-				purpose);
+			final StringBuilder builder = new StringBuilder(200);
+			builder.append("newLoader: ");
+			builder.append(purpose);
+			builder.append("\n");
+			final AvailObject pojo = RawPojoDescriptor.identityWrap(builder);
+			fiber.setSlot(DEBUG_LOG, pojo);
 		}
 		return fiber;
 	}

@@ -605,7 +605,8 @@ public abstract class AbstractAvailCompiler
 			for (final A_String name : exportedNames)
 			{
 				assert name.isString();
-				final A_Atom trueName = AtomDescriptor.create(name, module);
+				final A_Atom trueName =
+					AtomWithPropertiesDescriptor.create(name, module);
 				module.introduceNewName(trueName);
 				module.addImportedName(trueName);
 			}
@@ -713,7 +714,8 @@ public abstract class AbstractAvailCompiler
 					final A_Atom oldAtom = oldCandidates.iterator().next();
 					// Find or create the new atom.
 					A_Atom newAtom;
-					if (module.newNames().hasKey(newString))
+					final A_Map newNames = module.newNames();
+					if (newNames.hasKey(newString))
 					{
 						// Use it.  It must have been declared in the
 						// "Names" clause.
@@ -722,7 +724,9 @@ public abstract class AbstractAvailCompiler
 					else
 					{
 						// Create it.
-						newAtom = AtomDescriptor.create(newString, module);
+						newAtom = AtomWithPropertiesDescriptor.create(
+							newString, module);
+						module.introduceNewName(newAtom);
 					}
 					// Now tie the bundles together.
 					assert newAtom.bundleOrNil().equalsNil();
@@ -773,7 +777,8 @@ public abstract class AbstractAvailCompiler
 					final AvailObject trueName;
 					if (size == 0)
 					{
-						trueName = AtomDescriptor.create(name, module);
+						trueName = AtomWithPropertiesDescriptor.create(
+							name, module);
 						module.addPrivateName(trueName);
 					}
 					else if (size == 1)
