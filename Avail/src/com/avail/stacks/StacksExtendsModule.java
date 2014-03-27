@@ -46,20 +46,48 @@ public class StacksExtendsModule
 	/**
 	 * The name of this module.
 	 */
-	public final A_String moduleName;
+	public final String moduleName;
 
 	/**
-	 * The a map of {@linkplain ImplementationGroup implementationGroups} keyed
-	 * by the implementation name.
+	 * The map of {@linkplain ImplementationGroup ImplementationGroups} keyed
+	 * by the implementation name as exported by this module.
 	 */
-	private HashMap<String,ImplementationGroup> implementationGroups;
+	private final HashMap<A_String,ImplementationGroup> implementationGroups;
 
 	/**
 	 * @return the implementationGroups
 	 */
-	public HashMap<String,ImplementationGroup> implementations ()
+	public HashMap<A_String,ImplementationGroup> implementations ()
 	{
 		return implementationGroups;
+	}
+
+	/**
+	 * A map keyed by a method name with no path to the qualified module
+	 * path it is originally named from.
+	 */
+	private final HashMap<A_String,String> methodLeafNameToModuleName;
+
+	/**
+	 * @return the methodLeafNameToModuleName
+	 */
+	public HashMap<A_String,String> methodLeafNameToModuleName ()
+	{
+		return methodLeafNameToModuleName;
+	}
+
+	/**
+	 * A map of module names to other {@linkplain StacksExtendsModule modules}
+	 * extended by this module.
+	 */
+	private final HashMap<String,StacksExtendsModule> moduleNameToExtendsList;
+
+	/**
+	 * @return the moduleNameToExtendsList
+	 */
+	public HashMap<String,StacksExtendsModule> moduleNameToExtendsList ()
+	{
+		return moduleNameToExtendsList;
 	}
 
 	/**
@@ -70,7 +98,15 @@ public class StacksExtendsModule
 	public void addMethodImplementation (final A_String key,
 		final MethodCommentImplementation implementation)
 	{
-		implementationGroups.get(key).addMethod(implementation);
+		if (implementationGroups.containsKey(key))
+		{
+			implementationGroups.get(key).addMethod(implementation);
+		}
+		else
+		{
+			getExtendsModuleForImplementationName(key)
+				.addMethodImplementation(key, implementation);
+		}
 	}
 
 	/**
@@ -82,7 +118,16 @@ public class StacksExtendsModule
 	public void addSemanticImplementation (final A_String key,
 		final SemanticRestrictionCommentImplementation implementation)
 	{
-		implementationGroups.get(key).addSemanticRestriction(implementation);
+		if (implementationGroups.containsKey(key))
+		{
+			implementationGroups.get(key)
+				.addSemanticRestriction(implementation);
+		}
+		else
+		{
+			getExtendsModuleForImplementationName(key)
+				.addSemanticImplementation(key, implementation);
+		}
 	}
 
 	/**
@@ -90,10 +135,19 @@ public class StacksExtendsModule
 	 * ImplementationGroup in the map.
 	 * @param implementation the grammatical restriction implementation to add.
 	 */
-	public void addGrammaticalImplementation (final String key,
+	public void addGrammaticalImplementation (final A_String key,
 		final GrammaticalRestrictionCommentImplementation implementation)
 	{
-		implementationGroups.get(key).addGrammaticalRestriction(implementation);
+		if (implementationGroups.containsKey(key))
+		{
+			implementationGroups.get(key)
+				.addGrammaticalRestriction(implementation);
+		}
+		else
+		{
+			getExtendsModuleForImplementationName(key)
+				.addGrammaticalImplementation(key,implementation);
+		}
 	}
 
 	/**
@@ -101,10 +155,18 @@ public class StacksExtendsModule
 	 * @param classImplementationGroup The {@linkPlain ImplementationGroup}
 	 * 		holding a class that is added to implementationGroups.
 	 */
-	public void addClassImplementationGroup (final String key,
+	public void addClassImplementationGroup (final A_String key,
 		final ImplementationGroup classImplementationGroup)
 	{
-		implementationGroups.put(key, classImplementationGroup);
+		if (implementationGroups.containsKey(key))
+		{
+			implementationGroups.put(key, classImplementationGroup);
+		}
+		else
+		{
+			getExtendsModuleForImplementationName(key)
+				.addClassImplementationGroup(key, classImplementationGroup);
+		}
 	}
 
 	/**
@@ -113,10 +175,18 @@ public class StacksExtendsModule
 	 * 		holding a module global variable that is added to
 	 * 		implementationGroups.
 	 */
-	public void addGlobalImplementationGroup (final String key,
+	public void addGlobalImplementationGroup (final A_String key,
 		final ImplementationGroup globalImplementationGroup)
 	{
-		implementationGroups.put(key, globalImplementationGroup);
+		if (implementationGroups.containsKey(key))
+		{
+			implementationGroups.put(key, globalImplementationGroup);
+		}
+		else
+		{
+			getExtendsModuleForImplementationName(key)
+				.addGlobalImplementationGroup(key, globalImplementationGroup);
+		}
 	}
 
 	/**
@@ -124,34 +194,184 @@ public class StacksExtendsModule
 	 * @param key the key and original name of the implementation
 	 * @param newName the new name to rename the implementation to
 	 */
-	public void renameImplementation (final String key,
-		final String newName)
+	public void renameImplementation (final A_String key,
+		final A_String newName)
 	{
-		implementationGroups.put(newName, implementationGroups.get(key));
-		implementationGroups.remove(key);
+		if (implementationGroups.containsKey(key))
+		{
+			implementationGroups.put(newName, implementationGroups.get(key));
+			methodLeafNameToModuleName
+				.put(newName, methodLeafNameToModuleName.get(key));
+		}
+		else
+		{
+			final StacksExtendsModule extendsModule =
+				getExtendsModuleForImplementationName(key);
+
+			if (extendsModule != null)
+			{
+				extendsModule.renameImplementation(key, newName);
+			}
+		}
 	}
 
 	/**
-	 * Construct a new {@link StacksExtendsModule}.
-	 * @param moduleName The name of the module
-	 *
+	 * @param key
+	 * 		The implementation to remove
 	 */
-	public StacksExtendsModule (final A_String moduleName)
+	public void removeImplementation (final A_String key)
 	{
-		this.moduleName = moduleName;
+		if (implementationGroups.containsKey(key))
+		{
+			implementationGroups.remove(key);
+			methodLeafNameToModuleName.remove(key);
+		}
+		else
+		{
+			final StacksExtendsModule extendsModule =
+				getExtendsModuleForImplementationName(key);
+
+			if (extendsModule != null)
+			{
+				extendsModule.removeImplementation(key);
+			}
+		}
 	}
 
 	/**
 	 * Construct a new {@link StacksExtendsModule}.
-	 * @param moduleName The name of the module
+	 * @param moduleImportName The name of the module
 	 * @param implementationGroups
-	 * 		The a map of {@linkplain ImplementationGroup implementationGroups} keyed
-	 * 		by the implementation name.
+	 * 		The a map of {@linkplain ImplementationGroup implementationGroups}
+	 * 		keyed by the implementation name.
+	 * @param moduleNameToExtendsList
+	 * 		A map of module names to other {@linkplain StacksExtendsModule
+	 * 		modules} extended by this module.
+	 * @param methodLeafNameToModuleName
+	 * 		A map keyed by a method name with no path to the qualified module
+	 * 		path it is originally named from.
 	 */
-	public StacksExtendsModule (final A_String moduleName,
-		final HashMap<String,ImplementationGroup> implementationGroups)
+	public StacksExtendsModule (final String moduleImportName,
+		final HashMap<A_String,ImplementationGroup> implementationGroups,
+		final HashMap<String,StacksExtendsModule> moduleNameToExtendsList,
+		final HashMap<A_String,String> methodLeafNameToModuleName)
 	{
-		this.moduleName = moduleName;
+		this.moduleName = moduleImportName;
 		this.implementationGroups = implementationGroups;
+		this.moduleNameToExtendsList = moduleNameToExtendsList;
+		this.methodLeafNameToModuleName = methodLeafNameToModuleName;
+	}
+
+
+
+	/**
+	 * @param name
+	 * 		The implementation to search for
+	 * @return
+	 * 		The {@linkplain StacksExtendsModule} the implementation belongs to.
+	 */
+	public StacksExtendsModule getExtendsModuleForImplementationName(
+		final A_String name)
+	{
+		if (implementationGroups.containsKey(name))
+		{
+			return this;
+		}
+		else if (hasImplementationInBranch(name))
+		{
+			final String owningModule = methodLeafNameToModuleName.get(name);
+			if (moduleNameToExtendsList.containsKey(owningModule))
+			{
+				return moduleNameToExtendsList.get(owningModule);
+			}
+
+			for (final StacksExtendsModule extendsModule :
+				moduleNameToExtendsList.values())
+			{
+				if (extendsModule.methodLeafNameToModuleName.containsKey(name))
+				{
+					return extendsModule
+						.getExtendsModuleForImplementationName(name);
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * @param name
+	 * 		The implementation to search for
+	 * @return
+	 * 		The boolean indicating whether or not the implementation is present
+	 * 		in this branch.
+	 */
+	public boolean hasImplementationInBranch (final A_String name)
+	{
+		return methodLeafNameToModuleName.containsKey(name);
+	}
+
+	/**
+	 * Create a new map from implementationGroups with new keys using the
+	 * method qualified name
+	 * @return
+	 * 		A map with keyed by the method qualified name to the implementation.
+	 */
+	public HashMap<String,ImplementationGroup>
+		qualifiedImplementationNameToImplementation()
+	{
+			final HashMap<String,ImplementationGroup> newMap =
+				new HashMap<String,ImplementationGroup>();
+
+			for (final A_String name : implementationGroups.keySet())
+			{
+				final String qualifiedName = moduleName + "/" + name.asNativeString();
+				newMap.put(qualifiedName, implementationGroups.get(name));
+			}
+			return newMap;
+	}
+
+	/**
+	 * Flatten out moduleNameToExtendsList map so that all modules in tree
+	 * are in one flat map keyed by the qualified method name to the
+	 * implementation.
+	 * @return
+	 * 		A map keyed by the qualified method name to the implementation.
+	 */
+	public HashMap<String,ImplementationGroup> flattenImplementationGroups()
+	{
+		final HashMap<String,ImplementationGroup> newMap =
+			new HashMap<String,ImplementationGroup>();
+
+		for (final StacksExtendsModule extendsModule :
+			moduleNameToExtendsList.values())
+		{
+			newMap.putAll(extendsModule.flattenImplementationGroups());
+		}
+
+		newMap.putAll(qualifiedImplementationNameToImplementation());
+		return newMap;
+	}
+
+	@Override
+	public String toString()
+	{
+		final StringBuilder stringBuilder = new StringBuilder().append("<h4>")
+			.append(moduleName).append("</h4>")
+			.append("<ol>");
+		for (final A_String key : implementationGroups.keySet())
+		{
+			stringBuilder.append("<li>").append(key.asNativeString())
+				.append("</li>");
+		}
+		stringBuilder.append("</ol>");
+
+		for (final StacksExtendsModule extendsModule :
+			moduleNameToExtendsList.values())
+		{
+			stringBuilder.append(extendsModule.toString());
+		}
+
+		return stringBuilder.toString();
 	}
 }

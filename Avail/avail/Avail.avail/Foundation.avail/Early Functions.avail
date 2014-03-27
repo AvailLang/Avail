@@ -48,6 +48,38 @@ Names
 Body
 
 /**
+ * @method "_'s⁇parameters'type"
+ * @restricts "function meta's type"
+ */
+Semantic restriction "_'s⁇parameters'type" is
+[
+	functionMeta : function meta's type
+|
+	paramsType ::= functionMeta's instance's parameters' type;
+	if paramsType = ⊥ then [⊤]
+	else
+	[
+		if ⎣paramsType⎦ = 0 then [<>'s type's type]
+		else
+		[
+			params : tuple := <>;
+			size ::= 1 max ⎣paramsType⎦;
+			From 1 to size do
+			[
+				index : natural number
+			|
+				param ::= paramsType[index];
+				params := eject ↑params
+					++ <if param = ⊥ then [any] else [param]>;
+				true
+			];
+			leading ::= cast params into [t : tuple of any meta | t];
+			<leading, leading[size]… | [size..size]>'s type
+		]
+	]
+];
+
+/**
  * @method "_'s⁇return type"
  * @restricts "function meta's type"
  */

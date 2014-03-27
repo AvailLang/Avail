@@ -34,6 +34,7 @@ package com.avail.stacks;
 
 import java.util.ArrayList;
 import java.util.TreeMap;
+import com.avail.descriptor.A_String;
 
 /**
  * A comment implementation of grammatical restrictions
@@ -131,5 +132,13 @@ public class GrammaticalRestrictionCommentImplementation extends
 
 		stringBuilder.append("</tbody></table></div>");
 		return stringBuilder.toString();
+	}
+
+	@Override
+	public void addImplementationToExtendsModule (
+		final A_String name,
+		final StacksExtendsModule extendsModule)
+	{
+		extendsModule.addGrammaticalImplementation(name, this);
 	}
 }

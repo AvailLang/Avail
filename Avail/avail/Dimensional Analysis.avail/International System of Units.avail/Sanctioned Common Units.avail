@@ -66,9 +66,6 @@ Conversion rule: 1 h ≍ 3600 s;
 Conversion rule: 1 h ≍ 60 min;
 
 "day" ("d") is a base unit;
-/* Note that the space is required between "1" and "d" to prevent the lexer from
- * interpreting the expression as a double.
- */
 Conversion rule: 1 d ≍ 86400 s;
 Conversion rule: 1 d ≍ 1440 min;
 Conversion rule: 1 d ≍ 24 h;
@@ -85,7 +82,8 @@ Conversion rule: 1″ ≍ (π ÷ 648000) rad;
 Conversion rule: 1′ ≍ 60″;
 Conversion rule: 1° ≍ 3600″;
 
-"liter" ("L") is an SI derived unit equivalent to dm³;
+"liter" ("L") is a base unit;
+Conversion rule: 1 L ≍ 1 dm³;
 
 "tonne" ("t") is a base unit;
-Conversion rule: 1t ≍ 1Mg;
+Conversion rule: 1 t ≍ 1 Mg;

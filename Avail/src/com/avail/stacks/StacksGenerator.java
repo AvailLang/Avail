@@ -40,16 +40,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
-import java.util.Map.Entry;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleNameResolver;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
 import com.avail.compiler.AbstractAvailCompiler.ModuleImport;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
+import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 
 /**
@@ -91,13 +89,7 @@ public class StacksGenerator
 	 * A map of {@linkplain ModuleName module names} to a list of all the method
 	 * names exported from said module
 	 */
-	HashMap<A_String,A_Set> moduleToExportedMethodsMap;
-
-	/**
-	 * A map of {@linkplain ModuleName module names} to a list of all the method
-	 * names exported from said module
-	 */
-	HashMap<A_String,StacksCommentsModule> moduleToComments;
+	HashMap<String,StacksCommentsModule> moduleToComments;
 
 	/**
 	 * Construct a new {@link StacksGenerator}.
@@ -130,10 +122,7 @@ public class StacksGenerator
 
 
 		this.moduleToComments =
-			new HashMap<A_String,StacksCommentsModule>();
-
-		this.moduleToExportedMethodsMap =
-			new HashMap<A_String,A_Set>();
+			new HashMap<String,StacksCommentsModule>(50);
 	}
 
 	/**
@@ -157,7 +146,7 @@ public class StacksGenerator
 		StacksCommentsModule commentsModule = null;
 
 		commentsModule = new StacksCommentsModule(
-			header,commentTokens,moduleToExportedMethodsMap,errorLog, resolver,
+			header,commentTokens,errorLog, resolver,
 			moduleToComments);
 		updateModuleToComments(commentsModule);
 	}
@@ -195,7 +184,7 @@ public class StacksGenerator
 
 		errorLog.addLogEntry(closeHTML,0);
 
-		final StringBuilder stringBuilder = new StringBuilder();
+/*		final StringBuilder stringBuilder = new StringBuilder();
 		for (final Entry<A_String, A_Set> entry :
 			moduleToExportedMethodsMap.entrySet())
 		{
@@ -228,25 +217,27 @@ public class StacksGenerator
 				.append(entry.getKey().toString())
 				.append("</h3>\n")
 				.append(entry.getValue().toString());
-		}
+		}*/
 
 		final StacksOutputFile myMapFile = new StacksOutputFile(
 			logPath,
-			"Header Map.html",
-			("<!DOCTYPE html>\n<head><style>h3 "
+			"Source Path Extends List.html",
+			("<!DOCTYPE html>\n<head><meta charset=\"UTF-8\"><style>h3 "
 				+ "{text-decoration:underline;}\n "
 				+ "strong, em {color:blue;}</style>\n"
-				+ "</head>\n<body>\n" + stringBuilder.toString()
+				+ "</head>\n<body>\n"
+				+ moduleToComments
+					.get(outermostModule.qualifiedName()).toString()
 				+ "</body>\n</html>"));
 
-		final StacksOutputFile myMethodsFile = new StacksOutputFile(
+/*		final StacksOutputFile myMethodsFile = new StacksOutputFile(
 			logPath,
 			"Methods Map.html",
 			("<!DOCTYPE html>\n<head><style>h3 "
 				+ "{text-decoration:underline;}\n "
 				+ "strong, em {color:blue;}</style>\n"
 				+ "</head>\n<body>\n" + stringBuilderImplementations.toString()
-				+ "</body>\n</html>"));
+				+ "</body>\n</html>"));*/
 		try
 		{
 			//do nothing
@@ -257,7 +248,7 @@ public class StacksGenerator
 			{
 				errorLog.file().close();
 				myMapFile.file().close();
-				myMethodsFile.file().close();
+				/*myMethodsFile.file().close();*/
 			}
 			catch (final IOException e)
 			{
@@ -276,6 +267,5 @@ public class StacksGenerator
 	public synchronized void clear ()
 	{
 		moduleToComments.clear();
-		moduleToExportedMethodsMap.clear();
 	}
 }

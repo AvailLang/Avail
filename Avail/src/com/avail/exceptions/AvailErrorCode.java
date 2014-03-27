@@ -41,6 +41,7 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
+import com.avail.interpreter.primitive.P_352_RejectParsing;
 
 /**
  * {@code AvailErrorCode} is an enumeration of all possible failures of
@@ -474,7 +475,12 @@ public enum AvailErrorCode
 	 */
 	E_LOADING_IS_OVER (70),
 
-//	E_??? (71),
+	/**
+	 * The {@linkplain FiberDescriptor#current() current fiber} attempted to
+	 * {@linkplain P_352_RejectParsing reject the current parse}, but it isn't
+	 * actually running a semantic restriction.
+	 */
+	E_UNTIMELY_PARSE_REJECTION (71),
 
 	/**
 	 * The method is sealed at the specified {@linkplain TupleTypeDescriptor

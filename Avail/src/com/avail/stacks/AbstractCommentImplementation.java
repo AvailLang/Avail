@@ -34,6 +34,7 @@ package com.avail.stacks;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.avail.descriptor.A_String;
 
 /**
  * An Avail comment implementation
@@ -108,11 +109,22 @@ public abstract class AbstractCommentImplementation
 	}
 
 	/**
-	 * Add the implementastion to the provided group.
+	 * Add the implementation to the provided group.
 	 * @param implementationGroup
 	 */
 	public abstract void addToImplementationGroup(
 		ImplementationGroup implementationGroup);
+
+	/**
+	 * Add the implementation to the provided {@linkplain
+	 * StacksExtendsModule}.
+	 * @param name
+	 * 		Name of the implementation to add to the module.
+	 * @param extendsModule
+	 * 		The module to add the implementation to
+	 */
+	public abstract void addImplementationToExtendsModule(
+		A_String name, StacksExtendsModule extendsModule);
 
 	/**
 	 * Create HTML content from implementation

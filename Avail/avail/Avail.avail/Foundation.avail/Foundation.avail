@@ -405,6 +405,7 @@ Extends
 		"future",
 		"future of_",
 		"injector from_to_by_doing_in parallel_-way",
+		"map and filter_in parallel«_-way»by_",
 		"map_in parallel«_-way»through_",
 		"the future of_",
 		"worker exception"
@@ -566,6 +567,7 @@ Extends
 		"too-large-to-represent code",
 		"type-restriction-must-accept-only-types code",
 		"unbalanced-guillemets code",
+		"untimely-parse-rejection code",
 		"unwind-sentinel code",
 		"vertical-bar-must-follow-a-simple-or-simple-group code",
 		"wrong-outers code"
@@ -705,6 +707,7 @@ Extends
 		"type-restriction-must-accept-only-types exception",
 		"unbalanced-guillemets exception",
 		"unsupported-operation exception",
+		"untimely-parse-rejection exception",
 		"unwind-sentinel exception",
 		"variable-use exception",
 		"vertical-bar-must-follow-a-simple-or-simple-group exception",
@@ -904,6 +907,7 @@ Extends
 	),
 	"Tuples" =
 	(
+		"Require:_accepts_«(check indices)»?",
 		"all indices of_in_",
 		"all indices of_where_",
 		"distinct_",

@@ -422,11 +422,8 @@ Semantic restriction "map and filter_by_" is
 		Reject parse, expected:
 			"repeatedly applied function to have return type ⊤"
 	];
-	valueType ::= cast accumulator[3] into [ t : function meta | t[1] ];
-	{
-		mapType's key type → valueType
-		| [0..⎡mapType⎤ + 1)
-	}
+	valueType ::= cast accumulator[3] into [t : function meta | t[1]];
+	{mapType's key type → valueType | [0..⎡mapType⎤ + 1)}
 ];
 
 /**
@@ -782,60 +779,44 @@ Semantic restriction "integrate_and_with_" is
 	baseMapType : map's type,
 	supplementMapType : map's type,
 	actionType : [⊥,⊥,⊥]→map's type
- |
- 	if ⎣actionType's parameters' type⎦ < 3 then
+|
+	if actionType[1] ≠ ⊥ ∧ [¬baseMapType ⊆ actionType[1]] then
 	[
 		Reject parse, expected:
-			"\nFunction to accept three arguments. Only received"
-			++ “⎣actionType's parameters' type⎦”
-			++ " arguments.\n\n"
-	]
- 	/*else if [¬supplementMapType ⊆ baseMapType] then
- 	[
-		Reject parse, expected:
-			"\nIncompatible map types.  Supplemental map type is not a"
-			++ " subtype of the base map type"
-			++ “supplementMapType” ++ "⊈" ++ “baseMapType” ++ ".\n\n"
-
- 	]*/
- 	else if [actionType[1] ≠ ⊥ ∧ [ ¬baseMapType ⊆ actionType[1] ]] then
-	[
-		Reject parse, expected:
-			"\nFunction to accept for input 1, "
+			"function's parameter to accept "
 			++ “baseMapType”
 			++ " (but it only accepts "
 			++ “actionType[1]”
-			++ ")\n\n"
+			++ ")"
 	]
 	else if [actionType[2] ≠ ⊥ ∧ 
-		[ ¬supplementMapType's key type ⊆ actionType[2]]] 
+		[¬supplementMapType's key type ⊆ actionType[2]]] 
 	then
 	[
 		Reject parse, expected:
-			"\nRepeatedly applied function to accept all key ∈ "
+			"repeatedly applied function to accept all key ∈ "
 			++ “supplementMapType's key type”
 			++ " (but it only accepts "
 			++ “actionType[2]”
-			++ ")\n\n"
+			++ ")"
 	]
 	else if [actionType[3] ≠ ⊥ ∧ 
-		[ ¬supplementMapType's value type ⊆ actionType[3]]] 
+		[¬supplementMapType's value type ⊆ actionType[3]]] 
 	then
 	[
 		Reject parse, expected:
-			"\nRepeatedly applied function to accept all values ∈ "
+			"repeatedly applied function to accept all values ∈ "
 			++ “supplementMapType's value type”
 			++ " (but it only accepts "
 			++ “actionType[3]”
-			++ ")\n\n"
+			++ ")"
 	]
 	else if [⎣baseMapType⎦ > 0 ∨ [⎣supplementMapType⎦ > 0]] then
 	[
 		If actionType's return type = ⊥ then
 		[
 			Reject parse, expected:
-				"Repeatedly applied function to have a return type other than"
-				++ "⊥\n\n"
+				"repeatedly applied function to have a return type other than ⊥"
 		];
 	];
 	newKeyType ::= supplementMapType's key type ∪ baseMapType's key type;
