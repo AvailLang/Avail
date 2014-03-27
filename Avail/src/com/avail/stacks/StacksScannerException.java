@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.CommentTokenDescriptor;
 
@@ -58,7 +57,7 @@ public class StacksScannerException extends Exception
 	 *
 	 * @return A {@link String} describing which module failed lexical scanning.
 	 */
-	public A_String moduleName ()
+	public String moduleName ()
 	{
 		return failedScanner.moduleName();
 	}

@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.List;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.CommentTokenDescriptor;
-import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.TokenDescriptor;
 
 
@@ -59,18 +58,9 @@ public class StacksBracketScanner extends AbstractStacksScanner
 	 */
 	private StacksBracketScanner (final BracketedStacksToken bracketToken)
 	{
-		this.moduleName = StringDescriptor.from(bracketToken.moduleName);
-
-		final String modName = moduleName.asNativeString();
-		final int modNameLength = modName.length();
-		int i = modName.length() - 1;
-		while (modName.charAt(i) != '\\' && modName.charAt(i) != '/' &&
-			i > -1)
-		{
-			i--;
-		}
-
-		this.moduleLeafName = modName.substring(i+1, modNameLength);
+		this.moduleName = bracketToken.moduleName;
+		this.moduleLeafName =
+			moduleName.substring(moduleName.lastIndexOf(" ") + 1);
 
 		final String bracketString =
 			bracketToken.lexeme();

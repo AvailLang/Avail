@@ -95,18 +95,10 @@ public class StacksScanner extends AbstractStacksScanner
 	 *		The name of the module the comment is in.
 	 */
 	private StacksScanner (final A_Token commentToken,
-		final A_String moduleName)
+		final String moduleName)
 	{
-		final String modName = moduleName.asNativeString();
-		final int modNameLength = modName.length();
-		int i = modName.length() - 1;
-		while (modName.charAt(i) != '\\' && modName.charAt(i) != '/' &&
-			i > -1)
-		{
-			i--;
-		}
-
-		this.moduleLeafName = modName.substring(i+1, modNameLength);
+		this.moduleLeafName =
+			moduleName.substring(moduleName.lastIndexOf(" ") + 1);
 
 		final String commentString =
 			commentToken.string().asNativeString();
@@ -790,7 +782,7 @@ public class StacksScanner extends AbstractStacksScanner
 	 * @throws StacksCommentBuilderException
 	 */
 	public static AbstractCommentImplementation processCommentString (
-		final A_Token commentToken, final A_String moduleName)
+		final A_Token commentToken, final String moduleName)
 		throws StacksScannerException, StacksCommentBuilderException
 	{
 		final StacksScanner scanner =

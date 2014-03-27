@@ -96,7 +96,7 @@ public class StacksErrorLog extends AbstractStacksOutputFile
 				StandardOpenOption.TRUNCATE_EXISTING);
 
 			final ByteBuffer openHTML = ByteBuffer.wrap(
-				("<!DOCTYPE html>\n<head><style>h3 "
+				("<!DOCTYPE html>\n<head><meta charset=\"UTF-8\"><style>h3 "
 				+ "{text-decoration:underline;}\n "
 				+ "strong, em {color:blue;}</style>\n"
 				+ "</head>\n<body>\n")

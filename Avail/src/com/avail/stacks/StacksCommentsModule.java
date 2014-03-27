@@ -34,7 +34,6 @@ package com.avail.stacks;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.HashMap;
 import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.UnresolvedDependencyException;
@@ -45,7 +44,6 @@ import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.A_String;
-import com.avail.descriptor.MapDescriptor;
 import com.avail.descriptor.SetDescriptor;
 import com.avail.descriptor.StringDescriptor;
 
@@ -63,28 +61,16 @@ public class StacksCommentsModule
 	String erroLog;
 
 	/**
-	 * all the named methods exported from the file
+	 * A map of the modules extended by this module to the {@linkplain
+	 * StacksExtendsModule module} content.
 	 */
-	private final HashMap <String, A_String> exportedNamesToExtendsModule;
-
-	/**
-	 * @return the exportedNames
-	 */
-	public HashMap <String, A_String> exportedNamesToExtendsModule ()
-	{
-		return exportedNamesToExtendsModule;
-	}
-
-	/**
-	 * all the named methods extended from the file
-	 */
-	private final HashMap<A_String, StacksExtendsModule>
+	private final HashMap<String, StacksExtendsModule>
 		extendedNamesImplementations;
 
 	/**
 	 * @return the exportedNames
 	 */
-	public HashMap<A_String, StacksExtendsModule>
+	public HashMap<String, StacksExtendsModule>
 		extendedNamesImplementations ()
 	{
 		return extendedNamesImplementations;
@@ -93,13 +79,13 @@ public class StacksCommentsModule
 	/**
 	 *	The name of the module that contains these Stacks Comments.
 	 */
-	private final A_String moduleName;
+	private final String moduleName;
 
 	/**
 	 * The get method for moduleName
 	 * @return
 	 */
-	public A_String moduleName()
+	public String moduleName()
 	{
 		return moduleName;
 	}
@@ -107,17 +93,33 @@ public class StacksCommentsModule
 	/**
 	 * All public methods/classes from this module.
 	 */
-	private final HashMap<String,ImplementationGroup>
+	private final HashMap<A_String,ImplementationGroup>
 		namedPublicCommentImplementations;
 
 	/**
 	 * Get namedPublicCommentImplementations
 	 * @return
 	 */
-	public HashMap<String,ImplementationGroup>
+	public HashMap<A_String,ImplementationGroup>
 		namedPublicCommentImplementations()
 	{
 		return namedPublicCommentImplementations;
+	}
+
+	/**
+	 * A map keyed by a method name with no path to the qualified module
+	 * path it is originally named from.  This list includes all the methods
+	 * from the {@linkplain StacksExtendsModule modules} extended by this
+	 * module as well as its own names.
+	 */
+	private final HashMap<A_String,String> methodLeafNameToModuleName;
+
+	/**
+	 * @return the methodLeafNameToModuleName
+	 */
+	public HashMap<A_String,String> methodLeafNameToModuleName ()
+	{
+		return methodLeafNameToModuleName;
 	}
 
 	/**
@@ -135,17 +137,30 @@ public class StacksCommentsModule
 	{
 		final A_String nameToCheck =
 			StringDescriptor.from(name);
-		if (namedPublicCommentImplementations.containsKey(nameToCheck))
+
+		if (methodLeafNameToModuleName.containsKey(nameToCheck))
 		{
-			comment.addToImplementationGroup(
-				namedPublicCommentImplementations.get(nameToCheck));
-		}
-		else if (exportedNamesToExtendsModule.containsKey(nameToCheck))
-		{
-			comment.addToImplementationGroup(
-				extendedNamesImplementations
-					.get(exportedNamesToExtendsModule
-						.get(nameToCheck)).implementations().get(nameToCheck));
+
+			if (namedPublicCommentImplementations.containsKey(nameToCheck))
+			{
+				comment.addToImplementationGroup(
+					namedPublicCommentImplementations.get(nameToCheck));
+			}
+			else
+			{
+				for (final StacksExtendsModule extendsModule :
+					extendedNamesImplementations.values())
+				{
+					final StacksExtendsModule owningModule = extendsModule
+						.getExtendsModuleForImplementationName(nameToCheck);
+
+					if (! (owningModule == null))
+					{
+						comment.addImplementationToExtendsModule(
+							nameToCheck,owningModule);
+					}
+				}
+			}
 		}
 		else
 		{
@@ -179,51 +194,39 @@ public class StacksCommentsModule
 	 *
 	 * @param header
 	 * @param commentTokens
-	 * @param moduleToMethodMap
 	 * @param errorLog
 	 * @param resolver
-	 * @param publicComments
+	 * @param moduleToComments
 	 */
 	public StacksCommentsModule(
 		final ModuleHeader header,
 		final A_Tuple commentTokens,
-		final HashMap<A_String,A_Set> moduleToMethodMap,
 		final StacksErrorLog errorLog,
 		final ModuleNameResolver resolver,
-		final HashMap<A_String,StacksCommentsModule> publicComments)
+		final HashMap<String, StacksCommentsModule> moduleToComments)
 	{
-		this.moduleName = StringDescriptor
-			.from(header.moduleName.qualifiedName());
+		this.moduleName = header.moduleName.qualifiedName();
 
 		this.privateCommentImplementations =
 			new HashMap<A_String,ImplementationGroup>();
 
 		this.namedPublicCommentImplementations =
-			new HashMap<String,ImplementationGroup>();
+			new HashMap<A_String,ImplementationGroup>();
+
+		this.methodLeafNameToModuleName =
+			new HashMap<A_String,String>();
 
 		for (final A_String implementationName : header.exportedNames)
 		{
-			this.namedPublicCommentImplementations.put(
-				(moduleName.asNativeString() + "/"
-					+ implementationName.asNativeString()),
+			this.namedPublicCommentImplementations.put(implementationName,
 				new ImplementationGroup(implementationName));
+
+			this.methodLeafNameToModuleName
+				.put(implementationName, this.moduleName);
 		}
 
-		this.exportedNamesToExtendsModule =
-			new HashMap<String,A_String>();
-
-		this.extendedNamesImplementations = allExportedNames(
-			header,moduleToMethodMap,resolver, publicComments);
-
-		final ArrayList<A_String> exportedNames = new ArrayList<A_String>();
-
-		for (final String exportedName : this.exportedNamesToExtendsModule.keySet())
-		{
-			exportedNames.add(StringDescriptor.from(exportedName));
-		}
-
-		moduleToMethodMap.put(
-			this.moduleName, SetDescriptor.fromCollection(exportedNames));
+		this.extendedNamesImplementations = allExtendsModules(
+			header,resolver, moduleToComments);
 
 		final StringBuilder errorMessages = new StringBuilder().append("");
 		int errorCount = 0;
@@ -265,39 +268,30 @@ public class StacksCommentsModule
 
 	/**
 	 * @param header
-	 * @param moduleToMethodMap
 	 * @param resolver
-	 * @param publicComments
+	 * @param moduleToComments
 	 * @return
 	 */
-	private HashMap<A_String,StacksExtendsModule> allExportedNames (
+	private HashMap<String,StacksExtendsModule> allExtendsModules (
 		final ModuleHeader header,
-		final HashMap<A_String,A_Set> moduleToMethodMap,
 		final ModuleNameResolver resolver,
-		final HashMap<A_String,StacksCommentsModule> publicComments)
+		final HashMap<String,StacksCommentsModule> moduleToComments)
 	{
 		A_Set collectedExtendedNames =
 			SetDescriptor.empty();
 
-		final HashMap<A_String,StacksExtendsModule> extendsMap =
-			new HashMap<A_String,StacksExtendsModule>();
+		final HashMap<String,StacksExtendsModule> extendsMap =
+			new HashMap<String,StacksExtendsModule>();
 
 		for (final ModuleImport moduleImport : header.importedModules)
 		{
-			final A_String moduleImportName;
+			final String moduleImportName;
 			try
 			{
-				moduleImportName = StringDescriptor.from(resolver.resolve(
+				moduleImportName = resolver.resolve(
 					header.moduleName
 						.asSibling(moduleImport.moduleName.asNativeString()),
-					header.moduleName).qualifiedName());
-
-				if (moduleToMethodMap.get(moduleImportName) == null)
-				{
-
-					moduleToMethodMap
-						.put(moduleImportName,SetDescriptor.empty());
-				}
+					header.moduleName).qualifiedName();
 
 				if (moduleImport.isExtension)
 				{
@@ -305,14 +299,11 @@ public class StacksCommentsModule
 					{
 						collectedExtendedNames =
 							collectedExtendedNames.setUnionCanDestroy(
-								moduleToMethodMap
-								.get(moduleImportName),
+								SetDescriptor.fromCollection(
+									moduleToComments.get(moduleImportName)
+										.namedPublicCommentImplementations
+											.keySet()),
 							true);
-					}
-					if (!moduleImport.names.equals(SetDescriptor.empty()))
-					{
-						collectedExtendedNames = collectedExtendedNames
-							.setUnionCanDestroy(moduleImport.names,true);
 					}
 					if (!moduleImport.excludes.equals(SetDescriptor.empty()))
 					{
@@ -320,46 +311,40 @@ public class StacksCommentsModule
 							.setMinusCanDestroy(moduleImport.excludes, true);
 					}
 
-					final HashMap<String,ImplementationGroup> extendsGroup =
-						new HashMap<String,ImplementationGroup>();
+					//Determine what keys need to be explicitly removed
+					//due to the rename.
+					final A_Set removeRenamesKeys =
+						moduleImport.renames.keysAsSet()
+							.setMinusCanDestroy(moduleImport.names, true);
 
-					for (final A_String implementation : collectedExtendedNames)
-					{
-						final String key = moduleImportName.asNativeString()
-							+ "/" + implementation.asNativeString();
-						extendsGroup.put((key),
-							publicComments.get(moduleImportName)
-								.namedPublicCommentImplementations()
-									.get(implementation));
-					}
-					if (!moduleImport.renames.equals(MapDescriptor.empty()))
-					{
-						for (final A_String implementation :
-							moduleImport.renames.keysAsSet())
-						{
-							final String oldKey =
-								moduleImportName.asNativeString() + "/"
-								+ implementation.asNativeString();
-							final A_String rename =
-								moduleImport.renames.mapAt(implementation);
-							final String newKey =
-								moduleImportName.asNativeString()
-								+ "/" + rename.asNativeString();
-							extendsGroup.put(
-								newKey, extendsGroup.get(implementation));
-							extendsGroup.remove(oldKey);
-							extendsGroup.get(newKey).rename(rename);
-						}
+					collectedExtendedNames =
+						collectedExtendedNames.setUnionCanDestroy(
+							moduleImport.names, true);
 
-						for (final String implementation :
-							extendsGroup.keySet())
-						{
-							exportedNamesToExtendsModule
-								.put(implementation, moduleImportName);
-						}
+					final StacksExtendsModule stacksExtends =
+						moduleToComments.get(moduleImportName)
+							.convertToStacksExtendsModule();
+
+					final A_Set methodsToDelete = (SetDescriptor.fromCollection(
+						stacksExtends.implementations().keySet())
+							.setMinusCanDestroy(collectedExtendedNames,true))
+						.setUnionCanDestroy(removeRenamesKeys, true);
+
+					for (final A_String rename :
+						moduleImport.renames.keysAsSet())
+					{
+						stacksExtends.renameImplementation(rename,
+							moduleImport.renames.mapAt(rename));
 					}
-					extendsMap.put(moduleImportName,
-						new StacksExtendsModule(moduleImportName,extendsGroup));
+
+					for (final A_String key : methodsToDelete)
+					{
+						stacksExtends.removeImplementation(key);
+					}
+
+					extendsMap.put(moduleImportName,stacksExtends);
+					methodLeafNameToModuleName
+						.putAll(stacksExtends.methodLeafNameToModuleName());
 				}
 			}
 			catch (final UnresolvedDependencyException e)
@@ -369,5 +354,43 @@ public class StacksCommentsModule
 			}
 		}
 		return extendsMap;
+	}
+
+	/**
+	 * Convert a {@linkplain StacksCommentsModule} to a {@linkplain
+	 * StacksExtendsModule}
+	 * @return
+	 * 		the newly created StacksExtendsModule
+	 */
+	public StacksExtendsModule convertToStacksExtendsModule()
+	{
+		return new StacksExtendsModule(moduleName,
+			new HashMap<A_String,ImplementationGroup>(
+				namedPublicCommentImplementations),
+			new HashMap<String,StacksExtendsModule>(
+				extendedNamesImplementations),
+			new HashMap<A_String,String>(methodLeafNameToModuleName));
+	}
+
+	@Override
+	public String toString()
+	{
+		final StringBuilder stringBuilder = new StringBuilder().append("<h2>")
+			.append(moduleName).append("</h2>")
+			.append("<h3>Names</h3><ol>");
+
+		for (final A_String key : namedPublicCommentImplementations.keySet())
+		{
+			stringBuilder.append("<li>").append(key.asNativeString())
+				.append("</li>");
+		}
+		stringBuilder.append("</ol><h3>Extends</h3><ol>");
+
+		for (final StacksExtendsModule value :
+			extendedNamesImplementations.values())
+		{
+			stringBuilder.append(value.toString());
+		}
+		return stringBuilder.toString();
 	}
 }

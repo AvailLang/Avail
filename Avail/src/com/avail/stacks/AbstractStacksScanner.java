@@ -52,7 +52,7 @@ public abstract class AbstractStacksScanner
 	/**
 	 * The name of the module being lexically scanned.
 	 */
-	A_String moduleName;
+	String moduleName;
 
 	/**
 	 * The tokens that have been parsed so far.
@@ -238,7 +238,7 @@ public abstract class AbstractStacksScanner
 	 *
 	 * @return The resolved module name.
 	 */
-	A_String moduleName ()
+	String moduleName ()
 	{
 		return moduleName;
 	}
@@ -273,7 +273,7 @@ public abstract class AbstractStacksScanner
 	 */
 	public String obtainModuleSimpleName ()
 	{
-		final String modName = moduleName.asNativeString();
+		final String modName = moduleName;
 		final int modNameLength = modName.length();
 		int i = modName.length() - 1;
 		while (modName.charAt(i) != '\\' && modName.charAt(i) != '/' &&

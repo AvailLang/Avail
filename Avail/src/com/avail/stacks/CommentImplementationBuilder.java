@@ -34,7 +34,6 @@ package com.avail.stacks;
 
 import java.util.ArrayList;
 import java.util.TreeMap;
-import com.avail.descriptor.A_String;
 
 /**
  * A builder class for an {@link AbstractCommentImplementation}.
@@ -99,8 +98,7 @@ public class CommentImplementationBuilder
 		if (tempTokens.isEmpty())
 		{
 			//There are no categories so give it one.
-			QuotedStacksToken.create("Unclassified", 0, 0, 0,
-				moduleName.asNativeString());
+			QuotedStacksToken.create("Unclassified", 0, 0, 0, moduleName);
 		}
 		categories.add(new StacksCategoryTag (tempTokens));
 	}
@@ -737,7 +735,7 @@ public class CommentImplementationBuilder
 	/**
 	 * The name of the module the comment originates from.
 	 */
-	private final A_String moduleName;
+	private final String moduleName;
 
 	/**
 	 * The start line in the module the comment being parsed appears.
@@ -757,19 +755,11 @@ public class CommentImplementationBuilder
 	 * 		The start line in the module of the comment being built
 	 *
 	 */
-	private CommentImplementationBuilder (final A_String moduleName,
+	private CommentImplementationBuilder (final String moduleName,
 		final int commentStartLine)
 	{
-		final String modName = moduleName.asNativeString();
-		final int modNameLength = modName.length();
-		int i = modName.length() - 1;
-		while (modName.charAt(i) != '\\' && modName.charAt(i) != '/' &&
-			i > -1)
-		{
-			i--;
-		}
-
-		this.moduleLeafName = modName.substring(i+1, modNameLength);
+		this.moduleLeafName = moduleName
+			.substring( moduleName.lastIndexOf("/") + 1);
 		this.moduleName = moduleName;
 		this.commentStartLine = commentStartLine;
 		this.authors = new ArrayList<StacksAuthorTag>(0);
@@ -798,7 +788,7 @@ public class CommentImplementationBuilder
 	 * @throws StacksCommentBuilderException
 	 */
 	public static CommentImplementationBuilder createBuilder (
-		final A_String moduleName,
+		final String moduleName,
 		final int commentStartLine)
 			throws StacksCommentBuilderException
 	{
@@ -816,7 +806,7 @@ public class CommentImplementationBuilder
 	/**
 	 * @return the moduleName
 	 */
-	public A_String moduleName ()
+	public String moduleName ()
 	{
 		return moduleName;
 	}
@@ -837,8 +827,7 @@ public class CommentImplementationBuilder
 			{
 				final CommentSignature signature =
 					new CommentSignature(
-							types.get(0).typeName().lexeme(),
-						moduleName().asNativeString());
+							types.get(0).typeName().lexeme,moduleName());
 				return new ClassCommentImplementation (
 					signature,
 					commentStartLine (),
@@ -880,8 +869,7 @@ public class CommentImplementationBuilder
 
 				final SemanticRestrictionCommentSignature signature =
 					new SemanticRestrictionCommentSignature(
-						methods.get(0).methodName().lexeme(),
-						moduleName().asNativeString(),
+						methods.get(0).methodName().lexeme(),moduleName,
 						orderedInputTypes);
 
 				return new SemanticRestrictionCommentImplementation(signature,
@@ -911,8 +899,7 @@ public class CommentImplementationBuilder
 				final MethodCommentSignature signature =
 					new MethodCommentSignature(
 						methods.get(0).methodName().lexeme(),
-						moduleName().asNativeString(),
-						orderedInputTypes,
+						moduleName(), orderedInputTypes,
 						returns.get(0).returnType().lexeme());
 
 				return new MethodCommentImplementation(signature,
@@ -927,8 +914,7 @@ public class CommentImplementationBuilder
 				{
 					final CommentSignature signature =
 						new CommentSignature(
-							methods.get(0).methodName().lexeme(),
-							moduleName().asNativeString());
+							methods.get(0).methodName().lexeme(), moduleName());
 
 					return new GrammaticalRestrictionCommentImplementation(
 						signature, commentStartLine (), authors, sees,
@@ -950,8 +936,7 @@ public class CommentImplementationBuilder
 
 				final MethodCommentSignature signature =
 					new MethodCommentSignature(
-						methods.get(0).methodName().lexeme(),
-						moduleName().asNativeString(),
+						methods.get(0).methodName().lexeme(), moduleName(),
 						orderedInputTypes,
 						returns.get(0).returnType().lexeme());
 
@@ -968,7 +953,7 @@ public class CommentImplementationBuilder
 				final GlobalCommentSignature signature =
 					new GlobalCommentSignature(
 						globalVariables.get(0).globalName().lexeme(),
-						moduleName().asNativeString(),
+						moduleName(),
 						globalVariables.get(0).globalType().lexeme());
 
 				return new GlobalCommentImplementation(signature,

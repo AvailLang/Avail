@@ -33,6 +33,7 @@
 package com.avail.stacks;
 
 import java.util.ArrayList;
+import com.avail.descriptor.A_String;
 
 /**
  * A comment implementation of grammatical restrictions
@@ -128,5 +129,13 @@ public class SemanticRestrictionCommentImplementation extends
 		}
 
 		return stringBuilder.toString();
+	}
+
+	@Override
+	public void addImplementationToExtendsModule (
+		final A_String name,
+		final StacksExtendsModule extendsModule)
+	{
+		extendsModule.addSemanticImplementation(name, this);
 	}
 }

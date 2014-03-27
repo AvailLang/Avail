@@ -33,6 +33,7 @@
 package com.avail.stacks;
 
 import java.util.ArrayList;
+import com.avail.descriptor.A_String;
 
 /**
  * A module global variable comment
@@ -101,5 +102,13 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 			.append(description.toHTML()).append("</div");
 
 		return stringBuilder.toString();
+	}
+
+	@Override
+	public void addImplementationToExtendsModule (
+		final A_String name,
+		final StacksExtendsModule extendsModule)
+	{
+		//Do nothing as globals will never be defined outside of its module.
 	}
 }

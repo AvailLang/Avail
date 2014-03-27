@@ -32,8 +32,6 @@
 
 package com.avail.stacks;
 
-import com.avail.descriptor.A_String;
-
 /**
  * An exception that occurs in a {@link CommentImplementationBuilder}
  *
@@ -58,7 +56,7 @@ public class StacksCommentBuilderException extends Exception
 	 */
 	public String moduleName ()
 	{
-		return failedBuilder.moduleName().asNativeString();
+		return failedBuilder.moduleName();
 	}
 
 	/**
@@ -87,7 +85,7 @@ public class StacksCommentBuilderException extends Exception
 	 * 		The line number of the comment
 	 */
 	public StacksCommentBuilderException (final Throwable cause,
-		final A_String moduleName, final int lineNumber
+		final String moduleName, final int lineNumber
 		)
 	{
 		super(cause);

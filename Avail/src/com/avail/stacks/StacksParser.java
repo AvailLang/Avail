@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.avail.descriptor.A_String;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.TokenDescriptor;
 
@@ -322,7 +321,7 @@ public class StacksParser
 	/**
 	 * The name of the module the comment originates from.
 	 */
-	private final A_String moduleName;
+	private final String moduleName;
 
 	/**
 	 * The start line in the module the comment being parsed appears.
@@ -345,7 +344,7 @@ public class StacksParser
 	private StacksParser (
 		final ArrayList<AbstractStacksToken> tokens,
 		final ArrayList<Integer> sectionStartLocations,
-		final A_String moduleName,
+		final String moduleName,
 		final int commentStartLine) throws StacksCommentBuilderException
 	{
 		this.tokens = tokens;
@@ -368,7 +367,7 @@ public class StacksParser
 	/**
 	 * @return the moduleName
 	 */
-	public A_String moduleName ()
+	public String moduleName ()
 	{
 		return moduleName;
 	}
@@ -383,7 +382,7 @@ public class StacksParser
 	 * @param sectionStartLocations
 	 * 		The index locations where a new {@link SectionKeywordStacksToken
 	 * 		section} begins in in the token list to be parsed.
-	 * @param moduleName
+	 * @param string
 	 * 		The name of the module from which the comment originates.
 	 * @param commentStartLine
 	 * 		The line where the comment being parsed starts in the module.
@@ -395,12 +394,12 @@ public class StacksParser
 	public static AbstractCommentImplementation parseCommentString (
 		final ArrayList<AbstractStacksToken> tokens,
 		final ArrayList<Integer> sectionStartLocations,
-		final A_String moduleName,
+		final String string,
 		final int commentStartLine)
 		throws StacksCommentBuilderException
 	{
 		final StacksParser parser =
-			new StacksParser(tokens, sectionStartLocations, moduleName,
+			new StacksParser(tokens, sectionStartLocations, string,
 				commentStartLine);
 		return parser.parse();
 	}
