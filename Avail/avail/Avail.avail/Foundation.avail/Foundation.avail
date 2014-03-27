@@ -405,6 +405,7 @@ Extends
 		"future",
 		"future of_",
 		"injector from_to_by_doing_in parallel_-way",
+		"map and filter_in parallel«_-way»by_",
 		"map_in parallel«_-way»through_",
 		"the future of_",
 		"worker exception"
@@ -906,6 +907,7 @@ Extends
 	),
 	"Tuples" =
 	(
+		"Require:_accepts_«(check indices)»?",
 		"all indices of_in_",
 		"all indices of_where_",
 		"distinct_",
