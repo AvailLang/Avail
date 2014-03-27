@@ -612,8 +612,6 @@ Public stable method "_·_(unit map)" is
 	unitMap
 ] : {atom→integer|};
 
-Seal method "_·_(unit map)" at <any, any>;
-
 /**
  * Compute and answer the product of the specified {@type "unit"}s.
  *
@@ -663,8 +661,6 @@ Public stable method "_/_(unit map)" is
 	mapX · inverseY (unit map)
 ] : {atom→integer|};
 
-Seal method "_/_(unit map)" at <any, any>;
-
 /**
  * Compute and answer the quotient of the specified {@type "unit"}s. This is the
  * same as the {@method "_·_" product} of {@param "x"} and the reciprocal of
@@ -693,7 +689,7 @@ Public stable method "_/_" is
  * Compute and answer the result of raising the specified unit maps to the
  * specified power.
  *
- * @method "_^_"
+ * @method "_^_(unit map)"
  * @param "unitMap" "{atom→integer|}"
  *        A unit map.
  * @param "theExponent" "integer"
@@ -714,8 +710,6 @@ Public stable method "_^_(unit map)" is
 			theExponent × exponent (Avail)
 		]
 ] : {atom→integer|};
-
-Seal method "_^_(unit map)" at <any, any>;
 
 /**
  * Compute and answer the result of raising the specified {@type "unit"} to the
@@ -1375,6 +1369,27 @@ Public stable method "_^_" is
 	(base's extent ^ power (Avail)) (base's metric ^ power)
 ] : dimensioned quantity;
 
+Method "_^_(unit map)" is
+[
+	aUnit : unit,
+	power : whole number's type
+|
+	minExponent : extended integer := ∞;
+	maxExponent : extended integer := -∞;
+	unitMap ::= aUnit's unit map;
+	For each of unitMap do
+	[
+		key : atom,
+		exponent : integer
+	|
+		exponentType ::= exponent's type × power (Avail);
+		minExponent := eject ↑minExponent min ⎣exponentType⎦;
+		maxExponent := eject ↑maxExponent max ⎡exponentType⎤;
+	];
+	valueType ::= (minExponent - 1 (Avail) .. maxExponent + 1 (Avail));
+	{atom→valueType | |unitMap|'s type}
+];
+
 Semantic restriction "_^_" is
 [
 	base : dimensioned quantity's type,
@@ -1388,14 +1403,17 @@ Semantic restriction "_^_" is
 		|
 			a ^ b (Avail)
 		](base's extent, power);
-	if |base's metric| = 1 then
-	[
-		numericType (base's metric's instance)
-	]
-	else
-	[
-		dimensioned numericType
-	]
+	resultType ::=
+		if |base's metric| = 1 then
+		[
+			aUnit ::= base's metric's instance;
+			unitMapType ::= aUnit ^ power (unit map);
+			extend dimensioned quantity with
+				extent : numericType,
+				metric : (extend unit with unit map : unitMapType)
+		]
+		else [dimensioned numericType];
+	resultType
 ];
 
 From 2 to |prettyPowers| do
@@ -1560,6 +1578,7 @@ Semantic restriction "⎡_⎤" is
 	product  ::= {"_×_", "_÷_", "_mod_"};
 	negation ::= {"-_"};
 	jux      ::= {"__"};
+	power    ::= {"_^_"};
 	abs      ::= {"`|_`|"};
 	bounds   ::= {"⎣_⎦", "⎡_⎤"};
 
@@ -1567,6 +1586,7 @@ Semantic restriction "⎡_⎤" is
 	Grammatical restriction sum is <∅, sum>;
 	Grammatical restriction product is <sum, sum ∪ product>;
 	Grammatical restriction negation is <sum ∪ product ∪ negation ∪ jux>;
+	Grammatical restriction power is <jux, ∅>;
 	Grammatical restriction abs is <abs>;
 	Grammatical restriction bounds is <bounds>;
 ]();
@@ -2158,8 +2178,6 @@ Public method "_≍_" is
 	a converted to b's metric = b
 ] : boolean;
 
-Completely seal method "_≍_";
-
 /* These methods are needed for scaling function synthesis. */
 extentAtom ::= $"_'s⁇extent";
 juxtapositionAtom ::= $"__";
@@ -2239,6 +2257,11 @@ Public method "Conversion rule:_≍_" is
 			by scaleFactor
 			using divideAtom;
 ] : ⊤;
+
+Seal method "_^_(unit map)" at <any, any>;
+Seal method "_·_(unit map)" at <any, any>;
+Seal method "_/_(unit map)" at <any, any>;
+Completely seal method "_≍_";
 
 _testSuite ::= $"dimensional analysis test suite";
 

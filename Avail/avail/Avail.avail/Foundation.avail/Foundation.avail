@@ -566,6 +566,7 @@ Extends
 		"too-large-to-represent code",
 		"type-restriction-must-accept-only-types code",
 		"unbalanced-guillemets code",
+		"untimely-parse-rejection code",
 		"unwind-sentinel code",
 		"vertical-bar-must-follow-a-simple-or-simple-group code",
 		"wrong-outers code"
@@ -705,6 +706,7 @@ Extends
 		"type-restriction-must-accept-only-types exception",
 		"unbalanced-guillemets exception",
 		"unsupported-operation exception",
+		"untimely-parse-rejection exception",
 		"unwind-sentinel exception",
 		"variable-use exception",
 		"vertical-bar-must-follow-a-simple-or-simple-group exception",

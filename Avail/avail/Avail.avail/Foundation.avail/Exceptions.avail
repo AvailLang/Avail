@@ -1036,6 +1036,8 @@ System exception "no-such-field" (69)
 	extends element-access exception;
 System exception "loading-is-over" (70)
 	extends system exception;
+System exception "untimely-parse-rejection" (71)
+	extends system exception;
 System exception "method-is-sealed" (72)
 	extends definition exception;
 System exception "no-implementation" (73)
