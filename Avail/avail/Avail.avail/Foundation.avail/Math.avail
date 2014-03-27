@@ -61,6 +61,22 @@ Names
 	"«_‡«=|≥|>»!»"
 Body
 
+Method "“_”" is
+[
+	n : number
+|
+	/* Lose the ¢d or ¢f suffix. */
+	s ::= primitive description of n;
+	s[1..cast |s| - 1 into [t : natural number | t]]
+] : string;
+
+Method "“_”" is
+[
+	n : extended integer
+|
+	primitive description of n
+] : string;
+
 Forward method "_mod_" is [number, number]→number;
 Public stable forward method "-_" is [number]→number;
 

@@ -34,7 +34,7 @@ Module "Availuator"
 Versions
 	"dev"
 Extends
-	"Avail"
+	"Convenient ASCII"
 Entries
 	"`!_"
 Body

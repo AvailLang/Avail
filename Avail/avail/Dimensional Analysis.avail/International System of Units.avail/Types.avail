@@ -39,13 +39,17 @@ Uses
 Names
 	/* Types. */
 	"SI dimensioned quantity",
+	"SI dimensioned_",
 	"SI unit",
 
 	/* Field atoms. */
 	"scale factor",
 
 	/* Accessors. */
-	"_'s⁇scale factor"
+	"_'s⁇scale factor",
+
+	/* Reconstructors. */
+	"_'s⁇scale factor::=_"
 Body
 
 /* Field atoms. */
@@ -63,7 +67,7 @@ Public method "scale factor" is [_scaleFactor];
  */
 Public class "SI unit" extends unit
 	with fields
-		public scale factor : integer;
+		public reconstructible scale factor : integer;
 
 /**
  * An SI dimensioned quantity has an {@type "SI unit"} for its metric.
@@ -75,6 +79,31 @@ Public class "SI dimensioned quantity" extends dimensioned quantity
 	with fields
 		extent : number,
 		metric : SI unit;
+
+/**
+ * Construct and answer an {@type "SI dimensioned quantity"} type with the
+ * specified {@type "number" extent} type.
+ *
+ * @method "SI dimensioned_"
+ * @param "magnitudeType" "number's type"
+ *        The magnitude type.
+ * @returns "dimensioned quantity"
+ *          The requested {@type "dimensioned quantity"} type.
+ */
+Public method "SI dimensioned_" is
+[
+	magnitudeType : number's type
+|
+	extend SI dimensioned quantity with extent : magnitudeType
+] : SI dimensioned quantity's type;
+
+Semantic restriction "SI dimensioned_" is
+[
+	magnitudeType : number's type's type
+|
+	(extend SI dimensioned quantity
+		with extent : magnitudeType's instance)'s type
+];
 
 Method "__" is
 [

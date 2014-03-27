@@ -114,6 +114,7 @@ Names
 	/*  68 */ "macro must return a parse node code",
 	/*  67 */ "macro prefix function argument must be a parse node code",
 	/*  59 */ "macro prefix functions must return top code",
+	/*  71 */ "method implementation lookup failed code",
 	/*  72 */ "method is sealed code",
 	/*  45 */ "method name is not canonical code",
 	/*  13 */ "method return type not as forward declared code",
@@ -495,6 +496,11 @@ Primitive "no such field code" is
 Primitive "loading is over code" is
 [
 	70
+];
+
+Primitive "method implementation lookup failed code" is
+[
+	71
 ];
 
 Primitive "method is sealed code" is

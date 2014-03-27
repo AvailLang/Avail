@@ -171,6 +171,7 @@ Invoke [
 		<68, "macro-must-return-a-parse-node">,
 		<69, "no-such-field">,
 		<70, "loading-is-over">,
+		<71, "untimely-parse-rejection">,
 		<72, "method-is-sealed">,
 		<73, "no-implementation">,
 		<74, "atom-already-exists">,

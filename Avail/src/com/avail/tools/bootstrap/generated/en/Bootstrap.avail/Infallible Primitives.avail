@@ -58,7 +58,6 @@ Uses
 		"If|if_then_else_",
 		"Park current fiber",
 		"Print:_",
-		"Reject parse,expected:_",
 		"Request termination of_",
 		"Resume_",
 		"Sleep for_millisecond|milliseconds",
@@ -2410,36 +2409,6 @@ Primitive "_'s⁇semantic type" is
 |
 	Primitive 351;
 ] : type;
-
-/**
- * Reject the current parse. This causes the compiler to reject the
- * interpretation of the program text that resulted in execution of the code
- * that invoked this method. The argument is a description of the parse
- * rejection, but in positive terms that primarily assert what the caller was
- * expecting (on the compiler's behalf). It is, of course, also useful to state
- * what was actually discovered.
- *
- * Note that the Avail compiler attempts, in parallel, many different parses of
- * a statement. If the only parses syntactically accepted by the compiler are
- * semantically rejected by callers of this method, then and only then is the
- * statement deemed invalid and the arguments of such calls emitted by the
- * compiler as error messages to assist the programmer in correcting the
- * rejected statement.
- *
- * This method may only be invoked from the body of a macro function or a
- * semantic restriction function: it should only be invoked by the Avail
- * compiler, never by a semantically valid Avail program.
- *
- * Parameters:
- *    expected - A description of the cause of rejection, worded to sound good
- *       after "Expected...".
- */
-Primitive "Reject parse,expected:_" is
-[
-	expected : string
-|
-	Primitive 352;
-] : ⊥;
 
 /**
  * Construct and answer a phrase type with the specified semantic type.

@@ -1,5 +1,5 @@
 /*
- * Sanctioned Common Units.avail
+ * Arithmetic Renames.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,60 +30,43 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Sanctioned Common Units"
+Module "Arithmetic Renames"
 Versions
 	"dev"
+Extends
+	"Dimensional Analysis" =
+	(
+		"_×_" → "_*_",
+		"_÷_" → "_/_",
+		"_×_",
+		"_÷_",
+		-"_/_",
+		…
+	)
 Uses
-	"Avail",
-	"Core",
-	"Definers",
-	"Derivation",
-	"Printing",
-	"Standard Units"
-Names
-	/* Time. */
-	"day", "d",
-	"hour", "h",
-	"minute", "min",
-
-	/* Angle. */
-	"degree of arc", "°",
-	"minute of arc", "′",
-	"second of arc", "″",
-
-	/* Volume (with SI prefix forms). */
-	"liter", "L",
-
-	/* Mass (with SI prefix forms). */
-	"tonne", "t"
+	"Avail" =
+	(
+		"-_"    → "-_(Avail)",
+		"_+_"   → "_+_(Avail)",
+		"_-_"   → "_-_(Avail)",
+		"_×_"   → "_×_(Avail)",
+		"_÷_"   → "_÷_(Avail)",
+		"_mod_" → "_mod_(Avail)",
+		"_^_"   → "_^_(Avail)",
+		…
+	)
 Body
 
-"minute" ("min") is a base unit;
-Conversion rule: 1 min ≍ 60 s;
+/* Establish grammatical rules. */
+[
+	sum           ::= {"_+_", "_-_"};
+	asciiProduct  ::= {"_*_", "_/_"};
+	product       ::= {"_×_", "_÷_", "_mod_"} ∪ asciiProduct;
+	sumAndProduct ::= sum ∪ product;
+	negation      ::= {"-_"};
+	power         ::= {"_^_"};
 
-"hour" ("h") is a base unit;
-Conversion rule: 1 h ≍ 3600 s;
-Conversion rule: 1 h ≍ 60 min;
-
-"day" ("d") is a base unit;
-Conversion rule: 1 d ≍ 86400 s;
-Conversion rule: 1 d ≍ 1440 min;
-Conversion rule: 1 d ≍ 24 h;
-
-"degree of arc" ("°") is a base unit;
-Conversion rule: 1° ≍ (π ÷ 180) rad;
-
-"minute of arc" ("′") is a base unit;
-Conversion rule: 1′ ≍ (π ÷ 10800) rad;
-Conversion rule: 1° ≍ 60′;
-
-"second of arc" ("″") is a base unit;
-Conversion rule: 1″ ≍ (π ÷ 648000) rad;
-Conversion rule: 1′ ≍ 60″;
-Conversion rule: 1° ≍ 3600″;
-
-"liter" ("L") is a base unit;
-Conversion rule: 1 L ≍ 1 dm³;
-
-"tonne" ("t") is a base unit;
-Conversion rule: 1 t ≍ 1 Mg;
+	Grammatical restriction asciiProduct is <sum, sumAndProduct>;
+	Grammatical restriction negation is <asciiProduct>;
+	Grammatical restriction power is <asciiProduct, asciiProduct>;
+]();
