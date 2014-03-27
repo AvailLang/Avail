@@ -205,8 +205,13 @@ public class StacksExtendsModule
 		}
 		else
 		{
-			getExtendsModuleForImplementationName(key)
-				.renameImplementation(key, newName);
+			final StacksExtendsModule extendsModule =
+				getExtendsModuleForImplementationName(key);
+
+			if (extendsModule != null)
+			{
+				extendsModule.renameImplementation(key, newName);
+			}
 		}
 	}
 
@@ -223,8 +228,13 @@ public class StacksExtendsModule
 		}
 		else
 		{
-			getExtendsModuleForImplementationName(key)
-				.removeImplementation(key);
+			final StacksExtendsModule extendsModule =
+				getExtendsModuleForImplementationName(key);
+
+			if (extendsModule != null)
+			{
+				extendsModule.removeImplementation(key);
+			}
 		}
 	}
 
@@ -299,6 +309,48 @@ public class StacksExtendsModule
 	public boolean hasImplementationInBranch (final A_String name)
 	{
 		return methodLeafNameToModuleName.containsKey(name);
+	}
+
+	/**
+	 * Create a new map from implementationGroups with new keys using the
+	 * method qualified name
+	 * @return
+	 * 		A map with keyed by the method qualified name to the implementation.
+	 */
+	public HashMap<String,ImplementationGroup>
+		qualifiedImplementationNameToImplementation()
+	{
+			final HashMap<String,ImplementationGroup> newMap =
+				new HashMap<String,ImplementationGroup>();
+
+			for (final A_String name : implementationGroups.keySet())
+			{
+				final String qualifiedName = moduleName + "/" + name.asNativeString();
+				newMap.put(qualifiedName, implementationGroups.get(name));
+			}
+			return newMap;
+	}
+
+	/**
+	 * Flatten out moduleNameToExtendsList map so that all modules in tree
+	 * are in one flat map keyed by the qualified method name to the
+	 * implementation.
+	 * @return
+	 * 		A map keyed by the qualified method name to the implementation.
+	 */
+	public HashMap<String,ImplementationGroup> flattenImplementationGroups()
+	{
+		final HashMap<String,ImplementationGroup> newMap =
+			new HashMap<String,ImplementationGroup>();
+
+		for (final StacksExtendsModule extendsModule :
+			moduleNameToExtendsList.values())
+		{
+			newMap.putAll(extendsModule.flattenImplementationGroups());
+		}
+
+		newMap.putAll(qualifiedImplementationNameToImplementation());
+		return newMap;
 	}
 
 	@Override

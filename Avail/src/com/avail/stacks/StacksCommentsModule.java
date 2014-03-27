@@ -333,8 +333,8 @@ public class StacksCommentsModule
 					for (final A_String rename :
 						moduleImport.renames.keysAsSet())
 					{
-						stacksExtends.renameImplementation(rename,
-							moduleImport.renames.mapAt(rename));
+						stacksExtends.renameImplementation(
+							moduleImport.renames.mapAt(rename),rename);
 					}
 
 					for (final A_String key : methodsToDelete)
@@ -372,6 +372,27 @@ public class StacksCommentsModule
 			new HashMap<A_String,String>(methodLeafNameToModuleName));
 	}
 
+	/**
+	 * Acquire all distinct implementations being extended by this module.
+	 * @return
+	 * 		A map keyed by qualified implementation name to {@linkplain
+	 * 		ImplementationGroup}
+	 */
+	public HashMap<String,ImplementationGroup>
+		obtainExtendsImplementationGroups()
+	{
+		final HashMap<String,ImplementationGroup> newMap =
+			new HashMap<String,ImplementationGroup>();
+
+		for (final StacksExtendsModule extendsModule :
+			extendedNamesImplementations.values())
+		{
+			newMap.putAll(extendsModule.flattenImplementationGroups());
+		}
+
+		return newMap;
+	}
+
 	@Override
 	public String toString()
 	{
@@ -386,11 +407,12 @@ public class StacksCommentsModule
 		}
 		stringBuilder.append("</ol><h3>Extends</h3><ol>");
 
-		for (final StacksExtendsModule value :
-			extendedNamesImplementations.values())
+		for (final String implementationName :
+			obtainExtendsImplementationGroups().keySet())
 		{
-			stringBuilder.append(value.toString());
+			stringBuilder.append("<li>").append(implementationName)
+				.append("</li>");
 		}
-		return stringBuilder.toString();
+		return stringBuilder.append("</ol>").toString();
 	}
 }
