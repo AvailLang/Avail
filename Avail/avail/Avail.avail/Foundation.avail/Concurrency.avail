@@ -75,6 +75,7 @@ Names
 	"filter_in parallel«_-way»by_",
 	"injector from_to_by_doing_in parallel_-way",
 	"map_in parallel«_-way»through_",
+	"map and filter_in parallel«_-way»by_",
 
 	/* Futures. */
 	"Cancel_",
@@ -761,60 +762,8 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 	optionalLimit : <natural number…|0..1>'s type,
 	action : function meta
 |
-	Require: action accepts tupleType;
+	Require: action accepts tupleType (check indices);
 	if ⎣tupleType⎦ > 0 ∧ [action's return type = ⊥] then [⊥] else [⊤]
-];
-
-/**
- * Concurrently apply {@param "action"} to each key-value pair of {@param
- * "aMap"}. Wait until all forked fibers have completed before returning
- * control to the caller.
- * 
- * @method "For each of⁇_in parallel«_-way»do_"
- * @param "aMap" "map"
- * @param "optionalLimit" "<natural number…|0..1>"
- *        If specified, then the maximum number of worker {@type "fiber"}s
- *        permitted to run in parallel. If not specified, then permit {@method
- *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
- *        parallel.
- * @param "action" "[⊥, ⊥]→⊤"
- *        A function that accepts 1) a map key and 2) the value at that key
- * @returns "⊤"
- * @raises "worker exception"
- *         If any of the forked workers raise an exception.
- * @author "Richard Arriaga"
- * @category "Concurrency" "Control Structures" "Loops"
- * @category "Collections" "Maps"
- */
-Public method "For each of⁇_in parallel«_-way»do_" is
-[
-	aMap : map,
-	optionalLimit : <natural number…|0..1>,
-	action : [⊥, ⊥]→⊤
-|
-	limit ::= optionalLimit[1] else [default maximum worker fibers];
-	For each of aMap's bindings in parallel limit-way do
-	[
-		binding : <any…|2>
-	|
-		action(binding[1],binding[2]);
-	];
-] : ⊤;
-
-/**
- * @method "For each of⁇_in parallel«_-way»do_"
- * @restricts "map meta"
- * @restricts "<natural number…|0..1>'s type"
- * @restricts "[⊥, ⊥]→⊤'s type"
- */
-Semantic restriction "For each of⁇_in parallel«_-way»do_" is
-[
-	mapType : map meta,
-	optionalLimit : <natural number…|0..1>'s type,
-	action : [⊥, ⊥]→⊤'s type
-|
-	Require: action accepts mapType;
-	if ⎣mapType⎦ > 0 ∧ [action's return type = ⊥] then [⊥] else [⊤]
 ];
 
 /**
@@ -870,6 +819,58 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 ];
 
 /**
+ * Concurrently apply {@param "action"} to each key-value pair of {@param
+ * "aMap"}. Wait until all forked fibers have completed before returning
+ * control to the caller.
+ * 
+ * @method "For each of⁇_in parallel«_-way»do_"
+ * @param "aMap" "map"
+ * @param "optionalLimit" "<natural number…|0..1>"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "action" "[⊥, ⊥]→⊤"
+ *        A function that accepts 1) a map key and 2) the value at that key
+ * @returns "⊤"
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @author "Richard Arriaga"
+ * @category "Concurrency" "Control Structures" "Loops"
+ * @category "Collections" "Maps"
+ */
+Public method "For each of⁇_in parallel«_-way»do_" is
+[
+	aMap : map,
+	optionalLimit : <natural number…|0..1>,
+	action : [⊥, ⊥]→⊤
+|
+	limit ::= optionalLimit[1] else [default maximum worker fibers];
+	For each of aMap's bindings in parallel limit-way do
+	[
+		binding : <any…|2>
+	|
+		action(binding[1],binding[2]);
+	];
+] : ⊤;
+
+/**
+ * @method "For each of⁇_in parallel«_-way»do_"
+ * @restricts "map meta"
+ * @restricts "<natural number…|0..1>'s type"
+ * @restricts "[⊥, ⊥]→⊤'s type"
+ */
+Semantic restriction "For each of⁇_in parallel«_-way»do_" is
+[
+	mapType : map meta,
+	optionalLimit : <natural number…|0..1>'s type,
+	action : [⊥, ⊥]→⊤'s type
+|
+	Require: action accepts mapType;
+	if ⎣mapType⎦ > 0 ∧ [action's return type = ⊥] then [⊥] else [⊤]
+];
+
+/**
  * Concurrently apply {@param "transformer"} to each consecutive element of
  * {@param "aTuple"}, collecting the results into a new tuple (and preserving
  * ordering of the transformed elements). Answer this tuple.
@@ -890,7 +891,7 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
  * @raises "worker exception"
  *         If any of the forked workers raise an exception.
  * @category "Concurrency" "Control Structures" "Loops"
- * @category "Collections" "Tuples"
+ * @category "Collections" "Tuples" "Transformers"
  */
 Public method "map_in parallel«_-way»through_" is
 [
@@ -951,7 +952,7 @@ Public method "map_in parallel«_-way»through_" is
  * @raises "worker exception"
  *         If any of the forked workers raise an exception.
  * @category "Concurrency" "Control Structures" "Loops"
- * @category "Collections" "Tuples"
+ * @category "Collections" "Tuples" "Transformers"
  */
 Public method "map_in parallel«_-way»through_" is
 [
@@ -983,7 +984,7 @@ Semantic restriction "map_in parallel«_-way»through_" is
 	optionalLimit : <natural number…|0..1>'s type,
 	transformer : […]→any's type
 |
-	Require: transformer accepts tupleType;
+	Require: transformer accepts tupleType (check indices);
 	If ⎣tupleType⎦ > 0 then
 	[
 		If transformer's return type = ⊥ then
@@ -994,6 +995,94 @@ Semantic restriction "map_in parallel«_-way»through_" is
 		];
 	];
 	<<>, transformer's return type… | ||tupleType||>
+];
+
+/**
+ * Concurrently apply {@param "transformer"} to each element of a 
+ * {@param "set"}, collecting the results into a new set.
+ *
+ * @method "map_in parallel«_-way»through_"
+ * @param "aSet" "set"
+ * @param "optionalLimit" "<natural number…|0..1>"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "transformer" "[⊥]→any"
+ *        A function that accepts an arbitrary element of {@param "aSet"}.
+ * @returns "set"
+ *          A set of results of applications of {@param "transformer"} to the
+ *          elements of the original set.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops"
+ * @category "Collections" "Sets" "Transformers"
+ */
+Public method "map_in parallel«_-way»through_" is
+[
+	aSet : set,
+	optionalLimit : <natural number…|0..1>,
+	transformer : [⊥]→any
+|
+	workUnitRunner : [[]→⊤]→⊤;
+	waiter : []→⊤;
+	killer : exception;
+	Store a runner of |aSet| work units into ↑workUnitRunner,
+		store a waiter into ↑waiter,
+		store an exception into ↑killer;
+	/* Fork a fiber for each element. */
+	aTuple ::= aSet→tuple;
+	limit ::= optionalLimit[1] else [default maximum worker fibers];
+	lock ::= a non-reentrant mutex named "results mutex";
+	results : set := ∅;
+	injector ::=
+		injector from 1 to |aSet| by 1 doing
+		[
+			index : natural number
+		|
+			current fiber's name := "parallel map fiber #" ++ “index”;
+			workUnitRunner(
+				[
+					result ::= transformer(aTuple[index]);
+					Lock lock for [results := eject ↑results + result;];
+				]);
+		] in parallel limit-way;
+	waiter();
+	/* If there were any exceptions, then raise the one that was captured. */
+	If ↑killer is assigned then
+	[
+		Request termination of injector;
+		Raise a worker exception with causal exception ::= killer
+	];
+	results
+] : set;
+
+/**
+ * Ensure that the function will accept elements of the set. If the set is
+ * certainly nonempty, then the function cannot answer ⊥.
+ * 
+ * @method "map_in parallel«_-way»through_"
+ * @restricts "set meta"
+ * @restricts "<natural number…|0..1>'s type"
+ * @restricts "[⊥]→any's type"
+ */
+Semantic restriction "map_in parallel«_-way»through_" is
+[
+	setType : set meta,
+	optionalLimit : <natural number…|0..1>'s type,
+	transformer : [⊥]→any's type
+|
+	Require: transformer accepts setType;
+	If ⎣setType⎦ > 0 then
+	[
+		If transformer's return type = ⊥ then
+		[
+			Reject parse, expected:
+				"repeatedly applied function to have a return type other than\
+				\| ⊥"
+		];
+	];
+	{transformer's return type | 1..⎡setType⎤}
 ];
 
 /**
@@ -1017,7 +1106,7 @@ Semantic restriction "map_in parallel«_-way»through_" is
  * @raises "worker exception"
  *         If any of the forked workers raise an exception.
  * @category "Concurrency" "Control Structures" "Loops"
- * @category "Collections" "Maps"
+ * @category "Collections" "Maps" "Transformers"
  */
 Public method "map_in parallel«_-way»through_" is
 [
@@ -1088,94 +1177,6 @@ Semantic restriction "map_in parallel«_-way»through_" is
 ];
 
 /**
- * Concurrently apply {@param "transformer"} to each element of a 
- * {@param "set"}, collecting the results into a new set.
- *
- * @method "map_in parallel«_-way»through_"
- * @param "aSet" "set"
- * @param "optionalLimit" "<natural number…|0..1>"
- *        If specified, then the maximum number of worker {@type "fiber"}s
- *        permitted to run in parallel. If not specified, then permit {@method
- *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
- *        parallel.
- * @param "transformer" "[⊥]→any"
- *        A function that accepts an arbitrary element of {@param "aSet"}.
- * @returns "set"
- *          A set of results of applications of {@param "transformer"} to the
- *          elements of the original set.
- * @raises "worker exception"
- *         If any of the forked workers raise an exception.
- * @category "Concurrency" "Control Structures" "Loops"
- * @category "Collections" "Sets"
- */
-Public method "map_in parallel«_-way»through_" is
-[
-	aSet : set,
-	optionalLimit : <natural number…|0..1>,
-	transformer : [⊥]→any
-|
-	workUnitRunner : [[]→⊤]→⊤;
-	waiter : []→⊤;
-	killer : exception;
-	Store a runner of |aSet| work units into ↑workUnitRunner,
-		store a waiter into ↑waiter,
-		store an exception into ↑killer;
-	/* Fork a fiber for each element. */
-	aTuple ::= aSet→tuple;
-	limit ::= optionalLimit[1] else [default maximum worker fibers];
-	lock ::= a non-reentrant mutex named "results mutex";
-	results : set := ∅;
-	injector ::=
-		injector from 1 to |aSet| by 1 doing
-		[
-			index : natural number
-		|
-			current fiber's name := "parallel map fiber #" ++ “index”;
-			workUnitRunner(
-				[
-					result ::= transformer(aTuple[index]);
-					Lock lock for [results := eject ↑results + result;];
-				]);
-		] in parallel limit-way;
-	waiter();
-	/* If there were any exceptions, then raise the one that was captured. */
-	If ↑killer is assigned then
-	[
-		Request termination of injector;
-		Raise a worker exception with causal exception ::= killer
-	];
-	results
-] : set;
-
-/**
- * Ensure that the function will accept elements of the set. If the set is
- * certainly nonempty, then the function cannot answer ⊥.
- * 
- * @method "map_in parallel«_-way»through_"
- * @restricts "set meta"
- * @restricts "<natural number…|0..1>'s type"
- * @restricts "[⊥]→any's type"
- */
-Semantic restriction "map_in parallel«_-way»through_" is
-[
-	setType : set meta,
-	optionalLimit : <natural number…|0..1>'s type,
-	transformer : [⊥]→any's type
-|
-	Require: transformer accepts setType;
-	If ⎣setType⎦ > 0 then
-	[
-		If transformer's return type = ⊥ then
-		[
-			Reject parse, expected:
-				"repeatedly applied function to have a return type other than\
-				\| ⊥"
-		];
-	];
-	{transformer's return type | 1..⎡setType⎤}
-];
-
-/**
  * Concurrently apply {@param "filter"} to each consecutive element of {@param
  * "aTuple"}, collecting elements for which {@param "filter"} answered {@method
  * "true"} into a new tuple (and preserving ordering of the transformed
@@ -1198,7 +1199,7 @@ Semantic restriction "map_in parallel«_-way»through_" is
  * @raises "worker exception"
  *         If any of the forked workers raise an exception.
  * @category "Concurrency" "Control Structures" "Loops"
- * @category "Collections" "Tuples"
+ * @category "Collections" "Tuples" "Transformers"
  */
 Public method "filter_in parallel«_-way»by_" is
 [
@@ -1266,7 +1267,7 @@ Public method "filter_in parallel«_-way»by_" is
  * @raises "worker exception"
  *         If any of the forked workers raise an exception.
  * @category "Concurrency" "Control Structures" "Loops"
- * @category "Collections" "Tuples"
+ * @category "Collections" "Tuples" "Transformers"
  */
 Public method "filter_in parallel«_-way»by_" is
 [
@@ -1298,7 +1299,7 @@ Semantic restriction "filter_in parallel«_-way»by_" is
 	optionalLimit : <natural number…|0..1>'s type,
 	predicate : […]→boolean's type
 |
-	Require: predicate accepts tupleType;
+	Require: predicate accepts tupleType (check indices);
 	if predicate's return type = true's type then [tupleType]
 	else
 	[
@@ -1331,7 +1332,7 @@ Semantic restriction "filter_in parallel«_-way»by_" is
  * @raises "worker exception"
  *         If any of the forked workers raise an exception.
  * @category "Concurrency" "Control Structures" "Loops"
- * @category "Collections" "Sets"
+ * @category "Collections" "Sets" "Transformers"
  */
 Public method "filter_in parallel«_-way»by_" is
 [
@@ -1415,7 +1416,7 @@ Semantic restriction "filter_in parallel«_-way»by_" is
  * @raises "worker exception"
  *         If any of the forked workers raise an exception.
  * @category "Concurrency" "Control Structures" "Loops"
- * @category "Collections" "Sets"
+ * @category "Collections" "Sets" "Transformers"
  */
 Public method "filter_in parallel«_-way»by_" is
 [
@@ -1478,6 +1479,450 @@ Semantic restriction "filter_in parallel«_-way»by_" is
 	if predicate's return type = true's type then [mapType]
 	else if [predicate's return type = false's type] then [{}'s type]
 	else [{mapType's key type → mapType's value type|[0..⎡mapType⎤ + 1)}]
+];
+
+/**
+ * Concurrently apply {@param "accumulator"} to each element of {@param
+ * "aTuple"} in order to transform and filter its elements into a new tuple,
+ * preserving the original ordering. When {@param "accumulator"} is invoked, it
+ * is passed a "keeper" function. The keeper function may be invoked to "save" a
+ * particular value, i.e, a value that will be copied into the output tuple. The
+ * keeper function will save at most one value per element of {@param "aTuple"},
+ * i.e. each time that {@param "accumulator"} is invoked, it may invoke the
+ * keeper function at most one time. Answer the new tuple.
+ *
+ * @method "map and filter_in parallel«_-way»by_"
+ * @param "aTuple" "tuple"
+ * @param "optionalLimit" "<natural number…|0..1>"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "accumulator" "[⊥, ⊥, ⊥]→⊤"
+ *        A function that accepts 1) an element from {@param "aTuple"}, 2) the 
+ *        index of that element, and 3) a keeper function. The keeper function 
+ *        accepts an argument of the type that should be saved.
+ * @returns "tuple"
+ *          A tuple whose elements are those saved by the {@param
+ *          "accumulator"}.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops"
+ * @category "Collections" "Tuples" "Transformers"
+ */
+Public method "map and filter_in parallel«_-way»by_" is
+[
+	aTuple : tuple,
+	optionalLimit : <natural number…|0..1>,
+	accumulator : [⊥, ⊥, ⊥]→⊤
+|
+	workUnitRunner : [[]→⊤]→⊤;
+	waiter : []→⊤;
+	killer : exception;
+	Store a runner of |aTuple| work units into ↑workUnitRunner,
+		store a waiter into ↑waiter,
+		store an exception into ↑killer;
+	limit ::= optionalLimit[1] else [default maximum worker fibers];
+	lock ::= a non-reentrant mutex named "results mutex";
+	filler ::= new atom named "filler";
+	results : tuple := |aTuple| of filler;
+	injector ::=
+		injector from 1 to |aTuple| by 1 doing
+		[
+			index : natural number
+		|
+			current fiber's name :=
+				"parallel map and filter fiber #" ++ “index”;
+			workUnitRunner(
+				[
+					hasAlreadyKept : boolean := false;
+					accumulator(
+						aTuple[index],
+						index,
+						[
+							saved : any
+						|
+							If ¬hasAlreadyKept then
+							[
+								Lock lock for
+								[
+									results := eject ↑results[index]→saved;
+									hasAlreadyKept := true;
+								];
+							];
+						]);
+				]);
+		] in parallel limit-way;
+	waiter();
+	/* If there were any exceptions, then raise the one that was captured. */
+	If ↑killer is assigned then
+	[
+		Request termination of injector;
+		Raise a worker exception with causal exception ::= killer
+	];
+	filter results by [a : any | a ≠ filler]
+];
+
+/**
+ * Ensure that the function will accept all elements and indices of the tuple.
+ * Ensure that it does not produce a value.
+ * 
+ * @method "map and filter_in parallel«_-way»by_"
+ * @restricts "tuple meta"
+ * @restricts "<natural number…|0..1>"
+ * @restricts "[⊥, ⊥, ⊥]→⊤'s type"
+ */
+Semantic restriction "map and filter_in parallel«_-way»by_" is
+[
+	tupleType : tuple meta,
+	optionalLimit : <natural number…|0..1>'s type,
+	accumulator : [⊥, ⊥, ⊥]→⊤'s type
+|
+	Require: accumulator accepts tupleType (check indices);
+	Require: accumulator's keeper is valid;
+	If accumulator's return type ≠ ⊤ then
+	[
+		Reject parse, expected:
+			"repeatedly applied function to have return type ⊤"
+	];
+	paramsType ::= accumulator's parameters' type;
+	<
+		<>,
+		cast accumulator[⎣paramsType⎦] into [t : function meta | t[1]]…
+	|
+		[0..⎡tupleType⎤ + 1)
+	>
+];
+
+/**
+ * Concurrently apply {@param "accumulator"} to each element of {@param
+ * "aTuple"} in order to transform and filter its elements into a new tuple,
+ * preserving the original ordering. When {@param "accumulator"} is invoked, it
+ * is passed a "keeper" function. The keeper function may be invoked to "save" a
+ * particular value, i.e, a value that will be copied into the output tuple. The
+ * keeper function will save at most one value per element of {@param "aTuple"},
+ * i.e. each time that {@param "accumulator"} is invoked, it may invoke the
+ * keeper function at most one time. Answer the new tuple.
+ *
+ * @method "map and filter_in parallel«_-way»by_"
+ * @param "aTuple" "tuple"
+ * @param "optionalLimit" "<natural number…|0..1>"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "accumulator" "[⊥, ⊥]→⊤"
+ *        A function that accepts 1) an element from {@param "aTuple"} and 2) a
+ *        keeper function. The keeper function accepts an argument of the type
+ *        that should be saved.
+ * @returns "tuple"
+ *          A tuple whose elements are those saved by the {@param
+ *          "accumulator"}.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops"
+ * @category "Collections" "Tuples" "Transformers"
+ */
+Public method "map and filter_in parallel«_-way»by_" is
+[
+	aTuple : tuple,
+	optionalLimit : <natural number…|0..1>,
+	accumulator : [⊥, ⊥]→⊤
+|
+	workUnitRunner : [[]→⊤]→⊤;
+	waiter : []→⊤;
+	killer : exception;
+	Store a runner of |aTuple| work units into ↑workUnitRunner,
+		store a waiter into ↑waiter,
+		store an exception into ↑killer;
+	limit ::= optionalLimit[1] else [default maximum worker fibers];
+	lock ::= a non-reentrant mutex named "results mutex";
+	filler ::= new atom named "filler";
+	results : tuple := |aTuple| of filler;
+	injector ::=
+		injector from 1 to |aTuple| by 1 doing
+		[
+			index : natural number
+		|
+			current fiber's name :=
+				"parallel map and filter fiber #" ++ “index”;
+			workUnitRunner(
+				[
+					hasAlreadyKept : boolean := false;
+					accumulator(
+						aTuple[index],
+						[
+							saved : any
+						|
+							If ¬hasAlreadyKept then
+							[
+								Lock lock for
+								[
+									results := eject ↑results[index]→saved;
+									hasAlreadyKept := true;
+								];
+							];
+						]);
+				]);
+		] in parallel limit-way;
+	waiter();
+	/* If there were any exceptions, then raise the one that was captured. */
+	If ↑killer is assigned then
+	[
+		Request termination of injector;
+		Raise a worker exception with causal exception ::= killer
+	];
+	filter results by [a : any | a ≠ filler]
+];
+
+/**
+ * Ensure that the function will accept all elements and indices of the tuple.
+ * Ensure that it does not produce a value.
+ * 
+ * @method "map and filter_in parallel«_-way»by_"
+ * @restricts "tuple meta"
+ * @restricts "<natural number…|0..1>"
+ * @restricts "[⊥, ⊥, ⊥]→⊤'s type"
+ */
+Semantic restriction "map and filter_in parallel«_-way»by_" is
+[
+	tupleType : tuple meta,
+	optionalLimit : <natural number…|0..1>'s type,
+	accumulator : [⊥, ⊥]→⊤'s type
+|
+	Require: accumulator accepts tupleType;
+	Require: accumulator's keeper is valid;
+	If accumulator's return type ≠ ⊤ then
+	[
+		Reject parse, expected:
+			"repeatedly applied function to have return type ⊤"
+	];
+	paramsType ::= accumulator's parameters' type;
+	<
+		<>,
+		cast accumulator[⎣paramsType⎦] into [t : function meta | t[1]]…
+	|
+		[0..⎡tupleType⎤ + 1)
+	>
+];
+
+/**
+ * Concurrently apply {@param "accumulator"} to each element of {@param
+ * "aSet"} in order to transform and filter its elements into a new set. When
+ * {@param "accumulator"} is invoked, it is passed a "keeper" function. The
+ * keeper function may be invoked to "save" a particular value, i.e, a value
+ * that will be copied into the output set. The keeper function will save at
+ * most one value per element of {@param "aSet"}, i.e. each time that {@param
+ * "accumulator"} is invoked, it may invoke the keeper function at most one
+ * time. Answer the new set.
+ *
+ * @method "map and filter_in parallel«_-way»by_"
+ * @param "aSet" "set"
+ * @param "optionalLimit" "<natural number…|0..1>"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "accumulator" "[⊥, ⊥]→⊤"
+ *        A function that accepts 1) an element from {@param "aSet"} and 2) a
+ *        keeper function. The keeper function accepts an argument of the type
+ *        that should be saved.
+ * @returns "set"
+ *          A set whose elements are those saved by the {@param "accumulator"}.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops"
+ * @category "Collections" "Sets" "Transformers"
+ */
+Public method "map and filter_in parallel«_-way»by_" is
+[
+	aSet : set,
+	optionalLimit : <natural number…|0..1>,
+	accumulator : [⊥, ⊥]→⊤
+|
+	workUnitRunner : [[]→⊤]→⊤;
+	waiter : []→⊤;
+	killer : exception;
+	Store a runner of |aSet| work units into ↑workUnitRunner,
+		store a waiter into ↑waiter,
+		store an exception into ↑killer;
+	limit ::= optionalLimit[1] else [default maximum worker fibers];
+	lock ::= a non-reentrant mutex named "results mutex";
+	results : set := ∅;
+	aTuple ::= aSet→tuple;
+	injector ::=
+		injector from 1 to |aSet| by 1 doing
+		[
+			index : natural number
+		|
+			current fiber's name :=
+				"parallel map and filter fiber #" ++ “index”;
+			workUnitRunner(
+				[
+					hasAlreadyKept : boolean := false;
+					accumulator(
+						aTuple[index],
+						[
+							saved : any
+						|
+							If ¬hasAlreadyKept then
+							[
+								Lock lock for
+								[
+									results := eject ↑results + saved;
+									hasAlreadyKept := true;
+								];
+							];
+						]);
+				]);
+		] in parallel limit-way;
+	waiter();
+	/* If there were any exceptions, then raise the one that was captured. */
+	If ↑killer is assigned then
+	[
+		Request termination of injector;
+		Raise a worker exception with causal exception ::= killer
+	];
+	results
+];
+
+/**
+ * Ensure that the function will accept all elements of the set. Ensure that it
+ * does not produce a value.
+ * 
+ * @method "map and filter_in parallel«_-way»by_"
+ * @restricts "set meta"
+ * @restricts "<natural number…|0..1>"
+ * @restricts "[⊥, ⊥]→⊤'s type"
+ */
+Semantic restriction "map and filter_in parallel«_-way»by_" is
+[
+	setType : set meta,
+	optionalLimit : <natural number…|0..1>'s type,
+	accumulator : [⊥, ⊥]→⊤'s type
+|
+	Require: accumulator accepts setType;
+	Require: accumulator's keeper is valid;
+	If accumulator's return type ≠ ⊤ then
+	[
+		Reject parse, expected:
+			"repeatedly applied function to have return type ⊤"
+	];
+	{
+		cast accumulator[2] into [t : function meta | t[1]]
+	|
+		[0..⎡setType⎤ + 1)
+	}
+];
+
+/**
+ * Concurrently apply {@param "accumulator"} to each binding of {@param "aMap"}
+ * in order to transform and filter its elements into a new map. When {@param
+ * "accumulator"} is invoked, it is passed a "keeper" function. The keeper
+ * function may be invoked to "save" a particular value, i.e, a value that will
+ * be copied into the output set. The keeper function will save at most one
+ * value per element of {@param "aMap"}, i.e. each time that {@param
+ * "accumulator"} is invoked, it may invoke the keeper function at most one
+ * time. Answer the new map.
+ *
+ * @method "map and filter_in parallel«_-way»by_"
+ * @param "aMap" "map"
+ * @param "optionalLimit" "<natural number…|0..1>"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "accumulator" "[⊥, ⊥, ⊥]→⊤"
+ *        A function that accepts 1) a key from {@param "aMap"}, 2) the value
+ *        associated with that key, and 3) a keeper function. The keeper
+ *        function accepts an argument of the (value) type that should be saved.
+ * @returns "map"
+ *          A map whose bindings are those saved by the {@param "accumulator"}.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops"
+ * @category "Collections" "Maps" "Transformers"
+ */
+Public method "map and filter_in parallel«_-way»by_" is
+[
+	aMap : map,
+	optionalLimit : <natural number…|0..1>,
+	accumulator : [⊥, ⊥, ⊥]→⊤
+|
+	workUnitRunner : [[]→⊤]→⊤;
+	waiter : []→⊤;
+	killer : exception;
+	Store a runner of |aMap| work units into ↑workUnitRunner,
+		store a waiter into ↑waiter,
+		store an exception into ↑killer;
+	limit ::= optionalLimit[1] else [default maximum worker fibers];
+	lock ::= a non-reentrant mutex named "results mutex";
+	results : map := {};
+	bindings ::= aMap's bindings;
+	injector ::=
+		injector from 1 to |aMap| by 1 doing
+		[
+			index : natural number
+		|
+			current fiber's name :=
+				"parallel map and filter fiber #" ++ “index”;
+			workUnitRunner(
+				[
+					hasAlreadyKept : boolean := false;
+					binding ::= bindings[index];
+					key ::= binding[1];
+					value ::= binding[2];
+					accumulator(
+						key,
+						value,
+						[
+							saved : any
+						|
+							If ¬hasAlreadyKept then
+							[
+								Lock lock for
+								[
+									results := eject ↑results + key→saved;
+									hasAlreadyKept := true;
+								];
+							];
+						]);
+				]);
+		] in parallel limit-way;
+	waiter();
+	/* If there were any exceptions, then raise the one that was captured. */
+	If ↑killer is assigned then
+	[
+		Request termination of injector;
+		Raise a worker exception with causal exception ::= killer
+	];
+	results
+];
+
+/**
+ * Ensure that the function will accept all bindings of the map. Ensure that it
+ * does not produce a value.
+ * 
+ * @method "map and filter_in parallel«_-way»by_"
+ * @restricts "map meta"
+ * @restricts "<natural number…|0..1>"
+ * @restricts "[⊥, ⊥, ⊥]→⊤'s type"
+ */
+Semantic restriction "map and filter_in parallel«_-way»by_" is
+[
+	mapType : map meta,
+	optionalLimit : <natural number…|0..1>'s type,
+	accumulator : [⊥, ⊥, ⊥]→⊤'s type
+|
+	Require: accumulator accepts mapType;
+	Require: accumulator's keeper is valid;
+	If accumulator's return type ≠ ⊤ then
+	[
+		Reject parse, expected:
+			"repeatedly applied function to have return type ⊤"
+	];
+	valueType ::= cast accumulator[3] into [t : function meta | t[1]];
+	{mapType's key type → valueType | [0..⎡mapType⎤ + 1)}
 ];
 
 /**

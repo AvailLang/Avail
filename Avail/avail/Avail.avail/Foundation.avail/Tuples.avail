@@ -51,6 +51,7 @@ Uses
 	"Types",
 	"Variables"
 Names
+	"Require:_accepts_«(check indices)»?",
 	"all indices of_in_",
 	"all indices of_where_",
 	"distinct_",
@@ -198,7 +199,7 @@ Method "For each of⁇_do_" is
  * the type union of all element types of {@param "tupleType"} and their
  * indices, then reject the current parse.
  * 
- * @method "Require:_accepts_"
+ * @method "Require:_accepts_«(check indices)»?"
  * @param "action" "function meta"
  *        A function type whose first parameter must correspond to the type
  *        union of the element types of {@param "tupleType"} and whose second 
@@ -208,10 +209,11 @@ Method "For each of⁇_do_" is
  * @returns "⊤"
  * @category "Tuples" "Collections" "Types" "Assertions"
  */
-Method "Require:_accepts_" is
+Method "Require:_accepts_«(check indices)»?" is
 [
 	action : function meta,
-	tupleType : tuple meta
+	tupleType : tuple meta,
+	checkIndices : boolean
 |
 	If ⎣action's parameters' type⎦ < 1 then
 	[
@@ -219,7 +221,7 @@ Method "Require:_accepts_" is
 			"repeatedly applied function to accept at least one argument"
 	];
 	union ::= ∪ tupleType[1..|tupleType's leading types| + 1];
-	If action[1] ≠ ⊥ ∧ [ ¬union ⊆ action[1] ] then
+	If action[1] ≠ ⊥ ∧ [¬union ⊆ action[1]] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all elements of the tuple ⊆ "
@@ -228,9 +230,10 @@ Method "Require:_accepts_" is
 			++ “action[1]”
 			++ ")"
 	];
-	If ⎣action's parameters' type⎦ = 2
-		∧ [ action[2] ≠ ⊥
-		∧ [ ¬[1..⎡tupleType⎤ + 1) ⊆ action[2] ] ]
+	If checkIndices
+		∧ [⎣action's parameters' type⎦ ≥ 2
+		∧ [action[2] ≠ ⊥
+		∧ [¬[1..⎡tupleType⎤ + 1) ⊆ action[2]]]]
 	then
 	[
 		Reject parse, expected:
@@ -257,14 +260,7 @@ Semantic restriction "For each of⁇_do_" is
 	action : function meta
 |
 	Require: action accepts tupleType;
-	if ⎣tupleType⎦ > 0 ∧ [ action's return type = ⊥ ] then
-	[
-		⊥
-	]
-	else
-	[
-		⊤
-	]
+	if ⎣tupleType⎦ > 0 ∧ [ action's return type = ⊥ ] then [⊥] else [⊤]
 ];
 
 /**
@@ -349,7 +345,7 @@ Semantic restriction "map_through_" is
 	tupleType : tuple meta,
 	transformer : […]→any's type
 |
-	Require: transformer accepts tupleType;
+	Require: transformer accepts tupleType (check indices);
 	If ⎣tupleType⎦ > 0 then
 	[
 		If transformer's return type = ⊥ then
@@ -455,7 +451,7 @@ Semantic restriction "filter_by_" is
 	tupleType : tuple meta,
 	predicate : […]→boolean's type
 |
-	Require: predicate accepts tupleType;
+	Require: predicate accepts tupleType (check indices);
 	if predicate's return type = true's type then [tupleType]
 	else
 	[
@@ -589,16 +585,7 @@ Semantic restriction "map and filter_by_" is
 	tupleType : tuple meta,
 	accumulator : [⊥, ⊥]→⊤'s type
 |
-	union ::= ∪ tupleType[1..|tupleType's leading types| + 1];
-	If accumulator[1] ≠ ⊥ ∧ [ ¬union ⊆ accumulator[1] ] then
-	[
-		Reject parse, expected:
-			"repeatedly applied function to accept all elements of the tuple ⊆ "
-			++ “tupleType”
-			++ " (but it only accepts "
-			++ “accumulator[1]”
-			++ ")"
-	];
+	Require: accumulator accepts tupleType;
 	Require: accumulator's keeper is valid;
 	If accumulator's return type ≠ ⊤ then
 	[
@@ -625,27 +612,7 @@ Semantic restriction "map and filter_by_" is
 	tupleType : tuple meta,
 	accumulator : [⊥, ⊥, ⊥]→⊤'s type
 |
-	union ::= ∪ tupleType[1..|tupleType's leading types| + 1];
-	If accumulator[1] ≠ ⊥ ∧ [ ¬union ⊆ accumulator[1] ] then
-	[
-		Reject parse, expected:
-			"repeatedly applied function to accept all elements of the tuple ⊆ "
-			++ “tupleType”
-			++ " (but it only accepts "
-			++ “accumulator[1]”
-			++ ")"
-	];
-	If accumulator[2] ≠ ⊥
-		∧ [ ¬[1..⎡tupleType⎤ + 1) ⊆ accumulator[2] ]
-	then
-	[
-		Reject parse, expected:
-			"repeatedly applied function to accept all indices of the tuple ⊆ "
-			++ “tupleType”
-			++ " (but it only accepts "
-			++ “accumulator[2]”
-			++ ")"
-	];
+	Require: accumulator accepts tupleType (check indices);
 	Require: accumulator's keeper is valid;
 	If accumulator's return type ≠ ⊤ then
 	[
@@ -737,7 +704,7 @@ Semantic restriction "any of_satisfies_" is
 	tupleType : tuple meta,
 	predicate : […]→boolean's type
 |
-	Require: predicate accepts tupleType;
+	Require: predicate accepts tupleType (check indices);
 	predicate's return type
 ];
 
@@ -820,7 +787,7 @@ Semantic restriction "each of_satisfies_" is
 	tupleType : tuple meta,
 	predicate : […]→boolean's type
 |
-	Require: predicate accepts tupleType;
+	Require: predicate accepts tupleType (check indices);
 	predicate's return type
 ];
 
@@ -881,7 +848,7 @@ Semantic restriction "count of_where_" is
 	tupleType : tuple meta,
 	predicate : […]→boolean's type
 |
-	Require: predicate accepts tupleType;
+	Require: predicate accepts tupleType (check indices);
 	[0..⎡tupleType⎤ + 1)
 ];
 
@@ -1304,7 +1271,7 @@ Semantic restriction "first index of_where_" is
 	tupleType : tuple meta,
 	predicate : [⊥]→boolean's type
 |
-	Require: predicate accepts tupleType;
+	Require: predicate accepts tupleType (check indices);
 	[0..⎡tupleType⎤ + 1)
 ];
 
@@ -1351,7 +1318,7 @@ Semantic restriction "last index of_where_" is
 	tupleType : tuple meta,
 	predicate : [⊥]→boolean's type
 |
-	Require: predicate accepts tupleType;
+	Require: predicate accepts tupleType (check indices);
 	[0..⎡tupleType⎤ + 1)
 ];
 	
@@ -1399,7 +1366,7 @@ Semantic restriction "all indices of_where_" is
 	tupleType : tuple meta,
 	predicateType : [⊥]→boolean's type
 |
-	Require: predicateType accepts tupleType;
+	Require: predicateType accepts tupleType (check indices);
 	<natural number…|0..⎡tupleType⎤ + 1>
 ];
 
@@ -2020,7 +1987,7 @@ Semantic restriction "split_before_" is
 	tupleType : tuple meta,
 	predicate : [⊥]→boolean's type
 |
-	Require: predicate accepts tupleType;
+	Require: predicate accepts tupleType (check indices);
 	returnType ::= predicate's return type;
 	if ⎡tupleType⎤ = 0 then
 	[
@@ -2188,7 +2155,7 @@ Private method "take|drop-while|until semantic restriction" is
 		tupleType : tuple meta,
 		predicate : [⊥]→boolean's type
 	|
-		Require: predicate accepts tupleType;
+		Require: predicate accepts tupleType (check indices);
 		<∪ tupleType[1..|tupleType's leading types| + 1]…|0..⎡tupleType⎤>
 	]
 ];
