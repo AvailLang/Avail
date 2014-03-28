@@ -628,6 +628,26 @@ implements A_BasicObject
 	}
 
 	/**
+	 * Write an equivalent replacement object into an {@link ObjectSlotsEnum
+	 * object field} of this object.  Since the replacement is semantically
+	 * equivalent to the previous content, don't acquire a lock.  Any necessary
+	 * write barriers and other memory synchronizations are the responsibility
+	 * of the caller.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @param subscript The positive one-based subscript to apply.
+	 * @param anAvailObject The object to store unchecked in the slot.
+	 */
+	public final void writeBackSlot (
+		final ObjectSlotsEnum field,
+		final int subscript,
+		final AvailObject anAvailObject)
+	{
+		checkSlot(field);
+		objectSlots[field.ordinal() + subscript - 1] = anAvailObject;
+	}
+
+	/**
 	 * Reduce the number of int slots occupied by this object.  In a raw memory
 	 * model we would split the object representation into two objects, one
 	 * at the original address, and a separate filler object occupying the int

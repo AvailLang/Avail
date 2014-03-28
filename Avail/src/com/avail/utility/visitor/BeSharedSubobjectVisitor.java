@@ -32,7 +32,6 @@
 
 package com.avail.utility.visitor;
 
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 
 /**
@@ -57,10 +56,9 @@ extends AvailSubobjectVisitor
 	}
 
 	@Override
-	public void invoke (
-		final A_BasicObject parentObject,
+	public AvailObject invoke (
 		final AvailObject childObject)
 	{
-		childObject.makeShared();
+		return childObject.makeShared();
 	}
 }

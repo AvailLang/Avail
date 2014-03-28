@@ -925,7 +925,10 @@ public final class Interpreter
 				"attempt {0}",
 				primitive.name());
 		}
-		fiber().recordLatestPrimitive((short)primitiveNumber);
+		if (FiberDescriptor.debugFibers)
+		{
+			fiber().recordLatestPrimitive((short)primitiveNumber);
+		}
 		latestResult = null;
 		primitiveFunctionBeingAttempted = function;
 		assert current() == this;

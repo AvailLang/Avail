@@ -650,7 +650,7 @@ extends Descriptor
 		final A_Tuple literals,
 		final A_Tuple localTypes,
 		final A_Tuple outerTypes,
-		final A_BasicObject module,
+		final A_Module module,
 		final int lineNumber)
 	{
 		if (primitive != 0)

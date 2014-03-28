@@ -163,7 +163,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailSubobjectVisitor visitor)
 	{
-		visitor.invoke(object, object.slot(INDIRECTION_TARGET));
+		visitor.invoke(object.slot(INDIRECTION_TARGET));
 	}
 
 	@Override
@@ -183,7 +183,7 @@ extends AbstractDescriptor
 		if (!isShared())
 		{
 			object.descriptor = shared;
-			return object.slot(INDIRECTION_TARGET).traversed().makeShared();
+			return object.slot(INDIRECTION_TARGET).makeShared();
 		}
 		return object.slot(INDIRECTION_TARGET);
 	}

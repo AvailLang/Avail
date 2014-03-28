@@ -873,7 +873,8 @@ public enum SerializerOperation
 		{
 			final AvailObject atomName = subobjects[0];
 			final AvailObject moduleName = subobjects[1];
-			return lookupAtom(atomName, moduleName, deserializer);
+			final A_Atom atom = lookupAtom(atomName, moduleName, deserializer);
+			return atom.makeShared();
 		}
 	},
 
@@ -2471,8 +2472,8 @@ public enum SerializerOperation
 	 * @return
 	 */
 	A_Atom lookupAtom (
-		final AvailObject atomName,
-		final AvailObject moduleName,
+		final A_String atomName,
+		final A_String moduleName,
 		final Deserializer deserializer)
 	{
 		final A_Module currentModule = deserializer.currentModule();
@@ -2487,7 +2488,8 @@ public enum SerializerOperation
 			{
 				return trueNames.asTuple().tupleAt(1);
 			}
-			final A_Atom atom = AtomDescriptor.create(atomName, currentModule);
+			final A_Atom atom = AtomWithPropertiesDescriptor.create(
+				atomName, currentModule);
 			atom.makeImmutable();
 			currentModule.addPrivateName(atom);
 			return atom;
@@ -2519,7 +2521,7 @@ public enum SerializerOperation
 		// This should probably fail more gracefully.
 		throw new RuntimeException(
 			String.format(
-				"Unknown atom \"%s\" in module %s",
+				"Unknown atom %s in module %s",
 				atomName,
 				module));
 	}

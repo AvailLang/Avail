@@ -329,9 +329,10 @@ extends AbstractTypeDescriptor
 				final String name = spec == TOP
 					? "⊤"
 					: spec.name().toLowerCase().replace('_', ' ');
-				final AvailObject o = spec.descriptor.createPrimitiveObjectNamed(
-					name,
-					spec.ordinal());
+				final AvailObject o =
+					spec.descriptor.createPrimitiveObjectNamed(
+						name,
+						spec.ordinal());
 				spec.set_o(o);
 			}
 			// Connect and name the objects.

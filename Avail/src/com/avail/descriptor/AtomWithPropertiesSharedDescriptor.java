@@ -107,9 +107,9 @@ extends AtomWithPropertiesDescriptor
 		ISSUING_MODULE,
 
 		/**
-		 * A map from this atom's property keys (atoms) to property values.
+		 * A weak map from this atom's property keys (atoms) to property values.
 		 */
-		PROPERTY_MAP;
+		PROPERTY_MAP_POJO;
 
 		static
 		{
@@ -117,6 +117,9 @@ extends AtomWithPropertiesDescriptor
 				== NAME.ordinal();
 			assert AtomDescriptor.ObjectSlots.ISSUING_MODULE.ordinal()
 				== ISSUING_MODULE.ordinal();
+			assert AtomWithPropertiesDescriptor.ObjectSlots
+				.PROPERTY_MAP_POJO.ordinal()
+					== PROPERTY_MAP_POJO.ordinal();
 		}
 	}
 

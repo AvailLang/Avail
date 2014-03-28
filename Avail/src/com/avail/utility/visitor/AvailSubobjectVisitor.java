@@ -32,11 +32,10 @@
 
 package com.avail.utility.visitor;
 
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 
 /**
- * I provide an {@link #invoke(A_BasicObject, AvailObject)} operation which
+ * I provide an {@link #invoke(AvailObject)} operation which
  * supports the ability to visit the object fields of AvailObjects.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -47,10 +46,11 @@ public abstract class AvailSubobjectVisitor
 	 * This is a visitor call from a subobject iterator running on some object.
 	 * The subobject has already been extracted from the parent.
 	 *
-	 * @param parentObject The object whose field we are visiting.
-	 * @param childObject An object referred to by the {@code parentObject}.
+	 * @param childObject
+	 *        An object referred to by the {@code parentObject}.
+	 * @return A replacement object for the childObject.  Subclasses may use
+	 *         this to eliminate indirections, or for other purposes.
 	 */
-	public abstract void invoke (
-		final A_BasicObject parentObject,
+	public abstract AvailObject invoke (
 		final AvailObject childObject);
 }

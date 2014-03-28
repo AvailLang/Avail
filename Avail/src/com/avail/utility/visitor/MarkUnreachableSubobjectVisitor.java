@@ -65,23 +65,23 @@ extends AvailSubobjectVisitor
 	}
 
 	@Override
-	public void invoke (
-		final A_BasicObject parentObject,
+	public AvailObject invoke (
 		final AvailObject childObject)
 	{
 		if (!childObject.descriptor().isMutable())
 		{
-			return;
+			return childObject;
 		}
 		if (childObject.sameAddressAs(exclusion))
 		{
 			// The excluded object was reached.
-			return;
+			return childObject;
 		}
 		// Recursively invoke the iterator on the subobjects of subobject...
 		childObject.scanSubobjects(this);
 		// Indicate the object is no longer valid and should not ever be used
 		// again.
 		childObject.destroy();
+		return childObject;
 	}
 }
