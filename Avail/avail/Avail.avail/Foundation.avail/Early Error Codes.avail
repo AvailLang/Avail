@@ -100,7 +100,8 @@ Private method "Next error code is_(_)" is
 	Publish new name: name;
 ];
 
-Invoke [
+Invoke
+[
 	numberedCodes ::= <
 		<1, "cannot-add-unlike-infinities">,
 		<2, "cannot-subtract-like-infinities">,

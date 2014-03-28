@@ -37,6 +37,8 @@ Uses
 	"Foundation"
 Names
 	/* Tools. */
+	"Fail test",
+	"Fail test:_",
 	"Require:_",
 	"Require:_(_)",
 	"Require:_=_",
@@ -49,14 +51,51 @@ Names
 	"Require if supported«on this platform»⁇:_raises_(_)",
 
 	/* Exceptions. */
+	"explicit-failed-test exception",
 	"failed-requirement exception"
 Body
 
 /**
+ * An exception that indicates that an explicit unit test failure.
+ *
+ * @type "explicit-failed-test exception"
+ * @supertype "exception"
+ */
+Public explicit class "explicit-failed-test exception" extends exception;
+
+/**
+ * Fail the currently running unit test.
+ *
+ * @method "Fail test"
+ * @returns "⊥"
+ * @raises "explicit-failed-test exception"
+ *          Always.
+ */
+Public method "Fail test" is [Raise a explicit-failed-test exception] : ⊥;
+
+/**
+ * Fail the currently running unit test.
+ *
+ * @method "Fail test:_"
+ * @param "message" "string"
+ *        A detail message that describes the failure.
+ * @returns "⊥"
+ * @raises "descriptive explicit-failed-test exception"
+ *          Always.
+ */
+Public method "Fail test:_" is
+[
+	message : string
+|
+	Raise a descriptive explicit-failed-test exception with
+		error message ::= message
+] : ⊥;
+
+/**
  * An exception that indicates that a unit test requirement failed.
- * 
+ *
  * @type "failed-requirement exception"
- * @supertype "unit-test exception"
+ * @supertype "exception"
  */
 Public explicit class "failed-requirement exception" extends exception;
 

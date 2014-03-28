@@ -67,6 +67,8 @@ Extends
 	"Tools" =
 	(
 		/* Tools. */
+		"Fail test",
+		"Fail test:_",
 		"Require:_",
 		"Require:_(_)",
 		"Require:_=_",
@@ -79,6 +81,7 @@ Extends
 		"Require if supported«on this platform»⁇:_raises_(_)",
 
 		/* Exceptions. */
+		"explicit-failed-test exception",
 		"failed-requirement exception"
 	),
 	"Types" =
