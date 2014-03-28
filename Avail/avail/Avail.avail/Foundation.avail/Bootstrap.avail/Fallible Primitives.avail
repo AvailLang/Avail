@@ -86,6 +86,7 @@ Uses
 		"_«[_]»→_",
 		"_×_",
 		"_÷_",
+		"_→function",
 		"_∈_",
 		"_∈current fiber",
 		"`|message_'s⁇parameters`|",
@@ -103,7 +104,6 @@ Uses
 		"current module",
 		"eject_",
 		"function from_and_",
-		"generate_",
 		"in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
 		"invoke_with_,⁇forked at priority_",
 		"message_contains groups",
@@ -1430,7 +1430,7 @@ Primitive "`«[_`|Primitive__]:_^_`»" is
  * Returns:
  *    The requested function.
  */
-Primitive "generate_" is
+Primitive "_→function" is
 [
 	aBlock : block phrase
 |

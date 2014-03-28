@@ -539,7 +539,7 @@ Public method "_has symbol_" is
 	symbol : nonempty string
 |
 	/* Generate a factory method. */
-	Method symbol is generate «[ <> | <‘`aUnit` ("")’> ] : aUnit's type»;
+	Method symbol is «[ <> | <‘`aUnit` ("")’> ] : aUnit's type»→function;
 	/* Set the preferred print representation. */
 	Unless aUnit ∈ symbolsByUnit then
 	[
@@ -2221,7 +2221,7 @@ Private method "function for scaling from_to_by_using_" is
 		: qB;
 	/* Construct and answer the requested function. */
 	newBlock ::= «[ args | <juxtapositionSend> ] : dimensioned quantity»;
-	cast generate newBlock into [t : unit conversion function | t]
+	cast newBlock→function into [t : unit conversion function | t]
 ] : unit conversion function;
 
 /**

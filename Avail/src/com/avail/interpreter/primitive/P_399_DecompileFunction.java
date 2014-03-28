@@ -1,5 +1,5 @@
-/*
- * Availuator.avail
+/**
+ * P_399_DecompileFunction.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,56 +30,49 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Availuator"
-Versions
-	"dev"
-Extends
-	"Convenient ASCII"
-Entries
-	"`!_",
-	"Run_"
-Body
+package com.avail.interpreter.primitive;
+
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
+import com.avail.interpreter.levelOne.L1Decompiler;
 
 /**
- * A simple Avail expression evaluator ("Availuator") that lets the Avail
- * compiler do all of the heavy lifting. Just answer the argument.
+ * <strong>Primitive 399</strong>: Answer a {@linkplain BlockNodeDescriptor
+ * phrase} that represents the decompiled {@linkplain FunctionDescriptor
+ * function}.
  *
- * @method "`!_"
- * @param "x" "any"
- *        An arbitrary value.
- * @returns "any"
- *          The argument.
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-Method "`!_" is [x : any | x];
+public final class P_399_DecompileFunction
+extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class. Accessed through reflection.
+	 */
+	public final static Primitive instance =
+		new P_399_DecompileFunction().init(1, CanInline, CanFold, CannotFail);
 
-/* Just in case the library ever wants to export its own "`!_", have the
- * Avail expression evaluator forbid a recursive send of itself.
- */
-Grammatical restriction "`!_" is <{"`!_"}>;
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
+	{
+		assert args.size() == 1;
+		final A_Function function = args.get(0);
+		final A_Phrase decompiled = L1Decompiler.parse(function);
+		return interpreter.primitiveSuccess(decompiled);
+	}
 
-/**
- * Invoke the supplied {@type "function"} for its side effects.
- *
- * @method "Run_"
- * @param "f" "[]→⊤"
- *        An arbitrary arity-0 {@type "function"}.
- * @returns "⊤"
- */
-Method "Run_" is [f : []→⊤ | f();] : ⊤;
-
-/**
- * Forbid the supplied {@type "function"} from producing a value.
- *
- * @method "Run_"
- * @restricts "[]→⊤'s type"
- */
-Semantic restriction "Run_" is
-[
-	f : []→⊤'s type
-|
-	If f's return type ≠ ⊤ then
-	[
-		Reject parse, expected: "function not to produce a value"
-	];
-	⊤
-];
+	@Override
+	protected A_Type privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				FunctionTypeDescriptor.mostGeneralType()),
+			BLOCK_NODE.mostGeneralType());
+	}
+}

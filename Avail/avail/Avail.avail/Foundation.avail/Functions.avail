@@ -139,7 +139,7 @@ Private method "_partially evaluate with_" is
 				>» : (originalType's return type)
 			>
 		] : originalType's return type»;
-	generate blockToReturn
+	blockToReturn→function
 ] : function;
 
 /**

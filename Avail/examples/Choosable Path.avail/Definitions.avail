@@ -195,7 +195,7 @@ is
 
 	contextType's name := contextTypeName;
 	Method contextTypeName is
-		generate «[ <‘`contextType`’> ] : contextType's type»;
+		«[ <‘`contextType`’> ] : contextType's type»→function;
 	Publish new name: contextTypeName;
 
 	/*
@@ -205,7 +205,7 @@ is
 	openingSceneVar ::= new ↑sceneType;
 	openingSceneAtom ::= atom for openingSceneName;
 	Method openingSceneAtom is
-		generate «[ <> | <‘`openingSceneVar`’> ] : ↑sceneType»;
+		«[ <> | <‘`openingSceneVar`’> ] : ↑sceneType»→function;
 	Publish new name: openingSceneName;
 
 	/*
@@ -265,7 +265,7 @@ is
 		++ mapUpdates
 		++ <convert>;
 	newBlock ::= «[ statements ] : contextType»;
-	newFunction ::= generate newBlock;
+	newFunction ::= newBlock→function;
 	Method contextConstructorName is newFunction;
 	Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
 		<{contextTypeName}, ∅, ∅>;
@@ -337,7 +337,7 @@ Private method "Install boolean accessors for_given_and_" is
 			«[
 				<send getAtom with «< getVar >» : boolean>
 			] : boolean»;
-		Method positive is generate positiveInterrogativeBlock;
+		Method positive is positiveInterrogativeBlock→function;
 		Publish new name: positive;
 
 		/* Generate and install the negative interrogative accessor. */
@@ -349,7 +349,7 @@ Private method "Install boolean accessors for_given_and_" is
 					send getAtom with «< getVar >» : boolean
 				>» : boolean >
 			] : boolean»;
-		Method negative is generate negativeInterrogativeBlock;
+		Method negative is negativeInterrogativeBlock→function;
 		Publish new name: negative;
 
 		/* Generate and install the positive mutator. */
@@ -358,7 +358,7 @@ Private method "Install boolean accessors for_given_and_" is
 			«[
 				<send putAtom with «< getVar, ‘`true`’ >» : ⊤>
 			] : ⊤»;
-		Method positiveSetter is generate positiveSetterBlock;
+		Method positiveSetter is positiveSetterBlock→function;
 		Publish new name: positiveSetter;
 
 		/* Generate and install the negative mutator. */
@@ -367,7 +367,7 @@ Private method "Install boolean accessors for_given_and_" is
 			«[
 				<send putAtom with «< getVar, ‘`false`’ >» : ⊤>
 			] : ⊤»;
-		Method negativeSetter is generate negativeSetterBlock;
+		Method negativeSetter is negativeSetterBlock→function;
 		Publish new name: negativeSetter;
 	];
 ];
@@ -405,7 +405,7 @@ Private method "Install non-boolean accessors for_given_and_" is
 				for fieldAtom;
 			accessorBlock ::=
 				«[ <send getAtom with «< getVar >» : stateType> ] : stateType»;
-			accessorFunction ::= generate accessorBlock;
+			accessorFunction ::= accessorBlock→function;
 			Method accessor is accessorFunction;
 			Publish new name: accessor;
 
@@ -418,7 +418,7 @@ Private method "Install non-boolean accessors for_given_and_" is
 				|
 					<send putAtom with «< getVar, «↓mutatorArg» >» : ⊤>
 				] : ⊤»;
-			mutatorFunction ::= generate mutatorBlock;
+			mutatorFunction ::= mutatorBlock→function;
 			Method mutator is mutatorFunction;
 			Publish new name: mutator;
 		];
@@ -463,14 +463,14 @@ Private method "Install the scene vault for_" is
 	 */
 	aMutex ::= a non-reentrant mutex;
 	sceneVaultLockBlock ::= «[ <> | <‘`aMutex`’> ] : non-reentrant mutex»;
-	Method sceneVaultLockName is generate sceneVaultLockBlock;
+	Method sceneVaultLockName is sceneVaultLockBlock→function;
 	Publish new name: sceneVaultLockName;
 
 	/* Generate the scene vault as a method that answers the variable that
 	 * contains the map from scenes to their internal names.
 	 */
 	sceneVaultBlock ::= «[ <> | <‘`sceneVault`’>] : ↑sceneVaultType»;
-	Method sceneVaultName is generate sceneVaultBlock;
+	Method sceneVaultName is sceneVaultBlock→function;
 	Publish new name: sceneVaultName;
 ];
 
@@ -765,12 +765,11 @@ Private method "dynamic game context type" is
 	 * answer the game context type dynamically.
 	 */
 	contextTypeFunction ::=
-		generate
 		«[
 			<>
 		|
 			<send atom for contextTypeName with «<>» : context's type>
-		] : context's type»;
+		] : context's type»→function;
 	contextType ::= contextTypeFunction();
 	contextType
 ] : context's type;
@@ -785,12 +784,11 @@ Private method "dynamic game context type" is
 Private method "dynamic scene vault lock" is
 [
 	sceneVaultFunction ::=
-		generate
 		«[
 			<>
 		|
 			<send atom for sceneVaultLockName with «<>» : non-reentrant mutex>
-		] : non-reentrant mutex»;
+		] : non-reentrant mutex»→function;
 	sceneVaultFunction()
 ] : non-reentrant mutex;
 
@@ -810,12 +808,11 @@ Private method "dynamic scene vault for_" is
 |
 	sceneVaultType ::= {↑sceneType→nonempty string|};
 	sceneVaultFunction ::=
-		generate
 		«[
 			<>
 		|
 			<send atom for sceneVaultName with «<>» : ↑sceneVaultType>
-		] : ↑sceneVaultType»;
+		] : ↑sceneVaultType»→function;
 	sceneVault ::= sceneVaultFunction();
 	sceneVault
 ] : variable;
@@ -857,7 +854,7 @@ Public method "Let«_‡,⁇and⁇»be a⁇scene|scenes" is
 		 * supplied.
 		 */
 		sceneVarBlock ::= «[ <> | <‘`sceneVar`’>] : ↑sceneType»;
-		Method name is generate sceneVarBlock;
+		Method name is sceneVarBlock→function;
 		Publish new name: name;
 	];
 	/* Commit all changes to the scene vault. */
@@ -965,7 +962,7 @@ Public method "Let_be a transition_" is
 	contextType ::= dynamic game context type;
 	transitionType ::= scene transition for contextType;
 	transitionBlock ::= «[<> | <‘`transition`’>] : transitionType»;
-	Method name is generate transitionBlock;
+	Method name is transitionBlock→function;
 	Publish new name: name;
 ] : ⊤;
 
@@ -1058,12 +1055,11 @@ Private method "unary wrapper on_" is
 |
 	returnType ::= nullary's type's return type;
 	contextType ::= dynamic game context type;
-	generate
 	«[
 		<arg «`"c"` : contextType»>
 	|
 		<send invokeAtom with «<‘`nullary`’, «<>»>» : returnType>
-	] : returnType»
+	] : returnType»→function
 ];
 
 Semantic restriction "unary wrapper on_" is
@@ -1089,7 +1085,6 @@ Private method "target wrapper on_" is
 |
 	contextType ::= dynamic game context type;
 	sceneType ::= scene for contextType;
-	generate
 	«[
 		<arg «`"c"` : contextType»>
 	|
@@ -1099,7 +1094,7 @@ Private method "target wrapper on_" is
 				send invokeAtom with «<‘`nullary`’, «<>»>» : ↑sceneType
 			>» : sceneType
 		>
-	] : sceneType»
+	] : sceneType»→function
 ];
 
 Semantic restriction "target wrapper on_" is
@@ -1281,8 +1276,8 @@ Private method "Generate scene transition constructors" is
 		 * At last, install the method and semantic restriction.
 		 */
 
-		Method name is generate methodBlock;
-		Semantic restriction name is generate restrictionBlock;
+		Method name is methodBlock→function;
+		Semantic restriction name is restrictionBlock→function;
 	];
 ];
 
@@ -1425,12 +1420,11 @@ Private method "dynamic opening scene variable for_" is
 |
 	openingSceneAtom ::= atom for openingSceneName;
 	openingSceneFunction ::=
-		generate
 		«[
 			<>
 		|
 			<send openingSceneAtom with «<>» : ↑sceneType>
-		] : ↑sceneType»;
+		] : ↑sceneType»→function;
 	openingSceneFunction()
 ] : variable;
 

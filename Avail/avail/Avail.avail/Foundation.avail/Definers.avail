@@ -53,8 +53,44 @@ Names
 	"Public variable_is_",
 	"Stable abstract method_is_",
 	"Stable forward method_is_",
-	"Stable method_is_"
+	"Stable method_is_",
+
+	/* This is a bootstrap method. It is exported for use by Exceptions, and
+	 * should not escape Foundation.
+	 */
+	"Set stability failure function to_"
 Body
+
+Private method "stable invoker"
+	is [function accepting <> and returning type];
+Private method "stable guard"
+	is [function accepting <stable invoker> and returning type];
+
+/**
+ * This is the {@type "function"} that wraps invocations of stable methods in
+ * generated semantic restrictions produced by {@method "Method_is stable at_"}.
+ * The boostrap version simply applies the argument, but once {@type
+ * "exception"}s are live, then another function is substituted that suppresses
+ * exceptions raised by stable methods at singularities. It's bad practice, in
+ * general, to swallow exceptions, but this is the least cumbersome approach to
+ * this particular issue.
+ *
+ * @global "failureFunction" "[[]→type]→type"
+ */
+failureFunction : stable guard :=
+	[f : function accepting <> and returning type | invoke f with <>];
+
+/**
+ * Set the {@global "failureFunction"} that wraps invocations of stable methods
+ * in semantic restrictions produced by {@method "Method_is stable at_"}. This
+ * is a bootstap method, and should not escape "Foundation".
+ *
+ * @method "Set stability failure function to_"
+ * @param "f" "[[]→type]→type"
+ *        The new wrapper {@type "function"}.
+ */
+Method "Set stability failure function to_"
+	is [f : stable guard | failureFunction := f; ];
 
 /**
  * Utility method for "Method_is stable at_".  Test whether the tuple of types
@@ -102,6 +138,8 @@ ifThenElseAtom ::= atom for "If|if_then_else_";
 instanceAtom ::= atom for "_'s⁇instance";
 typeAtom ::= atom for "_'s⁇type";
 areAllSingularAtom ::= atom for "«_‡,»are all singular";
+invokeAtom ::= atom for "Invoke|invoke_with_";
+readVarAtom ::= atom for "↓_";
 
 /**
  * Declare that the method referenced by {@param "methodName"} is stable for the 
@@ -138,53 +176,9 @@ Public method "Method_is stable at_" is
 	 *    |
 	 *        if <arg1, arg2, arg3> are all singular
 	 *        [
-	 *            (arg1's instance[arg2's instance]→arg3's instance)'s type
-	 *        ]
-	 *        else
-	 *        [
-	 *            ⊤
-	 *        ]
-	 *    ] : type;
-	 *
-	 * TODO: [TLS] Should the method name contain any lexical groups, then we
-	 * have to do something more complex:
-	 * 
-	 *    Semantic restriction "«_‡++»" is
-	 *    [
-	 *       arg1 : <tuple…|[2..∞)>'s type
-	 *    |
-	 *        /* counts is initialized to the instance counts of the arguments
-	 *         * that do not correspond to lexical groups. (In this case, there
-	 *         * aren't any, so use the empty set.)
-	 *         */
-	 *        counts : set := ∅;
-	 *        /* There will be one such loop for each argument that corresponds
-	 *         * to a lexical group.
-	 *         */
-	 *        From 1 to |arg1| do
-	 *        [
-	 *            index : natural number
-	 *        |
-	 *            counts := eject ↑counts + |arg1[index]|;
-	 *            true
-	 *        ];
-	 *        if counts = {1} then
-	 *        [
-	 *            /* There will be one such loop for each argument that
-	 *             * corresponds to a lexical group.
-	 *             */
-	 *            instances1 : tuple := <>;
-	 *            From 1 to |arg1| do
-	 *            [
-	 *                index : natural number
-	 *            |
-	 *                instances1 :=
-	 *                    eject ↑instances1 ++ <arg1[index]'s instance>;
-	 *                true;
-	 *            ];
-	 *            theMethod ::= method for atom for "«_‡++»";
-	 *            (Invoke implementation of theMethod for <arg1>
-	 *                with <instances1>)'s type
+	 *            invoke failureFunction with <[
+	 *                (arg1's instance[arg2's instance]→arg3's instance)'s type
+	 *            ]>
 	 *        ]
 	 *        else
 	 *        [
@@ -221,18 +215,27 @@ Public method "Method_is stable at_" is
 			into [t : <<>, send phrase⇒any…|whole number> | t];
 		true
 	];
+	/* Construct the predicate. */
 	instanceCheck ::=
 		send areAllSingularAtom
 		with «<argUses → list phrase>»
 		: boolean;
+	/* Construct the true block, i.e., the one that strengthens. */
 	answer ::= send methodName with instances → list phrase : any;
 	answerType ::= send typeAtom with «<answer>» : resultType;
-	answerTypeBlock ::= «[<answerType>] : resultType»;
+	answerBlock ::= «[<answerType>] : resultType»;
+	read ::= send readVarAtom with «<‘`↑failureFunction`’>» : function;
+	invoke ::= send invokeAtom with «<read, «<answerBlock>»>» : type;
+	answerTypeBlock ::= «[<invoke>] : type»;
+	/* Construct the false block, i.e., the one that doesn't strengthen. */
 	cantStrengthenBlock ::= «[<‘`⊤`’>] : ⊤'s type»;
+	/* Construct the branch. */
 	branch ::= send ifThenElseAtom
 		with «<instanceCheck, answerTypeBlock, cantStrengthenBlock>» : type;
+	/* Construct the function. */
 	restrictionBlock ::= «[argDecls | <branch>] : type»;
-	restrictionFunction ::= generate restrictionBlock;
+	restrictionFunction ::= restrictionBlock→function;
+	/* Install the semantic restriction. */
 	Semantic restriction methodName is restrictionFunction;
 ] : ⊤;
 

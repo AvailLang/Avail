@@ -472,7 +472,7 @@ Method "long“_”" is
 		name := “cause's type's names” (as list partitioned by " ∩ ");
 		message :=
 			cast e's causal exception
-			into [t : descriptive exception | t's error message]
+			into [t : descriptive exception | ": " ++ t's error message]
 			else [""];
 		trace :=
 			guard

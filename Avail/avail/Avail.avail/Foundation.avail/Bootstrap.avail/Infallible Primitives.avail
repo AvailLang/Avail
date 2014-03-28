@@ -138,6 +138,7 @@ Uses
 		"_is a primitive",
 		"_is unassigned",
 		"_reversed",
+		"_→block phrase",
 		"_→character",
 		"_→double",
 		"_→extended integer",
@@ -2999,6 +3000,22 @@ Primitive "_'s⁇value type" is
 |
 	Primitive 398;
 ] : any meta;
+
+/**
+ * Compute and answer a block phrase that represents the decompilation of the
+ * specified function. Outer variables are treated as literals.
+ *
+ * Parameters:
+ *    aFunction - A function.
+ * Returns:
+ *    A block phrase.
+ */
+Primitive "_→block phrase" is
+[
+	aFunction : function
+|
+	Primitive 399;
+] : block phrase;
 
 /**
  * Construct and answer a pojo array type whose element type is `elementType`

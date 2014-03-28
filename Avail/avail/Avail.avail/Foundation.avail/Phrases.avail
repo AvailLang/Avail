@@ -306,10 +306,10 @@ Semantic restriction "_'s⁇semantic type" is
  * The function type of a function generated from a block is the same as the
  * block's semantic type.
  * 
- * @method "generate_"
+ * @method "_→function"
  * @restricts "block phrase's type"
  */
-Semantic restriction "generate_" is
+Semantic restriction "_→function" is
 [
 	blockType : block phrase's type
 |
