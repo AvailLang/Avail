@@ -2169,7 +2169,7 @@ public final class AvailBuilder
 		{
 			try
 			{
-				generator.generate(target);
+				generator.generate(runtime, target);
 			}
 			catch (final IllegalArgumentException e)
 			{

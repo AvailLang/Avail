@@ -39,6 +39,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
+import com.avail.AvailRuntime;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleNameResolver;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
@@ -168,11 +169,15 @@ public class StacksGenerator
 	/**
 	 * Generate complete Stacks documentation.
 	 *
+	 * @param runtime
+	 *        An {@linkplain AvailRuntime runtime}.
 	 * @param outermostModule
 	 *        The outermost {@linkplain ModuleDescriptor module} for the
 	 *        generation request.
 	 */
-	public synchronized void generate (final ModuleName outermostModule)
+	public synchronized void generate (
+		final AvailRuntime runtime,
+		final ModuleName outermostModule)
 	{
 		System.out.println("Generating Documentation…");
 
