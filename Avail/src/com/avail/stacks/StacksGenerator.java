@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -48,6 +47,7 @@ import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.TupleDescriptor;
+import com.avail.utility.IO;
 
 /**
  * An Avail documentation generator.  It takes tokenized method/class comments
@@ -117,9 +117,7 @@ public class StacksGenerator
 
 		this.logPath = outputPath
 			.resolve("logs");
-		this.errorLog = new StacksErrorLog(
-			logPath,
-			new StacksSynchronizer(1));
+		this.errorLog = new StacksErrorLog(logPath);
 
 		this.providedDocumentPath = outputPath
 			.resolve("library documentation");
@@ -176,10 +174,7 @@ public class StacksGenerator
 	 */
 	public synchronized void generate (final ModuleName outermostModule)
 	{
-		/*final A_String targetModule =
-			StringDescriptor.from(outermostModule.qualifiedName());*/
-
-		System.out.println("In generate()");
+		System.out.println("Generating Documentation…");
 
 		final ByteBuffer closeHTML = ByteBuffer.wrap(String.format(
 			"</ol>\n<h4>Error Count: %d</h4>\n</body>\n</html>"
@@ -188,83 +183,21 @@ public class StacksGenerator
 
 		errorLog.addLogEntry(closeHTML,0);
 
-/*		final StringBuilder stringBuilder = new StringBuilder();
-		for (final Entry<A_String, A_Set> entry :
-			moduleToExportedMethodsMap.entrySet())
-		{
-			stringBuilder.append("<h3>").append(entry.getKey().toString())
-				.append("</h3>\n");
+		final StacksCommentsModule outerMost = moduleToComments
+			.get(outermostModule.qualifiedName());
 
-		    final A_Tuple value = entry.getValue().asTuple();
-			if (value.tupleSize() == 0)
-			{
-				//Do nothing
-			}
-			else
-			{
-				stringBuilder.append("<ol>\n");
-				for (int i = 1, limit = value.tupleSize(); i <= limit; i++)
-				{
-					stringBuilder.append("<li>");
-					stringBuilder.append(value.tupleAt(i).asNativeString());
-					stringBuilder.append("</li>\n");
-				}
-				stringBuilder.append("</ol>\n");
-			}
-		}
+		final StacksSynchronizer synchronizer =
+			new StacksSynchronizer(
+				outerMost.calculateFinalImplementationGroupsMap());
 
-		final StringBuilder stringBuilderImplementations = new StringBuilder();
-		for (final Entry<A_String, StacksCommentsModule> entry :
-			moduleToComments.entrySet())
-		{
-			stringBuilderImplementations.append("<h3>")
-				.append(entry.getKey().toString())
-				.append("</h3>\n")
-				.append(entry.getValue().toString());
-		}*/
-
-		/*final StacksOutputFile myMapFile = new StacksOutputFile(
-			logPath,
-			"Source Path Extends List.html",
-			("<!DOCTYPE html>\n<head><meta charset=\"UTF-8\"><style>h3 "
-				+ "{text-decoration:underline;}\n "
-				+ "strong, em {color:blue;}</style>\n"
-				+ "</head>\n<body>\n"
-				+ moduleToComments
-					.get(outermostModule.qualifiedName()).toString()
-				+ "</body>\n</html>"));*/
-
-/*		final StacksOutputFile myMethodsFile = new StacksOutputFile(
-			logPath,
-			"Methods Map.html",
-			("<!DOCTYPE html>\n<head><style>h3 "
-				+ "{text-decoration:underline;}\n "
-				+ "strong, em {color:blue;}</style>\n"
-				+ "</head>\n<body>\n" + stringBuilderImplementations.toString()
-				+ "</body>\n</html>"));*/
+		IO.close(errorLog.file());
 
 		moduleToComments
 			.get(outermostModule.qualifiedName())
-				.writeMethodsToHTMLFiles(providedDocumentPath);
+				.writeMethodsToHTMLFiles(providedDocumentPath,synchronizer);
 
-		try
-		{
-			//do nothing
-		}
-		finally
-		{
-			try
-			{
-				errorLog.file().close();
-				/*myMapFile.file().close();*/
-				/*myMethodsFile.file().close();*/
-			}
-			catch (final IOException e)
-			{
-				// TODO [RAA] Remove in favor of other convention
-				e.printStackTrace();
-			}
-		}
+		synchronizer.waitForWorkUnitsToComplete();
+
 		clear();
 
 	}

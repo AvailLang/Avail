@@ -109,6 +109,11 @@ public class StacksCommentsModule
 	}
 
 	/**
+	 *
+	 */
+	private HashMap<String,ImplementationGroup> finalImplementationsGroupMap;
+
+	/**
 	 * A map keyed by a method name with no path to the qualified module
 	 * path it is originally named from.  This list includes all the methods
 	 * from the {@linkplain StacksExtendsModule modules} extended by this
@@ -375,13 +380,13 @@ public class StacksCommentsModule
 	}
 
 	/**
-	 * Acquire all distinct implementations being extended by this module.
+	 * Acquire all distinct implementations being directly exported or extended
+	 * by this module and populate finalImplementationsGroupMap.
 	 * @return
-	 * 		A map keyed by qualified implementation name to {@linkplain
-	 * 		ImplementationGroup}
+	 * 		The size of the map
 	 */
-	public HashMap<String,ImplementationGroup>
-		obtainExtendsImplementationGroups()
+	public int
+		calculateFinalImplementationGroupsMap()
 	{
 		final HashMap<String,ImplementationGroup> newMap =
 			new HashMap<String,ImplementationGroup>();
@@ -391,8 +396,16 @@ public class StacksCommentsModule
 		{
 			newMap.putAll(extendsModule.flattenImplementationGroups());
 		}
+		for (final A_String key : namedPublicCommentImplementations.keySet())
+		{
+			final String qualifiedMethodName = moduleName + "/"
+				+ key.asNativeString();
+			newMap.put(qualifiedMethodName,
+				namedPublicCommentImplementations.get(key));
+		}
 
-		return newMap;
+		finalImplementationsGroupMap = newMap;
+		return newMap.size();
 	}
 
 	/**
@@ -401,11 +414,13 @@ public class StacksCommentsModule
 	 * 		The {@linkplain Path path} to the output {@linkplain
 	 *        BasicFileAttributes#isDirectory() directory} for documentation and
 	 *        data files.
+	 * @param synchronizer
+	 *		The {@linkplain StacksSynchronizer} used to control the creation
+	 * 		of Stacks documentation
 	 */
-	public void writeMethodsToHTMLFiles(final Path outputPath)
+	public void writeMethodsToHTMLFiles(final Path outputPath,
+		final StacksSynchronizer synchronizer)
 	{
-		final HashMap<String,ImplementationGroup> implementationMap =
-			obtainExtendsImplementationGroups();
 
 		final String htmlOpenContent = "<!DOCTYPE html><head><link "
 			+ "href=\"doclib.css\" rel=\"stylesheet\" />"
@@ -413,28 +428,12 @@ public class StacksCommentsModule
 
 		final String htmlCloseContent = "</body></html>";
 
-		final StacksSynchronizer extendsSynchronizer =
-			new StacksSynchronizer(implementationMap.size());
-
 		for (final String implementationName :
-			implementationMap.keySet())
+			finalImplementationsGroupMap.keySet())
 		{
-			implementationMap.get(implementationName)
+			finalImplementationsGroupMap.get(implementationName)
 				.toHTML(outputPath, implementationName,
-					htmlOpenContent, htmlCloseContent, extendsSynchronizer);
-		}
-
-		final StacksSynchronizer publicSynchronizer =
-			new StacksSynchronizer(namedPublicCommentImplementations.size());
-
-		for (final A_String key : namedPublicCommentImplementations.keySet())
-		{
-			final String qualifiedMethodName = moduleName + "/"
-				+ key.asNativeString();
-
-			namedPublicCommentImplementations.get(key)
-				.toHTML(outputPath, qualifiedMethodName, htmlOpenContent,
-					htmlCloseContent,publicSynchronizer);
+					htmlOpenContent, htmlCloseContent, synchronizer);
 		}
 	}
 
@@ -453,7 +452,7 @@ public class StacksCommentsModule
 		stringBuilder.append("</ol><h3>Extends</h3><ol>");
 
 		for (final String implementationName :
-			obtainExtendsImplementationGroups().keySet())
+			finalImplementationsGroupMap.keySet())
 		{
 			stringBuilder.append("<li>").append(implementationName)
 				.append("</li>");

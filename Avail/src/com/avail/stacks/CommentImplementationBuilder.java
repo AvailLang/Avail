@@ -109,6 +109,21 @@ public class CommentImplementationBuilder
 	private StacksDescription description;
 
 	/**
+	 * Get the {@linkplain StacksDescription description}, if it is null, create
+	 * an empty one.
+	 * @return
+	 */
+	private StacksDescription description()
+	{
+		if (description == null)
+		{
+			description =
+				new StacksDescription(new ArrayList<AbstractStacksToken>());
+		}
+		return description;
+	}
+
+	/**
 	 * @param list
 	 * @throws ClassCastException
 	 */
@@ -873,7 +888,7 @@ public class CommentImplementationBuilder
 						orderedInputTypes);
 
 				return new SemanticRestrictionCommentImplementation(signature,
-					commentStartLine (), authors, sees, description,
+					commentStartLine (), authors, sees, description(),
 					categories, restricts,returns);
 			}
 

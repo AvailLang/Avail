@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -340,26 +339,9 @@ public class ImplementationGroup
 		final String hashedFileName = String.valueOf(name.hash()) + ".html";
 
 		final StacksOutputFile htmlFile = new StacksOutputFile(
-			outputPath.resolve(localPath), synchronizer, hashedFileName,
-			stringBuilder.append(htmlCloseContent).toString());
+			outputPath.resolve(localPath), synchronizer, hashedFileName);
 
-
-		try
-		{
-			//do nothing
-		}
-		finally
-		{
-			try
-			{
-				htmlFile.file().close();
-			}
-			catch (final IOException e)
-			{
-				// TODO [RAA] Remove in favor of other convention
-				e.printStackTrace();
-			}
-		}
+		htmlFile.write(stringBuilder.append(htmlCloseContent).toString());
 	}
 
 }

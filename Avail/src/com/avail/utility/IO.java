@@ -59,7 +59,7 @@ public final class IO
 	 *        see {@link #closeIfNotNull(AutoCloseable) closeIfNotNull} to
 	 *        handle that case.
 	 */
-	static void close (final AutoCloseable closeable)
+	public static void close (final AutoCloseable closeable)
 	{
 		try
 		{
@@ -80,7 +80,7 @@ public final class IO
 	 * @param closeable
 	 *        A closeable resource, or {@code null}.
 	 */
-	static void closeIfNotNull (final @Nullable AutoCloseable closeable)
+	public static void closeIfNotNull (final @Nullable AutoCloseable closeable)
 	{
 		if (closeable != null)
 		{

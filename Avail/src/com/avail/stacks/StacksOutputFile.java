@@ -44,6 +44,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
+import com.avail.utility.IO;
 import com.avail.utility.Mutable;
 
 /**
@@ -51,8 +52,21 @@ import com.avail.utility.Mutable;
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksOutputFile extends AbstractStacksOutputFile
+public class StacksOutputFile
 {
+	/**
+	 * The {@linkplain Path path} to the output {@linkplain
+	 * BasicFileAttributes#isDirectory() directory} for documentation and
+	 * data files.
+	 */
+	final Path outputPath;
+
+	/**
+	 * The {@linkplain StacksSynchronizer} used to control the creation
+	 * of Stacks documentation.
+	 */
+	final StacksSynchronizer synchronizer;
+
 	/**
 	 * The error log file for the malformed comments.
 	 */
@@ -92,7 +106,7 @@ public class StacksOutputFile extends AbstractStacksOutputFile
 					}
 					else
 					{
-
+						IO.close(outputFile);
 						synchronizer.decrementWorkCounter();
 					}
 				}
@@ -101,6 +115,7 @@ public class StacksOutputFile extends AbstractStacksOutputFile
 				public void failed (final Throwable exc, final Void unused)
 				{
 					// Log something?
+					IO.close(outputFile);
 					synchronizer.decrementWorkCounter();
 				}
 			});
@@ -115,17 +130,15 @@ public class StacksOutputFile extends AbstractStacksOutputFile
 	 *        data files.
 	 * @param fileName
 	 * 		The name of the new file
-	 * @param outputText
-	 * 		The text to be written to the file.
 	 * @param synchronizer
 	 * 		The {@linkplain StacksSynchronizer} used to control the creation
 	 * 		of Stacks documentation
 	 */
 	public StacksOutputFile (final Path outputPath,
-		final StacksSynchronizer synchronizer, final String fileName,
-		final String outputText)
+		final StacksSynchronizer synchronizer, final String fileName)
 	{
-		super(outputPath, synchronizer);
+		this.outputPath = outputPath;
+		this.synchronizer = synchronizer;
 
 		final Path filePath = outputPath.resolve(fileName);
 		try
