@@ -36,7 +36,8 @@ Versions
 Extends
 	"Convenient ASCII"
 Entries
-	"`!_"
+	"`!_",
+	"Run_"
 Body
 
 /**
@@ -55,3 +56,30 @@ Method "`!_" is [x : any | x];
  * Avail expression evaluator forbid a recursive send of itself.
  */
 Grammatical restriction "`!_" is <{"`!_"}>;
+
+/**
+ * Invoke the supplied {@type "function"} for its side effects.
+ *
+ * @method "Run_"
+ * @param "f" "[]→⊤"
+ *        An arbitrary arity-0 {@type "function"}.
+ * @returns "⊤"
+ */
+Method "Run_" is [f : []→⊤ | f();] : ⊤;
+
+/**
+ * Forbid the supplied {@type "function"} from producing a value.
+ *
+ * @method "Run_"
+ * @restricts "[]→⊤'s type"
+ */
+Semantic restriction "Run_" is
+[
+	f : []→⊤'s type
+|
+	If f's return type ≠ ⊤ then
+	[
+		Reject parse, expected: "function not to produce a value"
+	];
+	⊤
+];
