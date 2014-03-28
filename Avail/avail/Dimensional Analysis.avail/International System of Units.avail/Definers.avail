@@ -128,7 +128,7 @@ Private method "SI scaling function for_" is
 		: quantityType;
 	/* Construct and answer the requested function. */
 	newBlock ::= «[ args | <juxtapositionSend> ] : dimensioned quantity»;
-	cast generate newBlock into [t : unit conversion function | t]
+	cast newBlock→function into [t : unit conversion function | t]
 ] : unit conversion function;
 
 conversionAtom ::= $"_converted to_";
@@ -164,7 +164,7 @@ Public method "_(_)is an SI base unit" is
 			aUnit ::= a unitType with
 				unit map ::= def,
 				scale factor ::= prefix[3];
-			impl ::= generate «[ <> | <‘`aUnit` ("")’> ] : aUnit's type»;
+			impl ::= «[ <> | <‘`aUnit` ("")’> ] : aUnit's type»→function;
 			Method longName is impl;
 			publicNames ::= current module's public names;
 			Unless longName ∈ publicNames then [Publish new name: longName;];
@@ -226,7 +226,7 @@ Public method "_(_)is an SI derived unit equivalent to_" is
 			aUnit ::= a unitType with
 				unit map ::= def,
 				scale factor ::= baseScaleFactor + prefix[3];
-			impl ::= generate «[ <> | <‘`aUnit` ("")’> ] : aUnit's type»;
+			impl ::= «[ <> | <‘`aUnit` ("")’> ] : aUnit's type»→function;
 			Method longName is impl;
 			publicNames ::= current module's public names;
 			Unless longName ∈ publicNames then [Publish new name: longName;];
@@ -301,7 +301,7 @@ Private method "function for scaling from_to_by_using_" is
 		: qB;
 	/* Construct and answer the requested function. */
 	newBlock ::= «[ args | <juxtapositionSend> ] : dimensioned quantity»;
-	cast generate newBlock into [t : unit conversion function | t]
+	cast newBlock→function into [t : unit conversion function | t]
 ] : unit conversion function;
 
 /**
@@ -351,7 +351,7 @@ Private method "function for scaling from_to_by_using_" is
 		: qB;
 	/* Construct and answer the requested function. */
 	newBlock ::= «[ args | <juxtapositionSend> ] : dimensioned quantity»;
-	cast generate newBlock into [t : unit conversion function | t]
+	cast newBlock→function into [t : unit conversion function | t]
 ] : unit conversion function;
 
 /**

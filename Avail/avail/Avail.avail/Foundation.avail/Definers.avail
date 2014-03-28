@@ -234,7 +234,7 @@ Public method "Method_is stable at_" is
 		with «<instanceCheck, answerTypeBlock, cantStrengthenBlock>» : type;
 	/* Construct the function. */
 	restrictionBlock ::= «[argDecls | <branch>] : type»;
-	restrictionFunction ::= generate restrictionBlock;
+	restrictionFunction ::= restrictionBlock→function;
 	/* Install the semantic restriction. */
 	Semantic restriction methodName is restrictionFunction;
 ] : ⊤;

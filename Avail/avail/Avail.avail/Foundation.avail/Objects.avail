@@ -463,7 +463,7 @@ Private method "generate_field accessor for_:_(mutable=_)" is
 			send getAtom with «<getFieldSend>» : resultType
 		];
 	newBlock ::= «[args | <last>] : resultType»;
-	generate newBlock
+	newBlock→function
 ];
 
 /**
@@ -499,7 +499,7 @@ Private method "generate_field accessor restriction for_:_(mutable=_)" is
 		unless mutable then [getFieldTypeSend]
 		else [send readTypeAtom with «<getFieldTypeSend>» : resultType];
 	newBlock ::= «[args | <last>] : resultType»;
-	generate newBlock
+	newBlock→function
 ];
 
 /**
@@ -711,7 +711,7 @@ Private method "Generate and install_mutator for mutable_" is
 			with «<objectPhrase, ‘`fieldAtom`’>» : varType;
 		putSend ::= send putAtom with «<getFieldSend, «↓args[2]»>» : ⊤;
 		newBlock ::= «[args | <putSend>] : ⊤»;
-		impl ::= generate newBlock;
+		impl ::= newBlock→function;
 		Method methodName is impl;
 	];
 ] : ⊤;
@@ -843,7 +843,7 @@ Private method "Generate and install_reconstructor for_" is
 	/* Build and install the implementation. */
 	statements ::= <mapDecl> ++ assignments ++ cloning ++ <last>;
 	newBlock ::= «[ args | statements ] : objectType»;
-	reconstructorFunction ::= generate newBlock;
+	reconstructorFunction ::= newBlock→function;
 	Method methodName is reconstructorFunction;
 ] : ⊤;
 
@@ -885,7 +885,7 @@ is
 	last ::= send toObjectTypeAtom with «<«↓mapDecl»>» : objectType's type;
 	statements ::= <mapDecl> ++ assignments ++ <last>;
 	newBlock ::= «[ args | statements ] : type»;
-	Semantic restriction methodName is generate newBlock;
+	Semantic restriction methodName is newBlock→function;
 ];
 
 /**
