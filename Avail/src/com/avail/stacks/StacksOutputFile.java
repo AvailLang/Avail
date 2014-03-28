@@ -35,11 +35,16 @@ package com.avail.stacks;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
+import java.nio.channels.CompletionHandler;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.EnumSet;
+import com.avail.AvailRuntime;
+import com.avail.annotations.InnerAccess;
+import com.avail.utility.Mutable;
 
 /**
  * The way a file is created.
@@ -51,12 +56,7 @@ public class StacksOutputFile extends AbstractStacksOutputFile
 	/**
 	 * The error log file for the malformed comments.
 	 */
-	private AsynchronousFileChannel outputFile;
-
-	/**
-	 * File position tracker for error log
-	 */
-	private long errorFilePosition;
+	@InnerAccess AsynchronousFileChannel outputFile;
 
 	/**
 	 * @return the errorFilePosition
@@ -67,19 +67,43 @@ public class StacksOutputFile extends AbstractStacksOutputFile
 	}
 
 	/**
-	 * Add a new error log entry to the error error log.
-	 * @param buffer
-	 * 		The error log buffer
-	 * @param addToErrorCount
-	 * 		The amount of errors added with this log update.
+	 * Write text to a file.
+	 * @param outputText
+	 * 		the text to be written to file
 	 */
-	@Override
-	public synchronized void addLogEntry(final ByteBuffer buffer,
-		final int addToErrorCount)
+	public synchronized void write(final String outputText)
 	{
-		final long position = errorFilePosition;
-		errorFilePosition += buffer.limit();
-		outputFile.write(buffer, position);
+		final ByteBuffer buffer = ByteBuffer.wrap(
+			(outputText.getBytes(StandardCharsets.UTF_8)));
+		final Mutable<Integer> pos = new Mutable<Integer>(0);
+		outputFile.write(
+			buffer,
+			pos.value,
+			null,
+			new CompletionHandler<Integer, Void>()
+			{
+				@Override
+				public void completed (final Integer bytesWritten, final Void unused)
+				{
+					if (buffer.hasRemaining())
+					{
+						pos.value += bytesWritten;
+						outputFile.write(buffer, pos.value, null, this);
+					}
+					else
+					{
+
+						synchronizer.decrementWorkCounter();
+					}
+				}
+
+				@Override
+				public void failed (final Throwable exc, final Void unused)
+				{
+					// Log something?
+					synchronizer.decrementWorkCounter();
+				}
+			});
 	}
 
 	/**
@@ -93,29 +117,37 @@ public class StacksOutputFile extends AbstractStacksOutputFile
 	 * 		The name of the new file
 	 * @param outputText
 	 * 		The text to be written to the file.
+	 * @param synchronizer
+	 * 		The {@linkplain StacksSynchronizer} used to control the creation
+	 * 		of Stacks documentation
 	 */
-	public StacksOutputFile (final Path outputPath, final String fileName,
+	public StacksOutputFile (final Path outputPath,
+		final StacksSynchronizer synchronizer, final String fileName,
 		final String outputText)
 	{
-		super(outputPath);
+		super(outputPath, synchronizer);
 
-		this.errorFilePosition = 0;
+		final Path filePath = outputPath.resolve(fileName);
 		try
 		{
-			final Path errorLogPath = outputPath.resolve(fileName);
 			Files.createDirectories(outputPath);
-			this.outputFile = AsynchronousFileChannel.open(
-				errorLogPath,
-				StandardOpenOption.CREATE,
-				StandardOpenOption.WRITE,
-				StandardOpenOption.TRUNCATE_EXISTING);
-
-			final ByteBuffer openHTML = ByteBuffer.wrap(
-				(outputText.getBytes(StandardCharsets.UTF_8)));
-			addLogEntry(openHTML,0);
 		}
 		catch (final IOException e)
 		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try
+		{
+			this.outputFile = AvailRuntime.current().openFile(
+				filePath, EnumSet.of(StandardOpenOption.CREATE,
+					StandardOpenOption.WRITE,
+					StandardOpenOption.TRUNCATE_EXISTING));
+		}
+		catch (IllegalArgumentException | UnsupportedOperationException
+			| SecurityException | IOException e)
+		{
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

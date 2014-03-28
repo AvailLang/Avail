@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
@@ -49,26 +48,27 @@ public abstract class AbstractStacksOutputFile
 	 * data files.
 	 */
 	final Path outputPath;
+
+	/**
+	 * The {@linkplain StacksSynchronizer} used to control the creation
+	 * of Stacks documentation.
+	 */
+	final StacksSynchronizer synchronizer;
 	/**
 	 * Construct a new {@link AbstractStacksOutputFile}.
 	 * @param outputPath
 	 * 	 The {@linkplain Path path} to the output {@linkplain
 	 *   BasicFileAttributes#isDirectory() directory} for documentation and
 	 *   data files.
+	 * @param synchronizer
+	 * 		The {@linkplain StacksSynchronizer} used to control the creation
+	 * 		of Stacks documentation
 	 *
 	 */
-	public AbstractStacksOutputFile (final Path outputPath)
+	public AbstractStacksOutputFile (final Path outputPath,
+		final StacksSynchronizer synchronizer)
 	{
 		this.outputPath = outputPath;
+		this.synchronizer = synchronizer;
 	}
-
-	/**
-	 * Add a new error log entry to the error error log.
-	 * @param buffer
-	 * 		The error log buffer
-	 * @param addToErrorCount
-	 * 		The amount of errors added with this log update.
-	 */
-	public abstract void addLogEntry(final ByteBuffer buffer,
-		final int addToErrorCount);
 }

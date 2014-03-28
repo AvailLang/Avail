@@ -123,7 +123,7 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		}
 
 		stringBuilder.append("<div class=\"SignatureDescription\">")
-			.append(description.toHTML()).append("</div")
+			.append(description.toHTML()).append("</div>")
 			.append("<table><thead><tr><th class=\"Transparent\" scope=\"col\">"
 				+ "</th>");
 		if (paramCount > 0)
@@ -137,7 +137,7 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 			.append("<th class=\"IColLabelNarrow\" scope=\"col\">Type</th>"
 				+ "<th class=\"IColLabelWide\" scope=\"col\">Description</th>"
 				+ "</tr></thead><tbody><tr><th class=\"IRowLabel\" rowspan=\"")
-			.append(paramCount).append("\">Parameters</th></tr>");
+			.append(paramCount + 1).append("\">Parameters</th></tr>");
 
 		for (final StacksParameterTag paramTag : parameters)
 		{
@@ -159,7 +159,7 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 			}
 		}
 
-		return stringBuilder.toString();
+		return stringBuilder.append("</table>").toString();
 	}
 
 	@Override

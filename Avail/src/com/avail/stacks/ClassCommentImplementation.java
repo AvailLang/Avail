@@ -110,15 +110,18 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 		}
 
 		final int listSize = supertypes.size();
-		stringBuilder
-			.append("<div class=\"SignatureHeading\">Supertypes: ");
-
-		//Right now there is no link information for supertypes
-		for (int i = 0; i < listSize - 1; i++)
+		if (listSize > 0)
 		{
-			stringBuilder.append(supertypes.get(i)).append(", ");
+			stringBuilder
+				.append("<div class=\"SignatureHeading\">Supertypes: ");
+
+			//Right now there is no link information for supertypes
+			for (int i = 0; i < listSize - 1; i++)
+			{
+				stringBuilder.append(supertypes.get(i)).append(", ");
+			}
+			stringBuilder.append(supertypes.get(listSize - 1)).append("</div>");
 		}
-		stringBuilder.append(supertypes.get(listSize - 1)).append("</div>");
 
 		stringBuilder.append("<div class=\"SignatureDescription\">")
 			.append(description.toHTML()).append("</div")

@@ -66,13 +66,16 @@ public class StacksDescription
 	 */
 	public String toHTML ()
 	{
-		final int listSize = descriptionTokens.size();
 		final StringBuilder stringBuilder = new StringBuilder();
-		for (int i = 0; i < listSize - 1; i++)
+		final int listSize = descriptionTokens.size();
+		if (listSize > 0)
 		{
-			stringBuilder.append(descriptionTokens.get(i).toHTML()).append(" ");
+			for (int i = 0; i < listSize - 1; i++)
+			{
+				stringBuilder.append(descriptionTokens.get(i).toHTML()).append(" ");
+			}
+			stringBuilder.append(descriptionTokens.get(listSize - 1).toHTML());
 		}
-		stringBuilder.append(descriptionTokens.get(listSize - 1).toHTML());
 		return stringBuilder.toString();
 	}
 

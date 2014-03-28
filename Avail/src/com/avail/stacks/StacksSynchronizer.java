@@ -1,5 +1,5 @@
 /**
- * StacksCategoryTag.java
+ * StacksSynchronizer.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,58 +32,52 @@
 
 package com.avail.stacks;
 
-import java.util.List;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * The Avail comment "@category" tag
+ * A way of abstracting out and passing around Asynchronous Continuations.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksCategoryTag extends AbstractStacksTag
+public class StacksSynchronizer
 {
 	/**
-	 * The list of the categories for which the method/type is applicable
+	 * The number of files that are outstanding to be written
 	 */
-	final private List<QuotedStacksToken> categories;
+	private final AtomicInteger workUnits = new AtomicInteger(0);
 
 	/**
-	 * Construct a new {@link StacksCategoryTag}.
 	 *
-	 * @param categories
-	 * 		The list of the categories for which the method/type is applicable
 	 */
-	public StacksCategoryTag (
-		final List<QuotedStacksToken> categories)
+	private final Semaphore semaphore = new Semaphore(0);
+
+	/**
+	 * Construct a new {@link StacksSynchronizer}.
+	 * @param workUnits
+	 *
+	 */
+	public StacksSynchronizer (final int workUnits)
 	{
-		this.categories = categories;
+		this.workUnits.set(workUnits);
 	}
 
 	/**
-	 * @return the categories
+	 *
 	 */
-	public List<QuotedStacksToken> categories ()
+	public void waitForWorkUnitsToComplete ()
 	{
-		return categories;
+		semaphore.acquireUninterruptibly();
 	}
 
-	@Override
-	public String toHTML ()
+	/**
+	 *
+	 */
+	public void decrementWorkCounter ()
 	{
-		final StringBuilder stringBuilder = new StringBuilder();
-		final int listSize = categories.size();
-
-		if (listSize > 0)
+		if (workUnits.decrementAndGet() == 0)
 		{
-			stringBuilder
-				.append("<div class=\"CategoryList\"><em>Categories:</em> ");
-			for (int i = 0; i < listSize - 1; i++)
-			{
-				stringBuilder.append(categories.get(i).lexeme()).append(", ");
-			}
-			stringBuilder.append("</div>");
+			semaphore.release();
 		}
-
-		return stringBuilder.toString();
 	}
-
 }

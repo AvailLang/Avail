@@ -54,7 +54,7 @@ public class ImplementationGroup
 	 * The name of the implementation.  It is not final because it can be
 	 * renamed.
 	 */
-	private A_String name;
+	private final A_String name;
 	/**
 	 * @return the name
 	 */
@@ -62,13 +62,7 @@ public class ImplementationGroup
 	{
 		return name;
 	}
-	/**
-	 * @param newName the name to set
-	 */
-	public void rename (final A_String newName)
-	{
-		this.name = newName;
-	}
+
 	/**
 	 * A list of {@linkplain MethodCommentImplementation methods}
 	 */
@@ -277,11 +271,14 @@ public class ImplementationGroup
 	 * 		HTML document opening tags (e.g. header etc)
 	 * @param htmlCloseContent
 	 * 		HTML document closing the document tags
-	 *
+	 * @param synchronizer
+	 * 		The {@linkplain StacksSynchronizer} used to control the creation
+	 * 		of Stacks documentation
 	 */
 	public void toHTML(final Path outputPath,
 		final String qualifiedMethodName,
-		final String htmlOpenContent, final String htmlCloseContent)
+		final String htmlOpenContent, final String htmlCloseContent,
+		final StacksSynchronizer synchronizer)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append(htmlOpenContent)
@@ -337,14 +334,15 @@ public class ImplementationGroup
 			stringBuilder.append(classImplementation.toHTML());
 		}
 
-		final String hashedFileName = String.valueOf(name.hash()) + ".html";
 		final String localPath = qualifiedMethodName
-			.substring(0, qualifiedMethodName.lastIndexOf('/') + 1);
+			.substring(1, qualifiedMethodName.lastIndexOf('/') + 1);
+
+		final String hashedFileName = String.valueOf(name.hash()) + ".html";
 
 		final StacksOutputFile htmlFile = new StacksOutputFile(
-			outputPath.resolve(localPath),
-			hashedFileName,
+			outputPath.resolve(localPath), synchronizer, hashedFileName,
 			stringBuilder.append(htmlCloseContent).toString());
+
 
 		try
 		{

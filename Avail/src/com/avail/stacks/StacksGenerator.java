@@ -47,7 +47,6 @@ import com.avail.compiler.AbstractAvailCompiler.ModuleImport;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
-import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 
 /**
@@ -118,7 +117,12 @@ public class StacksGenerator
 
 		this.logPath = outputPath
 			.resolve("logs");
-		this.errorLog = new StacksErrorLog(logPath);
+		this.errorLog = new StacksErrorLog(
+			logPath,
+			new StacksSynchronizer(1));
+
+		this.providedDocumentPath = outputPath
+			.resolve("library documentation");
 
 
 		this.moduleToComments =
@@ -219,7 +223,7 @@ public class StacksGenerator
 				.append(entry.getValue().toString());
 		}*/
 
-		final StacksOutputFile myMapFile = new StacksOutputFile(
+		/*final StacksOutputFile myMapFile = new StacksOutputFile(
 			logPath,
 			"Source Path Extends List.html",
 			("<!DOCTYPE html>\n<head><meta charset=\"UTF-8\"><style>h3 "
@@ -228,7 +232,7 @@ public class StacksGenerator
 				+ "</head>\n<body>\n"
 				+ moduleToComments
 					.get(outermostModule.qualifiedName()).toString()
-				+ "</body>\n</html>"));
+				+ "</body>\n</html>"));*/
 
 /*		final StacksOutputFile myMethodsFile = new StacksOutputFile(
 			logPath,
@@ -238,6 +242,11 @@ public class StacksGenerator
 				+ "strong, em {color:blue;}</style>\n"
 				+ "</head>\n<body>\n" + stringBuilderImplementations.toString()
 				+ "</body>\n</html>"));*/
+
+		moduleToComments
+			.get(outermostModule.qualifiedName())
+				.writeMethodsToHTMLFiles(providedDocumentPath);
+
 		try
 		{
 			//do nothing
@@ -247,7 +256,7 @@ public class StacksGenerator
 			try
 			{
 				errorLog.file().close();
-				myMapFile.file().close();
+				/*myMapFile.file().close();*/
 				/*myMethodsFile.file().close();*/
 			}
 			catch (final IOException e)

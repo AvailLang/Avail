@@ -34,6 +34,8 @@ package com.avail.stacks;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.UnresolvedDependencyException;
@@ -391,6 +393,49 @@ public class StacksCommentsModule
 		}
 
 		return newMap;
+	}
+
+	/**
+	 * Write all the methods and extends methods to file.
+	 * @param outputPath
+	 * 		The {@linkplain Path path} to the output {@linkplain
+	 *        BasicFileAttributes#isDirectory() directory} for documentation and
+	 *        data files.
+	 */
+	public void writeMethodsToHTMLFiles(final Path outputPath)
+	{
+		final HashMap<String,ImplementationGroup> implementationMap =
+			obtainExtendsImplementationGroups();
+
+		final String htmlOpenContent = "<!DOCTYPE html><head><link "
+			+ "href=\"doclib.css\" rel=\"stylesheet\" />"
+			+ "<meta charset=\"UTF-8\"></head><body>";
+
+		final String htmlCloseContent = "</body></html>";
+
+		final StacksSynchronizer extendsSynchronizer =
+			new StacksSynchronizer(implementationMap.size());
+
+		for (final String implementationName :
+			implementationMap.keySet())
+		{
+			implementationMap.get(implementationName)
+				.toHTML(outputPath, implementationName,
+					htmlOpenContent, htmlCloseContent, extendsSynchronizer);
+		}
+
+		final StacksSynchronizer publicSynchronizer =
+			new StacksSynchronizer(namedPublicCommentImplementations.size());
+
+		for (final A_String key : namedPublicCommentImplementations.keySet())
+		{
+			final String qualifiedMethodName = moduleName + "/"
+				+ key.asNativeString();
+
+			namedPublicCommentImplementations.get(key)
+				.toHTML(outputPath, qualifiedMethodName, htmlOpenContent,
+					htmlCloseContent,publicSynchronizer);
+		}
 	}
 
 	@Override

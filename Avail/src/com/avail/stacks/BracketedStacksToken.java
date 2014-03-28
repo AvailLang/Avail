@@ -97,4 +97,22 @@ public class BracketedStacksToken extends RegionStacksToken
 		return new BracketedStacksToken(
 			string, lineNumber, position, startOfTokenLinePostion, moduleName);
 	}
+
+	@Override
+	public String toHTML()
+	{
+		//TODO update with parsed tags with appropriate links.
+		final StringBuilder stringBuilder = new StringBuilder();
+		final int listSize = subTokens.size();
+		if (listSize > 0)
+		{
+			for (int i = 0; i < listSize - 1; i++)
+			{
+				stringBuilder.append(subTokens.get(i).toHTML()).append(" ");
+			}
+			stringBuilder.append(subTokens.get(listSize - 1).toHTML());
+		}
+
+		return stringBuilder.toString();
+	}
 }

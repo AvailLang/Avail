@@ -35,11 +35,16 @@ package com.avail.stacks;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
+import java.nio.channels.CompletionHandler;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.EnumSet;
+import com.avail.AvailRuntime;
+import com.avail.annotations.InnerAccess;
+import com.avail.utility.Mutable;
 
 /**
  * A Stacks log file that contains errors from processing comments in Avail
@@ -52,7 +57,7 @@ public class StacksErrorLog extends AbstractStacksOutputFile
 	/**
 	 * The error log file for the malformed comments.
 	 */
-	private AsynchronousFileChannel errorLog;
+	@InnerAccess AsynchronousFileChannel errorLog;
 
 	/**
 	 * The amount of errors listed in the file
@@ -78,35 +83,50 @@ public class StacksErrorLog extends AbstractStacksOutputFile
 	 *        The {@linkplain Path path} to the output {@linkplain
 	 *        BasicFileAttributes#isDirectory() directory} for documentation and
 	 *        data files.
-	 *
+	 * @param synchronizer
+	 * 		The {@linkplain StacksSynchronizer} used to control the creation
+	 * 		of Stacks documentation
 	 */
-	public StacksErrorLog (final Path outputPath)
+	public StacksErrorLog (final Path outputPath,
+		final StacksSynchronizer synchronizer)
 	{
-		super(outputPath);
+		super(outputPath, synchronizer);
 		this.errorFilePosition = 0;
 		this.errorCount = 0;
+
+
+
+		final Path errorLogPath = outputPath.resolve("errorlog.html");
 		try
 		{
-			final Path errorLogPath = outputPath.resolve("errorlog.html");
 			Files.createDirectories(outputPath);
-			this.errorLog = AsynchronousFileChannel.open(
-				errorLogPath,
-				StandardOpenOption.CREATE,
-				StandardOpenOption.WRITE,
-				StandardOpenOption.TRUNCATE_EXISTING);
-
-			final ByteBuffer openHTML = ByteBuffer.wrap(
-				("<!DOCTYPE html>\n<head><meta charset=\"UTF-8\"><style>h3 "
-				+ "{text-decoration:underline;}\n "
-				+ "strong, em {color:blue;}</style>\n"
-				+ "</head>\n<body>\n")
-				.getBytes(StandardCharsets.UTF_8));
-			addLogEntry(openHTML,0);
 		}
 		catch (final IOException e)
 		{
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		try
+		{
+			this.errorLog = AvailRuntime.current().openFile(
+				errorLogPath, EnumSet.of(StandardOpenOption.CREATE,
+					StandardOpenOption.WRITE,
+					StandardOpenOption.TRUNCATE_EXISTING));
+		}
+		catch (IllegalArgumentException | UnsupportedOperationException
+			| SecurityException | IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		final ByteBuffer openHTML = ByteBuffer.wrap(
+			("<!DOCTYPE html>\n<head><meta charset=\"UTF-8\"><style>h3 "
+			+ "{text-decoration:underline;}\n "
+			+ "strong, em {color:blue;}</style>\n"
+			+ "</head>\n<body>\n")
+			.getBytes(StandardCharsets.UTF_8));
+		addLogEntry(openHTML,0);
 	}
 
 	/**
@@ -116,14 +136,40 @@ public class StacksErrorLog extends AbstractStacksOutputFile
 	 * @param addToErrorCount
 	 * 		The amount of errors added with this log update.
 	 */
-	@Override
 	public synchronized void addLogEntry(final ByteBuffer buffer,
 		final int addToErrorCount)
 	{
 		errorCount += addToErrorCount;
-		final long position = errorFilePosition;
+		final Mutable<Long> position = new Mutable<Long>(errorFilePosition);
 		errorFilePosition += buffer.limit();
-		errorLog.write(buffer, position);
+
+		errorLog.write(
+			buffer,
+			position.value,
+			null,
+			new CompletionHandler<Integer, Void>()
+			{
+				@Override
+				public void completed (final Integer bytesWritten, final Void unused)
+				{
+					if (buffer.hasRemaining())
+					{
+						position.value += bytesWritten;
+						errorLog.write(buffer, position.value, null, this);
+					}
+					else
+					{
+						synchronizer.decrementWorkCounter();
+					}
+				}
+
+				@Override
+				public void failed (final Throwable exc, final Void unused)
+				{
+					// Log something?
+					synchronizer.decrementWorkCounter();
+				}
+			});
 	}
 
 	/**

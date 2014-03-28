@@ -105,7 +105,7 @@ public class StacksParameterTag extends AbstractStacksTag
 			.append("<tr class=\"methodParameters\"><td class=\"ICode\">")
 			.append(paramName.lexeme())
 			.append("</td><td class=\"ICode\">")
-			.append(paramType)
+			.append(paramType.lexeme())
 			.append("</td><td class=\"IDesc\">")
 			.append(paramDescription.toHTML())
 			.append("</td></tr>");

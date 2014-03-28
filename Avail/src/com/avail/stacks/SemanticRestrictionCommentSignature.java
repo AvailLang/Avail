@@ -76,18 +76,25 @@ public class SemanticRestrictionCommentSignature extends CommentSignature
 	@Override
 	public String toHTML ()
 	{
+		final StringBuilder stringBuilder = new StringBuilder();
 		final int listSize = orderedInputTypes.size();
-		final StringBuilder stringBuilder = new StringBuilder()
-			.append("<div class=\"SignatureHeading\">");
-		for (int i = 0; i < listSize - 1; i++)
+
+		if (listSize > 0)
 		{
-			stringBuilder.append(orderedInputTypes.get(i)).append(", ");
+			stringBuilder.append("<div class=\"SignatureHeading\">");
+			for (int i = 0; i < listSize - 1; i++)
+			{
+				stringBuilder.append(orderedInputTypes.get(i)).append(", ");
+			}
+			stringBuilder.append(orderedInputTypes.get(listSize - 1))
+				.append("</div>");
+			stringBuilder.append(orderedInputTypes.get(listSize - 1))
+				.append("</div>");
 		}
-		stringBuilder.append(orderedInputTypes.get(listSize - 1))
-			.append("</div>");
-		stringBuilder.append(orderedInputTypes.get(listSize - 1))
-			.append("</div><div class=\"ModuleLocation\">")
+
+		stringBuilder.append("<div class=\"ModuleLocation\">")
 			.append(module).append('.').append(name).append("</div>");
+
 		return stringBuilder.toString();
 	}
 }
