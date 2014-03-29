@@ -4376,4 +4376,10 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	A_Set o_ExportedNames (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
 }

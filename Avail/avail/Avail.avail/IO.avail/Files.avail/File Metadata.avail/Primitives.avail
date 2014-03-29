@@ -40,7 +40,7 @@ Uses
 		"file type"→"actual file type",
 		…
 	),
-	"Foundation"
+	"Foundation" = (-"_'s⁇name", …)
 Names
 	/* Types. */
 	"file metadata",
@@ -55,6 +55,7 @@ Names
 	"_'s⁇file type",
 	"_'s⁇last access time",
 	"_'s⁇last modification time",
+	"_'s⁇name",
 	"_'s⁇size",
 
 	/* Semi-private types. */
@@ -90,7 +91,7 @@ Public method "signed long" is [[0..2^63 - 1]];
  */
 Public class "file metadata" extends object
 	with fields
-		name : file name,
+		public name : file name,
 		public file ID : any,
 		public file type : actual file type,
 		public creation time : signed long,

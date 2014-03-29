@@ -69,6 +69,7 @@ Extends
 		/* Tools. */
 		"Fail test",
 		"Fail test:_",
+		"Skip test",
 		"Require:_",
 		"Require:_(_)",
 		"Require:_=_",
@@ -94,6 +95,7 @@ Extends
 
 		/* Reporting. */
 		"short“_”",
+		"long“_”",
 
 		/* Exceptions. */
 		"expected-a-specific-exception exception",
@@ -114,38 +116,4 @@ Uses
 	"Foundation"
 Body
 
-For each
-	<
-		"After running each test in_,⁇do_",
-		"After running_,⁇do_",
-		"Before running each test in_,⁇do_",
-		"Before running_,⁇do_",
-		"New test suite,⁇_,⁇extends_",
-		"Test_in_is_«must raise_»",
-		"all test suites",
-		"all test suites in_",
-		"all tests in_",
-		"module-oriented“_”",
-		"report on all tests in_",
-		"report on_",
-		"short“_”",
-		"test suite-oriented“_”",
-		"Require:_",
-		"Require:_(_)",
-		"Require:_=_",
-		"Require:_=_(_)",
-		"Require:_raises_",
-		"Require:_raises_(_)",
-		"_is a new test suite",
-		"_'s⁇metrics",
-		"_'s⁇metrics by module",
-		"_'s⁇metrics by test suite",
-		"_'s⁇test ID",
-		"_'s⁇expected exception type"
-	>
-do
-[
-	methodName : string
-|
-	Completely seal method methodName;
-];
+Seal methods current module's exported names at existing definitions;

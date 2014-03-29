@@ -35,12 +35,13 @@ Versions
 	"dev"
 Uses
 	"File Names",
-	"Foundation"
+	"Foundation" = (-"_'s⁇name", …)
 Names
 	/* Types. */
 	"group principal",
 	"principal",
 	"user principal",
+	"_'s⁇name",
 
 	/* File prinicpal accessors. */
 	"_'s⁇owner(follow if symlink=_)",
@@ -65,7 +66,7 @@ Body
  */
 Public class "principal" extends object
 	with field
-		name : string;
+		public name : string;
 
 /**
  * A user principal represents a user of a security system.

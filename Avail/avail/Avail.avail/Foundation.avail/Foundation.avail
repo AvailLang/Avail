@@ -33,7 +33,6 @@
 Module "Foundation"
 Versions
 	"dev"
-
 Extends
 	"Assertions" =
 	(
@@ -90,6 +89,7 @@ Extends
 		"Restart_with_",
 		"Request termination of_",
 		"Seal method_at_",
+		"Seal method|methods_at existing definitions",
 		"Semantic restriction_is_",
 		"Sleep for_millisecond|milliseconds",
 		"Terminate current fiber",
@@ -119,6 +119,7 @@ Extends
 		"current fiber[_]",
 		"current fiber[_]:=_",
 		"current module",
+		"current module's exported names",
 		"declaration phrase",
 		"double",
 		"eject_",
@@ -987,3 +988,14 @@ Extends
 		"↓_else_"
 	)
 Body
+
+[
+	/* Forbid overriding of the exports… */
+	forbiddenOverrides ::= current module's exported names;
+	/* …but certain exports are allowed for overriding, or need to be dealt with
+	 * specially.
+	 */
+	specialOverrides ::= {$"“_”"};
+	/* Seal the asymmetric difference at every existing definition. */
+	Seal methods forbiddenOverrides \ specialOverrides at existing definitions;
+]();

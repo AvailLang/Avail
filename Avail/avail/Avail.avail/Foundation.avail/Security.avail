@@ -136,3 +136,20 @@ Public method "Completely seal method_" is
 |
 	Seal method methodName at |message methodName's parameters| of any;
 ] : ⊤;
+
+/**
+ * Completely seal the specified method. No further definitions may be
+ * added at any site within the method.
+ * 
+ * @method "Completely seal method_"
+ * @param "methodName" "atom"
+ *        The method name.
+ * @returns "⊤"
+ * @category "Declarations" "Methods"
+ */
+Public method "Completely seal method_" is
+[
+	methodName : atom
+|
+	Seal method methodName at |message methodName's name's parameters| of any;
+] : ⊤;

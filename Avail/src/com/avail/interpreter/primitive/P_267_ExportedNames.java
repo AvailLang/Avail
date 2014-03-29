@@ -1,5 +1,5 @@
-/*
- * Network Common.avail
+/**
+ * P_267_ExportedNames.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,14 +30,56 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Network Common"
-Versions
-	"dev"
-Uses
-	"Foundation"
-Names
-	"_'s⁇name",
-	"handle"
-Body
+package com.avail.interpreter.primitive;
 
-Public "handle" is a new field atom;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
+
+/**
+ * <strong>Primitive 267</strong>: Answer the {@linkplain
+ * A_Module#exportedNames() exported names} of the {@linkplain
+ * ModuleDescriptor#current() current module}.
+ *
+ * @author Todd Smith &lt;todd@availlang.org&gt;
+ */
+public final class P_267_ExportedNames
+extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class. Accessed through reflection.
+	 */
+	public final static Primitive instance =
+		new P_267_ExportedNames().init(0, CanInline);
+
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
+	{
+		assert args.size() == 0;
+		final A_Fiber fiber = interpreter.fiber();
+		final AvailLoader loader = fiber.availLoader();
+		if (loader == null)
+		{
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
+		final A_Module module = loader.module();
+		final A_Set exportedNames = module.exportedNames();
+		return interpreter.primitiveSuccess(exportedNames);
+	}
+
+	@Override
+	protected A_Type privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.empty(),
+			SetTypeDescriptor.setTypeForSizesContentType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				ATOM.o()));
+	}
+}

@@ -34,10 +34,15 @@ Module "Primitives"
 Versions
 	"dev"
 Extends
-	"Common" = ("Close_")
+	"Common" = ("Close_"),
+	"Network Common" = ("_'s⁇name")
 Uses
 	"Address",
-	"Foundation",
+	"Foundation" =
+	(
+		"_'s⁇name" → "_'s⁇name(Foundation)",
+		…
+	),
 	"Network Common",
 	"Options"
 Names
@@ -92,7 +97,7 @@ Method "_'s⁇name" is
 [
 	s : client socket
 |
-	s's handle's name
+	s's handle's name (Foundation)
 ] : string;
 
 /**

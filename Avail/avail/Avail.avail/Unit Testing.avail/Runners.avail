@@ -34,7 +34,11 @@ Module "Runners"
 Versions
 	"dev"
 Uses
-	"Foundation",
+	"Foundation" =
+	(
+		"causal exception" → "causal exception(Foundation)",
+		…
+	),
 	"Framework State",
 	"Types"
 Names
@@ -189,7 +193,7 @@ Private method "Setup:_" is
 	|
 		Raise a test-fixture-setup exception with
 			suite ID ::= aSuite's suite ID,
-			causal exception ::= e
+			causal exception (Foundation) ::= e
 	];
 ] : ⊤;
 
@@ -217,7 +221,7 @@ Private method "Setup:_" is
 	|
 		Raise a test-fixture-setup exception with
 			suite ID ::= aTest's suite ID,
-			causal exception ::= e
+			causal exception (Foundation) ::= e
 	];
 ] : ⊤;
 
@@ -245,7 +249,7 @@ Private method "Tear down:_" is
 	|
 		Raise a test-fixture-tear-down exception with
 			suite ID ::= aSuite's suite ID,
-			causal exception ::= e
+			causal exception (Foundation) ::= e
 	];
 ] : ⊤;
 
@@ -273,7 +277,7 @@ Private method "Tear down:_" is
 	|
 		Raise a test-fixture-tear-down exception with
 			suite ID ::= aTest's suite ID,
-			causal exception ::= e
+			causal exception (Foundation) ::= e
 	];
 ] : ⊤;
 
@@ -336,7 +340,7 @@ Private method "test metric for_" is
 					test ID ::= id,
 					causal exception ::= a failed-test exception with
 						test ID ::= id,
-						causal exception ::= e
+						causal exception (Foundation) ::= e
 			]
 			else if [ ¬e ∈ expected[1] ] then
 			[
@@ -346,7 +350,7 @@ Private method "test metric for_" is
 					test ID ::= id,
 					causal exception ::= an exceptionType with
 						test ID ::= id,
-						causal exception ::= e,
+						causal exception (Foundation) ::= e,
 						expected exception type ::= expected[1]
 			]
 			else
@@ -430,7 +434,7 @@ Private method "Run each_,raising_on error" is
 	[
 		e : exception
 	|
-		Raise an exceptionType with causal exception ::= e
+		Raise an exceptionType with causal exception (Foundation) ::= e
 	];
 ] : ⊤;
 

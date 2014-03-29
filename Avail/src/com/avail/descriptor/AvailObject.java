@@ -6864,4 +6864,10 @@ implements
 	{
 		descriptor.o_AddUnloadFunction(this, unloadFunction);
 	}
+
+	@Override
+	public A_Set exportedNames ()
+	{
+		return descriptor.o_ExportedNames(this);
+	}
 }

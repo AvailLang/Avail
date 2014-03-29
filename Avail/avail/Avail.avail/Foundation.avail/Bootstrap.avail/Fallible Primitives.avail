@@ -67,6 +67,7 @@ Uses
 		"Restart_",
 		"Restart_with_",
 		"Seal method_at_",
+		"Seal method|methods_at existing definitions",
 		"Semantic restriction_is_",
 		"_'s⁇instances",
 		"_'s⁇issuing module",
@@ -102,6 +103,7 @@ Uses
 		"current fiber[_]",
 		"current fiber[_]:=_",
 		"current module",
+		"current module's exported names",
 		"eject_",
 		"function from_and_",
 		"in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
@@ -1265,6 +1267,33 @@ Primitive "Grammatical restriction_is_" is
 	exclusions : tuple of set of atom
 |
 	Primitive 264 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Answer the set of all atoms exported by the current module.
+ *
+ * Returns:
+ *    The set of atoms exported by the current module.
+ */
+Primitive "current module's exported names" is
+[
+	Primitive 267 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : set of atom;
+
+/**
+ * Seal the each method named by an element of `methodNames` at each of its
+ * existing abstract and method definitions. Ignore any macros.
+ *
+ * Parameters:
+ *    methodNames - A set of atoms that serve as method names.
+ */
+Primitive "Seal method|methods_at existing definitions" is
+[
+	methodNames : set of atom
+|
+	Primitive 268 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 

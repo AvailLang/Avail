@@ -4530,4 +4530,10 @@ extends AbstractDescriptor
 	{
 		o_Traversed(object).addUnloadFunction(unloadFunction);
 	}
+
+	@Override
+	A_Set o_ExportedNames (final AvailObject object)
+	{
+		return o_Traversed(object).exportedNames();
+	}
 }

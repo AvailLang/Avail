@@ -34,7 +34,7 @@ Module "Types"
 Versions
 	"dev"
 Uses
-	"Foundation"
+	"Foundation" = (-"causal exception", …)
 Names
 	/* Core types. */
 	"root unit test suite",
@@ -48,6 +48,7 @@ Names
 
 	/* Attributes. */
 	"body",
+	"causal exception",
 	"child suite IDs",
 	"expected exception type",
 	"metrics",
@@ -84,6 +85,7 @@ Names
 
 	/* Attribute accessors. */
 	"_'s⁇body",
+	"_'s⁇causal exception",
 	"_'s⁇child suite IDs",
 	"_'s⁇child suite IDs::=_",
 	"_'s⁇expected exception type",
@@ -352,6 +354,8 @@ Public explicit class "unit test result" extends object
  * @supertype "unit test result"
  */
 Public explicit class "unit test success" extends unit test result;
+
+"causal exception" is a new field atom;
 
 /**
  * A unit test failure indicates that the specified {@type "unit test"} failed.

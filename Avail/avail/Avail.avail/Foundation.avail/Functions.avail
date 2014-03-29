@@ -57,16 +57,20 @@ Method "“_”" is
 [
 	t : function meta
 |
-	params ::= t's parameters' type;
 	s : string := "[";
-	index : natural number := 1;
-	While [index ≤ ⎣params⎦]
-	do
+	params ::= t's parameters' type;
+	If params = ⊥ then [s := eject ↑s ++ "…";]
+	else
 	[
-		s := eject ↑s ++ “t[index]”;
-		index := eject ↑index + 1;
-	]
-	alternate with [s := eject ↑s ++ ", ";];
+		index : natural number := 1;
+		While [index ≤ ⎣params⎦]
+		do
+		[
+			s := eject ↑s ++ “t[index]”;
+			index := eject ↑index + 1;
+		]
+		alternate with [s := eject ↑s ++ ", ";];
+	];
 	s := eject ↑s ++ "]→" ++ “t's return type”;
 	s
 ];

@@ -6404,23 +6404,42 @@ public abstract class AbstractAvailCompiler
 		final Throwable e)
 	{
 		compilationIsInvalid = true;
-		final CharArrayWriter trace = new CharArrayWriter();
-		e.printStackTrace(new PrintWriter(trace));
-		handleProblem(new Problem(
-			moduleName(),
-			token.lineNumber(),
-			token.start(),
-			EXECUTION,
-			"Execution error: {0}\n{1}",
-			e.getMessage(),
-			trace)
+		if (e instanceof FiberTerminationException)
 		{
-			@Override
-			public void abortCompilation ()
+			handleProblem(new Problem(
+				moduleName(),
+				token.lineNumber(),
+				token.start(),
+				EXECUTION,
+				"Execution error: Avail stack reported above.\n")
 			{
-				isShuttingDown = true;
-			}
-		});
+				@Override
+				public void abortCompilation ()
+				{
+					isShuttingDown = true;
+				}
+			});
+		}
+		else
+		{
+			final CharArrayWriter trace = new CharArrayWriter();
+			e.printStackTrace(new PrintWriter(trace));
+			handleProblem(new Problem(
+				moduleName(),
+				token.lineNumber(),
+				token.start(),
+				EXECUTION,
+				"Execution error: {0}\n{1}",
+				e.getMessage(),
+				trace)
+			{
+				@Override
+				public void abortCompilation ()
+				{
+					isShuttingDown = true;
+				}
+			});
+		}
 	}
 
 	/**

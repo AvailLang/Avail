@@ -35,11 +35,16 @@ Versions
 	"dev"
 Extends
 	"Address" = ("_'s⁇address"),
-	"Common" = ("Close_")
+	"Common" = ("Close_"),
+	"Network Common" = ("_'s⁇name")
 Uses
 	"Address",
 	"Client",
-	"Foundation",
+	"Foundation" =
+	(
+		"_'s⁇name" → "_'s⁇name(Foundation)",
+		…
+	),
 	"Network Common",
 	"Options"
 Names
@@ -82,7 +87,7 @@ Method "_'s⁇name" is
 [
 	s : server socket
 |
-	s's handle's name
+	s's handle's name (Foundation)
 ] : string;
 
 /**

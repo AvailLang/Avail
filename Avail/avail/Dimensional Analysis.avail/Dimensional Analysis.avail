@@ -39,5 +39,17 @@ Extends
 	"International System of Units",
 	"US Customary Units"
 Uses
+	"Avail",
 	"Test"
 Body
+
+[
+	/* Forbid overriding of the exports… */
+	forbiddenOverrides ::= current module's exported names;
+	/* …but certain exports are allowed for overriding, or need to be dealt with
+	 * specially.
+	 */
+	specialOverrides ::= {$"_converted to_"};
+	/* Seal the asymmetric difference at every existing definition. */
+	Seal methods forbiddenOverrides \ specialOverrides at existing definitions;
+]();

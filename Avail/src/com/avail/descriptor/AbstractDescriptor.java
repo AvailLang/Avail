@@ -5936,4 +5936,10 @@ public abstract class AbstractDescriptor
 	abstract void o_AddUnloadFunction (
 		final AvailObject object,
 		final A_Function unloadFunction);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Set o_ExportedNames (final AvailObject object);
 }

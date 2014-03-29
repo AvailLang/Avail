@@ -342,6 +342,28 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	A_Set o_ExportedNames (final AvailObject object)
+	{
+		synchronized (object)
+		{
+			A_Set exportedNames = SetDescriptor.empty();
+			for (final MapDescriptor.Entry entry
+				: object.slot(IMPORTED_NAMES).mapIterable())
+			{
+				exportedNames = exportedNames.setUnionCanDestroy(
+					entry.value(), true);
+			}
+			for (final MapDescriptor.Entry entry
+				: object.slot(PRIVATE_NAMES).mapIterable())
+			{
+				exportedNames = exportedNames.setMinusCanDestroy(
+					entry.value(), true);
+			}
+			return exportedNames;
+		}
+	}
+
+	@Override @AvailMethod
 	A_Set o_MethodDefinitions (final AvailObject object)
 	{
 		synchronized (object)
@@ -349,15 +371,6 @@ extends Descriptor
 			return object.slot(METHOD_DEFINITIONS_SET);
 		}
 	}
-
-//	@Override @AvailMethod
-//	A_Tuple o_GrammaticalRestrictions (final AvailObject object)
-//	{
-//		synchronized (object)
-//		{
-//			return object.slot(GRAMMATICAL_RESTRICTIONS);
-//		}
-//	}
 
 	@Override @AvailMethod
 	A_Map o_VariableBindings (final AvailObject object)

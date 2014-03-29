@@ -39,6 +39,7 @@ Names
 	/* Tools. */
 	"Fail test",
 	"Fail test:_",
+	"Skip test",
 	"Require:_",
 	"Require:_(_)",
 	"Require:_=_",
@@ -90,6 +91,16 @@ Public method "Fail test:_" is
 	Raise a descriptive explicit-failed-test exception with
 		error message ::= message
 ] : ⊥;
+
+/**
+ * Skip the currently running unit test.
+ *
+ * @method "Skip test"
+ * @returns "⊥"
+ * @raises "unsupported-operation exception"
+ *         Always.
+ */
+Public method "Skip test" is [Raise an unsupported-operation exception] : ⊥;
 
 /**
  * An exception that indicates that a unit test requirement failed.
