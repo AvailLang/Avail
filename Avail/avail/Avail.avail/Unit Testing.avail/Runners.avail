@@ -543,7 +543,7 @@ Private method "recursively report on all tests in_" is
 			 * it is perfectly fine to concatenate the two result tuples.
 			 */
 			parallel ::= groups[can parallelize] else [<>];
-			serial ::= groups [cannot parallelize] else [<>];
+			serial ::= groups[cannot parallelize] else [<>];
 			map parallel in parallel through computeMetric
 				++ map serial through computeMetric
 		],

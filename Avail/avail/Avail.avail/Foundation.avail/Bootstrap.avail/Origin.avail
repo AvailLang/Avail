@@ -48,6 +48,7 @@ Names
 	"special object_",
 	"“_”"
 Pragma
+	"check=version=dev",
 	"method=253=Primitive_is_",
 	"method=240=special object_",
 	"stringify=“_”"
