@@ -119,18 +119,18 @@ public class GrammaticalRestrictionCommentImplementation extends
 		final StringBuilder stringBuilder = new StringBuilder();
 
 		stringBuilder.append("<div class=\"MethodSectionHeader\">Grammatical "
-			+ "restrictions:</div><div class=\"MethodSectionContent\">"
-            + "<table><thead><tr><th style=\"white-space:nowrap\" "
-            + "class=\"GColLabelNarrow\" scope=\"col\">Argument Position</th>"
+			+ "restrictions:</div>\n<div class=\"MethodSectionContent\">\n"
+            + "<table>\n<thead>\n<tr>\n<th style=\"white-space:nowrap\" "
+            + "class=\"GColLabelNarrow\" scope=\"col\">Argument Position</th>\n"
             + "<th class=\"GColLabelWide\" scope=\"col\">Prohibited "
-            + "Expression</th></tr></thead><tbody><tr>");
+            + "Expression</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n");
 
 		for (final int arity : forbids.navigableKeySet())
 		{
 			stringBuilder.append(forbids.get(arity).toHTML());
 		}
 
-		stringBuilder.append("</tbody></table></div>");
+		stringBuilder.append("</tbody>\n</table>\n</div>\n");
 		return stringBuilder.toString();
 	}
 

@@ -97,11 +97,11 @@ public class MethodCommentSignature extends CommentSignature
 				stringBuilder.append(orderedInputTypes.get(i)).append(", ");
 			}
 			stringBuilder.append(orderedInputTypes.get(listSize - 1))
-				.append("</div>");
+				.append("</div>\n");
 		}
 
 		stringBuilder.append("<div class=\"ModuleLocation\">")
-			.append(module).append('.').append(name).append("</div>");
+			.append(module).append('.').append(name).append("</div>\n");
 
 		return stringBuilder.toString();
 	}

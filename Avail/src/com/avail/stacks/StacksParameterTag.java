@@ -102,13 +102,13 @@ public class StacksParameterTag extends AbstractStacksTag
 	public String toHTML()
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
-			.append("<tr class=\"methodParameters\"><td class=\"ICode\">")
+			.append("<tr class=\"methodParameters\">\n<td class=\"ICode\">")
 			.append(paramName.lexeme())
-			.append("</td><td class=\"ICode\">")
+			.append("</td>\n<td class=\"ICode\">")
 			.append(paramType.lexeme())
-			.append("</td><td class=\"IDesc\">")
+			.append("</td>\n<td class=\"IDesc\">")
 			.append(paramDescription.toHTML())
-			.append("</td></tr>");
+			.append("</td>\n</tr>\n");
 		return stringBuilder.toString();
 	}
 }

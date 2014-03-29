@@ -85,11 +85,11 @@ public class StacksReturnTag extends AbstractStacksTag
 	public String toHTML()
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
-			.append("<td class=\"ICode\">")
+			.append("\n<td class=\"ICode\">")
 			.append(returnType.lexeme())
-			.append("</td><td class=\"IDesc\">")
+			.append("</td>\n<td class=\"IDesc\">")
 			.append(returnDescription.toHTML())
-			.append("</td></tr>");
+			.append("</td></tr>\n");
 		return stringBuilder.toString();
 	}
 }

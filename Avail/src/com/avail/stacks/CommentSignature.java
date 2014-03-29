@@ -75,7 +75,7 @@ public class CommentSignature
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append("<div class=\"ModuleLocation\">")
-			.append(module).append('.').append(name).append("</div>");
+			.append(module).append('.').append(name).append("</div>\n");
 		return stringBuilder.toString();
 	}
 }
