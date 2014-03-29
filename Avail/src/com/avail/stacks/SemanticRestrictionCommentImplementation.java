@@ -106,15 +106,15 @@ public class SemanticRestrictionCommentImplementation extends
 			.append(signature.toHTML());
 
 		stringBuilder.append("<div class=\"SignatureDescription\">")
-			.append(description.toHTML()).append("</div")
-			.append("<table><thead><tr><th class=\"Transparent\" scope=\"col\">"
-				+ "</th>");
+			.append(description.toHTML()).append("</div>\n")
+			.append("\n<table>\n<thead>\n<tr>\n<th class=\"Transparent\" scope=\"col\">"
+				+ "</th>\n");
 
 		stringBuilder
-			.append("<th class=\"IColLabelNarrow\" scope=\"col\">Type</th>"
-				+ "<th class=\"IColLabelWide\" scope=\"col\">Description</th>"
-				+ "</tr></thead><tbody><tr><th class=\"IRowLabel\" rowspan=\"")
-			.append(paramCount).append("\">Parameter Types</th></tr>");
+			.append("\n<th class=\"IColLabelNarrow\" scope=\"col\">Type</th>\n"
+				+ "<th class=\"IColLabelWide\" scope=\"col\">Description</th>\n"
+				+ "</tr>\n</thead>\n<tbody>\n<tr>\n<th class=\"IRowLabel\" rowspan=\"")
+			.append(paramCount).append("\">Parameter Types</th>\n</tr>\n");
 
 		for (final StacksRestrictsTag restrictsTag : restricts)
 		{
@@ -124,11 +124,11 @@ public class SemanticRestrictionCommentImplementation extends
 		if (!returnsContent.isEmpty())
 		{
 			stringBuilder.append("<tr><th class=\"IRowLabel\" colspan=\"")
-				.append(colSpan).append("\">Returns</th>")
+				.append(colSpan).append("\">Returns</th>\n")
 				.append(returnsContent.get(0).toHTML());
 		}
 
-		return stringBuilder.toString();
+		return stringBuilder.append("</table>\n").toString();
 	}
 
 	@Override

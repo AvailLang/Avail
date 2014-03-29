@@ -37,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
+import com.avail.AvailRuntime;
 import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.UnresolvedDependencyException;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
@@ -417,9 +418,11 @@ public class StacksCommentsModule
 	 * @param synchronizer
 	 *		The {@linkplain StacksSynchronizer} used to control the creation
 	 * 		of Stacks documentation
+	 * @param runtime
+	 *        An {@linkplain AvailRuntime runtime}.
 	 */
 	public void writeMethodsToHTMLFiles(final Path outputPath,
-		final StacksSynchronizer synchronizer)
+		final StacksSynchronizer synchronizer, final AvailRuntime runtime)
 	{
 
 		final String htmlOpenContent = "<!DOCTYPE html><head><link "
@@ -433,7 +436,7 @@ public class StacksCommentsModule
 		{
 			finalImplementationsGroupMap.get(implementationName)
 				.toHTML(outputPath, implementationName,
-					htmlOpenContent, htmlCloseContent, synchronizer);
+					htmlOpenContent, htmlCloseContent, synchronizer, runtime);
 		}
 	}
 

@@ -70,9 +70,9 @@ public class GlobalCommentSignature extends CommentSignature
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append("<div class=\"SignatureHeading\">")
 			.append(globalType)
-			.append("</div>")
+			.append("</div>\n")
 			.append("<div class=\"ModuleLocation\">")
-			.append(module).append('.').append(name).append("</div>");
+			.append(module).append('.').append(name).append("</div>\n");
 		return stringBuilder.toString();
 	}
 }

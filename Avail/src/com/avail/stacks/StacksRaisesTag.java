@@ -87,9 +87,9 @@ public class StacksRaisesTag extends AbstractStacksTag
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append("<tr class=\"methodParameters\"><td class=\"ICode\">")
 			.append(exceptionName.lexeme())
-			.append("</td><td class=\"IDesc\">")
+			.append("</td>\n<td class=\"IDesc\">")
 			.append(exceptionDescription.toHTML())
-			.append("</td></tr>");
+			.append("</td></tr>\n");
 		return stringBuilder.toString();
 	}
 

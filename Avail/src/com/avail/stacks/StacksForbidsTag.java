@@ -99,16 +99,16 @@ public class StacksForbidsTag extends AbstractStacksTag
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append("<td class=\"GCode\" rowspan=\"")
 			.append(rowSize).append("\">Argument ").append(arityIndex)
-			.append("</td>").append( "<td class=\"GCode\">")
-			.append(forbidMethods.get(0).lexeme).append("</td></tr>");
+			.append("</td>\n").append( "<td class=\"GCode\">")
+			.append(forbidMethods.get(0).lexeme).append("</td></tr>\n");
 
 		if (rowSize > 1)
 		{
 			for (int i = 1; i < rowSize; i++)
 			{
-				stringBuilder.append("<tr> <td class=\"GCode\">")
+				stringBuilder.append("<tr> \n<td class=\"GCode\">")
 					.append(forbidMethods.get(i).lexeme)
-					.append("</td></tr>");
+					.append("</td></tr>\n");
 			}
 		}
 		return stringBuilder.toString();
