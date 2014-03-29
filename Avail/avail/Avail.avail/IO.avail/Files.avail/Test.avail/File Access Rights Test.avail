@@ -51,6 +51,8 @@ Body
 "file access rights test suite" is a new atom;
 New test suite file access rights test suite extends I/O test suite;
 
+Do not run tests in file access rights test suite in parallel;
+
 After running file access rights test suite, do
 [
 	Set standard file access rights;

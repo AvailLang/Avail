@@ -42,6 +42,7 @@ Names
 	"After running_,⁇do_",
 	"Before running each test in_,⁇do_",
 	"Before running_,⁇do_",
+	"Do not run tests in_in parallel",
 	"New test suite,⁇_,⁇extends_",
 	"Test_in_«,⁇if supported«on this platform»⁇,⁇»?is_«must raise_»",
 	"_is a new test suite"
@@ -258,7 +259,9 @@ Semantic restriction "Before running_,⁇do_"
 /**
  * Define a test fixure setup operation that will occur exactly once before each
  * unit test of the specified test suite is run. (If the test suite contains
- * <em>n</em> tests, then {@param "setup"} will run <em>n</em> times.)
+ * <em>n</em> tests, then {@param "setup"} will run <em>n</em> times.) The
+ * existence of a such an operation will prevent tests in the test suite from
+ * being executed concurrently.
  *
  * @method "Before running each test in_,⁇do_"
  * @param "id" "atom"
@@ -286,6 +289,24 @@ Public method "Before running each test in_,⁇do_" is
 
 Semantic restriction "Before running each test in_,⁇do_"
 	is fixture semantic restriction function;
+
+/**
+ * Declare that the unit tests of the specified test suite should be run
+ * serially, never in parallel.
+ *
+ * @method "Do not run tests in_in parallel"
+ * @param "id" "atom"
+ *        The test suite identifier of an existing test suite.
+ * @returns "⊤"
+ * @raises "no-such-test-suite exception"
+ *         If {@param "id"} does not reference an existing test suite.
+ */
+Public method "Do not run tests in_in parallel" is
+[
+	id : atom
+|
+	Before running each test in id, do [];
+] : ⊤;
 
 /**
  * Define a test-fixure tear-down operation that will occur exactly once after

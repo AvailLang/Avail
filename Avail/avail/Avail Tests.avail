@@ -43,6 +43,7 @@ Extends
 		"bounded iterator test suite",
 		"buffered iterator test suite",
 		"cast test suite",
+		"codecs test suite",
 		"concurrency test suite",
 		"control structure test suite",
 		"Data|data abstractions test suite",

@@ -40,6 +40,7 @@ Extends
 		"After running_,⁇do_",
 		"Before running each test in_,⁇do_",
 		"Before running_,⁇do_",
+		"Do not run tests in_in parallel",
 		"New test suite,⁇_,⁇extends_",
 		"Test_in_«,⁇if supported«on this platform»⁇,⁇»?is_«must raise_»",
 		"_is a new test suite"

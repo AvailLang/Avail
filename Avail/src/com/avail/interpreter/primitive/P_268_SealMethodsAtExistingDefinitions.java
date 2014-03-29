@@ -77,6 +77,11 @@ extends Primitive
 			final A_Bundle bundle = name.bundleOrNil();
 			if (!bundle.equalsNil())
 			{
+				// The definition tuple of a method can only be replaced in a
+				// Level One safe zone. Like the vast majority of primitives,
+				// this one runs in a Level One *unsafe* zone. Therefore it is
+				// not necessary to lock the method while traversing its
+				// definition tuple.
 				final A_Method method = bundle.bundleMethod();
 				final A_Tuple definitions = method.definitionsTuple();
 				// Ignore macros.

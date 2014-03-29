@@ -493,6 +493,9 @@ Semantic restriction "recursively visit_,on entering do_,on leaving do_" is
 	enterAction's return type
 ];
 
+"can parallelize" is a new atom;
+"cannot parallelize" is a new atom;
+
 /**
  * Recursively report on all {@type "unit test"}s in the specified {@type
  * "unit test suite" test suite}. Assume that the argument's ancestors have
@@ -524,8 +527,25 @@ Private method "recursively report on all tests in_" is
 				extend test-fixture-setup exception
 					with suite ID : aSuite's suite ID's type
 				on error;
-			map aSuite's unit tests through
-				[test : unit test | test metric for test]
+			/* Determine which unit tests must run in serial, and which can be
+			 * run in parallel. If a test requires any individual fixtures, then
+			 * it cannot be run in parallel.
+			 */
+			groups ::= group aSuite's unit tests by
+				[
+					test : unit test
+				|
+					if setup for test is empty then [can parallelize]
+					else [cannot parallelize]
+				];
+			computeMetric ::= [test : unit test | test metric for test];
+			/* We are under no obligation to preserve the order of the tests, so
+			 * it is perfectly fine to concatenate the two result tuples.
+			 */
+			parallel ::= groups[can parallelize] else [<>];
+			serial ::= groups [cannot parallelize] else [<>];
+			map parallel in parallel through computeMetric
+				++ map serial through computeMetric
 		],
 		on leaving do
 		[
