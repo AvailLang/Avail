@@ -4382,4 +4382,24 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	A_String o_LeadingWhitespace (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_String o_TrailingWhitespace (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_TrailingWhitespace (
+		final AvailObject object,
+		final A_String trailingWhitespace)
+	{
+		throw unsupportedOperationException();
+	}
 }

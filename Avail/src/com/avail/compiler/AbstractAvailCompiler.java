@@ -582,7 +582,13 @@ public abstract class AbstractAvailCompiler
 			for (final A_String pragmaString : thePragmas)
 			{
 				pragmas.add(LiteralTokenDescriptor.create(
-					pragmaString, 0, 0, LITERAL, pragmaString));
+					pragmaString,
+					TupleDescriptor.empty(),
+					TupleDescriptor.empty(),
+					0,
+					0,
+					LITERAL,
+					pragmaString));
 			}
 		}
 
@@ -4009,6 +4015,8 @@ public abstract class AbstractAvailCompiler
 					final A_Token syntheticToken =
 						LiteralTokenDescriptor.create(
 							newToken.string(),
+							newToken.leadingWhitespace(),
+							newToken.trailingWhitespace(),
 							newToken.start(),
 							newToken.lineNumber(),
 							SYNTHETIC_LITERAL,
@@ -4048,6 +4056,8 @@ public abstract class AbstractAvailCompiler
 					AtomDescriptor.objectFromBoolean(op == PUSH_TRUE);
 				final A_Token token = LiteralTokenDescriptor.create(
 					StringDescriptor.from(booleanValue.toString()),
+					initialTokenPosition.peekToken().leadingWhitespace(),
+					initialTokenPosition.peekToken().trailingWhitespace(),
 					initialTokenPosition.peekToken().start(),
 					initialTokenPosition.peekToken().lineNumber(),
 					LITERAL,
@@ -4173,6 +4183,8 @@ public abstract class AbstractAvailCompiler
 					op.integerToPush(instruction));
 				final A_Token token = LiteralTokenDescriptor.create(
 					StringDescriptor.from(integerValue.toString()),
+					initialTokenPosition.peekToken().leadingWhitespace(),
+					initialTokenPosition.peekToken().trailingWhitespace(),
 					initialTokenPosition.peekToken().start(),
 					initialTokenPosition.peekToken().lineNumber(),
 					LITERAL,

@@ -43,7 +43,8 @@ import static com.avail.descriptor.CommentTokenDescriptor.ObjectSlots.*;
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class CommentTokenDescriptor extends TokenDescriptor
+public class CommentTokenDescriptor
+extends TokenDescriptor
 {
 	//this.string().asNativeString() - gets at the string contents.
 	/**
@@ -85,7 +86,6 @@ public class CommentTokenDescriptor extends TokenDescriptor
 		}
 	}
 
-
 	/**
 	 * My class's slots of type AvailObject.
 	 */
@@ -114,6 +114,26 @@ public class CommentTokenDescriptor extends TokenDescriptor
 		}
 	}
 
+	@Override
+	A_String o_LeadingWhitespace (final AvailObject object)
+	{
+		return TupleDescriptor.empty();
+	}
+
+	@Override
+	A_String o_TrailingWhitespace (final AvailObject object)
+	{
+		return TupleDescriptor.empty();
+	}
+
+	@Override
+	void o_TrailingWhitespace (
+		final AvailObject object,
+		final A_String trailingWhitespace)
+	{
+		throw unsupportedOperationException();
+	}
+
 	/**
 	 * Create and initialize a new {@linkplain TokenDescriptor token}.
 	 *
@@ -135,7 +155,6 @@ public class CommentTokenDescriptor extends TokenDescriptor
 		instance.setSlot(TOKEN_TYPE_CODE, TokenType.COMMENT.ordinal());
 		return instance;
 	}
-
 
 	/**
 	 * Construct a new {@link CommentTokenDescriptor}.

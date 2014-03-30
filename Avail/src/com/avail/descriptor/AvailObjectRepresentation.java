@@ -128,6 +128,7 @@ implements A_BasicObject
 			assert definitionClass.isInstance(descriptor);
 		}
 	}
+
 	/**
 	 * Extract the value of the {@link BitField} of the receiver.
 	 *

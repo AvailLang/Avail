@@ -4536,4 +4536,24 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).exportedNames();
 	}
+
+	@Override
+	A_String o_LeadingWhitespace (final AvailObject object)
+	{
+		return o_Traversed(object).leadingWhitespace();
+	}
+
+	@Override
+	A_String o_TrailingWhitespace (final AvailObject object)
+	{
+		return o_Traversed(object).trailingWhitespace();
+	}
+
+	@Override
+	void o_TrailingWhitespace (
+		final AvailObject object,
+		final A_String trailingWhitespace)
+	{
+		o_Traversed(object).trailingWhitespace(trailingWhitespace);
+	}
 }

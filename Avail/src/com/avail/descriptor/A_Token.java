@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import com.avail.compiler.scanning.AvailScanner;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 
 
@@ -68,6 +69,31 @@ extends A_BasicObject
 	 * @return The token's string representation.
 	 */
 	A_String string ();
+
+	/**
+	 * Answer this token's exact leading whitespace as it appeared in the source
+	 * code.
+	 *
+	 * @return The token's leading whitespace.
+	 */
+	A_String leadingWhitespace ();
+
+	/**
+	 * Answer this token's exact trailing whitespace as it appeared in the
+	 * source code.
+	 *
+	 * @return The token's trailing whitespace.
+	 */
+	A_String trailingWhitespace ();
+
+	/**
+	 * Set this token's exact trailing whitespace as it appeared in the source
+	 * code. This capability makes the {@linkplain AvailScanner scanner} must
+	 * easier to build and maintain.
+	 *
+	 * @param trailingWhitespace
+	 */
+	void trailingWhitespace (A_String trailingWhitespace);
 
 	/**
 	 * Answer this token's string representation converted to lower case.

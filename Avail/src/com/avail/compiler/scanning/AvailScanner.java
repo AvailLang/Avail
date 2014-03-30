@@ -38,6 +38,8 @@ import com.avail.annotations.*;
 import com.avail.compiler.AbstractAvailCompiler;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
+import com.avail.utility.LRUCache;
+import com.avail.utility.evaluation.Transformer1;
 
 /**
  * An {@code AvailScanner} converts a stream of characters into a {@link List}
@@ -94,6 +96,12 @@ public class AvailScanner
 	 * {@link #stopAfterBodyToken} is set.
 	 */
 	@InnerAccess boolean encounteredBodyToken;
+
+	/** The previously scanned whitespace. */
+	private A_String previousWhitespace = TupleDescriptor.empty();
+
+	/** The previously added {@linkplain A_Token token}. */
+	private @Nullable A_Token previousToken;
 
 	/**
 	 * Alter the scanner's position in the input String.
@@ -156,17 +164,20 @@ public class AvailScanner
 	 *        The {@link TokenType enumeration value} to set in the token.
 	 * @return The newly added token.
 	 */
-	@InnerAccess
-	A_Token addCurrentToken (
+	@InnerAccess A_Token addCurrentToken (
 		final TokenDescriptor.TokenType tokenType)
 	{
 		final A_Token token = TokenDescriptor.create(
 			StringDescriptor.from(currentTokenString()),
+			previousWhitespace,
+			TupleDescriptor.empty(),
 			startOfToken,
 			lineNumber,
 			tokenType);
 		token.makeShared();
 		outputTokens.add(token);
+		previousToken = token;
+		forgetWhitespace();
 		return token;
 	}
 
@@ -178,18 +189,21 @@ public class AvailScanner
 	 *            A {@linkplain LiteralTokenDescriptor literal token}.
 	 * @return The newly added token.
 	 */
-	@InnerAccess
-	A_Token addCurrentLiteralToken (
+	@InnerAccess A_Token addCurrentLiteralToken (
 		final A_BasicObject anAvailObject)
 	{
 		final A_Token token = LiteralTokenDescriptor.create(
 			StringDescriptor.from(currentTokenString()),
+			previousWhitespace,
+			TupleDescriptor.empty(),
 			startOfToken,
 			lineNumber,
 			TokenType.LITERAL,
 			anAvailObject);
 		token.makeShared();
 		outputTokens.add(token);
+		previousToken = token;
+		forgetWhitespace();
 		return token;
 	}
 
@@ -199,16 +213,16 @@ public class AvailScanner
 	 *@param startLine The line the token started.
 	 * @return The newly added token.
 	 */
-	@InnerAccess
-	A_Token addCurrentCommentToken (final int startLine)
+	@InnerAccess A_Token addCurrentCommentToken (final int startLine)
 	{
 		final A_Token token = CommentTokenDescriptor.create(
 			StringDescriptor.from(currentTokenString()),
 			startOfToken,
 			startLine);
-
 		token.makeShared();
 		commentTokens.add(token);
+		previousToken = null;
+		forgetWhitespace();
 		return token;
 	}
 
@@ -217,8 +231,7 @@ public class AvailScanner
 	 *
 	 * @return Whether we are finished scanning.
 	 */
-	@InnerAccess
-	boolean atEnd ()
+	@InnerAccess boolean atEnd ()
 	{
 		return position == inputString.length();
 	}
@@ -240,9 +253,7 @@ public class AvailScanner
 	 * @return The consumed character.
 	 * @throws AvailScannerException If scanning fails.
 	 */
-	@InnerAccess
-	int next ()
-		throws AvailScannerException
+	@InnerAccess int next () throws AvailScannerException
 	{
 		if (atEnd())
 		{
@@ -265,9 +276,7 @@ public class AvailScanner
 	 * @return The digit's value.
 	 * @throws AvailScannerException If scanning fails.
 	 */
-	@InnerAccess
-	byte nextDigitValue ()
-		throws AvailScannerException
+	@InnerAccess byte nextDigitValue () throws AvailScannerException
 	{
 		assert peekIsDigit();
 		final int value = Character.digit(next(), 10);
@@ -280,8 +289,7 @@ public class AvailScanner
 	 *
 	 * @return The current character.
 	 */
-	@InnerAccess
-	int peek ()
+	@InnerAccess int peek ()
 	{
 		return Character.codePointAt(inputString, position);
 	}
@@ -296,8 +304,7 @@ public class AvailScanner
 	 * @return Whether the specified character was found and skipped.
 	 * @throws AvailScannerException If scanning fails.
 	 */
-	@InnerAccess
-	boolean peekFor (final int aCharacter)
+	@InnerAccess boolean peekFor (final int aCharacter)
 		throws AvailScannerException
 	{
 		if (atEnd())
@@ -319,8 +326,7 @@ public class AvailScanner
 	 * @return Whether an alphanumeric character was encountered and skipped.
 	 * @throws AvailScannerException If scanning fails.
 	 */
-	@InnerAccess
-	boolean peekForLetterOrAlphaNumeric ()
+	@InnerAccess boolean peekForLetterOrAlphaNumeric ()
 		throws AvailScannerException
 	{
 		if (!atEnd())
@@ -339,8 +345,7 @@ public class AvailScanner
 	 *
 	 * @return Whether the current character is a digit.
 	 */
-	@InnerAccess
-	boolean peekIsDigit ()
+	@InnerAccess boolean peekIsDigit ()
 	{
 		if (!atEnd())
 		{
@@ -352,11 +357,54 @@ public class AvailScanner
 	/**
 	 * Move the current {@link #position} back by one character.
 	 */
-	@InnerAccess
-	void backUp ()
+	@InnerAccess void backUp ()
 	{
 		position--;
 		assert 0 <= position && position <= inputString.length();
+	}
+
+	/**
+	 * A global {@linkplain LRUCache cache} of common whitespace strings,
+	 * already shared.
+	 */
+	private static final LRUCache<String, A_String> whitespaceCache =
+		new LRUCache<>(
+			100,
+			0,
+			new Transformer1<String, A_String>()
+			{
+				@Override
+				public @Nullable A_String value (
+					final @Nullable String whitespace)
+				{
+					assert whitespace != null;
+					return StringDescriptor.from(whitespace).makeShared();
+				}
+			});
+
+	/**
+	 * Note that whitespace was discovered.
+	 */
+	@InnerAccess void noteWhitespace ()
+	{
+		assert previousWhitespace.tupleSize() == 0;
+		previousWhitespace = whitespaceCache.get(
+			inputString.substring(startOfToken, position));
+		final A_Token previous = previousToken;
+		if (previous != null)
+		{
+			assert previous.tokenType() != TokenType.COMMENT;
+			previous.trailingWhitespace(previousWhitespace);
+			previousToken = null;
+		}
+	}
+
+	/**
+	 * Forget any saved whitespace.
+	 */
+	@InnerAccess void forgetWhitespace ()
+	{
+		previousWhitespace = TupleDescriptor.empty();
 	}
 
 	/**
@@ -767,7 +815,6 @@ public class AvailScanner
 				else
 				{
 					final boolean capture = scanner.peekFor('*');
-
 					final int startLine = scanner.lineNumber;
 					int depth = 1;
 					while (true)
@@ -801,12 +848,14 @@ public class AvailScanner
 							{
 								scanner.addCurrentCommentToken(startLine);
 							}
+							else
+							{
+								scanner.forgetWhitespace();
+							}
 							break;
 						}
 					}
-
 				}
-
 			}
 		},
 
@@ -832,26 +881,22 @@ public class AvailScanner
 			void scan (final AvailScanner scanner)
 				throws AvailScannerException
 			{
-				// do nothing.
-			}
-		},
-
-		/**
-		 * The zero-width non-breaking space character was encountered. This is
-		 * also known as the byte-order-mark and generally only appears at the
-		 * start of a file as a hint about the file's endianness.
-		 *
-		 * <p>
-		 * Treat it as whitespace even though Unicode says it isn't.
-		 * </p>
-		 */
-		ZEROWIDTHWHITESPACE ()
-		{
-			@Override
-			void scan (final AvailScanner scanner)
-				throws AvailScannerException
-			{
-				// do nothing
+				while (true)
+				{
+					if (scanner.atEnd())
+					{
+						break;
+					}
+					final int c = scanner.peek();
+					if (!Character.isWhitespace(c)
+						&& !Character.isSpaceChar(c)
+						&& c != '\uFEFF')
+					{
+						break;
+					}
+					scanner.next();
+				}
+				scanner.noteWhitespace();
 			}
 		},
 
@@ -1059,6 +1104,9 @@ public class AvailScanner
 		dispatchTable['_'] = (byte) IDENTIFIER_START.ordinal();
 		dispatchTable['"'] = (byte) DOUBLE_QUOTE.ordinal();
 		dispatchTable['/'] = (byte) SLASH.ordinal();
-		dispatchTable['\uFEFF'] = (byte) ZEROWIDTHWHITESPACE.ordinal();
+		// This is also known as the byte-order-mark and generally only appears
+		// at the start of a file as a hint about the file's endianness. Treat
+		// it as whitespace even though Unicode says it isn't.
+		dispatchTable['\uFEFF'] = (byte) WHITESPACE.ordinal();
 	}
 }

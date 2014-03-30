@@ -86,6 +86,7 @@ Uses
 		"_'s⁇key type",
 		"_'s⁇keys",
 		"_'s⁇leading types",
+		"_'s⁇leading whitespace",
 		"_'s⁇lexeme",
 		"_'s⁇line number",
 		"_'s⁇literals",
@@ -114,6 +115,7 @@ Uses
 		"_'s⁇statements",
 		"_'s⁇target",
 		"_'s⁇token",
+		"_'s⁇trailing whitespace",
 		"_'s⁇type",
 		"_'s⁇value",
 		"_'s⁇value type",
@@ -2377,6 +2379,38 @@ Primitive "_→character" is
 |
 	Primitive 331;
 ] : character;
+
+/**
+ * Answer the whitespace that appeared immediately before this token in the
+ * source text. Comments are not reckoned as whitespace.
+ *
+ * Parameters:
+ *    aToken - A token.
+ * Returns:
+ *    The whitespace that appeared before this token in the source text.
+ */
+Primitive "_'s⁇leading whitespace" is
+[
+	aToken : token
+|
+	Primitive 347;
+] : string;
+
+/**
+ * Answer the whitespace that appeared immediately after this token in the
+ * source text. Comments are not reckoned as whitespace.
+ *
+ * Parameters:
+ *    aToken - A token.
+ * Returns:
+ *    The whitespace that appeared after this token in the source text.
+ */
+Primitive "_'s⁇trailing whitespace" is
+[
+	aToken : token
+|
+	Primitive 348;
+] : string;
 
 /**
  * Answer the semantic type of the specified phrase type.

@@ -1,5 +1,5 @@
-/*
- * Availuator.avail
+/**
+ * P_348_TokenTrailingWhitespace.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,56 +30,46 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Availuator"
-Versions
-	"dev"
-Extends
-	"Convenient ASCII"
-Entries
-	"`!_",
-	"Run_"
-Body
+package com.avail.interpreter.primitive;
+
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
 
 /**
- * A simple Avail expression evaluator ("Availuator") that lets the Avail
- * compiler do all of the heavy lifting. Just answer the argument.
+ * <strong>Primitive 348</strong>: Answer the trailing whitespace for the
+ * specified {@linkplain A_Token token} as it appeared in the source text.
  *
- * @method "`!_"
- * @param "x" "any"
- *        An arbitrary value.
- * @returns "any"
- *          The argument.
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-Method "`!_" is [x : any | x];
+public final class P_348_TokenTrailingWhitespace
+extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class. Accessed through reflection.
+	 */
+	public final static Primitive instance =
+		new P_348_TokenTrailingWhitespace().init(1, CanInline, CannotFail);
 
-/* Just in case the library ever wants to export its own "`!_", have the
- * Avail expression evaluator forbid a recursive send of itself.
- */
-Grammatical restriction "`!_" is <{"`!_"}>;
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
+	{
+		assert args.size() == 1;
+		final A_Token token = args.get(0);
+		return interpreter.primitiveSuccess(token.trailingWhitespace());
+	}
 
-/**
- * Invoke the supplied {@type "function"} for its side effects.
- *
- * @method "Run_"
- * @param "f" "[]→⊤"
- *        An arbitrary arity-0 {@type "function"}.
- * @returns "⊤"
- */
-Method "Run_" is [f : []→⊤ | f();] : ⊤;
-
-/**
- * Forbid the supplied {@type "function"} from producing a value.
- *
- * @method "Run_"
- * @restricts "[]→⊤'s type"
- */
-Semantic restriction "Run_" is
-[
-	f : []→⊤'s type
-|
-	If f's return type ≠ ⊤ then
-	[
-		Reject parse, expected: "function not to produce a value"
-	];
-	⊤
-];
+	@Override
+	protected A_Type privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				TOKEN.o()),
+			TupleTypeDescriptor.stringType());
+	}
+}

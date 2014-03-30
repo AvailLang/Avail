@@ -50,40 +50,6 @@ public final class LiteralTokenDescriptor
 extends TokenDescriptor
 {
 	/**
-	 * My slots of type {@link AvailObject}. Note that they have to start the
-	 * same as in my superclass {@link TokenDescriptor}.
-	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
-	{
-		/**
-		 * The {@linkplain StringDescriptor string}, exactly as I appeared in
-		 * the source.
-		 */
-		STRING,
-
-		/**
-		 * The lower case {@linkplain StringDescriptor string}, cached as an
-		 * optimization for case insensitive parsing.
-		 */
-		@HideFieldInDebugger
-		LOWER_CASE_STRING,
-
-		/**
-		 * The actual {@link AvailObject} wrapped by this token.
-		 */
-		LITERAL;
-
-		static
-		{
-			assert TokenDescriptor.ObjectSlots.STRING.ordinal()
-				== STRING.ordinal();
-			assert TokenDescriptor.ObjectSlots.LOWER_CASE_STRING.ordinal()
-				== LOWER_CASE_STRING.ordinal();
-		}
-	}
-
-	/**
 	 * My class's slots of type int.
 	 */
 	public enum IntegerSlots
@@ -120,7 +86,50 @@ extends TokenDescriptor
 			assert TokenDescriptor.IntegerSlots.TOKEN_TYPE_CODE.ordinal()
 				== TOKEN_TYPE_CODE.ordinal();
 		}
+	}
 
+	/**
+	 * My slots of type {@link AvailObject}. Note that they have to start the
+	 * same as in my superclass {@link TokenDescriptor}.
+	 */
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
+	{
+		/**
+		 * The {@linkplain StringDescriptor string}, exactly as I appeared in
+		 * the source.
+		 */
+		STRING,
+
+		/**
+		 * The lower case {@linkplain StringDescriptor string}, cached as an
+		 * optimization for case insensitive parsing.
+		 */
+		@HideFieldInDebugger
+		LOWER_CASE_STRING,
+
+		/** The {@linkplain A_String leading whitespace}. */
+		LEADING_WHITESPACE,
+
+		/** The {@linkplain A_String trailing whitespace}. */
+		TRAILING_WHITESPACE,
+
+		/**
+		 * The actual {@link AvailObject} wrapped by this token.
+		 */
+		LITERAL;
+
+		static
+		{
+			assert TokenDescriptor.ObjectSlots.STRING.ordinal()
+				== STRING.ordinal();
+			assert TokenDescriptor.ObjectSlots.LOWER_CASE_STRING.ordinal()
+				== LOWER_CASE_STRING.ordinal();
+			assert TokenDescriptor.ObjectSlots.LEADING_WHITESPACE.ordinal()
+				== LEADING_WHITESPACE.ordinal();
+			assert TokenDescriptor.ObjectSlots.TRAILING_WHITESPACE.ordinal()
+				== TRAILING_WHITESPACE.ordinal();
+		}
 	}
 
 	@Override @AvailMethod
@@ -167,15 +176,25 @@ extends TokenDescriptor
 	/**
 	 * Create and initialize a new {@linkplain TokenDescriptor token}.
 	 *
-	 * @param string The token text.
-	 * @param start The token's starting character position in the file.
-	 * @param lineNumber The line number on which the token occurred.
-	 * @param tokenType The type of token to create.
+	 * @param string
+	 *        The token text.
+	 * @param leadingWhitespace
+	 *        The leading whitespace.
+	 * @param trailingWhitespace
+	 *        The trailing whitespace.
+	 * @param start
+	 *        The token's starting character position in the file.
+	 * @param lineNumber
+	 *        The line number on which the token occurred.
+	 * @param tokenType
+	 *        The type of token to create.
 	 * @param literal The literal.
 	 * @return The new token.
 	 */
 	public static AvailObject create (
 		final A_String string,
+		final A_String leadingWhitespace,
+		final A_String trailingWhitespace,
 		final int start,
 		final int lineNumber,
 		final TokenType tokenType,
@@ -183,6 +202,8 @@ extends TokenDescriptor
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(STRING, string);
+		instance.setSlot(LEADING_WHITESPACE, leadingWhitespace);
+		instance.setSlot(TRAILING_WHITESPACE, trailingWhitespace);
 		instance.setSlot(LOWER_CASE_STRING, NilDescriptor.nil());
 		instance.setSlot(START, start);
 		instance.setSlot(LINE_NUMBER, lineNumber);

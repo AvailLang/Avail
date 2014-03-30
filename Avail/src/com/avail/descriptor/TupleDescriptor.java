@@ -1114,7 +1114,7 @@ extends Descriptor
 		final boolean canDestroy);
 
 	/** The empty tuple. */
-	static final AvailObject emptyTuple;
+	private static final AvailObject emptyTuple;
 
 	static
 	{
