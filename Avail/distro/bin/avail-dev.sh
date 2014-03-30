@@ -1,0 +1,99 @@
+#!/bin/bash
+#
+# avail-dev.sh
+# Copyright © 1993-2014, The Avail Foundation, LLC.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of the contributors
+#   may be used to endorse or promote products derived from this software
+#   without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+
+# Make sure that AVAIL_HOME is set.
+if [ "X$AVAIL_HOME" = "X" ]; then
+	echo "Fatal error: AVAIL_HOME is not set."
+	exit 1
+fi
+
+# Create a configuration directory if necessary. Fix the permissions if it is
+# not readable and writable by the current user.
+AVAIL_USER=$HOME/.avail
+CONFIG=$AVAIL_USER/etc
+if [ ! -e $CONFIG ]; then
+	install -d -m 700 $CONFIG
+elif [ ! -d $CONFIG ]; then
+	echo "Fatal error: $CONFIG exists but is not a directory."
+	exit 1
+elif [ ! -r $CONFIG -o ! -w $CONFIG ]; then
+	chmod u+rw $CONFIG
+fi
+
+# Copy the standard configuration file for logging, but only if the user does
+# not already have one in place.
+if [ ! -e $CONFIG/logging.properties ]; then
+	cp $AVAIL_HOME/etc/logging.properties $CONFIG/logging.properties
+elif [ ! -f $CONFIG/logging.properties ]; then
+	echo "Fatal error: $CONFIG/logging.properties exists but is not a regular file"
+	exit 1
+fi
+
+# Create the repository directory if necessary. Fix the permissions if it is
+# not readable and writable by the current user.
+REPOS=$AVAIL_USER/repos
+if [ ! -e $REPOS ]; then
+	install -d -m 700 $REPOS
+elif [ ! -d $REPOS ]; then
+	echo "Fatal error: $REPOS exists but is not a directory."
+	exit 1
+elif [ ! -r $REPOS -o ! -w $REPOS ]; then
+	chmod u+rw $REPOS
+fi
+
+# If AVAIL_ROOTS is not set, then default it.
+if [ "X$AVAIL_ROOTS" = "X" ]; then
+	AVAIL_ROOTS="avail=$REPOS/avail.repo,$AVAIL_HOME/src/avail"';'"examples=$REPOS/examples.repo,$AVAIL_HOME/src/examples"
+fi
+
+# Find the Java virtual machine.
+VM=$(which java)
+if [ "X$VM" = "X" ]; then
+	echo "Fatal error: Could not locate the Java virtual machine (java)."
+	exit 1
+fi
+
+# The JVM for Mac OS X understands a few options that make for a prettier dock.
+OSNAME=$(uname -s)
+if [ $OSNAME = "Darwin" ]; then
+	OSARGS=-Xdock:name=$(basename $0)\ -Xdock:icon=$AVAIL_HOME/images/AvailHammer.png
+else
+	OSARGS=
+fi
+
+# These are the system arguments for the Java virtual machine.
+VMARGS=-classpath\ "$AVAIL_HOME/lib"\ $OSARGS\ -XX:+UseCompressedOops\ -XX:-UseSplitVerifier\ "-Djava.util.logging.config.file=$HOME/.avail/logging.properties"\ "-DavailRoots=$AVAIL_ROOTS"
+
+# Launch the Avail development environment in the background.
+DEVJAR=$AVAIL_HOME/lib/AvailDev.jar
+$VM $VMARGS -jar $DEVJAR &
