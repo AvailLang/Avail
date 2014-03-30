@@ -30,18 +30,28 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 -->
-<project name="Avail" default="avail-dev">
+<project name="Avail" basedir=".." default="avail-dev">
 	<property name="path.avail" value="${basedir}" />
 	<property name="path.avail.src" value="${path.avail}/src"/>
 	<property name="path.avail.bin" value="${path.avail}/bin"/>
+	<property name="path.avail.distro" value="${path.avail}/distro"/>
 	<property name="path.avail.resources" value="${path.avail}/resources"/>
-	<property name="path.avail.jar" value="${path.avail}/distro/lib"/>
+	<property name="path.avail.jar" value="${path.avail.distro}/lib"/>
 	<property
 		name="path.interpreter"
 		value="${path.avail.bin}/com/avail/interpreter"/>
 	<property
 		name = "primitive.package"
 		value="com.avail.interpreter.primitive"/>
+	<property name="jar.avail" value="Avail.jar"/>
+	<property name="path.jar.avail" value="${path.avail.jar}/${jar.avail}"/>
+	<property name="jar.dev" value="AvailDev.jar"/>
+	<property name="path.jar.dev" value="${path.avail.jar}/${jar.dev}"/>
+	<uptodate
+			property="changed.source"
+			targetfile="${jar.avail}">
+		<srcfiles dir="${path.avail.src}"/>
+	</uptodate>
 
 	<!--
 		Produce a file containing the build time that can be included as a
@@ -49,6 +59,7 @@ POSSIBILITY OF SUCH DAMAGE.
 	-->
 	<target
 			name="generate-build-time"
+			if="changed.source"
 			description="Generate a resource that contains the build time.">
 		<property
 			name="path.build.time"
@@ -65,6 +76,7 @@ POSSIBILITY OF SUCH DAMAGE.
 	-->
 	<target
 			name="generate-primitives-list"
+			if="changed.source"
 			description="Generate a resource that lists the primitive classes.">
 		<property
 			name="path.primitives"
@@ -112,6 +124,7 @@ POSSIBILITY OF SUCH DAMAGE.
 	<target
 			name="build-sources"
 			depends="initialize"
+			if="changed.source"
 			description="Build the Avail sources.">
 		<javac
 				srcdir="${path.avail.src}"
@@ -127,14 +140,10 @@ POSSIBILITY OF SUCH DAMAGE.
 			<compilerarg compiler="javac1.7"/>
 		</javac>
 	</target>
-	
+
 	<!--
 		Build the Avail virtual machine.
 	-->
-	<property name="jar.avail" value="Avail.jar"/>
-	<property
-		name="path.jar.avail"
-		value="${path.avail.jar}/${jar.avail}"/>
 	<target
 			name="avail-vm"
 			depends="build-sources"
@@ -160,12 +169,6 @@ POSSIBILITY OF SUCH DAMAGE.
 	<!--
 		Build the Avail development environment.
 	-->
-	<property
-		name="jar.dev"
-		value="AvailDev.jar"/>
-	<property
-		name="path.jar.dev"
-		value="${path.avail.jar}/${jar.dev}"/>
 	<target
 			name="avail-dev"
 			depends="avail-vm">
@@ -186,5 +189,60 @@ POSSIBILITY OF SUCH DAMAGE.
 				dir="${path.avail}"
 				includes="resources/**"/>
 		</jar>
+	</target>
+	
+	<!--
+		Install Avail.
+	-->
+	<condition
+			property="path.install"
+			value="C:\Program Files\Avail">
+		<and>
+			<not>
+				<isset property="path.install"/>
+			</not>
+			<os family="windows"/>
+		</and>
+	</condition>
+	<condition
+			property="path.install"
+			value="/usr/local/avail">
+		<not>
+			<isset property="path.install"/>
+		</not>
+	</condition>
+	<condition
+			property="path.install.bin"
+			value="${path.install}\bin">
+		<os family="windows"/>
+	</condition>
+	<condition
+			property="path.install.bin"
+			value="${path.install}/bin">
+		<not>
+			<os family="windows"/>
+		</not>
+	</condition>
+	<target
+			name="install"
+			depends="avail-vm, avail-dev">
+		<copy todir="${path.install}" preservelastmodified="true">
+			<fileset dir="${path.avail.distro}"/>
+		</copy>
+		<chmod perm="644" maxparallel="300">
+			<fileset dir="${path.install}"/>
+		</chmod>
+		<chmod perm="755" maxparallel="300">
+			<dirset dir="${path.install}"/>
+		</chmod>
+		<chmod perm="755" maxparallel="300">
+			<fileset file="${path.install}/bin/avail-dev"/>
+		</chmod>
+		<echo>
+ATTENTION ======================================================================
+Be sure to set the environment variable AVAIL_HOME to ${path.install}, and to
+update your path to include ${path.install.bin}.
+================================================================================
+		</echo>
 	</target>
 </project>
