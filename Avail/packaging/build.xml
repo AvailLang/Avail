@@ -43,15 +43,19 @@ POSSIBILITY OF SUCH DAMAGE.
 	<property
 		name = "primitive.package"
 		value="com.avail.interpreter.primitive"/>
-	<property name="jar.avail" value="Avail.jar"/>
-	<property name="path.jar.avail" value="${path.avail.jar}/${jar.avail}"/>
-	<property name="jar.dev" value="AvailDev.jar"/>
-	<property name="path.jar.dev" value="${path.avail.jar}/${jar.dev}"/>
-	<uptodate
-			property="changed.source"
-			targetfile="${jar.avail}">
-		<srcfiles dir="${path.avail.src}"/>
-	</uptodate>
+	<property name="path.jar.avail" value="${path.avail.jar}/Avail.jar"/>
+	<property name="path.jar.dev" value="${path.avail.jar}/AvailDev.jar"/>
+
+	<condition property="should.rebuild" value="true">
+		<not>
+			<and>
+				<available file="${path.jar.avail}"/>
+				<uptodate targetfile="${path.jar.avail}">
+					<srcfiles dir="${path.avail.src}" includes="**/*.java"/>
+				</uptodate>
+			</and>
+		</not>
+	</condition>
 
 	<!--
 		Produce a file containing the build time that can be included as a
@@ -59,7 +63,7 @@ POSSIBILITY OF SUCH DAMAGE.
 	-->
 	<target
 			name="generate-build-time"
-			if="changed.source"
+			if="should.rebuild"
 			description="Generate a resource that contains the build time.">
 		<property
 			name="path.build.time"
@@ -76,7 +80,7 @@ POSSIBILITY OF SUCH DAMAGE.
 	-->
 	<target
 			name="generate-primitives-list"
-			if="changed.source"
+			if="should.rebuild"
 			description="Generate a resource that lists the primitive classes.">
 		<property
 			name="path.primitives"
@@ -114,9 +118,10 @@ POSSIBILITY OF SUCH DAMAGE.
 		of the ultimate build products.
 	-->
 	<target
-		name="initialize"
-		depends="generate-build-time, generate-primitives-list"
-		description="Initialize the build."/>
+			name="initialize"
+			depends="generate-build-time, generate-primitives-list"
+			description="Initialize the build.">
+	</target>
 
 	<!--
 		Build the Avail sources.
@@ -124,7 +129,7 @@ POSSIBILITY OF SUCH DAMAGE.
 	<target
 			name="build-sources"
 			depends="initialize"
-			if="changed.source"
+			if="should.rebuild"
 			description="Build the Avail sources.">
 		<javac
 				srcdir="${path.avail.src}"
@@ -227,7 +232,9 @@ POSSIBILITY OF SUCH DAMAGE.
 			name="install"
 			depends="avail-vm, avail-dev">
 		<copy todir="${path.install}" preservelastmodified="true">
-			<fileset dir="${path.avail.distro}"/>
+			<fileset
+				dir="${path.avail.distro}"
+				excludes="**/dummy.txt"/>
 		</copy>
 		<chmod perm="644" maxparallel="300">
 			<fileset dir="${path.install}"/>
@@ -238,11 +245,22 @@ POSSIBILITY OF SUCH DAMAGE.
 		<chmod perm="755" maxparallel="300">
 			<fileset file="${path.install}/bin/avail-dev"/>
 		</chmod>
-		<echo>
-ATTENTION ======================================================================
-Be sure to set the environment variable AVAIL_HOME to ${path.install}, and to
-update your path to include ${path.install.bin}.
-================================================================================
+		<echo level="info">
+ATTENTION ==========================================================
+Be sure to set AVAIL_HOME to:
+
+	${path.install}
+
+And update your path to include:
+
+	${path.install.bin}
+
+For example, a user of bash might include something like the
+following in the appropriate shell config file:
+
+	export AVAIL_HOME=${path.install}
+	export PATH=$PATH:${path.install.bin}
+====================================================================
 		</echo>
 	</target>
 </project>
