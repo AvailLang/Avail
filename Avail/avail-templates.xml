@@ -87,7 +87,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
@@ -102,7 +101,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final @NotNull static Primitive instance =
+	public final static Primitive instance =
 		new ${primary_type_name}().init(${primitiveArgCount}, ${primitiveFlags});
 
 	@Override
@@ -204,4 +203,4 @@ Body
 }</template><template autoinsert="true" context="java" deleted="false" description="A mathematical bold script R (&#120033;)." enabled="true" name="R">&#120033;</template><template autoinsert="true" context="java" deleted="false" description="The right arrow." enabled="true" name="rightarrow">→</template><template autoinsert="true" context="java" deleted="false" description="The right ceiling operator (⎤)." enabled="true" name="rightceiling">⎤</template><template autoinsert="true" context="java" deleted="false" description="Right double smart quote (”)." enabled="true" name="rightdoublesmartquote">”</template><template autoinsert="true" context="java" deleted="false" description="The right floor operator (⎦)." enabled="true" name="rightfloor">⎦</template><template autoinsert="true" context="java" deleted="false" description="Right guillemet (»)." enabled="true" name="rightguillemet">»</template><template autoinsert="true" context="java" deleted="false" description="Right single smart quote (’)." enabled="true" name="rightsinglesmartquote">’</template><template autoinsert="true" context="java" deleted="false" description="New semantic restriction." enabled="true" name="semrestrict">Semantic restriction "${methodName}" is
 [
 	${cursor}
-];</template><template autoinsert="true" context="java" deleted="false" description="A superscript two (²)." enabled="true" name="squared">²</template><template autoinsert="true" context="java" deleted="false" description="The subset/subtype operator (⊆)." enabled="true" name="subset">⊆</template><template autoinsert="true" context="java" deleted="false" description="The superset/supertype operator (⊇)." enabled="true" name="superset">⊇</template><template autoinsert="true" context="java" deleted="false" description="The multiplication operator (×)." enabled="true" name="times">×</template><template autoinsert="true" context="java" deleted="false" description="The top type." enabled="true" name="top">⊤</template><template autoinsert="true" context="java" deleted="false" description="The set/type union operator." enabled="true" name="union">∪</template><template autoinsert="true" context="java" deleted="false" description="The upwards arrow character (↑)." enabled="true" name="uparrow">↑</template><template autoinsert="true" context="java" deleted="false" description="The phrase construction operator (⇒)." enabled="true" name="yields">⇒</template></templates>
+];</template><template autoinsert="true" context="java" deleted="false" description="A superscript two (²)." enabled="true" name="squared">²</template><template autoinsert="true" context="java" deleted="false" description="Stringify the argument." enabled="true" name="stringify">“${expr}”</template><template autoinsert="true" context="java" deleted="false" description="The subset/subtype operator (⊆)." enabled="true" name="subset">⊆</template><template autoinsert="true" context="java" deleted="false" description="The superset/supertype operator (⊇)." enabled="true" name="superset">⊇</template><template autoinsert="true" context="java" deleted="false" description="The multiplication operator (×)." enabled="true" name="times">×</template><template autoinsert="true" context="java" deleted="false" description="The top type." enabled="true" name="top">⊤</template><template autoinsert="true" context="java" deleted="false" description="The set/type union operator." enabled="true" name="union">∪</template><template autoinsert="true" context="java" deleted="false" description="The upwards arrow character (↑)." enabled="true" name="uparrow">↑</template><template autoinsert="true" context="java" deleted="false" description="The phrase construction operator (⇒)." enabled="true" name="yields">⇒</template></templates>

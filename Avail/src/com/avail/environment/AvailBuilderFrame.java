@@ -2217,7 +2217,7 @@ extends JFrame
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		// Set *just* the window title...
-		setTitle("Avail Builder");
+		setTitle("Avail Workbench");
 		setResizable(true);
 
 		// Create the actions.
