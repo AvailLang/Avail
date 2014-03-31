@@ -92,7 +92,7 @@ else
 fi
 
 # These are the system arguments for the Java virtual machine.
-VMARGS=-classpath\ "$AVAIL_HOME/lib"\ $OSARGS\ -XX:+UseCompressedOops\ -XX:-UseSplitVerifier\ "-Djava.util.logging.config.file=$HOME/.avail/logging.properties"\ "-DavailRoots=$AVAIL_ROOTS"
+VMARGS=-classpath\ "$AVAIL_HOME/lib"\ $OSARGS\ -XX:-UseSplitVerifier\ "-Djava.util.logging.config.file=$HOME/.avail/logging.properties"\ "-DavailRoots=$AVAIL_ROOTS"
 
 # Launch the Avail development environment in the background.
 DEVJAR=$AVAIL_HOME/lib/AvailDev.jar
