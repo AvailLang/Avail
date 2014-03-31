@@ -88,7 +88,7 @@ public final class SerializerTest
 		final ModuleRoots roots = new ModuleRoots(String.format(
 			"avail=%s,%s",
 			repositoryFile.getAbsolutePath(),
-			new File("avail").getAbsolutePath()));
+			new File("distro/src/avail").getAbsolutePath()));
 		final RenamesFileParser parser =
 			new RenamesFileParser(new StringReader(""), roots);
 		ModuleNameResolver resolver;
