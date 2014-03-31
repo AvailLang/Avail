@@ -1748,7 +1748,7 @@ public final class Interpreter
 							updatedCaller.stackAt(stackp);
 						if (!result.isInstanceOf(expectedType))
 						{
-							// TODO: [MvG] Remove after debugging.
+							// Breakpoint this to trace the failed type test.
 							result.isInstanceOf(expectedType);
 							error(String.format(
 								"Return value (%s) does not agree with "
@@ -2032,7 +2032,7 @@ public final class Interpreter
 							updatedCaller.stackAt(stackp);
 						if (!result.isInstanceOf(expectedType))
 						{
-							// TODO: [MvG] Remove after debugging.
+							// Breakpoint this to trace the failed type test.
 							result.isInstanceOf(expectedType);
 							error(String.format(
 								"Return value (%s) does not agree with "

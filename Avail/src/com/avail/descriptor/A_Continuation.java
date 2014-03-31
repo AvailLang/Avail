@@ -51,8 +51,8 @@ extends A_BasicObject
 	 * failure variable (if defined), locals, and then an operand stack that
 	 * grows from the top down.
 	 *
-	 * @param index
-	 * @return
+	 * @param index The one-based index into this frame data.
+	 * @return The continuation's slot at the specified index.
 	 */
 	AvailObject argOrLocalOrStackAt (int index);
 
@@ -69,8 +69,8 @@ extends A_BasicObject
 
 	/**
 	 * The {@linkplain ContinuationDescriptor continuation} to which control
-	 * will pass when this continuation returns.  May be {@linkplain
-	 * NilDescriptor#nil()}, indicating this is the outermost stack frame of
+	 * will pass when this continuation returns.  May be {@link
+	 * NilDescriptor#nil() nil}, indicating this is the outermost stack frame of
 	 * its fiber and will produce a value from the fiber itself.
 	 *
 	 * @return The calling continuation or nil.
@@ -98,22 +98,43 @@ extends A_BasicObject
 	int pc ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer the current depth of the argument stack within this continuation.
+	 * This is a one-based index into the continuation's {@link
+	 * ContinuationDescriptor.ObjectSlots#FRAME_AT_ frame area}.  The stack
+	 * pointer indexes the most recently pushed value.  The stack grows
+	 * downwards, and the empty stack is indicated by a pointer just beyond the
+	 * {@link ContinuationDescriptor.ObjectSlots#FRAME_AT_ frame data}.
+	 *
+	 * @return The current stack pointer within this continuation.
 	 */
 	int stackp ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Set both this continuation's {@link L2Chunk} and the corresponding
+	 * offset into its {@link L2Chunk#instructions}.
+	 *
+	 * @param chunk
+	 *        This continuation's new {@code L2Chunk}.
+	 * @param offset
+	 *        Where to resume executing the {@code L2Chunk}'s instructions.
 	 */
 	void levelTwoChunkOffset (L2Chunk chunk, int offset);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Retrieve the stack element with the given offset.  Do not adjust the
+	 * mutability of the returned value.
+	 *
+	 * @param slotIndex Which stack element to retrieve.
+	 * @return The value that was on the stack.
 	 */
 	AvailObject stackAt (int slotIndex);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Replace the stack element at the given offset.  Do not adjust the
+	 * mutability of the assigned value.  The continuation must be mutable.
+	 *
+	 * @param slotIndex Which stack element to overwrite.
+	 * @param anObject The value to write to the stack.
 	 */
 	void stackAtPut (int slotIndex, A_BasicObject anObject);
 

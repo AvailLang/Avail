@@ -64,7 +64,7 @@ public final class P_260_Assert extends Primitive
 		assert args.size() == 2;
 		final A_Atom predicate = args.get(0);
 		final A_String failureMessage = args.get(1);
-		if (predicate.equals(AtomDescriptor.falseObject()))
+		if (!predicate.extractBoolean())
 		{
 			final A_Fiber fiber = interpreter.fiber();
 			final A_Continuation continuation =

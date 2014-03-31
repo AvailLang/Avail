@@ -810,12 +810,26 @@ extends AbstractEnumerationTypeDescriptor
 	 */
 	private static final A_Type booleanObject;
 
+	/**
+	 * The type whose only instance is the value {@link
+	 * AtomDescriptor#trueObject() true}.
+	 */
+	private static final A_Type trueType;
+
+	/**
+	 * The type whose only instance is the value {@link
+	 * AtomDescriptor#falseObject() false}.
+	 */
+	private static final A_Type falseType;
+
 	static
 	{
 		final A_Tuple tuple = TupleDescriptor.from(
 			AtomDescriptor.trueObject(),
 			AtomDescriptor.falseObject());
 		booleanObject = withInstances(tuple.asSet()).makeShared();
+		trueType = withInstance(AtomDescriptor.trueObject());
+		falseType = withInstance(AtomDescriptor.falseObject());
 	}
 
 	/**
@@ -827,5 +841,27 @@ extends AbstractEnumerationTypeDescriptor
 	public static A_Type booleanObject ()
 	{
 		return booleanObject;
+	}
+
+	/**
+	 * Return the type for which {@link AtomDescriptor#trueObject() true} is the
+	 * only instance.
+	 *
+	 * @return true's type.
+	 */
+	public static A_Type trueType ()
+	{
+		return trueType;
+	}
+
+	/**
+	 * Return the type for which {@link AtomDescriptor#falseObject() false} is
+	 * the only instance.
+	 *
+	 * @return false's type.
+	 */
+	public static A_Type falseType ()
+	{
+		return falseType;
 	}
 }

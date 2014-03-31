@@ -624,8 +624,8 @@ extends AbstractAvailCompiler
 							finishLabel);
 					}
 				},
-				"Label type",
-				afterColon);
+				afterColon,
+				"Label type");
 		}
 		else
 		{
@@ -640,8 +640,8 @@ extends AbstractAvailCompiler
 							(AvailObject)BottomTypeDescriptor.bottom());
 					}
 				},
-				"Default label return type",
-				afterName);
+				afterName,
+				"Default label return type");
 		}
 	}
 
@@ -1193,8 +1193,7 @@ extends AbstractAvailCompiler
 										? Collections.<A_Phrase>emptyList()
 										: Collections.<A_Phrase>singletonList(
 											primitiveAndFailure.tupleAt(2)),
-									new Con<List<A_Phrase>>(
-										"Block statements")
+									new Con<List<A_Phrase>>("Block statements")
 									{
 										@Override
 										public void value (

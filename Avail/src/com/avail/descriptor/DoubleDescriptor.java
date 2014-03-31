@@ -146,19 +146,16 @@ extends AbstractNumberDescriptor
 		// is an integer, it also can't lose any information if it's *not*
 		// scaled before being converted to a long.
 		final int exponent = Math.getExponent(aDouble);
-		int exponentAdjustment = Math.max(exponent - 60, 0);
+		final int exponentAdjustment = Math.max(exponent - 60, 0);
 		final double normalD = Math.scalb(floorD, -exponentAdjustment);
 		assert Long.MIN_VALUE < normalD && normalD < Long.MAX_VALUE;
 		final A_Number normalInteger =
 			IntegerDescriptor.fromLong((long)normalD);
 		A_Number integer = normalInteger;
-		while (exponentAdjustment > 60)
+		if (exponentAdjustment > 0)
 		{
-			final int shift = Math.min(exponentAdjustment, 60);
-			integer = integer.timesCanDestroy(
-				IntegerDescriptor.fromLong(1L<<shift),
-				true) ;
-			exponentAdjustment--;
+			integer = integer.bitShift(
+				IntegerDescriptor.fromInt(exponentAdjustment), true);
 		}
 		// We now have an Avail integer representing the exact same quantity as
 		// floorD.
@@ -221,385 +218,6 @@ extends AbstractNumberDescriptor
 	{
 		aStream.append(getDouble(object));
 		aStream.append('d');
-	}
-
-	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final A_BasicObject another)
-	{
-		final boolean same = another.equalsDouble(getDouble(object));
-		if (same)
-		{
-			if (!isShared())
-			{
-				another.makeImmutable();
-				object.becomeIndirectionTo(another);
-			}
-			else if (!another.descriptor().isShared())
-			{
-				object.makeImmutable();
-				another.becomeIndirectionTo(object);
-			}
-		}
-		return same;
-	}
-
-	@Override @AvailMethod
-	boolean o_EqualsDouble (
-		final AvailObject object,
-		final double aDouble)
-	{
-		// Java double equality is irreflexive, and therefore useless to us,
-		// since Avail sets (at least) require reflexive equality. Compare the
-		// exact bits instead.
-		return Double.doubleToRawLongBits(getDouble(object))
-			== Double.doubleToRawLongBits(aDouble);
-	}
-
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		final int low = object.slot(LOW_INT);
-		final int high = object.slot(HIGH_INT);
-		return (low ^ 0x29F2EAB8) - (high ^ 0x07C453FD);
-	}
-
-	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
-	{
-		return DOUBLE.o();
-	}
-
-	@Override @AvailMethod
-	boolean o_IsDouble (final AvailObject object)
-	{
-		return true;
-	}
-
-	@Override @AvailMethod
-	double o_ExtractDouble (final AvailObject object)
-	{
-		return getDouble(object);
-	}
-
-	@Override @AvailMethod
-	float o_ExtractFloat (final AvailObject object)
-	{
-		return (float)getDouble(object);
-	}
-
-	@Override
-	Order o_NumericCompare (
-		final AvailObject object,
-		final A_Number another)
-	{
-		return another.numericCompareToDouble(getDouble(object)).reverse();
-	}
-
-	@Override
-	boolean o_IsInstanceOfKind (
-		final AvailObject object,
-		final A_Type aType)
-	{
-		return aType.isSupertypeOfPrimitiveTypeEnum(DOUBLE);
-	}
-
-	@Override
-	A_Number o_DivideCanDestroy (
-		final AvailObject object,
-		final A_Number aNumber,
-		final boolean canDestroy)
-	{
-		return aNumber.divideIntoDoubleCanDestroy(
-			object,
-			canDestroy);
-	}
-
-	@Override
-	A_Number o_MinusCanDestroy (
-		final AvailObject object,
-		final A_Number aNumber,
-		final boolean canDestroy)
-	{
-		return aNumber.subtractFromDoubleCanDestroy(
-			object,
-			canDestroy);
-	}
-
-	@Override
-	A_Number o_PlusCanDestroy (
-		final AvailObject object,
-		final A_Number aNumber,
-		final boolean canDestroy)
-	{
-		return aNumber.addToDoubleCanDestroy(
-			object,
-			canDestroy);
-	}
-
-	@Override
-	A_Number o_TimesCanDestroy (
-		final AvailObject object,
-		final A_Number aNumber,
-		final boolean canDestroy)
-	{
-		return aNumber.multiplyByDoubleCanDestroy(
-			object,
-			canDestroy);
-	}
-
-	@Override
-	A_Number o_AddToInfinityCanDestroy (
-		final AvailObject object,
-		final Sign sign,
-		final boolean canDestroy)
-	{
-		return objectFromDoubleRecycling(
-			sign.limitDouble() + getDouble(object),
-			object,
-			canDestroy);
-	}
-
-	@Override
-	A_Number o_AddToIntegerCanDestroy (
-		final AvailObject object,
-		final A_Number anInteger,
-		final boolean canDestroy)
-	{
-		final double sum = addDoubleAndIntegerCanDestroy(
-			getDouble(object),
-			anInteger,
-			canDestroy);
-		return objectFromDoubleRecycling(sum, object, canDestroy);
-	}
-
-	@Override
-	A_Number o_AddToDoubleCanDestroy (
-		final AvailObject object,
-		final A_Number doubleObject,
-		final boolean canDestroy)
-	{
-		return objectFromDoubleRecycling(
-			getDouble(object) + doubleObject.extractDouble(),
-			object,
-			doubleObject,
-			canDestroy);
-	}
-
-	@Override
-	A_Number o_AddToFloatCanDestroy (
-		final AvailObject object,
-		final A_Number floatObject,
-		final boolean canDestroy)
-	{
-		return objectFromDoubleRecycling(
-			getDouble(object) + floatObject.extractDouble(),
-			object,
-			canDestroy);
-	}
-
-	@Override
-	A_Number o_DivideIntoInfinityCanDestroy (
-		final AvailObject object,
-		final Sign sign,
-		final boolean canDestroy)
-	{
-		return objectFromDoubleRecycling(
-			sign.limitDouble() / getDouble(object),
-			object,
-			canDestroy);
-	}
-
-	@Override
-	A_Number o_DivideIntoIntegerCanDestroy (
-		final AvailObject object,
-		final A_Number anInteger,
-		final boolean canDestroy)
-	{
-		return objectFromDoubleRecycling(
-			anInteger.extractDouble() / getDouble(object),
-			object,
-			canDestroy);
-	}
-
-	@Override
-	A_Number o_DivideIntoDoubleCanDestroy (
-		final AvailObject object,
-		final A_Number doubleObject,
-		final boolean canDestroy)
-	{
-		return objectFromDoubleRecycling(
-			doubleObject.extractDouble() / getDouble(object),
-			object,
-			doubleObject,
-			canDestroy);
-	}
-
-	@Override
-	A_Number o_DivideIntoFloatCanDestroy (
-		final AvailObject object,
-		final A_Number floatObject,
-		final boolean canDestroy)
-	{
-		return objectFromDoubleRecycling(
-			floatObject.extractDouble() / getDouble(object),
-			object,
-			canDestroy);
-	}
-
-	@Override
-	A_Number o_MultiplyByInfinityCanDestroy (
-		final AvailObject object,
-		final Sign sign,
-		final boolean canDestroy)
-	{
-		return objectFromDoubleRecycling(
-			sign.limitDouble() * getDouble(object),
-			object,
-			canDestroy);
-	}
-
-	@Override
-	A_Number o_MultiplyByIntegerCanDestroy (
-		final AvailObject object,
-		final A_Number anInteger,
-		final boolean canDestroy)
-	{
-		return objectFromDoubleRecycling(
-			anInteger.extractDouble() * getDouble(object),
-			object,
-			canDestroy);
-	}
-
-	@Override
-	A_Number o_MultiplyByDoubleCanDestroy (
-		final AvailObject object,
-		final A_Number doubleObject,
-		final boolean canDestroy)
-	{
-		return objectFromDoubleRecycling(
-			doubleObject.extractDouble() * getDouble(object),
-			object,
-			doubleObject,
-			canDestroy);
-	}
-
-	@Override
-	A_Number o_MultiplyByFloatCanDestroy (
-		final AvailObject object,
-		final A_Number floatObject,
-		final boolean canDestroy)
-	{
-		return objectFromDoubleRecycling(
-			floatObject.extractDouble() * getDouble(object),
-			object,
-			canDestroy);
-	}
-
-	@Override
-	A_Number o_SubtractFromInfinityCanDestroy (
-		final AvailObject object,
-		final Sign sign,
-		final boolean canDestroy)
-	{
-		return objectFromDoubleRecycling(
-			sign.limitDouble() - getDouble(object),
-			object,
-			canDestroy);
-	}
-
-	@Override
-	A_Number o_SubtractFromIntegerCanDestroy (
-		final AvailObject object,
-		final A_Number anInteger,
-		final boolean canDestroy)
-	{
-		return objectFromDoubleRecycling(
-			addDoubleAndIntegerCanDestroy(
-				0.0d - getDouble(object),
-				anInteger,
-				canDestroy),
-			object,
-			canDestroy);
-	}
-
-	@Override
-	A_Number o_SubtractFromDoubleCanDestroy (
-		final AvailObject object,
-		final A_Number doubleObject,
-		final boolean canDestroy)
-	{
-		return objectFromDoubleRecycling(
-			doubleObject.extractDouble() - getDouble(object),
-			object,
-			doubleObject,
-			canDestroy);
-	}
-
-	@Override
-	A_Number o_SubtractFromFloatCanDestroy (
-		final AvailObject object,
-		final A_Number floatObject,
-		final boolean canDestroy)
-	{
-		return objectFromDoubleRecycling(
-			floatObject.extractDouble() - getDouble(object),
-			object,
-			canDestroy);
-	}
-
-	@Override
-	Order o_NumericCompareToInfinity (
-		final AvailObject object,
-		final Sign sign)
-	{
-		final double thisDouble = getDouble(object);
-		if (Double.isNaN(thisDouble))
-		{
-			return Order.INCOMPARABLE;
-		}
-		final int comparison = Double.compare(thisDouble, sign.limitDouble());
-		if (comparison < 0)
-		{
-			return Order.LESS;
-		}
-		if (comparison > 0)
-		{
-			return Order.MORE;
-		}
-		return Order.EQUAL;
-	}
-
-	@Override
-	Order o_NumericCompareToInteger (
-		final AvailObject object,
-		final A_Number anInteger)
-	{
-		return compareDoubleAndInteger(getDouble(object), anInteger);
-	}
-
-	@Override
-	Order o_NumericCompareToDouble (
-		final AvailObject object,
-		final double aDouble)
-	{
-		return compareDoubles(getDouble(object), aDouble);
-	}
-
-	@Override
-	@AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (final AvailObject object)
-	{
-		return SerializerOperation.DOUBLE;
-	}
-
-	@Override
-	Object o_MarshalToJava (
-		final AvailObject object,
-		final @Nullable Class<?> ignoredClassHint)
-	{
-		return Double.valueOf(getDouble(object));
 	}
 
 	/**
@@ -719,7 +337,6 @@ extends AbstractNumberDescriptor
 		return result;
 	}
 
-
 	/**
 	 * Answer the Avail object representing {@code Double#POSITIVE_INFINITY}.
 	 *
@@ -758,6 +375,385 @@ extends AbstractNumberDescriptor
 	public static A_Number zero ()
 	{
 		return Sign.ZERO.limitDoubleObject();
+	}
+
+	@Override
+	A_Number o_AddToInfinityCanDestroy (
+		final AvailObject object,
+		final Sign sign,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			sign.limitDouble() + getDouble(object),
+			object,
+			canDestroy);
+	}
+
+	@Override
+	A_Number o_AddToIntegerCanDestroy (
+		final AvailObject object,
+		final A_Number anInteger,
+		final boolean canDestroy)
+	{
+		final double sum = addDoubleAndIntegerCanDestroy(
+			getDouble(object),
+			anInteger,
+			canDestroy);
+		return objectFromDoubleRecycling(sum, object, canDestroy);
+	}
+
+	@Override
+	A_Number o_AddToDoubleCanDestroy (
+		final AvailObject object,
+		final A_Number doubleObject,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			getDouble(object) + doubleObject.extractDouble(),
+			object,
+			doubleObject,
+			canDestroy);
+	}
+
+	@Override
+	A_Number o_AddToFloatCanDestroy (
+		final AvailObject object,
+		final A_Number floatObject,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			getDouble(object) + floatObject.extractDouble(),
+			object,
+			canDestroy);
+	}
+
+	@Override
+	A_Number o_DivideCanDestroy (
+		final AvailObject object,
+		final A_Number aNumber,
+		final boolean canDestroy)
+	{
+		return aNumber.divideIntoDoubleCanDestroy(
+			object,
+			canDestroy);
+	}
+
+	@Override
+	A_Number o_DivideIntoInfinityCanDestroy (
+		final AvailObject object,
+		final Sign sign,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			sign.limitDouble() / getDouble(object),
+			object,
+			canDestroy);
+	}
+
+	@Override
+	A_Number o_DivideIntoIntegerCanDestroy (
+		final AvailObject object,
+		final A_Number anInteger,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			anInteger.extractDouble() / getDouble(object),
+			object,
+			canDestroy);
+	}
+
+	@Override
+	A_Number o_DivideIntoDoubleCanDestroy (
+		final AvailObject object,
+		final A_Number doubleObject,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			doubleObject.extractDouble() / getDouble(object),
+			object,
+			doubleObject,
+			canDestroy);
+	}
+
+	@Override
+	A_Number o_DivideIntoFloatCanDestroy (
+		final AvailObject object,
+		final A_Number floatObject,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			floatObject.extractDouble() / getDouble(object),
+			object,
+			canDestroy);
+	}
+
+	@Override @AvailMethod
+	boolean o_Equals (
+		final AvailObject object,
+		final A_BasicObject another)
+	{
+		final boolean same = another.equalsDouble(getDouble(object));
+		if (same)
+		{
+			if (!isShared())
+			{
+				another.makeImmutable();
+				object.becomeIndirectionTo(another);
+			}
+			else if (!another.descriptor().isShared())
+			{
+				object.makeImmutable();
+				another.becomeIndirectionTo(object);
+			}
+		}
+		return same;
+	}
+
+	@Override @AvailMethod
+	boolean o_EqualsDouble (
+		final AvailObject object,
+		final double aDouble)
+	{
+		// Java double equality is irreflexive, and therefore useless to us,
+		// since Avail sets (at least) require reflexive equality. Compare the
+		// exact bits instead.
+		return Double.doubleToRawLongBits(getDouble(object))
+			== Double.doubleToRawLongBits(aDouble);
+	}
+
+	@Override @AvailMethod
+	double o_ExtractDouble (final AvailObject object)
+	{
+		return getDouble(object);
+	}
+
+	@Override @AvailMethod
+	float o_ExtractFloat (final AvailObject object)
+	{
+		return (float)getDouble(object);
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		final int low = object.slot(LOW_INT);
+		final int high = object.slot(HIGH_INT);
+		return (low ^ 0x29F2EAB8) - (high ^ 0x07C453FD);
+	}
+
+	@Override @AvailMethod
+	boolean o_IsDouble (final AvailObject object)
+	{
+		return true;
+	}
+
+	@Override
+	boolean o_IsInstanceOfKind (
+		final AvailObject object,
+		final A_Type aType)
+	{
+		return aType.isSupertypeOfPrimitiveTypeEnum(DOUBLE);
+	}
+
+	@Override @AvailMethod
+	A_Type o_Kind (final AvailObject object)
+	{
+		return DOUBLE.o();
+	}
+
+	@Override
+	Object o_MarshalToJava (
+		final AvailObject object,
+		final @Nullable Class<?> ignoredClassHint)
+	{
+		return Double.valueOf(getDouble(object));
+	}
+
+	@Override
+	A_Number o_MinusCanDestroy (
+		final AvailObject object,
+		final A_Number aNumber,
+		final boolean canDestroy)
+	{
+		return aNumber.subtractFromDoubleCanDestroy(
+			object,
+			canDestroy);
+	}
+
+	@Override
+	A_Number o_MultiplyByInfinityCanDestroy (
+		final AvailObject object,
+		final Sign sign,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			sign.limitDouble() * getDouble(object),
+			object,
+			canDestroy);
+	}
+
+	@Override
+	A_Number o_MultiplyByIntegerCanDestroy (
+		final AvailObject object,
+		final A_Number anInteger,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			anInteger.extractDouble() * getDouble(object),
+			object,
+			canDestroy);
+	}
+
+	@Override
+	A_Number o_MultiplyByDoubleCanDestroy (
+		final AvailObject object,
+		final A_Number doubleObject,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			doubleObject.extractDouble() * getDouble(object),
+			object,
+			doubleObject,
+			canDestroy);
+	}
+
+	@Override
+	A_Number o_MultiplyByFloatCanDestroy (
+		final AvailObject object,
+		final A_Number floatObject,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			floatObject.extractDouble() * getDouble(object),
+			object,
+			canDestroy);
+	}
+
+	@Override
+	Order o_NumericCompare (
+		final AvailObject object,
+		final A_Number another)
+	{
+		return another.numericCompareToDouble(getDouble(object)).reverse();
+	}
+
+	@Override
+	Order o_NumericCompareToInfinity (
+		final AvailObject object,
+		final Sign sign)
+	{
+		final double thisDouble = getDouble(object);
+		if (Double.isNaN(thisDouble))
+		{
+			return Order.INCOMPARABLE;
+		}
+		final int comparison = Double.compare(thisDouble, sign.limitDouble());
+		if (comparison < 0)
+		{
+			return Order.LESS;
+		}
+		if (comparison > 0)
+		{
+			return Order.MORE;
+		}
+		return Order.EQUAL;
+	}
+
+	@Override
+	Order o_NumericCompareToInteger (
+		final AvailObject object,
+		final A_Number anInteger)
+	{
+		return compareDoubleAndInteger(getDouble(object), anInteger);
+	}
+
+	@Override
+	Order o_NumericCompareToDouble (
+		final AvailObject object,
+		final double aDouble)
+	{
+		return compareDoubles(getDouble(object), aDouble);
+	}
+
+	@Override
+	A_Number o_PlusCanDestroy (
+		final AvailObject object,
+		final A_Number aNumber,
+		final boolean canDestroy)
+	{
+		return aNumber.addToDoubleCanDestroy(
+			object,
+			canDestroy);
+	}
+
+	@Override
+	@AvailMethod @ThreadSafe
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.DOUBLE;
+	}
+
+	@Override
+	A_Number o_SubtractFromInfinityCanDestroy (
+		final AvailObject object,
+		final Sign sign,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			sign.limitDouble() - getDouble(object),
+			object,
+			canDestroy);
+	}
+
+	@Override
+	A_Number o_SubtractFromIntegerCanDestroy (
+		final AvailObject object,
+		final A_Number anInteger,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			addDoubleAndIntegerCanDestroy(
+				0.0d - getDouble(object),
+				anInteger,
+				canDestroy),
+			object,
+			canDestroy);
+	}
+
+	@Override
+	A_Number o_SubtractFromDoubleCanDestroy (
+		final AvailObject object,
+		final A_Number doubleObject,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			doubleObject.extractDouble() - getDouble(object),
+			object,
+			doubleObject,
+			canDestroy);
+	}
+
+	@Override
+	A_Number o_SubtractFromFloatCanDestroy (
+		final AvailObject object,
+		final A_Number floatObject,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			floatObject.extractDouble() - getDouble(object),
+			object,
+			canDestroy);
+	}
+
+	@Override
+	A_Number o_TimesCanDestroy (
+		final AvailObject object,
+		final A_Number aNumber,
+		final boolean canDestroy)
+	{
+		return aNumber.multiplyByDoubleCanDestroy(
+			object,
+			canDestroy);
 	}
 
 	/**

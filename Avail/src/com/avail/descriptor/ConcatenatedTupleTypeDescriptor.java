@@ -281,20 +281,32 @@ extends TypeDescriptor
 		final A_Number secondUpper = secondTupleType.sizeRange().upperBound();
 		final A_Number totalUpper =
 			firstUpper.noFailPlusCanDestroy(secondUpper, false);
+		final A_Number startIndexObject = IntegerDescriptor.fromInt(startIndex);
 		if (totalUpper.isFinite())
 		{
-			if (startIndex > totalUpper.extractInt())
+			if (startIndexObject.greaterThan(totalUpper))
 			{
 				return BottomTypeDescriptor.bottom();
 			}
 		}
 		A_Type typeUnion =
 			firstTupleType.unionOfTypesAtThrough(startIndex, endIndex);
-		final int startInSecond = startIndex - firstUpper.extractInt();
-		// TODO: [MvG] This could fail if the lower bound lies outside the range
-		// of a 32-bit Java int.
+		final A_Number startInSecondObject =
+			startIndexObject.minusCanDestroy(firstUpper, false);
+		final int startInSecond =
+			startInSecondObject.lessThan(IntegerDescriptor.one())
+				? 1
+				: startInSecondObject.extractInt();
+		final A_Number endInSecondObject =
+			IntegerDescriptor.fromInt(endIndex).minusCanDestroy(
+				firstTupleType.sizeRange().lowerBound(),
+				false);
 		final int endInSecond =
-			endIndex - firstTupleType.sizeRange().lowerBound().extractInt();
+			endInSecondObject.lessThan(IntegerDescriptor.one())
+				? 1
+				: endInSecondObject.isInt()
+					? endInSecondObject.extractInt()
+					: Integer.MAX_VALUE;
 		typeUnion = typeUnion.typeUnion(
 			secondTupleType.unionOfTypesAtThrough(startInSecond, endInSecond));
 		return typeUnion;

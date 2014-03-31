@@ -57,17 +57,24 @@ public abstract class L2JavaTranslation
 	 * If the chunk behind this Java translation is still valid upon attempting
 	 * to {@link #resume(A_Continuation)} a continuation, the continuation will
 	 * indicate the level two instruction position at which to continue
-	 * executing.  Typically a switch statement with fall-throughs can be used
-	 * to eliminate redundant portions of the code due to the effective
-	 * plurality of entry points.
+	 * executing.  A switch statement with fall-throughs can be used to
+	 * eliminate redundant portions of the code due to the effective plurality
+	 * of entry points.
 	 *
-	 * @param args
+	 * @param args The arguments to the function
 	 * @return
 	 * @throws ReifyStackThrowable
 	 */
 	abstract AvailObject start (AvailObject... args)
 	throws ReifyStackThrowable;
 
+	/**
+	 * Continue running the specified continuation.
+	 *
+	 * @param thisContinuation
+	 * @return
+	 * @throws ReifyStackThrowable
+	 */
 	abstract AvailObject resume (A_Continuation thisContinuation)
 	throws ReifyStackThrowable;
 

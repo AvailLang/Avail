@@ -1665,9 +1665,9 @@ public class TypeConsistencyTest
 	{
 		for (final Node x : Node.values)
 		{
-			//TODO[MvG]Remove
 			if (!x.subtype(x))
 			{
+				// Breakpoint the following statement to debug test failures.
 				x.subtype(x);
 			}
 

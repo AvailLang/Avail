@@ -36,8 +36,6 @@ package com.avail.optimizer;
  * The {@code L2ToJavaGenerator} generates a corresponding subclass of {@link
  * L2JavaTranslation}.
  *
- * <p>The plan is to directly translate the L2 instructions TODO MvG!!!
- *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public abstract class L2ToJavaGenerator

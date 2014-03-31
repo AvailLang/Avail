@@ -1274,21 +1274,32 @@ public abstract class AbstractAvailCompiler
 		final String description;
 
 		/**
+		 * Parameters to supply to the debugging description pattern of this
+		 * continuation.
+		 */
+		final Object [] descriptionParameters;
+
+		/**
 		 * Construct a new {@link AvailCompiler.Con} with the provided
 		 * description.
 		 *
-		 * @param description
-		 *            The provided description.
+		 * @param description The provided description.
+		 * @param descriptionParameters The description parameters.
 		 */
-		Con (final String description)
+		Con (
+			final String description,
+			final Object... descriptionParameters)
 		{
 			this.description = description;
+			this.descriptionParameters = descriptionParameters;
 		}
 
 		@Override
 		public String toString ()
 		{
-			return "Con(" + description + ")";
+			return "Con("
+				+ String.format(description, descriptionParameters)
+				+ ")";
 		}
 
 		@Override
@@ -2939,15 +2950,18 @@ public abstract class AbstractAvailCompiler
 	 *
 	 * @param continuation
 	 *        What to do at some point in the future.
-	 * @param description
-	 *        Debugging information about what is to be parsed.
 	 * @param where
 	 *        Where the parse is happening.
+	 * @param description
+	 *        Debugging information about what is to be parsed.
+	 * @param descriptionParameters
+	 *        Parameters to supply to the description pattern.
 	 */
 	void workUnitDo (
 		final Continuation0 continuation,
+		final ParserState where,
 		final String description,
-		final ParserState where)
+		final Object... descriptionParameters)
 	{
 		startWorkUnit();
 		final Continuation1<AvailObject> workUnit = workUnitCompletion(
@@ -2973,7 +2987,8 @@ public abstract class AbstractAvailCompiler
 	/**
 	 * Wrap the {@linkplain Continuation1 continuation of one argument} inside a
 	 * {@linkplain Continuation0 continuation of zero arguments} and record that
-	 * as per {@linkplain #workUnitDo(Continuation0, String, ParserState)}.
+	 * as per {@linkplain #workUnitDo(Continuation0, ParserState, String,
+	 * Object...)}.
 	 *
 	 * @param <ArgType>
 	 *        The type of argument to the given continuation.
@@ -2999,8 +3014,9 @@ public abstract class AbstractAvailCompiler
 					continuation.value(here, argument);
 				}
 			},
+			here,
 			continuation.description,
-			here);
+			continuation.descriptionParameters);
 	}
 
 	/**
@@ -3725,7 +3741,6 @@ public abstract class AbstractAvailCompiler
 		}
 		if (anyPrefilter)
 		{
-//			System.out.println("PREFILTER ENCOUNTERED: " + prefilter);
 			final A_Phrase latestArgument = last(argsSoFar);
 			if (latestArgument.isInstanceOfKind(SEND_NODE.mostGeneralType()))
 			{
@@ -3777,10 +3792,9 @@ public abstract class AbstractAvailCompiler
 								continuation);
 						}
 					},
-					//TODO[MvG]: Reduce back to a string constant at some point.
-					"Continue with instruction: "
-						+ ParsingOperation.decode(entry.key().extractInt()),
-					start);
+					start,
+					"Continue with instruction: %s",
+					ParsingOperation.decode(entry.key().extractInt()));
 			}
 		}
 	}
@@ -6052,8 +6066,8 @@ public abstract class AbstractAvailCompiler
 								});
 						}
 					},
-					"Capture expression for caching",
-					start);
+					start,
+					"Capture expression for caching");
 			}
 			fragmentCache.addAction(start, originalContinuation);
 		}
@@ -6284,8 +6298,8 @@ public abstract class AbstractAvailCompiler
 						continuation);
 				}
 			},
-			description,
-			start);
+			start,
+			description);
 	}
 
 	/**

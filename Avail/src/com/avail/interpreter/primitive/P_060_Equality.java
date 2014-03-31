@@ -36,6 +36,11 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
+import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 
 /**
  * <strong>Primitive 60:</strong> Compare for equality. Answer a {@linkplain
@@ -73,8 +78,7 @@ public final class P_060_Equality extends Primitive
 		if (type1.typeIntersection(type2).isBottom())
 		{
 			// The actual values cannot be equal at runtime.
-			return AbstractEnumerationTypeDescriptor.withInstance(
-				AtomDescriptor.falseObject());
+			return EnumerationTypeDescriptor.falseType();
 		}
 		if (type1.isEnumeration()
 			&& type1.equals(type2)
@@ -87,11 +91,65 @@ public final class P_060_Equality extends Primitive
 			if (!value.isType())
 			{
 				// The actual values will have to be equal at runtime.
-				return AbstractEnumerationTypeDescriptor.withInstance(
-					AtomDescriptor.trueObject());
+				return EnumerationTypeDescriptor.trueType();
 			}
 		}
 		return super.returnTypeGuaranteedByVM(argumentTypes);
+	}
+
+	@Override
+	public void generateL2UnfoldableInlinePrimitive (
+		final L1NaiveTranslator levelOneNaiveTranslator,
+		final A_Function primitiveFunction,
+		final L2RegisterVector args,
+		final L2ObjectRegister resultRegister,
+		final L2RegisterVector preserved,
+		final A_Type expectedType,
+		final L2ObjectRegister failureValueRegister,
+		final L2Instruction successLabel,
+		final boolean canFailPrimitive,
+		final boolean skipReturnCheck)
+	{
+		final L2ObjectRegister firstReg = args.registers().get(0);
+		final L2ObjectRegister secondReg = args.registers().get(1);
+		final RegisterSet registerSet =
+			levelOneNaiveTranslator.naiveRegisters();
+		final A_Type type1 = registerSet.typeAt(firstReg);
+		final A_Type type2 = registerSet.typeAt(secondReg);
+		if (type1.typeIntersection(type2).isBottom())
+		{
+			// The actual values cannot be equal at runtime.
+			levelOneNaiveTranslator.moveConstant(
+				AtomDescriptor.falseObject(), resultRegister);
+			return;
+		}
+		if (type1.isEnumeration()
+			&& type1.equals(type2)
+			&& type1.instanceCount().equals(IntegerDescriptor.one()))
+		{
+			final A_BasicObject value = type1.instances().iterator().next();
+			// Because of metacovariance, a meta may actually have many
+			// instances.  For instance, tuple's type contains not only tuple,
+			// but every subtype of tuple (e.g., string, <>'s type, etc.).
+			if (!value.isType())
+			{
+				// The actual values will have to be equal at runtime.
+				levelOneNaiveTranslator.moveConstant(
+					AtomDescriptor.trueObject(), resultRegister);
+				return;
+			}
+		}
+		super.generateL2UnfoldableInlinePrimitive(
+			levelOneNaiveTranslator,
+			primitiveFunction,
+			args,
+			resultRegister,
+			preserved,
+			expectedType,
+			failureValueRegister,
+			successLabel,
+			canFailPrimitive,
+			skipReturnCheck);
 	}
 
 	@Override

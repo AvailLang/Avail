@@ -2318,8 +2318,6 @@ public class L2Translator
 	 */
 	private boolean removeDeadInstructions ()
 	{
-//		final long startTime = System.currentTimeMillis();
-//		final int oldInstructionsSize = instructions.size();
 		if (debugRemoveDeadInstructions)
 		{
 			System.out.println("\nRemove dead instructions...\n");
@@ -2358,14 +2356,6 @@ public class L2Translator
 			instructionRegisterSets.add(null);
 		}
 		assert instructions.size() == instructionRegisterSets.size();
-		//TODO[MvG] Remove debug
-//		final long duration = System.currentTimeMillis() - startTime;
-//		System.out.format(
-//			"Reduce %d -> %d in %dms%n",
-//			oldInstructionsSize,
-//			instructions.size(),
-//			duration);
-
 		return anyChanges;
 	}
 
