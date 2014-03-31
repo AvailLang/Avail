@@ -37,25 +37,86 @@ POSSIBILITY OF SUCH DAMAGE.
 	<property name="path.avail.distro" value="${path.avail}/distro"/>
 	<property name="path.avail.resources" value="${path.avail}/resources"/>
 	<property name="path.avail.jar" value="${path.avail.distro}/lib"/>
+
+	<property name="path.jar.avail" value="${path.avail.jar}/Avail.jar"/>
+	<property name="path.jar.dev" value="${path.avail.jar}/AvailDev.jar"/>
+
+	<property
+		name="path.build-time"
+		value="${path.avail.resources}/build-time.txt"/>
+	<condition property="skip.build-time" value="true">
+		<and>
+			<available file="${path.build-time}"/>
+			<uptodate targetfile="${path.build-time}">
+				<srcfiles dir="${path.avail.src}"/>
+			</uptodate>
+		</and>
+	</condition>
+
 	<property
 		name="path.interpreter"
 		value="${path.avail.bin}/com/avail/interpreter"/>
 	<property
-		name = "primitive.package"
-		value="com.avail.interpreter.primitive"/>
-	<property name="path.jar.avail" value="${path.avail.jar}/Avail.jar"/>
-	<property name="path.jar.dev" value="${path.avail.jar}/AvailDev.jar"/>
-
-	<condition property="should.rebuild" value="true">
-		<not>
-			<and>
-				<available file="${path.jar.avail}"/>
-				<uptodate targetfile="${path.jar.avail}">
-					<srcfiles dir="${path.avail.src}" includes="**/*.java"/>
-				</uptodate>
-			</and>
-		</not>
+		name="path.primitives"
+		value="${path.interpreter}/primitive"/>
+	<property
+		name="path.primitives-list"
+		value="${path.interpreter}/All_Primitives.txt"/>
+	<condition property="skip.primitives-list" value="true">
+		<and>
+			<available file="${path.primitives-list}"/>
+			<uptodate targetfile="${path.primitives-list}">
+				<srcfiles
+					dir="${path.avail.src}"
+					includes="com/avail/interpreter/primitive/*.java"/>
+			</uptodate>
+		</and>
 	</condition>
+
+	<!--
+		Build the Avail sources.
+	-->
+	<target
+			name="build-sources"
+			description="Build the Avail sources.">
+		<mkdir dir="${path.avail.bin}"/>
+		<javac
+				destdir="${path.avail.bin}"
+				source="1.7"
+				target="1.7"
+				encoding="UTF-8"
+				includeantruntime="true"
+				includejavaruntime="true"
+				debug="true"
+				optimize="true"
+				deprecation="true">
+			<src path="${path.avail.src}"/>
+			<exclude name="**/test/**"/>
+		</javac>
+	</target>
+
+	<!--
+		Build the Avail tests.
+	-->
+	<target
+			name="build-tests"
+			description="Build the Avail tests.">
+		<mkdir dir="${path.avail.bin}"/>
+		<javac
+				destdir="${path.avail.bin}"
+				source="1.7"
+				target="1.7"
+				encoding="UTF-8"
+				includeantruntime="true"
+				includejavaruntime="true"
+				classpath="${path.avail.distro}/lib/junit.jar"
+				debug="true"
+				optimize="true"
+				deprecation="true">
+			<src path="${path.avail.src}"/>
+			<include name="**/test/**"/>
+		</javac>
+	</target>
 
 	<!--
 		Produce a file containing the build time that can be included as a
@@ -63,15 +124,12 @@ POSSIBILITY OF SUCH DAMAGE.
 	-->
 	<target
 			name="generate-build-time"
-			if="should.rebuild"
+			unless="skip.build-time"
 			description="Generate a resource that contains the build time.">
-		<property
-			name="path.build.time"
-			value="${path.avail.resources}/build-time.txt"/>
 		<tstamp>
 			<format property="build.time" pattern="yyyyMMdd.HHmmss.SSS"/>
 		</tstamp>
-		<echo file="${path.build.time}" append="no" message="${build.time}"/>
+		<echo file="${path.build-time}" append="no" message="${build.time}"/>
 	</target>
 
 	<!--
@@ -80,14 +138,8 @@ POSSIBILITY OF SUCH DAMAGE.
 	-->
 	<target
 			name="generate-primitives-list"
-			if="should.rebuild"
+			unless="skip.primitives-list"
 			description="Generate a resource that lists the primitive classes.">
-		<property
-			name="path.primitives"
-			value="${path.interpreter}/primitive"/>
-		<property
-			name="path.primitives-list"
-			value="${path.interpreter}/All_Primitives.txt"/>
 		<fileset
 				id="primitives"
 				dir="${path.primitives}"
@@ -107,6 +159,9 @@ POSSIBILITY OF SUCH DAMAGE.
 			Remove the absolute path to the "bin" directory, replacing the
 			remaining path separators with dots.
 		-->
+		<property
+			name = "primitive.package"
+			value="com.avail.interpreter.primitive"/>
 		<replaceregexp file="${path.primitives-list}"
 			match=".*[\\/]([^\\/]+)\.class"
 			replace="${primitive.package}.\1"
@@ -114,36 +169,16 @@ POSSIBILITY OF SUCH DAMAGE.
 	</target>
 
 	<!--
-		Produce any automatically generated resources that are needed to use one
-		of the ultimate build products.
+		Build everything.
 	-->
 	<target
-			name="initialize"
-			depends="generate-build-time, generate-primitives-list"
+			name="build-all"
+			depends="
+				build-sources,
+				build-tests,
+				generate-build-time,
+				generate-primitives-list"
 			description="Initialize the build.">
-	</target>
-
-	<!--
-		Build the Avail sources.
-	-->
-	<target
-			name="build-sources"
-			depends="initialize"
-			if="should.rebuild"
-			description="Build the Avail sources.">
-		<javac
-				srcdir="${path.avail.src}"
-				destdir="${path.avail.bin}"
-				source="1.7"
-				target="1.7"
-				encoding="UTF-8"
-				includeantruntime="true"
-				includejavaruntime="true"
-				debug="true"
-				optimize="true"
-				deprecation="true">
-			<compilerarg compiler="javac1.7"/>
-		</javac>
 	</target>
 
 	<!--
@@ -151,7 +186,7 @@ POSSIBILITY OF SUCH DAMAGE.
 	-->
 	<target
 			name="avail-vm"
-			depends="build-sources"
+			depends="build-all"
 			description="Build the Avail virtual machine as a library.">
 		<jar jarfile="${path.jar.avail}">
 			<manifest>

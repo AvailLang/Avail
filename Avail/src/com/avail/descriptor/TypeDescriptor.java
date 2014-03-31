@@ -37,7 +37,6 @@ import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.compiler.scanning.AvailScanner;
-import com.avail.test.TypeConsistencyTest;
 
 /**
  * Every object in Avail has a type.  Types are also Avail objects.  The types
@@ -51,8 +50,8 @@ import com.avail.test.TypeConsistencyTest;
  * other types.
  *
  * <p>
- * The type lattice has a number of {@linkplain TypeConsistencyTest useful
- * properties}, such as closure under type union.
+ * The type lattice has a number of useful properties, such as closure under
+ * type union.
  * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
