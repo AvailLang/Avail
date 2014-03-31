@@ -19,8 +19,8 @@ already have Git installed. The latest version of Git can be obtained at:
 
 	http://git-scm.com/
 
-Please follow any installation directions provided by the Git website or with
-the Git product.
+Please follow any installation directions provided by the Git website or
+included with the Git product.
 
 The main command is called "git". Please make sure that "git" is available on
 your path.
@@ -49,34 +49,32 @@ BEFORE INSTALLING ==============================================================
 Before installing Avail, you will need to make sure that you have obtained and
 installed the prerequisite software:
 
-1) Java: You will need version 1.7, or later, of the Java Runtime Environment 
-(JRE). Most modern systems already have some version of the JRE, so you should
-check your Java version before obtaining and installing it from Oracle (or some
-other vendor). You can do so like this:
+1) Java: You will need version 1.7, or later, of the Java Development Kit (JDK).
+Many modern systems already have some version of the JDK, so you should check
+your JDK version before obtaining and installing it from Oracle (or some other
+vendor). You can do so like this:
 
-	$ java -version
+	$ javac -version
 
 And hopefully you get back something like this:
 
-	java version "1.7.0_51"
-	Java(TM) SE Runtime Environment (build 1.7.0_51-b13)
-	Java HotSpot(TM) 64-Bit Server VM (build 24.51-b03, mixed mode)
+	javac 1.7.0_51
 
-Otherwise, the latest version of Java can be obtained at:
+Otherwise, the latest version of the JDK can be obtained at:
 
 	http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
 Please follow any installation directions provided by the Oracle website or
-with the JRE.
+included with the JDK.
 
 (As of the time of writing, Avail has not yet been tested on Java 1.8, which has
 only been officially released for a few days. If you try it and it works, then
 great; otherwise, try running Java 1.7. To obtain Java 1.7, you will need to
 visit the link above and scroll down; the top part of the page is pushing Java
-1.8.)
+1.8. Make sure to grab the JDK, not the JRE.)
 
-The commands are interest are "java" and "javac". Please make sure that these
-are on your path.
+The commands of interest are "java" and "javac". Please make sure that these are
+on your path.
 
 2) Apache Ant: This is the build software used to compile and install Avail. You
 will need version 1.8.2 or later. Most modern Unix systems already have some
@@ -199,7 +197,7 @@ Your transcript should look similar to this:
 		[echo] extended with custom module roots as you develop your own 
 		[echo] modules.
 		[echo] =================================================================
-		[echo] 		
+		[echo] 
 
 	BUILD SUCCESSFUL
 	Total time: 3 seconds
@@ -207,7 +205,7 @@ Your transcript should look similar to this:
 If transcript ends with "BUILD SUCCESSFUL", then the installation has completed.
 The transcript contains information about how to configure your environment
 for Avail development. Please be sure to follow these instructions (reiterated
-below).
+in more detail below).
 
 
 AFTER INSTALLING ==============================================================
@@ -239,10 +237,10 @@ Each module root specification comprises a "module root name", which is just a
 unique logical identifier, and a module root path. A module root name usually 
 denotes a vendor or a project, and does not need to have any relationship to the
 file system. By convention, the module root name of the Avail standard library
-is "avail", and the official examples supported by The Avail Foundation are
-called "examples". The Avail Foundation advises Avail developers to follow a
-reverse DNS name convention, like "com.acme.super-neato-project", to prevent
-collision between module root names among several vendors and projects.
+is "avail", and the official collection of examples supported by The Avail
+Foundation is called "examples". The Avail Foundation advises Avail developers
+to follow a reverse DNS name convention, like "com.acme.super-neato-project", to
+prevent collision between module root names among several vendors and projects.
 
 A "module root path" is actually a conjunction of a binary repository path and a
 source path, respectively, separated by a comma (","). A "binary repository
@@ -293,7 +291,9 @@ For those who wish to contribute source code to Avail itself, please use the
 latest version of Eclipse and the "eclipse-luna.epf" preferences file and the
 "avail-templates.xml" code templates files provided in $PROJ/Avail. This
 practice assists the Avail team in maintaining consistency in coding,
-documentation, and formatting practices.
+documentation, and formatting practices. You are also strive to imitate the
+existing stylistic conventions, just as you would for any other established code
+base.
 
 
 STAYING CURRENT ================================================================
@@ -304,7 +304,10 @@ the Avail project directory from Git every once in a while:
 	$ cd $PROJ
 	$ git pull
 
-Be sure to visit the official Avail website frequently for updates:
+Then follow the instructions starting with the BUILDING section of this
+document.
+
+Be sure to visit the official Avail website frequently for updates and news:
 
 	http://www.availlang.org
 
