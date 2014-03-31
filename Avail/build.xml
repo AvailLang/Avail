@@ -187,7 +187,10 @@ POSSIBILITY OF SUCH DAMAGE.
 	-->
 	<target
 			name="avail-vm"
-			depends="build-sources"
+			depends="
+				build-sources,
+				generate-build-time,
+				generate-primitives-list"
 			description="Build the Avail virtual machine as a library.">
 		<jar jarfile="${path.jar.avail}">
 			<manifest>
