@@ -1,0 +1,85 @@
+/*
+ * Availuator.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Availuator"
+Versions
+	"dev"
+Extends
+	"Convenient ASCII"
+Entries
+	"`!_",
+	"Run_"
+Body
+
+/**
+ * A simple Avail expression evaluator ("Availuator") that lets the Avail
+ * compiler do all of the heavy lifting. Just answer the argument.
+ *
+ * @method "`!_"
+ * @param "x" "any"
+ *        An arbitrary value.
+ * @returns "any"
+ *          The argument.
+ */
+Method "`!_" is [x : any | x];
+
+/* Just in case the library ever wants to export its own "`!_", have the
+ * Avail expression evaluator forbid a recursive send of itself.
+ */
+Grammatical restriction "`!_" is <{"`!_"}>;
+
+/**
+ * Invoke the supplied {@type "function"} for its side effects.
+ *
+ * @method "Run_"
+ * @param "f" "[]→⊤"
+ *        An arbitrary arity-0 {@type "function"}.
+ * @returns "⊤"
+ */
+Method "Run_" is [f : []→⊤ | f();] : ⊤;
+
+/**
+ * Forbid the supplied {@type "function"} from producing a value.
+ *
+ * @method "Run_"
+ * @restricts "[]→⊤'s type"
+ */
+Semantic restriction "Run_" is
+[
+	f : []→⊤'s type
+|
+	If f's return type ≠ ⊤ then
+	[
+		Reject parse, expected: "function not to produce a value"
+	];
+	⊤
+];

@@ -120,23 +120,23 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 			{
 				stringBuilder.append(supertypes.get(i)).append(", ");
 			}
-			stringBuilder.append(supertypes.get(listSize - 1)).append("</div>");
+			stringBuilder.append(supertypes.get(listSize - 1)).append("</div>\n");
 		}
 
 		stringBuilder.append("<div class=\"SignatureDescription\">")
-			.append(description.toHTML()).append("</div")
-			.append("<table><thead><tr><th class=\"Transparent\" scope=\"col\">"
-				+ "</th>");
+			.append(description.toHTML()).append("</div>\n")
+			.append("<table>\n<thead>\n<tr>\n<th class=\"Transparent\" scope=\"col\">"
+				+ "</th>\n");
 		if (fieldCount > 0)
 		{
 			stringBuilder.append("<th class=\"IColLabelNarrow\" "
-				+ "scope=\"col\">Name</th>");
+				+ "scope=\"col\">Name</th>\n");
 
 			stringBuilder
-				.append("<th class=\"IColLabelNarrow\" scope=\"col\">Type</th>"
-					+ "<th class=\"IColLabelWide\" scope=\"col\">Description</th>"
-					+ "</tr></thead><tbody><tr><th class=\"IRowLabel\" rowspan=\"")
-				.append(fieldCount).append("\">Fields</th></tr>");
+				.append("<th class=\"IColLabelNarrow\" scope=\"col\">Type</th>\n"
+					+ "<th class=\"IColLabelWide\" scope=\"col\">Description</th>\n"
+					+ "</tr>\n</thead>\n<tbody>\n<tr>\n<th class=\"IRowLabel\" rowspan=\"")
+				.append(fieldCount).append("\">Fields</th>\n</tr>\n");
 
 			for (final StacksFieldTag fieldTag : fields)
 			{

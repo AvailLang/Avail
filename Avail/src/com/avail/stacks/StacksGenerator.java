@@ -199,7 +199,8 @@ public class StacksGenerator
 
 		moduleToComments
 			.get(outermostModule.qualifiedName())
-				.writeMethodsToHTMLFiles(providedDocumentPath,synchronizer);
+				.writeMethodsToHTMLFiles(providedDocumentPath,synchronizer,
+					runtime);
 
 		synchronizer.waitForWorkUnitsToComplete();
 

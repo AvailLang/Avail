@@ -80,6 +80,30 @@ import com.avail.utility.evaluation.*;
 public final class AvailRuntime
 {
 	/**
+	 * The active versions of the Avail virtual machine. These are the versions
+	 * for which the virtual machine guarantees compatibility.
+	 */
+	private static final String[] activeVersions = {"dev"};
+
+	/**
+	 * Answer the active versions of the Avail virtual machine. These are the
+	 * versions for which the virtual machine guarantees compatibility.
+	 *
+	 * @return The active versions.
+	 */
+	public static final A_Set activeVersions ()
+	{
+		A_Set versions = SetDescriptor.empty();
+		for (final String version : activeVersions)
+		{
+			versions = versions.setWithElementCanDestroy(
+				StringDescriptor.from(version),
+				true);
+		}
+		return versions;
+	}
+
+	/**
 	 * Answer the {@linkplain AvailRuntime Avail runtime} associated with the
 	 * current {@linkplain Thread thread}.
 	 *

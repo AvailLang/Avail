@@ -195,6 +195,8 @@ extends ParseNodeDescriptor
 			literalValue.isString()
 				? (A_String)literalValue
 				: StringDescriptor.from("Synthetic literal"),
+			TupleDescriptor.empty(),
+			TupleDescriptor.empty(),
 			0,
 			0,
 			TokenType.SYNTHETIC_LITERAL,

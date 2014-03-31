@@ -68,7 +68,7 @@ extends AbstractAvailTest
 	public void newAvailTest () throws Exception
 	{
 		final long startTime = System.currentTimeMillis();
-		compile(new ModuleName("/avail/Test"));
+		compile(new ModuleName("/avail/Availuator"));
 		System.out.flush();
 		System.err.printf(
 			"%ntime elapsed = %dms%n", System.currentTimeMillis() - startTime);

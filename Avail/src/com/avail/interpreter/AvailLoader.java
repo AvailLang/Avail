@@ -599,7 +599,8 @@ public final class AvailLoader
 	{
 		assert methodName.isAtom();
 		assert seal.isTuple();
-		final MessageSplitter splitter = new MessageSplitter(methodName.atomName());
+		final MessageSplitter splitter = new MessageSplitter(
+			methodName.atomName());
 		if (seal.tupleSize() != splitter.numberOfArguments())
 		{
 			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);

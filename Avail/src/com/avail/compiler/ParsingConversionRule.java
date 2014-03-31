@@ -84,6 +84,8 @@ public enum ParsingConversionRule
 			final AvailObject token =
 				LiteralTokenDescriptor.create(
 					StringDescriptor.from(count.toString()),
+					startingParserState.peekToken().leadingWhitespace(),
+					startingParserState.peekToken().trailingWhitespace(),
 					startingParserState.peekToken().start(),
 					startingParserState.peekToken().lineNumber(),
 					LITERAL,
@@ -115,6 +117,8 @@ public enum ParsingConversionRule
 			final AvailObject token =
 				LiteralTokenDescriptor.create(
 					StringDescriptor.from(nonempty.toString()),
+					startingParserState.peekToken().leadingWhitespace(),
+					startingParserState.peekToken().trailingWhitespace(),
 					startingParserState.peekToken().start(),
 					startingParserState.peekToken().lineNumber(),
 					LITERAL,

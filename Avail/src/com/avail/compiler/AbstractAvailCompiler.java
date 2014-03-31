@@ -582,7 +582,13 @@ public abstract class AbstractAvailCompiler
 			for (final A_String pragmaString : thePragmas)
 			{
 				pragmas.add(LiteralTokenDescriptor.create(
-					pragmaString, 0, 0, LITERAL, pragmaString));
+					pragmaString,
+					TupleDescriptor.empty(),
+					TupleDescriptor.empty(),
+					0,
+					0,
+					LITERAL,
+					pragmaString));
 			}
 		}
 
@@ -648,7 +654,7 @@ public abstract class AbstractAvailCompiler
 						return
 							"version compatibility; module \"" + ref.localName()
 							+ "\" guarantees versions " + modVersions
-							+ " but current module requires " + reqVersions;
+							+ " but the current module requires " + reqVersions;
 					}
 				}
 				module.addAncestors(mod.allAncestors());
@@ -972,6 +978,12 @@ public abstract class AbstractAvailCompiler
 
 		/** Module header token: Precedes the list of pragma strings. */
 		PRAGMA("Pragma", KEYWORD),
+
+		/**
+		 * Module header token: Occurs in pragma strings to assert some quality
+		 * of the virtual machine.
+		 */
+		PRAGMA_CHECK("check", KEYWORD),
 
 		/**
 		 * Module header token: Occurs in pragma strings to define bootstrap
@@ -4017,6 +4029,8 @@ public abstract class AbstractAvailCompiler
 					final A_Token syntheticToken =
 						LiteralTokenDescriptor.create(
 							newToken.string(),
+							newToken.leadingWhitespace(),
+							newToken.trailingWhitespace(),
 							newToken.start(),
 							newToken.lineNumber(),
 							SYNTHETIC_LITERAL,
@@ -4056,6 +4070,8 @@ public abstract class AbstractAvailCompiler
 					AtomDescriptor.objectFromBoolean(op == PUSH_TRUE);
 				final A_Token token = LiteralTokenDescriptor.create(
 					StringDescriptor.from(booleanValue.toString()),
+					initialTokenPosition.peekToken().leadingWhitespace(),
+					initialTokenPosition.peekToken().trailingWhitespace(),
 					initialTokenPosition.peekToken().start(),
 					initialTokenPosition.peekToken().lineNumber(),
 					LITERAL,
@@ -4181,6 +4197,8 @@ public abstract class AbstractAvailCompiler
 					op.integerToPush(instruction));
 				final A_Token token = LiteralTokenDescriptor.create(
 					StringDescriptor.from(integerValue.toString()),
+					initialTokenPosition.peekToken().leadingWhitespace(),
+					initialTokenPosition.peekToken().trailingWhitespace(),
 					initialTokenPosition.peekToken().start(),
 					initialTokenPosition.peekToken().lineNumber(),
 					LITERAL,
@@ -5026,6 +5044,99 @@ public abstract class AbstractAvailCompiler
 		final Con<A_Phrase> continuation);
 
 	/**
+	 * Check a property of the Avail virtual machine.
+	 *
+	 * @param pragmaToken
+	 *        The string literal token specifying the pragma.
+	 * @param state
+	 *        The {@linkplain ParserState state} following a parse of the
+	 *        {@linkplain ModuleHeader module header}.
+	 * @param propertyName
+	 *        The name of the property that is being checked.
+	 * @param propertyValue
+	 *        A value that should be checked, somehow, for conformance.
+	 * @param success
+	 *        What to do after the check completes successfully.
+	 * @param failure
+	 *        What to do after the check completes unsuccessfully.
+	 */
+	void pragmaCheckThen (
+		final A_Token pragmaToken,
+		final ParserState state,
+		final String propertyName,
+		final String propertyValue,
+		final Continuation0 success,
+		final Continuation0 failure)
+	{
+		switch (propertyName)
+		{
+			case "version":
+				// Split the versions at commas.
+				final String[] versions = propertyValue.split(",");
+				for (int i = 0; i < versions.length; i++)
+				{
+					versions[i] = versions[i].trim();
+				}
+				// Put the required versions into a set.
+				A_Set requiredVersions = SetDescriptor.empty();
+				for (final String version : versions)
+				{
+					requiredVersions =
+						requiredVersions.setWithElementCanDestroy(
+							StringDescriptor.from(version),
+							true);
+				}
+				// Ask for the guaranteed versions.
+				final A_Set activeVersions = AvailRuntime.activeVersions();
+				// If the intersection of the sets is empty, then the module and
+				// the virtual machine are incompatible.
+				final A_Set intersection =
+					requiredVersions.setIntersectionCanDestroy(
+						activeVersions, false);
+				if (intersection.setSize() == 0)
+				{
+					handleProblem(new Problem(
+						moduleName(),
+						pragmaToken,
+						EXECUTION,
+						"Module and virtual machine are not compatible; the "
+						+ "virtual machine guarantees versions {0}, but the "
+						+ "current module requires {1}",
+						activeVersions,
+						requiredVersions)
+					{
+						@Override
+						protected void abortCompilation ()
+						{
+							failure.value();
+						}
+					});
+					return;
+				}
+				break;
+			default:
+				final Set<String> viableAssertions = new HashSet<>();
+				viableAssertions.add("version");
+				handleProblem(new Problem(
+					moduleName(),
+					pragmaToken,
+					PARSE,
+					"Expected check pragma to assert one of the following "
+					+ "properties: {0}",
+					viableAssertions)
+				{
+					@Override
+					protected void abortCompilation ()
+					{
+						failure.value();
+					}
+				});
+				return;
+		}
+		success.value();
+	}
+
+	/**
 	 * Create a bootstrap primitive method. Use the primitive's type declaration
 	 * as the argument types.  If the primitive is fallible then generate
 	 * suitable primitive failure code (to invoke the {@link MethodDescriptor
@@ -5160,6 +5271,63 @@ public abstract class AbstractAvailCompiler
 		{
 			serializer.serialize(function);
 		}
+	}
+
+	/**
+	 * Apply a {@link ExpectedToken#PRAGMA_CHECK check} pragma that was detected
+	 * during parse of the {@linkplain ModuleHeader module header}.
+	 *
+	 * @param pragmaToken
+	 *        The string literal token specifying the pragma.
+	 * @param pragmaValue
+	 *        The pragma {@link String} after {@code "check="}.
+	 * @param state
+	 *        The {@linkplain ParserState parse state} following a parse of the
+	 *        module header.
+	 * @param success
+	 *        What to do after the pragmas have been applied successfully.
+	 * @param failure
+	 *        What to do if a problem is found with one of the pragma
+	 *        definitions.
+	 */
+	@InnerAccess void applyCheckPragmaThen (
+		final A_Token pragmaToken,
+		final String pragmaValue,
+		final ParserState state,
+		final Continuation0 success,
+		final Continuation0 failure)
+	{
+		final String propertyName;
+		final String propertyValue;
+		try
+		{
+			final String[] parts = pragmaValue.split("=", 2);
+			if (parts.length != 2)
+			{
+				throw new IllegalArgumentException();
+			}
+			propertyName = parts[0].trim();
+			propertyValue = parts[1].trim();
+		}
+		catch (final IllegalArgumentException e)
+		{
+			handleProblem(new Problem(
+				moduleName(),
+				pragmaToken,
+				PARSE,
+				"Expected check pragma to have the form {0}=<property>=<value>",
+				PRAGMA_METHOD.lexemeJavaString)
+			{
+				@Override
+				public void abortCompilation ()
+				{
+					failure.value();
+				}
+			});
+			return;
+		}
+		pragmaCheckThen(
+			pragmaToken, state, propertyName, propertyValue, success, failure);
 	}
 
 	/**
@@ -5394,6 +5562,12 @@ public abstract class AbstractAvailCompiler
 				final String pragmaValue = pragmaParts[1].trim();
 				switch (pragmaKind)
 				{
+					case "check":
+						assert pragmaKind.equals(
+							PRAGMA_CHECK.lexemeJavaString);
+						applyCheckPragmaThen(
+							pragmaToken, pragmaValue, state, next, failure);
+						break;
 					case "method":
 						assert pragmaKind.equals(
 							PRAGMA_METHOD.lexemeJavaString);
@@ -6418,23 +6592,42 @@ public abstract class AbstractAvailCompiler
 		final Throwable e)
 	{
 		compilationIsInvalid = true;
-		final CharArrayWriter trace = new CharArrayWriter();
-		e.printStackTrace(new PrintWriter(trace));
-		handleProblem(new Problem(
-			moduleName(),
-			token.lineNumber(),
-			token.start(),
-			EXECUTION,
-			"Execution error: {0}\n{1}",
-			e.getMessage(),
-			trace)
+		if (e instanceof FiberTerminationException)
 		{
-			@Override
-			public void abortCompilation ()
+			handleProblem(new Problem(
+				moduleName(),
+				token.lineNumber(),
+				token.start(),
+				EXECUTION,
+				"Execution error: Avail stack reported above.\n")
 			{
-				isShuttingDown = true;
-			}
-		});
+				@Override
+				public void abortCompilation ()
+				{
+					isShuttingDown = true;
+				}
+			});
+		}
+		else
+		{
+			final CharArrayWriter trace = new CharArrayWriter();
+			e.printStackTrace(new PrintWriter(trace));
+			handleProblem(new Problem(
+				moduleName(),
+				token.lineNumber(),
+				token.start(),
+				EXECUTION,
+				"Execution error: {0}\n{1}",
+				e.getMessage(),
+				trace)
+			{
+				@Override
+				public void abortCompilation ()
+				{
+					isShuttingDown = true;
+				}
+			});
+		}
 	}
 
 	/**

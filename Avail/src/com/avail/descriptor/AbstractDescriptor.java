@@ -5927,13 +5927,39 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract boolean o_HasValue (final AvailObject object);
+	abstract boolean o_HasValue (AvailObject object);
 
 	/**
 	 * @param object
 	 * @param unloadFunction
 	 */
 	abstract void o_AddUnloadFunction (
-		final AvailObject object,
-		final A_Function unloadFunction);
+		AvailObject object,
+		A_Function unloadFunction);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Set o_ExportedNames (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_String o_LeadingWhitespace (AvailObject object);
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_String o_TrailingWhitespace (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param trailingWhitespace
+	 * @return
+	 */
+	abstract void o_TrailingWhitespace (
+		AvailObject object,
+		A_String trailingWhitespace);
 }

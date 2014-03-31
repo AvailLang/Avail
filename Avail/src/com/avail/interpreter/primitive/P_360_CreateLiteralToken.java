@@ -67,6 +67,8 @@ extends Primitive
 		return interpreter.primitiveSuccess(
 			LiteralTokenDescriptor.create(
 				fakeText,
+				TupleDescriptor.empty(),
+				TupleDescriptor.empty(),
 				0,
 				0,
 				TokenType.SYNTHETIC_LITERAL,

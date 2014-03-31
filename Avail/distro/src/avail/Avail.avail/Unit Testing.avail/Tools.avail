@@ -1,0 +1,514 @@
+/*
+ * Tools.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Tools"
+Versions
+	"dev"
+Uses
+	"Foundation"
+Names
+	/* Tools. */
+	"Fail test",
+	"Fail test:_",
+	"Skip test",
+	"Require:_",
+	"Require:_(_)",
+	"Require:_=_",
+	"Require:_=_(_)",
+	"Require:_raises_",
+	"Require:_raises_(_)",
+	"Require if supported«on this platform»⁇:_",
+	"Require if supported«on this platform»⁇:_(_)",
+	"Require if supported«on this platform»⁇:_raises_",
+	"Require if supported«on this platform»⁇:_raises_(_)",
+
+	/* Exceptions. */
+	"explicit-failed-test exception",
+	"failed-requirement exception"
+Body
+
+/**
+ * An exception that indicates that an explicit unit test failure.
+ *
+ * @type "explicit-failed-test exception"
+ * @supertype "exception"
+ */
+Public explicit class "explicit-failed-test exception" extends exception;
+
+/**
+ * Fail the currently running unit test.
+ *
+ * @method "Fail test"
+ * @returns "⊥"
+ * @raises "explicit-failed-test exception"
+ *          Always.
+ */
+Public method "Fail test" is [Raise a explicit-failed-test exception] : ⊥;
+
+/**
+ * Fail the currently running unit test.
+ *
+ * @method "Fail test:_"
+ * @param "message" "string"
+ *        A detail message that describes the failure.
+ * @returns "⊥"
+ * @raises "descriptive explicit-failed-test exception"
+ *          Always.
+ */
+Public method "Fail test:_" is
+[
+	message : string
+|
+	Raise a descriptive explicit-failed-test exception with
+		error message ::= message
+] : ⊥;
+
+/**
+ * Skip the currently running unit test.
+ *
+ * @method "Skip test"
+ * @returns "⊥"
+ * @raises "unsupported-operation exception"
+ *         Always.
+ */
+Public method "Skip test" is [Raise an unsupported-operation exception] : ⊥;
+
+/**
+ * An exception that indicates that a unit test requirement failed.
+ *
+ * @type "failed-requirement exception"
+ * @supertype "exception"
+ */
+Public explicit class "failed-requirement exception" extends exception;
+
+/**
+ * Require that the specified predicate is true.
+ *
+ * @method "Require:_"
+ * @param "predicate" "boolean"
+ *        A predicate that must be true.
+ * @forbid 1 "_=_"
+ * @raises "failed-requirement exception"
+ *         If {@param "predicate"} is false.
+ */
+Public method "Require:_" is [ predicate : boolean | ] : ⊤;
+Method "Require:_" is
+[
+	predicate : false's type
+|
+	Raise a failed-requirement exception
+] : ⊥;
+
+/**
+ * Require that the specified predicate is true.
+ *
+ * @method "Require:_(_)"
+ * @param "predicate" "boolean"
+ *        A predicate that must be true.
+ * @param "message" "string"
+ *        Additional information that should be attached to the exception in the
+ *        event of failure.
+ * @forbid 1 "_=_"
+ * @raises "failed-requirement exception"
+ *         If {@param "predicate"} is false.
+ */
+Public method "Require:_(_)" is
+[
+	predicate : boolean,
+	message : string
+|
+] : ⊤;
+
+Method "Require:_(_)" is
+[
+	predicate : false's type,
+	message : string
+|
+	Raise a descriptive failed-requirement exception with
+		error message ::= message
+] : ⊥;
+
+/**
+ * Require that the arguments are equal.
+ *
+ * @method "Require:_=_"
+ * @param "actual" "any"
+ * @param "expected" "any"
+ * @returns "⊤"
+ * @raises "failed-requirement exception"
+ *         If {@param "expected"} ≠ {@param "value"}.
+ */
+Public method "Require:_=_" is
+[
+	actual : any,
+	expected : any
+|
+	If actual ≠ expected then
+	[
+		Raise a descriptive failed-requirement exception with
+			error message ::=
+				format "expected=“①”, actual=“②”" with expected, actual
+	];
+] : ⊤;
+
+/**
+ * Reject the current parse if the arguments are guaranteed unequal.
+ *
+ * @method "Require:_=_"
+ * @restricts "any's type"
+ * @restricts "any's type"
+ */
+Semantic restriction "Require:_=_" is
+[
+	actual : any's type,
+	expected : any's type
+|
+	If actual ∩ expected = ⊥ then
+	[
+		Reject parse, expected: "a predicate that could ever be true"
+	];
+	⊤
+];
+
+/**
+ * Require that the arguments are equal.
+ *
+ * @method "Require:_=_(_)"
+ * @param "actual" "any"
+ * @param "expected" "any"
+ * @param "message" "string"
+ *        Additional information that should be attached to the exception in the
+ *        event of failure.
+ * @returns "⊤"
+ * @raises "failed-requirement exception"
+ *         If {@param "expected"} ≠ {@param "value"}.
+ */
+Public method "Require:_=_(_)" is
+[
+	actual : any,
+	expected : any,
+	message : string
+|
+	If actual ≠ expected then
+	[
+		Raise a descriptive failed-requirement exception with
+			error message ::=
+				format "“①”: expected=“②”, actual=“③”"
+				with message, expected, actual
+	];
+] : ⊤;
+
+/**
+ * Reject the current parse if the arguments are guaranteed unequal.
+ *
+ * @method "Require:_=_(_)"
+ * @restricts "actual" "any's type"
+ * @restricts "expected" "any's type"
+ * @restricts "message" "string's type"
+ */
+Semantic restriction "Require:_=_(_)" is
+[
+	actual : any's type,
+	expected : any's type,
+	message : string's type
+|
+	If expected ∩ actual = ⊥ then
+	[
+		Reject parse, expected: "a predicate that could ever be true"
+	];
+	⊤
+];
+
+/**
+ * Require that the `expression` raises an exception of type `exceptionType`
+ * when applied.
+ *
+ * @method "Require:_=_(_)"
+ * @param "aFunction" "[]→⊤"
+ *        A function.
+ * @param "exceptionType" "exception's type"
+ *        An exception type.
+ * @returns "⊤"
+ * @raises "failed-requirement exception"
+ *         If {@param "aFunction"} does not produce an exception of the
+ *         appropriate type.
+ */
+Public method "Require:_raises_" is
+[
+	aFunction : []→⊤,
+	exceptionType : exception's type
+|
+	Guard
+	[
+		aFunction();
+		Raise a descriptive failed-requirement exception with
+			error message ::=
+				format "expected ∈ “①” (no exception)"
+				with exceptionType
+	]
+	intercept
+	[
+		e : exception
+	|
+		If ¬e ∈ exceptionType then
+		[
+			Raise a descriptive cascade failed-requirement exception with
+				causal exception ::= e,
+				error message ::=
+					format "expected ∈ “①”, actual=“②”"
+					with exceptionType, e
+		];
+	];
+] : ⊤;
+
+/**
+ * Require that the `expression` raises an exception of type `exceptionType`
+ * when applied.
+ *
+ * @method "Require:_=_(_)"
+ * @param "aFunction" "[]→⊤"
+ *        A function.
+ * @param "exceptionType" "exception's type"
+ *        An exception type.
+ * @param "message" "string"
+ *        Additional information that should be attached to the exception in the
+ *        event of failure.
+ * @returns "⊤"
+ * @raises "failed-requirement exception"
+ *         If {@param "aFunction"} does not produce an exception of the
+ *         appropriate type.
+ */
+Public method "Require:_raises_(_)" is
+[
+	aFunction : []→⊤,
+	exceptionType : exception's type,
+	message : string
+|
+	Guard
+	[
+		aFunction();
+		Raise a descriptive failed-requirement exception with
+			error message ::=
+				format "“①”: expected ∈ “②” (no exception)"
+				with message, exceptionType
+	]
+	intercept
+	[
+		e : exception
+	|
+		If ¬e ∈ exceptionType then
+		[
+			Raise a descriptive cascade failed-requirement exception with
+				causal exception ::= e,
+				error message ::=
+					format "“①”: expected ∈ “②”, actual=“③”"
+					with message, exceptionType, e
+		];
+	];
+] :  ⊤;
+
+/**
+ * Require that {@param "aFunction"} answers {@method "true"} or raises an
+ * {@type "unsupported-operation exception"}.
+ *
+ * @method "Require if supported«on this platform»⁇:_"
+ * @param "aFunction" "[]→boolean"
+ * @returns "⊤"
+ * @raises "failed-requirement exception"
+ *         If {@param "aFunction"} answers {@method "false"}.
+ */
+Public method "Require if supported«on this platform»⁇:_" is
+[
+	aFunction : []→boolean
+|
+	Guard
+	[
+		If ¬aFunction() then
+		[
+			Raise a failed-requirement exception
+		];
+	]
+	intercept
+	[
+		e : unsupported-operation exception
+	|
+		/* Ignore this exception. */
+	];
+] : ⊤;
+
+/**
+ * Require that {@param "aFunction"} answers {@method "true"} or raises an
+ * {@type "unsupported-operation exception"}.
+ *
+ * @method "Require if supported«on this platform»⁇:_"
+ * @param "aFunction" "[]→boolean"
+ * @param "message" "string"
+ *        Additional information that should be attached to the exception in the
+ *        event of failure.
+ * @returns "⊤"
+ * @raises "failed-requirement exception"
+ *         If {@param "aFunction"} answers {@method "false"}.
+ */
+Public method "Require if supported«on this platform»⁇:_(_)" is
+[
+	aFunction : []→boolean,
+	message : string
+|
+	Guard
+	[
+		If ¬aFunction() then
+		[
+			Raise a descriptive failed-requirement exception with
+				error message ::= message
+		];
+	]
+	intercept
+	[
+		e : unsupported-operation exception
+	|
+		/* Ignore this exception. */
+	];
+] : ⊤;
+
+/**
+ * Require that {@param "aFunction"} raises an {@type "exception"} that is a
+ * subtype of either {@param "exceptionType"} or {@type
+ * "unsupported-operation exception"}.
+ *
+ * @method "Require if supported«on this platform»⁇:_"
+ * @param "aFunction" "[]→boolean"
+ * @param "exceptionType" "exception's type"
+ * @returns "⊤"
+ * @raises "failed-requirement exception"
+ *         If {@param "aFunction"} does not raise an {@type "exception"} or
+ *         raises an {@type "exception"} that is not a subtype of either
+ *         {@param "exceptionType"} or {@type
+ *         "unsupported-operation exception"}.
+ */
+Public method "Require if supported«on this platform»⁇:_raises_" is
+[
+	aFunction : []→⊤,
+	exceptionType : exception's type
+|
+	Guard
+	[
+		aFunction();
+		Raise a descriptive failed-requirement exception
+			with error message ::=
+				format "expected ∈ “①” (no exception)"
+				with exceptionType
+	]
+	intercept
+	[
+		e : unsupported-operation exception
+	|
+		/* Ignore this exception. */
+	]
+	intercept
+	[
+		e : exception
+	|
+		If ¬e ∈ exceptionType then
+		[
+			Raise a descriptive cascade failed-requirement exception with
+				causal exception ::= e,
+				error message ::=
+					format "expected ∈ “①”, actual=“②”"
+					with exceptionType, e
+		];
+	];
+] : ⊤;
+
+/**
+ * Require that {@param "aFunction"} raises an {@type "exception"} that is a
+ * subtype of either {@param "exceptionType"} or {@type
+ * "unsupported-operation exception"}.
+ *
+ * @method "Require if supported«on this platform»⁇:_"
+ * @param "aFunction" "[]→boolean"
+ * @param "exceptionType" "exception's type"
+ * @param "message" "string"
+ *        Additional information that should be attached to the exception in the
+ *        event of failure.
+ * @returns "⊤"
+ * @raises "failed-requirement exception"
+ *         If {@param "aFunction"} does not raise an {@type "exception"} or
+ *         raises an {@type "exception"} that is not a subtype of either
+ *         {@param "exceptionType"} or {@type
+ *         "unsupported-operation exception"}.
+ */
+Public method "Require if supported«on this platform»⁇:_raises_(_)" is
+[
+	aFunction : []→⊤,
+	exceptionType : exception's type,
+	message : string
+|
+	Guard
+	[
+		aFunction();
+		Raise a descriptive failed-requirement exception with
+			error message ::=
+				format "“①”: expected ∈ “②” (no exception)"
+				with message, exceptionType
+	]
+	intercept
+	[
+		e : unsupported-operation exception
+	|
+		/* Ignore this exception. */
+	]
+	intercept
+	[
+		e : exception
+	|
+		If ¬e ∈ exceptionType then
+		[
+			Raise a descriptive cascade failed-requirement exception with
+				causal exception ::= e,
+				error message ::=
+					format "“①”: expected ∈ “②”, actual=“③”"
+					with message, exceptionType, e
+		];
+	];
+] : ⊤;
+
+[
+	comparisons ::=
+		{
+			"_≤_", "_<_", "_≥_", "_>_",
+			"_=_", "«_‡=»", "«_‡«=|≤|<»!»", "«_‡«=|≥|>»!»"
+		};
+	Grammatical restriction "Require:_" is <{"_=_"}>;
+	Grammatical restriction "Require:_(_)" is <{"_=_"}, ∅>;
+	Grammatical restriction "Require:_=_" is <comparisons, comparisons>;
+	Grammatical restriction "Require:_=_(_)" is <comparisons, comparisons, ∅>;
+]();

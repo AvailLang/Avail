@@ -36,6 +36,7 @@ import com.avail.compiler.AbstractAvailCompiler.ExpectedToken;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailSystemCompiler;
 import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.primitive.P_246_PublishName;
 import com.avail.utility.evaluation.Continuation0;
 
 /**
@@ -53,8 +54,8 @@ extends A_BasicObject
 	 * Answer whether this module is a system module.  System modules use the
 	 * built-in syntax of the {@link AvailSystemCompiler} rather than the
 	 * experimental macro syntax of the {@link AvailCompiler}.  System modules
-	 * start (not counting comments) with the token "{@link
-	 * ExpectedToken#MODULE Module}".  The experimental macro compiler is
+	 * start (not counting comments) with the token {@link
+	 * ExpectedToken#MODULE "Module"}.  The experimental macro compiler is
 	 * specified with "{@link ExpectedToken#EXPERIMENTAL Experimental} {@link
 	 * ExpectedToken#MODULE Module}".
 	 *
@@ -66,8 +67,8 @@ extends A_BasicObject
 	 * Set whether this module is a system module.
 	 *
 	 * @param isSystemModule
-	 *            A boolean indicating whether this module should be a system
-	 *            module.
+	 *        A boolean indicating whether this module should be a system
+	 *        module.
 	 * @see #isSystemModule()
 	 */
 	void isSystemModule (boolean isSystemModule);
@@ -98,33 +99,19 @@ extends A_BasicObject
 	void versions (A_Set versionStrings);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer a {@linkplain A_Map map} from {@linkplain A_String strings} to
+	 * {@linkplain A_Atom atoms}. These atoms prevent or at least clarify name
+	 * conflicts. These names are those introduced by the {@linkplain A_Module
+	 * module}'s {@code "Names"} section or {@link P_246_PublishName}.
+	 *
+	 * @return The map of new names.
 	 */
 	A_Map newNames ();
 
 	/**
 	 * @param trueName
 	 */
-	void addImportedName (
-		A_Atom trueName);
-
-	/**
-	 * @param trueName
-	 */
-	void introduceNewName (
-		A_Atom trueName);
-
-	/**
-	 * @param trueName
-	 */
-	void addPrivateName (
-		A_Atom trueName);
-
-	/**
-	 * @param trueNames
-	 */
-	void addPrivateNames (
-		A_Set trueNames);
+	void introduceNewName (A_Atom trueName);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -132,14 +119,37 @@ extends A_BasicObject
 	A_Map importedNames ();
 
 	/**
+	 * @param trueName
+	 */
+	void addImportedName (A_Atom trueName);
+
+	/**
 	 * Dispatch to the descriptor.
 	 */
 	A_Map privateNames ();
 
 	/**
+	 * @param trueName
+	 */
+	void addPrivateName (A_Atom trueName);
+
+	/**
+	 * @param trueNames
+	 */
+	void addPrivateNames (A_Set trueNames);
+
+	/**
 	 * Dispatch to the descriptor.
 	 */
 	A_Set visibleNames ();
+
+	/**
+	 * Answer the {@linkplain A_Set set} of all {@linkplain A_Atom names}
+	 * exported by this {@linkplain A_Module module}.
+	 *
+	 * @return The set of exported names.
+	 */
+	A_Set exportedNames ();
 
 	/**
 	 * Dispatch to the descriptor.

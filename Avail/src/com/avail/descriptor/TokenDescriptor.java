@@ -94,7 +94,13 @@ extends Descriptor
 		 * optimization for case insensitive parsing.
 		 */
 		@HideFieldInDebugger
-		LOWER_CASE_STRING
+		LOWER_CASE_STRING,
+
+		/** The {@linkplain A_String leading whitespace}. */
+		LEADING_WHITESPACE,
+
+		/** The {@linkplain A_String trailing whitespace}. */
+		TRAILING_WHITESPACE
 	}
 
 	/**
@@ -149,13 +155,34 @@ extends Descriptor
 	@Override
 	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
-		return e == LOWER_CASE_STRING;
+		return e == LOWER_CASE_STRING
+			|| e == TRAILING_WHITESPACE;
 	}
 
 	@Override @AvailMethod
 	A_String o_String (final AvailObject object)
 	{
 		return object.slot(STRING);
+	}
+
+	@Override @AvailMethod
+	A_String o_LeadingWhitespace (final AvailObject object)
+	{
+		return object.slot(LEADING_WHITESPACE);
+	}
+
+	@Override @AvailMethod
+	A_String o_TrailingWhitespace (final AvailObject object)
+	{
+		return object.slot(TRAILING_WHITESPACE);
+	}
+
+	@Override @AvailMethod
+	void o_TrailingWhitespace (
+		final AvailObject object,
+		final A_String trailingWhitespace)
+	{
+		object.setSlot(TRAILING_WHITESPACE, trailingWhitespace);
 	}
 
 	/**
@@ -256,20 +283,32 @@ extends Descriptor
 	/**
 	 * Create and initialize a new {@linkplain TokenDescriptor token}.
 	 *
-	 * @param string The token text.
-	 * @param start The token's starting character position in the file.
-	 * @param lineNumber The line number on which the token occurred.
-	 * @param tokenType The type of token to create.
+	 * @param string
+	 *        The token text.
+	 * @param leadingWhitespace
+	 *        The leading whitespace.
+	 * @param trailingWhitespace
+	 *        The trailing whitespace.
+	 * @param start
+	 *        The token's starting character position in the file.
+	 * @param lineNumber
+	 *        The line number on which the token occurred.
+	 * @param tokenType
+	 *        The type of token to create.
 	 * @return The new token.
 	 */
 	public static A_Token create (
 		final A_String string,
+		final A_String leadingWhitespace,
+		final A_String trailingWhitespace,
 		final int start,
 		final int lineNumber,
 		final TokenType tokenType)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(STRING, string);
+		instance.setSlot(LEADING_WHITESPACE, leadingWhitespace);
+		instance.setSlot(TRAILING_WHITESPACE, trailingWhitespace);
 		instance.setSlot(LOWER_CASE_STRING, NilDescriptor.nil());
 		instance.setSlot(START, start);
 		instance.setSlot(LINE_NUMBER, lineNumber);
@@ -288,6 +327,8 @@ extends Descriptor
 	{
 		return create(
 			StringDescriptor.from("start of module"),
+			TupleDescriptor.empty(),
+			TupleDescriptor.empty(),
 			0,
 			1,
 			TokenType.END_OF_FILE);

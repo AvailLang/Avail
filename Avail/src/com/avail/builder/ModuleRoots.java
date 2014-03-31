@@ -97,8 +97,7 @@ implements Iterable<ModuleRoot>
 	 *         If any component of the Avail {@linkplain ModuleDescriptor
 	 *         module} path is invalid.
 	 */
-	private void parseAvailModulePath ()
-		throws IllegalArgumentException
+	private void parseAvailModulePath () throws IllegalArgumentException
 	{
 		// Root definitions are separated by semicolons.
 		for (final String component : modulePath.split(";"))

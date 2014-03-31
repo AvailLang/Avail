@@ -126,13 +126,32 @@ public final class BootstrapGenerator
 	/**
 	 * Answer a textual representation of the specified version {@linkplain
 	 * List list} that is satisfactory for use in an Avail {@linkplain
-	 * ModuleDescriptor module} header.
+	 * ModuleDescriptor module} header's {@code check=vm} {@code Pragma}.
 	 *
 	 * @param versions The versions.
 	 * @return The version string.
 	 */
-	private String versionString (
-		final List<String> versions)
+	private String vmVersionString (final List<String> versions)
+	{
+		final StringBuilder builder = new StringBuilder();
+		for (final String version : versions)
+		{
+			builder.append(version);
+			builder.append(",");
+		}
+		final String versionString = builder.toString();
+		return versionString.substring(0, versionString.length() - 1);
+	}
+
+	/**
+	 * Answer a textual representation of the specified version {@linkplain
+	 * List list} that is satisfactory for use in an Avail {@linkplain
+	 * ModuleDescriptor module} header's {@code Versions} section.
+	 *
+	 * @param versions The versions.
+	 * @return The version string.
+	 */
+	private String moduleVersionString (final List<String> versions)
 	{
 		final StringBuilder builder = new StringBuilder();
 		for (final String version : versions)
@@ -169,10 +188,11 @@ public final class BootstrapGenerator
 		writer.println(MessageFormat.format(
 			preamble.getString(originModuleHeader.name()),
 			preamble.getString(originModuleName.name()),
-			versionString(versions),
+			moduleVersionString(versions),
 			preamble.getString(bootstrapDefiningMethod.name()),
 			preamble.getString(bootstrapSpecialObject.name()),
-			preamble.getString(bootstrapStringifier.name())));
+			preamble.getString(bootstrapStringifier.name()),
+			vmVersionString(versions)));
 	}
 
 	/**
@@ -253,7 +273,7 @@ public final class BootstrapGenerator
 		writer.println(MessageFormat.format(
 			preamble.getString(generalModuleHeader.name()),
 			preamble.getString(specialObjectsModuleName.name()),
-			versionString(versions),
+			moduleVersionString(versions),
 			String.format(
 				"%n\t\"%s\"",
 				preamble.getString(originModuleName.name())),
@@ -474,7 +494,7 @@ public final class BootstrapGenerator
 		writer.println(MessageFormat.format(
 			preamble.getString(generalModuleHeader.name()),
 			preamble.getString(key.name()),
-			versionString(versions),
+			moduleVersionString(versions),
 			"",
 			uses.toString(),
 			names.toString()));
@@ -1133,7 +1153,7 @@ public final class BootstrapGenerator
 		writer.println(MessageFormat.format(
 			preamble.getString(generalModuleHeader.name()),
 			preamble.getString(errorCodesModuleName.name()),
-			versionString(versions),
+			moduleVersionString(versions),
 			"",
 			uses.toString(),
 			errorCodesNamesString()));
@@ -1213,7 +1233,7 @@ public final class BootstrapGenerator
 		writer.println(MessageFormat.format(
 			preamble.getString(generalModuleHeader.name()),
 			preamble.getString(representativeModuleName.name()),
-			versionString(versions),
+			moduleVersionString(versions),
 			extendedString,
 			"",
 			""));

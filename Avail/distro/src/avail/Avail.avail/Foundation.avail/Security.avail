@@ -1,0 +1,155 @@
+/*
+ * Security.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Security"
+Versions
+	"dev"
+Uses
+	"Bootstrap",
+	"Casts",
+	"Control Structures",
+	"Definers",
+	"Enumeration Support",
+	"Functions",
+	"Literals",
+	"Logic",
+	"Strings",
+	"Tuples",
+	"Types",
+	"Variables"
+Names
+	"Completely seal method_"
+Body
+
+/**
+ * Seal the named method at the specified signature. No further definitions
+ * may be added at or below this signature. This facility is provided to secure
+ * methods against dangerous, unscrupulous, or confusing extensions.
+ *
+ * @method "Seal method_at_"
+ * @param "methodName" "string"
+ *        The name of the method to seal.
+ * @param "functionType" "function's type"
+ *        The signature at which the seal should be placed. Only the parameter
+ *        types are actually used to place the seal, but the semantic
+ *        restriction cross-checks the return type if possible.
+ * @returns "⊤"
+ * @category "Declarations" "Methods"
+ */
+Method "Seal method_at_" is
+[
+	methodName : string,
+	functionType : function's type
+|
+	argTypes : <any's type…|> := <>;
+	From 1 to ⎡functionType's parameters' type⎤ do
+	[
+		index : natural number
+	|
+		argTypes := eject ↑argTypes ++ <functionType[1]>;
+	];
+	Seal method methodName at argTypes;
+] : ⊤;
+
+/**
+ * @method "Seal method_at_"
+ * @restricts "string's type"
+ * @restricts "function's type's type"
+ */
+Semantic restriction "Seal method_at_" is
+[
+	nameType : string's type,
+	functionMeta: function's type's type
+|
+	If |nameType| = 1 then
+	[
+		methodName ::= nameType's instance;
+		functionType ::= functionMeta's instance;
+		argTypes : <any's type…|> := <>;
+		From 1 to ⎡functionType's parameters' type⎤ do
+		[
+			index : natural number
+		|
+			argTypes := eject ↑argTypes ++ <functionType[index]>;
+		];
+		returnType ::= functionType's return type;
+		name ::= atom for methodName;
+		If name has definition for argTypes then
+		[
+			site ::= method definition of name for argTypes;
+			If returnType ≠ site's function type's return type then
+			[
+				Reject parse, expected:
+					format
+						"specified function type's return type (“①”) does \
+						\|not match method site's return type (“②”)"
+					with returnType, site's function type's return type
+			];
+		];
+	];
+	⊤
+];
+
+/**
+ * Completely seal the specified method. No further definitions may be
+ * added at any site within the method.
+ * 
+ * @method "Completely seal method_"
+ * @param "methodName" "string"
+ *        The method name. This name will be resolved to an atom in the context
+ *        of the current module.
+ * @returns "⊤"
+ * @category "Declarations" "Methods"
+ */
+Public method "Completely seal method_" is
+[
+	methodName : string
+|
+	Seal method methodName at |message methodName's parameters| of any;
+] : ⊤;
+
+/**
+ * Completely seal the specified method. No further definitions may be
+ * added at any site within the method.
+ * 
+ * @method "Completely seal method_"
+ * @param "methodName" "atom"
+ *        The method name.
+ * @returns "⊤"
+ * @category "Declarations" "Methods"
+ */
+Public method "Completely seal method_" is
+[
+	methodName : atom
+|
+	Seal method methodName at |message methodName's name's parameters| of any;
+] : ⊤;

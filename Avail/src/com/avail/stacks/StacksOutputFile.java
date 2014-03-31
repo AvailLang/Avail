@@ -133,9 +133,12 @@ public class StacksOutputFile
 	 * @param synchronizer
 	 * 		The {@linkplain StacksSynchronizer} used to control the creation
 	 * 		of Stacks documentation
+	 * @param runtime
+	 *        An {@linkplain AvailRuntime runtime}.
 	 */
 	public StacksOutputFile (final Path outputPath,
-		final StacksSynchronizer synchronizer, final String fileName)
+		final StacksSynchronizer synchronizer, final String fileName,
+		final AvailRuntime runtime)
 	{
 		this.outputPath = outputPath;
 		this.synchronizer = synchronizer;
@@ -152,7 +155,7 @@ public class StacksOutputFile
 		}
 		try
 		{
-			this.outputFile = AvailRuntime.current().openFile(
+			this.outputFile = runtime.openFile(
 				filePath, EnumSet.of(StandardOpenOption.CREATE,
 					StandardOpenOption.WRITE,
 					StandardOpenOption.TRUNCATE_EXISTING));

@@ -1068,6 +1068,8 @@ public enum SerializerOperation
 	 */
 	TOKEN (39,
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("token string"),
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("leading whitespace"),
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("trailing whitespace"),
 		SIGNED_INT.as("start position"),
 		SIGNED_INT.as("line number"),
 		BYTE.as("token type code"))
@@ -1077,6 +1079,8 @@ public enum SerializerOperation
 		{
 			return array(
 				object.string(),
+				object.leadingWhitespace(),
+				object.trailingWhitespace(),
 				IntegerDescriptor.fromInt(object.start()),
 				IntegerDescriptor.fromInt(object.lineNumber()),
 				IntegerDescriptor.fromInt(object.tokenType().ordinal()));
@@ -1088,11 +1092,15 @@ public enum SerializerOperation
 			final Deserializer deserializer)
 		{
 			final AvailObject string = subobjects[0];
-			final int start = subobjects[1].extractInt();
-			final int lineNumber = subobjects[2].extractInt();
-			final int tokenTypeOrdinal = subobjects[3].extractInt();
+			final AvailObject leadingWhitespace = subobjects[1];
+			final AvailObject trailingWhitespace = subobjects[2];
+			final int start = subobjects[3].extractInt();
+			final int lineNumber = subobjects[4].extractInt();
+			final int tokenTypeOrdinal = subobjects[5].extractInt();
 			return TokenDescriptor.create(
 				string,
+				leadingWhitespace,
+				trailingWhitespace,
 				start,
 				lineNumber,
 				TokenType.values()[tokenTypeOrdinal]);
@@ -1104,6 +1112,8 @@ public enum SerializerOperation
 	 */
 	LITERAL_TOKEN (40,
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("token string"),
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("leading whitespace"),
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("trailing whitespace"),
 		OBJECT_REFERENCE.as("literal value"),
 		SIGNED_INT.as("start position"),
 		SIGNED_INT.as("line number"),
@@ -1114,6 +1124,8 @@ public enum SerializerOperation
 		{
 			return array(
 				object.string(),
+				object.leadingWhitespace(),
+				object.trailingWhitespace(),
 				object.literal(),
 				IntegerDescriptor.fromInt(object.start()),
 				IntegerDescriptor.fromInt(object.lineNumber()),
@@ -1126,12 +1138,16 @@ public enum SerializerOperation
 			final Deserializer deserializer)
 		{
 			final AvailObject string = subobjects[0];
-			final AvailObject literal = subobjects[1];
-			final int start = subobjects[2].extractInt();
-			final int lineNumber = subobjects[3].extractInt();
-			final int tokenTypeOrdinal = subobjects[4].extractInt();
+			final AvailObject leadingWhitespace = subobjects[1];
+			final AvailObject trailingWhitespace = subobjects[2];
+			final AvailObject literal = subobjects[3];
+			final int start = subobjects[4].extractInt();
+			final int lineNumber = subobjects[5].extractInt();
+			final int tokenTypeOrdinal = subobjects[6].extractInt();
 			return LiteralTokenDescriptor.create(
 				string,
+				leadingWhitespace,
+				trailingWhitespace,
 				start,
 				lineNumber,
 				TokenType.values()[tokenTypeOrdinal],

@@ -1,0 +1,942 @@
+/*
+ * Runners.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Runners"
+Versions
+	"dev"
+Uses
+	"Foundation" =
+	(
+		"causal exception" → "causal exception(Foundation)",
+		…
+	),
+	"Framework State",
+	"Types"
+Names
+	/* Running reports. */
+	"report on all tests",
+	"report on all tests in_",
+	"report on_",
+
+	/* Analyzing reports. */
+	"_'s⁇metrics by module",
+	"_'s⁇metrics by test suite",
+
+	/* Summarizing reports. */
+	"module-oriented“_”",
+	"test suite-oriented“_”",
+
+	/* Interrogation. */
+	"all test suites",
+	"all test suites in_",
+	"all tests in_"
+Body
+
+/**
+ * Compute the per-suite test-fixture setup required for the specified test
+ * suite.
+ *
+ * @method "setup for_"
+ * @param "aSuite" "unit test suite"
+ *        A {@type "unit test suite"}.
+ * @returns "<[]→⊤…|>"
+ *          The per-suite test-fixture setup functions required to run the tests
+ *          of the specified test suite.
+ */
+Private method "setup for_" is
+[
+	aSuite : unit test suite
+|
+	setup : <[]→⊤…|> := <>;
+	suiteID : atom := aSuite's suite ID;
+	Until [suiteID = root test suite ID]
+	do
+	[
+		suite ::= suites by atom[suiteID];
+		setup := suite's suite fixture setup ++ eject ↑setup;
+		suiteID := suite's parent suite ID;
+	];
+	setup
+] : <[]→⊤…|>;
+
+/**
+ * Compute the per-test test-fixture setup required for the specified test.
+ * (Do not compute the per-suite test-fixture setup.)
+ *
+ * @method "setup for_"
+ * @param "aTest" "unit test"
+ *        A {@type "unit test"}.
+ * @returns "<[]→⊤…|>"
+ *          The per-test test-fixture setup functions required to run the
+ *          specified test.
+ */
+Private method "setup for_" is
+[
+	aTest : unit test
+|
+	setup : <[]→⊤…|> := <>;
+	suiteID : atom := aTest's suite ID;
+	Until [suiteID = root test suite ID]
+	do
+	[
+		suite ::= suites by atom[suiteID];
+		setup := suite's test fixture setup ++ eject ↑setup;
+		suiteID := suite's parent suite ID;
+	];
+	setup
+] : <[]→⊤…|>;
+
+/**
+ * Compute the per-suite test-fixture tear down required for the specified test
+ * suite.
+ *
+ * @method "setup for_"
+ * @param "aSuite" "unit test suite"
+ *        A {@type "unit test suite"}.
+ * @returns "<[]→⊤…|>"
+ *          The per-suite test-fixture tear-down functions required to clean up
+ *          the tests of the specified test suite.
+ */
+Private method "tear down for_" is
+[
+	aSuite : unit test suite
+|
+	tearDown : <[]→⊤…|> := <>;
+	suiteID : atom := aSuite's suite ID;
+	Until [suiteID = root test suite ID]
+	do
+	[
+		suite ::= suites by atom[suiteID];
+		tearDown := eject ↑tearDown ++ suite's suite fixture tear down;
+		suiteID := suite's parent suite ID;
+	];
+	tearDown
+] : <[]→⊤…|>;
+
+/**
+ * Compute the per-test test-fixture tear down required for the specified test.
+ * (Do not compute the per-suite test-fixture tear down.)
+ *
+ * @method "setup for_"
+ * @param "aTest" "unit test"
+ *        A {@type "unit test"}.
+ * @returns "<[]→⊤…|>"
+ *          The per-test test-fixture tear-down functions required to clean up
+ *          the specified test.
+ */
+Private method "tear down for_" is
+[
+	aTest : unit test
+|
+	tearDown : <[]→⊤…|> := <>;
+	suiteID : atom := aTest's suite ID;
+	Until [suiteID = root test suite ID]
+	do
+	[
+		suite ::= suites by atom[suiteID];
+		tearDown := eject ↑tearDown ++ suite's test fixture tear down;
+		suiteID := suite's parent suite ID;
+	];
+	tearDown
+] : <[]→⊤…|>;
+
+/**
+ * Run any necessary test-fixture setup for the specified test suite.
+ * 
+ * @method "Setup:_"
+ * @param "aSuite" "unit test suite"
+ *        A {@type "unit test suite"}.
+ * @returns "⊤"
+ * @raises "test-fixture-setup exception"
+ *         If any of the test-fixture setup functions fail.
+ */
+Private method "Setup:_" is
+[
+	aSuite : unit test suite
+|
+	guard
+	[
+		For each setup for aSuite do [setup : []→⊤ | setup();];
+	]
+	intercept
+	[
+		e : exception
+	|
+		Raise a test-fixture-setup exception with
+			suite ID ::= aSuite's suite ID,
+			causal exception (Foundation) ::= e
+	];
+] : ⊤;
+
+/**
+ * Run any necessary test-fixture setup for the specified test.
+ * 
+ * @method "Setup:_"
+ * @param "aTest" "unit test"
+ *        A {@type "unit test"}.
+ * @returns "⊤"
+ * @raises "test-fixture-setup exception"
+ *         If any of the test-fixture setup functions fail.
+ */
+Private method "Setup:_" is
+[
+	aTest : unit test
+|
+	guard
+	[
+		For each setup for aTest do [setup : []→⊤ | setup();];
+	]
+	intercept
+	[
+		e : exception
+	|
+		Raise a test-fixture-setup exception with
+			suite ID ::= aTest's suite ID,
+			causal exception (Foundation) ::= e
+	];
+] : ⊤;
+
+/**
+ * Run any necessary test-fixture tear down for the specified test suite.
+ * 
+ * @method "Setup:_"
+ * @param "aSuite" "unit test suite"
+ *        A {@type "unit test suite"}.
+ * @returns "⊤"
+ * @raises "test-fixture-tear-down exception"
+ *         If any of the test-fixture tear-down functions fail.
+ */
+Private method "Tear down:_" is
+[
+	aSuite : unit test suite
+|
+	guard
+	[
+		For each tear down for aSuite do [tearDown : []→⊤ | tearDown();];
+	]
+	intercept
+	[
+		e : exception
+	|
+		Raise a test-fixture-tear-down exception with
+			suite ID ::= aSuite's suite ID,
+			causal exception (Foundation) ::= e
+	];
+] : ⊤;
+
+/**
+ * Run any necessary test-fixture tear down for the specified test.
+ * 
+ * @method "Setup:_"
+ * @param "aTest" "unit test"
+ *        A {@type "unit test"}.
+ * @returns "⊤"
+ * @raises "test-fixture-tear-down exception"
+ *         If any of the test-fixture tear-down functions fail.
+ */
+Private method "Tear down:_" is
+[
+	aTest : unit test
+|
+	guard
+	[
+		For each tear down for aTest do [tearDown : []→⊤ | tearDown();];
+	]
+	intercept
+	[
+		e : exception
+	|
+		Raise a test-fixture-tear-down exception with
+			suite ID ::= aTest's suite ID,
+			causal exception (Foundation) ::= e
+	];
+] : ⊤;
+
+/**
+ * Run and obtain a {@type "unit test result" test metric} for the specified
+ * test.
+ *
+ * NB: If the name of this method changes, or its implementation changes, then
+ * {@method "long“_”"} in {@module "Types"} will also need to be updated. Its
+ * stack truncation logic expects this method to have a particular name and
+ * internal structure.
+ *
+ * @method "Run test_"
+ * @param "test" "unit test"
+ *        A unit test.
+ * @returns "unit test result"
+ *          A unit test result.
+ * @raises "test-fixture-setup exception"
+ *         If any of the test-fixture setup functions fail.
+ * @raises "test-fixture-tear-down exception"
+ *         If any of the test-fixture tear-down functions fail.
+ */
+Private method "test metric for_" is
+[
+	test : unit test
+|
+	Setup: test;
+	id ::= test's test ID;
+	expected ::= test's expected exception type;
+	result ::=
+		guard
+		[
+			test's body();
+			if ¬expected is empty then
+			[
+				a unit test failure with
+					test ID ::= id,
+					causal exception ::=
+						an expected-a-specific-exception exception with
+							test ID ::= id,
+							expected exception type ::= expected[1]
+			]
+			else
+			[
+				a unit test success with test ID ::= test's test ID
+			]
+		]
+		intercept
+		[
+			e : exception
+		|
+			isOptional ::= test's platform optionality;
+			if isOptional ∧ [e ∈ unsupported-operation exception] then
+			[
+				a unit test exclusion with test ID ::= test's test ID
+			]
+			else if [expected is empty] then
+			[
+				a unit test failure with
+					test ID ::= id,
+					causal exception ::= a failed-test exception with
+						test ID ::= id,
+						causal exception (Foundation) ::= e
+			]
+			else if [ ¬e ∈ expected[1] ] then
+			[
+				exceptionType ::= expected-a-specific-exception exception
+					∩ failed-test exception;
+				a unit test failure with
+					test ID ::= id,
+					causal exception ::= an exceptionType with
+						test ID ::= id,
+						causal exception (Foundation) ::= e,
+						expected exception type ::= expected[1]
+			]
+			else
+			[
+				a unit test success with test ID ::= test's test ID
+			]
+		];
+	Tear down: test;
+	result
+] : unit test result;
+
+/**
+ * Run and obtain a {@type "unit test report"} for the specified test.
+ *
+ * @method "Run test_"
+ * @param "trueName" "atom"
+ *        The atom that uniquely identifies the test.
+ * @returns "unit test report"
+ *          A unit test report.
+ * @raise "no-such-test exception"
+ *        If no such test exists.
+ */
+Public method "report on_" is
+[
+	trueName : atom
+|
+	Unless trueName ∈ tests by atom then
+	[
+		Raise a no-such-test exception with test ID ::= trueName
+	];
+	test ::= tests by atom[trueName];
+	suite ::= suites by atom[test's suite ID];
+	Setup: suite;
+	report ::= a unit test report with metrics ::= <test metric for test>;
+	Tear down: suite;
+	report
+] : unit test report;
+
+/**
+ * Run and obtain a {@type "unit test report"} for the specified test.
+ *
+ * @method "Run test_"
+ * @param "name" "string"
+ *        The name of the test. This name will be resolved to an atom in the
+ *        context of the current module.
+ * @returns "unit test report"
+ *          A unit test report.
+ * @raise "no-such-test exception"
+ *        If no such test exists.
+ */
+Public method "report on_" is
+[
+	name : string
+|
+	report on atom for name
+] : unit test report;
+
+/**
+ * Run each function in the specified tuple, wrapping any exception raised with
+ * an instance of {@param "exceptionType"}.
+ *
+ * @method "Run each_,raising_on error"
+ * @param "actions" "<[]→⊤…|>"
+ *        A tuple of arity-0 functions.
+ * @param "exceptionType" "test-suite exception's type"
+ *        An exception type.
+ * @returns "⊤"
+ * @raises "test-suite exception"
+ *         If any of the functions fails.
+ */
+Private method "Run each_,raising_on error" is
+[
+	actions : <[]→⊤…|>,
+	exceptionType : cascade exception's type
+|
+	Guard
+	[
+		For each actions do [action : []→⊤ | action();];
+	]
+	intercept
+	[
+		e : exception
+	|
+		Raise an exceptionType with causal exception (Foundation) ::= e
+	];
+] : ⊤;
+
+Forward method "recursively visit_,on entering do_,on leaving do_" is
+	[
+		root unit test suite,
+			[root unit test suite]→tuple,
+			[root unit test suite]→⊤
+	]→tuple;
+
+/**
+* Recursively visit the specified {@type "root unit test suite"} and its
+* children. Apply {@param "enterAction"} to {@param "aSuite"} and collect its
+* results. Then append the results of applying this method recursively to the
+* child test suites. Before returning, apply {@param "leaveAction"} to {@param
+* "aSuite"}. Answer the recursively computed collection of results.
+*
+* @method "recursively visit_,on entering do_,on leaving do_"
+* @param "aSuite" "root unit test suite"
+*        A unit test suite (possibly the {@method "root suite"}).
+* @param "enterAction" "[root unit test suite]→any"
+*        The function to apply to {@param "aSuite"} upon entry.
+* @param "leaveAction" "[root unit test suite]→⊤"
+*        The function to apply to {@param "aSuite"} before to returning.
+* @returns "tuple"
+*          A tuple of results accumulated by recursively visiting the specified
+*          test suite and its children.
+*/
+Private method "recursively visit_,on entering do_,on leaving do_" is
+[
+	aSuite : root unit test suite,
+	enterAction : [root unit test suite]→tuple,
+	leaveAction : [root unit test suite]→⊤
+|
+	results : tuple := enterAction(aSuite);
+	For each aSuite's child suite IDs do
+	[
+		childID : atom
+	|
+		childResults ::=
+			recursively visit suites by atom[childID],
+			on entering do enterAction,
+			on leaving do leaveAction;
+		results := eject ↑results ++ childResults;
+	];
+	leaveAction(aSuite);
+	results
+] : tuple;
+
+Semantic restriction "recursively visit_,on entering do_,on leaving do_" is
+[
+	aSuite : root unit test suite's type,
+	enterAction : [root unit test suite]→tuple's type,
+	leaveAction : [root unit test suite]→⊤'s type
+|
+	enterAction's return type
+];
+
+"can parallelize" is a new atom;
+"cannot parallelize" is a new atom;
+
+/**
+ * Recursively report on all {@type "unit test"}s in the specified {@type
+ * "unit test suite" test suite}. Assume that the argument's ancestors have
+ * already run any necessary test-fixture setup (and will eventually run any
+ * necessary test-fixture tear-down).
+ *
+ * @method "recursively report on all tests in_"
+ * @param "aSuite" "unit test suite"
+ *        A unit test suite.
+ * @returns "<unit test result…|>"
+ *          A tuple of {@type "unit test result"}s representing the metrics
+ *          obtained from the argument's tests and those of its descendent
+ *          test suites.
+ * @raises "test-fixture-setup exception"
+ *         If any of the test-fixture setup functions fail.
+ * @raises "test-fixture-tear-down exception"
+ *         If any of the test-fixture tear-down functions fail.
+ */
+Private method "recursively report on all tests in_" is
+[
+	initialSuite : root unit test suite
+|
+	recursively visit initialSuite,
+		on entering do
+		[
+			aSuite : root unit test suite
+		|
+			Run each aSuite's suite fixture setup, raising
+				extend test-fixture-setup exception
+					with suite ID : aSuite's suite ID's type
+				on error;
+			/* Determine which unit tests must run in serial, and which can be
+			 * run in parallel. If a test requires any individual fixtures, then
+			 * it cannot be run in parallel.
+			 */
+			groups ::= group aSuite's unit tests by
+				[
+					test : unit test
+				|
+					if setup for test is empty then [can parallelize]
+					else [cannot parallelize]
+				];
+			computeMetric ::= [test : unit test | test metric for test];
+			/* We are under no obligation to preserve the order of the tests, so
+			 * it is perfectly fine to concatenate the two result tuples.
+			 */
+			parallel ::= groups[can parallelize] else [<>];
+			serial ::= groups[cannot parallelize] else [<>];
+			map parallel in parallel through computeMetric
+				++ map serial through computeMetric
+		],
+		on leaving do
+		[
+			aSuite : root unit test suite
+		|
+			Run each aSuite's suite fixture tear down, raising
+				extend test-fixture-tear-down exception
+					with suite ID : aSuite's suite ID's type
+				on error;
+		]
+] : <unit test result…|>;
+
+/**
+ * Report on all {@type "unit test"}s in the specified {@type "unit test suite"
+ * test suite}.
+ *
+ * @method "report on all tests in_"
+ * @param "trueName" "atom"
+ *        A test suite identifier.
+ * @returns "<unit test result…|>"
+ *          A tuple of {@type "unit test result"}s representing the metrics
+ *          obtained from the argument's tests and those of its descendent
+ *          test suites.
+ * @raises "test-fixture-setup exception"
+ *         If any of the test-fixture setup functions fail.
+ * @raises "test-fixture-tear-down exception"
+ *         If any of the test-fixture tear-down functions fail.
+ */
+Public method "report on all tests in_" is
+[
+	trueName : atom
+|
+	suite ::= suites by atom[trueName] else
+		[Raise a no-such-test-suite exception with suite ID ::= trueName];
+	isTopLevel ::= suite's parent suite ID = root test suite ID;
+	Unless isTopLevel then
+	[
+		Setup: suites by atom[suite's parent suite ID];
+	];
+	results ::= recursively report on all tests in suite;
+	Unless isTopLevel then
+	[
+		Tear down: suites by atom[suite's parent suite ID];
+	];
+	a unit test report with metrics ::= results
+] : unit test report;
+
+/**
+ * Run and obtain a {@type "unit test report"} for all previously declared unit
+ * tests.
+ * 
+ * @method "report on all tests"
+ * @returns "<unit test result…|>"
+ *          A tuple of unit test results.
+ */
+Public method "report on all tests" is
+[
+	a unit test report with
+		metrics ::= recursively report on all tests in root suite
+] : unit test report;
+
+
+/**
+ * Group the {@type "unit test result" test metrics} of the specified {@type
+ * "unit test report"} by defining module.
+ *
+ * @method "_'s⁇metrics by module"
+ * @param "report" "unit test report"
+ *        A unit test report.
+ * @returns "{module→<unit test result…|>|}"
+ *          A map whose keys are modules that defined tests whose metrics are
+ *          present in the unit test report. The values are test metric tuples.
+ */
+Public method "_'s⁇metrics by module" is
+[
+	report : unit test report
+|
+	group report's metrics by
+	[
+		result : unit test result
+	|
+		result's test ID's issuing module
+	]
+] : {module→<unit test result…|>|};
+
+/**
+ * Group the {@type "unit test result" test metrics} of the specified {@type
+ * "unit test report"} by test suite.
+ *
+ * @method "_'s⁇metrics by test suite"
+ * @param "report" "unit test report"
+ *        A unit test report.
+ * @returns "{atom→<unit test result…|>|}"
+ *          A map whose keys are test suite identifiers and whose values are
+ *          test metric tuples.
+ */
+Public method "_'s⁇metrics by test suite" is
+[
+	report : unit test report
+|
+	group report's metrics by
+	[
+		result : unit test result
+	|
+		tests by atom[result's test ID]'s suite ID
+	]
+] : {atom→<unit test result…|>|};
+
+/**
+ * Answer a {@type "tuple"} containing every {@type "unit test failure"}
+ * present in the argument, preserving their order.
+ *
+ * @method "bad results of_"
+ * @param "results" "<unit test result…|>"
+ * @returns "<unit test failure…|>"
+ */
+Private method "bad results of_" is
+[
+	results : <unit test result…|>
+|
+	filter results by [t : unit test result | t ∈ unit test failure]
+];
+
+Semantic restriction "bad results of_" is
+[
+	results : <unit test result…|>'s type
+|
+	<<>, unit test failure… | [0..⎡results⎤+1)>
+];
+
+/* The banner character. */
+_bc ::= ¢=;
+
+/**
+ * Answer a textual banner with the specified heading.
+ *
+ * @method "«_»banner"
+ * @param "heading" "<character…|0..70>"
+ *        The optional heading.
+ * @returns "string"
+ */
+Private method "«_»banner" is
+[
+	heading : <<character…|0..70>…|0..1>
+|
+	80 of _bc
+] : string;
+
+Private method "«_»banner" is
+[
+	heading : <<character…|1..70>…|1>
+|
+	h ::= format " § ‘①’ " with heading[1];
+	headingSize ::= cast |h| into [t : [5..74] | t];
+	leftSize ::= (80 - headingSize) ÷ 2;
+	rightSize ::= leftSize + if headingSize is even then [0] else [1];
+	Assert: leftSize + headingSize + rightSize = 80
+		(format "“①” + “②” + “③” ≠ 80" with leftSize, headingSize, rightSize);
+	leftSize of _bc ++ h ++ rightSize of _bc
+] : string;
+
+Grammatical restriction "«_»banner" is <{"«_‡++»"}>;
+
+_passed ::= $passed;
+_failed ::= $failed;
+_skipped ::= $skipped;
+
+/**
+ * Generate a textual report from the specified {@type "unit test report"}.
+ *
+ * @method "report for_,⁇organized by_,⁇with headers given by_"
+ * @param "report" "unit test report"
+ * @param "organizer" "[unit test report]→{any→<unit test result…|>|}"
+ *        A {@type "function"} that answers a {@type "map"} organizing
+ *        {@param "report"}'s {@type "unit test result"}s.
+ * @param "heading" "[any]→string"
+ *        A {@type "function"} that produces a group heading given a key from
+ *        the organizing {@type "map"}.
+ * @returns "string"
+ */
+Private method "report for_,⁇organized by_,⁇with headers given by_" is
+[
+	report : unit test report,
+	organizer : [unit test report]→{any→<unit test result…|>|},
+	heading : [any]→string
+|
+	desc : string := "";
+	discriminator ::=
+		[
+			result : unit test result
+		|
+			cast result into
+				[t : unit test success | _passed],
+				[t : unit test failure | _failed],
+				[t : unit test exclusion | _skipped]
+		];
+	badResults : <unit test failure…|> := <>;
+	For each of organizer(report) do
+	[
+		key : any,
+		results : <unit test result…|>
+	|
+		desc := eject ↑desc
+			++ left fold <heading(key)> ++ results through
+				[
+					result : unit test result,
+					partial : string
+				|
+					partial ++ "\t" ++ short “result” ++ "\n"
+				];
+		statistics ::= group results by discriminator;
+		desc := eject ↑desc
+			++ format
+				"\t(summary: total=“total”, passed=“passed”, \
+				\|failed=“failed”, skipped=“skipped”)\n\n"
+			with
+				total ::= |results|,
+				passed ::= |statistics[_passed] else [<>]|,
+				failed ::= |statistics[_failed] else [<>]|,
+				skipped ::= |statistics[_skipped] else [<>]|;
+		badResults := eject ↑badResults ++ bad results of results;
+	];
+	/* Compute statistics. */
+	statistics ::= group report's metrics by discriminator;
+	/* Compute details. */
+	details : string := "";
+	index : natural number := 1;
+	While [index ≤ |badResults|]
+	do
+	[
+		result ::= badResults[index];
+		details := eject ↑details ++ long “result”;
+		↑index++;
+	]
+	alternate with
+	[
+		details := eject ↑details ++ "\n" ++ banner ++ "\n";
+	];
+	/* Format report. */
+	format
+		"‘reportBanner’\n\
+		\|‘breakdown’‘summaryBanner’\n\
+		\|TOTAL:   “total”\n\
+		\|PASSED:  “passed”\n\
+		\|FAILED:  “failed”\n\
+		\|SKIPPED: “skipped”\n\
+		\|‘details’"
+	with
+		reportBanner ::= "REPORT" banner,
+		breakdown ::= desc,
+		summaryBanner ::= "SUMMARY" banner,
+		total ::= |report's metrics|,
+		passed ::= |statistics[_passed] else [<>]|,
+		failed ::= |statistics[_failed] else [<>]|,
+		skipped ::= |statistics[_skipped] else [<>]|,
+		details ::=
+			if details is empty
+			then [""]
+			else ["\n" ++ "DETAILS" banner ++ "\n" ++ details]
+] : string;
+
+/**
+ * Answer a textual representation of the header for a group of {@type
+ * "unit test result"}s.
+ *
+ * @method "group header for_"
+ * @param "x" "any"
+ *        A {@type "module"} or {@type "atom"}.
+ * @returns "string"
+ */
+Private abstract method "group header for_" is [any]→string;
+Private method "group header for_" is [m : module | m's name ++ ":\n"];
+Private method "group header for_" is [a : atom | a's name ++ ":\n"];
+
+/**
+ * Generate a module-oriented textual report from the specified {@type
+ * "unit test report"}.
+ *
+ * @method "module-oriented“_”"
+ * @param "report" "unit test report"
+ *        A unit test report.
+ * @returns "string"
+ *          A textual version of the argument, broken down by module.
+ */
+Public method "module-oriented“_”" is
+[
+	report : unit test report
+|
+	report for report,
+		organized by [r : unit test report | r's metrics by module],
+		with headers given by [k : any | group header for k]
+] : string;
+
+/**
+ * Generate a test suite-oriented textual report from the specified {@type
+ * "unit test report"}.
+ *
+ * @method "module-oriented“_”"
+ * @param "report" "unit test report"
+ *        A unit test report.
+ * @returns "string"
+ *          A textual version of the argument, broken down by test suite.
+ */
+Public method "test suite-oriented“_”" is
+[
+	report : unit test report
+|
+	report for report,
+		organized by [r : unit test report | r's metrics by test suite],
+		with headers given by [k : any | group header for k]
+] : string;
+
+/**
+ * Compute and answer the complete collection of {@type "unit test"} identifiers
+ * that denote unit tests recursively contained within the {@type "unit test
+ * suite"} specified by {@param "suiteID"}.
+ *
+ * @method "all tests in_"
+ * @param "suiteID" "atom"
+ *        The test suite identifier.
+ * @returns "<atom…|>"
+ *          The test identifiers of all unit tests comprising the argument.
+ * @raises "no-such-test-suite exception"
+ *         If {@param "suiteID"} does not reference an existing test suite.
+ */
+Public method "all tests in_" is
+[
+	suiteID : atom
+|
+	suite ::= suites by atom[suiteID] else
+		[Raise a no-such-test-suite exception with suite ID ::= suiteID];
+	recursively visit suite,
+		on entering do
+		[
+			aSuite : root unit test suite
+		|
+			map aSuite's unit tests through
+				[aTest : unit test | aTest's test ID]
+		],
+		on leaving do
+		[
+			aSuite : root unit test suite
+		|
+			/* No implementation required. */
+		]
+] : <atom…|>;
+
+/**
+ * Compute and answer the complete collection of {@type "unit test suite"}
+ * identifiers that denote unit test suites recursively contained within the
+ * unit test suite specified by {@param "suiteID"}.
+ *
+ * @method "all test suites in_"
+ * @param "suiteID" "atom"
+ *        The test suite identifier.
+ * @returns "<atom…|>"
+ *          The test suite identifiers of all unit test suites comprising the
+ *          argument. The result will not contain the argument.
+ * @raises "no-such-test-suite exception"
+ *         If {@param "suiteID"} does not reference an existing test suite.
+ */
+Public method "all test suites in_" is
+[
+	suiteID : atom
+|
+	suite ::= suites by atom[suiteID] else
+		[Raise a no-such-test-suite exception with suite ID ::= suiteID];
+	recursively visit suite,
+		on entering do
+		[
+			aSuite : root unit test suite
+		|
+			if aSuite's suite ID = suiteID then [<>] else [<aSuite's suite ID>]
+		],
+		on leaving do
+		[
+			aSuite : root unit test suite
+		|
+			/* No implementation required. */
+		]
+] : <atom…|>;
+
+/**
+ * Compute and answer the complete collection of {@type "unit test suite"}
+ * identifiers.
+ *
+ * @method "all test suites"
+ * @returns "{atom|}"
+ *          The test suite identifiers of all unit test suites.
+ */
+Public method "all test suites" is
+[
+	suites by atom's keys
+] : {atom|};

@@ -6864,4 +6864,28 @@ implements
 	{
 		descriptor.o_AddUnloadFunction(this, unloadFunction);
 	}
+
+	@Override
+	public A_Set exportedNames ()
+	{
+		return descriptor.o_ExportedNames(this);
+	}
+
+	@Override
+	public A_String leadingWhitespace ()
+	{
+		return descriptor.o_LeadingWhitespace(this);
+	}
+
+	@Override
+	public A_String trailingWhitespace ()
+	{
+		return descriptor.o_TrailingWhitespace(this);
+	}
+
+	@Override
+	public void trailingWhitespace (final A_String trailingWhitespace)
+	{
+		descriptor.o_TrailingWhitespace(this, trailingWhitespace);
+	}
 }

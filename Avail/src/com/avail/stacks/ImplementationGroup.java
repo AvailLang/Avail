@@ -35,6 +35,7 @@ package com.avail.stacks;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import com.avail.AvailRuntime;
 import com.avail.descriptor.A_String;
 
 /**
@@ -273,17 +274,20 @@ public class ImplementationGroup
 	 * @param synchronizer
 	 * 		The {@linkplain StacksSynchronizer} used to control the creation
 	 * 		of Stacks documentation
+	 * @param runtime
+	 *        An {@linkplain AvailRuntime runtime}.
 	 */
 	public void toHTML(final Path outputPath,
 		final String qualifiedMethodName,
 		final String htmlOpenContent, final String htmlCloseContent,
-		final StacksSynchronizer synchronizer)
+		final StacksSynchronizer synchronizer,
+		final AvailRuntime runtime)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append(htmlOpenContent)
 			.append("<h2 class=\"MethodHeading\">")
 			.append(name.asNativeString())
-			.append("</h2><br>");
+			.append("</h2>\n<br>");
 
 		if (!methods.isEmpty())
 		{
@@ -305,7 +309,7 @@ public class ImplementationGroup
 			}
 
 			stringBuilder.append("<div class=\"MethodSectionHeader\">"
-					+ "Implementations:</div>");
+					+ "Implementations:</div>\n");
 
 			for (final MethodCommentImplementation implementation : methods)
 			{
@@ -315,7 +319,7 @@ public class ImplementationGroup
 			if (!semanticRestrictions.isEmpty())
 			{
 				stringBuilder.append("<div class=\"MethodSectionHeader\">"
-					+ "Semantic restrictions:</div>");
+					+ "Semantic restrictions:</div>\n");
 
 				for (final SemanticRestrictionCommentImplementation implementation :
 					semanticRestrictions)
@@ -323,25 +327,46 @@ public class ImplementationGroup
 					stringBuilder.append(implementation.toHTML());
 				}
 			}
+			final String localPath = qualifiedMethodName
+				.substring(1, qualifiedMethodName.lastIndexOf('/') + 1);
+
+			final String hashedFileName = String.valueOf(name.hash()) + ".html";
+
+			final StacksOutputFile htmlFile = new StacksOutputFile(
+				outputPath.resolve(localPath), synchronizer, hashedFileName,
+				runtime);
+
+			htmlFile.write(stringBuilder.append(htmlCloseContent).toString());
 		}
 		else if (!(global == null))
 		{
 			stringBuilder.append(global().toHTML());
+			final String localPath = qualifiedMethodName
+				.substring(1, qualifiedMethodName.lastIndexOf('/') + 1);
+
+			final String hashedFileName = String.valueOf(name.hash()) + ".html";
+
+			final StacksOutputFile htmlFile = new StacksOutputFile(
+				outputPath.resolve(localPath), synchronizer, hashedFileName,
+				runtime);
+
+			htmlFile.write(stringBuilder.append(htmlCloseContent).toString());
 		}
-		else
+		else if (!(classImplementation == null))
 		{
 			stringBuilder.append(classImplementation.toHTML());
+
+			final String localPath = qualifiedMethodName
+				.substring(1, qualifiedMethodName.lastIndexOf('/') + 1);
+
+			final String hashedFileName = String.valueOf(name.hash()) + ".html";
+
+			final StacksOutputFile htmlFile = new StacksOutputFile(
+				outputPath.resolve(localPath), synchronizer, hashedFileName,
+				runtime);
+
+			htmlFile.write(stringBuilder.append(htmlCloseContent).toString());
 		}
-
-		final String localPath = qualifiedMethodName
-			.substring(1, qualifiedMethodName.lastIndexOf('/') + 1);
-
-		final String hashedFileName = String.valueOf(name.hash()) + ".html";
-
-		final StacksOutputFile htmlFile = new StacksOutputFile(
-			outputPath.resolve(localPath), synchronizer, hashedFileName);
-
-		htmlFile.write(stringBuilder.append(htmlCloseContent).toString());
 	}
 
 }

@@ -1,0 +1,752 @@
+/*
+ * Primitives.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Primitives"
+Versions
+	"dev"
+Extends
+	"Common" = ("Close_"),
+	"Network Common" = ("_'s⁇name")
+Uses
+	"Address",
+	"Foundation" =
+	(
+		"_'s⁇name" → "_'s⁇name(Foundation)",
+		…
+	),
+	"Network Common",
+	"Options"
+Names
+	/* Types. */
+	"client socket",
+
+	/* Constructors. */
+	"a client socket«named_»",
+
+	/* Binding. */
+	"Bind_to_",
+
+	/* Connecting. */
+	"a fiber connecting_to_,⁇\
+		\|on success doing_,⁇\
+		\|on failure doing_«⁇,forked at priority_»",
+
+	/* I/O. */
+	"a fiber reading_byte|bytes from_,⁇\
+		\|on success doing_,⁇\
+		\|on failure doing_«⁇,forked at priority_»",
+	"a fiber writing_to_,⁇\
+		\|on success doing_,⁇\
+		\|on failure doing_«⁇,forked at priority_»",
+
+	/* Queries. */
+	"_'s⁇local address",
+	"_'s⁇remote address"
+Body
+
+/* The default name for unspecified optional names. */
+defaultName ::= "«unnamed»";
+
+/**
+ * A client socket represents an endpoint of a stream-oriented connection.
+ *
+ * @type "client socket"
+ */
+Public explicit class "client socket" extends object
+	with field
+		handle : atom;
+
+/**
+ * Answer the name of the {@type "client socket"}. This is the name that was
+ * provided when the client socket was first created.
+ *
+ * @method "_'s⁇name"
+ * @param "s" "client socket"
+ * @returns "nonempty string"
+ */
+Method "_'s⁇name" is
+[
+	s : client socket
+|
+	s's handle's name (Foundation)
+] : string;
+
+/**
+ * @method "_'s⁇name"
+ * @restricts "client socket's type"
+ */
+Semantic restriction "_'s⁇name" is
+[
+	s : client socket's type
+|
+	nonempty string
+];
+
+/**
+ * Construct and answer a {@type "client socket"}.
+ *
+ * @method "a client socket«named_»"
+ * @param "optionalName" "<nonempty string…|0..1>"
+ *        An optional string that describes the purpose of the client socket at
+ *        a high level, provided for debugging purposes only. If not specified,
+ *        then the default name {@code "«unnamed»"} is used.
+ * @returns "client socket"
+ */
+Public method "a client socket«named_»" is
+[
+	optionalName : <nonempty string…|0..1>
+|
+	name ::= optionalName[1] else [defaultName];
+	h ::=
+		[
+			nm : nonempty string
+		|
+			Primitive 557 (code : {I/O-error code}ᵀ);
+			Raise an exception for code
+		] : atom (name);
+	a client socket with handle ::= h
+] : client socket;
+
+/**
+ * Set {@type "client socket option" socket options} for the specified
+ * {@type "client socket"}.
+ *
+ * @method "_'s⁇«_:=_‡,»"
+ * @param "s" "client socket"
+ * @param "options" "<<client socket option, any…|2>…|1..5>"
+ * @returns "⊤"
+ */
+Method "_'s⁇«_:=_‡,»" is
+[
+	s : client socket,
+	options : <<client socket option, any…|2>…|1..5>
+|
+	optionMap ::=
+		map options through
+		[
+			binding : <client socket option, any…|2>
+		|
+			<binding[1]'s option#, binding[2]>
+		]→map;
+	[
+		h : atom,
+		m : {[1..5]→any|0..5}
+	|
+		Primitive 558 (code :
+			{
+				invalid-handle code,
+				special-atom code,
+				incorrect-argument-type code,
+				I/O-error code
+			}ᵀ);
+		Raise an exception for code
+	] : ⊤ (s's handle, optionMap);
+] : ⊤;
+
+/**
+ * @method "_'s⁇«_:=_‡,»"
+ * @restricts "client socket's type"
+ * @restricts "<<client socket option, any…|2>…|>'s type"
+ */
+Semantic restriction "_'s⁇«_:=_‡,»" is
+[
+	socketType : client socket's type,
+	options : <<client socket option, any…|2>…|>'s type
+|
+	Require: options are sensible;
+	⊤
+];
+
+/**
+ * Bind a {@type "client socket"} to a local {@type "IP address"} and port.
+ *
+ * @method "Bind_to_on port_"
+ * @param "s" "client socket"
+ * @param "ipAddress" "IP address"
+ * @param "port" "[0..65535]"
+ */
+Private abstract method "Bind_to_on port_"
+	is [client socket, IP address, [0..65535]]→⊤;
+
+/**
+ * Bind a {@type "client socket"} to a local {@type "IPv4 address"} and port.
+ *
+ * @method "Bind_to_on port_"
+ * @param "s" "client socket"
+ * @param "ipAddress" "IPv4 address"
+ * @param "port" "[0..65535]"
+ * @returns "⊤"
+ */
+Method "Bind_to_on port_" is
+[
+	s :  client socket,
+	ipAddress : IPv4 address,
+	port : [0..65535]
+|
+	[
+		h : atom,
+		octets : <byte…|4>,
+		portNumber : [0..65535]
+	|
+		Primitive 559 (code :
+		{
+			invalid-handle code,
+			special-atom code,
+			I/O-error code,
+			permission-denied code
+		}ᵀ);
+		Raise an exception for code
+	] : ⊤ (s's handle, ipAddress's octets, port);
+] : ⊤;
+
+/**
+ * Bind a {@type "client socket"} to a local {@type "IPv6 address"} and port.
+ *
+ * @method "Bind_to_on port_"
+ * @param "s" "client socket"
+ * @param "ipAddress" "IPv6 address"
+ * @param "port" "[0..65535]"
+ * @returns "⊤"
+ */
+Method "Bind_to_on port_" is
+[
+	s :  client socket,
+	ipAddress : IPv6 address,
+	port : [0..65535]
+|
+	[
+		h : atom,
+		octets : <byte…|16>,
+		portNumber : [0..65535]
+	|
+		Primitive 560 (code :
+		{
+			invalid-handle code,
+			special-atom code,
+			I/O-error code,
+			permission-denied code
+		}ᵀ);
+		Raise an exception for code
+	] : ⊤ (s's handle, ipAddress's octets, port);
+] : ⊤;
+
+/**
+ * Bind a {@type "client socket"} to a local {@type "socket address"}.
+ *
+ * @method "Bind_to_"
+ * @param "s" "client socket"
+ * @param "localAddress" "socket address"
+ * @returns "⊤"
+ */
+Public method "Bind_to_" is
+[
+	s : client socket,
+	localAddress : socket address
+|
+	addr ::= localAddress's address;
+	port ::= localAddress's port;
+	Bind s to addr on port port;
+] : ⊤;
+
+/**
+ * Asynchronously connect a {@type "client socket"} to a remote {@type
+ * "IP address"} and port. If the operation is successful, then fork a new
+ * {@type "fiber"} to apply {@param "success"}. If the operation is
+ * unsuccessful, then fork a new fiber to apply {@param "failure"} to the error
+ * code that classifies the failure. Answer the new fiber.
+ *
+ * @method
+ *   "a fiber connecting_to_on port_,\
+ *   \|on success doing_,\
+ *   \|on failure doing_,\
+ *   \forked at priority_"
+ * @param "s" "client socket"
+ * @param "ipAddress" "IP address"
+ * @param "port" "[0..65535]"
+ * @param "success" "[]→⊤"
+ *        The function to apply when connection establishment completes.
+ * @param "failure" "[exception]→⊤"
+ *        The function to apply to the {@type "exception"} that classifies the
+ *        failure of the asynchronous connect operation.
+ * @param "priority" "byte"
+ *        The priority of the new fiber.
+ * @returns "fiber"
+ *          The new fiber which may eventually apply either {@param "success"}
+ *          or {@param "failure"}.
+ */
+Private abstract method
+	"a fiber connecting_to_on port_,\
+	\|on success doing_,\
+	\|on failure doing_,\
+	\|forked at priority_"
+is
+[
+	client socket,
+	IP address,
+	[0..65535],
+	[]→⊤,
+	[exception]→⊤,
+	byte
+]→fiber;
+
+/**
+ * Asynchronously connect a {@type "client socket"} to a remote {@type
+ * "IP address"} and port. If the operation is successful, then fork a new
+ * {@type "fiber"} to apply {@param "success"}. If the operation is
+ * unsuccessful, then fork a new fiber to apply {@param "failure"} to the error
+ * code that classifies the failure. Answer the new fiber.
+ *
+ * @method
+ *   "a fiber connecting_to_on port_,\
+ *   \|on success doing_,\
+ *   \|on failure doing_,\
+ *   \forked at priority_"
+ * @param "s" "client socket"
+ * @param "ipAddress" "IPv4 address"
+ * @param "port" "[0..65535]"
+ * @param "success" "[]→⊤"
+ *        The function to apply when connection establishment completes.
+ * @param "failure" "[exception]→⊤"
+ *        The function to apply to the {@type "exception"} that classifies the
+ *        failure of the asynchronous connect operation.
+ * @param "priority" "byte"
+ *        The priority of the new fiber.
+ * @returns "fiber"
+ *          The new fiber which may eventually apply either {@param "success"}
+ *          or {@param "failure"}.
+ */
+Private method 
+	"a fiber connecting_to_on port_,\
+	\|on success doing_,\
+	\|on failure doing_,\
+	\|forked at priority_"
+is
+[
+	s : client socket,
+	ipAddress : IPv4 address,
+	port : [0..65535],
+	success : []→⊤,
+	failure : [exception]→⊤,
+	priority : byte
+|
+	bad ::= [c : natural number | failure(an exception for c);];
+	[
+		h : atom,
+		octets : <byte…|4>,
+		portNumber : [0..65535],
+		f1 : []→⊤,
+		f2 : [I/O-error code's type]→⊤,
+		p : byte
+	|
+		Primitive 561 (code :
+		{
+			invalid-handle code,
+			special-atom code,
+			incorrect-argument-type code,
+			I/O-error code,
+			permission-denied code
+		}ᵀ);
+		Raise an exception for code
+	] : fiber (s's handle, ipAddress's octets, port, success, bad, priority)
+] : fiber;
+
+/**
+ * Asynchronously connect a {@type "client socket"} to a remote {@type
+ * "IP address"} and port. If the operation is successful, then fork a new
+ * {@type "fiber"} to apply {@param "success"}. If the operation is
+ * unsuccessful, then fork a new fiber to apply {@param "failure"} to the error
+ * code that classifies the failure. Answer the new fiber.
+ *
+ * @method
+ *   "a fiber connecting_to_on port_,\
+ *   \|on success doing_,\
+ *   \|on failure doing_,\
+ *   \forked at priority_"
+ * @param "s" "client socket"
+ * @param "ipAddress" "IPv6 address"
+ * @param "port" "[0..65535]"
+ * @param "success" "[]→⊤"
+ *        The function to apply when connection establishment completes.
+ * @param "failure" "[exception]→⊤"
+ *        The function to apply to the {@type "exception"} that classifies the
+ *        failure of the asynchronous connect operation.
+ * @param "priority" "byte"
+ *        The priority of the new fiber.
+ * @returns "fiber"
+ *          The new fiber which may eventually apply either {@param "success"}
+ *          or {@param "failure"}.
+ */
+Private method 
+	"a fiber connecting_to_on port_,\
+	\|on success doing_,\
+	\|on failure doing_,\
+	\|forked at priority_"
+is
+[
+	s : client socket,
+	ipAddress : IPv6 address,
+	port : [0..65535],
+	success : []→⊤,
+	failure : [exception]→⊤,
+	priority : byte
+|
+	bad ::= [c : natural number | failure(an exception for c);];
+	[
+		h : atom,
+		octets : <byte…|16>,
+		portNumber : [0..65535],
+		f1 : []→⊤,
+		f2 : [I/O-error code's type]→⊤,
+		p : byte
+	|
+		Primitive 562 (code :
+		{
+			invalid-handle code,
+			special-atom code,
+			incorrect-argument-type code,
+			I/O-error code,
+			permission-denied code
+		}ᵀ);
+		Raise an exception for code
+	] : fiber (s's handle, ipAddress's octets, port, success, bad, priority)
+] : fiber;
+
+/**
+ * Asynchronously connect a {@type "client socket"} to a remote {@type
+ * "socket address"}. If the operation is successful, then fork a new {@type
+ * "fiber"} to apply {@param "success"}. If the operation is unsuccessful, then
+ * fork a new fiber to apply {@param "failure"} to the error code that
+ * classifies the failure. Answer the new fiber.
+ *
+ * @method
+ *    "a fiber connecting_to_,⁇\
+ *    \|on success doing_⁇,\
+ *    \|on failure doing_«⁇,forked at priority_»"
+ * @param "s" "client socket"
+ * @param "peerAddress" "socket address"
+ * @param "success" "[]→⊤"
+ *        The function to apply when connection establishment completes.
+ * @param "failure" "[exception]→⊤"
+ *        The function to apply to the {@type "exception"} that classifies the
+ *        failure of the asynchronous connect operation.
+ * @param "optionalPriority" "<byte…|0..1>"
+ *        If specified, then the priority of the new fiber. If not specified,
+ *        then the new fiber will run at the same priority as the {@method
+ *        "current fiber"}.
+ * @returns "fiber"
+ *          The new fiber which may eventually apply either {@param "success"}
+ *          or {@param "failure"}.
+ */
+Public method
+	"a fiber connecting_to_,⁇\
+	\|on success doing_,⁇\
+	\|on failure doing_«⁇,forked at priority_»"
+is
+[
+	s : client socket,
+	peerAddress : socket address,
+	success : []→⊤,
+	failure : [exception]→⊤,
+	optionalPriority : <byte…|0..1>
+|
+	addr ::= peerAddress's address;
+	port ::= peerAddress's port;
+	priority ::= optionalPriority[1] else [current fiber's priority];
+	a fiber connecting s to addr on port port,
+		on success doing success,
+		on failure doing failure,
+		forked at priority priority
+] : fiber;
+
+Semantic restriction
+	"a fiber connecting_to_,⁇\
+	\|on success doing_,⁇\
+	\|on failure doing_«⁇,forked at priority_»"
+is
+[
+	s : client socket's type,
+	peerAddress : socket address's type,
+	success : []→⊤'s type,
+	failure : [exception]→⊤'s type,
+	optionalPriority : <byte…|0..1>'s type
+|
+	fiber→(success's return type ∪ failure's return type)
+];
+
+/**
+ * Asynchronously read data from a {@type "client socket"}. If the operation is
+ * successful, then fork a new {@type "fiber"} to apply {@param "success"} to
+ * the tuple of bytes read and a boolean that is {@method "true"} if the
+ * connection has reached end-of-stream. If the operation is unsuccessful, then
+ * fork a new fiber to apply {@param "failure"} to the error code that
+ * classifies the failure. Answer the new fiber.
+ *
+ * @method
+ *    "a fiber reading_byte|bytes from_,⁇\
+ *    \|on success doing_,⁇\
+ *    \|on failure doing_«⁇,forked at priority_»"
+ * @param "count "whole number"
+ *        The maximum number of bytes to read from the connection.
+ * @param "s" "client socket"
+ * @param "success" "[<byte…|>, boolean]→⊤"
+ *        The function to apply to the newly read data and end-of-stream
+ *        indicator.
+ * @param "failure" "[exception]→⊤"
+ *        The function to apply to the {@type "exception"} that classifies the
+ *        failure of the asynchronous read operation.
+ * @param "optionalPriority" "<byte…|0..1>"
+ *        If specified, then the priority of the new fiber. If not specified,
+ *        then the new fiber will run at the same priority as the {@method
+ *        "current fiber"}.
+ * @returns "fiber"
+ *          The new fiber which may eventually apply either {@param "success"}
+ *          or {@param "failure"}.
+ */
+Public method
+	"a fiber reading_byte|bytes from_,⁇\
+	\|on success doing_,⁇\
+	\|on failure doing_«⁇,forked at priority_»"
+is
+[
+	count : whole number,
+	s : client socket,
+	success : [<byte…|>, boolean]→⊤,
+	failure : [exception]→⊤,
+	optionalPriority : <byte…|0..1>
+|
+	adjustedCount ::= count min (2^31-1);
+	bad ::= [c : natural number | failure(an exception for c);];
+	priority ::= optionalPriority[1] else [current fiber's priority];
+	[
+		n : [0..2^31-1],
+		h : atom,
+		f1 : [<byte…|>, boolean]→⊤,
+		f2 : [I/O-error code's type]→⊤,
+		p : byte
+	|
+		Primitive 565 (code :
+		{
+			invalid-handle code,
+			special-atom code,
+			I/O-error code
+		}ᵀ);
+		Raise an exception for code
+	] : fiber (adjustedCount, s's handle, success, bad, priority)
+] : fiber;
+
+/**
+ * @method 
+ *  "a fiber reading_byte|bytes from_,⁇\
+ *  \|on success doing_,⁇\
+ *  \|on failure doing_«⁇,forked at priority_»"
+ * @restricts "whole number's type"
+ * @restricts "client socket's type"
+ * @restricts "[]→⊤'s type"
+ * @restricts "[exception]→⊤'s type"
+ * @restricts "<byte…|0..1>'s type"
+ */
+Semantic restriction
+	"a fiber reading_byte|bytes from_,⁇\
+	\|on success doing_,⁇\
+	\|on failure doing_«⁇,forked at priority_»"
+is
+[
+	count : whole number's type,
+	s : client socket's type,
+	success : []→⊤'s type,
+	failure : [exception]→⊤'s type,
+	optionalPriority : <byte…|0..1>'s type
+|
+	fiber→(success's return type ∪ failure's return type)
+];
+
+/**
+ * Asynchronously write data to a {@type "client socket"}. If the operation is
+ * successful, then fork a new {@type "fiber"} to apply {@param "success"}. If
+ * the operation is unsuccessful, then fork a new fiber to apply {@param
+ * "failure"} to the error code that classifies the failure. Answer the new
+ * fiber.
+ *
+ * @method
+ *    "a fiber writing_to_,⁇\
+ *    \|on success doing_,⁇\
+ *    \|on failure doing_«⁇,forked at priority_»"
+ * @param "data "<byte…|>"
+ *        The bytes to write.
+ * @param "s" "client socket"
+ * @param "success" "[<byte…|>, boolean]→⊤"
+ *        The function to apply if the write completes successfully.
+ * @param "failure" "[exception]→⊤"
+ *        The function to apply to the {@type "exception"} that classifies the
+ *        failure of the asynchronous write operation.
+ * @param "optionalPriority" "<byte…|0..1>"
+ *        If specified, then the priority of the new fiber. If not specified,
+ *        then the new fiber will run at the same priority as the {@method
+ *        "current fiber"}.
+ * @returns "fiber"
+ *          The new fiber which may eventually apply either {@param "success"}
+ *          or {@param "failure"}.
+ */
+Public method
+	"a fiber writing_to_,⁇\
+	\|on success doing_,⁇\
+	\|on failure doing_«⁇,forked at priority_»"
+is
+[
+	data : <byte…|>,
+	s : client socket,
+	success : []→⊤,
+	failure : [exception]→⊤,
+	optionalPriority : <byte…|0..1>
+|
+	bad ::= [c : natural number | failure(an exception for c);];
+	priority ::= optionalPriority[1] else [current fiber's priority];
+	[
+		d : <byte…|>,
+		h : atom,
+		f1 : []→⊤,
+		f2 : [I/O-error code's type]→⊤,
+		p : byte
+	|
+		Primitive 566 (code :
+		{
+			invalid-handle code,
+			special-atom code,
+			I/O-error code
+		}ᵀ);
+		Raise an exception for code
+	] : fiber (data, s's handle, success, bad, priority)
+] : fiber;
+
+/**
+ * @method
+ *  "a fiber writing_to_,⁇\
+ *  \|on success doing_,⁇\
+ *  \|on failure doing_«⁇,forked at priority_»"
+ * @restricts "<byte…|>'s type"
+ * @restricts "client socket's type"
+ * @restricts "[]→⊤'s type"
+ * @restricts "[exception]→⊤'s type"
+ * @restricts "<byte…|0..1>'s type"
+ */
+Semantic restriction
+	"a fiber writing_to_,⁇\
+	\|on success doing_,⁇\
+	\|on failure doing_«⁇,forked at priority_»"
+is
+[
+	data : <byte…|>'s type,
+	s : client socket's type,
+	success : []→⊤'s type,
+	failure : [exception]→⊤'s type,
+	optionalPriority : <byte…|0..1>'s type
+|
+	fiber→(success's return type ∪ failure's return type)
+];
+
+/**
+ * Answer the local {@type "socket address"} to which the specified {@type
+ * "client socket"} is bound.
+ *
+ * @method "_'s⁇local address"
+ * @param "s" "client socket"
+ * @returns "socket address"
+ */
+Public method "_'s⁇local address" is
+[
+	s : client socket
+|
+	pair ::=
+		[
+			h : atom
+		|
+			Primitive 567 (code :
+			{
+				invalid-handle code,
+				special-atom code,
+				I/O-error code
+			}ᵀ);
+			Raise an exception for code
+		] : <<byte…|4..16>, [0..65535]…|2> (s's handle);
+	a socket address from pair[1] and pair[2]
+] : socket address;
+
+/**
+ * Answer the remote {@type "socket address"} to which the specified {@type
+ * "client socket"} is connected.
+ *
+ * @method "_'s⁇remote address"
+ * @param "s" "client socket"
+ * @returns "socket address"
+ */
+Public method "_'s⁇remote address" is
+[
+	s : client socket
+|
+	pair ::=
+		[
+			h : atom
+		|
+			Primitive 568 (code :
+			{
+				invalid-handle code,
+				special-atom code,
+				I/O-error code
+			}ᵀ);
+			Raise an exception for code
+		] : <<byte…|4..16>, [0..65535]…|2> (s's handle);
+	a socket address from pair[1] and pair[2]
+] : socket address;
+
+/**
+ * Close the specified {@type "client socket"}.
+ *
+ * @method "Close_"
+ * @param "s" "client socket"
+ * @returns "⊤"
+ */
+Method "Close_" is
+[
+	s : client socket
+|
+	[
+		h : atom
+	|
+		Primitive 569 (code :
+		{
+			invalid-handle code,
+			special-atom code,
+			I/O-error code
+		}ᵀ);
+		Raise an exception for code
+	] : ⊤ (s's handle);
+] : ⊤;

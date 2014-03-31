@@ -163,6 +163,8 @@ public final class ScannerTest
 			{
 				final A_Token token = TokenDescriptor.create(
 					StringDescriptor.from(string),
+					TupleDescriptor.empty(),
+					TupleDescriptor.empty(),
 					start,
 					1,
 					tokenType);
@@ -317,6 +319,8 @@ public final class ScannerTest
 				final A_Token token =
 					LiteralTokenDescriptor.create(
 						StringDescriptor.from(string),
+						TupleDescriptor.empty(),
+						TupleDescriptor.empty(),
 						start,
 						1,
 						LITERAL,
@@ -449,6 +453,8 @@ public final class ScannerTest
 					+ " end-of-file token.",
 					TokenDescriptor.create(
 						TupleDescriptor.empty(),
+						TupleDescriptor.empty(),
+						TupleDescriptor.empty(),
 						input.length(),
 						1,
 						END_OF_FILE),
@@ -495,24 +501,32 @@ public final class ScannerTest
 		final List<AvailObject> literals = new ArrayList<>(4);
 		literals.add(LiteralTokenDescriptor.create(
 			string,
+			TupleDescriptor.empty(),
+			TupleDescriptor.empty(),
 			0,
 			0,
 			LITERAL,
 			FloatDescriptor.fromFloat(1.5f)));
 		literals.add(LiteralTokenDescriptor.create(
 			string,
+			TupleDescriptor.empty(),
+			TupleDescriptor.empty(),
 			0,
 			0,
 			LITERAL,
 			FloatDescriptor.fromFloat(1.5f)));
 		literals.add(LiteralTokenDescriptor.create(
 			string,
+			TupleDescriptor.empty(),
+			TupleDescriptor.empty(),
 			0,
 			0,
 			LITERAL,
 			FloatDescriptor.fromFloat(2.5f)));
 		literals.add(LiteralTokenDescriptor.create(
 			string,
+			TupleDescriptor.empty(),
+			TupleDescriptor.empty(),
 			0,
 			0,
 			LITERAL,

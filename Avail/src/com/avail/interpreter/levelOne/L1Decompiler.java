@@ -148,6 +148,8 @@ public class L1Decompiler
 			final String argName = tempGenerator.value("arg");
 			final A_Token token = TokenDescriptor.create(
 				StringDescriptor.from(argName),
+				TupleDescriptor.empty(),
+				TupleDescriptor.empty(),
 				0,
 				0,
 				TokenType.KEYWORD);
@@ -161,6 +163,8 @@ public class L1Decompiler
 			final String localName = tempGenerator.value("local");
 			final A_Token token = TokenDescriptor.create(
 				StringDescriptor.from(localName),
+				TupleDescriptor.empty(),
+				TupleDescriptor.empty(),
 				0,
 				0,
 				TokenType.KEYWORD);
@@ -440,6 +444,8 @@ public class L1Decompiler
 								+ " (with value "
 								+ varObject.toString()
 								+ ")"),
+							TupleDescriptor.empty(),
+							TupleDescriptor.empty(),
 							0,
 							0,
 							TokenType.LITERAL,
@@ -473,6 +479,8 @@ public class L1Decompiler
 					final AvailObject token =
 						LiteralTokenDescriptor.create(
 							StringDescriptor.from(value.toString()),
+							TupleDescriptor.empty(),
+							TupleDescriptor.empty(),
 							0,
 							0,
 							TokenType.LITERAL,
@@ -617,6 +625,8 @@ public class L1Decompiler
 		{
 			final A_Token globalToken = TokenDescriptor.create(
 				StringDescriptor.from("SomeGlobal"),
+				TupleDescriptor.empty(),
+				TupleDescriptor.empty(),
 				0,
 				0,
 				TokenType.KEYWORD);
@@ -646,8 +656,9 @@ public class L1Decompiler
 			else
 			{
 				final A_Token labelToken = TokenDescriptor.create(
-					StringDescriptor.from(
-						tempGenerator.value("label")),
+					StringDescriptor.from(tempGenerator.value("label")),
+					TupleDescriptor.empty(),
+					TupleDescriptor.empty(),
 					0,
 					0,
 					TokenType.KEYWORD);
@@ -676,6 +687,8 @@ public class L1Decompiler
 		{
 			final A_Token globalToken = TokenDescriptor.create(
 				StringDescriptor.from("SomeGlobal"),
+				TupleDescriptor.empty(),
+				TupleDescriptor.empty(),
 				0,
 				0,
 				TokenType.KEYWORD);
@@ -760,6 +773,8 @@ public class L1Decompiler
 			final A_BasicObject outerObject = aFunction.outerVarAt(i);
 			final A_Token token = LiteralTokenDescriptor.create(
 				StringDescriptor.from("Outer#" + i),
+				TupleDescriptor.empty(),
+				TupleDescriptor.empty(),
 				0,
 				0,
 				TokenType.SYNTHETIC_LITERAL,

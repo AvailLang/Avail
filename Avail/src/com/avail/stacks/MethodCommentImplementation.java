@@ -123,21 +123,21 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		}
 
 		stringBuilder.append("<div class=\"SignatureDescription\">")
-			.append(description.toHTML()).append("</div>")
-			.append("<table><thead><tr><th class=\"Transparent\" scope=\"col\">"
-				+ "</th>");
+			.append(description.toHTML()).append("</div>\n")
+			.append("<table>\n<thead>\n<tr>\n<th class=\"Transparent\" "
+				+ "scope=\"col\"></th>\n");
 		if (paramCount > 0)
 		{
 			stringBuilder.append("<th class=\"IColLabelNarrow\" "
-				+ "scope=\"col\">Name</th>");
+				+ "scope=\"col\">Name</th>\n");
 			colSpan = 2;
 		}
 
 		stringBuilder
-			.append("<th class=\"IColLabelNarrow\" scope=\"col\">Type</th>"
-				+ "<th class=\"IColLabelWide\" scope=\"col\">Description</th>"
-				+ "</tr></thead><tbody><tr><th class=\"IRowLabel\" rowspan=\"")
-			.append(paramCount + 1).append("\">Parameters</th></tr>");
+			.append("<th class=\"IColLabelNarrow\" scope=\"col\">Type</th>\n"
+				+ "\n<th class=\"IColLabelWide\" scope=\"col\">Description</th>\n"
+				+ "</tr></thead>\n<tbody>\n<tr>\n<th class=\"IRowLabel\" rowspan=\"")
+			.append(paramCount + 1).append("\">Parameters</th>\n</tr>\n");
 
 		for (final StacksParameterTag paramTag : parameters)
 		{
@@ -145,13 +145,13 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		}
 
 		stringBuilder.append("<tr><th class=\"IRowLabel\" colspan=\"")
-			.append(colSpan).append("\">Returns</th>")
+			.append(colSpan).append("\">Returns</th>\n")
 			.append(returnsContent.toHTML());
 
 		if (exceptionCount > 0)
 		{
 			stringBuilder.append("<th class=\"IRowLabel\" colspan=\"")
-				.append(colSpan).append("\">Raises</th>");
+				.append(colSpan).append("\">Raises</th>\n");
 
 			for (final StacksRaisesTag exception : exceptions)
 			{
@@ -159,7 +159,7 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 			}
 		}
 
-		return stringBuilder.append("</table>").toString();
+		return stringBuilder.append("</table>\n").toString();
 	}
 
 	@Override

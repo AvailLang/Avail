@@ -1,0 +1,577 @@
+/*
+ * Types.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Types"
+Versions
+	"dev"
+Uses
+	"Foundation" = (-"causal exception", …)
+Names
+	/* Core types. */
+	"root unit test suite",
+	"unit test",
+	"unit test exclusion",
+	"unit test failure",
+	"unit test report",
+	"unit test result",
+	"unit test success",
+	"unit test suite",
+
+	/* Attributes. */
+	"body",
+	"causal exception",
+	"child suite IDs",
+	"expected exception type",
+	"metrics",
+	"parent suite ID",
+	"platform optionality",
+	"suite fixture setup",
+	"suite fixture tear down",
+	"suite ID",
+	"statistics",
+	"test fixture setup",
+	"test fixture tear down",
+	"test ID",
+	"unit tests",
+
+	/* Special identities. */
+	"root test suite ID",
+
+	/* Reporting. */
+	"_'s⁇metrics by module",
+	"short“_”",
+	"long“_”",
+
+	/* Exceptions. */
+	"expected-a-specific-exception exception",
+	"failed-test exception",
+	"no-such-test exception",
+	"no-such-test-suite exception",
+	"unit-test exception",
+	"test-already-exists exception",
+	"test-fixture-setup exception",
+	"test-fixture-tear-down exception",
+	"test-suite exception",
+	"test-suite-already-exists exception",
+
+	/* Attribute accessors. */
+	"_'s⁇body",
+	"_'s⁇causal exception",
+	"_'s⁇child suite IDs",
+	"_'s⁇child suite IDs::=_",
+	"_'s⁇expected exception type",
+	"_'s⁇metrics",
+	"_'s⁇parent suite ID",
+	"_'s⁇platform optionality",
+	"_'s⁇suite fixture setup",
+	"_'s⁇suite fixture setup::=_",
+	"_'s⁇suite fixture tear down",
+	"_'s⁇suite fixture tear down::=_",
+	"_'s⁇suite ID",
+	"_'s⁇statistics",
+	"_'s⁇test fixture setup",
+	"_'s⁇test fixture setup::=_",
+	"_'s⁇test fixture tear down",
+	"_'s⁇test fixture tear down::=_",
+	"_'s⁇test ID",
+	"_'s⁇unit tests",
+	"_'s⁇unit tests::=_"
+Body
+
+"test ID" is a new field atom;
+"body" is a new field atom;
+"platform optionality" is a new field atom;
+"expected exception type" is a new field atom;
+"metrics" is a new field atom;
+"statistics" is a new field atom;
+"suite ID" is a new field atom;
+"child suite IDs" is a new field atom;
+"parent suite ID" is a new field atom;
+"suite fixture setup" is a new field atom;
+"test fixture setup" is a new field atom;
+"suite fixture tear down" is a new field atom;
+"test fixture tear down" is a new field atom;
+"unit tests" is a new field atom;
+"root test suite ID" is a new field atom;
+
+/**
+ * A unit test comprises:
+ *
+ * <ul>
+ * <li>The name of the test. This is an atom. Atoms retain their provenance,
+ *     so this permits mention of the module that defined the test. It also
+ *     allows name collisions between modules.</li>
+ * <li>The test suite to which the test immediately belongs.</li>
+ * <li>The test function.</li>
+ * <li>A tuple containing an exception type that the test function must raise
+ *     when applied. If this tuple is empty, then the test must succeed.</li>
+ * </ul>
+ *
+ * @type "unit test"
+ */
+Public class "unit test" extends object
+	with fields
+		public test ID : atom,
+		public suite ID : atom,
+		public body : []→⊤,
+		public platform optionality : boolean,
+		public expected exception type : <exception's type…|0..1>;
+
+Method "“_”" is
+[
+	test : unit test
+|
+	format "unit test “①” (in test suite “②”)"
+	with test's test ID's name, test's suite ID's name
+];
+
+/**
+ * The root exception type for test-centric unit-testing framework exceptions.
+ * 
+ * @type "unit-test exception"
+ */
+Public explicit class "unit-test exception" extends exception
+	with fields
+		public test ID : atom;
+
+/**
+ * An exception that indicates that the specified test already exists (but an
+ * attempt was made to rebind the test identifier to another function).
+ *
+ * @type "test-already-exists exception"
+ * @supertype "unit-test exception"
+ */
+Public explicit class "test-already-exists exception"
+	extends unit-test exception ∩ element-access exception;
+
+/**
+ * An exception that indicates that the specified test does not exist.
+ * 
+ * @type "no-such-test exception"
+ * @supertype "unit-test exception"
+ * @supertype "element-access exception"
+ */
+Public explicit class "no-such-test exception"
+	extends unit-test exception ∩ element-access exception;
+
+/**
+ * An exception that indicates that the specified test failed.
+ * 
+ * @type "failed-test exception"
+ * @supertype "unit-test exception"
+ * @supertype "cascade exception"
+ */
+Public explicit class "failed-test exception"
+	extends cascade unit-test exception;
+
+/**
+ * An exception that indicates that the specified test was declared to raise a
+ * particular exception, but it either didn't raise an exception or raised an
+ * exception of the wrong type.
+ * 
+ * @type "expected-a-specific-exception exception"
+ * @supertype "unit-test exception"
+ */
+Public explicit class "expected-a-specific-exception exception"
+	extends unit-test exception
+	with fields
+		public expected exception type : exception's type;
+
+/**
+ * Answer a short description of the specified {@type "unit-test exception"}.
+ *
+ * @method "short“_”"
+ * @param "anException" "unit-test exception"
+ * @returns "string"
+ *          A short description of the argument.
+ */
+Public method "short“_”" is
+[
+	anException : unit-test exception
+|
+	name ::= “anException”;
+	description ::= 
+		cast anException
+		into
+		[
+			e : descriptive unit-test exception
+		|
+			" (" ++ e's error message ++ ")"
+		]
+		else [""];
+	cause ::=
+		cast anException
+		into
+		[
+			e : cascade unit-test exception
+		|
+			" [caused by: " ++ “e's causal exception” ++ "]"
+		]
+		else [""];
+	format
+		"‘name’‘description’‘cause’"
+	with
+		name ::= name,
+		description ::= description,
+		cause ::= cause
+];
+
+/**
+ * The root unit test suite has a reduced representation (compared to a declared
+ * unit test suite). It maintains only its test suite identifier and its child
+ * test suite identifiers. Note that these are the test suites created using
+ * {@method "_is a new test suite"}.
+ *
+ * @type "root unit test suite"
+ */
+Public class "root unit test suite" extends object
+	with fields
+		public suite ID : atom,
+		public reconstructible child suite IDs : <atom…|>,
+		public suite fixture setup : <[]→⊤…|>,
+		public suite fixture tear down : <[]→⊤…|>,
+		public test fixture setup : <[]→⊤…|>,
+		public test fixture tear down : <[]→⊤…|>,
+		public unit tests : <unit test…|>;
+
+/**
+ * A unit test suite comprises a set of unit tests that should be setup and
+ * run together. It maintains tuples of functions that setup and tear down
+ * per-suite and per-test test fixtures. Unit test suites are hierarchical; a
+ * test suite may contain multiple child test suites whose unit tests are
+ * treated as the parent's own when the parent is run.
+ *
+ * @type "unit test suite"
+ */
+Public class "unit test suite" extends root unit test suite
+	with fields
+		public parent suite ID : atom,
+		public reconstructible suite fixture setup : <[]→⊤…|>,
+		public reconstructible suite fixture tear down : <[]→⊤…|>,
+		public reconstructible test fixture setup : <[]→⊤…|>,
+		public reconstructible test fixture tear down : <[]→⊤…|>,
+		public reconstructible unit tests : <unit test…|>;
+
+Method "“_”" is
+[
+	suite : unit test suite
+|
+	format "test suite “①”" with suite's suite ID's name
+];
+
+/**
+ * The root exception type for suite-centric unit-testing framework exceptions.
+ *
+ * @type "test-suite exception"
+ */
+Public explicit class "test-suite exception" extends exception
+	with fields
+		public suite ID : atom;
+
+/**
+ * An exception that indicates that the specified test suite already exists (but
+ * an attempt was made to recreate the test suite).
+ *
+ * @type "test-suite-already-exists exception"
+ * @supertype "test-suite exception"
+ */
+Public explicit class "test-suite-already-exists exception"
+	extends test-suite exception ∩ element-access exception;
+
+/**
+ * An exception that indicates that the specified test suite does not exist.
+ *
+ * @type "no-such-test-suite exception"
+ * @supertype "test-suite exception"
+ */
+Public explicit class "no-such-test-suite exception"
+	extends test-suite exception ∩ element-access exception;
+
+/**
+ * An exception that indicates that a test fixture setup function failed.
+ *
+ * @type "test-fixture-setup exception"
+ * @supertype "test-suite exception"
+ * @supertype "cascade exception"
+ */
+Public explicit class "test-fixture-setup exception"
+	extends cascade test-suite exception;
+
+/**
+ * An exception that indicates that a test fixture tear-down function failed.
+ *
+ * @type "test-fixture-tear-down exception"
+ * @supertype "test-suite exception"
+ * @supertype "cascade exception"
+ */
+Public explicit class "test-fixture-tear-down exception"
+	extends cascade test-suite exception;
+
+/**
+ * Though a unit test result is specific to a single {@type "unit test"}, it is
+ * only produced when metrics are requested for an entire test suite.
+ *
+ * @type "unit test result"
+ */
+Public explicit class "unit test result" extends object
+	with fields
+		public test ID : atom;
+
+/**
+ * A unit test success indicates that the specified {@type "unit test"}
+ * succeeded.
+ *
+ * @type "unit test success"
+ * @supertype "unit test result"
+ */
+Public explicit class "unit test success" extends unit test result;
+
+"causal exception" is a new field atom;
+
+/**
+ * A unit test failure indicates that the specified {@type "unit test"} failed.
+ * It includes the {@type "unit-test exception" failure exception.
+ *
+ * @type "unit test failure"
+ * @supertype "unit test result"
+ * @field "causal exception" "unit-test exception"
+ */
+Public class "unit test failure" extends unit test result
+	with fields
+		causal exception : unit-test exception;
+
+/**
+ * A unit test result indicates that the specified {@type "unit test"} was
+ * excluded because it is not available on this platform.
+ *
+ * @type "unit test exclusion"
+ * @supertype "unit test result"
+ */
+Public explicit class "unit test exclusion" extends unit test result;
+
+Method "“_”" is
+[
+	result : unit test success
+|
+	format "PASSED: “①”" with result's test ID
+];
+
+Method "“_”" is
+[
+	result : unit test failure
+|
+	format "FAILED: “①” (raised: “②”)"
+		with result's test ID, result's causal exception
+];
+
+Method "“_”" is
+[
+	result : unit test exclusion
+|
+	format "SKIPPED: “①”" with result's test ID
+];
+
+/**
+ * Answer a short description of the specified {@type "unit test result"}. This
+ * description will not include the provenance of the {@method "_'s⁇test ID"
+ * test identifier}.
+ *
+ * @method "short“_”"
+ * @param "result" "unit test result"
+ * @returns "string"
+ *          A short description of the argument.
+ */
+Public abstract method "short“_”" is [unit test result]→string;
+
+Method "short“_”" is
+[
+	result : unit test success
+|
+	format "PASSED: “①”" with result's test ID's name
+];
+
+Method "short“_”" is
+[
+	result : unit test failure
+|
+	format "FAILED: “①” (raised: ‘②’)"
+		with result's test ID's name, short “result's causal exception”
+];
+
+Method "short“_”" is
+[
+	result : unit test exclusion
+|
+	format "SKIPPED: “①”" with result's test ID's name
+];
+
+/**
+ * Answer a detailed description of the specified {@type "unit test result"}.
+ *
+ * @method "long“_”"
+ * @param "result" "unit test result"
+ * @returns "string"
+ *          A detailed description of the argument.
+ */
+Public abstract method "long“_”" is [unit test result]→string;
+
+Method "long“_”" is
+[
+	result : unit test success
+|
+	“result”
+];
+
+Method "long“_”" is
+[
+	result : unit test failure
+|
+	name : string;
+	message : string;
+	trace : string;
+	Cast result's causal exception into
+	[
+		e : failed-test exception ∩ expected-a-specific-exception exception
+	|
+		cause ::= e's causal exception;
+		name := “cause's type's names” (as list partitioned by " ∩ ");
+		message :=
+			format ": expected ∈ “①”, actual=“②”"
+			with e's expected exception type, cause;
+		trace := ":\n" ++ “cause” (stack summary);
+	],
+	[
+		e : failed-test exception
+	|
+		cause ::= e's causal exception;
+		name := “cause's type's names” (as list partitioned by " ∩ ");
+		message :=
+			cast e's causal exception
+			into [t : descriptive exception | ": " ++ t's error message]
+			else [""];
+		trace :=
+			guard
+			[
+				dump ::= cause's stack summary;
+				base ::= first index of dump where
+					[
+						s : string
+					|
+						first index
+							of "[#1] of \"test metric for_\" []"
+							in s ≠ 0
+					];
+				": \n" ++ “cause”
+					(frames [base + 1..∞) of stack summary,
+					renumbered starting at 1,
+					cascaded)
+			]
+			intercept
+			[
+				unused : incorrect-argument-type exception
+			|
+				": [no stack trace]\n"
+			];
+	],
+	[
+		e : expected-a-specific-exception exception
+	|
+		name := “e's type's names” (as list partitioned by " ∩ ");
+		message :=
+			format ": expected ∈ “①” (no exception)"
+			with e's expected exception type;
+		trace := "\n";
+	];
+	testID ::= result's test ID;
+	format "FAILED: “①” (from ‘②’)\nraised: ‘③’‘④’‘⑤’" with
+		testID's name,
+		testID's issuing module's name,
+		name,
+		message,
+		trace
+];
+
+Method "long“_”" is
+[
+	result : unit test exclusion
+|
+	“result”
+];
+
+/**
+ * A unit test report contains a tuple of {@type "unit test result"}s and offers
+ * operations that provide statistical information.
+ * 
+ * @type "unit test report"
+ */
+Public class "unit test report" extends object
+	with fields
+		public metrics : <unit test result…|>;
+
+_passed ::= $passed;
+_failed ::= $failed;
+_skipped ::= $skipped;
+
+Method "“_”" is
+[
+	report : unit test report
+|
+	results ::= report's metrics;
+	description ::= left fold <""> ++ results through
+		[
+			result : unit test result,
+			partial : string
+		|
+			partial ++ “result” ++ "\n"
+		];
+	statistics ::= group results by
+		[
+			result : unit test result
+		|
+			cast result into
+				[t : unit test success | _passed],
+				[t : unit test failure | _failed],
+				[t : unit test exclusion | _skipped]
+		];
+	format
+		"‘results’\nSUMMARY:\n\
+		\|\tTOTAL:   “total”\n\
+		\|\tPASSED:  “passed”\n\
+		\|\tFAILED:  “failed”\n\
+		\|\tSKIPPED: “skipped”\n"
+	with
+		results ::= description,
+		total ::= |results|,
+		passed ::= |statistics[_passed] else [<>]|,
+		failed ::= |statistics[_failed] else [<>]|,
+		skipped ::= |statistics[_skipped] else [<>]|
+] : string;
