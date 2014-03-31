@@ -54,5 +54,5 @@ I/O test suite is a new test suite;
 
 Public method "test directory" is
 [
-	"avail/Avail.avail/IO.avail/Files.avail/test"
+	"distro/src/avail/Avail.avail/IO.avail/Files.avail/test"
 ];

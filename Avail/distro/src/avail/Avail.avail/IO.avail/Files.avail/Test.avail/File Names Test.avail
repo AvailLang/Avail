@@ -109,7 +109,7 @@ Test "current working directory" in file names test suite is
 	Require: ¬fn is absolute;
 	cwd ::= current working directory;
 	Require: cwd is absolute;
-	fn2 ::= cwd/"avail"/"Avail.avail"/"IO.avail"
+	fn2 ::= cwd/"distro"/"src"/"avail"/"Avail.avail"/"IO.avail"
 		/"Files.avail"/"test"/"abracadabra.txt";
 	Require: fn2 is absolute;
 	Require: fn names the same file as fn2;
