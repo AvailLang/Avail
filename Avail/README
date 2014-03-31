@@ -22,7 +22,8 @@ already have Git installed. The latest version of Git can be obtained at:
 Please follow any installation directions provided by the Git website or with
 the Git product.
 
-The main command is called "git". Please make sure that "git" is available on your path.
+The main command is called "git". Please make sure that "git" is available on
+your path.
 
 
 OBTAINING AVAIL ================================================================
