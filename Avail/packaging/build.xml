@@ -38,7 +38,8 @@ POSSIBILITY OF SUCH DAMAGE.
 	<property name="path.avail.resources" value="${path.avail}/resources"/>
 	<property name="path.avail.jar" value="${path.avail.distro}/lib"/>
 
-	<property name="path.jar.avail" value="${path.avail.jar}/Avail.jar"/>
+	<property name="jar.avail" value="Avail.jar"/>
+	<property name="path.jar.avail" value="${path.avail.jar}/${jar.avail}"/>
 	<property name="path.jar.dev" value="${path.avail.jar}/AvailDev.jar"/>
 
 	<property
@@ -186,7 +187,7 @@ POSSIBILITY OF SUCH DAMAGE.
 	-->
 	<target
 			name="avail-vm"
-			depends="build-all"
+			depends="build-sources"
 			description="Build the Avail virtual machine as a library.">
 		<jar jarfile="${path.jar.avail}">
 			<manifest>
