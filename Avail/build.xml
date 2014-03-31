@@ -299,6 +299,21 @@ following in the appropriate shell config file:
 
 	export AVAIL_HOME=${path.install}
 	export PATH=$PATH:${path.install.bin}
+
+Once your path has been updated, you can launch the Avail workbench
+like this:
+
+	avail-dev
+
+To develop Avail code, you will also need to set AVAIL_ROOTS to a
+valid module root path. If AVAIL_ROOTS is not set, then avail-dev
+temporarily sets it to:
+
+	avail=$HOME/.avail/repos/avail.repo,${path.install.bin}/src/avail;\
+	examples=$HOME/.avail/repos/examples.repo,${path.install.bin}/src/examples
+
+This is convenient for experimenting with Avail, but must be
+extended with custom module roots as you develop your own modules.
 ====================================================================
 		</echo>
 	</target>
