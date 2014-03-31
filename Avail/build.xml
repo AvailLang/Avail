@@ -30,7 +30,7 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 -->
-<project name="Avail" basedir=".." default="avail-dev">
+<project name="Avail" default="avail-dev">
 	<property name="path.avail" value="${basedir}" />
 	<property name="path.avail.src" value="${path.avail}/src"/>
 	<property name="path.avail.bin" value="${path.avail}/bin"/>
