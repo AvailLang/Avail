@@ -31,6 +31,8 @@
  */
 
 Module "RPN"
+Uses
+	"Avail"
 Extends
 	"Avail" =
 	(
@@ -41,8 +43,6 @@ Extends
 		"_÷_" → "__÷",
 		"_÷_" → "__/"
 	)
-Uses
-	"Avail"
 Entries
 	"RPN_"
 Body

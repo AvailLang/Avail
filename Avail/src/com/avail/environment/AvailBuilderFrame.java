@@ -1359,6 +1359,12 @@ extends JFrame
 	 */
 	@InnerAccess final JTextPane transcript;
 
+	/**
+	 * The {@linkplain JLabel label} that describes the current function of the
+	 * {@linkplain #inputField input field}.
+	 */
+	@InnerAccess final JLabel inputLabel;
+
 	/** The {@linkplain JTextField text field} that accepts standard input. */
 	@InnerAccess final JTextField inputField;
 
@@ -1455,6 +1461,9 @@ extends JFrame
 		documentAction.setEnabled(!busy);
 		insertEntryPointAction.setEnabled(
 			!busy && selectedEntryPoint() != null);
+		inputLabel.setText(isRunning
+			? "Console Input:"
+			: "Command:");
 		inputField.setBackground(isRunning
 			? new Color(192, 255, 192)
 			: null);
@@ -2462,7 +2471,7 @@ extends JFrame
 		transcriptScrollArea.setViewportView(transcript);
 
 		// Create the input area.
-		final JLabel inputLabel = new JLabel("Console Input:");
+		inputLabel = new JLabel("Command:");
 		inputField = new JTextField();
 		inputField.setToolTipText(
 			"Enter commands and interact with Avail programs.  Press "
