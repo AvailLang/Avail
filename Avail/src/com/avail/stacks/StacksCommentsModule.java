@@ -49,6 +49,7 @@ import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.SetDescriptor;
 import com.avail.descriptor.StringDescriptor;
+import com.avail.utility.Pair;
 
 /**
  * A representation of all the fully parsed {@linkplain CommentTokenDescriptor
@@ -129,6 +130,12 @@ public class StacksCommentsModule
 	{
 		return methodLeafNameToModuleName;
 	}
+
+	/**
+	 * Links the name to the appropriate file name.
+	 */
+	final HashMap<A_String,Integer> nameToFileName =
+		new HashMap<A_String,Integer>();
 
 	/**
 	 * Add an implementation to an {@linkplain ImplementationGroup} of the
@@ -392,21 +399,59 @@ public class StacksCommentsModule
 		final HashMap<String,ImplementationGroup> newMap =
 			new HashMap<String,ImplementationGroup>();
 
+		final HashMap<String,String> nameToLinkMap =
+			new HashMap<String,String>();
+
 		for (final StacksExtendsModule extendsModule :
 			extendedNamesImplementations.values())
 		{
-			newMap.putAll(extendsModule.flattenImplementationGroups());
+			final Pair<HashMap<String,ImplementationGroup>,
+				HashMap<String,String>> pair =
+					extendsModule.flattenImplementationGroups();
+			newMap.putAll(pair.first());
+			nameToLinkMap.putAll(pair.second());
 		}
+
+		final HashMap<A_String,Integer> newHashNameMap =
+			new HashMap<A_String,Integer>();
+
 		for (final A_String key : namedPublicCommentImplementations.keySet())
 		{
+			A_String nameToBeHashed = key;
+			if (newHashNameMap.containsKey(key))
+			{
+				newHashNameMap.put(key, newHashNameMap.get(key) + 1);
+				nameToBeHashed =
+					StringDescriptor.from(key.asNativeString()
+						+ newHashNameMap.get(key));
+			}
+			else
+			{
+				newHashNameMap.put(nameToBeHashed, 0);
+			}
+			final String qualifiedName = moduleName + "/"
+				+ String.valueOf(nameToBeHashed.hash()) + ".html";
+
 			final String qualifiedMethodName = moduleName + "/"
 				+ key.asNativeString();
 			newMap.put(qualifiedMethodName,
 				namedPublicCommentImplementations.get(key));
+			nameToLinkMap.put(key.asNativeString(), qualifiedName);
 		}
 
-		finalImplementationsGroupMap = newMap;
-		return newMap.size();
+		final HashMap<String,ImplementationGroup> filteredMap =
+			new HashMap<String,ImplementationGroup>();
+
+		for (final String key : newMap.keySet())
+		{
+			if (newMap.get(key).isPopulated())
+			{
+				filteredMap.put(key, newMap.get(key));
+			}
+		}
+
+		finalImplementationsGroupMap = filteredMap;
+		return finalImplementationsGroupMap.size();
 	}
 
 	/**
@@ -425,8 +470,8 @@ public class StacksCommentsModule
 		final StacksSynchronizer synchronizer, final AvailRuntime runtime)
 	{
 
-		final String htmlOpenContent = "<!DOCTYPE html><head><link "
-			+ "href=\"doclib.css\" rel=\"stylesheet\" />"
+		final String htmlOpenContent = "<!DOCTYPE html><head><link href=\""
+			+ outputPath.toString() + "/doclib.css\" rel=\"stylesheet\" />"
 			+ "<meta charset=\"UTF-8\"></head><body>";
 
 		final String htmlCloseContent = "</body></html>";

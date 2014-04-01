@@ -341,10 +341,12 @@ public class ImplementationGroup
 		else if (!(global == null))
 		{
 			stringBuilder.append(global().toHTML());
+			final int leafFileNameStart = qualifiedMethodName.lastIndexOf('/') + 1;
 			final String localPath = qualifiedMethodName
-				.substring(1, qualifiedMethodName.lastIndexOf('/') + 1);
+				.substring(1, leafFileNameStart);
 
-			final String hashedFileName = String.valueOf(name.hash()) + ".html";
+			final String hashedFileName =
+				qualifiedMethodName.substring(leafFileNameStart);
 
 			final StacksOutputFile htmlFile = new StacksOutputFile(
 				outputPath.resolve(localPath), synchronizer, hashedFileName,
@@ -367,6 +369,17 @@ public class ImplementationGroup
 
 			htmlFile.write(stringBuilder.append(htmlCloseContent).toString());
 		}
+	}
+
+	/**
+	 * Determine if the implementation is populated.
+	 * @return
+	 */
+	public boolean isPopulated()
+	{
+		return (!methods.isEmpty() ||
+			!(global == null) ||
+			!(classImplementation == null));
 	}
 
 }
