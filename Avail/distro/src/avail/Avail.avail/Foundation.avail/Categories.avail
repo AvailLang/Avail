@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Categories"
+Module "Categories"
 Versions
 "dev"
 Body
@@ -179,6 +179,7 @@ Body
 
 /**
  * @category "POJO" Plain old Java objects. interaction with the Java programming language and libraries.
+ */ 
 
 /**
  * @category "Primitives" A primitive is provided by the Avail virtual machine, not the Avail standard library. Applies to any method implementation that has a Primitive statement as the first line following the (optional) argument section. Also applies to any special object.
