@@ -15,7 +15,18 @@ installed the prerequisite software:
 1) Git: This is the version control software used by the Avail team to develop
 and deliver Avail. The Avail team can say with certainty that version 1.7.10.2
 will work, but you will probably want to go with something later unless you
-already have Git installed. The latest version of Git can be obtained at:
+already have Git installed.
+
+To see if you have Git installed, try this:
+
+	$ git version
+
+If Git is installed and available on your path, then it will respond with a
+version string like:
+
+	git version 1.7.10.2 (Apple Git-33)
+
+The latest version of Git can be obtained at:
 
 	http://git-scm.com/
 
@@ -79,8 +90,16 @@ on your path.
 2) Apache Ant: This is the build software used to compile and install Avail. You
 will need version 1.8.2 or later. Most modern Unix systems already have some
 version of Ant installed, but, if you are a Windows user, then you will
-definitely need to download it yourself. If you want to grab a recent binary
-distribution of Ant, then go here:
+definitely need to download it yourself if you have not previously done so. You
+can check to see if ant is installed and has the correct version like this:
+
+	$ ant -version
+
+And maybe get back something like this:
+
+	Apache Ant(TM) version 1.8.2 compiled on October 14 2011
+
+If you want to download a recent binary distribution of Ant, then go here:
 
 	https://ant.apache.org/bindownload.cgi
 
@@ -304,8 +323,13 @@ the Avail project directory from Git every once in a while:
 	$ cd $PROJ
 	$ git pull
 
-Then follow the instructions starting with the BUILDING section of this
-document.
+Then build and install:
+
+	$ ant
+	$ ant install
+
+For more elaborate instructions, please refer back to the BUILDING and
+INSTALLATION sections of this document.
 
 Be sure to visit the official Avail website frequently for updates and news:
 

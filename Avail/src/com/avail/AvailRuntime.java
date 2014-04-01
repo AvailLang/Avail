@@ -79,6 +79,46 @@ import com.avail.utility.evaluation.*;
  */
 public final class AvailRuntime
 {
+	/** The build version, set by the build process. */
+	private static final String buildVersion;
+
+	/*
+	 * Initialize the build version from a resource bundled with the
+	 * distribution JAR.
+	 */
+	static
+	{
+		String version = "dev";
+		try (
+			final InputStream resourceStream =
+				ClassLoader.getSystemResourceAsStream(
+					"resources/build.time.txt"))
+		{
+			if (resourceStream != null)
+			{
+				final Scanner scanner = new Scanner(resourceStream);
+				version = scanner.nextLine();
+				scanner.close();
+			}
+		}
+		catch (final IOException e)
+		{
+			version = "UNKNOWN";
+		}
+		buildVersion = version;
+	}
+
+	/**
+	 * Answer the build version, as set by the build process.
+	 *
+	 * @return The build version, or {@code "dev"} if Avail is not running from
+	 *         a distribution JAR.
+	 */
+	public static final String buildVersion ()
+	{
+		return buildVersion;
+	}
+
 	/**
 	 * The active versions of the Avail virtual machine. These are the versions
 	 * for which the virtual machine guarantees compatibility.

@@ -113,16 +113,7 @@ extends JFrame
 			moduleProgress.setValue(0);
 			buildProgress.setValue(0);
 			inputField.requestFocusInWindow();
-			final StyledDocument doc = transcript.getStyledDocument();
-			try
-			{
-				doc.remove(0, doc.getLength());
-			}
-			catch (final BadLocationException e)
-			{
-				// Shouldn't happen.
-				assert false;
-			}
+			clearTranscript();
 
 			// Clear the build input stream.
 			inputStream().clear();
@@ -167,16 +158,7 @@ extends JFrame
 			setEnablements();
 			moduleProgress.setValue(0);
 			buildProgress.setValue(0);
-			final StyledDocument doc = transcript.getStyledDocument();
-			try
-			{
-				doc.remove(0, doc.getLength());
-			}
-			catch (final BadLocationException e)
-			{
-				// Shouldn't happen.
-				assert false;
-			}
+			clearTranscript();
 
 			// Generate documentation for the target module in a Swing worker
 			// thread.
@@ -331,6 +313,30 @@ extends JFrame
 	}
 
 	/**
+	 * A {@code ClearTranscriptAction} clears the {@linkplain #transcript}.
+	 */
+	private final class ClearTranscriptAction
+	extends AbstractAction
+	{
+		@Override
+		public void actionPerformed (@Nullable final ActionEvent e)
+		{
+			clearTranscript();
+		}
+
+		/**
+		 * Construct a new {@link ClearTranscriptAction}.
+		 */
+		public ClearTranscriptAction ()
+		{
+			super("Clear transcript");
+			putValue(
+				SHORT_DESCRIPTION,
+				"Clear the transcript.");
+		}
+	}
+
+	/**
 	 * A {@code SetDocumentationPathAction} displays a {@linkplain
 	 * JOptionPane modal dialog} that prompts the user for the Stacks
 	 * documentation path.
@@ -462,16 +468,7 @@ extends JFrame
 					moduleProgress.setValue(0);
 					buildProgress.setValue(0);
 					inputField.requestFocusInWindow();
-					final StyledDocument doc = transcript.getStyledDocument();
-					try
-					{
-						doc.remove(0, doc.getLength());
-					}
-					catch (final BadLocationException e)
-					{
-						// Shouldn't happen.
-						assert false;
-					}
+					clearTranscript();
 
 					// Clear the build input stream.
 					inputStream().clear();
@@ -1362,6 +1359,12 @@ extends JFrame
 	 */
 	@InnerAccess final JTextPane transcript;
 
+	/**
+	 * The {@linkplain JLabel label} that describes the current function of the
+	 * {@linkplain #inputField input field}.
+	 */
+	@InnerAccess final JLabel inputLabel;
+
 	/** The {@linkplain JTextField text field} that accepts standard input. */
 	@InnerAccess final JTextField inputField;
 
@@ -1425,6 +1428,9 @@ extends JFrame
 	/** The {@linkplain ClearReportAction clear report action}. */
 	@InnerAccess final ClearReportAction clearReportAction;
 
+	/** The {@linkplain ClearTranscriptAction clear transcript action}. */
+	@InnerAccess final ClearTranscriptAction clearTranscriptAction;
+
 	/** The {@linkplain InsertEntryPointAction insert entry point action}. */
 	@InnerAccess final InsertEntryPointAction insertEntryPointAction;
 
@@ -1437,7 +1443,7 @@ extends JFrame
 	/**
 	 * Enable or disable controls and menu items based on the current state.
 	 */
-	public void setEnablements ()
+	@InnerAccess void setEnablements ()
 	{
 		final boolean busy = buildTask != null
 			|| documentationTask != null
@@ -1455,9 +1461,29 @@ extends JFrame
 		documentAction.setEnabled(!busy);
 		insertEntryPointAction.setEnabled(
 			!busy && selectedEntryPoint() != null);
+		inputLabel.setText(isRunning
+			? "Console Input:"
+			: "Command:");
 		inputField.setBackground(isRunning
 			? new Color(192, 255, 192)
 			: null);
+	}
+
+	/**
+	 * Clear the {@linkplain #transcript transcript}.
+	 */
+	@InnerAccess void clearTranscript ()
+	{
+		final StyledDocument doc = transcript.getStyledDocument();
+		try
+		{
+			doc.remove(0, doc.getLength());
+		}
+		catch (final BadLocationException e)
+		{
+			// Shouldn't happen.
+			assert false;
+		}
 	}
 
 	/**
@@ -2229,6 +2255,8 @@ extends JFrame
 		refreshAction = new RefreshAction();
 		reportAction = new ReportAction();
 		reportAction.setEnabled(true);
+		clearTranscriptAction = new ClearTranscriptAction();
+		clearTranscriptAction.setEnabled(true);
 		clearReportAction = new ClearReportAction();
 		clearReportAction.setEnabled(true);
 		insertEntryPointAction = new InsertEntryPointAction();
@@ -2241,9 +2269,6 @@ extends JFrame
 		buildMenu.add(new JMenuItem(cleanAction));
 		buildMenu.addSeparator();
 		buildMenu.add(new JMenuItem(refreshAction));
-		buildMenu.addSeparator();
-		buildMenu.add(new JMenuItem(reportAction));
-		buildMenu.add(new JMenuItem(clearReportAction));
 		menuBar.add(buildMenu);
 		final JMenu documentationMenu = new JMenu("Document");
 		documentationMenu.add(new JMenuItem(documentAction));
@@ -2252,6 +2277,11 @@ extends JFrame
 		menuBar.add(documentationMenu);
 		final JMenu runMenu = new JMenu("Run");
 		runMenu.add(new JMenuItem(insertEntryPointAction));
+		runMenu.addSeparator();
+		runMenu.add(new JMenuItem(clearTranscriptAction));
+		runMenu.addSeparator();
+		runMenu.add(new JMenuItem(reportAction));
+		runMenu.add(new JMenuItem(clearReportAction));
 		menuBar.add(runMenu);
 		setJMenuBar(menuBar);
 
@@ -2270,6 +2300,9 @@ extends JFrame
 		final JPopupMenu entryPointsPopup = new JPopupMenu("Entry points");
 		entryPointsPopup.add(new JMenuItem(refreshAction));
 		entryPointsPopup.add(new JMenuItem(insertEntryPointAction));
+
+		final JPopupMenu transcriptPopup = new JPopupMenu("Transcript");
+		transcriptPopup.add(new JMenuItem(clearTranscriptAction));
 
 		// Collect the modules and entry points.
 		final TreeNode modules = newModuleTree();
@@ -2419,7 +2452,6 @@ extends JFrame
 
 		// Create the transcript.
 		final JLabel outputLabel = new JLabel("Build Transcript:");
-
 		final JScrollPane transcriptScrollArea = new JScrollPane();
 		transcriptScrollArea.setHorizontalScrollBarPolicy(
 			HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -2430,6 +2462,7 @@ extends JFrame
 		// And reset the weights...
 		transcript = new JTextPane();
 		transcript.setBorder(BorderFactory.createEtchedBorder());
+		transcript.setComponentPopupMenu(transcriptPopup);
 		transcript.setEditable(false);
 		transcript.setEnabled(true);
 		transcript.setFocusable(true);
@@ -2438,7 +2471,7 @@ extends JFrame
 		transcriptScrollArea.setViewportView(transcript);
 
 		// Create the input area.
-		final JLabel inputLabel = new JLabel("Console Input:");
+		inputLabel = new JLabel("Command:");
 		inputField = new JTextField();
 		inputField.setToolTipText(
 			"Enter commands and interact with Avail programs.  Press "
