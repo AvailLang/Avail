@@ -36,207 +36,252 @@ Versions
 Body
 
 /**
- * @category "Assertions" An assertion is a sincere, executable comment that 
+ * An assertion is a sincere, executable comment that 
  * documents a program precondition, postcondition, invariant, or other 
  * behavioral assumption. Probably only appropriate for program elements in 
  * /avail/Avail/Foundation/Assertions.
+ * @category "Assertions"
  */
 
 /**
- * @category "Asynchronous I/O" I/O operations that do not block the calling 
- * fiber.
+ * I/O operations that do not block the calling fiber.
+ * @category "Asynchronous I/O"
  */
 
 /**
- * @category "Atoms" An atom is a discrete unit of identity, and may have 
- * mutable, potentially fiber-heritable properties.
+ * An atom is a discrete unit of identity, and may have mutable, potentially fiber-heritable properties.
+ * @category "Atoms" 
  */
 
 /**
- * @category "Backtracking" Computational backtracking. Probably only 
- * appropriate for program elements in /avail/Avail/Foundation/Backtracking.
+ * Computational backtracking. Probably only appropriate for program elements in /avail/Avail/Foundation/Backtracking.
+ * @category "Backtracking" 
  */
 
 /**
- * @category "Bootstrap" Bootstrap functionality. This category should not appear on the website.
+ * Bootstrap functionality. This category should not appear on the website.
+ * @category "Bootstrap"
  */
 
 /**
- * @category "Casts" Dynamic type strengthening.
+ * Dynamic type strengthening.
+ * @category "Casts"
  */
 
 /**
- * @category "Collections" Abstract (i.e., type neutral) aggregate data management.
+ * Abstract (i.e., type neutral) aggregate data management.
+ * @category "Collections"
  */
 
 /**
- * @category "Concurrency" Access to the current fiber, Inter-fiber communication, concurrent control structures, and synchronization devices.
+ * Access to the current fiber, Inter-fiber communication, concurrent control structures, and synchronization devices.
+ * @category "Concurrency"
  */
 
 /**
- * @category "Conditionals" Conditional control structures.
+ * Conditional control structures.
+ * @category "Conditionals"
  */
 
 /**
- * @category "Constructors" Producing a value from one or more values that specify the (immutable) composition or (mutable) state of the result.
+ * Producing a value from one or more values that specify the (immutable) composition or (mutable) state of the result.
+ * @category "Constructors"
  */
 
 /**
- * @category "Continuations" Methods focused on continuations and labels.
+ * Methods focused on continuations and labels.
+ * @category "Continuations"
  */
 
 /**
- * @category "Control Structures" Conditionals, loops, early exits, and other serial constructs that influence a fiber's flow of control.
+ * Conditionals, loops, early exits, and other serial constructs that influence a fiber's flow of control.
+ * @category "Control Structures"
  */
 
 /**
- * @category "Conversions" Converting between similar values of different kinds.
+ * Converting between similar values of different kinds.
+ * @category "Conversions"
+ */
+
+/**Data structures and abstractions.
+ * @category "Data Abstractions"
+ */
+
+/**A declaration causes a program element to become available under a given name.
+ * @category "Declarations"
  */
 
 /**
- * @category "Data Abstractions" Data structures and abstractions.
+ * Dimensions and units, dimensioned quantities, etc.
+ * @category "Dimensional Analysis"
  */
 
 /**
- * @category "Declarations" A declaration causes a program element to become available under a given name.
+ * Methods focused on enumerations and instance types.
+ * @category "Enumerations"
  */
 
 /**
- * @category "Dimensional Analysis" Dimensions and units, dimensioned quantities, etc.
+ * Raising and handling exceptions.
+ * @category "Exception Handling"
  */
 
 /**
- * @category "Enumerations" Methods focused on enumerations and instance types.
+ * Named failure conditions that participate in nonlocal recovery and propagation.
+ * @category "Exceptions"
  */
 
 /**
- * @category "Exception Handling" Raising and handling exceptions.
+ * Interacting with file systems, files, file principals, etc.
+ * @category "File Systems"
  */
 
 /**
- * @category "Exceptions" Named failure conditions that participate in nonlocal recovery and propagation.
+ * Application and partial application of functions.
+ * @category "Function Application"
  */
 
 /**
- * @category "File Systems" Interacting with file systems, files, file principals, etc.
+ * Methods focused on function implementations. Subtypes of function implementation.
+ * @category "Function Implementations"
  */
 
 /**
- * @category "Function Application" Application and partial application of functions.
+ * A future is a proxy for an operation that may not have completed yet.
+ * @category "Futures"
  */
 
 /**
- * @category "Function Implementations" Methods focused on function implementations. Subtypes of function implementation.
+ * Methods focused on extended integers and integers. Subtypes of extended integer.
+ * @category "Integers"
  */
 
 /**
- * @category "Futures" A future is a proxy for an operation that may not have completed yet.
+ * Logical operators.
+ * @category "Logic"
  */
 
 /**
- * @category "Integers" Methods focused on extended integers and integers. Subtypes of extended integer.
+ * Loop control structures.
+ * @category "Loops"
  */
 
 /**
- * @category "Logic" Logical operators.
+ * Methods focused on maps. Subtypes of map.
+ * @category "Maps"
  */
 
 /**
- * @category "Loops" Loop control structures.
+ * Numeric constants and arithmetic operations.
+ * @category "Mathematics"
  */
 
 /**
- * @category "Maps" Methods focused on maps. Subtypes of map.
+ * Methods focused on methods.
+ * @category "Methods"
  */
 
 /**
- * @category "Mathematics" Numeric constants and arithmetic operations.
+ * Sockets, IP addresses, network protocols, etc.
+ * @category "Networking"
  */
 
 /**
- * @category "Methods" Methods focused on methods.
+ * Methods focused on numbers. Subtypes of number.
+ * @category "Numbers"
  */
 
 /**
- * @category "Networking" Sockets, IP addresses, network protocols, etc.
+ * Methods focused on objects. Subtypes of object.
+ * @category "Objects"
  */
 
 /**
- * @category "Numbers" Methods focused on numbers. Subtypes of number.
+ * Automatic observing of assignments to variables within transactional boundaries.
+ * @category "Observing"
  */
 
 /**
- * @category "Objects" Methods focused on objects. Subtypes of object.
+ * Methods focused on phrases. Subtypes of phrase.
+ * @category "Phrases"
  */
 
 /**
- * @category "Observing" Automatic observing of assignments to variables within transactional boundaries.
- */
-
-/**
- * @category "Phrases" Methods focused on phrases. Subtypes of phrase.
- */
-
-/**
- * @category "POJO" Plain old Java objects. interaction with the Java programming language and libraries.
+ * Plain old Java objects. interaction with the Java programming language and libraries.
+ * @category "POJO"
  */ 
 
 /**
- * @category "Primitives" A primitive is provided by the Avail virtual machine, not the Avail standard library. Applies to any method implementation that has a Primitive statement as the first line following the (optional) argument section. Also applies to any special object.
+ * A primitive is provided by the Avail virtual machine, not the Avail standard library. Applies to any method implementation that has a Primitive statement as the first line following the (optional) argument section. Also applies to any special object.
+ * @category "Primitives"
  */
 
 /**
- * @category "Queries" Interrogating the state of a value.
+ * Interrogating the state of a value.
+ * @category "Queries"
  */
 
 /**
- * @category "Relations" Relational operators.
+ * Relational operators.
+ * @category "Relations"
  */
 
 /**
- * @category "Sets" Methods focused on sets. Subtypes of set.
+ * Methods focused on sets. Subtypes of set.
+ * @category "Sets"
  */
 
 /**
- * @category "Standard I/O" Interacting with the virtual machine's standard input, output, and error streams.
+ * Interacting with the virtual machine's standard input, output, and error streams.
+ * @category "Standard I/O"
  */
 
 /**
- * @category "Stringification" Generating printable representations of values.
+ * Generating printable representations of values.
+ * @category "Stringification"
  */
 
 /**
- * @category "Strings" Methods focused on strings. Subtypes of string.
+ * Methods focused on strings. Subtypes of string.
+ * @category "Strings"
  */
 
 /**
- * @category "Synchronization" Synchronization devices.
+ * Synchronization devices.
+ * @category "Synchronization"
  */
 
 /**
- * @category "Synchronous I/O" I/O operations that block the calling fiber.
+ * I/O operations that block the calling fiber.
+ * @category "Synchronous I/O"
  */
 
 /**
- * @category "Transformers" Deriving a value from a similar value and one or more other values. This is essentially the functional equivalent of a mutator (setter).
+ * Deriving a value from a similar value and one or more other values. This is essentially the functional equivalent of a mutator (setter).
+ * @category "Transformers"
  */
 
 /**
- * @category "Tuples" Methods focused on tuples. Subtypes of tuple.
+ * Methods focused on tuples. Subtypes of tuple.
+ * @category "Tuples"
  */
 
 /**
- * @category "Types" Methods focused on types. Types and metatypes.
+ * Methods focused on types. Types and metatypes.
+ * @category "Types"
  */
 
 /**
- * @category "Unicode" Unicode support, character classification, conversion between characters and code points, etc.
+ * Unicode support, character classification, conversion between characters and code points, etc.
+ * @category "Unicode"
  */
 
 /**
- * @category "Unit Testing" Declaration of test suites and test cases. Tools for writing test cases. Running test suites.
+ * Declaration of test suites and test cases. Tools for writing test cases. Running test suites.
+ * @category "Unit Testing"
  */
 
 /**
- * @category "Variables" Methods focused on variables. Subtypes of variable.
+ * Methods focused on variables. Subtypes of variable.
+ * @category "Variables"
  */
