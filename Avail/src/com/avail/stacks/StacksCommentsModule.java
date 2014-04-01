@@ -470,11 +470,22 @@ public class StacksCommentsModule
 		final StacksSynchronizer synchronizer, final AvailRuntime runtime)
 	{
 
-		final String htmlOpenContent = "<!DOCTYPE html><head><link href=\""
-			+ outputPath.toString() + "/doclib.css\" rel=\"stylesheet\" />"
-			+ "<meta charset=\"UTF-8\"></head><body>";
+		final String htmlOpenContent = "<!doctype html>\n<!--[if lt IE 7]> "
+			+ "<html class=\"ie6 oldie\">"
+			+ "<![endif]-->\n<!--[if IE 7]>\n<html class=\"ie7 oldie\">"
+			+ "<![endif]-->\n<!--[if IE 8]>\n<html class=\"ie8 oldie\">"
+			+ "<![endif]-->\n<!--[if gt IE 8]><!-->\n<html class=\"\">"
+			+ "<!--<![endif]-->\n\t<head>\n"
+			+ "<!--#include virtual=\"/_include/head.ssi\" -->\n"
+			+ "<title>Avail - Library</title>\n\t</head>\n\t"
+			+ "<body class=\"gradient-logo\">\n"
+			+ "<!--#include virtual=\"/_include/body-top.ssi\" -->";
 
-		final String htmlCloseContent = "</body></html>";
+
+		final String htmlCloseContent =
+			"<!--#include virtual=\"/_include/body-bottom.ssi\" -->\n\t"
+			+ "</body>\n</html>";
+
 
 		for (final String implementationName :
 			finalImplementationsGroupMap.keySet())

@@ -1,0 +1,241 @@
+/*
+ * Categories.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Categories"
+Versions
+"dev"
+Body
+
+/**
+ * @category "Assertions" An assertion is a sincere, executable comment that 
+ * documents a program precondition, postcondition, invariant, or other 
+ * behavioral assumption. Probably only appropriate for program elements in 
+ * /avail/Avail/Foundation/Assertions.
+ */
+
+/**
+ * @category "Asynchronous I/O" I/O operations that do not block the calling 
+ * fiber.
+ */
+
+/**
+ * @category "Atoms" An atom is a discrete unit of identity, and may have 
+ * mutable, potentially fiber-heritable properties.
+ */
+
+/**
+ * @category "Backtracking" Computational backtracking. Probably only 
+ * appropriate for program elements in /avail/Avail/Foundation/Backtracking.
+ */
+
+/**
+ * @category "Bootstrap" Bootstrap functionality. This category should not appear on the website.
+ */
+
+/**
+ * @category "Casts" Dynamic type strengthening.
+ */
+
+/**
+ * @category "Collections" Abstract (i.e., type neutral) aggregate data management.
+ */
+
+/**
+ * @category "Concurrency" Access to the current fiber, Inter-fiber communication, concurrent control structures, and synchronization devices.
+ */
+
+/**
+ * @category "Conditionals" Conditional control structures.
+ */
+
+/**
+ * @category "Constructors" Producing a value from one or more values that specify the (immutable) composition or (mutable) state of the result.
+ */
+
+/**
+ * @category "Continuations" Methods focused on continuations and labels.
+ */
+
+/**
+ * @category "Control Structures" Conditionals, loops, early exits, and other serial constructs that influence a fiber's flow of control.
+ */
+
+/**
+ * @category "Conversions" Converting between similar values of different kinds.
+ */
+
+/**
+ * @category "Data Abstractions" Data structures and abstractions.
+ */
+
+/**
+ * @category "Declarations" A declaration causes a program element to become available under a given name.
+ */
+
+/**
+ * @category "Dimensional Analysis" Dimensions and units, dimensioned quantities, etc.
+ */
+
+/**
+ * @category "Enumerations" Methods focused on enumerations and instance types.
+ */
+
+/**
+ * @category "Exception Handling" Raising and handling exceptions.
+ */
+
+/**
+ * @category "Exceptions" Named failure conditions that participate in nonlocal recovery and propagation.
+ */
+
+/**
+ * @category "File Systems" Interacting with file systems, files, file principals, etc.
+ */
+
+/**
+ * @category "Function Application" Application and partial application of functions.
+ */
+
+/**
+ * @category "Function Implementations" Methods focused on function implementations. Subtypes of function implementation.
+ */
+
+/**
+ * @category "Futures" A future is a proxy for an operation that may not have completed yet.
+ */
+
+/**
+ * @category "Integers" Methods focused on extended integers and integers. Subtypes of extended integer.
+ */
+
+/**
+ * @category "Logic" Logical operators.
+ */
+
+/**
+ * @category "Loops" Loop control structures.
+ */
+
+/**
+ * @category "Maps" Methods focused on maps. Subtypes of map.
+ */
+
+/**
+ * @category "Mathematics" Numeric constants and arithmetic operations.
+ */
+
+/**
+ * @category "Methods" Methods focused on methods.
+ */
+
+/**
+ * @category "Networking" Sockets, IP addresses, network protocols, etc.
+ */
+
+/**
+ * @category "Numbers" Methods focused on numbers. Subtypes of number.
+ */
+
+/**
+ * @category "Objects" Methods focused on objects. Subtypes of object.
+ */
+
+/**
+ * @category "Observing" Automatic observing of assignments to variables within transactional boundaries.
+ */
+
+/**
+ * @category "Phrases" Methods focused on phrases. Subtypes of phrase.
+ */
+
+/**
+ * @category "POJO" Plain old Java objects. interaction with the Java programming language and libraries.
+
+/**
+ * @category "Primitives" A primitive is provided by the Avail virtual machine, not the Avail standard library. Applies to any method implementation that has a Primitive statement as the first line following the (optional) argument section. Also applies to any special object.
+ */
+
+/**
+ * @category "Queries" Interrogating the state of a value.
+ */
+
+/**
+ * @category "Relations" Relational operators.
+ */
+
+/**
+ * @category "Sets" Methods focused on sets. Subtypes of set.
+ */
+
+/**
+ * @category "Standard I/O" Interacting with the virtual machine's standard input, output, and error streams.
+ */
+
+/**
+ * @category "Stringification" Generating printable representations of values.
+ */
+
+/**
+ * @category "Strings" Methods focused on strings. Subtypes of string.
+ */
+
+/**
+ * @category "Synchronization" Synchronization devices.
+ */
+
+/**
+ * @category "Synchronous I/O" I/O operations that block the calling fiber.
+ */
+
+/**
+ * @category "Transformers" Deriving a value from a similar value and one or more other values. This is essentially the functional equivalent of a mutator (setter).
+ */
+
+/**
+ * @category "Tuples" Methods focused on tuples. Subtypes of tuple.
+ */
+
+/**
+ * @category "Types" Methods focused on types. Types and metatypes.
+ */
+
+/**
+ * @category "Unicode" Unicode support, character classification, conversion between characters and code points, etc.
+ */
+
+/**
+ * @category "Unit Testing" Declaration of test suites and test cases. Tools for writing test cases. Running test suites.
+ */
+
+/**
+ * @category "Variables" Methods focused on variables. Subtypes of variable.
+ */
