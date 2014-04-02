@@ -160,17 +160,17 @@ public class StacksCategories
 					for (int i = 0; i < listSize - 1; i++)
 					{
 						final Pair<String,String> pair = methodList.get(i);
-						stringBuilder.append("\t\t\t{\"").append(pair.first())
-							.append("\", \"").append(pair.second())
-							.append("\"},\n");
+						stringBuilder.append("\t\t\t{\"methodName\" : \"")
+							.append(pair.first()).append("\", \"link\" : \"")
+							.append(pair.second()).append("\"},\n");
 					}
 
 					final Pair<String,String> lastPair =
 						methodList.get(listSize - 1);
 
-					stringBuilder.append("\t\t\t{\"").append(lastPair.first())
-						.append("\", \"").append(lastPair.second())
-						.append("\"}\n\t\t]\n\t},");
+					stringBuilder.append("\t\t\t{\"methodName\" : \"")
+						.append(lastPair.first()).append("\", \"link\" : \"")
+						.append(lastPair.second()).append("\"}\n\t\t]\n\t},");
 				}
 			}
 
@@ -188,17 +188,17 @@ public class StacksCategories
 				for (int i = 0; i < listSize - 1; i++)
 				{
 					final Pair<String,String> pair = methodList.get(i);
-					stringBuilder.append("\t\t\t{\"").append(pair.first())
-						.append("\", \"").append(pair.second())
-						.append("\"},\n");
+					stringBuilder.append("\t\t\t{\"methodName\" : \"")
+						.append(pair.first()).append("\", \"link\" : \"")
+						.append(pair.second()).append("\"},\n");
 				}
 
 				final Pair<String,String> lastPair =
 					methodList.get(listSize - 1);
 
-				stringBuilder.append("\t\t\t{\"").append(lastPair.first())
-					.append("\", \"").append(lastPair.second())
-					.append("\"}\n\t\t]\n\t}\n]");
+				stringBuilder.append("\t\t\t{\"methodName\" : \"")
+					.append(lastPair.first()).append("\", \"link\" : \"")
+					.append(lastPair.second()).append("\"}\n\t\t]\n\t},");
 			}
 		}
 
