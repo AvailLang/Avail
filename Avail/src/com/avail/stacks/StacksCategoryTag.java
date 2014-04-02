@@ -32,6 +32,7 @@
 
 package com.avail.stacks;
 
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -84,6 +85,19 @@ public class StacksCategoryTag extends AbstractStacksTag
 		}
 
 		return stringBuilder.toString();
+	}
+
+	/**
+	 * @return A set of category String names
+	 */
+	public HashSet<String> getCategorySet()
+	{
+		final HashSet<String> categorySet = new HashSet<String>();
+		for (final QuotedStacksToken category : categories)
+		{
+			categorySet.add(category.lexeme());
+		}
+		return categorySet;
 	}
 
 }

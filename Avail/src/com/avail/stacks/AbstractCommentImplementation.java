@@ -33,6 +33,7 @@
 package com.avail.stacks;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import com.avail.descriptor.A_String;
 
@@ -131,4 +132,17 @@ public abstract class AbstractCommentImplementation
 	 * @return the HTML tagged content
 	 */
 	public abstract String toHTML();
+
+	/**
+	 * @return A set of category String names for this implementation.
+	 */
+	public HashSet<String> getCategorySet()
+	{
+		final HashSet<String> categorySet = new HashSet<String>();
+		for (final StacksCategoryTag aTag : categories)
+		{
+			categorySet.addAll(aTag.getCategorySet());
+		}
+		return categorySet;
+	}
 }

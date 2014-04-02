@@ -118,7 +118,7 @@ public class StacksScannerException extends Exception
 		super(cause);
 		try
 		{
-			StacksScanner.processCommentString(availComment,moduleName());
+			StacksScanner.processCommentString(availComment,moduleName(), null);
 			assert false : "Should have thrown exception";
 			// And throw in case assertions are off.  Keeps Java compiler happy.
 			throw new RuntimeException("Should have thrown exception");

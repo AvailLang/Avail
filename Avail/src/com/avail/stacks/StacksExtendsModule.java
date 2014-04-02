@@ -38,8 +38,8 @@ import com.avail.descriptor.StringDescriptor;
 import com.avail.utility.Pair;
 
 /**
- * A grouping of all implementationGroups originating from the names section of this
- * module
+ * A grouping of all implementationGroups originating from the names section of
+ * this module
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
