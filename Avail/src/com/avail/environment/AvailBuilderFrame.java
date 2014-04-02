@@ -104,13 +104,12 @@ extends JFrame
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
-			assert documentationTask == null;
+			assert backgroundTask == null;
 			final ResolvedModuleName selectedModule = selectedModule();
 			assert selectedModule != null;
 
 			// Update the UI.
 			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-			moduleProgress.setValue(0);
 			buildProgress.setValue(0);
 			inputField.requestFocusInWindow();
 			clearTranscript();
@@ -120,7 +119,7 @@ extends JFrame
 
 			// Build the target module in a Swing worker thread.
 			final BuildTask task = new BuildTask(selectedModule);
-			buildTask = task;
+			backgroundTask = task;
 			setEnablements();
 			task.execute();
 		}
@@ -139,6 +138,48 @@ extends JFrame
 	}
 
 	/**
+	 * An {@code UnloadAction} launches an {@linkplain UnloadTask unload task}
+	 * in a Swing worker thread.
+	 */
+	private final class UnloadAction
+	extends AbstractAction
+	{
+		@Override
+		public void actionPerformed (final @Nullable ActionEvent event)
+		{
+			assert backgroundTask == null;
+			final ResolvedModuleName selectedModule = selectedModule();
+			assert selectedModule != null;
+
+			// Update the UI.
+			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+			buildProgress.setValue(0);
+			inputField.requestFocusInWindow();
+			clearTranscript();
+
+			// Clear the build input stream.
+			inputStream().clear();
+
+			// Unload the target module in a Swing worker thread.
+			final UnloadTask task = new UnloadTask(selectedModule);
+			backgroundTask = task;
+			setEnablements();
+			task.execute();
+		}
+
+		/**
+		 * Construct a new {@link UnloadAction}.
+		 */
+		public UnloadAction ()
+		{
+			super("Unload");
+			putValue(
+				SHORT_DESCRIPTION,
+				"Unload the target module.");
+		}
+	}
+
+	/**
 	 * A {@code GenerateDocumentationAction} instructs the {@linkplain
 	 * AvailBuilder Avail builder} to recursively {@linkplain StacksGenerator
 	 * generate Stacks documentation}.
@@ -149,14 +190,13 @@ extends JFrame
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
-			assert buildTask == null;
+			assert backgroundTask == null;
 			final ResolvedModuleName selectedModule = selectedModule();
 			assert selectedModule != null;
 
 			// Update the UI.
 			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 			setEnablements();
-			moduleProgress.setValue(0);
 			buildProgress.setValue(0);
 			clearTranscript();
 
@@ -164,7 +204,7 @@ extends JFrame
 			// thread.
 			final DocumentationTask task =
 				new DocumentationTask(selectedModule);
-			documentationTask = task;
+			backgroundTask = task;
 			isBuilding = true;
 			setEnablements();
 			task.execute();
@@ -194,12 +234,7 @@ extends JFrame
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
-			BuilderTask task = buildTask;
-			if (task != null)
-			{
-				task.cancel();
-			}
-			task = documentationTask;
+			final BuilderTask task = backgroundTask;
 			if (task != null)
 			{
 				task.cancel();
@@ -228,8 +263,7 @@ extends JFrame
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
-			assert buildTask == null;
-			assert documentationTask == null;
+			assert backgroundTask == null;
 			try
 			{
 				// Clear all repositories.
@@ -423,8 +457,7 @@ extends JFrame
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
-			assert documentationTask == null;
-			assert buildTask == null;
+			assert backgroundTask == null;
 
 			final String selectedEntryPoint = selectedEntryPoint();
 			if (selectedEntryPoint == null)
@@ -441,19 +474,18 @@ extends JFrame
 				.replaceAll("\\B_", " _")
 				.replaceAll("_\\B", "_ ");
 			assert entryPointText != null;
-			final int startOfPastedArea = inputField.getSelectionStart();
-			inputField.replaceSelection(entryPointText);
+			inputField.setText(entryPointText);
 			final int offsetToUnderscore = entryPointText.indexOf("_");
+			final int offset;
 			if (offsetToUnderscore == -1)
 			{
-				final int offset =
-					startOfPastedArea + entryPointText.length();
+				offset = entryPointText.length();
 				inputField.select(offset, offset);
 			}
 			else
 			{
 				// Select the underscore.
-				final int offset = startOfPastedArea + offsetToUnderscore;
+				offset = offsetToUnderscore;
 				inputField.select(offset, offset + 1);
 			}
 			inputField.requestFocusInWindow();
@@ -465,7 +497,6 @@ extends JFrame
 				{
 					// Start loading the module as a convenience.
 					setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-					moduleProgress.setValue(0);
 					buildProgress.setValue(0);
 					inputField.requestFocusInWindow();
 					clearTranscript();
@@ -475,7 +506,7 @@ extends JFrame
 
 					// Build the target module in a Swing worker thread.
 					final BuildTask task = new BuildTask(moduleName);
-					buildTask = task;
+					backgroundTask = task;
 					setEnablements();
 					task.execute();
 				}
@@ -854,22 +885,7 @@ extends JFrame
 					final @Nullable Long position,
 					final @Nullable Long moduleSize)
 				{
-					assert moduleName != null;
-					assert lineNumber != null;
-					assert position != null;
-					assert moduleSize != null;
-					invokeLater(new Runnable()
-					{
-						@Override
-						public void run ()
-						{
-							updateModuleProgress(
-								moduleName,
-								lineNumber,
-								position,
-								moduleSize);
-						}
-					});
+					// Do nothing.
 				}
 			};
 		}
@@ -919,15 +935,10 @@ extends JFrame
 		@Override
 		protected void done ()
 		{
-			buildTask = null;
+			backgroundTask = null;
 			reportDone();
 			setEnablements();
-			if (terminator == null)
-			{
-				moduleProgress.setString("Module Progress: 100%");
-				moduleProgress.setValue(100);
-			}
-			setCursor(null);
+			setCursor(Cursor.getDefaultCursor());
 		}
 
 		/**
@@ -938,6 +949,41 @@ extends JFrame
 		 *        module}.
 		 */
 		public BuildTask (final ResolvedModuleName targetModuleName)
+		{
+			super(targetModuleName);
+		}
+	}
+
+	/**
+	 * An {@code UnloadTask} initiates and manages unloading the target
+	 * {@linkplain ModuleDescriptor module}.
+	 */
+	private final class UnloadTask
+	extends BuilderTask
+	{
+		@Override
+		protected void executeTask () throws Exception
+		{
+			availBuilder.unloadTarget(targetModuleName);
+		}
+
+		@Override
+		protected void done ()
+		{
+			backgroundTask = null;
+			reportDone();
+			setEnablements();
+			setCursor(Cursor.getDefaultCursor());
+		}
+
+		/**
+		 * Construct a new {@link DocumentationTask}.
+		 *
+		 * @param targetModuleName
+		 *        The resolved name of the target {@linkplain ModuleDescriptor
+		 *        module}.
+		 */
+		public UnloadTask (final ResolvedModuleName targetModuleName)
 		{
 			super(targetModuleName);
 		}
@@ -961,15 +1007,10 @@ extends JFrame
 		@Override
 		protected void done ()
 		{
-			documentationTask = null;
+			backgroundTask = null;
 			reportDone();
 			setEnablements();
-			if (terminator == null)
-			{
-				moduleProgress.setString("Module Progress: 100%");
-				moduleProgress.setValue(100);
-			}
-			setCursor(null);
+			setCursor(Cursor.getDefaultCursor());
 		}
 
 		/**
@@ -1241,37 +1282,8 @@ extends JFrame
 	/** The {@linkplain ModuleNameResolver module name resolver}. */
 	@InnerAccess final ModuleNameResolver resolver;
 
-	/** The current {@linkplain BuildTask build task}. */
-	@InnerAccess volatile @Nullable BuildTask buildTask;
-
-	/**
-	 * Answer the current {@link BuildTask} in progress.  Only applicable during
-	 * a build.
-	 *
-	 * @return The current build task.
-	 */
-	@InnerAccess BuildTask buildTask ()
-	{
-		final BuildTask task = buildTask;
-		assert task != null;
-		return task;
-	}
-
-	/** The current {@linkplain DocumentationTask documentation task}. */
-	@InnerAccess volatile @Nullable DocumentationTask documentationTask;
-
-	/**
-	 * Answer the current {@link DocumentationTask} in progress. Only applicable
-	 * during documentation generation.
-	 *
-	 * @return THe current documentation task.
-	 */
-	@InnerAccess DocumentationTask documentationTask ()
-	{
-		final DocumentationTask task = documentationTask;
-		assert task != null;
-		return task;
-	}
+	/** The current {@linkplain BuilderTask background task}. */
+	@InnerAccess volatile @Nullable BuilderTask backgroundTask;
 
 	/**
 	 * The documentation {@linkplain Path path} for the {@linkplain
@@ -1342,12 +1354,6 @@ extends JFrame
 	@InnerAccess final AvailBuilder availBuilder;
 
 	/**
-	 * The {@linkplain JProgressBar progress bar} that displays compilation
-	 * progress of the current {@linkplain ModuleDescriptor module}.
-	 */
-	@InnerAccess final JProgressBar moduleProgress;
-
-	/**
 	 * The {@linkplain JProgressBar progress bar} that displays the overall
 	 * build progress.
 	 */
@@ -1404,6 +1410,9 @@ extends JFrame
 	/** The {@linkplain BuildAction build action}. */
 	@InnerAccess final BuildAction buildAction;
 
+	/** The {@linkplain UnloadAction unload action}. */
+	@InnerAccess final UnloadAction unloadAction;
+
 	/** The {@linkplain CancelAction cancel action}. */
 	@InnerAccess final CancelAction cancelAction;
 
@@ -1445,16 +1454,14 @@ extends JFrame
 	 */
 	@InnerAccess void setEnablements ()
 	{
-		final boolean busy = buildTask != null
-			|| documentationTask != null
-			|| isRunning;
-		moduleProgress.setEnabled(busy);
+		final boolean busy = backgroundTask != null || isRunning;
 		buildProgress.setEnabled(busy);
 		inputField.setEnabled(!busy || isRunning);
 		retrievePreviousAction.setEnabled(!busy);
 		retrieveNextAction.setEnabled(!busy);
 		cancelAction.setEnabled(busy);
 		buildAction.setEnabled(!busy && selectedModule() != null);
+		unloadAction.setEnabled(!busy && selectedModuleIsLoaded());
 		cleanAction.setEnabled(!busy);
 		refreshAction.setEnabled(!busy);
 		setDocumentationPathAction.setEnabled(!busy);
@@ -1908,45 +1915,6 @@ extends JFrame
 	}
 
 	/**
-	 * Update the {@linkplain #moduleProgress module progress bar}.
-	 *
-	 * @param moduleName
-	 *        The {@linkplain ModuleDescriptor module} undergoing compilation.
-	 * @param lineNumber
-	 *        The current line number.
-	 * @param position
-	 *        The parse position, in bytes.
-	 * @param moduleSize
-	 *        The module size, in bytes.
-	 */
-	@InnerAccess void updateModuleProgress (
-		final ModuleName moduleName,
-		final Long lineNumber,
-		final Long position,
-		final Long moduleSize)
-	{
-		if (lineNumber == -1)
-		{
-			moduleProgress.setValue(0);
-			moduleProgress.setString(String.format(
-				"Loading compiled module: %s",
-				moduleName.qualifiedName()));
-		}
-		else
-		{
-			final int percent = (int) ((position * 100) / moduleSize);
-			moduleProgress.setValue(percent);
-			moduleProgress.setString(String.format(
-				"Compiling module: %s [line %d]: %d / %d bytes (%d%%)",
-				moduleName.qualifiedName(),
-				lineNumber,
-				position,
-				moduleSize,
-				percent));
-		}
-	}
-
-	/**
 	 * Update the {@linkplain #buildProgress build progress bar}.
 	 *
 	 * @param moduleName
@@ -2281,6 +2249,7 @@ extends JFrame
 
 		// Create the actions.
 		buildAction = new BuildAction();
+		unloadAction = new UnloadAction();
 		cancelAction = new CancelAction();
 		cleanAction = new CleanAction();
 		documentAction = new GenerateDocumentationAction();
@@ -2299,6 +2268,8 @@ extends JFrame
 		final JMenu buildMenu = new JMenu("Build");
 		buildMenu.add(new JMenuItem(buildAction));
 		buildMenu.add(new JMenuItem(cancelAction));
+		buildMenu.addSeparator();
+		buildMenu.add(new JMenuItem(unloadAction));
 		buildMenu.add(new JMenuItem(cleanAction));
 		buildMenu.addSeparator();
 		buildMenu.add(new JMenuItem(refreshAction));
@@ -2321,6 +2292,8 @@ extends JFrame
 		final JPopupMenu buildPopup = new JPopupMenu("Modules");
 		buildPopup.add(new JMenuItem(buildAction));
 		buildPopup.add(new JMenuItem(documentAction));
+		buildPopup.addSeparator();
+		buildPopup.add(new JMenuItem(unloadAction));
 		buildPopup.addSeparator();
 		buildPopup.add(new JMenuItem(refreshAction));
 		// The refresh item needs a little help ...
@@ -2459,18 +2432,6 @@ extends JFrame
 		}
 		entryPointsScrollArea.setViewportView(entryPointsTree);
 
-		// Create the module progress bar.
-		moduleProgress = new JProgressBar(0, 100);
-		moduleProgress.setToolTipText(
-			"Progress indicator for the module undergoing compilation.");
-		moduleProgress.setDoubleBuffered(true);
-		moduleProgress.setEnabled(false);
-		moduleProgress.setFocusable(false);
-		moduleProgress.setIndeterminate(false);
-		moduleProgress.setStringPainted(true);
-		moduleProgress.setString("Module Progress:");
-		moduleProgress.setValue(0);
-
 		// Create the build progress bar.
 		buildProgress = new JProgressBar(0, 100);
 		buildProgress.setToolTipText(
@@ -2586,7 +2547,6 @@ extends JFrame
 		rightPaneLayout.setAutoCreateGaps(true);
 		rightPaneLayout.setHorizontalGroup(
 			rightPaneLayout.createParallelGroup()
-				.addComponent(moduleProgress)
 				.addComponent(buildProgress)
 				.addComponent(outputLabel)
 				.addComponent(transcriptScrollArea)
@@ -2595,7 +2555,6 @@ extends JFrame
 		rightPaneLayout.setVerticalGroup(
 			rightPaneLayout.createSequentialGroup()
 				.addGroup(rightPaneLayout.createSequentialGroup()
-					.addComponent(moduleProgress)
 					.addComponent(buildProgress))
 				.addGroup(rightPaneLayout.createSequentialGroup()
 					.addComponent(outputLabel)

@@ -953,6 +953,78 @@ public final class AvailBuilder
 				}
 			}
 		}
+
+		/**
+		 * A {@link Continuation2} suitable for use by {@link
+		 * Graph#parallelVisit(Continuation2)} on the module graph. It should
+		 * determine all successors of {@linkplain LoadedModule#deletionRequest
+		 * dirtied} {@linkplain LoadedModule modules}.
+		 */
+		private final Continuation2<ResolvedModuleName, Continuation0>
+			determineSuccessorModules =
+				new Continuation2<ResolvedModuleName, Continuation0>()
+		{
+			@Override
+			public void value (
+				final @Nullable ResolvedModuleName moduleName,
+				final @Nullable Continuation0 completionAction)
+			{
+				assert moduleName != null;
+				assert completionAction != null;
+				runtime.execute(
+					new AvailTask(loaderPriority)
+					{
+						@Override
+						public void value()
+						{
+							for (final ResolvedModuleName predecessor
+								: moduleGraph.predecessorsOf(moduleName))
+							{
+								final LoadedModule loadedModule =
+									getLoadedModule(predecessor);
+								assert loadedModule != null;
+								if (loadedModule.deletionRequest)
+								{
+									getLoadedModule(moduleName)
+										.deletionRequest = true;
+									break;
+								}
+							}
+							completionAction.value();
+						}
+					});
+			}
+		};
+
+		/**
+		 * Find all loaded modules that are successors of the specified module,
+		 * then unload them and all successors in reverse dependency order.
+		 *
+		 * @param targetName
+		 *        The {@linkplain ResolvedModuleName name} of the module that
+		 *        should be unloaded.
+		 */
+		@InnerAccess void unload (final ResolvedModuleName targetName)
+		{
+			final LoadedModule target = getLoadedModule(targetName);
+			if (target != null)
+			{
+				target.deletionRequest = true;
+				moduleGraph.parallelVisit(determineSuccessorModules);
+				moduleGraph.reverse().parallelVisit(unloadModules);
+				// Unloading of each A_Module is complete.  Update my local
+				// structures to agree.
+				for (final LoadedModule loadedModule : loadedModulesCopy())
+				{
+					if (loadedModule.deletionRequest)
+					{
+						final ResolvedModuleName moduleName = loadedModule.name;
+						removeLoadedModule(moduleName);
+						moduleGraph.exciseVertex(moduleName);
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -2244,6 +2316,20 @@ public final class AvailBuilder
 		{
 			new BuildLoader(localTracker, globalTracker).load();
 		}
+	}
+
+	/**
+	 * Unload the {@linkplain ModuleDescriptor target module} and its
+	 * dependents.
+	 *
+	 * @param target
+	 *        The {@linkplain ResolvedModuleName resolved name} of the module to
+	 *        be unloaded.
+	 */
+	public void unloadTarget (final ResolvedModuleName target)
+	{
+		shouldStopBuild = false;
+		new BuildUnloader().unload(target);
 	}
 
 	/**
