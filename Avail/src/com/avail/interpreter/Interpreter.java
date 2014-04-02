@@ -42,6 +42,7 @@ import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import static java.lang.Math.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.*;
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
@@ -197,11 +198,17 @@ public final class Interpreter
 		return null;
 	}
 
+	//TODO [MvG] - Remove before shipping
+	private static AtomicLong uniqueInterpreterCounter = new AtomicLong();
+
+	//TODO [MvG] - Remove before shipping
+	public long uniqueId = uniqueInterpreterCounter.incrementAndGet();
+
 	/** Whether to print detailed Level One debug information. */
 	public static boolean debugL1 = false;
 
 	/** Whether to print detailed Level Two debug information. */
-	public static boolean debugL2 = false;
+	public static boolean debugL2 = true;
 
 	/** Whether to print detailed Primitive debug information. */
 	public static boolean debugPrimitives = false;

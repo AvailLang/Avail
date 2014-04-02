@@ -77,17 +77,6 @@ extends Primitive
 				final ExecutionState oldState = fiber.executionState();
 				final boolean hadPermit = !fiber.getAndSetSynchronizationFlag(
 					PERMIT_UNAVAILABLE, false);
-				if (FiberDescriptor.debugFibers)
-				{
-					final StringBuilder builder =
-						FiberDescriptor.getLog((AvailObject)fiber);
-					synchronized (builder)
-					{
-						builder.append("PRIM 608 execution state was ");
-						builder.append(oldState);
-						builder.append("\n");
-					}
-				}
 				switch (oldState)
 				{
 					case ASLEEP:

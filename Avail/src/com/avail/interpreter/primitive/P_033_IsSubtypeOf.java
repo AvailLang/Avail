@@ -102,28 +102,36 @@ public final class P_033_IsSubtypeOf extends Primitive
 			levelOneNaiveTranslator.naiveRegisters();
 		final A_Type xMeta = registerSet.typeAt(xTypeReg);
 		final A_Type yMeta = registerSet.typeAt(yTypeReg);
-		final A_Type intersectionMeta = xMeta.typeIntersection(yMeta);
-		if (intersectionMeta.isSubtypeOf(
-			AbstractEnumerationTypeDescriptor.withInstance(
-				BottomTypeDescriptor.bottom())))
-		{
-			// The meta intersection is bottom's type (or bottom, its sole
-			// instance).  Therefore the actual types can never intersect.
-			levelOneNaiveTranslator.moveConstant(
-				AtomDescriptor.falseObject(),
-				resultRegister);
-			return;
-		}
+		final A_Type xType = xMeta.instance();
+		final A_Type yType = yMeta.instance();
 		if (registerSet.hasConstantAt(yTypeReg))
 		{
 			final A_Type constantYType = registerSet.constantAt(yTypeReg);
-			if (xMeta.isSubtypeOf(
-				AbstractEnumerationTypeDescriptor.withInstance(constantYType)))
+			assert constantYType.isType();
+			assert constantYType.isSubtypeOf(yType);
+			if (xType.isSubtypeOf(constantYType))
 			{
 				// The y type is known precisely, and the x type is constrained
 				// to always be a subtype of it.
 				levelOneNaiveTranslator.moveConstant(
 					AtomDescriptor.trueObject(),
+					resultRegister);
+				return;
+			}
+		}
+		if (registerSet.hasConstantAt(xTypeReg))
+		{
+			final A_Type constantXType = registerSet.constantAt(xTypeReg);
+			assert constantXType.isType();
+			assert constantXType.isSubtypeOf(xType);
+			if (!constantXType.isSubtypeOf(yType))
+			{
+				// In x ⊆ y, the exact type x happens to be known statically,
+				// and it is not a subtype of y.  The actual y might be more
+				// specific at runtime, but x still can't be a subtype of the
+				// stronger y.
+				levelOneNaiveTranslator.moveConstant(
+					AtomDescriptor.falseObject(),
 					resultRegister);
 				return;
 			}

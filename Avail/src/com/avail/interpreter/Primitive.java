@@ -675,15 +675,19 @@ implements IntegerEnumSlotDescriptionEnum
 		return expected == -1 || expected == argCount;
 	}
 
+	/** Capture the name of the primitive class once for performance. */
+	final String name = getClass().getSimpleName();
+
 	/**
-	 * Answer the name of this primitive, which is just the class name.
+	 * Answer the name of this primitive, which is just the class's simple name,
+	 * as previously captured by the {@link #name} field.
 	 *
 	 * @return The name of this primitive.
 	 */
 	@Override
 	public String name ()
 	{
-		return this.getClass().getSimpleName();
+		return name;
 	}
 
 	/**

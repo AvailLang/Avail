@@ -550,22 +550,7 @@ extends TupleDescriptor
 		// If there are fewer than maximumCopySize members in this interval,
 		// create a normal tuple with them in it instead of an interval tuple.
 		final int size;
-//		// TODO: [LAS] Remove when Mark fixes -a/-b rounding towards +∞.
-//		if (difference.lessThan(zero))
-//		{
-//			final A_Number negativeOne = IntegerDescriptor.fromInt(-1);
-//			final A_Number tempDifference =
-//				difference.timesCanDestroy(negativeOne, false);
-//			final A_Number tempDelta =
-//				delta.timesCanDestroy(negativeOne, false);
-//			size = 1 +
-//				tempDifference.divideCanDestroy(tempDelta, false).extractInt();
-//		}
-//		else
-//		{
-
-			size = 1 + difference.divideCanDestroy(delta, false).extractInt();
-//		}
+		size = 1 + difference.divideCanDestroy(delta, false).extractInt();
 		if (size < maximumCopySize)
 		{
 			final List<A_Number> members = new ArrayList<A_Number>(size);

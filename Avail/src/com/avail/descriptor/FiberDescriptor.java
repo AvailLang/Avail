@@ -76,8 +76,8 @@ extends Descriptor
 {
 	/**
 	 * Debug flag for tracing some mysterious fiber problems (MvG 2013.06.30).
-	 * */
-	public static boolean debugFibers = true;
+	 */
+	public static boolean debugFibers = false;
 
 	/** A simple counter for identifying fibers by creation order. */
 	public static AtomicInteger uniqueDebugCounter = new AtomicInteger(0);
@@ -434,7 +434,10 @@ extends Descriptor
 		 * RawPojoDescriptor raw pojo} holding a StringBuilder.  We don't even
 		 * bother making it circular, since fiber generally don't usually run
 		 * for very long in Avail.
+		 *
+		 * <p>TODO [MvG] Remove when the succeed-twice bug is gone.</p>
 		 */
+		@HideFieldJustForPrinting
 		DEBUG_LOG;
 	}
 
@@ -694,6 +697,17 @@ extends Descriptor
 		return true;
 	}
 
+	/**
+	 * Answer whether a monitor lock should be acquired around flag access for
+	 * an object having this descriptor.
+	 *
+	 * @return a boolean.
+	 */
+	public final boolean shouldLockToAccessFlags ()
+	{
+		return true;
+	}
+
 	@Override @AvailMethod
 	ExecutionState o_ExecutionState (final AvailObject object)
 	{
@@ -703,7 +717,7 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_ExecutionState (final AvailObject object, final ExecutionState value)
 	{
-		if (isShared())
+		if (shouldLockToAccessFlags())
 		{
 			synchronized (object)
 			{
@@ -713,16 +727,8 @@ extends Descriptor
 				object.setSlot(EXECUTION_STATE, value.ordinal());
 				if (debugFibers)
 				{
-					final StringBuilder builder = getLog(object);
-					synchronized (builder)
-					{
-						builder.append("ExecState: ");
-						builder.append(current);
-						builder.append(" -> ");
-						builder.append(value);
-						builder.append(" (protected/shared)");
-						builder.append("\n");
-					}
+					log(object, "ExecState: %s -> %s (protected/shared)",
+						current, value);
 				}
 			}
 		}
@@ -734,29 +740,51 @@ extends Descriptor
 			object.setSlot(EXECUTION_STATE, value.ordinal());
 			if (debugFibers)
 			{
-				final StringBuilder builder = getLog(object);
-				synchronized (builder)
-				{
-					builder.append("ExecState: ");
-					builder.append(current);
-					builder.append(" -> ");
-					builder.append(value);
-					builder.append(" (UNprotected/UNshared)");
-					builder.append("\n");
-				}
+				log(object, "ExecState: %s -> %s (UNprotected/UNshared)",
+					current, value);
 			}
 		}
 	}
 
+
 	/**
-	 * Extract the in-memory log for this fiber.
+	 * Log concurrency-related information about a specific fiber or null.  The
+	 * text is written to an in-memory StringBuilder that is truncated on the
+	 * left when it grows too large.
 	 *
-	 * @param fiber The fiber.
-	 * @return A {@link StringBuilder} on which to log this fiber's transitions.
+	 * @param fiber The fiber that is affected, or null.
+	 * @param pattern The pattern to log.
+	 * @param arguments The values with which to populate the pattern.
 	 */
-	public static StringBuilder getLog (final AvailObject fiber)
+	public static void log (
+		final AvailObject fiber,
+		final String pattern,
+		final Object... arguments)
 	{
-		return (StringBuilder)fiber.slot(DEBUG_LOG).javaObject();
+		final StringBuilder builder =
+			(StringBuilder)fiber.slot(DEBUG_LOG).javaObject();
+		synchronized (builder)
+		{
+			if (builder.length() > 1_000_000)
+			{
+				builder.replace(0, 800_000, "(TRUNCATED)...\n");
+			}
+			final Formatter formatter = new Formatter(builder);
+			final Interpreter interpreter = Interpreter.currentOrNull();
+			if (interpreter == null)
+			{
+				formatter.format(
+					"NO INTERPRETER [Thread = %s]: ",
+					Thread.currentThread());
+			}
+			else
+			{
+				formatter.format("%2d: ", Interpreter.current().uniqueId);
+			}
+			formatter.format(pattern, arguments);
+			builder.append("\n");
+			formatter.close();
+		}
 	}
 
 	@Override @AvailMethod
@@ -777,7 +805,7 @@ extends Descriptor
 		final InterruptRequestFlag flag)
 	{
 		final int value;
-		if (isShared())
+		if (shouldLockToAccessFlags())
 		{
 			synchronized (object)
 			{
@@ -788,18 +816,6 @@ extends Descriptor
 		{
 			value = object.slot(flag.bitField);
 		}
-		if (debugFibers)
-		{
-			final StringBuilder builder = getLog(object);
-			synchronized (builder)
-			{
-				builder.append("Get interrupt flag: ");
-				builder.append(flag);
-				builder.append(" (");
-				builder.append(value);
-				builder.append(")\n");
-			}
-		}
 		return value == 1;
 	}
 
@@ -808,7 +824,7 @@ extends Descriptor
 		final AvailObject object,
 		final InterruptRequestFlag flag)
 	{
-		if (isShared())
+		if (shouldLockToAccessFlags())
 		{
 			synchronized (object)
 			{
@@ -819,16 +835,6 @@ extends Descriptor
 		{
 			object.setSlot(flag.bitField, 1);
 		}
-		if (debugFibers)
-		{
-			final StringBuilder builder = getLog(object);
-			synchronized (builder)
-			{
-				builder.append("Set interrupt flag: ");
-				builder.append(flag);
-				builder.append("\n");
-			}
-		}
 	}
 
 	@Override @AvailMethod
@@ -837,7 +843,7 @@ extends Descriptor
 		final InterruptRequestFlag flag)
 	{
 		final int value;
-		if (isShared())
+		if (shouldLockToAccessFlags())
 		{
 			synchronized (object)
 			{
@@ -850,18 +856,6 @@ extends Descriptor
 			value = object.slot(flag.bitField);
 			object.setSlot(flag.bitField, 0);
 		}
-		if (debugFibers)
-		{
-			final StringBuilder builder = getLog(object);
-			synchronized (builder)
-			{
-				builder.append("Get & clear interrupt flag ");
-				builder.append(flag);
-				builder.append("(was ");
-				builder.append(value);
-				builder.append(")\n");
-			}
-		}
 		return value == 1;
 	}
 
@@ -873,7 +867,7 @@ extends Descriptor
 	{
 		final int value;
 		final int newBit = newValue ? 1 : 0;
-		if (isShared())
+		if (shouldLockToAccessFlags())
 		{
 			synchronized (object)
 			{
@@ -888,17 +882,8 @@ extends Descriptor
 		}
 		if (debugFibers)
 		{
-			final StringBuilder builder = getLog(object);
-			synchronized (builder)
-			{
-				builder.append("Get & set synch flag: ");
-				builder.append(flag);
-				builder.append(" (");
-				builder.append(value);
-				builder.append(" -> ");
-				builder.append(newBit);
-				builder.append(")\n");
-			}
+			log(object, "Get & set synch flag: %s (%s -> %s)",
+				flag, value, newBit);
 		}
 		return value == 1;
 	}
@@ -907,7 +892,7 @@ extends Descriptor
 	boolean o_GeneralFlag (final AvailObject object, final GeneralFlag flag)
 	{
 		final int value;
-		if (isShared())
+		if (shouldLockToAccessFlags())
 		{
 			synchronized (object)
 			{
@@ -918,6 +903,10 @@ extends Descriptor
 		{
 			value = object.slot(flag.bitField);
 		}
+		if (debugFibers)
+		{
+			log(object, "GET general flag: %s=%d", flag, value);
+		}
 		return value == 1;
 	}
 
@@ -926,7 +915,7 @@ extends Descriptor
 		final AvailObject object,
 		final GeneralFlag flag)
 	{
-		if (isShared())
+		if (shouldLockToAccessFlags())
 		{
 			synchronized (object)
 			{
@@ -939,13 +928,7 @@ extends Descriptor
 		}
 		if (debugFibers)
 		{
-			final StringBuilder builder = getLog(object);
-			synchronized (builder)
-			{
-				builder.append("Set general flag: ");
-				builder.append(flag);
-				builder.append("\n");
-			}
+			log(object, "Set general flag: %s", flag);
 		}
 	}
 
@@ -954,7 +937,7 @@ extends Descriptor
 		final AvailObject object,
 		final GeneralFlag flag)
 	{
-		if (isShared())
+		if (shouldLockToAccessFlags())
 		{
 			synchronized (object)
 			{
@@ -967,13 +950,7 @@ extends Descriptor
 		}
 		if (debugFibers)
 		{
-			final StringBuilder builder = getLog(object);
-			synchronized (builder)
-			{
-				builder.append("Clear general flag: ");
-				builder.append(flag);
-				builder.append("\n");
-			}
+			log(object, "Clear general flag: %s", flag);
 		}
 	}
 
@@ -981,7 +958,7 @@ extends Descriptor
 	boolean o_TraceFlag (final AvailObject object, final TraceFlag flag)
 	{
 		final int value;
-		if (isShared())
+		if (shouldLockToAccessFlags())
 		{
 			synchronized (object)
 			{
@@ -1000,7 +977,7 @@ extends Descriptor
 		final AvailObject object,
 		final TraceFlag flag)
 	{
-		if (isShared())
+		if (shouldLockToAccessFlags())
 		{
 			synchronized (object)
 			{
@@ -1013,13 +990,7 @@ extends Descriptor
 		}
 		if (debugFibers)
 		{
-			final StringBuilder builder = getLog(object);
-			synchronized (builder)
-			{
-				builder.append("Set trace flag: ");
-				builder.append(flag);
-				builder.append("\n");
-			}
+			log(object, "Set trace flag %s", flag);
 		}
 	}
 
@@ -1028,7 +999,7 @@ extends Descriptor
 		final AvailObject object,
 		final TraceFlag flag)
 	{
-		if (isShared())
+		if (shouldLockToAccessFlags())
 		{
 			synchronized (object)
 			{
@@ -1041,13 +1012,7 @@ extends Descriptor
 		}
 		if (debugFibers)
 		{
-			final StringBuilder builder = getLog(object);
-			synchronized (builder)
-			{
-				builder.append("Clear trace flag: ");
-				builder.append(flag);
-				builder.append("\n");
-			}
+			log(object, "Clear trace flag: %s", flag);
 		}
 	}
 
@@ -1180,18 +1145,14 @@ extends Descriptor
 		}
 		if (debugFibers)
 		{
-			final StringBuilder builder = getLog(object);
-			synchronized (builder)
+			final StringBuilder b = new StringBuilder();
+			for (final StackTraceElement frame :
+				Thread.currentThread().getStackTrace())
 			{
-				builder.append("Succeeded:");
-				for (final StackTraceElement frame :
-					Thread.currentThread().getStackTrace())
-				{
-					builder.append("\t");
-					builder.append(frame);
-					builder.append("\n");
-				}
+				b.append("\n\t");
+				b.append(frame);
 			}
+			log(object, "Succeeded:%s", b);
 		}
 		return (Continuation1<AvailObject>) pojo.javaObject();
 	}
@@ -1242,18 +1203,14 @@ extends Descriptor
 		}
 		if (debugFibers)
 		{
-			final StringBuilder builder = getLog(object);
-			synchronized (builder)
+			final StringBuilder b = new StringBuilder();
+			for (final StackTraceElement frame :
+				Thread.currentThread().getStackTrace())
 			{
-				builder.append("Failed:");
-				for (final StackTraceElement frame :
-					Thread.currentThread().getStackTrace())
-				{
-					builder.append("\t");
-					builder.append(frame);
-					builder.append("\n");
-				}
+				b.append("\n\t");
+				b.append(frame);
 			}
+			log(object, "Failed:%s", b);
 		}
 		return (Continuation1<Throwable>) pojo.javaObject();
 	}
@@ -1472,13 +1429,9 @@ extends Descriptor
 		final AvailObject object,
 		final short primitiveNumber)
 	{
-		final StringBuilder builder = getLog(object);
-		synchronized (builder)
-		{
-			builder.append("Prim: ");
-			builder.append(primitiveNumber);
-			builder.append("\n");
-		}
+		final Primitive p =
+			Primitive.byPrimitiveNumberOrFail(primitiveNumber);
+		log(object, "%s", p.name());
 	}
 
 	/**
@@ -1614,15 +1567,14 @@ extends Descriptor
 
 		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
 		fiber.setSlot(DEBUG_FIBER_PURPOSE, purpose);
-		if (debugFibers)
-		{
-			final StringBuilder builder = new StringBuilder(200);
-			builder.append("new: ");
-			builder.append(purpose);
-			builder.append("\n");
-			final AvailObject pojo = RawPojoDescriptor.identityWrap(builder);
-			fiber.setSlot(DEBUG_LOG, pojo);
-		}
+
+		final StringBuilder builder = new StringBuilder(200);
+		builder.append("new: ");
+		builder.append(purpose);
+		builder.append("\n");
+		final AvailObject pojo = RawPojoDescriptor.identityWrap(builder);
+		fiber.setSlot(DEBUG_LOG, pojo);
+
 		return fiber;
 	}
 
@@ -1676,15 +1628,14 @@ extends Descriptor
 
 		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
 		fiber.setSlot(DEBUG_FIBER_PURPOSE, purpose);
-		if (debugFibers)
-		{
-			final StringBuilder builder = new StringBuilder(200);
-			builder.append("newLoader: ");
-			builder.append(purpose);
-			builder.append("\n");
-			final AvailObject pojo = RawPojoDescriptor.identityWrap(builder);
-			fiber.setSlot(DEBUG_LOG, pojo);
-		}
+
+		final StringBuilder builder = new StringBuilder(200);
+		builder.append("newLoader: ");
+		builder.append(purpose);
+		builder.append("\n");
+		final AvailObject pojo = RawPojoDescriptor.identityWrap(builder);
+		fiber.setSlot(DEBUG_LOG, pojo);
+
 		return fiber;
 	}
 

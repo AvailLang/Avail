@@ -2448,7 +2448,6 @@ public final class AvailBuilder
 						+ " (command)"));
 			final ModuleImport moduleImport =
 				ModuleImport.extend(loadedModule.module);
-			// TODO: This should really be some kind of fake ModuleName…
 			final ModuleHeader header = new ModuleHeader(loadedModule.name);
 			header.importedModules.add(moduleImport);
 			header.applyToModule(module, runtime);

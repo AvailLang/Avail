@@ -83,7 +83,9 @@ Entries
 
 	/* Running test suites. */
 	"Run all tests",
-	"Run all tests in_"
+	"Run all tests in_",
+	"Run all tests repeatedly",
+	"Run all tests in_repeatedly"
 Body
 
 /**
@@ -137,3 +139,35 @@ Private method "Run all tests in_" is
 |
 	Print: test suite-oriented “report on all tests in suiteID”;
 ];
+
+/**
+ * Loop forever running all tests repeatedly.  Print the count with each run.
+ *
+ * @entry
+ * @method "Run all tests repeatedly"
+ * @returns "⊤"
+ */
+Private method "Run all tests repeatedly" is
+[
+	From 1 to ∞ do [x : natural number |
+		Print: "Starting run #" ++ “x” ++ "\n";
+		Run all tests;
+	]
+] : ⊤;
+
+/**
+ * Loop forever running the test repeatedly.  Print the count with each run.
+ *
+ * @entry
+ * @method "Run all tests in_repeatedly"
+ * @returns "⊤"
+ */
+Private method "Run all tests in_repeatedly" is
+[
+	suiteID : atom
+|
+	From 1 to ∞ do [x : natural number |
+		Print: "Starting run #" ++ “x” ++ "\n";
+		Run all tests in suiteID;
+	]
+] : ⊤;

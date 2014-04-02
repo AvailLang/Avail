@@ -3653,7 +3653,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param otherRawPojo TODO
+	 * @param otherRawPojo
 	 * @param otherJavaObject
 	 * @return
 	 */
@@ -4981,7 +4981,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param otherEqualityRawPojo TODO
+	 * @param otherEqualityRawPojo
 	 * @param otherJavaObject
 	 * @return
 	 */
@@ -5957,7 +5957,6 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @param trailingWhitespace
-	 * @return
 	 */
 	abstract void o_TrailingWhitespace (
 		AvailObject object,
