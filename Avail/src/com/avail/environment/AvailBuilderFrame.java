@@ -1456,6 +1456,7 @@ extends JFrame
 	{
 		final boolean busy = backgroundTask != null || isRunning;
 		buildProgress.setEnabled(busy);
+		buildProgress.setVisible(backgroundTask instanceof BuildTask);
 		inputField.setEnabled(!busy || isRunning);
 		retrievePreviousAction.setEnabled(!busy);
 		retrieveNextAction.setEnabled(!busy);
