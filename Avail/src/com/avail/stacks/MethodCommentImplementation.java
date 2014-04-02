@@ -136,8 +136,13 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		stringBuilder
 			.append("<th class=\"IColLabelNarrow\" scope=\"col\">Type</th>\n"
 				+ "\n<th class=\"IColLabelWide\" scope=\"col\">Description</th>\n"
-				+ "</tr></thead>\n<tbody>\n<tr>\n<th class=\"IRowLabel\" rowspan=\"")
+				+ "</tr></thead>\n<tbody>\n");
+
+		if (paramCount > 0)
+		{
+			stringBuilder.append("<tr>\n<th class=\"IRowLabel\" rowspan=\"")
 			.append(paramCount + 1).append("\">Parameters</th>\n</tr>\n");
+		}
 
 		for (final StacksParameterTag paramTag : parameters)
 		{
@@ -151,7 +156,8 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		if (exceptionCount > 0)
 		{
 			stringBuilder.append("<th class=\"IRowLabel\" colspan=\"")
-				.append(colSpan).append("\">Raises</th>\n");
+				.append(colSpan).append("\" rowspan=\"")
+				.append(exceptionCount+1).append("\">Raises</th>\n");
 
 			for (final StacksRaisesTag exception : exceptions)
 			{
