@@ -32,12 +32,16 @@
 
 package com.avail.stacks;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.EnumSet;
 import java.util.HashMap;
 import com.avail.AvailRuntime;
 import com.avail.builder.ModuleName;
@@ -86,6 +90,12 @@ public class StacksGenerator
 	StacksErrorLog errorLog;
 
 	/**
+	 * The {@linkplain StacksCategories} is a holder for all categories in
+	 * stacks
+	 */
+	private final StacksCategories categories;
+
+	/**
 	 * A map of {@linkplain ModuleName module names} to a list of all the method
 	 * names exported from said module
 	 */
@@ -113,7 +123,7 @@ public class StacksGenerator
 			throw new IllegalArgumentException(
 				outputPath + " exists and is not a directory");
 		}
-
+		this.categories = new StacksCategories();
 		this.resolver = resolver;
 
 		this.logPath = outputPath
@@ -150,7 +160,7 @@ public class StacksGenerator
 
 		commentsModule = new StacksCommentsModule(
 			header,commentTokens,errorLog, resolver,
-			moduleToComments);
+			moduleToComments,categories);
 		updateModuleToComments(commentsModule);
 	}
 
@@ -193,14 +203,35 @@ public class StacksGenerator
 
 		final StacksSynchronizer synchronizer =
 			new StacksSynchronizer(
-				outerMost.calculateFinalImplementationGroupsMap());
+				outerMost.calculateFinalImplementationGroupsMap(categories));
 
 		IO.close(errorLog.file());
+
+		final Path categoriesFilePath =
+			providedDocumentPath.resolve("categories.json");
+
+		try
+		{
+			final FileChannel categoriesJson =
+				FileChannel.open(categoriesFilePath,
+				EnumSet.of(StandardOpenOption.CREATE,
+					StandardOpenOption.WRITE,
+					StandardOpenOption.TRUNCATE_EXISTING));
+			final ByteBuffer buffer = ByteBuffer.wrap(
+				(categories.toJson().getBytes(StandardCharsets.UTF_8)));
+			categoriesJson.write(buffer);
+			IO.close(categoriesJson);
+		}
+		catch (final IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		moduleToComments
 			.get(outermostModule.qualifiedName())
 				.writeMethodsToHTMLFiles(providedDocumentPath,synchronizer,
-					runtime);
+					runtime,categories);
 
 		synchronizer.waitForWorkUnitsToComplete();
 
@@ -215,5 +246,6 @@ public class StacksGenerator
 	public synchronized void clear ()
 	{
 		moduleToComments.clear();
+		categories.clear();
 	}
 }

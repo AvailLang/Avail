@@ -212,13 +212,15 @@ public class StacksCommentsModule
 	 * @param errorLog
 	 * @param resolver
 	 * @param moduleToComments
+	 * @param categories
 	 */
 	public StacksCommentsModule(
 		final ModuleHeader header,
 		final A_Tuple commentTokens,
 		final StacksErrorLog errorLog,
 		final ModuleNameResolver resolver,
-		final HashMap<String, StacksCommentsModule> moduleToComments)
+		final HashMap<String, StacksCommentsModule> moduleToComments,
+		final StacksCategories categories)
 	{
 		this.moduleName = header.moduleName.qualifiedName();
 
@@ -252,10 +254,13 @@ public class StacksCommentsModule
 			{
 				final AbstractCommentImplementation implementation =
 					StacksScanner.processCommentString(
-						aToken,moduleName);
+						aToken,moduleName,categories);
 
-				addImplementation(
-					implementation.signature.name, implementation);
+				if (!(implementation == null))
+				{
+					addImplementation(
+						implementation.signature.name, implementation);
+				}
 			}
 			catch (StacksScannerException | StacksCommentBuilderException e)
 			{
@@ -390,11 +395,13 @@ public class StacksCommentsModule
 	/**
 	 * Acquire all distinct implementations being directly exported or extended
 	 * by this module and populate finalImplementationsGroupMap.
+	 * @param categories
+	 * 		A holder for all categories in stacks
 	 * @return
 	 * 		The size of the map
 	 */
 	public int
-		calculateFinalImplementationGroupsMap()
+		calculateFinalImplementationGroupsMap(final StacksCategories categories)
 	{
 		final HashMap<String,ImplementationGroup> newMap =
 			new HashMap<String,ImplementationGroup>();
@@ -451,6 +458,20 @@ public class StacksCommentsModule
 		}
 
 		finalImplementationsGroupMap = filteredMap;
+
+		for (final String methodName : nameToLinkMap.keySet())
+		{
+			final String filterMapKey = nameToLinkMap.get(methodName);
+			if (filteredMap.containsKey(filterMapKey))
+			{
+				for (final String category :
+					filteredMap.get(filterMapKey).getCategorySet())
+				{
+					categories.addCategoryMethodPair(category, methodName,
+						filterMapKey);
+				}
+			}
+		}
 		return finalImplementationsGroupMap.size();
 	}
 
@@ -465,9 +486,12 @@ public class StacksCommentsModule
 	 * 		of Stacks documentation
 	 * @param runtime
 	 *        An {@linkplain AvailRuntime runtime}.
+	 * @param categories
+	 * 		A holder for all categories in stacks
 	 */
 	public void writeMethodsToHTMLFiles(final Path outputPath,
-		final StacksSynchronizer synchronizer, final AvailRuntime runtime)
+		final StacksSynchronizer synchronizer, final AvailRuntime runtime,
+		final StacksCategories categories)
 	{
 
 		final String htmlOpenContent = "<!doctype html>\n<!--[if lt IE 7]> "
@@ -494,28 +518,5 @@ public class StacksCommentsModule
 				.toHTML(outputPath, implementationName,
 					htmlOpenContent, htmlCloseContent, synchronizer, runtime);
 		}
-	}
-
-	@Override
-	public String toString()
-	{
-		final StringBuilder stringBuilder = new StringBuilder().append("<h2>")
-			.append(moduleName).append("</h2>")
-			.append("<h3>Names</h3><ol>");
-
-		for (final A_String key : namedPublicCommentImplementations.keySet())
-		{
-			stringBuilder.append("<li>").append(key.asNativeString())
-				.append("</li>");
-		}
-		stringBuilder.append("</ol><h3>Extends</h3><ol>");
-
-		for (final String implementationName :
-			finalImplementationsGroupMap.keySet())
-		{
-			stringBuilder.append("<li>").append(implementationName)
-				.append("</li>");
-		}
-		return stringBuilder.append("</ol>").toString();
 	}
 }

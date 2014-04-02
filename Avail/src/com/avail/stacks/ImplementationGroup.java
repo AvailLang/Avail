@@ -35,6 +35,7 @@ package com.avail.stacks;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.HashSet;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.A_String;
 
@@ -382,4 +383,39 @@ public class ImplementationGroup
 			!(classImplementation == null));
 	}
 
+	/**
+	 * @return A set of category String names for this implementation.
+	 */
+	public HashSet<String> getCategorySet()
+	{
+		final HashSet<String> categorySet = new HashSet<String>();
+
+		for (final MethodCommentImplementation implementation : methods)
+		{
+			categorySet.addAll(implementation.getCategorySet());
+		}
+
+		for (final GrammaticalRestrictionCommentImplementation implementation :
+			grammaticalRestrictions)
+		{
+			categorySet.addAll(implementation.getCategorySet());
+		}
+
+		for (final SemanticRestrictionCommentImplementation implementation :
+			semanticRestrictions)
+		{
+			categorySet.addAll(implementation.getCategorySet());
+		}
+
+		if (!(classImplementation == null))
+		{
+			categorySet.addAll(classImplementation.getCategorySet());
+		}
+		if (!(global == null))
+		{
+			categorySet.addAll(global.getCategorySet());
+		}
+
+		return categorySet;
+	}
 }
