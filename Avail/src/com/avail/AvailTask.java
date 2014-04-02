@@ -60,8 +60,9 @@ implements Comparable<AvailTask>, Runnable
 	 *
 	 * @param fiber
 	 *        A fiber.
-	 * @param continuation
-	 *        What to do to resume execution of the fiber.
+	 * @param transformer
+	 *        What to do to resume execution of the fiber.  The fiber's
+	 *        {@link ExecutionState} is returned by it.
 	 * @return A task that sets the execution state of the fiber to {@linkplain
 	 *         ExecutionState#RUNNING running}, binds it to this {@linkplain
 	 *         AvailThread thread}'s {@linkplain Interpreter interpreter}, and
@@ -69,7 +70,7 @@ implements Comparable<AvailTask>, Runnable
 	 */
 	public static final AvailTask forFiberResumption (
 		final A_Fiber fiber,
-		final Continuation0 continuation)
+		final Transformer0<ExecutionState> transformer)
 	{
 		assert fiber.executionState().indicatesSuspension();
 		final boolean scheduled =
@@ -100,9 +101,15 @@ implements Comparable<AvailTask>, Runnable
 				});
 				final MutableOrNull<Continuation0> postExitContinuation =
 					new MutableOrNull<>();
+				ExecutionState finalState = null;
 				try
 				{
-					continuation.value();
+					// Capture the return value from the transformer, so that
+					// we can tell if *we* made the fiber terminate, versus
+					// another thread resuming its execution and reaching
+					// termination quickly.
+					finalState = transformer.value();
+					assert finalState == fiber.executionState();
 				}
 				catch (final Throwable e)
 				{
@@ -127,18 +134,21 @@ implements Comparable<AvailTask>, Runnable
 					interpreter.postExitContinuation(null);
 				}
 				final @Nullable Continuation0 con = postExitContinuation.value;
+				// This is the first point at which *some other* Thread may have
+				// had a chance to resume the fiber and update its state.
 				if (con != null)
 				{
 					con.value();
 				}
 				// If the fiber has terminated, then report its
 				// result via its result continuation.
+				final ExecutionState finalFinalState = finalState;
 				fiber.lock(new Continuation0()
 				{
 					@Override
 					public void value ()
 					{
-						if (fiber.executionState() == TERMINATED)
+						if (finalFinalState == TERMINATED)
 						{
 							fiber.resultContinuation().value(
 								fiber.fiberResult());

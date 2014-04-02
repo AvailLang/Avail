@@ -1867,10 +1867,10 @@ public final class Interpreter
 		runtime.whenLevelOneUnsafeDo(
 			AvailTask.forFiberResumption(
 				aFiber,
-				new Continuation0()
+				new Transformer0<ExecutionState>()
 				{
 					@Override
-					public void value ()
+					public ExecutionState value ()
 					{
 						final Interpreter interpreter = current();
 						assert aFiber == interpreter.fiber;
@@ -1879,6 +1879,7 @@ public final class Interpreter
 						continuation.value(interpreter);
 						// Run the interpreter for a while.
 						interpreter.run();
+						return aFiber.executionState();
 					}
 				}));
 	}
