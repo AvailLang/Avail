@@ -35,6 +35,7 @@ package com.avail.stacks;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.HashSet;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.A_String;
 
@@ -341,10 +342,12 @@ public class ImplementationGroup
 		else if (!(global == null))
 		{
 			stringBuilder.append(global().toHTML());
+			final int leafFileNameStart = qualifiedMethodName.lastIndexOf('/') + 1;
 			final String localPath = qualifiedMethodName
-				.substring(1, qualifiedMethodName.lastIndexOf('/') + 1);
+				.substring(1, leafFileNameStart);
 
-			final String hashedFileName = String.valueOf(name.hash()) + ".html";
+			final String hashedFileName =
+				qualifiedMethodName.substring(leafFileNameStart);
 
 			final StacksOutputFile htmlFile = new StacksOutputFile(
 				outputPath.resolve(localPath), synchronizer, hashedFileName,
@@ -369,4 +372,50 @@ public class ImplementationGroup
 		}
 	}
 
+	/**
+	 * Determine if the implementation is populated.
+	 * @return
+	 */
+	public boolean isPopulated()
+	{
+		return (!methods.isEmpty() ||
+			!(global == null) ||
+			!(classImplementation == null));
+	}
+
+	/**
+	 * @return A set of category String names for this implementation.
+	 */
+	public HashSet<String> getCategorySet()
+	{
+		final HashSet<String> categorySet = new HashSet<String>();
+
+		for (final MethodCommentImplementation implementation : methods)
+		{
+			categorySet.addAll(implementation.getCategorySet());
+		}
+
+		for (final GrammaticalRestrictionCommentImplementation implementation :
+			grammaticalRestrictions)
+		{
+			categorySet.addAll(implementation.getCategorySet());
+		}
+
+		for (final SemanticRestrictionCommentImplementation implementation :
+			semanticRestrictions)
+		{
+			categorySet.addAll(implementation.getCategorySet());
+		}
+
+		if (!(classImplementation == null))
+		{
+			categorySet.addAll(classImplementation.getCategorySet());
+		}
+		if (!(global == null))
+		{
+			categorySet.addAll(global.getCategorySet());
+		}
+
+		return categorySet;
+	}
 }

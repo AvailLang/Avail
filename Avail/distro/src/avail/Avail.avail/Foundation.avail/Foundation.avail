@@ -367,6 +367,7 @@ Extends
 		"bad-cast exception",
 		"bad-multiway-cast exception"
 	),
+	"Categories",
 	"Characters" =
 	(
 		"capitalize_",

@@ -68,7 +68,8 @@ public class StacksParser
 			@Override
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
-				 final ArrayList<AbstractStacksToken> tagContentTokens)
+				 final ArrayList<AbstractStacksToken> tagContentTokens,
+				 final StacksCategories categories)
 					 throws ClassCastException
 			{
 				builder.addStacksAuthorTag(tagContentTokens);
@@ -84,10 +85,11 @@ public class StacksParser
 			@Override
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
-				 final ArrayList<AbstractStacksToken> tagContentTokens)
+				 final ArrayList<AbstractStacksToken> tagContentTokens,
+				 final StacksCategories categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
-				builder.addStacksCategoryTag(tagContentTokens);
+				builder.addStacksCategoryTag(tagContentTokens,categories);
 			}
 		},
 
@@ -99,7 +101,8 @@ public class StacksParser
 			@Override
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
-				 final ArrayList<AbstractStacksToken> tagContentTokens)
+				 final ArrayList<AbstractStacksToken> tagContentTokens,
+				 final StacksCategories categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 
@@ -116,7 +119,8 @@ public class StacksParser
 			@Override
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
-				final ArrayList<AbstractStacksToken> tagContentTokens)
+				final ArrayList<AbstractStacksToken> tagContentTokens,
+				 final StacksCategories categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksForbidTag(tagContentTokens);
@@ -130,7 +134,8 @@ public class StacksParser
 			@Override
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
-				 final ArrayList<AbstractStacksToken> tagContentTokens)
+				 final ArrayList<AbstractStacksToken> tagContentTokens,
+				 final StacksCategories categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksGlobalTag(tagContentTokens);
@@ -145,7 +150,8 @@ public class StacksParser
 			@Override
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
-				 final ArrayList<AbstractStacksToken> tagContentTokens)
+				 final ArrayList<AbstractStacksToken> tagContentTokens,
+				 final StacksCategories categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksMethodTag(tagContentTokens);
@@ -161,7 +167,8 @@ public class StacksParser
 			@Override
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
-				 final ArrayList<AbstractStacksToken> tagContentTokens)
+				 final ArrayList<AbstractStacksToken> tagContentTokens,
+				 final StacksCategories categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksParameterTag(tagContentTokens);
@@ -177,7 +184,8 @@ public class StacksParser
 			@Override
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
-				 final ArrayList<AbstractStacksToken> tagContentTokens)
+				 final ArrayList<AbstractStacksToken> tagContentTokens,
+				 final StacksCategories categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksRaisesTag(tagContentTokens);
@@ -193,7 +201,8 @@ public class StacksParser
 			@Override
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
-				 final ArrayList<AbstractStacksToken> tagContentTokens)
+				 final ArrayList<AbstractStacksToken> tagContentTokens,
+				 final StacksCategories categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksRestrictsTag(tagContentTokens);
@@ -209,7 +218,8 @@ public class StacksParser
 			@Override
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
-				 final ArrayList<AbstractStacksToken> tagContentTokens)
+				 final ArrayList<AbstractStacksToken> tagContentTokens,
+				 final StacksCategories categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksReturnsTag(tagContentTokens);
@@ -225,7 +235,8 @@ public class StacksParser
 			@Override
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
-				 final ArrayList<AbstractStacksToken> tagContentTokens)
+				 final ArrayList<AbstractStacksToken> tagContentTokens,
+				 final StacksCategories categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksSeesTag(tagContentTokens);
@@ -241,7 +252,8 @@ public class StacksParser
 			@Override
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
-				 final ArrayList<AbstractStacksToken> tagContentTokens)
+				 final ArrayList<AbstractStacksToken> tagContentTokens,
+				 final StacksCategories categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksSupertypeTag(tagContentTokens);
@@ -256,7 +268,8 @@ public class StacksParser
 			@Override
 			void addTokensToBuilder (
 				final CommentImplementationBuilder builder,
-				 final ArrayList<AbstractStacksToken> tagContentTokens)
+				 final ArrayList<AbstractStacksToken> tagContentTokens,
+				 final StacksCategories categories)
 					 throws ClassCastException, StacksCommentBuilderException
 			{
 				builder.addStacksTypeTag(tagContentTokens);
@@ -298,12 +311,13 @@ public class StacksParser
 		 * 		The comment builder
 		 * @param tagContentTokens
 		 * 		The tokens contained in the indicated section.
+		 * @param catagories The holder for all categories presently available
 		 * @throws ClassCastException
 		 * @throws StacksCommentBuilderException
 		 */
 		 abstract void addTokensToBuilder (
 			 CommentImplementationBuilder builder,
-			 ArrayList<AbstractStacksToken> tagContentTokens)
+			 ArrayList<AbstractStacksToken> tagContentTokens, StacksCategories catagories)
 		 throws ClassCastException, StacksCommentBuilderException;
 	}
 
@@ -339,13 +353,14 @@ public class StacksParser
 	 * 		The name of the module the comment occurs in.
 	 * @param commentStartLine
 	 * 		The line the comment being parsed appears on
+	 * @param categories A holder for all categories in stacks
 	 * @throws StacksCommentBuilderException
 	 */
 	private StacksParser (
 		final ArrayList<AbstractStacksToken> tokens,
 		final ArrayList<Integer> sectionStartLocations,
 		final String moduleName,
-		final int commentStartLine) throws StacksCommentBuilderException
+		final int commentStartLine, final StacksCategories categories) throws StacksCommentBuilderException
 	{
 		this.tokens = tokens;
 		this.sectionStartLocations = sectionStartLocations;
@@ -386,6 +401,8 @@ public class StacksParser
 	 * 		The name of the module from which the comment originates.
 	 * @param commentStartLine
 	 * 		The line where the comment being parsed starts in the module.
+	 * @param categories
+	 * 		A holder for all categories in stacks
 	 * @return
 	 * 		The resulting {@link AbstractCommentImplementation} of the token
 	 * 		parsing.
@@ -395,20 +412,22 @@ public class StacksParser
 		final ArrayList<AbstractStacksToken> tokens,
 		final ArrayList<Integer> sectionStartLocations,
 		final String string,
-		final int commentStartLine)
+		final int commentStartLine, final StacksCategories categories)
 		throws StacksCommentBuilderException
 	{
 		final StacksParser parser =
 			new StacksParser(tokens, sectionStartLocations, string,
-				commentStartLine);
-		return parser.parse();
+				commentStartLine,categories);
+		return parser.parse(categories);
 	}
 
 	/**
+	 * @param catagories
+	 * 		A holder for all categories in stacks
 	 * @return
 	 * @throws StacksCommentBuilderException
 	 */
-	private AbstractCommentImplementation parse ()
+	private AbstractCommentImplementation parse (final StacksCategories catagories)
 		throws StacksCommentBuilderException
 	{
 		int nextSectionStartLocationsIndex = -1;
@@ -455,7 +474,7 @@ public class StacksParser
 			StacksTagKeyword.keywordTable.get(key)
 				.addTokensToBuilder(builder,
 					new ArrayList<AbstractStacksToken>(tokens()
-						.subList(getDataStartingFrom,getDataUntil)));
+						.subList(getDataStartingFrom,getDataUntil)),catagories);
 			currentSectionStartLocationsIndex = nextSectionStartLocationsIndex;
 		}
 

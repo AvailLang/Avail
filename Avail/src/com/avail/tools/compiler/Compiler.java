@@ -41,6 +41,7 @@ import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
 import com.avail.builder.*;
 import com.avail.compiler.AbstractAvailCompiler.*;
+import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -178,15 +179,16 @@ public class Compiler
 			@Override
 			public void value (
 				final @Nullable ModuleName module,
-				final @Nullable Long lineNumber,
-				final @Nullable Long parsePosition,
-				final @Nullable Long moduleSize)
+				final @Nullable Long moduleSize,
+				final @Nullable ParserState state,
+				final @Nullable A_Phrase lastStatement)
 			{
 				assert module != null;
-				assert lineNumber != null;
-				assert parsePosition != null;
 				assert moduleSize != null;
+				assert state != null;
+				assert lastStatement != null;
 
+				final int parsePosition = state.peekToken().start();
 				final int percent = (int) ((parsePosition * 100) / moduleSize);
 				String modName = module.qualifiedName();
 				final int maxModuleNameLength = 61;

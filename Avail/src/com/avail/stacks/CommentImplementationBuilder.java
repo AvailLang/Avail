@@ -43,6 +43,10 @@ import java.util.TreeMap;
 public class CommentImplementationBuilder
 {
 	/**
+	 * The available {@linkplain StacksCategories}
+	 */
+	private StacksCategories stacksCategories;
+	/**
 	 * The author keyword indicates the method implementation author.
 	 */
 	private final ArrayList<StacksAuthorTag> authors;
@@ -67,15 +71,19 @@ public class CommentImplementationBuilder
 
 	/**
 	 * @param tagContentTokens
+	 * @param availableCategories
 	 * @throws ClassCastException
 	 * @throws StacksCommentBuilderException
 	 */
 	public void addStacksCategoryTag(
-		 final ArrayList<AbstractStacksToken> tagContentTokens)
+		 final ArrayList<AbstractStacksToken> tagContentTokens,
+		 final StacksCategories availableCategories)
 			 throws ClassCastException, StacksCommentBuilderException
 	{
 		final ArrayList<QuotedStacksToken> tempTokens =
 			new ArrayList<QuotedStacksToken>();
+
+		stacksCategories = availableCategories;
 
 		for (final AbstractStacksToken token : tagContentTokens)
 		{
@@ -981,6 +989,24 @@ public class CommentImplementationBuilder
 				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
+		}
+		if (types.isEmpty() && methods.isEmpty() && globalVariables.isEmpty()
+			&& authors.isEmpty() && fields.isEmpty() && forbids.isEmpty()
+			&& parameters.isEmpty() && raises.isEmpty() && restricts.isEmpty()
+			&& returns.isEmpty() && sees.isEmpty() && supertypes.isEmpty()
+			&& types.isEmpty() && !categories.isEmpty())
+		{
+			//Defining of a category
+			final StacksCategoryTag onlyTag = categories.get(0);
+
+			if (onlyTag.categories().size() == 1)
+			{
+				stacksCategories
+					.addCategoryToDescription(
+						onlyTag.categories().get(0).lexeme()
+						,description);
+				return null;
+			}
 		}
 
 		final String errorMessage = String.format("\n<li><strong>%s"

@@ -34,10 +34,12 @@ package com.avail.stacks;
 
 import java.util.HashMap;
 import com.avail.descriptor.A_String;
+import com.avail.descriptor.StringDescriptor;
+import com.avail.utility.Pair;
 
 /**
- * A grouping of all implementationGroups originating from the names section of this
- * module
+ * A grouping of all implementationGroups originating from the names section of
+ * this module
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
@@ -317,18 +319,39 @@ public class StacksExtendsModule
 	 * @return
 	 * 		A map with keyed by the method qualified name to the implementation.
 	 */
-	public HashMap<String,ImplementationGroup>
+	public Pair<HashMap<String,ImplementationGroup>,HashMap<String,String>>
 		qualifiedImplementationNameToImplementation()
 	{
 			final HashMap<String,ImplementationGroup> newMap =
 				new HashMap<String,ImplementationGroup>();
 
+			final HashMap<A_String,Integer> newHashNameMap =
+				new HashMap<A_String,Integer>();
+
+			final HashMap<String,String> nameToLinkMap =
+				new HashMap<String,String>();
+
 			for (final A_String name : implementationGroups.keySet())
 			{
-				final String qualifiedName = moduleName + "/" + name.asNativeString();
+				A_String nameToBeHashed = name;
+				if (newHashNameMap.containsKey(name))
+				{
+					newHashNameMap.put(name, newHashNameMap.get(name) + 1);
+					nameToBeHashed =
+						StringDescriptor.from(name.asNativeString()
+							+ newHashNameMap.get(name));
+				}
+				else
+				{
+					newHashNameMap.put(nameToBeHashed, 0);
+				}
+				final String qualifiedName = moduleName + "/"
+					+ String.valueOf(nameToBeHashed.hash()) + ".html";
 				newMap.put(qualifiedName, implementationGroups.get(name));
+				nameToLinkMap.put(name.asNativeString(), qualifiedName);
 			}
-			return newMap;
+			return new Pair<HashMap<String, ImplementationGroup>,
+				HashMap<String, String>>(newMap,nameToLinkMap);
 	}
 
 	/**
@@ -338,19 +361,33 @@ public class StacksExtendsModule
 	 * @return
 	 * 		A map keyed by the qualified method name to the implementation.
 	 */
-	public HashMap<String,ImplementationGroup> flattenImplementationGroups()
+	public Pair<HashMap<String,ImplementationGroup>,HashMap<String,String>>
+		flattenImplementationGroups()
 	{
 		final HashMap<String,ImplementationGroup> newMap =
 			new HashMap<String,ImplementationGroup>();
 
+		final HashMap<String,String> nameToLinkMap =
+			new HashMap<String,String>();
+
 		for (final StacksExtendsModule extendsModule :
 			moduleNameToExtendsList.values())
 		{
-			newMap.putAll(extendsModule.flattenImplementationGroups());
+			final Pair<HashMap<String, ImplementationGroup>,
+				HashMap<String, String>> pair =
+					extendsModule.flattenImplementationGroups();
+			newMap.putAll(pair.first());
+			nameToLinkMap.putAll(pair.second());
 		}
 
-		newMap.putAll(qualifiedImplementationNameToImplementation());
-		return newMap;
+		final Pair<HashMap<String, ImplementationGroup>,
+			HashMap<String, String>> aPair =
+				qualifiedImplementationNameToImplementation();
+		newMap.putAll(aPair.first());
+		nameToLinkMap.putAll(aPair.second());
+
+		return new Pair<HashMap<String, ImplementationGroup>,
+			HashMap<String, String>>(newMap,nameToLinkMap);
 	}
 
 	@Override

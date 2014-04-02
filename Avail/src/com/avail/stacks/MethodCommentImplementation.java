@@ -155,7 +155,7 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 
 			for (final StacksRaisesTag exception : exceptions)
 			{
-				stringBuilder.append(exception);
+				stringBuilder.append(exception.toHTML());
 			}
 		}
 

@@ -49,6 +49,7 @@ import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.SetDescriptor;
 import com.avail.descriptor.StringDescriptor;
+import com.avail.utility.Pair;
 
 /**
  * A representation of all the fully parsed {@linkplain CommentTokenDescriptor
@@ -131,6 +132,12 @@ public class StacksCommentsModule
 	}
 
 	/**
+	 * Links the name to the appropriate file name.
+	 */
+	final HashMap<A_String,Integer> nameToFileName =
+		new HashMap<A_String,Integer>();
+
+	/**
 	 * Add an implementation to an {@linkplain ImplementationGroup} of the
 	 * appropriate module.
 	 * @param name
@@ -205,13 +212,15 @@ public class StacksCommentsModule
 	 * @param errorLog
 	 * @param resolver
 	 * @param moduleToComments
+	 * @param categories
 	 */
 	public StacksCommentsModule(
 		final ModuleHeader header,
 		final A_Tuple commentTokens,
 		final StacksErrorLog errorLog,
 		final ModuleNameResolver resolver,
-		final HashMap<String, StacksCommentsModule> moduleToComments)
+		final HashMap<String, StacksCommentsModule> moduleToComments,
+		final StacksCategories categories)
 	{
 		this.moduleName = header.moduleName.qualifiedName();
 
@@ -245,10 +254,13 @@ public class StacksCommentsModule
 			{
 				final AbstractCommentImplementation implementation =
 					StacksScanner.processCommentString(
-						aToken,moduleName);
+						aToken,moduleName,categories);
 
-				addImplementation(
-					implementation.signature.name, implementation);
+				if (!(implementation == null))
+				{
+					addImplementation(
+						implementation.signature.name, implementation);
+				}
 			}
 			catch (StacksScannerException | StacksCommentBuilderException e)
 			{
@@ -383,30 +395,84 @@ public class StacksCommentsModule
 	/**
 	 * Acquire all distinct implementations being directly exported or extended
 	 * by this module and populate finalImplementationsGroupMap.
+	 * @param categories
+	 * 		A holder for all categories in stacks
 	 * @return
 	 * 		The size of the map
 	 */
 	public int
-		calculateFinalImplementationGroupsMap()
+		calculateFinalImplementationGroupsMap(final StacksCategories categories)
 	{
 		final HashMap<String,ImplementationGroup> newMap =
 			new HashMap<String,ImplementationGroup>();
 
+		final HashMap<String,String> nameToLinkMap =
+			new HashMap<String,String>();
+
 		for (final StacksExtendsModule extendsModule :
 			extendedNamesImplementations.values())
 		{
-			newMap.putAll(extendsModule.flattenImplementationGroups());
+			final Pair<HashMap<String,ImplementationGroup>,
+				HashMap<String,String>> pair =
+					extendsModule.flattenImplementationGroups();
+			newMap.putAll(pair.first());
+			nameToLinkMap.putAll(pair.second());
 		}
+
+		final HashMap<A_String,Integer> newHashNameMap =
+			new HashMap<A_String,Integer>();
+
 		for (final A_String key : namedPublicCommentImplementations.keySet())
 		{
+			A_String nameToBeHashed = key;
+			if (newHashNameMap.containsKey(key))
+			{
+				newHashNameMap.put(key, newHashNameMap.get(key) + 1);
+				nameToBeHashed =
+					StringDescriptor.from(key.asNativeString()
+						+ newHashNameMap.get(key));
+			}
+			else
+			{
+				newHashNameMap.put(nameToBeHashed, 0);
+			}
+			final String qualifiedName = moduleName + "/"
+				+ String.valueOf(nameToBeHashed.hash()) + ".html";
+
 			final String qualifiedMethodName = moduleName + "/"
 				+ key.asNativeString();
 			newMap.put(qualifiedMethodName,
 				namedPublicCommentImplementations.get(key));
+			nameToLinkMap.put(key.asNativeString(), qualifiedName);
 		}
 
-		finalImplementationsGroupMap = newMap;
-		return newMap.size();
+		final HashMap<String,ImplementationGroup> filteredMap =
+			new HashMap<String,ImplementationGroup>();
+
+		for (final String key : newMap.keySet())
+		{
+			if (newMap.get(key).isPopulated())
+			{
+				filteredMap.put(key, newMap.get(key));
+			}
+		}
+
+		finalImplementationsGroupMap = filteredMap;
+
+		for (final String methodName : nameToLinkMap.keySet())
+		{
+			final String filterMapKey = nameToLinkMap.get(methodName);
+			if (filteredMap.containsKey(filterMapKey))
+			{
+				for (final String category :
+					filteredMap.get(filterMapKey).getCategorySet())
+				{
+					categories.addCategoryMethodPair(category, methodName,
+						filterMapKey);
+				}
+			}
+		}
+		return finalImplementationsGroupMap.size();
 	}
 
 	/**
@@ -420,16 +486,30 @@ public class StacksCommentsModule
 	 * 		of Stacks documentation
 	 * @param runtime
 	 *        An {@linkplain AvailRuntime runtime}.
+	 * @param categories
+	 * 		A holder for all categories in stacks
 	 */
 	public void writeMethodsToHTMLFiles(final Path outputPath,
-		final StacksSynchronizer synchronizer, final AvailRuntime runtime)
+		final StacksSynchronizer synchronizer, final AvailRuntime runtime,
+		final StacksCategories categories)
 	{
 
-		final String htmlOpenContent = "<!DOCTYPE html><head><link "
-			+ "href=\"doclib.css\" rel=\"stylesheet\" />"
-			+ "<meta charset=\"UTF-8\"></head><body>";
+		final String htmlOpenContent = "<!doctype html>\n<!--[if lt IE 7]> "
+			+ "<html class=\"ie6 oldie\">"
+			+ "<![endif]-->\n<!--[if IE 7]>\n<html class=\"ie7 oldie\">"
+			+ "<![endif]-->\n<!--[if IE 8]>\n<html class=\"ie8 oldie\">"
+			+ "<![endif]-->\n<!--[if gt IE 8]><!-->\n<html class=\"\">"
+			+ "<!--<![endif]-->\n\t<head>\n"
+			+ "<!--#include virtual=\"/_include/head.ssi\" -->\n"
+			+ "<title>Avail - Library</title>\n\t</head>\n\t"
+			+ "<body class=\"gradient-logo\">\n"
+			+ "<!--#include virtual=\"/_include/body-top.ssi\" -->";
 
-		final String htmlCloseContent = "</body></html>";
+
+		final String htmlCloseContent =
+			"<!--#include virtual=\"/_include/body-bottom.ssi\" -->\n\t"
+			+ "</body>\n</html>";
+
 
 		for (final String implementationName :
 			finalImplementationsGroupMap.keySet())
@@ -438,28 +518,5 @@ public class StacksCommentsModule
 				.toHTML(outputPath, implementationName,
 					htmlOpenContent, htmlCloseContent, synchronizer, runtime);
 		}
-	}
-
-	@Override
-	public String toString()
-	{
-		final StringBuilder stringBuilder = new StringBuilder().append("<h2>")
-			.append(moduleName).append("</h2>")
-			.append("<h3>Names</h3><ol>");
-
-		for (final A_String key : namedPublicCommentImplementations.keySet())
-		{
-			stringBuilder.append("<li>").append(key.asNativeString())
-				.append("</li>");
-		}
-		stringBuilder.append("</ol><h3>Extends</h3><ol>");
-
-		for (final String implementationName :
-			finalImplementationsGroupMap.keySet())
-		{
-			stringBuilder.append("<li>").append(implementationName)
-				.append("</li>");
-		}
-		return stringBuilder.append("</ol>").toString();
 	}
 }

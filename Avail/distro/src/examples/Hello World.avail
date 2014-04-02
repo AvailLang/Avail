@@ -31,13 +31,8 @@
  */
 
 Module "Hello World"
-Uses
-	"Avail"
-Entries
-	"Greet"
+Uses "Avail"
+Entries "Greet"
 Body
 
-Method "Greet" is
-[
-	Print: "Hello, world!\n";
-];
+Method "Greet" is [ Print: "Hello, world!\n"; ];

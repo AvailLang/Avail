@@ -79,11 +79,12 @@ import com.avail.utility.evaluation.*;
 public abstract class AbstractAvailCompiler
 {
 	/**
-	 * A {@code CompilerProgressReporter} is used to convey to the compiler what
-	 * should be done each time global progress is made.
+	 * The {@linkplain AbstractAvailCompiler compiler} notifies a {@code
+	 * CompilerProgressReporter} whenever a top-level statement is parsed
+	 * unambiguously.
 	 */
 	public interface CompilerProgressReporter
-	extends Continuation4<ModuleName, Long, Long, Long>
+	extends Continuation4<ModuleName, Long, ParserState, A_Phrase>
 	{
 		// nothing
 	}
@@ -1589,7 +1590,7 @@ public abstract class AbstractAvailCompiler
 		 *
 		 * @return Whether this state represents the end of the file.
 		 */
-		boolean atEnd ()
+		public boolean atEnd ()
 		{
 			return this.position == tokens.size() - 1;
 		}
@@ -1600,7 +1601,7 @@ public abstract class AbstractAvailCompiler
 		 *
 		 * @return The token.
 		 */
-		A_Token peekToken ()
+		public A_Token peekToken ()
 		{
 			return tokens.get(position);
 		}
@@ -5625,14 +5626,13 @@ public abstract class AbstractAvailCompiler
 		// file.
 		else if (!afterHeader.atEnd())
 		{
-			final A_Token token = afterHeader.peekToken();
 			final CompilerProgressReporter reporter = progressReporter;
 			assert reporter != null;
 			reporter.value(
 				moduleName(),
-				(long) token.lineNumber(),
-				(long) token.start(),
-				(long) source.length());
+				(long) source.length(),
+				afterHeader,
+				null);
 		}
 		assert afterHeader != null;
 		// Run any side-effects implied by this module header against the
@@ -5734,17 +5734,14 @@ public abstract class AbstractAvailCompiler
 							// progress.
 							if (!afterStatement.atEnd())
 							{
-								final A_Token token =
-									tokens.get(afterStatement.position - 1);
-								final
-									CompilerProgressReporter reporter =
-										progressReporter;
+								final CompilerProgressReporter reporter =
+									progressReporter;
 								assert reporter != null;
 								reporter.value(
 									moduleName(),
-									(long) token.lineNumber(),
-									(long) token.start() + 2,
-									(long) source.length());
+									(long) source.length(),
+									afterStatement,
+									unambiguousStatement);
 								eventuallyDo(
 									afterStatement.peekToken(),
 									new Continuation0()

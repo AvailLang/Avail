@@ -115,12 +115,13 @@ public class AbstractAvailTest
 				@Override
 				public void value (
 					final @Nullable ModuleName moduleName,
-					final @Nullable Long lineNumber,
-					final @Nullable Long position,
-					final @Nullable Long moduleSize)
+					final @Nullable Long moduleSize,
+					final @Nullable ParserState position,
+					final @Nullable A_Phrase lastStatement)
 				{
-					assert lineNumber != null;
-					System.out.printf("%nline %d", lineNumber);
+					assert position != null;
+					System.out.printf(
+						"%nline %d", position.peekToken().lineNumber());
 				}
 			},
 			new Continuation3<ModuleName, Long, Long>()
