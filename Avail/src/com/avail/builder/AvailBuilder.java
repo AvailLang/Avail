@@ -54,6 +54,7 @@ import com.avail.compiler.*;
 import com.avail.compiler.AbstractAvailCompiler.CompilerProgressReporter;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
 import com.avail.compiler.AbstractAvailCompiler.ModuleImport;
+import com.avail.compiler.AbstractAvailCompiler.ParserState;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
 import com.avail.compiler.problems.ProblemType;
@@ -1407,8 +1408,7 @@ public final class AvailBuilder
 		 * <li>the position of the ongoing parse (in bytes), and</li>
 		 * <li>the size of the module in bytes.</li>
 		 */
-		@InnerAccess final Continuation4<ModuleName, Long, Long, Long>
-			localTracker;
+		@InnerAccess final CompilerProgressReporter localTracker;
 
 		/**
 		 * A {@linkplain Continuation3} that is updated to show global progress
@@ -1650,7 +1650,7 @@ public final class AvailBuilder
 				final byte[] sourceDigest,
 				final Continuation0 completionAction)
 		{
-			localTracker.value(moduleName, -1L, -1L, -1L);
+			localTracker.value(moduleName, -1L, null, null);
 			final A_Module module = ModuleDescriptor.newModule(
 				StringDescriptor.from(moduleName.qualifiedName()));
 			final AvailLoader availLoader = new AvailLoader(module);
@@ -1859,26 +1859,26 @@ public final class AvailBuilder
 								@Override
 								public void value (
 									final @Nullable ModuleName moduleName2,
-									final @Nullable Long lineNumber,
-									final @Nullable Long localPosition,
-									final @Nullable Long moduleSize)
+									final @Nullable Long moduleSize,
+									final @Nullable ParserState localPosition,
+									final @Nullable A_Phrase lastStatement)
 								{
 									assert moduleName.equals(moduleName2);
-									assert lineNumber != null;
-									assert localPosition != null;
 									assert moduleSize != null;
-									assert moduleName.equals(moduleName2);
+									assert localPosition != null;
 									localTracker.value(
 										moduleName,
-										lineNumber,
+										moduleSize,
 										localPosition,
-										moduleSize);
+										lastStatement);
+									final long start =
+										localPosition.peekToken().start();
 									globalTracker.value(
 										moduleName,
 										bytesCompiled.addAndGet(
-											localPosition - lastPosition.value),
+											start - lastPosition.value),
 										globalCodeSize());
-									lastPosition.value = localPosition;
+									lastPosition.value = start;
 								}
 							},
 							new Continuation1<AvailCompilerResult>()

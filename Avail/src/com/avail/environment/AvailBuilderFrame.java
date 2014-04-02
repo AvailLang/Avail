@@ -881,9 +881,9 @@ extends JFrame
 				@Override
 				public void value (
 					final @Nullable ModuleName moduleName,
-					final @Nullable Long lineNumber,
-					final @Nullable Long position,
-					final @Nullable Long moduleSize)
+					final @Nullable Long moduleSize,
+					final @Nullable ParserState position,
+					final @Nullable A_Phrase lastStatement)
 				{
 					// Do nothing.
 				}
