@@ -1933,7 +1933,7 @@ extends JFrame
 		final int percent = (int) ((position * 100) / globalCodeSize);
 		buildProgress.setValue(percent);
 		buildProgress.setString(String.format(
-			"Build Progress: %d / %d bytes (%d%%)",
+			"Build Progress: %,d / %,d bytes (%,d%%)",
 			position,
 			globalCodeSize,
 			percent));
