@@ -113,8 +113,13 @@ public class SemanticRestrictionCommentImplementation extends
 		stringBuilder
 			.append("\n<th class=\"IColLabelNarrow\" scope=\"col\">Type</th>\n"
 				+ "<th class=\"IColLabelWide\" scope=\"col\">Description</th>\n"
-				+ "</tr>\n</thead>\n<tbody>\n<tr>\n<th class=\"IRowLabel\" rowspan=\"")
-			.append(paramCount).append("\">Parameter Types</th>\n</tr>\n");
+				+ "</tr>\n</thead>\n<tbody>\n");
+
+		if (paramCount > 0)
+		{
+			stringBuilder.append("<tr>\n<th class=\"IRowLabel\" rowspan=\"")
+			.append(paramCount + 1).append("\">Parameter Types</th>\n</tr>\n");
+		}
 
 		for (final StacksRestrictsTag restrictsTag : restricts)
 		{
