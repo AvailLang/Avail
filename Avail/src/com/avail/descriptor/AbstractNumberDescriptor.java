@@ -41,7 +41,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import com.avail.annotations.*;
-import com.avail.optimizer.RegisterSet;
 
 /**
  * The abstract class {@code AbstractNumberDescriptor} serves as an abstraction

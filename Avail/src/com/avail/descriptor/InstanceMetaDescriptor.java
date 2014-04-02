@@ -132,12 +132,6 @@ extends AbstractEnumerationTypeDescriptor
 		aStream.append(")'s type");
 	}
 
-	@Override
-	AvailObject o_Instance (final AvailObject object)
-	{
-		return getInstance(object);
-	}
-
 	/**
 	 * Compute the type intersection of the object which is an instance meta,
 	 * and the argument, which is some type (it may be an {@linkplain
@@ -205,6 +199,13 @@ extends AbstractEnumerationTypeDescriptor
 		// Unless another is top, then the answer will be any.
 		return ANY.o().typeUnion(another);
 	}
+
+	@Override
+	AvailObject o_Instance (final AvailObject object)
+	{
+		return getInstance(object);
+	}
+
 
 	@Override @AvailMethod
 	boolean o_IsInstanceMeta (final AvailObject object)

@@ -493,7 +493,7 @@ public interface A_BasicObject
 	boolean equalsPrimitiveType (A_Type aPrimitiveType);
 
 	/**
-	 * @param otherRawPojo TODO
+	 * @param otherRawPojo
 	 * @param otherJavaObject
 	 * @return
 	 */
@@ -969,7 +969,7 @@ public interface A_BasicObject
 		AvailObject receiver);
 
 	/**
-	 * @param otherEqualityRawPojo TODO
+	 * @param otherEqualityRawPojo
 	 * @param otherJavaObject
 	 * @return
 	 */

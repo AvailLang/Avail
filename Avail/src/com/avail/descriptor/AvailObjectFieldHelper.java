@@ -69,6 +69,15 @@ import com.avail.annotations.Nullable;
  * <li>Preferences... &rarr; Java &rarr; Debug &rarr; Logical Structures &rarr;
  * Add:
  *   <ul>
+ *   <li>Qualified name: com.avail.interpreter.Interpreter</li>
+ *   <li>Description: Present Interpreter as stack frames</li>
+ *   <li>Structure type: Single value</li>
+ *   <li>Code: {@code return describeForDebugger();}</li>
+ *   </ul>
+ * </li>
+ * <li>Preferences... &rarr; Java &rarr; Debug &rarr; Logical Structures &rarr;
+ * Add:
+ *   <ul>
  *   <li>Qualified name: com.avail.descriptor.AvailObjectFieldHelper</li>
  *   <li>Description: Present helper's value's fields instead of the helper</li>
  *   <li>Structure type: Single value</li>
