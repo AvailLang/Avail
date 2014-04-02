@@ -2451,7 +2451,7 @@ extends JFrame
 		buildProgress.setValue(0);
 
 		// Create the transcript.
-		final JLabel outputLabel = new JLabel("Build Transcript:");
+		final JLabel outputLabel = new JLabel("Transcript:");
 		final JScrollPane transcriptScrollArea = new JScrollPane();
 		transcriptScrollArea.setHorizontalScrollBarPolicy(
 			HORIZONTAL_SCROLLBAR_AS_NEEDED);
