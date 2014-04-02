@@ -212,6 +212,16 @@ public class StacksGenerator
 
 		try
 		{
+			Files.createDirectories(providedDocumentPath);
+		}
+		catch (final IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		try
+		{
 			final FileChannel categoriesJson =
 				FileChannel.open(categoriesFilePath,
 				EnumSet.of(StandardOpenOption.CREATE,

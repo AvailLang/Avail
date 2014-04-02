@@ -198,7 +198,7 @@ public class StacksCategories
 
 				stringBuilder.append("\t\t\t{\"methodName\" : \"")
 					.append(lastPair.first()).append("\", \"link\" : \"")
-					.append(lastPair.second()).append("\"}\n\t\t]\n\t},");
+					.append(lastPair.second()).append("\"}\n\t\t]\n\t}\n]");
 			}
 		}
 
