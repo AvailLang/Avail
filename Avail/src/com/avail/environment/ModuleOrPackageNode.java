@@ -41,7 +41,8 @@ import com.avail.builder.ResolvedModuleName;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @SuppressWarnings("serial")
-class ModuleOrPackageNode extends AbstractBuilderFrameTreeNode
+class ModuleOrPackageNode
+extends AbstractBuilderFrameTreeNode
 {
 	/** The resolved name of the module. */
 	final ResolvedModuleName resolvedModuleName;
@@ -72,25 +73,36 @@ class ModuleOrPackageNode extends AbstractBuilderFrameTreeNode
 		return resolvedModuleName.localName();
 	}
 
-	@Override
-	String htmlStyle (final boolean selected)
+	/**
+	 * Is the {@linkplain ModuleOrPackageNode module or package} loaded?
+	 *
+	 * @return {@code true} if the module or package is already loaded, {@code
+	 *         false} otherwise.
+	 */
+	public boolean isLoaded ()
 	{
 		synchronized (builder)
 		{
-			String base = super.htmlStyle(selected);
-			if (isPackage)
-			{
-				base = base + ";font-weight:bold";
-			}
-			else if (builder.getLoadedModule(resolvedModuleName) == null)
-			{
-				base = base + ";font-style:italic";
-				if (!selected)
-				{
-					base = base + ";color:gray";
-				}
-			}
-			return base;
+			return builder.getLoadedModule(resolvedModuleName) != null;
 		}
+	}
+
+	@Override
+	String htmlStyle (final boolean selected)
+	{
+		String base = super.htmlStyle(selected);
+		if (isPackage)
+		{
+			base = base + ";font-weight:bold";
+		}
+		if (!isLoaded())
+		{
+			base = base + ";font-style:italic";
+			if (!selected)
+			{
+				base = base + ";color:gray";
+			}
+		}
+		return base;
 	}
 }

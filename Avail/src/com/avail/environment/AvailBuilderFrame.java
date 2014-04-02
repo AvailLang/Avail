@@ -1790,12 +1790,12 @@ extends JFrame
 	}
 
 	/**
-	 * Answer the currently selected {@linkplain ModuleDescriptor module}.
+	 * Answer the currently selected {@linkplain ModuleOrPackageNode module
+	 * node}.
 	 *
-	 * @return A fully-qualified module name, or {@code null} if no module is
-	 *         selected.
+	 * @return A module node, or {@code null} if no module is selected.
 	 */
-	@InnerAccess @Nullable ResolvedModuleName selectedModule ()
+	@InnerAccess @Nullable ModuleOrPackageNode selectedModuleNode ()
 	{
 		final TreePath path = moduleTree.getSelectionPath();
 		if (path == null)
@@ -1806,9 +1806,42 @@ extends JFrame
 			(DefaultMutableTreeNode) path.getLastPathComponent();
 		if (selection instanceof ModuleOrPackageNode)
 		{
-			return ((ModuleOrPackageNode) selection).resolvedModuleName;
+			return (ModuleOrPackageNode) selection;
 		}
 		return null;
+	}
+
+	/**
+	 * Is the selected {@linkplain ModuleDescriptor module} loaded?
+	 *
+	 * @return {@code true} if the selected module is loaded, {@code false} if
+	 *         no module is selected or the selected module is not loaded.
+	 */
+	@InnerAccess boolean selectedModuleIsLoaded ()
+	{
+		final ModuleOrPackageNode node = selectedModuleNode();
+		if (node == null)
+		{
+			return false;
+		}
+		return node.isLoaded();
+	}
+
+	/**
+	 * Answer the {@linkplain ResolvedModuleName name} of the currently selected
+	 * {@linkplain ModuleDescriptor module}.
+	 *
+	 * @return A fully-qualified module name, or {@code null} if no module is
+	 *         selected.
+	 */
+	@InnerAccess @Nullable ResolvedModuleName selectedModule ()
+	{
+		final ModuleOrPackageNode node = selectedModuleNode();
+		if (node == null)
+		{
+			return null;
+		}
+		return node.resolvedModuleName;
 	}
 
 	/**
@@ -2451,7 +2484,7 @@ extends JFrame
 		buildProgress.setValue(0);
 
 		// Create the transcript.
-		final JLabel outputLabel = new JLabel("Build Transcript:");
+		final JLabel outputLabel = new JLabel("Transcript:");
 		final JScrollPane transcriptScrollArea = new JScrollPane();
 		transcriptScrollArea.setHorizontalScrollBarPolicy(
 			HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -2499,16 +2532,7 @@ extends JFrame
 					@Nullable final Boolean loaded)
 				{
 					assert loadedModule != null;
-					final TreePath path = modulePath(
-						loadedModule.name.qualifiedName());
-					if (path != null)
-					{
-						final Rectangle bounds = moduleTree.getPathBounds(path);
-						if (bounds != null)
-						{
-							moduleTree.repaint(bounds);
-						}
-					}
+					moduleTree.repaint();
 					if (loadedModule.entryPoints().size() > 0)
 					{
 						entryPointsTree.repaint();
