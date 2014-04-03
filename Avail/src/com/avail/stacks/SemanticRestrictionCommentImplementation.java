@@ -133,7 +133,7 @@ public class SemanticRestrictionCommentImplementation extends
 				.append(returnsContent.get(0).toHTML());
 		}
 
-		return stringBuilder.append("</table>\n").toString();
+		return stringBuilder.append("</tbody></table>\n").toString();
 	}
 
 	@Override

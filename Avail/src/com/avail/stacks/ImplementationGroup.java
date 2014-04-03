@@ -310,23 +310,29 @@ public class ImplementationGroup
 			}
 
 			stringBuilder.append("<div class=\"MethodSectionHeader\">"
-					+ "Implementations:</div>\n");
+					+ "Implementations:</div>\n"
+					+ "<div class=\"MethodSectionContent\">");
 
 			for (final MethodCommentImplementation implementation : methods)
 			{
 				stringBuilder.append(implementation.toHTML());
 			}
 
+			stringBuilder.append("</div>");
+
 			if (!semanticRestrictions.isEmpty())
 			{
 				stringBuilder.append("<div class=\"MethodSectionHeader\">"
-					+ "Semantic restrictions:</div>\n");
+					+ "Semantic restrictions:</div>\n"
+					+ "<div class=\"MethodSectionContent\">");
 
 				for (final SemanticRestrictionCommentImplementation implementation :
 					semanticRestrictions)
 				{
 					stringBuilder.append(implementation.toHTML());
 				}
+
+				stringBuilder.append("</div>");
 			}
 			final String localPath = qualifiedMethodName
 				.substring(1, qualifiedMethodName.lastIndexOf('/') + 1);

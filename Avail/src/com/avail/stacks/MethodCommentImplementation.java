@@ -165,7 +165,7 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 			}
 		}
 
-		return stringBuilder.append("</table>\n").toString();
+		return stringBuilder.append("</tbody>\n</table>\n").toString();
 	}
 
 	@Override

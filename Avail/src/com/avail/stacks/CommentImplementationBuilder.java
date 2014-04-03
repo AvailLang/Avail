@@ -103,10 +103,9 @@ public class CommentImplementationBuilder
 				throw new StacksCommentBuilderException(errorMessage, this);
 			}
 		}
-		if (tempTokens.isEmpty())
+		if (!tempTokens.isEmpty())
 		{
-			//There are no categories so give it one.
-			QuotedStacksToken.create("Unclassified", 0, 0, 0, moduleName);
+			categories.clear();
 		}
 		categories.add(new StacksCategoryTag (tempTokens));
 	}
@@ -786,7 +785,7 @@ public class CommentImplementationBuilder
 		this.moduleName = moduleName;
 		this.commentStartLine = commentStartLine;
 		this.authors = new ArrayList<StacksAuthorTag>(0);
-		this.categories = new ArrayList<StacksCategoryTag>(0);
+		this.categories = new ArrayList<StacksCategoryTag>(1);
 		this.fields = new ArrayList<StacksFieldTag>(0);
 		this.forbids = new TreeMap<Integer,StacksForbidsTag>();
 		this.globalVariables = new ArrayList<StacksGlobalTag>(0);
@@ -798,6 +797,14 @@ public class CommentImplementationBuilder
 		this.sees = new ArrayList<StacksSeeTag>(0);
 		this.supertypes = new ArrayList<StacksSuperTypeTag>(0);
 		this.types = new ArrayList<StacksTypeTag>(0);
+
+		final ArrayList<QuotedStacksToken> tempTokens =
+			new ArrayList<QuotedStacksToken>();
+
+		tempTokens
+			.add(QuotedStacksToken.create("Unclassified", 0, 0, 0, moduleName));
+
+		this.categories.add(new StacksCategoryTag (tempTokens));
 	}
 
 	/**
@@ -856,7 +863,7 @@ public class CommentImplementationBuilder
 					commentStartLine (),
 					authors,
 					sees,
-					description,
+					description(),
 					categories,
 					supertypes,
 					fields);
@@ -926,7 +933,7 @@ public class CommentImplementationBuilder
 						returns.get(0).returnType().lexeme());
 
 				return new MethodCommentImplementation(signature,
-					commentStartLine (), authors, sees, description, categories,
+					commentStartLine (), authors, sees, description(), categories,
 					parameters,returns.get(0), raises);
 			}
 
@@ -941,7 +948,7 @@ public class CommentImplementationBuilder
 
 					return new GrammaticalRestrictionCommentImplementation(
 						signature, commentStartLine (), authors, sees,
-						description, categories, forbids);
+						description(), categories, forbids);
 				}
 				final String errorMessage = String.format("\n<li><strong>%s"
 					+ "</strong><em> Line #: %d</em>: Malformed comment; has "
@@ -964,8 +971,8 @@ public class CommentImplementationBuilder
 						returns.get(0).returnType().lexeme());
 
 				return new MethodCommentImplementation(signature,
-					commentStartLine (), authors, sees, description, categories,
-					parameters, returns.get(0), raises);
+					commentStartLine (), authors, sees, description(),
+					categories,parameters, returns.get(0), raises);
 			}
 		}
 
@@ -980,7 +987,7 @@ public class CommentImplementationBuilder
 						globalVariables.get(0).globalType().lexeme());
 
 				return new GlobalCommentImplementation(signature,
-					commentStartLine (), authors, sees,description, categories,
+					commentStartLine (), authors, sees,description(), categories,
 					globalVariables.get(0));
 			}
 			final String errorMessage = String.format("\n<li><strong>%s"
@@ -1004,7 +1011,7 @@ public class CommentImplementationBuilder
 				stacksCategories
 					.addCategoryToDescription(
 						onlyTag.categories().get(0).lexeme()
-						,description);
+						,description());
 				return null;
 			}
 		}

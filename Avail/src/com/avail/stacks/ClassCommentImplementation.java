@@ -113,12 +113,13 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 		if (listSize > 0)
 		{
 			stringBuilder
-				.append("<div class=\"SignatureHeading\">Supertypes: ");
+				.append("<div class=\"MethodSectionContent\">"
+						+ "<div class=\"SignatureHeading\">Supertypes: ");
 
 			//Right now there is no link information for supertypes
 			for (int i = 0; i < listSize - 1; i++)
 			{
-				stringBuilder.append(supertypes.get(i)).append(", ");
+				stringBuilder.append(supertypes.get(i).toHTML()).append(", ");
 			}
 			stringBuilder.append(supertypes.get(listSize - 1)).append("</div>\n");
 		}
@@ -144,7 +145,7 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 			}
 		}
 
-		return stringBuilder.toString();
+		return stringBuilder.append("</tbody></table>\n</div>\n").toString();
 	}
 
 	@Override

@@ -201,11 +201,10 @@ public class StacksGenerator
 		final StacksCommentsModule outerMost = moduleToComments
 			.get(outermostModule.qualifiedName());
 
-		final StacksSynchronizer synchronizer =
-			new StacksSynchronizer(
-				outerMost.calculateFinalImplementationGroupsMap(categories));
-
 		IO.close(errorLog.file());
+
+		final int fileToOutPutCount =
+			outerMost.calculateFinalImplementationGroupsMap(categories);
 
 		final Path categoriesFilePath =
 			providedDocumentPath.resolve("categories.json");
@@ -238,12 +237,18 @@ public class StacksGenerator
 			e.printStackTrace();
 		}
 
-		moduleToComments
-			.get(outermostModule.qualifiedName())
-				.writeMethodsToHTMLFiles(providedDocumentPath,synchronizer,
-					runtime,categories);
+		if (fileToOutPutCount > 0)
+		{
+			final StacksSynchronizer synchronizer =
+				new StacksSynchronizer(fileToOutPutCount);
 
-		synchronizer.waitForWorkUnitsToComplete();
+			moduleToComments
+				.get(outermostModule.qualifiedName())
+					.writeMethodsToHTMLFiles(providedDocumentPath,synchronizer,
+						runtime,categories);
+
+			synchronizer.waitForWorkUnitsToComplete();
+		}
 
 		clear();
 

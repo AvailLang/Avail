@@ -101,7 +101,7 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 		stringBuilder.append("<div class=\"SignatureDescription\">")
 			.append(description.toHTML()).append("</div>\n");
 
-		return stringBuilder.toString();
+		return stringBuilder.append("</tbody></table>\n").toString();
 	}
 
 	@Override
