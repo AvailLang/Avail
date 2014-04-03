@@ -309,8 +309,8 @@ public class ImplementationGroup
 					.append(grammaticalRestrictions.get(0).toHTML());
 			}
 
-			stringBuilder.append("<div class=\"MethodSectionHeader\">"
-					+ "Implementations:</div>\n"
+			stringBuilder.append("<h4 class=\"MethodSectionHeader\">"
+					+ "Implementations:</h4>\n"
 					+ "<div class=\"MethodSectionContent\">");
 
 			for (final MethodCommentImplementation implementation : methods)
@@ -322,8 +322,8 @@ public class ImplementationGroup
 
 			if (!semanticRestrictions.isEmpty())
 			{
-				stringBuilder.append("<div class=\"MethodSectionHeader\">"
-					+ "Semantic restrictions:</div>\n"
+				stringBuilder.append("<h4 class=\"MethodSectionHeader\">"
+					+ "Semantic restrictions:</h4>\n"
 					+ "<div class=\"MethodSectionContent\">");
 
 				for (final SemanticRestrictionCommentImplementation implementation :

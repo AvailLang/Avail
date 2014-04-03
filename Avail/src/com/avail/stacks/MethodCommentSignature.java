@@ -100,8 +100,9 @@ public class MethodCommentSignature extends CommentSignature
 				.append("</div>\n");
 		}
 
-		stringBuilder.append("<div class=\"ModuleLocation\">")
-			.append(module).append('.').append(name).append("</div>\n");
+		stringBuilder.append("<div class=\"ModuleLocation\">Sources: ")
+			.append(module).append(": <strong>").append(name)
+			.append("</strong></div>\n");
 
 		return stringBuilder.toString();
 	}

@@ -206,6 +206,33 @@ public class StacksCategories
 	}
 
 	/**
+	 * Create the Angular JS file content that provides the category linking
+	 * capability to the file index.html
+	 * @return
+	 * 		The string content of the Angular JS file.
+	 */
+	public String toAngularJS()
+	{
+		final StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder
+			.append("var stacksApp = angular.module('stacksApp',[]);\n");
+		stringBuilder
+			.append("stacksApp.factory('Categories', function () {\n"
+			+ "\tvar Categories = {};\n"
+			+ "\tCategories.content = ");
+		stringBuilder.append(toJson());
+		stringBuilder.append(";\n\t"
+			+ "return Categories;\n"
+			+ "})\n");
+
+		stringBuilder.append("function CategoriesCntrl($scope,Categories) {\n"
+			+ "\t$scope.categories = Categories;\n"
+			+ "}");
+
+		return stringBuilder.toString();
+	}
+
+	/**
 	 * Clear the field maps.
 	 */
 	public void clear()
