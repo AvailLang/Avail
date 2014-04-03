@@ -118,8 +118,8 @@ public class GrammaticalRestrictionCommentImplementation extends
 	{
 		final StringBuilder stringBuilder = new StringBuilder();
 
-		stringBuilder.append("<div class=\"MethodSectionHeader\">Grammatical "
-			+ "restrictions:</div>\n<div class=\"MethodSectionContent\">\n"
+		stringBuilder.append("<h4 class=\"MethodSectionHeader\">Grammatical "
+			+ "restrictions:</h4>\n<div class=\"MethodSectionContent\">\n"
             + "<table>\n<thead>\n<tr>\n<th style=\"white-space:nowrap\" "
             + "class=\"GColLabelNarrow\" scope=\"col\">Argument Position</th>\n"
             + "<th class=\"GColLabelWide\" scope=\"col\">Prohibited "

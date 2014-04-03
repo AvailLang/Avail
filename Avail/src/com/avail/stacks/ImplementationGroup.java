@@ -309,24 +309,30 @@ public class ImplementationGroup
 					.append(grammaticalRestrictions.get(0).toHTML());
 			}
 
-			stringBuilder.append("<div class=\"MethodSectionHeader\">"
-					+ "Implementations:</div>\n");
+			stringBuilder.append("<h4 class=\"MethodSectionHeader\">"
+					+ "Implementations:</h4>\n"
+					+ "<div class=\"MethodSectionContent\">");
 
 			for (final MethodCommentImplementation implementation : methods)
 			{
 				stringBuilder.append(implementation.toHTML());
 			}
 
+			stringBuilder.append("</div>");
+
 			if (!semanticRestrictions.isEmpty())
 			{
-				stringBuilder.append("<div class=\"MethodSectionHeader\">"
-					+ "Semantic restrictions:</div>\n");
+				stringBuilder.append("<h4 class=\"MethodSectionHeader\">"
+					+ "Semantic restrictions:</h4>\n"
+					+ "<div class=\"MethodSectionContent\">");
 
 				for (final SemanticRestrictionCommentImplementation implementation :
 					semanticRestrictions)
 				{
 					stringBuilder.append(implementation.toHTML());
 				}
+
+				stringBuilder.append("</div>");
 			}
 			final String localPath = qualifiedMethodName
 				.substring(1, qualifiedMethodName.lastIndexOf('/') + 1);

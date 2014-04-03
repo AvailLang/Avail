@@ -74,6 +74,11 @@ public class StacksGenerator
 	Path providedDocumentPath;
 
 	/**
+	 * The original incoming base path.
+	 */
+	final Path outputPath;
+
+	/**
 	 *  The location useds for storing any log files such as error-logs.
 	 */
 	public final Path logPath;
@@ -123,6 +128,7 @@ public class StacksGenerator
 			throw new IllegalArgumentException(
 				outputPath + " exists and is not a directory");
 		}
+		this.outputPath = outputPath;
 		this.categories = new StacksCategories();
 		this.resolver = resolver;
 
@@ -131,7 +137,7 @@ public class StacksGenerator
 		this.errorLog = new StacksErrorLog(logPath);
 
 		this.providedDocumentPath = outputPath
-			.resolve("library documentation");
+			.resolve("library-documentation");
 
 
 		this.moduleToComments =
@@ -201,18 +207,17 @@ public class StacksGenerator
 		final StacksCommentsModule outerMost = moduleToComments
 			.get(outermostModule.qualifiedName());
 
-		final StacksSynchronizer synchronizer =
-			new StacksSynchronizer(
-				outerMost.calculateFinalImplementationGroupsMap(categories));
-
 		IO.close(errorLog.file());
 
+		final int fileToOutPutCount =
+			outerMost.calculateFinalImplementationGroupsMap(categories);
+
 		final Path categoriesFilePath =
-			providedDocumentPath.resolve("categories.json");
+			outputPath.resolve("stacksApp.js");
 
 		try
 		{
-			Files.createDirectories(providedDocumentPath);
+			Files.createDirectories(outputPath);
 		}
 		catch (final IOException e)
 		{
@@ -228,7 +233,7 @@ public class StacksGenerator
 					StandardOpenOption.WRITE,
 					StandardOpenOption.TRUNCATE_EXISTING));
 			final ByteBuffer buffer = ByteBuffer.wrap(
-				(categories.toJson().getBytes(StandardCharsets.UTF_8)));
+				(categories.toAngularJS().getBytes(StandardCharsets.UTF_8)));
 			categoriesJson.write(buffer);
 			IO.close(categoriesJson);
 		}
@@ -238,12 +243,21 @@ public class StacksGenerator
 			e.printStackTrace();
 		}
 
-		moduleToComments
-			.get(outermostModule.qualifiedName())
-				.writeMethodsToHTMLFiles(providedDocumentPath,synchronizer,
-					runtime,categories);
+		//Create the main HTML landing page
+		createIndexHTML();
 
-		synchronizer.waitForWorkUnitsToComplete();
+		if (fileToOutPutCount > 0)
+		{
+			final StacksSynchronizer synchronizer =
+				new StacksSynchronizer(fileToOutPutCount);
+
+			moduleToComments
+				.get(outermostModule.qualifiedName())
+					.writeMethodsToHTMLFiles(providedDocumentPath,synchronizer,
+						runtime,categories);
+
+			synchronizer.waitForWorkUnitsToComplete();
+		}
 
 		clear();
 
@@ -257,5 +271,84 @@ public class StacksGenerator
 	{
 		moduleToComments.clear();
 		categories.clear();
+	}
+
+	/**
+	 * Create the main HTML landing page for Stacks.
+	 */
+	private void createIndexHTML()
+	{
+		final StringBuilder stringBuilder = new StringBuilder();
+
+		stringBuilder
+			.append("<!doctype html>\n")
+		.append("<!--[if lt IE 7]> <html class=\"ie6 oldie\"> <![endif]-->\n")
+		.append("<!--[if IE 7]>    <html class=\"ie7 oldie\"> <![endif]-->\n")
+		.append("<!--[if IE 8]>    <html class=\"ie8 oldie\"> <![endif]-->\n")
+		.append("<!--[if gt IE 8]><!-->\n")
+		.append("<html>\n")
+		.append("<!--<![endif]-->\n")
+		.append("\t<head>\n")
+		.append("\t\t<!--#include virtual=\"/_include/head.ssi\" -->\n")
+		.append("\t\t<meta charset=\"utf-8\">\n")
+		.append("\t\t<title>Library Documentation</title>\n")
+		.append("\t\t<link href=\"/_css/methodDescriptions.css\" "
+		 	+ "rel=\"stylesheet\" type=\"text/css\">\n")
+		.append("\t\t<link href=\"/_css/doclib.css\" "
+			+ "rel=\"stylesheet\" type=\"text/css\">\n")
+		.append("\t\t<script type=\"text/javascript\" "
+			+ "src=\"/_javascript/angular.min.js\"></script>\n")
+		.append("\t\t<script type=\"text/javascript\" "
+			+ "src=\"stacksApp.js\"></script>\n")
+		.append("\t</head>\n")
+		.append("\t<body class=\"gradient-logo\">\n")
+		.append("\t\t<!--#include virtual=\"/_include/body-top.ssi\" -->\n")
+		.append("\t\t<h2 class=\"content-title\">"
+			+"The Avail Standard Library</h2>\n")
+		.append("\t\t<div ng-app=\"stacksApp\">\n")
+		.append("\t\t\t<div ng-controller=\"CategoriesCntrl\">\n")
+		.append("\t\t\t\t<input type=\"text\" ng-model=\"search.category\">\n")
+		.append("\t\t\t\t<ol>\n")
+		.append("\t\t\t\t\t<li ng-repeat=\"stacksCategory in categories.content"
+			+ " | orderBy: 'category' | filter : search \">\n")
+		.append("\t\t\t\t\t\t<a ng-click=\"collapsed=!collapsed\">"
+			+ "{{stacksCategory.category}}</a>\n")
+		.append("\t\t\t\t\t\t<div ng-show=\"collapsed\">\n")
+		.append("\t\t\t\t\t\t\t<ul>\n")
+		.append("\t\t\t\t\t\t\t\t<li ng-repeat=\"method in "
+			+ "stacksCategory.methods | orderBy: 'methodName' \">\n")
+		.append("\t\t\t\t\t\t\t\t\t<a href=\"{{'library-documentation' "
+			+ "+ method.link}}\">{{method.methodName}}</a>\n")
+		.append("\t\t\t\t\t\t\t\t</li>\n")
+		.append("\t\t\t\t\t\t\t</ul>\n")
+		.append("\t\t\t\t\t\t</div>\n")
+		.append("\t\t\t\t\t</li>\n")
+		.append("\t\t\t\t</ol>\n")
+		.append("\t\t\t</div>\n")
+		.append("\t\t</div>\n")
+		.append("\t\t<!--#include virtual=\"/_include/body-bottom.ssi\" -->\n")
+		.append("\t</body>\n")
+		.append("</html>");
+
+		final Path indexFilePath =
+			outputPath.resolve("index.html");
+
+		try
+		{
+			final FileChannel indexHTML =
+				FileChannel.open(indexFilePath,
+				EnumSet.of(StandardOpenOption.CREATE,
+					StandardOpenOption.WRITE,
+					StandardOpenOption.TRUNCATE_EXISTING));
+			final ByteBuffer buffer = ByteBuffer.wrap(
+				(stringBuilder.toString().getBytes(StandardCharsets.UTF_8)));
+			indexHTML.write(buffer);
+			IO.close(indexHTML);
+		}
+		catch (final IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

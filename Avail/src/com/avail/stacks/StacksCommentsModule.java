@@ -500,6 +500,7 @@ public class StacksCommentsModule
 			+ "<![endif]-->\n<!--[if IE 8]>\n<html class=\"ie8 oldie\">"
 			+ "<![endif]-->\n<!--[if gt IE 8]><!-->\n<html class=\"\">"
 			+ "<!--<![endif]-->\n\t<head>\n"
+			+ "<link href=\"/_css/stacks.css\" rel=\"stylesheet\" type=\"text/css\">"
 			+ "<!--#include virtual=\"/_include/head.ssi\" -->\n"
 			+ "<title>Avail - Library</title>\n\t</head>\n\t"
 			+ "<body class=\"gradient-logo\">\n"

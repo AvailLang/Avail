@@ -90,9 +90,9 @@ public class SemanticRestrictionCommentSignature extends CommentSignature
 			stringBuilder.append(orderedInputTypes.get(listSize - 1))
 				.append("</div>\n");
 		}
-
-		stringBuilder.append("<div class=\"ModuleLocation\">")
-			.append(module).append('.').append(name).append("</div>\n");
+		stringBuilder.append("<div class=\"ModuleLocation\">Sources: ")
+			.append(module).append(": <strong>").append(name)
+			.append("</strong></div>\n");
 
 		return stringBuilder.toString();
 	}
