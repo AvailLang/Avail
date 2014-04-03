@@ -154,7 +154,6 @@ extends JFrame
 			// Update the UI.
 			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 			buildProgress.setValue(0);
-			inputField.requestFocusInWindow();
 			clearTranscript();
 
 			// Clear the build input stream.
@@ -176,6 +175,46 @@ extends JFrame
 			putValue(
 				SHORT_DESCRIPTION,
 				"Unload the target module.");
+		}
+	}
+
+	/**
+	 * An {@code UnloadAllAction} launches an {@linkplain UnloadTask unload
+	 * task} (with {@code null} specified as the module to unload) in a Swing
+	 * worker thread.
+	 */
+	private final class UnloadAllAction
+	extends AbstractAction
+	{
+		@Override
+		public void actionPerformed (final @Nullable ActionEvent event)
+		{
+			assert backgroundTask == null;
+
+			// Update the UI.
+			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+			buildProgress.setValue(0);
+			clearTranscript();
+
+			// Clear the build input stream.
+			inputStream().clear();
+
+			// Unload all modules in a Swing worker thread.
+			final UnloadTask task = new UnloadTask(null);
+			backgroundTask = task;
+			setEnablements();
+			task.execute();
+		}
+
+		/**
+		 * Construct a new {@link UnloadAllAction}.
+		 */
+		public UnloadAllAction ()
+		{
+			super("Unload all");
+			putValue(
+				SHORT_DESCRIPTION,
+				"Unload all modules.");
 		}
 	}
 
@@ -263,6 +302,7 @@ extends JFrame
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
+			availBuilder.unloadTarget(null);
 			assert backgroundTask == null;
 			try
 			{
@@ -757,7 +797,7 @@ extends JFrame
 		/**
 		 * The resolved name of the target {@linkplain ModuleDescriptor module}.
 		 */
-		protected final ResolvedModuleName targetModuleName;
+		protected final @Nullable ResolvedModuleName targetModuleName;
 
 		/**
 		 * Cancel the {@linkplain BuildTask build task}.
@@ -775,6 +815,18 @@ extends JFrame
 
 		/** The {@linkplain Throwable exception} that terminated the build. */
 		protected @Nullable Throwable terminator;
+
+		/**
+		 * Ensure the target module name is not null, then answer it.
+		 *
+		 * @return The non-null target module name.
+		 */
+		protected final ResolvedModuleName targetModuleName ()
+		{
+			final ResolvedModuleName name = targetModuleName;
+			assert name != null;
+			return name;
+		}
 
 		/**
 		 * Report completion (and timing) to the {@linkplain #transcript
@@ -855,7 +907,8 @@ extends JFrame
 		 *        The resolved name of the target {@linkplain ModuleDescriptor
 		 *        module}.
 		 */
-		protected BuilderTask (final ResolvedModuleName targetModuleName)
+		protected BuilderTask (
+			final @Nullable ResolvedModuleName targetModuleName)
 		{
 			this.targetModuleName = targetModuleName;
 		}
@@ -926,8 +979,9 @@ extends JFrame
 		@Override
 		protected void executeTask () throws Exception
 		{
+			assert targetModuleName != null;
 			availBuilder.buildTarget(
-				targetModuleName,
+				targetModuleName(),
 				compilerProgressReporter(),
 				globalTracker());
 		}
@@ -983,7 +1037,7 @@ extends JFrame
 		 *        The resolved name of the target {@linkplain ModuleDescriptor
 		 *        module}.
 		 */
-		public UnloadTask (final ResolvedModuleName targetModuleName)
+		public UnloadTask (final @Nullable ResolvedModuleName targetModuleName)
 		{
 			super(targetModuleName);
 		}
@@ -1000,7 +1054,7 @@ extends JFrame
 		protected void executeTask () throws Exception
 		{
 			availBuilder.generateDocumentation(
-				targetModuleName,
+				targetModuleName(),
 				documentationPath);
 		}
 
@@ -1413,6 +1467,9 @@ extends JFrame
 	/** The {@linkplain UnloadAction unload action}. */
 	@InnerAccess final UnloadAction unloadAction;
 
+	/** The {@linkplain UnloadAllAction unload-all action}. */
+	@InnerAccess final UnloadAllAction unloadAllAction;
+
 	/** The {@linkplain CancelAction cancel action}. */
 	@InnerAccess final CancelAction cancelAction;
 
@@ -1463,6 +1520,7 @@ extends JFrame
 		cancelAction.setEnabled(busy);
 		buildAction.setEnabled(!busy && selectedModule() != null);
 		unloadAction.setEnabled(!busy && selectedModuleIsLoaded());
+		unloadAllAction.setEnabled(!busy);
 		cleanAction.setEnabled(!busy);
 		refreshAction.setEnabled(!busy);
 		setDocumentationPathAction.setEnabled(!busy);
@@ -2251,6 +2309,7 @@ extends JFrame
 		// Create the actions.
 		buildAction = new BuildAction();
 		unloadAction = new UnloadAction();
+		unloadAllAction = new UnloadAllAction();
 		cancelAction = new CancelAction();
 		cleanAction = new CleanAction();
 		documentAction = new GenerateDocumentationAction();
@@ -2271,6 +2330,7 @@ extends JFrame
 		buildMenu.add(new JMenuItem(cancelAction));
 		buildMenu.addSeparator();
 		buildMenu.add(new JMenuItem(unloadAction));
+		buildMenu.add(new JMenuItem(unloadAllAction));
 		buildMenu.add(new JMenuItem(cleanAction));
 		buildMenu.addSeparator();
 		buildMenu.add(new JMenuItem(refreshAction));
@@ -2632,7 +2692,10 @@ extends JFrame
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
 		System.setProperty(
 			"com.apple.mrj.application.apple.menu.about.name",
-			"Avail Builder ZOO");
+			"Avail Workbench");
+		System.setProperty(
+			"com.apple.awt.graphics.UseQuartz",
+			"true");
 
 		System.setProperty("apple.eawt.quitStrategy", "CLOSE_ALL_WINDOWS");
 		final Class<?> appClass = Class.forName(
@@ -2642,11 +2705,13 @@ extends JFrame
 		final Object application =
 			appClass.getMethod("getApplication").invoke(null);
 		final Image image =
-			new ImageIcon("images/AvailHammer.png").getImage();
-
+			new ImageIcon("distro/images/AvailHammer.png").getImage();
 		appClass.getMethod("setDockIconImage", Image.class).invoke(
 			application,
 			image);
+		appClass.getMethod("setDockIconBadge", String.class).invoke(
+			application,
+			"dev");
 	}
 
 	/**
@@ -2665,7 +2730,7 @@ extends JFrame
 		if (platform.toLowerCase().matches("mac os x.*"))
 		{
 			// TODO: [MvG] Doesn't work yet.
-//			setUpForMac();
+			setUpForMac();
 		}
 
 		final ModuleRoots roots = new ModuleRoots(

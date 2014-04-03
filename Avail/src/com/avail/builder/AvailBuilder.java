@@ -938,7 +938,7 @@ public final class AvailBuilder
 		 * Find all loaded modules that have changed since compilation, then
 		 * unload them and all successors in reverse dependency order.
 		 */
-		@InnerAccess void unload ()
+		@InnerAccess void unloadModified ()
 		{
 			moduleGraph.parallelVisit(determineDirtyModules);
 			moduleGraph.reverse().parallelVisit(unloadModules);
@@ -986,8 +986,8 @@ public final class AvailBuilder
 								assert loadedModule != null;
 								if (loadedModule.deletionRequest)
 								{
-									getLoadedModule(moduleName)
-										.deletionRequest = true;
+									getLoadedModule(moduleName).deletionRequest
+										= true;
 									break;
 								}
 							}
@@ -999,32 +999,47 @@ public final class AvailBuilder
 
 		/**
 		 * Find all loaded modules that are successors of the specified module,
-		 * then unload them and all successors in reverse dependency order.
+		 * then unload them and all successors in reverse dependency order.  If
+		 * {@code null} is passed, then unload all loaded modules.
 		 *
 		 * @param targetName
 		 *        The {@linkplain ResolvedModuleName name} of the module that
-		 *        should be unloaded.
+		 *        should be unloaded, or {@code null} if all modules are to be
+		 *        unloaded.
 		 */
-		@InnerAccess void unload (final ResolvedModuleName targetName)
+		@InnerAccess void unload (final @Nullable ResolvedModuleName targetName)
 		{
-			final LoadedModule target = getLoadedModule(targetName);
-			if (target != null)
+			if (targetName == null)
 			{
-				target.deletionRequest = true;
-				moduleGraph.parallelVisit(determineSuccessorModules);
-				moduleGraph.reverse().parallelVisit(unloadModules);
-				// Unloading of each A_Module is complete.  Update my local
-				// structures to agree.
 				for (final LoadedModule loadedModule : loadedModulesCopy())
 				{
-					if (loadedModule.deletionRequest)
-					{
-						final ResolvedModuleName moduleName = loadedModule.name;
-						removeLoadedModule(moduleName);
-						moduleGraph.exciseVertex(moduleName);
-					}
+					loadedModule.deletionRequest = true;
 				}
 			}
+			else
+			{
+				final LoadedModule target = getLoadedModule(targetName);
+				if (target != null)
+				{
+					target.deletionRequest = true;
+				}
+			}
+			int moduleCount = moduleGraph.vertices().size();
+			moduleGraph.parallelVisit(determineSuccessorModules);
+			moduleGraph.reverse().parallelVisit(unloadModules);
+			// Unloading of each A_Module is complete.  Update my local
+			// structures to agree.
+			for (final LoadedModule loadedModule : loadedModulesCopy())
+			{
+				if (loadedModule.deletionRequest)
+				{
+					final ResolvedModuleName moduleName = loadedModule.name;
+					removeLoadedModule(moduleName);
+					moduleGraph.exciseVertex(moduleName);
+					moduleCount--;
+				}
+			}
+			assert moduleGraph.vertices().size() == moduleCount;
 		}
 	}
 
@@ -1375,6 +1390,7 @@ public final class AvailBuilder
 			}
 			if (shouldStopBuild)
 			{
+				System.err.println("Load failed.");
 				moduleGraph.clear();
 			}
 			else
@@ -1668,7 +1684,6 @@ public final class AvailBuilder
 								@Override
 								public void value ()
 								{
-									moduleGraph.removeVertex(moduleName);
 									postLoad(moduleName, 0L);
 									final Problem problem = new Problem(
 										moduleName,
@@ -1990,6 +2005,7 @@ public final class AvailBuilder
 				globalCodeSize += mod.moduleSize();
 			}
 			bytesCompiled.set(0L);
+			final int vertexCount = moduleGraph.vertices().size();
 			moduleGraph.parallelVisit(
 				new Continuation2<ResolvedModuleName, Continuation0>()
 				{
@@ -2003,6 +2019,7 @@ public final class AvailBuilder
 						scheduleLoadModule(moduleName, completionAction);
 					}
 				});
+			assert moduleGraph.vertices().size() == vertexCount;
 			runtime.moduleNameResolver().commitRepositories();
 			// Parallel load has now completed or failed.
 			if (shouldStopBuild)
@@ -2307,7 +2324,7 @@ public final class AvailBuilder
 		final Continuation3<ModuleName, Long, Long> globalTracker)
 	{
 		shouldStopBuild = false;
-		new BuildUnloader().unload();
+		new BuildUnloader().unloadModified();
 		if (!shouldStopBuild)
 		{
 			new BuildTracer().trace(target);
@@ -2320,13 +2337,13 @@ public final class AvailBuilder
 
 	/**
 	 * Unload the {@linkplain ModuleDescriptor target module} and its
-	 * dependents.
+	 * dependents.  If {@code null} is provided, unload all modules.
 	 *
 	 * @param target
 	 *        The {@linkplain ResolvedModuleName resolved name} of the module to
-	 *        be unloaded.
+	 *        be unloaded, or {@code null} to unload all modules.
 	 */
-	public void unloadTarget (final ResolvedModuleName target)
+	public void unloadTarget (final @Nullable ResolvedModuleName target)
 	{
 		shouldStopBuild = false;
 		new BuildUnloader().unload(target);
