@@ -164,7 +164,10 @@ You can install Avail into a specific installation directory like this:
 	$ ant -Dpath.install=$INSTALL install
 
 If you do not specify -Dpath.install=... explicitly, then $INSTALL defaults to
-/usr/local/avail on Unix and C:\Program Files\Avail on Windows.
+/usr/local/avail on Unix and C:\Program Files\Avail on Windows. Note that these
+are system directories, and in order to install to such a location you may need
+to escalate your privileges by using a tool like "sudo" or logging in with an
+administrative account.
 
 Your transcript should look similar to this:
 

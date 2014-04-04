@@ -127,4 +127,11 @@ extends Primitive
 				FiberTypeDescriptor.mostGeneralType()),
 			TOP.o());
 	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_FIBER_CANNOT_JOIN_ITSELF.numericCode());
+	}
 }

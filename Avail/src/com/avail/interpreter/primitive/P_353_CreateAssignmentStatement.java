@@ -99,4 +99,13 @@ public final class P_353_CreateAssignmentStatement extends Primitive
 				EXPRESSION_NODE.create(ANY.o())),
 			ASSIGNMENT_NODE.mostGeneralType());
 	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT.numericCode(),
+				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE.numericCode())));
+	}
 }

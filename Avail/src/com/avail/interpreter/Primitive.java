@@ -393,7 +393,7 @@ implements IntegerEnumSlotDescriptionEnum
 		A_Type failureType = cachedFailureVariableType;
 		if (failureType == null)
 		{
-			failureType = privateFailureVariableType();
+			failureType = privateFailureVariableType().makeShared();
 			assert failureType.isType();
 			cachedFailureVariableType = failureType;
 		}

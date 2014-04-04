@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Fallibility.*;
 import java.util.List;
@@ -65,8 +65,9 @@ public final class P_015_Swap extends Primitive
 			return interpreter.primitiveFailure(
 				E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES);
 		}
-		final AvailObject value1 = var1.getValue();
-		final AvailObject value2 = var2.getValue();
+		// This should work even on unassigned variables.
+		final AvailObject value1 = var1.value();
+		final AvailObject value2 = var2.value();
 		var1.setValue(value2);
 		var2.setValue(value1);
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
@@ -92,5 +93,12 @@ public final class P_015_Swap extends Primitive
 				&& var2Type.readType().isSubtypeOf(var1Type.writeType()))
 			? CallSiteCannotFail
 			: CallSiteCanFail;
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES.numericCode());
 	}
 }

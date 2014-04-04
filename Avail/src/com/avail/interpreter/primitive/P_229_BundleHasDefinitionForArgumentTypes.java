@@ -34,9 +34,10 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.exceptions.AvailErrorCode.*;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.*;
 
@@ -68,7 +69,7 @@ extends Primitive
 		final A_Bundle bundle = methodName.bundleOrNil();
 		if (bundle.equalsNil())
 		{
-			return interpreter.primitiveFailure(AvailErrorCode.E_NO_METHOD);
+			return interpreter.primitiveFailure(E_NO_METHOD);
 		}
 		try
 		{
@@ -93,5 +94,15 @@ extends Primitive
 				TupleTypeDescriptor.zeroOrMoreOf(
 					InstanceMetaDescriptor.anyMeta())),
 			EnumerationTypeDescriptor.booleanObject());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_NO_METHOD.numericCode(),
+				E_NO_METHOD_DEFINITION.numericCode(),
+				E_AMBIGUOUS_METHOD_DEFINITION.numericCode())));
 	}
 }

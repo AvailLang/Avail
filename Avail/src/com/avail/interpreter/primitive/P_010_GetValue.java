@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.VariableGetException;
@@ -89,5 +90,12 @@ extends Primitive
 		final A_Type varType = argumentTypes.get(0);
 		final A_Type readType = varType.readType();
 		return readType.isTop() ? ANY.o() : readType;
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_CANNOT_READ_UNASSIGNED_VARIABLE.numericCode());
 	}
 }

@@ -737,11 +737,11 @@ public abstract class AbstractAvailCompiler
 					}
 					// Now tie the bundles together.
 					assert newAtom.bundleOrNil().equalsNil();
-					final A_Bundle oldBundle = oldAtom.bundleOrCreate();
-					final A_Method method = oldBundle.bundleMethod();
 					final A_Bundle newBundle;
 					try
 					{
+						final A_Bundle oldBundle = oldAtom.bundleOrCreate();
+						final A_Method method = oldBundle.bundleMethod();
 						newBundle = MessageBundleDescriptor.newBundle(
 							newAtom, method);
 					}

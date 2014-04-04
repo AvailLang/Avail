@@ -44,6 +44,7 @@ Versions
 Extends
 	"Origin",
 	"Special Objects",
+	"Error Codes",
 	"Primitives",
 	"Infallible Primitives",
 	"Fallible Primitives"

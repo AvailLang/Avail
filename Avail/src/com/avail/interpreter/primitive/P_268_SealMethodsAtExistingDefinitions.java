@@ -38,6 +38,8 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
+import com.avail.exceptions.AvailRuntimeException;
+import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 
 /**
@@ -97,8 +99,16 @@ extends Primitive
 							final A_Tuple signature =
 								params.typeTuple().appendCanDestroy(
 									params.defaultType(), false);
-							runtime.addSeal(name, signature);
-							module.addSeal(name, signature);
+							try
+							{
+								runtime.addSeal(name, signature);
+								module.addSeal(name, signature);
+							}
+							catch (final SignatureException e)
+							{
+								assert false : "This should not happen!";
+								throw new AvailRuntimeException(e.errorCode());
+							}
 						}
 					}
 				}
@@ -116,5 +126,12 @@ extends Primitive
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					ATOM.o())),
 			TOP.o());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_LOADING_IS_OVER.numericCode());
 	}
 }

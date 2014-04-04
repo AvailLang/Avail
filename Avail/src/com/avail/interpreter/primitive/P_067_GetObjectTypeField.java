@@ -32,10 +32,10 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 
 /**
@@ -63,7 +63,7 @@ public final class P_067_GetObjectTypeField extends Primitive
 		final A_Map fieldTypeMap = objectType.fieldTypeMap();
 		if (!fieldTypeMap.hasKey(field))
 		{
-			return interpreter.primitiveFailure(AvailErrorCode.E_NO_SUCH_FIELD);
+			return interpreter.primitiveFailure(E_NO_SUCH_FIELD);
 		}
 		return interpreter.primitiveSuccess(fieldTypeMap.mapAt(field));
 	}
@@ -76,5 +76,12 @@ public final class P_067_GetObjectTypeField extends Primitive
 				ObjectTypeDescriptor.meta(),
 				ATOM.o()),
 			InstanceMetaDescriptor.anyMeta());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_NO_SUCH_FIELD.numericCode());
 	}
 }

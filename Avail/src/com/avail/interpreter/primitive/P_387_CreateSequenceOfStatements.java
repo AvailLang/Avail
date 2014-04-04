@@ -87,4 +87,11 @@ extends Primitive
 					PARSE_NODE.mostGeneralType())),
 			SEQUENCE_NODE.mostGeneralType());
 	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_SEQUENCE_CONTAINS_INVALID_STATEMENTS.numericCode());
+	}
 }

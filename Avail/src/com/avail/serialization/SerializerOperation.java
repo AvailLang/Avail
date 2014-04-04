@@ -39,6 +39,7 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.levelTwo.L2Chunk;
 
 /**
@@ -1480,7 +1481,16 @@ public enum SerializerOperation
 			final Deserializer deserializer)
 		{
 			final A_Atom atom = subobjects[0];
-			return atom.bundleOrCreate();
+			try
+			{
+				return atom.bundleOrCreate();
+			}
+			catch (final SignatureException e)
+			{
+				throw new RuntimeException(
+					"Bundle should not have been serialized with malformed "
+					+ "message");
+			}
 		}
 	},
 

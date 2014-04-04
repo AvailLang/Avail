@@ -35,11 +35,10 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailException;
-import com.avail.exceptions.VariableGetException;
-import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.*;
 
 /**
@@ -191,14 +190,6 @@ extends Primitive
 			return interpreter.primitiveSuccess(recursivelyUpdateMap(
 				map, pathTuple, 1, newValue));
 		}
-		catch (final VariableGetException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
-		catch (final VariableSetException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
 		catch (final AvailException e)
 		{
 			return interpreter.primitiveFailure(e);
@@ -214,5 +205,15 @@ extends Primitive
 				TupleTypeDescriptor.oneOrMoreOf(ANY.o()),
 				ANY.o()),
 			MapTypeDescriptor.mostGeneralType());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_SUBSCRIPT_OUT_OF_BOUNDS.numericCode(),
+				E_INCORRECT_ARGUMENT_TYPE.numericCode(),
+				E_KEY_NOT_FOUND.numericCode())));
 	}
 }

@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.exceptions.AvailErrorCode.E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER;
 import static java.lang.Math.*;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -48,8 +49,8 @@ public final class P_319_DoubleTruncatedAsInteger extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_319_DoubleTruncatedAsInteger().init(
-		1, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_319_DoubleTruncatedAsInteger().init(1, CanFold);
 
 	@Override
 	public Result attempt (
@@ -62,6 +63,11 @@ public final class P_319_DoubleTruncatedAsInteger extends Primitive
 		// Extract the top three 32-bit sections.  That guarantees 65 bits
 		// of mantissa, which is more than a double actually captures.
 		double d = a.extractDouble();
+		if (Double.isNaN(d))
+		{
+			return interpreter.primitiveFailure(
+				E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER);
+		}
 		if (d >= Integer.MIN_VALUE && d <= Integer.MAX_VALUE)
 		{
 			// Common case -- it fits in an int.
@@ -96,5 +102,12 @@ public final class P_319_DoubleTruncatedAsInteger extends Primitive
 			TupleDescriptor.from(
 				DOUBLE.o()),
 			IntegerRangeTypeDescriptor.extendedIntegers());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER.numericCode());
 	}
 }

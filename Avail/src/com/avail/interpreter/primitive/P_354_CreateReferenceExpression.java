@@ -82,4 +82,11 @@ public final class P_354_CreateReferenceExpression extends Primitive
 				VARIABLE_USE_NODE.mostGeneralType()),
 			REFERENCE_NODE.mostGeneralType());
 	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE.numericCode());
+	}
 }

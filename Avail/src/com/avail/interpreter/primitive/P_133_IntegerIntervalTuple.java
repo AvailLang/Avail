@@ -33,14 +33,15 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
 import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
 /**
- * <strong>Primitive 133</strong>: Create an integer interval tuple.
+ * <strong>Primitive 133</strong>: Create an {@linkplain
+ * IntegerIntervalTupleDescriptor integer interval tuple}.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
@@ -64,19 +65,13 @@ extends Primitive
 		final A_Number start = args.get(0);
 		final A_Number end = args.get(1);
 		final A_Number delta = args.get(2);
-
 		if (delta.equals(IntegerDescriptor.zero()))
 		{
-			return interpreter.primitiveFailure(
-				AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE);
+			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
 		}
-
-		final A_Tuple success = IntegerIntervalTupleDescriptor.createInterval(
-			start,
-			end,
-			delta);
-
-		return interpreter.primitiveSuccess(success);
+		return interpreter.primitiveSuccess(
+			IntegerIntervalTupleDescriptor.createInterval(
+				start, end, delta));
 	}
 
 	@Override
@@ -89,5 +84,12 @@ extends Primitive
 				IntegerRangeTypeDescriptor.integers()),
 			TupleTypeDescriptor.zeroOrMoreOf(
 				IntegerRangeTypeDescriptor.integers()));
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_INCORRECT_ARGUMENT_TYPE.numericCode());
 	}
 }

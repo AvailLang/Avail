@@ -77,4 +77,11 @@ extends Primitive
 			TupleDescriptor.empty(),
 			MODULE.o());
 	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_LOADING_IS_OVER.numericCode());
+	}
 }

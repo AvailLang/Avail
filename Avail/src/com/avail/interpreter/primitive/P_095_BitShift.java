@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -51,7 +52,7 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_095_BitShift().init(2, CanFold, CannotFail);
+		new P_095_BitShift().init(2, CanFold);
 
 	@Override
 	public Result attempt (
@@ -76,5 +77,12 @@ extends Primitive
 				IntegerRangeTypeDescriptor.integers(),
 				IntegerRangeTypeDescriptor.integers()),
 			IntegerRangeTypeDescriptor.integers());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_TOO_LARGE_TO_REPRESENT.numericCode());
 	}
 }

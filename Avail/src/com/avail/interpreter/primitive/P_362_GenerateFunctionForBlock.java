@@ -36,6 +36,7 @@ import static com.avail.descriptor.BlockNodeDescriptor.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -105,5 +106,15 @@ extends Primitive
 			TupleDescriptor.from(
 				BLOCK_NODE.mostGeneralType()),
 			FunctionTypeDescriptor.mostGeneralType());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_BLOCK_IS_INVALID.numericCode(),
+				E_BLOCK_MUST_NOT_CONTAIN_OUTERS.numericCode(),
+				E_BLOCK_COMPILATION_FAILED.numericCode())));
 	}
 }

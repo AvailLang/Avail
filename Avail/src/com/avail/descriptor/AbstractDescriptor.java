@@ -5671,8 +5671,10 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @return
+	 * @throws SignatureException
 	 */
-	abstract A_Bundle o_BundleOrCreate (AvailObject object);
+	abstract A_Bundle o_BundleOrCreate (AvailObject object)
+		throws SignatureException;
 
 	/**
 	 * @param object

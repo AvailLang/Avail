@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.exceptions.AvailErrorCode.E_NOT_AN_ENUMERATION;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Fallibility.*;
 import java.util.List;
@@ -83,5 +83,12 @@ extends Primitive
 		return meta.instance().isEnumeration()
 			? CallSiteCannotFail
 			: CallSiteMustFail;
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_NOT_AN_ENUMERATION.numericCode());
 	}
 }

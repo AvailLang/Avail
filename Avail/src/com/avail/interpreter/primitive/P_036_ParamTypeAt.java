@@ -31,8 +31,7 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Fallibility.*;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -49,7 +48,7 @@ extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_036_ParamTypeAt().init(
-		2, CanFold);
+		2, CannotFail, CanFold);
 
 	@Override
 	public Result attempt (
@@ -60,10 +59,15 @@ extends Primitive
 		assert args.size() == 2;
 		final A_Type functionType = args.get(0);
 		final A_Number indexObject = args.get(1);
+		final A_Type parametersType = functionType.argsTupleType();
 		if (!indexObject.isInt())
 		{
-			return interpreter.primitiveFailure(
-				E_SUBSCRIPT_OUT_OF_BOUNDS);
+			if (parametersType.upperBound().lessThan(indexObject))
+			{
+				return interpreter.primitiveSuccess(
+					BottomTypeDescriptor.bottom());
+			}
+			return interpreter.primitiveSuccess(parametersType.defaultType());
 		}
 		final int index = indexObject.extractInt();
 		final A_Type argumentType =

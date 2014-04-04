@@ -56,7 +56,7 @@ extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_628_GetContinuationOfOtherFiber().init(
-			1, CannotFail, CanFold, CanInline);
+			1, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
@@ -114,10 +114,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			TupleDescriptor.from(
-				E_FIBER_IS_TERMINATED.numericCode()
-			).asSet());
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_FIBER_IS_TERMINATED.numericCode());
 	}
 
 	@Override

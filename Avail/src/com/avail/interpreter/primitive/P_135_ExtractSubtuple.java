@@ -89,4 +89,11 @@ public final class P_135_ExtractSubtuple extends Primitive
 				IntegerRangeTypeDescriptor.wholeNumbers()),
 			TupleTypeDescriptor.mostGeneralType());
 	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_SUBSCRIPT_OUT_OF_BOUNDS.numericCode());
+	}
 }

@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -115,7 +116,6 @@ extends Primitive
 					E_OUTER_TYPE_LITERAL_IS_NOT_A_TYPE);
 			}
 		}
-
 		return interpreter.primitiveSuccess(
 			CompiledCodeDescriptor.create(
 				nybs,
@@ -147,5 +147,16 @@ extends Primitive
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				IntegerRangeTypeDescriptor.wholeNumbers()),
 			CompiledCodeTypeDescriptor.mostGeneralType());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_INVALID_PRIMITIVE_NUMBER.numericCode(),
+				E_FUNCTION_DISAGREES_WITH_PRIMITIVE_RESTRICTION.numericCode(),
+				E_LOCAL_TYPE_LITERAL_IS_NOT_A_TYPE.numericCode(),
+				E_OUTER_TYPE_LITERAL_IS_NOT_A_TYPE.numericCode())));
 	}
 }

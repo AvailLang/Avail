@@ -242,4 +242,13 @@ public final class P_508_CreatePojoStaticMethodFunction extends Primitive
 			// can raise java.lang.Throwable.
 			FunctionTypeDescriptor.forReturnType(TOP.o()));
 	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_JAVA_METHOD_NOT_AVAILABLE.numericCode(),
+				E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS.numericCode())));
+	}
 }

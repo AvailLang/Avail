@@ -82,4 +82,11 @@ extends Primitive
 			TupleDescriptor.empty(),
 			TOP.o());
 	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_IO_ERROR.numericCode());
+	}
 }
