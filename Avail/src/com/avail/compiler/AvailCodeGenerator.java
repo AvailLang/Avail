@@ -34,6 +34,7 @@ package com.avail.compiler;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 import com.avail.compiler.instruction.*;
@@ -310,18 +311,22 @@ public class AvailCodeGenerator
 		if (primitive == 0 && instructions.size() == 1)
 		{
 			final AvailInstruction onlyInstruction = instructions.get(0);
-			if (onlyInstruction instanceof AvailPushLiteral)
+			if (onlyInstruction instanceof AvailPushLiteral
+				&& ((AvailPushLiteral)onlyInstruction).index() == 1)
 			{
-				if (((AvailPushLiteral)onlyInstruction).index() == 1)
-				{
-					primitive(P_340_PushConstant.instance.primitiveNumber);
-				}
+				primitive(P_340_PushConstant.instance.primitiveNumber);
 			}
 			if (numArgs() == 1
 				&& onlyInstruction instanceof AvailPushLocalVariable
 				&& ((AvailPushLocalVariable)onlyInstruction).index() == 1)
 			{
 				primitive(P_341_PushArgument.instance.primitiveNumber);
+			}
+			if (onlyInstruction instanceof AvailGetLiteralVariable
+				&& ((AvailGetLiteralVariable)onlyInstruction).index() == 1)
+			{
+				primitive(
+					P_342_GetGlobalVariableValue.instance.primitiveNumber);
 			}
 		}
 		for (final AvailInstruction instruction : instructions)
@@ -338,8 +343,8 @@ public class AvailCodeGenerator
 		nybbleTuple.makeShared();
 		assert resultType.isType();
 		final A_Type[] argsArray = new A_Type[numArgs];
-		final A_Phrase[] localsArray =
-			new A_Phrase[varMap.size() - numArgs];
+		final A_Type[] localsArray =
+			new A_Type[varMap.size() - numArgs];
 		for (final Map.Entry<A_Phrase, Integer> entry : varMap.entrySet())
 		{
 			final int i = entry.getValue();
@@ -364,8 +369,7 @@ public class AvailCodeGenerator
 			final A_Phrase argDecl = entry.getKey();
 			final A_Type argDeclType = argDecl.declaredType();
 			final DeclarationKind kind = argDecl.declarationKind();
-			if (kind == DeclarationKind.ARGUMENT
-				|| kind == DeclarationKind.LABEL)
+			if (kind == ARGUMENT || kind == LABEL)
 			{
 				outerArray[i - 1] = argDeclType;
 			}
