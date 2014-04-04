@@ -2340,7 +2340,8 @@ public enum SerializerOperation
 	 * the read type and write type are (actually) unequal.
 	 */
 	READ_WRITE_VARIABLE_TYPE (79,
-		OBJECT_REFERENCE.as("content type"))
+		OBJECT_REFERENCE.as("read type"),
+		OBJECT_REFERENCE.as("write type"))
 	{
 		@Override
 		A_BasicObject[] decompose (final AvailObject object)

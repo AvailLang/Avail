@@ -1150,8 +1150,7 @@ public class L2Translator
 				// slots.
 				postSlots.add(continuationSlot(slotIndex));
 			}
-			final L2Instruction postCallLabel =
-				newLabel("postCall"); // + bundle.message().atomName());
+			final L2Instruction postCallLabel = newLabel("postCall");
 			addInstruction(
 				L2_CREATE_CONTINUATION.instance,
 				new L2ReadPointerOperand(fixed(CALLER)),
@@ -1393,6 +1392,14 @@ public class L2Translator
 		 * instead generate a move from the argument register to the output.
 		 * </p>
 		 *
+		 * <p>
+		 * The flag {@link com.avail.interpreter.Primitive.Flag
+		 * #SpecialReturnGlobalValue} indicates the operation simply returns the
+		 * value of some (global) variable.  In that circumstance, output
+		 * alternative code to read the variable without leaving the current
+		 * continuation.
+		 * </p>
+		 *
 		 * @param primitiveFunction
 		 *            A {@linkplain FunctionDescriptor function} for which its
 		 *            primitive might be inlined, or even folded if possible.
@@ -1498,6 +1505,47 @@ public class L2Translator
 					// It might not conform, so inline it as a primitive.
 					// Fall through.
 				}
+			}
+			if (primitive.hasFlag(SpecialReturnGlobalValue))
+			{
+				// The first literal is a variable; return its value.
+				final A_Variable variable =
+					primitiveFunction.code().literalAt(1);
+				final L2ObjectRegister varRegister = newObjectRegister();
+				moveConstant(variable, varRegister);
+				addInstruction(
+					L2_GET_VARIABLE.instance,
+					new L2ReadPointerOperand(varRegister),
+					new L2WritePointerOperand(resultRegister));
+				// Restriction might be too strong even on this method.
+				final A_Type guaranteedType = variable.kind().readType();
+				if (!guaranteedType.isSubtypeOf(expectedType))
+				{
+					// Restriction is stronger than the variable's type
+					// declaration, so we have to check the actual value.
+					canFailPrimitive.value = false;
+					final L2Instruction returnWasOkLabel =
+						newLabel("after return check");
+					addInstruction(
+						L2_JUMP_IF_KIND_OF_CONSTANT.instance,
+						new L2PcOperand(returnWasOkLabel),
+						new L2ReadPointerOperand(resultRegister),
+						new L2ConstantOperand(expectedType));
+					addInstruction(
+						L2_REPORT_INVALID_RETURN_TYPE.instance,
+						new L2PrimitiveOperand(primitive),
+						new L2ReadPointerOperand(resultRegister),
+						new L2ConstantOperand(expectedType));
+					addLabel(returnWasOkLabel);
+					return null;
+				}
+				// No need to generate primitive failure handling code, since
+				// technically the primitive succeeded but the return failed.
+				// The above instruction effectively makes the successor
+				// instructions unreachable, so don't spend a lot of time
+				// generating that dead code.
+				canFailPrimitive.value = false;
+				return null;
 			}
 			boolean allConstants = true;
 			for (final L2ObjectRegister arg : args)

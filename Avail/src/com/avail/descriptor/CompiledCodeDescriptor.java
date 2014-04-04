@@ -348,7 +348,7 @@ extends Descriptor
 			synchronized (object)
 			{
 				// If the counter is still negative then either (1) it hasn't
-				// been reset yet by repotimization, or (2) it has been
+				// been reset yet by reoptimization, or (2) it has been
 				// reoptimized, the counter was reset to something positive,
 				// but it has already been decremented back below zero.
 				// Either way, reoptimize now.

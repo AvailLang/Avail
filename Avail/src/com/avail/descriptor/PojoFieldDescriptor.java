@@ -308,7 +308,7 @@ extends Descriptor
 	private static AvailObject forOuterType (
 		final AvailObject field,
 		final AvailObject receiver,
-		final AvailObject outerType)
+		final A_Type outerType)
 	{
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(FIELD, field);
