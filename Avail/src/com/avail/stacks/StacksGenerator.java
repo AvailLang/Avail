@@ -292,10 +292,8 @@ public class StacksGenerator
 		.append("\t\t<!--#include virtual=\"/_include/head.ssi\" -->\n")
 		.append("\t\t<meta charset=\"utf-8\">\n")
 		.append("\t\t<title>Library Documentation</title>\n")
-		.append("\t\t<link href=\"/_css/methodDescriptions.css\" "
+		.append("\t\t<link href=\"/_css/stacks.css\" "
 		 	+ "rel=\"stylesheet\" type=\"text/css\">\n")
-		.append("\t\t<link href=\"/_css/doclib.css\" "
-			+ "rel=\"stylesheet\" type=\"text/css\">\n")
 		.append("\t\t<script type=\"text/javascript\" "
 			+ "src=\"/_javascript/angular.min.js\"></script>\n")
 		.append("\t\t<script type=\"text/javascript\" "
