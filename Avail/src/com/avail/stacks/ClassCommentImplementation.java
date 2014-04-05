@@ -113,39 +113,54 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 		if (listSize > 0)
 		{
 			stringBuilder
-				.append("<div class=\"MethodSectionContent\">"
-						+ "<div class=\"SignatureHeading\">Supertypes: ");
+				.append(tabs(1) + "<div class=\"MethodSectionContent\">\n")
+				.append(tabs(2) + "<div class=\"SignatureHeading\">\n")
+				.append(tabs(3) + "Supertypes: ");
 
 			//Right now there is no link information for supertypes
 			for (int i = 0; i < listSize - 1; i++)
 			{
 				stringBuilder.append(supertypes.get(i).toHTML()).append(", ");
 			}
-			stringBuilder.append(supertypes.get(listSize - 1)).append("</div>\n");
+			stringBuilder.append(supertypes.get(listSize - 1).toHTML())
+				.append("\n" + tabs(2) + "</div>\n");
 		}
 
-		stringBuilder.append("<div class=\"SignatureDescription\">")
-			.append(description.toHTML()).append("</div>\n")
-			.append("<table>\n<thead>\n<tr>\n<th class=\"Transparent\" scope=\"col\">"
-				+ "</th>\n");
+		stringBuilder.append(tabs(2) + "<div class=\"SignatureDescription\">\n")
+			.append(tabs(3) + description.toHTML())
+			.append("\n" + tabs(2) + "</div>\n");
 		if (fieldCount > 0)
 		{
-			stringBuilder.append("<th class=\"IColLabelNarrow\" "
+			stringBuilder.append(tabs(5) + "<th class=\"IColLabelNarrow\" "
 				+ "scope=\"col\">Name</th>\n");
 
 			stringBuilder
-				.append("<th class=\"IColLabelNarrow\" scope=\"col\">Type</th>\n"
-					+ "<th class=\"IColLabelWide\" scope=\"col\">Description</th>\n"
-					+ "</tr>\n</thead>\n<tbody>\n<tr>\n<th class=\"IRowLabel\" rowspan=\"")
-				.append(fieldCount).append("\">Fields</th>\n</tr>\n");
+				.append(tabs(2) + "<table>\n")
+				.append(tabs(3) + "<thead>\n")
+				.append(tabs(4) + "<tr>\n")
+				.append(tabs(5) + "<th class=\"Transparent\" "
+					+ "scope=\"col\"></th>\n")
+				.append(tabs(5) + "<th class=\"IColLabelNarrow\" "
+					+ "scope=\"col\">Type</th>\n"
+					+ tabs(5) + "<th class=\"IColLabelWide\" scope=\"col\">"
+					+ "Description</th>\n"
+					+ tabs(4) + "</tr>\n"
+					+ tabs(3) + "</thead>\n"
+					+ tabs(3) + "<tbody>\n"
+					+ tabs(4) + "<tr>\n"
+					+ tabs(5) + "<th class=\"IRowLabel\" rowspan=\"")
+				.append(fieldCount).append("\">Fields</th>\n"
+					+ tabs(4) + "</tr>\n");
 
 			for (final StacksFieldTag fieldTag : fields)
 			{
 				stringBuilder.append(fieldTag.toHTML());
 			}
+			stringBuilder.append(tabs(3) + "</tbody>\n")
+				.append(tabs(2) + "</table>\n");
 		}
 
-		return stringBuilder.append("</tbody></table>\n</div>\n").toString();
+		return stringBuilder.append(tabs(1) + "</div>\n").toString();
 	}
 
 	@Override

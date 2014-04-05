@@ -74,8 +74,26 @@ public class CommentSignature
 	public String toHTML ()
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
-			.append("<div class=\"ModuleLocation\">")
-			.append(module).append('.').append(name).append("</div>\n");
+			.append(tabs(2) + "<div class=\"ModuleLocation\">")
+			.append(module).append(": <strong>")
+			.append(name).append("</strong></div>\n");
+		return stringBuilder.toString();
+	}
+
+	/**
+	 * @param numberOfTabs
+	 * 		the number of tabs to insert into the string.
+	 * @return
+	 * 		a String consisting of the number of tabs requested in
+	 * 		in numberOfTabs.
+	 */
+	public String tabs(final int numberOfTabs)
+	{
+		final StringBuilder stringBuilder = new StringBuilder();
+		for (int i = 1; i <= numberOfTabs; i++)
+		{
+			stringBuilder.append("\t");
+		}
 		return stringBuilder.toString();
 	}
 }

@@ -105,20 +105,31 @@ public class SemanticRestrictionCommentImplementation extends
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append(signature.toHTML());
 
-		stringBuilder.append("<div class=\"SignatureDescription\">")
-			.append(description.toHTML()).append("</div>\n")
-			.append("\n<table>\n<thead>\n<tr>\n<th class=\"Transparent\" scope=\"col\">"
+		stringBuilder.append(tabs(2) + "<div class=\"SignatureDescription\">\n")
+			.append(tabs(3) + description.toHTML())
+			.append("\n" + tabs(2) + "</div>\n")
+			.append(tabs(2) + "<table>\n")
+			.append(tabs(3) + "<thead>\n")
+			.append(tabs(4) + "<tr>\n")
+			.append(tabs(5) + "<th class=\"Transparent\" scope=\"col\">"
 				+ "</th>\n");
 
 		stringBuilder
-			.append("\n<th class=\"IColLabelNarrow\" scope=\"col\">Type</th>\n"
-				+ "<th class=\"IColLabelWide\" scope=\"col\">Description</th>\n"
-				+ "</tr>\n</thead>\n<tbody>\n");
+			.append(tabs(5) + "<th class=\"IColLabelNarrow\" scope=\"col\">"
+				+ "Type</th>\n")
+			.append(tabs(5) + "<th class=\"IColLabelWide\" scope=\"col\">"
+				+ "Description</th>\n")
+			.append(tabs(4) + "</tr>\n")
+			.append(tabs(3) + "</thead>\n")
+			.append(tabs(3) + "<tbody>\n");
 
 		if (paramCount > 0)
 		{
-			stringBuilder.append("<tr>\n<th class=\"IRowLabel\" rowspan=\"")
-			.append(paramCount + 1).append("\">Parameter Types</th>\n</tr>\n");
+			stringBuilder
+				.append(tabs(4) + "<tr>\n")
+				.append(tabs(5) + "<th class=\"IRowLabel\" rowspan=\"")
+			.append(paramCount + 1).append("\">Parameter Types</th>\n")
+			.append(tabs(4) + "</tr>\n");
 		}
 
 		for (final StacksRestrictsTag restrictsTag : restricts)
@@ -128,12 +139,14 @@ public class SemanticRestrictionCommentImplementation extends
 
 		if (!returnsContent.isEmpty())
 		{
-			stringBuilder.append("<tr><th class=\"IRowLabel\" colspan=\"")
+			stringBuilder.append(tabs(4) + "<tr>\n")
+			.append(tabs(5) + "<th class=\"IRowLabel\" colspan=\"")
 				.append(colSpan).append("\">Returns</th>\n")
 				.append(returnsContent.get(0).toHTML());
 		}
 
-		return stringBuilder.append("</tbody></table>\n").toString();
+		return stringBuilder.append(tabs(3) + "</tbody>\n")
+			.append(tabs(2) + "</table>\n").toString();
 	}
 
 	@Override

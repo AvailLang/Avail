@@ -118,19 +118,31 @@ public class GrammaticalRestrictionCommentImplementation extends
 	{
 		final StringBuilder stringBuilder = new StringBuilder();
 
-		stringBuilder.append("<h4 class=\"MethodSectionHeader\">Grammatical "
-			+ "restrictions:</h4>\n<div class=\"MethodSectionContent\">\n"
-            + "<table>\n<thead>\n<tr>\n<th style=\"white-space:nowrap\" "
-            + "class=\"GColLabelNarrow\" scope=\"col\">Argument Position</th>\n"
-            + "<th class=\"GColLabelWide\" scope=\"col\">Prohibited "
-            + "Expression</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n");
+		stringBuilder
+			.append(tabs(1) + "<h4 class=\"MethodSectionHeader\">Grammatical "
+			+ "restrictions:</h4>\n")
+			.append(tabs(1) + "<div class=\"MethodSectionContent\">\n")
+            .append(tabs(2) + "<table>\n")
+            .append(tabs(3) + "<thead>\n")
+            .append(tabs(4) + "<tr>\n")
+            .append(tabs(5) + "<th style=\"white-space:nowrap\" "
+            	+ "class=\"GColLabelNarrow\" scope=\"col\">Argument "
+            	+ "Position</th>\n")
+            .append(tabs(5) + "<th class=\"GColLabelWide\" "
+            	+ "scope=\"col\">Prohibited Expression</th>\n")
+            .append(tabs(4) + "</tr>\n")
+            .append(tabs(3) + "</thead>\n")
+            .append(tabs(3) + "<tbody>\n")
+            .append(tabs(4) + "<tr>\n");
 
 		for (final int arity : forbids.navigableKeySet())
 		{
 			stringBuilder.append(forbids.get(arity).toHTML());
 		}
 
-		stringBuilder.append("</tbody>\n</table>\n</div>\n");
+		stringBuilder.append(tabs(3) + "</tbody>\n")
+		.append(tabs(2) + "</table>\n")
+		.append(tabs(1) + "</div>\n");
 		return stringBuilder.toString();
 	}
 

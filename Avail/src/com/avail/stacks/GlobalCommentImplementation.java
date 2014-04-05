@@ -98,10 +98,10 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 			stringBuilder.append(categories.get(0).toHTML());
 		}
 
-		stringBuilder.append("<div class=\"SignatureDescription\">")
+		stringBuilder.append(tabs(1) + "<div class=\"SignatureDescription\">")
 			.append(description.toHTML()).append("</div>\n");
 
-		return stringBuilder.append("</tbody></table>\n").toString();
+		return stringBuilder.toString();
 	}
 
 	@Override

@@ -146,9 +146,11 @@ public class StacksCategories
 		{
 			for (int j = 0; j < setSize - 1; j++)
 			{
-				stringBuilder.append("\t{\n\t\t\"category\" : \"")
+				stringBuilder.append(tabs(1) + "{\n")
+					.append(tabs(2) + "\"selected\" : false,\n")
+					.append(tabs(2) + "\"category\" : \"")
 					.append(categorySet.get(j))
-					.append("\",\n\t\t\"methods\" : [\n");
+					.append("\",\n" + tabs(2) +"\"methods\" : [\n");
 
 				final ArrayList<Pair<String,String>> methodList =
 					categoryMethodList.get(categorySet.get(j));
@@ -160,7 +162,7 @@ public class StacksCategories
 					for (int i = 0; i < listSize - 1; i++)
 					{
 						final Pair<String,String> pair = methodList.get(i);
-						stringBuilder.append("\t\t\t{\"methodName\" : \"")
+						stringBuilder.append(tabs(3) + "{\"methodName\" : \"")
 							.append(pair.first()).append("\", \"link\" : \"")
 							.append(pair.second()).append("\"},\n");
 					}
@@ -168,15 +170,18 @@ public class StacksCategories
 					final Pair<String,String> lastPair =
 						methodList.get(listSize - 1);
 
-					stringBuilder.append("\t\t\t{\"methodName\" : \"")
+					stringBuilder.append(tabs(3) + "{\"methodName\" : \"")
 						.append(lastPair.first()).append("\", \"link\" : \"")
-						.append(lastPair.second()).append("\"}\n\t\t]\n\t},");
+						.append(lastPair.second())
+						.append("\"}\n" + tabs(2)+ "]\n" + tabs(1)+ "},");
 				}
 			}
 
-			stringBuilder.append("\t{\n\t\t\"category\" : \"")
+			stringBuilder.append(tabs(1) + "{\n" + tabs(2) + "\"selected\" : "
+					+ "false,\n")
+				.append(tabs(2) + "\"category\" : \"")
 				.append(categorySet.get(setSize - 1))
-				.append("\",\n\t\t\"methods\" : [\n");
+				.append("\",\n" + tabs(2) + "\"methods\" : [\n");
 
 			final ArrayList<Pair<String,String>> methodList =
 				categoryMethodList.get(categorySet.get(setSize - 1));
@@ -188,7 +193,7 @@ public class StacksCategories
 				for (int i = 0; i < listSize - 1; i++)
 				{
 					final Pair<String,String> pair = methodList.get(i);
-					stringBuilder.append("\t\t\t{\"methodName\" : \"")
+					stringBuilder.append(tabs(3) + "{\"methodName\" : \"")
 						.append(pair.first()).append("\", \"link\" : \"")
 						.append(pair.second()).append("\"},\n");
 				}
@@ -196,9 +201,10 @@ public class StacksCategories
 				final Pair<String,String> lastPair =
 					methodList.get(listSize - 1);
 
-				stringBuilder.append("\t\t\t{\"methodName\" : \"")
+				stringBuilder.append(tabs(3) + "{\"methodName\" : \"")
 					.append(lastPair.first()).append("\", \"link\" : \"")
-					.append(lastPair.second()).append("\"}\n\t\t]\n\t}\n]");
+					.append(lastPair.second())
+					.append("\"}\n" + tabs(2) + "]\n" + tabs(1) + "}\n]");
 			}
 		}
 
@@ -218,16 +224,65 @@ public class StacksCategories
 			.append("var stacksApp = angular.module('stacksApp',[]);\n");
 		stringBuilder
 			.append("stacksApp.factory('Categories', function () {\n"
-			+ "\tvar Categories = {};\n"
-			+ "\tCategories.content = ");
+			+ tabs(1) + "var Categories = {};\n"
+			+ tabs(1) + "Categories.content = ");
 		stringBuilder.append(toJson());
-		stringBuilder.append(";\n\t"
-			+ "return Categories;\n"
+		stringBuilder.append(";\n"
+			+ tabs(1) + "return Categories;\n"
 			+ "})\n");
 
 		stringBuilder.append("function CategoriesCntrl($scope,Categories) {\n"
-			+ "\t$scope.categories = Categories;\n"
-			+ "}");
+			+ tabs(1) + "$scope.categories = Categories;\n")
+			.append(tabs(1) + "$scope.methodList = function()\n")
+			.append(tabs(1) + "{\n")
+			.append(tabs(2) + "var allCategories = $scope.categories;\n")
+			.append(tabs(2) + "var filteredMethods = {};\n")
+			.append(tabs(2) + "var finalList = {content : []};\n")
+			.append(tabs(2) + "var selectedCount = 0;\n")
+			.append(tabs(2) + "for (var i=0; i < allCategories.content.length;"
+				+ "i++)\n")
+			.append(tabs(2) + "{\n")
+			.append(tabs(3) + "if (allCategories.content[i].selected)\n")
+			.append(tabs(3) + "{\n")
+			.append(tabs(4) + "selectedCount++;\n")
+			.append(tabs(4) + "for  (var j = 0; j "
+				+ "< allCategories.content[i].methods.length; j++)\n")
+			.append(tabs(4) + "{\n")
+			.append(tabs(5) + "var method = allCategories.content[i]"
+				+ ".methods[j].methodName;\n")
+			.append(tabs(5) + "try\n")
+			.append(tabs(5) + "{\n")
+			.append(tabs(6) + "var newCount = "
+				+ "filteredMethods[method].count + 1;\n")
+			.append(tabs(6) + "filteredMethods[method].count = newCount;\n")
+			.append(tabs(5) + "}\n")
+			.append(tabs(5) + "catch(err)\n")
+			.append(tabs(5) + "{\n")
+			.append(tabs(6) + "filteredMethods[method] =\n")
+			.append(tabs(7) + "{\"name\" : method.toLowerCase(),\n")
+			.append(tabs(7) + "\"link\" : allCategories.content[i]"
+				+ ".methods[j].link,\n")
+			.append(tabs(7) + "\"count\" : 1};\n")
+			.append(tabs(5) + "}\n")
+			.append(tabs(4) + "}\n")
+			.append(tabs(3) + "}\n")
+			.append(tabs(2) + "}\n")
+			.append(tabs(2) + "for (var key in filteredMethods)\n")
+			.append(tabs(2) + "{\n")
+			.append(tabs(3) + "if (filteredMethods[key].count == "
+				+ "selectedCount)\n")
+			.append(tabs(3) + "{\n")
+			.append(tabs(4) + "finalList.content.push({\"name\" : key, \"link\" : filteredMethods[key].link})\n")
+			.append(tabs(3) + "}\n")
+			.append(tabs(2) + "}\n")
+			.append(tabs(2) + "return finalList;\n")
+			.append(tabs(1) + "}\n")
+			.append(tabs(1) + "$scope.linkValue = {};\n")
+			.append(tabs(1) + "$scope.changeLinkValue = function(method) {\n")
+			.append(tabs(2) + "$scope.linkValue = method.link;\n")
+			.append(tabs(1) + "}\n")
+			.append("}");
+
 
 		return stringBuilder.toString();
 	}
@@ -239,5 +294,22 @@ public class StacksCategories
 	{
 		categoryMethodList.clear();
 		categoryToDescription.clear();
+	}
+
+	/**
+	 * @param numberOfTabs
+	 * 		the number of tabs to insert into the string.
+	 * @return
+	 * 		a String consisting of the number of tabs requested in
+	 * 		in numberOfTabs.
+	 */
+	public String tabs(final int numberOfTabs)
+	{
+		final StringBuilder stringBuilder = new StringBuilder();
+		for (int i = 1; i <= numberOfTabs; i++)
+		{
+			stringBuilder.append('\t');
+		}
+		return stringBuilder.toString();
 	}
 }

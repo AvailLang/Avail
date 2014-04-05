@@ -71,8 +71,9 @@ public class GlobalCommentSignature extends CommentSignature
 			.append("<div class=\"SignatureHeading\">")
 			.append(globalType)
 			.append("</div>\n")
-			.append("<div class=\"ModuleLocation\">")
-			.append(module).append('.').append(name).append("</div>\n");
+			.append(tabs(1) + "<div class=\"ModuleLocation\">")
+			.append(module).append(": <strong>")
+			.append(name).append("</strong></div>\n");
 		return stringBuilder.toString();
 	}
 }

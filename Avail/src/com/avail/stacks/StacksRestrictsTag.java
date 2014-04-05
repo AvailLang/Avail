@@ -86,11 +86,13 @@ public class StacksRestrictsTag extends AbstractStacksTag
 	public String toHTML ()
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
-		.append("\n<tr class=\"methodParameters\"><td class=\"ICode\">")
+		.append(tabs(4) + "<tr class=\"methodParameters\"><td class=\"ICode\">")
 		.append(paramMetaType.lexeme())
-		.append("</td>\n<td class=\"IDesc\">")
-		.append(description.toHTML())
-		.append("</td></tr>\n");
+		.append("</td>\n")
+		.append(tabs(5) + "<td class=\"IDesc\">\n")
+		.append(tabs(6) + description.toHTML())
+		.append("\n" + tabs(5) + "</td>\n")
+		.append(tabs(4) + "</tr>\n");
 
 		return stringBuilder.toString();
 	}

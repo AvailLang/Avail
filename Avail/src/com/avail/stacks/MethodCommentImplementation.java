@@ -122,26 +122,36 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 			stringBuilder.append(categories.get(0).toHTML());
 		}
 
-		stringBuilder.append("<div class=\"SignatureDescription\">")
-			.append(description.toHTML()).append("</div>\n")
-			.append("<table>\n<thead>\n<tr>\n<th class=\"Transparent\" "
+		stringBuilder.append(tabs(2) + "<div class=\"SignatureDescription\">\n")
+			.append(tabs(3) + description.toHTML())
+			.append("\n" + tabs(2) + "</div>\n")
+			.append(tabs(2) + "<table>\n")
+			.append(tabs(3) + "<thead>\n")
+			.append(tabs(4) + "<tr>\n")
+			.append(tabs(5) + "<th class=\"Transparent\" "
 				+ "scope=\"col\"></th>\n");
 		if (paramCount > 0)
 		{
-			stringBuilder.append("<th class=\"IColLabelNarrow\" "
+			stringBuilder.append(tabs(5) + "<th class=\"IColLabelNarrow\" "
 				+ "scope=\"col\">Name</th>\n");
 			colSpan = 2;
 		}
 
 		stringBuilder
-			.append("<th class=\"IColLabelNarrow\" scope=\"col\">Type</th>\n"
-				+ "\n<th class=\"IColLabelWide\" scope=\"col\">Description</th>\n"
-				+ "</tr></thead>\n<tbody>\n");
+			.append(tabs(5) + "<th class=\"IColLabelNarrow\" scope=\"col\">"
+				+ "Type</th>\n")
+			.append(tabs(5) + "<th class=\"IColLabelWide\" scope=\"col\">"
+				+ "Description</th>\n")
+			.append(tabs(4) + "</tr>\n")
+			.append(tabs(3) + "</thead>\n")
+			.append(tabs(3) + "<tbody>\n");
 
 		if (paramCount > 0)
 		{
-			stringBuilder.append("<tr>\n<th class=\"IRowLabel\" rowspan=\"")
-			.append(paramCount + 1).append("\">Parameters</th>\n</tr>\n");
+			stringBuilder.append(tabs(4) + "<tr>\n")
+				.append(tabs(5) + "<th class=\"IRowLabel\" rowspan=\"")
+			.append(paramCount + 1).append("\">Parameters</th>\n")
+			.append(tabs(4) + "</tr>\n");
 		}
 
 		for (final StacksParameterTag paramTag : parameters)
@@ -149,13 +159,14 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 			stringBuilder.append(paramTag.toHTML());
 		}
 
-		stringBuilder.append("<tr><th class=\"IRowLabel\" colspan=\"")
+		stringBuilder.append(tabs(4) + "<tr>\n")
+			.append(tabs(5) + "<th class=\"IRowLabel\" colspan=\"")
 			.append(colSpan).append("\">Returns</th>\n")
 			.append(returnsContent.toHTML());
 
 		if (exceptionCount > 0)
 		{
-			stringBuilder.append("<th class=\"IRowLabel\" colspan=\"")
+			stringBuilder.append(tabs(5) + "<th class=\"IRowLabel\" colspan=\"")
 				.append(colSpan).append("\" rowspan=\"")
 				.append(exceptionCount+1).append("\">Raises</th>\n");
 
@@ -165,7 +176,8 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 			}
 		}
 
-		return stringBuilder.append("</tbody>\n</table>\n").toString();
+		return stringBuilder.append(tabs(3) + "</tbody>\n")
+			.append(tabs(2) + "</table>\n").toString();
 	}
 
 	@Override
