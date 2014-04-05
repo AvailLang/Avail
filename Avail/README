@@ -334,9 +334,68 @@ Then build and install:
 For more elaborate instructions, please refer back to the BUILDING and
 INSTALLATION sections of this document.
 
+Following a rebuild, if you should encounter any problems while running
+"avail-dev", especially an unhandled java.lang.NoClassDefinitionError, then
+please try a clean rebuild before reporting the problem:
+
+	$ ant clean
+	$ ant
+	$ ant install
+
 Be sure to visit the official Avail website frequently for updates and news:
 
 	http://www.availlang.org
+
+
+REPORTING PROBLEMS =============================================================
+
+To report a problem with the Avail virtual machine or standard library, please
+take the following steps:
+
+1) Please verify, to the best of your ability, that the problem does not result
+from a bug in your own code. We all write buggy code, including the developers
+at The Avail Foundation, so please make sure that the problem is ours and not
+yours – so that we can concentrate our efforts on fixing our own bugs!
+
+2) Once you are certain that the bug's provenance makes it our problem, please
+verify that the bug has not already been reported. You can do this by searching
+for the bug using our issue tracking system:
+
+	https://trac.availlang.org/report
+
+If you do locate the bug, then please feel free to add any information not
+already reported in the history of the existing issue. If this bug is
+mission-critical for you, then please let us know this so that we can assess our
+current priorities and adjust them accordingly.
+
+3) If you could not locate the bug in our database, then please create a new
+ticket in our issue system:
+
+	https://trac.availlang.org/newticket
+
+Please try to find the minimal test case that reproduces the problem, and attach
+any relevant source files, resources, and screenshots to the new issue.
+
+4) You are certainly welcome to stop at #3; at this point, you have definitely
+done your duty as a responsible and considerate user of open-source software. If
+you are feeling especially ambitious, however, you may wish to tackle the bug
+yourself! This may be a trivial matter or a serious ordeal, depending on the
+nature of the bug, and providing advice to the ambitious is beyond the scope of
+this humble document. If you do decide to attempt a resolution yourself, then
+please include a statement of your intentions in the issue report. Should your
+efforts prove successful, then please create a minimal patch file in unified
+format (unidiff), treating absent files as empty. On Unix systems, you can do
+this with a command like:
+
+	$ diff -udrN $PROJ $COPY
+
+Where $COPY denotes a fork of $PROJ that contains your updated files. Please
+attach the resultant patch file to the relevant issue. Once we have had an
+opportunity to review the patch for vulnerabilities and stylistic issues, then
+we will apply your patch to the appropriate project branches in Git.
+
+If you start but give up before achieving a resolution, then simply update the
+issue to let us know that you are no longer working on the problem.
 
 
 ================================================================================
