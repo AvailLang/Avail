@@ -493,31 +493,47 @@ public class StacksCommentsModule
 		final StacksSynchronizer synchronizer, final AvailRuntime runtime,
 		final StacksCategories categories)
 	{
-
-		final String htmlOpenContent = "<!doctype html>\n<!--[if lt IE 7]> "
-			+ "<html class=\"ie6 oldie\">"
-			+ "<![endif]-->\n<!--[if IE 7]>\n<html class=\"ie7 oldie\">"
-			+ "<![endif]-->\n<!--[if IE 8]>\n<html class=\"ie8 oldie\">"
-			+ "<![endif]-->\n<!--[if gt IE 8]><!-->\n<html class=\"\">"
-			+ "<!--<![endif]-->\n\t<head>\n"
-			+ "<link href=\"/_css/stacks.css\" rel=\"stylesheet\" type=\"text/css\">"
-			+ "<!--#include virtual=\"/_include/head.ssi\" -->\n"
-			+ "<title>Avail - Library</title>\n\t</head>\n\t"
-			+ "<body class=\"gradient-logo\">\n"
-			+ "<!--#include virtual=\"/_include/body-top.ssi\" -->";
-
-
-		final String htmlCloseContent =
-			"<!--#include virtual=\"/_include/body-bottom.ssi\" -->\n\t"
-			+ "</body>\n</html>";
-
-
 		for (final String implementationName :
 			finalImplementationsGroupMap.keySet())
 		{
 			finalImplementationsGroupMap.get(implementationName)
 				.toHTML(outputPath, implementationName,
-					htmlOpenContent, htmlCloseContent, synchronizer, runtime);
+					htmlOpentContent(), htmlCloseContent(), synchronizer, runtime);
 		}
 	}
+
+	/**
+	 * The opening content for the individiual stacks implementation file.
+	 * @return
+	 * 		The opening HTML
+	 */
+	private String htmlOpentContent()
+	{
+		return //"<!doctype html>\n<!--[if lt IE 7]> "
+			//+ "<html class=\"ie6 oldie\">"
+			//+ "<![endif]-->\n<!--[if IE 7]>\n<html class=\"ie7 oldie\">"
+			//+ "<![endif]-->\n<!--[if IE 8]>\n<html class=\"ie8 oldie\">"
+			//+ "<![endif]-->\n<!--[if gt IE 8]><!-->\n<html class=\"\">"
+			//+ "<!--<![endif]-->\n\t<head>\n"
+			//+ "<link href=\"/_css/stacks.css\" rel=\"stylesheet\" type=\"text/css\">\n"
+			//+ "<!--#include virtual=\"/_include/head.ssi\" -->\n"
+			//+ "<title>Avail - Library</title>\n\t</head>\n\t"
+			//+ "\t</head>\n\t<body class=\"gradient-logo\">\n";
+			//+ "<!--#include virtual=\"/_include/body-top.ssi\" -->";
+			"<div>\n";
+	}
+
+	/**
+	 * The closing content for the individiual stacks implementation file.
+	 * @return
+	 * 		The closing HTML
+	 */
+	private String htmlCloseContent()
+	{
+		return //"<!--#include virtual=\"/_include/body-bottom.ssi\" -->\n\t"
+			//"</body>\n</html>";
+			"</div>";
+	}
+
+
 }

@@ -286,9 +286,10 @@ public class ImplementationGroup
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append(htmlOpenContent)
-			.append("<h2 class=\"MethodHeading\">")
+			.append(tabs(1) + "<h2 class=\"MethodHeading\">")
 			.append(name.asNativeString())
-			.append("</h2>\n<br>");
+			.append("</h2>\n")
+			.append(tabs(1) + "<br>\n");
 
 		if (!methods.isEmpty())
 		{
@@ -309,30 +310,31 @@ public class ImplementationGroup
 					.append(grammaticalRestrictions.get(0).toHTML());
 			}
 
-			stringBuilder.append("<h4 class=\"MethodSectionHeader\">"
-					+ "Implementations:</h4>\n"
-					+ "<div class=\"MethodSectionContent\">");
+			stringBuilder.append(tabs(1) + "<h4 class=\"MethodSectionHeader\">"
+					+ "Implementations:</h4>\n")
+				.append(tabs(1) + "<div class=\"MethodSectionContent\">\n");
 
 			for (final MethodCommentImplementation implementation : methods)
 			{
 				stringBuilder.append(implementation.toHTML());
 			}
 
-			stringBuilder.append("</div>");
+			stringBuilder.append(tabs(1) + "</div>\n");
 
 			if (!semanticRestrictions.isEmpty())
 			{
-				stringBuilder.append("<h4 class=\"MethodSectionHeader\">"
-					+ "Semantic restrictions:</h4>\n"
-					+ "<div class=\"MethodSectionContent\">");
+				stringBuilder
+					.append(tabs(1) + "<h4 class=\"MethodSectionHeader\">"
+						+ "Semantic restrictions:</h4>\n")
+					.append(tabs(1) + "<div class=\"MethodSectionContent\">\n");
 
-				for (final SemanticRestrictionCommentImplementation implementation :
-					semanticRestrictions)
+				for (final SemanticRestrictionCommentImplementation
+					implementation : semanticRestrictions)
 				{
 					stringBuilder.append(implementation.toHTML());
 				}
 
-				stringBuilder.append("</div>");
+				stringBuilder.append(tabs(1) + "</div>\n");
 			}
 			final String localPath = qualifiedMethodName
 				.substring(1, qualifiedMethodName.lastIndexOf('/') + 1);
@@ -348,7 +350,8 @@ public class ImplementationGroup
 		else if (!(global == null))
 		{
 			stringBuilder.append(global().toHTML());
-			final int leafFileNameStart = qualifiedMethodName.lastIndexOf('/') + 1;
+			final int leafFileNameStart =
+				qualifiedMethodName.lastIndexOf('/') + 1;
 			final String localPath = qualifiedMethodName
 				.substring(1, leafFileNameStart);
 
@@ -423,5 +426,22 @@ public class ImplementationGroup
 		}
 
 		return categorySet;
+	}
+
+	/**
+	 * @param numberOfTabs
+	 * 		the number of tabs to insert into the string.
+	 * @return
+	 * 		a String consisting of the number of tabs requested in
+	 * 		in numberOfTabs.
+	 */
+	public String tabs(final int numberOfTabs)
+	{
+		final StringBuilder stringBuilder = new StringBuilder();
+		for (int i = 1; i <= numberOfTabs; i++)
+		{
+			stringBuilder.append('\t');
+		}
+		return stringBuilder.toString();
 	}
 }

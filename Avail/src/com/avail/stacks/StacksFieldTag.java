@@ -102,13 +102,17 @@ public class StacksFieldTag extends AbstractStacksTag
 	public String toHTML()
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
-			.append("<tr class=\"methodParameters\">\n<td class=\"ICode\">")
+			.append(tabs(4) + "<tr class=\"methodParameters\">\n")
+			.append(tabs(5) + "<td class=\"ICode\">")
 			.append(fieldName.lexeme())
-			.append("</td>\n<td class=\"ICode\">")
-			.append(fieldType)
-			.append("</td>\n<td class=\"IDesc\">")
-			.append(fieldDescription)
-			.append("</td>\n</tr>\n");
+			.append("</td>\n")
+			.append(tabs(5) + "<td class=\"ICode\">")
+			.append(fieldType.lexeme())
+			.append("</td>\n")
+			.append(tabs(5) + "<td class=\"IDesc\">\n")
+			.append(tabs(6) + fieldDescription.toHTML())
+			.append("\n" + tabs(5) + "</td>\n")
+			.append(tabs(4) + "</tr>\n");
 		return stringBuilder.toString();
 	}
 }
