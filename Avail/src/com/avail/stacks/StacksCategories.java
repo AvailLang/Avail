@@ -238,24 +238,42 @@ public class StacksCategories
 			.append(tabs(2) + "var allCategories = $scope.categories;\n")
 			.append(tabs(2) + "var filteredMethods = {};\n")
 			.append(tabs(2) + "var finalList = {content : []};\n")
+			.append(tabs(2) + "var selectedCount = 0;\n")
 			.append(tabs(2) + "for (var i=0; i < allCategories.content.length;"
-				+ "i++)\n"
-				+ "{\n")
-			.append(tabs(3) + "if (allCategories.content[i].selected)\n"
-				+ "{\n")
+				+ "i++)\n")
+			.append(tabs(2) + "{\n")
+			.append(tabs(3) + "if (allCategories.content[i].selected)\n")
+			.append(tabs(3) + "{\n")
+			.append(tabs(4) + "selectedCount++;\n")
 			.append(tabs(4) + "for  (var j = 0; j "
-				+ "< allCategories.content[i].methods.length; j++)\n"
-				+ "{\n")
-			.append(tabs(5) + "filteredMethods[allCategories.content[i]"
-				+ ".methods[j].methodName] =\n")
-			.append(tabs(6) + "{\"name\" : allCategories.content[i].methods[j]"
-				+ ".methodName.toLowerCase(), \"link\" : "
-				+ "allCategories.content[i].methods[j].link};\n")
-			.append(tabs(4) + "}\n" + tabs(3) + "}\n" + tabs(2) + "}\n")
+				+ "< allCategories.content[i].methods.length; j++)\n")
+			.append(tabs(4) + "{\n")
+			.append(tabs(5) + "var method = allCategories.content[i]"
+				+ ".methods[j].methodName;\n")
+			.append(tabs(5) + "try\n")
+			.append(tabs(5) + "{\n")
+			.append(tabs(6) + "var newCount = "
+				+ "filteredMethods[method].count + 1;\n")
+			.append(tabs(6) + "filteredMethods[method].count = newCount;\n")
+			.append(tabs(5) + "}\n")
+			.append(tabs(5) + "catch(err)\n")
+			.append(tabs(5) + "{\n")
+			.append(tabs(6) + "filteredMethods[method] =\n")
+			.append(tabs(7) + "{\"name\" : method.toLowerCase(),\n")
+			.append(tabs(7) + "\"link\" : allCategories.content[i]"
+				+ ".methods[j].link,\n")
+			.append(tabs(7) + "\"count\" : 1};\n")
+			.append(tabs(5) + "}\n")
+			.append(tabs(4) + "}\n")
+			.append(tabs(3) + "}\n")
+			.append(tabs(2) + "}\n")
 			.append(tabs(2) + "for (var key in filteredMethods)\n")
 			.append(tabs(2) + "{\n")
-			.append(tabs(3) + "finalList.content.push({\"name\" : key, \"link\""
-				+ " : filteredMethods[key].link})\n")
+			.append(tabs(3) + "if (filteredMethods[key].count == "
+				+ "selectedCount)\n")
+			.append(tabs(3) + "{\n")
+			.append(tabs(4) + "finalList.content.push({\"name\" : key, \"link\" : filteredMethods[key].link})\n")
+			.append(tabs(3) + "}\n")
 			.append(tabs(2) + "}\n")
 			.append(tabs(2) + "return finalList;\n")
 			.append(tabs(1) + "}\n")
@@ -264,6 +282,7 @@ public class StacksCategories
 			.append(tabs(2) + "$scope.linkValue = method.link;\n")
 			.append(tabs(1) + "}\n")
 			.append("}");
+
 
 		return stringBuilder.toString();
 	}

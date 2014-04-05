@@ -520,7 +520,7 @@ public class StacksCommentsModule
 			+ tabs(1) + "<html class=\"ie8 oldie\">\n"
 			+ "<![endif]-->\n"
 			+ tabs(1) + "<!--[if gt IE 8]>\n"
-			+tabs(1) + "<!-->\n<html class=\"\">\n"
+			+ tabs(1) + "<!-->\n<html class=\"\">\n"
 			+ "<!--<![endif]-->\n"
 			+ tabs(1) + "<head>\n"
 			+ tabs(2) + "<meta charset=\"utf-8\">\n"
