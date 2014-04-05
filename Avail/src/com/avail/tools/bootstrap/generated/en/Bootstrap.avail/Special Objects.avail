@@ -351,6 +351,7 @@ _two_or_more_tuple                      ::= special object 139;
  * @category "Primitives" "Types"
  * @type "any"
  * @supertype "⊤"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-any.html"
  */
 Primitive "any" is
 [
@@ -359,28 +360,27 @@ Primitive "any" is
 
 /**
  * The enumeration of the special atoms {@method "true"} and {@method "false"}.
- * All primitive interrogatives use classical (Boolean) bivalence and obey the
- * three classical (Aristotelian) laws of thought.
+ * All primitive interrogatives use classical (Boolean) bivalence and all stable
+ * primitive interrogatives obey the three classical (Aristotelian) laws of
+ * thought.
  *
  * Bivalent logic assigns either {@method "true"} or {@method "false"} as the
- * unique truth value of every proposition. Every primitive interrogative, i.e.
- * {@method "boolean"}-valued primitive, stably answers either {@method
- * "true"} or {@method "false"} for a given set of arguments.
+ * unique truth value of every proposition. A primitive interrogative, i.e.
+ * {@method "boolean"}-valued primitive, is stable iff it reliably answers
+ * either {@method "true"} or {@method "false"} for a given set of arguments.
  *
  * The three classical laws of thought are:
  *
  * <ul>
- * <li><strong>The law of identity: P → P.</strong> For every primitive
+ * <li><strong>The law of identity: P → P.</strong> For every stable primitive
  * interrogative {@code "prim_,_,_"}, then {@"prim A, B, C = prim A, B, C"}.
- * (All primitive interrogatives are stable.)</li>
+ * </li>
  * <li><strong>The law of noncontradiction: ¬(P ∧ ¬P).</strong> For every
- * primitive interrogative {"@code "prim_,_,_"}, then {@method
+ * stable primitive interrogative {"@code "prim_,_,_"}, then {@method
  * "(prim A, B, C ∧ ¬prim A, B, C) = false"}.</li>
  * <li><strong>The law of excluded middle: P ∨ ¬P.</strong> For every primitive
  * interrogative {@code "prim_,_,_"}, then {@code
  * "((prim A, B, C = true) ∨ (prim A, B, C = false)) = true"}.</li>
- *
- * Therefore the primitive interrogatives satisfy classical logic.
  *
  * Note that values may be instances of many enumerations. This means that Avail
  * directly supports other logical systems, such as Kleene's three-valued logic
@@ -394,6 +394,7 @@ Primitive "any" is
  * @category "Primitives" "Types"
  * @type "boolean"
  * @supertype "atom"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-boolean.html"
  */
 Primitive "boolean" is
 [
@@ -401,11 +402,39 @@ Primitive "boolean" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * A character is a sign or symbol in the semiotic sense: an entity with
+ * distinct identity that is nonetheless generally intended and understood to
+ * represent something other than itself. The visual representation of a
+ * character is a glyph. A character is necessarily distinct from how it is
+ * written or printed. The same character will differ in any two handwritten
+ * occurrences, even when the same person is responsible for the production of
+ * both. Likewise the printed representation of a character will differ by font
+ * or style. So a character has identity independent of any and all glyphs that
+ * transcribe it.
+ *
+ * Avail is only concerned with character value, not meaning or transcription. A
+ * character is always equal to itself and always unequal to another character.
+ * Characters are immutable and possess but a single intrinsic property:
+ * {@method "_'s⁇code point" Unicode code point}. Unicode is an international
+ * standard for the codification of all widely used characters. A code point is
+ * a numeric value that is uniquely associated with a character relative to some
+ * system of codification. Thus a character's Unicode code point singularly
+ * identifies it within the Unicode scheme.
+ *
+ * A character literal is expressed as a cent sign {@code "¢"} (U+00A2) followed
+ * by a single-character lexeme or length-one string literal. Avail character
+ * literal notation is provided by the method {@method "¢…"}. The
+ * single-character form is sufficient for nearly every character, but the
+ * string literal form must be employed when the desired character is a
+ * quotation mark {@code "\""} (U+0022), semicolon {@code ";"} (U+003B), or
+ * nonprintable character.
  *
  * @category "Primitives" "Types"
  * @type "character"
  * @supertype "nontype"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-boolean.html"
+ * @see "http://www.unicode.org/"
+ * @see "http://www.unicode.org/standard/standard.html"
  */
 Primitive "character" is
 [
@@ -416,8 +445,9 @@ Primitive "character" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "function"
- * @supertype "[…]→⊤"
+ * @type "[…]→⊤"
+ * @alias "function"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-function.html"
  */
 Primitive "function" is
 [
@@ -428,8 +458,9 @@ Primitive "function" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "function meta"
- * @supertype "[…]→⊤'s type"
+ * @type "[…]→⊤'s type"
+ * @alias "function meta"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-function.html"
  */
 Primitive "function meta" is
 [
@@ -440,8 +471,9 @@ Primitive "function meta" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "function implementation"
- * @supertype "¢[…]→⊤"
+ * @type "¢[…]→⊤"
+ * @alias "function implementation"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-function-implementation.html"
  */
 Primitive "function implementation" is
 [
@@ -452,8 +484,9 @@ Primitive "function implementation" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "variable"
+ * @type "⊤→/→⊥"
  * @supertype "nontype"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-variable.html"
  */
 Primitive "variable" is
 [
@@ -464,8 +497,9 @@ Primitive "variable" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "variable meta"
+ * @type "(⊤→/→⊥)'s type"
  * @supertype "nontypes type"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-variable.html"
  */
 Primitive "variable meta" is
 [
@@ -476,8 +510,9 @@ Primitive "variable meta" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "continuation"
- * @supertype "$[…]→⊥"
+ * @type "$[…]→⊥"
+ * @alias "continuation"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-continuation.html"
  */
 Primitive "continuation" is
 [
@@ -488,8 +523,9 @@ Primitive "continuation" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "continuation meta"
- * @supertype "($[…]→⊥)'s type"
+ * @type "($[…]→⊥)'s type"
+ * @alias "continuation meta"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-continuation.html"
  */
 Primitive "continuation meta" is
 [
@@ -497,11 +533,53 @@ Primitive "continuation meta" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * An {@code "atom"} is a mutable value associated with a module-allocated
+ * name. For each name that appears in the {@code "Names"} section of a module's
+ * header, the compiler associates that name with a new atom. For each name that
+ * appears in the {@code "Uses"} or {@code "Extends"} section of a module's
+ * header, the compiler associates that name with the atom introduced by the
+ * module that named it. During compilation of a module, an atom may be
+ * retrieved by presenting its name, a string, to the primitive method {@method
+ * "atom for_"}. If the atom was neither introduced by the current module nor
+ * imported from another module, then {@method "atom for_"} privately
+ * introduces a new atom into the {@method "current module"}; a subsequent send
+ * with the same argument within the context of the same module will produce the
+ * same atom.
  *
- * @category "Primitives" "Types"
+ * In ordinary use, the primary asset of an atom is its distinction from every
+ * other value, including an equivalently named atom that originated in a
+ * different module. Consider the values {@method "true"} and {@method "false"}
+ * from classical logic. The principal characteristic of each is its distinction
+ * from the other. In other words, {@method "true"} and {@method "false"}
+ * differ by identity rather than by some measurable quantity. In Avail, the
+ * values {@method "true"} and {@method "false"} are special atoms; they are
+ * issued by the virtual machine rather than some module. The type {@type
+ * "boolean"} is simply the finite enumeration of these two atoms.
+ *
+ * In addition to a {@method "_'s⁇name" name} and an {@method "_'s⁇issuing
+ * module" issuing module}, an atom also comprises a collection of bindings,
+ * called properties. Since an atom has identity, it can {@method "_[_]:=_"
+ * acquire new properties}, {@method "_[_]:=_" update existing properties}, and
+ * {@method "Remove_[_]" lose properties altogether}. A property is an
+ * association between another atom — the property key — and an arbitrary value
+ * — the property value. The properties of an atom are not enumerable, thus
+ * ensuring modular usage; an algorithm can only query or alter a property for
+ * which it possesses the key.
+ *
+ * The type {@code "atom"} has every atom as an instance. atom is a complete
+ * type. Though its properties are analogous to the bindings of a map or the
+ * attributes of an object, {@code "atom"} does not require (or permit) type
+ * parameters for the property key type or the property value type. These
+ * limitations are a direct consequence of mutability.
+ *
+ * Note that special atoms cannot participate in the property mechanism. For
+ * instance, the special atom true cannot be either the target or the property
+ * key of a property interrogation. It can be a property value, however.
+ *
+ * @category "Primitives" "Types" "Atoms"
  * @type "atom"
  * @supertype "nontype"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-atom.html"
  */
 Primitive "atom" is
 [
@@ -509,11 +587,36 @@ Primitive "atom" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * A double — that is, an IEEE 754 double-precision floating point number — is
+ * an approximation of a real number. The representation uses 64 binary digits,
+ * hereinafter bits, organized as 1 sign bit, 52 bits of mantissa, and 11 bits
+ * of exponent. The sign bit distinguishes positive (sign bit = 0) and negative
+ * (sign bit = 1) values. The mantissa encodes the significant binary digits of
+ * the number. The exponent scales the mantissa by a particular power of 2.
+ * Finite double values range from {@code "-1.79769313486231570e+308"} to
+ * {@code "1.79769313486231570e+308"}. The closest to zero nonzero double values
+ * are {@code "±4.94065645841246544e-324"}. Positive zero ({@code "0.0"}) and
+ * negative zero ({@code "-0.0"}) are considered distinct. Infinities are
+ * supported, but indicate an overflow of representational limits (rather than
+ * {@code "±∞"}). Some encodings do not represent real values; such a value is a
+ * not-a-number ({@code "NaN"}). No two differing {@code "NaN"} encodings are
+ * considered equal. This is a departure from a strict interpretation of IEEE
+ * 754.
  *
- * @category "Primitives" "Types"
+ * In Avail, a literal double begins with one or more decimal digits, contains a
+ * full stop {@code "."} (U+002E) and fractional part, and optionally ends with
+ * exponential notation — an {@code "E"} (U+0045) or {@code "e"} (U+0065)
+ * followed by one or more decimal digits.
+ *
+ * Though {@code "double"} numerically subsumes {@type "float"}, they are
+ * considered siblings because their values differ by internal representation.
+ * {@code "double"} is not a supertype of {@type "float"}. No float value is
+ * also a double value, and no double value is also a float value.
+ *
+ * @category "Primitives" "Types" "Numbers"
  * @type "double"
  * @supertype "number"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-double.html"
  */
 Primitive "double" is
 [
@@ -521,11 +624,20 @@ Primitive "double" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * An integer is a discrete number, i.e., it has no fractional part. As such,
+ * integers are excellent for counting and labeling.
  *
- * @category "Primitives" "Types"
- * @type "extended integer"
- * @supertype "[-∞..∞]"
+ * The literal representation of an integer is a sequence of one or more decimal
+ * digits. Negative integer literals are created using the method {@method
+ * "-_"}, which defines a semantic restriction that strengthens the answer's
+ * type to an instance type whenever the argument's value is precisely known.
+ * {@method "∞"} and {@method "-∞"} are positive and negative infinity,
+ * respectively.
+ *
+ * @category "Primitives" "Types" "Numbers"
+ * @type "[-∞..∞]"
+ * @alias "extended integer"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-extended-integer.html"
  */
 Primitive "extended integer" is
 [
@@ -533,11 +645,11 @@ Primitive "extended integer" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * A tuple type whose default type is {@type "any meta" anys type}.
  *
  * @category "Primitives" "Types"
- * @type "type of tuple of type of any"
- * @supertype "<any's type…|>'s type"
+ * @type "{1}"
+ * @alias "{0}"
  */
 Primitive "type of tuple of type of any" is
 [
@@ -545,11 +657,28 @@ Primitive "type of tuple of type of any" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * A float — that is, an IEEE 754 single-precision floating point number — is an
+ * approximation of a real number. The representation uses 32 bits, organized as
+ * 1 sign bit, 23 bits of mantissa, and 8 bits of exponent. Finite float values
+ * range from {@code "-3.40282347e+38"} to {@code "3.40282347e+38"}. The
+ * closest to zero nonzero float values are {@code "±1.40239846e-45"}. Positive
+ * zero ({@code "0.0"}) and negative zero ({@code "-0.0"}) are considered
+ * distinct. Infinities are supported, but indicate an overflow of
+ * representational limits (rather than {@code "±∞"}). Some encodings do not
+ * represent real values; such a value is a not-a-number ({@code "NaN"}). No
+ * two differing {@code "NaN"} encodings are considered equal. This is a
+ * departure from a strict interpretation of IEEE 754.
  *
- * @category "Primitives" "Types"
+ * The float type is provided only for interoperation with the Java programming
+ * language. Use of float values is generally discouraged; prefer double values
+ * whenever possible. There is no syntax for specifying a literal float.
+ * Instead, use the method {@method "_→float"} to convert a double value to a
+ * float value.
+ *
+ * @category "Primitives" "Types" "Numbers"
  * @type "float"
  * @supertype "number"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-float.html"
  */
 Primitive "float" is
 [
@@ -557,11 +686,21 @@ Primitive "float" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * A number is an immutable mathematical object. Uses of numbers include
+ * counting, annotating entities to distinguish them, and measuring the
+ * magnitudes of quantities. Avail natively supports integers and two distinct
+ * precisions of floating-point approximations of real numbers. {@type
+ * "extended integer" Integers} are discrete, and thus excel at counting and
+ * labeling. Real numbers form a continuum, and are therefore suitable for
+ * taking measurements.
  *
- * @category "Primitives" "Types"
+ * @category "Primitives" "Types" "Numbers"
  * @type "number"
  * @supertype "nontype"
+ * @see {@type "double"}
+ * @see {@type "extended integer"}
+ * @see {@type "float"}
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-number.html"
  */
 Primitive "number" is
 [
@@ -569,11 +708,13 @@ Primitive "number" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * The type of all finite integers.
  *
  * @category "Primitives" "Types"
- * @type "integer"
- * @supertype "(-∞..∞)"
+ * @type "(-∞..∞)"
+ * @alias "integer"
+ * @supertype "extended integer"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-extended-integer.html"
  */
 Primitive "integer" is
 [
@@ -581,11 +722,38 @@ Primitive "integer" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * Avail's integral type specifies four parameters for completion:
+ *
+ * <ul>
+ * <li>The lower bound is an integer which specifies the smallest allowed value.
+ * The floor operation, {@method "⎣_⎦"}, answers the lower bound of an integral
+ * type.</li>
+ * <li>The lower bound inclusion indicator is a {@type "boolean"} value that
+ * establishes whether the lower bound is a member of the integral type. When
+ * this value is {@method "true"}, then the lower bound is included in the
+ * type's membership. When this value is {@method "false"}, then it is not so
+ * included. The method {@method "⎣_⎦is inclusive"} answers the lower bound
+ * inclusion indicator of an integral type.</li>
+ * <li>The upper bound is an integer which specifies the largest allowed value.
+ * The ceiling operation, {@method "⎡_⎤"}, answers the upper bound of an
+ * integral type.</li>
+ * <li>The upper bound inclusion indicator is a {@type "boolean"} value that
+ * establishes whether the upper bound is a member of the integral type. When
+ * this value is {@method "true"}, then the upper bound is included in the
+ * type's membership. When this value is {@method "false"}, then it is not so
+ * included. The method {@method "⎡_⎤is inclusive"} answers the upper bound
+ * inclusion indicator of an integral type.</li>
+ * </ul>
  *
  * @category "Primitives" "Types"
- * @type "extended integer meta"
- * @supertype "[-∞..∞]'s type"
+ * @type "[-∞..∞]'s type"
+ * @alias "extended integer meta"
+ * @see {@method "integer range from_(inclusive=_)to_(inclusive=_)"}
+ * @see {@method "[_.._]"}
+ * @see {@method "[_.._)"}
+ * @see {@method "(_.._]"}
+ * @see {@method "(_.._)"}
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-extended-integer.html"
  */
 Primitive "extended integer meta" is
 [
@@ -593,11 +761,30 @@ Primitive "extended integer meta" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * The map type specifies three parameters for completion:
+ * <ul>
+ * <li>The key type specifies a type that includes every key of the domain. The
+ * method {@method "_'s⁇key type"} answers the key type of a map type.</li>
+ * <li>The value type specifies a type that includes every value of the
+ * codomain. The method {@method "_'s⁇value type"} answers the value type of a
+ * map type.</li>
+ * <li>The cardinality restriction is an {@method "extended integer meta"
+ * integral type} that specifies the range of sizes that describe instances. The
+ * method {@method "`|`|_`|`|"} answers the cardinality restriction of a map
+ * type. The floor operation, {@method "⎣_⎦"}, answers the lower bound of a
+ * map type's cardinality restriction. The ceiling operation, {@method "⎡_⎤"},
+ * answers the upper bound of a map type's cardinality restriction.</li>
+ * </ul>
  *
  * @category "Primitives" "Types"
- * @type "map meta"
- * @supertype "{any→any|}'s type"
+ * @type "{any→any|}'s type"
+ * @alias "map meta"
+ * @see {@method "{_→_|_}"}
+ * @see {@method "{_→_|_.._}"}
+ * @see {@method "{_→_|_..}"}
+ * @see {@method "{_→_|_}"}
+ * @see {@method "{_→_|}"}
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-map.html"
  */
 Primitive "map meta" is
 [
@@ -610,6 +797,7 @@ Primitive "map meta" is
  * @category "Primitives" "Types"
  * @type "module"
  * @supertype "nontype"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-module.html"
  */
 Primitive "module" is
 [
@@ -635,6 +823,7 @@ Primitive "VM error codes" is
  * @category "Primitives" "Types"
  * @type "object"
  * @supertype "nontype"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-object.html"
  */
 Primitive "object" is
 [
@@ -645,8 +834,9 @@ Primitive "object" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "object meta"
- * @supertype "object's type"
+ * @type "object's type"
+ * @alias "object meta"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-object.html"
  */
 Primitive "object meta" is
 [
@@ -659,6 +849,7 @@ Primitive "object meta" is
  * @category "Primitives" "Types"
  * @type "exception"
  * @supertype "object"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-exception.html"
  */
 Primitive "exception" is
 [
@@ -669,8 +860,9 @@ Primitive "exception" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "fiber"
- * @supertype "fiber→⊤"
+ * @type "fiber→⊤"
+ * @alias "fiber"
+ * @supertype "nontype"
  */
 Primitive "fiber" is
 [
@@ -678,11 +870,45 @@ Primitive "fiber" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * A set is an immutable, finite, unordered collection of distinct, homogeneous
+ * values, called members or elements. The number of elements is the cardinality
+ * of the set. Breaking this down:
+ *
+ * <ul>
+ * <li>Immutable means that the composition of a set is not subject to change.
+ * No operations are, or can be, defined to modify a set in any way; only
+ * operations that derive new sets from existing sets are expressible.</li>
+ * <li>Finite means that the cardinality of a set is never the value {@method
+ * "∞"}. To store a set in memory requires space proportional to its
+ * cardinality, and memory is clearly always finite. Additional limits to the
+ * practical cardinality of sets may be imposed by the implementation.</li>
+ * <li>Unordered means that the members of a set do not occur in any particular
+ * order. Any two sets with the same membership are therefore equal.</li>
+ * <li>Distinct means that a member occurs only once in the membership of a set.
+ * Thus a value is either a member of a set or it is not.</li>
+ * <li>Homogeneous means that the members of a set universally conform to a
+ * single most general type.</li>
+ * </ul>
+ *
+ * A literal set is expressed as a left curly bracket {@code "{"} (U+007B),
+ * then a list of members separated by commas {@code ","} (U+002C), and finally
+ * a right curly bracket {@code "}"} (U+007D). The empty set is written as
+ * {@method "∅"} (U+2205).
+ *
+ * The elements of a set need not be known statically. Sets are constructed with
+ * the method {@method "{«_‡,»}"}; there is no special built-in syntax for
+ * constructing sets. When the compiler can infer an instance type for each
+ * argument expression of a particular send of this message, then the semantic
+ * restriction is able to strengthen the result to an instance type, thereby
+ * according it the same force as a literal understood primitively by the
+ * compiler.
  *
  * @category "Primitives" "Types"
- * @type "set"
- * @supertype "{any|}"
+ * @type "{any|}"
+ * @alias "set"
+ * @supertype "nontype"
+ * @see {@method "{«_‡,»}"}
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-set.html"
  */
 Primitive "set" is
 [
@@ -690,11 +916,28 @@ Primitive "set" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * The set type specifies two parameters for completion:
+ *
+ * <ul>
+ * <li>The member type (or element type) specifies a type that includes every
+ * member. The method {@method "_'s⁇element|member type"} answers the member
+ * type of a set type.</li>
+ * <li>The cardinality restriction is an {@method "extended integer meta"
+ * integral type} that specifies the range of sizes that describe instances. The
+ * method {@method "`|`|_`|`|"} answers the cardinality restriction of a set
+ * type. The floor operation, {@method "⎣_⎦"}, answers the lower bound of a set
+ * type's cardinality restriction. The ceiling operation, {@method "⎡_⎤"},
+ * answers the upper bound of a set type's cardinality restriction.</li>
+ * </ul>
  *
  * @category "Primitives" "Types"
- * @type "set meta"
- * @supertype "{any|}'s type"
+ * @type "{any|}'s type"
+ * @alias "set meta"
+ * @see {@method "{_|_}"}
+ * @see {@method "{_|_.._}"}
+ * @see {@method "{_|_..}"}
+ * @see {@method "{_|}"}
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-set.html"
  */
 Primitive "set meta" is
 [
@@ -702,11 +945,59 @@ Primitive "set meta" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * A string represents text without respect to style or encoding. Naturally, the
+ * content of a string consists of {@type "character"}s arrayed in a fixed
+ * order.
+ *
+ * Like integer and double literals, string literals are understood directly by
+ * the Avail compiler. A string literal begins with a quotation mark {@code
+ * "\""} (U+0022), continues with arbitrary Unicode characters optionally
+ * interleaved with escape sequences, and ends with a quotation mark. The string
+ * literal metacharacters are quotation mark and reverse solidus {@code "\\"}
+ * (U+005C) — also called backslash. A reverse solidus alters the meaning of the
+ * next character, called the escaped character:
+ *
+ * <ul>
+ * <li>When the escaped character is reverse solidus or quotation mark, then its
+ * special meaning as a metacharacter is disabled.</li>
+ * <li>When the escaped character is {@code "t"} (U+0074), then the intended
+ * character is character tabulation (U+0009), also called horizontal tab.</li>
+ * </ul>
+ * <li>When the escaped character is {@code "n"} (U+006E), then the intended
+ * character is line feed (U+000A)</li>.
+ * <li>When the escaped character is {@code "r"} (U+0072), then the intended
+ * character is carriage return (U+000D).</li>
+ * <li>When the escaped character is left parenthesis {@code "("} (U+0028),
+ * then the compiler expects a sequence of hexadecimal numerals separated by
+ * commas {@code ","} (U+002C) and finally a right parenthesis {@code ")"}
+ * (U+0029). Each hexadecimal numeral must denote an integral value from
+ * {@code "0"} to {@code "10FFFF16"}<sub>16</sub> ({@code
+ * "111411110"}<sub>10</sub>); the case of the hexadecimal digits {@code "A"}
+ * through {@code "F"} does not matter. Each number represents the character
+ * associated with the Unicode code point of the same value. The construct as a
+ * whole then denotes a sequence of characters.</li>
+ * <li>When the escaped character is line feed (U+000A), then the compiler
+ * elides the line feed altogether. This permits a string literal to span
+ * multiple lines without forcing its content to span multiple lines. Note that
+ * an occurrence of carriage return (U+000D) after the reverse solidus, or even
+ * the combination carriage return+line feed, is treated similarly; it is
+ * stripped from the resulting string.</li>
+ * <li>When the escaped character is vertical line {@code "|"} (U+007C), then
+ * the compiler discards all whitespace from the beginning of the same line up
+ * to the reverse solidus. This region is not permitted to contain characters
+ * other than whitespace, in fact. This feature permits nice formatting of
+ * multiline string literals within source code, and is particularly powerful in
+ * conjunction with escaping of line feeds.</li>
+ * </ul>
+ *
+ * The empty string is written as {@code "\"\""}. It is the same value as the
+ * empty tuple, {@code "<>"}.
  *
  * @category "Primitives" "Types"
- * @type "string"
- * @supertype "<any…|>"
+ * @type "<character…|>"
+ * @alias "string"
+ * @supertype "tuple"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-string.html"
  */
 Primitive "string" is
 [
@@ -718,7 +1009,8 @@ Primitive "string" is
  *
  * @category "Primitives" "Types"
  * @type "⊥"
- * @supertype "⊥"
+ * @alias "⊥"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-bottom.html"
  */
 Primitive "⊥" is
 [
@@ -729,8 +1021,8 @@ Primitive "⊥" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "⊥meta"
- * @supertype "⊥'s type"
+ * @type "⊥'s type"
+ * @alias "⊥meta"
  */
 Primitive "⊥meta" is
 [
@@ -738,11 +1030,17 @@ Primitive "⊥meta" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * Every value that is not itself a type is an instance of the primitive type
+ * {@code "nontype"}. The subtypes of {@code "nontype"} are therefore those
+ * types whose instances are not themselves types. Except for {@method "⊤"},
+ * {@method "any"}, and {@method "type"}, every primitive type is a subtype of
+ * {@code "nontype"}. It is a sibling of {@method "type"}, and every value is
+ * either an instance of {@code "nontype"} or {@method "type"}.
  *
  * @category "Primitives" "Types"
  * @type "nontype"
  * @supertype "any"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-nontype.html"
  */
 Primitive "nontype" is
 [
@@ -753,8 +1051,10 @@ Primitive "nontype" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "tuple"
- * @supertype "<any…|>"
+ * @type "<any…|>"
+ * @alias "tuple"
+ * @supertype "nontype"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-tuple.html"
  */
 Primitive "tuple" is
 [
@@ -765,8 +1065,9 @@ Primitive "tuple" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "tuple meta"
- * @supertype "<any…|>'s type"
+ * @type "<any…|>'s type"
+ * @alias "tuple meta"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-tuple.html"
  */
 Primitive "tuple meta" is
 [
@@ -777,8 +1078,8 @@ Primitive "tuple meta" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "type"
- * @supertype "⊤'s type"
+ * @type "⊤'s type"
+ * @alias "type"
  */
 Primitive "type" is
 [
@@ -788,46 +1089,50 @@ Primitive "type" is
 /**
  * The true abstract root of the Avail type lattice. It is pronounced "top" and
  * written as the down tack (⊤) character. Every Avail value is an instance
- * of ⊤, and every Avail type is a subtype of ⊤.
+ * of {@code "⊤"}, and every Avail type is a subtype of {@code "⊤"}.
  *
- * ⊤ is distinct from {@method "any"} in that it includes exactly one
- * additional value: the special value nil. This value does not satisfy any
- * public protocol and is not available to an Avail programmer. It is, however,
- * implicitly returned from every procedure, i.e., function whose return type is
- * ⊤. Thus nil is the value produced iff no value is produced. The virtual
- * machine uses nil to simplify several core algorithms, but exposure of nil to
- * an Avail programmer would not yield a net good.
+ * {@code "⊤"} is distinct from {@method "any"} in that it includes exactly one
+ * additional value: the special value {@code "nil"}. This value does not
+ * satisfy any public protocol and is not available to an Avail programmer. It
+ * is, however, implicitly returned from every procedure, i.e., function whose
+ * return type is {@code "⊤"}. Thus {@code "nil"} is the value produced iff no
+ * value is produced. The virtual machine uses {@code "nil"} to simplify
+ * several core algorithms, but exposure of nil to an Avail programmer would not
+ * yield a net good.
  *
- * ⊤ typically appears in Avail code in only a few select contexts:
+ * {@code "⊤"} typically appears in Avail code in only a few select contexts:
  *
  * <ul>
- * <li>As the return type of a function type. In this context, it signifies
- * that the function does not produce a value, i.e., it produces the unexposed
- * value nil.</li>
- * <li>As the return type of a continuation type. In this context, it signifies
- * that the continuation will not produce a value, i.e., it produces the
- * unexposed value nil.</li>
- * <li>As the read type of a variable type. In this context, it signifies that
- * no value may be read from the variable, i.e., the variable is write-only.
- * </li>
+ * <li>As the {@method "_'s⁇return type" return type} of a function type. In
+ * this context, it signifies that the function does not produce a value, i.e.,
+ * it produces the unexposed value {@code "nil"}.</li>
+ * <li>As the {@method "_'s⁇return type" return type} of a continuation type. In
+ * this context, it signifies that the continuation will not produce a value,
+ * i.e., it produces the unexposed value {@code "nil"}.</li>
+ * <li>As the {@method "_'s⁇read type" read type} of a variable type. In this
+ * context, it signifies that no value may be read from the variable, i.e., the
+ * variable is write-only.</li>
  * <li>As the idempotent initial value of an accumulator variable whose
  * intermediate and final results represent a chain of type intersections. (Note
- * that the type intersection of `⊤` with some type X is always X.)</li>
+ * that the type intersection of {@code "⊤"} with some type {@code "X"} is
+ * always {@code "X"}.)</li>
  * <li>As the result of a semantic restriction on a procedure that serves only
  * to reject parses based on the static types of the arguments (but does not
  * strengthen the return type).</li>
- * <li>As the result type of a phrase. In this context, it signifies that the
- * phrase serves as a statement (and not merely as an expression).</li>
+ * <li>As the {@method "_'s⁇result type" result type} of a phrase. In this
+ * context, it signifies that the phrase serves as a statement (and not merely
+ * as an expression).</li>
  * </ul>
  *
- * A function whose declared return type is ⊤ is still permitted to answer an
- * actual (non-nil) value. This is consistent with the type lattice, since every
- * value is an instance of ⊤. It is useful, moreover, because a semantic
- * restriction may strengthen the return type of a ⊤-valued function at a
- * particular call site to a subtype of ⊤.
+ * A function whose declared return type is {@code "⊤"} is still permitted to
+ * answer an actual (non-{@code "nil"}) value. This is consistent with the type
+ * lattice, since every value is an instance of {@code "⊤"}. It is useful,
+ * moreover, because a semantic restriction may strengthen the return type of a
+ * {@code "⊤"}-valued function at a particular call site to a subtype of
+ * {@code "⊤"}.
  *
- * ⊤ is expressly forbidden from occurring in most contexts, including the
- * following:
+ * {@code "⊤"} is expressly forbidden from occurring in most contexts, including
+ * the following:
  *
  * <ul>
  * <li>As a parameter type of a function type.</li>
@@ -841,15 +1146,17 @@ Primitive "type" is
  * </ul>
  *
  * Note that these prohibitions, when considered in aggregate, negate any
- * possible value that could be gleaned from exposing the special value nil to
- * an Avail program. They conspire together to ensure that nil could never be
- * retained by an Avail value. It may therefore only exist as a temporary within
- * a continuation, i.e., an item on the local stack of a function call. A
- * reflective query of a continuation's temporaries that would answer nil will
- * instead produce a variable whose read type is {@method "⊥"}.
+ * possible value that could be gleaned from exposing the special value {@code
+ * "nil"} to an Avail program. They conspire together to ensure that nil could
+ * never be retained by an Avail value. It may therefore only exist as a
+ * temporary within a continuation, i.e., an item on the local stack of a
+ * function call. A reflective query of a continuation's temporaries that would
+ * answer {@code "nil"} will instead produce a variable whose read type is
+ * {@method "⊥"}.
  *
  * @category "Primitives" "Types"
  * @type "⊤"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-top.html"
  */
 Primitive "⊤" is
 [
@@ -857,11 +1164,13 @@ Primitive "⊤" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * The type of all counting numbers.
  *
  * @category "Primitives" "Types"
- * @type "whole number"
- * @supertype "[0..∞)"
+ * @type "[0..∞)"
+ * @alias "whole number"
+ * @supertype "extended integer"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-extended-integer.html"
  */
 Primitive "whole number" is
 [
@@ -869,11 +1178,13 @@ Primitive "whole number" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * The type of all positive numbers. This is also the type of all subscripts.
  *
  * @category "Primitives" "Types"
- * @type "natural number"
- * @supertype "[1..∞)"
+ * @type "[1..∞)"
+ * @alias "natural number"
+ * @supertype "extended integer"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-extended-integer.html"
  */
 Primitive "natural number" is
 [
@@ -881,11 +1192,12 @@ Primitive "natural number" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * The type of all reserved Unicode code points.
  *
  * @category "Primitives" "Types"
- * @type "code point"
- * @supertype "[0..1114111]"
+ * @type "[0..1114111]"
+ * @alias "code point"
+ * @supertype "whole number"
  */
 Primitive "code point" is
 [
@@ -896,8 +1208,9 @@ Primitive "code point" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "map"
- * @supertype "{any→any|}"
+ * @type "{any→any|}"
+ * @alias "map"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-map.html"
  */
 Primitive "map" is
 [
@@ -910,6 +1223,7 @@ Primitive "map" is
  * @category "Primitives" "Types"
  * @type "message bundle"
  * @supertype "nontype"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-message-bundle.html"
  */
 Primitive "message bundle" is
 [
@@ -922,6 +1236,7 @@ Primitive "message bundle" is
  * @category "Primitives" "Types"
  * @type "message bundle tree"
  * @supertype "nontype"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-message-bundle-tree.html"
  */
 Primitive "message bundle tree" is
 [
@@ -934,6 +1249,7 @@ Primitive "message bundle tree" is
  * @category "Primitives" "Types"
  * @type "method"
  * @supertype "nontype"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-method.html"
  */
 Primitive "method" is
 [
@@ -946,6 +1262,7 @@ Primitive "method" is
  * @category "Primitives" "Types"
  * @type "definition"
  * @supertype "type"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-definition.html"
  */
 Primitive "definition" is
 [
@@ -958,6 +1275,7 @@ Primitive "definition" is
  * @category "Primitives" "Types"
  * @type "abstract definition"
  * @supertype "definition"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-abstract-definition.html"
  */
 Primitive "abstract definition" is
 [
@@ -970,6 +1288,7 @@ Primitive "abstract definition" is
  * @category "Primitives" "Types"
  * @type "forward definition"
  * @supertype "definition"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-forward-definition.html"
  */
 Primitive "forward definition" is
 [
@@ -982,6 +1301,7 @@ Primitive "forward definition" is
  * @category "Primitives" "Types"
  * @type "method definition"
  * @supertype "definition"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-method-definition.html"
  */
 Primitive "method definition" is
 [
@@ -994,6 +1314,7 @@ Primitive "method definition" is
  * @category "Primitives" "Types"
  * @type "macro definition"
  * @supertype "definition"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-macro-definition.html"
  */
 Primitive "macro definition" is
 [
@@ -1004,8 +1325,8 @@ Primitive "macro definition" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "tuple of functions"
- * @supertype "<[…]→⊤…|>"
+ * @type "<[…]→⊤…|>"
+ * @alias "tuple of functions"
  */
 Primitive "tuple of functions" is
 [
@@ -1016,8 +1337,10 @@ Primitive "tuple of functions" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "phrase"
- * @supertype "phrase⇒⊤"
+ * @type "phrase⇒⊤"
+ * @alias "phrase"
+ * @supertype "nontype"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-phrase.html"
  */
 Primitive "phrase" is
 [
@@ -1028,8 +1351,10 @@ Primitive "phrase" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "sequence phrase"
- * @supertype "sequence phrase⇒⊤"
+ * @type "sequence phrase⇒⊤"
+ * @alias "sequence phrase"
+ * @supertype "phrase"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-sequence-phrase.html"
  */
 Primitive "sequence phrase" is
 [
@@ -1040,8 +1365,10 @@ Primitive "sequence phrase" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "expression phrase"
- * @supertype "expression phrase⇒⊤"
+ * @type "expression phrase⇒⊤"
+ * @alias "expression phrase"
+ * @supertype "phrase"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-expression-phrase.html"
  */
 Primitive "expression phrase" is
 [
@@ -1052,8 +1379,10 @@ Primitive "expression phrase" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "assignment phrase"
- * @supertype "assignment phrase⇒⊤"
+ * @type "assignment phrase⇒⊤"
+ * @alias "assignment phrase"
+ * @supertype "expression phrase"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-assignment-phrase.html"
  */
 Primitive "assignment phrase" is
 [
@@ -1064,8 +1393,10 @@ Primitive "assignment phrase" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "block phrase"
- * @supertype "block phrase⇒[…]→⊤"
+ * @type "block phrase⇒[…]→⊤"
+ * @alias "block phrase"
+ * @supertype "expression phrase"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-block-phrase.html"
  */
 Primitive "block phrase" is
 [
@@ -1076,8 +1407,10 @@ Primitive "block phrase" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "literal phrase"
- * @supertype "literal phrase⇒any"
+ * @type "literal phrase⇒any"
+ * @alias "literal phrase"
+ * @supertype "expression phrase"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-literal-phrase.html"
  */
 Primitive "literal phrase" is
 [
@@ -1088,8 +1421,10 @@ Primitive "literal phrase" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "variable reference phrase"
- * @supertype "reference phrase⇒variable"
+ * @type "reference phrase⇒variable"
+ * @alias "variable reference phrase"
+ * @supertype "expression phrase"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-variable-reference-phrase.html"
  */
 Primitive "variable reference phrase" is
 [
@@ -1100,8 +1435,10 @@ Primitive "variable reference phrase" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "send phrase"
- * @supertype "send phrase⇒⊤"
+ * @type "send phrase⇒⊤"
+ * @alias "send phrase"
+ * @supertype "expression phrase"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-send-phrase.html"
  */
 Primitive "send phrase" is
 [
@@ -1109,7 +1446,13 @@ Primitive "send phrase" is
 ];
 
 /**
- * The type (meta) of the most general literal token type.
+ * TODO: Special object description goes here.
+ *
+ * @category "Primitives" "Types"
+ * @type "(literal token⇒any)'s type"
+ * @alias "literal token meta"
+ * @supertype "token's type"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-literal-token.html"
  */
 Primitive "literal token meta" is
 [
@@ -1120,8 +1463,10 @@ Primitive "literal token meta" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "list phrase"
- * @supertype "list phrase⇒tuple"
+ * @type "list phrase⇒tuple"
+ * @alias "list phrase"
+ * @supertype "expression phrase"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-list-phrase.html"
  */
 Primitive "list phrase" is
 [
@@ -1132,8 +1477,10 @@ Primitive "list phrase" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "variable use phrase"
- * @supertype "variable use phrase⇒any"
+ * @type "variable use phrase⇒any"
+ * @alias "variable use phrase"
+ * @supertype "expression phrase"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-variable-use-phrase.html"
  */
 Primitive "variable use phrase" is
 [
@@ -1144,8 +1491,10 @@ Primitive "variable use phrase" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "declaration phrase"
- * @supertype "declaration phrase⇒⊤"
+ * @type "declaration phrase⇒⊤"
+ * @alias "declaration phrase"
+ * @supertype "phrase"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-declaration-phrase.html"
  */
 Primitive "declaration phrase" is
 [
@@ -1156,8 +1505,10 @@ Primitive "declaration phrase" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "argument phrase"
- * @supertype "argument phrase⇒⊤"
+ * @type "argument phrase⇒⊤"
+ * @alias "argument phrase"
+ * @supertype "declaration phrase"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-argument-phrase.html"
  */
 Primitive "argument phrase" is
 [
@@ -1168,8 +1519,10 @@ Primitive "argument phrase" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "label phrase"
- * @supertype "label phrase⇒⊤"
+ * @type "label phrase⇒⊤"
+ * @alias "label phrase"
+ * @supertype "declaration phrase"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-label-phrase.html"
  */
 Primitive "label phrase" is
 [
@@ -1180,8 +1533,10 @@ Primitive "label phrase" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "local variable phrase"
- * @supertype "local variable phrase⇒⊤"
+ * @type "local variable phrase⇒⊤"
+ * @alias "local variable phrase"
+ * @supertype "declaration phrase"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-local-variable-phrase.html"
  */
 Primitive "local variable phrase" is
 [
@@ -1192,8 +1547,10 @@ Primitive "local variable phrase" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "local constant phrase"
- * @supertype "local constant phrase⇒⊤"
+ * @type "local constant phrase⇒⊤"
+ * @alias "local constant phrase"
+ * @supertype "declaration phrase"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-local-constant-phrase.html"
  */
 Primitive "local constant phrase" is
 [
@@ -1204,8 +1561,10 @@ Primitive "local constant phrase" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "module variable phrase"
- * @supertype "module variable phrase⇒⊤"
+ * @type "module variable phrase⇒⊤"
+ * @alias "module variable phrase"
+ * @supertype "declaration phrase"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-module-variable-phrase.html"
  */
 Primitive "module variable phrase" is
 [
@@ -1216,8 +1575,10 @@ Primitive "module variable phrase" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "module constant phrase"
- * @supertype "module constant phrase⇒⊤"
+ * @type "module constant phrase⇒⊤"
+ * @alias "module constant phrase"
+ * @supertype "declaration phrase"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-module-constant-phrase.html"
  */
 Primitive "module constant phrase" is
 [
@@ -1228,8 +1589,10 @@ Primitive "module constant phrase" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "primitive failure reason phrase"
- * @supertype "primitive failure reason phrase⇒⊤"
+ * @type "primitive failure reason phrase⇒⊤"
+ * @alias "primitive failure reason phrase"
+ * @supertype "declaration phrase"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-primitive-failure-reason-phrase.html"
  */
 Primitive "primitive failure reason phrase" is
 [
@@ -1240,8 +1603,9 @@ Primitive "primitive failure reason phrase" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "any meta"
- * @supertype "any's type"
+ * @type "any's type"
+ * @alias "any meta"
+ * @supertype "type"
  */
 Primitive "any meta" is
 [
@@ -1255,6 +1619,7 @@ Primitive "any meta" is
  * @category "Primitives" "Constants"
  * @method "true"
  * @type "true's type"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-boolean.html"
  */
 Primitive "true" is
 [
@@ -1268,6 +1633,7 @@ Primitive "true" is
  * @category "Primitives" "Constants"
  * @method "false"
  * @type "false's type"
+ * @see "http://www.availlang.org/about-avail/documentation/type-system/types-boolean.html"
  */
 Primitive "false" is
 [
@@ -1278,8 +1644,8 @@ Primitive "false" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "tuple of string"
- * @supertype "<string…|>"
+ * @type "<string…|>"
+ * @alias "tuple of string"
  */
 Primitive "tuple of string" is
 [
@@ -1290,8 +1656,8 @@ Primitive "tuple of string" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "tuple of type"
- * @supertype "<⊤'s type…|>"
+ * @type "<⊤'s type…|>"
+ * @alias "tuple of type"
  */
 Primitive "tuple of type" is
 [
@@ -1302,8 +1668,8 @@ Primitive "tuple of type" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "tuple of set of string"
- * @supertype "<{string|}…|>"
+ * @type "<{string|}…|>"
+ * @alias "tuple of set of string"
  */
 Primitive "tuple of set of string" is
 [
@@ -1314,8 +1680,8 @@ Primitive "tuple of set of string" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "set of string"
- * @supertype "{string|}"
+ * @type "{string|}"
+ * @alias "set of string"
  */
 Primitive "set of string" is
 [
@@ -1326,8 +1692,8 @@ Primitive "set of string" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "primitive failure function"
- * @supertype "[[1..∞)]→⊥"
+ * @type "[[1..∞)]→⊥"
+ * @alias "primitive failure function"
  */
 Primitive "primitive failure function" is
 [
@@ -1359,7 +1725,7 @@ Primitive "-∞" is
 ];
 
 /**
- * Answer infinity.
+ * Answer positive infinity.
  *
  * @category "Primitives" "Constants"
  * @method "∞"
@@ -1374,8 +1740,9 @@ Primitive "∞" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "pojo"
- * @supertype "java.lang.Object"
+ * @type "java.lang.Object"
+ * @alias "pojo"
+ * @supertype "nontype"
  */
 Primitive "pojo" is
 [
@@ -1386,8 +1753,8 @@ Primitive "pojo" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "pojo⊥"
- * @supertype "pojo ⊥"
+ * @type "pojo ⊥"
+ * @supertype "pojo"
  */
 Primitive "pojo⊥" is
 [
@@ -1422,8 +1789,8 @@ Primitive "pojo self type" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "pojo meta"
- * @supertype "java.lang.Object's type"
+ * @type "java.lang.Object's type"
+ * @alias "pojo meta"
  */
 Primitive "pojo meta" is
 [
@@ -1434,8 +1801,8 @@ Primitive "pojo meta" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "pojo array meta"
- * @supertype "any[]'s type"
+ * @type "any[]'s type"
+ * @alias "pojo array meta"
  */
 Primitive "pojo array meta" is
 [
@@ -1446,8 +1813,8 @@ Primitive "pojo array meta" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "pojo constructor"
- * @supertype "[…]→java.lang.Object"
+ * @type "[…]→java.lang.Object"
+ * @alias "pojo constructor"
  */
 Primitive "pojo constructor" is
 [
@@ -1458,8 +1825,8 @@ Primitive "pojo constructor" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "pojo array"
- * @supertype "any[]"
+ * @type "any[]"
+ * @alias "pojo array"
  */
 Primitive "pojo array" is
 [
@@ -1482,8 +1849,8 @@ Primitive "pojo self" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "pojo exception"
- * @supertype "java.lang.Throwable"
+ * @type "java.lang.Throwable"
+ * @alias "pojo exception"
  */
 Primitive "pojo exception" is
 [
@@ -1494,8 +1861,8 @@ Primitive "pojo exception" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "nullary procedure"
- * @supertype "[]→⊤"
+ * @type "[]→⊤"
+ * @alias "nullary procedure"
  */
 Primitive "nullary procedure" is
 [
@@ -1506,8 +1873,8 @@ Primitive "nullary procedure" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "predicate function"
- * @supertype "[]→boolean"
+ * @type "[]→boolean"
+ * @alias "predicate function"
  */
 Primitive "predicate function" is
 [
@@ -1518,8 +1885,8 @@ Primitive "predicate function" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "continuation variable"
- * @supertype "↑$[…]→⊥"
+ * @type "↑$[…]→⊥"
+ * @alias "continuation variable"
  */
 Primitive "continuation variable" is
 [
@@ -1530,8 +1897,8 @@ Primitive "continuation variable" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "field map"
- * @supertype "{atom→any|}"
+ * @type "{atom→any|}"
+ * @alias "field map"
  */
 Primitive "field map" is
 [
@@ -1542,8 +1909,8 @@ Primitive "field map" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "field type map"
- * @supertype "{atom→any's type|}"
+ * @type "{atom→any's type|}"
+ * @alias "field type map"
  */
 Primitive "field type map" is
 [
@@ -1554,8 +1921,8 @@ Primitive "field type map" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "key-value tuple"
- * @supertype "<<any…|2>…|>"
+ * @type "<<any…|2>…|>"
+ * @alias "key-value tuple"
  */
 Primitive "key-value tuple" is
 [
@@ -1567,7 +1934,7 @@ Primitive "key-value tuple" is
  *
  * @category "Primitives" "Constants"
  * @method "empty map"
- * @returns "empty map's type"
+ * @returns "{}'s type"
  */
 Primitive "empty map" is
 [
@@ -1578,8 +1945,8 @@ Primitive "empty map" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "non-empty map"
- * @supertype "{any→any|1..∞}"
+ * @type "{any→any|1..∞}"
+ * @alias "non-empty map"
  */
 Primitive "non-empty map" is
 [
@@ -1590,8 +1957,8 @@ Primitive "non-empty map" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "whole number meta"
- * @supertype "[0..∞)'s type"
+ * @type "[0..∞)'s type"
+ * @alias "whole number meta"
  */
 Primitive "whole number meta" is
 [
@@ -1602,8 +1969,8 @@ Primitive "whole number meta" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "non-empty set"
- * @supertype "{any|1..∞}"
+ * @type "{any|1..∞}"
+ * @alias "non-empty set"
  */
 Primitive "non-empty set" is
 [
@@ -1614,8 +1981,8 @@ Primitive "non-empty set" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "tuple of tuple"
- * @supertype "<tuple…|>"
+ * @type "<tuple…|>"
+ * @alias "tuple of tuple"
  */
 Primitive "tuple of tuple" is
 [
@@ -1626,8 +1993,8 @@ Primitive "tuple of tuple" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "nybble"
- * @supertype "[0..15]"
+ * @type "[0..15]"
+ * @alias "nybble"
  */
 Primitive "nybble" is
 [
@@ -1638,8 +2005,8 @@ Primitive "nybble" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "tuple of nybble"
- * @supertype "<[0..15]…|>"
+ * @type "<[0..15]…|>"
+ * @alias "tuple of nybble"
  */
 Primitive "tuple of nybble" is
 [
@@ -1650,8 +2017,8 @@ Primitive "tuple of nybble" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "unsigned short"
- * @supertype "[0..65535]"
+ * @type "[0..65535]"
+ * @alias "unsigned short"
  */
 Primitive "unsigned short" is
 [
@@ -1663,7 +2030,7 @@ Primitive "unsigned short" is
  *
  * @category "Primitives" "Constants"
  * @method "empty tuple"
- * @returns "empty tuple's type"
+ * @returns "<>'s type"
  */
 Primitive "empty tuple" is
 [
@@ -1674,8 +2041,8 @@ Primitive "empty tuple" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "unary procedure"
- * @supertype "[⊥]→⊤"
+ * @type "[⊥]→⊤"
+ * @alias "unary procedure"
  */
 Primitive "unary procedure" is
 [
@@ -1686,8 +2053,8 @@ Primitive "unary procedure" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "type of zero"
- * @supertype "0's type"
+ * @type "0's type"
+ * @alias "type of zero"
  */
 Primitive "type of zero" is
 [
@@ -1698,8 +2065,8 @@ Primitive "type of zero" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "semantic restriction function"
- * @supertype "[…]→⊤'s type"
+ * @type "[…]→⊤'s type"
+ * @alias "semantic restriction function"
  */
 Primitive "semantic restriction function" is
 [
@@ -1710,8 +2077,8 @@ Primitive "semantic restriction function" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "tuple of semantic restriction function"
- * @supertype "<[…]→⊤'s type…|>"
+ * @type "<[…]→⊤'s type…|>"
+ * @alias "tuple of semantic restriction function"
  */
 Primitive "tuple of semantic restriction function" is
 [
@@ -1722,8 +2089,8 @@ Primitive "tuple of semantic restriction function" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "macro function"
- * @supertype "[…]→phrase⇒⊤"
+ * @type "[…]→phrase⇒⊤"
+ * @alias "macro function"
  */
 Primitive "macro function" is
 [
@@ -1734,8 +2101,8 @@ Primitive "macro function" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "type of two"
- * @supertype "2's type"
+ * @type "2's type"
+ * @alias "type of two"
  */
 Primitive "type of two" is
 [
@@ -1758,8 +2125,8 @@ Primitive "Euler's number" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "type of Euler number"
- * @supertype "2.718281828459045d's type"
+ * @type "2.718281828459045d's type"
+ * @alias "type of Euler number"
  */
 Primitive "type of Euler number" is
 [
@@ -1770,8 +2137,8 @@ Primitive "type of Euler number" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "phrase meta"
- * @supertype "(phrase⇒⊤)'s type"
+ * @type "(phrase⇒⊤)'s type"
+ * @alias "phrase meta"
  */
 Primitive "phrase meta" is
 [
@@ -1782,8 +2149,8 @@ Primitive "phrase meta" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "set of atom"
- * @supertype "{atom|}"
+ * @type "{atom|}"
+ * @alias "set of atom"
  */
 Primitive "set of atom" is
 [
@@ -1803,7 +2170,11 @@ Primitive "token" is
 ];
 
 /**
- * The most general literal token type.
+ * TODO: Special object description goes here.
+ *
+ * @category "Primitives" "Types"
+ * @type "literal token⇒any"
+ * @supertype "token"
  */
 Primitive "literal token" is
 [
@@ -1814,8 +2185,8 @@ Primitive "literal token" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "tuple of any meta"
- * @supertype "<any's type…|>"
+ * @type "<any's type…|>"
+ * @alias "tuple of any meta"
  */
 Primitive "tuple of any meta" is
 [
@@ -1823,11 +2194,11 @@ Primitive "tuple of any meta" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * The type of all nonnegative integers.
  *
  * @category "Primitives" "Types"
- * @type "nonnegative extended integer"
- * @supertype "[0..∞]"
+ * @type "[0..∞]"
+ * @alias "nonnegative extended integer"
  */
 Primitive "nonnegative extended integer" is
 [
@@ -1838,8 +2209,8 @@ Primitive "nonnegative extended integer" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "field type tuple"
- * @supertype "<<atom, any's type…|2>…|>"
+ * @type "<<atom, any's type…|2>…|>"
+ * @alias "field type tuple"
  */
 Primitive "field type tuple" is
 [
@@ -1850,8 +2221,8 @@ Primitive "field type tuple" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "field tuple"
- * @supertype "<<atom, any…|2>…|>"
+ * @type "<<atom, any…|2>…|>"
+ * @alias "field tuple"
  */
 Primitive "field tuple" is
 [
@@ -1862,8 +2233,8 @@ Primitive "field tuple" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "phrase tuple"
- * @supertype "<phrase⇒⊤…|>"
+ * @type "<phrase⇒⊤…|>"
+ * @alias "phrase tuple"
  */
 Primitive "phrase tuple" is
 [
@@ -1874,8 +2245,8 @@ Primitive "phrase tuple" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "argument tuple"
- * @supertype "<argument phrase⇒⊤…|>"
+ * @type "<argument phrase⇒⊤…|>"
+ * @alias "argument tuple"
  */
 Primitive "argument tuple" is
 [
@@ -1886,8 +2257,8 @@ Primitive "argument tuple" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "declaration tuple"
- * @supertype "<declaration phrase⇒⊤…|>"
+ * @type "<declaration phrase⇒⊤…|>"
+ * @alias "declaration tuple"
  */
 Primitive "declaration tuple" is
 [
@@ -1898,7 +2269,7 @@ Primitive "declaration tuple" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "write-only expression variable"
+ * @type "⊤→/→expresion phrase⇒⊥"
  * @supertype "variable"
  */
 Primitive "write-only expression variable" is
@@ -1910,8 +2281,8 @@ Primitive "write-only expression variable" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "tuple of expressions yielding any"
- * @supertype "<expression phrase⇒any…|>"
+ * @type "<expression phrase⇒any…|>"
+ * @alias "tuple of expressions yielding any"
  */
 Primitive "tuple of expressions yielding any" is
 [
@@ -1922,8 +2293,8 @@ Primitive "tuple of expressions yielding any" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "expression yielding any"
- * @supertype "expression phrase⇒any"
+ * @type "expression phrase⇒any"
+ * @alias "expression yielding any"
  */
 Primitive "expression yielding any" is
 [
@@ -1934,8 +2305,8 @@ Primitive "expression yielding any" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "pojo failure function"
- * @supertype "[java.lang.Throwable]→⊥"
+ * @type "[java.lang.Throwable]→⊥"
+ * @alias "pojo failure function"
  */
 Primitive "pojo failure function" is
 [
@@ -1946,8 +2317,8 @@ Primitive "pojo failure function" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "tuple of set of atom"
- * @supertype "<{atom|}…|>"
+ * @type "<{atom|}…|>"
+ * @alias "tuple of set of atom"
  */
 Primitive "tuple of set of atom" is
 [
@@ -1958,8 +2329,8 @@ Primitive "tuple of set of atom" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "byte"
- * @supertype "[0..255]"
+ * @type "[0..255]"
+ * @alias "byte"
  */
 Primitive "byte" is
 [
@@ -1970,8 +2341,8 @@ Primitive "byte" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "tuple of tuple of any meta"
- * @supertype "<<any's type…|>…|>"
+ * @type "<<any's type…|>…|>"
+ * @alias "tuple of tuple of any meta"
  */
 Primitive "tuple of tuple of any meta" is
 [
@@ -1982,8 +2353,8 @@ Primitive "tuple of tuple of any meta" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "readable extended integer variable"
- * @supertype "↑<--([-∞..∞])/(⊥)-->"
+ * @type "[-∞..∞]→/→⊥"
+ * @alias "readable extended integer variable"
  */
 Primitive "readable extended integer variable" is
 [
@@ -1994,8 +2365,8 @@ Primitive "readable extended integer variable" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "fiber meta"
- * @supertype "(fiber→⊤)'s type"
+ * @type "(fiber→⊤)'s type"
+ * @alias "fiber meta"
  */
 Primitive "fiber meta" is
 [
@@ -2006,8 +2377,8 @@ Primitive "fiber meta" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "nonempty string"
- * @supertype "<character…|1..∞>"
+ * @type "<character…|1..∞>"
+ * @alias "nonempty string"
  */
 Primitive "nonempty string" is
 [
@@ -2018,8 +2389,8 @@ Primitive "nonempty string" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "set of exception"
- * @supertype "{exception|}"
+ * @type "{exception|}"
+ * @alias "set of exception"
  */
 Primitive "set of exception" is
 [
@@ -2030,8 +2401,8 @@ Primitive "set of exception" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "nonempty set of string"
- * @supertype "{string|1..∞}"
+ * @type "{string|1..∞}"
+ * @alias "nonempty set of string"
  */
 Primitive "nonempty set of string" is
 [
@@ -2042,8 +2413,8 @@ Primitive "nonempty set of string" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "nonempty set of atom"
- * @supertype "{atom|1..∞}"
+ * @type "{atom|1..∞}"
+ * @alias "nonempty set of atom"
  */
 Primitive "nonempty set of atom" is
 [
@@ -2054,8 +2425,8 @@ Primitive "nonempty set of atom" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "nonempty tuple"
- * @supertype "<any…|1..∞>"
+ * @type "<any…|1..∞>"
+ * @alias "nonempty tuple"
  */
 Primitive "nonempty tuple" is
 [
@@ -2066,8 +2437,8 @@ Primitive "nonempty tuple" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "tuple of integer"
- * @supertype "<(-∞..∞)…|>"
+ * @type "<(-∞..∞)…|>"
+ * @alias "tuple of integer"
  */
 Primitive "tuple of integer" is
 [
@@ -2078,8 +2449,8 @@ Primitive "tuple of integer" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "two or more tuple"
- * @supertype "<any…|2..∞>"
+ * @type "<any…|2..∞>"
+ * @alias "two or more tuple"
  */
 Primitive "two or more tuple" is
 [

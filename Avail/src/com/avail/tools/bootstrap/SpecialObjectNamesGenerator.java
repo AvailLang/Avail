@@ -106,18 +106,13 @@ extends PropertiesFileGenerator
 						writer.println(escape(alphabetic));
 					}
 				}
-				// Write the preferred supertype that Stacks should indicate.
-				final String supertypeKey = specialObjectSupertypeKey(i);
-				keys.add(supertypeKey);
-				writer.print(supertypeKey);
+				// Write the preferred alias that Stacks should indicate.
+				final String typeKey = specialObjectTypeKey(i);
+				keys.add(typeKey);
+				writer.print(typeKey);
 				writer.print('=');
-				final String supertype = properties.getProperty(
-					supertypeKey,
-					specialObject.toString());
-				if (supertype != null)
-				{
-					writer.print(escape(supertype));
-				}
+				final String type = properties.getProperty(typeKey, "");
+				writer.print(escape(type));
 				writer.println();
 				// Write the Stacks comment.
 				final String commentKey = specialObjectCommentKey(i);

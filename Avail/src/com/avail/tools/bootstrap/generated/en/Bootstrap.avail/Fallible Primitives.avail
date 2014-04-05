@@ -2302,7 +2302,7 @@ Primitive "`«_:=_`»" is
  * @method "`«↑_`»"
  * @param "variableUse" "variable use phrase"
  *        A variable use expression.
- * @returns "reference phrase⇒↑<--(⊤)/(⊥)-->"
+ * @returns "reference phrase⇒⊤→/→⊥"
  *    A variable reference expression that answers the variable described by
  *    {@param "variableUse"}.
  * @raises "declaration-kind-does-not-support-reference exception"
@@ -2552,7 +2552,7 @@ Primitive "constructor_<«_‡,»>(fail with_)" is
  *        variable.
  * @param "fieldName" "string"
  *        The name of the desired field.
- * @returns "↑<--(⊤)/(⊥)-->"
+ * @returns "⊤→/→⊥"
  *    A variable bound to the specified instance field.
  * @raises "Java-field-not-available exception"
  */
@@ -2578,7 +2578,7 @@ Primitive "_._→variable" is
  *        variable.
  * @param "fieldName" "string"
  *        The name of the desired field.
- * @returns "↑<--(⊤)/(⊥)-->"
+ * @returns "⊤→/→⊥"
  *    A variable bound to the specified static field.
  * @raises "Java-field-not-available exception"
  * @raises "Java-field-reference-is-ambiguous exception"

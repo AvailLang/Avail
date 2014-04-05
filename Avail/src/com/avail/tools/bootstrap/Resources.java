@@ -150,17 +150,17 @@ final class Resources
 
 	/**
 	 * Answer the key for the specified special object's preferred Stacks
-	 * @supertype name.
+	 * @type name.
 	 *
 	 * @param index
 	 *        The special object index.
 	 * @return A key that may be used to access the special object's preferred
-	 *         Stacks @supertype name in the appropriate {@linkplain
+	 *         Stacks @type name in the appropriate {@linkplain
 	 *         ResourceBundle resource bundle}.
 	 */
-	public static String specialObjectSupertypeKey (final int index)
+	public static String specialObjectTypeKey (final int index)
 	{
-		return specialObjectKey(index) + "_supertype";
+		return specialObjectKey(index) + "_type";
 	}
 
 	/**

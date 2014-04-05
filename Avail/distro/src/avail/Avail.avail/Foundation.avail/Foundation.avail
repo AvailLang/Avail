@@ -336,6 +336,7 @@ Extends
 		"_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)",
 		"_×_",
 		"_÷_",
+		"_→/→_",
 		"_→block phrase",
 		"_→character",
 		"_→double",

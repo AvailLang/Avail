@@ -372,20 +372,19 @@ public final class BootstrapGenerator
 				final String methodName =
 					specialObjectBundle.getString(nonalphaKey);
 				final String alphaKey = specialObjectAlphabeticKey(i);
-				final String supertypeKey = specialObjectSupertypeKey(i);
+				final String typeKey = specialObjectTypeKey(i);
 				final String commentKey = specialObjectCommentKey(i);
 				if (specialObjectBundle.containsKey(commentKey))
 				{
 					final String commentTemplate =
 						specialObjectBundle.getString(commentKey);
-					String supertype =
-						specialObjectBundle.getString(supertypeKey);
-					if (supertype == null || supertype.isEmpty())
+					String type = specialObjectBundle.getString(typeKey);
+					if (type == null || type.isEmpty())
 					{
-						supertype = specialObjects.get(i).toString();
+						type = methodName;
 					}
 					writer.print(MessageFormat.format(
-						commentTemplate, methodName, supertype));
+						commentTemplate, methodName, type));
 				}
 				final String key =
 					specialObjectBundle.containsKey(alphaKey)

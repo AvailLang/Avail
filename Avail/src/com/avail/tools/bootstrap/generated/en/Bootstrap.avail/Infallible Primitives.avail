@@ -139,6 +139,7 @@ Uses
 		"_is unassigned",
 		"_mod_",
 		"_reversed",
+		"_→/→_",
 		"_→block phrase",
 		"_→character",
 		"_→double",
@@ -314,7 +315,7 @@ Primitive "_'s⁇genuine upper bound" is
  * @method "↑_"
  * @param "containmentType" "any meta"
  *        The containment type.
- * @returns "(↑<--(⊤)/(⊥)-->)'s type"
+ * @returns "(⊤→/→⊥)'s type"
  *    The requested variable type.
  */
 Primitive "↑_" is
@@ -350,7 +351,7 @@ Primitive "_'s⁇read type" is
  * @method "new↑_"
  * @param "containmentType" "any meta"
  *        The containment type.
- * @returns "↑<--(⊤)/(⊥)-->"
+ * @returns "⊤→/→⊥"
  *    A new variable capable of retrieving and storing values of the specified
  *    containment type.
  */
@@ -688,6 +689,26 @@ Primitive "high-precision timer value" is
 [
 	Primitive 46;
 ] : whole number;
+
+/**
+ * Construct and answer a variable type from the specified read and write types.
+ *
+ * @category "Primitives"
+ * @method "_→/→_"
+ * @param "readType" "type"
+ *        The read type of the variable type.
+ * @param "writeType" "type"
+ *        The write type of the variable type.
+ * @returns "⊤→/→⊥"
+ *    The requested variable type.
+ */
+Primitive "_→/→_" is
+[
+	readType : type,
+	writeType : type
+|
+	Primitive 47;
+] : variable;
 
 /**
  * Resume the specified continuation. The current continuation (in which this
