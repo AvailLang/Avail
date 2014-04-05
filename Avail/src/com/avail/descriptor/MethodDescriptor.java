@@ -1567,7 +1567,17 @@ extends Descriptor
 		final Primitive... primitives)
 	{
 		final A_Atom atom = AtomDescriptor.createSpecialAtom(name);
-		final A_Bundle bundle = atom.bundleOrCreate();
+		final A_Bundle bundle;
+		try
+		{
+			bundle = atom.bundleOrCreate();
+		}
+		catch (final SignatureException e)
+		{
+			assert false : "This should not happen!";
+			throw new RuntimeException(
+				"VM method name is invalid: " + name.toString(), e);
+		}
 		final A_Method method = bundle.bundleMethod();
 		for (final Primitive primitive : primitives)
 		{
@@ -1583,6 +1593,7 @@ extends Descriptor
 			}
 			catch (final SignatureException e)
 			{
+				assert false : "This should not happen!";
 				throw new RuntimeException(
 					"VM method name is invalid: " + name.toString(), e);
 			}

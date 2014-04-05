@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static java.lang.Math.*;
 import java.util.*;
@@ -155,5 +155,12 @@ public final class P_132_TupleReplaceAt extends Primitive
 			originalTupleType.sizeRange(),
 			TupleDescriptor.fromList(typeList),
 			newDefaultType);
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_SUBSCRIPT_OUT_OF_BOUNDS.numericCode());
 	}
 }

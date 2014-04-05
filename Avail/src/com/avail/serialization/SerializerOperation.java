@@ -39,6 +39,7 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.levelTwo.L2Chunk;
 
 /**
@@ -1480,7 +1481,16 @@ public enum SerializerOperation
 			final Deserializer deserializer)
 		{
 			final A_Atom atom = subobjects[0];
-			return atom.bundleOrCreate();
+			try
+			{
+				return atom.bundleOrCreate();
+			}
+			catch (final SignatureException e)
+			{
+				throw new RuntimeException(
+					"Bundle should not have been serialized with malformed "
+					+ "message");
+			}
 		}
 	},
 
@@ -2340,7 +2350,8 @@ public enum SerializerOperation
 	 * the read type and write type are (actually) unequal.
 	 */
 	READ_WRITE_VARIABLE_TYPE (79,
-		OBJECT_REFERENCE.as("content type"))
+		OBJECT_REFERENCE.as("read type"),
+		OBJECT_REFERENCE.as("write type"))
 	{
 		@Override
 		A_BasicObject[] decompose (final AvailObject object)

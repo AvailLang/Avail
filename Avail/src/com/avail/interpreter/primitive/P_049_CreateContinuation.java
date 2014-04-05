@@ -101,4 +101,12 @@ public final class P_049_CreateContinuation extends Primitive
 					ContinuationTypeDescriptor.mostGeneralType())),
 			ContinuationTypeDescriptor.mostGeneralType());
 	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION
+				.numericCode());
+	}
 }

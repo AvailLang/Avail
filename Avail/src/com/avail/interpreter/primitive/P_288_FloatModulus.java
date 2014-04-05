@@ -32,8 +32,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_BY_ZERO;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static java.lang.Math.floor;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -49,7 +48,7 @@ public final class P_288_FloatModulus extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_288_FloatModulus().init(
-		2, CanFold);
+		2, CannotFail, CanInline, CanFold);
 
 	@Override
 	public Result attempt (
@@ -62,10 +61,6 @@ public final class P_288_FloatModulus extends Primitive
 		final AvailObject b = args.get(1);
 		final float fa = a.extractFloat();
 		final float fb = b.extractFloat();
-		if (fb == 0.0f)
-		{
-			return interpreter.primitiveFailure(E_CANNOT_DIVIDE_BY_ZERO);
-		}
 		final float div = fa / fb;
 		final float mod = fa - (float)floor(div) * fb;
 		return interpreter.primitiveSuccess(

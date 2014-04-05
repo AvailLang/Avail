@@ -233,7 +233,7 @@ extends Descriptor
 		final AvailObject field,
 		final AvailObject receiver,
 		final AvailObject cachedValue,
-		final AvailObject outerType)
+		final A_Type outerType)
 	{
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(FIELD, field);

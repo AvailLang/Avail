@@ -33,10 +33,10 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.exceptions.AvailErrorCode.E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER;
 import static java.lang.Math.*;
 import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 
 /**
@@ -49,8 +49,8 @@ public final class P_289_FloatTruncatedAsInteger extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_289_FloatTruncatedAsInteger().init(
-		1, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_289_FloatTruncatedAsInteger().init(1, CanFold);
 
 	@Override
 	public Result attempt (
@@ -66,7 +66,7 @@ public final class P_289_FloatTruncatedAsInteger extends Primitive
 		if (Float.isNaN(f))
 		{
 			return interpreter.primitiveFailure(
-				AvailErrorCode.E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER);
+				E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER);
 		}
 		final boolean neg = f < 0.0f;
 		if (Float.isInfinite(f))
@@ -110,5 +110,12 @@ public final class P_289_FloatTruncatedAsInteger extends Primitive
 			TupleDescriptor.from(
 				FLOAT.o()),
 			IntegerRangeTypeDescriptor.extendedIntegers());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER.numericCode());
 	}
 }

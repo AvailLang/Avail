@@ -239,7 +239,7 @@ extends TypeDescriptor
 	 * @return
 	 *        The new variable type.
 	 */
-	public static AvailObject wrapInnerType (final A_BasicObject innerType)
+	public static A_Type wrapInnerType (final A_Type innerType)
 	{
 		final AvailObject result = mutable.create();
 		result.setSlot(

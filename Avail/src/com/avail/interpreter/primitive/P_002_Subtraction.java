@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.InfinityDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
+import static com.avail.exceptions.AvailErrorCode.E_CANNOT_SUBTRACT_LIKE_INFINITIES;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Fallibility.*;
 import java.util.List;
@@ -168,5 +169,12 @@ extends Primitive
 				|| bType.isFloat() || bType.isDouble())
 			? CallSiteCannotFail
 			: CallSiteCanFail;
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_CANNOT_SUBTRACT_LIKE_INFINITIES.numericCode());
 	}
 }

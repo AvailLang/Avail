@@ -35,6 +35,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.MarshalingException;
@@ -99,5 +100,15 @@ public final class P_513_PojoArraySet extends Primitive
 				IntegerRangeTypeDescriptor.naturalNumbers(),
 				ANY.o()),
 			TOP.o());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_SUBSCRIPT_OUT_OF_BOUNDS.numericCode(),
+				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE.numericCode(),
+				E_JAVA_MARSHALING_FAILED.numericCode())));
 	}
 }

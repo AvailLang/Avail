@@ -35,7 +35,14 @@ package com.avail.tools.bootstrap;
 import static com.avail.tools.bootstrap.Resources.*;
 import java.io.*;
 import java.util.*;
+import com.avail.AvailRuntime;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.SetDescriptor;
 import com.avail.exceptions.AvailErrorCode;
+import com.avail.interpreter.Primitive;
+import com.avail.interpreter.Primitive.Flag;
 
 /**
  * Generate a {@linkplain PropertyResourceBundle property resource bundle} that
@@ -47,6 +54,67 @@ import com.avail.exceptions.AvailErrorCode;
 public final class ErrorCodeNamesGenerator
 extends PropertiesFileGenerator
 {
+	/**
+	 * Check if all {@linkplain AvailErrorCode error codes} are reachable from
+	 * {@linkplain Primitive primitive} {@linkplain
+	 * Primitive#failureVariableType() failure variable types}.
+	 *
+	 * @return {@code true} if all error codes are reachable, {@code false}
+	 *         otherwise.
+	 */
+	private static boolean allErrorCodesAreReachableFromPrimitives ()
+	{
+		// This forces initialization of Avail.
+		AvailRuntime.specialObjects();
+		A_Set allErrorCodes = SetDescriptor.empty();
+		for (final AvailErrorCode code : AvailErrorCode.values())
+		{
+			if (!code.isCausedByInstructionFailure())
+			{
+				allErrorCodes = allErrorCodes.setWithElementCanDestroy(
+					code.numericCode(),
+					true);
+			}
+		}
+		A_Set reachableErrorCodes = SetDescriptor.empty();
+		for (
+			int primitiveNumber = 1;
+			primitiveNumber <= Primitive.maxPrimitiveNumber;
+			primitiveNumber++)
+		{
+			final Primitive primitive =
+				Primitive.byPrimitiveNumberOrNull(primitiveNumber);
+			if (primitive != null && !primitive.hasFlag(Flag.CannotFail))
+			{
+				final A_Type failureType = primitive.failureVariableType();
+				if (failureType.isEnumeration())
+				{
+					reachableErrorCodes =
+						reachableErrorCodes.setUnionCanDestroy(
+							failureType.instances(),
+							true);
+				}
+			}
+		}
+		final A_Set unreachableErrorCodes =
+			allErrorCodes.setMinusCanDestroy(reachableErrorCodes, true);
+		if (unreachableErrorCodes.setSize() != 0)
+		{
+			final EnumSet<AvailErrorCode> unreachable =
+				EnumSet.noneOf(AvailErrorCode.class);
+			for (final A_Number code : unreachableErrorCodes)
+			{
+				unreachable.add(
+					AvailErrorCode.byNumericCode(code.extractInt()));
+			}
+			System.err.printf(
+				"some error codes are unreachable: %s%n",
+				unreachable);
+			return false;
+		}
+		return true;
+	}
+
 	/**
 	 * Write the names of the properties, whose unspecified values should be
 	 * the Avail names of the corresponding {@linkplain AvailErrorCode
@@ -88,7 +156,7 @@ extends PropertiesFileGenerator
 				{
 					writer.print(
 						code.name().substring(2).toLowerCase()
-							.replace('_', ' '));
+							.replace('_', '-'));
 					writer.print(" code");
 				}
 				writer.println();
@@ -151,11 +219,14 @@ extends PropertiesFileGenerator
 			languages = new String[] { "en" };
 		}
 
-		for (final String language : languages)
+		if (allErrorCodesAreReachableFromPrimitives())
 		{
-			final ErrorCodeNamesGenerator generator =
-				new ErrorCodeNamesGenerator(new Locale(language));
-			generator.generate();
+			for (final String language : languages)
+			{
+				final ErrorCodeNamesGenerator generator =
+					new ErrorCodeNamesGenerator(new Locale(language));
+				generator.generate();
+			}
 		}
 	}
 }

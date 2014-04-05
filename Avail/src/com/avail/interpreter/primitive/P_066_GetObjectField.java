@@ -34,9 +34,9 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Fallibility.*;
+import static com.avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD;
 import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 
 /**
@@ -64,7 +64,7 @@ extends Primitive
 		final A_Map fieldMap = object.fieldMap();
 		if (!fieldMap.hasKey(field))
 		{
-			return interpreter.primitiveFailure(AvailErrorCode.E_NO_SUCH_FIELD);
+			return interpreter.primitiveFailure(E_NO_SUCH_FIELD);
 		}
 		return interpreter.primitiveSuccess(fieldMap.mapAt(field));
 	}
@@ -129,5 +129,12 @@ extends Primitive
 			return CallSiteCannotFail;
 		}
 		return CallSiteCanFail;
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_NO_SUCH_FIELD.numericCode());
 	}
 }

@@ -35,6 +35,7 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
@@ -103,5 +104,17 @@ extends Primitive
 				TupleTypeDescriptor.zeroOrMoreOf(
 					InstanceMetaDescriptor.anyMeta())),
 			DEFINITION.o());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+					E_NO_METHOD.numericCode(),
+					E_NO_METHOD_DEFINITION.numericCode(),
+					E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
+					E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode()))
+				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
 	}
 }

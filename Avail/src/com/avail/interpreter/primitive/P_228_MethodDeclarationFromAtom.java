@@ -33,12 +33,14 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.*;
+import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
@@ -123,5 +125,19 @@ extends Primitive
 				ATOM.o(),
 				FunctionTypeDescriptor.mostGeneralType()),
 			TOP.o());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+					E_LOADING_IS_OVER.numericCode(),
+					E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED.numericCode(),
+					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES.numericCode(),
+					E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS.numericCode(),
+					E_CANNOT_MIX_METHOD_AND_MACRO_DEFINITIONS.numericCode(),
+					E_METHOD_IS_SEALED.numericCode()))
+				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
 	}
 }

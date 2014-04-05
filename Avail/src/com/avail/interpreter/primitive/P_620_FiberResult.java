@@ -35,6 +35,7 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -102,5 +103,14 @@ extends Primitive
 			TupleDescriptor.from(
 				FiberTypeDescriptor.mostGeneralType()),
 			ANY.o());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_FIBER_RESULT_UNAVAILABLE.numericCode(),
+				E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT.numericCode())));
 	}
 }

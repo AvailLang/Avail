@@ -41,6 +41,7 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
+import com.avail.interpreter.levelOne.L1Instruction;
 import com.avail.interpreter.primitive.P_352_RejectParsing;
 
 /**
@@ -522,7 +523,14 @@ public enum AvailErrorCode
 	 * The result of a {@linkplain MethodDescriptor method} send disagreed with
 	 * the expected {@linkplain TypeDescriptor type}.
 	 */
-	E_RESULT_DISAGREED_WITH_EXPECTED_TYPE (79),
+	E_RESULT_DISAGREED_WITH_EXPECTED_TYPE (79)
+	{
+		@Override
+		public boolean isCausedByInstructionFailure ()
+		{
+			return true;
+		}
+	},
 
 	/**
 	 * The continuation whose primitive failure variable is set to this value is
@@ -566,13 +574,27 @@ public enum AvailErrorCode
 	 * The resolved {@linkplain DefinitionDescriptor definition} is a
 	 * {@linkplain ForwardDefinitionDescriptor forward definition}.
 	 */
-	E_FORWARD_METHOD_DEFINITION (86),
+	E_FORWARD_METHOD_DEFINITION (86)
+	{
+		@Override
+		public boolean isCausedByInstructionFailure ()
+		{
+			return true;
+		}
+	},
 
 	/**
 	 * The resolved {@linkplain DefinitionDescriptor definition} is a
 	 * {@linkplain AbstractDefinitionDescriptor abstract definition}.
 	 */
-	E_ABSTRACT_METHOD_DEFINITION (87),
+	E_ABSTRACT_METHOD_DEFINITION (87)
+	{
+		@Override
+		public boolean isCausedByInstructionFailure ()
+		{
+			return true;
+		}
+	},
 
 //	E_??? (88),
 
@@ -756,6 +778,18 @@ public enum AvailErrorCode
 	private AvailErrorCode (final int code)
 	{
 		this.code = code;
+	}
+
+	/**
+	 * Can the {@linkplain AvailErrorCode error code} result from failure of an
+	 * {@link L1Instruction}?
+	 *
+	 * @return {@code true} if the error code can result from a failed
+	 *         instruction, {@code false} otherwise.
+	 */
+	public boolean isCausedByInstructionFailure ()
+	{
+		return false;
 	}
 
 	/**

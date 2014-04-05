@@ -77,11 +77,15 @@ extends PropertiesFileGenerator
 				Primitive.byPrimitiveNumberOrNull(primitiveNumber);
 			if (primitive != null && !primitive.hasFlag(Flag.Private))
 			{
+				// Write a comment that gives the primitive number and its
+				// arity.
 				keys.add(primitive.name());
 				writer.format(
 					"# %3d : _=%d%n",
 					primitive.primitiveNumber,
 					primitive.argCount());
+				// Write the primitive key and any name already associated with
+				// it.
 				writer.print(primitive.name());
 				writer.print('=');
 				final String primitiveName =
@@ -91,6 +95,8 @@ extends PropertiesFileGenerator
 					writer.print(escape(primitiveName));
 				}
 				writer.println();
+				// Write each of the parameter keys and their previously
+				// associated values.
 				for (int i = 1; i <= primitive.argCount(); i++)
 				{
 					final String argNameKey =
@@ -105,6 +111,7 @@ extends PropertiesFileGenerator
 					}
 					writer.println();
 				}
+				// Write out the comment.
 				final String commentKey = primitiveCommentKey(primitive);
 				keys.add(commentKey);
 				writer.print(commentKey);
@@ -116,14 +123,16 @@ extends PropertiesFileGenerator
 				}
 				else
 				{
+					// Initialize the count of template parameters that occur in
+					// the final value to 1, to account for the @method tag of
+					// methodCommentTemplate.
+					int templateParameters = 1;
 					final String commentTemplate =
 						preambleBundle.getString(methodCommentTemplate.name());
 					final String parameters;
-					if (primitive.argCount() > 0)
+					final int argCount = primitive.argCount();
+					if (argCount > 0)
 					{
-						final String parametersTemplate =
-							preambleBundle.getString(
-								methodCommentParametersTemplate.name());
 						final String parameterTemplate =
 							preambleBundle.getString(
 								methodCommentParameterTemplate.name());
@@ -131,29 +140,68 @@ extends PropertiesFileGenerator
 						for (int i = 0; i < primitive.argCount(); i++)
 						{
 							builder.append(MessageFormat.format(
-								parameterTemplate, i));
+								parameterTemplate,
+								String.format("{%d}", templateParameters),
+								String.format(
+									"{%d}", templateParameters + argCount)));
+							templateParameters++;
 						}
-						parameters = MessageFormat.format(
-							parametersTemplate, builder.toString());
+						templateParameters += argCount;
+						parameters = builder.toString();
 					}
 					else
 					{
 						parameters = "";
 					}
-					final A_Type returnType =
-						primitive.blockTypeRestriction().returnType();
-					final String returns;
-					if (!returnType.isTop() && !returnType.isBottom())
+					// The return contributes one argument to the final
+					// template.
+					final String returnsTemplate = preambleBundle.getString(
+						methodCommentReturnsTemplate.name());
+					final String returns = MessageFormat.format(
+						returnsTemplate,
+						String.format("{%d}", templateParameters));
+					templateParameters++;
+					// If the primitive failure type is an enumeration, then
+					// exceptions contribute one argument to the final template
+					// for each value. Otherwise, it just contributes one
+					// argument. But if the primitive cannot fail, then no
+					// arguments are contributed.
+					final String raises;
+					if (!primitive.hasFlag(Flag.CannotFail))
 					{
-						returns = preambleBundle.getString(
-							methodCommentReturnsTemplate.name());
+						final String raisesTemplate = preambleBundle.getString(
+							methodCommentRaisesTemplate.name());
+						final A_Type failureType =
+							primitive.failureVariableType();
+						if (failureType.isEnumeration())
+						{
+							final StringBuilder builder =
+								new StringBuilder(500);
+							for (@SuppressWarnings("unused")
+								final A_BasicObject o :
+									failureType.instances())
+							{
+								builder.append(MessageFormat.format(
+									raisesTemplate,
+									String.format("{%d}", templateParameters)));
+								templateParameters++;
+							}
+							raises = builder.toString();
+						}
+						else
+						{
+							raises = MessageFormat.format(
+								raisesTemplate,
+								String.format("{%d}", templateParameters));
+							templateParameters++;
+						}
 					}
 					else
 					{
-						returns = "";
+						raises = "";
 					}
 					writer.print(escape(MessageFormat.format(
-						commentTemplate, parameters, returns)));
+						commentTemplate, parameters, returns, raises)));
 				}
 				writer.println();
 			}

@@ -62,8 +62,7 @@ public final class P_240_SpecialObject extends Primitive
 		final A_Number ordinal = args.get(0);
 		if (!ordinal.isInt())
 		{
-			return interpreter.primitiveFailure(
-				E_NO_SPECIAL_OBJECT);
+			return interpreter.primitiveFailure(E_NO_SPECIAL_OBJECT);
 		}
 		final int i = ordinal.extractInt();
 
@@ -87,5 +86,12 @@ public final class P_240_SpecialObject extends Primitive
 			TupleDescriptor.from(
 				IntegerRangeTypeDescriptor.naturalNumbers()),
 			ANY.o());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_NO_SPECIAL_OBJECT.numericCode());
 	}
 }

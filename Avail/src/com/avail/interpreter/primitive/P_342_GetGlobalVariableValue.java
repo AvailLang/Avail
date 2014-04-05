@@ -1,5 +1,5 @@
 /**
- * P_354_CreateReferenceExpression.java
+ * P_342_GetGlobalVariableValue.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,27 +31,23 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.exceptions.AvailErrorCode.E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 354:</strong> Transform a {@linkplain
- * VariableUseNodeDescriptor variable use} into a {@linkplain
- * ReferenceNodeDescriptor reference}.
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * <strong>Primitive 342:</strong> A global variable's value is being returned.
  */
-public final class P_354_CreateReferenceExpression extends Primitive
+public final class P_342_GetGlobalVariableValue extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_354_CreateReferenceExpression().init(
-		1, CanFold);
+	public final static Primitive instance =
+		new P_342_GetGlobalVariableValue().init(
+		1, SpecialReturnGlobalValue, CanFold, CanInline, Private, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -59,34 +55,26 @@ public final class P_354_CreateReferenceExpression extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 1;
-		final A_Phrase variableUse = args.get(0);
-		final A_Phrase declaration = variableUse.declaration();
-		assert declaration != null;
-		final A_Type declarationType = declaration.kind();
-		if (!declarationType.parseNodeKindIsUnder(MODULE_VARIABLE_NODE)
-			&& !declarationType.parseNodeKindIsUnder(LOCAL_VARIABLE_NODE))
-		{
-			return interpreter.primitiveFailure(
-				E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE);
-		}
-		final A_Phrase reference = ReferenceNodeDescriptor.fromUse(variableUse);
-		return interpreter.primitiveSuccess(reference);
+		final A_RawFunction code =
+			interpreter.primitiveFunctionBeingAttempted().code();
+		final A_Variable literalVariable = code.literalAt(1);
+		return interpreter.primitiveSuccess(literalVariable.getValue());
+	}
+
+	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final List<? extends A_Type> argumentTypes)
+	{
+		// The L2Translator has a special case for invocations of this
+		// primitive, so improving this bound would be entirely futile.
+		return ANY.o();
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				VARIABLE_USE_NODE.mostGeneralType()),
-			REFERENCE_NODE.mostGeneralType());
-	}
-
-	@Override
-	protected A_Type privateFailureVariableType ()
-	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE.numericCode());
+		// This primitive is suitable for any function with any as the return
+		// type.  We can't express that yet, so we allow any function.
+		return BottomTypeDescriptor.bottom();
 	}
 }

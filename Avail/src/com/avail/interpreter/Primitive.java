@@ -174,6 +174,13 @@ implements IntegerEnumSlotDescriptionEnum
 		SpecialReturnSoleArgument,
 
 		/**
+		 * The primitive returns the value of some global variable.  This is
+		 * only used for {@link P_342_GetGlobalVariableValue}, which is detected
+		 * automatically at code generation time.
+		 */
+		SpecialReturnGlobalValue,
+
+		/**
 		 * The primitive cannot fail. Hence, there is no need for Avail code
 		 * to run in the event of a primitive failure. Hence, such code is
 		 * forbidden (because it would be unreachable).
@@ -393,7 +400,7 @@ implements IntegerEnumSlotDescriptionEnum
 		A_Type failureType = cachedFailureVariableType;
 		if (failureType == null)
 		{
-			failureType = privateFailureVariableType();
+			failureType = privateFailureVariableType().makeShared();
 			assert failureType.isType();
 			cachedFailureVariableType = failureType;
 		}

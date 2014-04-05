@@ -160,7 +160,7 @@ public class L1InstructionWriter
 	 * The types of the local variables, including the arguments which must
 	 * occur first.
 	 */
-	private final List<AvailObject> localTypes = new ArrayList<>();
+	private final List<A_Type> localTypes = new ArrayList<>();
 
 	/**
 	 * Declare a local variable with the specified type.  Answer its index.  The
@@ -169,7 +169,7 @@ public class L1InstructionWriter
 	 * @param localType The {@linkplain TypeDescriptor type} of the local.
 	 * @return The index of the local variable.
 	 */
-	public int createLocal (final AvailObject localType)
+	public int createLocal (final A_Type localType)
 	{
 		assert localType.isInstanceOf(InstanceMetaDescriptor.topMeta());
 		localTypes.add(localType);
@@ -181,7 +181,7 @@ public class L1InstructionWriter
 	 * arguments of outer scopes can also be captured, which aren't technically
 	 * variables.
 	 */
-	private final List<AvailObject> outerTypes = new ArrayList<>();
+	private final List<A_Type> outerTypes = new ArrayList<>();
 
 	/**
 	 * Declare an outer (lexically captured) variable, specifying its type.
@@ -191,7 +191,7 @@ public class L1InstructionWriter
 	 * @return
 	 *            The index of the newly declared outer variable.
 	 */
-	public int createOuter (final AvailObject outerType)
+	public int createOuter (final A_Type outerType)
 	{
 		outerTypes.add(outerType);
 		return outerTypes.size();

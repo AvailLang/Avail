@@ -4280,6 +4280,7 @@ extends AbstractDescriptor
 
 	@Override
 	A_Bundle o_BundleOrCreate (final AvailObject object)
+		throws SignatureException
 	{
 		return o_Traversed(object).bundleOrCreate();
 	}

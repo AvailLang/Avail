@@ -39,6 +39,8 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
+import com.avail.exceptions.AvailRuntimeException;
+import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.utility.evaluation.Continuation0;
 
@@ -744,7 +746,15 @@ extends Descriptor
 				final A_Atom methodName = entry.key();
 				for (final A_Tuple seal : entry.value())
 				{
-					runtime.removeSeal(methodName, seal);
+					try
+					{
+						runtime.removeSeal(methodName, seal);
+					}
+					catch (final SignatureException e)
+					{
+						assert false : "This should not happen!";
+						throw new AvailRuntimeException(e.errorCode());
+					}
 				}
 			}
 			// Run unload functions, asynchronously but serially, in reverse

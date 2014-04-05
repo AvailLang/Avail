@@ -32,8 +32,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_BY_ZERO;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static java.lang.Math.floor;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -49,7 +48,7 @@ public final class P_318_DoubleModulus extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_318_DoubleModulus().init(
-		2, CanFold);
+		2, CannotFail, CanInline, CanFold);
 
 	@Override
 	public Result attempt (
@@ -62,10 +61,6 @@ public final class P_318_DoubleModulus extends Primitive
 		final AvailObject b = args.get(1);
 		final double da = a.extractDouble();
 		final double db = b.extractDouble();
-		if (db == 0.0d)
-		{
-			return interpreter.primitiveFailure(E_CANNOT_DIVIDE_BY_ZERO);
-		}
 		final double div = da / db;
 		final double mod = da - floor(div) * db;
 		return interpreter.primitiveSuccess(

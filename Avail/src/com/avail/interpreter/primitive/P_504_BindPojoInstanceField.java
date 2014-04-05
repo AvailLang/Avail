@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_NOT_AVAILABLE;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import java.lang.reflect.*;
 import java.util.List;
@@ -100,5 +100,12 @@ public final class P_504_BindPojoInstanceField extends Primitive
 				PojoTypeDescriptor.mostGeneralType(),
 				TupleTypeDescriptor.stringType()),
 			VariableTypeDescriptor.mostGeneralType());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_JAVA_FIELD_NOT_AVAILABLE.numericCode());
 	}
 }

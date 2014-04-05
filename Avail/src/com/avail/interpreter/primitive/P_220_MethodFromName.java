@@ -77,4 +77,11 @@ public final class P_220_MethodFromName extends Primitive
 				ATOM.o()),
 			METHOD.o());
 	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_NO_METHOD.numericCode());
+	}
 }
