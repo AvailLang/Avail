@@ -509,18 +509,29 @@ public class StacksCommentsModule
 	 */
 	private String htmlOpentContent()
 	{
-		return //"<!doctype html>\n<!--[if lt IE 7]> "
-			//+ "<html class=\"ie6 oldie\">"
-			//+ "<![endif]-->\n<!--[if IE 7]>\n<html class=\"ie7 oldie\">"
-			//+ "<![endif]-->\n<!--[if IE 8]>\n<html class=\"ie8 oldie\">"
-			//+ "<![endif]-->\n<!--[if gt IE 8]><!-->\n<html class=\"\">"
-			//+ "<!--<![endif]-->\n\t<head>\n"
-			//+ "<link href=\"/_css/stacks.css\" rel=\"stylesheet\" type=\"text/css\">\n"
-			//+ "<!--#include virtual=\"/_include/head.ssi\" -->\n"
-			//+ "<title>Avail - Library</title>\n\t</head>\n\t"
-			//+ "\t</head>\n\t<body class=\"gradient-logo\">\n";
-			//+ "<!--#include virtual=\"/_include/body-top.ssi\" -->";
-			"<div>\n";
+		return "<!doctype html>\n"
+			+ "<!--[if lt IE 7]>\n "
+			+ tabs(1) + "<html class=\"ie6 oldie\">\n"
+			+ "<![endif]-->\n"
+			+ "<!--[if IE 7]>\n"
+			+ tabs(1) + "<html class=\"ie7 oldie\">\n"
+			+ "<![endif]-->\n"
+			+ "<!--[if IE 8]>\n"
+			+ tabs(1) + "<html class=\"ie8 oldie\">\n"
+			+ "<![endif]-->\n"
+			+ tabs(1) + "<!--[if gt IE 8]>\n"
+			+tabs(1) + "<!-->\n<html class=\"\">\n"
+			+ "<!--<![endif]-->\n"
+			+ tabs(1) + "<head>\n"
+			+ tabs(2) + "<meta charset=\"utf-8\">\n"
+			+ tabs(2) + "<link href=\"/_css/stacks.css\" rel=\"stylesheet\" "
+				+ "type=\"text/css\">\n"
+			+ tabs(2) + "<!--#include virtual=\"/_include/head.ssi\" -->\n"
+			+ tabs(2) + "<title>Avail - Library</title>\n"
+			+ tabs(1) + "</head>\n"
+			+ tabs(1) + "<body class=\"gradient-logo\">\n"
+			+ tabs(2) + "<!--#include virtual=\"/_include/body-top.ssi\" -->\n";
+			//"<div>\n";
 	}
 
 	/**
@@ -530,10 +541,27 @@ public class StacksCommentsModule
 	 */
 	private String htmlCloseContent()
 	{
-		return //"<!--#include virtual=\"/_include/body-bottom.ssi\" -->\n\t"
-			//"</body>\n</html>";
-			"</div>";
+		return "<!--#include virtual=\"/_include/body-bottom.ssi\" -->\n"
+			+ tabs(1) + "</body>\n"
+			+"</html>";
+			//"</div>";
 	}
 
+	/**
+	 * @param numberOfTabs
+	 * 		the number of tabs to insert into the string.
+	 * @return
+	 * 		a String consisting of the number of tabs requested in
+	 * 		in numberOfTabs.
+	 */
+	public String tabs(final int numberOfTabs)
+	{
+		final StringBuilder stringBuilder = new StringBuilder();
+		for (int i = 1; i <= numberOfTabs; i++)
+		{
+			stringBuilder.append('\t');
+		}
+		return stringBuilder.toString();
+	}
 
 }
