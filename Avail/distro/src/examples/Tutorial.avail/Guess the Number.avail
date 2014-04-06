@@ -33,6 +33,8 @@
 Module "Guess the Number"
 Uses
 	"Avail"
+Extends
+	"Avail" = ("-_")
 Entries
 	"Play guess a number between_and_"
 Body
