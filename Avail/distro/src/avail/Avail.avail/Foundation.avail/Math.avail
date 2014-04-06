@@ -45,6 +45,7 @@ Uses
 	"Early Sets",
 	"Early Tuples",
 	"Enumeration Support",
+	"Error Codes",
 	"Literals",
 	"Types",
 	"Variables"
@@ -52,6 +53,7 @@ Names
 	"log_of_",
 	"negative integer",
 	"nonpositive integer",
+	"values in_",
 	"_is odd",
 	"_is even",
 	"-_",
@@ -982,7 +984,23 @@ Public stable method "log_of_" is
 	b : float,
 	n : float
 |
-	(ln n) ÷ (ln b)
+	if b ≤ 0.0→float then
+	[
+		early failure function(
+			cannot-compute-logarithm-for-nonpositive-base code)
+	]
+	else
+	[
+		if n ≤ 0.0→float then
+		[
+			early failure function(
+				cannot-compute-logarithm-of-nonpositive-number code)
+		]
+		else
+		[
+			(ln n) ÷ (ln b)
+		]
+	]
 ] : float;
 
 /**
@@ -1002,7 +1020,23 @@ Stable method "log_of_" is
 	b : double,
 	n : double
 |
-	(ln n) ÷ (ln b)
+	if b ≤ 0.0 then
+	[
+		early failure function(
+			cannot-compute-logarithm-for-nonpositive-base code)
+	]
+	else
+	[
+		if n ≤ 0.0 then
+		[
+			early failure function(
+				cannot-compute-logarithm-of-nonpositive-number code)
+		]
+		else
+		[
+			(ln n) ÷ (ln b)
+		]
+	]
 ] : double;
 
 /**

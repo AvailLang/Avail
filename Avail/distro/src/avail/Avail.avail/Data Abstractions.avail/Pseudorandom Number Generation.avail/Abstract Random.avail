@@ -44,7 +44,7 @@ Names
 	"pRNG of_",
 
 	/* Pseudorandom number generation. */
-	"_'s⁇next_",
+	"_'s⁇next«value in»⁇_",
 	"_'s⁇next element of_",
 	"_'s⁇next binding of_",
 	"_'s⁇next shuffling of_"
@@ -82,7 +82,7 @@ Public method "pRNG of_" is
  * Consume and answer a pseudorandom value from the specified {@type "pRNG"
  * generator}.
  *
- * @method "_'s⁇next_"
+ * @method "_'s⁇next«value in»⁇_"
  * @param "rng" "pRNG"
  *        A pseudorandom number generator.
  * @param "range" "whole number's type"
@@ -93,7 +93,7 @@ Public method "pRNG of_" is
  * @raises "incorrect-argument-type exception"
  *         If ⎡{@param "range"}⎤ is ∞.
  */
-Public method "_'s⁇next_" is
+Public method "_'s⁇next«value in»⁇_" is
 [
 	rng : pRNG,
 	range : integer's type
@@ -120,7 +120,7 @@ Public method "_'s⁇next_" is
 	cast result mod modulus + delta into [t : integer | t]
 ] : integer;
 
-Semantic restriction "_'s⁇next_" is
+Semantic restriction "_'s⁇next«value in»⁇_" is
 [
 	rng : pRNG's type,
 	range : integer's type's type
@@ -132,14 +132,14 @@ Semantic restriction "_'s⁇next_" is
  * Consume a pseudorandom value from the specified {@type "pRNG" generator} and
  * use it to select an instance of the specified {@param "enum" enumeration}.
  * 
- * @method "_'s⁇next_"
+ * @method "_'s⁇next«value in»⁇_"
  * @param "rng" "pRNG"
  *        A pseudorandom number generator.
  * @param "enum" "type"
  * @returns "any"
  *          A pseudorandomly selected instance of {@param "enum"}.
  */
-Method "_'s⁇next_" is
+Method "_'s⁇next«value in»⁇_" is
 [
 	rng : pRNG,
 	enum : type
@@ -150,7 +150,7 @@ Method "_'s⁇next_" is
 	result
 ] : any;
 
-Method "_'s⁇next_" is
+Method "_'s⁇next«value in»⁇_" is
 [
 	rng : pRNG,
 	enum : boolean's type
@@ -160,7 +160,7 @@ Method "_'s⁇next_" is
 	result
 ] : boolean;
 
-Semantic restriction "_'s⁇next_" is
+Semantic restriction "_'s⁇next«value in»⁇_" is
 [
 	rng : pRNG's type,
 	meta : type's type

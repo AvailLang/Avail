@@ -1,5 +1,5 @@
 /**
- * AvailBuilderFrame.java
+ * AvailWorkbench.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -70,13 +70,13 @@ import com.avail.utility.Mutable;
 import com.avail.utility.evaluation.*;
 
 /**
- * {@code AvailBuilderFrame} is a simple user interface for the {@linkplain
+ * {@code AvailWorkbench} is a simple user interface for the {@linkplain
  * AvailBuilder Avail builder}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @SuppressWarnings("serial")
-public class AvailBuilderFrame
+public class AvailWorkbench
 extends JFrame
 {
 	/** The {@linkplain Style style} to use for standard output. */
@@ -429,7 +429,7 @@ extends JFrame
 				pathField
 			};
 			JOptionPane.showMessageDialog(
-				AvailBuilderFrame.this,
+				AvailWorkbench.this,
 				widgets,
 				"Set documentation path",
 				JOptionPane.PLAIN_MESSAGE);
@@ -2158,7 +2158,7 @@ extends JFrame
 		}
 
 		/**
-		 * Construct a new {@link AvailBuilderFrame.LayoutConfiguration} with
+		 * Construct a new {@link AvailWorkbench.LayoutConfiguration} with
 		 * no preferences specified.
 		 */
 		public LayoutConfiguration ()
@@ -2167,7 +2167,7 @@ extends JFrame
 		}
 
 		/**
-		 * Construct a new {@link AvailBuilderFrame.LayoutConfiguration} with
+		 * Construct a new {@link AvailWorkbench.LayoutConfiguration} with
 		 * preferences specified by some private encoding in the provided {@link
 		 * String}.
 		 *
@@ -2279,7 +2279,7 @@ extends JFrame
 	};
 
 	/**
-	 * Construct a new {@link AvailBuilderFrame}.
+	 * Construct a new {@link AvailWorkbench}.
 	 *
 	 * @param resolver
 	 *        The {@linkplain ModuleNameResolver module name resolver}.
@@ -2287,7 +2287,7 @@ extends JFrame
 	 *        The initial target {@linkplain ModuleName module}, possibly the
 	 *        empty string.
 	 */
-	@InnerAccess AvailBuilderFrame (
+	@InnerAccess AvailWorkbench (
 		final ModuleNameResolver resolver,
 		final String initialTarget)
 	{
@@ -2701,7 +2701,7 @@ extends JFrame
 		final Class<?> appClass = Class.forName(
 			"com.apple.eawt.Application",
 			true,
-			AvailBuilderFrame.class.getClassLoader());
+			AvailWorkbench.class.getClassLoader());
 		final Object application =
 			appClass.getMethod("getApplication").invoke(null);
 		final Image image =
@@ -2716,7 +2716,7 @@ extends JFrame
 
 	/**
 	 * Launch the {@linkplain AvailBuilder Avail builder} {@linkplain
-	 * AvailBuilderFrame UI}.
+	 * AvailWorkbench UI}.
 	 *
 	 * @param args
 	 *        The command line arguments.
@@ -2765,8 +2765,8 @@ extends JFrame
 			@Override
 			public void run ()
 			{
-				final AvailBuilderFrame frame =
-					new AvailBuilderFrame(resolver, initial);
+				final AvailWorkbench frame =
+					new AvailWorkbench(resolver, initial);
 				frame.setVisible(true);
 			}
 		});

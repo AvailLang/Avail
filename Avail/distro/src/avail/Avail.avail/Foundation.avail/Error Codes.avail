@@ -114,9 +114,12 @@ Invoke
 		<1009, "invalid-format-metacharacter-use">,
 		<1010, "format-variable-interpolation-failed">,
 		<1011, "invalid-format-variable">,
-		<1012, "missing-format-variable-binding">
+		<1012, "missing-format-variable-binding">,
+		<1013, "cannot-compute-logarithm-for-nonpositive-base">,
+		<1014, "cannot-compute-logarithm-of-nonpositive-number">
 	>;
-	From 1 to |numberedCodes| do [
+	From 1 to |numberedCodes| do
+	[
 		i : natural number
 	|
 		pair ::= numberedCodes[i];

@@ -224,7 +224,7 @@ POSSIBILITY OF SUCH DAMAGE.
 				<attribute name="Class-Path" value="${jar.avail}"/>
 				<attribute
 					name="Main-Class"
-					value="com.avail.environment.AvailBuilderFrame"/>
+					value="com.avail.environment.AvailWorkbench"/>
 				<attribute name="Sealed" value="true"/>
 			</manifest>
 			<fileset

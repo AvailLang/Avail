@@ -1136,6 +1136,10 @@ System exception "invalid-format-variable" (1011)
 	extends bad-format exception;
 System exception "missing-format-variable-binding" (1012)
 	extends bad-format exception;
+System exception "cannot-compute-logarithm-for-nonpositive-base" (1013)
+	extends bad-argument exception;
+System exception "cannot-compute-logarithm-of-nonpositive-number" (1014)
+	extends bad-argument exception;
 
 /**
  * Ensure that all error codes have corresponding exceptions.
