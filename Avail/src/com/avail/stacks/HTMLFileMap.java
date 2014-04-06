@@ -292,13 +292,13 @@ public class HTMLFileMap
 			.append(tabs(2) + "}\n")
 			.append(tabs(2) + "return finalList;\n")
 			.append(tabs(1) + "}\n")
-			.append(tabs(1) + "$scope.linkValue = {};\n")
-			.append(tabs(1) + "$scope.changeLinkValue = function(method) {\n")
-			.append(tabs(2) + "$scope.linkValue = method.link;\n")
+			.append(tabs(1) + "$scope.linkValue = \"landing-detail.html\";\n")
+			.append(tabs(1) + "$scope.changeLinkValue = function(method)\n")
+			.append(tabs(1) + "{\n")
+			.append(tabs(2) + "$scope.linkValue = \"library-documentation\" "
+				+ "+ method.link;\n")
 			.append(tabs(1) + "}\n")
 			.append("}");
-
-
 		return stringBuilder.toString();
 	}
 

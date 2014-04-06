@@ -513,6 +513,7 @@ public class StacksScanner extends AbstractStacksScanner
 					int c = scanner.next();
 					if (c == '\"')
 					{
+						c = scanner.next();
 						final int literalStartingLine = scanner.lineNumber();
 						while (c != '\"')
 						{

@@ -539,8 +539,7 @@ public class StacksCommentsModule
 			+ tabs(2) + "<!--#include virtual=\"/_include/head.ssi\" -->\n"
 			+ tabs(2) + "<title>Avail - Library</title>\n"
 			+ tabs(1) + "</head>\n"
-			+ tabs(1) + "<body class=\"gradient-logo\">\n"
-			+ tabs(2) + "<!--#include virtual=\"/_include/body-top.ssi\" -->\n";
+			+ tabs(1) + "<body>\n";
 			//"<div>\n";
 	}
 
@@ -551,8 +550,7 @@ public class StacksCommentsModule
 	 */
 	private String htmlCloseContent()
 	{
-		return "<!--#include virtual=\"/_include/body-bottom.ssi\" -->\n"
-			+ tabs(1) + "</body>\n"
+		return tabs(1) + "</body>\n"
 			+"</html>";
 			//"</div>";
 	}

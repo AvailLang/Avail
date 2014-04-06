@@ -749,31 +749,24 @@ public class CommentImplementationBuilder
 		 final ArrayList<AbstractStacksToken> tagContentTokens)
 			 throws ClassCastException, StacksCommentBuilderException
 	{
-		if (tagContentTokens.size() == 1)
+		for (final AbstractStacksToken token : tagContentTokens)
 		{
 			try
 			{
-				supertypes.add(new StacksSuperTypeTag (
-					(QuotedStacksToken) tagContentTokens.get(0)));
+				supertypes.add(new StacksSuperTypeTag
+					((QuotedStacksToken) token));
 			}
 			catch (final ClassCastException e)
 			{
 				final String errorMessage = String.format("\n<li><strong>%s"
-					+ "</strong><em> Line #: %d</em>: Malformed "
-					+ "@supertype tag section; expected quoted type.</li>",
+					+ "</strong><em> Line #: %d</em>: Malformed @supertype "
+					+ "tag section; expected a series of quoted supertype "
+					+ "names immediately following the @supertype tag, however "
+					+ "does not start with a quoted supertype is listed.</li>",
 					moduleLeafName,
 					commentStartLine());
 				throw new StacksCommentBuilderException(errorMessage, this);
 			}
-		}
-		else
-		{
-			final String errorMessage = String.format("\n<li><strong>%s"
-				+ "</strong><em> Line #: %d</em>: Malformed @supertype "
-				+ "tag section; has wrong # of components.</li>",
-				moduleLeafName,
-				commentStartLine());
-			throw new StacksCommentBuilderException(errorMessage, this);
 		}
 	}
 
