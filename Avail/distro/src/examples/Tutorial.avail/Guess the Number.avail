@@ -39,7 +39,7 @@ Body
 
 sentinel ::= ∞;
 
-Private method "next try for a number in_" is
+Private method "player's next try for a number in_" is
 [
 	theRange : integer's type
 |
@@ -56,7 +56,7 @@ Private method "tries to guess_from range_" is
 |
 	count : natural number := 1;
 	guess : extended integer;
-	Do [guess := next try for a number in theRange;]
+	Do [guess := player's next try for a number in theRange;]
 	until [guess = theNumber]
 	alternate with
 	[
