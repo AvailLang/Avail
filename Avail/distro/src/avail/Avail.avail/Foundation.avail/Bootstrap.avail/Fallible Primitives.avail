@@ -318,6 +318,7 @@ Primitive "↓_" is
  *        A variable.
  * @param "value" "any"
  *        The value that should be stored into {@param "var"}.
+ * @returns "⊤"
  * @raises "cannot-store-incorrectly-typed-value exception"
  * @raises "cannot-modify-final-Java-field exception"
  */
@@ -339,6 +340,7 @@ Primitive "↓_`?=_" is
  * @method "Clear_"
  * @param "var" "variable"
  *        A variable.
+ * @returns "⊤"
  * @raises "cannot-modify-final-Java-field exception"
  */
 Primitive "Clear_" is
