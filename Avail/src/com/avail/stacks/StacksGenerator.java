@@ -95,10 +95,10 @@ public class StacksGenerator
 	StacksErrorLog errorLog;
 
 	/**
-	 * The {@linkplain StacksCategories} is a holder for all categories in
+	 * The {@linkplain HTMLFileMap} is a map for all html files in
 	 * stacks
 	 */
-	private final StacksCategories categories;
+	private final HTMLFileMap htmlFileMap;
 
 	/**
 	 * A map of {@linkplain ModuleName module names} to a list of all the method
@@ -129,7 +129,7 @@ public class StacksGenerator
 				outputPath + " exists and is not a directory");
 		}
 		this.outputPath = outputPath;
-		this.categories = new StacksCategories();
+		this.htmlFileMap = new HTMLFileMap();
 		this.resolver = resolver;
 
 		this.logPath = outputPath
@@ -166,7 +166,7 @@ public class StacksGenerator
 
 		commentsModule = new StacksCommentsModule(
 			header,commentTokens,errorLog, resolver,
-			moduleToComments,categories);
+			moduleToComments,htmlFileMap);
 		updateModuleToComments(commentsModule);
 	}
 
@@ -210,8 +210,45 @@ public class StacksGenerator
 		IO.close(errorLog.file());
 
 		final int fileToOutPutCount =
-			outerMost.calculateFinalImplementationGroupsMap(categories);
+			outerMost.calculateFinalImplementationGroupsMap(htmlFileMap);
 
+		createJSFiles();
+
+		//Create the main HTML landing page
+		createIndexHTML();
+
+		if (fileToOutPutCount > 0)
+		{
+			final StacksSynchronizer synchronizer =
+				new StacksSynchronizer(fileToOutPutCount);
+
+			moduleToComments
+				.get(outermostModule.qualifiedName())
+					.writeMethodsToHTMLFiles(providedDocumentPath,synchronizer,
+						runtime,htmlFileMap);
+
+			synchronizer.waitForWorkUnitsToComplete();
+		}
+
+		clear();
+
+	}
+
+	/**
+	 * Clear all internal data structures and reinitialize the {@linkplain
+	 * StacksGenerator generator} for subsequent usage.
+	 */
+	public synchronized void clear ()
+	{
+		moduleToComments.clear();
+		htmlFileMap.clear();
+	}
+
+	/**
+	 * Create all necessary JS files.
+	 */
+	private void createJSFiles()
+	{
 		final Path categoriesFilePath =
 			outputPath.resolve("stacksApp.js");
 
@@ -233,7 +270,7 @@ public class StacksGenerator
 					StandardOpenOption.WRITE,
 					StandardOpenOption.TRUNCATE_EXISTING));
 			final ByteBuffer buffer = ByteBuffer.wrap(
-				(categories.toAngularJS().getBytes(StandardCharsets.UTF_8)));
+				(htmlFileMap.toStacksAppJS().getBytes(StandardCharsets.UTF_8)));
 			categoriesJson.write(buffer);
 			IO.close(categoriesJson);
 		}
@@ -242,35 +279,6 @@ public class StacksGenerator
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		//Create the main HTML landing page
-		createIndexHTML();
-
-		if (fileToOutPutCount > 0)
-		{
-			final StacksSynchronizer synchronizer =
-				new StacksSynchronizer(fileToOutPutCount);
-
-			moduleToComments
-				.get(outermostModule.qualifiedName())
-					.writeMethodsToHTMLFiles(providedDocumentPath,synchronizer,
-						runtime,categories);
-
-			synchronizer.waitForWorkUnitsToComplete();
-		}
-
-		clear();
-
-	}
-
-	/**
-	 * Clear all internal data structures and reinitialize the {@linkplain
-	 * StacksGenerator generator} for subsequent usage.
-	 */
-	public synchronized void clear ()
-	{
-		moduleToComments.clear();
-		categories.clear();
 	}
 
 	/**

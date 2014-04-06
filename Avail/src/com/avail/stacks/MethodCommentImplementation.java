@@ -74,6 +74,8 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 	 * 		The overall description of the implementation
 	 * @param categories
 	 * 		The categories the implementation appears in
+	 * @param aliases
+	 * 		The aliases the implementation is known by
 	 * @param parameters
 	 * 		The list of {@link StacksParameterTag parameters} of the method
 	 * 		implementation.
@@ -90,12 +92,13 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		final ArrayList<StacksSeeTag> sees,
 		final StacksDescription description,
 		final ArrayList<StacksCategoryTag> categories,
+		final ArrayList<StacksAliasTag> aliases,
 		final ArrayList<StacksParameterTag> parameters,
 		final StacksReturnTag returnsContent,
 		final ArrayList<StacksRaisesTag> exceptions)
 	{
 		super(signature, commentStartLine, author, sees, description,
-			categories);
+			categories,aliases);
 		this.parameters = parameters;
 		this.returnsContent = returnsContent;
 		this.exceptions = exceptions;
@@ -109,21 +112,21 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 	}
 
 	@Override
-	public String toHTML ()
+	public String toHTML (final HTMLFileMap htmlFileMap)
 	{
 		final int paramCount = parameters.size();
 		final int exceptionCount = exceptions.size();
 		int colSpan = 1;
 		final StringBuilder stringBuilder = new StringBuilder()
-			.append(signature.toHTML());
+			.append(signature().toHTML());
 
 		if (categories.size() > 0)
 		{
-			stringBuilder.append(categories.get(0).toHTML());
+			stringBuilder.append(categories.get(0).toHTML(htmlFileMap));
 		}
 
 		stringBuilder.append(tabs(2) + "<div class=\"SignatureDescription\">\n")
-			.append(tabs(3) + description.toHTML())
+			.append(tabs(3) + description.toHTML(htmlFileMap))
 			.append("\n" + tabs(2) + "</div>\n")
 			.append(tabs(2) + "<table>\n")
 			.append(tabs(3) + "<thead>\n")
@@ -156,13 +159,13 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 
 		for (final StacksParameterTag paramTag : parameters)
 		{
-			stringBuilder.append(paramTag.toHTML());
+			stringBuilder.append(paramTag.toHTML(htmlFileMap));
 		}
 
 		stringBuilder.append(tabs(4) + "<tr>\n")
 			.append(tabs(5) + "<th class=\"IRowLabel\" colspan=\"")
 			.append(colSpan).append("\">Returns</th>\n")
-			.append(returnsContent.toHTML());
+			.append(returnsContent.toHTML(htmlFileMap));
 
 		if (exceptionCount > 0)
 		{
@@ -172,7 +175,7 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 
 			for (final StacksRaisesTag exception : exceptions)
 			{
-				stringBuilder.append(exception.toHTML());
+				stringBuilder.append(exception.toHTML(htmlFileMap));
 			}
 		}
 

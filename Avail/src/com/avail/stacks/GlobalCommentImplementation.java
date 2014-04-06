@@ -63,6 +63,8 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 	 * 		The overall description of the implementation
 	 * @param categories
 	 * 		The categories the implementation appears in
+	 * @param aliases
+	 * 		The aliases the implementation
 	 * @param globalTag
 	 * 		A global module variable comment tag
 	 */
@@ -73,10 +75,11 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 		final ArrayList<StacksSeeTag> sees,
 		final StacksDescription description,
 		final ArrayList<StacksCategoryTag> categories,
+		final ArrayList<StacksAliasTag> aliases,
 		final StacksGlobalTag globalTag)
 	{
 		super(signature, commentStartLine, author, sees, description,
-			categories);
+			categories,aliases);
 		this.globalTag = globalTag;
 	}
 
@@ -88,18 +91,18 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 	}
 
 	@Override
-	public String toHTML ()
+	public String toHTML (final HTMLFileMap htmlFileMap)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
-		.append(signature.toHTML());
+		.append(signature().toHTML());
 
 		if (categories.size() > 0)
 		{
-			stringBuilder.append(categories.get(0).toHTML());
+			stringBuilder.append(categories.get(0).toHTML(htmlFileMap));
 		}
 
 		stringBuilder.append(tabs(1) + "<div class=\"SignatureDescription\">")
-			.append(description.toHTML()).append("</div>\n");
+			.append(description.toHTML(htmlFileMap)).append("</div>\n");
 
 		return stringBuilder.toString();
 	}

@@ -68,7 +68,7 @@ public class StacksCategoryTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML ()
+	public String toHTML (final HTMLFileMap htmlFileMap)
 	{
 		final StringBuilder stringBuilder = new StringBuilder();
 		final int listSize = categories.size();

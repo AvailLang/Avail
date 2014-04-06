@@ -776,8 +776,8 @@ public class StacksScanner extends AbstractStacksScanner
 	 *		tokenized.
 	 * @param moduleName
 	 * 		The name of the module this comment appears in.
-	 * @param categories
-	 * 		A holder for all categories in stacks
+	 * @param htmlFileMap
+	 * 		A map for all html files for Stacks
 	 * @return a {@link List list} of all tokenized words in the {@link
 	 * 		CommentTokenDescriptor Avail comment}.
 	 * @throws StacksScannerException If scanning fails.
@@ -785,7 +785,7 @@ public class StacksScanner extends AbstractStacksScanner
 	 */
 	public static AbstractCommentImplementation processCommentString (
 		final A_Token commentToken, final String moduleName,
-		final StacksCategories categories)
+		final HTMLFileMap htmlFileMap)
 		throws StacksScannerException, StacksCommentBuilderException
 	{
 		final StacksScanner scanner =
@@ -807,7 +807,7 @@ public class StacksScanner extends AbstractStacksScanner
 			scanner.sectionStartLocations,
 			scanner.moduleName(),
 			scanner.commentStartLine(),
-			categories);
+			htmlFileMap);
 	}
 
 	/**

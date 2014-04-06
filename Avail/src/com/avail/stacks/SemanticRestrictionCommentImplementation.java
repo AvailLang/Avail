@@ -69,6 +69,8 @@ public class SemanticRestrictionCommentImplementation extends
 	 * 		The overall description of the implementation
 	 * @param categories
 	 * 		The categories the implementation appears in
+	 * @param aliases
+	 * 		The aliases the implementation is known by
 	 * @param restricts
 	 * 		The list of input types in the semantic restriction.
 	 * @param returnsContent
@@ -81,11 +83,12 @@ public class SemanticRestrictionCommentImplementation extends
 		final ArrayList<StacksSeeTag> sees,
 		final StacksDescription description,
 		final ArrayList<StacksCategoryTag> categories,
+		final ArrayList<StacksAliasTag> aliases,
 		final ArrayList<StacksRestrictsTag> restricts,
 		final ArrayList<StacksReturnTag> returnsContent)
 	{
 		super(signature, commentStartLine, author, sees, description,
-			categories);
+			categories,aliases);
 		this.restricts = restricts;
 		this.returnsContent = returnsContent;
 	}
@@ -98,15 +101,15 @@ public class SemanticRestrictionCommentImplementation extends
 	}
 
 	@Override
-	public String toHTML ()
+	public String toHTML (final HTMLFileMap htmlFileMap)
 	{
 		final int paramCount = restricts.size();
 		final int colSpan = 1;
 		final StringBuilder stringBuilder = new StringBuilder()
-			.append(signature.toHTML());
+			.append(signature().toHTML());
 
 		stringBuilder.append(tabs(2) + "<div class=\"SignatureDescription\">\n")
-			.append(tabs(3) + description.toHTML())
+			.append(tabs(3) + description.toHTML(htmlFileMap))
 			.append("\n" + tabs(2) + "</div>\n")
 			.append(tabs(2) + "<table>\n")
 			.append(tabs(3) + "<thead>\n")
@@ -134,7 +137,7 @@ public class SemanticRestrictionCommentImplementation extends
 
 		for (final StacksRestrictsTag restrictsTag : restricts)
 		{
-			stringBuilder.append(restrictsTag.toHTML());
+			stringBuilder.append(restrictsTag.toHTML(htmlFileMap));
 		}
 
 		if (!returnsContent.isEmpty())
@@ -142,7 +145,7 @@ public class SemanticRestrictionCommentImplementation extends
 			stringBuilder.append(tabs(4) + "<tr>\n")
 			.append(tabs(5) + "<th class=\"IRowLabel\" colspan=\"")
 				.append(colSpan).append("\">Returns</th>\n")
-				.append(returnsContent.get(0).toHTML());
+				.append(returnsContent.get(0).toHTML(htmlFileMap));
 		}
 
 		return stringBuilder.append(tabs(3) + "</tbody>\n")

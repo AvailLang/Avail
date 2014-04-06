@@ -83,14 +83,14 @@ public class StacksRestrictsTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML ()
+	public String toHTML (final HTMLFileMap htmlFileMap)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
 		.append(tabs(4) + "<tr class=\"methodParameters\"><td class=\"ICode\">")
 		.append(paramMetaType.lexeme())
 		.append("</td>\n")
 		.append(tabs(5) + "<td class=\"IDesc\">\n")
-		.append(tabs(6) + description.toHTML())
+		.append(tabs(6) + description.toHTML(htmlFileMap))
 		.append("\n" + tabs(5) + "</td>\n")
 		.append(tabs(4) + "</tr>\n");
 

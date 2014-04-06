@@ -1,5 +1,5 @@
 /**
- * StacksCategories.java
+ * HTMLFileMap.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -41,7 +41,7 @@ import com.avail.utility.Pair;
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksCategories
+public class HTMLFileMap
 {
 	/**
 	 * The map containing categories.  Keyed by name to description.
@@ -55,14 +55,29 @@ public class StacksCategories
 		categoryMethodList;
 
 	/**
-	 * Construct a new {@link StacksCategories}.
+	 * A map of aliases to file links.
+	 */
+	private final HashMap<String,String> aliasesToFileLink;
+
+	/**
+	 * @param alias the alias to add to the map
+	 * @param fileLink the file that the alias links to
+	 */
+	public void addAlias (final String alias, final String fileLink)
+	{
+		aliasesToFileLink.put(alias,fileLink);
+	}
+
+	/**
+	 * Construct a new {@link HTMLFileMap}.
 	 *
 	 */
-	public StacksCategories ()
+	public HTMLFileMap ()
 	{
 		categoryToDescription = new HashMap<String,StacksDescription>();
 		categoryMethodList =
 			new HashMap<String,ArrayList<Pair<String,String>>>();
+		aliasesToFileLink = new HashMap<String,String>();
 	}
 
 	/**
@@ -133,7 +148,7 @@ public class StacksCategories
 	 * links.
 	 * @return
 	 */
-	public String toJson()
+	private String categoryMethodsToJson()
 	{
 		final StringBuilder stringBuilder = new StringBuilder().append("[\n");
 
@@ -173,7 +188,7 @@ public class StacksCategories
 					stringBuilder.append(tabs(3) + "{\"methodName\" : \"")
 						.append(lastPair.first()).append("\", \"link\" : \"")
 						.append(lastPair.second())
-						.append("\"}\n" + tabs(2)+ "]\n" + tabs(1)+ "},");
+						.append("\"}\n" + tabs(2)+ "]\n" + tabs(1)+ "},\n");
 				}
 			}
 
@@ -217,7 +232,7 @@ public class StacksCategories
 	 * @return
 	 * 		The string content of the Angular JS file.
 	 */
-	public String toAngularJS()
+	public String toStacksAppJS()
 	{
 		final StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder
@@ -226,10 +241,10 @@ public class StacksCategories
 			.append("stacksApp.factory('Categories', function () {\n"
 			+ tabs(1) + "var Categories = {};\n"
 			+ tabs(1) + "Categories.content = ");
-		stringBuilder.append(toJson());
+		stringBuilder.append(categoryMethodsToJson());
 		stringBuilder.append(";\n"
 			+ tabs(1) + "return Categories;\n"
-			+ "})\n");
+			+ "})\n\n");
 
 		stringBuilder.append("function CategoriesCntrl($scope,Categories) {\n"
 			+ tabs(1) + "$scope.categories = Categories;\n")
@@ -303,7 +318,7 @@ public class StacksCategories
 	 * 		a String consisting of the number of tabs requested in
 	 * 		in numberOfTabs.
 	 */
-	public String tabs(final int numberOfTabs)
+	private String tabs(final int numberOfTabs)
 	{
 		final StringBuilder stringBuilder = new StringBuilder();
 		for (int i = 1; i <= numberOfTabs; i++)

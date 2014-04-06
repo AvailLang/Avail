@@ -73,7 +73,7 @@ public class StacksLinkTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML ()
+	public String toHTML (final HTMLFileMap htmlFileMap)
 	{
 		// TODO Auto-generated method stub
 		return null;

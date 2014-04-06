@@ -99,7 +99,7 @@ public class StacksFieldTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML()
+	public String toHTML(final HTMLFileMap htmlFileMap)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append(tabs(4) + "<tr class=\"methodParameters\">\n")
@@ -110,7 +110,7 @@ public class StacksFieldTag extends AbstractStacksTag
 			.append(fieldType.lexeme())
 			.append("</td>\n")
 			.append(tabs(5) + "<td class=\"IDesc\">\n")
-			.append(tabs(6) + fieldDescription.toHTML())
+			.append(tabs(6) + fieldDescription.toHTML(htmlFileMap))
 			.append("\n" + tabs(5) + "</td>\n")
 			.append(tabs(4) + "</tr>\n");
 		return stringBuilder.toString();

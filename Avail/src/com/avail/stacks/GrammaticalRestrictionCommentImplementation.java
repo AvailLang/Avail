@@ -65,6 +65,8 @@ public class GrammaticalRestrictionCommentImplementation extends
 	 * 		The overall description of the implementation
 	 * @param categories
 	 * 		The categories the implementation appears in
+	 * @param aliases
+	 * 		The aliases the implementation is known by
 	 * @param forbids
 	 * 		The forbids tag contents
 	 */
@@ -75,10 +77,11 @@ public class GrammaticalRestrictionCommentImplementation extends
 		final ArrayList<StacksSeeTag> sees,
 		final StacksDescription description,
 		final ArrayList<StacksCategoryTag> categories,
+		final ArrayList<StacksAliasTag> aliases,
 		final TreeMap<Integer,StacksForbidsTag> forbids)
 	{
 		super(signature, commentStartLine, author, sees, description,
-			categories);
+			categories,aliases);
 		this.forbids = forbids;
 	}
 
@@ -114,7 +117,7 @@ public class GrammaticalRestrictionCommentImplementation extends
 	}
 
 	@Override
-	public String toHTML ()
+	public String toHTML (final HTMLFileMap htmlFileMap)
 	{
 		final StringBuilder stringBuilder = new StringBuilder();
 
@@ -137,7 +140,7 @@ public class GrammaticalRestrictionCommentImplementation extends
 
 		for (final int arity : forbids.navigableKeySet())
 		{
-			stringBuilder.append(forbids.get(arity).toHTML());
+			stringBuilder.append(forbids.get(arity).toHTML(htmlFileMap));
 		}
 
 		stringBuilder.append(tabs(3) + "</tbody>\n")

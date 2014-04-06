@@ -68,6 +68,8 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 	 * 		The overall description of the implementation
 	 * @param categories
 	 * 		The categories the implementation appears in
+	 * @param aliases
+	 * 		The aliases the implementation is known by
 	 * @param supertypes
 	 * 		The {@link ArrayList} of the class's
 	 * 		{@link StacksSuperTypeTag supertypes}
@@ -81,11 +83,12 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 		final ArrayList<StacksSeeTag> sees,
 		final StacksDescription description,
 		final ArrayList<StacksCategoryTag> categories,
+		final ArrayList<StacksAliasTag> aliases,
 		final ArrayList<StacksSuperTypeTag> supertypes,
 		final ArrayList<StacksFieldTag> fields)
 	{
 		super(signature, commentStartLine, author, sees, description,
-			categories);
+			categories, aliases);
 		this.supertypes = supertypes;
 		this.fields = fields;
 	}
@@ -98,15 +101,15 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 	}
 
 	@Override
-	public String toHTML ()
+	public String toHTML (final HTMLFileMap htmlFileMap)
 	{
 		final int fieldCount = fields.size();
 		final StringBuilder stringBuilder = new StringBuilder()
-			.append(signature.toHTML());
+			.append(signature().toHTML());
 
 		if (categories.size() > 0)
 		{
-			stringBuilder.append(categories.get(0).toHTML());
+			stringBuilder.append(categories.get(0).toHTML(htmlFileMap));
 		}
 
 		final int listSize = supertypes.size();
@@ -120,14 +123,14 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 			//Right now there is no link information for supertypes
 			for (int i = 0; i < listSize - 1; i++)
 			{
-				stringBuilder.append(supertypes.get(i).toHTML()).append(", ");
+				stringBuilder.append(supertypes.get(i).toHTML(htmlFileMap)).append(", ");
 			}
-			stringBuilder.append(supertypes.get(listSize - 1).toHTML())
+			stringBuilder.append(supertypes.get(listSize - 1).toHTML(htmlFileMap))
 				.append("\n" + tabs(2) + "</div>\n");
 		}
 
 		stringBuilder.append(tabs(2) + "<div class=\"SignatureDescription\">\n")
-			.append(tabs(3) + description.toHTML())
+			.append(tabs(3) + description.toHTML(htmlFileMap))
 			.append("\n" + tabs(2) + "</div>\n");
 		if (fieldCount > 0)
 		{
@@ -154,7 +157,7 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 
 			for (final StacksFieldTag fieldTag : fields)
 			{
-				stringBuilder.append(fieldTag.toHTML());
+				stringBuilder.append(fieldTag.toHTML(htmlFileMap));
 			}
 			stringBuilder.append(tabs(3) + "</tbody>\n")
 				.append(tabs(2) + "</table>\n");

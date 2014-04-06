@@ -93,13 +93,13 @@ public class StacksForbidsTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML ()
+	public String toHTML (final HTMLFileMap htmlFileMap)
 	{
 		final int rowSize = forbidMethods.size();
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append(tabs(5) + "<td class=\"GCode\" rowspan=\"")
 			.append(rowSize).append("\">Argument ")
-			.append(arityIndex.toHTML())
+			.append(arityIndex.toHTML(htmlFileMap))
 			.append("</td>\n")
 			.append(tabs(5) + "<td class=\"GCode\">")
 			.append(forbidMethods.get(0).lexeme)

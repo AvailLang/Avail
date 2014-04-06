@@ -1,5 +1,5 @@
 /**
- * StacksRaisesTag.java
+ * StacksAliasTag.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,68 +32,44 @@
 
 package com.avail.stacks;
 
+import java.util.List;
+
 /**
- * The "@raises" tag in an Avail comment indicates an exception that is thrown
- * by the method.
+ * TODO: Document StacksAliasTag!
  *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ * @author TODO &lt;TODO@availlang.org&gt;
  */
-public class StacksRaisesTag extends AbstractStacksTag
+public class StacksAliasTag extends AbstractStacksTag
 {
 	/**
-	 * The name of the exception.
+	 * The list of the aliases for which the method/type is known by
 	 */
-	final private QuotedStacksToken exceptionName;
+	final private List<QuotedStacksToken> aliases;
+
 
 	/**
-	 * The description of the exception.
+	 * Construct a new {@link StacksAliasTag}.
+	 * @param aliases
+	 *		The list of the aliases for which the method/type is known by
 	 */
-	final private StacksDescription exceptionDescription;
-
-	/**
-	 * Construct a new {@link StacksRaisesTag}.
-	 *
-	 * @param exceptionName
-	 * 		The name of the exception.
-	 * @param exceptionDescription
-	 */
-	public StacksRaisesTag (
-		final QuotedStacksToken exceptionName,
-		final StacksDescription exceptionDescription)
+	public StacksAliasTag (final List<QuotedStacksToken> aliases)
 	{
-		this.exceptionDescription = exceptionDescription;
-		this.exceptionName = exceptionName;
-	}
-
-	/**
-	 * @return the exceptionDescription
-	 */
-	public StacksDescription exceptionDescription ()
-	{
-		return exceptionDescription;
-	}
-
-	/**
-	 * @return the exceptionName
-	 */
-	public QuotedStacksToken exceptionName ()
-	{
-		return exceptionName;
+		this.aliases = aliases;
 	}
 
 	@Override
 	public String toHTML (final HTMLFileMap htmlFileMap)
 	{
-		final StringBuilder stringBuilder = new StringBuilder()
-			.append(tabs(4) + "<tr class=\"methodParameters\">\n")
-			.append(tabs(5) + "<td class=\"ICode\">")
-			.append(exceptionName.lexeme())
-			.append("</td>\n")
-			.append(tabs(5) + "<td class=\"IDesc\">\n")
-			.append(tabs(6) + exceptionDescription.toHTML(htmlFileMap))
-			.append("\n" + tabs(5) + "</td>\n")
-			.append(tabs(4) + "</tr>\n");
-		return stringBuilder.toString();
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/**
+	 * @return the aliases
+	 */
+	public List<QuotedStacksToken> aliases ()
+	{
+		return aliases;
 	}
 
 }

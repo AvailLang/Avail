@@ -60,7 +60,7 @@ public class GlobalCommentSignature extends CommentSignature
 	@Override
 	public String toString ()
 	{
-		return String.format("%s -> %s", name,
+		return String.format("%s -> %s", name(),
 			globalType);
 	}
 
@@ -72,8 +72,8 @@ public class GlobalCommentSignature extends CommentSignature
 			.append(globalType)
 			.append("</div>\n")
 			.append(tabs(1) + "<div class=\"ModuleLocation\">")
-			.append(module).append(": <strong>")
-			.append(name).append("</strong></div>\n");
+			.append(module()).append(": <strong>")
+			.append(name()).append("</strong></div>\n");
 		return stringBuilder.toString();
 	}
 }

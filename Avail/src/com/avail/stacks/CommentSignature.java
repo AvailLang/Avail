@@ -44,12 +44,28 @@ public class CommentSignature
 	/**
 	 * The name of the class/method the comment describes.
 	 */
-	final String name;
+	final private String name;
+
+	/**
+	 * @return the implementation name.
+	 */
+	public String name()
+	{
+		return name;
+	}
 
 	/**
 	 *  The module this implementation appears in.
 	 */
-	final String module;
+	final private String module;
+
+	/**
+	 * @return the implementation module location.
+	 */
+	public String module()
+	{
+		return module;
+	}
 
 	/**
 	 * Construct a new {@link CommentSignature}.
