@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.stacks;
+package com.avail.stacks.builder.json;
 
 /**
  * A piece of Avail method/class documentation. .e.g.

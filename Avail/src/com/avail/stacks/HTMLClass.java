@@ -179,4 +179,9 @@ public class HTMLClass
 	 * css class td.s-desc
 	 */
 	public static String classSDesc = "s-desc";
+
+	/**
+	 * css class pane-heading-link
+	 */
+	public static String classPaneHeadingLink = "pane-heading-link";
 }

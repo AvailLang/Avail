@@ -1,0 +1,26 @@
+<!doctype html>
+<!--[if lt IE 7]> <html class="ie6 oldie"> <![endif]-->
+<!--[if IE 7]>    <html class="ie7 oldie"> <![endif]-->
+<!--[if IE 8]>    <html class="ie8 oldie"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html>
+<!--<![endif]-->
+
+<head>
+	
+	<!--#include virtual="/_include/head.ssi" -->
+	<link href="/_css/stacks.css" rel="stylesheet" type="text/css">
+	
+	<!--#include virtual="/_include/head.ssi" -->
+
+</head>
+<body>
+<div class="stacks-wrapper">
+<p>
+Welcome to Stacks--the formal documentation of Avail's standard library.
+</p><p>
+Each Avail library method belongs to at least one category. The currently populated categories are listed in the Categories pane on the top left, and the methods in all of the selected categories, if any, are listed in the Methods pane on the bottom left. Categories are defined in the table below.  In the default case, when no categories are selected, no methods are displayed. The visibility of both categories and methods can be filtered by using their respective filter boxes. Filtering categories does <em>not</em> affect whether they are selected.
+</p>
+<p>	
+To view documentation for a method, click its link in the Methods pane. The contents of this pane will be replaced with the method details page, which includes the full method name, a general description of the method (if any), and the details of each grammatical restriction, method implementation, and semantic restriction defined for the method name.
+</p>

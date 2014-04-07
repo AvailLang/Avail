@@ -32,6 +32,7 @@
 
 package com.avail.stacks;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -39,6 +40,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
@@ -212,10 +214,21 @@ public class StacksGenerator
 		final int fileToOutPutCount =
 			outerMost.calculateFinalImplementationGroupsMap(htmlFileMap);
 
+		try
+		{
+			Files.createDirectories(outputPath);
+			Files.createDirectories(providedDocumentPath);
+		}
+		catch (final IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		createJSFiles();
 
 		//Create the main HTML landing page
-		createIndexHTML();
+		createMainHTML();
 
 		if (fileToOutPutCount > 0)
 		{
@@ -249,34 +262,86 @@ public class StacksGenerator
 	 */
 	private void createJSFiles()
 	{
-		final Path categoriesFilePath =
-			outputPath.resolve("stacksApp.js");
+		final Path stacksAppFilePath =
+			providedDocumentPath.resolve("stacksApp.js");
+
+		//Identify the location of the templates.
+		final Path templatePackageName = Paths.get(
+			"src/"
+			+ StacksGenerator.class.getPackage().getName().replace('.', '/')
+			+ "/configuration");
+
+		final Path stacksAppTemplate =
+			templatePackageName.resolve("stacksApp opening.js.template");
 
 		try
 		{
-			Files.createDirectories(outputPath);
+			IO.close(FileChannel.open(stacksAppFilePath,
+				EnumSet.of(StandardOpenOption.CREATE,
+					StandardOpenOption.WRITE,
+					StandardOpenOption.TRUNCATE_EXISTING)));
+
+		}
+		catch (final IOException e1)
+		{
+
+			e1.printStackTrace();
+		}
+
+		try
+		{
+			Files.copy(
+				stacksAppTemplate,
+				stacksAppFilePath,
+				StandardCopyOption.REPLACE_EXISTING);
 		}
 		catch (final IOException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
+		final Path stacksAppClosingTemplate =
+			templatePackageName.resolve("stacksApp closing.js.template");
+
+		final String categoryJson = htmlFileMap.categoryMethodsToJson();
+
+		FileChannel stacksApp;
+
 		try
 		{
-			final FileChannel categoriesJson =
-				FileChannel.open(categoriesFilePath,
-				EnumSet.of(StandardOpenOption.CREATE,
-					StandardOpenOption.WRITE,
-					StandardOpenOption.TRUNCATE_EXISTING));
+			stacksApp =
+				FileChannel.open(stacksAppFilePath,
+				EnumSet.of(StandardOpenOption.WRITE,
+					StandardOpenOption.APPEND));
 			final ByteBuffer buffer = ByteBuffer.wrap(
-				(htmlFileMap.toStacksAppJS().getBytes(StandardCharsets.UTF_8)));
-			categoriesJson.write(buffer);
-			IO.close(categoriesJson);
+				(categoryJson.getBytes(StandardCharsets.UTF_8)));
+
+			stacksApp.write(buffer);
+
+
+			final FileInputStream stacksClosingFile =
+				new FileInputStream(stacksAppClosingTemplate.toString());
+			final FileChannel channel =
+				stacksClosingFile.getChannel();
+
+			final ByteBuffer buf =
+				ByteBuffer.allocate((int) channel.size());
+
+			try
+			{
+				channel.read(buf);
+				stacksApp.write(ByteBuffer.wrap(buf.array()));
+			}
+			catch (final IOException e)
+			{
+				e.printStackTrace();
+			}
+			IO.close(channel);
+			IO.close(stacksClosingFile);
+			IO.close(stacksApp);
 		}
 		catch (final IOException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -284,76 +349,98 @@ public class StacksGenerator
 	/**
 	 * Create the main HTML landing page for Stacks.
 	 */
-	private void createIndexHTML()
+	private void createMainHTML()
 	{
-		final StringBuilder stringBuilder = new StringBuilder();
+		//Identify the location of the templates.
+		final Path templatePackageName = Paths.get(
+			"src/"
+			+ StacksGenerator.class.getPackage().getName().replace('.', '/')
+			+ "/configuration");
 
-		stringBuilder
-			.append("<!doctype html>\n")
-		.append("<!--[if lt IE 7]> <html class=\"ie6 oldie\"> <![endif]-->\n")
-		.append("<!--[if IE 7]>    <html class=\"ie7 oldie\"> <![endif]-->\n")
-		.append("<!--[if IE 8]>    <html class=\"ie8 oldie\"> <![endif]-->\n")
-		.append("<!--[if gt IE 8]><!-->\n")
-		.append("<html>\n")
-		.append("<!--<![endif]-->\n")
-		.append("\t<head>\n")
-		.append("\t\t<!--#include virtual=\"/_include/head.ssi\" -->\n")
-		.append("\t\t<meta charset=\"utf-8\">\n")
-		.append("\t\t<title>Library Documentation</title>\n")
-		.append("\t\t<link href=\"/_css/stacks.css\" "
-		 	+ "rel=\"stylesheet\" type=\"text/css\">\n")
-		.append("\t\t<script type=\"text/javascript\" "
-			+ "src=\"/_javascript/angular.min.js\"></script>\n")
-		.append("\t\t<script type=\"text/javascript\" "
-			+ "src=\"stacksApp.js\"></script>\n")
-		.append("\t</head>\n")
-		.append("\t<body class=\"gradient-logo\">\n")
-		.append("\t\t<!--#include virtual=\"/_include/body-top.ssi\" -->\n")
-		.append("\t\t<h2 class=\"content-title\">"
-			+"The Avail Standard Library</h2>\n")
-		.append("\t\t<div ng-app=\"stacksApp\">\n")
-		.append("\t\t\t<div ng-controller=\"CategoriesCntrl\">\n")
-		.append("\t\t\t\t<input type=\"text\" ng-model=\"search.category\">\n")
-		.append("\t\t\t\t<ol>\n")
-		.append("\t\t\t\t\t<li ng-repeat=\"stacksCategory in categories.content"
-			+ " | orderBy: 'category' | filter : search \">\n")
-		.append("\t\t\t\t\t\t<a ng-click=\"collapsed=!collapsed\">"
-			+ "{{stacksCategory.category}}</a>\n")
-		.append("\t\t\t\t\t\t<div ng-show=\"collapsed\">\n")
-		.append("\t\t\t\t\t\t\t<ul>\n")
-		.append("\t\t\t\t\t\t\t\t<li ng-repeat=\"method in "
-			+ "stacksCategory.methods | orderBy: 'methodName' \">\n")
-		.append("\t\t\t\t\t\t\t\t\t<a href=\"{{'library-documentation' "
-			+ "+ method.link}}\">{{method.methodName}}</a>\n")
-		.append("\t\t\t\t\t\t\t\t</li>\n")
-		.append("\t\t\t\t\t\t\t</ul>\n")
-		.append("\t\t\t\t\t\t</div>\n")
-		.append("\t\t\t\t\t</li>\n")
-		.append("\t\t\t\t</ol>\n")
-		.append("\t\t\t</div>\n")
-		.append("\t\t</div>\n")
-		.append("\t\t<!--#include virtual=\"/_include/body-bottom.ssi\" -->\n")
-		.append("\t</body>\n")
-		.append("</html>");
+		final Path stacksTemplate =
+			templatePackageName.resolve("stacks.html.template");
 
-		final Path indexFilePath =
-			outputPath.resolve("index.html");
+		final Path stacksHTML =
+			providedDocumentPath.resolve("stacks.html");
 
 		try
 		{
-			final FileChannel indexHTML =
-				FileChannel.open(indexFilePath,
+			IO.close(FileChannel.open(stacksHTML,
 				EnumSet.of(StandardOpenOption.CREATE,
 					StandardOpenOption.WRITE,
-					StandardOpenOption.TRUNCATE_EXISTING));
-			final ByteBuffer buffer = ByteBuffer.wrap(
-				(stringBuilder.toString().getBytes(StandardCharsets.UTF_8)));
-			indexHTML.write(buffer);
-			IO.close(indexHTML);
+					StandardOpenOption.TRUNCATE_EXISTING)));
+
+		}
+		catch (final IOException e1)
+		{
+
+			e1.printStackTrace();
+		}
+
+		//Copy stacks.html.template to target destination
+		try
+		{
+			Files.copy(
+				stacksTemplate,
+				stacksHTML,
+				StandardCopyOption.REPLACE_EXISTING);
 		}
 		catch (final IOException e)
 		{
 			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		//Copy landing-detail.html template to target destination
+		final Path landingPath =
+			providedDocumentPath.resolve("landing-detail.html");
+
+		final Path landingTemplatePath =
+			templatePackageName.resolve("landing-detail opening.html.template");
+
+		try
+		{
+			IO.close(FileChannel.open(landingPath,
+				EnumSet.of(StandardOpenOption.CREATE,
+					StandardOpenOption.WRITE,
+					StandardOpenOption.TRUNCATE_EXISTING)));
+
+		}
+		catch (final IOException e1)
+		{
+
+			e1.printStackTrace();
+		}
+
+		try
+		{
+			Files.copy(
+				landingTemplatePath,
+				landingPath,
+				StandardCopyOption.REPLACE_EXISTING);
+		}
+		catch (final IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		FileChannel landingPage;
+		try
+		{
+			landingPage = FileChannel.open(landingPath,
+				EnumSet.of(StandardOpenOption.CREATE,
+					StandardOpenOption.WRITE,
+					StandardOpenOption.APPEND));
+
+			final ByteBuffer buffer = ByteBuffer.wrap(
+				(htmlFileMap.categoryDescriptionTable()+ "\n</body>\n</html>")
+					.getBytes(StandardCharsets.UTF_8));
+
+			landingPage.write(buffer);
+			IO.close(landingPage);
+		}
+		catch (final IOException e)
+		{
 			e.printStackTrace();
 		}
 	}

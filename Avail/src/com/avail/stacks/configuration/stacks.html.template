@@ -1,0 +1,86 @@
+<!doctype html>
+<!--[if lt IE 7]> <html class="ie6 oldie"> <![endif]-->
+<!--[if IE 7]>    <html class="ie7 oldie"> <![endif]-->
+<!--[if IE 8]>    <html class="ie8 oldie"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html>
+<!--<![endif]-->
+	<head>
+		<link href="/_css/stacks.css" rel="stylesheet" type="text/css">
+		
+		<!--#include virtual="/_include/head.ssi" -->
+		
+		<style>
+			#SidePane
+			{
+				height:100%;
+				width:20%;
+				
+				float: left;
+			}
+			
+			#CategoriesPane
+			{
+				height:50%;
+				width:100%;
+			}
+			
+			#MethodsPane
+			{
+				height:50%;
+				width:100%;
+			}
+			
+			#MainPane
+			{
+				height:100%;
+				width: 80%;
+				
+				float: right;
+				overflow: hidden;
+			}
+		</style>
+	
+		<title>Stacks - The Avail API</title>
+		<script type="text/javascript" src="/_javascript/angular.min.js"></script>
+		<script type="text/javascript" src="stacksApp.js"></script>
+	</head>
+
+	<body ng-app="stacksApp" ng-controller="CategoriesCntrl">
+		<!-- The left-aligned pane -->
+		<div id="SidePane">
+			<!-- The categories pane -->
+			<div id="CategoriesPane">
+				<h2 class="pane-heading">Categories</h2>
+				<div class="pane-filter">Filter: <input type="text" ng-model="search.category"><br></div>
+				<div class="pane-contents">
+					<div ng-repeat="stacksCategory in categories.content | orderBy: ['-selected','category'] | filter : search ">
+						<div>
+							<input type="checkbox" name="favoriteColors" ng-model="stacksCategory.selected">
+							{{" " +stacksCategory.category + " "}}
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- The methods pane -->
+			<div id="MethodsPane">
+			    <h2 class="pane-heading">Methods</h2>
+			    <div class="pane-filter">Filter: <input type="text" ng-model="find.name"><br></div>
+				<div class="pane-contents">
+					<div ng-repeat="method in methodList().content | orderBy: 'name' | filter : find">
+						<a style= "cursor: pointer" ng-click="changeLinkValue('library-documentation' + method.link)">{{method.name}}</a><br>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- The right-aligned content pane -->
+		<div id="MainPane">
+			<h2 class="pane-heading-right">
+				<a class="pane-heading-link" ng-click="changeLinkValue('landing-detail.html')">Main</a>
+				&nbsp;
+				<a class="pane-heading-link" href="/index.html">Avail Home</a>
+			</h2>
+			<iframe class="main-frame" src="{{linkValue}}"></iframe>
+		</div>
+	</body>
+</html>

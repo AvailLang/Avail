@@ -148,7 +148,7 @@ public class HTMLFileMap
 	 * links.
 	 * @return
 	 */
-	private String categoryMethodsToJson()
+	public String categoryMethodsToJson()
 	{
 		final StringBuilder stringBuilder = new StringBuilder().append("[\n");
 
@@ -227,79 +227,61 @@ public class HTMLFileMap
 	}
 
 	/**
-	 * Create the Angular JS file content that provides the category linking
-	 * capability to the file index.html
+	 * Create category description html table
 	 * @return
-	 * 		The string content of the Angular JS file.
+	 * 		html table text
 	 */
-	public String toStacksAppJS()
+	public String categoryDescriptionTable()
 	{
-		final StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder
-			.append("var stacksApp = angular.module('stacksApp',[]);\n");
-		stringBuilder
-			.append("stacksApp.factory('Categories', function () {\n"
-			+ tabs(1) + "var Categories = {};\n"
-			+ tabs(1) + "Categories.content = ");
-		stringBuilder.append(categoryMethodsToJson());
-		stringBuilder.append(";\n"
-			+ tabs(1) + "return Categories;\n"
-			+ "})\n\n");
+		final StringBuilder stringBuilder = new StringBuilder()
+		.append(tabs(1) + "<h4 "
+			+ HTMLBuilder
+				.tagClass(HTMLClass.classMethodSectionHeader)
+			+ ">Stacks Categories</h4>\n")
+		.append(tabs(1) + "<div "
+			+ HTMLBuilder.tagClass(HTMLClass.classMethodSectionContent)
+			+ ">\n")
+	    .append(tabs(2) + "<table "
+	    	+ HTMLBuilder.tagClass(HTMLClass.classStacks)
+	    	+ ">\n")
+	    .append(tabs(3) + "<thead>\n")
+	    .append(tabs(4) + "<tr>\n")
+	    .append(tabs(5) + "<th style=\"white-space:nowrap\" "
+	    	+ HTMLBuilder.tagClass(
+	    		HTMLClass.classStacks, HTMLClass.classGColLabelNarrow)
+	    	+ " scope=\"col\">Category</th>\n")
+	    .append(tabs(5) + "<th "
+	    	+ HTMLBuilder.tagClass(
+	    		HTMLClass.classStacks, HTMLClass.classGColLabelWide)
+	    	+ " scope=\"col\">Description</th>\n")
+	    .append(tabs(4) + "</tr>\n")
+	    .append(tabs(3) + "</thead>\n")
+	    .append(tabs(3) + "<tbody>\n")
+	    .append(tabs(4) + "<tr>\n");
 
-		stringBuilder.append("function CategoriesCntrl($scope,Categories) {\n"
-			+ tabs(1) + "$scope.categories = Categories;\n")
-			.append(tabs(1) + "$scope.methodList = function()\n")
-			.append(tabs(1) + "{\n")
-			.append(tabs(2) + "var allCategories = $scope.categories;\n")
-			.append(tabs(2) + "var filteredMethods = {};\n")
-			.append(tabs(2) + "var finalList = {content : []};\n")
-			.append(tabs(2) + "var selectedCount = 0;\n")
-			.append(tabs(2) + "for (var i=0; i < allCategories.content.length;"
-				+ "i++)\n")
-			.append(tabs(2) + "{\n")
-			.append(tabs(3) + "if (allCategories.content[i].selected)\n")
-			.append(tabs(3) + "{\n")
-			.append(tabs(4) + "selectedCount++;\n")
-			.append(tabs(4) + "for  (var j = 0; j "
-				+ "< allCategories.content[i].methods.length; j++)\n")
-			.append(tabs(4) + "{\n")
-			.append(tabs(5) + "var method = allCategories.content[i]"
-				+ ".methods[j].methodName;\n")
-			.append(tabs(5) + "try\n")
-			.append(tabs(5) + "{\n")
-			.append(tabs(6) + "var newCount = "
-				+ "filteredMethods[method].count + 1;\n")
-			.append(tabs(6) + "filteredMethods[method].count = newCount;\n")
-			.append(tabs(5) + "}\n")
-			.append(tabs(5) + "catch(err)\n")
-			.append(tabs(5) + "{\n")
-			.append(tabs(6) + "filteredMethods[method] =\n")
-			.append(tabs(7) + "{\"name\" : method.toLowerCase(),\n")
-			.append(tabs(7) + "\"link\" : allCategories.content[i]"
-				+ ".methods[j].link,\n")
-			.append(tabs(7) + "\"count\" : 1};\n")
-			.append(tabs(5) + "}\n")
-			.append(tabs(4) + "}\n")
-			.append(tabs(3) + "}\n")
-			.append(tabs(2) + "}\n")
-			.append(tabs(2) + "for (var key in filteredMethods)\n")
-			.append(tabs(2) + "{\n")
-			.append(tabs(3) + "if (filteredMethods[key].count == "
-				+ "selectedCount)\n")
-			.append(tabs(3) + "{\n")
-			.append(tabs(4) + "finalList.content.push({\"name\" : key, \"link\" : filteredMethods[key].link})\n")
-			.append(tabs(3) + "}\n")
-			.append(tabs(2) + "}\n")
-			.append(tabs(2) + "return finalList;\n")
-			.append(tabs(1) + "}\n")
-			.append(tabs(1) + "$scope.linkValue = \"landing-detail.html\";\n")
-			.append(tabs(1) + "$scope.changeLinkValue = function(method)\n")
-			.append(tabs(1) + "{\n")
-			.append(tabs(2) + "$scope.linkValue = \"library-documentation\" "
-				+ "+ method.link;\n")
-			.append(tabs(1) + "}\n")
-			.append("}");
+		for (final String category : categoryToDescription.keySet())
+		{
+			stringBuilder
+				.append(tabs(5) + "<td "
+					+ HTMLBuilder
+						.tagClass(HTMLClass.classStacks, HTMLClass.classGCode)
+					+ ">")
+				.append(category)
+				.append("</td>\n")
+				.append(tabs(5) + "<td "
+					+ HTMLBuilder
+						.tagClass(HTMLClass.classStacks, HTMLClass.classIDesc)
+					+ ">")
+				.append(categoryToDescription.get(category).toHTML(this))
+				.append("</td>\n")
+				.append(tabs(4) + "</tr>\n");
+		}
+
+		stringBuilder.append(tabs(3) + "</tbody>\n")
+			.append(tabs(2) + "</table>\n")
+			.append(tabs(1) + "</div>\n");
 		return stringBuilder.toString();
+
 	}
 
 	/**

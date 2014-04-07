@@ -1,5 +1,5 @@
 /**
- * SingularDocumentComponent.java
+ * ComplexDocumentComponent.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,53 +30,84 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.stacks;
-
+package com.avail.stacks.builder.json;
 
 
 /**
- * A singular piece of Avail method/class documentation. .e.g.
- * '@method "take from_until_"'
+ * A group of different pieces of Avail method/class documentation
+ * that constitutes a JSON object. .e.g.<br>
  *
- * @author Richard A Arriaga &lt;rich@availlang.org&gt;
+ * '@param "aTuple" "tuple" A tuple' => <br>
+ * {"parameter" : "aTuple", "type" : "tuple", "description" : "A tuple"}
+ *
+ * @author Richard . Arriaga &lt;rich@availlang.org&gt;
  */
-public final class SingularDocumentComponent extends DocumentComponent
+public class ComplexDocumentComponent extends DocumentComponent
 {
 
 	/**
-	 * Construct a new {@link SingularDocumentComponent}.
+	 * Construct a new {@link ComplexDocumentComponent}.
 	 *
 	 * @param component The name of the documentation component.
 	 * @param contents The contents of this particular component.
 	 */
-	public SingularDocumentComponent (
-		final String component, final String contents)
+	public ComplexDocumentComponent (
+		final String component, final DocumentComponent [] contents)
 	{
 		super(component);
 		this.contents = contents;
 	}
 
 	/**
-	 * The contents of the component.  e.g "<any…|1..>"
+	 * An array of {@link DocumentComponent}, making up what is an object
+	 * in a JSON file.
 	 */
-	final String contents;
-
+	final DocumentComponent [] contents;
 
 	@Override
 	String createMinimizedJsonLine (final boolean endInComma)
 	{
+		final StringBuilder sb = new StringBuilder(
+			String.format("\"%s\":{", component));
+		final int contentsSize = contents.length;
+		for (int i = 0; i < contentsSize - 1 ; i++)
+		{
+			sb.append(
+				contents[i].createMinimizedJsonLine(true));
+		}
+
+		sb.append(contents[contentsSize - 1].createMinimizedJsonLine(false));
+
 		if (endInComma)
-			{return String.format("\"%s\":\"%s\",", component,contents);}
-		return String.format("\"%s\":\"%s\"", component,contents);
+			{ return sb.append("},").toString(); }
+
+		return sb.append('}').toString();
 	}
 
 	@Override
 	String createformatedJsonLine (final boolean endInComma, final int tabLevel)
 	{
+		final String tabs = generateTabs(tabLevel);
+		final StringBuilder sb = new StringBuilder(
+			String.format("%s\"%s\" : {\n",tabs,component));
+		final int contentsSize = contents.length;
+		for (int i = 0; i < contentsSize - 1 ; i++)
+		{
+			sb.append(
+				contents[i].createformatedJsonLine(
+					true,
+					tabLevel + 1));
+		}
+
+		sb.append(contents[contentsSize - 1]
+			.createformatedJsonLine(
+				true,
+				tabLevel + 1));
+
 		if (endInComma)
-			{return String.format("%s\"%s\" : \"%s\",\n",
-				generateTabs(tabLevel),component,contents);}
-		return String.format("%s\"%s\" : \"%s\"\n",
-			generateTabs(tabLevel),component,contents);
+			{ return sb.append(String.format("\n%s},",tabs)).toString(); }
+
+		return sb.append(String.format("\n%s}",tabs)).toString();
 	}
+
 }

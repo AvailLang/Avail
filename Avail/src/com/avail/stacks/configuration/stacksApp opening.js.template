@@ -1,0 +1,53 @@
+var stacksApp = angular.module('stacksApp',[]);
+
+function CategoriesCntrl($scope,Categories) {
+	$scope.categories = Categories;
+	$scope.methodList = function()
+	{
+		var allCategories = $scope.categories;
+		var filteredMethods = {};
+		var finalList = {content : []};
+		var selectedCount = 0;
+		for (var i=0; i < allCategories.content.length;i++)
+		{
+			if (allCategories.content[i].selected)
+			{
+				selectedCount++;
+				for  (var j = 0; j < allCategories.content[i].methods.length; j++)
+				{
+					var method = allCategories.content[i].methods[j].methodName;
+					try
+					{
+						var newCount = filteredMethods[method].count + 1;
+						filteredMethods[method].count = newCount;
+					}
+					catch(err)
+					{
+						filteredMethods[method] =
+							{"name" : method.toLowerCase(),
+							"link" : allCategories.content[i].methods[j].link,
+							"count" : 1};
+					}
+				}
+			}
+		}
+		for (var key in filteredMethods)
+		{
+			if (filteredMethods[key].count == selectedCount)
+			{
+				finalList.content.push({"name" : key, "link" : filteredMethods[key].link})
+			}
+		}
+		return finalList;
+	}
+	$scope.mainPage
+	$scope.linkValue = "landing-detail.html";
+	$scope.changeLinkValue = function(link)
+	{
+		$scope.linkValue = link;
+	}
+}
+
+stacksApp.factory('Categories', function () {
+	var Categories = {};
+	Categories.content = 
