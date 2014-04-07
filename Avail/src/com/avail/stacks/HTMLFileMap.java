@@ -179,7 +179,8 @@ public class HTMLFileMap
 						final Pair<String,String> pair = methodList.get(i);
 						stringBuilder.append(tabs(3) + "{\"methodName\" : \"")
 							.append(pair.first()).append("\", \"link\" : \"")
-							.append(pair.second()).append("\"},\n");
+							.append(pair.second().substring(1))
+							.append("\"},\n");
 					}
 
 					final Pair<String,String> lastPair =
@@ -187,7 +188,7 @@ public class HTMLFileMap
 
 					stringBuilder.append(tabs(3) + "{\"methodName\" : \"")
 						.append(lastPair.first()).append("\", \"link\" : \"")
-						.append(lastPair.second())
+						.append(lastPair.second().substring(1))
 						.append("\"}\n" + tabs(2)+ "]\n" + tabs(1)+ "},\n");
 				}
 			}
@@ -210,7 +211,7 @@ public class HTMLFileMap
 					final Pair<String,String> pair = methodList.get(i);
 					stringBuilder.append(tabs(3) + "{\"methodName\" : \"")
 						.append(pair.first()).append("\", \"link\" : \"")
-						.append(pair.second()).append("\"},\n");
+						.append(pair.second().substring(1)).append("\"},\n");
 				}
 
 				final Pair<String,String> lastPair =
@@ -218,7 +219,7 @@ public class HTMLFileMap
 
 				stringBuilder.append(tabs(3) + "{\"methodName\" : \"")
 					.append(lastPair.first()).append("\", \"link\" : \"")
-					.append(lastPair.second())
+					.append(lastPair.second().substring(1))
 					.append("\"}\n" + tabs(2) + "]\n" + tabs(1) + "}\n]");
 			}
 		}
