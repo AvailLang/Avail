@@ -539,7 +539,8 @@ public class StacksCommentsModule
 			+ tabs(2) + "<!--#include virtual=\"/_include/head.ssi\" -->\n"
 			+ tabs(2) + "<title>Avail - Library</title>\n"
 			+ tabs(1) + "</head>\n"
-			+ tabs(1) + "<body>\n";
+			+ tabs(1) + "<body>\n"
+			+ tabs(2) + "<div class=\"stacks-wrapper\">";
 			//"<div>\n";
 	}
 
@@ -550,7 +551,9 @@ public class StacksCommentsModule
 	 */
 	private String htmlCloseContent()
 	{
-		return tabs(1) + "</body>\n"
+		return tabs(2)
+			+ "</div>\n"
+			+ tabs(1) + "</body>\n"
 			+"</html>";
 			//"</div>";
 	}

@@ -101,7 +101,9 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 			stringBuilder.append(categories.get(0).toHTML(htmlFileMap));
 		}
 
-		stringBuilder.append(tabs(1) + "<div class=\"SignatureDescription\">")
+		stringBuilder.append(tabs(1) + "<div "
+				+ HTMLBuilder.tagClass(HTMLClass.classSignatureDescription)
+				+ ">")
 			.append(description.toHTML(htmlFileMap)).append("</div>\n");
 
 		return stringBuilder.toString();

@@ -35,9 +35,9 @@ package com.avail.stacks;
 import java.util.List;
 
 /**
- * TODO: Document StacksAliasTag!
+ * An @alias tag for listing Stacks aliases
  *
- * @author TODO &lt;TODO@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 public class StacksAliasTag extends AbstractStacksTag
 {
@@ -60,8 +60,25 @@ public class StacksAliasTag extends AbstractStacksTag
 	@Override
 	public String toHTML (final HTMLFileMap htmlFileMap)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		final StringBuilder stringBuilder = new StringBuilder();
+		final int listSize = aliases.size();
+
+		if (listSize > 0)
+		{
+			stringBuilder
+				.append(tabs(2))
+				.append("<div "
+				+ HTMLBuilder.tagClass(HTMLClass.classCategoryList)
+				+ "><em>Aliases:</em> ");
+			for (int i = 0; i < listSize - 1; i++)
+			{
+				stringBuilder.append(aliases.get(i).lexeme()).append(", ");
+			}
+			stringBuilder.append(aliases.get(listSize - 1).lexeme());
+			stringBuilder.append("</div>\n");
+		}
+
+		return stringBuilder.toString();
 	}
 
 	/**

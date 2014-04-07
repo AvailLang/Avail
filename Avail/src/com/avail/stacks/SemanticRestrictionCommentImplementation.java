@@ -108,20 +108,29 @@ public class SemanticRestrictionCommentImplementation extends
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append(signature().toHTML());
 
-		stringBuilder.append(tabs(2) + "<div class=\"SignatureDescription\">\n")
+		stringBuilder.append(tabs(2) + "<div "
+				+ HTMLBuilder.tagClass(HTMLClass.classSignatureDescription)
+				+ ">\n")
 			.append(tabs(3) + description.toHTML(htmlFileMap))
 			.append("\n" + tabs(2) + "</div>\n")
-			.append(tabs(2) + "<table>\n")
+			.append(tabs(2) + "<table "
+            	+ HTMLBuilder.tagClass(HTMLClass.classStacks)
+            	+ ">\n")
 			.append(tabs(3) + "<thead>\n")
 			.append(tabs(4) + "<tr>\n")
-			.append(tabs(5) + "<th class=\"Transparent\" scope=\"col\">"
-				+ "</th>\n");
+			.append(tabs(5) + "<th "
+				+ HTMLBuilder.tagClass(HTMLClass.classTransparent)
+				+ "scope=\"col\"></th>\n");
 
 		stringBuilder
-			.append(tabs(5) + "<th class=\"IColLabelNarrow\" scope=\"col\">"
-				+ "Type</th>\n")
-			.append(tabs(5) + "<th class=\"IColLabelWide\" scope=\"col\">"
-				+ "Description</th>\n")
+			.append(tabs(5) + "<th "
+				+ HTMLBuilder.tagClass(
+					HTMLClass.classStacks, HTMLClass.classIColLabelNarrow)
+				+ "scope=\"col\">Type</th>\n")
+			.append(tabs(5) + "<th "
+				+ HTMLBuilder.tagClass(
+					HTMLClass.classStacks, HTMLClass.classIColLabelWide)
+				+ "scope=\"col\">Description</th>\n")
 			.append(tabs(4) + "</tr>\n")
 			.append(tabs(3) + "</thead>\n")
 			.append(tabs(3) + "<tbody>\n");
@@ -130,7 +139,10 @@ public class SemanticRestrictionCommentImplementation extends
 		{
 			stringBuilder
 				.append(tabs(4) + "<tr>\n")
-				.append(tabs(5) + "<th class=\"IRowLabel\" rowspan=\"")
+				.append(tabs(5) + "<th "
+				+ HTMLBuilder.tagClass(
+					HTMLClass.classStacks, HTMLClass.classIRowLabel)
+				+ "rowspan=\"")
 			.append(paramCount + 1).append("\">Parameter Types</th>\n")
 			.append(tabs(4) + "</tr>\n");
 		}
@@ -143,7 +155,10 @@ public class SemanticRestrictionCommentImplementation extends
 		if (!returnsContent.isEmpty())
 		{
 			stringBuilder.append(tabs(4) + "<tr>\n")
-			.append(tabs(5) + "<th class=\"IRowLabel\" colspan=\"")
+			.append(tabs(5) + "<th "
+				+ HTMLBuilder.tagClass(
+					HTMLClass.classStacks, HTMLClass.classIRowLabel)
+				+ "colspan=\"")
 				.append(colSpan).append("\">Returns</th>\n")
 				.append(returnsContent.get(0).toHTML(htmlFileMap));
 		}

@@ -77,11 +77,14 @@ public class StacksCategoryTag extends AbstractStacksTag
 		{
 			stringBuilder
 				.append(tabs(2))
-				.append("<div class=\"CategoryList\"><em>Categories:</em> ");
+				.append("<div "
+				+ HTMLBuilder.tagClass(HTMLClass.classCategoryList)
+				+ "><em>Categories:</em> ");
 			for (int i = 0; i < listSize - 1; i++)
 			{
 				stringBuilder.append(categories.get(i).lexeme()).append(", ");
 			}
+			stringBuilder.append(categories.get(listSize - 1).lexeme());
 			stringBuilder.append("</div>\n");
 		}
 

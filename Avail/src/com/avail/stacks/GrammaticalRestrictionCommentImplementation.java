@@ -122,17 +122,27 @@ public class GrammaticalRestrictionCommentImplementation extends
 		final StringBuilder stringBuilder = new StringBuilder();
 
 		stringBuilder
-			.append(tabs(1) + "<h4 class=\"MethodSectionHeader\">Grammatical "
+			.append(tabs(1) + "<h4 "
+					+ HTMLBuilder
+						.tagClass(HTMLClass.classMethodSectionHeader)
+					+ ">Grammatical "
 			+ "restrictions:</h4>\n")
-			.append(tabs(1) + "<div class=\"MethodSectionContent\">\n")
-            .append(tabs(2) + "<table>\n")
+			.append(tabs(1) + "<div "
+				+ HTMLBuilder.tagClass(HTMLClass.classMethodSectionContent)
+				+ ">\n")
+            .append(tabs(2) + "<table "
+            	+ HTMLBuilder.tagClass(HTMLClass.classStacks)
+            	+ ">\n")
             .append(tabs(3) + "<thead>\n")
             .append(tabs(4) + "<tr>\n")
             .append(tabs(5) + "<th style=\"white-space:nowrap\" "
-            	+ "class=\"GColLabelNarrow\" scope=\"col\">Argument "
-            	+ "Position</th>\n")
-            .append(tabs(5) + "<th class=\"GColLabelWide\" "
-            	+ "scope=\"col\">Prohibited Expression</th>\n")
+            	+ HTMLBuilder.tagClass(
+            		HTMLClass.classStacks, HTMLClass.classGColLabelNarrow)
+            	+ " scope=\"col\">Argument Position</th>\n")
+            .append(tabs(5) + "<th "
+            	+ HTMLBuilder.tagClass(
+            		HTMLClass.classStacks, HTMLClass.classGColLabelWide)
+            	+ " scope=\"col\">Prohibited Expression</th>\n")
             .append(tabs(4) + "</tr>\n")
             .append(tabs(3) + "</thead>\n")
             .append(tabs(3) + "<tbody>\n")

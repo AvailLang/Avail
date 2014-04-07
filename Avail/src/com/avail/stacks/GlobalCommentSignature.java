@@ -68,10 +68,14 @@ public class GlobalCommentSignature extends CommentSignature
 	public String toHTML ()
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
-			.append("<div class=\"SignatureHeading\">")
+			.append("<div "
+				+ HTMLBuilder.tagClass(HTMLClass.classSignatureHeading)
+				+ ">")
 			.append(globalType)
 			.append("</div>\n")
-			.append(tabs(1) + "<div class=\"ModuleLocation\">")
+			.append(tabs(1) + "<div "
+				+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
+				+ ">")
 			.append(module()).append(": <strong>")
 			.append(name()).append("</strong></div>\n");
 		return stringBuilder.toString();

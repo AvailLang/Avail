@@ -116,43 +116,64 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 		if (listSize > 0)
 		{
 			stringBuilder
-				.append(tabs(1) + "<div class=\"MethodSectionContent\">\n")
-				.append(tabs(2) + "<div class=\"SignatureHeading\">\n")
+				.append(tabs(1) + "<div "
+					+ HTMLBuilder
+						.tagClass(HTMLClass.classMethodSectionContent)
+					+ ">\n")
+				.append(tabs(2) + "<div "
+					+ HTMLBuilder.tagClass(HTMLClass.classSignatureHeading)
+					+ ">\n")
 				.append(tabs(3) + "Supertypes: ");
 
 			//Right now there is no link information for supertypes
 			for (int i = 0; i < listSize - 1; i++)
 			{
-				stringBuilder.append(supertypes.get(i).toHTML(htmlFileMap)).append(", ");
+				stringBuilder
+					.append(supertypes.get(i).toHTML(htmlFileMap))
+					.append(", ");
 			}
-			stringBuilder.append(supertypes.get(listSize - 1).toHTML(htmlFileMap))
+			stringBuilder
+				.append(supertypes.get(listSize - 1).toHTML(htmlFileMap))
 				.append("\n" + tabs(2) + "</div>\n");
 		}
 
-		stringBuilder.append(tabs(2) + "<div class=\"SignatureDescription\">\n")
+		stringBuilder.append(tabs(2) + "<div "
+				+ HTMLBuilder.tagClass(HTMLClass.classSignatureDescription)
+				+">\n")
 			.append(tabs(3) + description.toHTML(htmlFileMap))
 			.append("\n" + tabs(2) + "</div>\n");
 		if (fieldCount > 0)
 		{
-			stringBuilder.append(tabs(5) + "<th class=\"IColLabelNarrow\" "
-				+ "scope=\"col\">Name</th>\n");
 
 			stringBuilder
-				.append(tabs(2) + "<table>\n")
+				.append(tabs(2) + "<table "
+            	+ HTMLBuilder.tagClass(HTMLClass.classStacks)
+            	+ ">\n")
 				.append(tabs(3) + "<thead>\n")
 				.append(tabs(4) + "<tr>\n")
 				.append(tabs(5) + "<th class=\"Transparent\" "
 					+ "scope=\"col\"></th>\n")
-				.append(tabs(5) + "<th class=\"IColLabelNarrow\" "
-					+ "scope=\"col\">Type</th>\n"
-					+ tabs(5) + "<th class=\"IColLabelWide\" scope=\"col\">"
-					+ "Description</th>\n"
+				.append(tabs(5) + "<th "
+					+ HTMLBuilder.tagClass(HTMLClass.classStacks,
+						HTMLClass.classIColLabelNarrow)
+					+ " scope=\"col\">Name</th>\n")
+				.append(tabs(5) + "<th "
+					+ HTMLBuilder.tagClass(HTMLClass.classStacks,
+						HTMLClass.classIColLabelNarrow)
+					+ " scope=\"col\">Type</th>\n"
+					+ tabs(5) + "<th "
+					+ HTMLBuilder.tagClass(HTMLClass.classStacks,
+						HTMLClass.classIColLabelWide)
+					+ " scope=\"col\">Description</th>\n"
 					+ tabs(4) + "</tr>\n"
 					+ tabs(3) + "</thead>\n"
 					+ tabs(3) + "<tbody>\n"
 					+ tabs(4) + "<tr>\n"
-					+ tabs(5) + "<th class=\"IRowLabel\" rowspan=\"")
-				.append(fieldCount).append("\">Fields</th>\n"
+					+ tabs(5) + "<th "
+					+ HTMLBuilder.tagClass(HTMLClass.classStacks,
+						HTMLClass.classIRowLabel)
+					+ " rowspan=\"")
+				.append(fieldCount + 1).append("\">Fields</th>\n"
 					+ tabs(4) + "</tr>\n");
 
 			for (final StacksFieldTag fieldTag : fields)

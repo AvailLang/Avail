@@ -84,13 +84,15 @@ public class CommentSignature
 	}
 
 	/**
-	 * Create the HTML representation of the signarture.
+	 * Create the HTML representation of the signature.
 	 * @return
 	 */
 	public String toHTML ()
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
-			.append(tabs(2) + "<div class=\"ModuleLocation\">")
+			.append(tabs(2) + "<div "
+				+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
+				+">")
 			.append(module).append(": <strong>")
 			.append(name).append("</strong></div>\n");
 		return stringBuilder.toString();

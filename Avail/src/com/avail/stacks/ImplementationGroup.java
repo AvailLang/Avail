@@ -273,10 +273,10 @@ public class ImplementationGroup
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append(htmlOpenContent)
-			.append(tabs(1) + "<h2 class=\"MethodHeading\">")
+			.append(tabs(1) + "<h2 "
+				+ HTMLBuilder.tagClass(HTMLClass.classMethodHeading) + ">")
 			.append(name.asNativeString())
-			.append("</h2>\n")
-			.append(tabs(1) + "<br>\n");
+			.append("</h2>\n");
 
 		if (!methods.isEmpty())
 		{
@@ -297,9 +297,13 @@ public class ImplementationGroup
 					.append(grammaticalRestrictions.get(0).toHTML(htmlFileMap));
 			}
 
-			stringBuilder.append(tabs(1) + "<h4 class=\"MethodSectionHeader\">"
-					+ "Implementations:</h4>\n")
-				.append(tabs(1) + "<div class=\"MethodSectionContent\">\n");
+			stringBuilder.append(tabs(1) + "<h4 "
+					+ HTMLBuilder.tagClass(HTMLClass.classMethodSectionHeader)
+					+ ">Implementations:</h4>\n")
+				.append(tabs(1)
+					+ "<div "
+					+ HTMLBuilder
+						.tagClass(HTMLClass.classMethodSectionContent) + ">\n");
 
 			for (final MethodCommentImplementation implementation : methods)
 			{
@@ -311,9 +315,14 @@ public class ImplementationGroup
 			if (!semanticRestrictions.isEmpty())
 			{
 				stringBuilder
-					.append(tabs(1) + "<h4 class=\"MethodSectionHeader\">"
-						+ "Semantic restrictions:</h4>\n")
-					.append(tabs(1) + "<div class=\"MethodSectionContent\">\n");
+					.append(tabs(1) + "<h4 "
+						+ HTMLBuilder
+							.tagClass(HTMLClass.classMethodSectionHeader)
+						+ ">Semantic restrictions:</h4>\n")
+					.append(tabs(1) + "<div "
+						+ HTMLBuilder
+							.tagClass(HTMLClass.classMethodSectionContent)
+						+ ">\n");
 
 				for (final SemanticRestrictionCommentImplementation
 					implementation : semanticRestrictions)

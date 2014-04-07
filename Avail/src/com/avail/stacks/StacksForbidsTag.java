@@ -97,11 +97,17 @@ public class StacksForbidsTag extends AbstractStacksTag
 	{
 		final int rowSize = forbidMethods.size();
 		final StringBuilder stringBuilder = new StringBuilder()
-			.append(tabs(5) + "<td class=\"GCode\" rowspan=\"")
+			.append(tabs(5) + "<td "
+				+ HTMLBuilder
+					.tagClass(HTMLClass.classStacks, HTMLClass.classGCode)
+				+ " rowspan=\"")
 			.append(rowSize).append("\">Argument ")
 			.append(arityIndex.toHTML(htmlFileMap))
 			.append("</td>\n")
-			.append(tabs(5) + "<td class=\"GCode\">")
+			.append(tabs(5) + "<td "
+				+ HTMLBuilder
+					.tagClass(HTMLClass.classStacks, HTMLClass.classGCode)
+				+ ">")
 			.append(forbidMethods.get(0).lexeme)
 			.append("</td>\n")
 			.append(tabs(4) + "</tr>\n");
@@ -112,7 +118,11 @@ public class StacksForbidsTag extends AbstractStacksTag
 			{
 				stringBuilder
 					.append(tabs(4) + "<tr>\n")
-					.append(tabs(5) + "<td class=\"GCode\">")
+					.append(tabs(5) + "<td "
+						+ HTMLBuilder
+							.tagClass(
+								HTMLClass.classStacks, HTMLClass.classGCode)
+						+ ">")
 					.append(forbidMethods.get(i).lexeme)
 					.append("</td>\n")
 					.append(tabs(4) + "</tr>\n");

@@ -1,5 +1,5 @@
 /**
- * StacksRestrictsTag.java
+ * HTMLBuilder.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,76 +33,63 @@
 package com.avail.stacks;
 
 /**
- * The "@restricts" tag in an Avail comment that represents the meta type of an
- * Avail method's paramater's type as used in a semantic restriction.
+ * TODO: Document HTMLBuilder!
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksRestrictsTag extends AbstractStacksTag
+public class HTMLBuilder
 {
 	/**
-	 * The type of the method parameter's type.
+	 * @param classString
+	 * 		the html tag class for styling
+	 * @param content
+	 * 		the content between the tags
+	 * @param tabCount
+	 * 		the tabs
+	 * @return
 	 */
-	final private QuotedStacksToken paramMetaType;
-
-	/**
-	 * Excess tokens of unknown purpose
-	 */
-	final private StacksDescription description;
-
-	/**
-	 * Construct a new {@link StacksRestrictsTag}.
-	 *
-	 * @param paramMetaType
-	 * 		The type of the method parameter's type.
-	 * @param description
-	 * 		description or restricts?
-	 */
-	public StacksRestrictsTag (
-		final QuotedStacksToken paramMetaType,
-		final StacksDescription description)
+	public static String divClass(
+		final String classString, final String content, final int tabCount)
 	{
-		this.paramMetaType = paramMetaType;
-		this.description = description;
-	}
-
-	/**
-	 * @return the paramMetaType
-	 */
-	public QuotedStacksToken paramMetaType ()
-	{
-		return paramMetaType;
-	}
-
-	/**
-	 * @return the extraUnspecifiedTokens
-	 */
-	public StacksDescription description ()
-	{
-		return description;
-	}
-
-	@Override
-	public String toHTML (final HTMLFileMap htmlFileMap)
-	{
-		final StringBuilder stringBuilder = new StringBuilder()
-		.append(tabs(4) + "<tr "
-			+ HTMLBuilder.tagClass(HTMLClass.classMethodParameters)
-			+ ">\n")
-		.append("<td "
-			+ HTMLBuilder
-				.tagClass(HTMLClass.classStacks, HTMLClass.classICode)
-			+ ">")
-		.append(paramMetaType.lexeme())
-		.append("</td>\n")
-		.append(tabs(5) + "<td "
-				+ HTMLBuilder
-					.tagClass(HTMLClass.classStacks, HTMLClass.classICode)
-				+ ">\n")
-		.append(tabs(6) + description.toHTML(htmlFileMap))
-		.append("\n" + tabs(5) + "</td>\n")
-		.append(tabs(4) + "</tr>\n");
+		final StringBuilder stringBuilder = new StringBuilder();
 
 		return stringBuilder.toString();
+	}
+
+	/**
+	 * @param numberOfTabs
+	 * 		the number of tabs to insert into the string.
+	 * @return
+	 * 		a String consisting of the number of tabs requested in
+	 * 		in numberOfTabs.
+	 */
+	private String tabs(final int numberOfTabs)
+	{
+		final StringBuilder stringBuilder = new StringBuilder();
+		for (int i = 1; i <= numberOfTabs; i++)
+		{
+			stringBuilder.append('\t');
+		}
+		return stringBuilder.toString();
+	}
+
+	/**
+	 * Add a class statement with the listed classes.
+	 * @param classes
+	 * 		The classes to add to the tag
+	 * @return
+	 */
+	public static String tagClass(final String ... classes)
+	{
+		final StringBuilder stringBuilder = new StringBuilder().append("class=\"");
+		final int argumentCount = classes.length;
+		for (int i = 0;  i < argumentCount - 1; i++)
+		{
+			stringBuilder.append(classes[i]).append(" ");
+		}
+		return stringBuilder
+			.append(classes[argumentCount - 1])
+			.append("\"")
+			.toString();
 	}
 }

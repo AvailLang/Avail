@@ -125,26 +125,42 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 			stringBuilder.append(categories.get(0).toHTML(htmlFileMap));
 		}
 
-		stringBuilder.append(tabs(2) + "<div class=\"SignatureDescription\">\n")
+		if (aliases.size() > 0)
+		{
+			stringBuilder.append(aliases.get(0).toHTML(htmlFileMap));
+		}
+
+		stringBuilder.append(tabs(2) + "<div "
+				+ HTMLBuilder.tagClass(HTMLClass.classSignatureDescription)
+				+ ">\n")
 			.append(tabs(3) + description.toHTML(htmlFileMap))
 			.append("\n" + tabs(2) + "</div>\n")
-			.append(tabs(2) + "<table>\n")
+			.append(tabs(2) + "<table "
+            	+ HTMLBuilder.tagClass(HTMLClass.classStacks)
+            	+ ">\n")
 			.append(tabs(3) + "<thead>\n")
 			.append(tabs(4) + "<tr>\n")
-			.append(tabs(5) + "<th class=\"Transparent\" "
-				+ "scope=\"col\"></th>\n");
+			.append(tabs(5) + "<th "
+				+ HTMLBuilder.tagClass(HTMLClass.classTransparent)
+				+ " scope=\"col\"></th>\n");
 		if (paramCount > 0)
 		{
-			stringBuilder.append(tabs(5) + "<th class=\"IColLabelNarrow\" "
-				+ "scope=\"col\">Name</th>\n");
+			stringBuilder.append(tabs(5) + "<th "
+				+ HTMLBuilder.tagClass(
+					HTMLClass.classStacks, HTMLClass.classIColLabelNarrow)
+				+ " scope=\"col\">Name</th>\n");
 			colSpan = 2;
 		}
 
 		stringBuilder
-			.append(tabs(5) + "<th class=\"IColLabelNarrow\" scope=\"col\">"
-				+ "Type</th>\n")
-			.append(tabs(5) + "<th class=\"IColLabelWide\" scope=\"col\">"
-				+ "Description</th>\n")
+			.append(tabs(5) + "<th "
+				+ HTMLBuilder.tagClass(
+					HTMLClass.classStacks, HTMLClass.classIColLabelNarrow)
+				+ " scope=\"col\">Type</th>\n")
+			.append(tabs(5) + "<th "
+				+ HTMLBuilder.tagClass(
+					HTMLClass.classStacks, HTMLClass.classIColLabelWide)
+				+ " scope=\"col\">Description</th>\n")
 			.append(tabs(4) + "</tr>\n")
 			.append(tabs(3) + "</thead>\n")
 			.append(tabs(3) + "<tbody>\n");
@@ -152,7 +168,10 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		if (paramCount > 0)
 		{
 			stringBuilder.append(tabs(4) + "<tr>\n")
-				.append(tabs(5) + "<th class=\"IRowLabel\" rowspan=\"")
+				.append(tabs(5) + "<th "
+				+ HTMLBuilder.tagClass(
+					HTMLClass.classStacks, HTMLClass.classIRowLabel)
+				+ " rowspan=\"")
 			.append(paramCount + 1).append("\">Parameters</th>\n")
 			.append(tabs(4) + "</tr>\n");
 		}
@@ -163,13 +182,19 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		}
 
 		stringBuilder.append(tabs(4) + "<tr>\n")
-			.append(tabs(5) + "<th class=\"IRowLabel\" colspan=\"")
+			.append(tabs(5) + "<th "
+				+ HTMLBuilder.tagClass(
+					HTMLClass.classStacks, HTMLClass.classIRowLabel)
+				+ " colspan=\"")
 			.append(colSpan).append("\">Returns</th>\n")
 			.append(returnsContent.toHTML(htmlFileMap));
 
 		if (exceptionCount > 0)
 		{
-			stringBuilder.append(tabs(5) + "<th class=\"IRowLabel\" colspan=\"")
+			stringBuilder.append(tabs(5) + "<th "
+					+ HTMLBuilder.tagClass(
+						HTMLClass.classStacks, HTMLClass.classIRowLabel)
+					+ " colspan=\"")
 				.append(colSpan).append("\" rowspan=\"")
 				.append(exceptionCount+1).append("\">Raises</th>\n");
 

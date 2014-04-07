@@ -77,7 +77,9 @@ public class SemanticRestrictionCommentSignature extends CommentSignature
 	public String toHTML ()
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
-		.append(tabs(2) + "<div class=\"SignatureHeading\">");
+		.append(tabs(2) + "<div "
+				+ HTMLBuilder.tagClass(HTMLClass.classSignatureHeading)
+				+ ">");
 
 		final int listSize = orderedInputTypes.size();
 
@@ -91,7 +93,9 @@ public class SemanticRestrictionCommentSignature extends CommentSignature
 				.append("</div>\n");
 		}
 		stringBuilder
-			.append(tabs(2) + "<div class=\"ModuleLocation\">Sources: ")
+			.append(tabs(2) + "<div "
+				+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
+				+ ">Sources: ")
 			.append(module()).append(": <strong>").append(name())
 			.append("</strong></div>\n");
 
