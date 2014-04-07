@@ -2,6 +2,10 @@ var stacksApp = angular.module('stacksApp',[]);
 
 function CategoriesCntrl($scope,Categories) {
 	$scope.categories = Categories;
+	$scope.search = '';
+	$scope.filterOnCategory = function(content) {
+    	return ((content.category.indexOf($scope.search) >= 0) || content.selected);
+	};	
 	$scope.methodList = function()
 	{
 		var allCategories = $scope.categories;
