@@ -52,9 +52,9 @@
 			<!-- The categories pane -->
 			<div id="CategoriesPane">
 				<h2 class="pane-heading">Categories</h2>
-				<div class="pane-filter">Filter: <input type="text" ng-model="search.category"><br></div>
+				<div class="pane-filter">Filter: <input type="text" ng-model="search"><br></div>
 				<div class="pane-contents">
-					<div ng-repeat="stacksCategory in categories.content | orderBy: ['-selected','category'] | filter : search ">
+					<div ng-repeat="stacksCategory in categories.content | orderBy: ['-selected','category'] | filter : filterOnCategory ">
 						<div>
 							<input type="checkbox" name="favoriteColors" ng-model="stacksCategory.selected">
 							{{" " +stacksCategory.category + " "}}
@@ -68,7 +68,7 @@
 			    <div class="pane-filter">Filter: <input type="text" ng-model="find.name"><br></div>
 				<div class="pane-contents">
 					<div ng-repeat="method in methodList().content | orderBy: 'name' | filter : find">
-						<a style= "cursor: pointer" ng-click="changeLinkValue('library-documentation' + method.link)">{{method.name}}</a><br>
+						<a style= "cursor: pointer" ng-click="changeLinkValue(method.link)">{{method.name}}</a><br>
 					</div>
 				</div>
 			</div>
