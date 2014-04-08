@@ -51,7 +51,7 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_095_BitShift().init(2, CanFold, CannotFail);
+		new P_095_BitShift().init(2, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

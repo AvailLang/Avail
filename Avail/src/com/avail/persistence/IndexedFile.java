@@ -739,11 +739,9 @@ extends AbstractList<byte[]>
 	 *        written, but before the temporary file is renamed.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
-	 * @throws IndexedFileException
-	 *         If something else goes wrong.
 	 */
 	private void createFile (final @Nullable Continuation0 action)
-		throws IOException, IndexedFileException
+		throws IOException
 	{
 		// Write the header.
 		final byte[] headerBytes = headerBytes();
@@ -810,11 +808,6 @@ extends AbstractList<byte[]>
 			close();
 			throw e;
 		}
-		catch (final Throwable e)
-		{
-			close();
-			throw new IndexedFileException(e);
-		}
 	}
 
 	/**
@@ -824,7 +817,7 @@ extends AbstractList<byte[]>
 	 *
 	 * @return The current version.
 	 */
-	private int currentVersion ()
+	protected int currentVersion ()
 	{
 		final Class<? extends IndexedFile> myClass = getClass();
 		final IndexedFileVersion currentVersion =
@@ -990,13 +983,19 @@ extends AbstractList<byte[]>
 	/**
 	 * Read the header page from the underlying {@linkplain #file file}.
 	 *
+	 * @param versionCheck
+	 *        How to check if the file's version is acceptable, relative to the
+	 *        code's current version.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 * @throws IndexedFileException
 	 *         If something else goes wrong.
 	 */
-	private void readHeaderData () throws IOException, IndexedFileException
+	private void readHeaderData (
+		final Transformer2<Integer, Integer, Boolean> versionCheck)
+	throws IOException, IndexedFileException
 	{
+		boolean finished = false;
 		try
 		{
 			assert file().length() > 0;
@@ -1013,7 +1012,10 @@ extends AbstractList<byte[]>
 					"indexed file header is not valid.");
 			}
 			version = buffer.getInt();
-			if (version > currentVersion())
+			final Boolean okVersion =
+				versionCheck.value(version, currentVersion());
+			assert okVersion != null;
+			if (!okVersion)
 			{
 				throw new IndexedFileException(
 					"Unsupported indexed file version: " + version);
@@ -1024,16 +1026,14 @@ extends AbstractList<byte[]>
 			previousMasterPosition =
 				(bufferSize + pageSize - 1) / pageSize * pageSize;
 			masterPosition = previousMasterPosition + masterNodeSize();
+			finished = true;
 		}
-		catch (final IOException e)
+		finally
 		{
-			close();
-			throw e;
-		}
-		catch (final Throwable e)
-		{
-			close();
-			throw new IndexedFileException(e);
+			if (!finished)
+			{
+				close();
+			}
 		}
 	}
 
@@ -1665,8 +1665,6 @@ extends AbstractList<byte[]>
 	 *         accessible.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
-	 * @throws IndexedFileException
-	 *         If something else goes wrong.
 	 */
 	@SuppressWarnings("unchecked")
 	public static <F extends IndexedFile> F newFile (
@@ -1678,8 +1676,7 @@ extends AbstractList<byte[]>
 		throws
 			InstantiationException,
 			IllegalAccessException,
-			IOException,
-			IndexedFileException
+			IOException
 	{
 		logger.log(
 			Level.INFO,
@@ -1738,8 +1735,6 @@ extends AbstractList<byte[]>
 	 *         accessible.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
-	 * @throws IndexedFileException
-	 *         If something else goes wrong.
 	 */
 	public static <F extends IndexedFile> F newFile (
 			final Class<F> subclass,
@@ -1748,8 +1743,7 @@ extends AbstractList<byte[]>
 		throws
 			InstantiationException,
 			IllegalAccessException,
-			IOException,
-			IndexedFileException
+			IOException
 	{
 		return newFile(
 			subclass,
@@ -1781,6 +1775,8 @@ extends AbstractList<byte[]>
 	 * @param forWriting
 	 *        {@code true} if the indexed file should be opened for writing,
 	 *        {@code false} otherwise.
+	 * @param versionCheck
+	 *        How to check for a compatible version.
 	 * @return The indexed file.
 	 * @throws InstantiationException
 	 *         If the subclass could not be instantiated.
@@ -1789,12 +1785,18 @@ extends AbstractList<byte[]>
 	 *         accessible.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
+	 * @throws IndexedFileException
 	 */
 	public static <F extends IndexedFile> F openFile (
 			final Class<F> subclass,
 			final File fileReference,
-			final boolean forWriting)
-		throws InstantiationException, IllegalAccessException, IOException
+			final boolean forWriting,
+			final Transformer2<Integer, Integer, Boolean> versionCheck)
+	throws
+		InstantiationException,
+		IllegalAccessException,
+		IOException,
+		IndexedFileException
 	{
 		logger.log(
 			Level.INFO,
@@ -1806,7 +1808,7 @@ extends AbstractList<byte[]>
 		indexedFile.file = new RandomAccessFile(
 			fileReference, "r" + (forWriting ? "w" : ""));
 		indexedFile.channel = indexedFile.file().getChannel();
-		indexedFile.readHeaderData();
+		indexedFile.readHeaderData(versionCheck);
 		indexedFile.masterNodeBuffer = ByteBuffer.allocate(
 			indexedFile.masterNodeSize());
 		if (forWriting)

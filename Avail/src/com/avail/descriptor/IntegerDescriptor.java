@@ -1503,12 +1503,8 @@ extends ExtendedIntegerDescriptor
 		}
 		if (!shiftFactor.isInt())
 		{
-			if (shiftFactor.numericCompareToInteger(zero()) == MORE)
-			{
-				throw new ArithmeticException(
-					AvailErrorCode.E_TOO_LARGE_TO_REPRESENT);
-			}
 			// e.g., 123 >> 999999999999999999 is 0
+			// also 123 << 999999999999999999 truncated to N bits (N<2^31) is 0.
 			return zero();
 		}
 		final int shiftInt = shiftFactor.extractInt();
@@ -1623,7 +1619,7 @@ extends ExtendedIntegerDescriptor
 		final A_Number shiftFactor,
 		final boolean canDestroy)
 	{
-		if (object.equals(IntegerDescriptor.zero()))
+		if (object.equals(zero()))
 		{
 			if (!canDestroy & isMutable())
 			{
@@ -1640,8 +1636,13 @@ extends ExtendedIntegerDescriptor
 				throw new ArithmeticException(
 					AvailErrorCode.E_TOO_LARGE_TO_REPRESENT);
 			}
-			// e.g., 123 >> 999999999999999999 is 0
-			return zero();
+			if (object.numericCompareToInteger(zero()) == MORE)
+			{
+				// e.g., 123 >> 999999999999999999 is 0
+				return zero();
+			}
+			// e.g., -123 >> 999999999999999999 is -1
+			return negativeOne();
 		}
 		final int shiftInt = shiftFactor.extractInt();
 		if (object.isLong())
@@ -1694,7 +1695,7 @@ extends ExtendedIntegerDescriptor
 		int sourceIndex = slotCount - (shiftInt >> 5);
 		long accumulator = 0xDEADCAFEBABEBEEFL;
 		final int signExtension =
-			object.numericCompareToInteger(IntegerDescriptor.zero()) == LESS
+			object.numericCompareToInteger(zero()) == LESS
 				? -1
 				: 0;
 		// We range from slotCount+1 to 1 to pre-load the accumulator.

@@ -75,6 +75,7 @@ Uses
 		"_+_",
 		"_-_",
 		"_._→variable",
+		"_<<_",
 		"_<«_‡,»>",
 		"_[_.._]",
 		"_[_]",
@@ -591,6 +592,26 @@ Primitive "_[_]" is
 	Primitive 82 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : any;
+
+/**
+ * Given any integer B and a shift factor S, shift B to the left S bits.  If S
+ * is negative then treat it as a right shift of the corresponding positive
+ * amount.
+ *
+ * Parameters:
+ *    baseInteger - An integer to shift.
+ *    shiftFactor - How many bits to shift left (or right if negative).
+ * Returns:
+ *    ⎣baseInteger × 2<sup>shiftFactor</sup>⎦
+ */
+Primitive "_<<_" is
+[
+	baseInteger : integer,
+	shiftFactor : integer
+|
+	Primitive 95 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : integer;
 
 /**
  * Does `anAtom` have a property whose key is `key`?

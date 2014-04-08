@@ -37,7 +37,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Level;
 import javax.xml.bind.DatatypeConverter;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
@@ -48,6 +47,7 @@ import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.serialization.Serializer;
+import com.avail.utility.evaluation.Transformer2;
 
 /**
  * An {@code IndexedRepositoryManager} manages a persistent {@linkplain
@@ -159,6 +159,26 @@ public class IndexedRepositoryManager
 		h ^= (int)(newLong >> 32);
 		return h;
 	}
+
+	/**
+	 * Used to determine if the file's version is compatible with the current
+	 * version in the code.  Return true to indicate they're compatible, or
+	 * false to cause on open attempt to fail.  The first argument is the file's
+	 * version, and the second is the code's version.
+	 */
+	final static Transformer2<Integer, Integer, Boolean> versionCheck =
+		new Transformer2<Integer, Integer, Boolean>()
+		{
+			@Override
+			public @Nullable Boolean value (
+				final @Nullable Integer fileVersion,
+				final @Nullable Integer codeVersion)
+			{
+				assert fileVersion != null;
+				assert codeVersion != null;
+				return fileVersion.intValue() == codeVersion.intValue();
+			}
+		};
 
 	/**
 	 * A {@link Map} which discards the oldest entry whenever an attempt is made
@@ -1304,44 +1324,53 @@ public class IndexedRepositoryManager
 	 * @throws IndexedFileException
 	 *         If anything goes wrong.
 	 */
-	private void openOrCreate () throws IndexedFileException
+	private void openOrCreate ()
+	throws IndexedFileException
 	{
 		assert !isOpen;
 		try
 		{
-			final boolean exists = fileName.exists();
-			IndexedFile.logger.log(
-				Level.INFO,
-				"exists: {0} = {1}",
-				new Object [] { fileName, exists });
-			final IndexedRepository repo = exists
-				? IndexedFile.openFile(IndexedRepository.class, fileName, true)
-				: IndexedFile.newFile(IndexedRepository.class, fileName, null);
-			if (exists)
+			IndexedRepository repo = null;
+			try
 			{
-				final byte [] metadata = repo.metaData();
-				if (metadata != null)
+				repo = IndexedFile.openFile(
+					IndexedRepository.class, fileName, true, versionCheck);
+			}
+			catch (final IndexedFileException e)
+			{
+				System.err.println(
+					"Deleting obsolete repository: " + fileName);
+				repo = null;
+			}
+			if (repo == null)
+			{
+				repo =  IndexedFile.newFile(
+					IndexedRepository.class, fileName, null);
+			}
+			final byte [] metadata = repo.metaData();
+			if (metadata != null)
+			{
+				final ByteArrayInputStream byteStream =
+					new ByteArrayInputStream(metadata);
+				try (final DataInputStream binaryStream =
+					new DataInputStream(byteStream))
 				{
-					final ByteArrayInputStream byteStream =
-						new ByteArrayInputStream(metadata);
-					try (final DataInputStream binaryStream =
-						new DataInputStream(byteStream))
+					int moduleCount = binaryStream.readInt();
+					while (moduleCount-- > 0)
 					{
-						int moduleCount = binaryStream.readInt();
-						while (moduleCount-- > 0)
-						{
-							final ModuleArchive archive =
-								new ModuleArchive(binaryStream);
-							moduleMap.put(archive.rootRelativeName, archive);
-						}
-						assert byteStream.available() == 0;
+						final ModuleArchive archive =
+							new ModuleArchive(binaryStream);
+						moduleMap.put(archive.rootRelativeName, archive);
 					}
+					assert byteStream.available() == 0;
 				}
 			}
 			repository = repo;
 			isOpen = true;
 		}
-		catch (final Exception e)
+		catch (final IOException
+			| IllegalAccessException
+			| InstantiationException e)
 		{
 			throw new IndexedFileException(e);
 		}
