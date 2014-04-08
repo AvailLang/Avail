@@ -718,6 +718,7 @@ Primitive "_→/→_" is
  * @method "Resume_"
  * @param "aContinuation" "continuation"
  *        A continuation.
+ * @returns "⊥"
  */
 Primitive "Resume_" is
 [

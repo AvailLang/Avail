@@ -645,11 +645,11 @@ Primitive "extended integer" is
 ];
 
 /**
- * A tuple type whose default type is {@type "any meta" anys type}.
+ * A tuple type whose default type is {@type "any meta" any's type}.
  *
  * @category "Primitives" "Types"
- * @type "{1}"
- * @alias "{0}"
+ * @type "<any's type…|>'s type"
+ * @alias "type of tuple of type of any"
  */
 Primitive "type of tuple of type of any" is
 [

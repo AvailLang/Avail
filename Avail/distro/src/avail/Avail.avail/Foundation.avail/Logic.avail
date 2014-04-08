@@ -129,30 +129,6 @@ Public stable method "_⊕_" is
 ] : boolean;
 
 /**
- * If the truth values of a and b are known, an XOR operation with opposing
- * truth values will always yield true, and an XOR operation with equal truth
- * values will always yield false.
- * 
- * @method "_⊕_"
- * @restricts "boolean's type"
- * @restricts "boolean's type"
- */
-Semantic restriction "_⊕_" is
-[
-	aType : boolean's type,
-	bType : boolean's type
-|
-	if aType ≠ boolean's type ∧ [bType ≠ boolean's type] then
-	[
-		(aType ≠ bType)'s type
-	]
-	else
-	[
-		⊤
-	]
-];
-
-/**
  * Compute and answer the logical NAND of the arguments. This is equivalent to
  * ¬({@param "a"} ∧ {@param "b"}). Short-circuit the computation, i.e., only 
  * evaluate {@param "b"} if {@param "a"} is {@method "true"}.
