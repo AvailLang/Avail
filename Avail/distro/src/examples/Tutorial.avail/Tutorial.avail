@@ -33,5 +33,7 @@
 Module "Tutorial"
 Uses
 	"Hello World",
-	"RPN"
+	"RPN",
+	"Guess the Number",
+	"Hilbert Hotel"
 Body

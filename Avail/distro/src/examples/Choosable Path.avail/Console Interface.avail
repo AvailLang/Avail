@@ -44,7 +44,7 @@ Body
  * Prettify the specified {@type "string"} by:
  *
  * - Converting each tab into a single space.
- * - Converting each stand-alone line feeds into a single space.
+ * - Converting each stand-alone line feed into a single space.
  * - Converting each sequence of whitespace characters into:
  *    - a single whitespace if the sequence contains fewer than two line feeds.
  *    - two line feeds if the sequence contains two or more line feeds.
