@@ -32,7 +32,9 @@
 
 package com.avail.stacks;
 
+import java.io.FileInputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -497,65 +499,31 @@ public class StacksCommentsModule
 	 *        An {@linkplain AvailRuntime runtime}.
 	 * @param htmlFileMap
 	 * 		A map for all htmlFiles in stacks
+	 * @param templateFilePath
+	 * 		The path of the template file used to wrap the generated HTML
+	 * @param implementationProperties
+	 * 		The file path location of the HTML properties used to generate
+	 * 		the bulk of the inner html of the implementations.
 	 */
 	public void writeMethodsToHTMLFiles(final Path outputPath,
 		final StacksSynchronizer synchronizer, final AvailRuntime runtime,
-		final HTMLFileMap htmlFileMap)
+		final HTMLFileMap htmlFileMap, final Path templateFilePath,
+		final Path implementationProperties)
 	{
 		for (final String implementationName :
 			finalImplementationsGroupMap.keySet())
 		{
+			final String htmlTemplate =
+				HTMLBuilder.getOuterHTMLTemplate(templateFilePath);
+
+			final String [] htmlSplitTemplate = htmlTemplate
+				.split("IMPLEMENTATION-GROUP");
+
 			finalImplementationsGroupMap.get(implementationName)
 				.toHTML(outputPath, implementationName,
-					htmlOpentContent(), htmlCloseContent(), synchronizer,
-					runtime, htmlFileMap);
+					htmlSplitTemplate[0], htmlSplitTemplate[1], synchronizer,
+					runtime, htmlFileMap, implementationProperties, 3);
 		}
-	}
-
-	/**
-	 * The opening content for the individiual stacks implementation file.
-	 * @return
-	 * 		The opening HTML
-	 */
-	private String htmlOpentContent()
-	{
-		return "<!doctype html>\n"
-			+ "<!--[if lt IE 7]>\n "
-			+ tabs(1) + "<html class=\"ie6 oldie\">\n"
-			+ "<![endif]-->\n"
-			+ "<!--[if IE 7]>\n"
-			+ tabs(1) + "<html class=\"ie7 oldie\">\n"
-			+ "<![endif]-->\n"
-			+ "<!--[if IE 8]>\n"
-			+ tabs(1) + "<html class=\"ie8 oldie\">\n"
-			+ "<![endif]-->\n"
-			+ tabs(1) + "<!--[if gt IE 8]>\n"
-			+ tabs(1) + "<!-->\n<html class=\"\">\n"
-			+ "<!--<![endif]-->\n"
-			+ tabs(1) + "<head>\n"
-			+ tabs(2) + "<meta charset=\"utf-8\">\n"
-			+ tabs(2) + "<link href=\"/_css/stacks.css\" rel=\"stylesheet\" "
-				+ "type=\"text/css\">\n"
-			+ tabs(2) + "<!--#include virtual=\"/_include/head.ssi\" -->\n"
-			+ tabs(2) + "<title>Avail - Library</title>\n"
-			+ tabs(1) + "</head>\n"
-			+ tabs(1) + "<body>\n"
-			+ tabs(2) + "<div class=\"stacks-wrapper\">";
-			//"<div>\n";
-	}
-
-	/**
-	 * The closing content for the individiual stacks implementation file.
-	 * @return
-	 * 		The closing HTML
-	 */
-	private String htmlCloseContent()
-	{
-		return tabs(2)
-			+ "</div>\n"
-			+ tabs(1) + "</body>\n"
-			+"</html>";
-			//"</div>";
 	}
 
 	/**

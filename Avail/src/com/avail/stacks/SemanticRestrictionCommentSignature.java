@@ -95,7 +95,7 @@ public class SemanticRestrictionCommentSignature extends CommentSignature
 		stringBuilder
 			.append(tabs(2) + "<div "
 				+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
-				+ ">Sources: ")
+				+ "><em>Source</em>: ")
 			.append(module()).append(": <strong>").append(name())
 			.append("</strong></div>\n");
 

@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -43,6 +42,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import com.avail.AvailRuntime;
@@ -55,6 +55,7 @@ import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.utility.IO;
+import com.avail.utility.Pair;
 
 /**
  * An Avail documentation generator.  It takes tokenized method/class comments
@@ -225,10 +226,23 @@ public class StacksGenerator
 			e.printStackTrace();
 		}
 
-		createJSFiles();
+		//Identify the location of the templates.
+		final Path templatePackageName = Paths.get(
+			"src/"
+			+ StacksGenerator.class.getPackage().getName().replace('.', '/')
+			+ "/configuration");
+
+
+		createJSFiles(templatePackageName);
 
 		//Create the main HTML landing page
-		createMainHTML();
+		createMainHTML(templatePackageName);
+
+		final Path implementationWrapperTemplate =
+			templatePackageName.resolve("implementation wrapper.html.template");
+
+		final Path implementationProperties =
+			templatePackageName.resolve("implementation html.properties");
 
 		if (fileToOutPutCount > 0)
 		{
@@ -238,7 +252,8 @@ public class StacksGenerator
 			moduleToComments
 				.get(outermostModule.qualifiedName())
 					.writeMethodsToHTMLFiles(providedDocumentPath,synchronizer,
-						runtime,htmlFileMap);
+						runtime,htmlFileMap,implementationWrapperTemplate,
+						implementationProperties);
 
 			synchronizer.waitForWorkUnitsToComplete();
 		}
@@ -259,104 +274,35 @@ public class StacksGenerator
 
 	/**
 	 * Create all necessary JS files.
+	 * @param templatePackageName
+	 * 		The path of the package where all the templates reside
 	 */
-	private void createJSFiles()
+	private void createJSFiles(final Path templatePackageName)
 	{
 		final Path stacksAppFilePath =
 			providedDocumentPath.resolve("stacksApp.js");
 
-		//Identify the location of the templates.
-		final Path templatePackageName = Paths.get(
-			"src/"
-			+ StacksGenerator.class.getPackage().getName().replace('.', '/')
-			+ "/configuration");
+		final Path stacksAppTemplatePath =
+			templatePackageName.resolve("stacksApp.js.template");
 
-		final Path stacksAppTemplate =
-			templatePackageName.resolve("stacksApp opening.js.template");
+		final ArrayList<Pair<CharSequence,CharSequence>> swapPairs =
+			new ArrayList<Pair<CharSequence,CharSequence>>();
 
-		try
-		{
-			IO.close(FileChannel.open(stacksAppFilePath,
-				EnumSet.of(StandardOpenOption.CREATE,
-					StandardOpenOption.WRITE,
-					StandardOpenOption.TRUNCATE_EXISTING)));
+		swapPairs.add(new Pair<CharSequence,CharSequence>(
+			"{[{CATEGORY-CONTENT}]}",
+			htmlFileMap.categoryMethodsToJson()));
 
-		}
-		catch (final IOException e1)
-		{
-
-			e1.printStackTrace();
-		}
-
-		try
-		{
-			Files.copy(
-				stacksAppTemplate,
-				stacksAppFilePath,
-				StandardCopyOption.REPLACE_EXISTING);
-		}
-		catch (final IOException e)
-		{
-			e.printStackTrace();
-		}
-
-		final Path stacksAppClosingTemplate =
-			templatePackageName.resolve("stacksApp closing.js.template");
-
-		final String categoryJson = htmlFileMap.categoryMethodsToJson();
-
-		FileChannel stacksApp;
-
-		try
-		{
-			stacksApp =
-				FileChannel.open(stacksAppFilePath,
-				EnumSet.of(StandardOpenOption.WRITE,
-					StandardOpenOption.APPEND));
-			final ByteBuffer buffer = ByteBuffer.wrap(
-				(categoryJson.getBytes(StandardCharsets.UTF_8)));
-
-			stacksApp.write(buffer);
-
-
-			final FileInputStream stacksClosingFile =
-				new FileInputStream(stacksAppClosingTemplate.toString());
-			final FileChannel channel =
-				stacksClosingFile.getChannel();
-
-			final ByteBuffer buf =
-				ByteBuffer.allocate((int) channel.size());
-
-			try
-			{
-				channel.read(buf);
-				stacksApp.write(ByteBuffer.wrap(buf.array()));
-			}
-			catch (final IOException e)
-			{
-				e.printStackTrace();
-			}
-			IO.close(channel);
-			IO.close(stacksClosingFile);
-			IO.close(stacksApp);
-		}
-		catch (final IOException e)
-		{
-			e.printStackTrace();
-		}
+		createFileFromTemplate(stacksAppTemplatePath,stacksAppFilePath,
+			swapPairs);
 	}
 
 	/**
 	 * Create the main HTML landing page for Stacks.
+	 * @param templatePackageName
+	 * 		The path of the package where all the templates reside
 	 */
-	private void createMainHTML()
+	private void createMainHTML(final Path templatePackageName)
 	{
-		//Identify the location of the templates.
-		final Path templatePackageName = Paths.get(
-			"src/"
-			+ StacksGenerator.class.getPackage().getName().replace('.', '/')
-			+ "/configuration");
-
 		final Path stacksTemplate =
 			templatePackageName.resolve("stacks.html.template");
 
@@ -391,53 +337,66 @@ public class StacksGenerator
 			e.printStackTrace();
 		}
 
-		//Copy landing-detail.html template to target destination
+		//Create new landing-detail.html from template
 		final Path landingPath =
 			providedDocumentPath.resolve("landing-detail.html");
 
 		final Path landingTemplatePath =
-			templatePackageName.resolve("landing-detail opening.html.template");
+			templatePackageName.resolve("landing-detail.html.template");
 
+		final ArrayList<Pair<CharSequence,CharSequence>> swapPairs =
+			new ArrayList<Pair<CharSequence,CharSequence>>();
+
+		swapPairs.add(new Pair<CharSequence,CharSequence>(
+			"{[{GENERATED-CONTENT}]}",
+			htmlFileMap.categoryDescriptionTable()));
+
+		createFileFromTemplate(landingTemplatePath, landingPath,swapPairs);
+	}
+
+	/**
+	 * Given a template file path, create a new file with the provided new file
+	 * path and replace given template place holders with replacement content.
+	 * @param templateFilePath
+	 * 		The {@linkplain Path path} to the template file.
+	 * @param newFilePath
+	 * 		The {@linkplain Path path} to the new file.
+	 * @param replacementPairs
+	 * 		The {@linkplain Pair pairs} of <template text, replacement text>
+	 */
+	public static void createFileFromTemplate(
+		final Path templateFilePath,
+		final Path newFilePath,
+		final ArrayList<Pair<CharSequence,CharSequence>>replacementPairs)
+	{
+		FileChannel newFile;
 		try
 		{
-			IO.close(FileChannel.open(landingPath,
-				EnumSet.of(StandardOpenOption.CREATE,
-					StandardOpenOption.WRITE,
-					StandardOpenOption.TRUNCATE_EXISTING)));
+			newFile =
+				FileChannel.open(newFilePath,
+					EnumSet.of(StandardOpenOption.CREATE,
+						StandardOpenOption.WRITE,
+						StandardOpenOption.TRUNCATE_EXISTING));
+			try
+			{
+				final String decodedTemplate =
+					HTMLBuilder.getOuterHTMLTemplate(templateFilePath);
+				String newFileContent = decodedTemplate;
+				for (final Pair<CharSequence,CharSequence> pair :
+					replacementPairs)
+				{
+					newFileContent =
+						newFileContent.replace(pair.first(), pair.second());
+				}
+				newFile.write(ByteBuffer
+					.wrap(newFileContent.getBytes(StandardCharsets.UTF_8)));
+			}
+			catch (final IOException e)
+			{
+				e.printStackTrace();
+			}
 
-		}
-		catch (final IOException e1)
-		{
-
-			e1.printStackTrace();
-		}
-
-		try
-		{
-			Files.copy(
-				landingTemplatePath,
-				landingPath,
-				StandardCopyOption.REPLACE_EXISTING);
-		}
-		catch (final IOException e)
-		{
-			e.printStackTrace();
-		}
-
-		FileChannel landingPage;
-		try
-		{
-			landingPage = FileChannel.open(landingPath,
-				EnumSet.of(StandardOpenOption.CREATE,
-					StandardOpenOption.WRITE,
-					StandardOpenOption.APPEND));
-
-			final ByteBuffer buffer = ByteBuffer.wrap(
-				(htmlFileMap.categoryDescriptionTable()+ "\n</body>\n</html>")
-					.getBytes(StandardCharsets.UTF_8));
-
-			landingPage.write(buffer);
-			IO.close(landingPage);
+			IO.close(newFile);
 		}
 		catch (final IOException e)
 		{

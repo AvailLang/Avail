@@ -4,7 +4,7 @@ function CategoriesCntrl($scope,Categories) {
 	$scope.categories = Categories;
 	$scope.search = '';
 	$scope.filterOnCategory = function(content) {
-    	return ((content.category.indexOf($scope.search) >= 0) || content.selected);
+    	return (((content.category.toLowerCase()).indexOf($scope.search.toLowerCase()) >= 0) || content.selected);
 	};	
 	$scope.methodList = function()
 	{
@@ -54,4 +54,6 @@ function CategoriesCntrl($scope,Categories) {
 
 stacksApp.factory('Categories', function () {
 	var Categories = {};
-	Categories.content = 
+	Categories.content = {[{CATEGORY-CONTENT}]};
+	return Categories;
+})
