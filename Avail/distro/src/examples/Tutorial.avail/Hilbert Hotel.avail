@@ -54,8 +54,8 @@ Public method "a guest named_,_" is
 	<lastName, firstName>
 ];
 
-possibleAddresses ::= <"sir", "miss">;
-addressIndex : [1..2] := a pRNG's next value in [1..2];
+allTitles ::= <"sir", "miss">;
+titleIndex : [1..2] := a pRNG's next value in [1..2];
 inquiry : whole number := 0;
 guests : <guest…|> := <>;
 
@@ -78,8 +78,8 @@ Private method "Concierge says,_" is
 	availableRooms ::= 1 to first available room;
 	evictableRooms ::= 1 to |guests|;
 	Print: format pattern ++ "\n" with
-		you ::= possibleAddresses[addressIndex],
-		You ::= capitalize possibleAddresses[addressIndex],
+		you ::= allTitles[titleIndex],
+		You ::= capitalize allTitles[titleIndex],
 		"room inquiry" ::= inquiry,
 		"available rooms" ::=
 			if |availableRooms| = 1 then ["room "] else ["rooms "]
@@ -115,13 +115,13 @@ Private method "Hey,what do you mean_`?" is
 [
 	objectionableAddress : string
 |
-	If objectionableAddress ≠ possibleAddresses[addressIndex] then
+	If objectionableAddress ≠ allTitles[titleIndex] then
 	[
 		Concierge says, "\"I didn't say that, I said '‘you’'.\"";
 	]
 	else
 	[
-		addressIndex := if addressIndex = 1 then [2] else [1];
+		titleIndex := if titleIndex = 1 then [2] else [1];
 		Concierge says, "\"I'm sorry, ‘you’, I have a cold.\"";
 	];
 ];
@@ -131,12 +131,12 @@ Semantic restriction "Hey,what do you mean_`?" is
 	addressType : string's type
 |
 	actualAddress ::= addressType's instance;
-	Unless actualAddress ∈ possibleAddresses then
+	Unless actualAddress ∈ allTitles then
 	[
 		Reject parse, expected:
 			format "any of ‘allowed’ (not ‘unexpected’)" with
 				allowed ::=
-					“possibleAddresses” (as disjunctive list with Oxford comma),
+					“allTitles” (as disjunctive list with Oxford comma),
 				unexpected ::= actualAddress
 	];
 	⊤

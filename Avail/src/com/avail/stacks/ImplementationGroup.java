@@ -68,7 +68,7 @@ public class ImplementationGroup
 	/**
 	 * The set of all names referring to this implementation
 	 */
-	private HashSet<String> aliases;
+	private final HashSet<String> aliases;
 
 	/**
 	 * The relative file path and file name
@@ -78,7 +78,7 @@ public class ImplementationGroup
 	/**
 	 * A list of {@linkplain MethodCommentImplementation methods}
 	 */
-	private ArrayList<MethodCommentImplementation> methods;
+	private final ArrayList<MethodCommentImplementation> methods;
 
 	/**
 	 * @return the {@linkplain MethodCommentImplementation methods}
@@ -102,7 +102,7 @@ public class ImplementationGroup
 	 * A list of {@linkplain SemanticRestrictionCommentImplementation
 	 * semantic restrictions}
 	 */
-	private ArrayList<SemanticRestrictionCommentImplementation>
+	private final ArrayList<SemanticRestrictionCommentImplementation>
 		semanticRestrictions;
 
 	/**
@@ -130,7 +130,7 @@ public class ImplementationGroup
 	 * A list of {@linkplain GrammaticalRestrictionCommentImplementation
 	 * grammatical restrictions}
 	 */
-	private ArrayList<GrammaticalRestrictionCommentImplementation>
+	private final ArrayList<GrammaticalRestrictionCommentImplementation>
 		grammaticalRestrictions;
 
 	/**
@@ -216,35 +216,6 @@ public class ImplementationGroup
 	}
 
 	/**
-	 * Construct a new {@link ImplementationGroup} holding a {@linkplain
-	 * ClassCommentImplementation class comment}.
-	 *
-	 * @param name The name of the implementation
-	 * @param classImplementation the {@linkplain ClassCommentImplementation
-	 * class comment}
-	 */
-	public ImplementationGroup (final A_String name,
-		final ClassCommentImplementation classImplementation)
-	{
-		this.name = name;
-		this.classImplementation = classImplementation;
-	}
-
-	/**
-	 * Construct a new {@link ImplementationGroup} holding a {@linkplain
-	 * GlobalCommentImplementation global comment}.
-	 *
-	 * @param name The name of the implementation
-	 * @param global the {@linkplain GlobalCommentImplementation global comment}
-	 */
-	public ImplementationGroup (final A_String name,
-		final GlobalCommentImplementation global)
-	{
-		this.name = name;
-		this.global = global;
-	}
-
-	/**
 	 * Create HTML file from implementation
 	 * @param outputPath
 	 *        The {@linkplain Path path} to the output {@linkplain
@@ -263,13 +234,20 @@ public class ImplementationGroup
 	 *      An {@linkplain AvailRuntime runtime}.
 	 * @param htmlFileMap
 	 * 		A mapping object for all html files in stacks
+	 * @param implementationProperties
+	 * 		The file path location of the HTML properties used to generate
+	 * 		the bulk of the inner html of the implementations.
+	 * @param startingTabCount
+	 * 		The number of tabs in to start with.
 	 */
 	public void toHTML(final Path outputPath,
 		final String qualifiedMethodName,
 		final String htmlOpenContent, final String htmlCloseContent,
 		final StacksSynchronizer synchronizer,
 		final AvailRuntime runtime,
-		final HTMLFileMap htmlFileMap)
+		final HTMLFileMap htmlFileMap,
+		final Path implementationProperties,
+		final int startingTabCount)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append(htmlOpenContent)

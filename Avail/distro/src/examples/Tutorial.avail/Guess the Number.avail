@@ -83,7 +83,7 @@ Private method "comment for_tries given a range of_" is
 	range : integer's type
 |
 	/* This is the maximum number of tries using a binary search strategy. */
-	expected ::= ⎡log 2 of (2 max (⎡range⎤-⎣range⎦))⎤+1;
+	expected ::= ⎡log 2 of (⎡range⎤-⎣range⎦ + 2)⎤;
 	if guesses = 1 then ["Your clairvoyance is superb!\n"]
 	else if [guesses ≤ expected] then
 	[

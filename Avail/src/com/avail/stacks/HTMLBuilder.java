@@ -32,13 +32,70 @@
 
 package com.avail.stacks;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Path;
+import com.avail.utility.IO;
+
 /**
- * TODO: Document HTMLBuilder!
+ * A class used to build HTML content from Stacks comments.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 public class HTMLBuilder
 {
+	/**
+	 * The string contents of the properties file in question.
+	 */
+	final private String properties;
+
+	/**
+	 * The starting tab count
+	 */
+	final private int startingTabCount;
+
+	/**
+	 * The starting tab count
+	 */
+	private int currentTabCount;
+
+	/**
+	 * Increment the current tab count
+	 */
+	private void incrementCurrentTabCount()
+	{
+		currentTabCount++;
+	}
+
+	/**
+	 * Increment the current tab count
+	 */
+	private void decrementCurrentTabCount()
+	{
+		currentTabCount--;
+	}
+
+	/**
+	 * Construct a new {@link HTMLBuilder}.
+	 *
+	 * @param implementationProperties
+	 * 		The file path location of the HTML properties used to generate
+	 * 		the bulk of the inner html of the implementations.
+	 * @param startingTabCount
+	 * 		The number of tabs in to start with.
+	 */
+	public HTMLBuilder(final Path implementationProperties,
+		final int startingTabCount)
+	{
+		this.properties =
+			HTMLBuilder.getOuterHTMLTemplate(implementationProperties);
+
+		this.startingTabCount = startingTabCount;
+		this.currentTabCount = startingTabCount;
+	}
+
 	/**
 	 * @param classString
 	 * 		the html tag class for styling
@@ -81,7 +138,8 @@ public class HTMLBuilder
 	 */
 	public static String tagClass(final String ... classes)
 	{
-		final StringBuilder stringBuilder = new StringBuilder().append("class=\"");
+		final StringBuilder stringBuilder = new StringBuilder()
+			.append("class=\"");
 		final int argumentCount = classes.length;
 		for (int i = 0;  i < argumentCount - 1; i++)
 		{
@@ -91,5 +149,38 @@ public class HTMLBuilder
 			.append(classes[argumentCount - 1])
 			.append("\"")
 			.toString();
+	}
+
+	/**
+	 * Obtain a template file and return a string of that template
+	 * @param templateFilePath
+	 * 		The template file to obtain
+	 * @return
+	 * 		The string contents of that file.
+	 */
+	public static String getOuterHTMLTemplate (final Path templateFilePath)
+	{
+		try
+		{
+			final FileInputStream templateFile =
+				new FileInputStream(templateFilePath.toString());
+			final FileChannel channel =
+				templateFile.getChannel();
+
+			final ByteBuffer buf =
+				ByteBuffer.allocate((int) channel.size());
+
+			channel.read(buf);
+
+			IO.close(channel);
+			IO.close(templateFile);
+
+			return new String(buf.array(), "UTF-8");
+		}
+		catch (final IOException e)
+		{
+			e.printStackTrace();
+		}
+		return null;
 	}
 }
