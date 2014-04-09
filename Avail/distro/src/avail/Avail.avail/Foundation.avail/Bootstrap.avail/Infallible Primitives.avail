@@ -1330,32 +1330,6 @@ Primitive "_'s⁇bindings" is
 ] : key-value tuple;
 
 /**
-<<<<<<< HEAD
- * Given a positive integer B, a shift factor S, and a truncation bit count T,
- * shift B to the left by S bits (treating a negative factor as a right shift),
- * then truncate the result to the bottom T bits by zeroing the rest.
- *
- * Parameters:
- *    baseInteger - A non-negative integer to shift and mask.
- *    shiftFactor - How many bit positions to shift left by (negative for a
- *       right shift).
- *    truncationBits - The number of low-order bits to preserve after the shift
- *       (must be ≥ 0).
- * Returns:
- *    ⎣baseInteger × 2<sup>shiftFactor</sup>⎦ mod 2<sup>truncationBits</sup>
- */
-Primitive "_<<_keeping_bits" is
-[
-	baseInteger : whole number,
-	shiftFactor : integer,
-	truncationBits : whole number
-|
-	Primitive 96;
-] : whole number;
-
-/**
-=======
->>>>>>> refs/remotes/origin/master
  * Compute and answer the bitwise AND of the arguments.
  *
  * @category "Primitives"

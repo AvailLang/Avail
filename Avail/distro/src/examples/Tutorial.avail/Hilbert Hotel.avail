@@ -38,9 +38,9 @@ Names
 Entries
 	"What's all this`?",
 	"Hey,what do you mean_`?",
-	"Assign_to room`#⁇_",
-	"Evict the guest in room`#⁇_",
-	"Who is in room`#⁇_`?"
+	"Assign_to room_",
+	"Evict the guest in room_",
+	"Who is in room_`?"
 Body
 
 Private method "room number" is [natural number];
@@ -101,7 +101,7 @@ Private method "What's all this`?" is
 [
 	Concierge says,
 		"\"I know that things are very busy with the conference, ‘you’, but \
-		\|please try to get a grip. You are the manager of the Hilbert Hotel, \
+		\|please try to get a grip. You are the manager of the Grand Hotel, \
 		\|and I am the concierge, your minion. Because of The Conference, \
 		\|there are an infinite number of guests staying here currently. \
 		\|Fortunately the infinity of guests is countable, so we can always \
@@ -113,11 +113,12 @@ Private method "What's all this`?" is
 
 Private method "Hey,what do you mean_`?" is
 [
-	objectionableAddress : string
+	objection : string
 |
-	If objectionableAddress ≠ allTitles[titleIndex] then
+	If objection ≠ allTitles[titleIndex] then
 	[
-		Concierge says, "\"I didn't say that, I said '‘you’'.\"";
+		Concierge says,
+			"\"I didn't say that, I said '‘you’'. You must have a cold.\"";
 	]
 	else
 	[
@@ -142,7 +143,7 @@ Semantic restriction "Hey,what do you mean_`?" is
 	⊤
 ];
 
-Private method "Who is in room`#⁇_`?" is
+Private method "Who is in room_`?" is
 [
 	roomNumber : room number
 |
@@ -151,7 +152,7 @@ Private method "Who is in room`#⁇_`?" is
 		"\"The guest in room #“room inquiry” is named ‘guest inquiry’.\"";
 ];
 
-Private method "Assign_to room`#⁇_" is
+Private method "Assign_to room_" is
 [
 	aGuest : guest,
 	assignedNumber : room number
@@ -179,7 +180,7 @@ Private method "Assign_to room`#⁇_" is
 	];
 ];
 
-Private method "Evict the guest in room`#⁇_" is
+Private method "Evict the guest in room_" is
 [
 	roomNumber : room number
 |
