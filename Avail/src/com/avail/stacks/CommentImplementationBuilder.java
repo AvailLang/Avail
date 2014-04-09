@@ -43,9 +43,59 @@ import java.util.TreeMap;
 public class CommentImplementationBuilder
 {
 	/**
-	 * The available {@linkplain StacksCategories}
+	 * The available {@linkplain HTMLFileMap}
 	 */
-	private StacksCategories stacksCategories;
+	private HTMLFileMap hTMLFileMap;
+
+	/**
+	 * The alias keyword provides alias to which the method is referred to by
+	 */
+	private final ArrayList<StacksAliasTag> aliases;
+
+	/**
+	 * @param tagContentTokens
+	 * 		The tokens held by the tag
+	 * @param htmlFileMap
+	 * 		A map containing HTML file links in stacks
+	 * 		A map containing HTML file links in stacks
+	 * @throws ClassCastException
+	 * @throws StacksCommentBuilderException
+	 */
+	public void addStacksAliasTag(
+		 final ArrayList<AbstractStacksToken> tagContentTokens,
+		 final HTMLFileMap htmlFileMap)
+			 throws ClassCastException, StacksCommentBuilderException
+	{
+		final ArrayList<QuotedStacksToken> tempTokens =
+			new ArrayList<QuotedStacksToken>();
+
+		hTMLFileMap = htmlFileMap;
+
+		for (final AbstractStacksToken token : tagContentTokens)
+		{
+			try
+			{
+				tempTokens.add((QuotedStacksToken) token);
+			}
+			catch (final ClassCastException e)
+			{
+				final String errorMessage = String.format("\n<li><strong>%s"
+					+ "</strong><em> Line #: %d</em>: Malformed @category "
+					+ "tag section; expected a series of quoted category "
+					+ "names immediately following the @category tag, however "
+					+ "does not start with a quoted category is listed.</li>",
+					moduleLeafName,
+					commentStartLine());
+				throw new StacksCommentBuilderException(errorMessage, this);
+			}
+		}
+		if (!tempTokens.isEmpty())
+		{
+			aliases.clear();
+		}
+		aliases.add(new StacksAliasTag (tempTokens));
+	}
+
 	/**
 	 * The author keyword indicates the method implementation author.
 	 */
@@ -53,6 +103,7 @@ public class CommentImplementationBuilder
 
 	/**
 	 * @param tagContentTokens
+	 * 		The tokens held by the tag
 	 * @throws ClassCastException
 	 */
 	public void addStacksAuthorTag(
@@ -71,19 +122,21 @@ public class CommentImplementationBuilder
 
 	/**
 	 * @param tagContentTokens
-	 * @param availableCategories
+	 * 		The tokens held by the tag
+	 * @param htmlFileMap
+	 * 		A map containing HTML file links in stacks
 	 * @throws ClassCastException
 	 * @throws StacksCommentBuilderException
 	 */
 	public void addStacksCategoryTag(
 		 final ArrayList<AbstractStacksToken> tagContentTokens,
-		 final StacksCategories availableCategories)
+		 final HTMLFileMap htmlFileMap)
 			 throws ClassCastException, StacksCommentBuilderException
 	{
 		final ArrayList<QuotedStacksToken> tempTokens =
 			new ArrayList<QuotedStacksToken>();
 
-		stacksCategories = availableCategories;
+		hTMLFileMap = htmlFileMap;
 
 		for (final AbstractStacksToken token : tagContentTokens)
 		{
@@ -132,6 +185,8 @@ public class CommentImplementationBuilder
 
 	/**
 	 * @param list
+	 * 		List of {@linkplain AbstractStacksToken tokens} that make up the
+	 * 		description
 	 * @throws ClassCastException
 	 */
 	public void addStacksCommentDescription(
@@ -148,6 +203,7 @@ public class CommentImplementationBuilder
 
 	/**
 	 * @param tagContentTokens
+	 * 		The tokens held by the tag
 	 * @throws ClassCastException
 	 * @throws StacksCommentBuilderException
 	 */
@@ -220,6 +276,7 @@ public class CommentImplementationBuilder
 
 	/**
 	 * @param tagContentTokens
+	 * 		The tokens held by the tag
 	 * @throws ClassCastException
 	 * @throws StacksCommentBuilderException
 	 */
@@ -277,6 +334,7 @@ public class CommentImplementationBuilder
 
 	/**
 	 * @param tagContentTokens
+	 * 		The tokens held by the tag
 	 * @throws ClassCastException
 	 * @throws StacksCommentBuilderException
 	 */
@@ -339,6 +397,7 @@ public class CommentImplementationBuilder
 
 	/**
 	 * @param tagContentTokens
+	 * 		The tokens held by the tag
 	 * @throws ClassCastException
 	 * @throws StacksCommentBuilderException
 	 */
@@ -383,6 +442,7 @@ public class CommentImplementationBuilder
 
 	/**
 	 * @param tagContentTokens
+	 * 		The tokens held by the tag
 	 * @throws ClassCastException
 	 * @throws StacksCommentBuilderException
 	 */
@@ -454,6 +514,7 @@ public class CommentImplementationBuilder
 
 	/**
 	 * @param tagContentTokens
+	 * 		The tokens held by the tag
 	 * @throws ClassCastException
 	 * @throws StacksCommentBuilderException
 	 */
@@ -515,6 +576,7 @@ public class CommentImplementationBuilder
 
 	/**
 	 * @param tagContentTokens
+	 * 		The tokens held by the tag
 	 * @throws ClassCastException
 	 * @throws StacksCommentBuilderException
 	 */
@@ -574,6 +636,7 @@ public class CommentImplementationBuilder
 
 	/**
 	 * @param tagContentTokens
+	 * 		The tokens held by the tag
 	 * @throws ClassCastException
 	 * @throws StacksCommentBuilderException
 	 */
@@ -633,6 +696,7 @@ public class CommentImplementationBuilder
 
 	/**
 	 * @param tagContentTokens
+	 * 		The tokens held by the tag
 	 * @throws ClassCastException
 	 * @throws StacksCommentBuilderException
 	 */
@@ -677,6 +741,7 @@ public class CommentImplementationBuilder
 
 	/**
 	 * @param tagContentTokens
+	 * 		The tokens held by the tag
 	 * @throws ClassCastException
 	 * @throws StacksCommentBuilderException
 	 */
@@ -684,31 +749,24 @@ public class CommentImplementationBuilder
 		 final ArrayList<AbstractStacksToken> tagContentTokens)
 			 throws ClassCastException, StacksCommentBuilderException
 	{
-		if (tagContentTokens.size() == 1)
+		for (final AbstractStacksToken token : tagContentTokens)
 		{
 			try
 			{
-				supertypes.add(new StacksSuperTypeTag (
-					(QuotedStacksToken) tagContentTokens.get(0)));
+				supertypes.add(new StacksSuperTypeTag
+					((QuotedStacksToken) token));
 			}
 			catch (final ClassCastException e)
 			{
 				final String errorMessage = String.format("\n<li><strong>%s"
-					+ "</strong><em> Line #: %d</em>: Malformed "
-					+ "@supertype tag section; expected quoted type.</li>",
+					+ "</strong><em> Line #: %d</em>: Malformed @supertype "
+					+ "tag section; expected a series of quoted supertype "
+					+ "names immediately following the @supertype tag, however "
+					+ "does not start with a quoted supertype is listed.</li>",
 					moduleLeafName,
 					commentStartLine());
 				throw new StacksCommentBuilderException(errorMessage, this);
 			}
-		}
-		else
-		{
-			final String errorMessage = String.format("\n<li><strong>%s"
-				+ "</strong><em> Line #: %d</em>: Malformed @supertype "
-				+ "tag section; has wrong # of components.</li>",
-				moduleLeafName,
-				commentStartLine());
-			throw new StacksCommentBuilderException(errorMessage, this);
 		}
 	}
 
@@ -719,6 +777,7 @@ public class CommentImplementationBuilder
 
 	/**
 	 * @param tagContentTokens
+	 * 		The tokens held by the tag
 	 * @throws ClassCastException
 	 * @throws StacksCommentBuilderException
 	 */
@@ -797,6 +856,7 @@ public class CommentImplementationBuilder
 		this.sees = new ArrayList<StacksSeeTag>(0);
 		this.supertypes = new ArrayList<StacksSuperTypeTag>(0);
 		this.types = new ArrayList<StacksTypeTag>(0);
+		this.aliases = new ArrayList<StacksAliasTag>(0);
 
 		final ArrayList<QuotedStacksToken> tempTokens =
 			new ArrayList<QuotedStacksToken>();
@@ -865,6 +925,7 @@ public class CommentImplementationBuilder
 					sees,
 					description(),
 					categories,
+					aliases,
 					supertypes,
 					fields);
 			}
@@ -904,7 +965,7 @@ public class CommentImplementationBuilder
 
 				return new SemanticRestrictionCommentImplementation(signature,
 					commentStartLine (), authors, sees, description(),
-					categories, restricts,returns);
+					categories, aliases, restricts,returns);
 			}
 
 			if (restricts.isEmpty() && !parameters.isEmpty() &&
@@ -933,8 +994,8 @@ public class CommentImplementationBuilder
 						returns.get(0).returnType().lexeme());
 
 				return new MethodCommentImplementation(signature,
-					commentStartLine (), authors, sees, description(), categories,
-					parameters,returns.get(0), raises);
+					commentStartLine (), authors, sees, description(),
+					categories, aliases, parameters,returns.get(0), raises);
 			}
 
 			if (restricts.isEmpty() && parameters.isEmpty() &&
@@ -948,7 +1009,7 @@ public class CommentImplementationBuilder
 
 					return new GrammaticalRestrictionCommentImplementation(
 						signature, commentStartLine (), authors, sees,
-						description(), categories, forbids);
+						description(), categories, aliases, forbids);
 				}
 				final String errorMessage = String.format("\n<li><strong>%s"
 					+ "</strong><em> Line #: %d</em>: Malformed comment; has "
@@ -972,7 +1033,7 @@ public class CommentImplementationBuilder
 
 				return new MethodCommentImplementation(signature,
 					commentStartLine (), authors, sees, description(),
-					categories,parameters, returns.get(0), raises);
+					categories, aliases, parameters, returns.get(0), raises);
 			}
 		}
 
@@ -987,8 +1048,8 @@ public class CommentImplementationBuilder
 						globalVariables.get(0).globalType().lexeme());
 
 				return new GlobalCommentImplementation(signature,
-					commentStartLine (), authors, sees,description(), categories,
-					globalVariables.get(0));
+					commentStartLine (), authors, sees,description(),
+					categories, aliases, globalVariables.get(0));
 			}
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed comment; has "
@@ -1008,7 +1069,7 @@ public class CommentImplementationBuilder
 
 			if (onlyTag.categories().size() == 1)
 			{
-				stacksCategories
+				hTMLFileMap
 					.addCategoryToDescription(
 						onlyTag.categories().get(0).lexeme()
 						,description());

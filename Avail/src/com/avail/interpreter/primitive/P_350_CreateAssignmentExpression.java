@@ -35,6 +35,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -50,8 +51,8 @@ public final class P_350_CreateAssignmentExpression extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_350_CreateAssignmentExpression().init(
-		2, CanFold);
+	public final static Primitive instance =
+		new P_350_CreateAssignmentExpression().init(2, CanFold);
 
 	@Override
 	public Result attempt (
@@ -90,5 +91,14 @@ public final class P_350_CreateAssignmentExpression extends Primitive
 				VARIABLE_USE_NODE.mostGeneralType(),
 				EXPRESSION_NODE.create(ANY.o())),
 			ASSIGNMENT_NODE.mostGeneralType());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT.numericCode(),
+				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE.numericCode())));
 	}
 }

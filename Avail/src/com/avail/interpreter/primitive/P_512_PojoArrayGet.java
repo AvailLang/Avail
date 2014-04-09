@@ -32,9 +32,10 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.MarshalingException;
@@ -91,5 +92,14 @@ public final class P_512_PojoArrayGet extends Primitive
 				PojoTypeDescriptor.mostGeneralArrayType(),
 				IntegerRangeTypeDescriptor.naturalNumbers()),
 			ANY.o());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_SUBSCRIPT_OUT_OF_BOUNDS.numericCode(),
+				E_JAVA_MARSHALING_FAILED.numericCode())));
 	}
 }

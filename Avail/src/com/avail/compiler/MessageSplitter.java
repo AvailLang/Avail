@@ -58,6 +58,32 @@ import com.avail.exceptions.*;
 public class MessageSplitter
 {
 	/**
+	 * The {@linkplain A_Set set} of all {@linkplain AvailErrorCode errors} that
+	 * can happen during {@linkplain MessageSplitter message splitting}.
+	 */
+	public static final A_Set possibleErrors = SetDescriptor.fromCollection(
+		Arrays.asList(
+			E_INCORRECT_ARGUMENT_TYPE.numericCode(),
+			E_INCORRECT_TYPE_FOR_GROUP.numericCode(),
+			E_INCORRECT_TYPE_FOR_COMPLEX_GROUP.numericCode(),
+			E_INCORRECT_TYPE_FOR_COUNTING_GROUP.numericCode(),
+			E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP.numericCode(),
+			E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE.numericCode(),
+			E_INCORRECT_USE_OF_DOUBLE_DAGGER.numericCode(),
+			E_UNBALANCED_GUILLEMETS.numericCode(),
+			E_METHOD_NAME_IS_NOT_CANONICAL.numericCode(),
+			E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS.numericCode(),
+			E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP.numericCode(),
+			E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP.numericCode(),
+			E_TILDE_MUST_NOT_FOLLOW_ARGUMENT.numericCode(),
+			E_VERTICAL_BAR_MUST_FOLLOW_A_SIMPLE_OR_SIMPLE_GROUP.numericCode(),
+			E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP.numericCode(),
+			E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_OR_SIMPLE_GROUP
+				.numericCode(),
+			E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION.numericCode(),
+			E_EXPECTED_OPERATOR_AFTER_BACKQUOTE.numericCode())).makeShared();
+
+	/**
 	 * The Avail string to be parsed.
 	 */
 	private final A_String messageName;

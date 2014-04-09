@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -82,5 +83,14 @@ public final class P_125_AtomRemoveProperty extends Primitive
 				ATOM.o(),
 				ATOM.o()),
 			TOP.o());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_NO_SUCH_FIELD.numericCode(),
+				E_KEY_NOT_FOUND.numericCode())));
 	}
 }

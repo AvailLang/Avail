@@ -64,7 +64,7 @@ public class StacksMethodTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML ()
+	public String toHTML (final HTMLFileMap htmlFileMap)
 	{
 		return methodName.lexeme();
 	}

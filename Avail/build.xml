@@ -215,7 +215,8 @@ POSSIBILITY OF SUCH DAMAGE.
 	-->
 	<target
 			name="avail-dev"
-			depends="avail-vm">
+			depends="avail-vm"
+			description="Build the Avail development environment.">
 		<jar jarfile="${path.jar.dev}">
 			<manifest>
 				<attribute name="Build-Version" value="${build.time}"/>
@@ -223,7 +224,7 @@ POSSIBILITY OF SUCH DAMAGE.
 				<attribute name="Class-Path" value="${jar.avail}"/>
 				<attribute
 					name="Main-Class"
-					value="com.avail.environment.AvailBuilderFrame"/>
+					value="com.avail.environment.AvailWorkbench"/>
 				<attribute name="Sealed" value="true"/>
 			</manifest>
 			<fileset
@@ -316,5 +317,18 @@ This is convenient for experimenting with Avail, but must be
 extended with custom module roots as you develop your own modules.
 ====================================================================
 		</echo>
+	</target>
+
+	<!--
+		Clean the build directory.
+	-->
+	<target
+			name="clean"
+			description="Clean the build environment.">
+		<delete quiet="true">
+			<fileset dir="${path.avail.bin}" includes="**"/>
+			<filename name="${path.jar.avail}"/>
+			<filename name="${path.jar.dev}"/>
+		</delete>
 	</target>
 </project>

@@ -37,8 +37,10 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import static com.avail.interpreter.Primitive.Result.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.*;
+import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.exceptions.*;
 import com.avail.interpreter.*;
@@ -182,17 +184,18 @@ extends Primitive
 			TOP.o());
 	}
 
-//	@Override
-//	protected A_Type privateFailureVariableType ()
-//	{
-//		return AbstractEnumerationTypeDescriptor.withInstances(
-//			TupleDescriptor.from(
-//				E_LOADING_IS_OVER.numericCode(),
-//				E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE.numericCode(),
-//				E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP.numericCode(),
-//				E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE.numericCode(),
-//				E_MACRO_MUST_RETURN_A_PARSE_NODE.numericCode()
-//			).asSet());
-//	}
-
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+					E_LOADING_IS_OVER.numericCode(),
+					E_AMBIGUOUS_NAME.numericCode(),
+					E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE
+						.numericCode(),
+					E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP.numericCode(),
+					E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE.numericCode(),
+					E_MACRO_MUST_RETURN_A_PARSE_NODE.numericCode()))
+				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
+	}
 }

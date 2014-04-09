@@ -159,9 +159,11 @@ public abstract class AbstractStacksToken
 
 	/**
 	 * Create HTML content of the token
+	 * @param htmlFileMap
+	 * 		The map of all HTML files in Stacks
 	 * @return the HTML tagged content
 	 */
-	public String toHTML()
+	public String toHTML(final HTMLFileMap htmlFileMap)
 	{
 		return lexeme();
 	}

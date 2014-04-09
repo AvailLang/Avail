@@ -84,7 +84,7 @@ Body
  * @method "byte tuple"
  * @category "Codecs"
  * @returns "<[0..255]…|>"
- *          a byte
+ *          a byte tuple
  * @author "Richard Arriaga"
  */
 Public method "byte tuple" is [<byte…|>];
@@ -94,7 +94,7 @@ Public method "byte tuple" is [<byte…|>];
  * action to take upon decoding something.
  * 
  * @type "correction instruction"
- * @supertype {@type "object" object}
+ * @supertype "object"
  * @category "Codecs"
  * @author "Richard Arriaga"
  */
@@ -105,7 +105,7 @@ Public explicit class "correction instruction" extends object;
  * action for the current encoded bytes.
  * 
  * @type "ignore instruction"
- * @supertype {@type "correction instruction"}
+ * @supertype "correction instruction"
  * @category "Codecs"
  * @author "Richard Arriaga"
  */
@@ -118,7 +118,7 @@ Public "unsupported character" is a new field atom;
  * codec.  For example down tack, ⊤, is not supported by the ASCII codec.
  * 
  * @type "unsupported-character exception"
- * @supertype {@type "exception" exception}
+ * @supertype "exception"
  * @category "Codecs"
  * @field "unsupported character" "character"
  *        The character that is not supported by the codec
@@ -136,8 +136,9 @@ Public "raise exception" is a new field atom;
  * an exception in the event a bad encoding is encountered.
  * 
  * @type "raise instruction"
- * @supertype {@type "correction instruction"}
+ * @supertype "correction instruction"
  * @category "Codecs"
+ * @field "raise exception" "unsupported-character exception"
  * @author "Richard Arriaga"
  */
 Public explicit class "raise instruction" extends correction instruction
@@ -152,7 +153,7 @@ Public "replacement character" is a new field atom;
  * encoding is encountered.
  * 
  * @type "replace instruction"
- * @supertype {@type "correction instruction"}
+ * @supertype "correction instruction"
  * @category "Codecs"
  * @field "replacement character" "character"
  *        The character that replaces the bad encoding.
@@ -168,7 +169,7 @@ Public "encoding corrector" is a new field atom;
  * A class that contains instructions for the encoding of data.
  * 
  * @type "encoder"
- * @supertype {@type "object" object}
+ * @supertype "object"
  * @category "Codecs"
  * @field "encoding corrector" "[character]→correction instruction"
  *        A function that takes a character and encodes it per the
@@ -180,19 +181,19 @@ Public class "encoder" extends object
 		public encoding corrector : [character]→correction instruction;
 
 /**
- * A method that encodes a string using the provided encoder.
+ * An abstract method that encodes a string using the provided encoder.
  * 
- * @method "byte encode_using_"
+ * @method "encode_using_"
  * @category "Codecs"
- * @param "string"
- *        The string to be encoded.
- * @param "encoder"
- *        The encoder used to encode the string.
- * @exception {@type "unsupported-character exception"}
+ * @param "input" "tuple"
+ *        The tuple to be encoded.
+ * @param "anEncoder" "encoder"
+ *        The encoder used to encode the tuple.
+ * @exception "unsupported-character exception"
  *            Thrown when an encoding does not surrport the character being
  *            processed.
- * @returns "<[0..255]…|>"
- *             A byte.
+ * @returns "byte tuple"
+ *             An encoded byte tuple.
  * @author "Richard Arriaga"
  */
 Public abstract method "encode_using_" is
@@ -205,7 +206,7 @@ Public abstract method "encode_using_" is
  * does not adhere to the specification of the encoder.
  * 
  * @type "malformed-encoding exception"
- * @supertype {@type "exception" exception}
+ * @supertype "exception"
  * @category "Codecs"
  * @field "invalid encoding" "byte tuple"
  *        The tuple of bytes that are not valid under the encoding
@@ -224,11 +225,15 @@ Public "decoding corrector" is a new field atom;
  * A class that contains instructions for the encoding of data.
  * 
  * @type "decoder"
- * @supertype {@type "object" object}
+ * @supertype "object"
  * @category "Codecs"
  * @field "decoding corrector" "[byte tuple]→correction instruction"
  *        a function that takes a character and encodes it per the
  *        specifications of the encoder.
+ * @field "encoded input buffer" "byte tuple"
+ * 		The encoded input buffer.  This field is mutable.
+ * @field "encoded input position" "natural number"
+ * 		The input position of the encoded buffer.  This field is mutable.
  * @author "Richard Arriaga"
  */
 Public class "decoder" extends object
@@ -244,30 +249,30 @@ Public class "decoder" extends object
  * 
  * @method "decode_using_"
  * @category "Codecs"
- * @param "byte tuple"
- * @param "decoder"
+ * @param "byteTuple" "byte tuple"
+ * @param "aDecoder" "decoder"
  * @returns "string"
  *          The decoded string
- * @raises {@type "malformed-encoding exception"}
+ * @raises "malformed-encoding exception"
  *         Thrown when the encoding specification is violated
  * @author "Richard Arriaga"
  */
 Public abstract method "decode_using_" is [byte tuple, decoder]→tuple;
 
 /**
- * The final method call when all the byte data has been read and no further 
- * byte data is expected.  If the continuation contains data when it is awoken
- * this method will return an exception as the final data is incomplete.  If 
- * there is no data within the continuation, then the decoding is complete
+ * The final abstract method call when all the byte data has been read and no 
+ * further byte data is expected.  If the continuation contains data when it is
+ * awoken this method will return an exception as the final data is incomplete. 
+ * If there is no data within the continuation, then the decoding is complete
  * in a correct state.
  * 
- * @method "byte tuple"
+ * @method "finish decoding with_"
  * @category "Codecs"
- * @param "decoder"
+ * @param "aDecoder" "decoder"
  *        The codec specification for decoding the byte tuple.
- * @return "string"
+ * @returns "string"
  *         The decoded string.
- * @raises {@type "malformed-encoding exception"}
+ * @raises "malformed-encoding exception"
  *         Thrown when the encoding specification is violated 
  * @author "Richard Arriaga"
  */
@@ -280,7 +285,7 @@ Public abstract method "finish decoding with_" is [decoder]→tuple;
  * well as methods that accept decoders as input.
  * 
  * @type "codec"
- * @supertype {@type "encoder" encoder} {@type "decoder" decoder}
+ * @supertype "encoder" "decoder"
  * @category "Codecs"
  * @author "Richard Arriaga"
  */
@@ -289,13 +294,13 @@ Public class "codec" extends encoder ∩ decoder;
 Public "internal encoder" is a new field atom;
 
 /**
- * An iterator with data that is to be encoded into byte data.
+ * An encoding iterator with data that is to be encoded into byte data.
  * 
  * @type "encoding iterator"
- * @supertype {@type "iterator" iterator}
+ * @supertype "iterator"
  * @category "Codecs"
+ * @field "element source" "iterator"
  * @field "internal encoder" "encoder"
- * @field "source" "iterator"
  * @author "Richard Arriaga"
  */
 Public class "encoding iterator" extends buffered iterator ∩ iterator of byte
@@ -304,21 +309,19 @@ Public class "encoding iterator" extends buffered iterator ∩ iterator of byte
 		internal encoder : encoder;
 
 /**
- * A constructor method to create a decoding iterator with a variable buffer 
+ * A constructor method to create an encoding iterator with a variable buffer 
  * size
  *
- * @method "a decoding iterator that buffers_element|elements of_using_"
- * @category "Codec"
- * @param "size" "natural number" 
- *        The size of the iterator buffer
- * @param "src" "iterator of byte" 
- *        The source iterator to be decoded
- * @param "dc" "decoder" 
- *        The codec that is used to complete the decoding of the iterator
- * @returns "decoding iterator"
- *          Decoding iterator.
- * @raises "exceptionName" 
- *		exceptionDescription
+ * @method "an encoding iterator that buffers_element|elements of_using_"
+ * @category "Codecs"
+ * @param "size" "[2..∞)" 
+ *        The maximum size of the iterator buffer
+ * @param "src" "iterator" 
+ *        The source iterator to be encoded
+ * @param "ec" "encoder" 
+ *        The encoder that is used to complete the encoding of the iterator
+ * @returns "encoding iterator"
+ *          A new encoding iterator.
  * @author "Richard Arriaga"
  */
 Public method "an encoding iterator that buffers_element|elements of_using_" is
@@ -352,9 +355,14 @@ encoding iterator's next buffer method is
  * An iterator with byte data that is to be decoded into character data.
  * 
  * @type "decoding iterator"
- * @supertype {@type "iterator" object}
+ * @supertype "buffered iterator" "iterator of character"
  * @category "Codecs"
+ * @field "element source" "iterator of byte"
+ * 		The source data to decode.
  * @field "internal decoder" "decoder"
+ * 		The decoder used to decode the data
+ * @field "maximum buffer size" "[4096..∞)"
+ * 		The buffer size
  * @author "Richard Arriaga"
  */
 Public class "decoding iterator" extends 
@@ -372,17 +380,15 @@ Public class "decoding iterator" extends
  * size
  *
  * @method "a decoding iterator that buffers_element|elements of_using_"
- * @category "Codec"
- * @param "size" "natural number" 
+ * @category "Codecs"
+ * @param "size" "[4096..∞)" 
  *        The size of the iterator buffer
  * @param "src" "iterator of byte" 
  *        The source iterator to be decoded
  * @param "dc" "decoder" 
- *        The codec that is used to complete the decoding of the iterator
+ *        The decoder that is used to complete the decoding of the iterator
  * @returns "decoding iterator"
  *          A decoding iterator
- * @raises "exceptionName" 
- *         exceptionDescription
  * @author "Richard Arriaga"
  */
 Public method "a decoding iterator that buffers_element|elements of_using_" is
@@ -403,9 +409,11 @@ Public method "a decoding iterator that buffers_element|elements of_using_" is
  * of 32,768.
  *
  * @method "a decoding iterator of_using_"
- * @category "Codec"
+ * @category "Codecs"
  * @param "src" "iterator of byte" 
- *        The source iterator to be decoded
+ *      The source iterator to be decoded
+ * @param "cdc" "codec"
+ * 		The codec for decoding data.
  * @returns "decoding iterator"
  *          A decoding iterator
  * @raises "exceptionName" 

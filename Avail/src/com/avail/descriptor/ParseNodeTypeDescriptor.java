@@ -542,7 +542,7 @@ extends TypeDescriptor
 				.replace('_', ' ');
 			builder.append(name);
 		}
-		builder.append("→");
+		builder.append("⇒");
 		object.expressionType().printOnAvoidingIndent(
 			builder,
 			recursionList,

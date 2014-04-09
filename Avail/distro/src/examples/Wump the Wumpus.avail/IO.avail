@@ -71,7 +71,7 @@ Public method "Report:_" is [text : string | _reporter(text);] : ⊤;
  *
  * @global "reader" "[]→string"
  */
-_reader : []→string := [next line from console];
+_reader : []→string := [next line from standard input];
 Public variable ↑_reader is "Wump the Wumpus reader";
 
 /**

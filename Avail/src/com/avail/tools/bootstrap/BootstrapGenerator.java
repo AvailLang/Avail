@@ -107,6 +107,40 @@ public final class BootstrapGenerator
 	private final ResourceBundle errorCodeBundle;
 
 	/**
+	 * Answer the name of the specified error code.
+	 *
+	 * @param numericCode The error code.
+	 * @return The localized name of the error code.
+	 */
+	private final String errorCodeName (final A_Number numericCode)
+	{
+		final AvailErrorCode code = AvailErrorCode.byNumericCode(
+			numericCode.extractInt());
+		assert code != null : String.format(
+			"no %s for %s", AvailErrorCode.class.getSimpleName(), numericCode);
+		final String name = errorCodeBundle.getString(errorCodeKey(code));
+		return name;
+	}
+
+	/**
+	 * Answer the name of the exception associated with the specified error
+	 * code.
+	 *
+	 * @param numericCode The error code.
+	 * @return The localized name of the error code.
+	 */
+	private final String exceptionName (final A_Number numericCode)
+	{
+		final AvailErrorCode code = AvailErrorCode.byNumericCode(
+			numericCode.extractInt());
+		assert code != null : String.format(
+			"no %s for %s", AvailErrorCode.class.getSimpleName(), numericCode);
+		final String codeName = errorCodeBundle.getString(errorCodeKey(code));
+		final String name = codeName.replace(" code", " exception");
+		return name;
+	}
+
+	/**
 	 * Answer the correct {@linkplain File file name} for the {@linkplain
 	 * ModuleDescriptor module} specified by the {@linkplain Key key}.
 	 *
@@ -288,8 +322,7 @@ public final class BootstrapGenerator
 	 * @param writer
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
-	private void generateSpecialObjectModuleBody (
-		final PrintWriter writer)
+	private void generateSpecialObjectModuleBody (final PrintWriter writer)
 	{
 		// Find the length of the longest name.
 		int length = 0;
@@ -322,8 +355,9 @@ public final class BootstrapGenerator
 						preamble.getString(specialObjectUse.name()), i));
 			}
 		}
-
 		writer.println();
+
+		// Emit the special object methods.
 		for (int i = 0; i < specialObjects.size(); i++)
 		{
 			if (specialObjects.get(i) != null)
@@ -335,11 +369,22 @@ public final class BootstrapGenerator
 					System.err.println("missing key/value: " + nonalphaKey);
 					continue;
 				}
+				final String methodName =
+					specialObjectBundle.getString(nonalphaKey);
 				final String alphaKey = specialObjectAlphabeticKey(i);
+				final String typeKey = specialObjectTypeKey(i);
 				final String commentKey = specialObjectCommentKey(i);
 				if (specialObjectBundle.containsKey(commentKey))
 				{
-					writer.print(specialObjectBundle.getString(commentKey));
+					final String commentTemplate =
+						specialObjectBundle.getString(commentKey);
+					String type = specialObjectBundle.getString(typeKey);
+					if (type == null || type.isEmpty())
+					{
+						type = methodName;
+					}
+					writer.print(MessageFormat.format(
+						commentTemplate, methodName, type));
 				}
 				final String key =
 					specialObjectBundle.containsKey(alphaKey)
@@ -349,8 +394,7 @@ public final class BootstrapGenerator
 					"_" + specialObjectBundle.getString(key).replace(' ', '_');
 				writer.println(MessageFormat.format(
 					preamble.getString(definingMethodUse.name()),
-					stringify(
-						specialObjectBundle.getString(nonalphaKey)),
+					stringify(methodName),
 					String.format("%n[%n\t%s%n];%n", constantName)));
 			}
 		}
@@ -454,20 +498,29 @@ public final class BootstrapGenerator
 				? falliblePrimitivesModuleName
 				: infalliblePrimitivesModuleName;
 		}
+		// Write the copyright.
 		writer.println(MessageFormat.format(
 			preamble.getString(availCopyright.name()),
 			preamble.getString(key.name()),
 			new Date()));
+		// Write the generated module notice.
 		writer.println(MessageFormat.format(
 			preamble.getString(generatedModuleNotice.name()),
 			BootstrapGenerator.class.getName(),
 			new Date()));
+		// Write the header.
 		final StringBuilder uses = new StringBuilder();
 		uses.append("\n\t\"");
 		uses.append(preamble.getString(originModuleName.name()));
 		uses.append('"');
 		if (fallible != null)
 		{
+			if (Boolean.TRUE.equals(fallible))
+			{
+				uses.append(",\n\t\"");
+				uses.append(preamble.getString(errorCodesModuleName.name()));
+				uses.append("\"");
+			}
 			uses.append(",\n\t\"");
 			uses.append(preamble.getString(specialObjectsModuleName.name()));
 			uses.append("\",\n\t\"");
@@ -580,13 +633,57 @@ public final class BootstrapGenerator
 		builder.append(primitive.primitiveNumber);
 		if (!primitive.hasFlag(Flag.CannotFail))
 		{
-			final String varTypeName = specialObjectName(
-				primitive.failureVariableType());
 			builder.append(" (");
 			builder.append(
 				preamble.getString(primitiveFailureVariableName.name()));
 			builder.append(" : ");
-			builder.append(varTypeName);
+			final A_Type varType = primitive.failureVariableType();
+			if (varType.isEnumeration())
+			{
+				if (varType.isSubtypeOf(
+					IntegerRangeTypeDescriptor.naturalNumbers()))
+				{
+					builder.append("{");
+					final A_Set instances = varType.instances();
+					final List<A_Number> codes = new ArrayList<>();
+					for (final A_Number instance : instances)
+					{
+						codes.add(instance);
+					}
+					Collections.sort(
+						codes,
+						new Comparator<A_Number>()
+						{
+							@Override
+							public int compare (
+								final @Nullable A_Number o1,
+								final @Nullable A_Number o2)
+							{
+								assert o1 != null;
+								assert o2 != null;
+								return o1.extractInt() - o2.extractInt();
+							}
+						});
+					for (final A_Number code : codes)
+					{
+						final String errorCodeName = errorCodeName(code);
+						builder.append("\n\t\t");
+						builder.append(errorCodeName);
+						builder.append(',');
+					}
+					// Discard the trailing comma.
+					builder.setLength(builder.length() - 1);
+					builder.append("}ᵀ");
+				}
+				else
+				{
+					builder.append(specialObjectName(ANY.o()));
+				}
+			}
+			else
+			{
+				builder.append(specialObjectName(varType));
+			}
 			builder.append(')');
 		}
 		builder.append(";\n");
@@ -678,15 +775,30 @@ public final class BootstrapGenerator
 		final String commentKey = primitiveCommentKey(primitive);
 		if (primitiveBundle.containsKey(commentKey))
 		{
-			final Object[] formatArgs = new Object[primitive.argCount()];
-			for (int i = 1; i <= formatArgs.length; i++)
+			// Compute the number of template arguments.
+			final int primitiveArgCount = primitive.argCount();
+			final int templateArgCount = 2 + primitiveArgCount * 2 +
+				(primitive.hasFlag(Flag.CannotFail)
+				? 0
+				: (primitive.failureVariableType().isEnumeration()
+					? primitive.failureVariableType()
+						.instanceCount().extractInt()
+					: 1));
+			final Object[] formatArgs = new Object[templateArgCount];
+			// The method name goes into the first slot…
+			formatArgs[0] = primitiveBundle.getString(primitive.name());
+			// …then come the parameter names, followed by their types…
+			final A_Type paramsType =
+				primitive.blockTypeRestriction().argsTupleType();
+			for (int i = 1; i <= primitiveArgCount; i++)
 			{
 				final String argNameKey =
 					primitiveParameterNameKey(primitive, i);
 				final String argName;
 				if (primitiveBundle.containsKey(argNameKey))
 				{
-					final String localized = primitiveBundle.getString(argNameKey);
+					final String localized =
+						primitiveBundle.getString(argNameKey);
 					argName = !localized.isEmpty()
 						? localized
 						: preamble.getString(parameterPrefix.name()) + i;
@@ -695,7 +807,58 @@ public final class BootstrapGenerator
 				{
 					argName = preamble.getString(parameterPrefix.name()) + i;
 				}
-				formatArgs[i - 1] = argName;
+				formatArgs[i] = argName;
+				formatArgs[i + primitiveArgCount] = specialObjectName(
+					paramsType.typeAtIndex(i));
+			}
+			// …then the return type…
+			formatArgs[primitiveArgCount * 2 + 1] =
+				primitive.blockTypeRestriction().returnType();
+			// …then the exceptions.
+			if (!primitive.hasFlag(Flag.CannotFail))
+			{
+				int raiseIndex = primitiveArgCount * 2 + 2;
+				final A_Type varType = primitive.failureVariableType();
+				if (varType.isEnumeration())
+				{
+					if (varType.isSubtypeOf(
+						IntegerRangeTypeDescriptor.naturalNumbers()))
+					{
+						final A_Set instances = varType.instances();
+						final List<A_Number> codes = new ArrayList<>();
+						for (final A_Number instance : instances)
+						{
+							codes.add(instance);
+						}
+						Collections.sort(
+							codes,
+							new Comparator<A_Number>()
+							{
+								@Override
+								public int compare (
+									final @Nullable A_Number o1,
+									final @Nullable A_Number o2)
+								{
+									assert o1 != null;
+									assert o2 != null;
+									return o1.extractInt() - o2.extractInt();
+								}
+							});
+						for (final A_Number code : codes)
+						{
+							formatArgs[raiseIndex++] = exceptionName(code);
+						}
+					}
+					else
+					{
+						formatArgs[raiseIndex] =
+							specialObjectName(ANY.o());
+					}
+				}
+				else
+				{
+					formatArgs[raiseIndex] = specialObjectName(varType);
+				}
 			}
 			// Check if the string uses single-quotes incorrectly.  They should
 			// only be used for quoting brace-brackets, and should be doubled
@@ -771,6 +934,52 @@ public final class BootstrapGenerator
 	}
 
 	/**
+	 * Generate the bootstrap {@linkplain Primitive primitive} tuple-to-set
+	 * converter. This will be used to provide precise failure variable types.
+	 *
+	 * @param writer
+	 *        The {@linkplain PrintWriter output stream}.
+	 */
+	private void generatePrimitiveToSetMethod (final PrintWriter writer)
+	{
+		final Primitive primitive = P_109_TupleToSet.instance;
+		final StringBuilder statements = new StringBuilder();
+		statements.append('\t');
+		statements.append(preamble.getString(primitiveKeyword.name()));
+		statements.append(' ');
+		statements.append(primitive.primitiveNumber);
+		statements.append(";\n");
+		final String block = block(
+			primitiveMethodParameterDeclarations(primitive, false),
+			statements.toString(),
+			primitive.blockTypeRestriction().returnType());
+		generateMethod("{«_‡,»}", block, writer);
+	}
+
+	/**
+	 * Generate the bootstrap {@linkplain Primitive primitive} enumeration
+	 * method. This will be used to provide precise failure variable types.
+	 *
+	 * @param writer
+	 *        The {@linkplain PrintWriter output stream}.
+	 */
+	private void generatePrimitiveEnumMethod (final PrintWriter writer)
+	{
+		final Primitive primitive = P_065_CreateEnumeration.instance;
+		final StringBuilder statements = new StringBuilder();
+		statements.append('\t');
+		statements.append(preamble.getString(primitiveKeyword.name()));
+		statements.append(' ');
+		statements.append(primitive.primitiveNumber);
+		statements.append(";\n");
+		final String block = block(
+			primitiveMethodParameterDeclarations(primitive, false),
+			statements.toString(),
+			primitive.blockTypeRestriction().returnType());
+		generateMethod("_ᵀ", block, writer);
+	}
+
+	/**
 	 * Generate the bootstrap {@linkplain Primitive primitive} failure method.
 	 * This will be invoked if any primitive fails during the compilation of the
 	 * bootstrap modules.
@@ -778,8 +987,7 @@ public final class BootstrapGenerator
 	 * @param writer
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
-	private void generatePrimitiveFailureMethod (
-		final PrintWriter writer)
+	private void generatePrimitiveFailureMethod (final PrintWriter writer)
 	{
 		final Primitive primitive = P_256_EmergencyExit.instance;
 		final StringBuilder statements = new StringBuilder();
@@ -804,8 +1012,7 @@ public final class BootstrapGenerator
 	 * @param writer
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
-	private void generatePrimitiveFailureFunction (
-		final PrintWriter writer)
+	private void generatePrimitiveFailureFunction (final PrintWriter writer)
 	{
 		final A_BasicObject functionType = FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -959,7 +1166,8 @@ public final class BootstrapGenerator
 		statements.append(
 			preamble.getString(primitiveFailureVariableName.name()));
 		statements.append(" : ");
-		statements.append(specialObjectName(primitive.failureVariableType()));
+		statements.append(
+			specialObjectName(IntegerRangeTypeDescriptor.naturalNumbers()));
 		statements.append(')');
 		statements.append(";\n");
 		statements.append('\t');
@@ -1041,6 +1249,8 @@ public final class BootstrapGenerator
 		// function.
 		if (Boolean.TRUE.equals(fallible))
 		{
+			generatePrimitiveToSetMethod(writer);
+			generatePrimitiveEnumMethod(writer);
 			generatePrimitiveFailureMethod(writer);
 			generatePrimitiveFailureFunction(writer);
 			generatePrimitiveFailureFunctionGetter(writer);
@@ -1216,6 +1426,7 @@ public final class BootstrapGenerator
 		{
 			originModuleName,
 			specialObjectsModuleName,
+			errorCodesModuleName,
 			primitivesModuleName,
 			infalliblePrimitivesModuleName,
 			falliblePrimitivesModuleName

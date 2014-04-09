@@ -34,6 +34,8 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Fallibility.*;
+import static com.avail.exceptions.AvailErrorCode.*;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.VariableSetException;
@@ -138,5 +140,14 @@ extends Primitive
 			successLabel,
 			canFailPrimitive,
 			skipReturnCheck);
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE.numericCode(),
+				E_CANNOT_MODIFY_FINAL_JAVA_FIELD.numericCode())));
 	}
 }

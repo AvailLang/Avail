@@ -45,7 +45,26 @@ public abstract class AbstractStacksTag
 
 	/**
 	 * Create HTML content from implementation
+	 * @param htmlFileMap
+	 * 		The map of all HTML files in Stacks
 	 * @return the HTML tagged content
 	 */
-	public abstract String toHTML();
+	public abstract String toHTML(final HTMLFileMap htmlFileMap);
+
+	/**
+	 * @param numberOfTabs
+	 * 		the number of tabs to insert into the string.
+	 * @return
+	 * 		a String consisting of the number of tabs requested in
+	 * 		in numberOfTabs.
+	 */
+	public String tabs(final int numberOfTabs)
+	{
+		final StringBuilder stringBuilder = new StringBuilder();
+		for (int i = 1; i <= numberOfTabs; i++)
+		{
+			stringBuilder.append('\t');
+		}
+		return stringBuilder.toString();
+	}
 }

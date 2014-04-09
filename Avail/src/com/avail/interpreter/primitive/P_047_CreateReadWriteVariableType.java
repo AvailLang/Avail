@@ -1,5 +1,5 @@
 /**
- * SingularDocumentComponent.java
+ * P_047_CreateReadWriteVariableType.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,53 +30,49 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.stacks;
+package com.avail.interpreter.primitive;
 
-
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
 
 /**
- * A singular piece of Avail method/class documentation. .e.g.
- * '@method "take from_until_"'
+ * <strong>Primitive 47</strong>: Answer a {@linkplain VariableTypeDescriptor
+ * variable type} with the specified read and write types.
  *
- * @author Richard A Arriaga &lt;rich@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class SingularDocumentComponent extends DocumentComponent
+public final class P_047_CreateReadWriteVariableType
+extends Primitive
 {
-
 	/**
-	 * Construct a new {@link SingularDocumentComponent}.
-	 *
-	 * @param component The name of the documentation component.
-	 * @param contents The contents of this particular component.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public SingularDocumentComponent (
-		final String component, final String contents)
-	{
-		super(component);
-		this.contents = contents;
-	}
-
-	/**
-	 * The contents of the component.  e.g "<any…|1..>"
-	 */
-	final String contents;
-
+	public final static Primitive instance =
+		new P_047_CreateReadWriteVariableType().init(
+			2, CannotFail, CanInline, CanFold);
 
 	@Override
-	String createMinimizedJsonLine (final boolean endInComma)
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
-		if (endInComma)
-			{return String.format("\"%s\":\"%s\",", component,contents);}
-		return String.format("\"%s\":\"%s\"", component,contents);
+		assert args.size() == 2;
+		final A_Type readType = args.get(0);
+		final A_Type writeType = args.get(1);
+		return interpreter.primitiveSuccess(
+			VariableTypeDescriptor.fromReadAndWriteTypes(readType, writeType));
 	}
 
 	@Override
-	String createformatedJsonLine (final boolean endInComma, final int tabLevel)
+	protected A_Type privateBlockTypeRestriction ()
 	{
-		if (endInComma)
-			{return String.format("%s\"%s\" : \"%s\",\n",
-				generateTabs(tabLevel),component,contents);}
-		return String.format("%s\"%s\" : \"%s\"\n",
-			generateTabs(tabLevel),component,contents);
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				InstanceMetaDescriptor.topMeta(),
+				InstanceMetaDescriptor.topMeta()),
+			VariableTypeDescriptor.mostGeneralType());
 	}
 }

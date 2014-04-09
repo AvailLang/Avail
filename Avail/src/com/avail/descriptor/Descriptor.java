@@ -4110,6 +4110,7 @@ extends AbstractDescriptor
 
 	@Override
 	A_Bundle o_BundleOrCreate (final AvailObject object)
+		throws SignatureException
 	{
 		throw unsupportedOperationException();
 	}

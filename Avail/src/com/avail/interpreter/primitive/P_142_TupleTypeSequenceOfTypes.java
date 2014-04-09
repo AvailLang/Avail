@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -99,5 +100,14 @@ public final class P_142_TupleTypeSequenceOfTypes extends Primitive
 				IntegerRangeTypeDescriptor.wholeNumbers()),
 			TupleTypeDescriptor.zeroOrMoreOf(
 				InstanceMetaDescriptor.anyMeta()));
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_SUBSCRIPT_OUT_OF_BOUNDS.numericCode(),
+				E_NEGATIVE_SIZE.numericCode())));
 	}
 }

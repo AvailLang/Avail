@@ -65,6 +65,8 @@ public class GrammaticalRestrictionCommentImplementation extends
 	 * 		The overall description of the implementation
 	 * @param categories
 	 * 		The categories the implementation appears in
+	 * @param aliases
+	 * 		The aliases the implementation is known by
 	 * @param forbids
 	 * 		The forbids tag contents
 	 */
@@ -75,10 +77,11 @@ public class GrammaticalRestrictionCommentImplementation extends
 		final ArrayList<StacksSeeTag> sees,
 		final StacksDescription description,
 		final ArrayList<StacksCategoryTag> categories,
+		final ArrayList<StacksAliasTag> aliases,
 		final TreeMap<Integer,StacksForbidsTag> forbids)
 	{
 		super(signature, commentStartLine, author, sees, description,
-			categories);
+			categories,aliases);
 		this.forbids = forbids;
 	}
 
@@ -114,23 +117,45 @@ public class GrammaticalRestrictionCommentImplementation extends
 	}
 
 	@Override
-	public String toHTML ()
+	public String toHTML (final HTMLFileMap htmlFileMap)
 	{
 		final StringBuilder stringBuilder = new StringBuilder();
 
-		stringBuilder.append("<h4 class=\"MethodSectionHeader\">Grammatical "
-			+ "restrictions:</h4>\n<div class=\"MethodSectionContent\">\n"
-            + "<table>\n<thead>\n<tr>\n<th style=\"white-space:nowrap\" "
-            + "class=\"GColLabelNarrow\" scope=\"col\">Argument Position</th>\n"
-            + "<th class=\"GColLabelWide\" scope=\"col\">Prohibited "
-            + "Expression</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n");
+		stringBuilder
+			.append(tabs(1) + "<h4 "
+					+ HTMLBuilder
+						.tagClass(HTMLClass.classMethodSectionHeader)
+					+ ">Grammatical "
+			+ "restrictions:</h4>\n")
+			.append(tabs(1) + "<div "
+				+ HTMLBuilder.tagClass(HTMLClass.classMethodSectionContent)
+				+ ">\n")
+            .append(tabs(2) + "<table "
+            	+ HTMLBuilder.tagClass(HTMLClass.classStacks)
+            	+ ">\n")
+            .append(tabs(3) + "<thead>\n")
+            .append(tabs(4) + "<tr>\n")
+            .append(tabs(5) + "<th style=\"white-space:nowrap\" "
+            	+ HTMLBuilder.tagClass(
+            		HTMLClass.classStacks, HTMLClass.classGColLabelNarrow)
+            	+ " scope=\"col\">Argument Position</th>\n")
+            .append(tabs(5) + "<th "
+            	+ HTMLBuilder.tagClass(
+            		HTMLClass.classStacks, HTMLClass.classGColLabelWide)
+            	+ " scope=\"col\">Prohibited Expression</th>\n")
+            .append(tabs(4) + "</tr>\n")
+            .append(tabs(3) + "</thead>\n")
+            .append(tabs(3) + "<tbody>\n")
+            .append(tabs(4) + "<tr>\n");
 
 		for (final int arity : forbids.navigableKeySet())
 		{
-			stringBuilder.append(forbids.get(arity).toHTML());
+			stringBuilder.append(forbids.get(arity).toHTML(htmlFileMap));
 		}
 
-		stringBuilder.append("</tbody>\n</table>\n</div>\n");
+		stringBuilder.append(tabs(3) + "</tbody>\n")
+		.append(tabs(2) + "</table>\n")
+		.append(tabs(1) + "</div>\n");
 		return stringBuilder.toString();
 	}
 

@@ -32,6 +32,7 @@
 
 package com.avail.tools.bootstrap;
 
+import java.text.MessageFormat;
 import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 import com.avail.exceptions.AvailErrorCode;
@@ -148,6 +149,21 @@ final class Resources
 	}
 
 	/**
+	 * Answer the key for the specified special object's preferred Stacks
+	 * @type name.
+	 *
+	 * @param index
+	 *        The special object index.
+	 * @return A key that may be used to access the special object's preferred
+	 *         Stacks @type name in the appropriate {@linkplain
+	 *         ResourceBundle resource bundle}.
+	 */
+	public static String specialObjectTypeKey (final int index)
+	{
+		return specialObjectKey(index) + "_type";
+	}
+
+	/**
 	 * Answer the key for the {@code index}-th parameter name of the specified
 	 * {@linkplain Primitive primitive}.
 	 *
@@ -163,7 +179,7 @@ final class Resources
 		final Primitive primitive,
 		final int index)
 	{
-		return primitive.name() + "_" + (index - 1);
+		return primitive.name() + "_" + index;
 	}
 
 	/**
@@ -214,7 +230,8 @@ final class Resources
 	}
 
 	/**
-	 * Escape line feed characters in the argument.
+	 * Escape the string to survive multiple passes through a {@link
+	 * MessageFormat}.
 	 *
 	 * @param propertyValue
 	 *        A property value that will be written to a properties file.
@@ -243,10 +260,13 @@ final class Resources
 		propertiesCopyright,
 		generatedPropertiesNotice,
 		availCopyright,
+		specialObjectCommentTemplate,
+		specialObjectCommentTypeTemplate,
+		specialObjectCommentValueTemplate,
 		methodCommentTemplate,
-		methodCommentParametersTemplate,
 		methodCommentParameterTemplate,
 		methodCommentReturnsTemplate,
+		methodCommentRaisesTemplate,
 		generatedModuleNotice,
 		originModuleName,
 		originModuleHeader,

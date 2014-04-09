@@ -44,12 +44,28 @@ public class CommentSignature
 	/**
 	 * The name of the class/method the comment describes.
 	 */
-	final String name;
+	final private String name;
+
+	/**
+	 * @return the implementation name.
+	 */
+	public String name()
+	{
+		return name;
+	}
 
 	/**
 	 *  The module this implementation appears in.
 	 */
-	final String module;
+	final private String module;
+
+	/**
+	 * @return the implementation module location.
+	 */
+	public String module()
+	{
+		return module;
+	}
 
 	/**
 	 * Construct a new {@link CommentSignature}.
@@ -68,14 +84,34 @@ public class CommentSignature
 	}
 
 	/**
-	 * Create the HTML representation of the signarture.
+	 * Create the HTML representation of the signature.
 	 * @return
 	 */
 	public String toHTML ()
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
-			.append("<div class=\"ModuleLocation\">")
-			.append(module).append('.').append(name).append("</div>\n");
+			.append(tabs(2) + "<div "
+				+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
+				+">")
+			.append(module).append(": <strong>")
+			.append(name).append("</strong></div>\n");
+		return stringBuilder.toString();
+	}
+
+	/**
+	 * @param numberOfTabs
+	 * 		the number of tabs to insert into the string.
+	 * @return
+	 * 		a String consisting of the number of tabs requested in
+	 * 		in numberOfTabs.
+	 */
+	public String tabs(final int numberOfTabs)
+	{
+		final StringBuilder stringBuilder = new StringBuilder();
+		for (int i = 1; i <= numberOfTabs; i++)
+		{
+			stringBuilder.append("\t");
+		}
 		return stringBuilder.toString();
 	}
 }

@@ -56,6 +56,7 @@ public class ImplementationGroup
 	 * renamed.
 	 */
 	private final A_String name;
+
 	/**
 	 * @return the name
 	 */
@@ -63,6 +64,16 @@ public class ImplementationGroup
 	{
 		return name;
 	}
+
+	/**
+	 * The set of all names referring to this implementation
+	 */
+	private HashSet<String> aliases;
+
+	/**
+	 * The relative file path and file name
+	 */
+	private String filepath;
 
 	/**
 	 * A list of {@linkplain MethodCommentImplementation methods}
@@ -78,22 +89,13 @@ public class ImplementationGroup
 	}
 
 	/**
-	 * @param newMethods the {@linkplain MethodCommentImplementation methods}
-	 * to add
-	 */
-	public void addMethods (
-		final ArrayList<MethodCommentImplementation> newMethods)
-	{
-		methods.addAll(newMethods);
-	}
-
-	/**
 	 * @param newMethod the {@linkplain MethodCommentImplementation method}
 	 * to add
 	 */
 	public void addMethod (final MethodCommentImplementation newMethod)
 	{
 		methods.add(newMethod);
+		addAlias(newMethod.signature().name());
 	}
 
 	/**
@@ -114,17 +116,6 @@ public class ImplementationGroup
 	}
 
 	/**
-	 * @param newSemanticRestrictions the {@linkplain
-	 * SemanticRestrictionCommentImplementation semantic restrictions} to add
-	 */
-	public void addSemanticRestrictions (
-		final ArrayList<SemanticRestrictionCommentImplementation>
-			newSemanticRestrictions)
-	{
-		semanticRestrictions.addAll(newSemanticRestrictions);
-	}
-
-	/**
 	 * @param newSemanticRestriction the new {@linkplain
 	 * SemanticRestrictionCommentImplementation semantic restriction} to add
 	 */
@@ -132,6 +123,7 @@ public class ImplementationGroup
 		final SemanticRestrictionCommentImplementation newSemanticRestriction)
 	{
 		semanticRestrictions.add(newSemanticRestriction);
+		addAlias(newSemanticRestriction.signature().name());
 	}
 
 	/**
@@ -152,18 +144,6 @@ public class ImplementationGroup
 	}
 
 	/**
-	 * @param newGrammaticalRestrictions the {@linkplain
-	 * GrammaticalRestrictionCommentImplementation grammatical restrictions}
-	 * to add
-	 */
-	public void addGrammaticalRestrictions (
-		final ArrayList<GrammaticalRestrictionCommentImplementation>
-			newGrammaticalRestrictions)
-	{
-		grammaticalRestrictions.addAll(newGrammaticalRestrictions);
-	}
-
-	/**
 	 * @param newGrammaticalRestriction the {@linkplain
 	 * GrammaticalRestrictionCommentImplementation grammatical restrictions}
 	 * to add
@@ -173,6 +153,7 @@ public class ImplementationGroup
 			newGrammaticalRestriction)
 	{
 		grammaticalRestrictions.add(newGrammaticalRestriction);
+		addAlias(newGrammaticalRestriction.signature().name());
 	}
 
 	/**
@@ -194,6 +175,7 @@ public class ImplementationGroup
 		final ClassCommentImplementation aClassImplemenataion)
 	{
 		this.classImplementation = aClassImplemenataion;
+		addAlias(aClassImplemenataion.signature().name());
 	}
 
 	/**
@@ -214,6 +196,7 @@ public class ImplementationGroup
 	public void global (final GlobalCommentImplementation aGlobal)
 	{
 		this.global = aGlobal;
+		addAlias(aGlobal.signature().name());
 	}
 
 	/**
@@ -229,6 +212,7 @@ public class ImplementationGroup
 			new ArrayList<SemanticRestrictionCommentImplementation>();
 		this.grammaticalRestrictions =
 			new ArrayList<GrammaticalRestrictionCommentImplementation>();
+		this.aliases = new HashSet<String>();
 	}
 
 	/**
@@ -276,19 +260,23 @@ public class ImplementationGroup
 	 * 		The {@linkplain StacksSynchronizer} used to control the creation
 	 * 		of Stacks documentation
 	 * @param runtime
-	 *        An {@linkplain AvailRuntime runtime}.
+	 *      An {@linkplain AvailRuntime runtime}.
+	 * @param htmlFileMap
+	 * 		A mapping object for all html files in stacks
 	 */
 	public void toHTML(final Path outputPath,
 		final String qualifiedMethodName,
 		final String htmlOpenContent, final String htmlCloseContent,
 		final StacksSynchronizer synchronizer,
-		final AvailRuntime runtime)
+		final AvailRuntime runtime,
+		final HTMLFileMap htmlFileMap)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append(htmlOpenContent)
-			.append("<h2 class=\"MethodHeading\">")
+			.append(tabs(1) + "<h2 "
+				+ HTMLBuilder.tagClass(HTMLClass.classMethodHeading) + ">")
 			.append(name.asNativeString())
-			.append("</h2>\n<br>");
+			.append("</h2>\n");
 
 		if (!methods.isEmpty())
 		{
@@ -306,33 +294,43 @@ public class ImplementationGroup
 
 				}
 				stringBuilder
-					.append(grammaticalRestrictions.get(0).toHTML());
+					.append(grammaticalRestrictions.get(0).toHTML(htmlFileMap));
 			}
 
-			stringBuilder.append("<h4 class=\"MethodSectionHeader\">"
-					+ "Implementations:</h4>\n"
-					+ "<div class=\"MethodSectionContent\">");
+			stringBuilder.append(tabs(1) + "<h4 "
+					+ HTMLBuilder.tagClass(HTMLClass.classMethodSectionHeader)
+					+ ">Implementations:</h4>\n")
+				.append(tabs(1)
+					+ "<div "
+					+ HTMLBuilder
+						.tagClass(HTMLClass.classMethodSectionContent) + ">\n");
 
 			for (final MethodCommentImplementation implementation : methods)
 			{
-				stringBuilder.append(implementation.toHTML());
+				stringBuilder.append(implementation.toHTML(htmlFileMap));
 			}
 
-			stringBuilder.append("</div>");
+			stringBuilder.append(tabs(1) + "</div>\n");
 
 			if (!semanticRestrictions.isEmpty())
 			{
-				stringBuilder.append("<h4 class=\"MethodSectionHeader\">"
-					+ "Semantic restrictions:</h4>\n"
-					+ "<div class=\"MethodSectionContent\">");
+				stringBuilder
+					.append(tabs(1) + "<h4 "
+						+ HTMLBuilder
+							.tagClass(HTMLClass.classMethodSectionHeader)
+						+ ">Semantic restrictions:</h4>\n")
+					.append(tabs(1) + "<div "
+						+ HTMLBuilder
+							.tagClass(HTMLClass.classMethodSectionContent)
+						+ ">\n");
 
-				for (final SemanticRestrictionCommentImplementation implementation :
-					semanticRestrictions)
+				for (final SemanticRestrictionCommentImplementation
+					implementation : semanticRestrictions)
 				{
-					stringBuilder.append(implementation.toHTML());
+					stringBuilder.append(implementation.toHTML(htmlFileMap));
 				}
 
-				stringBuilder.append("</div>");
+				stringBuilder.append(tabs(1) + "</div>\n");
 			}
 			final String localPath = qualifiedMethodName
 				.substring(1, qualifiedMethodName.lastIndexOf('/') + 1);
@@ -347,8 +345,9 @@ public class ImplementationGroup
 		}
 		else if (!(global == null))
 		{
-			stringBuilder.append(global().toHTML());
-			final int leafFileNameStart = qualifiedMethodName.lastIndexOf('/') + 1;
+			stringBuilder.append(global().toHTML(htmlFileMap));
+			final int leafFileNameStart =
+				qualifiedMethodName.lastIndexOf('/') + 1;
 			final String localPath = qualifiedMethodName
 				.substring(1, leafFileNameStart);
 
@@ -363,7 +362,7 @@ public class ImplementationGroup
 		}
 		else if (!(classImplementation == null))
 		{
-			stringBuilder.append(classImplementation.toHTML());
+			stringBuilder.append(classImplementation.toHTML(htmlFileMap));
 
 			final String localPath = qualifiedMethodName
 				.substring(1, qualifiedMethodName.lastIndexOf('/') + 1);
@@ -423,5 +422,77 @@ public class ImplementationGroup
 		}
 
 		return categorySet;
+	}
+
+	/**
+	 * @param numberOfTabs
+	 * 		the number of tabs to insert into the string.
+	 * @return
+	 * 		a String consisting of the number of tabs requested in
+	 * 		in numberOfTabs.
+	 */
+	public String tabs(final int numberOfTabs)
+	{
+		final StringBuilder stringBuilder = new StringBuilder();
+		for (int i = 1; i <= numberOfTabs; i++)
+		{
+			stringBuilder.append('\t');
+		}
+		return stringBuilder.toString();
+	}
+
+	/**
+	 * @return the aliases
+	 */
+	public HashSet<String> aliases ()
+	{
+		return aliases;
+	}
+
+	/**
+	 * @param alias the alias to add to the set
+	 */
+	public void addAlias (final String alias)
+	{
+		aliases.add(alias);
+	}
+
+	/**
+	 * @param newAliases the alias to add to the set
+	 */
+	public void addAliases (final String newAliases)
+	{
+		aliases.addAll(aliases);
+	}
+
+	/**
+	 * @return the filepath
+	 */
+	public String filepath ()
+	{
+		return filepath;
+	}
+
+	/**
+	 * @param newFilepath the filepath to set
+	 */
+	public void filepath (final String newFilepath)
+	{
+		this.filepath = newFilepath;
+	}
+
+	/**
+	 * Generate json objects of alias names
+	 * @return
+	 */
+	public ArrayList<String> aliasFilePathsJSON()
+	{
+		final ArrayList<String> jsonFilePaths = new ArrayList<String>();
+		for (final String alias : aliases)
+		{
+			jsonFilePaths
+				.add("\"" + alias + "\" : " + "\"" + filepath() + "\"");
+		}
+		return jsonFilePaths;
 	}
 }

@@ -40,7 +40,6 @@ Uses
 	"Control Structures",
 	"Definers",
 	"Early Assertions",
-	"Early Error Codes",
 	"Early Functions",
 	"Early Logic",
 	"Early Sets",
@@ -340,3 +339,40 @@ Semantic restriction "_^_" is
 |
 	base ^ power
 ];
+
+/**
+ * Calculate the logarithm of the specified number to the specified base, using
+ * {@type "double"}s for intermediate values.
+ * 
+ * @method "log_of_"
+ * @param "b" "integer"
+ *        The logarithm base to use.
+ * @param "n" "integer"
+ *        The number whose logarithm should be computed.
+ * @returns "double"
+ *          The logarithm of {@param "n"} to base {@param "b"}.
+ * @category "Mathematics" "Numbers"
+ */
+Stable method "log_of_" is
+[
+	b : natural number,
+	n : extended integer
+|
+	log b→double of n→double
+] : double;
+
+Stable method "log_of_" is
+[
+	b : natural number,
+	n : ∞'s type
+|
+	∞→double
+] : double;
+
+Stable method "log_of_" is
+[
+	b : natural number,
+	n : nonpositive integer
+|
+	Raise a cannot-compute-logarithm-of-nonpositive-number exception
+] : ⊥;

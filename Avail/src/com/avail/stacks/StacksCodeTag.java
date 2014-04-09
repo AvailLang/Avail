@@ -67,7 +67,7 @@ public class StacksCodeTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML ()
+	public String toHTML (final HTMLFileMap htmlFileMap)
 	{
 		return ("<code>" + codeStyledText + "</code>");
 	}

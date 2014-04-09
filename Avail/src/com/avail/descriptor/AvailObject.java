@@ -6603,7 +6603,7 @@ implements
 	}
 
 	@Override
-	public A_Bundle bundleOrCreate ()
+	public A_Bundle bundleOrCreate () throws SignatureException
 	{
 		return descriptor.o_BundleOrCreate(this);
 	}

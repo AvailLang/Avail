@@ -55,7 +55,7 @@ public final class P_400_BootstrapBlockAfterArgumentPrefix extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_400_BootstrapBlockAfterArgumentPrefix().init(
-			1, CannotFail, Bootstrap);
+			1, Bootstrap);
 
 	@Override
 	public Result attempt (
@@ -119,5 +119,14 @@ public final class P_400_BootstrapBlockAfterArgumentPrefix extends Primitive
 							LITERAL_NODE.create(
 								InstanceMetaDescriptor.anyMeta()))))),
 			TOP.o());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_DECLARATION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM.numericCode(),
+				E_LOCAL_DECLARATION_SHADOWS_ANOTHER.numericCode())));
 	}
 }

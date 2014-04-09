@@ -37,21 +37,22 @@ Uses
 	"Exceptions",
 	"Foundation"
 Names
-	"next line«from console»⁇",
-	"next_«from console»⁇",
-	"next_character|characters«from console»⁇"
+	"next line«from standard input»⁇",
+	"next«value in»⁇_«from standard input»⁇",
+	"next_character|characters«from standard input»⁇"
 Body
 
 /**
- * Read `count` characters from the standard input stream.
- * 
- * @method "next_character|characters«from console»⁇"
+ * Read {@param "count"} characters from the standard input stream.
+ *
+ * @category "I/O" "Standard I/O"
+ * @method "next_character|characters«from standard input»⁇"
  * @param "count" "whole number"
  *        The desired number of characters.
  * @returns "string"
- *          A string containing `count` characters.
+ *          A string containing {@param "count"} characters.
  */
-Public method "next_character|characters«from console»⁇" is
+Public method "next_character|characters«from standard input»⁇" is
 [
 	count : whole number
 |
@@ -64,10 +65,10 @@ Public method "next_character|characters«from console»⁇" is
 ] : string;
 
 /**
- * @method "next_character|characters«from console»⁇"
+ * @method "next_character|characters«from standard input»⁇"
  * @restricts "whole number's type"
  */
-Semantic restriction "next_character|characters«from console»⁇" is
+Semantic restriction "next_character|characters«from standard input»⁇" is
 [
 	count : whole number's type
 |
@@ -76,13 +77,15 @@ Semantic restriction "next_character|characters«from console»⁇" is
 
 /**
  * Read a line of text from the standard input stream. Reading stops once a line
- * feed ("\(10)") has been consumed. The result does not include any line feeds.
+ * feed {@code "\\n"} (U+000A) has been consumed. The result does not include
+ * any line feeds.
  *
- * @method "next line«from console»⁇"
+ * @category "I/O" "Standard I/O"
+ * @method "next line«from standard input»⁇"
  * @returns "string"
  *          A line of text (not including any line feeds).
  */
-Public method "next line«from console»⁇" is
+Public method "next line«from standard input»⁇" is
 [
 	result : string := "";
 	Until
@@ -91,7 +94,7 @@ Public method "next line«from console»⁇" is
 		result := eject ↑result ++ <next>;
 		next = ¢"\n"
 	];
-	nonempty ::= cast result into [ t : nonempty string | t ];
+	nonempty ::= cast result into [t : nonempty string | t];
 	nonempty[1..|nonempty| - 1]
 ] : string;
 
@@ -101,13 +104,13 @@ integerChars ::= "-∞0123456789"→set;
  * Read an integer from the standard input stream. Reading stops once the first
  * inappropriate character has been peeked.
  * 
- * @method "next_«from console»⁇"
+ * @method "next«value in»⁇_«from standard input»⁇"
  * @param "range" "extended integer's type"
  *        The range within which the extended integer must lie.
  * @returns "extended integer"
  *          An extended integer within the requested range.
  */
-Public method "next_«from console»⁇" is
+Public method "next«value in»⁇_«from standard input»⁇" is
 [
 	range : extended integer's type
 |
@@ -120,7 +123,7 @@ Public method "next_«from console»⁇" is
 		next ∈ integerChars
 	];
 	Reset to mark;
-	nonempty ::= cast text into [ t : nonempty string | t ];
+	nonempty ::= cast text into [t : nonempty string | t];
 	value ::= nonempty[1..|nonempty| - 1]→extended integer;
 	If ¬value ∈ range then
 	[
@@ -130,10 +133,10 @@ Public method "next_«from console»⁇" is
 ] : extended integer;
 
 /**
- * @method "next_«from console»⁇"
+ * @method "next«value in»⁇_«from standard input»⁇"
  * @restricts "extended integer's type's type"
  */
-Semantic restriction "next_«from console»⁇" is
+Semantic restriction "next«value in»⁇_«from standard input»⁇" is
 [
 	range : extended integer's type's type
 |

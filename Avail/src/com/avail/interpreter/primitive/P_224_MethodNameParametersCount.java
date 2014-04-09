@@ -87,4 +87,11 @@ extends Primitive
 				TupleTypeDescriptor.stringType()),
 			IntegerRangeTypeDescriptor.wholeNumbers());
 	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			MessageSplitter.possibleErrors);
+	}
 }

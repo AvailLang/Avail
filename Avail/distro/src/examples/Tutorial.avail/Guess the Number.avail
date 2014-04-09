@@ -1,0 +1,124 @@
+/*
+ * Guess the Number.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Guess the Number"
+Uses
+	"Avail"
+Extends
+	"Avail" = ("-_")
+Entries
+	"Play guess a number between_and_"
+Body
+
+sentinel ::= ∞;
+
+Private method "player's next try for a number in_" is
+[
+	theRange : integer's type
+|
+	Print: format "Guess a number between “minimum” and “maximum”: " with
+		minimum ::= ⎣theRange⎦,
+		maximum ::= ⎡theRange⎤;
+	try [next line from standard input→theRange] else [sentinel]
+];
+
+Private method "tries to guess_from range_" is
+[
+	theNumber : integer,
+	theRange : integer's type
+|
+	count : natural number := 1;
+	guess : extended integer;
+	Do [guess := player's next try for a number in theRange;]
+	until [guess = theNumber]
+	alternate with
+	[
+		If guess = sentinel then [/* Don't do anything special. */]
+		else if [guess > theNumber] then
+		[
+			Print: "Too high.\n";
+			count := count + 1;
+		]
+		else
+		[
+			Print: "Too low.\n";
+			count := count + 1;
+		];
+	];
+	count
+];
+
+Private method "comment for_tries given a range of_" is
+[
+	guesses : natural number,
+	range : integer's type
+|
+	/* This is the maximum number of tries using a binary search strategy. */
+	expected ::= ⎡log 2 of (2 max (⎡range⎤-⎣range⎦))⎤+1;
+	if guesses = 1 then ["Your clairvoyance is superb!\n"]
+	else if [guesses ≤ expected] then
+	[
+		format "“count” guesses? Your clairvoyance is adequate.\n"
+		with count ::= guesses
+	]
+	else
+	[
+		format "“count” guesses?? Wow. Maybe try a binary search next time…\n"
+		with count ::= guesses
+	]
+];
+
+Private method "Play guess a number between_and_" is
+[
+	minimum : integer,
+	maximum : integer
+|
+	rng ::= a pRNG;
+	theRange ::= [minimum..maximum];
+	theNumber ::= rng's next value in theRange;
+	guessCount ::= tries to guess theNumber from range theRange;
+	comment ::= comment for guessCount tries given a range of theRange;
+	Print: comment;
+];
+
+Semantic restriction "Play guess a number between_and_" is
+[
+	minimumType : integer's type,
+	maximumType : integer's type
+|
+	If ⎣minimumType⎦ ≥ ⎡maximumType⎤ then
+	[
+		Reject parse, expected:
+			"the minimum value to be smaller than the maximum value"
+	];
+	⊤
+];

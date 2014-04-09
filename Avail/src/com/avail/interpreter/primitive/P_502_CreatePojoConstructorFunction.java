@@ -99,8 +99,7 @@ public final class P_502_CreatePojoConstructorFunction extends Primitive
 		}
 		catch (final Exception e)
 		{
-			return interpreter.primitiveFailure(
-				E_JAVA_METHOD_NOT_AVAILABLE);
+			return interpreter.primitiveFailure(E_JAVA_METHOD_NOT_AVAILABLE);
 		}
 		assert constructor != null;
 		// Wrap each of the marshaled argument types into raw pojos. These
@@ -205,5 +204,14 @@ public final class P_502_CreatePojoConstructorFunction extends Primitive
 			// can raise java.lang.Throwable.
 			FunctionTypeDescriptor.forReturnType(
 				PojoTypeDescriptor.mostGeneralType()));
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_POJO_TYPE_IS_ABSTRACT.numericCode(),
+				E_JAVA_METHOD_NOT_AVAILABLE.numericCode())));
 	}
 }

@@ -34,7 +34,9 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
+import java.util.Arrays;
 import java.util.List;
+import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.exceptions.*;
 import com.avail.interpreter.*;
@@ -109,5 +111,17 @@ extends Primitive
 				FunctionTypeDescriptor.forReturnType(
 					InstanceMetaDescriptor.topMeta())),
 			TOP.o());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+					E_LOADING_IS_OVER.numericCode(),
+					E_AMBIGUOUS_NAME.numericCode(),
+					E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES.numericCode(),
+					E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode()))
+				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
 	}
 }

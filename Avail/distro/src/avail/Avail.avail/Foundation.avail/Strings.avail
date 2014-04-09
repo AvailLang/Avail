@@ -39,9 +39,9 @@ Uses
 	"Control Structures",
 	"Definers",
 	"Early Assertions",
-	"Early Error Codes",
 	"Early Functions",
 	"Enumeration Support",
+	"Error Codes",
 	"Literals",
 	"Logic",
 	"Maps",
@@ -73,8 +73,7 @@ Names
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)",
 
 	/* Conversions. */
-	"_(base_)",
-	"_→integer"
+	"_(base_)"
 Body
 
 /* These are the circled numbers. */
@@ -962,7 +961,7 @@ Public stable method "_(base_)" is
 		multiplier := -1;
 	];
 	answer ::=
-		if realDigits[1] = ¢∞ then [ ∞ ]
+		if realDigits[1] = ¢∞ then [∞]
 		else
 		[
 			partial : whole number := 0;
@@ -971,13 +970,13 @@ Public stable method "_(base_)" is
 				digit : character
 			|
 				If ¬digit ∈ baseAlphabet then fail;
-				cp ::= cast digit's code point into [ t : [cp_0..cp_z] | t ];
+				cp ::= cast digit's code point into [t : [cp_0..cp_z] | t];
 				value ::=
-					if cp_0 ≤ cp ≤ cp_9 then [ cp - cp_0 ]
-					else if [ cp_a ≤ cp ≤ cp_z ] then [ cp - cp_a + 10 ]
-					else if [ cp_A ≤ cp ≤ cp_Z] then [ cp - cp_A + 10 ]
+					if cp_0 ≤ cp ≤ cp_9 then [cp - cp_0]
+					else if [cp_a ≤ cp ≤ cp_z] then [cp - cp_a + 10]
+					else if [cp_A ≤ cp ≤ cp_Z] then [cp - cp_A + 10]
 					else fail;
-				strongValue ::= cast value into [ t : [0..36) | t ];
+				strongValue ::= cast value into [t : [0..36) | t];
 				partial := eject ↑partial × base + strongValue;
 			];
 			partial
@@ -988,38 +987,30 @@ Public stable method "_(base_)" is
 /**
  * Convert the specified string to an integer.
  * 
- * @method "_→integer"
+ * @method "_→_"
  * @param "str" "string"
  *        A string of base-10 digits.
  * @returns "integer"
  * @category "Numbers" "Integers" "Conversions" "Stringification"
  */
-Public stable method "_→integer" is
+Method "_→_" is
 [
-	str : string
+	str : string,
+	range : extended integer's type
 |
 	fail ::= [early failure function(invalid-argument code)];
-	If |str| > 1 ∧ [ str[1] = ¢0 ] then fail;
-	cast str (base 10) into [ t : integer | t ] else fail
-] : integer;
-
-/**
- * Convert the specified string to an extended integer.
- * 
- * @method "_→extended integer"
- * @param "str" "string"
- *        A string of base-10 digits.
- * @returns "extended integer"
- * @category "Numbers" "Integers" "Conversions" "Stringification"
- */
-Stable method "_→extended integer" is
-[
-	str : string
-|
-	fail ::= [early failure function(invalid-argument code)];
-	If |str| > 1 ∧ [ str[1] = ¢0 ] then fail;
-	str (base 10)
+	If |str| > 1 ∧ [str[1] = ¢0] then fail;
+	n ::= str (base 10);
+	if n ∈ range then [n] else fail
 ] : extended integer;
+
+Semantic restriction "_→_" is
+[
+	str : string's type,
+	range : extended integer's type's type
+|
+	range's instance
+];
 
 /**
  * Compare two strings lexicographically by Unicode code point.

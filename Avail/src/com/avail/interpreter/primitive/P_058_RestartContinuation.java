@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.interpreter.Primitive.Flag.SwitchesContinuation;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -51,7 +51,7 @@ public final class P_058_RestartContinuation extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_058_RestartContinuation().init(
-			1, SwitchesContinuation);
+			1, CannotFail, SwitchesContinuation);
 
 	@Override
 	public Result attempt (

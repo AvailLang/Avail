@@ -33,8 +33,10 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.exceptions.AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD;
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.*;
 
 /**
@@ -47,7 +49,7 @@ public final class P_012_ClearValue extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_012_ClearValue().init(
-		1, CanInline, HasSideEffect, CannotFail);
+		1, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -57,7 +59,14 @@ public final class P_012_ClearValue extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Variable var = args.get(0);
-		var.clearValue();
+		try
+		{
+			var.clearValue();
+		}
+		catch (final VariableSetException e)
+		{
+			return interpreter.primitiveFailure(e.numericCode());
+		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
@@ -67,5 +76,12 @@ public final class P_012_ClearValue extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(VariableTypeDescriptor.mostGeneralType()),
 			TOP.o());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_CANNOT_MODIFY_FINAL_JAVA_FIELD.numericCode());
 	}
 }

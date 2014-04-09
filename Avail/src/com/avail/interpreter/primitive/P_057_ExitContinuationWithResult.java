@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.exceptions.AvailErrorCode.E_CONTINUATION_EXPECTED_STRONGER_TYPE;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.SwitchesContinuation;
 import static com.avail.interpreter.Primitive.Result.*;
 import java.util.List;
@@ -111,5 +111,12 @@ public final class P_057_ExitContinuationWithResult extends Primitive
 				ContinuationTypeDescriptor.mostGeneralType(),
 				ANY.o()),
 			BottomTypeDescriptor.bottom());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_CONTINUATION_EXPECTED_STRONGER_TYPE.numericCode());
 	}
 }

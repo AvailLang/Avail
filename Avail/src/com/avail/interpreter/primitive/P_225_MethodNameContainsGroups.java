@@ -86,4 +86,11 @@ extends Primitive
 				TupleTypeDescriptor.stringType()),
 			EnumerationTypeDescriptor.booleanObject());
 	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			MessageSplitter.possibleErrors);
+	}
 }

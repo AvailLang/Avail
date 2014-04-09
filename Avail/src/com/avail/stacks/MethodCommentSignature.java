@@ -78,7 +78,7 @@ public class MethodCommentSignature extends CommentSignature
 	@Override
 	public String toString ()
 	{
-		return String.format("%s -> %s : %s", name,
+		return String.format("%s -> %s : %s", name(),
 			orderedInputTypes.toString(),returnType);
 	}
 
@@ -86,7 +86,9 @@ public class MethodCommentSignature extends CommentSignature
 	public String toHTML ()
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
-			.append("<div class=\"SignatureHeading\">");
+			.append(tabs(2) + "<div "
+				+ HTMLBuilder.tagClass(HTMLClass.classSignatureHeading)
+				+ ">");
 
 		final int listSize = orderedInputTypes.size();
 
@@ -100,8 +102,10 @@ public class MethodCommentSignature extends CommentSignature
 				.append("</div>\n");
 		}
 
-		stringBuilder.append("<div class=\"ModuleLocation\">Sources: ")
-			.append(module).append(": <strong>").append(name)
+		stringBuilder.append(tabs(2) + "<div "
+				+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
+				+ ">Sources: ")
+			.append(module()).append(": <strong>").append(name())
 			.append("</strong></div>\n");
 
 		return stringBuilder.toString();

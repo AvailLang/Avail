@@ -33,7 +33,9 @@
 package com.avail.tools.bootstrap;
 
 import static com.avail.tools.bootstrap.Resources.*;
+import static com.avail.tools.bootstrap.Resources.Key.*;
 import java.io.*;
+import java.text.MessageFormat;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.A_BasicObject;
@@ -71,11 +73,14 @@ extends PropertiesFileGenerator
 			final A_BasicObject specialObject = specialObjects.get(i);
 			if (specialObject != null)
 			{
+				// Write a primitive descriptive of the special object as a
+				// comment, to assist a human translator.
 				final String text =
 					specialObject.toString().replace("\n", "\n#");
 				writer.print("# ");
 				writer.print(text);
 				writer.println();
+				// Write the method name of the special object.
 				final String key = specialObjectKey(i);
 				keys.add(key);
 				writer.print(key);
@@ -86,6 +91,8 @@ extends PropertiesFileGenerator
 					writer.print(escape(specialObjectName));
 				}
 				writer.println();
+				// Write the name of the module constant that will store the
+				// special object.
 				final String alphabeticKey = specialObjectAlphabeticKey(i);
 				if (properties.containsKey(alphabeticKey))
 				{
@@ -99,14 +106,42 @@ extends PropertiesFileGenerator
 						writer.println(escape(alphabetic));
 					}
 				}
+				// Write the preferred alias that Stacks should indicate.
+				final String typeKey = specialObjectTypeKey(i);
+				keys.add(typeKey);
+				writer.print(typeKey);
+				writer.print('=');
+				final String type = properties.getProperty(typeKey, "");
+				writer.print(escape(type));
+				writer.println();
+				// Write the Stacks comment.
 				final String commentKey = specialObjectCommentKey(i);
 				keys.add(commentKey);
 				writer.print(commentKey);
 				writer.print('=');
 				final String comment = properties.getProperty(commentKey);
-				if (comment != null)
+				if (comment != null && !comment.isEmpty())
 				{
 					writer.print(escape(comment));
+				}
+				else
+				{
+					final String commentTemplate =
+						preambleBundle.getString(
+							specialObjectCommentTemplate.name());
+					final String template;
+					if (specialObject.isType())
+					{
+						template = specialObjectCommentTypeTemplate.name();
+					}
+					else
+					{
+						template = specialObjectCommentValueTemplate.name();
+					}
+					writer.print(escape(
+						MessageFormat.format(
+							commentTemplate,
+							preambleBundle.getString(template))));
 				}
 				writer.println();
 			}

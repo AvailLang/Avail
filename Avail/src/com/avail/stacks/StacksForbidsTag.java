@@ -93,22 +93,39 @@ public class StacksForbidsTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML ()
+	public String toHTML (final HTMLFileMap htmlFileMap)
 	{
 		final int rowSize = forbidMethods.size();
 		final StringBuilder stringBuilder = new StringBuilder()
-			.append("<td class=\"GCode\" rowspan=\"")
-			.append(rowSize).append("\">Argument ").append(arityIndex.toHTML())
-			.append("</td>\n").append( "<td class=\"GCode\">")
-			.append(forbidMethods.get(0).lexeme).append("</td></tr>\n");
+			.append(tabs(5) + "<td "
+				+ HTMLBuilder
+					.tagClass(HTMLClass.classStacks, HTMLClass.classGCode)
+				+ " rowspan=\"")
+			.append(rowSize).append("\">Argument ")
+			.append(arityIndex.toHTML(htmlFileMap))
+			.append("</td>\n")
+			.append(tabs(5) + "<td "
+				+ HTMLBuilder
+					.tagClass(HTMLClass.classStacks, HTMLClass.classGCode)
+				+ ">")
+			.append(forbidMethods.get(0).lexeme)
+			.append("</td>\n")
+			.append(tabs(4) + "</tr>\n");
 
 		if (rowSize > 1)
 		{
 			for (int i = 1; i < rowSize; i++)
 			{
-				stringBuilder.append("<tr> \n<td class=\"GCode\">")
+				stringBuilder
+					.append(tabs(4) + "<tr>\n")
+					.append(tabs(5) + "<td "
+						+ HTMLBuilder
+							.tagClass(
+								HTMLClass.classStacks, HTMLClass.classGCode)
+						+ ">")
 					.append(forbidMethods.get(i).lexeme)
-					.append("</td></tr>\n");
+					.append("</td>\n")
+					.append(tabs(4) + "</tr>\n");
 			}
 		}
 		return stringBuilder.toString();

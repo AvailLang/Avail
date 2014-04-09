@@ -74,6 +74,7 @@ extends Primitive
 
 		final A_Tuple argExpressions = argsListNode.expressionsTuple();
 		final int argsCount = argExpressions.tupleSize();
+		final A_Bundle bundle;
 		try
 		{
 			final MessageSplitter splitter =
@@ -83,12 +84,12 @@ extends Primitive
 				return interpreter.primitiveFailure(
 					E_INCORRECT_NUMBER_OF_ARGUMENTS);
 			}
+			bundle = messageName.bundleOrCreate();
 		}
 		catch (final SignatureException e)
 		{
 			return interpreter.primitiveFailure(e.errorCode());
 		}
-		final A_Bundle bundle = messageName.bundleOrCreate();
 		return interpreter.primitiveSuccess(
 			SendNodeDescriptor.from(
 				bundle,
@@ -118,5 +119,14 @@ extends Primitive
 
 		final A_Type returnType = returnTypeType.instance();
 		return SEND_NODE.create(returnType);
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+					E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode()))
+				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
 	}
 }

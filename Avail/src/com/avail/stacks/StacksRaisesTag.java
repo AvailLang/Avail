@@ -82,14 +82,25 @@ public class StacksRaisesTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML ()
+	public String toHTML (final HTMLFileMap htmlFileMap)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
-			.append("<tr class=\"methodParameters\"><td class=\"ICode\">")
+			.append(tabs(4) + "<tr "
+				+ HTMLBuilder.tagClass(HTMLClass.classMethodParameters)
+				+ ">\n")
+			.append(tabs(5) + "<td "
+				+ HTMLBuilder
+					.tagClass(HTMLClass.classStacks, HTMLClass.classICode)
+				+ ">")
 			.append(exceptionName.lexeme())
-			.append("</td>\n<td class=\"IDesc\">")
-			.append(exceptionDescription.toHTML())
-			.append("</td></tr>\n");
+			.append("</td>\n")
+			.append(tabs(5) + "<td "
+				+ HTMLBuilder
+					.tagClass(HTMLClass.classStacks, HTMLClass.classIDesc)
+				+ ">\n")
+			.append(tabs(6) + exceptionDescription.toHTML(htmlFileMap))
+			.append("\n" + tabs(5) + "</td>\n")
+			.append(tabs(4) + "</tr>\n");
 		return stringBuilder.toString();
 	}
 

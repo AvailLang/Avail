@@ -1,0 +1,208 @@
+/*
+ * Hilbert Hotel.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Hilbert Hotel"
+Uses
+	"Avail"
+Names
+	"a guest named_,_"
+Entries
+	"What's all this`?",
+	"Hey,what do you mean_`?",
+	"Assign_to room`#⁇_",
+	"Evict the guest in room`#⁇_",
+	"Who is in room`#⁇_`?"
+Body
+
+Private method "room number" is [natural number];
+Private method "guest" is [<string…|2>];
+
+Public method "a guest named_,_" is
+[
+	lastName : string,
+	firstName : string
+|
+	<lastName, firstName>
+];
+
+possibleAddresses ::= <"sir", "miss">;
+addressIndex : [1..2] := a pRNG's next value in [1..2];
+inquiry : whole number := 0;
+guests : <guest…|> := <>;
+
+Private method "first available room" is [|guests| + 1];
+
+Private method "Concierge says,_" is
+[
+	pattern : string
+|
+	guest ::= guests[inquiry] else
+		[
+			/* All of the Johns are initially in odd rooms and the Janes in
+			 * evens. Makes sure that they end up in the right places after
+			 * changes to the guest list.
+			 */
+			if |guests| is odd ⊕ inquiry is odd
+			then [a guest named "Doe", "John"]
+			else [a guest named "Doe", "Jane"]
+		];
+	availableRooms ::= 1 to first available room;
+	evictableRooms ::= 1 to |guests|;
+	Print: format pattern ++ "\n" with
+		you ::= possibleAddresses[addressIndex],
+		You ::= capitalize possibleAddresses[addressIndex],
+		"room inquiry" ::= inquiry,
+		"available rooms" ::=
+			if |availableRooms| = 1 then ["room "] else ["rooms "]
+			++ “availableRooms” (as disjunctive list with Oxford comma),
+		"evictable rooms" ::=
+			if |evictableRooms| = 0 then
+			[
+				"rooms… actually, all rooms house conference goers"
+			]
+			else
+			[
+				if |evictableRooms| = 1 then ["room "] else ["rooms "]
+				++ “evictableRooms” (as disjunctive list with Oxford comma)
+			],
+		"guest inquiry" ::= (guest[2] ++ " " ++ guest[1]);
+];
+
+Private method "What's all this`?" is
+[
+	Concierge says,
+		"\"I know that things are very busy with the conference, ‘you’, but \
+		\|please try to get a grip. You are the manager of the Hilbert Hotel, \
+		\|and I am the concierge, your minion. Because of The Conference, \
+		\|there are an infinite number of guests staying here currently. \
+		\|Fortunately the infinity of guests is countable, so we can always \
+		\|make room when new guests show up by announcing over the PA that \
+		\|every guest needs to transfer to the next higher numbered room. Got \
+		\|it? Good! The hotel really needs you at your best, ‘you’, so no more \
+		\|existential crises until the conference is over, okay?\"";
+];
+
+Private method "Hey,what do you mean_`?" is
+[
+	objectionableAddress : string
+|
+	If objectionableAddress ≠ possibleAddresses[addressIndex] then
+	[
+		Concierge says, "\"I didn't say that, I said '‘you’'.\"";
+	]
+	else
+	[
+		addressIndex := if addressIndex = 1 then [2] else [1];
+		Concierge says, "\"I'm sorry, ‘you’, I have a cold.\"";
+	];
+];
+
+Semantic restriction "Hey,what do you mean_`?" is
+[
+	addressType : string's type
+|
+	actualAddress ::= addressType's instance;
+	Unless actualAddress ∈ possibleAddresses then
+	[
+		Reject parse, expected:
+			format "any of ‘allowed’ (not ‘unexpected’)" with
+				allowed ::=
+					“possibleAddresses” (as disjunctive list with Oxford comma),
+				unexpected ::= actualAddress
+	];
+	⊤
+];
+
+Private method "Who is in room`#⁇_`?" is
+[
+	roomNumber : room number
+|
+	inquiry := roomNumber;
+	Concierge says,
+		"\"The guest in room #“room inquiry” is named ‘guest inquiry’.\"";
+];
+
+Private method "Assign_to room`#⁇_" is
+[
+	aGuest : guest,
+	assignedNumber : room number
+|
+	If assignedNumber ≤ first available room then
+	[
+		guests := guests[1..assignedNumber - 1]
+			++ <aGuest>
+			++ guests[assignedNumber..];
+		inquiry := assignedNumber;
+		Concierge says,
+			"\"Very good, ‘you’. I will put ‘guest inquiry’ in “room inquiry”.\"
+			\|
+			\|ATTENTION, ALL GUESTS IN ROOMS NUMBERED “room inquiry” \
+			\|OR HIGHER, PLEASE RELOCATE YOUR PARTY AND BELONGINGS TO THE NEXT \
+			\|HIGHER NUMBERED ROOM. THANK YOU!";
+	]
+	else
+	[
+		Concierge says,
+			"\"‘You’, I am afraid that this room is between two conference \
+			\|goers. The conference goers were very adamant that they should \
+			\|not be broken up. I can only assign new guests to \
+			\|‘available rooms’.\"";
+	];
+];
+
+Private method "Evict the guest in room`#⁇_" is
+[
+	roomNumber : room number
+|
+	If roomNumber < first available room then
+	[
+		inquiry := roomNumber;
+		Concierge says,
+			"\"As you wish, ‘you’. I shall banish ‘guest inquiry’ into the \
+			\|nightmare that is the cold, dark, urban beyond.\"\n";
+		inquiry := roomNumber + 1;
+		Concierge says,
+			"ATTENTION, ALL GUESTS IN ROOMS NUMBERED “room inquiry” \
+			\|OR HIGHER, PLEASE RELOCATE YOUR PARTY AND BELONGINGS TO THE NEXT \
+			\|LOWER NUMBERED ROOM. THANK YOU!";
+		guests := guests[1..roomNumber - 1] ++ guests[roomNumber + 1..];
+	]
+	else
+	[
+		inquiry := roomNumber;
+		Concierge says,
+			"\"‘You’, I would not dare to evict ‘guest inquiry’ from room \
+			\|“room inquiry” before The Conference is concluded. The \
+			\|consequences could be… dire. I cannot comply. My apologies. I \
+			\|can only evict guests from ‘evictable rooms’.\"";
+	];
+];

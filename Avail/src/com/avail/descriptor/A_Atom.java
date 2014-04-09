@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import com.avail.exceptions.SignatureException;
+
 /**
  * {@code A_Atom} is an interface that specifies the atom-specific operations
  * that an {@link AvailObject} must implement.  It's a sub-interface of {@link
@@ -108,8 +110,10 @@ extends A_BasicObject
 	 * associated with it, create one for that purpose and install it.
 	 *
 	 * @return The atom's message bundle.
+	 * @throws SignatureException
+	 *         If anything is wrong with the message name.
 	 */
-	A_Bundle bundleOrCreate ();
+	A_Bundle bundleOrCreate () throws SignatureException;
 
 	/**
 	 * Answer the {@linkplain MessageBundleDescriptor message bundle} associated

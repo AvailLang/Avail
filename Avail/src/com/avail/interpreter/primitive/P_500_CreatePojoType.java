@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import java.lang.reflect.TypeVariable;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
@@ -126,5 +127,14 @@ public final class P_500_CreatePojoType extends Primitive
 					InstanceMetaDescriptor.anyMeta())),
 			InstanceMetaDescriptor.on(
 				PojoTypeDescriptor.mostGeneralType()));
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_JAVA_CLASS_NOT_AVAILABLE.numericCode(),
+				E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode())));
 	}
 }

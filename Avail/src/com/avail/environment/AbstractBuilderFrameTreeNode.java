@@ -37,7 +37,7 @@ import com.avail.builder.AvailBuilder;
 
 /**
  * An {@code AbstractBuilderFrameTreeNode} is a tree node used within some
- * {@link AvailBuilderFrame}.
+ * {@link AvailWorkbench}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

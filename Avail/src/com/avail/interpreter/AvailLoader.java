@@ -378,7 +378,8 @@ public final class AvailLoader
 			final A_Type bodySignature)
 		throws SignatureException
 	{
-		final MessageSplitter splitter = new MessageSplitter(methodName.atomName());
+		final MessageSplitter splitter = new MessageSplitter(
+			methodName.atomName());
 		final int numArgs = splitter.numberOfArguments();
 		final A_Type bodyArgsSizes = bodySignature.argsTupleType().sizeRange();
 		assert bodyArgsSizes.lowerBound().equals(
@@ -470,15 +471,16 @@ public final class AvailLoader
 	 *         If the macro signature is invalid.
 	 */
 	public void addMacroBody (
-		final A_Atom methodName,
-		final A_Tuple prefixFunctions,
-		final A_Function macroBody)
-	throws SignatureException
+			final A_Atom methodName,
+			final A_Tuple prefixFunctions,
+			final A_Function macroBody)
+		throws SignatureException
 	{
 		assert methodName.isAtom();
 		assert macroBody.isFunction();
 
-		final MessageSplitter splitter = new MessageSplitter(methodName.atomName());
+		final MessageSplitter splitter = new MessageSplitter(
+			methodName.atomName());
 		final int numArgs = splitter.numberOfArguments();
 		assert macroBody.code().numArgs() == numArgs
 			: "Wrong number of arguments in macro definition";
@@ -552,8 +554,8 @@ public final class AvailLoader
 	 *         If the signature is invalid.
 	 */
 	public final void addSemanticRestriction (
-		final A_SemanticRestriction restriction)
-	throws SignatureException
+			final A_SemanticRestriction restriction)
+		throws SignatureException
 	{
 		final A_Method method = restriction.definitionMethod();
 		final int numArgs = method.numArgs();
@@ -635,10 +637,13 @@ public final class AvailLoader
 	{
 		methodName.makeShared();
 		illegalArgMsgs.makeShared();
-		final MessageSplitter splitter = new MessageSplitter(methodName.atomName());
+		final MessageSplitter splitter = new MessageSplitter(
+			methodName.atomName());
 		final int numArgs = splitter.numberOfUnderscores();
-		assert numArgs == illegalArgMsgs.tupleSize()
-			: "Wrong number of entries in restriction tuple.";
+		if (illegalArgMsgs.tupleSize() != numArgs)
+		{
+			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
+		}
 		final A_Bundle bundle = methodName.bundleOrCreate();
 		final A_Module theModule = module;
 		final List<A_Set> bundleSets =

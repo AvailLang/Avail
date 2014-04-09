@@ -48,7 +48,15 @@ public abstract class AbstractCommentImplementation
 	 * The {@link CommentSignature signature} of the class/method the comment
 	 * describes.
 	 */
-	final CommentSignature signature;
+	final private CommentSignature signature;
+
+	/**
+	 * @return the signature
+	 */
+	public CommentSignature signature ()
+	{
+		return signature;
+	}
 
 	/**
 	 * The start line in the module the comment being parsed appears.
@@ -76,6 +84,11 @@ public abstract class AbstractCommentImplementation
 	final ArrayList<StacksCategoryTag> categories;
 
 	/**
+	 * The aliases the implementation is known by
+	 */
+	final ArrayList<StacksAliasTag> aliases;
+
+	/**
 	 *
 	 * Construct a new {@link AbstractCommentImplementation}.
 	 *
@@ -92,6 +105,8 @@ public abstract class AbstractCommentImplementation
 	 * 		The overall description of the implementation
 	 * @param categories
 	 * 		The categories the implementation appears in
+	 * @param aliases
+	 * 		The aliases the implementation is known by
 	 */
 	AbstractCommentImplementation(
 		final CommentSignature signature,
@@ -99,7 +114,8 @@ public abstract class AbstractCommentImplementation
 		final ArrayList<StacksAuthorTag> author,
 		final ArrayList<StacksSeeTag> sees,
 		final StacksDescription description,
-		final ArrayList<StacksCategoryTag> categories)
+		final ArrayList<StacksCategoryTag> categories,
+		final ArrayList<StacksAliasTag> aliases)
 	{
 		this.signature = signature;
 		this.commentStartLine = commentStartLine;
@@ -107,6 +123,7 @@ public abstract class AbstractCommentImplementation
 		this.sees = sees;
 		this.description = description;
 		this.categories = categories;
+		this.aliases = aliases;
 	}
 
 	/**
@@ -129,9 +146,11 @@ public abstract class AbstractCommentImplementation
 
 	/**
 	 * Create HTML content from implementation
+	 * @param htmlFileMap
+	 * 		The map of all HTML file linkage
 	 * @return the HTML tagged content
 	 */
-	public abstract String toHTML();
+	public abstract String toHTML(final HTMLFileMap htmlFileMap);
 
 	/**
 	 * @return A set of category String names for this implementation.
@@ -144,5 +163,22 @@ public abstract class AbstractCommentImplementation
 			categorySet.addAll(aTag.getCategorySet());
 		}
 		return categorySet;
+	}
+
+	/**
+	 * @param numberOfTabs
+	 * 		the number of tabs to insert into the string.
+	 * @return
+	 * 		a String consisting of the number of tabs requested in
+	 * 		in numberOfTabs.
+	 */
+	public String tabs(final int numberOfTabs)
+	{
+		final StringBuilder stringBuilder = new StringBuilder();
+		for (int i = 1; i <= numberOfTabs; i++)
+		{
+			stringBuilder.append('\t');
+		}
+		return stringBuilder.toString();
 	}
 }

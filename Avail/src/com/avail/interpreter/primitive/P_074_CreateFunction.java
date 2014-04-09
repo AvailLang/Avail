@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.exceptions.AvailErrorCode.E_WRONG_OUTERS;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -39,8 +39,8 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 74:</strong> Answer a {@linkplain FunctionDescriptor
- * function} built from the {@linkplain CompiledCodeDescriptor raw function}
- * and the outer variables.
+ * function} built from the {@linkplain CompiledCodeDescriptor function
+ * implementation} and the outer variables.
  */
 public final class P_074_CreateFunction extends Primitive
 {
@@ -86,5 +86,12 @@ public final class P_074_CreateFunction extends Primitive
 				CompiledCodeTypeDescriptor.mostGeneralType(),
 				TupleTypeDescriptor.mostGeneralType()),
 			FunctionTypeDescriptor.mostGeneralType());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_WRONG_OUTERS.numericCode());
 	}
 }

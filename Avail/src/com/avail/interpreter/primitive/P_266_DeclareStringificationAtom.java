@@ -37,6 +37,8 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
+import com.avail.exceptions.AvailRuntimeException;
+import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.L1Instruction;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
@@ -75,11 +77,19 @@ extends Primitive
 		writer.argumentTypes(ANY.o());
 		writer.returnType(TupleTypeDescriptor.stringType());
 		writer.write(new L1Instruction(L1Operation.L1_doPushLocal, 1));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doCall,
-				writer.addLiteral(atom.bundleOrCreate()),
-				writer.addLiteral(TupleTypeDescriptor.stringType())));
+		try
+		{
+			writer.write(
+				new L1Instruction(
+					L1Operation.L1_doCall,
+					writer.addLiteral(atom.bundleOrCreate()),
+					writer.addLiteral(TupleTypeDescriptor.stringType())));
+		}
+		catch (final SignatureException e)
+		{
+			assert false : "This should never happen!";
+			throw new AvailRuntimeException(e.errorCode());
+		}
 		final A_Function function = FunctionDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty());

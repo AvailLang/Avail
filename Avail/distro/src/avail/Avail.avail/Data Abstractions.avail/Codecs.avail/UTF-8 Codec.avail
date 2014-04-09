@@ -51,7 +51,7 @@ Body
  * Transfor a contination byte according to UTF-8 specification
  *
  * @method "transform_ as acontinuation byte"
- * @categories "Codec"
+ * @category "Codecs"
  * @param "continuationByte" "byte" 
  *        A continuation byte with leading bits 10.
  * @returns "byte"
@@ -71,8 +71,8 @@ Private method "transform_as a UTF8 continuation byte" is
  * Transforms the input bytes using the appropriate tranformation function to 
  * generate a unicode code point to obtain unicode character.
  *
- * @method "decode_from_"
- * @categories "Codec"
+ * @method "utf-_decode_from_"
+ * @category "Codecs"
  * @param "bytesExpected" "[1..4]" 
  *        The number of bytes that will appear in the byte tuple.  The purpose
  *        of this input is for the sake of optimization.  It allows the
@@ -92,8 +92,8 @@ Private abstract method "utf-_decode_from_" is
  * byte must be 0 as this is the only byte code whose leading byte is the only
  * byte.
  *
- * @method "decode_from_"
- * @categories "Codec"
+ * @method "utf-_decode_from_"
+ * @category "Codecs"
  * @param "bytesExpected" "1's type" 
  *        Only 1 byte is expected in the accumulator.
  * @param "accumulator" "<byte…|..4>"
@@ -116,8 +116,8 @@ Method "utf-_decode_from_" is
  * the range [128..2047].  The leading byte starts with the left most bits
  * as 110xxxxx, where "x" indicates bits of the code point.
  *
- * @method "decode_from_"
- * @categories "Codec"
+ * @method "utf-_decode_from_"
+ * @category "Codecs"
  * @param "bytesExpected" "2's type" 
  *        2 bytes are expected in the accumulator.
  * @param "accumulator" "<byte…|..4>"
@@ -142,8 +142,8 @@ Method "utf-_decode_from_" is
  * the range [2048..65534].  The leading byte starts with the left most bits
  * as 1110xxxx, where "x" indicates bits of the code point.
  *
- * @method "decode_from_"
- * @categories "Codec"
+ * @method "utf-_decode_from_"
+ * @category "Codecs"
  * @param "bytesExpected" "3's type" 
  *        3 bytes are expected in the accumulator.
  * @param "accumulator" "<byte…|..4>"
@@ -170,8 +170,8 @@ Method "utf-_decode_from_" is
  * the range [65536..1114111].  The leading byte starts with the left most bits
  * as 11110xxx, where "x" indicates bits of the code point.
  *
- * @method "decode_from_"
- * @categories "Codec"
+ * @method "utf-_decode_from_"
+ * @category "Codecs"
  * @param "bytesExpected" "4's type" 
  *        4 bytes are expected in the accumulator
  * @param "accumulator" "<byte…|..4>"
@@ -200,7 +200,7 @@ Method "utf-_decode_from_" is
  * the abstract for the entire code point range.  
  * 
  * @method "utf-_encode_"
- * @categories "Codec"
+ * @category "Codecs"
  * @param "cp" "code point"
  *        The code point of the character being encoded.
  * @returns "<byte…|1..4>"
@@ -215,7 +215,7 @@ Private abstract method "utf-_encode_" is [8's type,code point]→<byte…|1..4>
  * be 0 as this is the only byte code whose leading byte is the only byte.
  *
  * @method "utf-_encode_"
- * @categories "Codec"
+ * @category "Codecs"
  * @param "ascii" "[0..127]"
  *        The ascii unicode code point
  * @returns "<byte…|1..4>"
@@ -238,7 +238,7 @@ Method "utf-_encode_" is
  * 110xxxxx10xxxxxx
  *
  * @method "utf-_encode_"
- * @categories "Codec"
+ * @category "Codecs"
  * @param "cp" "[128..2047]"
  *        The unicode code point
  * @returns "<byte…|1..4>"
@@ -263,7 +263,7 @@ Method "utf-_encode_" is
  * 1110xxxx10xxxxxx10xxxxxx
  *
  * @method "utf-_encode_"
- * @categories "Codec"
+ * @category "Codecs"
  * @param "cp" "[2048..65534]"
  *        The unicode code point.
  * @returns "<byte…|1..4>"
@@ -289,7 +289,7 @@ Method "utf-_encode_" is
  * 11110xxx10xxxxxx10xxxxxx10xxxxxx
  *
  * @method "utf-_encode_"
- * @categories "Codec"
+ * @category "Codecs"
  * @param "cp" "[65536..1114111]"
  *        The unicode code point.
  * @returns "<byte…|1..4>"
@@ -315,10 +315,10 @@ Method "utf-_encode_" is
  * from byte tuples.
  * 
  * @type "utf8 decoder"
- * @supertype {@type "object" decoder}
+ * @supertype "decoder"
  * @category "Codecs"
- * @field "encoded input position" "natural number"
- *        The current position in the encoded input buffer
+ * @field "code point range" "[1..1114111]'s type"
+ *        The code point range
  * @author "Richard Arriaga"
  */
 Class "utf8 decoder" extends decoder
@@ -333,7 +333,7 @@ Class "utf8 decoder" extends decoder
  * into byte tuples.
  * 
  * @type "utf8 encoder"
- * @supertype {@type "object" encoder}
+ * @supertype "encoder"
  * @category "Codecs"
  * @field "decoded input buffer" "<byte…|>"
  *        A buffer that holds characters waiting to be encoded.
@@ -353,7 +353,7 @@ Class "utf8 encoder" extends encoder
  * An object that represents both the encoder and decoder for UTF-8.
  * 
  * @type "utf8 codec"
- * @supertype {@type "utf8 encoder" encoder} {@type "utf8 decoder" decoder}
+ * @supertype "utf8 encoder" "utf8 decoder"
  * @category "Codecs"
  * @field "state" "continuation"
  *        A continuation that can be resumed once more data is received if more
@@ -371,7 +371,7 @@ Public class "utf8 codec" extends utf8 encoder ∩ utf8 decoder
  * A UTF-8 codec constructor
  *
  * @method "a UTF-_codec"
- * @categories "Codec"
+ * @category "Codecs"
  * @param "spec" "8's type" 
  *		The specification classification number for UTF
  * @returns "utf8 codec"
@@ -404,14 +404,11 @@ Public method "a UTF-_codec" is
 
 
 /**
- * An exception that indicates the particular bytes attempting to be decoded
- * does not adhere to the specification of the encoder.
+ * An exception that the encoded buffer is exhausted.
  * 
  * @type "encoded-buffer-exhausted exception"
- * @supertype {@type "exception" exception}
+ * @supertype "exception"
  * @category "Codecs"
- * @field "invalid encoding" "byte tuple"
- * 	the tuple of bytes that are not valid under the encoding specifications
  * @author "Richard Arriaga"
  */
 Public explicit class "encoded-buffer-exhausted exception" extends exception;
@@ -420,12 +417,12 @@ Public explicit class "encoded-buffer-exhausted exception" extends exception;
  * Advance the utf8's decode input buffer position
  *
  * @method "Advance_'⁇s encoded input position"
- * @categories "Codecs"
- * @param "utf8" "utf8 decoder" 
- *      a utf8 decoder 
+ * @category "Codecs"
+ * @param "utf8" "utf8 codec" 
+ *      a utf8 codec 
  * @returns "⊤"
  *      none
- * @raises {@type "encoded-buffer-exhausted exception"} 
+ * @raises "encoded-buffer-exhausted exception" 
  *      the encoded input buffer is exhausted
  * @author "Richard Arriaga"
  */
@@ -447,13 +444,12 @@ Private method "Advance_'⁇s encoded input position" is
  * determines the primary byte type
  *
  * @method "_'s⁇primary type"
- * @categories "codec"
+ * @category "Codecs"
  * @param "b" "byte" 
  *		the primary byte to be tested
  * @returns "[1..4]"
  *		how many bytes needed in encoding
- * @raises "exceptionName" 
- *		exceptionDescription
+ * @raises "malformed-encoding exception" 
  * @author "Richard Arriaga"
  */
 Private method "_'s⁇primary type" is
@@ -476,14 +472,12 @@ Private method "_'s⁇primary type" is
  * Returns the next byte from the codec.  The byte is expected to be a leading
  * byte in the UTF-8 encoding.
  *
- * @method "_'⁇s current byte's primary type"
- * @categories "Codecs"
- * @param "utf8" "utf8 decoder" 
- *      a utf8 decoder
+ * @method "_'⁇s next input byte's primary type"
+ * @category "Codecs"
+ * @param "utf8" "utf8 codec" 
+ *      a utf8 codec
  * @returns "[1..4]"
  *      the size of the expected byte tuple
- * @raises "malformed" 
- *      exceptionDescription
  * @author "Richard Arriaga"
  */
 Private method "_'⁇s next input byte's primary type" is
@@ -499,12 +493,12 @@ Private method "_'⁇s next input byte's primary type" is
  * The next byte in the utf8 decoder buffer
  *
  * @method "_'⁇s next secondary byte"
- * @categories "category"
- * @param "utf8" "utf8 decoder" 
- *      a utf-8 decoder
+ * @category "category"
+ * @param "utf8" "utf8 codec" 
+ *      a utf-8 codec
  * @returns "byte"
  *      A byte of the form 10xxxxxx
- * @raises "malformed-encoding exception"}" 
+ * @raises "malformed-encoding exception" 
  *      returned byte is not of type 10xxxxxx
  * @author "Richard Arriaga"
  */
@@ -523,11 +517,10 @@ Private method "_'⁇s next secondary byte" is
 ] : byte;
 
 /**
- * An exception that indicates the particular bytes attempting to be decoded
- * does not adhere to the specification of the encoder.
+ * An exception that indicates the particular codec is out of data.
  * 
  * @type "codec-buffer-out-of-data exception"
- * @supertype {@type "exception" exception}
+ * @supertype "exception"
  * @category "Codecs"
  * @author "Richard Arriaga"
  */
@@ -596,12 +589,10 @@ utf8DecoderFunction ::=
  * 
  * @method "decode_using_"
  * @category "Codecs"
- * @param "byte tuple"
- * @param "codec"
+ * @param "input" "byte tuple"
+ * @param "utf8" "utf8 codec"
  * @returns "string"
  * 	the decoded string
- * @raises {@type "malformed-encoding exception"}
- * 	Thrown when the encoding specification is violated
  * @author "Richard Arriaga"
  */
 Method "decode_using_" is
@@ -643,11 +634,9 @@ Method "decode_using_" is
  * 
  * @method "finish decoding with_"
  * @category "Codecs"
- * @param "utf8" "codec"
+ * @param "utf8" "utf8 codec"
  * @returns "string"
  * 	the decoded string
- * @raises {@type "malformed-encoding exception"}
- * 	Thrown when the encoding specification is violated
  * @author "Richard Arriaga"
  */
 Method "finish decoding with_" is
@@ -677,13 +666,13 @@ Method "finish decoding with_" is
 /**
  * A method that encodes a string using the provided encoder.
  * 
- * @method "byte encode_using_"
+ * @method "encode_using_"
  * @category "Codecs"
- * @param "string"
+ * @param "input" "string"
  * 	The string to be encoded
- * @param "encoder"
+ * @param "utf8" "utf8 codec"
  * 	The encoder used to encode the string
- * @exception {@type "unsupported-character exception"}
+ * @exception "unsupported-character exception"
  * 	thrown when an encoding does not surrport the character being processed
  * @returns "<[0..255]…|>"
  * 	a byte
@@ -705,13 +694,15 @@ Method "encode_using_" is
 ] : byte tuple;
 	
 /**
- * An iterator with data that is to be encoded into byte data.
+ * An encoding iterator with data that is to be encoded into utf8 byte data.
  * 
- * @type "encoding iterator"
- * @supertype {@type "iterator" iterator}
+ * @type "utf8 encoding iterator"
+ * @supertype "encoding iterator"
  * @category "Codecs"
- * @field "internal encoder" "encoder"
- * @field "source" "iterator"
+ * @field "element source" "iterator of character"
+ * 		The source data for the iterator
+ * @field "internal encoder" "utf8 encoder"
+ * 		The encoder used to encode the data.
  * @author "Richard Arriaga"
  */
 Public class "utf8 encoding iterator" extends encoding iterator
@@ -719,21 +710,18 @@ Public class "utf8 encoding iterator" extends encoding iterator
 		element source : iterator of character, 
 		internal encoder : utf8 encoder;
 /**
- * A constructor method to create a decoding iterator with a variable buffer 
- * size
+ * A constructor method to create a encoding iterator
  *
- * @method "a decoding iterator that buffers_element|elements of_using_"
- * @categories "Codec"
- * @param "size" "natural number" 
- *		the size of the iterator buffer
- * @param "src" "iterator of byte" 
+ * @method "a utf8 encoding iterator that buffers_characters of_using_"
+ * @category "Codecs"
+ * @param "size" "[2..∞)" 
+ *		the maximum buffer size
+ * @param "src" "iterator of character" 
  *		the source iterator to be decoded
- * @param "dc" "decoder" 
- *		the codec that is used to complete the decoding of the iterator
- * @returns "decoding iterator"
+ * @param "ec" "utf8 encoder" 
+ *		the codec that is used to complete the encoding of the iterator
+ * @returns "utf8 encoding iterator"
  *		a decoding iterator
- * @raises "exceptionName" 
- *		exceptionDescription
  * @author "Richard Arriaga"
  */
 Public method 

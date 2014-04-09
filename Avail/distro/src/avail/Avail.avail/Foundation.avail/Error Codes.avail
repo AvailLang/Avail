@@ -1,0 +1,131 @@
+/*
+ * Early Error Codes.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Error Codes"
+Versions
+	"dev"
+Uses
+	"Bootstrap",
+	"Early Assertions",
+	"Early Control Structures",
+	"Early Definers",
+	"Early Logic",
+	"Early Math",
+	"Early Tuples",
+	"Literals",
+	"Variables"
+Names
+	"error codes"
+
+	/* Quite a few names are introduced, but all dynamically by the
+	 * "Next error code_" defining method (whose only purpose is to produce
+	 * publicly available methods).
+	 */
+Body
+
+/** 
+ * A map from the error codes to their names (corresponding to the method
+ * names).
+ *
+ * @global "errorCodes" "map"
+ */
+errorCodes : {natural number→string|whole number} := {};
+
+/**
+ * Answer the map from "Foundation" error codes to their names. These methods
+ * correspond to the method names by which the error codes may be referenced.
+ *
+ * @method "error codes"
+ * @returns "{natural number→string|whole number}"
+ *          The requested map.
+ * @category "Bootstrap" "Exceptions"
+ */
+Public method "error codes" is [errorCodes];
+
+/**
+ * Define a method named {@method "name"} that stably answers {@param "code"}.
+ * 
+ * @method "Next error code is_(_)"
+ * @param "baseName" "string"
+ *        The name of the new method (without the trailing " code").
+ * @param "code" "natural number"
+ *        The error code.
+ * @returns "⊤"
+ * @category "Bootstrap" "Declarations" "Exceptions"
+ */
+Private method "Next error code is_(_)" is
+[
+	baseName : string,
+	code : natural number
+|
+	Assert: ¬code ∈ errorCodes ("code " ++ “code” ++ " already in use");
+	name ::= baseName ++ " code";
+	/* Strengthen the implementation function's return type to the exact value.
+	 * This involves the construction of a decorator function.
+	 */
+	functionType ::= function accepting <> and returning code's type;
+	implementation ::= new functionType applying [ code ];
+	Method name is implementation;
+	errorCodes := cast eject ↑errorCodes + code→name
+		into [ t : {natural number→string|natural number} | t ];
+	Publish new name: name;
+];
+
+Invoke
+[
+	numberedCodes ::= <
+		<1000, "object-type-extension-contains-duplicates">,
+		<1001, "object-type-extension-did-not-produce-subtype">,
+		<1002, "object-instantiation-contains-duplicates">,
+		<1004, "object-instantiation-did-not-produce-instance">,
+		<1005, "invalid-argument">,
+		<1006, "runaway-format-variable">,
+		<1007, "empty-format-variable">,
+		<1008, "invalid-format-metacharacter-escape">,
+		<1009, "invalid-format-metacharacter-use">,
+		<1010, "format-variable-interpolation-failed">,
+		<1011, "invalid-format-variable">,
+		<1012, "missing-format-variable-binding">,
+		<1013, "cannot-compute-logarithm-for-nonpositive-base">,
+		<1014, "cannot-compute-logarithm-of-nonpositive-number">
+	>;
+	From 1 to |numberedCodes| do
+	[
+		i : natural number
+	|
+		pair ::= numberedCodes[i];
+		errorNumber ::= pair[1];
+		errorString ::= pair[2];
+		Next error code is errorString (errorNumber);
+		true
+	];
+] with <>;

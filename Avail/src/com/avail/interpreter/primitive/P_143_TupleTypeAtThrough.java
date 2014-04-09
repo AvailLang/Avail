@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -48,7 +48,7 @@ public final class P_143_TupleTypeAtThrough extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_143_TupleTypeAtThrough().init(3, CanFold);
+		new P_143_TupleTypeAtThrough().init(3, CannotFail, CanFold);
 
 	@Override
 	public Result attempt (
@@ -65,9 +65,9 @@ public final class P_143_TupleTypeAtThrough extends Primitive
 			? startIndex.extractInt()
 			: Integer.MAX_VALUE;
 		final int endInt =
-			endIndex.equals(InfinityDescriptor.positiveInfinity())
-			? Integer.MAX_VALUE
-			: endIndex.extractInt();
+			endIndex.isInt()
+			? endIndex.extractInt()
+			: Integer.MAX_VALUE;
 		return interpreter.primitiveSuccess(
 			tupleType.unionOfTypesAtThrough(startInt, endInt));
 	}

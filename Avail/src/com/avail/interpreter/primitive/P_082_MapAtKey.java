@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -102,5 +102,12 @@ public final class P_082_MapAtKey extends Primitive
 		}
 		// Fall back on the map type's value type.
 		return mapType.valueType();
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_KEY_NOT_FOUND.numericCode());
 	}
 }

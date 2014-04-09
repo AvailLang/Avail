@@ -35,6 +35,8 @@ import static com.avail.descriptor.InfinityDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
 import static com.avail.interpreter.Primitive.Fallibility.*;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.exceptions.AvailErrorCode.*;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.ArithmeticException;
@@ -108,5 +110,14 @@ extends Primitive
 				|| bType.isFloat() || bType.isDouble())
 			? CallSiteCannotFail
 			: CallSiteCanFail;
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_CANNOT_DIVIDE_BY_ZERO.numericCode(),
+				E_CANNOT_DIVIDE_INFINITIES.numericCode())));
 	}
 }

@@ -36,6 +36,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME;
 import static com.avail.exceptions.AvailErrorCode.E_ATOM_ALREADY_EXISTS;
 import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
@@ -58,8 +59,7 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_624_CreateFiberHeritableAtom().init(
-			1, CannotFail, CanInline);
+		new P_624_CreateFiberHeritableAtom().init(1, CanInline);
 
 	@Override
 	public Result attempt (
@@ -128,5 +128,14 @@ extends Primitive
 			TupleDescriptor.from(
 				TupleTypeDescriptor.stringType()),
 			ATOM.o());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_ATOM_ALREADY_EXISTS.numericCode(),
+				E_AMBIGUOUS_NAME.numericCode())));
 	}
 }

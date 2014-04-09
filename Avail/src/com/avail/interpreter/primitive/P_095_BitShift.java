@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -76,5 +77,12 @@ extends Primitive
 				IntegerRangeTypeDescriptor.integers(),
 				IntegerRangeTypeDescriptor.integers()),
 			IntegerRangeTypeDescriptor.integers());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_TOO_LARGE_TO_REPRESENT.numericCode());
 	}
 }

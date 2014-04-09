@@ -45,645 +45,646 @@ Extends
 Uses
 	"Origin"
 Names
-	/*  87 */ "abstract method definition code",
-	/*  54 */ "alternative must not contain arguments code",
-	/*  85 */ "ambiguous method definition code",
-	/*  35 */ "ambiguous name code",
-	/*  74 */ "atom already exists code",
-	/* 103 */ "block compilation failed code",
-	/* 100 */ "block contains invalid statements code",
-	/* 101 */ "block is invalid code",
-	/* 102 */ "block must not contain outers code",
-	/*   1 */ "cannot add unlike infinities code",
-	/*  56 */ "cannot convert not a number to integer code",
-	/*  76 */ "cannot create continuation for infallible primitive function code",
-	/*   4 */ "cannot divide by zero code",
-	/*   5 */ "cannot divide infinities code",
-	/*  81 */ "cannot mark handler frame code",
-	/*  75 */ "cannot mix method and macro definitions code",
-	/* 507 */ "cannot modify final java field code",
-	/*   3 */ "cannot multiply zero and infinity code",
-	/*   6 */ "cannot read unassigned variable code",
-	/*   7 */ "cannot store incorrectly typed value code",
-	/*   2 */ "cannot subtract like infinities code",
-	/*   8 */ "cannot swap contents of differently typed variables code",
-	/*  51 */ "case insensitive expression canonization code",
-	/*  14 */ "continuation expected stronger type code",
-	/*  36 */ "declaration kind does not support assignment code",
-	/*  37 */ "declaration kind does not support reference code",
-	/*  65 */ "declaration type must not be top or bottom code",
-	/* 202 */ "directory not empty code",
-	/*  53 */ "double question mark must follow a simple or simple group code",
-	/*  38 */ "exclamation mark must follow an alternation group code",
-	/*  46 */ "expected operator after backquote code",
-	/*  91 */ "fiber cannot join itself code",
-	/*  89 */ "fiber is terminated code",
-	/*  92 */ "fiber produced incorrectly typed result code",
-	/*  90 */ "fiber result unavailable code",
-	/* 201 */ "file exists code",
-	/*  86 */ "forward method definition code",
-	/*  27 */ "function disagrees with primitive restriction code",
-	/*  80 */ "handler sentinel code",
-	/* 204 */ "illegal option code",
-	/*  77 */ "illegal trace mode code",
-	/*  12 */ "incorrect argument type code",
-	/*  11 */ "incorrect number of arguments code",
-	/*  47 */ "incorrect type for boolean group code",
-	/*  42 */ "incorrect type for complex group code",
-	/*  48 */ "incorrect type for counting group code",
-	/*  32 */ "incorrect type for group code",
-	/*  57 */ "incorrect type for numbered choice code",
-	/*  43 */ "incorrect use of double dagger code",
-	/*  25 */ "invalid handle code",
-	/* 205 */ "invalid path code",
-	/*  26 */ "invalid primitive number code",
-	/*  23 */ "io error code",
-	/* 500 */ "java class not available code",
-	/* 505 */ "java field not available code",
-	/* 506 */ "java field reference is ambiguous code",
-	/* 504 */ "java marshaling failed code",
-	/* 502 */ "java method not available code",
-	/* 508 */ "java method reference is ambiguous code",
-	/*  21 */ "key not found code",
-	/*  58 */ "label macro must occur inside a block code",
-	/*  63 */ "label type should agree with declared return type code",
-	/*  70 */ "loading is over code",
-	/*  66 */ "local declaration shadows another code",
-	/*  28 */ "local type literal is not a type code",
-	/*  34 */ "macro argument must be a parse node code",
-	/*  68 */ "macro must return a parse node code",
-	/*  67 */ "macro prefix function argument must be a parse node code",
-	/*  59 */ "macro prefix functions must return top code",
-	/*  71 */ "method implementation lookup failed code",
-	/*  72 */ "method is sealed code",
-	/*  45 */ "method name is not canonical code",
-	/*  13 */ "method return type not as forward declared code",
-	/*  22 */ "negative size code",
-	/* 200 */ "no file code",
-	/*  82 */ "no handler frame code",
-	/*  19 */ "no method code",
-	/*  84 */ "no method definition code",
-	/*  33 */ "no special object code",
-	/*   9 */ "no such fiber variable code",
-	/*  69 */ "no such field code",
-	/*  17 */ "not an enumeration code",
-	/*  49 */ "octothorp must follow a simple group code",
-	/*  29 */ "outer type literal is not a type code",
-	/* 203 */ "partial success code",
-	/*  24 */ "permission denied code",
-	/* 501 */ "pojo type is abstract code",
-	/*  60 */ "primitive fallibility disagrees with failure variable code",
-	/*  15 */ "primitive not supported code",
-	/*  62 */ "primitive should agree with declared return type code",
-	/*  50 */ "question mark must follow a simple group code",
-	/*  39 */ "redefined with same argument types code",
-	/*  79 */ "result disagreed with expected type code",
-	/*  40 */ "result type should covary with arguments code",
-	/*  64 */ "return type is mandatory with primitives or labels code",
-	/* 105 */ "sequence contains invalid statements code",
-	/*  18 */ "shift and truncate requires non negative code",
-	/*  41 */ "special atom code",
-	/*  10 */ "subscript out of bounds code",
-	/*  52 */ "tilde must not follow argument code",
-	/*  30 */ "too large to represent code",
-	/*  31 */ "type restriction must accept only types code",
-	/*  44 */ "unbalanced guillemets code",
-	/*  83 */ "unwind sentinel code",
-	/*  55 */ "vertical bar must follow a simple or simple group code",
-	/*  20 */ "wrong outers code"
+	/*  23 */ "I/O-error code",
+	/* 500 */ "Java-class-not-available code",
+	/* 505 */ "Java-field-not-available code",
+	/* 506 */ "Java-field-reference-is-ambiguous code",
+	/* 504 */ "Java-marshaling-failed code",
+	/* 502 */ "Java-method-not-available code",
+	/* 508 */ "Java-method-reference-is-ambiguous code",
+	/*  87 */ "abstract-method-definition code",
+	/*  54 */ "alternative-must-not-contain-arguments code",
+	/*  85 */ "ambiguous-method-definition code",
+	/*  35 */ "ambiguous-name code",
+	/*  74 */ "atom-already-exists code",
+	/* 103 */ "block-compilation-failed code",
+	/* 100 */ "block-contains-invalid-statements code",
+	/* 101 */ "block-is-invalid code",
+	/* 102 */ "block-must-not-contain-outers code",
+	/*   1 */ "cannot-add-unlike-infinities code",
+	/*  56 */ "cannot-convert-not-a-number-to-integer code",
+	/*  76 */ "cannot-create-continuation-for-infallible-primitive-function code",
+	/*   4 */ "cannot-divide-by-zero code",
+	/*   5 */ "cannot-divide-infinities code",
+	/*  81 */ "cannot-mark-handler-frame code",
+	/*  75 */ "cannot-mix-method-and-macro-definitions code",
+	/* 507 */ "cannot-modify-final-Java-field code",
+	/*   3 */ "cannot-multiply-zero-and-infinity code",
+	/*   6 */ "cannot-read-unassigned-variable code",
+	/*   7 */ "cannot-store-incorrectly-typed-value code",
+	/*   2 */ "cannot-subtract-like-infinities code",
+	/*   8 */ "cannot-swap-contents-of-differently-typed-variables code",
+	/*  51 */ "case-insensitive-expression-canonization code",
+	/*  14 */ "continuation-expected-stronger-type code",
+	/*  36 */ "declaration-kind-does-not-support-assignment code",
+	/*  37 */ "declaration-kind-does-not-support-reference code",
+	/*  65 */ "declaration-type-must-not-be-top-or-bottom code",
+	/* 202 */ "directory-not-empty code",
+	/*  53 */ "double-question-mark-must-follow-a-simple-or-simple-group code",
+	/*  38 */ "exclamation-mark-must-follow-an-alternation-group code",
+	/*  46 */ "expected-operator-after-backquote code",
+	/*  91 */ "fiber-cannot-join-itself code",
+	/*  89 */ "fiber-is-terminated code",
+	/*  92 */ "fiber-produced-incorrectly-typed-result code",
+	/*  90 */ "fiber-result-unavailable code",
+	/* 201 */ "file-exists code",
+	/*  61 */ "final-expression-should-agree-with-declared-return-type code",
+	/*  86 */ "forward-method-definition code",
+	/*  27 */ "function-disagrees-with-primitive-restriction code",
+	/*  80 */ "handler-sentinel code",
+	/* 204 */ "illegal-option code",
+	/*  77 */ "illegal-trace-mode code",
+	/*  12 */ "incorrect-argument-type code",
+	/*  11 */ "incorrect-number-of-arguments code",
+	/*  47 */ "incorrect-type-for-boolean-group code",
+	/*  42 */ "incorrect-type-for-complex-group code",
+	/*  48 */ "incorrect-type-for-counting-group code",
+	/*  32 */ "incorrect-type-for-group code",
+	/*  57 */ "incorrect-type-for-numbered-choice code",
+	/*  43 */ "incorrect-use-of-double-dagger code",
+	/*  58 */ "infallible-primitive-must-not-have-statements code",
+	/*  25 */ "invalid-handle code",
+	/* 205 */ "invalid-path code",
+	/*  26 */ "invalid-primitive-number code",
+	/*  33 */ "invalid-special-object-number code",
+	/*  21 */ "key-not-found code",
+	/*  63 */ "label-type-should-agree-with-declared-return-type code",
+	/*  70 */ "loading-is-over code",
+	/*  66 */ "local-declaration-shadows-another code",
+	/*  28 */ "local-type-literal-is-not-a-type code",
+	/*  34 */ "macro-argument-must-be-a-parse-node code",
+	/*  68 */ "macro-must-return-a-parse-node code",
+	/*  67 */ "macro-prefix-function-argument-must-be-a-parse-node code",
+	/*  59 */ "macro-prefix-functions-must-return-top code",
+	/*  72 */ "method-is-sealed code",
+	/*  45 */ "method-name-is-not-canonical code",
+	/*  13 */ "method-return-type-not-as-forward-declared code",
+	/*  22 */ "negative-size code",
+	/* 200 */ "no-file code",
+	/*  82 */ "no-handler-frame code",
+	/*  19 */ "no-method code",
+	/*  84 */ "no-method-definition code",
+	/*   9 */ "no-such-fiber-variable code",
+	/*  69 */ "no-such-field code",
+	/*  17 */ "not-an-enumeration code",
+	/*  49 */ "octothorp-must-follow-a-simple-group code",
+	/*  29 */ "outer-type-literal-is-not-a-type code",
+	/* 203 */ "partial-success code",
+	/*  24 */ "permission-denied code",
+	/* 501 */ "pojo-type-is-abstract code",
+	/*  60 */ "primitive-fallibility-disagrees-with-failure-variable code",
+	/*  15 */ "primitive-not-supported code",
+	/*  62 */ "primitive-should-agree-with-declared-return-type code",
+	/*  50 */ "question-mark-must-follow-a-simple-group code",
+	/*  39 */ "redefined-with-same-argument-types code",
+	/*  79 */ "result-disagreed-with-expected-type code",
+	/*  40 */ "result-type-should-covary-with-arguments code",
+	/*  64 */ "return-type-is-mandatory-with-primitives-or-labels code",
+	/* 105 */ "sequence-contains-invalid-statements code",
+	/*  18 */ "shift-and-truncate-requires-non-negative code",
+	/*  41 */ "special-atom code",
+	/*  10 */ "subscript-out-of-bounds code",
+	/*  52 */ "tilde-must-not-follow-argument code",
+	/*  30 */ "too-large-to-represent code",
+	/*  31 */ "type-restriction-must-accept-only-types code",
+	/*  44 */ "unbalanced-guillemets code",
+	/*  71 */ "untimely-parse-rejection code",
+	/*  83 */ "unwind-sentinel code",
+	/*  55 */ "vertical-bar-must-follow-a-simple-or-simple-group code",
+	/*  20 */ "wrong-outers code"
 Body
 
-Primitive "cannot add unlike infinities code" is
+Primitive "cannot-add-unlike-infinities code" is
 [
 	1
 ];
 
-Primitive "cannot subtract like infinities code" is
+Primitive "cannot-subtract-like-infinities code" is
 [
 	2
 ];
 
-Primitive "cannot multiply zero and infinity code" is
+Primitive "cannot-multiply-zero-and-infinity code" is
 [
 	3
 ];
 
-Primitive "cannot divide by zero code" is
+Primitive "cannot-divide-by-zero code" is
 [
 	4
 ];
 
-Primitive "cannot divide infinities code" is
+Primitive "cannot-divide-infinities code" is
 [
 	5
 ];
 
-Primitive "cannot read unassigned variable code" is
+Primitive "cannot-read-unassigned-variable code" is
 [
 	6
 ];
 
-Primitive "cannot store incorrectly typed value code" is
+Primitive "cannot-store-incorrectly-typed-value code" is
 [
 	7
 ];
 
-Primitive "cannot swap contents of differently typed variables code" is
+Primitive "cannot-swap-contents-of-differently-typed-variables code" is
 [
 	8
 ];
 
-Primitive "no such fiber variable code" is
+Primitive "no-such-fiber-variable code" is
 [
 	9
 ];
 
-Primitive "subscript out of bounds code" is
+Primitive "subscript-out-of-bounds code" is
 [
 	10
 ];
 
-Primitive "incorrect number of arguments code" is
+Primitive "incorrect-number-of-arguments code" is
 [
 	11
 ];
 
-Primitive "incorrect argument type code" is
+Primitive "incorrect-argument-type code" is
 [
 	12
 ];
 
-Primitive "method return type not as forward declared code" is
+Primitive "method-return-type-not-as-forward-declared code" is
 [
 	13
 ];
 
-Primitive "continuation expected stronger type code" is
+Primitive "continuation-expected-stronger-type code" is
 [
 	14
 ];
 
-Primitive "primitive not supported code" is
+Primitive "primitive-not-supported code" is
 [
 	15
 ];
 
-Primitive "not an enumeration code" is
+Primitive "not-an-enumeration code" is
 [
 	17
 ];
 
-Primitive "shift and truncate requires non negative code" is
+Primitive "shift-and-truncate-requires-non-negative code" is
 [
 	18
 ];
 
-Primitive "no method code" is
+Primitive "no-method code" is
 [
 	19
 ];
 
-Primitive "wrong outers code" is
+Primitive "wrong-outers code" is
 [
 	20
 ];
 
-Primitive "key not found code" is
+Primitive "key-not-found code" is
 [
 	21
 ];
 
-Primitive "negative size code" is
+Primitive "negative-size code" is
 [
 	22
 ];
 
-Primitive "io error code" is
+Primitive "I/O-error code" is
 [
 	23
 ];
 
-Primitive "permission denied code" is
+Primitive "permission-denied code" is
 [
 	24
 ];
 
-Primitive "invalid handle code" is
+Primitive "invalid-handle code" is
 [
 	25
 ];
 
-Primitive "invalid primitive number code" is
+Primitive "invalid-primitive-number code" is
 [
 	26
 ];
 
-Primitive "function disagrees with primitive restriction code" is
+Primitive "function-disagrees-with-primitive-restriction code" is
 [
 	27
 ];
 
-Primitive "local type literal is not a type code" is
+Primitive "local-type-literal-is-not-a-type code" is
 [
 	28
 ];
 
-Primitive "outer type literal is not a type code" is
+Primitive "outer-type-literal-is-not-a-type code" is
 [
 	29
 ];
 
-Primitive "too large to represent code" is
+Primitive "too-large-to-represent code" is
 [
 	30
 ];
 
-Primitive "type restriction must accept only types code" is
+Primitive "type-restriction-must-accept-only-types code" is
 [
 	31
 ];
 
-Primitive "incorrect type for group code" is
+Primitive "incorrect-type-for-group code" is
 [
 	32
 ];
 
-Primitive "no special object code" is
+Primitive "invalid-special-object-number code" is
 [
 	33
 ];
 
-Primitive "macro argument must be a parse node code" is
+Primitive "macro-argument-must-be-a-parse-node code" is
 [
 	34
 ];
 
-Primitive "ambiguous name code" is
+Primitive "ambiguous-name code" is
 [
 	35
 ];
 
-Primitive "declaration kind does not support assignment code" is
+Primitive "declaration-kind-does-not-support-assignment code" is
 [
 	36
 ];
 
-Primitive "declaration kind does not support reference code" is
+Primitive "declaration-kind-does-not-support-reference code" is
 [
 	37
 ];
 
-Primitive "exclamation mark must follow an alternation group code" is
+Primitive "exclamation-mark-must-follow-an-alternation-group code" is
 [
 	38
 ];
 
-Primitive "redefined with same argument types code" is
+Primitive "redefined-with-same-argument-types code" is
 [
 	39
 ];
 
-Primitive "result type should covary with arguments code" is
+Primitive "result-type-should-covary-with-arguments code" is
 [
 	40
 ];
 
-Primitive "special atom code" is
+Primitive "special-atom code" is
 [
 	41
 ];
 
-Primitive "incorrect type for complex group code" is
+Primitive "incorrect-type-for-complex-group code" is
 [
 	42
 ];
 
-Primitive "incorrect use of double dagger code" is
+Primitive "incorrect-use-of-double-dagger code" is
 [
 	43
 ];
 
-Primitive "unbalanced guillemets code" is
+Primitive "unbalanced-guillemets code" is
 [
 	44
 ];
 
-Primitive "method name is not canonical code" is
+Primitive "method-name-is-not-canonical code" is
 [
 	45
 ];
 
-Primitive "expected operator after backquote code" is
+Primitive "expected-operator-after-backquote code" is
 [
 	46
 ];
 
-Primitive "incorrect type for boolean group code" is
+Primitive "incorrect-type-for-boolean-group code" is
 [
 	47
 ];
 
-Primitive "incorrect type for counting group code" is
+Primitive "incorrect-type-for-counting-group code" is
 [
 	48
 ];
 
-Primitive "octothorp must follow a simple group code" is
+Primitive "octothorp-must-follow-a-simple-group code" is
 [
 	49
 ];
 
-Primitive "question mark must follow a simple group code" is
+Primitive "question-mark-must-follow-a-simple-group code" is
 [
 	50
 ];
 
-Primitive "case insensitive expression canonization code" is
+Primitive "case-insensitive-expression-canonization code" is
 [
 	51
 ];
 
-Primitive "tilde must not follow argument code" is
+Primitive "tilde-must-not-follow-argument code" is
 [
 	52
 ];
 
-Primitive "double question mark must follow a simple or simple group code" is
+Primitive "double-question-mark-must-follow-a-simple-or-simple-group code" is
 [
 	53
 ];
 
-Primitive "alternative must not contain arguments code" is
+Primitive "alternative-must-not-contain-arguments code" is
 [
 	54
 ];
 
-Primitive "vertical bar must follow a simple or simple group code" is
+Primitive "vertical-bar-must-follow-a-simple-or-simple-group code" is
 [
 	55
 ];
 
-Primitive "cannot convert not a number to integer code" is
+Primitive "cannot-convert-not-a-number-to-integer code" is
 [
 	56
 ];
 
-Primitive "incorrect type for numbered choice code" is
+Primitive "incorrect-type-for-numbered-choice code" is
 [
 	57
 ];
 
-Primitive "label macro must occur inside a block code" is
+Primitive "infallible-primitive-must-not-have-statements code" is
 [
 	58
 ];
 
-Primitive "macro prefix functions must return top code" is
+Primitive "macro-prefix-functions-must-return-top code" is
 [
 	59
 ];
 
-Primitive "primitive fallibility disagrees with failure variable code" is
+Primitive "primitive-fallibility-disagrees-with-failure-variable code" is
 [
 	60
 ];
 
-Primitive "fiber cannot join itself code" is
+Primitive "final-expression-should-agree-with-declared-return-type code" is
 [
 	61
 ];
 
-Primitive "primitive should agree with declared return type code" is
+Primitive "primitive-should-agree-with-declared-return-type code" is
 [
 	62
 ];
 
-Primitive "label type should agree with declared return type code" is
+Primitive "label-type-should-agree-with-declared-return-type code" is
 [
 	63
 ];
 
-Primitive "return type is mandatory with primitives or labels code" is
+Primitive "return-type-is-mandatory-with-primitives-or-labels code" is
 [
 	64
 ];
 
-Primitive "declaration type must not be top or bottom code" is
+Primitive "declaration-type-must-not-be-top-or-bottom code" is
 [
 	65
 ];
 
-Primitive "local declaration shadows another code" is
+Primitive "local-declaration-shadows-another code" is
 [
 	66
 ];
 
-Primitive "macro prefix function argument must be a parse node code" is
+Primitive "macro-prefix-function-argument-must-be-a-parse-node code" is
 [
 	67
 ];
 
-Primitive "macro must return a parse node code" is
+Primitive "macro-must-return-a-parse-node code" is
 [
 	68
 ];
 
-Primitive "no such field code" is
+Primitive "no-such-field code" is
 [
 	69
 ];
 
-Primitive "loading is over code" is
+Primitive "loading-is-over code" is
 [
 	70
 ];
 
-Primitive "method implementation lookup failed code" is
+Primitive "untimely-parse-rejection code" is
 [
 	71
 ];
 
-Primitive "method is sealed code" is
+Primitive "method-is-sealed code" is
 [
 	72
 ];
 
-Primitive "atom already exists code" is
+Primitive "atom-already-exists code" is
 [
 	74
 ];
 
-Primitive "cannot mix method and macro definitions code" is
+Primitive "cannot-mix-method-and-macro-definitions code" is
 [
 	75
 ];
 
-Primitive "cannot create continuation for infallible primitive function code" is
+Primitive "cannot-create-continuation-for-infallible-primitive-function code" is
 [
 	76
 ];
 
-Primitive "illegal trace mode code" is
+Primitive "illegal-trace-mode code" is
 [
 	77
 ];
 
-Primitive "result disagreed with expected type code" is
+Primitive "result-disagreed-with-expected-type code" is
 [
 	79
 ];
 
-Primitive "handler sentinel code" is
+Primitive "handler-sentinel code" is
 [
 	80
 ];
 
-Primitive "cannot mark handler frame code" is
+Primitive "cannot-mark-handler-frame code" is
 [
 	81
 ];
 
-Primitive "no handler frame code" is
+Primitive "no-handler-frame code" is
 [
 	82
 ];
 
-Primitive "unwind sentinel code" is
+Primitive "unwind-sentinel code" is
 [
 	83
 ];
 
-Primitive "no method definition code" is
+Primitive "no-method-definition code" is
 [
 	84
 ];
 
-Primitive "ambiguous method definition code" is
+Primitive "ambiguous-method-definition code" is
 [
 	85
 ];
 
-Primitive "forward method definition code" is
+Primitive "forward-method-definition code" is
 [
 	86
 ];
 
-Primitive "abstract method definition code" is
+Primitive "abstract-method-definition code" is
 [
 	87
 ];
 
-Primitive "fiber is terminated code" is
+Primitive "fiber-is-terminated code" is
 [
 	89
 ];
 
-Primitive "fiber result unavailable code" is
+Primitive "fiber-result-unavailable code" is
 [
 	90
 ];
 
-Primitive "fiber cannot join itself code" is
+Primitive "fiber-cannot-join-itself code" is
 [
 	91
 ];
 
-Primitive "fiber produced incorrectly typed result code" is
+Primitive "fiber-produced-incorrectly-typed-result code" is
 [
 	92
 ];
 
-Primitive "block contains invalid statements code" is
+Primitive "block-contains-invalid-statements code" is
 [
 	100
 ];
 
-Primitive "block is invalid code" is
+Primitive "block-is-invalid code" is
 [
 	101
 ];
 
-Primitive "block must not contain outers code" is
+Primitive "block-must-not-contain-outers code" is
 [
 	102
 ];
 
-Primitive "block compilation failed code" is
+Primitive "block-compilation-failed code" is
 [
 	103
 ];
 
-Primitive "sequence contains invalid statements code" is
+Primitive "sequence-contains-invalid-statements code" is
 [
 	105
 ];
 
-Primitive "no file code" is
+Primitive "no-file code" is
 [
 	200
 ];
 
-Primitive "file exists code" is
+Primitive "file-exists code" is
 [
 	201
 ];
 
-Primitive "directory not empty code" is
+Primitive "directory-not-empty code" is
 [
 	202
 ];
 
-Primitive "partial success code" is
+Primitive "partial-success code" is
 [
 	203
 ];
 
-Primitive "illegal option code" is
+Primitive "illegal-option code" is
 [
 	204
 ];
 
-Primitive "invalid path code" is
+Primitive "invalid-path code" is
 [
 	205
 ];
 
-Primitive "java class not available code" is
+Primitive "Java-class-not-available code" is
 [
 	500
 ];
 
-Primitive "pojo type is abstract code" is
+Primitive "pojo-type-is-abstract code" is
 [
 	501
 ];
 
-Primitive "java method not available code" is
+Primitive "Java-method-not-available code" is
 [
 	502
 ];
 
-Primitive "java marshaling failed code" is
+Primitive "Java-marshaling-failed code" is
 [
 	504
 ];
 
-Primitive "java field not available code" is
+Primitive "Java-field-not-available code" is
 [
 	505
 ];
 
-Primitive "java field reference is ambiguous code" is
+Primitive "Java-field-reference-is-ambiguous code" is
 [
 	506
 ];
 
-Primitive "cannot modify final java field code" is
+Primitive "cannot-modify-final-Java-field code" is
 [
 	507
 ];
 
-Primitive "java method reference is ambiguous code" is
+Primitive "Java-method-reference-is-ambiguous code" is
 [
 	508
 ];

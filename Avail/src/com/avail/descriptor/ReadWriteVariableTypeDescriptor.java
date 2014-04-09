@@ -75,17 +75,15 @@ extends TypeDescriptor
 		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
-		aStream.append("↑<--(");
 		object.slot(READ_TYPE).printOnAvoidingIndent(
 			aStream,
 			recursionList,
 			(indent + 1));
-		aStream.append(")/(");
+		aStream.append("→/→");
 		object.slot(WRITE_TYPE).printOnAvoidingIndent(
 			aStream,
 			recursionList,
 			(indent + 1));
-		aStream.append(")-->");
 	}
 
 	@Override @AvailMethod

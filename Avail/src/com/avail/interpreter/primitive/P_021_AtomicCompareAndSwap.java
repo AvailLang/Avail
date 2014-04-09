@@ -33,7 +33,9 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.*;
@@ -86,5 +88,15 @@ extends Primitive
 				ANY.o(),
 				ANY.o()),
 			EnumerationTypeDescriptor.booleanObject());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_CANNOT_READ_UNASSIGNED_VARIABLE.numericCode(),
+				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE.numericCode(),
+				E_CANNOT_MODIFY_FINAL_JAVA_FIELD.numericCode())));
 	}
 }

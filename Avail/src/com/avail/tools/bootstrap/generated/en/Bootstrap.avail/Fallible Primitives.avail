@@ -44,6 +44,7 @@ Versions
 Extends
 Uses
 	"Origin",
+	"Error Codes",
 	"Special Objects",
 	"Primitives" =
 	(
@@ -51,6 +52,7 @@ Uses
 		"Abstract method_is_",
 		"After the current module is unloaded,⁇do_",
 		"Attempt to join_",
+		"Clear_",
 		"Exit_with_",
 		"Forward method_is_",
 		"Grammatical restriction_is_",
@@ -64,7 +66,6 @@ Uses
 		"Remove current fiber[_]",
 		"Remove_[_]",
 		"Reset to mark",
-		"Restart_",
 		"Restart_with_",
 		"Seal method_at_",
 		"Seal method|methods_at existing definitions",
@@ -76,6 +77,7 @@ Uses
 		"_-_",
 		"_._→variable",
 		"_<<_",
+		"_<<_keeping_bits",
 		"_<«_‡,»>",
 		"_[_.._]",
 		"_[_]",
@@ -83,11 +85,11 @@ Uses
 		"_[_]→_",
 		"_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)",
 		"_has definition for_",
-		"_mod_",
 		"_to_by_",
 		"_«[_]»→_",
 		"_×_",
 		"_÷_",
+		"_→extended integer",
 		"_→function",
 		"_∈_",
 		"_∈current fiber",
@@ -113,19 +115,33 @@ Uses
 		"method definition of_for_",
 		"method for_",
 		"method_._<«_‡,»>,⁇on failure do_",
+		"new⁇heritable«fiber-local»⁇atom named_",
 		"next character",
 		"send_with_:_",
 		"seq`«_`»",
 		"static method_._<«_‡,»>,⁇on failure do_",
 		"swap_and_",
 		"↓_",
-		"↓_`?=_",
-		"∪_[_.._]"
+		"↓_`?=_"
 	)
 Names
 	"early failure function",
 	"Set early failure function to_"
 Body
+
+Primitive "{«_‡,»}" is
+[
+	aTuple : tuple
+|
+	Primitive 109;
+] : set;
+
+Primitive "_ᵀ" is
+[
+	instances : set
+|
+	Primitive 65;
+] : type;
 
 Primitive "Private fail primitive with_" is
 [
@@ -182,104 +198,157 @@ Private semantic restriction "Private invoke_with«_‡,»" is
 /**
  * Compute and answer the sum of the arguments.
  *
- * Parameters:
- *    augend - The augend.
- *    addend - The addend.
- * Returns:
+ * @category "Primitives"
+ * @method "_+_"
+ * @param "augend" "number"
+ *        The augend.
+ * @param "addend" "number"
+ *        The addend.
+ * @returns "number"
  *    The sum of the augend and the addend.
+ * @raises "cannot-add-unlike-infinities exception"
  */
 Primitive "_+_" is
 [
 	augend : number,
 	addend : number
 |
-	Primitive 1 (failureCode : natural number);
+	Primitive 1 (failureCode : {
+		cannot-add-unlike-infinities code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : number;
 
 /**
  * Compute and answer the difference of the arguments.
  *
- * Parameters:
- *    minuend - The minuend.
- *    subtrahend - The subtrahend.
- * Returns:
+ * @category "Primitives"
+ * @method "_-_"
+ * @param "minuend" "number"
+ *        The minuend.
+ * @param "subtrahend" "number"
+ *        The subtrahend.
+ * @returns "number"
  *    The difference of the minuend and the subtrahend.
+ * @raises "cannot-subtract-like-infinities exception"
  */
 Primitive "_-_" is
 [
 	minuend : number,
 	subtrahend : number
 |
-	Primitive 2 (failureCode : natural number);
+	Primitive 2 (failureCode : {
+		cannot-subtract-like-infinities code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : number;
 
 /**
  * Compute and answer the product of the arguments.
  *
- * Parameters:
- *    multiplicand - The multiplicand.
- *    multiplier - The multiplier.
- * Returns:
+ * @category "Primitives"
+ * @method "_×_"
+ * @param "multiplicand" "number"
+ *        The multiplicand.
+ * @param "multiplier" "number"
+ *        The multiplier.
+ * @returns "number"
  *    The product of the multiplicand and the multiplier.
+ * @raises "cannot-multiply-zero-and-infinity exception"
  */
 Primitive "_×_" is
 [
 	multiplicand : number,
 	multiplier : number
 |
-	Primitive 3 (failureCode : natural number);
+	Primitive 3 (failureCode : {
+		cannot-multiply-zero-and-infinity code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : number;
 
 /**
  * Compute and answer the quotient of the arguments.
  *
- * Parameters:
- *    dividend - The dividend.
- *    divisor - The divisor.
- * Returns:
+ * @category "Primitives"
+ * @method "_÷_"
+ * @param "dividend" "number"
+ *        The dividend.
+ * @param "divisor" "number"
+ *        The divisor.
+ * @returns "number"
  *    The quotient of the dividend and the divisor.
+ * @raises "cannot-divide-by-zero exception"
+ * @raises "cannot-divide-infinities exception"
  */
 Primitive "_÷_" is
 [
 	dividend : number,
 	divisor : number
 |
-	Primitive 4 (failureCode : natural number);
+	Primitive 4 (failureCode : {
+		cannot-divide-by-zero code,
+		cannot-divide-infinities code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : number;
 
 /**
  * Answer the value contained within the specified variable.
  *
- * Parameters:
- *    var - A variable.
- * Returns:
+ * @category "Primitives"
+ * @method "↓_"
+ * @param "var" "variable"
+ *        A variable.
+ * @returns "any"
  *    The value contained within the specified variable.
+ * @raises "cannot-read-unassigned-variable exception"
  */
 Primitive "↓_" is
 [
 	var : variable
 |
-	Primitive 10 (failureCode : natural number);
+	Primitive 10 (failureCode : {
+		cannot-read-unassigned-variable code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any;
 
 /**
- * Store `value` into the specified variable.
+ * Store {@param "value"} into the specified variable.
  *
- * Parameters:
- *    var - A variable.
- *    value - The value that should be stored into `var`.
+ * @category "Primitives"
+ * @method "↓_`?=_"
+ * @param "var" "variable"
+ *        A variable.
+ * @param "value" "any"
+ *        The value that should be stored into {@param "var"}.
+ * @returns "⊤"
+ * @raises "cannot-store-incorrectly-typed-value exception"
+ * @raises "cannot-modify-final-Java-field exception"
  */
 Primitive "↓_`?=_" is
 [
 	var : variable,
 	value : any
 |
-	Primitive 11 (failureCode : natural number);
+	Primitive 11 (failureCode : {
+		cannot-store-incorrectly-typed-value code,
+		cannot-modify-final-Java-field code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Clear the specified variable. This resets it to the unassigned state.
+ *
+ * @category "Primitives"
+ * @method "Clear_"
+ * @param "var" "variable"
+ *        A variable.
+ * @returns "⊤"
+ * @raises "cannot-modify-final-Java-field exception"
+ */
+Primitive "Clear_" is
+[
+	var : variable
+|
+	Primitive 12 (failureCode : {
+		cannot-modify-final-Java-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -288,16 +357,21 @@ Primitive "↓_`?=_" is
  * using an intermediate variable, and permits additional optimizations by the
  * virtual machine.
  *
- * Parameters:
- *    arg1 - A variable.
- *    arg2 - A variable.
+ * @category "Primitives"
+ * @method "swap_and_"
+ * @param "arg1" "variable"
+ *        A variable.
+ * @param "arg2" "variable"
+ *        A variable.
+ * @raises "cannot-swap-contents-of-differently-typed-variables exception"
  */
 Primitive "swap_and_" is
 [
 	arg1 : variable,
 	arg2 : variable
 |
-	Primitive 15 (failureCode : natural number);
+	Primitive 15 (failureCode : {
+		cannot-swap-contents-of-differently-typed-variables code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -305,49 +379,69 @@ Primitive "swap_and_" is
  * Eject and answer the contents of the specified variable. The variable is
  * in the unassigned state after the primitive completes.
  *
- * Parameters:
- *    var - A variable.
- * Returns:
+ * @category "Primitives"
+ * @method "eject_"
+ * @param "var" "variable"
+ *        A variable.
+ * @returns "any"
  *    The value ejected from the variable.
+ * @raises "cannot-read-unassigned-variable exception"
  */
 Primitive "eject_" is
 [
 	var : variable
 |
-	Primitive 18 (failureCode : natural number);
+	Primitive 18 (failureCode : {
+		cannot-read-unassigned-variable code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any;
 
 /**
- * Atomically read the value of `var` and store `newValue`.
+ * Atomically read the value of {@param "var"} and store {@param "newValue"}.
  *
- * Parameters:
- *    var - A variable.
- *    newValue - The new value to store into `var`.
- * Returns:
- *    The value originally stored in `var`.
+ * @category "Primitives"
+ * @method "atomically read_and store_"
+ * @param "var" "variable"
+ *        A variable.
+ * @param "newValue" "any"
+ *        The new value to store into {@param "var"}.
+ * @returns "any"
+ *    The value originally stored in {@param "var"}.
+ * @raises "cannot-read-unassigned-variable exception"
+ * @raises "cannot-store-incorrectly-typed-value exception"
+ * @raises "cannot-modify-final-Java-field exception"
  */
 Primitive "atomically read_and store_" is
 [
 	var : variable,
 	newValue : any
 |
-	Primitive 20 (failureCode : natural number);
+	Primitive 20 (failureCode : {
+		cannot-read-unassigned-variable code,
+		cannot-store-incorrectly-typed-value code,
+		cannot-modify-final-Java-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any;
 
 /**
- * Atomically read the value of `var`, compare it to `reference`, and, if
- * they are discovered to be equal, store `newValue`.
+ * Atomically read the value of {@param "var"}, compare it to {@param "reference"}, and, if
+ * they are discovered to be equal, store {@param "newValue"}.
  *
- * Parameters:
- *    var - A variable.
- *    reference - The value against which the content of `var` should be
- *       compared.
- *    newValue - The new value to conditionally store into `var`.
- * Returns:
- *    `true` if the operation succeeded and `newValue` was stored into `var`,
+ * @category "Primitives"
+ * @method "atomically compare_to_and,⁇if equal,⁇store_"
+ * @param "var" "variable"
+ *        A variable.
+ * @param "reference" "any"
+ *        The value against which the content of {@param "var"} should be
+ *        compared.
+ * @param "newValue" "any"
+ *        The new value to conditionally store into {@param "var"}.
+ * @returns "boolean"
+ *    `true` if the operation succeeded and {@param "newValue"} was stored into {@param "var"},
  *    `false` otherwise.
+ * @raises "cannot-read-unassigned-variable exception"
+ * @raises "cannot-store-incorrectly-typed-value exception"
+ * @raises "cannot-modify-final-Java-field exception"
  */
 Primitive "atomically compare_to_and,⁇if equal,⁇store_" is
 [
@@ -355,71 +449,75 @@ Primitive "atomically compare_to_and,⁇if equal,⁇store_" is
 	reference : any,
 	newValue : any
 |
-	Primitive 21 (failureCode : natural number);
+	Primitive 21 (failureCode : {
+		cannot-read-unassigned-variable code,
+		cannot-store-incorrectly-typed-value code,
+		cannot-modify-final-Java-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : boolean;
 
 /**
- * Atomically compute the sum of the value stored in `var` and `addend`,
- * and store the sum back into `var`.
+ * Atomically compute the sum of the value stored in {@param "var"} and {@param "addend"},
+ * and store the sum back into {@param "var"}.
  *
- * Parameters:
- *    var - A variable containing the augend.
- *    addend - The addend.
- * Returns:
- *    The augend, i.e., the value originally stored in `var`.
+ * @category "Primitives"
+ * @method "atomically read_and add_"
+ * @param "var" "readable extended integer variable"
+ *        A variable containing the augend.
+ * @param "addend" "extended integer"
+ *        The addend.
+ * @returns "[-∞..∞]"
+ *    The augend, i.e., the value originally stored in {@param "var"}.
+ * @raises "cannot-read-unassigned-variable exception"
+ * @raises "cannot-store-incorrectly-typed-value exception"
+ * @raises "cannot-modify-final-Java-field exception"
  */
 Primitive "atomically read_and add_" is
 [
 	var : readable extended integer variable,
 	addend : extended integer
 |
-	Primitive 22 (failureCode : natural number);
+	Primitive 22 (failureCode : {
+		cannot-read-unassigned-variable code,
+		cannot-store-incorrectly-typed-value code,
+		cannot-modify-final-Java-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : extended integer;
 
 /**
  * Answer the instances of the enumeration.
  *
- * Parameters:
- *    enum - An enumeration.
- * Returns:
+ * @category "Primitives"
+ * @method "_'s⁇instances"
+ * @param "enum" "type"
+ *        An enumeration.
+ * @returns "set"
  *    A set whose members are the instances of the enumeration.
+ * @raises "not-an-enumeration exception"
  */
 Primitive "_'s⁇instances" is
 [
 	enum : type
 |
-	Primitive 29 (failureCode : natural number);
+	Primitive 29 (failureCode : {
+		not-an-enumeration code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : set;
 
 /**
- * Answer the `index`-th parameter type of the specified function type.
- *
- * Parameters:
- *    functionType - A function type.
- *    index - The one-based index of the desired parameter type.
- * Returns:
- *    The `index`-th parameter type of the argument.
- */
-Primitive "_[_]" is
-[
-	functionType : function meta,
-	index : natural number
-|
-	Primitive 36 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode
-] : any meta;
-
-/**
  * Invoke the function with the given arguments. Answer its result.
  *
- * Parameters:
- *    aFunction - A function.
- *    arguments - The tuple of arguments.
- * Returns:
+ * @category "Primitives"
+ * @method "Invoke|invoke_with_"
+ * @param "aFunction" "function"
+ *        A function.
+ * @param "arguments" "tuple"
+ *        The tuple of arguments.
+ * @returns "⊤"
  *    The value produced by applying the arguments to the function.
+ * @raises "exception"
+ *         Since the function's implementation is arbitrary, it can raise any
+ *         exception.
  */
 Primitive "Invoke|invoke_with_" is
 [
@@ -435,20 +533,27 @@ Primitive "Invoke|invoke_with_" is
  * program counter, local stack, local stack pointer, and calling continuation
  * are specified by the arguments.
  *
- * Parameters:
- *    aFunction - The new continuation's current function.
- *    programCounter - `aFunction`'s program counter. This is the index of the
- *       next Level One instruction to execute when the new continuation is
- *       resumed.
- *    stack - `aFunction`'s stack. This tuple contains the arguments, local
- *       variables, and temporaries.
- *    stackPointer - `aFunction`'s stack pointer. This is the index of the
- *       top of the stack.
- *    caller - A variable holding the new continuation's calling continuation.
- *       If the variable is unassigned, then create a root continuation (i.e.
- *       one without a caller).
- * Returns:
+ * @category "Primitives"
+ * @method "$_@pc=_stack=_[_]caller=_"
+ * @param "aFunction" "function"
+ *        The new continuation's current function.
+ * @param "programCounter" "natural number"
+ *        {@param "aFunction"}'s program counter. This is the index of the
+ *        next Level One instruction to execute when the new continuation is
+ *        resumed.
+ * @param "stack" "tuple"
+ *        {@param "aFunction"}'s stack. This tuple contains the arguments, local
+ *        variables, and temporaries.
+ * @param "stackPointer" "natural number"
+ *        {@param "aFunction"}'s stack pointer. This is the index of the
+ *        top of the stack.
+ * @param "caller" "continuation variable"
+ *        A variable holding the new continuation's calling continuation.
+ *        If the variable is unassigned, then create a root continuation (i.e.
+ *        one without a caller).
+ * @returns "$[…]→⊥"
  *    The requested continuation.
+ * @raises "cannot-create-continuation-for-infallible-primitive-function exception"
  */
 Primitive "$_@pc=_stack=_[_]caller=_" is
 [
@@ -458,7 +563,8 @@ Primitive "$_@pc=_stack=_[_]caller=_" is
 	stackPointer : natural number,
 	caller : continuation variable
 |
-	Primitive 49 (failureCode : natural number);
+	Primitive 49 (failureCode : {
+		cannot-create-continuation-for-infallible-primitive-function code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : continuation;
 
@@ -469,16 +575,23 @@ Primitive "$_@pc=_stack=_[_]caller=_" is
  * current continuation (in which this primitive was invoked) is completely
  * replaced by the restarted continuation.
  *
- * Parameters:
- *    aContinuation - The continuation to restart.
- *    arguments - The new arguments with which to restart `aContinuation`.
+ * @category "Primitives"
+ * @method "Restart_with_"
+ * @param "aContinuation" "continuation"
+ *        The continuation to restart.
+ * @param "arguments" "tuple"
+ *        The new arguments with which to restart {@param "aContinuation"}.
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-argument-type exception"
  */
 Primitive "Restart_with_" is
 [
 	aContinuation : continuation,
 	arguments : tuple
 |
-	Primitive 56 (failureCode : natural number);
+	Primitive 56 (failureCode : {
+		incorrect-number-of-arguments code,
+		incorrect-argument-type code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊥;
 
@@ -489,70 +602,67 @@ Primitive "Restart_with_" is
  * which this primitive was invoked) is completely replaced by the specified
  * continuation's resumed caller.
  *
- * Parameters:
- *    aContinuation - The continuation to exit.
- *    value - The value with which to exit `aContinuation`.
+ * @category "Primitives"
+ * @method "Exit_with_"
+ * @param "aContinuation" "continuation"
+ *        The continuation to exit.
+ * @param "value" "any"
+ *        The value with which to exit {@param "aContinuation"}.
+ * @raises "continuation-expected-stronger-type exception"
  */
 Primitive "Exit_with_" is
 [
 	aContinuation : continuation,
 	value : any
 |
-	Primitive 57 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode
-] : ⊥;
-
-/**
- * Restart the continuation with its original arguments. Execution proceeds as
- * though the continuation's caller had just invoked the continuation's current
- * function with its original arguments. The current continuation (in which
- * this primitive was invoked) is completely replaced by the restarted
- * continuation.
- *
- * Parameters:
- *    aContinuation - The continuation to restart.
- */
-Primitive "Restart_" is
-[
-	aContinuation : continuation
-|
-	Primitive 58 (failureCode : natural number);
+	Primitive 57 (failureCode : {
+		continuation-expected-stronger-type code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊥;
 
 /**
  * Extract a field's value from an object.
  *
- * Parameters:
- *    object - An object.
- *    field - The field for which to extract the value.
- * Returns:
+ * @category "Primitives"
+ * @method "_[_]"
+ * @param "object" "object"
+ *        An object.
+ * @param "field" "atom"
+ *        The field for which to extract the value.
+ * @returns "any"
  *    The field's value.
+ * @raises "no-such-field exception"
  */
 Primitive "_[_]" is
 [
 	object : object,
 	field : atom
 |
-	Primitive 66 (failureCode : natural number);
+	Primitive 66 (failureCode : {
+		no-such-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any;
 
 /**
  * Extract a field's type from an object type.
  *
- * Parameters:
- *    objectType - An object type.
- *    field - The field for which to extract the type.
- * Returns:
+ * @category "Primitives"
+ * @method "_[_]"
+ * @param "objectType" "object meta"
+ *        An object type.
+ * @param "field" "atom"
+ *        The field for which to extract the type.
+ * @returns "(any)'s type"
  *    The field's constraining type.
+ * @raises "no-such-field exception"
  */
 Primitive "_[_]" is
 [
 	objectType : object meta,
 	field : atom
 |
-	Primitive 67 (failureCode : natural number);
+	Primitive 67 (failureCode : {
+		no-such-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any meta;
 
@@ -560,36 +670,46 @@ Primitive "_[_]" is
  * Construct and answer a function given the specified compiled code and tuple
  * of captured variables.
  *
- * Parameters:
- *    implementation - The compiled code that describes the algorithm.
- *    outerVariables - The tuple of outer variables.
- * Returns:
+ * @category "Primitives"
+ * @method "function from_and_"
+ * @param "implementation" "function implementation"
+ *        The compiled code that describes the algorithm.
+ * @param "outerVariables" "tuple"
+ *        The tuple of outer variables.
+ * @returns "[…]→⊤"
  *    The requested function.
+ * @raises "wrong-outers exception"
  */
 Primitive "function from_and_" is
 [
 	implementation : function implementation,
 	outerVariables : tuple
 |
-	Primitive 74 (failureCode : natural number);
+	Primitive 74 (failureCode : {
+		wrong-outers code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : function;
 
 /**
- * Answer the value bound to `aMap` in `key`.
+ * Answer the value bound to {@param "aMap"} in {@param "key"}.
  *
- * Parameters:
- *    aMap - A map.
- *    key - The key whose bound value should be obtained.
- * Returns:
- *    The value bound to `key` in `aMap`.
+ * @category "Primitives"
+ * @method "_[_]"
+ * @param "aMap" "map"
+ *        A map.
+ * @param "key" "any"
+ *        The key whose bound value should be obtained.
+ * @returns "any"
+ *    The value bound to {@param "key"} in {@param "aMap"}.
+ * @raises "key-not-found exception"
  */
 Primitive "_[_]" is
 [
 	aMap : map,
 	key : any
 |
-	Primitive 82 (failureCode : natural number);
+	Primitive 82 (failureCode : {
+		key-not-found code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any;
 
@@ -598,66 +718,122 @@ Primitive "_[_]" is
  * is negative then treat it as a right shift of the corresponding positive
  * amount.
  *
- * Parameters:
- *    baseInteger - An integer to shift.
- *    shiftFactor - How many bits to shift left (or right if negative).
- * Returns:
- *    ⎣baseInteger × 2<sup>shiftFactor</sup>⎦
+ * @category "Primitives"
+ * @method "_<<_"
+ * @param "baseInteger" "integer"
+ *        An integer to shift.
+ * @param "shiftFactor" "integer"
+ *        How many bits to shift left (or right if negative).
+ * @returns "(-∞..∞)"
+ *    ⎣_<<_ × 2<sup>baseInteger</sup>⎦
+ * @raises "too-large-to-represent exception"
  */
 Primitive "_<<_" is
 [
 	baseInteger : integer,
 	shiftFactor : integer
 |
-	Primitive 95 (failureCode : natural number);
+	Primitive 95 (failureCode : {
+		too-large-to-represent code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : integer;
 
 /**
- * Does `anAtom` have a property whose key is `key`?
+ * Given a positive integer B, a shift factor S, and a truncation bit count T,
+ * shift B to the left by S bits (treating a negative factor as a right shift),
+ * then truncate the result to the bottom T bits by zeroing the rest.
  *
- * Parameters:
- *    key - The property key.
- *    anAtom - An atom.
- * Returns:
- *    `true` if `anAtom` has a property whose key is `key`, `false` otherwise.
+ * @category "Primitives"
+ * @method "_<<_keeping_bits"
+ * @param "baseInteger" "whole number"
+ *        A non-negative integer to shift and mask.
+ * @param "shiftFactor" "integer"
+ *        How many bit positions to shift left by (negative for a right shift).
+ * @param "truncationBits" "whole number"
+ *        The number of low-order bits to preserve after the shift (must
+ *        be ≥ 0).
+ * @returns "[0..∞)"
+ *    ⎣_<<_keeping_bits × 2<sup>baseInteger</sup>⎦ mod 2<sup>shiftFactor</sup>
+ * @raises "shift-and-truncate-requires-non-negative exception"
+ * @raises "too-large-to-represent exception"
+ */
+Primitive "_<<_keeping_bits" is
+[
+	baseInteger : whole number,
+	shiftFactor : integer,
+	truncationBits : whole number
+|
+	Primitive 96 (failureCode : {
+		shift-and-truncate-requires-non-negative code,
+		too-large-to-represent code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : whole number;
+
+/**
+ * Does {@param "anAtom"} have a property whose key is {@param "key"}?
+ *
+ * @category "Primitives"
+ * @method "_∈_"
+ * @param "key" "atom"
+ *        The property key.
+ * @param "anAtom" "atom"
+ *        An atom.
+ * @returns "boolean"
+ *    `true` if {@param "anAtom"} has a property whose key is {@param
+ *    "key"}, `false` otherwise.
+ * @raises "special-atom exception"
  */
 Primitive "_∈_" is
 [
 	key : atom,
 	anAtom : atom
 |
-	Primitive 122 (failureCode : natural number);
+	Primitive 122 (failureCode : {
+		special-atom code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : boolean;
 
 /**
- * Assuming that `anAtom` has a property whose key is `key`, then answer
- * the property value associated with the `key`.
+ * Assuming that {@param "anAtom"} has a property whose key is {@param
+ * "key"}, then answer the property value associated with the {@param
+ * "key"}.
  *
- * Parameters:
- *    anAtom - An atom.
- *    key - The property key.
- * Returns:
+ * @category "Primitives"
+ * @method "_[_]"
+ * @param "anAtom" "atom"
+ *        An atom.
+ * @param "key" "atom"
+ *        The property key.
+ * @returns "any"
  *    The property value bound to the key.
+ * @raises "key-not-found exception"
+ * @raises "no-such-field exception"
  */
 Primitive "_[_]" is
 [
 	anAtom : atom,
 	key : atom
 |
-	Primitive 123 (failureCode : natural number);
+	Primitive 123 (failureCode : {
+		key-not-found code,
+		no-such-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any;
 
 /**
- * For `anAtom`, establish a property binding from `key` to `value`.
- * Any previous property binding for `key` is replaced.
+ * For {@param "anAtom"}, establish a property binding from {@param
+ * "key"} to {@param "value"}. Any previous property binding for {@param
+ * "key"} is replaced.
  *
- * Parameters:
- *    anAtom - An atom.
- *    key - The property key.
- *    value - The property value.
+ * @category "Primitives"
+ * @method "_[_]:=_"
+ * @param "anAtom" "atom"
+ *        An atom.
+ * @param "key" "atom"
+ *        The property key.
+ * @param "value" "any"
+ *        The property value.
+ * @raises "special-atom exception"
  */
 Primitive "_[_]:=_" is
 [
@@ -665,71 +841,93 @@ Primitive "_[_]:=_" is
 	key : atom,
 	value : any
 |
-	Primitive 124 (failureCode : natural number);
+	Primitive 124 (failureCode : {
+		special-atom code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
- * Remove from `anAtom` the property whose key is `key`.
+ * Remove from {@param "anAtom"} the property whose key is {@param "key"}.
  *
- * Parameters:
- *    anAtom - An atom.
- *    key - A property key.
+ * @category "Primitives"
+ * @method "Remove_[_]"
+ * @param "anAtom" "atom"
+ *        An atom.
+ * @param "key" "atom"
+ *        A property key.
+ * @raises "key-not-found exception"
+ * @raises "no-such-field exception"
  */
 Primitive "Remove_[_]" is
 [
 	anAtom : atom,
 	key : atom
 |
-	Primitive 125 (failureCode : natural number);
+	Primitive 125 (failureCode : {
+		key-not-found code,
+		no-such-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
  * Answer the module that issued the specified atom.
  *
- * Parameters:
- *    anAtom - An atom.
- * Returns:
+ * @category "Primitives"
+ * @method "_'s⁇issuing module"
+ * @param "anAtom" "atom"
+ *        An atom.
+ * @returns "module"
  *    The requested module.
+ * @raises "special-atom exception"
  */
 Primitive "_'s⁇issuing module" is
 [
 	anAtom : atom
 |
-	Primitive 127 (failureCode : natural number);
+	Primitive 127 (failureCode : {
+		special-atom code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : module;
 
 /**
- * Answer the `index`-th element of `aTuple`.
+ * Answer the {@param "index"}-th element of {@param "aTuple"}.
  *
- * Parameters:
- *    aTuple - A tuple.
- *    index - The one-based index of the desired element.
- * Returns:
+ * @category "Primitives"
+ * @method "_[_]"
+ * @param "aTuple" "tuple"
+ *        A tuple.
+ * @param "index" "natural number"
+ *        The one-based index of the desired element.
+ * @returns "any"
  *    The requested element.
+ * @raises "subscript-out-of-bounds exception"
  */
 Primitive "_[_]" is
 [
 	aTuple : tuple,
 	index : natural number
 |
-	Primitive 131 (failureCode : natural number);
+	Primitive 131 (failureCode : {
+		subscript-out-of-bounds code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any;
 
 /**
  * Construct and answer a tuple based on the one provided but such that its
- * `index`-th element is `value`.
+ * {@param "index"}-th element is {@param "value"}.
  *
- * Parameters:
- *    aTuple - A tuple.
- *    index - The one-based index of the element that should (potentially)
- *       differ in the resultant tuple.
- *    value - The "replacement" value.
- * Returns:
+ * @category "Primitives"
+ * @method "_[_]→_"
+ * @param "aTuple" "tuple"
+ *        A tuple.
+ * @param "index" "natural number"
+ *        The one-based index of the element that should (potentially) differ
+ *        in the resultant tuple.
+ * @param "value" "any"
+ *        The "replacement" value.
+ * @returns "tuple"
  *    The requested tuple.
+ * @raises "subscript-out-of-bounds exception"
  */
 Primitive "_[_]→_" is
 [
@@ -737,21 +935,27 @@ Primitive "_[_]→_" is
 	index : natural number,
 	value : any
 |
-	Primitive 132 (failureCode : natural number);
+	Primitive 132 (failureCode : {
+		subscript-out-of-bounds code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : tuple;
 
 /**
  * Construct and answer an integer interval tuple.
  *
- * Parameters:
- *    start - The first value in the tuple.
- *    end - The last allowed value in the tuple. This value will only be the
- *       last value in the tuple if the difference between the first and last
- *       values is a multiple of the step size.
- *    delta - The step size of the interval.
- * Returns:
+ * @category "Primitives"
+ * @method "_to_by_"
+ * @param "start" "integer"
+ *        The first value in the tuple.
+ * @param "end" "integer"
+ *        The last allowed value in the tuple. This value will only be the
+ *        last value in the tuple if the difference between the first and last
+ *        values is a multiple of the step size.
+ * @param "delta" "integer"
+ *        The step size of the interval.
+ * @returns "<(-∞..∞)…|>"
  *    The requested tuple.
+ * @raises "incorrect-argument-type exception"
  */
 Primitive "_to_by_" is
 [
@@ -759,19 +963,25 @@ Primitive "_to_by_" is
 	end : integer,
 	delta : integer
 |
-	Primitive 133 (failureCode : natural number);
+	Primitive 133 (failureCode : {
+		incorrect-argument-type code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : tuple of integer;
 
 /**
  * Construct and answer a slice (i.e. subtuple) of the specified tuple.
  *
- * Parameters:
- *    aTuple - A tuple.
- *    sliceStart - The one-based start index (inclusive) of the desired slice.
- *    sliceEnd - The one-based end index (inclusive) of the desired slice.
- * Returns:
+ * @category "Primitives"
+ * @method "_[_.._]"
+ * @param "aTuple" "tuple"
+ *        A tuple.
+ * @param "sliceStart" "natural number"
+ *        The one-based start index (inclusive) of the desired slice.
+ * @param "sliceEnd" "whole number"
+ *        The one-based end index (inclusive) of the desired slice.
+ * @returns "tuple"
  *    The requested tuple.
+ * @raises "subscript-out-of-bounds exception"
  */
 Primitive "_[_.._]" is
 [
@@ -779,7 +989,8 @@ Primitive "_[_.._]" is
 	sliceStart : natural number,
 	sliceEnd : whole number
 |
-	Primitive 135 (failureCode : natural number);
+	Primitive 135 (failureCode : {
+		subscript-out-of-bounds code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : tuple;
 
@@ -787,12 +998,18 @@ Primitive "_[_.._]" is
  * Compute and answer a tuple containing the requested element types. Indices
  * that are out of bounds report ⊥ as their element type.
  *
- * Parameters:
- *    aTupleType - A tuple type.
- *    sliceStart - The one-based index (inclusive) of the start of the slice.
- *    sliceEnd - The one-based index (inclusive) of the end of the slice.
- * Returns:
+ * @category "Primitives"
+ * @method "_[_.._]"
+ * @param "aTupleType" "tuple meta"
+ *        A tuple type.
+ * @param "sliceStart" "natural number"
+ *        The one-based index (inclusive) of the start of the slice.
+ * @param "sliceEnd" "whole number"
+ *        The one-based index (inclusive) of the end of the slice.
+ * @returns "<(any)'s type…|>"
  *    The requested slice of element types.
+ * @raises "subscript-out-of-bounds exception"
+ * @raises "negative-size exception"
  */
 Primitive "_[_.._]" is
 [
@@ -800,45 +1017,38 @@ Primitive "_[_.._]" is
 	sliceStart : natural number,
 	sliceEnd : whole number
 |
-	Primitive 142 (failureCode : natural number);
+	Primitive 142 (failureCode : {
+		subscript-out-of-bounds code,
+		negative-size code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : tuple of any meta;
 
 /**
- * Compute and answer the type union of the indicated range of element types.
- *
- * Parameters:
- *    aTupleType - A tuple type.
- *    startIndex - The one-based index (inclusive) of the start of the range.
- *    endIndex - The one-based index (inclusive) of the end of the range.
- * Returns:
- *    The type union of all element types in the specified range.
- */
-Primitive "∪_[_.._]" is
-[
-	aTupleType : tuple meta,
-	startIndex : natural number,
-	endIndex : nonnegative extended integer
-|
-	Primitive 143 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode
-] : any meta;
-
-/**
  * Construct and answer a function implementation from the specified arguments.
  *
- * Parameters:
- *    nybblecodes - The Level One instructions as a tuple of nybblecodes.
- *    primitiveNumber - The primitive number, or `0` if the result should
- *       not have primitive linkage.
- *    aFunctionType - The function type of any function able to close the
- *       result.
- *    literals - The literals used by the algorithm.
- *    localsCount - The number of local variables used by the algorithm.
- *    outersCount - The number of outer variables used by the algorithm.
- *    maximumStackDepth - The maximum stack depth.
- * Returns:
+ * @category "Primitives"
+ * @method "_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)"
+ * @param "nybblecodes" "tuple of nybble"
+ *        The Level One instructions as a tuple of nybblecodes.
+ * @param "primitiveNumber" "unsigned short"
+ *        The primitive number, or `0` if the result should not have primitive
+ *        linkage.
+ * @param "aFunctionType" "function meta"
+ *        The function type of any function able to close the result.
+ * @param "literals" "tuple"
+ *        The literals used by the algorithm.
+ * @param "localsCount" "whole number"
+ *        The number of local variables used by the algorithm.
+ * @param "outersCount" "whole number"
+ *        The number of outer variables used by the algorithm.
+ * @param "maximumStackDepth" "whole number"
+ *        The maximum stack depth.
+ * @returns "¢[…]→⊤"
  *    The requested function implementation.
+ * @raises "invalid-primitive-number exception"
+ * @raises "function-disagrees-with-primitive-restriction exception"
+ * @raises "local-type-literal-is-not-a-type exception"
+ * @raises "outer-type-literal-is-not-a-type exception"
  */
 Primitive "_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)" is
 [
@@ -850,23 +1060,31 @@ Primitive "_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)" is
 	outersCount : whole number,
 	maximumStackDepth : whole number
 |
-	Primitive 188 (failureCode : natural number);
+	Primitive 188 (failureCode : {
+		invalid-primitive-number code,
+		function-disagrees-with-primitive-restriction code,
+		local-type-literal-is-not-a-type code,
+		outer-type-literal-is-not-a-type code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : function implementation;
 
 /**
  * Answer the method uniquely named by the specified atom.
  *
- * Parameters:
- *    anAtom - An atom.
- * Returns:
+ * @category "Primitives"
+ * @method "method for_"
+ * @param "anAtom" "atom"
+ *        An atom.
+ * @returns "method"
  *    The requested method.
+ * @raises "no-method exception"
  */
 Primitive "method for_" is
 [
 	anAtom : atom
 |
-	Primitive 220 (failureCode : natural number);
+	Primitive 220 (failureCode : {
+		no-method code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : method;
 
@@ -874,54 +1092,177 @@ Primitive "method for_" is
  * Lookup a definition of the method with the given name, given the
  * tuple of parameter types.
  *
- * Parameters:
- *    methodName - The name of the method.
- *    parameterTypes - A tuple of parameter types. This must agree in length
- *       with the number of parameters expected by the method.
- * Returns:
- *    The unique definition of `methodName` that best accords with the
+ * @category "Primitives"
+ * @method "method definition of_for_"
+ * @param "methodName" "atom"
+ *        The name of the method.
+ * @param "parameterTypes" "tuple of any meta"
+ *        A tuple of parameter types. This must agree in length with the number
+ *        of parameters expected by the method.
+ * @returns "definition"
+ *    The unique definition of {@param "methodName"} that best accords with the
  *    specified parameter types.
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-argument-type exception"
+ * @raises "no-method exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "tilde-must-not-follow-argument exception"
+ * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "no-method-definition exception"
+ * @raises "ambiguous-method-definition exception"
  */
 Primitive "method definition of_for_" is
 [
 	methodName : atom,
 	parameterTypes : tuple of any meta
 |
-	Primitive 222 (failureCode : natural number);
+	Primitive 222 (failureCode : {
+		incorrect-number-of-arguments code,
+		incorrect-argument-type code,
+		no-method code,
+		incorrect-type-for-group code,
+		exclamation-mark-must-follow-an-alternation-group code,
+		incorrect-type-for-complex-group code,
+		incorrect-use-of-double-dagger code,
+		unbalanced-guillemets code,
+		method-name-is-not-canonical code,
+		expected-operator-after-backquote code,
+		incorrect-type-for-boolean-group code,
+		incorrect-type-for-counting-group code,
+		octothorp-must-follow-a-simple-group code,
+		question-mark-must-follow-a-simple-group code,
+		case-insensitive-expression-canonization code,
+		tilde-must-not-follow-argument code,
+		double-question-mark-must-follow-a-simple-or-simple-group code,
+		alternative-must-not-contain-arguments code,
+		vertical-bar-must-follow-a-simple-or-simple-group code,
+		incorrect-type-for-numbered-choice code,
+		no-method-definition code,
+		ambiguous-method-definition code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : definition;
 
 /**
  * Compute and answer the number of parameters required by a valid send of a
- * message `methodName`.
+ * message {@param "methodName"}.
  *
- * Parameters:
- *    methodName - A method name.
- * Returns:
+ * @category "Primitives"
+ * @method "`|message_'s⁇parameters`|"
+ * @param "methodName" "string"
+ *        A method name.
+ * @returns "[0..∞)"
  *    The number of parameters required to send the specified message.
+ * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "tilde-must-not-follow-argument exception"
+ * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
  */
 Primitive "`|message_'s⁇parameters`|" is
 [
 	methodName : string
 |
-	Primitive 224 (failureCode : natural number);
+	Primitive 224 (failureCode : {
+		incorrect-argument-type code,
+		incorrect-type-for-group code,
+		exclamation-mark-must-follow-an-alternation-group code,
+		incorrect-type-for-complex-group code,
+		incorrect-use-of-double-dagger code,
+		unbalanced-guillemets code,
+		method-name-is-not-canonical code,
+		expected-operator-after-backquote code,
+		incorrect-type-for-boolean-group code,
+		incorrect-type-for-counting-group code,
+		octothorp-must-follow-a-simple-group code,
+		question-mark-must-follow-a-simple-group code,
+		case-insensitive-expression-canonization code,
+		tilde-must-not-follow-argument code,
+		double-question-mark-must-follow-a-simple-or-simple-group code,
+		alternative-must-not-contain-arguments code,
+		vertical-bar-must-follow-a-simple-or-simple-group code,
+		incorrect-type-for-numbered-choice code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : whole number;
 
 /**
  * Does the specified message contain any lexical groups?
  *
- * Parameters:
- *    methodName - A method name.
- * Returns:
+ * @category "Primitives"
+ * @method "message_contains groups"
+ * @param "methodName" "string"
+ *        A method name.
+ * @returns "boolean"
  *    `true` if the specified message contains lexical groups, or `false`
  *    otherwise.
+ * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "tilde-must-not-follow-argument exception"
+ * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
  */
 Primitive "message_contains groups" is
 [
 	methodName : string
 |
-	Primitive 225 (failureCode : natural number);
+	Primitive 225 (failureCode : {
+		incorrect-argument-type code,
+		incorrect-type-for-group code,
+		exclamation-mark-must-follow-an-alternation-group code,
+		incorrect-type-for-complex-group code,
+		incorrect-use-of-double-dagger code,
+		unbalanced-guillemets code,
+		method-name-is-not-canonical code,
+		expected-operator-after-backquote code,
+		incorrect-type-for-boolean-group code,
+		incorrect-type-for-counting-group code,
+		octothorp-must-follow-a-simple-group code,
+		question-mark-must-follow-a-simple-group code,
+		case-insensitive-expression-canonization code,
+		tilde-must-not-follow-argument code,
+		double-question-mark-must-follow-a-simple-or-simple-group code,
+		alternative-must-not-contain-arguments code,
+		vertical-bar-must-follow-a-simple-or-simple-group code,
+		incorrect-type-for-numbered-choice code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : boolean;
 
@@ -930,17 +1271,62 @@ Primitive "message_contains groups" is
  * may be added at or below this signature. This facility is provided to secure
  * methods against dangerous, unscrupulous, or confusing extensions.
  *
- * Parameters:
- *    methodName - The name of the method to seal.
- *    signature - A tuple of parameter types. This is the signature at which the
+ * @category "Primitives"
+ * @method "Seal method_at_"
+ * @param "methodName" "string"
+ *        The name of the method to seal.
+ * @param "signature" "tuple of any meta"
+ *        A tuple of parameter types. This is the signature at which the
  *       seal will be placed.
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "ambiguous-name exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "tilde-must-not-follow-argument exception"
+ * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "loading-is-over exception"
  */
 Primitive "Seal method_at_" is
 [
 	methodName : string,
 	signature : tuple of any meta
 |
-	Primitive 226 (failureCode : natural number);
+	Primitive 226 (failureCode : {
+		incorrect-number-of-arguments code,
+		incorrect-argument-type code,
+		incorrect-type-for-group code,
+		ambiguous-name code,
+		exclamation-mark-must-follow-an-alternation-group code,
+		incorrect-type-for-complex-group code,
+		incorrect-use-of-double-dagger code,
+		unbalanced-guillemets code,
+		method-name-is-not-canonical code,
+		expected-operator-after-backquote code,
+		incorrect-type-for-boolean-group code,
+		incorrect-type-for-counting-group code,
+		octothorp-must-follow-a-simple-group code,
+		question-mark-must-follow-a-simple-group code,
+		case-insensitive-expression-canonization code,
+		tilde-must-not-follow-argument code,
+		double-question-mark-must-follow-a-simple-or-simple-group code,
+		alternative-must-not-contain-arguments code,
+		vertical-bar-must-follow-a-simple-or-simple-group code,
+		incorrect-type-for-numbered-choice code,
+		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -952,16 +1338,65 @@ Primitive "Seal method_at_" is
  * Only extend the grammar of the current module if the atom was introduced by
  * the current module.
  *
- * Parameters:
- *    methodName - The atom that uniquely names the abstract method to declare.
- *    signature - The signature.
+ * @category "Primitives"
+ * @method "Abstract method_is_"
+ * @param "methodName" "atom"
+ *        The atom that uniquely names the abstract method to declare.
+ * @param "signature" "function meta"
+ *        The signature.
+ * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "redefined-with-same-argument-types exception"
+ * @raises "result-type-should-covary-with-arguments exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "tilde-must-not-follow-argument exception"
+ * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "loading-is-over exception"
+ * @raises "method-is-sealed exception"
+ * @raises "cannot-mix-method-and-macro-definitions exception"
  */
 Primitive "Abstract method_is_" is
 [
 	methodName : atom,
 	signature : function meta
 |
-	Primitive 227 (failureCode : natural number);
+	Primitive 227 (failureCode : {
+		incorrect-argument-type code,
+		incorrect-type-for-group code,
+		exclamation-mark-must-follow-an-alternation-group code,
+		redefined-with-same-argument-types code,
+		result-type-should-covary-with-arguments code,
+		incorrect-type-for-complex-group code,
+		incorrect-use-of-double-dagger code,
+		unbalanced-guillemets code,
+		method-name-is-not-canonical code,
+		expected-operator-after-backquote code,
+		incorrect-type-for-boolean-group code,
+		incorrect-type-for-counting-group code,
+		octothorp-must-follow-a-simple-group code,
+		question-mark-must-follow-a-simple-group code,
+		case-insensitive-expression-canonization code,
+		tilde-must-not-follow-argument code,
+		double-question-mark-must-follow-a-simple-or-simple-group code,
+		alternative-must-not-contain-arguments code,
+		vertical-bar-must-follow-a-simple-or-simple-group code,
+		incorrect-type-for-numbered-choice code,
+		loading-is-over code,
+		method-is-sealed code,
+		cannot-mix-method-and-macro-definitions code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -969,28 +1404,38 @@ Primitive "Abstract method_is_" is
  * Does the method whose bundle has the specified name have a unique definition
  * for the given tuple of parameter types?
  *
- * Parameters:
- *    methodName - A method name (an atom).
- *    parameterTypes - A tuple of parameter types. This must agree in length
- *       with the number of parameters expected by the method.
- * Returns:
- *    `true` if `methodName` has a unique definition for the specified parameter
- *    types, `false` otherwise.
+ * @category "Primitives"
+ * @method "_has definition for_"
+ * @param "methodName" "atom"
+ *        A method name (an atom).
+ * @param "parameterTypes" "tuple of any meta"
+ *        A tuple of parameter types. This must agree in length with the number
+ *        of parameters expected by the method.
+ * @returns "boolean"
+ *    `true` if {@param "methodName"} has a unique definition for the specified
+ *    parameter types, `false` otherwise.
+ * @raises "no-method exception"
+ * @raises "no-method-definition exception"
+ * @raises "ambiguous-method-definition exception"
  */
 Primitive "_has definition for_" is
 [
 	methodName : atom,
 	parameterTypes : tuple of any meta
 |
-	Primitive 229 (failureCode : natural number);
+	Primitive 229 (failureCode : {
+		no-method code,
+		no-method-definition code,
+		ambiguous-method-definition code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : boolean;
 
 /**
  * Define the specified semantic restriction. Henceforth whenever the method
- * named by `methodName` is invoked with arguments accepted by `restriction`,
- * then apply `restriction` with the most specific available types of the actual
- * arguments. This is determined by the compiler at the method's call site.
+ * named by {@param "methodName"} is invoked with arguments accepted by
+ * {@param "restriction"}, then apply {@param "restriction"} with the most specific
+ * available types of the actual arguments. This is determined by the compiler
+ * at the method's call site.
  *
  * A semantic restriction has two responsibilities. First, it may reject a
  * method invocation on any appropriate semantic grounds by calling
@@ -998,17 +1443,61 @@ Primitive "_has definition for_" is
  * produced at the call site by answering a subtype of the method's declared
  * return type.
  *
- * Parameters:
- *    methodName - The name of the method to which the semantic restriction
- *       applies.
- *    restriction - The restriction function.
+ * @category "Primitives"
+ * @method "Semantic restriction_is_"
+ * @param "methodName" "atom"
+ *        The name of the method to which the semantic restriction applies.
+ * @param "restriction" "semantic restriction function"
+ *        The restriction function.
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-argument-type exception"
+ * @raises "type-restriction-must-accept-only-types exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "tilde-must-not-follow-argument exception"
+ * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "loading-is-over exception"
  */
 Primitive "Semantic restriction_is_" is
 [
 	methodName : atom,
 	restriction : semantic restriction function
 |
-	Primitive 231 (failureCode : natural number);
+	Primitive 231 (failureCode : {
+		incorrect-number-of-arguments code,
+		incorrect-argument-type code,
+		type-restriction-must-accept-only-types code,
+		incorrect-type-for-group code,
+		exclamation-mark-must-follow-an-alternation-group code,
+		incorrect-type-for-complex-group code,
+		incorrect-use-of-double-dagger code,
+		unbalanced-guillemets code,
+		method-name-is-not-canonical code,
+		expected-operator-after-backquote code,
+		incorrect-type-for-boolean-group code,
+		incorrect-type-for-counting-group code,
+		octothorp-must-follow-a-simple-group code,
+		question-mark-must-follow-a-simple-group code,
+		case-insensitive-expression-canonization code,
+		tilde-must-not-follow-argument code,
+		double-question-mark-must-follow-a-simple-or-simple-group code,
+		alternative-must-not-contain-arguments code,
+		vertical-bar-must-follow-a-simple-or-simple-group code,
+		incorrect-type-for-numbered-choice code,
+		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1017,17 +1506,60 @@ Primitive "Semantic restriction_is_" is
  * may be added at or below this signature. This facility is provided to secure
  * methods against dangerous, unscrupulous, or confusing extensions.
  *
- * Parameters:
- *    methodName - The atom that uniquely designates the method to seal.
- *    signature - A tuple of parameter types. This is the signature at which the
- *       seal will be placed.
+ * @category "Primitives"
+ * @method "Seal method_at_"
+ * @param "methodName" "atom"
+ *        The atom that uniquely designates the method to seal.
+ * @param "signature" "tuple of any meta"
+ *        A tuple of parameter types. This is the signature at which the seal
+ *        will be placed.
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "tilde-must-not-follow-argument exception"
+ * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "loading-is-over exception"
  */
 Primitive "Seal method_at_" is
 [
 	methodName : atom,
 	signature : tuple of any meta
 |
-	Primitive 232 (failureCode : natural number);
+	Primitive 232 (failureCode : {
+		incorrect-number-of-arguments code,
+		incorrect-argument-type code,
+		incorrect-type-for-group code,
+		exclamation-mark-must-follow-an-alternation-group code,
+		incorrect-type-for-complex-group code,
+		incorrect-use-of-double-dagger code,
+		unbalanced-guillemets code,
+		method-name-is-not-canonical code,
+		expected-operator-after-backquote code,
+		incorrect-type-for-boolean-group code,
+		incorrect-type-for-counting-group code,
+		octothorp-must-follow-a-simple-group code,
+		question-mark-must-follow-a-simple-group code,
+		case-insensitive-expression-canonization code,
+		tilde-must-not-follow-argument code,
+		double-question-mark-must-follow-a-simple-or-simple-group code,
+		alternative-must-not-contain-arguments code,
+		vertical-bar-must-follow-a-simple-or-simple-group code,
+		incorrect-type-for-numbered-choice code,
+		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1035,26 +1567,32 @@ Primitive "Seal method_at_" is
  * Register the given function for callback after the module undergoing
  * compilation has been unloaded.
  *
- * Parameters:
- *    aFunction - The post-unload function.
+ * @category "Primitives"
+ * @method "After the current module is unloaded,⁇do_"
+ * @param "aFunction" "function"
+ *        The post-unload function.
+ * @raises "loading-is-over exception"
  */
 Primitive "After the current module is unloaded,⁇do_" is
 [
 	aFunction : function
 |
-	Primitive 233 (failureCode : natural number);
+	Primitive 233 (failureCode : {
+		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
  * Answer the module currently undergoing compilation.
  *
- * Returns:
+ * @returns "module"
  *    The module currently undergoing compilation.
+ * @raises "loading-is-over exception"
  */
 Primitive "current module" is
 [
-	Primitive 241 (failureCode : natural number);
+	Primitive 241 (failureCode : {
+		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : module;
 
@@ -1066,41 +1604,53 @@ Primitive "current module" is
  * current module's header, or 3) introduced by dynamic publication then answer
  * this atom. Otherwise, privately introduce a new atom.
  *
- * Parameters:
- *    localName - The name by which this atom is known locally.
- * Returns:
+ * @category "Primitives"
+ * @method "atom for_"
+ * @param "localName" "string"
+ *        The name by which this atom is known locally.
+ * @returns "atom"
  *    The requested atom.
+ * @raises "ambiguous-name exception"
+ * @raises "loading-is-over exception"
  */
 Primitive "atom for_" is
 [
 	localName : string
 |
-	Primitive 245 (failureCode : natural number);
+	Primitive 245 (failureCode : {
+		ambiguous-name code,
+		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : atom;
 
 /**
- * Dynamically introduce `newName` as a public name. This has the same effect as
+ * Dynamically introduce {@param "newName"} as a public name. This has the same effect as
  * listing in the "Names" section of the current module, i.e., the module
  * currently undergoing compilation. This facilitates code generation in some
  * circumstances. This operation may only be invoked during compilation, i.e.,
  * as the result of parsing or executing a top-level statement.
  *
- * Parameters:
- *    newName - The name that should be introduced.
+ * @category "Primitives"
+ * @method "Publish new name:_"
+ * @param "newName" "string"
+ *        The name that should be introduced.
+ * @raises "ambiguous-name exception"
+ * @raises "loading-is-over exception"
  */
 Primitive "Publish new name:_" is
 [
 	newName : string
 |
-	Primitive 246 (failureCode : natural number);
+	Primitive 246 (failureCode : {
+		ambiguous-name code,
+		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
  * Define the specified semantic restriction. Henceforth whenever the method
- * named by `methodName` is invoked with arguments accepted by `restriction`,
- * then apply `restriction` with the most specific available types of the actual
+ * named by {@param "methodName"} is invoked with arguments accepted by {@param "restriction"},
+ * then apply {@param "restriction"} with the most specific available types of the actual
  * arguments. This is determined by the compiler at the method's call site.
  *
  * A semantic restriction has two responsibilities. First, it may reject a
@@ -1109,17 +1659,63 @@ Primitive "Publish new name:_" is
  * produced at the call site by answering a subtype of the method's declared
  * return type.
  *
- * Parameters:
- *    methodName - The name of the method to which the semantic restriction
- *       applies.
- *    restriction - The restriction function.
+ * @category "Primitives"
+ * @method "Semantic restriction_is_"
+ * @param "methodName" "string"
+ *        The name of the method to which the semantic restriction applies.
+ * @param "restriction" "semantic restriction function"
+ *        The restriction function.
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-argument-type exception"
+ * @raises "type-restriction-must-accept-only-types exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "ambiguous-name exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "tilde-must-not-follow-argument exception"
+ * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "loading-is-over exception"
  */
 Primitive "Semantic restriction_is_" is
 [
 	methodName : string,
 	restriction : semantic restriction function
 |
-	Primitive 248 (failureCode : natural number);
+	Primitive 248 (failureCode : {
+		incorrect-number-of-arguments code,
+		incorrect-argument-type code,
+		type-restriction-must-accept-only-types code,
+		incorrect-type-for-group code,
+		ambiguous-name code,
+		exclamation-mark-must-follow-an-alternation-group code,
+		incorrect-type-for-complex-group code,
+		incorrect-use-of-double-dagger code,
+		unbalanced-guillemets code,
+		method-name-is-not-canonical code,
+		expected-operator-after-backquote code,
+		incorrect-type-for-boolean-group code,
+		incorrect-type-for-counting-group code,
+		octothorp-must-follow-a-simple-group code,
+		question-mark-must-follow-a-simple-group code,
+		case-insensitive-expression-canonization code,
+		tilde-must-not-follow-argument code,
+		double-question-mark-must-follow-a-simple-or-simple-group code,
+		alternative-must-not-contain-arguments code,
+		vertical-bar-must-follow-a-simple-or-simple-group code,
+		incorrect-type-for-numbered-choice code,
+		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1141,10 +1737,38 @@ Primitive "Semantic restriction_is_" is
  * Macro definitions are parametric by parameter types. They participate in
  * multiply polymorphic dispatch just as do methods.
  *
- * Parameters:
- *    macroName - The name of the macro to define.
- *    prefixFunctions - A tuple of zero or more prefix functions.
- *    body - The function that implements the macro.
+ * @category "Primitives"
+ * @method "Macro_is«_,»_"
+ * @param "macroName" "string"
+ *        The name of the macro to define.
+ * @param "prefixFunctions" "tuple of functions"
+ *        A tuple of zero or more prefix functions.
+ * @param "body" "macro function"
+ *        The function that implements the macro.
+ * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "macro-argument-must-be-a-parse-node exception"
+ * @raises "ambiguous-name exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "tilde-must-not-follow-argument exception"
+ * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "macro-prefix-functions-must-return-top exception"
+ * @raises "macro-prefix-function-argument-must-be-a-parse-node exception"
+ * @raises "macro-must-return-a-parse-node exception"
+ * @raises "loading-is-over exception"
  */
 Primitive "Macro_is«_,»_" is
 [
@@ -1152,7 +1776,31 @@ Primitive "Macro_is«_,»_" is
 	prefixFunctions : tuple of functions,
 	body : macro function
 |
-	Primitive 249 (failureCode : natural number);
+	Primitive 249 (failureCode : {
+		incorrect-argument-type code,
+		incorrect-type-for-group code,
+		macro-argument-must-be-a-parse-node code,
+		ambiguous-name code,
+		exclamation-mark-must-follow-an-alternation-group code,
+		incorrect-type-for-complex-group code,
+		incorrect-use-of-double-dagger code,
+		unbalanced-guillemets code,
+		method-name-is-not-canonical code,
+		expected-operator-after-backquote code,
+		incorrect-type-for-boolean-group code,
+		incorrect-type-for-counting-group code,
+		octothorp-must-follow-a-simple-group code,
+		question-mark-must-follow-a-simple-group code,
+		case-insensitive-expression-canonization code,
+		tilde-must-not-follow-argument code,
+		double-question-mark-must-follow-a-simple-or-simple-group code,
+		alternative-must-not-contain-arguments code,
+		vertical-bar-must-follow-a-simple-or-simple-group code,
+		incorrect-type-for-numbered-choice code,
+		macro-prefix-functions-must-return-top code,
+		macro-prefix-function-argument-must-be-a-parse-node code,
+		macro-must-return-a-parse-node code,
+		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1161,16 +1809,67 @@ Primitive "Macro_is«_,»_" is
  * definition is one whose parameter types and return type are strictly more
  * specific than the corresponding types of the abstract signature.
  *
- * Parameters:
- *    methodName - The name of the abstract method to declare.
- *    aFunctionType - The signature.
+ * @category "Primitives"
+ * @method "Abstract method_is_"
+ * @param "methodName" "string"
+ *        The name of the abstract method to declare.
+ * @param "aFunctionType" "function meta"
+ *        The signature.
+ * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "ambiguous-name exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "redefined-with-same-argument-types exception"
+ * @raises "result-type-should-covary-with-arguments exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "tilde-must-not-follow-argument exception"
+ * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "loading-is-over exception"
+ * @raises "method-is-sealed exception"
+ * @raises "cannot-mix-method-and-macro-definitions exception"
  */
 Primitive "Abstract method_is_" is
 [
 	methodName : string,
 	aFunctionType : function meta
 |
-	Primitive 251 (failureCode : natural number);
+	Primitive 251 (failureCode : {
+		incorrect-argument-type code,
+		incorrect-type-for-group code,
+		ambiguous-name code,
+		exclamation-mark-must-follow-an-alternation-group code,
+		redefined-with-same-argument-types code,
+		result-type-should-covary-with-arguments code,
+		incorrect-type-for-complex-group code,
+		incorrect-use-of-double-dagger code,
+		unbalanced-guillemets code,
+		method-name-is-not-canonical code,
+		expected-operator-after-backquote code,
+		incorrect-type-for-boolean-group code,
+		incorrect-type-for-counting-group code,
+		octothorp-must-follow-a-simple-group code,
+		question-mark-must-follow-a-simple-group code,
+		case-insensitive-expression-canonization code,
+		tilde-must-not-follow-argument code,
+		double-question-mark-must-follow-a-simple-or-simple-group code,
+		alternative-must-not-contain-arguments code,
+		vertical-bar-must-follow-a-simple-or-simple-group code,
+		incorrect-type-for-numbered-choice code,
+		loading-is-over code,
+		method-is-sealed code,
+		cannot-mix-method-and-macro-definitions code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1182,120 +1881,266 @@ Primitive "Abstract method_is_" is
  * Recursive methods must be forward declared. Mutually recursive methods must
  * forward declare all but the lexically first participant in the recursion.
  *
- * Parameters:
- *    methodName - The name of the method to forward declare.
- *    aFunctionType - The signature.
+ * @category "Primitives"
+ * @method "Forward method_is_"
+ * @param "methodName" "string"
+ *        The name of the method to forward declare.
+ * @param "aFunctionType" "function meta"
+ *        The signature.
+ * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "ambiguous-name exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "redefined-with-same-argument-types exception"
+ * @raises "result-type-should-covary-with-arguments exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "tilde-must-not-follow-argument exception"
+ * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "loading-is-over exception"
+ * @raises "method-is-sealed exception"
+ * @raises "cannot-mix-method-and-macro-definitions exception"
  */
 Primitive "Forward method_is_" is
 [
 	methodName : string,
 	aFunctionType : function meta
 |
-	Primitive 252 (failureCode : natural number);
+	Primitive 252 (failureCode : {
+		incorrect-argument-type code,
+		incorrect-type-for-group code,
+		ambiguous-name code,
+		exclamation-mark-must-follow-an-alternation-group code,
+		redefined-with-same-argument-types code,
+		result-type-should-covary-with-arguments code,
+		incorrect-type-for-complex-group code,
+		incorrect-use-of-double-dagger code,
+		unbalanced-guillemets code,
+		method-name-is-not-canonical code,
+		expected-operator-after-backquote code,
+		incorrect-type-for-boolean-group code,
+		incorrect-type-for-counting-group code,
+		octothorp-must-follow-a-simple-group code,
+		question-mark-must-follow-a-simple-group code,
+		case-insensitive-expression-canonization code,
+		tilde-must-not-follow-argument code,
+		double-question-mark-must-follow-a-simple-or-simple-group code,
+		alternative-must-not-contain-arguments code,
+		vertical-bar-must-follow-a-simple-or-simple-group code,
+		incorrect-type-for-numbered-choice code,
+		loading-is-over code,
+		method-is-sealed code,
+		cannot-mix-method-and-macro-definitions code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
  * Read the next character from the standard input stream.
  *
- * Returns:
+ * @returns "character"
  *    The next character from the standard input stream.
+ * @raises "I/O-error exception"
  */
 Primitive "next character" is
 [
-	Primitive 254 (failureCode : natural number);
+	Primitive 254 (failureCode : {
+		I/O-error code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : character;
 
 /**
  * Define the indicated grammatical restrictions. Each method name in
- * `methodsToRestrict` must accept the same number of arguments, though not
+ * {@param "methodsToRestrict"} must accept the same number of arguments, though not
  * necessarily the same types (or the same order of types). Each element `e` of
- * `exclusions`, itself a set of method names, corresponds to an argument
- * position `n` of any method name in `methodsToRestrict`. The compiler rejects
+ * {@param "exclusions"}, itself a set of method names, corresponds to an argument
+ * position `n` of any method name in {@param "methodsToRestrict"}. The compiler rejects
  * parses of source text that invoke methods named in `e` when they occur
  * grammatically at argument position `n` of an invocation of any method named
- * in `methodsToRestrict`.
+ * in {@param "methodsToRestrict"}.
  *
  * Note that "argument position" corresponds to a blank, not to a top-level
  * repeating sequence (indicated by guillemet notation).
  *
- * Parameters:
- *    methodsToRestrict - A set of method names, each of which should be
- *       restricted.
- *    exclusions - A tuple of sets of method names. The method names in the
- *       `n`-th set are restricted from occurring grammatically at the `n`-th
- *       argument position of any invocation of a method named in
- *       `methodsToRestrict`.
+ * @category "Primitives"
+ * @method "Grammatical restriction_is_"
+ * @param "methodsToRestrict" "nonempty set of string"
+ *        A set of method names, each of which should be restricted.
+ * @param "exclusions" "tuple of set of string"
+ *        A tuple of sets of method names. The method names in the `n`-th set
+ *        are restricted from occurring grammatically at the `n`-th argument
+ *        position of any invocation of a method named in {@param "methodsToRestrict"}.
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "ambiguous-name exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "tilde-must-not-follow-argument exception"
+ * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "loading-is-over exception"
  */
 Primitive "Grammatical restriction_is_" is
 [
 	methodsToRestrict : nonempty set of string,
 	exclusions : tuple of set of string
 |
-	Primitive 255 (failureCode : natural number);
+	Primitive 255 (failureCode : {
+		incorrect-number-of-arguments code,
+		incorrect-argument-type code,
+		incorrect-type-for-group code,
+		ambiguous-name code,
+		exclamation-mark-must-follow-an-alternation-group code,
+		incorrect-type-for-complex-group code,
+		incorrect-use-of-double-dagger code,
+		unbalanced-guillemets code,
+		method-name-is-not-canonical code,
+		expected-operator-after-backquote code,
+		incorrect-type-for-boolean-group code,
+		incorrect-type-for-counting-group code,
+		octothorp-must-follow-a-simple-group code,
+		question-mark-must-follow-a-simple-group code,
+		case-insensitive-expression-canonization code,
+		tilde-must-not-follow-argument code,
+		double-question-mark-must-follow-a-simple-or-simple-group code,
+		alternative-must-not-contain-arguments code,
+		vertical-bar-must-follow-a-simple-or-simple-group code,
+		incorrect-type-for-numbered-choice code,
+		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
- * Mark the standard input stream to allow at least `count` of read ahead.
+ * Mark the standard input stream to allow at least {@param "count"}
+ * characters of read ahead.
  *
- * Parameters:
- *    count - The requested number of characters of read ahead.
+ * @category "Primitives"
+ * @method "Mark for_character|characters of read ahead"
+ * @param "count" "whole number"
+ *        The requested number of characters of read ahead.
+ * @raises "I/O-error exception"
  */
 Primitive "Mark for_character|characters of read ahead" is
 [
 	count : whole number
 |
-	Primitive 261 (failureCode : natural number);
+	Primitive 261 (failureCode : {
+		I/O-error code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
  * Reset the standard input stream to the previously set mark.
  *
+ * @raises "I/O-error exception"
  */
 Primitive "Reset to mark" is
 [
-	Primitive 262 (failureCode : natural number);
+	Primitive 262 (failureCode : {
+		I/O-error code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
  * Define the indicated grammatical restrictions. Each method name in
- * `methodsToRestrict` must accept the same number of arguments, though not
+ * {@param "methodsToRestrict"} must accept the same number of arguments, though not
  * necessarily the same types (or the same order of types). Each element `e` of
- * `exclusions`, itself a set of method names, corresponds to an argument
- * position `n` of any method name in `methodsToRestrict`. The compiler rejects
+ * {@param "exclusions"}, itself a set of method names, corresponds to an argument
+ * position `n` of any method name in {@param "methodsToRestrict"}. The compiler rejects
  * parses of source text that invoke methods named in `e` when they occur
  * grammatically at argument position `n` of an invocation of any method named
- * in `methodsToRestrict`.
+ * in {@param "methodsToRestrict"}.
  *
  * Note that "argument position" corresponds to a blank, not to a top-level
  * repeating sequence (indicated by guillemet notation).
  *
- * Parameters:
- *    methodsToRestrict - A set of method names, each of which should be
- *       restricted.
- *    exclusions - A tuple of sets of method names. The method names in the
+ * @category "Primitives"
+ * @method "Grammatical restriction_is_"
+ * @param "methodsToRestrict" "nonempty set of atom"
+ *        A set of method names, each of which should be restricted.
+ * @param "exclusions" "tuple of set of atom"
+ *        A tuple of sets of method names. The method names in the
  *       `n`-th set are restricted from occurring grammatically at the `n`-th
  *       argument position of any invocation of a method named in
- *       `methodsToRestrict`.
+ *       {@param "methodsToRestrict"}.
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "tilde-must-not-follow-argument exception"
+ * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "loading-is-over exception"
  */
 Primitive "Grammatical restriction_is_" is
 [
 	methodsToRestrict : nonempty set of atom,
 	exclusions : tuple of set of atom
 |
-	Primitive 264 (failureCode : natural number);
+	Primitive 264 (failureCode : {
+		incorrect-number-of-arguments code,
+		incorrect-argument-type code,
+		incorrect-type-for-group code,
+		exclamation-mark-must-follow-an-alternation-group code,
+		incorrect-type-for-complex-group code,
+		incorrect-use-of-double-dagger code,
+		unbalanced-guillemets code,
+		method-name-is-not-canonical code,
+		expected-operator-after-backquote code,
+		incorrect-type-for-boolean-group code,
+		incorrect-type-for-counting-group code,
+		octothorp-must-follow-a-simple-group code,
+		question-mark-must-follow-a-simple-group code,
+		case-insensitive-expression-canonization code,
+		tilde-must-not-follow-argument code,
+		double-question-mark-must-follow-a-simple-or-simple-group code,
+		alternative-must-not-contain-arguments code,
+		vertical-bar-must-follow-a-simple-or-simple-group code,
+		incorrect-type-for-numbered-choice code,
+		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
  * Answer the set of all atoms exported by the current module.
  *
- * Returns:
+ * @returns "{atom|}"
  *    The set of atoms exported by the current module.
+ * @raises "natural number"
  */
 Primitive "current module's exported names" is
 [
@@ -1307,72 +2152,87 @@ Primitive "current module's exported names" is
  * Seal the each method named by an element of `methodNames` at each of its
  * existing abstract and method definitions. Ignore any macros.
  *
- * Parameters:
- *    methodNames - A set of atoms that serve as method names.
+ * @category "Primitives"
+ * @method "Seal method|methods_at existing definitions"
+ * @param "methodNames" "set of atom"
+ *        A set of atoms that serve as method names.
+ * @raises "loading-is-over exception"
  */
 Primitive "Seal method|methods_at existing definitions" is
 [
 	methodNames : set of atom
 |
-	Primitive 268 (failureCode : natural number);
+	Primitive 268 (failureCode : {
+		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
- * Compute and answer an approximation of `dividend` modulo `divisor`, i.e. the
- * remainder produced by dividing the arguments.
+ * Compute and answer an `extended integer` by rounding the argument toward
+ * zero (`0`).
  *
- * Parameters:
- *    dividend - The dividend.
- *    divisor - The divisor.
- * Returns:
- *    An approximation of `dividend` mod `divisor`.
+ * @category "Primitives"
+ * @method "_→extended integer"
+ * @param "aFloat" "float"
+ *        A single-precision floating point number.
+ * @returns "[-∞..∞]"
+ *    The requested value.
+ * @raises "cannot-convert-not-a-number-to-integer exception"
  */
-Primitive "_mod_" is
+Primitive "_→extended integer" is
 [
-	dividend : float,
-	divisor : float
+	aFloat : float
 |
-	Primitive 288 (failureCode : natural number);
+	Primitive 289 (failureCode : {
+		cannot-convert-not-a-number-to-integer code}ᵀ);
 	Private invoke _fail_primitive with failureCode
-] : float;
+] : extended integer;
 
 /**
- * Compute and answer an approximation of `dividend` modulo `divisor`, i.e. the
- * remainder produced by dividing the arguments.
+ * Compute and answer an `extended integer` by rounding the argument toward
+ * zero (`0`).
  *
- * Parameters:
- *    dividend - The dividend.
- *    divisor - The divisor.
- * Returns:
- *    An approximation of `0` mod `divisor`.
+ * @category "Primitives"
+ * @method "_→extended integer"
+ * @param "aDouble" "double"
+ *        A double-precision floating point number.
+ * @returns "[-∞..∞]"
+ *    The requested value.
+ * @raises "cannot-convert-not-a-number-to-integer exception"
  */
-Primitive "_mod_" is
+Primitive "_→extended integer" is
 [
-	dividend : double,
-	divisor : double
+	aDouble : double
 |
-	Primitive 318 (failureCode : natural number);
+	Primitive 319 (failureCode : {
+		cannot-convert-not-a-number-to-integer code}ᵀ);
 	Private invoke _fail_primitive with failureCode
-] : double;
+] : extended integer;
 
 /**
  * Construct and answer an assignment expression.
  *
- * Parameters:
- *    variableUse - A variable use expression.
- *    valueExpression - An expression.
- * Returns:
+ * @category "Primitives"
+ * @method "`«(_:=_)`»"
+ * @param "variableUse" "variable use phrase"
+ *        A variable use expression.
+ * @param "valueExpression" "expression yielding any"
+ *        An expression.
+ * @returns "assignment phrase⇒⊤"
  *    An expression that describes assigning to the variable indicated by
- *    `variableUse` the result of running `valueExpression`. The result yields the same
- *    answer as `valueExpression`.
+ *    {@param "variableUse"} the result of running {@param "valueExpression"}. The result
+ *    yields the same answer as {@param "valueExpression"}.
+ * @raises "cannot-store-incorrectly-typed-value exception"
+ * @raises "declaration-kind-does-not-support-assignment exception"
  */
 Primitive "`«(_:=_)`»" is
 [
 	variableUse : variable use phrase,
 	valueExpression : expression yielding any
 |
-	Primitive 350 (failureCode : natural number);
+	Primitive 350 (failureCode : {
+		cannot-store-incorrectly-typed-value code,
+		declaration-kind-does-not-support-assignment code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : assignment phrase;
 
@@ -1395,51 +2255,66 @@ Primitive "`«(_:=_)`»" is
  * semantic restriction function: it should only be invoked by the Avail
  * compiler, never by a semantically valid Avail program.
  *
- * Parameters:
- *    expected - A description of the cause of rejection, worded to sound good
- *       after "Expected...".
+ * @category "Primitives"
+ * @method "Reject parse,expected:_"
+ * @param "expected" "string"
+ *        A description of the cause of rejection, worded to sound good
+ *        after {@code "Expected..."}.
+ * @raises "untimely-parse-rejection exception"
  */
 Primitive "Reject parse,expected:_" is
 [
 	expected : string
 |
-	Primitive 352 (failureCode : natural number);
+	Primitive 352 (failureCode : {
+		untimely-parse-rejection code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊥;
 
 /**
  * Construct and answer an assignment statement.
  *
- * Parameters:
- *    variableUse - A variable use expression.
- *    valueExpression - An expression.
- * Returns:
+ * @category "Primitives"
+ * @method "`«_:=_`»"
+ * @param "variableUse" "variable use phrase"
+ *        A variable use expression.
+ * @param "valueExpression" "expression yielding any"
+ *        An expression.
+ * @returns "assignment phrase⇒⊤"
  *    A statement that describes assigning to the variable indicated by
- *    `variableUse` the result of running `valueExpression`.
+ *    {@param "variableUse"} the result of running {@param "valueExpression"}.
+ * @raises "cannot-store-incorrectly-typed-value exception"
+ * @raises "declaration-kind-does-not-support-assignment exception"
  */
 Primitive "`«_:=_`»" is
 [
 	variableUse : variable use phrase,
 	valueExpression : expression yielding any
 |
-	Primitive 353 (failureCode : natural number);
+	Primitive 353 (failureCode : {
+		cannot-store-incorrectly-typed-value code,
+		declaration-kind-does-not-support-assignment code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : assignment phrase;
 
 /**
  * Construct and answer a value reference expression.
  *
- * Parameters:
- *    variableUse - A variable use expression.
- * Returns:
+ * @category "Primitives"
+ * @method "`«↑_`»"
+ * @param "variableUse" "variable use phrase"
+ *        A variable use expression.
+ * @returns "reference phrase⇒⊤→/→⊥"
  *    A variable reference expression that answers the variable described by
- *    `variableUse`.
+ *    {@param "variableUse"}.
+ * @raises "declaration-kind-does-not-support-reference exception"
  */
 Primitive "`«↑_`»" is
 [
 	variableUse : variable use phrase
 |
-	Primitive 354 (failureCode : natural number);
+	Primitive 354 (failureCode : {
+		declaration-kind-does-not-support-reference code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : variable reference phrase;
 
@@ -1448,16 +2323,22 @@ Primitive "`«↑_`»" is
  * declarations, primitive linkage number, tuple of statements, return type, and
  * set of declared exceptions.
  *
- * Parameters:
- *    argumentDeclarations - A tuple of argument declarations.
- *    primitiveNumber - The primitive linkage number, or 0 for no primitive
- *       linkage.
- *    statements - A tuple of statements. Each element except for the last must
- *       be an assignment, declaration, label, sequence, or ⊤-valued send.
- *    returnType - The return type.
- *    exceptions - The set of exceptions that may be raised.
- * Returns:
+ * @category "Primitives"
+ * @method "`«[_`|Primitive__]:_^_`»"
+ * @param "argumentDeclarations" "argument tuple"
+ *        A tuple of argument declarations.
+ * @param "primitiveNumber" "unsigned short"
+ *        The primitive linkage number, or 0 for no primitive linkage.
+ * @param "statements" "phrase tuple"
+ *        A tuple of statements. Each element except for the last must be an
+ *        assignment, declaration, label, sequence, or ⊤-valued send.
+ * @param "returnType" "type"
+ *        The return type.
+ * @param "exceptions" "set of exception"
+ *        The set of exceptions that may be raised.
+ * @returns "block phrase⇒[…]→⊤"
  *    The requested block.
+ * @raises "block-contains-invalid-statements exception"
  */
 Primitive "`«[_`|Primitive__]:_^_`»" is
 [
@@ -1467,39 +2348,71 @@ Primitive "`«[_`|Primitive__]:_^_`»" is
 	returnType : type,
 	exceptions : set of exception
 |
-	Primitive 361 (failureCode : natural number);
+	Primitive 361 (failureCode : {
+		block-contains-invalid-statements code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : block phrase;
 
 /**
  * Generate and answer a function from the specified block.
  *
- * Parameters:
- *    aBlock - A block. Note that the block is treated as a top-level
- *       construct, so it must not refer to any outer variable declarations.
- * Returns:
+ * @category "Primitives"
+ * @method "_→function"
+ * @param "aBlock" "block phrase"
+ *        A block. Note that the block is treated as a top-level construct, so
+ *        it must not refer to any outer variable declarations.
+ * @returns "[…]→⊤"
  *    The requested function.
+ * @raises "block-is-invalid exception"
+ * @raises "block-must-not-contain-outers exception"
+ * @raises "block-compilation-failed exception"
  */
 Primitive "_→function" is
 [
 	aBlock : block phrase
 |
-	Primitive 362 (failureCode : natural number);
+	Primitive 362 (failureCode : {
+		block-is-invalid code,
+		block-must-not-contain-outers code,
+		block-compilation-failed code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : function;
 
 /**
- * Construct and answer a message send. `messageName` must be an atom which has
+ * Construct and answer a message send. {@param "messageName"} must be an atom which has
  * a message bundle.  The number and types of the argument expressions must
  * satisfy at least one of the method's existing definitions.
  *
- * Parameters:
- *    messageName - The name of the method to be invoked.
- *    argumentsList - The list phrase containing the argument expressions,
- *       corresponding left-to-right with the arguments of the method.
- *    returnType - The expected (strengthened) return type of the method send.
- * Returns:
+ * @category "Primitives"
+ * @method "send_with_:_"
+ * @param "messageName" "atom"
+ *        The name of the method to be invoked.
+ * @param "argumentsList" "list phrase"
+ *        The list phrase containing the argument expressions, corresponding
+ *        left-to-right with the arguments of the method.
+ * @param "returnType" "type"
+ *        The expected (strengthened) return type of the method send.
+ * @returns "send phrase⇒⊤"
  *    The requested message send.
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "tilde-must-not-follow-argument exception"
+ * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
  */
 Primitive "send_with_:_" is
 [
@@ -1507,43 +2420,72 @@ Primitive "send_with_:_" is
 	argumentsList : list phrase,
 	returnType : type
 |
-	Primitive 383 (failureCode : natural number);
+	Primitive 383 (failureCode : {
+		incorrect-number-of-arguments code,
+		incorrect-argument-type code,
+		incorrect-type-for-group code,
+		exclamation-mark-must-follow-an-alternation-group code,
+		incorrect-type-for-complex-group code,
+		incorrect-use-of-double-dagger code,
+		unbalanced-guillemets code,
+		method-name-is-not-canonical code,
+		expected-operator-after-backquote code,
+		incorrect-type-for-boolean-group code,
+		incorrect-type-for-counting-group code,
+		octothorp-must-follow-a-simple-group code,
+		question-mark-must-follow-a-simple-group code,
+		case-insensitive-expression-canonization code,
+		tilde-must-not-follow-argument code,
+		double-question-mark-must-follow-a-simple-or-simple-group code,
+		alternative-must-not-contain-arguments code,
+		vertical-bar-must-follow-a-simple-or-simple-group code,
+		incorrect-type-for-numbered-choice code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : send phrase;
 
 /**
  * Construct and answer a sequence from the specified tuple of statements.
  *
- * Parameters:
- *    statements - A tuple of statements.
- * Returns:
+ * @category "Primitives"
+ * @method "seq`«_`»"
+ * @param "statements" "phrase tuple"
+ *        A tuple of statements.
+ * @returns "sequence phrase⇒⊤"
  *    The requested sequence.
+ * @raises "sequence-contains-invalid-statements exception"
  */
 Primitive "seq`«_`»" is
 [
 	statements : phrase tuple
 |
-	Primitive 387 (failureCode : natural number);
+	Primitive 387 (failureCode : {
+		sequence-contains-invalid-statements code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : sequence phrase;
 
 /**
  * Construct and answer a fully parameterized pojo type.
  *
- * Parameters:
- *    javaName - The fully qualified name of the Java class or interface.
- *    typeParameters - The type arguments. The cardinality of this tuple
- *       must agree with the number of type parameters required by the Java
- *       class or interface.
- * Returns:
+ * @category "Primitives"
+ * @method "_<«_‡,»>"
+ * @param "javaName" "string"
+ *        The fully qualified name of the Java class or interface.
+ * @param "typeParameters" "tuple of any meta"
+ *        The type arguments. The cardinality of this tuple must agree with the
+ *        number of type parameters required by the Java class or interface.
+ * @returns "(java.lang.Object)'s type"
  *    The requested pojo type.
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "Java-class-not-available exception"
  */
 Primitive "_<«_‡,»>" is
 [
 	javaName : string,
 	typeParameters : tuple of any meta
 |
-	Primitive 500 (failureCode : natural number);
+	Primitive 500 (failureCode : {
+		incorrect-number-of-arguments code,
+		Java-class-not-available code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : pojo meta;
 
@@ -1558,26 +2500,35 @@ Primitive "_<«_‡,»>" is
  * of reflective constructor lookup and invocation, the following marshaling
  * rules are applied:
  *
- *    - `[-128..127]` is marshaled to Java byte (java.lang.Byte.TYPE).
- *    - `[-32768..32767]` is marshaled to Java short (java.lang.Short.TYPE).
- *    - `[-2^31..2^31-1]` is marshaled to Java int (java.lang.Integer.TYPE).
- *    - `[-2^63..2^63-1]` is marshaled to Java long (java.lang.Long.TYPE).
- *    - `boolean` is marshaled to Java boolean (java.lang.Boolean.TYPE).
- *    - `character` is marshaled to Java char (java.lang.Character.TYPE).
- *    - `float` is marshaled to Java float (java.lang.Float.TYPE).
- *    - `double` is marshaled to Java double (java.lang.Double.TYPE).
- *    - `string` is marshaled to java.lang.String.
- *    - `_[]` is marshaled to java.lang.reflect.Array.newInstance().getClass().
- *    - `_<«_‡,»>` is marshaled to the reflected Java class or interface.
- *    - All other values are marshaled to com.avail.descriptor.AvailObject.
+ * <ul>
+ * <li>`[-128..127]` is marshaled to Java byte (java.lang.Byte.TYPE).</li>
+ * <li>`[-32768..32767]` is marshaled to Java short (java.lang.Short.TYPE).</li>
+ * <li>`[-2^31..2^31-1]` is marshaled to Java int (java.lang.Integer.TYPE).</li>
+ * <li>`[-2^63..2^63-1]` is marshaled to Java long (java.lang.Long.TYPE).</li>
+ * <li>`boolean` is marshaled to Java boolean (java.lang.Boolean.TYPE).</li>
+ * <li>`character` is marshaled to Java char (java.lang.Character.TYPE).</li>
+ * <li>`float` is marshaled to Java float (java.lang.Float.TYPE).</li>
+ * <li>`double` is marshaled to Java double (java.lang.Double.TYPE).</li>
+ * <li>`string` is marshaled to java.lang.String.</li>
+ * <li>`_[]` is marshaled to
+ *     java.lang.reflect.Array.newInstance().getClass().</li>
+ * <li>`_<«_‡,»>` is marshaled to the reflected Java class or interface.</li>
+ * <li>All other values are marshaled to com.avail.descriptor.AvailObject.</li>
+ * </ul>
  *
- * Parameters:
- *    aPojoType - A pojo type.
- *    parameterTypes - The parameter types accepted by the desired constructor.
- *    failFunction - The function to apply if an invocation of the constructor
+ * @category "Primitives"
+ * @method "constructor_<«_‡,»>(fail with_)"
+ * @param "aPojoType" "pojo meta"
+ *        A pojo type.
+ * @param "parameterTypes" "tuple of any meta"
+ *        The parameter types accepted by the desired constructor.
+ * @param "failFunction" "pojo failure function"
+ *        The function to apply if an invocation of the constructor
  *       throws a Java exception.
- * Returns:
+ * @returns "[…]→java.lang.Object"
  *    The requested constructor invocation function.
+ * @raises "pojo-type-is-abstract exception"
+ * @raises "Java-method-not-available exception"
  */
 Primitive "constructor_<«_‡,»>(fail with_)" is
 [
@@ -1585,7 +2536,9 @@ Primitive "constructor_<«_‡,»>(fail with_)" is
 	parameterTypes : tuple of any meta,
 	failFunction : pojo failure function
 |
-	Primitive 502 (failureCode : natural number);
+	Primitive 502 (failureCode : {
+		pojo-type-is-abstract code,
+		Java-method-not-available code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : pojo constructor;
 
@@ -1594,19 +2547,24 @@ Primitive "constructor_<«_‡,»>(fail with_)" is
  * through to the instance field uniquely specified by the given pojo and field
  * name.
  *
- * Parameters:
- *    aPojo - The pojo whose instance field should be bound to the answered
- *       variable.
- *    fieldName - The name of the desired field.
- * Returns:
+ * @category "Primitives"
+ * @method "_._→variable"
+ * @param "aPojo" "pojo"
+ *        The pojo whose instance field should be bound to the answered
+ *        variable.
+ * @param "fieldName" "string"
+ *        The name of the desired field.
+ * @returns "⊤→/→⊥"
  *    A variable bound to the specified instance field.
+ * @raises "Java-field-not-available exception"
  */
 Primitive "_._→variable" is
 [
 	aPojo : pojo,
 	fieldName : string
 |
-	Primitive 504 (failureCode : natural number);
+	Primitive 504 (failureCode : {
+		Java-field-not-available code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : variable;
 
@@ -1615,19 +2573,26 @@ Primitive "_._→variable" is
  * through to the static field specified by the given pojo type and field
  * name.
  *
- * Parameters:
- *    aPojoType - A pojo type whose static field should be bound to the
- *       answered variable.
- *    fieldName - The name of the desired field.
- * Returns:
+ * @category "Primitives"
+ * @method "_._→variable"
+ * @param "aPojoType" "pojo meta"
+ *        A pojo type whose static field should be bound to the answered
+ *        variable.
+ * @param "fieldName" "string"
+ *        The name of the desired field.
+ * @returns "⊤→/→⊥"
  *    A variable bound to the specified static field.
+ * @raises "Java-field-not-available exception"
+ * @raises "Java-field-reference-is-ambiguous exception"
  */
 Primitive "_._→variable" is
 [
 	aPojoType : pojo meta,
 	fieldName : string
 |
-	Primitive 505 (failureCode : natural number);
+	Primitive 505 (failureCode : {
+		Java-field-not-available code,
+		Java-field-reference-is-ambiguous code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : variable;
 
@@ -1643,27 +2608,37 @@ Primitive "_._→variable" is
  * of reflective method lookup and invocation, the following marshaling rules
  * are applied:
  *
- *    - `[-128..127]` is marshaled to Java byte (java.lang.Byte.TYPE).
- *    - `[-32768..32767]` is marshaled to Java short (java.lang.Short.TYPE).
- *    - `[-2^31..2^31-1]` is marshaled to Java int (java.lang.Integer.TYPE).
- *    - `[-2^63..2^63-1]` is marshaled to Java long (java.lang.Long.TYPE).
- *    - `boolean` is marshaled to Java boolean (java.lang.Boolean.TYPE).
- *    - `character` is marshaled to Java char (java.lang.Character.TYPE).
- *    - `float` is marshaled to Java float (java.lang.Float.TYPE).
- *    - `double` is marshaled to Java double (java.lang.Double.TYPE).
- *    - `string` is marshaled to java.lang.String.
- *    - `_[]` is marshaled to java.lang.reflect.Array.newInstance().getClass().
- *    - `_<«_‡,»>` is marshaled to the reflected Java class or interface.
- *    - All other values are marshaled to com.avail.descriptor.AvailObject.
+ * <ul>
+ * <li>`[-128..127]` is marshaled to Java byte (java.lang.Byte.TYPE).</li>
+ * <li>`[-32768..32767]` is marshaled to Java short (java.lang.Short.TYPE).</li>
+ * <li>`[-2^31..2^31-1]` is marshaled to Java int (java.lang.Integer.TYPE).</li>
+ * <li>`[-2^63..2^63-1]` is marshaled to Java long (java.lang.Long.TYPE).</li>
+ * <li>`boolean` is marshaled to Java boolean (java.lang.Boolean.TYPE).</li>
+ * <li>`character` is marshaled to Java char (java.lang.Character.TYPE).</li>
+ * <li>`float` is marshaled to Java float (java.lang.Float.TYPE).</li>
+ * <li>`double` is marshaled to Java double (java.lang.Double.TYPE).</li>
+ * <li>`string` is marshaled to java.lang.String.</li>
+ * <li>`_[]` is marshaled to
+ *     java.lang.reflect.Array.newInstance().getClass().</li>
+ * <li>`_<«_‡,»>` is marshaled to the reflected Java class or interface.</li>
+ * <li>All other values are marshaled to com.avail.descriptor.AvailObject.</li>
+ * </ul>
  *
- * Parameters:
- *    aPojoType - A pojo type.
- *    methodName - The name of the desired method.
- *    parameterTypes - The parameter types accepted by the desired method.
- *    failFunction - The function to apply if an invocation of the method
+ * @category "Primitives"
+ * @method "method_._<«_‡,»>,⁇on failure do_"
+ * @param "aPojoType" "pojo meta"
+ *        A pojo type.
+ * @param "methodName" "string"
+ *        The name of the desired method.
+ * @param "parameterTypes" "tuple of any meta"
+ *        The parameter types accepted by the desired method.
+ * @param "failFunction" "pojo failure function"
+ *        The function to apply if an invocation of the method
  *       throws a Java exception.
- * Returns:
+ * @returns "[…]→⊤"
  *    The requested instance method invocation function.
+ * @raises "Java-method-not-available exception"
+ * @raises "Java-method-reference-is-ambiguous exception"
  */
 Primitive "method_._<«_‡,»>,⁇on failure do_" is
 [
@@ -1672,7 +2647,9 @@ Primitive "method_._<«_‡,»>,⁇on failure do_" is
 	parameterTypes : tuple of any meta,
 	failFunction : pojo failure function
 |
-	Primitive 506 (failureCode : natural number);
+	Primitive 506 (failureCode : {
+		Java-method-not-available code,
+		Java-method-reference-is-ambiguous code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : function;
 
@@ -1687,27 +2664,37 @@ Primitive "method_._<«_‡,»>,⁇on failure do_" is
  * Java types for the purpose of reflective method lookup and invocation, the
  * following marshaling rules are applied:
  *
- *    - `[-128..127]` is marshaled to Java byte (java.lang.Byte.TYPE).
- *    - `[-32768..32767]` is marshaled to Java short (java.lang.Short.TYPE).
- *    - `[-2^31..2^31-1]` is marshaled to Java int (java.lang.Integer.TYPE).
- *    - `[-2^63..2^63-1]` is marshaled to Java long (java.lang.Long.TYPE).
- *    - `boolean` is marshaled to Java boolean (java.lang.Boolean.TYPE).
- *    - `character` is marshaled to Java char (java.lang.Character.TYPE).
- *    - `float` is marshaled to Java float (java.lang.Float.TYPE).
- *    - `double` is marshaled to Java double (java.lang.Double.TYPE).
- *    - `string` is marshaled to java.lang.String.
- *    - `_[]` is marshaled to java.lang.reflect.Array.newInstance().getClass().
- *    - `_<«_‡,»>` is marshaled to the reflected Java class or interface.
- *    - All other values are marshaled to com.avail.descriptor.AvailObject.
+ * <ul>
+ * <li>`[-128..127]` is marshaled to Java byte (java.lang.Byte.TYPE).</li>
+ * <li>`[-32768..32767]` is marshaled to Java short (java.lang.Short.TYPE).</li>
+ * <li>`[-2^31..2^31-1]` is marshaled to Java int (java.lang.Integer.TYPE).</li>
+ * <li>`[-2^63..2^63-1]` is marshaled to Java long (java.lang.Long.TYPE).</li>
+ * <li>`boolean` is marshaled to Java boolean (java.lang.Boolean.TYPE).</li>
+ * <li>`character` is marshaled to Java char (java.lang.Character.TYPE).</li>
+ * <li>`float` is marshaled to Java float (java.lang.Float.TYPE).</li>
+ * <li>`double` is marshaled to Java double (java.lang.Double.TYPE).</li>
+ * <li>`string` is marshaled to java.lang.String.</li>
+ * <li>`_[]` is marshaled to
+ *     java.lang.reflect.Array.newInstance().getClass().</li>
+ * <li>`_<«_‡,»>` is marshaled to the reflected Java class or interface.</li>
+ * <li>All other values are marshaled to com.avail.descriptor.AvailObject.</li>
+ * </ul>
  *
- * Parameters:
- *    aPojoType - A pojo type.
- *    methodName - The name of the desired method.
- *    parameterTypes - The parameter types accepted by the desired method.
- *    failFunction - The function to apply if an invocation of the method
+ * @category "Primitives"
+ * @method "static method_._<«_‡,»>,⁇on failure do_"
+ * @param "aPojoType" "pojo meta"
+ *        A pojo type.
+ * @param "methodName" "string"
+ *        The name of the desired method.
+ * @param "parameterTypes" "tuple of any meta"
+ *        The parameter types accepted by the desired method.
+ * @param "failFunction" "pojo failure function"
+ *        The function to apply if an invocation of the method
  *       throws a Java exception.
- * Returns:
+ * @returns "[…]→⊤"
  *    The requested static method invocation function.
+ * @raises "Java-method-not-available exception"
+ * @raises "Java-method-reference-is-ambiguous exception"
  */
 Primitive "static method_._<«_‡,»>,⁇on failure do_" is
 [
@@ -1716,36 +2703,52 @@ Primitive "static method_._<«_‡,»>,⁇on failure do_" is
 	parameterTypes : tuple of any meta,
 	failFunction : pojo failure function
 |
-	Primitive 508 (failureCode : natural number);
+	Primitive 508 (failureCode : {
+		Java-method-not-available code,
+		Java-method-reference-is-ambiguous code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : function;
 
 /**
- * Answer the `index`-th element of the specified pojo array.
+ * Answer the {@param "index"}-th element of the specified pojo array.
  *
- * Parameters:
- *    anArray - A pojo array.
- *    index - A one-based index into the pojo array.
- * Returns:
- *    The `index`-th element of `anArray`.
+ * @category "Primitives"
+ * @method "_[_]"
+ * @param "anArray" "pojo array"
+ *        A pojo array.
+ * @param "index" "natural number"
+ *        A one-based index into the pojo array.
+ * @returns "any"
+ *    The {@param "index"}-th element of {@param "anArray"}.
+ * @raises "subscript-out-of-bounds exception"
+ * @raises "Java-marshaling-failed exception"
  */
 Primitive "_[_]" is
 [
 	anArray : pojo array,
 	index : natural number
 |
-	Primitive 512 (failureCode : natural number);
+	Primitive 512 (failureCode : {
+		subscript-out-of-bounds code,
+		Java-marshaling-failed code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any;
 
 /**
- * Mutate the specified pojo array such that its `index`-th element is
- * overwritten by `value`.
+ * Mutate the specified pojo array such that its {@param "index"}-th element is
+ * overwritten by {@param "value"}.
  *
- * Parameters:
- *    anArray - A pojo array.
- *    index - A one-based index into the pojo array.
- *    value - The value that should be written into the pojo array.
+ * @category "Primitives"
+ * @method "_[_]:=_"
+ * @param "anArray" "pojo array"
+ *        A pojo array.
+ * @param "index" "natural number"
+ *        A one-based index into the pojo array.
+ * @param "value" "any"
+ *        The value that should be written into the pojo array.
+ * @raises "cannot-store-incorrectly-typed-value exception"
+ * @raises "subscript-out-of-bounds exception"
+ * @raises "Java-marshaling-failed exception"
  */
 Primitive "_[_]:=_" is
 [
@@ -1753,78 +2756,103 @@ Primitive "_[_]:=_" is
 	index : natural number,
 	value : any
 |
-	Primitive 513 (failureCode : natural number);
+	Primitive 513 (failureCode : {
+		cannot-store-incorrectly-typed-value code,
+		subscript-out-of-bounds code,
+		Java-marshaling-failed code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
- * Does the current fiber's environment have a value bound to `key`? This
+ * Does the current fiber's environment have a value bound to {@param "key"}? This
  * effectively ascertains whether a fiber-local variable exists for the
  * specified fiber.
  *
- * Parameters:
- *    key - The key whose existence should be queried.
- * Returns:
- *    `true` if the current fiber binds a value to `key`, `false` otherwise.
+ * @category "Primitives"
+ * @method "_∈current fiber"
+ * @param "key" "atom"
+ *        The key whose existence should be queried.
+ * @returns "boolean"
+ *    `true` if the current fiber binds a value to {@param "key"}, `false`
+ *    otherwise.
+ * @raises "special-atom exception"
  */
 Primitive "_∈current fiber" is
 [
 	key : atom
 |
-	Primitive 603 (failureCode : natural number);
+	Primitive 603 (failureCode : {
+		special-atom code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : boolean;
 
 /**
- * Answer the value bound to `key` in the current fiber's environment. Since
+ * Answer the value bound to {@param "key"} in the current fiber's environment. Since
  * the fiber's environment essentially contains fiber-local variables (i.e.
  * bindings from atoms to arbitrary values), this operation effectively reads a
  * fiber-local variable.
  *
- * Parameters:
- *    key - The key whose value should be obtained.
- * Returns:
- *    The value bound to `key` within the current fiber's environment.
+ * @category "Primitives"
+ * @method "current fiber[_]"
+ * @param "key" "atom"
+ *        The key whose value should be obtained.
+ * @returns "any"
+ *    The value bound to {@param "key"} within the current fiber's environment.
+ * @raises "no-such-fiber-variable exception"
+ * @raises "special-atom exception"
  */
 Primitive "current fiber[_]" is
 [
 	key : atom
 |
-	Primitive 604 (failureCode : natural number);
+	Primitive 604 (failureCode : {
+		no-such-fiber-variable code,
+		special-atom code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any;
 
 /**
- * Set the value bound to `key` in the current fiber's environment,
+ * Set the value bound to {@param "key"} in the current fiber's environment,
  * overwriting any previous value. Since the fiber's environment essentially
  * contains fiber-local variables (i.e. bindings from atoms to arbitrary
  * values), this operation effectively writes a fiber-local variable.
  *
- * Parameters:
- *    key - The key whose value should be (over)written.
- *    value - The new value.
+ * @category "Primitives"
+ * @method "current fiber[_]:=_"
+ * @param "key" "atom"
+ *        The key whose value should be (over)written.
+ * @param "value" "any"
+ *        The new value.
+ * @raises "special-atom exception"
  */
 Primitive "current fiber[_]:=_" is
 [
 	key : atom,
 	value : any
 |
-	Primitive 605 (failureCode : natural number);
+	Primitive 605 (failureCode : {
+		special-atom code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
- * Remove the binding indicated by `key` from the current fiber's
+ * Remove the binding indicated by {@param "key"} from the current fiber's
  * environment.
  *
- * Parameters:
- *    key - The key whose binding should be removed.
+ * @category "Primitives"
+ * @method "Remove current fiber[_]"
+ * @param "key" "atom"
+ *        The key whose binding should be removed.
+ * @raises "no-such-fiber-variable exception"
+ * @raises "special-atom exception"
  */
 Primitive "Remove current fiber[_]" is
 [
 	key : atom
 |
-	Primitive 606 (failureCode : natural number);
+	Primitive 606 (failureCode : {
+		no-such-fiber-variable code,
+		special-atom code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1832,10 +2860,16 @@ Primitive "Remove current fiber[_]" is
  * Fork a new fiber at the specified priority. The new fiber will invoke the
  * given function with the supplied arguments.
  *
- * Parameters:
- *    aFunction - A function.
- *    arguments - The arguments to the function.
- *    priority - The priority of the new fiber.
+ * @category "Primitives"
+ * @method "Invoke_with_,⁇forked at priority_"
+ * @param "aFunction" "function"
+ *        A function.
+ * @param "arguments" "tuple"
+ *        The arguments to the function.
+ * @param "priority" "byte"
+ *        The priority of the new fiber.
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-argument-type exception"
  */
 Primitive "Invoke_with_,⁇forked at priority_" is
 [
@@ -1843,7 +2877,9 @@ Primitive "Invoke_with_,⁇forked at priority_" is
 	arguments : tuple,
 	priority : byte
 |
-	Primitive 615 (failureCode : natural number);
+	Primitive 615 (failureCode : {
+		incorrect-number-of-arguments code,
+		incorrect-argument-type code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1851,12 +2887,18 @@ Primitive "Invoke_with_,⁇forked at priority_" is
  * Fork a new fiber at the specified priority. The new fiber will invoke the
  * given function with the supplied arguments.
  *
- * Parameters:
- *    aFunction - A function.
- *    arguments - The arguments to the function.
- *    priority - The priority of the new fiber.
- * Returns:
+ * @category "Primitives"
+ * @method "invoke_with_,⁇forked at priority_"
+ * @param "aFunction" "function"
+ *        A function.
+ * @param "arguments" "tuple"
+ *        The arguments to the function.
+ * @param "priority" "byte"
+ *        The priority of the new fiber.
+ * @returns "fiber→⊤"
  *    The new fiber.
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-argument-type exception"
  */
 Primitive "invoke_with_,⁇forked at priority_" is
 [
@@ -1864,7 +2906,9 @@ Primitive "invoke_with_,⁇forked at priority_" is
 	arguments : tuple,
 	priority : byte
 |
-	Primitive 616 (failureCode : natural number);
+	Primitive 616 (failureCode : {
+		incorrect-number-of-arguments code,
+		incorrect-argument-type code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : fiber;
 
@@ -1873,14 +2917,18 @@ Primitive "invoke_with_,⁇forked at priority_" is
  * then return immediately; otherwise, arrange to unpark the current fiber when
  * the specified fiber terminates and park the current fiber.
  *
- * Parameters:
- *    aFiber - A fiber.
+ * @category "Primitives"
+ * @method "Attempt to join_"
+ * @param "aFiber" "fiber"
+ *        A fiber.
+ * @raises "fiber-cannot-join-itself exception"
  */
 Primitive "Attempt to join_" is
 [
 	aFiber : fiber
 |
-	Primitive 617 (failureCode : natural number);
+	Primitive 617 (failureCode : {
+		fiber-cannot-join-itself code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1889,17 +2937,23 @@ Primitive "Attempt to join_" is
  * This method may only be called safely after an affirmative answer from
  * `_has result`.
  *
- * Parameters:
- *    aFiber - A fiber.
- * Returns:
+ * @category "Primitives"
+ * @method "_'s⁇result"
+ * @param "aFiber" "fiber"
+ *        A fiber.
+ * @returns "any"
  *    The result yielded by the specified fiber. This is the value produced by
  *    the fiber's outermost continuation, i.e., its base function.
+ * @raises "fiber-result-unavailable exception"
+ * @raises "fiber-produced-incorrectly-typed-result exception"
  */
 Primitive "_'s⁇result" is
 [
 	aFiber : fiber
 |
-	Primitive 620 (failureCode : natural number);
+	Primitive 620 (failureCode : {
+		fiber-result-unavailable code,
+		fiber-produced-incorrectly-typed-result code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any;
 
@@ -1909,12 +2963,19 @@ Primitive "_'s⁇result" is
  * with the supplied arguments. A best effort will be made to start the fiber as
  * soon as the delay has expired, but no real-time guarantees are made.
  *
- * Parameters:
- *    delayMillis - The minimum number of milliseconds to delay the start of the new
+ * @category "Primitives"
+ * @method "In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_"
+ * @param "delayMillis" "nonnegative extended integer"
+ *        The minimum number of milliseconds to delay the start of the new
  *       fiber.
- *    aFunction - A function.
- *    arguments - The arguments to the function.
- *    priority - The priority of the new fiber.
+ * @param "aFunction" "function"
+ *        A function.
+ * @param "arguments" "tuple"
+ *        The arguments to the function.
+ * @param "priority" "byte"
+ *        The priority of the new fiber.
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-argument-type exception"
  */
 Primitive "In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" is
 [
@@ -1923,7 +2984,9 @@ Primitive "In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" i
 	arguments : tuple,
 	priority : byte
 |
-	Primitive 622 (failureCode : natural number);
+	Primitive 622 (failureCode : {
+		incorrect-number-of-arguments code,
+		incorrect-argument-type code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1933,14 +2996,21 @@ Primitive "In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" i
  * with the supplied arguments. A best effort will be made to start the fiber as
  * soon as the delay has expired, but no real-time guarantees are made.
  *
- * Parameters:
- *    delayMillis - The minimum number of milliseconds to delay the start of the new
+ * @category "Primitives"
+ * @method "in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_"
+ * @param "delayMillis" "nonnegative extended integer"
+ *        The minimum number of milliseconds to delay the start of the new
  *       fiber.
- *    aFunction - A function.
- *    arguments - The arguments to the function.
- *    priority - The priority of the new fiber.
- * Returns:
+ * @param "aFunction" "function"
+ *        A function.
+ * @param "arguments" "tuple"
+ *        The arguments to the function.
+ * @param "priority" "byte"
+ *        The priority of the new fiber.
+ * @returns "fiber→⊤"
  *    The new fiber.
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-argument-type exception"
  */
 Primitive "in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" is
 [
@@ -1949,21 +3019,60 @@ Primitive "in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" i
 	arguments : tuple,
 	priority : byte
 |
-	Primitive 623 (failureCode : natural number);
+	Primitive 623 (failureCode : {
+		incorrect-number-of-arguments code,
+		incorrect-argument-type code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : fiber;
+
+/**
+ * Construct and answer a new atom. Associate with the atom the supplied string,
+ * which should be a name used for debugging purposes only. Atoms have identity
+ * and all atoms are distinct, regardless of whether their debug names are
+ * equal. When this atom occurs as a key within a fiber's environment, any new
+ * fibers created by this fiber will also include this key and the associated
+ * value at creation time.
+ *
+ * @category "Primitives"
+ * @method "new⁇heritable«fiber-local»⁇atom named_"
+ * @param "debugName" "string"
+ *        A name to associate with the atom for debugging purposes.
+ *       This name does not participate in atom comparison.
+ * @returns "atom"
+ *    A new atom, distinct from every other atom answered by a different
+ *    invocation of this primitive, that represents a heritable fiber-local
+ *    variable.
+ * @raises "ambiguous-name exception"
+ * @raises "atom-already-exists exception"
+ */
+Primitive "new⁇heritable«fiber-local»⁇atom named_" is
+[
+	debugName : string
+|
+	Primitive 624 (failureCode : {
+		ambiguous-name code,
+		atom-already-exists code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : atom;
 
 /**
  * Replace the value with a new value in the tuple at the location indicated
  * by the path tuple.
  *
- * Parameters:
- *    aTuple - The target tuple.
- *    pathTuple - The tuple providing the path to follow to reach the location
- *				to be updated.
- *    newValue - The replacement value.
- * Returns:
+ * @category "Primitives"
+ * @method "_«[_]»→_"
+ * @param "aTuple" "tuple"
+ *        The target tuple.
+ * @param "pathTuple" "two or more tuple"
+ *        The tuple providing the path to follow to reach the location
+ *        to be updated.
+ * @param "newValue" "any"
+ *        The replacement value.
+ * @returns "tuple"
  *    a new tuple with the new value installed at the proposed location.
+ * @raises "subscript-out-of-bounds exception"
+ * @raises "incorrect-argument-type exception"
+ * @raises "key-not-found exception"
  */
 Primitive "_«[_]»→_" is
 [
@@ -1971,7 +3080,10 @@ Primitive "_«[_]»→_" is
 	pathTuple : two or more tuple,
 	newValue : any
 |
-	Primitive 700 (failureCode : natural number);
+	Primitive 700 (failureCode : {
+		subscript-out-of-bounds code,
+		incorrect-argument-type code,
+		key-not-found code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : tuple;
 
@@ -1979,13 +3091,20 @@ Primitive "_«[_]»→_" is
  * Replace the value at the location indicated by the path tuple of the target
  * map with the new value.
  *
- * Parameters:
- *    aMap - The target map.
- *    pathTuple - The tuple providing the path to follow to reach the location
- *				to be updated.
- *    newValue - The replacement value.
- * Returns:
+ * @category "Primitives"
+ * @method "_«[_]»→_"
+ * @param "aMap" "map"
+ *        The target map.
+ * @param "pathTuple" "nonempty tuple"
+ *        The tuple providing the path to follow to reach the location
+ *        to be updated.
+ * @param "newValue" "any"
+ *        The replacement value.
+ * @returns "map"
  *    a new map with the new value installed at the proposed location
+ * @raises "subscript-out-of-bounds exception"
+ * @raises "incorrect-argument-type exception"
+ * @raises "key-not-found exception"
  */
 Primitive "_«[_]»→_" is
 [
@@ -1993,7 +3112,10 @@ Primitive "_«[_]»→_" is
 	pathTuple : nonempty tuple,
 	newValue : any
 |
-	Primitive 701 (failureCode : natural number);
+	Primitive 701 (failureCode : {
+		subscript-out-of-bounds code,
+		incorrect-argument-type code,
+		key-not-found code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : map;
 

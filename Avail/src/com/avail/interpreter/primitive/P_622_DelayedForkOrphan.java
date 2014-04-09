@@ -166,4 +166,13 @@ extends Primitive
 				IntegerRangeTypeDescriptor.bytes()),
 			TOP.o());
 	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode(),
+				E_INCORRECT_ARGUMENT_TYPE.numericCode())));
+	}
 }

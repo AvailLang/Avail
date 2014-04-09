@@ -32,10 +32,11 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.FiberDescriptor.GeneralFlag.APPLYING_SEMANTIC_RESTRICTION;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.List;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 
 /**
@@ -48,7 +49,8 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_352_RejectParsing().init(1);
+	public final static Primitive instance = new P_352_RejectParsing().init(
+		1, Unknown);
 
 	@Override
 	public Result attempt (
@@ -59,8 +61,7 @@ extends Primitive
 		assert args.size() == 1;
 		if (!interpreter.fiber().generalFlag(APPLYING_SEMANTIC_RESTRICTION))
 		{
-			return interpreter.primitiveFailure(
-				AvailErrorCode.E_UNTIMELY_PARSE_REJECTION);
+			return interpreter.primitiveFailure(E_UNTIMELY_PARSE_REJECTION);
 		}
 		final A_String rejectionString = args.get(0);
 		throw new AvailRejectedParseException(rejectionString);
@@ -73,5 +74,12 @@ extends Primitive
 			TupleDescriptor.from(
 				TupleTypeDescriptor.stringType()),
 			BottomTypeDescriptor.bottom());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_UNTIMELY_PARSE_REJECTION.numericCode());
 	}
 }

@@ -82,14 +82,22 @@ public class StacksReturnTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML()
+	public String toHTML(final HTMLFileMap htmlFileMap)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
-			.append("\n<td class=\"ICode\">")
+			.append(tabs(5) + "<td "
+				+ HTMLBuilder
+					.tagClass(HTMLClass.classStacks, HTMLClass.classICode)
+				+ ">")
 			.append(returnType.lexeme())
-			.append("</td>\n<td class=\"IDesc\">")
-			.append(returnDescription.toHTML())
-			.append("</td></tr>\n");
+			.append("</td>\n")
+			.append(tabs(5) + "<td "
+				+ HTMLBuilder
+					.tagClass(HTMLClass.classStacks, HTMLClass.classIDesc)
+				+ ">\n")
+			.append(tabs(6) + returnDescription.toHTML(htmlFileMap))
+			.append("\n" + tabs(5) + "</td>\n")
+			.append(tabs(4) + "</tr>\n");
 		return stringBuilder.toString();
 	}
 }

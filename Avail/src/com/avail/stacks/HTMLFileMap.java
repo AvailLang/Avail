@@ -1,5 +1,5 @@
 /**
- * StacksCategories.java
+ * HTMLFileMap.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -41,7 +41,7 @@ import com.avail.utility.Pair;
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksCategories
+public class HTMLFileMap
 {
 	/**
 	 * The map containing categories.  Keyed by name to description.
@@ -55,14 +55,29 @@ public class StacksCategories
 		categoryMethodList;
 
 	/**
-	 * Construct a new {@link StacksCategories}.
+	 * A map of aliases to file links.
+	 */
+	private final HashMap<String,String> aliasesToFileLink;
+
+	/**
+	 * @param alias the alias to add to the map
+	 * @param fileLink the file that the alias links to
+	 */
+	public void addAlias (final String alias, final String fileLink)
+	{
+		aliasesToFileLink.put(alias,fileLink);
+	}
+
+	/**
+	 * Construct a new {@link HTMLFileMap}.
 	 *
 	 */
-	public StacksCategories ()
+	public HTMLFileMap ()
 	{
 		categoryToDescription = new HashMap<String,StacksDescription>();
 		categoryMethodList =
 			new HashMap<String,ArrayList<Pair<String,String>>>();
+		aliasesToFileLink = new HashMap<String,String>();
 	}
 
 	/**
@@ -133,7 +148,7 @@ public class StacksCategories
 	 * links.
 	 * @return
 	 */
-	public String toJson()
+	public String categoryMethodsToJson()
 	{
 		final StringBuilder stringBuilder = new StringBuilder().append("[\n");
 
@@ -146,9 +161,11 @@ public class StacksCategories
 		{
 			for (int j = 0; j < setSize - 1; j++)
 			{
-				stringBuilder.append("\t{\n\t\t\"category\" : \"")
+				stringBuilder.append(tabs(1) + "{\n")
+					.append(tabs(2) + "\"selected\" : false,\n")
+					.append(tabs(2) + "\"category\" : \"")
 					.append(categorySet.get(j))
-					.append("\",\n\t\t\"methods\" : [\n");
+					.append("\",\n" + tabs(2) +"\"methods\" : [\n");
 
 				final ArrayList<Pair<String,String>> methodList =
 					categoryMethodList.get(categorySet.get(j));
@@ -160,23 +177,27 @@ public class StacksCategories
 					for (int i = 0; i < listSize - 1; i++)
 					{
 						final Pair<String,String> pair = methodList.get(i);
-						stringBuilder.append("\t\t\t{\"methodName\" : \"")
+						stringBuilder.append(tabs(3) + "{\"methodName\" : \"")
 							.append(pair.first()).append("\", \"link\" : \"")
-							.append(pair.second()).append("\"},\n");
+							.append(pair.second().substring(1))
+							.append("\"},\n");
 					}
 
 					final Pair<String,String> lastPair =
 						methodList.get(listSize - 1);
 
-					stringBuilder.append("\t\t\t{\"methodName\" : \"")
+					stringBuilder.append(tabs(3) + "{\"methodName\" : \"")
 						.append(lastPair.first()).append("\", \"link\" : \"")
-						.append(lastPair.second()).append("\"}\n\t\t]\n\t},");
+						.append(lastPair.second().substring(1))
+						.append("\"}\n" + tabs(2)+ "]\n" + tabs(1)+ "},\n");
 				}
 			}
 
-			stringBuilder.append("\t{\n\t\t\"category\" : \"")
+			stringBuilder.append(tabs(1) + "{\n" + tabs(2) + "\"selected\" : "
+					+ "false,\n")
+				.append(tabs(2) + "\"category\" : \"")
 				.append(categorySet.get(setSize - 1))
-				.append("\",\n\t\t\"methods\" : [\n");
+				.append("\",\n" + tabs(2) + "\"methods\" : [\n");
 
 			final ArrayList<Pair<String,String>> methodList =
 				categoryMethodList.get(categorySet.get(setSize - 1));
@@ -188,17 +209,18 @@ public class StacksCategories
 				for (int i = 0; i < listSize - 1; i++)
 				{
 					final Pair<String,String> pair = methodList.get(i);
-					stringBuilder.append("\t\t\t{\"methodName\" : \"")
+					stringBuilder.append(tabs(3) + "{\"methodName\" : \"")
 						.append(pair.first()).append("\", \"link\" : \"")
-						.append(pair.second()).append("\"},\n");
+						.append(pair.second().substring(1)).append("\"},\n");
 				}
 
 				final Pair<String,String> lastPair =
 					methodList.get(listSize - 1);
 
-				stringBuilder.append("\t\t\t{\"methodName\" : \"")
+				stringBuilder.append(tabs(3) + "{\"methodName\" : \"")
 					.append(lastPair.first()).append("\", \"link\" : \"")
-					.append(lastPair.second()).append("\"}\n\t\t]\n\t}\n]");
+					.append(lastPair.second().substring(1))
+					.append("\"}\n" + tabs(2) + "]\n" + tabs(1) + "}\n]");
 			}
 		}
 
@@ -206,30 +228,61 @@ public class StacksCategories
 	}
 
 	/**
-	 * Create the Angular JS file content that provides the category linking
-	 * capability to the file index.html
+	 * Create category description html table
 	 * @return
-	 * 		The string content of the Angular JS file.
+	 * 		html table text
 	 */
-	public String toAngularJS()
+	public String categoryDescriptionTable()
 	{
-		final StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder
-			.append("var stacksApp = angular.module('stacksApp',[]);\n");
-		stringBuilder
-			.append("stacksApp.factory('Categories', function () {\n"
-			+ "\tvar Categories = {};\n"
-			+ "\tCategories.content = ");
-		stringBuilder.append(toJson());
-		stringBuilder.append(";\n\t"
-			+ "return Categories;\n"
-			+ "})\n");
+		final StringBuilder stringBuilder = new StringBuilder()
+		.append(tabs(1) + "<h4 "
+			+ HTMLBuilder
+				.tagClass(HTMLClass.classMethodSectionHeader)
+			+ ">Stacks Categories</h4>\n")
+		.append(tabs(1) + "<div "
+			+ HTMLBuilder.tagClass(HTMLClass.classMethodSectionContent)
+			+ ">\n")
+	    .append(tabs(2) + "<table "
+	    	+ HTMLBuilder.tagClass(HTMLClass.classStacks)
+	    	+ ">\n")
+	    .append(tabs(3) + "<thead>\n")
+	    .append(tabs(4) + "<tr>\n")
+	    .append(tabs(5) + "<th style=\"white-space:nowrap\" "
+	    	+ HTMLBuilder.tagClass(
+	    		HTMLClass.classStacks, HTMLClass.classGColLabelNarrow)
+	    	+ " scope=\"col\">Category</th>\n")
+	    .append(tabs(5) + "<th "
+	    	+ HTMLBuilder.tagClass(
+	    		HTMLClass.classStacks, HTMLClass.classGColLabelWide)
+	    	+ " scope=\"col\">Description</th>\n")
+	    .append(tabs(4) + "</tr>\n")
+	    .append(tabs(3) + "</thead>\n")
+	    .append(tabs(3) + "<tbody>\n")
+	    .append(tabs(4) + "<tr>\n");
 
-		stringBuilder.append("function CategoriesCntrl($scope,Categories) {\n"
-			+ "\t$scope.categories = Categories;\n"
-			+ "}");
+		for (final String category : categoryToDescription.keySet())
+		{
+			stringBuilder
+				.append(tabs(5) + "<td "
+					+ HTMLBuilder
+						.tagClass(HTMLClass.classStacks, HTMLClass.classGCode)
+					+ ">")
+				.append(category)
+				.append("</td>\n")
+				.append(tabs(5) + "<td "
+					+ HTMLBuilder
+						.tagClass(HTMLClass.classStacks, HTMLClass.classIDesc)
+					+ ">")
+				.append(categoryToDescription.get(category).toHTML(this))
+				.append("</td>\n")
+				.append(tabs(4) + "</tr>\n");
+		}
 
+		stringBuilder.append(tabs(3) + "</tbody>\n")
+			.append(tabs(2) + "</table>\n")
+			.append(tabs(1) + "</div>\n");
 		return stringBuilder.toString();
+
 	}
 
 	/**
@@ -239,5 +292,22 @@ public class StacksCategories
 	{
 		categoryMethodList.clear();
 		categoryToDescription.clear();
+	}
+
+	/**
+	 * @param numberOfTabs
+	 * 		the number of tabs to insert into the string.
+	 * @return
+	 * 		a String consisting of the number of tabs requested in
+	 * 		in numberOfTabs.
+	 */
+	private String tabs(final int numberOfTabs)
+	{
+		final StringBuilder stringBuilder = new StringBuilder();
+		for (int i = 1; i <= numberOfTabs; i++)
+		{
+			stringBuilder.append('\t');
+		}
+		return stringBuilder.toString();
 	}
 }

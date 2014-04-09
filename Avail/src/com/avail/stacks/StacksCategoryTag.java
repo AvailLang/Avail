@@ -68,7 +68,7 @@ public class StacksCategoryTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML ()
+	public String toHTML (final HTMLFileMap htmlFileMap)
 	{
 		final StringBuilder stringBuilder = new StringBuilder();
 		final int listSize = categories.size();
@@ -76,11 +76,15 @@ public class StacksCategoryTag extends AbstractStacksTag
 		if (listSize > 0)
 		{
 			stringBuilder
-				.append("\n<div class=\"CategoryList\"><em>Categories:</em> ");
+				.append(tabs(2))
+				.append("<div "
+				+ HTMLBuilder.tagClass(HTMLClass.classCategoryList)
+				+ "><em>Categories:</em> ");
 			for (int i = 0; i < listSize - 1; i++)
 			{
 				stringBuilder.append(categories.get(i).lexeme()).append(", ");
 			}
+			stringBuilder.append(categories.get(listSize - 1).lexeme());
 			stringBuilder.append("</div>\n");
 		}
 

@@ -99,7 +99,7 @@ public class BracketedStacksToken extends RegionStacksToken
 	}
 
 	@Override
-	public String toHTML()
+	public String toHTML(final HTMLFileMap htmlFileMap)
 	{
 		//TODO update with parsed tags with appropriate links.
 		final StringBuilder stringBuilder = new StringBuilder();
@@ -108,9 +108,11 @@ public class BracketedStacksToken extends RegionStacksToken
 		{
 			for (int i = 0; i < listSize - 1; i++)
 			{
-				stringBuilder.append(subTokens.get(i).toHTML()).append(" ");
+				stringBuilder
+					.append(subTokens.get(i).toHTML(htmlFileMap)).append(" ");
 			}
-			stringBuilder.append(subTokens.get(listSize - 1).toHTML());
+			stringBuilder
+				.append(subTokens.get(listSize - 1).toHTML(htmlFileMap));
 		}
 
 		return stringBuilder.toString();

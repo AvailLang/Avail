@@ -69,6 +69,8 @@ public class SemanticRestrictionCommentImplementation extends
 	 * 		The overall description of the implementation
 	 * @param categories
 	 * 		The categories the implementation appears in
+	 * @param aliases
+	 * 		The aliases the implementation is known by
 	 * @param restricts
 	 * 		The list of input types in the semantic restriction.
 	 * @param returnsContent
@@ -81,11 +83,12 @@ public class SemanticRestrictionCommentImplementation extends
 		final ArrayList<StacksSeeTag> sees,
 		final StacksDescription description,
 		final ArrayList<StacksCategoryTag> categories,
+		final ArrayList<StacksAliasTag> aliases,
 		final ArrayList<StacksRestrictsTag> restricts,
 		final ArrayList<StacksReturnTag> returnsContent)
 	{
 		super(signature, commentStartLine, author, sees, description,
-			categories);
+			categories,aliases);
 		this.restricts = restricts;
 		this.returnsContent = returnsContent;
 	}
@@ -98,42 +101,70 @@ public class SemanticRestrictionCommentImplementation extends
 	}
 
 	@Override
-	public String toHTML ()
+	public String toHTML (final HTMLFileMap htmlFileMap)
 	{
 		final int paramCount = restricts.size();
 		final int colSpan = 1;
 		final StringBuilder stringBuilder = new StringBuilder()
-			.append(signature.toHTML());
+			.append(signature().toHTML());
 
-		stringBuilder.append("<div class=\"SignatureDescription\">")
-			.append(description.toHTML()).append("</div>\n")
-			.append("\n<table>\n<thead>\n<tr>\n<th class=\"Transparent\" scope=\"col\">"
-				+ "</th>\n");
+		stringBuilder.append(tabs(2) + "<div "
+				+ HTMLBuilder.tagClass(HTMLClass.classSignatureDescription)
+				+ ">\n")
+			.append(tabs(3) + description.toHTML(htmlFileMap))
+			.append("\n" + tabs(2) + "</div>\n")
+			.append(tabs(2) + "<table "
+            	+ HTMLBuilder.tagClass(HTMLClass.classStacks)
+            	+ ">\n")
+			.append(tabs(3) + "<thead>\n")
+			.append(tabs(4) + "<tr>\n")
+			.append(tabs(5) + "<th "
+				+ HTMLBuilder.tagClass(HTMLClass.classTransparent)
+				+ "scope=\"col\"></th>\n");
 
 		stringBuilder
-			.append("\n<th class=\"IColLabelNarrow\" scope=\"col\">Type</th>\n"
-				+ "<th class=\"IColLabelWide\" scope=\"col\">Description</th>\n"
-				+ "</tr>\n</thead>\n<tbody>\n");
+			.append(tabs(5) + "<th "
+				+ HTMLBuilder.tagClass(
+					HTMLClass.classStacks, HTMLClass.classIColLabelNarrow)
+				+ "scope=\"col\">Type</th>\n")
+			.append(tabs(5) + "<th "
+				+ HTMLBuilder.tagClass(
+					HTMLClass.classStacks, HTMLClass.classIColLabelWide)
+				+ "scope=\"col\">Description</th>\n")
+			.append(tabs(4) + "</tr>\n")
+			.append(tabs(3) + "</thead>\n")
+			.append(tabs(3) + "<tbody>\n");
 
 		if (paramCount > 0)
 		{
-			stringBuilder.append("<tr>\n<th class=\"IRowLabel\" rowspan=\"")
-			.append(paramCount + 1).append("\">Parameter Types</th>\n</tr>\n");
+			stringBuilder
+				.append(tabs(4) + "<tr>\n")
+				.append(tabs(5) + "<th "
+				+ HTMLBuilder.tagClass(
+					HTMLClass.classStacks, HTMLClass.classIRowLabel)
+				+ "rowspan=\"")
+			.append(paramCount + 1).append("\">Parameter Types</th>\n")
+			.append(tabs(4) + "</tr>\n");
 		}
 
 		for (final StacksRestrictsTag restrictsTag : restricts)
 		{
-			stringBuilder.append(restrictsTag.toHTML());
+			stringBuilder.append(restrictsTag.toHTML(htmlFileMap));
 		}
 
 		if (!returnsContent.isEmpty())
 		{
-			stringBuilder.append("<tr><th class=\"IRowLabel\" colspan=\"")
+			stringBuilder.append(tabs(4) + "<tr>\n")
+			.append(tabs(5) + "<th "
+				+ HTMLBuilder.tagClass(
+					HTMLClass.classStacks, HTMLClass.classIRowLabel)
+				+ "colspan=\"")
 				.append(colSpan).append("\">Returns</th>\n")
-				.append(returnsContent.get(0).toHTML());
+				.append(returnsContent.get(0).toHTML(htmlFileMap));
 		}
 
-		return stringBuilder.append("</tbody></table>\n").toString();
+		return stringBuilder.append(tabs(3) + "</tbody>\n")
+			.append(tabs(2) + "</table>\n").toString();
 	}
 
 	@Override

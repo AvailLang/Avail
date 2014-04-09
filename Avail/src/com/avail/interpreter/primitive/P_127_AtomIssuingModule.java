@@ -79,4 +79,11 @@ extends Primitive
 				ATOM.o()),
 			MODULE.o());
 	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_SPECIAL_ATOM.numericCode());
+	}
 }

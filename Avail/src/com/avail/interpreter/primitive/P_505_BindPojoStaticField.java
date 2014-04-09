@@ -139,4 +139,13 @@ public final class P_505_BindPojoStaticField extends Primitive
 				TupleTypeDescriptor.stringType()),
 			VariableTypeDescriptor.mostGeneralType());
 	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_JAVA_FIELD_NOT_AVAILABLE.numericCode(),
+				E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS.numericCode())));
+	}
 }
