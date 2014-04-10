@@ -35,6 +35,7 @@ package com.avail.stacks;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.A_String;
@@ -76,14 +77,15 @@ public class ImplementationGroup
 	private String filepath;
 
 	/**
-	 * A list of {@linkplain MethodCommentImplementation methods}
+	 * A map keyed by a unique identifier to {@linkplain
+	 * MethodCommentImplementation methods}
 	 */
-	private final ArrayList<MethodCommentImplementation> methods;
+	private final HashMap<String,MethodCommentImplementation> methods;
 
 	/**
 	 * @return the {@linkplain MethodCommentImplementation methods}
 	 */
-	public ArrayList<MethodCommentImplementation> methods ()
+	public HashMap<String,MethodCommentImplementation> methods ()
 	{
 		return methods;
 	}
@@ -94,7 +96,7 @@ public class ImplementationGroup
 	 */
 	public void addMethod (final MethodCommentImplementation newMethod)
 	{
-		methods.add(newMethod);
+		methods.put(newMethod.identityCheck(),newMethod);
 		addAlias(newMethod.signature().name());
 	}
 
@@ -102,14 +104,14 @@ public class ImplementationGroup
 	 * A list of {@linkplain SemanticRestrictionCommentImplementation
 	 * semantic restrictions}
 	 */
-	private final ArrayList<SemanticRestrictionCommentImplementation>
+	private final HashMap<String,SemanticRestrictionCommentImplementation>
 		semanticRestrictions;
 
 	/**
 	 * @return the {@linkplain SemanticRestrictionCommentImplementation
 	 * semantic restrictions}
 	 */
-	public ArrayList<SemanticRestrictionCommentImplementation>
+	public HashMap<String,SemanticRestrictionCommentImplementation>
 		semanticRestrictions ()
 	{
 		return semanticRestrictions;
@@ -122,7 +124,8 @@ public class ImplementationGroup
 	public void addSemanticRestriction (
 		final SemanticRestrictionCommentImplementation newSemanticRestriction)
 	{
-		semanticRestrictions.add(newSemanticRestriction);
+		semanticRestrictions.put(newSemanticRestriction.identityCheck(),
+			newSemanticRestriction);
 		addAlias(newSemanticRestriction.signature().name());
 	}
 
@@ -130,14 +133,14 @@ public class ImplementationGroup
 	 * A list of {@linkplain GrammaticalRestrictionCommentImplementation
 	 * grammatical restrictions}
 	 */
-	private final ArrayList<GrammaticalRestrictionCommentImplementation>
+	private final HashMap<String,GrammaticalRestrictionCommentImplementation>
 		grammaticalRestrictions;
 
 	/**
 	 * @return the {@linkplain GrammaticalRestrictionCommentImplementation
 	 * grammatical restrictions}
 	 */
-	public ArrayList<GrammaticalRestrictionCommentImplementation>
+	public HashMap<String,GrammaticalRestrictionCommentImplementation>
 		grammaticalRestrictions ()
 	{
 		return grammaticalRestrictions;
@@ -152,7 +155,8 @@ public class ImplementationGroup
 		final GrammaticalRestrictionCommentImplementation
 			newGrammaticalRestriction)
 	{
-		grammaticalRestrictions.add(newGrammaticalRestriction);
+		grammaticalRestrictions.put(newGrammaticalRestriction.identityCheck(),
+			newGrammaticalRestriction);
 		addAlias(newGrammaticalRestriction.signature().name());
 	}
 
@@ -207,11 +211,11 @@ public class ImplementationGroup
 	public ImplementationGroup (final A_String name)
 	{
 		this.name = name;
-		this.methods = new ArrayList<MethodCommentImplementation>();
+		this.methods = new HashMap<String,MethodCommentImplementation>();
 		this.semanticRestrictions =
-			new ArrayList<SemanticRestrictionCommentImplementation>();
+			new HashMap<String,SemanticRestrictionCommentImplementation>();
 		this.grammaticalRestrictions =
-			new ArrayList<GrammaticalRestrictionCommentImplementation>();
+			new HashMap<String,GrammaticalRestrictionCommentImplementation>();
 		this.aliases = new HashSet<String>();
 	}
 
@@ -271,8 +275,10 @@ public class ImplementationGroup
 					}
 
 				}
+				for (final GrammaticalRestrictionCommentImplementation implementation
+					: grammaticalRestrictions.values())
 				stringBuilder
-					.append(grammaticalRestrictions.get(0).toHTML(htmlFileMap));
+					.append(implementation.toHTML(htmlFileMap));
 			}
 
 			stringBuilder.append(tabs(1) + "<h4 "
@@ -283,7 +289,8 @@ public class ImplementationGroup
 					+ HTMLBuilder
 						.tagClass(HTMLClass.classMethodSectionContent) + ">\n");
 
-			for (final MethodCommentImplementation implementation : methods)
+			for (final MethodCommentImplementation implementation :
+				methods.values())
 			{
 				stringBuilder.append(implementation.toHTML(htmlFileMap));
 			}
@@ -303,7 +310,7 @@ public class ImplementationGroup
 						+ ">\n");
 
 				for (final SemanticRestrictionCommentImplementation
-					implementation : semanticRestrictions)
+					implementation : semanticRestrictions.values())
 				{
 					stringBuilder.append(implementation.toHTML(htmlFileMap));
 				}
@@ -313,7 +320,10 @@ public class ImplementationGroup
 			final String localPath = qualifiedMethodName
 				.substring(1, qualifiedMethodName.lastIndexOf('/') + 1);
 
-			final String hashedFileName = String.valueOf(name.hash()) + ".html";
+			long hashedName = name.hash();
+			hashedName = hashedName & 0xFFFFFFFFL;
+
+			final String hashedFileName = String.valueOf(hashedName) + ".html";
 
 			final StacksOutputFile htmlFile = new StacksOutputFile(
 				outputPath.resolve(localPath), synchronizer, hashedFileName,
@@ -345,7 +355,10 @@ public class ImplementationGroup
 			final String localPath = qualifiedMethodName
 				.substring(1, qualifiedMethodName.lastIndexOf('/') + 1);
 
-			final String hashedFileName = String.valueOf(name.hash()) + ".html";
+			long hashedName = name.hash();
+			hashedName = hashedName & 0xFFFFFFFF;
+
+			final String hashedFileName = String.valueOf(hashedName) + ".html";
 
 			final StacksOutputFile htmlFile = new StacksOutputFile(
 				outputPath.resolve(localPath), synchronizer, hashedFileName,
@@ -373,19 +386,20 @@ public class ImplementationGroup
 	{
 		final HashSet<String> categorySet = new HashSet<String>();
 
-		for (final MethodCommentImplementation implementation : methods)
+		for (final MethodCommentImplementation implementation :
+			methods.values())
 		{
 			categorySet.addAll(implementation.getCategorySet());
 		}
 
 		for (final GrammaticalRestrictionCommentImplementation implementation :
-			grammaticalRestrictions)
+			grammaticalRestrictions.values())
 		{
 			categorySet.addAll(implementation.getCategorySet());
 		}
 
 		for (final SemanticRestrictionCommentImplementation implementation :
-			semanticRestrictions)
+			semanticRestrictions.values())
 		{
 			categorySet.addAll(implementation.getCategorySet());
 		}
@@ -472,5 +486,19 @@ public class ImplementationGroup
 				.add("\"" + alias + "\" : " + "\"" + filepath() + "\"");
 		}
 		return jsonFilePaths;
+	}
+
+	/**
+	 * Merge the input {@linkplain ImplementationGroup group} with this group
+	 * @param group
+	 * 		The {@linkplain ImplementationGroup} to merge into this group.
+	 */
+	public void mergeWith (final ImplementationGroup group)
+	{
+		classImplementation = group.classImplementation();
+		global = group.global();
+		methods.putAll(group.methods());
+		semanticRestrictions.putAll(group.semanticRestrictions());
+		grammaticalRestrictions.putAll(group.grammaticalRestrictions());
 	}
 }

@@ -209,10 +209,9 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 	}
 
 	@Override
-	public void addImplementationToExtendsModule (
-		final A_String name,
-		final StacksExtendsModule extendsModule)
+	public void addImplementationToImportModule (
+		final A_String name, final StacksImportModule importModule)
 	{
-		extendsModule.addMethodImplementation(name, this);
+		importModule.addMethodImplementation(name, this);
 	}
 }

@@ -110,9 +110,8 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 	}
 
 	@Override
-	public void addImplementationToExtendsModule (
-		final A_String name,
-		final StacksExtendsModule extendsModule)
+	public void addImplementationToImportModule (
+		final A_String name, final StacksImportModule importModule)
 	{
 		//Do nothing as globals will never be defined outside of its module.
 	}

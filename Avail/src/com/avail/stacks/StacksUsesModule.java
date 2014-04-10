@@ -1,5 +1,5 @@
 /**
- * StacksExtendsModule.java
+ * StacksUsesModule.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,19 +33,31 @@
 package com.avail.stacks;
 
 import java.util.HashMap;
+import com.avail.descriptor.A_Map;
 import com.avail.descriptor.A_String;
+import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.StringDescriptor;
 
 /**
  * A grouping of all implementationGroups originating from the names section of
- * this module that this is being extended by another module.
+ * this module that this is being used by another module.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksExtendsModule extends StacksImportModule
+public class StacksUsesModule extends StacksImportModule
 {
 
 	/**
-	 * Construct a new {@link StacksExtendsModule}.
+	 * The {@linkplain MapDescriptor map} of renames ({@linkplain
+	 * StringDescriptor string} → string) explicitly specified in this
+	 * import declaration.  The keys are the newly introduced names and the
+	 * values are the names provided by the predecessor module.
+	 */
+	public final A_Map renames;
+
+	/**
+	 * Construct a new {@link StacksUsesModule}.
+	 *
 	 * @param moduleImportName The name of the module
 	 * @param implementationGroups
 	 * 		The a map of {@linkplain ImplementationGroup implementationGroups}
@@ -59,29 +71,32 @@ public class StacksExtendsModule extends StacksImportModule
 	 * @param moduleNameToUsesList
 	 * 		A map of module names to other {@linkplain StacksUsesModule modules}
 	 * 		used by this module.
-	 * @param usesMethodLeafNameToModuleName
+	 * @param renames
+	 * 		The {@linkplain MapDescriptor map} of renames ({@linkplain
+	 * 		StringDescriptor string} → string) explicitly specified in this
+	 * 		import declaration.  The keys are the newly introduced names and
+	 * 		the values are the names provided by the predecessor module.
+	 * 	 * @param usesMethodLeafNameToModuleName
 	 * 		A map keyed by visible (uses) method names with no path to the
 	 * 		qualified module path it is originally named from.
 	 */
-	public StacksExtendsModule (final String moduleImportName,
+	public StacksUsesModule (final String moduleImportName,
 		final HashMap<A_String,ImplementationGroup> implementationGroups,
-		final HashMap<String,StacksExtendsModule> moduleNameToExtendsList,
+		final HashMap<String, StacksExtendsModule> moduleNameToExtendsList,
 		final HashMap<A_String,String> methodLeafNameToModuleName,
 		final HashMap<String,StacksUsesModule> moduleNameToUsesList,
-		final HashMap<A_String,String> usesMethodLeafNameToModuleName)
+		final HashMap<A_String,String> usesMethodLeafNameToModuleName,
+		final A_Map renames)
 	{
 		super(moduleImportName,implementationGroups,moduleNameToExtendsList,
 			methodLeafNameToModuleName, moduleNameToUsesList,
 			usesMethodLeafNameToModuleName);
+
+		this.renames = renames;
 	}
 
-	/**
-	 * @param name
-	 * 		The implementation to search for
-	 * @return
-	 * 		The {@linkplain StacksExtendsModule} the implementation belongs to.
-	 */
-	public StacksExtendsModule getExtendsModuleForImplementationName(
+	@Override
+	public StacksUsesModule getUsesModuleForImplementationName(
 		final A_String name)
 	{
 		if (implementations().containsKey(name))
@@ -93,16 +108,16 @@ public class StacksExtendsModule extends StacksImportModule
 			final String owningModule = extendsMethodLeafNameToModuleName().get(name);
 			if (moduleNameToExtendsList().containsKey(owningModule))
 			{
-				return moduleNameToExtendsList().get(owningModule);
+				return moduleNameToUsesList().get(owningModule);
 			}
 
-			for (final StacksExtendsModule extendsModule :
-				moduleNameToExtendsList().values())
+			for (final StacksUsesModule extendsModule :
+				moduleNameToUsesList().values())
 			{
 				if (extendsModule.extendsMethodLeafNameToModuleName().containsKey(name))
 				{
 					return extendsModule
-						.getExtendsModuleForImplementationName(name);
+						.getUsesModuleForImplementationName(name);
 				}
 			}
 		}
@@ -111,40 +126,51 @@ public class StacksExtendsModule extends StacksImportModule
 	}
 
 	/**
-	 * @param moduleNameToSearch
-	 * 		The implementation to search for
+	 * Obtain the {@linkplain StacksExtendsModule module} that the method name
+	 * originates from
+	 * @param name
+	 * 		The name of the method being searched
+	 * @param owningModule
+	 * 		The name of the module the method belongs to
 	 * @return
-	 * 		The {@linkplain StacksExtendsModule} the implementation belongs to.
 	 */
-	public StacksExtendsModule getExtendsModule(
-		final String moduleNameToSearch)
+	@SuppressWarnings("null")
+	public StacksExtendsModule getExtendsModuleForImplementationName(
+		final A_String name, final String owningModule)
 	{
-		if (moduleName.equals(moduleNameToSearch))
-		{
-			return this;
-		}
-		else if (!(moduleNameToExtendsList().isEmpty()))
-		{
-			if (moduleNameToExtendsList().containsKey(moduleNameToSearch))
-			{
-				return moduleNameToExtendsList().get(moduleNameToSearch);
-			}
+		int separaterIndex = owningModule.lastIndexOf("/");
+		String parentModule = owningModule
+			.substring(0,separaterIndex);
 
-			for (final StacksExtendsModule extendsModule :
-				moduleNameToExtendsList().values())
+		StacksExtendsModule owningExtendsModule = null;
+
+		while (separaterIndex >= 0 && owningExtendsModule == null)
+		{
+			owningExtendsModule =
+				moduleNameToExtendsList().get(parentModule);
+
+			if (owningExtendsModule == null)
 			{
-				return extendsModule
-					.getExtendsModule(moduleNameToSearch);
+				parentModule = parentModule
+					.substring(0,separaterIndex);
+				separaterIndex = parentModule.lastIndexOf("/");
 			}
 		}
-		return null;
+
+		return owningExtendsModule.getExtendsModuleForImplementationName(name);
 	}
 
-	@Override
-	public StacksUsesModule getUsesModuleForImplementationName (
+	/**
+	 * @param name
+	 * @return
+	 */
+	public String getExtendsModuleNameForImplementationName (
 		final A_String name)
 	{
-		// TODO Auto-generated method stub
+		if (extendsMethodLeafNameToModuleName().containsKey(name))
+		{
+			return extendsMethodLeafNameToModuleName().get(name);
+		}
 		return null;
 	}
 
@@ -158,7 +184,7 @@ public class StacksExtendsModule extends StacksImportModule
 		}
 		else
 		{
-			getExtendsModuleForImplementationName(key)
+			getUsesModuleForImplementationName(key)
 				.addMethodImplementation(key, implementation);
 		}
 	}
@@ -174,7 +200,7 @@ public class StacksExtendsModule extends StacksImportModule
 		}
 		else
 		{
-			getExtendsModuleForImplementationName(key)
+			getUsesModuleForImplementationName(key)
 				.addSemanticImplementation(key, implementation);
 		}
 	}
@@ -190,7 +216,7 @@ public class StacksExtendsModule extends StacksImportModule
 		}
 		else
 		{
-			getExtendsModuleForImplementationName(key)
+			getUsesModuleForImplementationName(key)
 				.addGrammaticalImplementation(key,implementation);
 		}
 	}
@@ -205,7 +231,7 @@ public class StacksExtendsModule extends StacksImportModule
 		}
 		else
 		{
-			getExtendsModuleForImplementationName(key)
+			getUsesModuleForImplementationName(key)
 				.addClassImplementationGroup(key, classImplementationGroup);
 		}
 	}
@@ -221,7 +247,7 @@ public class StacksExtendsModule extends StacksImportModule
 		}
 		else
 		{
-			getExtendsModuleForImplementationName(key)
+			getUsesModuleForImplementationName(key)
 				.addGlobalImplementationGroup(key, globalImplementationGroup);
 		}
 	}
@@ -239,7 +265,7 @@ public class StacksExtendsModule extends StacksImportModule
 		else
 		{
 			final StacksImportModule extendsModule =
-				getExtendsModuleForImplementationName(key);
+				getUsesModuleForImplementationName(key);
 
 			if (extendsModule != null)
 			{
@@ -259,7 +285,7 @@ public class StacksExtendsModule extends StacksImportModule
 		else
 		{
 			final StacksImportModule extendsModule =
-				getExtendsModuleForImplementationName(key);
+				getUsesModuleForImplementationName(key);
 
 			if (extendsModule != null)
 			{
@@ -269,16 +295,17 @@ public class StacksExtendsModule extends StacksImportModule
 	}
 
 	/**
-	 * Construct a new {@link StacksExtendsModule} from a
+	 * Construct a new {@link StacksUsesModule} from a
 	 * {@linkplain StacksCommentsModule}
 	 * @param module
 	 * 		The {@linkplain StacksCommentsModule} to be transformed
+	 * @param renamesMap
+	 * 		The renames {@linkplain A_Map map}
 	 */
-	public StacksExtendsModule (
-		final StacksCommentsModule module)
+	public StacksUsesModule(
+		final StacksCommentsModule module, final A_Map renamesMap)
 	{
-
-		super (module.moduleName(),
+		super(module.moduleName(),
 			new HashMap<A_String,ImplementationGroup>(
 				module.namedPublicCommentImplementations()),
 			new HashMap<String,StacksExtendsModule>(
@@ -287,7 +314,9 @@ public class StacksExtendsModule extends StacksImportModule
 				module.extendsMethodLeafNameToModuleName()),
 			module.usesNamesImplementations(),
 			module.usesMethodLeafNameToModuleName());
+			this.renames = renamesMap;
 	}
+
 
 	@Override
 	public String toString()
@@ -302,12 +331,13 @@ public class StacksExtendsModule extends StacksImportModule
 		}
 		stringBuilder.append("</ol>");
 
-		for (final StacksExtendsModule extendsModule :
-			moduleNameToExtendsList().values())
+		for (final StacksUsesModule usesModule :
+			moduleNameToUsesList().values())
 		{
-			stringBuilder.append(extendsModule.toString());
+			stringBuilder.append(usesModule.toString());
 		}
 
 		return stringBuilder.toString();
 	}
 }
+

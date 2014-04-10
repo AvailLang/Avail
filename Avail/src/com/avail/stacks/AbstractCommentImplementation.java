@@ -89,6 +89,16 @@ public abstract class AbstractCommentImplementation
 	final ArrayList<StacksAliasTag> aliases;
 
 	/**
+	 * Create a string that is unique to this {@linkplain
+	 * AbstractCommentImplementation}
+	 * @return an identifying string
+	 */
+	public String identityCheck()
+	{
+		return (signature.module() + signature.name() + commentStartLine);
+	}
+
+	/**
 	 *
 	 * Construct a new {@link AbstractCommentImplementation}.
 	 *
@@ -138,11 +148,11 @@ public abstract class AbstractCommentImplementation
 	 * StacksExtendsModule}.
 	 * @param name
 	 * 		Name of the implementation to add to the module.
-	 * @param extendsModule
+	 * @param importModule
 	 * 		The module to add the implementation to
 	 */
-	public abstract void addImplementationToExtendsModule(
-		A_String name, StacksExtendsModule extendsModule);
+	public abstract void addImplementationToImportModule(
+		A_String name, StacksImportModule importModule);
 
 	/**
 	 * Create HTML content from implementation
