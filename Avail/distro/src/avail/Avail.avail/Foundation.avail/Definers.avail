@@ -91,6 +91,7 @@ Method "stability failure function" is [failureFunction];
  * @method "Set stability failure function to_"
  * @param "f" "[[]→type]→type"
  *        The new wrapper {@type "function"}.
+ * @returns "⊤"
  */
 Method "Set stability failure function to_"
 	is [f : stable guard | failureFunction := f; ];

@@ -49,7 +49,9 @@ Body
  * Establish the specified {@type "function"} as the default means of acquiring
  * {@method "a pRNG" a pseudorandom number generator}.
  *
+ * @method "pRNG constructor:=_"
  * @param "constructor" "[]→pRNG"
+ * @returns "⊤"
  * @see {@method "a pRNG"}
  */
 Public method "pRNG constructor:=_" is
@@ -66,6 +68,7 @@ Public method "pRNG constructor:=_" is
  * {@method "current fiber"} or an ancestor {@type "fiber"}, then answer the
  * implementation-dependent default {@type "function"}. 
  *
+ * @method "pRNG constructor"
  * @returns "[]→pRNG"
  */
 Public method "pRNG constructor" is

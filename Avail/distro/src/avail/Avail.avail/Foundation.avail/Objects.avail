@@ -436,6 +436,8 @@ putAtom ::= $"↓_`?=_";
  * @param "fieldType" "any's type"
  * @param "mutable" "boolean"
  *        {@method "true"} if the field is mutable, {@method "false"} otherwise.
+ * @returns "method"
+ * 		a field accessor method
  */
 Private method "generate_field accessor for_:_(mutable=_)" is
 [
@@ -476,6 +478,8 @@ Private method "generate_field accessor for_:_(mutable=_)" is
  * @param "fieldType" "any's type"
  * @param "mutable" "boolean"
  *        {@method "true"} if the field is mutable, {@method "false"} otherwise.
+ * @returns "semantic restriction"
+ * 		the field accessor semantic restriction
  */
 Private method "generate_field accessor restriction for_:_(mutable=_)" is
 [
@@ -935,6 +939,7 @@ is
  *        The reconstructors of this class. A reconstructor will be generated
  *        for each specification tuple. Each reconstructor tagged as {@code
  *        public} must be exported by the defining module.
+ * @returns "⊤"
  * @category "Objects" "Types" "Declarations"
  */
 Public method

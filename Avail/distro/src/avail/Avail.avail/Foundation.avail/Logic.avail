@@ -607,8 +607,8 @@ Semantic restriction "_↚_" is
  * Negation has the highest precedence among logical operators.
  * 
  * @method "¬_"
- * @forbids 1 "_∧_" "_∨_" "_⊕_" "_↑_" "_↓_" "_→_" "_←_" "_↔_" "_↛_" "_↚_",
- * 	"_=_", "_≠_"
+ * @forbids 1 "_∧_" "_∨_" "_⊕_" "_↑_" "_↓_" "_→_" "_←_" "_↔_" "_↛_" "_↚_"
+ * 	"_=_" "_≠_"
  */
 Grammatical restriction "¬_" is
 	<{"_∧_", "_∨_", "_⊕_", "_↑_", "_↓_", "_→_", "_←_", "_↔_", "_↛_", "_↚_",
@@ -643,8 +643,29 @@ Grammatical restriction "_∨_" is
  * precedence.
  * 
  * @method "_→_"
+ * @forbids 1 "_↔_" "_⊕_"
+ * @forbids 2 "_→_" "_↔_" "_←_" "_⊕_" "_↛_" "_↚_"
+ */
+/**
+ * (Non-)implications and converse (non-)implications share the fourth highest
+ * precedence.
+ * 
  * @method "_←_"
+ * @forbids 1 "_↔_" "_⊕_"
+ * @forbids 2 "_→_" "_↔_" "_←_" "_⊕_" "_↛_" "_↚_"
+ */
+/**
+ * (Non-)implications and converse (non-)implications share the fourth highest
+ * precedence.
+ * 
  * @method "_↛_"
+ * @forbids 1 "_↔_" "_⊕_"
+ * @forbids 2 "_→_" "_↔_" "_←_" "_⊕_" "_↛_" "_↚_"
+ */
+/**
+ * (Non-)implications and converse (non-)implications share the fourth highest
+ * precedence.
+ * 
  * @method "_↚_"
  * @forbids 1 "_↔_" "_⊕_"
  * @forbids 2 "_→_" "_↔_" "_←_" "_⊕_" "_↛_" "_↚_"
@@ -656,6 +677,11 @@ Grammatical restriction {"_→_", "_←_", "_↛_", "_↚_"} is
  * Biconditional and XOR operations have the lowest precedence.
  * 
  * @method "_↔_"
+ * @forbids 2 "_↔_" "_⊕_"
+ */
+/**
+ * Biconditional and XOR operations have the lowest precedence.
+ * 
  * @method "_⊕_"
  * @forbids 2 "_↔_" "_⊕_"
  */

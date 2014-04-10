@@ -310,9 +310,16 @@ Semantic restriction "_(_,`…)" is
 ] : function's type;
 
 /**
+ * Partially evaluate a function, providing the last argument.  Answer a
+ * function which takes the initial arguments and evaluates the original
+ * function with the last argument combined with the remaining arguments.
  * @method "_(`…,_)"
  * @param "originalFunction" "function"
+ * 		The function to ultimately invoke.
  * @param "lastValue" "any"
+ * @returns "function"
+ *    A function that takes the initial N-1 arguments and invokes the original
+ *    function.
  * @category "Function Application"
  */
 Public method "_(`…,_)" is [

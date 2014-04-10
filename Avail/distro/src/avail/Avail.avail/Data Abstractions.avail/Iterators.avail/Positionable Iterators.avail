@@ -118,6 +118,7 @@ Semantic restriction "_'s⁇position" is
  *        A {@type "positionable iterator"}.
  * @param "position" "any"
  *        A position memento that represents a valid position.
+ * @returns "⊤"
  * @raises "invalid-position exception"
  *         If {@param "position"} is not a valid memento.
  */

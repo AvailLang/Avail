@@ -1001,22 +1001,13 @@ public class CommentImplementationBuilder
 			if (restricts.isEmpty() && parameters.isEmpty() &&
 				!forbids.isEmpty())
 			{
-				if (forbids.size() == 1)
-				{
-					final CommentSignature signature =
-						new CommentSignature(
-							methods.get(0).methodName().lexeme(), moduleName());
+				final CommentSignature signature =
+					new CommentSignature(
+						methods.get(0).methodName().lexeme(), moduleName());
 
-					return new GrammaticalRestrictionCommentImplementation(
-						signature, commentStartLine (), authors, sees,
-						description(), categories, aliases, forbids);
-				}
-				final String errorMessage = String.format("\n<li><strong>%s"
-					+ "</strong><em> Line #: %d</em>: Malformed comment; has "
-					+ "wrong # of @forbids identifying tags.</li>",
-					moduleLeafName,
-					commentStartLine());
-				throw new StacksCommentBuilderException(errorMessage, this);
+				return new GrammaticalRestrictionCommentImplementation(
+					signature, commentStartLine (), authors, sees,
+					description(), categories, aliases, forbids);
 			}
 
 			if (restricts.isEmpty() && parameters.isEmpty() &&
@@ -1039,13 +1030,13 @@ public class CommentImplementationBuilder
 
 		if (types.isEmpty() && methods.isEmpty() && !globalVariables.isEmpty())
 		{
-			if (globalVariables.size() == 1)
+			if (globalVariables.size() == 2)
 			{
 				final GlobalCommentSignature signature =
 					new GlobalCommentSignature(
 						globalVariables.get(0).globalName().lexeme(),
 						moduleName(),
-						globalVariables.get(0).globalType().lexeme());
+						globalVariables.get(1).globalType().lexeme());
 
 				return new GlobalCommentImplementation(signature,
 					commentStartLine (), authors, sees,description(),

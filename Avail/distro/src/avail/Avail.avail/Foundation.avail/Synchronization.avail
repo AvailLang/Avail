@@ -715,6 +715,7 @@ Semantic restriction "a reentrant mutex«named_»" is
  * @param "mutex" "reentrant mutex"
  * @param "criticalSection" "[]→⊤"
  *        The critical section.
+ * @returns "⊤"
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
  * @category "Synchronization"

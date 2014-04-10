@@ -69,7 +69,7 @@ Body
 		\|bound semantic restriction function"
  * @param "wantsLower" "boolean"
  * @param "wantsUpper" "boolean"
- * @returns
+ * @returns "[extended integer meta's type]→([-∞..∞])'s type"
  *    A function that strengthens the integer range bounds methods.
  */
 Private method "integer range genuine«lower»?«upper»?\

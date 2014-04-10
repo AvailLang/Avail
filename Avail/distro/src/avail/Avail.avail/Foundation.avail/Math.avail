@@ -97,7 +97,19 @@ Public stable forward method "-_" is [number]→number;
 	 * Establish the standard grammatical rules for arithmetic.
 	 * 
 	 * @method "_×_"
+	 * @forbids "1" "_+_" "_-_"
+	 * @forbids "2" "_×_" "_÷_" "_mod_" "_+_" "_-_"
+	 */
+	/**
+	 * Establish the standard grammatical rules for arithmetic.
+	 * 
 	 * @method "_÷_"
+	 * @forbids "1" "_+_" "_-_"
+	 * @forbids "2" "_×_" "_÷_" "_mod_" "_+_" "_-_"
+	 */
+	/**
+	 * Establish the standard grammatical rules for arithmetic.
+	 * 
 	 * @method "_mod_"
 	 * @forbids "1" "_+_" "_-_"
 	 * @forbids "2" "_×_" "_÷_" "_mod_" "_+_" "_-_"

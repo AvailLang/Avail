@@ -72,6 +72,7 @@ Public explicit class "assertion-failed exception" extends exception;
  * @method "Assert:_"
  * @param "predicate" "boolean"
  *        A predicate.
+ * @returns "⊤"
  * @raises "assertion-failed exception"
  *         If {@param "predicate"} is {@code false}.
  * @category "Assertions"
@@ -111,6 +112,7 @@ Semantic restriction "Assert:_" is
  *        A predicate.
  * @param "message" "string"
  *        An error message.
+ * @returns "⊤"
  * @raises "assertion-failed exception"
  *         If {@param "predicate"} is {@code false}.
  * @category "Assertions"

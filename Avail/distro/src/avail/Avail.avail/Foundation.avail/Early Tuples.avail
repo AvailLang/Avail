@@ -460,8 +460,8 @@ Public stable method "_[_..]" is
  * possible given the argument types.
  *
  * @method "_[_..]"
- * @param "aTupleType" "tuple meta"
- * @param "sliceStart" "natural number's type"
+ * @restricts "aTupleType" "tuple meta"
+ * @restricts "sliceStart" "natural number's type"
  */
 Semantic restriction "_[_..]" is
 [
@@ -533,7 +533,19 @@ Semantic restriction "_[.._]" is
  * Bind subscripting and slicing tighter than concatenation.
  * 
  * @method "_[_]"
+ * @forbids 1 "«_‡++»"
+ */
+
+/**
+ * Bind subscripting and slicing tighter than concatenation.
+ * 
  * @method "_[_..]"
+ * @forbids 1 "«_‡++»"
+ */
+
+/**
+ * Bind subscripting and slicing tighter than concatenation.
+ * 
  * @method "_[.._]"
  * @forbids 1 "«_‡++»"
  */

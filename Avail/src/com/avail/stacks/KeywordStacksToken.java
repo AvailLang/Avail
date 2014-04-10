@@ -186,6 +186,24 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 		},
 
 		/**
+		 * The method keyword indicates the name of the method implementation.
+		 */
+		GLOBAL("@global")
+		{
+			@Override
+			KeywordStacksToken createToken(
+				final int lineNumber,
+				final int postion,
+				final int startOfTokenLinePostion,
+				final String moduleName)
+			{
+				return SectionKeywordStacksToken.create(
+					lexeme, lineNumber, postion,
+					startOfTokenLinePostion, moduleName);
+			}
+		},
+
+		/**
 		 * The link keyword creates an external web link.
 		 */
 		LINK("@link")

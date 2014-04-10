@@ -106,7 +106,8 @@ Public class "bad-cast exception" extends bad-multiway-cast exception
  * @param "accept" "[⊥]→⊤"
  *        The function to invoke if {@param "value"} is an instance of the its
  *        parameter type.
- * @returns The result of {@param "accept"}.
+ * @returns "any" 
+ * 		The result of {@param "accept"}.
  * @raises "bad-cast exception"
  *         If {@param "value"} is not an instance of {@param "accept"}'s
  *         parameter type.
@@ -173,7 +174,8 @@ Semantic restriction "Cast|cast_into_" is
  * @param "else" "[]→⊤"
  *        The function to invoke if {@param "value"} is not an instance of
  *        {@param "accept"}'s parameter type.
- * @returns The result of {@param "accept"} or {@param "else"}.
+ * @returns "any" 
+ * 		The result of {@param "accept"} or {@param "else"}.
  * @category "Casts" "Control Structures" "Conditionals"
  */
 Public method "Cast|cast_into_else_" is
@@ -334,7 +336,8 @@ Semantic restriction "Cast|cast_into«_‡,»«else_»" is
  * @param "accept" "function"
  *        The function to invoke if each element of {@param "values"} is a
  *        subtype of the corresponding parameter type.
- * returns The result of {@param "accept"}.
+ * @returns "any" 
+ * 		The result of {@param "accept"}.
  * @raises "bad-cast exception"
  *         If any element of {@param "values"} is not an instance of the
  *         corresponding parameter type of {@param "accept"}.
@@ -430,7 +433,8 @@ Semantic restriction "Cast|cast each of_into_" is
  * @param "reject" "[]→⊤"
  *        The function to invoke if any element of {@param "values"} is not a
  *        subtype of the corresponding parameter type of {@param "accept"}.
- * @returns The result of {@param "accept"} or {@param "reject"}.
+ * @returns "any" 
+ * 		The result of {@param "accept"} or {@param "reject"}.
  * @category "Casts" "Control Structures" "Conditionals"
  */
 Public method "Cast|cast each of_into_else_" is

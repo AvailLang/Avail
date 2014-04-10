@@ -65,18 +65,8 @@ Body
  */
 Stable abstract method "_`!" is [[0..∞]]→[1..∞];
 
-/**
- * One factorial and zero factorial is one.
- * 
- * @method "_`!"
- * @param "n" "[0..1]"
- */
 Method "_`!" is [n : [0..1] | 1];
 
-/**
- * @method "_`!"
- * @param "n" "[2..∞)"
- */
 Method "_`!" is
 [
 	n : [2..∞)
@@ -84,12 +74,6 @@ Method "_`!" is
 	left fold 2 to n through [k : [2..∞), s : [2..∞) | k × s]
 ];
 
-/**
- * Infinity factorial is infinity.
- * 
- * @method "_`!"
- * @param "n" "∞'s type"
- */
 Method "_`!" is [n : ∞'s type | ∞];
 
 /**

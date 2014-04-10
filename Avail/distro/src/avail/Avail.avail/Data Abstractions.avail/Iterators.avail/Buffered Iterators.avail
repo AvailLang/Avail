@@ -327,6 +327,7 @@ Private abstract method privateSetPositionName
  * @param "implementation" "[⊥, ⊥]→⊤"
  *        The new method extension. The first argument is the iterator, the
  *        second is the new position.
+ * @returns "⊤"
  */
 Public method "_'s⁇set position method is_" is
 [
