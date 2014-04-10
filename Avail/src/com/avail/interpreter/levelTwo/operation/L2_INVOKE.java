@@ -71,7 +71,7 @@ public class L2_INVOKE extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		// The continuation is required to have already been reified.
+		// The continuation is required to have been reified already.
 		final L2ObjectRegister continuationReg =
 			instruction.readObjectRegisterAt(0);
 		final L2ObjectRegister functionReg =

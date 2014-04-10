@@ -37,12 +37,10 @@ package com.avail.persistence;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@SuppressWarnings("serial")
 public final class IndexedFileException
 extends RuntimeException
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = -577141654102532671L;
-
 	/**
 	 * Construct a new {@link IndexedFileException}.
 	 *

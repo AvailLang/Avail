@@ -1701,7 +1701,7 @@ public final class BootstrapGenerator
 		final List<String> versions = new ArrayList<>();
 		if (args.length < 1)
 		{
-			languages.add("en");
+			languages.add(System.getProperty("user.language"));
 		}
 		else
 		{

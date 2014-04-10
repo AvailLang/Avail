@@ -250,7 +250,7 @@ extends PropertiesFileGenerator
 		}
 		else
 		{
-			languages = new String[] { "en" };
+			languages = new String[] { System.getProperty("user.language") };
 		}
 
 		for (final String language : languages)

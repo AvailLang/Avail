@@ -35,7 +35,11 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.List;
 import com.avail.annotations.Nullable;
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AbstractEnumerationTypeDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.InstanceTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
@@ -86,40 +90,67 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT extends L2Operation
 		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
 		final A_Type type = instruction.constantAt(2);
 
-		if (registerSet.hasTypeAt(objectReg))
+		boolean canJump = false;
+		boolean mustJump = false;
+		A_Type intersection = null;
+		if (registerSet.hasConstantAt(objectReg))
 		{
-			final @Nullable A_Type knownObjectType =
-				registerSet.typeAt(objectReg);
-			final A_Type intersection = knownObjectType.typeIntersection(type);
+			final AvailObject constant = registerSet.constantAt(objectReg);
+			mustJump = canJump = !constant.isInstanceOf(type);
+			final A_Type knownType =
+				AbstractEnumerationTypeDescriptor.withInstance(constant);
+			intersection = type.typeIntersection(knownType);
+		}
+		else
+		{
+			assert registerSet.hasTypeAt(objectReg);
+			final A_Type knownType = registerSet.typeAt(objectReg);
+			assert knownType != null;
+			intersection = type.typeIntersection(knownType);
 			if (intersection.isBottom())
 			{
-				// It can never be that kind of object.  Always jump.  The
-				// instructions that follow the jump will become dead code and
-				// be eliminated next pass.
-				newInstructions.add(new L2Instruction(
-					L2_JUMP.instance,
-					instruction.operands[0]));
-				return true;
+				mustJump = canJump = true;
 			}
-			if (knownObjectType.typeIntersection(type).isBottom())
+			else if (knownType.isSubtypeOf(type))
 			{
-				// It can only be that kind of object.  Never jump.
-				return true;
+				mustJump = canJump = false;
 			}
-			// Since it's already an X and we're testing for Y, we might be
-			// better off testing for an X∩Y instead.  Let's just assume it for
-			// now.  Eventually we can extend this idea to testing things other
-			// than types, such as if we know we have a tuple but we want to
-			// dispatch based on the tuple's size.
-			if (!intersection.equals(type))
+			else
 			{
-				newInstructions.add(new L2Instruction(
-					L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT.instance,
-					instruction.operands[0],
-					new L2ReadPointerOperand(objectReg),
-					new L2ConstantOperand(intersection)));
-				return true;
+				mustJump = false;
+				canJump = true;
 			}
+		}
+		if (mustJump)
+		{
+			// It can never be that kind of object.  Always jump.  The
+			// instructions that follow the jump will become dead code and
+			// be eliminated next pass.
+			assert canJump;
+			newInstructions.add(new L2Instruction(
+				L2_JUMP.instance,
+				instruction.operands[0]));
+			return true;
+		}
+		assert !mustJump;
+		if (!canJump)
+		{
+			// It is always of the specified type, so never jump.
+			return true;
+		}
+		// Since it's already an X and we're testing for Y, we might be
+		// better off testing for an X∩Y instead.  Let's just assume it's
+		// quicker for now.  Eventually we can extend this idea to testing
+		// things other than types, such as if we know we have a tuple but we
+		// want to dispatch based on the tuple's size.
+		if (!intersection.equals(type))
+		{
+			newInstructions.add(new L2Instruction(
+				L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT.instance,
+				instruction.operands[0],
+				new L2ReadPointerOperand(objectReg),
+				new L2ConstantOperand(intersection)));
+			return true;
 		}
 		// The test could not be eliminated or improved.
 		return super.regenerate(instruction, newInstructions, registerSet);

@@ -95,6 +95,12 @@ extends JFrame
 	private static final String commandStyleName = "command";
 
 	/**
+	 * The numeric mask for the modifier key suitable for the current platform.
+	 */
+	@InnerAccess static final int menuShortcutMask =
+		Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+
+	/**
 	 * A {@code BuildAction} launches a {@linkplain BuildTask build task} in a
 	 * Swing worker thread.
 	 */
@@ -133,7 +139,9 @@ extends JFrame
 			putValue(
 				SHORT_DESCRIPTION,
 				"Build the target module.");
-			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control ENTER"));
+			putValue(
+				ACCELERATOR_KEY,
+				KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, menuShortcutMask));
 		}
 	}
 
@@ -259,7 +267,9 @@ extends JFrame
 				SHORT_DESCRIPTION,
 				"Generate API documentation for the selected module and "
 				+ "its ancestors.");
-			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control G"));
+			putValue(
+				ACCELERATOR_KEY,
+				KeyStroke.getKeyStroke(KeyEvent.VK_G, menuShortcutMask));
 		}
 	}
 
@@ -289,7 +299,9 @@ extends JFrame
 			putValue(
 				SHORT_DESCRIPTION,
 				"Cancel the current build process.");
-			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control ESCAPE"));
+			putValue(
+				ACCELERATOR_KEY,
+				KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, Event.CTRL_MASK));
 		}
 	}
 
@@ -736,7 +748,9 @@ extends JFrame
 			putValue(
 				SHORT_DESCRIPTION,
 				"Submit the input field (plus a new line) to standard input.");
-			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("ENTER"));
+			putValue(
+				ACCELERATOR_KEY,
+				KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
 		}
 	}
 
@@ -783,7 +797,9 @@ extends JFrame
 			putValue(
 				SHORT_DESCRIPTION,
 				"Refresh the availability of top-level modules.");
-			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("F5"));
+			putValue(
+				ACCELERATOR_KEY,
+				KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
 		}
 	}
 

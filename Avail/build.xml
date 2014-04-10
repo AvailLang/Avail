@@ -170,6 +170,70 @@ POSSIBILITY OF SUCH DAMAGE.
 	</target>
 
 	<!--
+		Run the generator that produces the error code properties file.
+	-->
+	<target
+			name="generate-error-code-names"
+			description="Generate ErrorCodeNames_*.properties.">
+		<java
+				classpath="${path.avail.bin}"
+				classname="com.avail.tools.bootstrap.ErrorCodeNamesGenerator"/>
+	</target>
+
+	<!--
+		Run the generator that produces the special objects properties file.
+	-->
+	<target
+			name="generate-special-object-names"
+			description="Generate SpecialObjectNames_*.properties.">
+		<java
+				classpath="${path.avail.bin}"
+				classname="com.avail.tools.bootstrap.SpecialObjectNamesGenerator"/>
+	</target>
+
+	<!--
+		Run the generator that produces the primitives properties file.
+	-->
+	<target
+			name="generate-primitive-names"
+			description="Generate ErrorCodeNames_*.properties.">
+		<java
+				classpath="${path.avail.bin}"
+				classname="com.avail.tools.bootstrap.PrimitiveNamesGenerator"/>
+	</target>
+
+	<!--
+		Run the all property file generators.
+	-->
+	<target
+			name="generate-properties"
+			depends="
+				generate-error-code-names,
+				generate-special-object-names,
+				generate-primitive-names"
+			description="Generate ErrorCodeNames_*.properties."/>
+
+	<!--
+		Run the code generator that produces the Avail bootstrap library from
+		the property files.
+	-->
+	<property
+		name="path.distro.bootstrap"
+		value="${path.avail.distro}/src/avail/Avail.avail/Foundation.avail/Bootstrap.avail"/>
+	<target
+			name="generate-bootstrap"
+			description="Generate the bootstrap Avail library.">
+		<java
+				classpath="${path.avail.bin}"
+				classname="com.avail.tools.bootstrap.BootstrapGenerator"/>
+		<copy todir="${path.distro.bootstrap}">
+			<fileset
+				dir="${path.avail.src}/com/avail/tools/bootstrap/generated/${user.language}/Bootstrap.avail"
+				includes="**"/>
+		</copy>
+	</target>
+
+	<!--
 		Build everything.
 	-->
 	<target

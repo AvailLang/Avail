@@ -82,7 +82,7 @@ public class L2_REPORT_FAILED_LOOKUP extends L2Operation
 		final A_Tuple argumentsTuple = TupleDescriptor.fromList(argumentValues);
 		error(
 			"lookup of method %s produced %d most-specific definitions"
-			+ "for arguments: %s",
+			+ " for arguments: %s",
 			bundle.message(),
 			definitions.setSize(),
 			argumentsTuple);

@@ -56,7 +56,10 @@ public abstract class ProblemHandler
 	 *         Problem#continueCompilation() continue}, or false if compilation
 	 *         should {@linkplain Problem#abortCompilation()}.
 	 */
-	protected abstract boolean handleInformation (final Problem problem);
+	protected boolean handleInformation (final Problem problem)
+	{
+		return handleGeneric(problem);
+	}
 
 	/**
 	 * The corresponding {@link Problem} indicates a situation that is less than
@@ -68,7 +71,10 @@ public abstract class ProblemHandler
 	 *         Problem#continueCompilation() continue}, or false if compilation
 	 *         should {@linkplain Problem#abortCompilation()}.
 	 */
-	protected abstract boolean handleWarning (final Problem problem);
+	protected boolean handleWarning (final Problem problem)
+	{
+		return handleGeneric(problem);
+	}
 
 	/**
 	 * A {@link Problem} occurred while tracing a module's dependencies.
@@ -78,7 +84,10 @@ public abstract class ProblemHandler
 	 *         Problem#continueCompilation() continue}, or false if compilation
 	 *         should {@linkplain Problem#abortCompilation()}.
 	 */
-	protected abstract boolean handleTrace (final Problem problem);
+	protected boolean handleTrace (final Problem problem)
+	{
+		return handleGeneric(problem);
+	}
 
 	/**
 	 * A {@link Problem} occurred while parsing a module's body.  This includes
@@ -91,7 +100,10 @@ public abstract class ProblemHandler
 	 *         Problem#continueCompilation() continue}, or false if compilation
 	 *         should {@linkplain Problem#abortCompilation()}.
 	 */
-	protected abstract boolean handleParse (final Problem problem);
+	protected boolean handleParse (final Problem problem)
+	{
+		return handleGeneric(problem);
+	}
 
 	/**
 	 * A {@link Problem} occurred while executing Avail code.  Typically this
@@ -103,7 +115,10 @@ public abstract class ProblemHandler
 	 *         Problem#continueCompilation() continue}, or false if compilation
 	 *         should {@linkplain Problem#abortCompilation()}.
 	 */
-	protected abstract boolean handleExecution (final Problem problem);
+	protected boolean handleExecution (final Problem problem)
+	{
+		return handleGeneric(problem);
+	}
 
 	/**
 	 * An internal {@link Problem} occurred in the virtual machine.  This should
@@ -115,7 +130,28 @@ public abstract class ProblemHandler
 	 *         Problem#continueCompilation() continue}, or false if compilation
 	 *         should {@linkplain Problem#abortCompilation()}.
 	 */
-	protected abstract boolean handleInternal (final Problem problem);
+	protected boolean handleInternal (final Problem problem)
+	{
+		return handleGeneric(problem);
+	}
+
+	/**
+	 * One of the {@link ProblemType}-specific handler methods was invoked, but
+	 * (1) it was not specifically overridden in the subclass, and (2) this
+	 * method was not specifically overridden in the subclass.  Always fail in
+	 * this circumstance.
+	 *
+	 * @param problem The problem being handled generically.
+	 * @return {@code true} if compilation should {@linkplain
+	 *         Problem#continueCompilation() continue}, or false if compilation
+	 *         should {@linkplain Problem#abortCompilation()}.
+	 */
+	protected boolean handleGeneric (final Problem problem)
+	{
+		throw new UnsupportedOperationException(
+			"Failed to reimplement either a problem type-specific handler"
+			+ "or handleGeneric");
+	}
 
 	/**
 	 * Handle the specified {@linkplain Problem problem}, {@linkplain
