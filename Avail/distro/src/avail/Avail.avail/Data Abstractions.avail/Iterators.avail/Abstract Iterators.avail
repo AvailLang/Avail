@@ -263,6 +263,7 @@ Method "Advance_" is
  *        The iterator's type, as a cross check for the implementation.
  * @param "implementation" "[⊥]→⊤"
  *        The new method extension.
+ * @returns "⊤"
  */
 Public method "_'s⁇advance method is_" is
 [
@@ -941,7 +942,6 @@ Semantic restriction "take«at most»?_from_" is
 /**
  * Checks to see if the iterator of character is not exhausted.
  * @method "_is not exhausted"
- * @public
  * @category "Annals"
  * @param "anIterator" "iterator"
  * @returns "boolean"

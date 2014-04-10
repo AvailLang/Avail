@@ -184,6 +184,7 @@ Semantic restriction "_'s⁇head" is
  *        The stream's type, as a cross check for the implementation.
  * @param "implementation" "[⊥]→any"
  *        The new method extension.
+ * @returns "⊤"
  */
 Public method "_'s⁇head method is_" is
 [
@@ -281,6 +282,7 @@ Semantic restriction "_'s⁇tail" is
  *        The stream's type, as a cross check for the implementation.
  * @param "implementation" "[⊥]→stream"
  *        The new method extension.
+ * @returns "⊤"
  */
 Public method "_'s⁇tail method is_" is
 [
@@ -796,7 +798,7 @@ Method "«_‡++»" is
  * `concatenate_` and `«_‡++»` methods.
  * 
  * @method "concatenation semantic restriction"
- * Returns:
+ * @returns "[<stream…|>'s type]→concatenation stream"
  *    The requested funcion.
  */
 Private method "concatenation semantic restriction" is
@@ -909,7 +911,7 @@ Method "«_‡zip»" is
  * and `«_‡zip»` methods.
  * 
  * @method "zip semantic restriction"
- * Returns:
+ * @returns "[<stream…|1..>'s type]→zipped stream"
  *    The requested funcion.
  */
 Private method "zip semantic restriction" is

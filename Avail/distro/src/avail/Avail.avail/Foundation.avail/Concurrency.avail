@@ -251,8 +251,9 @@ Grammatical restriction "_∈_" is <∅, {"current fiber"}>;
  * @param "else" "[]→any"
  *        The function to apply if {@param "key"} is not a property of {@param
  *        "aFiber"}.
- * returns Either the requested property value or the result of applying
- *         {@param "else"}.
+ * @returns "any" 
+ * 		Either the requested property value or the result of applying 
+ * 		{@param "else"}.
  * @category "Concurrency" "Queries"
  */
 Method "current fiber[_]else_" is
@@ -523,6 +524,7 @@ Public method "Cancel_" is
  * @param "limit" "natural number"
  *        The maximum number of worker {@type "fiber"}s that are permitted to
  *        run concurrently.
+ * @returns "fiber→⊤"
  * @category "Concurrency" "Control Structures"
  */
 Public method "injector from_to_by_doing_in parallel_-way" is
@@ -601,6 +603,7 @@ Public method "default maximum worker fibers" is [100];
  * @param "killer" "↑exception"
  *        A variable into which to store an {@type "exception"} that terminates
  *        any work unit.
+ * @returns "⊤"
  */
 Public method
 	"Store a runner of_work units into_,\

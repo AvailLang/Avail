@@ -158,6 +158,7 @@ Private method "preferred symbol" is [_preferredSymbol];
 /**
  * A unit is a measurement quantum along some dimensional axis.
  *
+ * @category "Dimensional Analysis"
  * @type "unit"
  */
 Public class "unit" extends object
@@ -169,6 +170,7 @@ Public class "unit" extends object
  * quanta, it may not be reduced to simpler terms. Examples of base units are
  * meters (m), seconds (s), or grams (g).
  *
+ * @category "Dimensional Analysis"
  * @type "base unit"
  * @supertype "unit"
  */
@@ -180,6 +182,7 @@ Public explicit class "base unit" extends unit
  * A derived unit is an algebraic composition of base units. Examples of derived
  * units are newtons (kg·m/s²) or hertz (1/s).
  *
+ * @category "Dimensional Analysis"
  * @type "derived unit"
  * @supertype "unit"
  */
@@ -190,6 +193,7 @@ Public explicit class "derived unit" extends unit;
  * "unit"}s. It represents the absence of meaningful dimensional axes, yet it
  * must be present to support intermediate stages of derivation.
  *
+ * @category "Dimensional Analysis"
  * @type "scalar"
  * @supertype "unit"
  */
@@ -202,6 +206,7 @@ Public class "scalar" extends derived unit
  * Examples of dimensioned quantities are 4m (four meters), 10 kilograms (ten
  * kilograms), and 20N (twenty Newtons).
  *
+ * @category "Dimensional Analysis"
  * @type "dimensioned quantity"
  */
 Public class "dimensioned quantity" extends object
@@ -213,6 +218,7 @@ Public class "dimensioned quantity" extends object
  * Construct and answer a {@type "dimensioned quantity"} type with the specified
  * {@type "number" extent} type.
  *
+ * @category "Dimensional Analysis"
  * @method "dimensioned_"
  * @param "magnitudeType" "number's type"
  *        The magnitude type.
@@ -237,6 +243,7 @@ Semantic restriction "dimensioned_" is
  * Construct and answer a {@type "dimensioned quantity"} type with the specified
  * {@type "number" extent} type and {@type "unit" metric}.
  *
+ * @category "Dimensional Analysis"
  * @method "__"
  * @param "magnitudeType" "number's type"
  *        The magnitude type.
@@ -274,6 +281,7 @@ Semantic restriction "__" is
  * Construct and answer a {@type "dimensioned quantity"} with the specified
  * {@type "number" extent} and {@type "unit" metric}.
  *
+ * @category "Dimensional Analysis"
  * @method "__"
  * @param "magnitude" "number"
  *        The magnitude of the answer.
@@ -312,6 +320,7 @@ Semantic restriction "__" is
  * to global variables.
  *
  * @global "stateLock" "non-reentrant mutex"
+ * @category "Dimensional Analysis"
  */
 stateLock : non-reentrant mutex := a non-reentrant mutex named "state lock";
 
@@ -319,6 +328,7 @@ stateLock : non-reentrant mutex := a non-reentrant mutex named "state lock";
  * A map from {@type "unit"}s to the names that should be used to describe them.
  *
  * @global "namesByUnit" "{unit→string|}"
+ * @category "Dimensional Analysis"
  */
 namesByUnit : {unit→string|} := {};
 
@@ -327,11 +337,13 @@ Public method "names by unit" is [Lock stateLock for[namesByUnit]];
 /**
  * Prefer {@param "name"} for printing the specified {@type "unit"}.
  *
+ * @category "Dimensional Analysis"
  * @method "Prefer_for printing_"
  * @param "name" "string"
  *        The preferred print representation of {@param "aUnit"}.
  * @param "aUnit" "unit"
  *        A {@type "unit"}.
+ * @returns "⊤"
  */
 Public method "Prefer_for printing_" is
 [
@@ -348,6 +360,7 @@ Public method "Prefer_for printing_" is
  * them.
  *
  * @global "symbolsByUnit" "{unit→string|}"
+ * @category "Dimensional Analysis"
  */
 symbolsByUnit : {unit→string|} := {};
 
@@ -357,12 +370,14 @@ Public method "symbols by unit" is [Lock stateLock for [symbolsByUnit]];
  * Prefer {@param "symbol"} for printing {@type "dimensioned quantity"
  * dimensioned quantities} of the specified {@type "unit"}.
  *
+ * @category "Dimensional Analysis"
  * @method "Prefer_for printing_in a dimensioned quantity"
  * @param "symbol" "string"
  *        The preferred print representation of {@param "aUnit"} (when it
  *        occurs as part of a {@type "dimensioned quantity"}).
  * @param "aUnit" "unit"
  *        A {@type "unit"}.
+ * @returns "⊤"
  */
 Public method "Prefer_for printing_in a dimensioned quantity" is
 [
@@ -408,6 +423,7 @@ Public method "Prefer_for printing_in a dimensioned quantity" is
 /**
  * Answer a reasonable description of the specified unit atom.
  *
+ * @category "Dimensional Analysis"
  * @method "“_”(unit atom)"
  * @param "unitAtom" "atom"
  * @returns "string"
@@ -438,6 +454,7 @@ prettyPowers ::= "¹²³⁴⁵⁶⁷⁸⁹";
  * Construct and answer a description of the specified unit map (as the product
  * of powers of base units).
  *
+ * @category "Dimensional Analysis"
  * @method "unit map“_”"
  * @param "unitMap" "{atom→integer|}"
  *        A unit map.
@@ -527,11 +544,13 @@ Method "“_”" is
  * presentation for this unit has already been established, then establish the
  * specified symbol as the preferred print representation.
  *
+ * @category "Dimensional Analysis"
  * @method "_has symbol_"
  * @param "aUnit" "unit"
  *        A {@type "unit"}.
  * @param "symbol" "string"
  *        A symbol which represents the specified {@type "unit"}.
+ * @returns "⊤"
  */
 Public method "_has symbol_" is
 [
@@ -550,11 +569,13 @@ Public method "_has symbol_" is
 /**
  * Define a {@type "base unit"}.
  *
+ * @category "Dimensional Analysis"
  * @method "_(_)is a base unit"
  * @param "name" "string"
  *        The name of the {@type "base unit"}, e.g., meters, seconds, grams.
  * @param "symbol" "string"
  *        A symbol which represents the defined {@type "base unit"}.
+ * @returns "⊤"
  */
 Public method "_(_)is a base unit" is
 [
@@ -577,12 +598,13 @@ Public method "_(_)is a base unit" is
 /**
  * Compute and answer the product of the specified unit maps.
  *
+ * @category "Dimensional Analysis"
  * @method "_·_(unit map)"
  * @param "x" "{atom→integer|}"
  *        A unit map.
  * @param "y" "{atom→integer|}"
  *        A unit map.
- * @returns The product of the arguments.
+ * @returns "{atom→integer|}" The product of the arguments.
  */
 Public stable method "_·_(unit map)" is
 [
@@ -615,12 +637,13 @@ Public stable method "_·_(unit map)" is
 /**
  * Compute and answer the product of the specified {@type "unit"}s.
  *
+ * @category "Dimensional Analysis"
  * @method "_·_"
  * @param "x" "unit"
  *        A {@type "unit"}.
  * @param "y" "unit"
  *        A {@type "unit"}.
- * @returns The product of the arguments.
+ * @returns "unit" The product of the arguments.
  */
 Public stable method "_·_" is
 [
@@ -639,12 +662,13 @@ Public stable method "_·_" is
  * same as the {@method "_·_" product} of {@param "mapX"} and the reciprocal of
  * {@param "mapY"}.
  *
+ * @category "Dimensional Analysis"
  * @method "_/_(unit map)"
  * @param "mapX" "{atom→integer|}"
  *        A unit map.
  * @param "mapY" "{atom→integer|}"
  *        A unit map.
- * @returns The quotient of the arguments.
+ * @returns "{atom→integer|}" The quotient of the arguments.
  */
 Public stable method "_/_(unit map)" is
 [
@@ -666,12 +690,13 @@ Public stable method "_/_(unit map)" is
  * same as the {@method "_·_" product} of {@param "x"} and the reciprocal of
  * {@param "y"}.
  *
+ * @category "Dimensional Analysis"
  * @method "_/_"
  * @param "x" "unit"
  *        A {@type "unit"}.
  * @param "y" "unit"
  *        A {@type "unit"}.
- * @returns The quotient of the arguments.
+ * @returns "unit" The quotient of the arguments.
  */
 Public stable method "_/_" is
 [
@@ -689,6 +714,7 @@ Public stable method "_/_" is
  * Compute and answer the result of raising the specified unit maps to the
  * specified power.
  *
+ * @category "Dimensional Analysis"
  * @method "_^_(unit map)"
  * @param "unitMap" "{atom→integer|}"
  *        A unit map.
@@ -715,6 +741,7 @@ Public stable method "_^_(unit map)" is
  * Compute and answer the result of raising the specified {@type "unit"} to the
  * specified power.
  *
+ * @category "Dimensional Analysis"
  * @method "_^_"
  * @param "theUnit" "unit"
  *        A {@type "unit"}.
@@ -765,6 +792,7 @@ From 2 to |prettyPowers| do
 /**
  * Define a {@type "derived unit"}.
  *
+ * @category "Dimensional Analysis"
  * @method "_(_)is a derived unit equivalent to_"
  * @param "name" "string"
  *        The name of the {@type "derived unit"}, e.g., newtons, hertz.
@@ -773,6 +801,7 @@ From 2 to |prettyPowers| do
  * @param "aUnit" "unit"
  *        An equivalent {@type "unit"}, usually obtained from a lexical
  *        expression.
+ * @returns "⊤"
  */
 Public method "_(_)is a derived unit equivalent to_" is
 [
@@ -793,6 +822,7 @@ Public method "_(_)is a derived unit equivalent to_" is
  * An incompatible-quantities exception is raised whenever an operation is
  * performed on two or more incompatible quantities.
  *
+ * @category "Dimensional Analysis"
  * @type "incompatible-quantities exception"
  * @supertype "exception"
  */
@@ -804,11 +834,13 @@ Public explicit class "incompatible-quantities exception" extends exception
  * If the arguments do not have the same {@type "unit"}s, then raise an
  * {@type "incompatible-quantities exception"}.
  *
+ * @category "Dimensional Analysis"
  * @method "Require:_and_are compatible"
  * @param "a" "dimensioned quantity"
  *        A {@type "dimensioned quantity"}.
  * @param "b" "dimensioned quantity"
  *        A {@type "dimensioned quantity"}.
+ * @returns "⊤"
  * @raises "incompatible-quantities exception"
  *         If {@param "a"} and {@param "b"} have different {@type "unit"}s.
  */
@@ -827,6 +859,7 @@ Public method "Require:_and_are compatible" is
 /**
  * Compute and answer the sum of the {@type "dimensioned quantity" arguments}.
  *
+ * @category "Dimensional Analysis"
  * @method "_+_"
  * @param "augend" "dimensioned quantity"
  *        A {@type "dimensioned quantity"}.
@@ -894,6 +927,7 @@ Semantic restriction "_+_" is
  * Compute and answer the difference of the {@type "dimensioned quantity"
  * arguments}.
  *
+ * @category "Dimensional Analysis"
  * @method "_-_"
  * @param "minuend" "dimensioned quantity"
  *        A {@type "dimensioned quantity"}.
@@ -945,6 +979,7 @@ Semantic restriction "_-_" is
  * Compute and answer the product of the {@type "dimensioned quantity"
  * arguments}.
  *
+ * @category "Dimensional Analysis"
  * @method "_×_"
  * @param "multiplicand" "dimensioned quantity"
  *        A {@type "dimensioned quantity"}.
@@ -1005,6 +1040,7 @@ Semantic restriction "_×_" is
  * Compute and answer the product of the {@type "dimensioned quantity"} and the
  * {@type "number"}.
  *
+ * @category "Dimensional Analysis"
  * @method "_×_"
  * @param "multiplicand" "dimensioned quantity"
  *        A {@type "dimensioned quantity"}.
@@ -1053,6 +1089,7 @@ Semantic restriction "_×_" is
  * Compute and answer the product of the {@type "dimensioned quantity"} and the
  * {@type "number"}.
  *
+ * @category "Dimensional Analysis"
  * @method "_×_"
  * @param "multiplicand" "number"
  *        A {@type "number"}.
@@ -1101,6 +1138,7 @@ Semantic restriction "_×_" is
  * Compute and answer the quotient of the {@type "dimensioned quantity"
  * arguments}.
  *
+ * @category "Dimensional Analysis"
  * @method "_÷_"
  * @param "dividend" "dimensioned quantity"
  *        A {@type "dimensioned quantity"}.
@@ -1166,6 +1204,7 @@ Semantic restriction "_÷_" is
  * Compute and answer the quotient of the {@type "dimensioned quantity"} and the
  * {@type "number"}.
  *
+ * @category "Dimensional Analysis"
  * @method "_÷_"
  * @param "dividend" "dimensioned quantity"
  *        A {@type "dimensioned quantity"}.
@@ -1219,6 +1258,7 @@ Semantic restriction "_÷_" is
  * Compute and answer the quotient of the {@type "number"} and the {@type
  * "dimensioned quantity"}.
  *
+ * @category "Dimensional Analysis"
  * @method "_÷_"
  * @param "dividend" "number"
  *        A {@type "number"}.
@@ -1353,6 +1393,7 @@ Semantic restriction "_mod_" is
  * Compute and answer the exponentiation of {@param "base"} and {@param
  * "power"}.
  *
+ * @category "Dimensional Analysis"
  * @method "_^_"
  * @param "base" "dimensioned quantity"
  *        The {@type "dimensioned quantity" base}.
@@ -1455,6 +1496,7 @@ From 2 to |prettyPowers| do
  * Compute and answer the negation of the {@type "dimensioned quantity"
  * argument}.
  *
+ * @category "Dimensional Analysis"
  * @method "-_"
  * @param "x" "dimensioned quantity"
  *        A {@type "dimensioned quantity"}.
@@ -1594,6 +1636,7 @@ Semantic restriction "⎡_⎤" is
 /**
  * Is {@param "a"} < {@param "b"}?
  *
+ * @category "Dimensional Analysis"
  * @method "_<_"
  * @param "a" "dimensioned quantity"
  *        A {@type "dimensioned quantity"}.
@@ -1617,6 +1660,7 @@ Public method "_<_" is
 /**
  * Is {@param "a"} ≤ {@param "b"}?
  *
+ * @category "Dimensional Analysis"
  * @method "_≤_"
  * @param "a" "dimensioned quantity"
  *        A {@type "dimensioned quantity"}.
@@ -1640,6 +1684,7 @@ Public method "_≤_" is
 /**
  * Is {@param "a"} > {@param "b"}?
  *
+ * @category "Dimensional Analysis"
  * @method "_>_"
  * @param "a" "dimensioned quantity"
  *        A {@type "dimensioned quantity"}.
@@ -1663,6 +1708,7 @@ Public method "_>_" is
 /**
  * Is {@param "a"} ≥ {@param "b"}?
  *
+ * @category "Dimensional Analysis"
  * @method "_≥_"
  * @param "a" "dimensioned quantity"
  *        A {@type "dimensioned quantity"}.
@@ -1895,6 +1941,7 @@ Semantic restriction "«_‡«=|≥|>»!»" is
  * An arity-2 function that answers a {@type "dimensioned quantity"} when
  * applied with a {@type "dimensioned quantity"} and a {@type "unit"}.
  *
+ * @category "Dimensional Analysis"
  * @type "unit conversion function"
  * @supertype "[⊥, ⊥]→dimensioned quantity"
  */
@@ -1907,6 +1954,7 @@ Public method "unit conversion function" is
  * A no-such-conversion exception is raised by {@method "_converted to_"} when
  * no conversion function is defined for the specified {@type "unit"}s.
  *
+ * @category "Dimensional Analysis"
  * @type "no-such-conversion exception"
  * @supertype "exception"
  */
@@ -1919,6 +1967,7 @@ Public explicit class "no-such-conversion exception" extends exception
  * The table of defined conversions.
  *
  * @global "converters" "{<unit, unit…|2> → unit conversion function}"
+ * @category "Dimensional Analysis"
  */
 converters : {<unit, unit…|2> → unit conversion function|} := {};
 
@@ -1930,6 +1979,7 @@ conversionAtom ::= $"_converted to_";
  * Convert the specified {@type "dimensioned quantity"} to the specified {@type
  * "unit"}s and answer the result.
  *
+ * @category "Dimensional Analysis"
  * @method "_converted to_"
  * @param "quantity" "dimensioned quantity"
  *        A {@type "dimensioned quantity"}.
@@ -1966,6 +2016,7 @@ Public stable method "_converted to_" is
  * Reject the current parse if the {@type "unit" metrics} are well-known but no
  * conversion function has been defined prior to this send.
  *
+ * @category "Dimensional Analysis"
  * @method "_converted to_"
  * @restricts "dimensioned quantity's type"
  * @restricts "unit's type"
@@ -2004,6 +2055,7 @@ Semantic restriction "_converted to_" is
  * "dimensioned quantity" dimensioned quantities} between two compatible {@type
  * "unit" metrics}.
  *
+ * @category "Dimensional Analysis"
  * @method "Conversion method is_,⁇inverse is_"
  * @param "aFunction" "[⊥, ⊥]→dimensioned quantity"
  *        A function whose first parameter type is a subtypes of {@type
@@ -2017,6 +2069,7 @@ Semantic restriction "_converted to_" is
  *        equals the metric of the first parameter type of same. This function
  *        must return a {@type "dimensioned quantity"} whose metric equals the
  *        second parameter type.
+ * @returns "⊤"
  * @see "_converted to_"
  */
 Public method "Conversion method is_,⁇inverse is_" is
@@ -2075,6 +2128,7 @@ Public method "Conversion method is_,⁇inverse is_" is
  *     parameter type.</li>
  * </ul>
  *
+ * @category "Dimensional Analysis"
  * @method "Conversion method is_inverse is_"
  * @restricts "[⊥, ⊥]→dimensioned quantity's type"
  * @restricts "[⊥, ⊥]→dimensioned quantity's type"
@@ -2158,6 +2212,7 @@ Semantic restriction "Conversion method is_,⁇inverse is_" is
  * Are the arguments equivalent? That is, do they represent the same dimensioned
  * quantity after conversion?
  *
+ * @category "Dimensional Analysis"
  * @method "_≍_"
  * @param "a" "dimensioned quantity"
  *        A {@type "dimensioned quantity"}.
@@ -2188,6 +2243,7 @@ divideAtom ::= $"_÷_(Avail)";
  * Construct and answer a {@type "function"} suitable for converting between
  * two {@type "unit"}s by merely scaling.
  *
+ * @category "Dimensional Analysis"
  * @method "function for scaling from_to_by_using_"
  * @param "a" "unit"
  *        The source unit.
@@ -2229,12 +2285,14 @@ Private method "function for scaling from_to_by_using_" is
  * "dimensioned quantity" dimensioned quantities} between two compatible {@type
  * "unit" metrics} that differ only by a multiplicative constant.
  *
+ * @category "Dimensional Analysis"
  * @method "Conversion rule:_≍_"
  * @param "a" "dimensioned (1's type)"
  *        A {@type "dimensioned quantity"} whose extent is {@code 1}.
  * @param "b" "dimensioned quantity"
  *        A {@type "dimensioned quantity"} equivalent to {@param "a"} but
  *        expressed in different {@type "unit"}s.
+ * @returns "⊤"
  * @see "_converted to_"
  */
 Public method "Conversion rule:_≍_" is

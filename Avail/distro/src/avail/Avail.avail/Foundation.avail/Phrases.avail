@@ -52,6 +52,7 @@ Body
  * Make "_'s type" bind more tightly than phrase type construction.
  * 
  * @method "_⇒_"
+ * @returns "⊤"
  */
 Invoke
 [

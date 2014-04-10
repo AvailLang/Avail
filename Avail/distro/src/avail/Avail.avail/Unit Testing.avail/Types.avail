@@ -135,7 +135,8 @@ Body
  * <li>A tuple containing an exception type that the test function must raise
  *     when applied. If this tuple is empty, then the test must succeed.</li>
  * </ul>
- *
+ * 
+ * @category "Unit Testing"
  * @type "unit test"
  */
 Public class "unit test" extends object
@@ -157,6 +158,7 @@ Method "“_”" is
 /**
  * The root exception type for test-centric unit-testing framework exceptions.
  * 
+ * @category "Unit Testing"
  * @type "unit-test exception"
  */
 Public explicit class "unit-test exception" extends exception
@@ -176,6 +178,7 @@ Public explicit class "test-already-exists exception"
 /**
  * An exception that indicates that the specified test does not exist.
  * 
+ * @category "Unit Testing"
  * @type "no-such-test exception"
  * @supertype "unit-test exception"
  * @supertype "element-access exception"
@@ -186,6 +189,7 @@ Public explicit class "no-such-test exception"
 /**
  * An exception that indicates that the specified test failed.
  * 
+ * @category "Unit Testing"
  * @type "failed-test exception"
  * @supertype "unit-test exception"
  * @supertype "cascade exception"
@@ -198,6 +202,7 @@ Public explicit class "failed-test exception"
  * particular exception, but it either didn't raise an exception or raised an
  * exception of the wrong type.
  * 
+ * @category "Unit Testing"
  * @type "expected-a-specific-exception exception"
  * @supertype "unit-test exception"
  */
@@ -437,6 +442,7 @@ Method "short“_”" is
 /**
  * Answer a detailed description of the specified {@type "unit test result"}.
  *
+ * @category "Unit Testing"
  * @method "long“_”"
  * @param "result" "unit test result"
  * @returns "string"
@@ -531,6 +537,7 @@ Method "long“_”" is
  * A unit test report contains a tuple of {@type "unit test result"}s and offers
  * operations that provide statistical information.
  * 
+ * @category "Unit Testing"
  * @type "unit test report"
  */
 Public class "unit test report" extends object

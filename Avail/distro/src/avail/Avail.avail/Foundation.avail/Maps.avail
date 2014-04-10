@@ -225,7 +225,7 @@ Semantic restriction "For each of⁇_do_" is
  * via {@param "transformer"}.
  * 
  * @method "map_through_"
- * @param "aMap" map"
+ * @param "aMap" "map"
  * @param "transformer" "[⊥, ⊥]→any"
  *        A function that accepts the bindings of the map. The first argument is
  *        a key from the map, the second is a value from the map. This function

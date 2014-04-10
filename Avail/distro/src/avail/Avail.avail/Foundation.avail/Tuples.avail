@@ -2919,13 +2919,6 @@ Semantic restriction "quicksort_" is
 	<<>, union… | ||tupleType||>
 ];
 
-/**
- * An empty tuple is already sorted.
- * 
- * @method "quicksort_"
- * @param "trivial" "<⊥…|0>"
- * @returns "<number…|0>"
- */
 Method "quicksort_" is
 [
 	trivial : <⊥…|0>
@@ -2933,13 +2926,6 @@ Method "quicksort_" is
 	trivial
 ] : <number…|0>;
 
-/**
- * A tuple with one element is already sorted.
- * 
- * @method "quicksort_"
- * @param "trivial" "<number…|1>"
- * @returns "<number…|1>"
- */
 Method "quicksort_" is
 [
 	trivial : <number…|1>
@@ -2949,10 +2935,6 @@ Method "quicksort_" is
 
 Seal method "quicksort_" at <<any…|0..1>>;
 
-/**
- * @method "quicksort_"
- * @param "numbers" "<number…|2..>"
- */
 Method "quicksort_" is
 [
 	numbers : <number…|2..>
@@ -3030,14 +3012,6 @@ Semantic restriction "quicksort_with_" is
 	<<>, union… | ||tupleType||>
 ];
 
-/**
- * A tuple with no or one element is already sorted.
- * 
- * @method "quicksort_with_"
- * @param "trivial" "<any…|0..1>"
- * @param "comparator" "[⊥, ⊥]→boolean"
- * @returns "<any…|0..1>"
- */
 Method "quicksort_with_" is
 [
 	trivial : <any…|0..1>,
@@ -3046,11 +3020,6 @@ Method "quicksort_with_" is
 	trivial
 ] : <any…|0..1>;
 
-/**
- * @method "quicksort_with_"
- * @param "aTuple" "<any…|2..10>"
- * @param "comparator" "[⊥, ⊥]→boolean"
- */
 Method "quicksort_with_" is
 [
 	aTuple : <any…|2..10>,
@@ -3059,11 +3028,6 @@ Method "quicksort_with_" is
 	insertion sort aTuple with comparator
 ];
 
-/**
- * @method "quicksort_with_"
- * @param "aTuple" "<any…|11..>"
- * @param "comparator" "[⊥, ⊥]→boolean"
- */
 Method "quicksort_with_" is
 [
 	aTuple : <any…|11..>,

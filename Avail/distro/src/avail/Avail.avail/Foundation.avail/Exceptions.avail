@@ -172,6 +172,7 @@ Public method "current fiber's unhandled exception handler" is
  *    The unhandled exception handler. When an unhandled exception is trapped by
  *    the VM, the exception machinery will arrange to apply this function with
  *    the unhandled exception.
+ * @returns "⊤"
  * @category "Exception Handling"
  */
 Public method "Current fiber's unhandled exception handler is_" is
@@ -1145,6 +1146,7 @@ System exception "cannot-compute-logarithm-of-nonpositive-number" (1014)
  * Ensure that all error codes have corresponding exceptions.
  *
  * @method "Ensure:all error codes have corresponding exceptions"
+ * @returns "⊤"
  * @category "Bootstrap" "Assertions"
  */
 Private method "Ensure:all error codes have corresponding exceptions" is [];
@@ -1220,6 +1222,9 @@ Semantic restriction "descriptive_" is
 /**
  * @method "“_”"
  * @param "e" "descriptive exception"
+ * @returns "string"
+ * 		The stringified {@type "descriptive exception"}
+ * @category "Stringification"
  */
 Stable method "“_”" is
 [

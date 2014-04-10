@@ -116,7 +116,6 @@ Public explicit class "failed-requirement exception" extends exception;
  * @method "Require:_"
  * @param "predicate" "boolean"
  *        A predicate that must be true.
- * @forbid 1 "_=_"
  * @raises "failed-requirement exception"
  *         If {@param "predicate"} is false.
  */
@@ -137,7 +136,6 @@ Method "Require:_" is
  * @param "message" "string"
  *        Additional information that should be attached to the exception in the
  *        event of failure.
- * @forbid 1 "_=_"
  * @raises "failed-requirement exception"
  *         If {@param "predicate"} is false.
  */
@@ -507,8 +505,36 @@ Public method "Require if supported«on this platform»⁇:_raises_(_)" is
 			"_≤_", "_<_", "_≥_", "_>_",
 			"_=_", "«_‡=»", "«_‡«=|≤|<»!»", "«_‡«=|≥|>»!»"
 		};
+	/**
+	 * @method "Require:_"
+	 * @forbids 1 "_=_"
+	 */
 	Grammatical restriction "Require:_" is <{"_=_"}>;
+	
+	/**
+	 * @method "Require:_(_)"
+	 * @forbids 1 "_=_"
+	 * @forbids 2 "∅"
+	 */ 
 	Grammatical restriction "Require:_(_)" is <{"_=_"}, ∅>;
+	
+	/**
+	 * @method "Require:_=_"
+	 * @forbids 1 "_≤_" "_<_", "_≥_" "_>_" "_=_" "«_‡=»" "«_‡«=|≤|<»!»" 
+	 * 		"«_‡«=|≥|>»!»"
+	 * @forbids 2 "_≤_" "_<_", "_≥_" "_>_" "_=_" "«_‡=»" "«_‡«=|≤|<»!»" 
+	 * 		"«_‡«=|≥|>»!»"
+	 * @forbids 3 "∅"
+	 */ 
 	Grammatical restriction "Require:_=_" is <comparisons, comparisons>;
+	
+	/**
+	 * @method "Require:_=_(_)"
+	 * @forbids 1 "_≤_" "_<_", "_≥_" "_>_" "_=_" "«_‡=»" "«_‡«=|≤|<»!»" 
+	 * 		"«_‡«=|≥|>»!»"
+	 * @forbids 2 "_≤_" "_<_", "_≥_" "_>_" "_=_" "«_‡=»" "«_‡«=|≤|<»!»" 
+	 * 		"«_‡«=|≥|>»!»"
+	 * @forbids 3 "∅"
+	 */ 
 	Grammatical restriction "Require:_=_(_)" is <comparisons, comparisons, ∅>;
 ]();

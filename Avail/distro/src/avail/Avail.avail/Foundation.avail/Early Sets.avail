@@ -230,6 +230,12 @@ Grammatical restriction "_→_" is <∅, {"set"}>;
  * logical negation.
  * 
  * @method "_∈_"
+ * @forbids 1 "¬_"
+ */
+/**
+ * Make various boolean-valued set (and type) operations bind more tightly than
+ * logical negation.
+ * 
  * @method "_⊆_"
  * @forbids 1 "¬_"
  */

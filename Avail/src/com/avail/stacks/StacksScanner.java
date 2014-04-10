@@ -98,7 +98,7 @@ public class StacksScanner extends AbstractStacksScanner
 		final String moduleName)
 	{
 		this.moduleLeafName =
-			moduleName.substring(moduleName.lastIndexOf(" ") + 1);
+			moduleName.substring(moduleName.lastIndexOf("/") + 1);
 
 		final String commentString =
 			commentToken.string().asNativeString();
@@ -287,8 +287,8 @@ public class StacksScanner extends AbstractStacksScanner
 								throw new StacksScannerException(
 									String.format(
 									"\n<li><strong>%s</strong><em> Line #: "
-									+ "%d</em>: Scanner Error:Backslash escape "
-									+ "should be followed by one of "
+									+ "%d</em>: Scanner Error: Backslash "
+									+ "escape should be followed by one of "
 									+ "n , r, t, \\, \", (, [, |, or "
 									+ "a line break.</li>",
 									scanner.moduleLeafName(),
