@@ -187,6 +187,7 @@ public final class AvailBuilder
 		final ResolvedModuleName resolvedModuleName,
 		final LoadedModule loadedModule)
 	{
+		assert loadedModule != null;
 		allLoadedModules.put(resolvedModuleName, loadedModule);
 		for (final Continuation2<LoadedModule, Boolean> subscription
 			: subscriptions)
@@ -211,6 +212,23 @@ public final class AvailBuilder
 			: subscriptions)
 		{
 			subscription.value(loadedModule, false);
+		}
+	}
+
+	/**
+	 * Reconcile the {@link #moduleGraph} against the loaded modules, removing
+	 * any modules from the graph that are not currently loaded.
+	 */
+	@InnerAccess void trimGraphToLoadedModules ()
+	{
+		for (final ResolvedModuleName moduleName :
+			new ArrayList<>(moduleGraph.vertices()))
+		{
+			if (!runtime.includesModuleNamed(
+				StringDescriptor.from(moduleName.qualifiedName())))
+			{
+				moduleGraph.exciseVertex(moduleName);
+			}
 		}
 	}
 
@@ -332,47 +350,6 @@ public final class AvailBuilder
 		}
 
 		@Override
-		public boolean handleWarning (final Problem problem)
-		{
-			return handleGeneric(problem);
-		}
-
-		@Override
-		public boolean handleTrace (final Problem problem)
-		{
-			return handleGeneric(problem);
-		}
-
-		@Override
-		public boolean handleParse (final Problem problem)
-		{
-			return handleGeneric(problem);
-		}
-
-		@Override
-		public boolean handleInternal (final Problem problem)
-		{
-			return handleGeneric(problem);
-		}
-
-		@Override
-		public boolean handleInformation (final Problem problem)
-		{
-			return handleGeneric(problem);
-		}
-
-		@Override
-		public boolean handleExecution (final Problem problem)
-		{
-			return handleGeneric(problem);
-		}
-
-		/**
-		 * Handle a problem generically.
-		 *
-		 * @param problem The {@link Problem} being reported.
-		 * @return Whether to attempt to continue parsing.
-		 */
 		protected synchronized boolean handleGeneric (final Problem problem)
 		{
 			final Formatter formatter = new Formatter();
@@ -818,56 +795,53 @@ public final class AvailBuilder
 			{
 				assert moduleName != null;
 				assert completionAction != null;
-				runtime.execute(
-					new AvailTask(loaderPriority)
+				runtime.execute(new AvailTask(loaderPriority)
+				{
+					@Override
+					public void value()
 					{
-						@Override
-						public void value()
+						boolean dirty = false;
+						for (final ResolvedModuleName predecessor
+							: moduleGraph.predecessorsOf(moduleName))
 						{
-							boolean dirty = false;
-							for (final ResolvedModuleName predecessor
-								: moduleGraph.predecessorsOf(moduleName))
+							final LoadedModule loadedModule =
+								getLoadedModule(predecessor);
+							assert loadedModule != null;
+							if (loadedModule.deletionRequest)
 							{
-								final LoadedModule loadedModule =
-									getLoadedModule(predecessor);
-								assert loadedModule != null;
-								if (loadedModule.deletionRequest)
-								{
-									dirty = true;
-									break;
-								}
+								dirty = true;
+								break;
 							}
-							if (!dirty)
-							{
-								// Look at the file to determine if it's
-								// changed.
-								final LoadedModule loadedModule =
-									getLoadedModule(moduleName);
-								assert loadedModule != null;
-								final IndexedRepositoryManager
-									repository = moduleName.repository();
-								final ModuleArchive archive =
-									repository.getArchive(
-										moduleName.rootRelativeName());
-								final File sourceFile =
-									moduleName.sourceReference();
-								if (!sourceFile.isFile())
-								{
-									dirty = true;
-								}
-								else
-								{
-									final byte [] latestDigest =
-										archive.digestForFile(moduleName);
-									dirty = !Arrays.equals(
-										latestDigest,
-										loadedModule.sourceDigest);
-								}
-							}
-							getLoadedModule(moduleName).deletionRequest = dirty;
-							completionAction.value();
 						}
-					});
+						if (!dirty)
+						{
+							// Look at the file to determine if it's changed.
+							final LoadedModule loadedModule =
+								getLoadedModule(moduleName);
+							assert loadedModule != null;
+							final IndexedRepositoryManager
+								repository = moduleName.repository();
+							final ModuleArchive archive = repository.getArchive(
+								moduleName.rootRelativeName());
+							final File sourceFile =
+								moduleName.sourceReference();
+							if (!sourceFile.isFile())
+							{
+								dirty = true;
+							}
+							else
+							{
+								final byte [] latestDigest =
+									archive.digestForFile(moduleName);
+								dirty = !Arrays.equals(
+									latestDigest,
+									loadedModule.sourceDigest);
+							}
+						}
+						getLoadedModule(moduleName).deletionRequest = dirty;
+						completionAction.value();
+					}
+				});
 			}
 		};
 
@@ -1225,7 +1199,7 @@ public final class AvailBuilder
 			if (version != null)
 			{
 				// This version was already traced and recorded for a
-				// subsequent replay... like right now.  Reuse it.
+				// subsequent replay… like right now.  Reuse it.
 				final List<String> importNames = version.getImports();
 				traceModuleNames(resolvedName, importNames, recursionSet);
 				indicateTraceCompleted();
@@ -1445,8 +1419,8 @@ public final class AvailBuilder
 		 *        accepts
 		 *        <ol>
 		 *        <li>the name of the module currently undergoing {@linkplain
-		 *        AbstractAvailCompiler compilation} as part of the recursive build
-		 *        of target,</li>
+		 *        AbstractAvailCompiler compilation} as part of the recursive
+		 *        build of target,</li>
 		 *        <li>the current line number within the current module,</li>
 		 *        <li>the position of the ongoing parse (in bytes), and</li>
 		 *        <li>the size of the module in bytes.</li>
@@ -2005,7 +1979,7 @@ public final class AvailBuilder
 				globalCodeSize += mod.moduleSize();
 			}
 			bytesCompiled.set(0L);
-			final int vertexCount = moduleGraph.vertices().size();
+			final int vertexCountBefore = moduleGraph.vertices().size();
 			moduleGraph.parallelVisit(
 				new Continuation2<ResolvedModuleName, Continuation0>()
 				{
@@ -2019,7 +1993,7 @@ public final class AvailBuilder
 						scheduleLoadModule(moduleName, completionAction);
 					}
 				});
-			assert moduleGraph.vertices().size() == vertexCount;
+			assert moduleGraph.vertices().size() == vertexCountBefore;
 			runtime.moduleNameResolver().commitRepositories();
 			// Parallel load has now completed or failed.
 			if (shouldStopBuild)
@@ -2027,15 +2001,7 @@ public final class AvailBuilder
 				// Clean up any modules that didn't load.  There can be no
 				// loaded successors of unloaded modules, so they can all be
 				// excised safely.
-				for (final ResolvedModuleName moduleName :
-					new ArrayList<>(moduleGraph.vertices()))
-				{
-					if (!runtime.includesModuleNamed(
-						StringDescriptor.from(moduleName.qualifiedName())))
-					{
-						moduleGraph.exciseVertex(moduleName);
-					}
-				}
+				trimGraphToLoadedModules();
 			}
 		}
 	}
@@ -2333,6 +2299,7 @@ public final class AvailBuilder
 		{
 			new BuildLoader(localTracker, globalTracker).load();
 		}
+		trimGraphToLoadedModules();
 	}
 
 	/**
@@ -2379,6 +2346,7 @@ public final class AvailBuilder
 		{
 			documentationTracer.generate(target);
 		}
+		trimGraphToLoadedModules();
 	}
 
 	/**

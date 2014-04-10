@@ -971,8 +971,8 @@ Primitive "set meta" is
  * then the compiler expects a sequence of hexadecimal numerals separated by
  * commas {@code ","} (U+002C) and finally a right parenthesis {@code ")"}
  * (U+0029). Each hexadecimal numeral must denote an integral value from
- * {@code "0"} to {@code "10FFFF16"}<sub>16</sub> ({@code
- * "111411110"}<sub>10</sub>); the case of the hexadecimal digits {@code "A"}
+ * {@code "0"} to {@code "10FFFF"}<sub>16</sub> ({@code
+ * "1114111"}<sub>10</sub>); the case of the hexadecimal digits {@code "A"}
  * through {@code "F"} does not matter. Each number represents the character
  * associated with the Unicode code point of the same value. The construct as a
  * whole then denotes a sequence of characters.</li>

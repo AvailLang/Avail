@@ -317,25 +317,6 @@ public class MessageSplitter
 		throws SignatureException;
 
 		/**
-		 * Check that the given type signature is appropriate for this message
-		 * expression. If not, throw a {@link SignatureException}.
-		 *
-		 * @param argumentType
-		 *        A {@linkplain TupleTypeDescriptor tuple type} describing the
-		 *        types of arguments that a method being added will accept.
-		 * @throws SignatureException
-		 *        If the argument type is inappropriate.
-		 *
-		 * @see #checkType(AvailObject, int)
-		 */
-//		public final void checkType (
-//			final AvailObject argumentType)
-//		throws SignatureException
-//		{
-//			checkType(argumentType, Integer.MAX_VALUE);
-//		}
-
-		/**
 		 * Write instructions for parsing me to the given list.
 		 *
 		 * @param list
