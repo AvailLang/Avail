@@ -1658,11 +1658,6 @@ extends AbstractList<byte[]>
 	 *        Client-provided {@linkplain #metaData() metadata}, or {@code null}
 	 *        for none.
 	 * @return The new indexed file.
-	 * @throws InstantiationException
-	 *         If the subclass could not be instantiated.
-	 * @throws IllegalAccessException
-	 *         If either the subclass or its nullary constructor is not
-	 *         accessible.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
@@ -1673,17 +1668,23 @@ extends AbstractList<byte[]>
 			final int pageSize,
 			final int compressionThreshold,
 			final @Nullable byte[] initialMetaData)
-		throws
-			InstantiationException,
-			IllegalAccessException,
-			IOException
+		throws IOException
 	{
 		logger.log(
 			Level.INFO,
 			"new: {0}",
 			fileReference);
 		assert compressionThreshold % pageSize == 0;
-		final IndexedFile indexedFile = subclass.newInstance();
+		final IndexedFile indexedFile;
+		try
+		{
+			indexedFile = subclass.newInstance();
+		}
+		catch (InstantiationException|IllegalAccessException e)
+		{
+			assert false : "This should never happen!";
+			throw new RuntimeException(e);
+		}
 		indexedFile.fileReference = fileReference;
 		indexedFile.version = indexedFile.currentVersion();
 		indexedFile.pageSize = pageSize;
@@ -1728,11 +1729,6 @@ extends AbstractList<byte[]>
 	 *        Client-provided {@linkplain #metaData() metadata}, or {@code null}
 	 *        for none.
 	 * @return The new indexed file.
-	 * @throws InstantiationException
-	 *         If the subclass could not be instantiated.
-	 * @throws IllegalAccessException
-	 *         If either the subclass or its nullary constructor is not
-	 *         accessible.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
@@ -1740,10 +1736,7 @@ extends AbstractList<byte[]>
 			final Class<F> subclass,
 			final File fileReference,
 			final @Nullable byte[] initialMetaData)
-		throws
-			InstantiationException,
-			IllegalAccessException,
-			IOException
+		throws IOException
 	{
 		return newFile(
 			subclass,
@@ -1778,11 +1771,6 @@ extends AbstractList<byte[]>
 	 * @param versionCheck
 	 *        How to check for a compatible version.
 	 * @return The indexed file.
-	 * @throws InstantiationException
-	 *         If the subclass could not be instantiated.
-	 * @throws IllegalAccessException
-	 *         If either the subclass or its nullary constructor is not
-	 *         accessible.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 * @throws IndexedFileException
@@ -1793,8 +1781,6 @@ extends AbstractList<byte[]>
 			final boolean forWriting,
 			final Transformer2<Integer, Integer, Boolean> versionCheck)
 	throws
-		InstantiationException,
-		IllegalAccessException,
 		IOException,
 		IndexedFileException
 	{
@@ -1802,11 +1788,30 @@ extends AbstractList<byte[]>
 			Level.INFO,
 			"open: {0}",
 			fileReference);
-		final F strongIndexedFile = subclass.newInstance();
-		final IndexedFile indexedFile = strongIndexedFile;
+		final F strongIndexedFile;
+		final IndexedFile indexedFile;
+		try
+		{
+			strongIndexedFile = subclass.newInstance();
+			indexedFile = strongIndexedFile;
+		}
+		catch (InstantiationException|IllegalAccessException e)
+		{
+			assert false : "This should never happen!";
+			throw new RuntimeException(e);
+		}
 		indexedFile.fileReference = fileReference;
+		if (!fileReference.exists())
+		{
+			throw new IndexedFileException("No such index file");
+		}
 		indexedFile.file = new RandomAccessFile(
 			fileReference, "r" + (forWriting ? "w" : ""));
+		if (fileReference.length() == 0)
+		{
+			throw new IndexedFileException(
+				"Index file has no header (0 bytes)");
+		}
 		indexedFile.channel = indexedFile.file().getChannel();
 		indexedFile.readHeaderData(versionCheck);
 		indexedFile.masterNodeBuffer = ByteBuffer.allocate(

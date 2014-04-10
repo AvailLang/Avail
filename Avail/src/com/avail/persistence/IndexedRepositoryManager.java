@@ -1168,17 +1168,9 @@ public class IndexedRepositoryManager
 			final IndexedRepository repo = repository();
 			repo.close();
 			repository = null;
-			final RandomAccessFile file = new RandomAccessFile(fileName, "rw");
 			try
 			{
-				file.setLength(0L);
-			}
-			finally
-			{
-				file.close();
-			}
-			try
-			{
+				fileName.delete();
 				repository = IndexedFile.newFile(
 					IndexedRepository.class,
 					fileName,
@@ -1339,7 +1331,10 @@ public class IndexedRepositoryManager
 			catch (final IndexedFileException e)
 			{
 				System.err.println(
-					"Deleting obsolete repository: " + fileName);
+					"Deleting obsolete repository: "
+						+ fileName
+						+ ": "
+						+ e.getMessage());
 				repo = null;
 			}
 			if (repo == null)
@@ -1368,9 +1363,7 @@ public class IndexedRepositoryManager
 			repository = repo;
 			isOpen = true;
 		}
-		catch (final IOException
-			| IllegalAccessException
-			| InstantiationException e)
+		catch (final IOException e)
 		{
 			throw new IndexedFileException(e);
 		}
