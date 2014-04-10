@@ -96,10 +96,11 @@ juxtapositionAtom ::= $"__";
  * Construct and answer a scaling function suitable for converting between
  * {@type "SI unit"}s within the same family.
  *
+ * @category "Dimensional Analysis"
  * @method "SI scaling function for family_"
  * @param "unitType" "unit's type"
  *        The family.
- * @returns The requested function.
+ * @returns "unit conversion function" The requested function.
  */
 Private method "SI scaling function for_" is
 [
@@ -138,11 +139,13 @@ conversionAtom ::= $"_converted to_";
  * {@type "base unit"}, but also all prefixed long names and short symbols, as
  * well as {@method "_converted to_" conversions} between them.
  *
+ * @category "Dimensional Analysis"
  * @method "_(_)is an SI base unit"
  * @param "name" "string"
  *        The name of the {@type "base unit"}, e.g., meters, seconds, grams.
  * @param "symbol" "string"
  *        A symbol which represents the defined {@type "base unit"}.
+ * @returns "⊤"
  */
 Public method "_(_)is an SI base unit" is
 [
@@ -193,6 +196,7 @@ Completely seal method "_(_)is an SI base unit";
  * unscaled {@type "derived unit"}, but also all prefixed long names and short
  * symbols, as well as {@method "_converted to_" conversions} between them.
  *
+ * @category "Dimensional Analysis"
  * @method "_(_)is an SI derived unit equivalent to_"
  * @param "name" "string"
  *        The name of the {@type "derived unit"}, e.g., newtons, pascals.
@@ -201,6 +205,7 @@ Completely seal method "_(_)is an SI base unit";
  * @param "referenceUnit" "SI unit"
  *        An equivalent {@type "SI unit"}, usually obtained from a lexical
  *        expression.
+ * @returns "⊤"
  */
 Public method "_(_)is an SI derived unit equivalent to_" is
 [
@@ -261,6 +266,7 @@ divideAtom ::= $"_÷_";
  * Construct and answer a {@type "function"} suitable for converting an {@type
  * "SI unit"} to a {@type "unit"} by merely scaling.
  *
+ * @category "Dimensional Analysis"
  * @method "function for scaling from_to_by_using_"
  * @param "a" "SI unit"
  *        The source unit.
@@ -308,6 +314,7 @@ Private method "function for scaling from_to_by_using_" is
  * Construct and answer a {@type "function"} suitable for converting an
  * arbitrary {@type "unit"} to an {@type "SI unit"} by merely scaling.
  *
+ * @category "Dimensional Analysis"
  * @method "function for scaling from_to_by_using_"
  * @param "a" "unit"
  *        The source unit.
@@ -359,12 +366,14 @@ Private method "function for scaling from_to_by_using_" is
  * "dimensioned quantity" dimensioned quantities} between two compatible {@type
  * "unit" metrics} that differ only by a multiplicative constant.
  *
+ * @category "Dimensional Analysis"
  * @method "Conversion rule:_≍_"
  * @param "a" "SI dimensioned (1's type)"
  *        An {@type "SI dimensioned quantity"} whose extent is {@code 1}.
  * @param "b" "dimensioned quantity"
  *        A {@type "dimensioned quantity"} equivalent to {@param "a"} but
  *        expressed in different {@type "unit"}s.
+ * @returns "⊤"
  * @see "_converted to_"
  */
 Method "Conversion rule:_≍_" is
@@ -392,12 +401,14 @@ Method "Conversion rule:_≍_" is
  * "dimensioned quantity" dimensioned quantities} between two compatible {@type
  * "unit" metrics} that differ only by a multiplicative constant.
  *
+ * @category "Dimensional Analysis"
  * @method "Conversion rule:_≍_"
  * @param "a" "dimensioned (1's type)"
  *        A {@type "dimensioned quantity"} whose extent is {@code 1}.
  * @param "b" "SI dimensioned quantity"
  *        An {@type "SI dimensioned quantity"} equivalent to {@param "a"} but
  *        expressed in different {@type "unit"}s.
+ * @returns "⊤"
  * @see "_converted to_"
  */
 Method "Conversion rule:_≍_" is

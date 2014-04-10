@@ -59,6 +59,7 @@ Public method "scale factor" is [_scaleFactor];
 /**
  * An SI unit defines a family that relates units that differ only by scale.
  *
+ * @category "Dimensional Analysis"
  * @type "SI unit"
  * @supertype "unit"
  * @field "scale factor" "integer"
@@ -72,7 +73,8 @@ Public class "SI unit" extends unit
 /**
  * An SI dimensioned quantity has an {@type "SI unit"} for its metric.
  *
- * @type "SI dimensioned quantity"
+ * @category "Dimensional Analysis"
+ * @type"SI dimensioned quantity"
  * @supertype "dimensioned quantity"
  */
 Public class "SI dimensioned quantity" extends dimensioned quantity
@@ -84,6 +86,7 @@ Public class "SI dimensioned quantity" extends dimensioned quantity
  * Construct and answer an {@type "SI dimensioned quantity"} type with the
  * specified {@type "number" extent} type.
  *
+ * @category "Dimensional Analysis"
  * @method "SI dimensioned_"
  * @param "magnitudeType" "number's type"
  *        The magnitude type.
