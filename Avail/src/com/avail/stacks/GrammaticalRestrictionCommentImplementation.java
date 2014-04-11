@@ -50,6 +50,11 @@ public class GrammaticalRestrictionCommentImplementation extends
 	final TreeMap<Integer,StacksForbidsTag> forbids;
 
 	/**
+	 * All modules where Grammatical Restrictions for this method are defined.
+	 */
+	final ArrayList<String>modules;
+
+	/**
 	 * Construct a new {@link GrammaticalRestrictionCommentImplementation}.
 	 *
 	 * @param signature
@@ -83,6 +88,8 @@ public class GrammaticalRestrictionCommentImplementation extends
 		super(signature, commentStartLine, author, sees, description,
 			categories,aliases);
 		this.forbids = forbids;
+		this.modules = new ArrayList<String>();
+		this.modules.add(signature().module());
 	}
 
 	@Override
@@ -101,6 +108,7 @@ public class GrammaticalRestrictionCommentImplementation extends
 	public void mergeGrammaticalRestrictionImplementations(
 		final GrammaticalRestrictionCommentImplementation implementation)
 	{
+		modules.add(implementation.signature().module());
 		for (final Integer arity : implementation.forbids.keySet())
 		{
 			if(forbids.containsKey(arity))
@@ -117,7 +125,8 @@ public class GrammaticalRestrictionCommentImplementation extends
 	}
 
 	@Override
-	public String toHTML (final HTMLFileMap htmlFileMap)
+	public String toHTML (final HTMLFileMap htmlFileMap,
+		final String nameOfGroup)
 	{
 		final StringBuilder stringBuilder = new StringBuilder();
 

@@ -91,10 +91,11 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 	}
 
 	@Override
-	public String toHTML (final HTMLFileMap htmlFileMap)
+	public String toHTML (final HTMLFileMap htmlFileMap,
+		final String nameOfGroup)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
-		.append(signature().toHTML());
+		.append(signature().toHTML(nameOfGroup));
 
 		if (categories.size() > 0)
 		{

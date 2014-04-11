@@ -49,7 +49,7 @@ New test suite pRNG test suite extends data abstractions test suite;
 /**
  * The pseudorandom number generator used by the {@method "pRNG test suite"}.
  * 
- * @gloabl "rng" "pRNG of whole number"
+ * @global "rng" "pRNG of whole number"
  */
 rng : pRNG of whole number;
 

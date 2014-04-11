@@ -1030,13 +1030,13 @@ public class CommentImplementationBuilder
 
 		if (types.isEmpty() && methods.isEmpty() && !globalVariables.isEmpty())
 		{
-			if (globalVariables.size() == 2)
+			if (globalVariables.size() == 1)
 			{
 				final GlobalCommentSignature signature =
 					new GlobalCommentSignature(
 						globalVariables.get(0).globalName().lexeme(),
 						moduleName(),
-						globalVariables.get(1).globalType().lexeme());
+						globalVariables.get(0).globalType().lexeme());
 
 				return new GlobalCommentImplementation(signature,
 					commentStartLine (), authors, sees,description(),

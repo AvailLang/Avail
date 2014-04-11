@@ -259,7 +259,7 @@ Semantic restriction "_++" is increment/decrement semantic restriction;
  * @method "(_++)"
  * @param "var" "variable"
  * 		A numeric variable.
- * @returns "⊤"
+ * @returns "number"
  *    The value of the argument prior to the increment.
  */
 Public method "(_++)" is
@@ -315,7 +315,7 @@ Semantic restriction "++_" is increment/decrement semantic restriction;
  * @method "(++_)"
  * @param "var" "variable"
  * 		A numeric variable.
- * @returns "any"
+ * @returns "number"
  *    The value of the argument after the increment.
  */
 Public method "(++_)" is
@@ -403,7 +403,7 @@ Semantic restriction "_--" is increment/decrement semantic restriction;
  * @param "var" "variable"
  * Parameters:
  *    var - A numeric variable.
- * @returns "⊤"
+ * @returns "number"
  *    The value of the argument prior to the decrement.
  */
 Public method "(_--)" is
@@ -437,12 +437,9 @@ Semantic restriction "(_--)" is
 
 /**
  * Decrement the variable by one. This is intended for use as a statement.
- * 
- * Parameters:
- *    var - A numeric variable.
  *
  * @method "--_"
- * @param "var" "variable"
+ * @param "var" "variable" A numeric variable.
  * @returns "⊤"
  */
 Public method "--_" is decrement function;
@@ -456,15 +453,13 @@ Public method "--_" is decrement function;
 Semantic restriction "--_" is increment/decrement semantic restriction;
 
 /**
- * Decrement the specified value and answer its new value.
- * 
- * Parameters:
- *    var - A numeric variable.
- * Returns:
- *    The value of the argument after the decrement.
+ * Decrement the specified value and answer its new value.   
  *
  * @method "(--_)"
  * @param "var" "variable"
+ * 		A numeric variable.
+ * @returns "number"
+ * 		The value of the argument after the decrement.
  */
 Public method "(--_)" is
 [

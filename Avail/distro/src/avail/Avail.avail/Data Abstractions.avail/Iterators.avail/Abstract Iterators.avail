@@ -85,6 +85,7 @@ Public "decorated iterator|iterators" is a new field atom;
 /**
  * An iterator is a mutable lazy list of arbitrarily many elements.
  *
+ * @category "Data Abstractions"
  * @type "iterator"
  */
 Public explicit class "iterator" extends object
@@ -94,7 +95,7 @@ Public explicit class "iterator" extends object
 /**
  * Construct and answer an iterator type that answers values of the specified
  * type.
- *
+ * @category "Data Abstractions"
  * @method "iterator of_"
  * @param "elementType" "any's type"
  *        The type of value produced by iterators of the answered type.
@@ -119,7 +120,7 @@ Public explicit class "exhausted-iterator exception" extends exception;
 
 /**
  * Is the specified iterator exhausted?
- *
+ * @category "Data Abstractions"
  * @method "_is exhausted"
  * @param "anIterator" "iterator"
  *        An iterator.
@@ -133,7 +134,7 @@ Private abstract method privateCurrentElementName is [iterator]→any;
 /**
  * Ensure that the specified iterator is not exhausted, then answer its current
  * element.
- *
+ * @category "Data Abstractions"
  * @method "_'s⁇current element"
  * @param "anIterator" "iterator"
  *        An iterator.
@@ -171,7 +172,7 @@ Semantic restriction "_'s⁇current element" is
  * defining method allows the private operation to be overridden for specific
  * iterator implementations without exposing it for direct use. These mechanisms
  * cooperate to ensure that iterator exhaustion checking is never bypassed.
- *
+ * @category "Data Abstractions"
  * @method "_'s⁇current element method is_"
  * @param "iteratorType" "iterator's type"
  *        The iterator's type, as a cross check for the implementation.
@@ -211,7 +212,7 @@ Semantic restriction "_'s⁇current element method is_" is
 
 /**
  * Seal the current element method at the specified {@type "iterator"} type.
- *
+ * @category "Data Abstractions"
  * @method "Seal_'s⁇current element method"
  * @param "iteratorType" "iterator's type"
  * @returns "⊤"
@@ -227,7 +228,7 @@ Private abstract method privateAdvanceName is [iterator]→⊤;
 
 /**
  * Ensure that the specified iterator is not exhausted, then advance its state.
- *
+ * @category "Data Abstractions"
  * @method "Advance_"
  * @param "anIterator" "iterator"
  *        An iterator.
@@ -257,7 +258,7 @@ Method "Advance_" is
  * private operation to be overridden for specific iterator implementations
  * without exposing it for direct use. These mechanisms cooperate to ensure that
  * iterator exhaustion checking is never bypassed.
- *
+ * @category "Data Abstractions"
  * @method "_'s⁇advance method is_"
  * @param "iteratorType" "iterator's type"
  *        The iterator's type, as a cross check for the implementation.
@@ -297,7 +298,7 @@ Semantic restriction "_'s⁇advance method is_" is
 
 /**
  * Seal the advance method at the specified {@type "iterator"} type.
- *
+ * @category "Data Abstractions"
  * @method "Seal_'s⁇advance method"
  * @param "iteratorType" "iterator's type"
  * @returns "⊤"
@@ -321,7 +322,7 @@ Public explicit class "exhausted iterator" extends iterator
 
 /**
  * Answer {@code true}.
- *
+ * @category "Data Abstractions"
  * @method "_is exhausted"
  * @param "anIterator" "exhausted iterator"
  *        An {@type "exhausted iterator"}.
@@ -337,7 +338,7 @@ Method "_is exhausted" is
 
 /**
  * Raise an {@type "exhausted-iterator exception"}.
- *
+ * @category "Data Abstractions"
  * @method "_s⁇current element"
  * @param "anIterator" "exhausted iterator"
  *        An exhausted iterator.
@@ -362,7 +363,7 @@ Semantic restriction "_s⁇current element" is
 
 /**
  * Raise an `exhausted-iterator exception`.
- *
+ * @category "Data Abstractions"
  * @method "Advance_"
  * @param "anIterator" "exhausted iterator"
  *        An exhausted iterator.
@@ -389,7 +390,7 @@ theExhaustedIterator ::= an exhausted iterator with element type ::= ⊥;
 
 /**
  * Answer an {@type "exhausted iterator"}.
- *
+ * @category "Data Abstractions"
  * @method "an exhausted iterator"
  * @returns "exhausted iterator"
  *          An exhausted iterator.
@@ -406,7 +407,7 @@ Seal method "Advance_" at <iterator>;
 /**
  * Iteratively apply {@param "action"} to each consecutive element of {@param
  * "anIterator"}.
- *
+ * @category "Data Abstractions"
  * @method "For each of⁇_do_"
  * @param "anIterator" "iterator"
  *        An iterator.
@@ -430,7 +431,7 @@ Method "For each of⁇_do_" is
 /**
  * Helper method for semantic restrictions: If `action` does not accept the
  * element type of `iteratorType`, then reject the current parse.
- *
+ * @category "Data Abstractions"
  * @method "Require:_accepts_"
  * @param "action" "[⊥]→⊤'s type"
  *        A function type whose sole parameter must correspond to the element
@@ -469,7 +470,8 @@ Semantic restriction "For each of⁇_do_" is
  * decorates another iterator and retains a transformer function. When it is
  * asked for its current element, it answers the result of applying the function
  * to the current element of the decorated iterator.
- *
+ * 
+ * @category "Data Abstractions"
  * @type "mapped iterator"
  * @supertype "iterator"
  */
@@ -504,7 +506,7 @@ mapped iterator's advance method is
  * Construct and answer an iterator that applies {@param "theTransformer"} to
  * the consecutive elements of {@param "anIterator"}. The result is lazy, so
  * {@param "anIterator"} may be infinite.
- *
+ * @category "Data Abstractions"
  * @method "map_through_"
  * @param "anIterator" "iterator"
  *        The source {@type "iterator"}.
@@ -541,6 +543,7 @@ Semantic restriction "map_through_" is
  * current element, it answers the first element of the decorated iterator that
  * satisfies the filter function.
  *
+ * @category "Data Abstractions"
  * @type "filtered iterator"
  * @supertype "iterator"
  */
@@ -606,7 +609,7 @@ filtered iterator's advance method is
  *
  * Which will require infinite computation after advancing beyond the element
  * {@code 10}.
- *
+ * @category "Data Abstractions"
  * @method "filter_by_"
  * @param "anIterator" "iterator"
  *        An {@type "iterator"}.
@@ -642,6 +645,7 @@ Semantic restriction "filter_by_" is
  * A concatenation iterator produces values from a sequenced collection of
  * iterators.
  *
+ * @category "Data Abstractions"
  * @type "concatenation iterator"
  * @supertype "iterator"
  */
@@ -687,7 +691,7 @@ concatenation iterator's advance method is
  * Construct and answer an {@type "iterator"} that produces values from the
  * specified tuple of iterators The result first produces the values of the
  * first element of the tuple, then the second, etc.
- *
+ * @category "Data Abstractions"
  * @method "concatenate_"
  * @param "iterators" "<iterator…|>"
  *        A tuple of iterators.
@@ -716,7 +720,7 @@ Method "concatenate_" is
  * Construct and answer an {@type "iterator"} that produces values from the
  * specified tuple of iterators The result first produces the values of the
  * first lexical argument, then the second, etc.
- *
+ * @category "Data Abstractions"
  * @method "«_‡++»"
  * @param "iterators" "<iterator…|>"
  *        A tuple of iterators.
@@ -739,7 +743,7 @@ Method "«_‡++»" is
 /**
  * Answer a function suitable for use as a semantic restriction for the
  * {@method "concatenate_"} and {@method "«_‡++»"} methods.
- *
+ * @category "Data Abstractions"
  * @method "concatenation semantic restriction"
  * @returns "[<iterator…|>'s type]→(concatenation iterator's type)"
  *          The requested function.
@@ -769,6 +773,7 @@ Semantic restriction "«_‡++»" is concatenation semantic restriction;
  * A zipped iterator produces zipped tuples from a sequenced collection of
  * iterators.
  *
+ * @category "Data Abstractions"
  * @type "zipped iterator"
  * @supertype "iterator"
  */
@@ -806,7 +811,7 @@ zipped iterator's advance method is
  * element is an <em>n</em>-tuple containing the <em>i</em>-th element from each
  * consecutive input iterator. The answer is exhausted when any of the input
  * iterators becomes exhausted.
- *
+ * @category "Data Abstractions"
  * @method "zip_"
  * @param "iterators" "<iterator…|>"
  *        A tuple of iterators.
@@ -831,7 +836,7 @@ Method "zip_" is
  * element is an <em>n</em>-tuple containing the <em>i</em>-th element from each
  * consecutive input iterator. The answer is exhausted when any of the input
  * iterators becomes exhausted.
- *
+ * @category "Data Abstractions"
  * @method "«_‡zip»"
  * @param "iterators" "<iterator…|>"
  *        A tuple of iterators.
@@ -853,7 +858,7 @@ Method "«_‡zip»" is
 /**
  * Answer a function suitable for use as a semantic restriction for the
  * {@method "zip_"} and {@method "«_‡zip»"} methods.
- *
+ * @category "Data Abstractions"
  * @method "zip semantic restriction"
  * @returns "[<iterator…|>'s type]→(zipped iterator's type)"
  *          The requested function.
@@ -887,7 +892,7 @@ Semantic restriction "«_‡zip»" is zip semantic restriction;
 /**
  * Answer a tuple containing (at most) the first {@param "count"} elements of
  * {@param "anIterator"}.
- *
+ * @category "Data Abstractions"
  * @method "take«at most»?_from_"
  * @param "isLax" "boolean"
  *        {@code false} if an {@type "exhausted-iterator exception"} should be
@@ -941,8 +946,9 @@ Semantic restriction "take«at most»?_from_" is
 
 /**
  * Checks to see if the iterator of character is not exhausted.
+ * 
+ * @category "Data Abstractions"
  * @method "_is not exhausted"
- * @category "Annals"
  * @param "anIterator" "iterator"
  * @returns "boolean"
  * @author "Richard Arriaga"
@@ -957,7 +963,7 @@ Public method "_is not exhausted" is
 /**
  * Answer a tuple containing the prefix of {@param "anIterator"} that answered
  * {@method "true"} to {@param "predicate"}.
- *
+ * @category "Data Abstractions"
  * @method "take from_while_"
  * @param "anIterator" "iterator"
  *        An iterator.
@@ -999,7 +1005,7 @@ Semantic restriction "take from_while_" is
 /**
  * Answer a tuple containing the prefix of {@param "anIterator"} that answered
  * {@method "false"} to {@param "predicate"}.
- *
+ * @category "Data Abstractions"
  * @method "take from_until_"
  * @param "anIterator" "iterator"
  *        An iterator.
@@ -1041,7 +1047,7 @@ Semantic restriction "take from_until_" is
 /**
  * Forward the specified {@type "iterator"} past (at most) the first {@param
  * "count"} elements.
- *
+ * @category "Data Abstractions"
  * @method "Drop«at most»?_from_"
  * @param "isLax" "boolean"
  *        {@code false} if an {@type "exhausted-iterator exception"} should be
@@ -1078,7 +1084,7 @@ Method "Drop«at most»?_from_" is
 /**
  * Forward the specified {@type "iterator"} past the prefix of elements that
  * answer {@code true} to {@param "predicate"}.
- *
+ * @category "Data Abstractions"
  * @method "Drop from_while_"
  * @param "anIterator" "iterator"
  *        An iterator.
@@ -1115,7 +1121,7 @@ Semantic restriction "Drop from_while_" is
 /**
  * Forward the specified {@type "iterator"} past the prefix of elements that
  * answer {@code false} to {@param "predicate"}.
- *
+ * @category "Data Abstractions"
  * @method "Drop from_while_"
  * @param "anIterator" "iterator"
  *        An iterator.

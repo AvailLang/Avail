@@ -73,6 +73,11 @@ public class StacksOutputFile
 	@InnerAccess AsynchronousFileChannel outputFile;
 
 	/**
+	 * The exported name of the Method/Class/Global this file represents.
+	 */
+	final String name;
+
+	/**
 	 * @return the errorFilePosition
 	 */
 	public AsynchronousFileChannel file ()
@@ -135,13 +140,18 @@ public class StacksOutputFile
 	 * 		of Stacks documentation
 	 * @param runtime
 	 *        An {@linkplain AvailRuntime runtime}.
+	 * @param name
+	 * 		The name of the method the file represents as it is represented
+	 * 		from the point of view of the main module being documented.
 	 */
 	public StacksOutputFile (final Path outputPath,
 		final StacksSynchronizer synchronizer, final String fileName,
-		final AvailRuntime runtime)
+		final AvailRuntime runtime,
+		final String name)
 	{
 		this.outputPath = outputPath;
 		this.synchronizer = synchronizer;
+		this.name = name;
 
 		final Path filePath = outputPath.resolve(fileName);
 		try

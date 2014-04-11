@@ -364,7 +364,7 @@ Public explicit class "unit test success" extends unit test result;
 
 /**
  * A unit test failure indicates that the specified {@type "unit test"} failed.
- * It includes the {@type "unit-test exception" failure exception.
+ * It includes the {@type "unit-test exception" failure exception}.
  *
  * @type "unit test failure"
  * @supertype "unit test result"

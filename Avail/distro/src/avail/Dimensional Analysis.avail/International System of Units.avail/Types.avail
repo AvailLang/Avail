@@ -74,7 +74,7 @@ Public class "SI unit" extends unit
  * An SI dimensioned quantity has an {@type "SI unit"} for its metric.
  *
  * @category "Dimensional Analysis"
- * @type"SI dimensioned quantity"
+ * @type "SI dimensioned quantity"
  * @supertype "dimensioned quantity"
  */
 Public class "SI dimensioned quantity" extends dimensioned quantity

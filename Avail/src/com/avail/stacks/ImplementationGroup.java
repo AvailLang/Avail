@@ -243,6 +243,8 @@ public class ImplementationGroup
 	 * 		the bulk of the inner html of the implementations.
 	 * @param startingTabCount
 	 * 		The number of tabs in to start with.
+	 * @param nameOfGroup
+	 * 		The name of the implementation as it is to be displayed.
 	 */
 	public void toHTML(final Path outputPath,
 		final String qualifiedMethodName,
@@ -251,13 +253,14 @@ public class ImplementationGroup
 		final AvailRuntime runtime,
 		final HTMLFileMap htmlFileMap,
 		final Path implementationProperties,
-		final int startingTabCount)
+		final int startingTabCount,
+		final String nameOfGroup)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append(htmlOpenContent)
 			.append(tabs(1) + "<h2 "
 				+ HTMLBuilder.tagClass(HTMLClass.classMethodHeading) + ">")
-			.append(name.asNativeString())
+			.append(nameOfGroup)
 			.append("</h2>\n");
 
 		if (!methods.isEmpty())
@@ -265,20 +268,23 @@ public class ImplementationGroup
 			if (!grammaticalRestrictions.isEmpty())
 			{
 				final int listSize = grammaticalRestrictions.size();
+				final ArrayList<GrammaticalRestrictionCommentImplementation>
+					restrictions = new ArrayList
+						<GrammaticalRestrictionCommentImplementation>();
+				restrictions.addAll(grammaticalRestrictions.values());
 				if (listSize > 1)
 				{
 					for (int i = 1; i < listSize; i++)
 					{
-						grammaticalRestrictions.get(0)
+						restrictions.get(0)
 							.mergeGrammaticalRestrictionImplementations(
-								grammaticalRestrictions.get(i));
+								restrictions.get(i));
 					}
 
 				}
-				for (final GrammaticalRestrictionCommentImplementation implementation
-					: grammaticalRestrictions.values())
 				stringBuilder
-					.append(implementation.toHTML(htmlFileMap));
+					.append(restrictions.get(0)
+						.toHTML(htmlFileMap,nameOfGroup));
 			}
 
 			stringBuilder.append(tabs(1) + "<h4 "
@@ -292,7 +298,8 @@ public class ImplementationGroup
 			for (final MethodCommentImplementation implementation :
 				methods.values())
 			{
-				stringBuilder.append(implementation.toHTML(htmlFileMap));
+				stringBuilder.append(implementation.toHTML(htmlFileMap,
+					nameOfGroup));
 			}
 
 			stringBuilder.append(tabs(1) + "</div>\n");
@@ -312,7 +319,8 @@ public class ImplementationGroup
 				for (final SemanticRestrictionCommentImplementation
 					implementation : semanticRestrictions.values())
 				{
-					stringBuilder.append(implementation.toHTML(htmlFileMap));
+					stringBuilder.append(implementation.toHTML(htmlFileMap,
+						nameOfGroup));
 				}
 
 				stringBuilder.append(tabs(1) + "</div>\n");
@@ -327,13 +335,13 @@ public class ImplementationGroup
 
 			final StacksOutputFile htmlFile = new StacksOutputFile(
 				outputPath.resolve(localPath), synchronizer, hashedFileName,
-				runtime);
+				runtime, name.asNativeString());
 
 			htmlFile.write(stringBuilder.append(htmlCloseContent).toString());
 		}
 		else if (!(global == null))
 		{
-			stringBuilder.append(global().toHTML(htmlFileMap));
+			stringBuilder.append(global().toHTML(htmlFileMap, nameOfGroup));
 			final int leafFileNameStart =
 				qualifiedMethodName.lastIndexOf('/') + 1;
 			final String localPath = qualifiedMethodName
@@ -344,13 +352,14 @@ public class ImplementationGroup
 
 			final StacksOutputFile htmlFile = new StacksOutputFile(
 				outputPath.resolve(localPath), synchronizer, hashedFileName,
-				runtime);
+				runtime,name.asNativeString());
 
 			htmlFile.write(stringBuilder.append(htmlCloseContent).toString());
 		}
 		else if (!(classImplementation == null))
 		{
-			stringBuilder.append(classImplementation.toHTML(htmlFileMap));
+			stringBuilder.append(classImplementation
+				.toHTML(htmlFileMap, nameOfGroup));
 
 			final String localPath = qualifiedMethodName
 				.substring(1, qualifiedMethodName.lastIndexOf('/') + 1);
@@ -362,7 +371,7 @@ public class ImplementationGroup
 
 			final StacksOutputFile htmlFile = new StacksOutputFile(
 				outputPath.resolve(localPath), synchronizer, hashedFileName,
-				runtime);
+				runtime,name.asNativeString());
 
 			htmlFile.write(stringBuilder.append(htmlCloseContent).toString());
 		}

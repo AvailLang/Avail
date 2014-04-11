@@ -196,11 +196,11 @@ public abstract class StacksImportModule
 	 * @return
 	 * 		A map with keyed by the method qualified name to the implementation.
 	 */
-	public Pair<HashMap<String,ImplementationGroup>,HashMap<String,String>>
-		qualifiedImplementationNameToImplementation()
+	public Pair<HashMap<String,Pair<String,ImplementationGroup>>,
+		HashMap<String,String>> qualifiedImplementationNameToImplementation()
 	{
-			final HashMap<String,ImplementationGroup> newMap =
-				new HashMap<String,ImplementationGroup>();
+			final HashMap<String,Pair<String,ImplementationGroup>> newMap =
+				new HashMap<String,Pair<String,ImplementationGroup>>();
 
 			final HashMap<A_String,Integer> newHashNameMap =
 				new HashMap<A_String,Integer>();
@@ -228,10 +228,12 @@ public abstract class StacksImportModule
 
 				final String qualifiedName = moduleName + "/"
 					+ String.valueOf(hashedName) + ".html";
-				newMap.put(qualifiedName, implementationGroups.get(name));
+				newMap.put(qualifiedName,
+					new Pair<String,ImplementationGroup> (
+						name.asNativeString(), implementationGroups.get(name)));
 				nameToLinkMap.put(name.asNativeString(), qualifiedName);
 			}
-			return new Pair<HashMap<String, ImplementationGroup>,
+			return new Pair<HashMap<String, Pair<String,ImplementationGroup>>,
 				HashMap<String, String>>(newMap,nameToLinkMap);
 	}
 
@@ -242,11 +244,11 @@ public abstract class StacksImportModule
 	 * @return
 	 * 		A pair with both maps.
 	 */
-	public Pair<HashMap<String,ImplementationGroup>,HashMap<String,String>>
-		flattenImplementationGroups()
+	public Pair<HashMap<String,Pair<String,ImplementationGroup>>,
+		HashMap<String,String>> flattenImplementationGroups()
 	{
-		final HashMap<String,ImplementationGroup> newMap =
-			new HashMap<String,ImplementationGroup>();
+		final HashMap<String,Pair<String,ImplementationGroup>> newMap =
+			new HashMap<String,Pair<String,ImplementationGroup>>();
 
 		final HashMap<String,String> nameToLinkMap =
 			new HashMap<String,String>();
@@ -254,20 +256,20 @@ public abstract class StacksImportModule
 		for (final StacksExtendsModule extendsModule :
 			moduleNameToExtendsList.values())
 		{
-			final Pair<HashMap<String, ImplementationGroup>,
+			final Pair<HashMap<String, Pair<String,ImplementationGroup>>,
 				HashMap<String, String>> pair =
 					extendsModule.flattenImplementationGroups();
 			newMap.putAll(pair.first());
 			nameToLinkMap.putAll(pair.second());
 		}
 
-		final Pair<HashMap<String, ImplementationGroup>,
-			HashMap<String, String>> aPair =
+		final Pair<HashMap<String,Pair<String,ImplementationGroup>>,
+			HashMap<String,String>> aPair =
 				qualifiedImplementationNameToImplementation();
 		newMap.putAll(aPair.first());
 		nameToLinkMap.putAll(aPair.second());
 
-		return new Pair<HashMap<String, ImplementationGroup>,
+		return new Pair<HashMap<String, Pair<String,ImplementationGroup>>,
 			HashMap<String, String>>(newMap,nameToLinkMap);
 	}
 

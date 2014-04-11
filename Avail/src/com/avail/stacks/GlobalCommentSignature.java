@@ -65,19 +65,21 @@ public class GlobalCommentSignature extends CommentSignature
 	}
 
 	@Override
-	public String toHTML ()
+	public String toHTML (final String nameOfGroup)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append("<div "
 				+ HTMLBuilder.tagClass(HTMLClass.classSignatureHeading)
 				+ ">")
 			.append(globalType)
-			.append("</div>\n")
-			.append(tabs(1) + "<div "
+			.append("</div>\n");
+
+		stringBuilder.append(tabs(2) + "<div "
 				+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
-				+ ">")
-			.append(module()).append(": <strong>")
-			.append(name()).append("</strong></div>\n");
+				+ "><em>Source</em>: ")
+			.append(module())
+			.append("</div>\n");
+
 		return stringBuilder.toString();
 	}
 }

@@ -158,9 +158,12 @@ public abstract class AbstractCommentImplementation
 	 * Create HTML content from implementation
 	 * @param htmlFileMap
 	 * 		The map of all HTML file linkage
+	 * @param nameOfGroup
+	 * 		The name of the implementation as it is to be displayed
 	 * @return the HTML tagged content
 	 */
-	public abstract String toHTML(final HTMLFileMap htmlFileMap);
+	public abstract String toHTML(final HTMLFileMap htmlFileMap,
+		final String nameOfGroup);
 
 	/**
 	 * @return A set of category String names for this implementation.

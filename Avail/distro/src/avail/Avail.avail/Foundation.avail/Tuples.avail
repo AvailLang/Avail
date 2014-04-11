@@ -2142,10 +2142,11 @@ Public method "take from_while_" is
  * Answer a semantic restriction suitable for use by the predicated-based
  * take/drop methods.
  *
+ * @category "Data Abstractions"
  * @method "take|drop-while|until semantic restriction"
  * @param "tupleType" "tuple meta"
  * @param "predicate" "[⊥]→boolean's type"
- * Returns:
+ * @returns "[tuple meta, [⊥]→boolean's type]→⊤"
  *    The requested function.
  */
 Private method "take|drop-while|until semantic restriction" is

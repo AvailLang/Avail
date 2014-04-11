@@ -101,12 +101,13 @@ public class SemanticRestrictionCommentImplementation extends
 	}
 
 	@Override
-	public String toHTML (final HTMLFileMap htmlFileMap)
+	public String toHTML (final HTMLFileMap htmlFileMap,
+		final String nameOfGroup)
 	{
 		final int paramCount = restricts.size();
 		final int colSpan = 1;
 		final StringBuilder stringBuilder = new StringBuilder()
-			.append(signature().toHTML());
+			.append(signature().toHTML(nameOfGroup));
 
 		stringBuilder.append(tabs(2) + "<div "
 				+ HTMLBuilder.tagClass(HTMLClass.classSignatureDescription)

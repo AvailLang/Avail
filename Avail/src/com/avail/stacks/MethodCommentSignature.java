@@ -83,7 +83,7 @@ public class MethodCommentSignature extends CommentSignature
 	}
 
 	@Override
-	public String toHTML ()
+	public String toHTML (final String nameOfGroup)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append(tabs(2) + "<div "
@@ -102,11 +102,22 @@ public class MethodCommentSignature extends CommentSignature
 				.append("</div>\n");
 		}
 
-		stringBuilder.append(tabs(2) + "<div "
-				+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
-				+ "><em>Source</em>: ")
-			.append(module()).append(": <strong>").append(name())
-			.append("</strong></div>\n");
+		if (!name().equals(nameOfGroup))
+		{
+			stringBuilder.append(tabs(2) + "<div "
+					+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
+					+ "><em>Source</em>: ")
+				.append(module()).append(": <strong>").append(name())
+				.append("</strong></div>\n");
+		}
+		else
+		{
+			stringBuilder.append(tabs(2) + "<div "
+					+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
+					+ "><em>Source</em>: ")
+				.append(module())
+				.append("</div>\n");
+		}
 
 		return stringBuilder.toString();
 	}

@@ -143,7 +143,11 @@ Public stable forward method "-_" is [number]→number;
 
 	/**
 	 * Forbid nesting of floor and ceiling.
-	 * @method "⎣_⎦"
+	 * @method "⎡_⎤"
+	 * @forbids "1" "⎣_⎦" "⎡_⎤"
+	 */
+	/**
+	 * Forbid nesting of floor and ceiling.
 	 * @method "⎡_⎤"
 	 * @forbids "1" "⎣_⎦" "⎡_⎤"
 	 */
@@ -907,6 +911,7 @@ Public method "«_‡«=|≤|<»!»" is
  * 
  * @method "comparison chain semantic restriction function"
  * @param "args" "<<any, [1..1]…|1..2>…|3..∞>'s type"
+ * @returns "[<<any, [1..1]…|1..2>…|3..∞>'s type]→⊤"
  * 
  */
 Private method "comparison chain semantic restriction function" is

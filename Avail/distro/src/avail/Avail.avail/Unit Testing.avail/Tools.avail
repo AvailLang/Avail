@@ -116,6 +116,7 @@ Public explicit class "failed-requirement exception" extends exception;
  * @method "Require:_"
  * @param "predicate" "boolean"
  *        A predicate that must be true.
+ * @returns "⊤"
  * @raises "failed-requirement exception"
  *         If {@param "predicate"} is false.
  */
@@ -136,6 +137,7 @@ Method "Require:_" is
  * @param "message" "string"
  *        Additional information that should be attached to the exception in the
  *        event of failure.
+ * @returns "⊤"
  * @raises "failed-requirement exception"
  *         If {@param "predicate"} is false.
  */
@@ -520,9 +522,9 @@ Public method "Require if supported«on this platform»⁇:_raises_(_)" is
 	
 	/**
 	 * @method "Require:_=_"
-	 * @forbids 1 "_≤_" "_<_", "_≥_" "_>_" "_=_" "«_‡=»" "«_‡«=|≤|<»!»" 
+	 * @forbids 1 "_≤_" "_<_" "_≥_" "_>_" "_=_" "«_‡=»" "«_‡«=|≤|<»!»" 
 	 * 		"«_‡«=|≥|>»!»"
-	 * @forbids 2 "_≤_" "_<_", "_≥_" "_>_" "_=_" "«_‡=»" "«_‡«=|≤|<»!»" 
+	 * @forbids 2 "_≤_" "_<_" "_≥_" "_>_" "_=_" "«_‡=»" "«_‡«=|≤|<»!»" 
 	 * 		"«_‡«=|≥|>»!»"
 	 * @forbids 3 "∅"
 	 */ 
@@ -530,9 +532,9 @@ Public method "Require if supported«on this platform»⁇:_raises_(_)" is
 	
 	/**
 	 * @method "Require:_=_(_)"
-	 * @forbids 1 "_≤_" "_<_", "_≥_" "_>_" "_=_" "«_‡=»" "«_‡«=|≤|<»!»" 
+	 * @forbids 1 "_≤_" "_<_" "_≥_" "_>_" "_=_" "«_‡=»" "«_‡«=|≤|<»!»" 
 	 * 		"«_‡«=|≥|>»!»"
-	 * @forbids 2 "_≤_" "_<_", "_≥_" "_>_" "_=_" "«_‡=»" "«_‡«=|≤|<»!»" 
+	 * @forbids 2 "_≤_" "_<_" "_≥_" "_>_" "_=_" "«_‡=»" "«_‡«=|≤|<»!»" 
 	 * 		"«_‡«=|≥|>»!»"
 	 * @forbids 3 "∅"
 	 */ 

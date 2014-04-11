@@ -144,7 +144,8 @@ public class StacksCommentsModule
 	 *  The outermost {@linkplain StacksCommentsModule module} for the
 	 *  generation request.
 	 */
-	private HashMap<String,ImplementationGroup> finalImplementationsGroupMap;
+	private HashMap<String,Pair<String,ImplementationGroup>>
+		finalImplementationsGroupMap;
 
 	/**
 	 * A map keyed by a method name with no path to the qualified module
@@ -607,9 +608,9 @@ public class StacksCommentsModule
 		extendedNamesImplementations = extendsMap;
 		usesNamesImplementations = usesMap;
 
-		final HashMap<String,ImplementationGroup>
+		final HashMap<String,Pair<String,ImplementationGroup>>
 			namesExtendsImplementationsMap =
-				new HashMap<String,ImplementationGroup>();
+				new HashMap<String,Pair<String,ImplementationGroup>>();
 
 		for (final StacksUsesModule module : usesNamesImplementations.values())
 		{
@@ -647,19 +648,20 @@ public class StacksCommentsModule
 					}
 				}
 
-				final HashMap<String,ImplementationGroup>
+				final HashMap<String,Pair<String,ImplementationGroup>>
 					namesUsesExtendsImplementationsMap =
-						new HashMap<String,ImplementationGroup>();
+						new HashMap<String,Pair<String,ImplementationGroup>>();
 
 				for (final StacksExtendsModule usesExtendsModule :
 					usesModule.moduleNameToExtendsList().values())
 				{
-					final HashMap<String, ImplementationGroup> first =
+					final HashMap<String, Pair<String,ImplementationGroup>>
+						first =
 						usesExtendsModule.flattenImplementationGroups().first();
 
 					for (final String key : first.keySet())
 					{
-						if (first.get(key).isPopulated())
+						if (first.get(key).second().isPopulated())
 						{
 							namesUsesExtendsImplementationsMap
 								.put(key, first.get(key));
@@ -672,10 +674,10 @@ public class StacksCommentsModule
 				{
 					if (namesExtendsImplementationsMap.containsKey(key))
 					{
-						namesExtendsImplementationsMap.get(key)
+						namesExtendsImplementationsMap.get(key).second()
 							.mergeWith(
 								namesUsesExtendsImplementationsMap
-									.get(key));
+									.get(key).second());
 					}
 				}
 			}
@@ -696,13 +698,14 @@ public class StacksCommentsModule
 	{
 		//A map of all method names to exported ImplementGroups
 		//regardless if the implementation is not populated.
-		final HashMap<String,ImplementationGroup> newMap =
-			new HashMap<String,ImplementationGroup>();
+		final HashMap<String,Pair<String,ImplementationGroup>>
+			newMap =
+			new HashMap<String,Pair<String,ImplementationGroup>>();
 
 		final HashMap<String,String> nameToLinkMap =
 			new HashMap<String,String>();
 
-/*		for ( final String extendsModuleName :
+		for ( final String extendsModuleName :
 			extendedNamesImplementations.keySet())
 		{
 			if (usesModuleToImplementedNamesToImplementation
@@ -721,12 +724,12 @@ public class StacksCommentsModule
 					}
 				}
 			}
-		}*/
+		}
 
 		for (final StacksExtendsModule extendsModule :
 			extendedNamesImplementations.values())
 		{
-			final Pair<HashMap<String,ImplementationGroup>,
+			final Pair<HashMap<String,Pair<String,ImplementationGroup>>,
 				HashMap<String,String>> pair =
 					extendsModule.flattenImplementationGroups();
 			newMap.putAll(pair.first());
@@ -759,17 +762,18 @@ public class StacksCommentsModule
 
 			final String qualifiedMethodName = moduleName + "/"
 				+ key.asNativeString();
-			newMap.put(qualifiedMethodName,
-				namedPublicCommentImplementations.get(key));
+			newMap.put(qualifiedMethodName, new Pair<String,ImplementationGroup>
+				(key.asNativeString(),
+					namedPublicCommentImplementations.get(key)));
 			nameToLinkMap.put(key.asNativeString(), qualifiedName);
 		}
 
-		final HashMap<String,ImplementationGroup> filteredMap =
-			new HashMap<String,ImplementationGroup>();
+		final HashMap<String,Pair<String,ImplementationGroup>> filteredMap =
+			new HashMap<String,Pair<String,ImplementationGroup>>();
 
 		for (final String key : newMap.keySet())
 		{
-			if (newMap.get(key).isPopulated())
+			if (newMap.get(key).second().isPopulated())
 			{
 				filteredMap.put(key, newMap.get(key));
 			}
@@ -789,7 +793,7 @@ public class StacksCommentsModule
 			if (filteredMap.containsKey(filterMapKey))
 			{
 				for (final String category :
-					filteredMap.get(filterMapKey).getCategorySet())
+					filteredMap.get(filterMapKey).second().getCategorySet())
 				{
 					htmlFileMap.addCategoryMethodPair(category, methodName,
 						filterMapKey);
@@ -832,10 +836,13 @@ public class StacksCommentsModule
 			final String [] htmlSplitTemplate = htmlTemplate
 				.split("IMPLEMENTATION-GROUP");
 
-			finalImplementationsGroupMap.get(implementationName)
+			final String name =
+				finalImplementationsGroupMap.get(implementationName).first();
+
+			finalImplementationsGroupMap.get(implementationName).second()
 				.toHTML(outputPath, implementationName,
 					htmlSplitTemplate[0], htmlSplitTemplate[1], synchronizer,
-					runtime, htmlFileMap, implementationProperties, 3);
+					runtime, htmlFileMap, implementationProperties, 3, name);
 		}
 	}
 

@@ -112,13 +112,14 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 	}
 
 	@Override
-	public String toHTML (final HTMLFileMap htmlFileMap)
+	public String toHTML (final HTMLFileMap htmlFileMap,
+		final String nameOfGroup)
 	{
 		final int paramCount = parameters.size();
 		final int exceptionCount = exceptions.size();
 		int colSpan = 1;
 		final StringBuilder stringBuilder = new StringBuilder()
-			.append(signature().toHTML());
+			.append(signature().toHTML(nameOfGroup));
 
 		if (categories.size() > 0)
 		{
