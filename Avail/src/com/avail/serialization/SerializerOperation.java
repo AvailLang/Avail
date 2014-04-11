@@ -1065,9 +1065,42 @@ public enum SerializerOperation
 	},
 
 	/**
+	 * A {@linkplain VariableSharedWriteOnceDescriptor write-once variable}.
+	 * Always reconstructed, since there is no mechanism for determining to
+	 * which existing variable it might be referring.  The variable is
+	 * reconstructed in an unassigned state, and is expected to be initialized
+	 * exactly once at some future time.
+	 */
+	WRITE_ONCE_VARIABLE (39,
+		OBJECT_REFERENCE.as("variable type"))
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			return array(
+				object.kind());
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			return VariableSharedWriteOnceDescriptor.forVariableType(
+				subobjects[0]);
+		}
+
+		@Override
+		boolean isVariable ()
+		{
+			return true;
+		}
+	},
+
+	/**
 	 * A {@linkplain TokenDescriptor token}.
 	 */
-	TOKEN (39,
+	TOKEN (40,
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("token string"),
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("leading whitespace"),
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("trailing whitespace"),
@@ -1111,7 +1144,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain LiteralTokenDescriptor literal token}.
 	 */
-	LITERAL_TOKEN (40,
+	LITERAL_TOKEN (41,
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("token string"),
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("leading whitespace"),
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("trailing whitespace"),
@@ -1159,7 +1192,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain TokenDescriptor token}.
 	 */
-	COMMENT_TOKEN (41,
+	COMMENT_TOKEN (42,
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("token string"),
 		SIGNED_INT.as("start position"),
 		SIGNED_INT.as("line number"))
@@ -1193,7 +1226,7 @@ public enum SerializerOperation
 	 * previously built value to be assigned to it at this point during
 	 * deserialization.
 	 */
-	ASSIGN_TO_VARIABLE (42,
+	ASSIGN_TO_VARIABLE (43,
 		OBJECT_REFERENCE.as("variable to assign"),
 		OBJECT_REFERENCE.as("value to assign"))
 	{
@@ -1220,7 +1253,7 @@ public enum SerializerOperation
 	/**
 	 * The representation of a continuation, which is just its level one state.
 	 */
-	CONTINUATION (43,
+	CONTINUATION (44,
 		OBJECT_REFERENCE.as("calling continuation"),
 		OBJECT_REFERENCE.as("continuation's function"),
 		TUPLE_OF_OBJECTS.as("continuation frame slots"),
@@ -1281,7 +1314,7 @@ public enum SerializerOperation
 	 * during serialization, chosen arbitrarily.  During deserialization, the
 	 * message bundle is looked up, and its method is extracted.
 	 */
-	METHOD (44,
+	METHOD (45,
 		OBJECT_REFERENCE.as("random method bundle"))
 	{
 		@Override
@@ -1305,7 +1338,7 @@ public enum SerializerOperation
 	 * A reference to a {@linkplain MethodDefinitionDescriptor method
 	 * definition}, which should be reconstructed by looking it up.
 	 */
-	METHOD_DEFINITION (45,
+	METHOD_DEFINITION (46,
 		OBJECT_REFERENCE.as("method"),
 		OBJECT_REFERENCE.as("signature"))
 	{
@@ -1345,7 +1378,7 @@ public enum SerializerOperation
 	 * A reference to a {@linkplain MacroDefinitionDescriptor macro
 	 * definition}, which should be reconstructed by looking it up.
 	 */
-	MACRO_DEFINITION (46,
+	MACRO_DEFINITION (47,
 		OBJECT_REFERENCE.as("method"),
 		OBJECT_REFERENCE.as("signature"))
 	{
@@ -1385,7 +1418,7 @@ public enum SerializerOperation
 	 * A reference to an {@linkplain AbstractDefinitionDescriptor abstract
 	 * declaration}, which should be reconstructed by looking it up.
 	 */
-	ABSTRACT_DEFINITION (47,
+	ABSTRACT_DEFINITION (48,
 		OBJECT_REFERENCE.as("method"),
 		OBJECT_REFERENCE.as("signature"))
 	{
@@ -1425,7 +1458,7 @@ public enum SerializerOperation
 	 * A reference to a {@linkplain ForwardDefinitionDescriptor forward
 	 * declaration}, which should be reconstructed by looking it up.
 	 */
-	FORWARD_DEFINITION (48,
+	FORWARD_DEFINITION (49,
 		OBJECT_REFERENCE.as("method"),
 		OBJECT_REFERENCE.as("signature"))
 	{
@@ -1465,7 +1498,7 @@ public enum SerializerOperation
 	 * A reference to a {@linkplain MessageBundleDescriptor message bundle},
 	 * which should be reconstructed by looking it up.
 	 */
-	MESSAGE_BUNDLE (49,
+	MESSAGE_BUNDLE (50,
 		OBJECT_REFERENCE.as("message atom"))
 	{
 		@Override
@@ -1491,26 +1524,6 @@ public enum SerializerOperation
 					"Bundle should not have been serialized with malformed "
 					+ "message");
 			}
-		}
-	},
-
-	/**
-	 * Reserved for future use.
-	 */
-	RESERVED_50 (50)
-	{
-		@Override
-		A_BasicObject[] decompose (final AvailObject object)
-		{
-			throw new RuntimeException("Reserved serializer operation");
-		}
-
-		@Override
-		A_BasicObject compose (
-			final AvailObject[] subobjects,
-			final Deserializer deserializer)
-		{
-			throw new RuntimeException("Reserved serializer operation");
 		}
 	},
 

@@ -2090,12 +2090,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_CopyAsMutableContinuation (final AvailObject object)
-	{
-		return o_Traversed(object).copyAsMutableContinuation();
-	}
-
-	@Override
 	A_Tuple o_CopyAsMutableObjectTuple (final AvailObject object)
 	{
 		return o_Traversed(object).copyAsMutableObjectTuple();
@@ -2108,7 +2102,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_EnsureMutable (final AvailObject object)
+	A_Continuation o_EnsureMutable (final AvailObject object)
 	{
 		return o_Traversed(object).ensureMutable();
 	}
@@ -4556,5 +4550,11 @@ extends AbstractDescriptor
 		final A_String trailingWhitespace)
 	{
 		o_Traversed(object).trailingWhitespace(trailingWhitespace);
+	}
+
+	@Override
+	boolean o_IsInitializedWriteOnceVariable (final AvailObject object)
+	{
+		return o_Traversed(object).isInitializedWriteOnceVariable();
 	}
 }

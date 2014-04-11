@@ -1299,15 +1299,6 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public AvailObject copyAsMutableContinuation ()
-	{
-		return descriptor.o_CopyAsMutableContinuation(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public A_Tuple copyAsMutableObjectTuple ()
 	{
 		return descriptor.o_CopyAsMutableObjectTuple(this);
@@ -1476,7 +1467,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public AvailObject ensureMutable ()
+	public A_Continuation ensureMutable ()
 	{
 		return descriptor.o_EnsureMutable(this);
 	}
@@ -6887,5 +6878,11 @@ implements
 	public void trailingWhitespace (final A_String trailingWhitespace)
 	{
 		descriptor.o_TrailingWhitespace(this, trailingWhitespace);
+	}
+
+	@Override
+	public boolean isInitializedWriteOnceVariable ()
+	{
+		return descriptor.o_IsInitializedWriteOnceVariable(this);
 	}
 }

@@ -193,7 +193,7 @@ public final class ModuleNameResolver
 	 */
 	private final LRUCache<ModuleName, ModuleNameResolutionResult>
 		resolutionCache = new LRUCache<>(
-			10000,
+			10_000,
 			100,
 			new Transformer1<ModuleName, ModuleNameResolutionResult>()
 			{

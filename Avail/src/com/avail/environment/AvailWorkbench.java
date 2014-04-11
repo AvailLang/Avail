@@ -126,6 +126,7 @@ extends JFrame
 			// Build the target module in a Swing worker thread.
 			final BuildTask task = new BuildTask(selectedModule);
 			backgroundTask = task;
+			availBuilder.checkStableInvariants();
 			setEnablements();
 			task.execute();
 		}
@@ -1008,6 +1009,7 @@ extends JFrame
 			backgroundTask = null;
 			reportDone();
 			setCursor(Cursor.getDefaultCursor());
+			availBuilder.checkStableInvariants();
 			setEnablements();
 		}
 
@@ -1042,6 +1044,7 @@ extends JFrame
 		{
 			backgroundTask = null;
 			reportDone();
+			availBuilder.checkStableInvariants();
 			setEnablements();
 			setCursor(Cursor.getDefaultCursor());
 		}
@@ -1069,9 +1072,18 @@ extends JFrame
 		@Override
 		protected void executeTask () throws Exception
 		{
-			availBuilder.generateDocumentation(
-				targetModuleName(),
-				documentationPath);
+			try
+			{
+				availBuilder.generateDocumentation(
+					targetModuleName(),
+					documentationPath);
+			}
+			catch (final Exception e)
+			{
+				// Put a breakpoint here to debug documentation generation
+				// exceptions.
+				throw e;
+			}
 		}
 
 		@Override
@@ -1079,6 +1091,7 @@ extends JFrame
 		{
 			backgroundTask = null;
 			reportDone();
+			availBuilder.checkStableInvariants();
 			setEnablements();
 			setCursor(Cursor.getDefaultCursor());
 		}
@@ -1549,7 +1562,6 @@ extends JFrame
 		inputField.setBackground(isRunning
 			? new Color(192, 255, 192)
 			: null);
-		availBuilder.checkStableInvariants();
 	}
 
 	/**

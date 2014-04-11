@@ -51,7 +51,7 @@ import com.avail.interpreter.levelTwo.L2Chunk;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @see VariableDescriptor
  */
-public final class VariableSharedDescriptor
+public class VariableSharedDescriptor
 extends VariableDescriptor
 {
 	/**
@@ -127,7 +127,8 @@ extends VariableDescriptor
 		return super.allowsImmutableToMutableReferenceInField(e)
 			|| e == HASH_OR_ZERO
 			|| e == VALUE
-			|| e == WRITE_REACTORS;
+			|| e == WRITE_REACTORS
+			|| e == DEPENDENT_CHUNKS_WEAK_SET_POJO;
 	}
 
 	@Override @AvailMethod
@@ -383,7 +384,7 @@ extends VariableDescriptor
 		final int hash,
 		final AvailObject value)
 	{
-		final AvailObject result = mutable.create();
+		final AvailObject result = mutableInitial.create();
 		result.setSlot(KIND, variableType);
 		result.setSlot(HASH_OR_ZERO, hash);
 		result.setSlot(VALUE, value);
@@ -391,6 +392,29 @@ extends VariableDescriptor
 		result.setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, NilDescriptor.nil());
 		result.descriptor = VariableSharedDescriptor.shared;
 		return result;
+	}
+
+	/**
+	 * Construct a new {@link VariableDescriptor}.  Only provided for use by
+	 * {@link VariableSharedWriteOnceDescriptor}.
+	 *
+	 * @param mutability
+	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param objectSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            ObjectSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no object slots.
+	 * @param integerSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            IntegerSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no integer slots.
+	 */
+	protected VariableSharedDescriptor (
+		final Mutability mutability,
+		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
+		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
+	{
+		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
 	}
 
 	/**
@@ -408,7 +432,7 @@ extends VariableDescriptor
 	 * The mutable {@link VariableSharedDescriptor}. Exists only to support
 	 * creation.
 	 */
-	private static final VariableSharedDescriptor mutable =
+	private static final VariableSharedDescriptor mutableInitial =
 		new VariableSharedDescriptor(Mutability.MUTABLE);
 
 	/** The shared {@link VariableSharedDescriptor}. */

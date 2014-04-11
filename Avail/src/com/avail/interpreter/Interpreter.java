@@ -198,11 +198,11 @@ public final class Interpreter
 		return null;
 	}
 
-	//TODO [MvG] - Remove before shipping
+	/** A counter for uniquely numbering the {@code Interpreter}s. */
 	private static AtomicLong uniqueInterpreterCounter = new AtomicLong();
 
-	//TODO [MvG] - Remove before shipping
-	public long uniqueId = uniqueInterpreterCounter.incrementAndGet();
+	/** A variable holding this {@code Interpreter}'s unique id. */
+	public final long uniqueId = uniqueInterpreterCounter.incrementAndGet();
 
 	/** Whether to print detailed Level One debug information. */
 	public static boolean debugL1 = false;
@@ -223,9 +223,6 @@ public final class Interpreter
 	/** A {@linkplain Logger logger}. */
 	private static final Logger logger =
 		Logger.getLogger(Interpreter.class.getCanonicalName());
-
-	//TODO [MvG] Clean up initial logging state.
-//	static { logger.setLevel(Level.FINER); }
 
 	/**
 	 * Set the current logging level for interpreters.

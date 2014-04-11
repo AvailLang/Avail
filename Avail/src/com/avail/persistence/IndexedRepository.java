@@ -41,7 +41,7 @@ import com.avail.descriptor.ModuleDescriptor;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@IndexedFileVersion(2)
+@IndexedFileVersion(3)
 final class IndexedRepository
 extends IndexedFile
 {

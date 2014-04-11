@@ -261,7 +261,7 @@ public final class L2Chunk
 	{
 		// TODO: [MvG] Set this to something sensible when optimization levels
 		// are implemented.
-		return 1000000000;
+		return 1_000_000_000;
 	}
 
 	/**

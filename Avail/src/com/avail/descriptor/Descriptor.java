@@ -1438,12 +1438,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_CopyAsMutableContinuation (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	A_Tuple o_CopyAsMutableObjectTuple (final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -1456,7 +1450,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_EnsureMutable (final AvailObject object)
+	A_Continuation o_EnsureMutable (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4402,5 +4396,11 @@ extends AbstractDescriptor
 		final A_String trailingWhitespace)
 	{
 		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_IsInitializedWriteOnceVariable (final AvailObject object)
+	{
+		return false;
 	}
 }

@@ -2845,13 +2845,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_CopyAsMutableContinuation (
-		AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	abstract A_Tuple o_CopyAsMutableObjectTuple (
 		AvailObject object);
 
@@ -2865,7 +2858,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_EnsureMutable (AvailObject object);
+	abstract A_Continuation o_EnsureMutable (AvailObject object);
 
 	/**
 	 * @param object
@@ -5963,4 +5956,10 @@ public abstract class AbstractDescriptor
 	abstract void o_TrailingWhitespace (
 		AvailObject object,
 		A_String trailingWhitespace);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsInitializedWriteOnceVariable (AvailObject object);
 }

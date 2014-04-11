@@ -602,7 +602,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	final SerializerOperation o_SerializerOperation (final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.VARIABLE;
 	}

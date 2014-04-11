@@ -48,8 +48,14 @@ public final class P_321_DoubleTimesTwoPower extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_321_DoubleTimesTwoPower().init(
-		3, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_321_DoubleTimesTwoPower().init(3, CanFold, CannotFail);
+
+	/** The Avail integer representing 10^5. */
+	final static A_Number tenK = IntegerDescriptor.fromInt(10_000);
+
+	/** The Avail integer representing (-10)^5. */
+	final static A_Number minusTenK = IntegerDescriptor.fromInt(-10_000);
 
 	@Override
 	public Result attempt (
@@ -60,8 +66,6 @@ public final class P_321_DoubleTimesTwoPower extends Primitive
 		assert args.size() == 2;
 		final A_Number a = args.get(0);
 		final A_Number b = args.get(1);
-		final A_Number tenK = IntegerDescriptor.fromInt(10000);
-		final A_Number minusTenK = IntegerDescriptor.fromInt(-10000);
 		final int scale;
 		if (b.greaterOrEqual(tenK))
 		{
