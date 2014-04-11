@@ -61,8 +61,8 @@ implements Comparable<AvailTask>, Runnable
 	 * @param fiber
 	 *        A fiber.
 	 * @param transformer
-	 *        What to do to resume execution of the fiber.  The fiber's
-	 *        {@link ExecutionState} is returned by it.
+	 *        What to do to resume execution of the fiber.  The fiber's {@link
+	 *        ExecutionState} is returned by it.
 	 * @return A task that sets the execution state of the fiber to {@linkplain
 	 *         ExecutionState#RUNNING running}, binds it to this {@linkplain
 	 *         AvailThread thread}'s {@linkplain Interpreter interpreter}, and
@@ -109,7 +109,6 @@ implements Comparable<AvailTask>, Runnable
 					// another thread resuming its execution and reaching
 					// termination quickly.
 					finalState = transformer.value();
-					assert finalState == fiber.executionState();
 				}
 				catch (final Throwable e)
 				{
