@@ -39,12 +39,10 @@ package com.avail.tools.options;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@SuppressWarnings("serial")
 public class ValidationException
 extends RuntimeException
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = 0x0000000000000001L;
-
 	/**
 	 * Construct a new {@link ValidationException}.
 	 */

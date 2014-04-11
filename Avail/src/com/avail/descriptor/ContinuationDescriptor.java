@@ -338,9 +338,13 @@ extends Descriptor
 	 * is therefore always able to directly modify it.
 	 */
 	@Override @AvailMethod
-	AvailObject o_EnsureMutable (final AvailObject object)
+	A_Continuation o_EnsureMutable (final AvailObject object)
 	{
-		return isMutable() ? object : object.copyAsMutableContinuation();
+		if (isMutable())
+		{
+			return object;
+		}
+		return AvailObjectRepresentation.newLike(mutable, object, 0, 0);
 	}
 
 	@Override @AvailMethod
@@ -364,23 +368,6 @@ extends Descriptor
 	int o_NumArgsAndLocalsAndStack (final AvailObject object)
 	{
 		return object.variableObjectSlotsCount();
-	}
-
-	/**
-	 * Answer a fresh mutable copy of the given continuation object.
-	 */
-	@Override @AvailMethod
-	AvailObject o_CopyAsMutableContinuation (final AvailObject object)
-	{
-		if (isMutable())
-		{
-			object.makeSubobjectsImmutable();
-		}
-		return AvailObjectRepresentation.newLike(
-			mutable,
-			object,
-			0,
-			0);
 	}
 
 	@Override
@@ -413,9 +400,12 @@ extends Descriptor
 		final AvailObject object,
 		final A_Continuation newCaller)
 	{
-		final AvailObject result = object.ensureMutable();
-		result.setSlot(CALLER, newCaller);
-		return result;
+		final AvailObject mutableVersion;
+		mutableVersion = isMutable()
+			? object
+			: AvailObjectRepresentation.newLike(mutable, object, 0, 0);
+		mutableVersion.setSlot(CALLER, newCaller);
+		return mutableVersion;
 	}
 
 	/**

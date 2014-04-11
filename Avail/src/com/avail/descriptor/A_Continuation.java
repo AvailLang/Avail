@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.levelTwo.L2Instruction;
 
 /**
  * {@code A_Continuation} is an interface that specifies the operations specific
@@ -62,8 +63,8 @@ extends A_BasicObject
 	 * the arguments, primitive failure variable (if defined), locals, and then
 	 * an operand stack that grows from the top down.
 	 *
-	 * @param index
-	 * @param value
+	 * @param index The one-based index into this frame data.
+	 * @param value The value to write at that index.
 	 */
 	void argOrLocalOrStackAtPut (int index, AvailObject value);
 
@@ -139,46 +140,75 @@ extends A_BasicObject
 	void stackAtPut (int slotIndex, A_BasicObject anObject);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * If this continuation is already mutable just answer it; otherwise answer
+	 * a mutable copy of it.
+	 *
+	 * @return A mutable continuation like the receiver.
 	 */
-	AvailObject ensureMutable ();
+	A_Continuation ensureMutable ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer the current {@link L2Chunk} to run when resuming this {@linkplain
+	 * ContinuationDescriptor continuation}.  Always check that the chunk is
+	 * still {@linkplain L2Chunk#isValid() valid}, otherwise the {@linkplain
+	 * L2Chunk#unoptimizedChunk()} should be resumed instead.
+	 *
+	 * @return The L2Chunk to resume if the chunk is still valid.
 	 */
 	L2Chunk levelTwoChunk ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * The offset within the {@link L2Chunk} at which to resume level two
+	 * execution when this continuation is to be resumed.  Note that the chunk
+	 * might have become invalidated, so check {@link L2Chunk#isValid()}) before
+	 * attempting to resume it.
+	 *
+	 * @return The index of the {@link L2Instruction} at which to resume
+	 *         level two execution if the {@code L2Chunk} is still valid.
 	 */
 	int levelTwoOffset ();
 
 	/**
-	 * Also defined in {@link A_RawFunction}.
+	 * Also defined in {@link A_RawFunction}.  The total number of "frame"
+	 * slots in the receiver.  These slots are used to hold the arguments, local
+	 * variables and constants, and the local operand stack on which the level
+	 * one instruction set depends.
 	 *
-	 * @return
+	 * @return The number of arguments, locals, and stack slots in the receiver.
 	 */
 	int numArgsAndLocalsAndStack ();
 
 	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_BasicObject copyAsMutableContinuation ();
-
-	/**
+	 * Set both the {@link ContinuationDescriptor.IntegerSlots#PROGRAM_COUNTER}
+	 * and the {@link ContinuationDescriptor.IntegerSlots#STACK_POINTER} of this
+	 * continuation, which must be mutable.
+	 *
 	 * @param pc
+	 *        The offset of the next level one instruction (within my function's
+	 *        nybblecodes) at which to continue running.
 	 * @param stackp
+	 *        The current stack pointer within or just beyond my stack area.
 	 */
 	void adjustPcAndStackp (int pc, int stackp);
 
 	/**
-	 * @return
+	 * Answer whether it is safe to skip checking the type of object returned
+	 * from this continuation.  Only the call site can decide whether to elide
+	 * the check, since it knows whether any semantic restrictions strengthened
+	 * the expected result type.
+	 *
+	 * @return Whether to check the return type when this continuation returns.
 	 */
 	boolean skipReturnFlag ();
 
 	/**
-	 * @param newCaller
-	 * @return
+	 * Create a copy of the receiver if it's not already mutable, then clobber
+	 * the {@link ContinuationDescriptor.ObjectSlots#CALLER} slot with the
+	 * passed value.
+	 *
+	 * @param newCaller The calling continuation.
+	 * @return The original or mutable copy of the original, modified to have
+	 *         the specified caller.
 	 */
 	A_Continuation replacingCaller (A_Continuation newCaller);
 }

@@ -97,7 +97,7 @@ public final class P_057_ExitContinuationWithResult extends Primitive
 			return interpreter.primitiveFailure(
 				E_CONTINUATION_EXPECTED_STRONGER_TYPE);
 		}
-		final AvailObject targetCon = caller.ensureMutable();
+		final A_Continuation targetCon = caller.ensureMutable();
 		targetCon.stackAtPut(targetCon.stackp(), result);
 		interpreter.prepareToResumeContinuation(targetCon);
 		return CONTINUATION_CHANGED;

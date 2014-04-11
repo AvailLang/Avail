@@ -1299,15 +1299,6 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public AvailObject copyAsMutableContinuation ()
-	{
-		return descriptor.o_CopyAsMutableContinuation(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public A_Tuple copyAsMutableObjectTuple ()
 	{
 		return descriptor.o_CopyAsMutableObjectTuple(this);
@@ -1476,7 +1467,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public AvailObject ensureMutable ()
+	public A_Continuation ensureMutable ()
 	{
 		return descriptor.o_EnsureMutable(this);
 	}

@@ -38,12 +38,10 @@ package com.avail.tools.options;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@SuppressWarnings("serial")
 public class UnrecognizedKeywordException
 extends OptionProcessingException
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = 0x0000000000000001L;
-
 	/** The unrecognized keyword. */
 	private final String keyword;
 
