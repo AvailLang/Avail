@@ -224,11 +224,34 @@ public final class AvailBuilder
 		for (final ResolvedModuleName moduleName :
 			new ArrayList<>(moduleGraph.vertices()))
 		{
-			if (!runtime.includesModuleNamed(
-				StringDescriptor.from(moduleName.qualifiedName())))
+			if (getLoadedModule(moduleName) == null)
 			{
 				moduleGraph.exciseVertex(moduleName);
 			}
+		}
+		assert moduleGraph.vertexCount() == allLoadedModules.size();
+	}
+
+	/**
+	 * Check any invariants of the builder that should hold when it is idle.
+	 */
+	public void checkStableInvariants ()
+	{
+		final A_Map loadedRuntimeModules = runtime.loadedModules();
+		final int moduleGraphSize = moduleGraph.vertexCount();
+		final int allLoadedModulesSize = allLoadedModules.size();
+		final int loadedRuntimeModulesSize = loadedRuntimeModules.mapSize();
+		assert moduleGraphSize == allLoadedModulesSize;
+		assert moduleGraphSize == loadedRuntimeModulesSize;
+		for (final ResolvedModuleName graphModuleName :
+			new ArrayList<>(moduleGraph.vertices()))
+		{
+			final A_String qualifiedAvailName =
+				StringDescriptor.from(graphModuleName.qualifiedName());
+			assert allLoadedModules.containsKey(graphModuleName);
+			assert loadedRuntimeModules.hasKey(qualifiedAvailName);
+			assert allLoadedModules.get(graphModuleName).module.equals(
+				loadedRuntimeModules.mapAt(qualifiedAvailName));
 		}
 	}
 
@@ -839,6 +862,14 @@ public final class AvailBuilder
 							}
 						}
 						getLoadedModule(moduleName).deletionRequest = dirty;
+						if (debugBuilder)
+						{
+							if (dirty)
+							{
+								System.out.println(
+									"(Module " + moduleName + " is dirty)");
+							}
+						}
 						completionAction.value();
 					}
 				});
@@ -998,7 +1029,7 @@ public final class AvailBuilder
 					target.deletionRequest = true;
 				}
 			}
-			int moduleCount = moduleGraph.vertices().size();
+			int moduleCount = moduleGraph.vertexCount();
 			moduleGraph.parallelVisit(determineSuccessorModules);
 			moduleGraph.reverse().parallelVisit(unloadModules);
 			// Unloading of each A_Module is complete.  Update my local
@@ -1013,7 +1044,7 @@ public final class AvailBuilder
 					moduleCount--;
 				}
 			}
-			assert moduleGraph.vertices().size() == moduleCount;
+			assert moduleGraph.vertexCount() == moduleCount;
 		}
 	}
 
@@ -1076,16 +1107,14 @@ public final class AvailBuilder
 								System.out.println(
 									"Resolve: " + qualifiedName);
 							}
-							resolvedName =
-								runtime.moduleNameResolver().resolve(
-									qualifiedName, resolvedSuccessor);
+							resolvedName = runtime.moduleNameResolver().resolve(
+								qualifiedName, resolvedSuccessor);
 						}
 						catch (final Exception e)
 						{
 							if (debugBuilder)
 							{
-								System.out.println(
-									"Fail resolution: " + e);
+								System.out.println("Fail resolution: " + e);
 							}
 							shouldStopBuild = true;
 							final Problem problem = new Problem (
@@ -1333,12 +1362,8 @@ public final class AvailBuilder
 		 */
 		@InnerAccess void trace (final ModuleName target)
 		{
-			// Clear all information about modules that have been traced.
-			// This graph will be rebuilt below if successful, or cleared on
-			// failure.  The synchronization is probably unnecessary.
 			synchronized (this)
 			{
-				moduleGraph.clear();
 				traceRequests = 1;
 				traceCompletions = 0;
 			}
@@ -1365,7 +1390,6 @@ public final class AvailBuilder
 			if (shouldStopBuild)
 			{
 				System.err.println("Load failed.");
-				moduleGraph.clear();
 			}
 			else
 			{
@@ -1373,7 +1397,7 @@ public final class AvailBuilder
 				{
 					System.out.println(
 						String.format(
-							"Traced %d modules (%d edges)",
+							"Traced or kept %d modules (%d edges)",
 							moduleGraph.size(),
 							traceCompletions));
 				}
@@ -1979,7 +2003,7 @@ public final class AvailBuilder
 				globalCodeSize += mod.moduleSize();
 			}
 			bytesCompiled.set(0L);
-			final int vertexCountBefore = moduleGraph.vertices().size();
+			final int vertexCountBefore = moduleGraph.vertexCount();
 			moduleGraph.parallelVisit(
 				new Continuation2<ResolvedModuleName, Continuation0>()
 				{
@@ -1993,7 +2017,7 @@ public final class AvailBuilder
 						scheduleLoadModule(moduleName, completionAction);
 					}
 				});
-			assert moduleGraph.vertices().size() == vertexCountBefore;
+			assert moduleGraph.vertexCount() == vertexCountBefore;
 			runtime.moduleNameResolver().commitRepositories();
 			// Parallel load has now completed or failed.
 			if (shouldStopBuild)

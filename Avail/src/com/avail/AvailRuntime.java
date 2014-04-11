@@ -1317,6 +1317,27 @@ public final class AvailRuntime
 	}
 
 	/**
+	 * Answer my current map of modules.  Mark it {@linkplain
+	 * A_BasicObject#makeShared() shared} first for safety.
+	 *
+	 * @return A {@link MapDescriptor map} from resolved module {@linkplain
+	 *         ResolvedModuleName names} ({@linkplain StringDescriptor strings})
+	 *         to {@link ModuleDescriptor modules}.
+	 */
+	public A_Map loadedModules ()
+	{
+		runtimeLock.readLock().lock();
+		try
+		{
+			return modules.makeShared();
+		}
+		finally
+		{
+			runtimeLock.readLock().unlock();
+		}
+	}
+
+	/**
 	 * Answer the {@linkplain ModuleDescriptor module} with the specified
 	 * {@linkplain TupleDescriptor name}.
 	 *

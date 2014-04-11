@@ -1007,8 +1007,8 @@ extends JFrame
 		{
 			backgroundTask = null;
 			reportDone();
-			setEnablements();
 			setCursor(Cursor.getDefaultCursor());
+			setEnablements();
 		}
 
 		/**
@@ -1549,6 +1549,7 @@ extends JFrame
 		inputField.setBackground(isRunning
 			? new Color(192, 255, 192)
 			: null);
+		availBuilder.checkStableInvariants();
 	}
 
 	/**

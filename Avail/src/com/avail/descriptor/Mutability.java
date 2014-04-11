@@ -85,5 +85,16 @@ enum Mutability
 	 * before assignment to the {@linkplain ObjectSlotsEnum object slot} of a
 	 * <em>shared</em> object.
 	 */
-	SHARED
+	SHARED;
+
+	/*
+	 * Remember how we said you shouldn't change the order of these?  Let's
+	 * make sure everyone has read the comments before changing stuff.
+	 */
+	static
+	{
+		assert MUTABLE.ordinal() == 0;
+		assert IMMUTABLE.ordinal() == 1;
+		assert SHARED.ordinal() == 2;
+	}
 }

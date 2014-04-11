@@ -432,6 +432,16 @@ public class Graph <Vertex>
 	}
 
 	/**
+	 * Answer the number of vertices in this graph.
+	 *
+	 * @return The vertex count of the graph.
+	 */
+	public int vertexCount ()
+	{
+		return outEdges.size();
+	}
+
+	/**
 	 * Answer the {@linkplain Collections#unmodifiableSet(Set) unmodifiable set}
 	 * of successors of the specified vertex.  Fail if the vertex is not present
 	 * in the graph.
