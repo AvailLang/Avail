@@ -1511,6 +1511,20 @@ public class L2Translator
 				// The first literal is a variable; return its value.
 				final A_Variable variable =
 					primitiveFunction.code().literalAt(1);
+				if (variable.isInitializedWriteOnceVariable())
+				{
+					// It's an initialized module constant, so it can never
+					// change.  Use the variable's eternal value.
+					final A_BasicObject value = variable.value();
+					if (value.isInstanceOf(expectedType))
+					{
+						value.makeImmutable();
+						moveConstant(value, resultRegister);
+						canFailPrimitive.value = false;
+						return value;
+					}
+					// Its type disagrees with its declaration; fall through.
+				}
 				final L2ObjectRegister varRegister = newObjectRegister();
 				moveConstant(variable, varRegister);
 				addInstruction(

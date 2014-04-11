@@ -4551,4 +4551,10 @@ extends AbstractDescriptor
 	{
 		o_Traversed(object).trailingWhitespace(trailingWhitespace);
 	}
+
+	@Override
+	boolean o_IsInitializedWriteOnceVariable (final AvailObject object)
+	{
+		return o_Traversed(object).isInitializedWriteOnceVariable();
+	}
 }

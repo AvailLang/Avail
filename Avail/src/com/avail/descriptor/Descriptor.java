@@ -4397,4 +4397,10 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	boolean o_IsInitializedWriteOnceVariable (final AvailObject object)
+	{
+		return false;
+	}
 }

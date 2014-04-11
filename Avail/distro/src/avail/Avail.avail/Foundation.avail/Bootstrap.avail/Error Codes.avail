@@ -70,6 +70,7 @@ Names
 	/*  75 */ "cannot-mix-method-and-macro-definitions code",
 	/* 507 */ "cannot-modify-final-Java-field code",
 	/*   3 */ "cannot-multiply-zero-and-infinity code",
+	/*  73 */ "cannot-overwrite-write-once-variable code",
 	/*   6 */ "cannot-read-unassigned-variable code",
 	/*   7 */ "cannot-store-incorrectly-typed-value code",
 	/*   2 */ "cannot-subtract-like-infinities code",
@@ -507,6 +508,11 @@ Primitive "untimely-parse-rejection code" is
 Primitive "method-is-sealed code" is
 [
 	72
+];
+
+Primitive "cannot-overwrite-write-once-variable code" is
+[
+	73
 ];
 
 Primitive "atom-already-exists code" is

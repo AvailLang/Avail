@@ -1139,4 +1139,9 @@ public interface A_BasicObject
 	 * @param critical
 	 */
 	void lock (Continuation0 critical);
+
+	/**
+	 * @return
+	 */
+	boolean isInitializedWriteOnceVariable ();
 }

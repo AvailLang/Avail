@@ -3297,10 +3297,14 @@ public abstract class AbstractAvailCompiler
 						public void value (final @Nullable AvailObject val)
 						{
 							assert val != null;
+							final A_Type innerType =
+								AbstractEnumerationTypeDescriptor
+									.withInstance(val);
+							final A_Type varType =
+								VariableTypeDescriptor.wrapInnerType(innerType);
 							final A_Variable var =
-								VariableDescriptor.forContentType(
-									AbstractEnumerationTypeDescriptor
-										.withInstance(val));
+								VariableSharedWriteOnceDescriptor
+									.forVariableType(varType);
 							module.addConstantBinding(name, var);
 							// Create a module variable declaration (i.e.,
 							// cheat) JUST for this initializing assignment.

@@ -489,7 +489,11 @@ public enum AvailErrorCode
 	 */
 	E_METHOD_IS_SEALED (72),
 
-//	E_??? (73),
+	/**
+	 * Cannot overwrite or clear an initialized {@linkplain
+	 * VariableSharedWriteOnceDescriptor write-once variable}.
+	 */
+	E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE (73),
 
 	/**
 	 * A {@linkplain ModuleDescriptor module} already has an {@linkplain

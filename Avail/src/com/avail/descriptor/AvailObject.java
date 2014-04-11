@@ -6879,4 +6879,10 @@ implements
 	{
 		descriptor.o_TrailingWhitespace(this, trailingWhitespace);
 	}
+
+	@Override
+	public boolean isInitializedWriteOnceVariable ()
+	{
+		return descriptor.o_IsInitializedWriteOnceVariable(this);
+	}
 }

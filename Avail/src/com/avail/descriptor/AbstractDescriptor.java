@@ -5956,4 +5956,10 @@ public abstract class AbstractDescriptor
 	abstract void o_TrailingWhitespace (
 		AvailObject object,
 		A_String trailingWhitespace);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsInitializedWriteOnceVariable (AvailObject object);
 }
