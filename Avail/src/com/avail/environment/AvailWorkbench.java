@@ -1072,9 +1072,18 @@ extends JFrame
 		@Override
 		protected void executeTask () throws Exception
 		{
-			availBuilder.generateDocumentation(
-				targetModuleName(),
-				documentationPath);
+			try
+			{
+				availBuilder.generateDocumentation(
+					targetModuleName(),
+					documentationPath);
+			}
+			catch (final Exception e)
+			{
+				// Put a breakpoint here to debug documentation generation
+				// exceptions.
+				throw e;
+			}
 		}
 
 		@Override

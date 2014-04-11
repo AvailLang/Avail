@@ -2357,20 +2357,26 @@ public final class AvailBuilder
 		final ModuleName target,
 		final Path documentationPath)
 	{
-		shouldStopBuild = false;
-		final BuildTracer tracer = new BuildTracer();
-		tracer.trace(target);
-		final DocumentationTracer documentationTracer =
-			new DocumentationTracer(documentationPath);
-		if (!shouldStopBuild)
+		try
 		{
-			documentationTracer.load();
+			shouldStopBuild = false;
+			final BuildTracer tracer = new BuildTracer();
+			tracer.trace(target);
+			final DocumentationTracer documentationTracer =
+				new DocumentationTracer(documentationPath);
+			if (!shouldStopBuild)
+			{
+				documentationTracer.load();
+			}
+			if (!shouldStopBuild)
+			{
+				documentationTracer.generate(target);
+			}
 		}
-		if (!shouldStopBuild)
+		finally
 		{
-			documentationTracer.generate(target);
+			trimGraphToLoadedModules();
 		}
-		trimGraphToLoadedModules();
 	}
 
 	/**
