@@ -267,7 +267,9 @@ POSSIBILITY OF SUCH DAMAGE.
 				excludes="
 					**/tests/**,
 					com/avail/environment/**,
-					com/avail/tools/**"/>
+					com/avail/tools/**,
+					com/avail/utility/fsm/**,
+					com/avail/utility/json/**"/>
 			<fileset
 				dir="${path.avail}"
 				includes="resources/**"/>
