@@ -85,7 +85,7 @@ Method "_[_]else_" is
  * dynamic publication, then answer this atom. Otherwise, privately introduce a
  * new atom.
  *
- * @method "_is a|an new⁇field⁇atom"
+ * @method "«Public»?_is a|an new⁇field⁇atom"
  * @param "atomName" "string"
  *        The name by which this atom is known locally.
  * @returns "⊤"

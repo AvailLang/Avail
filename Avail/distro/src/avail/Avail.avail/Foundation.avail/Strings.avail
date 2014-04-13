@@ -1700,7 +1700,7 @@ Public method "(a`|an)“_”«else_»" is
  * uppercased indefinite article. If {@param "value"} is a string, then it will
  * not be quoted.
  *
- * @method "(a`|an)“_”«else_»"
+ * @method "(A`|An)“_”«else_»"
  * @param "value" "any"
  * @param "optionalMissingText" "<string…|0..1>"
  *        If specified, then the text that will be displayed if {@param "value"}
