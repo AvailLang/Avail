@@ -32,8 +32,14 @@
 
 package com.avail.environment;
 
+import java.awt.Image;
+import javax.swing.ImageIcon;
 import javax.swing.tree.DefaultMutableTreeNode;
+import com.avail.annotations.Nullable;
 import com.avail.builder.AvailBuilder;
+import com.avail.utility.LRUCache;
+import com.avail.utility.Pair;
+import com.avail.utility.evaluation.Transformer1;
 
 /**
  * An {@code AbstractBuilderFrameTreeNode} is a tree node used within some
@@ -84,6 +90,59 @@ extends DefaultMutableTreeNode
 	}
 
 	/**
+	 * The local file name {@code String} of an image file, relative to the
+	 * directory "distro/images/".
+	 *
+	 * @return The local file name, or {@code null} to indicate not to display
+	 *         an icon.
+	 */
+	abstract @Nullable String iconResourceName ();
+
+	/**
+	 * A static cache of scaled icons, organized by node class and line height.
+	 */
+	final static LRUCache<Pair<String, Integer>, ImageIcon>
+		cachedScaledIcons = new LRUCache<>(
+			100,
+			20,
+			new Transformer1<Pair<String, Integer>, ImageIcon>()
+			{
+				@Override
+				public ImageIcon value(
+					final @Nullable Pair<String, Integer> key)
+				{
+					assert key != null;
+					final String iconResourceName = key.first();
+					final ImageIcon originalIcon = new ImageIcon(
+						"distro/images/" + iconResourceName + ".png");
+					final Image scaled =
+						originalIcon.getImage().getScaledInstance(
+							-1, key.second(), Image.SCALE_SMOOTH);
+					return new ImageIcon(scaled, iconResourceName);
+				}
+			});
+
+	/**
+	 * Return a suitable icon to display for this instance with the given line
+	 * height.
+	 *
+	 * @param lineHeight The desired icon height in pixels.
+	 * @return The icon.
+	 */
+	public final @Nullable ImageIcon icon (final int lineHeight)
+	{
+		final @Nullable String iconResourceName = iconResourceName();
+		if (iconResourceName == null)
+		{
+			return null;
+		}
+		final Pair<String, Integer> pair = new Pair<>(
+			iconResourceName,
+			lineHeight);
+		return cachedScaledIcons.get(pair);
+	}
+
+	/**
 	 * Construct HTML text to present for this node.
 	 *
 	 * @param selected
@@ -92,7 +151,7 @@ extends DefaultMutableTreeNode
 	 */
 	final String htmlText (final boolean selected)
 	{
-		return "<div style='" + htmlStyle(selected) + "'>"
+		return "<div style=\"" + htmlStyle(selected) + "\">"
 			+ text(selected)
 			+ "</div>";
 	}

@@ -317,9 +317,9 @@ Semantic restriction "a file named_(mode=_)" is
 ];
 
 Stable method "_is readable" is [f : file | false] : boolean;
-Method "_is readable" is [f : readable file | true];
+Stable method "_is readable" is [f : readable file | true];
 Stable method "_is writable" is [f : file | false] : boolean;
-Method "_is writable" is [f : writable file | true];
+Stable method "_is writable" is [f : writable file | true];
 Public method "_is open" is [f : file | f's open state];
 Public method "_is closed" is [f : file | ¬f's open state];
 

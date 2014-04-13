@@ -32,6 +32,7 @@
 
 package com.avail.environment;
 
+import com.avail.annotations.Nullable;
 import com.avail.builder.AvailBuilder;
 import com.avail.builder.ModuleRoot;
 
@@ -61,6 +62,12 @@ class ModuleRootNode extends AbstractBuilderFrameTreeNode
 	}
 
 	@Override
+	@Nullable String iconResourceName ()
+	{
+		return null;
+	}
+
+	@Override
 	String text (final boolean selected)
 	{
 		return moduleRoot.name();
@@ -69,7 +76,6 @@ class ModuleRootNode extends AbstractBuilderFrameTreeNode
 	@Override
 	String htmlStyle (final boolean selected)
 	{
-		return super.htmlStyle(selected)
-			+ ";font-weight:900;font-size:110%;text-decoration:underline";
+		return "font-weight:900";
 	}
 }

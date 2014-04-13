@@ -1567,14 +1567,20 @@ extends Descriptor
 
 		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
 		fiber.setSlot(DEBUG_FIBER_PURPOSE, purpose);
-
-		final StringBuilder builder = new StringBuilder(200);
-		builder.append("new: ");
-		builder.append(purpose);
-		builder.append("\n");
-		final AvailObject pojo = RawPojoDescriptor.identityWrap(builder);
-		fiber.setSlot(DEBUG_LOG, pojo);
-
+		final AvailObject logPojo;
+		if (debugFibers)
+		{
+			final StringBuilder builder = new StringBuilder(200);
+			builder.append("new: ");
+			builder.append(purpose);
+			builder.append("\n");
+			logPojo = RawPojoDescriptor.identityWrap(builder);
+		}
+		else
+		{
+			logPojo = RawPojoDescriptor.rawNullObject();
+		}
+		fiber.setSlot(DEBUG_LOG, logPojo);
 		return fiber;
 	}
 
@@ -1628,14 +1634,20 @@ extends Descriptor
 
 		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
 		fiber.setSlot(DEBUG_FIBER_PURPOSE, purpose);
-
-		final StringBuilder builder = new StringBuilder(200);
-		builder.append("newLoader: ");
-		builder.append(purpose);
-		builder.append("\n");
-		final AvailObject pojo = RawPojoDescriptor.identityWrap(builder);
-		fiber.setSlot(DEBUG_LOG, pojo);
-
+		final AvailObject logPojo;
+		if (debugFibers)
+		{
+			final StringBuilder builder = new StringBuilder(200);
+			builder.append("newLoader: ");
+			builder.append(purpose);
+			builder.append("\n");
+			logPojo = RawPojoDescriptor.identityWrap(builder);
+		}
+		else
+		{
+			logPojo = RawPojoDescriptor.rawNullObject();
+		}
+		fiber.setSlot(DEBUG_LOG, logPojo);
 		return fiber;
 	}
 

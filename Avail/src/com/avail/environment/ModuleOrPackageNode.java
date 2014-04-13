@@ -32,6 +32,7 @@
 
 package com.avail.environment;
 
+import com.avail.annotations.Nullable;
 import com.avail.builder.AvailBuilder;
 import com.avail.builder.ResolvedModuleName;
 
@@ -65,6 +66,12 @@ extends AbstractBuilderFrameTreeNode
 		super(builder);
 		this.resolvedModuleName = resolvedModuleName;
 		this.isPackage = isPackage;
+	}
+
+	@Override
+	@Nullable String iconResourceName ()
+	{
+		return isPackage ? "PackageInTree" : "ModuleInTree";
 	}
 
 	@Override
