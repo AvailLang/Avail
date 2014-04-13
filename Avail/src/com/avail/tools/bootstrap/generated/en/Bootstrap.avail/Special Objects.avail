@@ -1618,7 +1618,7 @@ Primitive "any meta" is
  *
  * @category "Primitives" "Constants"
  * @method "true"
- * @type "true's type"
+ * @returns "true's type"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-boolean.html"
  */
 Primitive "true" is
@@ -1632,7 +1632,7 @@ Primitive "true" is
  *
  * @category "Primitives" "Constants"
  * @method "false"
- * @type "false's type"
+ * @returns "false's type"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-boolean.html"
  */
 Primitive "false" is

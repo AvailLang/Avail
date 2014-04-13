@@ -31,7 +31,6 @@
  */
 
 package com.avail.stacks;
-
 import java.util.HashMap;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;

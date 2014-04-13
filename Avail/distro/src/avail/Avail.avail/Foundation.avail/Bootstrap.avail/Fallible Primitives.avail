@@ -364,6 +364,7 @@ Primitive "Clear_" is
  *        A variable.
  * @param "arg2" "variable"
  *        A variable.
+ * @returns "⊤"
  * @raises "cannot-swap-contents-of-differently-typed-variables exception"
  */
 Primitive "swap_and_" is
@@ -585,6 +586,7 @@ Primitive "$_@pc=_stack=_[_]caller=_" is
  *        The continuation to restart.
  * @param "arguments" "tuple"
  *        The new arguments with which to restart {@param "aContinuation"}.
+ * @returns "⊥"
  * @raises "incorrect-number-of-arguments exception"
  * @raises "incorrect-argument-type exception"
  */
@@ -612,6 +614,7 @@ Primitive "Restart_with_" is
  *        The continuation to exit.
  * @param "value" "any"
  *        The value with which to exit {@param "aContinuation"}.
+ * @returns "⊥"
  * @raises "continuation-expected-stronger-type exception"
  */
 Primitive "Exit_with_" is
@@ -837,6 +840,7 @@ Primitive "_[_]" is
  *        The property key.
  * @param "value" "any"
  *        The property value.
+ * @returns "⊤"
  * @raises "special-atom exception"
  */
 Primitive "_[_]:=_" is
@@ -859,6 +863,7 @@ Primitive "_[_]:=_" is
  *        An atom.
  * @param "key" "atom"
  *        A property key.
+ * @returns "⊤"
  * @raises "key-not-found exception"
  * @raises "no-such-field exception"
  */
@@ -1282,6 +1287,7 @@ Primitive "message_contains groups" is
  * @param "signature" "tuple of any meta"
  *        A tuple of parameter types. This is the signature at which the
  *       seal will be placed.
+ * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
  * @raises "incorrect-argument-type exception"
  * @raises "incorrect-type-for-group exception"
@@ -1348,6 +1354,7 @@ Primitive "Seal method_at_" is
  *        The atom that uniquely names the abstract method to declare.
  * @param "signature" "function meta"
  *        The signature.
+ * @returns "⊤"
  * @raises "incorrect-argument-type exception"
  * @raises "incorrect-type-for-group exception"
  * @raises "exclamation-mark-must-follow-an-alternation-group exception"
@@ -1453,6 +1460,7 @@ Primitive "_has definition for_" is
  *        The name of the method to which the semantic restriction applies.
  * @param "restriction" "semantic restriction function"
  *        The restriction function.
+ * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
  * @raises "incorrect-argument-type exception"
  * @raises "type-restriction-must-accept-only-types exception"
@@ -1517,6 +1525,7 @@ Primitive "Semantic restriction_is_" is
  * @param "signature" "tuple of any meta"
  *        A tuple of parameter types. This is the signature at which the seal
  *        will be placed.
+ * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
  * @raises "incorrect-argument-type exception"
  * @raises "incorrect-type-for-group exception"
@@ -1575,6 +1584,7 @@ Primitive "Seal method_at_" is
  * @method "After the current module is unloaded,⁇do_"
  * @param "aFunction" "function"
  *        The post-unload function.
+ * @returns "⊤"
  * @raises "loading-is-over exception"
  */
 Primitive "After the current module is unloaded,⁇do_" is
@@ -1589,6 +1599,8 @@ Primitive "After the current module is unloaded,⁇do_" is
 /**
  * Answer the module currently undergoing compilation.
  *
+ * @category "Primitives"
+ * @method "current module"
  * @returns "module"
  *    The module currently undergoing compilation.
  * @raises "loading-is-over exception"
@@ -1638,6 +1650,7 @@ Primitive "atom for_" is
  * @method "Publish new name:_"
  * @param "newName" "string"
  *        The name that should be introduced.
+ * @returns "⊤"
  * @raises "ambiguous-name exception"
  * @raises "loading-is-over exception"
  */
@@ -1669,6 +1682,7 @@ Primitive "Publish new name:_" is
  *        The name of the method to which the semantic restriction applies.
  * @param "restriction" "semantic restriction function"
  *        The restriction function.
+ * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
  * @raises "incorrect-argument-type exception"
  * @raises "type-restriction-must-accept-only-types exception"
@@ -1749,6 +1763,7 @@ Primitive "Semantic restriction_is_" is
  *        A tuple of zero or more prefix functions.
  * @param "body" "macro function"
  *        The function that implements the macro.
+ * @returns "⊤"
  * @raises "incorrect-argument-type exception"
  * @raises "incorrect-type-for-group exception"
  * @raises "macro-argument-must-be-a-parse-node exception"
@@ -1819,6 +1834,7 @@ Primitive "Macro_is«_,»_" is
  *        The name of the abstract method to declare.
  * @param "aFunctionType" "function meta"
  *        The signature.
+ * @returns "⊤"
  * @raises "incorrect-argument-type exception"
  * @raises "incorrect-type-for-group exception"
  * @raises "ambiguous-name exception"
@@ -1891,6 +1907,7 @@ Primitive "Abstract method_is_" is
  *        The name of the method to forward declare.
  * @param "aFunctionType" "function meta"
  *        The signature.
+ * @returns "⊤"
  * @raises "incorrect-argument-type exception"
  * @raises "incorrect-type-for-group exception"
  * @raises "ambiguous-name exception"
@@ -1952,6 +1969,8 @@ Primitive "Forward method_is_" is
 /**
  * Read the next character from the standard input stream.
  *
+ * @category "Primitives"
+ * @method "next character"
  * @returns "character"
  *    The next character from the standard input stream.
  * @raises "I/O-error exception"
@@ -1984,6 +2003,7 @@ Primitive "next character" is
  *        A tuple of sets of method names. The method names in the `n`-th set
  *        are restricted from occurring grammatically at the `n`-th argument
  *        position of any invocation of a method named in {@param "methodsToRestrict"}.
+ * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
  * @raises "incorrect-argument-type exception"
  * @raises "incorrect-type-for-group exception"
@@ -2044,6 +2064,7 @@ Primitive "Grammatical restriction_is_" is
  * @method "Mark for_character|characters of read ahead"
  * @param "count" "whole number"
  *        The requested number of characters of read ahead.
+ * @returns "⊤"
  * @raises "I/O-error exception"
  */
 Primitive "Mark for_character|characters of read ahead" is
@@ -2058,6 +2079,9 @@ Primitive "Mark for_character|characters of read ahead" is
 /**
  * Reset the standard input stream to the previously set mark.
  *
+ * @category "Primitives"
+ * @method "Reset to mark"
+ * @returns "⊤"
  * @raises "I/O-error exception"
  */
 Primitive "Reset to mark" is
@@ -2089,6 +2113,7 @@ Primitive "Reset to mark" is
  *       `n`-th set are restricted from occurring grammatically at the `n`-th
  *       argument position of any invocation of a method named in
  *       {@param "methodsToRestrict"}.
+ * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
  * @raises "incorrect-argument-type exception"
  * @raises "incorrect-type-for-group exception"
@@ -2142,6 +2167,8 @@ Primitive "Grammatical restriction_is_" is
 /**
  * Answer the set of all atoms exported by the current module.
  *
+ * @category "Primitives"
+ * @method "current module's exported names"
  * @returns "{atom|}"
  *    The set of atoms exported by the current module.
  * @raises "natural number"
@@ -2160,6 +2187,7 @@ Primitive "current module's exported names" is
  * @method "Seal method|methods_at existing definitions"
  * @param "methodNames" "set of atom"
  *        A set of atoms that serve as method names.
+ * @returns "⊤"
  * @raises "loading-is-over exception"
  */
 Primitive "Seal method|methods_at existing definitions" is
@@ -2264,6 +2292,7 @@ Primitive "`«(_:=_)`»" is
  * @param "expected" "string"
  *        A description of the cause of rejection, worded to sound good
  *        after {@code "Expected..."}.
+ * @returns "⊥"
  * @raises "untimely-parse-rejection exception"
  */
 Primitive "Reject parse,expected:_" is
@@ -2750,6 +2779,7 @@ Primitive "_[_]" is
  *        A one-based index into the pojo array.
  * @param "value" "any"
  *        The value that should be written into the pojo array.
+ * @returns "⊤"
  * @raises "cannot-store-incorrectly-typed-value exception"
  * @raises "subscript-out-of-bounds exception"
  * @raises "Java-marshaling-failed exception"
@@ -2827,6 +2857,7 @@ Primitive "current fiber[_]" is
  *        The key whose value should be (over)written.
  * @param "value" "any"
  *        The new value.
+ * @returns "⊤"
  * @raises "special-atom exception"
  */
 Primitive "current fiber[_]:=_" is
@@ -2847,6 +2878,7 @@ Primitive "current fiber[_]:=_" is
  * @method "Remove current fiber[_]"
  * @param "key" "atom"
  *        The key whose binding should be removed.
+ * @returns "⊤"
  * @raises "no-such-fiber-variable exception"
  * @raises "special-atom exception"
  */
@@ -2872,6 +2904,7 @@ Primitive "Remove current fiber[_]" is
  *        The arguments to the function.
  * @param "priority" "byte"
  *        The priority of the new fiber.
+ * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
  * @raises "incorrect-argument-type exception"
  */
@@ -2925,6 +2958,7 @@ Primitive "invoke_with_,⁇forked at priority_" is
  * @method "Attempt to join_"
  * @param "aFiber" "fiber"
  *        A fiber.
+ * @returns "⊤"
  * @raises "fiber-cannot-join-itself exception"
  */
 Primitive "Attempt to join_" is
@@ -2978,6 +3012,7 @@ Primitive "_'s⁇result" is
  *        The arguments to the function.
  * @param "priority" "byte"
  *        The priority of the new fiber.
+ * @returns "arguments"
  * @raises "incorrect-number-of-arguments exception"
  * @raises "incorrect-argument-type exception"
  */

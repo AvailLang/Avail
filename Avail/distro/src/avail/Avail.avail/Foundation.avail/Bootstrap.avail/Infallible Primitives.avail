@@ -404,6 +404,8 @@ Primitive "_'s⁇write type" is
  * Coordinated Universal Time (UTC) of Thursday, January 1, 1970 (i.e. the Unix
  * Epoch).
  *
+ * @category "Primitives"
+ * @method "milliseconds since the Epoch"
  * @returns "[0..∞)"
  *    The current time as the number of milliseconds which have elapsed since
  *    the Unix Epoch.
@@ -666,6 +668,7 @@ Primitive "If|if_then_else_" is
  *        A predicate value.
  * @param "trueBlock" "nullary procedure"
  *        The function to invoke if {@param "predicate"} is `true`.
+ * @returns "⊤"
  */
 Primitive "If_then_" is
 [
@@ -682,6 +685,8 @@ Primitive "If_then_" is
  * have a fixed reference frame, so it should generally only be used to measure
  * the time elapsed between two invocations.
  *
+ * @category "Primitives"
+ * @method "high-precision timer value"
  * @returns "[0..∞)"
  *    The current value of the high-precision timer, in nanoseconds.
  */
@@ -849,6 +854,7 @@ Primitive "_'s⁇stack pointer" is
  * @method "Restart_"
  * @param "aContinuation" "continuation"
  *        The continuation to restart.
+ * @returns "⊥"
  */
 Primitive "Restart_" is
 [
@@ -1001,6 +1007,7 @@ Primitive "enumeration of_" is
  * @param "name" "string"
  *        The name that should be bound to the object type. This will replace
  *        a previously bound name.
+ * @returns "⊤"
  */
 Primitive "_'s⁇name:=_" is
 [
@@ -1697,6 +1704,7 @@ Primitive "_'s⁇name" is
  * These atoms cannot serve as properties, nor have properties added, queried,
  * modified, or removed.
  *
+ * @method "special atoms"
  * @returns "{atom|}"
  *    The special atoms.
  */
@@ -2294,6 +2302,7 @@ Primitive "_is a primitive" is
  * @method "Crash:_"
  * @param "value" "any"
  *        A value, provided to establish context for debugging.
+ * @returns "⊥"
  */
 Primitive "Crash:_" is
 [
@@ -2309,6 +2318,9 @@ Primitive "Crash:_" is
  * 
  * This method exists to facilitate debugging of the Avail virtual machine, and
  * will be withdrawn once the implementation is considered sufficiently stable.
+ * @category "Primitives"
+ * @method "Breakpoint"
+ * @returns "⊤"
  */
 Primitive "Breakpoint" is
 [
@@ -2322,6 +2334,7 @@ Primitive "Breakpoint" is
  * @method "Print:_"
  * @param "text" "string"
  *        A string.
+ * @returns "⊤"
  */
 Primitive "Print:_" is
 [
@@ -2364,6 +2377,7 @@ Primitive "primitive description of_" is
  * @param "message" "string"
  *        Text describing the assertion failure, ignored unless {@param
  *        "predicate"} is `false`.
+ * @returns "⊤"
  */
 Primitive "Assert:_(_)" is
 [
@@ -2380,6 +2394,7 @@ Primitive "Assert:_(_)" is
  * @method "Error:_"
  * @param "text" "string"
  *        A string.
+ * @returns "⊤"
  */
 Primitive "Error:_" is
 [
@@ -3584,6 +3599,8 @@ Primitive "_→tuple" is
 /**
  * Answer the current fiber.
  *
+ * @category "Primitives"
+ * @method "current fiber"
  * @returns "fiber→⊤"
  *    The current fiber.
  */
@@ -3620,6 +3637,7 @@ Primitive "_'s⁇priority" is
  *        The fiber to prioritize.
  * @param "priority" "byte"
  *        The new priority.
+ * @returns "⊤"
  */
 Primitive "_'s⁇priority:=_" is
 [
@@ -3633,6 +3651,8 @@ Primitive "_'s⁇priority:=_" is
  * Has termination of the current fiber been requested? Answer the current value
  * of the appropriate interrupt request flag and simultaneously clear it.
  *
+ * @category "Primitives"
+ * @method "termination requested"
  * @returns "boolean"
  *    `true` if termination of the current fiber has been requested, `false`
  *    otherwise.
@@ -3651,6 +3671,7 @@ Primitive "termination requested" is
  * @method "Request termination of_"
  * @param "victim" "fiber"
  *        A fiber.
+ * @returns "⊤"
  */
 Primitive "Request termination of_" is
 [
@@ -3661,6 +3682,9 @@ Primitive "Request termination of_" is
 
 /**
  * Terminate the current fiber.
+ * @category "Primitives"
+ * @method "Terminate current fiber"
+ * @returns "⊥"
  */
 Primitive "Terminate current fiber" is
 [
@@ -3675,6 +3699,9 @@ Primitive "Terminate current fiber" is
  * always recheck the basis for its having parked, to see if it should park
  * again. Low-level synchronization mechanisms may require the ability to
  * spuriously unpark in order to ensure correctness.
+ * @category "Primitives"
+ * @method "Park current fiber"
+ * @returns "⊤"
  */
 Primitive "Park current fiber" is
 [
@@ -3693,6 +3720,7 @@ Primitive "Park current fiber" is
  * @method "Unpark_"
  * @param "aFiber" "fiber"
  *        A fiber.
+ * @returns "aFiber"
  */
 Primitive "Unpark_" is
 [
@@ -3704,6 +3732,9 @@ Primitive "Unpark_" is
 /**
  * Yield the current fiber. That is, give up the fiber's time slice so that
  * other processes of higher or equal priority may run.
+ * @category "Primitives"
+ * @method "Yield current fiber"
+ * @returns "⊤"
  */
 Primitive "Yield current fiber" is
 [
@@ -3736,6 +3767,7 @@ Primitive "_'s⁇name" is
  *        A fiber.
  * @param "name" "string"
  *        The fiber's new name.
+ * @returns "⊤"
  */
 Primitive "_'s⁇name:=_" is
 [
@@ -3790,6 +3822,7 @@ Primitive "_has result" is
  * @method "Sleep for_millisecond|milliseconds"
  * @param "delayMillis" "nonnegative extended integer"
  *        The minimum number of milliseconds to sleep.
+ * @returns "⊤"
  */
 Primitive "Sleep for_millisecond|milliseconds" is
 [
@@ -3802,6 +3835,8 @@ Primitive "Sleep for_millisecond|milliseconds" is
  * Ascertain whether the current fiber was forked (by the compiler) in order to
  * evaluate a semantic restriction.
  *
+ * @category "Primitives"
+ * @method "current fiber is applying a semantic restriction"
  * @returns "boolean"
  *    `true` if the current fiber is applying a semantic restriction, `false`
  *    otherwise.

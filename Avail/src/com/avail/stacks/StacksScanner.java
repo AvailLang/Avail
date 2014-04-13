@@ -326,11 +326,11 @@ public class StacksScanner extends AbstractStacksScanner
 							erasurePosition = scanner.beingTokenized().length();
 						}
 					}
-					else if (c == '<')
+/*					else if (c == '<')
 					{
 						// Make safe for HTML
 						scanner.beingTokenized().append("&lt;");
-					}
+					}*/
 					else
 					{
 						scanner.beingTokenized().appendCodePoint(c);

@@ -89,4 +89,10 @@ public class QuotedStacksToken extends RegionStacksToken
 		return new QuotedStacksToken(
 			string, lineNumber, postion, startOfTokenLinePostion, moduleName);
 	}
+
+	@Override
+	public String toHTML(final HTMLFileMap htmlFileMap)
+	{
+		return lexeme().replace("<", "&lt;");
+	}
 }
