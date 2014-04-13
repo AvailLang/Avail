@@ -130,7 +130,7 @@ implements AutoCloseable
 	 * A {@JSONState} represents the {@linkplain JSONWriter writer}'s view of
 	 * what operations are legal based on what operations have become before.
 	 */
-	@InnerAccess static enum JSONState
+	static enum JSONState
 	{
 		/**
 		 * The {@linkplain JSONWriter writer} is expecting a single arbitrary
