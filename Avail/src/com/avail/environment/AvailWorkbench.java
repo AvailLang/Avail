@@ -254,7 +254,6 @@ extends JFrame
 			final DocumentationTask task =
 				new DocumentationTask(selectedModule);
 			backgroundTask = task;
-			isBuilding = true;
 			setEnablements();
 			task.execute();
 		}
@@ -641,7 +640,7 @@ extends JFrame
 		{
 			if (inputField.isFocusOwner())
 			{
-				assert !isBuilding;
+				assert backgroundTask == null;
 				if (isRunning)
 				{
 					// Program is running.  Feed this new line of text to the
@@ -1009,9 +1008,9 @@ extends JFrame
 		{
 			backgroundTask = null;
 			reportDone();
-			setCursor(Cursor.getDefaultCursor());
 			availBuilder.checkStableInvariants();
 			setEnablements();
+			setCursor(Cursor.getDefaultCursor());
 		}
 
 		/**
@@ -1529,9 +1528,6 @@ extends JFrame
 
 	/** The {@linkplain InsertEntryPointAction insert entry point action}. */
 	@InnerAccess final InsertEntryPointAction insertEntryPointAction;
-
-	/** Whether a build is currently in progress. */
-	boolean isBuilding = false;
 
 	/** Whether an entry point invocation (command line) is executing. */
 	boolean isRunning = false;
