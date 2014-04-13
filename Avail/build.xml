@@ -389,7 +389,7 @@ extended with custom module roots as you develop your own modules.
 	<target
 			name="clean"
 			description="Clean the build environment.">
-		<delete quiet="true">
+		<delete includeemptydirs="true" quiet="true">
 			<fileset dir="${path.avail.bin}" includes="**"/>
 			<filename name="${path.jar.avail}"/>
 			<filename name="${path.jar.dev}"/>
@@ -402,7 +402,7 @@ extended with custom module roots as you develop your own modules.
 	<target
 			name="uninstall"
 			description="Uninstall the Avail development environment.">
-		<delete quiet="true">
+		<delete includeemptydirs="true" quiet="true">
 			<fileset dir="${path.install}" includes="**"/>
 		</delete>
 	</target>
