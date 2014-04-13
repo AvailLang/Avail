@@ -41,7 +41,7 @@ Extends
 	),
 	"Graphs",
 	"Iterators",
-	"Optional",
+/*	"Optional"*/  /* The "+_" operator leads to confusing diagnostics. */
 	"Pseudorandom Number Generation",
 	"Sequences",
 	"Streams"
