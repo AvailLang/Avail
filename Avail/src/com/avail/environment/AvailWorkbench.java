@@ -2415,7 +2415,6 @@ extends JFrame
 			HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		moduleTreeScrollArea.setVerticalScrollBarPolicy(
 			VERTICAL_SCROLLBAR_AS_NEEDED);
-		moduleTreeScrollArea.setVisible(true);
 		moduleTreeScrollArea.setMinimumSize(new Dimension(100, 0));
 		moduleTree = new JTree(modules);
 		moduleTree.setToolTipText(
@@ -2429,7 +2428,6 @@ extends JFrame
 		moduleTree.setToggleClickCount(0);
 		moduleTree.setShowsRootHandles(true);
 		moduleTree.setRootVisible(false);
-		moduleTree.setVisible(true);
 		moduleTree.addTreeSelectionListener(new TreeSelectionListener()
 		{
 			@Override
@@ -2472,7 +2470,6 @@ extends JFrame
 			HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		entryPointsScrollArea.setVerticalScrollBarPolicy(
 			VERTICAL_SCROLLBAR_AS_NEEDED);
-		entryPointsScrollArea.setVisible(true);
 		entryPointsScrollArea.setMinimumSize(new Dimension(100, 0));
 		entryPointsTree = new JTree(entryPoints);
 		entryPointsTree.setToolTipText(
@@ -2486,7 +2483,6 @@ extends JFrame
 		entryPointsTree.setToggleClickCount(0);
 		entryPointsTree.setShowsRootHandles(true);
 		entryPointsTree.setRootVisible(false);
-		entryPointsTree.setVisible(true);
 		entryPointsTree.addTreeSelectionListener(new TreeSelectionListener()
 		{
 			@Override
@@ -2546,7 +2542,6 @@ extends JFrame
 			HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		transcriptScrollArea.setVerticalScrollBarPolicy(
 			VERTICAL_SCROLLBAR_AS_NEEDED);
-		transcriptScrollArea.setVisible(true);
 		// Make this row and column be where the excess space goes.
 		// And reset the weights...
 		transcript = new JTextPane();
@@ -2556,7 +2551,6 @@ extends JFrame
 		transcript.setEnabled(true);
 		transcript.setFocusable(true);
 		transcript.setPreferredSize(new Dimension(0, 500));
-		transcript.setVisible(true);
 		transcriptScrollArea.setViewportView(transcript);
 
 		// Create the input area.
@@ -2576,7 +2570,6 @@ extends JFrame
 		inputField.setEditable(true);
 		inputField.setEnabled(true);
 		inputField.setFocusable(true);
-		inputField.setVisible(true);
 
 		// Subscribe to module loading events.
 		availBuilder.subscribeToModuleLoading(
@@ -2699,12 +2692,14 @@ extends JFrame
 			}
 		});
 		// Select an initial module if specified.
+		validate();
 		if (!initialTarget.isEmpty())
 		{
 			final TreePath path = modulePath(initialTarget);
 			if (path != null)
 			{
 				moduleTree.setSelectionPath(path);
+				moduleTree.scrollRowToVisible(moduleTree.getRowForPath(path));
 			}
 		}
 		setEnablements();
@@ -2801,6 +2796,15 @@ extends JFrame
 				final AvailWorkbench frame =
 					new AvailWorkbench(resolver, initial);
 				frame.setVisible(true);
+				if (!initial.isEmpty())
+				{
+					final TreePath path = frame.modulePath(initial);
+					if (path != null)
+					{
+						frame.moduleTree.setSelectionPath(path);
+						frame.moduleTree.scrollPathToVisible(path);
+					}
+				}
 			}
 		});
 	}
