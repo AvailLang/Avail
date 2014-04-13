@@ -1,5 +1,5 @@
 /**
- * ModuleRootNode.java
+ * JSONWriterException.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,52 +30,30 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.environment;
+package com.avail.utility.json;
 
-import com.avail.annotations.Nullable;
-import com.avail.builder.AvailBuilder;
-import com.avail.builder.ModuleRoot;
+import java.io.IOException;
 
 /**
- * This is a tree node representing a {@link ModuleRoot}.
+ * A {@code JSONWriterException} is an {@linkplain RuntimeException unchecked
+ * exception} that wraps an {@link IOException}.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@SuppressWarnings("serial")
-class ModuleRootNode extends AbstractBuilderFrameTreeNode
+public final class JSONWriterException
+extends RuntimeException
 {
-	/** The {@link ModuleRoot} that this represents. */
-	final ModuleRoot moduleRoot;
+	/** The serial version identifier. */
+	private static final long serialVersionUID = -7877694113619594180L;
 
 	/**
-	 * Construct a new {@link ModuleRootNode}.
+	 * Construct a new {@link JSONWriterException}.
 	 *
-	 * @param builder The builder for which this node is being built.
-	 * @param moduleRoot The {@link ModuleRoot} that this represents.
+	 * @param cause
+	 *        The causal exception.
 	 */
-	public ModuleRootNode (
-		final AvailBuilder builder,
-		final ModuleRoot moduleRoot)
+	public JSONWriterException (final Exception cause)
 	{
-		super(builder);
-		this.moduleRoot = moduleRoot;
-	}
-
-	@Override
-	@Nullable String iconResourceName ()
-	{
-		return null;
-	}
-
-	@Override
-	String text (final boolean selected)
-	{
-		return moduleRoot.name();
-	}
-
-	@Override
-	String htmlStyle (final boolean selected)
-	{
-		return "font-weight:900";
+		super(cause);
 	}
 }

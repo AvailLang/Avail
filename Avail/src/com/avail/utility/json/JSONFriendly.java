@@ -1,5 +1,5 @@
 /**
- * ModuleRootNode.java
+ * JSONFriendly.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,52 +30,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.environment;
-
-import com.avail.annotations.Nullable;
-import com.avail.builder.AvailBuilder;
-import com.avail.builder.ModuleRoot;
+package com.avail.utility.json;
 
 /**
- * This is a tree node representing a {@link ModuleRoot}.
+ * A class can implement {@code JSONFriendly} to enable JSON serialization of
+ * its instances.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@SuppressWarnings("serial")
-class ModuleRootNode extends AbstractBuilderFrameTreeNode
+public interface JSONFriendly
 {
-	/** The {@link ModuleRoot} that this represents. */
-	final ModuleRoot moduleRoot;
-
 	/**
-	 * Construct a new {@link ModuleRootNode}.
+	 * Emit a JSON representation of the {@linkplain JSONFriendly receiver} onto
+	 * the specified {@linkplain JSONWriter writer}.
 	 *
-	 * @param builder The builder for which this node is being built.
-	 * @param moduleRoot The {@link ModuleRoot} that this represents.
+	 * @param writer
+	 *        A {@link JSONWriter}.
 	 */
-	public ModuleRootNode (
-		final AvailBuilder builder,
-		final ModuleRoot moduleRoot)
-	{
-		super(builder);
-		this.moduleRoot = moduleRoot;
-	}
-
-	@Override
-	@Nullable String iconResourceName ()
-	{
-		return null;
-	}
-
-	@Override
-	String text (final boolean selected)
-	{
-		return moduleRoot.name();
-	}
-
-	@Override
-	String htmlStyle (final boolean selected)
-	{
-		return "font-weight:900";
-	}
+	public void writeTo (JSONWriter writer);
 }

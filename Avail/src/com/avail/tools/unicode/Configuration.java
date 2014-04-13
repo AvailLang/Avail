@@ -1,5 +1,5 @@
 /**
- * EntryPointModuleNode.java
+ * Configuration.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,76 +30,36 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.environment;
+package com.avail.tools.unicode;
 
+import java.nio.file.Path;
 import com.avail.annotations.Nullable;
-import com.avail.builder.AvailBuilder;
-import com.avail.builder.ResolvedModuleName;
 
 /**
- * This is a tree node representing a module that has one or more entry points,
- * presented via {@link EntryPointNode}s.
+ * {@code Configuration} describes the configuration of {@link
+ * CatalogGenerator}.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@SuppressWarnings("serial")
-class EntryPointModuleNode extends AbstractBuilderFrameTreeNode
+public class Configuration
+implements com.avail.tools.configuration.Configuration
 {
-	/** The resolved name of the represented module. */
-	final ResolvedModuleName resolvedModuleName;
+	/**
+	 * {@code true} if {@link CatalogGenerator} should dump all Unicode code
+	 * points, or {@code false} if it should only dump non-ASCII code points.
+	 */
+	boolean includeAsciiCodePoints;
 
 	/**
-	 * Construct a new {@link EntryPointNode}.
-	 *
-	 * @param builder The builder for which this node is being built.
-	 * @param resolvedModuleName The name of the represented module.
+	 * The {@linkplain Path location} of the destination JSON file. If {@code
+	 * null}, then dump the JSON file to {@linkplain System#out standard
+	 * output}.
 	 */
-	public EntryPointModuleNode (
-		final AvailBuilder builder,
-		final ResolvedModuleName resolvedModuleName)
-	{
-		super(builder);
-		this.resolvedModuleName = resolvedModuleName;
-	}
+	@Nullable Path targetPath = null;
 
 	@Override
-	@Nullable String iconResourceName ()
+	public boolean isValid ()
 	{
-		return "ModuleInTree";
-	}
-
-	@Override
-	String text (final boolean selected)
-	{
-		return resolvedModuleName.qualifiedName();
-	}
-
-	/**
-	 * Is the {@linkplain ModuleOrPackageNode module or package} loaded?
-	 *
-	 * @return {@code true} if the module or package is already loaded, {@code
-	 *         false} otherwise.
-	 */
-	public boolean isLoaded ()
-	{
-		synchronized (builder)
-		{
-			return builder.getLoadedModule(resolvedModuleName) != null;
-		}
-	}
-
-	@Override
-	String htmlStyle (final boolean selected)
-	{
-		String base = super.htmlStyle(selected) + ";font-weight:bold";
-		if (!isLoaded())
-		{
-			base = base + ";font-style:italic";
-			if (!selected)
-			{
-				base = base + ";color:gray";
-			}
-		}
-		return base;
+		return true;
 	}
 }

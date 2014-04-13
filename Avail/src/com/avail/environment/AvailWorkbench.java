@@ -2287,8 +2287,13 @@ extends JFrame
 			assert value != null;
 			if (value instanceof AbstractBuilderFrameTreeNode)
 			{
+				assert tree != null;
 				final AbstractBuilderFrameTreeNode node =
 					(AbstractBuilderFrameTreeNode) value;
+				final Icon icon = node.icon(tree.getRowHeight());
+				setLeafIcon(icon);
+				setOpenIcon(icon);
+				setClosedIcon(icon);
 				String html = node.htmlText(selected1);
 				html = "<html>" + html + "</html>";
 				final JComponent component =
@@ -2758,7 +2763,6 @@ extends JFrame
 		final String platform = System.getProperty("os.name");
 		if (platform.toLowerCase().matches("mac os x.*"))
 		{
-			// TODO: [MvG] Doesn't work yet.
 			setUpForMac();
 		}
 
