@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.environment;
+package com.avail.environment.nodes;
 
 import com.avail.annotations.Nullable;
 import com.avail.builder.AvailBuilder;
@@ -43,13 +43,33 @@ import com.avail.builder.ResolvedModuleName;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @SuppressWarnings("serial")
-class EntryPointNode extends AbstractBuilderFrameTreeNode
+public class EntryPointNode extends AbstractBuilderFrameTreeNode
 {
 	/** The name of the module containing the entry point. */
 	final ResolvedModuleName resolvedModuleName;
 
 	/** The entry point, which is a {@link String}. */
 	final String entryPointString;
+
+	/**
+	 * Answer the {@link ResolvedModuleName} that this represents.
+	 *
+	 * @return The resolved module name.
+	 */
+	public ResolvedModuleName resolvedModuleName ()
+	{
+		return resolvedModuleName;
+	}
+
+	/**
+	 * Answer the {@link String} that's this entry point name.
+	 *
+	 * @return The entry point name.
+	 */
+	public String entryPointString ()
+	{
+		return entryPointString;
+	}
 
 	/**
 	 * Construct a new {@link EntryPointNode}, given the name of the module and

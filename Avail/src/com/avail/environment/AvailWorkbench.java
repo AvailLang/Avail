@@ -60,6 +60,7 @@ import com.avail.builder.*;
 import com.avail.builder.AvailBuilder.LoadedModule;
 import com.avail.compiler.AbstractAvailCompiler.*;
 import com.avail.descriptor.*;
+import com.avail.environment.nodes.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -1630,7 +1631,8 @@ extends JFrame
 						// Add a top-level package.
 						final ModuleRootNode strongParentNode =
 							(ModuleRootNode)parentNode;
-						final ModuleRoot thisRoot = strongParentNode.moduleRoot;
+						final ModuleRoot thisRoot =
+							strongParentNode.moduleRoot();
 						assert thisRoot == moduleRoot;
 						moduleName = new ModuleName(
 							"/" + moduleRoot.name() + "/" + localName);
@@ -1641,9 +1643,9 @@ extends JFrame
 						assert parentNode instanceof ModuleOrPackageNode;
 						final ModuleOrPackageNode strongParentNode =
 							(ModuleOrPackageNode)parentNode;
-						assert strongParentNode.isPackage;
+						assert strongParentNode.isPackage();
 						final ResolvedModuleName parentModuleName =
-							strongParentNode.resolvedModuleName;
+							strongParentNode.resolvedModuleName();
 						moduleName = new ModuleName(
 							parentModuleName.qualifiedName(), localName);
 					}
@@ -1704,7 +1706,8 @@ extends JFrame
 						// Add a top-level module (directly in a root).
 						final ModuleRootNode strongParentNode =
 							(ModuleRootNode)parentNode;
-						final ModuleRoot thisRoot = strongParentNode.moduleRoot;
+						final ModuleRoot thisRoot =
+							strongParentNode.moduleRoot();
 						assert thisRoot == moduleRoot;
 						moduleName = new ModuleName(
 							"/" + moduleRoot.name() + "/" + localName);
@@ -1715,9 +1718,9 @@ extends JFrame
 						assert parentNode instanceof ModuleOrPackageNode;
 						final ModuleOrPackageNode strongParentNode =
 							(ModuleOrPackageNode)parentNode;
-						assert strongParentNode.isPackage;
+						assert strongParentNode.isPackage();
 						final ResolvedModuleName parentModuleName =
-							strongParentNode.resolvedModuleName;
+							strongParentNode.resolvedModuleName();
 						moduleName = new ModuleName(
 							parentModuleName.qualifiedName(), localName);
 					}
@@ -1936,7 +1939,7 @@ extends JFrame
 		{
 			return null;
 		}
-		return node.resolvedModuleName;
+		return node.resolvedModuleName();
 	}
 
 	/**
@@ -1959,7 +1962,7 @@ extends JFrame
 			return null;
 		}
 		final EntryPointNode strongSelection = (EntryPointNode) selection;
-		return strongSelection.entryPointString;
+		return strongSelection.entryPointString();
 	}
 
 	/**
@@ -1980,11 +1983,11 @@ extends JFrame
 			(DefaultMutableTreeNode) path.getLastPathComponent();
 		if (selection instanceof EntryPointNode)
 		{
-			return ((EntryPointNode)selection).resolvedModuleName;
+			return ((EntryPointNode)selection).resolvedModuleName();
 		}
 		else if (selection instanceof EntryPointModuleNode)
 		{
-			return ((EntryPointModuleNode)selection).resolvedModuleName;
+			return ((EntryPointModuleNode)selection).resolvedModuleName();
 		}
 		return null;
 	}
