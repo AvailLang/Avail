@@ -403,7 +403,7 @@ extended with custom module roots as you develop your own modules.
 			name="uninstall"
 			description="Uninstall the Avail development environment.">
 		<delete quiet="true">
-			<fileset dir="${path.install}"/>
+			<fileset dir="${path.install}" includes="**"/>
 		</delete>
 	</target>
 </project>
