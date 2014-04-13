@@ -347,6 +347,31 @@ Be sure to visit the official Avail website frequently for updates and news:
 	http://www.availlang.org
 
 
+UNINSTALLATION =================================================================
+
+Once you have installed Avail, should you decide to uninstall it, you can do so
+with a command like:
+
+	$ cd $PROJ
+	$ ant uninstall
+
+Even if you do not wish to discontinue use of Avail, you may find that the
+installation directory structure accumulates craft from ancient versions as a
+consequence of staying current and reinstalling. This is because, at the time of
+writing, the build process makes no effort to remove files that are not part of
+the current version of the software. Though this is undoubtedly inconvenient for
+general usage, it is a nicety for users who may be installing additional
+resources in this directory structure — even though this is not a recommended
+practice. Should you wish to reclaim this storage and/or tidy this directory
+structure, you may wish to uninstall Avail preceding a rebuild:
+
+	$ cd $PROJ
+	$ git pull
+	$ ant uninstall
+	$ ant
+	$ ant install
+
+
 REPORTING PROBLEMS =============================================================
 
 To report a problem with the Avail virtual machine or standard library, please
