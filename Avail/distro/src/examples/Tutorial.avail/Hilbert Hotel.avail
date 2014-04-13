@@ -144,8 +144,8 @@ Private method "Assign_to room_" is
 	If assignedNumber ≤ last available room then
 	[
 		guests := guests[1..assignedNumber - 1]
-			++ <aGuest>
-			++ guests[assignedNumber..];
+			-+ aGuest
+			-+ guests[assignedNumber..];
 		inquiry := assignedNumber;
 		Concierge says,
 			"\"Very good, ‘you’. I will put ‘guest inquiry’ in “room inquiry”.\"
