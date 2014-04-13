@@ -725,10 +725,14 @@ public class StacksCommentsModule
 
 					for (final A_String methodName: nameToImplementations.keySet())
 					{
-						extendedNamesImplementations.get(extendsModuleName)
-							.implementations().get(methodName)
-								.mergeWith(nameToImplementations
-									.get(methodName));
+						if (extendedNamesImplementations.get(extendsModuleName)
+							.implementations().containsKey(methodName))
+						{
+							extendedNamesImplementations.get(extendsModuleName)
+								.implementations().get(methodName)
+									.mergeWith(nameToImplementations
+										.get(methodName));
+						}
 					}
 				}
 			}

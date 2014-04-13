@@ -1341,7 +1341,7 @@ is
  * Construct and answer an object which is an instance of {@param "objectType"}
  * and whose field values are determined by {@param "optional"}.
  *
- * @method "a|an_«with«_::=_‡,»»"
+ * @method a|an_«with«_«:»?:=_‡,»»
  * @param "objectType" "object's type"
  *        An object type that must be a supertype of the answer.
  * @param "optional" "<<<atom, boolean, any…|3>…|1..>…|0..1>"
@@ -1466,7 +1466,7 @@ Public method "a|an_«with«_«:»?:=_‡,»»" is
  * - An assignment occurs for every field of the object type except those for
  *   which the exact types are known; these will be supplied automatically.
  *
- * @method "a|an_«with«_::=_‡,»»"
+ * @method "a|an_«with«_«:»?:=_‡,»»"
  * @restricts "object's type's type"
  * @restricts "<<<atom, boolean, any…|3>…|1..>…|0..1>'s type"
  */

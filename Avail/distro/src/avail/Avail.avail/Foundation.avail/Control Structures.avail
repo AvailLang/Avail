@@ -1066,7 +1066,7 @@ Public method "Unless_then_" is
  * Given a predicate value and two functions, invoke one of them and answer its
  * result.
  *
- * @method "Unless_then_"
+ * @method "Unless|unless_then_else_"
  * @param "predicate" "boolean"
  *        A predicate value.
  * @param "falseFunction" "[]→⊤"
