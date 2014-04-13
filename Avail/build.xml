@@ -395,4 +395,15 @@ extended with custom module roots as you develop your own modules.
 			<filename name="${path.jar.dev}"/>
 		</delete>
 	</target>
+
+	<!--
+		Uninstall Avail.
+	-->
+	<target
+			name="uninstall"
+			description="Uninstall the Avail development environment.">
+		<delete quiet="true">
+			<fileset dir="${path.install}"/>
+		</delete>
+	</target>
 </project>

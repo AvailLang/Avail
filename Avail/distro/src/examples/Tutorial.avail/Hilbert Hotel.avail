@@ -38,9 +38,9 @@ Names
 Entries
 	"What's all this`?",
 	"Hey,what do you mean_`?",
+	"Who is in room_`?",
 	"Assign_to room_",
-	"Evict the guest in room_",
-	"Who is in room_`?"
+	"Evict the guest in room_"
 Body
 
 Private method "room number" is [natural number];
@@ -56,10 +56,10 @@ Public method "a guest named_,_" is
 
 allTitles ::= <"sir", "miss">;
 titleIndex : [1..2] := a pRNG's next value in [1..2];
-inquiry : whole number := 0;
+inquiry : room number := 1;
 guests : <guest…|> := <>;
 
-Private method "first available room" is [|guests| + 1];
+Private method "last available room" is [|guests| + 1];
 
 Private method "Concierge says,_" is
 [
@@ -75,15 +75,16 @@ Private method "Concierge says,_" is
 			then [a guest named "Doe", "John"]
 			else [a guest named "Doe", "Jane"]
 		];
-	availableRooms ::= 1 to first available room;
+	availableRooms ::= 1 to last available room;
 	evictableRooms ::= 1 to |guests|;
 	Print: format pattern ++ "\n" with
 		you ::= allTitles[titleIndex],
 		You ::= capitalize allTitles[titleIndex],
 		"room inquiry" ::= inquiry,
+		"guest inquiry" ::= guest[2] ++ " " ++ guest[1],
 		"available rooms" ::=
 			if |availableRooms| = 1 then ["room "] else ["rooms "]
-			++ “availableRooms” (as disjunctive list with Oxford comma),
+			++ “availableRooms” (as disjunctive list with serial comma),
 		"evictable rooms" ::=
 			if |evictableRooms| = 0 then
 			[
@@ -92,9 +93,8 @@ Private method "Concierge says,_" is
 			else
 			[
 				if |evictableRooms| = 1 then ["room "] else ["rooms "]
-				++ “evictableRooms” (as disjunctive list with Oxford comma)
-			],
-		"guest inquiry" ::= (guest[2] ++ " " ++ guest[1]);
+				++ “evictableRooms” (as disjunctive list with serial comma)
+			];
 ];
 
 Private method "What's all this`?" is
@@ -127,22 +127,6 @@ Private method "Hey,what do you mean_`?" is
 	];
 ];
 
-Semantic restriction "Hey,what do you mean_`?" is
-[
-	addressType : string's type
-|
-	actualAddress ::= addressType's instance;
-	Unless actualAddress ∈ allTitles then
-	[
-		Reject parse, expected:
-			format "any of ‘allowed’ (not ‘unexpected’)" with
-				allowed ::=
-					“allTitles” (as disjunctive list with Oxford comma),
-				unexpected ::= actualAddress
-	];
-	⊤
-];
-
 Private method "Who is in room_`?" is
 [
 	roomNumber : room number
@@ -157,7 +141,7 @@ Private method "Assign_to room_" is
 	aGuest : guest,
 	assignedNumber : room number
 |
-	If assignedNumber ≤ first available room then
+	If assignedNumber ≤ last available room then
 	[
 		guests := guests[1..assignedNumber - 1]
 			++ <aGuest>
@@ -184,9 +168,9 @@ Private method "Evict the guest in room_" is
 [
 	roomNumber : room number
 |
-	If roomNumber < first available room then
+	inquiry := roomNumber;
+	If roomNumber ≤ |guests| then
 	[
-		inquiry := roomNumber;
 		Concierge says,
 			"\"As you wish, ‘you’. I shall banish ‘guest inquiry’ into the \
 			\|nightmare that is the cold, dark, urban beyond.\"\n";
@@ -199,7 +183,6 @@ Private method "Evict the guest in room_" is
 	]
 	else
 	[
-		inquiry := roomNumber;
 		Concierge says,
 			"\"‘You’, I would not dare to evict ‘guest inquiry’ from room \
 			\|“room inquiry” before The Conference is concluded. The \
