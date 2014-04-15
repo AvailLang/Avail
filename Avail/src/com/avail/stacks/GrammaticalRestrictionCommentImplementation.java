@@ -34,7 +34,6 @@ package com.avail.stacks;
 
 import java.util.ArrayList;
 import java.util.TreeMap;
-import com.avail.descriptor.A_String;
 
 /**
  * A comment implementation of grammatical restrictions
@@ -170,7 +169,7 @@ public class GrammaticalRestrictionCommentImplementation extends
 
 	@Override
 	public void addImplementationToImportModule (
-		final A_String name, final StacksImportModule importModule)
+		final String name, final StacksImportModule importModule)
 	{
 		importModule.addGrammaticalImplementation(name, this);
 	}

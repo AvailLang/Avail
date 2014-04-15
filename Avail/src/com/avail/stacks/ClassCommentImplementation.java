@@ -33,7 +33,6 @@
 package com.avail.stacks;
 
 import java.util.ArrayList;
-import com.avail.descriptor.A_String;
 
 /**
  * A comment that describes a particular class.
@@ -191,7 +190,7 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 
 	@Override
 	public void addImplementationToImportModule (
-		final A_String name, final StacksImportModule importModule)
+		final String name, final StacksImportModule importModule)
 	{
 		//Do nothing as new implentations can't be introduced for classes
 

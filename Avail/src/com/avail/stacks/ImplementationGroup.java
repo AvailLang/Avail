@@ -38,7 +38,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import com.avail.AvailRuntime;
-import com.avail.descriptor.A_String;
+import com.avail.descriptor.StringDescriptor;
 
 /**
  * A grouping of {@linkplain AbstractCommentImplementation implementations}
@@ -56,12 +56,12 @@ public class ImplementationGroup
 	 * The name of the implementation.  It is not final because it can be
 	 * renamed.
 	 */
-	private final A_String name;
+	private final String name;
 
 	/**
 	 * @return the name
 	 */
-	public A_String name ()
+	public String name ()
 	{
 		return name;
 	}
@@ -208,7 +208,7 @@ public class ImplementationGroup
 	 *
 	 * @param name The name of the implementation
 	 */
-	public ImplementationGroup (final A_String name)
+	public ImplementationGroup (final String name)
 	{
 		this.name = name;
 		this.methods = new HashMap<String,MethodCommentImplementation>();
@@ -328,14 +328,14 @@ public class ImplementationGroup
 			final String localPath = qualifiedMethodName
 				.substring(1, qualifiedMethodName.lastIndexOf('/') + 1);
 
-			long hashedName = name.hash();
+			long hashedName = StringDescriptor.from(name).hash();
 			hashedName = hashedName & 0xFFFFFFFFL;
 
 			final String hashedFileName = String.valueOf(hashedName) + ".html";
 
 			final StacksOutputFile htmlFile = new StacksOutputFile(
 				outputPath.resolve(localPath), synchronizer, hashedFileName,
-				runtime, name.asNativeString());
+				runtime, name);
 
 			htmlFile.write(stringBuilder.append(htmlCloseContent).toString());
 		}
@@ -352,7 +352,7 @@ public class ImplementationGroup
 
 			final StacksOutputFile htmlFile = new StacksOutputFile(
 				outputPath.resolve(localPath), synchronizer, hashedFileName,
-				runtime,name.asNativeString());
+				runtime,name);
 
 			htmlFile.write(stringBuilder.append(htmlCloseContent).toString());
 		}
@@ -364,14 +364,14 @@ public class ImplementationGroup
 			final String localPath = qualifiedMethodName
 				.substring(1, qualifiedMethodName.lastIndexOf('/') + 1);
 
-			long hashedName = name.hash();
+			long hashedName = StringDescriptor.from(name).hash();
 			hashedName = hashedName & 0xFFFFFFFF;
 
 			final String hashedFileName = String.valueOf(hashedName) + ".html";
 
 			final StacksOutputFile htmlFile = new StacksOutputFile(
 				outputPath.resolve(localPath), synchronizer, hashedFileName,
-				runtime,name.asNativeString());
+				runtime,name);
 
 			htmlFile.write(stringBuilder.append(htmlCloseContent).toString());
 		}
