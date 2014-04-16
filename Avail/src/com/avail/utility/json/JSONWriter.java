@@ -36,10 +36,13 @@ import static com.avail.utility.json.JSONWriter.JSONState.*;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Deque;
 import java.util.Formatter;
 import java.util.LinkedList;
 import com.avail.annotations.InnerAccess;
+import com.avail.annotations.Nullable;
 import com.avail.utility.evaluation.Continuation0;
 
 /**
@@ -87,11 +90,11 @@ implements AutoCloseable
 	 *        The character to write. Only the 16 low order bits will be
 	 *        written. (If assertions are enabled, then attempting to write
 	 *        values that would be truncated causes an {@link AssertionError}.)
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If the operation fails.
 	 */
 	@InnerAccess void privateWrite (final int c)
-		throws JSONWriterException
+		throws JSONIOException
 	{
 		assert (c & 0xFFFF) == c;
 		try
@@ -100,7 +103,7 @@ implements AutoCloseable
 		}
 		catch (final IOException e)
 		{
-			throw new JSONWriterException(e);
+			throw new JSONIOException(e);
 		}
 	}
 
@@ -110,11 +113,11 @@ implements AutoCloseable
 	 *
 	 * @param text
 	 *        The text that should be written.
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If the operation fails.
 	 */
 	@InnerAccess void privateWrite (final String text)
-		throws JSONWriterException
+		throws JSONIOException
 	{
 		try
 		{
@@ -122,7 +125,7 @@ implements AutoCloseable
 		}
 		catch (final IOException e)
 		{
-			throw new JSONWriterException(e);
+			throw new JSONIOException(e);
 		}
 	}
 
@@ -269,7 +272,7 @@ implements AutoCloseable
 
 			@Override
 			void writePrologueTo (final JSONWriter writer)
-				throws JSONWriterException
+				throws JSONIOException
 			{
 				writer.privateWrite(',');
 			}
@@ -288,7 +291,7 @@ implements AutoCloseable
 
 			@Override
 			void writePrologueTo (final JSONWriter writer)
-				throws JSONWriterException
+				throws JSONIOException
 			{
 				writer.privateWrite(':');
 			}
@@ -333,7 +336,7 @@ implements AutoCloseable
 
 			@Override
 			void writePrologueTo (final JSONWriter writer)
-				throws JSONWriterException
+				throws JSONIOException
 			{
 				writer.privateWrite(',');
 			}
@@ -437,11 +440,11 @@ implements AutoCloseable
 		 *
 		 * @param writer
 		 *        A writer.
-		 * @throws JSONWriterException
+		 * @throws JSONIOException
 		 *         If an I/O exception occurs.
 		 */
 		@InnerAccess void writePrologueTo (final JSONWriter writer)
-			throws JSONWriterException
+			throws JSONIOException
 		{
 			// Do nothing.
 		}
@@ -461,16 +464,19 @@ implements AutoCloseable
 	 * Write a JSON {@code null} to the underlying document {@linkplain Writer
 	 * writer}.
 	 *
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *         If an arbitrary value cannot be written.
 	 */
-	public void writeNull () throws JSONWriterException, IllegalStateException
+	public void writeNull () throws JSONIOException, IllegalStateException
 	{
 		final JSONState state = stack.removeFirst();
 		state.checkCanWriteAnyValue();
-		privateWrite(String.valueOf(null));
+		state.writePrologueTo(this);
+		// Without this cast to Object, the compiler apparently RANDOMLY chooses
+		// which overload to compile. Yeah…
+		privateWrite(String.valueOf((Object) null));
 		stack.addFirst(state.nextStateAfterValue());
 	}
 
@@ -480,13 +486,13 @@ implements AutoCloseable
 	 *
 	 * @param value
 	 *        A {@code boolean} value.
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *         If an arbitrary value cannot be written.
 	 */
 	public void write (final boolean value)
-		throws JSONWriterException, IllegalStateException
+		throws JSONIOException, IllegalStateException
 	{
 		final JSONState state = stack.removeFirst();
 		state.checkCanWriteAnyValue();
@@ -496,18 +502,60 @@ implements AutoCloseable
 	}
 
 	/**
+	 * Write the specified {@link BigDecimal} to the underlying document
+	 * {@linkplain Writer writer} as a JSON number.
+	 *
+	 * @param value
+	 *        A {@code BigDecimal} value.
+	 * @throws JSONIOException
+	 *         If an I/O exception occurs.
+	 * @throws IllegalStateException
+	 *         If an arbitrary value cannot be written.
+	 */
+	public void write (final BigDecimal value)
+		throws JSONIOException, IllegalStateException
+	{
+		final JSONState state = stack.removeFirst();
+		state.checkCanWriteAnyValue();
+		state.writePrologueTo(this);
+		privateWrite(value.toString());
+		stack.addFirst(state.nextStateAfterValue());
+	}
+
+	/**
+	 * Write the specified {@link BigInteger} to the underlying document
+	 * {@linkplain Writer writer} as a JSON number.
+	 *
+	 * @param value
+	 *        A {@code BigInteger} value.
+	 * @throws JSONIOException
+	 *         If an I/O exception occurs.
+	 * @throws IllegalStateException
+	 *         If an arbitrary value cannot be written.
+	 */
+	public void write (final BigInteger value)
+		throws JSONIOException, IllegalStateException
+	{
+		final JSONState state = stack.removeFirst();
+		state.checkCanWriteAnyValue();
+		state.writePrologueTo(this);
+		privateWrite(value.toString());
+		stack.addFirst(state.nextStateAfterValue());
+	}
+
+	/**
 	 * Write the specified {@code int} to the underlying document {@linkplain
 	 * Writer writer} as a JSON number.
 	 *
 	 * @param value
 	 *        A {@code int} value.
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *         If an arbitrary value cannot be written.
 	 */
 	public void write (final int value)
-		throws JSONWriterException, IllegalStateException
+		throws JSONIOException, IllegalStateException
 	{
 		final JSONState state = stack.removeFirst();
 		state.checkCanWriteAnyValue();
@@ -522,13 +570,13 @@ implements AutoCloseable
 	 *
 	 * @param value
 	 *        A {@code long} value.
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *         If an arbitrary value cannot be written.
 	 */
 	public void write (final long value)
-		throws JSONWriterException, IllegalStateException
+		throws JSONIOException, IllegalStateException
 	{
 		final JSONState state = stack.removeFirst();
 		state.checkCanWriteAnyValue();
@@ -543,13 +591,13 @@ implements AutoCloseable
 	 *
 	 * @param value
 	 *        A {@code float} value.
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *         If an arbitrary value cannot be written.
 	 */
 	public void write (final float value)
-		throws JSONWriterException, IllegalStateException
+		throws JSONIOException, IllegalStateException
 	{
 		final JSONState state = stack.removeFirst();
 		state.checkCanWriteAnyValue();
@@ -564,13 +612,13 @@ implements AutoCloseable
 	 *
 	 * @param value
 	 *        A {@code double} value.
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *         If an arbitrary value cannot be written.
 	 */
 	public void write (final double value)
-		throws JSONWriterException, IllegalStateException
+		throws JSONIOException, IllegalStateException
 	{
 		final JSONState state = stack.removeFirst();
 		state.checkCanWriteAnyValue();
@@ -585,80 +633,122 @@ implements AutoCloseable
 	 * Unicode escape sequences, so only ASCII characters will be written.
 	 *
 	 * @param pattern
-	 *        A {@linkplain Formatter pattern} {@code String}.
+	 *        A {@linkplain Formatter pattern} {@code String} (may be {@code
+	 *        null}).
 	 * @param args
 	 *        The arguments to the pattern.
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *         If an arbitrary value cannot be written.
 	 */
-	public void write (
-			final String pattern,
+	public void format (
+			final @Nullable String pattern,
 			final Object... args)
-		throws JSONWriterException, IllegalStateException
+		throws JSONIOException, IllegalStateException
 	{
-		final JSONState state = stack.removeFirst();
-		state.checkCanWriteStringValue();
-		state.writePrologueTo(this);
-		final String value = String.format(pattern, args);
-		privateWrite('"');
-		for (int i = 0, size = value.length(); i < size; )
+		if (pattern == null)
 		{
-			final int codePoint = value.codePointAt(i);
-			if (Character.isISOControl(codePoint))
-			{
-				switch (codePoint)
-				{
-					// Backspace.
-					case '\b':
-						privateWrite("\\b");
-						break;
-					// Character tabulation.
-					case '\t':
-						privateWrite("\\t");
-						break;
-					// Line feed.
-					case '\n':
-						privateWrite("\\n");
-						break;
-					// Form feed.
-					case '\f':
-						privateWrite("\\f");
-						break;
-					// Carriage return.
-					case '\r':
-						privateWrite("\\t");
-						break;
-					default:
-						privateWrite(String.format("\\u%04X", codePoint));
-						break;
-				}
-			}
-			else if (codePoint == '\\')
-			{
-				privateWrite("\\\\");
-			}
-			else if (codePoint == '"')
-			{
-				privateWrite("\\\"");
-			}
-			else if (codePoint < 128)
-			{
-				// Even though Writer doesn't work on general code points, we
-				// have just proven that the code point is ASCII, so this is
-				// fine.
-				privateWrite(codePoint);
-			}
-			else
-			{
-				// Force all non-ASCII characters to Unicode escape sequences.
-				privateWrite(String.format("\\u%04X", codePoint));
-			}
-			i += Character.charCount(codePoint);
+			writeNull();
 		}
-		privateWrite('"');
-		stack.addFirst(state.nextStateAfterValue());
+		else
+		{
+			final JSONState state = stack.removeFirst();
+			state.checkCanWriteStringValue();
+			state.writePrologueTo(this);
+			final String value = String.format(pattern, args);
+			privateWrite('"');
+			for (int i = 0, size = value.length(); i < size; )
+			{
+				final int codePoint = value.codePointAt(i);
+				if (Character.isISOControl(codePoint))
+				{
+					switch (codePoint)
+					{
+						// Backspace.
+						case '\b':
+							privateWrite("\\b");
+							break;
+						// Character tabulation.
+						case '\t':
+							privateWrite("\\t");
+							break;
+						// Line feed.
+						case '\n':
+							privateWrite("\\n");
+							break;
+						// Form feed.
+						case '\f':
+							privateWrite("\\f");
+							break;
+						// Carriage return.
+						case '\r':
+							privateWrite("\\t");
+							break;
+						default:
+							privateWrite(String.format("\\u%04X", codePoint));
+							break;
+					}
+				}
+				else if (codePoint == '\\')
+				{
+					privateWrite("\\\\");
+				}
+				else if (codePoint == '"')
+				{
+					privateWrite("\\\"");
+				}
+				else if (codePoint < 128)
+				{
+					// Even though Writer doesn't work on general code points,
+					// we have just proven that the code point is ASCII, so this
+					// is fine.
+					privateWrite(codePoint);
+				}
+				else if (Character.isSupplementaryCodePoint(codePoint))
+				{
+					// Supplementary code points need to be written as two
+					// Unicode escapes.
+					privateWrite(String.format(
+						"\\u%04X\\u%04X",
+						(int) Character.highSurrogate(codePoint),
+						(int) Character.lowSurrogate(codePoint)));
+				}
+				else
+				{
+					// Force all non-ASCII characters to Unicode escape
+					// sequences.
+					privateWrite(String.format("\\u%04X", codePoint));
+				}
+				i += Character.charCount(codePoint);
+			}
+			privateWrite('"');
+			stack.addFirst(state.nextStateAfterValue());
+		}
+	}
+
+	/**
+	 * Write the specified {@link String} to the underlying document {@linkplain
+	 * Writer writer} as a JSON string. All non-ASCII characters are encoded as
+	 * Unicode escape sequences, so only ASCII characters will be written.
+	 *
+	 * @param value
+	 *        A {@code String} (may be {@code null}).
+	 * @throws JSONIOException
+	 *         If an I/O exception occurs.
+	 * @throws IllegalStateException
+	 *         If an arbitrary value cannot be written.
+	 */
+	public void write (final @Nullable String value)
+	{
+		if (value == null)
+		{
+			writeNull();
+		}
+		else
+		{
+			format("%s", value);
+		}
 	}
 
 	/**
@@ -667,7 +757,7 @@ implements AutoCloseable
 	 *
 	 * @param friendly
 	 *        A {@link JSONFriendly} value.
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *         If an arbitrary value cannot be written.
@@ -681,14 +771,16 @@ implements AutoCloseable
 	 * Write an object beginning to the underlying document {@linkplain Writer
 	 * writer}.
 	 *
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *         If an object beginning cannot be written.
 	 */
-	public void startObject () throws JSONWriterException
+	public void startObject () throws JSONIOException
 	{
-		stack.peekFirst().checkCanWriteObjectStart();
+		final JSONState state = stack.peekFirst();
+		state.checkCanWriteObjectStart();
+		state.writePrologueTo(this);
 		privateWrite('{');
 		stack.addFirst(EXPECTING_FIRST_OBJECT_KEY_OR_OBJECT_END);
 	}
@@ -697,16 +789,17 @@ implements AutoCloseable
 	 * Write an object ending to the underlying document {@linkplain Writer
 	 * writer}.
 	 *
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *         If an object ending cannot be written.
 	 */
-	public void endObject () throws JSONWriterException, IllegalStateException
+	public void endObject () throws JSONIOException, IllegalStateException
 	{
 		final JSONState state = stack.removeFirst();
 		state.checkCanWriteObjectEnd();
 		privateWrite('}');
+		stack.addFirst(stack.removeFirst().nextStateAfterValue());
 	}
 
 	/**
@@ -715,13 +808,13 @@ implements AutoCloseable
 	 *
 	 * @param action
 	 *        An action that writes the contents of an object.
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *         If an object cannot be written.
 	 */
 	public void writeObject (final Continuation0 action)
-		throws JSONWriterException, IllegalStateException
+		throws JSONIOException, IllegalStateException
 	{
 		startObject();
 		action.value();
@@ -732,14 +825,16 @@ implements AutoCloseable
 	 * Write an array beginning to the underlying document {@linkplain Writer
 	 * writer}.
 	 *
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *         If an array beginning cannot be written.
 	 */
-	public void startArray () throws JSONWriterException, IllegalStateException
+	public void startArray () throws JSONIOException, IllegalStateException
 	{
-		stack.peekFirst().checkCanWriteArrayStart();
+		final JSONState state = stack.peekFirst();
+		state.checkCanWriteArrayStart();
+		state.writePrologueTo(this);
 		privateWrite('[');
 		stack.addFirst(EXPECTING_FIRST_VALUE_OR_ARRAY_END);
 	}
@@ -747,16 +842,17 @@ implements AutoCloseable
 	 * Write an array ending to the underlying document {@linkplain Writer
 	 * writer}.
 	 *
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *         If an array ending cannot be written.
 	 */
-	public void endArray () throws JSONWriterException, IllegalStateException
+	public void endArray () throws JSONIOException, IllegalStateException
 	{
 		final JSONState state = stack.removeFirst();
 		state.checkCanWriteArrayEnd();
 		privateWrite(']');
+		stack.addFirst(stack.removeFirst().nextStateAfterValue());
 	}
 
 	/**
@@ -765,13 +861,13 @@ implements AutoCloseable
 	 *
 	 * @param action
 	 *        An action that writes the contents of an array.
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *         If an array cannot be written.
 	 */
 	public void writeArray (final Continuation0 action)
-		throws JSONWriterException, IllegalStateException
+		throws JSONIOException, IllegalStateException
 	{
 		startArray();
 		action.value();
@@ -783,13 +879,13 @@ implements AutoCloseable
 	 *
 	 * @param values
 	 *        An array of {@code boolean} values.
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *         If an array cannot be written.
 	 */
 	public void writeArray (final boolean... values)
-		throws JSONWriterException, IllegalStateException
+		throws JSONIOException, IllegalStateException
 	{
 		startArray();
 		for (final boolean value : values)
@@ -804,13 +900,13 @@ implements AutoCloseable
 	 *
 	 * @param values
 	 *        An array of {@code int} values.
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *         If an array cannot be written.
 	 */
 	public void writeArray (final int... values)
-		throws JSONWriterException, IllegalStateException
+		throws JSONIOException, IllegalStateException
 	{
 		startArray();
 		for (final int value : values)
@@ -825,13 +921,13 @@ implements AutoCloseable
 	 *
 	 * @param values
 	 *        An array of {@code long} values.
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *         If an array cannot be written.
 	 */
 	public void writeArray (final long... values)
-		throws JSONWriterException, IllegalStateException
+		throws JSONIOException, IllegalStateException
 	{
 		startArray();
 		for (final long value : values)
@@ -846,13 +942,13 @@ implements AutoCloseable
 	 *
 	 * @param values
 	 *        An array of {@code float} values.
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *         If an array cannot be written.
 	 */
 	public void writeArray (final float... values)
-		throws JSONWriterException, IllegalStateException
+		throws JSONIOException, IllegalStateException
 	{
 		startArray();
 		for (final float value : values)
@@ -867,13 +963,13 @@ implements AutoCloseable
 	 *
 	 * @param values
 	 *        An array of {@code double} values.
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *         If an array cannot be written.
 	 */
 	public void writeArray (final double... values)
-		throws JSONWriterException, IllegalStateException
+		throws JSONIOException, IllegalStateException
 	{
 		startArray();
 		for (final double value : values)
@@ -888,13 +984,13 @@ implements AutoCloseable
 	 *
 	 * @param values
 	 *        An array of {@code String} values.
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *         If an array cannot be written.
 	 */
 	public void writeArray (final String... values)
-		throws JSONWriterException, IllegalStateException
+		throws JSONIOException, IllegalStateException
 	{
 		startArray();
 		for (final String value : values)
@@ -909,13 +1005,13 @@ implements AutoCloseable
 	 *
 	 * @param values
 	 *        An array of JSON-friendly values.
-	 * @throws JSONWriterException
+	 * @throws JSONIOException
 	 *         If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *         If an array cannot be written.
 	 */
 	public void writeArray (final JSONFriendly... values)
-		 throws JSONWriterException, IllegalStateException
+		 throws JSONIOException, IllegalStateException
 	{
 		startArray();
 		for (final JSONFriendly value : values)
@@ -925,8 +1021,27 @@ implements AutoCloseable
 		endArray();
 	}
 
+	/**
+	 * Flush any buffered data to the underlying document {@linkplain Writer
+	 * writer}.
+	 *
+	 * @throws JSONIOException
+	 *         If an I/O exception occurs.
+	 */
+	public void flush () throws JSONIOException
+	{
+		try
+		{
+			writer.flush();
+		}
+		catch (final IOException e)
+		{
+			throw new JSONIOException(e);
+		}
+	}
+
 	@Override
-	public void close () throws JSONWriterException, IllegalStateException
+	public void close () throws JSONIOException, IllegalStateException
 	{
 		// Don't actually remove the remaining state; we want any errant
 		// subsequent operations to fail appropriately, not because the stack is
@@ -934,13 +1049,14 @@ implements AutoCloseable
 		final JSONState state = stack.peekFirst();
 		state.checkCanEndDocument();
 		assert stack.size() == 1;
+		flush();
 		try
 		{
-			writer.flush();
+			writer.close();
 		}
 		catch (final IOException e)
 		{
-			throw new JSONWriterException(e);
+			throw new JSONIOException(e);
 		}
 	}
 

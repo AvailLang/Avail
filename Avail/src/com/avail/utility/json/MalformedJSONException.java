@@ -1,5 +1,5 @@
 /**
- * Configuration.java
+ * MalformedJSONException.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,27 +30,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.tools.unicode;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
+package com.avail.utility.json;
 
 /**
- * {@code Configuration} describes the configuration of {@link
- * CatalogGenerator}.
+ * A {@link JSONReader} throws a {@code MalformedJSONException} if an invalid
+ * construct is encountered during the parsing of a JSON document.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class Configuration
-implements com.avail.tools.configuration.Configuration
+public final class MalformedJSONException
+extends JSONException
 {
-	/** The {@linkplain Path directory} containing the JSON files. */
-	Path catalogPath = Paths.get(
-		"src", "com", "avail", "tools", "unicode", "generated");
+	/** The serial version identifier. */
+	private static final long serialVersionUID = -5353596996559705950L;
 
-	@Override
-	public boolean isValid ()
+	/**
+	 * Construct a new {@link MalformedJSONException}.
+	 */
+	MalformedJSONException ()
 	{
-		return true;
+		// No implementation.
 	}
 }

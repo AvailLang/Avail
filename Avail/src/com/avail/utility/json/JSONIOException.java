@@ -1,5 +1,5 @@
 /**
- * JSONWriterException.java
+ * JSONIOException.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -35,24 +35,24 @@ package com.avail.utility.json;
 import java.io.IOException;
 
 /**
- * A {@code JSONWriterException} is an {@linkplain RuntimeException unchecked
+ * A {@code JSONIOException} is an {@linkplain RuntimeException unchecked
  * exception} that wraps an {@link IOException}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class JSONWriterException
-extends RuntimeException
+public final class JSONIOException
+extends JSONException
 {
 	/** The serial version identifier. */
 	private static final long serialVersionUID = -7877694113619594180L;
 
 	/**
-	 * Construct a new {@link JSONWriterException}.
+	 * Construct a new {@link JSONIOException}.
 	 *
 	 * @param cause
 	 *        The causal exception.
 	 */
-	public JSONWriterException (final Exception cause)
+	JSONIOException (final Exception cause)
 	{
 		super(cause);
 	}

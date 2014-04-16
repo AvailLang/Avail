@@ -1,5 +1,5 @@
 /**
- * Configuration.java
+ * JSONException.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,27 +30,36 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.tools.unicode;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
+package com.avail.utility.json;
 
 /**
- * {@code Configuration} describes the configuration of {@link
- * CatalogGenerator}.
+ * A {@link JSONReader} throws a {@code JSONException} if anything goes wrong
+ * during the reading of a JSON document.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class Configuration
-implements com.avail.tools.configuration.Configuration
+public abstract class JSONException
+extends RuntimeException
 {
-	/** The {@linkplain Path directory} containing the JSON files. */
-	Path catalogPath = Paths.get(
-		"src", "com", "avail", "tools", "unicode", "generated");
+	/** Serial version identifier. */
+	private static final long serialVersionUID = 7941289114658764430L;
 
-	@Override
-	public boolean isValid ()
+	/**
+	 * Construct a new {@link JSONException}.
+	 */
+	protected JSONException ()
 	{
-		return true;
+		// No implementation.
+	}
+
+	/**
+	 * Construct a new {@link JSONException}.
+	 *
+	 * @param cause
+	 *        The causal exception.
+	 */
+	protected JSONException (final Exception cause)
+	{
+		super(cause);
 	}
 }

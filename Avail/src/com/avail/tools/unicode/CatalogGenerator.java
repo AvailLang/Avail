@@ -33,12 +33,19 @@
 package com.avail.tools.unicode;
 
 import static java.nio.file.StandardOpenOption.*;
-import java.io.PrintWriter;
+import java.io.FileNotFoundException;
+import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import com.avail.annotations.Nullable;
+import com.avail.utility.IO;
+import com.avail.utility.json.JSONData;
 import com.avail.utility.json.JSONFriendly;
+import com.avail.utility.json.JSONReader;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -49,6 +56,67 @@ import com.avail.utility.json.JSONWriter;
  */
 public final class CatalogGenerator
 {
+	/**
+	 * Read {@code "allCodePoints.json"} from the specified {@linkplain Path
+	 * directory} to obtain a {@linkplain Catalog catalog}.
+	 *
+	 * @param directory
+	 *        A directory.
+	 * @return A catalog, or {@code null} if the file does not exist.
+	 * @throws Exception
+	 *         If anything goes wrong.
+	 */
+	private static @Nullable Catalog readCatalog (final Path directory)
+		throws Exception
+	{
+		JSONReader reader = null;
+		try
+		{
+			final Path catalogPath = directory.resolve("allCodePoints.json");
+			final Reader fileReader = Files.newBufferedReader(
+				catalogPath, StandardCharsets.UTF_8);
+			reader = new JSONReader(fileReader);
+			final JSONData data = reader.read();
+			final Catalog catalog = Catalog.readFrom(data);
+			return catalog;
+		}
+		catch (final NoSuchFileException e)
+		{
+			return null;
+		}
+		finally
+		{
+			IO.closeIfNotNull(reader);
+		}
+	}
+
+	/**
+	 * Write a {@linkplain JSONFriendly JSON-friendly} {@linkplain Catalog
+	 * catalog} representative to the specified {@linkplain Path path}.
+	 *
+	 * @param path
+	 *        The target path.
+	 * @param catalogRepresentative
+	 *        The catalog representative.
+	 * @throws Exception
+	 *         If anything goes wrong.
+	 */
+	private static void writeCatalog (
+			final Path path,
+			final JSONFriendly catalogRepresentative)
+		throws Exception
+	{
+		final StandardOpenOption[] options = new StandardOpenOption[]
+			{CREATE, TRUNCATE_EXISTING, WRITE};
+		final Writer writer = Files.newBufferedWriter(
+			path,
+			StandardCharsets.UTF_8,
+			options);
+		final JSONWriter jsonWriter = new JSONWriter(writer);
+		catalogRepresentative.writeTo(jsonWriter);
+		jsonWriter.close();
+	}
+
 	/**
 	 * Generate the Unicode catalog.
 	 *
@@ -66,29 +134,28 @@ public final class CatalogGenerator
 				new CommandLineConfigurator(
 					configuration, commandLineArguments, System.out);
 		configurator.updateConfiguration();
-		// Set up the output writer.
-		final Writer writer;
-		if (configuration.targetPath == null)
+		// Read an existing catalog file.
+		final Catalog oldCatalog = readCatalog(configuration.catalogPath);
+		// Update the catalog.
+		final Catalog catalog;
+		if (oldCatalog == null)
 		{
-			writer = new PrintWriter(System.out);
+			catalog = new Catalog();
 		}
 		else
 		{
-			final StandardOpenOption[] options = new StandardOpenOption[]
-				{CREATE, TRUNCATE_EXISTING, WRITE};
-			writer = Files.newBufferedWriter(
-				configuration.targetPath,
-				StandardCharsets.UTF_8,
-				options);
+			oldCatalog.refresh();
+			catalog = oldCatalog;
 		}
-		final JSONWriter jsonWriter = new JSONWriter(writer);
-		// Produce the catalog.
-		final Catalog catalog = new Catalog();
-		final JSONFriendly catalogRepresentative =
-			configuration.includeAsciiCodePoints
-			? catalog.jsonFriendlyCodePoints()
-			: catalog.jsonFriendlyNonAsciiCodePoints();
-		catalogRepresentative.writeTo(jsonWriter);
-		jsonWriter.close();
+		// Write out the new catalog files.
+		writeCatalog(
+			configuration.catalogPath.resolve("allCodePoints.json"),
+			catalog.jsonFriendlyCodePoints());
+		writeCatalog(
+			configuration.catalogPath.resolve("nonAsciiCodePoints.json"),
+			catalog.jsonFriendlyNonAsciiCodePoints());
+		writeCatalog(
+			configuration.catalogPath.resolve("symbolicCodePoints.json"),
+			catalog.jsonFriendlySymbolicCodePoints());
 	}
 }
