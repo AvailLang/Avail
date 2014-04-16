@@ -60,6 +60,7 @@ import com.avail.builder.*;
 import com.avail.builder.AvailBuilder.LoadedModule;
 import com.avail.compiler.AbstractAvailCompiler.*;
 import com.avail.descriptor.*;
+import com.avail.environment.nodes.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -253,7 +254,6 @@ extends JFrame
 			final DocumentationTask task =
 				new DocumentationTask(selectedModule);
 			backgroundTask = task;
-			isBuilding = true;
 			setEnablements();
 			task.execute();
 		}
@@ -640,7 +640,7 @@ extends JFrame
 		{
 			if (inputField.isFocusOwner())
 			{
-				assert !isBuilding;
+				assert backgroundTask == null;
 				if (isRunning)
 				{
 					// Program is running.  Feed this new line of text to the
@@ -1008,9 +1008,9 @@ extends JFrame
 		{
 			backgroundTask = null;
 			reportDone();
-			setCursor(Cursor.getDefaultCursor());
 			availBuilder.checkStableInvariants();
 			setEnablements();
+			setCursor(Cursor.getDefaultCursor());
 		}
 
 		/**
@@ -1529,9 +1529,6 @@ extends JFrame
 	/** The {@linkplain InsertEntryPointAction insert entry point action}. */
 	@InnerAccess final InsertEntryPointAction insertEntryPointAction;
 
-	/** Whether a build is currently in progress. */
-	boolean isBuilding = false;
-
 	/** Whether an entry point invocation (command line) is executing. */
 	boolean isRunning = false;
 
@@ -1630,7 +1627,8 @@ extends JFrame
 						// Add a top-level package.
 						final ModuleRootNode strongParentNode =
 							(ModuleRootNode)parentNode;
-						final ModuleRoot thisRoot = strongParentNode.moduleRoot;
+						final ModuleRoot thisRoot =
+							strongParentNode.moduleRoot();
 						assert thisRoot == moduleRoot;
 						moduleName = new ModuleName(
 							"/" + moduleRoot.name() + "/" + localName);
@@ -1641,9 +1639,9 @@ extends JFrame
 						assert parentNode instanceof ModuleOrPackageNode;
 						final ModuleOrPackageNode strongParentNode =
 							(ModuleOrPackageNode)parentNode;
-						assert strongParentNode.isPackage;
+						assert strongParentNode.isPackage();
 						final ResolvedModuleName parentModuleName =
-							strongParentNode.resolvedModuleName;
+							strongParentNode.resolvedModuleName();
 						moduleName = new ModuleName(
 							parentModuleName.qualifiedName(), localName);
 					}
@@ -1704,7 +1702,8 @@ extends JFrame
 						// Add a top-level module (directly in a root).
 						final ModuleRootNode strongParentNode =
 							(ModuleRootNode)parentNode;
-						final ModuleRoot thisRoot = strongParentNode.moduleRoot;
+						final ModuleRoot thisRoot =
+							strongParentNode.moduleRoot();
 						assert thisRoot == moduleRoot;
 						moduleName = new ModuleName(
 							"/" + moduleRoot.name() + "/" + localName);
@@ -1715,9 +1714,9 @@ extends JFrame
 						assert parentNode instanceof ModuleOrPackageNode;
 						final ModuleOrPackageNode strongParentNode =
 							(ModuleOrPackageNode)parentNode;
-						assert strongParentNode.isPackage;
+						assert strongParentNode.isPackage();
 						final ResolvedModuleName parentModuleName =
-							strongParentNode.resolvedModuleName;
+							strongParentNode.resolvedModuleName();
 						moduleName = new ModuleName(
 							parentModuleName.qualifiedName(), localName);
 					}
@@ -1936,7 +1935,7 @@ extends JFrame
 		{
 			return null;
 		}
-		return node.resolvedModuleName;
+		return node.resolvedModuleName();
 	}
 
 	/**
@@ -1959,7 +1958,7 @@ extends JFrame
 			return null;
 		}
 		final EntryPointNode strongSelection = (EntryPointNode) selection;
-		return strongSelection.entryPointString;
+		return strongSelection.entryPointString();
 	}
 
 	/**
@@ -1980,11 +1979,11 @@ extends JFrame
 			(DefaultMutableTreeNode) path.getLastPathComponent();
 		if (selection instanceof EntryPointNode)
 		{
-			return ((EntryPointNode)selection).resolvedModuleName;
+			return ((EntryPointNode)selection).resolvedModuleName();
 		}
 		else if (selection instanceof EntryPointModuleNode)
 		{
-			return ((EntryPointModuleNode)selection).resolvedModuleName;
+			return ((EntryPointModuleNode)selection).resolvedModuleName();
 		}
 		return null;
 	}
@@ -2415,7 +2414,6 @@ extends JFrame
 			HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		moduleTreeScrollArea.setVerticalScrollBarPolicy(
 			VERTICAL_SCROLLBAR_AS_NEEDED);
-		moduleTreeScrollArea.setVisible(true);
 		moduleTreeScrollArea.setMinimumSize(new Dimension(100, 0));
 		moduleTree = new JTree(modules);
 		moduleTree.setToolTipText(
@@ -2429,7 +2427,6 @@ extends JFrame
 		moduleTree.setToggleClickCount(0);
 		moduleTree.setShowsRootHandles(true);
 		moduleTree.setRootVisible(false);
-		moduleTree.setVisible(true);
 		moduleTree.addTreeSelectionListener(new TreeSelectionListener()
 		{
 			@Override
@@ -2472,7 +2469,6 @@ extends JFrame
 			HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		entryPointsScrollArea.setVerticalScrollBarPolicy(
 			VERTICAL_SCROLLBAR_AS_NEEDED);
-		entryPointsScrollArea.setVisible(true);
 		entryPointsScrollArea.setMinimumSize(new Dimension(100, 0));
 		entryPointsTree = new JTree(entryPoints);
 		entryPointsTree.setToolTipText(
@@ -2486,7 +2482,6 @@ extends JFrame
 		entryPointsTree.setToggleClickCount(0);
 		entryPointsTree.setShowsRootHandles(true);
 		entryPointsTree.setRootVisible(false);
-		entryPointsTree.setVisible(true);
 		entryPointsTree.addTreeSelectionListener(new TreeSelectionListener()
 		{
 			@Override
@@ -2546,7 +2541,6 @@ extends JFrame
 			HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		transcriptScrollArea.setVerticalScrollBarPolicy(
 			VERTICAL_SCROLLBAR_AS_NEEDED);
-		transcriptScrollArea.setVisible(true);
 		// Make this row and column be where the excess space goes.
 		// And reset the weights...
 		transcript = new JTextPane();
@@ -2556,7 +2550,6 @@ extends JFrame
 		transcript.setEnabled(true);
 		transcript.setFocusable(true);
 		transcript.setPreferredSize(new Dimension(0, 500));
-		transcript.setVisible(true);
 		transcriptScrollArea.setViewportView(transcript);
 
 		// Create the input area.
@@ -2576,7 +2569,6 @@ extends JFrame
 		inputField.setEditable(true);
 		inputField.setEnabled(true);
 		inputField.setFocusable(true);
-		inputField.setVisible(true);
 
 		// Subscribe to module loading events.
 		availBuilder.subscribeToModuleLoading(
@@ -2699,12 +2691,14 @@ extends JFrame
 			}
 		});
 		// Select an initial module if specified.
+		validate();
 		if (!initialTarget.isEmpty())
 		{
 			final TreePath path = modulePath(initialTarget);
 			if (path != null)
 			{
 				moduleTree.setSelectionPath(path);
+				moduleTree.scrollRowToVisible(moduleTree.getRowForPath(path));
 			}
 		}
 		setEnablements();
@@ -2801,6 +2795,15 @@ extends JFrame
 				final AvailWorkbench frame =
 					new AvailWorkbench(resolver, initial);
 				frame.setVisible(true);
+				if (!initial.isEmpty())
+				{
+					final TreePath path = frame.modulePath(initial);
+					if (path != null)
+					{
+						frame.moduleTree.setSelectionPath(path);
+						frame.moduleTree.scrollPathToVisible(path);
+					}
+				}
 			}
 		});
 	}

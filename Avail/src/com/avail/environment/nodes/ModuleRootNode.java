@@ -1,5 +1,5 @@
-/*
- * Data Abstractions.avail
+/**
+ * ModuleRootNode.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,19 +30,61 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Data Abstractions"
-Versions
-	"dev"
-Extends
-	"Codecs",
-	"Common" =
-	(
-		"Data|data abstractions test suite"
-	),
-	"Graphs",
-	"Iterators",
-/*	"Optional"*/  /* The "+_" operator leads to confusing diagnostics. */
-	"Pseudorandom Number Generation",
-	"Sequences",
-	"Streams"
-Body
+package com.avail.environment.nodes;
+
+import com.avail.annotations.Nullable;
+import com.avail.builder.AvailBuilder;
+import com.avail.builder.ModuleRoot;
+
+/**
+ * This is a tree node representing a {@link ModuleRoot}.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
+@SuppressWarnings("serial")
+public class ModuleRootNode extends AbstractBuilderFrameTreeNode
+{
+	/** The {@link ModuleRoot} that this represents. */
+	final ModuleRoot moduleRoot;
+
+	/**
+	 * Answer the {@link ModuleRoot} that this represents.
+	 * @return The module root.
+	 */
+	public ModuleRoot moduleRoot ()
+	{
+		return moduleRoot;
+	}
+
+	/**
+	 * Construct a new {@link ModuleRootNode}.
+	 *
+	 * @param builder The builder for which this node is being built.
+	 * @param moduleRoot The {@link ModuleRoot} that this represents.
+	 */
+	public ModuleRootNode (
+		final AvailBuilder builder,
+		final ModuleRoot moduleRoot)
+	{
+		super(builder);
+		this.moduleRoot = moduleRoot;
+	}
+
+	@Override
+	@Nullable String iconResourceName ()
+	{
+		return null;
+	}
+
+	@Override
+	String text (final boolean selected)
+	{
+		return moduleRoot.name();
+	}
+
+	@Override
+	String htmlStyle (final boolean selected)
+	{
+		return "font-weight:900";
+	}
+}

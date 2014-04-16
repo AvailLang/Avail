@@ -1,5 +1,5 @@
 /**
- * ModuleRootOrPackageNode.java
+ * EntryPointModuleNode.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,54 +30,58 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.environment;
+package com.avail.environment.nodes;
 
 import com.avail.annotations.Nullable;
 import com.avail.builder.AvailBuilder;
 import com.avail.builder.ResolvedModuleName;
 
 /**
- * This is a tree node representing a module file or a package.
+ * This is a tree node representing a module that has one or more entry points,
+ * presented via {@link EntryPointNode}s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @SuppressWarnings("serial")
-class ModuleOrPackageNode
-extends AbstractBuilderFrameTreeNode
+public class EntryPointModuleNode extends AbstractBuilderFrameTreeNode
 {
-	/** The resolved name of the module. */
+	/** The resolved name of the represented module. */
 	final ResolvedModuleName resolvedModuleName;
 
-	/** Whether this module's name refers to a package (directory). */
-	final boolean isPackage;
+	/**
+	 * Answer the {@link ResolvedModuleName} that this represents.
+	 *
+	 * @return The resolved module name.
+	 */
+	public ResolvedModuleName resolvedModuleName ()
+	{
+		return resolvedModuleName;
+	}
 
 	/**
-	 * Construct a new {@link ModuleOrPackageNode}.
+	 * Construct a new {@link EntryPointNode}.
 	 *
 	 * @param builder The builder for which this node is being built.
-	 * @param resolvedModuleName The name of the module or package.
-	 * @param isPackage Whether it's a package.
+	 * @param resolvedModuleName The name of the represented module.
 	 */
-	public ModuleOrPackageNode (
+	public EntryPointModuleNode (
 		final AvailBuilder builder,
-		final ResolvedModuleName resolvedModuleName,
-		final boolean isPackage)
+		final ResolvedModuleName resolvedModuleName)
 	{
 		super(builder);
 		this.resolvedModuleName = resolvedModuleName;
-		this.isPackage = isPackage;
 	}
 
 	@Override
 	@Nullable String iconResourceName ()
 	{
-		return isPackage ? "PackageInTree" : "ModuleInTree";
+		return "ModuleInTree";
 	}
 
 	@Override
 	String text (final boolean selected)
 	{
-		return resolvedModuleName.localName();
+		return resolvedModuleName.qualifiedName();
 	}
 
 	/**
@@ -97,11 +101,7 @@ extends AbstractBuilderFrameTreeNode
 	@Override
 	String htmlStyle (final boolean selected)
 	{
-		String base = super.htmlStyle(selected);
-		if (isPackage)
-		{
-			base = base + ";font-weight:bold";
-		}
+		String base = super.htmlStyle(selected) + ";font-weight:bold";
 		if (!isLoaded())
 		{
 			base = base + ";font-style:italic";

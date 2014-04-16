@@ -1453,12 +1453,11 @@ public abstract class AbstractAvailCompiler
 				{
 					assert workUnitsQueued == workUnitsCompleted;
 				}
-				// Ambiguity is detected and prevented during the parse, and
+				// Ambiguity is detected and reported during the parse, and
 				// should never be identified here.
-				assert count.value < 2;
-				// If no solutions were found, then report an error.
 				if (count.value == 0)
 				{
+					// No solutions were found.  Report an error.
 					reportError(afterFail);
 					return;
 				}
@@ -1470,6 +1469,9 @@ public abstract class AbstractAvailCompiler
 					supplyAnswer.value(
 						afterStatement.value, solution.value);
 				}
+				// Otherwise an ambiguity was already reported when the second
+				// solution arrived (and subsequent solutions may have arrived
+				// and been ignored).  Do nothing.
 			}
 		};
 		final ParserState realStart = new ParserState(
@@ -1487,24 +1489,41 @@ public abstract class AbstractAvailCompiler
 				{
 					assert afterSolution != null;
 					assert aSolution != null;
-					if (count.value == 0)
+					final int myCount;
+					synchronized (AbstractAvailCompiler.this)
 					{
-						afterStatement.value = afterSolution;
-						solution.value = aSolution;
+						// It may look like we could hoist all but the increment
+						// and capture of the count out of the synchronized
+						// section, but then there wouldn't be a write fence
+						// after recording the first solution.
 						count.value++;
-					}
-					else
-					{
-						// Indicate the problem at the last token of the
-						// ambiguous expression.
-						reportAmbiguousInterpretations(
-							new ParserState(
-								afterSolution.position - 1,
-								afterSolution.clientDataMap),
-							solution.value(),
-							aSolution,
-							afterFail);
-						return;
+						myCount = count.value;
+						if (myCount == 1)
+						{
+							// Save the first solution to arrive.
+							afterStatement.value = afterSolution;
+							solution.value = aSolution;
+							return;
+						}
+						if (myCount == 2)
+						{
+							// We are exactly the second solution to arrive and
+							// to increment count.value.  Report the ambiguity
+							// between the previously recorded solution and this
+							// one.
+							reportAmbiguousInterpretations(
+								new ParserState(
+									afterSolution.position - 1,
+									afterSolution.clientDataMap),
+								solution.value(),
+								aSolution,
+								afterFail);
+							return;
+						}
+						// We're at a third or subsequent solution.  Ignore it
+						// since we reported the ambiguity when the second
+						// solution was reached.
+						assert myCount > 2;
 					}
 				}
 			});

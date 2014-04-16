@@ -906,7 +906,7 @@ whitespaceCharacter ::=
  * Return true if the supplied character is identified as an Arabic numeral
  * according to the Unicode character description, false otherwise.
  *
- * @method "_is Arabic numeral"
+ * @method "_is an Arabic numeral"
  * @param "c" "character"
  * @returns "boolean"
  * @category "Unicode"

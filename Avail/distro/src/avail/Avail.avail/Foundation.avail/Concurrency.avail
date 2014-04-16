@@ -243,7 +243,7 @@ Grammatical restriction "_∈_" is <∅, {"current fiber"}>;
  * "aFiber"}. If no such property exists, then answer the result of applying
  * {@param "else"}.
  *
- * @method "_[_]else_"
+ * @method "current fiber[_]else_"
  * @param "aFiber" "fiber"
  *        A fiber.
  * @param "key" "atom"
@@ -288,7 +288,7 @@ Public method "Fork_" is
  * The new fiber will run at the same {@method "_'s⁇priority" priority} as the
  * {@method "current fiber"}.
  *
- * @method "Fork_"
+ * @method "fork_"
  * @param "aFunction" "[]→⊤"
  * @returns "fiber"
  *          The new fiber.

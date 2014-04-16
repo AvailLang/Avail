@@ -252,7 +252,7 @@ extends TypeDescriptor
 		 *        which is of the type being constructed.
 		 * @return The new parse node type, whose kind is the receiver.
 		 */
-		final public AvailObject create (final A_Type expressionType)
+		public final AvailObject create (final A_Type expressionType)
 		{
 			A_Type boundedExpressionType = expressionType;
 			final AvailObject type = mutable.create();
@@ -285,7 +285,7 @@ extends TypeDescriptor
 		 * @param another The other {@link ParseNodeKind}.
 		 * @return The nearest common ancestor (a {@link ParseNodeKind}).
 		 */
-		final public ParseNodeKind commonAncestorWith (
+		public final ParseNodeKind commonAncestorWith (
 			final ParseNodeKind another)
 		{
 			@NotNull ParseNodeKind a = this;
@@ -335,7 +335,7 @@ extends TypeDescriptor
 		 * @param purportedParent The kind that may be the ancestor.
 		 * @return Whether the receiver descends from the argument.
 		 */
-		final public boolean isSubkindOf (final ParseNodeKind purportedParent)
+		public final boolean isSubkindOf (final ParseNodeKind purportedParent)
 		{
 			final int index =
 				ordinal() * values().length + purportedParent.ordinal();

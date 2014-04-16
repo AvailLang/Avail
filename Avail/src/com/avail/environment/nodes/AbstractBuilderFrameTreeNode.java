@@ -30,13 +30,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.environment;
+package com.avail.environment.nodes;
 
 import java.awt.Image;
 import javax.swing.ImageIcon;
 import javax.swing.tree.DefaultMutableTreeNode;
 import com.avail.annotations.Nullable;
 import com.avail.builder.AvailBuilder;
+import com.avail.environment.AvailWorkbench;
 import com.avail.utility.LRUCache;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Transformer1;
@@ -48,11 +49,21 @@ import com.avail.utility.evaluation.Transformer1;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @SuppressWarnings("serial")
-abstract class AbstractBuilderFrameTreeNode
+public abstract class AbstractBuilderFrameTreeNode
 extends DefaultMutableTreeNode
 {
 	/** The {@link AvailBuilder} for which this node presents information. */
 	final AvailBuilder builder;
+
+	/**
+	 * Answer the {@link AvailBuilder} for which this node presents information.
+	 *
+	 * @return The Avail builder.
+	 */
+	public AvailBuilder builder ()
+	{
+		return builder;
+	}
 
 	/**
 	 * Construct a new {@link AbstractBuilderFrameTreeNode} on behalf of the
@@ -149,7 +160,7 @@ extends DefaultMutableTreeNode
 	 *        Whether the node is selected.
 	 * @return
 	 */
-	final String htmlText (final boolean selected)
+	public final String htmlText (final boolean selected)
 	{
 		return "<div style=\"" + htmlStyle(selected) + "\">"
 			+ text(selected)
@@ -157,7 +168,7 @@ extends DefaultMutableTreeNode
 	}
 
 	@Override
-	final public String toString ()
+	public final String toString ()
 	{
 		return getClass().getSimpleName() + ": " + text(false);
 	}
@@ -168,7 +179,7 @@ extends DefaultMutableTreeNode
 	 * @param string The string.
 	 * @return Whether this is the indicated node.
 	 */
-	final public boolean isSpecifiedByString (final String string)
+	public final boolean isSpecifiedByString (final String string)
 	{
 		return text(false).equals(string);
 	}
