@@ -1,5 +1,5 @@
 /**
- * P_012_ClearValue.java
+ * CancelAction.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,63 +29,50 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import java.util.Arrays;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.exceptions.VariableSetException;
-import com.avail.interpreter.*;
+package com.avail.environment.actions;
+
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import com.avail.annotations.*;
+import com.avail.environment.AvailWorkbench;
+import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
+import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
+import com.avail.environment.tasks.BuildTask;
 
 /**
- * <strong>Primitive 12:</strong> Clear the {@linkplain VariableDescriptor
- * variable}.
+ * A {@code CancelAction} cancels a background {@linkplain BuildTask build
+ * task}.
  */
-public final class P_012_ClearValue extends Primitive
+@SuppressWarnings("serial")
+public final class CancelAction
+extends AbstractWorkbenchAction
 {
+	@Override
+	public void actionPerformed (final @Nullable ActionEvent event)
+	{
+		final AbstractWorkbenchTask task = workbench.backgroundTask;
+		if (task != null)
+		{
+			task.cancel();
+		}
+	}
+
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * Construct a new {@link CancelAction}.
+	 *
+	 * @param workbench
+	 *        The owning {@link AvailWorkbench}.
 	 */
-	public final static Primitive instance = new P_012_ClearValue().init(
-		1, CanInline, HasSideEffect);
-
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+	public CancelAction (final AvailWorkbench workbench)
 	{
-		assert args.size() == 1;
-		final A_Variable var = args.get(0);
-		try
-		{
-			var.clearValue();
-		}
-		catch (final VariableSetException e)
-		{
-			return interpreter.primitiveFailure(e.numericCode());
-		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
-	}
-
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(VariableTypeDescriptor.mostGeneralType()),
-			TOP.o());
-	}
-
-	@Override
-	protected A_Type privateFailureVariableType ()
-	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_CANNOT_MODIFY_FINAL_JAVA_FIELD.numericCode(),
-				E_JAVA_MARSHALING_FAILED.numericCode(),
-				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE.numericCode())));
+		super(workbench, "Cancel build");
+		putValue(
+			SHORT_DESCRIPTION,
+			"Cancel the current build process.");
+		putValue(
+			ACCELERATOR_KEY,
+			KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, Event.CTRL_MASK));
 	}
 }

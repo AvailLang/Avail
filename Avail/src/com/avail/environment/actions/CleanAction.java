@@ -1,5 +1,5 @@
 /**
- * P_012_ClearValue.java
+ * CleanAction.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,63 +29,69 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import java.util.Arrays;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.exceptions.VariableSetException;
-import com.avail.interpreter.*;
+package com.avail.environment.actions;
+
+import java.awt.event.*;
+import java.io.IOException;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.StyledDocument;
+import com.avail.annotations.*;
+import com.avail.builder.ModuleRoot;
+import com.avail.environment.AvailWorkbench;
+import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
+import com.avail.persistence.IndexedFileException;
 
 /**
- * <strong>Primitive 12:</strong> Clear the {@linkplain VariableDescriptor
- * variable}.
+ * A {@code CleanAction} empties all compiled module repositories.
  */
-public final class P_012_ClearValue extends Primitive
+@SuppressWarnings("serial")
+public final class CleanAction
+extends AbstractWorkbenchAction
 {
-	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
-	 */
-	public final static Primitive instance = new P_012_ClearValue().init(
-		1, CanInline, HasSideEffect);
-
 	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-		assert args.size() == 1;
-		final A_Variable var = args.get(0);
+		workbench.availBuilder.unloadTarget(null);
+		assert workbench.backgroundTask == null;
 		try
 		{
-			var.clearValue();
+			// Clear all repositories.
+			for (final ModuleRoot root :
+				workbench.resolver.moduleRoots().roots())
+			{
+				root.repository().clear();
+			}
 		}
-		catch (final VariableSetException e)
+		catch (final IOException e)
 		{
-			return interpreter.primitiveFailure(e.numericCode());
+			throw new IndexedFileException(e);
 		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		final StyledDocument doc = workbench.transcript.getStyledDocument();
+		try
+		{
+			doc.insertString(
+				doc.getLength(),
+				String.format("Repository has been cleared.%n"),
+				doc.getStyle(AvailWorkbench.infoStyleName));
+		}
+		catch (final BadLocationException e)
+		{
+			assert false : "This never happens.";
+		}
 	}
 
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
+	/**
+	 * Construct a new {@link CleanAction}.
+	 *
+	 * @param workbench
+	 *        The owning {@link AvailWorkbench}.
+	 */
+	public CleanAction (final AvailWorkbench workbench)
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(VariableTypeDescriptor.mostGeneralType()),
-			TOP.o());
-	}
-
-	@Override
-	protected A_Type privateFailureVariableType ()
-	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_CANNOT_MODIFY_FINAL_JAVA_FIELD.numericCode(),
-				E_JAVA_MARSHALING_FAILED.numericCode(),
-				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE.numericCode())));
+		super(workbench, "Clean All");
+		putValue(
+			SHORT_DESCRIPTION,
+			"Unload all code and wipe the compiled module cache.");
 	}
 }

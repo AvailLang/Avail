@@ -1,5 +1,5 @@
 /**
- * P_012_ClearValue.java
+ * UnloadAction.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,63 +29,58 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import java.util.Arrays;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.exceptions.VariableSetException;
-import com.avail.interpreter.*;
+package com.avail.environment.actions;
+
+import java.awt.*;
+import java.awt.event.*;
+import com.avail.annotations.*;
+import com.avail.builder.*;
+import com.avail.environment.AvailWorkbench;
+import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
+import com.avail.environment.tasks.UnloadTask;
 
 /**
- * <strong>Primitive 12:</strong> Clear the {@linkplain VariableDescriptor
- * variable}.
+ * An {@code UnloadAction} launches an {@linkplain UnloadTask unload task}
+ * in a Swing worker thread.
  */
-public final class P_012_ClearValue extends Primitive
+@SuppressWarnings("serial")
+public final class UnloadAction
+extends AbstractWorkbenchAction
 {
+	@Override
+	public void actionPerformed (final @Nullable ActionEvent event)
+	{
+		assert workbench.backgroundTask == null;
+		final ResolvedModuleName selectedModule = workbench.selectedModule();
+		assert selectedModule != null;
+
+		// Update the UI.
+		workbench.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		workbench.buildProgress.setValue(0);
+		workbench.clearTranscript();
+
+		// Clear the build input stream.
+		workbench.inputStream().clear();
+
+		// Unload the target module in a Swing worker thread.
+		final UnloadTask task = new UnloadTask(workbench, selectedModule);
+		workbench.backgroundTask = task;
+		workbench.setEnablements();
+		task.execute();
+	}
+
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * Construct a new {@link UnloadAction}.
+	 *
+	 * @param workbench
+	 *        The owning {@link AvailWorkbench}.
 	 */
-	public final static Primitive instance = new P_012_ClearValue().init(
-		1, CanInline, HasSideEffect);
-
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+	public UnloadAction (final AvailWorkbench workbench)
 	{
-		assert args.size() == 1;
-		final A_Variable var = args.get(0);
-		try
-		{
-			var.clearValue();
-		}
-		catch (final VariableSetException e)
-		{
-			return interpreter.primitiveFailure(e.numericCode());
-		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
-	}
-
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(VariableTypeDescriptor.mostGeneralType()),
-			TOP.o());
-	}
-
-	@Override
-	protected A_Type privateFailureVariableType ()
-	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_CANNOT_MODIFY_FINAL_JAVA_FIELD.numericCode(),
-				E_JAVA_MARSHALING_FAILED.numericCode(),
-				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE.numericCode())));
+		super(workbench, "Unload");
+		putValue(
+			SHORT_DESCRIPTION,
+			"Unload the target module.");
 	}
 }

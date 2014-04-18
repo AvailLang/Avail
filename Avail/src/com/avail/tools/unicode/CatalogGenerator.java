@@ -33,7 +33,6 @@
 package com.avail.tools.unicode;
 
 import static java.nio.file.StandardOpenOption.*;
-import java.io.FileNotFoundException;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;

@@ -2271,6 +2271,432 @@ public final class AvailBuilder
 	}
 
 	/**
+	 * A {@code ModuleTree} is used to capture the structure of nested packages
+	 * for use by the graph layout engine.
+	 */
+	static class ModuleTree
+	{
+		/** The parent {@link ModuleTree}, or null if this is a root. */
+		private @Nullable ModuleTree parent;
+
+		/**
+		 * The list of children of this package or module (in which case it must
+		 * be empty.
+		 */
+		@InnerAccess final List<ModuleTree> children = new ArrayList<>();
+
+		/** The private node name to use in the graph layout. */
+		@InnerAccess final String node;
+
+		/** The textual label of the corresponding node in the graph layout. */
+		@InnerAccess final String label;
+
+		/**
+		 * Add a child to this node.
+		 *
+		 * @param child The {@link ModuleTree} to add as a child.
+		 */
+		void addChild (final ModuleTree child)
+		{
+			children.add(child);
+			child.parent = this;
+		}
+
+		/**
+		 * Answer the parent {@link ModuleTree}, or null if this is a root.
+		 *
+		 * @return The parent {@code ModuleTree} or null.
+		 */
+		@Nullable ModuleTree parent ()
+		{
+			return parent;
+		}
+
+		/**
+		 * Compute a quoted label based on the stored {@link #label} {@link
+		 * String}, compensating for Graphviz's idiosyncrasies about delimiters.
+		 * In particular, only quotes should be escaped with a backslash.  A
+		 * little thought shows that this means a backslash can't be the last
+		 * character of the quoted string, so we work around it by appending a
+		 * space in that case, which will generally be close enough.
+		 *
+		 * @return
+		 */
+		String safeLabel ()
+		{
+			final String addendum = label.charAt(label.length() - 1) == '\\'
+				? " "
+				: "";
+			return "\"" + label.replaceAll("\"", "\\\"") + addendum + "\"";
+		}
+
+		/**
+		 * The represented module's {@link ResolvedModuleName resolved name}.
+		 */
+		@InnerAccess final @Nullable ResolvedModuleName resolvedModuleName;
+
+		/**
+		 * Construct a new {@link ModuleTree}.
+		 *
+		 * @param node The node name.
+		 * @param label The label to present.
+		 * @param resolvedModuleName The represented {@link ResolvedModuleName}.
+		 */
+		public ModuleTree (
+			final String node,
+			final String label,
+			final @Nullable ResolvedModuleName resolvedModuleName)
+		{
+			this.node = node;
+			this.label = label;
+			this.resolvedModuleName = resolvedModuleName;
+		}
+
+		/**
+		 * Enumerate the modules in this tree, invoking the {@code enter}
+		 * callback before visiting children, and invoking the {@code exit}
+		 * callback after.  Both callbacks take an {@link Integer} indicating
+		 * the current depth in the tree, relative to the initial passed value.
+		 *
+		 * @param enter What to do before each node.
+		 * @param exit What to do after each node.
+		 * @param depth The depth of the current invocation.
+		 */
+		void recursiveDo (
+			final Continuation2<ModuleTree, Integer> enter,
+			final Continuation2<ModuleTree, Integer> exit,
+			final int depth)
+		{
+			enter.value(this, depth);
+			final Integer nextDepth = depth + 1;
+			for (final ModuleTree child : children)
+			{
+				child.recursiveDo(enter, exit, nextDepth);
+			}
+			exit.value(this, depth);
+		}
+	}
+
+	/**
+	 * Used for graphics generation.
+	 */
+	class GraphTracer
+	{
+		/**
+		 * The module whose ancestors are to be graphed.
+		 */
+		private final ResolvedModuleName targetModule;
+
+		/**
+		 * The output file into which the graph should be written in .gv "dot"
+		 * format.  TODO [MvG] - Not currently used.
+		 */
+		private final File outputFile;
+
+		/**
+		 * Construct a new {@link GraphTracer}.
+		 *
+		 * @param targetModule
+		 *        The module whose ancestors are to be graphed.
+		 * @param outputFile
+		 *        The file into which to write the graph - TODO [MvG] - unused.
+		 */
+		GraphTracer (
+			final ResolvedModuleName targetModule,
+			final File outputFile)
+		{
+			this.targetModule = targetModule;
+			this.outputFile = outputFile;
+		}
+
+		/**
+		 * Scan all module files in all visible source directories, writing the
+		 * graph as a Graphviz .gv file in "dot" format.
+		 */
+		public void traceGraph ()
+		{
+			if (!shouldStopBuild)
+			{
+				final Graph<ResolvedModuleName> ancestry =
+					moduleGraph.ancestryOfAll(
+						Collections.singleton(targetModule));
+				final Graph<ResolvedModuleName> reduced =
+					ancestry.dagWithoutRedundantEdges();
+				renderGraph(reduced);
+			}
+			trimGraphToLoadedModules();
+		}
+
+		/**
+		 * All full names that have been encountered for nodes so far, with
+		 * their more readable abbreviations.
+		 */
+		final Map<String, String> encounteredNames = new HashMap<>();
+
+		/**
+		 * All abbreviated names that have been allocated so far as values of
+		 * {@link #encounteredNames}.
+		 */
+		final Set<String> allocatedNames = new HashSet<>();
+
+		/**
+		 * Convert a fully qualified module name into a suitably tidy symbolic
+		 * name for a node.  This uses both {@link #encounteredNames} and {@link
+		 * #allocatedNames} to bypass conflicts.
+		 *
+		 * <p>Node names are rather restrictive in Graphviz, so non-alphanumeric
+		 * characters are converted to "_xxxxxx_", where the x's are a
+		 * non-padded hex representation of the character's Unicode code point.
+		 * Slashes are converted to "__".</p>
+		 *
+		 * @param input The fully qualified module name.
+		 * @return A unique node name.
+		 */
+		@InnerAccess final String asNodeName (final String input)
+		{
+			if (encounteredNames.containsKey(input))
+			{
+				return encounteredNames.get(input);
+			}
+			assert input.charAt(0) == '/';
+			// Try naming it locally first.
+			int startPosition = input.length() + 1;
+			final StringBuilder output = new StringBuilder(startPosition + 10);
+			while (startPosition > 1)
+			{
+				// Include successively more context until it works.
+				output.setLength(0);
+				startPosition = input.lastIndexOf('/', startPosition - 2) + 1;
+				for (int i = startPosition; i < input.length(); )
+				{
+					final int c = input.codePointAt(i);
+					if (('a' <= c && c <= 'z')
+						|| ('A' <= c && c <= 'Z')
+						|| (i > startPosition && '0' <= c && c <= '9'))
+					{
+						output.appendCodePoint(c);
+					}
+					else if (c == '/')
+					{
+						output.append("__");
+					}
+					else
+					{
+						output.append(String.format("_%x_", c));
+					}
+					i += Character.charCount(c);
+				}
+				final String outputString = output.toString();
+				if (!allocatedNames.contains(outputString))
+				{
+					allocatedNames.add(outputString);
+					encounteredNames.put(input, outputString);
+					return outputString;
+				}
+			}
+			// Even the complete name is in conflict.  Append a single
+			// underscore and some unique decimal digits.
+			output.append("_");
+			final String leadingPart = output.toString();
+			int sequence = 2;
+			while (true)
+			{
+				final String outputString =
+					leadingPart + Integer.toString(sequence);
+				if (!allocatedNames.contains(outputString))
+				{
+					allocatedNames.add(outputString);
+					encounteredNames.put(input, outputString);
+					return outputString;
+				}
+				sequence++;
+			}
+		}
+
+		/**
+		 * Write the given (reduced) module dependency graph as a .gv "dot"
+		 * file suitable for layout via Graphviz.
+		 * TODO [MvG] - currently writes to the transcript rather than the file.
+		 *
+		 * @param ancestry The graph of fully qualified module names.
+		 */
+		private void renderGraph (final Graph<ResolvedModuleName> ancestry)
+		{
+			final Map<String, ModuleTree> trees = new HashMap<>();
+			final ModuleTree root =
+				new ModuleTree("root_", "Module Dependencies", null);
+			trees.put("", root);
+			for (final ResolvedModuleName moduleName : ancestry.vertices())
+			{
+				String string = moduleName.qualifiedName();
+				ModuleTree node = new ModuleTree(
+					asNodeName(string),
+					string.substring(string.lastIndexOf('/') + 1),
+					moduleName);
+				trees.put(string, node);
+				while (true)
+				{
+					string = string.substring(0, string.lastIndexOf('/'));
+					final ModuleTree previous = node;
+					node = trees.get(string);
+					if (node == null)
+					{
+						node = new ModuleTree(
+							asNodeName(string),
+							string.substring(string.lastIndexOf('/') + 1),
+							null);
+						trees.put(string,  node);
+						node.addChild(previous);
+					}
+					else
+					{
+						node.addChild(previous);
+						break;
+					}
+				}
+			}
+
+			final StringBuilder out = new StringBuilder();
+			final Continuation1<Integer> tab = new Continuation1<Integer>()
+			{
+				@Override
+				public void value (final @Nullable Integer count)
+				{
+					assert count != null;
+					for (int i = count; i > 0; i--)
+					{
+						out.append('\t');
+					}
+				}
+			};
+			root.recursiveDo(
+				new Continuation2<ModuleTree, Integer>()
+				{
+					@Override
+					public void value (
+						final @Nullable ModuleTree node,
+						final @Nullable Integer depth)
+					{
+						assert node != null;
+						assert depth != null;
+						tab.value(depth);
+						if (node == root)
+						{
+							out.append("digraph ");
+							out.append(node.node);
+							out.append("\n");
+							tab.value(depth);
+							out.append("{\n");
+							tab.value(depth + 1);
+							out.append("compound = true;\n");
+							tab.value(depth + 1);
+							out.append("splines = compound;\n");
+							tab.value(depth + 1);
+							out.append(
+								"node ["
+								+ "shape=box, "
+								+ "margin=\"0.1,0.1\", "
+								+ "width=0, "
+								+ "height=0, "
+								+ "style=filled, "
+								+ "fillcolor=moccasin "
+								+ "];\n");
+							tab.value(depth + 1);
+							out.append("edge [color=grey];\n");
+							tab.value(depth + 1);
+							out.append("label = ");
+							out.append(node.safeLabel());
+							out.append(";\n\n");
+						}
+						else if (node.resolvedModuleName == null)
+						{
+							out.append("subgraph cluster_");
+							out.append(node.node);
+							out.append('\n');
+							tab.value(depth);
+							out.append("{\n");
+							tab.value(depth + 1);
+							out.append("label = ");
+							out.append(node.safeLabel());
+							out.append(";\n");
+							tab.value(depth + 1);
+							out.append("penwidth = 2.0;\n");
+							tab.value(depth + 1);
+							out.append("fontsize = 18;\n");
+						}
+						else
+						{
+							out.append(node.node);
+							out.append(" [label=");
+							out.append(node.safeLabel());
+							out.append("];\n");
+						}
+					}
+				},
+				new Continuation2<ModuleTree, Integer>()
+				{
+					@Override
+					public void value (
+						final @Nullable ModuleTree node,
+						final @Nullable Integer depth)
+					{
+						assert node != null;
+						assert depth != null;
+						if (node == root)
+						{
+							out.append("\n");
+							// Output *all* the edges.
+							for (final ResolvedModuleName from :
+								ancestry.vertices())
+							{
+								final String qualified = from.qualifiedName();
+								final ModuleTree fromNode = trees.get(qualified);
+								final String [] parts = qualified.split("/");
+								final boolean fromPackage =
+									parts[parts.length - 2].equals(
+										parts[parts.length - 1]);
+								final String fromName;
+								fromName = fromNode.node;
+								for (final ResolvedModuleName to :
+									ancestry.successorsOf(from))
+								{
+									final String toName =
+										asNodeName(to.qualifiedName());
+									tab.value(depth + 1);
+									out.append(fromName);
+									out.append(" -> ");
+									out.append(toName);
+									if (fromPackage)
+									{
+										final ModuleTree parent =
+											fromNode.parent();
+										assert parent != null;
+										final String parentName =
+											"cluster_" + parent.node;
+										out.append("[ltail=");
+										out.append(parentName);
+										out.append("]");
+									}
+									out.append(";\n");
+								}
+							}
+							tab.value(depth);
+							out.append("}\n");
+						}
+						else if (node.resolvedModuleName == null)
+						{
+							tab.value(depth);
+							out.append("}\n");
+						}
+					}
+				},
+				0);
+			System.out.println(out); // TODO [MvG] Write to a file instead.
+		}
+
+	}
+
+	/**
 	 * Construct an {@link AvailBuilder} for the provided runtime.
 	 *
 	 * @param runtime
@@ -2371,6 +2797,37 @@ public final class AvailBuilder
 			if (!shouldStopBuild)
 			{
 				documentationTracer.generate(target);
+			}
+		}
+		finally
+		{
+			trimGraphToLoadedModules();
+		}
+	}
+
+	/**
+	 * Generate a graph.
+	 *
+	 * @param target
+	 *        The resolved name of the module whose ancestors to trace.
+	 * @param destinationFile
+	 *        Where to write the .gv "dot" format file.
+	 *        TODO [MvG] Currently ignored - writes to transcript.
+	 */
+	public void generateGraph (
+		final ResolvedModuleName target,
+		final File destinationFile)
+	{
+		try
+		{
+			shouldStopBuild = false;
+			final BuildTracer tracer = new BuildTracer();
+			tracer.trace(target);
+			final GraphTracer graphTracer = new GraphTracer(
+				target, destinationFile);
+			if (!shouldStopBuild)
+			{
+				graphTracer.traceGraph();
 			}
 		}
 		finally

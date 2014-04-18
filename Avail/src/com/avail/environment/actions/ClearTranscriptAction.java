@@ -1,5 +1,5 @@
 /**
- * P_012_ClearValue.java
+ * ClearTranscriptAction.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,63 +29,39 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import java.util.Arrays;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.exceptions.VariableSetException;
-import com.avail.interpreter.*;
+package com.avail.environment.actions;
+
+import java.awt.event.*;
+import com.avail.annotations.*;
+import com.avail.environment.AvailWorkbench;
+import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 
 /**
- * <strong>Primitive 12:</strong> Clear the {@linkplain VariableDescriptor
- * variable}.
+ * A {@code ClearTranscriptAction} clears the {@link AvailWorkbench}'s
+ * transcript.
  */
-public final class P_012_ClearValue extends Primitive
+@SuppressWarnings("serial")
+public final class ClearTranscriptAction
+extends AbstractWorkbenchAction
 {
+	@Override
+	public void actionPerformed (@Nullable final ActionEvent e)
+	{
+		workbench.clearTranscript();
+	}
+
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * Construct a new {@link ClearTranscriptAction}.
+	 *
+	 * @param workbench
+	 *        The owning {@link AvailWorkbench}.
 	 */
-	public final static Primitive instance = new P_012_ClearValue().init(
-		1, CanInline, HasSideEffect);
-
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+	public ClearTranscriptAction (final AvailWorkbench workbench)
 	{
-		assert args.size() == 1;
-		final A_Variable var = args.get(0);
-		try
-		{
-			var.clearValue();
-		}
-		catch (final VariableSetException e)
-		{
-			return interpreter.primitiveFailure(e.numericCode());
-		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
-	}
-
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(VariableTypeDescriptor.mostGeneralType()),
-			TOP.o());
-	}
-
-	@Override
-	protected A_Type privateFailureVariableType ()
-	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_CANNOT_MODIFY_FINAL_JAVA_FIELD.numericCode(),
-				E_JAVA_MARSHALING_FAILED.numericCode(),
-				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE.numericCode())));
+		super(workbench, "Clear transcript");
+		putValue(
+			SHORT_DESCRIPTION,
+			"Clear the transcript.");
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * P_012_ClearValue.java
+ * GraphTask.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,63 +29,62 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import java.util.Arrays;
-import java.util.List;
+package com.avail.environment.tasks;
+
+import java.awt.*;
+import java.io.File;
+import com.avail.annotations.Nullable;
+import com.avail.builder.*;
 import com.avail.descriptor.*;
-import com.avail.exceptions.VariableSetException;
-import com.avail.interpreter.*;
+import com.avail.environment.AvailWorkbench;
+import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
 
 /**
- * <strong>Primitive 12:</strong> Clear the {@linkplain VariableDescriptor
- * variable}.
+ * A {@code GraphTask} generates a .gv file describing a visual graph of
+ * module dependencies for the target {@linkplain ModuleDescriptor module}.
  */
-public final class P_012_ClearValue extends Primitive
+public final class GraphTask
+extends AbstractWorkbenchTask
 {
-	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
-	 */
-	public final static Primitive instance = new P_012_ClearValue().init(
-		1, CanInline, HasSideEffect);
-
 	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+	protected void executeTask () throws Exception
 	{
-		assert args.size() == 1;
-		final A_Variable var = args.get(0);
 		try
 		{
-			var.clearValue();
+			workbench.availBuilder.generateGraph(
+				targetModuleName(),
+				new File("dummy"));
 		}
-		catch (final VariableSetException e)
+		catch (final Exception e)
 		{
-			return interpreter.primitiveFailure(e.numericCode());
+			// Put a breakpoint here to debug graph exceptions.
+			throw e;
 		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
-	protected A_Type privateBlockTypeRestriction ()
+	protected void done ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(VariableTypeDescriptor.mostGeneralType()),
-			TOP.o());
+		workbench.backgroundTask = null;
+		reportDone();
+		workbench.availBuilder.checkStableInvariants();
+		workbench.setEnablements();
+		workbench.setCursor(Cursor.getDefaultCursor());
 	}
 
-	@Override
-	protected A_Type privateFailureVariableType ()
+	/**
+	 * Construct a new {@link GraphTask}.
+	 *
+	 * @param workbench The owning {@link AvailWorkbench}.
+	 * @param targetModuleName
+	 *        The resolved name of the target {@linkplain ModuleDescriptor
+	 *        module}.
+	 */
+	public GraphTask (
+		final AvailWorkbench workbench,
+		final @Nullable ResolvedModuleName targetModuleName)
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_CANNOT_MODIFY_FINAL_JAVA_FIELD.numericCode(),
-				E_JAVA_MARSHALING_FAILED.numericCode(),
-				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE.numericCode())));
+		super(workbench, targetModuleName);
 	}
 }

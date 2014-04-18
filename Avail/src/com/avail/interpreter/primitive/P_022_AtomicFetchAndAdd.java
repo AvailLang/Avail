@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.*;
+import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.*;
 
 /**
@@ -70,7 +71,10 @@ extends Primitive
 			return interpreter.primitiveSuccess(
 				var.fetchAndAddValue(addend));
 		}
-		catch (final VariableGetException|VariableSetException e)
+		catch (
+			final VariableGetException
+				| VariableSetException
+				| ArithmeticException e)
 		{
 			return interpreter.primitiveFailure(e);
 		}
@@ -104,6 +108,8 @@ extends Primitive
 				E_CANNOT_READ_UNASSIGNED_VARIABLE.numericCode(),
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE.numericCode(),
 				E_CANNOT_MODIFY_FINAL_JAVA_FIELD.numericCode(),
-				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE.numericCode())));
+				E_JAVA_MARSHALING_FAILED.numericCode(),
+				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE.numericCode(),
+				E_CANNOT_ADD_UNLIKE_INFINITIES.numericCode())));
 	}
 }

@@ -64,7 +64,7 @@ Test "next integer within range" in pRNG test suite is
 		Require: 1 ≤ rng's next [1..6] ≤ 6;
 		Require: -6 ≤ rng's next [-6..-1] ≤ -1;
 		Require: -10 ≤ rng's next [-10..10] ≤ 10;
-		Require: 0 ≤ rng's next [0.._2_128) ≤ _2_128;
+		Require: 0 ≤ rng's next [0.._2_128) < _2_128;
 	] 10 times;
 ];
 

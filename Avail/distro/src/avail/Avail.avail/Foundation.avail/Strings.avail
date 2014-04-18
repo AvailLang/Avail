@@ -1147,7 +1147,7 @@ Method "“_”" is
 		Do
 		[
 			elem ::= aTuple[index];
-			s := eject ↑s ++ cast elem into [t : string | t] else [“elem”];
+			s := eject ↑s ++ “elem”;
 			↑index++;
 		]
 		while [index ≤ |aTuple|]
@@ -1243,9 +1243,9 @@ Method "“_”" is
 	[
 		binding ::= bindings[index];
 		key ::= binding[1];
-		s := eject ↑s ++ cast key into [t : string | t] else [“key”];
+		s := eject ↑s ++ “key”;
 		value ::= binding[2];
-		s := eject ↑s ++ "→" ++ cast value into [t : string | t] else [“value”];
+		s := eject ↑s ++ "→" ++ “value”;
 		↑index++;
 	]
 	alternate with [s := eject ↑s ++ ", ";];

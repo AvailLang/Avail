@@ -34,6 +34,7 @@ package com.avail.utility;
 
 import java.util.*;
 import com.avail.annotations.InnerAccess;
+import com.avail.annotations.Nullable;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation2;
 
@@ -740,5 +741,119 @@ public class Graph <Vertex>
 				}
 			}
 		}
+	}
+
+	/**
+	 * Create a subgraph containing each of the provided vertices and all of
+	 * their ancestors.
+	 *
+	 * @param seeds The vertices whose ancestors to include.
+	 * @return The specified subgraph of the receiver.
+	 */
+	public Graph<Vertex> ancestryOfAll (final Collection<Vertex> seeds)
+	{
+		final Graph<Vertex> ancestry = new Graph<>();
+		ancestry.addVertices(seeds);
+		reverse().parallelVisit(
+			new Continuation2<Vertex, Continuation0>()
+			{
+				@Override
+				public void value (
+					final @Nullable Vertex vertex,
+					final @Nullable Continuation0 completionAction)
+				{
+					assert vertex != null;
+					assert completionAction != null;
+					for (final Vertex successor : successorsOf(vertex))
+					{
+						if (ancestry.includesVertex(successor))
+						{
+							ancestry.includeVertex(vertex);
+							ancestry.addEdge(vertex, successor);
+						}
+					}
+					completionAction.value();
+				}
+			});
+		return ancestry;
+	}
+
+	/**
+	 * Given an acyclic graph, produce a subgraph that excludes any edges for
+	 * which there is another path connecting those edges in the original graph.
+	 *
+	 * @return A reduced copy of this graph.
+	 */
+	public Graph<Vertex> dagWithoutRedundantEdges ()
+	{
+		assert !isCyclic();
+		final Map<Vertex, Set<Vertex>> ancestorSets = new HashMap<>();
+		parallelVisit(new Continuation2<Vertex, Continuation0>()
+		{
+			@Override
+			public void value (
+				final @Nullable Vertex vertex,
+				final @Nullable Continuation0 completionAction)
+			{
+				assert vertex != null;
+				assert completionAction != null;
+				final Set<Vertex> ancestorSet;
+				final Set<Vertex> predecessors = predecessorsOf(vertex);
+				if (predecessors.size() == 0)
+				{
+					ancestorSet = Collections.emptySet();
+				}
+				else if (predecessors.size() == 1)
+				{
+					final Vertex predecessor = predecessors.iterator().next();
+					ancestorSet = new HashSet<>(ancestorSets.get(predecessor));
+					ancestorSet.add(predecessor);
+				}
+				else
+				{
+					ancestorSet = new HashSet<>(predecessors.size() * 3);
+					for (final Vertex predecessor : predecessors)
+					{
+						ancestorSet.addAll(ancestorSets.get(predecessor));
+						ancestorSet.add(predecessor);
+					}
+				}
+				ancestorSets.put(vertex, ancestorSet);
+				completionAction.value();
+			}
+		});
+		final Graph<Vertex> result = new Graph<>();
+		result.addVertices(vertices());
+		// Add edges to the new graph that don't have a corresponding path in
+		// the original graph with length at least 2.  If such a path exists,
+		// this edge is redundant.  We detect such a path by checking if any of
+		// the destination's predecessors have the source in their sets of
+		// (proper) ancestors.
+		for (final Map.Entry<Vertex, Set<Vertex>> entry : inEdges.entrySet())
+		{
+			final Vertex destination = entry.getKey();
+			final Set<Vertex> destinationPredecessors = entry.getValue();
+			for (final Vertex source : destinationPredecessors)
+			{
+				// Check if there is a path of length at least 2 from the source
+				// to the destination in the original graph.
+				boolean isRedundant = false;
+				for (final Vertex destinationPredecessor
+					: destinationPredecessors)
+				{
+					if (ancestorSets.get(destinationPredecessor).contains(
+						source))
+					{
+						isRedundant = true;
+						break;
+					}
+				}
+				if (!isRedundant)
+				{
+					result.addEdge(source, destination);
+				}
+			}
+		}
+		return result;
 	}
 }
