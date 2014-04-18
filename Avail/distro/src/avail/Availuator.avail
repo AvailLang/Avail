@@ -37,6 +37,7 @@ Extends
 	"Convenient ASCII"
 Entries
 	"`!_",
+	"time_",
 	"Run_"
 Body
 
@@ -68,18 +69,48 @@ Grammatical restriction "`!_" is <{"`!_"}>;
 Method "Run_" is [f : []→⊤ | f();] : ⊤;
 
 /**
- * Forbid the supplied {@type "function"} from producing a value.
+ * Time the execution of the supplied {@type "function"}.
  *
- * @method "Run_"
- * @restricts "[]→⊤'s type"
+ * @method "time_"
+ * @param "f" "[]→⊤"
+ *        An arbitrary arity-0 {@type "function"}.
+ * @return "whole number µs"
+ *         The elapsed time, in microseconds.
  */
-Semantic restriction "Run_" is
+Method "time_" is
+[
+	f : []→⊤
+|
+	startTime ::= high-precision timer value;
+	f();
+	elapsed ::= high-precision timer value - startTime;
+	(elapsed ÷ 1000) µs
+] : any;
+
+/**
+ * Time the execution of the supplied {@type "function"}.
+ *
+ * @method "time_"
+ * @param "f" "[]→any"
+ *        An arbitrary value-producing arity-0 {@type "function"}.
+ * @return "<whole number µs, any…|2>"
+ *         A 2-tuple. The first element is the elapsed time in microseconds. The
+ *         second element is the function's result.
+ */
+Method "time_" is
+[
+	f : []→any
+|
+	startTime ::= high-precision timer value;
+	result ::= f();
+	elapsed ::= high-precision timer value - startTime;
+	<(elapsed ÷ 1000) µs, result>
+];
+
+Semantic restriction "time_" is
 [
 	f : []→⊤'s type
 |
-	If f's return type ≠ ⊤ then
-	[
-		Reject parse, expected: "function not to produce a value"
-	];
-	⊤
+	cast f's return type into [t : any's type | <whole number µs, t…|2>]
+	else [whole number µs]
 ];

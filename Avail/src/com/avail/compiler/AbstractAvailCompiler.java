@@ -1590,7 +1590,7 @@ public abstract class AbstractAvailCompiler
 		public String toString ()
 		{
 			return String.format(
-				"%s%n\tPOSITION = %d%n\tTOKENS = %s ☞ %s%n\tCLIENT_DATA = %s",
+				"%s%n\tPOSITION = %d%n\tTOKENS = %s ⤷ %s%n\tCLIENT_DATA = %s",
 				getClass().getSimpleName(),
 				position,
 				(position > 0
@@ -3879,14 +3879,6 @@ public abstract class AbstractAvailCompiler
 		final Con<A_Phrase> continuation)
 	{
 		final ParsingOperation op = ParsingOperation.decode(instruction);
-//		System.out.format(
-//			"OP=%s%s [%s ☞ %s]%n",
-//			op.name(),
-//			instruction < ParsingOperation.distinctInstructions
-//				? ""
-//				: " (operand=" + op.operand(instruction) + ")",
-//			tokens.get(start.position - 1).string(),
-//			tokens.get(start.position).string());
 		switch (op)
 		{
 			case PARSE_ARGUMENT:
