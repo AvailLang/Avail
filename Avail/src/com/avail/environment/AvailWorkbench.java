@@ -732,7 +732,7 @@ extends JFrame
 		cleanAction.setEnabled(!busy);
 		refreshAction.setEnabled(!busy);
 		setDocumentationPathAction.setEnabled(!busy);
-		documentAction.setEnabled(!busy);
+		documentAction.setEnabled(!busy && selectedModule() != null);
 		graphAction.setEnabled(!busy && selectedModule() != null);
 		insertEntryPointAction.setEnabled(
 			!busy && selectedEntryPoint() != null);
