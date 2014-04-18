@@ -524,7 +524,7 @@ public class Catalog
 			allSymbolicCodePoints = codePoints;
 			for (final CharacterInfo info : allNonAsciiCodePoints())
 			{
-				if (Character.isLetterOrDigit(info.codePoint()))
+				if (!Character.isLetterOrDigit(info.codePoint()))
 				{
 					codePoints.add(info);
 				}
