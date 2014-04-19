@@ -34,6 +34,7 @@ package com.avail.stacks;
 
 import java.util.HashMap;
 import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_String;
 import com.avail.descriptor.MapDescriptor;
 import com.avail.descriptor.StringDescriptor;
 
@@ -80,11 +81,13 @@ public class StacksUsesModule extends StacksImportModule
 	 * 		qualified module path it is originally named from.
 	 */
 	public StacksUsesModule (final String moduleImportName,
-		final HashMap<String,ImplementationGroup> implementationGroups,
+		final HashMap<A_String,ImplementationGroup> implementationGroups,
 		final HashMap<String, StacksExtendsModule> moduleNameToExtendsList,
-		final HashMap<String,String> methodLeafNameToModuleName,
+		final HashMap<A_String, HashMap<String, ImplementationGroup>>
+			methodLeafNameToModuleName,
 		final HashMap<String,StacksUsesModule> moduleNameToUsesList,
-		final HashMap<String,String> usesMethodLeafNameToModuleName,
+		final HashMap<A_String, HashMap<String, ImplementationGroup>>
+			usesMethodLeafNameToModuleName,
 		final A_Map renames)
 	{
 		super(moduleImportName,implementationGroups,moduleNameToExtendsList,
@@ -95,101 +98,24 @@ public class StacksUsesModule extends StacksImportModule
 	}
 
 	@Override
-	public StacksUsesModule getUsesModuleForImplementationName(
-		final String name)
-	{
-		if (implementations().containsKey(name))
-		{
-			return this;
-		}
-		else if (hasImplementationInBranch(name))
-		{
-			final String owningModule = extendsMethodLeafNameToModuleName().get(name);
-			if (moduleNameToExtendsList().containsKey(owningModule))
-			{
-				return moduleNameToUsesList().get(owningModule);
-			}
-
-			for (final StacksUsesModule extendsModule :
-				moduleNameToUsesList().values())
-			{
-				if (extendsModule.extendsMethodLeafNameToModuleName().containsKey(name))
-				{
-					return extendsModule
-						.getUsesModuleForImplementationName(name);
-				}
-			}
-		}
-
-		return null;
-	}
-
-	/**
-	 * Obtain the {@linkplain StacksExtendsModule module} that the method name
-	 * originates from
-	 * @param name
-	 * 		The name of the method being searched
-	 * @param owningModule
-	 * 		The name of the module the method belongs to
-	 * @return
-	 */
-	@SuppressWarnings("null")
-	public StacksExtendsModule getExtendsModuleForImplementationName(
-		final String name, final String owningModule)
-	{
-		int separaterIndex = owningModule.lastIndexOf("/");
-		String parentModule = owningModule
-			.substring(0,separaterIndex);
-
-		StacksExtendsModule owningExtendsModule = null;
-
-		while (separaterIndex >= 0 && owningExtendsModule == null)
-		{
-			owningExtendsModule =
-				moduleNameToExtendsList().get(parentModule);
-
-			if (owningExtendsModule == null)
-			{
-				parentModule = parentModule
-					.substring(0,separaterIndex);
-				separaterIndex = parentModule.lastIndexOf("/");
-			}
-		}
-
-		return owningExtendsModule.getExtendsModuleForImplementationName(name);
-	}
-
-	/**
-	 * @param name
-	 * @return
-	 */
-	public String getExtendsModuleNameForImplementationName (
-		final String name)
-	{
-		if (extendsMethodLeafNameToModuleName().containsKey(name))
-		{
-			return extendsMethodLeafNameToModuleName().get(name);
-		}
-		return null;
-	}
-
-	@Override
-	public void addMethodImplementation (final String key,
+	public void addMethodImplementation (final A_String key,
 		final MethodCommentImplementation implementation)
 	{
 		if (implementations().containsKey(key))
 		{
 			implementations().get(key).addMethod(implementation);
 		}
-		else
+
+		//Should only have one group, anything else would be an error in Avail.
+		for (final ImplementationGroup group :
+			extendsMethodLeafNameToModuleName().get(key).values())
 		{
-			getUsesModuleForImplementationName(key)
-				.addMethodImplementation(key, implementation);
+			group.addMethod(implementation);
 		}
 	}
 
 	@Override
-	public void addSemanticImplementation (final String key,
+	public void addSemanticImplementation (final A_String key,
 		final SemanticRestrictionCommentImplementation implementation)
 	{
 		if (implementations().containsKey(key))
@@ -197,15 +123,17 @@ public class StacksUsesModule extends StacksImportModule
 			implementations().get(key)
 				.addSemanticRestriction(implementation);
 		}
-		else
+
+		//Should only have one group, anything else would be an error in Avail.
+		for (final ImplementationGroup group :
+			extendsMethodLeafNameToModuleName().get(key).values())
 		{
-			getUsesModuleForImplementationName(key)
-				.addSemanticImplementation(key, implementation);
+			group.addSemanticRestriction(implementation);
 		}
 	}
 
 	@Override
-	public void addGrammaticalImplementation (final String key,
+	public void addGrammaticalImplementation (final A_String key,
 		final GrammaticalRestrictionCommentImplementation implementation)
 	{
 		if (implementations().containsKey(key))
@@ -213,88 +141,75 @@ public class StacksUsesModule extends StacksImportModule
 			implementations().get(key)
 				.addGrammaticalRestriction(implementation);
 		}
-		else
+
+		//Should only have one group, anything else would be an error in Avail.
+		for (final ImplementationGroup group :
+			extendsMethodLeafNameToModuleName().get(key).values())
 		{
-			getUsesModuleForImplementationName(key)
-				.addGrammaticalImplementation(key,implementation);
+			group.addGrammaticalRestriction(implementation);
 		}
 	}
 
 	@Override
-	public void addClassImplementationGroup (final String key,
+	public void addClassImplementationGroup (final A_String key,
 		final ImplementationGroup classImplementationGroup)
 	{
 		if (implementations().containsKey(key))
 		{
 			implementations().put(key, classImplementationGroup);
 		}
-		else
-		{
-			getUsesModuleForImplementationName(key)
-				.addClassImplementationGroup(key, classImplementationGroup);
-		}
+
+		//Shouldn't really happen
 	}
 
 	@Override
 	public void addGlobalImplementationGroup (
-		final String key,
+		final A_String key,
 		final ImplementationGroup globalImplementationGroup)
 	{
 		if (implementations().containsKey(key))
 		{
 			implementations().put(key, globalImplementationGroup);
 		}
-		else
-		{
-			getUsesModuleForImplementationName(key)
-				.addGlobalImplementationGroup(key, globalImplementationGroup);
-		}
+
+		//Shouldn't really happen
 	}
 
 	@Override
-	public void renameImplementation (final String key,
-		final String newName, final String changingModuleName)
+	public void renameImplementation (final A_String key,
+		final A_String newName, final StacksCommentsModule newlyDefinedModule,
+		final StacksFilename newFileName, final boolean deleteOriginal)
 	{
-		if (implementations().containsKey(key))
+		ImplementationGroup group = new ImplementationGroup(key,
+			newlyDefinedModule.moduleName(),newFileName);
+		for (final ImplementationGroup aGroup :
+			extendsMethodLeafNameToModuleName().get(key).values())
 		{
-			final String [] directory = newName.split("/");
-			final String alias = directory[directory.length - 1];
-			implementations().get(key).addAlias(alias);
-			implementations().put(newName, implementations().get(key));
-			extendsMethodLeafNameToModuleName()
-				.put(newName, changingModuleName);
+			group =
+				new ImplementationGroup(aGroup,newFileName,
+					newlyDefinedModule.moduleName(), newName);
+		}
+		if (newlyDefinedModule.usesMethodLeafNameToModuleName()
+			.containsKey(newName))
+		{
+			newlyDefinedModule.usesMethodLeafNameToModuleName().get(newName)
+				.put(newlyDefinedModule.moduleName(), group);
 		}
 		else
 		{
-			final StacksImportModule extendsModule =
-				getUsesModuleForImplementationName(key);
+			final HashMap<String, ImplementationGroup> newMap =
+				new HashMap<String, ImplementationGroup>();
 
-			if (extendsModule != null)
-			{
-				extendsModule.renameImplementation(key, newName,
-					changingModuleName);
-			}
+			newMap.put(newlyDefinedModule.moduleName(), group);
+
+			newlyDefinedModule.usesMethodLeafNameToModuleName().put(newName,
+				newMap);
 		}
-	}
-
-	@Override
-	public void removeImplementation (final String key)
-	{
-		if (implementations().containsKey(key))
+		if (deleteOriginal)
 		{
-			implementations().remove(key);
 			extendsMethodLeafNameToModuleName().remove(key);
 		}
-		else
-		{
-			final StacksImportModule extendsModule =
-				getUsesModuleForImplementationName(key);
 
-			if (extendsModule != null)
-			{
-				extendsModule.removeImplementation(key);
-			}
-		}
 	}
 
 	/**
@@ -309,15 +224,38 @@ public class StacksUsesModule extends StacksImportModule
 		final StacksCommentsModule module, final A_Map renamesMap)
 	{
 		super(module.moduleName(),
-			new HashMap<String,ImplementationGroup>(
+			new HashMap<A_String,ImplementationGroup>(
 				module.namedPublicCommentImplementations()),
 			new HashMap<String,StacksExtendsModule>(
 				module.extendedNamesImplementations()),
-			new HashMap<String,String>(
+			new HashMap<A_String, HashMap<String, ImplementationGroup>>(
 				module.extendsMethodLeafNameToModuleName()),
 			module.usesNamesImplementations(),
 			module.usesMethodLeafNameToModuleName());
 			this.renames = renamesMap;
+	}
+
+
+	@Override
+	public String toString()
+	{
+		final StringBuilder stringBuilder = new StringBuilder().append("<h4>")
+			.append(moduleName).append("</h4>")
+			.append("<ol>");
+		for (final A_String key : implementations().keySet())
+		{
+			stringBuilder.append("<li>").append(key.asNativeString())
+				.append("</li>");
+		}
+		stringBuilder.append("</ol>");
+
+		for (final StacksUsesModule usesModule :
+			moduleNameToUsesList().values())
+		{
+			stringBuilder.append(usesModule.toString());
+		}
+
+		return stringBuilder.toString();
 	}
 }
 

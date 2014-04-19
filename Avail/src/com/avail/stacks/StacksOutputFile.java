@@ -161,6 +161,7 @@ public class StacksOutputFile
 		catch (final IOException e)
 		{
 			// TODO Auto-generated catch block
+			System.out.println(outputPath.toString());
 			e.printStackTrace();
 		}
 		try

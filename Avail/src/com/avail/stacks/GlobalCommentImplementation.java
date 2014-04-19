@@ -33,6 +33,7 @@
 package com.avail.stacks;
 
 import java.util.ArrayList;
+import com.avail.descriptor.A_String;
 
 /**
  * A module global variable comment
@@ -111,7 +112,7 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 
 	@Override
 	public void addImplementationToImportModule (
-		final String name, final StacksImportModule importModule)
+		final A_String name, final StacksImportModule importModule)
 	{
 		//Do nothing as globals will never be defined outside of its module.
 	}

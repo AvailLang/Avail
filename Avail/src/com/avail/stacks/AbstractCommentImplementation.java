@@ -35,6 +35,7 @@ package com.avail.stacks;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import com.avail.descriptor.A_String;
 
 /**
  * An Avail comment implementation
@@ -151,7 +152,7 @@ public abstract class AbstractCommentImplementation
 	 * 		The module to add the implementation to
 	 */
 	public abstract void addImplementationToImportModule(
-		String name, StacksImportModule importModule);
+		A_String name, StacksImportModule importModule);
 
 	/**
 	 * Create HTML content from implementation

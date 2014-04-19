@@ -38,7 +38,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import com.avail.AvailRuntime;
-import com.avail.descriptor.StringDescriptor;
+import com.avail.descriptor.A_String;
 
 /**
  * A grouping of {@linkplain AbstractCommentImplementation implementations}
@@ -56,14 +56,48 @@ public class ImplementationGroup
 	 * The name of the implementation.  It is not final because it can be
 	 * renamed.
 	 */
-	private final String name;
+	private final A_String name;
 
 	/**
 	 * @return the name
 	 */
-	public String name ()
+	public A_String name ()
 	{
 		return name;
+	}
+
+	/**
+	 * The name of the module where this implementation is named and exported
+	 * from.
+	 */
+	private final String namingModule;
+
+	/**
+	 * @return the naming module of this implementation
+	 */
+	public String namingModule ()
+	{
+		return namingModule;
+	}
+
+	/**
+	 * All the categories this group belongs to.
+	 */
+	private final HashSet<String> categories;
+
+	/**
+	 * @return the name of all the categories this group belongs to.
+	 */
+	public HashSet<String> categories ()
+	{
+		if (categories.size() > 1)
+		{
+			if (categories.contains("Unclassified"))
+			{
+				categories.remove("Unclassified");
+			}
+		}
+		return categories;
 	}
 
 	/**
@@ -72,9 +106,9 @@ public class ImplementationGroup
 	private final HashSet<String> aliases;
 
 	/**
-	 * The relative file path and file name
+	 * The relative file path and file name first, fileName second.
 	 */
-	private String filepath;
+	private StacksFilename filepath;
 
 	/**
 	 * A map keyed by a unique identifier to {@linkplain
@@ -98,6 +132,13 @@ public class ImplementationGroup
 	{
 		methods.put(newMethod.identityCheck(),newMethod);
 		addAlias(newMethod.signature().name());
+
+		//Will only ever be one category tag in categories
+		for (final QuotedStacksToken category :
+			newMethod.categories.get(0).categories())
+		{
+			categories.add(category.lexeme());
+		}
 	}
 
 	/**
@@ -127,6 +168,12 @@ public class ImplementationGroup
 		semanticRestrictions.put(newSemanticRestriction.identityCheck(),
 			newSemanticRestriction);
 		addAlias(newSemanticRestriction.signature().name());
+		//Will only ever be one category tag in categories
+		for (final QuotedStacksToken category :
+			newSemanticRestriction.categories.get(0).categories())
+		{
+			categories.add(category.lexeme());
+		}
 	}
 
 	/**
@@ -158,6 +205,13 @@ public class ImplementationGroup
 		grammaticalRestrictions.put(newGrammaticalRestriction.identityCheck(),
 			newGrammaticalRestriction);
 		addAlias(newGrammaticalRestriction.signature().name());
+
+		//Will only ever be one category tag in categories
+		for (final QuotedStacksToken category :
+			newGrammaticalRestriction.categories.get(0).categories())
+		{
+			categories.add(category.lexeme());
+		}
 	}
 
 	/**
@@ -180,6 +234,12 @@ public class ImplementationGroup
 	{
 		this.classImplementation = aClassImplemenataion;
 		addAlias(aClassImplemenataion.signature().name());
+
+		for (final QuotedStacksToken category :
+			aClassImplemenataion.categories.get(0).categories())
+		{
+			categories.add(category.lexeme());
+		}
 	}
 
 	/**
@@ -201,14 +261,23 @@ public class ImplementationGroup
 	{
 		this.global = aGlobal;
 		addAlias(aGlobal.signature().name());
+		for (final QuotedStacksToken category :
+			aGlobal.categories.get(0).categories())
+		{
+			categories.add(category.lexeme());
+		}
 	}
 
 	/**
 	 * Construct a new {@link ImplementationGroup}.
 	 *
 	 * @param name The name of the implementation
+	 * @param namingModule The name of the module where the implementation was
+	 * 		first named and exported from.
+	 * @param filename The name of the html file that will represent this group.
 	 */
-	public ImplementationGroup (final String name)
+	public ImplementationGroup (final A_String name,
+		final String namingModule, final StacksFilename filename)
 	{
 		this.name = name;
 		this.methods = new HashMap<String,MethodCommentImplementation>();
@@ -217,6 +286,35 @@ public class ImplementationGroup
 		this.grammaticalRestrictions =
 			new HashMap<String,GrammaticalRestrictionCommentImplementation>();
 		this.aliases = new HashSet<String>();
+		this.namingModule = namingModule;
+		this.categories = new HashSet<String>();
+		this.filepath = filename;
+	}
+
+	/**
+	 * Construct a new {@link ImplementationGroup}.
+	 *
+	 * @param group The {@link ImplementationGroup} to copy.
+	 * @param fileName A pair with the fileName and path first and just the
+	 * 		name of the html file that will represent this group second.
+	 * @param namingModule The name of the module where the implementation was
+	 * 		first named and exported from.
+	 * @param name The name of the implementation
+	 */
+	public ImplementationGroup (final ImplementationGroup group,
+		final StacksFilename fileName, final String namingModule,
+		final A_String name)
+	{
+		this.name = name;
+		this.methods = group.methods();
+		this.semanticRestrictions = group.semanticRestrictions();
+		this.grammaticalRestrictions = group.grammaticalRestrictions();
+		this.aliases = group.aliases();
+		this.global = group.global();
+		this.classImplementation = group.classImplementation();
+		this.namingModule = namingModule;
+		this.categories = group.categories();
+		this.filepath = fileName;
 	}
 
 	/**
@@ -225,8 +323,6 @@ public class ImplementationGroup
 	 *        The {@linkplain Path path} to the output {@linkplain
 	 *        BasicFileAttributes#isDirectory() directory} for documentation and
 	 *        data files.
-	 * @param qualifiedMethodName
-	 * 		The full name of the method, module path and method name
 	 * @param htmlOpenContent
 	 * 		HTML document opening tags (e.g. header etc)
 	 * @param htmlCloseContent
@@ -247,7 +343,6 @@ public class ImplementationGroup
 	 * 		The name of the implementation as it is to be displayed.
 	 */
 	public void toHTML(final Path outputPath,
-		final String qualifiedMethodName,
 		final String htmlOpenContent, final String htmlCloseContent,
 		final StacksSynchronizer synchronizer,
 		final AvailRuntime runtime,
@@ -256,6 +351,14 @@ public class ImplementationGroup
 		final int startingTabCount,
 		final String nameOfGroup)
 	{
+		if (categories.size() > 1)
+		{
+			if (categories.contains("Unclassified"))
+			{
+				categories.remove("Unclassified");
+			}
+		}
+
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append(htmlOpenContent)
 			.append(tabs(1) + "<h2 "
@@ -325,56 +428,31 @@ public class ImplementationGroup
 
 				stringBuilder.append(tabs(1) + "</div>\n");
 			}
-			final String localPath = qualifiedMethodName
-				.substring(1, qualifiedMethodName.lastIndexOf('/') + 1);
-
-			long hashedName = StringDescriptor.from(name).hash();
-			hashedName = hashedName & 0xFFFFFFFFL;
-
-			final String hashedFileName = String.valueOf(hashedName) + ".html";
-
-			final StacksOutputFile htmlFile = new StacksOutputFile(
-				outputPath.resolve(localPath), synchronizer, hashedFileName,
-				runtime, name);
-
-			htmlFile.write(stringBuilder.append(htmlCloseContent).toString());
 		}
 		else if (!(global == null))
 		{
 			stringBuilder.append(global().toHTML(htmlFileMap, nameOfGroup));
-			final int leafFileNameStart =
-				qualifiedMethodName.lastIndexOf('/') + 1;
-			final String localPath = qualifiedMethodName
-				.substring(1, leafFileNameStart);
-
-			final String hashedFileName =
-				qualifiedMethodName.substring(leafFileNameStart);
-
-			final StacksOutputFile htmlFile = new StacksOutputFile(
-				outputPath.resolve(localPath), synchronizer, hashedFileName,
-				runtime,name);
-
-			htmlFile.write(stringBuilder.append(htmlCloseContent).toString());
 		}
 		else if (!(classImplementation == null))
 		{
 			stringBuilder.append(classImplementation
 				.toHTML(htmlFileMap, nameOfGroup));
-
-			final String localPath = qualifiedMethodName
-				.substring(1, qualifiedMethodName.lastIndexOf('/') + 1);
-
-			long hashedName = StringDescriptor.from(name).hash();
-			hashedName = hashedName & 0xFFFFFFFF;
-
-			final String hashedFileName = String.valueOf(hashedName) + ".html";
-
-			final StacksOutputFile htmlFile = new StacksOutputFile(
-				outputPath.resolve(localPath), synchronizer, hashedFileName,
-				runtime,name);
-
-			htmlFile.write(stringBuilder.append(htmlCloseContent).toString());
 		}
+
+		Path fullFilePath = outputPath;
+		final String [] directoryTree = filepath.pathName().split("/");
+
+		for (final String directory : directoryTree)
+		{
+			fullFilePath = fullFilePath.resolve(directory);
+		}
+
+		final StacksOutputFile htmlFile = new StacksOutputFile(
+			fullFilePath, synchronizer,
+			filepath.leafFilename(),
+			runtime, name.asNativeString());
+
+		htmlFile.write(stringBuilder.append(htmlCloseContent).toString());
 	}
 
 	/**
@@ -469,7 +547,7 @@ public class ImplementationGroup
 	/**
 	 * @return the filepath
 	 */
-	public String filepath ()
+	public StacksFilename filepath ()
 	{
 		return filepath;
 	}
@@ -477,7 +555,7 @@ public class ImplementationGroup
 	/**
 	 * @param newFilepath the filepath to set
 	 */
-	public void filepath (final String newFilepath)
+	public void filepath (final StacksFilename newFilepath)
 	{
 		this.filepath = newFilepath;
 	}
