@@ -37,8 +37,9 @@ import java.awt.Dialog.ModalityType;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.text.JTextComponent;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
+import com.avail.descriptor.A_String;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 
@@ -69,13 +70,17 @@ extends AbstractWorkbenchAction
 			new ImageIcon("distro/images/Avail-logo-about.png");
 		panel.add(new JLabel(logo));
 
-		// TODO [MvG] Get version string some other way.
-		final String version = "Version 1.0.0 DEV 2014.04.28";
 		final StringBuilder builder = new StringBuilder(200);
 		builder.append("<html><center>");
 		builder.append("<font color=blue>www.availlang.org</font><br><br><br>");
 		builder.append("<font size=+2>The Avail Workbench</font><br>");
-		builder.append(version);
+		builder.append("<font size=-1>Supported Versions:</font>");
+		for (final A_String version : AvailRuntime.activeVersions())
+		{
+			builder.append("<br><font size=-2>");
+			builder.append(version.asNativeString());
+			builder.append("</font>");
+		}
 		builder.append("<br><br>");
 		builder.append(
 			"Copyright \u00A9 1993-2014 The Avail Foundation, LLC.<br>");
