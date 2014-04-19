@@ -5,8 +5,9 @@ function CategoriesCntrl($scope,Categories) {
 	$scope.search = '';
 	$scope.filterOnCategory = function(content) {
     	return (((content.category.toLowerCase()).indexOf($scope.search.toLowerCase()) >= 0) || content.selected);
-	};	
-	$scope.methodList = function()
+	};
+	$scope.methodList;	
+	$scope.methodListUpdate = function()
 	{
 		var allCategories = $scope.categories;
 		var filteredMethods = {};
@@ -19,7 +20,7 @@ function CategoriesCntrl($scope,Categories) {
 				selectedCount++;
 				for  (var j = 0; j < allCategories.content[i].methods.length; j++)
 				{
-					var method = allCategories.content[i].methods[j].methodName;
+					var method = allCategories.content[i].methods[j].distinct;
 					try
 					{
 						var newCount = filteredMethods[method].count + 1;
@@ -28,8 +29,9 @@ function CategoriesCntrl($scope,Categories) {
 					catch(err)
 					{
 						filteredMethods[method] =
-							{"name" : method.toLowerCase(),
+							{"name" :allCategories.content[i].methods[j].methodName,
 							"link" : allCategories.content[i].methods[j].link,
+							"distinct" : allCategories.content[i].methods[j].distinct,
 							"count" : 1};
 					}
 				}
@@ -39,10 +41,11 @@ function CategoriesCntrl($scope,Categories) {
 		{
 			if (filteredMethods[key].count == selectedCount)
 			{
-				finalList.content.push({"name" : key, "link" : filteredMethods[key].link})
+				finalList.content.push({"name" : filteredMethods[key].name, "link" : filteredMethods[key].link, distinct: key})
 			}
 		}
-		return finalList;
+
+		$scope.methodList = finalList;
 	}
 	$scope.mainPage
 	$scope.linkValue = "landing-detail.html";
@@ -51,6 +54,7 @@ function CategoriesCntrl($scope,Categories) {
 		$scope.linkValue = link;
 	}
 }
+
 
 stacksApp.factory('Categories', function () {
 	var Categories = {};

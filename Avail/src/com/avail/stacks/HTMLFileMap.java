@@ -180,6 +180,8 @@ public class HTMLFileMap
 						stringBuilder.append(tabs(3) + "{\"methodName\" : \"")
 							.append(pair.first()).append("\", \"link\" : \"")
 							.append(pair.second().substring(1))
+							.append("\", \"distinct\" : \"")
+							.append(pair.first()).append(pair.second())
 							.append("\"},\n");
 					}
 
@@ -189,6 +191,8 @@ public class HTMLFileMap
 					stringBuilder.append(tabs(3) + "{\"methodName\" : \"")
 						.append(lastPair.first()).append("\", \"link\" : \"")
 						.append(lastPair.second().substring(1))
+						.append("\", \"distinct\" : \"")
+						.append(lastPair.first()).append(lastPair.second())
 						.append("\"}\n" + tabs(2)+ "]\n" + tabs(1)+ "},\n");
 				}
 			}
