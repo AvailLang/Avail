@@ -32,8 +32,9 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.VariableGetException;
@@ -96,6 +97,10 @@ public final class P_018_GetClearing extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_CANNOT_READ_UNASSIGNED_VARIABLE.numericCode());
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_CANNOT_READ_UNASSIGNED_VARIABLE.numericCode(),
+				E_CANNOT_MODIFY_FINAL_JAVA_FIELD.numericCode(),
+				E_JAVA_MARSHALING_FAILED.numericCode(),
+				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE.numericCode())));
 	}
 }

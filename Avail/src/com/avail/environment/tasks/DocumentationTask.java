@@ -1,5 +1,5 @@
 /**
- * JSONWriterException.java
+ * DocumentationTask.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,30 +30,62 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.json;
+package com.avail.environment.tasks;
 
-import java.io.IOException;
+import java.awt.*;
+import com.avail.annotations.Nullable;
+import com.avail.builder.*;
+import com.avail.descriptor.*;
+import com.avail.environment.AvailWorkbench;
+import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
+
 
 /**
- * A {@code JSONWriterException} is an {@linkplain RuntimeException unchecked
- * exception} that wraps an {@link IOException}.
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * A {@code DocumentationTask} initiates and manages documentation
+ * generation for the target {@linkplain ModuleDescriptor module}.
  */
-public final class JSONWriterException
-extends RuntimeException
+public final class DocumentationTask
+extends AbstractWorkbenchTask
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = -7877694113619594180L;
+	@Override
+	protected void executeTask () throws Exception
+	{
+		try
+		{
+			workbench.availBuilder.generateDocumentation(
+				targetModuleName(),
+				workbench.documentationPath);
+		}
+		catch (final Exception e)
+		{
+			// Put a breakpoint here to debug documentation generation
+			// exceptions.
+			throw e;
+		}
+	}
+
+	@Override
+	protected void done ()
+	{
+		workbench.backgroundTask = null;
+		reportDone();
+		workbench.availBuilder.checkStableInvariants();
+		workbench.setEnablements();
+		workbench.setCursor(Cursor.getDefaultCursor());
+	}
 
 	/**
-	 * Construct a new {@link JSONWriterException}.
+	 * Construct a new {@link DocumentationTask}.
 	 *
-	 * @param cause
-	 *        The causal exception.
+	 * @param workbench The owning {@link AvailWorkbench}.
+	 * @param targetModuleName
+	 *        The resolved name of the target {@linkplain ModuleDescriptor
+	 *        module} to unload.
 	 */
-	public JSONWriterException (final Exception cause)
+	public DocumentationTask (
+		final AvailWorkbench workbench,
+		final @Nullable ResolvedModuleName targetModuleName)
 	{
-		super(cause);
+		super(workbench, targetModuleName);
 	}
 }

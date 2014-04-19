@@ -32,7 +32,6 @@
 
 package com.avail.tools.unicode;
 
-import static java.util.Arrays.asList;
 import static com.avail.tools.unicode.CommandLineConfigurator.OptionKey.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -42,7 +41,6 @@ import com.avail.tools.configuration.ConfigurationException;
 import com.avail.tools.configuration.Configurator;
 import com.avail.tools.options.DefaultOption;
 import com.avail.tools.options.GenericHelpOption;
-import com.avail.tools.options.GenericOption;
 import com.avail.tools.options.OptionProcessor;
 import com.avail.tools.options.OptionProcessorFactory;
 import com.avail.utility.MutableOrNull;
@@ -62,12 +60,6 @@ implements Configurator<Configuration>
 	 */
 	static enum OptionKey
 	{
-		/**
-		 * Specification that ASCII code points should be included in the
-		 * Unicode dump.
-		 */
-		INCLUDE_ASCII_CODE_POINTS,
-
 		/**
 		 * Request display of help text.
 		 */
@@ -130,23 +122,6 @@ implements Configurator<Configuration>
 			"The Unicode catalog generator understands the following "
 			+ "options: ",
 			helpStream));
-		factory.addOption(new GenericOption<OptionKey>(
-			INCLUDE_ASCII_CODE_POINTS,
-			asList("includeAscii"),
-			"Include all code points, including ASCII code points, in the "
-			+ "JSON output.",
-			new Continuation2<String, String>()
-			{
-				@Override
-				public void value (
-					final @Nullable String keyword,
-					final @Nullable String unused)
-				{
-					processor.value().checkEncountered(
-						INCLUDE_ASCII_CODE_POINTS, 0);
-					configuration.includeAsciiCodePoints = true;
-				}
-			}));
 		factory.addOption(new DefaultOption<OptionKey>(
 			TARGET_PATH,
 			"The location of the target JSON file. If a regular file already "
@@ -160,7 +135,7 @@ implements Configurator<Configuration>
 				{
 					assert pathString != null;
 					processor.value().checkEncountered(TARGET_PATH, 0);
-					configuration.targetPath = Paths.get(pathString);
+					configuration.catalogPath = Paths.get(pathString);
 				}
 			}));
 		processor.value = factory.createOptionProcessor();

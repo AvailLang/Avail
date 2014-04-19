@@ -39,7 +39,6 @@ import static javax.swing.JScrollPane.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.lang.reflect.*;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
@@ -58,13 +57,10 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.builder.*;
 import com.avail.builder.AvailBuilder.LoadedModule;
-import com.avail.compiler.AbstractAvailCompiler.*;
 import com.avail.descriptor.*;
+import com.avail.environment.actions.*;
 import com.avail.environment.nodes.*;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.persistence.*;
+import com.avail.environment.tasks.*;
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
 import com.avail.stacks.StacksGenerator;
 import com.avail.utility.Mutable;
@@ -80,748 +76,97 @@ import com.avail.utility.evaluation.*;
 public class AvailWorkbench
 extends JFrame
 {
+	/** Determine at startup whether we're on a Mac. */
+	public static final boolean runningOnMac =
+		System.getProperty("os.name").toLowerCase().matches("mac os x.*");
+
+	/** Determine at startup whether we should show developer commands. */
+	public static final boolean showDeveloperTools =
+		"true".equalsIgnoreCase(System.getProperty("availDeveloper"));
+
 	/** The {@linkplain Style style} to use for standard output. */
-	private static final String outputStyleName = "output";
+	public static final String outputStyleName = "output";
 
 	/** The {@linkplain Style style} to use for standard error. */
-	private static final String errorStyleName = "error";
+	public static final String errorStyleName = "error";
 
 	/** The {@linkplain Style style} to use for standard input. */
-	private static final String inputStyleName = "input";
+	public static final String inputStyleName = "input";
 
 	/** The {@linkplain Style style} to use for notifications. */
-	private static final String infoStyleName = "info";
+	public static final String infoStyleName = "info";
 
 	/** The {@linkplain Style style} to use for user-supplied commands. */
-	private static final String commandStyleName = "command";
+	public static final String commandStyleName = "command";
 
 	/**
 	 * The numeric mask for the modifier key suitable for the current platform.
 	 */
-	@InnerAccess static final int menuShortcutMask =
+	public static final int menuShortcutMask =
 		Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
 	/**
-	 * A {@code BuildAction} launches a {@linkplain BuildTask build task} in a
-	 * Swing worker thread.
+	 * An abstraction for all the workbench's actions.
 	 */
-	private final class BuildAction
+	public abstract static class AbstractWorkbenchAction
 	extends AbstractAction
 	{
-		@Override
-		public void actionPerformed (final @Nullable ActionEvent event)
-		{
-			assert backgroundTask == null;
-			final ResolvedModuleName selectedModule = selectedModule();
-			assert selectedModule != null;
-
-			// Update the UI.
-			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-			buildProgress.setValue(0);
-			inputField.requestFocusInWindow();
-			clearTranscript();
-
-			// Clear the build input stream.
-			inputStream().clear();
-
-			// Build the target module in a Swing worker thread.
-			final BuildTask task = new BuildTask(selectedModule);
-			backgroundTask = task;
-			availBuilder.checkStableInvariants();
-			setEnablements();
-			task.execute();
-		}
+		/** The owning {@link AvailWorkbench}. */
+		public final AvailWorkbench workbench;
 
 		/**
-		 * Construct a new {@link BuildAction}.
+		 * Construct a new {@link AbstractWorkbenchAction}.
+		 *
+		 * @param workbench The owning {@link AvailWorkbench}.
+		 * @param name The action's name.
 		 */
-		public BuildAction ()
+		public AbstractWorkbenchAction (
+			final AvailWorkbench workbench,
+			final String name)
 		{
-			super("Build");
-			putValue(
-				SHORT_DESCRIPTION,
-				"Build the target module.");
-			putValue(
-				ACCELERATOR_KEY,
-				KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, menuShortcutMask));
+			super(name);
+			this.workbench = workbench;
 		}
 	}
 
 	/**
-	 * An {@code UnloadAction} launches an {@linkplain UnloadTask unload task}
-	 * in a Swing worker thread.
+	 * {@code AbstractWorkbenchTask} is a foundation for long running {@link
+	 * AvailBuilder} operations.
 	 */
-	private final class UnloadAction
-	extends AbstractAction
-	{
-		@Override
-		public void actionPerformed (final @Nullable ActionEvent event)
-		{
-			assert backgroundTask == null;
-			final ResolvedModuleName selectedModule = selectedModule();
-			assert selectedModule != null;
-
-			// Update the UI.
-			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-			buildProgress.setValue(0);
-			clearTranscript();
-
-			// Clear the build input stream.
-			inputStream().clear();
-
-			// Unload the target module in a Swing worker thread.
-			final UnloadTask task = new UnloadTask(selectedModule);
-			backgroundTask = task;
-			setEnablements();
-			task.execute();
-		}
-
-		/**
-		 * Construct a new {@link UnloadAction}.
-		 */
-		public UnloadAction ()
-		{
-			super("Unload");
-			putValue(
-				SHORT_DESCRIPTION,
-				"Unload the target module.");
-		}
-	}
-
-	/**
-	 * An {@code UnloadAllAction} launches an {@linkplain UnloadTask unload
-	 * task} (with {@code null} specified as the module to unload) in a Swing
-	 * worker thread.
-	 */
-	private final class UnloadAllAction
-	extends AbstractAction
-	{
-		@Override
-		public void actionPerformed (final @Nullable ActionEvent event)
-		{
-			assert backgroundTask == null;
-
-			// Update the UI.
-			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-			buildProgress.setValue(0);
-			clearTranscript();
-
-			// Clear the build input stream.
-			inputStream().clear();
-
-			// Unload all modules in a Swing worker thread.
-			final UnloadTask task = new UnloadTask(null);
-			backgroundTask = task;
-			setEnablements();
-			task.execute();
-		}
-
-		/**
-		 * Construct a new {@link UnloadAllAction}.
-		 */
-		public UnloadAllAction ()
-		{
-			super("Unload all");
-			putValue(
-				SHORT_DESCRIPTION,
-				"Unload all modules.");
-		}
-	}
-
-	/**
-	 * A {@code GenerateDocumentationAction} instructs the {@linkplain
-	 * AvailBuilder Avail builder} to recursively {@linkplain StacksGenerator
-	 * generate Stacks documentation}.
-	 */
-	private final class GenerateDocumentationAction
-	extends AbstractAction
-	{
-		@Override
-		public void actionPerformed (final @Nullable ActionEvent event)
-		{
-			assert backgroundTask == null;
-			final ResolvedModuleName selectedModule = selectedModule();
-			assert selectedModule != null;
-
-			// Update the UI.
-			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-			setEnablements();
-			buildProgress.setValue(0);
-			clearTranscript();
-
-			// Generate documentation for the target module in a Swing worker
-			// thread.
-			final DocumentationTask task =
-				new DocumentationTask(selectedModule);
-			backgroundTask = task;
-			setEnablements();
-			task.execute();
-		}
-
-		/**
-		 * Construct a new {@link GenerateDocumentationAction}.
-		 */
-		public GenerateDocumentationAction ()
-		{
-			super("Generate documentation");
-			putValue(
-				SHORT_DESCRIPTION,
-				"Generate API documentation for the selected module and "
-				+ "its ancestors.");
-			putValue(
-				ACCELERATOR_KEY,
-				KeyStroke.getKeyStroke(KeyEvent.VK_G, menuShortcutMask));
-		}
-	}
-
-	/**
-	 * A {@code CancelAction} cancels a background {@linkplain BuildTask build
-	 * task}.
-	 */
-	private final class CancelAction
-	extends AbstractAction
-	{
-		@Override
-		public void actionPerformed (final @Nullable ActionEvent event)
-		{
-			final BuilderTask task = backgroundTask;
-			if (task != null)
-			{
-				task.cancel();
-			}
-		}
-
-		/**
-		 * Construct a new {@link CancelAction}.
-		 */
-		public CancelAction ()
-		{
-			super("Cancel build");
-			putValue(
-				SHORT_DESCRIPTION,
-				"Cancel the current build process.");
-			putValue(
-				ACCELERATOR_KEY,
-				KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, Event.CTRL_MASK));
-		}
-	}
-
-	/**
-	 * A {@code CleanAction} empties all compiled module repositories.
-	 */
-	private final class CleanAction
-	extends AbstractAction
-	{
-		@Override
-		public void actionPerformed (final @Nullable ActionEvent event)
-		{
-			availBuilder.unloadTarget(null);
-			assert backgroundTask == null;
-			try
-			{
-				// Clear all repositories.
-				for (final ModuleRoot root : resolver.moduleRoots().roots())
-				{
-					root.repository().clear();
-				}
-			}
-			catch (final IOException e)
-			{
-				throw new IndexedFileException(e);
-			}
-			final StyledDocument doc = transcript.getStyledDocument();
-			try
-			{
-				doc.insertString(
-					doc.getLength(),
-					String.format("Repository has been cleared.%n"),
-					doc.getStyle(infoStyleName));
-			}
-			catch (final BadLocationException e)
-			{
-				assert false : "This never happens.";
-			}
-		}
-
-		/**
-		 * Construct a new {@link CleanAction}.
-		 */
-		public CleanAction ()
-		{
-			super("Clean all");
-			putValue(
-				SHORT_DESCRIPTION,
-				"Unload all code and wipe the compiled module cache.");
-		}
-	}
-
-	/**
-	 * A {@code ReportAction} dumps performance information obtained from
-	 * running.
-	 */
-	private final class ReportAction
-	extends AbstractAction
-	{
-		@Override
-		public void actionPerformed (final @Nullable ActionEvent event)
-		{
-			final StringBuilder builder = new StringBuilder();
-			L2Operation.reportStatsOn(builder);
-			builder.append("\n");
-			Interpreter.reportDynamicLookups(builder);
-			builder.append("\n");
-			Primitive.reportRunTimes(builder);
-			builder.append("\n");
-			Primitive.reportReturnCheckTimes(builder);
-			final StyledDocument doc = transcript.getStyledDocument();
-			try
-			{
-				doc.insertString(
-					doc.getLength(),
-					builder.toString(),
-					doc.getStyle(infoStyleName));
-			}
-			catch (final BadLocationException e)
-			{
-				assert false : "This never happens.";
-			}
-		}
-
-		/**
-		 * Construct a new {@link ReportAction}.
-		 */
-		public ReportAction ()
-		{
-			super("Generate VM report");
-			putValue(
-				SHORT_DESCRIPTION,
-				"Report any diagnostic information collected by the VM.");
-		}
-	}
-
-	/**
-	 * A {@code ClearTranscriptAction} clears the {@linkplain #transcript}.
-	 */
-	private final class ClearTranscriptAction
-	extends AbstractAction
-	{
-		@Override
-		public void actionPerformed (@Nullable final ActionEvent e)
-		{
-			clearTranscript();
-		}
-
-		/**
-		 * Construct a new {@link ClearTranscriptAction}.
-		 */
-		public ClearTranscriptAction ()
-		{
-			super("Clear transcript");
-			putValue(
-				SHORT_DESCRIPTION,
-				"Clear the transcript.");
-		}
-	}
-
-	/**
-	 * A {@code SetDocumentationPathAction} displays a {@linkplain
-	 * JOptionPane modal dialog} that prompts the user for the Stacks
-	 * documentation path.
-	 */
-	private final class SetDocumentationPathAction
-	extends AbstractAction
-	{
-		@Override
-		public void actionPerformed (final @Nullable ActionEvent event)
-		{
-			final JTextField pathField =
-				new JTextField(documentationPath.toString());
-			final JComponent[] widgets = new JComponent[]
-			{
-				new JLabel("Path:"),
-				pathField
-			};
-			JOptionPane.showMessageDialog(
-				AvailWorkbench.this,
-				widgets,
-				"Set documentation path",
-				JOptionPane.PLAIN_MESSAGE);
-			documentationPath = Paths.get(pathField.getText());
-		}
-
-		/**
-		 * Construct a new {@link SetDocumentationPathAction}.
-		 */
-		public SetDocumentationPathAction ()
-		{
-			super("Set documentation path…");
-			putValue(
-				SHORT_DESCRIPTION,
-				"Set the Stacks documentation path.");
-		}
-	}
-
-	/**
-	 * A {@code ClearReportAction} clears performance information obtained from
-	 * running.
-	 */
-	private final class ClearReportAction
-	extends AbstractAction
-	{
-		@Override
-		public void actionPerformed (final @Nullable ActionEvent event)
-		{
-			L2Operation.clearAllStats();
-			Primitive.clearAllStats();
-			Interpreter.clearDynamicLookupStats();
-			final StyledDocument doc = transcript.getStyledDocument();
-			try
-			{
-				doc.insertString(
-					doc.getLength(),
-					"Statistics cleared.\n",
-					doc.getStyle(infoStyleName));
-			}
-			catch (final BadLocationException e)
-			{
-				assert false : "This never happens.";
-			}
-		}
-
-		/**
-		 * Construct a new {@link ClearReportAction}.
-		 */
-		public ClearReportAction ()
-		{
-			super("Clear VM report");
-			putValue(
-				SHORT_DESCRIPTION,
-				"Clear any diagnostic information collected by the VM.");
-		}
-	}
-
-	/**
-	 * An {@code InsertEntryPointAction} inserts a string based on the currently
-	 * selected entry point into the user input field.
-	 */
-	private final class InsertEntryPointAction
-	extends AbstractAction
-	{
-		@Override
-		public void actionPerformed (final @Nullable ActionEvent event)
-		{
-			assert backgroundTask == null;
-
-			final String selectedEntryPoint = selectedEntryPoint();
-			if (selectedEntryPoint == null)
-			{
-				return;
-			}
-			// Strip back-ticks as a nicety.  Also put spaces around underscores
-			// that are adjacent to words (Note that underscore is itself
-			// considered a word character, so we want \B to see if the
-			// character adjacent to the underscore is also a word character.
-			// We could do more, but this should be sufficient for now.
-			final String entryPointText = selectedEntryPoint
-				.replaceAll("`", "")
-				.replaceAll("\\B_", " _")
-				.replaceAll("_\\B", "_ ");
-			assert entryPointText != null;
-			inputField.setText(entryPointText);
-			final int offsetToUnderscore = entryPointText.indexOf("_");
-			final int offset;
-			if (offsetToUnderscore == -1)
-			{
-				offset = entryPointText.length();
-				inputField.select(offset, offset);
-			}
-			else
-			{
-				// Select the underscore.
-				offset = offsetToUnderscore;
-				inputField.select(offset, offset + 1);
-			}
-			inputField.requestFocusInWindow();
-
-			final ResolvedModuleName moduleName = selectedEntryPointModule();
-			if (moduleName != null)
-			{
-				if (availBuilder.getLoadedModule(moduleName) == null)
-				{
-					// Start loading the module as a convenience.
-					setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-					buildProgress.setValue(0);
-					inputField.requestFocusInWindow();
-					clearTranscript();
-
-					// Clear the build input stream.
-					inputStream().clear();
-
-					// Build the target module in a Swing worker thread.
-					final BuildTask task = new BuildTask(moduleName);
-					backgroundTask = task;
-					setEnablements();
-					task.execute();
-				}
-			}
-		}
-
-		/**
-		 * Construct a new {@link InsertEntryPointAction}.
-		 */
-		public InsertEntryPointAction ()
-		{
-			super("Insert entry point");
-			putValue(
-				SHORT_DESCRIPTION,
-				"Insert this entry point's name in the input area.");
-		}
-	}
-
-	/**
-	 * Retrieve the most recently executed command, or if this action has been
-	 * performed already, retrieve the command before the one most recently
-	 * shown.  If the earliest command is passed, clear the command line and
-	 * wrap around on the next retrieval.
-	 */
-	@InnerAccess final class RetrievePreviousCommand
-	extends AbstractAction
-	{
-		@Override
-		public void actionPerformed (final @Nullable ActionEvent e)
-		{
-			if (commandHistoryIndex == -1)
-			{
-				commandHistoryIndex = commandHistory.size();
-			}
-			commandHistoryIndex--;
-			final String retrievedText = commandHistoryIndex == -1
-				? ""
-				: commandHistory.get(commandHistoryIndex);
-			inputField.setText(retrievedText);
-			inputField.select(retrievedText.length(), retrievedText.length());
-		}
-	}
-
-	/**
-	 * Retrieve the earliest executed command, or if this action has been
-	 * performed already, retrieve the command after the one most recently
-	 * shown.  If the latest command is reached, clear the command line and wrap
-	 * around on the next retrieval.
-	 */
-	@InnerAccess final class RetrieveNextCommand
-	extends AbstractAction
-	{
-		@Override
-		public void actionPerformed (final @Nullable ActionEvent e)
-		{
-			commandHistoryIndex++;
-			if (commandHistoryIndex == commandHistory.size())
-			{
-				commandHistoryIndex = -1;
-			}
-			final String retrievedText = commandHistoryIndex == -1
-				? ""
-				: commandHistory.get(commandHistoryIndex);
-			inputField.setText(retrievedText);
-			inputField.select(retrievedText.length(), retrievedText.length());
-		}
-	}
-
-	/**
-	 * A {@code SubmitInputAction} sends a line of text from the {@linkplain
-	 * #inputField input field} to standard input.
-	 */
-	private final class SubmitInputAction
-	extends AbstractAction
-	{
-		@Override
-		public void actionPerformed (final @Nullable ActionEvent event)
-		{
-			if (inputField.isFocusOwner())
-			{
-				assert backgroundTask == null;
-				if (isRunning)
-				{
-					// Program is running.  Feed this new line of text to the
-					// input stream to be consumed by the running command, or
-					// possibly discarded when that command completes.
-					inputStream().update();
-					return;
-				}
-				// No program is running.  Treat this as a command and try to
-				// run it.  Do not feed the string into the input stream.
-				final String string = inputField.getText();
-				commandHistory.add(string);
-				commandHistoryIndex = -1;
-				inputStream().feedbackForCommand(string);
-				inputField.setText("");
-				isRunning = true;
-				setEnablements();
-				availBuilder.runtime.setStandardStreams(
-					outputStream(), errorStream(), inputStream());
-				availBuilder.attemptCommand(
-					string,
-					new Continuation2<
-						AvailObject, Continuation1<Continuation0>>()
-					{
-						@Override
-						public void value (
-							final @Nullable AvailObject result,
-							final @Nullable
-								Continuation1<Continuation0> cleanup)
-						{
-							assert cleanup != null;
-							final Continuation0 afterward = new Continuation0()
-							{
-								@Override
-								public void value ()
-								{
-									isRunning = false;
-									invokeLater(new Runnable()
-									{
-										@Override
-										public void run ()
-										{
-											inputStream().clear();
-											availBuilder.runtime
-												.setStandardStreams(
-													outputStream(),
-													errorStream(),
-													null);
-											setEnablements();
-										}
-									});
-								}
-							};
-							assert result != null;
-							if (result.equalsNil())
-							{
-								cleanup.value(afterward);
-								return;
-							}
-							Interpreter.stringifyThen(
-								availBuilder.runtime,
-								result,
-								new Continuation1<String>()
-								{
-									@Override
-									public void value (
-										final @Nullable String resultString)
-									{
-										outputStream().append(
-											resultString + "\n");
-										cleanup.value(afterward);
-									}
-								});
-						}
-					},
-					new Continuation0()
-					{
-						@Override
-						public void value ()
-						{
-							invokeLater(new Runnable()
-							{
-								@Override
-								public void run ()
-								{
-									isRunning = false;
-									inputStream().clear();
-									availBuilder.runtime.setStandardStreams(
-										outputStream(),
-										errorStream(),
-										null);
-									setEnablements();
-								}
-							});
-						}
-					});
-			}
-		}
-
-		/**
-		 * Construct a new {@link SubmitInputAction}.
-		 */
-		public SubmitInputAction ()
-		{
-			super("Submit Input");
-			putValue(
-				SHORT_DESCRIPTION,
-				"Submit the input field (plus a new line) to standard input.");
-			putValue(
-				ACCELERATOR_KEY,
-				KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
-		}
-	}
-
-	/**
-	 * A {@code RefreshAction} updates the {@linkplain #moduleTree module tree}
-	 * with new information from the filesystem.
-	 */
-	private final class RefreshAction
-	extends AbstractAction
-	{
-		@Override
-		public void actionPerformed (final @Nullable ActionEvent event)
-		{
-			final ResolvedModuleName selection = selectedModule();
-			final TreeNode modules = newModuleTree();
-			moduleTree.setModel(new DefaultTreeModel(modules));
-			for (int i = moduleTree.getRowCount() - 1; i >= 0; i--)
-			{
-				moduleTree.expandRow(i);
-			}
-			if (selection != null)
-			{
-				final TreePath path = modulePath(selection.qualifiedName());
-				if (path != null)
-				{
-					moduleTree.setSelectionPath(path);
-				}
-			}
-
-			final TreeNode entryPoints = newEntryPointsTree();
-			entryPointsTree.setModel(new DefaultTreeModel(entryPoints));
-			for (int i = entryPointsTree.getRowCount() - 1; i >= 0; i--)
-			{
-				entryPointsTree.expandRow(i);
-			}
-		}
-
-		/**
-		 * Construct a new {@link RefreshAction}.
-		 */
-		public RefreshAction ()
-		{
-			super("Refresh");
-			putValue(
-				SHORT_DESCRIPTION,
-				"Refresh the availability of top-level modules.");
-			putValue(
-				ACCELERATOR_KEY,
-				KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
-		}
-	}
-
-	/**
-	 * {@code BuilderTask} is a foundation for long running {@link AvailBuilder}
-	 * operations.
-	 */
-	private abstract class BuilderTask
+	public abstract static class AbstractWorkbenchTask
 	extends SwingWorker<Void, Void>
 	{
+		/** The owning {@link AvailWorkbench}. */
+		public final AvailWorkbench workbench;
+
 		/**
 		 * The resolved name of the target {@linkplain ModuleDescriptor module}.
 		 */
 		protected final @Nullable ResolvedModuleName targetModuleName;
 
 		/**
-		 * Cancel the {@linkplain BuildTask build task}.
+		 * Construct a new {@link AbstractWorkbenchTask}.
+		 *
+		 * @param workbench
+		 *        The owning {@link AvailWorkbench}.
+		 * @param targetModuleName
+		 *        The resolved name of the target {@linkplain ModuleDescriptor
+		 *        module}.
+		 */
+		public AbstractWorkbenchTask (
+			final AvailWorkbench workbench,
+			final @Nullable ResolvedModuleName targetModuleName)
+		{
+			this.workbench = workbench;
+			this.targetModuleName = targetModuleName;
+		}
+
+		/**
+		 * Cancel the current {@linkplain AbstractWorkbenchTask task}.
 		 */
 		public final void cancel ()
 		{
-			availBuilder.cancel();
+			workbench.availBuilder.cancel();
 		}
 
 		/** The start time. */
@@ -851,10 +196,10 @@ extends JFrame
 		 */
 		protected void reportDone ()
 		{
-			final StyledDocument doc = transcript.getStyledDocument();
+			final StyledDocument doc = workbench.transcript.getStyledDocument();
 			final long durationMillis = stopTimeMillis - startTimeMillis;
 			final String status;
-			if (availBuilder.shouldStopBuild)
+			if (workbench.availBuilder.shouldStopBuild)
 			{
 				status = "Canceled";
 			}
@@ -891,7 +236,8 @@ extends JFrame
 			try
 			{
 				// Reopen the repositories if necessary.
-				for (final ModuleRoot root : resolver.moduleRoots().roots())
+				for (final ModuleRoot root :
+					workbench.resolver.moduleRoots().roots())
 				{
 					root.repository().reopenIfNecessary();
 				}
@@ -901,7 +247,8 @@ extends JFrame
 			finally
 			{
 				// Close all the repositories.
-				for (final ModuleRoot root : resolver.moduleRoots().roots())
+				for (final ModuleRoot root :
+					workbench.resolver.moduleRoots().roots())
 				{
 					root.repository().close();
 				}
@@ -910,203 +257,12 @@ extends JFrame
 		}
 
 		/**
-		 * Execute the {@link BuilderTask}.
+		 * Execute this {@link AbstractWorkbenchTask}.
 		 *
 		 * @throws Exception
 		 *         If anything goes wrong.
 		 */
 		protected abstract void executeTask () throws Exception;
-
-		/**
-		 * Construct a new {@link BuildTask}.
-		 *
-		 * @param targetModuleName
-		 *        The resolved name of the target {@linkplain ModuleDescriptor
-		 *        module}.
-		 */
-		protected BuilderTask (
-			final @Nullable ResolvedModuleName targetModuleName)
-		{
-			this.targetModuleName = targetModuleName;
-		}
-	}
-
-	/**
-	 * A {@code BuildTask} launches the actual build of the target {@linkplain
-	 * ModuleDescriptor module}.
-	 */
-	private final class BuildTask
-	extends BuilderTask
-	{
-		/**
-		 * Answer a suitable {@linkplain CompilerProgressReporter compiler
-		 * progress reporter}.
-		 *
-		 * @return A compiler progress reporter.
-		 */
-		private CompilerProgressReporter compilerProgressReporter ()
-		{
-			return new CompilerProgressReporter()
-			{
-				@Override
-				public void value (
-					final @Nullable ModuleName moduleName,
-					final @Nullable Long moduleSize,
-					final @Nullable ParserState position,
-					final @Nullable A_Phrase lastStatement)
-				{
-					// Do nothing.
-				}
-			};
-		}
-
-		/**
-		 * Answer a suitable {@linkplain Continuation3 global tracker}.
-		 *
-		 * @return A global tracker.
-		 */
-		private Continuation3<ModuleName, Long, Long> globalTracker ()
-		{
-			return new Continuation3<ModuleName, Long, Long>()
-			{
-				@Override
-				public void value (
-					final @Nullable ModuleName moduleName,
-					final @Nullable Long position,
-					final @Nullable Long globalCodeSize)
-				{
-					assert moduleName != null;
-					assert position != null;
-					assert globalCodeSize != null;
-					invokeLater(new Runnable()
-					{
-						@Override
-						public void run ()
-						{
-							updateBuildProgress(
-								moduleName,
-								position,
-								globalCodeSize);
-						}
-					});
-				}
-			};
-		}
-
-		@Override
-		protected void executeTask () throws Exception
-		{
-			assert targetModuleName != null;
-			availBuilder.buildTarget(
-				targetModuleName(),
-				compilerProgressReporter(),
-				globalTracker());
-		}
-
-		@Override
-		protected void done ()
-		{
-			backgroundTask = null;
-			reportDone();
-			availBuilder.checkStableInvariants();
-			setEnablements();
-			setCursor(Cursor.getDefaultCursor());
-		}
-
-		/**
-		 * Construct a new {@link BuildTask}.
-		 *
-		 * @param targetModuleName
-		 *        The resolved name of the target {@linkplain ModuleDescriptor
-		 *        module}.
-		 */
-		public BuildTask (final ResolvedModuleName targetModuleName)
-		{
-			super(targetModuleName);
-		}
-	}
-
-	/**
-	 * An {@code UnloadTask} initiates and manages unloading the target
-	 * {@linkplain ModuleDescriptor module}.
-	 */
-	private final class UnloadTask
-	extends BuilderTask
-	{
-		@Override
-		protected void executeTask () throws Exception
-		{
-			availBuilder.unloadTarget(targetModuleName);
-		}
-
-		@Override
-		protected void done ()
-		{
-			backgroundTask = null;
-			reportDone();
-			availBuilder.checkStableInvariants();
-			setEnablements();
-			setCursor(Cursor.getDefaultCursor());
-		}
-
-		/**
-		 * Construct a new {@link DocumentationTask}.
-		 *
-		 * @param targetModuleName
-		 *        The resolved name of the target {@linkplain ModuleDescriptor
-		 *        module}.
-		 */
-		public UnloadTask (final @Nullable ResolvedModuleName targetModuleName)
-		{
-			super(targetModuleName);
-		}
-	}
-
-	/**
-	 * A {@code DocumentationTask} initiates and manages documentation
-	 * generation for the target {@linkplain ModuleDescriptor module}.
-	 */
-	private final class DocumentationTask
-	extends BuilderTask
-	{
-		@Override
-		protected void executeTask () throws Exception
-		{
-			try
-			{
-				availBuilder.generateDocumentation(
-					targetModuleName(),
-					documentationPath);
-			}
-			catch (final Exception e)
-			{
-				// Put a breakpoint here to debug documentation generation
-				// exceptions.
-				throw e;
-			}
-		}
-
-		@Override
-		protected void done ()
-		{
-			backgroundTask = null;
-			reportDone();
-			availBuilder.checkStableInvariants();
-			setEnablements();
-			setCursor(Cursor.getDefaultCursor());
-		}
-
-		/**
-		 * Construct a new {@link DocumentationTask}.
-		 *
-		 * @param targetModuleName
-		 *        The resolved name of the target {@linkplain ModuleDescriptor
-		 *        module}.
-		 */
-		public DocumentationTask (final ResolvedModuleName targetModuleName)
-		{
-			super(targetModuleName);
-		}
 	}
 
 	/**
@@ -1139,10 +295,20 @@ extends JFrame
 				{
 					try
 					{
+						final JScrollBar verticalScrollBar =
+							transcriptScrollArea.getVerticalScrollBar();
+						final int min = verticalScrollBar.getValue() +
+							verticalScrollBar.getVisibleAmount();
+						final int max = verticalScrollBar.getMaximum();
 						doc.insertString(
 							doc.getLength(),
 							text,
 							doc.getStyle(style));
+						if (max == min)
+						{
+							verticalScrollBar.setValue(
+								verticalScrollBar.getMaximum());
+						}
 					}
 					catch (final BadLocationException e)
 					{
@@ -1195,7 +361,7 @@ extends JFrame
 	 * {@linkplain BuildInputStream} satisfies reads from the UI's {@linkplain
 	 * #inputField input field}. It blocks reads unless some data is available.
 	 */
-	private final class BuildInputStream
+	public final class BuildInputStream
 	extends ByteArrayInputStream
 	{
 		/**
@@ -1363,16 +529,16 @@ extends JFrame
 	 */
 
 	/** The {@linkplain ModuleNameResolver module name resolver}. */
-	@InnerAccess final ModuleNameResolver resolver;
+	public final ModuleNameResolver resolver;
 
-	/** The current {@linkplain BuilderTask background task}. */
-	@InnerAccess volatile @Nullable BuilderTask backgroundTask;
+	/** The current {@linkplain AbstractWorkbenchTask background task}. */
+	public volatile @Nullable AbstractWorkbenchTask backgroundTask;
 
 	/**
 	 * The documentation {@linkplain Path path} for the {@linkplain
 	 * StacksGenerator Stacks generator}.
 	 */
-	@InnerAccess Path documentationPath =
+	public Path documentationPath =
 		StacksGenerator.defaultDocumentationPath;
 
 	/** The {@linkplain BuildInputStream standard input stream}. */
@@ -1383,7 +549,7 @@ extends JFrame
 	 *
 	 * @return The input stream.
 	 */
-	@InnerAccess BuildInputStream inputStream ()
+	public BuildInputStream inputStream ()
 	{
 		final BuildInputStream stream = inputStream;
 		assert stream != null;
@@ -1398,7 +564,7 @@ extends JFrame
 	 *
 	 * @return The error stream.
 	 */
-	@InnerAccess PrintStream errorStream ()
+	public PrintStream errorStream ()
 	{
 		final PrintStream stream = errorStream;
 		assert stream != null;
@@ -1413,49 +579,50 @@ extends JFrame
 	 *
 	 * @return The output stream.
 	 */
-	@InnerAccess PrintStream outputStream ()
+	public PrintStream outputStream ()
 	{
 		final PrintStream stream = outputStream;
 		assert stream != null;
 		return stream;
 	}
 
-	/*
-	 * UI components.
-	 */
+	/* UI components. */
 
 	/** The {@linkplain ModuleDescriptor module} {@linkplain JTree tree}. */
-	@InnerAccess final JTree moduleTree;
+	public final JTree moduleTree;
 
 	/** The {@linkplain JTree tree} of module {@linkplain A_Module#entryPoints()
 	 * entry points}. */
-	@InnerAccess final JTree entryPointsTree;
+	public final JTree entryPointsTree;
 
 	/**
 	 * The {@link AvailBuilder} used by this user interface.
 	 */
-	@InnerAccess final AvailBuilder availBuilder;
+	public final AvailBuilder availBuilder;
 
 	/**
 	 * The {@linkplain JProgressBar progress bar} that displays the overall
 	 * build progress.
 	 */
-	@InnerAccess final JProgressBar buildProgress;
+	public final JProgressBar buildProgress;
 
 	/**
 	 * The {@linkplain JTextPane text area} that displays the {@linkplain
 	 * AvailBuilder build} transcript.
 	 */
-	@InnerAccess final JTextPane transcript;
+	public final JTextPane transcript;
+
+	/** The {@linkplain JScrollPane scroll bars} for the {@link #transcript}. */
+	public final JScrollPane transcriptScrollArea;
 
 	/**
 	 * The {@linkplain JLabel label} that describes the current function of the
 	 * {@linkplain #inputField input field}.
 	 */
-	@InnerAccess final JLabel inputLabel;
+	public final JLabel inputLabel;
 
 	/** The {@linkplain JTextField text field} that accepts standard input. */
-	@InnerAccess final JTextField inputField;
+	public final JTextField inputField;
 
 	/**
 	 * Keep track of recent commands in a history buffer.  Each submitted
@@ -1465,7 +632,7 @@ extends JFrame
 	 * again an so on.  An initial cursor-down selects the first entry and goes
 	 * from there.
 	 */
-	@InnerAccess final List<String> commandHistory = new ArrayList<>();
+	public final List<String> commandHistory = new ArrayList<>();
 
 	/**
 	 * Which command was most recently retrieved by a cursor key since the last
@@ -1473,69 +640,84 @@ extends JFrame
 	 * cursor key, or that the entire list has been cycled an integral number of
 	 * times (and the command line was blanked upon reaching -1).
 	 */
-	@InnerAccess int commandHistoryIndex = -1;
+	public int commandHistoryIndex = -1;
 
 	/** Cycle one step backward in the command history. */
 	final RetrievePreviousCommand retrievePreviousAction =
-		new RetrievePreviousCommand();
+		new RetrievePreviousCommand(this);
 
 	/** Cycle one step forward in the command history. */
 	final RetrieveNextCommand retrieveNextAction =
-		new RetrieveNextCommand();
+		new RetrieveNextCommand(this);
 
-	/*
-	 * Actions.
-	 */
+	/* Actions. */
 
 	/** The {@linkplain RefreshAction refresh action}. */
-	@InnerAccess final RefreshAction refreshAction;
+	@InnerAccess final RefreshAction refreshAction = new RefreshAction(this);
+
+	/** The {@linkplain AboutAction "about Avail" action}. */
+	@InnerAccess final AboutAction aboutAction = new AboutAction(this);
 
 	/** The {@linkplain BuildAction build action}. */
-	@InnerAccess final BuildAction buildAction;
+	@InnerAccess final BuildAction buildAction = new BuildAction(this, false);
 
 	/** The {@linkplain UnloadAction unload action}. */
-	@InnerAccess final UnloadAction unloadAction;
+	@InnerAccess final UnloadAction unloadAction = new UnloadAction(this);
 
 	/** The {@linkplain UnloadAllAction unload-all action}. */
-	@InnerAccess final UnloadAllAction unloadAllAction;
+	@InnerAccess final UnloadAllAction unloadAllAction =
+		new UnloadAllAction(this);
 
 	/** The {@linkplain CancelAction cancel action}. */
-	@InnerAccess final CancelAction cancelAction;
+	@InnerAccess final CancelAction cancelAction = new CancelAction(this);
 
 	/** The {@linkplain CleanAction clean action}. */
-	@InnerAccess final CleanAction cleanAction;
+	@InnerAccess final CleanAction cleanAction = new CleanAction(this);
 
 	/**
 	 * The {@linkplain GenerateDocumentationAction generate documentation
 	 * action}.
 	 */
-	@InnerAccess final GenerateDocumentationAction documentAction;
+	@InnerAccess final GenerateDocumentationAction documentAction =
+		new GenerateDocumentationAction(this);
+
+	/** The {@linkplain GenerateGraphAction generate graph action}. */
+	@InnerAccess final GenerateGraphAction graphAction =
+		new GenerateGraphAction(this);
 
 	/**
 	 * The {@linkplain SetDocumentationPathAction documentation path dialog
 	 * action}.
 	 */
-	@InnerAccess final SetDocumentationPathAction setDocumentationPathAction;
+	@InnerAccess final SetDocumentationPathAction setDocumentationPathAction =
+		new SetDocumentationPathAction(this);
 
 	/** The {@linkplain ReportAction report action}. */
-	@InnerAccess final ReportAction reportAction;
+	@InnerAccess final ReportAction reportAction = new ReportAction(this);
 
 	/** The {@linkplain ClearReportAction clear report action}. */
-	@InnerAccess final ClearReportAction clearReportAction;
+	@InnerAccess final ClearReportAction clearReportAction =
+		new ClearReportAction(this);
 
 	/** The {@linkplain ClearTranscriptAction clear transcript action}. */
-	@InnerAccess final ClearTranscriptAction clearTranscriptAction;
+	@InnerAccess final ClearTranscriptAction clearTranscriptAction =
+		new ClearTranscriptAction(this);
 
 	/** The {@linkplain InsertEntryPointAction insert entry point action}. */
-	@InnerAccess final InsertEntryPointAction insertEntryPointAction;
+	@InnerAccess final InsertEntryPointAction insertEntryPointAction =
+		new InsertEntryPointAction(this);
+
+	/** The {@linkplain BuildAction action to build an entry point module}. */
+	@InnerAccess final BuildAction buildEntryPointModuleAction =
+		new BuildAction(this, true);
 
 	/** Whether an entry point invocation (command line) is executing. */
-	boolean isRunning = false;
+	public boolean isRunning = false;
 
 	/**
 	 * Enable or disable controls and menu items based on the current state.
 	 */
-	@InnerAccess void setEnablements ()
+	public void setEnablements ()
 	{
 		final boolean busy = backgroundTask != null || isRunning;
 		buildProgress.setEnabled(busy);
@@ -1550,9 +732,12 @@ extends JFrame
 		cleanAction.setEnabled(!busy);
 		refreshAction.setEnabled(!busy);
 		setDocumentationPathAction.setEnabled(!busy);
-		documentAction.setEnabled(!busy);
+		documentAction.setEnabled(!busy && selectedModule() != null);
+		graphAction.setEnabled(!busy && selectedModule() != null);
 		insertEntryPointAction.setEnabled(
 			!busy && selectedEntryPoint() != null);
+		buildEntryPointModuleAction.setEnabled(
+			!busy && selectedEntryPointModule() != null);
 		inputLabel.setText(isRunning
 			? "Console Input:"
 			: "Command:");
@@ -1564,7 +749,7 @@ extends JFrame
 	/**
 	 * Clear the {@linkplain #transcript transcript}.
 	 */
-	@InnerAccess void clearTranscript ()
+	public void clearTranscript ()
 	{
 		final StyledDocument doc = transcript.getStyledDocument();
 		try
@@ -1762,7 +947,7 @@ extends JFrame
 	 *
 	 * @return The (invisible) root of the module tree.
 	 */
-	@InnerAccess TreeNode newModuleTree ()
+	public TreeNode newModuleTree ()
 	{
 		final ModuleRoots roots = resolver.moduleRoots();
 		final DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode(
@@ -1801,7 +986,7 @@ extends JFrame
 	 *
 	 * @return The (invisible) root of the entry points tree.
 	 */
-	@InnerAccess TreeNode newEntryPointsTree ()
+	public TreeNode newEntryPointsTree ()
 	{
 		final Object mutex = new Object();
 		final Map<String, DefaultMutableTreeNode> moduleNodes = new HashMap<>();
@@ -1858,7 +1043,7 @@ extends JFrame
 	 *         the tree.
 	 */
 	@SuppressWarnings("unchecked")
-	@InnerAccess @Nullable TreePath modulePath (final String moduleName)
+	public @Nullable TreePath modulePath (final String moduleName)
 	{
 		final String[] path = moduleName.split("/");
 		final TreeModel model = moduleTree.getModel();
@@ -1928,7 +1113,7 @@ extends JFrame
 	 * @return A fully-qualified module name, or {@code null} if no module is
 	 *         selected.
 	 */
-	@InnerAccess @Nullable ResolvedModuleName selectedModule ()
+	public @Nullable ResolvedModuleName selectedModule ()
 	{
 		final ModuleOrPackageNode node = selectedModuleNode();
 		if (node == null)
@@ -1944,7 +1129,7 @@ extends JFrame
 	 * @return An entry point name, or {@code null} if no entry point is
 	 *         selected.
 	 */
-	@InnerAccess @Nullable String selectedEntryPoint ()
+	public @Nullable String selectedEntryPoint ()
 	{
 		final TreePath path = entryPointsTree.getSelectionPath();
 		if (path == null)
@@ -1968,7 +1153,7 @@ extends JFrame
 	 *
 	 * @return A {@link ResolvedModuleName} or {@code null}.
 	 */
-	@InnerAccess @Nullable ResolvedModuleName selectedEntryPointModule ()
+	public @Nullable ResolvedModuleName selectedEntryPointModule ()
 	{
 		final TreePath path = entryPointsTree.getSelectionPath();
 		if (path == null)
@@ -2011,7 +1196,7 @@ extends JFrame
 	 * @param globalCodeSize
 	 *        The module size, in bytes.
 	 */
-	@InnerAccess void updateBuildProgress (
+	public void updateBuildProgress (
 		final ModuleName moduleName,
 		final Long position,
 		final Long globalCodeSize)
@@ -2339,26 +1524,14 @@ extends JFrame
 		setTitle("Avail Workbench");
 		setResizable(true);
 
-		// Create the actions.
-		buildAction = new BuildAction();
-		unloadAction = new UnloadAction();
-		unloadAllAction = new UnloadAllAction();
-		cancelAction = new CancelAction();
-		cleanAction = new CleanAction();
-		documentAction = new GenerateDocumentationAction();
-		setDocumentationPathAction = new SetDocumentationPathAction();
-		refreshAction = new RefreshAction();
-		reportAction = new ReportAction();
-		reportAction.setEnabled(true);
-		clearTranscriptAction = new ClearTranscriptAction();
-		clearTranscriptAction.setEnabled(true);
-		clearReportAction = new ClearReportAction();
-		clearReportAction.setEnabled(true);
-		insertEntryPointAction = new InsertEntryPointAction();
-
 		// Create the menu bar and its menus.
 		final JMenuBar menuBar = new JMenuBar();
 		final JMenu buildMenu = new JMenu("Build");
+		if (!runningOnMac)
+		{
+			buildMenu.add(new JMenuItem(aboutAction));
+			buildMenu.addSeparator();
+		}
 		buildMenu.add(new JMenuItem(buildAction));
 		buildMenu.add(new JMenuItem(cancelAction));
 		buildMenu.addSeparator();
@@ -2377,10 +1550,16 @@ extends JFrame
 		runMenu.add(new JMenuItem(insertEntryPointAction));
 		runMenu.addSeparator();
 		runMenu.add(new JMenuItem(clearTranscriptAction));
-		runMenu.addSeparator();
-		runMenu.add(new JMenuItem(reportAction));
-		runMenu.add(new JMenuItem(clearReportAction));
 		menuBar.add(runMenu);
+		if (showDeveloperTools)
+		{
+			final JMenu devMenu = new JMenu("Developer");
+			devMenu.add(new JMenuItem(reportAction));
+			devMenu.add(new JMenuItem(clearReportAction));
+			devMenu.addSeparator();
+			devMenu.add(new JMenuItem(graphAction));
+			menuBar.add(devMenu);
+		}
 		setJMenuBar(menuBar);
 
 		final JPopupMenu buildPopup = new JPopupMenu("Modules");
@@ -2400,6 +1579,7 @@ extends JFrame
 		final JPopupMenu entryPointsPopup = new JPopupMenu("Entry points");
 		entryPointsPopup.add(new JMenuItem(refreshAction));
 		entryPointsPopup.add(new JMenuItem(insertEntryPointAction));
+		entryPointsPopup.add(new JMenuItem(buildEntryPointModuleAction));
 
 		final JPopupMenu transcriptPopup = new JPopupMenu("Transcript");
 		transcriptPopup.add(new JMenuItem(clearTranscriptAction));
@@ -2457,6 +1637,7 @@ extends JFrame
 		actionMap = moduleTree.getActionMap();
 		inputMap.put(KeyStroke.getKeyStroke("ENTER"), "build");
 		actionMap.put("build", buildAction);
+		// Expand rows bottom-to-top to expand only the root nodes.
 		for (int i = moduleTree.getRowCount() - 1; i >= 0; i--)
 		{
 			moduleTree.expandRow(i);
@@ -2497,16 +1678,29 @@ extends JFrame
 			public void mouseClicked (final @Nullable MouseEvent e)
 			{
 				assert e != null;
-				if (insertEntryPointAction.isEnabled()
-					&& e.getClickCount() == 2
-					&& e.getButton() == MouseEvent.BUTTON1)
+				if (selectedEntryPoint() != null)
 				{
-					e.consume();
-					final ActionEvent actionEvent = new ActionEvent(
-						entryPointsTree, -1, "Insert entry point");
-					if (insertEntryPointAction.isEnabled())
+					if (insertEntryPointAction.isEnabled()
+						&& e.getClickCount() == 2
+						&& e.getButton() == MouseEvent.BUTTON1)
 					{
+						e.consume();
+						final ActionEvent actionEvent = new ActionEvent(
+							entryPointsTree, -1, "Insert entry point");
 						insertEntryPointAction.actionPerformed(actionEvent);
+					}
+				}
+				else if (selectedEntryPointModule() != null)
+				{
+					if (buildEntryPointModuleAction.isEnabled()
+						&& e.getClickCount() == 2
+						&& e.getButton() == MouseEvent.BUTTON1)
+					{
+						e.consume();
+						final ActionEvent actionEvent = new ActionEvent(
+							entryPointsTree, -1, "Build entry point module");
+						buildEntryPointModuleAction.actionPerformed(
+							actionEvent);
 					}
 				}
 			}
@@ -2536,7 +1730,7 @@ extends JFrame
 
 		// Create the transcript.
 		final JLabel outputLabel = new JLabel("Transcript:");
-		final JScrollPane transcriptScrollArea = new JScrollPane();
+		transcriptScrollArea = new JScrollPane();
 		transcriptScrollArea.setHorizontalScrollBarPolicy(
 			HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		transcriptScrollArea.setVerticalScrollBarPolicy(
@@ -2558,7 +1752,7 @@ extends JFrame
 		inputField.setToolTipText(
 			"Enter commands and interact with Avail programs.  Press "
 			+ "ENTER to submit.");
-		inputField.setAction(new SubmitInputAction());
+		inputField.setAction(new SubmitInputAction(this));
 		inputMap = inputField.getInputMap(JComponent.WHEN_FOCUSED);
 		actionMap = inputField.getActionMap();
 		inputMap.put(KeyStroke.getKeyStroke("UP"), "up");
@@ -2597,7 +1791,7 @@ extends JFrame
 			tabStops[i] = new TabStop(
 				32.0f * (i + 1),
 				TabStop.ALIGN_LEFT,
-				TabStop.LEAD_DOTS);
+				TabStop.LEAD_NONE);
 		}
 		final TabSet tabSet = new TabSet(tabStops);
 		StyleConstants.setTabSet(attributes, tabSet);
@@ -2605,6 +1799,7 @@ extends JFrame
 		final Style defaultStyle =
 			StyleContext.getDefaultStyleContext().getStyle(
 				StyleContext.DEFAULT_STYLE);
+		defaultStyle.addAttributes(attributes);
 		StyleConstants.setFontFamily(defaultStyle, "Monospaced");
 		final Style outputStyle = doc.addStyle(outputStyleName, defaultStyle);
 		StyleConstants.setForeground(outputStyle, Color.BLACK);
@@ -2690,6 +1885,42 @@ extends JFrame
 				super.windowClosing(e);
 			}
 		});
+		if (runningOnMac)
+		{
+			OSXUtility.setQuitHandler(
+				new Transformer1<Object, Boolean>()
+				{
+					@Override
+					public @Nullable Boolean value (
+						final @Nullable Object event)
+					{
+						// Quit was pressed.  Close the workbench, which should
+						// save window position state then exit.
+						// Apple's apple.eawt.quitStrategy has never worked, to
+						// the best of my knowledge.  It's a trick.  We must
+						// close the workbench window explicitly to give it a
+						// chance to save.
+						final WindowEvent closeEvent =
+							new WindowEvent(
+								AvailWorkbench.this,
+								WindowEvent.WINDOW_CLOSING);
+						dispatchEvent(closeEvent);
+						return true;
+					}
+				});
+			OSXUtility.setAboutHandler(
+				new Transformer1<Object, Boolean>()
+				{
+					@Override
+					public @Nullable Boolean value (
+						@Nullable final Object event)
+					{
+						aboutAction.showDialog();
+						return true;
+					}
+				});
+		}
+
 		// Select an initial module if specified.
 		validate();
 		if (!initialTarget.isEmpty())
@@ -2705,41 +1936,46 @@ extends JFrame
 	}
 
 	/**
-	 * @throws ClassNotFoundException
-	 * @throws IllegalAccessException
-	 * @throws InvocationTargetException
-	 * @throws NoSuchMethodException
+	 * Make the workbench behave more like a Mac application.
 	 */
-	static void setUpForMac ()
-	throws
-		ClassNotFoundException,
-		IllegalAccessException,
-		InvocationTargetException,
-		NoSuchMethodException
+	private static void setUpForMac ()
 	{
-		System.setProperty("apple.laf.useScreenMenuBar", "true");
-		System.setProperty(
-			"com.apple.mrj.application.apple.menu.about.name",
-			"Avail Workbench");
-		System.setProperty(
-			"com.apple.awt.graphics.UseQuartz",
-			"true");
+		assert runningOnMac;
+		try
+		{
 
-		System.setProperty("apple.eawt.quitStrategy", "CLOSE_ALL_WINDOWS");
-		final Class<?> appClass = Class.forName(
-			"com.apple.eawt.Application",
-			true,
-			AvailWorkbench.class.getClassLoader());
-		final Object application =
-			appClass.getMethod("getApplication").invoke(null);
-		final Image image =
-			new ImageIcon("distro/images/AvailHammer.png").getImage();
-		appClass.getMethod("setDockIconImage", Image.class).invoke(
-			application,
-			image);
-		appClass.getMethod("setDockIconBadge", String.class).invoke(
-			application,
-			"dev");
+//			OSXUtility.setPreferencesHandler(
+//				this, getClass().getDeclaredMethod("preferences", (Class[])null));
+//			OSXUtility.setFileHandler(
+//				this, getClass().getDeclaredMethod("loadImageFile", new Class[] { String.class }));
+
+			System.setProperty("apple.laf.useScreenMenuBar", "true");
+			System.setProperty(
+				"com.apple.mrj.application.apple.menu.about.name",
+				"Avail Workbench");
+			System.setProperty(
+				"com.apple.awt.graphics.UseQuartz",
+				"true");
+
+			final Class<?> appClass = Class.forName(
+				"com.apple.eawt.Application",
+				true,
+				AvailWorkbench.class.getClassLoader());
+			final Object application =
+				appClass.getMethod("getApplication").invoke(null);
+			final Image image =
+				new ImageIcon("distro/images/AvailHammer.png").getImage();
+			appClass.getMethod("setDockIconImage", Image.class).invoke(
+				application,
+				image);
+			appClass.getMethod("setDockIconBadge", String.class).invoke(
+				application,
+				"DEV");
+		}
+		catch (final Exception e)
+		{
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**
@@ -2754,8 +1990,7 @@ extends JFrame
 	public static void main (final String[] args)
 	throws Exception
 	{
-		final String platform = System.getProperty("os.name");
-		if (platform.toLowerCase().matches("mac os x.*"))
+		if (runningOnMac)
 		{
 			setUpForMac();
 		}

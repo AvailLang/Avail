@@ -100,7 +100,12 @@ implements Iterable<ModuleRoot>
 	private void parseAvailModulePath () throws IllegalArgumentException
 	{
 		// Root definitions are separated by semicolons.
-		for (final String component : modulePath.split(";"))
+		String [] components = modulePath.split(";");
+		if (modulePath.isEmpty())
+		{
+			components = new String[0];
+		}
+		for (final String component : components)
 		{
 			// An equals separates the root name from its paths.
 			final String[] binding = component.split("=");

@@ -299,13 +299,15 @@ Primitive "_÷_" is
  * @returns "any"
  *    The value contained within the specified variable.
  * @raises "cannot-read-unassigned-variable exception"
+ * @raises "Java-marshaling-failed exception"
  */
 Primitive "↓_" is
 [
 	var : variable
 |
 	Primitive 10 (failureCode : {
-		cannot-read-unassigned-variable code}ᵀ);
+		cannot-read-unassigned-variable code,
+		Java-marshaling-failed code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any;
 
@@ -321,6 +323,8 @@ Primitive "↓_" is
  * @returns "⊤"
  * @raises "cannot-store-incorrectly-typed-value exception"
  * @raises "cannot-overwrite-write-once-variable exception"
+ * @raises "Java-marshaling-failed exception"
+ * @raises "cannot-modify-final-Java-field exception"
  */
 Primitive "↓_`?=_" is
 [
@@ -330,6 +334,7 @@ Primitive "↓_`?=_" is
 	Primitive 11 (failureCode : {
 		cannot-store-incorrectly-typed-value code,
 		cannot-overwrite-write-once-variable code,
+		Java-marshaling-failed code,
 		cannot-modify-final-Java-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
@@ -342,6 +347,8 @@ Primitive "↓_`?=_" is
  * @param "var" "variable"
  *        A variable.
  * @returns "⊤"
+ * @raises "cannot-overwrite-write-once-variable exception"
+ * @raises "Java-marshaling-failed exception"
  * @raises "cannot-modify-final-Java-field exception"
  */
 Primitive "Clear_" is
@@ -349,6 +356,8 @@ Primitive "Clear_" is
 	var : variable
 |
 	Primitive 12 (failureCode : {
+		cannot-overwrite-write-once-variable code,
+		Java-marshaling-failed code,
 		cannot-modify-final-Java-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
@@ -387,14 +396,16 @@ Primitive "swap_and_" is
  *        A variable.
  * @returns "any"
  *    The value ejected from the variable.
- * @raises "cannot-read-unassigned-variable exception"
+ * @raises "any"
+ * @raises "{5}"
+ * @raises "{6}"
+ * @raises "{7}"
  */
 Primitive "eject_" is
 [
 	var : variable
 |
-	Primitive 18 (failureCode : {
-		cannot-read-unassigned-variable code}ᵀ);
+	Primitive 18 (failureCode : any);
 	Private invoke _fail_primitive with failureCode
 ] : any;
 
@@ -412,6 +423,8 @@ Primitive "eject_" is
  * @raises "cannot-read-unassigned-variable exception"
  * @raises "cannot-store-incorrectly-typed-value exception"
  * @raises "cannot-overwrite-write-once-variable exception"
+ * @raises "Java-marshaling-failed exception"
+ * @raises "cannot-modify-final-Java-field exception"
  */
 Primitive "atomically read_and store_" is
 [
@@ -422,6 +435,7 @@ Primitive "atomically read_and store_" is
 		cannot-read-unassigned-variable code,
 		cannot-store-incorrectly-typed-value code,
 		cannot-overwrite-write-once-variable code,
+		Java-marshaling-failed code,
 		cannot-modify-final-Java-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any;
@@ -445,6 +459,8 @@ Primitive "atomically read_and store_" is
  * @raises "cannot-read-unassigned-variable exception"
  * @raises "cannot-store-incorrectly-typed-value exception"
  * @raises "cannot-overwrite-write-once-variable exception"
+ * @raises "Java-marshaling-failed exception"
+ * @raises "cannot-modify-final-Java-field exception"
  */
 Primitive "atomically compare_to_and,⁇if equal,⁇store_" is
 [
@@ -456,6 +472,7 @@ Primitive "atomically compare_to_and,⁇if equal,⁇store_" is
 		cannot-read-unassigned-variable code,
 		cannot-store-incorrectly-typed-value code,
 		cannot-overwrite-write-once-variable code,
+		Java-marshaling-failed code,
 		cannot-modify-final-Java-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : boolean;
@@ -472,9 +489,12 @@ Primitive "atomically compare_to_and,⁇if equal,⁇store_" is
  *        The addend.
  * @returns "[-∞..∞]"
  *    The augend, i.e., the value originally stored in {@param "var"}.
+ * @raises "cannot-add-unlike-infinities exception"
  * @raises "cannot-read-unassigned-variable exception"
  * @raises "cannot-store-incorrectly-typed-value exception"
  * @raises "cannot-overwrite-write-once-variable exception"
+ * @raises "Java-marshaling-failed exception"
+ * @raises "cannot-modify-final-Java-field exception"
  */
 Primitive "atomically read_and add_" is
 [
@@ -482,9 +502,11 @@ Primitive "atomically read_and add_" is
 	addend : extended integer
 |
 	Primitive 22 (failureCode : {
+		cannot-add-unlike-infinities code,
 		cannot-read-unassigned-variable code,
 		cannot-store-incorrectly-typed-value code,
 		cannot-overwrite-write-once-variable code,
+		Java-marshaling-failed code,
 		cannot-modify-final-Java-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : extended integer;

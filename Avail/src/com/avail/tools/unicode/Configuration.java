@@ -33,7 +33,7 @@
 package com.avail.tools.unicode;
 
 import java.nio.file.Path;
-import com.avail.annotations.Nullable;
+import java.nio.file.Paths;
 
 /**
  * {@code Configuration} describes the configuration of {@link
@@ -44,18 +44,9 @@ import com.avail.annotations.Nullable;
 public class Configuration
 implements com.avail.tools.configuration.Configuration
 {
-	/**
-	 * {@code true} if {@link CatalogGenerator} should dump all Unicode code
-	 * points, or {@code false} if it should only dump non-ASCII code points.
-	 */
-	boolean includeAsciiCodePoints;
-
-	/**
-	 * The {@linkplain Path location} of the destination JSON file. If {@code
-	 * null}, then dump the JSON file to {@linkplain System#out standard
-	 * output}.
-	 */
-	@Nullable Path targetPath = null;
+	/** The {@linkplain Path directory} containing the JSON files. */
+	Path catalogPath = Paths.get(
+		"src", "com", "avail", "tools", "unicode", "generated");
 
 	@Override
 	public boolean isValid ()

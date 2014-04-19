@@ -33,7 +33,8 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD;
+import static com.avail.exceptions.AvailErrorCode.*;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.VariableSetException;
@@ -81,7 +82,10 @@ public final class P_012_ClearValue extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_CANNOT_MODIFY_FINAL_JAVA_FIELD.numericCode());
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_CANNOT_MODIFY_FINAL_JAVA_FIELD.numericCode(),
+				E_JAVA_MARSHALING_FAILED.numericCode(),
+				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE.numericCode())));
 	}
 }

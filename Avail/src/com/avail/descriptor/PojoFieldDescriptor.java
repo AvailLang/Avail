@@ -116,7 +116,10 @@ extends Descriptor
 		// Clear the variable by writing the appropriate default value.
 		try
 		{
-			field.set(receiver, defaultValue);
+			synchronized (receiver)
+			{
+				field.set(receiver, defaultValue);
+			}
 		}
 		catch (final Exception e)
 		{
@@ -149,7 +152,10 @@ extends Descriptor
 		final A_Type expectedType = object.slot(KIND).readType();
 		try
 		{
-			return unmarshal(field.get(receiver), expectedType);
+			synchronized (receiver)
+			{
+				return unmarshal(field.get(receiver), expectedType);
+			}
 		}
 		catch (final Exception e)
 		{
@@ -180,7 +186,10 @@ extends Descriptor
 		final Class<?> classHint = field.getType();
 		try
 		{
-			field.set(receiver, newValue.marshalToJava(classHint));
+			synchronized (receiver)
+			{
+				field.set(receiver, newValue.marshalToJava(classHint));
+			}
 		}
 		catch (final Exception e)
 		{
@@ -201,7 +210,10 @@ extends Descriptor
 		final Class<?> classHint = field.getType();
 		try
 		{
-			field.set(receiver, newValue.marshalToJava(classHint));
+			synchronized (receiver)
+			{
+				field.set(receiver, newValue.marshalToJava(classHint));
+			}
 		}
 		catch (final Exception e)
 		{
@@ -219,7 +231,10 @@ extends Descriptor
 		final A_Type expectedType = object.slot(KIND).readType();
 		try
 		{
-			return unmarshal(field.get(receiver), expectedType);
+			synchronized (receiver)
+			{
+				return unmarshal(field.get(receiver), expectedType);
+			}
 		}
 		catch (final Exception e)
 		{
