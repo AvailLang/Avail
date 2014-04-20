@@ -1593,7 +1593,7 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 
 /**
  * Answer a textual rendition of {@param "aTuple"} as a list. Elements are
- * separated by {@param "separator"}
+ * separated by {@param "separator"}.
  *
  * @method "“_”«else_»(as list partitioned by_)"
  * @param "aTuple" "tuple"
@@ -1633,7 +1633,7 @@ Method "“_”«else_»(as list partitioned by_)" is
 
 /**
  * Answer a textual rendition of {@param "aSet"} as a list. Elements are
- * separated by {@param "separator"}
+ * separated by {@param "separator"}.
  *
  * @method "“_”«else_»(as list partitioned by_)"
  * @param "aSet" "set"

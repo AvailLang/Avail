@@ -309,7 +309,7 @@ public class StacksGenerator
 			templatePackageName.resolve("stacks.html.template");
 
 		final Path stacksHTML =
-			providedDocumentPath.resolve("stacks.html");
+			providedDocumentPath.resolve("index.html");
 
 		try
 		{
