@@ -82,7 +82,7 @@ extends AbstractWorkbenchAction
 	 */
 	public GenerateDocumentationAction (final AvailWorkbench workbench)
 	{
-		super(workbench, "Generate documentation");
+		super(workbench, "Generate Documentation");
 		putValue(
 			SHORT_DESCRIPTION,
 			"Generate API documentation for the selected module and "

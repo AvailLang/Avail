@@ -67,7 +67,7 @@ extends AbstractWorkbenchAction
 	 */
 	public CancelAction (final AvailWorkbench workbench)
 	{
-		super(workbench, "Cancel build");
+		super(workbench, "Cancel Build");
 		putValue(
 			SHORT_DESCRIPTION,
 			"Cancel the current build process.");
