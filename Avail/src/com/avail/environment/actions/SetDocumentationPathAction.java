@@ -69,7 +69,7 @@ extends AbstractWorkbenchAction
 	 */
 	public SetDocumentationPathAction (final AvailWorkbench workbench)
 	{
-		super(workbench, "Set documentation path…");
+		super(workbench, "Set Documentation Path…");
 		putValue(
 			SHORT_DESCRIPTION,
 			"Set the Stacks documentation path.");

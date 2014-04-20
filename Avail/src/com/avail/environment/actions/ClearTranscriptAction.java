@@ -59,7 +59,7 @@ extends AbstractWorkbenchAction
 	 */
 	public ClearTranscriptAction (final AvailWorkbench workbench)
 	{
-		super(workbench, "Clear transcript");
+		super(workbench, "Clear Transcript");
 		putValue(
 			SHORT_DESCRIPTION,
 			"Clear the transcript.");

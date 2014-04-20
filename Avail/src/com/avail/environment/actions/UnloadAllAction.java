@@ -76,7 +76,7 @@ extends AbstractWorkbenchAction
 	 */
 	public UnloadAllAction (final AvailWorkbench workbench)
 	{
-		super(workbench, "Unload all");
+		super(workbench, "Unload All");
 		putValue(
 			SHORT_DESCRIPTION,
 			"Unload all modules.");

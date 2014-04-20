@@ -117,7 +117,7 @@ extends AbstractWorkbenchAction
 	 */
 	public InsertEntryPointAction (final AvailWorkbench workbench)
 	{
-		super(workbench, "Insert entry point");
+		super(workbench, "Insert Entry Point");
 		putValue(
 			SHORT_DESCRIPTION,
 			"Insert this entry point's name in the input area.");
