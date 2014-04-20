@@ -18,7 +18,7 @@
 		<!--#include virtual="/_include/head.ssi" -->
 		<title>Avail - Library</title>
 	</head>
-	<body>
+	<body ng-app="stacksApp" ng-controller="CategoriesCntrl">
 		<div class="stacks-wrapper">
 IMPLEMENTATION-GROUP
 		</div>
