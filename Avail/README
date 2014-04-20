@@ -288,6 +288,10 @@ own Avail modules, your AVAIL_ROOTS environment variable must at least include a
 module root specification for the Avail standard library, and it must also
 include module root specifications for your own Avail projects.
 
+For more information on this topic, please visit this webpage:
+
+	http://www.availlang.org/about-avail/documentation/modules/module-resolution.html
+
 RUNNING AVAIL ==================================================================
 
 To run an Avail program, launch the Avail development workbench:
