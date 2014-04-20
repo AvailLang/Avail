@@ -210,11 +210,6 @@ public class StacksGenerator
 		final StacksCommentsModule outerMost = moduleToComments
 			.get(outermostModule.qualifiedName());
 
-		IO.close(errorLog.file());
-
-		final int fileToOutPutCount =
-			outerMost.calculateFinalImplementationGroupsMap(htmlFileMap);
-
 		try
 		{
 			Files.createDirectories(outputPath);
@@ -232,17 +227,22 @@ public class StacksGenerator
 			+ StacksGenerator.class.getPackage().getName().replace('.', '/')
 			+ "/configuration");
 
-
-		createJSFiles(templatePackageName);
-
-		//Create the main HTML landing page
-		createMainHTML(templatePackageName);
-
 		final Path implementationWrapperTemplate =
 			templatePackageName.resolve("implementation wrapper.html.template");
 
 		final Path implementationProperties =
 			templatePackageName.resolve("implementation html.properties");
+
+		final int fileToOutPutCount =
+			outerMost.calculateFinalImplementationGroupsMap(htmlFileMap,
+				providedDocumentPath, implementationWrapperTemplate,
+				implementationProperties, runtime,
+				"/about-avail/documentation");
+
+		createJSFiles(templatePackageName);
+
+		//Create the main HTML landing page
+		createMainHTML(templatePackageName);
 
 		if (fileToOutPutCount > 0)
 		{
@@ -253,10 +253,12 @@ public class StacksGenerator
 				.get(outermostModule.qualifiedName())
 					.writeMethodsToHTMLFiles(providedDocumentPath,synchronizer,
 						runtime,htmlFileMap,implementationWrapperTemplate,
-						implementationProperties);
+						implementationProperties, errorLog);
 
 			synchronizer.waitForWorkUnitsToComplete();
 		}
+
+		IO.close(errorLog.file());
 
 		clear();
 

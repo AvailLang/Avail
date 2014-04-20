@@ -160,10 +160,11 @@ public abstract class AbstractCommentImplementation
 	 * 		The map of all HTML file linkage
 	 * @param nameOfGroup
 	 * 		The name of the implementation as it is to be displayed
+	 * @param errorLog The {@linkplain StacksErrorLog}
 	 * @return the HTML tagged content
 	 */
 	public abstract String toHTML(final HTMLFileMap htmlFileMap,
-		final String nameOfGroup);
+		final String nameOfGroup, final StacksErrorLog errorLog);
 
 	/**
 	 * @return A set of category String names for this implementation.

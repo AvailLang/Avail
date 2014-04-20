@@ -65,10 +65,26 @@ public class StacksSeeTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML (final HTMLFileMap htmlFileMap)
+	public String toHTML (final HTMLFileMap htmlFileMap,
+		final int hashID, final StacksErrorLog errorLog)
 	{
 		// TODO Auto-generated method stub
-		return null;
+
+		final StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append("see: ");
+
+		if (thingToSee.lexeme().startsWith("{", 0))
+		{
+			return stringBuilder
+				.append(thingToSee.toHTML(htmlFileMap, hashID, errorLog))
+				.toString();
+		}
+		stringBuilder.append("<a href=\"")
+			.append(thingToSee.toHTML(htmlFileMap, hashID, errorLog))
+			.append("\">")
+			.append(thingToSee.toHTML(htmlFileMap, hashID, errorLog))
+			.append("</a>");
+		return stringBuilder.toString();
 	}
 
 }

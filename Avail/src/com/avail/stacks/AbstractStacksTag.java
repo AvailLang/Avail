@@ -47,9 +47,13 @@ public abstract class AbstractStacksTag
 	 * Create HTML content from implementation
 	 * @param htmlFileMap
 	 * 		The map of all HTML files in Stacks
+	 * @param hashID
+	 * 		The hash portion of the id for linking to this element on page.
+	 * @param errorLog The {@linkplain StacksErrorLog}
 	 * @return the HTML tagged content
 	 */
-	public abstract String toHTML(final HTMLFileMap htmlFileMap);
+	public abstract String toHTML(final HTMLFileMap htmlFileMap,
+		final int hashID, final StacksErrorLog errorLog);
 
 	/**
 	 * @param numberOfTabs

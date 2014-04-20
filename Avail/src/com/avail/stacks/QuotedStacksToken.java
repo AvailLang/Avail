@@ -91,7 +91,8 @@ public class QuotedStacksToken extends RegionStacksToken
 	}
 
 	@Override
-	public String toHTML(final HTMLFileMap htmlFileMap)
+	public String toHTML(final HTMLFileMap htmlFileMap, final int hashID,
+		final StacksErrorLog errorLog)
 	{
 		return lexeme().replace("<", "&lt;");
 	}

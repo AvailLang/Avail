@@ -341,6 +341,7 @@ public class ImplementationGroup
 	 * 		The number of tabs in to start with.
 	 * @param nameOfGroup
 	 * 		The name of the implementation as it is to be displayed.
+	 * @param errorLog The accumulating {@linkplain StacksErrorLog}
 	 */
 	public void toHTML(final Path outputPath,
 		final String htmlOpenContent, final String htmlCloseContent,
@@ -349,7 +350,8 @@ public class ImplementationGroup
 		final HTMLFileMap htmlFileMap,
 		final Path implementationProperties,
 		final int startingTabCount,
-		final String nameOfGroup)
+		final String nameOfGroup,
+		final StacksErrorLog errorLog)
 	{
 		if (categories.size() > 1)
 		{
@@ -387,7 +389,7 @@ public class ImplementationGroup
 				}
 				stringBuilder
 					.append(restrictions.get(0)
-						.toHTML(htmlFileMap,nameOfGroup));
+						.toHTML(htmlFileMap,nameOfGroup, errorLog));
 			}
 
 			stringBuilder.append(tabs(1) + "<h4 "
@@ -402,7 +404,7 @@ public class ImplementationGroup
 				methods.values())
 			{
 				stringBuilder.append(implementation.toHTML(htmlFileMap,
-					nameOfGroup));
+					nameOfGroup, errorLog));
 			}
 
 			stringBuilder.append(tabs(1) + "</div>\n");
@@ -423,7 +425,7 @@ public class ImplementationGroup
 					implementation : semanticRestrictions.values())
 				{
 					stringBuilder.append(implementation.toHTML(htmlFileMap,
-						nameOfGroup));
+						nameOfGroup, errorLog));
 				}
 
 				stringBuilder.append(tabs(1) + "</div>\n");
@@ -431,12 +433,13 @@ public class ImplementationGroup
 		}
 		else if (!(global == null))
 		{
-			stringBuilder.append(global().toHTML(htmlFileMap, nameOfGroup));
+			stringBuilder.append(global().toHTML(htmlFileMap, nameOfGroup,
+				errorLog));
 		}
 		else if (!(classImplementation == null))
 		{
 			stringBuilder.append(classImplementation
-				.toHTML(htmlFileMap, nameOfGroup));
+				.toHTML(htmlFileMap, nameOfGroup, errorLog));
 		}
 
 		Path fullFilePath = outputPath;

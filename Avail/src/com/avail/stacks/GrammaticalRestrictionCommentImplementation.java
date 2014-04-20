@@ -35,6 +35,7 @@ package com.avail.stacks;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import com.avail.descriptor.A_String;
+import com.avail.descriptor.StringDescriptor;
 
 /**
  * A comment implementation of grammatical restrictions
@@ -53,6 +54,11 @@ public class GrammaticalRestrictionCommentImplementation extends
 	 * All modules where Grammatical Restrictions for this method are defined.
 	 */
 	final ArrayList<String>modules;
+
+	/**
+	 * The hash id for this implementation
+	 */
+	final private int hashID;
 
 	/**
 	 * Construct a new {@link GrammaticalRestrictionCommentImplementation}.
@@ -90,6 +96,8 @@ public class GrammaticalRestrictionCommentImplementation extends
 		this.forbids = forbids;
 		this.modules = new ArrayList<String>();
 		this.modules.add(signature().module());
+		this.hashID = StringDescriptor.from(
+			signature.name()).hash();
 	}
 
 	@Override
@@ -126,7 +134,7 @@ public class GrammaticalRestrictionCommentImplementation extends
 
 	@Override
 	public String toHTML (final HTMLFileMap htmlFileMap,
-		final String nameOfGroup)
+		final String nameOfGroup, final StacksErrorLog errorLog)
 	{
 		final StringBuilder stringBuilder = new StringBuilder();
 
@@ -159,7 +167,8 @@ public class GrammaticalRestrictionCommentImplementation extends
 
 		for (final int arity : forbids.navigableKeySet())
 		{
-			stringBuilder.append(forbids.get(arity).toHTML(htmlFileMap));
+			stringBuilder.append(forbids.get(arity).toHTML(htmlFileMap, hashID,
+				errorLog));
 		}
 
 		stringBuilder.append(tabs(3) + "</tbody>\n")

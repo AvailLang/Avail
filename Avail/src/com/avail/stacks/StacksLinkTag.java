@@ -32,6 +32,7 @@
 
 package com.avail.stacks;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -47,36 +48,79 @@ public class StacksLinkTag extends AbstractStacksTag
 	 * is what is displayed, otherwise the text following the web address will
 	 * be used as the linking text.
 	 */
-	final private List<AbstractStacksToken> linkTokens;
+	final private List<AbstractStacksToken> displayLinkTokens;
+
+	/**
+	 * The main link.
+	 */
+	final QuotedStacksToken link;
 
 	/**
 	 * Construct a new {@link StacksLinkTag}.
 	 *
-	 * @param linkTokens
+	 * @param displayLinkTokens
 	 * 		The external site to be linked to along with any way you want the
 	 * 		link to be represented.  If only the web address is listed, the web
 	 * 		address is what is displayed, otherwise the text following the web
 	 * 		address will be used as the linking text.
+	 * @param link The main link.
 	 */
-	public StacksLinkTag (
-		final List<AbstractStacksToken> linkTokens)
+	public StacksLinkTag (final QuotedStacksToken link,
+		final List<AbstractStacksToken> displayLinkTokens)
 	{
-		this.linkTokens = linkTokens;
+		this.link = link;
+		this.displayLinkTokens = displayLinkTokens;
+	}
+
+	/**
+	 * Construct a new {@link StacksLinkTag}.
+	 *
+	 * @param link The main link.
+	 */
+	public StacksLinkTag (final QuotedStacksToken link)
+	{
+		this.link = link;
+		this.displayLinkTokens = new ArrayList<AbstractStacksToken>();
 	}
 
 	/**
 	 * @return the linkTokens
 	 */
-	public List<AbstractStacksToken> linkTokens ()
+	public List<AbstractStacksToken> displayLinkTokens ()
 	{
-		return linkTokens;
+		return displayLinkTokens;
+	}
+
+	/**
+	 * @return the linkTokens
+	 */
+	public QuotedStacksToken link ()
+	{
+		return link;
 	}
 
 	@Override
-	public String toHTML (final HTMLFileMap htmlFileMap)
+	public String toHTML (final HTMLFileMap htmlFileMap,
+		final int hashID, final StacksErrorLog errorLog)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		final StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append("<a href\"").append(link).append("\">");
+
+		if (displayLinkTokens.isEmpty())
+		{
+			stringBuilder.append(link);
+		}
+		else
+		{
+			final int linkTokenSize = displayLinkTokens.size();
+			for (int i = 0; i < linkTokenSize - 1; i++)
+			{
+				stringBuilder.append(displayLinkTokens.get(i)).append(" ");
+			}
+			stringBuilder.append(displayLinkTokens.get(linkTokenSize - 1));
+		}
+
+		return stringBuilder.append("</a>").toString();
 	}
 
 }

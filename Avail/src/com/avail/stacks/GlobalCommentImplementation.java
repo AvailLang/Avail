@@ -34,6 +34,7 @@ package com.avail.stacks;
 
 import java.util.ArrayList;
 import com.avail.descriptor.A_String;
+import com.avail.descriptor.StringDescriptor;
 
 /**
  * A module global variable comment
@@ -46,6 +47,11 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 	 * A global module variable comment tag
 	 */
 	final StacksGlobalTag globalTag;
+
+	/**
+	 * The hash id for this implementation
+	 */
+	final private int hashID;
 
 	/**
 	 * Construct a new {@link GlobalCommentImplementation}.
@@ -81,6 +87,9 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 		super(signature, commentStartLine, author, sees, description,
 			categories,aliases);
 		this.globalTag = globalTag;
+
+		this.hashID = StringDescriptor.from(
+			signature.name()).hash();
 	}
 
 	@Override
@@ -92,20 +101,22 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 
 	@Override
 	public String toHTML (final HTMLFileMap htmlFileMap,
-		final String nameOfGroup)
+		final String nameOfGroup, final StacksErrorLog errorLog)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
 		.append(signature().toHTML(nameOfGroup));
 
 		if (categories.size() > 0)
 		{
-			stringBuilder.append(categories.get(0).toHTML(htmlFileMap));
+			stringBuilder.append(categories.get(0).toHTML(htmlFileMap, hashID,
+				errorLog));
 		}
 
 		stringBuilder.append(tabs(1) + "<div "
 				+ HTMLBuilder.tagClass(HTMLClass.classSignatureDescription)
 				+ ">")
-			.append(description.toHTML(htmlFileMap)).append("</div>\n");
+			.append(description.toHTML(htmlFileMap, hashID, errorLog))
+			.append("</div>\n");
 
 		return stringBuilder.toString();
 	}

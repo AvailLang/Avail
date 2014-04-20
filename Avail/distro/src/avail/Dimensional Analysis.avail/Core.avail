@@ -1990,7 +1990,7 @@ conversionAtom ::= $"_converted to_";
  * @raises "no-such-conversion exception"
  *         If no conversion function was previously defined for the specified
  *         {@type "unit"}s via {@method "Conversion method is_inverse is_"}.
- * @see "Conversion method is_inverse is_"
+ * @see {@method "Conversion method is_inverse is_"}
  */
 Public stable method "_converted to_" is
 [
@@ -2070,7 +2070,7 @@ Semantic restriction "_converted to_" is
  *        must return a {@type "dimensioned quantity"} whose metric equals the
  *        second parameter type.
  * @returns "⊤"
- * @see "_converted to_"
+ * @see {@method "_converted to_"}
  */
 Public method "Conversion method is_,⁇inverse is_" is
 [
@@ -2293,7 +2293,7 @@ Private method "function for scaling from_to_by_using_" is
  *        A {@type "dimensioned quantity"} equivalent to {@param "a"} but
  *        expressed in different {@type "unit"}s.
  * @returns "⊤"
- * @see "_converted to_"
+ * @see {@method "_converted to_"}
  */
 Public method "Conversion rule:_≍_" is
 [

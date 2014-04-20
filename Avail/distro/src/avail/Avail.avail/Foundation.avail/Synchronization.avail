@@ -1260,7 +1260,7 @@ Method "Await_" is
  * @param "permits" "whole number"
  *        The number of permits to consume.
  * @returns "⊤"
- * @see "Await_"
+ * @see {@method "Await_"}
  * @category "Synchronization"
  */
 Public method "Await__time|times" is
@@ -1352,7 +1352,7 @@ Method "Signal_" is
  *         allowed by the specified semaphore.
  * @raises "termination-requested exception"
  *         If {@method "termination requested" termination has been requested}.
- * @see "Signal_"
+ * @see {@method "Signal_"}
  * @category "Synchronization"
  */
 Public method "Signal__time|times" is

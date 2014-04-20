@@ -34,6 +34,7 @@ package com.avail.stacks;
 
 import java.util.ArrayList;
 import com.avail.descriptor.A_String;
+import com.avail.descriptor.StringDescriptor;
 
 /**
  * A comment implementation of grammatical restrictions
@@ -52,6 +53,11 @@ public class SemanticRestrictionCommentImplementation extends
 	 * The {@link StacksReturnTag "@returns"} content
 	 */
 	final ArrayList<StacksReturnTag> returnsContent;
+
+	/**
+	 * The hash id for this implementation
+	 */
+	final private int hashID;
 
 	/**
 	 * Construct a new {@link SemanticRestrictionCommentImplementation}.
@@ -91,6 +97,16 @@ public class SemanticRestrictionCommentImplementation extends
 			categories,aliases);
 		this.restricts = restricts;
 		this.returnsContent = returnsContent;
+
+		final StringBuilder concatenatedInputParams = new StringBuilder();
+
+		for (final String param : signature.orderedInputTypes)
+		{
+			concatenatedInputParams.append(param);
+		}
+
+		this.hashID = StringDescriptor.from(
+			concatenatedInputParams.toString()).hash();
 	}
 
 	@Override
@@ -102,7 +118,7 @@ public class SemanticRestrictionCommentImplementation extends
 
 	@Override
 	public String toHTML (final HTMLFileMap htmlFileMap,
-		final String nameOfGroup)
+		final String nameOfGroup, final StacksErrorLog errorLog)
 	{
 		final int paramCount = restricts.size();
 		final int colSpan = 1;
@@ -112,7 +128,7 @@ public class SemanticRestrictionCommentImplementation extends
 		stringBuilder.append(tabs(2) + "<div "
 				+ HTMLBuilder.tagClass(HTMLClass.classSignatureDescription)
 				+ ">\n")
-			.append(tabs(3) + description.toHTML(htmlFileMap))
+			.append(tabs(3) + description.toHTML(htmlFileMap, hashID, errorLog))
 			.append("\n" + tabs(2) + "</div>\n")
 			.append(tabs(2) + "<table "
             	+ HTMLBuilder.tagClass(HTMLClass.classStacks)
@@ -150,7 +166,8 @@ public class SemanticRestrictionCommentImplementation extends
 
 		for (final StacksRestrictsTag restrictsTag : restricts)
 		{
-			stringBuilder.append(restrictsTag.toHTML(htmlFileMap));
+			stringBuilder.append(restrictsTag.toHTML(htmlFileMap, hashID,
+				errorLog));
 		}
 
 		if (!returnsContent.isEmpty())
@@ -161,7 +178,8 @@ public class SemanticRestrictionCommentImplementation extends
 					HTMLClass.classStacks, HTMLClass.classIRowLabel)
 				+ "colspan=\"")
 				.append(colSpan).append("\">Returns</th>\n")
-				.append(returnsContent.get(0).toHTML(htmlFileMap));
+				.append(returnsContent.get(0).toHTML(htmlFileMap, hashID,
+					errorLog));
 		}
 
 		return stringBuilder.append(tabs(3) + "</tbody>\n")

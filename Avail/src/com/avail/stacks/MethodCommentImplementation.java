@@ -34,6 +34,7 @@ package com.avail.stacks;
 
 import java.util.ArrayList;
 import com.avail.descriptor.A_String;
+import com.avail.descriptor.StringDescriptor;
 
 /**
  * A comment that describes a particular method implementation
@@ -57,6 +58,11 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 	 *
 	 */
 	final ArrayList<StacksRaisesTag> exceptions;
+
+	/**
+	 * The hash id for this implementation
+	 */
+	final private int hashID;
 
 	/**
 	 * Construct a new {@link MethodCommentImplementation}.
@@ -102,6 +108,16 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		this.parameters = parameters;
 		this.returnsContent = returnsContent;
 		this.exceptions = exceptions;
+
+		final StringBuilder concatenatedInputParams = new StringBuilder();
+
+		for (final String param : signature.orderedInputTypes)
+		{
+			concatenatedInputParams.append(param);
+		}
+
+		this.hashID = StringDescriptor.from(
+			concatenatedInputParams.toString()).hash();
 	}
 
 	@Override
@@ -113,7 +129,7 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 
 	@Override
 	public String toHTML (final HTMLFileMap htmlFileMap,
-		final String nameOfGroup)
+		final String nameOfGroup, final StacksErrorLog errorLog)
 	{
 		final int paramCount = parameters.size();
 		final int exceptionCount = exceptions.size();
@@ -123,18 +139,20 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 
 		if (categories.size() > 0)
 		{
-			stringBuilder.append(categories.get(0).toHTML(htmlFileMap));
+			stringBuilder.append(categories.get(0).toHTML(htmlFileMap,
+				hashID, errorLog));
 		}
 
 		if (aliases.size() > 0)
 		{
-			stringBuilder.append(aliases.get(0).toHTML(htmlFileMap));
+			stringBuilder.append(aliases.get(0).toHTML(htmlFileMap,
+				hashID, errorLog));
 		}
 
 		stringBuilder.append(tabs(2) + "<div "
 				+ HTMLBuilder.tagClass(HTMLClass.classSignatureDescription)
 				+ ">\n")
-			.append(tabs(3) + description.toHTML(htmlFileMap))
+			.append(tabs(3) + description.toHTML(htmlFileMap, hashID, errorLog))
 			.append("\n" + tabs(2) + "</div>\n")
 			.append(tabs(2) + "<table "
             	+ HTMLBuilder.tagClass(HTMLClass.classStacks)
@@ -179,7 +197,8 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 
 		for (final StacksParameterTag paramTag : parameters)
 		{
-			stringBuilder.append(paramTag.toHTML(htmlFileMap));
+			stringBuilder.append(paramTag.toHTML(htmlFileMap,
+				hashID, errorLog));
 		}
 
 		stringBuilder.append(tabs(4) + "<tr>\n")
@@ -188,7 +207,8 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 					HTMLClass.classStacks, HTMLClass.classIRowLabel)
 				+ " colspan=\"")
 			.append(colSpan).append("\">Returns</th>\n")
-			.append(returnsContent.toHTML(htmlFileMap));
+			.append(returnsContent.toHTML(htmlFileMap,
+				hashID, errorLog));
 
 		if (exceptionCount > 0)
 		{
@@ -201,7 +221,8 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 
 			for (final StacksRaisesTag exception : exceptions)
 			{
-				stringBuilder.append(exception.toHTML(htmlFileMap));
+				stringBuilder.append(exception.toHTML(htmlFileMap,
+					hashID, errorLog));
 			}
 		}
 

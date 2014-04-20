@@ -93,7 +93,8 @@ public class StacksForbidsTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML (final HTMLFileMap htmlFileMap)
+	public String toHTML (final HTMLFileMap htmlFileMap,
+		final int hashID, final StacksErrorLog errorLog)
 	{
 		final int rowSize = forbidMethods.size();
 		final StringBuilder stringBuilder = new StringBuilder()
@@ -102,7 +103,7 @@ public class StacksForbidsTag extends AbstractStacksTag
 					.tagClass(HTMLClass.classStacks, HTMLClass.classGCode)
 				+ " rowspan=\"")
 			.append(rowSize).append("\">Argument ")
-			.append(arityIndex.toHTML(htmlFileMap))
+			.append(arityIndex.toHTML(htmlFileMap, hashID, errorLog))
 			.append("</td>\n")
 			.append(tabs(5) + "<td "
 				+ HTMLBuilder

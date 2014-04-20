@@ -3666,6 +3666,8 @@ Method "first index of_in_" is
  *          <> if none.
  * @author "Richard Arriaga"
  * @category "Tuples" "Queries"
+ * @see {@link "http://en.wikipedia.org/wiki/Knuth-Morris-Pratt_algorithm" 
+ * "Knuth-Moris-Pratt algorithm"}
  */
 Public stable abstract method "all indices of_in_" is 
 	[tuple,tuple]→<natural number…|>;
@@ -3698,7 +3700,7 @@ Method "all indices of_in_" is
  * Obtain the location of the start of every instance of subtuple occuring in a 
  * tuple (a substring of a string).  The 
  * {@link "http://en.wikipedia.org/wiki/Knuth-Morris-Pratt_algorithm" 
- * Knuth-Moris-Pratt algorithm} is used for this implementation. 
+ * "Knuth-Moris-Pratt algorithm"} is used for this implementation. 
  */
 Method "all indices of_in_" is
 [

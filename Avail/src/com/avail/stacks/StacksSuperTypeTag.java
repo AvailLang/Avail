@@ -67,8 +67,20 @@ public class StacksSuperTypeTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML (final HTMLFileMap htmlFileMap)
+	public String toHTML (final HTMLFileMap htmlFileMap,
+		final int hashID, final StacksErrorLog errorLog)
 	{
+		if (htmlFileMap.internalLinks().containsKey(superType.lexeme()))
+		{
+			final StringBuilder stringBuilder = new StringBuilder();
+			stringBuilder.append("<a href=\"")
+				.append(htmlFileMap.internalLinks().get(superType.lexeme()))
+				.append("\">")
+				.append(superType.lexeme())
+				.append("</a>");
+			return stringBuilder.toString();
+		}
+
 		return superType.lexeme();
 	}
 }

@@ -64,9 +64,12 @@ public class StacksDescription
 	 * Create HTML content from the description.
 	 * @param htmlFileMap
 	 * 		A map for all HTML files in Stacks
+	 * @param hashID The ID for this implementation
+	 * @param errorLog The {@linkplain StacksErrorLog}
 	 * @return
 	 */
-	public String toHTML (final HTMLFileMap htmlFileMap)
+	public String toHTML (final HTMLFileMap htmlFileMap,
+		final int hashID, final StacksErrorLog errorLog)
 	{
 		final StringBuilder stringBuilder = new StringBuilder();
 		final int listSize = descriptionTokens.size();
@@ -75,12 +78,13 @@ public class StacksDescription
 			for (int i = 0; i < listSize - 1; i++)
 			{
 				stringBuilder
-					.append(descriptionTokens.get(i).toHTML(htmlFileMap))
+					.append(descriptionTokens.get(i).toHTML(htmlFileMap,
+						hashID, errorLog))
 					.append(" ");
 			}
 			stringBuilder
 				.append(descriptionTokens.get(listSize - 1)
-					.toHTML(htmlFileMap));
+					.toHTML(htmlFileMap, hashID, errorLog));
 		}
 		return stringBuilder.toString();
 	}

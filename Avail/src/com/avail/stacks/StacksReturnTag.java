@@ -82,7 +82,8 @@ public class StacksReturnTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML(final HTMLFileMap htmlFileMap)
+	public String toHTML(final HTMLFileMap htmlFileMap,
+		final int hashID, final StacksErrorLog errorLog)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append(tabs(5) + "<td "
@@ -95,7 +96,8 @@ public class StacksReturnTag extends AbstractStacksTag
 				+ HTMLBuilder
 					.tagClass(HTMLClass.classStacks, HTMLClass.classIDesc)
 				+ ">\n")
-			.append(tabs(6) + returnDescription.toHTML(htmlFileMap))
+			.append(tabs(6) + returnDescription.toHTML(htmlFileMap, hashID,
+				errorLog))
 			.append("\n" + tabs(5) + "</td>\n")
 			.append(tabs(4) + "</tr>\n");
 		return stringBuilder.toString();

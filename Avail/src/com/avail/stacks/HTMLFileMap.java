@@ -34,6 +34,7 @@ package com.avail.stacks;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import com.avail.utility.Pair;
 
 /**
@@ -57,7 +58,15 @@ public class HTMLFileMap
 	/**
 	 * A map of aliases to file links.
 	 */
-	private final HashMap<String,String> aliasesToFileLink;
+	private final HashMap<String,HashSet<String>> aliasesToFileLink;
+
+	/**
+	 * @return aliasesToFileLink
+	 */
+	public HashMap<String,HashSet<String>> aliasesToFileLink()
+	{
+		return aliasesToFileLink;
+	}
 
 	/**
 	 * @param alias the alias to add to the map
@@ -65,7 +74,61 @@ public class HTMLFileMap
 	 */
 	public void addAlias (final String alias, final String fileLink)
 	{
-		aliasesToFileLink.put(alias,fileLink);
+		if (aliasesToFileLink.containsKey(alias))
+		{
+			aliasesToFileLink.get(alias).add(fileLink);
+		}
+		else
+		{
+			final HashSet<String> newLinks = new HashSet<String>();
+			newLinks.add(fileLink);
+			aliasesToFileLink.put(alias,newLinks);
+		}
+	}
+
+	/**
+	 * A map of aliases to file links.
+	 */
+	private final HashMap<String,String> namedFileLinks;
+
+	/**
+	 * A map of aliases to file links.
+	 * @return namedFileLinks
+	 */
+	public HashMap<String,String> namedFileLinks()
+	{
+		return namedFileLinks;
+	}
+
+	/**
+	 * @param alias the alias to add to the map
+	 * @param fileLink the file that the alias links to
+	 */
+	public void addNamedFileLinks (final String alias, final String fileLink)
+	{
+		namedFileLinks.put(alias,fileLink);
+	}
+
+	/**
+	 * A map of aliases to file links.
+	 */
+	private HashMap<String,String> internalLinks;
+
+	/**
+	 * @param links final link map to set.
+	 *
+	 */
+	public void internalLinks (final HashMap<String,String> links)
+	{
+		this.internalLinks = links;
+	}
+
+	/**
+	 * @return the internalLinks
+	 */
+	public HashMap<String,String> internalLinks ()
+	{
+		return internalLinks;
 	}
 
 	/**
@@ -77,7 +140,8 @@ public class HTMLFileMap
 		categoryToDescription = new HashMap<String,StacksDescription>();
 		categoryMethodList =
 			new HashMap<String,ArrayList<Pair<String,String>>>();
-		aliasesToFileLink = new HashMap<String,String>();
+		aliasesToFileLink = new HashMap<String,HashSet<String>>();
+		namedFileLinks = new HashMap<String,String>();
 	}
 
 	/**
@@ -215,7 +279,10 @@ public class HTMLFileMap
 					final Pair<String,String> pair = methodList.get(i);
 					stringBuilder.append(tabs(3) + "{\"methodName\" : \"")
 						.append(pair.first()).append("\", \"link\" : \"")
-						.append(pair.second().substring(1)).append("\"},\n");
+						.append(pair.second().substring(1))
+						.append("\", \"distinct\" : \"")
+						.append(pair.first()).append(pair.second())
+						.append("\"},\n");
 				}
 
 				final Pair<String,String> lastPair =
@@ -224,6 +291,8 @@ public class HTMLFileMap
 				stringBuilder.append(tabs(3) + "{\"methodName\" : \"")
 					.append(lastPair.first()).append("\", \"link\" : \"")
 					.append(lastPair.second().substring(1))
+					.append("\", \"distinct\" : \"")
+					.append(lastPair.first()).append(lastPair.second())
 					.append("\"}\n" + tabs(2) + "]\n" + tabs(1) + "}\n]");
 			}
 		}
@@ -277,7 +346,8 @@ public class HTMLFileMap
 					+ HTMLBuilder
 						.tagClass(HTMLClass.classStacks, HTMLClass.classIDesc)
 					+ ">")
-				.append(categoryToDescription.get(category).toHTML(this))
+				.append(categoryToDescription.get(category).toHTML(this, 0,
+					null))
 				.append("</td>\n")
 				.append(tabs(4) + "</tr>\n");
 		}
