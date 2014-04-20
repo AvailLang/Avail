@@ -1577,9 +1577,11 @@ extends JFrame
 		actionMap.put("refresh", refreshAction);
 
 		final JPopupMenu entryPointsPopup = new JPopupMenu("Entry points");
-		entryPointsPopup.add(new JMenuItem(refreshAction));
-		entryPointsPopup.add(new JMenuItem(insertEntryPointAction));
 		entryPointsPopup.add(new JMenuItem(buildEntryPointModuleAction));
+		entryPointsPopup.addSeparator();
+		entryPointsPopup.add(new JMenuItem(insertEntryPointAction));
+		entryPointsPopup.addSeparator();
+		entryPointsPopup.add(new JMenuItem(refreshAction));
 
 		final JPopupMenu transcriptPopup = new JPopupMenu("Transcript");
 		transcriptPopup.add(new JMenuItem(clearTranscriptAction));
