@@ -33,8 +33,9 @@
 package com.avail.environment.actions;
 
 import java.awt.event.*;
-import java.nio.file.Paths;
+import java.io.File;
 import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
 import com.avail.annotations.*;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
@@ -51,14 +52,31 @@ extends AbstractWorkbenchAction
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-		final JTextField pathField =
-			new JTextField(workbench.documentationPath.toString());
-		JOptionPane.showMessageDialog(
-			workbench,
-			new JComponent[] { new JLabel("Path:"), pathField },
-			"Set documentation path",
-			JOptionPane.PLAIN_MESSAGE);
-		workbench.documentationPath = Paths.get(pathField.getText());
+		final JFileChooser chooser = new JFileChooser();
+		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		chooser.setSelectedFile(workbench.documentationPath.toFile());
+		chooser.ensureFileIsVisible(workbench.documentationPath.toFile());
+		chooser.addChoosableFileFilter(new FileFilter()
+		{
+			@Override
+			public String getDescription ()
+			{
+				return "Directories";
+			}
+
+			@Override
+			public boolean accept (final @Nullable File f)
+			{
+				assert f != null;
+				return f.isDirectory() && f.canWrite();
+			}
+		});
+		final int result = chooser.showDialog(
+			workbench, "Set Documentation Path");
+		if (result == JFileChooser.APPROVE_OPTION)
+		{
+			workbench.documentationPath = chooser.getSelectedFile().toPath();
+		}
 	}
 
 	/**
