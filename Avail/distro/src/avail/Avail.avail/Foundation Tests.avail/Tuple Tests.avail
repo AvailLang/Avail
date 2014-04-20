@@ -299,21 +299,21 @@ Test "slice replacement" in tuple test suite is
 
 Test "fold" in tuple test suite is
 [
- 	Require: left fold <6,3,2> through
- 	[
- 	 	input : integer,
- 	 	result : integer
- 	 |
- 	 	result ÷ input
- 	] = 1;
- 	
- 	Require: right fold <2,3,5> through
- 	[
- 		input : integer,
- 		result : extended integer
- 	 |
- 		result ^ input
- 	] = 15625;
+	Require: left fold <6,3,2> through
+	[
+		input : integer,
+		result : integer
+	|
+		result ÷ input
+	] = 1;
+
+	Require: right fold <2,3,5> through
+	[
+		input : natural number,
+		result : natural number
+	|
+		result ^ input
+	] = 15625;
 ];
 
 Test "element swap" in tuple test suite is

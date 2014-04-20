@@ -415,7 +415,7 @@ Test "exhaustive exponentiation" in math test suite is
 	> do [
 		t : <extended integer…|2..3>
 	|
-		power : extended integer;
+		power : number;
 		Guard
 		[
 			power := t[1] ^ t[2];

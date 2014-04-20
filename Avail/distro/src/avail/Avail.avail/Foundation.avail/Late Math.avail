@@ -89,6 +89,71 @@ Method "_^_" is
 ] : number;
 
 /**
+ * Construct and answer a function that affects type promotions for the various
+ * numeric types. This function is intended for use by semantic restrictions
+ * of exponentiation.
+ *
+ * @method "exponentiation type promotion function for_"
+ * @param "operator" "[number, number]→number"
+ *        A function that performs exponentiation and answers the result.
+ * @returns "[number's type, number's type]→number's type"
+ *          A function that handles type promotions for exponentiation.
+ */
+Private method "exponentiation type promotion function for_" is
+[
+	operator : [number, number]→number
+|
+	[
+		a : number's type,
+		b : number's type
+	|
+		if |a| = 1 ∧ [|b| = 1] then
+		[
+			/* The exact values are known statically. Calculate it exactly. */
+			(invoke operator with <a's instance, b's instance>)'s type
+		]
+		else
+		[
+			if a ⊆ double ∨ [b ⊆ double] then
+			[
+				/* At least one is known to be double, which forces the result
+				 * to be a double.
+				 */
+				double
+			]
+			else
+			[
+				if a = number ∨ [b = number] then
+				[
+					/* Neither is known to be a double, and at least one is as
+					 * weak as a number.  The weak one might be a double at run
+					 * time, so we can't limit the output type any more.
+					 */
+					number
+				]
+				else
+				[
+					/* Neither one is as weak as number. */
+					if a ⊆ float ∨ [b ⊆ float] then
+					[
+						/* Either {float,float} or {float,int}, which each
+						 * produce a float.
+						 */
+						float
+					]
+					else
+					[
+						if a ⊆ extended integer ∧ [b ⊆ [0..∞]]
+						then [extended integer]
+						else [number]
+					]
+				]
+			]
+		]
+	]
+];
+
+/**
  * Establish type promotion rules for exponentiation. Also handle instance
  * types.
  * 
@@ -96,7 +161,7 @@ Method "_^_" is
  * @restricts "number"
  * @restricts "number"
  */
-Semantic restriction "_^_" is type promotion function for
+Semantic restriction "_^_" is exponentiation type promotion function for
 [
 	a : number,
 	b : number
