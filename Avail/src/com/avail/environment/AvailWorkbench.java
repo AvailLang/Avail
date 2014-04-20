@@ -1964,7 +1964,7 @@ extends JFrame
 			final Object application =
 				appClass.getMethod("getApplication").invoke(null);
 			final Image image =
-				new ImageIcon("distro/images/AvailHammer.png").getImage();
+				new ImageIcon("resources/workbench/AvailHammer.png").getImage();
 			appClass.getMethod("setDockIconImage", Image.class).invoke(
 				application,
 				image);
