@@ -86,6 +86,22 @@ public class StacksRestrictsTag extends AbstractStacksTag
 	public String toHTML (final HTMLFileMap htmlFileMap,
 		final int hashID, final StacksErrorLog errorLog)
 	{
+		final StringBuilder paramTypeBuilder = new StringBuilder();
+		if (htmlFileMap.internalLinks().containsKey(paramMetaType.lexeme()))
+		{
+			paramTypeBuilder.append("<a ng-click=\"changeLinkValue('")
+				.append(htmlFileMap.internalLinks().get(paramMetaType.lexeme()))
+				.append("')\" href=\"")
+				.append(htmlFileMap.internalLinks().get(paramMetaType.lexeme()))
+				.append("\">")
+				.append(paramMetaType.lexeme())
+				.append("</a>");
+		}
+		else
+		{
+			paramTypeBuilder.append(paramMetaType.lexeme());
+		}
+
 		final StringBuilder stringBuilder = new StringBuilder()
 		.append(tabs(4) + "<tr "
 			+ HTMLBuilder.tagClass(HTMLClass.classMethodParameters)
@@ -95,7 +111,7 @@ public class StacksRestrictsTag extends AbstractStacksTag
 			.append(HTMLBuilder
 				.tagClass(HTMLClass.classStacks, HTMLClass.classICode)
 			+ ">")
-		.append(paramMetaType.lexeme())
+		.append(paramTypeBuilder)
 		.append("</td>\n")
 		.append(tabs(5) + "<td "
 				+ HTMLBuilder

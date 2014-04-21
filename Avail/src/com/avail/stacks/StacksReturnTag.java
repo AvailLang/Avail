@@ -85,12 +85,28 @@ public class StacksReturnTag extends AbstractStacksTag
 	public String toHTML(final HTMLFileMap htmlFileMap,
 		final int hashID, final StacksErrorLog errorLog)
 	{
+		final StringBuilder returnTypeBuilder = new StringBuilder();
+		if (htmlFileMap.internalLinks().containsKey(returnType.lexeme()))
+		{
+			returnTypeBuilder.append("<a ng-click=\"changeLinkValue('")
+				.append(htmlFileMap.internalLinks().get(returnType.lexeme()))
+				.append("')\" href=\"")
+				.append(htmlFileMap.internalLinks().get(returnType.lexeme()))
+				.append("\">")
+				.append(returnType.lexeme())
+				.append("</a>");
+		}
+		else
+		{
+			returnTypeBuilder.append(returnType.lexeme());
+		}
+
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append(tabs(5) + "<td "
 				+ HTMLBuilder
 					.tagClass(HTMLClass.classStacks, HTMLClass.classICode)
 				+ ">")
-			.append(returnType.lexeme())
+			.append(returnTypeBuilder)
 			.append("</td>\n")
 			.append(tabs(5) + "<td "
 				+ HTMLBuilder

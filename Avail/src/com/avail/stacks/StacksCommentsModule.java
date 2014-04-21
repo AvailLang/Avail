@@ -1313,7 +1313,8 @@ public class StacksCommentsModule
 
 			stringBuilder.append("</ol>");
 
-			final String fileName = String.valueOf(key.hash()) + ".html";
+			final String fileName = String.valueOf(key.hash()
+				& 0xFFFFFFFFL) + ".html";
 
 			internalLinks.put(key.asNativeString(),
 				topLevelLinkFolderPath + "/" + outputFolder.toString()
@@ -1431,7 +1432,8 @@ public class StacksCommentsModule
 				stringBuilder.append("</ol>");
 
 				final String fileName = String.valueOf(
-					StringDescriptor.from(ambiguousAliasKey).hash()) + ".html";
+					StringDescriptor.from(ambiguousAliasKey).hash()
+						& 0xFFFFFFFFL) + ".html";
 
 				internalLinks.put(ambiguousAliasKey,
 					topLevelLinkFolderPath + "/" + outputFolder.toString()

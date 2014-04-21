@@ -102,6 +102,22 @@ public class StacksParameterTag extends AbstractStacksTag
 	public String toHTML(final HTMLFileMap htmlFileMap,
 		final int hashID, final StacksErrorLog errorLog)
 	{
+		final StringBuilder paramTypeBuilder = new StringBuilder();
+		if (htmlFileMap.internalLinks().containsKey(paramType.lexeme()))
+		{
+			paramTypeBuilder.append("<a ng-click=\"changeLinkValue('")
+				.append(htmlFileMap.internalLinks().get(paramType.lexeme()))
+				.append("')\" href=\"")
+				.append(htmlFileMap.internalLinks().get(paramType.lexeme()))
+				.append("\">")
+				.append(paramType.lexeme())
+				.append("</a>");
+		}
+		else
+		{
+			paramTypeBuilder.append(paramType.lexeme());
+		}
+
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append(tabs(4) + "<tr "
 				+ HTMLBuilder.tagClass(HTMLClass.classMethodParameters)
@@ -117,7 +133,7 @@ public class StacksParameterTag extends AbstractStacksTag
 				+ HTMLBuilder
 					.tagClass(HTMLClass.classStacks, HTMLClass.classICode)
 				+ ">")
-			.append(paramType.lexeme())
+			.append(paramTypeBuilder)
 			.append("</td>\n")
 			.append(tabs(5) + "<td "
 				+ HTMLBuilder
