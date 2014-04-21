@@ -1341,12 +1341,12 @@ is
  * Construct and answer an object which is an instance of {@param "objectType"}
  * and whose field values are determined by {@param "optional"}.
  *
- * @method a|an_«with«_«:»?:=_‡,»»
+ * @method "a|an_«with«_«:»?:=_‡,»»"
  * @param "objectType" "object's type"
  *        An object type that must be a supertype of the answer.
  * @param "optional" "<<<atom, boolean, any…|3>…|1..>…|0..1>"
  *        A tuple of field assignments. The outermost tuple may be empty (but
- *        only to support the case that {@code objectType = object}), but
+ *        only to support the case that {@code "objectType = object"}), but
  *        usually contains a single tuple of field assignments. A field
  *        assignment is a 3-tuple that consists of 1) an atom that uniquely
  *        identifies the field, 2) a boolean that is {@method "true"} if the

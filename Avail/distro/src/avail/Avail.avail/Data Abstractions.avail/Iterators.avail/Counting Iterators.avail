@@ -236,12 +236,12 @@ Semantic restriction "a counting iterator from_to_" is
 /**
  * Construct and answer an {@type "iterator"} that lazily produces values
  * between {@param "start"} and {@param "end"}. For each value <em>v</em>
- * produced, there is some <em>n ∈ number</em> such that:
- *
- *    anIterator ::= a counting iterator from start to end by step;
- *    ...
- *    v ::= anIterator's current element;
- *    Assert: v = start + n × step;
+ * produced, there is some <em>n ∈ number</em> such that:<br><br>
+ *	{@code
+ *    anIterator ::= a counting iterator from start to end by step;<br>
+ *    ...<br>
+ *    v ::= anIterator's current element;<br>
+ *    Assert: v = start + n × step;}<br><br>
  *
  * Note that {@param "end"} is not guaranteed to be the last value produced by
  * the iterator. It is only guaranteed that no larger values than {@param "end"}
@@ -253,7 +253,7 @@ Semantic restriction "a counting iterator from_to_" is
  *        answered by the iterator.
  * @param "last" "number"
  *        The end value, inclusive. If {@param "delta"} ≥ 0, then no values
- *        larger than this will be answered by the iterator. If {@param delta}
+ *        larger than this will be answered by the iterator. If {@param "delta"}
  *        < 0, then no values smaller than this will be answered by the
  *        iterator.
  * @param "delta" "number"
@@ -307,12 +307,12 @@ Semantic restriction "a counting iterator from_to_by_" is
 /**
  * Construct and answer an {@type "iterator"} that lazily produces values
  * between {@param "start"} and {@param "end"}. For each value <em>v</em>
- * produced, there is some <em>n ∈ number</em> such that:
- *
- *    anIterator ::= a counting iterator from start to end by step;
- *    ...
- *    v ::= anIterator's current element;
- *    Assert: v = start + n × step;
+ * produced, there is some <em>n ∈ number</em> such that:<br><br>
+ *	{@code
+ *    anIterator ::= a counting iterator from start to end by step;<br>
+ *    ...<br>
+ *    v ::= anIterator's current element;<br>
+ *    Assert: v = start + n × step;}<br><br>
  *
  * Note that {@param "end"} is not guaranteed to be the last value produced by
  * the iterator. It is only guaranteed that no larger values than {@param "end"}
@@ -324,7 +324,7 @@ Semantic restriction "a counting iterator from_to_by_" is
  *        answered by the iterator.
  * @param "last" "number"
  *        The end value, inclusive. If {@param "delta"} ≥ 0, then no values
- *        larger than this will be answered by the iterator. If {@param delta}
+ *        larger than this will be answered by the iterator. If {@param "delta"}
  *        < 0, then no values smaller than this will be answered by the
  *        iterator.
  * @param "delta" "number"

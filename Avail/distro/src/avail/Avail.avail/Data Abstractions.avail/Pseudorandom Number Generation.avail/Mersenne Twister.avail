@@ -57,10 +57,10 @@ Body
  * @category "Data Abstractions"
  * @category "Pseudorandom Number Generation"
  * @see
- * {M. Matsumoto and T. Nishimura, "Mersenne Twister: A 623-dimensionally
- * equidistributed uniform pseudorandom number generator", ACM Trans. on
- * Modeling and Computer Simulation Vol. 8, No. 1, January pp.3-30 (1998)
- * {@link "http://doi.acm.org/10.1145/272991.272995" DOI:10.1145/272991.272995"}}
+ * "M. Matsumoto and T. Nishimura, \"Mersenne Twister: A 623-dimensionally
+ * equidistributed uniform pseudorandom number generator\", ACM Trans. on
+ * Modeling and Computer Simulation Vol. 8, No. 1, January pp.3-30 (1998)"
+ * @see {@link "http://doi.acm.org/10.1145/272991.272995" "DOI:10.1145/272991.272995"}
  * @see {@link "http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html"}
  */
 Class "Mersenne Twister" extends stream
