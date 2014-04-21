@@ -109,7 +109,7 @@ public class StacksForbidsTag extends AbstractStacksTag
 				+ HTMLBuilder
 					.tagClass(HTMLClass.classStacks, HTMLClass.classGCode)
 				+ ">")
-			.append(forbidMethods.get(0).lexeme)
+			.append(toHTMLLink(htmlFileMap,forbidMethods.get(0).lexeme))
 			.append("</td>\n")
 			.append(tabs(4) + "</tr>\n");
 
@@ -124,12 +124,36 @@ public class StacksForbidsTag extends AbstractStacksTag
 							.tagClass(
 								HTMLClass.classStacks, HTMLClass.classGCode)
 						+ ">")
-					.append(forbidMethods.get(i).lexeme)
+					.append(toHTMLLink(htmlFileMap,forbidMethods.get(i).lexeme))
 					.append("</td>\n")
 					.append(tabs(4) + "</tr>\n");
 			}
 		}
 		return stringBuilder.toString();
+	}
+
+	/**
+	 * Create appropriate link for method if available
+	 * @param htmlFileMap A map for all HTML files ins Stacks
+	 * @param method The method being processed
+	 * @return The string link or string name.
+	 */
+	private String toHTMLLink (final HTMLFileMap htmlFileMap, final String method)
+	{
+
+		if (htmlFileMap.internalLinks().containsKey(method))
+		{
+			final StringBuilder returnTypeBuilder = new StringBuilder();
+			return returnTypeBuilder.append("<a ng-click=\"changeLinkValue('")
+				.append(htmlFileMap.internalLinks().get(method))
+				.append("')\" href=\"")
+				.append(htmlFileMap.internalLinks().get(method))
+				.append("\">")
+				.append(method)
+				.append("</a>").toString();
+		}
+
+			return method;
 	}
 
 }
