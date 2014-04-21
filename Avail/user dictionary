@@ -20,6 +20,7 @@ bivalent
 bytecode
 bytecodes
 callable
+callbacks
 callee
 callees
 canonize
@@ -189,7 +190,9 @@ reify
 reifying
 reinterpretation
 reoptimization
+reoptimize
 reoptimized
+reoptimizes
 reprioritize
 rethrown
 rollback
@@ -263,6 +266,3 @@ wildcard
 wordcode
 wordcodes
 wow
-reoptimizes
-reoptimize
-callbacks

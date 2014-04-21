@@ -66,8 +66,10 @@ extends AbstractWorkbenchAction
 	{
 		final JPanel panel = new JPanel(new BorderLayout(20, 20));
 		panel.setBorder(new EmptyBorder(30, 50, 30, 50));
-		final ImageIcon logo =
-			new ImageIcon("resources/workbench/Avail-logo-about.png");
+
+		final ImageIcon logo = new ImageIcon(
+			this.getClass().getResource(
+				"/resources/workbench/Avail-logo-about.png"));
 		panel.add(new JLabel(logo));
 
 		final StringBuilder builder = new StringBuilder(200);
