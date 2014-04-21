@@ -256,7 +256,7 @@ POSSIBILITY OF SUCH DAMAGE.
 				generate-build-time,
 				generate-primitives-list"
 			description="Build the Avail virtual machine as a library.">
-		<jar jarfile="${path.jar.avail}">
+		<jar jarfile="${path.jar.avail}" update="false">
 			<manifest>
 				<attribute name="Build-Version" value="${build.time}"/>
 				<attribute name="Built-By" value="${user.name}"/>
@@ -272,7 +272,7 @@ POSSIBILITY OF SUCH DAMAGE.
 					com/avail/utility/json/**"/>
 			<fileset
 				dir="${path.avail}"
-				includes="resources/build-time.txt"/>
+				includes="src/resources/build-time.txt"/>
 		</jar>
 	</target>
 
@@ -283,7 +283,7 @@ POSSIBILITY OF SUCH DAMAGE.
 			name="avail-dev"
 			depends="avail-vm"
 			description="Build the Avail development environment.">
-		<jar jarfile="${path.jar.dev}">
+		<jar jarfile="${path.jar.dev}" update="false">
 			<manifest>
 				<attribute name="Build-Version" value="${build.time}"/>
 				<attribute name="Built-By" value="${user.name}"/>
@@ -393,9 +393,9 @@ extended with custom module roots as you develop your own modules.
 			description="Clean the build environment.">
 		<delete includeemptydirs="true" quiet="true">
 			<fileset dir="${path.avail.bin}" includes="**"/>
-			<filename name="${path.jar.avail}"/>
-			<filename name="${path.jar.dev}"/>
 		</delete>
+		<delete quiet="true" file="${path.jar.avail}"/>
+		<delete quiet="true" file="${path.jar.dev}"/>
 	</target>
 
 	<!--
