@@ -373,10 +373,10 @@ Primitive "any" is
  *
  * <ul>
  * <li><strong>The law of identity: P → P.</strong> For every stable primitive
- * interrogative {@code "prim_,_,_"}, then {@"prim A, B, C = prim A, B, C"}.
+ * interrogative {@code "prim_,_,_"}, then {@code "prim A, B, C = prim A, B, C"}.
  * </li>
  * <li><strong>The law of noncontradiction: ¬(P ∧ ¬P).</strong> For every
- * stable primitive interrogative {"@code "prim_,_,_"}, then {@method
+ * stable primitive interrogative {@code "prim_,_,_"}, then {@method
  * "(prim A, B, C ∧ ¬prim A, B, C) = false"}.</li>
  * <li><strong>The law of excluded middle: P ∨ ¬P.</strong> For every primitive
  * interrogative {@code "prim_,_,_"}, then {@code
