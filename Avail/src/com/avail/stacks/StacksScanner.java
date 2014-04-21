@@ -326,11 +326,6 @@ public class StacksScanner extends AbstractStacksScanner
 							erasurePosition = scanner.beingTokenized().length();
 						}
 					}
-/*					else if (c == '<')
-					{
-						// Make safe for HTML
-						scanner.beingTokenized().append("&lt;");
-					}*/
 					else
 					{
 						scanner.beingTokenized().appendCodePoint(c);
@@ -605,10 +600,10 @@ public class StacksScanner extends AbstractStacksScanner
 					|| Character.isWhitespace(scanner.peek()))
 				{
 					scanner.next();
-				}
-				if (scanner.peekFor('*'))
-				{
-					scanner.next();
+					if (scanner.peekFor('*'))
+					{
+						scanner.next();
+					}
 				}
 			}
 		},
