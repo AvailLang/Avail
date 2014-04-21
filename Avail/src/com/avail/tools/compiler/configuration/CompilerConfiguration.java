@@ -35,10 +35,12 @@ package com.avail.tools.compiler.configuration;
 import static com.avail.tools.compiler.configuration.VerbosityLevel.*;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.EnumSet;
 import com.avail.annotations.Nullable;
@@ -163,7 +165,8 @@ implements Configuration
 			else
 			{
 				final File file = new File(path);
-				reader = new BufferedReader(new FileReader(file));
+				reader = new BufferedReader(new InputStreamReader(
+					new FileInputStream(file), StandardCharsets.UTF_8));
 			}
 			final RenamesFileParser renameParser = new RenamesFileParser(
 				reader, availRoots());

@@ -36,6 +36,7 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.charset.MalformedInputException;
 import java.util.Map;
 import com.avail.annotations.*;
 import com.avail.descriptor.ModuleDescriptor;
@@ -50,7 +51,7 @@ import com.avail.descriptor.ModuleDescriptor;
  *
  * <pre>
  * renamesFile ::= renameRule* ;
- * renameRule ::= quotedModulePath "->" quotedModulePath ;
+ * renameRule ::= quotedModulePath "→" quotedModulePath ;
  * quotedModulePath ::= '"' modulePath '"' ;
  * modulePath ::= moduleId ++ "/" ;
  * moduleId ::= [^/"]+ ;
@@ -99,7 +100,7 @@ public final class RenamesFileParser
 		{
 			builder.append('"');
 			builder.append(rule[0]);
-			builder.append("\" -> \"");
+			builder.append("\" → \"");
 			builder.append(rule[1]);
 			builder.append("\"\n");
 		}
@@ -120,7 +121,8 @@ public final class RenamesFileParser
 	 *
 	 * @param reader
 	 *        The {@linkplain Reader reader} responsible for fetching
-	 *        {@linkplain Token tokens}.
+	 *        {@linkplain Token tokens}. The reader must {@linkplain
+	 *        Reader#markSupported() support marking}.
 	 * @param roots
 	 *        The Avail {@linkplain ModuleRoots module roots}.
 	 */
@@ -129,6 +131,7 @@ public final class RenamesFileParser
 		final Reader reader,
 		final ModuleRoots roots)
 	{
+		assert reader.markSupported();
 		this.reader = reader;
 		this.roots  = roots;
 	}
@@ -144,7 +147,7 @@ public final class RenamesFileParser
 		 */
 		PATH,
 
-		/** An arrow (->). */
+		/** An arrow (→). */
 		ARROW,
 
 		/** An insignificant token. */
@@ -196,34 +199,37 @@ public final class RenamesFileParser
 	}
 
 	/**
-	 * Answer and consume the next character from the {@linkplain #reader}.
+	 * Answer and consume the next code point from the {@linkplain #reader}.
 	 *
-	 * @return The next character from the {@linkplain #reader}.
+	 * @return The next character from the reader.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
-	private char nextCharacter () throws IOException
+	private int nextCodePoint () throws IOException
 	{
-		final int next = reader.read();
-		assert next != -1;
-		return (char) next;
-	}
-
-	/**
-	 * Answer (but don't consume) the next character from the {@linkplain
-	 * #reader}.
-	 *
-	 * @return The next character from the {@linkplain #reader}.
-	 * @throws IOException
-	 *         If an {@linkplain IOException I/O exception} occurs.
-	 */
-	private char peekCharacter () throws IOException
-	{
-		reader.mark(1);
-		final int next = reader.read();
-		assert next != -1;
-		reader.reset();
-		return (char) next;
+		int next = reader.read();
+		if (next == -1)
+		{
+			return -1;
+		}
+		assert (next & 0xFFFF) == next;
+		final char high = (char) next;
+		if (Character.isSurrogate(high))
+		{
+			next = reader.read();
+			if (next == -1)
+			{
+				throw new MalformedInputException(1);
+			}
+			assert (next & 0xFFFF) == next;
+			final char low = (char) next;
+			if (!Character.isSurrogate(low))
+			{
+				throw new MalformedInputException(1);
+			}
+			return Character.toCodePoint(high, low);
+		}
+		return high;
 	}
 
 	/**
@@ -236,20 +242,16 @@ public final class RenamesFileParser
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
-	private boolean peekFor (final char c) throws IOException
+	private boolean peekFor (final int c) throws IOException
 	{
-		if (atEnd())
+		reader.mark(2);
+		final int next = nextCodePoint();
+		if (next == c)
 		{
-			return false;
+			return true;
 		}
-
-		if (peekCharacter() != c)
-		{
-			return false;
-		}
-
-		nextCharacter();
-		return true;
+		reader.reset();
+		return false;
 	}
 
 	/**
@@ -281,26 +283,22 @@ public final class RenamesFileParser
 			{
 				return new Token(TokenType.PATH, builder.toString());
 			}
-			builder.append(nextCharacter());
+			builder.append(nextCodePoint());
 		}
 	}
 
 	/**
-	 * Answer a {@linkplain Token token} whose lexeme began with a hyphen (-).
+	 * Answer a {@linkplain Token token} whose lexeme began with a right arrow
+	 * (→).
 	 *
 	 * @return A {@linkplain Token token}.
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} or unexpected
 	 *         end-of-file occurs.
 	 */
-	Token scanHyphen () throws IOException
+	Token scanRightArrow () throws IOException
 	{
-		if (peekFor('>'))
-		{
-			return new Token(TokenType.ARROW, "->");
-		}
-
-		return new Token(TokenType.UNKNOWN, "-");
+		return new Token(TokenType.ARROW, "→");
 	}
 
 	/**
@@ -338,7 +336,7 @@ public final class RenamesFileParser
 			}
 			else
 			{
-				nextCharacter();
+				nextCodePoint();
 			}
 
 			if (depth == 0)
@@ -365,9 +363,11 @@ public final class RenamesFileParser
 	 * @param unknownChar A character.
 	 * @return A {@linkplain Token token}.
 	 */
-	Token scanUnknown (final char unknownChar)
+	Token scanUnknown (final int unknownChar)
 	{
-		return new Token(TokenType.UNKNOWN, Character.toString(unknownChar));
+		return new Token(
+			TokenType.UNKNOWN,
+			new String(Character.toChars(unknownChar)));
 	}
 
 	/**
@@ -382,23 +382,23 @@ public final class RenamesFileParser
 			@Override
 			Token scan (
 					final RenamesFileParser parser,
-					final char firstChar)
+					final int firstChar)
 				throws IOException
 			{
 				return parser.scanDoubleQuote();
 			}
 		},
 
-		/** A hyphen (-) was just seen. */
-		HYPHEN
+		/** A right array (→) was just seen. */
+		RIGHT_ARROW
 		{
 			@Override
 			Token scan (
 					final RenamesFileParser parser,
-					final char firstChar)
+					final int firstChar)
 				throws IOException
 			{
-				return parser.scanHyphen();
+				return parser.scanRightArrow();
 			}
 		},
 
@@ -408,7 +408,7 @@ public final class RenamesFileParser
 			@Override
 			@Nullable Token scan (
 					final RenamesFileParser parser,
-					final char firstChar)
+					final int firstChar)
 				throws IOException
 			{
 				return parser.scanSlash();
@@ -421,7 +421,7 @@ public final class RenamesFileParser
 			@Override
 			@Nullable Token scan (
 				final RenamesFileParser parser,
-				final char firstChar)
+				final int firstChar)
 			{
 				return parser.scanWhitespace();
 			}
@@ -433,7 +433,7 @@ public final class RenamesFileParser
 			@Override
 			Token scan (
 					final RenamesFileParser parser,
-					final char firstChar)
+					final int firstChar)
 				throws IOException
 			{
 				return parser.scanUnknown(firstChar);
@@ -454,7 +454,7 @@ public final class RenamesFileParser
 		 */
 		abstract @Nullable Token scan (
 				RenamesFileParser parser,
-				char firstChar)
+				int firstChar)
 			throws IOException;
 	}
 
@@ -462,24 +462,20 @@ public final class RenamesFileParser
 	 * A map from Unicode code points to the ordinals of the {@link
 	 * ScannerAction}s responsible for scanning constructs that begin with them.
 	 */
-	private static final byte[] scannerTable = new byte[256];
+	private static final byte[] scannerTable = new byte[128];
 
 	/*
 	 * Initialize the scanner table.
 	 */
 	static
 	{
-		for (int i = 0; i < 256; i++)
+		for (int i = 0; i < scannerTable.length; i++)
 		{
 			final char c = (char) i;
 			ScannerAction action;
 			if (c == '"')
 			{
 				action = ScannerAction.DOUBLE_QUOTE;
-			}
-			else if (c == '-')
-			{
-				action = ScannerAction.HYPHEN;
 			}
 			else if (c == '/')
 			{
@@ -498,6 +494,29 @@ public final class RenamesFileParser
 	}
 
 	/**
+	 * Lookup the {@link ScannerAction} for the specified code point.
+	 *
+	 * @param c
+	 *        A code point.
+	 * @return The appropriate {@code ScannerAction}.
+	 */
+	private ScannerAction actionFor (final int c)
+	{
+		if (c == '→')
+		{
+			return ScannerAction.RIGHT_ARROW;
+		}
+		else if (c >= scannerTable.length)
+		{
+			return ScannerAction.UNKNOWN;
+		}
+		else
+		{
+			return ScannerAction.values()[scannerTable[c]];
+		}
+	}
+
+	/**
 	 * Answer the next {@linkplain Token token}.
 	 *
 	 * @return A {@linkplain Token token}.
@@ -512,9 +531,8 @@ public final class RenamesFileParser
 	{
 		while (!atEnd())
 		{
-			final char c = nextCharacter();
-			final Token token =
-				ScannerAction.values()[scannerTable[c]].scan(this, c);
+			final int c = nextCodePoint();
+			final Token token = actionFor(c).scan(this, c);
 			if (token != null)
 			{
 				if (token.tokenType == TokenType.UNKNOWN)
@@ -555,7 +573,7 @@ public final class RenamesFileParser
 		if (token.tokenType != TokenType.ARROW)
 		{
 			throw new RenamesFileParserException(
-				"expected -> but found (" + token.lexeme + ")");
+				"expected → but found (" + token.lexeme + ")");
 		}
 
 		final Token filePath = scan();

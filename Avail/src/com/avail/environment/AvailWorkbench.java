@@ -39,6 +39,7 @@ import static javax.swing.JScrollPane.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
@@ -2017,7 +2018,8 @@ extends JFrame
 		else
 		{
 			final File renamesFile = new File(renames);
-			reader = new BufferedReader(new FileReader(renamesFile));
+			reader = new BufferedReader(new InputStreamReader(
+				new FileInputStream(renamesFile), StandardCharsets.UTF_8));
 		}
 		final RenamesFileParser renameParser = new RenamesFileParser(
 			reader, roots);
