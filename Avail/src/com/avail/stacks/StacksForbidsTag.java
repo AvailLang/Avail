@@ -138,7 +138,8 @@ public class StacksForbidsTag extends AbstractStacksTag
 	 * @param method The method being processed
 	 * @return The string link or string name.
 	 */
-	private String toHTMLLink (final HTMLFileMap htmlFileMap, final String method)
+	private String toHTMLLink (final HTMLFileMap htmlFileMap,
+		final String method)
 	{
 
 		if (htmlFileMap.internalLinks().containsKey(method))
@@ -149,7 +150,7 @@ public class StacksForbidsTag extends AbstractStacksTag
 				.append("')\" href=\"")
 				.append(htmlFileMap.internalLinks().get(method))
 				.append("\">")
-				.append(method)
+				.append(method.replace("<", "&lt;"))
 				.append("</a>").toString();
 		}
 

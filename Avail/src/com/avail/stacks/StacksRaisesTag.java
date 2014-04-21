@@ -93,12 +93,13 @@ public class StacksRaisesTag extends AbstractStacksTag
 				.append("')\" href=\"")
 				.append(htmlFileMap.internalLinks().get(exceptionName.lexeme()))
 				.append("\">")
-				.append(exceptionName.lexeme())
+				.append(exceptionName.toHTML(htmlFileMap, hashID, errorLog))
 				.append("</a>");
 		}
 		else
 		{
-			exceptionBuilder.append(exceptionName.lexeme());
+			exceptionBuilder
+				.append(exceptionName.toHTML(htmlFileMap, hashID, errorLog));
 		}
 
 		final StringBuilder stringBuilder = new StringBuilder()

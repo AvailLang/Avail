@@ -110,12 +110,13 @@ public class StacksParameterTag extends AbstractStacksTag
 				.append("')\" href=\"")
 				.append(htmlFileMap.internalLinks().get(paramType.lexeme()))
 				.append("\">")
-				.append(paramType.lexeme())
+				.append(paramType.toHTML(htmlFileMap, hashID, errorLog))
 				.append("</a>");
 		}
 		else
 		{
-			paramTypeBuilder.append(paramType.lexeme());
+			paramTypeBuilder.append(paramType
+				.toHTML(htmlFileMap, hashID, errorLog));
 		}
 
 		final StringBuilder stringBuilder = new StringBuilder()
@@ -127,7 +128,7 @@ public class StacksParameterTag extends AbstractStacksTag
 			.append(HTMLBuilder
 					.tagClass(HTMLClass.classStacks, HTMLClass.classICode)
 				+ ">")
-			.append(paramName.lexeme())
+			.append(paramName.toHTML(htmlFileMap, hashID, errorLog))
 			.append("</td>\n")
 			.append(tabs(5) + "<td "
 				+ HTMLBuilder

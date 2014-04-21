@@ -78,11 +78,11 @@ public class StacksSuperTypeTag extends AbstractStacksTag
 				.append("')\" href=\"")
 				.append(htmlFileMap.internalLinks().get(superType.lexeme()))
 				.append("\">")
-				.append(superType.lexeme())
+				.append(superType.toHTML(htmlFileMap, hashID, errorLog))
 				.append("</a>");
 			return stringBuilder.toString();
 		}
 
-		return superType.lexeme();
+		return superType.toHTML(htmlFileMap, hashID, errorLog);
 	}
 }

@@ -67,6 +67,6 @@ public class StacksMethodTag extends AbstractStacksTag
 	public String toHTML (final HTMLFileMap htmlFileMap,
 		final int hashID, final StacksErrorLog errorLog)
 	{
-		return methodName.lexeme();
+		return methodName.toHTML(htmlFileMap, hashID, errorLog);
 	}
 }

@@ -87,9 +87,11 @@ public class SemanticRestrictionCommentSignature extends CommentSignature
 		{
 			for (int i = 0; i < listSize - 1; i++)
 			{
-				stringBuilder.append(orderedInputTypes.get(i)).append(", ");
+				stringBuilder.append(orderedInputTypes.get(i)
+					.replace("<", "&lt;")).append(", ");
 			}
-			stringBuilder.append(orderedInputTypes.get(listSize - 1))
+			stringBuilder.append(orderedInputTypes.get(listSize - 1)
+					.replace("<", "&lt;"))
 				.append("</div>\n");
 		}
 
@@ -98,7 +100,8 @@ public class SemanticRestrictionCommentSignature extends CommentSignature
 			stringBuilder.append(tabs(2) + "<div "
 					+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
 					+ "><em>Source</em>: ")
-				.append(module()).append(": <strong>").append(name())
+				.append(module()).append(": <strong>")
+				.append(name().replace("<", "&lt;"))
 				.append("</strong></div>\n");
 		}
 		else

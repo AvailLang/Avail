@@ -96,7 +96,7 @@ public class CommentSignature
 				+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
 				+">")
 			.append(module).append(": <strong>")
-			.append(name).append("</strong></div>\n");
+			.append(name.replace("<", "&lt;")).append("</strong></div>\n");
 
 		if (!name().equals(nameOfGroup))
 		{

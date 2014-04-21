@@ -70,7 +70,8 @@ public class StacksCodeTag extends AbstractStacksTag
 	public String toHTML (final HTMLFileMap htmlFileMap,
 		final int hashID, final StacksErrorLog errorLog)
 	{
-		return ("<code>" + codeStyledText + "</code>");
+		return ("<code>" + codeStyledText.toHTML(htmlFileMap, hashID, errorLog)
+			+ "</code>");
 	}
 
 }

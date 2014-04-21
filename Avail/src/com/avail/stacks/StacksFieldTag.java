@@ -117,7 +117,7 @@ public class StacksFieldTag extends AbstractStacksTag
 				+ HTMLBuilder
 					.tagClass(HTMLClass.classStacks, HTMLClass.classICode)
 				+ ">")
-			.append(fieldType.lexeme())
+			.append(fieldType.toHTML(htmlFileMap, hashID, errorLog))
 			.append("</td>\n")
 			.append(tabs(5) + "<td "
 				+ HTMLBuilder

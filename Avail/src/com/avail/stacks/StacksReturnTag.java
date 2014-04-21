@@ -93,12 +93,13 @@ public class StacksReturnTag extends AbstractStacksTag
 				.append("')\" href=\"")
 				.append(htmlFileMap.internalLinks().get(returnType.lexeme()))
 				.append("\">")
-				.append(returnType.lexeme())
+				.append(returnType.toHTML(htmlFileMap, hashID, errorLog))
 				.append("</a>");
 		}
 		else
 		{
-			returnTypeBuilder.append(returnType.lexeme());
+			returnTypeBuilder
+				.append(returnType.toHTML(htmlFileMap, hashID, errorLog));
 		}
 
 		final StringBuilder stringBuilder = new StringBuilder()

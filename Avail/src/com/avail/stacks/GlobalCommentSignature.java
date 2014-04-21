@@ -71,7 +71,7 @@ public class GlobalCommentSignature extends CommentSignature
 			.append("<div "
 				+ HTMLBuilder.tagClass(HTMLClass.classSignatureHeading)
 				+ ">")
-			.append(globalType)
+			.append(globalType.replace("<", "&lt;"))
 			.append("</div>\n");
 
 		stringBuilder.append(tabs(2) + "<div "

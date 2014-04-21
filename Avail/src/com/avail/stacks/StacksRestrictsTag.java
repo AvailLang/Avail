@@ -94,12 +94,13 @@ public class StacksRestrictsTag extends AbstractStacksTag
 				.append("')\" href=\"")
 				.append(htmlFileMap.internalLinks().get(paramMetaType.lexeme()))
 				.append("\">")
-				.append(paramMetaType.lexeme())
+				.append(paramMetaType.toHTML(htmlFileMap, hashID, errorLog))
 				.append("</a>");
 		}
 		else
 		{
-			paramTypeBuilder.append(paramMetaType.lexeme());
+			paramTypeBuilder
+				.append(paramMetaType.toHTML(htmlFileMap, hashID, errorLog));
 		}
 
 		final StringBuilder stringBuilder = new StringBuilder()

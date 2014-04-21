@@ -73,9 +73,12 @@ public class StacksAliasTag extends AbstractStacksTag
 				+ "><em>Aliases:</em> ");
 			for (int i = 0; i < listSize - 1; i++)
 			{
-				stringBuilder.append(aliases.get(i).lexeme()).append(", ");
+				stringBuilder.append(aliases.get(i)
+					.toHTML(htmlFileMap, hashID, errorLog)).append(", ");
 			}
-			stringBuilder.append(aliases.get(listSize - 1).lexeme());
+			stringBuilder
+				.append(aliases.get(listSize - 1)
+					.toHTML(htmlFileMap, hashID, errorLog));
 			stringBuilder.append("</div>\n");
 		}
 
