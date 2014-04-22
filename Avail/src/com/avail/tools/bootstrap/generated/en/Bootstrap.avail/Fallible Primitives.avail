@@ -61,7 +61,7 @@ Uses
 		"Invoke|invoke_with_",
 		"Macro_is«_,»_",
 		"Mark for_character|characters of read ahead",
-		"Publish new name:_",
+		"Export_as a new name",
 		"Reject parse,expected:_",
 		"Remove current fiber[_]",
 		"Remove_[_]",
@@ -1669,14 +1669,14 @@ Primitive "atom for_" is
  * as the result of parsing or executing a top-level statement.
  *
  * @category "Primitives"
- * @method "Publish new name:_"
+ * @method "Export_as a new name"
  * @param "newName" "string"
  *        The name that should be introduced.
  * @returns "⊤"
  * @raises "ambiguous-name exception"
  * @raises "loading-is-over exception"
  */
-Primitive "Publish new name:_" is
+Primitive "Export_as a new name" is
 [
 	newName : string
 |

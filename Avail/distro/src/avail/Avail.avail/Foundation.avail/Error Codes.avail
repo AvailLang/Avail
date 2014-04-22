@@ -97,7 +97,7 @@ Private method "Next error code is_(_)" is
 	Method name is implementation;
 	errorCodes := cast eject ↑errorCodes + code→name
 		into [ t : {natural number→string|natural number} | t ];
-	Publish new name: name;
+	Export name as a new name;
 ];
 
 Invoke

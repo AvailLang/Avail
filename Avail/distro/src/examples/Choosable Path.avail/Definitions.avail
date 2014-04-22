@@ -196,7 +196,7 @@ is
 	contextType's name := contextTypeName;
 	Method contextTypeName is
 		«[ <‘`contextType`’> ] : contextType's type»→function;
-	Publish new name: contextTypeName;
+	Export contextTypeName as a new name;
 
 	/*
 	 * Make the game-specific opening scene variable available.
@@ -206,7 +206,7 @@ is
 	openingSceneAtom ::= atom for openingSceneName;
 	Method openingSceneAtom is
 		«[ <> | <‘`openingSceneVar`’> ] : ↑sceneType»→function;
-	Publish new name: openingSceneName;
+	Export openingSceneName as a new name;
 
 	/*
 	 * Make the game-specific context constructor available.
@@ -269,7 +269,7 @@ is
 	Method contextConstructorName is newFunction;
 	Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
 		<{contextTypeName}, ∅, ∅>;
-	Publish new name: contextConstructorName;
+	Export contextConstructorName as a new name;
 ];
 
 /* These atoms are required by accessor synthesis. */
@@ -338,7 +338,7 @@ Private method "Install boolean accessors for_given_and_" is
 				<send getAtom with «< getVar >» : boolean>
 			] : boolean»;
 		Method positive is positiveInterrogativeBlock→function;
-		Publish new name: positive;
+		Export positive as a new name;
 
 		/* Generate and install the negative interrogative accessor. */
 		negative ::= quartet[3];
@@ -350,7 +350,7 @@ Private method "Install boolean accessors for_given_and_" is
 				>» : boolean >
 			] : boolean»;
 		Method negative is negativeInterrogativeBlock→function;
-		Publish new name: negative;
+		Export negative as a new name;
 
 		/* Generate and install the positive mutator. */
 		positiveSetter ::= "Now " ++ positive;
@@ -359,7 +359,7 @@ Private method "Install boolean accessors for_given_and_" is
 				<send putAtom with «< getVar, ‘`true`’ >» : ⊤>
 			] : ⊤»;
 		Method positiveSetter is positiveSetterBlock→function;
-		Publish new name: positiveSetter;
+		Export positiveSetter as a new name;
 
 		/* Generate and install the negative mutator. */
 		negativeSetter ::= "Now " ++ negative;
@@ -368,7 +368,7 @@ Private method "Install boolean accessors for_given_and_" is
 				<send putAtom with «< getVar, ‘`false`’ >» : ⊤>
 			] : ⊤»;
 		Method negativeSetter is negativeSetterBlock→function;
-		Publish new name: negativeSetter;
+		Export negativeSetter as a new name;
 	];
 ];
 
@@ -407,7 +407,7 @@ Private method "Install non-boolean accessors for_given_and_" is
 				«[ <send getAtom with «< getVar >» : stateType> ] : stateType»;
 			accessorFunction ::= accessorBlock→function;
 			Method accessor is accessorFunction;
-			Publish new name: accessor;
+			Export accessor as a new name;
 
 			/* Generate and install the mutator. */
 			mutator ::= "Now " ++ accessor ++ " is|are_";
@@ -420,7 +420,7 @@ Private method "Install non-boolean accessors for_given_and_" is
 				] : ⊤»;
 			mutatorFunction ::= mutatorBlock→function;
 			Method mutator is mutatorFunction;
-			Publish new name: mutator;
+			Export mutator as a new name;
 		];
 	];
 ];
@@ -464,14 +464,14 @@ Private method "Install the scene vault for_" is
 	aMutex ::= a non-reentrant mutex;
 	sceneVaultLockBlock ::= «[ <> | <‘`aMutex`’> ] : non-reentrant mutex»;
 	Method sceneVaultLockName is sceneVaultLockBlock→function;
-	Publish new name: sceneVaultLockName;
+	Export sceneVaultLockName as a new name;
 
 	/* Generate the scene vault as a method that answers the variable that
 	 * contains the map from scenes to their internal names.
 	 */
 	sceneVaultBlock ::= «[ <> | <‘`sceneVault`’>] : ↑sceneVaultType»;
 	Method sceneVaultName is sceneVaultBlock→function;
-	Publish new name: sceneVaultName;
+	Export sceneVaultName as a new name;
 ];
 
 /**
@@ -855,7 +855,7 @@ Public method "Let«_‡,⁇and⁇»be a⁇scene|scenes" is
 		 */
 		sceneVarBlock ::= «[ <> | <‘`sceneVar`’>] : ↑sceneType»;
 		Method name is sceneVarBlock→function;
-		Publish new name: name;
+		Export name as a new name;
 	];
 	/* Commit all changes to the scene vault. */
 	sceneVaultLock ::= dynamic scene vault lock;
@@ -963,7 +963,7 @@ Public method "Let_be a transition_" is
 	transitionType ::= scene transition for contextType;
 	transitionBlock ::= «[<> | <‘`transition`’>] : transitionType»;
 	Method name is transitionBlock→function;
-	Publish new name: name;
+	Export name as a new name;
 ] : ⊤;
 
 Semantic restriction "Let_be a transition_" is
