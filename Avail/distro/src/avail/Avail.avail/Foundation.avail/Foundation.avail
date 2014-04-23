@@ -539,30 +539,6 @@ Extends
 		"here",
 		"(_)"
 	),
-	"Definers" =
-	(
-		"Method_is stable at_",
-		"Method_is_",
-		"Private abstract method_is_",
-		"Private forward method_is_",
-		"Private method_is_",
-		"Private stable abstract method_is_",
-		"Private stable forward method_is_",
-		"Private stable method_is_",
-		"Public abstract method_is_",
-		"Public forward method_is_",
-		"Public method_is_",
-		"Public stable abstract method_is_",
-		"Public stable forward method_is_",
-		"Public stable method_is_",
-		"Public read-only variable_is_",
-		"Public variable_is_",
-		"Require:_is private",
-		"Require:_is public",
-		"Stable abstract method_is_",
-		"Stable forward method_is_",
-		"Stable method_is_"
-	),
 	"Enumeration Support" =
 	(
 		"{_}ᵀ",
@@ -736,8 +712,58 @@ Extends
 		"_(_,`…)",
 		"_(`…,_)"
 	),
+	"Late Definers" =
+	(
+		"Method_is stable at_",
+		"Method_is_",
+		"Private abstract method_is_",
+		"Private forward method_is_",
+		"Private method_is_",
+		"Private stable abstract method_is_",
+		"Private stable forward method_is_",
+		"Private stable method_is_",
+		"Public abstract method_is_",
+		"Public forward method_is_",
+		"Public method_is_",
+		"Public stable abstract method_is_",
+		"Public stable forward method_is_",
+		"Public stable method_is_",
+		"Public read-only variable_is_",
+		"Public variable_is_",
+		"Require:_is canonical",
+		"Require:_is private",
+		"Require:_is public",
+		"Require:_is unambiguous",
+		"Stable abstract method_is_",
+		"Stable forward method_is_",
+		"Stable method_is_"
+	),
 	"Late Math" =
 	(
+		"log_of_",
+		"max_",
+		"min_",
+		"negative integer",
+		"nonpositive integer",
+		"type promotion function for_",
+		"-_",
+		"[_.._]",
+		"[_.._)",
+		"(_.._]",
+		"(_.._)",
+		"⎣_⎦is inclusive",
+		"⎡_⎤is inclusive",
+		"π",
+		"_is even",
+		"_is finite",
+		"_is infinite",
+		"_is odd",
+		"_>_",
+		"_≥_",
+		"«_‡max»",
+		"«_‡min»",
+		"«_‡«=|≤|<»!»",
+		"«_‡«=|≥|>»!»"
 	),
 	"Late Restrictions" =
 	(
@@ -770,33 +796,6 @@ Extends
 	(
 		"counts for_",
 		"integrate_and_with_"
-	),
-	"Math" =
-	(
-		"log_of_",
-		"max_",
-		"min_",
-		"negative integer",
-		"nonpositive integer",
-		"type promotion function for_",
-		"-_",
-		"[_.._]",
-		"[_.._)",
-		"(_.._]",
-		"(_.._)",
-		"⎣_⎦is inclusive",
-		"⎡_⎤is inclusive",
-		"π",
-		"_is even",
-		"_is finite",
-		"_is infinite",
-		"_is odd",
-		"_>_",
-		"_≥_",
-		"«_‡max»",
-		"«_‡min»",
-		"«_‡«=|≤|<»!»",
-		"«_‡«=|≥|>»!»"
 	),
 	"Methods" =
 	(

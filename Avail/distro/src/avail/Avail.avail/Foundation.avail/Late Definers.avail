@@ -1,0 +1,177 @@
+/*
+ * Late Definers.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Late Definers"
+Versions
+	"dev"
+Extends
+	"Definers"
+Uses
+	"Bootstrap",
+	"Control Structures",
+	"Enumeration Support",
+	"Exceptions",
+	"Literals",
+	"Logic",
+	"Strings",
+	"Tuples",
+	"Types"
+Names
+	"Require:_is canonical",
+	"Require:_is unambiguous"
+Body
+
+/**
+ * {@method "Reject parse,expected:_" Reject the current parse} if {@param
+ * "name"} is not a canonical message.
+ *
+ * @method "Require:_is canonical"
+ * @category "Methods" "Types"
+ * @param "name" "atom's type"
+ *        An atom type. If this is an instance type, then extract its instance
+ *        and check its canonicity.
+ * @returns "⊤"
+ */
+Public method "Require:_is canonical" is
+[
+	nameType : atom's type
+|
+	If |nameType| = 1 ∧ [¬nameType's instance is a valid message] then
+	[
+		Reject parse, expected:
+			format "message to be canonical (but “①” is not)"
+			with nameType's instance
+	];
+] : ⊤;
+
+/**
+ * {@method "Reject parse,expected:_" Reject the current parse} if {@param
+ * "name"} is not a canonical message.
+ *
+ * @method "Require:_is canonical"
+ * @category "Methods" "Types"
+ * @param "name" "string's type"
+ *        A string type. If this is an instance type, then extract its instance
+ *        and check the atom's canonicity.
+ * @returns "⊤"
+ */
+Public method "Require:_is canonical" is
+[
+	nameType : string's type
+|
+	If |nameType| = 1 then
+	[
+		trueName ::= atom for nameType's instance;
+		If ¬trueName is a valid message then
+		[
+			Reject parse, expected:
+				format "message to be canonical (but ‘①’ is not)"
+				with nameType's instance
+		];
+	];
+] : ⊤;
+
+/**
+ * {@method "Reject parse,expected:_" Reject the current parse} if {@param
+ * "name"} is ambiguous in the {@method "current module"}.
+ *
+ * @method "Require:_is ambiguous"
+ * @category "Methods"
+ * @param "name" "string's type"
+ *        A string type. If this is an instance type, then extract its instance
+ *        and ensure that it has an unambiguous resolution.
+ * @returns "⊤"
+ */
+Public method "Require:_is unambiguous" is
+[
+	nameType : string's type
+|
+	If |nameType| = 1 then
+	[
+		name ::= nameType's instance;
+		If ¬name is unambiguous then
+		[
+			Reject parse, expected:
+				format
+					"message to be unambiguous, but ‘①’ could be any of ‘②’"
+				with
+					nameType's instance,
+					“all atoms for name” (as disjunctive list with serial comma)
+		];
+	];
+] : ⊤;
+
+For each of
+<
+	"Method_is_",
+	"Private abstract method_is_",
+	"Private forward method_is_",
+	"Private method_is_",
+	"Public abstract method_is_",
+	"Public forward method_is_",
+	"Public method_is_",
+	"Private stable abstract method_is_",
+	"Private stable forward method_is_",
+	"Private stable method_is_"
+	/*
+TODO: [MvG] Enable these when issue #54 is resolved.
+	"Public stable abstract method_is_",
+	"Public stable forward method_is_",
+	"Public stable method_is_",
+	"Stable abstract method_is_",
+	"Stable forward method_is_",
+	"Stable method_is_"
+	*/
+>
+do
+[
+	name : string
+|
+	Semantic restriction name is
+	[
+		nameType : string's type,
+		definitionType : […]→⊤'s type
+	|
+		Require: nameType is unambiguous;
+		Require: nameType is canonical;
+		⊤
+	];
+
+	Semantic restriction name is
+	[
+		nameType : atom's type,
+		definitionType : […]→⊤'s type
+	|
+		Require: nameType is canonical;
+		⊤
+	];
+];

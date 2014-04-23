@@ -54,6 +54,7 @@ Uses
 		"Attempt to join_",
 		"Clear_",
 		"Exit_with_",
+		"Export_as a new name",
 		"Forward method_is_",
 		"Grammatical restriction_is_",
 		"In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
@@ -61,7 +62,6 @@ Uses
 		"Invoke|invoke_with_",
 		"Macro_is«_,»_",
 		"Mark for_character|characters of read ahead",
-		"Export_as a new name",
 		"Reject parse,expected:_",
 		"Remove current fiber[_]",
 		"Remove_[_]",
@@ -85,6 +85,7 @@ Uses
 		"_[_]→_",
 		"_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)",
 		"_has definition for_",
+		"_is unambiguous",
 		"_to_by_",
 		"_«[_]»→_",
 		"_×_",
@@ -98,6 +99,7 @@ Uses
 		"`«[_`|Primitive__]:_^_`»",
 		"`«_:=_`»",
 		"`«↑_`»",
+		"all atoms for_",
 		"atom for_",
 		"atomically compare_to_and,⁇if equal,⁇store_",
 		"atomically read_and add_",
@@ -799,6 +801,31 @@ Primitive "_<<_keeping_bits" is
 ] : whole number;
 
 /**
+ * Answer all atoms referenced by the specified name in the module currently
+ * undergoing compilation. If this name already refers to atoms in scope,
+ * i.e., either ones 1) imported through the "Uses" or "Extends" sections of the
+ * current module's header, 2) introduced by the "Names" section of the
+ * current module's header, or 3) introduced by dynamic publication then, answer
+ * these atoms. Otherwise, privately introduce a new atom.
+ *
+ * @category "Primitives"
+ * @method "all atoms for_"
+ * @param "name" "string"
+ *        The name which should be resolved locally.
+ * @returns "{atom|1..∞}"
+ *    The set of all locally visible atoms that match the argument.
+ * @raises "loading-is-over exception"
+ */
+Primitive "all atoms for_" is
+[
+	name : string
+|
+	Primitive 114 (failureCode : {
+		loading-is-over code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : nonempty set of atom;
+
+/**
  * Does {@param "anAtom"} have a property whose key is {@param "key"}?
  *
  * @category "Primitives"
@@ -919,6 +946,27 @@ Primitive "_'s⁇issuing module" is
 		special-atom code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : module;
+
+/**
+ * Is {@param "name"} unambiguous in the {@method "current module"}?
+ *
+ * @category "Primitives"
+ * @method "_is unambiguous"
+ * @param "name" "string"
+ *        The name in question.
+ * @returns "boolean"
+ *    {@method "true"} if the argument is unambiguous, {@method "false"}
+ *    otherwise.
+ * @raises "loading-is-over exception"
+ */
+Primitive "_is unambiguous" is
+[
+	name : string
+|
+	Primitive 129 (failureCode : {
+		loading-is-over code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : boolean;
 
 /**
  * Answer the {@param "index"}-th element of {@param "aTuple"}.

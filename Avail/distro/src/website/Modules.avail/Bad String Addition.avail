@@ -1,5 +1,5 @@
 /*
- * Late Restrictions.avail
+ * Bad String Addition.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,19 +30,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Late Restrictions"
-Versions
-	"dev"
+Module "Bad String Addition"
 Uses
-	"Bootstrap",
-	"Early Definers",
-	"Literals"
+	"Avail" = ("Method_is_", "string", "_+_", "«_‡++»"),
+	"Dimensional Analysis" = ("_+_")
 Body
 
-/** 
- * Give n-ary update a higher precedence than subscript. 
- * 
- * @method "_«[_]»→_"
- * @forbids "1" "_[_]"
- */
-Grammatical restriction "_«[_]»→_" is <{"_[_]"},∅,∅>;
+/* This doesn't work, because "_+_" is ambiguous. */
+Method "_+_" is
+[
+	a : string,
+	b : string
+|
+	a ++ b
+];

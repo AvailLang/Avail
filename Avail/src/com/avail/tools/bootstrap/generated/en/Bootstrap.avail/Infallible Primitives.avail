@@ -136,6 +136,7 @@ Uses
 		"_has result",
 		"_has terminated",
 		"_is a primitive",
+		"_is a valid message",
 		"_is unassigned",
 		"_mod_",
 		"_reversed",
@@ -1712,6 +1713,26 @@ Primitive "special atoms" is
 [
 	Primitive 126;
 ] : set of atom;
+
+/**
+ * Is {@param "name"} a valid message? Do not attempt to look up a method
+ * associated with this name. Simply verify that {@param "name"} is a viable
+ * name of a method.
+ *
+ * @category "Primitives"
+ * @method "_is a valid message"
+ * @param "name" "atom"
+ *        The name in question.
+ * @returns "boolean"
+ *    {@method "true"} if the argument is a valid message, {@method "false"}
+ *    otherwise.
+ */
+Primitive "_is a valid message" is
+[
+	name : atom
+|
+	Primitive 128;
+] : boolean;
 
 /**
  * Answer the cardinality of the specified tuple.
