@@ -1605,7 +1605,7 @@ extends JFrame
 		moduleTree.addTreeSelectionListener(new TreeSelectionListener()
 		{
 			@Override
- 			public void valueChanged (final @Nullable TreeSelectionEvent event)
+			public void valueChanged (final @Nullable TreeSelectionEvent event)
 			{
 				setEnablements();
 			}

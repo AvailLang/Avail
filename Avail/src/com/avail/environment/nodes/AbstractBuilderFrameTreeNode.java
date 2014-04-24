@@ -151,7 +151,7 @@ extends DefaultMutableTreeNode
 		}
 		final Pair<String, Integer> pair = new Pair<>(
 			iconResourceName,
-			lineHeight);
+			lineHeight != 0 ? lineHeight : 19);
 		return cachedScaledIcons.get(pair);
 	}
 
