@@ -32,10 +32,18 @@
 
 package com.avail.stacks;
 
+import static java.nio.file.StandardOpenOption.*;
+import java.io.IOException;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import com.avail.utility.Pair;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A holder for all categories in stacks
@@ -383,5 +391,43 @@ public class HTMLFileMap
 			stringBuilder.append('\t');
 		}
 		return stringBuilder.toString();
+	}
+
+
+	/**
+	 * A method that writes an HTML file
+	 * @param path
+	 */
+	public void writeInternalLinksToJSON (final Path path)
+	{
+		final StandardOpenOption[] options = new StandardOpenOption[]
+			{CREATE, TRUNCATE_EXISTING, WRITE};
+		Writer writer;
+		try
+		{
+			writer = Files.newBufferedWriter(
+				path,
+				StandardCharsets.UTF_8,
+				options);
+
+			final JSONWriter jsonWriter = new JSONWriter(writer);
+
+			jsonWriter.startObject();
+
+			for (final String key : internalLinks.keySet())
+			{
+				jsonWriter.write(key);
+				jsonWriter.write(internalLinks.get(key));
+			}
+			jsonWriter.endObject();
+
+			jsonWriter.close();
+		}
+		catch (final IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 }

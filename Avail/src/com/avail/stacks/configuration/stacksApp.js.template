@@ -47,7 +47,7 @@ function CategoriesCntrl($scope,Categories) {
 
 		$scope.methodList = finalList;
 	}
-	$scope.mainPage
+	$scope.mainPage;
 	$scope.linkValue = "landing-detail.html";
 	$scope.changeLinkValue = function(link)
 	{

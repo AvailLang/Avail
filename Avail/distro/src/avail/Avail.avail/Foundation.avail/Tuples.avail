@@ -299,7 +299,7 @@ Method "map_through_" is
 /**
  * Iteratively apply {@param "transformer"} to each consecutive element of 
  * {@param "aTuple"}, collecting the results into a new tuple (and preserving 
- * ordering of the transformed elements). Answer this tuple.
+ * ordering of the transformed elements). Answer this {@type "tuple"}.
  * 
  * @method "map_through_"
  * @param "aTuple" "tuple"

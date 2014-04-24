@@ -11,6 +11,7 @@
 		<!--#include virtual="/_include/head.ssi" -->
 		
 		<style>
+			body {overflow-y:hidden;}
 			#SidePane
 			{
 				height:100%;
@@ -21,12 +22,14 @@
 			
 			#CategoriesPane
 			{
+				position: relative;
 				height:50%;
 				width:100%;
 			}
 			
 			#MethodsPane
 			{
+				position: relative;
 				height:50%;
 				width:100%;
 			}
@@ -52,20 +55,20 @@
 			<!-- The categories pane -->
 			<div id="CategoriesPane">
 				<h2 class="pane-heading">Categories</h2>
-				<div class="pane-filter">Filter: <input type="text" ng-model="search"><br></div>
+				<div class="pane-filter" style="z-index:1"> <span "width:30%">Filter:</span> <input style="width:70%" type="text" ng-model="search"><br></div>
 				<div class="pane-contents">
 					<div ng-repeat="stacksCategory in categories.content | orderBy: ['-selected','category'] | filter : filterOnCategory ">
 						<div>
 							<input type="checkbox" name="favoriteColors" ng-model="stacksCategory.selected" ng-change="methodListUpdate()">
-							{{" " +stacksCategory.category + " "}}
+							{{" " + stacksCategory.category + " "}}
 						</div>
 					</div>
 				</div>
 			</div>
 			<!-- The methods pane -->
-			<div id="MethodsPane">
+			<div style="z-index:1" id="MethodsPane">
 			    <h2 class="pane-heading">Methods</h2>
-			    <div class="pane-filter">Filter: <input type="text" ng-model="find.name"><br></div>
+			    <div class="pane-filter"><span "width:30%">Filter:</span> <input style="width:70%" type="text" ng-model="find.name"><br></div>
 				<div class="pane-contents">
 					<div ng-repeat="method in methodList.content | orderBy: 'name' | filter : find">
 						<a title="{{method.link}}" style= "cursor: pointer" ng-click="changeLinkValue(method.link)">{{method.name}}</a><br>

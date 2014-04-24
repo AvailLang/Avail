@@ -258,6 +258,8 @@ public class StacksGenerator
 			synchronizer.waitForWorkUnitsToComplete();
 		}
 
+		htmlFileMap.writeInternalLinksToJSON(
+			providedDocumentPath.resolve("internalLink.json"));
 		IO.close(errorLog.file());
 
 		clear();
