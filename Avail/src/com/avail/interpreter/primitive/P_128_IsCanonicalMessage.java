@@ -1,5 +1,5 @@
-/*
- * Late Restrictions.avail
+/**
+ * P_128_IsCanonicalMessage.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,19 +30,59 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Late Restrictions"
-Versions
-	"dev"
-Uses
-	"Bootstrap",
-	"Early Definers",
-	"Literals"
-Body
+package com.avail.interpreter.primitive;
 
-/** 
- * Give n-ary update a higher precedence than subscript. 
- * 
- * @method "_«[_]»→_"
- * @forbids "1" "_[_]"
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.compiler.MessageSplitter;
+import com.avail.descriptor.*;
+import com.avail.exceptions.SignatureException;
+import com.avail.interpreter.*;
+
+/**
+ * <strong>Primitive 128</strong>: Is the specified {@linkplain A_Atom atom} a
+ * canonical method name?
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-Grammatical restriction "_«[_]»→_" is <{"_[_]"},∅,∅>;
+public final class P_128_IsCanonicalMessage
+extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class. Accessed through reflection.
+	 */
+	public final static Primitive instance =
+		new P_128_IsCanonicalMessage().init(1, CannotFail, CanInline, CanFold);
+
+	@SuppressWarnings("unused")
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
+	{
+		assert args.size() == 1;
+		final A_Atom name = args.get(0);
+		try
+		{
+			// Ignore the return value. We just want to see if the name is
+			// canonical.
+			new MessageSplitter(name.atomName());
+			return interpreter.primitiveSuccess(AtomDescriptor.trueObject());
+		}
+		catch (final SignatureException e)
+		{
+			return interpreter.primitiveSuccess(AtomDescriptor.falseObject());
+		}
+	}
+
+	@Override
+	protected A_Type privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				ATOM.o()),
+			EnumerationTypeDescriptor.booleanObject());
+	}
+}

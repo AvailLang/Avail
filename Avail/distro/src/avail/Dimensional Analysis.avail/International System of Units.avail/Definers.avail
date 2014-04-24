@@ -170,13 +170,13 @@ Public method "_(_)is an SI base unit" is
 			impl ::= «[ <> | <‘`aUnit` ("")’> ] : aUnit's type»→function;
 			Method longName is impl;
 			publicNames ::= current module's public names;
-			Unless longName ∈ publicNames then [Publish new name: longName;];
+			Unless longName ∈ publicNames then [Export longName as a new name;];
 			Unless longName = shortName then
 			[
 				Method shortName is impl;
 				Unless shortName ∈ publicNames then
 				[
-					Publish new name: shortName;
+					Export shortName as a new name;
 				];
 			];
 			Prefer longName for printing aUnit;
@@ -234,13 +234,13 @@ Public method "_(_)is an SI derived unit equivalent to_" is
 			impl ::= «[ <> | <‘`aUnit` ("")’> ] : aUnit's type»→function;
 			Method longName is impl;
 			publicNames ::= current module's public names;
-			Unless longName ∈ publicNames then [Publish new name: longName;];
+			Unless longName ∈ publicNames then [Export longName as a new name;];
 			Unless longName = shortName then
 			[
 				Method shortName is impl;
 				Unless shortName ∈ publicNames then
 				[
-					Publish new name: shortName;
+					Export shortName as a new name;
 				];
 			];
 			Prefer longName for printing aUnit;

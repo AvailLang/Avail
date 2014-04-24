@@ -1,5 +1,5 @@
 /*
- * Late Restrictions.avail
+ * Summation.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,19 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Late Restrictions"
-Versions
-	"dev"
+Module "Summation"
 Uses
-	"Bootstrap",
-	"Early Definers",
-	"Literals"
+	"Avail" = ("Method_is_", "number", "_+_"),
+	"Dimensional Analysis" = ("dimensioned quantity", "_+_")
+Extends
+	"Dimensional Analysis" = ("__", "m", "s")
+Entries
+	"sum of_and_"
 Body
 
-/** 
- * Give n-ary update a higher precedence than subscript. 
- * 
- * @method "_«[_]»→_"
- * @forbids "1" "_[_]"
- */
-Grammatical restriction "_«[_]»→_" is <{"_[_]"},∅,∅>;
+Method "sum of_and_" is
+[
+	a : number,
+	b : number
+|
+	a + b
+];
+
+Method "sum of_and_" is
+[
+	a : dimensioned quantity,
+	b : dimensioned quantity
+|
+	a + b
+];

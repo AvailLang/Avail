@@ -1,5 +1,5 @@
 /*
- * Late Restrictions.avail
+ * Fibonacci.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,19 +30,45 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Late Restrictions"
-Versions
-	"dev"
-Uses
-	"Bootstrap",
-	"Early Definers",
-	"Literals"
+Module "Fibonacci"
+Uses "Avail"
+Entries "Next Fibonacci number"
 Body
 
-/** 
- * Give n-ary update a higher precedence than subscript. 
- * 
- * @method "_«[_]»→_"
- * @forbids "1" "_[_]"
+/* No module state is visible here. */
+Forward method "Next Fibonacci number" is []→natural number;
+
+/* Now declare a module variable. */
+lastFibonacciNumber : natural number;
+
+/*
+ * lastFibonacciNumber is visible here and below.
  */
-Grammatical restriction "_«[_]»→_" is <{"_[_]"},∅,∅>;
+
+/* Send a message to define a method. */
+Method "a Fibonacci generator" is
+[
+	x : natural number;
+	y : natural number := 1;
+	z : natural number := 1;
+	[
+		x := y;
+		y := z;
+		z := x + y;
+		x
+	]
+];
+
+/* Now define a module constant. */
+generator ::= a Fibonacci generator;
+
+/*
+ * generator is visible here and below.
+ */
+
+/* Send a message to define a method. */
+Method "Next Fibonacci number" is
+[
+	lastFibonacciNumber := generator();
+	lastFibonacciNumber
+];

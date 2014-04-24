@@ -1216,7 +1216,7 @@ extends JFrame
 		Preferences.userNodeForPackage(getClass());
 
 	/** The key under which to organize all placement information. */
-	final String placementByMonitorLayoutString = "placementByMonitorLayout";
+	final String placementByMonitorNamesString = "placementByMonitorNames";
 
 	/** The leaf key under which to store a single window placement. */
 	final String placementLeafKeyString = "placement";
@@ -1228,49 +1228,41 @@ extends JFrame
 	 * @return The list of rectangles to which physical screens are mapped.
 	 */
 	@InnerAccess
-	List<Rectangle> allMonitorRectangles ()
+	List<String> allScreenNames ()
 	{
 		final GraphicsEnvironment graphicsEnvironment =
 			GraphicsEnvironment.getLocalGraphicsEnvironment();
 		final GraphicsDevice[] screens = graphicsEnvironment.getScreenDevices();
-		final List<Rectangle> allRectangles = new ArrayList<>();
+		final List<String> allScreens = new ArrayList<>();
 		for (final GraphicsDevice screen : screens)
 		{
-			for (final GraphicsConfiguration gc : screen.getConfigurations())
-			{
-				allRectangles.add(gc.getBounds());
-			}
+			allScreens.add(screen.getIDstring());
 		}
-		return allRectangles;
+		return allScreens;
 	}
 
 	/**
 	 * Answer the {@link Preferences} node responsible for holding the default
 	 * window position and size for the current monitor configuration.
 	 *
-	 * @param monitorRectangles
-	 *            The relative locations of all physical screens.
-	 *
+	 * @param screenNames
+	 *        The list of {@link GraphicsDevice#getIDstring() id strings} of all
+	 *        physical screens.
 	 * @return The {@code Preferences} node in which placement information for
 	 *         the current monitor configuration can be stored and retrieved.
 	 */
 	@InnerAccess
-	Preferences placementPreferencesNodeForRectangles (
-		final List<Rectangle> monitorRectangles)
+	Preferences placementPreferencesNodeForScreenNames (
+		final List<String> screenNames)
 	{
-		final StringBuilder allBoundsString = new StringBuilder();
-		for (final Rectangle rectangle : monitorRectangles)
+		final StringBuilder allNamesString = new StringBuilder();
+		for (final String name : screenNames)
 		{
-			allBoundsString.append(
-				String.format(
-					"%d,%d,%d,%d;",
-					rectangle.x,
-					rectangle.y,
-					rectangle.width,
-					rectangle.height));
+			allNamesString.append(name);
+			allNamesString.append(";");
 		}
 		return basePreferences.node(
-			placementByMonitorLayoutString + "/" + allBoundsString);
+			placementByMonitorNamesString + "/" + allNamesString);
 	}
 
 	/**
@@ -1442,7 +1434,7 @@ extends JFrame
 	@InnerAccess LayoutConfiguration getInitialConfiguration ()
 	{
 		final Preferences preferences =
-			placementPreferencesNodeForRectangles(allMonitorRectangles());
+			placementPreferencesNodeForScreenNames(allScreenNames());
 		final String configurationString = preferences.get(
 			placementLeafKeyString,
 			null);
@@ -1872,8 +1864,8 @@ extends JFrame
 			public void windowClosing (final @Nullable WindowEvent e)
 			{
 				final Preferences preferences =
-					placementPreferencesNodeForRectangles(
-						allMonitorRectangles());
+					placementPreferencesNodeForScreenNames(
+						allScreenNames());
 				final LayoutConfiguration saveConfiguration =
 					new LayoutConfiguration();
 				saveConfiguration.placement = getBounds();

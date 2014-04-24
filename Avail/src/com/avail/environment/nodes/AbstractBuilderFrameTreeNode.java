@@ -102,7 +102,7 @@ extends DefaultMutableTreeNode
 
 	/**
 	 * The local file name {@code String} of an image file, relative to the
-	 * directory "resources/workbench/".
+	 * directory "/resources/workbench/".
 	 *
 	 * @return The local file name, or {@code null} to indicate not to display
 	 *         an icon.
@@ -125,7 +125,9 @@ extends DefaultMutableTreeNode
 					assert key != null;
 					final String iconResourceName = key.first();
 					final ImageIcon originalIcon = new ImageIcon(
-						"resources/workbench/" + iconResourceName + ".png");
+						this.getClass().getResource(
+							"/resources/workbench/"
+							+ iconResourceName + ".png"));
 					final Image scaled =
 						originalIcon.getImage().getScaledInstance(
 							-1, key.second(), Image.SCALE_SMOOTH);
