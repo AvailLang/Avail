@@ -90,7 +90,8 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		return object.slot(FUNCTION).hash() ^ 0x0E0D9C10;
+		return (object.slot(FUNCTION).hash() ^ 0x0E0D9C10)
+			+ object.slot(DEFINITION_METHOD).hash();
 	}
 
 	@Override @AvailMethod

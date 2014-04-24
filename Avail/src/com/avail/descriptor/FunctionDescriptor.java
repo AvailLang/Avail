@@ -169,6 +169,9 @@ extends Descriptor
 		// with 0 or something), it's ok because nobody could know what the hash
 		// value *used to be* for this function.
 
+		// In case the last reference to the object is being added to a set, but
+		// subsequent execution might nil out a captured value.
+		object.makeImmutable();
 		final A_BasicObject code = object.slot(CODE);
 		int hash = code.hash() ^ 0x1386D4F6;
 		for (int i = 1, end = object.numOuterVars(); i <= end; i++)

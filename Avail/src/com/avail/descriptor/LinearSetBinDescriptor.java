@@ -186,16 +186,14 @@ extends SetBinDescriptor
 		result.setSlot(BIN_ELEMENT_AT_, oldSize + 1, elementObject);
 		if (canDestroy && isMutable())
 		{
-			final AvailObject emptySubBin =
-				emptyBinForLevel((byte) (myLevel + 1));
 			for (int i = 1; i <= oldSize; i++)
 			{
-				// Clear old bin for safety.
 				result.setSlot(
 					BIN_ELEMENT_AT_,
 					i,
 					object.slot(BIN_ELEMENT_AT_, i));
-				object.setSlot(BIN_ELEMENT_AT_, i, emptySubBin);
+				// Clear old slot for safety.
+				object.setSlot(BIN_ELEMENT_AT_, i, NilDescriptor.nil());
 			}
 		}
 		else if (isMutable())
@@ -429,7 +427,7 @@ extends SetBinDescriptor
 	 * The number of distinct levels at which {@linkplain LinearSetBinDescriptor
 	 * linear bins} may occur.
 	 */
-	static final byte numberOfLevels = 8;
+	static final byte numberOfLevels = 7;
 
 	/**
 	 * Answer a suitable descriptor for a linear bin with the specified

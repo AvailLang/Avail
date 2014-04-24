@@ -122,7 +122,6 @@ extends MapBinDescriptor
 		if (shouldCheckConsistency)
 		{
 			assert object.descriptor() instanceof LinearMapBinDescriptor;
-			//trace("%nCheck: %d", object.binSize());
 			int computedKeyHashSum = 0;
 			int computedValueHashSum = 0;
 			final int size = object.variableIntegerSlotsCount();
@@ -198,7 +197,6 @@ extends MapBinDescriptor
 		// canDestroy and it's mutable.  Answer the new bin.  Note that the
 		// client is responsible for marking the key and value as immutable if
 		// other references exist.
-		//trace("%nAtPut: %d", object.binSize());
 		assert myLevel == level;
 		final int limit = object.variableIntegerSlotsCount();
 		for (int i = 1; i <= limit; i++)
@@ -224,16 +222,13 @@ extends MapBinDescriptor
 							object.makeImmutable();
 						}
 					}
-					//trace("%n\tExisting (key,value)");
 					check(object);
 					return object;
 				}
 				// The key is present with a different value.
-				//trace("%n\tReplace key");
 				final AvailObject newBin;
 				if (canDestroy && isMutable())
 				{
-					//trace(" (in place)");
 					newBin = object;
 				}
 				else
@@ -242,7 +237,6 @@ extends MapBinDescriptor
 					{
 						object.makeSubobjectsImmutable();
 					}
-					//trace(" (copy)");
 					newBin = AvailObjectRepresentation.newLike(
 						descriptorFor(MUTABLE, level),
 						object,
@@ -258,10 +252,9 @@ extends MapBinDescriptor
 		// It's not present, so grow the list.  Keep it simple for now by always
 		// replacing the list.
 		final int oldSize = object.variableIntegerSlotsCount();
-		if (myLevel < 7 && oldSize >= thresholdToHash)
+		if (myLevel < numberOfLevels - 1 && oldSize >= thresholdToHash)
 		{
 			// Convert to a hashed bin.
-			//trace("%n\tCREATING HASHED BIN");
 			int bitPosition = bitShift(keyHash, -5 * myLevel) & 31;
 			int bitVector = bitShift(1, bitPosition);
 			for (int i = 1; i <= oldSize; i++)
@@ -305,7 +298,6 @@ extends MapBinDescriptor
 			return result;
 		}
 		//  Make a slightly larger linear bin and populate it.
-		//trace("%n\tGrowing");
 		final AvailObject result = AvailObjectRepresentation.newLike(
 			descriptorFor(MUTABLE, myLevel),
 			object,
@@ -342,7 +334,6 @@ extends MapBinDescriptor
 		final int keyHash,
 		final boolean canDestroy)
 	{
-		//trace("%nRemove: %d", object.binSize());
 		check(object);
 		final int oldSize = object.variableIntegerSlotsCount();
 		for (int searchIndex = 1; searchIndex <= oldSize; searchIndex++)
@@ -352,10 +343,8 @@ extends MapBinDescriptor
 			{
 				if (oldSize == 1)
 				{
-					//trace(" (last element)");
 					return NilDescriptor.nil();
 				}
-				//trace(" (found)");
 				final AvailObject result = AvailObjectRepresentation.newLike(
 					descriptorFor(MUTABLE, level),
 					object,
@@ -387,7 +376,6 @@ extends MapBinDescriptor
 				return result;
 			}
 		}
-		//trace(" (not found)");
 		if (!canDestroy)
 		{
 			object.makeImmutable();
@@ -438,16 +426,13 @@ extends MapBinDescriptor
 		int valuesHash = object.slot(VALUES_HASH_OR_ZERO);
 		if (valuesHash == 0)
 		{
-			//trace("%nVALUE_HASH:(");
 			final int size = object.variableIntegerSlotsCount();
 			for (int i = 1; i <= size; i++)
 			{
 				final int valueHash = object.slot(BIN_SLOT_AT_, i * 2).hash();
-				//trace("%s%08x", (i==1?"":","), valueHash);
 				valuesHash += valueHash;
 			}
 			object.setSlot(VALUES_HASH_OR_ZERO, valuesHash);
-			//trace(")=%08x", valuesHash);
 		}
 		return valuesHash;
 	}

@@ -141,16 +141,13 @@ For each of
 	"Public method_is_",
 	"Private stable abstract method_is_",
 	"Private stable forward method_is_",
-	"Private stable method_is_"
-	/*
-TODO: [MvG] Enable these when issue #54 is resolved.
+	"Private stable method_is_",
 	"Public stable abstract method_is_",
 	"Public stable forward method_is_",
 	"Public stable method_is_",
 	"Stable abstract method_is_",
 	"Stable forward method_is_",
 	"Stable method_is_"
-	*/
 >
 do
 [
