@@ -994,7 +994,7 @@ public class StacksCommentsModule
 	 * by this module and populate finalImplementationsGroupMap.
 	 * @param htmlFileMap
 	 * 		A map for all html files in stacks
-	 * @param providedDocumentPath The path where the files will end up.
+	 * @param outputPath The path where the files will end up.
 	 * @param implementationProperties
 	 * 		Properties file that defines HTML/style properties for the
 	 * 		ambiguous files.
@@ -1008,7 +1008,7 @@ public class StacksCommentsModule
 	 */
 	public int
 		calculateFinalImplementationGroupsMap(
-			final HTMLFileMap htmlFileMap, final Path providedDocumentPath,
+			final HTMLFileMap htmlFileMap, final Path outputPath,
 			final Path implementationWrapperTemplate,
 			final Path implementationProperties,
 			final AvailRuntime runtime,
@@ -1065,15 +1065,13 @@ public class StacksCommentsModule
 					if (tempMap.size() == 1)
 					{
 						htmlFileMap.addNamedFileLinks(key.asNativeString(),
-							topLevelLinkFolderPath + "/"
-							+ providedDocumentPath.toString()
+							topLevelLinkFolderPath
 							+ implementation.filepath().relativeFilePath());
 					}
 
 					for (final String alias : implementation.aliases())
 					{
-						htmlFileMap.addAlias(alias, topLevelLinkFolderPath + "/"
-							+ providedDocumentPath.toString()
+						htmlFileMap.addAlias(alias, topLevelLinkFolderPath
 							+ implementation.filepath().relativeFilePath());
 					}
 
@@ -1097,15 +1095,14 @@ public class StacksCommentsModule
 			final StacksSynchronizer synchronizer =
 				new StacksSynchronizer(ambiguousFileCount);
 
-			writeAmbiguousMethodsHTMLFiles(providedDocumentPath,synchronizer,
+			writeAmbiguousMethodsHTMLFiles(outputPath,synchronizer,
 				implementationWrapperTemplate, implementationProperties,
 				runtime, ambiguousMethodFileMap, topLevelLinkFolderPath,
 				htmlFileMap);
 
 			synchronizer.waitForWorkUnitsToComplete();
 		}
-
-		writeAmbiguousAliasHTMLFiles(providedDocumentPath,
+		writeAmbiguousAliasHTMLFiles(outputPath,
 			implementationWrapperTemplate, implementationProperties,
 			runtime, ambiguousMethodFileMap, topLevelLinkFolderPath,
 			htmlFileMap);
@@ -1211,7 +1208,10 @@ public class StacksCommentsModule
 		final HashMap<String,String> internalLinks =
 			new HashMap<String,String>();
 
-		final Path outputFolder = outputPath.resolve("_Ambiguities");
+		final Path outputFolder = outputPath
+			.resolve("library-documentation/_Ambiguities");
+
+		final String linkLocation = topLevelLinkFolderPath + "/_Ambiguities";
 
 		final String htmlTemplate =
 			HTMLBuilder.getOuterHTMLTemplate(templateFilePath);
@@ -1235,8 +1235,7 @@ public class StacksCommentsModule
 				{
 					for (final String alias : group.aliases())
 					{
-						internalLinks.put(alias, topLevelLinkFolderPath + "/"
-							+ outputFolder.toString()
+						internalLinks.put(alias, linkLocation
 							+ group.filepath().relativeFilePath());
 					}
 				}
@@ -1280,8 +1279,7 @@ public class StacksCommentsModule
 
 				if (group.isPopulated())
 				{
-					ambiguousLinks.add(topLevelLinkFolderPath + "/"
-						+ outputPath.toString()
+					ambiguousLinks.add(topLevelLinkFolderPath
 						+ group.filepath().relativeFilePath());
 				}
 				else
@@ -1290,8 +1288,7 @@ public class StacksCommentsModule
 				}
 			}
 
-			final int trim = (topLevelLinkFolderPath + "/"
-				+ outputPath.toString()).length();
+			final int trim = topLevelLinkFolderPath.length();
 
 			for (final String link : ambiguousLinks)
 			{
@@ -1317,8 +1314,7 @@ public class StacksCommentsModule
 				& 0xFFFFFFFFL) + ".html";
 
 			internalLinks.put(key.asNativeString(),
-				topLevelLinkFolderPath + "/" + outputFolder.toString()
-				+ "/" + fileName);
+				linkLocation + "/"  + fileName);
 
 			final StacksOutputFile htmlFile = new StacksOutputFile(
 				outputFolder, synchronizer, fileName,
@@ -1436,8 +1432,7 @@ public class StacksCommentsModule
 						& 0xFFFFFFFFL) + ".html";
 
 				internalLinks.put(ambiguousAliasKey,
-					topLevelLinkFolderPath + "/" + outputFolder.toString()
-					+ "/" + fileName);
+					topLevelLinkFolderPath + "/_Ambiguities/" + fileName);
 
 				final StacksOutputFile htmlFile = new StacksOutputFile(
 					outputFolder, ambiguousAliasSynchronizer, fileName,
