@@ -179,7 +179,7 @@ POSSIBILITY OF SUCH DAMAGE.
 		<copy todir="${path.avail.bin}/com/avail/tools/bootstrap">
 			<fileset
 				dir="${path.avail.src}/com/avail/tools/bootstrap"
-				includes="**/*_${user.language}_properties"/>
+				includes="**/*_${user.language}.properties"/>
 		</copy>
 	</target>
 	

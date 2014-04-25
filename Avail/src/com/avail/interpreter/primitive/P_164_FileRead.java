@@ -165,7 +165,7 @@ extends Primitive
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
 			StringDescriptor.format(
-				"Asynch file read (prim 164), %s",
+				"Asynchronous file read (prim 164), %s",
 				handle.atomName()));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.

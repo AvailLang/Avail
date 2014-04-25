@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
@@ -122,7 +121,7 @@ extends Primitive
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
 			StringDescriptor.format(
-				"Asynch file write (prim 165), %s",
+				"Asynchronous file write (prim 165), %s",
 				handle.atomName()));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
