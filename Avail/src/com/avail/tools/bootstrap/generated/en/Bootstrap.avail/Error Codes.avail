@@ -82,6 +82,7 @@ Names
 	/*  65 */ "declaration-type-must-not-be-top-or-bottom code",
 	/* 202 */ "directory-not-empty code",
 	/*  53 */ "double-question-mark-must-follow-a-simple-or-simple-group code",
+	/*  95 */ "exceeds-vm-limit code",
 	/*  38 */ "exclamation-mark-must-follow-an-alternation-group code",
 	/*  46 */ "expected-operator-after-backquote code",
 	/*  91 */ "fiber-cannot-join-itself code",
@@ -128,6 +129,8 @@ Names
 	/*   9 */ "no-such-fiber-variable code",
 	/*  69 */ "no-such-field code",
 	/*  17 */ "not-an-enumeration code",
+	/*  93 */ "not-open-for-read code",
+	/*  94 */ "not-open-for-write code",
 	/*  49 */ "octothorp-must-follow-a-simple-group code",
 	/*  29 */ "outer-type-literal-is-not-a-type code",
 	/* 203 */ "partial-success code",
@@ -598,6 +601,21 @@ Primitive "fiber-cannot-join-itself code" is
 Primitive "fiber-produced-incorrectly-typed-result code" is
 [
 	92
+];
+
+Primitive "not-open-for-read code" is
+[
+	93
+];
+
+Primitive "not-open-for-write code" is
+[
+	94
+];
+
+Primitive "exceeds-vm-limit code" is
+[
+	95
 ];
 
 Primitive "block-contains-invalid-statements code" is

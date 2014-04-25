@@ -106,9 +106,12 @@ abstract class PropertiesFileGenerator
 			"src/%s_%s.properties",
 			baseName.replace('.', '/'),
 			locale.getLanguage()));
+		System.out.println(fileName.getAbsolutePath());
+		final String[] components = baseName.split("\\.");
 		final File tempFileName = new File(String.format(
-			"src/%s_%s.propertiesTEMP",
-			baseName.replace('.', '/'),
+			"%s/%s_%s.propertiesTEMP",
+			System.getProperty("java.io.tmpdir"),
+			components[components.length - 1],
 			locale.getLanguage()));
 		assert fileName.getPath().endsWith(".properties");
 		final Properties properties = new Properties();
@@ -131,10 +134,21 @@ abstract class PropertiesFileGenerator
 		// Now switch the new file in.  In the rare event of failure between
 		// these steps, the complete content will still be available in the
 		// corresponding *.propertiesTEMP file.
-		@SuppressWarnings("unused")
-		final boolean ignored1 = fileName.delete();
-		@SuppressWarnings("unused")
-		final boolean ignored2 = tempFileName.renameTo(fileName);
+		boolean worked = fileName.delete();
+		if (!worked)
+		{
+			System.err.println(String.format(
+				"deleting the original properties file failed: %s",
+				fileName));
+		}
+		worked = tempFileName.renameTo(fileName);
+		if (!worked)
+		{
+			throw new RuntimeException(String.format(
+				"moving the temporary properties file failed: %s -> %s",
+				tempFileName,
+				fileName));
+		}
 	}
 
 	/**

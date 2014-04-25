@@ -170,10 +170,25 @@ POSSIBILITY OF SUCH DAMAGE.
 	</target>
 
 	<!--
+		Copy the generated properties files to the correct locations for Ant to
+		find them.
+	-->
+	<target
+			name="relocate-generated-properties-files"
+			description="Move the generated properties files.">
+		<copy todir="${path.avail.bin}/com/avail/tools/bootstrap">
+			<fileset
+				dir="${path.avail.src}/com/avail/tools/bootstrap"
+				includes="**/*_${user.language}_properties"/>
+		</copy>
+	</target>
+	
+	<!--
 		Run the generator that produces the error code properties file.
 	-->
 	<target
 			name="generate-error-code-names"
+			depends="relocate-generated-properties-files"
 			description="Generate ErrorCodeNames_*.properties.">
 		<java
 				classpath="${path.avail.bin}"
@@ -185,6 +200,7 @@ POSSIBILITY OF SUCH DAMAGE.
 	-->
 	<target
 			name="generate-special-object-names"
+			depends="relocate-generated-properties-files"
 			description="Generate SpecialObjectNames_*.properties.">
 		<java
 				classpath="${path.avail.bin}"
@@ -196,6 +212,7 @@ POSSIBILITY OF SUCH DAMAGE.
 	-->
 	<target
 			name="generate-primitive-names"
+			depends="relocate-generated-properties-files"
 			description="Generate ErrorCodeNames_*.properties.">
 		<java
 				classpath="${path.avail.bin}"
@@ -222,6 +239,7 @@ POSSIBILITY OF SUCH DAMAGE.
 		value="${path.avail.distro}/src/avail/Avail.avail/Foundation.avail/Bootstrap.avail"/>
 	<target
 			name="generate-bootstrap"
+			depends="relocate-generated-properties-files"
 			description="Generate the bootstrap Avail library.">
 		<java
 				classpath="${path.avail.bin}"

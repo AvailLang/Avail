@@ -38,6 +38,7 @@ import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
+import java.nio.ByteBuffer;
 import com.avail.annotations.*;
 
 /**
@@ -497,6 +498,19 @@ extends TupleDescriptor
 		}
 		return super.o_CopyTupleFromToCanDestroy(
 			object, start, end, canDestroy);
+	}
+
+	@Override
+	void o_TransferIntoByteBuffer (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final ByteBuffer outputByteBuffer)
+	{
+		for (int index = startIndex; index <= endIndex; index++)
+		{
+			outputByteBuffer.put(getNybble(object, index));
+		}
 	}
 
 	/**

@@ -6885,4 +6885,14 @@ implements
 	{
 		return descriptor.o_IsInitializedWriteOnceVariable(this);
 	}
+
+	@Override
+	public void transferIntoByteBuffer (
+		final int startIndex,
+		final int endIndex,
+		final ByteBuffer outputByteBuffer)
+	{
+		descriptor.o_TransferIntoByteBuffer(
+			this, startIndex, endIndex, outputByteBuffer);
+	}
 }

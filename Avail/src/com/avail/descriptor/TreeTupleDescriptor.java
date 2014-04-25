@@ -37,6 +37,7 @@ import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TreeTupleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.Mutability.*;
 import static java.lang.Math.*;
+import java.nio.ByteBuffer;
 import com.avail.annotations.*;
 
 /**
@@ -648,6 +649,51 @@ extends TupleDescriptor
 			hash += sectionHash;
 		}
 		return hash;
+	}
+
+	@Override
+	void o_TransferIntoByteBuffer (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final ByteBuffer outputByteBuffer)
+	{
+		final int lowChildIndex = childSubscriptForIndex(object, startIndex);
+		final int highChildIndex = childSubscriptForIndex(object, endIndex);
+		if (lowChildIndex == highChildIndex)
+		{
+			// Starts and ends in the same child.  Pass the buck downwards.
+			final int offset = offsetForChildSubscript(object, lowChildIndex);
+			object.childAt(lowChildIndex).transferIntoByteBuffer(
+				startIndex - offset,
+				endIndex - offset,
+				outputByteBuffer);
+		}
+		assert lowChildIndex < highChildIndex;
+		// The endpoints occur in distinct children.
+		final int leftOffset =
+			offsetForChildSubscript(object, lowChildIndex);
+		A_Tuple child = object.childAt(lowChildIndex);
+		child.transferIntoByteBuffer(
+			startIndex - leftOffset,
+			child.tupleSize(),
+			outputByteBuffer);
+		for (
+			int childIndex = lowChildIndex + 1;
+			childIndex < highChildIndex;
+			childIndex ++)
+		{
+			child = object.childAt(childIndex);
+			child.transferIntoByteBuffer(
+				1, child.tupleSize(), outputByteBuffer);
+		}
+		child = object.childAt(highChildIndex);
+		final int rightOffset =
+			offsetForChildSubscript(object, highChildIndex);
+		child.transferIntoByteBuffer(
+			1,
+			endIndex - rightOffset,
+			outputByteBuffer);
 	}
 
 	/**

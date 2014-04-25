@@ -38,6 +38,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.min;
 import static java.util.Collections.min;
 import static java.util.Collections.max;
+import java.nio.ByteBuffer;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
@@ -1112,6 +1113,24 @@ extends Descriptor
 		final AvailObject object,
 		final A_Tuple otherTuple,
 		final boolean canDestroy);
+
+	/**
+	 * Transfer the specified range of bytes into the provided {@link
+	 * ByteBuffer}.  The {@code ByteBuffer} should have enough room to store
+	 * the required number of bytes.
+	 */
+	@Override @AvailMethod
+	void o_TransferIntoByteBuffer (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final ByteBuffer outputByteBuffer)
+	{
+		for (int index = startIndex; index <= endIndex; index++)
+		{
+			outputByteBuffer.put((byte) object.extractUnsignedByte());
+		}
+	}
 
 	/** The empty tuple. */
 	private static final AvailObject emptyTuple;
