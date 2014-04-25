@@ -235,9 +235,10 @@ public class StacksGenerator
 
 		final int fileToOutPutCount =
 			outerMost.calculateFinalImplementationGroupsMap(htmlFileMap,
-				providedDocumentPath, implementationWrapperTemplate,
+				outputPath, implementationWrapperTemplate,
 				implementationProperties, runtime,
-				"/about-avail/documentation");
+				"/about-avail/documentation/stacks"
+					+ "/library-documentation");
 
 		createJSFiles(templatePackageName);
 
