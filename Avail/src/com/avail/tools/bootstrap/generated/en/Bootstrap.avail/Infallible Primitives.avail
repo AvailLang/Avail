@@ -207,7 +207,7 @@ Body
 /**
  * Is the first argument strictly less than the second argument?
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Mathematics" "Relations"
  * @method "_<_"
  * @param "arg1" "number"
  *        A number.
@@ -228,7 +228,7 @@ Primitive "_<_" is
 /**
  * Is the first argument less than or equal to the second argument?
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Mathematics" "Relations"
  * @method "_≤_"
  * @param "arg1" "number"
  *        A number.
@@ -250,7 +250,7 @@ Primitive "_≤_" is
  * Construct and answer an integral range type whose lower bound is {@param "lowerBound"}
  * and whose upper bound is {@param "upperBound"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Types" "Constructors"
  * @method "integer range from_(inclusive=_)to_(inclusive=_)"
  * @param "lowerBound" "extended integer"
  *        The lower bound.
@@ -278,7 +278,7 @@ Primitive "integer range from_(inclusive=_)to_(inclusive=_)" is
 /**
  * Answer the lower bound of the specified integral range type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Types" "Queries"
  * @method "_'s⁇genuine lower bound"
  * @param "range" "extended integer meta"
  *        An integral range type.
@@ -295,7 +295,7 @@ Primitive "_'s⁇genuine lower bound" is
 /**
  * Answer the upper bound of the specified integral range type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Types" "Queries"
  * @method "_'s⁇genuine upper bound"
  * @param "range" "extended integer meta"
  *        An integral range type.
@@ -312,7 +312,7 @@ Primitive "_'s⁇genuine upper bound" is
 /**
  * Construct and answer a variable type with the specified containment type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Variables" "Types" "Constructors"
  * @method "↑_"
  * @param "containmentType" "any meta"
  *        The containment type.
@@ -330,7 +330,7 @@ Primitive "↑_" is
  * Answer the read type of the specified variable type. All values read from
  * instances of the variable type are at least as specific as the answer.
  *
- * @category "Primitives"
+ * @category "Primitives" "Variables" "Types" "Queries"
  * @method "_'s⁇read type"
  * @param "varType" "variable meta"
  *        A variable type.
@@ -348,7 +348,7 @@ Primitive "_'s⁇read type" is
 /**
  * Construct and answer a new variable with the specified containment type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Variables" "Constructors"
  * @method "new↑_"
  * @param "containmentType" "any meta"
  *        The containment type.
@@ -366,7 +366,7 @@ Primitive "new↑_" is
 /**
  * Is the specified variable unassigned?
  *
- * @category "Primitives"
+ * @category "Primitives" "Variables" "Queries"
  * @method "_is unassigned"
  * @param "var" "variable"
  *        A variable.
@@ -385,7 +385,7 @@ Primitive "_is unassigned" is
  * Answer the write type of the specified variable type. All values written to
  * instances of the variable type are at least as specific as the answer.
  *
- * @category "Primitives"
+ * @category "Primitives" "Variables" "Types" "Queries"
  * @method "_'s⁇write type"
  * @param "varType" "variable meta"
  *        A variable type.
@@ -405,7 +405,7 @@ Primitive "_'s⁇write type" is
  * Coordinated Universal Time (UTC) of Thursday, January 1, 1970 (i.e. the Unix
  * Epoch).
  *
- * @category "Primitives"
+ * @category "Primitives" "Time" "Queries"
  * @method "milliseconds since the Epoch"
  * @returns "[0..∞)"
  *    The current time as the number of milliseconds which have elapsed since
@@ -420,7 +420,7 @@ Primitive "milliseconds since the Epoch" is
  * Answer the number of instances of the specified type. This is `∞` for all
  * types except for enumerations.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Queries"
  * @method "`|_`|"
  * @param "aType" "type"
  *        A type.
@@ -438,7 +438,7 @@ Primitive "`|_`|" is
  * Answer the precise instance type of the supplied value. This is the most
  * specific possible type that describes the value.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Constructors"
  * @method "_'s⁇type"
  * @param "value" "any"
  *        An arbitrary value.
@@ -456,7 +456,7 @@ Primitive "_'s⁇type" is
  * Compute and answer the type union of the two types. This is the most
  * specific type that is a supertype of both types.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Mathematics"
  * @method "_∪_"
  * @param "arg1" "type"
  *        A type.
@@ -477,7 +477,7 @@ Primitive "_∪_" is
  * Compute and answer the type intersection of the two types. This is the most
  * general type that is a subtype of both types.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Mathematics"
  * @method "_∩_"
  * @param "arg1" "type"
  *        A type.
@@ -499,7 +499,7 @@ Primitive "_∩_" is
  * implement the proper subtype relation, so the first argument is considered
  * a subtype of the second argument also if it is equal to the second argument.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Mathematics" "Relations"
  * @method "_⊆_"
  * @param "arg1" "type"
  *        A type.
@@ -521,7 +521,7 @@ Primitive "_⊆_" is
  * Construct and answer a function type with the specified parameter types and
  * return type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Functions" "Constructors"
  * @method "function accepting_and returning_"
  * @param "parameterTypes" "tuple of any meta"
  *        The parameter types.
@@ -544,7 +544,7 @@ Primitive "function accepting_and returning_" is
  * Answer a tuple type that describes the parameter types of the specified
  * function type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Functions" "Queries"
  * @method "_'s⁇parameters'type"
  * @param "functionType" "function meta"
  *        A function type.
@@ -562,7 +562,7 @@ Primitive "_'s⁇parameters'type" is
 /**
  * Answer the {@param "index"}-th parameter type of the specified function type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Functions" "Queries"
  * @method "_[_]"
  * @param "functionType" "function meta"
  *        A function type.
@@ -582,7 +582,7 @@ Primitive "_[_]" is
 /**
  * Answer the return type of the specified function type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Functions" "Queries"
  * @method "_'s⁇return type"
  * @param "functionType" "function meta"
  *        A function type.
@@ -600,7 +600,7 @@ Primitive "_'s⁇return type" is
  * Compute and answer the type union of the elements of the given tuple of
  * types.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Tuples" "Queries"
  * @method "∪_"
  * @param "tupleOfTypes" "tuple of type"
  *        A tuple of types.
@@ -619,7 +619,7 @@ Primitive "∪_" is
  * Instances of this type include any function that returns a value of the
  * specified return type, irrespective of the number or types of its parameters.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Functions" "Constructors"
  * @method "[`…]→_"
  * @param "returnType" "type"
  *        A type.
@@ -638,7 +638,7 @@ Primitive "[`…]→_" is
  * Given a predicate value and two functions, invoke one of them and answer its
  * result.
  *
- * @category "Primitives"
+ * @category "Primitives" "Control Structures" "Conditionals"
  * @method "If|if_then_else_"
  * @param "predicate" "boolean"
  *        A predicate value.
@@ -663,7 +663,7 @@ Primitive "If|if_then_else_" is
  * Given a predicate value and a function, conditionally invoke the specified
  * function.
  *
- * @category "Primitives"
+ * @category "Primitives" "Control Structures" "Conditionals"
  * @method "If_then_"
  * @param "predicate" "boolean"
  *        A predicate value.
@@ -686,7 +686,7 @@ Primitive "If_then_" is
  * have a fixed reference frame, so it should generally only be used to measure
  * the time elapsed between two invocations.
  *
- * @category "Primitives"
+ * @category "Primitives" "Time" "Queries"
  * @method "high-precision timer value"
  * @returns "[0..∞)"
  *    The current value of the high-precision timer, in nanoseconds.
@@ -699,7 +699,7 @@ Primitive "high-precision timer value" is
 /**
  * Construct and answer a variable type from the specified read and write types.
  *
- * @category "Primitives"
+ * @category "Primitives" "Variables" "Types" "Constructors"
  * @method "_→/→_"
  * @param "readType" "type"
  *        The read type of the variable type.
@@ -720,7 +720,7 @@ Primitive "_→/→_" is
  * Resume the specified continuation. The current continuation (in which this
  * primitive was invoked) is completely replaced by the resumed continuation.
  *
- * @category "Primitives"
+ * @category "Primitives" "Continuations" "Control Structures"
  * @method "Resume_"
  * @param "aContinuation" "continuation"
  *        A continuation.
@@ -736,16 +736,16 @@ Primitive "Resume_" is
 /**
  * Answer the type of the function represented by the specified continuation.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Continuations" "Queries"
  * @method "_'s⁇function type"
- * @param "aContinuation" "continuation meta"
- *        A continuation.
+ * @param "continuationType" "continuation meta"
+ *        A continuation type.
  * @returns "([…]→⊤)'s type"
  *    The argument's current function's type.
  */
 Primitive "_'s⁇function type" is
 [
-	aContinuation : continuation meta
+	continuationType : continuation meta
 |
 	Primitive 50;
 ] : function meta;
@@ -754,7 +754,7 @@ Primitive "_'s⁇function type" is
  * Compute and answer a continuation type capable of representing a current
  * function of the specified type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Continuations" "Constructors"
  * @method "$_"
  * @param "functionType" "function meta"
  *        A function type.
@@ -773,7 +773,7 @@ Primitive "$_" is
  * continuation. This variable will be unassigned if the continuation has no
  * caller.
  *
- * @category "Primitives"
+ * @category "Primitives" "Continuations" "Variables" "Constructors"
  * @method "_'s⁇caller"
  * @param "aContinuation" "continuation"
  *        A continuation.
@@ -791,7 +791,7 @@ Primitive "_'s⁇caller" is
 /**
  * Answer the current function of the specified continuation.
  *
- * @category "Primitives"
+ * @category "Primitives" "Continuations" "Queries"
  * @method "_'s⁇function"
  * @param "aContinuation" "continuation"
  *        A continuation.
@@ -811,7 +811,7 @@ Primitive "_'s⁇function" is
  * function's tuple of Level One nybblecodes, this is the index of the next
  * instruction to be performed (if the continuation is resumed).
  *
- * @category "Primitives"
+ * @category "Primitives" "Continuations" "Queries"
  * @method "_'s⁇program counter"
  * @param "aContinuation" "continuation"
  *        A continuation.
@@ -830,7 +830,7 @@ Primitive "_'s⁇program counter" is
  * the top of the local stack. For an empty stack, this value equals the size of
  * the stack plus one. The stack grows downward.
  *
- * @category "Primitives"
+ * @category "Primitives" "Continuations" "Queries"
  * @method "_'s⁇stack pointer"
  * @param "aContinuation" "continuation"
  *        A continuation.
@@ -851,7 +851,7 @@ Primitive "_'s⁇stack pointer" is
  * this primitive was invoked) is completely replaced by the restarted
  * continuation.
  *
- * @category "Primitives"
+ * @category "Primitives" "Continuations" "Control Structures"
  * @method "Restart_"
  * @param "aContinuation" "continuation"
  *        The continuation to restart.
@@ -872,7 +872,7 @@ Primitive "Restart_" is
  * cannot be constructed either syntactically nor through a variable
  * construction primitive.
  *
- * @category "Primitives"
+ * @category "Primitives" "Continuations" "Queries"
  * @method "_'s⁇stack"
  * @param "aContinuation" "continuation"
  *        A continuation.
@@ -889,7 +889,7 @@ Primitive "_'s⁇stack" is
 /**
  * Are the arguments equal?
  *
- * @category "Primitives"
+ * @category "Primitives" "Mathematics" "Relations"
  * @method "_=_"
  * @param "arg1" "any"
  *        A value.
@@ -909,7 +909,7 @@ Primitive "_=_" is
 /**
  * Construct and answer an object based on the supplied map.
  *
- * @category "Primitives"
+ * @category "Primitives" "Objects" "Constructors"
  * @method "_→object"
  * @param "fieldsToValues" "field map"
  *        A map whose keys are the fields of the new object and whose values are
@@ -927,7 +927,7 @@ Primitive "_→object" is
 /**
  * Construct and answer a map based on the supplied object.
  *
- * @category "Primitives"
+ * @category "Primitives" "Objects" "Maps" "Conversions"
  * @method "_→map"
  * @param "anObject" "object"
  *        An object whose fields should be the keys of the new map and whose
@@ -945,7 +945,7 @@ Primitive "_→map" is
 /**
  * Construct and answer an object type based on the supplied map.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Objects" "Maps" "Conversions"
  * @method "_→object type"
  * @param "fieldsToTypes" "field type map"
  *        A map whose keys are the fields of the new object and whose values are
@@ -963,7 +963,7 @@ Primitive "_→object type" is
 /**
  * Construct and answer a map based on the supplied object type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Objects" "Maps" "Conversions"
  * @method "_→map"
  * @param "anObjectType" "object meta"
  *        An object type whose fields should be the keys of the new map and
@@ -982,7 +982,7 @@ Primitive "_→map" is
  * Construct and answer an enumeration whose instances are fully determined by
  * the membership of the specified set.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Constructors"
  * @method "enumeration of_"
  * @param "instances" "set"
  *        The complete set of instances of the enumeration.
@@ -1001,7 +1001,7 @@ Primitive "enumeration of_" is
  * be used for subtypes that do not bind a more specific name to describe their
  * own subtypes.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Objects" "Mutators"
  * @method "_'s⁇name:=_"
  * @param "anObjectType" "object meta"
  *        An object type.
@@ -1022,7 +1022,7 @@ Primitive "_'s⁇name:=_" is
  * Answer the set of locally most-specific names bound to the specified object
  * type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Objects" "Queries"
  * @method "_'s⁇names"
  * @param "anObjectType" "object meta"
  *        An object type.
@@ -1043,7 +1043,7 @@ Primitive "_'s⁇names" is
  * number and types of arguments. The new function answers whatever
  * {@param "functionToApply"} answers.
  *
- * @category "Primitives"
+ * @category "Primitives" "Functions" "Constructors"
  * @method "new_applying_"
  * @param "aFunctionType" "function meta"
  *        The desired function type.
@@ -1066,7 +1066,7 @@ Primitive "new_applying_" is
  * implementation comprises its nybblecodes, its literals, its primitive
  * linkage (if any), its function type, and various statistics.
  *
- * @category "Primitives"
+ * @category "Primitives" "Functions" "Queries"
  * @method "_'s⁇implementation"
  * @param "aFunction" "function"
  *        A function.
@@ -1085,7 +1085,7 @@ Primitive "_'s⁇implementation" is
  * compiled directly from source code (i.e. the vast majority of them), these
  * variables are lexically captured.
  *
- * @category "Primitives"
+ * @category "Primitives" "Functions" "Queries"
  * @method "_'s⁇outer variables"
  * @param "aFunction" "function"
  *        A function.
@@ -1102,7 +1102,7 @@ Primitive "_'s⁇outer variables" is
 /**
  * Answer the cardinality of the specified map.
  *
- * @category "Primitives"
+ * @category "Primitives" "Maps" "Queries"
  * @method "`|_`|"
  * @param "aMap" "map"
  *        A map.
@@ -1119,7 +1119,7 @@ Primitive "`|_`|" is
 /**
  * Is {@param "key"} a member of the set of keys of {@param "aMap"}?
  *
- * @category "Primitives"
+ * @category "Primitives" "Maps" "Queries"
  * @method "_∈_"
  * @param "key" "any"
  *        The key whose membership should be queried.
@@ -1143,7 +1143,7 @@ Primitive "_∈_" is
  * {@param "key"} to {@param "value"}; any value previously bound to {@param "key"} is "forgotten" in the
  * new map.
  *
- * @category "Primitives"
+ * @category "Primitives" "Maps" "Transformers"
  * @method "_+_→_"
  * @param "aMap" "map"
  *        A map.
@@ -1168,7 +1168,7 @@ Primitive "_+_→_" is
  * (potentially) differs from the argument in that it does not contain a
  * binding for {@param "key"}; any such previous binding is "forgotten" in the new map.
  *
- * @category "Primitives"
+ * @category "Primitives" "Maps" "Transformers"
  * @method "_-_"
  * @param "aMap" "map"
  *        A map.
@@ -1188,7 +1188,7 @@ Primitive "_-_" is
 /**
  * Construct and answer a map from the supplied tuple of bindings.
  *
- * @category "Primitives"
+ * @category "Primitives" "Maps" "Constructors"
  * @method "_→map"
  * @param "bindings" "key-value tuple"
  *        A tuple of bindings. Each element of the argument is a
@@ -1208,7 +1208,7 @@ Primitive "_→map" is
 /**
  * Answer the set of keys of the specified map.
  *
- * @category "Primitives"
+ * @category "Primitives" "Maps" "Queries"
  * @method "_'s⁇keys"
  * @param "aMap" "map"
  *        A map.
@@ -1226,7 +1226,7 @@ Primitive "_'s⁇keys" is
  * Construct and answer a map type with the specified key type, value type, and
  * range of cardinalities.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Maps" "Constructors"
  * @method "{_→_`|_}"
  * @param "keyType" "any meta"
  *        A type to which all keys of instances must conform.
@@ -1251,7 +1251,7 @@ Primitive "{_→_`|_}" is
  * Answer the acceptable range of cardinalities for instances of the specified
  * map type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Maps" "Queries"
  * @method "`|`|_`|`|"
  * @param "aMapType" "map meta"
  *        A map type.
@@ -1269,7 +1269,7 @@ Primitive "`|`|_`|`|" is
  * Answer the most specific type to which the keys of all instances must
  * conform.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Maps" "Queries"
  * @method "_'s⁇key type"
  * @param "aMapType" "map meta"
  *        A map type.
@@ -1287,7 +1287,7 @@ Primitive "_'s⁇key type" is
  * Answer the most specific type to which the values of all instances must
  * conform.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Maps" "Queries"
  * @method "_'s⁇value type"
  * @param "aMapType" "map meta"
  *        A map type.
@@ -1305,7 +1305,7 @@ Primitive "_'s⁇value type" is
  * Answer a tuple containing the values of the specified map. The values are
  * arranged in no particular order.
  *
- * @category "Primitives"
+ * @category "Primitives" "Maps" "Queries"
  * @method "_'s⁇values"
  * @param "aMapType" "map"
  *        A map.
@@ -1323,7 +1323,7 @@ Primitive "_'s⁇values" is
  * Answer a tuple containing the bindings of the specified map. A binding is a
  * 2-tuple of key and value.
  *
- * @category "Primitives"
+ * @category "Primitives" "Maps" "Queries"
  * @method "_'s⁇bindings"
  * @param "aMapType" "map"
  *        A map.
@@ -1338,9 +1338,9 @@ Primitive "_'s⁇bindings" is
 ] : key-value tuple;
 
 /**
- * Compute and answer the bitwise AND of the arguments.
+ * Compute and answer the bitwise {@code "AND"} of the arguments.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Integers" "Mathematics" "Bits"
  * @method "_bit∧_"
  * @param "arg1" "integer"
  *        An integer.
@@ -1358,9 +1358,9 @@ Primitive "_bit∧_" is
 ] : integer;
 
 /**
- * Compute and answer the bitwise OR of the arguments.
+ * Compute and answer the bitwise {@code "OR"} of the arguments.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Integers" "Mathematics" "Bits"
  * @method "_bit∨_"
  * @param "arg1" "integer"
  *        An integer.
@@ -1378,9 +1378,9 @@ Primitive "_bit∨_" is
 ] : integer;
 
 /**
- * Compute and answer the bitwise XOR of the arguments.
+ * Compute and answer the bitwise {@code "XOR"} of the arguments.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Integers" "Mathematics" "Bits"
  * @method "_bit⊕_"
  * @param "arg1" "integer"
  *        An integer.
@@ -1400,7 +1400,7 @@ Primitive "_bit⊕_" is
 /**
  * Answer the cardinality of the specified set.
  *
- * @category "Primitives"
+ * @category "Primitives" "Sets" "Queries"
  * @method "`|_`|"
  * @param "aSet" "set"
  *        A set.
@@ -1417,7 +1417,7 @@ Primitive "`|_`|" is
 /**
  * Is {@param "element"} an element of {@param "aSet"}?
  *
- * @category "Primitives"
+ * @category "Primitives" "Sets" "Queries"
  * @method "_∈_"
  * @param "element" "any"
  *        An arbitrary value.
@@ -1439,7 +1439,7 @@ Primitive "_∈_" is
  * Compute and answer the set union of the arguments. This is a set that
  * contains the elements of both sets.
  *
- * @category "Primitives"
+ * @category "Primitives" "Sets" "Mathematics"
  * @method "_∪_"
  * @param "arg1" "set"
  *        A set.
@@ -1460,7 +1460,7 @@ Primitive "_∪_" is
  * Compute and answer the set intersection of the arguments. This is a set that
  * contains only those elements present in each set.
  *
- * @category "Primitives"
+ * @category "Primitives" "Sets" "Mathematics"
  * @method "_∩_"
  * @param "arg1" "set"
  *        A set.
@@ -1483,7 +1483,7 @@ Primitive "_∩_" is
  * This is a set that contains only those elements present in {@param "minuend"}
  * but not in {@param "subtrahend"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Sets" "Mathematics"
  * @method "_\\_"
  * @param "minuend" "set"
  *        The minuend.
@@ -1504,7 +1504,7 @@ Primitive "_\\_" is
  * Compute and answer the set union of the specified set and a set containing
  * the supplied element.
  *
- * @category "Primitives"
+ * @category "Primitives" "Sets" "Mathematics"
  * @method "_+_"
  * @param "aSet" "set"
  *        A set.
@@ -1526,7 +1526,7 @@ Primitive "_+_" is
  * Compute and answer the asymmetric set difference of the specified set and a
  * set containing the supplied element.
  *
- * @category "Primitives"
+ * @category "Primitives" "Sets" "Mathematics"
  * @method "_-_"
  * @param "aSet" "set"
  *        A set.
@@ -1547,7 +1547,7 @@ Primitive "_-_" is
 /**
  * Is {@param "arg1"} a subset of or equal to {@param "arg2"}?
  *
- * @category "Primitives"
+ * @category "Primitives" "Sets" "Mathematics" "Relations"
  * @method "_⊆_"
  * @param "arg1" "set"
  *        A set.
@@ -1569,7 +1569,7 @@ Primitive "_⊆_" is
  * Construct and answer a set that uniquely (by definition) contains the same
  * elements as the specified tuple.
  *
- * @category "Primitives"
+ * @category "Primitives" "Sets" "Tuples" "Conversions"
  * @method "_→set"
  * @param "aTuple" "tuple"
  *        A tuple.
@@ -1588,7 +1588,7 @@ Primitive "_→set" is
  * specified set. The conversion is unstable, and thus different calls given
  * the same argument may produce different orderings.
  *
- * @category "Primitives"
+ * @category "Primitives" "Sets" "Tuples" "Conversions"
  * @method "_→tuple"
  * @param "aSet" "set"
  *        A set.
@@ -1606,7 +1606,7 @@ Primitive "_→tuple" is
  * Construct and answer a set type with the specified element type and range of
  * cardinalities.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Sets" "Constructors"
  * @method "{_`|_}"
  * @param "elementType" "any meta"
  *        The element type.
@@ -1629,7 +1629,7 @@ Primitive "{_`|_}" is
  * Answer the acceptable range of cardinalities for instances of the specified
  * set type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Sets" "Queries"
  * @method "`|`|_`|`|"
  * @param "aSetType" "set meta"
  *        A set type.
@@ -1647,7 +1647,7 @@ Primitive "`|`|_`|`|" is
  * Answer the element type of the specified set type. This is the most specific
  * type to which all elements of instances must conform.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Sets" "Queries"
  * @method "_'s⁇element|member type"
  * @param "aSetType" "set meta"
  *        A set type.
@@ -1667,7 +1667,7 @@ Primitive "_'s⁇element|member type" is
  * and all atoms are distinct, regardless of whether their debug names are
  * equal.
  *
- * @category "Primitives"
+ * @category "Primitives" "Atoms" "Constructors"
  * @method "new atom named_"
  * @param "debugName" "string"
  *        A name to associate with the atom for debugging purposes. This name
@@ -1686,7 +1686,7 @@ Primitive "new atom named_" is
 /**
  * Answer the debug name of the specified atom.
  *
- * @category "Primitives"
+ * @category "Primitives" "Atoms" "Queries"
  * @method "_'s⁇name"
  * @param "anAtom" "atom"
  *        An atom.
@@ -1705,6 +1705,7 @@ Primitive "_'s⁇name" is
  * These atoms cannot serve as properties, nor have properties added, queried,
  * modified, or removed.
  *
+ * @category "Primitives" "Atoms" "Queries"
  * @method "special atoms"
  * @returns "{atom|}"
  *    The special atoms.
@@ -1719,7 +1720,7 @@ Primitive "special atoms" is
  * associated with this name. Simply verify that {@param "name"} is a viable
  * name of a method.
  *
- * @category "Primitives"
+ * @category "Primitives" "Methods" "Queries"
  * @method "_is a valid message"
  * @param "name" "atom"
  *        The name in question.
@@ -1737,7 +1738,7 @@ Primitive "_is a valid message" is
 /**
  * Answer the cardinality of the specified tuple.
  *
- * @category "Primitives"
+ * @category "Primitives" "Tuples" "Queries"
  * @method "`|_`|"
  * @param "aTuple" "tuple"
  *        A tuple.
@@ -1755,7 +1756,7 @@ Primitive "`|_`|" is
  * Construct and answer a tuple that is the left-to-right concatenation of all
  * elements (i.e. tuples) of the specified tuple.
  *
- * @category "Primitives"
+ * @category "Primitives" "Tuples" "Transformers"
  * @method "concatenate_"
  * @param "tupleOfTuples" "tuple of tuple"
  *        A tuple of tuples.
@@ -1773,7 +1774,7 @@ Primitive "concatenate_" is
  * Construct and answer a tuple type with the specified leading element types,
  * default element type, and range of cardinalities.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Tuples" "Constructors"
  * @method "<_,_`…`|_>"
  * @param "leadingTypes" "tuple of any meta"
  *        The leading types.
@@ -1796,7 +1797,7 @@ Primitive "<_,_`…`|_>" is
 /**
  * Answer the range of allowed cardinalities of instances of the specified type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Tuples" "Queries"
  * @method "`|`|_`|`|"
  * @param "aTupleType" "tuple meta"
  *        A tuple type.
@@ -1814,7 +1815,7 @@ Primitive "`|`|_`|`|" is
  * Answer a tuple containing the leading element types of instances of the
  * specified type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Tuples" "Queries"
  * @method "_'s⁇leading types"
  * @param "aTupleType" "tuple meta"
  *        A tuple type.
@@ -1831,7 +1832,7 @@ Primitive "_'s⁇leading types" is
 /**
  * Answer the default element type of instances of the specified type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Tuples" "Queries"
  * @method "_'s⁇default type"
  * @param "aTupleType" "tuple meta"
  *        A tuple type.
@@ -1847,9 +1848,10 @@ Primitive "_'s⁇default type" is
 
 /**
  * Answer the element type of the {@param "index"}-th element of instances of the
- * specified type. If {@param "index"} is out of bounds, then answer ⊥.
+ * specified type. If {@param "index"} is out of bounds, then answer
+ * {@type "⊥"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Tuples" "Queries"
  * @method "_[_]"
  * @param "aTupleType" "tuple meta"
  *        A tuple type.
@@ -1869,7 +1871,7 @@ Primitive "_[_]" is
 /**
  * Compute and answer the type union of the indicated range of element types.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Tuples" "Queries"
  * @method "∪_[_.._]"
  * @param "aTupleType" "tuple meta"
  *        A tuple type.
@@ -1894,7 +1896,7 @@ Primitive "∪_[_.._]" is
  * the most specific type that encompasses all possible concatenations of the
  * instances of the two types.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Tuples" "Transformers"
  * @method "_++_"
  * @param "arg1" "tuple meta"
  *        A tuple type.
@@ -1914,7 +1916,7 @@ Primitive "_++_" is
 /**
  * Construct and answer an object type based on the supplied tuple.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Tuples" "Objects" "Conversions"
  * @method "_→object type"
  * @param "fieldDefinitions" "field type tuple"
  *        A tuple whose elements are 2-tuples. Each 2-tuple's first element is
@@ -1933,7 +1935,7 @@ Primitive "_→object type" is
 /**
  * Construct and answer a tuple based on the supplied object type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Tuples" "Objects" "Conversions"
  * @method "_→tuple"
  * @param "anObjectType" "object meta"
  *        An object type.
@@ -1953,7 +1955,7 @@ Primitive "_→tuple" is
 /**
  * Construct and answer an object based on the supplied tuple.
  *
- * @category "Primitives"
+ * @category "Primitives" "Tuples" "Objects" "Conversions"
  * @method "_→object"
  * @param "fieldAssignments" "field tuple"
  *        A tuple whose elements are 2-tuples. Each 2-tuple's first element is
@@ -1972,7 +1974,7 @@ Primitive "_→object" is
 /**
  * Construct and answer a tuple based on the supplied object.
  *
- * @category "Primitives"
+ * @category "Primitives" "Tuples" "Objects" "Conversions"
  * @method "_→tuple"
  * @param "anObject" "object"
  *        An object.
@@ -1992,7 +1994,7 @@ Primitive "_→tuple" is
  * Answer the arity of a function implementation. This is the number of
  * parameters accepted by the function implementation.
  *
- * @category "Primitives"
+ * @category "Primitives" "Function Implementations" "Queries"
  * @method "_'s⁇arity"
  * @param "aFunctionImplementation" "function implementation"
  *        A function implementation.
@@ -2009,7 +2011,7 @@ Primitive "_'s⁇arity" is
 /**
  * Answer the number of local variables used by a function implementation.
  *
- * @category "Primitives"
+ * @category "Primitives" "Function Implementations" "Queries"
  * @method "`|_'s⁇local variables`|"
  * @param "aFunctionImplementation" "function implementation"
  *        A function implementation.
@@ -2026,7 +2028,7 @@ Primitive "`|_'s⁇local variables`|" is
 /**
  * Answer the number of outer variables used by a function implementation.
  *
- * @category "Primitives"
+ * @category "Primitives" "Function Implementations" "Queries"
  * @method "`|_'s⁇outer variables`|"
  * @param "aFunctionImplementation" "function implementation"
  *        A function implementation.
@@ -2045,7 +2047,7 @@ Primitive "`|_'s⁇outer variables`|" is
  * account for arguments and local variables (which occupy the "bottom" stack
  * slots).
  *
- * @category "Primitives"
+ * @category "Primitives" "Function Implementations" "Queries"
  * @method "_'s⁇maximum stack depth"
  * @param "aFunctionImplementation" "function implementation"
  *        A function implementation.
@@ -2063,7 +2065,7 @@ Primitive "_'s⁇maximum stack depth" is
  * Answer the Level One instructions that describe a function implementation's
  * algorithm as a tuple of nybblecodes.
  *
- * @category "Primitives"
+ * @category "Primitives" "Function Implementations" "Queries"
  * @method "_'s⁇nybblecodes"
  * @param "aFunctionImplementation" "function implementation"
  *        A function implementation.
@@ -2081,7 +2083,7 @@ Primitive "_'s⁇nybblecodes" is
  * Answer the function type of any function that could close the specified
  * function implementation.
  *
- * @category "Primitives"
+ * @category "Primitives" "Function Implementations" "Queries"
  * @method "_'s⁇function type"
  * @param "aFunctionImplementation" "function implementation"
  *        A function implementation.
@@ -2100,7 +2102,7 @@ Primitive "_'s⁇function type" is
  * function implementation. If the function implementation does not have
  * primitive linkage, then answer `0`.
  *
- * @category "Primitives"
+ * @category "Primitives" "Function Implementations" "Queries"
  * @method "_'s⁇primitive number"
  * @param "aFunctionImplementation" "function implementation"
  *        A function implementation.
@@ -2118,7 +2120,7 @@ Primitive "_'s⁇primitive number" is
 /**
  * Answer the literals that support a function implementation's algorithm.
  *
- * @category "Primitives"
+ * @category "Primitives" "Function Implementations" "Queries"
  * @method "_'s⁇literals"
  * @param "aFunctionImplementation" "function implementation"
  *        A function implementation.
@@ -2135,7 +2137,7 @@ Primitive "_'s⁇literals" is
 /**
  * Answer the specified definition's function type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Definitions" "Queries"
  * @method "_'s⁇function type"
  * @param "aDefinition" "definition"
  *        Any definition (method, macro, abstract, forward).
@@ -2152,7 +2154,7 @@ Primitive "_'s⁇function type" is
 /**
  * Answer the specified method definition's function.
  *
- * @category "Primitives"
+ * @category "Primitives" "Definitions" "Queries"
  * @method "_'s⁇function"
  * @param "aDefinition" "method definition"
  *        A method definition.
@@ -2169,7 +2171,7 @@ Primitive "_'s⁇function" is
 /**
  * Answer the atom that uniquely identifies the specified message bundle.
  *
- * @category "Primitives"
+ * @category "Primitives" "Atoms" "Queries"
  * @method "_'s⁇atom"
  * @param "aMessageBundle" "message bundle"
  *        A message bundle for some method.
@@ -2186,7 +2188,7 @@ Primitive "_'s⁇atom" is
 /**
  * Answer the number of parameters required by the specified method.
  *
- * @category "Primitives"
+ * @category "Primitives" "Methods" "Queries"
  * @method "`|_'s⁇parameters`|"
  * @param "aMessageBundle" "message bundle"
  *        A method.
@@ -2203,7 +2205,7 @@ Primitive "`|_'s⁇parameters`|" is
 /**
  * Is there a method bound to the specified name?
  *
- * @category "Primitives"
+ * @category "Primitives" "Atoms" "Methods" "Queries"
  * @method "method exists named_"
  * @param "trueName" "atom"
  *        An atom.
@@ -2220,7 +2222,7 @@ Primitive "method exists named_" is
 /**
  * Answer all seals applied to the specified method.
  *
- * @category "Primitives"
+ * @category "Primitives" "Methods" "Queries"
  * @method "_'s⁇seals"
  * @param "aMethod" "method"
  *        A method.
@@ -2237,7 +2239,7 @@ Primitive "_'s⁇seals" is
 /**
  * Answer the public names introduced by the specified module.
  *
- * @category "Primitives"
+ * @category "Primitives" "Modules" "Queries"
  * @method "_'s⁇public names"
  * @param "aModule" "module"
  *        A module.
@@ -2254,7 +2256,7 @@ Primitive "_'s⁇public names" is
 /**
  * Answer the fully qualified name of the specified module.
  *
- * @category "Primitives"
+ * @category "Primitives" "Modules" "Queries"
  * @method "_'s⁇name"
  * @param "aModule" "module"
  *        A module.
@@ -2272,7 +2274,7 @@ Primitive "_'s⁇name" is
  * Compute and answer the semantic restrictions that would run at a call site
  * of {@param "aMethod"} applied with the specified tuple of arguments.
  *
- * @category "Primitives"
+ * @category "Primitives" "Methods" "Semantic Restrictions" "Queries"
  * @method "semantic restrictions for_given_"
  * @param "aMethod" "method"
  *        A method.
@@ -2293,7 +2295,7 @@ Primitive "semantic restrictions for_given_" is
 /**
  * Does the argument denote a valid primitive?
  *
- * @category "Primitives"
+ * @category "Primitives" "Methods" "Queries"
  * @method "_is a primitive"
  * @param "primitiveNumber" "unsigned short"
  *        A potential primitive number.
@@ -2319,7 +2321,7 @@ Primitive "_is a primitive" is
  * of serious failures in bootstrap code. Real failures in system code outside
  * of the bootstrap package use Avail's usual exception handling machinery.
  *
- * @category "Primitives"
+ * @category "Primitives" "Bootstrap" "Exceptions"
  * @method "Crash:_"
  * @param "value" "any"
  *        A value, provided to establish context for debugging.
@@ -2339,7 +2341,8 @@ Primitive "Crash:_" is
  * 
  * This method exists to facilitate debugging of the Avail virtual machine, and
  * will be withdrawn once the implementation is considered sufficiently stable.
- * @category "Primitives"
+ *
+ * @category "Primitives" "Bootstrap"
  * @method "Breakpoint"
  * @returns "⊤"
  */
@@ -2351,7 +2354,7 @@ Primitive "Breakpoint" is
 /**
  * Print the argument to the application's standard output stream.
  *
- * @category "Primitives"
+ * @category "Primitives" "Standard I/O" "Synchronous I/O"
  * @method "Print:_"
  * @param "text" "string"
  *        A string.
@@ -2371,7 +2374,7 @@ Primitive "Print:_" is
  * implementation-specific information that serves only to assist the
  * Avail virtual machine developers in debugging the implementation.
  *
- * @category "Primitives"
+ * @category "Primitives" "Stringification"
  * @method "primitive description of_"
  * @param "value" "any"
  *        A value.
@@ -2391,7 +2394,7 @@ Primitive "primitive description of_" is
  * Raise a special exception in the virtual machine that may be trapped to
  * facilitate debugging. This exception will provided access to {@param "message"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Bootstrap" "Assertions"
  * @method "Assert:_(_)"
  * @param "predicate" "boolean"
  *        A boolean, usually derived from a more complex predicate expression.
@@ -2411,7 +2414,7 @@ Primitive "Assert:_(_)" is
 /**
  * Print the argument to the application's standard error stream.
  *
- * @category "Primitives"
+ * @category "Primitives" "Standard I/O" "Synchronous I/O"
  * @method "Error:_"
  * @param "text" "string"
  *        A string.
@@ -2428,7 +2431,7 @@ Primitive "Error:_" is
  * Compute and answer the numeric argument as a single-precision floating point
  * number.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Conversion"
  * @method "_→float"
  * @param "aNumber" "number"
  *        A number.
@@ -2446,7 +2449,7 @@ Primitive "_→float" is
  * Compute and answer the numeric argument as a double-precision floating point
  * number.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Conversion"
  * @method "_→double"
  * @param "aNumeric" "number"
  *        A number.
@@ -2464,7 +2467,7 @@ Primitive "_→double" is
  * Compute and answer an approximation of the natural logarithm of the argument,
  * i.e., ln {@param "x"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Mathematics"
  * @method "ln_"
  * @param "x" "float"
  *        A single-precision floating point number.
@@ -2482,7 +2485,7 @@ Primitive "ln_" is
  * Compute and answer an approximation of the natural exponential function for
  * the given exponent, i.e., e^{@param "x"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Mathematics"
  * @method "_^_"
  * @param "eulerNumber" "type of Euler number"
  *        Euler's number.
@@ -2503,7 +2506,7 @@ Primitive "_^_" is
  * Compute and answer an approximation of {@param "dividend"} modulo {@param "divisor"}, i.e. the
  * remainder produced by dividing the arguments.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Mathematics"
  * @method "_mod_"
  * @param "dividend" "float"
  *        The dividend.
@@ -2521,10 +2524,10 @@ Primitive "_mod_" is
 ] : float;
 
 /**
- * Compute and answer {@param "a"}⨉(2^{@param "two"}) without loss of precision or
+ * Compute and answer {@param "a"}⨉(2^{@param "b"}) without loss of precision or
  * intermediate overflow. This scales {@param "a"} by a power of two (`2`).
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Mathematics"
  * @method "_⨉_^_"
  * @param "a" "float"
  *        A single-precision floating point number.
@@ -2548,7 +2551,7 @@ Primitive "_⨉_^_" is
  * Compute and answer the largest integral single-precision floating point
  * number less than or equal to the argument, i.e., the floor of {@param "x"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Mathematics"
  * @method "⎣_⎦"
  * @param "x" "float"
  *        A single-precision floating point number.
@@ -2567,7 +2570,7 @@ Primitive "⎣_⎦" is
  * Compute and answer the smallest integral single-precision floating point
  * number greater than or equal to the argument, i.e., the ceiling of {@param "x"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Mathematics"
  * @method "⎡_⎤"
  * @param "x" "float"
  *        A single-precision floating point number.
@@ -2586,7 +2589,7 @@ Primitive "⎡_⎤" is
  * Compute and answer an approximation of the natural logarithm of the argument,
  * i.e., ln {@param "x"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Mathematics"
  * @method "ln_"
  * @param "x" "double"
  *        A double-precision floating point number.
@@ -2604,7 +2607,7 @@ Primitive "ln_" is
  * Compute and answer an approximation of the natural exponential function for
  * the given exponent, i.e., e^{@param "x"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Mathematics"
  * @method "_^_"
  * @param "eulerNumber" "type of Euler number"
  *        Euler's number.
@@ -2625,7 +2628,7 @@ Primitive "_^_" is
  * Compute and answer an approximation of {@param "dividend"} modulo {@param "divisor"}, i.e. the
  * remainder produced by dividing the arguments.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Mathematics"
  * @method "_mod_"
  * @param "dividend" "double"
  *        The dividend.
@@ -2647,7 +2650,7 @@ Primitive "_mod_" is
  * precision or intermediate overflow. This scales {@param "a"} by a power
  * of two (`2`).
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Mathematics"
  * @method "_⨉_^_"
  * @param "a" "double"
  *        A single-precision floating point number.
@@ -2672,7 +2675,7 @@ Primitive "_⨉_^_" is
  * number less than or equal to the argument, i.e., the floor of {@param
  * "x"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Mathematics"
  * @method "⎣_⎦"
  * @param "x" "double"
  *        A double-precision floating point number.
@@ -2691,7 +2694,7 @@ Primitive "⎣_⎦" is
  * Compute and answer the smallest integral double-precision floating point
  * number greater than or equal to the argument, i.e., the ceiling of {@param "x"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Mathematics"
  * @method "⎡_⎤"
  * @param "x" "double"
  *        A double-precision floating point number.
@@ -2709,7 +2712,7 @@ Primitive "⎡_⎤" is
 /**
  * Answer the argument's Unicode code point.
  *
- * @category "Primitives"
+ * @category "Primitives" "Integers" "Unicode" "Conversions"
  * @method "_'s⁇code point"
  * @param "aCharacter" "character"
  *        A character.
@@ -2726,7 +2729,7 @@ Primitive "_'s⁇code point" is
 /**
  * Answer the argument as a character.
  *
- * @category "Primitives"
+ * @category "Primitives" "Integers" "Unicode" "Conversions"
  * @method "_→character"
  * @param "codePoint" "code point"
  *        A Unicode code point.
@@ -2744,7 +2747,7 @@ Primitive "_→character" is
  * Answer the whitespace that appeared immediately before this token in the
  * source text. Comments are not reckoned as whitespace.
  *
- * @category "Primitives"
+ * @category "Primitives" "Tokens" "Queries"
  * @method "_'s⁇leading whitespace"
  * @param "aToken" "token"
  *        A token.
@@ -2762,7 +2765,7 @@ Primitive "_'s⁇leading whitespace" is
  * Answer the whitespace that appeared immediately after this token in the
  * source text. Comments are not reckoned as whitespace.
  *
- * @category "Primitives"
+ * @category "Primitives" "Tokens" "Queries"
  * @method "_'s⁇trailing whitespace"
  * @param "aToken" "token"
  *        A token.
@@ -2779,7 +2782,7 @@ Primitive "_'s⁇trailing whitespace" is
 /**
  * Answer the semantic type of the specified phrase type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇semantic type"
  * @param "phraseType" "phrase meta"
  *        A phrase type.
@@ -2798,7 +2801,7 @@ Primitive "_'s⁇semantic type" is
  * produced when the content of the phrase is evaluated (by the compiler and/or
  * runtime).
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇semantic type"
  * @param "node" "phrase"
  *        A phrase.
@@ -2816,7 +2819,7 @@ Primitive "_'s⁇semantic type" is
 /**
  * Construct and answer a phrase type with the specified semantic type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Phrases" "Constructors"
  * @method "_⇒_"
  * @param "aPhrase" "phrase meta"
  *        A phrase type.
@@ -2838,7 +2841,7 @@ Primitive "_⇒_" is
  * Answer the lexeme of the specified token. This is the source text that
  * produced the token.
  *
- * @category "Primitives"
+ * @category "Primitives" "Tokens" "Queries"
  * @method "_'s⁇lexeme"
  * @param "aToken" "token"
  *        A token.
@@ -2856,7 +2859,7 @@ Primitive "_'s⁇lexeme" is
  * Answer the zero-based starting position of the specified token within the
  * module that supplied it.
  *
- * @category "Primitives"
+ * @category "Primitives" "Tokens" "Queries"
  * @method "_'s⁇starting position"
  * @param "aToken" "token"
  *        A token.
@@ -2874,7 +2877,7 @@ Primitive "_'s⁇starting position" is
  * Answer the one-based line number of the specified token within the module
  * that supplied it.
  *
- * @category "Primitives"
+ * @category "Primitives" "Tokens" "Queries"
  * @method "_'s⁇line number"
  * @param "aToken" "token"
  *        A token.
@@ -2891,7 +2894,7 @@ Primitive "_'s⁇line number" is
 /**
  * Answer the literal value associated with the specified token.
  *
- * @category "Primitives"
+ * @category "Primitives" "Tokens" "Queries"
  * @method "_'s⁇value"
  * @param "aLiteralToken" "literal token"
  *        A literal token.
@@ -2908,7 +2911,7 @@ Primitive "_'s⁇value" is
 /**
  * Construct and answer a (synthetic) literal token.
  *
- * @category "Primitives"
+ * @category "Primitives" "Tokens" "Constructors"
  * @method "``_``(_)"
  * @param "value" "any"
  *        The value of the literal.
@@ -2928,7 +2931,7 @@ Primitive "``_``(_)" is
 /**
  * Answer the arguments of the specified block.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇arguments"
  * @param "aBlock" "block phrase"
  *        A block.
@@ -2945,7 +2948,7 @@ Primitive "_'s⁇arguments" is
 /**
  * Answer the primitive linkage number of the specified block.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇primitive number"
  * @param "aBlock" "block phrase"
  *        A block.
@@ -2963,7 +2966,7 @@ Primitive "_'s⁇primitive number" is
 /**
  * Answer the statements of the specified block.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇statements"
  * @param "aBlock" "block phrase"
  *        A block.
@@ -2981,7 +2984,7 @@ Primitive "_'s⁇statements" is
 /**
  * Answer the return type of the specified block.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇return type"
  * @param "aBlock" "block phrase"
  *        A block.
@@ -2998,7 +3001,7 @@ Primitive "_'s⁇return type" is
 /**
  * Answer the declared exceptions of the specified block.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇declared exceptions"
  * @param "aBlock" "block phrase"
  *        A block.
@@ -3015,7 +3018,7 @@ Primitive "_'s⁇declared exceptions" is
 /**
  * Answer the specified block's outer variables.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇outer variables"
  * @param "aBlock" "block phrase"
  *        A block.
@@ -3033,7 +3036,7 @@ Primitive "_'s⁇outer variables" is
 /**
  * Answer the specified assignment's target variable.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇target"
  * @param "anAssignment" "assignment phrase"
  *        An assignment.
@@ -3050,7 +3053,7 @@ Primitive "_'s⁇target" is
 /**
  * Answer the specified assignment's value expression.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇value"
  * @param "anAssignment" "assignment phrase"
  *        An assignment.
@@ -3067,7 +3070,7 @@ Primitive "_'s⁇value" is
 /**
  * Answer the specified variable reference's referent.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇referent"
  * @param "aReference" "variable reference phrase"
  *        A variable reference.
@@ -3084,7 +3087,7 @@ Primitive "_'s⁇referent" is
 /**
  * Construct and answer an argument declaration.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Constructors"
  * @method "arg`«_:_`»"
  * @param "name" "token"
  *        The name of the new constant.
@@ -3104,7 +3107,7 @@ Primitive "arg`«_:_`»" is
 /**
  * Construct and answer a label declaration.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Constructors"
  * @method "`«$_:_`»"
  * @param "name" "token"
  *        The name of the new constant.
@@ -3124,7 +3127,7 @@ Primitive "`«$_:_`»" is
 /**
  * Construct and answer a local constant declaration.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Constructors"
  * @method "`«_::=_`»"
  * @param "name" "token"
  *        The name of the new constant.
@@ -3144,7 +3147,7 @@ Primitive "`«_::=_`»" is
 /**
  * Construct and answer a primitive failure local constant declaration.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Constructors"
  * @method "primfail`«_:_`»"
  * @param "name" "token"
  *        The name of the new constant.
@@ -3164,7 +3167,7 @@ Primitive "primfail`«_:_`»" is
 /**
  * Construct and answer a local variable declaration.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Constructors"
  * @method "`«_:_`»"
  * @param "name" "token"
  *        The name of the new variable.
@@ -3184,7 +3187,7 @@ Primitive "`«_:_`»" is
 /**
  * Construct and answer an initialized local variable declaration.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Constructors"
  * @method "`«_:_:=_`»"
  * @param "name" "token"
  *        The name of the new variable.
@@ -3208,7 +3211,7 @@ Primitive "`«_:_:=_`»" is
  * Answer the token that names the entity introduced by the specified
  * declaration.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇token"
  * @param "aDeclaration" "declaration phrase"
  *        A declaration.
@@ -3226,7 +3229,7 @@ Primitive "_'s⁇token" is
  * Answer the declared type of the entity introduced by the specified
  * declaration.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇declared type"
  * @param "aDeclaration" "declaration phrase"
  *        A declaration.
@@ -3244,7 +3247,7 @@ Primitive "_'s⁇declared type" is
  * If the specified declaration has an initialization expression, then store it
  * into {@param "var"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Variables" "Phrases" "Queries" "Mutators"
  * @method "↓_`?=_'s⁇initialization"
  * @param "var" "write-only expression variable"
  *        A variable.
@@ -3265,7 +3268,7 @@ Primitive "↓_`?=_'s⁇initialization" is
 /**
  * Construct and answer a literal expression.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Constructors"
  * @method "‘_’"
  * @param "aLiteralToken" "literal token"
  *        A literal token.
@@ -3282,7 +3285,7 @@ Primitive "‘_’" is
 /**
  * Answer the specified literal expression's defining token.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇token"
  * @param "aLiteral" "literal phrase"
  *        A literal expression.
@@ -3299,7 +3302,7 @@ Primitive "_'s⁇token" is
 /**
  * Answer the target method of the specified message send.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇method"
  * @param "aSend" "send phrase"
  *        A message send.
@@ -3316,7 +3319,7 @@ Primitive "_'s⁇method" is
 /**
  * Answer the specified message send's list of argument expressions.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇arguments"
  * @param "aSend" "send phrase"
  *        A message send.
@@ -3333,7 +3336,7 @@ Primitive "_'s⁇arguments" is
 /**
  * Answer the specified message send's expected return type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇return type"
  * @param "aSend" "send phrase"
  *        A message send.
@@ -3350,7 +3353,7 @@ Primitive "_'s⁇return type" is
 /**
  * Answer the tuple of statements that constitute the specified sequence.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇statements"
  * @param "aSequence" "sequence phrase"
  *        A sequence.
@@ -3367,7 +3370,7 @@ Primitive "_'s⁇statements" is
 /**
  * Construct and answer a list from the specified tuple of expressions.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Constructors"
  * @method "_→list phrase"
  * @param "aTuple" "tuple of expressions yielding any"
  *        A tuple of expressions.
@@ -3384,7 +3387,7 @@ Primitive "_→list phrase" is
 /**
  * Answer the tuple of expressions that constitute the specified list.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇expressions"
  * @param "aList" "list phrase"
  *        A list.
@@ -3401,7 +3404,7 @@ Primitive "_'s⁇expressions" is
 /**
  * Create a variable use expression from the specified token and declaration.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Constructors"
  * @method "`«↓_`»(_)"
  * @param "aDeclaration" "declaration phrase"
  *        The declaration that created the referenced entity.
@@ -3421,7 +3424,7 @@ Primitive "`«↓_`»(_)" is
 /**
  * Answer the specified variable use expression's token.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇token"
  * @param "use" "variable use phrase"
  *        A variable use expression.
@@ -3439,7 +3442,7 @@ Primitive "_'s⁇token" is
  * Answer the declaration that introduced the entity referenced by the specified
  * variable use expression.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇declaration"
  * @param "use" "variable use phrase"
  *        A variable use expression.
@@ -3456,7 +3459,7 @@ Primitive "_'s⁇declaration" is
 /**
  * Construct a suitably parameterized literal token type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Phrases" "Constructors"
  * @method "literal token⇒_"
  * @param "literalValue" "any meta"
  *        The literal value's type
@@ -3474,7 +3477,7 @@ Primitive "literal token⇒_" is
  * Extract this literal token type's value type. That's the type of value
  * that a conforming literal token can produce.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Phrases" "Queries"
  * @method "_'s⁇value type"
  * @param "literalTokenType" "literal token meta"
  *        The literal token type.
@@ -3492,7 +3495,7 @@ Primitive "_'s⁇value type" is
  * Compute and answer a block phrase that represents the decompilation of the
  * specified function. Outer variables are treated as literals.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Functions" "Conversions"
  * @method "_→block phrase"
  * @param "aFunction" "function"
  *        A function.
@@ -3510,7 +3513,7 @@ Primitive "_→block phrase" is
  * Construct and answer a pojo array type whose element type is {@param "elementType"}
  * and whose cardinality requirement is {@param "cardinalityRequirement"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "POJO" "Constructors"
  * @method "_[_]"
  * @param "elementType" "any meta"
  *        The type of the elements of instances.
@@ -3530,7 +3533,7 @@ Primitive "_[_]" is
 /**
  * Compute and answer a pojo array with the specified element type and length.
  *
- * @category "Primitives"
+ * @category "Primitives" "POJO" "Constructors"
  * @method "new_[_]"
  * @param "elementType" "any meta"
  *        The element type.
@@ -3551,7 +3554,7 @@ Primitive "new_[_]" is
 /**
  * Answer the number of elements contained by the specified pojo array.
  *
- * @category "Primitives"
+ * @category "Primitives" "POJO" "Queries"
  * @method "`|_`|"
  * @param "anArray" "pojo array"
  *        A pojo array.
@@ -3568,7 +3571,7 @@ Primitive "`|_`|" is
 /**
  * Answer the cardinality restriction of the specified pojo array type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "POJO" "Queries"
  * @method "`|`|_`|`|"
  * @param "pojoArrayType" "pojo array meta"
  *        A pojo array type.
@@ -3585,7 +3588,7 @@ Primitive "`|`|_`|`|" is
 /**
  * Answer the element type of the specified pojo array type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "POJO" "Queries"
  * @method "_'s⁇element type"
  * @param "pojoArrayType" "pojo array meta"
  *        A pojo array type.
@@ -3603,7 +3606,7 @@ Primitive "_'s⁇element type" is
  * Construct and answer a tuple whose elements are sourced from the specified
  * pojo array.
  *
- * @category "Primitives"
+ * @category "Primitives" "Tuples" "POJO" "Conversions"
  * @method "_→tuple"
  * @param "aPojoArray" "pojo array"
  *        A pojo array.
@@ -3620,7 +3623,7 @@ Primitive "_→tuple" is
 /**
  * Answer the current fiber.
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Queries"
  * @method "current fiber"
  * @returns "fiber→⊤"
  *    The current fiber.
@@ -3634,7 +3637,7 @@ Primitive "current fiber" is
  * Extract the priority of a fiber. A fiber with higher priority may receive a
  * larger share of the available CPU time than one with a low priority.
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Queries"
  * @method "_'s⁇priority"
  * @param "aFiber" "fiber"
  *        The fiber from which to extract the priority.
@@ -3652,7 +3655,7 @@ Primitive "_'s⁇priority" is
  * Modify the priority of a fiber. A fiber with higher priority may receive a
  * larger share of the available CPU time than one with a low priority.
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Mutators"
  * @method "_'s⁇priority:=_"
  * @param "aFiber" "fiber"
  *        The fiber to prioritize.
@@ -3672,7 +3675,7 @@ Primitive "_'s⁇priority:=_" is
  * Has termination of the current fiber been requested? Answer the current value
  * of the appropriate interrupt request flag and simultaneously clear it.
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Queries"
  * @method "termination requested"
  * @returns "boolean"
  *    `true` if termination of the current fiber has been requested, `false`
@@ -3688,7 +3691,7 @@ Primitive "termination requested" is
  * time. Termination is consensual only; cooperation of the fiber is required to
  * affect actual termination.
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Mutators"
  * @method "Request termination of_"
  * @param "victim" "fiber"
  *        A fiber.
@@ -3703,7 +3706,8 @@ Primitive "Request termination of_" is
 
 /**
  * Terminate the current fiber.
- * @category "Primitives"
+ *
+ * @category "Primitives" "Bootstrap" "Concurrency"
  * @method "Terminate current fiber"
  * @returns "⊥"
  */
@@ -3720,7 +3724,8 @@ Primitive "Terminate current fiber" is
  * always recheck the basis for its having parked, to see if it should park
  * again. Low-level synchronization mechanisms may require the ability to
  * spuriously unpark in order to ensure correctness.
- * @category "Primitives"
+ *
+ * @category "Primitives" "Concurrency" "Synchronization" "Control Structures"
  * @method "Park current fiber"
  * @returns "⊤"
  */
@@ -3737,7 +3742,7 @@ Primitive "Park current fiber" is
  * park again. Low-level synchronization mechanisms may require the ability to
  * spuriously unpark in order to ensure correctness.
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Synchronization" "Control Structures"
  * @method "Unpark_"
  * @param "aFiber" "fiber"
  *        A fiber.
@@ -3753,7 +3758,8 @@ Primitive "Unpark_" is
 /**
  * Yield the current fiber. That is, give up the fiber's time slice so that
  * other processes of higher or equal priority may run.
- * @category "Primitives"
+ *
+ * @category "Primitives" "Concurrency"
  * @method "Yield current fiber"
  * @returns "⊤"
  */
@@ -3765,7 +3771,7 @@ Primitive "Yield current fiber" is
 /**
  * Answer the name of the specified fiber.
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Queries"
  * @method "_'s⁇name"
  * @param "aFiber" "fiber"
  *        A fiber.
@@ -3782,7 +3788,7 @@ Primitive "_'s⁇name" is
 /**
  * Set the name of the specified fiber.
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Mutators"
  * @method "_'s⁇name:=_"
  * @param "aFiber" "fiber"
  *        A fiber.
@@ -3801,7 +3807,7 @@ Primitive "_'s⁇name:=_" is
 /**
  * Has the specified fiber terminated?
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Queries"
  * @method "_has terminated"
  * @param "aFiber" "fiber"
  *        A fiber.
@@ -3818,7 +3824,7 @@ Primitive "_has terminated" is
 /**
  * Does the specified fiber have a result ready?
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Queries"
  * @method "_has result"
  * @param "aFiber" "fiber"
  *        A fiber.
@@ -3839,7 +3845,7 @@ Primitive "_has result" is
  * effort will be made to awaken the fiber as soon as the delay has expired.
  * No real-time guarantees are made.
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Time" "Control Structures"
  * @method "Sleep for_millisecond|milliseconds"
  * @param "delayMillis" "nonnegative extended integer"
  *        The minimum number of milliseconds to sleep.
@@ -3856,7 +3862,7 @@ Primitive "Sleep for_millisecond|milliseconds" is
  * Ascertain whether the current fiber was forked (by the compiler) in order to
  * evaluate a semantic restriction.
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Semantic Restrictions"
  * @method "current fiber is applying a semantic restriction"
  * @returns "boolean"
  *    `true` if the current fiber is applying a semantic restriction, `false`
@@ -3870,7 +3876,7 @@ Primitive "current fiber is applying a semantic restriction" is
 /**
  * Construct and answer a fiber type whose result type is {@param "resultType"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Concurrency"
  * @method "fiber→_"
  * @param "resultType" "type"
  *        A type.
@@ -3887,7 +3893,7 @@ Primitive "fiber→_" is
 /**
  * Answer the result type of the specified fiber type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Concurrency" "Queries"
  * @method "_'s⁇result type"
  * @param "fiberType" "fiber meta"
  *        A fiber type.
@@ -3904,7 +3910,7 @@ Primitive "_'s⁇result type" is
 /**
  * Reverses the order of the given tuple.
  *
- * @category "Primitives"
+ * @category "Primitives" "Tuples" "Transformers"
  * @method "_reversed"
  * @param "aTuple" "tuple"
  *        A tuple.

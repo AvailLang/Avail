@@ -46,9 +46,8 @@ public final class P_050_ContinuationTypeToFunctionType extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_050_ContinuationTypeToFunctionType().init(
-
-	1, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_050_ContinuationTypeToFunctionType().init(1, CanFold, CannotFail);
 
 	@Override
 	public Result attempt (
