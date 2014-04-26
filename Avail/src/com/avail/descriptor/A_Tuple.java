@@ -491,7 +491,24 @@ extends A_BasicObject, Iterable<AvailObject>
 		int startIndex2);
 
 	/**
-	 * @return
+	 * Extract the backing {@code byte[]} from this tuple.  Only applicable if
+	 * the tuple's descriptor answers true to {@linkplain
+	 * TupleDescriptor#o_IsByteArrayTuple(AvailObject)}.
+	 *
+	 * @return This tuple's byte array.  Don't modify it.
 	 */
 	byte[] byteArray ();
+
+	/**
+	 * Transfer the specified subrange of this tuple of bytes into the provided
+	 * {@link ByteBuffer}.  There should be sufficient room to write the bytes.
+	 *
+	 * @param startIndex The subscript of the first byte to write.
+	 * @param endIndex The subscript of the last byte to write.
+	 * @param outputByteBuffer The {@code ByteBuffer} in which to write.
+	 */
+	void transferIntoByteBuffer (
+		int startIndex,
+		int endIndex,
+		ByteBuffer outputByteBuffer);
 }

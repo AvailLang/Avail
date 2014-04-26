@@ -625,9 +625,25 @@ public enum AvailErrorCode
 	 */
 	E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT (92),
 
-//	E_??? (93)
-//	E_??? (94)
-//	E_??? (95)
+	/**
+	 * An attempt was made to read through a valid handle that was not opened
+	 * for read access.
+	 */
+	E_NOT_OPEN_FOR_READ (93),
+
+	/**
+	 * An attempt was made to perform some destructive operation with a valid
+	 * handle that was not opened for write access.
+	 */
+	E_NOT_OPEN_FOR_WRITE (94),
+
+	/**
+	 * A value was passed that exceeded the allowed numeric range, either {@code
+	 * int}, {@code long}, or some other limit imposed by the operating system
+	 * or virtual machine.
+	 */
+	E_EXCEEDS_VM_LIMIT (95),
+
 //	E_??? (96)
 //	E_??? (97)
 //	E_??? (98)

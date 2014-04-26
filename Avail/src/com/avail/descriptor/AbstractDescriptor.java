@@ -5962,4 +5962,16 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract boolean o_IsInitializedWriteOnceVariable (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param startIndex
+	 * @param endIndex
+	 * @param outputByteBuffer
+	 */
+	abstract void o_TransferIntoByteBuffer (
+		AvailObject object,
+		int startIndex,
+		int endIndex,
+		ByteBuffer outputByteBuffer);
 }

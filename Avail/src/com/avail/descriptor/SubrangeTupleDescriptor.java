@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.SubrangeTupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.SubrangeTupleDescriptor.ObjectSlots.*;
+import java.nio.ByteBuffer;
 import com.avail.annotations.*;
 
 /**
@@ -449,6 +450,24 @@ extends TupleDescriptor
 		return basis.computeHashFromTo(
 			startIndex + adjustment,
 			endIndex + adjustment);
+	}
+
+	@Override
+	void o_TransferIntoByteBuffer (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final ByteBuffer outputByteBuffer)
+	{
+		final A_Tuple basis = object.slot(BASIS_TUPLE);
+		final int size = object.slot(SIZE);
+		assert 1 <= startIndex && startIndex <= size;
+		assert startIndex - 1 <= endIndex && endIndex <= size;
+		final int adjustment = object.slot(START_INDEX) - 1;
+		basis.transferIntoByteBuffer(
+			startIndex + adjustment,
+			endIndex + adjustment,
+			outputByteBuffer);
 	}
 
 	/**

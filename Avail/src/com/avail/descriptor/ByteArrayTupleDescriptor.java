@@ -37,6 +37,7 @@ import static com.avail.descriptor.ByteArrayTupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ByteArrayTupleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 import static java.lang.Math.min;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import com.avail.annotations.*;
 
@@ -490,6 +491,17 @@ extends TupleDescriptor
 		}
 		return super.o_CopyTupleFromToCanDestroy(
 			object, start, end, canDestroy);
+	}
+
+	@Override
+	void o_TransferIntoByteBuffer (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final ByteBuffer outputByteBuffer)
+	{
+		final byte [] byteArray = object.byteArray();
+		outputByteBuffer.put(byteArray, startIndex - 1, endIndex);
 	}
 
 	/**

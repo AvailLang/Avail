@@ -191,25 +191,18 @@ extends TupleDescriptor
 		final A_Tuple aByteBufferTuple,
 		final int startIndex2)
 	{
-		if (object.sameAddressAs(aByteBufferTuple) && startIndex1 == startIndex2)
+		if (object.sameAddressAs(aByteBufferTuple)
+			&& startIndex1 == startIndex2)
 		{
 			return true;
 		}
-		final ByteBuffer buffer1 = object.byteBuffer();
-		final ByteBuffer buffer2 = aByteBufferTuple.byteBuffer();
-		for (
-			int index1 = startIndex1 - 1,
-				index2 = startIndex2 - 1,
-				lastIndex = endIndex1 - 1;
-			index1 <= lastIndex;
-			index1++, index2++)
-		{
-			if (buffer1.get(index1) != buffer2.get(index2))
-			{
-				return false;
-			}
-		}
-		return true;
+		final ByteBuffer buffer1 = object.byteBuffer().slice();
+		final ByteBuffer buffer2 = aByteBufferTuple.byteBuffer().slice();
+		buffer1.position(startIndex1 - 1);
+		buffer1.limit(endIndex1);
+		buffer2.position(startIndex2 - 1);
+		buffer2.limit(startIndex2 + endIndex1 - startIndex1);
+		return buffer1.equals(buffer2);
 	}
 
 	@Override @AvailMethod
@@ -484,6 +477,20 @@ extends TupleDescriptor
 			object, start, end, canDestroy);
 	}
 
+	@Override
+	void o_TransferIntoByteBuffer (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final ByteBuffer outputByteBuffer)
+	{
+		final ByteBuffer sourceBuffer = object.byteBuffer().slice();
+		sourceBuffer.position(startIndex - 1);
+		sourceBuffer.limit(endIndex);
+		assert sourceBuffer.remaining() == endIndex - startIndex + 1;
+		outputByteBuffer.put(sourceBuffer);
+	}
+
 	/**
 	 * Construct a new {@link ByteBufferTupleDescriptor}.
 	 *
@@ -534,8 +541,9 @@ extends TupleDescriptor
 	private AvailObject copyAsMutableByteBufferTuple (
 		final AvailObject object)
 	{
-		final ByteBuffer buffer =
+		final ByteBuffer originalBuffer =
 			(ByteBuffer) object.slot(BYTE_BUFFER).javaObject();
+		final ByteBuffer buffer = originalBuffer.duplicate();
 		final ByteBuffer copy = ByteBuffer.allocateDirect(buffer.capacity());
 		buffer.position(0);
 		buffer.limit(buffer.capacity());

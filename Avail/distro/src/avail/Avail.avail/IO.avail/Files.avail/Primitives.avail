@@ -66,6 +66,7 @@ Names
 
 	/* File I/O. */
 	"next_byte|bytes from_",
+	"next_byte|bytes from_starting at_",
 	"Write_to_",
 	"Synchronize_with file system",
 

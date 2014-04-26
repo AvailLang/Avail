@@ -4557,4 +4557,15 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).isInitializedWriteOnceVariable();
 	}
+
+	@Override
+	void o_TransferIntoByteBuffer (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final ByteBuffer outputByteBuffer)
+	{
+		o_Traversed(object).transferIntoByteBuffer(
+			startIndex, endIndex, outputByteBuffer);
+	}
 }

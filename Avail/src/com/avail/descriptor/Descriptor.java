@@ -4403,4 +4403,14 @@ extends AbstractDescriptor
 	{
 		return false;
 	}
+
+	@Override
+	void o_TransferIntoByteBuffer (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final ByteBuffer outputByteBuffer)
+	{
+		throw unsupportedOperationException();
+	}
 }
