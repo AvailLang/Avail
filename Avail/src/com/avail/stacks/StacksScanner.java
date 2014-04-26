@@ -50,6 +50,101 @@ public class StacksScanner extends AbstractStacksScanner
 	private final boolean commentEndsStandardly;
 
 	/**
+	 * The number of newlines.
+	 */
+	private int newlineCount;
+
+	/**
+	 * Increment new line
+	 */
+	public void incrementNewlineCount()
+	{
+		newlineCount++;
+	}
+
+	/**
+	 * decrement new line
+	 */
+	public void decrementNewLineCount()
+	{
+		newlineCount--;
+	}
+
+	/**
+	 * @return the newlineCount
+	 */
+	public int newlineCount()
+	{
+		return newlineCount;
+	}
+
+	/**
+	 * Set the newlineCount to 0;
+	 */
+	public void resetNewlineCount()
+	{
+		newlineCount = 0;
+	}
+
+	/**
+	 * Does the current content start with an HTML tag?
+	 */
+	private boolean hasHTMLTag;
+
+	/**
+	 * @return the hasHTMLTag
+	 */
+	public boolean hasHTMLTag ()
+	{
+		return hasHTMLTag;
+	}
+
+	/**
+	 * set the hasHTMLTag to true
+	 */
+	public void hasHTMLTagTrue ()
+	{
+		hasHTMLTag = true;
+	}
+
+	/**
+	 * set the hasHTMLTag to false
+	 */
+	public void hasHTMLTagFalse()
+	{
+		hasHTMLTag = false;
+	}
+
+	/**
+	 * Was a paragraph HTML tag added to the output tokens??
+	 */
+	private boolean addedParagraphHTMLTag;
+
+	/**
+	 * @return the addedParagraphHTMLTag
+	 */
+	public boolean addedParagraphHTMLTag ()
+	{
+		return addedParagraphHTMLTag;
+	}
+
+	/**
+	 * set the hasHTMLTag to true
+	 */
+	public void addedParagraphHTMLTagTrue ()
+	{
+		addedParagraphHTMLTag = true;
+	}
+
+	/**
+	 * set the hasHTMLTag to false
+	 */
+	public void addedParagraphHTMLTagFalse()
+	{
+		addedParagraphHTMLTag = false;
+	}
+
+	/**
 	 * Does the comment end with the standard asterisk-forward slash?
 	 */
 	private final boolean commentStartsStandardly;
@@ -97,6 +192,9 @@ public class StacksScanner extends AbstractStacksScanner
 	private StacksScanner (final A_Token commentToken,
 		final String moduleName)
 	{
+		resetNewlineCount();
+		hasHTMLTagFalse();
+		addedParagraphHTMLTagFalse();
 		this.moduleLeafName =
 			moduleName.substring(moduleName.lastIndexOf("/") + 1);
 
@@ -596,15 +694,63 @@ public class StacksScanner extends AbstractStacksScanner
 			void scan (final StacksScanner scanner)
 				throws StacksScannerException
 			{
+				int cp = 0;
+				scanner.incrementNewlineCount();
 				while (Character.isSpaceChar(scanner.peek())
 					|| Character.isWhitespace(scanner.peek()))
 				{
-					scanner.next();
+					cp = scanner.next();
+					if (forCodePoint(cp) == NEWLINE)
+					{
+							scanner.incrementNewlineCount();
+					}
 					if (scanner.peekFor('*'))
 					{
-						scanner.next();
+						cp = scanner.next();
+						if (forCodePoint(cp) == NEWLINE)
+						{
+								scanner.incrementNewlineCount();
+						}
 					}
 				}
+				if (!scanner.hasHTMLTag() && scanner.newlineCount() > 1
+					&& !(forCodePoint(scanner.peek()) == SLASH)
+					&& !(forCodePoint(scanner.peek()) == KEYWORD_START))
+				{
+					if (scanner.addedParagraphHTMLTag())
+					{
+						scanner.addHTMLTokens("</p>\n<p>");
+						final StringBuilder debugStringBuilder = new StringBuilder();
+						for (final AbstractStacksToken aToken : scanner.outputTokens)
+						{
+							debugStringBuilder.append(aToken.lexeme()).append(' ');
+						}
+						final int i = 3+2;
+					}
+					else
+					{
+						scanner.addHTMLTokens("<p>");
+					}
+					scanner.addedParagraphHTMLTagTrue();
+				}
+				if (scanner.hasHTMLTag() && scanner.newlineCount() > 1)
+				{
+					if (forCodePoint(scanner.peek()) == STANDARD_CHARACTER)
+					{
+						scanner.addHTMLTokens("<p>");
+						scanner.hasHTMLTagFalse();
+						scanner.addedParagraphHTMLTagTrue();
+					}
+				}
+				if (forCodePoint(scanner.peek()) == KEYWORD_START &&
+					scanner.addedParagraphHTMLTag())
+				{
+					scanner.addHTMLTokens("</p>");
+					scanner.hasHTMLTagFalse();
+					scanner.addedParagraphHTMLTagFalse();
+				}
+
+				scanner.resetNewlineCount();
 			}
 		},
 
@@ -812,5 +958,27 @@ public class StacksScanner extends AbstractStacksScanner
 	public String moduleLeafName ()
 	{
 		return moduleLeafName;
+	}
+
+	/**
+	 * Insert HTML tags in tokenized comments.
+	 * @param htmltags the html text to add.
+	 */
+	public void addHTMLTokens (final String htmltags)
+	{
+		final StacksToken token = StacksToken.create(
+			htmltags,
+			position () + filePosition(),
+			lineNumber(),
+			startOfTokenLinePostion(),
+			moduleName.toString());
+		outputTokens.add(token);
+
+		final StringBuilder debugStringBuilder = new StringBuilder();
+		for (final AbstractStacksToken aToken : outputTokens)
+		{
+			debugStringBuilder.append(aToken.lexeme()).append(' ');
+		}
+		final int j = 3 + 5;
 	}
 }

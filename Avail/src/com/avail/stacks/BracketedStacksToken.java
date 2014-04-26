@@ -142,7 +142,7 @@ public class BracketedStacksToken extends RegionStacksToken
 				//TODO address spacing
 				final StringBuilder stringBuilder = new StringBuilder();
 
-				stringBuilder.append("<code>");
+				stringBuilder.append("<code class=\"method\">");
 				final int tokenCount = bracketToken.subTokens.size();
 				for (int i = 1; i < tokenCount - 1; i++)
 				{
