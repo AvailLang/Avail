@@ -115,7 +115,7 @@ extends Primitive
 			path, PosixFileAttributeView.class, options);
 		if (view == null)
 		{
-			return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
+			return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED);
 		}
 		try
 		{
@@ -161,7 +161,7 @@ extends Primitive
 				E_INVALID_PATH.numericCode(),
 				E_PERMISSION_DENIED.numericCode(),
 				E_IO_ERROR.numericCode(),
-				E_PRIMITIVE_NOT_SUPPORTED.numericCode()
+				E_OPERATION_NOT_SUPPORTED.numericCode()
 			).asSet());
 	}
 }

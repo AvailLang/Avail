@@ -234,7 +234,7 @@ Public method "_is special file" is
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
- * @raises "primitive-not-supported exception"
+ * @raises "operation-not-supported exception"
  *         If {@type "file access right"}s are not supported by the host
  *         platform.
  */
@@ -256,7 +256,7 @@ Public method "_'s⁇access rights" is
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
- * @raises "primitive-not-supported exception"
+ * @raises "operation-not-supported exception"
  *         If {@type "file access right"}s are not supported by the host
  *         platform.
  */
@@ -282,7 +282,7 @@ Public method "_'s⁇access rights:=_" is
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
- * @raises "primitive-not-supported exception"
+ * @raises "operation-not-supported exception"
  *         If {@type "user principal"}s are not supported by the host
  *         platform.
  */
@@ -305,7 +305,7 @@ Public method "_'s⁇owner" is
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
- * @raises "primitive-not-supported exception"
+ * @raises "operation-not-supported exception"
  *         If {@type "user principal"}s are not supported by the host
  *         platform.
  */
@@ -331,7 +331,7 @@ Public method "_'s⁇owner:=_" is
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
- * @raises "primitive-not-supported exception"
+ * @raises "operation-not-supported exception"
  *         If {@type "group principal"}s are not supported by the host
  *         platform.
  */
@@ -354,7 +354,7 @@ Public method "_'s⁇group" is
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
- * @raises "primitive-not-supported exception"
+ * @raises "operation-not-supported exception"
  *         If {@type "group principal"}s are not supported by the host
  *         platform.
  */

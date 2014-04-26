@@ -146,7 +146,7 @@ extends Primitive
 		}
 		catch (final UnsupportedOperationException e)
 		{
-			return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
+			return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED);
 		}
 		final A_Set ordinals = ordinalsFromPosixPermissions(permissions);
 		return interpreter.primitiveSuccess(ordinals);
@@ -180,7 +180,7 @@ extends Primitive
 				E_INVALID_PATH.numericCode(),
 				E_PERMISSION_DENIED.numericCode(),
 				E_IO_ERROR.numericCode(),
-				E_PRIMITIVE_NOT_SUPPORTED.numericCode()
+				E_OPERATION_NOT_SUPPORTED.numericCode()
 			).asSet());
 	}
 }

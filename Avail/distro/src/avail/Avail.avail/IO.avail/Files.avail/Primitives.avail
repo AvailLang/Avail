@@ -59,6 +59,7 @@ Names
 	"a writable file named_",
 
 	/* File attributes. */
+	"_'s⁇name",
 	"_is open",
 	"_is closed",
 	"_'s⁇size",
@@ -96,6 +97,7 @@ Public "write mode" is a new atom;
 _mode ::= {read mode, write mode}ᵀ;
 Public method "file open mode" is [_mode];
 
+"name" is a new field atom;
 "handle" is a new field atom;
 "readable" is a new field atom;
 "writable" is a new field atom;
@@ -166,7 +168,12 @@ Public method "a readable file named_" is
 			[
 				s : nonempty string
 			|
-				Primitive 160 (e : {I/O-error code, permission-denied code}ᵀ);
+				Primitive 160 (e : {
+					invalid-path code,
+					illegal-option code,
+					operation-not-supported code,
+					premission-denied code,
+					I/O-error code}ᵀ);
 				Raise an exception for e
 			] : atom (n's name),
 		name ::= n,
@@ -450,7 +457,7 @@ Method "_'s⁇position" is
 |
 	[
 		h : atom
-	|
+	|ww
 		Primitive 167 (e : {invalid-handle code, I/O-error code}ᵀ);
 		Raise an exception for e
 	] : natural number (f's handle)
@@ -524,6 +531,31 @@ Public method "next_byte|bytes from_" is
 		Raise an exception for e
 	] : <[0..255]…|> (f's handle, bytesToRead)
 ] : <[0..255]…|>;
+
+final A_Number positionObject = args.get(0);
+final A_Number sizeObject = args.get(1);
+final A_Atom handle = args.get(2);
+final A_Function succeed = args.get(3);
+final A_Function fail = args.get(4);
+final A_Number priority = args.get(5);
+
+
+Private method "private next_byte|bytes starting at_from_priority_into_else_" is
+[
+	bytesToRead : [1..∞],
+	start : natural number,
+	f : readable file,
+	priority : byte,
+	into : [<byte…|>]→⊤,
+	else : [io error code]→⊤
+|
+	Primitive 164 (e : {
+		invalid-handle code,
+		special-atom code,
+		not-open-for-read code,
+		exceeds-vm-limit code})
+	Raise an exception for e
+] : <byte…|1..∞>
 
 /**
  * @method "next_byte|bytes from_"
