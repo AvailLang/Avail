@@ -2815,7 +2815,6 @@ Print: “z”;
  * small tuples.
  *
  * @method "insertion sort_with_"
- * @category "category"
  * @param "aTuple" "<any…|2..15>" 
  *        The tuple to be sorted.
  * @param "comparator" "[⊥, ⊥]→boolean"
@@ -2824,7 +2823,7 @@ Print: “z”;
  *        "false"} otherwise.
  * @returns "<any|2..15>"
  *          The sorted tuple.
- * @category "Tuples" "Transformers"
+ * @category "Tuples" "Transformers" "Sorting"
  */
 Private method "insertion sort_with_" is
 [
@@ -2893,6 +2892,7 @@ Semantic restriction "insertion sort_with_" is
  * causes ambiguous resolution if multiple overrides exist that will accept it.
  *
  * @method "quicksort_"
+ * @category "Tuples" "Sorting"
  * @param "numbers" "<number…|>"
  *        A tuple of numbers.
  * @returns "<number…|>"
@@ -2970,6 +2970,7 @@ Method "quicksort_" is
  * quicksort algorithm and specified comparison function.
  *
  * @method "quicksort_with_"
+ * @category "Tuples" "Transformers" "Sorting"
  * @param "aTuple" "tuple"
  *        A tuple.
  * @param "comparator" "[⊥, ⊥]→boolean"
@@ -3065,7 +3066,7 @@ Seal method "quicksort_with_" at <tuple, [⊥, ⊥]→boolean>;
  * criteria provided in the comparison function.
  *
  * @method "merge_with_"
- * @category "Tuples"
+ * @category "Tuples" "Sorting"
  * @param "splitInput" "<tuple…|2>>" 
  *        The two ordered tuples to merge.
  * @param "comparator" "[⊥, ⊥]→boolean"
@@ -3113,7 +3114,6 @@ Private method "merge_with_" is
  * merge sort algorithm and specified comparison function.
  *
  * @method "merge sort_with_"
- * @category "Tuples"
  * @param "aTuple" "tuple" 
  *        The tuple to sort.
  * @param "comparator" "[⊥, ⊥]→boolean"
@@ -3123,7 +3123,7 @@ Private method "merge_with_" is
  * @returns "tuple"
  *          The sorted tuple.
  * @author "Richard Arriaga"
- * @category "Tuples" "Transformations"
+ * @category "Tuples" "Transformations" "Sorting"
  */
 Public abstract method "merge sort_with_" is [tuple, [⊥, ⊥]→boolean]→tuple;
 
@@ -3190,18 +3190,17 @@ Public method "merge sort_with_" is
  * the merge sort algorithm where n ≤ m.
  *
  * @method "merge sort_"
- * @category "Tuples"
  * @param "aTuple" "<number…|>" 
  *         A tuple.
  * @returns "<number…|>"
  *          The sorted tuple.
  * @author "Richard Arriaga"
- * @category "Tuples" "Transformations"
+ * @category "Tuples" "Transformations" "Sorting"
  */
 Public abstract method "merge sort_" is [<number…|>]→<number…|>;
 
 /**
- * Give quicksort higher precedence than concatenation.
+ * Give merge sort higher precedence than concatenation.
  * 
  * @method "merge sort_"
  * @forbids "1" "«_‡++»"

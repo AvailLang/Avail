@@ -493,6 +493,43 @@ public class BracketedStacksToken extends RegionStacksToken
 						return "";
 					}
 				}
+				//for links.size() >= 2
+
+					final StringBuilder linkBuilder = new StringBuilder();
+					final int listSize = links.size();
+					if (listSize >= 2)
+					{
+						for (int i = 1; i < listSize - 1; i++)
+						{
+							linkBuilder
+								.append(links.get(i).toHTML(htmlFileMap,
+									hashID, errorLog))
+								.append(" ");
+						}
+						linkBuilder
+							.append(links.get(listSize - 1)
+								.toHTML(htmlFileMap, hashID, errorLog));
+					}
+					final QuotedStacksToken link =
+						(QuotedStacksToken) links.get(0);
+
+					if (htmlFileMap.internalLinks()
+						.containsKey(link.lexeme()))
+					{
+						final StringBuilder stringBuilder =
+							new StringBuilder();
+						stringBuilder
+							.append("<a ng-click=\"changeLinkValue('")
+							.append(htmlFileMap.internalLinks()
+								.get(link.lexeme()))
+							.append("')\" href=\"")
+							.append(htmlFileMap.internalLinks()
+								.get(link.lexeme()))
+							.append("\">")
+							.append(linkBuilder)
+							.append("</a>");
+						return stringBuilder.toString();
+					}
 
 				return "<code>" + links.get(0).lexeme() + "</code>";
 			}
@@ -825,7 +862,45 @@ public class BracketedStacksToken extends RegionStacksToken
 					}
 				}
 
-				return "<code>" + links.get(0).lexeme() + "</code>";
+				//for links.size() >= 2
+
+				final StringBuilder linkBuilder = new StringBuilder();
+				final int listSize = links.size();
+				if (listSize >= 2)
+				{
+					for (int i = 1; i < listSize - 1; i++)
+					{
+						linkBuilder
+							.append(links.get(i).toHTML(htmlFileMap,
+								hashID, errorLog))
+							.append(" ");
+					}
+					linkBuilder
+						.append(links.get(listSize - 1)
+							.toHTML(htmlFileMap, hashID, errorLog));
+				}
+				final QuotedStacksToken link =
+					(QuotedStacksToken) links.get(0);
+
+				if (htmlFileMap.internalLinks()
+					.containsKey(link.lexeme()))
+				{
+					final StringBuilder stringBuilder =
+						new StringBuilder();
+					stringBuilder
+						.append("<a ng-click=\"changeLinkValue('")
+						.append(htmlFileMap.internalLinks()
+							.get(link.lexeme()))
+						.append("')\" href=\"")
+						.append(htmlFileMap.internalLinks()
+							.get(link.lexeme()))
+						.append("\">")
+						.append(linkBuilder)
+						.append("</a>");
+					return stringBuilder.toString();
+				}
+
+			return "<code>" + links.get(0).lexeme() + "</code>";
 			}
 		};
 

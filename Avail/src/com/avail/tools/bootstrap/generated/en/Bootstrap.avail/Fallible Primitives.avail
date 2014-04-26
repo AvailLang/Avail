@@ -200,7 +200,7 @@ Private semantic restriction "Private invoke_with«_‡,»" is
 /**
  * Compute and answer the sum of the arguments.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Mathematics"
  * @method "_+_"
  * @param "augend" "number"
  *        The augend.
@@ -223,7 +223,7 @@ Primitive "_+_" is
 /**
  * Compute and answer the difference of the arguments.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Mathematics"
  * @method "_-_"
  * @param "minuend" "number"
  *        The minuend.
@@ -246,7 +246,7 @@ Primitive "_-_" is
 /**
  * Compute and answer the product of the arguments.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Mathematics"
  * @method "_×_"
  * @param "multiplicand" "number"
  *        The multiplicand.
@@ -269,7 +269,7 @@ Primitive "_×_" is
 /**
  * Compute and answer the quotient of the arguments.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Mathematics"
  * @method "_÷_"
  * @param "dividend" "number"
  *        The dividend.
@@ -294,7 +294,7 @@ Primitive "_÷_" is
 /**
  * Answer the value contained within the specified variable.
  *
- * @category "Primitives"
+ * @category "Primitives" "Variables" "Queries"
  * @method "↓_"
  * @param "var" "variable"
  *        A variable.
@@ -316,7 +316,7 @@ Primitive "↓_" is
 /**
  * Store {@param "value"} into the specified variable.
  *
- * @category "Primitives"
+ * @category "Primitives" "Variables" "Mutators"
  * @method "↓_`?=_"
  * @param "var" "variable"
  *        A variable.
@@ -344,7 +344,7 @@ Primitive "↓_`?=_" is
 /**
  * Clear the specified variable. This resets it to the unassigned state.
  *
- * @category "Primitives"
+ * @category "Primitives" "Variables" "Mutators"
  * @method "Clear_"
  * @param "var" "variable"
  *        A variable.
@@ -369,7 +369,7 @@ Primitive "Clear_" is
  * using an intermediate variable, and permits additional optimizations by the
  * virtual machine.
  *
- * @category "Primitives"
+ * @category "Primitives" "Variables" "Mutators"
  * @method "swap_and_"
  * @param "arg1" "variable"
  *        A variable.
@@ -392,7 +392,7 @@ Primitive "swap_and_" is
  * Eject and answer the contents of the specified variable. The variable is
  * in the unassigned state after the primitive completes.
  *
- * @category "Primitives"
+ * @category "Primitives" "Variables" "Queries" "Mutators"
  * @method "eject_"
  * @param "var" "variable"
  *        A variable.
@@ -414,7 +414,7 @@ Primitive "eject_" is
 /**
  * Atomically read the value of {@param "var"} and store {@param "newValue"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Variables" "Queries" "Mutators" "Synchronization"
  * @method "atomically read_and store_"
  * @param "var" "variable"
  *        A variable.
@@ -446,7 +446,7 @@ Primitive "atomically read_and store_" is
  * Atomically read the value of {@param "var"}, compare it to {@param "reference"}, and, if
  * they are discovered to be equal, store {@param "newValue"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Variables" "Queries" "Mutators" "Synchronization"
  * @method "atomically compare_to_and,⁇if equal,⁇store_"
  * @param "var" "variable"
  *        A variable.
@@ -483,7 +483,7 @@ Primitive "atomically compare_to_and,⁇if equal,⁇store_" is
  * Atomically compute the sum of the value stored in {@param "var"} and {@param "addend"},
  * and store the sum back into {@param "var"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Variables" "Queries" "Mutators" "Synchronization"
  * @method "atomically read_and add_"
  * @param "var" "readable extended integer variable"
  *        A variable containing the augend.
@@ -516,7 +516,7 @@ Primitive "atomically read_and add_" is
 /**
  * Answer the instances of the enumeration.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Queries"
  * @method "_'s⁇instances"
  * @param "enum" "type"
  *        An enumeration.
@@ -536,7 +536,7 @@ Primitive "_'s⁇instances" is
 /**
  * Invoke the function with the given arguments. Answer its result.
  *
- * @category "Primitives"
+ * @category "Primitives" "Functions" "Function Application"
  * @method "Invoke|invoke_with_"
  * @param "aFunction" "function"
  *        A function.
@@ -562,7 +562,7 @@ Primitive "Invoke|invoke_with_" is
  * program counter, local stack, local stack pointer, and calling continuation
  * are specified by the arguments.
  *
- * @category "Primitives"
+ * @category "Primitives" "Continuations" "Constructors"
  * @method "$_@pc=_stack=_[_]caller=_"
  * @param "aFunction" "function"
  *        The new continuation's current function.
@@ -604,7 +604,7 @@ Primitive "$_@pc=_stack=_[_]caller=_" is
  * current continuation (in which this primitive was invoked) is completely
  * replaced by the restarted continuation.
  *
- * @category "Primitives"
+ * @category "Primitives" "Continuations" "Control Structures"
  * @method "Restart_with_"
  * @param "aContinuation" "continuation"
  *        The continuation to restart.
@@ -632,7 +632,7 @@ Primitive "Restart_with_" is
  * which this primitive was invoked) is completely replaced by the specified
  * continuation's resumed caller.
  *
- * @category "Primitives"
+ * @category "Primitives" "Continuations" "Control Structures"
  * @method "Exit_with_"
  * @param "aContinuation" "continuation"
  *        The continuation to exit.
@@ -654,7 +654,7 @@ Primitive "Exit_with_" is
 /**
  * Extract a field's value from an object.
  *
- * @category "Primitives"
+ * @category "Primitives" "Objects" "Queries"
  * @method "_[_]"
  * @param "object" "object"
  *        An object.
@@ -677,7 +677,7 @@ Primitive "_[_]" is
 /**
  * Extract a field's type from an object type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Objects" "Queries"
  * @method "_[_]"
  * @param "objectType" "object meta"
  *        An object type.
@@ -698,10 +698,10 @@ Primitive "_[_]" is
 ] : any meta;
 
 /**
- * Construct and answer a function given the specified compiled code and tuple
- * of captured variables.
+ * Construct and answer a function given the specified function implementation
+ * and tuple of captured variables.
  *
- * @category "Primitives"
+ * @category "Primitives" "Functions" "Constructors"
  * @method "function from_and_"
  * @param "implementation" "function implementation"
  *        The compiled code that describes the algorithm.
@@ -724,7 +724,7 @@ Primitive "function from_and_" is
 /**
  * Answer the value bound to {@param "aMap"} in {@param "key"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Maps" "Queries"
  * @method "_[_]"
  * @param "aMap" "map"
  *        A map.
@@ -745,11 +745,11 @@ Primitive "_[_]" is
 ] : any;
 
 /**
- * Given any integer B and a shift factor S, shift B to the left S bits.  If S
- * is negative then treat it as a right shift of the corresponding positive
- * amount.
+ * Shift {@param "baseInteger"} to the left by {@param "shiftFactor"} bits. If
+ * {@param "baseInteger"} is negative then treat it as a right shift of then
+ * corresponding positive amount.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Integers" "Mathematics" "Bits"
  * @method "_<<_"
  * @param "baseInteger" "integer"
  *        An integer to shift.
@@ -770,11 +770,11 @@ Primitive "_<<_" is
 ] : integer;
 
 /**
- * Given a positive integer B, a shift factor S, and a truncation bit count T,
- * shift B to the left by S bits (treating a negative factor as a right shift),
- * then truncate the result to the bottom T bits by zeroing the rest.
+ * Shift {@param "baseInteger"} to the left by {@param "shiftFactor"} bits (treating
+ * a negative factor as a right shift), then truncate the result to the bottom
+ * {@param "truncationBits"} bits by zeroing the rest.
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Integers" "Mathematics" "Bits"
  * @method "_<<_keeping_bits"
  * @param "baseInteger" "whole number"
  *        A non-negative integer to shift and mask.
@@ -808,7 +808,7 @@ Primitive "_<<_keeping_bits" is
  * current module's header, or 3) introduced by dynamic publication then, answer
  * these atoms. Otherwise, privately introduce a new atom.
  *
- * @category "Primitives"
+ * @category "Primitives" "Atoms" "Name Resolution" "Constructors"
  * @method "all atoms for_"
  * @param "name" "string"
  *        The name which should be resolved locally.
@@ -828,7 +828,7 @@ Primitive "all atoms for_" is
 /**
  * Does {@param "anAtom"} have a property whose key is {@param "key"}?
  *
- * @category "Primitives"
+ * @category "Primitives" "Atoms" "Queries"
  * @method "_∈_"
  * @param "key" "atom"
  *        The property key.
@@ -854,7 +854,7 @@ Primitive "_∈_" is
  * "key"}, then answer the property value associated with the {@param
  * "key"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Atoms" "Queries"
  * @method "_[_]"
  * @param "anAtom" "atom"
  *        An atom.
@@ -881,7 +881,7 @@ Primitive "_[_]" is
  * "key"} to {@param "value"}. Any previous property binding for {@param
  * "key"} is replaced.
  *
- * @category "Primitives"
+ * @category "Primitives" "Atoms" "Mutators"
  * @method "_[_]:=_"
  * @param "anAtom" "atom"
  *        An atom.
@@ -906,7 +906,7 @@ Primitive "_[_]:=_" is
 /**
  * Remove from {@param "anAtom"} the property whose key is {@param "key"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Atoms" "Mutators"
  * @method "Remove_[_]"
  * @param "anAtom" "atom"
  *        An atom.
@@ -930,7 +930,7 @@ Primitive "Remove_[_]" is
 /**
  * Answer the module that issued the specified atom.
  *
- * @category "Primitives"
+ * @category "Primitives" "Atoms" "Queries"
  * @method "_'s⁇issuing module"
  * @param "anAtom" "atom"
  *        An atom.
@@ -950,7 +950,7 @@ Primitive "_'s⁇issuing module" is
 /**
  * Is {@param "name"} unambiguous in the {@method "current module"}?
  *
- * @category "Primitives"
+ * @category "Primitives" "Name Resolution"
  * @method "_is unambiguous"
  * @param "name" "string"
  *        The name in question.
@@ -971,7 +971,7 @@ Primitive "_is unambiguous" is
 /**
  * Answer the {@param "index"}-th element of {@param "aTuple"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Tuples" "Queries"
  * @method "_[_]"
  * @param "aTuple" "tuple"
  *        A tuple.
@@ -995,7 +995,7 @@ Primitive "_[_]" is
  * Construct and answer a tuple based on the one provided but such that its
  * {@param "index"}-th element is {@param "value"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Tuples" "Transformers"
  * @method "_[_]→_"
  * @param "aTuple" "tuple"
  *        A tuple.
@@ -1022,7 +1022,7 @@ Primitive "_[_]→_" is
 /**
  * Construct and answer an integer interval tuple.
  *
- * @category "Primitives"
+ * @category "Primitives" "Tuples" "Constructors"
  * @method "_to_by_"
  * @param "start" "integer"
  *        The first value in the tuple.
@@ -1050,7 +1050,7 @@ Primitive "_to_by_" is
 /**
  * Construct and answer a slice (i.e. subtuple) of the specified tuple.
  *
- * @category "Primitives"
+ * @category "Primitives" "Tuples" "Transformers" "Queries"
  * @method "_[_.._]"
  * @param "aTuple" "tuple"
  *        A tuple.
@@ -1075,9 +1075,9 @@ Primitive "_[_.._]" is
 
 /**
  * Compute and answer a tuple containing the requested element types. Indices
- * that are out of bounds report ⊥ as their element type.
+ * that are out of bounds report {@type "⊥"} as their element type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "Tuples" "Queries"
  * @method "_[_.._]"
  * @param "aTupleType" "tuple meta"
  *        A tuple type.
@@ -1105,7 +1105,7 @@ Primitive "_[_.._]" is
 /**
  * Construct and answer a function implementation from the specified arguments.
  *
- * @category "Primitives"
+ * @category "Primitives" "Function Implementations" "Constructors"
  * @method "_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)"
  * @param "nybblecodes" "tuple of nybble"
  *        The Level One instructions as a tuple of nybblecodes.
@@ -1150,7 +1150,7 @@ Primitive "_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)" is
 /**
  * Answer the method uniquely named by the specified atom.
  *
- * @category "Primitives"
+ * @category "Primitives" "Atoms" "Queries"
  * @method "method for_"
  * @param "anAtom" "atom"
  *        An atom.
@@ -1171,7 +1171,7 @@ Primitive "method for_" is
  * Lookup a definition of the method with the given name, given the
  * tuple of parameter types.
  *
- * @category "Primitives"
+ * @category "Primitives" "Methods" "Name Resolution"
  * @method "method definition of_for_"
  * @param "methodName" "atom"
  *        The name of the method.
@@ -1239,7 +1239,7 @@ Primitive "method definition of_for_" is
  * Compute and answer the number of parameters required by a valid send of a
  * message {@param "methodName"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Name Resolution" "Methods" "Queries"
  * @method "`|message_'s⁇parameters`|"
  * @param "methodName" "string"
  *        A method name.
@@ -1293,7 +1293,7 @@ Primitive "`|message_'s⁇parameters`|" is
 /**
  * Does the specified message contain any lexical groups?
  *
- * @category "Primitives"
+ * @category "Primitives" "Name Resolution" "Methods" "Queries"
  * @method "message_contains groups"
  * @param "methodName" "string"
  *        A method name.
@@ -1350,7 +1350,7 @@ Primitive "message_contains groups" is
  * may be added at or below this signature. This facility is provided to secure
  * methods against dangerous, unscrupulous, or confusing extensions.
  *
- * @category "Primitives"
+ * @category "Primitives" "Name Resolution" "Methods" "Constructors" "Mutators"
  * @method "Seal method_at_"
  * @param "methodName" "string"
  *        The name of the method to seal.
@@ -1418,7 +1418,7 @@ Primitive "Seal method_at_" is
  * Only extend the grammar of the current module if the atom was introduced by
  * the current module.
  *
- * @category "Primitives"
+ * @category "Primitives" "Methods" "Constructors" "Mutators"
  * @method "Abstract method_is_"
  * @param "methodName" "atom"
  *        The atom that uniquely names the abstract method to declare.
@@ -1485,7 +1485,7 @@ Primitive "Abstract method_is_" is
  * Does the method whose bundle has the specified name have a unique definition
  * for the given tuple of parameter types?
  *
- * @category "Primitives"
+ * @category "Primitives" "Atoms" "Methods" "Queries"
  * @method "_has definition for_"
  * @param "methodName" "atom"
  *        A method name (an atom).
@@ -1524,7 +1524,8 @@ Primitive "_has definition for_" is
  * produced at the call site by answering a subtype of the method's declared
  * return type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Methods" "Constructors" "Mutators"
+ * @category "Semantic Restrictions"
  * @method "Semantic restriction_is_"
  * @param "methodName" "atom"
  *        The name of the method to which the semantic restriction applies.
@@ -1588,7 +1589,7 @@ Primitive "Semantic restriction_is_" is
  * may be added at or below this signature. This facility is provided to secure
  * methods against dangerous, unscrupulous, or confusing extensions.
  *
- * @category "Primitives"
+ * @category "Primitives" "Methods" "Constructors" "Mutators"
  * @method "Seal method_at_"
  * @param "methodName" "atom"
  *        The atom that uniquely designates the method to seal.
@@ -1650,7 +1651,7 @@ Primitive "Seal method_at_" is
  * Register the given function for callback after the module undergoing
  * compilation has been unloaded.
  *
- * @category "Primitives"
+ * @category "Primitives" "Modules" "Mutators"
  * @method "After the current module is unloaded,⁇do_"
  * @param "aFunction" "function"
  *        The post-unload function.
@@ -1669,7 +1670,7 @@ Primitive "After the current module is unloaded,⁇do_" is
 /**
  * Answer the module currently undergoing compilation.
  *
- * @category "Primitives"
+ * @category "Primitives" "Modules" "Queries"
  * @method "current module"
  * @returns "module"
  *    The module currently undergoing compilation.
@@ -1690,7 +1691,7 @@ Primitive "current module" is
  * current module's header, or 3) introduced by dynamic publication then answer
  * this atom. Otherwise, privately introduce a new atom.
  *
- * @category "Primitives"
+ * @category "Primitives" "Name Resolution" "Queries"
  * @method "atom for_"
  * @param "localName" "string"
  *        The name by which this atom is known locally.
@@ -1710,13 +1711,13 @@ Primitive "atom for_" is
 ] : atom;
 
 /**
- * Dynamically introduce {@param "newName"} as a public name. This has the same effect as
- * listing in the "Names" section of the current module, i.e., the module
- * currently undergoing compilation. This facilitates code generation in some
- * circumstances. This operation may only be invoked during compilation, i.e.,
- * as the result of parsing or executing a top-level statement.
+ * Dynamically introduce {@param "newName"} as a public name. This has the same
+ * effect as listing in the "Names" section of the current module, i.e., the
+ * module currently undergoing compilation. This facilitates code generation in
+ * some circumstances. This operation may only be invoked during compilation,
+ * i.e., as the result of parsing or executing a top-level statement.
  *
- * @category "Primitives"
+ * @category "Primitives" "Modules" "Name Resolution" "Mutators"
  * @method "Export_as a new name"
  * @param "newName" "string"
  *        The name that should be introduced.
@@ -1746,7 +1747,8 @@ Primitive "Export_as a new name" is
  * produced at the call site by answering a subtype of the method's declared
  * return type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Name Resolution" "Methods" "Constructors" "Mutators"
+ * @category "Semantic Restrictions"
  * @method "Semantic restriction_is_"
  * @param "methodName" "string"
  *        The name of the method to which the semantic restriction applies.
@@ -1825,7 +1827,7 @@ Primitive "Semantic restriction_is_" is
  * Macro definitions are parametric by parameter types. They participate in
  * multiply polymorphic dispatch just as do methods.
  *
- * @category "Primitives"
+ * @category "Primitives" "Name Resolution" "Methods" "Constructors" "Mutators"
  * @method "Macro_is«_,»_"
  * @param "macroName" "string"
  *        The name of the macro to define.
@@ -1898,7 +1900,7 @@ Primitive "Macro_is«_,»_" is
  * definition is one whose parameter types and return type are strictly more
  * specific than the corresponding types of the abstract signature.
  *
- * @category "Primitives"
+ * @category "Primitives" "Name Resolution" "Methods" "Constructors" "Mutators"
  * @method "Abstract method_is_"
  * @param "methodName" "string"
  *        The name of the abstract method to declare.
@@ -1971,7 +1973,7 @@ Primitive "Abstract method_is_" is
  * Recursive methods must be forward declared. Mutually recursive methods must
  * forward declare all but the lexically first participant in the recursion.
  *
- * @category "Primitives"
+ * @category "Primitives" "Name Resolution" "Methods" "Constructors" "Mutators"
  * @method "Forward method_is_"
  * @param "methodName" "string"
  *        The name of the method to forward declare.
@@ -2039,7 +2041,7 @@ Primitive "Forward method_is_" is
 /**
  * Read the next character from the standard input stream.
  *
- * @category "Primitives"
+ * @category "Primitives" "Standard I/O" "Synchronous I/O"
  * @method "next character"
  * @returns "character"
  *    The next character from the standard input stream.
@@ -2065,7 +2067,7 @@ Primitive "next character" is
  * Note that "argument position" corresponds to a blank, not to a top-level
  * repeating sequence (indicated by guillemet notation).
  *
- * @category "Primitives"
+ * @category "Primitives" "Name Resolution" "Methods" "Constructors" "Mutators"
  * @method "Grammatical restriction_is_"
  * @param "methodsToRestrict" "nonempty set of string"
  *        A set of method names, each of which should be restricted.
@@ -2130,7 +2132,7 @@ Primitive "Grammatical restriction_is_" is
  * Mark the standard input stream to allow at least {@param "count"}
  * characters of read ahead.
  *
- * @category "Primitives"
+ * @category "Primitives" "Standard I/O"
  * @method "Mark for_character|characters of read ahead"
  * @param "count" "whole number"
  *        The requested number of characters of read ahead.
@@ -2149,7 +2151,7 @@ Primitive "Mark for_character|characters of read ahead" is
 /**
  * Reset the standard input stream to the previously set mark.
  *
- * @category "Primitives"
+ * @category "Primitives" "Standard I/O"
  * @method "Reset to mark"
  * @returns "⊤"
  * @raises "I/O-error exception"
@@ -2174,7 +2176,7 @@ Primitive "Reset to mark" is
  * Note that "argument position" corresponds to a blank, not to a top-level
  * repeating sequence (indicated by guillemet notation).
  *
- * @category "Primitives"
+ * @category "Primitives" "Name Resolution" "Methods" "Constructors" "Mutators"
  * @method "Grammatical restriction_is_"
  * @param "methodsToRestrict" "nonempty set of atom"
  *        A set of method names, each of which should be restricted.
@@ -2237,7 +2239,7 @@ Primitive "Grammatical restriction_is_" is
 /**
  * Answer the set of all atoms exported by the current module.
  *
- * @category "Primitives"
+ * @category "Primitives" "Modules" "Queries"
  * @method "current module's exported names"
  * @returns "{atom|}"
  *    The set of atoms exported by the current module.
@@ -2253,7 +2255,7 @@ Primitive "current module's exported names" is
  * Seal the each method named by an element of `methodNames` at each of its
  * existing abstract and method definitions. Ignore any macros.
  *
- * @category "Primitives"
+ * @category "Primitives" "Methods" "Mutators"
  * @method "Seal method|methods_at existing definitions"
  * @param "methodNames" "set of atom"
  *        A set of atoms that serve as method names.
@@ -2273,7 +2275,7 @@ Primitive "Seal method|methods_at existing definitions" is
  * Compute and answer an `extended integer` by rounding the argument toward
  * zero (`0`).
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Integers" "Conversions"
  * @method "_→extended integer"
  * @param "aFloat" "float"
  *        A single-precision floating point number.
@@ -2294,7 +2296,7 @@ Primitive "_→extended integer" is
  * Compute and answer an `extended integer` by rounding the argument toward
  * zero (`0`).
  *
- * @category "Primitives"
+ * @category "Primitives" "Numbers" "Integers" "Conversions"
  * @method "_→extended integer"
  * @param "aDouble" "double"
  *        A double-precision floating point number.
@@ -2314,7 +2316,7 @@ Primitive "_→extended integer" is
 /**
  * Construct and answer an assignment expression.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Constructors"
  * @method "`«(_:=_)`»"
  * @param "variableUse" "variable use phrase"
  *        A variable use expression.
@@ -2357,7 +2359,7 @@ Primitive "`«(_:=_)`»" is
  * semantic restriction function: it should only be invoked by the Avail
  * compiler, never by a semantically valid Avail program.
  *
- * @category "Primitives"
+ * @category "Primitives" "Semantic Restrictions"
  * @method "Reject parse,expected:_"
  * @param "expected" "string"
  *        A description of the cause of rejection, worded to sound good
@@ -2377,7 +2379,7 @@ Primitive "Reject parse,expected:_" is
 /**
  * Construct and answer an assignment statement.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Constructors"
  * @method "`«_:=_`»"
  * @param "variableUse" "variable use phrase"
  *        A variable use expression.
@@ -2403,7 +2405,7 @@ Primitive "`«_:=_`»" is
 /**
  * Construct and answer a value reference expression.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Constructors"
  * @method "`«↑_`»"
  * @param "variableUse" "variable use phrase"
  *        A variable use expression.
@@ -2426,7 +2428,7 @@ Primitive "`«↑_`»" is
  * declarations, primitive linkage number, tuple of statements, return type, and
  * set of declared exceptions.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Constructors"
  * @method "`«[_`|Primitive__]:_^_`»"
  * @param "argumentDeclarations" "argument tuple"
  *        A tuple of argument declarations.
@@ -2459,7 +2461,7 @@ Primitive "`«[_`|Primitive__]:_^_`»" is
 /**
  * Generate and answer a function from the specified block.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Functions" "Conversions"
  * @method "_→function"
  * @param "aBlock" "block phrase"
  *        A block. Note that the block is treated as a top-level construct, so
@@ -2486,7 +2488,7 @@ Primitive "_→function" is
  * a message bundle.  The number and types of the argument expressions must
  * satisfy at least one of the method's existing definitions.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Constructors"
  * @method "send_with_:_"
  * @param "messageName" "atom"
  *        The name of the method to be invoked.
@@ -2549,7 +2551,7 @@ Primitive "send_with_:_" is
 /**
  * Construct and answer a sequence from the specified tuple of statements.
  *
- * @category "Primitives"
+ * @category "Primitives" "Phrases" "Constructors"
  * @method "seq`«_`»"
  * @param "statements" "phrase tuple"
  *        A tuple of statements.
@@ -2569,7 +2571,7 @@ Primitive "seq`«_`»" is
 /**
  * Construct and answer a fully parameterized pojo type.
  *
- * @category "Primitives"
+ * @category "Primitives" "Types" "POJO" "Constructors"
  * @method "_<«_‡,»>"
  * @param "javaName" "string"
  *        The fully qualified name of the Java class or interface.
@@ -2619,7 +2621,7 @@ Primitive "_<«_‡,»>" is
  * <li>All other values are marshaled to com.avail.descriptor.AvailObject.</li>
  * </ul>
  *
- * @category "Primitives"
+ * @category "Primitives" "Functions" "POJO" "Constructors"
  * @method "constructor_<«_‡,»>(fail with_)"
  * @param "aPojoType" "pojo meta"
  *        A pojo type.
@@ -2650,7 +2652,7 @@ Primitive "constructor_<«_‡,»>(fail with_)" is
  * through to the instance field uniquely specified by the given pojo and field
  * name.
  *
- * @category "Primitives"
+ * @category "Primitives" "Variables" "POJO" "Constructors"
  * @method "_._→variable"
  * @param "aPojo" "pojo"
  *        The pojo whose instance field should be bound to the answered
@@ -2676,7 +2678,7 @@ Primitive "_._→variable" is
  * through to the static field specified by the given pojo type and field
  * name.
  *
- * @category "Primitives"
+ * @category "Primitives" "Variables" "POJO" "Constructors"
  * @method "_._→variable"
  * @param "aPojoType" "pojo meta"
  *        A pojo type whose static field should be bound to the answered
@@ -2727,7 +2729,7 @@ Primitive "_._→variable" is
  * <li>All other values are marshaled to com.avail.descriptor.AvailObject.</li>
  * </ul>
  *
- * @category "Primitives"
+ * @category "Primitives" "Functions" "POJO" "Constructors"
  * @method "method_._<«_‡,»>,⁇on failure do_"
  * @param "aPojoType" "pojo meta"
  *        A pojo type.
@@ -2783,7 +2785,7 @@ Primitive "method_._<«_‡,»>,⁇on failure do_" is
  * <li>All other values are marshaled to com.avail.descriptor.AvailObject.</li>
  * </ul>
  *
- * @category "Primitives"
+ * @category "Primitives" "Functions" "POJO" "Constructors"
  * @method "static method_._<«_‡,»>,⁇on failure do_"
  * @param "aPojoType" "pojo meta"
  *        A pojo type.
@@ -2815,7 +2817,7 @@ Primitive "static method_._<«_‡,»>,⁇on failure do_" is
 /**
  * Answer the {@param "index"}-th element of the specified pojo array.
  *
- * @category "Primitives"
+ * @category "Primitives" "POJO" "Queries"
  * @method "_[_]"
  * @param "anArray" "pojo array"
  *        A pojo array.
@@ -2841,7 +2843,7 @@ Primitive "_[_]" is
  * Mutate the specified pojo array such that its {@param "index"}-th element is
  * overwritten by {@param "value"}.
  *
- * @category "Primitives"
+ * @category "Primitives" "POJO" "Mutators"
  * @method "_[_]:=_"
  * @param "anArray" "pojo array"
  *        A pojo array.
@@ -2872,7 +2874,7 @@ Primitive "_[_]:=_" is
  * effectively ascertains whether a fiber-local variable exists for the
  * specified fiber.
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Queries"
  * @method "_∈current fiber"
  * @param "key" "atom"
  *        The key whose existence should be queried.
@@ -2896,7 +2898,7 @@ Primitive "_∈current fiber" is
  * bindings from atoms to arbitrary values), this operation effectively reads a
  * fiber-local variable.
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Queries"
  * @method "current fiber[_]"
  * @param "key" "atom"
  *        The key whose value should be obtained.
@@ -2921,7 +2923,7 @@ Primitive "current fiber[_]" is
  * contains fiber-local variables (i.e. bindings from atoms to arbitrary
  * values), this operation effectively writes a fiber-local variable.
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Mutators"
  * @method "current fiber[_]:=_"
  * @param "key" "atom"
  *        The key whose value should be (over)written.
@@ -2944,7 +2946,7 @@ Primitive "current fiber[_]:=_" is
  * Remove the binding indicated by {@param "key"} from the current fiber's
  * environment.
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Mutators"
  * @method "Remove current fiber[_]"
  * @param "key" "atom"
  *        The key whose binding should be removed.
@@ -2966,7 +2968,7 @@ Primitive "Remove current fiber[_]" is
  * Fork a new fiber at the specified priority. The new fiber will invoke the
  * given function with the supplied arguments.
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Control Structures"
  * @method "Invoke_with_,⁇forked at priority_"
  * @param "aFunction" "function"
  *        A function.
@@ -2994,7 +2996,7 @@ Primitive "Invoke_with_,⁇forked at priority_" is
  * Fork a new fiber at the specified priority. The new fiber will invoke the
  * given function with the supplied arguments.
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Control Structures"
  * @method "invoke_with_,⁇forked at priority_"
  * @param "aFunction" "function"
  *        A function.
@@ -3024,7 +3026,7 @@ Primitive "invoke_with_,⁇forked at priority_" is
  * then return immediately; otherwise, arrange to unpark the current fiber when
  * the specified fiber terminates and park the current fiber.
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Synchronization" "Control Structures"
  * @method "Attempt to join_"
  * @param "aFiber" "fiber"
  *        A fiber.
@@ -3045,7 +3047,7 @@ Primitive "Attempt to join_" is
  * This method may only be called safely after an affirmative answer from
  * `_has result`.
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Queries"
  * @method "_'s⁇result"
  * @param "aFiber" "fiber"
  *        A fiber.
@@ -3071,7 +3073,7 @@ Primitive "_'s⁇result" is
  * with the supplied arguments. A best effort will be made to start the fiber as
  * soon as the delay has expired, but no real-time guarantees are made.
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Time" "Control Structures"
  * @method "In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_"
  * @param "delayMillis" "nonnegative extended integer"
  *        The minimum number of milliseconds to delay the start of the new
@@ -3105,7 +3107,7 @@ Primitive "In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" i
  * with the supplied arguments. A best effort will be made to start the fiber as
  * soon as the delay has expired, but no real-time guarantees are made.
  *
- * @category "Primitives"
+ * @category "Primitives" "Concurrency" "Time" "Control Structures"
  * @method "in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_"
  * @param "delayMillis" "nonnegative extended integer"
  *        The minimum number of milliseconds to delay the start of the new
@@ -3142,7 +3144,7 @@ Primitive "in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" i
  * fibers created by this fiber will also include this key and the associated
  * value at creation time.
  *
- * @category "Primitives"
+ * @category "Primitives" "Atoms" "Concurrency" "Constructors"
  * @method "new⁇heritable«fiber-local»⁇atom named_"
  * @param "debugName" "string"
  *        A name to associate with the atom for debugging purposes.
@@ -3168,7 +3170,7 @@ Primitive "new⁇heritable«fiber-local»⁇atom named_" is
  * Replace the value with a new value in the tuple at the location indicated
  * by the path tuple.
  *
- * @category "Primitives"
+ * @category "Primitives" "Tuples" "Maps" "Transformers"
  * @method "_«[_]»→_"
  * @param "aTuple" "tuple"
  *        The target tuple.
@@ -3200,7 +3202,7 @@ Primitive "_«[_]»→_" is
  * Replace the value at the location indicated by the path tuple of the target
  * map with the new value.
  *
- * @category "Primitives"
+ * @category "Primitives" "Tuples" "Maps" "Transformers"
  * @method "_«[_]»→_"
  * @param "aMap" "map"
  *        The target map.

@@ -154,7 +154,7 @@ readVarAtom ::= atom for "↓_";
  * known.
  * 
  * @method "Method_is stable at_"
- * @param "methodName" "string"
+ * @param "methodAtom" "atom"
  *        The name of the stable method.
  * @param "functionType" "function meta"
  *        The signature of the method that is being declared stable.
@@ -436,6 +436,32 @@ Semantic restriction "Stable abstract method_is_" is
 ];
 
 /**
+ * Declare a new abstract stable method with the specified name and signature. A
+ * concrete implementation is one whose parameter types and return type are
+ * strictly more specific than the corresponding types of the abstract
+ * signature. A stable method produces the same value for the same arguments on
+ * every call. Automatically generate and install a semantic restriction that
+ * will statically strengthen the answer produced at a call site to a precisely
+ * known value when all arguments are themselves precisely known.
+ *
+ * @method "Stable abstract method_is_"
+ * @param "methodAtom" "atam"
+ *        The atom representing the abstract method to declare.
+ * @param "aFunctionType" "function meta"
+ *        The signature.
+ * @returns "⊤"
+ * @category "Declarations" "Methods"
+ */
+Public method "Stable abstract method_is_" is
+[
+	methodAtom : atom,
+	functionType : function meta
+|
+	methodName ::= methodAtom's name;
+	Stable abstract method methodName is functionType;
+] : ⊤;
+
+/**
  * Declare the intention to locally define a method with the specified name and
  * signature. If no such method is defined before compilation of the containing
  * module completes, then the compiler will emit an appropriate error message.
@@ -488,6 +514,37 @@ Semantic restriction "Stable forward method_is_" is
 ];
 
 /**
+ * Declare the intention to locally define a method with the specified name and
+ * signature. If no such method is defined before compilation of the containing
+ * module completes, then the compiler will emit an appropriate error message.
+ *
+ * Recursive methods must be forward declared. Mutually recursive methods must
+ * forward declare all but the lexically first participant in the recursion.
+ * 
+ * Also declare that the method is stable A stable method produces the same
+ * value for the same arguments on every call. Automatically generate and
+ * install a semantic restriction that will statically strengthen the answer
+ * produced at a call site to a precisely known value when all arguments are
+ * themselves precisely known.
+ *
+ * @method "Stable forward method_is_"
+ * @param "methodAtom" "atom"
+ *        The atom representing the method to forward declare.
+ * @param "aFunctionType" "function meta"
+ *        The signature.
+ * @returns "⊤"
+ * @category "Declarations" "Methods"
+ */
+Public method "Stable forward method_is_" is
+[
+	methodAtom : atom,
+	aFunctionType : function meta
+|
+	methodName ::= methodAtom's name;
+	Stable forward method methodName is aFunctionType;
+] : ⊤;
+
+/**
  * Define a new stable method. A stable method produces the same value for the
  * same arguments on every call. Automatically generate and install a semantic
  * restriction that will statically strengthen the answer produced at a call
@@ -524,6 +581,30 @@ Semantic restriction "Stable method_is_" is
 	Require: message nameType does not specify lexical groups;
 	Require: functionType's parameters are not metatypes or function types;
 	⊤
+];
+
+/**
+ * Define a new stable method. A stable method produces the same value for the
+ * same arguments on every call. Automatically generate and install a semantic
+ * restriction that will statically strengthen the answer produced at a call
+ * site to a precisely known value when all arguments are themselves precisely
+ * known.
+ * 
+ * @method "Stable method_is_"
+ * @param "methodAtom" "atom"
+ *        The atom representing the new method.
+ * @param "implementation" "function"
+ *        An implementation of the method.
+ * @returns "⊤"
+ * @category "Declarations" "Methods"
+ */
+Public method "Stable method_is_" is
+[
+	methodAtom : atom,
+	implementation : function
+|
+	methodName ::= methodAtom's name;
+	Stable method methodName is implementation;
 ];
 
 /**
@@ -576,6 +657,34 @@ Semantic restriction "Public stable abstract method_is_" is
 	];
 	⊤
 ];
+
+/**
+ * Declare a new public abstract stable method with the specified name and
+ * signature. A concrete implementation is one whose parameter types and return
+ * type are strictly more specific than the corresponding types of the abstract
+ * signature. A stable method produces the same value for the same arguments on
+ * every call. Automatically generate and install a semantic restriction that
+ * will statically strengthen the answer produced at a call site to a precisely
+ * known value when all arguments are themselves precisely known. The semantic
+ * restriction ensures that the method is named in the current module's "Names"
+ * section. This should not be used to extend existing methods.
+ *
+ * @method "Public stable abstract method_is_"
+ * @param "methodAtom" "atom"
+ *        The atom representing the abstract method to declare.
+ * @param "aFunctionType" "function meta"
+ *        The signature.
+ * @returns "⊤"
+ * @category "Declarations" "Methods"
+ */
+Public method "Public stable abstract method_is_" is
+[
+	methodAtom : atom,
+	aFunctionType : function meta
+|
+	methodName ::= methodAtom's name;
+	Public stable abstract method methodName is aFunctionType;
+] : ⊤;
 
 /**
  * Declare the intention to locally define a public method with the specified
@@ -638,6 +747,43 @@ Semantic restriction "Public stable forward method_is_" is
 ];
 
 /**
+ * Declare the intention to locally define a public method with the specified
+ * name and signature. If no such method is defined before compilation of the
+ * containing module completes, then the compiler will emit an appropriate error
+ * message.
+ *
+ * Recursive methods must be forward declared. Mutually recursive methods must
+ * forward declare all but the lexically first participant in the recursion.
+ * 
+ * Also declare that the method is stable A stable method produces the same
+ * value for the same arguments on every call. Automatically generate and
+ * install a semantic restriction that will statically strengthen the answer
+ * produced at a call site to a precisely known value when all arguments are
+ * themselves precisely known.
+ *
+ * The semantic restriction ensures that the method is named in the current
+ * module's "Names" section.
+ * 
+ * This should not be used to extend existing methods.
+ *
+ * @method "Public stable forward method_is_"
+ * @param "methodAtom" "atom"
+ *        The atom representing the method to forward declare.
+ * @param "aFunctionType" "function meta"
+ *        The signature.
+ * @returns "⊤"
+ * @category "Declarations" "Methods"
+ */
+Public method "Public stable forward method_is_" is
+[
+	methodAtom : atom,
+	aFunctionType : function meta
+|
+	methodName ::= methodAtom's name;
+	Public stable forward method methodName is aFunctionType;
+] : ⊤;
+
+/**
  * Define a new public stable method. A stable method produces the same value
  * for the same arguments on every call. Automatically generate and install a
  * semantic restriction that will statically strengthen the answer produced at a
@@ -679,6 +825,32 @@ Semantic restriction "Public stable method_is_" is
 	Require: message nameType does not specify lexical groups;
 	Require: functionType's parameters are not metatypes or function types;
 	⊤
+];
+
+/**
+ * Define a new public stable method. A stable method produces the same value
+ * for the same arguments on every call. Automatically generate and install a
+ * semantic restriction that will statically strengthen the answer produced at a
+ * call site to a precisely known value when all arguments are themselves
+ * precisely known. The semantic restriction ensures that the method is named in
+ * the current module's "Names" section. This should not be used to extend
+ * existing methods.
+ * 
+ * @method "Public stable method_is_"
+ * @param "methodAtom" "atom"
+ *        The atom representing the new method.
+ * @param "implementation" "function"
+ *        The original implementation of the method.
+ * @returns "⊤"
+ * @category "Declarations" "Methods"
+ */
+Public method "Public stable method_is_" is
+[
+	methodAtom : atom,
+	implementation : function
+|
+	methodName ::= methodAtom's name;
+	Public stable method methodName is implementation;
 ];
 
 /**
@@ -731,6 +903,34 @@ Semantic restriction "Private stable abstract method_is_" is
 	];
 	⊤
 ];
+
+/**
+ * Declare a new private abstract stable method with the specified name and
+ * signature. A concrete implementation is one whose parameter types and return
+ * type are strictly more specific than the corresponding types of the abstract
+ * signature. A stable method produces the same value for the same arguments on
+ * every call. Automatically generate and install a semantic restriction that
+ * will statically strengthen the answer produced at a call site to a precisely
+ * known value when all arguments are themselves precisely known. The semantic
+ * restriction ensures that the method is not named in the current module's
+ * "Names" section. This should not be used to extend existing methods.
+ *
+ * @method "Private stable abstract method_is_"
+ * @param "methodAtom" "atom"
+ *        The atom representing the abstract method to declare.
+ * @param "aFunctionType" "function meta"
+ *        The signature.
+ * @returns "⊤"
+ * @category "Declarations" "Methods"
+ */
+Public method "Private stable abstract method_is_" is
+[
+	methodAtom : atom,
+	aFunctionType : function meta
+|
+	methodName ::= methodAtom's name;
+	Private stable abstract method methodName is aFunctionType;
+] : ⊤;
 
 /**
  * Declare the intention to locally define a private method with the specified
@@ -793,6 +993,43 @@ Semantic restriction "Private stable forward method_is_" is
 ];
 
 /**
+ * Declare the intention to locally define a private method with the specified
+ * name and signature. If no such method is defined before compilation of the
+ * containing module completes, then the compiler will emit an appropriate error
+ * message.
+ *
+ * Recursive methods must be forward declared. Mutually recursive methods must
+ * forward declare all but the lexically first participant in the recursion.
+ * 
+ * Also declare that the method is stable A stable method produces the same
+ * value for the same arguments on every call. Automatically generate and
+ * install a semantic restriction that will statically strengthen the answer
+ * produced at a call site to a precisely known value when all arguments are
+ * themselves precisely known.
+ * 
+ * The semantic restriction ensures that the method is not named in the current
+ * module's "Names" section.
+ * 
+ * This should not be used to extend existing methods.
+ *
+ * @method "Private stable forward method_is_"
+ * @param "methodAtom" "atom"
+ *        The atom representing the method to forward declare.
+ * @param "aFunctionType" "function meta"
+ *        The signature.
+ * @returns "⊤"
+ * @category "Declarations" "Methods"
+ */
+Public method "Private stable forward method_is_" is
+[
+	methodAtom : atom,
+	aFunctionType : function meta
+|
+	methodName ::= methodAtom's name;
+	Private stable forward method methodName is aFunctionType;
+] : ⊤;
+
+/**
  * Define a new private stable method. A stable method produces the same value
  * for the same arguments on every call. Automatically generate and install a
  * semantic restriction that will statically strengthen the answer produced at a
@@ -834,6 +1071,32 @@ Semantic restriction "Private stable method_is_" is
 	Require: message nameType does not specify lexical groups;
 	Require: functionType's parameters are not metatypes or function types;
 	⊤
+];
+
+/**
+ * Define a new private stable method. A stable method produces the same value
+ * for the same arguments on every call. Automatically generate and install a
+ * semantic restriction that will statically strengthen the answer produced at a
+ * call site to a precisely known value when all arguments are themselves
+ * precisely known. The semantic restriction ensures that the method is not
+ * named in the current module's "Names" section. This should not be used to
+ * extend existing methods.
+ * 
+ * @method "Private stable method_is_"
+ * @param "methodAtom" "atom"
+ *        The atom representing the new method.
+ * @param "implementation" "function"
+ *        The original implementation of the method.
+ * @returns "⊤"
+ * @category "Declarations" "Methods"
+ */
+Public method "Private stable method_is_" is
+[
+	methodAtom : atom,
+	implementation : function
+|
+	methodName ::= methodAtom's name;
+	Private stable method methodName is implementation;
 ];
 
 /**

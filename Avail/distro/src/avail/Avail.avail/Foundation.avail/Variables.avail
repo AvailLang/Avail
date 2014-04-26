@@ -73,6 +73,7 @@ Semantic restriction "↓_" is
  * initial value.
  *
  * @method "(↓new↑_:=_)"
+ * @category "Variables"
  * @param "containmentType" "any meta"
  * @param "initialValue" "any"
  * Parameters:
@@ -124,6 +125,7 @@ Semantic restriction "(↓new↑_:=_)" is
  * initial value.
  *
  * @method "(↓new↑_`?=_)"
+ * @category "Variables"
  * @param "containmentType" "any meta"
  * @param "initialValue" "any"
  * Parameters:
@@ -148,6 +150,7 @@ Public method "(↓new↑_`?=_)" is
  * Does the specified variable contain a value?
  *
  * @method "_is assigned"
+ * @category "Variables"
  * @param "var" "variable"
  * Parameters:
  *    var - A variable.
@@ -193,7 +196,9 @@ Semantic restriction "swap_and_" is
  * Answer a function that accepts a variable and increments it.
  * 
  * @method "increment function"
+ * @category "Variables"
  * @param "var" "variable"
+ * 		a numeric variable
  * @returns "⊤"
  * Returns:
  *    The requested function.
@@ -236,7 +241,8 @@ Private method "increment/decrement semantic restriction" is
 /**
  * Increment the variable by one. This is intended for use as a statement.
  * 
- * @method "_++"
+ * @method 
+ * @category "Variables" "Mathematics" "Integers"
  * @param "var" "variable"
  * 		A numeric variable.
  * @returns "⊤"
@@ -257,6 +263,7 @@ Semantic restriction "_++" is increment/decrement semantic restriction;
  * expression.
  * 
  * @method "(_++)"
+ * @category "Variables" "Mathematics" "Integers"
  * @param "var" "variable"
  * 		A numeric variable.
  * @returns "number"
@@ -295,6 +302,7 @@ Semantic restriction "(_++)" is
  * Increment the variable by one. This is intended for use as a statement.
  * 
  * @method "++_"
+ * @category "Variables" "Mathematics" "Integers"
  * @param "var" "variable"
  * 		A numeric variable.
  * @returns "⊤"
@@ -313,6 +321,7 @@ Semantic restriction "++_" is increment/decrement semantic restriction;
  * Increment the specified value and answer its new value.
  * 
  * @method "(++_)"
+ * @category "Variables" "Mathematics" "Integers"
  * @param "var" "variable"
  * 		A numeric variable.
  * @returns "number"
@@ -363,6 +372,7 @@ Semantic restriction "(++_)" is
  * Answer a function that accepts a variable and decrements it.
  * 
  * @method "decrement function"
+ * @category "Variables"
  * @param "var" "variable"
  * @returns "[variable]→⊤"
  *    The requested function.
@@ -380,6 +390,7 @@ Private method "decrement function" is
  * Decrement the variable by one. This is intended for use as a statement.
  * 
  * @method "_--"
+ * @category "Variables" "Mathematics" "Integers"
  * @param "var" "variable"
  * 		A numeric variable.
  * @returns "⊤"
@@ -400,6 +411,7 @@ Semantic restriction "_--" is increment/decrement semantic restriction;
  * expression.
  * 
  * @method "(_--)"
+ * @category "Variables" "Mathematics" "Integers"
  * @param "var" "variable"
  * Parameters:
  *    var - A numeric variable.
@@ -439,6 +451,7 @@ Semantic restriction "(_--)" is
  * Decrement the variable by one. This is intended for use as a statement.
  *
  * @method "--_"
+ * @category "Variables" "Mathematics" "Integers"
  * @param "var" "variable" A numeric variable.
  * @returns "⊤"
  */
@@ -456,6 +469,7 @@ Semantic restriction "--_" is increment/decrement semantic restriction;
  * Decrement the specified value and answer its new value.   
  *
  * @method "(--_)"
+ * @category "Variables" "Mathematics" "Integers"
  * @param "var" "variable"
  * 		A numeric variable.
  * @returns "number"
@@ -525,6 +539,7 @@ with <>;
  * {@param "else"} and answer its result.
  *
  * @method "↓_else_"
+ * @category "Variables"
  * @param "var" "variable"
  *        A {@type "variable"}.
  * @param "else" "[]→any"

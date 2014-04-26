@@ -597,10 +597,15 @@ public abstract class AbstractStacksScanner
 						canErase = true;
 						erasurePosition = scanner.beingTokenized().length();
 					}
-					else if (c == '<')
+					else if (c == '*')
 					{
-						// Make safe for HTML
-						scanner.beingTokenized().append("&lt;");
+						// Just like a regular character, but limit how much
+						// can be removed by a subsequent '\|'.
+						if (!canErase)
+						{
+							scanner.beingTokenized().appendCodePoint(c);
+							erasurePosition = scanner.beingTokenized().length();
+						}
 					}
 					else
 					{

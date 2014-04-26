@@ -36,252 +36,375 @@ Versions
 Body
 
 /**
- * An assertion is a sincere, executable comment that 
- * documents a program precondition, postcondition, invariant, or other 
- * behavioral assumption. Probably only appropriate for program elements in 
- * /avail/Avail/Foundation/Assertions.
+ * Assertions are sincere, executable comments that document a program
+ * precondition, postcondition, invariant, or other behavioral assumption.
+ *
  * @category "Assertions"
  */
 
 /**
  * I/O operations that do not block the calling fiber.
+ *
  * @category "Asynchronous I/O"
  */
 
 /**
- * An atom is a discrete unit of identity, and may have mutable, potentially fiber-heritable properties.
+ * An atom is a discrete unit of identity, and may have mutable, potentially
+ * fiber-heritable properties.
+ *
  * @category "Atoms" 
  */
 
 /**
- * Computational backtracking. Probably only appropriate for program elements in /avail/Avail/Foundation/Backtracking.
- * @category "Backtracking" 
+ * Computational backtracking.
+ *
+ * @category "Backtracking"
  */
 
 /**
  * Bootstrap functionality. This category should not appear on the website.
+ *
  * @category "Bootstrap"
  */
 
 /**
+ * Methods that operate on the 2's complement representation of {@type
+ * "extended integers"}.
+ *
+ * @category "Bits"
+ */
+
+/**
  * Dynamic type strengthening.
+ *
  * @category "Casts"
  */
 
 /**
- * Abstract (i.e., type neutral) aggregate data management.
+ * Abstract aggregate data management.
+ *
  * @category "Collections"
  */
 
 /**
- * Access to the current fiber, Inter-fiber communication, concurrent control structures, and synchronization devices.
+ * Access to the current fiber, inter-fiber communication, concurrent control
+ * structures, and synchronization devices.
+ *
  * @category "Concurrency"
  */
 
 /**
  * Conditional control structures.
+ *
  * @category "Conditionals"
  */
 
 /**
- * Producing a value from one or more values that specify the (immutable) composition or (mutable) state of the result.
+ * Producing a value from one or more values that specify the (immutable)
+ * composition or (mutable) state of the result.
+ *
  * @category "Constructors"
  */
 
 /**
  * Methods focused on continuations and labels.
+ *
  * @category "Continuations"
  */
 
 /**
- * Conditionals, loops, early exits, and other serial constructs that influence a fiber's flow of control.
+ * Conditionals, loops, early exits, and other serial constructs that influence
+ * a fiber's flow of control.
+ *
  * @category "Control Structures"
  */
 
 /**
  * Converting between similar values of different kinds.
+ *
  * @category "Conversions"
  */
 
-/**Data structures and abstractions.
+/**
+ * Data structures and abstractions.
+ *
  * @category "Data Abstractions"
  */
 
-/**A declaration causes a program element to become available under a given name.
+/**
+ * A declaration causes a program element to become available under a given
+ * name.
+ *
  * @category "Declarations"
  */
 
 /**
+ * Methods focused on definitions. Subtypes of {@type "definition"}.
+ *
+ * @category "Definitions"
+ */
+
+/**
  * Dimensions and units, dimensioned quantities, etc.
+ *
  * @category "Dimensional Analysis"
  */
 
 /**
  * Methods focused on enumerations and instance types.
+ *
  * @category "Enumerations"
  */
 
 /**
  * Raising and handling exceptions.
+ *
  * @category "Exception Handling"
  */
 
 /**
- * Named failure conditions that participate in nonlocal recovery and propagation.
+ * Named failure conditions that participate in nonlocal recovery and
+ * propagation.
+ *
  * @category "Exceptions"
  */
 
 /**
  * Interacting with file systems, files, file principals, etc.
+ *
  * @category "File Systems"
  */
 
 /**
  * Application and partial application of functions.
+ *
  * @category "Function Application"
  */
 
 /**
- * Methods focused on function implementations. Subtypes of function implementation.
+ * Methods focused on function implementations. Subtypes of {@type "function
+ * implementation"}.
+ *
  * @category "Function Implementations"
  */
 
 /**
+ * Methods focused on functions. Subtypes of {@type "function"}.
+ *
+ * @category "Functions"
+ */
+
+/**
  * A future is a proxy for an operation that may not have completed yet.
+ *
  * @category "Futures"
  */
 
 /**
- * Methods focused on extended integers and integers. Subtypes of extended integer.
+ * Methods focused on extended integers and integers. Subtypes of {@type
+ * "extended integer"}.
+ *
  * @category "Integers"
  */
 
 /**
  * Logical operators.
+ *
  * @category "Logic"
  */
 
 /**
- * Loop control structures.
+ * Repeating control structures.
+ *
  * @category "Loops"
  */
 
 /**
  * Methods focused on maps. Subtypes of map.
+ *
  * @category "Maps"
  */
 
 /**
  * Numeric constants and arithmetic operations.
+ *
  * @category "Mathematics"
  */
 
 /**
  * Methods focused on methods.
+ *
  * @category "Methods"
  */
 
 /**
+ * Methods focused on modules.
+ *
+ * @category "Modules"
+ */
+
+/**
+ * Updating a mutable value.
+ *
+ * @category "Mutators"
+ */
+
+/**
+ * Methods that resolve names to {@type "atom"}s. 
+ *
+ * @category "Name Resolution"
+ */
+
+/**
  * Sockets, IP addresses, network protocols, etc.
+ *
  * @category "Networking"
  */
 
 /**
  * Methods focused on numbers. Subtypes of number.
+ *
  * @category "Numbers"
  */
 
 /**
  * Methods focused on objects. Subtypes of object.
+ *
  * @category "Objects"
  */
 
 /**
- * Automatic observing of assignments to variables within transactional boundaries.
+ * Automatic observing of assignments to variables within transactional
+ * boundaries.
+ *
  * @category "Observing"
  */
 
 /**
- * Methods focused on phrases. Subtypes of phrase.
+ * Methods focused on phrases. Subtypes of {@type "phrase"}.
+ *
  * @category "Phrases"
  */
 
 /**
- * Plain old Java objects. interaction with the Java programming language and libraries.
+ * Plain old Java objects. Interaction with the Java programming language and
+ * libraries.
+ *
  * @category "POJO"
  */ 
 
 /**
- * A primitive is provided by the Avail virtual machine, not the Avail standard library. Applies to any method implementation that has a Primitive statement as the first line following the (optional) argument section. Also applies to any special object.
+ * A primitive is provided by the Avail virtual machine, not the Avail standard
+ * library. Applies to any method implementation that has a {@code "Primitive"}
+ * statement as the first line following the argument section. Also applies to
+ * any {@method "special object_" special object}.
+ *
  * @category "Primitives"
  */
 
 /**
  * Interrogating the state of a value.
+ *
  * @category "Queries"
  */
 
 /**
  * Relational operators.
+ *
  * @category "Relations"
  */
 
 /**
- * Methods focused on sets. Subtypes of set.
+ * Construction of semantic restrictions, parse rejection, emission of warnings,
+ * etc.
+ *
+ * @category "Semantic Restrictions"
+ */
+
+/**
+ * Methods focused on sets. Subtypes of {@type "set"}.
+ *
  * @category "Sets"
  */
 
 /**
- * Interacting with the virtual machine's standard input, output, and error streams.
+ * Interacting with the virtual machine's standard input, output, and error
+ * streams.
+ *
  * @category "Standard I/O"
  */
 
 /**
  * Generating printable representations of values.
+ *
  * @category "Stringification"
  */
 
 /**
- * Methods focused on strings. Subtypes of string.
+ * Methods focused on strings. Subtypes of {@type "string"}.
+ *
  * @category "Strings"
  */
 
 /**
  * Synchronization devices.
+ *
  * @category "Synchronization"
  */
 
 /**
  * I/O operations that block the calling fiber.
+ *
  * @category "Synchronous I/O"
  */
 
 /**
- * Deriving a value from a similar value and one or more other values. This is essentially the functional equivalent of a mutator (setter).
+ * Deriving a value from a similar value and one or more other values. This is
+ * essentially the functional equivalent of a mutator (setter).
+ *
  * @category "Transformers"
  */
 
 /**
- * Methods focused on tuples. Subtypes of tuple.
+ * Current time, high-precision timers, calendrical support, etc.
+ *
+ * @category "Time"
+ */
+
+/**
+ * Methods focused on tokens. Subtypes of {@type "token"}.
+ *
+ * @category "Tokens"
+ */
+
+/**
+ * Methods focused on tuples. Subtypes of {@type "tuple"}.
+ *
  * @category "Tuples"
  */
 
 /**
  * Methods focused on types. Types and metatypes.
+ *
  * @category "Types"
  */
 
 /**
- * Unicode support, character classification, conversion between characters and code points, etc.
+ * Unicode support, character classification, conversion between characters and
+ * code points, etc.
+ *
  * @category "Unicode"
  */
 
 /**
- * Declaration of test suites and test cases. Tools for writing test cases. Running test suites.
+ * Declaration of test suites and test cases. Tools for writing test cases.
+ * Running test suites.
+ *
  * @category "Unit Testing"
  */
 
 /**
- * Methods focused on variables. Subtypes of variable.
+ * Methods focused on variables. Subtypes of {@type "variable"}.
+ *
  * @category "Variables"
  */
