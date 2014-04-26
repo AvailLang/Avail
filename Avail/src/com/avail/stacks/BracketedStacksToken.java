@@ -146,17 +146,19 @@ public class BracketedStacksToken extends RegionStacksToken
 				final int tokenCount = bracketToken.subTokens.size();
 				for (int i = 1; i < tokenCount - 1; i++)
 				{
+					final String tokenToWrite = bracketToken
+						.subTokens.get(i).lexeme().replaceAll("<", "&lt;");
+
 					stringBuilder
-						.append(bracketToken
-							.subTokens.get(i)
-							.toHTML(htmlFileMap, hashID, errorLog))
+						.append(tokenToWrite)
 						.append(" ");
 				}
 
+				final String tokenToWrite = bracketToken
+					.subTokens.get(tokenCount - 1)
+						.lexeme().replaceAll("<", "&lt;");
 				stringBuilder
-					.append(bracketToken
-						.subTokens.get(tokenCount - 1)
-							.toHTML(htmlFileMap, hashID, errorLog))
+					.append(tokenToWrite)
 					.append("</code>");
 				return stringBuilder.toString();
 			}

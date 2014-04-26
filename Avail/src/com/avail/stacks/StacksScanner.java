@@ -713,6 +713,10 @@ public class StacksScanner extends AbstractStacksScanner
 						}
 					}
 				}
+				if(scanner.peek() == '<')
+				{
+					scanner.hasHTMLTagTrue();
+				}
 				if (!scanner.hasHTMLTag() && scanner.newlineCount() > 1
 					&& !(forCodePoint(scanner.peek()) == SLASH)
 					&& !(forCodePoint(scanner.peek()) == KEYWORD_START))
@@ -720,12 +724,6 @@ public class StacksScanner extends AbstractStacksScanner
 					if (scanner.addedParagraphHTMLTag())
 					{
 						scanner.addHTMLTokens("</p>\n<p>");
-						final StringBuilder debugStringBuilder = new StringBuilder();
-						for (final AbstractStacksToken aToken : scanner.outputTokens)
-						{
-							debugStringBuilder.append(aToken.lexeme()).append(' ');
-						}
-						final int i = 3+2;
 					}
 					else
 					{
@@ -733,17 +731,19 @@ public class StacksScanner extends AbstractStacksScanner
 					}
 					scanner.addedParagraphHTMLTagTrue();
 				}
-				if (scanner.hasHTMLTag() && scanner.newlineCount() > 1)
+				if (scanner.hasHTMLTag() && scanner.newlineCount() > 1
+					&& scanner.addedParagraphHTMLTag())
 				{
-					if (forCodePoint(scanner.peek()) == STANDARD_CHARACTER)
+					if (!(forCodePoint(scanner.peek()) == SLASH)
+						&& !(forCodePoint(scanner.peek()) == KEYWORD_START))
 					{
-						scanner.addHTMLTokens("<p>");
+						scanner.addHTMLTokens("</p>");
 						scanner.hasHTMLTagFalse();
-						scanner.addedParagraphHTMLTagTrue();
 					}
 				}
-				if (forCodePoint(scanner.peek()) == KEYWORD_START &&
-					scanner.addedParagraphHTMLTag())
+				if ((forCodePoint(scanner.peek()) == KEYWORD_START ||
+							scanner.atEnd())
+						&& scanner.addedParagraphHTMLTag())
 				{
 					scanner.addHTMLTokens("</p>");
 					scanner.hasHTMLTagFalse();
@@ -973,12 +973,5 @@ public class StacksScanner extends AbstractStacksScanner
 			startOfTokenLinePostion(),
 			moduleName.toString());
 		outputTokens.add(token);
-
-		final StringBuilder debugStringBuilder = new StringBuilder();
-		for (final AbstractStacksToken aToken : outputTokens)
-		{
-			debugStringBuilder.append(aToken.lexeme()).append(' ');
-		}
-		final int j = 3 + 5;
 	}
 }

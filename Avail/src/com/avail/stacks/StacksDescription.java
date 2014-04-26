@@ -42,7 +42,6 @@ import java.util.ArrayList;
  */
 public class StacksDescription
 {
-
 	/**
 	 * The tokens that make up a description in a comment.
 	 */
@@ -79,8 +78,20 @@ public class StacksDescription
 			{
 				stringBuilder
 					.append(descriptionTokens.get(i).toHTML(htmlFileMap,
-						hashID, errorLog))
-					.append(" ");
+						hashID, errorLog));
+
+				switch (descriptionTokens.get(i + 1).lexeme()) {
+					case ".":
+					case ",":
+					case ":":
+					case "?":
+					case ";":
+					case "!":
+						break;
+					default:
+						stringBuilder.append(" ");
+				}
+
 			}
 			stringBuilder
 				.append(descriptionTokens.get(listSize - 1)
