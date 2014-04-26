@@ -94,7 +94,7 @@ Public method "Require:_is canonical" is
 		If ¬trueName is a valid message then
 		[
 			Reject parse, expected:
-				format "message to be canonical (but ‘①’ is not)"
+				format "message to be canonical (but “①” is not)"
 				with nameType's instance
 		];
 	];
@@ -122,7 +122,7 @@ Public method "Require:_is unambiguous" is
 		[
 			Reject parse, expected:
 				format
-					"message to be unambiguous, but ‘①’ could be any of ‘②’"
+					"message to be unambiguous, but “①” could be any of ‘②’"
 				with
 					nameType's instance,
 					“all atoms for name” (as disjunctive list with serial comma)
@@ -171,4 +171,12 @@ do
 		Require: nameType is canonical;
 		⊤
 	];
+];
+
+Semantic restriction "atom for_" is
+[
+	nameType : string's type
+|
+	Require: nameType is unambiguous;
+	⊤
 ];
