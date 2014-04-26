@@ -40,6 +40,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import com.avail.utility.Pair;
@@ -341,7 +342,12 @@ public class HTMLFileMap
 	    .append(tabs(3) + "<tbody>\n")
 	    .append(tabs(4) + "<tr>\n");
 
-		for (final String category : categoryToDescription.keySet())
+		final ArrayList<String> sortedKeys = new ArrayList<String>();
+		sortedKeys.addAll(categoryToDescription.keySet());
+
+		Collections.sort(sortedKeys);
+
+		for (final String category : sortedKeys)
 		{
 			stringBuilder
 				.append(tabs(5) + "<td "

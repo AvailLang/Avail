@@ -68,8 +68,6 @@ public class StacksSeeTag extends AbstractStacksTag
 	public String toHTML (final HTMLFileMap htmlFileMap,
 		final int hashID, final StacksErrorLog errorLog)
 	{
-		// TODO Auto-generated method stub
-
 		final StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("see: ");
 
