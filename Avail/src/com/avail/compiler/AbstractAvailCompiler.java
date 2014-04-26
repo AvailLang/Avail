@@ -2023,6 +2023,7 @@ public abstract class AbstractAvailCompiler
 			}
 			else if ((token = state.peekStringLiteral()) != null)
 			{
+				final ParserState stateAtString = state;
 				state = state.afterToken();
 				if (state.peekToken(RIGHT_ARROW))
 				{
@@ -2034,20 +2035,30 @@ public abstract class AbstractAvailCompiler
 							"string literal token after right arrow");
 						return null;
 					}
-					state = state.afterToken();
 					if (renames.value.hasKey(token2.literal()))
 					{
 						state.expected(
 							"renames to specify distinct target names");
 						return null;
 					}
+					state = state.afterToken();
 					renames.value = renames.value.mapAtPuttingCanDestroy(
 						token2.literal(), token.literal(), true);
 				}
 				else
 				{
+					final A_String name = token.literal();
+					if (names.value.hasElement(name))
+					{
+						// The same name was explicitly listed twice.  This
+						// can't be postponed to validation time since we keep
+						// a (de-duplicated) set of names.
+						stateAtString.expected(
+							"directly imported name not to occur twice");
+						return null;
+					}
 					names.value = names.value.setWithElementCanDestroy(
-						token.literal(), true);
+						name, true);
 				}
 			}
 			else
@@ -2116,7 +2127,7 @@ public abstract class AbstractAvailCompiler
 	{
 		boolean anyEntries = false;
 		ParserState state = start;
-		do
+		while (true)
 		{
 			final A_Token token = state.peekStringLiteral();
 			if (token == null)
@@ -2218,7 +2229,6 @@ public abstract class AbstractAvailCompiler
 				return state;
 			}
 		}
-		while (true);
 	}
 
 	/**

@@ -927,8 +927,8 @@ System exception "method-return-type-not-as-forward-declared" (13)
 	extends definition exception;
 System exception "continuation-expected-stronger-type" (14)
 	extends invocation exception;
-System exception "primitive-not-supported" (15)
-	extends bad-primitive exception ∩ unsupported-operation exception;
+System exception "operation-not-supported" (15)
+	extends unsupported-operation exception;
 System exception "not-an-enumeration" (17)
 	extends invocation exception;
 System exception "shift-and-truncate-requires-non-negative" (18)

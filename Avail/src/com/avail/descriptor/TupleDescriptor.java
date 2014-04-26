@@ -376,21 +376,22 @@ extends Descriptor
 		final int breakIndex = min(tupleSize, typeTuple.tupleSize());
 		for (int i = 1; i <= breakIndex; i++)
 		{
-			if (!object.tupleAt(i).isInstanceOf(aTypeObject.typeAtIndex(i)))
+			if (!object.tupleAt(i).isInstanceOf(typeTuple.tupleAt(i)))
 			{
 				return false;
 			}
 		}
+		if (breakIndex + 1 > tupleSize)
+		{
+			return true;
+		}
 		final A_Type defaultTypeObject = aTypeObject.defaultType();
 		if (!defaultTypeObject.isSupertypeOfPrimitiveTypeEnum(ANY))
 		{
-			for (int i = breakIndex + 1; i <= tupleSize; i++)
-			{
-				if (!object.tupleAt(i).isInstanceOf(defaultTypeObject))
-				{
-					return false;
-				}
-			}
+			return object.tupleElementsInRangeAreInstancesOf(
+				breakIndex + 1,
+				tupleSize,
+				defaultTypeObject);
 		}
 		return true;
 	}
@@ -989,6 +990,23 @@ extends Descriptor
 			result.objectTupleAtPut(i, object.tupleAt(i));
 		}
 		return result;
+	}
+
+	@Override
+	boolean o_TupleElementsInRangeAreInstancesOf (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final A_Type type)
+	{
+		for (int index = startIndex; index <= endIndex; index++)
+		{
+			if (!object.tupleAt(index).isInstanceOf(type))
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**

@@ -344,7 +344,7 @@ Public method "_is executable" is
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
- * @raises "primitive-not-supported exception"
+ * @raises "operation-not-supported exception"
  *         If {@type "file access right"}s are not supported by the host
  *         platform.
  */
@@ -361,7 +361,7 @@ Public method "_'s⁇access rights(follow if symlink=_)" is
 			Primitive 434 (e : {
 				invalid-path code,
 				permission-denied code,
-				primitive-not-supported code,
+				operation-not-supported code,
 				I/O-error code}ᵀ);
 			Raise an exception for e
 		] : {[1..9]|0..9} (fn's name, followIfSymlink);
@@ -387,7 +387,7 @@ Public method "_'s⁇access rights(follow if symlink=_)" is
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
- * @raises "primitive-not-supported exception"
+ * @raises "operation-not-supported exception"
  *         If {@type "file access right"}s are not supported by the host
  *         platform.
  */
@@ -416,7 +416,7 @@ Public method "_'s⁇access rights«(don't follow if symlink)»?" is
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
- * @raises "primitive-not-supported exception"
+ * @raises "operation-not-supported exception"
  *         If {@type "file access right"}s are not supported by the host
  *         platform.
  */
@@ -435,7 +435,7 @@ Public method "_'s⁇access rights:=_(follow if symlink=_)" is
 		Primitive 435 (e : {
 			invalid-path code,
 			permission-denied code,
-			primitive-not-supported code,
+			operation-not-supported code,
 			I/O-error code}ᵀ);
 		Raise an exception for e
 	] : ⊤ (fn's name, ordinals, followIfSymlink);
@@ -458,7 +458,7 @@ Public method "_'s⁇access rights:=_(follow if symlink=_)" is
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
- * @raises "primitive-not-supported exception"
+ * @raises "operation-not-supported exception"
  *         If {@type "file access right"}s are not supported by the host
  *         platform.
  */

@@ -4568,4 +4568,15 @@ extends AbstractDescriptor
 		o_Traversed(object).transferIntoByteBuffer(
 			startIndex, endIndex, outputByteBuffer);
 	}
+
+	@Override
+	boolean o_TupleElementsInRangeAreInstancesOf (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final A_Type type)
+	{
+		return o_Traversed(object).tupleElementsInRangeAreInstancesOf(
+			startIndex, endIndex, type);
+	}
 }

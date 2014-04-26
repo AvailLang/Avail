@@ -91,7 +91,7 @@ extends TupleDescriptor
 	/**
 	 * Defined threshold for making copies versus using {@linkplain
 	 * TreeTupleDescriptor}/using other forms of reference instead of creating
-	 * an new tuple.
+	 * a new tuple.
 	 */
 	private final int maximumCopySize = 32;
 
@@ -467,6 +467,27 @@ extends TupleDescriptor
 	int o_TupleSize (final AvailObject object)
 	{
 		return object.slot(SIZE);
+	}
+
+	@Override
+	boolean o_TupleElementsInRangeAreInstancesOf (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final A_Type type)
+	{
+		final A_Number start = IntegerDescriptor.fromInt(object.slot(START));
+		final A_Number end = IntegerDescriptor.fromInt(object.slot(END));
+		if (type.isSupertypeOfIntegerRangeType(
+			IntegerRangeTypeDescriptor.create(start, true, end, true)))
+		{
+			return true;
+		}
+		return super.o_TupleElementsInRangeAreInstancesOf(
+			object,
+			startIndex,
+			endIndex,
+			type);
 	}
 
 	/** The mutable {@link SmallIntegerIntervalTupleDescriptor}. */

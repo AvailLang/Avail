@@ -5974,4 +5974,17 @@ public abstract class AbstractDescriptor
 		int startIndex,
 		int endIndex,
 		ByteBuffer outputByteBuffer);
+
+	/**
+	 * @param object
+	 * @param startIndex
+	 * @param endIndex
+	 * @param type
+	 * @return
+	 */
+	abstract boolean o_TupleElementsInRangeAreInstancesOf (
+		AvailObject object,
+		int startIndex,
+		int endIndex,
+		A_Type type);
 }

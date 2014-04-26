@@ -474,6 +474,27 @@ extends TupleDescriptor
 		return object.slot(SIZE);
 	}
 
+	@Override
+	boolean o_TupleElementsInRangeAreInstancesOf (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final A_Type type)
+	{
+		final A_Number start = object.slot(START);
+		final A_Number end = object.slot(END);
+		if (type.isSupertypeOfIntegerRangeType(
+			IntegerRangeTypeDescriptor.create(start, true, end, true)))
+		{
+			return true;
+		}
+		return super.o_TupleElementsInRangeAreInstancesOf(
+			object,
+			startIndex,
+			endIndex,
+			type);
+	}
+
 	/** The mutable {@link IntegerIntervalTupleDescriptor}. */
 	public static final IntegerIntervalTupleDescriptor mutable =
 		new IntegerIntervalTupleDescriptor(Mutability.MUTABLE);

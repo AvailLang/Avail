@@ -132,12 +132,12 @@ Names
 	/*  93 */ "not-open-for-read code",
 	/*  94 */ "not-open-for-write code",
 	/*  49 */ "octothorp-must-follow-a-simple-group code",
+	/*  15 */ "operation-not-supported code",
 	/*  29 */ "outer-type-literal-is-not-a-type code",
 	/* 203 */ "partial-success code",
 	/*  24 */ "permission-denied code",
 	/* 501 */ "pojo-type-is-abstract code",
 	/*  60 */ "primitive-fallibility-disagrees-with-failure-variable code",
-	/*  15 */ "primitive-not-supported code",
 	/*  62 */ "primitive-should-agree-with-declared-return-type code",
 	/*  50 */ "question-mark-must-follow-a-simple-group code",
 	/*  39 */ "redefined-with-same-argument-types code",
@@ -228,7 +228,7 @@ Primitive "continuation-expected-stronger-type code" is
 	14
 ];
 
-Primitive "primitive-not-supported code" is
+Primitive "operation-not-supported code" is
 [
 	15
 ];

@@ -69,7 +69,7 @@ vendor). You can do so like this:
 
 And hopefully you get back something like this:
 
-	javac 1.7.0_51
+	javac 1.7.0_55
 
 Otherwise, the latest version of the JDK can be obtained at:
 
@@ -115,8 +115,8 @@ The main command is "ant". Please make sure that "ant" is on your path.
 
 BUILDING =======================================================================
 
-Avail is distributed in source form only. You will need to compile Avail using
-the provided build script, "build.xml". To build Avail:
+You will need to compile Avail using the provided build script, "build.xml". To
+build Avail:
 
 	$ cd $PROJ/Avail
 	$ ant
@@ -132,7 +132,7 @@ You should see output similar to this:
 
 	build-sources:
 		[mkdir] Created dir: $PROJ/Avail/bin
-		[javac] Compiling 966 source files to $PROJ/Avail/bin
+		[javac] Compiling 1022 source files to $PROJ/Avail/bin
 
 	generate-build-time:
 
@@ -147,7 +147,7 @@ You should see output similar to this:
 	BUILD SUCCESSFUL
 	Total time: 14 seconds
 
-If transcript ends with "BUILD SUCCESSFUL", your build is ready for 
+If your transcript ends with "BUILD SUCCESSFUL", then your build is ready for
 installation.
 
 
@@ -186,7 +186,7 @@ Your transcript should look similar to this:
 		[jar] Building jar: $PROJ/Avail/distro/lib/AvailDev.jar
 
 	install:
-		[copy] Copying 216 files to $INSTALL
+		[copy] Copying 229 files to $INSTALL
 		[echo] 
 		[echo] ATTENTION =======================================================
 		[echo] Be sure to set AVAIL_HOME to:
@@ -224,10 +224,10 @@ Your transcript should look similar to this:
 	BUILD SUCCESSFUL
 	Total time: 3 seconds
 
-If transcript ends with "BUILD SUCCESSFUL", then the installation has completed.
-The transcript contains information about how to configure your environment
-for Avail development. Please be sure to follow these instructions (reiterated
-in more detail below).
+If your transcript ends with "BUILD SUCCESSFUL", then the installation has
+completed. The transcript contains information about how to configure your
+environment for Avail development. Please be sure to follow these instructions
+(reiterated in more detail below).
 
 
 AFTER INSTALLING ==============================================================
@@ -253,7 +253,9 @@ that Avail can find its modules.
 
 A "module roots path" is a specification of locations that contain Avail code,
 in either binary or source form. A module roots path comprises several
-"module root specifications" separated by semicolons (";").
+"module root specifications" separated by semicolons (";"). (On Unix systems,
+you will need to quote each semicolon, in order to hide it from the shell's
+command parser.)
 
 Each module root specification comprises a "module root name", which is just a
 unique logical identifier, and a module root path. A module root name usually 
@@ -290,7 +292,7 @@ include module root specifications for your own Avail projects.
 
 For more information on this topic, please visit this webpage:
 
-	http://www.availlang.org/about-avail/documentation/modules/module-resolution.html
+	http://www.availlang.org/about-avail/documentation/modules/module-discovery.html
 
 RUNNING AVAIL ==================================================================
 

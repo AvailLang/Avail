@@ -145,7 +145,7 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 				Primitive.byPrimitiveNumberOrNull(primNumber);
 			if (primitive == null)
 			{
-				return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
+				return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED);
 			}
 			canHaveStatements = !primitive.hasFlag(CannotFail);
 			final A_Tuple optionalFailurePairs = optionalPrimitive.tupleAt(2);
@@ -328,7 +328,7 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(
-				E_PRIMITIVE_NOT_SUPPORTED.numericCode(),
+				E_OPERATION_NOT_SUPPORTED.numericCode(),
 				E_LOADING_IS_OVER.numericCode(),
 				E_PRIMITIVE_FALLIBILITY_DISAGREES_WITH_FAILURE_VARIABLE.numericCode(),
 				E_INFALLIBLE_PRIMITIVE_MUST_NOT_HAVE_STATEMENTS.numericCode(),

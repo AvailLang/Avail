@@ -188,7 +188,7 @@ extends Primitive
 		}
 		catch (final UnsupportedOperationException e)
 		{
-			return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
+			return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED);
 		}
 		catch (final SecurityException|AccessDeniedException e)
 		{
@@ -239,7 +239,7 @@ extends Primitive
 			TupleDescriptor.from(
 				E_INVALID_PATH.numericCode(),
 				E_ILLEGAL_OPTION.numericCode(),
-				E_PRIMITIVE_NOT_SUPPORTED.numericCode(),
+				E_OPERATION_NOT_SUPPORTED.numericCode(),
 				E_PERMISSION_DENIED.numericCode(),
 				E_IO_ERROR.numericCode()
 			).asSet());

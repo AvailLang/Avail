@@ -470,6 +470,20 @@ extends TupleDescriptor
 			outputByteBuffer);
 	}
 
+	@Override
+	boolean o_TupleElementsInRangeAreInstancesOf (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final A_Type type)
+	{
+		final int offset = object.slot(START_INDEX) - 1;
+		return object.slot(BASIS_TUPLE).tupleElementsInRangeAreInstancesOf(
+			startIndex + offset,
+			endIndex + offset,
+			type);
+	}
+
 	/**
 	 * Answer the minimum number of elements a subrange tuple may have.  Below
 	 * this threshold the subrange representation is expected to be

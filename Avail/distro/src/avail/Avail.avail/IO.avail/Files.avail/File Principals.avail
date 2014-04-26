@@ -118,7 +118,7 @@ Method "“_”" is
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
- * @raises "primitive-not-supported exception"
+ * @raises "operation-not-supported exception"
  *         If {@type "user principal"}s are not supported by the host
  *         platform.
  */
@@ -136,7 +136,7 @@ Public method "_'s⁇owner(follow if symlink=_)" is
 				invalid-path code,
 				permission-denied code,
 				I/O-error code,
-				primitive-not-supported code}ᵀ);
+				operation-not-supported code}ᵀ);
 			Raise an exception for e
 		] : string (fn's name, followIfSymlink);
 	a user principal with name ::= userName
@@ -161,7 +161,7 @@ Public method "_'s⁇owner(follow if symlink=_)" is
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
- * @raises "primitive-not-supported exception"
+ * @raises "operation-not-supported exception"
  *         If {@type "user principal"}s are not supported by the host
  *         platform.
  */
@@ -190,7 +190,7 @@ Public method "_'s⁇owner«(don't follow if symlink)»?" is
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
- * @raises "primitive-not-supported exception"
+ * @raises "operation-not-supported exception"
  *         If {@type "user principal"}s are not supported by the host
  *         platform.
  */
@@ -209,7 +209,7 @@ Public method "_'s⁇owner:=_(follow if symlink=_)" is
 			invalid-path code,
 			permission-denied code,
 			I/O-error code,
-			primitive-not-supported code}ᵀ);
+			operation-not-supported code}ᵀ);
 		Raise an exception for e
 	] : ⊤ (fn's name, owner's name, followIfSymlink);
 ] : ⊤;
@@ -231,7 +231,7 @@ Public method "_'s⁇owner:=_(follow if symlink=_)" is
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
- * @raises "primitive-not-supported exception"
+ * @raises "operation-not-supported exception"
  *         If {@type "user principal"}s are not supported by the host
  *         platform.
  */
@@ -263,7 +263,7 @@ Public method "_'s⁇owner:=_«(don't follow if symlink)»?" is
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
- * @raises "primitive-not-supported exception"
+ * @raises "operation-not-supported exception"
  *         If {@type "user principal"}s are not supported by the host
  *         platform.
  */
@@ -281,7 +281,7 @@ Public method "_'s⁇group(follow if symlink=_)" is
 				invalid-path code,
 				permission-denied code,
 				I/O-error code,
-				primitive-not-supported code}ᵀ);
+				operation-not-supported code}ᵀ);
 			Raise an exception for e
 		] : string (fn's name, followIfSymlink);
 	a group principal with name ::= groupName
@@ -306,7 +306,7 @@ Public method "_'s⁇group(follow if symlink=_)" is
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
- * @raises "primitive-not-supported exception"
+ * @raises "operation-not-supported exception"
  *         If {@type "user principal"}s are not supported by the host
  *         platform.
  */
@@ -335,7 +335,7 @@ Public method "_'s⁇group«(don't follow if symlink)»?" is
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
- * @raises "primitive-not-supported exception"
+ * @raises "operation-not-supported exception"
  *         If {@type "group principal"}s are not supported by the host
  *         platform.
  */
@@ -354,7 +354,7 @@ Public method "_'s⁇group:=_(follow if symlink=_)" is
 			invalid-path code,
 			permission-denied code,
 			I/O-error code,
-			primitive-not-supported code}ᵀ);
+			operation-not-supported code}ᵀ);
 		Raise an exception for e
 	] : ⊤ (fn's name, group's name, followIfSymlink);
 ] : ⊤;
@@ -376,7 +376,7 @@ Public method "_'s⁇group:=_(follow if symlink=_)" is
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
- * @raises "primitive-not-supported exception"
+ * @raises "operation-not-supported exception"
  *         If {@type "group principal"}s are not supported by the host
  *         platform.
  */

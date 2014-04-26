@@ -6895,4 +6895,14 @@ implements
 		descriptor.o_TransferIntoByteBuffer(
 			this, startIndex, endIndex, outputByteBuffer);
 	}
+
+	@Override
+	public boolean tupleElementsInRangeAreInstancesOf (
+		final int startIndex,
+		final int endIndex,
+		final A_Type type)
+	{
+		return descriptor.o_TupleElementsInRangeAreInstancesOf(
+			this, startIndex, endIndex, type);
+	}
 }
