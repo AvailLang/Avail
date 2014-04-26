@@ -182,8 +182,8 @@ Body
  */
 
 /**
- * Methods focused on function implementations. Subtypes of {@type "function
- * implementation"}.
+ * Methods focused on function implementations. Subtypes of {@type
+ * "function implementation"}.
  *
  * @category "Function Implementations"
  */
@@ -360,7 +360,7 @@ Body
 
 /**
  * Deriving a value from a similar value and one or more other values. This is
- * essentially the functional equivalent of a mutator (setter).
+ * essentially the functional equivalent of a mutator.
  *
  * @category "Transformers"
  */
