@@ -540,14 +540,6 @@ public class ImplementationGroup
 	}
 
 	/**
-	 * @param newAliases the alias to add to the set
-	 */
-	public void addAliases (final String newAliases)
-	{
-		aliases.addAll(aliases);
-	}
-
-	/**
 	 * @return the filepath
 	 */
 	public StacksFilename filepath ()

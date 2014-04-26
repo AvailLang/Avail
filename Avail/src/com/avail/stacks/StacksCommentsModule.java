@@ -1069,11 +1069,13 @@ public class StacksCommentsModule
 							+ implementation.filepath().relativeFilePath());
 					}
 
-					for (final String alias : implementation.aliases())
+					//Most likely a bug to do this.  Creates ambiguities were none exist
+					//as it thinks renames are the same.
+/*					for (final String alias : implementation.aliases())
 					{
 						htmlFileMap.addAlias(alias, topLevelLinkFolderPath
 							+ implementation.filepath().relativeFilePath());
-					}
+					}*/
 
 					fileCount++;
 				}
@@ -1357,7 +1359,8 @@ public class StacksCommentsModule
 		final HashMap<String,String> internalLinks =
 			new HashMap<String,String>();
 
-		final Path outputFolder = outputPath.resolve("_Ambiguities");
+		final Path outputFolder = outputPath
+			.resolve("library-documentation/_Ambiguities");
 
 		final String htmlTemplate =
 			HTMLBuilder.getOuterHTMLTemplate(templateFilePath);
