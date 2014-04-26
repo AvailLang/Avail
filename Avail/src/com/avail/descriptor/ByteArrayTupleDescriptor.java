@@ -86,7 +86,7 @@ extends TupleDescriptor
 	/**
 	 * Defined threshold for making copies versus using {@linkplain
 	 * TreeTupleDescriptor}/using other forms of reference instead of creating
-	 * an new tuple.
+	 * a new tuple.
 	 */
 	private static final int maximumCopySize = 64;
 
@@ -502,6 +502,24 @@ extends TupleDescriptor
 	{
 		final byte [] byteArray = object.byteArray();
 		outputByteBuffer.put(byteArray, startIndex - 1, endIndex);
+	}
+
+	@Override
+	boolean o_TupleElementsInRangeAreInstancesOf (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final A_Type type)
+	{
+		if (IntegerRangeTypeDescriptor.bytes().isSubtypeOf(type))
+		{
+			return true;
+		}
+		return super.o_TupleElementsInRangeAreInstancesOf(
+			object,
+			startIndex,
+			endIndex,
+			type);
 	}
 
 	/**

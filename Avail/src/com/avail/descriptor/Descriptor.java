@@ -4413,4 +4413,14 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	boolean o_TupleElementsInRangeAreInstancesOf (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final A_Type type)
+	{
+		throw unsupportedOperationException();
+	}
 }

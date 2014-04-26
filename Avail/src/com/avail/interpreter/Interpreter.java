@@ -208,7 +208,7 @@ public final class Interpreter
 	public static boolean debugL1 = false;
 
 	/** Whether to print detailed Level Two debug information. */
-	public static boolean debugL2 = true;
+	public static boolean debugL2 = false;
 
 	/** Whether to print detailed Primitive debug information. */
 	public static boolean debugPrimitives = false;

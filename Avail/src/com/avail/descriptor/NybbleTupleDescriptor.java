@@ -87,9 +87,9 @@ extends TupleDescriptor
 	/**
 	 * Defined threshold for making copies versus using {@linkplain
 	 * TreeTupleDescriptor}/using other forms of reference instead of creating
-	 * an new tuple.
+	 * a new tuple.
 	 */
-	private static final int maximumCopySize = 64;
+	private static final int maximumCopySize = 128;
 
 	/**
 	 * The number of nybbles of the last {@linkplain IntegerSlots#RAW_QUAD_AT_
@@ -448,7 +448,7 @@ extends TupleDescriptor
 				result = result.tupleAtPuttingCanDestroy(
 					dest,
 					otherTuple.tupleAt(src),
-					canDestroy);
+					canDestroy | src > 1);
 			}
 			return result;
 		}
@@ -511,6 +511,24 @@ extends TupleDescriptor
 		{
 			outputByteBuffer.put(getNybble(object, index));
 		}
+	}
+
+	@Override
+	boolean o_TupleElementsInRangeAreInstancesOf (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final A_Type type)
+	{
+		if (IntegerRangeTypeDescriptor.nybbles().isSubtypeOf(type))
+		{
+			return true;
+		}
+		return super.o_TupleElementsInRangeAreInstancesOf(
+			object,
+			startIndex,
+			endIndex,
+			type);
 	}
 
 	/**

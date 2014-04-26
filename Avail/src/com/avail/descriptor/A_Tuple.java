@@ -511,4 +511,18 @@ extends A_BasicObject, Iterable<AvailObject>
 		int startIndex,
 		int endIndex,
 		ByteBuffer outputByteBuffer);
+
+	/**
+	 * Determine whether the specified elements of this tuple each conform to
+	 * the specified {@linkplain TypeDescriptor type}.
+	 *
+	 * @param startIndex The first index to check.
+	 * @param endIndex The last index to check.
+	 * @param type The type to check the elements against.
+	 * @return Whether all the elements are of that type.
+	 */
+	boolean tupleElementsInRangeAreInstancesOf (
+		int startIndex,
+		int endIndex,
+		A_Type type);
 }

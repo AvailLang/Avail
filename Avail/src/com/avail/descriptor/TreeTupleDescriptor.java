@@ -668,6 +668,7 @@ extends TupleDescriptor
 				startIndex - offset,
 				endIndex - offset,
 				outputByteBuffer);
+			return;
 		}
 		assert lowChildIndex < highChildIndex;
 		// The endpoints occur in distinct children.
@@ -694,6 +695,44 @@ extends TupleDescriptor
 			1,
 			endIndex - rightOffset,
 			outputByteBuffer);
+	}
+
+	@Override
+	boolean o_TupleElementsInRangeAreInstancesOf (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final A_Type type)
+	{
+		final int tupleSize = object.tupleSize();
+		assert 1 <= startIndex && startIndex <= tupleSize;
+		assert startIndex - 1 <= endIndex && endIndex <= tupleSize;
+		if (endIndex == startIndex - 1)
+		{
+			return true;
+		}
+		// Non-empty range, so start and end are both within range.
+		final int startChildSubscript =
+			childSubscriptForIndex(object, startIndex);
+		final int endChildSubscript =
+			childSubscriptForIndex(object, endIndex);
+		for (int i = startChildSubscript; i <= endChildSubscript; i++)
+		{
+			// At least one element of this child is involved in the hash.
+			final int startOfChild = offsetForChildSubscript(object, i) + 1;
+			final int endOfChild = object.slot(CUMULATIVE_SIZE_AT_, i);
+			final int startIndexInChild =
+				max(0, startIndex - startOfChild) + 1;
+			final int endIndexInChild =
+				min(endOfChild, endIndex) - startOfChild + 1;
+			final A_Tuple child = object.slot(SUBTUPLE_AT_, i);
+			if (!child.tupleElementsInRangeAreInstancesOf(
+				startIndexInChild, endIndexInChild, type))
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**

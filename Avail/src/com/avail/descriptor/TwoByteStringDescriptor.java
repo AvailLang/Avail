@@ -76,7 +76,7 @@ extends StringDescriptor
 	/**
 	 * Defined threshold for making copies versus using {@linkplain
 	 * TreeTupleDescriptor}/using other forms of reference instead of creating
-	 * an new tuple.
+	 * a new tuple.
 	 */
 	private static final int maximumCopySize = 32;
 

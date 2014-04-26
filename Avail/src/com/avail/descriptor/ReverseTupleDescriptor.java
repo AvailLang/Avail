@@ -92,7 +92,7 @@ extends TupleDescriptor
 	/**
 	 * Defined threshold for making copies versus using {@linkplain
 	 * TreeTupleDescriptor}/using other forms of reference instead of creating
-	 * an new tuple.
+	 * a new tuple.
 	 */
 	private static final int maximumCopySize = 32;
 
@@ -413,6 +413,20 @@ extends TupleDescriptor
 	int o_TreeTupleLevel (final AvailObject object)
 	{
 		return object.slot(ORIGIN_TUPLE).treeTupleLevel();
+	}
+
+	@Override
+	boolean o_TupleElementsInRangeAreInstancesOf (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final A_Type type)
+	{
+		final int size = object.slot(ORIGIN_TUPLE).tupleSize();
+		final int originStart = size + 1 - endIndex;
+		final int originEnd = size + 1 - startIndex;
+		return object.slot(ORIGIN_TUPLE).tupleElementsInRangeAreInstancesOf(
+			originStart, originEnd, type);
 	}
 
 	@Override

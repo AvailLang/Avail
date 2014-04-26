@@ -77,9 +77,9 @@ extends TupleDescriptor
 	/**
 	 * Defined threshold for making copies versus using {@linkplain
 	 * TreeTupleDescriptor}/using other forms of reference instead of creating
-	 * an new tuple.
+	 * a new tuple.
 	 */
-	private static final int maximumCopySize = 32;
+	private static final int maximumCopySize = 64;
 
 	/**
 	 * The number of bytes of the last {@code int} that do not participate in
@@ -395,7 +395,7 @@ extends TupleDescriptor
 			return object;
 		}
 		final int newSize = size1 + size2;
-		if (otherTuple.isByteTuple() && newSize <= 64)
+		if (otherTuple.isByteTuple() && newSize <= maximumCopySize)
 		{
 			// Copy the bytes.
 			final int newWordCount = (newSize + 3) >>> 2;
@@ -486,6 +486,24 @@ extends TupleDescriptor
 		{
 			outputByteBuffer.put((byte) object.byteSlotAt(RAW_QUAD_AT_, index));
 		}
+	}
+
+	@Override
+	boolean o_TupleElementsInRangeAreInstancesOf (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final A_Type type)
+	{
+		if (IntegerRangeTypeDescriptor.bytes().isSubtypeOf(type))
+		{
+			return true;
+		}
+		return super.o_TupleElementsInRangeAreInstancesOf(
+			object,
+			startIndex,
+			endIndex,
+			type);
 	}
 
 	/**

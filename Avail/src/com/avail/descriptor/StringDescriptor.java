@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
 
@@ -67,6 +68,21 @@ extends TupleDescriptor
 			}
 		}
 		return SerializerOperation.BYTE_STRING;
+	}
+
+	@Override
+	boolean o_TupleElementsInRangeAreInstancesOf (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final A_Type type)
+	{
+		if (Types.CHARACTER.o().isSubtypeOf(type))
+		{
+			return true;
+		}
+		return super.o_TupleElementsInRangeAreInstancesOf(
+			object, startIndex, endIndex, type);
 	}
 
 	/**
