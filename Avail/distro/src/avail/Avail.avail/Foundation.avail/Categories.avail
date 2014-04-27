@@ -56,6 +56,12 @@ Body
  */
 
 /**
+ * These methods constitute the API of the Availuator.
+ *
+ * @category "Availuator"
+ */
+
+/**
  * Computational backtracking.
  *
  * @category "Backtracking"

@@ -46,6 +46,7 @@ Body
  * compiler do all of the heavy lifting. Just answer the argument.
  *
  * @method "`!_"
+ * @category "Availuator"
  * @param "x" "any"
  *        An arbitrary value.
  * @returns "any"
@@ -62,6 +63,7 @@ Grammatical restriction "`!_" is <{"`!_"}>;
  * Invoke the supplied {@type "function"} for its side effects.
  *
  * @method "Run_"
+ * @category "Availuator"
  * @param "f" "[]→⊤"
  *        An arbitrary arity-0 {@type "function"}.
  * @returns "⊤"
@@ -72,6 +74,7 @@ Method "Run_" is [f : []→⊤ | f();] : ⊤;
  * Time the execution of the supplied {@type "function"}.
  *
  * @method "time_"
+ * @category "Availuator"
  * @param "f" "[]→⊤"
  *        An arbitrary arity-0 {@type "function"}.
  * @return "whole number µs"
@@ -91,6 +94,7 @@ Method "time_" is
  * Time the execution of the supplied {@type "function"}.
  *
  * @method "time_"
+ * @category "Availuator"
  * @param "f" "[]→any"
  *        An arbitrary value-producing arity-0 {@type "function"}.
  * @return "<whole number µs, any…|2>"
