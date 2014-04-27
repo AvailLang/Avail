@@ -53,11 +53,12 @@ Names
 	"writable file",
 
 	/* File constructors. */
-	"a file named_(mode=_)",
+	"a file named_with flags_",
+/*	"a file named_(mode=_)",
 	"a readable file named_",
 	"a readable,⁇writable file named_",
 	"a writable file named_",
-
+*/
 	/* File attributes. */
 	"_'s⁇name",
 	"_is open",
@@ -147,6 +148,22 @@ Public class "writable file" extends file
  */
 Public class "readable,⁇writable file" extends readable file ∩ writable file;
 
+/* Open a raw file handle. */
+Private method "a raw handle for file named_options_permissions_" is
+[
+	name : nonempty string,
+	options : {[1..10]|0..10},
+	permissions : {[1..9]|0..9}
+|
+	Primitive 160 (e : {
+		invalid-path code,
+		illegal-option code,
+		operation-not-supported code,
+		permission-denied code,
+		I/O-error code}ᵀ);
+	Raise an exception for e
+] : atom;
+
 /**
  * Answer an abstraction of the file named {@param "n"} that is open for
  * reading. The file position is initially zero ({@code 0}).
@@ -163,19 +180,19 @@ Public method "a readable file named_" is
 [
 	n : file name
 |
+	newHandle ::=
+	[
+		s : nonempty string
+	|
+		Primitive 160 (e : {
+			invalid-path code,
+			illegal-option code,
+			operation-not-supported code,
+			permission-denied code,
+			I/O-error code}ᵀ);
+		Raise an exception for e
+	] : atom (n's name),
 	a readable file with
-		handle ::=
-			[
-				s : nonempty string
-			|
-				Primitive 160 (e : {
-					invalid-path code,
-					illegal-option code,
-					operation-not-supported code,
-					premission-denied code,
-					I/O-error code}ᵀ);
-				Raise an exception for e
-			] : atom (n's name),
 		name ::= n,
 		writable ::= false,
 		open state := true
@@ -669,7 +686,8 @@ Semantic restriction "Using|using_,⁇do_" is
  * Disallow the general object constructor for file-related types.
  * 
  * @method "a|an_«with«_«:»?:=_‡,»»"
- * @forbids "1" "file name" "file" "readable file" "writable file" "readable,⁇writable file"
+ * @forbids "1" "file name" "file" "readable file" "writable file"
+ *          "readable,⁇writable file"
  */
 Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
 	<{

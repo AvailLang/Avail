@@ -465,8 +465,8 @@ extends TypeDescriptor
 	public static A_Type singleInteger (final A_Number integerObject)
 	{
 		integerObject.makeImmutable();
-		return IntegerRangeTypeDescriptor.create(
-			integerObject, true, integerObject, true);
+		return IntegerRangeTypeDescriptor.inclusive(
+			integerObject, integerObject);
 	}
 
 	/**
@@ -479,8 +479,8 @@ extends TypeDescriptor
 	{
 		final A_Number integerObject = IntegerDescriptor.fromInt(anInt);
 		integerObject.makeImmutable();
-		return IntegerRangeTypeDescriptor.create(
-			integerObject, true, integerObject, true);
+		return IntegerRangeTypeDescriptor.inclusive(
+			integerObject, integerObject);
 	}
 
 	/**
@@ -554,6 +554,20 @@ extends TypeDescriptor
 		result.setSlot(UPPER_BOUND, high);
 		result.makeImmutable();
 		return result;
+	}
+
+	/**
+	 * Create an inclusive-inclusive range with the given endpoint.
+	 *
+	 * @param lowerBound The low end, inclusive, of the range.
+	 * @param upperBound The high end, inclusive, of the range.
+	 * @return The integral type containing the bounds and all integers between.
+	 */
+	public static A_Type inclusive (
+		final A_Number lowerBound,
+		final A_Number upperBound)
+	{
+		return create(lowerBound, true, upperBound, true);
 	}
 
 	/**
@@ -665,11 +679,9 @@ extends TypeDescriptor
 	}
 
 	/** The range [0..1]. */
-	private static final A_Type zeroOrOne = create(
+	private static final A_Type zeroOrOne = inclusive(
 		IntegerDescriptor.zero(),
-		true,
-		IntegerDescriptor.one(),
-		true).makeShared();
+		IntegerDescriptor.one()).makeShared();
 
 	/**
 	 * Return the range [0..1].
@@ -682,11 +694,9 @@ extends TypeDescriptor
 	}
 
 	/** The range [0..255]. */
-	private static final A_Type bytes = create(
+	private static final A_Type bytes = inclusive(
 		IntegerDescriptor.zero(),
-		true,
-		IntegerDescriptor.fromUnsignedByte((short)255),
-		true).makeShared();
+		IntegerDescriptor.fromUnsignedByte((short)255)).makeShared();
 
 	/**
 	 * Return the range [0..255].
@@ -699,11 +709,10 @@ extends TypeDescriptor
 	}
 
 	/** The range of Unicode code points, [0..1114111]. */
-	private static final A_Type characterCodePoints = create(
-		IntegerDescriptor.zero(),
-		true,
-		IntegerDescriptor.fromInt(CharacterDescriptor.maxCodePointInt),
-		true).makeShared();
+	private static final A_Type characterCodePoints = inclusive(
+			IntegerDescriptor.zero(),
+			IntegerDescriptor.fromInt(CharacterDescriptor.maxCodePointInt))
+		.makeShared();
 
 	/**
 	 * Return the range of Unicode code points, [0..1114111].
@@ -716,11 +725,9 @@ extends TypeDescriptor
 	}
 
 	/** The range of integers including infinities, [-∞..∞]. */
-	private static final A_Type extendedIntegers = create(
+	private static final A_Type extendedIntegers = inclusive(
 		InfinityDescriptor.negativeInfinity(),
-		true,
-		InfinityDescriptor.positiveInfinity(),
-		true).makeShared();
+		InfinityDescriptor.positiveInfinity()).makeShared();
 
 	/**
 	 * Return the range of integers including infinities, [-∞..∞].
@@ -767,11 +774,9 @@ extends TypeDescriptor
 	}
 
 	/** The range [0..15]. */
-	private static final A_Type nybbles = create(
+	private static final A_Type nybbles = inclusive(
 		IntegerDescriptor.zero(),
-		true,
-		IntegerDescriptor.fromUnsignedByte((short)15),
-		true).makeShared();
+		IntegerDescriptor.fromUnsignedByte((short)15)).makeShared();
 
 	/**
 	 * Return the range [0..15].
@@ -784,11 +789,9 @@ extends TypeDescriptor
 	}
 
 	/** The range [0..65535]. */
-	private static final A_Type unsignedShorts = create(
+	private static final A_Type unsignedShorts = inclusive(
 		IntegerDescriptor.zero(),
-		true,
-		IntegerDescriptor.fromInt(65535),
-		true).makeShared();
+		IntegerDescriptor.fromInt(65535)).makeShared();
 
 	/**
 	 * Return the range [0..65535].

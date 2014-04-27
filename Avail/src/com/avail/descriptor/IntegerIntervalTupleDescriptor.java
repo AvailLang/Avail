@@ -128,64 +128,32 @@ extends TupleDescriptor
 		final int newSize = end - start + 1;
 		assert 0 <= end && end <= oldSize;
 
-		// If the requested copy is actually a subrange, make it.
+		// If the requested copy is a proper subrange, create it.
 		if (newSize != oldSize)
 		{
-			final AvailObject traversed = object.traversed();
-			final A_Number delta = traversed.slot(DELTA);
+			final A_Number delta = object.slot(DELTA).makeImmutable();
+			final A_Number oldStartValue = object.slot(START);
 
-			// Calculate the new start value from the given start index.
-			A_Number newStartValue;
-			final A_Number oldStartValue = traversed.slot(START);
-			if (start == 1)
-			{
-				newStartValue = oldStartValue;
-			}
-			else
-			{
-				final A_Number newStartIndex =
-					IntegerDescriptor.fromInt(start);
-				newStartValue = oldStartValue.plusCanDestroy(
-					delta.timesCanDestroy(newStartIndex, false),
-					false);
-			}
+			final A_Number newStartValue = oldStartValue.plusCanDestroy(
+				delta.multiplyByIntegerCanDestroy(
+					IntegerDescriptor.fromInt(start - 1),
+					true),
+				canDestroy);
+			final A_Number newEndValue = newStartValue.plusCanDestroy(
+				delta.multiplyByIntegerCanDestroy(
+					IntegerDescriptor.fromInt(newSize - 1),
+					true),
+				false);
 
-			// Calculate the new end value from the given end index.
-			A_Number newEndValue;
-			final A_Number oldEndValue = traversed.slot(END);
-			if (end == oldSize)
-			{
-				newEndValue = oldEndValue;
-			}
-			else
-			{
-				final A_Number newEndIndex = IntegerDescriptor.fromInt(end);
-				newEndValue = oldStartValue.plusCanDestroy(
-					delta.timesCanDestroy(newEndIndex, false),
-					false);
-			}
-
-			// Create the new tuple, set its size, and return it.
 			if (isMutable() && canDestroy)
 			{
-				// Reuse object's slots
-				if (oldStartValue != newStartValue)
-				{
-					object.setSlot(START, newStartValue);
-				}
-				if (oldEndValue != newEndValue)
-				{
-					// Don't need to worry about normalizing since this was
-					// calculated from an index.
-					object.setSlot(END, newEndValue);
-				}
-				// Step will be the same in a copy within the source
+				// Recycle the object.
+				object.setSlot(START, newStartValue);
+				object.setSlot(END, newEndValue);
+				object.setSlot(SIZE, newSize);
 				return object;
 			}
-			final AvailObject copy =
-				(AvailObject) createInterval(newStartValue, newEndValue, delta);
-			copy.setSlot(SIZE, newSize);
-			return copy;
+			return createInterval(newStartValue, newEndValue, delta);
 		}
 
 		// Otherwise, this method is requesting a full copy of the original.
@@ -481,10 +449,22 @@ extends TupleDescriptor
 		final int endIndex,
 		final A_Type type)
 	{
-		final A_Number start = object.slot(START);
-		final A_Number end = object.slot(END);
+		final A_Number start = object.tupleAt(startIndex);
+		final A_Number end = object.tupleAt(endIndex);
+		final A_Number low;
+		final A_Number high;
+		if (start.lessThan(end))
+		{
+			low = start;
+			high = end;
+		}
+		else
+		{
+			low = end;
+			high = start;
+		}
 		if (type.isSupertypeOfIntegerRangeType(
-			IntegerRangeTypeDescriptor.create(start, true, end, true)))
+			IntegerRangeTypeDescriptor.inclusive(low, high)))
 		{
 			return true;
 		}
@@ -570,8 +550,8 @@ extends TupleDescriptor
 
 		// If there are fewer than maximumCopySize members in this interval,
 		// create a normal tuple with them in it instead of an interval tuple.
-		final int size;
-		size = 1 + difference.divideCanDestroy(delta, false).extractInt();
+		final int size =
+			1 + difference.divideCanDestroy(delta, false).extractInt();
 		if (size < maximumCopySize)
 		{
 			final List<A_Number> members = new ArrayList<A_Number>(size);
@@ -596,12 +576,10 @@ extends TupleDescriptor
 		}
 
 		// No other efficiency shortcuts. Normalize end, and create a range.
-		// overshot = (end - start) mod delta
-		final A_Number overshot = difference.minusCanDestroy(
-			delta.timesCanDestroy(
-				difference.divideCanDestroy(delta, false), false), false);
-		final A_Number normalizedEnd = end.minusCanDestroy(overshot, false);
-		return forceCreate(start, normalizedEnd, delta, size);
+		final A_Number adjustedEnd = start.plusCanDestroy(
+			delta.timesCanDestroy(IntegerDescriptor.fromInt(size - 1), false),
+			false);
+		return forceCreate(start, adjustedEnd, delta, size);
 	}
 
 	/**

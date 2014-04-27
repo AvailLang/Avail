@@ -1,5 +1,5 @@
-/**
- * P_601_GetFiberPriority.java
+/*
+ * File Open Options.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,45 +29,75 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive;
 
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+Module "File Open Options"
+Versions
+	"dev"
+Uses
+	"Foundation"
+Names
+	"open option",
+
+	/* File open options. */
+	"append",
+	"create",
+	"create new",
+	"delete on close",
+	"read",
+	"sparse",
+	"synchronize all",
+	"synchronize data",
+	"truncate existing",
+	"write"
+Body
 
 /**
- * <strong>Primitive 601:</strong> Get the priority of a fiber.
+ * Answer the {@type "atom"} that indicates a file opened for writing should be
+ * initially positioned at the end.  This is irrelevant, since files have no
+ * current position.  However, file iterators may respect this flag.
+ *
+ * @method "append"
+ * @returns "open option"
  */
-public final class P_601_GetFiberPriority
-extends Primitive
-{
-	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
-	 */
-	public final static Primitive instance =
-		new P_601_GetFiberPriority().init(1, CannotFail, CanInline);
+Public "append" is a new atom;
 
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
-	{
-		assert args.size() == 1;
-		final A_Fiber fiber = args.get(0);
-		final int priority = fiber.priority();
-		assert 0 <= priority && priority <= 255;
-		return interpreter.primitiveSuccess(
-			IntegerDescriptor.fromInt(priority));
-	}
+/**
+ * Answer the {@type "atom"} that indicates a file opened for writing should be
+ * created if it does not yet exist.
+ *
+ * @method "create"
+ * @returns "open option"
+ */
+Public "create" is a new atom;
 
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				FiberTypeDescriptor.mostGeneralType()),
-			IntegerRangeTypeDescriptor.bytes());
-	}
-}
+/**
+ * Answer the {@type "atom"} that an attempt to open the file for writing should
+ * fail if it already exists.  If the file did not exist, a new file should be
+ * created.
+ *
+ * @method "create"
+ * @returns "open option"
+ */
+Public "create new" is a new atom;
+Public "delete on close" is a new atom;
+Public "read" is a new atom;
+Public "sparse" is a new atom;
+Public "synchronize all" is a new atom;
+Public "synchronize data" is a new atom;
+Public "truncate existing" is a new atom;
+Public "write" is a new atom;
+
+_open_option ::= {
+	append,
+	create,
+	create new,
+	delete on close,
+	read,
+	sparse,
+	synchronize all,
+	synchronize data,
+	truncate existing,
+	write
+}ᵀ;
+
+Public method "open option" is [_open_option];

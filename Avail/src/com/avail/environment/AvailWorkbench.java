@@ -296,20 +296,15 @@ extends JFrame
 				{
 					try
 					{
-						final JScrollBar verticalScrollBar =
-							transcriptScrollArea.getVerticalScrollBar();
-						final int min = verticalScrollBar.getValue() +
-							verticalScrollBar.getVisibleAmount();
-						final int max = verticalScrollBar.getMaximum();
 						doc.insertString(
 							doc.getLength(),
 							text,
 							doc.getStyle(style));
-						if (max == min)
-						{
-							verticalScrollBar.setValue(
-								verticalScrollBar.getMaximum());
-						}
+						final JScrollBar verticalScrollBar =
+							transcriptScrollArea.getVerticalScrollBar();
+						verticalScrollBar.validate();
+						verticalScrollBar.setValue(
+							verticalScrollBar.getMaximum());
 					}
 					catch (final BadLocationException e)
 					{

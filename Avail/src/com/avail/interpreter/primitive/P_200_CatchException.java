@@ -88,11 +88,7 @@ public final class P_200_CatchException extends Primitive
 							BottomTypeDescriptor.bottom()),
 						TOP.o())),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.create(
-						IntegerDescriptor.fromInt(0),
-						true,
-						IntegerDescriptor.fromInt(1),
-						true),
+					IntegerRangeTypeDescriptor.zeroOrOne(),
 					TupleDescriptor.empty(),
 					FunctionTypeDescriptor.create(
 						TupleDescriptor.empty(),

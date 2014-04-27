@@ -247,11 +247,10 @@ extends TypeDescriptor
 	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
 	 * corresponds to Java {@code byte}.
 	 */
-	private static final A_Type byteRange = IntegerRangeTypeDescriptor.create(
-		IntegerDescriptor.fromInt(Byte.MIN_VALUE),
-		true,
-		IntegerDescriptor.fromInt(Byte.MAX_VALUE),
-		true).makeShared();
+	private static final A_Type byteRange =
+		IntegerRangeTypeDescriptor.inclusive(
+			IntegerDescriptor.fromInt(Byte.MIN_VALUE),
+			IntegerDescriptor.fromInt(Byte.MAX_VALUE)).makeShared();
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -268,11 +267,10 @@ extends TypeDescriptor
 	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
 	 * corresponds to Java {@code short}.
 	 */
-	private static final A_Type shortRange = IntegerRangeTypeDescriptor.create(
-		IntegerDescriptor.fromInt(Short.MIN_VALUE),
-		true,
-		IntegerDescriptor.fromInt(Short.MAX_VALUE),
-		true).makeShared();
+	private static final A_Type shortRange =
+		IntegerRangeTypeDescriptor.inclusive(
+			IntegerDescriptor.fromInt(Short.MIN_VALUE),
+			IntegerDescriptor.fromInt(Short.MAX_VALUE)).makeShared();
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -289,11 +287,9 @@ extends TypeDescriptor
 	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
 	 * corresponds to Java {@code int}.
 	 */
-	private static final A_Type intRange = IntegerRangeTypeDescriptor.create(
+	private static final A_Type intRange = IntegerRangeTypeDescriptor.inclusive(
 		IntegerDescriptor.fromInt(Integer.MIN_VALUE),
-		true,
-		IntegerDescriptor.fromInt(Integer.MAX_VALUE),
-		true).makeShared();
+		IntegerDescriptor.fromInt(Integer.MAX_VALUE)).makeShared();
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -310,11 +306,10 @@ extends TypeDescriptor
 	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
 	 * corresponds to Java {@code long}.
 	 */
-	private static final A_Type longRange = IntegerRangeTypeDescriptor.create(
-		IntegerDescriptor.fromLong(Long.MIN_VALUE),
-		true,
-		IntegerDescriptor.fromLong(Long.MAX_VALUE),
-		true).makeShared();
+	private static final A_Type longRange =
+		IntegerRangeTypeDescriptor.inclusive(
+			IntegerDescriptor.fromLong(Long.MIN_VALUE),
+			IntegerDescriptor.fromLong(Long.MAX_VALUE)).makeShared();
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -331,11 +326,10 @@ extends TypeDescriptor
 	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
 	 * corresponds to Java {@code char}.
 	 */
-	private static final A_Type charRange = IntegerRangeTypeDescriptor.create(
-		IntegerDescriptor.fromInt(Character.MIN_VALUE),
-		true,
-		IntegerDescriptor.fromInt(Character.MAX_VALUE),
-		true).makeShared();
+	private static final A_Type charRange =
+		IntegerRangeTypeDescriptor.inclusive(
+			IntegerDescriptor.fromInt(Character.MIN_VALUE),
+			IntegerDescriptor.fromInt(Character.MAX_VALUE)).makeShared();
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}

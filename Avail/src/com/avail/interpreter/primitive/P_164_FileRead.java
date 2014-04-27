@@ -223,11 +223,9 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				IntegerRangeTypeDescriptor.naturalNumbers(),
-				IntegerRangeTypeDescriptor.create(
+				IntegerRangeTypeDescriptor.inclusive(
 					IntegerDescriptor.one(),
-					true,
-					InfinityDescriptor.positiveInfinity(),
-					true),
+					InfinityDescriptor.positiveInfinity()),
 				ATOM.o(),
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(
