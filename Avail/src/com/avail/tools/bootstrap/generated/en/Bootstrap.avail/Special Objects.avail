@@ -366,7 +366,7 @@ Primitive "any" is
  *
  * Bivalent logic assigns either {@method "true"} or {@method "false"} as the
  * unique truth value of every proposition. A primitive interrogative, i.e.
- * {@method "boolean"}-valued primitive, is stable iff it reliably answers
+ * {@method "boolean" "boolean-valued"} primitive, is stable iff it reliably answers
  * either {@method "true"} or {@method "false"} for a given set of arguments.
  *
  * The three classical laws of thought are:
@@ -380,7 +380,7 @@ Primitive "any" is
  * "(prim A, B, C ∧ ¬prim A, B, C) = false"}.</li>
  * <li><strong>The law of excluded middle: P ∨ ¬P.</strong> For every primitive
  * interrogative {@code "prim_,_,_"}, then {@code
- * "((prim A, B, C = true) ∨ (prim A, B, C = false)) = true"}.</li>
+ * "((prim A, B, C = true) ∨ (prim A, B, C = false)) = true"}.</li></ul>
  *
  * Note that values may be instances of many enumerations. This means that Avail
  * directly supports other logical systems, such as Kleene's three-valued logic

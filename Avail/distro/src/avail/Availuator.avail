@@ -37,6 +37,7 @@ Extends
 	"Convenient ASCII"
 Entries
 	"`!_",
+	"Help",
 	"time_",
 	"Run_"
 Body
@@ -46,6 +47,7 @@ Body
  * compiler do all of the heavy lifting. Just answer the argument.
  *
  * @method "`!_"
+ * @category "Availuator"
  * @param "x" "any"
  *        An arbitrary value.
  * @returns "any"
@@ -62,6 +64,7 @@ Grammatical restriction "`!_" is <{"`!_"}>;
  * Invoke the supplied {@type "function"} for its side effects.
  *
  * @method "Run_"
+ * @category "Availuator"
  * @param "f" "[]→⊤"
  *        An arbitrary arity-0 {@type "function"}.
  * @returns "⊤"
@@ -72,6 +75,7 @@ Method "Run_" is [f : []→⊤ | f();] : ⊤;
  * Time the execution of the supplied {@type "function"}.
  *
  * @method "time_"
+ * @category "Availuator"
  * @param "f" "[]→⊤"
  *        An arbitrary arity-0 {@type "function"}.
  * @return "whole number µs"
@@ -91,6 +95,7 @@ Method "time_" is
  * Time the execution of the supplied {@type "function"}.
  *
  * @method "time_"
+ * @category "Availuator"
  * @param "f" "[]→any"
  *        An arbitrary value-producing arity-0 {@type "function"}.
  * @return "<whole number µs, any…|2>"
@@ -114,3 +119,111 @@ Semantic restriction "time_" is
 	cast f's return type into [t : any's type | <whole number µs, t…|2>]
 	else [whole number µs]
 ];
+
+/**
+ * Help text for the Availuator.
+ *
+ * @method "Help"
+ * @returns "string"
+ *          The help text.
+ */
+Method "Help" is 
+[
+ 	Print: "\n\
+ 		\|The Availuator\n\n\
+ 		\|\t The Availuator enables a user to run custom Avail expressions, \
+ 		\|composed using the Avail standard library, directly from the \
+ 		\|workbench without first:\n\
+ 		\|\n\
+ 		\|\t\t1. Creating a source module.\n\
+ 		\|\t\t2. Populating it with the desired expressions.\n\
+ 		\|\t\t3. Defining entry points that evaluate those expressions.\n\
+ 		\|\t\t4. Compiling and loading the module.\n\
+ 		\|\t\t5. Loading it.\n\
+ 		\|\t\t6. Running some of the entry points.\n\
+ 		\|\n\
+ 		\|\tThe Availuator is the only application that is delivered as part \
+ 		\|of the Avail standard library. The four defined entry points, located \
+ 		\|in the entry points pane in the lower left corner of the Avail \
+ 		\|Workbench, are:\n\
+ 		\|\t\"Help\", \"`!_\", \"time_\", and \"Run_\"\n\
+ 		\|These are collectively the Availuator. The Availuator is an Avail \
+ 		\|expression evaluator. It is capable of evaluating any expression \
+ 		\|exported by its siblings, the other modules within the avail module \
+ 		\|root. Simply type the entry point followed by an Avail expression in \
+ 		\|the Command input section below and press enter. Double-clicking the \
+ 		\|entry point in the entry pane pastes the entry point into the \
+ 		\|Commmand text input field.\n\
+ 		\|\n\
+ 		\|The entry points:\n\
+ 		\|\t1. \"Help\"\n\
+ 		\|\t\t Launches this help text for the Availuator, complete with \
+ 		\|examples that can be copied and pasted into the Command input field \
+ 		\|at the bottom of the work bench.  Examples can also be highlighted \
+ 		\|and dragged to the Command input field.\n\n\
+ 		\|\t2. \"`!_\" [any]→any\n\
+ 		\|\t\tEvaluate an argument expression. Answer its value.\n\
+ 		\|\t\tExamples:\n\
+ 		\|\t\t\t✦ !5+7\n\
+ 		\|\t\t\t✦ !10m × 50m\n\
+ 		\|\t\t\t✦ !∑<1,2,5,7>\n\
+ 		\|\t\t\t✦ !filter 10 to 40 by [x: [10..40] | x^2 is even]\n\n\
+ 		\|\t3. \"Run_\" [[…]→⊤]→⊤\n\
+ 		\|\t\tRun the specified function. If it produces a value, then answer \
+ 		\|that value. A function must be inside a bracketed region: Run []\n\
+ 		\|\t\tExamples:\n\
+ 		\|\t\t\t✦ Run [Print: \"Avail, where have you been all my life?!\";]\n\
+ 		\|\t\t\t✦ Run [i : integer := 3; j : [5..9] := 7; k ::= i + j; k's type]\n\
+ 		\|\t\t\t✦ Run\n\
+ 		\|\t\t\t\t[\n\
+ 		\|\t\t\t\t\taTuple ::= <25,11,77,3,18>;\n\
+ 		\|\t\t\t\t\tcomparator ::= [n : number, m : number | n ≤ m];\n\
+ 		\|\t\t\t\t\toutput : <number…|2..> := aTuple;\n\
+ 		\|\t\t\t\t\tFrom 2 to |aTuple| do \n\
+ 		\|\t\t\t\t\t[\n\
+ 		\|\t\t\t\t\t\ti : [2..10]\n\
+ 		\|\t\t\t\t\t |\n\
+ 		\|\t\t\t\t\t\tj : [1..9] := i-1;\n\
+ 		\|\t\t\t\t\t\tk : [2..10] := i;\n\
+ 		\|\t\t\t\t\t\tWhile [j > 1 ∧ [comparator(output[k],output[j])]]\n\
+ 		\|\t\t\t\t\t\tdo [\n\
+ 		\|\t\t\t\t\t\t\toutput := output[k↔j];\n\
+ 		\|\t\t\t\t\t\t\t↑k--;\n\
+ 		\|\t\t\t\t\t\t\t↑j--;\n\
+ 		\|\t\t\t\t\t\t];\n\
+ 		\|\t\t\t\t\t\toutput := if j = 1 ∧ [comparator(output[k],output[j])] then\n\
+ 		\|\t\t\t\t\t\t[output[k↔j]] else [output];\n\
+ 		\|\t\t\t\t\t];\n\
+ 		\|\t\t\t\t\toutput\n\
+ 		\|\t\t\t\t]\n\n\
+ 		\|\t4a. \"time_\"\n\
+ 		\|\t\tRun the specified non-value-producing function. Answer a \
+ 		\|dimensioned quantity that represents the number of microseconds \
+ 		\|that elapsed during execution of the function.\n\
+		\|\t\tExamples:\n\
+ 		\|\t\t\t✦ time [x ::= new ↑integer; ↓x ?= ∏ 1 to 100; Clear x;]\n\n\
+ 		\|\t4b. \"time_\"\n\
+ 		\|\t\tRun the specified value-producing function. Answer a 2-tuple. \
+ 		\|The first element is a dimensioned quantity that represents the \
+ 		\|number of microseconds that elapsed during execution of the \
+ 		\|function. The second element is the value produced by the function.\n\
+		\|\t\tExamples:\n\
+ 		\|\t\t\t✦ time [5^2]\n\
+ 		\|\t\t\t✦ time [filter 10 to 40 by [x: [10..40] | x^2 is even]]\n\
+ 		\|\t\t\t✦ time\n\
+ 		\|\t\t\t\t[\n\
+ 		\|\t\t\t\t\tfibonacci : [integer]→integer; \n\
+ 		\|\t\t\t\t\tfibonacci := [i : integer | \n\
+ 		\|\t\t\t\t\tif (i < 2) then [i] \n\
+ 		\|\t\t\t\t\telse [fibonacci(i-2) + fibonacci(i-1)]];\n\
+ 		\|\t\t\t\t\tmap 0 to 10 through [i : integer | fibonacci(i)]\n\
+ 		\|\t\t\t\t]\n\n\
+ 		\|Helpful links:\n\
+ 		\|\t➣ www.availlang.org/about-avail/documentation/private/workbench.html\n\
+ 		\|\t➣ www.availlang.org/about-avail/documentation/modules/entry-points-section.html\n\
+ 		\|\t➣ www.availlang.org/about-avail/documentation/availuator.html";
+ 		
+ 		
+ 		
+];
+
