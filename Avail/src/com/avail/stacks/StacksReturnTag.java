@@ -88,7 +88,7 @@ public class StacksReturnTag extends AbstractStacksTag
 		final StringBuilder returnTypeBuilder = new StringBuilder();
 		if (htmlFileMap.internalLinks().containsKey(returnType.lexeme()))
 		{
-			returnTypeBuilder.append("<a ng-click=\"changeLinkValue('")
+			returnTypeBuilder.append("<a ng-click=\"myParent().changeLinkValue('")
 				.append(htmlFileMap.internalLinks().get(returnType.lexeme()))
 				.append("')\" href=\"")
 				.append(htmlFileMap.internalLinks().get(returnType.lexeme()))

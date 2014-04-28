@@ -145,7 +145,7 @@ public class StacksForbidsTag extends AbstractStacksTag
 		if (htmlFileMap.internalLinks().containsKey(method))
 		{
 			final StringBuilder returnTypeBuilder = new StringBuilder();
-			return returnTypeBuilder.append("<a ng-click=\"changeLinkValue('")
+			return returnTypeBuilder.append("<a ng-click=\"myParent().changeLinkValue('")
 				.append(htmlFileMap.internalLinks().get(method))
 				.append("')\" href=\"")
 				.append(htmlFileMap.internalLinks().get(method))

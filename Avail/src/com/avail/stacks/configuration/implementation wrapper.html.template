@@ -10,13 +10,21 @@
 <![endif]-->
 	<!--[if gt IE 8]>
 	<!-->
-<html ng-app="stacksApp" class="">
+<html ng-app="stacksApp" ng-controller="IFrameCntrl">
 <!--<![endif]-->
 	<head>
 		<meta charset="utf-8">
 		<link href="/_css/stacks.css" rel="stylesheet" type="text/css">
 		<!--#include virtual="/_include/head.ssi" -->
 		<title>Avail - Library</title>
+		<script type="text/javascript" src="/_javascript/angular.min.js"></script>
+		<script type="text/javascript" src="/about-avail/documentation/stacks/library-documentation/stacksApp.js"></script>
+		<script>
+			function myParent()
+			{
+				return window.parent;
+			}
+		</script>
 	</head>
 	<body ng-controller="CategoriesCntrl">
 		<div class="stacks-wrapper">

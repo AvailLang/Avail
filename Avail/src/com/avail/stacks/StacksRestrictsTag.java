@@ -89,7 +89,7 @@ public class StacksRestrictsTag extends AbstractStacksTag
 		final StringBuilder paramTypeBuilder = new StringBuilder();
 		if (htmlFileMap.internalLinks().containsKey(paramMetaType.lexeme()))
 		{
-			paramTypeBuilder.append("<a ng-click=\"changeLinkValue('")
+			paramTypeBuilder.append("<a ng-click=\"myParent().changeLinkValue('")
 				.append(htmlFileMap.internalLinks().get(paramMetaType.lexeme()))
 				.append("')\" href=\"")
 				.append(htmlFileMap.internalLinks().get(paramMetaType.lexeme()))

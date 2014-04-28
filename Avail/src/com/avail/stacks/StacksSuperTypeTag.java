@@ -73,7 +73,7 @@ public class StacksSuperTypeTag extends AbstractStacksTag
 		if (htmlFileMap.internalLinks().containsKey(superType.lexeme()))
 		{
 			final StringBuilder stringBuilder = new StringBuilder();
-			stringBuilder.append("<a ng-click=\"changeLinkValue('")
+			stringBuilder.append("<a ng-click=\"myParent().changeLinkValue('")
 				.append(htmlFileMap.internalLinks().get(superType.lexeme()))
 				.append("')\" href=\"")
 				.append(htmlFileMap.internalLinks().get(superType.lexeme()))

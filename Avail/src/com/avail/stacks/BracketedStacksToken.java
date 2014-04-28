@@ -289,7 +289,7 @@ public class BracketedStacksToken extends RegionStacksToken
 							final StringBuilder stringBuilder =
 								new StringBuilder();
 							stringBuilder
-								.append("<a ng-click=\"changeLinkValue('")
+								.append("<a ng-click=\"myParent().changeLinkValue('")
 								.append(htmlFileMap.internalLinks()
 									.get(link.lexeme()))
 								.append("')\" href=\"")
@@ -465,7 +465,7 @@ public class BracketedStacksToken extends RegionStacksToken
 							final StringBuilder stringBuilder =
 								new StringBuilder();
 							stringBuilder
-								.append("<a ng-click=\"changeLinkValue('")
+								.append("<a ng-click=\"myParent().changeLinkValue('")
 								.append(htmlFileMap.internalLinks()
 									.get(link.lexeme()))
 								.append("')\" href=\"")
@@ -521,7 +521,7 @@ public class BracketedStacksToken extends RegionStacksToken
 						final StringBuilder stringBuilder =
 							new StringBuilder();
 						stringBuilder
-							.append("<a ng-click=\"changeLinkValue('")
+							.append("<a ng-click=\"myParent().changeLinkValue('")
 							.append(htmlFileMap.internalLinks()
 								.get(link.lexeme()))
 							.append("')\" href=\"")
@@ -833,7 +833,7 @@ public class BracketedStacksToken extends RegionStacksToken
 							final StringBuilder stringBuilder =
 								new StringBuilder();
 							stringBuilder
-								.append("<a ng-click=\"changeLinkValue('")
+								.append("<a ng-click=\"myParent().changeLinkValue('")
 								.append(htmlFileMap.internalLinks()
 									.get(link.lexeme()))
 								.append("')\" href=\"")
@@ -890,7 +890,7 @@ public class BracketedStacksToken extends RegionStacksToken
 					final StringBuilder stringBuilder =
 						new StringBuilder();
 					stringBuilder
-						.append("<a ng-click=\"changeLinkValue('")
+						.append("<a ng-click=\"myParent().changeLinkValue('")
 						.append(htmlFileMap.internalLinks()
 							.get(link.lexeme()))
 						.append("')\" href=\"")

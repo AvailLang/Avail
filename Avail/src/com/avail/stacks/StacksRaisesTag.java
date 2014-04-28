@@ -88,7 +88,7 @@ public class StacksRaisesTag extends AbstractStacksTag
 		final StringBuilder exceptionBuilder = new StringBuilder();
 		if (htmlFileMap.internalLinks().containsKey(exceptionName.lexeme()))
 		{
-			exceptionBuilder.append("<a ng-click=\"changeLinkValue('")
+			exceptionBuilder.append("<a ng-click=\"myParent().changeLinkValue('")
 				.append(htmlFileMap.internalLinks().get(exceptionName.lexeme()))
 				.append("')\" href=\"")
 				.append(htmlFileMap.internalLinks().get(exceptionName.lexeme()))
