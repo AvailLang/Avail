@@ -87,9 +87,9 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 6;
-		final A_Atom handle = args.get(0);
+		final A_Number positionObject = args.get(0);
 		final A_Tuple bytes = args.get(1);
-		final A_Number positionObject = args.get(2);
+		final A_Atom handle = args.get(2);
 		final A_Function succeed = args.get(3);
 		final A_Function fail = args.get(4);
 		final A_Number priority = args.get(5);
@@ -261,10 +261,10 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				ATOM.o(),
+				IntegerRangeTypeDescriptor.naturalNumbers(),
 				TupleTypeDescriptor.oneOrMoreOf(
 					IntegerRangeTypeDescriptor.bytes()),
-				IntegerRangeTypeDescriptor.naturalNumbers(),
+				ATOM.o(),
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.empty(),
 					TOP.o()),

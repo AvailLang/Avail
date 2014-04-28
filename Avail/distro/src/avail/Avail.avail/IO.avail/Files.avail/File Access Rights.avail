@@ -77,7 +77,10 @@ Names
 	/* Pretty printing. */
 	"file access rights summary",
 	"“_”(file access rights summary)",
-	"_→file access rights"
+	"_→file access rights",
+	
+	/* For file opening. */
+	"_→numeric code"
 Body
 
 /**
@@ -222,6 +225,31 @@ fileAccessRights ::=
 	group read, group write, group execute,
 	others read, others write, others execute
 >;
+
+fileAccessRightsReverseMap : {private file access right → [1..9]|0..9} := {};
+For each of fileAccessRights do
+[
+	right : private file access right,
+	index : [1..9]
+|
+	fileAccessRightsReverseMap := fileAccessRightsReverseMap + right → index;
+];
+
+/**
+ * Convert a {@type "file access right"} into its numeric code for consumption
+ * by the file open primitive.
+ * 
+ * @method "_→numeric code"
+ * @param "accessRight" "file access right"
+ * @returns "[1..9]"
+ */
+Public method "_→numeric code" is
+[
+	accessRight : private file access right
+|
+	fileAccessRightsReverseMap [accessRight]
+] : [1..9];
+
 
 /**
  * A file access right comprises the nine valid combinations of a {@type

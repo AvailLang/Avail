@@ -80,7 +80,7 @@ extends Primitive
 	 * The maximum transfer size when reading from a file.  Attempts to read
 	 * more than this will simply be limited to this value.
 	 */
-	public final static int MAX_READ_SIZE = 16_777_216;
+	public final static int MAX_READ_SIZE = 4_194_304;
 
 	/**
 	 * The maximum transfer size for which a buffer is always allocated with the
@@ -229,7 +229,7 @@ extends Primitive
 				ATOM.o(),
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(
-						TupleTypeDescriptor.zeroOrMoreOf(
+						TupleTypeDescriptor.oneOrMoreOf(
 							IntegerRangeTypeDescriptor.bytes())),
 					TOP.o()),
 				FunctionTypeDescriptor.create(
