@@ -159,8 +159,7 @@ Method "Help" is
  		\|\t1. \"Help\"\n\
  		\|\t\t Launches this help text for the Availuator, complete with \
  		\|examples that can be copied and pasted into the Command input field \
- 		\|at the bottom of the work bench.  Examples can also be highlighted \
- 		\|and dragged to the Command input field.\n\n\
+ 		\|at the bottom of the work bench.\n\n\
  		\|\t2. \"`!_\" [any]→any\n\
  		\|\t\tEvaluate an argument expression. Answer its value.\n\
  		\|\t\tExamples:\n\
