@@ -1174,8 +1174,21 @@ extends JFrame
 	 */
 	@InnerAccess void redirectStandardStreams ()
 	{
-		outputStream = new PrintStream(new BuildOutputStream(false));
-		errorStream = new PrintStream(new BuildOutputStream(true));
+		try
+		{
+			outputStream = new PrintStream(
+				new BuildOutputStream(false),
+				false,
+				StandardCharsets.UTF_8.name());
+			errorStream = new PrintStream(
+				new BuildOutputStream(true),
+				false,
+				StandardCharsets.UTF_8.name());
+		}
+		catch (final UnsupportedEncodingException e)
+		{
+			assert false : "Somehow Java doesn't support characters.";
+		}
 		inputStream = new BuildInputStream();
 		System.setOut(outputStream);
 		System.setErr(errorStream);
