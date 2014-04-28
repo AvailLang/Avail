@@ -112,7 +112,7 @@
 				<a class="pane-heading-link" title="Direct link to method page in frame outside of Stacks." href='{{visibleFramedPage}}'>Direct Link</a>
 			</h2>
 			<div style="padding-top:10px; padding-left:10px; padding-bottom:2px" class="method-section-header">
-				<strong>Method Search:</strong> &nbsp;<input type="text" ng-model="methodSearch">&nbsp; 
+				<strong>Method Search:</strong> &nbsp;<input type="text" ng-model="methodSearch" ng-enter="getInternalLink(methodSearch)">&nbsp; 
 				<button ng-click="getInternalLink(methodSearch)">Search</button>
 				<br>
 				<span style="padding-left:20px; font-size:small"><input type="checkbox" ng-model="strictSearch">Exact match</span>
