@@ -32,7 +32,7 @@
 
 Module "Late Definers"
 Versions
-	"dev"
+	"1.0.0 DEV 2014-04-28"
 Extends
 	"Definers"
 Uses

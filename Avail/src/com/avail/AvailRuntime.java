@@ -123,7 +123,7 @@ public final class AvailRuntime
 	 * The active versions of the Avail virtual machine. These are the versions
 	 * for which the virtual machine guarantees compatibility.
 	 */
-	private static final String[] activeVersions = {"dev"};
+	private static final String[] activeVersions = {"1.0.0 DEV 2014-04-28"};
 
 	/**
 	 * Answer the active versions of the Avail virtual machine. These are the
