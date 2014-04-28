@@ -166,7 +166,7 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 				.append(tabs(3) + "<thead>\n")
 				.append(tabs(4) + "<tr>\n")
 				.append(tabs(5) + "<th class=\"Transparent\" "
-					+ "scope=\"col\"></th>\n")
+					+ " scope=\"col\"></th>\n")
 				.append(tabs(5) + "<th "
 					+ HTMLBuilder.tagClass(HTMLClass.classStacks,
 						HTMLClass.classIColLabelNarrow)

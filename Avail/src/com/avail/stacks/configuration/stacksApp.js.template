@@ -29,37 +29,37 @@ function CategoriesCntrl($scope,$http,Categories) {
 	$scope.customStyle = "";
 	$scope.getInternalLink = function(aMethod) {
 	
-		if ($scope.strictSearch)
+		if (aMethod.length > 0)
 		{
-			if (aMethod in $scope.methodLinkage)
+			if ($scope.strictSearch)
 			{
-				$scope.methodLinkagePairedDown={};
-				$scope.methodLinkagePairedDown[aMethod] = $scope.methodLinkage[aMethod];
-				$scope.customStyle = "";
-			}
-			else 
-			{	
-				if (aMethod.length > 0)
+				if (aMethod in $scope.methodLinkage)
 				{
+					$scope.methodLinkagePairedDown={};
+					$scope.methodLinkagePairedDown[aMethod] = $scope.methodLinkage[aMethod];
+					$scope.customStyle = "";
+				}
+				else 
+				{					
 					$scope.methodLinkagePairedDown={};	
 					$scope.methodLinkagePairedDown["Method Not Found"] = document.getElementById('api_frame').contentWindow.location.href;
 					$scope.customStyle = "font-style:italic";
 				}
 			}
-		}
-		else
-		{
-			var tempList = {};
-			$scope.methodLinkagePairedDown={};
-			for (var key in $scope.methodLinkage)
+			else
 			{
-				if((key.toLowerCase()).indexOf(aMethod.toLowerCase()) >=0)
+				var tempList = {};
+				$scope.methodLinkagePairedDown={};
+				for (var key in $scope.methodLinkage)
 				{
-					tempList[key] = $scope.methodLinkage[key];
-					$scope.customStyle = "";
+					if((key.toLowerCase()).indexOf(aMethod.toLowerCase()) >=0)
+					{
+						tempList[key] = $scope.methodLinkage[key];
+						$scope.customStyle = "";
+					}
 				}
+				$scope.methodLinkagePairedDown = tempList;
 			}
-			$scope.methodLinkagePairedDown = tempList;
 		}
 	};
 	$scope.getExternalLink = function(aMethod) {
@@ -156,6 +156,20 @@ function CategoriesCntrl($scope,$http,Categories) {
 		}
 	}
 }
+
+stacksApp.directive('ngEnter', function() {
+        return function(scope, element, attrs) {
+            element.bind("keydown keypress", function(event) {
+                if(event.which === 13) {
+                    scope.$apply(function(){
+                        scope.$eval(attrs.ngEnter, {'event': event});
+                    });
+
+                    event.preventDefault();
+                }
+            });
+        };
+    });
 
 stacksApp.factory('Categories', function () {
 	var Categories = {};

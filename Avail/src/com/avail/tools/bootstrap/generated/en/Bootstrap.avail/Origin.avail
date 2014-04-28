@@ -40,7 +40,7 @@
 
 Module "Origin"
 Versions
-	"dev"
+	"1.0.0 DEV 2014-04-28"
 Extends
 Uses
 Names
@@ -48,7 +48,7 @@ Names
 	"special object_",
 	"“_”"
 Pragma
-	"check=version=dev",
+	"check=version=1.0.0 DEV 2014-04-28",
 	"method=253=Primitive_is_",
 	"method=240=special object_",
 	"stringify=“_”"

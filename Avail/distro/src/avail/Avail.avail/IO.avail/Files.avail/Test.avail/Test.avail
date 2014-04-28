@@ -32,7 +32,7 @@
 
 Module "Test"
 Versions
-	"dev"
+	"1.0.0 DEV 2014-04-28"
 Extends
 	"File Access Rights Test",
 	"File Metadata Test",

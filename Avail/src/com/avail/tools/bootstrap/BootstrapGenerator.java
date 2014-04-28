@@ -1713,7 +1713,13 @@ public final class BootstrapGenerator
 		}
 		if (args.length < 2)
 		{
-			versions.add("dev");
+			final A_Set activeVersions = AvailRuntime.activeVersions();
+			final List<String> list = new ArrayList<>(activeVersions.setSize());
+			for (final A_String activeVersion : activeVersions)
+			{
+				list.add(activeVersion.asNativeString());
+			}
+			versions.addAll(list);
 		}
 		else
 		{
