@@ -79,6 +79,21 @@ import com.avail.utility.evaluation.*;
 public abstract class AbstractAvailCompiler
 {
 	/**
+	 * Despite, what, a hundred thousand employees(?), Microsoft seems unable to
+	 * support the simplest things in Windows.  Like including a font that has
+	 * a significant portion of Unicode supported, or devising (or even
+	 * copying!) a mechanism to substitute glyphs from fonts that <em>do</em>
+	 * have those code points.  So if you're doomed to be on Windows you'll get
+	 * an inferior right arrow with hook to indicate the location of errors.
+	 *
+	 * <p>That will teach you.</p>
+	 */
+	final static String errorIndicatorSymbol =
+		System.getProperty("os.name").startsWith("Windows")
+			? "↪"
+			: "⤷";
+
+	/**
 	 * The {@linkplain AbstractAvailCompiler compiler} notifies a {@code
 	 * CompilerProgressReporter} whenever a top-level statement is parsed
 	 * unambiguously.
@@ -1590,12 +1605,13 @@ public abstract class AbstractAvailCompiler
 		public String toString ()
 		{
 			return String.format(
-				"%s%n\tPOSITION = %d%n\tTOKENS = %s ⤷ %s%n\tCLIENT_DATA = %s",
+				"%s%n\tPOSITION = %d%n\tTOKENS = %s %s %s%n\tCLIENT_DATA = %s",
 				getClass().getSimpleName(),
 				position,
 				(position > 0
 					? tokens.get(position - 1).string()
 					: "(start)"),
+				errorIndicatorSymbol,
 				(position < tokens.size()
 					? tokens.get(position).string()
 					: "(end)"),
@@ -2634,7 +2650,8 @@ public abstract class AbstractAvailCompiler
 			{
 				snippet.append(source, currentPosition, charPos);
 				// Indicate where the error is.
-				snippet.append("⤷ ");
+				snippet.append(errorIndicatorSymbol);
+				snippet.append(" ");
 				snippet.append(source, charPos, nextStart);
 			}
 			else
