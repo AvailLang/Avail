@@ -16,7 +16,7 @@
 <body>
 <div class="stacks-wrapper">
 	<p>
-	Welcome to Stacks--the formal documentation of Avail's standard library.
+	Welcome to Stacks 1.0.0 DEV --the formal documentation of Avail's standard library. Please note that this is a development version.  If you find any bugs in Stacks, please report them on <u><a href="https://trac.availlang.org">Trac</a></u>.  Though Stacks can be generated through the Avail Workbench, it presently does not output all the files necessary for the main Stacks interface to function.  Until such time as those files are available in a future release, it is recommended that Stacks be accessed through the Avail website.
 	</p>
 	<p>
 	Each Avail library method belongs to at least one category. The currently populated categories are listed in the Categories pane on the top left, and the methods in all of the selected categories, if any, are listed in the Methods pane on the bottom left. Categories are defined in the table below.  In the default case, when no categories are selected, no methods are displayed. The visibility of both categories and methods can be filtered by using their respective filter boxes. Filtering categories does <em>not</em> affect whether they are selected.
