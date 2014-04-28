@@ -42,7 +42,7 @@ function CategoriesCntrl($scope,$http,Categories) {
 				if (aMethod.length > 0)
 				{
 					$scope.methodLinkagePairedDown={};	
-					$scope.methodLinkagePairedDown["Method Not Found"] = 'landing-detail.html';
+					$scope.methodLinkagePairedDown["Method Not Found"] = document.getElementById('api_frame').contentWindow.location.href;
 					$scope.customStyle = "font-style:italic";
 				}
 			}
