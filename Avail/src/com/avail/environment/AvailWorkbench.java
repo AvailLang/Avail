@@ -287,7 +287,16 @@ extends JFrame
 		 */
 		private void updateTranscript ()
 		{
-			final String text = toString();
+			final String text;
+			try
+			{
+				text = toString(StandardCharsets.UTF_8.name());
+			}
+			catch (final UnsupportedEncodingException e)
+			{
+				assert false : "Somehow Java doesn't support characters";
+				throw new RuntimeException(e);
+			}
 			reset();
 			invokeLater(new Runnable()
 			{
