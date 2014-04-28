@@ -10,7 +10,7 @@
 <![endif]-->
 	<!--[if gt IE 8]>
 	<!-->
-<html ng-app="stacksApp" ng-controller="IFrameCntrl">
+<html ng-app="stacksApp">
 <!--<![endif]-->
 	<head>
 		<meta charset="utf-8">

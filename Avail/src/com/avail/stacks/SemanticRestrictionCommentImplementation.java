@@ -137,17 +137,17 @@ public class SemanticRestrictionCommentImplementation extends
 			.append(tabs(4) + "<tr>\n")
 			.append(tabs(5) + "<th "
 				+ HTMLBuilder.tagClass(HTMLClass.classTransparent)
-				+ "scope=\"col\"></th>\n");
+				+ " scope=\"col\"></th>\n");
 
 		stringBuilder
 			.append(tabs(5) + "<th "
 				+ HTMLBuilder.tagClass(
 					HTMLClass.classStacks, HTMLClass.classIColLabelNarrow)
-				+ "scope=\"col\">Type</th>\n")
+				+ " scope=\"col\">Type</th>\n")
 			.append(tabs(5) + "<th "
 				+ HTMLBuilder.tagClass(
 					HTMLClass.classStacks, HTMLClass.classIColLabelWide)
-				+ "scope=\"col\">Description</th>\n")
+				+ " scope=\"col\">Description</th>\n")
 			.append(tabs(4) + "</tr>\n")
 			.append(tabs(3) + "</thead>\n")
 			.append(tabs(3) + "<tbody>\n");
@@ -159,7 +159,7 @@ public class SemanticRestrictionCommentImplementation extends
 				.append(tabs(5) + "<th "
 				+ HTMLBuilder.tagClass(
 					HTMLClass.classStacks, HTMLClass.classIRowLabel)
-				+ "rowspan=\"")
+				+ " rowspan=\"")
 			.append(paramCount + 1).append("\">Parameter Types</th>\n")
 			.append(tabs(4) + "</tr>\n");
 		}

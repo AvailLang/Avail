@@ -339,8 +339,7 @@ public class HTMLFileMap
 	    	+ " scope=\"col\">Description</th>\n")
 	    .append(tabs(4) + "</tr>\n")
 	    .append(tabs(3) + "</thead>\n")
-	    .append(tabs(3) + "<tbody>\n")
-	    .append(tabs(4) + "<tr>\n");
+	    .append(tabs(3) + "<tbody>\n");
 
 		final ArrayList<String> sortedKeys = new ArrayList<String>();
 		sortedKeys.addAll(categoryToDescription.keySet());
@@ -350,6 +349,7 @@ public class HTMLFileMap
 		for (final String category : sortedKeys)
 		{
 			stringBuilder
+				.append(tabs(4)).append("<tr>\n")
 				.append(tabs(5) + "<td "
 					+ HTMLBuilder
 						.tagClass(HTMLClass.classStacks, HTMLClass.classGCode)

@@ -10,12 +10,11 @@
 	
 	<!--#include virtual="/_include/head.ssi" -->
 	<link href="/_css/stacks.css" rel="stylesheet" type="text/css">
-	
-	<!--#include virtual="/_include/head.ssi" -->
+	<title>Stacks Landing Page</title>
 
 </head>
 <body>
-	<div class="stacks-wrapper">
+<div class="stacks-wrapper">
 	<p>
 	Welcome to Stacks--the formal documentation of Avail's standard library.
 	</p>
@@ -26,5 +25,6 @@
 	To view documentation for a method, click its link in the Methods pane. The contents of this pane will be replaced with the method details page, which includes the full method name, a general description of the method (if any), and the details of each grammatical restriction, method implementation, and semantic restriction defined for the method name.
 	</p>
 	{[{GENERATED-CONTENT}]}
+</div>
 </body>
 </html>
