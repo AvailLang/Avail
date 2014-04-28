@@ -394,7 +394,7 @@ public class ImplementationGroup
 
 			stringBuilder.append(tabs(1) + "<h4 "
 					+ HTMLBuilder.tagClass(HTMLClass.classMethodSectionHeader)
-					+ ">Implementations:</h4>\n")
+					+ ">Definitions:</h4>\n")
 				.append(tabs(1)
 					+ "<div "
 					+ HTMLBuilder
