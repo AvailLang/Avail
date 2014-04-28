@@ -79,11 +79,9 @@ public final class P_143_TupleTypeAtThrough extends Primitive
 			TupleDescriptor.from(
 				TupleTypeDescriptor.meta(),
 				IntegerRangeTypeDescriptor.naturalNumbers(),
-				IntegerRangeTypeDescriptor.create(
+				IntegerRangeTypeDescriptor.inclusive(
 					IntegerDescriptor.zero(),
-					true,
-					InfinityDescriptor.positiveInfinity(),
-					true)),
+					InfinityDescriptor.positiveInfinity())),
 			InstanceMetaDescriptor.anyMeta());
 	}
 }

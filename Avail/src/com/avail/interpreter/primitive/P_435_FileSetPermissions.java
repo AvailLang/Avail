@@ -139,16 +139,12 @@ extends Primitive
 			TupleDescriptor.from(
 				TupleTypeDescriptor.stringType(),
 				SetTypeDescriptor.setTypeForSizesContentType(
-					IntegerRangeTypeDescriptor.create(
+					IntegerRangeTypeDescriptor.inclusive(
 						IntegerDescriptor.fromInt(0),
-						true,
-						IntegerDescriptor.fromInt(9),
-						true),
-					IntegerRangeTypeDescriptor.create(
+						IntegerDescriptor.fromInt(9)),
+					IntegerRangeTypeDescriptor.inclusive(
 						IntegerDescriptor.fromInt(1),
-						true,
-						IntegerDescriptor.fromInt(9),
-						true)),
+						IntegerDescriptor.fromInt(9))),
 				EnumerationTypeDescriptor.booleanObject()),
 			TOP.o());
 	}

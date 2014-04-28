@@ -1118,11 +1118,9 @@ public final class AvailRuntime
 			TupleTypeDescriptor.zeroOrMoreOf(
 				InstanceMetaDescriptor.anyMeta());
 		specials[118] =
-			IntegerRangeTypeDescriptor.create(
+			IntegerRangeTypeDescriptor.inclusive(
 				IntegerDescriptor.zero(),
-				true,
-				InfinityDescriptor.positiveInfinity(),
-				true);
+				InfinityDescriptor.positiveInfinity());
 		specials[119] =
 			TupleTypeDescriptor.zeroOrMoreOf(
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(

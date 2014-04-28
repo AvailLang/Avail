@@ -169,11 +169,9 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				IntegerRangeTypeDescriptor.create(
+				IntegerRangeTypeDescriptor.inclusive(
 					IntegerDescriptor.zero(),
-					true,
-					IntegerDescriptor.fromInt(Integer.MAX_VALUE),
-					true),
+					IntegerDescriptor.fromInt(Integer.MAX_VALUE)),
 				ATOM.o(),
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(

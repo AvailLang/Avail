@@ -68,10 +68,6 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				FiberTypeDescriptor.mostGeneralType()),
-			IntegerRangeTypeDescriptor.create(
-				IntegerDescriptor.zero(),
-				true,
-				IntegerDescriptor.fromInt(255),
-				true));
+			IntegerRangeTypeDescriptor.bytes());
 	}
 }

@@ -133,16 +133,12 @@ extends Primitive
 			TupleDescriptor.from(
 				ATOM.o(),
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-					IntegerRangeTypeDescriptor.create(
+					IntegerRangeTypeDescriptor.inclusive(
 						IntegerDescriptor.zero(),
-						true,
-						IntegerDescriptor.fromInt(socketOptions.length - 1),
-						true),
-					IntegerRangeTypeDescriptor.create(
+						IntegerDescriptor.fromInt(socketOptions.length - 1)),
+					IntegerRangeTypeDescriptor.inclusive(
 						IntegerDescriptor.one(),
-						true,
-						IntegerDescriptor.fromInt(socketOptions.length - 1),
-						true),
+						IntegerDescriptor.fromInt(socketOptions.length - 1)),
 					ANY.o())),
 			TOP.o());
 	}

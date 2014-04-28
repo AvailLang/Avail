@@ -662,24 +662,67 @@ implements IntegerEnumSlotDescriptionEnum
 	}
 
 	/**
-	 * Answer whether the specified primitive accepts the specified number of
-	 * arguments.  Note that some primitives expect a variable number of
-	 * arguments.
+	 * Determine whether the specified primitive declaration is acceptable to be
+	 * used with the given list of parameter declarations.  Answer null if they
+	 * are acceptable, otherwise answer a suitable {@code String} that is
+	 * expected to appear after the prefix "Expecting...".
 	 *
 	 * @param primitiveNumber Which primitive.
-	 * @param argCount The number of arguments that we should check is legal for
-	 *                 this primitive.
-	 * @return Whether the primitive accepts the specified number of arguments.
+	 * @param arguments The argument declarations that we should check are legal
+	 *                  for this primitive.
+	 * @return Whether the primitive accepts arguments with types that conform
+	 *         to the given argument declarations.
 	 */
-	public static boolean primitiveAcceptsThisManyArguments (
+	public static @Nullable String validatePrimitiveAcceptsArguments (
 		final int primitiveNumber,
-		final int argCount)
+		final List<A_Phrase> arguments)
 	{
 		final Primitive primitive =
 			Primitive.byPrimitiveNumberOrNull(primitiveNumber);
 		assert primitive != null;
 		final int expected = primitive.argCount();
-		return expected == -1 || expected == argCount;
+		if (expected == -1)
+		{
+			return null;
+		}
+		if (arguments.size() != expected)
+		{
+			return String.format(
+				"number of declared arguments (%d) to agree with primitive's"
+				+ " required number of arguments (%d).",
+				arguments.size(),
+				expected);
+		}
+		final A_Type expectedTypes =
+			primitive.blockTypeRestriction().argsTupleType();
+		assert expectedTypes.sizeRange().upperBound().extractInt() == expected;
+		final StringBuilder builder = new StringBuilder();
+		for (int i = 1; i <= expected; i++)
+		{
+			final A_Type declaredType = arguments.get(i - 1).declaredType();
+			final A_Type expectedType = expectedTypes.typeAtIndex(i);
+			if (!declaredType.isSubtypeOf(expectedType))
+			{
+				if (builder.length() > 0)
+				{
+					builder.append("\n");
+				}
+				builder.append(
+					String.format(
+						"argument #%d (%s) of primitive %s to be a subtype"
+						+ " of %s, not %s.",
+						i,
+						arguments.get(i - 1).token().string(),
+						primitive.name(),
+						expectedType,
+						declaredType));
+			}
+		}
+		if (builder.length() == 0)
+		{
+			return null;
+		}
+		return builder.toString();
 	}
 
 	/** Capture the name of the primitive class once for performance. */

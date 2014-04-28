@@ -156,11 +156,9 @@ extends Primitive
 				IntegerRangeTypeDescriptor.singleInt(6),
 				TupleDescriptor.from(
 					PojoTypeDescriptor.mostGeneralType(),
-					IntegerRangeTypeDescriptor.create(
+					IntegerRangeTypeDescriptor.inclusive(
 						IntegerDescriptor.fromInt(1),
-						true,
-						IntegerDescriptor.fromInt(4),
-						true)),
+						IntegerDescriptor.fromInt(4))),
 				IntegerRangeTypeDescriptor.create(
 					IntegerDescriptor.fromInt(0),
 					true,

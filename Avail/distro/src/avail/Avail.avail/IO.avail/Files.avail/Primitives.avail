@@ -37,15 +37,15 @@ Extends
 	"Data Abstractions" = ("_'s⁇position", "_'s⁇position:=_")
 Uses
 	"Common",
+	"File Access Rights",
 	"File Names",
+	"File Open Options" = (
+		"read" → "read option",
+		"write" → "write option"
+		…),
 	"Foundation",
 	"Unit Testing"
 Names
-	/* File open modes. */
-	"file open mode",
-	"read mode",
-	"write mode",
-
 	/* File types. */
 	"file",
 	"readable file",
@@ -53,10 +53,7 @@ Names
 	"writable file",
 
 	/* File constructors. */
-	"a file named_(mode=_)",
-	"a readable file named_",
-	"a readable,⁇writable file named_",
-	"a writable file named_",
+	"a file named_with options_«with file access rights_»",
 
 	/* File attributes. */
 	"_'s⁇name",
@@ -66,9 +63,12 @@ Names
 	"_'s⁇size:=_",
 
 	/* File I/O. */
-	"next_byte|bytes from_",
-	"next_byte|bytes from_starting at_",
-	"Write_to_",
+	"a fiber reading_byte|bytes at_from_,⁇\
+		\|on success doing_,⁇\
+		\|on failure doing_«⁇,forked at priority_»",
+	"a fiber writing_at_to_,⁇\
+		\|on success doing_,⁇\
+		\|on failure doing_«⁇,forked at priority_»",
 	"Synchronize_with file system",
 
 	/* File cleanup. */
@@ -80,22 +80,6 @@ Names
 	/* Unit testing. */
 	"file primitives test suite"
 Body
-
-/**
- * The atom that represents the readability of a file.
- */
-Public "read mode" is a new atom;
-
-/**
- * The atom that represents the writability of a file.
- */
-Public "write mode" is a new atom;
-
-/**
- * Answer the enumeration of file open modes.
- */
-_mode ::= {read mode, write mode}ᵀ;
-Public method "file open mode" is [_mode];
 
 "name" is a new field atom;
 "handle" is a new field atom;
@@ -147,187 +131,111 @@ Public class "writable file" extends file
  */
 Public class "readable,⁇writable file" extends readable file ∩ writable file;
 
+/* Open a raw file handle. */
+Private method "raw handle for file named_options_file access rights_" is
+[
+	name : string,
+	options : {[0..9]|0..10},
+	rights : {[1..9]|0..9}
+|
+	Primitive 160 (e : {
+		invalid-path code,
+		illegal-option code,
+		operation-not-supported code,
+		permission-denied code,
+		I/O-error code}ᵀ);
+	Raise an exception for e
+] : atom;
+
+_default_access_rights ::= "rw-r--r--" → file access rights;
+
 /**
  * Answer an abstraction of the file named {@param "n"} that is open for
  * reading. The file position is initially zero ({@code 0}).
  *
- * @method "a readable file named_"
- * @param "n" "file name"
- * @returns "readable file"
- * @raises "permission-denied exception"
- *         If permission is denied to use the specified {@type "file name"}.
- * @raises "I/O exception"
- *         If an I/O error occurs for any reason.
- */
-Public method "a readable file named_" is
-[
-	n : file name
-|
-	a readable file with
-		handle ::=
-			[
-				s : nonempty string
-			|
-				Primitive 160 (e : {
-					invalid-path code,
-					illegal-option code,
-					operation-not-supported code,
-					premission-denied code,
-					I/O-error code}ᵀ);
-				Raise an exception for e
-			] : atom (n's name),
-		name ::= n,
-		writable ::= false,
-		open state := true
-] : readable file;
-
-/**
- * @method "a readable file named_"
- * @restricts "file name's type"
- */
-Semantic restriction "a readable file named_" is
-[
-	n : file name's type
-|
-	extend readable file with name : n
-];
-
-/**
- * Answer an abstraction of the file named {@param "n"} that is open for
- * writing. The file position is initially zero ({@code 0}).
- *
- * @method "a truncated,⁇writable file named_"
- * @param "n" "file name"
- * @returns "writable file"
- * @raises "permission-denied exception"
- *         If permission is denied to use the specified {@type "file name"}.
- * @raises "I/O exception"
- *         If an I/O error occurs for any reason.
- */
-Public method "a writable file named_" is
-[
-	n : file name
-|
-	a writable file with
-		handle ::=
-			[
-				s : nonempty string
-			|
-				Primitive 161 (e : {I/O-error code, permission-denied code}ᵀ);
-				Raise an exception for e
-			] : atom (n's name),
-		name ::= n,
-		readable ::= false,
-		open state := true
-] : writable file;
-
-/**
- * @method "a writable file named_"
- * @restricts "file name's type"
- */
-Semantic restriction "a writable file named_" is
-[
-	n : file name's type
-|
-	extend writable file with name : n
-];
-
-/**
- * Answer an abstraction of the file named {@param "n"} that is open for
- * reading and writing. The file position is initially zero ({@code 0}).
- *
- * @method "a readable,⁇writable file named_"
- * @param "n" "file name"
- * @returns "readable,⁇writable file"
- * @raises "permission-denied exception"
- *         If permission is denied to use the specified {@type "file name"}.
- * @raises "I/O exception"
- *         If an I/O error occurs for any reason.
- */
-Public method "a readable,⁇writable file named_" is
-[
-	n : file name
-|
-	a readable, writable file with
-		handle ::=
-			[
-				s : nonempty string
-			|
-				Primitive 162 (e : {I/O-error code, permission-denied code}ᵀ);
-				Raise an exception for e
-			] : atom (n's name),
-		name ::= n,
-		open state := true
-] : readable, writable file;
-
-/**
- * @method "a readable,⁇writable file named_"
- * @restricts "file name's type"
- */
-Semantic restriction "a readable,⁇writable file named_" is
-[
-	n : file name's type
-|
-	extend readable, writable file with name : n
-];
-
-/**
- * Answer an abstraction of the file named {@param "n"} using the specified
- * {@type "file open mode"}s. The file position is initially zero ({@code 0}).
- *
- * @method "a file named_(mode=_)"
- * @param "n" "file name"
- * @param "modes" "{file open mode|1..2}"
- *        A set containing {@method "read mode"}, {@method "write mode"}, or
- *        both.
+ * @method "a file named_with options_«with file access rights_»"
+ * @param "fileName" "file name"
+ * @param "optionSet" "{open option|}"
+ * @param "accessRights" "<{file access right|}…|0..1>"
  * @returns "file"
- *          A file open for reading, writing, or both, as specified by {@param
- *          "modes"}.
  * @raises "permission-denied exception"
  *         If permission is denied to use the specified {@type "file name"}.
  * @raises "I/O exception"
  *         If an I/O error occurs for any reason.
  */
-Public method "a file named_(mode=_)" is
+Public method "a file named_with options_«with file access rights_»" is
 [
-	n : file name,
-	modes : {file open mode|1..2}
+	fileName : file name,
+	optionSet : {open option|0..9},
+	optionalAccessRights : <{file access right|0..9}…|0..1>
 |
-	if read mode ∈ modes then
-	[
-		if write mode ∈ modes then [a readable, writable file named n]
-		else [a readable file named n]
-	]
-	else [a writable file named n]
+	optionNumbers ::=
+		map optionSet through [opt : open option | opt → numeric code];
+	accessRights ::= optionalAccessRights [1] else [_default_access_rights];
+	accessRightNumbers ::= map accessRights
+		through [r : file access right | r → numeric code];
+	fileHandle ::= raw handle for file named fileName's name
+		options optionNumbers
+		file access rights accessRightNumbers;
+	a file with
+		handle ::= fileHandle,
+		name ::= fileName,
+		readable ::= read option ∈ optionSet,
+		writable ::= write option ∈ optionSet,
+		open state := true
 ] : file;
 
 /**
- * @method "a file named_(mode=_)"
+ * Strengthen the type with the file name and whether {@code "read"} and/or
+ * {@code "write"} are specified.
+ * 
+ * @method "a file named_with options_«with file access rights_»"
  * @restricts "file name's type"
- * @restricts "{file open mode|1..2}'s type"
+ * @restricts "{open option|}'s type"
+ * @restricts "{file access right|}'s type"
  */
-Semantic restriction "a file named_(mode=_)" is
+Semantic restriction "a file named_with options_«with file access rights_»" is
 [
-	n : file name's type,
-	modesType : {file open mode|1..2}'s type
+	fileName : file name's type,
+	optionSet : {open option|1..9}'s type,
+	accessRights : {file access right|0..9}'s type
 |
-	fileType ::=
-		if |modesType| = 1 then
+	readableType : boolean's type := ⊥;
+	writableType : boolean's type := ⊥;
+	If |optionSet| ≠ ∞ then
+	[
+		/* Check each possibility, typically just one. */
+		For each of optionSet's instances do
 		[
-			modes ::= modesType's instance;
-			t : file's type := file;
-			If read mode ∈ modes then [t := eject ↑t ∩ readable file;];
-			If write mode ∈ modes then [t := eject ↑t ∩ writable file;];
-			t
-		]
-		else [file];
-	extend fileType with name : n
+			possibileSet : {open option|}
+		|
+			readableType := readableType ∪ ((read ∈ possibileSet)'s type);
+			writableType := writableType ∪ ((write ∈ possibileSet)'s type);
+		];
+	]
+	else
+	[
+		readableType := if read ∈ optionSet's element type
+			then [boolean]
+			else [false's type];
+		writableType := if write ∈ optionSet's element type
+			then [boolean]
+			else [false's type];
+	];
+	If (readableType = (false's type)) ∧ [writableType = (false's type)] then
+	[
+		Reject parse, expected: "file open to specify read or write or both"
+	];
+	extend file with
+		name : fileName,
+		readable : readableType,
+		writable : writableType
 ];
 
-Stable method "_is readable" is [f : file | false] : boolean;
-Stable method "_is readable" is [f : readable file | true];
-Stable method "_is writable" is [f : file | false] : boolean;
-Stable method "_is writable" is [f : writable file | true];
+Method "_is readable" is [f : file | false] : boolean;
+Method "_is readable" is [f : readable file | true];
+Method "_is writable" is [f : file | false] : boolean;
+Method "_is writable" is [f : writable file | true];
 Public method "_is open" is [f : file | f's open state];
 Public method "_is closed" is [f : file | ¬f's open state];
 
@@ -379,7 +287,7 @@ Method "Close_" is
 	[
 		h : atom
 	|
-		Primitive 163 (e : invalid-handle code's type);
+		Primitive 161 (e : invalid-handle code's type);
 		Raise an exception for e
 	] : ⊤ (f's handle);
 	f's open state := false;
@@ -438,165 +346,80 @@ Public method "_'s⁇size:=_" is
 	] : ⊤ (f's handle, newSize);
 ] : ⊤;
 
-/**
- * Answer the current file position for the specified {@type "file"}.
- *
- * @method "_'s⁇position"
- * @param "f" "file"
- * @returns "natural number"
- *          The current one-based file position. This is the subscript of the
- *          next byte that will be read or written.
- * @raises "I/O exception"
- *         If an I/O error occurs for any reason.
- * @raises "file-closed exception"
- *         If {@param "f"} has already been closed.
- */
-Method "_'s⁇position" is
+Private method
+	"private starting at_read_byte|bytes from_into_else_priority_" is
 [
-	f : file
-|
-	[
-		h : atom
-	|ww
-		Primitive 167 (e : {invalid-handle code, I/O-error code}ᵀ);
-		Raise an exception for e
-	] : natural number (f's handle)
-] : natural number;
-
-/**
- * Set the file position of the specified {@type "file"} to {@param
- * "newPosition"}. {@param "newPosition"} may exceed the {@method "_'s⁇size"
- * current size} of {@param "f"}. This will not cause extension of {@param "f"}
- * unless and until a write occurs.
- *
- * @method "_'s⁇position:=_"
- * @param "f" "file"
- * @param "newPosition" "natural number"
- *        The new one-based file position. This is the subscript of the next
- *        byte that will be read or written.
- * @raises "subscript-out-of-bounds exception"
- *         If {@param "newPosition"} exceeds the maximum representation of a
- *         file position for the given file system.
- * @raises "I/O exception"
- *         If an I/O error occurs for any reason.
- * @raises "file-closed exception"
- *         If {@param "f"} has already been closed.
- */
-Method "_'s⁇position:=_" is
-[
-	f : file,
-	newPosition : natural number
-|
-	[
-		h : atom,
-		v : natural number
-	|
-		Primitive 168 (e : {
-			subscript-out-of-bounds code,
-			invalid-handle code,
-			I/O-error code}ᵀ);
-		Raise an exception for e
-	] : ⊤ (f's handle, newPosition);
-] : ⊤;
-
-/**
- * Read data from the specified {@type "file"}, starting at the {@method
- * "_'s⁇position" current file position}. Advance the file position by the
- * number of bytes actually read.
- *
- * @method "next_byte|bytes from_"
- * @param "bytesToRead" "[0..∞]"
- *        The number of bytes to attempt to read from {@param "f"}. If infinite,
- *        then return the smaller of 1) all remaining bytes or 2) a huge tuple
- *        whose exact size is unspecified.
- * @param "f" "readable file"
- * @returns "<[0..255]…|>"
- *          Up to {@param "bytesToRead"} bytes from {@param "f"}. Fewer bytes
- *          will be returned if fewer bytes are available.
- * @raises "I/O exception"
- *         If an I/O error occurs for any reason.
- * @raises "file-closed exception"
- *         If {@param "f"} has already been closed.
- */
-Public method "next_byte|bytes from_" is
-[
-	bytesToRead : [0..∞],
-	f : readable file
-|
-	[
-		h : atom,
-		v : [0..∞]
-	|
-		Primitive 164 (e : {invalid-handle code, I/O-error code}ᵀ);
-		Raise an exception for e
-	] : <[0..255]…|> (f's handle, bytesToRead)
-] : <[0..255]…|>;
-
-final A_Number positionObject = args.get(0);
-final A_Number sizeObject = args.get(1);
-final A_Atom handle = args.get(2);
-final A_Function succeed = args.get(3);
-final A_Function fail = args.get(4);
-final A_Number priority = args.get(5);
-
-
-Private method "private next_byte|bytes starting at_from_priority_into_else_" is
-[
-	bytesToRead : [1..∞],
 	start : natural number,
-	f : readable file,
-	priority : byte,
-	into : [<byte…|>]→⊤,
-	else : [io error code]→⊤
+	bytesToRead : [1..∞],
+	fileHandle : atom,
+	into : [<byte…|1..∞>]→⊤,
+	else : [{I/O-error code}ᵀ]→⊤,
+	priority : byte
 |
 	Primitive 164 (e : {
 		invalid-handle code,
 		special-atom code,
 		not-open-for-read code,
-		exceeds-vm-limit code})
+		exceeds-vm-limit code}ᵀ);
 	Raise an exception for e
-] : <byte…|1..∞>
+] : fiber;
 
-/**
- * @method "next_byte|bytes from_"
- * @restricts "[0..∞]'s type"
- * @restricts "readable file's type"
- */
-Semantic restriction "next_byte|bytes from_" is
+Public method
+	"a fiber reading_byte|bytes at_from_,⁇\
+		\|on success doing_,⁇\
+		\|on failure doing_«⁇,forked at priority_»" is
 [
-	bytesToRead : [0..∞]'s type,
-	f : readable file's type
+	bytesToRead : [1..∞],
+	start : natural number,
+	f : readable file,
+	success : [<byte…|1..∞>]→⊤,
+	failure : [{I/O-error code}ᵀ]→⊤,
+	optionalPriority : <byte…|0..1>
 |
-	<[0..255]…|0..⎡bytesToRead⎤>
-];
+	private starting at start
+		read bytesToRead bytes
+		from f's handle
+		into success
+		else failure
+		priority optionalPriority[1] else [current fiber's priority]
+] : fiber;
 
-/**
- * Write data to the specified {@type "file"}, starting at the {@method
- * "_'s⁇position" current file position}. Advance the file position by the
- * number of bytes actually written.
- *
- * @method "Write_to_"
- * @param "bytesToWrite" "whole number"
- *        The bytes to write to {@param "f"}.
- * @param "f" "writable file"
- * @raises "I/O exception"
- *         If an I/O error occurs for any reason.
- * @raises "file-closed exception"
- *         If {@param "f"} has already been closed.
- */
-Public method "Write_to_" is
+Private method "private starting at_write_to_then_else_priority_" is
 [
-	bytesToWrite : <[0..255]…|>,
-	f : writable file
+	start : natural number,
+	bytesToWrite : <byte…|1..∞>,
+	fileHandle : atom,
+	then : []→⊤,
+	else : [{I/O-error code}ᵀ]→⊤,
+	priority : byte
 |
-	[
-		h : atom,
-		b : <[0..255]…|>
-	|
-		Primitive 165 (e : {invalid-handle code, I/O-error code}ᵀ);
-		Raise an exception for e
-	] : ⊤ (f's handle, bytesToWrite);
-] : ⊤;
+	Primitive 165 (e : {
+		invalid-handle code,
+		special-atom code,
+		not-open-for-write code,
+		exceeds-vm-limit code}ᵀ);
+	Raise an exception for e
+] : fiber;
+
+Public method
+	"a fiber writing_at_to_,⁇\
+		\|on success doing_,⁇\
+		\|on failure doing_«⁇,forked at priority_»" is
+[
+	bytesToWrite : <byte…|1..∞>,
+	start : natural number,
+	f : writable file,
+	success : []→⊤,
+	failure : [{I/O-error code}ᵀ]→⊤,
+	optionalPriority : <byte…|0..1>
+|
+	private starting at start
+		write bytesToWrite
+		to f's handle
+		then success
+		else failure
+		priority optionalPriority[1] else [current fiber's priority]
+] : fiber;
 
 /**
  * Block the current fiber until all writes buffered for the specified {@type
@@ -669,7 +492,8 @@ Semantic restriction "Using|using_,⁇do_" is
  * Disallow the general object constructor for file-related types.
  * 
  * @method "a|an_«with«_«:»?:=_‡,»»"
- * @forbids "1" "file name" "file" "readable file" "writable file" "readable,⁇writable file"
+ * @forbids "1" "file name" "file" "readable file" "writable file"
+ *          "readable,⁇writable file"
  */
 Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
 	<{

@@ -1146,9 +1146,9 @@ extends AbstractAvailCompiler
 					assert afterArguments != null;
 					assert arguments != null;
 
-					parseOptionalPrimitiveForArgCountThen(
+					parseOptionalPrimitiveForArgumentsThen(
 						afterArguments,
-						arguments.size(),
+						arguments,
 						new Con<A_Tuple>("Optional primitive declaration")
 						{
 							@Override
@@ -1341,12 +1341,22 @@ extends AbstractAvailCompiler
 				});
 		}
 
-		if (!stateOutsideBlock.peekToken(
-			COLON,
-			thePrimitive != null
-				? "primitive block's mandatory return type declaration"
-				: "optional block return type declaration"))
+		if (!stateOutsideBlock.peekToken(COLON))
 		{
+			if (thePrimitive != null)
+			{
+				stateOutsideBlock.expected(
+					"primitive block's mandatory return type declaration");
+				return;
+			}
+			// Suppress warning about optional return type if there's a
+			// semicolon.
+			if (!stateOutsideBlock.peekToken(SEMICOLON))
+			{
+				stateOutsideBlock.expected(
+					"optional block return type declaration");
+				return;
+			}
 			return;
 		}
 
@@ -1483,15 +1493,20 @@ extends AbstractAvailCompiler
 	{
 		attempt(start, continuation, SetDescriptor.empty());
 
-		if (start.peekToken(
-			CARET,
-			"optional block exceptions declaration"))
+		if (start.peekToken(CARET))
 		{
 			final ParserState afterColon = start.afterToken();
 			parseMoreExceptionClausesThen (
 				afterColon,
 				SetDescriptor.empty(),
 				continuation);
+		}
+		else if (!start.peekToken(SEMICOLON))
+		{
+			// We snuck ahead and checked if this block was at the end of a
+			// statement.  It wasn't, so indicate that an exceptions declaration
+			// was possible here.
+			start.expected("optional block exceptions declaration");
 		}
 	}
 
@@ -1599,16 +1614,16 @@ extends AbstractAvailCompiler
 	 *
 	 * @param start
 	 *            Where to start parsing.
-	 * @param argCount
-	 *            The number of arguments accepted by the block being parsed.
+	 * @param arguments
+	 *            The argument declarations for the block being parsed.
 	 * @param continuation
 	 *            What to do with a tuple consisting of the parsed primitive
 	 *            number and the failure declaration (or a tuple with just the
 	 *            parsed primitive number if the primitive can't fail).
 	 */
-	void parseOptionalPrimitiveForArgCountThen (
+	void parseOptionalPrimitiveForArgumentsThen (
 		final ParserState start,
-		final int argCount,
+		final List<A_Phrase> arguments,
 		final Con<A_Tuple> continuation)
 	{
 		// Try it first without looking for the primitive declaration.
@@ -1644,29 +1659,20 @@ extends AbstractAvailCompiler
 				+ Integer.toString(primitiveNumber));
 			return;
 		}
-
+		final ParserState afterPrimitiveNumber =
+			afterPrimitiveKeyword.afterToken();
 		final Primitive prim =
 			Primitive.byPrimitiveNumberOrNull(primitiveNumber);
 		assert prim != null;
-		if (!Primitive.primitiveAcceptsThisManyArguments(
-			primitiveNumber, argCount))
+		final @Nullable String problem =
+			Primitive.validatePrimitiveAcceptsArguments(
+				primitiveNumber, arguments);
+		if (problem != null)
 		{
-			afterPrimitiveKeyword.expected(new Describer()
-			{
-				@Override
-				public void describeThen (final Continuation1<String> c)
-				{
-					c.value(String.format(
-						"Primitive (%s) to be passed %d arguments, not %d",
-						prim.name(),
-						prim.argCount(),
-						argCount));
-				}
-			});
+			afterPrimitiveNumber.expected(problem);
+			return;
 		}
 
-		final ParserState afterPrimitiveNumber =
-			afterPrimitiveKeyword.afterToken();
 		if (prim.hasFlag(Flag.CannotFail))
 		{
 			if (!afterPrimitiveNumber.peekToken(

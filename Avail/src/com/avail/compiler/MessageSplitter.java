@@ -2083,12 +2083,10 @@ public class MessageSplitter
 		throws SignatureException
 		{
 			if (!argumentType.isSubtypeOf(
-				IntegerRangeTypeDescriptor.create(
+				IntegerRangeTypeDescriptor.inclusive(
 					IntegerDescriptor.one(),
-					true,
 					IntegerDescriptor.fromInt(
-						alternation.alternatives().size()),
-					true)))
+						alternation.alternatives().size()))))
 			{
 				// The declared type of the subexpression must be a subtype of
 				// [1..N] where N is the number of alternatives.

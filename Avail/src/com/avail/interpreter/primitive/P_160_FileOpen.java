@@ -69,24 +69,6 @@ extends Primitive
 		3, CanInline, HasSideEffect);
 
 	/**
-	 * The {@linkplain StandardOpenOption standard file open options}. <em>The
-	 * order of these elements should not be changed!</em>
-	 */
-	private static final StandardOpenOption[] openOptions =
-	{
-		CREATE,
-		CREATE_NEW,
-		TRUNCATE_EXISTING,
-		DELETE_ON_CLOSE,
-		WRITE,
-		READ,
-		APPEND,
-		SPARSE,
-		SYNC,
-		DSYNC
-	};
-
-	/**
 	 * Construct the {@linkplain EnumSet set} of {@linkplain OpenOption open
 	 * options} that correspond to the supplied {@linkplain SetDescriptor set}
 	 * of integral option indicators.
@@ -101,9 +83,8 @@ extends Primitive
 			EnumSet.noneOf(StandardOpenOption.class);
 		for (final A_Number optionInt : optionInts)
 		{
-			final StandardOpenOption option =
-				openOptions[optionInt.extractInt() - 1];
-			options.add(option);
+			options.add(
+				StandardOpenOption.values()[optionInt.extractInt()]);
 		}
 		return options;
 	}
@@ -208,27 +189,19 @@ extends Primitive
 			TupleDescriptor.from(
 				TupleTypeDescriptor.stringType(),
 				SetTypeDescriptor.setTypeForSizesContentType(
-					IntegerRangeTypeDescriptor.create(
+					IntegerRangeTypeDescriptor.inclusive(
 						IntegerDescriptor.fromInt(0),
-						true,
-						IntegerDescriptor.fromInt(10),
-						true),
-					IntegerRangeTypeDescriptor.create(
-						IntegerDescriptor.fromInt(1),
-						true,
-						IntegerDescriptor.fromInt(10),
-						true)),
+						IntegerDescriptor.fromInt(10)),
+					IntegerRangeTypeDescriptor.inclusive(
+						IntegerDescriptor.fromInt(0),
+						IntegerDescriptor.fromInt(9))),
 				SetTypeDescriptor.setTypeForSizesContentType(
-					IntegerRangeTypeDescriptor.create(
+					IntegerRangeTypeDescriptor.inclusive(
 						IntegerDescriptor.fromInt(0),
-						true,
-						IntegerDescriptor.fromInt(9),
-						true),
-					IntegerRangeTypeDescriptor.create(
+						IntegerDescriptor.fromInt(9)),
+					IntegerRangeTypeDescriptor.inclusive(
 						IntegerDescriptor.fromInt(1),
-						true,
-						IntegerDescriptor.fromInt(9),
-						true))),
+						IntegerDescriptor.fromInt(9)))),
 			ATOM.o());
 	}
 

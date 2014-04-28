@@ -34,12 +34,12 @@ Module "Files"
 Versions
 	"dev"
 Extends
-	/* TODO: [TLS] Uncomment these modules. */
 	"File Access Rights",
 	/* "File Iterators", */
 	"File Management",
 	"File Metadata",
 	"File Names",
+	"File Open Options",
 	"File Principals",
 	/* "Primitives", */
 	"Test"

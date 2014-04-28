@@ -65,10 +65,8 @@ public final class P_028_InstanceCount extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				InstanceMetaDescriptor.topMeta()),
-			IntegerRangeTypeDescriptor.create(
+			IntegerRangeTypeDescriptor.inclusive(
 				IntegerDescriptor.zero(),
-				true,
-				InfinityDescriptor.positiveInfinity(),
-				true));
+				InfinityDescriptor.positiveInfinity()));
 	}
 }

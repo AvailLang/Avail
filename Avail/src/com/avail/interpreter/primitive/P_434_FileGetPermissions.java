@@ -160,16 +160,12 @@ extends Primitive
 				TupleTypeDescriptor.stringType(),
 				EnumerationTypeDescriptor.booleanObject()),
 			SetTypeDescriptor.setTypeForSizesContentType(
-				IntegerRangeTypeDescriptor.create(
+				IntegerRangeTypeDescriptor.inclusive(
 					IntegerDescriptor.fromInt(0),
-					true,
-					IntegerDescriptor.fromInt(9),
-					true),
-				IntegerRangeTypeDescriptor.create(
+					IntegerDescriptor.fromInt(9)),
+				IntegerRangeTypeDescriptor.inclusive(
 					IntegerDescriptor.fromInt(1),
-					true,
-					IntegerDescriptor.fromInt(9),
-					true)));
+					IntegerDescriptor.fromInt(9))));
 	}
 
 	@Override

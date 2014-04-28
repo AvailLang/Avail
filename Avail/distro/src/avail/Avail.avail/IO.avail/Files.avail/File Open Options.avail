@@ -1,0 +1,190 @@
+/*
+ * File Open Options.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "File Open Options"
+Versions
+	"dev"
+Uses
+	"Foundation"
+Names
+	"open option",
+	"_→numeric code",
+
+	/* File open options. */
+	"append",
+	"create",
+	"create new",
+	"delete on close",
+	"read",
+	"sparse",
+	"synchronize all",
+	"synchronize data",
+	"truncate existing",
+	"write"
+Body
+
+
+/**
+ * Answer the {@type "open option"} that indicates a file opened for writing
+ * should be initially positioned at the end.  This is irrelevant for Avail
+ * files, since they have no current position.  However, {@type
+ * "file iterator"}s can make good use of this flag.
+ *
+ * @method "append"
+ * @returns "open option"
+ */
+Public "append" is a new atom;
+
+/**
+ * Answer the {@type "open option"} that indicates a file opened for writing
+ * should be created if it does not yet exist.
+ *
+ * @method "create"
+ * @returns "open option"
+ */
+Public "create" is a new atom;
+
+/**
+ * Answer the {@type "open option"} that indicates an attempt to open the file
+ * for writing should fail if it already exists.  If the file did not exist, a
+ * new file should be created.
+ *
+ * @method "create new"
+ * @returns "open option"
+ */
+Public "create new" is a new atom;
+
+/**
+ * Answer the {@type "open option"} that indicates that best effort should be
+ * made to delete the file when it is no longer referenced, when it is
+ * explicitly closed, or when the Avail VM shuts down.
+ *
+ * @method "delete on close"
+ * @returns "open option"
+ */
+Public "delete on close" is a new atom;
+
+/**
+ * Answer the {@type "open option"} that indicates that the file is to be read.
+ *
+ * @method "read"
+ * @returns "open option"
+ */
+Public "read" is a new atom;
+
+/**
+ * Answer the {@type "open option"} that hints to the operating system and file
+ * system that this should be a sparse file.  Where supported, this mechanism
+ * supports very large files for which only some portions might occupy actual
+ * storage on disk.
+ *
+ * @method "sparse"
+ * @returns "open option"
+ */
+Public "sparse" is a new atom;
+
+/**
+ * Answer the {@type "open option"} that indicates that all writes of data and
+ * metadata must be flushed to the physical medium before returning control from
+ * the write or metadata update operation.
+ *
+ * @method "synchronize all"
+ * @returns "open option"
+ */
+Public "synchronize all" is a new atom;
+
+/**
+ * Answer the {@type "open option"} that indicates that all writes of data (but
+ * not necessarily metadata) must be flushed to the physical medium before
+ * returning control from the write operation.
+ *
+ * @method "synchronize data"
+ * @returns "open option"
+ */
+Public "synchronize data" is a new atom;
+
+/**
+ * Answer the {@type "open option"} that indicates that an existing file being
+ * opened for write access should be truncated to zero bytes.
+ *
+ * @method "truncate existing"
+ * @returns "open option"
+ */
+Public "truncate existing" is a new atom;
+
+/**
+ * Answer the {@type "open option"} that indicates that the file is to be
+ * written.
+ *
+ * @method "write"
+ * @returns "open option"
+ */
+Public "write" is a new atom;
+
+/* These values must agree with java.nio.file.StandardOpenOption. */
+_option_map ::= {
+	read → 0,
+	write → 1,
+	append → 2,
+	truncate existing → 3,
+	create → 4,
+	create new → 5,
+	delete on close → 6,
+	sparse → 7,
+	synchronize all → 8,
+	synchronize data → 9
+};
+
+_option_type ::= enumeration of _option_map's keys;
+
+/**
+ * Answer the type for options provided at file opening time.
+ * 
+ * @method "open option"
+ * @returns "type"
+ */
+Public method "open option" is [_option_type];
+
+/**
+ * Convert an {@type "open option"} into its numeric code for consumption by
+ * the file open primitive.
+ * 
+ * @method "_→numeric code"
+ * @param "option" "open option"
+ * @returns "[0..9]"
+ */
+Public method "_→numeric code" is
+[
+	option : open option
+|
+	_option_map [option]
+] : [0..9];

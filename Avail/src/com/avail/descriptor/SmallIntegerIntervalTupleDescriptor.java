@@ -114,59 +114,24 @@ extends TupleDescriptor
 		final int newSize = end - start + 1;
 		assert 0 <= end && end <= oldSize;
 
-		// If the requested copy is actually a subrange, make it.
+		// If the requested copy is a proper subrange, create it.
 		if (newSize != oldSize)
 		{
-			final AvailObject traversed = object.traversed();
-			final int delta = traversed.slot(DELTA);
+			final int delta = object.slot(DELTA);
+			final int oldStartValue = object.slot(START);
 
-			// Calculate the new start value from the given start index.
-			int newStartValue;
-			final int oldStartValue = traversed.slot(START);
-			if (start == 1)
-			{
-				newStartValue = oldStartValue;
-			}
-			else
-			{
-				final int newStartIndex = start;
-				newStartValue = oldStartValue + delta * newStartIndex;
-			}
+			final int newStartValue = oldStartValue + delta * (start - 1);
+			final int newEndValue = newStartValue + delta * (newSize - 1);
 
-			// Calculate the new end value from the given end index.
-			int newEndValue;
-			final int oldEndValue = traversed.slot(END);
-			if (end == oldSize)
-			{
-				newEndValue = oldEndValue;
-			}
-			else
-			{
-				final int newEndIndex = end;
-				newEndValue = oldStartValue + delta * newEndIndex;
-			}
-
-			// Create the new tuple, set its size, and return it.
 			if (isMutable() && canDestroy)
 			{
-				// Reuse object's slots
-				if (oldStartValue != newStartValue)
-				{
-					object.setSlot(START, newStartValue);
-				}
-				if (oldEndValue != newEndValue)
-				{
-					// Don't need to worry about normalizing since this was
-					// calculated from an index.
-					object.setSlot(END, newEndValue);
-				}
-				// Step will be the same in a copy within the source
+				// Recycle the object.
+				object.setSlot(START, newStartValue);
+				object.setSlot(END, newEndValue);
+				object.setSlot(SIZE, newSize);
 				return object;
 			}
-			final AvailObject copy =
-				(AvailObject) createInterval(newStartValue, newEndValue, delta);
-			copy.setSlot(SIZE, newSize);
-			return copy;
+			return createInterval(newStartValue, newEndValue, delta);
 		}
 
 		// Otherwise, this method is requesting a full copy of the original.
@@ -284,7 +249,7 @@ extends TupleDescriptor
 						return object;
 					}
 					// Or the other one.
-					if (otherTuple.descriptor().isMutable())
+					if (otherDirect.descriptor().isMutable())
 					{
 						otherDirect.setSlot(START, object.slot(START));
 						otherDirect.setSlot(SIZE, newSize);
@@ -299,18 +264,6 @@ extends TupleDescriptor
 						delta);
 				}
 			}
-		}
-		else if (otherTuple.isIntegerIntervalTuple())
-		{
-			// Force the small interval into a regular one, and attempt to
-			// concatenate them.
-			final A_Tuple big =
-				IntegerIntervalTupleDescriptor.forceCreate(
-					IntegerDescriptor.fromInt(object.slot(START)),
-					IntegerDescriptor.fromInt(object.slot(END)),
-					IntegerDescriptor.fromInt(object.slot(DELTA)),
-					object.slot(SIZE));
-			return big.concatenateWith(otherTuple, canDestroy);
 		}
 		if (otherTuple.treeTupleLevel() == 0)
 		{
@@ -476,10 +429,22 @@ extends TupleDescriptor
 		final int endIndex,
 		final A_Type type)
 	{
-		final A_Number start = IntegerDescriptor.fromInt(object.slot(START));
-		final A_Number end = IntegerDescriptor.fromInt(object.slot(END));
+		final A_Number start = object.tupleAt(startIndex);
+		final A_Number end = object.tupleAt(endIndex);
+		final A_Number low;
+		final A_Number high;
+		if (start.lessThan(end))
+		{
+			low = start;
+			high = end;
+		}
+		else
+		{
+			low = end;
+			high = start;
+		}
 		if (type.isSupertypeOfIntegerRangeType(
-			IntegerRangeTypeDescriptor.create(start, true, end, true)))
+			IntegerRangeTypeDescriptor.inclusive(low, high)))
 		{
 			return true;
 		}
@@ -570,8 +535,8 @@ extends TupleDescriptor
 	 *
 	 * @param newStart The first integer in the interval.
 	 * @param newEnd The last integer in the interval.
-	 * @param delta The difference between an integer and its subsequent neighbor
-	 *             in the interval. Delta is nonzero.
+	 * @param delta The difference between an integer and its subsequent
+	 *              neighbor in the interval. Delta is nonzero.
 	 * @return The new interval.
 	 */
 	public static A_Tuple createInterval (
@@ -579,12 +544,16 @@ extends TupleDescriptor
 		final int newEnd,
 		final int delta)
 	{
+		final long size = ((long)newEnd - (long)newStart) / delta + 1L;
+		assert size == (int)size
+			: "Proposed tuple has too many elements";
+		final int adjustedEnd = newStart + delta * ((int)size - 1);
 		final AvailObject interval = mutable.create();
 		interval.setSlot(START, newStart);
-		interval.setSlot(END, newEnd);
+		interval.setSlot(END, adjustedEnd);
 		interval.setSlot(DELTA, delta);
 		interval.setSlot(HASH_OR_ZERO, 0);
-		interval.setSlot(SIZE, (newEnd - newStart) / delta + 1);
+		interval.setSlot(SIZE, (int)size);
 		return interval;
 	}
 }

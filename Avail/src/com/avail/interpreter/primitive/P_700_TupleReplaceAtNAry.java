@@ -205,8 +205,10 @@ extends Primitive
 				TupleTypeDescriptor.mostGeneralType(),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.create(
-						IntegerDescriptor.fromInt(2), true,
-						InfinityDescriptor.positiveInfinity(),false),
+						IntegerDescriptor.fromInt(2),
+						true,
+						InfinityDescriptor.positiveInfinity(),
+						false),
 					TupleDescriptor.empty(),
 					ANY.o()),
 				ANY.o()),
