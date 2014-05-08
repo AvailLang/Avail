@@ -464,7 +464,8 @@ extends TupleDescriptor
 			{
 				// Remember to adjust between 1-based inclusive and 0-based
 				// inclusive/exclusive.
-				result.rawByteAtPut(dest, originalBuffer.get(src - 1));
+				result.rawByteAtPut(
+					dest, (short)(originalBuffer.get(src - 1) & 255));
 			}
 			if (canDestroy)
 			{

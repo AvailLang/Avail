@@ -398,6 +398,63 @@ Method "_'s⁇position:=_" is
 
 Seal method "_'s⁇position:=_" at <positionable buffered iterator, any>;
 
+/**
+ * Answer a tuple containing (at most) the first {@param "count"} elements of
+ * {@param "anIterator"}.  Take advantage of the buffering for performance.
+ * @category "Data Abstractions"
+ * @method "take«at most»?_from_"
+ * @param "isLax" "boolean"
+ *        {@code false} if an {@type "exhausted-iterator exception"} should be
+ *        raised if {@param "count"} exceeds the number of elements remaining,
+ *        {@code true} otherwise.
+ * @param "count" "[0..∞]"
+ *        The size of the requested tuple.
+ * @param "anIterator" "iterator"
+ *        An iterator.
+ * @returns "tuple"
+ *          A tuple containing the first {@param "count"} elements of {@param
+ *          "anIterator"}, possibly less if {@param isLax} is {@code true}.
+ * @raises "exhausted-iterator exception"
+ *         If {@param "isLax"} is {@code false} and {@param "anIterator"} does
+ *         not contain {@param "count"} elements.
+ */
+Method "take«at most»?_from_" is
+[
+	isLax : boolean,
+	count : [0..∞],
+	anIterator : buffered iterator
+|
+	result : tuple := <>;
+	Guard
+	[
+		Until
+		[
+			anIterator is exhausted ∨ [ |result| = count ]
+		]
+		do
+		[
+			buffer ::= anIterator's buffer;
+			startInBuffer ::= anIterator's buffer position;
+			endInBuffer ::= ((startInBuffer + count - 1 - |result|)
+					max 1)  /* Note: count and |result| are correlated. */
+				min |buffer|;
+			batchSize ::= endInBuffer - startInBuffer + 1;
+			Assert: batchSize ≥ 1;
+			result := eject ↑result ++ buffer[startInBuffer..endInBuffer];
+			anIterator's buffer position := endInBuffer + 1;
+			Advance anIterator;
+		];
+	]
+	intercept
+	[
+		e : exhausted-iterator exception
+	|
+		Unless isLax then [Raise e];
+	];
+	result
+] : tuple;
+
+
 Test "buffered iterator basics" in buffered iterator test suite is
 [
 	ref ::= 1 to 10;

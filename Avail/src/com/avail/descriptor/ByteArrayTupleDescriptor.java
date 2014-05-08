@@ -480,7 +480,8 @@ extends TupleDescriptor
 			{
 				// Remember to adjust between 1-based inclusive and 0-based
 				// inclusive/exclusive.
-				result.rawByteAtPut(dest, originalBytes[src - 1]);
+				result.rawByteAtPut(
+					dest, (short)(originalBytes[src - 1] & 255));
 			}
 			if (canDestroy)
 			{
