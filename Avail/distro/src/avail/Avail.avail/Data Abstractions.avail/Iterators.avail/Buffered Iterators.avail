@@ -196,8 +196,8 @@ Seal buffered iterator's current element method;
 Seal buffered iterator's advance method;
 
 /*
- * TODO: [TLS] Remove the next two methods once method renaming is supported by
- * module headers!
+ * TODO: [TLS/MvG] Remove the next two methods once renaming with method
+ * argument reordering is supported by module headers!
  */
 
 Private method "constructor method" is

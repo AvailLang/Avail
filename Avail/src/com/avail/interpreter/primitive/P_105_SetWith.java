@@ -83,11 +83,18 @@ public final class P_105_SetWith extends Primitive
 		final A_Type setType = argumentTypes.get(0);
 		final A_Type newElementType = argumentTypes.get(1);
 
+		final A_Type setContentType = setType.contentType();
+		final boolean mightBePresent =
+			!setContentType.typeIntersection(newElementType).isBottom();
 		final A_Type sizes = setType.sizeRange();
 		final A_Type unionSize = IntegerRangeTypeDescriptor.create(
-			sizes.lowerBound(),
+			mightBePresent
+				? sizes.lowerBound()
+				: sizes.lowerBound().plusCanDestroy(
+					IntegerDescriptor.one(), false),
 			true,
-			sizes.upperBound().plusCanDestroy(IntegerDescriptor.two(), false),
+			sizes.upperBound().plusCanDestroy(
+				IntegerDescriptor.two(), false),
 			false);
 		final A_Type unionType = SetTypeDescriptor.setTypeForSizesContentType(
 			unionSize,

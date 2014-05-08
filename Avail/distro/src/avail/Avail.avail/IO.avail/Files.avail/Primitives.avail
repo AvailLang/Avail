@@ -166,7 +166,7 @@ _default_access_rights ::= "rw-r--r--" → file access rights;
 Public method "a file named_with options_«with file access rights_»" is
 [
 	fileName : file name,
-	optionSet : {open option|0..9},
+	optionSet : {open option|1..9},
 	optionalAccessRights : <{file access right|0..9}…|0..1>
 |
 	optionNumbers ::=
@@ -198,7 +198,7 @@ Semantic restriction "a file named_with options_«with file access rights_»" is
 [
 	fileName : file name's type,
 	optionSet : {open option|1..9}'s type,
-	accessRights : {file access right|0..9}'s type
+	accessRights : <{file access right|0..9}…|0..1>'s type
 |
 	readableType : boolean's type := ⊥;
 	writableType : boolean's type := ⊥;
@@ -209,8 +209,10 @@ Semantic restriction "a file named_with options_«with file access rights_»" is
 		[
 			possibileSet : {open option|}
 		|
-			readableType := readableType ∪ ((read ∈ possibileSet)'s type);
-			writableType := writableType ∪ ((write ∈ possibileSet)'s type);
+			readableType :=
+				readableType ∪ ((read option ∈ possibileSet)'s type);
+			writableType :=
+				writableType ∪ ((write option ∈ possibileSet)'s type);
 		];
 	]
 	else
@@ -284,6 +286,7 @@ Method "Close_" is
 [
 	f : file
 |
+	If f is closed then [Raise a file-closed exception];
 	[
 		h : atom
 	|
@@ -352,7 +355,7 @@ Private method
 	start : natural number,
 	bytesToRead : [1..∞],
 	fileHandle : atom,
-	into : [<byte…|1..∞>]→⊤,
+	into : [<byte…|0..∞>]→⊤,
 	else : [{I/O-error code}ᵀ]→⊤,
 	priority : byte
 |
@@ -372,7 +375,7 @@ Public method
 	bytesToRead : [1..∞],
 	start : natural number,
 	f : readable file,
-	success : [<byte…|1..∞>]→⊤,
+	success : [<byte…|0..∞>]→⊤,
 	failure : [{I/O-error code}ᵀ]→⊤,
 	optionalPriority : <byte…|0..1>
 |
@@ -423,7 +426,11 @@ Public method
 
 /**
  * Block the current fiber until all writes buffered for the specified {@type
- * "file"} have been committed to the file system.
+ * "file"} have been committed to the file system.  Unfortunately Avail's Java
+ * substrate – and its sub-substrates – think it's ok to block a thread just to
+ * wait for previously handed-off buffered write operations to physically
+ * complete, almost completely defeating the purpose of asynchronous writes.
+ * Sigh.
  *
  * @method "Synchronize_with file system"
  * @param "f" "writable file"
@@ -439,7 +446,11 @@ Public method "Synchronize_with file system" is
 	[
 		h : atom
 	|
-		Primitive 169 (e : {invalid-handle code, I/O-error code}ᵀ);
+		Primitive 169 (e : {
+			invalid-handle code,
+			special-atom code,
+			not-open-for-write code,
+			I/O-error code}ᵀ);
 		Raise an exception for e
 	] : ⊤ (f's handle);
 ] : ⊤;

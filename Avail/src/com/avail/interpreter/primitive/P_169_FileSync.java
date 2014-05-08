@@ -35,6 +35,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.*;
+import java.nio.channels.AsynchronousFileChannel;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -65,16 +66,22 @@ extends Primitive
 		final A_Atom handle = args.get(0);
 		final A_BasicObject pojo =
 			handle.getAtomProperty(AtomDescriptor.fileKey());
+		if (pojo.equalsNil())
+		{
+			return interpreter.primitiveFailure(
+				handle.isAtomSpecial() ? E_SPECIAL_ATOM : E_INVALID_HANDLE);
+		}
 		final A_BasicObject mode =
 			handle.getAtomProperty(AtomDescriptor.fileModeWriteKey());
-		if (pojo.equalsNil() || mode.equalsNil())
+		if (mode.equalsNil())
 		{
-			return interpreter.primitiveFailure(E_INVALID_HANDLE);
+			return interpreter.primitiveFailure(E_NOT_OPEN_FOR_WRITE);
 		}
-		final RandomAccessFile file = (RandomAccessFile) pojo.javaObject();
+		final AsynchronousFileChannel fileChannel =
+			(AsynchronousFileChannel) pojo.javaObject();
 		try
 		{
-			file.getFD().sync();
+			fileChannel.force(true);
 		}
 		catch (final IOException e)
 		{
@@ -98,6 +105,8 @@ extends Primitive
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(
 				E_INVALID_HANDLE.numericCode(),
+				E_SPECIAL_ATOM.numericCode(),
+				E_NOT_OPEN_FOR_WRITE.numericCode(),
 				E_IO_ERROR.numericCode()
 			).asSet());
 	}

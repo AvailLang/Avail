@@ -34,7 +34,11 @@ Module "File Iterators"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Extends
-	"Data Abstractions" = ("_'s⁇position"),
+	"Data Abstractions" =
+	(
+		"_'s⁇position",
+		"_'s⁇position:=_"
+	),
 	"Primitives" =
 	(
 		"Using|using_,⁇do_",
@@ -44,6 +48,8 @@ Extends
 Uses
 	"Common",
 	"Data Abstractions",
+	"File Names",
+	"File Open Options",
 	"Foundation",
 	"Primitives",
 	"Unit Testing"
@@ -53,8 +59,13 @@ Names
 	"readable file iterator",
 
 	/* Constructors. */
-	"a file iterator for_«that buffers_bytes»"
+	"a file iterator for_«that buffers_bytes»",
+
+	/* Tests. */
+	"file iterator test suite"
 Body
+
+"file position" is a new field atom;
 
 /**
  * A file iterator buffers bytes obtained from a backing {@type "file"}.
@@ -63,10 +74,31 @@ Body
  * @supertype "positionable buffered iterator"
  */
 Public class "file iterator" extends positionable buffered iterator
-	with field
+	with fields
 		element type : byte's type,
 		position type : natural number's type,
-		element source : file;
+		element source : file
+	with mutable field
+		file position : natural number;
+
+/**
+ * @method "_'s⁇position"
+ * @param "anIterator" "file iterator"
+ */
+Method "_'s⁇position" is
+[
+	anIterator : file iterator
+|
+	anIterator's file position
+] : natural number;
+
+file iterator's set position method is
+[
+	anIterator : file iterator,
+	pos : natural number
+|
+	anIterator's file position := pos;
+] : ⊤;
 
 /**
  * @type "readable file iterator"
@@ -76,20 +108,34 @@ Public class "readable file iterator" extends file iterator
 	with field
 		element source : readable file;
 
-file iterator's next buffer method is
+readable file iterator's next buffer method is
 [
 	anIterator : readable file iterator
 |
-	next anIterator's maximum buffer size bytes from anIterator's element source
+	buffer : <byte…|>;
+	readComplete ::= a semaphore named "read is complete" with 0 permits;
+	readFiber ::= a fiber reading anIterator's maximum buffer size bytes
+		at anIterator's position
+		from anIterator's element source
+		on success doing
+			[
+				theBytes : <byte…|>
+			|
+				buffer := theBytes;
+				Signal readComplete;
+			]
+		on failure doing
+			[
+				error : {I/O-error code}ᵀ
+			|
+				/* All we know is that I/O failed. */
+				Signal readComplete;
+			];
+	Await readComplete;
+	If ↑buffer is unassigned then [Raise an I/O exception];
+	anIterator's file position := anIterator's file position + |buffer|;
+	buffer
 ] : <byte…|>;
-
-file iterator's set position method is
-[
-	anIterator : readable file iterator,
-	pos : natural number
-|
-	anIterator's element source's position := pos;
-] : ⊤;
 
 /**
  * Construct and answer a {@type "readable file iterator"} that is open on the
@@ -113,11 +159,13 @@ Public method "a file iterator for_«that buffers_bytes»" is
 	optionalSize : <[2..∞)…|0..1>
 |
 	size ::= optionalSize[1] else [32768];
+	file : readable file := a file named fn with options {read};
 	a readable file iterator with
 		element type ::= byte,
 		position type ::= natural number,
-		element source ::= a readable file named fn,
-		maximum buffer size ::= size
+		element source ::= file,
+		maximum buffer size ::= size,
+		file position := 1
 ] : readable file iterator;
 
 /**
@@ -217,12 +265,12 @@ Semantic restriction "Using|using_,⁇do_" is
 New test suite file iterator test suite extends I/O test suite;
 
 /* The test directory. */
-testDir ::= test directory;
+testDir ::= a file named test directory;
 
 Test "file iterator(readable)" in file iterator test suite is
 [
 	ref ::= map "abracadabra" through [c : character | c's code point];
-	fn ::= testDir ++ "/abracadabra.txt" as file name;
+	fn ::= testDir / "abracadabra.txt";
 	iter ::= a file iterator for fn;
 	Require: iter is open;
 	Require: take at most ∞ from iter = ref;
@@ -235,7 +283,7 @@ Test "file iterator(readable)" in file iterator test suite is
 Test "file iterator(readable,small buffer)" in file iterator test suite is
 [
 	ref ::= map "abracadabra" through [c : character | c's code point];
-	fn ::= testDir ++ "/abracadabra.txt" as file name;
+	fn ::= testDir / "abracadabra.txt";
 	iter ::= a file iterator for fn that buffers 3 bytes;
 	Require: iter is open;
 	Require: take at most ∞ from iter = ref;
@@ -248,7 +296,7 @@ Test "file iterator(readable,small buffer)" in file iterator test suite is
 Test "file iterator(readable,reposition)" in file iterator test suite is
 [
 	ref ::= map "abracadabra" through [c : character | c's code point];
-	fn ::= testDir ++ "/abracadabra.txt" as file name;
+	fn ::= testDir / "abracadabra.txt";
 	iter ::= a file iterator for fn;
 	Require: iter is open;
 	Require: take at most ∞ from iter = ref;
@@ -264,7 +312,7 @@ Test "file iterator(readable,reposition)" in file iterator test suite is
 
 Test "file iterator(double close)" in file iterator test suite is
 [
-	fn ::= testDir ++ "/abracadabra.txt" as file name;
+	fn ::= testDir / "abracadabra.txt";
 	iter ::= a file iterator for fn;
 	Close iter;
 	Close iter;
@@ -273,7 +321,7 @@ must raise file-closed exception;
 
 Test "file iterator(can't open for reading)" in file iterator test suite is
 [
-	fn ::= testDir ++ "/doesntexist.txt" as file name;
+	fn ::= testDir / "doesntexist.txt";
 	iter ::= a file iterator for fn;
 ]
 must raise I/O exception;

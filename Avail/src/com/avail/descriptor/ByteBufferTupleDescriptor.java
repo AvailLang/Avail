@@ -280,7 +280,7 @@ extends TupleDescriptor
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject. This may destroy the original
 		// tuple if canDestroy is true.
-		assert index >= 1 && index <= object.tupleSize();
+		assert 1 <= index && index <= object.tupleSize();
 		if (!newValueObject.isUnsignedByte())
 		{
 			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
@@ -484,7 +484,7 @@ extends TupleDescriptor
 		final int endIndex,
 		final ByteBuffer outputByteBuffer)
 	{
-		final ByteBuffer sourceBuffer = object.byteBuffer().slice();
+		final ByteBuffer sourceBuffer = object.byteBuffer().duplicate();
 		sourceBuffer.position(startIndex - 1);
 		sourceBuffer.limit(endIndex);
 		assert sourceBuffer.remaining() == endIndex - startIndex + 1;
@@ -559,14 +559,11 @@ extends TupleDescriptor
 	private AvailObject copyAsMutableByteBufferTuple (
 		final AvailObject object)
 	{
-		final ByteBuffer originalBuffer =
-			(ByteBuffer) object.slot(BYTE_BUFFER).javaObject();
-		final ByteBuffer buffer = originalBuffer.duplicate();
-		final ByteBuffer copy = ByteBuffer.allocateDirect(buffer.capacity());
-		buffer.position(0);
-		buffer.limit(buffer.capacity());
-		copy.put(buffer);
-		final AvailObject result = forByteBuffer(copy);
+		final int size = object.tupleSize();
+		final ByteBuffer newBuffer = ByteBuffer.allocate(size);
+		object.transferIntoByteBuffer(1, size, newBuffer);
+		assert newBuffer.limit() == size;
+		final AvailObject result = forByteBuffer(newBuffer);
 		result.setSlot(HASH_OR_ZERO, object.hashOrZero());
 		return result;
 	}

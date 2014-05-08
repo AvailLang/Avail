@@ -191,13 +191,27 @@ extends Primitive
 					final @Nullable Void unused)
 				{
 					assert bytesRead != null;
+					final A_Tuple bytesTuple;
+					buffer.flip();
+					if (bytesRead == -1)
+					{
+						// We started reading after the last byte of the file.
+						// Avail expects an empty buffer in this case.
+						assert buffer.remaining() == 0;
+						bytesTuple = TupleDescriptor.empty();
+					}
+					else
+					{
+						assert buffer.remaining() == bytesRead;
+						bytesTuple = ByteBufferTupleDescriptor.forByteBuffer(
+							buffer);
+						assert bytesTuple.tupleSize() == bytesRead;
+					}
 					Interpreter.runOutermostFunction(
 						runtime,
 						newFiber,
 						succeed,
-						Arrays.asList(
-							ByteBufferTupleDescriptor.forByteBuffer(
-								buffer)));
+						Arrays.asList(bytesTuple));
 				}
 
 				@Override
@@ -229,7 +243,7 @@ extends Primitive
 				ATOM.o(),
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(
-						TupleTypeDescriptor.oneOrMoreOf(
+						TupleTypeDescriptor.zeroOrMoreOf(
 							IntegerRangeTypeDescriptor.bytes())),
 					TOP.o()),
 				FunctionTypeDescriptor.create(

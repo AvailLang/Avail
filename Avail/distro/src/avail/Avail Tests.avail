@@ -50,6 +50,7 @@ Extends
 		"delimited iterator test suite",
 		"exception test suite",
 		"file access rights test suite",
+		"file iterator test suite",
 		"file metadata test suite",
 		"file names test suite",
 		"Foundation|foundation test suite",

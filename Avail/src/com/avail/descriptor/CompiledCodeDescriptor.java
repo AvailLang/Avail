@@ -250,7 +250,10 @@ extends Descriptor
 		LOCAL_TYPE_,
 
 		/** Used for showing the types of captured variables and constants. */
-		OUTER_TYPE_
+		OUTER_TYPE_,
+
+		/** Used for showing a tuple of all literals of the code. */
+		ALL_LITERALS
 	}
 
 	/**
@@ -282,6 +285,17 @@ extends Descriptor
 					i,
 					object.localTypeAt(i)));
 		}
+		final List<AvailObject> allLiterals = new ArrayList<>();
+		for (int i = 1; i <= object.numLiterals(); i++)
+		{
+			allLiterals.add(object.literalAt(i));
+		}
+		fields.add(
+			new AvailObjectFieldHelper(
+				object,
+				FakeSlots.ALL_LITERALS,
+				-1,
+				TupleDescriptor.fromList(allLiterals)));
 		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
 	}
 

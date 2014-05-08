@@ -35,12 +35,12 @@ Versions
 	"1.0.0 DEV 2014-04-28"
 Extends
 	"File Access Rights",
-	/* "File Iterators", */
+	"File Iterators",
 	"File Management",
 	"File Metadata",
 	"File Names",
 	"File Open Options",
 	"File Principals",
-	/* "Primitives", */
+	"Primitives",
 	"Test"
 Body
