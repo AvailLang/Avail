@@ -521,7 +521,10 @@ public enum AvailErrorCode
 	 */
 	E_ILLEGAL_TRACE_MODE (77),
 
-//	E_??? (78)
+	/**
+	 * An up arrow ("↑") must only occur after an underscore ("_").
+	 */
+	E_UP_ARROW_MUST_FOLLOW_ARGUMENT (78),
 
 	/**
 	 * The result of a {@linkplain MethodDescriptor method} send disagreed with

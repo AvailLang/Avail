@@ -75,7 +75,7 @@ Method "Seal method_at_" is
 	[
 		index : natural number
 	|
-		argTypes := eject ↑argTypes ++ <functionType[1]>;
+		argTypes := eject argTypes ++ <functionType[1]>;
 	];
 	Seal method methodName at argTypes;
 ] : ⊤;
@@ -99,7 +99,7 @@ Semantic restriction "Seal method_at_" is
 		[
 			index : natural number
 		|
-			argTypes := eject ↑argTypes ++ <functionType[index]>;
+			argTypes := eject argTypes ++ <functionType[index]>;
 		];
 		returnType ::= functionType's return type;
 		name ::= atom for methodName;

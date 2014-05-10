@@ -2990,7 +2990,7 @@ extends AbstractDescriptor
 	void o_AddConstantBinding (
 		final AvailObject object,
 		final A_String name,
-		final A_BasicObject constantBinding)
+		final A_Variable constantBinding)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2999,7 +2999,7 @@ extends AbstractDescriptor
 	void o_AddVariableBinding (
 		final AvailObject object,
 		final A_String name,
-		final A_BasicObject variableBinding)
+		final A_Variable variableBinding)
 	{
 		throw unsupportedOperationException();
 	}

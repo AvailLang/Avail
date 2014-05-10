@@ -146,10 +146,10 @@ Public method "Backtracking fence_" is
 	]
 	ensure
 	[
-		If ↑previousCheckpoint is assigned then
+		If previousCheckpoint is assigned then
 		[
 			current fiber[checkpoint] := previousCheckpoint;
-			Clear ↑previousCheckpoint;
+			Clear previousCheckpoint;
 		]
 		else
 		[
@@ -241,7 +241,7 @@ Public method "trial`#of_" is
 			current fiber[checkpoint] := newCheckpoint;
 		];
 		answer := trialNumber;
-		↑trialNumber++;
+		trialNumber++;
 	]();
 	answer
 ] : natural number;
@@ -387,7 +387,7 @@ Public method "all values of_" is
 		If first try then
 		[
 			value ::= aFunction();
-			accumulator := eject ↑accumulator ++ <value>;
+			accumulator := eject accumulator ++ <value>;
 			Try again
 		];
 	];
@@ -449,7 +449,7 @@ Public method "first«_»value|values of_" is
 					firstTry := false;
 					current fiber[checkpoint] := newCheckpoint;
 					answer ::= aFunction();
-					accumulator := eject ↑accumulator ++ <answer>;
+					accumulator := eject accumulator ++ <answer>;
 					If |accumulator| < maxValues then [Try again];
 				];
 			]();

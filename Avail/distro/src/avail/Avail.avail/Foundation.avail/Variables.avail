@@ -34,17 +34,31 @@ Module "Variables"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Extends
+	"Early Variables"
 Uses
 	"Bootstrap",
 	"Early Control Structures",
 	"Early Definers",
-	"Early Literals",
 	"Early Logic",
 	"Early Math",
-	"Enumeration Support"
+	"Enumeration Support",
+	"Literals"
 Names
-	"(↓new↑_:=_)",
-	"(↓new↑_`?=_)",
+	/* Dynamic variable creation. */
+	"(↓new`↑_:=_)",
+	"(↓new`↑_`?=_)",
+
+	/* Automatically quoted increment/decrement. */
+	"_↑++",
+	"++_↑",
+	"(_↑++)",
+	"(++_↑)",
+	"_↑--",
+	"--_↑",
+	"(_↑--)",
+	"(--_↑)",
+
+	/* Dynamic increment/decrement. */
 	"_++",
 	"++_",
 	"(_++)",
@@ -53,7 +67,20 @@ Names
 	"--_",
 	"(_--)",
 	"(--_)",
+
+	/* Variable swap. */
+	"Swap_↑and_↑",
+
+	/* Variable clearing. */
+	"Clear_↑",
+	"eject_↑",
+
+	/* Variable assignment. */
+	"_↑`?=_",
+	"_↑`?=_'s⁇initialization",
 	"_is assigned",
+	"_↑is assigned",
+	"_↑is unassigned",
 	"↓_else_"
 Body
 
@@ -69,10 +96,224 @@ Semantic restriction "↓_" is
 ];
 
 /**
+ * Clear the specified variable. This resets it to the unassigned state.
+ *
+ * @category "Primitives" "Variables" "Mutators"
+ * @method "Clear_↑"
+ * @param "var" "variable"
+ *        A variable.
+ * @returns "⊤"
+ * @raises "cannot-overwrite-write-once-variable exception"
+ * @raises "Java-marshaling-failed exception"
+ * @raises "cannot-modify-final-Java-field exception"
+ */
+Public method "Clear_↑" is
+[
+	var : variable
+|
+	Primitive 12 (failureCode : {
+		cannot-overwrite-write-once-variable code,
+		Java-marshaling-failed code,
+		cannot-modify-final-Java-field code}ᵀ);
+	invoke early failure function with <failureCode>
+] : ⊤;
+
+/**
+ * Eject and answer the contents of the specified variable. The variable is
+ * in the unassigned state after the primitive completes.
+ *
+ * @category "Primitives" "Variables" "Queries" "Mutators"
+ * @method "eject_↑"
+ * @param "var" "variable"
+ *        A variable.
+ * @returns "any"
+ *    The value ejected from the variable.
+ * @raises "cannot-read-unassigned-variable exception"
+ * @raises "cannot-overwrite-write-once-variable exception"
+ * @raises "Java-marshaling-failed exception"
+ * @raises "cannot-modify-final-Java-field exception"
+ */
+Public method "eject_↑" is
+[
+	var : variable
+|
+	Primitive 18 (failureCode : {
+		cannot-read-unassigned-variable code,
+		cannot-overwrite-write-once-variable code,
+		Java-marshaling-failed code,
+		cannot-modify-final-Java-field code}ᵀ);
+	invoke early failure function with <failureCode>
+] : any;
+
+/**
+ * @method "eject_↑"
+ * @restricts "variable meta"
+ */
+Semantic restriction "eject_↑" is
+[
+	varType : variable meta
+|
+	varType's read type
+];
+
+/**
+ * Is the specified variable unassigned?
+ *
+ * @method "_↑is unassigned"
+ * @category "Primitives" "Variables"
+ * @param "var" "variable"
+ * @returns "boolean"
+ *    {@method "true"} if the variable does not contain a value, {@method
+ *    "false"} otherwise.
+ */
+Public method "_↑is unassigned" is
+[
+	var : variable
+|
+	Primitive 17;
+] : boolean;
+
+/**
+ * Does the specified variable contain a value?
+ *
+ * @method "_is assigned"
+ * @category "Variables"
+ * @param "var" "variable"
+ * @returns "boolean"
+ *    {@method "true"} if the variable contains a value, {@method "false"}
+ *    otherwise.
+ */
+Public method "_is assigned" is [var : variable | ¬var is unassigned];
+
+/**
+ * Does the specified variable contain a value?
+ *
+ * @method "_is assigned"
+ * @category "Variables"
+ * @param "var" "variable"
+ * @returns "boolean"
+ *    {@method "true"} if the variable contains a value, {@method "false"}
+ *    otherwise.
+ */
+Public method "_↑is assigned" is [var : variable | ¬var is unassigned];
+
+/**
+ * Exchange the contents of the two variables. This is more efficient than
+ * using an intermediate variable, and permits additional optimizations by the
+ * virtual machine.
+ *
+ * @category "Primitives" "Variables" "Mutators"
+ * @method "Swap_and_"
+ * @param "arg1" "variable"
+ *        A variable.
+ * @param "arg2" "variable"
+ *        A variable.
+ * @returns "⊤"
+ * @raises "cannot-swap-contents-of-differently-typed-variables exception"
+ */
+Public method "Swap_↑and_↑" is
+[
+	arg1 : variable,
+	arg2 : variable
+|
+	Primitive 15 (failureCode : {
+		cannot-swap-contents-of-differently-typed-variables code}ᵀ);
+	invoke early failure function with <failureCode>
+] : ⊤;
+
+Private method "swap semantic restriction" is
+[
+	[
+		typeA : variable meta,
+		typeB : variable meta
+	|
+		if typeA's read type ⊆ typeB's write type
+			∧ [ typeB's read type ⊆ typeB's write type ]
+		then [⊤]
+		else
+		[
+			Reject parse, expected:
+				"variable's read/write types to be cross-compatible"
+		]
+	]
+];
+
+/**
+ * Two variables may exchange contents iff the read type of each is a subtype of
+ * the write type of the other. If this is not the case, then reject the parse.
+ * 
+ * @method "Swap_and_"
+ * @restricts "variable meta"
+ * @restricts "variable meta"
+ */
+Semantic restriction "Swap_and_" is swap semantic restriction;
+
+/**
+ * Two variables may exchange contents iff the read type of each is a subtype of
+ * the write type of the other. If this is not the case, then reject the parse.
+ * 
+ * @method "Swap_and_"
+ * @restricts "variable meta"
+ * @restricts "variable meta"
+ */
+Semantic restriction "Swap_↑and_↑" is swap semantic restriction;
+
+/**
+ * Store {@param "value"} into the specified variable.
+ *
+ * @category "Primitives" "Variables" "Mutators"
+ * @method "_↑`?=_"
+ * @param "var" "variable"
+ *        A variable.
+ * @param "value" "any"
+ *        The value that should be stored into {@param "var"}.
+ * @returns "⊤"
+ * @raises "cannot-store-incorrectly-typed-value exception"
+ * @raises "cannot-overwrite-write-once-variable exception"
+ * @raises "Java-marshaling-failed exception"
+ * @raises "cannot-modify-final-Java-field exception"
+ */
+Public method "_↑`?=_" is
+[
+	var : variable,
+	value : any
+|
+	Primitive 11 (failureCode : {
+		cannot-store-incorrectly-typed-value code,
+		cannot-overwrite-write-once-variable code,
+		Java-marshaling-failed code,
+		cannot-modify-final-Java-field code}ᵀ);
+	invoke early failure function with <failureCode>
+] : ⊤;
+
+/**
+ * If the specified declaration has an initialization expression, then store it
+ * into {@param "var"}.
+ *
+ * @category "Primitives" "Variables" "Phrases" "Queries" "Mutators"
+ * @method "_↑`?=_'s⁇initialization"
+ * @param "var" "write-only expression variable"
+ *        A variable.
+ * @param "aDeclaration" "declaration phrase"
+ *        A declaration.
+ * @returns "boolean"
+ *   {@method "true"} if {@param "aDeclaration"} has an initialization
+ *   expression and it was written into {@param "var"}, {@method "false"}
+ *   otherwise.
+ */
+Public method "_↑`?=_'s⁇initialization" is
+[
+	var : write-only expression variable,
+	aDeclaration : declaration phrase
+|
+	Primitive 380;
+] : boolean;
+
+/**
  * Construct and answer a new variable with the specified containment type and
  * initial value.
  *
- * @method "(↓new↑_:=_)"
+ * @method "(↓new`↑_:=_)"
  * @category "Variables"
  * @param "containmentType" "any meta"
  * @param "initialValue" "any"
@@ -84,13 +325,13 @@ Semantic restriction "↓_" is
  *    A new variable capable of retrieving and storing values of the specified
  *    containment type. The variable contains `initialValue`.
  */
-Public method "(↓new↑_:=_)" is
+Public method "(↓new`↑_:=_)" is
 [
 	containmentType : any meta,
 	initialValue : any
 |
 	var ::= new ↑containmentType;
-	↓var ?= initialValue;
+	var ?= initialValue;
 	var
 ] : variable;
 
@@ -98,11 +339,11 @@ Public method "(↓new↑_:=_)" is
  * Reject the current parse if the variable type does not accept the initial
  * value.
  * 
- * @method "(↓new↑_:=_)"
+ * @method "(↓new`↑_:=_)"
  * @restricts "any meta's type"
  * @restricts "any meta"
  */
-Semantic restriction "(↓new↑_:=_)" is
+Semantic restriction "(↓new`↑_:=_)" is
 [
 	containmentMeta : any meta's type,
 	valueType : any meta
@@ -124,7 +365,7 @@ Semantic restriction "(↓new↑_:=_)" is
  * Construct and answer a new variable with the specified containment type and
  * initial value.
  *
- * @method "(↓new↑_`?=_)"
+ * @method "(↓new`↑_`?=_)"
  * @category "Variables"
  * @param "containmentType" "any meta"
  * @param "initialValue" "any"
@@ -136,93 +377,25 @@ Semantic restriction "(↓new↑_:=_)" is
  *    A new variable capable of retrieving and storing values of the specified
  *    containment type. The variable contains `initialValue`.
  */
-Public method "(↓new↑_`?=_)" is
+Public method "(↓new`↑_`?=_)" is
 [
 	containmentType : any meta,
 	initialValue : any
 |
 	var ::= new ↑containmentType;
-	↓var ?= initialValue;
+	var ?= initialValue;
 	var
 ] : variable;
 
-/**
- * Does the specified variable contain a value?
- *
- * @method "_is assigned"
- * @category "Variables"
- * @param "var" "variable"
- * Parameters:
- *    var - A variable.
- * @returns "boolean"
- * Returns:
- *    `true` if the variable contains a value (i.e. because it has previously
- *    been assigned), `false` otherwise.
- */
-Public method "_is assigned" is
-[
-	var : variable
-|
-	¬var is unassigned
-];
-
-/**
- * Two variables may exchange contents iff the read type of each is a subtype of
- * the write type of the other. If this is not the case, then reject the parse.
- * 
- * @method "swap_and_"
- * @restricts "variable meta"
- * @restricts "variable meta"
- */
-Semantic restriction "swap_and_" is
-[
-	typeA : variable meta,
-	typeB : variable meta
-|
-	if typeA's read type ⊆ typeB's write type
-		∧ [ typeB's read type ⊆ typeB's write type ]
-	then
-	[
-		⊤
-	]
-	else
-	[
-		Reject parse, expected:
-			"variable's read/write types to be cross-compatible"
-	]
-];
-
-/**
- * Answer a function that accepts a variable and increments it.
- * 
- * @method "increment function"
- * @category "Variables"
- * @param "var" "variable"
- * 		a numeric variable
- * @returns "⊤"
- * Returns:
- *    The requested function.
- */
 Private method "increment function" is
 [
 	[
 		var : variable
 	|
-		↓var ?= cast eject var into [ t : number | t + 1 ];
+		var ?= cast eject var into [ t : number | t + 1 ];
 	] : ⊤
 ];
 
-/**
- * Answer a function suitable for semantically restricting increment/decrement
- * statements.
- * 
- * @method "increment/decrement semantic restriction"
- * @param "varType" "variable meta"
- * @returns "⊤"
- * Returns:
- *    A function that accepts a variable type and requires that it be able to
- *    read/write numbers. It answers ⊤.
- */
 Private method "increment/decrement semantic restriction" is
 [
 	[
@@ -241,7 +414,26 @@ Private method "increment/decrement semantic restriction" is
 /**
  * Increment the variable by one. This is intended for use as a statement.
  * 
- * @method 
+ * @method "_↑++"
+ * @category "Variables" "Mathematics" "Integers"
+ * @param "var" "variable"
+ * 		A numeric variable.
+ * @returns "⊤"
+ */
+Public method "_↑++" is increment function;
+
+/**
+ * The autoincrement statement should accept only numeric variables.
+ * 
+ * @method "_↑++"
+ * @restricts "variable meta"
+ */
+Semantic restriction "_↑++" is increment/decrement semantic restriction;
+
+/**
+ * Increment the variable by one. This is intended for use as a statement.
+ * 
+ * @method "_++"
  * @category "Variables" "Mathematics" "Integers"
  * @param "var" "variable"
  * 		A numeric variable.
@@ -257,6 +449,55 @@ Public method "_++" is increment function;
  */
 Semantic restriction "_++" is increment/decrement semantic restriction;
 
+Private method "valued post-increment function" is
+[
+	[
+		var : variable
+	|
+		value ::= eject var;
+		var ?= cast value into [ t : number | t + 1 ];
+		value
+	] : ⊤
+];
+
+Private method "valued post-increment semantic restriction" is
+[
+	[
+		varType : variable meta
+	|
+		If (¬varType's read type ⊆ number)
+			∨ [ ¬varType's write type ⊆ number ]
+		then
+		[
+			Reject parse, expected: "variable to accept and yield numbers"
+		];
+		varType's read type
+	]
+];
+
+/**
+ * Remember the current value of the specified variable, increment the variable
+ * by one, and answer the remembered value. This is intended for use as an
+ * expression.
+ * 
+ * @method "(_↑++)"
+ * @category "Variables" "Mathematics" "Integers"
+ * @param "var" "variable"
+ * 		A numeric variable.
+ * @returns "number"
+ *    The value of the argument prior to the increment.
+ */
+Public method "(_↑++)" is valued post-increment function;
+
+/**
+ * Since the increment happens after the value is queried, then simply answer
+ * the read type of the variable.
+ * 
+ * @method "(_↑++)"
+ * @restricts "variable meta"
+ */
+Semantic restriction "(_↑++)" is valued post-increment semantic restriction;
+
 /**
  * Remember the current value of the specified variable, increment the variable
  * by one, and answer the remembered value. This is intended for use as an
@@ -265,18 +506,11 @@ Semantic restriction "_++" is increment/decrement semantic restriction;
  * @method "(_++)"
  * @category "Variables" "Mathematics" "Integers"
  * @param "var" "variable"
- * 		A numeric variable.
+ *        A numeric variable.
  * @returns "number"
  *    The value of the argument prior to the increment.
  */
-Public method "(_++)" is
-[
-	var : variable
-|
-	value ::= eject var;
-	↓var ?= cast value into [ t : number | t + 1 ];
-	value
-] : ⊤;
+Public method "(_++)" is valued post-increment function;
 
 /**
  * Since the increment happens after the value is queried, then simply answer
@@ -285,18 +519,26 @@ Public method "(_++)" is
  * @method "(_++)"
  * @restricts "variable meta"
  */
-Semantic restriction "(_++)" is
-[
-	varType : variable meta
-|
-	If (¬varType's read type ⊆ number)
-		∨ [ ¬varType's write type ⊆ number ]
-	then
-	[
-		Reject parse, expected: "variable to accept and yield numbers"
-	];
-	varType's read type
-];
+Semantic restriction "(_++)" is valued post-increment semantic restriction;
+
+/**
+ * Increment the variable by one. This is intended for use as a statement.
+ * 
+ * @method "++_↑"
+ * @category "Variables" "Mathematics" "Integers"
+ * @param "var" "variable"
+ *        A numeric variable.
+ * @returns "⊤"
+ */
+Public method "++_↑" is increment function;
+
+/**
+ * The autoincrement statement should accept only numeric variables.
+ * 
+ * @method "++_↑"
+ * @restricts "variable meta"
+ */
+Semantic restriction "++_↑" is increment/decrement semantic restriction;
 
 /**
  * Increment the variable by one. This is intended for use as a statement.
@@ -304,7 +546,7 @@ Semantic restriction "(_++)" is
  * @method "++_"
  * @category "Variables" "Mathematics" "Integers"
  * @param "var" "variable"
- * 		A numeric variable.
+ *        A numeric variable.
  * @returns "⊤"
  */
 Public method "++_" is increment function;
@@ -317,6 +559,65 @@ Public method "++_" is increment function;
  */
 Semantic restriction "++_" is increment/decrement semantic restriction;
 
+Private method "valued pre-increment function" is
+[
+	[
+		var : variable
+	|
+		var ?= cast eject var into [ t : number | t + 1 ];
+		↓var
+	]
+];
+
+Private method "valued pre-increment semantic restriction" is
+[
+	[
+		varType : variable meta
+	|
+		If (¬varType's read type ⊆ number)
+			∨ [ ¬varType's write type ⊆ number ]
+		then
+		[
+			Reject parse, expected: "variable to accept and yield numbers"
+		];
+		readType ::= varType's read type;
+		if readType ⊆ extended integer then
+		[
+			readRange ::= cast readType into [ t : extended integer meta | t ];
+			lower ::= ⎣readRange⎦ + 1;
+			upper ::= ⎡readRange⎤ + 1;
+			integer range
+				from lower (inclusive = ⎣readRange⎦ is inclusive)
+				to upper (inclusive = ⎡readRange⎤ is inclusive)
+		]
+		else
+		[
+			readType
+		]
+	]
+];
+
+/**
+ * Increment the specified value and answer its new value.
+ * 
+ * @method "(++_↑)"
+ * @category "Variables" "Mathematics" "Integers"
+ * @param "var" "variable"
+ * 		A numeric variable.
+ * @returns "number"
+ *    The value of the argument after the increment.
+ */
+Public method "(++_↑)" is valued pre-increment function;
+
+/**
+ * Preserve the read type of the numeric variable. This can actually be
+ * tightened for integral types to adjust the bounds of result type by one.
+ * 
+ * @method "(++_↑)"
+ * @restricts "variable meta"
+ */
+Semantic restriction "(++_↑)" is valued pre-increment semantic restriction;
+
 /**
  * Increment the specified value and answer its new value.
  * 
@@ -327,13 +628,7 @@ Semantic restriction "++_" is increment/decrement semantic restriction;
  * @returns "number"
  *    The value of the argument after the increment.
  */
-Public method "(++_)" is
-[
-	var : variable
-|
-	↓var ?= cast eject var into [ t : number | t + 1 ];
-	↓var
-];
+Public method "(++_)" is valued pre-increment function;
 
 /**
  * Preserve the read type of the numeric variable. This can actually be
@@ -342,31 +637,7 @@ Public method "(++_)" is
  * @method "(++_)"
  * @restricts "variable meta"
  */
-Semantic restriction "(++_)" is
-[
-	varType : variable meta
-|
-	If (¬varType's read type ⊆ number)
-		∨ [ ¬varType's write type ⊆ number ]
-	then
-	[
-		Reject parse, expected: "variable to accept and yield numbers"
-	];
-	readType ::= varType's read type;
-	if readType ⊆ extended integer then
-	[
-		readRange ::= cast readType into [ t : extended integer meta | t ];
-		lower ::= ⎣readRange⎦ + 1;
-		upper ::= ⎡readRange⎤ + 1;
-		integer range
-			from lower (inclusive = ⎣readRange⎦ is inclusive)
-			to upper (inclusive = ⎡readRange⎤ is inclusive)
-	]
-	else
-	[
-		readType
-	]
-];
+Semantic restriction "(++_)" is valued pre-increment semantic restriction;
 
 /**
  * Answer a function that accepts a variable and decrements it.
@@ -382,9 +653,28 @@ Private method "decrement function" is
 	[
 		var : variable
 	|
-		↓var ?= cast eject var into [ t : number | t - 1 ];
+		var ?= cast eject var into [ t : number | t - 1 ];
 	] : ⊤
 ];
+
+/**
+ * Decrement the variable by one. This is intended for use as a statement.
+ * 
+ * @method "_↑--"
+ * @category "Variables" "Mathematics" "Integers"
+ * @param "var" "variable"
+ * 		A numeric variable.
+ * @returns "⊤"
+ */
+Public method "_↑--" is decrement function;
+
+/**
+ * The autodecrement statement should accept only numeric variables.
+ * 
+ * @method "_↑--"
+ * @restricts "variable meta"
+ */
+Semantic restriction "_↑--" is increment/decrement semantic restriction;
 
 /**
  * Decrement the variable by one. This is intended for use as a statement.
@@ -405,6 +695,56 @@ Public method "_--" is decrement function;
  */
 Semantic restriction "_--" is increment/decrement semantic restriction;
 
+Private method "valued post-decrement function" is
+[
+	[
+		var : variable
+	|
+		value ::= eject var;
+		var ?= cast value into [ t : number | t - 1 ];
+		value
+	]
+];
+
+Private method "valued post-decrement semantic restriction" is
+[
+	[
+		varType : variable meta
+	|
+		If (¬varType's read type ⊆ number)
+			∨ [ ¬varType's write type ⊆ number ]
+		then
+		[
+			Reject parse, expected: "variable to accept and yield numbers"
+		];
+		varType's read type
+	]
+];
+
+/**
+ * Remember the current value of the specified variable, decrement the variable
+ * by one, and answer the remembered value. This is intended for use as an
+ * expression.
+ * 
+ * @method "(_↑--)"
+ * @category "Variables" "Mathematics" "Integers"
+ * @param "var" "variable"
+ * Parameters:
+ *    var - A numeric variable.
+ * @returns "number"
+ *    The value of the argument prior to the decrement.
+ */
+Public method "(_↑--)" is valued post-decrement function;
+
+/**
+ * Since the decrement happens after the value is queried, then simply answer
+ * the read type of the variable.
+ * 
+ * @method "(_↑--)"
+ * @restricts "variable meta"
+ */
+Semantic restriction "(_↑--)" is valued post-decrement semantic restriction;
+
 /**
  * Remember the current value of the specified variable, decrement the variable
  * by one, and answer the remembered value. This is intended for use as an
@@ -418,14 +758,7 @@ Semantic restriction "_--" is increment/decrement semantic restriction;
  * @returns "number"
  *    The value of the argument prior to the decrement.
  */
-Public method "(_--)" is
-[
-	var : variable
-|
-	value ::= eject var;
-	↓var ?= cast value into [ t : number | t - 1 ];
-	value
-] : ⊤;
+Public method "(_--)" is valued post-decrement function;
 
 /**
  * Since the decrement happens after the value is queried, then simply answer
@@ -434,25 +767,34 @@ Public method "(_--)" is
  * @method "(_--)"
  * @restricts "variable meta"
  */
-Semantic restriction "(_--)" is
-[
-	varType : variable meta
-|
-	If (¬varType's read type ⊆ number)
-		∨ [ ¬varType's write type ⊆ number ]
-	then
-	[
-		Reject parse, expected: "variable to accept and yield numbers"
-	];
-	varType's read type
-];
+Semantic restriction "(_--)" is valued post-decrement semantic restriction;
+
+/**
+ * Decrement the variable by one. This is intended for use as a statement.
+ *
+ * @method "--_↑"
+ * @category "Variables" "Mathematics" "Integers"
+ * @param "var" "variable"
+ *        A numeric variable.
+ * @returns "⊤"
+ */
+Public method "--_↑" is decrement function;
+
+/**
+ * The autodecrement statement should accept only numeric variables.
+ * 
+ * @method "--_↑"
+ * @restricts "variable meta"
+ */
+Semantic restriction "--_↑" is increment/decrement semantic restriction;
 
 /**
  * Decrement the variable by one. This is intended for use as a statement.
  *
  * @method "--_"
  * @category "Variables" "Mathematics" "Integers"
- * @param "var" "variable" A numeric variable.
+ * @param "var" "variable"
+ *        A numeric variable.
  * @returns "⊤"
  */
 Public method "--_" is decrement function;
@@ -465,23 +807,77 @@ Public method "--_" is decrement function;
  */
 Semantic restriction "--_" is increment/decrement semantic restriction;
 
+Private method "valued pre-decrement function" is
+[
+	[
+		var : variable
+	|
+		var ?= cast eject var into [ t : number | t - 1 ];
+		↓var
+	]
+];
+
+Private method "valued pre-decrement semantic restriction" is
+[
+	[
+		varType : variable meta
+	|
+		If (¬varType's read type ⊆ number)
+			∨ [ ¬varType's write type ⊆ number ]
+		then
+		[
+			Reject parse, expected: "variable to accept and yield numbers"
+		];
+		readType ::= varType's read type;
+		if readType ⊆ extended integer then
+		[
+			readRange ::= cast readType into [ t : extended integer meta | t ];
+			lower ::= ⎣readRange⎦ - 1;
+			upper ::= ⎡readRange⎤ - 1;
+			integer range
+				from lower (inclusive = ⎣readRange⎦ is inclusive)
+				to upper (inclusive = ⎡readRange⎤ is inclusive)
+		]
+		else
+		[
+			readType
+		]
+	]
+];
+
 /**
- * Decrement the specified value and answer its new value.   
+ * Decrement the specified value and answer its new value.
+ *
+ * @method "(--_↑)"
+ * @category "Variables" "Mathematics" "Integers"
+ * @param "var" "variable"
+ *        A numeric variable.
+ * @returns "number"
+ *           The value of the argument after the decrement.
+ */
+Public method "(--_↑)" is valued pre-decrement function;
+
+/**
+ * Preserve the read type of the numeric variable. This can actually be
+ * tightened for integral types to adjust the bounds of result type by negative
+ * one.
+ * 
+ * @method "(--_↑)"
+ * @restricts "variable meta"
+ */
+Semantic restriction "(--_↑)" is valued pre-decrement semantic restriction;
+
+/**
+ * Decrement the specified value and answer its new value.
  *
  * @method "(--_)"
  * @category "Variables" "Mathematics" "Integers"
  * @param "var" "variable"
- * 		A numeric variable.
+ *        A numeric variable.
  * @returns "number"
- * 		The value of the argument after the decrement.
+ *           The value of the argument after the decrement.
  */
-Public method "(--_)" is
-[
-	var : variable
-|
-	↓var ?= cast eject var into [ t : number | t - 1 ];
-	↓var
-];
+Public method "(--_)" is valued pre-decrement function;
 
 /**
  * Preserve the read type of the numeric variable. This can actually be
@@ -491,31 +887,7 @@ Public method "(--_)" is
  * @method "(--_)"
  * @restricts "variable meta"
  */
-Semantic restriction "(--_)" is
-[
-	varType : variable meta
-|
-	If (¬varType's read type ⊆ number)
-		∨ [ ¬varType's write type ⊆ number ]
-	then
-	[
-		Reject parse, expected: "variable to accept and yield numbers"
-	];
-	readType ::= varType's read type;
-	if readType ⊆ extended integer then
-	[
-		readRange ::= cast readType into [ t : extended integer meta | t ];
-		lower ::= ⎣readRange⎦ - 1;
-		upper ::= ⎡readRange⎤ - 1;
-		integer range
-			from lower (inclusive = ⎣readRange⎦ is inclusive)
-			to upper (inclusive = ⎡readRange⎤ is inclusive)
-	]
-	else
-	[
-		readType
-	]
-];
+Semantic restriction "(--_)" is valued pre-decrement semantic restriction;
 
 /* Disallow the variable increment/decrement operations from appearing as the
  * argument to parentheses.
@@ -526,8 +898,8 @@ Invoke
 	forbid ::=
 		cast
 			<
-				"_++", "++_", "(_++)", "(++_)",
-				"_--", "--_", "(_--)", "(--_)"
+				"_↑++", "++_↑", "(_↑++)", "(++_↑)",
+				"_↑--", "--_↑", "(_↑--)", "(--_↑)"
 			>→set
 		into [ t : {string|whole number} | t ];
 	Grammatical restriction parens is <forbid>;
@@ -568,3 +940,37 @@ Semantic restriction "↓_else_" is
 |
 	varType's read type ∪ else's return type
 ];
+
+/* This is always invalid, so we might as well forbid it early. */
+Grammatical restriction {"`↑_↑"} is <{"`↑_↑"}>;
+
+/*
+ * Don't allow explicit quoting to compose with unquoted operators.
+ */
+
+Grammatical restriction
+{
+	"Clear_",
+	"Clear_↑",
+	"eject_",
+	"eject_↑",
+	"_++",
+	"++_",
+	"(_++)",
+	"(++_)",
+	"_--",
+	"--_",
+	"(_--)",
+	"(--_)",
+	"_is assigned",
+	"_↑is assigned",
+	"_is unassigned",
+	"_↑is unassigned"
+} is <{"`↑_↑"}>;
+
+Grammatical restriction {"Swap_↑and_↑"} is <{"`↑_↑"}, {"`↑_↑"}>;
+Grammatical restriction
+{
+	"_↑`?=_",
+	"_↑`?=_'s⁇initialization"
+} is <{"`↑_↑"}, ∅>;

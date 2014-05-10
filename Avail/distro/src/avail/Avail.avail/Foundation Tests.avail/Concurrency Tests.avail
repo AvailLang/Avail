@@ -43,7 +43,7 @@ Body
 
 hx : non-reentrant mutex := a non-reentrant mutex named "hname mutex";
 hn : natural number := 1;
-Private method "next hname" is [lock hx for ["h" ++ “(↑hn++)”]];
+Private method "next hname" is [lock hx for ["h" ++ “(hn++)”]];
 
 "concurrency test suite" is a new atom;
 New test suite, concurrency test suite, extends foundation test suite;
@@ -251,7 +251,7 @@ Test "delayed fork" in concurrency test suite is
 	Join forked;
 	Require: forked has terminated;
 	Require: ¬forked has result;
-	Require: ↑now is assigned;
+	Require: now is assigned;
 	Require: now - then ≥ delay;
 ];
 
@@ -264,7 +264,7 @@ Test "delayed fork (orphan)" in concurrency test suite is
 		invoke [now := milliseconds since the Epoch;]
 		with <>,
 		forked at priority 50;
-	While [↑now is unassigned] do [Yield current fiber;];
+	While [now is unassigned] do [Yield current fiber;];
 	Require: now - then ≥ delay;
 ];
 
@@ -397,7 +397,7 @@ Test "future raises" in concurrency test suite is
 	killer : worker exception;
 	Guard [Ignore: f's value;]
 	intercept [e : worker exception | killer := e;];
-	Require: ↑killer is assigned;
+	Require: killer is assigned;
 ];
 
 Test "for-each in parallel" in concurrency test suite is
@@ -447,7 +447,7 @@ Test "for-each in parallel (worker exception)" in concurrency test suite is
 	|
 		killer := e;
 	];
-	Require: ↑killer is assigned;
+	Require: killer is assigned;
 	Require: killer's causal exception ∈ cannot-divide-by-zero exception;
 ];
 

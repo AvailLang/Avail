@@ -4547,7 +4547,7 @@ public abstract class AbstractDescriptor
 	abstract void o_AddConstantBinding (
 		AvailObject object,
 		A_String name,
-		A_BasicObject constantBinding);
+		A_Variable constantBinding);
 
 	/**
 	 * @param object
@@ -4557,7 +4557,7 @@ public abstract class AbstractDescriptor
 	abstract void o_AddVariableBinding (
 		AvailObject object,
 		A_String name,
-		A_BasicObject variableBinding);
+		A_Variable variableBinding);
 
 	/**
 	 * @param object

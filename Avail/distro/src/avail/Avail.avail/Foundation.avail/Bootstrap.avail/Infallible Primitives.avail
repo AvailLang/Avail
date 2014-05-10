@@ -130,6 +130,7 @@ Uses
 		"_[_]",
 		"_\\_",
 		"_^_",
+		"_`?=_'s⁇initialization",
 		"_bit∧_",
 		"_bit∨_",
 		"_bit⊕_",
@@ -169,6 +170,7 @@ Uses
 		"`«_:_:=_`»",
 		"`«_:_`»",
 		"`«↓_`»(_)",
+		"`↑_",
 		"arg`«_:_`»",
 		"concatenate_",
 		"current fiber",
@@ -185,7 +187,7 @@ Uses
 		"new atom named_",
 		"new_[_]",
 		"new_applying_",
-		"new↑_",
+		"new`↑_",
 		"primfail`«_:_`»",
 		"primitive description of_",
 		"semantic restrictions for_given_",
@@ -194,8 +196,6 @@ Uses
 		"{_`|_}",
 		"{_→_`|_}",
 		"‘_’",
-		"↑_",
-		"↓_`?=_'s⁇initialization",
 		"∪_",
 		"∪_[_.._]",
 		"⎡_⎤",
@@ -313,13 +313,13 @@ Primitive "_'s⁇genuine upper bound" is
  * Construct and answer a variable type with the specified containment type.
  *
  * @category "Primitives" "Variables" "Types" "Constructors"
- * @method "↑_"
+ * @method "`↑_"
  * @param "containmentType" "any meta"
  *        The containment type.
  * @returns "(⊤→/→⊥)'s type"
  *    The requested variable type.
  */
-Primitive "↑_" is
+Primitive "`↑_" is
 [
 	containmentType : any meta
 |
@@ -349,14 +349,14 @@ Primitive "_'s⁇read type" is
  * Construct and answer a new variable with the specified containment type.
  *
  * @category "Primitives" "Variables" "Constructors"
- * @method "new↑_"
+ * @method "new`↑_"
  * @param "containmentType" "any meta"
  *        The containment type.
  * @returns "⊤→/→⊥"
  *    A new variable capable of retrieving and storing values of the specified
  *    containment type.
  */
-Primitive "new↑_" is
+Primitive "new`↑_" is
 [
 	containmentType : any meta
 |
@@ -371,8 +371,8 @@ Primitive "new↑_" is
  * @param "var" "variable"
  *        A variable.
  * @returns "boolean"
- *    `true` if the variable does not contain a value (i.e. because it has
- *    never previously been assigned), `false` otherwise.
+ *    {@method "true"} if the variable does not contain a value, {@method
+ *    "false"} otherwise.
  */
 Primitive "_is unassigned" is
 [
@@ -3248,7 +3248,7 @@ Primitive "_'s⁇declared type" is
  * into {@param "var"}.
  *
  * @category "Primitives" "Variables" "Phrases" "Queries" "Mutators"
- * @method "↓_`?=_'s⁇initialization"
+ * @method "_`?=_'s⁇initialization"
  * @param "var" "write-only expression variable"
  *        A variable.
  * @param "aDeclaration" "declaration phrase"
@@ -3257,7 +3257,7 @@ Primitive "_'s⁇declared type" is
  *    `true` if {@param "aDeclaration"} has an initialization expression and it was
  *    written into {@param "var"}, `false` otherwise.
  */
-Primitive "↓_`?=_'s⁇initialization" is
+Primitive "_`?=_'s⁇initialization" is
 [
 	var : write-only expression variable,
 	aDeclaration : declaration phrase

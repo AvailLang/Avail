@@ -96,7 +96,7 @@ public final class P_018_GetClearing extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
+		return AbstractEnumerationTypeDescriptor.withInstances(
 			SetDescriptor.fromCollection(Arrays.asList(
 				E_CANNOT_READ_UNASSIGNED_VARIABLE.numericCode(),
 				E_CANNOT_MODIFY_FINAL_JAVA_FIELD.numericCode(),

@@ -855,7 +855,7 @@ Private method "Schedule next parked fiber or release_" is
 	If ¬↓signalers is empty then
 	[
 		head ::= ↓signalers[1];
-		↓signalers ?= ↓signalers[2..];
+		signalers ?= ↓signalers[2..];
 		Ignore: dequeue current fiber from queue;
 		mutex's owner := head;
 		Unpark head;
@@ -1071,7 +1071,7 @@ Public method "Signal_" is
 		 */
 		Ignore: priority enqueue current fiber on ↑mutex's signaler fibers;
 		head ::= ↓queue[1];
-		↓queue ?= ↓queue[2..];
+		queue ?= ↓queue[2..];
 		/* Place the next fiber back onto the monitor's main queue. */
 		Ignore: priority enqueue head on ↑mutex's parked fibers;
 		mutex's owner := head;

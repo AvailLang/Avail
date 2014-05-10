@@ -145,7 +145,7 @@ Private method "Handle_for_" is
 	aCommand : restart command,
 	contextVar : ↑complete context
 |
-	↓contextVar ?= engine context for ↓contextVar's game context creator;
+	contextVar ?= engine context for ↓contextVar's game context creator;
 ];
 
 Private method "Handle_for_" is

@@ -425,7 +425,7 @@ Test "exhaustive exponentiation" in math test suite is
 			e : arithmetic exception
 		|
 		];
-		If ↑power is unassigned then
+		If power is unassigned then
 		[
 			If |t| > 2 then
 			[

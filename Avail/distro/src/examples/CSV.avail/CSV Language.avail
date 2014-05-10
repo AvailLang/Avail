@@ -85,7 +85,7 @@ Private method "Validate_" is
 	size ::= |record|;
 
 	/* If the column count hasn't been set yet, then set it. */
-	If ↑columnCount is unassigned then
+	If columnCount is unassigned then
 	[
 		columnCount := size;
 	]
@@ -164,7 +164,7 @@ Semantic restriction "«_‡,»" is
  */
 Public method "Reset CSV processor" is
 [
-	Clear ↑columnCount;
+	Clear columnCount;
 	records := <>;
 ];
 

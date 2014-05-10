@@ -42,7 +42,8 @@ Uses
 	"Early Tuples",
 	"Enumeration Support",
 	"Literals",
-	"Types"
+	"Types",
+	"Variables"
 Names
 	"_(«_‡,»)"
 Body
@@ -69,7 +70,7 @@ Semantic restriction "_'s⁇parameters'type" is
 				index : natural number
 			|
 				param ::= paramsType[index];
-				params := eject ↑params
+				params := eject params
 					++ <if param = ⊥ then [any] else [param]>;
 				true
 			];
@@ -249,7 +250,7 @@ Semantic restriction "_[_]" is
 		[
 			subscript : natural number
 		|
-			result := eject ↑result ∪ functionType[subscript];
+			result := eject result ∪ functionType[subscript];
 			true
 		];
 		/* If result is ⊥, then we don't know anything about the types of the

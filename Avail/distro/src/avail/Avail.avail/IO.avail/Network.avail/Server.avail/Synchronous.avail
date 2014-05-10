@@ -72,6 +72,6 @@ Public method "accept a new connection«named_»on_" is
 		on success doing [c : client socket | client := c; Signal sem;]
 		on failure doing [e : exception | killer := e; Signal sem;];
 	Await sem;
-	If ↑killer is assigned then [Raise killer];
+	If killer is assigned then [Raise killer];
 	client
 ] : client socket;

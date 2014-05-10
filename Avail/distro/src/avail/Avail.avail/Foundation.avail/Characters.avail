@@ -1050,7 +1050,7 @@ Private method "recase restriction for elements∈_using_" is
 			index : natural number
 		|
 			charType ::= stringType[index];
-			types := eject ↑types ++
+			types := eject types ++
 				<if index ∈ range then
 				[
 					converted : {character|} := ∅;
@@ -1060,7 +1060,7 @@ Private method "recase restriction for elements∈_using_" is
 						[
 							c : character
 						|
-							converted := eject ↑converted + converter(c);
+							converted := eject converted + converter(c);
 						];
 						cast enumeration of converted
 							into [t : character's type | t]

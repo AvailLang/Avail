@@ -109,12 +109,12 @@ Method "“_”" is
 		leadingTypes ::= t's leading types;
 		index : natural number := 1;
 		While [index ≤ |leadingTypes|]
-		do [s := eject ↑s ++ “leadingTypes[(↑index++)]” ++ ", ";];
-		s := eject ↑s ++ “t's default type” ++ "…|";
+		do [s := eject s ++ “leadingTypes[(index++)]” ++ ", ";];
+		s := eject s ++ “t's default type” ++ "…|";
 		lower ::= ⎣t⎦;
 		upper ::= ⎡t⎤;
-		s := eject ↑s ++ “||t||” (cardinality restriction);
-		s := eject ↑s ++ ">";
+		s := eject s ++ “||t||” (cardinality restriction);
+		s := eject s ++ ">";
 		s
 	]
 ] : string;
@@ -158,7 +158,7 @@ Method "For each of⁇_do_" is
 		If index ≤ end then
 		[
 			action(aTuple[index]);
-			↑index++;
+			index++;
 			Restart loop
 		];
 	]();
@@ -187,7 +187,7 @@ Method "For each of⁇_do_" is
 		If index ≤ end then
 		[
 			action(aTuple[index], index);
-			↑index++;
+			index++;
 			Restart loop
 		];
 	]();
@@ -288,8 +288,8 @@ Method "map_through_" is
 		$loop;
 		If index ≤ end then
 		[
-			result := eject ↑result ++ <transformer(aTuple[index])>;
-			↑index++;
+			result := eject result ++ <transformer(aTuple[index])>;
+			index++;
 			Restart loop
 		];
 	]();
@@ -323,8 +323,8 @@ Method "map_through_" is
 		$loop;
 		If index ≤ end then
 		[
-			result := eject ↑result ++ <transformer(aTuple[index], index)>;
-			↑index++;
+			result := eject result ++ <transformer(aTuple[index], index)>;
+			index++;
 			Restart loop
 		];
 	]();
@@ -388,9 +388,9 @@ Method "filter_by_" is
 			element ::= aTuple[index];
 			If predicate(element) then
 			[
-				result := eject ↑result ++ <element>;
+				result := eject result ++ <element>;
 			];
-			↑index++;
+			index++;
 			Restart loop
 		];
 	]();
@@ -429,9 +429,9 @@ Method "filter_by_" is
 			element ::= aTuple[index];
 			If predicate(element, index) then
 			[
-				result := eject ↑result ++ <element>;
+				result := eject result ++ <element>;
 			];
-			↑index++;
+			index++;
 			Restart loop
 		];
 	]();
@@ -504,12 +504,12 @@ Method "map and filter_by_" is
 				|
 					If ¬hasAlreadyKept then
 					[
-						result := eject ↑result ++ <transformed>;
+						result := eject result ++ <transformed>;
 						hasAlreadyKept := true;
 					];
 				]
 			);
-			↑index++;
+			index++;
 			Restart loop
 		];
 	]();
@@ -559,12 +559,12 @@ Method "map and filter_by_" is
 				|
 					If ¬hasAlreadyKept then
 					[
-						result := eject ↑result ++ <transformed>;
+						result := eject result ++ <transformed>;
 						hasAlreadyKept := true;
 					];
 				]
 			);
-			↑index++;
+			index++;
 			Restart loop
 		];
 	]();
@@ -873,7 +873,7 @@ Public stable method "distinct_" is
 	|
 		if ¬element ∈ seen then
 		[
-			seen := eject ↑seen + element;
+			seen := eject seen + element;
 			true
 		]
 		else
@@ -915,9 +915,9 @@ Private method "zip function" is
 			[
 				aTuple : tuple
 			|
-				group := eject ↑group ++ <aTuple[index]>;
+				group := eject group ++ <aTuple[index]>;
 			];
-			accumulator := eject ↑accumulator ++ <group>;
+			accumulator := eject accumulator ++ <group>;
 		];
 		accumulator
 	] : tuple
@@ -1022,14 +1022,14 @@ Private method "zip semantic restriction" is
 				[
 					tupleType : tuple meta
 				|
-					zipped := eject ↑zipped ++ <tupleType[index]>;
+					zipped := eject zipped ++ <tupleType[index]>;
 				];
 				nonempty ::= cast zipped
 					into [ t : <any meta…|1..> | t ];
 				zippedType ::=
 					<nonempty[1..|nonempty| - 1], nonempty[|nonempty|]…
 						| ||tuplesType||>;
-				resultTypes := eject ↑resultTypes ++ <zippedType>;
+				resultTypes := eject resultTypes ++ <zippedType>;
 			];
 			nonempty ::= cast resultTypes into [ t : <tuple meta…|1..> | t ];
 			resultSizes ::= [lower..upper + 1);
@@ -1079,7 +1079,7 @@ Public method "left fold_through_" is
 	[
 		index : natural number
 	|
-		result := transformer(aTuple[index], eject ↑result);
+		result := transformer(aTuple[index], eject result);
 	];
 	result
 ] : any;
@@ -1166,7 +1166,7 @@ Public method "right fold_through_" is
 	[
 		index : natural number
 	|
-		result := transformer(aTuple[index], eject ↑result);
+		result := transformer(aTuple[index], eject result);
 	];
 	result
 ] : any;
@@ -1389,7 +1389,7 @@ Public stable method "_occurrences⁇of_" is
 	accumulator : tuple := <>;
 	Repeat
 	[
-		accumulator := eject ↑accumulator ++ <value>;
+		accumulator := eject accumulator ++ <value>;
 	]
 	count times;
 	accumulator
@@ -1461,7 +1461,7 @@ Public stable method "_to_" is
 	[
 		value : code point
 	|
-		accumulator := eject ↑accumulator ++ <value→character>;
+		accumulator := eject accumulator ++ <value→character>;
 	];
 	accumulator
 ] : string;
@@ -2065,9 +2065,9 @@ Semantic restriction "stripe_at_" is
 			delta : whole number
 		|
 			innerIndex ::= ⎣index⎦ + delta;
-			union := eject ↑union ∪ innerType[innerIndex];
+			union := eject union ∪ innerType[innerIndex];
 		];
-		stripeTypes := eject ↑stripeTypes ++ <union>;
+		stripeTypes := eject stripeTypes ++ <union>;
 	];
 	nonemptyTypes ::= cast stripeTypes into [ t : <any meta…|1..> | t ];
 	<nonemptyTypes[1..|nonemptyTypes| - 1], nonemptyTypes[|nonemptyTypes|]…
@@ -2379,7 +2379,7 @@ Semantic restriction "_[_]→_" is
 		If padCount > 0 then
 		[
 			count ::= cast padCount into [ t : natural number | t ];
-			leadingTypes := eject ↑leadingTypes ++ count of defaultType;
+			leadingTypes := eject leadingTypes ++ count of defaultType;
 		];
 		/* If the upper bound of `index` is less than the maximum length of the
 		 * tuple, then some elements of the result tuple may have the original
@@ -2394,14 +2394,14 @@ Semantic restriction "_[_]→_" is
 			delta ::= if indexLower ≤ |leadingTypes| then [ 0 ] else [ 1 ];
 			count ::= cast indexUpper - (|leadingTypes| max indexLower)
 				into [ t : whole number | t + delta ];
-			leadingTypes := eject ↑leadingTypes ++ count of newType;
+			leadingTypes := eject leadingTypes ++ count of newType;
 		]
 		/* The upper bound of `index` exceeds the minimum length of the tuple,
 		 * so just update the default type.
 		 */
 		else
 		[
-			defaultType := eject ↑defaultType ∪ valueType;
+			defaultType := eject defaultType ∪ valueType;
 		];
 	];
 	<leadingTypes, defaultType… | ||tupleType||>
@@ -2841,8 +2841,8 @@ Private method "insertion sort_with_" is
 		do
 		[
 			output := output[k↔j];
-			↑k--;
-			↑j--;
+			k--;
+			j--;
 		];
 		output := if j = 1 ∧ [comparator(output[k],output[j])] then 
 			[output[k↔j]] else [output];
@@ -3096,14 +3096,14 @@ Private method "merge_with_" is
 		If comparator(input1[i], input2[j]) then
 		[
 			output := output[k]→input1[i];
-			↑i++;
+			i++;
 		]
 		else
 		[
 			output := output[k]→input2[j];
-			↑j++;
+			j++;
 		];
-		↑k++;
+		k++;
 	];
 	if i < |input1| then [output[..k-1] ++ input1[i..]]
 	else [output[..k-1] ++ input2[j..]]
@@ -3538,14 +3538,14 @@ Private method "self overlap_" is
 		 */
 		If aTuple[current] = aTuple[position] then
 		[
-		 	↑current++;
+		 	current++;
 		] 
 		else
 		[
 			current := 1;
 		];
 		overlap := overlap + aTuple[..position]→current;
-		↑position++;
+		position++;
 	];
 	overlap
 ] : {tuple→natural number|};
@@ -3637,14 +3637,14 @@ Method "first index of_in_" is
 					subtupleStart := cast tupleIndex - subtupleIndex + 1 into 
 						[w : whole number | w];
 				]
-				else [↑subtupleIndex++;];
+				else [subtupleIndex++;];
 			]
 			else
 			[
 			 	subtupleIndex := overlapTable[subtuple[..subtupleIndex]] 
 			 		else [1];
 			];
-			↑tupleIndex++;
+			tupleIndex++;
 		];
 		subtupleStart
 	]
@@ -3886,7 +3886,7 @@ Method "replace all occurrences of_in_with_" is
 			[
 				newTuple := newTuple ++ <aTuple[index]>;
 			];
-			↑index++;
+			index++;
 		];
 		newTuple
 	]

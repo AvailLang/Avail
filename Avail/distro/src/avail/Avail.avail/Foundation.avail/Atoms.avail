@@ -39,7 +39,8 @@ Uses
 	"Early Definers",
 	"Early Enumeration Support",
 	"Early Literals",
-	"Early Logic"
+	"Early Logic",
+	"Early Variables"
 Extends
 	"Collections" = ("_[_]else_")
 Names
@@ -129,7 +130,7 @@ Semantic restriction "«Public»?_is a|an new⁇field⁇atom" is
 				name,
 				"\" not to specify any parameters">;
 			s : string;
-			↓↑s ?= t;
+			↑s ?= t;
 			Reject parse, expected: s
 		];
 		If public ∧ [¬name ∈ publicNames] then
@@ -139,7 +140,7 @@ Semantic restriction "«Public»?_is a|an new⁇field⁇atom" is
 				name,
 				"\" to be included in the module's \"Names\" section">;
 			s : string;
-			↓↑s ?= t;
+			↑s ?= t;
 			Reject parse, expected: s
 		];
 	];
@@ -194,7 +195,7 @@ Semantic restriction "«Public»?_is a new⁇heritable«fiber-local»⁇atom" is
 				name,
 				"\" not to specify any parameters">;
 			s : string;
-			↓↑s ?= t;
+			↑s ?= t;
 			Reject parse, expected: s
 		];
 		If public ∧ [¬name ∈ publicNames] then
@@ -204,7 +205,7 @@ Semantic restriction "«Public»?_is a new⁇heritable«fiber-local»⁇atom" is
 				name,
 				"\" to be included in the module's \"Names\" section">;
 			s : string;
-			↓↑s ?= t;
+			↑s ?= t;
 			Reject parse, expected: s
 		];
 	];

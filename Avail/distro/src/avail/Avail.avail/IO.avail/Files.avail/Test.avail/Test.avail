@@ -142,7 +142,7 @@ Test "file(read in parts)" in file access rights test suite is
 	|
 		contents : tuple := next 5 bytes from f;
 		Require: ref[1..5] = contents;
-		contents := eject ↑contents ++ next 6 bytes from f;
+		contents := eject contents ++ next 6 bytes from f;
 		Require: ref = contents;
 		/* This reads past the end of the file. */
 		contents := next 1 bytes from f;

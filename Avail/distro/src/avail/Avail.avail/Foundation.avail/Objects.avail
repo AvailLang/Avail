@@ -129,7 +129,7 @@ Semantic restriction "_→object type" is
 		[
 			fieldAtom ::= atomType's instance;
 			fieldType ::= defs[fieldAtom] else [ ⊥ ] ∪ defType;
-			defs := eject ↑defs + fieldAtom→fieldType;
+			defs := eject defs + fieldAtom→fieldType;
 		]
 		/* We know one or more fields with which this type is associated, so
 		 * record this knowledge into `constraints`.
@@ -142,7 +142,7 @@ Semantic restriction "_→object type" is
 				fieldAtom : atom
 			|
 				fieldType ::= constraints[fieldAtom] else [ ⊥ ] ∪ defType;
-				constraints := eject ↑constraints + fieldAtom→fieldType;
+				constraints := eject constraints + fieldAtom→fieldType;
 			];
 		]
 		/* We don't know anything about the field. Treat the field type as a
@@ -151,11 +151,11 @@ Semantic restriction "_→object type" is
 		else
 		[
 			Assert: atomType = atom;
-			universal := eject ↑universal ∪ defType;
+			universal := eject universal ∪ defType;
 		];
 	];
 	/* Weaken each value of `defs` by all applicable constraints. */
-	defs := map eject ↑defs through
+	defs := map eject defs through
 		[
 			fieldAtom : atom,
 			fieldType : any meta
@@ -232,7 +232,7 @@ Semantic restriction "_→object" is
 		[
 			fieldAtom ::= atomType's instance;
 			fieldType ::= defs[fieldAtom] else [ ⊥ ] ∪ defType;
-			defs := eject ↑defs + fieldAtom→fieldType;
+			defs := eject defs + fieldAtom→fieldType;
 		]
 		/* We know one or more fields with which this type is associated, so
 		 * record this knowledge into `constraints`.
@@ -245,7 +245,7 @@ Semantic restriction "_→object" is
 				fieldAtom : atom
 			|
 				fieldType ::= constraints[fieldAtom] else [ ⊥ ] ∪ defType;
-				constraints := eject ↑constraints + fieldAtom→fieldType;
+				constraints := eject constraints + fieldAtom→fieldType;
 			];
 		]
 		/* We don't know anything about the field. Treat the field type as a
@@ -254,11 +254,11 @@ Semantic restriction "_→object" is
 		else
 		[
 			Assert: atomType = atom;
-			universal := eject ↑universal ∪ defType;
+			universal := eject universal ∪ defType;
 		];
 	];
 	/* Weaken each value of `defs` by all applicable constraints. */
-	defs := map eject ↑defs through
+	defs := map eject defs through
 		[
 			fieldAtom : atom,
 			fieldType : any meta
@@ -393,7 +393,7 @@ Semantic restriction "extend_with«_:_‡,»" is
 				++ “oldType”
 				++ ")"
 		];
-		newDefinitions := eject ↑newDefinitions + fieldAtom→newType;
+		newDefinitions := eject newDefinitions + fieldAtom→newType;
 	];
 	((supertype→tuple ++ newDefinitions' bindings)→object type)'s type
 ];
@@ -425,7 +425,7 @@ ejectAtom ::= $"eject_";
 addBindingAtom ::= $"_+_→_";
 getAtom ::= $"↓_";
 readTypeAtom ::= $"_'s⁇read type";
-putAtom ::= $"↓_`?=_";
+putAtom ::= $"_`?=_";
 
 /**
  * Generate the field accessor method for the specified field declaration.
@@ -610,7 +610,7 @@ Private method "referer name for_" is
 [
 	fieldAtom : atom
 |
-	"↑" ++ accessor name for fieldAtom
+	"`↑" ++ accessor name for fieldAtom
 ];
 
 /**
@@ -739,7 +739,7 @@ Private method "reconstructor name for_" is
 	[
 		fieldAtom : atom
 	|
-		methodName := eject ↑methodName ++ "," ++ fieldAtom's name ++ "::=_";
+		methodName := eject methodName ++ "," ++ fieldAtom's name ++ "::=_";
 	];
 	methodName
 ];
@@ -839,7 +839,7 @@ Private method "Generate and install_reconstructor for_" is
 				with «<ejectSend, ‘`fieldAtom`’, «↑«↓decl»»>»
 				: field map;
 			assignment ::= ««↓mapDecl» := addBindingSend»;
-			cloning := eject ↑cloning ++ <decl, assignment>;
+			cloning := eject cloning ++ <decl, assignment>;
 		];
 	];
 	/* Convert the map back to an object. */
@@ -971,7 +971,7 @@ is
 				fieldTuple : <boolean, boolean, atom, any meta…|4>
 			|
 				fieldAtom ::= fieldTuple[3];
-				immutableAtoms := eject ↑immutableAtoms ++ <fieldAtom>;
+				immutableAtoms := eject immutableAtoms ++ <fieldAtom>;
 				<fieldAtom, fieldTuple[4]>
 			];
 	];
@@ -981,13 +981,13 @@ is
 	Unless optionalMutable is empty then
 	[
 		mutable := optionalMutable[1];
-		newDefinitions := eject ↑newDefinitions ++ map mutable through
+		newDefinitions := eject newDefinitions ++ map mutable through
 			[
 				fieldTuple :
 					<boolean, boolean, boolean, boolean, atom, any meta…|6>
 			|
 				fieldAtom ::= fieldTuple[5];
-				mutableAtoms := eject ↑mutableAtoms ++ <fieldAtom>;
+				mutableAtoms := eject mutableAtoms ++ <fieldAtom>;
 				<fieldAtom, ↑fieldTuple[6]>
 			];
 	];
@@ -1061,7 +1061,7 @@ is
 	Unless optionalReconstructors is empty then
 	[
 		specs ::= optionalReconstructors[1];
-		reconstructors := eject ↑reconstructors ++ map specs through
+		reconstructors := eject reconstructors ++ map specs through
 			[
 				spec : <boolean, <atom…|1..>…|2>
 			|
@@ -1209,7 +1209,7 @@ is
 				++ “oldType”
 				++ ")"
 		];
-		newDefinitions := eject ↑newDefinitions + fieldAtom→newType;
+		newDefinitions := eject newDefinitions + fieldAtom→newType;
 	];
 	From 1 to relevant |optionalMutable[1]| do
 	[
@@ -1291,7 +1291,7 @@ is
 				++ “oldType”
 				++ ")"
 		];
-		newDefinitions := eject ↑newDefinitions + fieldAtom→newType;
+		newDefinitions := eject newDefinitions + fieldAtom→newType;
 	];
 	From 1 to relevant |optionalReconstructors[1]| do
 	[
@@ -1311,7 +1311,7 @@ is
 				Reject parse, expected:
 					"all reconstructor field atoms to be known statically"
 			];
-			fieldAtoms := eject ↑fieldAtoms ++ <atomType's instance>;
+			fieldAtoms := eject fieldAtoms ++ <atomType's instance>;
 		];
 		nonemptyFieldAtoms ::= cast fieldAtoms into [ t : <atom…|1..> | t ];
 		reconstructorName ::= reconstructor name for nonemptyFieldAtoms;
@@ -1378,7 +1378,7 @@ Public method "a|an_«with«_«:»?:=_‡,»»" is
 				early failure function(
 					object-instantiation-contains-duplicates code)
 			];
-			fieldAtoms := eject ↑fieldAtoms + fieldAtom;
+			fieldAtoms := eject fieldAtoms + fieldAtom;
 			/* If the assignment form (:=) was used, then create a new variable
 			 * and initialize it with the specified value.
 			 */
@@ -1397,7 +1397,7 @@ Public method "a|an_«with«_«:»?:=_‡,»»" is
 						readType ::= cast varType's read type
 							into [t : any meta | t];
 						var ::= new ↑readType;
-						↓var ?= value;
+						var ?= value;
 						var
 					]
 				]
@@ -1423,7 +1423,7 @@ Public method "a|an_«with«_«:»?:=_‡,»»" is
 			 */
 			If |fieldType| = 1 ∧ [fieldType ⊆ nontype] then
 			[
-				syntheticAssignments := eject ↑syntheticAssignments
+				syntheticAssignments := eject syntheticAssignments
 					++ <<fieldAtom, fieldType's instance>>;
 			]
 			else
@@ -1436,7 +1436,7 @@ Public method "a|an_«with«_«:»?:=_‡,»»" is
 					readType ::= cast varType's read type
 						into [t : any meta | t];
 					var ::= new ↑readType;
-					syntheticAssignments := eject ↑syntheticAssignments
+					syntheticAssignments := eject syntheticAssignments
 						++ <<fieldAtom, var>>;
 				]
 				else
@@ -1541,7 +1541,7 @@ Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
 				++ “requiredType”
 				++ ")"
 		];
-		assignments := eject ↑assignments + fieldAtom→valueType;
+		assignments := eject assignments + fieldAtom→valueType;
 	];
 	For each definitions do
 	[
@@ -1550,11 +1550,11 @@ Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
 	|
 		If |fieldType| = 1 ∧ [¬fieldType ⊆ type] then
 		[
-			assignments := eject ↑assignments + fieldAtom→fieldType;
+			assignments := eject assignments + fieldAtom→fieldType;
 		]
 		else if [fieldType ⊆ variable] then
 		[
-			assignments := eject ↑assignments + fieldAtom→fieldType;
+			assignments := eject assignments + fieldAtom→fieldType;
 		];
 	];
 	missing ::= filter definitions' keys by [a : atom | ¬a ∈ assignments];
@@ -1609,7 +1609,7 @@ Public method "_as_«with«_::=_‡,»»" is
 	|
 		If |fieldType| = 1 ∧ [¬fieldType ⊆ type] then
 		[
-			identityAssignments := eject ↑identityAssignments
+			identityAssignments := eject identityAssignments
 				++ <<fieldAtom, fieldType's instance>>;
 		];
 	];
@@ -1680,7 +1680,7 @@ Semantic restriction "_as_«with«_::=_‡,»»" is
 				++ “requiredType”
 				++ ")"
 		];
-		assignments := eject ↑assignments + fieldAtom→valueType;
+		assignments := eject assignments + fieldAtom→valueType;
 	];
 	For each definitions do
 	[
@@ -1689,7 +1689,7 @@ Semantic restriction "_as_«with«_::=_‡,»»" is
 	|
 		If |fieldType| = 1 ∧ [ ¬fieldType ⊆ type ] then
 		[
-			assignments := eject ↑assignments + fieldAtom→fieldType;
+			assignments := eject assignments + fieldAtom→fieldType;
 		];
 	];
 	missing ::= filter definitions' keys by [ a : atom | ¬a ∈ assignments ];

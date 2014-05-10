@@ -61,7 +61,7 @@ Names
 	/* Arrows. */
 	"_'s⁇count of remaining arrows",
 	"_'s⁇count of remaining arrows:=_",
-	"↑_'s⁇count of remaining arrows",
+	"`↑_'s⁇count of remaining arrows",
 
 	/* Exploration. */
 	"Handle_'s⁇arrival in_",

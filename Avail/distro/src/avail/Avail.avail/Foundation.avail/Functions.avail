@@ -46,7 +46,8 @@ Uses
 	"Math",
 	"Phrases",
 	"Tuples",
-	"Types"
+	"Types",
+	"Variables"
 Names
 	"_(««_»«`_»?‡,»)",
 	"_(_,`…)",
@@ -59,19 +60,19 @@ Method "“_”" is
 |
 	s : string := "[";
 	params ::= t's parameters' type;
-	If params = ⊥ then [s := eject ↑s ++ "…";]
+	If params = ⊥ then [s := eject s ++ "…";]
 	else
 	[
 		index : natural number := 1;
 		While [index ≤ ⎣params⎦]
 		do
 		[
-			s := eject ↑s ++ “t[index]”;
-			index := eject ↑index + 1;
+			s := eject s ++ “t[index]”;
+			index := eject index + 1;
 		]
-		alternate with [s := eject ↑s ++ ", ";];
+		alternate with [s := eject s ++ ", ";];
 	];
-	s := eject ↑s ++ "]→" ++ “t's return type”;
+	s := eject s ++ "]→" ++ “t's return type”;
 	s
 ];
 
@@ -122,15 +123,15 @@ Private method "_partially evaluate with_" is
 				Assert: |pair[1]| = 0;
 				token ::= `"arg" ++ “n”`;
 				arg ::= arg «token : argumentTypes[n]»;
-				argumentDeclarations := eject ↑argumentDeclarations ++ <arg>;
-				callArguments := eject ↑callArguments ++ <«↓arg»>;
+				argumentDeclarations := eject argumentDeclarations ++ <arg>;
+				callArguments := eject callArguments ++ <«↓arg»>;
 			]
 			else
 			[
 				/* An actual value. */
 				Assert: |pair[1]| = 1; 
 				literalToken ::= `pair[1][1]`("value" ++ “n”);
-				callArguments := eject ↑callArguments ++ <‘literalToken’>;
+				callArguments := eject callArguments ++ <‘literalToken’>;
 			];
 	];
 	blockToReturn ::=
@@ -209,7 +210,7 @@ Semantic restriction "_(««_»«`_»?‡,»)" is
 						".  The arguments were:\n" ++ “pairTypes” ++ "."
 				];
 				argumentType ::= originalFunction[index];
-				argumentTypes := eject ↑argumentTypes ++ <argumentType>;
+				argumentTypes := eject argumentTypes ++ <argumentType>;
 			]
 			else if [underscoreType = false's type] then
 			[

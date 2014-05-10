@@ -50,7 +50,7 @@ public enum ParsingConversionRule
 	/**
 	 * {@code 0} - No conversion.
 	 */
-	noConversion(0)
+	NO_CONVERSION(0)
 	{
 		@Override
 		public void convert (
@@ -69,7 +69,7 @@ public enum ParsingConversionRule
 	 * {@linkplain IntegerDescriptor integer} representing the {@linkplain
 	 * AvailObject#tupleSize() size} of the original list.
 	 */
-	listToSize(1)
+	LIST_TO_SIZE(1)
 	{
 		@Override
 		public void convert (
@@ -95,44 +95,11 @@ public enum ParsingConversionRule
 	},
 
 	/**
-	 * {@code 2} - Convert a {@linkplain ListNodeDescriptor list} into a
-	 * {@linkplain LiteralNodeDescriptor literal node} that yields a
-	 * {@linkplain EnumerationTypeDescriptor#booleanObject() boolean}: {@link
-	 * AtomDescriptor#trueObject() true} if the list was nonempty, {@link
-	 * AtomDescriptor#falseObject() false} otherwise.
-	 */
-	listToNonemptiness(2)
-	{
-		@Override
-		public void convert (
-			final A_Phrase input,
-			final ParserState startingParserState,
-			final Continuation1<A_Phrase> continuation,
-			final Continuation1<Throwable> onFailure)
-		{
-			final A_Tuple expressions =
-				input.expressionsTuple();
-			final A_Atom nonempty =
-				AtomDescriptor.objectFromBoolean(expressions.tupleSize() > 0);
-			final AvailObject token =
-				LiteralTokenDescriptor.create(
-					StringDescriptor.from(nonempty.toString()),
-					startingParserState.peekToken().leadingWhitespace(),
-					startingParserState.peekToken().trailingWhitespace(),
-					startingParserState.peekToken().start(),
-					startingParserState.peekToken().lineNumber(),
-					LITERAL,
-					nonempty);
-			continuation.value(LiteralNodeDescriptor.fromToken(token));
-		}
-	},
-
-	/**
-	 * {@code 3} - Immediately evaluate the {@linkplain ParseNodeDescriptor
+	 * {@code 2} - Immediately evaluate the {@linkplain ParseNodeDescriptor
 	 * parse node} on the stack to produce a value.  Replace the parse node with
 	 * a literal node holding this value.
 	 */
-	evaluateExpression(3)
+	EVALUATE_EXPRESSION(2)
 	{
 		@Override
 		public void convert (

@@ -44,7 +44,8 @@ Uses
 	"Enumeration Support",
 	"Literals",
 	"Math",
-	"Types"
+	"Types",
+	"Variables"
 Body
 
 /**
@@ -213,15 +214,15 @@ Semantic restriction "_+_→_" is
 	 */ 
 	if oldKeyType ∩ keyType = ⊥ then
 	[
-		lower := eject ↑lower + 1;
-		bound := eject ↑bound + 1;
+		lower := eject lower + 1;
+		bound := eject bound + 1;
 	]
 	/* Otherwise the key *may* be present, but there's no way to
 	 * know for sure. Adjust the cardinality accordingly.
 	 */
 	else
 	[
-		bound := eject ↑bound + 1;
+		bound := eject bound + 1;
 	];
 	{newKeyType→newValueType | [lower..bound)}
 ];
@@ -253,7 +254,7 @@ Semantic restriction "_-_" is
 	 */
 	else
 	[
-		lower := 0 max eject ↑lower - 1;
+		lower := 0 max eject lower - 1;
 	];
 	{mapType's key type→mapType's value type | [lower..upper)}
 ];

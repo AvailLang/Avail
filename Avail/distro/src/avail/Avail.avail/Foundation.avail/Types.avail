@@ -139,16 +139,16 @@ Semantic restriction "<_,_`…`|_>" is
 						++ " in this case.");
 				if leadingTupleLeadingAndDefaultTypes[index] = type then
 				[
-					eject ↑typesTypesInstanceTuple ++ <type>
+					eject typesTypesInstanceTuple ++ <type>
 				]
 				else
 				[
-					eject ↑typesTypesInstanceTuple
+					eject typesTypesInstanceTuple
 				]
 			]
 			else
 			[
-				eject ↑typesTypesInstanceTuple ++ 
+				eject typesTypesInstanceTuple ++ 
 					<leadingTupleLeadingAndDefaultTypes[index]'s instance>
 			];
 		true
@@ -236,11 +236,11 @@ Semantic restriction "<«_‡,»`…`|_.._>" is
 						++ “leadingTypesTypes[index]”
 						++ ", however only type is acceptable"
 						++ " in this case.");
-				eject ↑typesTypesInstanceTuple ++ <type>
+				eject typesTypesInstanceTuple ++ <type>
 			]
 			else
 			[
-				eject ↑typesTypesInstanceTuple ++ 
+				eject typesTypesInstanceTuple ++ 
 					<leadingTypesTypes[index]'s instance>
 			];
 		true
@@ -321,11 +321,11 @@ Semantic restriction "<«_‡,»`…`|_..>" is
 						++ " has size ≠ 1 and is "
 						++ “leadingTypesTypes[index]”
 						++ ", however only type is acceptable in this case.");
-				eject ↑typesTypesInstanceTuple ++ <type>
+				eject typesTypesInstanceTuple ++ <type>
 			]
 			else
 			[
-				eject ↑typesTypesInstanceTuple ++ 
+				eject typesTypesInstanceTuple ++ 
 					<leadingTypesTypes[index]'s instance>
 			];
 		true
@@ -406,11 +406,11 @@ Semantic restriction "<«_‡,»`…`|.._>" is
 						++ " has size ≠ 1 and is "
 						++ “leadingTypesTypes[index]”
 						++ ", however only type is acceptable in this case.");
-				eject ↑typesTypesInstanceTuple ++ <type>
+				eject typesTypesInstanceTuple ++ <type>
 			]
 			else
 			[
-				eject ↑typesTypesInstanceTuple ++ 
+				eject typesTypesInstanceTuple ++ 
 					<leadingTypesTypes[index]'s instance>
 			];
 		true
@@ -491,11 +491,11 @@ Semantic restriction "<«_‡,»`…`|_>" is
 						++ “leadingTypesTypes[index]”
 						++ ", however only type is acceptable "
 						++ "in this case.");
-				eject ↑typesTypesInstanceTuple ++ <type>
+				eject typesTypesInstanceTuple ++ <type>
 			]
 			else
 			[
-				eject ↑typesTypesInstanceTuple ++ 
+				eject typesTypesInstanceTuple ++ 
 					<leadingTypesTypes[index]'s instance>
 			];
 		true
@@ -570,11 +570,11 @@ Semantic restriction "<«_‡,»`…`|>" is
 						++ " has size ≠ 1 and is "
 						++ “leadingTypesTypes[index]” 
 						++ ", however only type is acceptable in this case.");
-				eject ↑typesTypesInstanceTuple ++ <type>
+				eject typesTypesInstanceTuple ++ <type>
 			]
 			else
 			[
-				eject ↑typesTypesInstanceTuple ++ 
+				eject typesTypesInstanceTuple ++ 
 					<leadingTypesTypes[index]'s instance>
 			];
 		true
@@ -1191,7 +1191,7 @@ Semantic restriction "[«_‡,»]→_" is
 	[
 		index : natural number
 	|
-		bottoms := eject ↑bottoms ++ <⊥>;
+		bottoms := eject bottoms ++ <⊥>;
 		true
 	];
 	return ::= if |returnType| = 1

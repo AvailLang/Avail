@@ -334,5 +334,5 @@ implicit observe function :=
 		var : variable,
 		value : any
 	|
-		Observe [↓var ?= value;];
+		Observe [var ?= value;];
 	];

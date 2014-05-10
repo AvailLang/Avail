@@ -86,7 +86,7 @@ Semantic restriction "method definition of_for_" is
 		[
 			index : natural number
 		|
-			args := (eject ↑args) ++ <parametersType[index]'s instance>;
+			args := (eject args) ++ <parametersType[index]'s instance>;
 		];
 		methodName ::= methodNameType's instance;
 		If methodName has definition for args then

@@ -229,7 +229,7 @@ Public method "Repeat__times" is
 		If index ≤ count then
 		[
 			action();
-			↑index++;
+			index++;
 			Restart loop
 		];
 	]();
@@ -313,7 +313,7 @@ Public method "From_to_by_do_" is
 		If value ≤ end then
 		[
 			continue ::= action(value);
-			value := eject ↑value + step;
+			value := eject value + step;
 			If continue then
 			[
 				Restart loop
@@ -355,7 +355,7 @@ Public method "From_to_by_do_" is
 		If value ≥ end then
 		[
 			continue ::= action(value);
-			value := eject ↑value + step;
+			value := eject value + step;
 			If continue then
 			[
 				Restart loop
@@ -878,16 +878,16 @@ Public method "If|if_then_«else if_then_»«else_»" is
 			[
 				action := elseIfTuple[index][2];
 			];
-			↑action is unassigned
+			action is unassigned
 		];
 		/* If none of the predicates answered `true`, then choose the "else"
 		 * clause (if one was provided).
 		 */
-		If ↑action is unassigned ∧ [ |else| = 1 ] then
+		If action is unassigned ∧ [ |else| = 1 ] then
 		[
 			action := else[1];
 		];
-		if ↑action is unassigned then
+		if action is unassigned then
 		[
 			/* Do nothing. */
 		]
@@ -958,7 +958,7 @@ Semantic restriction "If|if_then_«else if_then_»«else_»" is
 		If firstPredicate = boolean then
 		[
 			ambiguous := true;
-			union := eject ↑union ∪ firstThen's return type;
+			union := eject union ∪ firstThen's return type;
 		];
 		elseIfTupleSize ::= relevant |elseIfTuple|;
 		/* `keepLooping` tracks whether it is necessary to continue examining
@@ -980,7 +980,7 @@ Semantic restriction "If|if_then_«else if_then_»«else_»" is
 				exact := actionReturnType;
 			];
 			keepLooping :=
-				if ↑exact is assigned then
+				if exact is assigned then
 				[
 					false
 				]
@@ -989,7 +989,7 @@ Semantic restriction "If|if_then_«else if_then_»«else_»" is
 					If predicateReturnType ≠ false's type then
 					[
 						ambiguous := true;
-						union := eject ↑union ∪ actionReturnType;
+						union := eject union ∪ actionReturnType;
 					];
 					/* If the predicate's return type is `true's type`, then we
 					 * want to exit the loop early no matter what else has
@@ -1014,7 +1014,7 @@ Semantic restriction "If|if_then_«else if_then_»«else_»" is
 				]
 				else
 				[
-					union := eject ↑union ∪ elseReturnType;
+					union := eject union ∪ elseReturnType;
 				];
 			]
 			else
@@ -1024,7 +1024,7 @@ Semantic restriction "If|if_then_«else if_then_»«else_»" is
 		];
 	];
 	/* Produce the final answer. */
-	if ↑exact is assigned then
+	if exact is assigned then
 	[
 		exact
 	]
@@ -1195,16 +1195,16 @@ Public method "Unless|unless_then_«else unless_then_»«else_»" is
 			[
 				action := elseUnlessTuple[index][2];
 			];
-			↑action is unassigned
+			action is unassigned
 		];
 		/* If none of the predicates answered `false`, then choose the "else"
 		 * clause (if one was provided).
 		 */
-		If ↑action is unassigned ∧ [ |else| = 1 ] then
+		If action is unassigned ∧ [ |else| = 1 ] then
 		[
 			action := else[1];
 		];
-		if ↑action is unassigned then
+		if action is unassigned then
 		[
 			/* Do nothing. */
 		]
@@ -1275,7 +1275,7 @@ Semantic restriction "Unless|unless_then_«else unless_then_»«else_»" is
 		If firstPredicate = boolean then
 		[
 			ambiguous := true;
-			union := eject ↑union ∪ firstThen's return type;
+			union := eject union ∪ firstThen's return type;
 		];
 		elseUnlessTupleSize ::= relevant |elseUnlessTuple|;
 		/* `keepLooping` tracks whether it is necessary to continue examining
@@ -1297,7 +1297,7 @@ Semantic restriction "Unless|unless_then_«else unless_then_»«else_»" is
 				exact := actionReturnType;
 			];
 			keepLooping :=
-				if ↑exact is assigned then
+				if exact is assigned then
 				[
 					false
 				]
@@ -1306,7 +1306,7 @@ Semantic restriction "Unless|unless_then_«else unless_then_»«else_»" is
 					If predicateReturnType ≠ true's type then
 					[
 						ambiguous := true;
-						union := eject ↑union ∪ actionReturnType;
+						union := eject union ∪ actionReturnType;
 					];
 					/* If the predicate's return type is `false's type`, then we
 					 * want to exit the loop early no matter what else has
@@ -1331,7 +1331,7 @@ Semantic restriction "Unless|unless_then_«else unless_then_»«else_»" is
 				]
 				else
 				[
-					union := eject ↑union ∪ elseReturnType;
+					union := eject union ∪ elseReturnType;
 				];
 			]
 			else
@@ -1341,7 +1341,7 @@ Semantic restriction "Unless|unless_then_«else unless_then_»«else_»" is
 		];
 	];
 	/* Produce the final answer. */
-	if ↑exact is assigned then
+	if exact is assigned then
 	[
 		exact
 	]
@@ -1912,7 +1912,7 @@ Public method "Cast|cast_into«_‡,»«else_»" is
 		]
 		else
 		[
-			↑index++;
+			index++;
 			Restart body
 		];
 	]();
@@ -1957,11 +1957,11 @@ Semantic restriction "Cast|cast_into«_‡,»«else_»" is
 				++ " is not a supertype of "
 				++ “functionType[1]”
 		];
-		union := eject ↑union ∪ functionType's return type;
+		union := eject union ∪ functionType's return type;
 	];
 	If ⎣else⎦ = 1 then
 	[
-		union := eject ↑union ∪ else[1]'s return type;
+		union := eject union ∪ else[1]'s return type;
 	];
 	union
 ];
@@ -2011,7 +2011,7 @@ Public method "Choose|choose_from_where«_is_‡,»«,else_»" is
 		]
 		else
 		[
-			↑index++;
+			index++;
 			Restart body
 		];
 	]();
@@ -2085,14 +2085,14 @@ Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 				++ “instance”
 				++ " occurs more than once"
 		];
-		caseEnum := eject ↑caseEnum ∪ case[1];
+		caseEnum := eject caseEnum ∪ case[1];
 		If |valueType| = 1 ∧ [ valueType = case[1] ] then
 		[
 			Exit body with case[2]'s return type
 		];
 		If valueType ∩ (case[1]) ≠ ⊥ then
 		[
-			union := eject ↑union ∪ case[2]'s return type;
+			union := eject union ∪ case[2]'s return type;
 		];
 	];
 	If caseEnum ≠ enum ∧ [ ⎣else⎦ ≠ 1 ] then
@@ -2106,7 +2106,7 @@ Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 	];
 	If ¬valueType ⊆ caseEnum then
 	[
-		union := eject ↑union ∪ else[1]'s return type;
+		union := eject union ∪ else[1]'s return type;
 	];
 	union
 ];

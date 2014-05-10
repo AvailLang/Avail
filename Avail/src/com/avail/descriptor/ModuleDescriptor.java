@@ -396,7 +396,7 @@ extends Descriptor
 	void o_AddConstantBinding (
 		final AvailObject object,
 		final A_String name,
-		final A_BasicObject constantBinding)
+		final A_Variable constantBinding)
 	{
 		synchronized (object)
 		{
@@ -512,7 +512,7 @@ extends Descriptor
 	void o_AddVariableBinding (
 		final AvailObject object,
 		final A_String name,
-		final A_BasicObject variableBinding)
+		final A_Variable variableBinding)
 	{
 		synchronized (object)
 		{

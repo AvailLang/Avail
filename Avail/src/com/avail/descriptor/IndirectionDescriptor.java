@@ -3184,7 +3184,7 @@ extends AbstractDescriptor
 	void o_AddConstantBinding (
 		final AvailObject object,
 		final A_String name,
-		final A_BasicObject constantBinding)
+		final A_Variable constantBinding)
 	{
 		o_Traversed(object).addConstantBinding(
 			name,
@@ -3195,7 +3195,7 @@ extends AbstractDescriptor
 	void o_AddVariableBinding (
 		final AvailObject object,
 		final A_String name,
-		final A_BasicObject variableBinding)
+		final A_Variable variableBinding)
 	{
 		o_Traversed(object).addVariableBinding(
 			name,

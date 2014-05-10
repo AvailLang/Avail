@@ -107,11 +107,11 @@ delimited iterator's advance method is
 			value ::= inner's current element;
 			If value = delimiter[index] then
 			[
-				↑index++;
+				index++;
 			]
 			else
 			[
-				result := eject ↑result ++ delimiter[1..index-1] ++ <value>;
+				result := eject result ++ delimiter[1..index-1] ++ <value>;
 				index := 1;
 			];
 			Advance inner;
@@ -170,7 +170,7 @@ Test "delimited iterator basics" in delimited iterator test suite is
 	[
 		element : <[0..10]…|>
 	|
-		Require: element = <ref[(↑index++)]>;
+		Require: element = <ref[(index++)]>;
 	];
 	Require: index = (|ref| + 1);
 ];

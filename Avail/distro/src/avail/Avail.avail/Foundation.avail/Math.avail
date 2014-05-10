@@ -450,7 +450,7 @@ Method "_×_" is
 				range ::= integer range
 					from lower (inclusive=true)
 					to upper + 1 (inclusive=isInfinite);
-				result := eject ↑result ∪ range;
+				result := eject result ∪ range;
 			];
 			If negativeB ≠ ⊥ then
 			[
@@ -460,7 +460,7 @@ Method "_×_" is
 				range ::= integer range
 					from lower - 1 (inclusive=isInfinite)
 					to upper (inclusive=true);
-				result := eject ↑result ∪ range;
+				result := eject result ∪ range;
 			];
 		];
 		If negativeA ≠ ⊥ then
@@ -473,7 +473,7 @@ Method "_×_" is
 				range ::= integer range
 					from lower - 1 (inclusive=isInfinite)
 					to upper (inclusive=true);
-				result := eject ↑result ∪ range;
+				result := eject result ∪ range;
 			];
 			If negativeB ≠ ⊥ then
 			[
@@ -483,7 +483,7 @@ Method "_×_" is
 				range ::= integer range
 					from lower (inclusive=true)
 					to upper + 1 (inclusive=isInfinite);
-				result := eject ↑result ∪ range;
+				result := eject result ∪ range;
 			];
 		];
 		/* Zero is handled specially, to prevent multiplication of 0 and ±∞ by
@@ -491,7 +491,7 @@ Method "_×_" is
 		 */
 		If 0's type ⊆ a ∨ [ 0's type ⊆ b ] then
 		[
-			result := eject ↑result ∪ 0's type;
+			result := eject result ∪ 0's type;
 		];
 		result
 	]
@@ -699,17 +699,17 @@ Method "_÷_" is
 	If negativeDenominators ≠ ⊥ then
 	[
 		union :=
-			eject ↑union ∪ (a ÷ negativeDenominators' genuine lower bound);
+			eject union ∪ (a ÷ negativeDenominators' genuine lower bound);
 		union :=
-			eject ↑union ∪ (a ÷ negativeDenominators' genuine upper bound);
+			eject union ∪ (a ÷ negativeDenominators' genuine upper bound);
 	];
 	positiveDenominators ::= b ∩ [1..∞];
 	If positiveDenominators ≠ ⊥ then
 	[
 		union :=
-			eject ↑union ∪ (a ÷ positiveDenominators' genuine lower bound);
+			eject union ∪ (a ÷ positiveDenominators' genuine lower bound);
 		union :=
-			eject ↑union ∪ (a ÷ positiveDenominators' genuine upper bound);
+			eject union ∪ (a ÷ positiveDenominators' genuine upper bound);
 	];
 	union
 ];
@@ -1439,24 +1439,24 @@ Semantic restriction "_<<_keeping_bits" is
 	If ⎡baseInteger⎤ ≠ ∞ ∧ [ ⎡shiftFactor⎤ ≠ ∞ ] then
 	[
 		finiteBaseMax : whole number;
-		↓↑finiteBaseMax ?= ⎡baseInteger⎤;
+		finiteBaseMax ?= ⎡baseInteger⎤;
 		finiteShiftMax : integer;
-		↓↑finiteShiftMax ?= ⎡shiftFactor⎤;
+		finiteShiftMax ?= ⎡shiftFactor⎤;
 		high := finiteBaseMax << finiteShiftMax;
 	];
 	finiteBaseMin : whole number;
-	↓↑finiteBaseMin ?= ⎣baseInteger⎦;
+	finiteBaseMin ?= ⎣baseInteger⎦;
 	finiteShiftMin : integer;
-	↓↑finiteShiftMin ?= ⎣shiftFactor⎦;
+	finiteShiftMin ?= ⎣shiftFactor⎦;
 	low : whole number := finiteBaseMin << finiteShiftMin;
 	If ⎡truncationBits⎤ ≠ ∞ then
 	[
 		finiteTruncationMax : whole number;
-		↓↑finiteTruncationMax ?= ⎡truncationBits⎤;
+		finiteTruncationMax ?= ⎡truncationBits⎤;
 		high := high min ((1 << finiteTruncationMax) - 1);
 	];
 	finiteTruncationMin : whole number;
-	↓↑finiteTruncationMin ?= ⎣truncationBits⎦;
+	finiteTruncationMin ?= ⎣truncationBits⎦;
 	mask : whole number := (1 << finiteTruncationMin) - 1;
 	low := low bit∧ mask;
 	[low..high+1)

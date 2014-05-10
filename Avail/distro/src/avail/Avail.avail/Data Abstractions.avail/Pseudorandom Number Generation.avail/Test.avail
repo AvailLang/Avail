@@ -54,7 +54,7 @@ New test suite pRNG test suite extends data abstractions test suite;
 rng : pRNG of whole number;
 
 Before running pRNG test suite, do [rng := a pRNG;];
-After running pRNG test suite, do [Clear ↑rng;];
+After running pRNG test suite, do [Clear rng;];
 
 Test "next integer within range" in pRNG test suite is
 [
@@ -113,7 +113,7 @@ Test "next shuffling" in pRNG test suite is
 	[
 		shuffled ::= rng's next shuffling of numbers;
 		aSet : set := ∅;
-		For each shuffled do [i : [1..10] | aSet := eject ↑aSet + i;];
+		For each shuffled do [i : [1..10] | aSet := eject aSet + i;];
 		Require: aSet = ref;
 	] 10 times;
 ];

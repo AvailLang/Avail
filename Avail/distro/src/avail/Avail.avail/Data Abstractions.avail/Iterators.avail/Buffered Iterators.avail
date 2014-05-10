@@ -440,7 +440,7 @@ Method "take«at most»?_from_" is
 				min |buffer|;
 			batchSize ::= endInBuffer - startInBuffer + 1;
 			Assert: batchSize ≥ 1;
-			result := eject ↑result ++ buffer[startInBuffer..endInBuffer];
+			result := eject result ++ buffer[startInBuffer..endInBuffer];
 			anIterator's buffer position := endInBuffer + 1;
 		];
 	]

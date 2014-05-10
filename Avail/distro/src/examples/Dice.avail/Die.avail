@@ -1,0 +1,651 @@
+/*
+ * Die.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Die"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Avail",
+	"Expressions" =
+	(
+		"_+_" → "_+_(Dice)",
+		"_-_" → "_-_(Dice)",
+		"_×_" → "_×_(Dice)",
+		"_÷_" → "_÷_(Dice)",
+		"-_" → "-_(Dice)",
+		…
+	),
+	"Random"
+Names
+	/* Types. */
+	"dice group",
+
+	/* Definers. */
+	"a|an standard⁇_-sided die",
+	"a dice group with_",
+	"a die showing_",
+	"_d|D_",
+
+	/* Special directives. */
+	"_(drop the⁇highest«_»)",
+	"_(drop the⁇lowest«_»)"
+Body
+
+"face count" is a field atom;
+
+/**
+ * A standard die has faces that show pips. The number of pips shown on a face
+ * range from one ({@code 1}) to the number of faces. No two faces show the same
+ * number of pips.
+ *
+ * @category "Dice"
+ * @type "standard die"
+ * @supertype "die"
+ */
+Class "standard die" extends die
+	with fields
+		face count : natural number,
+		result type : natural number's type;
+
+Method "“_”" is
+[
+	aDie : standard die
+|
+	"d" ++ “aDie's face count”
+] : string;
+
+Method "_'s⁇faces" is
+[
+	aDie : standard die
+|
+	1 to aDie's face count
+];
+
+Semantic restriction "_'s⁇faces" is
+[
+	aDie : standard die's type
+|
+	[1..⎡aDie's face count⎤+1)
+];
+
+/**
+ * Construct and answer a standard die with the specified number of faces. Each
+ * face shows between one ({@code 1}) and {@param "count"} pips, and no two
+ * faces show the same number of pips.
+ *
+ * @category "Dice" "Constructors"
+ * @method "a|an standard⁇_-sided die"
+ * @param "count" "natural number"
+ *        The number of faces on the desired {@type "die"}.
+ * @returns "standard die"
+ *          The requested die.
+ */
+Public method "a|an standard⁇_-sided die" is
+[
+	count : natural number
+|
+	range ::= cast enumeration of (1 to count)→set
+		into [t : natural number's type | t];
+	a standard die with
+		face count ::= count,
+		result type ::= range
+] : standard die;
+
+Semantic restriction "a|an standard⁇_-sided die" is
+[
+	count : natural number's type
+|
+	extend standard die with
+		face count : count,
+		result type : [1..⎡count⎤+1)'s type
+];
+
+"face tuple" is a field atom;
+
+/**
+ * A nonstandard die has faces that show anything whatsoever. Faces need not
+ * represent numbers, nor must they be distinct from one another.
+ *
+ * @category "Dice"
+ * @type "nonstandard die"
+ * @supertype "die"
+ */
+Class "nonstandard die" extends die
+	with fields
+		face tuple: <extended integer…|1..>;
+
+Method "“_”" is
+[
+	aDie : nonstandard die
+|
+	"d" ++ “aDie's faces”
+] : string;
+
+Method "_'s⁇faces" is
+[
+	aDie : nonstandard die
+|
+	aDie's face tuple
+];
+
+Semantic restriction "_'s⁇faces" is
+[
+	aDie : nonstandard die's type
+|
+	<aDie's result type's instance…|>
+];
+
+/**
+ * Construct and answer a die with the specified faces.
+ *
+ * @category "Dice" "Constructors"
+ * @method "a nonstandard⁇die showing_"
+ * @param "faces" "<extended integer…|1..>"
+ *        A nonempty tuple of faces.
+ * @returns "die"
+ *          The requested {@type "die"}.
+ */
+Public method "a die showing_" is
+[
+	faces : <extended integer…|1..>
+|
+	uniqueFaces ::= faces→set;
+	if |uniqueFaces| = |faces| ∧ [uniqueFaces = (1 to |faces|)→set] then
+	[
+		faceType ::= cast enumeration of uniqueFaces
+			into [t : natural number's type | t];
+		a standard die with
+			face count ::= |faces|,
+			result type ::= faceType
+	]
+	else
+	[
+		resultType ::= cast enumeration of uniqueFaces
+			into [t : extended integer's type | t];
+		a nonstandard die with
+			face tuple ::= faces,
+			result type ::= resultType
+	]
+] : die;
+
+Semantic restriction "a die showing_" is
+[
+	faces : <extended integer…|1..>'s type
+|
+	resultType ::= cast ∪ faces[1..|faces' leading types|+1]
+		into [t : extended integer's type | t];
+	extend die with result type : resultType's type
+];
+
+Method "«using_,»roll_" is
+[
+	optionalRNG : <pRNG…|0..1>,
+	aDie : standard die
+|
+	rng ::= optionalRNG[1] else [default pRNG];
+	r ::= rng's next [1..aDie's face count+1);
+	a dice outcome with
+		detailed outcome ::= {aDie→<r>},
+		result ::= r
+] :
+	extend dice outcome with
+		detailed outcome : {standard die→<natural number…|1>|},
+		result : natural number;
+
+Method "«using_,»roll_" is
+[
+	optionalRNG : <pRNG…|0..1>,
+	aDie : nonstandard die
+|
+	rng ::= optionalRNG[1] else [default pRNG];
+	r ::= rng's next element of aDie's faces;
+	a dice outcome with
+		detailed outcome ::= {aDie→<r>},
+		result ::= r
+] :
+	extend dice outcome with
+		detailed outcome : {nonstandard die→<extended integer…|1>|};
+
+"members" is a field atom;
+
+/**
+ * A dice group is a collection of {@type "die" dice}.
+ *
+ * @category "Dice"
+ * @type "dice group"
+ * @supertype "dice expression⁇"
+ */
+Public class "dice group" extends dice expression
+	with fields
+		members : <die…|>;
+
+Method "“_”" is
+[
+	group : dice group
+|
+	m ::= group's members;
+	if |m→set| = 1 then [“|m|” ++ “m[1]”]
+	else
+	[
+		s : string := "a group of ";
+		i : natural number := 1;
+		Do
+		[
+			s := s ++ “m[i]”;
+			i++;
+		]
+		while [i ≤ |m|]
+		alternate with [s := s ++ ", ";];
+		s
+	]
+] : string;
+
+/**
+ * Construct and answer a group of {@param "count"} {@type "standard die" dice},
+ * each being a standard die with {@param "n"} faces.
+ *
+ * @category "Dice" "Constructors"
+ * @method "_d|D_" is
+ * @param "count" "whole number"
+ *        The number of dice.
+ * @param "n" "natural number"
+ *        The number of faces sported by each {@type "die"}.
+ * @returns "dice group"
+ *          The requested {@type "standard die" dice}.
+ */
+Public method "_d|D_" is
+[
+	count : whole number,
+	n : natural number
+|
+	resultType ::= cast enumeration of (1 to n)→set into [t : any's type | t];
+	a dice group with
+		members ::= count occurrences of a standard n-sided die,
+		result type ::= [count..n × count]
+] : dice group;
+
+Semantic restriction "_d|D_" is
+[
+	count : whole number's type,
+	n : natural number's type
+|
+	dieType ::= extend standard die with
+		face count : n,
+		result type : [1..⎡n⎤+1)'s type;
+	extend dice group with
+		members : <<>, dieType…|count>,
+		result type : [⎣count⎦..⎡count⎤×⎡n⎤ + 1)'s type
+];
+
+[
+	ops ::= {"_+_(Dice)", "_-_(Dice)", "_×_(Dice)", "_÷_(Dice)", "-_(Dice)"};
+	Grammatical restriction "_d|D_" is <ops, ops>;
+]();
+
+/**
+ * Construct and answer a {@type "dice group"} comprised of {@param "someDice"}.
+ *
+ * @category "Dice" "Constructors"
+ * @method "a dice group with_"
+ * @param "someDice" "<die…|>"
+ *        Some {@type "die" dice}.
+ * @returns "dice group"
+ *          The requested {@type "dice group"}.
+ */
+Public abstract method "a dice group with_" is [<die…|>]→dice group;
+
+Method "a dice group with_" is
+[
+	noDice : <die…|0>
+|
+	a dice group with members ::= <>, result type ::= 0's type
+] : dice group;
+
+Semantic restriction "a dice group with_" is
+[
+	noDice : <die…|0>'s type
+|
+	extend dice group with members : <>'s type, result type : 0's type's type
+];
+
+Method "a dice group with_" is
+[
+	someDice : <die…|1..>
+|
+	min ::= ∑ map someDice through [d : die | min d's faces];
+	max ::= ∑ map someDice through [d : die | max d's faces];
+	a dice group with
+		members ::= someDice,
+		result type ::= (min-1..max+1)
+] : dice group;
+
+Semantic restriction "a dice group with_" is
+[
+	someDice : <die…|1..>'s type
+|
+	leadCount ::= |someDice's leading types|;
+	ranges : <extended integer's type…|> := <>;
+	From 1 to leadCount do
+	[
+		index : natural number
+	|
+		ranges := eject ranges ++ <someDice[index]'s result type's instance>;
+	];
+	default ::= someDice[leadCount + 1]'s result type's instance;
+	extend dice group with
+		members : someDice,
+		result type : (∑ <ranges, default… | ||someDice||>)'s type
+];
+
+Method "«using_,»roll_" is
+[
+	optionalRNG : <pRNG…|0..1>,
+	someDice : dice group
+|
+	rng ::= optionalRNG[1] else [default pRNG];
+	individualOutcomes ::=
+		map someDice's members through [aDie : die | using rng, roll aDie];
+	tabulaRasa ::= a dice outcome with detailed outcome ::= {}, result ::= 0;
+	left fold <tabulaRasa> ++ individualOutcomes through
+	[
+		individual : dice outcome,
+		partial : dice outcome
+	|
+		integrate individual and partial with
+		[
+			individualResult : extended integer,
+			partialResult : extended integer
+		|
+			individualResult + partialResult
+		]
+	]
+] : dice outcome;
+
+"drop group" is a field atom;
+"drop count" is a field atom;
+
+/**
+ * A drop dice expression, when evaluated, throws away either the highest
+ * valued rolls or the lowest valued rolls.
+ *
+ * @category "Dice"
+ * @type "drop dice expression"
+ * @supertype "dice expression⁇"
+ */
+Class "drop dice expression" extends dice expression
+	with fields
+		drop group : dice group,
+		drop count : integer;
+
+Method "“_”" is
+[
+	expr : drop dice expression
+|
+	s : string := “expr's drop group” ++ " (drop ";
+	dropCount ::= expr's drop count;
+	count ::=
+		if |dropCount| = 0 then ["0"]
+		else if [|dropCount| = 1] then [""]
+		else [“|dropCount|” ++ " "];
+	s := s ++ count;
+	adjective ::=
+		if dropCount > 0 then ["highest"]
+		else if [dropCount = 0] then [""]
+		else ["lowest"];
+	s := s ++ adjective ++ ")";
+	s
+];
+
+/**
+ * Construct and answer a {@type "dice expression⁇"} that, when {@method
+ * "«using_,»roll_" evaluated}, causes {@param "group"} to be rolled and the
+ * lowest {@param "optionalCount"} {@type "die" dice} dropped, i.e., not
+ * included in the outcome.
+ *
+ * @category "Dice" "Constructors"
+ * @method "_(drop lowest«_»)"
+ * @param "group" "dice group"
+ *        A {@type "dice group"}.
+ * @param "optionalCount" "<integer…|0..1>"
+ *        The number of dice that should be dropped, or {@code 1} if not
+ *        specified.
+ * @returns "drop dice expression"
+ *          The request {@type "dice expression⁇" dice expression}.
+ */
+Public method "_(drop the⁇lowest«_»)" is
+[
+	group : dice group,
+	optionalCount : <whole number…|0..1>
+|
+	count ::= optionalCount[1] else [1];
+	Assert: count ≤ |group's members|;
+	members ::= cast group's members into [t : <die…|1..> | t];
+	min ::= min map members through [aDie : die | min aDie's faces];
+	max ::= max map members through [aDie : die | max aDie's faces];
+	groupType ::= group's result type;
+	resultType ::= (⎣groupType⎦-min-1..⎡groupType⎤-max+1);
+	a drop dice expression with
+		drop group ::= group,
+		drop count ::= -count,
+		result type ::= resultType
+] : drop dice expression;
+
+Semantic restriction "_(drop the⁇lowest«_»)" is
+[
+	group : dice group's type,
+	optionalCount : <whole number…|0..1>'s type
+|
+	members ::= group's members;
+	count ::= if ⎣optionalCount⎦ = 1 then [optionalCount[1]] else [1's type];
+	If ⎣count⎦ > ⎡members⎤ then
+	[
+		Reject parse, expected:
+			format
+				"the mininum count (“①”) not to exceed the maximum number \
+				\|(“②”) of members of the group"
+			with ⎣count⎦, ⎡members⎤
+	];
+	ranges : <extended integer's type…|> := <>;
+	From 1 to |members' leading types| + 1 do
+	[
+		index : natural number
+	|
+		ranges := eject ranges ++ <members[index]'s result type's instance>;
+	];
+	min ::= quicksort map ranges through [r : extended integer's type | ⎣r⎦];
+	max ::= quicksort map ranges through [r : extended integer's type | ⎡r⎤];
+	minDelta ::=
+		cast min[1..⎡count⎤ min |min|]
+		into [t : <extended integer…|1..> | ∑ t]
+		else [0];
+	maxDelta ::=
+		cast max[1..⎣count⎦ min |max|]
+		into [t : <extended integer…|1..> | ∑ t]
+		else [0];
+	groupType ::= group's result type's instance;
+	resultType ::= (⎣groupType⎦-minDelta-1..⎡groupType⎤-maxDelta+1);
+	extend drop dice expression with
+		drop group : group,
+		drop count : cast -count into [t : (-∞..-1]'s type | t],
+		result type : resultType's type
+];
+
+/**
+ * Construct and answer a {@type "dice expression⁇"} that, when {@method
+ * "«using_,»roll_" evaluated}, causes {@param "group"} to be rolled and the
+ * highest {@param "optionalCount"} {@type "die" dice} dropped, i.e., not
+ * included in the outcome.
+ *
+ * @category "Dice" "Constructors"
+ * @method "_(drop lowest«_»)"
+ * @param "group" "dice group"
+ *        A {@type "dice group"}.
+ * @param "optionalCount" "<integer…|0..1>"
+ *        The number of dice that should be dropped, or {@code 1} if not
+ *        specified.
+ * @returns "drop dice expression"
+ *          The request {@type "dice expression⁇" dice expression}.
+ */
+Public method "_(drop the⁇highest«_»)" is
+[
+	group : dice group,
+	optionalCount : <whole number…|0..1>
+|
+	count ::= optionalCount[1] else [1];
+	Assert: count ≤ |group's members|;
+	members ::= cast group's members into [t : <die…|1..> | t];
+	min ::= min map members through [aDie : die | min aDie's faces];
+	max ::= max map members through [aDie : die | max aDie's faces];
+	groupType ::= group's result type;
+	resultType ::= (⎣groupType⎦-min-1..⎡groupType⎤-max+1);
+	a drop dice expression with
+		drop group ::= group,
+		drop count ::= count,
+		result type ::= resultType
+] : drop dice expression;
+
+Semantic restriction "_(drop the⁇highest«_»)" is
+[
+	group : dice group's type,
+	optionalCount : <whole number…|0..1>'s type
+|
+	members ::= group's members;
+	count ::= if ⎣optionalCount⎦ = 1 then [optionalCount[1]] else [1's type];
+	If ⎣count⎦ > ⎡members⎤ then
+	[
+		Reject parse, expected:
+			format
+				"the mininum count (“①”) not to exceed the maximum number \
+				\|(“②”) of members of the group"
+			with ⎣count⎦, ⎡members⎤
+	];
+	ranges : <extended integer's type…|> := <>;
+	From 1 to |members' leading types| + 1 do
+	[
+		index : natural number
+	|
+		ranges := eject ranges ++ <members[index]'s result type's instance>;
+	];
+	min ::= quicksort map ranges through [r : extended integer's type | ⎣r⎦];
+	max ::= quicksort map ranges through [r : extended integer's type | ⎡r⎤];
+	minDelta ::=
+		cast min[1..⎡count⎤ min |min|]
+		into [t : <extended integer…|1..> | ∑ t]
+		else [0];
+	maxDelta ::=
+		cast max[1..⎣count⎦ min |max|]
+		into [t : <extended integer…|1..> | ∑ t]
+		else [0];
+	groupType ::= group's result type's instance;
+	resultType ::= (⎣groupType⎦-minDelta-1..⎡groupType⎤-maxDelta+1);
+	extend drop dice expression with
+		drop group : group,
+		drop count : count,
+		result type : resultType's type
+];
+
+Method "«using_,»roll_" is
+[
+	optionalRNG : <pRNG…|0..1>,
+	expr : drop dice expression
+|
+	rng ::= optionalRNG[1] else [default pRNG];
+	outcome ::= using rng, roll expr's drop group;
+	allRolls ::=
+		left fold <<>> ++ outcome's detailed outcome's values through
+		[
+			rolls : <extended integer…|>,
+			partial : <extended integer…|>
+		|
+			partial ++ rolls
+		];
+	sortedRolls ::= quicksort allRolls;
+	count ::= expr's drop count;
+	survivingRolls ::=
+		cast count into
+		[
+			negative : (-∞..-1]
+		|
+			sortedRolls[|negative|+1..]
+		],
+		[
+			nonnegative : whole number
+		|
+			endIndex ::= cast |sortedRolls| - nonnegative
+				into [t : natural number | t];
+			sortedRolls[1..endIndex]
+		];
+	droppedRolls ::=
+		cast count into
+		[
+			negative : (-∞..-1]
+		|
+			sortedRolls[..|negative|]
+		],
+		[
+			nonnegative : whole number
+		|
+			startIndex ::= cast |sortedRolls| - nonnegative + 1
+				into [t : natural number | t];
+			sortedRolls[startIndex..]
+		];
+	details : {die→<extended integer…|>|} := outcome's detailed outcome;
+	mustDrop : <extended integer…|> := droppedRolls;
+	[
+		$loop : ⊤;
+		For each outcome's detailed outcome do
+		[
+			aDie : die,
+			rolls : <extended integer…|>
+		|
+			intersection : {extended integer|} := mustDrop→set ∩ rolls→set;
+			newRolls : <extended integer…|> := rolls;
+			Until [intersection is empty] do
+			[
+				doomed ::= intersection→tuple[1];
+				newRolls := eject newRolls - doomed;
+				details :=
+					if newRolls is empty then [eject details - aDie]
+					else [eject details + aDie → newRolls];
+				mustDrop := eject mustDrop - doomed;
+				If mustDrop is empty then [Exit loop];
+				intersection := mustDrop→set ∩ newRolls→set;
+			];
+		];
+	]();
+	delta ::=
+		cast droppedRolls into [t : <extended integer…|1..> | ∑ t]
+		else [0];
+	a dice outcome with
+		detailed outcome ::= details,
+		result ::= outcome's result - delta
+];

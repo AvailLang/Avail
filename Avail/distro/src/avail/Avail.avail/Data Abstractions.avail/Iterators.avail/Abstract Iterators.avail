@@ -758,7 +758,7 @@ Private method "concatenation semantic restriction" is
 		[
 			index : natural number
 		|
-			elementType := eject ↑elementType ∪ iterators[index]'s element type;
+			elementType := eject elementType ∪ iterators[index]'s element type;
 		];
 		extend concatenation iterator with
 			element type : elementType,
@@ -873,7 +873,7 @@ Private method "zip semantic restriction" is
 		[
 			index : natural number
 		|
-			types := eject ↑types
+			types := eject types
 				++ <iterators[index]'s element type's instance>;
 		];
 		nonempty ::= cast types into [t : <any's type…|1..> | t];
@@ -921,7 +921,7 @@ Method "take«at most»?_from_" is
 		Repeat
 		[
 			next ::= anIterator's current element;
-			result := eject ↑result ++ <next>;
+			result := eject result ++ <next>;
 			Advance anIterator;
 		] count times;
 	]
@@ -987,7 +987,7 @@ Method "take from_while_" is
 	]
 	do
 	[
-		result := eject ↑result ++ <anIterator's current element>;
+		result := eject result ++ <anIterator's current element>;
 		Advance anIterator;
 	];
 	result
@@ -1029,7 +1029,7 @@ Method "take from_until_" is
 	]
 	do
 	[
-		result := eject ↑result ++ <anIterator's current element>;
+		result := eject result ++ <anIterator's current element>;
 		Advance anIterator;
 	];
 	result

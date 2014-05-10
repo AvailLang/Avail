@@ -53,7 +53,7 @@ Test "write reactor" in observation test suite is
 	↑x's write reactors += k→[result := ref;];
 	Observe [x := ref;];
 	Require: x = ref;
-	Require: ↑result is assigned;
+	Require: result is assigned;
 	Require: result = ref;
 ];
 
@@ -70,9 +70,9 @@ Test "multiple write reactor" in observation test suite is
 	↑x's write reactors += k2→[result2 := ref2;];
 	Observe [x := ref1 + ref2;];
 	Require: x = ref1 + ref2;
-	Require: ↑result1 is assigned;
+	Require: result1 is assigned;
 	Require: result1 = ref1;
-	Require: ↑result2 is assigned;
+	Require: result2 is assigned;
 	Require: result2 = ref2;
 ];
 
@@ -85,12 +85,12 @@ Test "write reactor fires only once" in observation test suite is
 	↑x's write reactors += k→[result := ref;];
 	Observe [x := ref;];
 	Require: x = ref;
-	Require: ↑result is assigned;
+	Require: result is assigned;
 	Require: result = ref;
-	Clear ↑result;
+	Clear result;
 	Observe [x := ref × 10;];
 	Require: x = ref × 10;
-	Require: ↑result is unassigned;
+	Require: result is unassigned;
 ];
 
 Test "remove write reactor" in observation test suite is
@@ -103,7 +103,7 @@ Test "remove write reactor" in observation test suite is
 	↑x's write reactors -= k;
 	Observe [x := ref;];
 	Require: x = ref;
-	Require: ↑result is unassigned;
+	Require: result is unassigned;
 ];
 
 Test "observe single variable" in observation test suite is
@@ -120,7 +120,7 @@ Test "observe single variable" in observation test suite is
 	ref ::= 10101;
 	Observe [x := ref;];
 	Require: x = ref;
-	Require: ↑result is assigned;
+	Require: result is assigned;
 	Require: result = ref;
 ];
 
@@ -138,22 +138,22 @@ Test "observe two variables" in observation test suite is
 	];
 	Observe [x := 5;];
 	Require: x = 5;
-	Require: ↑result is assigned;
+	Require: result is assigned;
 	Require: result = 5;
-	Clear ↑result;
+	Clear result;
 	Observe [y := 5;];
 	Require: y = 5;
-	Require: ↑result is assigned;
+	Require: result is assigned;
 	Require: result = 10;
-	Clear ↑result;
+	Clear result;
 	Observe [x := 10; y := 0;];
 	Require: x = 10;
 	Require: y = 0;
-	Require: ↑result is unassigned;
+	Require: result is unassigned;
 	Observe [x := 1; y := -1;];
 	Require: x = 1;
 	Require: y = -1;
-	Require: ↑result is assigned;
+	Require: result is assigned;
 	Require: result = 0;
 ];
 
@@ -173,22 +173,22 @@ Test "observe nested functions" in observation test suite is
 	];
 	Observe [x := 5;];
 	Require: x = 5;
-	Require: ↑result is assigned;
+	Require: result is assigned;
 	Require: result = 5;
-	Clear ↑result;
+	Clear result;
 	Observe [y := 5;];
 	Require: y = 5;
-	Require: ↑result is assigned;
+	Require: result is assigned;
 	Require: result = 10;
-	Clear ↑result;
+	Clear result;
 	Observe [x := 10; y := 0;];
 	Require: x = 10;
 	Require: y = 0;
-	Require: ↑result is unassigned;
+	Require: result is unassigned;
 	Observe [x := 1; y := -1;];
 	Require: x = 1;
 	Require: y = -1;
-	Require: ↑result is assigned;
+	Require: result is assigned;
 	Require: result = 0;
 ];
 
@@ -220,7 +220,7 @@ Test "curtailed subsequent trace" in observation test suite is
 	];
 	Require: n = 10;
 	Require: d = 2;
-	Require: ↑result is assigned;
+	Require: result is assigned;
 	Require: result = 5;
 	Observe [d := 0;];
 ]
@@ -240,7 +240,7 @@ Test "curtailed observe" in observation test suite is
 	];
 	Require: n = 10;
 	Require: d = 2;
-	Require: ↑result is assigned;
+	Require: result is assigned;
 	Require: result = 5;
 	Observe [d := d ÷ (d - 2);];
 ]

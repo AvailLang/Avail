@@ -82,7 +82,7 @@ Private method "setup for_" is
 	do
 	[
 		suite ::= suites by atom[suiteID];
-		setup := suite's suite fixture setup ++ eject ↑setup;
+		setup := suite's suite fixture setup ++ eject setup;
 		suiteID := suite's parent suite ID;
 	];
 	setup
@@ -109,7 +109,7 @@ Private method "setup for_" is
 	do
 	[
 		suite ::= suites by atom[suiteID];
-		setup := suite's test fixture setup ++ eject ↑setup;
+		setup := suite's test fixture setup ++ eject setup;
 		suiteID := suite's parent suite ID;
 	];
 	setup
@@ -136,7 +136,7 @@ Private method "tear down for_" is
 	do
 	[
 		suite ::= suites by atom[suiteID];
-		tearDown := eject ↑tearDown ++ suite's suite fixture tear down;
+		tearDown := eject tearDown ++ suite's suite fixture tear down;
 		suiteID := suite's parent suite ID;
 	];
 	tearDown
@@ -163,7 +163,7 @@ Private method "tear down for_" is
 	do
 	[
 		suite ::= suites by atom[suiteID];
-		tearDown := eject ↑tearDown ++ suite's test fixture tear down;
+		tearDown := eject tearDown ++ suite's test fixture tear down;
 		suiteID := suite's parent suite ID;
 	];
 	tearDown
@@ -478,7 +478,7 @@ Private method "recursively visit_,on entering do_,on leaving do_" is
 			recursively visit suites by atom[childID],
 			on entering do enterAction,
 			on leaving do leaveAction;
-		results := eject ↑results ++ childResults;
+		results := eject results ++ childResults;
 	];
 	leaveAction(aSuite);
 	results
@@ -748,7 +748,7 @@ Private method "report for_,⁇organized by_,⁇with headers given by_" is
 		key : any,
 		results : <unit test result…|>
 	|
-		desc := eject ↑desc
+		desc := eject desc
 			++ left fold <heading(key)> ++ results through
 				[
 					result : unit test result,
@@ -757,7 +757,7 @@ Private method "report for_,⁇organized by_,⁇with headers given by_" is
 					partial ++ "\t" ++ short “result” ++ "\n"
 				];
 		statistics ::= group results by discriminator;
-		desc := eject ↑desc
+		desc := eject desc
 			++ format
 				"\t(summary: total=“total”, passed=“passed”, \
 				\|failed=“failed”, skipped=“skipped”)\n\n"
@@ -766,7 +766,7 @@ Private method "report for_,⁇organized by_,⁇with headers given by_" is
 				passed ::= |statistics[_passed] else [<>]|,
 				failed ::= |statistics[_failed] else [<>]|,
 				skipped ::= |statistics[_skipped] else [<>]|;
-		badResults := eject ↑badResults ++ bad results of results;
+		badResults := eject badResults ++ bad results of results;
 	];
 	/* Compute statistics. */
 	statistics ::= group report's metrics by discriminator;
@@ -777,12 +777,12 @@ Private method "report for_,⁇organized by_,⁇with headers given by_" is
 	do
 	[
 		result ::= badResults[index];
-		details := eject ↑details ++ long “result”;
-		↑index++;
+		details := eject details ++ long “result”;
+		index++;
 	]
 	alternate with
 	[
-		details := eject ↑details ++ "\n" ++ banner ++ "\n";
+		details := eject details ++ "\n" ++ banner ++ "\n";
 	];
 	/* Format report. */
 	format

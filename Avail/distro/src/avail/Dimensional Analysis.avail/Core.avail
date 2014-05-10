@@ -405,7 +405,7 @@ Public method "Prefer_for printing_in a dimensioned quantity" is
 		Lock stateLock for
 		[
 			symbolsByUnit := symbolsByUnit - aUnit (Avail);
-			If ↑unitAtom is assigned then
+			If unitAtom is assigned then
 			[
 				If oldSymbol ≠ bogus then
 				[
@@ -619,7 +619,7 @@ Public stable method "_·_(unit map)" is
 		key : atom
 	|
 		exponent ::= mapX[key] else [mapY[key]];
-		unitMap := eject ↑unitMap + key→exponent;
+		unitMap := eject unitMap + key→exponent;
 	];
 	For each intersectionKeys do
 	[
@@ -628,7 +628,7 @@ Public stable method "_·_(unit map)" is
 		exponent ::= mapX[key] + mapY[key] (Avail);
 		Unless exponent = 0 then
 		[
-			unitMap := eject ↑unitMap + key→exponent;
+			unitMap := eject unitMap + key→exponent;
 		];
 	];
 	unitMap
@@ -1424,8 +1424,8 @@ Method "_^_(unit map)" is
 		exponent : integer
 	|
 		exponentType ::= exponent's type × power (Avail);
-		minExponent := eject ↑minExponent min ⎣exponentType⎦;
-		maxExponent := eject ↑maxExponent max ⎡exponentType⎤;
+		minExponent := eject minExponent min ⎣exponentType⎦;
+		maxExponent := eject maxExponent max ⎡exponentType⎤;
 	];
 	valueType ::= (minExponent - 1 (Avail) .. maxExponent + 1 (Avail));
 	{atom→valueType | |unitMap|'s type}

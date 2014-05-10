@@ -132,7 +132,7 @@ readable file iterator's next buffer method is
 				Signal readComplete;
 			];
 	Await readComplete;
-	If ↑buffer is unassigned then [Raise an I/O exception];
+	If buffer is unassigned then [Raise an I/O exception];
 	anIterator's file position := anIterator's file position + |buffer|;
 	buffer
 ] : <byte…|>;
@@ -158,13 +158,11 @@ Public method "a file iterator for_«that buffers_bytes»" is
 	fn : file name,
 	optionalSize : <[2..∞)…|0..1>
 |
-	size ::= optionalSize[1] else [32768];
-	file : readable file := a file named fn with options {read};
 	a readable file iterator with
 		element type ::= byte,
 		position type ::= natural number,
-		element source ::= file,
-		maximum buffer size ::= size,
+		element source ::= fn opened with options {read},
+		maximum buffer size ::= optionalSize[1] else [32768],
 		file position := 1
 ] : readable file iterator;
 

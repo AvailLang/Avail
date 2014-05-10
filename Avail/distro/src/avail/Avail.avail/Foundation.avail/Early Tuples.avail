@@ -134,7 +134,7 @@ Semantic restriction "«_‡++»" is
 	[
 		index : natural number
 	|
-		result := eject ↑result ++ tuplesType[index];
+		result := eject result ++ tuplesType[index];
 		true
 	];
 	result
@@ -287,7 +287,7 @@ Public method "tuple type of_[_.._]" is
 		[
 			j : natural number
 		|
-			union := eject ↑union ∪ aTupleType[j];
+			union := eject union ∪ aTupleType[j];
 			true
 		];
 		types := cast concatenate <types, <union>>
@@ -376,7 +376,7 @@ Private method "tuple meta of_[_.._]" is
 		[
 			j : natural number
 		|
-			union := eject ↑union ∪ (aTupleType[j]'s type);
+			union := eject union ∪ (aTupleType[j]'s type);
 			true
 		];
 		types := cast concatenate <types, <union>>
@@ -586,7 +586,7 @@ Semantic restriction "concatenate_" is
 	[
 		index : natural number
 	|
-		result := eject ↑result ++ tupleType[index];
+		result := eject result ++ tupleType[index];
 		true
 	];
 	If ⎡sizes⎤ is infinite then
@@ -687,9 +687,9 @@ Semantic restriction "_→map" is
 	|
 		bindingType ::= /*cast*/ tupleType[index]
 			/*into [ t : <<>, any…|[2..2]>'s type | t ]*/;
-		keyType := cast eject ↑keyType ∪ bindingType[1]
+		keyType := cast eject keyType ∪ bindingType[1]
 			into [ t : any meta | t ];
-		valueType := cast eject ↑valueType ∪ bindingType[2]
+		valueType := cast eject valueType ∪ bindingType[2]
 			into [ t : any meta | t ];
 		true
 	];

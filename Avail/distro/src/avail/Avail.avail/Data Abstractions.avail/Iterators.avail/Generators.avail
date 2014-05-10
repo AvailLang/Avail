@@ -184,7 +184,7 @@ Public method "generator for_" is
 					/* Clear the execution continuation to indicate that the
 					 * generator is exhausted.
 					 */
-					Clear ↑state;
+					Clear state;
 					/* Return control to the client continuation. */
 					Exit caller
 				]
@@ -195,7 +195,7 @@ Public method "generator for_" is
 					/* Clear the execution continuation to indicate that the
 					 * generator is defunct.
 					 */
-					Clear ↑state;
+					Clear state;
 					/* Restart the client continuation with the exception. The
 					 * continuation will re-raise the exception.
 					 */
@@ -249,7 +249,7 @@ Test "generator basics" in generator test suite is
 	[
 		element : [1..10]
 	|
-		Require: element = ref[(↑index++)];
+		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
 ];
@@ -268,7 +268,7 @@ Test "generator raises exception" in generator test suite is
 	[
 		element : [0..10]
 	|
-		Require: element = ref[(↑index++)];
+		Require: element = ref[(index++)];
 	];
 ]
 must raise cannot-divide-by-zero exception;
@@ -288,7 +288,7 @@ Test "generator with multiple yields" in generator test suite is
 	[
 		element : [1..10]
 	|
-		Require: element = ref[(↑index++)];
+		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
 ];

@@ -170,7 +170,7 @@ openingSceneName ::= "the opening scene";
 /* These atoms are needed by context type constructor synthesis. */
 currentSceneAtom ::= $"current scene";
 getAtom ::= $"↓_";
-putAtom ::= $"↓_`?=_";
+putAtom ::= $"_`?=_";
 
 /**
  * Generate and install a type accessor named {@method "game context"} to answer
@@ -454,7 +454,7 @@ Private method "Install the scene vault for_" is
 	 */
 	sceneVaultType ::= {↑sceneType→nonempty string|};
 	sceneVault ::= new ↑sceneVaultType;
-	↓sceneVault ?= {};
+	sceneVault ?= {};
 
 	/* In the event that multiple story modules are being loading concurrently,
 	 * then we need to protect the scene vault against concurrent access. So we
@@ -870,7 +870,7 @@ Public method "Let«_‡,⁇and⁇»be a⁇scene|scenes" is
 			internalName ::= aBinding[2];
 			sceneVaultMap ::=
 				cast ↓sceneVaultVar into [v : {variable→nonempty string|} | v];
-			↓sceneVaultVar ?= sceneVaultMap + sceneVar→internalName;
+			sceneVaultVar ?= sceneVaultMap + sceneVar→internalName;
 		];
 	];
 ] : ⊤;
@@ -1177,7 +1177,7 @@ Private method "Generate scene transition constructors" is
 				argName ::= argNames[index];
 				arg ::= arg «`argName` : argType»;
 				args := args ++ <arg>;
-				↑outputIndex++;
+				outputIndex++;
 				argMap := argMap + index→outputIndex;
 			]
 			else
@@ -1366,7 +1366,7 @@ is
 		before entry doing entryWrapper,
 		described by describerWrapper,
 		with transitions transitions;
-	↓sceneVar ?= aScene;
+	sceneVar ?= aScene;
 ] : ⊤;
 
 Semantic restriction
@@ -1444,7 +1444,7 @@ Public method "Let_be the opening scene" is
 	contextType ::= dynamic game context type;
 	sceneType ::= scene for contextType;
 	openingSceneVar ::= dynamic opening scene variable for sceneType;
-	↓openingSceneVar ?= ↓sceneVar;
+	openingSceneVar ?= ↓sceneVar;
 ] : ⊤;
 
 Semantic restriction "Let_be the opening scene" is
@@ -1506,7 +1506,7 @@ is
 			If v is assigned ∧ [↓v ∈ scenes] then
 			[
 				aScene ::= cast ↓v into [s : scene | s];
-				↓reachable ?= ↓reachable + aScene;
+				reachable ?= ↓reachable + aScene;
 			];
 		],
 		[
@@ -1522,7 +1522,7 @@ is
 			message ::= b's atom's name;
 			If message ∈ scenesByName then
 			[
-				↓reachable ?= ↓reachable + scenesByName[message];
+				reachable ?= ↓reachable + scenesByName[message];
 			];
 		],
 		[

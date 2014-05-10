@@ -443,7 +443,7 @@ Method "For each of⁇_do_" is
 	do
 	[
 		action(rest's head);
-		rest := eject ↑rest's tail;
+		rest := eject rest's tail;
 	];
 ] : ⊤;
 
@@ -596,7 +596,7 @@ Method "_is empty" is
 		[
 			found := true;
 		];
-		rest := eject ↑rest's tail;
+		rest := eject rest's tail;
 	];
 	¬found
 ] : boolean;
@@ -610,7 +610,7 @@ filtered stream's head method is
 	Until [ aStream's filter(rest's head) ]
 	do
 	[
-		rest := eject ↑rest's tail;
+		rest := eject rest's tail;
 	];
 	rest's head
 ] : any;
@@ -624,9 +624,9 @@ filtered stream's tail method is
 	Until [ aStream's filter(rest's head) ]
 	do
 	[
-		rest := eject ↑rest's tail;
+		rest := eject rest's tail;
 	];
-	rest := eject ↑rest's tail;
+	rest := eject rest's tail;
 	If rest is empty then [ an empty stream ]
 	else
 	[
@@ -723,7 +723,7 @@ concatenation stream's head method is
 |
 	index : natural number := aStream's stream index;
 	streams ::= aStream's decorated streams;
-	While [ streams[index] is empty ] do [ ↑index++; ];
+	While [ streams[index] is empty ] do [ index++; ];
 	streams[index]'s head
 ];
 
@@ -733,7 +733,7 @@ concatenation stream's tail method is
 |
 	index : natural number := aStream's stream index;
 	streams ::= aStream's decorated streams;
-	While [ streams[index] is empty ] do [ ↑index++; ];
+	While [ streams[index] is empty ] do [ index++; ];
 	a concatenation stream with
 		element type ::= aStream's element type,
 		decorated streams ::= streams[index]→(streams[index]'s tail),
@@ -811,7 +811,7 @@ Private method "concatenation semantic restriction" is
 		[
 			index : natural number
 		|
-			elementType := eject ↑elementType ∪ streams[index]'s element type;
+			elementType := eject elementType ∪ streams[index]'s element type;
 		];
 		extend concatenation stream with
 			element type : elementType,
@@ -924,7 +924,7 @@ Private method "zip semantic restriction" is
 		[
 			index : natural number
 		|
-			types := eject ↑types ++ <streams[index]'s element type's instance>;
+			types := eject types ++ <streams[index]'s element type's instance>;
 		];
 		nonempty ::= cast types into [ t : <any's type…|1..> | t ];
 		elementType ::=
@@ -970,8 +970,8 @@ Method "take«at most»?_from_" is
 		Repeat
 		[
 			next ::= rest's head;
-			result := eject ↑result ++ <next>;
-			rest := eject ↑rest's tail;
+			result := eject result ++ <next>;
+			rest := eject rest's tail;
 		] count times;
 	]
 	intercept
@@ -1017,8 +1017,8 @@ Method "take from_while_" is
 	While [¬rest is empty ∧ [predicate(rest's head)]]
 	do
 	[
-		result := eject ↑result ++ <rest's head>;
-		rest := eject ↑rest's tail;
+		result := eject result ++ <rest's head>;
+		rest := eject rest's tail;
 	];
 	result
 ] : tuple;
@@ -1056,8 +1056,8 @@ Method "take from_until_" is
 	Until [rest is empty ∨ [predicate(rest's head)]]
 	do
 	[
-		result := eject ↑result ++ <rest's head>;
-		rest := eject ↑rest's tail;
+		result := eject result ++ <rest's head>;
+		rest := eject rest's tail;
 	];
 	result
 ] : tuple;
@@ -1102,7 +1102,7 @@ Method "drop«at most»?_from_" is
 	[
 		Repeat
 		[
-			rest := eject ↑rest's tail;
+			rest := eject rest's tail;
 		] count times;
 	]
 	intercept
@@ -1146,7 +1146,7 @@ Method "drop from_while_" is
 	While [¬rest is empty ∧ [predicate(rest's head)]]
 	do
 	[
-		rest := eject ↑rest's tail;
+		rest := eject rest's tail;
 	];
 	rest
 ] : stream;
@@ -1183,7 +1183,7 @@ Method "drop from_until_" is
 	Until [rest is empty ∨ [predicate(rest's head)]]
 	do
 	[
-		rest := eject ↑rest's tail;
+		rest := eject rest's tail;
 	];
 	rest
 ] : stream;
@@ -1221,7 +1221,7 @@ Method "_starts with_" is
 		value : any
 	|
 		If rest's head ≠ value then [ Exit body with false ];
-		rest := eject ↑rest's tail;
+		rest := eject rest's tail;
 	];
 	true
 ] : boolean;

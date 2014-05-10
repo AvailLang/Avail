@@ -63,8 +63,8 @@ Method "“_”" is
 		"{" ++ “t's key type” ++ "→" ++ “t's value type” ++ "|";
 	lower ::= ⎣t⎦;
 	upper ::= ⎡t⎤;
-	s := eject ↑s ++ “||t||” (cardinality restriction);
-	s := eject ↑s ++ "}";
+	s := eject s ++ “||t||” (cardinality restriction);
+	s := eject s ++ "}";
 	s
 ] : string;
 
@@ -146,7 +146,7 @@ Method "For each of⁇_do_" is
 		[
 			binding ::= bindings[index];
 			action(binding[1], binding[2]);
-			↑index++;
+			index++;
 			Restart loop
 		];
 	]();
@@ -251,8 +251,8 @@ Method "map_through_" is
 			binding ::= bindings[index];
 			key ::= binding[1];
 			value ::= binding[2];
-			result := eject ↑result + key→transformer(key, value);
-			↑index++;
+			result := eject result + key→transformer(key, value);
+			index++;
 			Restart loop
 		];
 	]();
@@ -318,9 +318,9 @@ Method "filter_by_" is
 			value ::= binding[2];
 			If predicate(key, value) then
 			[
-				result := eject ↑result + key→value;
+				result := eject result + key→value;
 			];
-			↑index++;
+			index++;
 			Restart loop
 		];
 	]();
@@ -390,12 +390,12 @@ Method "map and filter_by_" is
 				|
 					If ¬hasAlreadyKept then
 					[
-						result := eject ↑result + key→transformed;
+						result := eject result + key→transformed;
 						hasAlreadyKept := true;
 					];
 				]
 			);
-			↑index++;
+			index++;
 			Restart loop
 		];
 	]();
@@ -616,7 +616,7 @@ Method "group_by_" is
 	|
 		key ::= discriminator(element);
 		group ::= groups[key] else [ <> ] ++ <element>;
-		groups := eject ↑groups + key→group;
+		groups := eject groups + key→group;
 	];
 	groups
 ] : map;
@@ -666,7 +666,7 @@ Method "group_by_" is
 	|
 		key ::= discriminator(element);
 		group ::= groups[key] else [ ∅ ] + element;
-		groups := eject ↑groups + key→group;
+		groups := eject groups + key→group;
 	];
 	groups
 ] : map;

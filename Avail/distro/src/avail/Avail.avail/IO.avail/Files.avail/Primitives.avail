@@ -53,7 +53,7 @@ Names
 	"writable file",
 
 	/* File constructors. */
-	"a file named_with options_«with file access rights_»",
+	"_opened with options_«with file access rights_»",
 
 	/* File attributes. */
 	"_'s⁇name",
@@ -153,7 +153,7 @@ _default_access_rights ::= "rw-r--r--" → file access rights;
  * Answer an abstraction of the file named {@param "n"} that is open for
  * reading. The file position is initially zero ({@code 0}).
  *
- * @method "a file named_with options_«with file access rights_»"
+ * @method "_opened with options_«with file access rights_»"
  * @param "fileName" "file name"
  * @param "optionSet" "{open option|}"
  * @param "accessRights" "<{file access right|}…|0..1>"
@@ -163,7 +163,7 @@ _default_access_rights ::= "rw-r--r--" → file access rights;
  * @raises "I/O exception"
  *         If an I/O error occurs for any reason.
  */
-Public method "a file named_with options_«with file access rights_»" is
+Public method "_opened with options_«with file access rights_»" is
 [
 	fileName : file name,
 	optionSet : {open option|1..9},
@@ -189,12 +189,12 @@ Public method "a file named_with options_«with file access rights_»" is
  * Strengthen the type with the file name and whether {@code "read"} and/or
  * {@code "write"} are specified.
  * 
- * @method "a file named_with options_«with file access rights_»"
+ * @method "_opened with options_«with file access rights_»"
  * @restricts "file name's type"
  * @restricts "{open option|}'s type"
  * @restricts "{file access right|}'s type"
  */
-Semantic restriction "a file named_with options_«with file access rights_»" is
+Semantic restriction "_opened with options_«with file access rights_»" is
 [
 	fileName : file name's type,
 	optionSet : {open option|1..9}'s type,
@@ -251,10 +251,10 @@ Stable method "“_”" is
 	f : file
 |
 	s : string := if f is open then ["open"] else ["closed"];
-	s := eject ↑s ++ " file named " ++ “file's name”;
+	s := eject s ++ " file named " ++ “file's name”;
 	If f is open then
 	[
-		s := eject ↑s ++ " " ++
+		s := eject s ++ " " ++
 			if f is readable then
 			[
 				if f is writable then ["(readable, writable)"]

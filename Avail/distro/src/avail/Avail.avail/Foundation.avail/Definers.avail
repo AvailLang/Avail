@@ -40,6 +40,7 @@ Uses
 	"Early Control Structures",
 	"Early Enumeration Support",
 	"Early Literals",
+	"Early Variables",
 	"Phrases"
 Names
 	"Method_is stable at_",
@@ -1125,7 +1126,7 @@ Public method "Public variable_is_" is
 		applying [ ↓var ];
 	Method cast concatenate <accessorName, ":=_"> into [t : string | t] is
 		new function accepting <writeType> and returning ⊤
-		applying [t : any | ↓var ?= t;];
+		applying [t : any | var ?= t;];
 ] : ⊤;
 
 /**

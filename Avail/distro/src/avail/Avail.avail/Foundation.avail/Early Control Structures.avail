@@ -37,8 +37,9 @@ Uses
 	"Bootstrap",
 	"Early Assertions",
 	"Early Definers",
+	"Early Enumeration Support",
 	"Early Literals",
-	"Early Enumeration Support"
+	"Early Variables"
 Names
 	"Ignore:_",
 	"From_to_do_",
@@ -151,21 +152,6 @@ Semantic restriction "If|if_then_else_" is
 	falseFunction's return type
 ];
 
-/*
- * This is used very frequently in the system library, so strengthen it early.
- */
-
-/**
- * @method "eject_"
- * @restricts "variable meta"
- */
-Semantic restriction "eject_" is
-[
-	varType : variable meta
-|
-	varType's read type
-];
-
 /**
  * If the function {@param "accept"} accepts {@param "value"} as an argument 
  * (based on its runtime type), then invoke {@param "accept"} with {@param 
@@ -234,7 +220,7 @@ Public method "Cast|cast_into_" is
 			" was not an instance of ",
 			(primitive description of accept's type[1])>;
 		s : string;
-		↓↑s ?= t;
+		↑s ?= t;
 		Assert: false (s)
 	];
 ] : ⊤;

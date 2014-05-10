@@ -75,7 +75,7 @@ Private method "_queens" is
 		[
 			i : natural number
 		|
-			queens := eject ↑queens[i] → trial# of n;
+			queens := eject queens[i] → trial# of n;
 			From 1 to i - 1 do
 			[
 				j : natural number

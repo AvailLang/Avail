@@ -293,6 +293,6 @@ Public method "Require:_are sensible" is
 					"value of option \"“①”\" to be a subtype of “②” (not “③”)"
 				with option, expectedValueType, valueType
 		];
-		seen := eject ↑seen + option;
+		seen := eject seen + option;
 	];
 ] : ⊤;

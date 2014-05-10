@@ -5135,7 +5135,7 @@ implements
 	@Override
 	public void addConstantBinding (
 		final A_String name,
-		final A_BasicObject constantBinding)
+		final A_Variable constantBinding)
 	{
 		descriptor.o_AddConstantBinding(
 			this,
@@ -5150,7 +5150,7 @@ implements
 	@Override
 	public void addVariableBinding (
 		final A_String name,
-		final A_BasicObject variableBinding)
+		final A_Variable variableBinding)
 	{
 		descriptor.o_AddVariableBinding(
 			this,

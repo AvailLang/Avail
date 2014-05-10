@@ -173,7 +173,7 @@ extends A_BasicObject
 	 */
 	void addConstantBinding (
 		A_String name,
-		A_BasicObject constantBinding);
+		A_Variable constantBinding);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -207,7 +207,7 @@ extends A_BasicObject
 	 */
 	void addVariableBinding (
 		A_String name,
-		A_BasicObject variableBinding);
+		A_Variable variableBinding);
 
 	/**
 	 * @return

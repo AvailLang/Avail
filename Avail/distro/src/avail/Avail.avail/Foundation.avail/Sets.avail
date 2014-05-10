@@ -77,8 +77,8 @@ Method "“_”" is
 	s : nonempty string := "{" ++ “t's element type” ++ "|";
 	lower ::= ⎣t⎦;
 	upper ::= ⎡t⎤;
-	s := eject ↑s ++ “||t||” (cardinality restriction);
-	s := eject ↑s ++ "}";
+	s := eject s ++ “||t||” (cardinality restriction);
+	s := eject s ++ "}";
 	s
 ] : string;
 
@@ -209,7 +209,7 @@ Method "For each of⁇_do_" is
 		If index ≤ end then
 		[
 			action(aTuple[index]);
-			↑index++;
+			index++;
 			Restart loop
 		];
 	]();
@@ -300,8 +300,8 @@ Method "map_through_" is
 		$loop;
 		If index ≤ end then
 		[
-			result := eject ↑result + transformer(aTuple[index]);
-			↑index++;
+			result := eject result + transformer(aTuple[index]);
+			index++;
 			Restart loop
 		];
 	]();
@@ -365,9 +365,9 @@ Method "filter_by_" is
 			element ::= aTuple[index];
 			If predicate(element) then
 			[
-				result := eject ↑result + element;
+				result := eject result + element;
 			];
-			↑index++;
+			index++;
 			Restart loop
 		];
 	]();
@@ -434,12 +434,12 @@ Method "map and filter_by_" is
 				|
 					If ¬hasAlreadyKept then
 					[
-						result := eject ↑result + transformed;
+						result := eject result + transformed;
 						hasAlreadyKept := true;
 					];
 				]
 			);
-			↑index++;
+			index++;
 			Restart loop
 		];
 	]();

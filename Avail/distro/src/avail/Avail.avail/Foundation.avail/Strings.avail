@@ -175,7 +175,7 @@ Private stable method "format sites for_" is
 			interpType : interpolation mode
 		|
 			start ::= index;
-			Do [ ↑index++; ] while
+			Do [ index++; ] while
 			[
 				If index > |template| then
 				[
@@ -188,7 +188,7 @@ Private stable method "format sites for_" is
 				early failure function(empty-format-variable code)
 			];
 			varName ::= template[start + 1..index - 1];
-			sites := eject ↑sites ++ <<varName, interpType, start, index>>;
+			sites := eject sites ++ <<varName, interpType, start, index>>;
 		];
 	invalid ::= [early failure function(invalid-format-metacharacter-use code)];
 	While [ index ≤ |template| ] do
@@ -204,7 +204,7 @@ Private stable method "format sites for_" is
 				¢“ is [ addSite(¢”, description); ],
 				¢` is
 				[
-					start ::= (↑index++);
+					start ::= (index++);
 					If index > |template|
 						∨ [ ¬template[index] ∈ format metacharacters ]
 					then
@@ -213,7 +213,7 @@ Private stable method "format sites for_" is
 							invalid-format-metacharacter-escape code)
 					];
 					escaped ::= <template[index]>;
-					sites := eject ↑sites ++ <<escaped, escape, start, index>>;
+					sites := eject sites ++ <<escaped, escape, start, index>>;
 				],
 				¢’ is invalid,
 				¢” is invalid,
@@ -232,7 +232,7 @@ Private stable method "format sites for_" is
 		 * interest to it. The following statement skips that character. This
 		 * factoring ensures that progress is always made through the template.
 		 */
-		↑index++;
+		index++;
 	];
 	sites
 ] : <format site…|>;
@@ -295,7 +295,7 @@ Public stable method "partially format_with_" is
 		/* Append any characters between the last site and the previous site
 		 * onto the output.
 		 */
-		formatted := eject ↑formatted ++ template[index..site[3] - 1];
+		formatted := eject formatted ++ template[index..site[3] - 1];
 		/* Interpolate the variable. */
 		var ::= site[1];
 		interpolation ::= choose site[2] from interpolation mode where
@@ -312,12 +312,12 @@ Public stable method "partially format_with_" is
 			[
 				"`" ++ var
 			];
-		formatted := eject ↑formatted ++ interpolation;
+		formatted := eject formatted ++ interpolation;
 		/* Update the template subscript (to point just beyond this site). */
 		index := site[4] + 1;
 	];
 	Assert: 1 ≤ index ≤ |template| + 1;
-	formatted := eject ↑formatted ++ template[index..];
+	formatted := eject formatted ++ template[index..];
 	formatted
 ] : string;
 
@@ -416,7 +416,7 @@ Public stable method "format_with_" is
 		/* Append any characters between the last site and the previous site
 		 * onto the output.
 		 */
-		formatted := eject ↑formatted ++ template[index..site[3] - 1];
+		formatted := eject formatted ++ template[index..site[3] - 1];
 		/* Interpolate the variable. */
 		interpolation ::= choose site[2] from interpolation mode where
 			description is
@@ -433,12 +433,12 @@ Public stable method "format_with_" is
 			[
 				site[1]
 			];
-		formatted := eject ↑formatted ++ interpolation;
+		formatted := eject formatted ++ interpolation;
 		/* Update the template subscript (to point just beyond this site). */
 		index := site[4] + 1;
 	];
 	Assert: 1 ≤ index ≤ |template| + 1;
-	formatted := eject ↑formatted ++ template[index..];
+	formatted := eject formatted ++ template[index..];
 	formatted
 ] : string;
 
@@ -584,7 +584,7 @@ Semantic restriction "partially format_with«…::=_‡,»" is
 					++ “binding[2]”
 					++ " (because at least one format site requires this)"
 			];
-			bindingVars := eject ↑bindingVars + var;
+			bindingVars := eject bindingVars + var;
 		];
 		unmentionedVars ::= bindingVars \ templateVars;
 		If unmentionedVars ≠ ∅ then
@@ -685,7 +685,7 @@ Semantic restriction "format_with«…::=_‡,»" is
 					++ “binding[2]”
 					++ " (because at least one format site requires this)"
 			];
-			bindingVars := eject ↑bindingVars + var;
+			bindingVars := eject bindingVars + var;
 		];
 		unboundVars ::= templateVars \ bindingVars;
 		If unboundVars ≠ ∅ then
@@ -762,7 +762,7 @@ Public stable method "format_with unchecked_" is
 		/* Append any characters between the last site and the previous site
 		 * onto the output.
 		 */
-		formatted := eject ↑formatted ++ template[index..site[3] - 1];
+		formatted := eject formatted ++ template[index..site[3] - 1];
 		/* Interpolate the variable. */
 		If |site[1]| > 1 then badName;
 		var ::= site[1][1];
@@ -787,12 +787,12 @@ Public stable method "format_with unchecked_" is
 			[
 				site[1]
 			];
-		formatted := eject ↑formatted ++ interpolation;
+		formatted := eject formatted ++ interpolation;
 		/* Update the template subscript (to point just beyond this site). */
 		index := site[4] + 1;
 	];
 	Assert: 1 ≤ index ≤ |template| + 1;
-	formatted := eject ↑formatted ++ template[index..];
+	formatted := eject formatted ++ template[index..];
 	formatted
 ] : string;
 
@@ -977,7 +977,7 @@ Public stable method "_(base_)" is
 					else if [cp_A ≤ cp ≤ cp_Z] then [cp - cp_A + 10]
 					else fail;
 				strongValue ::= cast value into [t : [0..36) | t];
-				partial := eject ↑partial × base + strongValue;
+				partial := eject partial × base + strongValue;
 			];
 			partial
 		];
@@ -1162,12 +1162,12 @@ Method "“_”" is
 		Do
 		[
 			elem ::= aTuple[index];
-			s := eject ↑s ++ “elem”;
-			↑index++;
+			s := eject s ++ “elem”;
+			index++;
 		]
 		while [index ≤ |aTuple|]
-		alternate with [s := eject ↑s ++ ", ";];
-		s := eject ↑s ++ ">";
+		alternate with [s := eject s ++ ", ";];
+		s := eject s ++ ">";
 		cast s into [t : <character…|2..> | t]
 	]
 ] : <character…|2..>;
@@ -1258,13 +1258,13 @@ Method "“_”" is
 	[
 		binding ::= bindings[index];
 		key ::= binding[1];
-		s := eject ↑s ++ “key”;
+		s := eject s ++ “key”;
 		value ::= binding[2];
-		s := eject ↑s ++ "→" ++ “value”;
-		↑index++;
+		s := eject s ++ "→" ++ “value”;
+		index++;
 	]
-	alternate with [s := eject ↑s ++ ", ";];
-	s := eject ↑s ++ "}";
+	alternate with [s := eject s ++ ", ";];
+	s := eject s ++ "}";
 	cast s into [t : <character…|2..> | t]
 ] : <character…|2..>;
 
@@ -1350,11 +1350,11 @@ is
 		index : natural number
 	|
 		tx ::= cast aTuple[index] into [t : string | t] else [“aTuple[index]”];
-		s := eject ↑s ++ tx ++ ", ";
+		s := eject s ++ tx ++ ", ";
 	];
 	last ::= aTuple[|aTuple|];
 	tx ::= cast last into [t : string | t] else [“last”];
-	s := eject ↑s ++ <"and ", "or ">[mode] ++ tx;
+	s := eject s ++ <"and ", "or ">[mode] ++ tx;
 	s
 ] : string;
 
@@ -1441,11 +1441,11 @@ is
 		index : natural number
 	|
 		tx ::= cast aTuple[index] into [t : string | t] else [“aTuple[index]”];
-		s := eject ↑s ++ tx ++ ", ";
+		s := eject s ++ tx ++ ", ";
 	];
 	last ::= aTuple[|aTuple|];
 	tx ::= cast last into [t : string | t] else [“last”];
-	s := eject ↑s ++ <"and ", "or ">[mode] ++ tx;
+	s := eject s ++ <"and ", "or ">[mode] ++ tx;
 	s
 ] : string;
 
@@ -1515,14 +1515,14 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 		index : natural number
 	|
 		tx ::= cast aTuple[index] into [t : string | t] else [“aTuple[index]”];
-		s := eject ↑s ++ tx ++ ", ";
+		s := eject s ++ tx ++ ", ";
 	];
 	nextLast ::= aTuple[|aTuple| - 1];
 	tx : string := cast nextLast into [t : string | t] else [“nextLast”];
-	s := eject ↑s ++ tx;
+	s := eject s ++ tx;
 	last ::= aTuple[|aTuple|];
 	tx := cast last into [t : string | t] else [“last”];
-	s := eject ↑s ++ <" and ", " or ">[mode] ++ tx;
+	s := eject s ++ <" and ", " or ">[mode] ++ tx;
 	s
 ] : string;
 
@@ -1595,14 +1595,14 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 		index : natural number
 	|
 		tx ::= cast aTuple[index] into [t : string | t] else [“aTuple[index]”];
-		s := eject ↑s ++ tx ++ ", ";
+		s := eject s ++ tx ++ ", ";
 	];
 	nextLast ::= aTuple[|aTuple| - 1];
 	tx : string := cast nextLast into [t : string | t] else [“nextLast”];
-	s := eject ↑s ++ tx;
+	s := eject s ++ tx;
 	last ::= aTuple[|aTuple|];
 	tx := cast last into [t : string | t] else [“last”];
-	s := eject ↑s ++ <" and ", " or ">[mode] ++ tx;
+	s := eject s ++ <" and ", " or ">[mode] ++ tx;
 	s
 ] : string;
 
@@ -1637,11 +1637,11 @@ Method "“_”«else_»(as list partitioned by_)" is
 		Do
 		[
 			tx ::= cast aTuple[i] into [t : string | t] else [“aTuple[i]”];
-			s := eject ↑s ++ tx;
-			↑i++;
+			s := eject s ++ tx;
+			i++;
 		]
 		while [i ≤ |aTuple|]
-		alternate with [s := eject ↑s ++ separator;];
+		alternate with [s := eject s ++ separator;];
 		s
 	]
 ] : string;

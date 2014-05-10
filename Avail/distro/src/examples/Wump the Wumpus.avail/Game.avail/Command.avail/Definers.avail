@@ -52,7 +52,7 @@ Names
 	"_'s⁇next nodes:=_",
 	"_'s⁇action",
 	"_'s⁇action:=_",
-	"↑_'s⁇action"
+	"`↑_'s⁇action"
 Body
 
 /* Definitions of field atoms. */

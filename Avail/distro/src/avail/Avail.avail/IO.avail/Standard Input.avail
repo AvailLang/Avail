@@ -59,7 +59,7 @@ Public method "next_character|characters«from standard input»⁇" is
 	result : string := "";
 	Repeat
 	[
-		result := eject ↑result ++ <next character>;
+		result := eject result ++ <next character>;
 	] count times;
 	result
 ] : string;
@@ -91,7 +91,7 @@ Public method "next line«from standard input»⁇" is
 	Until
 	[
 		next ::= next character;
-		result := eject ↑result ++ <next>;
+		result := eject result ++ <next>;
 		next = ¢"\n"
 	];
 	nonempty ::= cast result into [t : nonempty string | t];
@@ -119,7 +119,7 @@ Public method "next«value in»⁇_«from standard input»⁇" is
 	[
 		Mark for 1 character of read ahead;
 		next ::= next character;
-		text := eject ↑text ++ <next>;
+		text := eject text ++ <next>;
 		next ∈ integerChars
 	];
 	Reset to mark;

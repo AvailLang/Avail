@@ -389,7 +389,7 @@ Public method "the future of_" is
 	worker : fiber;
 	mutex ::= a monitor named "future monitor";
 	cond ::= a condition of mutex 
-		such that [↑ex is assigned ∨ [↑result is assigned]];
+		such that [ex is assigned ∨ [result is assigned]];
 	worker :=
 		fork
 		[
@@ -401,7 +401,7 @@ Public method "the future of_" is
 				ensure
 				[
 					/* Discard the fiber, to be nice to memory. */
-					Clear ↑worker;
+					Clear worker;
 					Signal cond;
 				];
 			];
@@ -621,7 +621,7 @@ is
 	done ::= a condition of mutex
 		such that [killer is assigned ∨ [workersFinished = workUnitCount]];
 	/* Write back the worker management function. */
-	↓workUnitRunner ?=
+	workUnitRunner ?=
 		[
 			action : []→⊤
 		|
@@ -634,7 +634,7 @@ is
 					action();
 					Lock mutex for
 					[
-						↑workersFinished++;
+						workersFinished++;
 						Assert: workersFinished ≤ workUnitCount;
 						Signal done if satisfied;
 					];
@@ -649,7 +649,7 @@ is
 					/* Only capture the first exception. */
 					If killer is unassigned then
 					[
-						↓killer ?= e;
+						killer ?= e;
 						Signal done;
 					];
 				];
@@ -658,7 +658,7 @@ is
 	/* Write back the function that the caller will use to wait until all
 	 * workers have finished or an exception is raised.
 	 */
-	↓synchronizer ?= [Lock mutex for [Await done;];];
+	synchronizer ?= [Lock mutex for [Await done;];];
 ] : ⊤;
 
 /**
@@ -706,7 +706,7 @@ Public method "For each of⁇_in parallel«_-way»do_" is
 		] in parallel limit-way;
 	waiter();
 	/* If there were any exceptions, then raise the one that was captured. */
-	If ↑killer is assigned then
+	If killer is assigned then
 	[
 		Request termination of injector;
 		Raise a worker exception with causal exception ::= killer
@@ -922,12 +922,12 @@ Public method "map_in parallel«_-way»through_" is
 			workUnitRunner(
 				[
 					result ::= transformer(aTuple[index], index);
-					Lock lock for [results := eject ↑results[index]→result;];
+					Lock lock for [results := eject results[index]→result;];
 				]);
 		] in parallel limit-way;
 	waiter();
 	/* If there were any exceptions, then raise the one that was captured. */
-	If ↑killer is assigned then
+	If killer is assigned then
 	[
 		Request termination of injector;
 		Raise a worker exception with causal exception ::= killer
@@ -1047,12 +1047,12 @@ Public method "map_in parallel«_-way»through_" is
 			workUnitRunner(
 				[
 					result ::= transformer(aTuple[index]);
-					Lock lock for [results := eject ↑results + result;];
+					Lock lock for [results := eject results + result;];
 				]);
 		] in parallel limit-way;
 	waiter();
 	/* If there were any exceptions, then raise the one that was captured. */
-	If ↑killer is assigned then
+	If killer is assigned then
 	[
 		Request termination of injector;
 		Raise a worker exception with causal exception ::= killer
@@ -1139,12 +1139,12 @@ Public method "map_in parallel«_-way»through_" is
 					binding ::= bindings[index];
 					key ::= binding[1];
 					result ::= transformer(key, binding[2]);
-					Lock lock for [results := eject ↑results + key→result;];
+					Lock lock for [results := eject results + key→result;];
 				]);
 		] in parallel limit-way;
 	waiter();
 	/* If there were any exceptions, then raise the one that was captured. */
-	If ↑killer is assigned then
+	If killer is assigned then
 	[
 		Request termination of injector;
 		Raise a worker exception with causal exception ::= killer
@@ -1233,14 +1233,14 @@ Public method "filter_in parallel«_-way»by_" is
 					[
 						Lock lock for
 						[
-							results := eject ↑results[index]→element;
+							results := eject results[index]→element;
 						];
 					];
 				]);
 		] in parallel limit-way;
 	waiter();
 	/* If there were any exceptions, then raise the one that was captured. */
-	If ↑killer is assigned then
+	If killer is assigned then
 	[
 		Request termination of injector;
 		Raise a worker exception with causal exception ::= killer
@@ -1364,13 +1364,13 @@ Public method "filter_in parallel«_-way»by_" is
 					element ::= aTuple[index];
 					If predicate(element) then
 					[
-						Lock lock for [results := eject ↑results + element;];
+						Lock lock for [results := eject results + element;];
 					];
 				]);
 		] in parallel limit-way;
 	waiter();
 	/* If there were any exceptions, then raise the one that was captured. */
-	If ↑killer is assigned then
+	If killer is assigned then
 	[
 		Request termination of injector;
 		Raise a worker exception with causal exception ::= killer
@@ -1450,13 +1450,13 @@ Public method "filter_in parallel«_-way»by_" is
 					value ::= binding[2];
 					If predicate(key, value) then
 					[
-						Lock lock for [results := eject ↑results + key→value;];
+						Lock lock for [results := eject results + key→value;];
 					];
 				]);
 		] in parallel limit-way;
 	waiter();
 	/* If there were any exceptions, then raise the one that was captured. */
-	If ↑killer is assigned then
+	If killer is assigned then
 	[
 		Request termination of injector;
 		Raise a worker exception with causal exception ::= killer
@@ -1549,7 +1549,7 @@ Public method "map and filter_in parallel«_-way»by_" is
 							[
 								Lock lock for
 								[
-									results := eject ↑results[index]→saved;
+									results := eject results[index]→saved;
 									hasAlreadyKept := true;
 								];
 							];
@@ -1558,7 +1558,7 @@ Public method "map and filter_in parallel«_-way»by_" is
 		] in parallel limit-way;
 	waiter();
 	/* If there were any exceptions, then raise the one that was captured. */
-	If ↑killer is assigned then
+	If killer is assigned then
 	[
 		Request termination of injector;
 		Raise a worker exception with causal exception ::= killer
@@ -1661,7 +1661,7 @@ Public method "map and filter_in parallel«_-way»by_" is
 							[
 								Lock lock for
 								[
-									results := eject ↑results[index]→saved;
+									results := eject results[index]→saved;
 									hasAlreadyKept := true;
 								];
 							];
@@ -1670,7 +1670,7 @@ Public method "map and filter_in parallel«_-way»by_" is
 		] in parallel limit-way;
 	waiter();
 	/* If there were any exceptions, then raise the one that was captured. */
-	If ↑killer is assigned then
+	If killer is assigned then
 	[
 		Request termination of injector;
 		Raise a worker exception with causal exception ::= killer
@@ -1772,7 +1772,7 @@ Public method "map and filter_in parallel«_-way»by_" is
 							[
 								Lock lock for
 								[
-									results := eject ↑results + saved;
+									results := eject results + saved;
 									hasAlreadyKept := true;
 								];
 							];
@@ -1781,7 +1781,7 @@ Public method "map and filter_in parallel«_-way»by_" is
 		] in parallel limit-way;
 	waiter();
 	/* If there were any exceptions, then raise the one that was captured. */
-	If ↑killer is assigned then
+	If killer is assigned then
 	[
 		Request termination of injector;
 		Raise a worker exception with causal exception ::= killer
@@ -1885,7 +1885,7 @@ Public method "map and filter_in parallel«_-way»by_" is
 							[
 								Lock lock for
 								[
-									results := eject ↑results + key→saved;
+									results := eject results + key→saved;
 									hasAlreadyKept := true;
 								];
 							];
@@ -1894,7 +1894,7 @@ Public method "map and filter_in parallel«_-way»by_" is
 		] in parallel limit-way;
 	waiter();
 	/* If there were any exceptions, then raise the one that was captured. */
-	If ↑killer is assigned then
+	If killer is assigned then
 	[
 		Request termination of injector;
 		Raise a worker exception with causal exception ::= killer

@@ -46,11 +46,12 @@ Uses
 	"Enumeration Support",
 	"Literals",
 	"Math",
-	"Types"
+	"Types",
+	"Variables"
 Names
 	"«_‡=»",
 	"_⊕_",
-	"_↑_",
+	"_`↑_",
 	"_↓_",
 	"_→_",
 	"_←_",
@@ -94,7 +95,7 @@ Semantic restriction "«_‡=»" is
 	[
 		index : natural number
 	|
-		intersectionType := (eject ↑intersectionType) ∩ (aTupleType[index]);
+		intersectionType := (eject intersectionType) ∩ (aTupleType[index]);
 		If intersectionType = ⊥ then [Exit body with false's type];
 		true
 	];
@@ -133,13 +134,13 @@ Public stable method "_⊕_" is
  * ¬({@param "a"} ∧ {@param "b"}). Short-circuit the computation, i.e., only 
  * evaluate {@param "b"} if {@param "a"} is {@method "true"}.
  * 
- * @method "_↑_"
+ * @method "_`↑_"
  * @param "a" "boolean"
  * @param "b" "[]→boolean"
  * @returns "boolean"
  * @category "Logic"
  */
-Public method "_↑_" is
+Public method "_`↑_" is
 [
 	a : boolean,
 	b : []→boolean
@@ -147,7 +148,7 @@ Public method "_↑_" is
 	¬(a ∧ b)
 ] : boolean;
 
-Method "_↑_" is
+Method "_`↑_" is
 [
 	a : false's type,
 	b : []→boolean
@@ -156,15 +157,15 @@ Method "_↑_" is
 ] : boolean;
 
 /**
- * If the left-hand argument of {@method "_↑_"} is known statically to be 
+ * If the left-hand argument of {@method "_`↑_"} is known statically to be 
  * {@method "false"}, then the expression is also known statically to be 
  * {@method "true"}.
  * 
- * @method "_↑_"
+ * @method "_`↑_"
  * @restricts "false's type's type"
  * @restricts "([]→boolean)'s type"
  */
-Semantic restriction "_↑_" is
+Semantic restriction "_`↑_" is
 [
 	a : false's type's type,
 	b : ([]→boolean)'s type
@@ -173,15 +174,15 @@ Semantic restriction "_↑_" is
 ];
 
 /**
- * If the left-hand argument of {@method "_↑_"} is known statically to be 
+ * If the left-hand argument of {@method "_`↑_"} is known statically to be 
  * {@method "true"}, then the static type of the expression is the negation of 
  * {@param "b"}'s return type.
  *
- * @method "_↑_"
+ * @method "_`↑_"
  * @restricts "true's type's type"
  * @restricts "[]→(true's type)'s type"
  */
-Semantic restriction "_↑_" is
+Semantic restriction "_`↑_" is
 [
 	a : true's type's type,
 	b : []→(true's type)'s type
@@ -190,15 +191,15 @@ Semantic restriction "_↑_" is
 ];
 
 /**
- * If the right-hand argument of {@method "_↑_"} is known statically to be 
+ * If the right-hand argument of {@method "_`↑_"} is known statically to be 
  * {@method "true"}, then the static type of the expression is the negation of 
  * {@param "b"}'s return type.
  *
- * @method "_↑_"
+ * @method "_`↑_"
  * @restricts "boolean's type"
  * @restricts "[]→(false's type)'s type"
  */
-Semantic restriction "_↑_" is
+Semantic restriction "_`↑_" is
 [
 	a : boolean's type,
 	b : []→(false's type)'s type
@@ -607,11 +608,11 @@ Semantic restriction "_↚_" is
  * Negation has the highest precedence among logical operators.
  * 
  * @method "¬_"
- * @forbids 1 "_∧_" "_∨_" "_⊕_" "_↑_" "_↓_" "_→_" "_←_" "_↔_" "_↛_" "_↚_"
+ * @forbids 1 "_∧_" "_∨_" "_⊕_" "_`↑_" "_↓_" "_→_" "_←_" "_↔_" "_↛_" "_↚_"
  * 	"_=_" "_≠_"
  */
 Grammatical restriction "¬_" is
-	<{"_∧_", "_∨_", "_⊕_", "_↑_", "_↓_", "_→_", "_←_", "_↔_", "_↛_", "_↚_",
+	<{"_∧_", "_∨_", "_⊕_", "_`↑_", "_↓_", "_→_", "_←_", "_↔_", "_↛_", "_↚_",
 	 "_=_", "_≠_"}>;
 
 /**

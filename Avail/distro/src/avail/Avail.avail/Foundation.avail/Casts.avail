@@ -270,7 +270,7 @@ Public method "Cast|cast_into«_‡,»«else_»" is
 		]
 		else
 		[
-			↑index++;
+			index++;
 			Restart body
 		];
 	]();
@@ -315,11 +315,11 @@ Semantic restriction "Cast|cast_into«_‡,»«else_»" is
 				++ " is not a supertype of "
 				++ “functionType[1]”
 		];
-		union := eject ↑union ∪ functionType's return type;
+		union := eject union ∪ functionType's return type;
 	];
 	If ⎣else⎦ = 1 then
 	[
-		union := eject ↑union ∪ else[1]'s return type;
+		union := eject union ∪ else[1]'s return type;
 	];
 	union
 ];

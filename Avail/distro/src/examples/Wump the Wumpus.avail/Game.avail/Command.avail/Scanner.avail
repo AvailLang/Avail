@@ -79,7 +79,7 @@ Public method "tokenize_" is
 	Until [i > |s|] do
 	[
 		/* Ignore whitespace. */
-		While [s[i] is whitespace] do [↑i++;];
+		While [s[i] is whitespace] do [i++;];
 		If i ≤ |s| then
 		[
 			/* Remember where the current token began. */
@@ -88,18 +88,18 @@ Public method "tokenize_" is
 			/* Consecutive letters constitute a token. */
 			If c is a letter then
 			[
-				While [↑i++; i ≤ |s| ∧ [s[i] is a letter]];
+				While [i++; i ≤ |s| ∧ [s[i] is a letter]];
 			]
 			/* Consecutive Arabic numerals constitute a token. */
 			else if [c is an Arabic numeral] then
 			[
-				While [↑i++; i ≤ |s| ∧ [s[i] is an Arabic numeral]];
+				While [i++; i ≤ |s| ∧ [s[i] is an Arabic numeral]];
 			]
 			/* A string token begins and ends with a quotation mark ("). */
 			else if [c = ¢"\""] then
 			[
-				While [↑i++; i ≤ |s| ∧ [s[i] ≠ ¢"\""]];
-				↑i++;
+				While [i++; i ≤ |s| ∧ [s[i] ≠ ¢"\""]];
+				i++;
 				/* "_[_]else_" is less strict about the subscript, saving us a
 				 * cast here. Characters and numbers are disjoint, so zero (0)
 				 * is a good default value here (as the logic around it will
@@ -113,7 +113,7 @@ Public method "tokenize_" is
 			/* Any other character is considered a token. */
 			else
 			[
-				↑i++;
+				i++;
 			];
 			/* The new token ranges from the remembered start position up to the
 			 * current index (exclusive). Copy the appropriate slice of the

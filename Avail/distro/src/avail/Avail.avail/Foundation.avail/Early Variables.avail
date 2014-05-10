@@ -1,5 +1,5 @@
 /*
- * RNG.avail
+ * Early Variables.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,56 +30,53 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "RNG"
+Module "Early Variables"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
-	"Avail"
+	"Bootstrap"
 Names
-	"seed the RNG«with_»",
-	"the RNG"
+	"`↑_↑"
 Body
 
 /**
- * The {@type "pRNG" pseudorandom number generator} that will be used throughout
- * the game.
- */
-rng : pRNG;
-
-/**
- * Seed {@method "the RNG"}.
+ * Answer a reference to the supplied {@type "variable"}. The quotation is done
+ * automatically by the Avail compiler.
  *
- * @method "seed the RNG«with_»"
- * @param "optionalSeed" "<[0..2^32)…|0..1>"
- *        If specified, then an unsigned 32-bit number that will be used to
- *        seed the pseudorandom number generator. Otherwise, use the number of
- *        milliseconds since the UNIX Epoch.
+ * @method "`↑_↑"
+ * @category "Variables"
+ * @param "var" "variable"
+ *        The variable.
+ * @returns "variable"
+ *          The argument, {@param "var"}.
  */
-Public method "seed the RNG«with_»" is
+Primitive "`↑_↑" is
 [
-	optionalSeed : <[0..2^32)…|0..1>
+	var : variable
 |
-	seed ::= optionalSeed[1] else [milliseconds since the Epoch mod 2^32];
-	rng := a Mersenne Twister from seed;
-] : ⊤;
+	var
+] : variable;
 
 /**
- * Answer the {@type "pRNG" pseudorandom number generator}.
+ * Strengthen the type to the actual type of the variable.
  *
- * @method "the RNG"
- * @returns "pRNG"
- *          The global pseudorandom number generator. If it was not previously
- *          {@method "seed the RNG«with_»" seeded}, then seed it using the
- *          number of milliseconds since the UNIX Epoch.
+ * @method "`↑_↑"
+ * @restricts "variable's type"
  */
-Public method "the RNG" is
+Semantic restriction "`↑_↑" is
 [
-	If rng is unassigned then
-	[
-		/* This constructor uses the number of milliseconds since the UNIX
-		 * Epoch as a seed.
-		 */
-		rng := a Mersenne Twister;
-	];
-	rng
-] : pRNG;
+	varType : variable meta
+|
+	varType
+];
+
+/**
+ * @method "eject_"
+ * @restricts "variable meta"
+ */
+Semantic restriction "eject_" is
+[
+	varType : variable meta
+|
+	varType's read type
+];

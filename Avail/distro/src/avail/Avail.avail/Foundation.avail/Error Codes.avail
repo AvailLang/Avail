@@ -95,7 +95,7 @@ Private method "Next error code is_(_)" is
 	functionType ::= function accepting <> and returning code's type;
 	implementation ::= new functionType applying [ code ];
 	Method name is implementation;
-	errorCodes := cast eject ↑errorCodes + code→name
+	errorCodes := cast eject errorCodes + code→name
 		into [ t : {natural number→string|natural number} | t ];
 	Export name as a new name;
 ];

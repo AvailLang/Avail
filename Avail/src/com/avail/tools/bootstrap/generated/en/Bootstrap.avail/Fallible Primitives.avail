@@ -70,6 +70,7 @@ Uses
 		"Seal method_at_",
 		"Seal method|methods_at existing definitions",
 		"Semantic restriction_is_",
+		"Swap_and_",
 		"_'s⁇instances",
 		"_'s⁇issuing module",
 		"_'s⁇result",
@@ -84,6 +85,7 @@ Uses
 		"_[_]:=_",
 		"_[_]→_",
 		"_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)",
+		"_`?=_",
 		"_has definition for_",
 		"_is unambiguous",
 		"_to_by_",
@@ -98,7 +100,7 @@ Uses
 		"`«(_:=_)`»",
 		"`«[_`|Primitive__]:_^_`»",
 		"`«_:=_`»",
-		"`«↑_`»",
+		"`«`↑_`»",
 		"all atoms for_",
 		"atom for_",
 		"atomically compare_to_and,⁇if equal,⁇store_",
@@ -122,9 +124,7 @@ Uses
 		"send_with_:_",
 		"seq`«_`»",
 		"static method_._<«_‡,»>,⁇on failure do_",
-		"swap_and_",
-		"↓_",
-		"↓_`?=_"
+		"↓_"
 	)
 Names
 	"early failure function",
@@ -317,7 +317,7 @@ Primitive "↓_" is
  * Store {@param "value"} into the specified variable.
  *
  * @category "Primitives" "Variables" "Mutators"
- * @method "↓_`?=_"
+ * @method "_`?=_"
  * @param "var" "variable"
  *        A variable.
  * @param "value" "any"
@@ -328,7 +328,7 @@ Primitive "↓_" is
  * @raises "Java-marshaling-failed exception"
  * @raises "cannot-modify-final-Java-field exception"
  */
-Primitive "↓_`?=_" is
+Primitive "_`?=_" is
 [
 	var : variable,
 	value : any
@@ -370,7 +370,7 @@ Primitive "Clear_" is
  * virtual machine.
  *
  * @category "Primitives" "Variables" "Mutators"
- * @method "swap_and_"
+ * @method "Swap_and_"
  * @param "arg1" "variable"
  *        A variable.
  * @param "arg2" "variable"
@@ -378,7 +378,7 @@ Primitive "Clear_" is
  * @returns "⊤"
  * @raises "cannot-swap-contents-of-differently-typed-variables exception"
  */
-Primitive "swap_and_" is
+Primitive "Swap_and_" is
 [
 	arg1 : variable,
 	arg2 : variable
@@ -398,16 +398,20 @@ Primitive "swap_and_" is
  *        A variable.
  * @returns "any"
  *    The value ejected from the variable.
- * @raises "any"
- * @raises "{5}"
- * @raises "{6}"
- * @raises "{7}"
+ * @raises "cannot-read-unassigned-variable exception"
+ * @raises "cannot-overwrite-write-once-variable exception"
+ * @raises "Java-marshaling-failed exception"
+ * @raises "cannot-modify-final-Java-field exception"
  */
 Primitive "eject_" is
 [
 	var : variable
 |
-	Primitive 18 (failureCode : any);
+	Primitive 18 (failureCode : {
+		cannot-read-unassigned-variable code,
+		cannot-overwrite-write-once-variable code,
+		Java-marshaling-failed code,
+		cannot-modify-final-Java-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any;
 
@@ -1201,8 +1205,8 @@ Primitive "method for_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
  * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "up-arrow-must-follow-argument exception"
  * @raises "no-method-definition exception"
- * @raises "ambiguous-method-definition exception"
  */
 Primitive "method definition of_for_" is
 [
@@ -1230,6 +1234,7 @@ Primitive "method definition of_for_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-follow-a-simple-or-simple-group code,
 		incorrect-type-for-numbered-choice code,
+		up-arrow-must-follow-argument code,
 		no-method-definition code,
 		ambiguous-method-definition code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -1286,7 +1291,8 @@ Primitive "`|message_'s⁇parameters`|" is
 		double-question-mark-must-follow-a-simple-or-simple-group code,
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-follow-a-simple-or-simple-group code,
-		incorrect-type-for-numbered-choice code}ᵀ);
+		incorrect-type-for-numbered-choice code,
+		up-arrow-must-follow-argument code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : whole number;
 
@@ -1341,7 +1347,8 @@ Primitive "message_contains groups" is
 		double-question-mark-must-follow-a-simple-or-simple-group code,
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-follow-a-simple-or-simple-group code,
-		incorrect-type-for-numbered-choice code}ᵀ);
+		incorrect-type-for-numbered-choice code,
+		up-arrow-must-follow-argument code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : boolean;
 
@@ -1406,7 +1413,8 @@ Primitive "Seal method_at_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-follow-a-simple-or-simple-group code,
 		incorrect-type-for-numbered-choice code,
-		loading-is-over code}ᵀ);
+		loading-is-over code,
+		up-arrow-must-follow-argument code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1477,7 +1485,8 @@ Primitive "Abstract method_is_" is
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
 		method-is-sealed code,
-		cannot-mix-method-and-macro-definitions code}ᵀ);
+		cannot-mix-method-and-macro-definitions code,
+		up-arrow-must-follow-argument code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1580,7 +1589,8 @@ Primitive "Semantic restriction_is_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-follow-a-simple-or-simple-group code,
 		incorrect-type-for-numbered-choice code,
-		loading-is-over code}ᵀ);
+		loading-is-over code,
+		up-arrow-must-follow-argument code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1643,7 +1653,8 @@ Primitive "Seal method_at_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-follow-a-simple-or-simple-group code,
 		incorrect-type-for-numbered-choice code,
-		loading-is-over code}ᵀ);
+		loading-is-over code,
+		up-arrow-must-follow-argument code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1805,7 +1816,8 @@ Primitive "Semantic restriction_is_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-follow-a-simple-or-simple-group code,
 		incorrect-type-for-numbered-choice code,
-		loading-is-over code}ᵀ);
+		loading-is-over code,
+		up-arrow-must-follow-argument code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1891,7 +1903,8 @@ Primitive "Macro_is«_,»_" is
 		macro-prefix-functions-must-return-top code,
 		macro-prefix-function-argument-must-be-a-parse-node code,
 		macro-must-return-a-parse-node code,
-		loading-is-over code}ᵀ);
+		loading-is-over code,
+		up-arrow-must-follow-argument code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1961,7 +1974,8 @@ Primitive "Abstract method_is_" is
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
 		method-is-sealed code,
-		cannot-mix-method-and-macro-definitions code}ᵀ);
+		cannot-mix-method-and-macro-definitions code,
+		up-arrow-must-follow-argument code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -2034,7 +2048,8 @@ Primitive "Forward method_is_" is
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
 		method-is-sealed code,
-		cannot-mix-method-and-macro-definitions code}ᵀ);
+		cannot-mix-method-and-macro-definitions code,
+		up-arrow-must-follow-argument code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -2124,7 +2139,8 @@ Primitive "Grammatical restriction_is_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-follow-a-simple-or-simple-group code,
 		incorrect-type-for-numbered-choice code,
-		loading-is-over code}ᵀ);
+		loading-is-over code,
+		up-arrow-must-follow-argument code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -2232,7 +2248,8 @@ Primitive "Grammatical restriction_is_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-follow-a-simple-or-simple-group code,
 		incorrect-type-for-numbered-choice code,
-		loading-is-over code}ᵀ);
+		loading-is-over code,
+		up-arrow-must-follow-argument code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -2406,7 +2423,7 @@ Primitive "`«_:=_`»" is
  * Construct and answer a value reference expression.
  *
  * @category "Primitives" "Phrases" "Constructors"
- * @method "`«↑_`»"
+ * @method "`«`↑_`»"
  * @param "variableUse" "variable use phrase"
  *        A variable use expression.
  * @returns "reference phrase⇒⊤→/→⊥"
@@ -2414,7 +2431,7 @@ Primitive "`«_:=_`»" is
  *    {@param "variableUse"}.
  * @raises "declaration-kind-does-not-support-reference exception"
  */
-Primitive "`«↑_`»" is
+Primitive "`«`↑_`»" is
 [
 	variableUse : variable use phrase
 |
@@ -2544,7 +2561,8 @@ Primitive "send_with_:_" is
 		double-question-mark-must-follow-a-simple-or-simple-group code,
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-follow-a-simple-or-simple-group code,
-		incorrect-type-for-numbered-choice code}ᵀ);
+		incorrect-type-for-numbered-choice code,
+		up-arrow-must-follow-argument code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : send phrase;
 

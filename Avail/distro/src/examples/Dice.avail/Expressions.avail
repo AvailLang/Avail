@@ -1,0 +1,734 @@
+/*
+ * Expressions.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Expressions"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Avail",
+	"Random"
+Names
+	/* Types. */
+	"dice expression⁇",
+	"dice expression⁇outcome",
+	"die",
+
+	/* Abstract methods. */
+	"«using_,»roll_",
+
+	/* Accessors and mutators (dice outcome). */
+	"_'s⁇detailed outcome",
+	"_'s⁇detailed outcome::=_,result::=_",
+	"_'s⁇result",
+	"_'s⁇result::=_",
+
+	/* Accessors. */
+	"_'s⁇faces",
+
+	/* Dice arithmetic. */
+	"_+_",
+	"_-_",
+	"_×_",
+	"_÷_",
+	"-_",
+
+	/* Integrating dice outcomes. */
+	"integrate_and_with_",
+
+	/* Field atoms. */
+	"detailed outcome",
+	"result",
+	"result type"
+Body
+
+"result type" is a field atom;
+
+/**
+ * A dice expression uses a collection of dice to produce a value. The simplest
+ * dice expression comprises only {@type "die" dice}, but more complex
+ * expressions may use arithmetic operators to modify the final result of a
+ * roll.
+ *
+ * @category "Dice"
+ * @type "dice expression⁇"
+ */
+Public explicit class "dice expression⁇" extends object
+	with fields
+		result type : extended integer's type;
+
+/**
+ * A die consists of one or more faces, each of which shows some symbol.
+ *
+ * @category "Dice"
+ * @type "die"
+ * @supertype "dice expression⁇"
+ */
+Public explicit class "die" extends dice expression;
+
+/**
+ * Answer the faces present on the specified {@type "die"}. Note that this value
+ * need not conform to any possible regular geometric solid.
+ *
+ * @category "Dice" "Queries"
+ * @method "_'s⁇faces"
+ * @param "aDie" "die"
+ *        A {@type "die"}.
+ * @returns The argument's faces.
+ */
+Public abstract method "_'s⁇faces" is [die]→<extended integer…|1..>;
+
+"detailed outcome" is a field atom;
+"result" is a field atom;
+
+/**
+ * A dice expression outcome describes the result of pseudorandomly evaluating
+ * a {@type "dice expression⁇" dice expression}. In addition to a simple result,
+ * a detailed outcome is provided; that is, a map from {@type "die" dice} to
+ * their individual rolls.
+ *
+ * @category "Dice"
+ * @type "dice expression⁇outcome"
+ */
+Public explicit class "dice expression⁇outcome" extends object
+	with fields
+		public detailed outcome : {die→<extended integer…|>|},
+		public reconstructible result : extended integer
+	with reconstructors
+		public (detailed outcome, result);
+
+Method "“_”" is
+[
+	o : dice outcome
+|
+	s : string := “o's result” ++ " (";
+	bindings ::= o's detailed outcome's bindings;
+	i : natural number := 1;
+	Do
+	[
+		aDie ::= bindings[i][1];
+		rolls ::= “cast bindings[i][2] into [t : <extended integer…|1..> | t]”;
+		s := s ++ “aDie” ++ ": " ++ rolls[2..|rolls|-1];
+		i++;
+	]
+	while [i ≤ |bindings|]
+	alternate with [s := s ++ "; ";];
+	s := s ++ ")";
+	s
+] : string;
+
+/**
+ * Intregrate the specified {@type "dice expression⁇outcome" dice outcomes}. The
+ * answer's {@method "_'s⁇detailed outcome" detail map} contains all die rolls.
+ * The answer's {@method "_'s⁇result" result} is obtained by applying {@param
+ * "merger"} to the {@method "_'s⁇result results} of the arguments {@param
+ * "arg1"} and {@param "arg2"}.
+ *
+ * @category "Dice" "Transformers"
+ * @method "integrate_and_with_"
+ * @param "arg1" "dice expression⁇outcome"
+ *        A {@type "dice expression⁇outcome" dice outcome}.
+ * @param "arg2" "dice expression⁇outcome"
+ *        A {@type "dice expression⁇outcome" dice outcome}.
+ * @param "merger" "[⊥, ⊥]→extended integer"
+ *        A function that accepts the {@method "_'s⁇result" results} of the
+ *        arguments {@param "arg1"} and {@param "arg2"}. It answers the desired
+ *        {@method "_'s⁇result" result} of the method's answer.
+ * @returns "dice expression⁇outcome"
+ *          The result of the integration.
+ */
+Public method "integrate_and_with_" is
+[
+	arg1 : dice outcome,
+	arg2 : dice outcome,
+	merger : [⊥, ⊥]→extended integer
+|
+	mergedDetails ::=
+		integrate arg1's detailed outcome and arg2's detailed outcome with
+		[
+			m : {die→<extended integer…|>|},
+			k : die,
+			v : <extended integer…|>
+		|
+			m + k→arg1's detailed outcome[k] ++ v
+		];
+	a dice outcome with
+		detailed outcome ::= mergedDetails,
+		result ::= merger(arg1's result, arg2's result)
+] : dice outcome;
+
+Semantic restriction "integrate_and_with_" is
+[
+	arg1 : dice outcome's type,
+	arg2 : dice outcome's type,
+	merger : [⊥, ⊥]→extended integer's type
+|
+	If merger[1] ≠ ⊥ ∧ [¬extended integer ⊆ merger[1]] then
+	[
+		Reject parse, expected:
+			format
+				"first parameter of supplied function to accept “①” \
+				\|(but instead it accepts “②”)"
+			with extended integer, merger[1]
+	];
+	If merger[2] ≠ ⊥ ∧ [¬extended integer ⊆ merger[2]] then
+	[
+		Reject parse, expected:
+			format
+				"second parameter of supplied function to accept “①” \
+				\|(but instead it accepts “②”)"
+			with extended integer, merger[2]
+	];
+	⊤
+];
+
+/**
+ * Roll {@param "someDice"} and answer the result.
+ *
+ * @category "Dice"
+ * @method "«using_,»roll_"
+ * @param "optionalRNG" "<pRNG…|0..1>"
+ *        An optional {@type "pRNG"}. If provided, then it will be used to
+ *        randomly select a face. If not provided, then a default {@type "pRNG"}
+ *        will be used.
+ * @param "someDice" "dice"
+ *        A {@type "dice expression"}.
+ * @returns "dice outcome"
+ *          The {@type "dice expression⁇outcome" outcome}.
+ */
+Public abstract method "«using_,»roll_" is [<pRNG…|0..1>, dice]→dice outcome;
+
+Semantic restriction "«using_,»roll_" is
+[
+	optionalRNG : <pRNG…|0..1>'s type,
+	someDice : dice's type
+|
+	extend dice outcome with result : someDice's result type's instance
+];
+
+"constant value" is a field atom;
+
+/**
+ * A constant dice expression reliably answers a particular value when
+ * {@method "«using_,»roll_" evaluated}.
+ *
+ * @category "Dice"
+ * @type "constant dice expression"
+ * @supertype "dice expression⁇"
+ */
+Class "constant dice expression" extends dice expression
+	with fields
+		constant value : extended integer;
+
+Method "“_”" is
+[
+	d : constant dice expression
+|
+	“d's constant value”
+] : string;
+
+/**
+ * Construct and answer a {@type "constant dice expression"} that reliably
+ * answers the argument when {@method "«using_,»roll_" evaluated}.
+ *
+ * @category "Dice"
+ * @method "constant(_)"
+ * @param "c" "extended integer"
+ *        The value to wrap.
+ * @returns "constant dice expression"
+ *          The requested {@type "constant dice expression"}.
+ */
+Private method "constant(_)" is
+[
+	c : extended integer
+|
+	a constant dice expression with
+		constant value ::= c,
+		result type ::= c's type
+] : constant dice expression;
+
+Semantic restriction "constant(_)" is
+[
+	c : extended integer's type
+|
+	extend constant dice expression with
+		constant value : c,
+		result type : c's type
+];
+
+Method "«using_,»roll_" is
+[
+	optionalRNG : <pRNG…|0..1>,
+	c : constant dice expression
+|
+	a dice outcome with detailed outcome ::= {}, result ::= c's constant value
+] : dice outcome;
+
+"operands" is a field atom;
+
+/**
+ * An operator dice expression {@method "«using_,»roll_" evaluates} its
+ * arguments and then applies an operator to produce a unified {@type
+ * "dice expression⁇outcome" outcome}.
+ *
+ * @category "Dice"
+ * @type "operator dice expression"
+ * @supertype "dice expression⁇"
+ */
+Class "operator dice expression" extends dice expression
+	with fields
+		operands : <dice…|1..>;
+
+/**
+ * An addition dice expression {@method "«using_,»roll_" evaluates} its
+ * arguments and then combines their {@type "dice expression⁇outcome" outcomes}
+ * by adding the results together.
+ *
+ * @category "Dice"
+ * @type "addition dice expression"
+ * @supertype "operator dice expression"
+ */
+Explicit class "addition dice expression" extends operator dice expression
+	with fields
+		operands : <dice…|2>;
+
+/**
+ * Construct and answer a {@type "dice expression⁇" dice expression} that, when
+ * {@method "«using_,»roll_" evaluated}, will produce an {@type
+ * "dice expression⁇outcome" outcome} that is the sum of the evaluations of the
+ * arguments.
+ *
+ * @category "Dice" "Constructors"
+ * @method "_+_"
+ * @param "augend" "dice expression⁇"
+ *        A {@type "dice expression⁇"}.
+ * @param "addend" "dice expression⁇"
+ *        A {@type "dice expression⁇"}.
+ * @returns "addition dice expression"
+ *          The requested {@type "dice expression⁇"}.
+ */
+Method "_+_" is
+[
+	augend : dice expression,
+	addend : dice expression
+|
+	an addition dice expression with
+		operands ::= <augend, addend>,
+		result type ::= augend's result type + addend's result type
+] : addition dice expression;
+
+Method "_+_" is
+[
+	augend : dice expression,
+	addend : extended integer
+|
+	an addition dice expression with
+		operands ::= <augend, constant(addend)>,
+		result type ::= augend's result type + addend's type
+] : addition dice expression;
+
+Method "_+_" is
+[
+	augend : extended integer,
+	addend : dice expression
+|
+	an addition dice expression with
+		operands ::= <constant(augend), addend>,
+		result type ::= (augend's type + addend's result type)
+] : addition dice expression;
+
+Method "“_”" is
+[
+	expr : addition dice expression
+|
+	“expr's operands[1]” ++ " + " ++ “expr's operands[2]”
+] : string;
+
+Method "«using_,»roll_" is
+[
+	optionalRNG : <pRNG…|0..1>,
+	expr : addition dice expression
+|
+	rng ::= optionalRNG[1] else [default pRNG];
+	outcome1 ::= using rng, roll expr's operands[1];
+	outcome2 ::= using rng, roll expr's operands[2];
+	integrate outcome1 and outcome2 with
+	[
+		a : extended integer,
+		b : extended integer
+	|
+		a + b
+	]
+] : dice outcome;
+
+/**
+ * A subtraction dice expression {@method "«using_,»roll_" evaluates} its
+ * arguments and then combines their {@type "dice expression⁇outcome" outcomes}
+ * by subtracting the second result from the first.
+ *
+ * @category "Dice"
+ * @type "subtraction dice expression"
+ * @supertype "operator dice expression"
+ */
+Explicit class "subtraction dice expression" extends operator dice expression
+	with fields
+		operands : <dice…|2>;
+
+/**
+ * Construct and answer a {@type "dice expression⁇" dice expression} that, when
+ * {@method "«using_,»roll_" evaluated}, will produce an {@type
+ * "dice expression⁇outcome" outcome} that is the difference of the evaluations
+ * of the arguments.
+ *
+ * @category "Dice" "Constructors"
+ * @method "_-_"
+ * @param "minuend" "dice expression⁇"
+ *        A {@type "dice expression⁇"}.
+ * @param "subtrahend" "dice expression⁇"
+ *        A {@type "dice expression⁇"}.
+ * @returns "subtraction dice expression"
+ *          The requested {@type "dice expression⁇"}.
+ */
+Method "_-_" is
+[
+	minuend : dice expression,
+	subtrahend : dice expression
+|
+	a subtraction dice expression with
+		operands ::= <minuend, subtrahend>,
+		result type ::= minuend's result type - subtrahend's result type
+] : subtraction dice expression;
+
+Method "_-_" is
+[
+	minuend : dice expression,
+	subtrahend : extended integer
+|
+	a subtraction dice expression with
+		operands ::= <minuend, constant(subtrahend)>,
+		result type ::= minuend's result type - subtrahend's type
+] : subtraction dice expression;
+
+Method "_-_" is
+[
+	minuend : extended integer,
+	subtrahend : dice expression
+|
+	a subtraction dice expression with
+		operands ::= <constant(minuend), subtrahend>,
+		result type ::= (minuend's type - subtrahend's result type)
+] : subtraction dice expression;
+
+Method "“_”" is
+[
+	expr : subtraction dice expression
+|
+	“expr's operands[1]” ++ " - " ++ “expr's operands[2]”
+] : string;
+
+Method "«using_,»roll_" is
+[
+	optionalRNG : <pRNG…|0..1>,
+	expr : subtraction dice expression
+|
+	rng ::= optionalRNG[1] else [default pRNG];
+	outcome1 ::= using rng, roll expr's operands[1];
+	outcome2 ::= using rng, roll expr's operands[2];
+	integrate outcome1 and outcome2 with
+	[
+		a : extended integer,
+		b : extended integer
+	|
+		a - b
+	]
+] : dice outcome;
+
+/**
+ * A multiplication dice expression {@method "«using_,»roll_" evaluates} its
+ * arguments and then combines their {@type "dice expression⁇outcome" outcomes}
+ * by multiplying them.
+ *
+ * @category "Dice"
+ * @type "multiplication dice expression"
+ * @supertype "operator dice expression"
+ */
+Explicit class "multiplication dice expression" extends operator dice expression
+	with fields
+		operands : <dice…|2>;
+
+/**
+ * Construct and answer a {@type "dice expression⁇" dice expression} that, when
+ * {@method "«using_,»roll_" evaluated}, will produce an {@type
+ * "dice expression⁇outcome" outcome} that is the product of the evaluations
+ * of the arguments.
+ *
+ * @category "Dice" "Constructors"
+ * @method "_×_"
+ * @param "multiplicand" "dice expression⁇"
+ *        A {@type "dice expression⁇"}.
+ * @param "multiplier" "dice expression⁇"
+ *        A {@type "dice expression⁇"}.
+ * @returns "multiplication dice expression"
+ *          The requested {@type "dice expression⁇"}.
+ */
+Method "_×_" is
+[
+	multiplicand : dice expression,
+	multiplier : dice expression
+|
+	a multiplication dice expression with
+		operands ::= <multiplicand, multiplier>,
+		result type ::= multiplicand's result type × multiplier's result type
+] : multiplication dice expression;
+
+Method "_×_" is
+[
+	multiplicand : dice expression,
+	multiplier : extended integer
+|
+	a multiplication dice expression with
+		operands ::= <multiplicand, constant(multiplier)>,
+		result type ::= multiplicand's result type × multiplier's type
+] : multiplication dice expression;
+
+Method "_×_" is
+[
+	multiplicand : extended integer,
+	multiplier : dice expression
+|
+	a multiplication dice expression with
+		operands ::= <constant(multiplicand), multiplier>,
+		result type ::= (multiplicand's type × multiplier's result type)
+] : multiplication dice expression;
+
+Method "“_”" is
+[
+	expr : multiplication dice expression
+|
+	“expr's operands[1]” ++ " × " ++ “expr's operands[2]”
+] : string;
+
+Method "«using_,»roll_" is
+[
+	optionalRNG : <pRNG…|0..1>,
+	expr : multiplication dice expression
+|
+	rng ::= optionalRNG[1] else [default pRNG];
+	outcome1 ::= using rng, roll expr's operands[1];
+	outcome2 ::= using rng, roll expr's operands[2];
+	integrate outcome1 and outcome2 with
+	[
+		a : extended integer,
+		b : extended integer
+	|
+		a × b
+	]
+] : dice outcome;
+
+/**
+ * A division dice expression {@method "«using_,»roll_" evaluates} its
+ * arguments and then combines their {@type "dice expression⁇outcome" outcomes}
+ * by dividing the first by the second.
+ *
+ * @category "Dice"
+ * @type "division dice expression"
+ * @supertype "operator dice expression"
+ */
+Explicit class "division dice expression" extends operator dice expression
+	with fields
+		operands : <dice…|2>;
+
+/**
+ * Construct and answer a {@type "dice expression⁇" dice expression} that, when
+ * {@method "«using_,»roll_" evaluated}, will produce an {@type
+ * "dice expression⁇outcome" outcome} that is the quotient of the evaluations
+ * of the arguments.
+ *
+ * @category "Dice" "Constructors"
+ * @method "_÷_"
+ * @param "dividend" "dice expression⁇"
+ *        A {@type "dice expression⁇"}.
+ * @param "divisor" "dice expression⁇"
+ *        A {@type "dice expression⁇"}.
+ * @returns "division dice expression"
+ *          The requested {@type "dice expression⁇"}.
+ */
+Method "_÷_" is
+[
+	dividend : dice expression,
+	divisor : dice expression
+|
+	a division dice expression with
+		operands ::= <dividend, divisor>,
+		result type ::= dividend's result type ÷ divisor's result type
+] : division dice expression;
+
+Method "_÷_" is
+[
+	dividend : dice expression,
+	divisor : extended integer
+|
+	a division dice expression with
+		operands ::= <dividend, constant(divisor)>,
+		result type ::= dividend's result type ÷ divisor's type
+] : division dice expression;
+
+Method "_÷_" is
+[
+	dividend : extended integer,
+	divisor : dice expression
+|
+	a division dice expression with
+		operands ::= <constant(dividend), divisor>,
+		result type ::= (dividend's type ÷ divisor's result type)
+] : division dice expression;
+
+Method "“_”" is
+[
+	expr : division dice expression
+|
+	“expr's operands[1]” ++ " ÷ " ++ “expr's operands[2]”
+] : string;
+
+Method "«using_,»roll_" is
+[
+	optionalRNG : <pRNG…|0..1>,
+	expr : division dice expression
+|
+	rng ::= optionalRNG[1] else [default pRNG];
+	outcome1 ::= using rng, roll expr's operands[1];
+	outcome2 ::= using rng, roll expr's operands[2];
+	integrate outcome1 and outcome2 with
+	[
+		a : extended integer,
+		b : extended integer
+	|
+		a ÷ b
+	]
+] : dice outcome;
+
+/**
+ * A negation dice expression {@method "«using_,»roll_" evaluates} its
+ * argument and then negates the result.
+ *
+ * @category "Dice"
+ * @type "negation dice expression"
+ * @supertype "operator dice expression"
+ */
+Explicit class "negation dice expression" extends operator dice expression
+	with fields
+		operands : <dice…|1>;
+
+/**
+ * Construct and answer a {@type "dice expression⁇" dice expression} that, when
+ * {@method "«using_,»roll_" evaluated}, will produce an {@type
+ * "dice expression⁇outcome" outcome} that is the negation of the evaluation
+ * of the argument.
+ *
+ * @category "Dice" "Constructors"
+ * @method "-_"
+ * @param "a" "dice expression⁇"
+ *        A {@type "dice expression⁇"}.
+ * @returns "negation dice expression"
+ *          The requested {@type "dice expression⁇"}.
+ */
+Method "-_" is
+[
+	a : dice expression
+|
+	a negation dice expression with
+		operands ::= <a>,
+		result type ::= -a's result type
+] : negation dice expression;
+
+Method "“_”" is
+[
+	expr : negation dice expression
+|
+	"-" ++ “expr's operands[1]”
+] : string;
+
+Method "«using_,»roll_" is
+[
+	optionalRNG : <pRNG…|0..1>,
+	expr : negation dice expression
+|
+	rng ::= optionalRNG[1] else [default pRNG];
+	outcome ::= using rng, roll expr's operands[1];
+	outcome's result ::= -outcome's result
+] : dice outcome;
+
+/* Establish grammatical rules. */
+[
+	sum      ::= {"_+_", "_-_"};
+	product  ::= {"_×_", "_÷_"};
+	negation ::= {"-_"};
+
+	sumAndProduct ::= sum ∪ product;
+
+	/**
+	 * Establish the standard grammatical rules for dice arithmetic.
+	 * 
+	 * @method "_+_"
+	 * @forbids "2" "_+_" "_-_"
+	 */
+	/**
+	 * Establish the standard grammatical rules for dice arithmetic.
+	 * 
+	 * @method "_-_"
+	 * @forbids "2" "_+_" "_-_"
+	 */
+	Grammatical restriction sum is <∅, sum>;
+
+	/**
+	 * Establish the standard grammatical rules for dice arithmetic.
+	 * 
+	 * @method "_×_"
+	 * @forbids "1" "_+_" "_-_"
+	 * @forbids "2" "_×_" "_÷_" "_+_" "_-_"
+	 */
+	/**
+	 * Establish the standard grammatical rules for dice arithmetic.
+	 * 
+	 * @method "_÷_"
+	 * @forbids "1" "_+_" "_-_"
+	 * @forbids "2" "_×_" "_÷_" "_+_" "_-_"
+	 */
+	Grammatical restriction product is <sum, sumAndProduct>;
+
+	/**
+	 * Establish the standard grammatical rules for dice arithmetic.
+	 *
+	 * @method "-_"
+	 * @forbids "1" "_×_" "_÷_" "_+_" "_-_" "-_" "∞"
+	 */
+	Grammatical restriction negation is <sumAndProduct ∪ negation ∪ {"∞"}>;
+]();

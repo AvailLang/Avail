@@ -40,7 +40,8 @@ Uses
 	"Literals",
 	"Math",
 	"Tuples",
-	"Types"
+	"Types",
+	"Variables"
 Names
 	"_[]"
 Body
@@ -100,7 +101,7 @@ Semantic restriction "constructor_<«_‡,»>(fail with_)" is
 		index : natural number
 	|
 		arg ::= parameterTypes[index]'s instance;
-		args := eject ↑args ++ <arg>;
+		args := eject args ++ <arg>;
 	];
 	function accepting args and returning ⊤
 ];
@@ -125,7 +126,7 @@ Semantic restriction "method_._<«_‡,»>,⁇on failure do_" is
 		index : natural number
 	|
 		arg ::= parameterTypes[index]'s instance;
-		args := eject ↑args ++ <arg>;
+		args := eject args ++ <arg>;
 	];
 	function accepting args and returning ⊤
 ];
@@ -150,7 +151,7 @@ Semantic restriction "static method_._<«_‡,»>,⁇on failure do_" is
 		index : natural number
 	|
 		arg ::= parameterTypes[index]'s instance;
-		args := eject ↑args ++ <arg>;
+		args := eject args ++ <arg>;
 	];
 	function accepting args and returning ⊤
 ];

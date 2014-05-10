@@ -97,7 +97,7 @@ public enum ParsingOperation
 	PARSE_RAW_TOKEN(6),
 
 	/**
-	 * {@code 7} - Parse an argument of a message send, using the outermost
+	 * {@code 7} - Parse an argument of a message send, using the <em>outermost
 	 * (module) scope</em>.  Leave it on the parse stack.
 	 */
 	PARSE_ARGUMENT_IN_MODULE_SCOPE(7),
@@ -114,8 +114,13 @@ public enum ParsingOperation
 	 */
 	PUSH_TRUE(9),
 
-	/** Reserved for future parsing concepts. */
-	RESERVED_10(10),
+	/**
+	 * {@code 10} - Parse a {@linkplain TokenDescriptor raw token}. It should
+	 * correspond to a {@linkplain VariableDescriptor variable} that is
+	 * in-scope. Push a {@linkplain ReferenceNodeDescriptor variable reference
+	 * phrase} onto the parse stack.
+	 */
+	PARSE_VARIABLE_REFERENCE(10),
 
 	/** Reserved for future parsing concepts. */
 	RESERVED_11(11),

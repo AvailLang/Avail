@@ -437,7 +437,7 @@ Semantic restriction "«_‡/»" is
 	[
 		i : natural number
 	|
-		instanceCounts := eject ↑instanceCounts + |fns[i]|;
+		instanceCounts := eject instanceCounts + |fns[i]|;
 	];
 	If instanceCounts = {1} then
 	[
@@ -486,7 +486,7 @@ Semantic restriction "«_‡/»" is
 	[
 		i : natural number
 	|
-		instanceCounts := eject ↑instanceCounts + |fns[i]|;
+		instanceCounts := eject instanceCounts + |fns[i]|;
 	];
 	If instanceCounts = {1} then
 	[

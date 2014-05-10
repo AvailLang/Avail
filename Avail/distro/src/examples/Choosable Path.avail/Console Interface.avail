@@ -81,7 +81,7 @@ Private method "prettify_" is
 			forward ::= base + run;
 			forward ≤ |indices| ∧ [indices[forward] - indices[base] = run]
 		]
-		do [↑run++;];
+		do [run++;];
 		If run = 1 then
 		[
 			If pretty[indices[base]] = ¢"\n" then

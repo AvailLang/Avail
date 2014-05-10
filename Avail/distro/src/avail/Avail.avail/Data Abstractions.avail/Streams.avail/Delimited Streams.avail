@@ -78,8 +78,8 @@ delimited stream's head method is
 	Until [ rest is empty ∨ [ rest starts with aStream's delimiter ] ]
 	do
 	[
-		head := eject ↑head ++ <rest's head>;
-		rest := eject ↑rest's tail;
+		head := eject head ++ <rest's head>;
+		rest := eject rest's tail;
 	];
 	head
 ] : tuple;
@@ -92,11 +92,11 @@ delimited stream's tail method is
 	Until [ rest is empty ∨ [ rest starts with aStream's delimiter ] ]
 	do
 	[
-		rest := eject ↑rest's tail;
+		rest := eject rest's tail;
 	];
 	If ¬rest is empty then
 	[
-		rest := drop |aStream's delimiter| from eject ↑rest;
+		rest := drop |aStream's delimiter| from eject rest;
 	];
 	aStream's decorated stream ::= rest
 ] : delimited stream;
@@ -161,8 +161,8 @@ multiply delimited stream's head method is
 	]
 	do
 	[
-		head := eject ↑head ++ <rest's head>;
-		rest := eject ↑rest's tail;
+		head := eject head ++ <rest's head>;
+		rest := eject rest's tail;
 	];
 	head
 ] : tuple;
@@ -185,16 +185,16 @@ multiply delimited stream's tail method is
 				nonzero ::= cast index into [ t : natural number | t ];
 				theDelimiter := aStream's delimiters[nonzero];
 			];
-			↑theDelimiter is assigned
+			theDelimiter is assigned
 		]
 	]
 	do
 	[
-		rest := eject ↑rest's tail;
+		rest := eject rest's tail;
 	];
 	If ¬rest is empty then
 	[
-		rest := drop |theDelimiter| from eject ↑rest;
+		rest := drop |theDelimiter| from eject rest;
 	];
 	aStream's decorated stream ::= rest
 ] : multiply delimited stream;

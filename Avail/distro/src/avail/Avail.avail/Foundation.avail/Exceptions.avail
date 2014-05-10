@@ -456,7 +456,7 @@ Private method "Handle_with_and_" is
 	 * to a cascade exception (with the original exception attached) and reraise
 	 * it.
 	 */
-	If ↑preemptiveException is assigned then
+	If preemptiveException is assigned then
 	[
 		Raise preemptiveException caused by originalException
 	];
@@ -488,14 +488,14 @@ Private method "Handle_with_and_" is
 	 * to a cascade exception (with the original exception attached) and reraise
 	 * it.
 	 */
-	If ↑preemptiveException is assigned then
+	If preemptiveException is assigned then
 	[
 		Raise preemptiveException caused by originalException
 	];
 	/* The result must be assigned, or control would have left because of a
 	 * raised exception.
 	 */
-	Assert: ↑result is assigned;
+	Assert: result is assigned;
 	result
 ] : any;
 
@@ -618,7 +618,7 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 			previousArgType ::= handlersType[inner][1];
 			If argType ⊆ previousArgType then
 			[
-				hidingArgTypes := eject ↑hidingArgTypes ++ <previousArgType>;
+				hidingArgTypes := eject hidingArgTypes ++ <previousArgType>;
 			];
 		];
 		If ¬hidingArgTypes is empty then
@@ -628,7 +628,7 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 			\|(but it is hidden by each of: “②”)"
 			with argType, hidingArgTypes
 		];
-		returnType := eject ↑returnType ∪ handlerType's return type;
+		returnType := eject returnType ∪ handlerType's return type;
 	];
 	returnType
 ];
@@ -731,7 +731,7 @@ Private method "System exception_(_)extends_" is
 	implementation ::= cast site's function into [t : []→object meta | t];
 	exceptionType ::= cast implementation()
 		into  [ t : system exception's type | t ];
-	exceptionsByCode := eject ↑exceptionsByCode + code→exceptionType;
+	exceptionsByCode := eject exceptionsByCode + code→exceptionType;
 ];
 
 /**
@@ -1303,7 +1303,7 @@ Public method "“_”(stack summary)" is
 		index : natural number
 	|
 		frame ::= dump[index];
-		text := eject ↑text ++ (format "\t‘①’\n" with frame);
+		text := eject text ++ (format "\t‘①’\n" with frame);
 	];
 	text
 ];
@@ -1342,8 +1342,8 @@ Public method "“_”(frames_of stack summary«,⁇renumbered starting at_»)" 
 		Assert: colon ≠ 0;
 		withoutOrdinal ::= frame[colon + 1..];
 		newFrame ::= format "\t#“①”:‘②’\n" with ordinal, withoutOrdinal;
-		text := newFrame ++ eject ↑text;
-		↑ordinal++;
+		text := newFrame ++ eject text;
+		ordinal++;
 	];
 	text
 ];
@@ -1378,11 +1378,11 @@ is
 	e : exception := ex;
 	msg : string := "";
 	firstTime : boolean := true;
-	While [↑e is assigned] do
+	While [e is assigned] do
 	[
 		name ::= “e's type's names” (as list partitioned by " ∩ ");
-		msg := eject ↑msg ++ (a|an) “name” ++ "\n";
-		msg := eject ↑msg ++
+		msg := eject msg ++ (a|an) “name” ++ "\n";
+		msg := eject msg ++
 			if firstTime then
 			[
 				firstTime := false;
@@ -1397,12 +1397,12 @@ is
 		[
 			cascade : cascade exception
 		|
-			msg := eject ↑msg ++ "\ncaused by…\n";
+			msg := eject msg ++ "\ncaused by…\n";
 			e := cascade's causal exception;
 		]
 		else
 		[
-			Clear ↑e;
+			Clear e;
 		];
 	];
 	msg
@@ -1551,11 +1551,11 @@ noUnhandledExceptionHandler :=
 				with m's name;
 		]
 		intercept [e : loading-is-over exception |];
-		msg := eject ↑msg ++ "unhandled exception: ";
-		msg := eject ↑msg ++
+		msg := eject msg ++ "unhandled exception: ";
+		msg := eject msg ++
 			cast unhandled into [e : descriptive exception | e's error message]
 			else [""];
-		msg := eject ↑msg
+		msg := eject msg
 			++ "\n"
 			++ “unhandled” (frames [1..∞) of stack summary, cascaded)
 			++ "\nThe current fiber will be terminated.\n";

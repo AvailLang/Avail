@@ -1,5 +1,5 @@
 /*
- * RNG.avail
+ * Random.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,56 +30,72 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "RNG"
+Module "Random"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
 	"Avail"
 Names
-	"seed the RNG«with_»",
-	"the RNG"
+	/* The default pRNG. */
+	"default pRNG",
+
+	/* Transactional pRNG usage. */
+	"Using|using_,do_"
 Body
 
 /**
- * The {@type "pRNG" pseudorandom number generator} that will be used throughout
- * the game.
+ * The default {@type "pRNG"} used to resolve dice expressions when no specific
+ * pRNG is implied.
+ *
+ * @global "rng" "pRNG"
  */
-rng : pRNG;
+rng : pRNG := a Mersenne Twister;
+
+"transactional pRNG" is a heritable fiber-local atom;
 
 /**
- * Seed {@method "the RNG"}.
+ * Answer the default {@type "pRNG"}. This will be a {@global "rng" global
+ * pseudorandom number generator} unless transactional boundaries have been
+ * established.
  *
- * @method "seed the RNG«with_»"
- * @param "optionalSeed" "<[0..2^32)…|0..1>"
- *        If specified, then an unsigned 32-bit number that will be used to
- *        seed the pseudorandom number generator. Otherwise, use the number of
- *        milliseconds since the UNIX Epoch.
+ * @category "Dice" "Pseudorandom Number Generation"
+ * @method "default pRNG"
+ * @returns "pRNG"
+ *          The transactional {@type "pRNG"}, if established, or a {@global
+ *          "rng" global pseudorandom number generator}.
+ * @see "using_,do_"
  */
-Public method "seed the RNG«with_»" is
+Public method "default pRNG" is
 [
-	optionalSeed : <[0..2^32)…|0..1>
+	default ::= current fiber[transactional pRNG] else [rng];
+	cast default into [t : pRNG | t]
+] : pRNG;
+
+/**
+ * Use {@param "scopedRNG"} as the {@method "default pRNG"} for the purpose of
+ * resolving dice expressions within {@param "action"}.
+ *
+ * @category "Dice" "Pseudorandom Number Generation" "Control Structures"
+ * @method "Using|using_,do_"
+ * @param "scopedRNG" "pRNG"
+ *        A {@type "pRNG"}.
+ * @param "action" "[]→⊤"
+ *        The function to which the specified {@type "pRNG"} should be scoped.
+ */
+Public method "Using|using_,do_" is
+[
+	scopedRNG : pRNG,
+	action : []→⊤
 |
-	seed ::= optionalSeed[1] else [milliseconds since the Epoch mod 2^32];
-	rng := a Mersenne Twister from seed;
+	current fiber[transactional pRNG] := scopedRNG;
+	Guard action
+	ensure [Remove current fiber[transactional pRNG];];
 ] : ⊤;
 
-/**
- * Answer the {@type "pRNG" pseudorandom number generator}.
- *
- * @method "the RNG"
- * @returns "pRNG"
- *          The global pseudorandom number generator. If it was not previously
- *          {@method "seed the RNG«with_»" seeded}, then seed it using the
- *          number of milliseconds since the UNIX Epoch.
- */
-Public method "the RNG" is
+Semantic restriction "Using|using_,do_" is
 [
-	If rng is unassigned then
-	[
-		/* This constructor uses the number of milliseconds since the UNIX
-		 * Epoch as a seed.
-		 */
-		rng := a Mersenne Twister;
-	];
-	rng
-] : pRNG;
+	scopedRNG : pRNG's type,
+	action : []→⊤'s type
+|
+	action's return type
+];

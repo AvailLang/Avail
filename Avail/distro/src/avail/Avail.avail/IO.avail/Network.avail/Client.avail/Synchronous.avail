@@ -65,7 +65,7 @@ Public method "Connect_to_" is
 		on success doing [Signal sem;]
 		on failure doing [e : exception | killer := e; Signal sem;];
 	Await sem;
-	If ↑killer is assigned then [Raise killer];
+	If killer is assigned then [Raise killer];
 ] : ⊤;
 
 /**
@@ -87,7 +87,7 @@ Method "Write_to_" is
 		on success doing [Signal sem;]
 		on failure doing [e : exception | killer := e; Signal sem;];
 	Await sem;
-	If ↑killer is assigned then [Raise killer];
+	If killer is assigned then [Raise killer];
 ] : ⊤;
 
 /**
@@ -126,12 +126,12 @@ Method "read«at most»?_byte|bytes from_" is
 				atEnd : boolean
 			|
 				If atEnd then [endOfStream := true;]
-				else [data := eject ↑data ++ justRead;];
+				else [data := eject data ++ justRead;];
 				Signal sem;
 			]
 			on failure doing [e : exception | killer := e; Signal sem;];
 		Await sem;
-		If ↑killer is assigned then [Raise killer];
+		If killer is assigned then [Raise killer];
 		soft ∨ [endOfStream ∨ [|data| = count]]
 	];
 	data

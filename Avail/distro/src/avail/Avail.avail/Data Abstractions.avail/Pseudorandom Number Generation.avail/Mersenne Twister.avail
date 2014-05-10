@@ -151,7 +151,7 @@ Private method "untwisted Mersenne Twister from_" is
 	|
 		last ::= vector's last;
 		value ::= 1812433253 × (last bit⊕ (last ÷ (1<<30))) + i;
-		vector := eject ↑vector ++ <value mod (1<<32)>;
+		vector := eject vector ++ <value mod (1<<32)>;
 	];
 	a Mersenne Twister with
 		element type ::= [0..1<<32),
@@ -203,12 +203,12 @@ Private method "a Mersenne Twister stream from_" is
 		value ::= (this bit⊕ ((prev bit⊕ (prev ÷ (1<<30))) × 1664525))
 			+ seed[j] + (j - 1);
 		vector := vector[i]→value mod (1<<32);
-		If (++↑i) > 624 then
+		If (++i) > 624 then
 		[
 			vector := vector[1]→vector[624];
 			i := 2;
 		];
-		If (++↑j) > |seed| then [ j := 1; ];
+		If (++j) > |seed| then [ j := 1; ];
 	] |seed| max 624 times;
 	Repeat
 	[
@@ -217,7 +217,7 @@ Private method "a Mersenne Twister stream from_" is
 		value ::= (this bit⊕ ((prev bit⊕ (prev ÷ (1<<30))) × 1566083941))
 			- (i - 1);
 		vector := vector[i]→value mod (1<<32);
-		If (++↑i) > 624 then
+		If (++i) > 624 then
 		[
 			vector := vector[1]→vector[624];
 			i := 2;

@@ -1781,78 +1781,7 @@ extends AbstractAvailCompiler
 			attempt(start.afterToken(), continuation, literalNode);
 		}
 
-		// Try a reference: ↑var.
-		parseReferenceThen(start, continuation);
-
 		start.expected("simple expression");
-	}
-
-	/**
-	 * Parse a reference expression, which is an up arrow (↑) followed by a
-	 * variable name.
-	 *
-	 * @param start
-	 *            Where to start parsing the reference expression.
-	 * @param continuation
-	 *            What to do if a reference expression is found.
-	 */
-	void parseReferenceThen (
-		final ParserState start,
-		final Con<A_Phrase> continuation)
-	{
-		if (start.peekToken(UP_ARROW))
-		{
-			final ParserState afterUpArrow = start.afterToken();
-			parseVariableUseWithExplanationThen(
-				afterUpArrow,
-				"in reference expression",
-				new Con<A_Phrase>("Variable for reference")
-				{
-					@Override
-					public void value (
-						final @Nullable ParserState afterVar,
-						final @Nullable A_Phrase var)
-					{
-						assert afterVar != null;
-						assert var != null;
-
-						final A_Phrase declaration = var.declaration();
-						String suffix = null;
-						if (declaration.equalsNil())
-						{
-							suffix = " to have been declared";
-						}
-						else
-						{
-							switch (declaration.declarationKind())
-							{
-								case LOCAL_CONSTANT:
-								case MODULE_CONSTANT:
-								case PRIMITIVE_FAILURE_REASON:
-									suffix = " not to be a constant";
-									break;
-								case ARGUMENT:
-									suffix = " not to be an argument";
-									break;
-								case LABEL:
-									suffix = " not to be a label";
-									break;
-								case MODULE_VARIABLE:
-								case LOCAL_VARIABLE:
-									attempt(
-										afterVar,
-										continuation,
-										ReferenceNodeDescriptor.fromUse(var));
-							}
-							if (suffix != null)
-							{
-								afterUpArrow.expected(
-									"reference variable " + suffix);
-							}
-						}
-					}
-				});
-		}
 	}
 
 	/**

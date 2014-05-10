@@ -81,7 +81,8 @@ public class MessageSplitter
 			E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_OR_SIMPLE_GROUP
 				.numericCode(),
 			E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION.numericCode(),
-			E_EXPECTED_OPERATOR_AFTER_BACKQUOTE.numericCode())).makeShared();
+			E_EXPECTED_OPERATOR_AFTER_BACKQUOTE.numericCode(),
+			E_UP_ARROW_MUST_FOLLOW_ARGUMENT.numericCode())).makeShared();
 
 	/**
 	 * The Avail string to be parsed.
@@ -526,8 +527,8 @@ public class MessageSplitter
 				new ArrayList<A_BasicObject>(),
 				indent + 1);
 		}
-
 	}
+
 	/**
 	 * A {@linkplain ArgumentInModuleScope} is an occurrence of an {@linkplain
 	 * StringDescriptor#ellipsis() underscore} (_) in a message name, followed
@@ -557,7 +558,7 @@ public class MessageSplitter
 		{
 			list.add(PARSE_ARGUMENT_IN_MODULE_SCOPE.encoding());
 			list.add(CHECK_ARGUMENT.encoding(absoluteUnderscoreIndex));
-			list.add(CONVERT.encoding(evaluateExpression.number()));
+			list.add(CONVERT.encoding(EVALUATE_EXPRESSION.number()));
 		}
 
 		@Override
@@ -575,7 +576,6 @@ public class MessageSplitter
 			builder.append("†");
 		}
 	}
-
 
 	/**
 	 * A {@linkplain RawTokenArgument} is an occurrence of {@linkplain
@@ -601,16 +601,7 @@ public class MessageSplitter
 			final boolean caseInsensitive,
 			final int partialListsCount)
 		{
-			// First, parse a raw token. Next, record it in a list of lists
-			// that will later be used to check negative precedence
-			// restrictions. In particular, it will be recorded at position N if
-			// this argument is for the Nth non-backquoted underscore or
-			// ellipsis of this message. This is done with two instructions to
-			// simplify processing of the recursive expression parse, especially
-			// as it relates to the non-recursive parallel shift-reduce parsing
-			// engine.
 			list.add(PARSE_RAW_TOKEN.encoding());
-			list.add(CHECK_ARGUMENT.encoding(absoluteUnderscoreIndex));
 		}
 
 		@Override
@@ -625,6 +616,49 @@ public class MessageSplitter
 				builder,
 				new ArrayList<A_BasicObject>(),
 				indent + 1);
+		}
+	}
+
+	/**
+	 * A {@linkplain VariableQuote} is an occurrence of {@linkplain
+	 * StringDescriptor#upArrow() up arrow} (↑) in a message name. It indicates
+	 * that the modified underscore must correspond to a {@linkplain
+	 * VariableDescriptor variable} that is currently in-scope. It produces a
+	 * {@linkplain ReferenceNodeDescriptor reference} to the variable.
+	 */
+	final class VariableQuote
+	extends Argument
+	{
+		/**
+		 * Construct a RawTokenArgument.
+		 */
+		VariableQuote ()
+		{
+			super();
+		}
+
+		@Override
+		void emitOn (
+			final List<Integer> list,
+			final boolean caseInsensitive,
+			final int partialListsCount)
+		{
+			list.add(PARSE_VARIABLE_REFERENCE.encoding());
+		}
+
+		@Override
+		public void printWithArguments (
+			final @Nullable Iterator<AvailObject> arguments,
+			final StringBuilder builder,
+			final int indent)
+		{
+			assert arguments != null;
+			// Describe the variable reference that was parsed as this argument.
+			arguments.next().printOnAvoidingIndent(
+				builder,
+				new ArrayList<A_BasicObject>(),
+				indent + 1);
+			builder.append("↑");
 		}
 	}
 
@@ -1370,7 +1404,7 @@ public class MessageSplitter
 			list.add(ENSURE_PARSE_PROGRESS.encoding());
 			loopSkip = list.size() + 1;
 			list.add(DISCARD_SAVED_PARSE_POSITION.encoding());
-			list.add(CONVERT.encoding(listToSize.number()));
+			list.add(CONVERT.encoding(LIST_TO_SIZE.number()));
 		}
 
 		@Override
@@ -2488,18 +2522,27 @@ public class MessageSplitter
 						E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS);
 				}
 				messagePartPosition++;
-				final Argument argument;
+				Argument argument = null;
 				@Nullable final A_String nextToken =
 					messagePartPosition > messageParts.size()
 						? null
 						: messageParts.get(messagePartPosition - 1);
-				if (nextToken != null
-					&& nextToken.equals(singleDagger()))
+				if (nextToken != null)
 				{
-					messagePartPosition++;
-					argument = new ArgumentInModuleScope();
+					if (nextToken.equals(singleDagger()))
+					{
+						messagePartPosition++;
+						argument = new ArgumentInModuleScope();
+					}
+					else if (nextToken.equals(upArrow()))
+					{
+						messagePartPosition++;
+						argument = new VariableQuote();
+					}
 				}
-				else
+				// If the argument wasn't set already (because it wasn't
+				// followed by a modifier), then set it here.
+				if (argument == null)
 				{
 					argument = new Argument();
 				}
@@ -2555,6 +2598,11 @@ public class MessageSplitter
 			{
 				throwSignatureException(
 					E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP);
+			}
+			else if (token.equals(upArrow()))
+			{
+				throwSignatureException(
+					E_UP_ARROW_MUST_FOLLOW_ARGUMENT);
 			}
 			else if (token.equals(openGuillemet()))
 			{

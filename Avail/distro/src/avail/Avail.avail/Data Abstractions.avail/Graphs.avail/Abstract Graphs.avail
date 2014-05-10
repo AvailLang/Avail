@@ -406,7 +406,7 @@ Method "_'s⁇edges" is
 		vertex : any,
 		incoming : set
 	|
-		edges := eject ↑edges ∪ left fold <∅> ++ incoming→tuple through
+		edges := eject edges ∪ left fold <∅> ++ incoming→tuple through
 			[
 				predecessor : any,
 				partial : {edge|}
@@ -466,7 +466,7 @@ Method "_'s⁇edges" is
 			edgeLabel : any,
 			incoming : set
 		|
-			edges := eject ↑edges ∪ left fold <∅> ++ incoming→tuple through
+			edges := eject edges ∪ left fold <∅> ++ incoming→tuple through
 				[
 					predecessor : any,
 					partial : {edge|}
@@ -572,14 +572,14 @@ Method "_-_" is
 		predecessor : any
 	|
 		aSet ::= successors[predecessor];
-		successors := eject ↑successors + predecessor→(aSet - aVertex);
+		successors := eject successors + predecessor→(aSet - aVertex);
 	];
 	For each next do
 	[
 		successor : any
 	|
 		aSet ::= predecessors[successor];
-		predecessors := eject ↑predecessors + successor→(aSet - aVertex);
+		predecessors := eject predecessors + successor→(aSet - aVertex);
 	];
 	aGraph's
 		predecessors ::= predecessors - aVertex,
@@ -618,13 +618,13 @@ Method "_-_" is
 			aMap :=
 				if newSet = ∅ then
 				[
-					eject ↑aMap - edgeLabel
+					eject aMap - edgeLabel
 				]
 				else
 				[
-					eject ↑aMap + edgeLabel→newSet
+					eject aMap + edgeLabel→newSet
 				];
-			successors := eject ↑successors + predecessor→aMap;
+			successors := eject successors + predecessor→aMap;
 		];
 	];
 	For each nextLabels do
@@ -641,13 +641,13 @@ Method "_-_" is
 			aMap :=
 				if newSet = ∅ then
 				[
-					eject ↑aMap - edgeLabel
+					eject aMap - edgeLabel
 				]
 				else
 				[
-					eject ↑aMap + edgeLabel→newSet
+					eject aMap + edgeLabel→newSet
 				];
-			predecessors := eject ↑predecessors + successor→aMap;
+			predecessors := eject predecessors + successor→aMap;
 		];
 	];
 	aGraph's
@@ -782,14 +782,14 @@ Method "_+_" is
 				with target vertex ::= anEdge's destination
 		]);
 	previous ::= (previousMap[anEdge's edge label] else [∅]) + anEdge's source;
-	previousMap := eject ↑previousMap + anEdge's edge label→previous;
+	previousMap := eject previousMap + anEdge's edge label→previous;
 	nextMap : {any→set|} := (successors[anEdge's source] else
 		[
 			Raise a no-such-vertex exception
 				with target vertex ::= anEdge's source
 		]);
 	next ::= (nextMap[anEdge's edge label] else [∅]) + anEdge's destination;
-	nextMap := eject ↑nextMap + anEdge's edge label→next;
+	nextMap := eject nextMap + anEdge's edge label→next;
 	aGraph's
 		predecessors ::= predecessors + anEdge's destination→previousMap,
 		successors ::= successors + anEdge's source→nextMap

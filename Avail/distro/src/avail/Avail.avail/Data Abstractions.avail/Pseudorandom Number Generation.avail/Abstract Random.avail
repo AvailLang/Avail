@@ -112,8 +112,8 @@ Public method "_'s⁇next«value in»⁇_" is
 	result : whole number := 1;
 	While
 	[
-		result := eject ↑result × rng's current element;
-		quotient := eject ↑quotient ÷ ⎡rng's element type⎤;
+		result := eject result × rng's current element;
+		quotient := eject quotient ÷ ⎡rng's element type⎤;
 		Advance rng;
 		quotient > 0
 	];
@@ -283,7 +283,7 @@ Public method "_'s⁇next shuffling of_" is
 		index : [2..∞)
 	|
 		randomIndex ::= rng's next [1..index];
-		result := eject ↑result[index↔randomIndex];
+		result := eject result[index↔randomIndex];
 	];
 	result
 ] : tuple;

@@ -413,11 +413,6 @@ implements L1OperationDispatcher
 		}
 		if (matching.isAbstractDefinition())
 		{
-			//TODO [MvG] - Remove after debugging.  Breakpoint here.
-			method.lookupByValuesFromList(argsBuffer);
-			System.out.println(
-				method.definitionsTuple().tupleAt(5).bodySignature().isSubtypeOf(
-					method.definitionsTuple().tupleAt(1).bodySignature()));
 			error(
 				"Attempted to execute an abstract method %s.",
 				bundle.message().atomName());

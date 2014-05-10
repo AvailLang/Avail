@@ -44,6 +44,7 @@ Body
  * hard work here is done automatically by the Avail compiler.
  *
  * @method "<«_‡,»>"
+ * @category "Bootstrap" "Tuples"
  * @param "elements" "tuple"
  *        The desired tuple, lexically constructed by the compiler.
  * @returns "tuple"

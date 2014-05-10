@@ -35,6 +35,7 @@ import static com.avail.compiler.AbstractAvailCompiler.ExpectedToken.*;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.problems.ProblemType.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.utility.PrefixSharingList.*;
@@ -1052,9 +1053,6 @@ public abstract class AbstractAvailCompiler
 
 		/** Leads a label. */
 		DOLLAR_SIGN("$", OPERATOR),
-
-		/** Leads a reference. */
-		UP_ARROW("↑", OPERATOR),
 
 		/** Module header token: Separates string literals. */
 		COMMA(",", OPERATOR),
@@ -4133,7 +4131,85 @@ public abstract class AbstractAvailCompiler
 					continuation);
 				break;
 			}
-			case RESERVED_10:
+			case PARSE_VARIABLE_REFERENCE:
+			{
+				// A variable name must be a keyword token.
+				final A_Token token = start.peekToken();
+				if (token.tokenType() != KEYWORD)
+				{
+					start.expected("variable name to be a keyword");
+					break;
+				}
+				// Look up the variable in the local scope first.
+				final A_String variableName = token.string();
+				final A_Map clientMap = start.clientDataMap;
+				final A_Atom scopeMapKey = AtomDescriptor.compilerScopeMapKey();
+				final A_Map scopeMap = clientMap.hasKey(scopeMapKey)
+					? clientMap.mapAt(scopeMapKey)
+					: MapDescriptor.empty();
+				A_Phrase declaration = null;
+				if (scopeMap.hasKey(variableName))
+				{
+					declaration = scopeMap.mapAt(variableName);
+				}
+				// If the variable is not in the local scope, then check the
+				// module scope.
+				if (module.variableBindings().hasKey(variableName))
+				{
+					final A_Variable variable = module.variableBindings().mapAt(
+						variableName);
+					declaration = DeclarationNodeDescriptor.newModuleVariable(
+						token,
+						variable,
+						NilDescriptor.nil());
+				}
+				else if (module.constantBindings().hasKey(variableName))
+				{
+					final A_Variable variable = module.constantBindings().mapAt(
+						variableName);
+					declaration = DeclarationNodeDescriptor.newModuleConstant(
+						token,
+						variable,
+						NilDescriptor.nil());
+				}
+				// If the variable was not declared, then reject the parse.
+				if (declaration == null)
+				{
+					start.expected(
+						"variable "
+						+ variableName
+						+ " to have been declared before use");
+					break;
+				}
+				// If the variable is a constant, then reject the parse.
+				if (declaration.declarationKind() != LOCAL_VARIABLE
+					&& declaration.declarationKind() != MODULE_VARIABLE)
+				{
+					start.expected(
+						"variable "
+						+ variableName
+						+ " to be a local variable or a module variable");
+					break;
+				}
+				// Create a variable use.
+				final A_Phrase variableUse = VariableUseNodeDescriptor.newUse(
+					token,
+					declaration);
+				// Now create the variable reference.
+				final A_Phrase variableReference =
+					ReferenceNodeDescriptor.fromUse(variableUse);
+				eventuallyParseRestOfSendNode(
+					"Continue send after variable quotation",
+					start.afterToken(),
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					append(argsSoFar, variableReference),
+					marksSoFar,
+					continuation);
+				break;
+			}
 			case RESERVED_11:
 			case RESERVED_12:
 			case RESERVED_13:

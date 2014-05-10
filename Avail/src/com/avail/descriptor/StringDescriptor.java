@@ -345,6 +345,20 @@ extends TupleDescriptor
 		return exclamationMark;
 	}
 
+	/** A tuple containing just the up arrow character. */
+	private static final A_String upArrow = from("↑").makeShared();
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the up arrow character ("↑").
+	 *
+	 * @return A tuple containing just the up arrow character.
+	 */
+	public static A_String upArrow ()
+	{
+		return upArrow;
+	}
+
 	/** A tuple containing just the tilde character. */
 	private static final A_String tilde = from("~").makeShared();
 
