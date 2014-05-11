@@ -34,8 +34,12 @@ package com.avail.environment.actions;
 
 import static javax.swing.SwingUtilities.invokeLater;
 import java.awt.event.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import javax.swing.*;
 import com.avail.annotations.*;
+import com.avail.builder.AvailBuilder.CompiledCommand;
 import com.avail.descriptor.AvailObject;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
@@ -81,6 +85,48 @@ extends AbstractWorkbenchAction
 				workbench.inputStream());
 			workbench.availBuilder.attemptCommand(
 				string,
+				new Continuation2<
+					List<CompiledCommand>, Continuation1<CompiledCommand>>()
+				{
+					@Override
+					public void value (
+						final @Nullable List<CompiledCommand> commands,
+						final @Nullable Continuation1<CompiledCommand> proceed)
+					{
+						assert commands != null;
+						assert proceed != null;
+						final CompiledCommand[] array =
+							commands.toArray(new CompiledCommand[0]);
+						Arrays.sort(
+							array,
+							new Comparator<CompiledCommand>()
+							{
+								@Override
+								public int compare (
+									final @Nullable CompiledCommand o1,
+									final @Nullable CompiledCommand o2)
+								{
+									assert o1 != null;
+									assert o2 != null;
+									return o1.toString().compareTo(
+										o2.toString());
+								}
+							});
+						final CompiledCommand selection = (CompiledCommand)
+							JOptionPane.showInputDialog(
+								workbench,
+								"Choose the desired entry point:",
+								"Disambiguate",
+								JOptionPane.QUESTION_MESSAGE,
+								null,
+								commands.toArray(),
+								null);
+						// There may not be a selection, in which case the
+						// command will not be run – but any necessary cleanup
+						// will be run.
+						proceed.value(selection);
+					}
+				},
 				new Continuation2<
 					AvailObject, Continuation1<Continuation0>>()
 				{

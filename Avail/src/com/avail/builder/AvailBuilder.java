@@ -2855,6 +2855,57 @@ public final class AvailBuilder
 	}
 
 	/**
+	 * An {@code EntryPoint} represents a compiled command. It is used to
+	 * disambiguate commands.
+	 */
+	public static final class CompiledCommand
+	{
+		/**
+		 * The {@linkplain ResolvedModuleName module name} of the {@linkplain
+		 * LoadedModule module} that declares the entry point.
+		 */
+		public final ResolvedModuleName moduleName;
+
+		/** The name of the entry point. */
+		public final String entryPointName;
+
+		/**
+		 * The compiled {@Linkplain A_Phrase phrase} that sends this entry
+		 * point.
+		 */
+		public final A_Phrase phrase;
+
+		@Override
+		public String toString ()
+		{
+			return moduleName.qualifiedName() + " : " + entryPointName;
+		}
+
+		/**
+		 * Construct a new {@link CompiledCommand}.
+		 *
+		 * @param moduleName
+		 *        The {@linkplain ResolvedModuleName module name} of the
+		 *        {@linkplain LoadedModule module} that declares the entry
+		 *        point.
+		 * @param entryPointName
+		 *        The name of the entry point.
+		 * @param phrase
+		 *        The compiled {@Linkplain A_Phrase phrase} that sends this
+		 *        entry point.
+		 */
+		@InnerAccess CompiledCommand (
+			final ResolvedModuleName moduleName,
+			final String entryPointName,
+			final A_Phrase phrase)
+		{
+			this.moduleName = moduleName;
+			this.entryPointName = entryPointName;
+			this.phrase = phrase;
+		}
+	}
+
+	/**
 	 * Attempt to unambiguously parse a command.  Each currently loaded module
 	 * that defines at least one entry point takes a shot at parsing the
 	 * command.  If more than one is successful, report the ambiguity via the
@@ -2868,6 +2919,11 @@ public final class AvailBuilder
 	 *
 	 * @param command
 	 *        The command to attempt to parse and run.
+	 * @param onAmbiguity
+	 *        What to do if the entry point is ambiguous. Accepts a {@linkplain
+	 *        List list} of {@linkplain CompiledCommand compiled commands} and
+	 *        the {@linkplain Continuation1 continuation} to invoke with the
+	 *        selected command (or {@code null} if no command should be run).
 	 * @param onSuccess
 	 *        What to do if the command parsed and ran to completion.  It should
 	 *        be passed both the result of execution and a {@linkplain
@@ -2878,6 +2934,8 @@ public final class AvailBuilder
 	public void attemptCommand (
 		final String command,
 		final Continuation2<
+			List<CompiledCommand>, Continuation1<CompiledCommand>> onAmbiguity,
+		final Continuation2<
 			AvailObject, Continuation1<Continuation0>> onSuccess,
 		final Continuation0 onFailure)
 	{
@@ -2886,10 +2944,10 @@ public final class AvailBuilder
 			@Override
 			public void value ()
 			{
-				scheduleAttemptCommand(command, onSuccess, onFailure);
+				scheduleAttemptCommand(
+					command, onAmbiguity, onSuccess, onFailure);
 			}
 		});
-
 	}
 
 	/**
@@ -2906,6 +2964,11 @@ public final class AvailBuilder
 	 *
 	 * @param command
 	 *        The command to attempt to parse and run.
+	 * @param onAmbiguity
+	 *        What to do if the entry point is ambiguous. Accepts a {@linkplain
+	 *        List list} of {@linkplain CompiledCommand compiled commands} and
+	 *        the {@linkplain Continuation1 continuation} to invoke with the
+	 *        selected command (or {@code null} if no command should be run).
 	 * @param onSuccess
 	 *        What to do if the command parsed and ran to completion.  It should
 	 *        be passed both the result of execution and a {@linkplain
@@ -2916,6 +2979,8 @@ public final class AvailBuilder
 	 */
 	@InnerAccess void scheduleAttemptCommand (
 		final String command,
+		final Continuation2<
+			List<CompiledCommand>, Continuation1<CompiledCommand>> onAmbiguity,
 		final Continuation2<
 			AvailObject, Continuation1<Continuation0>> onSuccess,
 		final Continuation0 onFailure)
@@ -2991,6 +3056,7 @@ public final class AvailBuilder
 					processParsedCommand(
 						allSolutions,
 						allProblems,
+						onAmbiguity,
 						onSuccess,
 						parallelCombine(allCleanups),
 						onFailure);
@@ -3148,6 +3214,11 @@ public final class AvailBuilder
 	 * @param problems
 	 *        A map from loaded modules to the {@linkplain Problem problems}
 	 *        that they encountered.
+	 * @param onAmbiguity
+	 *        What to do if the entry point is ambiguous. Accepts a {@linkplain
+	 *        List list} of {@linkplain CompiledCommand compiled commands} and
+	 *        the {@linkplain Continuation1 continuation} to invoke with the
+	 *        selected command (or {@code null} if no command should be run).
 	 * @param onSuccess
 	 *        What to do with the result of a successful unambiguous command.
 	 * @param postSuccessCleanup
@@ -3158,6 +3229,8 @@ public final class AvailBuilder
 	@InnerAccess void processParsedCommand (
 		final Map<LoadedModule, List<A_Phrase>> solutions,
 		final Map<LoadedModule, List<Problem>> problems,
+		final Continuation2<
+			List<CompiledCommand>, Continuation1<CompiledCommand>> onAmbiguity,
 		final Continuation2<
 			AvailObject, Continuation1<Continuation0>> onSuccess,
 		final Continuation1<Continuation0> postSuccessCleanup,
@@ -3194,8 +3267,7 @@ public final class AvailBuilder
 			return;
 		}
 		// Filter the solutions to invocations of entry points.
-		final List<A_Phrase> entryPointSends = new ArrayList<>();
-		final Set<String> namesOfModulesWithValidSends = new HashSet<>();
+		final List<CompiledCommand> commands = new ArrayList<>();
 		for (final Map.Entry<LoadedModule, List<A_Phrase>> entry :
 			solutions.entrySet())
 		{
@@ -3209,15 +3281,16 @@ public final class AvailBuilder
 					final String nameString = name.atomName().asNativeString();
 					if (moduleEntryPoints.contains(nameString))
 					{
-						entryPointSends.add(solution);
-						namesOfModulesWithValidSends.add(
-							entry.getKey().name.qualifiedName());
+						commands.add(new CompiledCommand(
+							entry.getKey().name,
+							nameString,
+							solution));
 					}
 				}
 			}
 		}
-		// If there were no entry point sends, then report a problem.
-		if (entryPointSends.isEmpty())
+		// If there were no commands, then report a problem.
+		if (commands.isEmpty())
 		{
 			final Problem problem = new Problem(
 				null,
@@ -3237,85 +3310,86 @@ public final class AvailBuilder
 			onFailure.value();
 			return;
 		}
-		// If the entry point send was ambiguous, then report a problem.
-		if (entryPointSends.size() > 1)
-		{
-			final Problem problem = new Problem(
-				null,
-				1,
-				1,
-				PARSE,
-				"The command could be parsed in multiple ways, using entry "
-				+ "points of the following modules:\n{0}",
-				namesOfModulesWithValidSends)
+
+		final Continuation1<CompiledCommand> unambiguous =
+			new Continuation1<CompiledCommand>()
 			{
 				@Override
-				public void abortCompilation ()
+				public void value (final @Nullable CompiledCommand command)
 				{
-					// do nothing.
+					if (command == null)
+					{
+						onFailure.value();
+						return;
+					}
+					final A_Phrase phrase = command.phrase;
+					final A_Function function =
+						FunctionDescriptor.createFunctionForPhrase(
+							phrase, NilDescriptor.nil(), 1);
+					final A_Fiber fiber = FiberDescriptor.newFiber(
+						function.kind().returnType(),
+						FiberDescriptor.commandPriority,
+						StringDescriptor.format(
+							"Running command: %s",
+							phrase));
+					fiber.resultContinuation(
+						new Continuation1<AvailObject>()
+						{
+							@Override
+							public void value (
+								final @Nullable AvailObject result)
+								{
+									assert result != null;
+									onSuccess.value(result, postSuccessCleanup);
+								}
+						});
+					fiber.failureContinuation(new Continuation1<Throwable>()
+					{
+						@Override
+						public void value (@Nullable final Throwable e)
+						{
+							assert e != null;
+							if (!(e instanceof FiberTerminationException))
+							{
+								final CharArrayWriter trace =
+									new CharArrayWriter();
+								e.printStackTrace(new PrintWriter(trace));
+								final Problem problem = new Problem(
+									null,
+									1,
+									1,
+									EXECUTION,
+									"Error executing command: {0}\n{1}",
+									e.getMessage(),
+									trace)
+								{
+									@Override
+									public void abortCompilation ()
+									{
+										// do nothing.
+									}
+								};
+								commandProblemHandler.handle(problem);
+							}
+							onFailure.value();
+						}
+					});
+					Interpreter.runOutermostFunction(
+						runtime,
+						fiber,
+						function,
+						Collections.<AvailObject>emptyList());
 				}
 			};
-			commandProblemHandler.handle(problem);
-			onFailure.value();
+
+		// If the command was unambiguous, then go ahead and run it.
+		if (commands.size() == 1)
+		{
+			unambiguous.value(commands.get(0));
 			return;
 		}
 
-		// Right! We have a single interpretation of the command. Compile the
-		// command and execute it on a fiber.
-		assert entryPointSends.size() == 1;
-		final A_Phrase phrase = entryPointSends.get(0);
-		final A_Function function = FunctionDescriptor.createFunctionForPhrase(
-			phrase, NilDescriptor.nil(), 1);
-		final A_Fiber fiber = FiberDescriptor.newFiber(
-			function.kind().returnType(),
-			FiberDescriptor.commandPriority,
-			StringDescriptor.format(
-				"Running command: %s",
-				phrase));
-		fiber.resultContinuation(
-			new Continuation1<AvailObject>()
-			{
-				@Override
-				public void value (final @Nullable AvailObject result)
-				{
-					assert result != null;
-					onSuccess.value(result, postSuccessCleanup);
-				}
-			});
-		fiber.failureContinuation(new Continuation1<Throwable>()
-		{
-			@Override
-			public void value (@Nullable final Throwable e)
-			{
-				assert e != null;
-				if (!(e instanceof FiberTerminationException))
-				{
-					final CharArrayWriter trace = new CharArrayWriter();
-					e.printStackTrace(new PrintWriter(trace));
-					final Problem problem = new Problem(
-						null,
-						1,
-						1,
-						EXECUTION,
-						"Error executing command: {0}\n{1}",
-						e.getMessage(),
-						trace)
-					{
-						@Override
-						public void abortCompilation ()
-						{
-							// do nothing.
-						}
-					};
-					commandProblemHandler.handle(problem);
-				}
-				onFailure.value();
-			}
-		});
-		Interpreter.runOutermostFunction(
-			runtime,
-			fiber,
-			function,
-			Collections.<AvailObject>emptyList());
+		// Otherwise, report the possible commands for disambiguation.
+		onAmbiguity.value(commands, unambiguous);
 	}
 }
