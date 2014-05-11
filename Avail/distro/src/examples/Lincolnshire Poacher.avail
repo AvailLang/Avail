@@ -1,0 +1,247 @@
+/*
+ * Lincolnshire Poacher.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Lincolnshire Poacher"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Avail"
+Entries
+	"Start Lincolnshire Poacher",
+	"Stop Lincolnshire Poacher",
+	"Eavesdrop"
+Body
+
+/**
+ * Mystify the client at the other end of the specified client socket by sending
+ * some cryptic numbers.
+ *
+ * @method "Send numbers to_"
+ * @param "client" "client socket"
+ *        A socket connected to the client.
+ * @returns "⊤"
+ */
+Private method "Send numbers to_" is
+[
+	client : client socket
+|
+	rng ::= a pRNG;
+	Guard
+	[
+		/* Allow fast reuse of the local address. */
+		client's address reusability := true;
+		/* Send the size of the stream of mysterious numbers. */
+		count ::= 5 × rng's next [5..51];
+		Write <count> to client;
+		/* Send some mysterious numbers. */
+		weirdNumbers ::= map 1 to count through [i : byte | rng's next [0..9]];
+		Write weirdNumbers to client;
+	]
+	ensure [Close client;];
+] : ⊤;
+
+/* At the present time, the spaces are required in the specification of an IP
+ * address. This limitation will be removed once Avail has a backtracking
+ * lexical scanner.
+ *
+ * Incidentally, port 0 represents a wildcard port; the system will choose a
+ * suitable one.
+ */
+serverAddress : socket address;
+serverFiber : fiber;
+serverMonitor ::= a monitor named "server monitor";
+serverOnline ::=
+	a condition of serverMonitor such that [serverFiber is assigned];
+serverOffline ::=
+	a condition of serverMonitor such that [serverFiber is unassigned];
+
+/**
+ * Run the numbers station.
+ *
+ * @method "Start Lincolnshire Poacher"
+ * @returns "⊤"
+ */
+Private method "Start Lincolnshire Poacher" is
+[
+	Lock serverMonitor for
+	[
+		If serverFiber is assigned then
+		[
+			Print: "Numbers station is already online.\n";
+		]
+		else
+		[
+			Fork
+			[
+				server ::= a server socket named "Lincolnshire Poacher";
+				Guard
+				[
+					server's address reusability := true;
+					Bind server to 127 . 0 . 0 . 1 : 0;
+					Lock serverMonitor for
+					[
+						serverAddress := server's address;
+						serverFiber := current fiber;
+						Print: "Numbers station is now online.\n";
+						Signal serverOnline;
+					];
+					Repeat
+					[
+						client ::= accept a new connection on server;
+						Fork [Send numbers to client;];
+					]
+				]
+				ensure
+				[
+					Close server;
+					Lock serverMonitor for
+					[
+						Clear serverFiber;
+						Clear serverAddress;
+						Print: "Numbers station is now offline.\n";
+						Signal serverOffline;
+					];
+				]
+			];
+		];
+		Await serverOnline;
+	];
+] : ⊤;
+
+/**
+ * Stop the numbers station.
+ *
+ * @method "Stop Lincolnshire Poacher"
+ * @returns "⊤"
+ */
+Private method "Stop Lincolnshire Poacher" is
+[
+	Lock serverMonitor for
+	[
+		If serverFiber is assigned then
+		[
+			Request termination of serverFiber;
+			Await serverOffline;
+		]
+		else
+		[
+			Print: "Numbers station is already offline.\n";
+		];
+	];
+] : ⊤;
+
+/**
+ * Identify the secret agent that is the intended recipient of the message.
+ * Display the information 10 times.
+ *
+ * @method "Identify agent:_"
+ * @param "agentId" "<byte…|5>"
+ * @return "⊤"
+ */
+Private method "Identify agent:_" is
+[
+	agentId : <byte…|5>
+|
+	Repeat
+	[
+		Print:
+			format "“①”-“②”-“③”-“④”-“⑤”\n"
+			with unchecked agentId;
+	] 10 times;
+	Print: "=-=-=-=-=-=-=-=-=-=-=\n";
+] : ⊤;
+
+/**
+ * Show the specified code block. Display the information twice.
+ *
+ * @method "Show code block:_"
+ * @param "codeBlock" "<byte…|5>"
+ * @return "⊤"
+ */
+Private method "Show code block:_" is
+[
+	codeBlock : <byte…|5>
+|
+	Print:
+		format "“①”-“②”-“③”-“④”-“⑤” (“①”-“②”-“③”-“④”-“⑤”)\n"
+		with unchecked codeBlock;
+] : ⊤;
+
+/**
+ * Connect to the server, receive the mysterious numbers, and regurgitate them
+ * to standard output as hyphen-separated quintets.
+ *
+ * @method "Eavesdrop"
+ * @return "⊤"
+ */
+Method "Eavesdrop" is
+[
+	Lock serverMonitor for
+	[
+		If serverAddress is unassigned then
+		[
+			Print: "Only silence can be heard.\n";
+		]
+		else
+		[
+			client ::= a client socket named "amateur spy";
+			Guard
+			[
+				client's address reusability := true;
+				Bind client to 127 . 0 . 0 . 1 : 0;
+				Connect client to serverAddress;
+				expected ::= (read 1 byte from client)[1];
+				weirdNumbers ::= read expected bytes from client;
+				/* Report the mysterious numbers. */
+				size ::= cast |weirdNumbers| into [s : [5..255] | s];
+				quintets ::= map 1 to size - 1 by 5 through
+					[
+						i : [1..255]
+					|
+						cast weirdNumbers[i..i + 4] into [t : <byte…|5> | t]
+					];
+				For each of quintets do
+				[
+					q : <byte…|5>,
+					i : natural number
+				|
+					If i = 1 then [Identify agent: q;]
+					else [Show code block: q;];
+				];
+			]
+			ensure [Close client;];
+		];
+	];
+] : ⊤;
+
+/* Make sure that the server always get shut down. */
+After the current module is unloaded, do [Stop Lincolnshire Poacher;];
