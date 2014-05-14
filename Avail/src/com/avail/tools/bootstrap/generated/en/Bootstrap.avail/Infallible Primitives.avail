@@ -77,6 +77,7 @@ Uses
 		"_'s⁇default type",
 		"_'s⁇element type",
 		"_'s⁇element|member type",
+		"_'s⁇entry points",
 		"_'s⁇expressions",
 		"_'s⁇function",
 		"_'s⁇function type",
@@ -2218,6 +2219,23 @@ Primitive "method exists named_" is
 |
 	Primitive 230;
 ] : boolean;
+
+/**
+ * Answer the entry points introduced by the specified module.
+ *
+ * @category "Primitives"
+ * @method "_'s⁇entry points"
+ * @param "aModule" "module"
+ *        A module.
+ * @returns "{string|}"
+ *    A set containing the entry point names introduced by {@param "aModule"}
+ */
+Primitive "_'s⁇entry points" is
+[
+	aModule : module
+|
+	Primitive 234;
+] : set of string;
 
 /**
  * Answer all seals applied to the specified method.

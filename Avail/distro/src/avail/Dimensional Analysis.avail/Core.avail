@@ -530,6 +530,15 @@ Method "“_”" is
 
 Method "“_”" is
 [
+	arg : dimensioned quantity's type
+|
+	m ::= arg's metric's instance;
+	desc ::= namesByUnit[m] else [unit map “m's unit map”];
+	“arg's extent” ++ " " ++ desc
+] : string;
+
+Method "“_”" is
+[
 	arg : extend dimensioned quantity with metric : scalar
 |
 	“arg's extent”
@@ -923,6 +932,14 @@ Semantic restriction "_+_" is
 	]
 ];
 
+Semantic restriction "_+_" is
+[
+	a : dimensioned extended integer's type,
+	b : dimensioned extended integer's type
+|
+	dimensioned (a's extent + b's extent (Avail))
+];
+
 /**
  * Compute and answer the difference of the {@type "dimensioned quantity"
  * arguments}.
@@ -973,6 +990,14 @@ Semantic restriction "_-_" is
 	[
 		dimensioned numericType
 	]
+];
+
+Semantic restriction "_-_" is
+[
+	a : dimensioned extended integer's type,
+	b : dimensioned extended integer's type
+|
+	dimensioned (a's extent - b's extent (Avail))
 ];
 
 /**
@@ -1036,6 +1061,14 @@ Semantic restriction "_×_" is
 	]
 ];
 
+Semantic restriction "_×_" is
+[
+	a : dimensioned extended integer's type,
+	b : dimensioned extended integer's type
+|
+	dimensioned (a's extent × b's extent (Avail))
+];
+
 /**
  * Compute and answer the product of the {@type "dimensioned quantity"} and the
  * {@type "number"}.
@@ -1085,6 +1118,14 @@ Semantic restriction "_×_" is
 	]
 ];
 
+Semantic restriction "_×_" is
+[
+	a : dimensioned extended integer's type,
+	b : extended integer's type
+|
+	dimensioned (a's extent × b (Avail))
+];
+
 /**
  * Compute and answer the product of the {@type "dimensioned quantity"} and the
  * {@type "number"}.
@@ -1132,6 +1173,14 @@ Semantic restriction "_×_" is
 	[
 		dimensioned numericType
 	]
+];
+
+Semantic restriction "_×_" is
+[
+	a : extended integer's type,
+	b : dimensioned extended integer's type
+|
+	dimensioned (a × b's extent (Avail))
 ];
 
 /**
@@ -1200,6 +1249,14 @@ Semantic restriction "_÷_" is
 	]
 ];
 
+Semantic restriction "_÷_" is
+[
+	a : dimensioned extended integer's type,
+	b : dimensioned extended integer's type
+|
+	dimensioned (a's extent ÷ b's extent (Avail))
+];
+
 /**
  * Compute and answer the quotient of the {@type "dimensioned quantity"} and the
  * {@type "number"}.
@@ -1254,6 +1311,14 @@ Semantic restriction "_÷_" is
 	]
 ];
 
+Semantic restriction "_÷_" is
+[
+	a : dimensioned extended integer's type,
+	b : extended integer's type
+|
+	dimensioned (a's extent ÷ b (Avail))
+];
+
 /**
  * Compute and answer the quotient of the {@type "number"} and the {@type
  * "dimensioned quantity"}.
@@ -1306,6 +1371,14 @@ Semantic restriction "_÷_" is
 	[
 		dimensioned numericType
 	]
+];
+
+Semantic restriction "_÷_" is
+[
+	a : extended integer's type,
+	b : dimensioned extended integer's type
+|
+	dimensioned (a ÷ b's extent (Avail))
 ];
 
 /**
@@ -1631,6 +1704,12 @@ Semantic restriction "⎡_⎤" is
 	Grammatical restriction power is <jux, ∅>;
 	Grammatical restriction abs is <abs>;
 	Grammatical restriction bounds is <bounds>;
+
+	/* Forbid any arithmetic operators from occurring as arguments to
+	 * dimensioned quantity accessors.
+	 */
+	accessors ::= {"_'s⁇extent", "_'s⁇metric"};
+	Grammatical restriction accessors is <sum ∪ product ∪ negation ∪ power>;
 ]();
 
 /**

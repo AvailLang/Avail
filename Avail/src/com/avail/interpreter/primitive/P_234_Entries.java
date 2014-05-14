@@ -1,5 +1,5 @@
-/*
- * Questions.avail
+/**
+ * P_234_Entries.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,31 +30,48 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Questions"
-Versions
-	"1.0.0 DEV 2014-04-28"
-Uses
-	"Quiz DSL"
-Body
+package com.avail.interpreter.primitive;
 
-Q: "Which of the following people is not a member of the Avail team?"
-A: "Mark van Gulik"
-A: "Todd Smith"
-A: "Richard Arriaga"
-A: "Julius Caesar" *;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
 
-Q: "Which of these is the number 3?"
-A: "日本語"
-A: "3" *
-A: "IV"
-A: "17";
+/**
+ * <strong>Primitive 234</strong>: Answer the entry point names declared by the
+ * specified {@linkplain ModuleDescriptor module}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+public final class P_234_Entries
+extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class. Accessed through reflection.
+	 */
+	public final static Primitive instance =
+		new P_234_Entries().init(1, CanInline, CannotFail);
 
-Q: "Where is Jimmy Hoffa?"
-A: "Mars"
-A: "In a concrete slab somewhere" *
-A: "Mark's basement"
-A: "Living as a pop idol in Singapore";
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
+	{
+		assert args.size() == 1;
+		final A_Module module = args.get(0);
+		return interpreter.primitiveSuccess(module.entryPoints().keysAsSet());
+	}
 
-/* TODO: Add more questions, if you'd like. */
-
-Administer quiz;
+	@Override
+	protected A_Type privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				MODULE.o()),
+			SetTypeDescriptor.setTypeForSizesContentType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				TupleTypeDescriptor.stringType()));
+	}
+}
