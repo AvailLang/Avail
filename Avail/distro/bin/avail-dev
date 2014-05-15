@@ -59,6 +59,15 @@ elif [ ! -f $CONFIG/logging.properties ]; then
 	exit 1
 fi
 
+# Create an empty renames file, but only if the user does not already have an
+# existing one.
+if [ ! -e $CONFIG/renames ]; then
+	touch $CONFIG/renames
+elif [ ! -f $CONFIG/renames ]; then
+	echo "Fatal error: $CONFIG/renames exists but it is not a regular file"
+	exit 1
+fi
+
 # Create the repository directory if necessary. Fix the permissions if it is
 # not readable and writable by the current user.
 REPOS=$AVAIL_USER/repos
@@ -74,6 +83,11 @@ fi
 # If AVAIL_ROOTS is not set, then default it.
 if [ "X$AVAIL_ROOTS" = "X" ]; then
 	AVAIL_ROOTS="avail=$REPOS/avail.repo,$AVAIL_HOME/src/avail"';'"examples=$REPOS/examples.repo,$AVAIL_HOME/src/examples"
+fi
+
+# If AVAIL_RENAMES is not set, then default it.
+if [ "X$AVAIL_RENAMES" = "X" ]; then
+	AVAIL_RENAMES="$CONFIG/renames"
 fi
 
 # Find the Java virtual machine.
@@ -92,7 +106,7 @@ else
 fi
 
 # These are the system arguments for the Java virtual machine.
-VMARGS=-classpath\ "$AVAIL_HOME/lib"\ $OSARGS\ -XX:-UseSplitVerifier\ "-Djava.util.logging.config.file=$HOME/.avail/logging.properties"\ "-DavailRoots=$AVAIL_ROOTS"
+VMARGS=-classpath\ "$AVAIL_HOME/lib"\ $OSARGS\ -XX:-UseSplitVerifier\ "-Djava.util.logging.config.file=$HOME/.avail/logging.properties"\ "-DavailRoots=$AVAIL_ROOTS"\ "-DavailRenames=$AVAIL_RENAMES"
 
 # Launch the Avail development environment in the background.
 DEVJAR=$AVAIL_HOME/lib/AvailDev.jar

@@ -54,6 +54,7 @@ import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.visitor.*;
 
@@ -722,7 +723,8 @@ extends AbstractDescriptor
 	@Override
 	A_Definition o_LookupByValuesFromList (
 		final AvailObject object,
-		final List<? extends A_BasicObject> argumentList)
+		final List<? extends A_BasicObject> argumentList,
+		final MutableOrNull<AvailErrorCode> errorCode)
 	{
 		throw unsupportedOperationException();
 	}

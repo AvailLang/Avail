@@ -94,8 +94,9 @@ extends DefinitionDescriptor
 		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
-		object.slot(DEFINITION_METHOD).atomName().printOnAvoidingIndent(
-			builder, recursionList, indent);
+		object.slot(DEFINITION_METHOD).bundles().iterator().next().message()
+			.printOnAvoidingIndent(
+				builder, recursionList, indent);
 		builder.append(' ');
 		object.slot(BODY_SIGNATURE).printOnAvoidingIndent(
 			builder, recursionList, indent + 1);

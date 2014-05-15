@@ -31,23 +31,26 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.*;
 import java.util.logging.Level;
 import com.avail.descriptor.*;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.utility.MutableOrNull;
 
 /**
- * Look up the method to invoke.  Use the provided vector of arguments to
- * perform a polymorphic lookup.  Write the resulting function into the
- * specified destination register.
+ * Look up the method to invoke. Use the provided vector of arguments to
+ * perform a polymorphic lookup. Write the resulting function into the
+ * specified destination register. If the lookup fails, then branch to the
+ * specified {@linkplain Interpreter#offset(int) offset}.
  */
 public class L2_LOOKUP_BY_VALUES extends L2Operation
 {
@@ -58,7 +61,9 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		new L2_LOOKUP_BY_VALUES().init(
 			SELECTOR.is("message bundle"),
 			READ_VECTOR.is("arguments"),
-			WRITE_POINTER.is("looked up function"));
+			WRITE_POINTER.is("looked up function"),
+			PC.is("lookup succeeded"),
+			WRITE_POINTER.is("error code"));
 
 	@Override
 	public void step (
@@ -69,6 +74,9 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		final L2RegisterVector argsVector = instruction.readVectorRegisterAt(1);
 		final L2ObjectRegister functionReg =
 			instruction.writeObjectRegisterAt(2);
+		final int lookedSucceeded = instruction.pcAt(3);
+		final L2ObjectRegister errorCodeReg =
+			instruction.writeObjectRegisterAt(4);
 
 		if (Interpreter.debugL2)
 		{
@@ -83,28 +91,40 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 			interpreter.argsBuffer.add(argumentReg.in(interpreter));
 		}
 		final A_Method method = bundle.bundleMethod();
+		final MutableOrNull<AvailErrorCode> errorCode = new MutableOrNull<>();
 		final long before = System.nanoTime();
 		final A_Definition definitionToCall =
-			method.lookupByValuesFromList(interpreter.argsBuffer);
+			method.lookupByValuesFromList(interpreter.argsBuffer, errorCode);
 		final long after = System.nanoTime();
 		Interpreter.recordDynamicLookup(bundle, after - before);
 		if (definitionToCall.equalsNil())
 		{
-			error("Unable to find unique definition for call");
+			errorCodeReg.set(errorCode.value().numericCode(), interpreter);
+			// Fall through to the next instruction.
 			return;
 		}
-		if (!definitionToCall.isMethodDefinition())
+		if (definitionToCall.isAbstractDefinition())
 		{
-			error("Attempted to call a non-method definition");
+			errorCodeReg.set(
+				E_ABSTRACT_METHOD_DEFINITION.numericCode(), interpreter);
+			// Fall through to the next instruction.
+			return;
+		}
+		if (definitionToCall.isForwardDefinition())
+		{
+			errorCodeReg.set(
+				E_FORWARD_METHOD_DEFINITION.numericCode(), interpreter);
+			// Fall through to the next instruction.
 			return;
 		}
 		functionReg.set(definitionToCall.bodyBlock(), interpreter);
+		interpreter.offset(lookedSucceeded);
 	}
 
 	@Override
 	protected void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
 		// Find all possible definitions (taking into account the types
@@ -114,7 +134,22 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		final L2RegisterVector argsVector = instruction.readVectorRegisterAt(1);
 		final L2ObjectRegister functionReg =
 			instruction.writeObjectRegisterAt(2);
-
+		final L2ObjectRegister errorCodeReg =
+			instruction.writeObjectRegisterAt(4);
+		// If the lookup fails, then only the error code register changes.
+		registerSets.get(0).typeAtPut(
+			errorCodeReg,
+			AbstractEnumerationTypeDescriptor.withInstances(
+				TupleDescriptor.from(
+						E_NO_METHOD.numericCode(),
+						E_NO_METHOD_DEFINITION.numericCode(),
+						E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
+						E_FORWARD_METHOD_DEFINITION.numericCode(),
+						E_ABSTRACT_METHOD_DEFINITION.numericCode())
+					.asSet()),
+			instruction);
+		// If the lookup succeeds, then the situation is more complex.
+		final RegisterSet registerSet = registerSets.get(1);
 		final List<L2ObjectRegister> argRegisters = argsVector.registers();
 		final int numArgs = argRegisters.size();
 		final List<A_Type> argTypeBounds = new ArrayList<>(numArgs);

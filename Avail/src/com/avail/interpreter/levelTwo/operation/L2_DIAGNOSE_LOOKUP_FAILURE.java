@@ -1,5 +1,5 @@
 /**
- * L2_REPORT_FAILED_LOOKUP.java
+ * L2_DIAGNOSE_LOOKUP_FAILURE.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,15 +31,11 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.ArrayList;
-import java.util.List;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Definition;
 import com.avail.descriptor.A_Set;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.DefinitionDescriptor;
+import com.avail.descriptor.AbstractEnumerationTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.*;
@@ -48,66 +44,73 @@ import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 /**
- * A method lookup failed, producing either zero or more than one most-specific
- * matching {@linkplain DefinitionDescriptor definition}.  Report the problem.
+ * A method lookup failed. Write the appropriate error code into the supplied
+ * {@linkplain L2ObjectRegister object register}.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_REPORT_FAILED_LOOKUP extends L2Operation
+public class L2_DIAGNOSE_LOOKUP_FAILURE
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_REPORT_FAILED_LOOKUP().init(
-			SELECTOR.is("method bundle"),
-			READ_VECTOR.is("arguments"),
-			CONSTANT.is("matching definitions"));
+		new L2_DIAGNOSE_LOOKUP_FAILURE().init(
+			CONSTANT.is("matching definitions"),
+			WRITE_POINTER.is("error code"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final A_Bundle bundle = instruction.bundleAt(0);
-		final List<L2ObjectRegister> arguments =
-			instruction.readVectorRegisterAt(1).registers();
-		final A_Set definitions = instruction.constantAt(2);
-
-		// TODO[MvG]: Invoke the lookup failure handler function.
-		final List<A_BasicObject> argumentValues =
-			new ArrayList<>(arguments.size());
-		for (final L2ObjectRegister argument : arguments)
+		final A_Set definitions = instruction.constantAt(0);
+		final L2ObjectRegister errorCodeReg =
+			instruction.writeObjectRegisterAt(1);
+		if (definitions.setSize() == 0)
 		{
-			argumentValues.add(argument.in(interpreter));
+			errorCodeReg.set(E_NO_METHOD_DEFINITION.numericCode(), interpreter);
+			return;
 		}
-		final A_Tuple argumentsTuple = TupleDescriptor.fromList(argumentValues);
-		error(
-			"lookup of method %s produced %d most-specific definitions"
-			+ " for arguments: %s",
-			bundle.message(),
-			definitions.setSize(),
-			argumentsTuple);
+		if (definitions.setSize() > 1)
+		{
+			errorCodeReg.set(
+				E_AMBIGUOUS_METHOD_DEFINITION.numericCode(), interpreter);
+			return;
+		}
+		final A_Definition definition = definitions.iterator().next();
+		if (definition.isAbstractDefinition())
+		{
+			errorCodeReg.set(
+				E_ABSTRACT_METHOD_DEFINITION.numericCode(), interpreter);
+		}
+		else if (definition.isForwardDefinition())
+		{
+			errorCodeReg.set(
+				E_FORWARD_METHOD_DEFINITION.numericCode(), interpreter);
+		}
 	}
 
 	@Override
 	protected void propagateTypes (
 		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		// A lookup failure should invoke the Avail lookup failure handler,
-		// so it doesn't continue running the current continuation.
-		assert registerSets.size() == 0;
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		return true;
-	}
-
-	@Override
-	public boolean reachesNextInstruction ()
-	{
-		return false;
+		final L2ObjectRegister errorCodeReg =
+			instruction.writeObjectRegisterAt(1);
+		registerSet.typeAtPut(
+			errorCodeReg,
+			AbstractEnumerationTypeDescriptor.withInstances(
+				TupleDescriptor.from(
+						E_NO_METHOD.numericCode(),
+						E_NO_METHOD_DEFINITION.numericCode(),
+						E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
+						E_FORWARD_METHOD_DEFINITION.numericCode(),
+						E_ABSTRACT_METHOD_DEFINITION.numericCode())
+					.asSet()),
+			instruction);
 	}
 }

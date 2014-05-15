@@ -1,5 +1,5 @@
 /**
- * L2_GET_VARIABLE_CLEARING.java
+ * L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,99 +29,63 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.exceptions.VariableGetException;
+import com.avail.AvailRuntime;
+import com.avail.descriptor.BottomTypeDescriptor;
+import com.avail.descriptor.FunctionTypeDescriptor;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 /**
- * Extract the value of a variable, while simultaneously clearing it. If the
- * variable is unassigned, then branch to the specified {@linkplain
- * Interpreter#offset(int) offset}.
+ * Store the {@linkplain AvailRuntime#unassignedVariableReadFunction()
+ * unassigned variable read function} into the supplied {@linkplain
+ * L2ObjectRegister object register}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_GET_VARIABLE_CLEARING extends L2Operation
+public final class L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_GET_VARIABLE_CLEARING().init(
-			READ_POINTER.is("variable"),
-			WRITE_POINTER.is("extracted value"),
-			PC.is("if assigned"));
+		new L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION().init(
+			WRITE_POINTER.is("unassigned variable read function"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2ObjectRegister variableReg =
-			instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister destReg =
-			instruction.writeObjectRegisterAt(1);
-		final int ifAssigned = instruction.pcAt(2);
-
-		final A_Variable var = variableReg.in(interpreter);
-		try
-		{
-			final AvailObject value = var.getValue();
-			if (var.traversed().descriptor().isMutable())
-			{
-				var.clearValue();
-			}
-			else
-			{
-				value.makeImmutable();
-			}
-			destReg.set(value, interpreter);
-			interpreter.offset(ifAssigned);
-		}
-		catch (final VariableGetException e)
-		{
-			// Fall through to the next instruction.
-		}
+		final L2ObjectRegister destination =
+			instruction.writeObjectRegisterAt(0);
+		destination.set(
+			interpreter.runtime().unassignedVariableReadFunction(),
+			interpreter);
 	}
 
 	@Override
 	protected void propagateTypes (
 		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		final L2ObjectRegister variableReg =
-			instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister destReg =
-			instruction.writeObjectRegisterAt(1);
-		// Only update the *branching* register set; if control reaches the
-		// next instruction, then no registers have changed.
-		final RegisterSet registerSet = registerSets.get(1);
-		// If we haven't already guaranteed that this is a variable then we
-		// are probably not doing things right.
-		assert registerSet.hasTypeAt(variableReg);
-		final A_Type varType = registerSet.typeAt(variableReg);
-		assert varType.isSubtypeOf(VariableTypeDescriptor.mostGeneralType());
-		registerSet.removeConstantAt(destReg);
-		registerSet.typeAtPut(destReg, varType.readType(), instruction);
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// Subtle. Reading from a variable can fail, so don't remove this.
-		// Also it clears the variable.
-		return true;
-	}
-
-	@Override
-	public boolean isVariableGet ()
-	{
-		return true;
+		final L2ObjectRegister destination =
+			instruction.writeObjectRegisterAt(0);
+		registerSet.typeAtPut(
+			destination,
+			FunctionTypeDescriptor.create(
+				TupleDescriptor.empty(),
+				BottomTypeDescriptor.bottom()),
+			instruction);
 	}
 }

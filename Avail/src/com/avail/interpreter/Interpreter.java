@@ -1742,27 +1742,26 @@ public final class Interpreter
 					return;
 				case SUCCESS:
 					assert chunk().isValid();
-					final A_Continuation updatedCaller =
-						continuation.ensureMutable();
-					final int stackp = updatedCaller.stackp();
+					final int stackp = continuation.stackp();
 					final AvailObject result = latestResult();
 					if (!skipReturnCheck)
 					{
 						final A_Type expectedType =
-							updatedCaller.stackAt(stackp);
+							continuation.stackAt(stackp);
 						if (!result.isInstanceOf(expectedType))
 						{
-							// Breakpoint this to trace the failed type test.
-							result.isInstanceOf(expectedType);
-							error(String.format(
-								"Return value (%s) does not agree with "
-								+ "expected type (%s)",
-								result,
-								expectedType));
+							invokeFunction(
+								runtime
+									.resultDisagreedWithExpectedTypeFunction(),
+								Collections.<A_BasicObject>emptyList(),
+								true);
+							return;
 						}
 					}
-					updatedCaller.stackAtPut(stackp, result);
+					final A_Continuation updatedCaller =
+						continuation.ensureMutable();
 					pointerAtPut(CALLER, updatedCaller);
+					updatedCaller.stackAtPut(stackp, result);
 					setChunk(
 						updatedCaller.levelTwoChunk(),
 						updatedCaller.function().code(),

@@ -1243,7 +1243,8 @@ extends Descriptor
 	@Override @AvailMethod
 	A_Definition o_LookupByValuesFromList (
 		final AvailObject object,
-		final List<? extends A_BasicObject> argumentList)
+		final List<? extends A_BasicObject> argumentList,
+		final MutableOrNull<AvailErrorCode> errorCode)
 	{
 		synchronized (object)
 		{
@@ -1253,9 +1254,19 @@ extends Descriptor
 			{
 				tree = tree.lookupStepByValues(argumentList);
 			}
-			return solutions.size() == 1
-				? solutions.get(0)
-				: NilDescriptor.nil();
+			if (solutions.size() == 1)
+			{
+				return solutions.get(0);
+			}
+			if (solutions.size() == 0)
+			{
+				errorCode.value = AvailErrorCode.E_NO_METHOD_DEFINITION;
+			}
+			else
+			{
+				errorCode.value = AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION;
+			}
+			return NilDescriptor.nil();
 		}
 	}
 

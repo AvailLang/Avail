@@ -55,6 +55,7 @@ import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.AvailUnsupportedOperationException;
 import com.avail.exceptions.MethodDefinitionException;
@@ -62,6 +63,7 @@ import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
 
@@ -1894,11 +1896,13 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @param argumentList
+	 * @param errorCode
 	 * @return
 	 */
 	abstract A_Definition o_LookupByValuesFromList (
 		AvailObject object,
-		List<? extends A_BasicObject> argumentList);
+		List<? extends A_BasicObject> argumentList,
+		MutableOrNull<AvailErrorCode> errorCode);
 
 	/**
 	 * @param object

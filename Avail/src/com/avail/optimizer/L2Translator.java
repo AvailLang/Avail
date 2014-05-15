@@ -305,6 +305,17 @@ public class L2Translator
 	}
 
 	/**
+	 * Allocate a fresh {@linkplain L2IntegerRegister integer register} that
+	 * nobody else has used yet.
+	 *
+	 * @return The new register.
+	 */
+	L2IntegerRegister newIntegerRegister ()
+	{
+		return new L2IntegerRegister(nextUnique());
+	}
+
+	/**
 	 * Allocate a fresh {@linkplain L2ObjectRegister object register} that
 	 * nobody else has used yet.
 	 *
@@ -484,7 +495,8 @@ public class L2Translator
 	 * that further optimization steps will be able to transform this code into
 	 * something much more efficient – without altering the level one semantics.
 	 */
-	public class L1NaiveTranslator implements L1OperationDispatcher
+	public class L1NaiveTranslator
+	implements L1OperationDispatcher
 	{
 		/**
 		 * The {@linkplain CompiledCodeDescriptor raw function} to transliterate
@@ -501,7 +513,7 @@ public class L2Translator
 		 * The current level one nybblecode program counter during naive
 		 * translation to level two.
 		 */
-		private int pc = 1;
+		@InnerAccess int pc = 1;
 
 		/**
 		 * The current stack depth during naive translation to level two.
@@ -513,7 +525,7 @@ public class L2Translator
 		 * flag indicating whether this continuation can skip the type check
 		 * when returning.
 		 */
-		private final L2IntegerRegister skipReturnCheckRegister =
+		@InnerAccess final L2IntegerRegister skipReturnCheckRegister =
 			L2IntegerRegister.precolored(
 				nextUnique(),
 				L1InstructionStepper.skipReturnCheckRegister());
@@ -978,10 +990,6 @@ public class L2Translator
 						{
 							// Collect the arguments into a tuple and invoke the
 							// handler for failed method lookups.
-//							System.out.format(
-//								"Invalid Solution:%n%s%n",
-//								naiveRegisters);
-//							System.out.flush();
 							final A_Set solutionsSet =
 								SetDescriptor.fromCollection(solutions);
 							final List<L2ObjectRegister> argumentRegisters =
@@ -993,13 +1001,53 @@ public class L2Translator
 								assert naiveRegisters().hasTypeAt(arg);
 								argumentRegisters.add(arg);
 							}
-							final L2RegisterVector argumentsVector =
-								new L2RegisterVector(argumentRegisters);
+							final L2ObjectRegister errorCodeReg =
+								newObjectRegister();
 							addInstruction(
-								L2_REPORT_FAILED_LOOKUP.instance,
-								new L2SelectorOperand(bundle),
-								new L2ReadVectorOperand(argumentsVector),
-								new L2ConstantOperand(solutionsSet));
+								L2_DIAGNOSE_LOOKUP_FAILURE.instance,
+								new L2ConstantOperand(solutionsSet),
+								new L2WritePointerOperand(errorCodeReg));
+							final L2ObjectRegister invalidSendReg =
+								newObjectRegister();
+							addInstruction(
+								L2_GET_INVALID_MESSAGE_SEND_FUNCTION.instance,
+								new L2WritePointerOperand(invalidSendReg));
+							// Record the slot values of the continuation.
+							final int nSlots = numSlots;
+							final List<L2ObjectRegister> slots =
+								new ArrayList<>(nSlots);
+							for (
+								int slotIndex = 1;
+								slotIndex <= nSlots;
+								slotIndex++)
+							{
+								slots.add(continuationSlot(slotIndex));
+							}
+							// The continuation must be reified prior to
+							// invoking the failure function.
+							final L2Instruction unreachable =
+								newLabel("unreachable");
+							final L2ObjectRegister reifiedRegister =
+								newObjectRegister();
+							addInstruction(
+								L2_CREATE_CONTINUATION.instance,
+								new L2ReadPointerOperand(fixed(CALLER)),
+								new L2ReadPointerOperand(fixed(FUNCTION)),
+								new L2ImmediateOperand(pc),
+								new L2ImmediateOperand(stackp),
+								new L2ReadIntOperand(skipReturnCheckRegister),
+								new L2ReadVectorOperand(createVector(slots)),
+								new L2PcOperand(unreachable),
+								new L2WritePointerOperand(reifiedRegister));
+							addInstruction(
+								L2_INVOKE.instance,
+								new L2ReadPointerOperand(reifiedRegister),
+								new L2ReadPointerOperand(invalidSendReg),
+								new L2ReadVectorOperand(createVector(
+									Collections.singletonList(errorCodeReg))),
+								new L2ImmediateOperand(1));
+							addLabel(unreachable);
+							addInstruction(L2_UNREACHABLE_CODE.instance);
 						}
 					}
 				});
@@ -1334,12 +1382,30 @@ public class L2Translator
 				new L2ReadVectorOperand(createVector(preSlots)),
 				new L2PcOperand(postCallLabel),
 				new L2WritePointerOperand(tempCallerRegister));
+			final L2Instruction lookupSucceeded = newLabel("lookupSucceeded");
 			final L2ObjectRegister functionReg = newObjectRegister();
+			final L2ObjectRegister errorCodeReg = newObjectRegister();
 			addInstruction(
 				L2_LOOKUP_BY_VALUES.instance,
 				new L2SelectorOperand(bundle),
 				new L2ReadVectorOperand(createVector(args)),
-				new L2WritePointerOperand(functionReg));
+				new L2WritePointerOperand(functionReg),
+				new L2PcOperand(lookupSucceeded),
+				new L2WritePointerOperand(errorCodeReg));
+			// Emit the failure off-ramp.
+			final L2ObjectRegister invalidSendReg = newObjectRegister();
+			addInstruction(
+				L2_GET_INVALID_MESSAGE_SEND_FUNCTION.instance,
+				new L2WritePointerOperand(invalidSendReg));
+			addInstruction(
+				L2_INVOKE.instance,
+				new L2ReadPointerOperand(tempCallerRegister),
+				new L2ReadPointerOperand(invalidSendReg),
+				new L2ReadVectorOperand(createVector(
+					Collections.singletonList(errorCodeReg))),
+				new L2ImmediateOperand(1));
+			addInstruction(L2_UNREACHABLE_CODE.instance);
+			addLabel(lookupSucceeded);
 			// Now invoke the method definition's body.  Without looking at the
 			// definitions we can't determine if the return type check can be
 			// skipped.
@@ -1527,7 +1593,7 @@ public class L2Translator
 				}
 				final L2ObjectRegister varRegister = newObjectRegister();
 				moveConstant(variable, varRegister);
-				addInstruction(
+				emitGetVariableOffRamp(
 					L2_GET_VARIABLE.instance,
 					new L2ReadPointerOperand(varRegister),
 					new L2WritePointerOperand(resultRegister));
@@ -1741,6 +1807,69 @@ public class L2Translator
 		}
 
 		/**
+		 * Emit the specified variable-reading instruction, and an off-ramp to
+		 * deal with the case that the variable is unassigned.
+		 *
+		 * @param getOperation
+		 *        The {@linkplain L2Operation#isVariableGet() variable reading}
+		 *        {@linkplain L2Operation operation}.
+		 * @param variable
+		 *        The location of the {@linkplain A_Variable variable}.
+		 * @param destination
+		 *        The destination of the extracted value.
+		 */
+		@InnerAccess void emitGetVariableOffRamp (
+			final L2Operation getOperation,
+			final L2ReadPointerOperand variable,
+			final L2WritePointerOperand destination)
+		{
+			assert getOperation.isVariableGet();
+			final L2Instruction unreachable = newLabel("unreachable");
+			final L2Instruction success = newLabel("success");
+			// Emit the get-variable instruction.
+			addInstruction(
+				getOperation,
+				variable,
+				destination,
+				new L2PcOperand(success));
+			// Emit the failure off-ramp.
+			final L2ObjectRegister unassignedReadFunction = newObjectRegister();
+			addInstruction(
+				L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION.instance,
+				new L2WritePointerOperand(unassignedReadFunction));
+			// Record the slot values of the continuation.
+			final int nSlots = numSlots;
+			final List<L2ObjectRegister> slots = new ArrayList<>(nSlots);
+			for (int slotIndex = 1; slotIndex <= nSlots; slotIndex++)
+			{
+				slots.add(continuationSlot(slotIndex));
+			}
+			// The continuation must be reified prior to invoking the failure
+			// function.
+			final L2ObjectRegister reifiedRegister = newObjectRegister();
+			addInstruction(
+				L2_CREATE_CONTINUATION.instance,
+				new L2ReadPointerOperand(fixed(CALLER)),
+				new L2ReadPointerOperand(fixed(FUNCTION)),
+				new L2ImmediateOperand(pc),
+				new L2ImmediateOperand(stackp),
+				new L2ReadIntOperand(skipReturnCheckRegister),
+				new L2ReadVectorOperand(createVector(slots)),
+				new L2PcOperand(unreachable),
+				new L2WritePointerOperand(reifiedRegister));
+			addInstruction(
+				L2_INVOKE.instance,
+				new L2ReadPointerOperand(reifiedRegister),
+				new L2ReadPointerOperand(unassignedReadFunction),
+				new L2ReadVectorOperand(createVector(
+					Collections.<L2ObjectRegister>emptyList())),
+				new L2ImmediateOperand(1));
+			addLabel(unreachable);
+			addInstruction(L2_UNREACHABLE_CODE.instance);
+			addLabel(success);
+		}
+
+		/**
 		 * For each level one instruction, write a suitable transliteration into
 		 * level two instructions.
 		 */
@@ -1915,7 +2044,7 @@ public class L2Translator
 		{
 			final int index = getInteger();
 			stackp--;
-			addInstruction(
+			emitGetVariableOffRamp(
 				L2_GET_VARIABLE.instance,
 				new L2ReadPointerOperand(argumentOrLocal(index)),
 				new L2WritePointerOperand(stackRegister(stackp)));
@@ -1926,7 +2055,7 @@ public class L2Translator
 		{
 			final int index = getInteger();
 			stackp--;
-			addInstruction(
+			emitGetVariableOffRamp(
 				L2_GET_VARIABLE_CLEARING.instance,
 				new L2ReadPointerOperand(argumentOrLocal(index)),
 				new L2WritePointerOperand(stackRegister(stackp)));
@@ -1943,7 +2072,7 @@ public class L2Translator
 				new L2ReadPointerOperand(fixed(FUNCTION)),
 				new L2WritePointerOperand(stackRegister(stackp)),
 				new L2ConstantOperand(code.outerTypeAt(outerIndex)));
-			addInstruction(
+			emitGetVariableOffRamp(
 				L2_GET_VARIABLE.instance,
 				new L2ReadPointerOperand(stackRegister(stackp)),
 				new L2WritePointerOperand(stackRegister(stackp)));
@@ -1960,7 +2089,7 @@ public class L2Translator
 				new L2ReadPointerOperand(fixed(FUNCTION)),
 				new L2WritePointerOperand(stackRegister(stackp)),
 				new L2ConstantOperand(code.outerTypeAt(outerIndex)));
-			addInstruction(
+			emitGetVariableOffRamp(
 				L2_GET_VARIABLE_CLEARING.instance,
 				new L2ReadPointerOperand(stackRegister(stackp)),
 				new L2WritePointerOperand(stackRegister(stackp)));
@@ -2131,7 +2260,7 @@ public class L2Translator
 			final AvailObject constant = code.literalAt(getInteger());
 			stackp--;
 			moveConstant(constant, tempReg);
-			addInstruction(
+			emitGetVariableOffRamp(
 				L2_GET_VARIABLE.instance,
 				new L2ReadPointerOperand(tempReg),
 				new L2WritePointerOperand(stackRegister(stackp)));

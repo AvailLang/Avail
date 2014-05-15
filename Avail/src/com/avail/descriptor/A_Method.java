@@ -34,8 +34,10 @@ package com.avail.descriptor;
 
 import java.util.List;
 import com.avail.descriptor.MethodDescriptor.LookupTree;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
+import com.avail.utility.MutableOrNull;
 
 /**
  * {@code A_Method} is an interface that specifies behavior specific to Avail
@@ -101,7 +103,8 @@ extends A_ChunkDependable
 	 * Dispatch to the descriptor.
 	 */
 	A_Definition lookupByValuesFromList (
-		List<? extends A_BasicObject> argumentList);
+		List<? extends A_BasicObject> argumentList,
+		MutableOrNull<AvailErrorCode> errorCode);
 
 	/**
 	 * Dispatch to the descriptor.

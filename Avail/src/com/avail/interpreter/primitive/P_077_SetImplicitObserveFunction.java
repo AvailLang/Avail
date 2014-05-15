@@ -67,6 +67,8 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Function function = args.get(0);
+		function.code().setMethodName(
+			StringDescriptor.from("«implicit observe function»"));
 		AvailRuntime.current().setImplicitObserveFunction(function);
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}

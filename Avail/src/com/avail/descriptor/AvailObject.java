@@ -57,6 +57,7 @@ import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.*;
+import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.visitor.*;
 
@@ -2841,9 +2842,11 @@ implements
 	 */
 	@Override
 	public A_Definition lookupByValuesFromList (
-		final List<? extends A_BasicObject> argumentList)
+		final List<? extends A_BasicObject> argumentList,
+		final MutableOrNull<AvailErrorCode> errorCode)
 	{
-		return descriptor.o_LookupByValuesFromList(this, argumentList);
+		return descriptor.o_LookupByValuesFromList(
+			this, argumentList, errorCode);
 	}
 
 	/**

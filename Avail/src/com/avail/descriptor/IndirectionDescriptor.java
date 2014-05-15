@@ -52,12 +52,14 @@ import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
 
@@ -1308,9 +1310,11 @@ extends AbstractDescriptor
 	@Override
 	A_Definition o_LookupByValuesFromList (
 		final AvailObject object,
-		final List<? extends A_BasicObject> argumentList)
+		final List<? extends A_BasicObject> argumentList,
+		final MutableOrNull<AvailErrorCode> errorCode)
 	{
-		return o_Traversed(object).lookupByValuesFromList(argumentList);
+		return o_Traversed(object).lookupByValuesFromList(
+			argumentList, errorCode);
 	}
 
 	@Override

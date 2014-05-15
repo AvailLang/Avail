@@ -32,17 +32,20 @@
 
 package com.avail.interpreter.levelTwo;
 
-import static com.avail.descriptor.AvailObject.error;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Interpreter.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import java.util.*;
 import java.util.logging.Level;
 import com.avail.descriptor.*;
+import com.avail.exceptions.AvailErrorCode;
+import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_ONE_L1_INSTRUCTION;
 import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_UNTIL_INTERRUPT;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
+import com.avail.utility.MutableOrNull;
 
 /**
  * This class is used to simulate the effect of level one nybblecodes during
@@ -285,7 +288,7 @@ implements L1OperationDispatcher
 	 * #pcRegister()}, {@link #stackpRegister()}, and {@link
 	 * #skipReturnCheckRegister()} are also part of the state manipulated by the
 	 * L1 stepper.
-Í	 *
+	 *
 	 * <p>
 	 * Write the resulting continuation into the {@linkplain
 	 * FixedRegister#CALLER caller register}.
@@ -395,27 +398,36 @@ implements L1OperationDispatcher
 			argsBuffer.add(0, pop());
 		}
 		final A_Method method = bundle.bundleMethod();
-		final A_Definition matching = method.lookupByValuesFromList(argsBuffer);
+		final MutableOrNull<AvailErrorCode> errorCode = new MutableOrNull<>();
+		final A_Definition matching = method.lookupByValuesFromList(
+			argsBuffer, errorCode);
 		if (matching.equalsNil())
 		{
-			error(
-				"Ambiguous or invalid lookup of %s",
-				bundle.message().atomName());
+			reifyContinuation();
+			interpreter.invokeFunction(
+				interpreter.runtime().invalidMessageSendFunction(),
+				Collections.singletonList(errorCode.value().numericCode()),
+				true);
 			return;
 		}
 		if (matching.isForwardDefinition())
 		{
-			error(
-				"Attempted to execute forward method %s "
-				+ "before it was defined.",
-				bundle.message().atomName());
+			reifyContinuation();
+			interpreter.invokeFunction(
+				interpreter.runtime().invalidMessageSendFunction(),
+				Collections.singletonList(
+					E_FORWARD_METHOD_DEFINITION.numericCode()),
+				true);
 			return;
 		}
 		if (matching.isAbstractDefinition())
 		{
-			error(
-				"Attempted to execute an abstract method %s.",
-				bundle.message().atomName());
+			reifyContinuation();
+			interpreter.invokeFunction(
+				interpreter.runtime().invalidMessageSendFunction(),
+				Collections.singletonList(
+					E_ABSTRACT_METHOD_DEFINITION.numericCode()),
+				true);
 			return;
 		}
 		// Leave the expected return type pushed on the stack.  This will be
@@ -465,11 +477,7 @@ implements L1OperationDispatcher
 		final A_Function function = pointerAt(FUNCTION);
 		final int outerIndex = getInteger();
 		final A_BasicObject outer = function.outerVarAt(outerIndex);
-		if (outer.equalsNil())
-		{
-			error("Someone prematurely erased this outer var");
-			return;
-		}
+		assert !outer.equalsNil();
 		if (!function.optionallyNilOuterVar(outerIndex))
 		{
 			outer.makeImmutable();
@@ -519,16 +527,27 @@ implements L1OperationDispatcher
 	{
 		final int localIndex = argumentOrLocalRegister(getInteger());
 		final A_Variable localVariable = pointerAt(localIndex);
-		final AvailObject value = localVariable.getValue();
-		if (localVariable.traversed().descriptor().isMutable())
+		try
 		{
-			localVariable.clearValue();
+			final AvailObject value = localVariable.getValue();
+			if (localVariable.traversed().descriptor().isMutable())
+			{
+				localVariable.clearValue();
+			}
+			else
+			{
+				value.makeImmutable();
+			}
+			push(value);
 		}
-		else
+		catch (final VariableGetException e)
 		{
-			value.makeImmutable();
+			reifyContinuation();
+			interpreter.invokeFunction(
+				interpreter.runtime().unassignedVariableReadFunction(),
+				Collections.<A_BasicObject>emptyList(),
+				true);
 		}
-		push(value);
 	}
 
 	@Override
@@ -537,11 +556,7 @@ implements L1OperationDispatcher
 		final A_Function function = pointerAt(FUNCTION);
 		final int outerIndex = getInteger();
 		final A_BasicObject outer = function.outerVarAt(outerIndex);
-		if (outer.equalsNil())
-		{
-			error("Someone prematurely erased this outer var");
-			return;
-		}
+		assert !outer.equalsNil();
 		outer.makeImmutable();
 		push(outer);
 	}
@@ -559,15 +574,26 @@ implements L1OperationDispatcher
 		final int outerIndex = getInteger();
 		final A_Variable outerVariable = function.outerVarAt(outerIndex);
 		final AvailObject value = outerVariable.getValue();
-		if (outerVariable.traversed().descriptor().isMutable())
+		try
 		{
-			outerVariable.clearValue();
+			if (outerVariable.traversed().descriptor().isMutable())
+			{
+				outerVariable.clearValue();
+			}
+			else
+			{
+				value.makeImmutable();
+			}
+			push(value);
 		}
-		else
+		catch (final VariableGetException e)
 		{
-			value.makeImmutable();
+			reifyContinuation();
+			interpreter.invokeFunction(
+				interpreter.runtime().unassignedVariableReadFunction(),
+				Collections.<A_BasicObject>emptyList(),
+				true);
 		}
-		push(value);
 	}
 
 	@Override
@@ -576,11 +602,7 @@ implements L1OperationDispatcher
 		final A_Function function = pointerAt(FUNCTION);
 		final int outerIndex = getInteger();
 		final A_Variable outerVariable = function.outerVarAt(outerIndex);
-		if (outerVariable.equalsNil())
-		{
-			error("Someone prematurely erased this outer var");
-			return;
-		}
+		assert !outerVariable.equalsNil();
 		final AvailObject newValue = pop();
 		// The value's reference from the stack is now from the variable.
 		outerVariable.setValue(newValue);
@@ -591,9 +613,20 @@ implements L1OperationDispatcher
 	{
 		final int localIndex = argumentOrLocalRegister(getInteger());
 		final A_Variable localVariable = pointerAt(localIndex);
-		final AvailObject value = localVariable.getValue();
-		value.makeImmutable();
-		push(value);
+		try
+		{
+			final AvailObject value = localVariable.getValue();
+			value.makeImmutable();
+			push(value);
+		}
+		catch (final VariableGetException e)
+		{
+			reifyContinuation();
+			interpreter.invokeFunction(
+				interpreter.runtime().unassignedVariableReadFunction(),
+				Collections.<A_BasicObject>emptyList(),
+				true);
+		}
 	}
 
 	@Override
@@ -616,14 +649,20 @@ implements L1OperationDispatcher
 		final A_Function function = pointerAt(FUNCTION);
 		final int outerIndex = getInteger();
 		final A_Variable outerVariable = function.outerVarAt(outerIndex);
-		final AvailObject outer = outerVariable.getValue();
-		if (outer.equalsNil())
+		try
 		{
-			error("Someone prematurely erased this outer var");
-			return;
+			final AvailObject outer = outerVariable.getValue();
+			outer.makeImmutable();
+			push(outer);
 		}
-		outer.makeImmutable();
-		push(outer);
+		catch (final VariableGetException e)
+		{
+			reifyContinuation();
+			interpreter.invokeFunction(
+				interpreter.runtime().unassignedVariableReadFunction(),
+				Collections.<A_BasicObject>emptyList(),
+				true);
+		}
 	}
 
 	@Override
@@ -684,9 +723,20 @@ implements L1OperationDispatcher
 		final A_Variable literalVariable = literalAt(literalIndex);
 		// We don't need to make constant beImmutable because *code objects*
 		// are always immutable.
-		final AvailObject value = literalVariable.getValue();
-		value.makeImmutable();
-		push(value);
+		try
+		{
+			final AvailObject value = literalVariable.getValue();
+			value.makeImmutable();
+			push(value);
+		}
+		catch (final VariableGetException e)
+		{
+			reifyContinuation();
+			interpreter.invokeFunction(
+				interpreter.runtime().unassignedVariableReadFunction(),
+				Collections.<A_BasicObject>emptyList(),
+				true);
+		}
 	}
 
 	@Override
@@ -711,8 +761,7 @@ implements L1OperationDispatcher
 	@Override
 	public void L1Ext_doReserved ()
 	{
-		error("That nybblecode is not supported");
-		return;
+		throw new RuntimeException("Nybblecode is not supported");
 	}
 
 	@Override
