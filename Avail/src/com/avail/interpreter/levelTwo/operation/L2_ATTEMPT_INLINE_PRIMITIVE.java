@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.List;
 import com.avail.descriptor.A_Function;
@@ -48,29 +47,30 @@ import com.avail.optimizer.RegisterSet;
 /**
  * Attempt to perform the specified primitive, using the provided arguments.
  * If successful, check that the resulting object's type agrees with the
- * provided expected type (TODO [MvG] currently stopping the VM if not),
- * writing the result to some register and then jumping to the success
- * label.  If the primitive fails, capture the primitive failure value in
- * some register then continue to the next instruction.
+ * provided expected type. If the check fails, then branch. Otherwise, write the
+ * result to some register and then jump to the success label. If the primitive
+ * fails, capture the primitive failure value in some register then continue to
+ * the next instruction.
  *
  * <p>
  * Unlike for {@link L2_INVOKE} and related operations, we do not provide
- * the calling continuation here.  That's because by inlining the primitive
+ * the calling continuation here. That's because by inlining the primitive
  * attempt we have avoided (or at worst postponed) construction of the
- * continuation that reifies the current function execution.  This is a Good
+ * continuation that reifies the current function execution. This is a Good
  * Thing, performance-wise.
  * </p>
  *
  * <p>
- * A collection of preserved fields is provided.  Since tampering with a
+ * A collection of preserved fields is provided. Since tampering with a
  * continuation switches it to use the default level one interpreting chunk,
  * we can rest assured that anything written to a continuation by optimized
- * level two code will continue to be free from tampering.  The preserved
+ * level two code will continue to be free from tampering. The preserved
  * fields list any such registers whose values are preserved across both
  * successful primitive invocations and failed invocations.
  * </p>
  */
-public class L2_ATTEMPT_INLINE_PRIMITIVE extends L2Operation
+public class L2_ATTEMPT_INLINE_PRIMITIVE
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -84,7 +84,8 @@ public class L2_ATTEMPT_INLINE_PRIMITIVE extends L2Operation
 			WRITE_POINTER.is("primitive result"),
 			WRITE_POINTER.is("primitive failure value"),
 			READWRITE_VECTOR.is("preserved fields"),
-			PC.is("if primitive succeeds"));
+			PC.is("if primitive succeeds"),
+			PC.is("if primitive fails"));
 
 	@Override
 	public void step (
@@ -100,6 +101,7 @@ public class L2_ATTEMPT_INLINE_PRIMITIVE extends L2Operation
 		final L2ObjectRegister failureReg =
 			instruction.writeObjectRegisterAt(5);
 		final int successOffset = instruction.pcAt(7);
+		final int failureOffset = instruction.pcAt(8);
 
 		interpreter.argsBuffer.clear();
 		for (final L2ObjectRegister register : argumentsVector)
@@ -123,19 +125,14 @@ public class L2_ATTEMPT_INLINE_PRIMITIVE extends L2Operation
 				primitive.addNanosecondsCheckingResultType(after - before);
 				if (!checkOk)
 				{
-					// TODO [MvG] This will have to be handled better some day.
-					error(
-						"primitive %s's result (%s) did not agree with"
-						+ " semantic restriction's expected type (%s)",
-						primitive.name(),
-						result,
-						expectedType);
+					break;
 				}
 				resultReg.set(result, interpreter);
 				interpreter.offset(successOffset);
 				break;
 			case FAILURE:
 				failureReg.set(interpreter.latestResult(), interpreter);
+				interpreter.offset(failureOffset);
 				break;
 			default:
 				assert false;
@@ -154,8 +151,8 @@ public class L2_ATTEMPT_INLINE_PRIMITIVE extends L2Operation
 		final L2ObjectRegister failureReg =
 			instruction.writeObjectRegisterAt(5);
 
-		final RegisterSet failRegisterSet = registerSets.get(0);
 		final RegisterSet successRegisterSet = registerSets.get(1);
+		final RegisterSet failRegisterSet = registerSets.get(2);
 
 		// Figure out what the primitive failure values are allowed to be.
 		final A_Type failureType = primitive.failureVariableType();

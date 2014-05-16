@@ -42,15 +42,14 @@ import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 /**
  * Store the {@linkplain AvailRuntime#invalidMessageSendFunction() invalid
- * message send function} into the supplied {@linkplain L2IntegerRegister
- * integer register}.
+ * message send function} into the supplied {@linkplain L2ObjectRegister
+ * object register}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -63,7 +62,6 @@ extends L2Operation
 	public final static L2Operation instance =
 		new L2_GET_INVALID_MESSAGE_SEND_FUNCTION().init(
 			WRITE_POINTER.is("invalid message send function"));
-
 
 	@Override
 	public void step (

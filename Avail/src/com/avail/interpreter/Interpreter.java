@@ -1366,12 +1366,12 @@ public final class Interpreter
 			final A_Type expectedType = caller.stackAt(stackp);
 			if (!value.isInstanceOf(expectedType))
 			{
-				// TODO: [MvG] Handy for recomputing in the debugger.
-				value.isInstanceOf(expectedType);
-				error(String.format(
-					"Return value (%s) does not agree with expected type (%s)",
-					value,
-					expectedType));
+				pointerAtPut(CALLER, caller);
+				invokeFunction(
+					runtime.resultDisagreedWithExpectedTypeFunction(),
+					Collections.<A_BasicObject>emptyList(),
+					true);
+				return;
 			}
 		}
 		final A_Continuation updatedCaller = caller.ensureMutable();

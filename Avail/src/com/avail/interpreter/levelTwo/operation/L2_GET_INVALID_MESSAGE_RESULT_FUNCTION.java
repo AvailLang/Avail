@@ -1,5 +1,5 @@
 /**
- * L2_REPORT_INVALID_RETURN_TYPE.java
+ * L2_GET_INVALID_MESSAGE_RESULT_FUNCTION.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,79 +29,63 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.List;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.*;
-import com.avail.interpreter.levelTwo.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import com.avail.AvailRuntime;
+import com.avail.descriptor.BottomTypeDescriptor;
+import com.avail.descriptor.FunctionTypeDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 /**
- * A value is known at this point to disagree with the type that it is
- * expected to be.  Report this problem and stop execution.  Note that this
- * instruction might be in a branch of (potentially inlined) code that
- * happens to be unreachable in actuality, despite the compiler being unable
- * to prove this.
+ * Store the {@linkplain AvailRuntime#resultDisagreedWithExpectedTypeFunction()
+ * invalid result function} into the supplied {@linkplain L2ObjectRegister
+ * object register}.
  *
- * <p>
- * TODO [MvG] - Of course, this will ultimately need to be handled in a much
- * better way than just stopping the whole VM.
- * </p>
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_REPORT_INVALID_RETURN_TYPE extends L2Operation
+public final class L2_GET_INVALID_MESSAGE_RESULT_FUNCTION
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_REPORT_INVALID_RETURN_TYPE().init(
-			PRIMITIVE.is("failed primitive"),
-			READ_POINTER.is("actual value"),
-			CONSTANT.is("expected type"));
+		new L2_GET_INVALID_MESSAGE_RESULT_FUNCTION().init(
+			WRITE_POINTER.is("invalid message result function"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final Primitive primitive = instruction.primitiveAt(0);
-		final L2ObjectRegister actualValueReg =
-			instruction.readObjectRegisterAt(1);
-		final AvailObject expectedType = instruction.constantAt(2);
-
-		final A_BasicObject actualValue = actualValueReg.in(interpreter);
-		error(
-			"primitive %s's result (%s) did not agree with"
-			+ " semantic restriction's expected type (%s)",
-			primitive.name(),
-			actualValue,
-			expectedType);
+		final L2ObjectRegister destination =
+			instruction.writeObjectRegisterAt(0);
+		destination.set(
+			interpreter.runtime().resultDisagreedWithExpectedTypeFunction(),
+			interpreter);
 	}
 
 	@Override
 	protected void propagateTypes (
 		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		assert registerSets.isEmpty();
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		return true;
-	}
-
-	@Override
-	public boolean reachesNextInstruction ()
-	{
-		return false;
+		final L2ObjectRegister destination =
+			instruction.writeObjectRegisterAt(0);
+		registerSet.typeAtPut(
+			destination,
+			FunctionTypeDescriptor.create(
+				TupleDescriptor.empty(),
+				BottomTypeDescriptor.bottom()),
+			instruction);
 	}
 }

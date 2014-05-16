@@ -240,8 +240,7 @@ public class L2Translator
 	 * @param registerEnum The {@link FixedRegister} identifying the register.
 	 * @return The {@link L2ObjectRegister} named by the registerEnum.
 	 */
-	public L2ObjectRegister fixed (
-		final FixedRegister registerEnum)
+	public L2ObjectRegister fixed (final FixedRegister registerEnum)
 	{
 		return architecturalRegisters.get(registerEnum.ordinal());
 	}
@@ -259,12 +258,10 @@ public class L2Translator
 	 * argument occurs just after the {@link FixedRegister}s.
 	 *
 	 * @param slotNumber
-	 *            The index into the continuation's slots.
-	 * @return
-	 *            A register representing that continuation slot.
+	 *        The index into the continuation's slots.
+	 * @return A register representing that continuation slot.
 	 */
-	public L2ObjectRegister continuationSlot (
-		final int slotNumber)
+	public L2ObjectRegister continuationSlot (final int slotNumber)
 	{
 		return architecturalRegisters.get(
 			firstArgumentRegisterIndex - 1 + slotNumber);
@@ -275,14 +272,13 @@ public class L2Translator
 	 * 1st argument is the 3rd architectural register).
 	 *
 	 * @param argumentNumber
-	 *            The argument number for which the "architectural" register is
-	 *            being requested.  If this is greater than the number of
-	 *            arguments, then answer the register representing the local
-	 *            variable at that position minus the number of registers.
+	 *        The argument number for which the "architectural" register is
+	 *        being requested.  If this is greater than the number of arguments,
+	 *        then answer the register representing the local variable at that
+	 *        position minus the number of registers.
 	 * @return A register that represents the specified argument or local.
 	 */
-	L2ObjectRegister argumentOrLocal (
-		final int argumentNumber)
+	public L2ObjectRegister argumentOrLocal (final int argumentNumber)
 	{
 		final A_RawFunction theCode = codeOrFail();
 		assert argumentNumber <= theCode.numArgs() + theCode.numLocals();
@@ -297,8 +293,7 @@ public class L2Translator
 	 * @return A {@linkplain L2ObjectRegister register} representing the stack
 	 *         at the given position.
 	 */
-	@InnerAccess L2ObjectRegister stackRegister (
-		final int stackIndex)
+	public L2ObjectRegister stackRegister (final int stackIndex)
 	{
 		assert 1 <= stackIndex && stackIndex <= codeOrFail().maxStackDepth();
 		return continuationSlot(numArgs + numLocals + stackIndex);
@@ -310,7 +305,7 @@ public class L2Translator
 	 *
 	 * @return The new register.
 	 */
-	L2IntegerRegister newIntegerRegister ()
+	public L2IntegerRegister newIntegerRegister ()
 	{
 		return new L2IntegerRegister(nextUnique());
 	}
@@ -321,7 +316,7 @@ public class L2Translator
 	 *
 	 * @return The new register.
 	 */
-	L2ObjectRegister newObjectRegister ()
+	public L2ObjectRegister newObjectRegister ()
 	{
 		return new L2ObjectRegister(nextUnique());
 	}
@@ -564,8 +559,7 @@ public class L2Translator
 		 * a label phrase causes construction of a continuation which uses the
 		 * restartLabel.
 		 */
-		@Nullable RegisterSet naiveRegisters =
-			new RegisterSet(fixedRegisterMap);
+		@Nullable RegisterSet naiveRegisters = new RegisterSet(fixedRegisterMap);
 
 		/**
 		 * Answer the {@link RegisterSet} information at the current position in
@@ -620,6 +614,154 @@ public class L2Translator
 		 * the continuation and jump to the start.
 		 */
 		boolean anyPushLabelsEncountered = false;
+
+		/**
+		 * Answer the specified fixed register.
+		 *
+		 * @param registerEnum
+		 *        The {@link FixedRegister} identifying the register.
+		 * @return The {@link L2ObjectRegister} named by the registerEnum.
+		 */
+		public L2ObjectRegister fixed (final FixedRegister registerEnum)
+		{
+			return L2Translator.this.fixed(registerEnum);
+		}
+
+		/**
+		 * Answer the register holding the specified continuation slot. The
+		 * slots are the arguments, then the locals, then the stack entries. The
+		 * first argument occurs just after the {@link FixedRegister}s.
+		 *
+		 * @param slotNumber
+		 *        The index into the continuation's slots.
+		 * @return A register representing that continuation slot.
+		 */
+		public L2ObjectRegister continuationSlot (final int slotNumber)
+		{
+			return L2Translator.this.continuationSlot(slotNumber);
+		}
+
+		/**
+		 * Answer the register holding the specified argument/local number (the
+		 * 1st argument is the 3rd architectural register).
+		 *
+		 * @param argumentNumber
+		 *        The argument number for which the "architectural" register is
+		 *        being requested.  If this is greater than the number of
+		 *        arguments, then answer the register representing the local
+		 *        variable at that position minus the number of registers.
+		 * @return A register that represents the specified argument or local.
+		 */
+		public L2ObjectRegister argumentOrLocal (final int argumentNumber)
+		{
+			return L2Translator.this.argumentOrLocal(argumentNumber);
+		}
+
+		/**
+		 * Answer the register representing the slot of the stack associated
+		 * with the given index.
+		 *
+		 * @param stackIndex
+		 *        A stack position.
+		 * @return A {@linkplain L2ObjectRegister register} representing the
+		 *         stack at the given position.
+		 */
+		public L2ObjectRegister stackRegister (final int stackIndex)
+		{
+			return L2Translator.this.stackRegister(stackIndex);
+		}
+
+		/**
+		 * Allocate a fresh {@linkplain L2IntegerRegister integer register} that
+		 * nobody else has used yet.
+		 *
+		 * @return The new register.
+		 */
+		public L2IntegerRegister newIntegerRegister ()
+		{
+			return L2Translator.this.newIntegerRegister();
+		}
+
+		/**
+		 * Allocate a fresh {@linkplain L2ObjectRegister object register} that
+		 * nobody else has used yet.
+		 *
+		 * @return The new register.
+		 */
+		public L2ObjectRegister newObjectRegister ()
+		{
+			return L2Translator.this.newObjectRegister();
+		}
+
+		/**
+		 * Return the {@linkplain CompiledCodeDescriptor compiled Level One code}
+		 * being translated.
+		 *
+		 * @return The code being translated.
+		 */
+		public A_RawFunction codeOrFail ()
+		{
+			return L2Translator.this.codeOrFail();
+		}
+
+		/**
+		 * Create a {@linkplain L2RegisterVector vector register} that represents
+		 * the given {@linkplain List list} of {@linkplain L2ObjectRegister object
+		 * registers}.  Answer an existing vector if an equivalent one is already
+		 * defined.
+		 *
+		 * @param objectRegisters
+		 *        The list of object registers to aggregate.
+		 * @return A new L2RegisterVector.
+		 */
+		public L2RegisterVector createVector (
+			final List<L2ObjectRegister> objectRegisters)
+		{
+			return L2Translator.this.createVector(objectRegisters);
+		}
+
+		/**
+		 * Create a new {@link L2_LABEL} pseudo-instruction}.
+		 *
+		 * @param comment
+		 *        A description of the label.
+		 * @return The new label.
+		 */
+		public L2Instruction newLabel (final String comment)
+		{
+			return L2Translator.this.newLabel(comment);
+		}
+
+		/**
+		 * Answer the number of stack slots reserved for use by the code being
+		 * optimized.
+		 *
+		 * @return The number of stack slots.
+		 */
+		public int numSlots ()
+		{
+			return numSlots;
+		}
+
+		/**
+		 * Answer a {@linkplain List list} of {@linkplain L2ObjectRegister
+		 * object registers} that correspond to the slots of the current
+		 * {@linkplain A_Continuation continuation}.
+		 *
+		 * @param nSlots
+		 *        The number of continuation slots.
+		 * @return A list of object registers.
+		 */
+		public List<L2ObjectRegister> continuationSlotsList (final int nSlots)
+		{
+			final List<L2ObjectRegister> slots =
+				new ArrayList<>(nSlots);
+			for (int slotIndex = 1; slotIndex <= nSlots; slotIndex++)
+			{
+				slots.add(continuationSlot(slotIndex));
+			}
+			return slots;
+		}
 
 		/**
 		 * Create and add an {@link L2Instruction} with the given {@link
@@ -713,8 +855,7 @@ public class L2Translator
 		 * @param label
 		 *        An {@link L2Instruction} whose operation is {@link L2_LABEL}.
 		 */
-		@InnerAccess void addLabel (
-			final L2Instruction label)
+		public void addLabel (final L2Instruction label)
 		{
 			assert label.operation == L2_LABEL.instance;
 			assert label.offset() == -1;
@@ -806,6 +947,48 @@ public class L2Translator
 					new L2ReadPointerOperand(sourceRegister),
 					new L2WritePointerOperand(destinationRegister));
 			}
+		}
+
+		/**
+		 * Reify the current {@linkplain A_Continuation continuation}.
+		 *
+		 * @param slots
+		 *        A {@linkplain List list} containing the {@linkplain
+		 *        L2ObjectRegister object registers} that correspond to the
+		 *        slots of the current continuation.
+		 * @param reifiedRegister
+		 *        The destination register for the reified continuation.
+		 * @param resumeLabel
+		 *        Where to resume execution of the current continuation.
+		 */
+		public void reify (
+			final List<L2ObjectRegister> slots,
+			final L2ObjectRegister reifiedRegister,
+			final L2Instruction resumeLabel)
+		{
+			addInstruction(
+				L2_CREATE_CONTINUATION.instance,
+				new L2ReadPointerOperand(fixed(CALLER)),
+				new L2ReadPointerOperand(fixed(FUNCTION)),
+				new L2ImmediateOperand(pc),
+				new L2ImmediateOperand(stackp),
+				new L2ReadIntOperand(skipReturnCheckRegister),
+				new L2ReadVectorOperand(createVector(slots)),
+				new L2PcOperand(resumeLabel),
+				new L2WritePointerOperand(reifiedRegister));
+		}
+
+		/**
+		 * Add a label that indicates unreachable code.
+		 *
+		 * @param label
+		 *        The label.
+		 */
+		public void unreachableCode (final L2Instruction label)
+		{
+			addLabel(label);
+			addInstruction(L2_UNREACHABLE_CODE.instance);
+			naiveRegisters = null;
 		}
 
 		/**
@@ -1012,33 +1195,15 @@ public class L2Translator
 							addInstruction(
 								L2_GET_INVALID_MESSAGE_SEND_FUNCTION.instance,
 								new L2WritePointerOperand(invalidSendReg));
-							// Record the slot values of the continuation.
-							final int nSlots = numSlots;
 							final List<L2ObjectRegister> slots =
-								new ArrayList<>(nSlots);
-							for (
-								int slotIndex = 1;
-								slotIndex <= nSlots;
-								slotIndex++)
-							{
-								slots.add(continuationSlot(slotIndex));
-							}
+								continuationSlotsList(numSlots);
 							// The continuation must be reified prior to
 							// invoking the failure function.
 							final L2Instruction unreachable =
 								newLabel("unreachable");
 							final L2ObjectRegister reifiedRegister =
 								newObjectRegister();
-							addInstruction(
-								L2_CREATE_CONTINUATION.instance,
-								new L2ReadPointerOperand(fixed(CALLER)),
-								new L2ReadPointerOperand(fixed(FUNCTION)),
-								new L2ImmediateOperand(pc),
-								new L2ImmediateOperand(stackp),
-								new L2ReadIntOperand(skipReturnCheckRegister),
-								new L2ReadVectorOperand(createVector(slots)),
-								new L2PcOperand(unreachable),
-								new L2WritePointerOperand(reifiedRegister));
+							reify(slots, reifiedRegister, unreachable);
 							addInstruction(
 								L2_INVOKE.instance,
 								new L2ReadPointerOperand(reifiedRegister),
@@ -1046,8 +1211,7 @@ public class L2Translator
 								new L2ReadVectorOperand(createVector(
 									Collections.singletonList(errorCodeReg))),
 								new L2ImmediateOperand(1));
-							addLabel(unreachable);
-							addInstruction(L2_UNREACHABLE_CODE.instance);
+							unreachableCode(unreachable);
 						}
 					}
 				});
@@ -1199,16 +1363,7 @@ public class L2Translator
 				postSlots.add(continuationSlot(slotIndex));
 			}
 			final L2Instruction postCallLabel = newLabel("postCall");
-			addInstruction(
-				L2_CREATE_CONTINUATION.instance,
-				new L2ReadPointerOperand(fixed(CALLER)),
-				new L2ReadPointerOperand(fixed(FUNCTION)),
-				new L2ImmediateOperand(pc),
-				new L2ImmediateOperand(stackp),
-				new L2ReadIntOperand(skipReturnCheckRegister),
-				new L2ReadVectorOperand(createVector(preSlots)),
-				new L2PcOperand(postCallLabel),
-				new L2WritePointerOperand(tempCallerRegister));
+			reify(preSlots, tempCallerRegister, postCallLabel);
 			final L2ObjectRegister functionReg = newObjectRegister();
 			A_Type guaranteedReturnType;
 			final A_Function function = definition.bodyBlock();
@@ -1249,9 +1404,7 @@ public class L2Translator
 				new L2WritePointerOperand(fixed(CALLER)));
 			if (expectedType.isBottom())
 			{
-				// Returning to here should not happen.  Ever.
-				addInstruction(
-					L2_UNREACHABLE_CODE.instance);
+				unreachableCode(newLabel("unreachable"));
 			}
 			else
 			{
@@ -1372,16 +1525,7 @@ public class L2Translator
 			}
 			final L2Instruction postCallLabel =
 				newLabel("postCall"); // + bundle.message().atomName());
-			addInstruction(
-				L2_CREATE_CONTINUATION.instance,
-				new L2ReadPointerOperand(fixed(CALLER)),
-				new L2ReadPointerOperand(fixed(FUNCTION)),
-				new L2ImmediateOperand(pc),
-				new L2ImmediateOperand(stackp),
-				new L2ReadIntOperand(skipReturnCheckRegister),
-				new L2ReadVectorOperand(createVector(preSlots)),
-				new L2PcOperand(postCallLabel),
-				new L2WritePointerOperand(tempCallerRegister));
+			reify(preSlots, tempCallerRegister, postCallLabel);
 			final L2Instruction lookupSucceeded = newLabel("lookupSucceeded");
 			final L2ObjectRegister functionReg = newObjectRegister();
 			final L2ObjectRegister errorCodeReg = newObjectRegister();
@@ -1404,7 +1548,7 @@ public class L2Translator
 				new L2ReadVectorOperand(createVector(
 					Collections.singletonList(errorCodeReg))),
 				new L2ImmediateOperand(1));
-			addInstruction(L2_UNREACHABLE_CODE.instance);
+			unreachableCode(newLabel("unreachable"));
 			addLabel(lookupSucceeded);
 			// Now invoke the method definition's body.  Without looking at the
 			// definitions we can't determine if the return type check can be
@@ -1523,20 +1667,30 @@ public class L2Translator
 					canFailPrimitive.value = false;
 					return value;
 				}
-				// The primitive will technically succeed, but the return will
-				// trip a failure to meet the strengthened return type.
+				// Emit the failure off-ramp.
+				final L2Instruction unreachable = newLabel("unreachable");
+				final L2ObjectRegister invalidResultFunction =
+					newObjectRegister();
 				addInstruction(
-					L2_REPORT_INVALID_RETURN_TYPE.instance,
-					new L2PrimitiveOperand(primitive),
-					new L2ReadPointerOperand(resultRegister),
-					new L2ConstantOperand(expectedType));
+					L2_GET_INVALID_MESSAGE_RESULT_FUNCTION.instance,
+					new L2WritePointerOperand(invalidResultFunction));
+				final List<L2ObjectRegister> slots =
+					continuationSlotsList(numSlots);
+				// The continuation must be reified prior to invoking the
+				// failure function.
+				final L2ObjectRegister reifiedRegister = newObjectRegister();
+				reify(slots, reifiedRegister, unreachable);
+				addInstruction(
+					L2_INVOKE.instance,
+					new L2ReadPointerOperand(reifiedRegister),
+					new L2ReadPointerOperand(invalidResultFunction),
+					new L2ReadVectorOperand(createVector(
+						Collections.<L2ObjectRegister>emptyList())),
+					new L2ImmediateOperand(1));
+				unreachableCode(unreachable);
 				// No need to generate primitive failure handling code, since
 				// technically the primitive succeeded but the return failed.
-				// The above instruction effectively makes the successor
-				// instructions unreachable, so don't spend a lot of time
-				// generating that dead code.
 				canFailPrimitive.value = false;
-				naiveRegisters = null;  // Indicate dead code
 				return null;
 			}
 			if (primitive.hasFlag(SpecialReturnSoleArgument))
@@ -1611,11 +1765,29 @@ public class L2Translator
 						new L2PcOperand(returnWasOkLabel),
 						new L2ReadPointerOperand(resultRegister),
 						new L2ConstantOperand(expectedType));
+					// Emit the failure off-ramp.
+					final L2Instruction unreachable = newLabel("unreachable");
+					final L2ObjectRegister invalidResultFunction =
+						newObjectRegister();
 					addInstruction(
-						L2_REPORT_INVALID_RETURN_TYPE.instance,
-						new L2PrimitiveOperand(primitive),
-						new L2ReadPointerOperand(resultRegister),
-						new L2ConstantOperand(expectedType));
+						L2_GET_INVALID_MESSAGE_RESULT_FUNCTION.instance,
+						new L2WritePointerOperand(invalidResultFunction));
+					// Record the slot values of the continuation.
+					final List<L2ObjectRegister> slots =
+						continuationSlotsList(numSlots);
+					// The continuation must be reified prior to invoking the
+					// failure function.
+					final L2ObjectRegister reifiedRegister =
+						newObjectRegister();
+					reify(slots, reifiedRegister, unreachable);
+					addInstruction(
+						L2_INVOKE.instance,
+						new L2ReadPointerOperand(reifiedRegister),
+						new L2ReadPointerOperand(invalidResultFunction),
+						new L2ReadVectorOperand(createVector(
+							Collections.<L2ObjectRegister>emptyList())),
+						new L2ImmediateOperand(1));
+					unreachableCode(unreachable);
 					addLabel(returnWasOkLabel);
 					return null;
 				}
@@ -1722,13 +1894,8 @@ public class L2Translator
 			addInstruction(
 				L2_JUMP_IF_NOT_INTERRUPT.instance,
 				new L2PcOperand(noInterruptLabel));
-			// Capture numSlots into a final local variable.
 			final int nSlots = numSlots;
-			final List<L2ObjectRegister> slots = new ArrayList<>(nSlots);
-			for (int slotIndex = 1; slotIndex <= nSlots; slotIndex++)
-			{
-				slots.add(continuationSlot(slotIndex));
-			}
+			final List<L2ObjectRegister> slots = continuationSlotsList(nSlots);
 			final List<A_Type> savedSlotTypes = new ArrayList<>(nSlots);
 			final List<A_BasicObject> savedSlotConstants =
 				new ArrayList<>(nSlots);
@@ -1743,16 +1910,7 @@ public class L2Translator
 						? registerSet.constantAt(reg)
 						: null);
 			}
-			addInstruction(
-				L2_CREATE_CONTINUATION.instance,
-				new L2ReadPointerOperand(fixed(CALLER)),
-				new L2ReadPointerOperand(fixed(FUNCTION)),
-				new L2ImmediateOperand(pc),
-				new L2ImmediateOperand(stackp),
-				new L2ReadIntOperand(skipReturnCheckRegister),
-				new L2ReadVectorOperand(createVector(slots)),
-				new L2PcOperand(postInterruptLabel),
-				new L2WritePointerOperand(reifiedRegister));
+			reify(slots, reifiedRegister, postInterruptLabel);
 			addInstruction(
 				L2_PROCESS_INTERRUPT.instance,
 				new L2ReadPointerOperand(reifiedRegister));
@@ -1837,26 +1995,12 @@ public class L2Translator
 			addInstruction(
 				L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION.instance,
 				new L2WritePointerOperand(unassignedReadFunction));
-			// Record the slot values of the continuation.
-			final int nSlots = numSlots;
-			final List<L2ObjectRegister> slots = new ArrayList<>(nSlots);
-			for (int slotIndex = 1; slotIndex <= nSlots; slotIndex++)
-			{
-				slots.add(continuationSlot(slotIndex));
-			}
+			final List<L2ObjectRegister> slots =
+				continuationSlotsList(numSlots);
 			// The continuation must be reified prior to invoking the failure
 			// function.
 			final L2ObjectRegister reifiedRegister = newObjectRegister();
-			addInstruction(
-				L2_CREATE_CONTINUATION.instance,
-				new L2ReadPointerOperand(fixed(CALLER)),
-				new L2ReadPointerOperand(fixed(FUNCTION)),
-				new L2ImmediateOperand(pc),
-				new L2ImmediateOperand(stackp),
-				new L2ReadIntOperand(skipReturnCheckRegister),
-				new L2ReadVectorOperand(createVector(slots)),
-				new L2PcOperand(unreachable),
-				new L2WritePointerOperand(reifiedRegister));
+			reify(slots, reifiedRegister, unreachable);
 			addInstruction(
 				L2_INVOKE.instance,
 				new L2ReadPointerOperand(reifiedRegister),
@@ -1864,8 +2008,7 @@ public class L2Translator
 				new L2ReadVectorOperand(createVector(
 					Collections.<L2ObjectRegister>emptyList())),
 				new L2ImmediateOperand(1));
-			addLabel(unreachable);
-			addInstruction(L2_UNREACHABLE_CODE.instance);
+			unreachableCode(unreachable);
 			addLabel(success);
 		}
 
