@@ -728,40 +728,56 @@ extends Descriptor
 		synchronized (object)
 		{
 			final AvailRuntime runtime = aLoader.runtime();
-			// Remove method definitions.
-			for (final A_Definition definition : object.methodDefinitions())
-			{
-				aLoader.removeDefinition(definition);
-			}
-			// Remove semantic restrictions.
-			final A_Set restrictions = object.slot(SEMANTIC_RESTRICTIONS);
-			for (final A_SemanticRestriction restriction : restrictions)
-			{
-				runtime.removeTypeRestriction(restriction);
-			}
-			// Remove seals.
-			final A_Map seals = object.slot(SEALS);
-			for (final MapDescriptor.Entry entry : seals.mapIterable())
-			{
-				final A_Atom methodName = entry.key();
-				for (final A_Tuple seal : entry.value())
-				{
-					try
-					{
-						runtime.removeSeal(methodName, seal);
-					}
-					catch (final SignatureException e)
-					{
-						assert false : "This should not happen!";
-						throw new AvailRuntimeException(e.errorCode());
-					}
-				}
-			}
 			// Run unload functions, asynchronously but serially, in reverse
 			// order.
 			aLoader.runUnloadFunctions(
 				object.slot(UNLOAD_FUNCTIONS).tupleReverse(),
-				afterRemoval);
+				new Continuation0()
+				{
+					@Override
+					public void value ()
+					{
+						synchronized (object)
+						{
+							// Remove method definitions.
+							for (final A_Definition definition
+								: object.methodDefinitions())
+							{
+								aLoader.removeDefinition(definition);
+							}
+							// Remove semantic restrictions.
+							final A_Set restrictions = object.slot(
+								SEMANTIC_RESTRICTIONS);
+							for (final A_SemanticRestriction restriction :
+								restrictions)
+							{
+								runtime.removeTypeRestriction(restriction);
+							}
+							// Remove seals.
+							final A_Map seals = object.slot(SEALS);
+							for (final MapDescriptor.Entry entry :
+								seals.mapIterable())
+							{
+								final A_Atom methodName = entry.key();
+								for (final A_Tuple seal : entry.value())
+								{
+									try
+									{
+										runtime.removeSeal(methodName, seal);
+									}
+									catch (final SignatureException e)
+									{
+										assert false
+											: "This should not happen!";
+										throw new AvailRuntimeException(
+											e.errorCode());
+									}
+								}
+							}
+						}
+						afterRemoval.value();
+					}
+				});
 			object.setSlot(UNLOAD_FUNCTIONS, NilDescriptor.nil());
 		}
 	}
