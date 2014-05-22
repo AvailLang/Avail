@@ -555,6 +555,17 @@ extends AbstractNumberDescriptor
 		return aType.isSupertypeOfPrimitiveTypeEnum(DOUBLE);
 	}
 
+	@Override
+	boolean o_IsNumericallyIntegral (final AvailObject object)
+	{
+		final double value = getDouble(object);
+		if (Double.isInfinite(value) || Double.isNaN(value))
+		{
+			return false;
+		}
+		return Math.floor(value) == value;
+	}
+
 	@Override @AvailMethod
 	A_Type o_Kind (final AvailObject object)
 	{

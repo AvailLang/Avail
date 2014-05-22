@@ -4583,4 +4583,10 @@ extends AbstractDescriptor
 		return o_Traversed(object).tupleElementsInRangeAreInstancesOf(
 			startIndex, endIndex, type);
 	}
+
+	@Override
+	boolean o_IsNumericallyIntegral (final AvailObject object)
+	{
+		return o_Traversed(object).isNumericallyIntegral();
+	}
 }

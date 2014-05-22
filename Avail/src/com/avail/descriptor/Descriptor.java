@@ -4425,4 +4425,10 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	boolean o_IsNumericallyIntegral (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
 }

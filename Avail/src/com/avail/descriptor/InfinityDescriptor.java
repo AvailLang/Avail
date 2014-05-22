@@ -456,6 +456,13 @@ extends ExtendedIntegerDescriptor
 		return object;
 	}
 
+	@Override
+	boolean o_IsNumericallyIntegral (final AvailObject object)
+	{
+		// Not finite, so not numerically equal to an integer.
+		return false;
+	}
+
 	/**
 	 * Return an infinity with the given sign.  Only valid for {@link
 	 * Sign#POSITIVE} and {@link Sign#NEGATIVE}.

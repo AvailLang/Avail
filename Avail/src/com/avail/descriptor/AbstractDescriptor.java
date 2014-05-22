@@ -5991,4 +5991,10 @@ public abstract class AbstractDescriptor
 		int startIndex,
 		int endIndex,
 		A_Type type);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsNumericallyIntegral (AvailObject object);
 }

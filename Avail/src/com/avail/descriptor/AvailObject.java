@@ -6908,4 +6908,10 @@ implements
 		return descriptor.o_TupleElementsInRangeAreInstancesOf(
 			this, startIndex, endIndex, type);
 	}
+
+	@Override
+	public boolean isNumericallyIntegral ()
+	{
+		return descriptor.o_IsNumericallyIntegral(this);
+	}
 }

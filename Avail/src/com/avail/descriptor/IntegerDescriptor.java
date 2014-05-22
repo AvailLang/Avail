@@ -1849,6 +1849,12 @@ extends ExtendedIntegerDescriptor
 		return new BigInteger(bytes);
 	}
 
+	@Override
+	boolean o_IsNumericallyIntegral (final AvailObject object)
+	{
+		return true;
+	}
+
 	/**
 	 * Convert the specified Java {@code long} into an Avail {@linkplain
 	 * IntegerDescriptor integer}.
