@@ -83,6 +83,7 @@ Uses
 		"_'s⁇function type",
 		"_'s⁇genuine lower bound",
 		"_'s⁇genuine upper bound",
+		"_'s⁇hash",
 		"_'s⁇implementation",
 		"_'s⁇key type",
 		"_'s⁇keys",
@@ -1037,6 +1038,30 @@ Primitive "_'s⁇names" is
 |
 	Primitive 69;
 ] : set of string;
+
+/**
+ * Answer the hash value of {@param "value"}. The hash values of equal values
+ * are always themselves equal. The hash values of differing values will tend
+ * to differ, but the pigeonhole principle means that hashing a larger key space
+ * into a smaller hash space will lead to occasional collisions.
+ *
+ * The actual hash value is currently an instance of {@type "[-2^31..2^31)"},
+ * but the weaker type is used to facilitate forward migration to larger hash
+ * spaces.
+ *
+ * @category "Primitives"
+ * @method "_'s⁇hash"
+ * @param "value" "any"
+ *        An arbitrary value.
+ * @returns "(-∞..∞)"
+ *    The hash value of the argument.
+ */
+Primitive "_'s⁇hash" is
+[
+	value : any
+|
+	Primitive 70;
+] : integer;
 
 /**
  * Construct and answer a function that is an instance of {@param "aFunctionType"}
