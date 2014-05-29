@@ -2113,6 +2113,22 @@ extends ExtendedIntegerDescriptor
 		return hashes[anInteger];
 	}
 
+	/** The initialization value for computing the hash of an integer. */
+	static final int initialHashValue = 0x13592884;
+
+	/**
+	 * The value to xor with after multiplying by the {@link #multiplier} for
+	 * each int of the integer.
+	 */
+	static final int postMultiplyHashToggle = 0x95ffb59f;
+
+	/**
+	 * The value to add after performing a final extra multiply by {@link
+	 * #multiplier}.
+	 */
+	static final int finalHashAddend = 0x5127ee66;
+
+
 	/**
 	 * Hash the passed {@code int}.  Note that it must have the same value as
 	 * what {@link #computeHashOfIntegerObject(A_Number)} would return, given
@@ -2124,7 +2140,12 @@ extends ExtendedIntegerDescriptor
 	 */
 	static int computeHashOfInt (final int anInt)
 	{
-		return (0x13592884 + anInt) * multiplier ^ 0x95ffb59f;
+		int h = initialHashValue + anInt;
+		h *= multiplier;
+		h ^= postMultiplyHashToggle;
+		h *= multiplier;
+		h += finalHashAddend;
+		return h;
 	}
 
 	/**
@@ -2140,13 +2161,15 @@ extends ExtendedIntegerDescriptor
 	 */
 	static int computeHashOfIntegerObject (final A_Number anIntegerObject)
 	{
-		int output = 0x13592884;
+		int output = initialHashValue;
 		for (int i = anIntegerObject.integerSlotsCount(); i > 0; i--)
 		{
 			output += anIntegerObject.rawSignedIntegerAt(i);
 			output *= multiplier;
-			output ^= 0x95ffb59f;
+			output ^= postMultiplyHashToggle;
 		}
+		output *= multiplier;
+		output += finalHashAddend;
 		return output;
 	}
 

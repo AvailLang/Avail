@@ -478,8 +478,8 @@ extends Descriptor
 			int secondIndex = 0;
 			while (true)
 			{
-				if (firstIndex > firstComparablesList.size()
-					|| secondIndex > secondComparablesList.size())
+				if (firstIndex >= firstComparablesList.size()
+					|| secondIndex >= secondComparablesList.size())
 				{
 					// At least one list of values was exhausted.
 					break;
