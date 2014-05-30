@@ -274,3 +274,35 @@ Test "nested observe[whenever]" in observation test suite is
 	Observe [Whenever [x] changes, do [unused : integer |];];
 ]
 must raise illegal-trace-mode exception;
+
+Test "implicit observe (assignment)" in observation test suite is
+[
+	ref ::= 1 to 20;
+	t : tuple := <>;
+	x : integer := 1;
+	Whenever [x] changes, do [v : integer | t := t ++ <v>;];
+	From 1 to |ref| do [i : integer | x := i;];
+	Require: t = ref;
+];
+
+Test "implicit observe (_↑?=_)" in observation test suite is
+[
+	ref ::= 1 to 20;
+	t : tuple := <>;
+	x : integer := 1;
+	Whenever [x] changes, do [v : integer | t := t ++ <v>;];
+	From 1 to |ref| do [i : integer | x ?= i;];
+	Require: t = ref;
+];
+
+Test "implicit observe (Clear_↑)" in observation test suite is
+[
+	ref ::= map 1 to 20 through [i : [1..20] | i is odd];
+	t : tuple := <>;
+	x : integer := 1;
+	Whenever [x is assigned] changes, do [v : boolean | t := t ++ <v>;];
+	From 1 to |ref| do
+		[i : integer | If i is odd then [x ?= i;] else [Clear x;];];
+	Require: t = ref;
+];
+

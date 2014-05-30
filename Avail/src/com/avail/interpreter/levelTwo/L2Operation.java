@@ -352,6 +352,17 @@ public abstract class L2Operation
 	}
 
 	/**
+	 * Answer whether execution of this instruction causes a {@linkplain
+	 * A_Variable variable} to be written.
+	 *
+	 * @return Whether the instruction causes a variable to be written.
+	 */
+	public boolean isVariableSet ()
+	{
+		return false;
+	}
+
+	/**
 	 * Write an alternative to this instruction into the given {@link List} of
 	 * instructions.  The state at the start of this instruction has been
 	 * provided, but should not be modified.  Answer whether a semantic change

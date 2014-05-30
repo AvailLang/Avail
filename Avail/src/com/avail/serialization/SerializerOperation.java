@@ -2573,8 +2573,7 @@ public enum SerializerOperation
 	 * @param deserializer
 	 *            The {@code Deserializer} from which to read an object.
 	 */
-	static void readObject (
-		final Deserializer deserializer)
+	static void readObject (final Deserializer deserializer)
 	{
 		final int ordinal = deserializer.readByte();
 		final SerializerOperation operation = values()[ordinal];

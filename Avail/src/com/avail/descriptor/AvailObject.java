@@ -2071,7 +2071,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public AvailObject getValue ()
+	public AvailObject getValue () throws VariableGetException
 	{
 		return descriptor.o_GetValue(this);
 	}
@@ -3696,8 +3696,8 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public void setValue (
-		final A_BasicObject newValue)
+	public void setValue (final A_BasicObject newValue)
+		throws VariableSetException
 	{
 		descriptor.o_SetValue(this, newValue);
 	}
@@ -3706,8 +3706,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public void setValueNoCheck (
-		final AvailObject newValue)
+	public void setValueNoCheck (final A_BasicObject newValue)
 	{
 		descriptor.o_SetValueNoCheck(this, newValue);
 	}
@@ -6356,9 +6355,12 @@ implements
 	/**
 	 * @param newValue
 	 * @return
+	 * @throws VariableGetException
+	 * @throws VariableSetException
 	 */
 	@Override
-	public AvailObject getAndSetValue (final AvailObject newValue)
+	public AvailObject getAndSetValue (final A_BasicObject newValue)
+		throws VariableGetException, VariableSetException
 	{
 		return descriptor.o_GetAndSetValue(this, newValue);
 	}
@@ -6367,11 +6369,14 @@ implements
 	 * @param reference
 	 * @param newValue
 	 * @return
+	 * @throws VariableGetException
+	 * @throws VariableSetException
 	 */
 	@Override
 	public boolean compareAndSwapValues (
-		final AvailObject reference,
-		final AvailObject newValue)
+			final A_BasicObject reference,
+			final A_BasicObject newValue)
+		throws VariableGetException, VariableSetException
 	{
 		return descriptor.o_CompareAndSwapValues(this, reference, newValue);
 	}
@@ -6379,9 +6384,12 @@ implements
 	/**
 	 * @param addend
 	 * @return
+	 * @throws VariableGetException
+	 * @throws VariableSetException
 	 */
 	@Override
 	public A_Number fetchAndAddValue (final A_Number addend)
+		throws VariableGetException, VariableSetException
 	{
 		return descriptor.o_FetchAndAddValue(this, addend);
 	}

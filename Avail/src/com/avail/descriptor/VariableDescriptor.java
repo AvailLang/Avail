@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.descriptor.VariableDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.VariableDescriptor.ObjectSlots.*;
 import java.util.HashMap;
@@ -40,7 +41,10 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
-import com.avail.exceptions.*;
+import com.avail.exceptions.AvailErrorCode;
+import com.avail.exceptions.AvailException;
+import com.avail.exceptions.VariableGetException;
+import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
@@ -177,6 +181,7 @@ extends Descriptor
 
 	@Override @AvailMethod
 	AvailObject o_GetValue (final AvailObject object)
+		throws VariableGetException
 	{
 		final Interpreter interpreter;
 		try
@@ -197,8 +202,7 @@ extends Descriptor
 		final AvailObject value = object.slot(VALUE);
 		if (value.equalsNil())
 		{
-			throw new VariableGetException(
-				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE);
+			throw new VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE);
 		}
 		if (mutability == Mutability.IMMUTABLE)
 		{
@@ -228,8 +232,46 @@ extends Descriptor
 		return !value.equalsNil();
 	}
 
-	@Override @AvailMethod
-	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
+	/**
+	 * Discard all {@linkplain VariableAccessReactor#isInvalid() invalid}
+	 * {@linkplain VariableAccessReactor write reactors} from the specified
+	 * {@linkplain Map map}.
+	 *
+	 * @param writeReactors
+	 *        The map of write reactors.
+	 */
+	public void discardInvalidWriteReactors (
+		final Map<A_Atom, VariableAccessReactor> writeReactors)
+	{
+		final Iterator<Map.Entry<A_Atom, VariableAccessReactor>> iterator =
+			writeReactors.entrySet().iterator();
+		while (iterator.hasNext())
+		{
+			final Map.Entry<A_Atom, VariableAccessReactor> entry =
+				iterator.next();
+			if (entry.getValue().isInvalid())
+			{
+				iterator.remove();
+			}
+		}
+	}
+
+	/**
+	 * If {@linkplain Interpreter#traceVariableWrites() variable write tracing}
+	 * is enabled, then {@linkplain A_Fiber#recordVariableAccess(A_Variable,
+	 * boolean) record the write}. If variable write tracing is disabled, but
+	 * the variable has write reactors, then raise an {@linkplain
+	 * VariableSetException exception} with {@link
+	 * AvailErrorCode#E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED} as the error
+	 * code.
+	 *
+	 * @param object
+	 * @throws VariableSetException
+	 *         If variable write tracing is disabled, but the variable has
+	 *         write reactors.
+	 */
+	private void handleVariableWriteTracing (final AvailObject object)
+		throws VariableSetException
 	{
 		final Interpreter interpreter;
 		try
@@ -240,66 +282,68 @@ extends Descriptor
 				final A_Fiber fiber = interpreter.fiber();
 				fiber.recordVariableAccess(object, false);
 			}
+			else
+			{
+				final AvailObject rawPojo = object.slot(WRITE_REACTORS);
+				if (!rawPojo.equalsNil())
+				{
+					@SuppressWarnings("unchecked")
+					final Map<A_Atom, VariableAccessReactor> writeReactors =
+						(Map<A_Atom, VariableAccessReactor>)
+							rawPojo.javaObject();
+					discardInvalidWriteReactors(writeReactors);
+					// If there are write reactors, but write tracing isn't
+					// active, then raise an exception.
+					if (!writeReactors.isEmpty())
+					{
+						throw new VariableSetException(
+							E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED);
+					}
+				}
+			}
 		}
 		catch (final ClassCastException e)
 		{
 			// No implementation required.
 		}
+	}
+
+	@Override @AvailMethod
+	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
+		throws VariableSetException
+	{
+		handleVariableWriteTracing(object);
 		final A_Type outerKind = object.slot(KIND);
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
 			throw new VariableSetException(
-				AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
+				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
 		}
 		object.setSlot(VALUE, newValue);
 	}
 
 	@Override @AvailMethod
 	void o_SetValueNoCheck (
-		final AvailObject object,
-		final AvailObject newValue)
+			final AvailObject object,
+			final A_BasicObject newValue)
+		throws VariableSetException
 	{
-		final Interpreter interpreter;
-		try
-		{
-			interpreter = Interpreter.current();
-			if (interpreter.traceVariableWrites())
-			{
-				final A_Fiber fiber = interpreter.fiber();
-				fiber.recordVariableAccess(object, false);
-			}
-		}
-		catch (final ClassCastException e)
-		{
-			// No implementation required.
-		}
+		handleVariableWriteTracing(object);
 		object.setSlot(VALUE, newValue);
 	}
 
 	@Override @AvailMethod
 	AvailObject o_GetAndSetValue (
-		final AvailObject object,
-		final AvailObject newValue)
+			final AvailObject object,
+			final A_BasicObject newValue)
+		throws VariableGetException, VariableSetException
 	{
-		final Interpreter interpreter;
-		try
-		{
-			interpreter = Interpreter.current();
-			if (interpreter.traceVariableWrites())
-			{
-				final A_Fiber fiber = interpreter.fiber();
-				fiber.recordVariableAccess(object, true);
-			}
-		}
-		catch (final ClassCastException e)
-		{
-			// No implementation required.
-		}
+		handleVariableWriteTracing(object);
 		final AvailObject outerKind = object.slot(KIND);
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
 			throw new VariableSetException(
-				AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
+				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
 		}
 		// The variable is not visible to multiple fibers, and cannot become
 		// visible to any other fiber except by an act of the current fiber,
@@ -308,7 +352,7 @@ extends Descriptor
 		if (value.equalsNil())
 		{
 			throw new VariableGetException(
-				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE);
+				E_CANNOT_READ_UNASSIGNED_VARIABLE);
 		}
 		object.setSlot(VALUE, newValue);
 		if (mutability == Mutability.MUTABLE)
@@ -320,29 +364,17 @@ extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_CompareAndSwapValues (
-		final AvailObject object,
-		final AvailObject reference,
-		final AvailObject newValue)
+			final AvailObject object,
+			final A_BasicObject reference,
+			final A_BasicObject newValue)
+		throws VariableGetException, VariableSetException
 	{
-		final Interpreter interpreter;
-		try
-		{
-			interpreter = Interpreter.current();
-			if (interpreter.traceVariableWrites())
-			{
-				final A_Fiber fiber = interpreter.fiber();
-				fiber.recordVariableAccess(object, true);
-			}
-		}
-		catch (final ClassCastException e)
-		{
-			// No implementation required.
-		}
+		handleVariableWriteTracing(object);
 		final AvailObject outerKind = object.slot(KIND);
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
 			throw new VariableSetException(
-				AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
+				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
 		}
 		// The variable is not visible to multiple fibers, and cannot become
 		// visible to any other fiber except by an act of the current fiber,
@@ -350,8 +382,7 @@ extends Descriptor
 		final AvailObject value = object.slot(VALUE);
 		if (value.equalsNil())
 		{
-			throw new VariableGetException(
-				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE);
+			throw new VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE);
 		}
 		final boolean swap = value.equals(reference);
 		if (swap)
@@ -367,23 +398,11 @@ extends Descriptor
 
 	@Override @AvailMethod
 	A_Number o_FetchAndAddValue (
-		final AvailObject object,
-		final A_Number addend)
+			final AvailObject object,
+			final A_Number addend)
+		throws VariableGetException, VariableSetException
 	{
-		final Interpreter interpreter;
-		try
-		{
-			interpreter = Interpreter.current();
-			if (interpreter.traceVariableWrites())
-			{
-				final A_Fiber fiber = interpreter.fiber();
-				fiber.recordVariableAccess(object, true);
-			}
-		}
-		catch (final ClassCastException e)
-		{
-			// No implementation required.
-		}
+		handleVariableWriteTracing(object);
 		final A_Type outerKind = object.slot(KIND);
 		assert outerKind.readType().isSubtypeOf(
 			IntegerRangeTypeDescriptor.extendedIntegers());
@@ -393,14 +412,13 @@ extends Descriptor
 		final A_Number value = object.slot(VALUE);
 		if (value.equalsNil())
 		{
-			throw new VariableGetException(
-				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE);
+			throw new VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE);
 		}
 		final A_Number newValue = value.plusCanDestroy(addend, false);
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
 			throw new VariableSetException(
-				AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
+				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
 		}
 		object.setSlot(VALUE, newValue);
 		if (mutability == Mutability.MUTABLE)
@@ -413,20 +431,7 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_ClearValue (final AvailObject object)
 	{
-		final Interpreter interpreter;
-		try
-		{
-			interpreter = Interpreter.current();
-			if (interpreter.traceVariableWrites())
-			{
-				final A_Fiber fiber = interpreter.fiber();
-				fiber.recordVariableAccess(object, false);
-			}
-		}
-		catch (final ClassCastException e)
-		{
-			// No implementation required.
-		}
+		handleVariableWriteTracing(object);
 		object.setSlot(VALUE, NilDescriptor.nil());
 	}
 
@@ -469,18 +474,7 @@ extends Descriptor
 		@SuppressWarnings("unchecked")
 		final Map<A_Atom, VariableAccessReactor> writeReactors =
 			(Map<A_Atom, VariableAccessReactor>) rawPojo.javaObject();
-		// Discard invalidated reactors.
-		final Iterator<Map.Entry<A_Atom, VariableAccessReactor>> iterator =
-			writeReactors.entrySet().iterator();
-		while (iterator.hasNext())
-		{
-			final Map.Entry<A_Atom, VariableAccessReactor> entry =
-				iterator.next();
-			if (entry.getValue().isInvalid())
-			{
-				iterator.remove();
-			}
-		}
+		discardInvalidWriteReactors(writeReactors);
 		writeReactors.put(key, reactor);
 		return object;
 	}
@@ -492,30 +486,15 @@ extends Descriptor
 		final AvailObject rawPojo = object.slot(WRITE_REACTORS);
 		if (rawPojo.equalsNil())
 		{
-			throw new AvailException(AvailErrorCode.E_KEY_NOT_FOUND);
+			throw new AvailException(E_KEY_NOT_FOUND);
 		}
 		@SuppressWarnings("unchecked")
 		final Map<A_Atom, VariableAccessReactor> writeReactors =
 			(Map<A_Atom, VariableAccessReactor>) rawPojo.javaObject();
-		// Discard invalidated reactors.
-		final Iterator<Map.Entry<A_Atom, VariableAccessReactor>> iterator =
-			writeReactors.entrySet().iterator();
-		while (iterator.hasNext())
-		{
-			final Map.Entry<A_Atom, VariableAccessReactor> entry =
-				iterator.next();
-			if (entry.getValue().isInvalid())
-			{
-				iterator.remove();
-			}
-		}
+		discardInvalidWriteReactors(writeReactors);
 		if (writeReactors.remove(key) == null)
 		{
-			throw new AvailException(AvailErrorCode.E_KEY_NOT_FOUND);
-		}
-		if (writeReactors.isEmpty())
-		{
-			object.setSlot(WRITE_REACTORS, NilDescriptor.nil());
+			throw new AvailException(E_KEY_NOT_FOUND);
 		}
 	}
 
@@ -532,7 +511,8 @@ extends Descriptor
 			for (final Map.Entry<A_Atom, VariableAccessReactor> entry :
 				writeReactors.entrySet())
 			{
-				final A_Function function = entry.getValue().getAndClearFunction();
+				final A_Function function =
+					entry.getValue().getAndClearFunction();
 				if (!function.equalsNil())
 				{
 					set = set.setWithElementCanDestroy(function, true);

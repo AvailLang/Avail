@@ -35,6 +35,8 @@ package com.avail.descriptor;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
+import com.avail.exceptions.VariableGetException;
+import com.avail.exceptions.VariableSetException;
 
 /**
  * {@code A_Variable} is an interface that specifies the behavior specific to
@@ -61,8 +63,11 @@ extends A_ChunkDependable
 	 * variable}.  Fail if the variable has no value.
 	 *
 	 * @return The variable's value.
+	 * @throws VariableGetException
+	 *         If the current value could not be read, e.g., because the
+	 *         variable is unassigned.
 	 */
-	AvailObject getValue ();
+	AvailObject getValue () throws VariableGetException;
 
 	/**
 	 * Answer {@code true} if the variable currently has a value, otherwise
@@ -78,8 +83,10 @@ extends A_ChunkDependable
 	 * Fail if the value does not have a type suitable for the variable.
 	 *
 	 * @param newValue The variable's proposed new value.
+	 * @throws VariableSetException
+	 *         If the new value is incorrectly typed.
 	 */
-	void setValue (A_BasicObject newValue);
+	void setValue (A_BasicObject newValue) throws VariableSetException;
 
 	/**
 	 * Assign the given value to the {@linkplain VariableDescriptor variable}.
@@ -87,7 +94,7 @@ extends A_ChunkDependable
 	 *
 	 * @param newValue The variable's new value.
 	 */
-	void setValueNoCheck (AvailObject newValue);
+	void setValueNoCheck (A_BasicObject newValue);
 
 	/**
 	 * Read the variable's value and set it to the new value.  Answer the old
@@ -100,8 +107,14 @@ extends A_ChunkDependable
 	 *
 	 * @param newValue The value to assign.
 	 * @return The previous value of the variable.
+	 * @throws VariableGetException
+	 *         If the current value could not be read, e.g., because the
+	 *         variable is unassigned.
+	 * @throws VariableSetException
+	 *         If the new value is incorrectly typed.
 	 */
-	AvailObject getAndSetValue (AvailObject newValue);
+	AvailObject getAndSetValue (A_BasicObject newValue)
+		throws VariableGetException, VariableSetException;
 
 	/**
 	 * Read the variable's value, compare it to a reference value via semantic
@@ -112,14 +125,21 @@ extends A_ChunkDependable
 	 * sequence of operations.
 	 *
 	 * @param reference
-	 *            The value to compare against the variable's current value.
+	 *        The value to compare against the variable's current value.
 	 * @param newValue
-	 *            The replacement value to store if the reference value is equal
-	 *            to the variable's old value.
-	 * @return
-	 *            Whether the replacement took place.
+	 *        The replacement value to store if the reference value is equal to
+	 *        the variable's old value.
+	 * @return Whether the replacement took place.
+	 * @throws VariableGetException
+	 *         If the current value could not be read, e.g., because the
+	 *         variable is unassigned.
+	 * @throws VariableSetException
+	 *         If the new value is incorrectly typed.
 	 */
-	boolean compareAndSwapValues (AvailObject reference, AvailObject newValue);
+	boolean compareAndSwapValues (
+			A_BasicObject reference,
+			A_BasicObject newValue)
+		throws VariableGetException, VariableSetException;
 
 	/**
 	 * Read the variable's value, add the addend to it, and store it back into
@@ -141,8 +161,14 @@ extends A_ChunkDependable
 	 *
 	 * @param addend The value by which to adjust the variable.
 	 * @return The previous value of the variable.
+	 * @throws VariableGetException
+	 *         If the current value could not be read, e.g., because the
+	 *         variable is unassigned.
+	 * @throws VariableSetException
+	 *         If the new value is incorrectly typed.
 	 */
-	A_Number fetchAndAddValue (A_Number addend);
+	A_Number fetchAndAddValue (A_Number addend)
+		throws VariableGetException, VariableSetException;
 
 	/**
 	 * Clear the variable.  This causes the variable to have no value, and

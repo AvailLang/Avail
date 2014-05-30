@@ -132,7 +132,6 @@ Uses
 		"_[_]",
 		"_\\_",
 		"_^_",
-		"_`?=_'s⁇initialization",
 		"_bit∧_",
 		"_bit∨_",
 		"_bit⊕_",
@@ -3285,28 +3284,6 @@ Primitive "_'s⁇declared type" is
 |
 	Primitive 379;
 ] : any meta;
-
-/**
- * If the specified declaration has an initialization expression, then store it
- * into {@param "var"}.
- *
- * @category "Primitives" "Variables" "Phrases" "Queries" "Mutators"
- * @method "_`?=_'s⁇initialization"
- * @param "var" "write-only expression variable"
- *        A variable.
- * @param "aDeclaration" "declaration phrase"
- *        A declaration.
- * @returns "boolean"
- *    `true` if {@param "aDeclaration"} has an initialization expression and it was
- *    written into {@param "var"}, `false` otherwise.
- */
-Primitive "_`?=_'s⁇initialization" is
-[
-	var : write-only expression variable,
-	aDeclaration : declaration phrase
-|
-	Primitive 380;
-] : boolean;
 
 /**
  * Construct and answer a literal expression.

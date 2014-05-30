@@ -1,5 +1,5 @@
 /**
- * L2_SET_VARIABLE_NO_CHECK.java
+ * L2_GET_IMPLICIT_OBSERVE_FUNCTION.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,86 +29,66 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.exceptions.VariableSetException;
+import com.avail.AvailRuntime;
+import com.avail.descriptor.BottomTypeDescriptor;
+import com.avail.descriptor.FunctionTypeDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 /**
- * Assign a value to a {@linkplain VariableDescriptor variable} <em>without</em>
- * checking that it's of the correct type.
+ * Store the {@linkplain AvailRuntime#implicitObserveFunction() implicit
+ * observe function} into the supplied {@linkplain L2ObjectRegister object
+ * register}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_SET_VARIABLE_NO_CHECK
+public final class L2_GET_IMPLICIT_OBSERVE_FUNCTION
 extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_SET_VARIABLE_NO_CHECK().init(
-			READ_POINTER.is("variable"),
-			READ_POINTER.is("value to write"),
-			PC.is("without reactors"));
+		new L2_GET_IMPLICIT_OBSERVE_FUNCTION().init(
+			WRITE_POINTER.is("implicit observe function"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2ObjectRegister variableReg =
-			instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(1);
-		final int withoutReactors = instruction.pcAt(2);
-
-		final AvailObject value = valueReg.in(interpreter);
-		final A_Variable variable = variableReg.in(interpreter);
-		try
-		{
-			variable.setValueNoCheck(value);
-			interpreter.offset(withoutReactors);
-		}
-		catch (final VariableSetException e)
-		{
-			// Fall through to the next instruction.
-		}
+		final L2ObjectRegister destination =
+			instruction.writeObjectRegisterAt(0);
+		destination.set(
+			interpreter.runtime().implicitObserveFunction(),
+			interpreter);
 	}
 
 	@Override
 	protected void propagateTypes (
 		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		final L2ObjectRegister variableReg =
-			instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(1);
-
-		// The two register sets are clones, so only cross-check one of them.
-		final RegisterSet registerSet = registerSets.get(0);
-		assert registerSet.hasTypeAt(variableReg);
-		final A_Type varType = registerSet.typeAt(variableReg);
-		assert varType.isSubtypeOf(VariableTypeDescriptor.mostGeneralType());
-		assert registerSet.hasTypeAt(valueReg);
-		final A_Type valueType = registerSet.typeAt(valueReg);
-		assert valueType.isSubtypeOf(varType.writeType());
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		return true;
-	}
-
-	@Override
-	public boolean isVariableSet ()
-	{
-		return true;
+		final L2ObjectRegister destination =
+			instruction.writeObjectRegisterAt(0);
+		registerSet.typeAtPut(
+			destination,
+			FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					FunctionTypeDescriptor.mostGeneralType(),
+					TupleTypeDescriptor.mostGeneralType()),
+				BottomTypeDescriptor.bottom()),
+			instruction);
 	}
 }

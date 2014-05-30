@@ -40,6 +40,7 @@ import java.util.logging.Level;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.VariableGetException;
+import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_ONE_L1_INSTRUCTION;
@@ -518,8 +519,21 @@ implements L1OperationDispatcher
 		final int localIndex = argumentOrLocalRegister(getInteger());
 		final A_Variable localVariable = pointerAt(localIndex);
 		final AvailObject value = pop();
-		// The value's reference from the stack is now from the variable.
-		localVariable.setValue(value);
+		try
+		{
+			// The value's reference from the stack is now from the variable.
+			localVariable.setValue(value);
+		}
+		catch (final VariableSetException e)
+		{
+			reifyContinuation();
+			interpreter.invokeFunction(
+				interpreter.runtime().implicitObserveFunction(),
+				Arrays.asList(
+					Interpreter.assignmentFunction(),
+					TupleDescriptor.from(localVariable, value)),
+				true);
+		}
 	}
 
 	@Override
@@ -573,9 +587,9 @@ implements L1OperationDispatcher
 		final A_Function function = pointerAt(FUNCTION);
 		final int outerIndex = getInteger();
 		final A_Variable outerVariable = function.outerVarAt(outerIndex);
-		final AvailObject value = outerVariable.getValue();
 		try
 		{
+			final AvailObject value = outerVariable.getValue();
 			if (outerVariable.traversed().descriptor().isMutable())
 			{
 				outerVariable.clearValue();
@@ -604,8 +618,21 @@ implements L1OperationDispatcher
 		final A_Variable outerVariable = function.outerVarAt(outerIndex);
 		assert !outerVariable.equalsNil();
 		final AvailObject newValue = pop();
-		// The value's reference from the stack is now from the variable.
-		outerVariable.setValue(newValue);
+		try
+		{
+			// The value's reference from the stack is now from the variable.
+			outerVariable.setValue(newValue);
+		}
+		catch (final VariableSetException e)
+		{
+			reifyContinuation();
+			interpreter.invokeFunction(
+				interpreter.runtime().implicitObserveFunction(),
+				Arrays.asList(
+					Interpreter.assignmentFunction(),
+					TupleDescriptor.from(outerVariable, newValue)),
+				true);
+		}
 	}
 
 	@Override
@@ -745,8 +772,21 @@ implements L1OperationDispatcher
 		final int literalIndex = getInteger();
 		final A_Variable literalVariable = literalAt(literalIndex);
 		final AvailObject value = pop();
-		// The value's reference from the stack is now from the variable.
-		literalVariable.setValue(value);
+		try
+		{
+			// The value's reference from the stack is now from the variable.
+			literalVariable.setValue(value);
+		}
+		catch (final VariableSetException e)
+		{
+			reifyContinuation();
+			interpreter.invokeFunction(
+				interpreter.runtime().implicitObserveFunction(),
+				Arrays.asList(
+					Interpreter.assignmentFunction(),
+					TupleDescriptor.from(literalVariable, value)),
+				true);
+		}
 	}
 
 	@Override

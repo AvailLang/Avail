@@ -33,20 +33,12 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.Primitive.Fallibility.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.*;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE_NO_CHECK;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import com.avail.optimizer.L2Translator.L1NaiveTranslator;
-import com.avail.optimizer.RegisterSet;
 
 /**
  * <strong>Primitive 11:</strong> Assign the {@linkplain AvailObject value}
@@ -92,57 +84,6 @@ extends Primitive
 	}
 
 	@Override
-	public Fallibility fallibilityForArgumentTypes (
-		final List<? extends A_Type> argumentTypes)
-	{
-		final A_Type varType = argumentTypes.get(0);
-		final A_Type valueType = argumentTypes.get(1);
-		return valueType.isSubtypeOf(varType.writeType())
-			? CallSiteCannotFail
-			: CallSiteCanFail;
-	}
-
-	@Override
-	public void generateL2UnfoldableInlinePrimitive (
-		final L1NaiveTranslator levelOneNaiveTranslator,
-		final A_Function primitiveFunction,
-		final L2RegisterVector args,
-		final L2ObjectRegister resultRegister,
-		final L2RegisterVector preserved,
-		final A_Type expectedType,
-		final L2ObjectRegister failureValueRegister,
-		final L2Instruction successLabel,
-		final boolean canFailPrimitive,
-		final boolean skipReturnCheck)
-	{
-		final RegisterSet registerSet =
-			levelOneNaiveTranslator.naiveRegisters();
-		final List<L2ObjectRegister> argRegisters = args.registers();
-		final A_Type varType = registerSet.typeAt(argRegisters.get(0));
-		final A_Type valueType = registerSet.typeAt(argRegisters.get(1));
-		if (valueType.isSubtypeOf(varType.writeType()))
-		{
-			levelOneNaiveTranslator.addInstruction(
-				L2_SET_VARIABLE_NO_CHECK.instance,
-				new L2ReadPointerOperand(args.registers().get(0)),
-				new L2ReadPointerOperand(args.registers().get(1)));
-			levelOneNaiveTranslator.moveNil(resultRegister);
-			return;
-		}
-		super.generateL2UnfoldableInlinePrimitive(
-			levelOneNaiveTranslator,
-			primitiveFunction,
-			args,
-			resultRegister,
-			preserved,
-			expectedType,
-			failureValueRegister,
-			successLabel,
-			canFailPrimitive,
-			skipReturnCheck);
-	}
-
-	@Override
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
@@ -150,6 +91,7 @@ extends Primitive
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE.numericCode(),
 				E_CANNOT_MODIFY_FINAL_JAVA_FIELD.numericCode(),
 				E_JAVA_MARSHALING_FAILED.numericCode(),
-				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE.numericCode())));
+				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE.numericCode(),
+				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED.numericCode())));
 	}
 }

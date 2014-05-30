@@ -1723,4 +1723,58 @@ extends Descriptor
 	{
 		return vmDeclareStringifierAtom;
 	}
+
+	/**
+	 * The (special) name of the VM-built continuation caller atom.
+	 */
+	private static final A_Atom vmContinuationCallerAtom =
+		createSpecialMethodAtom(
+			"vm_'s caller",
+			P_052_ContinuationCaller.instance);
+
+	/**
+	 * Answer the (special) name of the VM-built continuation caller atom.
+	 *
+	 * @return The name of the VM's continuation caller atom.
+	 */
+	public static A_Atom vmContinuationCallerAtom ()
+	{
+		return vmContinuationCallerAtom;
+	}
+
+	/**
+	 * The (special) name of the VM-built variable accessor atom.
+	 */
+	private static final A_Atom vmVariableGetAtom =
+		createSpecialMethodAtom(
+			"vm↓_",
+			P_010_GetValue.instance);
+
+	/**
+	 * Answer the (special) name of the VM-built variable accessor atom.
+	 *
+	 * @return The name of the VM's variable accessor atom.
+	 */
+	public static A_Atom vmVariableGetAtom ()
+	{
+		return vmVariableGetAtom;
+	}
+
+	/**
+	 * The (special) name of the VM-built continuation resumption atom.
+	 */
+	private static final A_Atom vmResumeContinuationAtom =
+		createSpecialMethodAtom(
+			"vm resume_",
+			P_079_ResumeContinuation.instance);
+
+	/**
+	 * Answer the (special) name of the VM-built continuation resumption atom.
+	 *
+	 * @return The name of the VM's continuation resumption atom.
+	 */
+	public static A_Atom vmResumeContinuationAtom ()
+	{
+		return vmResumeContinuationAtom;
+	}
 }

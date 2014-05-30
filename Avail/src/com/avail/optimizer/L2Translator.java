@@ -45,6 +45,7 @@ import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.MethodDescriptor.InternalLookupTree;
 import com.avail.descriptor.MethodDescriptor.LookupTree;
+import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.*;
@@ -1738,7 +1739,7 @@ public class L2Translator
 					final A_BasicObject value = variable.value();
 					if (value.isInstanceOf(expectedType))
 					{
-						value.makeImmutable();
+						value.makeShared();
 						moveConstant(value, resultRegister);
 						canFailPrimitive.value = false;
 						return value;
@@ -2013,6 +2014,129 @@ public class L2Translator
 		}
 
 		/**
+		 * Emit the specified variable-writing instruction, and an off-ramp to
+		 * deal with the case that the variable has {@linkplain
+		 * VariableAccessReactor write reactors} but {@linkplain
+		 * Interpreter#traceVariableWrites() variable write tracing} is
+		 * disabled.
+		 *
+		 * @param setOperation
+		 *        The {@linkplain L2Operation#isVariableSet() variable reading}
+		 *        {@linkplain L2Operation operation}.
+		 * @param variable
+		 *        The location of the {@linkplain A_Variable variable}.
+		 * @param newValue
+		 *        The location of the new value.
+		 */
+		@InnerAccess void emitSetVariableOffRamp (
+			final L2Operation setOperation,
+			final L2ReadPointerOperand variable,
+			final L2ReadPointerOperand newValue)
+		{
+			assert setOperation.isVariableSet();
+			final L2Instruction postResume = newLabel("postResume");
+			final L2Instruction success = newLabel("success");
+			// Emit the set-variable instruction.
+			addInstruction(
+				setOperation,
+				variable,
+				newValue,
+				new L2PcOperand(success));
+			// Emit the failure off-ramp.
+			final L2ObjectRegister observeFunction = newObjectRegister();
+			addInstruction(
+				L2_GET_IMPLICIT_OBSERVE_FUNCTION.instance,
+				new L2WritePointerOperand(observeFunction));
+			// The continuation must be reified prior to invoking the failure
+			// function.
+			final RegisterSet registerSet = naiveRegisters();
+			final int nSlots = numSlots;
+			final List<L2ObjectRegister> slots = continuationSlotsList(nSlots);
+			final List<A_Type> savedSlotTypes = new ArrayList<>(nSlots);
+			final List<A_BasicObject> savedSlotConstants =
+				new ArrayList<>(nSlots);
+			for (final L2ObjectRegister reg : slots)
+			{
+				savedSlotTypes.add(
+					registerSet.hasTypeAt(reg)
+						? registerSet.typeAt(reg)
+						: null);
+				savedSlotConstants.add(
+					registerSet.hasConstantAt(reg)
+						? registerSet.constantAt(reg)
+						: null);
+			}
+			final L2ObjectRegister reifiedRegister = newObjectRegister();
+			reify(slots, reifiedRegister, postResume);
+			final L2ObjectRegister assignmentFunctionRegister =
+				newObjectRegister();
+			moveConstant(
+				Interpreter.assignmentFunction(),
+				assignmentFunctionRegister);
+			final L2ObjectRegister tupleRegister = newObjectRegister();
+			addInstruction(
+				L2_CREATE_TUPLE.instance,
+				new L2ReadVectorOperand(createVector(
+					Arrays.asList(variable.register, newValue.register))),
+				new L2WritePointerOperand(tupleRegister));
+			addInstruction(
+				L2_INVOKE.instance,
+				new L2ReadPointerOperand(reifiedRegister),
+				new L2ReadPointerOperand(observeFunction),
+				new L2ReadVectorOperand(createVector(
+					Arrays.asList(assignmentFunctionRegister, tupleRegister))),
+				new L2ImmediateOperand(1));
+			addLabel(postResume);
+			addInstruction(
+				L2_REENTER_L2_CHUNK.instance,
+				new L2WritePointerOperand(fixed(CALLER)));
+			A_Map typesMap = MapDescriptor.empty();
+			A_Map constants = MapDescriptor.empty();
+			A_Set nullSlots = SetDescriptor.empty();
+			for (int slotIndex = 1; slotIndex <= nSlots; slotIndex++)
+			{
+				final A_Type type = savedSlotTypes.get(slotIndex - 1);
+				if (type != null)
+				{
+					typesMap = typesMap.mapAtPuttingCanDestroy(
+						IntegerDescriptor.fromInt(slotIndex),
+						type,
+						true);
+				}
+				final @Nullable A_BasicObject constant =
+					savedSlotConstants.get(slotIndex - 1);
+				if (constant != null)
+				{
+					if (constant.equalsNil())
+					{
+						nullSlots = nullSlots.setWithElementCanDestroy(
+							IntegerDescriptor.fromInt(slotIndex),
+							true);
+					}
+					else
+					{
+						constants = constants.mapAtPuttingCanDestroy(
+							IntegerDescriptor.fromInt(slotIndex),
+							constant,
+							true);
+					}
+				}
+			}
+			addInstruction(
+				L2_EXPLODE_CONTINUATION.instance,
+				new L2ReadPointerOperand(fixed(CALLER)),
+				new L2WriteVectorOperand(createVector(slots)),
+				new L2WritePointerOperand(fixed(CALLER)),
+				new L2WritePointerOperand(fixed(FUNCTION)),
+				new L2WriteIntOperand(skipReturnCheckRegister),
+				new L2ConstantOperand(typesMap),
+				new L2ConstantOperand(constants),
+				new L2ConstantOperand(nullSlots),
+				new L2ConstantOperand(code.functionType()));
+			addLabel(success);
+		}
+
+		/**
 		 * For each level one instruction, write a suitable transliteration into
 		 * level two instructions.
 		 */
@@ -2058,11 +2182,16 @@ public class L2Translator
 			{
 				assert !Primitive.byPrimitiveNumberOrFail(prim).hasFlag(
 					CannotFail);
-				// Move the primitive failure value into the first local.
+				// Move the primitive failure value into the first local. This
+				// doesn't need to support implicit observation, so no off-ramp
+				// is generated.
+				final L2Instruction success = newLabel("success");
 				addInstruction(
 					L2_SET_VARIABLE.instance,
 					new L2ReadPointerOperand(argumentOrLocal(numArgs + 1)),
-					new L2ReadPointerOperand(fixed(PRIMITIVE_FAILURE)));
+					new L2ReadPointerOperand(fixed(PRIMITIVE_FAILURE)),
+					new L2PcOperand(success));
+				addLabel(success);
 			}
 			// Store nil into each of the stack slots.
 			for (
@@ -2355,7 +2484,7 @@ public class L2Translator
 			final int localIndex = getInteger();
 			final L2ObjectRegister local =
 				argumentOrLocal(localIndex);
-			addInstruction(
+			emitSetVariableOffRamp(
 				L2_SET_VARIABLE_NO_CHECK.instance,
 				new L2ReadPointerOperand(local),
 				new L2ReadPointerOperand(stackRegister(stackp)));
@@ -2376,7 +2505,7 @@ public class L2Translator
 				new L2ReadPointerOperand(fixed(FUNCTION)),
 				new L2WritePointerOperand(tempReg),
 				new L2ConstantOperand(code.outerTypeAt(outerIndex)));
-			addInstruction(
+			emitSetVariableOffRamp(
 				L2_SET_VARIABLE_NO_CHECK.instance,
 				new L2ReadPointerOperand(tempReg),
 				new L2ReadPointerOperand(stackRegister(stackp)));
@@ -2460,7 +2589,7 @@ public class L2Translator
 			final AvailObject constant = code.literalAt(getInteger());
 			final L2ObjectRegister tempReg = newObjectRegister();
 			moveConstant(constant, tempReg);
-			addInstruction(
+			emitSetVariableOffRamp(
 				L2_SET_VARIABLE_NO_CHECK.instance,
 				new L2ReadPointerOperand(tempReg),
 				new L2ReadPointerOperand(stackRegister(stackp)));

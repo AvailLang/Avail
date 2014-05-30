@@ -35,6 +35,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.*;
 
 /**
@@ -58,7 +59,15 @@ public final class P_342_GetGlobalVariableValue extends Primitive
 		final A_RawFunction code =
 			interpreter.primitiveFunctionBeingAttempted().code();
 		final A_Variable literalVariable = code.literalAt(1);
-		return interpreter.primitiveSuccess(literalVariable.getValue());
+		try
+		{
+			return interpreter.primitiveSuccess(literalVariable.getValue());
+		}
+		catch (final VariableGetException e)
+		{
+			assert false : "A write-only variable must be assigned!";
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override

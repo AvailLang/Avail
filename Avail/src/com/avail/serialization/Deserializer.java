@@ -157,8 +157,7 @@ public class Deserializer
 	 *
 	 * @param module The active {@link ModuleDescriptor module}.
 	 */
-	public void currentModule (
-		final A_Module module)
+	public void currentModule (final A_Module module)
 	{
 		currentModule = module;
 	}
@@ -179,10 +178,11 @@ public class Deserializer
 	 * malformed throw a MalformedSerialStreamException.
 	 *
 	 * @return A fully deserialized object or {@code null}.
-	 * @throws MalformedSerialStreamException If the stream is malformed.
+	 * @throws MalformedSerialStreamException
+	 *         If the stream is malformed.
 	 */
 	public @Nullable AvailObject deserialize ()
-	throws MalformedSerialStreamException
+		throws MalformedSerialStreamException
 	{
 		assert producedObject == null;
 		try
@@ -199,7 +199,7 @@ public class Deserializer
 			producedObject = null;
 			return temp;
 		}
-		catch (final IOException e)
+		catch (final Exception e)
 		{
 			throw new MalformedSerialStreamException(e);
 		}

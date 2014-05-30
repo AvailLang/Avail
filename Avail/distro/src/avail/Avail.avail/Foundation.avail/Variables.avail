@@ -68,16 +68,7 @@ Names
 	"(_--)",
 	"(--_)",
 
-	/* Variable swap. */
-	"Swap_↑and_↑",
-
-	/* Variable clearing. */
-	"Clear_↑",
-	"eject_↑",
-
 	/* Variable assignment. */
-	"_↑`?=_",
-	"_↑`?=_'s⁇initialization",
 	"_is assigned",
 	"_↑is assigned",
 	"_↑is unassigned",
@@ -95,66 +86,26 @@ Semantic restriction "↓_" is
 	varType's read type
 ];
 
-/**
- * Clear the specified variable. This resets it to the unassigned state.
- *
- * @category "Primitives" "Variables" "Mutators"
- * @method "Clear_↑"
- * @param "var" "variable"
- *        A variable.
- * @returns "⊤"
- * @raises "cannot-overwrite-write-once-variable exception"
- * @raises "Java-marshaling-failed exception"
- * @raises "cannot-modify-final-Java-field exception"
- */
-Public method "Clear_↑" is
+Private method "eject restriction function" is
 [
-	var : variable
-|
-	Primitive 12 (failureCode : {
-		cannot-overwrite-write-once-variable code,
-		Java-marshaling-failed code,
-		cannot-modify-final-Java-field code}ᵀ);
-	invoke early failure function with <failureCode>
-] : ⊤;
-
-/**
- * Eject and answer the contents of the specified variable. The variable is
- * in the unassigned state after the primitive completes.
- *
- * @category "Primitives" "Variables" "Queries" "Mutators"
- * @method "eject_↑"
- * @param "var" "variable"
- *        A variable.
- * @returns "any"
- *    The value ejected from the variable.
- * @raises "cannot-read-unassigned-variable exception"
- * @raises "cannot-overwrite-write-once-variable exception"
- * @raises "Java-marshaling-failed exception"
- * @raises "cannot-modify-final-Java-field exception"
- */
-Public method "eject_↑" is
-[
-	var : variable
-|
-	Primitive 18 (failureCode : {
-		cannot-read-unassigned-variable code,
-		cannot-overwrite-write-once-variable code,
-		Java-marshaling-failed code,
-		cannot-modify-final-Java-field code}ᵀ);
-	invoke early failure function with <failureCode>
-] : any;
+	[
+		varType : variable meta
+	|
+		varType's read type
+	]
+];
 
 /**
  * @method "eject_↑"
  * @restricts "variable meta"
  */
-Semantic restriction "eject_↑" is
-[
-	varType : variable meta
-|
-	varType's read type
-];
+Semantic restriction "eject_↑" is eject restriction function;
+
+/**
+ * @method "eject_"
+ * @restricts "variable meta"
+ */
+Semantic restriction "eject_" is eject restriction function;
 
 /**
  * Is the specified variable unassigned?
@@ -197,30 +148,6 @@ Public method "_is assigned" is [var : variable | ¬var is unassigned];
  */
 Public method "_↑is assigned" is [var : variable | ¬var is unassigned];
 
-/**
- * Exchange the contents of the two variables. This is more efficient than
- * using an intermediate variable, and permits additional optimizations by the
- * virtual machine.
- *
- * @category "Primitives" "Variables" "Mutators"
- * @method "Swap_and_"
- * @param "arg1" "variable"
- *        A variable.
- * @param "arg2" "variable"
- *        A variable.
- * @returns "⊤"
- * @raises "cannot-swap-contents-of-differently-typed-variables exception"
- */
-Public method "Swap_↑and_↑" is
-[
-	arg1 : variable,
-	arg2 : variable
-|
-	Primitive 15 (failureCode : {
-		cannot-swap-contents-of-differently-typed-variables code}ᵀ);
-	invoke early failure function with <failureCode>
-] : ⊤;
-
 Private method "swap semantic restriction" is
 [
 	[
@@ -257,57 +184,6 @@ Semantic restriction "Swap_and_" is swap semantic restriction;
  * @restricts "variable meta"
  */
 Semantic restriction "Swap_↑and_↑" is swap semantic restriction;
-
-/**
- * Store {@param "value"} into the specified variable.
- *
- * @category "Primitives" "Variables" "Mutators"
- * @method "_↑`?=_"
- * @param "var" "variable"
- *        A variable.
- * @param "value" "any"
- *        The value that should be stored into {@param "var"}.
- * @returns "⊤"
- * @raises "cannot-store-incorrectly-typed-value exception"
- * @raises "cannot-overwrite-write-once-variable exception"
- * @raises "Java-marshaling-failed exception"
- * @raises "cannot-modify-final-Java-field exception"
- */
-Public method "_↑`?=_" is
-[
-	var : variable,
-	value : any
-|
-	Primitive 11 (failureCode : {
-		cannot-store-incorrectly-typed-value code,
-		cannot-overwrite-write-once-variable code,
-		Java-marshaling-failed code,
-		cannot-modify-final-Java-field code}ᵀ);
-	invoke early failure function with <failureCode>
-] : ⊤;
-
-/**
- * If the specified declaration has an initialization expression, then store it
- * into {@param "var"}.
- *
- * @category "Primitives" "Variables" "Phrases" "Queries" "Mutators"
- * @method "_↑`?=_'s⁇initialization"
- * @param "var" "write-only expression variable"
- *        A variable.
- * @param "aDeclaration" "declaration phrase"
- *        A declaration.
- * @returns "boolean"
- *   {@method "true"} if {@param "aDeclaration"} has an initialization
- *   expression and it was written into {@param "var"}, {@method "false"}
- *   otherwise.
- */
-Public method "_↑`?=_'s⁇initialization" is
-[
-	var : write-only expression variable,
-	aDeclaration : declaration phrase
-|
-	Primitive 380;
-] : boolean;
 
 /**
  * Construct and answer a new variable with the specified containment type and
@@ -971,6 +847,11 @@ Grammatical restriction
 Grammatical restriction {"Swap_↑and_↑"} is <{"`↑_↑"}, {"`↑_↑"}>;
 Grammatical restriction
 {
+	"atomically read_↑and store_",
+	"atomically read_↑and add_",
 	"_↑`?=_",
 	"_↑`?=_'s⁇initialization"
 } is <{"`↑_↑"}, ∅>;
+
+Grammatical restriction {"atomically compare_to_and,⁇if equal,⁇store_"} is
+	<{"`↑_↑"}, ∅, ∅>;

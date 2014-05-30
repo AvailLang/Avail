@@ -1,5 +1,5 @@
 /**
- * P_052_ContinuationCaller.java
+ * P_079_ResumeContinuation.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,6 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -37,19 +38,20 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 52:</strong> Answer a {@linkplain VariableDescriptor
- * variable} containing the caller of the specified {@linkplain
- * ContinuationDescriptor continuation}. The variable will be unassigned if
- * the continuation has no caller.
+ * <strong>Primitive 79</strong>: Resume the specified {@linkplain
+ * A_Continuation continuation}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_052_ContinuationCaller extends Primitive
+public final class P_079_ResumeContinuation
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_052_ContinuationCaller().init(
-			1, CanFold, CannotFail);
+		new P_079_ResumeContinuation().init(
+			1, Private, CannotFail, SwitchesContinuation);
 
 	@Override
 	public Result attempt (
@@ -58,15 +60,9 @@ public final class P_052_ContinuationCaller extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_Continuation con = args.get(0);
-		final A_Continuation caller = con.caller();
-		final A_Variable callerHolder = VariableDescriptor.forContentType(
-			ContinuationTypeDescriptor.mostGeneralType());
-		if (!caller.equalsNil())
-		{
-			callerHolder.setValueNoCheck(caller);
-		}
-		return interpreter.primitiveSuccess(callerHolder);
+		final A_Continuation continuation = args.get(0);
+		interpreter.prepareToResumeContinuation(continuation.ensureMutable());
+		return Result.CONTINUATION_CHANGED;
 	}
 
 	@Override
@@ -75,7 +71,6 @@ public final class P_052_ContinuationCaller extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				ContinuationTypeDescriptor.mostGeneralType()),
-			VariableTypeDescriptor.wrapInnerType(
-				ContinuationTypeDescriptor.mostGeneralType()));
+				BottomTypeDescriptor.bottom());
 	}
 }

@@ -146,6 +146,7 @@ extends Descriptor
 
 	@Override @AvailMethod
 	AvailObject o_GetValue (final AvailObject object)
+		throws VariableGetException
 	{
 		final Object receiver = object.slot(RECEIVER).javaObject();
 		final Field field = (Field) object.slot(FIELD).javaObject();
@@ -159,7 +160,7 @@ extends Descriptor
 		}
 		catch (final Exception e)
 		{
-			throw new VariableGetException(
+			throw new AvailRuntimeException(
 				AvailErrorCode.E_JAVA_MARSHALING_FAILED,
 				e);
 		}
@@ -193,7 +194,7 @@ extends Descriptor
 		}
 		catch (final Exception e)
 		{
-			throw new VariableSetException(
+			throw new AvailRuntimeException(
 				AvailErrorCode.E_JAVA_MARSHALING_FAILED,
 				e);
 		}
@@ -202,7 +203,7 @@ extends Descriptor
 	@Override
 	void o_SetValueNoCheck (
 		final AvailObject object,
-		final AvailObject newValue)
+		final A_BasicObject newValue)
 	{
 		// Actually check this write anyhow. Just in case.
 		final Object receiver = object.slot(RECEIVER).javaObject();
@@ -217,7 +218,7 @@ extends Descriptor
 		}
 		catch (final Exception e)
 		{
-			throw new VariableSetException(
+			throw new AvailRuntimeException(
 				AvailErrorCode.E_JAVA_MARSHALING_FAILED,
 				e);
 		}
@@ -238,7 +239,7 @@ extends Descriptor
 		}
 		catch (final Exception e)
 		{
-			throw new VariableGetException(
+			throw new AvailRuntimeException(
 				AvailErrorCode.E_JAVA_MARSHALING_FAILED,
 				e);
 		}
