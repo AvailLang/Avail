@@ -52,8 +52,8 @@ import com.avail.tools.compiler.configuration.CompilerConfiguration;
 import com.avail.tools.compiler.configuration.EnvironmentConfigurator;
 import com.avail.tools.compiler.configuration.StatisticReport;
 import com.avail.tools.compiler.configuration.VerbosityLevel;
-import com.avail.tools.configuration.ConfigurationException;
 import com.avail.utility.*;
+import com.avail.utility.configuration.ConfigurationException;
 import com.avail.utility.evaluation.*;
 
 /**

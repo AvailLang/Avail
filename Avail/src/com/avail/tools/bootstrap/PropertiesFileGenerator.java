@@ -39,6 +39,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.*;
 import com.avail.AvailRuntime;
+import com.avail.utility.UTF8ResourceBundleControl;
 /**
  * {@code PropertiesFileGenerator} defines state and operations common to the
  * Avail properties file generators.

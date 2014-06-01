@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.tools.bootstrap;
+package com.avail.utility;
 
 import java.io.*;
 import java.net.*;
@@ -45,7 +45,7 @@ import com.avail.annotations.*;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class UTF8ResourceBundleControl
+public final class UTF8ResourceBundleControl
 extends Control
 {
 	@Override

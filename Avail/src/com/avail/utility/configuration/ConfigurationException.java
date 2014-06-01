@@ -1,5 +1,5 @@
 /**
- * Configurator.java
+ * ConfigurationException.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,37 +30,48 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.tools.configuration;
+package com.avail.utility.configuration;
 
+import com.avail.utility.configuration.Configurator;
 
 /**
- * A {@code Configurator} produces a {@linkplain Configuration configuration}
- * from information provided during construction of a concrete implementation.
+ * A {@code ConfigurationException} is thrown when a {@linkplain Configurator
+ * configurator} fails to {@linkplain Configurator#updateConfiguration() create}
+ * a {@linkplain Configuration configuration} for any reason.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @param <ConfigurationType>
- *        The type of resulting {@linkplain Configuration configurations}.
  */
-public interface Configurator<ConfigurationType extends Configuration>
+public final class ConfigurationException
+extends Exception
 {
-	/**
-	 * Using information provided during construction of the {@linkplain
-	 * Configurator configurator}, produce the entailed {@linkplain
-	 * Configuration configuration}.
-	 *
-	 * <p>Implementations should be idempotent, i.e., multiple invocations
-	 * should produce the same observable effect as a single invocation.</p>
-	 *
-	 * @throws ConfigurationException
-	 *         If the configuration could not be created for any reason.
-	 */
-	public void updateConfiguration () throws ConfigurationException;
+	/** The serial version identifier. */
+	private static final long serialVersionUID = -3955240420524190217L;
 
 	/**
-	 * Answer the {@linkplain Configuration configuration} produced by the
-	 * {@linkplain Configurator configurator}.
+	 * Construct a new {@link ConfigurationException}.
 	 *
-	 * @return A configuration.
+	 * @param message
+	 *        The detail message, expected to be the proximal reason why
+	 *        configuration failed.
 	 */
-	public ConfigurationType configuration ();
+	public ConfigurationException (final String message)
+	{
+		super(message);
+	}
+
+	/**
+	 * Construct a new {@link ConfigurationException}.
+	 *
+	 * @param message
+	 *        The detail message, expected to be the proximal reason why
+	 *        configuration failed.
+	 * @param cause
+	 *        The proximal cause of the exception.
+	 */
+	public ConfigurationException (
+		final String message,
+		final Throwable cause)
+	{
+		super(message, cause);
+	}
 }

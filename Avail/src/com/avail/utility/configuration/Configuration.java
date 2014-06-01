@@ -1,5 +1,5 @@
 /**
- * package-info.java
+ * Configuration.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,4 +30,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@com.avail.annotations.NotNullByDefault package com.avail.tools.configuration;
+package com.avail.utility.configuration;
+
+/**
+ * A {@code Configuration} encapsulates the configurable parameters of a
+ * software component.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+public interface Configuration
+{
+	/**
+	 * Is the {@linkplain Configuration configuration} valid?
+	 *
+	 * @return {@code true} if the configuration is valid, {@code false}
+	 *         otherwise.
+	 */
+	public boolean isValid ();
+}

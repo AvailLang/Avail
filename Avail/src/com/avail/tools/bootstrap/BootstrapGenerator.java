@@ -45,6 +45,7 @@ import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.*;
 import com.avail.interpreter.primitive.*;
+import com.avail.utility.UTF8ResourceBundleControl;
 
 /**
  * Generate the Avail system {@linkplain ModuleDescriptor modules} that

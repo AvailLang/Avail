@@ -44,8 +44,6 @@ import com.avail.annotations.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
-import com.avail.tools.configuration.ConfigurationException;
-import com.avail.tools.configuration.Configurator;
 import com.avail.tools.options.DefaultOption;
 import com.avail.tools.options.GenericHelpOption;
 import com.avail.tools.options.GenericOption;
@@ -53,6 +51,8 @@ import com.avail.tools.options.OptionProcessingException;
 import com.avail.tools.options.OptionProcessor;
 import com.avail.tools.options.OptionProcessorFactory;
 import com.avail.utility.*;
+import com.avail.utility.configuration.ConfigurationException;
+import com.avail.utility.configuration.Configurator;
 import com.avail.utility.evaluation.*;
 
 /**

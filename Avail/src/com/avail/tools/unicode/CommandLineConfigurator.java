@@ -37,13 +37,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
-import com.avail.tools.configuration.ConfigurationException;
-import com.avail.tools.configuration.Configurator;
 import com.avail.tools.options.DefaultOption;
 import com.avail.tools.options.GenericHelpOption;
 import com.avail.tools.options.OptionProcessor;
 import com.avail.tools.options.OptionProcessorFactory;
 import com.avail.utility.MutableOrNull;
+import com.avail.utility.configuration.ConfigurationException;
+import com.avail.utility.configuration.Configurator;
 import com.avail.utility.evaluation.Continuation2;
 
 /**
