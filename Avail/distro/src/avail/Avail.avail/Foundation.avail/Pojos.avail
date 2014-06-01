@@ -36,14 +36,23 @@ Versions
 Uses
 	"Bootstrap",
 	"Control Structures",
+	"Definers",
 	"Enumeration Support",
+	"Late Math",
 	"Literals",
-	"Math",
 	"Tuples",
 	"Types",
 	"Variables"
 Names
-	"_[]"
+	/* Array type construction. */
+	"_[]",
+
+	/* Java integral types. */
+	"Java byte",
+	"Java char",
+	"Java int",
+	"Java long",
+	"Java short"
 Body
 
 /**
@@ -57,6 +66,31 @@ Semantic restriction "_[_]" is
 	lengthType : whole number's type's type
 |
 	elementMeta's instance [lengthType's instance]'s type
+];
+
+/**
+ * Construct and answer a pojo array type whose element type is {@param
+ * "elementType"} and whose cardinality requirement is {@type "whole number"}.
+ *
+ * @category "Primitives" "Types" "POJO" "Constructors"
+ * @method "_[_]"
+ * @param "elementType" "any meta"
+ *        The type of the elements of instances.
+ * @returns "any [whole number]'s type"
+ *    The requested pojo array type.
+ */
+Public method "_[]" is
+[
+	elementType : any's type
+|
+	elementType [whole number]
+] : pojo array meta;
+
+Semantic restriction "_[]" is
+[
+	elementMeta : any's type's type
+|
+	elementMeta's instance [whole number]'s type
 ];
 
 /**
@@ -179,3 +213,48 @@ Semantic restriction "_→tuple" is
 |
 	<<>, arrayType's element type… | ||arrayType||>
 ];
+
+/**
+ * Answer the {@type "extended integer" numeric type} that conforms to
+ * Java's {@code long}, i.e., a signed 64-bit 2's complement integer.
+ *
+ * @type "Java long"
+ * @category "Types" "POJO" "Numbers" "Integers"
+ */
+Public method "Java long" is [[-2^63..2^63)];
+
+/**
+ * Answer the {@type "extended integer" numeric type} that conforms to
+ * Java's {@code int}, i.e., a signed 32-bit 2's-complement integer.
+ *
+ * @type "Java int"
+ * @category "Types" "POJO" "Numbers" "Integers"
+ */
+Public method "Java int" is [[-2^31..2^31)];
+
+/**
+ * Answer the {@type "extended integer" numeric type} that conforms to
+ * Java's {@code short}, i.e., a signed 16-bit 2's-complement integer.
+ *
+ * @type "Java short"
+ * @category "Types" "POJO" "Numbers" "Integers"
+ */
+Public method "Java short" is [[-2^15..2^15)];
+
+/**
+ * Answer the {@type "extended integer" numeric type} that conforms to
+ * Java's {@code byte}, i.e., a signed 8-bit 2's-complement integer.
+ *
+ * @type "Java byte"
+ * @category "Types" "POJO" "Numbers" "Integers"
+ */
+Public method "Java byte" is [[-2^7..2^7)];
+
+/**
+ * Answer the {@type "extended integer" numeric type} that conforms to
+ * Java's {@code char}, i.e., an unsigned 16-bit 2's-complement integer.
+ *
+ * @type "Java short"
+ * @category "Types" "POJO" "Numbers" "Integers"
+ */
+Public method "Java char" is [[0..2^16)];

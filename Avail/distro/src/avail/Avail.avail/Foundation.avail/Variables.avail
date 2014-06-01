@@ -192,12 +192,10 @@ Semantic restriction "Swap_↑and_↑" is swap semantic restriction;
  * @method "(↓new`↑_:=_)"
  * @category "Variables"
  * @param "containmentType" "any meta"
+ *         The containment type.
  * @param "initialValue" "any"
- * Parameters:
- *    containmentType - The containment type.
- *    initialValue - The initial value.
+ *        The initial value.
  * @returns "variable"
- * Returns:
  *    A new variable capable of retrieving and storing values of the specified
  *    containment type. The variable contains `initialValue`.
  */
@@ -245,11 +243,7 @@ Semantic restriction "(↓new`↑_:=_)" is
  * @category "Variables"
  * @param "containmentType" "any meta"
  * @param "initialValue" "any"
- * Parameters:
- *    containmentType - The containment type.
- *    initialValue - The initial value.
  * @returns "variable"
- * Returns:
  *    A new variable capable of retrieving and storing values of the specified
  *    containment type. The variable contains `initialValue`.
  */
@@ -266,20 +260,18 @@ Public method "(↓new`↑_`?=_)" is
 Private method "increment function" is
 [
 	[
-		var : variable
+		var : number→/→⊥
 	|
-		var ?= cast eject var into [ t : number | t + 1 ];
+		var ?= ↓var + 1;
 	] : ⊤
 ];
 
 Private method "increment/decrement semantic restriction" is
 [
 	[
-		varType : variable meta
+		varType : (number→/→⊥)'s type
 	|
-		If (¬varType's read type ⊆ number)
-			∨ [ ¬varType's write type ⊆ number ]
-		then
+		If ¬varType's write type ⊆ number then
 		[
 			Reject parse, expected: "variable to accept and yield numbers"
 		];
@@ -292,8 +284,8 @@ Private method "increment/decrement semantic restriction" is
  * 
  * @method "_↑++"
  * @category "Variables" "Mathematics" "Integers"
- * @param "var" "variable"
- * 		A numeric variable.
+ * @param "var" "number→/→⊥"
+ *        A numeric variable.
  * @returns "⊤"
  */
 Public method "_↑++" is increment function;
@@ -302,7 +294,7 @@ Public method "_↑++" is increment function;
  * The autoincrement statement should accept only numeric variables.
  * 
  * @method "_↑++"
- * @restricts "variable meta"
+ * @restricts "(number→/→⊥)'s type"
  */
 Semantic restriction "_↑++" is increment/decrement semantic restriction;
 
@@ -311,8 +303,8 @@ Semantic restriction "_↑++" is increment/decrement semantic restriction;
  * 
  * @method "_++"
  * @category "Variables" "Mathematics" "Integers"
- * @param "var" "variable"
- * 		A numeric variable.
+ * @param "var" "number→/→⊥"
+ *        A numeric variable.
  * @returns "⊤"
  */
 Public method "_++" is increment function;
@@ -321,17 +313,17 @@ Public method "_++" is increment function;
  * The autoincrement statement should accept only numeric variables.
  * 
  * @method "_++"
- * @restricts "variable meta"
+ * @restricts "(number→/→⊥)'s type"
  */
 Semantic restriction "_++" is increment/decrement semantic restriction;
 
 Private method "valued post-increment function" is
 [
 	[
-		var : variable
+		var : number→/→⊥
 	|
 		value ::= eject var;
-		var ?= cast value into [ t : number | t + 1 ];
+		var ?= value + 1;
 		value
 	] : ⊤
 ];
@@ -339,11 +331,9 @@ Private method "valued post-increment function" is
 Private method "valued post-increment semantic restriction" is
 [
 	[
-		varType : variable meta
+		varType : (number→/→⊥)'s type
 	|
-		If (¬varType's read type ⊆ number)
-			∨ [ ¬varType's write type ⊆ number ]
-		then
+		If ¬varType's write type ⊆ number then
 		[
 			Reject parse, expected: "variable to accept and yield numbers"
 		];
@@ -358,8 +348,8 @@ Private method "valued post-increment semantic restriction" is
  * 
  * @method "(_↑++)"
  * @category "Variables" "Mathematics" "Integers"
- * @param "var" "variable"
- * 		A numeric variable.
+ * @param "var" "number→/→⊥"
+ *        A numeric variable.
  * @returns "number"
  *    The value of the argument prior to the increment.
  */
@@ -370,7 +360,7 @@ Public method "(_↑++)" is valued post-increment function;
  * the read type of the variable.
  * 
  * @method "(_↑++)"
- * @restricts "variable meta"
+ * @restricts "(number→/→⊥)'s type"
  */
 Semantic restriction "(_↑++)" is valued post-increment semantic restriction;
 
@@ -381,7 +371,7 @@ Semantic restriction "(_↑++)" is valued post-increment semantic restriction;
  * 
  * @method "(_++)"
  * @category "Variables" "Mathematics" "Integers"
- * @param "var" "variable"
+ * @param "var" "number→/→⊥"
  *        A numeric variable.
  * @returns "number"
  *    The value of the argument prior to the increment.
@@ -393,7 +383,7 @@ Public method "(_++)" is valued post-increment function;
  * the read type of the variable.
  * 
  * @method "(_++)"
- * @restricts "variable meta"
+ * @restricts "(number→/→⊥)'s type"
  */
 Semantic restriction "(_++)" is valued post-increment semantic restriction;
 
@@ -402,7 +392,7 @@ Semantic restriction "(_++)" is valued post-increment semantic restriction;
  * 
  * @method "++_↑"
  * @category "Variables" "Mathematics" "Integers"
- * @param "var" "variable"
+ * @param "var" "number→/→⊥"
  *        A numeric variable.
  * @returns "⊤"
  */
@@ -412,7 +402,7 @@ Public method "++_↑" is increment function;
  * The autoincrement statement should accept only numeric variables.
  * 
  * @method "++_↑"
- * @restricts "variable meta"
+ * @restricts "(number→/→⊥)'s type"
  */
 Semantic restriction "++_↑" is increment/decrement semantic restriction;
 
@@ -421,7 +411,7 @@ Semantic restriction "++_↑" is increment/decrement semantic restriction;
  * 
  * @method "++_"
  * @category "Variables" "Mathematics" "Integers"
- * @param "var" "variable"
+ * @param "var" "number→/→⊥"
  *        A numeric variable.
  * @returns "⊤"
  */
@@ -431,16 +421,16 @@ Public method "++_" is increment function;
  * The autoincrement statement should accept only numeric variables.
  * 
  * @method "++_"
- * @restricts "variable meta"
+ * @restricts "(number→/→⊥)'s type"
  */
 Semantic restriction "++_" is increment/decrement semantic restriction;
 
 Private method "valued pre-increment function" is
 [
 	[
-		var : variable
+		var : number→/→⊥
 	|
-		var ?= cast eject var into [ t : number | t + 1 ];
+		var ?= ↓var + 1;
 		↓var
 	]
 ];
@@ -448,11 +438,9 @@ Private method "valued pre-increment function" is
 Private method "valued pre-increment semantic restriction" is
 [
 	[
-		varType : variable meta
+		varType : (number→/→⊥)'s type
 	|
-		If (¬varType's read type ⊆ number)
-			∨ [ ¬varType's write type ⊆ number ]
-		then
+		If ¬varType's write type ⊆ number then
 		[
 			Reject parse, expected: "variable to accept and yield numbers"
 		];
@@ -478,8 +466,8 @@ Private method "valued pre-increment semantic restriction" is
  * 
  * @method "(++_↑)"
  * @category "Variables" "Mathematics" "Integers"
- * @param "var" "variable"
- * 		A numeric variable.
+ * @param "var" "number→/→⊥"
+ *        A numeric variable.
  * @returns "number"
  *    The value of the argument after the increment.
  */
@@ -490,7 +478,7 @@ Public method "(++_↑)" is valued pre-increment function;
  * tightened for integral types to adjust the bounds of result type by one.
  * 
  * @method "(++_↑)"
- * @restricts "variable meta"
+ * @restricts "(number→/→⊥)'s type"
  */
 Semantic restriction "(++_↑)" is valued pre-increment semantic restriction;
 
@@ -499,8 +487,8 @@ Semantic restriction "(++_↑)" is valued pre-increment semantic restriction;
  * 
  * @method "(++_)"
  * @category "Variables" "Mathematics" "Integers"
- * @param "var" "variable"
- * 		A numeric variable.
+ * @param "var" "number→/→⊥"
+ *        A numeric variable.
  * @returns "number"
  *    The value of the argument after the increment.
  */
@@ -511,7 +499,7 @@ Public method "(++_)" is valued pre-increment function;
  * tightened for integral types to adjust the bounds of result type by one.
  * 
  * @method "(++_)"
- * @restricts "variable meta"
+ * @restricts "(number→/→⊥)'s type"
  */
 Semantic restriction "(++_)" is valued pre-increment semantic restriction;
 
@@ -527,9 +515,9 @@ Semantic restriction "(++_)" is valued pre-increment semantic restriction;
 Private method "decrement function" is
 [
 	[
-		var : variable
+		var : number→/→⊥
 	|
-		var ?= cast eject var into [ t : number | t - 1 ];
+		var ?= ↓var - 1;
 	] : ⊤
 ];
 
@@ -538,8 +526,8 @@ Private method "decrement function" is
  * 
  * @method "_↑--"
  * @category "Variables" "Mathematics" "Integers"
- * @param "var" "variable"
- * 		A numeric variable.
+ * @param "var" "number→/→⊥"
+ *        A numeric variable.
  * @returns "⊤"
  */
 Public method "_↑--" is decrement function;
@@ -548,7 +536,7 @@ Public method "_↑--" is decrement function;
  * The autodecrement statement should accept only numeric variables.
  * 
  * @method "_↑--"
- * @restricts "variable meta"
+ * @restricts "(number→/→⊥)'s type"
  */
 Semantic restriction "_↑--" is increment/decrement semantic restriction;
 
@@ -557,8 +545,8 @@ Semantic restriction "_↑--" is increment/decrement semantic restriction;
  * 
  * @method "_--"
  * @category "Variables" "Mathematics" "Integers"
- * @param "var" "variable"
- * 		A numeric variable.
+ * @param "var" "number→/→⊥"
+ *        A numeric variable.
  * @returns "⊤"
  */
 Public method "_--" is decrement function;
@@ -567,17 +555,17 @@ Public method "_--" is decrement function;
  * The autodecrement statement should accept only numeric variables.
  * 
  * @method "_--"
- * @restricts "variable meta"
+ * @restricts "(number→/→⊥)'s type"
  */
 Semantic restriction "_--" is increment/decrement semantic restriction;
 
 Private method "valued post-decrement function" is
 [
 	[
-		var : variable
+		var : number→/→⊥
 	|
 		value ::= eject var;
-		var ?= cast value into [ t : number | t - 1 ];
+		var ?= value - 1;
 		value
 	]
 ];
@@ -585,11 +573,9 @@ Private method "valued post-decrement function" is
 Private method "valued post-decrement semantic restriction" is
 [
 	[
-		varType : variable meta
+		varType : (number→/→⊥)'s type
 	|
-		If (¬varType's read type ⊆ number)
-			∨ [ ¬varType's write type ⊆ number ]
-		then
+		If ¬varType's write type ⊆ number then
 		[
 			Reject parse, expected: "variable to accept and yield numbers"
 		];
@@ -604,9 +590,8 @@ Private method "valued post-decrement semantic restriction" is
  * 
  * @method "(_↑--)"
  * @category "Variables" "Mathematics" "Integers"
- * @param "var" "variable"
- * Parameters:
- *    var - A numeric variable.
+ * @param "var" "number→/→⊥"
+ *        A numeric variable.
  * @returns "number"
  *    The value of the argument prior to the decrement.
  */
@@ -617,7 +602,7 @@ Public method "(_↑--)" is valued post-decrement function;
  * the read type of the variable.
  * 
  * @method "(_↑--)"
- * @restricts "variable meta"
+ * @restricts "(number→/→⊥)'s type"
  */
 Semantic restriction "(_↑--)" is valued post-decrement semantic restriction;
 
@@ -628,9 +613,8 @@ Semantic restriction "(_↑--)" is valued post-decrement semantic restriction;
  * 
  * @method "(_--)"
  * @category "Variables" "Mathematics" "Integers"
- * @param "var" "variable"
- * Parameters:
- *    var - A numeric variable.
+ * @param "var" "number→/→⊥"
+ *        A numeric variable.
  * @returns "number"
  *    The value of the argument prior to the decrement.
  */
@@ -641,7 +625,7 @@ Public method "(_--)" is valued post-decrement function;
  * the read type of the variable.
  * 
  * @method "(_--)"
- * @restricts "variable meta"
+ * @restricts "(number→/→⊥)'s type"
  */
 Semantic restriction "(_--)" is valued post-decrement semantic restriction;
 
@@ -650,7 +634,7 @@ Semantic restriction "(_--)" is valued post-decrement semantic restriction;
  *
  * @method "--_↑"
  * @category "Variables" "Mathematics" "Integers"
- * @param "var" "variable"
+ * @param "var" "number→/→⊥"
  *        A numeric variable.
  * @returns "⊤"
  */
@@ -660,7 +644,7 @@ Public method "--_↑" is decrement function;
  * The autodecrement statement should accept only numeric variables.
  * 
  * @method "--_↑"
- * @restricts "variable meta"
+ * @restricts "(number→/→⊥)'s type"
  */
 Semantic restriction "--_↑" is increment/decrement semantic restriction;
 
@@ -669,7 +653,7 @@ Semantic restriction "--_↑" is increment/decrement semantic restriction;
  *
  * @method "--_"
  * @category "Variables" "Mathematics" "Integers"
- * @param "var" "variable"
+ * @param "var" "number→/→⊥"
  *        A numeric variable.
  * @returns "⊤"
  */
@@ -679,16 +663,16 @@ Public method "--_" is decrement function;
  * The autodecrement statement should accept only numeric variables.
  * 
  * @method "--_"
- * @restricts "variable meta"
+ * @restricts "(number→/→⊥)'s type"
  */
 Semantic restriction "--_" is increment/decrement semantic restriction;
 
 Private method "valued pre-decrement function" is
 [
 	[
-		var : variable
+		var : number→/→⊥
 	|
-		var ?= cast eject var into [ t : number | t - 1 ];
+		var ?= ↓var - 1;
 		↓var
 	]
 ];
@@ -696,11 +680,9 @@ Private method "valued pre-decrement function" is
 Private method "valued pre-decrement semantic restriction" is
 [
 	[
-		varType : variable meta
+		varType : (number→/→⊥)'s type
 	|
-		If (¬varType's read type ⊆ number)
-			∨ [ ¬varType's write type ⊆ number ]
-		then
+		If ¬varType's write type ⊆ number then
 		[
 			Reject parse, expected: "variable to accept and yield numbers"
 		];
@@ -726,7 +708,7 @@ Private method "valued pre-decrement semantic restriction" is
  *
  * @method "(--_↑)"
  * @category "Variables" "Mathematics" "Integers"
- * @param "var" "variable"
+ * @param "var" "number→/→⊥"
  *        A numeric variable.
  * @returns "number"
  *           The value of the argument after the decrement.
@@ -739,7 +721,7 @@ Public method "(--_↑)" is valued pre-decrement function;
  * one.
  * 
  * @method "(--_↑)"
- * @restricts "variable meta"
+ * @restricts "(number→/→⊥)'s type"
  */
 Semantic restriction "(--_↑)" is valued pre-decrement semantic restriction;
 
@@ -748,7 +730,7 @@ Semantic restriction "(--_↑)" is valued pre-decrement semantic restriction;
  *
  * @method "(--_)"
  * @category "Variables" "Mathematics" "Integers"
- * @param "var" "variable"
+ * @param "var" "number→/→⊥"
  *        A numeric variable.
  * @returns "number"
  *           The value of the argument after the decrement.
@@ -761,7 +743,7 @@ Public method "(--_)" is valued pre-decrement function;
  * one.
  * 
  * @method "(--_)"
- * @restricts "variable meta"
+ * @restricts "(number→/→⊥)'s type"
  */
 Semantic restriction "(--_)" is valued pre-decrement semantic restriction;
 

@@ -706,7 +706,7 @@ Primitive "high-precision timer value" is
  *        The read type of the variable type.
  * @param "writeType" "type"
  *        The write type of the variable type.
- * @returns "⊤→/→⊥"
+ * @returns "(⊤→/→⊥)'s type"
  *    The requested variable type.
  */
 Primitive "_→/→_" is
@@ -715,7 +715,7 @@ Primitive "_→/→_" is
 	writeType : type
 |
 	Primitive 47;
-] : variable;
+] : variable meta;
 
 /**
  * Resume the specified continuation. The current continuation (in which this

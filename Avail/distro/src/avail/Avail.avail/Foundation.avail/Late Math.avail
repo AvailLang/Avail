@@ -53,6 +53,11 @@ Uses
 	"Types",
 	"Variables"
 Names
+	/* Compound assignment. */
+	"_↑+=_",
+	"_+=_",
+	"_↑-=_",
+	"_-=_"
 Body
 
 cannotRaiseZeroToZero ::= "either base or exponent not to be 0";
@@ -441,3 +446,108 @@ Stable method "log_of_" is
 |
 	Raise a cannot-compute-logarithm-of-nonpositive-number exception
 ] : ⊥;
+
+Private method "compound addition function" is
+[
+	[
+		var : number→/→⊥,
+		delta : number
+	|
+		var ?= eject var + delta;
+	] : ⊤
+];
+
+/**
+ * Increment the variable by {@param "delta"}.
+ *
+ * @method "_↑+=_"
+ * @category "Variables" "Mathematics" "Integers"
+ * @param "var" "variable"
+ *        A numeric variable.
+ * @param "delta" "number"
+ *        The amount by which to increment {@param "var"}.
+ * @returns "⊤"
+ * @raises "cannot-add-unlike-infinities exception"
+ * @raises "cannot-store-incorrectly-typed-value exception"
+ */
+Public method "_↑+=_" is compound addition function;
+
+/**
+ * Increment the variable by {@param "delta"}.
+ *
+ * @method "_↑+=_"
+ * @category "Variables" "Mathematics" "Integers"
+ * @param "var" "variable"
+ *        A numeric variable.
+ * @param "delta" "number"
+ *        The amount by which to increment {@param "var"}.
+ * @returns "⊤"
+ * @raises "cannot-add-unlike-infinities exception"
+ * @raises "cannot-store-incorrectly-typed-value exception"
+ */
+Public method "_+=_" is compound addition function;
+
+Private method "compound subtraction function" is
+[
+	[
+		var : number→/→⊥,
+		delta : number
+	|
+		var ?= eject var - delta;
+	] : ⊤
+];
+
+/**
+ * Decrement the variable by {@param "delta"}.
+ *
+ * @method "_↑-=_"
+ * @category "Variables" "Mathematics" "Integers"
+ * @param "var" "variable"
+ *        A numeric variable.
+ * @param "delta" "number"
+ *        The amount by which to decrement {@param "var"}.
+ * @returns "⊤"
+ * @raises "cannot-subtract-like-infinities exception"
+ * @raises "cannot-store-incorrectly-typed-value exception"
+ */
+Public method "_↑-=_" is compound subtraction function;
+
+/**
+ * Increment the variable by {@param "delta"}.
+ *
+ * @method "_↑-=_"
+ * @category "Variables" "Mathematics" "Integers"
+ * @param "var" "variable"
+ *        A numeric variable.
+ * @param "delta" "number"
+ *        The amount by which to decrement {@param "var"}.
+ * @returns "⊤"
+ * @raises "cannot-subtract-like-infinities exception"
+ * @raises "cannot-store-incorrectly-typed-value exception"
+ */
+Public method "_-=_" is compound subtraction function;
+
+Private method "compound arithmetic semantic restriction" is
+[
+	[
+		var : (number→/→⊥)'s type,
+		delta : number's type
+	|
+		If ¬var's write type ⊆ number then
+		[
+			Reject parse, expected: "variable to accept and yield numbers"
+		];
+		⊤
+	]
+];
+
+Semantic restriction "_↑+=_" is compound arithmetic semantic restriction;
+Semantic restriction "_+=_" is compound arithmetic semantic restriction;
+Semantic restriction "_↑-=_" is compound arithmetic semantic restriction;
+Semantic restriction "_-=_" is compound arithmetic semantic restriction;
+
+Grammatical restriction
+{
+	"_↑+=_", "_+=_",
+	"_↑+=_", "_+=_"
+} is <{"`↑_↑"}, ∅>;

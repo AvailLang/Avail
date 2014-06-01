@@ -757,6 +757,10 @@ Extends
 		"_is odd",
 		"_>_",
 		"_≥_",
+		"_↑+=_",
+		"_+=_",
+		"_↑-=_",
+		"_-=_",
 		"«_‡max»",
 		"«_‡min»",
 		"«_‡«=|≤|<»!»",
@@ -825,7 +829,15 @@ Extends
 		"`«[_`|_]:_`»",
 		"`«[_]:_`»"
 	),
-	"Pojos" = (),
+	"Pojos" =
+	(
+		"Java byte",
+		"Java char",
+		"Java int",
+		"Java long",
+		"Java short",
+		"_[]"
+	),
 	"Security" =
 	(
 		"Completely seal method_"
