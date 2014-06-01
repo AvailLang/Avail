@@ -258,8 +258,8 @@ Test "nested observes" in observation test suite is
 [
 	x : integer;
 	Observe [Observe [x := 5;];];
-]
-must raise illegal-trace-mode exception;
+	Require: x = 5;
+];
 
 Test "nested whenever[observe]" in observation test suite is
 [
