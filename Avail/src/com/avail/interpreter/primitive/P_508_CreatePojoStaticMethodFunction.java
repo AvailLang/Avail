@@ -50,7 +50,8 @@ import com.avail.interpreter.levelOne.*;
  * Method method}. The last argument is a function that should be invoked with a
  * pojo-wrapped {@link Exception} in the event that Java raises an exception.
  */
-public final class P_508_CreatePojoStaticMethodFunction extends Primitive
+public final class P_508_CreatePojoStaticMethodFunction
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -238,8 +239,6 @@ public final class P_508_CreatePojoStaticMethodFunction extends Primitive
 					TupleDescriptor.from(
 						PojoTypeDescriptor.forClass(Throwable.class)),
 					BottomTypeDescriptor.bottom())),
-			// TODO: [TLS] Answer a function type that answers any and
-			// can raise java.lang.Throwable.
 			FunctionTypeDescriptor.forReturnType(TOP.o()));
 	}
 
