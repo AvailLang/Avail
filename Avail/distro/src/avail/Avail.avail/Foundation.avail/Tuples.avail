@@ -2679,6 +2679,12 @@ Public stable method "∑_" is
 
 /**
  * Compute and answer the best bounds of the specified summation.
+ * 
+ * The basic strategy is to first compute the integer range type r representing
+ * the shortest tuple, then keep adding in the range of successive elements to
+ * produce a series of integer range types in r, accumulating the type union of
+ * each such r into a range type representing the range of all possible sums.
+ * We actually use a faster technique over the homogenous part of the tuple.
  *
  * @method "∑_"
  * @param "intTupleType" "<extended integer…|0..∞>'s type"
@@ -2694,34 +2700,48 @@ Method "∑_" is
 	leading ::= intTupleType's leading types;
 	defaultType ::= intTupleType's default type;
 	leadingSize ::= |leading|;
-	lowIndex ::= leadingSize min ⎣leading's type⎦;
-	lowBound ::=
-		if leadingSize > 0 then
-		[
-			t ::= cast leading[1..lowIndex]
-				into [t : <extended integer meta…|1..> | t];
-			(∑ map t through [i : extended integer meta | ⎣i⎦])
-				+ ((⎣intTupleType⎦ - lowIndex) max 0)
-				× ⎣defaultType⎦
-		]
-		else
-		[
-			⎣intTupleType⎦ × ⎣defaultType⎦
-		];
-	upBound ::=
-		if leadingSize > 0 then 
-		[
-			t ::= cast leading[1..lowIndex]
-				into [t : <extended integer meta…|1..> | t];
-			(∑ map t through [i : extended integer meta | ⎡i⎤])
-				+ ⎡intTupleType's default type⎤
-				× (⎡intTupleType⎤ - leadingSize)
-		]
-		else
-		[
-			⎡intTupleType's default type⎤ × (⎡intTupleType⎤ - leadingSize)
-		];
-	[lowBound..upBound]
+	minTupleSize ::= ⎣intTupleType⎦;
+	maxTupleSize ::= ⎡intTupleType⎤;
+	range : extended integer's type := [0..0];
+	firstLimit ::= minTupleSize min leadingSize;
+	/* Account for elements up to firstLimit: the end of leading or the smallest
+	 * tuple, whichever comes first.
+	 */
+	From 1 to firstLimit do
+	[
+		elementIndex : natural number
+	|
+		range := range + intTupleType[elementIndex];
+	];
+	/* Account for elements from firstLimit + 1 up to the smallest tuple.  The
+	 * resulting range is the first range to include in the type union.
+	 */
+	If minTupleSize > firstLimit then
+	[
+		range := range + (minTupleSize - firstLimit)'s type × defaultType;
+	];
+	union : extended integer's type := range;
+	/* Account for elements from the smallest tuple up to leadingSize. */
+	From minTupleSize + 1 to leadingSize do
+	[
+		elementIndex : natural number
+	|
+		range := range + intTupleType[elementIndex];
+		union := union ∪ range;
+	];
+	/* Account for the remaining elements in the homogenous range. */
+	span ::= maxTupleSize - (minTupleSize max leadingSize);
+	If span > 0 then
+	[
+		/* Since the tuple can't have infinite length, we mustn't get an
+		 * *inclusive* infinity just by adding an arbitrarily large number of
+		 * finite elements.  Integer range multiplication deals with that.
+		 */
+		spanRange ::= [0..span + 1);
+		range := range + spanRange × defaultType;
+		union := union ∪ range;
+	];
+	union
 ] : extended integer's type;
 
 /**
