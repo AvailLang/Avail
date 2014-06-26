@@ -200,6 +200,8 @@ Semantic restriction "_mod_" is type promotion function for
 	a mod b
 ];
 
+negativeOne ::= 0 - 1;
+
 /**
  * Negate the argument. Avail's system dialect has no negative numeric literals,
  * but the associated semantic restriction effectively overcomes this limitation
@@ -216,7 +218,7 @@ Method "-_" is
 [
 	a : number
 |
-	0 - a
+	a × negativeOne
 ];
 
 /**

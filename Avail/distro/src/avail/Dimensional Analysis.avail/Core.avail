@@ -44,7 +44,7 @@ Uses
 		"_^_" → "_^_(Avail)",
 		…
 	),
-	"Feature Renames (Inequalities)"
+	"Feature Renames"
 Names
 	/* Types. */
 	"base unit",
@@ -1701,7 +1701,10 @@ Semantic restriction "⎡_⎤" is
 	Grammatical restriction sum is <∅, sum>;
 	Grammatical restriction product is <sum, sum ∪ product>;
 	Grammatical restriction negation is <sum ∪ product ∪ negation ∪ jux>;
-	Grammatical restriction power is <jux, ∅>;
+	Grammatical restriction power is <
+		sum ∪ product ∪ negation ∪ power ∪ jux,
+		sum ∪ product ∪ jux>;
+
 	Grammatical restriction abs is <abs>;
 	Grammatical restriction bounds is <bounds>;
 
@@ -1710,6 +1713,14 @@ Semantic restriction "⎡_⎤" is
 	 */
 	accessors ::= {"_'s⁇extent", "_'s⁇metric"};
 	Grammatical restriction accessors is <sum ∪ product ∪ negation ∪ power>;
+
+	/* Forbid the first argument to juxtaposition to be an elementary arithmetic
+	 * expression.
+	 */
+	availArith ::=
+		{plus atom, minus atom, times atom, divide atom};
+	Grammatical restriction jux is <sum ∪ product, ∅>;
+	Grammatical restriction $"__" is <availArith, ∅>;
 ]();
 
 /**
