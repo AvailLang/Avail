@@ -1,5 +1,5 @@
-/*
- * Feature Renames (Inequalities).avail
+/**
+ * P_079_ResumeContinuation.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,44 +30,47 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Feature Renames (Inequalities)"
-Versions
-	"1.0.0 DEV 2014-04-28"
-Uses
-	"Avail" =
-	(
-		"Method_is_",
-		"$…",
-		"_<_",
-		"_≤_",
-		"_>_",
-		"_≥_",
-		"«_‡«=|≤|<»!»",
-		"«_‡«=|≥|>»!»"
-	)
-Names
-	"chained less-than atom",
-	"chained greater-than atom",
-	"greater-than atom",
-	"greater-than-equal atom",
-	"less-than atom",
-	"less-than-equal atom"
-Body
+package com.avail.interpreter.primitive;
 
-_lessThan ::= $"_<_";
-Method "less-than atom" is [_lessThan];
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
 
-_lessThanEqual ::= $"_≤_";
-Method "less-than-equal atom" is [_lessThanEqual];
+/**
+ * <strong>Primitive 79</strong>: Resume the specified {@linkplain
+ * A_Continuation continuation}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+public final class P_079_ResumeContinuation
+extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class. Accessed through reflection.
+	 */
+	public final static Primitive instance =
+		new P_079_ResumeContinuation().init(
+			1, Private, CannotFail, SwitchesContinuation);
 
-_chainedLessThan ::= $"«_‡«=|≤|<»!»";
-Method "chained less-than atom" is [_chainedLessThan];
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
+	{
+		assert args.size() == 1;
+		final A_Continuation continuation = args.get(0);
+		interpreter.prepareToResumeContinuation(continuation.ensureMutable());
+		return Result.CONTINUATION_CHANGED;
+	}
 
-_greaterThan ::= $"_>_";
-Method "greater-than atom" is [_greaterThan];
-
-_greaterThanEqual ::= $"_≥_";
-Method "greater-than-equal atom" is [_greaterThanEqual];
-
-_chainedGreaterThan ::= $"«_‡«=|≥|>»!»";
-Method "chained greater-than atom" is [_chainedGreaterThan];
+	@Override
+	protected A_Type privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				ContinuationTypeDescriptor.mostGeneralType()),
+				BottomTypeDescriptor.bottom());
+	}
+}

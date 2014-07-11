@@ -35,7 +35,7 @@ package com.avail.tools.compiler.configuration;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
 import com.avail.tools.compiler.Compiler;
-import com.avail.tools.configuration.Configurator;
+import com.avail.utility.configuration.Configurator;
 
 /**
  * An {@code EnvironmentConfigurator} {@linkplain

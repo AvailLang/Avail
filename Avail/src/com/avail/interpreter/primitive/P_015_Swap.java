@@ -34,9 +34,10 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.Primitive.Fallibility.*;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.*;
 
 /**
@@ -68,9 +69,24 @@ public final class P_015_Swap extends Primitive
 		// This should work even on unassigned variables.
 		final AvailObject value1 = var1.value();
 		final AvailObject value2 = var2.value();
-		var1.setValue(value2);
-		var2.setValue(value1);
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		// Record access specially, since we are using the "fast" variable
+		// content accessor.
+		if (interpreter.traceVariableReadsBeforeWrites())
+		{
+			final A_Fiber fiber = interpreter.fiber();
+			fiber.recordVariableAccess(var1, true);
+			fiber.recordVariableAccess(var2, true);
+		}
+		try
+		{
+			var1.setValue(value2);
+			var2.setValue(value1);
+			return interpreter.primitiveSuccess(NilDescriptor.nil());
+		}
+		catch (final VariableSetException e)
+		{
+			return interpreter.primitiveFailure(e);
+		}
 	}
 
 	@Override
@@ -84,21 +100,11 @@ public final class P_015_Swap extends Primitive
 	}
 
 	@Override
-	public Fallibility fallibilityForArgumentTypes (
-		final List<? extends A_Type> argumentTypes)
-	{
-		final A_Type var1Type = argumentTypes.get(0);
-		final A_Type var2Type = argumentTypes.get(1);
-		return (var1Type.readType().isSubtypeOf(var2Type.writeType())
-				&& var2Type.readType().isSubtypeOf(var1Type.writeType()))
-			? CallSiteCannotFail
-			: CallSiteCanFail;
-	}
-
-	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES.numericCode());
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES.numericCode(),
+				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED.numericCode())));
 	}
 }

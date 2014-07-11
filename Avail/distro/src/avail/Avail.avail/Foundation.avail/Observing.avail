@@ -34,6 +34,7 @@ Module "Observing"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
+	"Atoms",
 	"Bootstrap",
 	"Concurrency",
 	"Control Structures",
@@ -43,7 +44,8 @@ Uses
 	"Functions",
 	"Logic",
 	"Strings",
-	"Types"
+	"Types",
+	"Variables"
 Names
 	/* Automatic change tracking. */
 	"Observe|observe_",
@@ -174,6 +176,9 @@ sentinel ::= new atom named "sentinel";
  * successful result. If the results differ, then invoke {@param "action"}.
  * Always invoke {@param "action"} after the initial trace.
  *
+ * This method is non-reentrant. If the method is reentered, then raise an
+ * {@type "illegal-trace-mode exception"}.
+ *
  * @method "Whenever_changes,⁇do_"
  * @param "traceFunction" "[]→any"
  * @param "action" "[⊥]→⊤"
@@ -186,6 +191,8 @@ sentinel ::= new atom named "sentinel";
  *         initial trace. Subsequently, {@param "traceFunction"} will be invoked
  *         by {@method "Observe_"} as a consequence of evaluating the relevant
  *         write reactors.
+ * @raises "illegal-trace-mode exception"
+ *         If the {@method "current fiber"} is already tracing (any mode).
  * @category "Observing"
  */
 Public method "Whenever_changes,⁇do_" is
@@ -273,6 +280,8 @@ Private method "stop tracking and answer all write reactors" is
 	Raise an exception for failureCode
 ] : {[]→⊤|};
 
+"observing" is a new atom;
+
 /**
  * Enable {@method "Track variables that are written" write tracing}, then
  * invoke {@param "observeFunction"}. Disable write tracing and obtain all
@@ -282,11 +291,16 @@ Private method "stop tracking and answer all write reactors" is
  * makes arrangements to reinstall the appropriate write reactors as a
  * consequence of running the originals).
  *
+ * This method is reentrant.
+ *
  * @method "Observe|observe_"
  * @param "observeFunction" "[]→⊤"
  * @returns "⊤"
  * @raises "exception"
  *         If {@param "observeFunction"} raises an {@type "exception"}.
+ * @raises "illegal-trace-mode exception"
+ *         If the {@method "current fiber"} is already in read-before-write
+ *         trace mode.
  * @see {@method "Whenever_changes,⁇do_"}
  * @category "Observing"
  */
@@ -294,14 +308,24 @@ Public method "Observe|observe_" is
 [
 	observeFunction : []→⊤
 |
-	Track variables that are written;
-	Guard observeFunction
-	ensure
+	begin ::= ¬observing ∈ current fiber;
+	If begin then
 	[
-		reactors ::= stop tracking and answer all write reactors;
-		Guard [For each of reactors in parallel do [r : write reactor | r();];]
-		intercept [e : worker exception | Raise e's causal exception];
-	];
+		current fiber[observing] := true;
+		Track variables that are written;
+		Guard observeFunction
+		ensure
+		[
+			reactors ::= stop tracking and answer all write reactors;
+			Remove current fiber[observing];
+			Guard
+			[
+				For each of reactors in parallel do [r : write reactor | r();];
+			]
+			intercept [e : worker exception | Raise e's causal exception];
+		];
+	]
+	else observeFunction;
 ] : ⊤;
 
 Semantic restriction "Observe|observe_" is
@@ -311,28 +335,13 @@ Semantic restriction "Observe|observe_" is
 	observeFunction's return type
 ];
 
-/**
- * Set the function that should be invoked whenever a variable with write
- * reactors is written when write tracing is not enabled.
- *
- * @method "implicit observe function:=_"
- * @param "aFunction" "[variable, any]→⊤"
- * @returns "⊤"
- */
-Private method "implicit observe function:=_" is
-[
-	aFunction : [variable, any]→⊤
-|
-	Primitive 77;
-] : ⊤;
-
 /* Whenever a variable with write reactors is written when write tracing is not
  * enabled, then retry the write inside a narrowly scoped observer.
  */
 implicit observe function :=
 	[
-		var : variable,
-		value : any
+		f : […]→⊤,
+		args : <any…|>
 	|
-		Observe [var ?= value;];
+		Observe [Invoke f with args;];
 	];

@@ -33,7 +33,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.lang.reflect.Method;
 import java.util.*;
 import com.avail.descriptor.*;
@@ -51,13 +51,15 @@ import com.avail.interpreter.levelOne.*;
  * argument is a function that should be invoked with a pojo-wrapped {@link
  * Exception} in the event that Java raises an exception.
  */
-public final class P_506_CreatePojoInstanceMethodFunction extends Primitive
+public final class P_506_CreatePojoInstanceMethodFunction
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_506_CreatePojoInstanceMethodFunction().init(4, CanFold);
+		new P_506_CreatePojoInstanceMethodFunction().init(
+			4, CanInline, CanFold);
 
 	@Override
 	public Result attempt (
@@ -244,8 +246,6 @@ public final class P_506_CreatePojoInstanceMethodFunction extends Primitive
 					TupleDescriptor.from(
 						PojoTypeDescriptor.forClass(Throwable.class)),
 					BottomTypeDescriptor.bottom())),
-			// TODO: [TLS] Answer a function type that answers top and
-			// can raise java.lang.Throwable.
 			FunctionTypeDescriptor.forReturnType(TOP.o()));
 	}
 

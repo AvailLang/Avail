@@ -42,6 +42,8 @@ import java.util.WeakHashMap;
 import com.avail.annotations.*;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailException;
+import com.avail.exceptions.VariableGetException;
+import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.levelTwo.L2Chunk;
 
 /**
@@ -151,6 +153,7 @@ extends VariableDescriptor
 
 	@Override @AvailMethod
 	AvailObject o_GetValue (final AvailObject object)
+		throws VariableGetException
 	{
 		synchronized (object)
 		{
@@ -169,6 +172,7 @@ extends VariableDescriptor
 
 	@Override @AvailMethod
 	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
+		throws VariableSetException
 	{
 		synchronized (object)
 		{
@@ -179,7 +183,7 @@ extends VariableDescriptor
 	@Override @AvailMethod
 	void o_SetValueNoCheck (
 		final AvailObject object,
-		final AvailObject newValue)
+		final A_BasicObject newValue)
 	{
 		synchronized (object)
 		{
@@ -189,8 +193,9 @@ extends VariableDescriptor
 
 	@Override @AvailMethod
 	AvailObject o_GetAndSetValue (
-		final AvailObject object,
-		final AvailObject newValue)
+			final AvailObject object,
+			final A_BasicObject newValue)
+		throws VariableGetException, VariableSetException
 	{
 		// Because the separate read and write operations are performed within
 		// the critical section, atomicity is ensured.
@@ -204,9 +209,10 @@ extends VariableDescriptor
 
 	@Override @AvailMethod
 	boolean o_CompareAndSwapValues (
-		final AvailObject object,
-		final AvailObject reference,
-		final AvailObject newValue)
+			final AvailObject object,
+			final A_BasicObject reference,
+			final A_BasicObject newValue)
+		throws VariableGetException, VariableSetException
 	{
 		// Because the separate read, compare, and write operations are all
 		// performed within the critical section, atomicity is ensured.
@@ -221,8 +227,9 @@ extends VariableDescriptor
 
 	@Override @AvailMethod
 	A_Number o_FetchAndAddValue (
-		final AvailObject object,
-		final A_Number addend)
+			final AvailObject object,
+			final A_Number addend)
+		throws VariableGetException, VariableSetException
 	{
 		// Because the separate read and write operations are all performed
 		// within the critical section, atomicity is ensured.

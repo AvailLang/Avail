@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.tools.configuration;
+package com.avail.utility.configuration;
 
 import java.lang.Thread.State;
 import java.util.ArrayDeque;

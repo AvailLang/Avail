@@ -36,6 +36,7 @@ Versions
 Uses
 	"Atoms",
 	"Bootstrap",
+	"Characters",
 	"Control Structures",
 	"Definers",
 	"Early Assertions",
@@ -73,7 +74,10 @@ Names
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)",
 
 	/* Conversions. */
-	"_(base_)"
+	"_(base_)",
+
+	/* Trimming. */
+	"trim_"
 Body
 
 /* These are the circled numbers. */
@@ -1813,4 +1817,22 @@ Stable method "“_”" is
 	anObject : object
 |
 	(a|an) ““anObject's type's names” (as list partitioned by " ∩ ")”
+] : string;
+
+/**
+ * Answer a variant of {@param "s"} such that all leading and trailing {@method
+ * "_is whitespace" whitespace} has been removed.
+ *
+ * @method "trim_"
+ * @param "s" "string"
+ * @returns "string"
+ * @category "Tuples" "Strings" "Transformers"
+ */
+Public method "trim_" is
+[
+	s : string
+|
+	start ::= 1 max first index of s where [c : character | ¬c is whitespace];
+	end ::= last index of s where [c: character | ¬c is whitespace];
+	s[start..end]
 ] : string;

@@ -41,6 +41,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import com.avail.annotations.*;
+import com.avail.utility.MutableOrNull;
 
 /**
  * The abstract class {@code AbstractNumberDescriptor} serves as an abstraction
@@ -286,6 +287,118 @@ extends Descriptor
 	}
 
 	/**
+	 * Analyze a numeric type, updating the {@link MutableOrNull mutable}
+	 * arguments and populating the {@code comparablesList}.  Answer whether to
+	 * give up attempting to determine the possible results of a comparison
+	 * against this type.
+	 *
+	 * @param type
+	 *        The numeric type to analyze.
+	 * @param possibleResults
+	 *        The {@link Set} of possible {@link Order}s when comparing against
+	 *        values of this type.  Only adds {@link Order#LESS} or {@link
+	 *        Order#MORE} if this method returns true.
+	 * @param min
+	 *        The smallest comparable value encountered.
+	 * @param max
+	 *        The largest comparable value encountered.
+	 * @param minInclusive
+	 *        Whether the smallest value is inclusive for this type.
+	 * @param maxInclusive
+	 *        Whether the largest value is inclusive for this type.
+	 * @param comparablesList
+	 *        A list of all comparable values that were encountered, in
+	 *        arbitrary order.
+	 * @return Whether we should give up attempting to narrow the result of the
+	 *         comparison and concede that any comparison result is possible.
+	 */
+	private static boolean analyzeType (
+		final A_Type type,
+		final Set<Order> possibleResults,
+		final MutableOrNull<A_Number> min,
+		final MutableOrNull<A_Number> max,
+		final MutableOrNull<Boolean> minInclusive,
+		final MutableOrNull<Boolean> maxInclusive,
+		final List<A_Number> comparablesList)
+	{
+		if (type.isEnumeration())
+		{
+			// Note that this should work even if an enumeration contains
+			// non-integers, or even NaNs.
+			minInclusive.value = true;
+			maxInclusive.value = true;
+			final Iterator<AvailObject> firstInstances =
+				type.instances().iterator();
+			min.value = null;
+			max.value = null;
+			while (firstInstances.hasNext())
+			{
+				final A_Number value = firstInstances.next();
+				if (value.numericCompare(value) == INCOMPARABLE)
+				{
+					possibleResults.add(INCOMPARABLE);
+				}
+				else
+				{
+					comparablesList.add(value);
+					if (max.value == null || value.greaterThan(max.value()))
+					{
+						max.value = value;
+					}
+					if (min.value == null || value.lessThan(min.value()))
+					{
+						min.value = value;
+					}
+				}
+			}
+		}
+		else if (type.isIntegerRangeType())
+		{
+			min.value = type.lowerBound();
+			max.value = type.upperBound();
+			minInclusive.value = type.lowerInclusive();
+			maxInclusive.value = type.upperInclusive();
+		}
+		else
+		{
+			possibleResults.add(LESS);
+			possibleResults.add(MORE);
+			possibleResults.add(EQUAL);
+			possibleResults.add(INCOMPARABLE);
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Answer a {@link Comparable} capable of ordering {@link A_Number} values,
+	 * at least those which are comparable.
+	 */
+	final static Comparator<A_Number> numericComparator =
+		new Comparator<A_Number>()
+		{
+			@Override
+			public int compare (
+				final @Nullable A_Number n1,
+				final @Nullable A_Number n2)
+			{
+				assert n1 != null;
+				assert n2 != null;
+				switch (n1.numericCompare(n2))
+				{
+					case LESS: return -1;
+					case MORE: return 1;
+					case EQUAL: return 0;
+					default:
+					{
+						assert false;
+						return 0;
+					}
+				}
+			}
+		};
+
+	/**
 	 * Return the set of possible {@link Order}s that could be returned when
 	 * comparing instances of {@code firstType} with instances of {@code
 	 * secondType}.  The types are both subtypes of {@code number}.
@@ -299,234 +412,189 @@ extends Descriptor
 		final A_Type firstType,
 		final A_Type secondType)
 	{
+		assert !firstType.equals(BottomTypeDescriptor.bottom());
+		assert !secondType.equals(BottomTypeDescriptor.bottom());
 		final Set<Order> possibleResults = EnumSet.<Order>noneOf(Order.class);
-		if (!firstType.typeIntersection(secondType).equals(
-			BottomTypeDescriptor.bottom()))
-		{
-			// Note that this is not authoritative, since 0 is *numerically*
-			// equal to 0.0f, 0.0d, -0.0f, and -0.0d.  However, if the types
-			// have non-vacuous intersection then numeric equality is possible,
-			// although it may be possible in other cases as well.
-			possibleResults.add(EQUAL);
-		}
-		A_Number firstMin;
-		A_Number firstMax;
-		A_Number secondMin;
-		A_Number secondMax;
-		final boolean firstMinInclusive;
-		final boolean firstMaxInclusive;
-		final boolean secondMinInclusive;
-		final boolean secondMaxInclusive;
+		// Note that we can't intersect the two types to determine, in either
+		// conservative sense, whether numeric equality is possible.  It fails
+		// to detect some possible equalities because 0 is *numerically* equal
+		// to 0.0f, 0.0d, -0.0f, and -0.0d.  Likewise, it includes the potential
+		// for equality when no such possibility exists, in the case that the
+		// overlapping values are all incomparables (things that always produce
+		// INCOMPARABLE when numerically compared with anything).  So there's no
+		// value in computing the type intersection.
+		final MutableOrNull<A_Number> firstMin = new MutableOrNull<>();
+		final MutableOrNull<A_Number> firstMax = new MutableOrNull<>();
+		final MutableOrNull<Boolean> firstMinInclusive = new MutableOrNull<>();
+		final MutableOrNull<Boolean> firstMaxInclusive = new MutableOrNull<>();
 		final List<A_Number> firstComparablesList = new ArrayList<>();
-		if (firstType.isEnumeration())
+		if (analyzeType(
+			firstType,
+			possibleResults,
+			firstMin,
+			firstMax,
+			firstMinInclusive,
+			firstMaxInclusive,
+			firstComparablesList))
 		{
-			// Note that this should work even if an enumeration contains
-			// non-integers, or even NaNs.
-			firstMinInclusive = true;
-			firstMaxInclusive = true;
-			final Iterator<AvailObject> firstInstances =
-				firstType.instances().iterator();
-			firstMin = firstMax = null;
-			while (firstInstances.hasNext())
-			{
-				final A_Number value = firstInstances.next();
-				if (value.numericCompare(value) == INCOMPARABLE)
-				{
-					possibleResults.add(INCOMPARABLE);
-				}
-				else
-				{
-					firstComparablesList.add(value);
-					if (firstMin == null)
-					{
-						firstMin = firstMax = value;
-					}
-					else if (value.lessThan(firstMin))
-					{
-						firstMin = value;
-					}
-					else if (value.greaterThan(firstMax))
-					{
-						firstMax = value;
-					}
-				}
-			}
-		}
-		else if (firstType.isIntegerRangeType())
-		{
-			firstMin = firstType.lowerBound();
-			firstMax = firstType.upperBound();
-			firstMinInclusive = firstType.lowerInclusive();
-			firstMaxInclusive = firstType.upperInclusive();
-		}
-		else
-		{
-			possibleResults.add(LESS);
-			possibleResults.add(MORE);
-			possibleResults.add(EQUAL);
-			possibleResults.add(INCOMPARABLE);
 			return possibleResults;
 		}
+		final MutableOrNull<A_Number> secondMin = new MutableOrNull<>();
+		final MutableOrNull<A_Number> secondMax = new MutableOrNull<>();
+		final MutableOrNull<Boolean> secondMinInclusive = new MutableOrNull<>();
+		final MutableOrNull<Boolean> secondMaxInclusive = new MutableOrNull<>();
 		final List<A_Number> secondComparablesList = new ArrayList<>();
-		if (secondType.isEnumeration())
+		if (analyzeType(
+			secondType,
+			possibleResults,
+			secondMin,
+			secondMax,
+			secondMinInclusive,
+			secondMaxInclusive,
+			secondComparablesList))
 		{
-			// Note that this should work even if an enumeration contains
-			// non-integers, or even NaNs.
-			secondMinInclusive = true;
-			secondMaxInclusive = true;
-			final Iterator<AvailObject> secondInstances =
-				secondType.instances().iterator();
-			secondMin = secondMax = null;
-			while (secondInstances.hasNext())
+			return possibleResults;
+		}
+		// Each is (independently) an enumeration or an integer range type.
+		if (firstMin.value().numericCompare(secondMax.value()) == LESS)
+		{
+			possibleResults.add(LESS);
+		}
+		if (firstMax.value().numericCompare(secondMin.value()) == MORE)
+		{
+			possibleResults.add(MORE);
+		}
+		// From here down we only need to determine if EQUAL is possible.
+		final boolean firstIsEnumeration = firstType.isEnumeration();
+		final boolean secondIsEnumeration = secondType.isEnumeration();
+		if (firstIsEnumeration && secondIsEnumeration)
+		{
+			// They're both actual enumerations.  Determine whether they can
+			// ever be equal by iterating through both comparables lists in
+			// numeric order, looking for corresponding equal values.
+			Collections.sort(firstComparablesList, numericComparator);
+			Collections.sort(secondComparablesList, numericComparator);
+			int firstIndex = 0;
+			int secondIndex = 0;
+			while (true)
 			{
-				final A_Number value = secondInstances.next();
-				if (value.numericCompare(value) == INCOMPARABLE)
+				if (firstIndex >= firstComparablesList.size()
+					|| secondIndex >= secondComparablesList.size())
 				{
-					possibleResults.add(INCOMPARABLE);
+					// At least one list of values was exhausted.
+					break;
+				}
+				final Order comparison =
+					firstComparablesList.get(firstIndex).numericCompare(
+						secondComparablesList.get(secondIndex));
+				if (comparison == EQUAL)
+				{
+					possibleResults.add(EQUAL);
+					// No point continuing the loop.
+					break;
+				}
+				else if (comparison == LESS)
+				{
+					firstIndex++;
 				}
 				else
 				{
-					secondComparablesList.add(value);
-					if (secondMin == null)
-					{
-						secondMin = secondMax = value;
-					}
-					else if (value.lessThan(secondMin))
-					{
-						secondMin = value;
-					}
-					else if (value.greaterThan(secondMax))
-					{
-						secondMax = value;
-					}
+					secondIndex++;
 				}
 			}
-		}
-		else if (secondType.isIntegerRangeType())
-		{
-			secondMin = secondType.lowerBound();
-			secondMax = secondType.upperBound();
-			secondMinInclusive = secondType.lowerInclusive();
-			secondMaxInclusive = secondType.upperInclusive();
-		}
-		else
-		{
-			possibleResults.add(LESS);
-			possibleResults.add(MORE);
-			possibleResults.add(EQUAL);
-			possibleResults.add(INCOMPARABLE);
 			return possibleResults;
 		}
-		if (firstType.isEnumeration() && secondType.isEnumeration())
+		if (firstIsEnumeration)
 		{
-			// Sort the enumerations and iterate over them in numeric order to
-			// determine if there are any numerically equal values between the
-			// two ordered sequences.
-			final Comparator<A_Number> comparator = new Comparator<A_Number>()
+			// The first is an enumeration and the second is an integer range.
+			assert !secondIsEnumeration;
+			for (final A_Number firstValue : firstComparablesList)
 			{
-				@Override
-				public int compare (
-					final @Nullable A_Number n1,
-					final @Nullable A_Number n2)
+				if (firstValue.isFinite())
 				{
-					assert n1 != null;
-					assert n2 != null;
-					switch (n1.numericCompare(n2))
+					final Order compareMin =
+						firstValue.numericCompare(secondMin.value());
+					final Order compareMax =
+						firstValue.numericCompare(secondMax.value());
+					if (compareMin.isMoreOrEqual()
+						&& compareMax.isLessOrEqual())
 					{
-						case LESS: return -1;
-						case MORE: return 1;
-						case EQUAL: return 0;
-						default:
+						if (firstValue.isNumericallyIntegral())
 						{
-							assert false;
-							return 0;
+							// It's in range and equals an integer, so numeric
+							// equality with a value from the integer range is
+							// possible.
+							possibleResults.add(EQUAL);
+							break;
 						}
 					}
 				}
-			};
-			Collections.sort(firstComparablesList, comparator);
-			Collections.sort(secondComparablesList, comparator);
-			final Iterator<A_Number> firstIterator =
-				firstComparablesList.iterator();
-			final Iterator<A_Number> secondIterator =
-				secondComparablesList.iterator();
-			A_Number currentFirst = firstIterator.next();
-			A_Number currentSecond = secondIterator.next();
-			while (firstIterator.hasNext() && secondIterator.hasNext())
-			{
-				switch (currentFirst.numericCompare(currentSecond))
+				else
 				{
-					case LESS:
+					// The value is infinite.
+					final A_Number integerInfinity =
+						firstValue.isPositive()
+							? InfinityDescriptor.positiveInfinity()
+							: InfinityDescriptor.negativeInfinity();
 					{
-						possibleResults.add(LESS);
-						currentFirst = firstIterator.next();
-						break;
-					}
-					case MORE:
-					{
-						possibleResults.add(MORE);
-						currentSecond = secondIterator.next();
-						break;
-					}
-					case EQUAL:
-					{
-						possibleResults.add(EQUAL);
-						currentFirst = firstIterator.next();
-						currentSecond = secondIterator.next();
-						break;
-					}
-					default:
-					{
-						assert false;
+						if (integerInfinity.isInstanceOf(secondType))
+						{
+							possibleResults.add(EQUAL);
+							break;
+						}
 					}
 				}
 			}
-			if (firstIterator.hasNext())
+			return possibleResults;
+		}
+		if (secondIsEnumeration)
+		{
+			// The first is an integer range and the second is an enumeration.
+			assert !firstIsEnumeration;
+			for (final A_Number secondValue : secondComparablesList)
 			{
-				possibleResults.add(MORE);
-			} else if (secondIterator.hasNext())
-			{
-				possibleResults.add(LESS);
+				if (secondValue.isFinite())
+				{
+					final Order compareMin =
+						secondValue.numericCompare(firstMin.value());
+					final Order compareMax =
+						secondValue.numericCompare(firstMax.value());
+					if (compareMin.isMoreOrEqual()
+						&& compareMax.isLessOrEqual())
+					{
+						if (secondValue.isNumericallyIntegral())
+						{
+							// It's in range and equals an integer, so numeric
+							// equality with a value from the integer range is
+							// possible.
+							possibleResults.add(EQUAL);
+							break;
+						}
+					}
+				}
+				else
+				{
+					// The value is infinite.
+					final A_Number integerInfinity =
+						secondValue.isPositive()
+							? InfinityDescriptor.positiveInfinity()
+							: InfinityDescriptor.negativeInfinity();
+					{
+						if (integerInfinity.isInstanceOf(firstType))
+						{
+							possibleResults.add(EQUAL);
+							break;
+						}
+					}
+				}
 			}
 			return possibleResults;
 		}
-		// Compare the effective ranges.  We can detect overlap of ranges by
-		// considering two intervals A..B and C..D, and determining if
-		// A ≤ D & C ≤ B.  This works when the ranges are inclusive, but we can
-		// improve the precision by taking account of inclusive/exclusive
-		// boundaries.
-		if (firstMin == null || secondMin == null)
-		{
-			// One of the types contains only NaNs.  The result of the
-			// comparison will always end up being INCOMPARABLE.
-			assert possibleResults.contains(INCOMPARABLE);
-			return possibleResults;
-		}
-		final Order compare1 = firstMin.numericCompare(secondMax);
-		if (compare1 == LESS || compare1 == MORE)
-		{
-			possibleResults.add(compare1);
-		}
-		else if (compare1 == EQUAL)
-		{
-			if (firstMinInclusive && secondMaxInclusive)
-			{
-				possibleResults.add(EQUAL);
-			}
-		}
-		final Order compare2 = secondMin.numericCompare(firstMax);
-		if (compare2 == LESS || compare2 == MORE)
-		{
-			possibleResults.add(compare2.reverse());
-		}
-		else if (compare2 == EQUAL)
-		{
-			if (secondMinInclusive && firstMaxInclusive)
-			{
-				possibleResults.add(EQUAL);
-			}
-		}
-		if (possibleResults.contains(LESS) && possibleResults.contains(MORE))
+		// They're both integer ranges.  Just check for non-empty intersection.
+		assert !firstIsEnumeration;
+		assert !secondIsEnumeration;
+		if (!firstType.typeIntersection(secondType).equals(
+			BottomTypeDescriptor.bottom()))
 		{
 			possibleResults.add(EQUAL);
 		}
@@ -695,6 +763,9 @@ extends Descriptor
 
 	@Override @AvailMethod
 	abstract double o_ExtractDouble (AvailObject object);
+
+	@Override @AvailMethod
+	abstract boolean o_IsNumericallyIntegral (AvailObject object);
 
 	/**
 	 * Construct a new {@link AbstractNumberDescriptor}.

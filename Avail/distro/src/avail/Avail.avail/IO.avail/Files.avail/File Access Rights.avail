@@ -226,7 +226,7 @@ fileAccessRights ::=
 	others read, others write, others execute
 >;
 
-fileAccessRightsReverseMap : {private file access right → [1..9]|0..9} := {};
+fileAccessRightsReverseMap : {private file access right → [1..9]|} := {};
 For each of fileAccessRights do
 [
 	right : private file access right,

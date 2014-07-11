@@ -1,5 +1,5 @@
 /**
- * L2_REPORT_INVALID_RETURN_TYPE.java
+ * L2_DIAGNOSE_LOOKUP_FAILURE.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,11 +31,12 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.List;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.A_Definition;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.AbstractEnumerationTypeDescriptor;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -43,65 +44,73 @@ import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 /**
- * A value is known at this point to disagree with the type that it is
- * expected to be.  Report this problem and stop execution.  Note that this
- * instruction might be in a branch of (potentially inlined) code that
- * happens to be unreachable in actuality, despite the compiler being unable
- * to prove this.
+ * A method lookup failed. Write the appropriate error code into the supplied
+ * {@linkplain L2ObjectRegister object register}.
  *
- * <p>
- * TODO [MvG] - Of course, this will ultimately need to be handled in a much
- * better way than just stopping the whole VM.
- * </p>
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_REPORT_INVALID_RETURN_TYPE extends L2Operation
+public class L2_DIAGNOSE_LOOKUP_FAILURE
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_REPORT_INVALID_RETURN_TYPE().init(
-			PRIMITIVE.is("failed primitive"),
-			READ_POINTER.is("actual value"),
-			CONSTANT.is("expected type"));
+		new L2_DIAGNOSE_LOOKUP_FAILURE().init(
+			CONSTANT.is("matching definitions"),
+			WRITE_POINTER.is("error code"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final Primitive primitive = instruction.primitiveAt(0);
-		final L2ObjectRegister actualValueReg =
-			instruction.readObjectRegisterAt(1);
-		final AvailObject expectedType = instruction.constantAt(2);
-
-		final A_BasicObject actualValue = actualValueReg.in(interpreter);
-		error(
-			"primitive %s's result (%s) did not agree with"
-			+ " semantic restriction's expected type (%s)",
-			primitive.name(),
-			actualValue,
-			expectedType);
+		final A_Set definitions = instruction.constantAt(0);
+		final L2ObjectRegister errorCodeReg =
+			instruction.writeObjectRegisterAt(1);
+		if (definitions.setSize() == 0)
+		{
+			errorCodeReg.set(E_NO_METHOD_DEFINITION.numericCode(), interpreter);
+			return;
+		}
+		if (definitions.setSize() > 1)
+		{
+			errorCodeReg.set(
+				E_AMBIGUOUS_METHOD_DEFINITION.numericCode(), interpreter);
+			return;
+		}
+		final A_Definition definition = definitions.iterator().next();
+		if (definition.isAbstractDefinition())
+		{
+			errorCodeReg.set(
+				E_ABSTRACT_METHOD_DEFINITION.numericCode(), interpreter);
+		}
+		else if (definition.isForwardDefinition())
+		{
+			errorCodeReg.set(
+				E_FORWARD_METHOD_DEFINITION.numericCode(), interpreter);
+		}
 	}
 
 	@Override
 	protected void propagateTypes (
 		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		assert registerSets.isEmpty();
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		return true;
-	}
-
-	@Override
-	public boolean reachesNextInstruction ()
-	{
-		return false;
+		final L2ObjectRegister errorCodeReg =
+			instruction.writeObjectRegisterAt(1);
+		registerSet.typeAtPut(
+			errorCodeReg,
+			AbstractEnumerationTypeDescriptor.withInstances(
+				TupleDescriptor.from(
+						E_NO_METHOD.numericCode(),
+						E_NO_METHOD_DEFINITION.numericCode(),
+						E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
+						E_FORWARD_METHOD_DEFINITION.numericCode(),
+						E_ABSTRACT_METHOD_DEFINITION.numericCode())
+					.asSet()),
+			instruction);
 	}
 }

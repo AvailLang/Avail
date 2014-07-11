@@ -31,9 +31,9 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import java.util.List;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.*;
@@ -47,19 +47,20 @@ import com.avail.optimizer.RegisterSet;
 
 /**
  * Execute a primitive with the provided arguments, writing the result into
- * the specified register.  The primitive must not fail.  Check that the
- * resulting object's type agrees with the provided expected type
- * (TODO [MvG] currently stopping the VM if not).
+ * the specified register. The primitive must not fail. Check that the resulting
+ * object's type agrees with the provided expected type, branching if it does
+ * not.
  *
  * <p>
  * Unlike for {@link L2_INVOKE} and related operations, we do not provide
- * the calling continuation here.  That's because by inlining the primitive
+ * the calling continuation here. That's because by inlining the primitive
  * attempt we have avoided (or at worst postponed) construction of the
- * continuation that reifies the current function execution.  This is a Good
+ * continuation that reifies the current function execution. This is a Good
  * Thing, performance-wise.
  * </p>
  */
-public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
+public class L2_RUN_INFALLIBLE_PRIMITIVE
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -69,7 +70,8 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 			PRIMITIVE.is("primitive to run"),
 			READ_VECTOR.is("arguments"),
 			CONSTANT.is("expected type"),
-			WRITE_POINTER.is("primitive result"));
+			WRITE_POINTER.is("primitive result"),
+			PC.is("if result agrees with expected type"));
 
 	@Override
 	public void step (
@@ -80,6 +82,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 		final L2RegisterVector argsVector = instruction.readVectorRegisterAt(1);
 		final A_Type expectedType = instruction.constantAt(2);
 		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(3);
+		final int goodResultOffset = instruction.pcAt(4);
 
 		interpreter.argsBuffer.clear();
 		for (final L2ObjectRegister argumentRegister : argsVector.registers())
@@ -110,23 +113,17 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 		final boolean checkOk = result.isInstanceOf(expectedType);
 		final long after = System.nanoTime();
 		primitive.addNanosecondsCheckingResultType(after - before);
-		if (!checkOk)
+		if (checkOk)
 		{
-			// TODO [MvG] - This will have to be handled better some day.
-			error(
-				"primitive %s's result (%s) did not agree with"
-				+ " semantic restriction's expected type (%s)",
-				primitive.name(),
-				result,
-				expectedType);
+			resultReg.set(result, interpreter);
+			interpreter.offset(goodResultOffset);
 		}
-		resultReg.set(result, interpreter);
 	}
 
 	@Override
 	protected void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
 		final A_Type expectedType = instruction.constantAt(2);
@@ -135,6 +132,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 		// This operation *checks* that the returned object is of the specified
 		// expectedType, so if the operation completes normally, the resultReg
 		// *will* have the expected type.
+		final RegisterSet registerSet = registerSets.get(1);
 		registerSet.removeTypeAt(resultReg);
 		registerSet.removeConstantAt(resultReg);
 		registerSet.typeAtPut(resultReg, expectedType, instruction);

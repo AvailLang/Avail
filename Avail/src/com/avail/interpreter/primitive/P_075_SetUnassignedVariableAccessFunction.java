@@ -65,6 +65,8 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Function function = args.get(0);
+		function.code().setMethodName(
+			StringDescriptor.from("«cannot read unassigned variable»"));
 		AvailRuntime.current().setUnassignedVariableReadFunction(function);
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}

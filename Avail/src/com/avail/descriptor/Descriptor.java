@@ -54,6 +54,7 @@ import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.visitor.*;
 
@@ -722,7 +723,8 @@ extends AbstractDescriptor
 	@Override
 	A_Definition o_LookupByValuesFromList (
 		final AvailObject object,
-		final List<? extends A_BasicObject> argumentList)
+		final List<? extends A_BasicObject> argumentList,
+		final MutableOrNull<AvailErrorCode> errorCode)
 	{
 		throw unsupportedOperationException();
 	}
@@ -990,12 +992,15 @@ extends AbstractDescriptor
 
 	@Override
 	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
+		throws VariableSetException
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	void o_SetValueNoCheck (final AvailObject object, final AvailObject newValue)
+	void o_SetValueNoCheck (
+		final AvailObject object,
+		final A_BasicObject newValue)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1532,6 +1537,7 @@ extends AbstractDescriptor
 
 	@Override
 	AvailObject o_GetValue (final AvailObject object)
+		throws VariableGetException
 	{
 		throw unsupportedOperationException();
 	}
@@ -3848,8 +3854,9 @@ extends AbstractDescriptor
 
 	@Override
 	AvailObject o_GetAndSetValue (
-		final AvailObject object,
-		final AvailObject newValue)
+			final AvailObject object,
+			final A_BasicObject newValue)
+		throws VariableGetException, VariableSetException
 	{
 		throw unsupportedOperationException();
 	}
@@ -3857,16 +3864,20 @@ extends AbstractDescriptor
 	@Override
 	@AvailMethod
 	boolean o_CompareAndSwapValues (
-		final AvailObject object,
-		final AvailObject reference,
-		final AvailObject newValue)
+			final AvailObject object,
+			final A_BasicObject reference,
+			final A_BasicObject newValue)
+		throws VariableGetException, VariableSetException
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
 	@AvailMethod
-	A_Number o_FetchAndAddValue (final AvailObject object, final A_Number addend)
+	A_Number o_FetchAndAddValue (
+			final AvailObject object,
+			final A_Number addend)
+		throws VariableGetException, VariableSetException
 	{
 		throw unsupportedOperationException();
 	}
@@ -4420,6 +4431,12 @@ extends AbstractDescriptor
 		final int startIndex,
 		final int endIndex,
 		final A_Type type)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_IsNumericallyIntegral (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

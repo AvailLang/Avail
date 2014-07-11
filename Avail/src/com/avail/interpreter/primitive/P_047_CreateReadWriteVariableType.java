@@ -73,6 +73,6 @@ extends Primitive
 			TupleDescriptor.from(
 				InstanceMetaDescriptor.topMeta(),
 				InstanceMetaDescriptor.topMeta()),
-			VariableTypeDescriptor.mostGeneralType());
+			VariableTypeDescriptor.meta());
 	}
 }

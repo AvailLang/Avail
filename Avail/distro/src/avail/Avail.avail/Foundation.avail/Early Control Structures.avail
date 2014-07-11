@@ -394,9 +394,9 @@ Public method "From_to_do_" is
 		If value ≤ end then
 		[
 			continue ::= invoke action with <value>;
-			value := cast value + 1 into [ i : natural number | i ];
 			If continue then
 			[
+				value := cast value + 1 into [ i : natural number | i ];
 				Restart loop
 			];
 		];

@@ -77,11 +77,13 @@ Uses
 		"_'s⁇default type",
 		"_'s⁇element type",
 		"_'s⁇element|member type",
+		"_'s⁇entry points",
 		"_'s⁇expressions",
 		"_'s⁇function",
 		"_'s⁇function type",
 		"_'s⁇genuine lower bound",
 		"_'s⁇genuine upper bound",
+		"_'s⁇hash",
 		"_'s⁇implementation",
 		"_'s⁇key type",
 		"_'s⁇keys",
@@ -130,7 +132,6 @@ Uses
 		"_[_]",
 		"_\\_",
 		"_^_",
-		"_`?=_'s⁇initialization",
 		"_bit∧_",
 		"_bit∨_",
 		"_bit⊕_",
@@ -705,7 +706,7 @@ Primitive "high-precision timer value" is
  *        The read type of the variable type.
  * @param "writeType" "type"
  *        The write type of the variable type.
- * @returns "⊤→/→⊥"
+ * @returns "(⊤→/→⊥)'s type"
  *    The requested variable type.
  */
 Primitive "_→/→_" is
@@ -714,7 +715,7 @@ Primitive "_→/→_" is
 	writeType : type
 |
 	Primitive 47;
-] : variable;
+] : variable meta;
 
 /**
  * Resume the specified continuation. The current continuation (in which this
@@ -1036,6 +1037,30 @@ Primitive "_'s⁇names" is
 |
 	Primitive 69;
 ] : set of string;
+
+/**
+ * Answer the hash value of {@param "value"}. The hash values of equal values
+ * are always themselves equal. The hash values of differing values will tend
+ * to differ, but the pigeonhole principle means that hashing a larger key space
+ * into a smaller hash space will lead to occasional collisions.
+ *
+ * The actual hash value is currently an instance of {@type "[-2^31..2^31)"},
+ * but the weaker type is used to facilitate forward migration to larger hash
+ * spaces.
+ *
+ * @category "Primitives"
+ * @method "_'s⁇hash"
+ * @param "value" "any"
+ *        An arbitrary value.
+ * @returns "(-∞..∞)"
+ *    The hash value of the argument.
+ */
+Primitive "_'s⁇hash" is
+[
+	value : any
+|
+	Primitive 70;
+] : integer;
 
 /**
  * Construct and answer a function that is an instance of {@param "aFunctionType"}
@@ -2220,6 +2245,23 @@ Primitive "method exists named_" is
 ] : boolean;
 
 /**
+ * Answer the entry points introduced by the specified module.
+ *
+ * @category "Primitives"
+ * @method "_'s⁇entry points"
+ * @param "aModule" "module"
+ *        A module.
+ * @returns "{string|}"
+ *    A set containing the entry point names introduced by {@param "aModule"}
+ */
+Primitive "_'s⁇entry points" is
+[
+	aModule : module
+|
+	Primitive 234;
+] : set of string;
+
+/**
  * Answer all seals applied to the specified method.
  *
  * @category "Primitives" "Methods" "Queries"
@@ -3242,28 +3284,6 @@ Primitive "_'s⁇declared type" is
 |
 	Primitive 379;
 ] : any meta;
-
-/**
- * If the specified declaration has an initialization expression, then store it
- * into {@param "var"}.
- *
- * @category "Primitives" "Variables" "Phrases" "Queries" "Mutators"
- * @method "_`?=_'s⁇initialization"
- * @param "var" "write-only expression variable"
- *        A variable.
- * @param "aDeclaration" "declaration phrase"
- *        A declaration.
- * @returns "boolean"
- *    `true` if {@param "aDeclaration"} has an initialization expression and it was
- *    written into {@param "var"}, `false` otherwise.
- */
-Primitive "_`?=_'s⁇initialization" is
-[
-	var : write-only expression variable,
-	aDeclaration : declaration phrase
-|
-	Primitive 380;
-] : boolean;
 
 /**
  * Construct and answer a literal expression.

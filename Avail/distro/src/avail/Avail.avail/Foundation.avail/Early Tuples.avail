@@ -575,12 +575,9 @@ Semantic restriction "concatenate_" is
 		if ⎡sizes⎤ is infinite then
 		[
 			⎣sizes⎦ max (cast |tupleType's leading types| + 1
-				into [ t : natural number | t ])
+				into [t : natural number | t])
 		]
-		else
-		[
-			⎡sizes⎤
-		];
+		else [⎡sizes⎤];
 	result : tuple meta := <>'s type;
 	From 1 to limit do
 	[
@@ -591,8 +588,7 @@ Semantic restriction "concatenate_" is
 	];
 	If ⎡sizes⎤ is infinite then
 	[
-		slice ::= result[1 ..
-			cast ⎡result⎤ into [ t : whole number | t ]];
+		slice ::= result[1 .. cast limit into [t : whole number | t]];
 		default ::= tupleType's default type;
 		union ::= ∪ default[1 ..
 			cast |default's leading types| + 1 into [ t : whole number | t ]];

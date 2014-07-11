@@ -101,6 +101,7 @@ public final class P_018_GetClearing extends Primitive
 				E_CANNOT_READ_UNASSIGNED_VARIABLE.numericCode(),
 				E_CANNOT_MODIFY_FINAL_JAVA_FIELD.numericCode(),
 				E_JAVA_MARSHALING_FAILED.numericCode(),
-				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE.numericCode())));
+				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE.numericCode(),
+				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED.numericCode())));
 	}
 }

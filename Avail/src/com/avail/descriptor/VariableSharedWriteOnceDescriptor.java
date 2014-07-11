@@ -138,6 +138,7 @@ extends VariableSharedDescriptor
 
 	@Override @AvailMethod
 	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
+		throws VariableSetException
 	{
 		synchronized (object)
 		{
@@ -153,7 +154,7 @@ extends VariableSharedDescriptor
 	@Override @AvailMethod
 	void o_SetValueNoCheck (
 		final AvailObject object,
-		final AvailObject newValue)
+		final A_BasicObject newValue)
 	{
 		synchronized (object)
 		{
@@ -168,8 +169,9 @@ extends VariableSharedDescriptor
 
 	@Override @AvailMethod
 	AvailObject o_GetAndSetValue (
-		final AvailObject object,
-		final AvailObject newValue)
+			final AvailObject object,
+			final A_BasicObject newValue)
+		throws VariableSetException
 	{
 		throw new VariableSetException(
 			AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE);
@@ -177,9 +179,10 @@ extends VariableSharedDescriptor
 
 	@Override @AvailMethod
 	boolean o_CompareAndSwapValues (
-		final AvailObject object,
-		final AvailObject reference,
-		final AvailObject newValue)
+			final AvailObject object,
+			final A_BasicObject reference,
+			final A_BasicObject newValue)
+		throws VariableSetException
 	{
 		throw new VariableSetException(
 			AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE);
@@ -187,8 +190,9 @@ extends VariableSharedDescriptor
 
 	@Override @AvailMethod
 	A_Number o_FetchAndAddValue (
-		final AvailObject object,
-		final A_Number addend)
+			final AvailObject object,
+			final A_Number addend)
+		throws VariableSetException
 	{
 		throw new VariableSetException(
 			AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE);

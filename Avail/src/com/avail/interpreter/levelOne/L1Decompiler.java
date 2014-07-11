@@ -293,8 +293,6 @@ public class L1Decompiler
 			final A_Method method = bundle.bundleMethod();
 			final int nArgs = method.numArgs();
 			final List<A_Phrase> callArgs = popExpressions(nArgs);
-			final A_Set bundles = method.bundles();
-			assert bundles.setSize() > 0;
 			// Choose a name arbitrarily (eventually we should decompile in a
 			// scope which will help choose well among alternative names).
 			final A_Phrase sendNode = SendNodeDescriptor.from(

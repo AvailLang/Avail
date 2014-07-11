@@ -1366,12 +1366,12 @@ public final class Interpreter
 			final A_Type expectedType = caller.stackAt(stackp);
 			if (!value.isInstanceOf(expectedType))
 			{
-				// TODO: [MvG] Handy for recomputing in the debugger.
-				value.isInstanceOf(expectedType);
-				error(String.format(
-					"Return value (%s) does not agree with expected type (%s)",
-					value,
-					expectedType));
+				pointerAtPut(CALLER, caller);
+				invokeFunction(
+					runtime.resultDisagreedWithExpectedTypeFunction(),
+					Collections.<A_BasicObject>emptyList(),
+					true);
+				return;
 			}
 		}
 		final A_Continuation updatedCaller = caller.ensureMutable();
@@ -1504,7 +1504,7 @@ public final class Interpreter
 				final A_Variable failureVariable =
 					continuation.argOrLocalOrStackAt(4);
 				// Scan a currently unmarked frame.
-				if (failureVariable.getValue().extractInt() == 0)
+				if (failureVariable.value().extractInt() == 0)
 				{
 					final A_Tuple handlerTuple =
 						continuation.argOrLocalOrStackAt(2);
@@ -1516,7 +1516,7 @@ public final class Interpreter
 						{
 							// Mark this frame: we don't want it to handle an
 							// exception raised from within one of its handlers.
-							failureVariable.setValue(
+							failureVariable.setValueNoCheck(
 								E_HANDLER_SENTINEL.numericCode());
 							// Run the handler.
 							invokePossiblePrimitiveWithReifiedCaller(
@@ -1559,21 +1559,21 @@ public final class Interpreter
 					.argOrLocalOrStackAt(4);
 				// Only allow certain state transitions.
 				if (marker.equals(E_HANDLER_SENTINEL.numericCode())
-					&& failureVariable.getValue().extractInt() != 0)
+					&& failureVariable.value().extractInt() != 0)
 				{
 					return primitiveFailure(E_CANNOT_MARK_HANDLER_FRAME);
 				}
 				else if (
 					marker.equals(
 						E_UNWIND_SENTINEL.numericCode())
-					&& !failureVariable.getValue().equals(
+					&& !failureVariable.value().equals(
 						E_HANDLER_SENTINEL.numericCode()))
 				{
 					return primitiveFailure(E_CANNOT_MARK_HANDLER_FRAME);
 				}
 				// Mark this frame: we don't want it to handle exceptions
 				// anymore.
-				failureVariable.setValue(marker);
+				failureVariable.setValueNoCheck(marker);
 				return primitiveSuccess(NilDescriptor.nil());
 			}
 			continuation = continuation.caller();
@@ -1742,27 +1742,26 @@ public final class Interpreter
 					return;
 				case SUCCESS:
 					assert chunk().isValid();
-					final A_Continuation updatedCaller =
-						continuation.ensureMutable();
-					final int stackp = updatedCaller.stackp();
+					final int stackp = continuation.stackp();
 					final AvailObject result = latestResult();
 					if (!skipReturnCheck)
 					{
 						final A_Type expectedType =
-							updatedCaller.stackAt(stackp);
+							continuation.stackAt(stackp);
 						if (!result.isInstanceOf(expectedType))
 						{
-							// Breakpoint this to trace the failed type test.
-							result.isInstanceOf(expectedType);
-							error(String.format(
-								"Return value (%s) does not agree with "
-								+ "expected type (%s)",
-								result,
-								expectedType));
+							invokeFunction(
+								runtime
+									.resultDisagreedWithExpectedTypeFunction(),
+								Collections.<A_BasicObject>emptyList(),
+								true);
+							return;
 						}
 					}
-					updatedCaller.stackAtPut(stackp, result);
+					final A_Continuation updatedCaller =
+						continuation.ensureMutable();
 					pointerAtPut(CALLER, updatedCaller);
+					updatedCaller.stackAtPut(stackp, result);
 					setChunk(
 						updatedCaller.levelTwoChunk(),
 						updatedCaller.function().code(),
@@ -2429,5 +2428,23 @@ public final class Interpreter
 			stat.describeNanosecondsOn(builder);
 			builder.append("\n");
 		}
+	}
+
+	/**
+	 * The bootstrapped {@linkplain P_011_SetValue assignment function} used to
+	 * restart implicitly observed assignments.
+	 */
+	private static final A_Function assignmentFunction =
+		FunctionDescriptor.newPrimitiveFunction(P_011_SetValue.instance);
+
+	/**
+	 * Answer the bootstrapped {@linkplain P_011_SetValue assignment function}
+	 * used to restart implicitly observed assignments.
+	 *
+	 * @return The assignment function.
+	 */
+	public static final A_Function assignmentFunction ()
+	{
+		return assignmentFunction;
 	}
 }

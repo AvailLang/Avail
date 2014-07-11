@@ -313,9 +313,9 @@ Public method "From_to_by_do_" is
 		If value ≤ end then
 		[
 			continue ::= action(value);
-			value := eject value + step;
 			If continue then
 			[
+				value := eject value + step;
 				Restart loop
 			];
 		];
@@ -355,9 +355,9 @@ Public method "From_to_by_do_" is
 		If value ≥ end then
 		[
 			continue ::= action(value);
-			value := eject value + step;
 			If continue then
 			[
+				value := eject value + step;
 				Restart loop
 			];
 		];

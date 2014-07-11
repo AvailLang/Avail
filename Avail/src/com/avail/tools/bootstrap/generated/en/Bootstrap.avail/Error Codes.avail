@@ -131,6 +131,7 @@ Names
 	/*  17 */ "not-an-enumeration code",
 	/*  93 */ "not-open-for-read code",
 	/*  94 */ "not-open-for-write code",
+	/*  88 */ "observed-variable-written-while-untraced code",
 	/*  49 */ "octothorp-must-follow-a-simple-group code",
 	/*  15 */ "operation-not-supported code",
 	/*  29 */ "outer-type-literal-is-not-a-type code",
@@ -587,6 +588,11 @@ Primitive "forward-method-definition code" is
 Primitive "abstract-method-definition code" is
 [
 	87
+];
+
+Primitive "observed-variable-written-while-untraced code" is
+[
+	88
 ];
 
 Primitive "fiber-is-terminated code" is

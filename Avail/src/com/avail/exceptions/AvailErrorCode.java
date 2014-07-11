@@ -516,7 +516,7 @@ public enum AvailErrorCode
 	E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION (76),
 
 	/**
-	 * An attempt transition the current {@linkplain FiberDescriptor fiber}'s
+	 * An attempt to transition the current {@linkplain FiberDescriptor fiber}'s
 	 * trace mode was illegal.
 	 */
 	E_ILLEGAL_TRACE_MODE (77),
@@ -603,7 +603,12 @@ public enum AvailErrorCode
 		}
 	},
 
-//	E_??? (88),
+	/**
+	 * A {@linkplain A_Variable variable} which has write reactors was written
+	 * when write tracing was not active for the {@linkplain
+	 * FiberDescriptor#current() current fiber}.
+	 */
+	E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED (88),
 
 	/**
 	 * The {@linkplain FiberDescriptor fiber} being examined has already been

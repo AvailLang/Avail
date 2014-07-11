@@ -39,7 +39,11 @@ import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
+import com.avail.interpreter.levelOne.L1Instruction;
+import com.avail.interpreter.levelOne.L1InstructionWriter;
+import com.avail.interpreter.levelOne.L1Operation;
 
 /**
  * <strong>Primitive 77</strong>: Set the {@linkplain FunctionDescriptor
@@ -67,7 +71,76 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Function function = args.get(0);
-		AvailRuntime.current().setImplicitObserveFunction(function);
+		function.code().setMethodName(
+			StringDescriptor.from("«implicit observe function»"));
+		// Produce a wrapper that will invoke the supplied function, and then
+		// specially resume the calling continuation (which won't be correctly
+		// set up for a return).
+		try
+		{
+			final L1InstructionWriter writer = new L1InstructionWriter(
+				NilDescriptor.nil(),
+				0);
+			writer.primitiveNumber(0);
+			writer.argumentTypes(
+				FunctionTypeDescriptor.mostGeneralType(),
+				TupleTypeDescriptor.mostGeneralType());
+			writer.returnType(BottomTypeDescriptor.bottom());
+			writer.write(
+				new L1Instruction(
+					L1Operation.L1_doPushLiteral,
+					writer.addLiteral(function)));
+			writer.write(new L1Instruction(L1Operation.L1_doPushLocal, 1));
+			writer.write(new L1Instruction(L1Operation.L1_doPushLocal, 2));
+			writer.write(
+				new L1Instruction(
+					L1Operation.L1_doMakeTuple,
+					2));
+			writer.write(
+				new L1Instruction(
+					L1Operation.L1_doCall,
+					writer.addLiteral(
+						MethodDescriptor.vmFunctionApplyAtom()
+							.bundleOrCreate()),
+					writer.addLiteral(TOP.o())));
+			writer.write(new L1Instruction(L1Operation.L1_doPop));
+			writer.write(new L1Instruction(L1Operation.L1Ext_doPushLabel));
+			writer.write(
+				new L1Instruction(
+					L1Operation.L1_doCall,
+					writer.addLiteral(
+						MethodDescriptor.vmContinuationCallerAtom()
+							.bundleOrCreate()),
+					writer.addLiteral(
+						VariableTypeDescriptor.wrapInnerType(
+							ContinuationTypeDescriptor.mostGeneralType()))));
+			writer.write(
+				new L1Instruction(
+					L1Operation.L1_doCall,
+					writer.addLiteral(
+						MethodDescriptor.vmVariableGetAtom().bundleOrCreate()),
+					writer.addLiteral(
+						ContinuationTypeDescriptor.mostGeneralType())));
+			writer.write(
+				new L1Instruction(
+					L1Operation.L1_doCall,
+					writer.addLiteral(
+						MethodDescriptor.vmResumeContinuationAtom()
+							.bundleOrCreate()),
+					writer.addLiteral(BottomTypeDescriptor.bottom())));
+			final A_Function wrapper = FunctionDescriptor.create(
+				writer.compiledCode(),
+				TupleDescriptor.empty());
+			wrapper.code().setMethodName(
+				StringDescriptor.from("«implicit observe function wrapper»"));
+			// Now set the wrapper as the implicit observe function.
+			AvailRuntime.current().setImplicitObserveFunction(wrapper);
+		}
+		catch (final SignatureException e)
+		{
+			assert false : "This isn't possible!";
+			throw new RuntimeException();
+		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
@@ -78,8 +151,8 @@ extends Primitive
 			TupleDescriptor.from(
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(
-						VariableTypeDescriptor.mostGeneralType(),
-						ANY.o()),
+						FunctionTypeDescriptor.mostGeneralType(),
+						TupleTypeDescriptor.mostGeneralType()),
 					TOP.o())),
 			TOP.o());
 	}

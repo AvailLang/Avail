@@ -1,5 +1,5 @@
 /*
- * Questions.avail
+ * Feature Renames.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,31 +30,50 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Questions"
+Module "Feature Renames"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
-	"Quiz DSL"
+	"Avail" =
+	(
+		"Export_as a new name",
+		"Method_is_",
+		"atom",
+		"string",
+		"$…",
+		"_+_",
+		"_-_",
+		"_×_",
+		"_÷_",
+		"-_",
+		"_<_",
+		"_≤_",
+		"_>_",
+		"_≥_",
+		"«_‡«=|≤|<»!»",
+		"«_‡«=|≥|>»!»"
+	)
+Names
+	/* These are dynamically determined. */
 Body
 
-Q: "Which of the following people is not a member of the Avail team?"
-A: "Mark van Gulik"
-A: "Todd Smith"
-A: "Richard Arriaga"
-A: "Julius Caesar" *;
+Method "Export_as_" is
+[
+	anAtom : atom,
+	aString : string
+|
+	Method aString is [anAtom];
+	Export aString as a new name;
+];
 
-Q: "Which of these is the number 3?"
-A: "日本語"
-A: "3" *
-A: "IV"
-A: "17";
-
-Q: "Where is Jimmy Hoffa?"
-A: "Mars"
-A: "In a concrete slab somewhere" *
-A: "Mark's basement"
-A: "Living as a pop idol in Singapore";
-
-/* TODO: Add more questions, if you'd like. */
-
-Administer quiz;
+Export $"_+_" as "plus atom";
+Export $"_-_" as "minus atom";
+Export $"_×_" as "times atom";
+Export $"_÷_" as "divide atom";
+Export $"-_" as "negate atom";
+Export $"_<_" as "less-than atom";
+Export $"_≤_" as "less-than-equal atom";
+Export $"«_‡«=|≤|<»!»" as "chained less-than atom";
+Export $"_>_" as "greater-than atom";
+Export $"_≥_" as "greater-than-equal atom";
+Export $"«_‡«=|≥|>»!»" as "chained greater-than atom";

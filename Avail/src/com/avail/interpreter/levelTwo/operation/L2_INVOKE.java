@@ -44,15 +44,11 @@ import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 /**
- * Send the specified method and arguments.  The calling continuation is
- * provided, which allows this operation to act more like a non-local jump
- * than a call.  The continuation has the arguments popped already, with the
- * expected return type pushed instead.
- *
- * <p>
- * The given function is invoked.  The function may be a primitive, and the
- * primitive may succeed, fail, or change the current continuation.
- * </p>
+ * The given function is invoked. The function may be a primitive, and the
+ * primitive may succeed, fail, or change the current continuation. The given
+ * continuation is the caller. An immediate, if true ({@code 1}), indicates that
+ * the VM can elide the check of the return type (because it has already been
+ * proven for this circumstance).
  */
 public class L2_INVOKE extends L2Operation
 {

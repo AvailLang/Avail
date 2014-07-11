@@ -47,8 +47,9 @@ public final class P_052_ContinuationCaller extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_052_ContinuationCaller().init(
-		1, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_052_ContinuationCaller().init(
+			1, CanFold, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -63,9 +64,9 @@ public final class P_052_ContinuationCaller extends Primitive
 			ContinuationTypeDescriptor.mostGeneralType());
 		if (!caller.equalsNil())
 		{
-			callerHolder.setValue(caller);
+			callerHolder.setValueNoCheck(caller);
 		}
-		return interpreter.primitiveSuccess(caller);
+		return interpreter.primitiveSuccess(callerHolder);
 	}
 
 	@Override

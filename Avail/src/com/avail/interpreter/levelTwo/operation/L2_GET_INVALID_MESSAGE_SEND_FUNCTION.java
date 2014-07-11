@@ -1,5 +1,5 @@
 /**
- * L2_REPORT_FAILED_LOOKUP.java
+ * L2_GET_INVALID_MESSAGE_SEND_FUNCTION.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,85 +29,73 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.ArrayList;
-import java.util.List;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.DefinitionDescriptor;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import com.avail.AvailRuntime;
+import com.avail.descriptor.AbstractEnumerationTypeDescriptor;
+import com.avail.descriptor.BottomTypeDescriptor;
+import com.avail.descriptor.FunctionTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
-import com.avail.interpreter.*;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 /**
- * A method lookup failed, producing either zero or more than one most-specific
- * matching {@linkplain DefinitionDescriptor definition}.  Report the problem.
+ * Store the {@linkplain AvailRuntime#invalidMessageSendFunction() invalid
+ * message send function} into the supplied {@linkplain L2ObjectRegister
+ * object register}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2_REPORT_FAILED_LOOKUP extends L2Operation
+public final class L2_GET_INVALID_MESSAGE_SEND_FUNCTION
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_REPORT_FAILED_LOOKUP().init(
-			SELECTOR.is("method bundle"),
-			READ_VECTOR.is("arguments"),
-			CONSTANT.is("matching definitions"));
+		new L2_GET_INVALID_MESSAGE_SEND_FUNCTION().init(
+			WRITE_POINTER.is("invalid message send function"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final A_Bundle bundle = instruction.bundleAt(0);
-		final List<L2ObjectRegister> arguments =
-			instruction.readVectorRegisterAt(1).registers();
-		final A_Set definitions = instruction.constantAt(2);
-
-		// TODO[MvG]: Invoke the lookup failure handler function.
-		final List<A_BasicObject> argumentValues =
-			new ArrayList<>(arguments.size());
-		for (final L2ObjectRegister argument : arguments)
-		{
-			argumentValues.add(argument.in(interpreter));
-		}
-		final A_Tuple argumentsTuple = TupleDescriptor.fromList(argumentValues);
-		error(
-			"lookup of method %s produced %d most-specific definitions"
-			+ " for arguments: %s",
-			bundle.message(),
-			definitions.setSize(),
-			argumentsTuple);
+		final L2ObjectRegister destination =
+			instruction.writeObjectRegisterAt(0);
+		destination.set(
+			interpreter.runtime().invalidMessageSendFunction(),
+			interpreter);
 	}
 
 	@Override
 	protected void propagateTypes (
 		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		// A lookup failure should invoke the Avail lookup failure handler,
-		// so it doesn't continue running the current continuation.
-		assert registerSets.size() == 0;
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		return true;
-	}
-
-	@Override
-	public boolean reachesNextInstruction ()
-	{
-		return false;
+		final L2ObjectRegister destination =
+			instruction.writeObjectRegisterAt(0);
+		registerSet.typeAtPut(
+			destination,
+			FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					AbstractEnumerationTypeDescriptor.withInstances(
+						TupleDescriptor.from(
+								E_NO_METHOD.numericCode(),
+								E_NO_METHOD_DEFINITION.numericCode(),
+								E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
+								E_FORWARD_METHOD_DEFINITION.numericCode(),
+								E_ABSTRACT_METHOD_DEFINITION.numericCode())
+							.asSet())),
+				BottomTypeDescriptor.bottom()),
+			instruction);
 	}
 }

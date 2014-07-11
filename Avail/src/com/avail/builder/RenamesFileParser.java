@@ -283,7 +283,7 @@ public final class RenamesFileParser
 			{
 				return new Token(TokenType.PATH, builder.toString());
 			}
-			builder.append(nextCodePoint());
+			builder.appendCodePoint(nextCodePoint());
 		}
 	}
 

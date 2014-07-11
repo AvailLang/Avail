@@ -36,14 +36,34 @@ Versions
 Uses
 	"Bootstrap",
 	"Control Structures",
+	"Definers",
 	"Enumeration Support",
+	"Exceptions",
+	"Late Math",
 	"Literals",
-	"Math",
 	"Tuples",
 	"Types",
 	"Variables"
 Names
-	"_[]"
+	/* Java integral types. */
+	"Java byte",
+	"Java char",
+	"Java int",
+	"Java long",
+	"Java short",
+
+	/* Array type construction. */
+	"_[]",
+
+	/* Java class and interface binding. */
+	"_<«_‡,»>",
+
+	/* Java constructor binding. */
+	"constructor of_«parameterized by»⁇_",
+
+	/* Java method binding. */
+	"method_._«parameterized by»⁇_",
+	"static method_._«parameterized by»⁇_"
 Body
 
 /**
@@ -57,6 +77,31 @@ Semantic restriction "_[_]" is
 	lengthType : whole number's type's type
 |
 	elementMeta's instance [lengthType's instance]'s type
+];
+
+/**
+ * Construct and answer a pojo array type whose element type is {@param
+ * "elementType"} and whose cardinality requirement is {@type "whole number"}.
+ *
+ * @category "Primitives" "Types" "POJO" "Constructors"
+ * @method "_[_]"
+ * @param "elementType" "any meta"
+ *        The type of the elements of instances.
+ * @returns "any [whole number]'s type"
+ *    The requested pojo array type.
+ */
+Public method "_[]" is
+[
+	elementType : any's type
+|
+	elementType [whole number]
+] : pojo array meta;
+
+Semantic restriction "_[]" is
+[
+	elementMeta : any's type's type
+|
+	elementMeta's instance [whole number]'s type
 ];
 
 /**
@@ -84,76 +129,106 @@ Semantic restriction "`|_`|" is
 ];
 
 /**
- * @method "constructor_<«_‡,»>(fail with_)"
+ * @method "constructor of_,⁇parameterized by_,⁇on failure doing_"
  * @restricts "pojo's type's type"
  * @restricts "<any's type…|>'s type"
  * @restricts "[pojo exception]→⊤'s type"
  */
-Semantic restriction "constructor_<«_‡,»>(fail with_)" is
+Semantic restriction "constructor of_,⁇parameterized by_,⁇on failure doing_" is
 [
 	pojoMeta : pojo's type's type,
 	parameterTypes : <any's type…|>'s type,
 	failFunction : [pojo exception]→⊤'s type
 |
-	args : <any's type…|> := <>;
-	From 1 to ⎡parameterTypes⎤ do
+	limit ::= ⎡parameterTypes⎤;
+	if limit is finite then
 	[
-		index : natural number
-	|
-		arg ::= parameterTypes[index]'s instance;
-		args := eject args ++ <arg>;
-	];
-	function accepting args and returning ⊤
+		args : <any's type…|> := <>;
+		From 1 to limit do
+		[
+			index : natural number
+		|
+			arg ::= parameterTypes[index]'s instance;
+			args := eject args ++ <arg>;
+		];
+		function accepting args and returning pojoMeta's instance
+	]
+	else [⊤]
 ];
 
 /**
- * @method "method_._<«_‡,»>,⁇on failure do_"
+ * @method "method_._,⁇parameterized by_,⁇on failure doing_"
  * @restricts "pojo's type's type"
  * @restricts "string's type"
  * @restricts "<any's type…|>'s type"
  * @restricts "[pojo exception]→⊤'s type"
  */
-Semantic restriction "method_._<«_‡,»>,⁇on failure do_" is
+Semantic restriction "method_._,⁇parameterized by_,⁇on failure doing_" is
 [
 	pojoMeta : pojo's type's type,
 	methodName : string's type,
 	parameterTypes : <any's type…|>'s type,
 	failFunction : [pojo exception]→⊤'s type
 |
-	args : <any's type…|> := <pojoMeta's instance>;
-	From 1 to ⎡parameterTypes⎤ do
+	limit ::= ⎡parameterTypes⎤;
+	if limit is finite then
 	[
-		index : natural number
-	|
-		arg ::= parameterTypes[index]'s instance;
-		args := eject args ++ <arg>;
-	];
-	function accepting args and returning ⊤
+		pojoType ::= pojoMeta's instance;
+		args : <any's type…|> := <pojoType>;
+		From 1 to limit do
+		[
+			index : natural number
+		|
+			arg ::= parameterTypes[index]'s instance;
+			args := eject args ++ <arg>;
+		];
+		returnType ::=
+			if |methodName| = 1 then
+			[
+				return type of pojoType.(methodName's instance)
+					parameterized by args
+			]
+			else [⊤];
+		function accepting args and returning returnType
+	]
+	else [⊤]
 ];
 
 /**
- * @method "static method_._<«_‡,»>,⁇on failure do_"
+ * @method "static method_._,⁇parameterized by_,⁇on failure doing_"
  * @restricts "pojo's type's type"
  * @restricts "string's type"
  * @restricts "<any's type…|>'s type"
  * @restricts "[pojo exception]→⊤'s type"
  */
-Semantic restriction "static method_._<«_‡,»>,⁇on failure do_" is
+Semantic restriction "static method_._,⁇parameterized by_,⁇on failure doing_" is
 [
 	pojoMeta : pojo's type's type,
 	methodName : string's type,
 	parameterTypes : <any's type…|>'s type,
 	failFunction : [pojo exception]→⊤'s type
 |
-	args : <any's type…|> := <>;
-	From 1 to ⎡parameterTypes⎤ do
+	limit ::= ⎡parameterTypes⎤;
+	If limit is finite then
 	[
-		index : natural number
-	|
-		arg ::= parameterTypes[index]'s instance;
-		args := eject args ++ <arg>;
-	];
-	function accepting args and returning ⊤
+		args : <any's type…|> := <>;
+		From 1 to limit do
+		[
+			index : natural number
+		|
+			arg ::= parameterTypes[index]'s instance;
+			args := eject args ++ <arg>;
+		];
+		returnType ::=
+			if |methodName| = 1 then
+			[
+				return type of (pojoMeta's instance).(methodName's instance)
+					parameterized by args
+			]
+			else [⊤];
+		function accepting args and returning returnType
+	]
+	else [⊤]
 ];
 
 /**
@@ -179,3 +254,335 @@ Semantic restriction "_→tuple" is
 |
 	<<>, arrayType's element type… | ||arrayType||>
 ];
+
+/**
+ * Answer the {@type "extended integer" numeric type} that conforms to
+ * Java's {@code long}, i.e., a signed 64-bit 2's complement integer.
+ *
+ * @type "Java long"
+ * @category "Types" "POJO" "Numbers" "Integers"
+ */
+Public method "Java long" is [[-2^63..2^63)];
+
+/**
+ * Answer the {@type "extended integer" numeric type} that conforms to
+ * Java's {@code int}, i.e., a signed 32-bit 2's-complement integer.
+ *
+ * @type "Java int"
+ * @category "Types" "POJO" "Numbers" "Integers"
+ */
+Public method "Java int" is [[-2^31..2^31)];
+
+/**
+ * Answer the {@type "extended integer" numeric type} that conforms to
+ * Java's {@code short}, i.e., a signed 16-bit 2's-complement integer.
+ *
+ * @type "Java short"
+ * @category "Types" "POJO" "Numbers" "Integers"
+ */
+Public method "Java short" is [[-2^15..2^15)];
+
+/**
+ * Answer the {@type "extended integer" numeric type} that conforms to
+ * Java's {@code byte}, i.e., a signed 8-bit 2's-complement integer.
+ *
+ * @type "Java byte"
+ * @category "Types" "POJO" "Numbers" "Integers"
+ */
+Public method "Java byte" is [[-2^7..2^7)];
+
+/**
+ * Answer the {@type "extended integer" numeric type} that conforms to
+ * Java's {@code char}, i.e., an unsigned 16-bit 2's-complement integer.
+ *
+ * @type "Java short"
+ * @category "Types" "POJO" "Numbers" "Integers"
+ */
+Public method "Java char" is [[0..2^16)];
+
+/**
+ * Construct and answer a fully parameterized pojo type.
+ *
+ * @category "Primitives" "Types" "POJO" "Constructors"
+ * @method "_<«_‡,»>"
+ * @param "javaName" "string"
+ *        The fully qualified name of the Java class or interface.
+ * @param "typeParameters" "tuple of any meta"
+ *        The type arguments. The cardinality of this tuple must agree with the
+ *        number of type parameters required by the Java class or interface.
+ * @returns "(java.lang.Object)'s type"
+ *    The requested pojo type.
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "Java-class-not-available exception"
+ */
+Public method "_<«_‡,»>" is
+[
+	javaName : string,
+	typeParameters : <any's type…|>
+|
+	Primitive 500 (failureCode : {
+		incorrect-number-of-arguments code,
+		Java-class-not-available code}ᵀ);
+	Invoke early failure function with <failureCode>
+] : pojo's type;
+
+/**
+ * Construct and answer a {@type "function"} that, when applied with arguments
+ * corresponding to the specified parameter types, constructs a new {@type
+ * "pojo"} of the specified type.
+ *
+ * The answered function adapts a reflective invocation of the Java constructor,
+ * if any, that accepts the specified number and types of arguments. To
+ * establish type conformance between Avail types and Java types for the purpose
+ * of reflective constructor lookup and invocation, the following marshaling
+ * rules are applied:
+ *
+ * <ul>
+ * <li>{@type "Java byte"} is marshaled to {@code "java.lang.Byte.TYPE"}.</li>
+ * <li>{@type "Java short"} is marshaled to {@code "java.lang.Short.TYPE"}.</li>
+ * <li>{@type "Java int"} is marshaled to {@code "java.lang.Integer.TYPE"}.</li>
+ * <li>{@type "Java long"} is marshaled to {@code "java.lang.Long.TYPE"}.</li>
+ * <li>{@type "boolean"} is marshaled to {@code "java.lang.Boolean.TYPE"}.</li>
+ * <li>{@type "Java char"} is marshaled to {@code "java.lang.Character.TYPE"}.</li>
+ * <li>{@type "float"} is marshaled to {@code "java.lang.Float.TYPE"}.</li>
+ * <li>{@type "double"} is marshaled to {@code "java.lang.Double.TYPE"}.</li>
+ * <li>{@type "string"} is marshaled to {@code "java.lang.String"}.</li>
+ * <li>{@method "_[_]"} is marshaled to
+ *     java.lang.reflect.Array.newInstance().getClass().</li>
+ * <li>{@method "_parameterized by_"} is marshaled to the reflected Java class
+ *     or interface.</li>
+ * <li>All other values are marshaled to
+ *     {@code "com.avail.descriptor.AvailObject"}.</li>
+ * </ul>
+ *
+ * @category "Functions" "POJO" "Constructors"
+ * @method "constructor of_«parameterized by»⁇_"
+ * @param "aPojoType" "pojo meta"
+ *        A pojo type.
+ * @param "parameterTypes" "<any's type…|>"
+ *        The parameter types accepted by the desired constructor.
+ * @returns "[…]→java.lang.Object"
+ *          The requested constructor invocation function.
+ * @raises "pojo-type-is-abstract exception"
+ * @raises "Java-method-not-available exception"
+ */
+Public method "constructor of_«parameterized by»⁇_" is
+[
+	aPojoType : pojo's type,
+	parameterTypes : <any's type…|>
+|
+	constructor of aPojoType,
+		parameterized by parameterTypes,
+		on failure doing
+			[e : pojo exception | Raise a Java exception caused by e]
+] : pojo constructor;
+
+/**
+ * @method "constructor of_«parameterized by»⁇_"
+ * @restricts "pojo's type's type"
+ * @restricts "<any's type…|>'s type"
+ */
+Semantic restriction "constructor of_«parameterized by»⁇_" is
+[
+	pojoMeta : pojo's type's type,
+	parameterTypes : <any's type…|>'s type
+|
+	limit ::= ⎡parameterTypes⎤;
+	if limit is finite then
+	[
+		args : <any's type…|> := <>;
+		From 1 to limit do
+		[
+			index : natural number
+		|
+			arg ::= parameterTypes[index]'s instance;
+			args := eject args ++ <arg>;
+		];
+		function accepting args and returning pojoMeta's instance
+	]
+	else [⊤]
+];
+
+/**
+ * Construct and answer a {@type "function"} that, when applied with arguments
+ * corresponding to the specified parameter types, invokes a particular
+ * instance method.
+ *
+ * The answered function adapts a reflective invocation of the Java method,
+ * if any, that has the specified name and accepts the specified number and
+ * types of arguments. The receiver is specified as the first argument. To
+ * establish type conformance between Avail types and Java types for the purpose
+ * of reflective method lookup and invocation, the following marshaling rules
+ * are applied:
+ *
+ * <ul>
+ * <li>{@type "Java byte"} is marshaled to {@code "java.lang.Byte.TYPE"}.</li>
+ * <li>{@type "Java short"} is marshaled to {@code "java.lang.Short.TYPE"}.</li>
+ * <li>{@type "Java int"} is marshaled to {@code "java.lang.Integer.TYPE"}.</li>
+ * <li>{@type "Java long"} is marshaled to {@code "java.lang.Long.TYPE"}.</li>
+ * <li>{@type "boolean"} is marshaled to {@code "java.lang.Boolean.TYPE"}.</li>
+ * <li>{@type "Java char"} is marshaled to {@code "java.lang.Character.TYPE"}.</li>
+ * <li>{@type "float"} is marshaled to {@code "java.lang.Float.TYPE"}.</li>
+ * <li>{@type "double"} is marshaled to {@code "java.lang.Double.TYPE"}.</li>
+ * <li>{@type "string"} is marshaled to {@code "java.lang.String"}.</li>
+ * <li>{@method "_[_]"} is marshaled to
+ *     java.lang.reflect.Array.newInstance().getClass().</li>
+ * <li>{@method "_parameterized by_"} is marshaled to the reflected Java class
+ *     or interface.</li>
+ * <li>All other values are marshaled to
+ *     {@code "com.avail.descriptor.AvailObject"}.</li>
+ * </ul>
+ *
+ * @category "Functions" "POJO" "Constructors"
+ * @method "method_._«parameterized by»⁇_"
+ * @param "aPojoType" "pojo meta"
+ *        A pojo type.
+ * @param "methodName" "string"
+ *        The name of the desired method.
+ * @param "parameterTypes" "tuple of any meta"
+ *        The parameter types accepted by the desired method.
+ * @returns "[…]→⊤"
+ *          The requested instance method invocation function.
+ * @raises "Java-method-not-available exception"
+ * @raises "Java-method-reference-is-ambiguous exception"
+ */
+Public method "method_._«parameterized by»⁇_" is
+[
+	aPojoType : pojo meta,
+	methodName : string,
+	parameterTypes : <any's type…|>
+|
+	method aPojoType.methodName,
+		parameterized by parameterTypes,
+		on failure doing
+			[e : pojo exception | Raise a Java exception caused by e]
+] : function;
+
+/**
+ * @method "method_._«parameterized by»⁇_"
+ * @restricts "pojo's type's type"
+ * @restricts "string's type"
+ * @restricts "<any's type…|>'s type"
+ */
+Semantic restriction "method_._«parameterized by»⁇_" is
+[
+	pojoMeta : pojo's type's type,
+	methodName : string's type,
+	parameterTypes : <any's type…|>'s type
+|
+	limit ::= ⎡parameterTypes⎤;
+	if limit is finite then
+	[
+		pojoType ::= pojoMeta's instance;
+		args : <any's type…|> := <pojoType>;
+		From 1 to limit do
+		[
+			index : natural number
+		|
+			arg ::= parameterTypes[index]'s instance;
+			args := eject args ++ <arg>;
+		];
+		returnType ::=
+			if |methodName| = 1 then
+			[
+				return type of pojoType.(methodName's instance)
+					parameterized by args
+			]
+			else [⊤];
+		function accepting args and returning returnType
+	]
+	else [⊤]
+];
+
+/**
+ * Construct and answer a {@type "function"} that, when applied with arguments
+ * corresponding to the specified parameter types, invokes a particular
+ * static method.
+ *
+ * The answered function adapts a reflective invocation of the Java method,
+ * if any, that has the specified name and accepts the specified number and
+ * types of arguments. To establish type conformance between Avail types and
+ * Java types for the purpose of reflective method lookup and invocation, the
+ * following marshaling rules are applied:
+ *
+ * <ul>
+ * <li>{@type "Java byte"} is marshaled to {@code "java.lang.Byte.TYPE"}.</li>
+ * <li>{@type "Java short"} is marshaled to {@code "java.lang.Short.TYPE"}.</li>
+ * <li>{@type "Java int"} is marshaled to {@code "java.lang.Integer.TYPE"}.</li>
+ * <li>{@type "Java long"} is marshaled to {@code "java.lang.Long.TYPE"}.</li>
+ * <li>{@type "boolean"} is marshaled to {@code "java.lang.Boolean.TYPE"}.</li>
+ * <li>{@type "Java char"} is marshaled to {@code "java.lang.Character.TYPE"}.</li>
+ * <li>{@type "float"} is marshaled to {@code "java.lang.Float.TYPE"}.</li>
+ * <li>{@type "double"} is marshaled to {@code "java.lang.Double.TYPE"}.</li>
+ * <li>{@type "string"} is marshaled to {@code "java.lang.String"}.</li>
+ * <li>{@method "_[_]"} is marshaled to
+ *     java.lang.reflect.Array.newInstance().getClass().</li>
+ * <li>{@method "_parameterized by_"} is marshaled to the reflected Java class
+ *     or interface.</li>
+ * <li>All other values are marshaled to
+ *     {@code "com.avail.descriptor.AvailObject"}.</li>
+ * </ul>
+ *
+ * @category "Functions" "POJO" "Constructors"
+ * @method "static method_._«parameterized by»⁇_"
+ * @param "aPojoType" "pojo meta"
+ *        A pojo type.
+ * @param "methodName" "string"
+ *        The name of the desired method.
+ * @param "parameterTypes" "<any's type…|>"
+ *        The parameter types accepted by the desired method.
+ * @returns "[…]→⊤"
+ *    The requested static method invocation function.
+ * @raises "Java-method-not-available exception"
+ * @raises "Java-method-reference-is-ambiguous exception"
+ */
+Public method "static method_._«parameterized by»⁇_" is
+[
+	aPojoType : pojo meta,
+	methodName : string,
+	parameterTypes : <any's type…|>
+|
+	static method aPojoType.methodName,
+		parameterized by parameterTypes,
+		on failure doing
+			[e : pojo exception | Raise a Java exception caused by e]
+] : function;
+
+/**
+ * @method "static method_._«parameterized by»⁇_"
+ * @restricts "pojo's type's type"
+ * @restricts "string's type"
+ * @restricts "<any's type…|>'s type"
+ */
+Semantic restriction "static method_._«parameterized by»⁇_" is
+[
+	pojoMeta : pojo's type's type,
+	methodName : string's type,
+	parameterTypes : <any's type…|>'s type
+|
+	limit ::= ⎡parameterTypes⎤;
+	If limit is finite then
+	[
+		args : <any's type…|> := <>;
+		From 1 to limit do
+		[
+			index : natural number
+		|
+			arg ::= parameterTypes[index]'s instance;
+			args := eject args ++ <arg>;
+		];
+		returnType ::=
+			if |methodName| = 1 then
+			[
+				return type of (pojoMeta's instance).(methodName's instance)
+					parameterized by args
+			]
+			else [⊤];
+		function accepting args and returning returnType
+	]
+	else [⊤]
+];
+
+/* TODO: [TLS] Introduce defining methods that bind pojo methods and restrict
+ * them appropriately.
+ */

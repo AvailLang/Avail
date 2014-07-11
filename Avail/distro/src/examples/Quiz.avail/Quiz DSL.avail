@@ -34,61 +34,826 @@ Module "Quiz DSL"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
-	"Avail"
+	"Avail",
+	"Dimensional Analysis" = (-"point", -"p", …)
+Extends
+	"Dimensional Analysis" = ("__")
 Names
-	/* Defining a question. */
-	"Q:_«A:_«*»?»",
+	/* Points. */
+	"point", "pt",
 
-	/* Administering a quiz. Should also display results. */
-	"Administer quiz"
+	/* Defining a quiz. */
+	"Quiz_",
+
+	/* Defining a question. */
+	"Multiple Choice(_)._«A:_«✔»?»",
+	"Short Answer(_)._«A:_»",
+	"True«✔»?/False«✔»?(_)._"
 Body
 
-/* TODO: Implement the DSL. It should at least support the pre-existing quiz in
- * "Questions", but once you have the DSL working, consider getting fancier.
- * 
- * Here are a few ideas for getting fancy once the basics are working:
- *
- * - Support as many answers as desired, rather than just four.
- * - Allow multiple correct answers.
- * - Allow questions to be weighted.
- * - Allow other question types than multiple choice.
- * - Add a semantic restriction that ensures that at least one answer has been
- *   designated as correct.
- * - Redesign "Administer quiz" so that it uses dependency injection for I/O,
- *   thereby allowing it to be unit tested by an automated process.
- */
+"point" ("pt") is a base unit;
 
-/* TODO: Put module constants and variables and private methods here. */
+"text" is a new field atom;
 
 /**
- * Define a multiple-choice question.
+ * An {@code "answer"} to a {@type "question"}, independent of its correctness.
  *
- * @method "Q:_«A:_«*»?»"
+ * @type "answer"
+ * @supertype "object"
+ * @field "text" "string"
+ *        The text of the answer.
+ */
+Class "answer" extends object
+	with field
+		reconstructible text : string;
+
+"weight" is a new field atom;
+
+/**
+ * A {@code "question"}.
+ *
+ * @type "question"
+ * @supertype "object"
+ * @field "text" "string"
+ *        The text of the question.
+ * @field "weight" "natural number points"
+ *        The weight of the question, in {@type "point" points}.
+ */
+Class "question" extends object
+	with fields
+		text : string,
+		weight : natural number point;
+
+/**
+ * Answer a textual representation of the specified {@type "question"} that
+ * includes its kind (multiple-choice, true/false, etc.), weight, and text.
+ *
+ * @method "“_”"
+ * @param "aQuestion" "question"
+ *        A {@type "question"}.
+ * @returns "string"
+ */
+Abstract method "“_”" is [question]→string;
+
+/**
+ * Is {@param "anAnswer"} a correct answer to {@param "aQuestion"}?
+ *
+ * @method "_correctly answers_"
+ * @param "anAnswer" "answer"
+ *        An {@type "answer"}.
+ * @param "aQuestion" "question"
+ *        A {@type "question"}.
+ * @returns "boolean"
+ *          {@code "true"} if {@param "anAnswer"} correctly answers {@param
+ *          "aQuestion"}, {@code "false"} otherwise.
+ */
+Private abstract method "_correctly answers_" is [answer, question]→boolean;
+
+"answers" is a new field atom;
+"correct answers" is a new field atom;
+
+/**
+ * A {@code "multiple-choice question"}.
+ *
+ * @type "question"
+ * @supertype "object"
+ * @field "text" "string"
+ *        The text of the question.
+ * @field "weight" "natural number points"
+ *        The weight of the question, in {@type "point" points}.
+ * @field "answers" "<answer…|1..>"
+ *        Every supplied {@type "answer"} to the question.
+ * @field "correct answers" "{answer…|1..}"
+ *        Every correct {@type "answer"} to the question.
+ */
+Class "multiple-choice question" extends question
+	with fields
+		answers : <answer…|1..>,
+		correct answers : {answer|1..};
+
+/**
+ * Answer a textual representation of the specified {@type
+ * "multiple-choice question"} that includes its kind, weight, and text.
+ *
+ * @method "“_”"
+ * @param "aQuestion" "multiple-choice question"
+ *        A {@type "multiple-choice question"}.
+ * @returns "string"
+ */
+Method "“_”" is
+[
+	aQuestion : multiple-choice question
+|
+	format "Multiple choice. “①”.\n‘②’\n"
+	with aQuestion's weight, aQuestion's text
+] : string;
+
+/**
+ * Is {@param "anAnswer"} a correct answer to {@param "aQuestion"}?
+ *
+ * @method "_correctly answers_"
+ * @param "anAnswer" "answer"
+ *        An {@type "answer"}.
+ * @param "aQuestion" "multiple-choice question"
+ *        A {@type "multiple-choice question"}.
+ * @returns "boolean"
+ *          {@code "true"} if {@param "anAnswer"} correctly answers {@param
+ *          "aQuestion"}, {@code "false"} otherwise.
+ */
+Private method "_correctly answers_" is
+[
+	anAnswer : answer,
+	aQuestion : multiple-choice question
+|
+	anAnswer ∈ aQuestion's correct answers
+] : boolean;
+
+"title" is a new field atom;
+"questions" is a new field atom;
+
+/**
+ * A {@code "quiz"}.
+ *
+ * @type "quiz"
+ * @supertype "object"
+ * @field "title" "string"
+ *        The title of the quiz.
+ * @field "questions" "<question…|1..>"
+ *        Every {@type "question"} on the quiz.
+ */
+Class "quiz" extends object
+	with field
+		title : string
+	with mutable field
+		questions : <question…|>;
+
+/**
+ * Answer the total weight of the specified {@type "quiz"}.
+ *
+ * @method "_'s⁇total weight"
+ * @param "aQuiz" "quiz"
+ *        A {@type "quiz"}.
+ * @returns "whole number point"
+ *          The total weight of {@param "aQuiz"}, measured in {@type "point"
+ *          points}.
+ */
+Private method "_'s⁇total weight" is
+[
+	aQuiz : quiz
+|
+	(cast aQuiz's questions into
+	[
+		qs : <question…|1..>
+	|
+		∑ map qs through [q : question | q's weight's extent]
+	]
+	else [0]) pt
+];
+
+mutex ::= a reentrant mutex named "quiz mutex";
+
+/**
+ * All registered {@type "quiz" quizzes}, keyed by {@type "module"}.
+ *
+ * @global "quizzes" "{module→quiz|}"
+ */
+quizzes : {module→quiz|} := {};
+
+/**
+ * Answer the {@type "quiz"} associated with the {@method "current module"}.
+ *
+ * @method "current quiz"
+ * @returns "quiz"
+ */
+Private method "current quiz" is [quizzes[current module]];
+
+/**
+ * Reject the current parse if the {@method "current module"} has not yet
+ * defined a {@type "quiz"}.
+ *
+ * @method "Require:quiz is defined"
+ * @returns "⊤"
+ */
+Private method "Require:quiz is defined" is
+[
+	If ¬current module ∈ quizzes then
+	[
+		Reject parse, expected:
+			"quiz to be defined \
+			\|(but you forgot to send \"Quiz_\" at the beginning)"
+	];
+];
+
+/**
+ * Define a {@type "multiple-choice question"}.
+ *
+ * @method "Multiple Choice(_)._«A:_«✔»?»"
+ * @param "weight" "natural number point"
+ *        The weight of the {@type "question"}, in {@type "point" points}.
  * @param "questionText" "nonempty string"
  *        The text of the question.
- * @param "answers" "<<nonempty string, boolean…|2>…|4>"
+ * @param "answerTuples" "<<nonempty string, boolean…|2>…|1..>"
  *        A tuple of pairs. The first element of each pair is the text of an
  *        answer and the second element is a {@type "boolean"} which is
  *        {@method "true"} if the answer is considered correct. (The answer is
  *        considered correct iff an asterisk follows it.)
+ * @returns "⊤"
  */
-Public method "Q:_«A:_«*»?»" is
+Public method "Multiple Choice(_)._«A:_«✔»?»" is
 [
+	weight : natural number point,
 	questionText : nonempty string,
-	answers : <<nonempty string, boolean…|2>…|4>
+	answerTuples : <<nonempty string, boolean…|2>…|1..>
 |
-	/* TODO: Implement me. */
+	answers ::= map answerTuples through
+		[t : <nonempty string, any…|2> | an answer with text ::= t[1]];
+	correctAnswers ::= (map and filter answerTuples by
+		[
+			t : <nonempty string, boolean…|2>,
+			save : [answer]→⊤
+		|
+			If t[2] then [save(an answer with text ::= t[1]);];
+		])→set;
+	newQuestion ::= a multiple-choice question with
+		text ::= questionText,
+		weight ::= weight,
+		answers ::= answers,
+		correct answers ::= cast correctAnswers into [t : {answer|1..} | t];
+	current quiz's questions := current quiz's questions ++ <newQuestion>;
 ] : ⊤;
 
 /**
- * Administer a quiz by displaying questions and their multiple-choice answers
- * to standard output. User answers will be supplied by standard input. When
- * every question has been answered, display the results of the quiz to standard
- * output.
+ * Reject the current parse if:
  *
- * @method "Administer quiz"
+ * <ul>
+ * <li>The {@method "current module"} has not yet defined a {@type "quiz"}.</li>
+ * <li>No {@type "answer" answers} are marked as correct.</li>
+ * <li>Multiple {@type "answer" answers} are equal.</li>
+ * </ul>
+ *
+ * @method "Multiple Choice(_)._«A:_«✔»?»"
+ * @restricts "natural number point's type"
+ * @restricts "nonempty string's type"
+ * @restricts "<<nonempty string, boolean…|2>…|>'s type"
  */
-Public method "Administer quiz" is
+Semantic restriction "Multiple Choice(_)._«A:_«✔»?»" is
 [
-	/* TODO: Implement me. */
+	weight : natural number point's type,
+	questionText : nonempty string's type,
+	answers : <<nonempty string, boolean…|2>…|>'s type
+|
+	Require: quiz is defined;
+	uniqueAnswers : {string|} := ∅;
+	anyCorrect : boolean := false;
+	From 1 to ⎣answers⎦ do
+	[
+		index : natural number
+	|
+		uniqueAnswers := uniqueAnswers + answers[index][1]'s instance;
+		If answers[index][2]'s instance then [anyCorrect := true;];
+	];
+	If |uniqueAnswers| ≠ ⎣answers⎦ then
+	[
+		Reject parse, expected: "each answer to occur uniquely"
+	];
+	If ¬anyCorrect then
+	[
+		Reject parse, expected: "at least one answer to be marked as correct"
+	];
+	⊤
+];
+
+/**
+ * The canonical "true" answer.
+ *
+ * @global "trueAnswer" "answer"
+ * @see {@method "True«✔»?/False«✔»?(_)._"}
+ */
+trueAnswer ::= an answer with text ::= "true";
+
+/**
+ * The canonical "false" answer.
+ *
+ * @global "falseAnswer" "answer"
+ * @see {@method "True«✔»?/False«✔»?(_)._"}
+ */
+falseAnswer ::= an answer with text ::= "false";
+
+/**
+ * A {@code "true/false question"}.
+ *
+ * @type "true/false question"
+ * @supertype "question"
+ * @field "text" "string"
+ *        The text of the question.
+ * @field "weight" "natural number points"
+ *        The weight of the question, in {@type "point" points}.
+ * @field "answers"
+ *        "<{an answer with text ::= \"true\", \
+ *        \|an answer with text ::= \"false\"}ᵀ…|2>"
+ *        Every supplied {@type "answer"} to the question.
+ * @field "correct answers"
+ *        "{{an answer with text ::= \"true\", \
+ *        \|<an answer with text ::= \"false\"}ᵀ|1}"
+ *        Every correct {@type "answer"} to the question.
+ */
+Class "true/false question" extends question
+	with fields
+		answers : <{trueAnswer, falseAnswer}ᵀ…|2>,
+		correct answers : {{trueAnswer, falseAnswer}ᵀ|1};
+
+/**
+ * Answer a textual representation of the specified {@type
+ * "true/false question"} that includes its kind, weight, and text.
+ *
+ * @method "“_”"
+ * @param "aQuestion" "true/false question"
+ *        A {@type "true/false question"}.
+ * @returns "string"
+ */
+Method "“_”" is
+[
+	aQuestion : true/false question
+|
+	format "True/false. “①”.\n‘②’\n"
+	with aQuestion's weight, aQuestion's text
+] : string;
+
+/**
+ * Define a {@type "true-false question"}.
+ *
+ * @method "True«✔»?/False«✔»?(_)._"
+ * @param "isTrue" "boolean"
+ *        {@method "true"} if the {@type "answer"} is marked as true.
+ * @param "isFalse" "boolean"
+ *        {@method "true"} if the {@type "answer"} is marked as false.
+ * @param "weight" "natural number point"
+ *        The weight of the {@type "question"}, in {@type "point" points}.
+ * @param "questionText" "nonempty string"
+ *        The text of the question.
+ * @returns "⊤"
+ */
+Public method "True«✔»?/False«✔»?(_)._" is
+[
+	isTrue : boolean,
+	isFalse : boolean,
+	weight : natural number point,
+	questionText : nonempty string
+|
+	newQuestion ::= a true/false question with
+		text ::= questionText,
+		weight ::= weight,
+		answers ::= <trueAnswer, falseAnswer>,
+		correct answers ::= {if isTrue then [trueAnswer] else [falseAnswer]};
+	current quiz's questions := current quiz's questions ++ <newQuestion>;
 ] : ⊤;
+
+/**
+ * Reject the current parse if:
+ *
+ * <ul>
+ * <li>The {@method "current module"} has not yet defined a {@type "quiz"}.</li>
+ * <li>Both {@type "answer" answers} are marked as correct.</li>
+ * <li>Neither {@type "answer" answer} is marked as correct.</li>
+ * </ul>
+ *
+ * @method "True«✔»?/False«✔»?(_)._"
+ * @restricts "boolean's type"
+ * @restricts "boolean's type"
+ * @restricts "natural number point's type"
+ * @restricts "nonempty string's type"
+ */
+Semantic restriction "True«✔»?/False«✔»?(_)._" is
+[
+	isTrue : boolean's type,
+	isFalse : boolean's type,
+	weight : natural number point's type,
+	questionText : nonempty string's type
+|
+	Require: quiz is defined;
+	Unless isTrue's instance ⊕ isFalse's instance then
+	[
+		Reject parse, expected:
+			format "exactly one correct answer to be marked (but ‘①’)"
+			with (if isTrue's instance
+				then ["both are marked"]
+				else ["neither are marked"])
+	];
+	⊤
+];
+
+/**
+ * A {@code "short-answer question"}.
+ *
+ * @type "short-answer question"
+ * @supertype "question"
+ * @field "text" "string"
+ *        The text of the question.
+ * @field "weight" "natural number points"
+ *        The weight of the question, in {@type "point" points}.
+ * @field "correct answers" "{answer…|1..}"
+ *        Every correct {@type "answer"} to the question.
+ */
+Class "short-answer question" extends question
+	with fields
+		correct answers : {answer|1..};
+
+/**
+ * Answer a textual representation of the specified {@type
+ * "short-answer question"} that includes its kind, weight, and text.
+ *
+ * @method "“_”"
+ * @param "aQuestion" "short-answer question"
+ *        A {@type "short-answer question"}.
+ * @returns "string"
+ */
+Method "“_”" is
+[
+	aQuestion : short-answer question
+|
+	format "Short answer. “①”.\n‘②’\n"
+	with aQuestion's weight, aQuestion's text
+] : string;
+
+/**
+ * Is {@param "anAnswer"} a correct answer to {@param "aQuestion"}?
+ *
+ * @method "_correctly answers_"
+ * @param "anAnswer" "answer"
+ *        An {@type "answer"}.
+ * @param "aQuestion" "short-answer question"
+ *        A {@type "short-answer question"}.
+ * @returns "boolean"
+ *          {@code "true"} if {@param "anAnswer"} correctly answers {@param
+ *          "aQuestion"}, {@code "false"} otherwise.
+ */
+Private method "_correctly answers_" is
+[
+	anAnswer : answer,
+	aQuestion : short-answer question
+|
+	(anAnswer's text ::= lowercase trim anAnswer's text)
+		∈ map aQuestion's correct answers through
+			[a : answer | a's text ::= lowercase trim a's text]
+] : boolean;
+
+/**
+ * Define a {@type "short-answer question"}.
+ *
+ * @method "Short Answer(_)._«A:_»"
+ * @param "weight" "natural number point"
+ *        The weight of the {@type "question"}, in {@type "point" points}.
+ * @param "questionText" "nonempty string"
+ *        The text of the question.
+ * @param "correctAnswers" "<nonempty string…|1..>"
+ *        Every correct answer to the question.
+ * @returns "⊤"
+ */
+Public method "Short Answer(_)._«A:_»" is
+[
+	weight : natural number point,
+	questionText : nonempty string,
+	correctAnswers : <nonempty string…|1..>
+|
+	newQuestion ::= a short-answer question with
+		text ::= questionText,
+		weight ::= weight,
+		correct answers ::= (map correctAnswers through
+			[a : nonempty string | an answer with text ::= a])→set;
+	current quiz's questions := current quiz's questions ++ <newQuestion>;
+] : ⊤;
+
+/**
+ * Reject the current parse if:
+ *
+ * <ul>
+ * <li>The {@method "current module"} has not yet defined a {@type "quiz"}.</li>
+ * <li>Multiple {@type "answer" answers} are equal.</li>
+ * <li>{@type "answer" Answers} not to begin or end with {@method
+ *     "_is whitespace"}.</li>
+ * </ul>
+ *
+ * @method "Short Answer(_)._«A:_»"
+ * @restricts "natural number point's type"
+ * @restricts "nonempty string's type"
+ * @restricts "<<nonempty string, boolean…|2>…|>'s type"
+ */
+Semantic restriction "Short Answer(_)._«A:_»" is
+[
+	weight : natural number point's type,
+	questionText : nonempty string's type,
+	correctAnswers : <nonempty string…|1..>'s type
+|
+	Require: quiz is defined;
+	uniqueAnswers : {string|} := ∅;
+	noncanonical : <string…|> := <>;
+	From 1 to ⎣correctAnswers⎦ do
+	[
+		index : natural number
+	|
+		anAnswer ::= correctAnswers[index]'s instance;
+		If trim anAnswer ≠ anAnswer then
+		[
+			noncanonical := noncanonical ++ <anAnswer>;
+		];
+		uniqueAnswers := uniqueAnswers + anAnswer;
+	];
+	If ¬noncanonical is empty then
+	[
+		Reject parse, expected:
+			format
+				"the following answers not to begin or end with whitespace: ‘①’"
+			with “noncanonical” (as simple list)
+	];
+	If |uniqueAnswers| ≠ ⎣correctAnswers⎦ then
+	[
+		Reject parse, expected: "each answer to occur uniquely"
+	];
+	⊤
+];
+
+/**
+ * A {@code "grade sheet"} records the user's answers.
+ *
+ * @type "grade sheet"
+ * @supertype "object"
+ * @field "answers" "{question→answer|}"
+ *        The user's {@type "answer" answers} to the {@type "quiz"}, organized
+ *        by {@type "question"}.
+ */
+Class "grade sheet" extends object
+	with mutable field
+		answers : {question→answer|};
+
+/**
+ * Answer the number of correct answers tallied by the {@type "grade sheet"}.
+ *
+ * @method "_'s⁇correct answers"
+ * @param "gradeSheet" "grade sheet"
+ *        A {@type "grade sheet"}.
+ * @returns "whole number"
+ *          The number of correct answers.
+ */
+Private method "_'s⁇correct answers" is
+[
+	gradeSheet : grade sheet
+|
+	count of gradeSheet's answers' bindings where
+		[b : <question, answer…|2> | b[2] correctly answers b[1]]
+] : whole number;
+
+/**
+ * Answer the total score represented by the {@type "grade sheet"}.
+ *
+ * @method "_'s⁇score"
+ * @param "gradeSheet" "grade sheet"
+ *        A {@type "grade sheet"}.
+ * @returns "whole number point"
+ *          The total score.
+ */
+Private method "_'s⁇score" is
+[
+	gradeSheet : grade sheet
+|
+	score : whole number point := 0 pt;
+	For each of gradeSheet's answers do
+	[
+		q : question,
+		a : answer
+	|
+		If a correctly answers q then [score := score + q's weight;];
+	];
+	score
+] : whole number point;
+
+"grades" is a new heritable atom;
+
+/**
+ * Set the {@type "grade sheet"} for the {@method "current fiber"}.
+ *
+ * @method "current grade sheet:=_"
+ * @param "gradeSheet" "grade sheet"
+ *        A {@type "grade sheet"}.
+ * @returns "⊤"
+ */
+Private method "current grade sheet:=_" is
+[
+	gradeSheet : grade sheet
+|
+	current fiber[grades] := gradeSheet;
+] : ⊤;
+
+/**
+ * Answer the {@type "quiz"} associated with the {@method "current module"}.
+ *
+ * @method "current quiz"
+ * @returns "quiz"
+ */
+Private method "current grade sheet" is [current fiber[grades]];
+Semantic restriction "current grade sheet" is [grade sheet];
+
+/**
+ * Record the fact that the user answered {@param "anAnswer"} to question
+ * {@param "aQuestion"}.
+ *
+ * @method "User answered_to_"
+ * @param "aQuestion" "question"
+ * @param "anAnswer" "answer"
+ * @returns "⊤"
+ */
+Private method "User answered_to_" is
+[
+	anAnswer : answer,
+	aQuestion : question
+|
+	gradeSheet ::= current grade sheet;
+	gradeSheet's answers := gradeSheet's answers + aQuestion→anAnswer;
+] : ⊤;
+
+/**
+ * Present the specified {@type "question"} to the user. The user should respond
+ * appropriately based on the kind of question asked.
+ *
+ * @method "Present_"
+ * @param "aQuestion" "question"
+ *        The {@type "question"} to present to the user.
+ * @returns "⊤"
+ */
+Private abstract method "Present_" is [question]→⊤;
+
+/**
+ * Present the specified {@type "multiple-choice question"} to the user. The
+ * user should respond by inputting a numeral between {@code "1"} and {@code
+ * "|aQuestion's answers|"}. If the user provides some other input, then she
+ * will be prompted again.
+ *
+ * @method "Present_"
+ * @param "aQuestion" "multiple-choice question"
+ *        The {@type "multiple-choice question"} to present to the user.
+ * @returns "⊤"
+ */
+Private method "Present_" is
+[
+	aQuestion : multiple-choice question
+|
+	/* Randomize the order in which the answers are presented. */
+	choices ::= a pRNG's next shuffling of aQuestion's answers;
+	text ::= “aQuestion” ++ concatenate map choices through
+		[a : answer, i : [1..∞) | format "“①”)  ‘②’\n" with i, a's text];
+	Print: text;
+	choice : whole number := 0;
+	Do
+	[
+		Print: "Your answer?  ";
+		choice := try [next line from standard input→[1..|choices|]] else [0];
+	]
+	while [choice = 0];
+	User answered choices[1 max choice] to aQuestion;
+] : ⊤;
+
+/**
+ * Present the specified {@type "true/false question"} to the user. The user
+ * should respond by inputting, case-insensitively, a "t" (for true) or an "f"
+ * (for false). If the user provides some other input, then he will be prompted
+ * again.
+ *
+ * @method "Present_"
+ * @param "aQuestion" "true/false question"
+ *        The {@type "true/false question"} to present to the user.
+ * @returns "⊤"
+ */
+Private method "Present_" is
+[
+	aQuestion : true/false question
+|
+	Print: “aQuestion”;
+	choice : string := "";
+	Do
+	[
+		Print: "[T]rue or [F]alse?  ";
+		choice := try [lowercase next line from standard input] else [""];
+	]
+	until [choice ∈ {"t", "f"}];
+	User answered (if choice = "t" then [trueAnswer] else [falseAnswer])
+		to aQuestion;
+] : ⊤;
+
+/**
+ * Present the specified {@type "short-answer question"} to the user. The user
+ * should respond by inputting, case-insensitively, the desired response. If the
+ * user provides only {@method "_is whitespace" whitespace}, then she will be
+ * prompted again.
+ *
+ * @method "Present_"
+ * @param "aQuestion" "short-answer question"
+ *        The {@type "short-answer question"} to present to the user.
+ * @returns "⊤"
+ */
+Private method "Present_" is
+[
+	aQuestion : short-answer question
+|
+	Print: “aQuestion”;
+	shortAnswer : string := "";
+	Do
+	[
+		Print: "Your answer?  ";
+		shortAnswer := try [next line from standard input] else [""];
+	]
+	while [trim shortAnswer = ""];
+	User answered an answer with text ::= shortAnswer to aQuestion;
+] : ⊤;
+
+/**
+ * Administer the specified {@type "quiz"} to the user. At the end, provide the
+ * user feedback about how she did.
+ *
+ * @method "Administer_"
+ * @param "aQuiz" "quiz"
+ *        The {@type "quiz"} to administer.
+ * @returns "⊤"
+ */
+Private method "Administer_" is
+[
+	aQuiz : quiz
+|
+	current grade sheet := a grade sheet with answers := {};
+	Print:
+		format "‘①’ ‘②’\n"
+		with
+			aQuiz's title,
+			(0 max 79 - |aQuiz's title|) of ¢=;
+	count ::= |aQuiz's questions|;
+	For each of aQuiz's questions do
+	[
+		aQuestion : question,
+		index : natural number
+	|
+		Print: format "\n[#“①” of “②”]\n" with index, count;
+		Present aQuestion;
+	];
+	gradeSheet ::= current grade sheet;
+	Print:
+		format
+			"\nSummary ‘⑥’\n\n\
+			\|Correct answers: “①” / “②”\n\
+			\|Score          : “③” / “④” (“⑤”%)\n"
+		with
+			gradeSheet's correct answers,
+			count,
+			gradeSheet's score,
+			aQuiz's total weight,
+			gradeSheet's score's extent × 100 ÷ aQuiz's total weight's extent,
+			79 - |"Summary"| of ¢=;
+] : ⊤;
+
+/**
+ * Define a {@type "quiz"}. Note that the {@method "current module"} may only
+ * define one {@type "quiz"}.
+ *
+ * @method "Quiz_"
+ * @param "title" "nonempty string"
+ *         The title of the quiz.
+ * @returns "⊤"
+ */
+Public method "Quiz_" is
+[
+	title : nonempty string
+|
+	Lock mutex for
+	[
+		Assert: ¬current module ∈ quizzes ("This quiz is already defined.");
+		newQuiz ::= a quiz with title ::= title, questions := <>;
+		quizzes := quizzes + current module→newQuiz;
+	];
+	/* Define "Take quiz" in the current module. The semantic restriction
+	 * ensures that it is named as an entry point.
+	 */
+	theQuiz ::= current quiz;
+	Method "Take quiz" is [Administer theQuiz;];
+] : ⊤;
+
+/**
+ * Reject an attempt to redefine the {@method "current module"}'s {@type
+ * "quiz"}.
+ *
+ * @method "Quiz_"
+ * @restricts "nonempty string's type"
+ */
+Semantic restriction "Quiz_" is
+[
+	title : nonempty string's type
+|
+	Lock mutex for
+	[
+		If current module ∈ quizzes then
+		[
+			Reject parse, expected: "quiz not to be redefined"
+		];
+	];
+	If ¬"Take quiz" ∈ current module's entry points then
+	[
+		Reject parse, expected: "\"Take quiz\" to be declared as an entry point"
+	];
+	⊤
+];

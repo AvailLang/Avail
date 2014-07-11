@@ -643,8 +643,6 @@ Semantic restriction "Lock|lock_for_" is
 	criticalSection's return type
 ];
 
-"entry count" is a new field atom;
-
 /**
  * A reentrant mutex is a mutual exclusion device that permits reentry.
  *
@@ -652,20 +650,17 @@ Semantic restriction "Lock|lock_for_" is
  * @supertype "non-reentrant mutex"
  * @category "Synchronization" "Data Abstractions" "Types"
  */
-Public class "reentrant mutex" extends non-reentrant mutex
-	with mutable fields
-		referable entry count : whole number;
+Public explicit class "reentrant mutex" extends non-reentrant mutex;
 
 Method "“_”" is
 [
 	mutex : reentrant mutex
 |
-	format "‘typeDesc’ (‘myName’) [owner=‘owner’ (x“x”); parked=“parked”]" with
+	format "‘typeDesc’ (‘myName’) [owner=‘owner’; parked=“parked”]" with
 		typeDesc ::=
 			(a|an) ““mutex's type's names” (as list partitioned by " ∩ ")”,
 		myName ::= mutex's name,
 		owner ::=  mutex's owner's name,
-		x ::= mutex's entry count,
 		parked ::= map mutex's parked fibers through [f : fiber | f's name]
 ];
 
@@ -690,7 +685,6 @@ Public method "a reentrant mutex«named_»" is
 	a reentrant mutex with
 		name ::= myName,
 		owner := 0,
-		entry count := 0,
 		parked fibers := <>
 ] : reentrant mutex;
 
@@ -729,21 +723,15 @@ Public method "Lock|lock_for_" is
 	/* If the current fiber already owns the mutex, then avoid putting it back
 	 * onto the parking queue.
 	 */
-	If mutex's owner ≠ current fiber then [Acquire mutex;];
+	shouldUnlock ::=
+		if mutex's owner ≠ current fiber then [Acquire mutex; true]
+		else [false];
 	/* The current fiber now holds the lock, so run the critical section. */
 	Assert: mutex's owner = current fiber;
-	↑mutex's entry count++;
 	Guard criticalSection
 	ensure
 	[
-		/* Decrement the entry count. If it goes to zero, then prepare for
-		 * another fiber to take over.
-		 */
-		↑mutex's entry count--;
-		If mutex's entry count = 0 then
-		[
-			Schedule next parked fiber or release mutex;
-		];
+		If shouldUnlock then [Schedule next parked fiber or release mutex;];
 	];
 ] : ⊤;
 
@@ -811,7 +799,6 @@ Public method "a monitor«named_»" is
 	a monitor with
 		name ::= myName,
 		owner := 0,
-		entry count := 0,
 		parked fibers := <>,
 		signaler fibers := <>
 ] : monitor;
@@ -973,19 +960,10 @@ Public method "Await_" is
 	If ¬aCondition is satisfied then
 	[
 		mutex ::= aCondition's originating monitor;
-		/* Remember the ownership depth of the current fiber, so that it can be
-		 * restored later. Then clear the entry count (so that a fiber entering
-		 * just after a monitor release doesn't begin with an entry count
-		 * greater than one).
-		 */
-		savedEntryCount ::= mutex's entry count;
-		mutex's entry count := 0;
 		Ignore: priority enqueue current fiber on ↑aCondition's parked fibers;
 		Schedule next parked fiber or release mutex;
 		Until [mutex's owner = current fiber]
 		do [Park current fiber, then honor a termination request;];
-		/* Restore the entry count. */
-		mutex's entry count := savedEntryCount;
 		/* The current fiber owns the lock again, and has been signaled that the
 		 * condition is true. Assert this.
 		 */
@@ -1061,10 +1039,6 @@ Public method "Signal_" is
 	If ¬↓queue is empty then
 	[
 		mutex ::= aCondition's originating monitor;
-		/* Remember the ownership depth of the current fiber, so that it can be
-		 * restored later.
-		 */
-		savedEntryCount ::= mutex's entry count;
 		/* Place the current fiber from onto the monitor's queue of signaler
 		 * fibers, also leaving it on the main queue. This will give it
 		 * preference during the next scheduling operation.
@@ -1079,8 +1053,6 @@ Public method "Signal_" is
 		/* Park the current fiber. */
 		Until [mutex's owner = current fiber]
 		do [Park current fiber, then honor a termination request;];
-		/* Restore the entry count. */
-		mutex's entry count := savedEntryCount;
 	];
 ] : ⊤;
 

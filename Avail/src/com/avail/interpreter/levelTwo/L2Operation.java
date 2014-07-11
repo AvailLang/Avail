@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.List;
 import com.avail.annotations.Nullable;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.A_Variable;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
@@ -337,6 +338,28 @@ public abstract class L2Operation
 	public boolean reachesNextInstruction ()
 	{
 		return true;
+	}
+
+	/**
+	 * Answer whether execution of this instruction causes a {@linkplain
+	 * A_Variable variable} to be read.
+	 *
+	 * @return Whether the instruction causes a variable to be read.
+	 */
+	public boolean isVariableGet ()
+	{
+		return false;
+	}
+
+	/**
+	 * Answer whether execution of this instruction causes a {@linkplain
+	 * A_Variable variable} to be written.
+	 *
+	 * @return Whether the instruction causes a variable to be written.
+	 */
+	public boolean isVariableSet ()
+	{
+		return false;
 	}
 
 	/**

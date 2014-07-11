@@ -32,7 +32,9 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -40,12 +42,8 @@ import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 /**
- * Extract the value of a variable.
- *
- * <p>
- * TODO [MvG] - Currently stops the VM if the variable does not have a
- * value assigned.  This needs a better mechanism.
- * </p>
+ * Extract the value of a variable. If the variable is unassigned, then branch
+ * to the specified {@linkplain Interpreter#offset(int) offset}.
  */
 public class L2_GET_VARIABLE extends L2Operation
 {
@@ -55,7 +53,8 @@ public class L2_GET_VARIABLE extends L2Operation
 	public final static L2Operation instance =
 		new L2_GET_VARIABLE().init(
 			READ_POINTER.is("variable"),
-			WRITE_POINTER.is("extracted value"));
+			WRITE_POINTER.is("extracted value"),
+			PC.is("if assigned"));
 
 	@Override
 	public void step (
@@ -66,23 +65,35 @@ public class L2_GET_VARIABLE extends L2Operation
 			instruction.readObjectRegisterAt(0);
 		final L2ObjectRegister destReg =
 			instruction.writeObjectRegisterAt(1);
+		final int ifAssigned = instruction.pcAt(2);
 
 		final A_Variable variable = variableReg.in(interpreter);
-		final AvailObject value = variable.getValue();
-		value.makeImmutable();
-		destReg.set(value, interpreter);
+		try
+		{
+			final AvailObject value = variable.getValue();
+			value.makeImmutable();
+			destReg.set(value, interpreter);
+			interpreter.offset(ifAssigned);
+		}
+		catch (final VariableGetException e)
+		{
+			// Fall through to the next instruction.
+		}
 	}
 
 	@Override
 	protected void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
 		final L2ObjectRegister variableReg =
 			instruction.readObjectRegisterAt(0);
 		final L2ObjectRegister destReg =
 			instruction.writeObjectRegisterAt(1);
+		// Only update the *branching* register set; if control reaches the
+		// next instruction, then no registers have changed.
+		final RegisterSet registerSet = registerSets.get(1);
 		registerSet.removeConstantAt(destReg);
 		if (registerSet.hasTypeAt(variableReg))
 		{
@@ -101,6 +112,12 @@ public class L2_GET_VARIABLE extends L2Operation
 	public boolean hasSideEffect ()
 	{
 		// Subtle. Reading from a variable can fail, so don't remove this.
+		return true;
+	}
+
+	@Override
+	public boolean isVariableGet ()
+	{
 		return true;
 	}
 }

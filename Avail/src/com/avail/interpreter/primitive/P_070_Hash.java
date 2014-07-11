@@ -1,5 +1,5 @@
 /**
- * Configuration.java
+ * P_070_Hash.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,21 +30,47 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.tools.configuration;
+package com.avail.interpreter.primitive;
+
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
 
 /**
- * A {@code Configuration} encapsulates the configurable parameters of a
- * software component.
+ * <strong>Primitive 70</strong>: Answer the {@linkplain A_BasicObject#hash()
+ * hash value} of the argument.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public interface Configuration
+public final class P_070_Hash
+extends Primitive
 {
 	/**
-	 * Is the {@linkplain Configuration configuration} valid?
-	 *
-	 * @return {@code true} if the configuration is valid, {@code false}
-	 *         otherwise.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public boolean isValid ();
+	public final static Primitive instance =
+		new P_070_Hash().init(1, CannotFail, CanFold, CanInline);
+
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
+	{
+		assert args.size() == 1;
+		final A_BasicObject value = args.get(0);
+		return interpreter.primitiveSuccess(
+			IntegerDescriptor.fromInt(value.hash()));
+	}
+
+	@Override
+	protected A_Type privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				ANY.o()),
+				IntegerRangeTypeDescriptor.integers());
+	}
 }

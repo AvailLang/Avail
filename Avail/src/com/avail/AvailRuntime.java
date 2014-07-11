@@ -808,7 +808,10 @@ public final class AvailRuntime
 			TupleDescriptor.empty());
 		unassignedVariableReadFunction = function;
 		resultDisagreedWithExpectedTypeFunction = function;
-		implicitObserveFunction = function;
+		implicitObserveFunction = FunctionDescriptor.newCrashFunction(
+			TupleDescriptor.from(
+				FunctionTypeDescriptor.mostGeneralType(),
+				TupleTypeDescriptor.mostGeneralType()));
 		invalidMessageSendFunction = FunctionDescriptor.newCrashFunction(
 			TupleDescriptor.from(
 				AbstractEnumerationTypeDescriptor.withInstances(

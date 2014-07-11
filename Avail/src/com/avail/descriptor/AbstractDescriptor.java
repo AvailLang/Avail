@@ -55,13 +55,17 @@ import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.AvailUnsupportedOperationException;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.VariableGetException;
+import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
 
@@ -1894,11 +1898,13 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @param argumentList
+	 * @param errorCode
 	 * @return
 	 */
 	abstract A_Definition o_LookupByValuesFromList (
 		AvailObject object,
-		List<? extends A_BasicObject> argumentList);
+		List<? extends A_BasicObject> argumentList,
+		MutableOrNull<AvailErrorCode> errorCode);
 
 	/**
 	 * @param object
@@ -2284,10 +2290,12 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @param newValue
+	 * @throws VariableSetException
 	 */
 	abstract void o_SetValue (
-		AvailObject object,
-		A_BasicObject newValue);
+			AvailObject object,
+			A_BasicObject newValue)
+		throws VariableSetException;
 
 	/**
 	 * @param object
@@ -2295,7 +2303,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_SetValueNoCheck (
 		AvailObject object,
-		AvailObject newValue);
+		A_BasicObject newValue);
 
 	/**
 	 * @param object
@@ -2937,8 +2945,10 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @return
+	 * @throws VariableGetException
 	 */
-	abstract AvailObject o_GetValue (AvailObject object);
+	abstract AvailObject o_GetValue (AvailObject object)
+		throws VariableGetException;
 
 	/**
 	 * @param object
@@ -5428,30 +5438,39 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param newValue
 	 * @return
+	 * @throws VariableGetException
+	 * @throws VariableSetException
 	 */
 	abstract AvailObject o_GetAndSetValue (
-		AvailObject object,
-		AvailObject newValue);
+			AvailObject object,
+			A_BasicObject newValue)
+		throws VariableGetException, VariableSetException;
 
 	/**
 	 * @param object
 	 * @param reference
 	 * @param newValue
 	 * @return
+	 * @throws VariableGetException
+	 * @throws VariableSetException
 	 */
 	abstract boolean o_CompareAndSwapValues (
-		AvailObject object,
-		AvailObject reference,
-		AvailObject newValue);
+			AvailObject object,
+			A_BasicObject reference,
+			A_BasicObject newValue)
+		throws VariableGetException, VariableSetException;
 
 	/**
 	 * @param object
 	 * @param addend
 	 * @return
+	 * @throws VariableGetException
+	 * @throws VariableSetException
 	 */
 	abstract A_Number o_FetchAndAddValue (
-		final AvailObject object,
-		final A_Number addend);
+			final AvailObject object,
+			final A_Number addend)
+		throws VariableGetException, VariableSetException;
 
 	/**
 	 * @param object
@@ -5987,4 +6006,10 @@ public abstract class AbstractDescriptor
 		int startIndex,
 		int endIndex,
 		A_Type type);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsNumericallyIntegral (AvailObject object);
 }

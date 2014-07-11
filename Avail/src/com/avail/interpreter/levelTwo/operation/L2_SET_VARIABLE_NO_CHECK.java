@@ -31,8 +31,10 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -43,7 +45,8 @@ import com.avail.optimizer.RegisterSet;
  * Assign a value to a {@linkplain VariableDescriptor variable} <em>without</em>
  * checking that it's of the correct type.
  */
-public class L2_SET_VARIABLE_NO_CHECK extends L2Operation
+public class L2_SET_VARIABLE_NO_CHECK
+extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -51,7 +54,8 @@ public class L2_SET_VARIABLE_NO_CHECK extends L2Operation
 	public final static L2Operation instance =
 		new L2_SET_VARIABLE_NO_CHECK().init(
 			READ_POINTER.is("variable"),
-			READ_POINTER.is("value to write"));
+			READ_POINTER.is("value to write"),
+			PC.is("without reactors"));
 
 	@Override
 	public void step (
@@ -61,28 +65,36 @@ public class L2_SET_VARIABLE_NO_CHECK extends L2Operation
 		final L2ObjectRegister variableReg =
 			instruction.readObjectRegisterAt(0);
 		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(1);
+		final int withoutReactors = instruction.pcAt(2);
 
 		final AvailObject value = valueReg.in(interpreter);
 		final A_Variable variable = variableReg.in(interpreter);
-		variable.setValueNoCheck(value);
+		try
+		{
+			variable.setValueNoCheck(value);
+			interpreter.offset(withoutReactors);
+		}
+		catch (final VariableSetException e)
+		{
+			// Fall through to the next instruction.
+		}
 	}
 
 	@Override
 	protected void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
 		final L2ObjectRegister variableReg =
 			instruction.readObjectRegisterAt(0);
 		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(1);
 
-		// If we haven't already guaranteed that this is a variable then we
-		// are probably not doing things right.
+		// The two register sets are clones, so only cross-check one of them.
+		final RegisterSet registerSet = registerSets.get(0);
 		assert registerSet.hasTypeAt(variableReg);
 		final A_Type varType = registerSet.typeAt(variableReg);
 		assert varType.isSubtypeOf(VariableTypeDescriptor.mostGeneralType());
-		// Also check assignment compatibility.
 		assert registerSet.hasTypeAt(valueReg);
 		final A_Type valueType = registerSet.typeAt(valueReg);
 		assert valueType.isSubtypeOf(varType.writeType());
@@ -90,6 +102,12 @@ public class L2_SET_VARIABLE_NO_CHECK extends L2Operation
 
 	@Override
 	public boolean hasSideEffect ()
+	{
+		return true;
+	}
+
+	@Override
+	public boolean isVariableSet ()
 	{
 		return true;
 	}

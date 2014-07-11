@@ -42,7 +42,7 @@ import java.nio.file.Paths;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class Configuration
-implements com.avail.tools.configuration.Configuration
+implements com.avail.utility.configuration.Configuration
 {
 	/** The {@linkplain Path directory} containing the JSON files. */
 	Path catalogPath = Paths.get(

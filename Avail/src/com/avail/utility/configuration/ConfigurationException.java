@@ -1,5 +1,5 @@
 /**
- * package-info.java
+ * ConfigurationException.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,4 +30,48 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@com.avail.annotations.NotNullByDefault package com.avail.tools.configuration;
+package com.avail.utility.configuration;
+
+import com.avail.utility.configuration.Configurator;
+
+/**
+ * A {@code ConfigurationException} is thrown when a {@linkplain Configurator
+ * configurator} fails to {@linkplain Configurator#updateConfiguration() create}
+ * a {@linkplain Configuration configuration} for any reason.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+public final class ConfigurationException
+extends Exception
+{
+	/** The serial version identifier. */
+	private static final long serialVersionUID = -3955240420524190217L;
+
+	/**
+	 * Construct a new {@link ConfigurationException}.
+	 *
+	 * @param message
+	 *        The detail message, expected to be the proximal reason why
+	 *        configuration failed.
+	 */
+	public ConfigurationException (final String message)
+	{
+		super(message);
+	}
+
+	/**
+	 * Construct a new {@link ConfigurationException}.
+	 *
+	 * @param message
+	 *        The detail message, expected to be the proximal reason why
+	 *        configuration failed.
+	 * @param cause
+	 *        The proximal cause of the exception.
+	 */
+	public ConfigurationException (
+		final String message,
+		final Throwable cause)
+	{
+		super(message, cause);
+	}
+}

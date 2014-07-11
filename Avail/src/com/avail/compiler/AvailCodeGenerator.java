@@ -322,8 +322,12 @@ public class AvailCodeGenerator
 			{
 				primitive(P_341_PushArgument.instance.primitiveNumber);
 			}
+			// Only target module constants, not module variables. Module
+			// variables can be unassigned, and reading an unassigned module
+			// variable must fail appropriately.
 			if (onlyInstruction instanceof AvailGetLiteralVariable
-				&& ((AvailGetLiteralVariable)onlyInstruction).index() == 1)
+				&& ((AvailGetLiteralVariable)onlyInstruction).index() == 1
+				&& literals.get(0).isInitializedWriteOnceVariable())
 			{
 				primitive(
 					P_342_GetGlobalVariableValue.instance.primitiveNumber);

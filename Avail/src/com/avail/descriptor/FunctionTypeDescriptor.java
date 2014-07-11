@@ -607,7 +607,7 @@ extends TypeDescriptor
 	 * Answer the top (i.e., most general) {@linkplain FunctionTypeDescriptor
 	 * function type}.
 	 *
-	 * @return The function type "[...]->top".
+	 * @return The function type "[…]→⊤".
 	 */
 	public static A_Type mostGeneralType ()
 	{
@@ -625,7 +625,7 @@ extends TypeDescriptor
 	 * InstanceTypeDescriptor instance type} on the {@linkplain
 	 * #mostGeneralType() most general type}.
 	 *
-	 * @return The function type "[...]->top".
+	 * @return The function type "[…]→⊤".
 	 */
 	public static A_Type meta ()
 	{

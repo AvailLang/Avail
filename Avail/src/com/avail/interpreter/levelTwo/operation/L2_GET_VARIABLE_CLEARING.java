@@ -32,7 +32,9 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -40,12 +42,9 @@ import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 /**
- * Extract the value of a variable, while simultaneously clearing it.
- *
- * <p>
- * TODO [MvG] - Currently stops the VM if the variable did not have a value
- * assigned.  This needs a better mechanism.
- * </p>
+ * Extract the value of a variable, while simultaneously clearing it. If the
+ * variable is unassigned, then branch to the specified {@linkplain
+ * Interpreter#offset(int) offset}.
  */
 public class L2_GET_VARIABLE_CLEARING extends L2Operation
 {
@@ -55,7 +54,8 @@ public class L2_GET_VARIABLE_CLEARING extends L2Operation
 	public final static L2Operation instance =
 		new L2_GET_VARIABLE_CLEARING().init(
 			READ_POINTER.is("variable"),
-			WRITE_POINTER.is("extracted value"));
+			WRITE_POINTER.is("extracted value"),
+			PC.is("if assigned"));
 
 	@Override
 	public void step (
@@ -66,31 +66,42 @@ public class L2_GET_VARIABLE_CLEARING extends L2Operation
 			instruction.readObjectRegisterAt(0);
 		final L2ObjectRegister destReg =
 			instruction.writeObjectRegisterAt(1);
+		final int ifAssigned = instruction.pcAt(2);
 
 		final A_Variable var = variableReg.in(interpreter);
-		final AvailObject value = var.getValue();
-		if (var.traversed().descriptor().isMutable())
+		try
 		{
-			var.clearValue();
+			final AvailObject value = var.getValue();
+			if (var.traversed().descriptor().isMutable())
+			{
+				var.clearValue();
+			}
+			else
+			{
+				value.makeImmutable();
+			}
+			destReg.set(value, interpreter);
+			interpreter.offset(ifAssigned);
 		}
-		else
+		catch (final VariableGetException e)
 		{
-			value.makeImmutable();
+			// Fall through to the next instruction.
 		}
-		destReg.set(value, interpreter);
 	}
 
 	@Override
 	protected void propagateTypes (
 		final L2Instruction instruction,
-		final RegisterSet registerSet,
+		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
 		final L2ObjectRegister variableReg =
 			instruction.readObjectRegisterAt(0);
 		final L2ObjectRegister destReg =
 			instruction.writeObjectRegisterAt(1);
-
+		// Only update the *branching* register set; if control reaches the
+		// next instruction, then no registers have changed.
+		final RegisterSet registerSet = registerSets.get(1);
 		// If we haven't already guaranteed that this is a variable then we
 		// are probably not doing things right.
 		assert registerSet.hasTypeAt(variableReg);
@@ -105,6 +116,12 @@ public class L2_GET_VARIABLE_CLEARING extends L2Operation
 	{
 		// Subtle. Reading from a variable can fail, so don't remove this.
 		// Also it clears the variable.
+		return true;
+	}
+
+	@Override
+	public boolean isVariableGet ()
+	{
 		return true;
 	}
 }

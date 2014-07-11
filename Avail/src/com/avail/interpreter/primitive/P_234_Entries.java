@@ -1,5 +1,5 @@
 /**
- * Configurator.java
+ * P_234_Entries.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,37 +30,48 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.tools.configuration;
+package com.avail.interpreter.primitive;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
 
 /**
- * A {@code Configurator} produces a {@linkplain Configuration configuration}
- * from information provided during construction of a concrete implementation.
+ * <strong>Primitive 234</strong>: Answer the entry point names declared by the
+ * specified {@linkplain ModuleDescriptor module}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @param <ConfigurationType>
- *        The type of resulting {@linkplain Configuration configurations}.
  */
-public interface Configurator<ConfigurationType extends Configuration>
+public final class P_234_Entries
+extends Primitive
 {
 	/**
-	 * Using information provided during construction of the {@linkplain
-	 * Configurator configurator}, produce the entailed {@linkplain
-	 * Configuration configuration}.
-	 *
-	 * <p>Implementations should be idempotent, i.e., multiple invocations
-	 * should produce the same observable effect as a single invocation.</p>
-	 *
-	 * @throws ConfigurationException
-	 *         If the configuration could not be created for any reason.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public void updateConfiguration () throws ConfigurationException;
+	public final static Primitive instance =
+		new P_234_Entries().init(1, CanInline, CannotFail);
 
-	/**
-	 * Answer the {@linkplain Configuration configuration} produced by the
-	 * {@linkplain Configurator configurator}.
-	 *
-	 * @return A configuration.
-	 */
-	public ConfigurationType configuration ();
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
+	{
+		assert args.size() == 1;
+		final A_Module module = args.get(0);
+		return interpreter.primitiveSuccess(module.entryPoints().keysAsSet());
+	}
+
+	@Override
+	protected A_Type privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				MODULE.o()),
+			SetTypeDescriptor.setTypeForSizesContentType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				TupleTypeDescriptor.stringType()));
+	}
 }

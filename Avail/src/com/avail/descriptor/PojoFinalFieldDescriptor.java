@@ -137,7 +137,7 @@ extends Descriptor
 	@Override
 	void o_SetValueNoCheck (
 		final AvailObject object,
-		final AvailObject newValue)
+		final A_BasicObject newValue)
 	{
 		throw new VariableSetException(
 			AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD);
@@ -273,7 +273,7 @@ extends Descriptor
 		}
 		catch (final Exception e)
 		{
-			throw new VariableGetException(
+			throw new AvailRuntimeException(
 				AvailErrorCode.E_JAVA_MARSHALING_FAILED,
 				e);
 		}

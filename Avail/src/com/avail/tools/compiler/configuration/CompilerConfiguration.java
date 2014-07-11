@@ -51,8 +51,8 @@ import com.avail.builder.RenamesFileParser;
 import com.avail.builder.RenamesFileParserException;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.stacks.StacksGenerator;
-import com.avail.tools.configuration.Configuration;
 import com.avail.tools.compiler.Compiler;
+import com.avail.utility.configuration.Configuration;
 
 /**
  * A {@code CompilerConfiguration} instructs a {@linkplain Compiler compiler} on

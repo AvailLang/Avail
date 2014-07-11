@@ -34,10 +34,12 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.*;
 
 /**
@@ -57,7 +59,7 @@ extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_380_DeclarationInitializingExpression().init(
-			2, CanFold, CannotFail);
+			2, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -69,14 +71,21 @@ extends Primitive
 		final A_Phrase decl = args.get(0);
 		final A_Variable var = args.get(1);
 		final A_Phrase initializer = decl.initializationExpression();
-		boolean stored = false;
-		if (!initializer.equalsNil())
+		try
 		{
-			var.setValue(initializer);
-			stored = true;
+			boolean stored = false;
+			if (!initializer.equalsNil())
+			{
+				var.setValue(initializer);
+				stored = true;
+			}
+			return interpreter.primitiveSuccess(
+				AtomDescriptor.objectFromBoolean(stored));
 		}
-		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(stored));
+		catch (final VariableSetException e)
+		{
+			return interpreter.primitiveFailure(e);
+		}
 	}
 
 	@Override
@@ -89,5 +98,12 @@ extends Primitive
 					EXPRESSION_NODE.create(BottomTypeDescriptor.bottom())),
 				DECLARATION_NODE.mostGeneralType()),
 			EnumerationTypeDescriptor.booleanObject());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED.numericCode());
 	}
 }

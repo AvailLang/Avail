@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import java.util.List;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.*;
@@ -56,7 +55,8 @@ public class L2_UNREACHABLE_CODE extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		error("This L2 instruction should never be reached.");
+		throw new RuntimeException(
+			"This L2 instruction should never be reached.");
 	}
 
 	@Override

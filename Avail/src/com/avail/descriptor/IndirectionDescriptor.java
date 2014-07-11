@@ -52,12 +52,16 @@ import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.VariableGetException;
+import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
 
@@ -1308,9 +1312,11 @@ extends AbstractDescriptor
 	@Override
 	A_Definition o_LookupByValuesFromList (
 		final AvailObject object,
-		final List<? extends A_BasicObject> argumentList)
+		final List<? extends A_BasicObject> argumentList,
+		final MutableOrNull<AvailErrorCode> errorCode)
 	{
-		return o_Traversed(object).lookupByValuesFromList(argumentList);
+		return o_Traversed(object).lookupByValuesFromList(
+			argumentList, errorCode);
 	}
 
 	@Override
@@ -1608,8 +1614,9 @@ extends AbstractDescriptor
 
 	@Override
 	void o_SetValue (
-		final AvailObject object,
-		final A_BasicObject newValue)
+			final AvailObject object,
+			final A_BasicObject newValue)
+		throws VariableSetException
 	{
 		o_Traversed(object).setValue(newValue);
 	}
@@ -1617,7 +1624,7 @@ extends AbstractDescriptor
 	@Override
 	void o_SetValueNoCheck (
 		final AvailObject object,
-		final AvailObject newValue)
+		final A_BasicObject newValue)
 	{
 		o_Traversed(object).setValueNoCheck(newValue);
 	}
@@ -2184,6 +2191,7 @@ extends AbstractDescriptor
 
 	@Override
 	AvailObject o_GetValue (final AvailObject object)
+		throws VariableGetException
 	{
 		return o_Traversed(object).getValue();
 	}
@@ -4050,25 +4058,28 @@ extends AbstractDescriptor
 
 	@Override
 	AvailObject o_GetAndSetValue (
-		final AvailObject object,
-		final AvailObject newValue)
+			final AvailObject object,
+			final A_BasicObject newValue)
+		throws VariableGetException, VariableSetException
 	{
 		return o_Traversed(object).getAndSetValue(newValue);
 	}
 
 	@Override
 	boolean o_CompareAndSwapValues (
-		final AvailObject object,
-		final AvailObject reference,
-		final AvailObject newValue)
+			final AvailObject object,
+			final A_BasicObject reference,
+			final A_BasicObject newValue)
+		throws VariableGetException, VariableSetException
 	{
 		return o_Traversed(object).compareAndSwapValues(reference, newValue);
 	}
 
 	@Override
 	A_Number o_FetchAndAddValue (
-		final AvailObject object,
-		final A_Number addend)
+			final AvailObject object,
+			final A_Number addend)
+		throws VariableGetException, VariableSetException
 	{
 		return o_Traversed(object).fetchAndAddValue(addend);
 	}
@@ -4578,5 +4589,11 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).tupleElementsInRangeAreInstancesOf(
 			startIndex, endIndex, type);
+	}
+
+	@Override
+	boolean o_IsNumericallyIntegral (final AvailObject object)
+	{
+		return o_Traversed(object).isNumericallyIntegral();
 	}
 }

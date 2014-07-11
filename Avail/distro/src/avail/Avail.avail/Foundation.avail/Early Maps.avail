@@ -224,7 +224,7 @@ Semantic restriction "_+_→_" is
 	[
 		bound := eject bound + 1;
 	];
-	{newKeyType→newValueType | [lower..bound)}
+	{newKeyType→newValueType | [lower..bound+1)}
 ];
 
 Method "_-_" is stable at [map, any]→map;
