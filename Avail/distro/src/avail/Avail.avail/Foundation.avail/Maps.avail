@@ -52,7 +52,8 @@ Uses
 	"Variables"
 Names
 	"counts for_",
-	"integrate_and_with_"
+	"integrate_and_with_",
+	"integrate«_‡,and⁇»with_"
 Body
 
 Method "“_”" is
@@ -736,7 +737,7 @@ Semantic restriction "counts for_" is
  *         argument is the partially combined map. The second argument is a key
  *         from {@param "supplementMap"} that was present in {@param "baseMap"}.
  *         The third argument is the value associated with the second argument
- *         within {@param "supplementValue"}. The answer is a complete
+ *         within {@param "supplementMap"}. The answer is a complete
  *         replacement for the partially combined map.
  * @returns "map"
  *          The fully combined map.
@@ -744,30 +745,30 @@ Semantic restriction "counts for_" is
  */
 Public method "integrate_and_with_" is
 [
-	baseMap : map,
-	supplementMap : map,
-	action : [⊥, ⊥, ⊥]→map
+    baseMap : map,
+    supplementMap : map,
+    action : [⊥, ⊥, ⊥]→map
 |
-	baseMapkeys ::= baseMap's keys;
-	newMap : map := baseMap;
-	For each supplementMap do
-	[
-		supplementKey : any,
-		supplementValue : any
-	|
-		newMap :=
-			if baseMapkeys ∋ supplementKey then
-			[
-				action(newMap, supplementKey, supplementValue)
-			]
-			else
-			[
-				newMap + supplementKey→supplementValue
-			];
-	];
-	newMap
+    baseMapkeys ::= baseMap's keys;
+    newMap : map := baseMap;
+    For each supplementMap do
+    [
+        supplementKey : any,
+        supplementValue : any
+    |
+        newMap :=
+            if baseMapkeys ∋ supplementKey then
+            [
+                action(newMap, supplementKey, supplementValue)
+            ]
+            else
+            [
+                newMap + supplementKey→supplementValue
+            ];
+    ];
+    newMap
 ] : map;
-
+        
 /**
  * @method "integrate_and_with_"
  * @restricts "map's type"
@@ -776,52 +777,136 @@ Public method "integrate_and_with_" is
  */
 Semantic restriction "integrate_and_with_" is
 [
-	baseMapType : map's type,
-	supplementMapType : map's type,
-	actionType : [⊥,⊥,⊥]→map's type
+    baseMapType : map's type,
+    supplementMapType : map's type,
+    actionType : [⊥,⊥,⊥]→map's type
 |
-	if actionType[1] ≠ ⊥ ∧ [¬baseMapType ⊆ actionType[1]] then
-	[
-		Reject parse, expected:
-			"function's parameter to accept "
-			++ “baseMapType”
-			++ " (but it only accepts "
-			++ “actionType[1]”
-			++ ")"
-	]
-	else if [actionType[2] ≠ ⊥ ∧ 
-		[¬supplementMapType's key type ⊆ actionType[2]]] 
-	then
-	[
-		Reject parse, expected:
-			"repeatedly applied function to accept all key ∈ "
-			++ “supplementMapType's key type”
-			++ " (but it only accepts "
-			++ “actionType[2]”
-			++ ")"
-	]
-	else if [actionType[3] ≠ ⊥ ∧ 
-		[¬supplementMapType's value type ⊆ actionType[3]]] 
-	then
-	[
-		Reject parse, expected:
-			"repeatedly applied function to accept all values ∈ "
-			++ “supplementMapType's value type”
-			++ " (but it only accepts "
-			++ “actionType[3]”
-			++ ")"
-	]
-	else if [⎣baseMapType⎦ > 0 ∨ [⎣supplementMapType⎦ > 0]] then
-	[
-		If actionType's return type = ⊥ then
-		[
-			Reject parse, expected:
-				"repeatedly applied function to have a return type other than ⊥"
-		];
-	];
-	newKeyType ::= supplementMapType's key type ∪ baseMapType's key type;
-	newValueType ::= supplementMapType's value type ∪ baseMapType's value type;
-	lowerBound ::= ⎣baseMapType⎦ max ⎣supplementMapType⎦;
-	upperBound ::= ⎡baseMapType⎤ + ⎡supplementMapType⎤;
-	{newKeyType → newValueType | lowerBound..upperBound}
+    if actionType[1] ≠ ⊥ ∧ [¬baseMapType ⊆ actionType[1]] then
+    [
+        Reject parse, expected:
+            "repeatedly applied function to accept "
+            ++ “baseMapType”
+            ++ " (but it only accepts "
+            ++ “actionType[1]”
+            ++ ")"
+    ]
+    else if [actionType[2] ≠ ⊥ ∧ 
+        [¬supplementMapType's key type ⊆ actionType[2]]] 
+    then
+    [
+        Reject parse, expected:
+            "repeatedly applied function to accept all key ∈ "
+            ++ “supplementMapType's key type”
+            ++ " (but it only accepts "
+            ++ “actionType[2]”
+            ++ ")"
+    ]
+    else if [actionType[3] ≠ ⊥ ∧ 
+        [¬supplementMapType's value type ⊆ actionType[3]]] 
+    then
+    [
+        Reject parse, expected:
+            "repeatedly applied function to accept all values ∈ "
+            ++ “supplementMapType's value type”
+            ++ " (but it only accepts "
+            ++ “actionType[3]”
+            ++ ")"
+    ];
+    newKeyType ::= supplementMapType's key type ∪ baseMapType's key type;
+    newValueType ::= supplementMapType's value type ∪ baseMapType's value type;
+    {newKeyType → newValueType |}
+];
+
+/**
+ * Combine two or more {@param "map"}s. If there are duplicate keys, invoke {@param
+ * "action"} to handle duplicates.
+ * 
+ * @method "integrate«_‡,»with_"
+ * @param "maps" "<map…|2..>"
+ * @param "action" "[⊥,⊥,⊥]→map"
+ *         The function to apply when a duplicate key is encountered. The first
+ *         argument is the partially combined map. The second argument is a key
+ *         from {@param "supplementMap"} that was present in {@param "baseMap"}.
+ *         The third argument is the value associated with the second argument
+ *         within {@param "supplementValue"}. The answer is a complete
+ *         replacement for the partially combined map.
+ * @returns "map"
+ *          The fully combined map.
+ * @category "Collections" "Maps" "Transformers"
+ */
+Public method "integrate«_‡,and⁇»with_" is
+[
+    maps : <map…|2..>,
+    action : [⊥, ⊥, ⊥]→map
+|
+    newMap : map := integrate maps[1] and maps[2] with action;
+
+    From 3 to |maps| do
+    [
+         i : natural number
+     |
+         newMap := integrate newMap and maps[i] with action;
+    ];
+    newMap
+] : map;
+    
+/**
+ * @method "integrate_and_with_"
+ * @restricts "map's type"
+ * @restricts "map's type"
+ * @restricts "[⊥,⊥,⊥]→map's type"
+ */
+Semantic restriction "integrate«_‡,and⁇»with_" is
+[
+    mapsType :<map…|2..>'s type,
+    actionType : [⊥,⊥,⊥]→map's type
+|
+    If actionType[1] ≠ ⊥ ∧ [¬mapsType[1] ⊆ actionType[1]] then
+    [
+        Reject parse, expected:
+            "repeatedly applied function to accept to the first element of the tuple"
+            ++ “mapsType[1]”
+            ++ " (but it only accepts "
+            ++ “actionType[1]”
+            ++ ")"
+    ];
+
+    newKeyType : any's type := mapsType[1]'s key type;
+    newValueType : any's type := mapsType[1]'s value type;
+
+    From 2 to | mapsType's leading types | + 1 do
+    [
+         i : natural number
+     |
+         If actionType[2] ≠ ⊥ ∧ 
+            [¬mapsType[i]'s key type ⊆ actionType[2]] 
+        then
+        [
+            Reject parse, expected:
+                "repeatedly applied function to the input tuple element at "
+                ++ “i”
+                ++ " to accept all key ∈ "
+                ++ “mapsType[i]'s key type”
+                ++ " (but it only accepts "
+                ++ “actionType[2]”
+                ++ ")"
+        ];
+        If actionType[3] ≠ ⊥ ∧ 
+            [¬mapsType[i]'s value type ⊆ actionType[3]] 
+        then
+        [
+            Reject parse, expected:
+                "repeatedly applied function to the input tuple element at "
+                ++ “i”
+                ++ " to accept all values ∈ "
+                ++ “mapsType[i]'s value type”
+                ++ " (but it only accepts "
+                ++ “actionType[3]”
+                ++ ")"
+        ];
+         newKeyType := newKeyType ∪ mapsType[i]'s key type;
+        newValueType := newValueType ∪ mapsType[i]'s value type;
+    ];
+        
+    {newKeyType → newValueType |}
 ];
