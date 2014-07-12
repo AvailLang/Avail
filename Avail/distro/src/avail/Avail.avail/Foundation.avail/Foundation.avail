@@ -733,6 +733,8 @@ Extends
 	),
 	"Late Math" =
 	(
+		"greatest common denominator of_and_",
+		"least common multiple of_and_",
 		"log_of_",
 		"max_",
 		"min_",

@@ -50,6 +50,8 @@ Uses
 	"Types",
 	"Variables"
 Names
+	"greatest common denominator of_and_",
+	"least common multiple of_and_",
 	"log_of_",
 	"negative integer",
 	"nonpositive integer",
@@ -1479,7 +1481,50 @@ Public method "negative integer" is [(-∞..-1]];
  * strictly less than {@code "1"}.
  * 
  * @type "nonpositive integer"
+ * @category "Math"
  * @supertype "(-∞..0]"
  * @category "Mathematics" "Integers" "Types" "Constants"
  */
 Public method "nonpositive integer" is [(-∞..0]];
+	
+/**
+ * Find the greatest common denominator of two numbers using Euclid's theorem.
+ * @method "greatest common denominator of_and_"
+ * @category "Mathematics" "Integers"
+ * @param "input1" "integer" the first number of the pair to check.
+ * @param "input2" "integer" the second number of the pair to check.
+ * @returns "integer" the greates common denominator of the numbers.
+ */
+
+Forward method "greatest common denominator of_and_" is 
+	[integer, integer] → integer;
+
+Method "greatest common denominator of_and_" is 
+[
+ 	input1 : integer,
+ 	input2 : integer
+ |
+ 	greater : integer := |input1| max |input2|;
+	lesser : integer := |input1| min |input2|;
+	
+	quotient ::= greater ÷ lesser;
+	remainder ::= greater mod lesser;
+	
+	if remainder = 0 then [lesser]
+	else [greatest common denominator of lesser and remainder]
+]: integer;
+
+/**
+ * Find the least common multiple of two numbers using Euclid's theorem.
+ * @category "Mathematics" "Integers"
+ * @method "least common multiple of_and_"
+ * @param "input1" "integer" the first number of the pair to check.
+ * @param "input2" "integer" the second number of the pair to check.
+ * @returns "integer" least common multiple of the numbers.
+ */
+Public method "least common multiple of_and_" is
+[ 	input1 : integer,
+ 	input2 : integer
+ |
+ 	input1 × input2 ÷ greatest common denominator of input1 and input2
+]: integer;
