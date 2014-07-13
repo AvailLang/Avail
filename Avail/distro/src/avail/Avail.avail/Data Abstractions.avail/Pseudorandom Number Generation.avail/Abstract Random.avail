@@ -295,3 +295,22 @@ Semantic restriction "_'s⁇next shuffling of_" is
 |
 	<<>, ∪ tupleType[1..|tupleType's leading types| + 1]… | ||tupleType||>
 ];
+	
+Method "int32" is [[0..2^32)]:[0..2^32)'s type;
+
+Method "equal distribution for_and_rejection rate_" is
+[
+ 	a : integer,
+ 	b : integer,
+ 	rate : [1..250]
+ |
+ 	int32Size ::= 2^32;
+ 	rangeSize ::= |a-b|;
+  	maxRejectionCount ::= rangeSize × rate ÷ 1000;
+  	countInts : natural number := 1;
+  	
+  	Until [int32Size mod (rangeSize ÷ countInts) ≤ maxRejectionCount ∧
+  	       	[(rangeSize mod countInts) = 0 ]]
+  	do [++countInts;];
+	
+];
