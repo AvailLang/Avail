@@ -262,7 +262,7 @@ Private method "increment function" is
 	[
 		var : number→/→⊥
 	|
-		var ?= ↓var + 1;
+		var ?= eject var + 1;
 	] : ⊤
 ];
 
@@ -430,7 +430,7 @@ Private method "valued pre-increment function" is
 	[
 		var : number→/→⊥
 	|
-		var ?= ↓var + 1;
+		var ?= eject var + 1;
 		↓var
 	]
 ];
@@ -517,7 +517,7 @@ Private method "decrement function" is
 	[
 		var : number→/→⊥
 	|
-		var ?= ↓var - 1;
+		var ?= eject var - 1;
 	] : ⊤
 ];
 
@@ -672,7 +672,7 @@ Private method "valued pre-decrement function" is
 	[
 		var : number→/→⊥
 	|
-		var ?= ↓var - 1;
+		var ?= eject var - 1;
 		↓var
 	]
 ];

@@ -335,6 +335,9 @@ Semantic restriction "Observe|observe_" is
 	observeFunction's return type
 ];
 
+/* Record the original observe function. */
+originalObserveFunction ::= implicit observe function;
+
 /* Whenever a variable with write reactors is written when write tracing is not
  * enabled, then retry the write inside a narrowly scoped observer.
  */
@@ -345,3 +348,7 @@ implicit observe function :=
 	|
 		Observe [Invoke f with args;];
 	];
+
+/* Restore the original observe function if the module is unloaded. */
+After the current module is unloaded, do
+	[implicit observe function := originalObserveFunction;];
