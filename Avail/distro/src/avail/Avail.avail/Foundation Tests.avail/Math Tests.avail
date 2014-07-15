@@ -529,3 +529,17 @@ Test "bit∧" in math test suite is
 		Require: neg bit∧ power = power;
 	];
 ];
+
+Test "greatest common denominator" in math test suite is
+[
+	Require: greatest common denominator of 6 and 12 = 6;
+	Require: greatest common denominator of 252 and 105 = 21;
+	Require: greatest common denominator of 8 and 7 = 1;
+];
+
+Test "least common multiple" in math test suite is
+[
+	Require: least common multiple of 20020 and 15400 = 200200;
+	Require: least common multiple of 9 and 10 = 90;
+	Require: least common multiple of 6426 and 13680 = 4883760;
+];

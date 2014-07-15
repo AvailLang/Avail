@@ -1,5 +1,5 @@
 /*
- * Feature Renames (Inequalities).avail
+ * Feature Renames.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,14 +30,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Feature Renames (Inequalities)"
+Module "Feature Renames"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
 	"Avail" =
 	(
+		"Export_as a new name",
 		"Method_is_",
+		"atom",
+		"string",
 		"$…",
+		"_+_",
+		"_-_",
+		"_×_",
+		"_÷_",
+		"-_",
 		"_<_",
 		"_≤_",
 		"_>_",
@@ -46,28 +54,26 @@ Uses
 		"«_‡«=|≥|>»!»"
 	)
 Names
-	"chained less-than atom",
-	"chained greater-than atom",
-	"greater-than atom",
-	"greater-than-equal atom",
-	"less-than atom",
-	"less-than-equal atom"
+	/* These are dynamically determined. */
 Body
 
-_lessThan ::= $"_<_";
-Method "less-than atom" is [_lessThan];
+Method "Export_as_" is
+[
+	anAtom : atom,
+	aString : string
+|
+	Method aString is [anAtom];
+	Export aString as a new name;
+];
 
-_lessThanEqual ::= $"_≤_";
-Method "less-than-equal atom" is [_lessThanEqual];
-
-_chainedLessThan ::= $"«_‡«=|≤|<»!»";
-Method "chained less-than atom" is [_chainedLessThan];
-
-_greaterThan ::= $"_>_";
-Method "greater-than atom" is [_greaterThan];
-
-_greaterThanEqual ::= $"_≥_";
-Method "greater-than-equal atom" is [_greaterThanEqual];
-
-_chainedGreaterThan ::= $"«_‡«=|≥|>»!»";
-Method "chained greater-than atom" is [_chainedGreaterThan];
+Export $"_+_" as "plus atom";
+Export $"_-_" as "minus atom";
+Export $"_×_" as "times atom";
+Export $"_÷_" as "divide atom";
+Export $"-_" as "negate atom";
+Export $"_<_" as "less-than atom";
+Export $"_≤_" as "less-than-equal atom";
+Export $"«_‡«=|≤|<»!»" as "chained less-than atom";
+Export $"_>_" as "greater-than atom";
+Export $"_≥_" as "greater-than-equal atom";
+Export $"«_‡«=|≥|>»!»" as "chained greater-than atom";
