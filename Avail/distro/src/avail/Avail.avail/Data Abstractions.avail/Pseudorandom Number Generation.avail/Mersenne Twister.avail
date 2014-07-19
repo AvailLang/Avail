@@ -429,3 +429,26 @@ Test "Mersenne Twister standard test vectors" in Mersenne Twister test suite is
 		Require: v[1] = v[2] (format "#“①”" with v[3]);
 	];
 ];
+			
+Test "Mersenne Twister equal distribution test" 
+	in Mersenne Twister test suite is
+[
+ 	rng ::= a Mersenne Twister from <291, 52,74,89, 564, 837, 1115,72,1,33,324234435>;
+ 	distribution : {integer → whole number|} := {};
+ 	minimum : whole number := 2^32;
+ 	maximum : whole number := 0;
+ 	Repeat
+ 	[
+ 	 	nextValue ::= rng's next value in [0..5];
+ 	 	Require: 0 ≤ nextValue ≤ 5;
+ 	 	minimum := min <rng's current element, minimum>;
+ 	 	maximum := max <rng's current element, maximum>;
+ 	 	Advance rng;
+ 	 	throwAway ::= distribution[nextValue] 
+ 	 		else [distribution := distribution + nextValue → 0; 1];
+ 	 	distribution := distribution + nextValue → distribution[nextValue] + 1; 
+ 	] 100000 times;
+ 	Print: format "distribution=“①”\n" with distribution;
+ 	Print: format "minimum=“①”\n" with minimum;
+ 	Print: format "maximum=“①”\n" with maximum;
+];
