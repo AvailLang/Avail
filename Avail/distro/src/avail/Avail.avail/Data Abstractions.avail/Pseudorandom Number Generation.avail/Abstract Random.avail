@@ -133,15 +133,16 @@ Private method "_/_" is
 			denominator ::= den
 	] else
 	[
-	 	gcd : natural number := greatest common denominator of 
-	 		cast num into [n : natural number | n] and den;
-		reducedNumerator : natural number := cast num ÷ gcd into 
-			[n : natural number | n];
+		gcd : natural number := greatest common denominator of 
+			(cast modNumerator into [n : natural number | n]) and den;
+		
+		reducedNumerator : whole number := modNumerator ÷ gcd;
+		
 		reducedDenominator : natural number := cast den ÷ gcd into 
 			[n : natural number | n];
 		a nonnegative mixed fraction with
 			whole number part ::= wholeNumber,
-			numerator ::= reducedNumerator,
+			numerator ::= reducedNumerator ,
 			denominator ::= reducedDenominator
 	]
 ]:nonnegative mixed fraction;
@@ -337,23 +338,17 @@ Public method "_'s⁇next«value in»⁇_" is
 
 	/*TODO: [RAA] Write proof of equal probability distribution */
 
-/**DEBUG*Print: format "rng's current element=“①”\n" with rng's current element;*/
-
 	/*The size of the random number range*/
-	rngRangeSize : natural number := |rng's element type|→natural number;
+	rngRangeSize : natural number := (|rng's element type|→natural number) + 1;
 	
 	/* The equal interval where border cases occur */
 	baseInterval : nonnegative mixed fraction := 
-			rngRangeSize / (|range|→natural number);
-	
-/**DEBUG*Print: format "baseInterval=“①”\n" with baseInterval;*/
+			rngRangeSize / ((|range|→natural number) + 1);
 		
 	/* Determine the # of times a border case has been crossed; this indicates
 	 * how far along the range's axis the value has progressed */
 	result : nonnegative mixed fraction := 
 			rng's current element ÷ baseInterval;
-
-/**DEBUG*Print: format "result=“①”\n" with result;*/			
 			
 	/* Check the number of border cases crossed for rng's current element + 1.
 	 * If the value of the whole number in the mixed fraction is not equal to 
@@ -362,19 +357,15 @@ Public method "_'s⁇next«value in»⁇_" is
 	 * rng's current element and rng's current element + 1 */
 	incrementedResult :  nonnegative mixed fraction := 
 		(rng's current element + 1) ÷ baseInterval;
-				
-/**DEBUG*Print: format "incrementedResult=“①”\n" with incrementedResult;*/
 					
 	/* Shift the resulting value along the axis of the intended range */
 	lowerLimit : integer := cast⎣range⎦ into [i : integer | i];
-	
-/**DEBUG*Print: format "lowerLimit=“①”\n" with lowerLimit;*/
 	
 	/* The difference between the incremented result and the result */
 	rolledDifferenceRange : nonnegative mixed fraction :=
 		incrementedResult - result;
 	
-/**DEBUG*Print: format "rolledDifferenceRange=“①”\n" with rolledDifferenceRange;*/
+
 	
 	/* Continue rolling until a non border condition is reached */
 	While 
@@ -386,7 +377,6 @@ Public method "_'s⁇next«value in»⁇_" is
 	]
 	do
 	[		
-	 	Print: "Reroll\n";
 		/* The weighted probability of the lower limit of the subRange*/
 		lowerLimitProbability : nonnegative mixed fraction :=
 				result × baseInterval;
