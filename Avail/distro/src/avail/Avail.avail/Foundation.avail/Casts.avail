@@ -199,6 +199,7 @@ Public method "Cast|cast_into_else_" is
  * @method "Cast|cast_into_"
  * @restricts "any's type"
  * @restricts "[⊥]→⊤'s type"
+ * @restricts "[]→⊤'s type"
  */
 Semantic restriction "Cast|cast_into_else_" is
 [

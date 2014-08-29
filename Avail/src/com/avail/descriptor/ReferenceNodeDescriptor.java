@@ -134,7 +134,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
-		object.setSlot(VARIABLE, aBlock.value(object.slot(VARIABLE)));
+		object.setSlot(VARIABLE, aBlock.valueNotNull(object.slot(VARIABLE)));
 	}
 
 	@Override @AvailMethod

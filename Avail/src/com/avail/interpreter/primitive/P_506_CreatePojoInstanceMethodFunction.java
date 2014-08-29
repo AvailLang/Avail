@@ -94,7 +94,7 @@ extends Primitive
 		if (!pojoType.isPojoFusedType())
 		{
 			final Class<?> javaClass =
-				(Class<?>) pojoType.javaClass().javaObject();
+				(Class<?>) pojoType.javaClass().javaObjectNotNull();
 			try
 			{
 				method = javaClass.getMethod(
@@ -114,7 +114,8 @@ extends Primitive
 			final A_Map ancestors = pojoType.javaAncestors();
 			for (final A_BasicObject ancestor : ancestors.keysAsSet())
 			{
-				final Class<?> javaClass = (Class<?>) ancestor.javaObject();
+				final Class<?> javaClass =
+					(Class<?>) ancestor.javaObjectNotNull();
 				try
 				{
 					methods.add(javaClass.getMethod(

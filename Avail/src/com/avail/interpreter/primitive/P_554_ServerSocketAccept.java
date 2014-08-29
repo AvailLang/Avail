@@ -91,7 +91,7 @@ extends Primitive
 				: E_INVALID_HANDLE);
 		}
 		final AsynchronousServerSocketChannel socket =
-			(AsynchronousServerSocketChannel) pojo.javaObject();
+			(AsynchronousServerSocketChannel) pojo.javaObjectNotNull();
 		final A_Fiber current = interpreter.fiber();
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),

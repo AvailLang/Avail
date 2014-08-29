@@ -1826,7 +1826,8 @@ public abstract class AbstractAvailCompiler
 		 * Record an indication of what was expected at this parse position.
 		 *
 		 * @param aString
-		 *        The string to look up.
+		 *        The string describing something that was expected at this
+		 *        position under some interpretation so far.
 		 */
 		void expected (final String aString)
 		{
@@ -2518,11 +2519,10 @@ public abstract class AbstractAvailCompiler
 						nodeMap);
 				}
 			});
-		final A_Phrase transformed = aBlock.value(
+		final A_Phrase transformed = aBlock.valueNotNull(
 			objectCopy,
 			parentNode,
 			outerNodes);
-		assert transformed != null;
 		transformed.makeShared();
 		nodeMap.put(object, transformed);
 		return transformed;
@@ -4137,7 +4137,13 @@ public abstract class AbstractAvailCompiler
 				final A_Token token = start.peekToken();
 				if (token.tokenType() != KEYWORD)
 				{
-					start.expected("variable name to be a keyword");
+					// Only count this as a possibility if at least one token
+					// has already been parsed for this message, otherwise this
+					// feedback would be too noisy.
+					if (consumedAnything)
+					{
+						start.expected("variable name to be a keyword");
+					}
 					break;
 				}
 				// Look up the variable in the local scope first.

@@ -35,12 +35,13 @@ Versions
 	"1.0.0 DEV 2014-04-28"
 Extends
 	"Abstract Iterators",
-	"Bounded Iterators",
+	"Bounded Readers",
 	"Buffered Iterators",
-	"Collection Iterators",
-	"Counting Iterators",
-	"Delimited Iterators",
+	"Collection Readers",
+	"Counting Readers",
+	"Delimited Readers",
 	"Generators",
+	"Random Access Buffered Iterators",
 	"Sizable Positionable Iterators",
-	"Stream Iterators"
+	"Stream Readers"
 Body

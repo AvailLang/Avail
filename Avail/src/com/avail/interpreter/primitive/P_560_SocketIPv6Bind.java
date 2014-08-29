@@ -80,7 +80,7 @@ extends Primitive
 				: E_INVALID_HANDLE);
 		}
 		final AsynchronousSocketChannel socket =
-			(AsynchronousSocketChannel) pojo.javaObject();
+			(AsynchronousSocketChannel) pojo.javaObjectNotNull();
 		// Build the big-endian address byte array.
 		final byte[] addressBytes = new byte[16];
 		for (int i = 0; i < addressBytes.length; i++)

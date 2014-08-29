@@ -1,5 +1,5 @@
 /*
- * Delimited Iterators.avail
+ * Delimited Readers.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,16 +30,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Delimited Iterators"
+Module "Delimited Readers"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
 	"Abstract Iterators",
-	"Collection Iterators" = ("an iterator over_"),
+	"Collection Readers" = ("a reader over_"),
 	"Foundation",
 	"Unit Testing"
 Names
-	"delimited iterator test suite",
+	"delimited a reader test suite",
 	"_delimited by_",
 	/* TODO: [TLS] Implement this! */
 	"_delimited by any of_"
@@ -50,16 +50,16 @@ Body
 "exhaustion state" is a new field atom;
 
 /**
- * A delimited iterator answers tuples of elements from its decorated iterator.
+ * A delimited reader answers tuples of elements from its decorated reader.
  * These tuples are separated by occurrences of the delimiter.
  *
- * @type "delimited iterator"
- * @supertype "iterator"
+ * @type "delimited reader"
+ * @supertype "reader"
  */
-Class "delimited iterator" extends iterator
+Class "delimited reader" extends reader
 	with fields
 		element type : tuple's type,
-		decorated iterator : iterator,
+		decorated reader : reader,
 		delimiter : <any…|1..>
 	with mutable fields
 		referable current value : tuple,
@@ -67,39 +67,39 @@ Class "delimited iterator" extends iterator
 
 Method "_is exhausted" is
 [
-	anIterator : delimited iterator
+	aReader : delimited reader
 |
-	anIterator's exhaustion state
+	aReader's exhaustion state
 ] : boolean;
 
-delimited iterator's current element method is
+delimited reader's current element method is
 [
-	anIterator : delimited iterator
+	aReader : delimited reader
 |
-	/* If this is the first inquiry, then advance the iterator (to capture the
+	/* If this is the first inquiry, then advance the reader (to capture the
 	 * current element).
 	 */
-	If ↑anIterator's current value is unassigned then
+	If ↑aReader's current value is unassigned then
 	[
-		Advance anIterator;
+		Advance aReader;
 	];
-	anIterator's current value
+	aReader's current value
 ] : tuple;
 
-delimited iterator's advance method is
+delimited reader's advance method is
 [
-	anIterator : delimited iterator
+	aReader : delimited reader
 |
-	inner ::= anIterator's decorated iterator;
+	inner ::= aReader's decorated reader;
 	If inner is exhausted then
 	[
-		Clear ↑anIterator's current value;
-		anIterator's exhaustion state := true;
+		Clear ↑aReader's current value;
+		aReader's exhaustion state := true;
 	]
 	else
 	[
 		result : tuple := <>;
-		delimiter ::= anIterator's delimiter;
+		delimiter ::= aReader's delimiter;
 		index : natural number := 1;
 		Until [inner is exhausted ∨ [index > |delimiter|]]
 		do
@@ -116,56 +116,56 @@ delimited iterator's advance method is
 			];
 			Advance inner;
 		];
-		anIterator's current value := result;
+		aReader's current value := result;
 	];
 ] : ⊤;
 
 /**
- * Construct and answer an {@type "iterator"} that produces tuples of values
- * from {@param "anIterator"}. These tuples are separated by occurrences of
+ * Construct and answer an {@type "reader"} that produces tuples of values
+ * from {@param "aReader"}. These tuples are separated by occurrences of
  * {@param "delimiterTuple"} (which will never be produced as output from the
- * answered iterator).
+ * answered reader).
  *
  * @method "_delimited by_"
- * @param "anIterator" "iterator"
- *        An iterator.
+ * @param "aReader" "reader"
+ *        A reader to decorate.
  * @param "delimiterTuple" "tuple"
  *        The delimiter.
- * @returns "iterator of tuple"
- *          The requested iterator.
+ * @returns "reader of tuple"
+ *          The requested reader.
  */
 Public method "_delimited by_" is
 [
-	anIterator : iterator,
+	aReader : reader,
 	delimiterTuple : <any…|1..>
 |
-	a delimited iterator with
-		element type ::= <anIterator's element type…|>,
-		decorated iterator ::= anIterator,
+	a delimited reader with
+		element type ::= <aReader's element type…|>,
+		decorated reader ::= aReader,
 		delimiter ::= delimiterTuple,
 		exhaustion state := false
-] : iterator of tuple;
+] : reader of tuple;
 
 Semantic restriction "_delimited by_" is
 [
-	iteratorType : iterator's type,
+	readerType : reader's type,
 	delimiterType : <any…|1..>'s type
 |
-	extend delimited iterator with
-		element type : <iteratorType's element type's instance…|>'s type,
-		decorated iterator : iteratorType,
+	extend delimited reader with
+		element type : <readerType's element type's instance…|>'s type,
+		decorated reader : readerType,
 		delimiter : delimiterType
 ];
 
-"delimited iterator test suite" is a new atom;
-New test suite delimited iterator test suite extends iterators test suite;
+"delimited reader test suite" is a new atom;
+New test suite delimited reader test suite extends iterators test suite;
 
-Test "delimited iterator basics" in delimited iterator test suite is
+Test "delimited reader basics" in delimited reader test suite is
 [
 	ref ::= 1 to 10;
 	d ::= <1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, 9, 0, 10>;
 	index : natural number := 1;
-	iter ::= an iterator over d delimited by <0>;
+	iter ::= a reader over d delimited by <0>;
 	For each iter do
 	[
 		element : <[0..10]…|>
@@ -175,10 +175,10 @@ Test "delimited iterator basics" in delimited iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "delimited iterator(no occurrences)" in delimited iterator test suite is
+Test "delimited reader(no occurrences)" in delimited reader test suite is
 [
 	ref ::= 1 to 10;
-	iter ::= an iterator over 1 to 10 delimited by <0>;
+	iter ::= a reader over 1 to 10 delimited by <0>;
 	element ::= iter's current element;
 	Require: element = ref;
 	Advance iter;

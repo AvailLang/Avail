@@ -1,5 +1,5 @@
 /*
- * Stream Iterators.avail
+ * Stream Readers.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Stream Iterators"
+Module "Stream Readers"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
@@ -44,117 +44,122 @@ Uses
 	),
 	"Unit Testing"
 Names
-	"an iterator over_",
-	"stream iterator",
-	"stream iterator test suite"
+	"a reader over_",
+	"stream reader",
+	"stream reader test suite"
 Body
 
 "adapted stream" is a new field atom;
-"iterator id" is a new atom;
+"reader id" is a new atom;
+
+atomVariable ::= ↑atom;
 
 /**
- * A stream iterator consumes the elements of a stream. A stream iterator can be
+ * A stream reader consumes the elements of a stream. A stream reader can be
  * rewound to any position previously answered by {@method
  * "_'s⁇position"}.
  *
- * @type "stream iterator"
+ * @type "stream reader"
  * @supertype "positionable iterator"
+ * @supertype "reader"
  */
-Public class "stream iterator" extends positionable iterator
+Public class "stream reader" extends reader ∩ positionable iterator
 	with field
-		position type : atom's type
+		position variable : atomVariable
 	with mutable field
 		adapted stream : stream;
 
 Method "_is exhausted" is
 [
-	anIterator : stream iterator
+	aReader : stream reader
 |
-	anIterator's adapted stream is empty
+	aReader's adapted stream is empty
 ] : boolean;
 
-stream iterator's current element method is
+stream reader's current element method is
 [
-	anIterator : stream iterator
+	aReader : stream reader
 |
-	anIterator's adapted stream's head
+	aReader's adapted stream's head
 ] : any;
 
-stream iterator's advance method is
+stream reader's advance method is
 [
-	anIterator : stream iterator
+	aReader : stream reader
 |
-	anIterator's adapted stream := anIterator's adapted stream's tail;
+	aReader's adapted stream := aReader's adapted stream's tail;
 ] : ⊤;
 
 Method "_'s⁇position" is
 [
-	anIterator : stream iterator
+	aReader : stream reader
 |
 	/* Create an atom as a memento of the current position. Use the "adapted
-	 * stream" atom to store the current stream, and "iterator id" to store the
-	 * argument. In this way the memento is specific to a particular iterator
+	 * stream" atom to store the current stream, and "reader id" to store the
+	 * argument. In this way the memento is specific to a particular reader
 	 * and position.
 	 */
 	position ::= new atom named "current position";
-	position[iterator id] := anIterator;
-	position[adapted stream] := anIterator's adapted stream;
+	position[reader id] := aReader;
+	position[adapted stream] := aReader's adapted stream;
 	position
 ] : atom;
 
 Method "_'s⁇position:=_" is
 [
-	anIterator : stream iterator,
+	aReader : stream reader,
 	position : atom
 |
-	/* Only allow a position memento previously allocated by this iterator to be
+	/* Only allow a position memento previously allocated by this reader to be
 	 * used to change its current position.
 	 */
-	Unless iterator id ∈ position  ∧ [position[iterator id] = anIterator] then
+	Unless reader id ∈ position  ∧ [position[reader id] = aReader] then
 	[
 		Raise an invalid-position exception
 	];
 	Assert: adapted stream ∈ position;
-	anIterator's adapted stream := cast position[adapted stream]
+	aReader's adapted stream := cast position[adapted stream]
 		into [t : stream | t];
 ];
 
 /**
- * Construct and answer an iterator that destructively consumes the elements of
+ * Construct and answer a reader that destructively consumes the elements of
  * the specified stream.
  * 
- * @method "an iterator over_"
+ * @method "a reader over_"
  * @param "aStream" "stream"
  *    aStream - A stream.
- * @returns "stream iterator"
- *    The requested iterator.
+ * @returns "stream reader"
+ *    The requested reader.
  */
-Public method "an iterator over_" is
+Public method "a reader over_" is
 [
 	aStream : stream
 |
-	a stream iterator with
+	newVar ::= cast new ↑atom into [v : atomVariable | v];
+	/* Leave the variable uninitialized. */
+	a stream reader with
 		element type ::= aStream's element type,
-		position type ::= atom,
+		position variable ::= newVar,
 		adapted stream := aStream
-] : stream iterator;
+] : stream reader;
 
-Semantic restriction "an iterator over_" is
+Semantic restriction "a reader over_" is
 [
 	streamType : stream's type
 |
-	extend stream iterator with
+	extend stream reader with
 		element type : streamType's element type
 ];
 
-"stream iterator test suite" is a new atom;
-New test suite stream iterator test suite extends iterators test suite;
+"stream reader test suite" is a new atom;
+New test suite stream reader test suite extends iterators test suite;
 
-Test "stream iterator basics" in stream iterator test suite is
+Test "stream reader basics" in stream reader test suite is
 [
 	ref ::= 1 to 10;
 	index : natural number := 1;
-	iter ::= an iterator over a counting stream from 1 to 10;
+	iter ::= a reader over a counting stream from 1 to 10;
 	For each iter do
 	[
 		element : [1..10]
@@ -164,11 +169,11 @@ Test "stream iterator basics" in stream iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "stream iterator (map)" in stream iterator test suite is
+Test "stream reader (map)" in stream reader test suite is
 [
 	ref ::= <1, 4, 9, 16, 25, 36, 49, 64, 81, 100>;
 	index : natural number := 1;
-	iter ::= map an iterator over a counting stream from 1 to 10
+	iter ::= map a reader over a counting stream from 1 to 10
 		through [i : [1..10] | i × i];
 	For each iter do
 	[
@@ -179,11 +184,11 @@ Test "stream iterator (map)" in stream iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "stream iterator (filter)" in stream iterator test suite is
+Test "stream reader (filter)" in stream reader test suite is
 [
 	ref ::= <2, 4, 6, 8, 10>;
 	index : natural number := 1;
-	iter ::= filter an iterator over a counting stream from 1 to 10
+	iter ::= filter a reader over a counting stream from 1 to 10
 		by [i : [1..10] | i is even];
 	For each iter do
 	[
@@ -194,20 +199,20 @@ Test "stream iterator (filter)" in stream iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "stream iterator (concatenation)" in stream iterator test suite is
+Test "stream reader (concatenation)" in stream reader test suite is
 [
 	ref ::= 1 to 10;
 	index : natural number := 1;
 	iters ::= <
-		an exhausted iterator,
-		an iterator over a counting stream from 1 to 2,
-		an exhausted iterator,
-		an exhausted iterator,
-		an iterator over a counting stream from 3 to 7,
-		an exhausted iterator,
-		an iterator over a counting stream from 8 to 8,
-		an iterator over a counting stream from 9 to 10,
-		an exhausted iterator>;
+		an exhausted reader,
+		a reader over a counting stream from 1 to 2,
+		an exhausted reader,
+		an exhausted reader,
+		a reader over a counting stream from 3 to 7,
+		an exhausted reader,
+		a reader over a counting stream from 8 to 8,
+		a reader over a counting stream from 9 to 10,
+		an exhausted reader>;
 	iter ::= concatenate iters;
 	For each iter do
 	[
@@ -218,20 +223,20 @@ Test "stream iterator (concatenation)" in stream iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "stream iterator (lexical concatenation)" in stream iterator test suite is
+Test "stream reader (lexical concatenation)" in stream reader test suite is
 [
 	ref ::= 1 to 10;
 	index : natural number := 1;
 	iters ::= <
-		an exhausted iterator,
-		an iterator over a counting stream from 1 to 2,
-		an exhausted iterator,
-		an exhausted iterator,
-		an iterator over a counting stream from 3 to 7,
-		an exhausted iterator,
-		an iterator over a counting stream from 8 to 8,
-		an iterator over a counting stream from 9 to 10,
-		an exhausted iterator>;
+		an exhausted reader,
+		a reader over a counting stream from 1 to 2,
+		an exhausted reader,
+		an exhausted reader,
+		a reader over a counting stream from 3 to 7,
+		an exhausted reader,
+		a reader over a counting stream from 8 to 8,
+		a reader over a counting stream from 9 to 10,
+		an exhausted reader>;
 	iter ::= iters[1]
 		++ iters[2]
 		++ iters[3]
@@ -250,15 +255,15 @@ Test "stream iterator (lexical concatenation)" in stream iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "stream iterator (zip)" in stream iterator test suite is
+Test "stream reader (zip)" in stream reader test suite is
 [
 	ref ::= <
 		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
 		<6, 36>, <7, 49>, <8, 64>, <9, 81>, <10, 100>>;
 	index : natural number := 1;
 	iters ::= <
-		an iterator over a counting stream from 1 to 10,
-		map an iterator over a counting stream from 1 to 10
+		a reader over a counting stream from 1 to 10,
+		map a reader over a counting stream from 1 to 10
 			through [n : [1..10] | n × n]>;
 	iter ::= zip iters;
 	For each iter do
@@ -270,15 +275,15 @@ Test "stream iterator (zip)" in stream iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "stream iterator (lexical zip)" in stream iterator test suite is
+Test "stream reader (lexical zip)" in stream reader test suite is
 [
 	ref ::= <
 		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
 		<6, 36>, <7, 49>, <8, 64>, <9, 81>, <10, 100>>;
 	index : natural number := 1;
 	iters ::= <
-		an iterator over a counting stream from 1 to 10,
-		map an iterator over a counting stream from 1 to 10
+		a reader over a counting stream from 1 to 10,
+		map a reader over a counting stream from 1 to 10
 			through [n : [1..10] | n × n]>;
 	iter ::= iters[1] zip iters[2];
 	For each iter do
@@ -290,11 +295,11 @@ Test "stream iterator (lexical zip)" in stream iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "stream iterator (take_from_)" in stream iterator test suite is
+Test "stream reader (take_from_)" in stream reader test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
-	iter ::= an iterator over a counting stream from 1 to 10;
+	iter ::= a reader over a counting stream from 1 to 10;
 	result ::= take 5 from iter;
 	For each result do
 	[
@@ -306,11 +311,11 @@ Test "stream iterator (take_from_)" in stream iterator test suite is
 	Require: [take 6 from iter] raises exhausted-iterator exception;
 ];
 
-Test "stream iterator (take from_while_)" in stream iterator test suite is
+Test "stream reader (take from_while_)" in stream reader test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
-	iter ::= an iterator over a counting stream from 1 to 10;
+	iter ::= a reader over a counting stream from 1 to 10;
 	result ::= take from iter while [n : [1..10] | n ≤ 5];
 	For each result do
 	[
@@ -321,11 +326,11 @@ Test "stream iterator (take from_while_)" in stream iterator test suite is
 	Require: iter's current element = 6;
 ];
 
-Test "stream iterator (take from_until_)" in stream iterator test suite is
+Test "stream reader (take from_until_)" in stream reader test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
-	iter ::= an iterator over a counting stream from 1 to 10;
+	iter ::= a reader over a counting stream from 1 to 10;
 	result ::= take from iter until [n : [1..10] | n ≥ 6];
 	For each result do
 	[
@@ -336,11 +341,11 @@ Test "stream iterator (take from_until_)" in stream iterator test suite is
 	Require: iter's current element = 6;
 ];
 
-Test "stream iterator (Drop_from_)" in stream iterator test suite is
+Test "stream reader (Drop_from_)" in stream reader test suite is
 [
 	ref ::= 6 to 10;
 	index : natural number := 1;
-	iter ::= an iterator over a counting stream from 1 to 10;
+	iter ::= a reader over a counting stream from 1 to 10;
 	Drop 5 from iter;
 	For each iter do
 	[
@@ -352,11 +357,11 @@ Test "stream iterator (Drop_from_)" in stream iterator test suite is
 	Require: [Drop 6 from iter;] raises exhausted-iterator exception;
 ];
 
-Test "stream iterator (Drop from_while_)" in stream iterator test suite is
+Test "stream reader (Drop from_while_)" in stream reader test suite is
 [
 	ref ::= 6 to 10;
 	index : natural number := 1;
-	iter ::= an iterator over a counting stream from 1 to 10;
+	iter ::= a reader over a counting stream from 1 to 10;
 	Drop from iter while [n : [1..10] | n ≤ 5];
 	For each iter do
 	[
@@ -367,11 +372,11 @@ Test "stream iterator (Drop from_while_)" in stream iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "stream iterator (Drop from_until_)" in stream iterator test suite is
+Test "stream reader (Drop from_until_)" in stream reader test suite is
 [
 	ref ::= 6 to 10;
 	index : natural number := 1;
-	iter ::= an iterator over a counting stream from 1 to 10;
+	iter ::= a reader over a counting stream from 1 to 10;
 	Drop from iter until [n : [1..10] | n ≥ 6];
 	For each iter do
 	[
@@ -382,9 +387,9 @@ Test "stream iterator (Drop from_until_)" in stream iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "stream iterator (position)" in stream iterator test suite is
+Test "stream reader (position)" in stream reader test suite is
 [
-	iter ::= an iterator over a counting stream from 1 to 10;
+	iter ::= a reader over a counting stream from 1 to 10;
 	i : [1..11] := 1;
 	For each iter do
 	[

@@ -39,28 +39,37 @@ Uses
 	"Foundation"
 Names
 	"invalid-position exception",
-	"position type",
+	"position variable",
 	"positionable iterator",
 	"_positioned by_",
 	"_'s⁇position",
-	"_'s⁇position type",
-	"_'s⁇position:=_"
+	"_'s⁇position:=_",
+	"_'s⁇position variable"
 Body
 
-"position type" is a new field atom;
+"position variable" is a new field atom;
 
 /**
  * A positionable iterator supports explicitly {@method "_'s⁇position"
  * querying} and {@method "_'s⁇position:=_" setting} the current position.
  * Specific subtypes may support random access, but all subtypes should support
  * setting the current position to a previous position.
+ * 
+ * Since the position can be read, it covaries with respect to the positionable
+ * iterator hierarchy.  Similarly, it can be written, so it must behave
+ * covariantly.  In order for there to be any usable abstraction, we use
+ * {@method "_→/→_"} to create a variable type with the most general allowed
+ * read type and the most specific write type, so that all positionable
+ * iterators for which the read type and write are the same (ensured by the
+ * {@method "_positioned by_"} constructor) are considered subtypes of this
+ * abstract type.
  *
  * @type "positionable iterator"
  * @supertype "iterator"
  */
 Public class "positionable iterator" extends iterator
-	with fields
-		public position type : any's type;
+	with immutable field
+		position variable : any→/→⊥;
 
 /**
  * Construct and answer a {@type "positionable iterator"} type from the
@@ -79,12 +88,37 @@ Public method "_positioned by_" is
 	iteratorType : iterator's type,
 	positionType : any's type
 |
-	extend iteratorType with position type : positionType's type
+	If positionType = ⊥ then
+	[
+		Raise an invalid-argument exception
+	];
+	extend iteratorType with
+		position variable : ↑positionType
 ] : positionable iterator's type;
 
 /**
+ * Strengthen the {@type "positionable iterator"}'s type with information about
+ * the original iterator's static type and the supplied position type.
+ *
+ * @method "_positioned by_"
+ * @restricts "iterator's type's type"
+ * @restricts "any's type"
+ */
+Semantic restriction "_positioned by_" is
+[
+	iteratorType : iterator's type's type,
+	positionType : any's type's type
+|
+	iteratorInstanceType ::= iteratorType's instance;
+	positionInstanceType ::= positionType's instance;
+	extendedInstanceType ::= extend iteratorInstanceType with
+		position variable : ↑positionInstanceType;
+	extendedInstanceType's type
+];
+
+/**
  * An invalid-position exception is raised by {@method
- * "_'s⁇current position:=_"} when the position memento is not appropriate.
+ * "_'s⁇position:=_"} when the provided position is not appropriate.
  *
  * @type "invalid-position exception"
  * @supertype "element-access exception"
@@ -107,12 +141,12 @@ Semantic restriction "_'s⁇position" is
 [
 	iteratorType : positionable iterator's type
 |
-	iteratorType's position type's instance
+	iteratorType's position variable's read type
 ];
 
 /**
- * Set the current position of the specified {@type "positionable iterator"}.
- *
+ * Set the current position of the {@type "positionable iterator"}.
+ * 
  * @method "_'s⁇position:=_"
  * @param "anIterator" "positionable iterator"
  *        A {@type "positionable iterator"}.
@@ -122,22 +156,34 @@ Semantic restriction "_'s⁇position" is
  * @raises "invalid-position exception"
  *         If {@param "position"} is not a valid memento.
  */
-Public abstract method "_'s⁇position:=_" is
-	[positionable iterator, any]→⊤;
+Public method "_'s⁇position:=_" is
+[
+	anIterator : positionable iterator,
+	newPosition : any
+|
+	anIterator's position variable ?= newPosition;
+];
 
+/**
+ * Ensure the new position is suitable.
+ * 
+ * @method "_'s⁇position:=_"
+ * @restricts "positionable iterator's type's type"
+ * @restricts "any's type"
+ */
 Semantic restriction "_'s⁇position:=_" is
 [
 	iteratorType : positionable iterator's type,
 	positionType : any's type
 |
-	expectedType ::= iteratorType's position type's instance;
+	expectedType ::= iteratorType's position variable's write type;
 	If ¬positionType ⊆ expectedType then
 	[
 		Reject parse, expected:
 			format
-				"position memento to be an instance of “①” \
-				\|(but “②” is not a subtype)"
-			with expectedType, positionType
+				"new position's type (“①”) to be compatible with \
+					\|the expected position type (“②”)"
+			with positionType, expectedType
 	];
 	⊤
 ];

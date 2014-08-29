@@ -185,7 +185,7 @@ Public method "a Mersenne Twister«from_»" is
 |
 	seed ::= optionalSeed[1] else
 		[(high-precision timer value mod ((1<<32) - 1)) + 1];
-	(an iterator over a Mersenne Twister stream from seed) as pRNG of [0..1<<32)
+	(a reader over a Mersenne Twister stream from seed) as pRNG of [0..1<<32)
 ] : pRNG of [0..1<<32);
 
 Private method "a Mersenne Twister stream from_" is
@@ -241,7 +241,7 @@ Public method "a Mersenne Twister from_" is
 [
 	seed : <[0..1<<32)…|1..>
 |
-	(an iterator over a Mersenne Twister stream from seed) as pRNG of [0..1<<32)
+	(a reader over a Mersenne Twister stream from seed) as pRNG of [0..1<<32)
 ] : pRNG of [0..1<<32);
 
 "Mersenne Twister test suite" is a new atom;

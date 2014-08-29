@@ -672,8 +672,7 @@ extends TupleDescriptor
 		}
 		assert lowChildIndex < highChildIndex;
 		// The endpoints occur in distinct children.
-		final int leftOffset =
-			offsetForChildSubscript(object, lowChildIndex);
+		final int leftOffset = offsetForChildSubscript(object, lowChildIndex);
 		A_Tuple child = object.childAt(lowChildIndex);
 		child.transferIntoByteBuffer(
 			startIndex - leftOffset,
@@ -689,8 +688,7 @@ extends TupleDescriptor
 				1, child.tupleSize(), outputByteBuffer);
 		}
 		child = object.childAt(highChildIndex);
-		final int rightOffset =
-			offsetForChildSubscript(object, highChildIndex);
+		final int rightOffset = offsetForChildSubscript(object, highChildIndex);
 		child.transferIntoByteBuffer(
 			1,
 			endIndex - rightOffset,

@@ -64,7 +64,7 @@ public final class P_504_BindPojoInstanceField extends Primitive
 		final A_String fieldName = args.get(1);
 		// Use the actual Java runtime type of the pojo to perform the
 		// reflective field lookup.
-		final Object object = pojo.rawPojo().javaObject();
+		final Object object = pojo.rawPojo().javaObjectNotNull();
 		final Class<?> javaClass = object.getClass();
 		final Field field;
 		try

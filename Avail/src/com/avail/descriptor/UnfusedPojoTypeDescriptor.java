@@ -195,8 +195,9 @@ extends PojoTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsAbstract (final AvailObject object)
 	{
-		return Modifier.isAbstract(
-			((Class<?>) object.slot(JAVA_CLASS).javaObject()).getModifiers());
+		final Class<?> javaClass =
+			(Class<?>) object.slot(JAVA_CLASS).javaObjectNotNull();
+		return Modifier.isAbstract(javaClass.getModifiers());
 	}
 
 	@Override @AvailMethod
@@ -224,7 +225,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	Object o_MarshalToJava (
+	@Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -298,7 +299,7 @@ extends PojoTypeDescriptor
 		final A_Type aFusedPojoType)
 	{
 		final Class<?> javaClass =
-			(Class<?>) object.slot(JAVA_CLASS).javaObject();
+			(Class<?>) object.slot(JAVA_CLASS).javaObjectNotNull();
 		final int modifiers = javaClass.getModifiers();
 		// If the unfused pojo type's class is final, then the intersection is
 		// pojo bottom.
@@ -319,7 +320,7 @@ extends PojoTypeDescriptor
 				if (!ancestor.equals(RawPojoDescriptor.rawObjectClass()))
 				{
 					final Class<?> otherJavaClass =
-						(Class<?>) ancestor.javaObject();
+						(Class<?>) ancestor.javaObjectNotNull();
 					final int otherModifiers = otherJavaClass.getModifiers();
 					if (isFinal(otherModifiers) || !isInterface(otherModifiers))
 					{
@@ -345,9 +346,9 @@ extends PojoTypeDescriptor
 		final A_Type anUnfusedPojoType)
 	{
 		final Class<?> javaClass =
-			(Class<?>) object.slot(JAVA_CLASS).javaObject();
+			(Class<?>) object.slot(JAVA_CLASS).javaObjectNotNull();
 		final Class<?> otherJavaClass =
-			(Class<?>) anUnfusedPojoType.javaClass().javaObject();
+			(Class<?>) anUnfusedPojoType.javaClass().javaObjectNotNull();
 		final int modifiers = javaClass.getModifiers();
 		final int otherModifiers = otherJavaClass.getModifiers();
 		// If either class is declared final, then the intersection is pojo
@@ -434,7 +435,8 @@ extends PojoTypeDescriptor
 			for (final MapDescriptor.Entry entry
 				: object.slot(JAVA_ANCESTORS).mapIterable())
 			{
-				final Class<?> ancestor = (Class<?>) entry.key().javaObject();
+				final Class<?> ancestor =
+					(Class<?>) entry.key().javaObjectNotNull();
 				final TypeVariable<?>[] vars = ancestor.getTypeParameters();
 				final A_Tuple typeArgs = entry.value();
 				assert vars.length == typeArgs.tupleSize();
@@ -477,7 +479,7 @@ extends PojoTypeDescriptor
 		final int indent)
 	{
 		final AvailObject javaClass = object.slot(JAVA_CLASS);
-		builder.append(((Class<?>) javaClass.javaObject()).getName());
+		builder.append(((Class<?>) javaClass.javaObjectNotNull()).getName());
 		final A_Map ancestors = object.slot(JAVA_ANCESTORS);
 		final A_Tuple params = ancestors.mapAt(javaClass);
 		boolean first = true;

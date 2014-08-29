@@ -1,5 +1,5 @@
 /*
- * Bounded Iterators.avail
+ * Bounded Readers.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,111 +30,111 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Bounded Iterators"
+Module "Bounded Readers"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
 	"Abstract Iterators",
-	"Counting Iterators" = ("a counting iterator from_to_"),
+	"Counting Readers" = ("a counting reader from_to_"),
 	"Foundation",
 	"Unit Testing"
 Names
-	"bounded iterator test suite",
+	"bounded reader test suite",
 	"_limited to_elements"
 Body
 
 "remaining elements" is a new field atom;
 
 /**
- * A bounded iterator artificially limits the number of elements that its
- * decorated iterator may produce.
+ * A bounded reader artificially limits the number of elements that its
+ * decorated reader may produce.
  *
- * @type "bounded iterator"
- * @supertype "iterator"
+ * @type "bounded reader"
+ * @supertype "reader"
  */
-Class "bounded iterator" extends iterator
+Class "bounded reader" extends reader
 	with fields
-		decorated iterator : iterator
+		decorated reader : reader
 	with mutable fields
 		referable remaining elements : whole number;
 
 Method "_is exhausted" is
 [
-	anIterator : bounded iterator
+	aReader : bounded reader
 |
-	anIterator's remaining elements = 0
-		∨ [anIterator's decorated iterator is exhausted]
+	aReader's remaining elements = 0
+		∨ [aReader's decorated reader is exhausted]
 ] : boolean;
 
-bounded iterator's current element method is
+bounded reader's current element method is
 [
-	anIterator : bounded iterator
+	aReader : bounded reader
 |
-	anIterator's decorated iterator's current element
+	aReader's decorated reader's current element
 ] : any;
 
-bounded iterator's advance method is
+bounded reader's advance method is
 [
-	anIterator : bounded iterator
+	aReader : bounded reader
 |
-	Advance anIterator's decorated iterator;
-	↑anIterator's remaining elements--;
+	Advance aReader's decorated reader;
+	↑aReader's remaining elements--;
 ] : ⊤;
 
 /**
- * Construct and answer an {@type "iterator"} that can answer at most the first
- * {@param "limit"} elements of {@param "anIterator"}.
+ * Construct and answer an {@type "reader"} that can answer at most the first
+ * {@param "limit"} elements of {@param "aReader"}.
  *
  * @method "_limited to_elements"
- * @param "anIterator" "iterator"
- *        A iterator.
+ * @param "aReader" "reader"
+ *        A reader.
  * @param "limit" "[0..∞]"
  *        The effective size of the result.
- * @returns "iterator"
- *          A iterator incapable of producing more than {@param "limit"}
- *          elements of {@param "anIterator"}.
+ * @returns "reader"
+ *          A reader incapable of producing more than {@param "limit"}
+ *          elements of {@param "aReader"}.
  */
 Public stable method "_limited to_elements" is
 [
-	anIterator : iterator,
+	aReader : reader,
 	limit : [0..∞]
 |
 	cast limit into
-		[t : ∞'s type | anIterator],
-		[t : 0's type | an exhausted iterator],
+		[t : ∞'s type | aReader],
+		[t : 0's type | an exhausted reader],
 		[
 			t : whole number
 		|
-			a bounded iterator with
-				element type ::= anIterator's element type,
-				decorated iterator ::= anIterator,
+			a bounded reader with
+				element type ::= aReader's element type,
+				decorated reader ::= aReader,
 				remaining elements := t
 		]
-] : iterator;
+] : reader;
 
 Semantic restriction "_limited to_elements" is
 [
-	iteratorType : iterator's type,
+	readerType : reader's type,
 	limit : [0..∞]'s type
 |
-	if ⎣limit⎦ = ∞ then [iteratorType]
-	else if [⎡limit⎤ = 0] then [exhausted iterator]
+	if ⎣limit⎦ = ∞ then [readerType]
+	else if [⎡limit⎤ = 0] then [exhausted reader]
 	else
 	[
-		extend bounded iterator with
-			element type : iteratorType's element type,
-			decorated iterator : iteratorType
+		extend bounded reader with
+			element type : readerType's element type,
+			decorated reader : readerType
 	]
 ];
 
-"bounded iterator test suite" is a new atom;
-New test suite bounded iterator test suite extends iterators test suite;
+"bounded reader test suite" is a new atom;
+New test suite bounded reader test suite extends iterators test suite;
 
-Test "bounded iterator basics" in bounded iterator test suite is
+Test "bounded reader basics" in bounded reader test suite is
 [
 	ref ::= 1 to 10;
 	index : natural number := 1;
-	iter ::= a counting iterator from 1 to 100 limited to 10 elements;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
 	For each iter do
 	[
 		element : [1..100]
@@ -144,11 +144,11 @@ Test "bounded iterator basics" in bounded iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "bounded iterator (map)" in bounded iterator test suite is
+Test "bounded reader (map)" in bounded reader test suite is
 [
 	ref ::= <1, 4, 9, 16, 25, 36, 49, 64, 81, 100>;
 	index : natural number := 1;
-	iter ::= map a counting iterator from 1 to 100 limited to 10 elements
+	iter ::= map a counting reader from 1 to 100 limited to 10 elements
 		through [i : [1..100] | i × i];
 	For each iter do
 	[
@@ -159,11 +159,11 @@ Test "bounded iterator (map)" in bounded iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "bounded iterator (filter)" in bounded iterator test suite is
+Test "bounded reader (filter)" in bounded reader test suite is
 [
 	ref ::= <2, 4, 6, 8, 10>;
 	index : natural number := 1;
-	iter ::= filter a counting iterator from 1 to 100 limited to 10 elements
+	iter ::= filter a counting reader from 1 to 100 limited to 10 elements
 		by [i : [1..100] | i is even];
 	For each iter do
 	[
@@ -174,20 +174,20 @@ Test "bounded iterator (filter)" in bounded iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "bounded iterator (concatenation)" in bounded iterator test suite is
+Test "bounded reader (concatenation)" in bounded reader test suite is
 [
 	ref ::= 1 to 10;
 	index : natural number := 1;
 	iters ::= <
-		an exhausted iterator,
-		a counting iterator from 1 to 2,
-		an exhausted iterator,
-		an exhausted iterator,
-		a counting iterator from 3 to 7,
-		an exhausted iterator,
-		a counting iterator from 8 to 8,
-		a counting iterator from 9 to 10,
-		an exhausted iterator>;
+		an exhausted reader,
+		a counting reader from 1 to 2,
+		an exhausted reader,
+		an exhausted reader,
+		a counting reader from 3 to 7,
+		an exhausted reader,
+		a counting reader from 8 to 8,
+		a counting reader from 9 to 10,
+		an exhausted reader>;
 	iter ::= concatenate iters;
 	For each iter do
 	[
@@ -198,21 +198,21 @@ Test "bounded iterator (concatenation)" in bounded iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "bounded iterator (lexical concatenation)"
-	in bounded iterator test suite is
+Test "bounded reader (lexical concatenation)"
+	in bounded reader test suite is
 [
 	ref ::= 1 to 10;
 	index : natural number := 1;
 	iters ::= <
-		an exhausted iterator,
-		a counting iterator from 1 to 2,
-		an exhausted iterator,
-		an exhausted iterator,
-		a counting iterator from 3 to 7,
-		an exhausted iterator,
-		a counting iterator from 8 to 8,
-		a counting iterator from 9 to 10,
-		an exhausted iterator>;
+		an exhausted reader,
+		a counting reader from 1 to 2,
+		an exhausted reader,
+		an exhausted reader,
+		a counting reader from 3 to 7,
+		an exhausted reader,
+		a counting reader from 8 to 8,
+		a counting reader from 9 to 10,
+		an exhausted reader>;
 	iter ::= iters[1]
 		++ iters[2]
 		++ iters[3]
@@ -231,15 +231,15 @@ Test "bounded iterator (lexical concatenation)"
 	Require: index = (|ref| + 1);
 ];
 
-Test "bounded iterator (zip)" in bounded iterator test suite is
+Test "bounded reader (zip)" in bounded reader test suite is
 [
 	ref ::= <
 		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
 		<6, 36>, <7, 49>, <8, 64>, <9, 81>, <10, 100>>;
 	index : natural number := 1;
 	iters ::= <
-		a counting iterator from 1 to 100 limited to 10 elements,
-		map a counting iterator from 1 to 100 limited to 10 elements
+		a counting reader from 1 to 100 limited to 10 elements,
+		map a counting reader from 1 to 100 limited to 10 elements
 			through [n : [1..100] | n × n]>;
 	iter ::= zip iters;
 	For each iter do
@@ -251,15 +251,15 @@ Test "bounded iterator (zip)" in bounded iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "bounded iterator (lexical zip)" in bounded iterator test suite is
+Test "bounded reader (lexical zip)" in bounded reader test suite is
 [
 	ref ::= <
 		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
 		<6, 36>, <7, 49>, <8, 64>, <9, 81>, <10, 100>>;
 	index : natural number := 1;
 	iters ::= <
-		a counting iterator from 1 to 100 limited to 10 elements,
-		map a counting iterator from 1 to 100 limited to 10 elements
+		a counting reader from 1 to 100 limited to 10 elements,
+		map a counting reader from 1 to 100 limited to 10 elements
 			through [n : [1..100] | n × n]>;
 	iter ::= iters[1] zip iters[2];
 	For each iter do
@@ -271,11 +271,11 @@ Test "bounded iterator (lexical zip)" in bounded iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "bounded iterator (take_from_)" in bounded iterator test suite is
+Test "bounded reader (take_from_)" in bounded reader test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
-	iter ::= a counting iterator from 1 to 100 limited to 10 elements;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
 	result ::= take 5 from iter;
 	For each result do
 	[
@@ -287,11 +287,11 @@ Test "bounded iterator (take_from_)" in bounded iterator test suite is
 	Require: [take 6 from iter] raises exhausted-iterator exception;
 ];
 
-Test "bounded iterator (take from_while_)" in bounded iterator test suite is
+Test "bounded reader (take from_while_)" in bounded reader test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
-	iter ::= a counting iterator from 1 to 100 limited to 10 elements;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
 	result ::= take from iter while [n : [1..100] | n ≤ 5];
 	For each result do
 	[
@@ -302,11 +302,11 @@ Test "bounded iterator (take from_while_)" in bounded iterator test suite is
 	Require: iter's current element = 6;
 ];
 
-Test "bounded iterator (take from_until_)" in bounded iterator test suite is
+Test "bounded reader (take from_until_)" in bounded reader test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
-	iter ::= a counting iterator from 1 to 100 limited to 10 elements;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
 	result ::= take from iter until [n : [1..100] | n ≥ 6];
 	For each result do
 	[
@@ -317,11 +317,11 @@ Test "bounded iterator (take from_until_)" in bounded iterator test suite is
 	Require: iter's current element = 6;
 ];
 
-Test "bounded iterator (Drop_from_)" in bounded iterator test suite is
+Test "bounded reader (Drop_from_)" in bounded reader test suite is
 [
 	ref ::= 6 to 10;
 	index : natural number := 1;
-	iter ::= a counting iterator from 1 to 100 limited to 10 elements;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
 	Drop 5 from iter;
 	For each iter do
 	[
@@ -333,11 +333,11 @@ Test "bounded iterator (Drop_from_)" in bounded iterator test suite is
 	Require: [Drop 6 from iter;] raises exhausted-iterator exception;
 ];
 
-Test "bounded iterator (Drop from_while_)" in bounded iterator test suite is
+Test "bounded reader (Drop from_while_)" in bounded reader test suite is
 [
 	ref ::= 6 to 10;
 	index : natural number := 1;
-	iter ::= a counting iterator from 1 to 100 limited to 10 elements;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
 	Drop from iter while [n : [1..100] | n ≤ 5];
 	For each iter do
 	[
@@ -348,11 +348,11 @@ Test "bounded iterator (Drop from_while_)" in bounded iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "bounded iterator (Drop from_until_)" in bounded iterator test suite is
+Test "bounded reader (Drop from_until_)" in bounded reader test suite is
 [
 	ref ::= 6 to 10;
 	index : natural number := 1;
-	iter ::= a counting iterator from 1 to 100 limited to 10 elements;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
 	Drop from iter until [n : [1..100] | n ≥ 6];
 	For each iter do
 	[

@@ -39,9 +39,423 @@ Uses
 	"Iterators",
 	"Unit Testing"
 Names
-	"a decoding iterator of_using_",
-	"a decoding iterator that buffers_element|elements of_using_",
-	"an encoding iterator that buffers_element|elements of_using_",
+	"a converter with_«on failure_»",
+	"a«quiet|signaling»!utf8 decoder",
+	"a utf8 decoder",
+	"a utf8 encoder",
+	"converter",
+	"converter from_to_",
+	"malformed-encoding exception",
+	"_'s⁇invalid sequence",
+	"_process_",
+	"_flush"
+Body
+
+"conversion function" is a new field atom;
+"on failure" is a new field atom;
+"invalid sequence" is a new field atom;
+
+/**
+ * An exception that indicates the particular sequence of input elements can not
+ * be validly converted.
+ * 
+ * @type "malformed-encoding exception"
+ * @supertype "exception"
+ * @category "Codecs"
+ * @field "invalid sequence" "tuple"
+ *        The tuple of consecutive input elements that could not be converted.
+ */
+Public explicit class "malformed-encoding exception" extends exception
+	with fields
+		public invalid sequence : tuple;
+
+/**
+ * A {@code "converter"} repeatedly accepts a tuple of input values and produces
+ * a tuple of output values.  The converter may maintain internal dynamic state
+ * to deal with conversion of sequences of values (such as UTF-8's multi-byte
+ * encoding of code points).
+ * 
+ * A final {@method "_flush"} indicates that the converter will not receive any
+ * more data, and must now produce the final burst of output values.
+ * 
+ * A pair of converters can which have effectively inverse effects can together
+ * be considered a codec (enCOder/DECoder).  Because of Avail's uniform
+ * treatment of primitive and non-primitive values, the same concept of
+ * converter can be usefully employed for both encoding and decoding.
+ * 
+ * @type "converter"
+ * @category "Codecs"
+ * @field "conversion function" "[⊥]→tuple"
+ *        How to convert a bufferful of input, empty indicating a final flush.
+ * @field "on failure" "[⊥]→tuple"
+ *        What to produce when a sequence of input elements is invalid.  It may
+ *        raise an exception to indicate the problem, or return a tuple suitable
+ *        for use in lieu of the conversion function.
+ */
+Public explicit class "converter" extends object
+	with fields
+		conversion function : [⊥]→tuple,
+		on failure : [⊥]→tuple;
+
+/**
+ * Answer a specialization of {@code "converter"} that converts tuples of values
+ * of the source type into tuples of values of the target type.
+ *
+ * @method "converter from_to_"
+ * @param "sourceType" "any's type"
+ *        The type of element to convert.
+ * @param "targetType" "any's type"
+ *        The type of element produced by the converter.
+ * @returns "converter's type"
+ *          The resulting converter type.
+ */
+Public method "converter from_to_" is
+[
+	sourceType : any's type,
+	targetType : any's type
+|
+	extend converter with
+		conversion function : [<sourceType…|>]→<targetType…|>,
+		on failure : [<sourceType…|>]→<targetType…|>
+];
+
+/**
+ * Construct a converter based on the provided tuple-processing function.
+ *
+ * @method "a converter with_«on failure_»"
+ * @param "conversionFunction" "[⊥]→<any…|1..>"
+ *        The function used to convert tuples of elements.  When it's invoked
+ *        with an empty tuple it <em>must</em> flush its state, even if it seems
+ *        to be expecting the remainder of a multi-element sequence.
+ * @param "optionalOnFailure" "<[]…|0..1>"
+ *        The optional function to invoke with any subsequence that can't be
+ *        converted.  If omitted, a {@type "malformed-encoding exception"} will
+ *        be raised in such a circumstance.
+ * @returns "converter"
+ *          A converter that will use the provided function to process tuples of
+ *          elements.
+ */
+Public method "a converter with_«on failure_»" is
+[
+	conversionFunction : [⊥]→tuple,
+	optionalOnFailure : <[⊥]→tuple…|0..1>
+|
+	a converter with
+		conversion function ::= conversionFunction,
+		on failure ::= optionalOnFailure[1]
+			else
+			[
+				[
+					badElements : tuple
+				|
+					Raise a malformed-encoding exception with
+						invalid sequence ::= badElements
+				]
+			]
+];
+
+/**
+ * Make sure the provided function will be able to accept and produce tuples,
+ * and strengthen the resulting {@type "converter"} type appropriately.
+ * 
+ * @method "a converter with_«on failure_»"
+ * @restricts "conversionFunctionType" "([⊥]→tuple)'s type"
+ *        The static type of the provided function at a constructor call site.
+ * @restricts "optionalOnFailure" "<[]…|0..1>"
+ *        The static type of the optional function to be invoked upon conversion
+ *        failure.
+ * @returns "converter's type"
+ *          The strongest converter type that can be guaranteed by the static
+ *          type of the provided conversion function.
+ */
+Semantic restriction "a converter with_«on failure_»" is
+[
+	conversionFunctionType : ([⊥]→tuple)'s type,
+	optionalOnFailureType : (<[⊥]→tuple…|0..1>)'s type
+|
+	sourceType ::= conversionFunctionType[1] ∩ tuple;
+	If sourceType = ⊥ then
+	[
+		Reject parse, expected:
+			"conversion function's type to accept tuples, not "
+			++ “conversionFunctionType[1]”
+	];
+	If ⎡optionalOnFailureType⎤ = 1 then
+	[
+		If ¬ sourceType ⊆ optionalOnFailureType[1][1] then
+		[
+			Reject parse, expected:
+				format
+					"failure function's (arg=“converterArg”) to accept any \
+					\|tuple that might be passed to the conversion function \
+					\|(arg=“failureArg”)"
+				with
+					converterArg ::= sourceType,
+					failureArg ::= optionalOnFailureType[1][1]
+		];
+	];
+	targetType ::= conversionFunctionType's return type
+		∪ optionalOnFailureType[1]'s return type;
+	converter
+		from ∪ sourceType [1..∞]
+		to ∪ targetType [1..∞]
+];
+
+/**
+ * Process a tuple of input values to produce a tuple of output values.
+ * Since a subsequence of input values that produce a single output value may be
+ * split across multiple calls, the converter may have to be stateful, waiting
+ * until a subsequent call to produce a value started at this call.  To force
+ * the hidden state to be output, always end use of a converter with {@method
+ * "_flush"}.
+ * 
+ * @method "_process_"
+ * @param "aConverter" "converter"
+ *        The converter that will process a tuple of inputs.
+ * @param "sourceTuple" "tuple"
+ *        The input values to be consumed.
+ * @returns "tuple"
+ *          The output values produced by the converter.
+ */
+Public abstract method "_process_" is
+	[converter, tuple] → tuple;
+
+/**
+ * Make sure the converter will accept the tuple at this call site, and
+ * strengthen the type of values that will be produced.
+ * 
+ * @method "_process_"
+ * @restricts "converter's type"
+ * @restricts "tuple's type"
+ */
+Semantic restriction "_process_" is
+[
+	aConverter : converter's type,
+	sourceTuple : tuple's type
+|
+	functionType ::= aConverter's conversion function;
+	allowedSourceTupleType ::= functionType[1] ∩ tuple;
+	If ¬ sourceTuple ⊆ allowedSourceTupleType then
+	[
+		allowedSourceElementType ::= ∪ allowedSourceTupleType [1..∞];
+		Reject parse, expected:
+			format "converter to accept a tuple of “①”, not “②”"
+				with allowedSourceElementType, ∪ sourceTuple [1..∞]
+	];
+	aConverter's conversion function's return type
+];
+
+/**
+ * No input was provided.  Don't pass that along to the converter, since it
+ * would interpret that as a flush, which may be inappropriate at this time.
+ * 
+ * @method "_process_"
+ * @param "aConverter" "converter"
+ * @param "sourceTuple" "<⊥…|0>"
+ * @returns "<>'s type"
+ */
+Public method "_process_" is
+[
+	aConverter : converter,
+	sourceTuple : <⊥…|0>
+|
+	<>
+];
+
+/**
+ * Non-empty input was provided, so it should be passed to the converter
+ * function.
+ */
+Public method "_process_" is
+[
+	aConverter : converter,
+	sourceTuple : <any…|1..>
+|
+	aConverter's conversion function (sourceTuple)
+];
+
+/**
+ * Produce a sequence of bytes that constitute the UTF-8 encoding of the given
+ * Unicode code point.
+ * 
+ * @method "bytes from_"
+ * @param "codePoint" "code point"
+ */
+Abstract method "bytes from_" is [code point] → <byte…|>;
+
+Private method "bytes from_" is
+[
+	codePoint : [0..127]
+|
+	<codePoint>
+];
+
+Private method "bytes from_" is
+[
+	codePoint : [128..2047]
+|
+	<192 + (codePoint >> 6),
+	 128 + (codePoint bit∧ 63)>
+] : <byte…|>;
+
+Private method "bytes from_" is
+[
+	codePoint : [2048..65535]
+|
+	<224 + (codePoint >> 12),
+	 128 + ((codePoint >> 6) bit∧ 63),
+	 128 + (codePoint bit∧ 63)>
+] : <byte…|>;
+
+Private method "bytes from_" is
+[
+	codePoint : [65536..1114111]
+|
+	<240 + (codePoint >> 18),
+	 128 + ((codePoint >> 12) bit∧ 63),
+	 128 + ((codePoint >> 6) bit∧ 63),
+	 128 + (codePoint bit∧ 63)>
+] : <byte…|>;
+
+/**
+ * Create a converter capable of encoding a Unicode string as UTF-8 bytes.
+ */
+Public method "a utf8 encoder" is
+[
+	a converter with
+	[
+		s : string
+	|
+		out : <byte…|> := <>;
+		For each of s do
+		[
+			c : character
+		|
+			out := eject out ++ bytes from c's code point; 
+		];
+		out
+	]
+] : converter from character to byte;
+
+
+/**
+ * Answer how many bytes long a UTF-8 sequence starting with the given byte will
+ * be.  Note that some leading bytes are always illegal, and some leading bytes
+ * may or may not be illegal, depending on the continuation bytes (for example,
+ * they may produce an "overlong encoding").  We only detect leading bytes of
+ * always-illegal sequences here, answering zero.
+ * 
+ * @method "byte count for_"
+ * @param "leadingByte" "byte"
+ * @returns "[0..4]"
+ */
+Private method "byte count for_" is [leadingByte : byte | 0] : [0..4];
+Private method "byte count for_" is [leadingByte : [0..127] | 1];
+Private method "byte count for_" is [leadingByte : [194..223] | 2];
+Private method "byte count for_" is [leadingByte : [224..239] | 3];
+Private method "byte count for_" is [leadingByte : [240..244] | 4];
+
+
+/**
+ * Create a converter capable of decoding UTF-8 bytes into a Unicode string.
+ * 
+ * @method "a utf8 decoder"
+ * @returns "converter"
+ */
+Public method "a«quiet|signaling»!utf8 decoder" is
+[
+	quietOrSignalling : [1..2]
+|
+	buffer : <byte…|> := <>;
+	a converter with
+	[
+		bytes : <byte…|>
+	|
+		buffer := eject buffer ++ bytes;
+		output : string := "";
+		index : natural number := 1;
+		leadByte : byte;
+		count : [0..4];
+		While
+		[
+			index ≤ |buffer| ∧ [
+				leadByte := buffer[index];
+				count := byte count for leadByte;
+				index + count - 1 ≤ |buffer|]
+		]
+		do
+		[
+			If count > 0 ∧
+				[buffer[index + 1 .. index + count - 1] ∈ <[128..191]…|>] then
+			[
+				/* Extract the bytes and decode them. */
+				accumulator : whole number := leadByte bit∧ (255 >> count);
+				index++;
+				Repeat 
+				[
+					nextByte ::= buffer[index];
+					accumulator :=
+						(eject accumulator << 6) + (buffer[index] bit∧ 63);
+					index++;
+				] (count - 1) max 0 times;
+				output := eject output ++ (cast accumulator
+					into [cp : code point | <cp → character>]
+					else ["\(fffd)"]);
+			]
+			else
+			[
+				/* For now, decode it as the Unicode replacament character
+				* (U+FFFD), and skip the leading and any continuation bytes.
+				*/
+				output := eject output ++ "\(fffd)";
+				index++;
+				While [index ≤ |buffer| ∧ [buffer[index] bit∧ 192 = 128]]
+				do [index++;];
+			];
+		];
+		If bytes = <> then
+		[
+			/* This is a flush request. */
+			If buffer ≠ <> then
+			[
+				/* Convert the undecodable bytes at the end to a Unicode
+				 * replacement character (U+FFFD).
+				 */
+				output := eject output ++ "\(fffd)";
+			];
+			/* Ensure the converter cannot ever run again. */
+			Ignore: eject buffer;
+		]
+		else
+		[
+			/* Normalize the buffer to keep it short. */
+			buffer := eject buffer[index..];
+			index := 1;
+		];
+		output
+	] : string
+];
+
+
+/* TODO[MvG] - Obviously move this to a proper test. */
+ENCODER ::= a utf8 encoder;
+INPUT : string := "Catবিড়াল猫💩";
+Print: format "INPUT=“①”\n" with INPUT;
+TEST ::= ENCODER process INPUT;
+Print: format "TEST=“①”\n" with TEST;
+
+DECODER ::= a signaling utf8 decoder;
+OUTPUT ::= DECODER process TEST;
+Print: format "OUTPUT=“①”\n" with OUTPUT;
+Assert: INPUT = OUTPUT;
+
+
+
+THE OLD CODE
+/*--------------------------------------------------------------------*/
+/*
+	"a decoding reader of_using_",
+	"an encoding reader of_using_",
 	"byte tuple",
 	"codec",
 	"codecs test suite",
@@ -49,11 +463,11 @@ Names
 	"decoder",
 	"decode_using_",
 	"decoding corrector",
-	"decoding iterator",
+	"decoding reader",
 	"encoder",
 	"encode_using_",
 	"encoding corrector",
-	"encoding iterator",
+	"encoding reader",
 	"finish decoding with_",
 	"ignore instruction",
 	"internal encoder",
@@ -75,7 +489,10 @@ Names
 	"_'s⁇raise exception",
 	"_'s⁇replacement character",
 	"_'s⁇unsupported character"
+*/
 Body
+
+"element source" is a new field atom;
 
 /**
  * This method defines an alias for the type integer range [0..255] which is
@@ -294,56 +711,55 @@ Public class "codec" extends encoder ∩ decoder;
 Public "internal encoder" is a new field atom;
 
 /**
- * An encoding iterator with data that is to be encoded into byte data.
+ * An encoding reader with data that is to be encoded into byte data.
  * 
- * @type "encoding iterator"
- * @supertype "iterator"
+ * @type "encoding reader"
+ * @supertype "buffered reader"
+ * @supertype "reader"
  * @category "Codecs"
- * @field "element source" "iterator"
+ * @field "source" "buffered reader"
  * @field "internal encoder" "encoder"
  * @author "Richard Arriaga"
  */
-Public class "encoding iterator" extends buffered iterator ∩ iterator of byte
+Public class "encoding reader" extends reader of byte
 	with fields
-		element source : iterator, 
+		element source : reader,
 		internal encoder : encoder;
 
 /**
- * A constructor method to create an encoding iterator with a variable buffer 
- * size
+ * A constructor method to create an encoding reader with a variable buffer 
+ * size.
  *
- * @method "an encoding iterator that buffers_element|elements of_using_"
+ * @method "an encoding reader that buffers_element|elements of_using_"
  * @category "Codecs"
  * @param "size" "[2..∞)" 
- *        The maximum size of the iterator buffer
- * @param "src" "iterator" 
- *        The source iterator to be encoded
+ *        The maximum size of the buffer.
+ * @param "src" "reader" 
+ *        The source reader to be encoded.
  * @param "ec" "encoder" 
- *        The encoder that is used to complete the encoding of the iterator
- * @returns "encoding iterator"
- *          A new encoding iterator.
+ *        The encoder that is used to complete the encoding of the reader.
+ * @returns "encoding reader"
+ *          A new encoding reader.
  * @author "Richard Arriaga"
  */
-Public method "an encoding iterator that buffers_element|elements of_using_" is
+Public method "an encoding reader of_using_" is
 [
-	size : [2..∞),
-	src : iterator,
+	src : reader,
 	ec : encoder
 |
-	an encoding iterator with
+	an encoding reader with
 		element type ::= byte,
 		element source ::= src,
-		maximum buffer size ::= size,
 		internal encoder ::= ec
-] : encoding iterator; 
+] : encoding reader; 
 
 /*
  * 
  * @author "Richard Arriaga"
  */
-encoding iterator's next buffer method is
+encoding reader's next buffer method is
 [
-	anIterator : encoding iterator
+	anIterator : encoding reader
 |
 	encode take at most anIterator's maximum buffer size from anIterator's 
 		element source using anIterator's internal encoder
@@ -352,12 +768,12 @@ encoding iterator's next buffer method is
 "internal decoder" is a new field atom;
 
 /**
- * An iterator with byte data that is to be decoded into character data.
+ * A reader with byte data that is to be decoded into character data.
  * 
- * @type "decoding iterator"
- * @supertype "buffered iterator" "iterator of character"
+ * @type "decoding reader"
+ * @supertype "buffered reader" "reader of character"
  * @category "Codecs"
- * @field "element source" "iterator of byte"
+ * @field "element source" "reader of byte"
  * 		The source data to decode.
  * @field "internal decoder" "decoder"
  * 		The decoder used to decode the data
@@ -365,80 +781,76 @@ encoding iterator's next buffer method is
  * 		The buffer size
  * @author "Richard Arriaga"
  */
-Public class "decoding iterator" extends 
-	buffered iterator ∩ iterator of character
+Public class "decoding reader" extends 
+	buffered reader ∩ reader of character
 		with fields
-			element source : iterator of byte,
+			element source : reader of byte,
 			internal decoder : decoder,
 			maximum buffer size : [4096..∞);
 
-/* Use "take«at most»?_from_" at the decoded iterator level to obtain decoded 
+/* Use "take«at most»?_from_" at the decoded reader level to obtain decoded 
  * data.  Following two methods are first attempt*/
 	
 /**
- * A constructor method to create a decoding iterator with a variable buffer 
+ * A constructor method to create a decoding reader with a variable buffer 
  * size
  *
- * @method "a decoding iterator that buffers_element|elements of_using_"
+ * @method "a decoding reader of_using_"
  * @category "Codecs"
- * @param "size" "[4096..∞)" 
- *        The size of the iterator buffer
- * @param "src" "iterator of byte" 
- *        The source iterator to be decoded
+ * @param "src" "reader of byte" 
+ *        The source reader to be decoded
  * @param "dc" "decoder" 
- *        The decoder that is used to complete the decoding of the iterator
- * @returns "decoding iterator"
- *          A decoding iterator
+ *        The decoder that is used to complete the decoding of the reader
+ * @returns "decoding reader"
+ *          A decoding reader
  * @author "Richard Arriaga"
  */
-Public method "a decoding iterator that buffers_element|elements of_using_" is
+Public method "a decoding reader of_using_" is
 [
-	size : [4096..∞),
-	src : iterator of byte,
+	src : reader of byte,
 	dc : decoder
 |
-	a decoding iterator with
+	a decoding reader with
 		element type ::= character,
 		element source ::= src,
-		maximum buffer size ::= size,
 		internal decoder ::= dc
-] : decoding iterator;
+] : decoding reader;
 	
 /**
- * A constructor method to create a decoding iterator with a fixed buffer size
+ * A constructor method to create a decoding reader with a fixed buffer size
  * of 32,768.
  *
- * @method "a decoding iterator of_using_"
+ * @method "a decoding reader of_using_"
  * @category "Codecs"
- * @param "src" "iterator of byte" 
- *      The source iterator to be decoded
+ * @param "src" "reader of byte" 
+ *      The source reader to be decoded
  * @param "cdc" "codec"
  * 		The codec for decoding data.
- * @returns "decoding iterator"
- *          A decoding iterator
+ * @returns "decoding reader"
+ *          A decoding reader
  * @raises "exceptionName" 
  *         exceptionDescription
  * @author "Richard Arriaga"
  */
-Public method "a decoding iterator of_using_" is
+Public method "a decoding reader of_using_" is
 [
-	src : iterator of byte,
+	src : reader of byte,
 	cdc : codec
 |
-	a decoding iterator that buffers 32768 elements of src using cdc
-]:decoding iterator;
+	a decoding reader that buffers 32768 elements of src using cdc
+] : decoding reader;
 
 
 /*
- * Ensure that the specified iterator is not exhausted, then advance its state.
+ * Ensure that the specified reader is not exhausted, then advance its state.
  *
- * @param "anIterator" "decoding iterator"
- *        An encoding iterator.
+ * @param "anIterator" "decoding reader"
+ *        An encoding reader.
  * @author "Richard Arriaga"
  */
-decoding iterator's next buffer method is
+decoding reader's next buffer method is
 [
-	anIterator : decoding iterator
+	anIterator : decoding reader
 |
 	next ::= take at most anIterator's maximum buffer size from anIterator's 
 		element source;
@@ -448,12 +860,12 @@ decoding iterator's next buffer method is
 
 /**
  * @method "a|an_«with«_«:»?:=_‡,»»"
- * @forbids "1" "decoding iterator" "encoding iterator"
+ * @forbids "1" "decoding reader" "encoding reader"
  */
 Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
 	<{
-		"decoding iterator",
-		"encoding iterator"
+		"decoding reader",
+		"encoding reader"
 	}, ∅, ∅>;
 
 Public "codecs test suite" is a new field atom;

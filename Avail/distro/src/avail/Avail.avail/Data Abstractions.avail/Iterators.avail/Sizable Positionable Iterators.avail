@@ -54,8 +54,8 @@ Grammatical restriction "sizable_" is <{"_positioned by_"}>;
  *
  * @method "`|_'s⁇remaining elements`|"
  * @param "anIterator" "sizable positionable iterator"
- * @returns "whole number"
+ * @returns "[0..∞]"
  *    The number of elements remaining in {@param "anIterator"}.
  */
 Public abstract method "`|_'s⁇remaining elements`|"
-	is [sizable positionable iterator]→whole number;
+	is [sizable positionable iterator]→[0..∞];

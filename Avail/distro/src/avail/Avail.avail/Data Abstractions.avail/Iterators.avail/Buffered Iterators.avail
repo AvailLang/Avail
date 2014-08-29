@@ -38,28 +38,26 @@ Uses
 	"Common" = ("element type"),
 	"Generators" = ("generator for_"),
 	"Foundation",
-	"Positionable Iterators",
 	"Unit Testing"
 Names
 	/* Types. */
 	"buffered iterator",
-	"positionable buffered iterator",
-
-	/* Constructors. */
-	"an iterator that buffers_element|elements of_",
-	"_that buffers_element|elements",
+	"buffered reader",
+	"buffered writer",
 
 	/* Accessors. */
+	"_'s⁇buffer",
 	"_'s⁇maximum buffer size",
+	"_'s⁇position in buffer",
+	"`↑_'s⁇position in buffer",
 
 	/* Extension. */
-	"Seal_'s⁇next buffer method",
-	"Seal_'s⁇set position method",
-	"_'s⁇next buffer method is_",
-	"_'s⁇set position method is_",
+	"Seal_'s⁇exit buffer method",
+	"Seal_'s⁇fetch current buffer method",
+	"_'s⁇exit buffer method is_",
+	"_'s⁇fetch current buffer method is_",
 
 	/* Fields. */
-	"element source",
 	"maximum buffer size",
 
 	/* Test suites. */
@@ -67,63 +65,92 @@ Names
 Body
 
 /* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-privateNextBufferName ::= $"private_'s⁇next buffer";
-privateSetPositionName ::= $"private_'s⁇position:=_";
+privateExitBufferName ::= $"Private exit_'s⁇current buffer";
+privateFetchCurrentBufferName ::= $"private_'s⁇fetch current buffer";
 
-Public "element source" is a new field atom;
-Public "maximum buffer size" is a new field atom;
 "buffer" is a new field atom;
-"buffer position" is a new field atom;
+"position in buffer" is a new field atom;
+"maximum buffer size" is a new field atom;
 
 /**
- * A buffered iterator buffers elements obtained from a source.
- *
+ * Buffered iterator is an abstraction that maintains a buffer and a current
+ * position within it, independently of being able to do anything <em>with</em>
+ * the buffer, such as reading or writing elements.
+ * 
+ * Note that the {@code "position in buffer"} can be any {@type "integer"},
+ * since we don't exit the buffer upon advancing (or generally positioning in
+ * some subclasses), only upon subsequently attempting to read, write, or test
+ * for exhaustion.
+ * 
  * @type "buffered iterator"
  * @supertype "iterator"
- * @field "element source" "any"
- *    The source of elements.
- * @field "maximum buffer size" "[2..∞)"
- *    The maximum number of elements to buffer.
- * @field "buffer" "tuple"
- *    The buffered elements.
- * @field "buffer position" "natural number"
- *    The index of the next buffered element to answer.
  */
-Public class "buffered iterator" extends iterator
-	with field
-		element source : any,
-		public maximum buffer size : [2..∞)
+Public explicit class "buffered iterator" extends iterator
+	with immutable fields
+		maximum buffer size : [0..∞]
 	with mutable fields
 		referable buffer : tuple,
-		referable buffer position : natural number;
-
-Private abstract method privateNextBufferName is [buffered iterator]→tuple;
+		referable position in buffer : integer;
 
 /**
- * Define a method to fetch the next buffer for a {@type "buffered iterator"}.
- * This is a private operation that should not be called directly from client
- * code, but which must be overridden for specific {@type "buffered iterator"}
- * subtypes.
+ * A buffered reader provides everything needed to be a {@type "reader"}, but it
+ * uses the buffer and the position in the buffer to supply elements until the
+ * buffer is exhausted, at which time a new buffer is fetched.
  *
- * @method "_'s⁇next buffer method is_"
- * @param "iteratorType" "buffered iterator's type"
+ * @type "buffered reader"
+ * @supertype "buffered iterator"
+ * @supertype "reader"
+ */
+Public class "buffered reader"
+	extends buffered iterator ∩ reader;
+
+/**
+ * A random access buffered writer supports writing to the buffer, including
+ * extending it.  A facility will be (TODO[MvG]-buffered writer) provided to
+ * flush the buffer to somewhere explicitly, and various subtypes may choose to
+ * flush the buffer for other reasons, such as reaching a maximum buffer size.
+ *
+ * @type "buffered writer"
+ * @supertype "buffered iterator"
+ * @supertype "writer"
+ */
+Public class "buffered writer"
+	extends buffered iterator ∩ writer;
+
+
+Private abstract method privateExitBufferName is
+	[buffered iterator]→⊤;
+
+Private abstract method privateFetchCurrentBufferName is
+	[buffered reader]→tuple;
+
+/**
+ * Define a method to deal with exiting the current buffer for a {@type
+ * "buffered iterator"}.  This is a private operation that should not be called
+ * directly from client code, but which must be overridden for specific {@type
+ * "buffered iterator"} subtypes.  Exiting a buffer happens when an attempt is
+ * made to read or write the current element when the iterator is positioned
+ * somewhere other than directly at an element of the buffer.
+ *
+ * @method "_'s⁇exit buffer method is_"
+ * @param "iteratorType" "random access buffered iterator's type"
  *        The iterator's type, as a cross check for the implementation.
- * @param "implementation" "[⊥, ⊥]→tuple"
+ * @param "implementation" "[⊥]→⊤"
  *        The new method extension. The argument is the iterator.
  * @returns "⊤"
  */
-Public method "_'s⁇next buffer method is_" is
+Public method "_'s⁇exit buffer method is_" is
 [
 	iteratorType : buffered iterator's type,
-	implementation : [⊥]→tuple
+	implementation : [⊥]→⊤
 |
-	Private method privateNextBufferName is implementation;
+	Private method privateExitBufferName is implementation;
 ] : ⊤;
 
-Semantic restriction "_'s⁇next buffer method is_" is
+Semantic restriction "_'s⁇exit buffer method is_" is
 [
 	iteratorMeta : buffered iterator's type's type,
-	implementationType : [⊥]→tuple's type
+	implementationType : [⊥]→⊤'s type
 |
 	If implementationType[1] = ⊥ then
 	[
@@ -143,264 +170,125 @@ Semantic restriction "_'s⁇next buffer method is_" is
 ];
 
 /**
- * Seal the {@method "_'s⁇next buffer method is_" next buffer method} at the
- * specified {@type "buffered iterator"} type.
+ * Seal the {@method "_'s⁇exit buffer method is_" exit buffer method} at the
+ * specified {@type "random access buffered iterator"} type.
  *
- * @method "Seal_'s⁇next buffer method"
+ * @method "Seal_'s⁇exit buffer method"
  * @param "iteratorType" "buffered iterator's type"
  * @returns "⊤"
  */
-Public method "Seal_'s⁇next buffer method" is
+Public method "Seal_'s⁇exit buffer method" is
 [
 	iteratorType : buffered iterator's type
 |
-	Seal method privateNextBufferName at <iteratorType>;
+	Seal method privateExitBufferName at <iteratorType>;
 ] : ⊤;
 
-Method "_is exhausted" is
-[
-	anIterator : buffered iterator
-|
-	/* This completes initialization of the iterator. */
-	If ↑anIterator's buffer is unassigned then
-	[
-		next ::= private anIterator's next buffer;
-		anIterator's buffer := next;
-		anIterator's buffer position := 1;
-	];
-	anIterator's buffer position > |anIterator's buffer| ∧
-	[
-		next ::= private anIterator's next buffer;
-		anIterator's buffer := next;
-		anIterator's buffer position := 1;
-		|next| = 0
-	]
-] : boolean;
 
-buffered iterator's current element method is
-[
-	anIterator : buffered iterator
-|
-	anIterator's buffer[anIterator's buffer position]
-] : any;
-
-buffered iterator's advance method is
-[
-	anIterator : buffered iterator
-|
-	↑anIterator's buffer position++;
-] : ⊤;
-
-Seal method "_is exhausted" at <buffered iterator>;
-Seal buffered iterator's current element method;
-Seal buffered iterator's advance method;
-
-/*
- * TODO: [TLS/MvG] Remove the next two methods once renaming with method
- * argument reordering is supported by module headers!
- */
-
-Private method "constructor method" is
-[
-	[
-		src : iterator,
-		size : whole number
-	|
-		if size < 2 then [src]
-		else
-		[
-			a buffered iterator with
-				element type ::= src's element type,
-				element source ::= src,
-				maximum buffer size ::= cast size into [t : [2..∞) | t]
-		]
-	] : iterator
-];
-
-Private method "constructor restriction" is
-[
-	[
-		src : iterator's type,
-		size : whole number's type
-	|
-		if ⎡size⎤ < 2 then [src]
-		else if [⎣size⎦ > 1] then
-		[
-			extend buffered iterator with
-				element type : src's element type,
-				element source : src,
-				maximum buffer size : cast size into [t : [2..∞)'s type | t]
-		]
-		else [⊤]
-	]
-];
 
 /**
- * Construct and answer a buffered iterator that answers values drawn from the
- * specified iterator. If {@param "size"} is {@code 0} or {@code 1}, then
- * buffering is not warranted; the answer will simply be {@param "src"}.
+ * Define a method to fetch the next buffer for a {@type "buffered reader"}.
+ * This is a private operation that should not be called directly from client
+ * code, but which must be overridden for specific {@type "buffered reader"}
+ * subtypes.
  *
- * @method "_that buffers_elements"
- * @param "src" "iterator"
- *    The source iterator.
- * @param "size" "whole number"
- *    The number of elements to buffer.
- * @returns "iterator"
- *    An iterator that provides the same elements and ordering as {@param
- *    "src"}. This will be a {@type "buffered iterator"} so long as {@param
- *    "size"} is greater than {@code 1}.
- */
-Public method "_that buffers_element|elements" is constructor method;
-
-/**
- * Construct and answer a buffered iterator that answers values drawn from the
- * specified iterator. If {@param "size"} is {@code 0} or {@code 1}, then
- * buffering is not warranted; the answer will simply be {@param "src"}.
- *
- * @method "an iterator that buffers_element|elements of_"
- * @param "size" "whole number"
- *    The number of elements to buffer.
- * @param "src" "iterator"
- *    The source iterator.
- * @returns "iterator"
- *    An iterator that provides the same elements and ordering as {@param
- *    "src"}. This will be a {@type "buffered iterator"} so long as {@param
- *    "size"} is greater than {@code 1}.
- */
-Public method "an iterator that buffers_element|elements of_" is
-[
-	size : whole number,
-	src : iterator
-|
-	constructor method(src, size)
-] : iterator;
-
-Semantic restriction "_that buffers_element|elements" is
-	constructor restriction;
-Semantic restriction "an iterator that buffers_element|elements of_" is
-[
-	size : whole number's type,
-	src : iterator's type
-|
-	constructor restriction(src, size)
-];
-
-buffered iterator's next buffer method is
-[
-	anIterator : extend buffered iterator with element source : iterator
-|
-	take at most anIterator's maximum buffer size
-		from anIterator's element source
-] : tuple;
-
-"buffered iterator test suite" is a new atom;
-New test suite buffered iterator test suite extends iterators test suite;
-
-/**
- * A positionable buffered iterator supports explicitly {@method "_'s⁇position"
- * querying} and {@method "_'s⁇position:=_" setting} the current position, while
- * also buffering elements from the source. Specific subtypes may support random
- * access, but all subtypes should support setting the current position to a
- * previous position.
- *
- * @type "positionable buffered iterator"
- * @supertype "positionable iterator"
- * @supertype "buffered iterator"
- */
-Public class "positionable buffered iterator"
-extends buffered iterator ∩ positionable iterator;
-
-Private abstract method privateSetPositionName
-	is [positionable buffered iterator, any]→⊤;
-
-/**
- * Define a method to set the position for a {@type
- * "positionable buffered iterator"}. This is a private operation that should
- * not be called directly from client code, but which must be overridden for
- * specific {@type "buffered iterator"} subtypes. The public (sealed) operation,
- * {@method "_'s⁇position:=_"}, updates the buffer after the position is
- * changed.
- *
- * @method "_'s⁇next buffer method is_"
- * @param "iteratorType" "positionable buffered iterator's type"
- *        The iterator's type, as a cross check for the implementation.
- * @param "implementation" "[⊥, ⊥]→⊤"
- *        The new method extension. The first argument is the iterator, the
- *        second is the new position.
+ * @method "_'s⁇fetch current buffer method is_"
+ * @param "readerType" "buffered reader's type"
+ *        The reader's type, as a cross check for the implementation.
+ * @param "implementation" "[⊥]→tuple"
+ *        The new method extension. The argument is the reader.
  * @returns "⊤"
  */
-Public method "_'s⁇set position method is_" is
+Public method "_'s⁇fetch current buffer method is_" is
 [
-	iteratorType : positionable buffered iterator's type,
-	implementation : [⊥, ⊥]→⊤
+	readerType : buffered reader's type,
+	implementation : [⊥]→tuple
 |
-	Private method privateSetPositionName is implementation;
+	Private method privateFetchCurrentBufferName is implementation;
 ] : ⊤;
 
-Semantic restriction "_'s⁇set position method is_" is
+Semantic restriction "_'s⁇fetch current buffer method is_" is
 [
-	iteratorMeta : positionable buffered iterator's type's type,
-	implementationType : [⊥, ⊥]→tuple's type
+	readerMeta : buffered reader's type's type,
+	implementationType : [⊥]→tuple's type
 |
-	If ⊥ ∈ {implementationType[1], implementationType[2]} then
+	If implementationType[1] = ⊥ then
 	[
 		Reject parse, expected:
 			"function's parameter types to be statically known"
 	];
-	If ¬implementationType[1] ⊆ iteratorMeta's instance then
+	If ¬implementationType[1] ⊆ readerMeta's instance then
 	[
 		Reject parse, expected:
 			"function parameter type ("
 			++ “implementationType[1]”
-			++ ") to be a subtype of the iterator type ("
-			++ “iteratorMeta's instance”
-			++ ")"
-	];
-	iteratorType ::= cast implementationType[1]
-		into [t : positionable buffered iterator's type | t];
-	If ¬implementationType[2] ⊆ iteratorType's position type then
-	[
-		Reject parse, expected:
-			"function parameter type ("
-			++ “implementationType[2]”
-			++ ") to be a subtype of the iterator type's position type ("
-			++ “iteratorType's position type”
+			++ ") to be a subtype of the reader type ("
+			++ “readerMeta's instance”
 			++ ")"
 	];
 	⊤
 ];
 
 /**
- * Seal the {@method "_'s⁇set position method is_" set position method} at the
- * specified {@type "positionable buffered iterator"} type.
+ * Seal the {@method "_'s⁇fetch current buffer method is_" fetch current buffer
+ * method} at the specified {@type "buffered reader"} type.
  *
- * @method "Seal_'s⁇next buffer method"
- * @param "iteratorType" "positionable buffered iterator's type"
+ * @method "Seal_'s⁇fetch current buffer method"
+ * @param "readerType" "buffered reader's type"
  * @returns "⊤"
  */
-Public method "Seal_'s⁇set position method" is
+Public method "Seal_'s⁇fetch current buffer method" is
 [
-	iteratorType : positionable buffered iterator's type
+	readerType : buffered reader's type
 |
-	Seal method privateNextBufferName at <iteratorType>;
+	Seal method privateFetchCurrentBufferName at <readerType>;
 ] : ⊤;
 
-Method "_'s⁇position:=_" is
+
+Method "_is exhausted" is
 [
-	anIterator : positionable buffered iterator,
-	pos : any
+	aReader : buffered reader
 |
-	/* Changing the position should certainly affect the next buffer method. */
-	private anIterator's position := pos;
-	anIterator's buffer := private anIterator's next buffer;
-	anIterator's buffer position := 1;
+	/* This completes initialization of the reader. */
+	(↑aReader's buffer is unassigned
+			∨ [
+				¬ 1 ≤ aReader's position in buffer ≤ |aReader's buffer|])
+		∧ [
+			Private exit aReader's current buffer;
+			aReader's position in buffer := 1;
+			newBuffer ::= private aReader's fetch current buffer;
+			aReader's buffer := newBuffer;
+			¬ 1 ≤ aReader's position in buffer ≤ |newBuffer|
+		]
+] : boolean;
+
+buffered reader's current element method is
+[
+	aReader : buffered reader
+|
+	/* We must have just ensured the current buffer position is within the
+	 * buffer, so it must be a natural number.
+	 */
+	index : natural number;
+	index ?= aReader's position in buffer;
+	aReader's buffer[index]
+] : any;
+
+Seal buffered reader's current element method;
+
+
+buffered iterator's advance method is
+[
+	anIterator : buffered iterator
+|
+	↑anIterator's position in buffer++;
 ] : ⊤;
 
-Seal method "_'s⁇position:=_" at <positionable buffered iterator, any>;
 
 /**
  * Answer a tuple containing (at most) the first {@param "count"} elements of
- * {@param "anIterator"}.  Take advantage of the buffering for performance.
+ * {@param "aReader"}.  Take advantage of the buffering for performance.
+ * 
  * @category "Data Abstractions"
  * @method "take«at most»?_from_"
  * @param "isLax" "boolean"
@@ -409,39 +297,45 @@ Seal method "_'s⁇position:=_" at <positionable buffered iterator, any>;
  *        {@code true} otherwise.
  * @param "count" "[0..∞]"
  *        The size of the requested tuple.
- * @param "anIterator" "iterator"
- *        An iterator.
+ * @param "aReader" "buffered reader"
+ *        A reader.
  * @returns "tuple"
  *          A tuple containing the first {@param "count"} elements of {@param
- *          "anIterator"}, possibly less if {@param isLax} is {@code true}.
+ *          "aReader"}, possibly less if {@param isLax} is {@code true}.
  * @raises "exhausted-iterator exception"
- *         If {@param "isLax"} is {@code false} and {@param "anIterator"} does
+ *         If {@param "isLax"} is {@code false} and {@param "aReader"} does
  *         not contain {@param "count"} elements.
  */
 Method "take«at most»?_from_" is
 [
 	isLax : boolean,
 	count : [0..∞],
-	anIterator : buffered iterator
+	aReader : buffered reader
 |
 	result : tuple := <>;
 	Guard
 	[
 		Until
 		[
-			anIterator is exhausted ∨ [ |result| = count ]
+			aReader is exhausted ∨ [ |result| = count ]
 		]
 		do
 		[
-			buffer ::= anIterator's buffer;
-			startInBuffer ::= anIterator's buffer position;
-			endInBuffer ::= ((startInBuffer + count - 1 - |result|)
-					max 1)  /* Note: count and |result| are correlated. */
-				min |buffer|;
-			batchSize ::= endInBuffer - startInBuffer + 1;
-			Assert: batchSize ≥ 1;
+			/* The "_is exhausted" above set up the buffer if necessary, and
+			 * ensured (because it answered false for us to get here) that the
+			 * buffer contains at least one element of interest to us.
+			 */
+			buffer ::= aReader's buffer;
+			startInBuffer : natural number;
+			startInBuffer ?= aReader's position in buffer;
+			endInBuffer : natural number;
+			endInBuffer ?=
+				(startInBuffer + count - 1 - |result|) min |buffer|;
+			batchSize : natural number;
+			batchSize ?= endInBuffer - startInBuffer + 1;
 			result := eject result ++ buffer[startInBuffer..endInBuffer];
-			anIterator's buffer position := endInBuffer + 1;
+			aReader's position in buffer :=
+				aReader's position in buffer + batchSize;
 		];
 	]
 	intercept
@@ -452,19 +346,3 @@ Method "take«at most»?_from_" is
 	];
 	result
 ] : tuple;
-
-
-Test "buffered iterator basics" in buffered iterator test suite is
-[
-	ref ::= 1 to 10;
-	iter ::=
-		generator for
-		[
-			yield : [[1..∞]]→⊤
-		|
-			end : [1..∞] := ∞;
-			From 1 to end do [x : [1..∞] | yield(x);];
-		]
-		that buffers 5 elements;
-	Require: take 10 from iter = ref;
-];

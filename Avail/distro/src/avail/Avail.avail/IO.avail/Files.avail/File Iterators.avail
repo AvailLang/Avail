@@ -56,30 +56,168 @@ Uses
 Names
 	/* Types. */
 	"file iterator",
-	"readable file iterator",
+	"file reader",
+	"file writer",
+	"file reader/writer",
 
 	/* Constructors. */
-	"a file iterator for_«that buffers_bytes»",
+	"a file iterator for_«aligning buffers to_bytes»",
 
 	/* Tests. */
 	"file iterator test suite"
 Body
 
 "file position" is a new field atom;
+"alignment" is a new field atom;
+"buffer start" is a new field atom;
+"buffer dirty" is a new field atom;
+
+/*
+TODO [MvG] - document properly.
+NOTES:
+	Explicitly taking N bytes should use a large buffer, big enough to
+	be aligned but include the entire desired range.  Round down the start to
+	the alignment and round up the end to the alignment.
+
+	-Positioning before the current buffer or *beyond* the byte just *after* the
+	 current buffer should flush the current buffer if necessary, then
+	 invalidate it by replacing it with the empty tuple.  If the next operation
+	 is a read, it will read the (aligned) buffer.  On the other hand, if the
+	 next operation is a write, the buffer will not need to be fetched.  If a
+	 full bufferful of data is written, no read will have to happen, but if a
+	 buffer flush is forced before a full buffer is available, only the buffered
+	 bytes need to be written.
+	-Writes are not aligned, since that forces an early read.
+	-Writes into a buffer that's aligned due to a read will be re-written
+	 starting at the alignment.  When the write starts, the buffer is
+	 immediately truncated to the nearest aligned location before the write
+	 position.
+ 
+	-The read buffer is always aligned.  A request to read more than a single
+	 aligned buffer will figure out which region(s) of data are not in the
+	 current buffer, then do zero, one, or two reads to populate a larger
+	 buffer that's aligned to the nearest alignments that provide the needed
+	 data.  The buffers are concatenated to form a contiguous region if possible
+	 (even if the read merely abuts the previous buffer boundary).  The buffer
+	 is then truncated to conform to the file's read buffer cache limit (always
+	 a multiple of the alignment).
+	-Contiguous writes are accumulated up to the file's write buffer cache limit
+	 before being flushed (updating the overlapping portion of the read buffer).
+	 However, they need not be aligned.  A non-contiguous write within the same
+	 alignment area should perform a read if necessary to populate the write
+	 buffer
+
+	 VM support:
+	 	-ACTION ITEM: File open primitive needs to capture buffer alignment into
+	 	 a new property.
+	 	-AvailRuntime has added an LRUCache of buffers, each of which is
+	 	 associated with a particular file and starting position.  If the buffer
+	 	 is present, it will always be aligned.  Even though the Avail code can
+	 	 request ranges that are unaligned, these ranges are silently extended
+	 	 to the nearest alignment boundaries (floor for start, ceiling for end)
+	 	 before the operating system is consulted, and the read result is sliced
+	 	 into individual aligned pages (via SubrangeTupleDescriptor) which are
+	 	 placed in the cache.  Then a potentially unaligned subtuple is returned
+	 	 from the read primitive, corresponding to the exact requested range.
+	 	-If the requested pages are all present, then the operation system read
+	 	 is skipped, and the pages are spliced together as needed, and a
+	 	 suitable subtuple is returned.
+	 	-The write operation doesn't need to be aligned.  However, for each
+	 	 page partially overwritten by the write, any existing cached buffer is
+	 	 updated prior to the OS write.  Any complete pages are completely
+	 	 replaced with the appropriate subrange of the provided buffer.
+	 Representation of read/write file iterators:
+		-one buffer
+		-buffer dirty flag
+		-buffer start in file
+		-current position in file
+		-alignment
+		-buffers are LRU-cached by the VM to speed up reads.  An explicit
+		 "refresh" is needed to remove the buffer, allowing the next read to
+		 replace it.
+	 Invariants:
+		-empty buffer implies buffer dirty flag is clear.
+		-if buffer is dirty then current position in file is between buffer
+		 start and buffer end + 1.
+		-buffer never crosses page boundary.
+	 Sample situations:
+		-empty buffer, read -> fetch ONE aligned page.
+		-empty buffer, write -> accrete buffer as data is appended to it,
+		 flushing when buffer crosses alignment.  If a single large tuple of
+		 bytes is written, multiple alignment boundaries may be crossed.  In
+		 that case, all data up to the last-crossed alignment boundary is
+		 written, and the remaining portion of the buffer, if any, remains as a
+		 dirty buffer.
+		-buffer not dirty, seek adjusts current position and clears the buffer
+		 if the new position is off the buffer.
+		-dirty buffer, seek far -> flush buffer, empties it, set current
+		 position.
+		-dirty buffer, seek on same alignment page but outside buffer -> read
+		 a page from file, overwrite with dirty parts, keep dirty flag set, and
+		 adjust buffer start in file to start of page (i.e., treat whole buffer
+		 as dirty).
+		-support "refresh" operation which flushes if dirty, but empties the
+		 buffer in either case.  It also discards all existing VM-cached buffers
+		 for that file.
+		-support "flush" operation which flushes if the buffer is dirty.
+		-support "commit" operation which flushes and then waits for all
+		 outstanding writes to complete.
+*/
 
 /**
- * A file iterator buffers bytes obtained from a backing {@type "file"}.
+ * A file iterator provides streaming access to a backing {@type "file"}.  Its
+ * subtypes {@type "file reader"}, {@type "file writer"}, and
+ * {@type "file reader/writer"} are specializations that support reading
+ * writing, or both, respectively.
  *
  * @type "file iterator"
  * @supertype "positionable buffered iterator"
  */
-Public class "file iterator" extends positionable buffered iterator
+Public class "file iterator" extends positionable iterator
 	with fields
+		alignment : whole number,
 		element type : byte's type,
-		position type : natural number's type,
+		invariant position type : (↑natural number)'s type,
 		element source : file
 	with mutable field
 		file position : natural number;
+
+/**
+ * A file reader buffers bytes obtained from a backing {@type "readable file"}.
+ *
+ * @type "file reader"
+ * @supertype "file iterator"
+ */
+Public explicit class "file reader" extends file iterator ∩ buffered reader
+	with field
+		element source : readable file
+	with mutable field
+		buffer start : natural number;
+
+/**
+ * A file writer buffers bytes obtained from a backing {@type "writable file"}.
+ *
+ * @type "file writer"
+ * @supertype "file iterator"
+ */
+Public class "file writer" extends file iterator
+	with field
+		element source : writable file
+	with mutable fields
+		buffer dirty : boolean,
+		buffer start : natural number;
+
+/**
+ * A file iterator buffers bytes obtained from a backing {@type
+ * "readable,⁇writable file"}.
+ *
+ * @type "file reader/writer"
+ * @supertype "file reader"
+ * @supertype "file writer"
+ */
+Public class "file reader/writer"
+	extends file reader ∩ file writer;
+
 
 /**
  * @method "_'s⁇position"
@@ -92,25 +230,67 @@ Method "_'s⁇position" is
 	anIterator's file position
 ] : natural number;
 
-file iterator's set position method is
+file iterator's position without fetching buffer method is
+[
+	anIterator : file iterator,
+	proposedPosition : natural number 
+|
+	
+	buffer ::= anIterator's buffer
+] : boolean;
+
+/**
+ * A file reader must discard its buffer before positioning outside of the zone
+ * covered by the buffer.
+ * 
+ * @method "_'s⁇position:=_"
+ * @param "anIterator" "file reader"
+ */
+file reader's set position method is
+[
+	anIterator : file reader,
+	pos : natural number
+|
+	anIterator's file position := pos;
+	/* TODO: [MvG] - Deal with buffer flushes and such. */
+] : ⊤;
+
+/**
+ * A file writer must flush its buffer before positioning outside of the
+ * zone covered by the buffer.
+ * 
+ * @method "_'s⁇position:=_"
+ * @param "anIterator" "file writer"
+ */
+file writer's set position method is
 [
 	anIterator : file iterator,
 	pos : natural number
 |
 	anIterator's file position := pos;
+	/* TODO: [MvG] - Deal with buffer flushes and such. */
 ] : ⊤;
 
 /**
- * @type "readable file iterator"
- * @supertype "file iterator"
+ * A file reader/writer must flush its buffer before positioning outside of the
+ * zone covered by the buffer.
+ * 
+ * @method "_'s⁇position:=_"
+ * @param "anIterator" "file writer"
  */
-Public class "readable file iterator" extends file iterator
-	with field
-		element source : readable file;
-
-readable file iterator's next buffer method is
+file reader/writer's set position method is
 [
-	anIterator : readable file iterator
+	anIterator : file iterator,
+	pos : natural number
+|
+	anIterator's file position := pos;
+	/* TODO: [MvG] - Deal with buffer flushes and such. */
+] : ⊤;
+
+
+_privateReadBuffer ::=
+[
+	anIterator : file reader
 |
 	buffer : <byte…|>;
 	readComplete ::= a semaphore named "read is complete" with 0 permits;
@@ -133,18 +313,22 @@ readable file iterator's next buffer method is
 			];
 	Await readComplete;
 	If buffer is unassigned then [Raise an I/O exception];
-	anIterator's file position := anIterator's file position + |buffer|;
 	buffer
 ] : <byte…|>;
+
+file reader's next buffer method is _privateReadBuffer;
+
+file reader/writer's next buffer method is ***;
+
 
 /**
  * Construct and answer a {@type "readable file iterator"} that is open on the
  * file named by {@param "fn"}.
  *
- * @method "a file iterator for_«that buffers_bytes»"
+ * @method "a file iterator for_«aligning buffers to_bytes»"
  * @param "fn" "file name"
  *        The {@method "file name"} of the target file.
- * @param "optionalSize" "<[2..∞)…|0..1>"
+ * @param "optionalAlignment" "<natural number…|0..1>"
  *        If specified, the number of bytes to buffer from the underlying {@type
  *        "file"}. If not specified, then a default value is used.
  * @returns "readable file iterator"
@@ -153,18 +337,19 @@ readable file iterator's next buffer method is
  * @raises "I/O exception"
  *         If an I/O error occurs for any reason.
  */
-Public method "a file iterator for_«that buffers_bytes»" is
+Public method "a file iterator for_«aligning buffers to_bytes»" is
 [
 	fn : file name,
-	optionalSize : <[2..∞)…|0..1>
+	optionalAlignment : <natural number…|0..1>
 |
-	a readable file iterator with
+	a file reader with
 		element type ::= byte,
+		alignment ::= optionalAlignment[1] else [0],
 		position type ::= natural number,
 		element source ::= fn opened with options {read},
-		maximum buffer size ::= optionalSize[1] else [32768],
+		maximum buffer size ::= optionalAlignment[1] else [32768] max 2,
 		file position := 1
-] : readable file iterator;
+] : file reader;
 
 /**
  * Is the {@type "file"} underlying the specified {@type "file iterator"} open?
@@ -259,6 +444,64 @@ Semantic restriction "Using|using_,⁇do_" is
 	action's return type
 ];
 
+/**
+ * Wait for all outstanding writes on this iterator to complete writing to the
+ * physical medium associated with the file's filesystem.
+ * 
+ * @method "Synchronize_"
+ * @param "anIterator" "file writer"
+ * @raises "I/O exception"
+ */
+Method "Synchronize_" is
+[
+	anIterator : file writer
+|
+	syncComplete ::= a semaphore named "sync is complete" with 0 permits;
+	hadError : boolean := false;
+	readFiber ::= a fiber
+		synchronizing anIterator's element source with file system,
+		then
+		[
+			Signal syncComplete;
+		]
+		else
+		[
+			error : {I/O-error code}ᵀ
+		|
+			hadError := true;
+			Signal syncComplete;
+		]
+		priority current fiber's priority;
+	Await syncComplete;
+	If hadError then [Raise an I/O exception];
+];
+
+/** TODO MvG - Document */
+Method "Truncate_" is
+[
+	anIterator : file writer
+|
+	syncComplete ::= a semaphore named "sync is complete" with 0 permits;
+	hadError : boolean := false;
+	readFiber ::= a fiber
+		synchronizing anIterator's element source with file system,
+		then
+		[
+			Signal syncComplete;
+		]
+		else
+		[
+			error : {I/O-error code}ᵀ
+		|
+			hadError := true;
+			Signal syncComplete;
+		]
+		priority current fiber's priority;
+	Await syncComplete;
+	If hadError then [Raise an I/O exception];
+];
+
+
 "file iterator test suite" is a new atom;
 New test suite file iterator test suite extends I/O test suite;
 
@@ -282,7 +525,7 @@ Test "file iterator(readable,small buffer)" in file iterator test suite is
 [
 	ref ::= map "abracadabra" through [c : character | c's code point];
 	fn ::= testDir / "abracadabra.txt";
-	iter ::= a file iterator for fn that buffers 3 bytes;
+	iter ::= a file iterator for fn aligning buffers to 3 bytes;
 	Require: iter is open;
 	Require: take at most ∞ from iter = ref;
 	Require: iter is exhausted;

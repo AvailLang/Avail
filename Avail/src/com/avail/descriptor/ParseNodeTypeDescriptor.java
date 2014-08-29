@@ -288,18 +288,20 @@ extends TypeDescriptor
 		public final ParseNodeKind commonAncestorWith (
 			final ParseNodeKind another)
 		{
-			@NotNull ParseNodeKind a = this;
-			@NotNull ParseNodeKind b = another;
+			ParseNodeKind a = this;
+			ParseNodeKind b = another;
 			while (a != b)
 			{
 				final int diff = b.depth - a.depth;
 				if (diff <= 0)
 				{
 					a = a.parentKind();
+					assert a != null;
 				}
 				if (diff >= 0)
 				{
 					b = b.parentKind();
+					assert b != null;
 				}
 			}
 			return a;

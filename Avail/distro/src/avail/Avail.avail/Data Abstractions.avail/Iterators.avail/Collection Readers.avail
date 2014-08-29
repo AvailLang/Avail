@@ -1,5 +1,5 @@
 /*
- * Collection Iterators.avail
+ * Collection Readers.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Collection Iterators"
+Module "Collection Readers"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
@@ -39,118 +39,141 @@ Uses
 	"Sizable Positionable Iterators",
 	"Unit Testing"
 Names
-	"an iterator over_",
-	"tuple iterator test suite"
+	"a reader over_",
+	"tuple reader test suite"
 Body
 
 "collection" is a new field atom;
-"index" is a new field atom;
+
+naturalNumberVariable ::= ↑natural number;
 
 /**
- * A tuple iterator operates over the elements of a tuple. It is finite by
+ * A tuple reader operates over the elements of a tuple. It is finite by
  * definition, since tuples are finite.
  *
- * @type "tuple iterator"
+ * @type "tuple reader"
  * @supertype "positionable iterator"
+ * @supertype "reader"
  */
-Class "tuple iterator" extends sizable positionable iterator
-	with fields
+Class "tuple reader" extends
+		reader ∩ (sizable positionable iterator positioned by natural number)
+	with immutable fields
 		element type : any's type,
-		position type : natural number's type,
-		collection : tuple
-	with mutable fields
-		referable index : natural number;
+		collection : tuple,
+		position variable : naturalNumberVariable;
 
 Method "_is exhausted" is
 [
-	anIterator : tuple iterator
+	anIterator : tuple reader
 |
-	anIterator's index > |anIterator's collection|
+	anIterator's position > |anIterator's collection|
 ] : boolean;
 
-tuple iterator's current element method is
+tuple reader's current element method is
 [
-	anIterator : tuple iterator
+	anIterator : tuple reader
 |
-	anIterator's collection[anIterator's index]
+	anIterator's collection[anIterator's position]
 ] : any;
 
-tuple iterator's advance method is
+tuple reader's advance method is
 [
-	anIterator : tuple iterator
+	anIterator : tuple reader
 |
-	↑anIterator's index++;
+	anIterator's position variable++;
 ] : ⊤;
 
 Method "_'s⁇position" is
 [
-	anIterator : tuple iterator
+	anIterator : tuple reader
 |
-	anIterator's index
+	anIterator's position
 ] : natural number;
 
 Method "_'s⁇position:=_" is
 [
-	anIterator : tuple iterator,
+	anIterator : tuple reader,
 	position : natural number
 |
 	If position > |anIterator's collection| then
 	[
 		Raise an invalid-position exception
 	];
-	anIterator's index := position;
+	/* TODO[MvG]: Should be a super invocation, once those exist again. */
+	anIterator's position variable ?= position;
 ] : ⊤;
+
+Semantic restriction "_'s⁇position:=_" is
+[
+	anIterator : tuple reader's type,
+	position : natural number's type
+|
+	/* Reject the assignment statically if it's known that the new position is
+	 * <em>always</em> out of bounds.  Use the (covariant) read type in the
+	 * check, since the contravariant one isn't very useful here.
+	 */
+	readType ::= anIterator's position variable's read type;
+	If position ∩ readType = ⊥ then
+	[
+		Reject parse, expected:
+			"New position to at least sometimes be in range"
+	];
+	⊤
+];
 
 Method "`|_`|" is
 [
-	anIterator : tuple iterator
+	anIterator : tuple reader
 |
 	|anIterator's collection|
 ] : whole number;
 
 Semantic restriction "`|_`|" is
 [
-	iteratorType : tuple iterator's type
+	iteratorType : tuple reader's type
 |
 	||iteratorType's collection||
 ];
 
 Method "`|_'s⁇remaining elements`|" is
 [
-	anIterator : tuple iterator
+	anIterator : tuple reader
 |
-	(|anIterator's collection| - anIterator's index + 1) max 0
+	(|anIterator's collection| - anIterator's position + 1) max 0
 ] : whole number;
 
 /**
  * Construct and answer an {@type "iterator"} that produces all elements of the
  * specified tuple.
  *
- * @method "an iterator over_"
+ * @method "a reader over_"
  * @param "aTuple" "tuple"
  *        A tuple.
  * @returns "iterator"
  *          The requested iterator.
  */
-Public method "an iterator over_" is
+Public method "a reader over_" is
 [
 	aTuple : tuple
 |
-	a tuple iterator with
+	newVar ::= cast new ↑natural number into [v : naturalNumberVariable | v];
+	newVar ?= 1;
+	a tuple reader with
 		element type ::= ∪ aTuple's type[1..|aTuple|],
-		position type ::= [1..|aTuple|],
-		collection ::= aTuple,
-		index := 1
-] : tuple iterator;
+		position variable ::= newVar,
+		collection ::= aTuple
+] : tuple reader;
 
-Semantic restriction "an iterator over_" is
+Semantic restriction "a reader over_" is
 [
 	tupleType : tuple's type
 |
 	limit ::= ⎡tupleType⎤ min (|tupleType's leading types| + 1);
-	extend tuple iterator with
+	variableType ::= cast [1..⎡tupleType⎤+1)→/→natural number
+		into [n : (↑natural number)'s type | n];
+	extend tuple reader with
 		element type : ∪ tupleType[1..limit]'s type,
-		position type : [1..⎡tupleType⎤+1)'s type,
+		position variable : variableType,
 		collection : tupleType
 ];
 
@@ -160,30 +183,28 @@ Semantic restriction "an iterator over_" is
  * and two invocations with the same arguments may produce differently ordered
  * iterators.
  *
- * @method "an iterator over_"
+ * @method "a reader over_"
  * @param "aSet" "set"
  *        A set.
  * @returns "iterator"
  *          The requested iterator.
  */
-Public method "an iterator over_" is
+Public method "a reader over_" is
 [
 	aSet : set
 |
-	a tuple iterator with
-		element type ::= aSet's type's element type,
-		position type ::= [1..|aSet|],
-		collection ::= aSet→tuple,
-		index := 1
-] : tuple iterator;
+	a reader over aSet→tuple
+] : tuple reader;
 
-Semantic restriction "an iterator over_" is
+Semantic restriction "a reader over_" is
 [
 	setType : set's type
 |
-	extend tuple iterator with
+	variableType ::= cast [1..⎡setType⎤+1)→/→natural number
+		into [n : (↑natural number)'s type | n];
+	extend tuple reader with
 		element type : setType's element type's type,
-		position type : [1..⎡setType⎤+1)'s type,
+		position variable : variableType,
 		collection : <<>, setType's element type… | ||setType||>
 ];
 
@@ -193,42 +214,40 @@ Semantic restriction "an iterator over_" is
  * and two invocations with the same arguments may produce differently ordered
  * iterators.
  *
- * @method "an iterator over_"
+ * @method "a reader over_"
  * @param "aMap" "map"
  *        A map.
  * @returns "iterator"
  *          The requested iterator.
  */
-Public method "an iterator over_" is
+Public method "a reader over_" is
 [
 	aMap : map
 |
-	a tuple iterator with
-		element type ::= <aMap's type's key type, aMap's type's value type…|2>,
-		position type ::= [1..|aMap|],
-		collection ::= aMap's bindings,
-		index := 1
-] : tuple iterator;
+	a reader over aMap's bindings
+] : tuple reader;
 
-Semantic restriction "an iterator over_" is
+Semantic restriction "a reader over_" is
 [
 	mapType : map's type
 |
+	variableType ::= cast [1..⎡mapType⎤+1)'s type→/→natural number
+		into [n : (↑natural number)'s type | n];
 	elementType ::= <mapType's key type, mapType's value type…|2>;
-	extend tuple iterator with
+	extend tuple reader with
 		element type : elementType's type,
-		position type : [1..⎡mapType⎤+1)'s type,
+		position variable : variableType,
 		collection : <<>, elementType… | ||mapType||>
 ];
 
-"tuple iterator test suite" is a new atom;
-New test suite tuple iterator test suite extends iterators test suite;
+"tuple reader test suite" is a new atom;
+New test suite tuple reader test suite extends iterators test suite;
 
-Test "tuple iterator basics" in tuple iterator test suite is
+Test "tuple reader basics" in tuple reader test suite is
 [
 	ref ::= 1 to 10;
 	index : natural number := 1;
-	iter ::= an iterator over 1 to 10;
+	iter ::= a reader over 1 to 10;
 	For each iter do
 	[
 		element : [1..10]
@@ -238,11 +257,11 @@ Test "tuple iterator basics" in tuple iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "tuple iterator (map)" in tuple iterator test suite is
+Test "tuple reader (map)" in tuple reader test suite is
 [
 	ref ::= <1, 4, 9, 16, 25, 36, 49, 64, 81, 100>;
 	index : natural number := 1;
-	iter ::= map an iterator over 1 to 10 through [i : [1..10] | i × i];
+	iter ::= map a reader over 1 to 10 through [i : [1..10] | i × i];
 	For each iter do
 	[
 		element : [1..100]
@@ -252,11 +271,11 @@ Test "tuple iterator (map)" in tuple iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "tuple iterator (filter)" in tuple iterator test suite is
+Test "tuple reader (filter)" in tuple reader test suite is
 [
 	ref ::= <2, 4, 6, 8, 10>;
 	index : natural number := 1;
-	iter ::= filter an iterator over 1 to 10
+	iter ::= filter a reader over 1 to 10
 		by [i : [1..10] | i is even];
 	For each iter do
 	[
@@ -267,20 +286,20 @@ Test "tuple iterator (filter)" in tuple iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "tuple iterator (concatenation)" in tuple iterator test suite is
+Test "tuple reader (concatenation)" in tuple reader test suite is
 [
 	ref ::= 1 to 10;
 	index : natural number := 1;
 	iters ::= <
-		an exhausted iterator,
-		an iterator over 1 to 2,
-		an exhausted iterator,
-		an exhausted iterator,
-		an iterator over 3 to 7,
-		an exhausted iterator,
-		an iterator over 8 to 8,
-		an iterator over 9 to 10,
-		an exhausted iterator>;
+		an exhausted reader,
+		a reader over 1 to 2,
+		an exhausted reader,
+		an exhausted reader,
+		a reader over 3 to 7,
+		an exhausted reader,
+		a reader over 8 to 8,
+		a reader over 9 to 10,
+		an exhausted reader>;
 	iter ::= concatenate iters;
 	For each iter do
 	[
@@ -291,21 +310,21 @@ Test "tuple iterator (concatenation)" in tuple iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "tuple iterator (lexical concatenation)"
-	in tuple iterator test suite is
+Test "tuple reader (lexical concatenation)"
+	in tuple reader test suite is
 [
 	ref ::= 1 to 10;
 	index : natural number := 1;
 	iters ::= <
-		an exhausted iterator,
-		an iterator over 1 to 2,
-		an exhausted iterator,
-		an exhausted iterator,
-		an iterator over 3 to 7,
-		an exhausted iterator,
-		an iterator over 8 to 8,
-		an iterator over 9 to 10,
-		an exhausted iterator>;
+		an exhausted reader,
+		a reader over 1 to 2,
+		an exhausted reader,
+		an exhausted reader,
+		a reader over 3 to 7,
+		an exhausted reader,
+		a reader over 8 to 8,
+		a reader over 9 to 10,
+		an exhausted reader>;
 	iter ::= iters[1]
 		++ iters[2]
 		++ iters[3]
@@ -324,15 +343,15 @@ Test "tuple iterator (lexical concatenation)"
 	Require: index = (|ref| + 1);
 ];
 
-Test "tuple iterator (zip)" in tuple iterator test suite is
+Test "tuple reader (zip)" in tuple reader test suite is
 [
 	ref ::= <
 		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
 		<6, 36>, <7, 49>, <8, 64>, <9, 81>, <10, 100>>;
 	index : natural number := 1;
 	iters ::= <
-		an iterator over 1 to 10,
-		map an iterator over 1 to 10
+		a reader over 1 to 10,
+		map a reader over 1 to 10
 			through [n : [1..10] | n × n]>;
 	iter ::= zip iters;
 	For each iter do
@@ -344,15 +363,15 @@ Test "tuple iterator (zip)" in tuple iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "tuple iterator (lexical zip)" in tuple iterator test suite is
+Test "tuple reader (lexical zip)" in tuple reader test suite is
 [
 	ref ::= <
 		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
 		<6, 36>, <7, 49>, <8, 64>, <9, 81>, <10, 100>>;
 	index : natural number := 1;
 	iters ::= <
-		an iterator over 1 to 10,
-		map an iterator over 1 to 10
+		a reader over 1 to 10,
+		map a reader over 1 to 10
 			through [n : [1..10] | n × n]>;
 	iter ::= iters[1] zip iters[2];
 	For each iter do
@@ -364,11 +383,11 @@ Test "tuple iterator (lexical zip)" in tuple iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "tuple iterator (take_from_)" in tuple iterator test suite is
+Test "tuple reader (take_from_)" in tuple reader test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
-	iter ::= an iterator over 1 to 10;
+	iter ::= a reader over 1 to 10;
 	result ::= take 5 from iter;
 	For each result do
 	[
@@ -380,11 +399,11 @@ Test "tuple iterator (take_from_)" in tuple iterator test suite is
 	Require: [take 6 from iter] raises exhausted-iterator exception;
 ];
 
-Test "tuple iterator (take from_while_)" in tuple iterator test suite is
+Test "tuple reader (take from_while_)" in tuple reader test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
-	iter ::= an iterator over 1 to 10;
+	iter ::= a reader over 1 to 10;
 	result ::= take from iter while [n : [1..10] | n ≤ 5];
 	For each result do
 	[
@@ -395,11 +414,11 @@ Test "tuple iterator (take from_while_)" in tuple iterator test suite is
 	Require: iter's current element = 6;
 ];
 
-Test "tuple iterator (take from_until_)" in tuple iterator test suite is
+Test "tuple reader (take from_until_)" in tuple reader test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
-	iter ::= an iterator over 1 to 10;
+	iter ::= a reader over 1 to 10;
 	result ::= take from iter until [n : [1..10] | n ≥ 6];
 	For each result do
 	[
@@ -410,11 +429,11 @@ Test "tuple iterator (take from_until_)" in tuple iterator test suite is
 	Require: iter's current element = 6;
 ];
 
-Test "tuple iterator (Drop_from_)" in tuple iterator test suite is
+Test "tuple reader (Drop_from_)" in tuple reader test suite is
 [
 	ref ::= 6 to 10;
 	index : natural number := 1;
-	iter ::= an iterator over 1 to 10;
+	iter ::= a reader over 1 to 10;
 	Drop 5 from iter;
 	For each iter do
 	[
@@ -426,11 +445,11 @@ Test "tuple iterator (Drop_from_)" in tuple iterator test suite is
 	Require: [Drop 6 from iter;] raises exhausted-iterator exception;
 ];
 
-Test "tuple iterator (Drop from_while_)" in tuple iterator test suite is
+Test "tuple reader (Drop from_while_)" in tuple reader test suite is
 [
 	ref ::= 6 to 10;
 	index : natural number := 1;
-	iter ::= an iterator over 1 to 10;
+	iter ::= a reader over 1 to 10;
 	Drop from iter while [n : [1..10] | n ≤ 5];
 	For each iter do
 	[
@@ -441,11 +460,11 @@ Test "tuple iterator (Drop from_while_)" in tuple iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "tuple iterator (Drop from_until_)" in tuple iterator test suite is
+Test "tuple reader (Drop from_until_)" in tuple reader test suite is
 [
 	ref ::= 6 to 10;
 	index : natural number := 1;
-	iter ::= an iterator over 1 to 10;
+	iter ::= a reader over 1 to 10;
 	Drop from iter until [n : [1..10] | n ≥ 6];
 	For each iter do
 	[
@@ -456,16 +475,21 @@ Test "tuple iterator (Drop from_until_)" in tuple iterator test suite is
 	Require: index = (|ref| + 1);
 ];
 
-Test "tuple iterator (size)" in tuple iterator test suite is
+Test "tuple reader (size)" in tuple reader test suite is
 [
-	iter : sizable iterator of [1..10] := an iterator over 1 to 10;
+	iter : sizable reader of [1..10] := a reader over 1 to 10;
 	Require: 10 = |iter|;
 ];
 
-Test "tuple iterator (position)" in tuple iterator test suite is
+/** TODO[MvG] - Remove hack. */
+x : reader of [1..10];
+y : sizable reader of [1..10];
+z : sizable reader of [1..10] positioned by [1..∞);
+
+Test "tuple reader (position)" in tuple reader test suite is
 [
-	iter : sizable iterator of [1..10] positioned by [1..∞) :=
-		an iterator over 1 to 10;
+	iter : sizable reader of [1..10] positioned by [1..∞) :=
+		a reader over 1 to 10;
 	Require: 10 = |iter|;
 	Repeat [Advance iter;] 5 times;
 	position ::= iter's position;
@@ -484,9 +508,9 @@ Test "tuple iterator (position)" in tuple iterator test suite is
 ]
 must raise invalid-position exception;
 
-Test "tuple iterator (remaining elements)" in tuple iterator test suite is
+Test "tuple reader (remaining elements)" in tuple reader test suite is
 [
-	iter ::= an iterator over 1 to 10;
+	iter ::= a reader over 1 to 10;
 	remaining : integer := |iter|;
 	For each iter do
 	[

@@ -1856,7 +1856,7 @@ public enum SerializerOperation
 			assert !object.isPojoFusedType();
 			final AvailObject rawPojoType = object.javaClass();
 			final Class<?> baseClass =
-				(Class<?>)rawPojoType.javaObject();
+				(Class<?>)rawPojoType.javaObjectNotNull();
 			final A_String className =
 				StringDescriptor.from(baseClass.getName());
 			final A_Map ancestorMap = object.javaAncestors();
@@ -1952,7 +1952,7 @@ public enum SerializerOperation
 				: object.javaAncestors().mapIterable())
 			{
 				final Class<?> baseClass =
-					(Class<?>)entry.key().javaObject();
+					(Class<?>)entry.key().javaObjectNotNull();
 				final A_String className =
 					StringDescriptor.from(baseClass.getName());
 				final List<A_BasicObject> processedParameters =

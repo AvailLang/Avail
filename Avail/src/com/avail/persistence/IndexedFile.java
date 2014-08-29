@@ -677,7 +677,7 @@ extends AbstractList<byte[]>
 		{
 			return master().rawBytes.unsafeBytes();
 		}
-		return blockCache.get(filePosition);
+		return blockCache.getNotNull(filePosition);
 	}
 
 	/**

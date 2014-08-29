@@ -32,6 +32,7 @@
 
 package com.avail;
 
+import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
@@ -67,6 +68,8 @@ import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.utility.LRUCache;
+import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
 
 /**
@@ -247,12 +250,26 @@ public final class AvailRuntime
 	private final ThreadPoolExecutor fileExecutor =
 		new ThreadPoolExecutor(
 			availableProcessors,
-			availableProcessors << 1,
+			availableProcessors << 2,
 			10L,
 			TimeUnit.SECONDS,
-			new LinkedBlockingQueue<Runnable>(),
+			new LinkedBlockingQueue<Runnable>(10),
 			threadFactory,
 			new ThreadPoolExecutor.CallerRunsPolicy());
+
+	/**
+	 * Schedule the specified {@linkplain AvailTask task} for eventual execution
+	 * by the {@linkplain ThreadPoolExecutor thread pool executor} for
+	 * asynchronous file operations. The implementation is free to run the task
+	 * immediately or delay its execution arbitrarily. The task will not execute
+	 * on an {@linkplain AvailThread Avail thread}.
+	 *
+	 * @param task A task.
+	 */
+	public void executeFileTask (final AvailTask task)
+	{
+		fileExecutor.execute(task);
+	}
 
 	/**
 	 * The {@linkplain ThreadPoolExecutor thread pool executor} for asynchronous
@@ -262,7 +279,7 @@ public final class AvailRuntime
 	private final ThreadPoolExecutor socketExecutor =
 		new ThreadPoolExecutor(
 			availableProcessors,
-			availableProcessors << 1,
+			availableProcessors << 2,
 			10L,
 			TimeUnit.SECONDS,
 			new LinkedBlockingQueue<Runnable>(),
@@ -286,6 +303,20 @@ public final class AvailRuntime
 		{
 			throw new RuntimeException(e);
 		}
+	}
+
+	/**
+	 * Schedule the specified {@linkplain Runnable task} for eventual
+	 * execution by the {@linkplain ThreadPoolExecutor thread pool executor} for
+	 * asynchronous socket operations. The implementation is free to run the
+	 * task immediately or delay its execution arbitrarily. The task will not
+	 * execute on an {@linkplain AvailThread Avail thread}.
+	 *
+	 * @param task A task.
+	 */
+	public void executeSocketTask (final Runnable task)
+	{
+		socketExecutor.execute(task);
 	}
 
 	/**
@@ -388,6 +419,228 @@ public final class AvailRuntime
 	public static PosixFilePermission[] posixPermissions ()
 	{
 		return posixPermissions;
+	}
+
+	/**
+	 * A {@code BufferKey} identifies a file buffer in the {@linkplain
+	 * #cachedBuffers buffer cache}.
+	 */
+	public static final class BufferKey
+	{
+		/**
+		 * The {@linkplain FileHandle file handle} that represents the
+		 * provenance of the associated buffer.
+		 */
+		final FileHandle fileHandle;
+
+		/**
+		 * The start position of the buffer within the underlying file. This
+		 * value is measured in bytes, and need not be aligned.
+		 */
+		final long startPosition;
+
+		/**
+		 * Construct a new {@link BufferKey}.
+		 *
+		 * @param fileHandle
+		 *        The {@link FileHandle} that represents the provenance of the
+		 *        associated buffer.
+		 * @param startPosition
+		 *        The start position of the buffer within the underlying file.
+		 *        This value is measured in bytes, and need not be aligned.
+		 */
+		public BufferKey (
+			final FileHandle fileHandle,
+			final long startPosition)
+		{
+			this.fileHandle = fileHandle;
+			this.startPosition = startPosition;
+		}
+
+		@Override
+		public boolean equals (final @Nullable Object obj)
+		{
+			if (obj instanceof BufferKey)
+			{
+				final BufferKey other = (BufferKey) obj;
+				return fileHandle == other.fileHandle
+					&& startPosition == other.startPosition;
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode ()
+		{
+			int h = fileHandle.hashCode();
+			h *= multiplier;
+			h ^= 0xD198EA23;
+			h += (int)(startPosition >> 32);
+			h *= multiplier;
+			h ^= 0x918F7711;
+			h += (int)startPosition;
+			h *= multiplier;
+			h ^= 0x32AE891D;
+			return h;
+		}
+	}
+
+	/**
+	 * A {@code FileHandle} is an abstraction which wraps an {@link
+	 * AsynchronousFileChannel} with some additional information like filename
+	 * and buffer alignment.  It gets stuffed in a {@linkplain PojoDescriptor
+	 * pojo} in a {@linkplain AtomDescriptor#fileKey() property} of the
+	 * {@linkplain AtomDescriptor atom} that serves as Avail's most basic view
+	 * of a file handle.  Sockets use a substantially similar technique.
+	 *
+	 * <p>
+	 * In addition, the {@code FileHandle} weakly tracks which buffers need to
+	 * be evicted from Avail's {@link AvailRuntime#cachedBuffers file buffer
+	 * cache}.
+	 * </p>
+	 *
+	 * @author Mark van Gulik&lt;mark@availlang.org&gt;
+	 */
+	public static final class FileHandle
+	{
+		/** The name of the file. */
+		public final A_String filename;
+
+		/**
+		 * The buffer alignment for the file.  Reading is only ever attempted
+		 * on this file at buffer boundaries.  There is a {@linkplain
+		 * AvailRuntime#getBuffer(BufferKey) global file buffer cache}, which is
+		 * an {@link LRUCache} of buffers across all open files.  Each buffer in
+		 * the cache has a length exactly equal to that file handle's alignment.
+		 * A file will often have a partial buffer at the end due to its size
+		 * not being an integral multiple of the alignment.  Such a partial
+		 * buffer is always excluded from the global file buffer cache.
+		 */
+		public final int alignment;
+
+		/** Whether this file can be read. */
+		public final boolean canRead;
+
+		/** Whether this file can be written. */
+		public final boolean canWrite;
+
+		/**
+		 * The underlying {@link AsynchronousFileChannel} through which input
+		 * and/or output takes place.
+		 */
+		public final AsynchronousFileChannel channel;
+
+		/**
+		 * A weak set of {@link BufferKey}s pertaining to this file, for which
+		 * there may be entries in the {@linkplain
+		 * AvailRuntime#getBuffer(BufferKey) global file buffer cache}.  Since
+		 * the buffer keys are specific to each {@link FileHandle}, they are
+		 * removed from the cache explicitly when the file is closed.  This weak
+		 * set allows the cache removals to happen efficiently.
+		 */
+		public final WeakHashMap<BufferKey, Void> bufferKeys =
+			new WeakHashMap<>();
+
+		/**
+		 * Construct a new {@link AvailRuntime.FileHandle}.
+		 *
+		 * @param filename The {@link A_String name} of the file.
+		 * @param alignment The alignment by which to access the file.
+		 * @param canRead Whether the file can be read.
+		 * @param canWrite Whether the file can be written.
+		 * @param channel The {@link AsynchronousFileChannel} with which to do
+		 *                reading and writing.
+		 */
+		public FileHandle (
+			final A_String filename,
+			final int alignment,
+			final boolean canRead,
+			final boolean canWrite,
+			final AsynchronousFileChannel channel)
+		{
+			this.filename = filename;
+			this.alignment = alignment;
+			this.canRead = canRead;
+			this.canWrite = canWrite;
+			this.channel = channel;
+ 		}
+	}
+
+	/**
+	 * Maintain an {@link LRUCache} of file buffers.  This allows us to avoid
+	 * a trip to the operating system to re-fetch recently accessed buffers of
+	 * data, which is especially powerful since the buffers are {@linkplain
+	 * Mutability#SHARED shared} (immutable and thread-safe).
+	 *
+	 * <p>A miss for this cache doesn't actually read the necessary data from
+	 * the operating system.  Instead, it simply creates a {@link MutableOrNull}
+	 * initially.  The client is responsible for reading the actual data that
+	 * should be stored into the {@code MutableOrNull}.</p>
+	 */
+	@SuppressWarnings("javadoc")
+	private final LRUCache<
+			BufferKey,
+			MutableOrNull<A_Tuple>>
+		cachedBuffers = new LRUCache<>(
+			10000,
+			10,
+			new Transformer1<
+				BufferKey,
+				MutableOrNull<A_Tuple>>()
+			{
+				@Override
+				public MutableOrNull<A_Tuple> value (
+					final @Nullable BufferKey key)
+				{
+					assert key != null;
+					return new MutableOrNull<>();
+				}
+			},
+			new Continuation2<
+				BufferKey,
+				MutableOrNull<A_Tuple>>()
+			{
+				@Override
+				public void value (
+					final @Nullable BufferKey key,
+					final @Nullable MutableOrNull<A_Tuple> value)
+				{
+					assert value != null;
+					// Just clear the mutable's value slot, freeing the actual
+					// buffer.
+					value.value = null;
+				}
+			});
+
+	/**
+	 * Answer the {@linkplain MutableOrNull container} responsible for the
+	 * {@linkplain A_Tuple buffer} indicated by the supplied {@linkplain
+	 * BufferKey key}.
+	 *
+	 * @param key
+	 *        A key.
+	 * @return A container for a buffer, possibly empty.
+	 */
+	public MutableOrNull<A_Tuple> getBuffer (final BufferKey key)
+	{
+		final MutableOrNull<A_Tuple> buffer = cachedBuffers.get(key);
+		assert buffer != null;
+		return buffer;
+	}
+
+	/**
+	 * Discard the {@linkplain MutableOrNull container} responsible for the
+	 * {@linkplain A_Tuple buffer} indicated by the supplied {@linkplain
+	 * BufferKey key}.
+	 *
+	 * @param key
+	 *        A key.
+	 * @return A container for the associated buffer, or {@code null} if the
+	 *         buffer is no longer valid.
+	 */
+	public @Nullable MutableOrNull<A_Tuple> discardBuffer (final BufferKey key)
+	{
+		return cachedBuffers.remove(key);
 	}
 
 	/**
@@ -1193,39 +1446,33 @@ public final class AvailRuntime
 
 		System.arraycopy(specials, 0, specialObjects, 0, specials.length);
 
-		// Declare all special atoms.  Do not change the order of this list if
-		// you care about serializer compatibility, otherwise previously
-		// serialized references to special atoms will not deserialize
-		// correctly.
+		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
+		// depends on the order of this list.
 		assert specialAtomsList.isEmpty();
-		final A_Atom[] atoms = new A_Atom[17];
-		atoms[0] = AtomDescriptor.trueObject();
-		atoms[1] = AtomDescriptor.falseObject();
-		atoms[2] = PojoTypeDescriptor.selfAtom();
-		atoms[3] = ObjectTypeDescriptor.exceptionAtom();
-		atoms[4] = MethodDescriptor.vmCrashAtom();
-		atoms[5] = MethodDescriptor.vmFunctionApplyAtom();
-		atoms[6] = MethodDescriptor.vmMethodDefinerAtom();
-		atoms[7] = MethodDescriptor.vmMacroDefinerAtom();
-		atoms[8] = MethodDescriptor.vmPublishAtomsAtom();
-		atoms[9] = ObjectTypeDescriptor.stackDumpAtom();
-		atoms[10] = AtomDescriptor.fileKey();
-		atoms[11] = AtomDescriptor.fileModeReadKey();
-		atoms[12] = AtomDescriptor.fileModeWriteKey();
-		atoms[13] = CompiledCodeDescriptor.methodNameKeyAtom();
-		atoms[14] = CompiledCodeDescriptor.lineNumberKeyAtom();
-		atoms[15] = AtomDescriptor.messageBundleKey();
-		atoms[16] = MethodDescriptor.vmDeclareStringifierAtom();
+		specialAtomsList.addAll(Arrays.asList(
+			AtomDescriptor.trueObject(),
+			AtomDescriptor.falseObject(),
+			PojoTypeDescriptor.selfAtom(),
+			ObjectTypeDescriptor.exceptionAtom(),
+			MethodDescriptor.vmCrashAtom(),
+			MethodDescriptor.vmFunctionApplyAtom(),
+			MethodDescriptor.vmMethodDefinerAtom(),
+			MethodDescriptor.vmMacroDefinerAtom(),
+			MethodDescriptor.vmPublishAtomsAtom(),
+			ObjectTypeDescriptor.stackDumpAtom(),
+			AtomDescriptor.fileKey(),
+			CompiledCodeDescriptor.methodNameKeyAtom(),
+			CompiledCodeDescriptor.lineNumberKeyAtom(),
+			AtomDescriptor.messageBundleKey(),
+			MethodDescriptor.vmDeclareStringifierAtom()));
 
-		// Populate the specialAtomsList.
-		for (int i = 0; i < atoms.length; i++)
+		for (final A_Atom atom : specialAtomsList)
 		{
-			assert atoms[i] != null;
-			assert atoms[i].isAtomSpecial();
-			specialAtomsList.add(atoms[i]);
+			assert atom.isAtomSpecial();
 		}
 
-		// Make sure
+		// Make sure all special objects are shared, and also make sure all
+		// special objects that are atoms are also special.
 		for (int i = 0; i < specialObjects.length; i++)
 		{
 			final AvailObject object = specialObjects[i];

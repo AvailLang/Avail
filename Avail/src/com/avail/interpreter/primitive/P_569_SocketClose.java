@@ -75,7 +75,7 @@ extends Primitive
 				: E_INVALID_HANDLE);
 		}
 		final AsynchronousSocketChannel socket =
-			(AsynchronousSocketChannel) pojo.javaObject();
+			(AsynchronousSocketChannel) pojo.javaObjectNotNull();
 		try
 		{
 			socket.close();

@@ -37,6 +37,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.IOException;
 import java.nio.channels.AsynchronousFileChannel;
 import java.util.List;
+import com.avail.AvailRuntime.FileHandle;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
@@ -63,18 +64,17 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_Atom handle = args.get(0);
+		final A_Atom atom = args.get(0);
 		final A_BasicObject pojo =
-			handle.getAtomProperty(AtomDescriptor.fileKey());
+			atom.getAtomProperty(AtomDescriptor.fileKey());
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
-		final AsynchronousFileChannel file =
-			(AsynchronousFileChannel) pojo.javaObject();
+		final FileHandle handle = (FileHandle) pojo.javaObjectNotNull();
 		try
 		{
-			file.close();
+			handle.channel.close();
 		}
 		catch (final IOException e)
 		{
@@ -82,12 +82,8 @@ extends Primitive
 			// we've already forgotten about the handle. There's no reason
 			// to fail the primitive.
 		}
-		handle.setAtomProperty(
+		atom.setAtomProperty(
 			AtomDescriptor.fileKey(), NilDescriptor.nil());
-		handle.setAtomProperty(
-			AtomDescriptor.fileModeReadKey(), NilDescriptor.nil());
-		handle.setAtomProperty(
-			AtomDescriptor.fileModeWriteKey(), NilDescriptor.nil());
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 

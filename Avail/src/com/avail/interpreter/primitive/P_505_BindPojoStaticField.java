@@ -68,7 +68,7 @@ public final class P_505_BindPojoStaticField extends Primitive
 		if (!pojoType.isPojoFusedType())
 		{
 			final Class<?> javaClass =
-				(Class<?>) pojoType.javaClass().javaObject();
+				(Class<?>) pojoType.javaClass().javaObjectNotNull();
 			try
 			{
 				field = javaClass.getField(fieldName.asNativeString());
@@ -87,7 +87,8 @@ public final class P_505_BindPojoStaticField extends Primitive
 			final A_Map ancestors = pojoType.javaAncestors();
 			for (final A_BasicObject ancestor : ancestors.keysAsSet())
 			{
-				final Class<?> javaClass = (Class<?>) ancestor.javaObject();
+				final Class<?> javaClass =
+					(Class<?>) ancestor.javaObjectNotNull();
 				try
 				{
 					fields.add(javaClass.getField(

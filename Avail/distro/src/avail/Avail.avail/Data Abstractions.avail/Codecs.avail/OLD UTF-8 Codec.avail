@@ -47,6 +47,8 @@ Names
 	"UTF8 codec test suite"
 Body
 
+/* TODO[MvG] - Delete this original after UTF-8 Codec module is reimplemented.
+
 /**
  * Transfor a contination byte according to UTF-8 specification
  *
@@ -629,7 +631,7 @@ Method "decode_using_" is
 ] : string;
 
 /**
- * The method that accepts a byte tuple and the decoding specification that
+ * The method that accepts a byte tuple and the decoding specificaiton that
  * transforms the byte tuple into a character.
  * 
  * @method "finish decoding with_"

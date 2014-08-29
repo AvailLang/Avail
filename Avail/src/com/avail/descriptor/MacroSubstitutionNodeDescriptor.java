@@ -160,7 +160,7 @@ extends ParseNodeDescriptor
 	{
 		object.setSlot(
 			OUTPUT_PARSE_NODE,
-			aBlock.value(object.slot(OUTPUT_PARSE_NODE)));
+			aBlock.valueNotNull(object.slot(OUTPUT_PARSE_NODE)));
 	}
 
 	@Override @AvailMethod

@@ -77,7 +77,7 @@ extends Primitive
 				: E_INVALID_HANDLE);
 		}
 		final AsynchronousSocketChannel socket =
-			(AsynchronousSocketChannel) pojo.javaObject();
+			(AsynchronousSocketChannel) pojo.javaObjectNotNull();
 		final InetSocketAddress peer;
 		try
 		{

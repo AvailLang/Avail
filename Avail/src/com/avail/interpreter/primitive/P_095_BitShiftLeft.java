@@ -1,5 +1,5 @@
 /**
- * P_126_SpecialAtoms.java
+ * P_095_BitShiftLeft.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,31 +29,30 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.List;
-import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 126:</strong> Answer the {@linkplain SetDescriptor
- * set} of {@linkplain AvailRuntime#specialAtoms() special atoms} known to
- * the {@linkplain AvailRuntime Avail runtime}.
+ * <strong>Primitive 95</strong>: Given any integer B, and a shift factor S,
+ * compute ⎣B×2<sup>S</sup>⎦.  This is the left-shift operation, but when S
+ * is negative it acts as a right-shift.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_126_SpecialAtoms extends Primitive
+public final class P_095_BitShiftLeft
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_126_SpecialAtoms().init(
-		0, CanFold, CannotFail);
-
-	/** The cached set of special atoms defined by the Avail runtime. */
-	private final static A_Set specialAtomsSet =
-		SetDescriptor.fromCollection(AvailRuntime.specialAtoms());
+	public final static Primitive instance =
+		new P_095_BitShiftLeft().init(2, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
@@ -61,24 +60,29 @@ public final class P_126_SpecialAtoms extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 0;
-		return interpreter.primitiveSuccess(specialAtomsSet);
+		assert args.size() == 2;
+		final A_Number baseInteger = args.get(0);
+		final A_Number shiftFactor = args.get(1);
+		return interpreter.primitiveSuccess(
+			baseInteger.bitShift(
+				shiftFactor,
+				true));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.empty(),
-			SetTypeDescriptor.setTypeForSizesContentType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				ATOM.o()));
+			TupleDescriptor.from(
+				IntegerRangeTypeDescriptor.integers(),
+				IntegerRangeTypeDescriptor.integers()),
+			IntegerRangeTypeDescriptor.integers());
 	}
 
 	@Override
-	public A_Type returnTypeGuaranteedByVM(
-		final List<? extends A_Type> argumentTypes)
+	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstance(specialAtomsSet);
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_TOO_LARGE_TO_REPRESENT.numericCode());
 	}
 }

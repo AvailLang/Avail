@@ -76,6 +76,43 @@ Names
 Body
 
 /**
+ * Although we can't restrict the type precisely because of the invariant
+ * nature of this type relation and the conservativeness of metacovariance,
+ * we can still restrict just the read type of the result.  This is sometimes
+ * enough.
+ * 
+ * @method "`↑_"
+ * @restricts "any meta's type"
+ */
+Semantic restriction "`↑_" is
+[
+	contentMeta : any meta's type
+|
+	readType ::= contentMeta's instance;
+	(readType→/→⊥)'s type
+] : variable meta's type;
+
+/**
+ * Although we can't restrict the type precisely because of the invariant
+ * nature of this type relation and the conservativeness of metacovariance,
+ * we can still restrict just the read type of the result.  This is sometimes
+ * enough.
+ * 
+ * @method "_→/→_"
+ * @restricts "any meta's type"
+ * @restricts "any meta's type"
+ */
+Semantic restriction "_→/→_" is
+[
+	readMeta : any meta's type,
+	writeMeta : any meta's type
+|
+	readType ::= readMeta's instance;
+	/* Ignore the writeType, since we can't ensure contravariance here. */
+	(readType→/→⊥)'s type
+] : variable meta's type;
+
+/**
  * @method "↓_"
  * @restricts "variable meta"
  */

@@ -227,7 +227,7 @@ Public method "keep alive" is [_so_keepalive];
 
 /**
  * Answer a socket option that represents whether the Nagle algorithm, for
- * controling TCP/IP congestion by coalescence of small packets, is diseabled.
+ * controling TCP/IP congestion by coalescence of small packets, is disabled.
  *
  * The value associated with the option must be a {@method "boolean"} that
  * describes the enablement of the option. This option should not be set to

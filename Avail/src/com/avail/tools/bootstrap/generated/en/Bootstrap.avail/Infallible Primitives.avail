@@ -192,7 +192,6 @@ Uses
 		"primfail`«_:_`»",
 		"primitive description of_",
 		"semantic restrictions for_given_",
-		"special atoms",
 		"termination requested",
 		"{_`|_}",
 		"{_→_`|_}",
@@ -1724,21 +1723,6 @@ Primitive "_'s⁇name" is
 |
 	Primitive 121;
 ] : string;
-
-/**
- * Answer a set containing all atoms well-known to the Avail virtual machine.
- * These atoms cannot serve as properties, nor have properties added, queried,
- * modified, or removed.
- *
- * @category "Primitives" "Atoms" "Queries"
- * @method "special atoms"
- * @returns "{atom|}"
- *    The special atoms.
- */
-Primitive "special atoms" is
-[
-	Primitive 126;
-] : set of atom;
 
 /**
  * Is {@param "name"} a valid message? Do not attempt to look up a method
