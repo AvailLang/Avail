@@ -57,7 +57,10 @@ Names
 	"_↑`?=_'s⁇initialization",
 	"`↑_↑",
 
-	/* This is a bootstrapping method, and should not leak out of Foundation. */
+	/* These are bootstrapping methods, and should not leak out of
+	 * Foundation.
+	 */
+	"implicit observe function",
 	"implicit observe function:=_"
 Body
 
@@ -114,13 +117,9 @@ Method "observe function" is
  *
  * @global "implicitObserveFunction" "[[…]→⊤, <any…|>]→⊤"
  */
-implicitObserveFunction : observe function :=
-	[
-		f : […]→⊤,
-		args : tuple
-	|
-		Crash: <f, args>
-	] : ⊤;
+implicitObserveFunction : observe function;
+
+Public method "implicit observe function" is [implicitObserveFunction];
 
 /**
  * Set the function that should be invoked whenever a variable with write
@@ -139,6 +138,17 @@ Public method "implicit observe function:=_" is
 	/* Record the implicit observe function for primitive failures. */
 	implicitObserveFunction := f;
 ] : ⊤;
+
+/* Provide a bootstrap definition of the implicit observe function that crashes
+ * whenever the implicit observe function is invoked.
+ */
+implicit observe function :=
+	[
+		f : […]→⊤,
+		args : tuple
+	|
+		Crash: <f, args>
+	] : ⊤;
 
 variableFailureFunction ::=
 	[

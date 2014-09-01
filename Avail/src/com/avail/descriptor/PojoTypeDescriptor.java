@@ -799,6 +799,29 @@ extends TypeDescriptor
 	}
 
 	/**
+	 * Marshal the supplied {@linkplain TypeDescriptor types}.
+	 *
+	 * @param types
+	 *        A {@linkplain TupleDescriptor tuple} of types.
+	 * @return The Java {@linkplain Class classes} that represent the supplied
+	 *         types.
+	 * @throws MarshalingException
+	 *         If marshaling fails for any of the supplied types.
+	 */
+	public static Class<?>[] marshalTypes (final A_Tuple types)
+		throws MarshalingException
+	{
+		// Marshal the argument types.
+		final Class<?>[] marshaledTypes = new Class<?>[types.tupleSize()];
+		for (int i = 0; i < marshaledTypes.length; i++)
+		{
+			marshaledTypes[i] = (Class<?>) types.tupleAt(
+				i + 1).marshalToJava(null);
+		}
+		return marshaledTypes;
+	}
+
+	/**
 	 * Marshal the arbitrary {@linkplain Object Java object} to its counterpart
 	 * {@linkplain AvailObject Avail object}.
 	 *
