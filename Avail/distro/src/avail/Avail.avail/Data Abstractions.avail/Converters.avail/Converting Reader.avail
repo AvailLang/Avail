@@ -1,0 +1,116 @@
+/*
+ * Converting Reader.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Converting Reader"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Extends
+	"Abstract Converters",
+	"Common" = ("Data|data abstractions test suite"),
+	"Foundation",
+	"Iterators",
+	"Unit Testing"
+Names
+	"converting reader"
+Body
+
+
+"base reader" is a new atom;
+"buffer" is a new atom;
+"element converter" is a new atom;
+
+
+/*
+ * The maximum number of items to attempt to convert in a batch.
+ */
+conversionBufferSize ::= 200;
+
+/**
+ * A {@type "reader"} that applies a supplied {@type "converter"} to another
+ * {@type "reader"}'s buffers of data.
+ * 
+ * @type "converting reader"
+ * @field "base reader" "reader"
+ *        The reader being wrapped by the converter.
+ * @field "element converter" "converter"
+ *        The converter that wraps the base reader.
+ * @field "buffer" "tuple→/→⊥"
+ *        The buffer of converted but not yet consumed data.
+ */
+Public class "converting reader" extends reader
+	with field
+		base reader : reader,
+		element converter : converter
+	with mutable field
+		referable buffer : tuple →/→ ⊥;
+
+/**
+Public method "converter from_to_" is
+[
+	sourceType : any's type,
+	targetType : any's type
+|
+	extend converter with
+		conversion type : ([sourceType]→targetType)'s type
+];
+*/
+
+/**
+ * Answer a specialization of {@code "reader"} that converts a reader of the
+ * source type into a reader of the target type.
+ * 
+ * @method "converting reader from_to_"
+ * @param "sourceType" "any's type"
+ *        The type of element supplied by the base converter.
+ * @param "targetType" "any's type"
+ *        The type of element produced by this reader.
+ * @returns "converting reader's type"
+ *          The resulting converting reader type.
+ */
+Public method "converting reader from_to_" is
+[
+	sourceType : any's type,
+	targetType : any's type
+|
+	extend converting reader ∩ reader of targetType with
+		base reader : reader of sourceType,
+		element converter : converter from sourceType to targetType,
+		buffer : ↑<targetType…|>
+];
+
+Method "_converted by_" is
+[
+	aReader : reader,
+	aConverter : converter
+|
+	
+]
