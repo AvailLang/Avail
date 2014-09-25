@@ -1206,8 +1206,7 @@ extends Descriptor
 
 	/**
 	 * Look up the definition to invoke, given a tuple of argument types.
-	 * Use the testingTree to find the definition to invoke (answer nil if
-	 * a lookup error occurs).
+	 * Use the testingTree to find the definition to invoke.
 	 */
 	@Override @AvailMethod
 	A_Definition o_LookupByTypesFromTuple (
