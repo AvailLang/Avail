@@ -62,6 +62,26 @@ Names
 	"_as_«with«_::=_‡,»»"
 Body
 
+
+/**
+ * Strengthen object field extraction ({@method "_[_]"}).
+ */
+Semantic restriction "_[_]" is
+[
+	anObjectType : object's type,
+	field : atom's type
+|
+	if |field| = 1 then
+	[
+		anObjectType[field's instance]
+	]
+	else
+	[
+		any
+	]
+] : any's type;
+
+
 Method "_→object type" is stable at [field type map]→object meta;
 
 /**

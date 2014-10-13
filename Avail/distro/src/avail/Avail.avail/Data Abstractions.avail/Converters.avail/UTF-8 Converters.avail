@@ -37,12 +37,14 @@ Uses
 	"Abstract Converters",
 	"Foundation",
 	"Iterators",
+	"Converting Reader",
 	"Unit Testing"
 Names
 	"a utf8 decoder",
 	"a utf8 encoder",
 	"utf8 decoder",
-	"utf8 encoder"
+	"utf8 encoder",
+	"UTF8 converters test suite"
 Body
 
 "residue" is a new field atom;
@@ -292,93 +294,71 @@ Grammatical restriction {"a|an_«with«_«:»?:=_‡,»»"} is
 	∅
 >;
 
+"UTF8 converters test suite" is a new atom;
+New test suite UTF8 converters test suite extends converters test suite;
 
-
-
-
-/* TODO[MvG] - Obviously move this to a proper test. */
-ENCODER ::= a utf8 encoder;
-INPUT : string := "Catবিড়াল猫💩";
-Print: format "INPUT=“①”\n" with INPUT;
-TEST ::= ENCODER process INPUT;
-Print: format "TEST=“①”\n" with TEST;
-
-DECODER ::= a utf8 decoder;
-OUTPUT ::= DECODER process TEST;
-Print: format "OUTPUT=“①”\n" with OUTPUT;
-Assert: INPUT = OUTPUT;
-
-
-
-OLD UTF-8 CODE
-
-
-
-
-/*UTF-8 Codec test suite*/
-"UTF8 codec test suite" is a new atom;
-New test suite UTF8 codec test suite extends codecs test suite;
-
-Test "string encoding" in UTF8 codec test suite is
+Test "string encoding" in UTF8 converters test suite is
 [
 	testString ::= "⊤⊥↓↑±∅∊∰∡℀Pog?";
-	encodedTestString ::= encode testString using a UTF-8 codec;
-	expectedEncoding ::=  <226,138,164,226,138,165,226,134,147,226,134,145,194,
+	encoder ::= a utf8 encoder;
+	encodedTestString ::= encoder process testString;
+	Assert: flush encoder = <>;
+	expectedEncoding ::= <226,138,164,226,138,165,226,134,147,226,134,145,194,
 			177,226,136,133,226,136,138,226,136,176,226,136,161,226,132,128,80,
 			111,103,63>;
 	Require: encodedTestString = expectedEncoding;
 ];
 
-Test "byte decoding" in UTF8 codec test suite is
+Test "byte decoding" in UTF8 converters test suite is
 [
 	testEncoding ::= <226,138,164,226,138,165,226,134,147,226,134,145,194,177,
 		226,136,133,226,136,138,226,136,176,226,136,161,226,132,128,80,111,103,
 		63>;
-	decodedTestEncoding ::= decode testEncoding using a UTF-8 codec;
+	decoder ::= a utf8 decoder;
+	decodedTestEncoding ::= decoder process testEncoding;
+	Assert: flush decoder = <>;
 	expectedDecodedString ::= "⊤⊥↓↑±∅∊∰∡℀Pog?";
 	Require: decodedTestEncoding = expectedDecodedString;
 ];
 
-Test "full decoding reader" in UTF8 codec test suite is
+Test "full decoding reader" in UTF8 converters test suite is
 [
 	testEncodingIterator ::= a reader over <226,138,164,226,138,165,226,134,
 		147,226,134,145,194,177,226,136,133,226,136,138,226,136,176,226,136,161,
 		226,132,128,80,111,103,63>;
-	decodedTestEncoding ::= take at most ∞ from a decoding reader of 
-			testEncodingIterator using a UTF-8 codec;
+	decoded ::= testEncodingIterator converted by a utf8 decoder;
+	decodedTestEncoding ::= take at most ∞ from decoded;
 	expectedDecodedString ::= "⊤⊥↓↑±∅∊∰∡℀Pog?";
 	Require: decodedTestEncoding = expectedDecodedString;
 ];
 
-Test "partial decoding reader" in UTF8 codec test suite is
+Test "partial decoding reader" in UTF8 converters test suite is
 [
 	testEncodingIterator ::= a reader over <226,138,164,226,138,165,226,134,
-		147,63,226,134,145,194,177,226,136,133,226,136,138,226,136,176,226,136,161,
-		226,132,128,80,111,103,63>;
-	decodedTestEncoding ::= take at most 4 from a decoding reader of 
-			testEncodingIterator using a UTF-8 codec;
+		147,63,226,134,145,194,177,226,136,133,226,136,138,226,136,176,226,136,
+		161,226,132,128,80,111,103,63>;
+	decoded ::= testEncodingIterator converted by a utf8 decoder;
+	decodedTestEncoding ::= take at most 4 from decoded;
 	expectedDecodedString ::= "⊤⊥↓?";
 	Require: decodedTestEncoding = expectedDecodedString;
 ];
 
-Test "full encoding reader" in UTF8 codec test suite is
+Test "full encoding reader" in UTF8 converters test suite is
 [
 	testString ::= "⊤⊥↓↑±∅∊∰∡℀Pog?";
-	encodedTestString ::= take at most ∞ from a utf8 encoding reader 
-		that buffers 10 characters of a reader over testString using a UTF-8 
-		codec;
+	encodedTestString ::= take at most ∞
+		from a reader over testString converted by a utf8 encoder;
 	expectedEncoding ::=  <226,138,164,226,138,165,226,134,147,226,134,145,194,
 			177,226,136,133,226,136,138,226,136,176,226,136,161,226,132,128,80,
 			111,103,63>;
 	Require: encodedTestString = expectedEncoding;
 ];
 
-Test "partial encoding reader" in UTF8 codec test suite is
+Test "partial encoding reader" in UTF8 converters test suite is
 [
 	testString ::= "⊤⊥↓?↑±∅∊∰∡℀Pog?";
-	encodedTestString ::= take at most 10 from a utf8 encoding reader 
-		that buffers 10 characters of a reader over testString using a UTF-8 
-		codec;
+	encodedTestString ::= take at most 10
+		from a reader over testString converted by a utf8 encoder;
 	expectedEncoding ::=  <226,138,164,226,138,165,226,134,147,63>;
 	Require: encodedTestString = expectedEncoding;
 ];

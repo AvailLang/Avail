@@ -47,6 +47,7 @@ import java.nio.channels.*;
 import java.nio.charset.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.annotations.Nullable;
@@ -1861,11 +1862,13 @@ public abstract class AbstractAvailCompiler
 			final Continuation1<AvailObject> continuation,
 			final Continuation1<Throwable> onFailure)
 		{
-			AbstractAvailCompiler.this.evaluatePhraseThen(
+			final AbstractAvailCompiler compiler = AbstractAvailCompiler.this;
+			startWorkUnit();
+			compiler.evaluatePhraseThen(
 				expression,
 				position,
 				false,
-				continuation,
+				compiler.workUnitCompletion(peekToken(), continuation),
 				onFailure);
 		}
 	}
@@ -4280,13 +4283,17 @@ public abstract class AbstractAvailCompiler
 				final A_Phrase input = last(argsSoFar);
 				op.conversionRule(instruction).convert(
 					input,
+					start,
 					initialTokenPosition,
 					new Continuation1<A_Phrase>()
 					{
+						final AtomicBoolean sanityFlag = new AtomicBoolean();
+
 						@Override
 						public void value (
 							final @Nullable A_Phrase replacementExpression)
 						{
+							assert sanityFlag.compareAndSet(false, true);
 							assert replacementExpression != null;
 							final List<A_Phrase> newArgsSoFar =
 								append(

@@ -55,7 +55,8 @@ public enum ParsingConversionRule
 		@Override
 		public void convert (
 			final A_Phrase input,
-			final ParserState startingParserState,
+			final ParserState currentParserState,
+			final ParserState initialParserState,
 			final Continuation1<A_Phrase> continuation,
 			final Continuation1<Throwable> onFailure)
 		{
@@ -74,7 +75,8 @@ public enum ParsingConversionRule
 		@Override
 		public void convert (
 			final A_Phrase input,
-			final ParserState startingParserState,
+			final ParserState currentParserState,
+			final ParserState initialParserState,
 			final Continuation1<A_Phrase> continuation,
 			final Continuation1<Throwable> onFailure)
 		{
@@ -84,10 +86,10 @@ public enum ParsingConversionRule
 			final AvailObject token =
 				LiteralTokenDescriptor.create(
 					StringDescriptor.from(count.toString()),
-					startingParserState.peekToken().leadingWhitespace(),
-					startingParserState.peekToken().trailingWhitespace(),
-					startingParserState.peekToken().start(),
-					startingParserState.peekToken().lineNumber(),
+					initialParserState.peekToken().leadingWhitespace(),
+					initialParserState.peekToken().trailingWhitespace(),
+					initialParserState.peekToken().start(),
+					initialParserState.peekToken().lineNumber(),
 					LITERAL,
 					count);
 			continuation.value(LiteralNodeDescriptor.fromToken(token));
@@ -104,11 +106,12 @@ public enum ParsingConversionRule
 		@Override
 		public void convert (
 			final A_Phrase input,
-			final ParserState startingParserState,
+			final ParserState currentParserState,
+			final ParserState initialParserState,
 			final Continuation1<A_Phrase> continuation,
 			final Continuation1<Throwable> onProblem)
 		{
-			startingParserState.evaluatePhraseThen(
+			currentParserState.evaluatePhraseThen(
 				input,
 				new Continuation1<AvailObject>()
 				{
@@ -144,8 +147,10 @@ public enum ParsingConversionRule
 	 *
 	 * @param input
 	 *            The parse node to be converted.
+	 * @param currentParserState
+	 *            The parser state at which the conversion takes place.
 	 * @param startingParserState
-	 *            The parser state at which the conversion should take place.
+	 *            The parser state at which the provided parse node started.
 	 * @param continuation
 	 *            What to do with the replacement parse node.
 	 * @param onFailure
@@ -153,6 +158,7 @@ public enum ParsingConversionRule
 	 */
 	public abstract void convert (
 		final A_Phrase input,
+		final ParserState currentParserState,
 		final ParserState startingParserState,
 		final Continuation1<A_Phrase> continuation,
 		final Continuation1<Throwable> onFailure);

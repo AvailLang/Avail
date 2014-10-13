@@ -450,7 +450,7 @@ Stable method "log_of_" is
 Private method "compound addition function" is
 [
 	[
-		var : number→/→⊥,
+		var : read number/write ⊥,
 		delta : number
 	|
 		var ?= eject var + delta;
@@ -490,7 +490,7 @@ Public method "_+=_" is compound addition function;
 Private method "compound subtraction function" is
 [
 	[
-		var : number→/→⊥,
+		var : read number/write ⊥,
 		delta : number
 	|
 		var ?= eject var - delta;
@@ -530,7 +530,7 @@ Public method "_-=_" is compound subtraction function;
 Private method "compound arithmetic semantic restriction" is
 [
 	[
-		var : (number→/→⊥)'s type,
+		var : (read number/write ⊥)'s type,
 		delta : number's type
 	|
 		If ¬var's write type ⊆ number then

@@ -58,7 +58,9 @@ Names
 	"_'s⁇fetch current buffer method is_",
 
 	/* Fields. */
+	"buffer",
 	"maximum buffer size",
+	"position in buffer",
 
 	/* Test suites. */
 	"buffered iterator test suite"
@@ -87,7 +89,7 @@ privateFetchCurrentBufferName ::= $"private_'s⁇fetch current buffer";
  */
 Public explicit class "buffered iterator" extends iterator
 	with immutable fields
-		maximum buffer size : [0..∞]
+		maximum buffer size : [1..∞]
 	with mutable fields
 		referable buffer : tuple,
 		referable position in buffer : integer;
@@ -117,6 +119,13 @@ Public class "buffered reader"
 Public class "buffered writer"
 	extends buffered iterator ∩ writer;
 
+
+Semantic restriction "_'s⁇buffer" is
+[
+	anIteratorType : buffered iterator's type
+|
+	<anIteratorType's element type's instance…|>
+];
 
 Private abstract method privateExitBufferName is
 	[buffered iterator]→⊤;
@@ -249,16 +258,13 @@ Method "_is exhausted" is
 [
 	aReader : buffered reader
 |
-	/* This completes initialization of the reader. */
-	(↑aReader's buffer is unassigned
-			∨ [
-				¬ 1 ≤ aReader's position in buffer ≤ |aReader's buffer|])
+	(¬ 1 ≤ aReader's position in buffer ≤ |aReader's buffer|)
 		∧ [
 			Private exit aReader's current buffer;
-			aReader's position in buffer := 1;
 			newBuffer ::= private aReader's fetch current buffer;
 			aReader's buffer := newBuffer;
-			¬ 1 ≤ aReader's position in buffer ≤ |newBuffer|
+			aReader's position in buffer := 1;
+			|newBuffer| = 0
 		]
 ] : boolean;
 

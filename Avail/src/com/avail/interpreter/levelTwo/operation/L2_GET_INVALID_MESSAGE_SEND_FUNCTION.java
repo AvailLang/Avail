@@ -39,6 +39,8 @@ import com.avail.descriptor.AbstractEnumerationTypeDescriptor;
 import com.avail.descriptor.BottomTypeDescriptor;
 import com.avail.descriptor.FunctionTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.TupleTypeDescriptor;
+import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -94,7 +96,9 @@ extends L2Operation
 								E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
 								E_FORWARD_METHOD_DEFINITION.numericCode(),
 								E_ABSTRACT_METHOD_DEFINITION.numericCode())
-							.asSet())),
+							.asSet()),
+					TypeDescriptor.Types.METHOD.o(),
+					TupleTypeDescriptor.mostGeneralType()),
 				BottomTypeDescriptor.bottom()),
 			instruction);
 	}

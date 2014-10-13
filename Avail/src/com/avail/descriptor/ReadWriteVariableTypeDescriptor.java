@@ -75,11 +75,12 @@ extends TypeDescriptor
 		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
+		aStream.append("read ");
 		object.slot(READ_TYPE).printOnAvoidingIndent(
 			aStream,
 			recursionList,
 			(indent + 1));
-		aStream.append("→/→");
+		aStream.append("/write ");
 		object.slot(WRITE_TYPE).printOnAvoidingIndent(
 			aStream,
 			recursionList,
@@ -135,8 +136,8 @@ extends TypeDescriptor
 	int o_Hash (final AvailObject object)
 	{
 		return
-			(object.slot(READ_TYPE).hash() ^ 0xF40149E
-			+ object.slot(WRITE_TYPE).hash() ^ 0x5469E1A);
+			(object.slot(READ_TYPE).hash() ^ 0x0F40149E
+			+ object.slot(WRITE_TYPE).hash() ^ 0x05469E1A);
 	}
 
 	@Override @AvailMethod

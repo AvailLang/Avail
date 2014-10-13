@@ -49,6 +49,7 @@ Uses
 	"Types",
 	"Variables"
 Names
+	"unsafe sender of_returning_",
 	"_(««_»«`_»?‡,»)",
 	"_(_,`…)",
 	"_(`…,_)"
@@ -368,3 +369,48 @@ Semantic restriction "_(`…,_)" is
 	function accepting argumentsType[..argumentsCount - 1]
 		and returning (originalFunction's return type)
 ] : function's type;
+
+/**
+ * Answer a {@type "function"} that sends the specified message when applied.
+ * If the function is applied to inappropriate arguments (at runtime), then an
+ * appropriate {@type "exception"} is raised.
+ *
+ * @method "unsafe sender of_returning_"
+ * @param "methodName" "atom"
+ *        The name of the {@type "method"} to invoke unsafely.
+ * @param "returnType" "type"
+ *        The expected return type of the {@type "method"}.
+ * @returns "function"
+ *          The requested {@type "function"}.
+ */
+Public method "unsafe sender of_returning_" is
+[
+	methodName : atom,
+	returnType : type
+|
+	argCount ::= |message methodName's name's parameters|;
+	args ::= map 1 to argCount through
+		[
+			index : natural number
+		|
+			arg «`"x" ++ “index”` : any»
+		];
+	uses ::= map args through [a : argument phrase | «↓a»];
+	send ::= send methodName with uses→list phrase : returnType;
+	block ::= «[args | <send>] : returnType»;
+	block→function
+] : function;
+
+Semantic restriction "unsafe sender of_returning_" is
+[
+	methodName : atom's type,
+	returnType : type's type
+|
+	if |methodName| = 1 then
+	[
+		args ::= |message methodName's instance's name's parameters| of ⊥;
+		function accepting args and returning (returnType's instance)
+	]
+	else [[…]→(returnType's instance)]
+];
+

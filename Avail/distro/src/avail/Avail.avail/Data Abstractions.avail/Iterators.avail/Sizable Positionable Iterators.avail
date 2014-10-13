@@ -42,10 +42,10 @@ Names
 	"`|_'s⁇remaining elements`|"
 Body
 
-/* Give "sizable_" higher precedence than "_positioned by_". The operations are
+/* Give "sizable_" higher precedence than "_positioned by_†". The operations are
  * commutative, so we could have broken the ambiguity either way.
  */
-Grammatical restriction "sizable_" is <{"_positioned by_"}>;
+Grammatical restriction "sizable_" is <{"_positioned by_†"}>;
 
 /**
  * Compute and answer the number of elements remaining in the specified

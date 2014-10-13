@@ -87,7 +87,7 @@ Method "_'s⁇position" is
 [
 	anIterator : tuple reader
 |
-	anIterator's position
+	↓anIterator's position variable
 ] : natural number;
 
 Method "_'s⁇position:=_" is
@@ -95,25 +95,27 @@ Method "_'s⁇position:=_" is
 	anIterator : tuple reader,
 	position : natural number
 |
-	If position > |anIterator's collection| then
+	If position > |anIterator's collection| + 1 then
 	[
 		Raise an invalid-position exception
 	];
-	/* TODO[MvG]: Should be a super invocation, once those exist again. */
 	anIterator's position variable ?= position;
 ] : ⊤;
 
+/**
+ * Reject the positioning attempt statically if it's known that the new position
+ * is <em>always</em> out of bounds.
+ * 
+ * @restrict "_'s⁇position:=_" is
+ * @param "anIterator" "tuple reader's type"
+ * @param "position" "natural number's type"
+ */
 Semantic restriction "_'s⁇position:=_" is
 [
 	anIterator : tuple reader's type,
 	position : natural number's type
 |
-	/* Reject the assignment statically if it's known that the new position is
-	 * <em>always</em> out of bounds.  Use the (covariant) read type in the
-	 * check, since the contravariant one isn't very useful here.
-	 */
-	readType ::= anIterator's position variable's read type;
-	If position ∩ readType = ⊥ then
+	If position ∩ ||anIterator's collection|| = ⊥ then
 	[
 		Reject parse, expected:
 			"New position to at least sometimes be in range"
@@ -164,18 +166,20 @@ Public method "a reader over_" is
 		collection ::= aTuple
 ] : tuple reader;
 
+
+naturalNumberVarType ::= ↑natural number;
+
 Semantic restriction "a reader over_" is
 [
 	tupleType : tuple's type
 |
 	limit ::= ⎡tupleType⎤ min (|tupleType's leading types| + 1);
-	variableType ::= cast [1..⎡tupleType⎤+1)→/→natural number
-		into [n : (↑natural number)'s type | n];
 	extend tuple reader with
 		element type : ∪ tupleType[1..limit]'s type,
-		position variable : variableType,
+		position variable : naturalNumberVarType,
 		collection : tupleType
 ];
+
 
 /**
  * Construct and answer an {@type "iterator"} that produces all elements of the
@@ -200,7 +204,7 @@ Semantic restriction "a reader over_" is
 [
 	setType : set's type
 |
-	variableType ::= cast [1..⎡setType⎤+1)→/→natural number
+	variableType ::= cast read [1..⎡setType⎤+1)/write natural number
 		into [n : (↑natural number)'s type | n];
 	extend tuple reader with
 		element type : setType's element type's type,
@@ -231,7 +235,7 @@ Semantic restriction "a reader over_" is
 [
 	mapType : map's type
 |
-	variableType ::= cast [1..⎡mapType⎤+1)'s type→/→natural number
+	variableType ::= cast read [1..⎡mapType⎤+1)'s type/write natural number
 		into [n : (↑natural number)'s type | n];
 	elementType ::= <mapType's key type, mapType's value type…|2>;
 	extend tuple reader with
@@ -239,6 +243,7 @@ Semantic restriction "a reader over_" is
 		position variable : variableType,
 		collection : <<>, elementType… | ||mapType||>
 ];
+
 
 "tuple reader test suite" is a new atom;
 New test suite tuple reader test suite extends iterators test suite;

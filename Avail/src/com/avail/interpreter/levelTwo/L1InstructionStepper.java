@@ -407,7 +407,10 @@ implements L1OperationDispatcher
 			reifyContinuation();
 			interpreter.invokeFunction(
 				interpreter.runtime().invalidMessageSendFunction(),
-				Collections.singletonList(errorCode.value().numericCode()),
+				Arrays.asList(
+					errorCode.value().numericCode(),
+					method,
+					TupleDescriptor.fromList(argsBuffer)),
 				true);
 			return;
 		}
@@ -416,8 +419,10 @@ implements L1OperationDispatcher
 			reifyContinuation();
 			interpreter.invokeFunction(
 				interpreter.runtime().invalidMessageSendFunction(),
-				Collections.singletonList(
-					E_FORWARD_METHOD_DEFINITION.numericCode()),
+				Arrays.asList(
+					E_FORWARD_METHOD_DEFINITION.numericCode(),
+					method,
+					TupleDescriptor.fromList(argsBuffer)),
 				true);
 			return;
 		}
@@ -426,8 +431,10 @@ implements L1OperationDispatcher
 			reifyContinuation();
 			interpreter.invokeFunction(
 				interpreter.runtime().invalidMessageSendFunction(),
-				Collections.singletonList(
-					E_ABSTRACT_METHOD_DEFINITION.numericCode()),
+				Arrays.asList(
+					E_ABSTRACT_METHOD_DEFINITION.numericCode(),
+					method,
+					TupleDescriptor.fromList(argsBuffer)),
 				true);
 			return;
 		}

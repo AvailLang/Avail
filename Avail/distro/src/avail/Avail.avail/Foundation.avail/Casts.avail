@@ -44,6 +44,7 @@ Uses
 		"(_)"
 	),
 	"Definers",
+	"Enumeration Support",
 	"Exceptions",
 	"Functions",
 	"Literals",
@@ -55,6 +56,10 @@ Uses
 	"Types",
 	"Variables"
 Names
+	/* Inline cast notation. */
+	"_`?→_†",
+	"_`?→_†else_",
+
 	/* Casts. */
 	"Cast|cast each of_into_",
 	"Cast|cast each of_into_else_",
@@ -148,13 +153,13 @@ Semantic restriction "Cast|cast_into_" is
 	If valueType ⊆ targetType then
 	[
 		Reject parse, expected:
-			format "necessary cast expression, but “①” is a subtype of “②”"
+			format "a necessary cast expression, but “①” is a subtype of “②”"
 			with valueType, acceptType[1]
 	];
 	If valueType ∩ targetType = ⊥ then
 	[
 		Reject parse, expected:
-			format "allowed cast expression, but “①” and “②” are disjoint"
+			format "an allowed cast expression, but “①” and “②” are disjoint"
 			with valueType, acceptType[1]
 	];
 	acceptType's return type
@@ -211,14 +216,14 @@ Semantic restriction "Cast|cast_into_else_" is
 	If valueType ⊆ targetType then
 	[
 		Reject parse, expected:
-			format "necessary cast expression, but “①” is a subtype of “②”"
-			with valueType, acceptType[1]
+			format "a necessary cast expression, but “①” is a subtype of “②”"
+			with valueType, targetType
 	];
 	If valueType ∩ targetType = ⊥ then
 	[
 		Reject parse, expected:
-			format "allowed cast expression, but “①” and “②” are disjoint"
-			with valueType, acceptType[1]
+			format "an allowed cast expression, but “①” and “②” are disjoint"
+			with valueType, targetType
 	];
 	(acceptType's return type) ∪ (elseType's return type)
 ];
@@ -303,7 +308,7 @@ Semantic restriction "Cast|cast_into«_‡,»«else_»" is
 		If valueType ⊆ functionType[1] then
 		[
 			Reject parse, expected:
-				"necessary cast expression, but "
+				"a necessary cast expression, but "
 				++ “valueType”
 				++ " is a subtype of "
 				++ “functionType[1]”
@@ -311,7 +316,7 @@ Semantic restriction "Cast|cast_into«_‡,»«else_»" is
 		If valueType ∩ (functionType[1]) = ⊥ then
 		[
 			Reject parse, expected:
-				"allowed cast expression, but "
+				"an allowed cast expression, but "
 				++ “valueType”
 				++ " is not a supertype of "
 				++ “functionType[1]”
@@ -405,15 +410,16 @@ Semantic restriction "Cast|cast each of_into_" is
 		If valueType ⊆ paramType then
 		[
 			Reject parse, expected:
-				format "necessary cast expression, but “①” is a subtype of “②”"
+				format
+					"a necessary cast expression, but “①” is a subtype of “②”"
 				with valueType, paramType
 		];
 		If ¬paramType ⊆ valueType then
 		[
 			Reject parse, expected:
 				format
-					"allowed cast expression, but “①” is not a supertype of \
-					\|“②”"
+					"an allowed cast expression, but “①” is not a supertype \
+					\|of “②”"
 				with valueType, paramType
 		];
 	];
@@ -497,17 +503,166 @@ Semantic restriction "Cast|cast each of_into_else_" is
 		If valueType ⊆ paramType then
 		[
 			Reject parse, expected:
-				format "necessary cast expression, but “①” is a subtype of “②”"
+				format
+					"a necessary cast expression, \
+					\|but “①” is a subtype of “②”"
 				with valueType, paramType
 		];
 		If ¬paramType ⊆ valueType then
 		[
 			Reject parse, expected:
 				format
-					"allowed cast expression, but “①” is not a supertype of \
-					\|“②”"
+					"an allowed cast expression, but “①” is not \
+					\|a supertype of “②”"
 				with valueType, paramType
 		];
 	];
 	acceptType's return type ∪ rejectType's return type
+];
+
+/**
+ * Cast the value into the specified <em>statically evaluated</em> type.  If the
+ * value at runtime does not comply with this type, fail the same way any call
+ * overly strengthened by a semantic restriction would fail.
+ *
+ * @method "_`?→_†"
+ * @param "value" "any"
+ *        The value whose type is to be strengthened.
+ * @param "strongerType" "type"
+ *        Evaluated at compile time to produce the strengthened type of this
+ *        call.
+ * @returns "any" Restricted to the strongerType.
+ */
+Public method "_`?→_†" is
+[
+	value : any,
+	strongerType : type
+|
+	value
+];
+
+/**
+ * Cast the value into the specified <em>statically evaluated</em> type.  If the
+ * value at runtime does not comply with this type, fail the same way any call
+ * overly strengthened by a semantic restriction would fail.
+ *
+ * The value's static type and the provided type must have a non-⊥ intersection.
+ * Additionally, the value's static type must not already be sufficiently strong
+ * by being a subtype of the provided type.  The resulting type of the call site
+ * is the intersection of the value's static type and the provided type.
+ *
+ * @method "_`?→_†"
+ * @restricts "valueType" "any's type"
+ *        The static type of the expression whose type is to be strengthened.
+ * @restricts "strongerMeta" "type's type"
+ *        Evaluated at compile time to produce the strengthened type of this
+ *        call.  The actual type is passed at runtime, but the metatype is what
+ *        gets provided to this semantic restriction.
+ * @returns "type" The restricted type at this call site.
+ */
+Semantic restriction "_`?→_†" is
+[
+	valueType : any's type,
+	strongerMeta : type's type
+|
+	strongerType ::= strongerMeta's instance;
+	If valueType ∩ strongerType = ⊥ then
+	[
+		Reject parse, expected:
+			format
+				"cast to have related types instead of “①” and “②”"
+			with valueType, strongerType
+	];
+	If valueType ⊆ strongerType then
+	[
+		Reject parse, expected:
+			format
+				"a necessary cast expression, but “①” is already a \
+				\|subtype of “②”"
+			with valueType, strongerType
+	];
+	valueType ∩ strongerType
+];
+
+/**
+ * Cast the value into the specified <em>statically evaluated</em> type.  If the
+ * value at runtime does not comply with this type, return the result of
+ * evaluating the zero-argument elseFunction.
+ *
+ * @method "_`?→_†"
+ * @param "value" "any"
+ *        The value whose type is to be strengthened.
+ * @param "strongerType" "type"
+ *        Evaluated at compile time to produce the strengthened type of this
+ *        call.
+ * @param "elseFunction" "[]→any"
+ *        The function to invoke if the value is not of the specified stronger
+ *        type.
+ * @returns "any"
+ *          Restricted to the strongerType, or the result of evaluating the
+ *          elseFunction.
+ */
+Public method "_`?→_†else_" is
+[
+	value : any,
+	strongerType : type,
+	elseFunction : []→any
+|
+	if value ∈ strongerType then [value] else elseFunction
+];
+
+/**
+ * Cast the value into the specified <em>statically evaluated</em> type.  If the
+ * value at runtime does not comply with this type, return instead the result of
+ * evaluating the zero-argument elseFunction.
+ *
+ * The value's static type and the provided type must have a non-⊥ intersection.
+ * Additionally, the value's static type must not already be sufficiently strong
+ * by being a subtype of the provided type.  The resulting type of the call site
+ * is the union of the else function's return type and the intersection of the
+ * value's static type and the provided strengthening type.  Note that this
+ * means it is acceptable for the else function to produce a value that is not
+ * in compliance with the specified strengthening type.  This has value when the
+ * goal is to type check, strengthen, and alternatively run arbitrary code for
+ * side-effect and return an otherwise out-of-band sentinel, which was
+ * specifically excluded in the type check.
+ *
+ * @method "_`?→_†"
+ * @restricts "valueType" "any's type"
+ *        The static type of the expression whose type is to be strengthened.
+ * @restricts "strongerMeta" "type's type"
+ *        Evaluated at compile time to produce the strengthened type of this
+ *        call.  The actual type is passed at runtime, but the metatype is what
+ *        gets provided to this semantic restriction.
+ * @restricts "elseFunctionType" "([]→any)'s type"
+ *        What to do in case the value being tested does not comply with the
+ *        strengthening type.  The result of running this function will be used
+ *        as the call site's resulting value.
+ * @returns "type" The restricted type at this call site.
+ */
+Semantic restriction "_`?→_†else_" is
+[
+	valueType : any's type,
+	strongerMeta : type's type,
+	elseFunctionType : ([]→any)'s type
+|
+	strongerType ::= strongerMeta's instance;
+	elseType ::= elseFunctionType's return type;
+	If valueType ∩ strongerType = ⊥ then
+	[
+		Reject parse, expected:
+			format
+				"the cast's strengthened type to be related to the input, \
+				\|instead of “①”, “②”"
+			with valueType, strongerType
+	];
+	If valueType ⊆ strongerType then
+	[
+		Reject parse, expected:
+			format
+				"a necessary cast expression, but “①” is already a \
+				\|subtype of “②”"
+			with valueType, strongerType
+	];
+	(valueType ∩ strongerType) ∪ elseType
 ];

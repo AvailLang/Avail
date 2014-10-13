@@ -42,8 +42,10 @@ Names
 	"conversion type",
 	"converter",
 	"converter from_to_",
-	"malformed-encoding exception",
-	"_'s⁇invalid sequence",
+	"converters test suite",
+	"_'s⁇conversion type",
+/*	"malformed-encoding exception",*/
+/*	"_'s⁇invalid sequence",*/
 	"flush_",
 	"_process_"
 Body
@@ -75,7 +77,7 @@ Public "conversion type" is a new field atom;
  */
 Public explicit class "converter" extends object
 	with fields
-		conversion type : ([⊥]→any)'s type;
+		public conversion type : ([⊥]→any)'s type;
 
 /**
  * Answer a specialization of {@code "converter"} that converts tuples of values
@@ -136,7 +138,7 @@ Semantic restriction "_process_" is
 	[
 		allowedSourceElementType ::= ∪ allowedSourceTupleType [1..∞];
 		Reject parse, expected:
-			format "converter to accept a tuple of “①”, not “②”"
+			format "converter to accept a tuple of “①”, not a tuple of “②”"
 				with allowedSourceElementType, ∪ sourceTupleType [1..∞]
 	];
 	<aConverterType's conversion type's instance's return type…|>
@@ -162,7 +164,5 @@ Semantic restriction "flush_" is
 	<aConverterType's conversion type's instance's return type…|>
 ];
 
-/*
-Public "codecs test suite" is a new field atom;
-New test suite codecs test suite extends data abstractions test suite;
-*/
+Public "converters test suite" is a new field atom;
+New test suite converters test suite extends data abstractions test suite;

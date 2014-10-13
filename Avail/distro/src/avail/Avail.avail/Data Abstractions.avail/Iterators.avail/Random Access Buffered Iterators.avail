@@ -49,9 +49,13 @@ Names
 	"random access buffered writer",
 
 	/* Test suites. */
-	"random access test suite"
-Body
+	"random access test suite",
+	
+	/* Protocol for subtypes. */
+	"_'s⁇buffer start",
+	"_'s⁇buffer start:=_"
 
+Body
 
 
 /**
@@ -113,6 +117,39 @@ Public class "random access buffered reader/writer"
 	extends random access buffered reader
 		∩ random access buffered writer;
 
+Public method "_'s⁇buffer start" is
+[
+	anIterator : random access buffered iterator
+|
+	↓anIterator[position variable]
+] : natural number;
+
+Public method "_'s⁇buffer start:=_" is
+[
+	anIterator : random access buffered iterator,
+	newPosition : natural number
+|
+	anIterator[position variable] ?= newPosition;
+];
+
+/**
+ * Get the current position of the {@type "random access buffered iterator"}.
+ * 
+ * @method "_'s⁇position"
+ * @param "anIterator" "random access buffered iterator"
+ *        A {@type "random access buffered iterator"}.
+ * @returns "⊤"
+ *        The iterator's current position, a natural number.
+ * @raises "invalid-position exception"
+ *         If {@param "position"} is not a valid memento.
+ */
+Method "_'s⁇position" is
+[
+	anIterator : random access buffered iterator
+|
+	p ::= anIterator's buffer start + anIterator's position in buffer - 1;
+	p ?→ natural number
+] : natural number;
 
 
 /**
@@ -132,19 +169,36 @@ Method "_'s⁇position:=_" is
 	anIterator : random access buffered iterator,
 	newPosition : natural number
 |
-	delta ::= newPosition - anIterator's position;
-	inBufferVar ::= ↑anIterator's position in buffer;
-	inBufferVar ?= ↓inBufferVar + delta;
-	/* TODO[MvG] - Make this use a super call once they exist again. */
-	anIterator's position variable ?= newPosition;
+	↑anIterator's position in buffer ?=
+		newPosition - anIterator's buffer start + 1;
+	Assert: anIterator's position = newPosition;
 ];
+
+/* TODO[MvG] Clean up when we have super sends. */
+_superIsExhausted ::= (method definition
+		of $"_is exhausted"
+		for <random access buffered reader>
+	)'s function;
+
+Method "_is exhausted" is
+[
+	aReader : random access buffered reader
+|
+	(¬ 1 ≤ aReader's position in buffer ≤ |aReader's buffer|)
+		∧ [
+			oldPosition ::= aReader's position;
+			result ::= _superIsExhausted(aReader);
+			aReader's buffer start := oldPosition;
+			result
+		]
+] : boolean;
 
 
 random access buffered iterator's advance method is
 [
 	anIterator : random access buffered iterator
 |
-	anIterator's position := anIterator's position + 1;
+	↑anIterator's position in buffer++;
 ] : ⊤;
 
 Seal random access buffered iterator's advance method;
@@ -180,6 +234,7 @@ Method "take«at most»?_from_" is
 	result : tuple := <>;
 	Guard
 	[
+		positionInBufferVariable ::= ↑aReader's position in buffer;
 		Until
 		[
 			aReader is exhausted ∨ [ |result| = count ]
@@ -192,14 +247,15 @@ Method "take«at most»?_from_" is
 			 */
 			buffer ::= aReader's buffer;
 			startInBuffer : natural number;
-			startInBuffer ?= aReader's position in buffer;
+			startInBuffer ?= ↓positionInBufferVariable;
 			endInBuffer : natural number;
-			endInBuffer ?=
-				(startInBuffer + count - 1 - |result|) min |buffer|;
+			endInBuffer ?= (startInBuffer + count - 1 - |result|) min |buffer|;
 			batchSize : natural number;
 			batchSize ?= endInBuffer - startInBuffer + 1;
 			result := eject result ++ buffer[startInBuffer..endInBuffer];
-			aReader's position := aReader's position + batchSize;
+			positionInBufferVariable ?= 
+				eject positionInBufferVariable + batchSize;
+			Breakpoint;
 		];
 	]
 	intercept

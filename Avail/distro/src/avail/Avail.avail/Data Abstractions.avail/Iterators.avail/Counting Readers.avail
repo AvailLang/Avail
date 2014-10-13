@@ -90,7 +90,7 @@ counting number reader's current element method is
 [
 	aReader : counting number reader
 |
-	((aReader's position - 1) × aReader's step) + aReader's start
+	(aReader's position - 1) × aReader's step + aReader's start
 ] : number;
 
 counting number reader's advance method is
@@ -100,15 +100,11 @@ counting number reader's advance method is
 	aReader's position variable++;
 ] : ⊤;
 
-Private method "Require:_is a valid position for_" is
+Method "_'s⁇position" is
 [
-	position : natural number,
 	aReader : counting number reader
 |
-	If position > aReader's size + 1 then
-	[
-		Raise an invalid-position exception
-	];
+	↓aReader's position variable
 ];
 
 Method "_'s⁇position:=_" is
@@ -116,9 +112,25 @@ Method "_'s⁇position:=_" is
 	aReader : counting number reader,
 	position : natural number
 |
-	Require: position is a valid position for aReader;
+	Require: position ≤ aReader's size + 1;
 	aReader's position variable ?= position;
 ] : ⊤;
+
+/* Statically forbid positions that aren't natural numbers. */
+Semantic restriction "_'s⁇position:=_" is
+[
+	aReader : counting number reader's type,
+	position : any's type
+|
+	Unless position ⊆ natural number then
+	[
+		Reject parse, expected:
+			format
+				"counting reader to be positioned by natural number, not “①”."
+			with position
+	];
+	⊤
+];
 
 Method "`|_`|" is
 [
@@ -210,12 +222,9 @@ Public method "a counting reader from_to_" is
 |
 	Require: last ≥ first - 1;
 	size ::= cast last - first + 1 into [n : [0..∞] | n];
-	positionType ::= cast [1..size + 2) →/→ natural number
-		into [n : ↑natural number's type | n];
-	newVar ::= cast new ↑natural number into [v : naturalNumberVariable | v];
-	newVar ?= 1;
+	newVar : natural number := 1;
 	a counting integer reader with
-		position variable ::= newVar,
+		position variable ::= ↑newVar,
 		element type ::= [first..last + 1),
 		start ::= first,
 		step ::= 1,
@@ -230,11 +239,9 @@ Semantic restriction "a counting reader from_to_" is
 	elementType ::= (⎣startType⎦ - 1..⎡endType⎤ + 1);
 	minSize ::= (⎣endType⎦ - ⎡startType⎤ + 1) max 0;
 	maxSize ::= ⎡endType⎤ - ⎣startType⎦ + 1;
-	positionType ::= cast [1..maxSize + 2) →/→ natural number
-		into [n : ↑natural number's type | n];
 	extend counting integer reader with
 		element type : elementType's type,
-		position variable : positionType,
+		position variable : naturalNumberVariable,
 		start : startType,
 		step : 1's type,
 		size : [minSize..maxSize]
@@ -295,12 +302,9 @@ Public method "a counting reader from_to_by_" is
 					[minValue..maxValue]]
 				else [number]
 		];
-	positionType ::= cast [1..actualSize + 2) →/→ natural number
-		into [n : ↑natural number's type | n];
-	newVar ::= cast new ↑natural number into [v : naturalNumberVariable | v];
-	newVar ?= 1;
+	newVar : natural number := 1;
 	a counting number reader with
-		position variable ::= newVar,
+		position variable ::= ↑newVar,
 		element type ::= elementType,
 		start ::= first,
 		step ::= delta,
@@ -330,7 +334,6 @@ Semantic restriction "a counting reader from_to_by_" is
 	[
 		extremeDeltas := extremeDeltas ∪ deltaType's instances;
 	];
-Print: format "extremeDeltas=“①”\n" with extremeDeltas;
 	if extremeDeltas is empty then
 	[
 		/* We don't have enough information about what the delta could be to be
@@ -349,8 +352,7 @@ Print: format "extremeDeltas=“①”\n" with extremeDeltas;
 			into [i : extended integer's type | ⎣i⎦]
 			else
 			[
-				if |endType| is finite
-				then
+				if |endType| is finite then
 				[
 					min (endType's instances ∪ {∞} → tuple)
 				]
@@ -363,8 +365,7 @@ Print: format "extremeDeltas=“①”\n" with extremeDeltas;
 			into [i : extended integer's type | ⎡i⎤]
 			else
 			[
-				if |endType| is finite
-				then
+				if |endType| is finite then
 				[
 					max (endType's instances ∪ {-∞} → tuple)
 				]
@@ -377,8 +378,7 @@ Print: format "extremeDeltas=“①”\n" with extremeDeltas;
 			into [i : extended integer's type | ⎣i⎦]
 			else
 			[
-				if |startType| is finite
-				then
+				if |startType| is finite then
 				[
 					min (startType's instances ∪ {∞} → tuple)
 				]
@@ -391,8 +391,7 @@ Print: format "extremeDeltas=“①”\n" with extremeDeltas;
 			into [i : extended integer's type | ⎡i⎤]
 			else
 			[
-				if |startType| is finite
-				then
+				if |startType| is finite then
 				[
 					max (startType's instances ∪ {-∞} → tuple)
 				]
@@ -401,10 +400,6 @@ Print: format "extremeDeltas=“①”\n" with extremeDeltas;
 					∞
 				]
 			];
-Print: format "minEnd=“①”\n" with minEnd;
-Print: format "maxEnd=“①”\n" with maxEnd;
-Print: format "minStart=“①”\n" with minStart;
-Print: format "maxStart=“①”\n" with maxStart;
 		/* Watch out for ∞ - ∞ and -∞ - -∞. */
 		minSpan ::= if minEnd = maxStart
 			then [0]
@@ -412,8 +407,6 @@ Print: format "maxStart=“①”\n" with maxStart;
 		maxSpan ::= if maxEnd = minStart
 			then [0]
 			else [minEnd - maxStart];
-Print: format "minSpan=“①”\n" with minSpan;
-Print: format "maxSpan=“①”\n" with maxSpan;
 		minSize : [0..∞] := ∞;
 		maxSize : [0..∞] := 0;
 		For each of extremeDeltas do
@@ -428,8 +421,6 @@ Print: format "maxSpan=“①”\n" with maxSpan;
 					min ((⎣minSpan ÷ delta⎦→extended integer + 1) max 0);
 			];
 		];
-Print: format "minSize=“①”\n" with minSize;
-Print: format "maxSize=“①”\n" with maxSize;
 		elementType ::= if startType ⊆ double ∨ [deltaType ⊆ double]
 			then [double]
 		else if [startType ⊆ float ∨ [deltaType ⊆ float]]
@@ -448,12 +439,8 @@ Print: format "maxSize=“①”\n" with maxSize;
 				number
 			]
 		];
-Print: format "elementType=“①”\n" with elementType;
-		positionType ::= cast [1..maxSize + 2) →/→ natural number
-			into [n : ↑natural number's type | n];
-Print: format "positionType=“①”\n" with positionType;
 		extend counting number reader with
-			position variable : positionType,
+			position variable : naturalNumberVariable,
 			element type : elementType's type,
 			start : startType,
 			step : deltaType,
@@ -710,10 +697,7 @@ Test "counting reader (size)" in counting reader test suite is
 	Require: |iter| = 9;
 ];
 
-x ::= (sizable iterator positioned by integer) ∩ reader of integer;
-Print: “x → map” ++ "\n";
-
-Test "counting reader (position)" in counting reader test suite is
+Test "counting reader (sequential position)" in counting reader test suite is
 [
 	iter : (sizable iterator positioned by natural number) ∩ reader of integer;
 	iter := a counting reader from 1 to 5;
@@ -725,18 +709,22 @@ Test "counting reader (position)" in counting reader test suite is
 		Require: take 5 - i + 1 from iter = i to 5;
 		Require: iter is exhausted;
 	];
+];
+
+Test "counting reader (position with stride)" in counting reader test suite is
+[
+	iter : (sizable iterator positioned by natural number) ∩ reader of integer;
 	iter := a counting reader from 2 to 16 by 3;
-	From 2 to 16 by 3 do
+	For each 2 to 16 by 3 do
 	[
-		i : [2..16]
+		value : [2..16],
+		index : [1..5]
 	|
-		iter's position := i;
-		Require: take (16 - i + 3) ÷ 3 from iter = i to 16 by 3;
+		iter's position := index;
+		Require: take 5 - index + 1 from iter = value to 16 by 3;
 		Require: iter is exhausted;
 	];
-	iter's position := 4;
-]
-must raise invalid-position exception;
+];
 
 Test "counting reader (remaining elements)" in counting reader test suite is
 [

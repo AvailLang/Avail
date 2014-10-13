@@ -142,7 +142,7 @@ Uses
 		"_is unassigned",
 		"_mod_",
 		"_reversed",
-		"_→/→_",
+		"read_/write_",
 		"_→block phrase",
 		"_→character",
 		"_→double",
@@ -316,7 +316,7 @@ Primitive "_'s⁇genuine upper bound" is
  * @method "`↑_"
  * @param "containmentType" "any meta"
  *        The containment type.
- * @returns "(⊤→/→⊥)'s type"
+ * @returns "(read ⊤/write ⊥)'s type"
  *    The requested variable type.
  */
 Primitive "`↑_" is
@@ -352,7 +352,7 @@ Primitive "_'s⁇read type" is
  * @method "new`↑_"
  * @param "containmentType" "any meta"
  *        The containment type.
- * @returns "⊤→/→⊥"
+ * @returns "read ⊤/write ⊥"
  *    A new variable capable of retrieving and storing values of the specified
  *    containment type.
  */
@@ -700,15 +700,15 @@ Primitive "high-precision timer value" is
  * Construct and answer a variable type from the specified read and write types.
  *
  * @category "Primitives" "Variables" "Types" "Constructors"
- * @method "_→/→_"
+ * @method "read_/write_"
  * @param "readType" "type"
  *        The read type of the variable type.
  * @param "writeType" "type"
  *        The write type of the variable type.
- * @returns "(⊤→/→⊥)'s type"
+ * @returns "(read ⊤/write ⊥)'s type"
  *    The requested variable type.
  */
-Primitive "_→/→_" is
+Primitive "read_/write_" is
 [
 	readType : type,
 	writeType : type

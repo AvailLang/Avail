@@ -40,12 +40,13 @@ Extends
 	"Iterators",
 	"Unit Testing"
 Names
-	"converting reader"
+	"_converted by_",
+	"converting reader",
+	"converting reader from_to_"
 Body
 
 
 "base reader" is a new atom;
-"buffer" is a new atom;
 "element converter" is a new atom;
 
 
@@ -63,26 +64,15 @@ conversionBufferSize ::= 200;
  *        The reader being wrapped by the converter.
  * @field "element converter" "converter"
  *        The converter that wraps the base reader.
- * @field "buffer" "tuple→/→⊥"
- *        The buffer of converted but not yet consumed data.
+ * @field "buffer" "tuple"
+ *        The mutable buffer of converted but not yet consumed data.
  */
 Public class "converting reader" extends reader
-	with field
+	with fields
 		base reader : reader,
 		element converter : converter
 	with mutable field
-		referable buffer : tuple →/→ ⊥;
-
-/**
-Public method "converter from_to_" is
-[
-	sourceType : any's type,
-	targetType : any's type
-|
-	extend converter with
-		conversion type : ([sourceType]→targetType)'s type
-];
-*/
+		buffer : tuple;
 
 /**
  * Answer a specialization of {@code "reader"} that converts a reader of the
@@ -103,8 +93,7 @@ Public method "converting reader from_to_" is
 |
 	extend converting reader ∩ reader of targetType with
 		base reader : reader of sourceType,
-		element converter : converter from sourceType to targetType,
-		buffer : ↑<targetType…|>
+		element converter : converter from sourceType to targetType
 ];
 
 Method "_converted by_" is
@@ -112,5 +101,91 @@ Method "_converted by_" is
 	aReader : reader,
 	aConverter : converter
 |
-	
-]
+	targetType ::= aConverter's conversion type's return type;
+	a converting reader with
+		base reader ::= aReader,
+		element type ::= targetType,
+		element converter ::= aConverter,
+		buffer := <>
+];
+
+Semantic restriction "_converted by_" is
+[
+	aReaderType : reader's type,
+	aConverterType : converter's type
+|
+	conversionType ::= aConverterType's conversion type's instance;
+	inputType ::= conversionType[1];
+	outputType ::= conversionType's return type;
+	If ¬ aReaderType's element type's instance ⊆ inputType then
+	[
+		Reject parse, expected:
+			format
+				"converter's input type (“①”) to accept \
+				\|the given reader's output type (“②”)"
+			with inputType, aReaderType's element type's instance
+	];
+	converting reader from inputType to outputType
+];
+
+processInvokingFunction ::= unsafe sender of $"_process_" returning tuple;
+
+/**
+ * A converting reader is exhausted when (1) the output buffer is empty,
+ * (2) the underlying reader is exhausted, and (3) {@method "flush_" flushing}
+ * the converter into the (empty) buffer leaves it empty.
+ * 
+ * @method "_is exhausted"
+ * @param "aReader" "converting reader"
+ */
+Method "_is exhausted" is
+[
+	aReader : converting reader
+|
+	$thisMethod : boolean;
+	If |aReader's buffer| > 0 then
+	[
+		Exit thisMethod with false
+	];
+	base ::= aReader's base reader;
+	If base is exhausted then
+	[
+		finalOutput ::= flush aReader's element converter;
+		aReader's buffer := finalOutput;
+		|finalOutput| = 0
+	]
+	else
+	[
+		unprocessed ::= take at most conversionBufferSize from base;
+		processed ::= processInvokingFunction(
+			aReader's element converter, unprocessed);
+		aReader's buffer := processed;
+		Restart thisMethod
+	]
+] : boolean;
+
+/**
+ * A converting reader's current element is the start of the buffer.  Populate
+ * it if necessary.
+ */
+converting reader's current element method is
+[
+	aReader : converting reader
+|
+	aReader's buffer[1]
+] : any;
+
+/**
+ * A converting reader is exhausted when (1) the output buffer is empty,
+ * (2) the underlying reader is exhausted, and (3) {@method "flush_" flushing}
+ * the converter into the (empty) buffer leaves it empty.
+ * 
+ * @method "_is exhausted"
+ * @param "aReader" "converting reader"
+ */
+converting reader's advance method is
+[
+	aReader : converting reader
+|
+	aReader's buffer := aReader's buffer [2..];
+] : ⊤;

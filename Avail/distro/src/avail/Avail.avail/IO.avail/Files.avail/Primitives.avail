@@ -217,24 +217,24 @@ Semantic restriction
 		/* Check each possibility, typically just one. */
 		For each of optionSet's instances do
 		[
-			possibileSet : {open option|}
+			possibleSet : {open option|}
 		|
 			readableType :=
-				readableType ∪ ((read option ∈ possibileSet)'s type);
+				readableType ∪ ((read option ∈ possibleSet)'s type);
 			writableType :=
-				writableType ∪ ((write option ∈ possibileSet)'s type);
+				writableType ∪ ((write option ∈ possibleSet)'s type);
 		];
 	]
 	else
 	[
-		readableType := if read ∈ optionSet's element type
+		readableType := if read option ∈ optionSet's element type
 			then [boolean]
 			else [false's type];
-		writableType := if write ∈ optionSet's element type
+		writableType := if write option ∈ optionSet's element type
 			then [boolean]
 			else [false's type];
 	];
-	If (readableType = (false's type)) ∧ [writableType = (false's type)] then
+	If (readableType = false's type) ∧ [writableType = false's type] then
 	[
 		Reject parse, expected: "file open to specify read or write or both"
 	];
@@ -461,13 +461,18 @@ Public method
 		priority optionalPriority[1] else [current fiber's priority]
 ] : fiber;
 
-/**TODO[MvG] Rewrite comment to reflect the fileExecutor doing the waiting now!!
+/**
  * Block the current fiber until all writes buffered for the specified {@type
  * "file"} have been committed to the file system.  Unfortunately Avail's Java
- * substrate – and its sub-substrates – think it's ok to block a thread just to
- * wait for previously handed-off buffered write operations to physically
- * complete, almost completely defeating the purpose of asynchronous writes.
+ * substrate – and its sub-substrates in the OS – think it's ok to block a
+ * thread just to wait for previously handed-off buffered write operations to
+ * physically complete, defeating half of the purpose of asynchronous writes.
  * Sigh.
+ * 
+ * Fortunately, we have the "fileExecutor" pool of threads in the VM for just
+ * that purpose – synchronous I/O operations.  We accomodate opening files,
+ * renaming files and directories, and other similarly synchronous operations by
+ * using the same dedicated pool.
  *
  * @method "Synchronize_with file system"
  * @param "f" "writable file"

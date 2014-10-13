@@ -61,7 +61,10 @@ Names
 	"file reader/writer",
 
 	/* Constructors. */
-	"a file iterator for_«aligning buffers to_bytes»",
+	"a_for_«aligning buffers to_bytes»",
+
+	/* Coherence. */
+	"Synchronize_",
 
 	/* Tests. */
 	"file iterator test suite"
@@ -69,8 +72,8 @@ Body
 
 "file position" is a new field atom;
 "alignment" is a new field atom;
-"buffer start" is a new field atom;
-"buffer dirty" is a new field atom;
+"buffer is dirty" is a new field atom;
+"element source" is a new field atom;
 
 /*
 TODO [MvG] - document properly.
@@ -129,7 +132,6 @@ NOTES:
 	 Representation of read/write file iterators:
 		-one buffer
 		-buffer dirty flag
-		-buffer start in file
 		-current position in file
 		-alignment
 		-buffers are LRU-cached by the VM to speed up reads.  An explicit
@@ -173,14 +175,11 @@ NOTES:
  * @type "file iterator"
  * @supertype "positionable buffered iterator"
  */
-Public class "file iterator" extends positionable iterator
+Public class "file iterator" extends random access buffered iterator
 	with fields
 		alignment : whole number,
 		element type : byte's type,
-		invariant position type : (↑natural number)'s type,
-		element source : file
-	with mutable field
-		file position : natural number;
+		element source : file;
 
 /**
  * A file reader buffers bytes obtained from a backing {@type "readable file"}.
@@ -190,9 +189,7 @@ Public class "file iterator" extends positionable iterator
  */
 Public explicit class "file reader" extends file iterator ∩ buffered reader
 	with field
-		element source : readable file
-	with mutable field
-		buffer start : natural number;
+		element source : readable file;
 
 /**
  * A file writer buffers bytes obtained from a backing {@type "writable file"}.
@@ -204,8 +201,7 @@ Public class "file writer" extends file iterator
 	with field
 		element source : writable file
 	with mutable fields
-		buffer dirty : boolean,
-		buffer start : natural number;
+		buffer is dirty : boolean;
 
 /**
  * A file iterator buffers bytes obtained from a backing {@type
@@ -219,84 +215,15 @@ Public class "file reader/writer"
 	extends file reader ∩ file writer;
 
 
-/**
- * @method "_'s⁇position"
- * @param "anIterator" "file iterator"
- */
-Method "_'s⁇position" is
-[
-	anIterator : file iterator
-|
-	anIterator's file position
-] : natural number;
-
-file iterator's position without fetching buffer method is
-[
-	anIterator : file iterator,
-	proposedPosition : natural number 
-|
-	
-	buffer ::= anIterator's buffer
-] : boolean;
-
-/**
- * A file reader must discard its buffer before positioning outside of the zone
- * covered by the buffer.
- * 
- * @method "_'s⁇position:=_"
- * @param "anIterator" "file reader"
- */
-file reader's set position method is
-[
-	anIterator : file reader,
-	pos : natural number
-|
-	anIterator's file position := pos;
-	/* TODO: [MvG] - Deal with buffer flushes and such. */
-] : ⊤;
-
-/**
- * A file writer must flush its buffer before positioning outside of the
- * zone covered by the buffer.
- * 
- * @method "_'s⁇position:=_"
- * @param "anIterator" "file writer"
- */
-file writer's set position method is
-[
-	anIterator : file iterator,
-	pos : natural number
-|
-	anIterator's file position := pos;
-	/* TODO: [MvG] - Deal with buffer flushes and such. */
-] : ⊤;
-
-/**
- * A file reader/writer must flush its buffer before positioning outside of the
- * zone covered by the buffer.
- * 
- * @method "_'s⁇position:=_"
- * @param "anIterator" "file writer"
- */
-file reader/writer's set position method is
-[
-	anIterator : file iterator,
-	pos : natural number
-|
-	anIterator's file position := pos;
-	/* TODO: [MvG] - Deal with buffer flushes and such. */
-] : ⊤;
-
-
 _privateReadBuffer ::=
 [
-	anIterator : file reader
+	fileReader : file reader
 |
 	buffer : <byte…|>;
 	readComplete ::= a semaphore named "read is complete" with 0 permits;
-	readFiber ::= a fiber reading anIterator's maximum buffer size bytes
-		at anIterator's position
-		from anIterator's element source
+	readFiber ::= a fiber reading fileReader's maximum buffer size bytes
+		at fileReader's position
+		from fileReader's element source
 		on success doing
 			[
 				theBytes : <byte…|>
@@ -316,16 +243,65 @@ _privateReadBuffer ::=
 	buffer
 ] : <byte…|>;
 
-file reader's next buffer method is _privateReadBuffer;
+file reader's fetch current buffer method is _privateReadBuffer;
 
-file reader/writer's next buffer method is ***;
+file reader/writer's fetch current buffer method is
+[
+	aFileReaderWriter : file reader/writer
+|
+	Assert: ¬ aFileReaderWriter's buffer is dirty;
+	_privateReadBuffer(aFileReaderWriter)
+];
 
+_privateWriteBuffer ::=
+[
+	fileWriter : file writer
+|
+	success : boolean := false;
+	If fileWriter's buffer is dirty then
+	[
+		Assert: |fileWriter's buffer| > 0;
+		writeComplete ::= a semaphore named "write is complete" with 0 permits;
+		buffer ::= fileWriter's buffer ?→ <byte…|1..>;
+		writeFiber ::= a fiber writing buffer
+			at fileWriter's buffer start
+			to fileWriter's element source
+			on success doing
+				[
+					success := true;
+					Signal writeComplete;
+				]
+			on failure doing
+				[
+					error : {I/O-error code}ᵀ
+				|
+					/* All we know is that I/O failed. */
+					Signal writeComplete;
+				];
+		Await writeComplete;
+		Unless success then
+		[
+			Raise an I/O exception
+		];
+		fileWriter's buffer is dirty := false;
+	];
+] : ⊤;
+
+file iterator's exit buffer method is
+[
+	fileIterator : file iterator
+|
+	/* Do nothing. */
+];
+
+file writer's exit buffer method is _privateWriteBuffer;
 
 /**
  * Construct and answer a {@type "readable file iterator"} that is open on the
  * file named by {@param "fn"}.
  *
- * @method "a file iterator for_«aligning buffers to_bytes»"
+ * @method "a_for_«aligning buffers to_bytes»"
+ * @param "fileIteratorType" "file iterator's type"
  * @param "fn" "file name"
  *        The {@method "file name"} of the target file.
  * @param "optionalAlignment" "<natural number…|0..1>"
@@ -337,19 +313,42 @@ file reader/writer's next buffer method is ***;
  * @raises "I/O exception"
  *         If an I/O error occurs for any reason.
  */
-Public method "a file iterator for_«aligning buffers to_bytes»" is
+Public method "a_for_«aligning buffers to_bytes»" is
 [
+	fileIteratorType : file iterator's type,
 	fn : file name,
 	optionalAlignment : <natural number…|0..1>
 |
-	a file reader with
+	options : {{read, write}ᵀ|} := ∅;
+	If fileIteratorType ⊆ reader then [options := options ∪ {read};];
+	If fileIteratorType ⊆ writer then [options := options ∪ {write};];
+	theIterator ::= a fileIteratorType with
 		element type ::= byte,
-		alignment ::= optionalAlignment[1] else [0],
-		position type ::= natural number,
-		element source ::= fn opened with options {read},
-		maximum buffer size ::= optionalAlignment[1] else [32768] max 2,
-		file position := 1
-] : file reader;
+		alignment ::= optionalAlignment[1] else [1],
+		element source ::= fn opened with options
+			options ?→ {{read, write}ᵀ|1..2},
+		maximum buffer size ::= optionalAlignment[1] else [32768],
+		position variable := 1,
+		buffer := <>,
+		position in buffer := 1;
+	Cast theIterator into
+	[
+		theWriter : file writer
+	|
+		theWriter's buffer is dirty := false;
+	]
+	else [];
+	theIterator
+] : file iterator;
+
+Semantic restriction "a_for_«aligning buffers to_bytes»" is
+[
+	fileIteratorMeta : file iterator's type's type,
+	fnType : file name's type,
+	optionalAlignmentType : <natural number…|0..1>'s type
+|
+	fileIteratorMeta's instance
+];
 
 /**
  * Is the {@type "file"} underlying the specified {@type "file iterator"} open?
@@ -452,7 +451,7 @@ Semantic restriction "Using|using_,⁇do_" is
  * @param "anIterator" "file writer"
  * @raises "I/O exception"
  */
-Method "Synchronize_" is
+Public method "Synchronize_" is
 [
 	anIterator : file writer
 |
@@ -512,7 +511,7 @@ Test "file iterator(readable)" in file iterator test suite is
 [
 	ref ::= map "abracadabra" through [c : character | c's code point];
 	fn ::= testDir / "abracadabra.txt";
-	iter ::= a file iterator for fn;
+	iter ::= a file reader for fn;
 	Require: iter is open;
 	Require: take at most ∞ from iter = ref;
 	Require: iter is exhausted;
@@ -525,7 +524,7 @@ Test "file iterator(readable,small buffer)" in file iterator test suite is
 [
 	ref ::= map "abracadabra" through [c : character | c's code point];
 	fn ::= testDir / "abracadabra.txt";
-	iter ::= a file iterator for fn aligning buffers to 3 bytes;
+	iter ::= a file reader for fn aligning buffers to 3 bytes;
 	Require: iter is open;
 	Require: take at most ∞ from iter = ref;
 	Require: iter is exhausted;
@@ -538,7 +537,7 @@ Test "file iterator(readable,reposition)" in file iterator test suite is
 [
 	ref ::= map "abracadabra" through [c : character | c's code point];
 	fn ::= testDir / "abracadabra.txt";
-	iter ::= a file iterator for fn;
+	iter ::= a file reader for fn;
 	Require: iter is open;
 	Require: take at most ∞ from iter = ref;
 	Require: iter is exhausted;
@@ -554,7 +553,7 @@ Test "file iterator(readable,reposition)" in file iterator test suite is
 Test "file iterator(double close)" in file iterator test suite is
 [
 	fn ::= testDir / "abracadabra.txt";
-	iter ::= a file iterator for fn;
+	iter ::= a file reader for fn;
 	Close iter;
 	Close iter;
 ]
@@ -563,6 +562,6 @@ must raise file-closed exception;
 Test "file iterator(can't open for reading)" in file iterator test suite is
 [
 	fn ::= testDir / "doesntexist.txt";
-	iter ::= a file iterator for fn;
+	iter ::= a file reader for fn;
 ]
 must raise I/O exception;

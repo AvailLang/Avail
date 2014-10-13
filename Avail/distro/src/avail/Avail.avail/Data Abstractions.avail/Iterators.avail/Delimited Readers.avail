@@ -42,7 +42,8 @@ Names
 	"delimited a reader test suite",
 	"_delimited by_",
 	/* TODO: [TLS] Implement this! */
-	"_delimited by any of_"
+	"_delimited by any of_",
+	"delimited reader test suite"
 Body
 
 "delimiter|delimiters" is a new field atom;
