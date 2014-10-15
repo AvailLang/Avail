@@ -139,7 +139,7 @@ extends AtomDescriptor
 		propertyMapPojo.makeShared();
 		@SuppressWarnings("unchecked")
 		final Map<A_Atom, AvailObject> propertyMap =
-			(Map<A_Atom, AvailObject>) propertyMapPojo.javaObject();
+			(Map<A_Atom, AvailObject>) propertyMapPojo.javaObjectNotNull();
 		for (final Map.Entry<A_Atom, AvailObject> entry :
 			propertyMap.entrySet())
 		{
@@ -168,7 +168,7 @@ extends AtomDescriptor
 		final A_BasicObject propertyMapPojo = object.slot(PROPERTY_MAP_POJO);
 		@SuppressWarnings("unchecked")
 		final Map<A_Atom, A_BasicObject> propertyMap =
-			(Map<A_Atom, A_BasicObject>) propertyMapPojo.javaObject();
+			(Map<A_Atom, A_BasicObject>) propertyMapPojo.javaObjectNotNull();
 		if (value.equalsNil())
 		{
 			propertyMap.remove(key);
@@ -196,7 +196,7 @@ extends AtomDescriptor
 		final A_BasicObject propertyMapPojo = object.slot(PROPERTY_MAP_POJO);
 		@SuppressWarnings("unchecked")
 		final Map<A_Atom, AvailObject> propertyMap =
-			(Map<A_Atom, AvailObject>) propertyMapPojo.javaObject();
+			(Map<A_Atom, AvailObject>) propertyMapPojo.javaObjectNotNull();
 		final A_BasicObject value = propertyMap.get(key);
 		return value == null ? NilDescriptor.nil() : (AvailObject) value;
 	}

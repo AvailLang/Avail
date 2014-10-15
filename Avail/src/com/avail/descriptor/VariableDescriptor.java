@@ -290,7 +290,7 @@ extends Descriptor
 					@SuppressWarnings("unchecked")
 					final Map<A_Atom, VariableAccessReactor> writeReactors =
 						(Map<A_Atom, VariableAccessReactor>)
-							rawPojo.javaObject();
+							rawPojo.javaObjectNotNull();
 					discardInvalidWriteReactors(writeReactors);
 					// If there are write reactors, but write tracing isn't
 					// active, then raise an exception.
@@ -473,7 +473,7 @@ extends Descriptor
 		}
 		@SuppressWarnings("unchecked")
 		final Map<A_Atom, VariableAccessReactor> writeReactors =
-			(Map<A_Atom, VariableAccessReactor>) rawPojo.javaObject();
+			(Map<A_Atom, VariableAccessReactor>) rawPojo.javaObjectNotNull();
 		discardInvalidWriteReactors(writeReactors);
 		writeReactors.put(key, reactor);
 		return object;
@@ -490,7 +490,7 @@ extends Descriptor
 		}
 		@SuppressWarnings("unchecked")
 		final Map<A_Atom, VariableAccessReactor> writeReactors =
-			(Map<A_Atom, VariableAccessReactor>) rawPojo.javaObject();
+			(Map<A_Atom, VariableAccessReactor>) rawPojo.javaObjectNotNull();
 		discardInvalidWriteReactors(writeReactors);
 		if (writeReactors.remove(key) == null)
 		{
@@ -506,7 +506,8 @@ extends Descriptor
 		{
 			@SuppressWarnings("unchecked")
 			final Map<A_Atom, VariableAccessReactor> writeReactors =
-				(Map<A_Atom, VariableAccessReactor>) rawPojo.javaObject();
+				(Map<A_Atom, VariableAccessReactor>)
+					rawPojo.javaObjectNotNull();
 			A_Set set = SetDescriptor.empty();
 			for (final Map.Entry<A_Atom, VariableAccessReactor> entry :
 				writeReactors.entrySet())

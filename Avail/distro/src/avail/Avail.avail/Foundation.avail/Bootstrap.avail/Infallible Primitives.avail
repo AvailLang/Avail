@@ -142,7 +142,7 @@ Uses
 		"_is unassigned",
 		"_mod_",
 		"_reversed",
-		"_→/→_",
+		"read_/write_",
 		"_→block phrase",
 		"_→character",
 		"_→double",
@@ -192,7 +192,6 @@ Uses
 		"primfail`«_:_`»",
 		"primitive description of_",
 		"semantic restrictions for_given_",
-		"special atoms",
 		"termination requested",
 		"{_`|_}",
 		"{_→_`|_}",
@@ -317,7 +316,7 @@ Primitive "_'s⁇genuine upper bound" is
  * @method "`↑_"
  * @param "containmentType" "any meta"
  *        The containment type.
- * @returns "(⊤→/→⊥)'s type"
+ * @returns "variable meta"
  *    The requested variable type.
  */
 Primitive "`↑_" is
@@ -353,7 +352,7 @@ Primitive "_'s⁇read type" is
  * @method "new`↑_"
  * @param "containmentType" "any meta"
  *        The containment type.
- * @returns "⊤→/→⊥"
+ * @returns "variable"
  *    A new variable capable of retrieving and storing values of the specified
  *    containment type.
  */
@@ -701,15 +700,15 @@ Primitive "high-precision timer value" is
  * Construct and answer a variable type from the specified read and write types.
  *
  * @category "Primitives" "Variables" "Types" "Constructors"
- * @method "_→/→_"
+ * @method "read_/write_"
  * @param "readType" "type"
  *        The read type of the variable type.
  * @param "writeType" "type"
  *        The write type of the variable type.
- * @returns "(⊤→/→⊥)'s type"
+ * @returns "(read ⊤/write ⊥)'s type"
  *    The requested variable type.
  */
-Primitive "_→/→_" is
+Primitive "read_/write_" is
 [
 	readType : type,
 	writeType : type
@@ -1724,21 +1723,6 @@ Primitive "_'s⁇name" is
 |
 	Primitive 121;
 ] : string;
-
-/**
- * Answer a set containing all atoms well-known to the Avail virtual machine.
- * These atoms cannot serve as properties, nor have properties added, queried,
- * modified, or removed.
- *
- * @category "Primitives" "Atoms" "Queries"
- * @method "special atoms"
- * @returns "{atom|}"
- *    The special atoms.
- */
-Primitive "special atoms" is
-[
-	Primitive 126;
-] : set of atom;
 
 /**
  * Is {@param "name"} a valid message? Do not attempt to look up a method

@@ -388,7 +388,7 @@ public class AvailScanner
 	@InnerAccess void noteWhitespace ()
 	{
 		assert previousWhitespace.tupleSize() == 0;
-		previousWhitespace = whitespaceCache.get(
+		previousWhitespace = whitespaceCache.getNotNull(
 			inputString.substring(startOfToken, position));
 		final A_Token previous = previousToken;
 		if (previous != null)

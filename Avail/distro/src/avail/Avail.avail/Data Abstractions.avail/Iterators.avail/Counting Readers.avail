@@ -1,0 +1,742 @@
+/*
+ * Counting Readers.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Counting Readers"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Abstract Iterators",
+	"Foundation",
+	"Sizable Positionable Iterators",
+	"Unit Testing"
+Names
+	"a counting reader from_to_",
+	"a counting reader from_to_by_",
+	"counting reader test suite"
+Body
+
+"start" is a new field atom;
+"step" is a new field atom;
+"size" is a new field atom;
+
+naturalNumberVariable ::= ↑natural number;
+
+/**
+ * A counting number reader is an immutable lazy list of arbitarily many
+ * numbers, each of which is a fixed distance from its neighbors.
+ *
+ * @type "counting number reader"
+ * @supertype "reader"
+ * @supertype "sizable positionable iterator"
+ */
+Class "counting number reader" extends reader ∩ sizable positionable iterator
+	with fields
+		position variable : naturalNumberVariable,
+		element type : number's type,
+		start : number,
+		step : number,
+		size : [0..∞];
+
+/**
+ * A counting integer reader is an immutable lazy list of arbitrarily many
+ * integers, each of which is a fixed distance from its neighbors.
+ *
+ * @type "counting integer reader"
+ * @supertype "counting number reader"
+ */
+Class "counting integer reader" extends counting number reader
+	with fields
+		element type : integer's type,
+		start : integer,
+		step : integer;
+
+Method "_is exhausted" is
+[
+	aReader : counting number reader
+|
+	aReader's position > aReader's size
+] : boolean;
+
+counting number reader's current element method is
+[
+	aReader : counting number reader
+|
+	(aReader's position - 1) × aReader's step + aReader's start
+] : number;
+
+counting number reader's advance method is
+[
+	aReader : counting number reader
+|
+	aReader's position variable++;
+] : ⊤;
+
+Method "_'s⁇position" is
+[
+	aReader : counting number reader
+|
+	↓aReader's position variable
+];
+
+Method "_'s⁇position:=_" is
+[
+	aReader : counting number reader,
+	position : natural number
+|
+	Require: position ≤ aReader's size + 1;
+	aReader's position variable ?= position;
+] : ⊤;
+
+/* Statically forbid positions that aren't natural numbers. */
+Semantic restriction "_'s⁇position:=_" is
+[
+	aReader : counting number reader's type,
+	position : any's type
+|
+	Unless position ⊆ natural number then
+	[
+		Reject parse, expected:
+			format
+				"counting reader to be positioned by natural number, not “①”."
+			with position
+	];
+	⊤
+];
+
+Method "`|_`|" is
+[
+	aReader : counting number reader
+|
+	aReader's size
+] : [0..∞];
+
+Semantic restriction "`|_`|" is
+[
+	aReader : counting number reader's type
+|
+	aReader's size
+];
+
+Method "`|_'s⁇remaining elements`|" is
+[
+	aReader : counting number reader
+|
+	size ::= |aReader|;
+	cast size - aReader's position + 1 into [n : [0..∞] | n]
+] : [0..∞];
+
+Semantic restriction "`|_'s⁇remaining elements`|" is
+[
+	aReader : counting number reader's type
+|
+	[0..⎡aReader's size⎤]
+];
+
+Semantic restriction "For each of⁇_do_" is
+[
+	readerType : counting number reader's type,
+	actionType : [⊥]→⊤'s type
+|
+	parameterType ::= actionType[1];
+	elementType ::= readerType's element type's instance;
+	If ¬elementType ⊆ parameterType then
+	[
+		Reject parse, expected:
+			format "action block argument (“①”) to accept \
+				\|possible values (“②”)"
+			with parameterType, elementType
+	];
+	returnType ::= actionType's return type;
+	If returnType ≠ ⊤ then
+	[
+		Reject parse, expected:
+			"action block to produce type ⊤, not " ++ “returnType”
+	];
+	if ⎣readerType's size⎦ = ∞ then
+	[
+		/* It will always loop forever. */
+		⊥
+	]
+	else if [⎡readerType's size⎤ = 0] then
+	[
+		/* It will complete immediately, having never run the action. */
+		⊤
+	]
+	else
+	[
+		/* This is no different than the previous case, but eventually we'll
+		 * have proper support for exceptions and be able to indicate that in
+		 * this case it might raise any exceptions that the action could raise. 
+		 */
+		⊤
+	]
+];
+
+/**
+ * Construct and answer a {@type "reader"} that lazily produces all
+ * consecutive values between {@param "start"} and {@param "end"}.
+ *
+ * @method "a counting reader from_to_"
+ * @param "first" "integer"
+ *        The start value, inclusive. This is the first value that will be
+ *        answered by the reader.
+ * @param "last" "extended integer"
+ *        The end value, inclusive. This is the last value that will be
+ *        answered by the reader.
+ * @returns "reader of integer"
+ *          The requested reader.
+ */
+Public method "a counting reader from_to_" is
+[
+	first : integer,
+	last : (-∞..∞]
+|
+	Require: last ≥ first - 1;
+	size ::= cast last - first + 1 into [n : [0..∞] | n];
+	newVar : natural number := 1;
+	a counting integer reader with
+		position variable ::= ↑newVar,
+		element type ::= [first..last + 1),
+		start ::= first,
+		step ::= 1,
+		size ::= size
+] : counting integer reader;
+
+Semantic restriction "a counting reader from_to_" is
+[
+	startType : integer's type,
+	endType : extended integer's type
+|
+	elementType ::= (⎣startType⎦ - 1..⎡endType⎤ + 1);
+	minSize ::= (⎣endType⎦ - ⎡startType⎤ + 1) max 0;
+	maxSize ::= ⎡endType⎤ - ⎣startType⎦ + 1;
+	extend counting integer reader with
+		element type : elementType's type,
+		position variable : naturalNumberVariable,
+		start : startType,
+		step : 1's type,
+		size : [minSize..maxSize]
+];
+
+/**
+ * Construct and answer a {@type "reader"} that lazily produces values
+ * between {@param "start"} and {@param "end"}. For each value <em>v</em>
+ * produced, there is some <em>n ∈ number</em> such that:<br><br>
+ *	{@code
+ *    aReader ::= a counting reader from start to end by step;<br>
+ *    ...<br>
+ *    v ::= aReader's current element;<br>
+ *    Assert: v = start + n × step;}<br><br>
+ *
+ * Note that {@param "end"} is not guaranteed to be the last value produced by
+ * the reader. It is only guaranteed that no larger values than {@param "end"}
+ * will be answered.
+ *
+ * @method "a counting reader from_to_by_"
+ * @param "first" "number"
+ *        The start value, inclusive. This is the first value that will be
+ *        answered by the reader.
+ * @param "last" "number"
+ *        The end value, inclusive. If {@param "delta"} ≥ 0, then no values
+ *        larger than this will be answered by the reader. If {@param "delta"}
+ *        < 0, then no values smaller than this will be answered by the
+ *        reader.
+ * @param "delta" "number"
+ *        The amount by which successive values anwered by the reader will
+ *        differ.
+ * @returns "reader of number"
+ *          The requested reader.
+ */
+Public method "a counting reader from_to_by_" is
+[
+	first : number,
+	last : number,
+	delta : number
+|
+	Require: delta < 0 ∨ [delta > 0];
+	actualSize : [0..∞] := if first ≤ last ≤ first
+		then [1]
+		else [(⎣(last - first) ÷ delta⎦→extended integer + 1) max 0];
+	elementType ::= if actualSize = 0
+		then [⊥]
+		else
+		[
+			cast first + delta into
+				[t : double | double],
+				[t : float | float],
+				[t : extended integer |
+					actualLast ::= first + ((actualSize - 1) × delta);
+					minValue ::= cast ⎣first⎦ min ⎣actualLast⎦
+						into [x : extended integer | x];
+					maxValue ::= cast ⎡first⎤ max ⎡actualLast⎤
+						into [x : extended integer | x];
+					[minValue..maxValue]]
+				else [number]
+		];
+	newVar : natural number := 1;
+	a counting number reader with
+		position variable ::= ↑newVar,
+		element type ::= elementType,
+		start ::= first,
+		step ::= delta,
+		size ::= actualSize
+] : counting number reader;
+
+Semantic restriction "a counting reader from_to_by_" is
+[
+	startType : number's type,
+	endType : number's type,
+	deltaType : number's type
+|
+	extremeDeltas : {number|} := ∅;
+	negativeIntegralRange ::= deltaType ∩ [-∞..-1];
+	If negativeIntegralRange ≠ ⊥ then
+	[
+		extremeDeltas := extremeDeltas ∪
+			{⎣negativeIntegralRange⎦, ⎡negativeIntegralRange⎤};
+	];
+	positiveIntegralRange ::= deltaType ∩ [1..∞];
+	If positiveIntegralRange ≠ ⊥ then
+	[
+		extremeDeltas := extremeDeltas ∪
+			{⎣positiveIntegralRange⎦, ⎡positiveIntegralRange⎤};
+	];
+	If |deltaType| is finite then
+	[
+		extremeDeltas := extremeDeltas ∪ deltaType's instances;
+	];
+	if extremeDeltas is empty then
+	[
+		/* We don't have enough information about what the delta could be to be
+		 * able to usefully analyze the range. */
+		extend counting number reader with
+			element type : (startType ∪ endType ∪ deltaType)'s type,
+			start : startType,
+			step : deltaType,
+			size : [0..∞]
+	]
+	else
+	[
+		/* We have enough information to determine the lower and upper bounds of
+		 * the number of elements in the resulting reader. */
+		minEnd ::= cast endType
+			into [i : extended integer's type | ⎣i⎦]
+			else
+			[
+				if |endType| is finite then
+				[
+					min (endType's instances ∪ {∞} → tuple)
+				]
+				else
+				[
+					-∞
+				]
+			];
+		maxEnd ::= cast endType
+			into [i : extended integer's type | ⎡i⎤]
+			else
+			[
+				if |endType| is finite then
+				[
+					max (endType's instances ∪ {-∞} → tuple)
+				]
+				else
+				[
+					∞
+				]
+			];
+		minStart ::= cast startType
+			into [i : extended integer's type | ⎣i⎦]
+			else
+			[
+				if |startType| is finite then
+				[
+					min (startType's instances ∪ {∞} → tuple)
+				]
+				else
+				[
+					-∞
+				]
+			];
+		maxStart ::= cast startType
+			into [i : extended integer's type | ⎡i⎤]
+			else
+			[
+				if |startType| is finite then
+				[
+					max (startType's instances ∪ {-∞} → tuple)
+				]
+				else
+				[
+					∞
+				]
+			];
+		/* Watch out for ∞ - ∞ and -∞ - -∞. */
+		minSpan ::= if minEnd = maxStart
+			then [0]
+			else [minEnd - maxStart];
+		maxSpan ::= if maxEnd = minStart
+			then [0]
+			else [minEnd - maxStart];
+		minSize : [0..∞] := ∞;
+		maxSize : [0..∞] := 0;
+		For each of extremeDeltas do
+		[
+			delta : number
+		|
+			If delta > 0 ∨ [ delta < 0 ] then
+			[
+				maxSize := maxSize
+					max ((⎣maxSpan ÷ delta⎦→extended integer + 1) max 0);
+				minSize := minSize
+					min ((⎣minSpan ÷ delta⎦→extended integer + 1) max 0);
+			];
+		];
+		elementType ::= if startType ⊆ double ∨ [deltaType ⊆ double]
+			then [double]
+		else if [startType ⊆ float ∨ [deltaType ⊆ float]]
+			then [float]
+		else
+		[
+			cast <startType, deltaType, endType> into
+			[
+				triple : <extended integer's type…|3>
+			|
+				[⎣triple[1]⎦ min ⎣triple[3]⎦
+					..⎡triple[1]⎤ max ⎡triple[3]⎤]
+			]
+			else
+			[
+				number
+			]
+		];
+		extend counting number reader with
+			position variable : naturalNumberVariable,
+			element type : elementType's type,
+			start : startType,
+			step : deltaType,
+			size : [minSize..maxSize]
+	]
+];
+
+"counting reader test suite" is a new atom;
+New test suite counting reader test suite extends iterators test suite;
+
+Test "counting reader basics" in counting reader test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 10;
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "counting reader (map)" in counting reader test suite is
+[
+	ref ::= <1, 4, 9, 16, 25, 36, 49, 64, 81, 100>;
+	index : natural number := 1;
+	iter ::= map a counting reader from 1 to 10 through [i : [1..10] | i × i];
+	For each iter do
+	[
+		element : [1..100]
+	|
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "counting reader (filter)" in counting reader test suite is
+[
+	ref ::= <2, 4, 6, 8, 10>;
+	index : natural number := 1;
+	iter ::= filter a counting reader from 1 to 10
+		by [i : [1..10] | i is even];
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "counting reader (concatenation)" in counting reader test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iters ::= <
+		an exhausted reader,
+		a counting reader from 1 to 2,
+		an exhausted reader,
+		an exhausted reader,
+		a counting reader from 3 to 7,
+		an exhausted reader,
+		a counting reader from 8 to 8,
+		a counting reader from 9 to 10,
+		an exhausted reader>;
+	iter ::= concatenate iters;
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "counting reader (lexical concatenation)"
+	in counting reader test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iters ::= <
+		an exhausted reader,
+		a counting reader from 1 to 2,
+		an exhausted reader,
+		an exhausted reader,
+		a counting reader from 3 to 7,
+		an exhausted reader,
+		a counting reader from 8 to 8,
+		a counting reader from 9 to 10,
+		an exhausted reader>;
+	iter ::= iters[1]
+		++ iters[2]
+		++ iters[3]
+		++ iters[4]
+		++ iters[5]
+		++ iters[6]
+		++ iters[7]
+		++ iters[8]
+		++ iters[9];
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "counting reader (zip)" in counting reader test suite is
+[
+	ref ::= <
+		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
+		<6, 36>, <7, 49>, <8, 64>, <9, 81>, <10, 100>>;
+	index : natural number := 1;
+	iters ::= <
+		a counting reader from 1 to 10,
+		map a counting reader from 1 to 10
+			through [n : [1..10] | n × n]>;
+	iter ::= zip iters;
+	For each iter do
+	[
+		element : <[1..10], [1..100]…|2>
+	|
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "counting reader (lexical zip)" in counting reader test suite is
+[
+	ref ::= <
+		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
+		<6, 36>, <7, 49>, <8, 64>, <9, 81>, <10, 100>>;
+	index : natural number := 1;
+	iters ::= <
+		a counting reader from 1 to 10,
+		map a counting reader from 1 to 10
+			through [n : [1..10] | n × n]>;
+	iter ::= iters[1] zip iters[2];
+	For each iter do
+	[
+		element : <[1..10], [1..100]…|2>
+	|
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "counting reader (take_from_)" in counting reader test suite is
+[
+	ref ::= 1 to 5;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 10;
+	result ::= take 5 from iter;
+	For each result do
+	[
+		element : [1..10]
+	|
+		Require: element = ref[(index++)];
+	];
+	Require: iter's current element = 6;
+	Require: [take 6 from iter] raises exhausted-iterator exception;
+];
+
+Test "counting reader (take from_while_)" in counting reader test suite is
+[
+	ref ::= 1 to 5;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 10;
+	result ::= take from iter while [n : [1..10] | n ≤ 5];
+	For each result do
+	[
+		element : [1..10]
+	|
+		Require: element = ref[(index++)];
+	];
+	Require: iter's current element = 6;
+];
+
+Test "counting reader (take from_until_)" in counting reader test suite is
+[
+	ref ::= 1 to 5;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 10;
+	result ::= take from iter until [n : [1..10] | n ≥ 6];
+	For each result do
+	[
+		element : [1..10]
+	|
+		Require: element = ref[(index++)];
+	];
+	Require: iter's current element = 6;
+];
+
+Test "counting reader (Drop_from_)" in counting reader test suite is
+[
+	ref ::= 6 to 10;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 10;
+	Drop 5 from iter;
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+	Require: [Drop 6 from iter;] raises exhausted-iterator exception;
+];
+
+Test "counting reader (Drop from_while_)" in counting reader test suite is
+[
+	ref ::= 6 to 10;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 10;
+	Drop from iter while [n : [1..10] | n ≤ 5];
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "counting reader (Drop from_until_)" in counting reader test suite is
+[
+	ref ::= 6 to 10;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 10;
+	Drop from iter until [n : [1..10] | n ≥ 6];
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "counting reader (size)" in counting reader test suite is
+[
+	iter : sizable reader := a counting reader from 1 to 10;
+	Require: |iter| = 10;
+	iter := a counting reader from 3 to 16;
+	Require: |iter| = 14;
+	iter := a counting reader from 2 to 16 by 3;
+	Require: |iter| = 5;
+	iter := a counting reader from -5 to 25 by 5;
+	Require: |iter| = 7;
+	iter := a counting reader from -6.25 to 21.4 by 3.1;
+	Require: |iter| = 9;
+];
+
+Test "counting reader (sequential position)" in counting reader test suite is
+[
+	iter : (sizable iterator positioned by natural number) ∩ reader of integer;
+	iter := a counting reader from 1 to 5;
+	From 1 to 5 do
+	[
+		i : [1..5]
+	|
+		iter's position := i;
+		Require: take 5 - i + 1 from iter = i to 5;
+		Require: iter is exhausted;
+	];
+];
+
+Test "counting reader (position with stride)" in counting reader test suite is
+[
+	iter : (sizable iterator positioned by natural number) ∩ reader of integer;
+	iter := a counting reader from 2 to 16 by 3;
+	For each 2 to 16 by 3 do
+	[
+		value : [2..16],
+		index : [1..5]
+	|
+		iter's position := index;
+		Require: take 5 - index + 1 from iter = value to 16 by 3;
+		Require: iter is exhausted;
+	];
+];
+
+Test "counting reader (remaining elements)" in counting reader test suite is
+[
+	iter ::= a counting reader from 2 to 10 by 3;
+	remaining : integer := |iter|;
+	For each iter do
+	[
+		element : [2..10]
+	|
+		Require: |iter's remaining elements| = remaining;
+		remaining--;
+	];
+	Require: iter is exhausted;
+	Require: |iter's remaining elements| = remaining;
+];

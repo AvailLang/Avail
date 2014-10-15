@@ -1,5 +1,5 @@
 /**
- * P_169_FileSync.java
+ * P_176_FileTruncate.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,6 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
@@ -45,30 +46,23 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 169:</strong> Force all system buffers associated with the
- * {@linkplain FileHandle#canWrite writable} {@linkplain AsynchronousFileChannel
- * file channel} associated with the {@linkplain AtomDescriptor handle} to
- * synchronize with the underlying device.
+ * <strong>Primitive 176:</strong> If the specified size is less than the size
+ * of the indicated {@linkplain FileHandle#canWrite writable} {@linkplain
+ * AsynchronousFileChannel file channel} associated with the {@linkplain
+ * AtomDescriptor handle}, then reduce its size as indicated, discarding any
+ * data beyond the new file size.
  *
- * <p>
- * Answer a new fiber which, if the sync is eventually successful, will be
- * started to run the success {@linkplain FunctionDescriptor function}.  If the
- * sync fails with an {@link IOException}, the fiber will be started to apply
- * the failure function to the error code.  The fiber runs at the specified
- * priority.
- * </p>
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_169_FileSync
+public final class P_176_FileTruncate
 extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_169_FileSync().init(
-		4, CanInline, HasSideEffect);
+	public final static Primitive instance =
+		new P_176_FileTruncate().init(5, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -76,11 +70,12 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 1;
+		assert args.size() == 5;
 		final A_Atom atom = args.get(0);
-		final A_Function succeed = args.get(1);
-		final A_Function fail = args.get(2);
-		final A_Number priority = args.get(3);
+		final A_Number sizeObject = args.get(1);
+		final A_Function succeed = args.get(2);
+		final A_Function fail = args.get(3);
+		final A_Number priority = args.get(4);
 
 		final A_BasicObject pojo =
 			atom.getAtomProperty(AtomDescriptor.fileKey());
@@ -94,24 +89,31 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_NOT_OPEN_FOR_WRITE);
 		}
+		final AsynchronousFileChannel fileChannel = handle.channel;
+		// Truncating to something beyond the file size has no effect, so use
+		// Long.MAX_VALUE if the newSize is bigger than that.
+		final long size = sizeObject.isLong()
+			? sizeObject.extractLong()
+			: Long.MAX_VALUE;
 		final AvailRuntime runtime = AvailRuntime.current();
-		// Don't block an execution thread - use the runtime's file executor
-		// pool instead.  That keeps all the execution threads humming, even if
-		// there are several pending blocking I/O operations (like sync).  Note
-		// that the current (2014.06.11) implementation of the file executor
-		// specifies an unbounded queue, so the fiber execution threads will
-		// never be blocked waiting for I/O.
+		// Guaranteed non-negative by argument constraint.
+		assert size >= 0L;
+
 		final int priorityInt = priority.extractInt();
 		final A_Fiber current = interpreter.fiber();
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priorityInt,
 			StringDescriptor.format(
-				"Asynchronous sync (prim 169), %s",
+				"Asynchronous truncate (prim 176), %s",
 				handle.filename));
+		// If the current fiber is an Avail fiber, then the new one should be
+		// also.
 		newFiber.availLoader(current.availLoader());
+		// Share and inherit any heritable variables.
 		newFiber.heritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared());
+		// Share everything that will potentially be visible to the fiber.
 		newFiber.makeShared();
 		succeed.makeShared();
 		fail.makeShared();
@@ -123,7 +125,7 @@ extends Primitive
 			{
 				try
 				{
-					handle.channel.force(true);
+					fileChannel.truncate(size);
 				}
 				catch (final IOException e)
 				{
@@ -142,7 +144,8 @@ extends Primitive
 					Collections.<A_BasicObject>emptyList());
 			}
 		});
-		return interpreter.primitiveSuccess(newFiber);
+
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
@@ -151,8 +154,9 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				ATOM.o(),
+				IntegerRangeTypeDescriptor.wholeNumbers(),
 				FunctionTypeDescriptor.create(
-					TupleDescriptor.empty(),
+					TupleDescriptor.from(),
 					TOP.o()),
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(
@@ -169,8 +173,8 @@ extends Primitive
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(
 				E_INVALID_HANDLE.numericCode(),
-				E_SPECIAL_ATOM.numericCode(),
-				E_NOT_OPEN_FOR_WRITE.numericCode()
+				E_NOT_OPEN_FOR_WRITE.numericCode(),
+				E_SPECIAL_ATOM.numericCode()
 			).asSet());
 	}
 }

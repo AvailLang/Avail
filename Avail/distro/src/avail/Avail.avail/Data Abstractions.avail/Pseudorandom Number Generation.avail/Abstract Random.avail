@@ -58,7 +58,7 @@ Body
  *
  * @type "pRNG"
  */
-Public explicit class "pRNG" extends iterator
+Public explicit class "pRNG" extends reader
 	with fields
 		element type : whole number's type;
 

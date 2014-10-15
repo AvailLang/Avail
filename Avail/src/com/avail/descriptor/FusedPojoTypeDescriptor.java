@@ -221,7 +221,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	Object o_MarshalToJava (
+	@Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -312,7 +312,7 @@ extends PojoTypeDescriptor
 		final A_Type anUnfusedPojoType)
 	{
 		final Class<?> otherJavaClass =
-			(Class<?>) object.javaClass().javaObject();
+			(Class<?>) object.javaClass().javaObjectNotNull();
 		final int otherModifiers = otherJavaClass.getModifiers();
 		// If the unfused pojo type's class is final, then the intersection is
 		// pojo bottom.
@@ -332,7 +332,8 @@ extends PojoTypeDescriptor
 				// Ignore java.lang.Object.
 				if (!ancestor.equals(RawPojoDescriptor.rawObjectClass()))
 				{
-					final Class<?> javaClass = (Class<?>) ancestor.javaObject();
+					final Class<?> javaClass =
+						(Class<?>) ancestor.javaObjectNotNull();
 					final int modifiers = javaClass.getModifiers();
 					if (isFinal(modifiers) || !isInterface(modifiers))
 					{
@@ -412,7 +413,8 @@ extends PojoTypeDescriptor
 			for (final MapDescriptor.Entry entry
 				: object.slot(JAVA_ANCESTORS).mapIterable())
 			{
-				final Class<?> ancestor = (Class<?>) entry.key().javaObject();
+				final Class<?> ancestor =
+					(Class<?>) entry.key().javaObjectNotNull();
 				final TypeVariable<?>[] vars = ancestor.getTypeParameters();
 				final A_Tuple typeArgs = entry.value();
 				assert vars.length == typeArgs.tupleSize();
@@ -468,8 +470,8 @@ extends PojoTypeDescriptor
 				{
 					assert o1 != null;
 					assert o2 != null;
-					final Class<?> c1 = (Class<?>) o1.javaObject();
-					final Class<?> c2 = (Class<?>) o2.javaObject();
+					final Class<?> c1 = (Class<?>) o1.javaObjectNotNull();
+					final Class<?> c2 = (Class<?>) o2.javaObjectNotNull();
 					return c1.getName().compareTo(c2.getName());
 				}
 			});
@@ -481,7 +483,8 @@ extends PojoTypeDescriptor
 				builder.append(" ∩ ");
 			}
 			firstChildless = false;
-			builder.append(((Class<?>) javaClass.javaObject()).getName());
+			builder.append(
+				((Class<?>) javaClass.javaObjectNotNull()).getName());
 			final A_Tuple params = ancestors.hasKey(javaClass)
 				? ancestors.mapAt(javaClass)
 				: TupleDescriptor.empty();

@@ -762,7 +762,7 @@ extends Descriptor
 		final Object... arguments)
 	{
 		final StringBuilder builder =
-			(StringBuilder)fiber.slot(DEBUG_LOG).javaObject();
+			(StringBuilder)fiber.slot(DEBUG_LOG).javaObjectNotNull();
 		synchronized (builder)
 		{
 			if (builder.length() > 1_000_000)
@@ -1274,7 +1274,7 @@ extends Descriptor
 		final AvailObject rawPojo = object.slot(TRACED_VARIABLES);
 		@SuppressWarnings("unchecked")
 		final WeakHashMap<A_Variable, Boolean> map =
-			(WeakHashMap<A_Variable, Boolean>) rawPojo.javaObject();
+			(WeakHashMap<A_Variable, Boolean>) rawPojo.javaObjectNotNull();
 		if (!map.containsKey(var))
 		{
 			map.put(var, wasRead);
@@ -1288,7 +1288,7 @@ extends Descriptor
 		final AvailObject rawPojo = object.slot(TRACED_VARIABLES);
 		@SuppressWarnings("unchecked")
 		final WeakHashMap<A_Variable, Boolean> map =
-			(WeakHashMap<A_Variable, Boolean>) rawPojo.javaObject();
+			(WeakHashMap<A_Variable, Boolean>) rawPojo.javaObjectNotNull();
 		A_Set set = SetDescriptor.empty();
 		for (final Map.Entry<A_Variable, Boolean> entry : map.entrySet())
 		{
@@ -1308,7 +1308,7 @@ extends Descriptor
 		final AvailObject rawPojo = object.slot(TRACED_VARIABLES);
 		@SuppressWarnings("unchecked")
 		final WeakHashMap<A_Variable, Boolean> map =
-			(WeakHashMap<A_Variable, Boolean>) rawPojo.javaObject();
+			(WeakHashMap<A_Variable, Boolean>) rawPojo.javaObjectNotNull();
 		A_Set set = SetDescriptor.empty();
 		for (final Map.Entry<A_Variable, Boolean> entry : map.entrySet())
 		{

@@ -1,0 +1,191 @@
+/*
+ * Converting Reader.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Converting Reader"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Extends
+	"Abstract Converters",
+	"Common" = ("Data|data abstractions test suite"),
+	"Foundation",
+	"Iterators",
+	"Unit Testing"
+Names
+	"_converted by_",
+	"converting reader",
+	"converting reader from_to_"
+Body
+
+
+"base reader" is a new atom;
+"element converter" is a new atom;
+
+
+/*
+ * The maximum number of items to attempt to convert in a batch.
+ */
+conversionBufferSize ::= 200;
+
+/**
+ * A {@type "reader"} that applies a supplied {@type "converter"} to another
+ * {@type "reader"}'s buffers of data.
+ * 
+ * @type "converting reader"
+ * @field "base reader" "reader"
+ *        The reader being wrapped by the converter.
+ * @field "element converter" "converter"
+ *        The converter that wraps the base reader.
+ * @field "buffer" "tuple"
+ *        The mutable buffer of converted but not yet consumed data.
+ */
+Public class "converting reader" extends reader
+	with fields
+		base reader : reader,
+		element converter : converter
+	with mutable field
+		buffer : tuple;
+
+/**
+ * Answer a specialization of {@code "reader"} that converts a reader of the
+ * source type into a reader of the target type.
+ * 
+ * @method "converting reader from_to_"
+ * @param "sourceType" "any's type"
+ *        The type of element supplied by the base converter.
+ * @param "targetType" "any's type"
+ *        The type of element produced by this reader.
+ * @returns "converting reader's type"
+ *          The resulting converting reader type.
+ */
+Public method "converting reader from_to_" is
+[
+	sourceType : any's type,
+	targetType : any's type
+|
+	extend converting reader ∩ reader of targetType with
+		base reader : reader of sourceType,
+		element converter : converter from sourceType to targetType
+];
+
+Method "_converted by_" is
+[
+	aReader : reader,
+	aConverter : converter
+|
+	targetType ::= aConverter's conversion type's return type;
+	a converting reader with
+		base reader ::= aReader,
+		element type ::= targetType,
+		element converter ::= aConverter,
+		buffer := <>
+];
+
+Semantic restriction "_converted by_" is
+[
+	aReaderType : reader's type,
+	aConverterType : converter's type
+|
+	conversionType ::= aConverterType's conversion type's instance;
+	inputType ::= conversionType[1];
+	outputType ::= conversionType's return type;
+	If ¬ aReaderType's element type's instance ⊆ inputType then
+	[
+		Reject parse, expected:
+			format
+				"converter's input type (“①”) to accept \
+				\|the given reader's output type (“②”)"
+			with inputType, aReaderType's element type's instance
+	];
+	converting reader from inputType to outputType
+];
+
+processInvokingFunction ::= unsafe sender of $"_process_" returning tuple;
+
+/**
+ * A converting reader is exhausted when (1) the output buffer is empty,
+ * (2) the underlying reader is exhausted, and (3) {@method "flush_" flushing}
+ * the converter into the (empty) buffer leaves it empty.
+ * 
+ * @method "_is exhausted"
+ * @param "aReader" "converting reader"
+ */
+Method "_is exhausted" is
+[
+	aReader : converting reader
+|
+	$thisMethod : boolean;
+	If |aReader's buffer| > 0 then
+	[
+		Exit thisMethod with false
+	];
+	base ::= aReader's base reader;
+	If base is exhausted then
+	[
+		finalOutput ::= flush aReader's element converter;
+		aReader's buffer := finalOutput;
+		|finalOutput| = 0
+	]
+	else
+	[
+		unprocessed ::= take at most conversionBufferSize from base;
+		processed ::= processInvokingFunction(
+			aReader's element converter, unprocessed);
+		aReader's buffer := processed;
+		Restart thisMethod
+	]
+] : boolean;
+
+/**
+ * A converting reader's current element is the start of the buffer.  Populate
+ * it if necessary.
+ */
+converting reader's current element method is
+[
+	aReader : converting reader
+|
+	aReader's buffer[1]
+] : any;
+
+/**
+ * A converting reader is exhausted when (1) the output buffer is empty,
+ * (2) the underlying reader is exhausted, and (3) {@method "flush_" flushing}
+ * the converter into the (empty) buffer leaves it empty.
+ * 
+ * @method "_is exhausted"
+ * @param "aReader" "converting reader"
+ */
+converting reader's advance method is
+[
+	aReader : converting reader
+|
+	aReader's buffer := aReader's buffer [2..];
+] : ⊤;

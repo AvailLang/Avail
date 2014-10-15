@@ -1068,7 +1068,7 @@ extends Descriptor
 			}
 			else
 			{
-				chunkSet = (Set<L2Chunk>) pojo.javaObject();
+				chunkSet = (Set<L2Chunk>) pojo.javaObjectNotNull();
 			}
 			chunkSet.add(chunk);
 		}
@@ -1286,7 +1286,8 @@ extends Descriptor
 		if (!pojo.equalsNil())
 		{
 			@SuppressWarnings("unchecked")
-			final Set<L2Chunk> chunkSet = (Set<L2Chunk>) pojo.javaObject();
+			final Set<L2Chunk> chunkSet =
+				(Set<L2Chunk>) pojo.javaObjectNotNull();
 			chunkSet.remove(chunk);
 		}
 	}
@@ -1504,7 +1505,7 @@ extends Descriptor
 			// Copy the set of chunks to avoid modification during iteration.
 			@SuppressWarnings("unchecked")
 			final
-			Set<L2Chunk> originalSet = (Set<L2Chunk>) pojo.javaObject();
+			Set<L2Chunk> originalSet = (Set<L2Chunk>) pojo.javaObjectNotNull();
 			final Set<L2Chunk> chunksToInvalidate =
 				new HashSet<>(originalSet);
 			for (final L2Chunk chunk : chunksToInvalidate)

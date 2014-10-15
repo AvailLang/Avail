@@ -1,0 +1,268 @@
+/*
+ * Random Access Buffered Iterators.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Random Access Buffered Iterators"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Abstract Iterators",
+	"Buffered Iterators",
+	"Common" = ("element type"),
+	"Generators" = ("generator for_"),
+	"Foundation",
+	"Positionable Iterators",
+	"Unit Testing"
+Names
+	/* Types. */
+	"random access buffered iterator",
+	"random access buffered reader",
+	"random access buffered reader/writer",
+	"random access buffered writer",
+
+	/* Test suites. */
+	"random access test suite",
+	
+	/* Protocol for subtypes. */
+	"_'s⁇buffer start",
+	"_'s⁇buffer start:=_"
+
+Body
+
+
+/**
+ * Random access buffered iterator is an abstraction that combines the ability
+ * to position among the natural numbers and the responsibility for implementing
+ * buffering, independently of being able to do anything <em>with</em> the
+ * buffers, such as reading or writing.
+ * 
+ * @type "random access buffered iterator"
+ * @supertype "positionable iterator"
+ */
+Public explicit class "random access buffered iterator"
+	extends buffered iterator positioned by natural number;
+
+/**
+ * A random access buffered reader supports explicitly {@method
+ * "_'s⁇position" querying} and {@method "_'s⁇position:=_" setting} the current
+ * position, while also buffering elements read from some source.  In addition,
+ * the positions are natural numbers that correspond to adding one for each
+ * invocation of {@method "Advance_"}. Subtypes must support random access,
+ * allowing both forward and backward movement in the underlying sequence.
+ *
+ * @type "random access buffered reader"
+ * @supertype "random access buffered iterator"
+ * @supertype "reader"
+ */
+Public class "random access buffered reader"
+	extends random access buffered iterator ∩ reader;
+
+/**
+ * A random access buffered writer supports explicitly {@method
+ * "_'s⁇position" querying} and {@method "_'s⁇position:=_" setting} the current
+ * position, while also buffering elements bound for some target.  In addition,
+ * the positions are natural numbers that correspond to adding one for each
+ * invocation of {@method "Advance_"}. Subtypes must support random access,
+ * allowing both forward and backward movement in the underlying sequence.
+ *
+ * @type "random access buffered writer"
+ * @supertype "random access buffered iterator"
+ * @supertype "writer"
+ */
+Public class "random access buffered writer"
+	extends random access buffered iterator ∩ writer;
+
+/**
+ * A random access buffered reader/writer supports explicitly {@method
+ * "_'s⁇position" querying} and {@method "_'s⁇position:=_" setting} the current
+ * position, while also buffering elements that are read from and written to
+ * some other structure.  In addition, the positions are natural numbers that
+ * correspond to adding one for each invocation of {@method "Advance_"}.
+ * Subtypes must support random access, allowing both forward and backward
+ * movement in the underlying sequence.
+ *
+ * @type "random access buffered reader/writer"
+ * @supertype "random access buffered reader"
+ * @supertype "random access buffered writer"
+ */
+Public class "random access buffered reader/writer"
+	extends random access buffered reader
+		∩ random access buffered writer;
+
+Public method "_'s⁇buffer start" is
+[
+	anIterator : random access buffered iterator
+|
+	↓anIterator[position variable]
+] : natural number;
+
+Public method "_'s⁇buffer start:=_" is
+[
+	anIterator : random access buffered iterator,
+	newPosition : natural number
+|
+	anIterator[position variable] ?= newPosition;
+];
+
+/**
+ * Get the current position of the {@type "random access buffered iterator"}.
+ * 
+ * @method "_'s⁇position"
+ * @param "anIterator" "random access buffered iterator"
+ *        A {@type "random access buffered iterator"}.
+ * @returns "⊤"
+ *        The iterator's current position, a natural number.
+ * @raises "invalid-position exception"
+ *         If {@param "position"} is not a valid memento.
+ */
+Method "_'s⁇position" is
+[
+	anIterator : random access buffered iterator
+|
+	p ::= anIterator's buffer start + anIterator's position in buffer - 1;
+	p ?→ natural number
+] : natural number;
+
+
+/**
+ * Set the current position of the {@type "random access buffered iterator"}.
+ * 
+ * @method "_'s⁇position:=_"
+ * @param "anIterator" "random access buffered iterator"
+ *        A {@type "random access buffered iterator"}.
+ * @param "position" "natural number"
+ *        A position memento that represents a valid position.
+ * @returns "⊤"
+ * @raises "invalid-position exception"
+ *         If {@param "position"} is not a valid memento.
+ */
+Method "_'s⁇position:=_" is
+[
+	anIterator : random access buffered iterator,
+	newPosition : natural number
+|
+	↑anIterator's position in buffer ?=
+		newPosition - anIterator's buffer start + 1;
+	Assert: anIterator's position = newPosition;
+];
+
+/* TODO[MvG] Clean up when we have super sends. */
+_superIsExhausted ::= (method definition
+		of $"_is exhausted"
+		for <random access buffered reader>
+	)'s function;
+
+Method "_is exhausted" is
+[
+	aReader : random access buffered reader
+|
+	(¬ 1 ≤ aReader's position in buffer ≤ |aReader's buffer|)
+		∧ [
+			oldPosition ::= aReader's position;
+			result ::= _superIsExhausted(aReader);
+			aReader's buffer start := oldPosition;
+			result
+		]
+] : boolean;
+
+
+random access buffered iterator's advance method is
+[
+	anIterator : random access buffered iterator
+|
+	↑anIterator's position in buffer++;
+] : ⊤;
+
+Seal random access buffered iterator's advance method;
+
+
+/**
+ * Answer a tuple containing (at most) the first {@param "count"} elements of
+ * {@param "aReader"}.  Take advantage of the buffering for performance.
+ * 
+ * @category "Data Abstractions"
+ * @method "take«at most»?_from_"
+ * @param "isLax" "boolean"
+ *        {@code false} if an {@type "exhausted-iterator exception"} should be
+ *        raised if {@param "count"} exceeds the number of elements remaining,
+ *        {@code true} otherwise.
+ * @param "count" "[0..∞]"
+ *        The size of the requested tuple.
+ * @param "aReader" "reader"
+ *        A reader.
+ * @returns "tuple"
+ *          A tuple containing the first {@param "count"} elements of {@param
+ *          "aReader"}, possibly less if {@param isLax} is {@code true}.
+ * @raises "exhausted-iterator exception"
+ *         If {@param "isLax"} is {@code false} and {@param "aReader"} does
+ *         not contain {@param "count"} elements.
+ */
+Method "take«at most»?_from_" is
+[
+	isLax : boolean,
+	count : [0..∞],
+	aReader : random access buffered reader
+|
+	result : tuple := <>;
+	Guard
+	[
+		positionInBufferVariable ::= ↑aReader's position in buffer;
+		Until
+		[
+			aReader is exhausted ∨ [ |result| = count ]
+		]
+		do
+		[
+			/* The "_is exhausted" above set up the buffer if necessary, and
+			 * ensured (because it answered false for us to get here) that the
+			 * buffer contains at least one element of interest to us.
+			 */
+			buffer ::= aReader's buffer;
+			startInBuffer : natural number;
+			startInBuffer ?= ↓positionInBufferVariable;
+			endInBuffer : natural number;
+			endInBuffer ?= (startInBuffer + count - 1 - |result|) min |buffer|;
+			batchSize : natural number;
+			batchSize ?= endInBuffer - startInBuffer + 1;
+			result := eject result ++ buffer[startInBuffer..endInBuffer];
+			positionInBufferVariable ?= 
+				eject positionInBufferVariable + batchSize;
+			Breakpoint;
+		];
+	]
+	intercept
+	[
+		e : exhausted-iterator exception
+	|
+		Unless isLax then [Raise e];
+	];
+	result
+] : tuple;

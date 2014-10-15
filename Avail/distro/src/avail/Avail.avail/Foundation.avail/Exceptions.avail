@@ -1488,20 +1488,34 @@ unexpected result function :=
  * or invocation of a forward or abstract method.
  *
  * @method "invalid method send function:=_"
+ * @param "aFunction" "<natural number, method, tuple>"
+ *        The first function argument is actually restricted to lookup related
+ *        issues only.
  * @returns "⊤"
  * @category "Bootstrap" "Primitives" "Exceptions" "Methods"
  */
 Private method "invalid method send function:=_" is
 [
-	aFunction : [{
-		no-method code,
-		no-method-definition code,
-		ambiguous-method-definition code,
-		forward-method-definition code,
-		abstract-method-definition code}ᵀ]→⊥
+	aFunction : [
+		{
+			no-method code,
+			no-method-definition code,
+			ambiguous-method-definition code,
+			forward-method-definition code,
+			abstract-method-definition code}ᵀ,
+		method,
+		tuple
+	]→⊥
 |
 	Primitive 78;
 ] : ⊤;
+
+"looked up method" is a new atom;
+"looked up arguments" is a new atom;
+Class "method lookup exception" extends descriptive exception with fields
+	looked up method : method,
+	looked up arguments : tuple;
+
 
 /* Raise the appropriate exception whenever a message send fails dynamically. */
 invalid method send function :=
@@ -1511,9 +1525,21 @@ invalid method send function :=
 			no-method-definition code,
 			ambiguous-method-definition code,
 			forward-method-definition code,
-			abstract-method-definition code}ᵀ
+			abstract-method-definition code}ᵀ,
+		theMethod : method,
+		arguments : tuple
 	|
-		Raise an exception for code
+		exceptionType ::= exceptionsByCode[code] ∩ method lookup exception;
+		name ::= exceptionType's error name's instance;
+		e ::= an exceptionType with
+			error code ::= code,
+			error name ::= name,
+			error message ::=
+				format "“①”\n\tmethod=“②”\n\targuments=“③”" with
+					name, theMethod, arguments,
+			looked up method ::= theMethod,
+			looked up arguments ::= arguments;
+		Raise e
 	] : ⊥;
 
 /* If the unhandled exception handler catches a termination-requested exception,

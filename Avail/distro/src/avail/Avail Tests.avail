@@ -40,14 +40,15 @@ Extends
 	(
 		"assertion test suite",
 		"backtracking test suite",
-		"bounded iterator test suite",
+		"bounded reader test suite",
 		"buffered iterator test suite",
 		"cast test suite",
-		"codecs test suite",
 		"concurrency test suite",
 		"control structure test suite",
+		"converters test suite",
+		"counting reader test suite",
 		"Data|data abstractions test suite",
-		"delimited iterator test suite",
+		"delimited reader test suite",
 		"exception test suite",
 		"file access rights test suite",
 		"file iterator test suite",
@@ -67,11 +68,11 @@ Extends
 		/*"optional test suite",*/ /*TODO Data Abstractions does not extend Optional where this exists*/
 		"pRNG test suite",
 		"set test suite",
-		"stream iterator test suite",
+		"stream reader test suite",
+		"tuple reader test suite",
 		"tuple test suite",
-		"tuple iterator test suite",
 		"type test suite",
-		"UTF8 codec test suite"
+		"UTF8 converters test suite"
 	),
 	"Dimensional Analysis" =
 	(
@@ -79,6 +80,9 @@ Extends
 		"SI test suite"
 	)
 Entries
+	/* Debugging tests interactively. */
+	"Debug tests",
+
 	/* Interrogating test suites. */
 	"Show all test suites",
 
@@ -172,3 +176,101 @@ Private method "Run all tests in_repeatedly" is
 		Run all tests in suiteID;
 	]
 ] : ⊤;
+
+_compareTests ::=
+[
+	a : atom,
+	b : atom
+|
+	if a's name < b's name then [true]
+	else if [a's name > b's name] then [false]
+	else [a's issuing module's name ≤ b's issuing module's name]
+];
+
+
+Private method "Debug tests" is
+[
+	roots ::= quicksort the test suites→tuple with _compareTests;
+	stack : <<atom, <atom…|>…|>…|> := <<root test suite ID, roots>>;
+	command : string;
+	Do
+	[
+		currentEntry ::= stack[1];
+		Print: format "\n\n-----> “①”\n" with currentEntry[1];
+		If |stack| > 1 then
+		[
+			Print: "0. go up\n";
+		]
+		else
+		[
+			Print: "0. exit test debugger\n";
+		];
+		For each currentEntry[2] do
+		[
+			test : atom,
+			index : natural number
+		|
+			Print: format "“①”. “②”\n" with index, test;
+		];
+		Print: "Enter subtest number, 0 for parent/exit, or \"run\".\n";
+		command := next line from standard input;
+		If command ∈ <enumeration of "0123456789"→set…|1..> then
+		[
+			subscript ::= command (base 10);
+			If subscript = 0 then
+			[
+				stack := stack[2..];
+			]
+			else if [1 ≤ subscript ≤ |currentEntry[2]|] then
+			[
+				strongSubscript : natural number;
+				strongSubscript ?= subscript;
+				subtest ::= currentEntry[2][strongSubscript];
+				list ::= guard
+					[
+						all tests in subtest
+					]
+					intercept
+					[
+						e : no-such-test-suite exception
+					|
+						<>
+					];
+				sorted ::= quicksort list with _compareTests;
+				stack := <<subtest, list>> ++ eject stack;
+			]
+			else
+			[
+				Print: "Invalid subtest number.\n";
+			];
+		]
+		else if [command = "run"] then
+		[
+			If currentEntry[1] = root test suite ID then
+			[
+				Run all tests;
+			]
+			else
+			[
+				Guard
+				[
+					Print: “report on currentEntry[1]”;
+				]
+				intercept
+				[
+					e : no-such-test exception
+				|
+					Print: “report on all tests in currentEntry[1]”;
+				];
+			];
+		]
+		else
+		[
+			Print: "Invalid command.\n\n";
+		];
+	]
+	until
+	[
+		stack is empty
+	];
+];

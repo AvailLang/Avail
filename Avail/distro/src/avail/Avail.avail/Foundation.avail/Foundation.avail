@@ -190,7 +190,6 @@ Extends
 		"sequence phrase",
 		"seq`«_`»",
 		"set",
-		"special atoms",
 		"string",
 		"termination requested",
 		"token",
@@ -314,6 +313,7 @@ Extends
 		"_<<_",
 		"_<<_keeping_bits",
 		"_<_",
+		"_>>_",
 		"_=_",
 		"_[_.._]",
 		"_[_]",
@@ -325,7 +325,7 @@ Extends
 		"_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)",
 		"_×_",
 		"_÷_",
-		"_→/→_",
+		"read_/write_",
 		"_→block phrase",
 		"_→character",
 		"_→double",
@@ -448,6 +448,8 @@ Extends
 	),
 	"Casts" =
 	(
+		"_`?→_†",
+		"_`?→_†else_",
 		"Cast|cast each of_into_",
 		"Cast|cast each of_into_else_",
 		"Cast|cast_into_",
@@ -700,6 +702,7 @@ Extends
 	),
 	"Functions" =
 	(
+		"unsafe sender of_returning_",
 		"_(«_‡,»)",
 		"_(««_»«`_»?‡,»)",
 		"_(_,`…)",

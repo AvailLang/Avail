@@ -115,7 +115,7 @@ extends PojoTypeDescriptor
 		final A_BasicObject javaClass = object.slot(JAVA_CLASS);
 		return javaClass.equalsNil()
 			|| Modifier.isAbstract(
-				((Class<?>) javaClass.javaObject()).getModifiers());
+				((Class<?>) javaClass.javaObjectNotNull()).getModifiers());
 	}
 
 	@Override @AvailMethod
@@ -171,7 +171,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	Object o_MarshalToJava (
+	@Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -200,7 +200,7 @@ extends PojoTypeDescriptor
 		final A_Set otherAncestors = other.javaAncestors();
 		for (final AvailObject ancestor : ancestors)
 		{
-			final Class<?> javaClass = (Class<?>) ancestor.javaObject();
+			final Class<?> javaClass = (Class<?>) ancestor.javaObjectNotNull();
 			final int modifiers = javaClass.getModifiers();
 			if (Modifier.isFinal(modifiers))
 			{
@@ -209,7 +209,7 @@ extends PojoTypeDescriptor
 		}
 		for (final A_BasicObject ancestor : otherAncestors)
 		{
-			final Class<?> javaClass = (Class<?>) ancestor.javaObject();
+			final Class<?> javaClass = (Class<?>) ancestor.javaObjectNotNull();
 			final int modifiers = javaClass.getModifiers();
 			if (Modifier.isFinal(modifiers))
 			{
@@ -280,7 +280,8 @@ extends PojoTypeDescriptor
 		final A_BasicObject javaClass = object.slot(JAVA_CLASS);
 		if (!javaClass.equalsNil())
 		{
-			builder.append(((Class<?>) javaClass.javaObject()).getName());
+			builder.append(
+				((Class<?>) javaClass.javaObjectNotNull()).getName());
 		}
 		else
 		{
@@ -298,8 +299,8 @@ extends PojoTypeDescriptor
 					{
 						assert o1 != null;
 						assert o2 != null;
-						final Class<?> c1 = (Class<?>) o1.javaObject();
-						final Class<?> c2 = (Class<?>) o2.javaObject();
+						final Class<?> c1 = (Class<?>) o1.javaObjectNotNull();
+						final Class<?> c2 = (Class<?>) o2.javaObjectNotNull();
 						return c1.getName().compareTo(c2.getName());
 					}
 				});
@@ -312,7 +313,8 @@ extends PojoTypeDescriptor
 					builder.append(" ∩ ");
 				}
 				first = false;
-				builder.append(((Class<?>) aClass.javaObject()).getName());
+				builder.append(
+					((Class<?>) aClass.javaObjectNotNull()).getName());
 			}
 			builder.append(')');
 		}
@@ -405,13 +407,13 @@ extends PojoTypeDescriptor
 		}
 		else
 		{
-			final Class<?> javaClass = (Class<?>)pojoClass.javaObject();
+			final Class<?> javaClass = (Class<?>)pojoClass.javaObjectNotNull();
 			mainClassName = StringDescriptor.from(javaClass.getName());
 		}
 		A_Set ancestorNames = SetDescriptor.empty();
 		for (final A_BasicObject ancestor : selfPojo.javaAncestors())
 		{
-			final Class<?> javaClass = (Class<?>)ancestor.javaObject();
+			final Class<?> javaClass = (Class<?>)ancestor.javaObjectNotNull();
 			ancestorNames = ancestorNames.setWithElementCanDestroy(
 				StringDescriptor.from(javaClass.getName()),
 				true);

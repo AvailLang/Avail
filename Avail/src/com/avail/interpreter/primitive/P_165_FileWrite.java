@@ -34,13 +34,17 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static java.lang.Math.min;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import com.avail.AvailRuntime;
+import com.avail.AvailRuntime.BufferKey;
+import com.avail.AvailRuntime.FileHandle;
 import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -56,8 +60,8 @@ import com.avail.utility.evaluation.Continuation0;
  *
  * <p>
  * Answer a new fiber which, if the write is eventually successful, will be
- * started to run the {@linkplain FunctionDescriptor success function}.  If the
- * write is unsuccessful, the fiber will be started to apply the {@code failure
+ * started to run the success {@linkplain FunctionDescriptor function}.  If the
+ * write is unsuccessful, the fiber will be started to apply the failure {@code
  * function} to the error code.  The fiber runs at the specified priority.
  * </p>
  *
@@ -89,40 +93,41 @@ extends Primitive
 		assert args.size() == 6;
 		final A_Number positionObject = args.get(0);
 		final A_Tuple bytes = args.get(1);
-		final A_Atom handle = args.get(2);
+		final A_Atom atom = args.get(2);
 		final A_Function succeed = args.get(3);
 		final A_Function fail = args.get(4);
 		final A_Number priority = args.get(5);
 		final A_BasicObject pojo =
-			handle.getAtomProperty(AtomDescriptor.fileKey());
+			atom.getAtomProperty(AtomDescriptor.fileKey());
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
-				handle.isAtomSpecial() ? E_SPECIAL_ATOM : E_INVALID_HANDLE);
+				atom.isAtomSpecial() ? E_SPECIAL_ATOM : E_INVALID_HANDLE);
 		}
-		final A_BasicObject mode =
-			handle.getAtomProperty(AtomDescriptor.fileModeWriteKey());
-		if (mode.equalsNil())
+		final FileHandle handle = (FileHandle) pojo.javaObjectNotNull();
+		if (!handle.canWrite)
 		{
 			return interpreter.primitiveFailure(E_NOT_OPEN_FOR_WRITE);
 		}
-		final AsynchronousFileChannel fileChannel =
-			(AsynchronousFileChannel) pojo.javaObject();
+		final AsynchronousFileChannel fileChannel = handle.channel;
 		if (!positionObject.isLong())
 		{
 			return interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT);
 		}
+		final int alignment = handle.alignment;
+		final AvailRuntime runtime = AvailRuntime.current();
 		final long oneBasedPositionLong = positionObject.extractLong();
-		// Should be guaranteed by argument constraint...
+		// Guaranteed positive by argument constraint.
 		assert oneBasedPositionLong > 0L;
-
+		// Write the tuple of bytes, possibly split up into manageable sections.
+		// Also update the buffer cache to reflect the modified file content.
 		final A_Fiber current = interpreter.fiber();
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
 			StringDescriptor.format(
 				"Asynchronous file write (prim 165), %s",
-				handle.atomName()));
+				handle.filename));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());
@@ -135,7 +140,8 @@ extends Primitive
 		fail.makeShared();
 
 		// The iterator produces non-empty ByteBuffers, possibly the same one
-		// multiple times after refilling it.
+		// multiple times, refilling it each time.
+		final int totalBytes = bytes.tupleSize();
 		final Iterator<ByteBuffer> bufferIterator;
 		if (bytes.isByteBufferTuple())
 		{
@@ -150,7 +156,7 @@ extends Primitive
 		else
 		{
 			final ByteBuffer buffer = ByteBuffer.allocateDirect(
-				Math.min(bytes.tupleSize(), MAX_WRITE_BUFFER_SIZE));
+				min(totalBytes, MAX_WRITE_BUFFER_SIZE));
 			bufferIterator = new Iterator<ByteBuffer>()
 			{
 				int nextSubscript = 1;
@@ -158,7 +164,7 @@ extends Primitive
 				@Override
 				public boolean hasNext ()
 				{
-					return nextSubscript <= bytes.tupleSize();
+					return nextSubscript <= totalBytes;
 				}
 
 				@Override
@@ -167,14 +173,40 @@ extends Primitive
 					assert hasNext();
 					buffer.limit(0);
 					assert buffer.position() == 0;
+					int count = nextSubscript + buffer.capacity() - 1;
+					if (count >= totalBytes)
+					{
+						// All the rest.
+						count = totalBytes;
+					}
+					else
+					{
+						// It's not all the rest, so round down to the nearest
+						// alignment boundary for performance.
+						final long zeroBasedSubscriptAfterBuffer =
+							oneBasedPositionLong + nextSubscript - 2 + count;
+						final long modulus =
+							zeroBasedSubscriptAfterBuffer % alignment;
+						assert modulus == (int) modulus;
+						if (modulus < count)
+						{
+							// Shorten this buffer so it ends at an alignment
+							// boundary of the file, but only if it remains
+							// non-empty.  Not only will this improve throughput
+							// by allowing the operating system to avoid reading
+							// a buffer so it can partially overwrite it, but it
+							// also makes our own buffer overwriting code more
+							// efficient.
+							count -= (int) modulus;
+						}
+					}
 					bytes.transferIntoByteBuffer(
 						nextSubscript,
-						Math.min(
-							nextSubscript + buffer.capacity() - 1,
-							bytes.tupleSize()),
+						nextSubscript + count - 1,
 						buffer);
 					buffer.flip();
-					nextSubscript += buffer.limit();
+					assert buffer.limit() == count;
+					nextSubscript += count;
 					return buffer;
 				}
 
@@ -185,10 +217,8 @@ extends Primitive
 				}
 			};
 		}
-		final AvailRuntime runtime = AvailRuntime.current();
 		final Mutable<Long> nextPosition =
 			new Mutable<>(oneBasedPositionLong - 1);
-		assert bufferIterator.hasNext();
 		final Mutable<ByteBuffer> currentBuffer =
 			new Mutable<>(bufferIterator.next());
 		final MutableOrNull<Continuation0> continueWriting =
@@ -230,6 +260,15 @@ extends Primitive
 								final @Nullable Void attachment)
 							{
 								assert killer != null;
+								// Invalidate *all* pages for this file to
+								// ensure subsequent I/O has a proper
+								// opportunity to re-encounter problems like
+								// read faults and whatnot.
+								for (final BufferKey key : new ArrayList<>(
+									handle.bufferKeys.keySet()))
+								{
+									runtime.discardBuffer(key);
+								}
 								Interpreter.runOutermostFunction(
 									runtime,
 									newFiber,
@@ -241,9 +280,85 @@ extends Primitive
 				}
 				else
 				{
-					// Just finished the entire write.
+					// Just finished the entire write.  Transfer the data onto
+					// any affected cached pages.
 					assert nextPosition.value ==
-						oneBasedPositionLong + bytes.tupleSize() - 1;
+						oneBasedPositionLong + totalBytes - 1;
+					int subscriptInTuple = 1;
+					long startOfBuffer = (oneBasedPositionLong - 1)
+						/ alignment * alignment + 1;
+					int offsetInBuffer =
+						(int) (oneBasedPositionLong - startOfBuffer + 1);
+					// Skip this if the file isn't also open for read access.
+					if (!handle.canRead)
+					{
+						subscriptInTuple = totalBytes + 1;
+					}
+					while (subscriptInTuple <= totalBytes)
+					{
+						// Update one buffer.
+						final int consumedThisTime = min(
+							alignment - offsetInBuffer,
+							totalBytes - subscriptInTuple) + 1;
+						final BufferKey key = new BufferKey(
+							handle, startOfBuffer);
+						final MutableOrNull<A_Tuple> bufferHolder =
+							runtime.getBuffer(key);
+						A_Tuple tuple = bufferHolder.value;
+						if (offsetInBuffer == 1
+							&& consumedThisTime == alignment)
+						{
+							tuple = bytes.copyTupleFromToCanDestroy(
+								subscriptInTuple,
+								subscriptInTuple + consumedThisTime - 1,
+								false);
+						}
+						else if (tuple != null)
+						{
+							// Update the cached tuple.
+							assert tuple.tupleSize() == alignment;
+							final List<A_Tuple> parts = new ArrayList<>(3);
+							if (offsetInBuffer > 1)
+							{
+								parts.add(tuple.copyTupleFromToCanDestroy(
+									1, offsetInBuffer - 1, false));
+							}
+							parts.add(bytes.copyTupleFromToCanDestroy(
+								subscriptInTuple,
+								subscriptInTuple + consumedThisTime - 1,
+								false));
+							final int endInBuffer =
+								offsetInBuffer + consumedThisTime - 1;
+							if (endInBuffer < alignment)
+							{
+								parts.add(tuple.copyTupleFromToCanDestroy(
+									endInBuffer + 1, alignment, false));
+							}
+							assert parts.size() > 1;
+							tuple = parts.remove(0);
+							while (!parts.isEmpty())
+							{
+								tuple = tuple.concatenateWith(
+									parts.remove(0), true);
+							}
+							assert tuple.tupleSize() == alignment;
+						}
+						// Otherwise we're attempting to update a subregion of
+						// an uncached buffer.  Just drop it in that case and
+						// let the OS cache pick up the slack.
+						if (tuple != null)
+						{
+							tuple = tuple.makeShared();
+							synchronized (bufferHolder)
+							{
+								bufferHolder.value = tuple;
+							}
+						}
+						subscriptInTuple += consumedThisTime;
+						startOfBuffer += alignment;
+						offsetInBuffer = 1;
+					}
+					assert subscriptInTuple == totalBytes + 1;
 					Interpreter.runOutermostFunction(
 						runtime,
 						newFiber,
@@ -252,6 +367,7 @@ extends Primitive
 				}
 			}
 		};
+		assert bufferIterator.hasNext();
 		continueWriting.value().value();
 		return interpreter.primitiveSuccess(newFiber);
 	}

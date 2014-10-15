@@ -53,23 +53,25 @@ Names
 	"writable file",
 
 	/* File constructors. */
-	"_opened with options_«with file access rights_»",
+	"_opened«with alignment_»with options_«with file access rights_»",
 
 	/* File attributes. */
 	"_'s⁇name",
 	"_is open",
 	"_is closed",
 	"_'s⁇size",
-	"_'s⁇size:=_",
 
 	/* File I/O. */
 	"a fiber reading_byte|bytes at_from_,⁇\
 		\|on success doing_,⁇\
-		\|on failure doing_«⁇,forked at priority_»",
+		\|on failure doing_,⁇\
+		\|«forked at priority_»",
 	"a fiber writing_at_to_,⁇\
 		\|on success doing_,⁇\
-		\|on failure doing_«⁇,forked at priority_»",
-	"Synchronize_with file system",
+		\|on failure doing_,⁇\
+		\|«forked at priority_»",
+	"a fiber synchronizing_with file system,then_else_priority_",
+	"a fiber truncating_to_bytes⁇then_else_priority_",
 
 	/* File cleanup. */
 	"Using|using_,⁇do_",
@@ -132,9 +134,11 @@ Public class "writable file" extends file
 Public class "readable,⁇writable file" extends readable file ∩ writable file;
 
 /* Open a raw file handle. */
-Private method "raw handle for file named_options_file access rights_" is
+Private method
+	"raw handle for file named_alignment_options_file access rights_" is
 [
 	name : string,
+	alignment : whole number,
 	options : {[0..9]|0..10},
 	rights : {[1..9]|0..9}
 |
@@ -143,7 +147,8 @@ Private method "raw handle for file named_options_file access rights_" is
 		illegal-option code,
 		operation-not-supported code,
 		permission-denied code,
-		I/O-error code}ᵀ);
+		I/O-error code,
+		exceeds-vm-limit code}ᵀ);
 	Raise an exception for e
 ] : atom;
 
@@ -163,9 +168,11 @@ _default_access_rights ::= "rw-r--r--" → file access rights;
  * @raises "I/O exception"
  *         If an I/O error occurs for any reason.
  */
-Public method "_opened with options_«with file access rights_»" is
+Public method
+	"_opened«with alignment_»with options_«with file access rights_»" is
 [
 	fileName : file name,
+	optionalAlignment : <natural number…|0..1>,
 	optionSet : {open option|1..9},
 	optionalAccessRights : <{file access right|0..9}…|0..1>
 |
@@ -175,6 +182,7 @@ Public method "_opened with options_«with file access rights_»" is
 	accessRightNumbers ::= map accessRights
 		through [r : file access right | r → numeric code];
 	fileHandle ::= raw handle for file named fileName's name
+		alignment optionalAlignment[1] else [0]
 		options optionNumbers
 		file access rights accessRightNumbers;
 	a file with
@@ -194,9 +202,11 @@ Public method "_opened with options_«with file access rights_»" is
  * @restricts "{open option|}'s type"
  * @restricts "{file access right|}'s type"
  */
-Semantic restriction "_opened with options_«with file access rights_»" is
+Semantic restriction
+	"_opened«with alignment_»with options_«with file access rights_»" is
 [
 	fileName : file name's type,
+	optionalAlignment : <natural number…|0..1>'s type,
 	optionSet : {open option|1..9}'s type,
 	accessRights : <{file access right|0..9}…|0..1>'s type
 |
@@ -207,24 +217,24 @@ Semantic restriction "_opened with options_«with file access rights_»" is
 		/* Check each possibility, typically just one. */
 		For each of optionSet's instances do
 		[
-			possibileSet : {open option|}
+			possibleSet : {open option|}
 		|
 			readableType :=
-				readableType ∪ ((read option ∈ possibileSet)'s type);
+				readableType ∪ ((read option ∈ possibleSet)'s type);
 			writableType :=
-				writableType ∪ ((write option ∈ possibileSet)'s type);
+				writableType ∪ ((write option ∈ possibleSet)'s type);
 		];
 	]
 	else
 	[
-		readableType := if read ∈ optionSet's element type
+		readableType := if read option ∈ optionSet's element type
 			then [boolean]
 			else [false's type];
-		writableType := if write ∈ optionSet's element type
+		writableType := if write option ∈ optionSet's element type
 			then [boolean]
 			else [false's type];
 	];
-	If (readableType = (false's type)) ∧ [writableType = (false's type)] then
+	If (readableType = false's type) ∧ [writableType = false's type] then
 	[
 		Reject parse, expected: "file open to specify read or write or both"
 	];
@@ -319,35 +329,60 @@ Public method "_'s⁇size" is
 	] : whole number (f's handle)
 ] : whole number;
 
+/* Truncate a file. */
+Private method "private truncate_to_then_else_priority_" is
+[
+	fileHandle : atom,
+	newSize : whole number,
+	then : []→⊤,
+	else : [{I/O-error code}ᵀ]→⊤,
+	priority : byte
+|
+	Primitive 176 (e : {
+		invalid-handle code,
+		special-atom code,
+		not-open-for-write code}ᵀ);
+	Raise an exception for e
+] : fiber;
+
+
 /**
- * Set the size of the specified {@type "file"} to {@param "newSize"}. If
- * {@param "newSize"} is less than the current size of {@param "f"}, then
- * truncate the file, preserving the prefix of the contents. If {@param
- * "newSize"} is greater than the current size of {@param "f"}, then extend the
- * file; the contents of the extension are undefined.
+ * Set the size of the specified {@type "writable file"} to {@param "newSize"},
+ * if {@param "newSize"} is less than the current size of {@param "f"},
+ * otherwise do nothing.  Any data beyond the new size will be destroyed.
  *
- * @method "_'s⁇size:=_"
+ * @method "a fiber truncating_to_bytes⁇then_else_priority_"
  * @param "f" "writable file"
  * @param "newSize" "whole number"
- * @returns "whole number"
- * @raises "I/O exception"
+ * @param "success" "[]→⊤"
+ * @param "failure" "[{I/O-error code}ᵀ]→⊤"
+ * @param "priority" "byte"
+ * @returns "fiber"
+ * @raises "invalid handle"
  *         If an I/O error occurs for any reason.
  * @raises "file-closed exception"
  *         If {@param "f"} has already been closed.
+ * @raises "invalid handle"
+ *         If {@param "f"} is not a file handle.
+ * @raises "special atom"
+ *         If {@param "f"} is a special atom.
+ * @raises "not open for write"
+ *         If {@param "f"} is a valid file handle, but not opened for write.
  */
-Public method "_'s⁇size:=_" is
+Public method "a fiber truncating_to_bytes⁇then_else_priority_" is
 [
 	f : writable file,
-	newSize : whole number
+	newSize : whole number,
+	success : []→⊤,
+	failure : [{I/O-error code}ᵀ]→⊤,
+	priority : byte
 |
-	[
-		h : atom,
-		v : whole number
-	|
-		Primitive 176 (e : {invalid-handle code, I/O-error code}ᵀ);
-		Raise an exception for e
-	] : ⊤ (f's handle, newSize);
-] : ⊤;
+	private truncate f's handle
+		to newSize
+		then success
+		else failure
+		priority priority
+] : fiber;
 
 Private method
 	"private starting at_read_byte|bytes from_into_else_priority_" is
@@ -370,7 +405,8 @@ Private method
 Public method
 	"a fiber reading_byte|bytes at_from_,⁇\
 		\|on success doing_,⁇\
-		\|on failure doing_«⁇,forked at priority_»" is
+		\|on failure doing_,⁇\
+		\|«forked at priority_»" is
 [
 	bytesToRead : [1..∞],
 	start : natural number,
@@ -407,7 +443,8 @@ Private method "private starting at_write_to_then_else_priority_" is
 Public method
 	"a fiber writing_at_to_,⁇\
 		\|on success doing_,⁇\
-		\|on failure doing_«⁇,forked at priority_»" is
+		\|on failure doing_,⁇\
+		\|«forked at priority_»" is
 [
 	bytesToWrite : <byte…|1..∞>,
 	start : natural number,
@@ -427,10 +464,15 @@ Public method
 /**
  * Block the current fiber until all writes buffered for the specified {@type
  * "file"} have been committed to the file system.  Unfortunately Avail's Java
- * substrate – and its sub-substrates – think it's ok to block a thread just to
- * wait for previously handed-off buffered write operations to physically
- * complete, almost completely defeating the purpose of asynchronous writes.
+ * substrate – and its sub-substrates in the OS – think it's ok to block a
+ * thread just to wait for previously handed-off buffered write operations to
+ * physically complete, defeating half of the purpose of asynchronous writes.
  * Sigh.
+ * 
+ * Fortunately, we have the "fileExecutor" pool of threads in the VM for just
+ * that purpose – synchronous I/O operations.  We accomodate opening files,
+ * renaming files and directories, and other similarly synchronous operations by
+ * using the same dedicated pool.
  *
  * @method "Synchronize_with file system"
  * @param "f" "writable file"
@@ -439,21 +481,26 @@ Public method
  * @raises "file-closed exception"
  *         If {@param "f"} has already been closed.
  */
-Public method "Synchronize_with file system" is
+Public method "a fiber synchronizing_with file system,then_else_priority_" is
 [
-	f : writable file
+	f : writable file,
+	succeed : []→⊤,
+	fail : [{I/O-error code}ᵀ]→⊤,
+	priority : byte
 |
 	[
-		h : atom
+		handle : atom,
+		succeed2 : []→⊤,
+		fail2 : [{I/O-error code}ᵀ]→⊤,
+		priority2 : byte
 	|
 		Primitive 169 (e : {
 			invalid-handle code,
 			special-atom code,
-			not-open-for-write code,
-			I/O-error code}ᵀ);
+			not-open-for-write code}ᵀ);
 		Raise an exception for e
-	] : ⊤ (f's handle);
-] : ⊤;
+	] : fiber (f's handle, succeed, fail, priority)
+] : fiber;
 
 /**
  * Perform the specified {@type "function" action}, passing {@param "f"} as the

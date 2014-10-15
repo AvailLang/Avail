@@ -128,7 +128,7 @@ extends ParseNodeDescriptor
 		{
 			statements = statements.tupleAtPuttingCanDestroy(
 				i,
-				aBlock.value(statements.tupleAt(i)),
+				aBlock.valueNotNull(statements.tupleAt(i)),
 				true);
 		}
 		object.setSlot(STATEMENTS, statements);

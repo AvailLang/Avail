@@ -62,15 +62,8 @@ public final class P_043_IfThenElse extends Primitive
 		final A_Function falseBlock = args.get(2);
 		assert trueBlock.code().numArgs() == 0;
 		assert falseBlock.code().numArgs() == 0;
-		if (aBoolean.extractBoolean())
-		{
-			return interpreter.invokeFunction(
-				trueBlock,
-				Collections.<AvailObject>emptyList(),
-				false);
-		}
 		return interpreter.invokeFunction(
-			falseBlock,
+			aBoolean.extractBoolean() ? trueBlock : falseBlock,
 			Collections.<AvailObject>emptyList(),
 			false);
 	}

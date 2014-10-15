@@ -100,6 +100,8 @@ public class L2PcOperand extends L2Operand
 		// Extract the comment from the target label.
 		final L2CommentOperand commentOperand =
 			(L2CommentOperand)label.operands[0];
-		return String.format("Pc(%s)", commentOperand.comment);
+		return String.format("Pc(%s=%d)",
+			commentOperand.comment,
+			label.offset());
 	}
 }

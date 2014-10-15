@@ -77,6 +77,7 @@ Uses
 		"_-_",
 		"_<<_",
 		"_<<_keeping_bits",
+		"_>>_",
 		"_[_.._]",
 		"_[_]",
 		"_[_]:=_",
@@ -539,8 +540,33 @@ Primitive "_[_]" is
 ] : any;
 
 /**
+ * Shift {@param "baseInteger"} to the right by {@param "shiftFactor"} bits. If
+ * {@param "baseInteger"} is negative then treat it as a left shift of the
+ * corresponding positive amount.
+ *
+ * @category "Primitives" "Numbers" "Integers" "Mathematics" "Bits"
+ * @method "_>>_"
+ * @param "baseInteger" "integer"
+ *        An integer to shift.
+ * @param "shiftFactor" "integer"
+ *        How many bits to shift right (or left if negative).
+ * @returns "(-∞..∞)"
+ *    ⎣_>>_ ÷ 2<sup>baseInteger</sup>⎦
+ * @raises "too-large-to-represent exception"
+ */
+Primitive "_>>_" is
+[
+	baseInteger : integer,
+	shiftFactor : integer
+|
+	Primitive 94 (failureCode : {
+		too-large-to-represent code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : integer;
+
+/**
  * Shift {@param "baseInteger"} to the left by {@param "shiftFactor"} bits. If
- * {@param "baseInteger"} is negative then treat it as a right shift of then
+ * {@param "baseInteger"} is negative then treat it as a right shift of the
  * corresponding positive amount.
  *
  * @category "Primitives" "Numbers" "Integers" "Mathematics" "Bits"
@@ -2216,7 +2242,7 @@ Primitive "`«_:=_`»" is
  * @method "`«`↑_`»"
  * @param "variableUse" "variable use phrase"
  *        A variable use expression.
- * @returns "reference phrase⇒⊤→/→⊥"
+ * @returns "reference phrase⇒read ⊤/write ⊥"
  *    A variable reference expression that answers the variable described by
  *    {@param "variableUse"}.
  * @raises "declaration-kind-does-not-support-reference exception"
@@ -2469,7 +2495,7 @@ Primitive "constructor of_,⁇parameterized by_,⁇on failure doing_" is
  *        variable.
  * @param "fieldName" "string"
  *        The name of the desired field.
- * @returns "⊤→/→⊥"
+ * @returns "read ⊤/write ⊥"
  *    A variable bound to the specified instance field.
  * @raises "Java-field-not-available exception"
  */
@@ -2495,7 +2521,7 @@ Primitive "_'s⁇_field" is
  *        variable.
  * @param "fieldName" "string"
  *        The name of the desired field.
- * @returns "⊤→/→⊥"
+ * @returns "read ⊤/write ⊥"
  *    A variable bound to the specified static field.
  * @raises "Java-field-not-available exception"
  * @raises "Java-field-reference-is-ambiguous exception"

@@ -2354,7 +2354,7 @@ Primitive "tuple of tuple of any meta" is
  *
  * @category "Primitives" "Types"
  * @type "readable extended integer variable"
- * @alias "[-∞..∞]→/→⊥"
+ * @alias "read [-∞..∞]/write ⊥"
  */
 Primitive "readable extended integer variable" is
 [

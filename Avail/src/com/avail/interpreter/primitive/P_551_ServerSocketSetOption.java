@@ -86,7 +86,7 @@ extends Primitive
 				: E_INVALID_HANDLE);
 		}
 		final AsynchronousServerSocketChannel socket =
-			(AsynchronousServerSocketChannel) pojo.javaObject();
+			(AsynchronousServerSocketChannel) pojo.javaObjectNotNull();
 		try
 		{
 			for (final MapDescriptor.Entry entry : options.mapIterable())

@@ -194,7 +194,10 @@ Semantic restriction "Require:_=_" is
 |
 	If actual ∩ expected = ⊥ then
 	[
-		Reject parse, expected: "a predicate that could ever be true"
+		Reject parse, expected:
+			format "a predicate that could ever be true (because \
+				\|(“①”) doesn't intersect (“②”)."
+			with actual, expected
 	];
 	⊤
 ];

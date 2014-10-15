@@ -1,5 +1,5 @@
-/*
- * Codecs.avail
+/**
+ * P_095_BitShiftLeft.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,10 +30,59 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Codecs"
-Versions
-	"1.0.0 DEV 2014-04-28"
-Extends
-	"Abstract Codecs",
-	"UTF-8 Codec"
-Body
+package com.avail.interpreter.primitive;
+
+import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.exceptions.AvailErrorCode.*;
+import java.util.List;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
+
+/**
+ * <strong>Primitive 95</strong>: Given any integer B, and a shift factor S,
+ * compute ⎣B×2<sup>S</sup>⎦.  This is the left-shift operation, but when S
+ * is negative it acts as a right-shift.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
+public final class P_095_BitShiftLeft
+extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class. Accessed through reflection.
+	 */
+	public final static Primitive instance =
+		new P_095_BitShiftLeft().init(2, CanFold, CanInline);
+
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
+	{
+		assert args.size() == 2;
+		final A_Number baseInteger = args.get(0);
+		final A_Number shiftFactor = args.get(1);
+		return interpreter.primitiveSuccess(
+			baseInteger.bitShift(
+				shiftFactor,
+				true));
+	}
+
+	@Override
+	protected A_Type privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				IntegerRangeTypeDescriptor.integers(),
+				IntegerRangeTypeDescriptor.integers()),
+			IntegerRangeTypeDescriptor.integers());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_TOO_LARGE_TO_REPRESENT.numericCode());
+	}
+}

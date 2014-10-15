@@ -5744,10 +5744,19 @@ implements
 	 * @return
 	 */
 	@Override
-	public Object javaObject ()
+	public @Nullable Object javaObject ()
 	{
 		return descriptor.o_JavaObject(this);
 	}
+
+	@Override
+	public Object javaObjectNotNull ()
+	{
+		final Object value = javaObject();
+		assert value != null;
+		return value;
+	}
+
 
 	/**
 	 * @return
