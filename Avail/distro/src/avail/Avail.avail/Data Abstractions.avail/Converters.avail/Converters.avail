@@ -1,5 +1,5 @@
-/**
- * P_126_SpecialAtoms.java
+/*
+ * Converters.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,56 +29,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
-
-/**
- * <strong>Primitive 126:</strong> Answer the {@linkplain SetDescriptor
- * set} of {@linkplain AvailRuntime#specialAtoms() special atoms} known to
- * the {@linkplain AvailRuntime Avail runtime}.
- */
-public final class P_126_SpecialAtoms extends Primitive
-{
-	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
-	 */
-	public final static Primitive instance = new P_126_SpecialAtoms().init(
-		0, CanFold, CannotFail);
-
-	/** The cached set of special atoms defined by the Avail runtime. */
-	private final static A_Set specialAtomsSet =
-		SetDescriptor.fromCollection(AvailRuntime.specialAtoms());
-
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
-	{
-		assert args.size() == 0;
-		return interpreter.primitiveSuccess(specialAtomsSet);
-	}
-
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.empty(),
-			SetTypeDescriptor.setTypeForSizesContentType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				ATOM.o()));
-	}
-
-	@Override
-	public A_Type returnTypeGuaranteedByVM(
-		final List<? extends A_Type> argumentTypes)
-	{
-		return AbstractEnumerationTypeDescriptor.withInstance(specialAtomsSet);
-	}
-}
+Module "Converters"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Extends
+	"Abstract Converters",
+	"UTF-8 Converters"
+Body

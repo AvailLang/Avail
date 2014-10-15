@@ -89,7 +89,7 @@ extends Primitive
 				: E_INVALID_HANDLE);
 		}
 		final AsynchronousSocketChannel socket =
-			(AsynchronousSocketChannel) pojo.javaObject();
+			(AsynchronousSocketChannel) pojo.javaObjectNotNull();
 		// Obtain a buffer for writing.
 		final ByteBuffer buffer;
 		if (tuple.isByteBufferTuple())

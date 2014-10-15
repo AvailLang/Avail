@@ -39,6 +39,7 @@ import java.io.RandomAccessFile;
 import java.nio.channels.*;
 import java.util.*;
 import com.avail.AvailRuntime;
+import com.avail.AvailRuntime.FileHandle;
 import com.avail.annotations.*;
 import com.avail.compiler.AbstractAvailCompiler.ParserState;
 import com.avail.compiler.MessageSplitter;
@@ -519,22 +520,10 @@ extends Descriptor
 
 	/**
 	 * The atom used as a property key under which to store an {@link
-	 * AsynchronousFileChannel}.
+	 * FileHandle}.
 	 */
 	private static final A_Atom fileKey =
 		createSpecialAtom("file key");
-
-	/**
-	 * The property key that indicates that a file is readable.
-	 */
-	private static final A_Atom fileModeReadKey =
-		createSpecialAtom("file mode read");
-
-	/**
-	 * The property key that indicates that a file is writable.
-	 */
-	private static final A_Atom fileModeWriteKey =
-		createSpecialAtom("file mode write");
 
 	/**
 	 * The atom used as a property key under which to store an {@link
@@ -635,26 +624,6 @@ extends Descriptor
 	public static A_Atom fileKey ()
 	{
 		return fileKey;
-	}
-
-	/**
-	 * Answer the property key that indicates that a file is readable.
-	 *
-	 * @return An atom that's special because it's known by the virtual machine.
-	 */
-	public static A_Atom fileModeReadKey ()
-	{
-		return fileModeReadKey;
-	}
-
-	/**
-	 * Answer the property key that indicates that a file is writable.
-	 *
-	 * @return An atom that's special because it's known by the virtual machine.
-	 */
-	public static A_Atom fileModeWriteKey ()
-	{
-		return fileModeWriteKey;
 	}
 
 	/**

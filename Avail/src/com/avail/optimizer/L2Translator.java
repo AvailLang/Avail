@@ -1196,6 +1196,18 @@ public class L2Translator
 							addInstruction(
 								L2_GET_INVALID_MESSAGE_SEND_FUNCTION.instance,
 								new L2WritePointerOperand(invalidSendReg));
+							// Make the method itself accessible to the code.
+							final L2ObjectRegister methodReg =
+								newObjectRegister();
+							moveConstant(method, methodReg);
+							// Collect the arguments into a tuple.
+							final L2ObjectRegister argumentsTupleReg =
+								newObjectRegister();
+							addInstruction(
+								L2_CREATE_TUPLE.instance,
+								new L2ReadVectorOperand(
+									createVector(argumentRegisters)),
+								new L2WritePointerOperand(argumentsTupleReg));
 							final List<L2ObjectRegister> slots =
 								continuationSlotsList(numSlots);
 							// The continuation must be reified prior to
@@ -1210,7 +1222,10 @@ public class L2Translator
 								new L2ReadPointerOperand(reifiedRegister),
 								new L2ReadPointerOperand(invalidSendReg),
 								new L2ReadVectorOperand(createVector(
-									Collections.singletonList(errorCodeReg))),
+									Arrays.asList(
+										errorCodeReg,
+										methodReg,
+										argumentsTupleReg))),
 								new L2ImmediateOperand(1));
 							unreachableCode(unreachable);
 						}
@@ -1542,12 +1557,24 @@ public class L2Translator
 			addInstruction(
 				L2_GET_INVALID_MESSAGE_SEND_FUNCTION.instance,
 				new L2WritePointerOperand(invalidSendReg));
+			// Make the method itself accessible to the code.
+			final L2ObjectRegister methodReg = newObjectRegister();
+			moveConstant(method, methodReg);
+			// Collect the arguments into a tuple.
+			final L2ObjectRegister argumentsTupleReg = newObjectRegister();
+			addInstruction(
+				L2_CREATE_TUPLE.instance,
+				new L2ReadVectorOperand(createVector(args)),
+				new L2WritePointerOperand(argumentsTupleReg));
 			addInstruction(
 				L2_INVOKE.instance,
 				new L2ReadPointerOperand(tempCallerRegister),
 				new L2ReadPointerOperand(invalidSendReg),
 				new L2ReadVectorOperand(createVector(
-					Collections.singletonList(errorCodeReg))),
+					Arrays.asList(
+						errorCodeReg,
+						methodReg,
+						argumentsTupleReg))),
 				new L2ImmediateOperand(1));
 			unreachableCode(newLabel("unreachable"));
 			addLabel(lookupSucceeded);

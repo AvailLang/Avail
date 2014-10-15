@@ -72,4 +72,32 @@ public final class P_084_MapWithoutKey extends Primitive
 				ANY.o()),
 			MapTypeDescriptor.mostGeneralType());
 	}
+
+
+	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type mapType = argumentTypes.get(0);
+		final A_Type keyType = argumentTypes.get(1);
+
+		final A_Type mapSizes = mapType.sizeRange();
+		assert mapSizes.lowerInclusive();
+		A_Number minSize = mapSizes.lowerBound();
+		if (mapType.keyType().typeIntersection(keyType).isBottom())
+		{
+			// That key will not be found.
+			return mapType;
+		}
+		// It's possible that the new map will be smaller by one.
+		if (minSize.greaterThan(IntegerDescriptor.zero()))
+		{
+			minSize = minSize.minusCanDestroy(
+				IntegerDescriptor.one(), false);
+		}
+		final A_Type newSizeRange = IntegerRangeTypeDescriptor.create(
+			minSize, true, mapSizes.upperBound(), mapSizes.upperInclusive());
+		return MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+			newSizeRange, mapType.keyType(), mapType.valueType());
+	}
 }

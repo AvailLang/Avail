@@ -1,0 +1,168 @@
+/*
+ * Abstract Converters.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Abstract Converters"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Common" = ("Data|data abstractions test suite"),
+	"Foundation",
+	"Iterators",
+	"Unit Testing"
+Names
+	"conversion type",
+	"converter",
+	"converter from_to_",
+	"converters test suite",
+	"_'s⁇conversion type",
+/*	"malformed-encoding exception",*/
+/*	"_'s⁇invalid sequence",*/
+	"flush_",
+	"_process_"
+Body
+
+Public "conversion type" is a new field atom;
+
+/**
+ * A {@code "converter"} repeatedly accepts a tuple of input values and produces
+ * a tuple of output values.  The converter may maintain internal dynamic state
+ * to deal with conversion of sequences of values (such as UTF-8's multi-byte
+ * encoding of code points).
+ * 
+ * A final {@method "flush_"} indicates that the converter will not receive any
+ * more data, and must now produce the final burst of output values.
+ * 
+ * A pair of converters can which have effectively inverse effects can together
+ * be considered a codec (enCOder/DECoder).  Because of Avail's uniform
+ * treatment of primitive and non-primitive values, the same concept of
+ * converter can be usefully employed for both encoding and decoding.
+ * 
+ * @type "converter"
+ * @category "Codecs"
+ * @field "conversion type" "([⊥]→tuple)'s type"
+ *        How to convert a bufferful of input, empty indicating a final flush.
+ * @field "on failure" "[⊥]→tuple"
+ *        What to produce when a sequence of input elements is invalid.  It may
+ *        raise an exception to indicate the problem, or return a tuple suitable
+ *        for use in lieu of the conversion function.
+ */
+Public explicit class "converter" extends object
+	with fields
+		public conversion type : ([⊥]→any)'s type;
+
+/**
+ * Answer a specialization of {@code "converter"} that converts tuples of values
+ * of the source type into tuples of values of the target type.
+ *
+ * @method "converter from_to_"
+ * @param "sourceType" "any's type"
+ *        The type of element to convert.
+ * @param "targetType" "any's type"
+ *        The type of element produced by the converter.
+ * @returns "converter's type"
+ *          The resulting converter type.
+ */
+Public method "converter from_to_" is
+[
+	sourceType : any's type,
+	targetType : any's type
+|
+	extend converter with
+		conversion type : ([sourceType]→targetType)'s type
+];
+
+/**
+ * Process a tuple of input values to produce a tuple of output values.
+ * Since a subsequence of input values that produce a single output value may be
+ * split across multiple calls, the converter may have to be stateful, waiting
+ * until a subsequent call to produce a value started at this call.  To force
+ * the hidden state to be output, always end use of a converter with {@method
+ * "flush_"}.
+ * 
+ * @method "_process_"
+ * @param "aConverter" "converter"
+ *        The converter that will process a tuple of inputs.
+ * @param "sourceTuple" "tuple"
+ *        The input values to be consumed.
+ * @returns "tuple"
+ *          The output values produced by the converter.
+ */
+Public abstract method "_process_" is
+	[converter, tuple] → tuple;
+
+/**
+ * Make sure the converter will accept the tuple at this call site, and
+ * strengthen the type of values that will be produced.
+ * 
+ * @method "_process_"
+ * @restricts "converter's type"
+ * @restricts "tuple's type"
+ */
+Semantic restriction "_process_" is
+[
+	aConverterType : converter's type,
+	sourceTupleType : tuple's type
+|
+	functionType ::= aConverterType's conversion type's instance;
+	allowedSourceTupleType ::= <functionType[1]…|>;
+	If ¬ sourceTupleType ⊆ allowedSourceTupleType then
+	[
+		allowedSourceElementType ::= ∪ allowedSourceTupleType [1..∞];
+		Reject parse, expected:
+			format "converter to accept a tuple of “①”, not a tuple of “②”"
+				with allowedSourceElementType, ∪ sourceTupleType [1..∞]
+	];
+	<aConverterType's conversion type's instance's return type…|>
+];
+
+/**
+ * The end of data has been encountered.  Produce output from any previously
+ * buffered input.  Subclasses may allow subsequent data to be processed after
+ * a flush, but they are not required to.
+ */
+Public abstract method "flush_" is [converter]→<any…|>;
+
+/**
+ * Strengthen the type of values produced by a flush.
+ * 
+ * @method "flush_"
+ * @restricts "converter's type"
+ */
+Semantic restriction "flush_" is
+[
+	aConverterType : converter's type
+|
+	<aConverterType's conversion type's instance's return type…|>
+];
+
+Public "converters test suite" is a new field atom;
+New test suite converters test suite extends data abstractions test suite;

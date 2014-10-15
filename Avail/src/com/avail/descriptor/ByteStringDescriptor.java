@@ -345,7 +345,7 @@ extends StringDescriptor
 	}
 
 	@Override
-	Object o_MarshalToJava (
+	@Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{

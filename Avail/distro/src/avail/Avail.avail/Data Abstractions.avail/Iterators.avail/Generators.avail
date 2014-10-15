@@ -58,7 +58,7 @@ Body
  * @type "generator"
  * @supertype "iterator"
  */
-Class "generator" extends iterator
+Class "generator" extends reader
 	with mutable fields
 		current value : any,
 		client state : $[any]→⊤,
@@ -223,7 +223,7 @@ Semantic restriction "generator for_" is
 	functionType : [⊥]→⊤'s type
 |
 	cast functionType[1]
-		into [t : [⊥]→⊤'s type | iterator of t[1]]
+		into [t : [⊥]→⊤'s type | reader of t[1]]
 		else
 		[
 			Reject parse, expected: format

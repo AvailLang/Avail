@@ -90,7 +90,7 @@ extends Primitive
 				handle.isAtomSpecial() ? E_SPECIAL_ATOM : E_INVALID_HANDLE);
 		}
 		final AsynchronousSocketChannel socket =
-			(AsynchronousSocketChannel) pojo.javaObject();
+			(AsynchronousSocketChannel) pojo.javaObjectNotNull();
 		final ByteBuffer buffer = ByteBuffer.allocateDirect(size.extractInt());
 		final A_Fiber current = interpreter.fiber();
 		final A_Fiber newFiber = FiberDescriptor.newFiber(

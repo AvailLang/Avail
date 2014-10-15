@@ -712,11 +712,11 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
-		A_Phrase expression = object.initializationExpression();
+		final A_Phrase expression = object.initializationExpression();
 		if (!expression.equalsNil())
 		{
-			expression = aBlock.value(expression);
-			object.setSlot(INITIALIZATION_EXPRESSION, expression);
+			object.setSlot(
+				INITIALIZATION_EXPRESSION, aBlock.valueNotNull(expression));
 		}
 	}
 

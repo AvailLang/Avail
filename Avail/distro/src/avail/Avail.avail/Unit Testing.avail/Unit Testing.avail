@@ -111,7 +111,10 @@ Extends
 		/* Attribute accessors. */
 		"_'s⁇metrics",
 		"_'s⁇test ID",
-		"_'s⁇expected exception type"
+		"_'s⁇expected exception type",
+
+		/* Navigation root. */
+		"root test suite ID"
 	)
 Uses
 	"Foundation"

@@ -1106,7 +1106,7 @@ Semantic restriction "_÷_" is type promotion function for
  * the fractional part.
  * 
  * @method "_→extended integer"
- * @param "number" "aNumber"
+ * @param "aNumber" "number"
  * @returns "extended integer"
  *          The argument, as an extended integer.
  * @category "Mathematics" "Conversions" "Numbers"

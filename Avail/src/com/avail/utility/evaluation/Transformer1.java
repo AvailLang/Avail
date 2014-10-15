@@ -32,6 +32,7 @@
 
 package com.avail.utility.evaluation;
 
+import com.avail.annotations.NotNull;
 import com.avail.annotations.Nullable;
 
 /**
@@ -52,4 +53,18 @@ public abstract class Transformer1 <X,Y>
 	 * @return The result of performing the operation.
 	 */
 	public abstract @Nullable Y value (@Nullable X arg);
+
+	/**
+	 * Perform the operation, then assert a {@link NotNull} condition for the
+	 * result as a convenience.
+	 *
+	 * @param arg The argument to transform.
+	 * @return The non-null transformed value.
+	 */
+	public final Y valueNotNull (final @Nullable X arg)
+	{
+		final Y result = value(arg);
+		assert result != null;
+		return result;
+	}
 }

@@ -34,11 +34,11 @@ Module "Data Abstractions"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Extends
-	"Codecs",
 	"Common" =
 	(
 		"Data|data abstractions test suite"
 	),
+	"Converters",
 	"Graphs",
 	"Iterators",
 /*	"Optional"*/  /* The "+_" operator leads to confusing diagnostics. */

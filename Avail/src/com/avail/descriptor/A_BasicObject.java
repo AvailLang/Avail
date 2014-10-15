@@ -980,7 +980,12 @@ public interface A_BasicObject
 	/**
 	 * @return
 	 */
-	Object javaObject ();
+	@Nullable Object javaObject ();
+
+	/**
+	 * @return
+	 */
+	Object javaObjectNotNull ();
 
 	/**
 	 * @return

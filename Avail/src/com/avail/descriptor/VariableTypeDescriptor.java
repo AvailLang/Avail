@@ -106,10 +106,8 @@ extends TypeDescriptor
 			return true;
 		}
 		final boolean same =
-			aType.readType().equals(
-				object.slot(INNER_TYPE))
-			&& aType.writeType().equals(
-				object.slot(INNER_TYPE));
+			aType.readType().equals(object.slot(INNER_TYPE))
+			&& aType.writeType().equals(object.slot(INNER_TYPE));
 		if (same)
 		{
 			if (!isShared())
@@ -129,8 +127,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		return object.slot(INNER_TYPE).hash()
-			* 17 ^ 0x613E420;
+		return (object.slot(INNER_TYPE).hash() ^ 0x7613E420) + 0x024E3167;
 	}
 
 	@Override @AvailMethod

@@ -1,5 +1,5 @@
 /**
- * P_176_FileSetSize.java
+ * P_168_FileRefresh.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,34 +29,36 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.io.*;
+import java.nio.channels.AsynchronousFileChannel;
+import java.util.ArrayList;
 import java.util.List;
+import com.avail.AvailRuntime;
+import com.avail.AvailRuntime.BufferKey;
+import com.avail.AvailRuntime.FileHandle;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 176</strong>: Set the size of the specified {@link
- * RandomAccessFile file} to the specified value. If the new value is smaller
- * than the file's current size, then the file will be truncated. If it is
- * larger, then the file will be extended. The contents of the extension are
- * undefined.
+ * <strong>Primitive 168:</strong> Force all system buffers associated with the
+ * {@linkplain FileHandle#canRead readable} {@linkplain AsynchronousFileChannel
+ * file channel} associated with the {@linkplain AtomDescriptor handle} to
+ * be discarded from the cache.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_176_FileSetSize
+public final class P_168_FileRefresh
 extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
+	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
-		new P_176_FileSetSize().init(2, CanInline, HasSideEffect);
+	public final static Primitive instance = new P_168_FileRefresh().init(
+		1, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -64,26 +66,25 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 2;
-		final A_Atom handle = args.get(0);
-		final A_Number size = args.get(1);
+		assert args.size() == 1;
+		final A_Atom atom = args.get(0);
 
 		final A_BasicObject pojo =
-			handle.getAtomProperty(AtomDescriptor.fileKey());
-		final A_BasicObject mode =
-			handle.getAtomProperty(AtomDescriptor.fileModeWriteKey());
-		if (pojo.equalsNil() || mode.equalsNil())
+			atom.getAtomProperty(AtomDescriptor.fileKey());
+		if (pojo.equalsNil())
 		{
-			return interpreter.primitiveFailure(E_INVALID_HANDLE);
+			return interpreter.primitiveFailure(
+				atom.isAtomSpecial() ? E_SPECIAL_ATOM : E_INVALID_HANDLE);
 		}
-		final RandomAccessFile file = (RandomAccessFile) pojo.javaObject();
-		try
+		final FileHandle handle = (FileHandle) pojo.javaObjectNotNull();
+		if (!handle.canRead)
 		{
-			file.setLength(size.extractLong());
+			return interpreter.primitiveFailure(E_NOT_OPEN_FOR_READ);
 		}
-		catch (final IOException e)
+		final AvailRuntime runtime = AvailRuntime.current();
+		for (final BufferKey key : new ArrayList<>(handle.bufferKeys.keySet()))
 		{
-			return interpreter.primitiveFailure(E_IO_ERROR);
+			runtime.discardBuffer(key);
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
@@ -93,8 +94,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				ATOM.o(),
-				IntegerRangeTypeDescriptor.wholeNumbers()),
+				ATOM.o()),
 			TOP.o());
 	}
 
@@ -104,7 +104,8 @@ extends Primitive
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(
 				E_INVALID_HANDLE.numericCode(),
-				E_IO_ERROR.numericCode()
+				E_SPECIAL_ATOM.numericCode(),
+				E_NOT_OPEN_FOR_READ.numericCode()
 			).asSet());
 	}
 }

@@ -47,6 +47,7 @@ import java.nio.channels.*;
 import java.nio.charset.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.annotations.Nullable;
@@ -1826,7 +1827,8 @@ public abstract class AbstractAvailCompiler
 		 * Record an indication of what was expected at this parse position.
 		 *
 		 * @param aString
-		 *        The string to look up.
+		 *        The string describing something that was expected at this
+		 *        position under some interpretation so far.
 		 */
 		void expected (final String aString)
 		{
@@ -1860,11 +1862,13 @@ public abstract class AbstractAvailCompiler
 			final Continuation1<AvailObject> continuation,
 			final Continuation1<Throwable> onFailure)
 		{
-			AbstractAvailCompiler.this.evaluatePhraseThen(
+			final AbstractAvailCompiler compiler = AbstractAvailCompiler.this;
+			startWorkUnit();
+			compiler.evaluatePhraseThen(
 				expression,
 				position,
 				false,
-				continuation,
+				compiler.workUnitCompletion(peekToken(), continuation),
 				onFailure);
 		}
 	}
@@ -2518,11 +2522,10 @@ public abstract class AbstractAvailCompiler
 						nodeMap);
 				}
 			});
-		final A_Phrase transformed = aBlock.value(
+		final A_Phrase transformed = aBlock.valueNotNull(
 			objectCopy,
 			parentNode,
 			outerNodes);
-		assert transformed != null;
 		transformed.makeShared();
 		nodeMap.put(object, transformed);
 		return transformed;
@@ -4137,7 +4140,13 @@ public abstract class AbstractAvailCompiler
 				final A_Token token = start.peekToken();
 				if (token.tokenType() != KEYWORD)
 				{
-					start.expected("variable name to be a keyword");
+					// Only count this as a possibility if at least one token
+					// has already been parsed for this message, otherwise this
+					// feedback would be too noisy.
+					if (consumedAnything)
+					{
+						start.expected("variable name to be a keyword");
+					}
 					break;
 				}
 				// Look up the variable in the local scope first.
@@ -4274,13 +4283,17 @@ public abstract class AbstractAvailCompiler
 				final A_Phrase input = last(argsSoFar);
 				op.conversionRule(instruction).convert(
 					input,
+					start,
 					initialTokenPosition,
 					new Continuation1<A_Phrase>()
 					{
+						final AtomicBoolean sanityFlag = new AtomicBoolean();
+
 						@Override
 						public void value (
 							final @Nullable A_Phrase replacementExpression)
 						{
+							assert sanityFlag.compareAndSet(false, true);
 							assert replacementExpression != null;
 							final List<A_Phrase> newArgsSoFar =
 								append(

@@ -156,7 +156,7 @@ extends Descriptor
 		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
-		final Field field = (Field) object.slot(FIELD).javaObject();
+		final Field field = (Field) object.slot(FIELD).javaObjectNotNull();
 		if (!Modifier.isStatic(field.getModifiers()))
 		{
 			builder.append('(');
@@ -263,7 +263,7 @@ extends Descriptor
 		final AvailObject receiver,
 		final A_Type innerType)
 	{
-		final Field javaField = (Field) field.javaObject();
+		final Field javaField = (Field) field.javaObjectNotNull();
 		assert Modifier.isFinal(javaField.getModifiers());
 		final Object javaReceiver = receiver.javaObject();
 		final AvailObject value;

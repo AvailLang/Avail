@@ -103,7 +103,8 @@ extends TupleDescriptor
 		final int end)
 	{
 		// See comment in superclass. This method must produce the same value.
-		final byte[] array = (byte[]) object.slot(BYTE_ARRAY_POJO).javaObject();
+		final byte[] array = (byte[])
+			object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
 		int hash = 0;
 		for (int index = end - 1, first = start - 1; index >= first; index--)
 		{
@@ -269,7 +270,8 @@ extends TupleDescriptor
 	AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		// Answer the element at the given index in the tuple object.
-		final byte[] array = (byte[]) object.slot(BYTE_ARRAY_POJO).javaObject();
+		final byte[] array =
+			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
 		return (AvailObject)IntegerDescriptor.fromUnsignedByte(
 			(short) (array[index - 1] & 0xFF));
 	}
@@ -303,7 +305,8 @@ extends TupleDescriptor
 		// Clobber the object in place...
 		final byte theByte =
 			(byte) ((AvailObject)newValueObject).extractUnsignedByte();
-		final byte[] array = (byte[]) object.slot(BYTE_ARRAY_POJO).javaObject();
+		final byte[] array =
+			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
 		array[index - 1] = theByte;
 		object.hashOrZero(0);
 		//  ...invalidate the hash value.
@@ -317,7 +320,8 @@ extends TupleDescriptor
 	{
 		// Answer the byte at the given index.
 		assert index >= 1 && index <= object.tupleSize();
-		final byte[] array = (byte[]) object.slot(BYTE_ARRAY_POJO).javaObject();
+		final byte[] array =
+			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
 		return (short) (array[index - 1] & 0xFF);
 	}
 
@@ -331,7 +335,8 @@ extends TupleDescriptor
 		assert isMutable();
 		assert index >= 1 && index <= object.tupleSize();
 		final byte theByte = (byte) anInteger;
-		final byte[] array = (byte[]) object.slot(BYTE_ARRAY_POJO).javaObject();
+		final byte[] array =
+			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
 		array[index - 1] = theByte;
 	}
 
@@ -340,7 +345,8 @@ extends TupleDescriptor
 	int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		// Answer the integer element at the given index in the tuple object.
-		final byte[] array = (byte[]) object.slot(BYTE_ARRAY_POJO).javaObject();
+		final byte[] array =
+			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
 		return array[index - 1] & 0xFF;
 	}
 
@@ -382,7 +388,8 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	int o_TupleSize (final AvailObject object)
 	{
-		final byte[] array = (byte[]) object.slot(BYTE_ARRAY_POJO).javaObject();
+		final byte[] array =
+			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
 		return array.length;
 	}
 
@@ -502,7 +509,10 @@ extends TupleDescriptor
 		final ByteBuffer outputByteBuffer)
 	{
 		final byte [] byteArray = object.byteArray();
-		outputByteBuffer.put(byteArray, startIndex - 1, endIndex);
+		outputByteBuffer.put(
+			byteArray,
+			startIndex - 1,
+			endIndex - startIndex + 1);
 	}
 
 	@Override
@@ -573,7 +583,8 @@ extends TupleDescriptor
 	private A_Tuple copyAsMutableByteArrayTuple (
 		final AvailObject object)
 	{
-		final byte[] array = (byte[]) object.slot(BYTE_ARRAY_POJO).javaObject();
+		final byte[] array =
+			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
 		final byte[] copy = Arrays.copyOf(array, array.length);
 		final AvailObject result = forByteArray(copy);
 		result.setSlot(HASH_OR_ZERO, object.hashOrZero());

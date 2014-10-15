@@ -49,11 +49,12 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import com.avail.AvailRuntime;
+import com.avail.AvailRuntime.FileHandle;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 161:</strong> Open an {@linkplain AsynchronousFileChannel
+ * <strong>Primitive 160:</strong> Open an {@linkplain AsynchronousFileChannel
  * file}. Answer a {@linkplain AtomDescriptor handle} that uniquely identifies
  * the file.
  *
@@ -66,7 +67,7 @@ extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_160_FileOpen().init(
-		3, CanInline, HasSideEffect);
+		4, CanInline, HasSideEffect);
 
 	/**
 	 * Construct the {@linkplain EnumSet set} of {@linkplain OpenOption open
@@ -121,10 +122,25 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 3;
+		assert args.size() == 4;
 		final A_String filename = args.get(0);
-		final A_Set options = args.get(1);
-		final A_Set permissions = args.get(2);
+		final A_Number alignment = args.get(1);
+		final A_Set options = args.get(2);
+		final A_Set permissions = args.get(3);
+
+		if (!alignment.isInt())
+		{
+			return interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT);
+		}
+		int alignmentInt = alignment.extractInt();
+		if (alignmentInt == 0)
+		{
+			// Plug in the default alignment for the device on which the
+			// filename is located.  Ahem, erm, Java actually doesn't make this
+			// available in any way.  Fudge it for now as 4096.
+			alignmentInt = 4096;
+		}
+		assert alignmentInt > 0;
 		final AvailRuntime runtime = AvailRuntime.current();
 		final Set<? extends OpenOption> fileOptions = openOptionsFor(options);
 		final FileAttribute<?> fileAttributes = permissionsFor(permissions);
@@ -142,26 +158,12 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_INVALID_PATH);
 		}
-		final A_Atom handle =
+		final A_Atom atom =
 			AtomDescriptor.create(filename, NilDescriptor.nil());
+		final AsynchronousFileChannel channel;
 		try
 		{
-			final AsynchronousFileChannel file =
-				runtime.openFile(path, fileOptions, fileAttributes);
-			final AvailObject pojo = RawPojoDescriptor.identityWrap(file);
-			handle.setAtomProperty(AtomDescriptor.fileKey(), pojo);
-			if (fileOptions.contains(READ))
-			{
-				handle.setAtomProperty(
-					AtomDescriptor.fileModeReadKey(),
-					AtomDescriptor.fileModeReadKey());
-			}
-			if (fileOptions.contains(WRITE))
-			{
-				handle.setAtomProperty(
-					AtomDescriptor.fileModeWriteKey(),
-					AtomDescriptor.fileModeWriteKey());
-			}
+			channel = runtime.openFile(path, fileOptions, fileAttributes);
 		}
 		catch (final IllegalArgumentException e)
 		{
@@ -179,7 +181,15 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
-		return interpreter.primitiveSuccess(handle);
+		final FileHandle fileHandle = new FileHandle(
+			filename,
+			alignmentInt,
+			fileOptions.contains(READ),
+			fileOptions.contains(WRITE),
+			channel);
+		final AvailObject pojo = RawPojoDescriptor.identityWrap(fileHandle);
+		atom.setAtomProperty(AtomDescriptor.fileKey(), pojo);
+		return interpreter.primitiveSuccess(atom);
 	}
 
 	@Override
@@ -188,6 +198,7 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				TupleTypeDescriptor.stringType(),
+				IntegerRangeTypeDescriptor.wholeNumbers(),
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.inclusive(
 						IntegerDescriptor.fromInt(0),
@@ -210,6 +221,7 @@ extends Primitive
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(
+				E_EXCEEDS_VM_LIMIT.numericCode(),
 				E_INVALID_PATH.numericCode(),
 				E_ILLEGAL_OPTION.numericCode(),
 				E_OPERATION_NOT_SUPPORTED.numericCode(),

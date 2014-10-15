@@ -532,6 +532,21 @@ Semantic restriction "-_" is
 ];
 
 /**
+ * Strangely, strengthen type-wise negation's own static type.  This allows us
+ * to use type-wise negation of an integral type like natural number and get
+ * back something that is statically of (-∞..-1]'s type.
+ * 
+ * @method "-_"
+ * @restricts "extended integer's type's type"
+ */
+Semantic restriction "-_" is
+[
+	a : extended integer's type's type
+|
+	(-(a's instance))'s type
+];
+
+/**
  * Compute and answer the integer range type of the difference of the argument
  * types.
  * 
@@ -1072,13 +1087,14 @@ Stable method "log_of_" is
 Public method "π" is [3.141592653589793];
 
 /**
- * Strengthen the result type of bitshift.
+ * Helper for strengthening the result type of bitshifts.
  *
  * @method "_<<_"
  * @restricts "baseIntegerType" "integer's type"
  * @restricts "shiftFactorType" "integer's type"
+ * @returns "integerType" a stronger integer subtype
  */
-Semantic restriction "_<<_" is
+Method "_<<_" is
 [
 	baseIntegerType : integer's type,
 	shiftFactorType : integer's type
@@ -1160,6 +1176,36 @@ Semantic restriction "_<<_" is
 	outerBlock(⎡baseIntegerType⎤);
 	(low - 1 .. high + 1)
 ] : integer's type;
+
+/**
+ * Strengthen the result type of left-bitshift.
+ *
+ * @method "_<<_"
+ * @restricts "baseIntegerType" "integer's type"
+ * @restricts "shiftFactorType" "integer's type"
+ */
+Semantic restriction "_<<_" is
+[
+	baseIntegerType : integer's type,
+	shiftFactorType : integer's type
+|
+	baseIntegerType << shiftFactorType
+];
+
+/**
+ * Strengthen the result type of right-bitshift.
+*
+* @method "_>>_"
+* @restricts "baseIntegerType" "integer's type"
+* @restricts "shiftFactorType" "integer's type"
+*/
+Semantic restriction "_>>_" is
+[
+	baseIntegerType : integer's type,
+	shiftFactorType : integer's type
+|
+	baseIntegerType << -shiftFactorType
+];
 
 Private forward method "_positive range pairs"
 	is [whole number's type] → <whole number's type…|0..∞>;

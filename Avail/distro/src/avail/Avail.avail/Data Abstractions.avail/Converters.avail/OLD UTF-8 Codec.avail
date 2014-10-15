@@ -39,13 +39,15 @@ Uses
 	"Iterators",
 	"Unit Testing"
 Names
-	"a utf8 encoding iterator that buffers_characters of_using_",
+	"a utf8 encoding reader that buffers_characters of_using_",
 	"encoded-buffer-exhausted exception",
 	"utf8 codec",
-	"utf8 encoding iterator",
+	"utf8 encoding reader",
 	"a UTF-_codec",
 	"UTF8 codec test suite"
 Body
+
+/* TODO[MvG] - Delete this original after UTF-8 Codec module is reimplemented.
 
 /**
  * Transfor a contination byte according to UTF-8 specification
@@ -694,72 +696,72 @@ Method "encode_using_" is
 ] : byte tuple;
 	
 /**
- * An encoding iterator with data that is to be encoded into utf8 byte data.
+ * An encoding reader with data that is to be encoded into utf8 byte data.
  * 
- * @type "utf8 encoding iterator"
- * @supertype "encoding iterator"
+ * @type "utf8 encoding reader"
+ * @supertype "encoding reader"
  * @category "Codecs"
- * @field "element source" "iterator of character"
- * 		The source data for the iterator
+ * @field "element source" "reader of character"
+ * 		The source data for the reader
  * @field "internal encoder" "utf8 encoder"
  * 		The encoder used to encode the data.
  * @author "Richard Arriaga"
  */
-Public class "utf8 encoding iterator" extends encoding iterator
+Public class "utf8 encoding reader" extends encoding reader
 	with fields
-		element source : iterator of character, 
+		element source : reader of character, 
 		internal encoder : utf8 encoder;
 /**
- * A constructor method to create a encoding iterator
+ * A constructor method to create a encoding reader
  *
- * @method "a utf8 encoding iterator that buffers_characters of_using_"
+ * @method "a utf8 encoding reader that buffers_characters of_using_"
  * @category "Codecs"
  * @param "size" "[2..∞)" 
  *		the maximum buffer size
- * @param "src" "iterator of character" 
- *		the source iterator to be decoded
+ * @param "src" "reader of character" 
+ *		the source reader to be decoded
  * @param "ec" "utf8 encoder" 
- *		the codec that is used to complete the encoding of the iterator
- * @returns "utf8 encoding iterator"
- *		a decoding iterator
+ *		the codec that is used to complete the encoding of the reader
+ * @returns "utf8 encoding reader"
+ *		a decoding reader
  * @author "Richard Arriaga"
  */
 Public method 
-	"a utf8 encoding iterator that buffers_characters of_using_" is
+	"a utf8 encoding reader that buffers_characters of_using_" is
 [
 	size : [2..∞),
-	src : iterator of character,
+	src : reader of character,
 	ec : utf8 encoder
 |
-	a utf8 encoding iterator with
+	a utf8 encoding reader with
 		element type ::= byte,
 		element source ::= src,
 		maximum buffer size ::= size,
 		internal encoder ::= ec
-] : utf8 encoding iterator;
+] : utf8 encoding reader;
 
 Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
 <{
-	"utf8 codec", "utf8 encoding iterator"
+	"utf8 codec", "utf8 encoding reader"
 }, ∅, ∅>;
 
 /* Decoder usage instructions
  * Can now UTF-8 to decode open files as well as encode character data using
- * UFT-8.  To encode, create a utf8 encoding iterator with the method:
- *		"a utf8 encoding iterator that buffers_characters of_using_"
- * from that iterator encoded byte data can be obtained via the method: 
+ * UFT-8.  To encode, create a utf8 encoding reader with the method:
+ *		"a utf8 encoding reader that buffers_characters of_using_"
+ * from that reader encoded byte data can be obtained via the method: 
  *		"take«at most»?_from_"
- * To decode data. create a decoding iterator using either method:
- *		"a decoding iterator that buffers_element|elements of_using_"
- *		"a decoding iterator of_using_"
- * from that iterator decoded character data can be obtained via the method:
+ * To decode data. create a decoding reader using either method:
+ *		"a decoding reader that buffers_element|elements of_using_"
+ *		"a decoding reader of_using_"
+ * from that reader decoded character data can be obtained via the method:
  *		"take«at most»?_from_"
  * An example of decoding data from a UTF-8 file would be:
- *		characterData ::= take at most ∞ from a decoding iterator of a file 
- *			iterator for filename using a UTF-8 codec;
+ *		characterData ::= take at most ∞ from a decoding reader of a file 
+ *			reader for filename using a UTF-8 codec;
  * An example of encoding character data using UTF-8 would be:
- *		byteData ::= take at most ∞ from a utf8 encoding iterator that buffers 
- *			10 characters of an iterator of character using a UTF-8 codec;
+ *		byteData ::= take at most ∞ from a utf8 encoding reader that buffers 
+ *			10 characters of a reader of character using a UTF-8 codec;
  */
 
 /*UTF-8 Codec test suite*/
@@ -786,33 +788,33 @@ Test "byte decoding" in UTF8 codec test suite is
 	Require: decodedTestEncoding = expectedDecodedString;
 ];
 
-Test "full decoding iterator" in UTF8 codec test suite is
+Test "full decoding reader" in UTF8 codec test suite is
 [
-	testEncodingIterator ::= an iterator over <226,138,164,226,138,165,226,134,
+	testEncodingIterator ::= a reader over <226,138,164,226,138,165,226,134,
 		147,226,134,145,194,177,226,136,133,226,136,138,226,136,176,226,136,161,
 		226,132,128,80,111,103,63>;
-	decodedTestEncoding ::= take at most ∞ from a decoding iterator of 
+	decodedTestEncoding ::= take at most ∞ from a decoding reader of 
 			testEncodingIterator using a UTF-8 codec;
 	expectedDecodedString ::= "⊤⊥↓↑±∅∊∰∡℀Pog?";
 	Require: decodedTestEncoding = expectedDecodedString;
 ];
 
-Test "partial decoding iterator" in UTF8 codec test suite is
+Test "partial decoding reader" in UTF8 codec test suite is
 [
-	testEncodingIterator ::= an iterator over <226,138,164,226,138,165,226,134,
+	testEncodingIterator ::= a reader over <226,138,164,226,138,165,226,134,
 		147,63,226,134,145,194,177,226,136,133,226,136,138,226,136,176,226,136,161,
 		226,132,128,80,111,103,63>;
-	decodedTestEncoding ::= take at most 4 from a decoding iterator of 
+	decodedTestEncoding ::= take at most 4 from a decoding reader of 
 			testEncodingIterator using a UTF-8 codec;
 	expectedDecodedString ::= "⊤⊥↓?";
 	Require: decodedTestEncoding = expectedDecodedString;
 ];
 
-Test "full encoding iterator" in UTF8 codec test suite is
+Test "full encoding reader" in UTF8 codec test suite is
 [
 	testString ::= "⊤⊥↓↑±∅∊∰∡℀Pog?";
-	encodedTestString ::= take at most ∞ from a utf8 encoding iterator 
-		that buffers 10 characters of an iterator over testString using a UTF-8 
+	encodedTestString ::= take at most ∞ from a utf8 encoding reader 
+		that buffers 10 characters of a reader over testString using a UTF-8 
 		codec;
 	expectedEncoding ::=  <226,138,164,226,138,165,226,134,147,226,134,145,194,
 			177,226,136,133,226,136,138,226,136,176,226,136,161,226,132,128,80,
@@ -820,11 +822,11 @@ Test "full encoding iterator" in UTF8 codec test suite is
 	Require: encodedTestString = expectedEncoding;
 ];
 
-Test "partial encoding iterator" in UTF8 codec test suite is
+Test "partial encoding reader" in UTF8 codec test suite is
 [
 	testString ::= "⊤⊥↓?↑±∅∊∰∡℀Pog?";
-	encodedTestString ::= take at most 10 from a utf8 encoding iterator 
-		that buffers 10 characters of an iterator over testString using a UTF-8 
+	encodedTestString ::= take at most 10 from a utf8 encoding reader 
+		that buffers 10 characters of a reader over testString using a UTF-8 
 		codec;
 	expectedEncoding ::=  <226,138,164,226,138,165,226,134,147,63>;
 	Require: encodedTestString = expectedEncoding;

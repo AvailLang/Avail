@@ -1320,7 +1320,8 @@ public final class Interpreter
 					{
 						@SuppressWarnings("unchecked")
 						final Continuation1<A_Continuation> waiter =
-							(Continuation1<A_Continuation>)(pojo.javaObject());
+							(Continuation1<A_Continuation>)
+								(pojo.javaObjectNotNull());
 						waiter.value(continuation);
 					}
 				}
@@ -1787,16 +1788,12 @@ public final class Interpreter
 		startTick = runtime.clock.get();
 		while (!exitNow)
 		{
-			/**
-			 * This loop is only exited by a return off the end of the outermost
+			/* This loop is only exited by a return off the end of the outermost
 			 * context, a suspend or terminate of the current fiber, or by an
-			 * inter-nybblecode interrupt. For now there are no inter-nybblecode
-			 * interrupts, but these can be added later. They will probably
-			 * happen on non-primitive method invocations, returns, and backward
-			 * jumps. At the time of an inter-nybblecode interrupt, the
-			 * continuation must be a reflection of the current continuation,
-			 * <em>not</em> the caller. That is, only the callerRegister()'s
-			 * content is valid.
+			 * inter-nybblecode interrupt. At the time of an inter-nybblecode
+			 * interrupt, the continuation must be a reflection of the current
+			 * continuation, <em>not</em> the caller. That is, only the
+			 * callerRegister()'s content is valid.
 			 */
 			final L2Instruction instruction = chunkInstructions[offset];
 			final L2Operation operation = instruction.operation;
@@ -1815,7 +1812,7 @@ public final class Interpreter
 					"d={0}: {1} (chunk={2}, off={3})",
 					depth,
 					operation.name(),
-					chunk(),
+					String.format("#%08x", System.identityHashCode(chunk())),
 					offset);
 			}
 			offset++;

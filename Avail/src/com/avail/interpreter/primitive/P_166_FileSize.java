@@ -69,7 +69,8 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
-		final RandomAccessFile file = (RandomAccessFile) pojo.javaObject();
+		final RandomAccessFile file =
+			(RandomAccessFile) pojo.javaObjectNotNull();
 		final long fileSize;
 		try
 		{

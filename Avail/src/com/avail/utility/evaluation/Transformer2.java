@@ -32,6 +32,7 @@
 
 package com.avail.utility.evaluation;
 
+import com.avail.annotations.NotNull;
 import com.avail.annotations.Nullable;
 
 /**
@@ -55,4 +56,21 @@ public abstract class Transformer2 <X,Y,Z>
 	public abstract @Nullable Z value (
 		@Nullable X arg1,
 		@Nullable Y arg2);
+
+	/**
+	 * Perform the operation, then assert a {@link NotNull} condition for the
+	 * result as a convenience.
+	 *
+	 * @param arg1 The first argument to the operation.
+	 * @param arg2 The second argument to the operation.
+	 * @return The non-null transformed value.
+	 */
+	public final Z valueNotNull (
+		final @Nullable X arg1,
+		final @Nullable Y arg2)
+	{
+		final Z result = value(arg1, arg2);
+		assert result != null;
+		return result;
+	}
 }

@@ -192,7 +192,7 @@ public final class L2Chunk
 			return "Default chunk";
 		}
 		builder.append(String.format(
-			"Chunk #%8x%n",
+			"Chunk #%08x%n",
 			System.identityHashCode(this)));
 		if (!isValid())
 		{

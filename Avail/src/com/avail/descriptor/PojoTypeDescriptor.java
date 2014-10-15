@@ -510,7 +510,7 @@ extends TypeDescriptor
 	abstract AvailObject o_JavaClass (AvailObject object);
 
 	@Override @AvailMethod
-	abstract Object o_MarshalToJava (
+	abstract @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint);
 
@@ -709,7 +709,8 @@ extends TypeDescriptor
 		}
 		for (final A_BasicObject ancestor : ancestry)
 		{
-			final Class<?> possibleAncestor = (Class<?>) ancestor.javaObject();
+			final Class<?> possibleAncestor =
+				(Class<?>) ancestor.javaObjectNotNull();
 			for (final A_BasicObject child : ancestry)
 			{
 				final Class<?> possibleChild = (Class<?>) child.javaObject();
@@ -743,7 +744,7 @@ extends TypeDescriptor
 		Class<?> mostSpecific = Object.class;
 		for (final AvailObject rawType : ancestry)
 		{
-			final Class<?> javaClass = (Class<?>) rawType.javaObject();
+			final Class<?> javaClass = (Class<?>) rawType.javaObjectNotNull();
 			if (mostSpecific.isAssignableFrom(javaClass))
 			{
 				mostSpecific = javaClass;
@@ -757,7 +758,8 @@ extends TypeDescriptor
 		{
 			for (final A_BasicObject rawType : ancestry)
 			{
-				final Class<?> javaClass = (Class<?>) rawType.javaObject();
+				final Class<?> javaClass =
+					(Class<?>) rawType.javaObjectNotNull();
 				if (!javaClass.isAssignableFrom(mostSpecific))
 				{
 					return NilDescriptor.nil();
@@ -1250,7 +1252,7 @@ extends TypeDescriptor
 		final Class<?> target,
 		final A_Tuple typeArgs)
 	{
-		return cache.get(new LRUCacheKey(target, typeArgs));
+		return cache.getNotNull(new LRUCacheKey(target, typeArgs));
 	}
 
 	/**

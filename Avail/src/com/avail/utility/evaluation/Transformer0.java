@@ -32,6 +32,7 @@
 
 package com.avail.utility.evaluation;
 
+import com.avail.annotations.NotNull;
 import com.avail.annotations.Nullable;
 
 /**
@@ -50,4 +51,17 @@ public abstract class Transformer0 <X>
 	 * @return The result of performing the operation.
 	 */
 	public abstract @Nullable X value ();
+
+	/**
+	 * Perform the operation, then assert a {@link NotNull} condition for the
+	 * result as a convenience.
+	 *
+	 * @return The non-null transformed value.
+	 */
+	public final X valueNotNull ()
+	{
+		final X result = value();
+		assert result != null;
+		return result;
+	}
 }

@@ -35,12 +35,12 @@ package com.avail.utility;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -613,8 +613,8 @@ public class LRUCache<K, V>
 			{
 				futuresCondition.await();
 			}
-			final Set<Entry<K, SoftReference<V>>> entries =
-				new HashSet<>(softMap.entrySet());
+			final List<Entry<K, SoftReference<V>>> entries =
+				new ArrayList<>(softMap.entrySet());
 
 			softMap.clear();
 			keysBySoftReference.clear();
@@ -663,7 +663,7 @@ public class LRUCache<K, V>
 	 *
 	 * <p>This method answers {@code null} if <strong>1)</strong> the cached
 	 * value associated with the specified key is actually {@code null} or
-	 * <strong>2></strong> no value has been cached for the specified key.</p>
+	 * <strong>2)</strong> no value has been cached for the specified key.</p>
 	 *
 	 * <p>Note that this method is not reentrant. The transformer must not
 	 * reenter any public operation while computing a value for a specified
@@ -822,6 +822,70 @@ public class LRUCache<K, V>
 			// accessed cached values. The eldest entry will be automatically
 			// retired if necessary.
 			strongMap.put(key, result);
+
+			checkInvariants();
+
+			return result;
+		}
+		finally
+		{
+			unlock();
+		}
+	}
+
+	/**
+	 * Answer the value associated with the specified key, computing the value
+	 * from the user-supplied {@linkplain Transformer1 transformer} if the value
+	 * is not already present in the {@linkplain LRUCache cache}.
+	 *
+	 * <p>This operation should not be used if the value can be null.</p>
+	 *
+	 * <p>Note that this method is not reentrant. The transformer must not
+	 * reenter any public operation while computing a value for a specified
+	 * key.</p>
+	 *
+	 * @param key The key whose associated value should be answered.
+	 * @return The value to which the specified key is mapped.
+	 * @throws RuntimeException
+	 *         If an exception occurred as a result of an error in the
+	 *         execution of the user-supplied {@linkplain Transformer1
+	 *         transformer}.
+	 */
+	public V getNotNull (final K key) throws RuntimeException
+	{
+		assert key != null;
+		final V value = get(key);
+		assert value != null;
+		return value;
+	}
+
+	/**
+	 * Remove the specified key and any value associated with it. If the key is
+	 * present, and the {@linkplain SoftReference softly held} corresponding
+	 * value has not been reclaimed by the garbage collector, then perform the
+	 * retirement action, if any.
+	 *
+	 * @param key
+	 *        A key.
+	 * @return The value associated with the key, or {@code null} if the key is
+	 *         not present or if the value has already been reclaimed.
+	 */
+	public V remove (final K key)
+	{
+		lock();
+		try
+		{
+			// Before searching the primary cache map for the key, expunge all
+			// defunct references from it.
+			expungeDefunctReferences();
+
+			V result = null;
+			final SoftReference<V> reference = softMap.remove(key);
+			strongMap.remove(key);
+			if (reference != null && (result = reference.get()) != null)
+			{
+				retire(key, result);
+			}
 
 			checkInvariants();
 

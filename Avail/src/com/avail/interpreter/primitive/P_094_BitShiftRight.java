@@ -1,5 +1,5 @@
 /**
- * P_095_BitShift.java
+ * P_094_BitShiftRight.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -39,20 +39,20 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 95</strong>: Given any integer B, and a shift factor S,
- * compute ⎣B×2<sup>S</sup>⎦.  This is the left-shift operation, but when S
- * is negative it acts as a right-shift.
+ * <strong>Primitive 94</strong>: Given any integer B, and a shift factor S,
+ * compute ⎣B÷2<sup>S</sup>⎦.  This is the right-shift operation, but when S
+ * is negative it acts as a left-shift.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_095_BitShift
+public final class P_094_BitShiftRight
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_095_BitShift().init(2, CanFold, CanInline);
+		new P_094_BitShiftRight().init(2, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
@@ -65,7 +65,7 @@ extends Primitive
 		final A_Number shiftFactor = args.get(1);
 		return interpreter.primitiveSuccess(
 			baseInteger.bitShift(
-				shiftFactor,
+				IntegerDescriptor.zero().minusCanDestroy(shiftFactor, true),
 				true));
 	}
 

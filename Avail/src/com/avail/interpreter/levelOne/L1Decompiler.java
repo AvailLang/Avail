@@ -654,7 +654,7 @@ public class L1Decompiler
 			else
 			{
 				final A_Token labelToken = TokenDescriptor.create(
-					StringDescriptor.from(tempGenerator.value("label")),
+					StringDescriptor.from(tempGenerator.valueNotNull("label")),
 					TupleDescriptor.empty(),
 					TupleDescriptor.empty(),
 					0,

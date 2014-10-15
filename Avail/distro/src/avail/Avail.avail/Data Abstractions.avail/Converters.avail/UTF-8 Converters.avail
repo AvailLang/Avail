@@ -1,0 +1,364 @@
+/*
+ * UTF8 Converters.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "UTF-8 Converters"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Abstract Converters",
+	"Foundation",
+	"Iterators",
+	"Converting Reader",
+	"Unit Testing"
+Names
+	"a utf8 decoder",
+	"a utf8 encoder",
+	"utf8 decoder",
+	"utf8 encoder",
+	"UTF8 converters test suite"
+Body
+
+"residue" is a new field atom;
+
+/**
+ * Produce a sequence of bytes that constitute the UTF-8 encoding of the given
+ * Unicode code point.
+ * 
+ * @method "bytes from_"
+ * @param "codePoint" "code point"
+ */
+Abstract method "bytes from_" is [code point] → <byte…|>;
+
+Private method "bytes from_" is
+[
+	codePoint : [0..127]
+|
+	<codePoint>
+];
+
+Private method "bytes from_" is
+[
+	codePoint : [128..2047]
+|
+	<192 + (codePoint >> 6),
+	 128 + (codePoint bit∧ 63)>
+] : <byte…|>;
+
+Private method "bytes from_" is
+[
+	codePoint : [2048..65535]
+|
+	<224 + (codePoint >> 12),
+	 128 + ((codePoint >> 6) bit∧ 63),
+	 128 + (codePoint bit∧ 63)>
+] : <byte…|>;
+
+Private method "bytes from_" is
+[
+	codePoint : [65536..1114111]
+|
+	<240 + (codePoint >> 18),
+	 128 + ((codePoint >> 12) bit∧ 63),
+	 128 + ((codePoint >> 6) bit∧ 63),
+	 128 + (codePoint bit∧ 63)>
+] : <byte…|>;
+
+/**
+ * A converter that translates a tuple of characters (i.e., a string) into a
+ * tuple of UTF-8 encoded bytes.
+ * 
+ * @type "utf8 encoder"
+ * @supertype "converter"
+ * @category "Codecs"
+ */
+Public explicit class "utf8 encoder"
+	extends converter from character to byte;
+
+/* Compute [character]→byte statically, so we have a strong enough argument
+ * type.  That's because of contravariance of argument types, and the fact that
+ * the expression "character" is theoretically allowed to produce something more
+ * specific than the character type.
+ */
+charToByte ::= [character]→byte;
+
+Public method "a utf8 encoder" is
+[
+	a utf8 encoder with conversion type ::= charToByte
+];
+
+/**
+ * Encode some characters into UTF-8 bytes.
+ *
+ * @method "_process_"
+ * @param "encoder" "utf8 encoder"
+ * @param "sourceTuple" "string"
+ */
+Method "_process_" is
+[
+	encoder : utf8 encoder,
+	sourceTuple : string
+|
+	output : <byte…|> := <>;
+	For each of sourceTuple do
+	[
+		c : character
+	|
+		output := eject output ++ bytes from c's code point;
+	];
+	output
+];
+
+/**
+ * Flushing a UTF-8 encoder always produces an empty sequence of bytes.
+ * 
+ * @method "flush_"
+ * @param "encoder" "utf8 encoder"
+ */
+Method "flush_" is
+[
+	encoder : utf8 encoder
+|
+	<>
+];
+
+/**
+ * A converter that translates a tuple of UTF-8 encoded bytes into a tuple of
+ * characters (i.e., a string).
+ * 
+ * @type "utf8 decoder"
+ * @supertype "converter"
+ * @category "Codecs"
+ */
+Public explicit class "utf8 decoder"
+	extends converter from byte to character
+	with mutable field
+		referable residue : <byte…|>;
+
+/* Compute [byte]→character statically, so we have a strong enough argument
+ * type.  That's because of contravariance of argument types, and the fact that
+ * the expression "byte" is theoretically allowed to produce something more
+ * specific than the byte type.
+ */
+byteToChar ::= [byte]→character;
+
+Public method "a utf8 decoder" is
+[
+	a utf8 decoder with
+		conversion type ::= byteToChar,
+		residue := <>
+];
+
+/**
+ * Answer how many bytes long a UTF-8 sequence starting with the given byte will
+ * be.  Note that some leading bytes are always illegal, and some leading bytes
+ * may or may not be illegal, depending on the continuation bytes (for example,
+ * they may produce an "overlong encoding").  We only detect leading bytes of
+ * always-illegal sequences here, answering zero.
+ * 
+ * @method "byte count for_"
+ * @param "leadingByte" "byte"
+ * @returns "[0..4]"
+ */
+Private method "byte count for_" is [leadingByte : byte | 0] : [0..4];
+Private method "byte count for_" is [leadingByte : [0..127] | 1];
+Private method "byte count for_" is [leadingByte : [194..223] | 2];
+Private method "byte count for_" is [leadingByte : [224..239] | 3];
+Private method "byte count for_" is [leadingByte : [240..244] | 4];
+
+
+/**
+ * Decode some UTF-8 bytes into a Unicode string.  Unrecognized byte sequences
+ * will be converted into the Unicode replacement character (U+FFFD).
+ * An incomplete byte sequence will simply wait until more data is supplied or a
+ * flush occurs (which will cause U+FFFD to be emitted for the truncated
+ * buffered content).
+ * 
+ * @method "_process_"
+ * @param "decoder" "utf8 decoder"
+ * @returns "bytes" "<byte…|>"
+ */
+Method "_process_" is
+[
+	decoder : utf8 decoder,
+	bytes : <byte…|>
+|
+	in : <byte…|> := decoder's residue ++ bytes;
+	out : string := "";
+	index : natural number := 1;
+	leadByte : byte;
+	count : [0..4];
+	While
+	[
+		index ≤ |in| ∧ [
+			leadByte := in[index];
+			count := byte count for leadByte;
+			index + count - 1 ≤ |in|]
+	]
+	do
+	[
+		continuationBytes : <byte…|>;
+		If count > 0 ∧
+			[
+				continuationBytes := in[index + 1 .. index + count - 1];
+				continuationBytes ∈ <[128..191]…|>] then
+		[
+			/* Extract the bytes and decode them. */
+			accumulator : whole number := leadByte bit∧ (255 >> count);
+			index++;
+			For each of continuationBytes do
+			[
+				nextByte : byte
+			|
+				accumulator := (eject accumulator << 6) + (nextByte bit∧ 63);
+				index++;
+			];
+			out := eject out ++ (cast accumulator
+				into [cp : code point | <cp → character>]
+				else ["\(fffd)"]);
+		]
+		else
+		[
+			/* The continuation bytes are invalid.  For now, decode under the
+			 * assumption that the leading byte correctly indicates the number
+			 * of continuation bytes, but one of the continuation bytes is
+			 * wrong.  Replace the sequence with the Unicode replacament
+			 * character (U+FFFD), and skip the leading and continuation bytes.
+			 */
+			out := eject out ++ "\(fffd)";
+			index := index + count + 1;
+		];
+	];
+	decoder's residue := in[index..];
+	out
+];
+
+/**
+ * Flush the UTF-8 decoder.  Since a complete sequence of bytes representing a
+ * character would have already produced a corresponding character, it must be
+ * the case that a non-empty residue should be treated as an invalid sequence,
+ * for which a single Unicode replacement character (U+FFFD) will be emitted.
+ * 
+ * @method "flush_"
+ * @param "decoder" "utf8 decoder"
+ * @returns "bytes" "<byte…|>"
+ */
+Method "flush_" is
+[
+	decoder : utf8 decoder
+|
+	out ::= if decoder's residue = <> then [""] else ["\(fffd)"];
+	decoder's residue := <>;
+	out
+];
+
+
+/**
+ * Protect the constructor expressions from potentially ambiguous
+ * interpretations.
+ * 
+ * @restrict "a|an_«with«_«:»?:=_‡,»»"
+ */
+Grammatical restriction {"a|an_«with«_«:»?:=_‡,»»"} is
+<
+	{"utf8 encoder", "utf8 decoder"},
+	∅,
+	∅
+>;
+
+"UTF8 converters test suite" is a new atom;
+New test suite UTF8 converters test suite extends converters test suite;
+
+Test "string encoding" in UTF8 converters test suite is
+[
+	testString ::= "⊤⊥↓↑±∅∊∰∡℀Pog?";
+	encoder ::= a utf8 encoder;
+	encodedTestString ::= encoder process testString;
+	Assert: flush encoder = <>;
+	expectedEncoding ::= <226,138,164,226,138,165,226,134,147,226,134,145,194,
+			177,226,136,133,226,136,138,226,136,176,226,136,161,226,132,128,80,
+			111,103,63>;
+	Require: encodedTestString = expectedEncoding;
+];
+
+Test "byte decoding" in UTF8 converters test suite is
+[
+	testEncoding ::= <226,138,164,226,138,165,226,134,147,226,134,145,194,177,
+		226,136,133,226,136,138,226,136,176,226,136,161,226,132,128,80,111,103,
+		63>;
+	decoder ::= a utf8 decoder;
+	decodedTestEncoding ::= decoder process testEncoding;
+	Assert: flush decoder = <>;
+	expectedDecodedString ::= "⊤⊥↓↑±∅∊∰∡℀Pog?";
+	Require: decodedTestEncoding = expectedDecodedString;
+];
+
+Test "full decoding reader" in UTF8 converters test suite is
+[
+	testEncodingIterator ::= a reader over <226,138,164,226,138,165,226,134,
+		147,226,134,145,194,177,226,136,133,226,136,138,226,136,176,226,136,161,
+		226,132,128,80,111,103,63>;
+	decoded ::= testEncodingIterator converted by a utf8 decoder;
+	decodedTestEncoding ::= take at most ∞ from decoded;
+	expectedDecodedString ::= "⊤⊥↓↑±∅∊∰∡℀Pog?";
+	Require: decodedTestEncoding = expectedDecodedString;
+];
+
+Test "partial decoding reader" in UTF8 converters test suite is
+[
+	testEncodingIterator ::= a reader over <226,138,164,226,138,165,226,134,
+		147,63,226,134,145,194,177,226,136,133,226,136,138,226,136,176,226,136,
+		161,226,132,128,80,111,103,63>;
+	decoded ::= testEncodingIterator converted by a utf8 decoder;
+	decodedTestEncoding ::= take at most 4 from decoded;
+	expectedDecodedString ::= "⊤⊥↓?";
+	Require: decodedTestEncoding = expectedDecodedString;
+];
+
+Test "full encoding reader" in UTF8 converters test suite is
+[
+	testString ::= "⊤⊥↓↑±∅∊∰∡℀Pog?";
+	encodedTestString ::= take at most ∞
+		from a reader over testString converted by a utf8 encoder;
+	expectedEncoding ::=  <226,138,164,226,138,165,226,134,147,226,134,145,194,
+			177,226,136,133,226,136,138,226,136,176,226,136,161,226,132,128,80,
+			111,103,63>;
+	Require: encodedTestString = expectedEncoding;
+];
+
+Test "partial encoding reader" in UTF8 converters test suite is
+[
+	testString ::= "⊤⊥↓?↑±∅∊∰∡℀Pog?";
+	encodedTestString ::= take at most 10
+		from a reader over testString converted by a utf8 encoder;
+	expectedEncoding ::=  <226,138,164,226,138,165,226,134,147,63>;
+	Require: encodedTestString = expectedEncoding;
+];

@@ -79,7 +79,7 @@ extends Descriptor
 	void o_ClearValue (final AvailObject object)
 	{
 		final Object receiver = object.slot(RECEIVER).javaObject();
-		final Field field = (Field) object.slot(FIELD).javaObject();
+		final Field field = (Field) object.slot(FIELD).javaObjectNotNull();
 		final Class<?> fieldType = field.getType();
 		final Object defaultValue;
 		// Sadly Java does not offer reflective access to the default values of
@@ -149,7 +149,7 @@ extends Descriptor
 		throws VariableGetException
 	{
 		final Object receiver = object.slot(RECEIVER).javaObject();
-		final Field field = (Field) object.slot(FIELD).javaObject();
+		final Field field = (Field) object.slot(FIELD).javaObjectNotNull();
 		final A_Type expectedType = object.slot(KIND).readType();
 		try
 		{
@@ -183,7 +183,7 @@ extends Descriptor
 	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
 	{
 		final Object receiver = object.slot(RECEIVER).javaObject();
-		final Field field = (Field) object.slot(FIELD).javaObject();
+		final Field field = (Field) object.slot(FIELD).javaObjectNotNull();
 		final Class<?> classHint = field.getType();
 		try
 		{
@@ -207,7 +207,7 @@ extends Descriptor
 	{
 		// Actually check this write anyhow. Just in case.
 		final Object receiver = object.slot(RECEIVER).javaObject();
-		final Field field = (Field) object.slot(FIELD).javaObject();
+		final Field field = (Field) object.slot(FIELD).javaObjectNotNull();
 		final Class<?> classHint = field.getType();
 		try
 		{
@@ -228,7 +228,7 @@ extends Descriptor
 	AvailObject o_Value (final AvailObject object)
 	{
 		final Object receiver = object.slot(RECEIVER).javaObject();
-		final Field field = (Field) object.slot(FIELD).javaObject();
+		final Field field = (Field) object.slot(FIELD).javaObjectNotNull();
 		final A_Type expectedType = object.slot(KIND).readType();
 		try
 		{
@@ -252,7 +252,7 @@ extends Descriptor
 		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
-		final Field field = (Field) object.slot(FIELD).javaObject();
+		final Field field = (Field) object.slot(FIELD).javaObjectNotNull();
 		if (!Modifier.isStatic(field.getModifiers()))
 		{
 			builder.append('(');
@@ -353,7 +353,7 @@ extends Descriptor
 		final AvailObject receiver,
 		final A_Type innerType)
 	{
-		final Field javaField = (Field) field.javaObject();
+		final Field javaField = (Field) field.javaObjectNotNull();
 		if (Modifier.isFinal(javaField.getModifiers()))
 		{
 			return PojoFinalFieldDescriptor.forInnerType(

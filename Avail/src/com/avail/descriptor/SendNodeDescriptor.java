@@ -184,7 +184,7 @@ extends ParseNodeDescriptor
 	{
 		object.setSlot(
 			ARGUMENTS_LIST_NODE,
-			aBlock.value(object.slot(ARGUMENTS_LIST_NODE)));
+			aBlock.valueNotNull(object.slot(ARGUMENTS_LIST_NODE)));
 	}
 
 	@Override @AvailMethod

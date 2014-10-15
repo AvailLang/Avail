@@ -85,7 +85,9 @@ extends Primitive
 									E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
 									E_FORWARD_METHOD_DEFINITION.numericCode(),
 									E_ABSTRACT_METHOD_DEFINITION.numericCode())
-								.asSet())),
+								.asSet()),
+						METHOD.o(),
+						TupleTypeDescriptor.mostGeneralType()),
 					BottomTypeDescriptor.bottom())),
 			TOP.o());
 	}
