@@ -1,0 +1,159 @@
+/*
+ * Mapped Readers.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Mapped Readers"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Extends
+	"Common" = ("element type", "_'s⁇element type"),
+	"Foundation" =
+	(
+		"For each of⁇_do_",
+		"concatenate_",
+		"filter_by_",
+		"map_through_",
+		"take from_until_",
+		"take from_while_",
+		"zip_",
+		"«_‡zip»",
+		"«_‡++»"
+	)
+Uses
+	"Abstract Iterators",
+	"Common" = ("Data|data abstractions test suite"),
+	"Decorated Readers",
+	"Foundation",
+	"Unit Testing" = ("New test suite,⁇_,⁇extends_")
+Names
+	"mapped reader"
+Body
+
+"transformer" is a new field atom;
+
+/**
+ * {@method "map_through_"} produces mapped readers. A mapped reader decorates
+ * another reader and retains a transformer function. When it is asked for its
+ * current element, it answers the result of applying the function to the
+ * current element of the decorated reader.
+ * 
+ * @category "Data Abstractions"
+ * @type "mapped reader"
+ * @supertype "reader"
+ */
+Class "mapped reader" extends decorated reader
+	with fields
+		component reader : reader,
+		transformer : [⊥]→any;
+
+/**
+ * A mapped reader is exhausted when its component reader is exhausted.
+ * 
+ * @category "Data Abstractions"
+ * @method "_is exhausted"
+ * @restricts "aReader" "mapped reader"
+ * @returns "boolean"
+ */
+Method "_is exhausted" is
+[
+	aReader : mapped reader
+|
+	aReader's component reader is exhausted
+] : boolean;
+
+/* A mapped reader produces its current element by performing its transformer
+ * against its component reader's current element.
+ */
+mapped reader's current element method is
+[
+	aReader : mapped reader
+|
+	invoke aReader's transformer
+		with <aReader's component reader's current element>
+] : any;
+
+/* Advancing a mapped reader advances its component reader. */
+mapped reader's advance method is
+[
+	aReader : mapped reader
+|
+	Advance aReader's component reader;
+] : ⊤;
+
+/**
+ * Construct and answer an reader that applies {@param "theTransformer"} to
+ * the consecutive elements of {@param "aReader"}. The result is lazy, so
+ * {@param "aReader"} may be infinite.
+ * 
+ * @category "Data Abstractions"
+ * @method "map_through_"
+ * @param "aReader" "reader"
+ *        The source {@type "reader"}.
+ * @param "theTransformer" "[⊥]→any"
+ *        A function that accepts the elements of {@param "aReader"}.
+ * @returns "reader"
+ *          An reader that applies {@param "theTransformer"} to the current
+ *          element of {@param "aReader"} when asked for its own current
+ *          element.
+ */
+Method "map_through_" is
+[
+	aReader : reader,
+	theTransformer : [⊥]→any
+|
+	a mapped reader with
+		element type ::= theTransformer's type's return type,
+		component reader ::= aReader,
+		transformer ::= theTransformer
+] : reader;
+
+/**
+ * Ensure the transformer will accept the supplied reader's elements, and
+ * strengthen the resulting type to be a reader that produces elements whose
+ * type is the transformer's return type.
+ * 
+ * @category "Data Abstractions"
+ * @method "map_through_"
+ * @restricts "readerType" "reader's type"
+ *        The source {@type "reader"}.
+ * @restricts "transformerType" "[⊥]→any's type"
+ *        A function that accepts the elements of {@param "aReader"}.
+ * @returns "reader's type"
+ *          The strengthened reader type.
+ */
+Semantic restriction "map_through_" is
+[
+	readerType : reader's type,
+	transformerType : [⊥]→any's type
+|
+	Require: transformerType accepts readerType;
+	extend reader with element type : transformerType's return type's type
+];

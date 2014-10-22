@@ -1,0 +1,133 @@
+/*
+ * Exhausted Readers.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Exhausted Readers"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Extends
+	"Common" = ("element type", "_'s⁇element type"),
+	"Foundation" =
+	(
+		"For each of⁇_do_",
+		"concatenate_",
+		"filter_by_",
+		"map_through_",
+		"take from_until_",
+		"take from_while_",
+		"zip_",
+		"«_‡zip»",
+		"«_‡++»"
+	)
+Uses
+	"Abstract Iterators",
+	"Common" = ("Data|data abstractions test suite"),
+	"Foundation",
+	"Unit Testing" = ("New test suite,⁇_,⁇extends_")
+Names
+	"an exhausted reader",
+	"exhausted reader"
+Body
+
+
+/**
+ * An exhausted reader has ⊥ as its element type.
+ *
+ * @type "exhausted reader"
+ * @supertype "iterator"
+ */
+Public explicit class "exhausted reader" extends reader
+	with fields
+		element type : ⊥'s type;
+
+/**
+ * An {@type "exhausted reader"} is always exhausted.
+ * 
+ * @category "Data Abstractions"
+ * @method "_is exhausted"
+ * @param "anIterator" "exhausted reader"
+ *        An {@type "exhausted reader"}.
+ * @returns "true's type"
+ *          {@code true}.
+ */
+Method "_is exhausted" is
+[
+	anIterator : exhausted reader
+|
+	true
+] : true's type;
+
+/*
+ * An {@type "exhausted reader"} always raises an {@type
+ * "exhausted-iterator exception"} when read.
+ */
+exhausted reader's current element method is
+[
+	anIterator : exhausted reader
+|
+	Raise an exhausted-iterator exception
+] : ⊥;
+
+/*
+ * Raise an {@type "exhausted-iterator exception"}, since an exhausted reader
+ * can never be advanced.
+ */
+exhausted reader's advance method is
+[
+	aReader : exhausted reader
+|
+	Raise an exhausted-iterator exception
+] : ⊥;
+
+Seal exhausted reader's advance method;
+
+theExhaustedReader ::= an exhausted reader with element type ::= ⊥;
+
+/**
+ * Answer an {@type "exhausted reader"}.
+ * 
+ * @category "Data Abstractions"
+ * @method "an exhausted reader"
+ * @returns "exhausted reader"
+ *          An exhausted reader.
+ */
+Public method "an exhausted reader" is [ theExhaustedReader ];
+
+/**
+ * Prevent ambiguity when producing an exhausted reader.
+ *
+ * @method "a|an_«with«_:=_‡,»»"
+ * @forbids "1" "exhausted reader"
+ */
+Grammatical restriction "a|an_«with«_:=_‡,»»"
+	is <{"exhausted reader"}, ∅, ∅>;
+
+Seal method "_is exhausted" at <exhausted reader>;

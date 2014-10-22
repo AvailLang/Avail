@@ -58,9 +58,7 @@ Names
 	"Drop«at most»?_from_",
 	"Seal_'s⁇current element method",
 	"Seal_'s⁇advance method",
-	"an exhausted reader",
-	"decorated reader|readers",
-	"exhausted reader",
+	"decorated reader",
 	"exhausted-iterator exception",
 	"iterator",
 	"iterators test suite",
@@ -73,18 +71,13 @@ Names
 	"_is not exhausted",
 	"_'s⁇advance method is_",
 	"_'s⁇current element",
+	"_'s⁇current element:=_",
 	"_'s⁇current element method is_"
 Body
 
 /* TODO: [TLS] Remove these constants once a macro is available for "$…". */
 privateGetCurrentElementName ::= $"private_'s⁇current element";
-privateSetCurrentElementName ::= $"private_'s⁇current element:=_";
 privateAdvanceName ::= $"Private advance_";
-
-Public "decorated reader|readers" is a new field atom;
-"transformer" is a new field atom;
-"filter" is a new field atom;
-"reader index" is a new field atom;
 
 /**
  * An iterator is a construct that can be advanced via {@method "Advance_"}
@@ -108,8 +101,8 @@ Public explicit class "iterator" extends object
 Public explicit class "reader" extends iterator;
 
 /**
- * A writer is an {@iterator} through which reading may happen, via the method
- * {@method "_'s⁇current element"}.
+ * A writer is an {@iterator} through which writing may happen, via the method
+ * {@method "_'s⁇current element:=_"}.
  * @category "Data Abstractions"
  * @type "writer"
  * @supertype "iterator"
@@ -164,12 +157,13 @@ Method "Advance_" is
 
 /**
  * Define a method to advance the state of a non-exhausted iterator. The public
- * operation, {@method "Advance_"}, does not permit extension (to ensure that iterators
- * are always checked for exhaustion), but the private operation should not be
- * called directly from client code. This special defining method allows the
- * private operation to be overridden for specific iterator implementations
- * without exposing it for direct use. These mechanisms cooperate to ensure that
- * iterator exhaustion checking is never bypassed.
+ * operation, {@method "Advance_"}, does not permit extension (to ensure that
+ * iterators are always checked for exhaustion), but the private operation
+ * should not be called directly from client code. This special defining method
+ * allows the private operation to be overridden for specific iterator
+ * implementations without exposing it for direct use. These mechanisms
+ * cooperate to ensure that iterator exhaustion checking is never bypassed.
+ * 
  * @category "Data Abstractions"
  * @method "_'s⁇advance method is_"
  * @param "iteratorType" "iterator's type"
@@ -186,6 +180,16 @@ Public method "_'s⁇advance method is_" is
 	Private method privateAdvanceName is implementation;
 ] : ⊤;
 
+/**
+ * Ensure the supplied function's argument type is the same as the specified
+ * {@type "iterator"} type.
+ * 
+ * @category "Data Abstractions"
+ * @restrict "_'s⁇advance method is_"
+ * @param "iteratorMeta" "iterator's type's type"
+ * @param "implementationType" "[⊥]→⊤'s type"
+ * @returns "⊤'s type"
+ */
 Semantic restriction "_'s⁇advance method is_" is
 [
 	iteratorMeta : iterator's type's type,
@@ -196,12 +200,12 @@ Semantic restriction "_'s⁇advance method is_" is
 		Reject parse, expected:
 			"function's parameter types to be statically known"
 	];
-	If ¬implementationType[1] ⊆ iteratorMeta's instance then
+	If implementationType[1] ≠ iteratorMeta's instance then
 	[
 		Reject parse, expected:
 			"function parameter type ("
 			++ “implementationType[1]”
-			++ ") to be a subtype of the iterator type ("
+			++ ") to be exactly equal to the iterator type ("
 			++ “iteratorMeta's instance”
 			++ ")"
 	];
@@ -210,6 +214,7 @@ Semantic restriction "_'s⁇advance method is_" is
 
 /**
  * Seal the advance method at the specified {@type "iterator"} type.
+ * 
  * @category "Data Abstractions"
  * @method "Seal_'s⁇advance method"
  * @param "iteratorType" "iterator's type"
@@ -225,6 +230,7 @@ Public method "Seal_'s⁇advance method" is
 /**
  * Construct and answer a {@type "reader"} type that produces values of the
  * specified type.
+ * 
  * @category "Data Abstractions"
  * @method "reader of_"
  * @param "elementType" "any's type"
@@ -239,25 +245,7 @@ Public method "reader of_" is
 	extend reader with element type : elementType's type
 ] : reader's type;
 
-/**
- * Construct and answer a writer type that accepts values of the specified type.
- * @category "Data Abstractions"
- * @method "writer of_"
- * @param "elementType" "any's type"
- *        The type of value consumed by writers having the answered type.
- * @returns "writer's type"
- *          The requested writer type.
- */
-Public method "writer of_" is
-[
-	elementType : any's type
-|
-	extend writer with element type : elementType's type
-] : writer's type;
-
 Private abstract method privateGetCurrentElementName is [reader]→any;
-
-Private abstract method privateSetCurrentElementName is [writer, any]→⊥;
 
 /**
  * Ensure that the specified reader is not exhausted, then answer its current
@@ -285,6 +273,17 @@ Method "_'s⁇current element" is
 	]
 ] : any;
 
+/**
+ * Strengthen the values produced by any {@type "reader"} to that of the element
+ * type of the reader.
+ * 
+ * @category "Data Abstractions"
+ * @method "_'s⁇current element"
+ * @restricts "readerType" "reader's type"
+ *        The type of reader being probed.
+ * @returns "type"
+ *          The strengthened type of element that will be returned.
+ */
 Semantic restriction "_'s⁇current element" is
 [
 	readerType : reader's type
@@ -300,6 +299,7 @@ Semantic restriction "_'s⁇current element" is
  * defining method allows the private operation to be overridden for specific
  * reader implementations without exposing it for direct use. These mechanisms
  * cooperate to ensure that reader exhaustion checking is never bypassed.
+ * 
  * @category "Data Abstractions"
  * @method "_'s⁇current element method is_"
  * @param "readerType" "reader's type"
@@ -316,6 +316,18 @@ Public method "_'s⁇current element method is_" is
 	Private method privateGetCurrentElementName is implementation;
 ] : ⊤;
 
+/**
+ * Ensure the supplied function's argument type is the same as the specified
+ * {@type "reader"} type.
+ * 
+ * @category "Data Abstractions"
+ * @method "_'s⁇current element method is_"
+ * @restricts "readerType" "reader's type"
+ *        The reader's type, as a cross check for the implementation.
+ * @restricts "implementation" "[⊥]→any"
+ *        The new method extension.
+ * @returns "⊤"
+ */
 Semantic restriction "_'s⁇current element method is_" is
 [
 	readerMeta : reader's type's type,
@@ -326,12 +338,12 @@ Semantic restriction "_'s⁇current element method is_" is
 		Reject parse, expected:
 			"function's parameter types to be statically known"
 	];
-	If ¬implementationType[1] ⊆ readerMeta's instance then
+	If implementationType[1] ≠ readerMeta's instance then
 	[
 		Reject parse, expected:
 			"function parameter type ("
 			++ “implementationType[1]”
-			++ ") to be a subtype of the reader type ("
+			++ ") to exactly equals the reader type ("
 			++ “readerMeta's instance”
 			++ ")"
 	];
@@ -352,123 +364,67 @@ Public method "Seal_'s⁇current element method" is
 	Seal method privateGetCurrentElementName at <readerType>;
 ] : ⊤;
 
-/**
- * An exhausted reader has ⊥ as its element type.
- *
- * @type "exhausted reader"
- * @supertype "iterator"
- */
-Public explicit class "exhausted reader" extends reader
-	with fields
-		element type : ⊥'s type;
+
 
 /**
- * Answer {@code true}.
+ * Construct and answer a writer type that accepts values of the specified type.
  * @category "Data Abstractions"
- * @method "_is exhausted"
- * @param "anIterator" "exhausted reader"
- *        An {@type "exhausted reader"}.
- * @returns "true's type"
- *          {@code true}.
+ * @method "writer of_"
+ * @param "elementType" "any's type"
+ *        The type of value consumed by writers having the answered type.
+ * @returns "writer's type"
+ *          The requested writer type.
  */
-Method "_is exhausted" is
+Public method "writer of_" is
 [
-	anIterator : exhausted reader
+	elementType : any's type
 |
-	true
-] : true's type;
+	extend writer with element type : elementType's type
+] : writer's type;
 
 /**
- * Raise an {@type "exhausted-iterator exception"}.
+ * Set the specified writer's current element without advancing.
  * @category "Data Abstractions"
- * @method "_s⁇current element"
- * @param "anIterator" "exhausted reader"
- *        An exhausted reader.
- * @returns "⊥"
- * @raises "exhausted-iterator exception"
- *         Always.
- */
-Method "_s⁇current element" is
-[
-	anIterator : exhausted reader
-|
-	Raise an exhausted-iterator exception
-] : ⊥;
-
-Semantic restriction "_s⁇current element" is
-[
-	iteratorType : exhausted reader's type
-|
-	Reject parse, expected:
-		"an exhausted reader not to be asked for its current element"
-];
-
-/**
- * Raise an `exhausted-iterator exception`.
- * @category "Data Abstractions"
- * @method "Advance_"
- * @param "anIterator" "exhausted reader"
- *        An exhausted reader.
- * @returns "⊥"
- * @raises "exhausted-iterator exception"
- *         Always.
- */
-Method "Advance_" is
-[
-	anIterator : exhausted reader
-|
-	Raise an exhausted-iterator exception
-] : ⊥;
-
-Semantic restriction "Advance_" is
-[
-	iteratorType : exhausted reader's type
-|
-	Reject parse, expected:
-		"an exhausted reader not to be asked to advance"
-];
-
-theExhaustedIterator ::= an exhausted reader with element type ::= ⊥;
-
-/**
- * Answer an {@type "exhausted reader"}.
- * @category "Data Abstractions"
- * @method "an exhausted reader"
- * @returns "exhausted reader"
- *          An exhausted reader.
- */
-Public method "an exhausted reader" is [ theExhaustedIterator ];
-Grammatical restriction "a|an_«with«_:=_‡,»»"
-	is <{"exhausted reader"}, ∅, ∅>;
-
-/* Seal the public operations. */
-Seal method "_is exhausted" at <exhausted reader>;
-Seal method "_'s⁇current element" at <iterator>;
-Seal method "Advance_" at <iterator>;
-
-/**
- * Iteratively apply {@param "action"} to each consecutive element of {@param
- * "anIterator"}.
- * @category "Data Abstractions"
- * @method "For each of⁇_do_"
- * @param "anIterator" "iterator"
- *        An iterator.
- * @param "action" "[⊥]→⊤"
- *        A function that accepts the elements of the iterator.
+ * @method "_'s⁇current element:=_"
+ * @param "aWriter" "writer"
+ *        A writer.
+ * @param "element" "any"
+ *        The element to write.
  * @returns "⊤"
  */
-Method "For each of⁇_do_" is
+Public abstract method "_'s⁇current element:=_" is [writer, any]→⊤;
+
+/**
+ * Ensure the values provided to any {@type "writer"} are suitable for that
+ * writer.
+ * TODO [MvG] - needs contravariance?
+ * 
+ * @category "Data Abstractions"
+ * @method "_'s⁇current element:=_"
+ * @restricts "writerType" "writer's type"
+ *        The type of writer being probed.
+ * @restricts "elementType" "any's type"
+ *        The type of value being written.
+ * @returns "⊤"
+ */
+Semantic restriction "_'s⁇current element:=_" is
 [
-	aReader : reader,
-	action : [⊥]→⊤
+	writerType : writer's type,
+	elementType : any's type
 |
-	Until [ aReader is exhausted ]
-	do
+	If ¬ elementType ⊆ writerType's element type's instance then
 	[
-		action(aReader's current element);
-		Advance aReader;
+		Reject parse, expected:
+			format "Writer's element type (“①”) \
+				\|to accept specified element type (“②”)"
+			with writerType's element type's instance, elementType
 	];
-] : ⊤;
+	⊤
+];
+
+/* Seal the public operations. */
+Seal method "_'s⁇current element" at <iterator>;
+Seal method "Advance_" at <iterator>;
 
 /**
  * Helper method for semantic restrictions: If `action` does not accept the
@@ -498,6 +454,43 @@ Method "Require:_accepts_" is
 	];
 ] : ⊤;
 
+/**
+ * Iteratively apply {@param "action"} to each consecutive element of {@param
+ * "anIterator"}.
+ *
+ * @category "Data Abstractions"
+ * @method "For each of⁇_do_"
+ * @param "anIterator" "iterator"
+ *        An iterator.
+ * @param "action" "[⊥]→⊤"
+ *        A function that accepts the elements of the iterator.
+ * @returns "⊤"
+ */
+Method "For each of⁇_do_" is
+[
+	aReader : reader,
+	action : [⊥]→⊤
+|
+	Until [ aReader is exhausted ]
+	do
+	[
+		action(aReader's current element);
+		Advance aReader;
+	];
+] : ⊤;
+
+/**
+ * Ensure statically that the supplied action will accept values provided by the
+ * reader.
+ *
+ * @category "Data Abstractions"
+ * @method "For each of⁇_do_"
+ * @restricts "readerType" "reader's type"
+ *        A reader.
+ * @restricts "actionType" "[⊥]→⊤'s type"
+ *        A function that accepts the elements of the iterator.
+ * @returns "⊤"
+ */
 Semantic restriction "For each of⁇_do_" is
 [
 	readerType : reader's type,
@@ -506,430 +499,6 @@ Semantic restriction "For each of⁇_do_" is
 	Require: actionType accepts readerType;
 	⊤
 ];
-
-/**
- * {@method "map_through_"} produces mapped readers. A mapped reader
- * decorates another reader and retains a transformer function. When it is
- * asked for its current element, it answers the result of applying the function
- * to the current element of the decorated reader.
- * 
- * @category "Data Abstractions"
- * @type "mapped reader"
- * @supertype "reader"
- */
-Class "mapped reader" extends reader
-	with fields
-		decorated reader : reader,
-		transformer : [⊥]→any;
-
-Method "_is exhausted" is
-[
-	aReader : mapped reader
-|
-	aReader's decorated reader is exhausted
-] : boolean;
-
-mapped reader's current element method is
-[
-	aReader : mapped reader
-|
-	invoke aReader's transformer
-		with <aReader's decorated reader's current element>
-] : any;
-
-mapped reader's advance method is
-[
-	aReader : mapped reader
-|
-	Advance aReader's decorated reader;
-] : ⊤;
-
-/**
- * Construct and answer an reader that applies {@param "theTransformer"} to
- * the consecutive elements of {@param "aReader"}. The result is lazy, so
- * {@param "aReader"} may be infinite.
- * @category "Data Abstractions"
- * @method "map_through_"
- * @param "aReader" "reader"
- *        The source {@type "reader"}.
- * @param "theTransformer" "[⊥]→any"
- *        A function that accepts the elements of {@param "aReader"}.
- * @returns "reader"
- *          An reader that applies {@param "theTransformer"} to the current
- *          element of {@param "aReader"} when asked for its own current
- *          element.
- */
-Method "map_through_" is
-[
-	aReader : reader,
-	theTransformer : [⊥]→any
-|
-	a mapped reader with
-		element type ::= theTransformer's type's return type,
-		decorated reader ::= aReader,
-		transformer ::= theTransformer
-] : reader;
-
-Semantic restriction "map_through_" is
-[
-	readerType : reader's type,
-	transformerType : [⊥]→any's type
-|
-	Require: transformerType accepts readerType;
-	extend reader with element type : transformerType's return type's type
-];
-
-/**
- * {@method "filter_by_"} produces filtered readers. A filtered reader
- * decorates another reader and retains a filter function. When asked for its
- * current element, it answers the first element of the decorated reader that
- * satisfies the filter function.
- *
- * @category "Data Abstractions"
- * @type "filtered reader"
- * @supertype "reader"
- */
-Class "filtered reader" extends reader
-	with fields
-		decorated reader : reader,
-		filter : [⊥]→boolean;
-
-Method "_is exhausted" is
-[
-	aReader : filtered reader
-|
-	found : boolean := false;
-	inner ::= aReader's decorated reader;
-	Until [found ∨ [inner is exhausted]]
-	do
-	[
-		If aReader's filter(inner's current element) then
-		[
-			found := true;
-		]
-		else
-		[
-			Advance inner;
-		];
-	];
-	¬found
-] : boolean;
-
-filtered reader's current element method is
-[
-	aReader : filtered reader
-|
-	/* The current element of the decorated reader must satisfy the filter.
-	 * This is ensured by "_is exhausted".
-	 */
-	aReader's decorated reader's current element
-] : any;
-
-filtered reader's advance method is
-[
-	aReader : filtered reader
-|
-	/* Unconditionally advance the decorated reader. "_is exhausted" will
-	 * determine if there is actually another element that passes the filter.
-	 */
-	Advance aReader's decorated reader;
-] : ⊤;
-
-/**
- * Construct and answer an reader that applies {@param "predicate"} to
- * {@param "aReader"}. The result is lazy, so {@param "aReader"} may be
- * infinite. The result contains only those elements of {@param "aReader"}
- * that pass the specified filter.
- *
- * Note that {@method "_is exhausted"} may require an infinite amount of time to
- * complete when presented with an infinite filtered reader, e.g., consider
- * the case of:
- *
- * <pre>
- *     filter reader from 1 to ∞ by [ x : natural number | x < 10 ]
- * </pre>
- *
- * Which will require infinite computation after advancing beyond the element
- * {@code 10}.
- * @category "Data Abstractions"
- * @method "filter_by_"
- * @param "aReader" "reader"
- *        An {@type "reader"}.
- * @param "predicate" "[⊥]→boolean"
- *        A function that accepts the elements of {@param "aReader"} and
- *        answers {@code true} iff they should be obtainable via the result
- *        reader.
- * @returns "reader"
- *          An reader capable of producing exactly those elements of {@param
- *          "aReader"} for which {@param "predicate"} answers {@code true}.
- */
-Method "filter_by_" is
-[
-	aReader : reader,
-	predicate : [⊥]→boolean
-|
-	a filtered reader with
-		element type ::= aReader's element type,
-		decorated reader ::= aReader,
-		filter ::= predicate
-] : reader;
-
-Semantic restriction "filter_by_" is
-[
-	readerType : reader's type,
-	predicateType : [⊥]→boolean's type
-|
-	Require: predicateType accepts readerType;
-	extend reader with element type : readerType's element type
-];
-
-/**
- * A concatenation reader produces values from a sequenced collection of
- * readers.
- *
- * @category "Data Abstractions"
- * @type "concatenation reader"
- * @supertype "reader"
- */
-Class "concatenation reader" extends reader
-	with field
-		decorated readers : <reader…|>
-	with mutable field
-		referable reader index : natural number;
-
-Method "_is exhausted" is
-[
-	aReader : concatenation reader
-|
-	index : ↑natural number := ↑aReader's reader index;
-	readers ::= aReader's decorated readers;
-	limit ::= |readers|;
-	While [↓index ≤ limit ∧ [readers[↓index] is exhausted]]
-	do
-	[
-		index++;
-	];
-	↓index > limit
-] : boolean;
-
-concatenation reader's current element method is
-[
-	aReader : concatenation reader
-|
-	inner ::= aReader's decorated readers[aReader's reader index];
-	inner's current element
-] : any;
-
-concatenation reader's advance method is
-[
-	aReader : concatenation reader
-|
-	index ::= aReader's reader index;
-	readers ::= aReader's decorated readers;
-	Advance readers[index];
-] : ⊤;
-
-/**
- * Construct and answer an {@type "reader"} that produces values from the
- * specified tuple of readers The result first produces the values of the
- * first element of the tuple, then the second, etc.
- * @category "Data Abstractions"
- * @method "concatenate_"
- * @param "readers" "<reader…|>"
- *        A tuple of readers.
- * @returns "reader"
- *          The requested reader.
- */
-Method "concatenate_" is
-[
-	readers : <reader…|>
-|
-	if |readers| = 0 then [an exhausted reader]
-	else if [|readers| = 1] then [readers[1]]
-	else
-	[
-		elementType ::=
-			cast ∪ map readers through [i : reader | i's element type]
-			into [t : any's type | t];
-		a concatenation reader with
-			element type ::= elementType,
-			decorated readers ::= readers,
-			reader index := 1
-	]
-] : reader;
-
-/**
- * Construct and answer an {@type "reader"} that produces values from the
- * specified tuple of readers The result first produces the values of the
- * first lexical argument, then the second, etc.
- * @category "Data Abstractions"
- * @method "«_‡++»"
- * @param "readers" "<reader…|>"
- *        A tuple of readers.
- * @returns "reader"
- *          The requested reader.
- */
-Method "«_‡++»" is
-[
-	readers : <reader…|2..>
-|
-	elementType ::=
-		cast ∪ map readers through [i : reader | i's element type]
-		into [t : any's type | t];
-	a concatenation reader with
-		element type ::= elementType,
-		decorated readers ::= readers,
-		reader index := 1
-];
-
-/**
- * Answer a function suitable for use as a semantic restriction for the
- * {@method "concatenate_"} and {@method "«_‡++»"} methods.
- * @category "Data Abstractions"
- * @method "concatenation semantic restriction"
- * @returns "[<reader…|>'s type]→(concatenation reader's type)"
- *          The requested function.
- */
-Private method "concatenation semantic restriction" is
-[
-	[
-		readers : <reader…|>'s type
-	|
-		elementType : any's type's type := ⊥;
-		From 1 to (⎣readers⎦ min (|readers' leading types| + 1)) do
-		[
-			index : natural number
-		|
-			elementType := eject elementType ∪ readers[index]'s element type;
-		];
-		extend concatenation reader with
-			element type : elementType,
-			decorated readers : readers
-	]
-];
-
-Semantic restriction "concatenate_" is concatenation semantic restriction;
-Semantic restriction "«_‡++»" is concatenation semantic restriction;
-
-/**
- * A zipped reader produces zipped tuples from a sequenced collection of
- * readers.
- *
- * @category "Data Abstractions"
- * @type "zipped reader"
- * @supertype "reader"
- */
-Explicit class "zipped reader" extends reader
-	with fields
-		element type : tuple's type,
-		decorated readers : <reader…|>;
-
-Method "_is exhausted" is
-[
-	aReader : zipped reader
-|
-	any of aReader's decorated readers
-		satisfies [i : reader | i is exhausted]
-] : boolean;
-
-zipped reader's current element method is
-[
-	aReader : zipped reader
-|
-	map aReader's decorated readers
-		through [i : reader | i's current element]
-] : any;
-
-zipped reader's advance method is
-[
-	aReader : zipped reader
-|
-	For each aReader's decorated readers do [i : reader | Advance i;];
-] : ⊤;
-
-/**
- * Construct and answer the zip of the specified {@type "reader"}s. Given
- * <em>n</em> input readers, the output is the reader whose <em>i</em>-th
- * element is an <em>n</em>-tuple containing the <em>i</em>-th element from each
- * consecutive input reader. The answer is exhausted when any of the input
- * readers becomes exhausted.
- * @category "Data Abstractions"
- * @method "zip_"
- * @param "readers" "<reader…|>"
- *        A tuple of readers.
- * @returns "reader"
- *          The requested reader.
- */
-Method "zip_" is
-[
-	readers : <reader…|1..>
-|
-	types ::= map readers through [i : reader | i's element type];
-	elementType ::=
-		<types[1..|types| - 1], types[|types|]… | |readers|'s type>;
-	a zipped reader with
-		element type ::= elementType,
-		decorated readers ::= readers
-] : reader;
-
-/**
- * Construct and answer the zip of the specified {@type "reader"}s. Given
- * <em>n</em> input readers, the output is the reader whose <em>i</em>-th
- * element is an <em>n</em>-tuple containing the <em>i</em>-th element from each
- * consecutive input reader. The answer is exhausted when any of the input
- * readers becomes exhausted.
- * @category "Data Abstractions"
- * @method "«_‡zip»"
- * @param "readers" "<reader…|>"
- *        A tuple of readers.
- * @returns "reader"
- *          The requested reader.
- */
-Method "«_‡zip»" is
-[
-	readers : <reader…|2..>
-|
-	types ::= map readers through [i : reader | i's element type];
-	elementType ::=
-		<types[1..|types| - 1], types[|types|]… | |readers|'s type>;
-	a zipped reader with
-		element type ::= elementType,
-		decorated readers ::= readers
-] : reader;
-
-/**
- * Answer a function suitable for use as a semantic restriction for the
- * {@method "zip_"} and {@method "«_‡zip»"} methods.
- * @category "Data Abstractions"
- * @method "zip semantic restriction"
- * @returns "[<reader…|>'s type]→(zipped reader's type)"
- *          The requested function.
- */
-Private method "zip semantic restriction" is
-[
-	[
-		readers : <reader…|1..>'s type
-	|
-		types : <any's type…|> := <>;
-		From 1 to (⎣readers⎦ min (|readers' leading types| + 1)) do
-		[
-			index : natural number
-		|
-			types := eject types
-				++ <readers[index]'s element type's instance>;
-		];
-		nonempty ::= cast types into [t : <any's type…|1..> | t];
-		elementType ::=
-			<nonempty[1..|nonempty| - 1], nonempty[|nonempty|]…
-				| ||readers||>;
-		extend zipped reader with
-			element type : elementType's type,
-			decorated readers : readers
-	]
-];
-
-Semantic restriction "zip_" is zip semantic restriction;
-Semantic restriction "«_‡zip»" is zip semantic restriction;
 
 /**
  * Answer a tuple containing (at most) the first {@param "count"} elements of
@@ -976,6 +545,17 @@ Method "take«at most»?_from_" is
 	result
 ] : tuple;
 
+/**
+ * Strengthen the result of the take operation.  Take into account the reader's
+ * element type, how many elements are to be extracted, and whether the
+ * "at most" clause was present.
+ *
+ * @method "take«at most»?_from_"
+ * @restricts "laxity" "boolean's type"
+ * @restricts "count" "[0..∞]'s type"
+ * @restricts "readerType" "reader's type"
+ * @returns "tuple's type"
+ */
 Semantic restriction "take«at most»?_from_" is
 [
 	laxity : boolean's type,
@@ -987,7 +567,7 @@ Semantic restriction "take«at most»?_from_" is
 ];
 
 /**
- * Checks to see if the reader of character is not exhausted.
+ * Checks to see if the reader is not exhausted.
  * 
  * @category "Data Abstractions"
  * @method "_is not exhausted"
@@ -1000,7 +580,7 @@ Public method "_is not exhausted" is
  	aReader : reader
 |
  	¬aReader is exhausted
-]:boolean;
+] : boolean;
 
 /**
  * Answer a tuple containing the prefix of {@param "aReader"} that answered
@@ -1035,6 +615,14 @@ Method "take from_while_" is
 	result
 ] : tuple;
 
+/**
+ * Strengthen the result of the {@method "take from_while_"} operation.
+ *
+ * @method "take from_while_"
+ * @restricts "readerType" "reader's type"
+ * @restricts "predicate" "[⊥]→boolean's type"
+ * @returns "tuple's type"
+ */
 Semantic restriction "take from_while_" is
 [
 	readerType : reader's type,
@@ -1077,6 +665,14 @@ Method "take from_until_" is
 	result
 ] : tuple;
 
+/**
+ * Strengthen the result of the {@method "take from_until_"} operation.
+ *
+ * @method "take from_until_"
+ * @restricts "readerType" "reader's type"
+ * @restricts "predicate" "[⊥]→boolean's type"
+ * @returns "tuple's type"
+ */
 Semantic restriction "take from_until_" is
 [
 	readerType : reader's type,
@@ -1126,6 +722,7 @@ Method "Drop«at most»?_from_" is
 /**
  * Forward the specified {@type "reader"} past the prefix of elements that
  * answer {@code true} to {@param "predicate"}.
+ * 
  * @category "Data Abstractions"
  * @method "Drop from_while_"
  * @param "aReader" "reader"
@@ -1151,6 +748,15 @@ Method "Drop from_while_" is
 	];
 ] : ⊤;
 
+/**
+ * Verify statically that {@method "Drop from_while_"}'s reader provides
+ * elements suitable for processing by the predicate.
+ *
+ * @method "Drop from_while_"
+ * @restricts "readerType" "reader's type"
+ * @restricts "predicate" "[⊥]→boolean's type"
+ * @returns "⊤'s type"
+ */
 Semantic restriction "Drop from_while_" is
 [
 	readerType : reader's type,
@@ -1188,6 +794,15 @@ Method "Drop from_until_" is
 	];
 ] : ⊤;
 
+/**
+ * Verify statically that {@method "Drop from_until_"}'s reader provides
+ * elements suitable for processing by the predicate.
+ *
+ * @method "Drop from_until_"
+ * @restricts "readerType" "reader's type"
+ * @restricts "predicate" "[⊥]→boolean's type"
+ * @returns "⊤'s type"
+ */
 Semantic restriction "Drop from_until_" is
 [
 	readerType : reader's type,

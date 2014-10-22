@@ -759,9 +759,7 @@ Method "concatenate_" is
 	else if [ |streams| = 1 ] then [ streams[1] ]
 	else
 	[
-		elementType ::=
-			cast ∪ map streams through [s : stream | s's element type]
-			into [ t : any's type | t ];
+		elementType ::= ∪ map streams through [s : stream | s's element type];
 		a concatenation stream with
 			element type ::= elementType,
 			decorated streams ::= streams,
@@ -784,9 +782,7 @@ Method "«_‡++»" is
 [
 	streams : <stream…|2..>
 |
-	elementType ::=
-		cast ∪ map streams through [s : stream | s's element type]
-		into [ t : any's type | t ];
+	elementType ::= ∪ map streams through [s : stream | s's element type];
 	a concatenation stream with
 		element type ::= elementType,
 		decorated streams ::= streams,

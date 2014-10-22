@@ -1,0 +1,205 @@
+/*
+ * Zipped Readers.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Zipped Readers"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Extends
+	"Common" = ("element type", "_'s⁇element type"),
+	"Foundation" =
+	(
+		"For each of⁇_do_",
+		"concatenate_",
+		"filter_by_",
+		"map_through_",
+		"take from_until_",
+		"take from_while_",
+		"zip_",
+		"«_‡zip»"
+	)
+Uses
+	"Abstract Iterators",
+	"Common" = ("Data|data abstractions test suite"),
+	"Foundation",
+	"Unit Testing" = ("New test suite,⁇_,⁇extends_")
+Names
+	"zipped reader"
+Body
+
+"readers" is a new field atom;
+
+/**
+ * A zipped reader produces zipped tuples from a sequenced collection of
+ * readers.
+ *
+ * @category "Data Abstractions"
+ * @type "zipped reader"
+ * @supertype "reader"
+ */
+Explicit class "zipped reader" extends reader
+	with fields
+		element type : tuple's type,
+		readers : <reader…|>;
+
+/**
+ * Determine if the zipped reader is exhausted.
+ * 
+ * @method "_is exhausted"
+ * @param "aReader" "zipped reader"
+ * @returns "boolean"
+ */
+Method "_is exhausted" is
+[
+	aReader : zipped reader
+|
+	any of aReader's readers
+		satisfies [i : reader | i is exhausted]
+] : boolean;
+
+/* Extract the current element from the zipped reader. */
+zipped reader's current element method is
+[
+	aReader : zipped reader
+|
+	map aReader's readers
+		through [i : reader | i's current element]
+] : any;
+
+/* Advance the zipped reader. */
+zipped reader's advance method is
+[
+	aReader : zipped reader
+|
+	For each aReader's readers do [i : reader | Advance i;];
+] : ⊤;
+
+/**
+ * Construct and answer the zip of the specified {@type "reader"}s. Given
+ * <em>n</em> input readers, the output is the reader whose <em>i</em>-th
+ * element is an <em>n</em>-tuple containing the <em>i</em>-th element from each
+ * consecutive input reader. The answer is exhausted when any of the input
+ * readers becomes exhausted.
+ * 
+ * @category "Data Abstractions"
+ * @method "zip_"
+ * @param "readers" "<reader…|>"
+ *        A tuple of readers.
+ * @returns "reader"
+ *          The requested reader.
+ */
+Method "zip_" is
+[
+	readers : <reader…|1..>
+|
+	types ::= map readers through [i : reader | i's element type];
+	elementType ::=
+		<types[1..|types| - 1], types[|types|]… | |readers|'s type>;
+	a zipped reader with
+		element type ::= elementType,
+		readers ::= readers
+] : reader;
+
+/**
+ * Construct and answer the zip of the specified {@type "reader"}s. Given
+ * <em>n</em> input readers, the output is the reader whose <em>i</em>-th
+ * element is an <em>n</em>-tuple containing the <em>i</em>-th element from each
+ * consecutive input reader. The answer is exhausted when any of the input
+ * readers becomes exhausted.
+ * 
+ * @category "Data Abstractions"
+ * @method "«_‡zip»"
+ * @param "readers" "<reader…|>"
+ *        A tuple of readers.
+ * @returns "reader"
+ *          The requested reader.
+ */
+Method "«_‡zip»" is
+[
+	readers : <reader…|2..>
+|
+	types ::= map readers through [i : reader | i's element type];
+	elementType ::=
+		<types[1..|types| - 1], types[|types|]… | |readers|'s type>;
+	a zipped reader with
+		element type ::= elementType,
+		readers ::= readers
+] : reader;
+
+/**
+ * Answer a function suitable for use as a semantic restriction for the
+ * {@method "zip_"} and {@method "«_‡zip»"} methods.
+ * 
+ * @category "Data Abstractions"
+ * @method "zip semantic restriction"
+ * @returns "[<reader…|>'s type]→(zipped reader's type)"
+ *          The requested function.
+ */
+Private method "zip semantic restriction" is
+[
+	[
+		readers : <reader…|1..>'s type
+	|
+		types : <any's type…|> := <>;
+		From 1 to (⎣readers⎦ min (|readers' leading types| + 1)) do
+		[
+			index : natural number
+		|
+			types := eject types
+				++ <readers[index]'s element type's instance>;
+		];
+		nonempty ::= cast types into [t : <any's type…|1..> | t];
+		elementType ::=
+			<nonempty[1..|nonempty| - 1], nonempty[|nonempty|]…
+				| ||readers||>;
+		extend zipped reader with
+			element type : elementType's type,
+			readers : readers
+	]
+];
+
+/**
+ * Strengthen the {@type "reader"} {@method "zip_"} operation.
+ * 
+ * @method "zip_"
+ * @restricts "readers" "<reader…|1..>'s type"
+ * @returns "zipped reader"
+ */
+Semantic restriction "zip_" is zip semantic restriction;
+
+/**
+ * Strengthen the {@type "reader"} {@method "«_‡zip»"} operation.
+ * 
+ * @method "zip_"
+ * @restricts "readers" "<reader…|1..>'s type"
+ * @returns "zipped reader"
+ */
+Semantic restriction "«_‡zip»" is zip semantic restriction;
