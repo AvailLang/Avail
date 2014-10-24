@@ -44,6 +44,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
+import com.avail.annotations.Nullable;
 import com.avail.utility.IO;
 import com.avail.utility.Mutable;
 
@@ -87,8 +88,9 @@ public class StacksOutputFile
 
 	/**
 	 * Write text to a file.
+	 *
 	 * @param outputText
-	 * 		the text to be written to file
+	 *        The text to be written to file.
 	 */
 	public synchronized void write(final String outputText)
 	{
@@ -102,7 +104,9 @@ public class StacksOutputFile
 			new CompletionHandler<Integer, Void>()
 			{
 				@Override
-				public void completed (final Integer bytesWritten, final Void unused)
+				public void completed (
+					final @Nullable Integer bytesWritten,
+					final @Nullable Void unused)
 				{
 					if (buffer.hasRemaining())
 					{
@@ -117,7 +121,9 @@ public class StacksOutputFile
 				}
 
 				@Override
-				public void failed (final Throwable exc, final Void unused)
+				public void failed (
+					final @Nullable Throwable exc,
+					final @Nullable Void unused)
 				{
 					// Log something?
 					IO.close(outputFile);
@@ -134,36 +140,32 @@ public class StacksOutputFile
 	 *        BasicFileAttributes#isDirectory() directory} for documentation and
 	 *        data files.
 	 * @param fileName
-	 * 		The name of the new file
+	 *        The name of the new file
 	 * @param synchronizer
-	 * 		The {@linkplain StacksSynchronizer} used to control the creation
-	 * 		of Stacks documentation
+	 *        The {@linkplain StacksSynchronizer} used to control the creation
+	 *        of Stacks documentation
 	 * @param runtime
 	 *        An {@linkplain AvailRuntime runtime}.
 	 * @param name
-	 * 		The name of the method the file represents as it is represented
-	 * 		from the point of view of the main module being documented.
+	 *        The name of the method the file represents as it is represented
+	 *        from the point of view of the main module being documented.
+	 * @throws IOException
+	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
-	public StacksOutputFile (final Path outputPath,
-		final StacksSynchronizer synchronizer, final String fileName,
-		final AvailRuntime runtime,
-		final String name)
+	public StacksOutputFile (
+			final Path outputPath,
+			final StacksSynchronizer synchronizer,
+			final String fileName,
+			final AvailRuntime runtime,
+			final String name)
+		throws IOException
 	{
 		this.outputPath = outputPath;
 		this.synchronizer = synchronizer;
 		this.name = name;
 
 		final Path filePath = outputPath.resolve(fileName);
-		try
-		{
-			Files.createDirectories(outputPath);
-		}
-		catch (final IOException e)
-		{
-			// TODO Auto-generated catch block
-			System.out.println(outputPath.toString());
-			e.printStackTrace();
-		}
+		Files.createDirectories(outputPath);
 		try
 		{
 			this.outputFile = runtime.openFile(
@@ -171,8 +173,11 @@ public class StacksOutputFile
 					StandardOpenOption.WRITE,
 					StandardOpenOption.TRUNCATE_EXISTING));
 		}
-		catch (IllegalArgumentException | UnsupportedOperationException
-			| SecurityException | IOException e)
+		catch (
+			IllegalArgumentException
+			| UnsupportedOperationException
+			| SecurityException
+			| IOException e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();

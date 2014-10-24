@@ -47,6 +47,7 @@ import com.avail.compiler.scanning.AvailScannerResult;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Flag;
+import com.avail.io.TextInterface;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
 
@@ -66,6 +67,9 @@ extends AbstractAvailCompiler
 	 *        The current {@linkplain ModuleDescriptor module}.
 	 * @param scannerResult
 	 *        An {@link AvailScannerResult}.
+	 * @param textInterface
+	 *        The {@linkplain TextInterface text interface} for any {@linkplain
+	 *        A_Fiber fibers} started by this compiler.
 	 * @param problemHandler
 	 *        The {@link ProblemHandler} used for reporting compilation
 	 *        problems.
@@ -73,9 +77,10 @@ extends AbstractAvailCompiler
 	public AvailSystemCompiler (
 		final A_Module module,
 		final AvailScannerResult scannerResult,
+		final TextInterface textInterface,
 		final ProblemHandler problemHandler)
 	{
-		super(module, scannerResult, problemHandler);
+		super(module, scannerResult, textInterface, problemHandler);
 	}
 
 	/**
@@ -85,15 +90,19 @@ extends AbstractAvailCompiler
 	 *        The {@link ResolvedModuleName} of the module to compile.
 	 * @param scannerResult
 	 *        An {@link AvailScannerResult}.
+	 * @param textInterface
+	 *        The {@linkplain TextInterface text interface} for any {@linkplain
+	 *        A_Fiber fibers} started by this compiler.
 	 * @param problemHandler
 	 *        The {@linkplain ProblemHandler problem handler}.
 	 */
 	public AvailSystemCompiler (
 		final ResolvedModuleName moduleName,
 		final AvailScannerResult scannerResult,
+		final TextInterface textInterface,
 		final ProblemHandler problemHandler)
 	{
-		super(moduleName, scannerResult, problemHandler);
+		super(moduleName, scannerResult, textInterface, problemHandler);
 	}
 
 	@Override

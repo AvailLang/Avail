@@ -33,6 +33,8 @@
 package com.avail.utility;
 
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
 import com.avail.utility.evaluation.Continuation0;
@@ -50,12 +52,74 @@ import com.avail.utility.evaluation.Continuation2;
  * {@link Graph} is not synchronized.
  * </p>
  *
- * @param <Vertex> The vertex type with which to parameterize the Graph.
+ * @param <Vertex>
+ *        The vertex type with which to parameterize the Graph.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class Graph <Vertex>
+public class Graph<Vertex>
 {
+	/** The {@linkplain Logger logger}. */
+	@InnerAccess static final Logger logger = Logger.getLogger(
+		Graph.class.getName());
+
+	/** Whether to log visit information. */
+	private static final boolean debugGraph = false;
+
+	/**
+	 * Log the specified message if {@linkplain #debugGraph debugging} is
+	 * enabled.
+	 *
+	 * @param level
+	 *        The {@linkplain Level severity level}.
+	 * @param format
+	 *        The format string.
+	 * @param args
+	 *        The format arguments.
+	 */
+	@InnerAccess static void log (
+		final Level level,
+		final String format,
+		final Object... args)
+	{
+		if (debugGraph)
+		{
+			if (logger.isLoggable(level))
+			{
+				logger.log(level, String.format(format, args));
+			}
+		}
+	}
+
+	/**
+	 * Log the specified message if {@linkplain #debugGraph debugging} is
+	 * enabled.
+	 *
+	 * @param level
+	 *        The {@linkplain Level severity level}.
+	 * @param exception
+	 *        The {@linkplain Throwable exception} that motivated this log
+	 *        entry.
+	 * @param format
+	 *        The format string.
+	 * @param args
+	 *        The format arguments.
+	 */
+	@InnerAccess static void log (
+		final Level level,
+		final Throwable exception,
+		final String format,
+		final Object... args)
+	{
+		if (debugGraph)
+		{
+			if (logger.isLoggable(level))
+			{
+				logger.log(level, String.format(format, args), exception);
+			}
+		}
+	}
+
 	/**
 	 * A {@link GraphPreconditionFailure} is thrown whenever a precondition of
 	 * a graph manipulation operation does not hold.  The preconditions are
@@ -585,9 +649,6 @@ public class Graph <Vertex>
 	 */
 	private class ParallelVisitor
 	{
-		/** Whether to log visit information to System.out. */
-		final static boolean debug = false;
-
 		/**
 		 * This action is invoked during {@link #execute() execution} exactly
 		 * once for each vertex, precisely when that vertex's predecessors have
@@ -679,8 +740,7 @@ public class Graph <Vertex>
 					}
 					catch (final InterruptedException e)
 					{
-						// Ignore.  This is just for debugging.
-						System.err.println("Interrupted build");
+						// Ignore.
 					}
 				}
 				if (!stack.isEmpty())
@@ -689,10 +749,7 @@ public class Graph <Vertex>
 					final int countdown = predecessorCountdowns.get(vertex);
 					if (countdown == 1)
 					{
-						if (debug)
-						{
-							System.out.format("Visiting %s%n", vertex).flush();
-						}
+						log(Level.FINE, "Visiting %s%n", vertex);
 						visitAction.value(
 							vertex,
 							new Continuation0()
@@ -720,14 +777,10 @@ public class Graph <Vertex>
 										final Set<Vertex> successors =
 											successorsOf(vertex);
 										stack.addAll(successors);
-										if (debug)
-										{
-											System.out
-												.format(
-													"Completed %s%n",
-													vertex)
-												.flush();
-										}
+										log(
+											Level.FINE,
+											"Completed %s%n",
+											vertex);
 										ParallelVisitor.this.notifyAll();
 									}
 								}

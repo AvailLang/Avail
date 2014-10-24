@@ -52,11 +52,9 @@ Uses
 		"Assert:_(_)",
 		"Breakpoint",
 		"Crash:_",
-		"Error:_",
 		"If_then_",
 		"If|if_then_else_",
 		"Park current fiber",
-		"Print:_",
 		"Request termination of_",
 		"Restart_",
 		"Resume_",
@@ -142,7 +140,6 @@ Uses
 		"_is unassigned",
 		"_mod_",
 		"_reversed",
-		"read_/write_",
 		"_→block phrase",
 		"_→character",
 		"_→double",
@@ -191,6 +188,7 @@ Uses
 		"new`↑_",
 		"primfail`«_:_`»",
 		"primitive description of_",
+		"read_/write_",
 		"semantic restrictions for_given_",
 		"termination requested",
 		"{_`|_}",
@@ -2378,22 +2376,6 @@ Primitive "Breakpoint" is
 ] : ⊤;
 
 /**
- * Print the argument to the application's standard output stream.
- *
- * @category "Primitives" "Standard I/O" "Synchronous I/O"
- * @method "Print:_"
- * @param "text" "string"
- *        A string.
- * @returns "⊤"
- */
-Primitive "Print:_" is
-[
-	text : string
-|
-	Primitive 258;
-] : ⊤;
-
-/**
  * Produce a primitive description of the argument. This description is
  * mechanically constructed by the Avail virtual machine. It may not contain
  * appropriately localized text, and is intended to provide
@@ -2435,22 +2417,6 @@ Primitive "Assert:_(_)" is
 	message : string
 |
 	Primitive 260;
-] : ⊤;
-
-/**
- * Print the argument to the application's standard error stream.
- *
- * @category "Primitives" "Standard I/O" "Synchronous I/O"
- * @method "Error:_"
- * @param "text" "string"
- *        A string.
- * @returns "⊤"
- */
-Primitive "Error:_" is
-[
-	text : string
-|
-	Primitive 265;
 ] : ⊤;
 
 /**

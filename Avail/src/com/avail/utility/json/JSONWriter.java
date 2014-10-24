@@ -62,6 +62,14 @@ implements AutoCloseable
 
 	/**
 	 * Construct a new {@link JSONWriter}.
+	 */
+	public JSONWriter ()
+	{
+		this.writer = new StringWriter();
+	}
+
+	/**
+	 * Construct a new {@link JSONWriter}.
 	 *
 	 * @param writer
 	 *        The {@linkplain Writer target} for the raw JSON document.
@@ -749,6 +757,23 @@ implements AutoCloseable
 		{
 			format("%s", value);
 		}
+	}
+
+	/**
+	 * Write the contents of the specified {@link JSONWriter} to the underlying
+	 * document as a JSON value. This is only permitted whenever an arbitrary
+	 * JSON value would be permitted.
+	 *
+	 * @param other
+	 *        Another {@code JSONWriter}.
+	 */
+	public void write (final JSONWriter other)
+	{
+		final JSONState state = stack.removeFirst();
+		state.checkCanWriteAnyValue();
+		state.writePrologueTo(this);
+		privateWrite(other.toString());
+		stack.addFirst(state.nextStateAfterValue());
 	}
 
 	/**

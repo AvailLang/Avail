@@ -60,6 +60,7 @@ import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
@@ -4595,5 +4596,19 @@ extends AbstractDescriptor
 	boolean o_IsNumericallyIntegral (final AvailObject object)
 	{
 		return o_Traversed(object).isNumericallyIntegral();
+	}
+
+	@Override
+	TextInterface o_TextInterface (final AvailObject object)
+	{
+		return o_Traversed(object).textInterface();
+	}
+
+	@Override
+	void o_TextInterface (
+		final AvailObject object,
+		final TextInterface textInterface)
+	{
+		o_Traversed(object).textInterface(textInterface);
 	}
 }

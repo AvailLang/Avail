@@ -37,9 +37,7 @@ import static com.avail.compiler.ParsingConversionRule.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.StringDescriptor.*;
 import static com.avail.exceptions.AvailErrorCode.*;
-import java.io.PrintStream;
 import java.util.*;
-import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.AbstractAvailCompiler.ParserState;
 import com.avail.compiler.scanning.AvailScanner;
@@ -2331,14 +2329,16 @@ public class MessageSplitter
 			}
 		}
 		assert rootGroup.expressionsAfterDagger.isEmpty();
-		// dumpForDebug();
 	}
 
 	/**
 	 * Dump debugging information about this {@linkplain MessageSplitter} to
-	 * System.out.
+	 * the specified {@linkplain StringBuilder builder}.
+	 *
+	 * @param builder
+	 *        The accumulator.
 	 */
-	public void dumpForDebug ()
+	public void dumpForDebug (final StringBuilder builder)
 	{
 		final List<String> partsList =
 			new ArrayList<>(messageParts.size());
@@ -2352,12 +2352,11 @@ public class MessageSplitter
 		{
 			instructionsList.add(instruction.extractInt());
 		}
-		final PrintStream out = AvailRuntime.current().standardOutputStream();
-		out.printf(
+		builder.append(String.format(
 			"%s  ->  %s  ->  %s%n",
 			messageName.asNativeString(),
 			partsList.toString(),
-			instructionsList.toString());
+			instructionsList.toString()));
 	}
 
 	/**
@@ -2953,5 +2952,13 @@ public class MessageSplitter
 			|| aCharacter == ' '
 			|| aCharacter == '/'
 			|| AvailScanner.isOperatorCharacter(aCharacter);
+	}
+
+	@Override
+	public String toString ()
+	{
+		final StringBuilder builder = new StringBuilder();
+		dumpForDebug(builder);
+		return builder.toString();
 	}
 }

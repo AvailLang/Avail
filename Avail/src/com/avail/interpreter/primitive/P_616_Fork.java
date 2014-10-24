@@ -107,6 +107,8 @@ extends Primitive
 		// Share and inherit any heritable variables.
 		newFiber.heritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared());
+		// Inherit the fiber's text interface.
+		newFiber.textInterface(current.textInterface());
 		// Schedule the fiber to run the specified function. Share the fiber,
 		// since it will be visible to the caller.
 		newFiber.makeShared();

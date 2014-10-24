@@ -53,6 +53,7 @@ import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
@@ -4437,6 +4438,20 @@ extends AbstractDescriptor
 
 	@Override
 	boolean o_IsNumericallyIntegral (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	TextInterface o_TextInterface (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_TextInterface (
+		final AvailObject object,
+		final TextInterface textInterface)
 	{
 		throw unsupportedOperationException();
 	}

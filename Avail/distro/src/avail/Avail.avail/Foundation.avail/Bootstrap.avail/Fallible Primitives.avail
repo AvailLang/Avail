@@ -52,6 +52,7 @@ Uses
 		"Abstract method_is_",
 		"After the current module is unloaded,⁇do_",
 		"Attempt to join_",
+		"Error:_",
 		"Exit_with_",
 		"Export_as a new name",
 		"Forward method_is_",
@@ -61,6 +62,7 @@ Uses
 		"Invoke|invoke_with_",
 		"Macro_is«_,»_",
 		"Mark for_character|characters of read ahead",
+		"Print:_",
 		"Reject parse,expected:_",
 		"Remove current fiber[_]",
 		"Remove_[_]",
@@ -1961,6 +1963,24 @@ Primitive "Grammatical restriction_is_" is
 ] : ⊤;
 
 /**
+ * Print the argument to the application's standard output stream.
+ *
+ * @category "Primitives" "Standard I/O" "Synchronous I/O"
+ * @method "Print:_"
+ * @param "text" "string"
+ *        A string.
+ * @returns "⊤"
+ */
+Primitive "Print:_" is
+[
+	text : string
+|
+	Primitive 258 (failureCode : {
+		I/O-error code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
  * Mark the standard input stream to allow at least {@param "count"}
  * characters of read ahead.
  *
@@ -2066,6 +2086,24 @@ Primitive "Grammatical restriction_is_" is
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Print the argument to the application's standard error stream.
+ *
+ * @category "Primitives" "Standard I/O" "Synchronous I/O"
+ * @method "Error:_"
+ * @param "text" "string"
+ *        A string.
+ * @returns "⊤"
+ */
+Primitive "Error:_" is
+[
+	text : string
+|
+	Primitive 265 (failureCode : {
+		I/O-error code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -2495,7 +2533,7 @@ Primitive "constructor of_,⁇parameterized by_,⁇on failure doing_" is
  *        variable.
  * @param "fieldName" "string"
  *        The name of the desired field.
- * @returns "variable"
+ * @returns "read ⊤/write ⊥"
  *    A variable bound to the specified instance field.
  * @raises "Java-field-not-available exception"
  */
@@ -2521,7 +2559,7 @@ Primitive "_'s⁇_field" is
  *        variable.
  * @param "fieldName" "string"
  *        The name of the desired field.
- * @returns "variable"
+ * @returns "read ⊤/write ⊥"
  *    A variable bound to the specified static field.
  * @raises "Java-field-not-available exception"
  * @raises "Java-field-reference-is-ambiguous exception"

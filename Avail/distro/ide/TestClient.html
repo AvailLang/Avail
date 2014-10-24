@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style type="text/css">
+div.console
+{
+	width: 100%;
+	height: 300px;
+	margin-top: 20px;
+	overflow-x: auto;
+	overflow-y: scroll;
+	background-color: #f0f0f0;
+	box-shadow: 6px 6px 5px rgba(0,0,0,0.5);
+	font-family: monospace;
+	white-space: pre;
+}
+div.cmdBanner
+{
+	color: white;
+	background-color: black;
+}
+div.ioBanner
+{
+	color: white;
+	background-color: darkgreen;
+}
+div.errBanner
+{
+	color: white;
+	background-color: darkred;
+}
+pre { outline: 1px solid #ccc; padding: 5px; margin: 5px; }
+textarea { background-color: white; }
+.string { color: green; }
+.number { color: darkorange; }
+.boolean { color: blue; }
+.null { color: magenta; }
+.key { color: red; }
+</style>
+<script language="javascript" type="text/javascript">
+	var availUri = "ws://localhost:40000/avail";
+	var cmdOutput = null, ioOutput = null;
+	var cmdChannel = null, ioChannel = null;
+	var wsInput = null;
+
+	function wsInit ()
+	{
+		cmdOutput = document.getElementById('cmdOutput');
+		ioOutput = document.getElementById('ioOutput');
+		wsInput = document.getElementById('wsInput');
+		cmdChannel = new WebSocket(availUri);
+		cmdChannel.onopen = function (e)
+		{
+			cmdWrite('<div class="cmdBanner">CONNECTED</div>');
+		};
+		cmdChannel.onclose = function (e)
+		{
+			cmdWrite('<div class="cmdBanner">DISCONNECTED</div>');
+			wsInput.disabled = true;
+		};
+		cmdChannel.onerror = function (e)
+		{
+			cmdWrite(
+				'<div class="errBanner">ERROR: ' + e.data + '</div>');
+		};
+		cmdChannel.onmessage = function (e)
+		{
+			{
+				var response = JSON.parse(e.data);
+				var prettyJSON = highlight(JSON.stringify(JSON.parse(e.data), null, 4));
+				cmdWrite(prettyJSON);
+			}
+			if ('upgrade' in response)
+			{
+				ioChannel = new WebSocket(availUri);
+				ioChannel.onopen = function (e)
+				{
+					cmdWrite('<div class="ioBanner">I/O CONNECTED</div>');
+					wsInput.style.backgroundColor = 'yellow';
+					ioChannel.send('upgrade ' + response.upgrade);
+				};
+				ioChannel.onclose = function (e)
+				{
+					cmdWrite('<div class="ioBanner">I/O DISCONNECTED</div>')
+					ioChannel = null;
+					wsInput.style.backgroundColor = 'white';
+				};
+				ioChannel.onerror = function (e)
+				{
+					cmdWrite('<div class="errBanner">ERROR: ' + e.data + '</div>');
+				};
+				ioChannel.onmessage = function (e)
+				{
+					var response = JSON.parse(e.data);
+					if (response.tag === 'out')
+					{
+						ioWrite(response.content);
+					}
+					else if (response.tag === 'err')
+					{
+						ioWrite(
+							'<span style="color: red">'
+							+ response.content
+							+ '</span>');
+					}
+				};
+			}
+		}
+	}
+
+	function cmdWrite (msg)
+	{
+		var p = document.createElement("pre");
+		p.style.wordWrap = "break-word";
+		p.innerHTML = msg;
+		cmdOutput.appendChild(p);
+		cmdOutput.scrollTop = cmdOutput.scrollHeight;
+	}
+
+	function ioWrite (msg)
+	{
+		ioOutput.innerHTML = ioOutput.innerHTML + msg;
+		ioOutput.scrollTop = ioOutput.scrollHeight;
+	}
+
+	function highlight (json)
+	{
+	    json = json.replace(/&/g, '&')
+	    	.replace(/</g, '&lt;')
+	    	.replace(/>/g, '&gt;');
+	    return json.replace(
+	    	/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+	    	function (match)
+	    	{
+		        var cls = 'number';
+		        if (/^"/.test(match))
+		        {
+		            if (/:$/.test(match))
+		            {
+		                cls = 'key';
+		            }
+		            else
+		            {
+		                cls = 'string';
+		            }
+		        }
+		        else if (/true|false/.test(match))
+		        {
+		            cls = 'boolean';
+		        }
+		        else if (/null/.test(match))
+		        {
+		            cls = 'null';
+		        }
+		        return '<span class="' + cls + '">' + match + '</span>';
+	    	});
+	}
+
+	function cmdSend (msg)
+	{
+		if (ioChannel === null)
+		{
+			cmdWrite('<span style="color: gray">' + msg + '</span>');
+			cmdChannel.send(msg);
+		}
+		else
+		{
+			ioWrite('<span style="color: green">' + msg + '</span><br/>');
+			ioChannel.send(msg + '\n');
+		}
+	}
+
+	function clearOutput (elem)
+	{
+		var elem = cmdOutput;
+		while (elem.hasChildNodes())
+		{
+			elem.removeChild(elem.firstChild);
+		}
+		elem = ioOutput;
+		while (elem.hasChildNodes())
+		{
+			elem.removeChild(elem.firstChild);
+		}
+	}
+</script>
+</head>
+<body onload="wsInit();">
+<textarea id="wsInput" rows="4" cols="80"></textarea><br/>
+<input
+	id="wsButton"
+	type="button"
+	onclick="cmdSend(wsInput.value); wsInput.value = '';"
+	value="Send"/>
+<input
+	id="wsButton"
+	type="button"
+	onclick="cmdChannel.close();"
+	value="Close"/>
+<input
+	id="wsClear"
+	type="button"
+	onclick="clearOutput();"
+	value="Clear"/>
+<div class="console" id="cmdOutput">
+<!-- Command content appears here. -->
+</div>
+<div class="console" id="ioOutput">
+<!-- I/O content appears here. -->
+</div>
+</body>
+</html>

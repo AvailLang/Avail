@@ -37,13 +37,14 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.*;
 import java.util.List;
-import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.io.TextInputChannel;
 
 /**
- * <strong>Primitive 262</strong>: Reset the standard input stream to the
- * previously set mark.
+ * <strong>Primitive 262</strong>: Reset the {@linkplain Interpreter#fiber()
+ * current fiber}'s {@linkplain TextInputChannel standard input channel} to the
+ * previously set {@linkplain P_261_MarkStandardInputStream mark}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -63,10 +64,11 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 0;
-		final Reader reader = AvailRuntime.current().standardInputReader();
+		final TextInputChannel channel =
+			interpreter.fiber().textInterface().inputChannel();
 		try
 		{
-			reader.reset();
+			channel.reset();
 		}
 		catch (final IOException e)
 		{

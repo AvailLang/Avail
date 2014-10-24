@@ -44,6 +44,7 @@ import com.avail.*;
 import com.avail.annotations.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.io.TextInterface;
 import com.avail.utility.evaluation.*;
 
 /**
@@ -427,6 +428,12 @@ extends Descriptor
 		 * {@link InterruptRequestFlag#REIFICATION_REQUESTED} flag.
 		 */
 		REIFICATION_WAITERS,
+
+		/**
+		 * A {@linkplain RawPojoDescriptor raw pojo} wrapping a {@linkplain
+		 * TextInterface text interface}.
+		 */
+		TEXT_INTERFACE,
 
 		/**
 		 * The in-memory debug log for this fiber.  This reduces contention
@@ -1263,6 +1270,19 @@ extends Descriptor
 			: RawPojoDescriptor.identityWrap(task));
 	}
 
+	@Override
+	TextInterface o_TextInterface (final AvailObject object)
+	{
+		return (TextInterface) object.mutableSlot(TEXT_INTERFACE).javaObject();
+	}
+
+	@Override
+	void o_TextInterface (final AvailObject object, final TextInterface textInterface)
+	{
+		final AvailObject pojo = RawPojoDescriptor.identityWrap(textInterface);
+		object.setMutableSlot(TEXT_INTERFACE, pojo);
+	}
+
 	@Override @AvailMethod
 	void o_RecordVariableAccess (
 		final AvailObject object,
@@ -1564,6 +1584,9 @@ extends Descriptor
 			RawPojoDescriptor.identityWrap(
 				new WeakHashMap<A_Variable, Boolean>()));
 		fiber.setSlot(REIFICATION_WAITERS, SetDescriptor.empty());
+		fiber.setSlot(
+			TEXT_INTERFACE,
+			AvailRuntime.current().textInterfacePojo());
 
 		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
 		fiber.setSlot(DEBUG_FIBER_PURPOSE, purpose);
@@ -1631,6 +1654,9 @@ extends Descriptor
 			RawPojoDescriptor.identityWrap(
 				new WeakHashMap<A_Variable, Boolean>()));
 		fiber.setSlot(REIFICATION_WAITERS, SetDescriptor.empty());
+		fiber.setSlot(
+			TEXT_INTERFACE,
+			AvailRuntime.current().textInterfacePojo());
 
 		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
 		fiber.setSlot(DEBUG_FIBER_PURPOSE, purpose);

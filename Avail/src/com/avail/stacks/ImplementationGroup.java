@@ -32,6 +32,7 @@
 
 package com.avail.stacks;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -324,34 +325,39 @@ public class ImplementationGroup
 	 *        BasicFileAttributes#isDirectory() directory} for documentation and
 	 *        data files.
 	 * @param htmlOpenContent
-	 * 		HTML document opening tags (e.g. header etc)
+	 *        HTML document opening tags (e.g. header etc)
 	 * @param htmlCloseContent
-	 * 		HTML document closing the document tags
+	 *        HTML document closing the document tags
 	 * @param synchronizer
-	 * 		The {@linkplain StacksSynchronizer} used to control the creation
-	 * 		of Stacks documentation
+	 *        The {@linkplain StacksSynchronizer} used to control the creation
+	 *        of Stacks documentation
 	 * @param runtime
-	 *      An {@linkplain AvailRuntime runtime}.
+	 *        An {@linkplain AvailRuntime runtime}.
 	 * @param htmlFileMap
-	 * 		A mapping object for all html files in stacks
+	 *        A mapping object for all html files in stacks
 	 * @param implementationProperties
-	 * 		The file path location of the HTML properties used to generate
-	 * 		the bulk of the inner html of the implementations.
+	 *        The file path location of the HTML properties used to generate
+	 *        the bulk of the inner html of the implementations.
 	 * @param startingTabCount
-	 * 		The number of tabs in to start with.
+	 *        The number of tabs in to start with.
 	 * @param nameOfGroup
-	 * 		The name of the implementation as it is to be displayed.
-	 * @param errorLog The accumulating {@linkplain StacksErrorLog}
+	 *        The name of the implementation as it is to be displayed.
+	 * @param errorLog
+	 *        The accumulating {@linkplain StacksErrorLog}
+	 * @throws IOException
+	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
-	public void toHTML(final Path outputPath,
-		final String htmlOpenContent, final String htmlCloseContent,
-		final StacksSynchronizer synchronizer,
-		final AvailRuntime runtime,
-		final HTMLFileMap htmlFileMap,
-		final Path implementationProperties,
-		final int startingTabCount,
-		final String nameOfGroup,
-		final StacksErrorLog errorLog)
+	public void toHTML (
+			final Path outputPath,
+			final String htmlOpenContent, final String htmlCloseContent,
+			final StacksSynchronizer synchronizer,
+			final AvailRuntime runtime,
+			final HTMLFileMap htmlFileMap,
+			final Path implementationProperties,
+			final int startingTabCount,
+			final String nameOfGroup,
+			final StacksErrorLog errorLog)
+		throws IOException
 	{
 		if (categories.size() > 1)
 		{

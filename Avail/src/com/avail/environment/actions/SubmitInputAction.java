@@ -44,6 +44,9 @@ import com.avail.descriptor.AvailObject;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 import com.avail.interpreter.Interpreter;
+import com.avail.io.ConsoleInputChannel;
+import com.avail.io.ConsoleOutputChannel;
+import com.avail.io.TextInterface;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation2;
@@ -79,10 +82,10 @@ extends AbstractWorkbenchAction
 			workbench.inputField.setText("");
 			workbench.isRunning = true;
 			workbench.setEnablements();
-			workbench.availBuilder.runtime.setStandardStreams(
-				workbench.outputStream(),
-				workbench.errorStream(),
-				workbench.inputStream());
+			workbench.availBuilder.runtime.setTextInterface(new TextInterface(
+				new ConsoleInputChannel(workbench.inputStream()),
+				new ConsoleOutputChannel(workbench.outputStream()),
+				new ConsoleOutputChannel(workbench.errorStream())));
 			workbench.availBuilder.attemptCommand(
 				string,
 				new Continuation2<
@@ -150,10 +153,13 @@ extends AbstractWorkbenchAction
 									{
 										workbench.inputStream().clear();
 										workbench.availBuilder.runtime
-											.setStandardStreams(
-												workbench.outputStream(),
-												workbench.errorStream(),
-												null);
+											.setTextInterface(new TextInterface(
+												new ConsoleInputChannel(
+													workbench.inputStream()),
+												new ConsoleOutputChannel(
+													workbench.outputStream()),
+												new ConsoleOutputChannel(
+													workbench.errorStream())));
 										workbench.setEnablements();
 									}
 								});
@@ -167,6 +173,7 @@ extends AbstractWorkbenchAction
 						}
 						Interpreter.stringifyThen(
 							workbench.availBuilder.runtime,
+							workbench.availBuilder.runtime.textInterface(),
 							result,
 							new Continuation1<String>()
 							{
@@ -193,11 +200,14 @@ extends AbstractWorkbenchAction
 							{
 								workbench.isRunning = false;
 								workbench.inputStream().clear();
-								workbench.availBuilder.runtime
-									.setStandardStreams(
-										workbench.outputStream(),
-										workbench.errorStream(),
-										null);
+								workbench.availBuilder.runtime.setTextInterface(
+									new TextInterface(
+										new ConsoleInputChannel(
+											workbench.inputStream()),
+										new ConsoleOutputChannel(
+											workbench.outputStream()),
+										new ConsoleOutputChannel(
+											workbench.errorStream())));
 								workbench.setEnablements();
 							}
 						});

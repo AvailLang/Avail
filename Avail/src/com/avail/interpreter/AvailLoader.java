@@ -42,6 +42,7 @@ import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
 import com.avail.exceptions.*;
+import com.avail.io.TextInterface;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
 
@@ -90,6 +91,12 @@ public final class AvailLoader
 	}
 
 	/**
+	 * The {@linkplain TextInterface text interface} for any {@linkplain A_Fiber
+	 * fibers} started by this {@linkplain AvailLoader loader}.
+	 */
+	@InnerAccess final TextInterface textInterface;
+
+	/**
 	 * The {@linkplain MessageBundleTreeDescriptor message bundle tree} that
 	 * this {@linkplain AvailLoader loader} is using to parse its {@linkplain
 	 * ModuleDescriptor module}.
@@ -116,22 +123,34 @@ public final class AvailLoader
 	 * @param module
 	 *        The Avail {@linkplain ModuleDescriptor module} undergoing loading
 	 *        by this {@linkplain AvailLoader loader}.
+	 * @param textInterface
+	 *        The {@linkplain TextInterface text interface} for any {@linkplain
+	 *        A_Fiber fibers} started by this loader.
 	 */
-	public AvailLoader (final A_Module module)
+	public AvailLoader (
+		final A_Module module,
+		final TextInterface textInterface)
 	{
 		this.module = module;
+		this.textInterface = textInterface;
 	}
 
 	/**
 	 * Create an {@link AvailLoader} suitable for unloading the specified
 	 * {@linkplain ModuleDescriptor module}.
 	 *
-	 * @param module The module that will be unloaded.
+	 * @param module
+	 *        The module that will be unloaded.
+	 * @param textInterface
+	 *        The {@linkplain TextInterface text interface} for any {@linkplain
+	 *        A_Fiber fibers} started by the new builder.
 	 * @return An AvailLoader suitable for unloading the module.
 	 */
-	public static AvailLoader forUnloading (final A_Module module)
+	public static AvailLoader forUnloading (
+		final A_Module module,
+		final TextInterface textInterface)
 	{
-		final AvailLoader loader = new AvailLoader(module);
+		final AvailLoader loader = new AvailLoader(module, textInterface);
 		// We had better not be removing forward declarations from an already
 		// fully-loaded module.
 		loader.pendingForwards = NilDescriptor.nil();
@@ -772,6 +791,7 @@ public final class AvailLoader
 							"Unload function #%d for module %s",
 							index,
 							module().moduleName()));
+					fiber.textInterface(textInterface);
 					fiber.resultContinuation(
 						new Continuation1<AvailObject>()
 						{

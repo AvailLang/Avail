@@ -32,6 +32,7 @@
 
 package com.avail.stacks;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -992,27 +993,33 @@ public class StacksCommentsModule
 	/**
 	 * Acquire all distinct implementations being directly exported or extended
 	 * by this module and populate finalImplementationsGroupMap.
+	 *
 	 * @param htmlFileMap
-	 * 		A map for all html files in stacks
-	 * @param outputPath The path where the files will end up.
+	 *        A map for all html files in stacks
+	 * @param outputPath
+	 *        The path where the files will end up.
 	 * @param implementationProperties
-	 * 		Properties file that defines HTML/style properties for the
-	 * 		ambiguous files.
+	 *        Properties file that defines HTML/style properties for the
+	 *        ambiguous files.
 	 * @param implementationWrapperTemplate
-	 * 		The path of the template used to generate the ambiguous files.
-	 * @param runtime An {@linkplain AvailRuntime runtime}.
-	 * @param topLevelLinkFolderPath The folder that the Avail documentation
-	 * 		sits in above the providedDocumentPath.
-	 * @return
-	 * 		The number of files to be created
+	 *        The path of the template used to generate the ambiguous files.
+	 * @param runtime
+	 *        An {@linkplain AvailRuntime runtime}.
+	 * @param topLevelLinkFolderPath
+	 *        The folder that the Avail documentation sits in above the
+	 *        providedDocumentPath.
+	 * @return The number of files to be created
+	 * @throws IOException
+	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
-	public int
-		calculateFinalImplementationGroupsMap(
-			final HTMLFileMap htmlFileMap, final Path outputPath,
+	public int calculateFinalImplementationGroupsMap(
+			final HTMLFileMap htmlFileMap,
+			final Path outputPath,
 			final Path implementationWrapperTemplate,
 			final Path implementationProperties,
 			final AvailRuntime runtime,
 			final String topLevelLinkFolderPath)
+		throws IOException
 	{
 		final HashMap<A_String, HashMap<String, ImplementationGroup>>
 			filteredMap =
@@ -1114,29 +1121,37 @@ public class StacksCommentsModule
 
 	/**
 	 * Write all the methods and extends methods to file.
+	 *
 	 * @param outputPath
-	 * 		The {@linkplain Path path} to the output {@linkplain
+	 *        The {@linkplain Path path} to the output {@linkplain
 	 *        BasicFileAttributes#isDirectory() directory} for documentation and
 	 *        data files.
 	 * @param synchronizer
-	 *		The {@linkplain StacksSynchronizer} used to control the creation
-	 * 		of Stacks documentation
+	 *        The {@linkplain StacksSynchronizer} used to control the creation
+	 *        of Stacks documentation
 	 * @param runtime
 	 *        An {@linkplain AvailRuntime runtime}.
 	 * @param htmlFileMap
-	 * 		A map for all htmlFiles in stacks
+	 *        A map for all htmlFiles in stacks.
 	 * @param templateFilePath
-	 * 		The path of the template file used to wrap the generated HTML
+	 *        The path of the template file used to wrap the generated HTML.
 	 * @param implementationProperties
-	 * 		The file path location of the HTML properties used to generate
-	 * 		the bulk of the inner html of the implementations.
+	 *        The file path location of the HTML properties used to generate
+	 *        the bulk of the inner html of the implementations.
 	 * @param errorLog
-	 * 		The file for outputting all errors.
+	 *        The file for outputting all errors.
+	 * @throws IOException
+	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
-	public void writeMethodsToHTMLFiles(final Path outputPath,
-		final StacksSynchronizer synchronizer, final AvailRuntime runtime,
-		final HTMLFileMap htmlFileMap, final Path templateFilePath,
-		final Path implementationProperties, final StacksErrorLog errorLog)
+	public void writeMethodsToHTMLFiles(
+			final Path outputPath,
+			final StacksSynchronizer synchronizer,
+			final AvailRuntime runtime,
+			final HTMLFileMap htmlFileMap,
+			final Path templateFilePath,
+			final Path implementationProperties,
+			final StacksErrorLog errorLog)
+		throws IOException
 	{
 		final StringBuilder newLogEntry = new StringBuilder()
 			.append("<h3>Internal Link Errors</h3>\n")
@@ -1180,32 +1195,42 @@ public class StacksCommentsModule
 
 	/**
 	 * Write all the methods and extends methods to file.
+	 *
 	 * @param outputPath
-	 * 		The {@linkplain Path path} to the output {@linkplain
+	 *        The {@linkplain Path path} to the output {@linkplain
 	 *        BasicFileAttributes#isDirectory() directory} for documentation and
 	 *        data files.
 	 * @param synchronizer
-	 *		The {@linkplain StacksSynchronizer} used to control the creation
-	 * 		of Stacks documentation
+	 *        The {@linkplain StacksSynchronizer} used to control the creation
+	 *        of Stacks documentation
 	 * @param templateFilePath
-	 * 		The path of the template file used to wrap the generated HTML
+	 *        The path of the template file used to wrap the generated HTML.
 	 * @param implementationProperties
-	 * 		The file path location of the HTML properties used to generate
-	 * 		the bulk of the inner html of the implementations.
-	 * @param runtime An {@linkplain AvailRuntime runtime}.
+	 *        The file path location of the HTML properties used to generate
+	 *        the bulk of the inner html of the implementations.
+	 * @param runtime
+	 *        An {@linkplain AvailRuntime runtime}.
 	 * @param ambiguousMethodFileMap
-	 * 		The map of ambiguous names requiring ambiguous files.
-	 * @param topLevelLinkFolderPath The folder that the Avail documentation
-	 * 		sits in above the providedDocumentPath.
+	 *        The map of ambiguous names requiring ambiguous files.
+	 * @param topLevelLinkFolderPath
+	 *        The folder that the Avail documentation sits in above the
+	 *        providedDocumentPath.
 	 * @param htmlFileMap
-	 * 		A map for all HTML files ins Stacks
+	 *        A map for all HTML files ins Stacks
+	 * @throws IOException
+	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
-	private void writeAmbiguousMethodsHTMLFiles(final Path outputPath,
-		final StacksSynchronizer synchronizer, final Path templateFilePath,
-		final Path implementationProperties, final AvailRuntime runtime,
-		final HashMap<A_String, HashMap<String, ImplementationGroup>>
-			ambiguousMethodFileMap,
-		final String topLevelLinkFolderPath, final HTMLFileMap htmlFileMap)
+	private void writeAmbiguousMethodsHTMLFiles (
+			final Path outputPath,
+			final StacksSynchronizer synchronizer,
+			final Path templateFilePath,
+			final Path implementationProperties,
+			final AvailRuntime runtime,
+			final HashMap<A_String, HashMap<String, ImplementationGroup>>
+				ambiguousMethodFileMap,
+			final String topLevelLinkFolderPath,
+			final HTMLFileMap htmlFileMap)
+		throws IOException
 	{
 		final HashMap<String,String> internalLinks =
 			new HashMap<String,String>();
@@ -1331,29 +1356,38 @@ public class StacksCommentsModule
 
 	/**
 	 * Write all the methods and extends methods to file.
+	 *
 	 * @param outputPath
-	 * 		The {@linkplain Path path} to the output {@linkplain
+	 *        The {@linkplain Path path} to the output {@linkplain
 	 *        BasicFileAttributes#isDirectory() directory} for documentation and
 	 *        data files.
 	 * @param templateFilePath
-	 * 		The path of the template file used to wrap the generated HTML
+	 *        The path of the template file used to wrap the generated HTML
 	 * @param implementationProperties
-	 * 		The file path location of the HTML properties used to generate
-	 * 		the bulk of the inner html of the implementations.
-	 * @param runtime An {@linkplain AvailRuntime runtime}.
+	 *        The file path location of the HTML properties used to generate
+	 *        the bulk of the inner html of the implementations.
+	 * @param runtime
+	 *        An {@linkplain AvailRuntime runtime}.
 	 * @param ambiguousMethodFileMap
-	 * 		The map of ambiguous names requiring ambiguous files.
-	 * @param topLevelLinkFolderPath The folder that the Avail documentation
-	 * 		sits in above the providedDocumentPath.
+	 *        The map of ambiguous names requiring ambiguous files.
+	 * @param topLevelLinkFolderPath
+	 *        The folder that the Avail documentation sits in above the
+	 *        providedDocumentPath.
 	 * @param htmlFileMap
-	 * 		A map for all HTML files ins Stacks
+	 *        A map for all HTML files ins Stacks
+	 * @throws IOException
+	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
-	private void writeAmbiguousAliasHTMLFiles(final Path outputPath,
-		final Path templateFilePath,final Path implementationProperties,
-		final AvailRuntime runtime,
-		final HashMap<A_String, HashMap<String, ImplementationGroup>>
-			ambiguousMethodFileMap,
-		final String topLevelLinkFolderPath, final HTMLFileMap htmlFileMap)
+	private void writeAmbiguousAliasHTMLFiles (
+			final Path outputPath,
+			final Path templateFilePath,
+			final Path implementationProperties,
+			final AvailRuntime runtime,
+			final HashMap<A_String, HashMap<String, ImplementationGroup>>
+				ambiguousMethodFileMap,
+			final String topLevelLinkFolderPath,
+			final HTMLFileMap htmlFileMap)
+		throws IOException
 	{
 
 		final HashMap<String,String> internalLinks =
