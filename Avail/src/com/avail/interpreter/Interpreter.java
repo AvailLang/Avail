@@ -1625,10 +1625,10 @@ public final class Interpreter
 					break;
 				case FIBER_SUSPENDED:
 					assert exitNow;
-					// $FALL-THROUGH$
+					return result;
 				case SUCCESS:
 					assert latestResult != null;
-					// $FALL-THROUGH$
+					return result;
 				case CONTINUATION_CHANGED:
 					return result;
 			}

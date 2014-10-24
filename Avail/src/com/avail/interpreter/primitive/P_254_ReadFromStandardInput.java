@@ -44,6 +44,7 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.*;
 import com.avail.io.TextInterface;
+import com.avail.utility.evaluation.Continuation0;
 
 /**
  * <strong>Primitive 254:</strong> Read one character from the standard input
@@ -74,37 +75,45 @@ extends Primitive
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		final CharBuffer buffer = CharBuffer.allocate(1);
 		interpreter.primitiveSuspend();
-		textInterface.inputChannel().read(
-			buffer,
-			null,
-			new CompletionHandler<Integer, Void>()
+		interpreter.postExitContinuation(new Continuation0()
+		{
+			@Override
+			public void value ()
 			{
-				@Override
-				public void completed (
-					final @Nullable Integer result,
-					final @Nullable Void attachment)
-				{
-					Interpreter.resumeFromSuccessfulPrimitive(
-						runtime,
-						fiber,
-						CharacterDescriptor.fromCodePoint(buffer.get(0)),
-						skipReturnCheck);
-				}
+				textInterface.inputChannel().read(
+					buffer,
+					null,
+					new CompletionHandler<Integer, Void>()
+					{
+						@Override
+						public void completed (
+							final @Nullable Integer result,
+							final @Nullable Void attachment)
+						{
+							Interpreter.resumeFromSuccessfulPrimitive(
+								runtime,
+								fiber,
+								CharacterDescriptor.fromCodePoint(
+									buffer.get(0)),
+								skipReturnCheck);
+						}
 
-				@Override
-				public void failed (
-					final @Nullable Throwable exc,
-					final @Nullable Void attachment)
-				{
-					Interpreter.resumeFromFailedPrimitive(
-						runtime,
-						fiber,
-						E_IO_ERROR.numericCode(),
-						failureFunction,
-						copiedArgs,
-						skipReturnCheck);
-				}
-			});
+						@Override
+						public void failed (
+							final @Nullable Throwable exc,
+							final @Nullable Void attachment)
+						{
+							Interpreter.resumeFromFailedPrimitive(
+								runtime,
+								fiber,
+								E_IO_ERROR.numericCode(),
+								failureFunction,
+								copiedArgs,
+								skipReturnCheck);
+						}
+					});
+			}
+		});
 		return Result.FIBER_SUSPENDED;
 	}
 
