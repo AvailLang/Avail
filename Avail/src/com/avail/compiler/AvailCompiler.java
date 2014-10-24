@@ -41,6 +41,7 @@ import com.avail.compiler.problems.ProblemHandler;
 import com.avail.compiler.scanning.AvailScannerResult;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
+import com.avail.io.TextInterface;
 import com.avail.utility.evaluation.*;
 
 /**
@@ -58,6 +59,9 @@ extends AbstractAvailCompiler
 	 *        The current {@linkplain ModuleDescriptor module}.
 	 * @param scannerResult
 	 *        An {@link AvailScannerResult}.
+	 * @param textInterface
+	 *        The {@linkplain TextInterface text interface} for any {@linkplain
+	 *        A_Fiber fibers} started by this compiler.
 	 * @param problemHandler
 	 *        The {@link ProblemHandler} used for reporting compilation
 	 *        problems.
@@ -65,9 +69,10 @@ extends AbstractAvailCompiler
 	public AvailCompiler (
 		final A_Module module,
 		final AvailScannerResult scannerResult,
+		final TextInterface textInterface,
 		final ProblemHandler problemHandler)
 	{
-		super(module, scannerResult, problemHandler);
+		super(module, scannerResult, textInterface, problemHandler);
 	}
 
 	/**
@@ -77,15 +82,19 @@ extends AbstractAvailCompiler
 	 *        The {@link ResolvedModuleName} of the module to compile.
 	 * @param scannerResult
 	 *        An {@link AvailScannerResult}.
+	 * @param textInterface
+	 *        The {@linkplain TextInterface text interface} for any {@linkplain
+	 *        A_Fiber fibers} started by this compiler.
 	 * @param problemHandler
 	 *        The {@linkplain ProblemHandler problem handler}.
 	 */
 	public AvailCompiler (
 		final ResolvedModuleName moduleName,
 		final AvailScannerResult scannerResult,
+		final TextInterface textInterface,
 		final ProblemHandler problemHandler)
 	{
-		super(moduleName, scannerResult, problemHandler);
+		super(moduleName, scannerResult, textInterface, problemHandler);
 	}
 
 	/**
@@ -218,6 +227,7 @@ extends AbstractAvailCompiler
 					values.add(macroBodyKind);
 					Interpreter.stringifyThen(
 						runtime,
+						textInterface,
 						values,
 						new Continuation1<List<String>>()
 						{

@@ -1,0 +1,214 @@
+/*
+ * Concatenation Readers.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Concatenation Readers"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Extends
+	"Common" = ("element type", "_'s⁇element type"),
+	"Foundation" =
+	(
+		"concatenate_",
+		"map_through_",
+		"take from_until_",
+		"take from_while_",
+		"«_‡++»"
+	)
+Uses
+	"Abstract Iterators",
+	"Common" = ("Data|data abstractions test suite"),
+	"Exhausted Readers",
+	"Foundation",
+	"Unit Testing" = ("New test suite,⁇_,⁇extends_")
+Names
+	"concatenation reader"
+Body
+
+"readers" is a new field atom;
+"reader index" is a new field atom;
+
+/**
+ * A concatenation reader produces values from a sequenced collection of
+ * readers.
+ *
+ * @category "Data Abstractions"
+ * @type "concatenation reader"
+ * @supertype "reader"
+ */
+Class "concatenation reader" extends reader
+	with field
+		readers : <reader…|>
+	with mutable field
+		referable reader index : natural number;
+
+/**
+ * Test whether the {@type "concatenation reader"} is exhausted.  Correct any
+ * denormalization first, such as the current reader within the concatenation
+ * reader being exhausted.
+ * 
+ * @method "_is exhausted"
+ * @param "aReader" "concatenation reader"
+ * @returns "boolean"
+ *          Whether the sequence of readers is itself exhausted.
+ */
+Method "_is exhausted" is
+[
+	aReader : concatenation reader
+|
+	index : ↑natural number := ↑aReader's reader index;
+	readers ::= aReader's readers;
+	limit ::= |readers|;
+	While [↓index ≤ limit ∧ [readers[↓index] is exhausted]]
+	do
+	[
+		index++;
+	];
+	↓index > limit
+] : boolean;
+
+/* The concatenation reader's current element is its current reader's current
+ * element.
+ */
+concatenation reader's current element method is
+[
+	aReader : concatenation reader
+|
+	inner ::= aReader's readers[aReader's reader index];
+	inner's current element
+] : any;
+
+/* Advance the concatenation reader's current reader.  Exhaustion of that reader
+ * will be handled later.
+ */
+concatenation reader's advance method is
+[
+	aReader : concatenation reader
+|
+	index ::= aReader's reader index;
+	readers ::= aReader's readers;
+	Advance readers[index];
+] : ⊤;
+
+/**
+ * Construct and answer an {@type "reader"} that produces values from the
+ * specified tuple of readers The result first produces the values of the
+ * first element of the tuple, then the second, etc.
+ * @category "Data Abstractions"
+ * @method "concatenate_"
+ * @param "readers" "<reader…|>"
+ *        A tuple of readers.
+ * @returns "reader"
+ *          The requested reader.
+ */
+Method "concatenate_" is
+[
+	readers : <reader…|>
+|
+	if |readers| = 0 then [an exhausted reader]
+	else if [|readers| = 1] then [readers[1]]
+	else
+	[
+		elementTypes ::= map readers through [r : reader | r's element type];
+		elementType ::= ∪ elementTypes /*?→ any's type*/;
+		a concatenation reader with
+			element type ::= elementType,
+			readers ::= readers,
+			reader index := 1
+	]
+] : reader;
+
+/**
+ * Construct and answer an {@type "reader"} that produces values from the
+ * specified tuple of readers The result first produces the values of the
+ * first lexical argument, then the second, etc.
+ * @category "Data Abstractions"
+ * @method "«_‡++»"
+ * @param "readers" "<reader…|>"
+ *        A tuple of readers.
+ * @returns "reader"
+ *          The requested reader.
+ */
+Method "«_‡++»" is
+[
+	readers : <reader…|2..>
+|
+	elementType ::= ∪ map readers through [i : reader | i's element type];
+	a concatenation reader with
+		element type ::= elementType,
+		readers ::= readers,
+		reader index := 1
+];
+
+/**
+ * Answer a function suitable for use as a semantic restriction for the
+ * {@method "concatenate_"} and {@method "«_‡++»"} methods.
+ * @category "Data Abstractions"
+ * @method "concatenation semantic restriction"
+ * @returns "[<reader…|>'s type]→(concatenation reader's type)"
+ *          The requested function.
+ */
+Private method "concatenation semantic restriction" is
+[
+	[
+		readers : <reader…|>'s type
+	|
+		elementType : any's type's type := ⊥;
+		From 1 to (⎣readers⎦ min (|readers' leading types| + 1)) do
+		[
+			index : natural number
+		|
+			elementType := eject elementType ∪ readers[index]'s element type;
+		];
+		extend concatenation reader with
+			element type : elementType,
+			readers : readers
+	]
+];
+
+/**
+ * Strengthen the {@type "reader"} {@method "concatenate_"} operation.
+ * 
+ * @method "concatenate_"
+ * @restricts "readers" "<reader…|>'s type"
+ * @returns "concatenation reader"
+ */
+Semantic restriction "concatenate_" is concatenation semantic restriction;
+
+/**
+ * Strengthen the {@type "reader"} infix-concatenation operation ({@method
+ * "«_‡++»"}).
+ * 
+ * @method "concatenate_"
+ * @restricts "readers" "<reader…|>'s type"
+ * @returns "concatenation reader"
+ */
+Semantic restriction "«_‡++»" is concatenation semantic restriction;

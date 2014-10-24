@@ -72,6 +72,7 @@ public final class P_260_Assert extends Primitive
 			interpreter.primitiveSuspend();
 			ContinuationDescriptor.dumpStackThen(
 				interpreter.runtime(),
+				fiber.textInterface(),
 				continuation,
 				new Continuation1<List<String>>()
 				{

@@ -33,6 +33,8 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.Mutability.*;
+import java.io.PrintStream;
+import java.io.Reader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.math.BigInteger;
@@ -64,6 +66,7 @@ import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
@@ -6012,4 +6015,18 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract boolean o_IsNumericallyIntegral (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract TextInterface o_TextInterface (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param textInterface
+	 */
+	abstract void o_TextInterface (
+		AvailObject object,
+		TextInterface textInterface);
 }

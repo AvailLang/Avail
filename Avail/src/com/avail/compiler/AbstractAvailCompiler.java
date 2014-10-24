@@ -65,6 +65,7 @@ import com.avail.exceptions.AvailEmergencyExitException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.primitive.P_352_RejectParsing;
+import com.avail.io.TextInterface;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.serialization.*;
 import com.avail.utility.*;
@@ -951,6 +952,13 @@ public abstract class AbstractAvailCompiler
 	@InnerAccess final ProblemHandler problemHandler;
 
 	/**
+	 * The {@linkplain TextInterface text interface} for any {@linkplain
+	 * A_Fiber fibers} started by this {@linkplain AbstractAvailCompiler
+	 * compiler}.
+	 */
+	@InnerAccess final TextInterface textInterface;
+
+	/**
 	 * Answer whether this is a {@linkplain AvailSystemCompiler system
 	 * compiler}.  A system compiler is used for modules that start with the
 	 * keyword "{@linkplain ExpectedToken#MODULE Module}".  The experimental
@@ -1154,6 +1162,9 @@ public abstract class AbstractAvailCompiler
 	 * @param stopAfterBodyToken
 	 *        Whether to stop parsing at the occurrence of the BODY token. This
 	 *        is an optimization for faster build analysis.
+	 * @param textInterface
+	 *        The {@linkplain TextInterface text interface} for any {@linkplain
+	 *        A_Fiber fibers} started by the new compiler.
 	 * @param succeed
 	 *        What to do with the resultant compiler in the event of success.
 	 *        This is a continuation that accepts the new compiler.
@@ -1166,6 +1177,7 @@ public abstract class AbstractAvailCompiler
 	public static void create (
 		final ResolvedModuleName resolvedName,
 		final boolean stopAfterBodyToken,
+		final TextInterface textInterface,
 		final Continuation1<AbstractAvailCompiler> succeed,
 		final Continuation0 afterFail,
 		final ProblemHandler problemHandler)
@@ -1214,6 +1226,7 @@ public abstract class AbstractAvailCompiler
 						compiler = new AvailSystemCompiler(
 							resolvedName,
 							result,
+							textInterface,
 							problemHandler);
 					}
 					else
@@ -1221,6 +1234,7 @@ public abstract class AbstractAvailCompiler
 						compiler = new AvailCompiler(
 							resolvedName,
 							result,
+							textInterface,
 							problemHandler);
 					}
 					succeed.value(compiler);
@@ -1237,6 +1251,9 @@ public abstract class AbstractAvailCompiler
 	 *        The current {@linkplain ModuleDescriptor module}.
 	 * @param scannerResult
 	 *        An {@link AvailScannerResult}.
+	 * @param textInterface
+	 *        The {@linkplain TextInterface text interface} for any {@linkplain
+	 *        A_Fiber fibers} started by this compiler.
 	 * @param problemHandler
 	 *        The {@link ProblemHandler} used for reporting compilation
 	 *        problems.
@@ -1244,6 +1261,7 @@ public abstract class AbstractAvailCompiler
 	protected AbstractAvailCompiler (
 		final A_Module module,
 		final AvailScannerResult scannerResult,
+		final TextInterface textInterface,
 		final ProblemHandler problemHandler)
 	{
 		this.moduleHeader = null;
@@ -1251,6 +1269,7 @@ public abstract class AbstractAvailCompiler
 		this.source = scannerResult.source();
 		this.tokens = scannerResult.outputTokens();
 		this.commentTokens = scannerResult.commentTokens();
+		this.textInterface = textInterface;
 		this.problemHandler = problemHandler;
 		module.isSystemModule(isSystemCompiler());
 	}
@@ -1263,6 +1282,9 @@ public abstract class AbstractAvailCompiler
 	 *        compile.
 	 * @param scannerResult
 	 *        An {@link AvailScannerResult}.
+	 * @param textInterface
+	 *        The {@linkplain TextInterface text interface} for any {@linkplain
+	 *        A_Fiber fibers} started by this compiler.
 	 * @param problemHandler
 	 *        The {@link ProblemHandler} used for reporting compilation
 	 *        problems.
@@ -1270,6 +1292,7 @@ public abstract class AbstractAvailCompiler
 	protected AbstractAvailCompiler (
 		final ResolvedModuleName moduleName,
 		final AvailScannerResult scannerResult,
+		final TextInterface textInterface,
 		final ProblemHandler problemHandler)
 	{
 		this.moduleHeader = new ModuleHeader(moduleName);
@@ -1278,6 +1301,7 @@ public abstract class AbstractAvailCompiler
 		this.source = scannerResult.source();
 		this.tokens = scannerResult.outputTokens();
 		this.commentTokens = scannerResult.commentTokens();
+		this.textInterface = textInterface;
 		this.problemHandler = problemHandler;
 	}
 
@@ -1809,6 +1833,7 @@ public abstract class AbstractAvailCompiler
 				{
 					Interpreter.stringifyThen(
 						runtime,
+						textInterface,
 						values,
 						new Continuation1<List<String>>()
 						{
@@ -2274,6 +2299,8 @@ public abstract class AbstractAvailCompiler
 		final File ref = resolvedName.sourceReference();
 		assert ref != null;
 		final CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder();
+		decoder.onMalformedInput(CodingErrorAction.REPLACE);
+		decoder.onUnmappableCharacter(CodingErrorAction.REPLACE);
 		final ByteBuffer input = ByteBuffer.allocateDirect(4096);
 		final CharBuffer output = CharBuffer.allocate(4096);
 		final StringBuilder sourceBuilder = new StringBuilder(4096);
@@ -2328,12 +2355,19 @@ public abstract class AbstractAvailCompiler
 					input.flip();
 					final CoderResult result = decoder.decode(
 						input, output, !moreInput);
+					// UTF-8 never compresses data, so the number of
+					// characters encoded can be no greater than the number
+					// of bytes encoded. The input buffer and the output
+					// buffer are equally sized (in units), so an overflow
+					// cannot occur.
+					assert !result.isOverflow();
+					assert !result.isError();
 					// If the decoder didn't consume all of the bytes, then
 					// preserve the unconsumed bytes in the next buffer (for
 					// decoding).
 					if (input.hasRemaining())
 					{
-						final int delta = input.limit() - input.position();
+						final int delta = input.remaining();
 						for (int i = 0; i < delta; i++)
 						{
 							final byte b = input.get(input.position() + i);
@@ -2345,16 +2379,6 @@ public abstract class AbstractAvailCompiler
 					else
 					{
 						input.clear();
-					}
-					// UTF-8 never compresses data, so the number of
-					// characters encoded can be no greater than the number
-					// of bytes encoded. The input buffer and the output
-					// buffer are equally sized (in units), so an overflow
-					// cannot occur.
-					assert !result.isOverflow();
-					if (result.isError())
-					{
-						result.throwException();
 					}
 					output.flip();
 					sourceBuilder.append(output);
@@ -3110,7 +3134,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	void startModuleTransaction ()
 	{
-		loader = new AvailLoader(module);
+		loader = new AvailLoader(module, textInterface);
 	}
 
 	/**
@@ -3173,6 +3197,7 @@ public abstract class AbstractAvailCompiler
 				function.code().methodName(),
 				function.code().module().moduleName(),
 				function.code().startingLineNumber()));
+		fiber.textInterface(textInterface);
 		fiber.resultContinuation(onSuccess);
 		fiber.failureContinuation(onFailure);
 		Interpreter.runOutermostFunction(runtime, fiber, function, args);
@@ -3214,6 +3239,7 @@ public abstract class AbstractAvailCompiler
 					: mod.moduleName(),
 				code.startingLineNumber()));
 		fiber.setGeneralFlag(GeneralFlag.APPLYING_SEMANTIC_RESTRICTION);
+		fiber.textInterface(textInterface);
 		fiber.resultContinuation(onSuccess);
 		fiber.failureContinuation(onFailure);
 		Interpreter.runOutermostFunction(runtime, fiber, function, args);
@@ -4426,6 +4452,7 @@ public abstract class AbstractAvailCompiler
 					start.clientDataMap.makeImmutable(),
 					true);
 				fiber.fiberGlobals(fiberGlobals);
+				fiber.textInterface(textInterface);
 				fiber.resultContinuation(workUnitCompletion(
 					start.peekToken(),
 					new Continuation1<AvailObject>()
@@ -4544,6 +4571,7 @@ public abstract class AbstractAvailCompiler
 						{
 							Interpreter.stringifyThen(
 								runtime,
+								textInterface,
 								argTypes.get(finalIndex - 1),
 								new Continuation1<String>()
 								{
@@ -4648,6 +4676,7 @@ public abstract class AbstractAvailCompiler
 					}
 					Interpreter.stringifyThen(
 						runtime,
+						textInterface,
 						uniqueValues,
 						new Continuation1<List<String>>()
 						{

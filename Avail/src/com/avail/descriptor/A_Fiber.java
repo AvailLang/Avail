@@ -32,7 +32,10 @@
 
 package com.avail.descriptor;
 
+import java.io.PrintStream;
+import java.io.Reader;
 import java.util.TimerTask;
+import com.avail.AvailRuntime;
 import com.avail.annotations.Nullable;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
@@ -40,6 +43,8 @@ import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.interpreter.AvailLoader;
+import com.avail.io.TextInputChannel;
+import com.avail.io.TextInterface;
 import com.avail.utility.evaluation.*;
 
 /**
@@ -310,4 +315,21 @@ extends A_BasicObject
 	 * @param primitiveNumber The primitive being attempted.
 	 */
 	void recordLatestPrimitive (short primitiveNumber);
+
+	/**
+	 * Answer the {@linkplain TextInterface text interface} for this {@linkplain
+	 * A_Fiber fiber}.
+	 *
+	 * @return The fiber's text interface.
+	 */
+	TextInterface textInterface ();
+
+	/**
+	 * Set the {@linkplain TextInterface text interface} for this {@linkplain
+	 * A_Fiber fiber}.
+	 *
+	 * @param textInterface
+	 *        A text interface.
+	 */
+	void textInterface (TextInterface textInterface);
 }

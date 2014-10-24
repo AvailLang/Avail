@@ -112,6 +112,7 @@ extends Primitive
 		newFiber.availLoader(current.availLoader());
 		newFiber.heritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared());
+		newFiber.textInterface(current.textInterface());
 		newFiber.makeShared();
 		succeed.makeShared();
 		fail.makeShared();

@@ -37,6 +37,7 @@ import java.io.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.descriptor.ModuleDescriptor;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * {@code ModuleRoots} encapsulates the Avail {@linkplain ModuleDescriptor
@@ -228,5 +229,42 @@ implements Iterable<ModuleRoot>
 	{
 		this.modulePath = modulePath;
 		parseAvailModulePath();
+	}
+
+	/**
+	 * Write a JSON encoding of the {@linkplain ModuleRoots module roots} to
+	 * the specified {@link JSONWriter}.
+	 *
+	 * @param writer
+	 *        A {@code JSONWriter}.
+	 */
+	public void writeOn (final JSONWriter writer)
+	{
+		writer.startArray();
+		for (final ModuleRoot root : roots())
+		{
+			writer.write(root.name());
+		}
+		writer.endArray();
+	}
+
+	/**
+	 * Write a JSON object whose fields are the {@linkplain ModuleRoots module
+	 * roots} and whose values are {@linkplain
+	 * ModuleRoot#writePathsOn(JSONWriter) JSON arrays} containing path
+	 * information.
+	 *
+	 * @param writer
+	 *        A {@link JSONWriter}.
+	 */
+	public void writePathsOn (final JSONWriter writer)
+	{
+		writer.startObject();
+		for (final ModuleRoot root : roots())
+		{
+			writer.write(root.name());
+			root.writePathsOn(writer);
+		}
+		writer.endObject();
 	}
 }

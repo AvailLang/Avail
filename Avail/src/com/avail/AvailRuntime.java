@@ -68,6 +68,7 @@ import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.io.TextInterface;
 import com.avail.utility.LRUCache;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
@@ -751,88 +752,32 @@ public final class AvailRuntime
 		return classLoader;
 	}
 
-	/** The {@linkplain PrintStream standard output stream}. */
-	private PrintStream standardOutputStream = System.out;
+	/**
+	 * The {@linkplain AvailRuntime runtime}'s default {@linkplain
+	 * TextInterface text interface}.
+	 */
+	private TextInterface textInterface = TextInterface.system();
 
 	/**
-	 * Answer the {@linkplain PrintStream standard output stream}.
+	 * A {@linkplain RawPojoDescriptor raw pojo} wrapping the {@linkplain
+	 * #textInterface default} {@linkplain TextInterface text interface}.
+	 */
+	private AvailObject textInterfacePojo =
+		RawPojoDescriptor.identityWrap(textInterface);
+
+	/**
+	 * Answer the {@linkplain AvailRuntime runtime}'s default {@linkplain
+	 * TextInterface text interface}.
 	 *
-	 * @return The standard output stream.
+	 * @return The default text interface.
 	 */
 	@ThreadSafe
-	public PrintStream standardOutputStream ()
+	public TextInterface textInterface ()
 	{
 		runtimeLock.readLock().lock();
 		try
 		{
-			return standardOutputStream;
-		}
-		finally
-		{
-			runtimeLock.readLock().unlock();
-		}
-	}
-
-	/** The {@linkplain PrintStream standard error stream}. */
-	private PrintStream standardErrorStream = System.err;
-
-	/**
-	 * Answer the {@linkplain PrintStream standard error stream}.
-	 *
-	 * @return The standard error stream.
-	 */
-	@ThreadSafe
-	public PrintStream standardErrorStream ()
-	{
-		runtimeLock.readLock().lock();
-		try
-		{
-			return standardErrorStream;
-		}
-		finally
-		{
-			runtimeLock.readLock().unlock();
-		}
-	}
-
-	/** The {@linkplain InputStream standard input stream}. */
-	private InputStream standardInputStream = System.in;
-
-	/**
-	 * Answer the {@linkplain PrintStream standard input stream}.
-	 *
-	 * @return The standard input stream.
-	 */
-	@ThreadSafe
-	public InputStream standardInputStream ()
-	{
-		runtimeLock.readLock().lock();
-		try
-		{
-			return standardInputStream;
-		}
-		finally
-		{
-			runtimeLock.readLock().unlock();
-		}
-	}
-
-	/** The {@linkplain Reader standard input reader}. */
-	private Reader standardInputReader = new BufferedReader(
-		new InputStreamReader(standardInputStream));
-
-	/**
-	 * Answer the {@linkplain Reader standard input reader}.
-	 *
-	 * @return The standard input reader.
-	 */
-	@ThreadSafe
-	public Reader standardInputReader ()
-	{
-		runtimeLock.readLock().lock();
-		try
-		{
-			return standardInputReader;
+			return textInterface;
 		}
 		finally
 		{
@@ -841,42 +786,42 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Replace one or more of the standard I/O streams used by this {@linkplain
-	 * AvailRuntime Avail runtime}.
+	 * Answer the {@linkplain RawPojoDescriptor raw pojo} that wraps the
+	 * {@linkplain #textInterface default} {@linkplain TextInterface text
+	 * interface}.
 	 *
-	 * @param outputStream
-	 *        The new {@linkplain PrintStream standard output stream}, or
-	 *        {@code null} if the standard output stream should not be replaced.
-	 * @param errorStream
-	 *        The new standard error stream, or {@code null} if the standard
-	 *        error stream should not be replaced.
-	 * @param inputStream
-	 *        The new {@linkplain InputStream standard input stream}, or {@code
-	 *        null} if the standard input stream should not be replaced.
+	 * @return The raw pojo holding the default text interface.
 	 */
 	@ThreadSafe
-	public void setStandardStreams (
-		final @Nullable PrintStream outputStream,
-		final @Nullable PrintStream errorStream,
-		final @Nullable InputStream inputStream)
+	public AvailObject textInterfacePojo ()
+	{
+		runtimeLock.readLock().lock();
+		try
+		{
+			return textInterfacePojo;
+		}
+		finally
+		{
+			runtimeLock.readLock().unlock();
+		}
+	}
+
+	/**
+	 * Set the {@linkplain AvailRuntime runtime}'s default {@linkplain
+	 * TextInterface text interface}.
+	 *
+	 * @param textInterface
+	 *        The new default text interface.
+	 */
+	@ThreadSafe
+	public void setTextInterface (final TextInterface textInterface)
 	{
 		runtimeLock.writeLock().lock();
 		try
 		{
-			if (outputStream != null)
-			{
-				standardOutputStream = outputStream;
-			}
-			if (errorStream != null)
-			{
-				standardErrorStream = errorStream;
-			}
-			if (inputStream != null)
-			{
-				standardInputStream = inputStream;
-				standardInputReader = new BufferedReader(
-					new InputStreamReader(inputStream));
-			}
+			this.textInterface = textInterface;
+			this.textInterfacePojo =
+				RawPojoDescriptor.identityWrap(textInterface);
 		}
 		finally
 		{

@@ -36,6 +36,7 @@ Versions
 Uses
 	"Abstract Iterators",
 	"Collection Readers" = ("a reader over_"),
+	"Decorated Readers",
 	"Foundation",
 	"Unit Testing"
 Names
@@ -57,10 +58,9 @@ Body
  * @type "delimited reader"
  * @supertype "reader"
  */
-Class "delimited reader" extends reader
+Class "delimited reader" extends decorated reader
 	with fields
 		element type : tuple's type,
-		decorated reader : reader,
 		delimiter : <any…|1..>
 	with mutable fields
 		referable current value : tuple,
@@ -91,7 +91,7 @@ delimited reader's advance method is
 [
 	aReader : delimited reader
 |
-	inner ::= aReader's decorated reader;
+	inner ::= aReader's component reader;
 	If inner is exhausted then
 	[
 		Clear ↑aReader's current value;
@@ -142,7 +142,7 @@ Public method "_delimited by_" is
 |
 	a delimited reader with
 		element type ::= <aReader's element type…|>,
-		decorated reader ::= aReader,
+		component reader ::= aReader,
 		delimiter ::= delimiterTuple,
 		exhaustion state := false
 ] : reader of tuple;
@@ -154,7 +154,7 @@ Semantic restriction "_delimited by_" is
 |
 	extend delimited reader with
 		element type : <readerType's element type's instance…|>'s type,
-		decorated reader : readerType,
+		component reader : readerType,
 		delimiter : delimiterType
 ];
 

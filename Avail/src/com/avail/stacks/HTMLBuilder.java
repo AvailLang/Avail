@@ -47,56 +47,6 @@ import com.avail.utility.IO;
 public class HTMLBuilder
 {
 	/**
-	 * The string contents of the properties file in question.
-	 */
-	final private String properties;
-
-	/**
-	 * The starting tab count
-	 */
-	final private int startingTabCount;
-
-	/**
-	 * The starting tab count
-	 */
-	private int currentTabCount;
-
-	/**
-	 * Increment the current tab count
-	 */
-	private void incrementCurrentTabCount()
-	{
-		currentTabCount++;
-	}
-
-	/**
-	 * Increment the current tab count
-	 */
-	private void decrementCurrentTabCount()
-	{
-		currentTabCount--;
-	}
-
-	/**
-	 * Construct a new {@link HTMLBuilder}.
-	 *
-	 * @param implementationProperties
-	 * 		The file path location of the HTML properties used to generate
-	 * 		the bulk of the inner html of the implementations.
-	 * @param startingTabCount
-	 * 		The number of tabs in to start with.
-	 */
-	public HTMLBuilder(final Path implementationProperties,
-		final int startingTabCount)
-	{
-		this.properties =
-			HTMLBuilder.getOuterHTMLTemplate(implementationProperties);
-
-		this.startingTabCount = startingTabCount;
-		this.currentTabCount = startingTabCount;
-	}
-
-	/**
 	 * @param classString
 	 * 		the html tag class for styling
 	 * @param content
@@ -110,23 +60,6 @@ public class HTMLBuilder
 	{
 		final StringBuilder stringBuilder = new StringBuilder();
 
-		return stringBuilder.toString();
-	}
-
-	/**
-	 * @param numberOfTabs
-	 * 		the number of tabs to insert into the string.
-	 * @return
-	 * 		a String consisting of the number of tabs requested in
-	 * 		in numberOfTabs.
-	 */
-	private String tabs(final int numberOfTabs)
-	{
-		final StringBuilder stringBuilder = new StringBuilder();
-		for (int i = 1; i <= numberOfTabs; i++)
-		{
-			stringBuilder.append('\t');
-		}
 		return stringBuilder.toString();
 	}
 
@@ -152,35 +85,30 @@ public class HTMLBuilder
 	}
 
 	/**
-	 * Obtain a template file and return a string of that template
+	 * Obtain a template file and return a string of that template.
+	 *
 	 * @param templateFilePath
-	 * 		The template file to obtain
-	 * @return
-	 * 		The string contents of that file.
+	 *        The template file to obtain.
+	 * @return The string contents of that file.
+	 * @throws IOException
+	 *         If the template file could not be opened.
 	 */
 	public static String getOuterHTMLTemplate (final Path templateFilePath)
+		throws IOException
 	{
-		try
-		{
-			final FileInputStream templateFile =
-				new FileInputStream(templateFilePath.toString());
-			final FileChannel channel =
-				templateFile.getChannel();
+		final FileInputStream templateFile =
+			new FileInputStream(templateFilePath.toString());
+		final FileChannel channel =
+			templateFile.getChannel();
 
-			final ByteBuffer buf =
-				ByteBuffer.allocate((int) channel.size());
+		final ByteBuffer buf =
+			ByteBuffer.allocate((int) channel.size());
 
-			channel.read(buf);
+		channel.read(buf);
 
-			IO.close(channel);
-			IO.close(templateFile);
+		IO.close(channel);
+		IO.close(templateFile);
 
-			return new String(buf.array(), "UTF-8");
-		}
-		catch (final IOException e)
-		{
-			e.printStackTrace();
-		}
-		return null;
+		return new String(buf.array(), "UTF-8");
 	}
 }

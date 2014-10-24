@@ -83,6 +83,7 @@ extends Primitive
 		interpreter.primitiveSuspend();
 		ContinuationDescriptor.dumpStackThen(
 			runtime,
+			fiber.textInterface(),
 			continuation,
 			new Continuation1<List<String>>()
 			{

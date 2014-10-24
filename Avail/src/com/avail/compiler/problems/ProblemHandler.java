@@ -32,7 +32,9 @@
 
 package com.avail.compiler.problems;
 
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.ParseNodeDescriptor;
+import com.avail.utility.evaluation.Continuation1;
 
 
 /**
@@ -51,14 +53,19 @@ public abstract class ProblemHandler
 	 * user.  It's unclear whether this will actually be used for anything other
 	 * than debugging the compiler.
 	 *
-	 * @param problem The problem whose type is {@link ProblemType#INFORMATION}.
-	 * @return {@code true} if compilation should {@linkplain
-	 *         Problem#continueCompilation() continue}, or false if compilation
-	 *         should {@linkplain Problem#abortCompilation()}.
+	 * @param problem
+	 *        The problem whose type is {@link ProblemType#INFORMATION}.
+	 * @param decider
+	 *        How to {@linkplain Problem#continueCompilation() continue} or
+	 *        {@linkplain Problem#abortCompilation() abort} compilation.
+	 *        Accepts a {@linkplain Boolean boolean} that is {@code true} iff
+	 *        compilation should continue.
 	 */
-	protected boolean handleInformation (final Problem problem)
+	protected void handleInformation (
+		final Problem problem,
+		final Continuation1<Boolean> decider)
 	{
-		return handleGeneric(problem);
+		handleGeneric(problem, decider);
 	}
 
 	/**
@@ -66,27 +73,37 @@ public abstract class ProblemHandler
 	 * ideal.  A {@link ProblemHandler} may choose to present this warning, and
 	 * then {@linkplain Problem#continueCompilation() continue compilation}.
 	 *
-	 * @param problem The problem whose type is {@link ProblemType#WARNING}.
-	 * @return {@code true} if compilation should {@linkplain
-	 *         Problem#continueCompilation() continue}, or false if compilation
-	 *         should {@linkplain Problem#abortCompilation()}.
+	 * @param problem
+	 *        The problem whose type is {@link ProblemType#WARNING}.
+	 * @param decider
+	 *        How to {@linkplain Problem#continueCompilation() continue} or
+	 *        {@linkplain Problem#abortCompilation() abort} compilation.
+	 *        Accepts a {@linkplain Boolean boolean} that is {@code true} iff
+	 *        compilation should continue.
 	 */
-	protected boolean handleWarning (final Problem problem)
+	protected void handleWarning (
+		final Problem problem,
+		final Continuation1<Boolean> decider)
 	{
-		return handleGeneric(problem);
+		handleGeneric(problem, decider);
 	}
 
 	/**
 	 * A {@link Problem} occurred while tracing a module's dependencies.
 	 *
-	 * @param problem The problem whose type is {@link ProblemType#TRACE}.
-	 * @return {@code true} if compilation should {@linkplain
-	 *         Problem#continueCompilation() continue}, or false if compilation
-	 *         should {@linkplain Problem#abortCompilation()}.
+	 * @param problem
+	 *        The problem whose type is {@link ProblemType#TRACE}.
+	 * @param decider
+	 *        How to {@linkplain Problem#continueCompilation() continue} or
+	 *        {@linkplain Problem#abortCompilation() abort} compilation.
+	 *        Accepts a {@linkplain Boolean boolean} that is {@code true} iff
+	 *        compilation should continue.
 	 */
-	protected boolean handleTrace (final Problem problem)
+	protected void handleTrace (
+		final Problem problem,
+		final Continuation1<Boolean> decider)
 	{
-		return handleGeneric(problem);
+		handleGeneric(problem, decider);
 	}
 
 	/**
@@ -95,14 +112,19 @@ public abstract class ProblemHandler
 	 * successfully transformed into {@linkplain ParseNodeDescriptor parse
 	 * trees}.
 	 *
-	 * @param problem The problem whose type is {@link ProblemType#PARSE}.
-	 * @return {@code true} if compilation should {@linkplain
-	 *         Problem#continueCompilation() continue}, or false if compilation
-	 *         should {@linkplain Problem#abortCompilation()}.
+	 * @param problem
+	 *        The problem whose type is {@link ProblemType#PARSE}.
+	 * @param decider
+	 *        How to {@linkplain Problem#continueCompilation() continue} or
+	 *        {@linkplain Problem#abortCompilation() abort} compilation.
+	 *        Accepts a {@linkplain Boolean boolean} that is {@code true} iff
+	 *        compilation should continue.
 	 */
-	protected boolean handleParse (final Problem problem)
+	protected void handleParse (
+		final Problem problem,
+		final Continuation1<Boolean> decider)
 	{
-		return handleGeneric(problem);
+		handleGeneric(problem, decider);
 	}
 
 	/**
@@ -110,14 +132,19 @@ public abstract class ProblemHandler
 	 * means an unhandled exception, or invoking a bootstrap primitive before
 	 * the relevant exception handling mechanisms are in place.
 	 *
-	 * @param problem The problem whose type is {@link ProblemType#EXECUTION}.
-	 * @return {@code true} if compilation should {@linkplain
-	 *         Problem#continueCompilation() continue}, or false if compilation
-	 *         should {@linkplain Problem#abortCompilation()}.
+	 * @param problem
+	 *        The problem whose type is {@link ProblemType#EXECUTION}.
+	 * @param decider
+	 *        How to {@linkplain Problem#continueCompilation() continue} or
+	 *        {@linkplain Problem#abortCompilation() abort} compilation.
+	 *        Accepts a {@linkplain Boolean boolean} that is {@code true} iff
+	 *        compilation should continue.
 	 */
-	protected boolean handleExecution (final Problem problem)
+	protected void handleExecution (
+		final Problem problem,
+		final Continuation1<Boolean> decider)
 	{
-		return handleGeneric(problem);
+		handleGeneric(problem, decider);
 	}
 
 	/**
@@ -125,14 +152,19 @@ public abstract class ProblemHandler
 	 * not happen, and is not the fault of the Avail code, but rather Yours
 	 * Truly, the Avail virtual machine authors.
 	 *
-	 * @param problem The problem whose type is {@link ProblemType#INTERNAL}.
-	 * @return {@code true} if compilation should {@linkplain
-	 *         Problem#continueCompilation() continue}, or false if compilation
-	 *         should {@linkplain Problem#abortCompilation()}.
+	 * @param problem
+	 *        The problem whose type is {@link ProblemType#INTERNAL}.
+	 * @param decider
+	 *        How to {@linkplain Problem#continueCompilation() continue} or
+	 *        {@linkplain Problem#abortCompilation() abort} compilation.
+	 *        Accepts a {@linkplain Boolean boolean} that is {@code true} iff
+	 *        compilation should continue.
 	 */
-	protected boolean handleInternal (final Problem problem)
+	protected void handleInternal (
+		final Problem problem,
+		final Continuation1<Boolean> decider)
 	{
-		return handleGeneric(problem);
+		handleGeneric(problem, decider);
 	}
 
 	/**
@@ -141,12 +173,17 @@ public abstract class ProblemHandler
 	 * method was not specifically overridden in the subclass.  Always fail in
 	 * this circumstance.
 	 *
-	 * @param problem The problem being handled generically.
-	 * @return {@code true} if compilation should {@linkplain
-	 *         Problem#continueCompilation() continue}, or false if compilation
-	 *         should {@linkplain Problem#abortCompilation()}.
+	 * @param problem
+	 *        The problem being handled generically.
+	 * @param decider
+	 *        How to {@linkplain Problem#continueCompilation() continue} or
+	 *        {@linkplain Problem#abortCompilation() abort} compilation.
+	 *        Accepts a {@linkplain Boolean boolean} that is {@code true} iff
+	 *        compilation should continue.
 	 */
-	protected boolean handleGeneric (final Problem problem)
+	protected void handleGeneric (
+		final Problem problem,
+		final Continuation1<Boolean> decider)
 	{
 		throw new UnsupportedOperationException(
 			"Failed to reimplement either a problem type-specific handler"
@@ -164,13 +201,23 @@ public abstract class ProblemHandler
 	 */
 	public final void handle (final Problem problem)
 	{
-		if (problem.report(this))
-		{
-			problem.continueCompilation();
-		}
-		else
-		{
-			problem.abortCompilation();
-		}
+		problem.report(
+			this,
+			new Continuation1<Boolean>()
+			{
+				@Override
+				public void value (final @Nullable Boolean shouldContinue)
+				{
+					assert shouldContinue != null;
+					if (shouldContinue)
+					{
+						problem.continueCompilation();
+					}
+					else
+					{
+						problem.abortCompilation();
+					}
+				}
+			});
 	}
 }

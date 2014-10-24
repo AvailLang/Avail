@@ -37,14 +37,15 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.*;
 import java.util.List;
-import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.io.TextInputChannel;
 
 /**
- * <strong>Primitive 261</strong>: Mark the standard input stream to allow the
- * specified number of characters to be read ahead (and put back by a subsequent
- * reset).
+ * <strong>Primitive 261</strong>: Mark the {@linkplain Interpreter#fiber()
+ * current fiber}'s {@linkplain TextInputChannel standard input channel} to
+ * allow the specified number of characters to be read ahead (and put back by a
+ * subsequent {@linkplain P_262_ResetStandardInputStream reset}).
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -66,10 +67,11 @@ extends Primitive
 		assert args.size() == 1;
 		final A_Number readAhead = args.get(0);
 		final int readAheadInt = readAhead.extractInt();
-		final Reader reader = AvailRuntime.current().standardInputReader();
+		final TextInputChannel channel =
+			interpreter.fiber().textInterface().inputChannel();
 		try
 		{
-			reader.mark(readAheadInt);
+			channel.mark(readAheadInt);
 		}
 		catch (final IOException e)
 		{

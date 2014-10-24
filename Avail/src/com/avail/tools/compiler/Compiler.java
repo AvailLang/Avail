@@ -46,6 +46,9 @@ import com.avail.descriptor.ModuleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.io.ConsoleInputChannel;
+import com.avail.io.ConsoleOutputChannel;
+import com.avail.io.TextInterface;
 import com.avail.persistence.IndexedFileException;
 import com.avail.tools.compiler.configuration.CommandLineConfigurator;
 import com.avail.tools.compiler.configuration.CompilerConfiguration;
@@ -348,11 +351,14 @@ public class Compiler
 		final ModuleName moduleName = configuration.targetModuleName();
 		final AvailRuntime runtime = new AvailRuntime(resolver);
 
-		// Mute user output, if requested.
+		// Mute output, if requested.
 		if (configuration.quiet())
 		{
-			runtime.setStandardStreams(
-				new PrintStream(new NullOutputStream()), null, null);
+			runtime.setTextInterface(new TextInterface(
+				new ConsoleInputChannel(System.in),
+				new ConsoleOutputChannel(
+					new PrintStream(new NullOutputStream())),
+				new ConsoleOutputChannel(System.err)));
 		}
 
 		try

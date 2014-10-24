@@ -1,0 +1,188 @@
+/*
+ * Filtered Readers.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Filtered Readers"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Extends
+	"Common" = ("element type", "_'s⁇element type"),
+	"Foundation" =
+	(
+		"For each of⁇_do_",
+		"concatenate_",
+		"filter_by_",
+		"map_through_",
+		"take from_until_",
+		"take from_while_",
+		"zip_",
+		"«_‡zip»",
+		"«_‡++»"
+	)
+Uses
+	"Abstract Iterators",
+	"Common" = ("Data|data abstractions test suite"),
+	"Decorated Readers",
+	"Foundation",
+	"Unit Testing" = ("New test suite,⁇_,⁇extends_")
+Names
+	"filtered reader"
+Body
+
+"filter" is a new field atom;
+
+/**
+ * {@method "filter_by_"} produces filtered readers. A filtered reader
+ * decorates another reader and retains a filter function. When asked for its
+ * current element, it answers the first element of the decorated reader that
+ * satisfies the filter function.
+ *
+ * @category "Data Abstractions"
+ * @type "filtered reader"
+ * @supertype "reader"
+ */
+Class "filtered reader" extends decorated reader
+	with fields
+		filter : [⊥]→boolean;
+
+/**
+ * Determine if the {@type "filtered reader"} is exhausted.  This may cause the
+ * decorated reader to be advanced multiple times.
+ * 
+ * @category "Data Abstractions"
+ * @method "_is exhausted"
+ * @param "aReader" "filtered reader"
+ * @returns "boolean"
+ */
+Method "_is exhausted" is
+[
+	aReader : filtered reader
+|
+	found : boolean := false;
+	inner ::= aReader's component reader;
+	Until [found ∨ [inner is exhausted]]
+	do
+	[
+		If aReader's filter(inner's current element) then
+		[
+			found := true;
+		]
+		else
+		[
+			Advance inner;
+		];
+	];
+	¬found
+] : boolean;
+
+/* The current element of the decorated reader must satisfy the filter.
+ * This is ensured by "_is exhausted".
+ */
+filtered reader's current element method is
+[
+	aReader : filtered reader
+|
+	aReader's component reader's current element
+] : any;
+
+/* Unconditionally advance the decorated reader. "_is exhausted" will
+ * determine if there is actually another element that passes the filter.
+ */
+filtered reader's advance method is
+[
+	aReader : filtered reader
+|
+	Advance aReader's component reader;
+] : ⊤;
+
+/**
+ * Construct and answer an reader that applies {@param "predicate"} to
+ * {@param "aReader"}. The result is lazy, so {@param "aReader"} may be
+ * infinite. The result contains only those elements of {@param "aReader"}
+ * that pass the specified filter.
+ *
+ * Note that {@method "_is exhausted"} may require an infinite amount of time to
+ * complete when presented with an infinite filtered reader, e.g., consider
+ * the case of:
+ *
+ * <pre>
+ *     filter reader from 1 to ∞ by [ x : natural number | x < 10 ]
+ * </pre>
+ *
+ * Which will require infinite computation after advancing beyond the element
+ * {@code 10}.
+ * @category "Data Abstractions"
+ * @method "filter_by_"
+ * @param "aReader" "reader"
+ *        An {@type "reader"}.
+ * @param "predicate" "[⊥]→boolean"
+ *        A function that accepts the elements of {@param "aReader"} and
+ *        answers {@code true} iff they should be obtainable via the result
+ *        reader.
+ * @returns "reader"
+ *          An reader capable of producing exactly those elements of {@param
+ *          "aReader"} for which {@param "predicate"} answers {@code true}.
+ */
+Method "filter_by_" is
+[
+	aReader : reader,
+	predicate : [⊥]→boolean
+|
+	a filtered reader with
+		element type ::= aReader's element type,
+		component reader ::= aReader,
+		filter ::= predicate
+] : reader;
+
+/**
+ * Ensure the predicate will accept the inner reader's elements.  Also
+ * strengthen the result to be a {@type "reader"} whose elements are the same as
+ * those of the inner reader.
+ * 
+ * @category "Data Abstractions"
+ * @method "filter_by_"
+ * @restricts "readerType" "reader's type"
+ *        An {@type "reader"}.
+ * @restricts "predicateType" "[⊥]→boolean's type"
+ *        A function that accepts the elements of {@param "aReader"} and
+ *        answers {@code true} iff they should be obtainable via the result
+ *        reader.
+ * @returns "reader"
+ *          The filtered reader's strengthened type.
+ */
+Semantic restriction "filter_by_" is
+[
+	readerType : reader's type,
+	predicateType : [⊥]→boolean's type
+|
+	Require: predicateType accepts readerType;
+	extend reader with element type : readerType's element type
+];

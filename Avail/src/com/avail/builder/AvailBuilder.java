@@ -38,14 +38,20 @@ import static com.avail.descriptor.FiberDescriptor.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.channels.CompletionHandler;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.atomic.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 import com.avail.*;
@@ -63,6 +69,7 @@ import com.avail.compiler.scanning.AvailScannerException;
 import com.avail.compiler.scanning.AvailScannerResult;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.io.TextInterface;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.persistence.IndexedRepositoryManager.*;
 import com.avail.serialization.*;
@@ -81,10 +88,68 @@ import com.avail.utility.evaluation.*;
  */
 public final class AvailBuilder
 {
+	/** The {@linkplain Logger logger}. */
+	@InnerAccess static final Logger logger = Logger.getLogger(
+		AvailBuilder.class.getName());
+
 	/**
 	 * Whether to debug the builder.
 	 */
 	@InnerAccess static final boolean debugBuilder = false;
+
+	/**
+	 * Log the specified message if {@linkplain #debugBuilder debugging} is
+	 * enabled.
+	 *
+	 * @param level
+	 *        The {@linkplain Level severity level}.
+	 * @param format
+	 *        The format string.
+	 * @param args
+	 *        The format arguments.
+	 */
+	@InnerAccess static void log (
+		final Level level,
+		final String format,
+		final Object... args)
+	{
+		if (debugBuilder)
+		{
+			if (logger.isLoggable(level))
+			{
+				logger.log(level, String.format(format, args));
+			}
+		}
+	}
+
+	/**
+	 * Log the specified message if {@linkplain #debugBuilder debugging} is
+	 * enabled.
+	 *
+	 * @param level
+	 *        The {@linkplain Level severity level}.
+	 * @param exception
+	 *        The {@linkplain Throwable exception} that motivated this log
+	 *        entry.
+	 * @param format
+	 *        The format string.
+	 * @param args
+	 *        The format arguments.
+	 */
+	@InnerAccess static void log (
+		final Level level,
+		final Throwable exception,
+		final String format,
+		final Object... args)
+	{
+		if (debugBuilder)
+		{
+			if (logger.isLoggable(level))
+			{
+				logger.log(level, String.format(format, args), exception);
+			}
+		}
+	}
 
 	/**
 	 * The maximum age, in milliseconds, that changes should be left uncommitted
@@ -110,6 +175,24 @@ public final class AvailBuilder
 	public final AvailRuntime runtime;
 
 	/**
+	 * The {@linkplain TextInterface text interface} for the {@linkplain
+	 * AvailBuilder builder} and downstream components.
+	 */
+	public TextInterface textInterface;
+
+	/**
+	 * Set the {@linkplain TextInterface text interface} for the {@linkplain
+	 * AvailBuilder builder} and downstream components.
+	 *
+	 * @param textInterface
+	 *        The text interface.
+	 */
+	public void setTextInterface (final TextInterface textInterface)
+	{
+		this.textInterface = textInterface;
+	}
+
+	/**
 	 * A {@link Graph} of {@link ResolvedModuleName}s, representing the
 	 * relationships between all modules currently loaded or involved in the
 	 * current build action.  Modules are only added here after they have been
@@ -125,7 +208,7 @@ public final class AvailBuilder
 	private final Map<ResolvedModuleName, LoadedModule> allLoadedModules =
 		new HashMap<ResolvedModuleName, LoadedModule>();
 
-	/** Who to notify when modules load and unload. */
+	/** Whom to notify when modules load and unload. */
 	private final Set<Continuation2<LoadedModule, Boolean>> subscriptions =
 		new HashSet<>();
 
@@ -373,8 +456,15 @@ public final class AvailBuilder
 		}
 
 		@Override
-		protected synchronized boolean handleGeneric (final Problem problem)
+		protected void handleGeneric (
+			final Problem problem,
+			final Continuation1<Boolean> decider)
 		{
+			synchronized (this)
+			{
+				shouldStopBuild = true;
+			}
+			@SuppressWarnings("resource")
 			final Formatter formatter = new Formatter();
 			formatter.format(
 				pattern,
@@ -382,11 +472,27 @@ public final class AvailBuilder
 				problem.moduleName,
 				problem.lineNumber,
 				problem.toString());
-			System.err.print(formatter);
-			// Abort the build.  This may change as the builder becomes more
-			// sophisticated.
-			shouldStopBuild = true;
-			return false;
+			textInterface.errorChannel().write(
+				formatter.toString(),
+				null,
+				new CompletionHandler<Integer, Void>()
+				{
+					@Override
+					public void completed (
+						final @Nullable Integer result,
+						final @Nullable Void attachment)
+					{
+						decider.value(false);
+					}
+
+					@Override
+					public void failed (
+						final @Nullable Throwable exc,
+						final @Nullable Void attachment)
+					{
+						decider.value(false);
+					}
+				});
 		}
 	}
 
@@ -710,6 +816,7 @@ public final class AvailBuilder
 			AbstractAvailCompiler.create(
 				resolvedName,
 				true,
+				textInterface,
 				new Continuation1<AbstractAvailCompiler>()
 				{
 					@Override
@@ -763,13 +870,14 @@ public final class AvailBuilder
 				new BuilderProblemHandler("")
 				{
 					@Override
-					protected synchronized boolean handleGeneric (
-						final Problem problem)
+					protected void handleGeneric (
+						final Problem problem,
+						final Continuation1<Boolean> decider)
 					{
 						// Simply ignore all problems when all we're doing is
 						// trying to locate the entry points within any
 						// syntactically valid modules.
-						return false;
+						decider.value(false);
 					}
 				});
 		}
@@ -781,14 +889,11 @@ public final class AvailBuilder
 		@InnerAccess synchronized void indicateTraceCompleted ()
 		{
 			traceCompletions++;
-			if (debugBuilder)
-			{
-				System.out.println(
-					String.format(
-						"Build-directory traced one (%d/%d)",
-						traceCompletions,
-						traceRequests));
-			}
+			log(
+				Level.FINEST,
+				"Build-directory traced one (%d/%d)",
+				traceCompletions,
+				traceRequests);
 			// Avoid spurious wake-ups.
 			if (traceRequests == traceCompletions)
 			{
@@ -862,14 +967,7 @@ public final class AvailBuilder
 							}
 						}
 						getLoadedModule(moduleName).deletionRequest = dirty;
-						if (debugBuilder)
-						{
-							if (dirty)
-							{
-								System.out.println(
-									"(Module " + moduleName + " is dirty)");
-							}
-						}
+						log(Level.FINEST, "(Module %s is dirty)", moduleName);
 						completionAction.value();
 					}
 				});
@@ -908,29 +1006,27 @@ public final class AvailBuilder
 							completionAction.value();
 							return;
 						}
-						if (debugBuilder)
-						{
-							System.out.println(
-								"Beginning unload of: " + moduleName);
-						}
+						log(
+							Level.FINER,
+							"Beginning unload of: %s",
+							moduleName);
 						final A_Module module = loadedModule.module;
 						assert module != null;
 						// It's legal to just create a loader
 						// here, since it won't have any pending
 						// forwards to remove.
 						module.removeFrom(
-							AvailLoader.forUnloading(module),
+							AvailLoader.forUnloading(module, textInterface),
 							new Continuation0()
 							{
 								@Override
 								public void value ()
 								{
 									runtime.unlinkModule(module);
-									if (debugBuilder)
-									{
-										System.out.println(
-											"Done unload of: " + moduleName);
-									}
+									log(
+										Level.FINER,
+										"Finised unload of: %s",
+										moduleName);
 									completionAction.value();
 								}
 							});
@@ -1102,20 +1198,17 @@ public final class AvailBuilder
 						ResolvedModuleName resolvedName = null;
 						try
 						{
-							if (debugBuilder)
-							{
-								System.out.println(
-									"Resolve: " + qualifiedName);
-							}
+							log(Level.FINEST, "Resolve: %s", qualifiedName);
 							resolvedName = runtime.moduleNameResolver().resolve(
 								qualifiedName, resolvedSuccessor);
 						}
 						catch (final Exception e)
 						{
-							if (debugBuilder)
-							{
-								System.out.println("Fail resolution: " + e);
-							}
+							log(
+								Level.WARNING,
+								e,
+								"Fail resolution: %s",
+								qualifiedName);
 							shouldStopBuild = true;
 							final Problem problem = new Problem (
 								resolvedSuccessor != null
@@ -1129,17 +1222,13 @@ public final class AvailBuilder
 								@Override
 								protected void abortCompilation ()
 								{
-									// Ignore problems during trace.
+									indicateTraceCompleted();
 								}
 							};
 							buildProblemHandler.handle(problem);
-							indicateTraceCompleted();
 							return;
 						}
-						if (debugBuilder)
-						{
-							System.out.println("Trace: " + resolvedName);
-						}
+						log(Level.FINEST, "Trace: %s", resolvedName);
 						traceModuleImports(
 							resolvedName,
 							resolvedSuccessor,
@@ -1187,10 +1276,10 @@ public final class AvailBuilder
 					protected void abortCompilation ()
 					{
 						shouldStopBuild = true;
+						indicateTraceCompleted();
 					}
 				};
 				buildProblemHandler.handle(problem);
-				indicateTraceCompleted();
 				return;
 			}
 			final boolean alreadyTraced;
@@ -1238,6 +1327,7 @@ public final class AvailBuilder
 			AbstractAvailCompiler.create(
 				resolvedName,
 				true,
+				textInterface,
 				new Continuation1<AbstractAvailCompiler>()
 				{
 					@Override
@@ -1339,14 +1429,11 @@ public final class AvailBuilder
 		@InnerAccess synchronized void indicateTraceCompleted ()
 		{
 			traceCompletions++;
-			if (debugBuilder)
-			{
-				System.out.println(
-					String.format(
-						"Traced one (%d/%d)",
-						traceCompletions,
-						traceRequests));
-			}
+			log(
+				Level.FINEST,
+				"Traced one (%d/%d)",
+				traceCompletions,
+				traceRequests);
 			// Avoid spurious wake-ups.
 			if (traceRequests == traceCompletions)
 			{
@@ -1389,18 +1476,35 @@ public final class AvailBuilder
 			}
 			if (shouldStopBuild)
 			{
-				System.err.println("Load failed.");
+				textInterface.errorChannel().write(
+					"Load failed.\n",
+					null,
+					new CompletionHandler<Integer, Void>()
+					{
+						@Override
+						public void completed (
+							final @Nullable Integer result,
+							final @Nullable Void attachment)
+						{
+							// Ignore.
+						}
+
+						@Override
+						public void failed (
+							final @Nullable Throwable exc,
+							final @Nullable Void attachment)
+						{
+							// Ignore.
+						}
+					});
 			}
 			else
 			{
-				if (debugBuilder)
-				{
-					System.out.println(
-						String.format(
-							"Traced or kept %d modules (%d edges)",
-							moduleGraph.size(),
-							traceCompletions));
-				}
+				log(
+					Level.FINER,
+					"Traced or kept %d modules (%d edges)",
+					moduleGraph.size(),
+					traceCompletions);
 			}
 		}
 	}
@@ -1563,13 +1667,10 @@ public final class AvailBuilder
 			if (isLoaded)
 			{
 				// The module is already loaded.
-				if (debugBuilder)
-				{
-					System.out.println(
-						String.format(
-							"Already loaded: %s",
-							moduleName.qualifiedName()));
-				}
+				log(
+					Level.FINEST,
+					"Already loaded: %s",
+					moduleName.qualifiedName());
 				postLoad(moduleName, 0L);
 				completionAction.value();
 			}
@@ -1667,7 +1768,8 @@ public final class AvailBuilder
 			localTracker.value(moduleName, -1L, null, null);
 			final A_Module module = ModuleDescriptor.newModule(
 				StringDescriptor.from(moduleName.qualifiedName()));
-			final AvailLoader availLoader = new AvailLoader(module);
+			final AvailLoader availLoader =
+				new AvailLoader(module, textInterface);
 			final Continuation1<Throwable> fail =
 				new Continuation1<Throwable>()
 				{
@@ -1778,6 +1880,7 @@ public final class AvailBuilder
 								code.methodName(),
 								code.module().moduleName(),
 								code.startingLineNumber()));
+						fiber.textInterface(textInterface);
 						fiber.resultContinuation(runNext.value());
 						fiber.failureContinuation(fail);
 						Interpreter.runOutermostFunction(
@@ -1958,6 +2061,7 @@ public final class AvailBuilder
 			AbstractAvailCompiler.create(
 				moduleName,
 				false,
+				textInterface,
 				continuation,
 				new Continuation0()
 				{
@@ -2250,7 +2354,7 @@ public final class AvailBuilder
 			{
 				generator.generate(runtime, target);
 			}
-			catch (final IllegalArgumentException e)
+			catch (final Exception e)
 			{
 				final Problem problem = new Problem(
 					target,
@@ -2389,7 +2493,7 @@ public final class AvailBuilder
 
 		/**
 		 * The output file into which the graph should be written in .gv "dot"
-		 * format.  TODO [MvG] - Not currently used.
+		 * format.
 		 */
 		private final File outputFile;
 
@@ -2399,7 +2503,7 @@ public final class AvailBuilder
 		 * @param targetModule
 		 *        The module whose ancestors are to be graphed.
 		 * @param outputFile
-		 *        The file into which to write the graph - TODO [MvG] - unused.
+		 *        The {@linkplain File file} into which to write the graph.
 		 */
 		GraphTracer (
 			final ResolvedModuleName targetModule,
@@ -2411,9 +2515,12 @@ public final class AvailBuilder
 
 		/**
 		 * Scan all module files in all visible source directories, writing the
-		 * graph as a Graphviz .gv file in "dot" format.
+		 * graph as a Graphviz .gv file in <strong>dot</strong> format.
+		 *
+		 * @throws IOException
+		 *         If an {@linkplain IOException I/O exception} occurs.
 		 */
-		public void traceGraph ()
+		public void traceGraph () throws IOException
 		{
 			if (!shouldStopBuild)
 			{
@@ -2514,13 +2621,15 @@ public final class AvailBuilder
 		}
 
 		/**
-		 * Write the given (reduced) module dependency graph as a .gv "dot"
-		 * file suitable for layout via Graphviz.
-		 * TODO [MvG] - currently writes to the transcript rather than the file.
+		 * Write the given (reduced) module dependency graph as a .gv
+		 * (<strong>dot</strong>) file suitable for layout via Graphviz.
 		 *
 		 * @param ancestry The graph of fully qualified module names.
+		 * @throws IOException
+		 *         If an {@linkplain IOException I/O exception} occurs.
 		 */
 		private void renderGraph (final Graph<ResolvedModuleName> ancestry)
+			throws IOException
 		{
 			final Map<String, ModuleTree> trees = new HashMap<>();
 			final ModuleTree root =
@@ -2691,9 +2800,42 @@ public final class AvailBuilder
 					}
 				},
 				0);
-			System.out.println(out); // TODO [MvG] Write to a file instead.
-		}
+			final AsynchronousFileChannel channel = runtime.openFile(
+				outputFile.toPath(),
+				EnumSet.of(
+					StandardOpenOption.WRITE,
+					StandardOpenOption.CREATE,
+					StandardOpenOption.TRUNCATE_EXISTING));
+			final ByteBuffer buffer = StandardCharsets.UTF_8.encode(
+				out.toString());
+			final Mutable<Integer> position = new Mutable<Integer>(0);
+			channel.write(
+				buffer,
+				0,
+				null,
+				new CompletionHandler<Integer, Void>()
+				{
+					@Override
+					public void completed (
+						final @Nullable Integer result,
+						final @Nullable Void unused)
+					{
+						position.value += result;
+						if (buffer.hasRemaining())
+						{
+							channel.write(buffer, position.value, null, this);
+						}
+					}
 
+					@Override
+					public void failed (
+						final @Nullable Throwable exc,
+						final @Nullable Void attachment)
+					{
+						// Ignore failure.
+					}
+				});
+		}
 	}
 
 	/**
@@ -2706,6 +2848,7 @@ public final class AvailBuilder
 	public AvailBuilder (final AvailRuntime runtime)
 	{
 		this.runtime = runtime;
+		this.textInterface = runtime.textInterface();
 	}
 
 	/**
@@ -2723,7 +2866,7 @@ public final class AvailBuilder
 	 *        of target,</li>
 	 *        <li>the current line number within the current module,</li>
 	 *        <li>the position of the ongoing parse (in bytes), and</li>
-	 *        <li>the size of the module in bytes.</li>
+	 *        <li>the most recently compiled {@linkplain A_Phrase phrase}.</li>
 	 *        </ol>
 	 * @param globalTracker
 	 *        A {@linkplain Continuation3 continuation} that accepts
@@ -2811,12 +2954,14 @@ public final class AvailBuilder
 	 * @param target
 	 *        The resolved name of the module whose ancestors to trace.
 	 * @param destinationFile
-	 *        Where to write the .gv "dot" format file.
-	 *        TODO [MvG] Currently ignored - writes to transcript.
+	 *        Where to write the .gv <strong>dot</strong> format file.
+	 * @throws IOException
+	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	public void generateGraph (
-		final ResolvedModuleName target,
-		final File destinationFile)
+			final ResolvedModuleName target,
+			final File destinationFile)
+		throws IOException
 	{
 		try
 		{
@@ -2929,7 +3074,8 @@ public final class AvailBuilder
 	 *        be passed both the result of execution and a {@linkplain
 	 *        Continuation1 cleanup continuation} to invoke with a {@linkplain
 	 *        Continuation0 post-cleanup continuation}.
-	 * @param onFailure What to do otherwise.
+	 * @param onFailure
+	 *        What to do otherwise.
 	 */
 	public void attemptCommand (
 		final String command,
@@ -3083,11 +3229,13 @@ public final class AvailBuilder
 			final AbstractAvailCompiler compiler = new AvailSystemCompiler(
 				module,
 				scanResult,
+				textInterface,
 				new BuilderProblemHandler("«collection only»")
 				{
 					@Override
-					protected synchronized boolean handleGeneric (
-						final Problem problem)
+					protected void handleGeneric (
+						final Problem problem,
+						final Continuation1<Boolean> decider)
 					{
 						// Clone the problem message into a new problem to
 						// avoid running any cleanup associated with aborting
@@ -3117,17 +3265,35 @@ public final class AvailBuilder
 							}
 						}
 						problems.add(copy);
-						return false;
+						decider.value(false);
 					}
 
 					@Override
-					public boolean handleInternal (final Problem problem)
+					public void handleInternal (
+						final Problem problem,
+						final Continuation1<Boolean> decider)
 					{
-						// First, report it immediately to the user.
-						System.err.println(problem.toString());
-						System.err.flush();
-						// Now pass it along to report normally.
-						return handleGeneric(problem);
+						textInterface.errorChannel().write(
+							problem.toString(),
+							null,
+							new CompletionHandler<Integer, Void>()
+							{
+								@Override
+								public void completed (
+									final @Nullable Integer result,
+									final @Nullable Void attachment)
+								{
+									handleGeneric(problem, decider);
+								}
+
+								@Override
+								public void failed (
+									final @Nullable Throwable exc,
+									final @Nullable Void attachment)
+								{
+									handleGeneric(problem, decider);
+								}
+							});
 					}
 				});
 			compiler.parseCommand(
@@ -3303,11 +3469,10 @@ public final class AvailBuilder
 				@Override
 				public void abortCompilation ()
 				{
-					// do nothing.
+					onFailure.value();
 				}
 			};
 			commandProblemHandler.handle(problem);
-			onFailure.value();
 			return;
 		}
 
@@ -3332,6 +3497,7 @@ public final class AvailBuilder
 						StringDescriptor.format(
 							"Running command: %s",
 							phrase));
+					fiber.textInterface(textInterface);
 					fiber.resultContinuation(
 						new Continuation1<AvailObject>()
 						{
@@ -3366,12 +3532,15 @@ public final class AvailBuilder
 									@Override
 									public void abortCompilation ()
 									{
-										// do nothing.
+										onFailure.value();
 									}
 								};
 								commandProblemHandler.handle(problem);
 							}
-							onFailure.value();
+							else
+							{
+								onFailure.value();
+							}
 						}
 					});
 					Interpreter.runOutermostFunction(

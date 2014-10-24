@@ -38,10 +38,16 @@ Extends
 	"Bounded Readers",
 	"Buffered Iterators",
 	"Collection Readers",
+	"Concatenation Readers",
 	"Counting Readers",
 	"Delimited Readers",
+	"Decorated Readers",
+	"Exhausted Readers",
+	"Filtered Readers",
 	"Generators",
+	"Mapped Readers",
 	"Random Access Buffered Iterators",
 	"Sizable Positionable Iterators",
-	"Stream Readers"
+	"Stream Readers",
+	"Zipped Readers"
 Body

@@ -36,6 +36,7 @@ import java.io.File;
 import com.avail.annotations.Nullable;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.persistence.*;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A {@code ModuleRoot} represents a vendor of Avail modules and/or the vended
@@ -123,5 +124,29 @@ public final class ModuleRoot
 		this.name = name;
 		this.repository = new IndexedRepositoryManager(name, repository);
 		this.sourceDirectory = sourceDirectory;
+	}
+
+	/**
+	 * Write the {@linkplain IndexedRepositoryManager#fileName() binary
+	 * repository path} and the {@linkplain #sourceDirectory() source module
+	 * path} (respectively) into a new JSON array.
+	 *
+	 * @param writer
+	 *        A {@link JSONWriter}.
+	 */
+	public void writePathsOn (final JSONWriter writer)
+	{
+		writer.startArray();
+		writer.write(repository.fileName().getAbsolutePath());
+		final File dir = sourceDirectory;
+		if (dir == null)
+		{
+			writer.writeNull();
+		}
+		else
+		{
+			writer.write(dir.getAbsolutePath());
+		}
+		writer.endArray();
 	}
 }

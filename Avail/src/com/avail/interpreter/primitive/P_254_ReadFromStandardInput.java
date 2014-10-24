@@ -34,15 +34,21 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.io.*;
+import java.nio.CharBuffer;
+import java.nio.channels.CompletionHandler;
+import java.util.ArrayList;
 import java.util.List;
 import com.avail.AvailRuntime;
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.*;
+import com.avail.io.TextInterface;
 
 /**
  * <strong>Primitive 254:</strong> Read one character from the standard input
- * stream.
+ * stream, {@linkplain ExecutionState#SUSPENDED suspending} the {@linkplain
+ * Interpreter#fiber() current fiber} until data becomes available.
  */
 public final class P_254_ReadFromStandardInput
 extends Primitive
@@ -51,7 +57,7 @@ extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_254_ReadFromStandardInput().init(0, CanInline, HasSideEffect);
+		new P_254_ReadFromStandardInput().init(0, Unknown);
 
 	@Override
 	public Result attempt (
@@ -60,23 +66,46 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 0;
-		final Reader reader = AvailRuntime.current().standardInputReader();
-		final char[] buffer = new char[1];
-		final int charactersRead;
-		try
-		{
-			charactersRead = reader.read(buffer, 0, 1);
-			if (charactersRead != 1)
+		final AvailRuntime runtime = interpreter.runtime();
+		final A_Fiber fiber = interpreter.fiber();
+		final TextInterface textInterface = fiber.textInterface();
+		final A_Function failureFunction =
+			interpreter.primitiveFunctionBeingAttempted();
+		final List<AvailObject> copiedArgs = new ArrayList<>(args);
+		final CharBuffer buffer = CharBuffer.allocate(1);
+		interpreter.primitiveSuspend();
+		textInterface.inputChannel().read(
+			buffer,
+			null,
+			new CompletionHandler<Integer, Void>()
 			{
-				return interpreter.primitiveFailure(E_IO_ERROR);
-			}
-		}
-		catch (final IOException e)
-		{
-			return interpreter.primitiveFailure(E_IO_ERROR);
-		}
-		return interpreter.primitiveSuccess(
-			CharacterDescriptor.fromCodePoint(buffer[0]));
+				@Override
+				public void completed (
+					final @Nullable Integer result,
+					final @Nullable Void attachment)
+				{
+					Interpreter.resumeFromSuccessfulPrimitive(
+						runtime,
+						fiber,
+						CharacterDescriptor.fromCodePoint(buffer.get(0)),
+						skipReturnCheck);
+				}
+
+				@Override
+				public void failed (
+					final @Nullable Throwable exc,
+					final @Nullable Void attachment)
+				{
+					Interpreter.resumeFromFailedPrimitive(
+						runtime,
+						fiber,
+						E_IO_ERROR.numericCode(),
+						failureFunction,
+						copiedArgs,
+						skipReturnCheck);
+				}
+			});
+		return Result.FIBER_SUSPENDED;
 	}
 
 	@Override

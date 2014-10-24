@@ -62,6 +62,9 @@ import com.avail.descriptor.*;
 import com.avail.environment.actions.*;
 import com.avail.environment.nodes.*;
 import com.avail.environment.tasks.*;
+import com.avail.io.ConsoleInputChannel;
+import com.avail.io.ConsoleOutputChannel;
+import com.avail.io.TextInterface;
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
 import com.avail.stacks.StacksGenerator;
 import com.avail.utility.Mutable;
@@ -862,10 +865,6 @@ extends JFrame
 				assert dir != null;
 				// Pop the node from the stack.
 				stack.removeFirst();
-				if (ex != null)
-				{
-					ex.printStackTrace();
-				}
 				return FileVisitResult.CONTINUE;
 			}
 
@@ -935,11 +934,6 @@ extends JFrame
 					final @Nullable IOException ex)
 				throws IOException
 			{
-				if (ex != null)
-				{
-					System.err.printf("couldn't visit \"%s\"", file);
-					ex.printStackTrace();
-				}
 				return FileVisitResult.CONTINUE;
 			}
 		};
@@ -1826,7 +1820,18 @@ extends JFrame
 
 		// Redirect the standard streams.
 		redirectStandardStreams();
-		runtime.setStandardStreams(System.out, System.err, null);
+		final BuildInputStream in = inputStream;
+		final PrintStream out = outputStream;
+		final PrintStream err = errorStream;
+		assert in != null;
+		assert out != null;
+		assert err != null;
+		final TextInterface textInterface = new TextInterface(
+			new ConsoleInputChannel(in),
+			new ConsoleOutputChannel(out),
+			new ConsoleOutputChannel(err));
+		runtime.setTextInterface(textInterface);
+		availBuilder.setTextInterface(textInterface);
 
 		final JSplitPane leftPane = new JSplitPane(
 			JSplitPane.VERTICAL_SPLIT,
@@ -1999,8 +2004,7 @@ extends JFrame
 	 * @throws Exception
 	 *         If something goes wrong.
 	 */
-	public static void main (final String[] args)
-	throws Exception
+	public static void main (final String[] args) throws Exception
 	{
 		if (runningOnMac)
 		{
