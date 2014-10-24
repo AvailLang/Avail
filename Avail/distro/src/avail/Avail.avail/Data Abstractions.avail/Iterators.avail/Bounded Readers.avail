@@ -36,6 +36,8 @@ Versions
 Uses
 	"Abstract Iterators",
 	"Counting Readers" = ("a counting reader from_to_"),
+	"Decorated Readers",
+	"Exhausted Readers",
 	"Foundation",
 	"Unit Testing"
 Names
@@ -54,7 +56,7 @@ Body
  */
 Class "bounded reader" extends reader
 	with fields
-		decorated reader : reader
+		component reader : reader
 	with mutable fields
 		referable remaining elements : whole number;
 
@@ -63,21 +65,21 @@ Method "_is exhausted" is
 	aReader : bounded reader
 |
 	aReader's remaining elements = 0
-		∨ [aReader's decorated reader is exhausted]
+		∨ [aReader's component reader is exhausted]
 ] : boolean;
 
 bounded reader's current element method is
 [
 	aReader : bounded reader
 |
-	aReader's decorated reader's current element
+	aReader's component reader's current element
 ] : any;
 
 bounded reader's advance method is
 [
 	aReader : bounded reader
 |
-	Advance aReader's decorated reader;
+	Advance aReader's component reader;
 	↑aReader's remaining elements--;
 ] : ⊤;
 
@@ -107,7 +109,7 @@ Public stable method "_limited to_elements" is
 		|
 			a bounded reader with
 				element type ::= aReader's element type,
-				decorated reader ::= aReader,
+				component reader ::= aReader,
 				remaining elements := t
 		]
 ] : reader;
@@ -123,7 +125,7 @@ Semantic restriction "_limited to_elements" is
 	[
 		extend bounded reader with
 			element type : readerType's element type,
-			decorated reader : readerType
+			component reader : readerType
 	]
 ];
 

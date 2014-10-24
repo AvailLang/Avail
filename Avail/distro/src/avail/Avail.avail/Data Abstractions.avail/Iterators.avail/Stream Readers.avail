@@ -35,14 +35,19 @@ Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
 	"Abstract Iterators",
+	"Concatenation Readers",
+	"Exhausted Readers",
+	"Filtered Readers",
 	"Foundation",
+	"Mapped Readers",
 	"Positionable Iterators",
 	"Streams" =
 	(
 		"a counting stream from_to_",
 		"stream"
 	),
-	"Unit Testing"
+	"Unit Testing",
+	"Zipped Readers"
 Names
 	"a reader over_",
 	"stream reader",

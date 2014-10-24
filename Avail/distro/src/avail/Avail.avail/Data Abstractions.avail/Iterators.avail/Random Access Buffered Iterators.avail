@@ -255,7 +255,6 @@ Method "take«at most»?_from_" is
 			result := eject result ++ buffer[startInBuffer..endInBuffer];
 			positionInBufferVariable ?= 
 				eject positionInBufferVariable + batchSize;
-			Breakpoint;
 		];
 	]
 	intercept

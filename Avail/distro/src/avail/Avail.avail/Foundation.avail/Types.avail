@@ -1227,3 +1227,27 @@ Public method "“_”(cardinality restriction)" is
 		else [“lower” ++ ".." ++ “upper”]
 	]
 ] : string;
+
+/**
+ * Statically strengthen the unary union ("∪_") operation.
+ *
+ * @method "∪_"
+ * @restricts "tupleOfTypesType" "(tuple of type)'s type"
+ * @returns type
+ */
+Semantic restriction "∪_" is
+[
+	tupleOfTypesType : (tuple of type)'s type
+|
+	union : type := ⊥;
+	typeLimit ::= cast |tupleOfTypesType's leading types| + 1
+		into [n : natural number | n];
+	From 1 to typeLimit do
+	[
+		index : natural number
+	|
+		union := union ∪ tupleOfTypesType[index]'s instance;
+		true
+	];
+	union's type
+] : type's type;

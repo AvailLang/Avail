@@ -208,7 +208,7 @@ public final class AvailBuilder
 	private final Map<ResolvedModuleName, LoadedModule> allLoadedModules =
 		new HashMap<ResolvedModuleName, LoadedModule>();
 
-	/** Who to notify when modules load and unload. */
+	/** Whom to notify when modules load and unload. */
 	private final Set<Continuation2<LoadedModule, Boolean>> subscriptions =
 		new HashSet<>();
 

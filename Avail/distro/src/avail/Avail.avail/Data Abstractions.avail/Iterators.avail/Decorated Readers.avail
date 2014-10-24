@@ -1,5 +1,5 @@
 /*
- * Iterators.avail
+ * Decorated Readers.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,24 +30,32 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Iterators"
+Module "Decorated Readers"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Extends
+	"Common" = ("element type", "_'s⁇element type"),
+	"Foundation" = ()
+Uses
 	"Abstract Iterators",
-	"Bounded Readers",
-	"Buffered Iterators",
-	"Collection Readers",
-	"Concatenation Readers",
-	"Counting Readers",
-	"Delimited Readers",
-	"Decorated Readers",
-	"Exhausted Readers",
-	"Filtered Readers",
-	"Generators",
-	"Mapped Readers",
-	"Random Access Buffered Iterators",
-	"Sizable Positionable Iterators",
-	"Stream Readers",
-	"Zipped Readers"
+	"Common" = ("Data|data abstractions test suite"),
+	"Foundation",
+	"Unit Testing" = ("New test suite,⁇_,⁇extends_")
+Names
+	"component reader",
+	"decorated reader",
+	"_'s⁇component reader"
 Body
+
+"component reader" is a new field atom;
+
+/**
+ * This abstract class is for building decorators on another reader.
+ *
+ * @category "Data Abstractions"
+ * @type "decorated reader"
+ * @supertype "reader"
+ */
+Class "decorated reader" extends reader
+	with field
+		component reader : reader;
