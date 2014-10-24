@@ -46,6 +46,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.logging.Level;
+import javax.xml.bind.DatatypeConverter;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
 import com.avail.server.AvailServer;
@@ -507,7 +508,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					"Missing WebSocket Key");
 				return null;
 			}
-			final byte[] key = Base64.getDecoder().decode(
+			final byte[] key = DatatypeConverter.parseBase64Binary(
 				map.get("sec-websocket-key"));
 			if (key.length != 16)
 			{
@@ -688,11 +689,11 @@ implements TransportAdapter<AsynchronousSocketChannel>
 			{
 				throw new RuntimeException("SHA-1 not available", e);
 			}
-			final String stringKey = Base64.getEncoder().encodeToString(key)
+			final String stringKey = DatatypeConverter.printBase64Binary(key)
 				+ "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 			final byte[] acceptBytes =
 				digest.digest(stringKey.getBytes(StandardCharsets.US_ASCII));
-			return Base64.getEncoder().encodeToString(acceptBytes);
+			return DatatypeConverter.printBase64Binary(acceptBytes);
 		}
 
 		/**
