@@ -156,17 +156,26 @@ textarea { background-color: white; }
 	    	});
 	}
 
+	function maybeSubmit (e)
+	{
+		if (e.keyCode == 13)
+		{
+			cmdSend(wsInput.value);
+			wsInput.value = '';
+		}
+	}
+
 	function cmdSend (msg)
 	{
 		if (ioChannel === null)
 		{
 			cmdWrite('<span style="color: gray">' + msg + '</span>');
-			cmdChannel.send(msg);
+			cmdChannel.send(msg.substring(0, msg.length - 1));
 		}
 		else
 		{
 			ioWrite('<span style="color: green">' + msg + '</span><br/>');
-			ioChannel.send(msg + '\n');
+			ioChannel.send(msg);
 		}
 	}
 
@@ -186,12 +195,7 @@ textarea { background-color: white; }
 </script>
 </head>
 <body onload="wsInit();">
-<textarea id="wsInput" rows="4" cols="80"></textarea><br/>
-<input
-	id="wsButton"
-	type="button"
-	onclick="cmdSend(wsInput.value); wsInput.value = '';"
-	value="Send"/>
+<textarea id="wsInput" rows="4" cols="80" onkeyup="maybeSubmit(event);"></textarea><br/>
 <input
 	id="wsButton"
 	type="button"

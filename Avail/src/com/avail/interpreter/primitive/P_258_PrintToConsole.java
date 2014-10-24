@@ -44,6 +44,7 @@ import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.*;
 import com.avail.io.TextInterface;
 import com.avail.io.TextOutputChannel;
+import com.avail.utility.evaluation.Continuation0;
 
 /**
  * <strong>Primitive 258:</strong> Print the specified {@linkplain
@@ -76,37 +77,44 @@ extends Primitive
 			interpreter.primitiveFunctionBeingAttempted();
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		interpreter.primitiveSuspend();
-		textInterface.outputChannel().write(
-			string.asNativeString(),
-			null,
-			new CompletionHandler<Integer, Void>()
+		interpreter.postExitContinuation(new Continuation0()
+		{
+			@Override
+			public void value ()
 			{
-				@Override
-				public void completed (
-					final @Nullable Integer result,
-					final @Nullable Void unused)
-				{
-					Interpreter.resumeFromSuccessfulPrimitive(
-						runtime,
-						fiber,
-						NilDescriptor.nil(),
-						skipReturnCheck);
-				}
+				textInterface.outputChannel().write(
+					string.asNativeString(),
+					null,
+					new CompletionHandler<Integer, Void>()
+					{
+						@Override
+						public void completed (
+							final @Nullable Integer result,
+							final @Nullable Void unused)
+						{
+							Interpreter.resumeFromSuccessfulPrimitive(
+								runtime,
+								fiber,
+								NilDescriptor.nil(),
+								skipReturnCheck);
+						}
 
-				@Override
-				public void failed (
-					final @Nullable Throwable exc,
-					final @Nullable Void attachment)
-				{
-					Interpreter.resumeFromFailedPrimitive(
-						runtime,
-						fiber,
-						E_IO_ERROR.numericCode(),
-						failureFunction,
-						copiedArgs,
-						skipReturnCheck);
-				}
-			});
+						@Override
+						public void failed (
+							final @Nullable Throwable exc,
+							final @Nullable Void attachment)
+						{
+							Interpreter.resumeFromFailedPrimitive(
+								runtime,
+								fiber,
+								E_IO_ERROR.numericCode(),
+								failureFunction,
+								copiedArgs,
+								skipReturnCheck);
+						}
+					});
+			}
+		});
 		return Result.FIBER_SUSPENDED;
 	}
 

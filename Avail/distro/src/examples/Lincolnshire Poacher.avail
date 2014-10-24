@@ -127,7 +127,6 @@ Private method "Start Lincolnshire Poacher" is
 					[
 						Clear serverFiber;
 						Clear serverAddress;
-						Print: "Numbers station is now offline.\n";
 						Signal serverOffline;
 					];
 				]
@@ -151,6 +150,7 @@ Private method "Stop Lincolnshire Poacher" is
 		[
 			Request termination of serverFiber;
 			Await serverOffline;
+			Print: "Numbers station is now offline.\n";
 		]
 		else
 		[
