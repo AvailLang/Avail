@@ -212,7 +212,10 @@ public class AvailCodeGenerator
 			startingLineNumber);
 		generator.stackShouldBeEmpty();
 		final int statementsCount = statementsTuple.tupleSize();
-		if (statementsCount == 0)
+		if (statementsCount == 0
+			&& (primitive == 0
+				|| Primitive.byPrimitiveNumberOrFail(primitive)
+					.canHaveNybblecodes()))
 		{
 			generator.emitPushLiteral(NilDescriptor.nil());
 		}
@@ -223,22 +226,25 @@ public class AvailCodeGenerator
 				statementsTuple.tupleAt(index).emitEffectOn(generator);
 				generator.stackShouldBeEmpty();
 			}
-			final A_Phrase lastStatement =
-				statementsTuple.tupleAt(statementsCount);
-			final A_Type lastStatementType = lastStatement.kind();
-			if (lastStatementType.parseNodeKindIsUnder(LABEL_NODE)
-				|| (lastStatementType.parseNodeKindIsUnder(ASSIGNMENT_NODE)
-					&& resultType.isTop()))
+			if (statementsCount > 0)
 			{
-				// Either the block 1) ends with the label declaration or
-				// 2) is top-valued and ends with an assignment. Push the top
-				// object as the return value.
-				lastStatement.emitEffectOn(generator);
-				generator.emitPushLiteral(NilDescriptor.nil());
-			}
-			else
-			{
-				lastStatement.emitValueOn(generator);
+				final A_Phrase lastStatement =
+					statementsTuple.tupleAt(statementsCount);
+				final A_Type lastStatementType = lastStatement.kind();
+				if (lastStatementType.parseNodeKindIsUnder(LABEL_NODE)
+					|| (lastStatementType.parseNodeKindIsUnder(ASSIGNMENT_NODE)
+						&& lastStatement.expressionType().isTop()))
+				{
+					// Either the block 1) ends with the label declaration or
+					// 2) is top-valued and ends with an assignment. Push the
+					// nil object as the return value.
+					lastStatement.emitEffectOn(generator);
+					generator.emitPushLiteral(NilDescriptor.nil());
+				}
+				else
+				{
+					lastStatement.emitValueOn(generator);
+				}
 			}
 		}
 		return generator.endBlock();

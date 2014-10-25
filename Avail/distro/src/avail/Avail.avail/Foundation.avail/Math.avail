@@ -398,17 +398,27 @@ Method "_+_" is
 	a : extended integer's type,
 	b : extended integer's type
 |
-	lower ::= ⎣a⎦ + ⎣b⎦ - 1;
-	lowerInclusive ::=
-		(⎣a⎦ is inclusive ∧ [⎣a⎦ is infinite])
-		∨ [⎣b⎦ is inclusive ∧ [⎣b⎦ is infinite]];
-	upper ::= ⎡a⎤ + ⎡b⎤ + 1;
-	upperInclusive ::=
-		(⎡a⎤ is inclusive ∧ [⎡a⎤ is infinite])
-		∨ [⎡b⎤ is inclusive ∧ [⎡b⎤ is infinite]];
-	integer range
-		from lower (inclusive=lowerInclusive)
-		to upper (inclusive=upperInclusive)
+	if {[⎣a⎦..⎡a⎤], [⎣b⎦..⎡b⎤]} = {[-∞..-∞],[∞..∞]} then
+	[
+		/* The addition will always fail at runtime due to attempting to add
+		 * infinities of unlike sign.
+		 */
+		⊥
+	]
+	else
+	[
+		lower ::= ⎣a⎦ + ⎣b⎦ - 1;
+		lowerInclusive ::=
+			(⎣a⎦ is inclusive ∧ [⎣a⎦ is infinite])
+			∨ [⎣b⎦ is inclusive ∧ [⎣b⎦ is infinite]];
+		upper ::= ⎡a⎤ + ⎡b⎤ + 1;
+		upperInclusive ::=
+			(⎡a⎤ is inclusive ∧ [⎡a⎤ is infinite])
+			∨ [⎡b⎤ is inclusive ∧ [⎡b⎤ is infinite]];
+		integer range
+			from lower (inclusive=lowerInclusive)
+			to upper (inclusive=upperInclusive)
+	]
 ];
 
 /**

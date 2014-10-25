@@ -1,35 +1,103 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
+<title>Avail Web Client (Test)</title>
+<link
+	rel="stylesheet"
+	href="http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
+<script src="http://code.jquery.com/jquery-2.0.3.js"></script>
+<script src="http://code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+<link
+	rel="stylesheet"
+	href="jsTree/themes/default/style.min.css">
+<script src="jsTree/jstree.min.js"></script>
 <style type="text/css">
-div.console
+#moduleTree
+{
+	float: left;
+	width: 20%;
+	height: 800px;
+	overflow: auto;
+}}
+#moduleTree li
+{
+	font-size: 10pt;
+}
+#buildProgressBar
 {
 	width: 100%;
-	height: 300px;
-	margin-top: 20px;
+	height: 10px;
+}
+#buildProgressBar .ui-progressbar-value
+{
+	background: green;
+}
+#accordionContainer
+{
+	height: 30px;
+	margin: 10px 0px;
+}
+
+#consoleAccordion .ui-accordion
+{
+	padding: 0px;
+}
+
+#consoleAccordion .ui-accordion-header
+{
+	background-color: #f0f0f0;
+	font-size: 8pt;
+	font-variant: small-caps;
+	white-space: pre;
+	text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.2);
+}
+#consoleAccordion .ui-accordion-content
+{
+	width: 100%;
+	margin: 0px;
+	padding: 0px;
 	overflow-x: auto;
 	overflow-y: scroll;
+	font-family: monospace;
+	font-size: 10pt;
+	white-space: pre;
+	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
+}
+div.transcript
+{
+	width: 100%;
+	height: 500px;
+	margin: 10px 0px;
+	overflow-x: auto;
+	overflow-y: scroll;
+	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
 	background-color: #f0f0f0;
-	box-shadow: 6px 6px 5px rgba(0,0,0,0.5);
 	font-family: monospace;
 	white-space: pre;
 }
 div.cmdBanner
 {
+	margin: 0px;
+	padding: 0px;
 	color: white;
 	background-color: black;
 }
 div.ioBanner
 {
+	margin: 0px;
+	padding: 0px;
 	color: white;
 	background-color: darkgreen;
 }
 div.errBanner
 {
+	margin: 0px;
+	padding: 0px;
 	color: white;
 	background-color: darkred;
 }
-pre { outline: 1px solid #ccc; padding: 5px; margin: 5px; }
+pre { outline: 1px solid #ccc; padding: 3px; margin: 3px; }
 textarea { background-color: white; }
 .string { color: green; }
 .number { color: darkorange; }
@@ -38,20 +106,80 @@ textarea { background-color: white; }
 .key { color: red; }
 </style>
 <script language="javascript" type="text/javascript">
+	var protocolVersion = 4;
+	var supportedProtocolVersions = [protocolVersion];
 	var availUri = "ws://localhost:40000/avail";
 	var cmdOutput = null, ioOutput = null;
 	var cmdChannel = null, ioChannel = null;
 	var wsInput = null;
+	var moduleTree = null;
+	var buildProgressBar = null;
+	var globalBytes = null;
+	var consoleAccordion = null;
 
 	function wsInit ()
 	{
 		cmdOutput = document.getElementById('cmdOutput');
 		ioOutput = document.getElementById('ioOutput');
 		wsInput = document.getElementById('wsInput');
+
+		moduleTree = $("#moduleTree");
+		moduleTree.jstree({
+			'core' : {
+				'animation' : 200,
+				'multiple' : false,
+				'themes' : {
+					'variant' : 'small'
+				}
+			},
+			'plugins' : [ 'contextmenu' ],
+			'contextmenu' : {
+				'items' : function (node)
+				{
+					return {
+						'Load' : {
+							'label' : 'Load',
+							'action' : function (item)
+							{
+								var path = '/'
+									+ moduleTree.jstree(true).get_path(
+										node, '/');
+								cmdSend('build module ' + path);
+							}
+						}
+					};
+				}
+			}
+		});
+
+		buildProgressBar = $("#buildProgressBar");
+		buildProgressBar.progressbar();
+		buildProgressBar.hide();
+
+		consoleAccordion = $("#consoleAccordion");
+		var collapseCounter = 0;
+		consoleAccordion.accordion({
+			'active' : false,
+			'animate' : 200,
+			'beforeActivate' :
+				function (e, ui)
+				{
+					$("#accordionContainer").height(
+						(collapseCounter % 2 === 0) ? 300 : 30);
+					consoleAccordion.accordion('refresh');
+					collapseCounter++;
+				},
+			'collapsible' : true,
+			'header' : 'h6',
+			'heightStyle' : 'fill'
+		});
+
 		cmdChannel = new WebSocket(availUri);
 		cmdChannel.onopen = function (e)
 		{
+			clearOutput();
 			cmdWrite('<div class="cmdBanner">CONNECTED</div>');
+			cmdSend('version ' + protocolVersion);
 		};
 		cmdChannel.onclose = function (e)
 		{
@@ -104,6 +232,112 @@ textarea { background-color: white; }
 							+ '</span>');
 					}
 				};
+				return;
+			}
+			if ('command' in response)
+			{
+				switch (response.command)
+				{
+					case 'version':
+					{
+						var content = response.content;
+						if (content !== protocolVersion)
+						{
+							var serverVersions = content.supported;
+							var compatible = serverVersions.filter(
+								function (v)
+								{
+									console.log('server=' + v);
+									console.log(supportedProtocolVersions);
+									return supportedProtocolVersions.indexOf(
+										v) != -1;
+								});
+							if (compatible.length === 0)
+							{
+								cmdWrite(
+									'<div class="errBanner">INCOMPATIBLE VERSIONS</div>');
+								return;
+							}
+						}
+						cmdWrite('<div class="ioBanner">VERSION NEGOTIATED</div>');
+						cmdSend('source modules');
+						break;
+					}
+					case 'source modules':
+					{
+						var content = response.content;
+						visitRoots(content, function (node)
+						{
+							if (node.isRoot)
+							{
+								// Do nothing — yet.
+							}
+							else if (node.isPackage)
+							{
+								node.icon = 'images/PackageInTree.png';
+							}
+							else if (node.isResource)
+							{
+								// Do nothing — yet.
+							}
+							else
+							{
+								node.icon = 'images/ModuleInTree.png';
+							}
+						});
+						moduleTree.jstree(true).settings.core.data =
+							content;
+						moduleTree.jstree(true).refresh();
+						break;
+					}
+					case 'build module':
+					{
+						var content = response.content;
+						switch (typeof content)
+						{
+							case 'object':
+								if ('global' in content)
+								{
+									content.global.forEach(function (update)
+									{
+										if (globalBytes === 0)
+										{
+											if ('totalBytes' in update)
+											{
+												globalBytes =
+													update.totalBytes;
+												buildProgressBar.progressbar(
+													'option',
+													'max',
+													100);
+											}
+										}
+										if ('bytesSoFar' in update)
+										{
+											buildProgressBar.progressbar(
+												'value',
+												100 * (update.bytesSoFar / globalBytes));
+										}
+									});
+								}
+								break;
+							case 'string':
+								if (content === 'begin')
+								{
+									globalBytes = 0;
+									buildProgressBar.show();
+								}
+								else if (content === 'end')
+								{
+									buildProgressBar.progressbar('value', 0);
+									buildProgressBar.progressbar('option', 'max', 0);
+									buildProgressBar.hide();
+								}
+								break;
+						}
+						break;;
+					}
+				}
 			}
 		}
 	}
@@ -125,42 +359,43 @@ textarea { background-color: white; }
 
 	function highlight (json)
 	{
-	    json = json.replace(/&/g, '&')
-	    	.replace(/</g, '&lt;')
-	    	.replace(/>/g, '&gt;');
-	    return json.replace(
-	    	/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
-	    	function (match)
-	    	{
-		        var cls = 'number';
-		        if (/^"/.test(match))
-		        {
-		            if (/:$/.test(match))
-		            {
-		                cls = 'key';
-		            }
-		            else
-		            {
-		                cls = 'string';
-		            }
-		        }
-		        else if (/true|false/.test(match))
-		        {
-		            cls = 'boolean';
-		        }
-		        else if (/null/.test(match))
-		        {
-		            cls = 'null';
-		        }
-		        return '<span class="' + cls + '">' + match + '</span>';
-	    	});
+		json = json.replace(/&/g, '&')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;');
+		return json.replace(
+			/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+			function (match)
+			{
+				var cls = 'number';
+				if (/^"/.test(match))
+				{
+					if (/:$/.test(match))
+					{
+						cls = 'key';
+					}
+					else
+					{
+						cls = 'string';
+					}
+				}
+				else if (/true|false/.test(match))
+				{
+					cls = 'boolean';
+				}
+				else if (/null/.test(match))
+				{
+					cls = 'null';
+				}
+				return '<span class="' + cls + '">' + match + '</span>';
+			});
 	}
 
 	function maybeSubmit (e)
 	{
+		// Submit on enter.
 		if (e.keyCode == 13)
 		{
-			cmdSend(wsInput.value);
+			cmdSend(wsInput.value.substring(0, wsInput.value.length - 1));
 			wsInput.value = '';
 		}
 	}
@@ -170,12 +405,12 @@ textarea { background-color: white; }
 		if (ioChannel === null)
 		{
 			cmdWrite('<span style="color: gray">' + msg + '</span>');
-			cmdChannel.send(msg.substring(0, msg.length - 1));
+			cmdChannel.send(msg);
 		}
 		else
 		{
 			ioWrite('<span style="color: green">' + msg + '</span><br/>');
-			ioChannel.send(msg);
+			ioChannel.send(msg + '\n');
 		}
 	}
 
@@ -192,25 +427,76 @@ textarea { background-color: white; }
 			elem.removeChild(elem.firstChild);
 		}
 	}
+
+	function closeChannels ()
+	{
+		if (cmdChannel !== null)
+		{
+			cmdChannel.close();
+			cmdChannel = null;
+		}
+		if (ioChannel !== null)
+		{
+			ioChannel.close();
+			ioChannel = null;
+		}
+	}
+
+	function visitTree (node, callback)
+	{
+		if (node.hasOwnProperty('children'))
+		{
+			var children = node.children.forEach(function (child)
+			{
+				visitTree(child, callback);
+			});
+		}
+		callback(node);
+	}
+
+	function visitRoots (roots, callback)
+	{
+		roots.forEach(function (root)
+		{
+			visitTree(root, callback);
+		});
+	}
 </script>
 </head>
 <body onload="wsInit();">
-<textarea id="wsInput" rows="4" cols="80" onkeyup="maybeSubmit(event);"></textarea><br/>
-<input
-	id="wsButton"
-	type="button"
-	onclick="cmdChannel.close();"
-	value="Close"/>
-<input
-	id="wsClear"
-	type="button"
-	onclick="clearOutput();"
-	value="Clear"/>
-<div class="console" id="cmdOutput">
-<!-- Command content appears here. -->
-</div>
-<div class="console" id="ioOutput">
-<!-- I/O content appears here. -->
+<div>
+	<div id="moduleTree">
+	<!-- The module tree appears here. -->
+	</div>
+	<div style="float: left; margin: 10px; width: 60%">
+		<div>
+			<textarea id="wsInput" rows="4" cols="80" onkeyup="maybeSubmit(event);"></textarea>
+			<input
+				id="wsButton"
+				type="button"
+				onclick="closeChannels();"
+				value="Close">
+			<input
+				id="wsClear"
+				type="button"
+				onclick="clearOutput();"
+				value="Clear"/>
+		</div>
+		<div id="buildProgressBar">
+		<!-- The build progress bar. -->
+		</div>
+		<div id="accordionContainer">
+			<div id="consoleAccordion">
+				<h6>Command Console</h6>
+				<div id="cmdOutput">
+				<!-- Command content appears here. -->
+				</div>
+			</div>
+		</div>
+		<div class="transcript" id="ioOutput">
+		<!-- I/O content appears here. -->
+		</div>
+	</div>
 </div>
 </body>
 </html>

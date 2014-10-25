@@ -491,11 +491,6 @@ Test "tuple reader (size)" in tuple reader test suite is
 	Require: 10 = |iter|;
 ];
 
-/** TODO[MvG] - Remove hack. */
-x : reader of [1..10];
-y : sizable reader of [1..10];
-z : sizable reader of [1..10] positioned by [1..∞);
-
 Test "tuple reader (position)" in tuple reader test suite is
 [
 	iter : sizable reader of [1..10] positioned by [1..∞) :=

@@ -186,16 +186,6 @@ public final class SerializerTest
 		final ByteArrayOutputStream theByteStream = out;
 		assert theByteStream != null;
 		final byte[] bytes = theByteStream.toByteArray();
-//		int count = 1;
-//		for (final byte b : bytes)
-//		{
-//			System.out.format("%02x ", b);
-//			if (count++ % 50 == 0)
-//			{
-//				System.out.println();
-//			}
-//		}
-//		System.out.println();
 		deserializer = new Deserializer(
 			in = new ByteArrayInputStream(bytes),
 			runtime());

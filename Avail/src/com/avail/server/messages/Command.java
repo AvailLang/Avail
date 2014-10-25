@@ -58,6 +58,44 @@ import com.avail.utility.json.JSONWriter;
 public enum Command
 {
 	/**
+	 * Negotiate a protocol version.
+	 */
+	VERSION
+	{
+		@Override
+		boolean requiresSpecialParsing ()
+		{
+			return true;
+		}
+
+		@Override
+		public String syntaxHelp ()
+		{
+			return "VERSION <version: INTEGER>";
+		}
+
+		@Override
+		public @Nullable CommandMessage parse (final String source)
+		{
+			final String[] tokens = source.split("\\s+", 2);
+			if (tokens.length < 2 || !tokens[0].equalsIgnoreCase("version"))
+			{
+				return null;
+			}
+			final int version;
+			try
+			{
+				version = Integer.parseInt(tokens[1]);
+			}
+			catch (final NumberFormatException e)
+			{
+				return null;
+			}
+			return new VersionCommandMessage(version);
+		}
+	},
+
+	/**
 	 * List all {@linkplain Command commands}.
 	 */
 	COMMANDS,
@@ -108,7 +146,7 @@ public enum Command
 		}
 
 		@Override
-		@Nullable CommandMessage parse (final String source)
+		public @Nullable CommandMessage parse (final String source)
 		{
 			final String[] tokens = source.split("\\s+", 2);
 			if (tokens.length < 2 || !tokens[0].equalsIgnoreCase("upgrade"))
@@ -147,7 +185,7 @@ public enum Command
 		}
 
 		@Override
-		@Nullable BuildModuleCommandMessage parse (final String source)
+		public @Nullable BuildModuleCommandMessage parse (final String source)
 		{
 			final String[] tokens = source.split("\\s+", 3);
 			if (tokens.length < 3
@@ -187,7 +225,7 @@ public enum Command
 		}
 
 		@Override
-		@Nullable RunEntryPointCommandMessage parse (final String source)
+		public @Nullable RunEntryPointCommandMessage parse (final String source)
 		{
 			final String[] tokens = source.split("\\s+", 2);
 			if (tokens.length < 2 || !tokens[0].equalsIgnoreCase("run"))
@@ -219,7 +257,7 @@ public enum Command
 	 * @return A command message, or {@code null} if the tokens could not be
 	 *         understood as a command of this kind.
 	 */
-	@Nullable CommandMessage parse (final String source)
+	public @Nullable CommandMessage parse (final String source)
 	{
 		throw new UnsupportedOperationException();
 	}

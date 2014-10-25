@@ -1,5 +1,5 @@
 /**
- * SimpleCommandMessage.java
+ * VersionCommandMessage.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,37 +32,47 @@
 
 package com.avail.server.messages;
 
-import com.avail.server.AvailServer;
 import com.avail.server.io.AvailServerChannel;
 import com.avail.utility.evaluation.Continuation0;
 
 /**
- * A {@code SimpleCommandMessage} contains no state beyond the style of
- * {@linkplain Command command}.
+ * A {@code VersionCommandMessage} represents a {@link Command#VERSION
+ * VERSION} {@linkplain Command command}, and carries the requested protocol
+ * version.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class SimpleCommandMessage
+public final class VersionCommandMessage
 extends CommandMessage
 {
-	/** The {@linkplain Command command}. */
-	private final Command command;
+	/** The requested protocol version. */
+	private final int version;
+
+	/**
+	 * Answer the requested protocol version.
+	 *
+	 * @return The requested protocol version.
+	 */
+	public int version ()
+	{
+		return version;
+	}
+
+	/**
+	 * Construct a new {@link VersionCommandMessage}.
+	 *
+	 * @param version
+	 *        The requested protocol version.
+	 */
+	public VersionCommandMessage (final int version)
+	{
+		this.version = version;
+	}
 
 	@Override
 	public Command command ()
 	{
-		return command;
-	}
-
-	/**
-	 * Construct a new {@link SimpleCommandMessage}.
-	 *
-	 * @param command
-	 *        The {@linkplain Command command}.
-	 */
-	SimpleCommandMessage (final Command command)
-	{
-		this.command = command;
+		return Command.VERSION;
 	}
 
 	@Override
@@ -70,33 +80,7 @@ extends CommandMessage
 		final AvailServerChannel channel,
 		final Continuation0 continuation)
 	{
-		final AvailServer server = channel.server();
-		switch (command)
-		{
-			case COMMANDS:
-				server.commandsThen(channel, this, continuation);
-				break;
-			case MODULE_ROOTS:
-				server.moduleRootsThen(channel, this, continuation);
-				break;
-			case MODULE_ROOT_PATHS:
-				server.moduleRootPathsThen(channel, this, continuation);
-				break;
-			case MODULE_ROOTS_PATH:
-				server.moduleRootsPathThen(channel, this, continuation);
-				break;
-			case SOURCE_MODULES:
-				server.sourceModulesThen(channel, this, continuation);
-				break;
-			case ENTRY_POINTS:
-				server.entryPointsThen(channel, this, continuation);
-				break;
-			case VERSION:
-			case UPGRADE:
-			case BUILD_MODULE:
-			case RUN_ENTRY_POINT:
-				assert false : "This command should not be dispatched here!";
-				break;
-		}
+		channel.server().negotiateVersionThen(
+			channel, this, continuation);
 	}
 }

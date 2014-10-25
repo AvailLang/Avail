@@ -38,14 +38,8 @@ Extends
 	"Foundation" =
 	(
 		"For each of⁇_do_",
-		"concatenate_",
-		"filter_by_",
-		"map_through_",
 		"take from_until_",
-		"take from_while_",
-		"zip_",
-		"«_‡zip»",
-		"«_‡++»"
+		"take from_while_"
 	)
 Uses
 	"Common" = ("Data|data abstractions test suite"),
@@ -58,7 +52,6 @@ Names
 	"Drop«at most»?_from_",
 	"Seal_'s⁇current element method",
 	"Seal_'s⁇advance method",
-	"decorated reader",
 	"exhausted-iterator exception",
 	"iterator",
 	"iterators test suite",

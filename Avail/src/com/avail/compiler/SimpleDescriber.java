@@ -1,5 +1,5 @@
 /**
- * SimpleCommandMessage.java
+ * SimpleDescriber.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,73 +30,41 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.messages;
+package com.avail.compiler;
 
-import com.avail.server.AvailServer;
-import com.avail.server.io.AvailServerChannel;
-import com.avail.utility.evaluation.Continuation0;
+import com.avail.utility.evaluation.*;
 
 /**
- * A {@code SimpleCommandMessage} contains no state beyond the style of
- * {@linkplain Command command}.
+ * A {@code SimpleDescriber} is a {@link Describer} that is given an
+ * already-constructed {@link String} at construction time.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class SimpleCommandMessage
-extends CommandMessage
+class SimpleDescriber implements Describer
 {
-	/** The {@linkplain Command command}. */
-	private final Command command;
+	/** The string provided at construction time. */
+	final String string;
 
-	@Override
-	public Command command ()
+	/**
+	 * Construct a new {@link SimpleDescriber} with an already-computed String.
+	 *
+	 * @param string The String that this describer describes itself as.
+	 */
+	public SimpleDescriber (final String string)
 	{
-		return command;
+		this.string = string;
 	}
 
 	/**
-	 * Construct a new {@link SimpleCommandMessage}.
+	 * Use the previously stored String as the description, passing it into the
+	 * specified {@linkplain Continuation1 continuation}.
 	 *
-	 * @param command
-	 *        The {@linkplain Command command}.
+	 * @param continuation
+	 *        What to do with the message.
 	 */
-	SimpleCommandMessage (final Command command)
-	{
-		this.command = command;
-	}
-
 	@Override
-	public void processThen (
-		final AvailServerChannel channel,
-		final Continuation0 continuation)
+	public void describeThen (final Continuation1<String> continuation)
 	{
-		final AvailServer server = channel.server();
-		switch (command)
-		{
-			case COMMANDS:
-				server.commandsThen(channel, this, continuation);
-				break;
-			case MODULE_ROOTS:
-				server.moduleRootsThen(channel, this, continuation);
-				break;
-			case MODULE_ROOT_PATHS:
-				server.moduleRootPathsThen(channel, this, continuation);
-				break;
-			case MODULE_ROOTS_PATH:
-				server.moduleRootsPathThen(channel, this, continuation);
-				break;
-			case SOURCE_MODULES:
-				server.sourceModulesThen(channel, this, continuation);
-				break;
-			case ENTRY_POINTS:
-				server.entryPointsThen(channel, this, continuation);
-				break;
-			case VERSION:
-			case UPGRADE:
-			case BUILD_MODULE:
-			case RUN_ENTRY_POINT:
-				assert false : "This command should not be dispatched here!";
-				break;
-		}
+		continuation.value(string);
 	}
 }

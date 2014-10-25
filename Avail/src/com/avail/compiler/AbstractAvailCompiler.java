@@ -1894,7 +1894,7 @@ public abstract class AbstractAvailCompiler
 				position,
 				false,
 				compiler.workUnitCompletion(peekToken(), continuation),
-				onFailure);
+				compiler.workUnitCompletion(peekToken(), onFailure));
 		}
 	}
 
@@ -2367,14 +2367,7 @@ public abstract class AbstractAvailCompiler
 					// decoding).
 					if (input.hasRemaining())
 					{
-						final int delta = input.remaining();
-						for (int i = 0; i < delta; i++)
-						{
-							final byte b = input.get(input.position() + i);
-							input.put(i, b);
-						}
-						input.limit(input.capacity());
-						input.position(delta);
+						input.compact();
 					}
 					else
 					{
@@ -2556,8 +2549,7 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Answer a {@linkplain Generator generator} that will produce the given
-	 * string.
+	 * Answer a {@link Describer} that will produce the given string.
 	 *
 	 * @param string
 	 *        The exact string to generate.
@@ -2565,14 +2557,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	Describer generate (final String string)
 	{
-		return new Describer()
-		{
-			@Override
-			public void describeThen (final Continuation1<String> continuation)
-			{
-				continuation.value(string);
-			}
-		};
+		return new SimpleDescriber(string);
 	}
 
 	/**
@@ -2800,18 +2785,36 @@ public abstract class AbstractAvailCompiler
 			new Describer()
 			{
 				@Override
-				public void describeThen (final Continuation1<String> c)
+				public void describeThen (
+					final Continuation1<String> continuation)
 				{
-					final StringBuilder builder = new StringBuilder(200);
-					builder.append("unambiguous interpretation.  ");
-					builder.append("Here are two possible parsings...\n");
-					builder.append("\t");
-					builder.append(node1.value.toString());
-					builder.append("\n\t");
-					builder.append(node2.value.toString());
-					c.value(builder.toString());
-				}
-			});
+					final List<A_Phrase> nodes = Arrays.asList(
+						node1.value, node2.value);
+					Interpreter.stringifyThen(
+						runtime,
+						textInterface,
+						nodes,
+						new Continuation1<List<String>>()
+						{
+							@Override
+							public void value (
+								final @Nullable List<String> nodeStrings)
+							{
+								assert nodeStrings != null;
+								final StringBuilder builder =
+									new StringBuilder(200);
+								builder.append(
+									"unambiguous interpretation.  " +
+									"Here are two possible parsings..." +
+									"\n\t");
+								builder.append(nodeStrings.get(0));
+								builder.append("\n\t");
+								builder.append(nodeStrings.get(1));
+								continuation.value(builder.toString());
+							}
+						});
+					}
+				});
 		reportError(afterFail);
 	}
 
@@ -2981,9 +2984,13 @@ public abstract class AbstractAvailCompiler
 		assert noMoreWorkUnits != null;
 		return new Continuation1<ArgType>()
 		{
+			boolean hasRunSafetyCheck = false;
+
 			@Override
 			public void value (final @Nullable ArgType value)
 			{
+				assert !hasRunSafetyCheck;
+				hasRunSafetyCheck = true;
 				boolean quiescent = false;
 				try
 				{
@@ -4513,7 +4520,7 @@ public abstract class AbstractAvailCompiler
 	/**
 	 * Check the proposed message send for validity. Use not only the applicable
 	 * {@linkplain MethodDefinitionDescriptor method definitions}, but also any
-	 * type restriction functions. The type restriction functions may choose to
+	 * semantic restrictions. The semantic restrictions may choose to
 	 * {@linkplain P_352_RejectParsing reject the parse}, indicating that the
 	 * argument types are mutually incompatible.
 	 *
@@ -4524,17 +4531,17 @@ public abstract class AbstractAvailCompiler
 	 * @param state
 	 *        The {@linkplain ParserState parser state} after the function
 	 *        evaluates successfully.
-	 * @param onSuccess
+	 * @param originalOnSuccess
 	 *        What to do with the strengthened return type.
-	 * @param onFailure
+	 * @param originalOnFailure
 	 *        What to do if validation fails.
 	 */
 	private void validateArgumentTypes (
 		final A_Bundle bundle,
 		final List<? extends A_Type> argTypes,
 		final ParserState state,
-		final Continuation1<A_Type> onSuccess,
-		final Continuation1<Describer> onFailure)
+		final Continuation1<A_Type> originalOnSuccess,
+		final Continuation1<Describer> originalOnFailure)
 	{
 		final MutableOrNull<A_Tuple> definitionsTuple = new MutableOrNull<>();
 		final MutableOrNull<A_Set> restrictions = new MutableOrNull<>();
@@ -4550,6 +4557,11 @@ public abstract class AbstractAvailCompiler
 		});
 		// Filter the definitions down to those that are locally most specific.
 		// Fail if more than one survives.
+		startWorkUnit();
+		final Continuation1<A_Type> onSuccess =
+			workUnitCompletion(state.peekToken(), originalOnSuccess);
+		final Continuation1<Describer> onFailure =
+			workUnitCompletion(state.peekToken(), originalOnFailure);
 		if (definitionsTuple.value().tupleSize() > 0 &&
 			!definitionsTuple.value().tupleAt(1).isMacroDefinition())
 		{
@@ -4770,127 +4782,169 @@ public abstract class AbstractAvailCompiler
 		// type intersection of their results.
 		final Mutable<Integer> outstanding = new Mutable<>(
 			restrictionsToTry.size());
-		final Mutable<Boolean> anyFailures = new Mutable<>(false);
-		final Continuation1<AvailObject> intersectAndDecrement =
-			workUnitCompletion(
-				state.peekToken(),
-				new Continuation1<AvailObject>()
+		final List<Describer> failureMessages = new ArrayList<>();
+		final Continuation0 whenDone = new Continuation0()
+		{
+			@Override
+			public void value ()
+			{
+				assert outstanding.value == 0;
+				if (failureMessages.isEmpty())
 				{
-					@Override
-					public void value (
-						final @Nullable AvailObject restrictionType)
-					{
-						assert restrictionType != null;
-						synchronized (outstanding)
-						{
-							if (!anyFailures.value)
-							{
-								intersection.value =
-									intersection.value.typeIntersection(
-										restrictionType);
-								outstanding.value--;
-								if (outstanding.value == 0)
-								{
-									onSuccess.value(intersection.value);
-								}
-							}
-						}
-					}
-				});
-		final Continuation1<Throwable> failed =
-			workUnitCompletion(
-				state.peekToken(),
-				new Continuation1<Throwable>()
+					onSuccess.value(intersection.value);
+					return;
+				}
+				onFailure.value(new Describer()
 				{
+					int index = 0;
+
 					@Override
-					public void value (final @Nullable Throwable e)
+					public void describeThen (
+						final Continuation1<String> continuation)
 					{
-						assert e != null;
-						final boolean alreadyFailed;
-						synchronized (outstanding)
+						assert !failureMessages.isEmpty();
+						final StringBuilder builder = new StringBuilder();
+						final MutableOrNull<Continuation0> looper =
+							new MutableOrNull<>(null);
+						looper.value = new Continuation0()
 						{
-							alreadyFailed = anyFailures.value;
-							if (!alreadyFailed)
+							@Override
+							public void value()
 							{
-								anyFailures.value = true;
-							}
-						}
-						if (!alreadyFailed)
-						{
-							if (e instanceof AvailRejectedParseException)
-							{
-								final AvailRejectedParseException rej =
-									(AvailRejectedParseException) e;
-								final A_String text = rej.rejectionString();
-								onFailure.value(
-									new Describer()
+								failureMessages.get(index).describeThen(
+									new Continuation1<String>()
 									{
 										@Override
-										public void describeThen (
-											final Continuation1<String> c)
+										public void value (
+											final @Nullable String string)
 										{
-											c.value(
-												text.asNativeString()
-												+ " (while parsing send of "
-												+ bundle.message().atomName()
-												+ ")");
+											if (index > 0)
+											{
+												builder.append(
+													"\n-------------------\n");
+											}
+											builder.append(string);
+											index++;
+											if (index < failureMessages.size())
+											{
+												looper.value();
+											}
+											else
+											{
+												continuation.value(
+													builder.toString());
+											}
 										}
 									});
 							}
-							else if (e instanceof FiberTerminationException)
-							{
-								onFailure.value(new Describer()
-								{
-									@Override
-									public void describeThen (
-										final Continuation1<String> c)
-									{
-										c.value(
-											"semantic restriction not to "
-											+ "raise an unhandled "
-											+ "exception (while parsing "
-											+ "send of "
-											+ bundle.message().atomName()
-											+ "):\n\t"
-											+ e.toString());
-									}
-								});
-							}
-							else if (e instanceof AvailAssertionFailedException)
-							{
-								final AvailAssertionFailedException ex =
-									(AvailAssertionFailedException) e;
-								onFailure.value(new Describer()
-								{
-									@Override
-									public void describeThen (
-										final Continuation1<String> c)
-									{
-										c.value(
-											"assertion failed "
-											+ " (while parsing send of "
-											+ bundle.message().atomName()
-											+ "):\n\t"
-											+ ex.assertionString()
-												.asNativeString());
-									}
-								});
-							}
-							else
-							{
-								reportInternalProblem(state.peekToken(), e);
-							}
-						}
+						};
 					}
 				});
-		startWorkUnits(restrictionsToTry.size());
+			}
+		};
+		final Continuation1<AvailObject> intersectAndDecrement =
+			new Continuation1<AvailObject>()
+			{
+				@Override
+				public void value (
+					final @Nullable AvailObject restrictionType)
+				{
+					assert restrictionType != null;
+					synchronized (outstanding)
+					{
+						if (failureMessages.isEmpty())
+						{
+							intersection.value =
+								intersection.value.typeIntersection(
+									restrictionType);
+						}
+						outstanding.value--;
+						if (outstanding.value == 0)
+						{
+							whenDone.value();
+						}
+					}
+				}
+			};
+		final Continuation1<Throwable> failAndDecrement =
+			new Continuation1<Throwable>()
+			{
+				@Override
+				public void value (final @Nullable Throwable e)
+				{
+					assert e != null;
+					final Describer message;
+					if (e instanceof AvailRejectedParseException)
+					{
+						final AvailRejectedParseException rej =
+							(AvailRejectedParseException) e;
+						message = new Describer()
+						{
+							@Override
+							public void describeThen(
+								final Continuation1<String> c)
+							{
+								c.value(
+									rej.rejectionString().asNativeString()
+									+ " (while parsing send of "
+									+ bundle.message().atomName()
+										.asNativeString()
+									+ ")");
+							}
+						};
+					}
+					else if (e instanceof FiberTerminationException)
+					{
+						message = new Describer()
+						{
+							@Override
+							public void describeThen(
+								final Continuation1<String> c)
+							{
+								c.value(
+									"semantic restriction not to raise an "
+									+ "unhandled exception (while parsing "
+									+ "send of "
+									+ bundle.message().atomName()
+										.asNativeString()
+									+ "):\n\t"
+									+ e.toString());
+							}
+						};
+					}
+					else if (e instanceof AvailAssertionFailedException)
+					{
+						final AvailAssertionFailedException ex =
+							(AvailAssertionFailedException) e;
+						message = new SimpleDescriber(
+							"assertion failed (while parsing send of "
+							+ bundle.message().atomName().asNativeString()
+							+ "):\n\t"
+							+ ex.assertionString().asNativeString());
+					}
+					else
+					{
+						message = new SimpleDescriber(
+							"unexpected error: " + e.toString());
+					}
+					synchronized (outstanding)
+					{
+						failureMessages.add(message);
+						outstanding.value--;
+						if (outstanding.value == 0)
+						{
+							whenDone.value();
+						}
+					}
+				}
+			};
 		for (final A_SemanticRestriction restriction : restrictionsToTry)
 		{
 			evaluateSemanticRestrictionFunctionThen(
 				restriction,
 				argTypes,
 				intersectAndDecrement,
-				failed);
+				failAndDecrement);
 		}
 	}
 
@@ -6400,7 +6454,21 @@ public abstract class AbstractAvailCompiler
 					start,
 					"Capture expression for caching");
 			}
-			fragmentCache.addAction(start, originalContinuation);
+			workUnitDo(
+				new Continuation0()
+				{
+					@Override
+					public void value ()
+					{
+						synchronized (fragmentCache)
+						{
+							fragmentCache.addAction(
+								start, originalContinuation);
+						}
+					}
+				},
+				start,
+				"Process captured expression");
 		}
 	}
 

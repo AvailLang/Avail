@@ -71,6 +71,7 @@ import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
 import com.avail.server.io.AvailServerChannel;
 import com.avail.server.io.ServerInputChannel;
 import com.avail.server.io.WebSocketAdapter;
+import com.avail.server.io.AvailServerChannel.ProtocolState;
 import com.avail.server.messages.BuildModuleCommandMessage;
 import com.avail.server.messages.Command;
 import com.avail.server.messages.CommandMessage;
@@ -79,6 +80,7 @@ import com.avail.server.messages.Message;
 import com.avail.server.messages.RunEntryPointCommandMessage;
 import com.avail.server.messages.SimpleCommandMessage;
 import com.avail.server.messages.UpgradeCommandMessage;
+import com.avail.server.messages.VersionCommandMessage;
 import com.avail.utility.IO;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableOrNull;
@@ -98,6 +100,14 @@ public final class AvailServer
 	/** The {@linkplain Logger logger}. */
 	public static final Logger logger = Logger.getLogger(
 		AvailServer.class.getName());
+
+	/** The current server protocol version. */
+	public static final int protocolVersion = 4;
+
+	/** The supported client protocol versions. */
+	public static final List<Integer> supportedProtocolVersions =
+		Collections.unmodifiableList(Arrays.asList(
+			protocolVersion));
 
 	/**
 	 * The {@linkplain AvailRuntime Avail runtime} managed by this {@linkplain
@@ -183,7 +193,7 @@ public final class AvailServer
 	}
 
 	/**
-	 * Write a status field into the JSON object being written.
+	 * Write an {@code "ok"} field into the JSON object being written.
 	 *
 	 * @param ok
 	 *        {@code true} if the operation succeeded, {@code false} otherwise.
@@ -199,38 +209,88 @@ public final class AvailServer
 	}
 
 	/**
+	 * Write a {@code "command"} field into the JSON object being written.
+	 *
+	 * @param command
+	 *        The {@linkplain Command command}.
+	 * @param writer
+	 *        A {@link JSONWriter}.
+	 */
+	private void writeCommandOn (final Command command, final JSONWriter writer)
+	{
+		writer.write("command");
+		writer.write(command.name().toLowerCase().replace('_', ' '));
+	}
+
+	/**
 	 * Answer an error {@linkplain Message message} that incorporates the
 	 * specified reason.
 	 *
+	 * @param command
+	 *        The {@linkplain Command command} that failed, or {@code null} if
+	 *        the command could not be determined.
 	 * @param reason
 	 *        The reason for the failure.
+	 * @param closeAfterSending
+	 *        {@code true} if the {@linkplain AvailServerChannel channel} should
+	 *        be {@linkplain AvailServerChannel#close() closed} after
+	 *        transmitting this message.
 	 * @return A message.
 	 */
-	@InnerAccess Message newErrorMessage (final String reason)
+	@InnerAccess Message newErrorMessage (
+		final @Nullable Command command,
+		final String reason,
+		final boolean closeAfterSending)
 	{
 		final JSONWriter writer = new JSONWriter();
 		writer.startObject();
 		writeStatusOn(false, writer);
+		if (command != null)
+		{
+			writeCommandOn(command, writer);
+		}
 		writer.write("reason");
 		writer.write(reason);
 		writer.endObject();
-		return new Message(writer.toString());
+		return new Message(writer.toString(), closeAfterSending);
+	}
+
+	/**
+	 * Answer an error {@linkplain Message message} that incorporates the
+	 * specified reason.
+	 *
+	 * @param command
+	 *        The {@linkplain Command command} that failed, or {@code null} if
+	 *        the command could not be determined.
+	 * @param reason
+	 *        The reason for the failure.
+	 * @return A message.
+	 */
+	@InnerAccess Message newErrorMessage (
+		final @Nullable Command command,
+		final String reason)
+	{
+		return newErrorMessage(command, reason, false);
 	}
 
 	/**
 	 * Answer a success {@linkplain Message message} that incorporates the
 	 * specified generated content.
 	 *
+	 * @param command
+	 *        The {@linkplain Command command} for which this is a response.
 	 * @param content
 	 *        How to write the content of the message.
 	 * @return A message.
 	 */
 	@InnerAccess Message newSuccessMessage (
+		final Command command,
 		final Continuation1<JSONWriter> content)
 	{
 		final JSONWriter writer = new JSONWriter();
 		writer.startObject();
 		writeStatusOn(true, writer);
+		writeCommandOn(command, writer);
 		writer.write("content");
 		content.value(writer);
 		writer.endObject();
@@ -241,15 +301,21 @@ public final class AvailServer
 	 * Answer an I/O upgrade request {@linkplain Message message} that
 	 * incorporates the specified {@link UUID}.
 	 *
+	 * @param command
+	 *        The {@linkplain Command command} on whose behalf the upgrade is
+	 *        requested.
 	 * @param uuid
 	 *        The {@code UUID} that denotes the I/O connection.
 	 * @return A message.
 	 */
-	@InnerAccess Message newIOUpgradeRequestMessage (final UUID uuid)
+	@InnerAccess Message newIOUpgradeRequestMessage (
+		final Command command,
+		final UUID uuid)
 	{
 		final JSONWriter writer = new JSONWriter();
 		writer.startObject();
 		writeStatusOn(true, writer);
+		writeCommandOn(command, writer);
 		writer.write("upgrade");
 		writer.write(uuid.toString());
 		writer.endObject();
@@ -274,32 +340,140 @@ public final class AvailServer
 		final AvailServerChannel channel,
 		final Continuation0 receiveNext)
 	{
-		if (channel.isIOChannel())
+		switch (channel.state())
 		{
-			final ServerInputChannel input = (ServerInputChannel)
-				channel.textInterface().inputChannel();
-			input.receiveMessageThen(message, receiveNext);
+			case VERSION_NEGOTIATION:
+			{
+				final CommandMessage command = Command.VERSION.parse(
+					message.content());
+				if (command != null)
+				{
+					command.processThen(channel, receiveNext);
+				}
+				else
+				{
+					final Message rebuttal = newErrorMessage(
+						null,
+						"must negotiate version before issuing other commands",
+						true);
+					channel.enqueueMessageThen(rebuttal, receiveNext);
+				}
+				break;
+			}
+			case ELIGIBLE_FOR_UPGRADE:
+				try
+				{
+					final CommandMessage command = Command.parse(message);
+					command.processThen(channel, receiveNext);
+				}
+				catch (final CommandParseException e)
+				{
+					final Message rebuttal =
+						newErrorMessage(null, e.getLocalizedMessage());
+					channel.enqueueMessageThen(rebuttal, receiveNext);
+				}
+				finally
+				{
+					// Only allow a single opportunity to upgrade the channel,
+					// even if the command was gibberish.
+					channel.setState(ProtocolState.COMMAND);
+				}
+				break;
+			case COMMAND:
+				try
+				{
+					final CommandMessage command = Command.parse(message);
+					command.processThen(channel, receiveNext);
+				}
+				catch (final CommandParseException e)
+				{
+					final Message rebuttal =
+						newErrorMessage(null, e.getLocalizedMessage());
+					channel.enqueueMessageThen(rebuttal, receiveNext);
+				}
+				break;
+			case IO:
+			{
+				final ServerInputChannel input = (ServerInputChannel)
+					channel.textInterface().inputChannel();
+				input.receiveMessageThen(message, receiveNext);
+				break;
+			}
+		}
+	}
+
+	/**
+	 * Negotiate a version. If the {@linkplain VersionCommandMessage#version()
+	 * requested version} is {@linkplain #supportedProtocolVersions supported},
+	 * then echo this version back to the client. Otherwise, send a list of the
+	 * supported versions for the client to examine. If the client cannot (or
+	 * does not wish to) deal with the requested versions, then it must
+	 * disconnect.
+	 *
+	 * @param channel
+	 *        The {@linkplain AvailServerChannel channel} on which the
+	 *        {@linkplain CommandMessage response} should be sent.
+	 * @param command
+	 *        A {@link Command#VERSION VERSION} command message.
+	 * @param continuation
+	 *        What to do when sufficient processing has occurred (and the
+	 *        {@linkplain AvailServer server} wishes to begin receiving messages
+	 *        again).
+	 */
+	public void negotiateVersionThen (
+		final AvailServerChannel channel,
+		final VersionCommandMessage command,
+		final Continuation0 continuation)
+	{
+		if (channel.state().versionNegotiated())
+		{
+			final Message message = newErrorMessage(
+				command.command(), "version already negotiated");
+			channel.enqueueMessageThen(message, continuation);
+			return;
+		}
+		final int version = command.version();
+		final Message message;
+		if (supportedProtocolVersions.contains(version))
+		{
+			message = newSuccessMessage(
+				command.command(),
+				new Continuation1<JSONWriter>()
+				{
+					@Override
+					public void value (final @Nullable JSONWriter writer)
+					{
+						assert writer != null;
+						writer.write(version);
+					}
+				});
 		}
 		else
 		{
-			try
-			{
-				final CommandMessage command = Command.parse(message);
-				command.processThen(channel, receiveNext);
-			}
-			catch (final CommandParseException e)
-			{
-				final Message rebuttal =
-					newErrorMessage(e.getLocalizedMessage());
-				channel.enqueueMessageThen(rebuttal, receiveNext);
-			}
-			finally
-			{
-				// Only allow a single opportunity to upgrade the channel, even
-				// if the command was gibberish.
-				channel.beIneligibleForUpgrade();
-			}
+			message = newSuccessMessage(
+				command.command(),
+				new Continuation1<JSONWriter>()
+				{
+					@Override
+					public void value (final @Nullable JSONWriter writer)
+					{
+						assert writer != null;
+						writer.startObject();
+						writer.write("supported");
+						writer.startArray();
+						for (final int supported : supportedProtocolVersions)
+						{
+							writer.write(supported);
+						}
+						writer.endArray();
+						writer.endObject();
+					}
+				});
 		}
+		// Transition to the next state. If the client cannot handle any of the
+		// specified versions, then it must disconnect.
+		channel.setState(ProtocolState.ELIGIBLE_FOR_UPGRADE);
+		channel.enqueueMessageThen(message, continuation);
 	}
 
 	/**
@@ -322,6 +496,7 @@ public final class AvailServer
 		final Continuation0 continuation)
 	{
 		final Message message = newSuccessMessage(
+			command.command(),
 			new Continuation1<JSONWriter>()
 			{
 				@Override
@@ -365,6 +540,7 @@ public final class AvailServer
 		final Continuation0 continuation)
 	{
 		final Message message = newSuccessMessage(
+			command.command(),
 			new Continuation1<JSONWriter>()
 			{
 				@Override
@@ -399,6 +575,7 @@ public final class AvailServer
 		final Continuation0 continuation)
 	{
 		final Message message = newSuccessMessage(
+			command.command(),
 			new Continuation1<JSONWriter>()
 			{
 				@Override
@@ -432,6 +609,7 @@ public final class AvailServer
 		final Continuation0 continuation)
 	{
 		final Message message = newSuccessMessage(
+			command.command(),
 			new Continuation1<JSONWriter>()
 			{
 				@Override
@@ -529,15 +707,19 @@ public final class AvailServer
 		 * @param isRoot
 		 *        {@code true} if the receiver represents a {@linkplain
 		 *        ModuleNode module root}, {@code false} otherwise.
+		 * @param isResource
+		 *        {@code true} if the receiver represents a resource, {@code
+		 *        false} otherwise.
 		 * @param writer
 		 *        A {@code JSONWriter}.
 		 */
 		private void recursivelyWriteOn (
 			final boolean isRoot,
+			final boolean isResource,
 			final JSONWriter writer)
 		{
 			writer.startObject();
-			writer.write("name");
+			writer.write("text");
 			writer.write(name);
 			if (isRoot)
 			{
@@ -551,17 +733,38 @@ public final class AvailServer
 				writer.write("isPackage");
 				writer.write(isPackage);
 			}
-			if (mods != null)
+			if (isResource)
 			{
-				boolean missingRepresentative = true;
-				writer.write("modules");
+				writer.write("isResource");
+				writer.write(isResource);
+			}
+			final List<ModuleNode> res = resources;
+			if (mods != null || res != null)
+			{
+				writer.write("state");
+				writer.startObject();
+				writer.write("opened");
+				writer.write(!isResource);
+				writer.endObject();
+				boolean missingRepresentative = !isResource;
+				writer.write("children");
 				writer.startArray();
-				for (final ModuleNode mod : mods)
+				if (mods != null)
 				{
-					mod.recursivelyWriteOn(false, writer);
-					if (mod.name.equals(name))
+					for (final ModuleNode mod : mods)
 					{
-						missingRepresentative = false;
+						mod.recursivelyWriteOn(false, false, writer);
+						if (mod.name.equals(name))
+						{
+							missingRepresentative = false;
+						}
+					}
+				}
+				if (res != null)
+				{
+					for (final ModuleNode r : res)
+					{
+						r.recursivelyWriteOn(false, true, writer);
 					}
 				}
 				writer.endArray();
@@ -570,17 +773,6 @@ public final class AvailServer
 					writer.write("missingRepresentative");
 					writer.write(missingRepresentative);
 				}
-			}
-			final List<ModuleNode> res = resources;
-			if (res != null)
-			{
-				writer.write("resources");
-				writer.startArray();
-				for (final ModuleNode r : res)
-				{
-					r.recursivelyWriteOn(false, writer);
-				}
-				writer.endArray();
 			}
 			final Throwable e = exception;
 			if (e != null)
@@ -600,7 +792,7 @@ public final class AvailServer
 		 */
 		void writeOn (final JSONWriter writer)
 		{
-			recursivelyWriteOn(true, writer);
+			recursivelyWriteOn(true, false, writer);
 		}
 	}
 
@@ -742,6 +934,7 @@ public final class AvailServer
 		final Continuation0 continuation)
 	{
 		final Message message = newSuccessMessage(
+			command.command(),
 			new Continuation1<JSONWriter>()
 			{
 				@Override
@@ -799,6 +992,7 @@ public final class AvailServer
 		final Continuation0 continuation)
 	{
 		final Message message = newSuccessMessage(
+			command.command(),
 			new Continuation1<JSONWriter>()
 			{
 				@Override
@@ -869,10 +1063,10 @@ public final class AvailServer
 		final UpgradeCommandMessage command,
 		final Continuation0 continuation)
 	{
-		if (!channel.isEligibleForUpgrade())
+		if (!channel.state().eligibleForUpgrade())
 		{
 			final Message message = newErrorMessage(
-				"channel not eligible for upgrade");
+				command.command(), "channel not eligible for upgrade");
 			channel.enqueueMessageThen(message, continuation);
 			return;
 		}
@@ -883,7 +1077,8 @@ public final class AvailServer
 		}
 		if (upgrader == null)
 		{
-			final Message message = newErrorMessage("no such upgrade");
+			final Message message = newErrorMessage(
+				command.command(), "no such upgrade");
 			channel.enqueueMessageThen(message, continuation);
 			return;
 		}
@@ -896,10 +1091,12 @@ public final class AvailServer
 	 * @param channel
 	 *        The {@linkplain AvailServerChannel channel} on which the
 	 *        {@linkplain CommandMessage response} should be sent.
+	 * @param command
+	 *        The {@linkplain CommandMessage command} on whose behalf the
+	 *        upgrade should be requested.
 	 * @param afterUpgraded
 	 *        What to do after the upgrades have been completed by the client.
-	 *        The argument is the {@linkplain AvailServerChannel#isIOChannel()
-	 *        upgraded} channel.
+	 *        The argument is the upgraded channel.
 	 * @param afterEnqueuing
 	 *        What to do when sufficient processing has occurred (and the
 	 *        {@linkplain AvailServer server} wishes to begin receiving messages
@@ -907,6 +1104,7 @@ public final class AvailServer
 	 */
 	private void requestUpgradesThen (
 		final AvailServerChannel channel,
+		final CommandMessage command,
 		final Continuation1<AvailServerChannel> afterUpgraded,
 		final Continuation0 afterEnqueuing)
 	{
@@ -931,7 +1129,7 @@ public final class AvailServer
 				}
 			});
 		channel.enqueueMessageThen(
-			newIOUpgradeRequestMessage(uuid),
+			newIOUpgradeRequestMessage(command.command(), uuid),
 			afterEnqueuing);
 	}
 
@@ -957,6 +1155,7 @@ public final class AvailServer
 	{
 		requestUpgradesThen(
 			channel,
+			command,
 			new Continuation1<AvailServerChannel>()
 			{
 				@Override
@@ -983,8 +1182,7 @@ public final class AvailServer
 	 *        The {@linkplain AvailServerChannel channel} on which the
 	 *        {@linkplain CommandMessage response} should be sent.
 	 * @param ioChannel
-	 *        The {@linkplain AvailServerChannel#isIOChannel() upgraded} I/O
-	 *        channel.
+	 *        The upgraded I/O channel.
 	 * @param command
 	 *        A {@link Command#BUILD_MODULE BUILD_MODULE} {@linkplain
 	 *        BuildModuleCommandMessage command message}.
@@ -994,8 +1192,8 @@ public final class AvailServer
 		final AvailServerChannel ioChannel,
 		final BuildModuleCommandMessage command)
 	{
-		assert !channel.isIOChannel();
-		assert ioChannel.isIOChannel();
+		assert !channel.state().generalTextIO();
+		assert ioChannel.state().generalTextIO();
 		final Continuation0 nothing = new Continuation0()
 		{
 			@Override
@@ -1006,6 +1204,7 @@ public final class AvailServer
 		};
 		channel.enqueueMessageThen(
 			newSuccessMessage(
+				command.command(),
 				new Continuation1<JSONWriter>()
 				{
 					@Override
@@ -1038,6 +1237,7 @@ public final class AvailServer
 				if (!locals.isEmpty() && !globals.isEmpty())
 				{
 					final Message message = newSuccessMessage(
+						command.command(),
 						new Continuation1<JSONWriter>()
 						{
 							@Override
@@ -1138,6 +1338,7 @@ public final class AvailServer
 		assert globalUpdates.isEmpty();
 		channel.enqueueMessageThen(
 			newSuccessMessage(
+				command.command(),
 				new Continuation1<JSONWriter>()
 				{
 					@Override
@@ -1179,6 +1380,7 @@ public final class AvailServer
 	{
 		requestUpgradesThen(
 			channel,
+			command,
 			new Continuation1<AvailServerChannel>()
 			{
 				@Override
@@ -1198,8 +1400,7 @@ public final class AvailServer
 	 *        The {@linkplain AvailServerChannel channel} on which the
 	 *        {@linkplain CommandMessage response} should be sent.
 	 * @param ioChannel
-	 *        The {@linkplain AvailServerChannel#isIOChannel() upgraded} I/O
-	 *        channel.
+	 *        The upgraded I/O channel.
 	 * @param command
 	 *        A {@link Command#RUN_ENTRY_POINT RUN_ENTRY_POINT} {@linkplain
 	 *        RunEntryPointCommandMessage command message}.
@@ -1209,8 +1410,8 @@ public final class AvailServer
 		final AvailServerChannel ioChannel,
 		final RunEntryPointCommandMessage command)
 	{
-		assert !channel.isIOChannel();
-		assert ioChannel.isIOChannel();
+		assert !channel.state().generalTextIO();
+		assert ioChannel.state().generalTextIO();
 		builder.setTextInterface(ioChannel.textInterface());
 		builder.attemptCommand(
 			command.expression(),
@@ -1237,6 +1438,7 @@ public final class AvailServer
 					if (value.equalsNil())
 					{
 						final Message message = newSuccessMessage(
+							command.command(),
 							new Continuation1<JSONWriter>()
 							{
 								@Override
@@ -1276,6 +1478,7 @@ public final class AvailServer
 							public void value (final @Nullable String string)
 							{
 								final Message message = newSuccessMessage(
+									command.command(),
 									new Continuation1<JSONWriter>()
 									{
 										@Override
