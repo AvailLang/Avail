@@ -2792,6 +2792,7 @@ public abstract class AbstractAvailCompiler
 						node1.value, node2.value);
 					Interpreter.stringifyThen(
 						runtime,
+						textInterface,
 						nodes,
 						new Continuation1<List<String>>()
 						{
