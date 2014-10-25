@@ -376,7 +376,10 @@ public final class AvailServer
 				{
 					// Only allow a single opportunity to upgrade the channel,
 					// even if the command was gibberish.
-					channel.setState(ProtocolState.COMMAND);
+					if (channel.state().eligibleForUpgrade())
+					{
+						channel.setState(ProtocolState.COMMAND);
+					}
 				}
 				break;
 			case COMMAND:
