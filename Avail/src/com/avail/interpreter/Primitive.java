@@ -666,6 +666,21 @@ implements IntegerEnumSlotDescriptionEnum
 	}
 
 	/**
+	 * Answer whether a raw function using this primitive can/should have
+	 * nybblecode instructions.
+	 *
+	 * @return Whether this primitive has failure/alternative code.
+	 */
+	public boolean canHaveNybblecodes ()
+	{
+		return
+			!hasFlag(Primitive.Flag.CannotFail)
+				|| hasFlag(Primitive.Flag.SpecialReturnConstant)
+				|| hasFlag(Primitive.Flag.SpecialReturnSoleArgument)
+				|| hasFlag(Primitive.Flag.SpecialReturnGlobalValue);
+	}
+
+	/**
 	 * Determine whether the specified primitive declaration is acceptable to be
 	 * used with the given list of parameter declarations.  Answer null if they
 	 * are acceptable, otherwise answer a suitable {@code String} that is

@@ -60,6 +60,14 @@ Class "bounded reader" extends reader
 	with mutable fields
 		referable remaining elements : whole number;
 
+/**
+ * Test whether this {@type "bounded reader"} is exhausted.
+ * 
+ * @method "_is exhausted"
+ * @param "aReader" "bounded reader"
+ * @returns "boolean"
+ *          Whether the reader is exhausted.
+ */
 Method "_is exhausted" is
 [
 	aReader : bounded reader
@@ -68,6 +76,7 @@ Method "_is exhausted" is
 		∨ [aReader's component reader is exhausted]
 ] : boolean;
 
+/* Fetch the current element from this bounded reader. */
 bounded reader's current element method is
 [
 	aReader : bounded reader
@@ -75,6 +84,7 @@ bounded reader's current element method is
 	aReader's component reader's current element
 ] : any;
 
+/* Advance this bounded reader. */
 bounded reader's advance method is
 [
 	aReader : bounded reader
@@ -123,11 +133,9 @@ Semantic restriction "_limited to_elements" is
 	else if [⎡limit⎤ = 0] then [exhausted reader]
 	else
 	[
-		extend bounded reader with
-			element type : readerType's element type,
-			component reader : readerType
+		reader of readerType's element type's instance
 	]
-];
+] : reader's type;
 
 "bounded reader test suite" is a new atom;
 New test suite bounded reader test suite extends iterators test suite;

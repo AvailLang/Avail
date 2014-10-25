@@ -514,14 +514,6 @@ extends Descriptor
 				throw new AvailRuntimeException(e.errorCode());
 			}
 		}
-		else
-		{
-			// Primitive cannot fail, but be nice to the decompiler.
-			writer.write(
-				new L1Instruction(
-					L1Operation.L1_doPushLiteral,
-					writer.addLiteral(NilDescriptor.nil())));
-		}
 		final A_Function function = FunctionDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty());

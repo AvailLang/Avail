@@ -673,8 +673,14 @@ extends Descriptor
 			// specified primitive signatures.
 			assert primitive == (primitive & 0xFFFF);
 			final Primitive prim = Primitive.byPrimitiveNumberOrFail(primitive);
+			final boolean canHaveCode = prim.canHaveNybblecodes();
+			assert canHaveCode == (nybbles.tupleSize() > 0);
 			final A_Type restrictionSignature = prim.blockTypeRestriction();
 			assert restrictionSignature.isSubtypeOf(functionType);
+		}
+		else
+		{
+			assert nybbles.tupleSize() > 0;
 		}
 
 		assert localTypes.tupleSize() == locals;

@@ -95,6 +95,12 @@ Public method "Randomly permute file access rights for__times" is
 		n ::= rng's next [0..12];
 		rights : {file access right|} := ∅;
 		Repeat [rights := rights + rng's next element of allRights;] n times;
+		/* Java attempts to *open* files with read only access in order to
+		 * extract their permission bits.  Obviously that won't work if the
+		 * owner read permission is absent (at least if group/other read are also
+		 * absent).  Just add owner read to keep things happy.
+		 */
+		rights := rights + owner read;
 		f(cast rights into [t : {file access right|0..9} | t]);
 	] count times;
 ];
