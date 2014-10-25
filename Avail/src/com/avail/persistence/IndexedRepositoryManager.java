@@ -37,6 +37,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.bind.DatatypeConverter;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
@@ -58,10 +60,68 @@ import com.avail.utility.evaluation.Transformer2;
  */
 public class IndexedRepositoryManager
 {
+	/** The {@linkplain Logger logger}. */
+	public static final Logger logger = Logger.getLogger(
+		IndexedRepositoryManager.class.getName());
+
 	/**
-	 * Whether to log repository accesses to System.out.
+	 * Whether to log repository accesses to standard output.
 	 */
 	private static boolean debugRepository = false;
+
+	/**
+	 * Log the specified message if {@linkplain #debugRepository debugging} is
+	 * enabled.
+	 *
+	 * @param level
+	 *        The {@linkplain Level severity level}.
+	 * @param format
+	 *        The format string.
+	 * @param args
+	 *        The format arguments.
+	 */
+	public static void log (
+		final Level level,
+		final String format,
+		final Object... args)
+	{
+		if (debugRepository)
+		{
+			if (logger.isLoggable(level))
+			{
+				logger.log(level, format, args);
+			}
+		}
+	}
+
+	/**
+	 * Log the specified message if {@linkplain #debugRepository debugging} is
+	 * enabled.
+	 *
+	 * @param level
+	 *        The {@linkplain Level severity level}.
+	 * @param exception
+	 *        The {@linkplain Throwable exception} that motivated this log
+	 *        entry.
+	 * @param format
+	 *        The format string.
+	 * @param args
+	 *        The format arguments.
+	 */
+	public static void log (
+		final Level level,
+		final Throwable exception,
+		final String format,
+		final Object... args)
+	{
+		if (debugRepository)
+		{
+			if (logger.isLoggable(level))
+			{
+				logger.log(level, String.format(format, args), exception);
+			}
+		}
+	}
 
 	/**
 	 * The name of the {@link MessageDigest} used to detect file changes.
@@ -1159,11 +1219,7 @@ public class IndexedRepositoryManager
 		lock.lock();
 		try
 		{
-			if (debugRepository)
-			{
-				System.out.format("Clear %s%n", rootName);
-				System.out.flush();
-			}
+			log(Level.INFO, "Clear: %s%n", rootName);
 			moduleMap.clear();
 			final IndexedRepository repo = repository();
 			repo.close();
@@ -1213,11 +1269,7 @@ public class IndexedRepositoryManager
 		{
 			if (dirtySince != 0L)
 			{
-				if (debugRepository)
-				{
-					System.out.format("Commit %s%n", rootName);
-					System.out.flush();
-				}
+				log(Level.FINER, "Commit: %s%n", rootName);
 				final ByteArrayOutputStream byteStream =
 					new ByteArrayOutputStream(131072);
 				try (final DataOutputStream binaryStream =
@@ -1228,13 +1280,7 @@ public class IndexedRepositoryManager
 					{
 						moduleArchive.write(binaryStream);
 					}
-					if (debugRepository)
-					{
-						System.out.format(
-							"Commit size = %d%n",
-							byteStream.size());
-						System.out.flush();
-					}
+					log(Level.FINEST, "Commit size = %d%n", byteStream.size());
 				}
 				reopenIfNecessary();
 				final IndexedRepository repo = repository();
@@ -1290,11 +1336,7 @@ public class IndexedRepositoryManager
 		lock.lock();
 		try
 		{
-			if (debugRepository)
-			{
-				System.out.format("Close %s%n", rootName);
-				System.out.flush();
-			}
+			log(Level.FINE, "Close: %s%n", rootName);
 			isOpen = false;
 			final IndexedRepository repo = repository;
 			if (repo != null)
@@ -1330,11 +1372,11 @@ public class IndexedRepositoryManager
 			}
 			catch (final IndexedFileException e)
 			{
-				System.err.println(
-					"Deleting obsolete repository: "
-						+ fileName
-						+ ": "
-						+ e.getMessage());
+				log(
+					Level.INFO,
+					e,
+					"Deleting obsolete repository: %s",
+					fileName);
 				repo = null;
 			}
 			if (repo == null)
@@ -1381,14 +1423,11 @@ public class IndexedRepositoryManager
 		lock.lock();
 		try
 		{
-			if (debugRepository)
-			{
-				System.out.format(
-					"Reopen if necessary %s (was open = %s)%n",
-					rootName,
-					isOpen);
-				System.out.flush();
-			}
+			log(
+				Level.FINE,
+				"Reopen if necessary %s (was open = %s)%n",
+				rootName,
+				isOpen);
 			if (!isOpen)
 			{
 				openOrCreate();

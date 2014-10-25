@@ -32,15 +32,26 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.io.PrintStream;
+import java.nio.channels.CompletionHandler;
+import java.util.ArrayList;
 import java.util.List;
+import com.avail.AvailRuntime;
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.*;
+import com.avail.io.TextInterface;
+import com.avail.io.TextOutputChannel;
+import com.avail.utility.evaluation.Continuation0;
 
 /**
  * <strong>Primitive 258:</strong> Print the specified {@linkplain
- * StringDescriptor string} to standard output.
+ * StringDescriptor string} to the {@linkplain Interpreter#fiber() current
+ * fiber}'s {@linkplain TextOutputChannel standard output channel}, {@linkplain
+ * ExecutionState#SUSPENDED suspending} the current fiber until the string can
+ * be queued for writing.
  */
 public final class P_258_PrintToConsole
 extends Primitive
@@ -48,8 +59,8 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_258_PrintToConsole().init(
-		1, CannotFail, CanInline, HasSideEffect);
+	public final static Primitive instance =
+		new P_258_PrintToConsole().init(1, Unknown);
 
 	@Override
 	public Result attempt (
@@ -58,11 +69,53 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-
 		final A_String string = args.get(0);
-		final PrintStream out = interpreter.runtime().standardOutputStream();
-		out.print(string.asNativeString());
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		final AvailRuntime runtime = interpreter.runtime();
+		final A_Fiber fiber = interpreter.fiber();
+		final TextInterface textInterface = fiber.textInterface();
+		final A_Function failureFunction =
+			interpreter.primitiveFunctionBeingAttempted();
+		final List<AvailObject> copiedArgs = new ArrayList<>(args);
+		interpreter.primitiveSuspend();
+		interpreter.postExitContinuation(new Continuation0()
+		{
+			@Override
+			public void value ()
+			{
+				textInterface.outputChannel().write(
+					string.asNativeString(),
+					null,
+					new CompletionHandler<Integer, Void>()
+					{
+						@Override
+						public void completed (
+							final @Nullable Integer result,
+							final @Nullable Void unused)
+						{
+							Interpreter.resumeFromSuccessfulPrimitive(
+								runtime,
+								fiber,
+								NilDescriptor.nil(),
+								skipReturnCheck);
+						}
+
+						@Override
+						public void failed (
+							final @Nullable Throwable exc,
+							final @Nullable Void attachment)
+						{
+							Interpreter.resumeFromFailedPrimitive(
+								runtime,
+								fiber,
+								E_IO_ERROR.numericCode(),
+								failureFunction,
+								copiedArgs,
+								skipReturnCheck);
+						}
+					});
+			}
+		});
+		return Result.FIBER_SUSPENDED;
 	}
 
 	@Override
@@ -72,5 +125,12 @@ extends Primitive
 			TupleDescriptor.from(
 				TupleTypeDescriptor.stringType()),
 			TOP.o());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_IO_ERROR.numericCode());
 	}
 }

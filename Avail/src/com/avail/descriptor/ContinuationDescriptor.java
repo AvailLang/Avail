@@ -41,6 +41,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.*;
+import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
 
@@ -583,6 +584,11 @@ extends Descriptor
 	 * @param runtime
 	 *        The {@linkplain AvailRuntime Avail runtime} to use for
 	 *        stringification.
+	 * @param textInterface
+	 *        The {@linkplain TextInterface text interface} for {@linkplain
+	 *        A_Fiber fibers} started due to stringification. This need not be
+	 *        the {@linkplain AvailRuntime#textInterface() default text
+	 *        interface}.
 	 * @param availContinuation
 	 *        The Avail continuation to dump.
 	 * @param javaContinuation
@@ -590,6 +596,7 @@ extends Descriptor
 	 */
 	public static void dumpStackThen (
 		final AvailRuntime runtime,
+		final TextInterface textInterface,
 		final A_Continuation availContinuation,
 		final Continuation1<List<String>> javaContinuation)
 	{
@@ -621,6 +628,7 @@ extends Descriptor
 		}
 		Interpreter.stringifyThen(
 			runtime,
+			textInterface,
 			allTypes,
 			new Continuation1<List<String>>()
 			{

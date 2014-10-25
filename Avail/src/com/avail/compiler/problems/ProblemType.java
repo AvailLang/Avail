@@ -33,6 +33,7 @@
 package com.avail.compiler.problems;
 
 import com.avail.descriptor.ParseNodeDescriptor;
+import com.avail.utility.evaluation.Continuation1;
 
 /**
  * A {@link Problem} has a {@code ProblemType}, indicating its basic nature
@@ -53,10 +54,13 @@ public enum ProblemType
 	INFORMATION
 	{
 		@Override
-		boolean report (final Problem problem, final ProblemHandler handler)
+		void report (
+			final Problem problem,
+			final ProblemHandler handler,
+			final Continuation1<Boolean> decider)
 		{
 			assert problem.type == this;
-			return handler.handleInformation(problem);
+			handler.handleInformation(problem, decider);
 		}
 	},
 
@@ -68,10 +72,13 @@ public enum ProblemType
 	WARNING
 	{
 		@Override
-		boolean report (final Problem problem, final ProblemHandler handler)
+		void report (
+			final Problem problem,
+			final ProblemHandler handler,
+			final Continuation1<Boolean> decider)
 		{
 			assert problem.type == this;
-			return handler.handleWarning(problem);
+			handler.handleWarning(problem, decider);
 		}
 	},
 
@@ -84,10 +91,13 @@ public enum ProblemType
 	TRACE
 	{
 		@Override
-		boolean report (final Problem problem, final ProblemHandler handler)
+		void report (
+			final Problem problem,
+			final ProblemHandler handler,
+			final Continuation1<Boolean> decider)
 		{
 			assert problem.type == this;
-			return handler.handleTrace(problem);
+			handler.handleTrace(problem, decider);
 		}
 	},
 
@@ -100,10 +110,13 @@ public enum ProblemType
 	PARSE
 	{
 		@Override
-		boolean report (final Problem problem, final ProblemHandler handler)
+		void report (
+			final Problem problem,
+			final ProblemHandler handler,
+			final Continuation1<Boolean> decider)
 		{
 			assert problem.type == this;
-			return handler.handleParse(problem);
+			handler.handleParse(problem, decider);
 		}
 	},
 
@@ -116,10 +129,13 @@ public enum ProblemType
 	EXECUTION
 	{
 		@Override
-		boolean report (final Problem problem, final ProblemHandler handler)
+		void report (
+			final Problem problem,
+			final ProblemHandler handler,
+			final Continuation1<Boolean> decider)
 		{
 			assert problem.type == this;
-			return handler.handleExecution(problem);
+			handler.handleExecution(problem, decider);
 		}
 	},
 
@@ -131,23 +147,32 @@ public enum ProblemType
 	INTERNAL
 	{
 		@Override
-		boolean report (final Problem problem, final ProblemHandler handler)
+		void report (
+			final Problem problem,
+			final ProblemHandler handler,
+			final Continuation1<Boolean> decider)
 		{
 			assert problem.type == this;
-			return handler.handleInternal(problem);
+			handler.handleInternal(problem, decider);
 		}
 	};
 
 	/**
-	 * Report the given {@link Problem} to the {@link ProblemHandler}.  The
+	 * Report the given {@link Problem} to the {@link ProblemHandler}. The
 	 * problem's type must be the receiver.
 	 *
-	 * @param problem The problem to report.
-	 * @param handler The problem handler to notify.
-	 * @return Whether the handler indicated that an attempt should be made to
-	 *         continue past the problem to identify subsequent problems.
+	 * @param problem
+	 *        The problem to report.
+	 * @param handler
+	 *        The problem handler to notify.
+	 * @param decider
+	 *        How to {@linkplain Problem#continueCompilation() continue} or
+	 *        {@linkplain Problem#abortCompilation() abort} compilation.
+	 *        Accepts a {@linkplain Boolean boolean} that is {@code true} iff
+	 *        compilation should continue.
 	 */
-	abstract boolean report (
+	abstract void report (
 		final Problem problem,
-		final ProblemHandler handler);
+		final ProblemHandler handler,
+		final Continuation1<Boolean> decider);
 }

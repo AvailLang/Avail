@@ -41,6 +41,9 @@ import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import static java.lang.Math.max;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.MethodDescriptor.InternalLookupTree;
@@ -67,24 +70,144 @@ import com.avail.utility.evaluation.*;
 public class L2Translator
 {
 	/**
-	 * Whether detailed optimization information should be logged.
+	 * {@code DebugFlag}s control which kinds of {@linkplain L2Translator
+	 * translation} events should be {@linkplain #logger logged}.
 	 */
-	final static boolean debugGeneration = false;
+	@InnerAccess static enum DebugFlag
+	{
+		/** Code generation. */
+		GENERATION (false),
 
-	/**
-	 * Whether detailed optimization information should be logged.
-	 */
-	final static boolean debugOptimizer = false;
+		/** Code optimization. */
+		OPTIMIZATION (false),
 
-	/**
-	 * Whether detailed optimization information should be logged.
-	 */
-	final static boolean debugDataFlow = false;
+		/** Data flow analysis. */
+		DATA_FLOW (false),
 
-	/**
-	 * Whether detailed optimization information should be logged.
-	 */
-	final static boolean debugRemoveDeadInstructions = false;
+		/** Dead instruction removal. */
+		DEAD_INSTRUCTION_REMOVAL (false);
+
+		/** The {@linkplain Logger logger}. */
+		@InnerAccess final Logger logger;
+
+		/**
+		 * Should translation events of this kind be logged?
+		 */
+		private boolean shouldLog;
+
+		/**
+		 * Should translation events of this kind be logged?
+		 *
+		 * @return {@code true} if translation events of this kind should be
+		 *         logged, {@code false} otherwise.
+		 */
+		boolean shouldLog ()
+		{
+			return shouldLog;
+		}
+
+		/**
+		 * Indicate whether translation events of the kind represented by the
+		 * {@linkplain DebugFlag receiver} should be logged.
+		 *
+		 * @param flag
+		 *        {@code true} if these events should be logged, {@code false}
+		 *        otherwise.
+		 */
+		void shouldLog (final boolean flag)
+		{
+			shouldLog = flag;
+		}
+
+		/**
+		 * Log the specified message if debugging is enabled for translation
+		 * events of this kind.
+		 *
+		 * @param level
+		 *        The {@linkplain Level severity level}.
+		 * @param format
+		 *        The format string.
+		 * @param args
+		 *        The format arguments.
+		 */
+		void log (final Level level, final String format, final Object... args)
+		{
+			if (shouldLog && logger.isLoggable(level))
+			{
+				logger.log(level, format, args);
+			}
+		}
+
+		/**
+		 * Log the specified message if debugging is enabled for translation
+		 * events of this kind.
+		 *
+		 * @param level
+		 *        The {@linkplain Level severity level}.
+		 * @param exception
+		 *        The {@linkplain Throwable exception} that motivated this log
+		 *        entry.
+		 * @param format
+		 *        The format string.
+		 * @param args
+		 *        The format arguments.
+		 */
+		void log (
+			final Level level,
+			final Throwable exception,
+			final String format,
+			final Object... args)
+		{
+			if (shouldLog && logger.isLoggable(level))
+			{
+				logger.log(level, String.format(format, args), exception);
+			}
+		}
+
+		/**
+		 * Log the specified message if debugging is enabled for translation
+		 * events of this kind.
+		 *
+		 * @param level
+		 *        The {@linkplain Level severity level}.
+		 * @param continuation
+		 *        How to log the message. The argument is a {@link
+		 *        Continuation2} that accepts the log message and a causal
+		 *        {@linkplain Throwable exception} (or {@code null} if none).
+		 */
+		void log (
+			final Level level,
+			final Continuation1<Continuation2<String, Throwable>> continuation)
+		{
+			if (shouldLog && logger.isLoggable(level))
+			{
+				continuation.value(
+					new Continuation2<String, Throwable>()
+					{
+						@Override
+						public void value (
+							final @Nullable String message,
+							final @Nullable Throwable exception)
+						{
+							logger.log(level, message, exception);
+						}
+					});
+			}
+		}
+
+		/**
+		 * Construct a new {@link DebugFlag}.
+		 *
+		 * @param shouldLog
+		 *        Should translation events of this kind be logged?
+		 */
+		private DebugFlag (final boolean shouldLog)
+		{
+			this.logger = Logger.getLogger(
+				L2Translator.class.getName() + "." + name());
+			this.shouldLog = shouldLog;
+		}
+	}
 
 	/**
 	 * Don't inline dispatch logic if there are more than this many possible
@@ -180,6 +303,17 @@ public class L2Translator
 		final Interpreter theInterpreter = interpreter;
 		assert theInterpreter != null;
 		return theInterpreter;
+	}
+
+	/**
+	 * Answer the {@linkplain AvailRuntime runtime} associated with the current
+	 * {@linkplain Interpreter interpreter}.
+	 *
+	 * @return The runtime.
+	 */
+	@InnerAccess AvailRuntime runtime ()
+	{
+		return interpreter().runtime();
 	}
 
 	/**
@@ -787,16 +921,27 @@ public class L2Translator
 			}
 			final L2Instruction normalizedInstruction =
 				instruction.transformRegisters(naiveRegs.normalizer);
-			if (debugGeneration)
-			{
-				final StringBuilder builder = new StringBuilder(100);
-				naiveRegs.debugOn(builder);
-				System.out.format(
-					"%s%n\t#%d = %s",
-					builder.toString().replace("\n", "\n\t"),
-					instructions.size(),
-					normalizedInstruction);
-			}
+			final RegisterSet finalNaiveRegs = naiveRegs;
+			DebugFlag.GENERATION.log(
+				Level.FINEST,
+				new Continuation1<Continuation2<String, Throwable>>()
+				{
+					@Override
+					public void value (
+						final @Nullable Continuation2<String, Throwable> log)
+					{
+						assert log != null;
+						final StringBuilder builder = new StringBuilder(100);
+						finalNaiveRegs.debugOn(builder);
+						log.value(
+							String.format(
+								"%s%n\t#%d = %s",
+								builder.toString().replace("\n", "\n\t"),
+								instructions.size(),
+								normalizedInstruction),
+							null);
+					}
+				});
 			normalizedInstruction.setOffset(instructions.size());
 			instructions.add(normalizedInstruction);
 			final List<L2Instruction> successors =
@@ -872,23 +1017,33 @@ public class L2Translator
 				}
 				naiveRegisters = storedRegisterSet;
 			}
-			if (debugGeneration)
-			{
-				final StringBuilder builder = new StringBuilder(100);
-				if (naiveRegisters == null)
+			DebugFlag.GENERATION.log(
+				Level.FINEST,
+				new Continuation1<Continuation2<String, Throwable>>()
 				{
-					builder.append("\n[[[no RegisterSet]]]");
-				}
-				else
-				{
-					naiveRegisters().debugOn(builder);
-				}
-				System.out.format(
-					"%s%n\t#%d = %s",
-					builder.toString().replace("\n", "\n\t"),
-					instructions.size() - 1,
-					label);
-			}
+					@Override
+					public void value (
+						final @Nullable Continuation2<String, Throwable> log)
+					{
+						assert log != null;
+						final StringBuilder builder = new StringBuilder(100);
+						if (naiveRegisters == null)
+						{
+							builder.append("\n[[[no RegisterSet]]]");
+						}
+						else
+						{
+							naiveRegisters().debugOn(builder);
+						}
+						log.value(
+							String.format(
+								"%s%n\t#%d = %s",
+								builder.toString().replace("\n", "\n\t"),
+								instructions.size() - 1,
+								label),
+							null);
+					}
+				});
 		}
 
 		/**
@@ -2647,22 +2802,34 @@ public class L2Translator
 		{
 			// Do it again.
 		}
-		if (debugOptimizer)
-		{
-			System.out.printf("%nOPTIMIZED: %s%n", codeOrFail());
-			final Set<L2Instruction> kept = new HashSet<>(instructions);
-			for (final L2Instruction instruction : originals)
+		DebugFlag.OPTIMIZATION.log(
+			Level.FINEST,
+			new Continuation1<Continuation2<String, Throwable>>()
 			{
-				System.out.printf("%n%s\t%s",
-					kept.contains(instruction)
-						? instruction.operation.shouldEmit()
-							? "+"
-							: "-"
-						: "",
-					instruction);
-			}
-			System.out.println();
-		}
+				@Override
+				public void value (
+					final @Nullable Continuation2<String, Throwable> log)
+				{
+					assert log != null;
+					@SuppressWarnings("resource")
+					final Formatter formatter = new Formatter();
+					formatter.format("%nOPTIMIZED: %s%n", codeOrFail());
+					final Set<L2Instruction> kept = new HashSet<>(instructions);
+					for (final L2Instruction instruction : originals)
+					{
+						formatter.format(
+							"%n%s\t%s",
+							kept.contains(instruction)
+								? instruction.operation.shouldEmit()
+									? "+"
+									: "-"
+								: "",
+							instruction);
+					}
+					formatter.format("%n");
+					log.value(formatter.toString(), null);
+				}
+			});
 	}
 
 	/**
@@ -2685,13 +2852,11 @@ public class L2Translator
 		{
 			final L2Instruction instruction = instructionsToVisit.removeFirst();
 			final int instructionIndex = instruction.offset();
-			if (debugDataFlow)
-			{
-				System.out.format(
-					"Trace #%d (%s):%n",
-					instructionIndex,
-					instruction);
-			}
+			DebugFlag.DATA_FLOW.log(
+				Level.FINEST,
+				"Trace #%d (%s):%n",
+				instructionIndex,
+				instruction);
 			final RegisterSet regs =
 				instructionRegisterSets.get(instructionIndex);
 			final List<L2Instruction> successors =
@@ -2720,15 +2885,27 @@ public class L2Translator
 				final L2Instruction successor = successors.get(i);
 				final RegisterSet targetRegisterSet = targetRegisterSets.get(i);
 				final int targetInstructionNumber = successor.offset();
-				if (debugDataFlow)
-				{
-					final StringBuilder builder = new StringBuilder(100);
-					targetRegisterSet.debugOn(builder);
-					System.out.format(
-						"\t->#%d:%s%n",
-						targetInstructionNumber,
-						builder.toString().replace("\n", "\n\t"));
-				}
+				DebugFlag.DATA_FLOW.log(
+					Level.FINEST,
+					new Continuation1<Continuation2<String, Throwable>>()
+					{
+						@Override
+						public void value (
+							final @Nullable
+								Continuation2<String, Throwable> log)
+						{
+							assert log != null;
+							final StringBuilder builder =
+								new StringBuilder(100);
+							targetRegisterSet.debugOn(builder);
+							log.value(
+								String.format(
+									"\t->#%d:%s%n",
+									targetInstructionNumber,
+									builder.toString().replace("\n", "\n\t")),
+								null);
+						}
+					});
 				final RegisterSet existing =
 					instructionRegisterSets.get(targetInstructionNumber);
 				final boolean followIt;
@@ -2808,10 +2985,9 @@ public class L2Translator
 	 */
 	private boolean removeDeadInstructions ()
 	{
-		if (debugRemoveDeadInstructions)
-		{
-			System.out.println("\nRemove dead instructions...\n");
-		}
+		DebugFlag.DEAD_INSTRUCTION_REMOVAL.log(
+			Level.FINEST,
+			"Begin removing dead instructions");
 		checkThatAllTargetLabelsExist();
 		computeDataFlow();
 		final Set<L2Instruction> reachableInstructions =
@@ -2820,19 +2996,32 @@ public class L2Translator
 			findInstructionsThatProduceNeededValues(reachableInstructions);
 
 		// We now have a complete list of which instructions should be kept.
-		if (debugRemoveDeadInstructions)
-		{
-			System.out.println("\nKeep/drop instruction list:");
-			for (int i = 0, end = instructions.size(); i < end; i++)
+		DebugFlag.DEAD_INSTRUCTION_REMOVAL.log(
+			Level.FINEST,
+			new Continuation1<Continuation2<String, Throwable>>()
 			{
-				final L2Instruction instruction = instructions.get(i);
-				System.out.format(
-					"\t%s #%d %s%n",
-					neededInstructions.contains(instruction) ? "+" : "-",
-					i,
-					instruction.toString().replace("\n", "\n\t\t"));
-			}
-		}
+				@Override
+				public void value (
+					final @Nullable Continuation2<String, Throwable> log)
+				{
+					assert log != null;
+					@SuppressWarnings("resource")
+					final Formatter formatter = new Formatter();
+					formatter.format("Keep/drop instruction list:%n");
+					for (int i = 0, end = instructions.size(); i < end; i++)
+					{
+						final L2Instruction instruction = instructions.get(i);
+						formatter.format(
+							"\t%s #%d %s%n",
+							neededInstructions.contains(instruction)
+								? "+"
+								: "-",
+							i,
+							instruction.toString().replace("\n", "\n\t\t"));
+					}
+					log.value(formatter.toString(), null);
+				}
+			});
 		final List<L2Instruction> newInstructions =
 			new ArrayList<>(instructions.size());
 		boolean anyChanges = instructions.retainAll(neededInstructions);
@@ -2916,25 +3105,36 @@ public class L2Translator
 				instructionsToVisit.add(instruction);
 			}
 		}
-
-		if (debugRemoveDeadInstructions)
-		{
-			System.out.println("\nDirectly irremovable reachable instructions:");
-			for (int i = 0, end = instructions.size(); i < end; i++)
+		DebugFlag.DEAD_INSTRUCTION_REMOVAL.log(
+			Level.FINEST,
+			new Continuation1<Continuation2<String, Throwable>>()
 			{
-				final L2Instruction instruction = instructions.get(i);
-				System.out.format(
-					"\t%s: #%d %s%n",
-					(instructionsToVisit.contains(instruction)
-						? "Forced "
-						: (reachableInstructions.contains(instruction)
-							? "Reach  "
-							: "pending")),
-					i,
-					instruction.toString().replace("\n", "\n\t\t"));
-			}
-			System.out.println("\nPropagation of needed instructions:");
-		}
+				@Override
+				public void value (
+					final @Nullable Continuation2<String, Throwable> log)
+				{
+					assert log != null;
+					@SuppressWarnings("resource")
+					final Formatter formatter = new Formatter();
+					formatter.format(
+						"Directly irremovable reachable instructions:");
+					for (int i = 0, end = instructions.size(); i < end; i++)
+					{
+						final L2Instruction instruction = instructions.get(i);
+						formatter.format(
+							"\t%s: #%d %s%n",
+							(instructionsToVisit.contains(instruction)
+								? "Forced "
+								: (reachableInstructions.contains(instruction)
+									? "Reach  "
+									: "pending")),
+							i,
+							instruction.toString().replace("\n", "\n\t\t"));
+					}
+					log.value(formatter.toString(), null);
+					log.value("Propagation of needed instructions:", null);
+				}
+			});
 		// Recursively mark as needed all instructions that produce values
 		// consumed by another needed instruction.
 		while (!instructionsToVisit.isEmpty())
@@ -2952,22 +3152,33 @@ public class L2Translator
 						registerSet.stateFor(sourceRegister).sourceInstructions;
 					if (!providingInstructions.isEmpty())
 					{
-						if (debugRemoveDeadInstructions)
-						{
-							final Set<Integer> providingInstructionIndices =
-								new TreeSet<>();
-							for (final L2Instruction need :
-								providingInstructions)
+						DebugFlag.DEAD_INSTRUCTION_REMOVAL.log(
+							Level.FINEST,
+							new Continuation1<
+								Continuation2<String, Throwable>>()
 							{
-								providingInstructionIndices.add(
-									need.offset());
-							}
-							System.out.format(
-								"\t\t#%d (%s) -> %s%n",
-								instruction.offset(),
-								sourceRegister,
-								providingInstructionIndices);
-						}
+								@Override
+								public void value (
+									final @Nullable
+										Continuation2<String, Throwable> log)
+								{
+									assert log != null;
+									final Set<Integer> providerIndices =
+										new TreeSet<>();
+									for (final L2Instruction need :
+										providingInstructions)
+									{
+										providerIndices.add(need.offset());
+									}
+									log.value(
+										String.format(
+											"\t\t#%d (%s) -> %s%n",
+											instruction.offset(),
+											sourceRegister,
+											providerIndices),
+										null);
+								}
+							});
 						instructionsToVisit.addAll(providingInstructions);
 					}
 				}

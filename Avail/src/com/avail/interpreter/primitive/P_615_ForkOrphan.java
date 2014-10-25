@@ -109,6 +109,8 @@ extends Primitive
 		// Share and inherit any heritable variables.
 		orphan.heritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared());
+		// Inherit the fiber's text interface.
+		orphan.textInterface(current.textInterface());
 		// Schedule the fiber to run the specified function.
 		Interpreter.runOutermostFunction(
 			AvailRuntime.current(),

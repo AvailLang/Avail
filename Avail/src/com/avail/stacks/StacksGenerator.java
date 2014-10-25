@@ -135,13 +135,10 @@ public class StacksGenerator
 		this.htmlFileMap = new HTMLFileMap();
 		this.resolver = resolver;
 
-		this.logPath = outputPath
-			.resolve("logs");
+		this.logPath = outputPath.resolve("logs");
 		this.errorLog = new StacksErrorLog(logPath);
 
-		this.providedDocumentPath = outputPath
-			.resolve("library-documentation");
-
+		this.providedDocumentPath = outputPath.resolve("library-documentation");
 
 		this.moduleToComments =
 			new HashMap<String,StacksCommentsModule>(50);
@@ -162,11 +159,7 @@ public class StacksGenerator
 		final ModuleHeader header,
 		final A_Tuple commentTokens)
 	{
-		System.out.println("Starting scanning of comments in "
-			+ header.moduleName.qualifiedName());
-
 		StacksCommentsModule commentsModule = null;
-
 		commentsModule = new StacksCommentsModule(
 			header,commentTokens,errorLog, resolver,
 			moduleToComments,htmlFileMap);
@@ -181,7 +174,6 @@ public class StacksGenerator
 	private void updateModuleToComments (
 		final StacksCommentsModule commentModule)
 	{
-
 		moduleToComments.put(commentModule.moduleName(), commentModule);
 	}
 
@@ -193,13 +185,14 @@ public class StacksGenerator
 	 * @param outermostModule
 	 *        The outermost {@linkplain ModuleDescriptor module} for the
 	 *        generation request.
+	 * @throws IOException
+	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	public synchronized void generate (
-		final AvailRuntime runtime,
-		final ModuleName outermostModule)
+			final AvailRuntime runtime,
+			final ModuleName outermostModule)
+		throws IOException
 	{
-		System.out.println("Generating Documentation…");
-
 		final ByteBuffer closeHTML = ByteBuffer.wrap(String.format(
 			"</ol>\n<h4>Error Count: %d</h4>\n</body>\n</html>"
 				,errorLog.errorCount())

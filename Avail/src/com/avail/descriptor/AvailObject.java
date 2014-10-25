@@ -56,6 +56,7 @@ import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.io.TextInterface;
 import com.avail.serialization.*;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
@@ -181,8 +182,11 @@ implements
 		}
 		catch (final AssertionError e)
 		{
-			e.printStackTrace();
-			throw e;
+			builder.append("ASSERTION ERROR while printing.");
+			final CharArrayWriter inner = new CharArrayWriter();
+			final PrintWriter outer = new PrintWriter(inner);
+			e.printStackTrace(outer);
+			builder.append(inner);
 		}
 	}
 
@@ -5752,11 +5756,10 @@ implements
 	@Override
 	public Object javaObjectNotNull ()
 	{
-		final Object value = javaObject();
+		final Object value = descriptor.o_JavaObject(this);
 		assert value != null;
 		return value;
 	}
-
 
 	/**
 	 * @return
@@ -6930,5 +6933,17 @@ implements
 	public boolean isNumericallyIntegral ()
 	{
 		return descriptor.o_IsNumericallyIntegral(this);
+	}
+
+	@Override
+	public TextInterface textInterface ()
+	{
+		return descriptor.o_TextInterface(this);
+	}
+
+	@Override
+	public void textInterface (final TextInterface textInterface)
+	{
+		descriptor.o_TextInterface(this, textInterface);
 	}
 }

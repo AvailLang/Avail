@@ -68,6 +68,7 @@ public final class P_256_EmergencyExit extends Primitive
 		interpreter.primitiveSuspend();
 		ContinuationDescriptor.dumpStackThen(
 			interpreter.runtime(),
+			fiber.textInterface(),
 			continuation,
 			new Continuation1<List<String>>()
 			{

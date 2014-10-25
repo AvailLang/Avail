@@ -59,6 +59,7 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.primitive.*;
+import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.*;
@@ -1222,8 +1223,6 @@ public final class Interpreter
 	 */
 	public void offset (final int newOffset)
 	{
-		// System.out.printf("[#%d] %d -> %d%n", _chunk.index(), _offset,
-		// newOffset);
 		offset = newOffset;
 	}
 
@@ -1626,10 +1625,10 @@ public final class Interpreter
 					break;
 				case FIBER_SUSPENDED:
 					assert exitNow;
-					// $FALL-THROUGH$
+					return result;
 				case SUCCESS:
 					assert latestResult != null;
-					// $FALL-THROUGH$
+					return result;
 				case CONTINUATION_CHANGED:
 					return result;
 			}
@@ -2117,6 +2116,11 @@ public final class Interpreter
 	 *
 	 * @param runtime
 	 *        An Avail runtime.
+	 * @param textInterface
+	 *        The {@linkplain TextInterface text interface} for {@linkplain
+	 *        A_Fiber fibers} started due to stringification. This need not be
+	 *        the {@linkplain AvailRuntime#textInterface() default text
+	 *        interface}.
 	 * @param value
 	 *        An Avail value.
 	 * @param continuation
@@ -2124,6 +2128,7 @@ public final class Interpreter
 	 */
 	public static void stringifyThen (
 		final AvailRuntime runtime,
+		final TextInterface textInterface,
 		final A_BasicObject value,
 		final Continuation1<String> continuation)
 	{
@@ -2143,6 +2148,7 @@ public final class Interpreter
 			TupleTypeDescriptor.stringType(),
 			FiberDescriptor.stringificationPriority,
 			StringDescriptor.from("Stringification"));
+		fiber.textInterface(textInterface);
 		fiber.resultContinuation(new Continuation1<AvailObject>()
 		{
 			@Override
@@ -2185,6 +2191,11 @@ public final class Interpreter
 	 *
 	 * @param runtime
 	 *        An Avail runtime.
+	 * @param textInterface
+	 *        The {@linkplain TextInterface text interface} for {@linkplain
+	 *        A_Fiber fibers} started due to stringification. This need not be
+	 *        the {@linkplain AvailRuntime#textInterface() default text
+	 *        interface}.
 	 * @param values
 	 *        Some Avail values.
 	 * @param continuation
@@ -2192,6 +2203,7 @@ public final class Interpreter
 	 */
 	public static void stringifyThen (
 		final AvailRuntime runtime,
+		final TextInterface textInterface,
 		final List<? extends A_BasicObject> values,
 		final Continuation1<List<String>> continuation)
 	{
@@ -2208,6 +2220,7 @@ public final class Interpreter
 			final int finalI = i;
 			stringifyThen(
 				runtime,
+				textInterface,
 				values.get(finalI),
 				new Continuation1<String>()
 				{

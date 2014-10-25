@@ -39,6 +39,7 @@ import com.avail.builder.ModuleName;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.CharacterDescriptor;
 import com.avail.descriptor.TokenDescriptor;
+import com.avail.utility.evaluation.Continuation1;
 
 /**
  * A {@code Problem} is produced when encountering an unexpected or less than
@@ -172,15 +173,22 @@ public abstract class Problem
 	}
 
 	/**
-	 * Report this problem to the {@link ProblemHandler handler}.  Answer
+	 * Report this problem to the {@link ProblemHandler handler}. Answer
 	 * whether an attempt should be made to continue parsing past this problem.
 	 *
-	 * @param handler The problem handler.
-	 * @return Whether to continue parsing.
+	 * @param handler
+	 *        The problem handler.
+	 * @param decider
+	 *        How to {@linkplain Problem#continueCompilation() continue} or
+	 *        {@linkplain Problem#abortCompilation() abort} compilation.
+	 *        Accepts a {@linkplain Boolean boolean} that is {@code true} iff
+	 *        compilation should continue.
 	 */
-	final boolean report (final ProblemHandler handler)
+	final void report (
+		final ProblemHandler handler,
+		final Continuation1<Boolean> decider)
 	{
-		return type.report(this, handler);
+		type.report(this, handler, decider);
 	}
 
 	/**
