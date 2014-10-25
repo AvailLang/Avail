@@ -2367,14 +2367,7 @@ public abstract class AbstractAvailCompiler
 					// decoding).
 					if (input.hasRemaining())
 					{
-						final int delta = input.remaining();
-						for (int i = 0; i < delta; i++)
-						{
-							final byte b = input.get(input.position() + i);
-							input.put(i, b);
-						}
-						input.limit(input.capacity());
-						input.position(delta);
+						input.compact();
 					}
 					else
 					{
