@@ -33,6 +33,7 @@
 package com.avail.server.messages;
 
 import com.avail.server.AvailServer;
+import com.avail.server.io.AvailServerChannel;
 
 /**
  * An {@link AvailServer} sends and receives {@code Message}s. A {@code Message}
@@ -47,17 +48,6 @@ public class Message
 	private final String content;
 
 	/**
-	 * Construct a new {@link Message}.
-	 *
-	 * @param content
-	 *        The {@linkplain String content}.
-	 */
-	public Message (final String content)
-	{
-		this.content = content;
-	}
-
-	/**
 	 * Answer the {@linkplain String content} of the {@linkplain Message
 	 * message}.
 	 *
@@ -66,6 +56,54 @@ public class Message
 	public String content ()
 	{
 		return content;
+	}
+
+	/**
+	 * Should the {@linkplain AvailServerChannel channel} be {@linkplain
+	 * AvailServerChannel#close() closed} after transmitting this {@linkplain
+	 * Message message}?
+	 */
+	private final boolean closeAfterSending;
+
+	/**
+	 * Should the {@linkplain AvailServerChannel channel} be {@linkplain
+	 * AvailServerChannel#close() closed} after transmitting this {@linkplain
+	 * Message message}?
+	 *
+	 * @return {@code true} if the channel should be closed after sending,
+	 *         {@code false} otherwise.
+	 */
+	public final boolean closeAfterSending ()
+	{
+		return closeAfterSending;
+	}
+
+	/**
+	 * Construct a new {@link Message}.
+	 *
+	 * @param content
+	 *        The {@linkplain String content}.
+	 */
+	public Message (final String content)
+	{
+		this.content = content;
+		this.closeAfterSending = false;
+	}
+
+	/**
+	 * Construct a new {@link Message}.
+	 *
+	 * @param content
+	 *        The {@linkplain String content}.
+	 * @param closeAfterSending
+	 *        {@code true} if the {@linkplain AvailServerChannel channel} should
+	 *        be {@linkplain AvailServerChannel#close() closed} after
+	 *        transmitting this message.
+	 */
+	public Message (final String content, final boolean closeAfterSending)
+	{
+		this.content = content;
+		this.closeAfterSending = closeAfterSending;
 	}
 
 	@Override

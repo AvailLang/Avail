@@ -106,6 +106,8 @@ textarea { background-color: white; }
 .key { color: red; }
 </style>
 <script language="javascript" type="text/javascript">
+	var protocolVersion = 4;
+	var supportedProtocolVersions = [protocolVersion];
 	var availUri = "ws://localhost:40000/avail";
 	var cmdOutput = null, ioOutput = null;
 	var cmdChannel = null, ioChannel = null;
@@ -177,7 +179,7 @@ textarea { background-color: white; }
 		{
 			clearOutput();
 			cmdWrite('<div class="cmdBanner">CONNECTED</div>');
-			cmdSend('source modules');
+			cmdSend('version ' + protocolVersion);
 		};
 		cmdChannel.onclose = function (e)
 		{
@@ -236,6 +238,31 @@ textarea { background-color: white; }
 			{
 				switch (response.command)
 				{
+					case 'version':
+					{
+						var content = response.content;
+						if (content !== protocolVersion)
+						{
+							var serverVersions = content.supported;
+							var compatible = serverVersions.filter(
+								function (v)
+								{
+									console.log('server=' + v);
+									console.log(supportedProtocolVersions);
+									return supportedProtocolVersions.indexOf(
+										v) != -1;
+								});
+							if (compatible.length === 0)
+							{
+								cmdWrite(
+									'<div class="errBanner">INCOMPATIBLE VERSIONS</div>');
+								return;
+							}
+						}
+						cmdWrite('<div class="ioBanner">VERSION NEGOTIATED</div>');
+						cmdSend('source modules');
+						break;
+					}
 					case 'source modules':
 					{
 						var content = response.content;
@@ -261,6 +288,7 @@ textarea { background-color: white; }
 						moduleTree.jstree(true).settings.core.data =
 							content;
 						moduleTree.jstree(true).refresh();
+						break;
 					}
 					case 'build module':
 					{
@@ -307,7 +335,7 @@ textarea { background-color: white; }
 								}
 								break;
 						}
-						return;
+						break;;
 					}
 				}
 			}
