@@ -183,7 +183,7 @@ public final class AvailServer
 	}
 
 	/**
-	 * Write a status field into the JSON object being written.
+	 * Write an {@code "ok"} field into the JSON object being written.
 	 *
 	 * @param ok
 	 *        {@code true} if the operation succeeded, {@code false} otherwise.
@@ -199,18 +199,41 @@ public final class AvailServer
 	}
 
 	/**
+	 * Write a {@code "command"} field into the JSON object being written.
+	 *
+	 * @param command
+	 *        The {@linkplain Command command}.
+	 * @param writer
+	 *        A {@link JSONWriter}.
+	 */
+	private void writeCommandOn (final Command command, final JSONWriter writer)
+	{
+		writer.write("command");
+		writer.write(command.name().toLowerCase().replace('_', ' '));
+	}
+
+	/**
 	 * Answer an error {@linkplain Message message} that incorporates the
 	 * specified reason.
 	 *
+	 * @param command
+	 *        The {@linkplain Command command} that failed, or {@code null} if
+	 *        the command could not be determined.
 	 * @param reason
 	 *        The reason for the failure.
 	 * @return A message.
 	 */
-	@InnerAccess Message newErrorMessage (final String reason)
+	@InnerAccess Message newErrorMessage (
+		final @Nullable Command command,
+		final String reason)
 	{
 		final JSONWriter writer = new JSONWriter();
 		writer.startObject();
 		writeStatusOn(false, writer);
+		if (command != null)
+		{
+			writeCommandOn(command, writer);
+		}
 		writer.write("reason");
 		writer.write(reason);
 		writer.endObject();
@@ -221,16 +244,20 @@ public final class AvailServer
 	 * Answer a success {@linkplain Message message} that incorporates the
 	 * specified generated content.
 	 *
+	 * @param command
+	 *        The {@linkplain Command command} for which this is a response.
 	 * @param content
 	 *        How to write the content of the message.
 	 * @return A message.
 	 */
 	@InnerAccess Message newSuccessMessage (
+		final Command command,
 		final Continuation1<JSONWriter> content)
 	{
 		final JSONWriter writer = new JSONWriter();
 		writer.startObject();
 		writeStatusOn(true, writer);
+		writeCommandOn(command, writer);
 		writer.write("content");
 		content.value(writer);
 		writer.endObject();
@@ -241,15 +268,21 @@ public final class AvailServer
 	 * Answer an I/O upgrade request {@linkplain Message message} that
 	 * incorporates the specified {@link UUID}.
 	 *
+	 * @param command
+	 *        The {@linkplain Command command} on whose behalf the upgrade is
+	 *        requested.
 	 * @param uuid
 	 *        The {@code UUID} that denotes the I/O connection.
 	 * @return A message.
 	 */
-	@InnerAccess Message newIOUpgradeRequestMessage (final UUID uuid)
+	@InnerAccess Message newIOUpgradeRequestMessage (
+		final Command command,
+		final UUID uuid)
 	{
 		final JSONWriter writer = new JSONWriter();
 		writer.startObject();
 		writeStatusOn(true, writer);
+		writeCommandOn(command, writer);
 		writer.write("upgrade");
 		writer.write(uuid.toString());
 		writer.endObject();
@@ -290,7 +323,7 @@ public final class AvailServer
 			catch (final CommandParseException e)
 			{
 				final Message rebuttal =
-					newErrorMessage(e.getLocalizedMessage());
+					newErrorMessage(null, e.getLocalizedMessage());
 				channel.enqueueMessageThen(rebuttal, receiveNext);
 			}
 			finally
@@ -322,6 +355,7 @@ public final class AvailServer
 		final Continuation0 continuation)
 	{
 		final Message message = newSuccessMessage(
+			command.command(),
 			new Continuation1<JSONWriter>()
 			{
 				@Override
@@ -365,6 +399,7 @@ public final class AvailServer
 		final Continuation0 continuation)
 	{
 		final Message message = newSuccessMessage(
+			command.command(),
 			new Continuation1<JSONWriter>()
 			{
 				@Override
@@ -399,6 +434,7 @@ public final class AvailServer
 		final Continuation0 continuation)
 	{
 		final Message message = newSuccessMessage(
+			command.command(),
 			new Continuation1<JSONWriter>()
 			{
 				@Override
@@ -432,6 +468,7 @@ public final class AvailServer
 		final Continuation0 continuation)
 	{
 		final Message message = newSuccessMessage(
+			command.command(),
 			new Continuation1<JSONWriter>()
 			{
 				@Override
@@ -529,15 +566,19 @@ public final class AvailServer
 		 * @param isRoot
 		 *        {@code true} if the receiver represents a {@linkplain
 		 *        ModuleNode module root}, {@code false} otherwise.
+		 * @param isResource
+		 *        {@code true} if the receiver represents a resource, {@code
+		 *        false} otherwise.
 		 * @param writer
 		 *        A {@code JSONWriter}.
 		 */
 		private void recursivelyWriteOn (
 			final boolean isRoot,
+			final boolean isResource,
 			final JSONWriter writer)
 		{
 			writer.startObject();
-			writer.write("name");
+			writer.write("text");
 			writer.write(name);
 			if (isRoot)
 			{
@@ -551,17 +592,38 @@ public final class AvailServer
 				writer.write("isPackage");
 				writer.write(isPackage);
 			}
-			if (mods != null)
+			if (isResource)
 			{
-				boolean missingRepresentative = true;
-				writer.write("modules");
+				writer.write("isResource");
+				writer.write(isResource);
+			}
+			final List<ModuleNode> res = resources;
+			if (mods != null || res != null)
+			{
+				writer.write("state");
+				writer.startObject();
+				writer.write("opened");
+				writer.write(!isResource);
+				writer.endObject();
+				boolean missingRepresentative = !isResource;
+				writer.write("children");
 				writer.startArray();
-				for (final ModuleNode mod : mods)
+				if (mods != null)
 				{
-					mod.recursivelyWriteOn(false, writer);
-					if (mod.name.equals(name))
+					for (final ModuleNode mod : mods)
 					{
-						missingRepresentative = false;
+						mod.recursivelyWriteOn(false, false, writer);
+						if (mod.name.equals(name))
+						{
+							missingRepresentative = false;
+						}
+					}
+				}
+				if (res != null)
+				{
+					for (final ModuleNode r : res)
+					{
+						r.recursivelyWriteOn(false, true, writer);
 					}
 				}
 				writer.endArray();
@@ -570,17 +632,6 @@ public final class AvailServer
 					writer.write("missingRepresentative");
 					writer.write(missingRepresentative);
 				}
-			}
-			final List<ModuleNode> res = resources;
-			if (res != null)
-			{
-				writer.write("resources");
-				writer.startArray();
-				for (final ModuleNode r : res)
-				{
-					r.recursivelyWriteOn(false, writer);
-				}
-				writer.endArray();
 			}
 			final Throwable e = exception;
 			if (e != null)
@@ -600,7 +651,7 @@ public final class AvailServer
 		 */
 		void writeOn (final JSONWriter writer)
 		{
-			recursivelyWriteOn(true, writer);
+			recursivelyWriteOn(true, false, writer);
 		}
 	}
 
@@ -742,6 +793,7 @@ public final class AvailServer
 		final Continuation0 continuation)
 	{
 		final Message message = newSuccessMessage(
+			command.command(),
 			new Continuation1<JSONWriter>()
 			{
 				@Override
@@ -799,6 +851,7 @@ public final class AvailServer
 		final Continuation0 continuation)
 	{
 		final Message message = newSuccessMessage(
+			command.command(),
 			new Continuation1<JSONWriter>()
 			{
 				@Override
@@ -872,7 +925,7 @@ public final class AvailServer
 		if (!channel.isEligibleForUpgrade())
 		{
 			final Message message = newErrorMessage(
-				"channel not eligible for upgrade");
+				command.command(), "channel not eligible for upgrade");
 			channel.enqueueMessageThen(message, continuation);
 			return;
 		}
@@ -883,7 +936,8 @@ public final class AvailServer
 		}
 		if (upgrader == null)
 		{
-			final Message message = newErrorMessage("no such upgrade");
+			final Message message = newErrorMessage(
+				command.command(), "no such upgrade");
 			channel.enqueueMessageThen(message, continuation);
 			return;
 		}
@@ -896,6 +950,9 @@ public final class AvailServer
 	 * @param channel
 	 *        The {@linkplain AvailServerChannel channel} on which the
 	 *        {@linkplain CommandMessage response} should be sent.
+	 * @param command
+	 *        The {@linkplain CommandMessage command} on whose behalf the
+	 *        upgrade should be requested.
 	 * @param afterUpgraded
 	 *        What to do after the upgrades have been completed by the client.
 	 *        The argument is the {@linkplain AvailServerChannel#isIOChannel()
@@ -907,6 +964,7 @@ public final class AvailServer
 	 */
 	private void requestUpgradesThen (
 		final AvailServerChannel channel,
+		final CommandMessage command,
 		final Continuation1<AvailServerChannel> afterUpgraded,
 		final Continuation0 afterEnqueuing)
 	{
@@ -931,7 +989,7 @@ public final class AvailServer
 				}
 			});
 		channel.enqueueMessageThen(
-			newIOUpgradeRequestMessage(uuid),
+			newIOUpgradeRequestMessage(command.command(), uuid),
 			afterEnqueuing);
 	}
 
@@ -957,6 +1015,7 @@ public final class AvailServer
 	{
 		requestUpgradesThen(
 			channel,
+			command,
 			new Continuation1<AvailServerChannel>()
 			{
 				@Override
@@ -1006,6 +1065,7 @@ public final class AvailServer
 		};
 		channel.enqueueMessageThen(
 			newSuccessMessage(
+				command.command(),
 				new Continuation1<JSONWriter>()
 				{
 					@Override
@@ -1038,6 +1098,7 @@ public final class AvailServer
 				if (!locals.isEmpty() && !globals.isEmpty())
 				{
 					final Message message = newSuccessMessage(
+						command.command(),
 						new Continuation1<JSONWriter>()
 						{
 							@Override
@@ -1138,6 +1199,7 @@ public final class AvailServer
 		assert globalUpdates.isEmpty();
 		channel.enqueueMessageThen(
 			newSuccessMessage(
+				command.command(),
 				new Continuation1<JSONWriter>()
 				{
 					@Override
@@ -1179,6 +1241,7 @@ public final class AvailServer
 	{
 		requestUpgradesThen(
 			channel,
+			command,
 			new Continuation1<AvailServerChannel>()
 			{
 				@Override
@@ -1237,6 +1300,7 @@ public final class AvailServer
 					if (value.equalsNil())
 					{
 						final Message message = newSuccessMessage(
+							command.command(),
 							new Continuation1<JSONWriter>()
 							{
 								@Override
@@ -1276,6 +1340,7 @@ public final class AvailServer
 							public void value (final @Nullable String string)
 							{
 								final Message message = newSuccessMessage(
+									command.command(),
 									new Continuation1<JSONWriter>()
 									{
 										@Override
