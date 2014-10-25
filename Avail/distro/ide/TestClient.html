@@ -19,10 +19,7 @@
 	width: 20%;
 	height: 800px;
 	overflow: auto;
-}}
-#moduleTree li
-{
-	font-size: 10pt;
+	font-size: 10pt !important;
 }
 #buildProgressBar
 {
@@ -50,7 +47,6 @@
 	font-size: 8pt;
 	font-variant: small-caps;
 	white-space: pre;
-	text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.2);
 }
 #consoleAccordion .ui-accordion-content
 {
@@ -198,69 +194,25 @@ textarea { background-color: white; }
 				var prettyJSON = highlight(JSON.stringify(JSON.parse(e.data), null, 4));
 				cmdWrite(prettyJSON);
 			}
-			if ('upgrade' in response)
-			{
-				ioChannel = new WebSocket(availUri);
-				ioChannel.onopen = function (e)
-				{
-					cmdWrite('<div class="ioBanner">I/O CONNECTED</div>');
-					wsInput.style.backgroundColor = 'yellow';
-					ioChannel.send('upgrade ' + response.upgrade);
-				};
-				ioChannel.onclose = function (e)
-				{
-					cmdWrite('<div class="ioBanner">I/O DISCONNECTED</div>')
-					ioChannel = null;
-					wsInput.style.backgroundColor = 'white';
-				};
-				ioChannel.onerror = function (e)
-				{
-					cmdWrite('<div class="errBanner">ERROR: ' + e.data + '</div>');
-				};
-				ioChannel.onmessage = function (e)
-				{
-					var response = JSON.parse(e.data);
-					if (response.tag === 'out')
-					{
-						ioWrite(response.content);
-					}
-					else if (response.tag === 'err')
-					{
-						ioWrite(
-							'<span style="color: red">'
-							+ response.content
-							+ '</span>');
-					}
-				};
-				return;
-			}
 			if ('command' in response)
 			{
 				switch (response.command)
 				{
 					case 'version':
 					{
-						var content = response.content;
-						if (content !== protocolVersion)
-						{
-							var serverVersions = content.supported;
-							var compatible = serverVersions.filter(
-								function (v)
-								{
-									console.log('server=' + v);
-									console.log(supportedProtocolVersions);
-									return supportedProtocolVersions.indexOf(
-										v) != -1;
-								});
-							if (compatible.length === 0)
+						negotiateVersions(
+							response.content,
+							function ()
+							{
+								cmdWrite('<div class="ioBanner">VERSION NEGOTIATED</div>');
+								cmdSend('source modules');
+							},
+							function ()
 							{
 								cmdWrite(
 									'<div class="errBanner">INCOMPATIBLE VERSIONS</div>');
-								return;
-							}
-						}
-						cmdWrite('<div class="ioBanner">VERSION NEGOTIATED</div>');
-						cmdSend('source modules');
+								cmdChannel.close();
+							});
 						break;
 					}
 					case 'source modules':
@@ -292,6 +244,11 @@ textarea { background-color: white; }
 					}
 					case 'build module':
 					{
+						if ('upgrade' in response)
+						{
+							upgrade(response);
+							return;
+						}
 						var content = response.content;
 						switch (typeof content)
 						{
@@ -335,7 +292,16 @@ textarea { background-color: white; }
 								}
 								break;
 						}
-						break;;
+						break;
+					}
+					case 'run entry point':
+					{
+						if ('upgrade' in response)
+						{
+							upgrade(response);
+							return;
+						}
+						break;
 					}
 				}
 			}
@@ -461,6 +427,85 @@ textarea { background-color: white; }
 			visitTree(root, callback);
 		});
 	}
+
+	function negotiateVersions (content, ok, bad)
+	{
+		if (content !== protocolVersion)
+		{
+			var serverVersions = content.supported;
+			var compatible = serverVersions.filter(
+				function (v)
+				{
+					return supportedProtocolVersions.indexOf(
+						v) != -1;
+				});
+			if (compatible.length === 0)
+			{
+				bad();
+				return;
+			}
+		}
+		ok();
+	}
+
+	function upgrade (cmdResponse)
+	{
+		var versionNegotiated = false;
+		ioChannel = new WebSocket(availUri);
+		ioChannel.onopen = function (e)
+		{
+			cmdWrite('<div class="ioBanner">I/O CONNECTED</div>');
+			wsInput.style.backgroundColor = 'yellow';
+			ioChannel.send('version ' + protocolVersion);
+		};
+		ioChannel.onclose = function (e)
+		{
+			cmdWrite('<div class="ioBanner">I/O DISCONNECTED</div>')
+			ioChannel = null;
+			wsInput.style.backgroundColor = 'white';
+		};
+		ioChannel.onerror = function (e)
+		{
+			cmdWrite(
+				'<div class="errBanner">I/O ERROR: ' + e.data + '</div>');
+		};
+		ioChannel.onmessage = function (e)
+		{
+			var response = JSON.parse(e.data);
+			if (!versionNegotiated)
+			{
+				negotiateVersions(
+					response.content,
+					function ()
+					{
+						cmdWrite('<div class="ioBanner">I/O VERSION NEGOTIATED</div>');
+						ioChannel.send('upgrade ' + cmdResponse.upgrade);
+					},
+					function ()
+					{
+						cmdWrite('<div class="errBanner">I/O INCOMPATIBLE VERSIONS</div>');
+						ioChannel.close();
+					});
+				versionNegotiated = true;
+			}
+			else
+			{
+				var content = response.content;
+				switch (response.tag)
+				{
+					case 'out':
+						ioWrite(content);
+						break;
+					case 'err':
+						ioWrite(
+							'<span style="color: red">'
+							+ content
+							+ '</span>');
+						break;
+				}
+			}
+		};
+	}
 </script>
 </head>
 <body onload="wsInit();">
@@ -468,7 +513,7 @@ textarea { background-color: white; }
 	<div id="moduleTree">
 	<!-- The module tree appears here. -->
 	</div>
-	<div style="float: left; margin: 10px; width: 60%">
+	<div style="float: left; margin: 10px; width: 70%">
 		<div>
 			<textarea id="wsInput" rows="4" cols="80" onkeyup="maybeSubmit(event);"></textarea>
 			<input
