@@ -105,9 +105,9 @@ public final class AvailServer
 	public static final int protocolVersion = 4;
 
 	/** The supported client protocol versions. */
-	public static final List<Integer> supportedProtocolVersions =
-		Collections.unmodifiableList(Arrays.asList(
-			protocolVersion));
+	public static final Set<Integer> supportedProtocolVersions =
+		Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+			protocolVersion)));
 
 	/**
 	 * The {@linkplain AvailRuntime Avail runtime} managed by this {@linkplain
@@ -175,6 +175,9 @@ public final class AvailServer
 	 * Record an upgrade request issued by this {@linkplain AvailServer server}
 	 * in response to a {@linkplain Command command}.
 	 *
+	 * @param channel
+	 *        The {@linkplain AvailServerChannel channel} that requested the
+	 *        upgrade.
 	 * @param uuid
 	 *        The UUID that identifies the upgrade request.
 	 * @param continuation
@@ -182,6 +185,7 @@ public final class AvailServer
 	 *        channel}.
 	 */
 	public void recordUpgradeRequest (
+		final AvailServerChannel channel,
 		final UUID uuid,
 		final Continuation3<
 			AvailServerChannel, UUID, Continuation0> continuation)
@@ -189,6 +193,25 @@ public final class AvailServer
 		synchronized (pendingUpgrades)
 		{
 			pendingUpgrades.put(uuid, continuation);
+		}
+		channel.recordUpgradeRequest(uuid);
+	}
+
+	/**
+	 * Discontinue the specified pending upgrade requests.
+	 *
+	 * @param uuids
+	 *        The {@link UUID}s of the pending upgrades that should be
+	 *        discontinued.
+	 */
+	public void discontinueUpgradeRequests (final Set<UUID> uuids)
+	{
+		synchronized (pendingUpgrades)
+		{
+			for (final UUID uuid : uuids)
+			{
+				pendingUpgrades.remove(uuid);
+			}
 		}
 	}
 
@@ -1113,6 +1136,7 @@ public final class AvailServer
 	{
 		final UUID uuid = UUID.randomUUID();
 		recordUpgradeRequest(
+			channel,
 			uuid,
 			new Continuation3<AvailServerChannel, UUID, Continuation0>()
 			{

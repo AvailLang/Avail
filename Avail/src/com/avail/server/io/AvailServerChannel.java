@@ -36,6 +36,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import com.avail.annotations.Nullable;
 import com.avail.io.TextInterface;
 import com.avail.server.AvailServer;
@@ -264,5 +265,39 @@ implements AutoCloseable
 			new ServerInputChannel(this),
 			new ServerOutputChannel(this),
 			new ServerErrorChannel(this));
+	}
+
+	/**
+	 * The {@link UUID}s of any upgrade requests issued by this {@linkplain
+	 * AvailServerChannel channel}.
+	 */
+	private final Set<UUID> requestedUpgrades = new HashSet<>();
+
+	/**
+	 * Record an upgrade request instigated by this {@linkplain
+	 * AvailServerChannel channel}.
+	 *
+	 * @param uuid
+	 *        The {@link UUID} that identifies the upgrade request.
+	 */
+	public void recordUpgradeRequest (final UUID uuid)
+	{
+		synchronized (requestedUpgrades)
+		{
+			requestedUpgrades.add(uuid);
+		}
+	}
+
+	@Override
+	protected void finalize ()
+	{
+		try
+		{
+			server().discontinueUpgradeRequests(requestedUpgrades);
+		}
+		catch (final Throwable e)
+		{
+			// Do not prevent destruction of this channel.
+		}
 	}
 }

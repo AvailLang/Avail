@@ -361,9 +361,12 @@ textarea { background-color: white; }
 		// Submit on enter.
 		if (e.keyCode == 13)
 		{
-			cmdSend(wsInput.value.substring(0, wsInput.value.length - 1));
+			e.preventDefault();
+			cmdSend(wsInput.value.substring(0, wsInput.value.length));
 			wsInput.value = '';
+			return false;
 		}
+		return true;
 	}
 
 	function cmdSend (msg)
@@ -515,7 +518,7 @@ textarea { background-color: white; }
 	</div>
 	<div style="float: left; margin: 10px; width: 70%">
 		<div>
-			<textarea id="wsInput" rows="4" cols="80" onkeyup="maybeSubmit(event);"></textarea>
+			<textarea id="wsInput" rows="4" cols="80" onkeydown="maybeSubmit(event);"></textarea>
 			<input
 				id="wsButton"
 				type="button"
