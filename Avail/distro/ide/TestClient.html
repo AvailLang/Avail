@@ -175,6 +175,7 @@ textarea { background-color: white; }
 		cmdChannel = new WebSocket(availUri);
 		cmdChannel.onopen = function (e)
 		{
+			clearOutput();
 			cmdWrite('<div class="cmdBanner">CONNECTED</div>');
 			cmdSend('source modules');
 		};
@@ -381,7 +382,7 @@ textarea { background-color: white; }
 		else
 		{
 			ioWrite('<span style="color: green">' + msg + '</span><br/>');
-			ioChannel.send(msg);
+			ioChannel.send(msg + '\n');
 		}
 	}
 
