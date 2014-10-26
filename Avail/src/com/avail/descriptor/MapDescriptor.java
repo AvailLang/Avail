@@ -572,7 +572,8 @@ extends Descriptor
 		writer.startObject();
 		writer.write("kind");
 		writer.write("map");
-		if (InstanceTypeDescriptor.on(object).keyType().isString())
+		if (object.kind().keyType().isSubtypeOf(
+			TupleTypeDescriptor.stringType()))
 		{
 			writer.write("map");
 			writer.startObject();
@@ -605,7 +606,8 @@ extends Descriptor
 		writer.startObject();
 		writer.write("kind");
 		writer.write("map");
-		if (InstanceTypeDescriptor.on(object).keyType().isString())
+		if (object.kind().keyType().isSubtypeOf(
+			TupleTypeDescriptor.stringType()))
 		{
 			writer.write("map");
 			writer.startObject();
