@@ -39,10 +39,7 @@ package com.avail.interpreter.jvm;
  */
 public class JVMCodeGenerationException extends Exception
 {
-
-	/**
-	 *
-	 */
+	/** The serial version identifier. */
 	private static final long serialVersionUID = -2285521985624140958L;
 
 	/**

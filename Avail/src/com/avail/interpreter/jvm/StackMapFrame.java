@@ -43,16 +43,13 @@ import java.util.List;
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  * @see <a
- * 	href="http://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.7.4">
- * 	StackMapTable</a>
- *
+ *       href="http://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.7.4">
+ *       StackMapTable</a>
  */
 public class StackMapFrame
 {
 	/**
 	 * The specified range of acceptable values of {@link FrameType}.
-	 *
-	 * @author Rich Arriaga &lt;rich@availlang.org&gt;
 	 */
 	static enum FrameTypeRange
 	{
@@ -60,7 +57,8 @@ public class StackMapFrame
 		Same_Frame((byte)0,(byte)63)
 		{
 			@Override
-			SameFrame createFrameType(final byte frameTypeValue,
+			SameFrame createFrameType (
+				final byte frameTypeValue,
 				final List<VerificationTypeInfo> stack,
 				final List<VerificationTypeInfo> locals,
 				final short explicitDeltaOffset)
@@ -73,7 +71,8 @@ public class StackMapFrame
 		Same_Locals_1_Stack_Item_Frame((byte)64,(byte)127)
 		{
 			@Override
-			SameLocals1StackItemFrame createFrameType(final byte frameTypeValue,
+			SameLocals1StackItemFrame createFrameType (
+				final byte frameTypeValue,
 				final List<VerificationTypeInfo> stack,
 				final List<VerificationTypeInfo> locals,
 				final short explicitDeltaOffset)
@@ -86,7 +85,7 @@ public class StackMapFrame
 		Same_Locals_1_Stack_Item_Frame_Extended((byte)247,(byte)247)
 		{
 			@Override
-			SameLocals1StackItemFrameExtended createFrameType(
+			SameLocals1StackItemFrameExtended createFrameType (
 				final byte frameTypeValue,
 				final List<VerificationTypeInfo> stack,
 				final List<VerificationTypeInfo> locals,
@@ -101,7 +100,8 @@ public class StackMapFrame
 		Chop_Frame((byte)248,(byte)250)
 		{
 			@Override
-			ChopFrame createFrameType(final byte frameTypeValue,
+			ChopFrame createFrameType (
+				final byte frameTypeValue,
 				final List<VerificationTypeInfo> stack,
 				final List<VerificationTypeInfo> locals,
 				final short explicitDeltaOffset)
@@ -114,7 +114,8 @@ public class StackMapFrame
 		Same_Frame_Extended((byte)251,(byte)251)
 		{
 			@Override
-			SameFrameExtended createFrameType(final byte frameTypeValue,
+			SameFrameExtended createFrameType (
+				final byte frameTypeValue,
 				final List<VerificationTypeInfo> stack,
 				final List<VerificationTypeInfo> locals,
 				final short explicitDeltaOffset)
@@ -127,13 +128,14 @@ public class StackMapFrame
 		Append_Frame((byte)252,(byte)254)
 		{
 			@Override
-			AppendFrame createFrameType(final byte frameTypeValue,
+			AppendFrame createFrameType (
+				final byte frameTypeValue,
 				final List<VerificationTypeInfo> stack,
 				final List<VerificationTypeInfo> locals,
 				final short explicitDeltaOffset)
 				{
-					return new AppendFrame(frameTypeValue,locals,
-						explicitDeltaOffset);
+					return new AppendFrame(
+						frameTypeValue, locals, explicitDeltaOffset);
 				}
 		},
 
@@ -141,13 +143,14 @@ public class StackMapFrame
 		Full_Frame((byte)255,(byte)255)
 		{
 			@Override
-			FullFrame createFrameType(final byte frameTypeValue,
+			FullFrame createFrameType (
+				final byte frameTypeValue,
 				final List<VerificationTypeInfo> stack,
 				final List<VerificationTypeInfo> locals,
 				final short explicitDeltaOffset)
 				{
-					return new FullFrame(stack, locals,
-						explicitDeltaOffset);
+					return new FullFrame(
+						stack, locals, explicitDeltaOffset);
 				}
 		},
 
@@ -155,16 +158,19 @@ public class StackMapFrame
 		Not_Used((byte)128,(byte)246)
 		{
 			@Override
-			FrameType createFrameType(final byte frameTypeValue,
+			FrameType createFrameType (
+				final byte frameTypeValue,
 				final List<VerificationTypeInfo> stack,
 				final List<VerificationTypeInfo> locals,
 				final short explicitDeltaOffset)
 					throws JVMCodeGenerationException
 				{
 					throw new JVMCodeGenerationException(String.format(
-						"Attempted to create a StackMapFrame with frame type" +
-						" value, %d, however that lies in the reserved" +
-						" range, %d - %d", frameTypeValue, bottomRange,
+						"Attempted to create a StackMapFrame with frame type"
+						+ " value, %d, however that lies in the reserved"
+						+ " range, %d - %d",
+						frameTypeValue,
+						bottomRange,
 						topRange));
 				}
 		};
@@ -183,7 +189,7 @@ public class StackMapFrame
 		 * @param topRange
 		 *        The greatest value inclusive
 		 */
-		private FrameTypeRange(final byte bottomRange, final byte topRange)
+		private FrameTypeRange (final byte bottomRange, final byte topRange)
 		{
 			this.bottomRange = bottomRange;
 			this.topRange = topRange;
@@ -198,18 +204,20 @@ public class StackMapFrame
 		 * @return
 		 * @throws JVMCodeGenerationException
 		 */
-		abstract FrameType createFrameType(byte frameTypeValue,
+		abstract FrameType createFrameType (
+			byte frameTypeValue,
 			final List<VerificationTypeInfo> stack,
 			final List<VerificationTypeInfo> locals,
 			final short explicitDeltaOffset) throws JVMCodeGenerationException;
 
 		/**
-		 * Check to see if a value is in the specified {@link FrameTypeRange}
+		 * Check to see if a value is in the specified {@link FrameTypeRange}.
+		 *
 		 * @param valueToCheck
-		 * 		The value to check
+		 *        The value to check.
 		 * @return
 		 */
-		boolean inRange(final byte valueToCheck)
+		boolean inRange (final byte valueToCheck)
 		{
 			return bottomRange <= valueToCheck && valueToCheck <= topRange;
 		}
@@ -221,8 +229,9 @@ public class StackMapFrame
 	static FrameTypeRange[] frameTypeDispatchTable = new FrameTypeRange[256];
 
 	/**
-	 * Statically initialize the {@link frameTypeDispatchTable} with suitable the
-	 * {@link FrameTypeRange}. Note that this happens as part of class loading.
+	 * Statically initialize the {@link frameTypeDispatchTable} with suitable
+	 * the {@link FrameTypeRange}. Note that this happens as part of class
+	 * loading.
 	 */
 	static
 	{
@@ -270,8 +279,6 @@ public class StackMapFrame
 	/**
 	 * The {@link FrameType} indicates the structural makeup of the
 	 * {@link StackMapFrame}.
-	 *
-	 * @author Rich Arriaga &lt;rich@availlang.org&gt;
 	 */
 	abstract static class FrameType
 	{
@@ -283,6 +290,7 @@ public class StackMapFrame
 		/**
 		 * Provide the {@link JavaBytecode bytecode} offset at which the stack
 		 * map frame applies.
+		 *
 		 * @return
 		 */
 		abstract short deltaOffset();
@@ -305,38 +313,38 @@ public class StackMapFrame
 		 */
 		abstract void writeTo (final DataOutput out) throws IOException;
 
-	    /**
-	     * Construct a new {@link FrameType}.
-	     *
-	     * @param frameValue
-	     * 		The value for this frame.
-	     */
-	    FrameType(final byte frameValue)
-	    {
-	        this.frameValue = frameValue;
-	    }
+		/**
+		 * Construct a new {@link FrameType}.
+		 *
+		 * @param frameValue
+		 *        The value for this frame.
+		 */
+		FrameType(final byte frameValue)
+		{
+			this.frameValue = frameValue;
+		}
 	}
 
 	/**
-	 * Per the JVM specification:</br>
-	 * <i>
+	 * Per the JVM specification:
+	 *
+	 * <blockquote>
 	 * The frame {@link SameFrame type same_frame} is represented by tags in
 	 * the range [0-63].  This frame type indicates that the frame has exactly
 	 * the same local variables as the previous frame and that the operand
 	 * stack is empty.  The offset_delta value for the frame is the value of
 	 * the tag item, frame_type.
-	 * </i>
-	 *
-	 * @author Rich Arriaga &lt;rich@availlang.org&gt;
+	 * </blockquote>
 	 */
-	static class SameFrame extends FrameType
+	static class SameFrame
+	extends FrameType
 	{
 		/**
 		 * Construct a new {@link SameFrame}.
 		 *
 		 * @param frameValue
 		 */
-		SameFrame(final byte frameValue)
+		SameFrame (final byte frameValue)
 		{
 			super(frameValue);
 		}
@@ -361,8 +369,9 @@ public class StackMapFrame
 	}
 
 	/**
-	 * Per the JVM specification:</br>
-	 * <i>
+	 * Per the JVM specification:
+	 *
+	 * <blockquote>
 	 * The frame type
 	 * {@link SameLocals1StackItemFrame same_locals_1_stack_item_frame} is
 	 * represented by tags in the range [64, 127]. This frame type indicates
@@ -370,11 +379,10 @@ public class StackMapFrame
 	 * frame and that the operand stack has one entry. The offset_delta value
 	 * for the frame is given by the formula frame_type - 64. The verification
 	 * type of the one stack entry appears after the frame type.
-	 * </i>
-	 *
-	 * @author Rich Arriaga &lt;rich@availlang.org&gt;
+	 * </blockquote>
 	 */
-	static class SameLocals1StackItemFrame extends FrameType
+	static class SameLocals1StackItemFrame
+	extends FrameType
 	{
 		/**
 		 * The {@link List} of {@link VerificationTypeInfo stack operands} of
@@ -388,7 +396,8 @@ public class StackMapFrame
 		 * @param frameValue
 		 * @param stack
 		 */
-		SameLocals1StackItemFrame (final byte frameValue,
+		SameLocals1StackItemFrame (
+			final byte frameValue,
 			final List<VerificationTypeInfo> stack)
 		{
 			super(frameValue);
@@ -405,7 +414,7 @@ public class StackMapFrame
 		 * Get the {@link List} of {@link VerificationTypeInfo stack items}
 		 * @return
 		 */
-		public List<VerificationTypeInfo> stack()
+		public List<VerificationTypeInfo> stack ()
 		{
 			return stack;
 		}
@@ -433,8 +442,9 @@ public class StackMapFrame
 
 	}
 	/**
-	 * Per the JVM specification:</br>
-	 * <i>
+	 * Per the JVM specification:
+	 *
+	 * <blockquote>
 	 * The frame type {@link SameLocals1StackItemFrameExtended
 	 * same_locals_1_stack_item_frame_extended} is represented by
 	 * the tag 247. This frame type indicates that the frame has exactly the
@@ -442,10 +452,10 @@ public class StackMapFrame
 	 * has one entry. The offset_delta value for the frame is given explicitly,
 	 * unlike in the frame type same_locals_1_stack_item_frame. The
 	 * verification type of the one stack entry appears after offset_delta.
-	 * </i>
-	 * @author Rich Arriaga &lt;rich@availlang.org&gt;
+	 * </blockquote>
 	 */
-	static class SameLocals1StackItemFrameExtended extends FrameType
+	static class SameLocals1StackItemFrameExtended
+	extends FrameType
 	{
 		/**
 		 * The {@link List} of {@link VerificationTypeInfo stack operands} of
@@ -481,7 +491,8 @@ public class StackMapFrame
 		}
 
 		/**
-		 * Get the {@link List} of {@link VerificationTypeInfo stack items}
+		 * Get the {@link List} of {@link VerificationTypeInfo stack items}.
+		 *
 		 * @return
 		 */
 		public List<VerificationTypeInfo> stack()
@@ -511,20 +522,21 @@ public class StackMapFrame
 			return mySize;
 		}
 	}
+
 	/**
-	 * Per the JVM specification:</br>
-	 * <i>
+	 * Per the JVM specification:
+	 *
+	 * <blockquote>
 	 * The frame type {@link ChopFrame chop_frame} is represented by tags in
 	 * the range [248-250].  This frame type indicates that the frame has the
 	 * same local variables as the previous frame except that the last k local
 	 * variables are absent, and that the operand stack is empty. The value
 	 * of k is given by the formula 251 - frame_type. The offset_delta value
 	 * for the frame is given explicitly.
-	 * </i>
-	 *
-	 * @author Rich Arriaga &lt;rich@availlang.org&gt;
+	 * </blockquote>
 	 */
-	static class ChopFrame extends FrameType
+	static class ChopFrame
+	extends FrameType
 	{
 		/**
 		 * The bytecode offset at which the {@link StackMapFrame} applies.
@@ -564,16 +576,15 @@ public class StackMapFrame
 	}
 
 	/**
-	 * Per the JVM specification:</br>
-	 * <i>
+	 * Per the JVM specification:
+	 *
+	 * <blockquote>
 	 * The frame type {@link SameFrameExtended same_frame_extended} is
 	 * represented by the tag 251. This frame type indicates that the frame has
 	 * exactly the same local variables as the previous frame and that the
 	 * operand stack is empty. The offset_delta value for the frame is given
 	 * explicitly, unlike in the frame type same_frame.
-	 * </i>
-	 *
-	 * @author Rich Arriaga &lt;rich@availlang.org&gt;
+	 * </blockquote>
 	 */
 	static class SameFrameExtended extends FrameType
 	{
@@ -587,8 +598,7 @@ public class StackMapFrame
 		 *
 		 * @param explicitDeltaOffset
 		 */
-		SameFrameExtended (
-			final short explicitDeltaOffset)
+		SameFrameExtended (final short explicitDeltaOffset)
 		{
 			super((byte)251);
 			this.explicitDeltaOffset = explicitDeltaOffset;
@@ -615,44 +625,50 @@ public class StackMapFrame
 	}
 
 	/**
-	 * Per the JVM specification:</br>
-	 * <i>
+	 * Per the JVM specification:
+	 *
+	 * <blockquote>
 	 * The frame type {@link AppendFrame append_frame} is represented by tags
 	 * in the range [252-254]. This frame type indicates that the frame has the
 	 * same locals as the previous frame except that k additional locals are
 	 * defined, and that the operand stack is empty. The value of k is given
 	 * by the formula frame_type - 251. The offset_delta value for the frame
 	 * is given explicitly.
-	 * </i>
-	 *
-	 * @author Rich Arriaga &lt;rich@availlang.org&gt;
+	 * </blockquote>
 	 */
-	static class AppendFrame extends FrameType
+	static class AppendFrame
+	extends FrameType
 	{
 		/**
 		 * The {@link List} of local {@link VerificationTypeInfo verification
 		 * types} of the local variables of this {@link StackMapFrame}.
-		 * Should only have size frameValue - 251.</br></br>
-		 * <b>Per the JVM Specification:</b></br>
+		 * Should only have size frameValue - 251.
 		 *
+		 * <p>Per the JVM Specification:</p>
+		 *
+		 * <blockquote>
 		 * The 0th entry in <code>locals</code> represents the verification type
 		 * of the first additional local variable. If <code>locals[M]</code>
 		 * represents local variable <code>N</code>, then: </br></br>
 		 *
-		 * <ul><li><code>locals[M+1]</code> represents local variable N+1 if
-		 * <code>locals[M]</code> is one of
-		 * {@link TopVariable <code>Top_variable_info},
-		 * {@link IntegerVariable Integer_variable_info},
-		 * {@link FloatVariable Float_variable_info},
-		 * {@link NullVariable Null_variable_info},
-		 * {@link UninitializedThisVariable UninitializedThis_variable_info},
-		 * {@link ObjectVariable Object_variable_info},</code> or
-		 * {@link UninitializedVariable
-		 * <code>Uninitialized_variable_info</code>}</li></br>
+		 * <ul>
+		 * <li>{@code locals[M+1]} represents local variable N+1 if {@code
+		 * locals[M]} is one of:
+		 * <ul>
+		 * <li>{@link TopVariable Top_variable_info},</li>
+		 * <li>{@link IntegerVariable Integer_variable_info},</li>
+		 * <li>{@link FloatVariable Float_variable_info},</li>
+		 * <li>{@link NullVariable Null_variable_info},</li>
+		 * <li>{@link UninitializedThisVariable
+		 * UninitializedThis_variable_info},</li>
+		 * <li>{@link ObjectVariable Object_variable_info}, or</li>
+		 * <li>{@link UninitializedVariable Uninitialized_variable_info}</li>
+		 * </ul>
 		 * <li><code>locals[M+1]</code> represents local variable
 		 * <code>N+2</code> if <code>locals[M]</code> is either
 		 * {@link LongVariable <code>Long_variable_info</code>} or
-		 * {@link DoubleVariable <code>Double_variable_info</code>}.</li></ul>
+		 * {@link DoubleVariable <code>Double_variable_info</code>}.</li>
+		 * </ul>
 		 */
 		private final List<VerificationTypeInfo> locals;
 
@@ -668,7 +684,8 @@ public class StackMapFrame
 		 * @param locals
 		 * @param explicitDeltaOffset
 		 */
-		AppendFrame (final byte frameValue,
+		AppendFrame (
+			final byte frameValue,
 			final List<VerificationTypeInfo> locals,
 			final short explicitDeltaOffset)
 		{
@@ -684,7 +701,8 @@ public class StackMapFrame
 		}
 
 		/**
-		 * Get the {@link List} of {@link VerificationTypeInfo local variables}
+		 * Get the {@link List} of {@link VerificationTypeInfo local variables}.
+		 *
 		 * @return
 		 */
 		public List<VerificationTypeInfo> locals()
@@ -716,15 +734,15 @@ public class StackMapFrame
 	}
 
 	/**
-	 * Per the JVM specification:</br>
-	 * <i>
+	 * Per the JVM specification:
+	 *
+	 * <blockquote>
 	 * The frame type {@link FullFrame full_frame} is represented by the tag
 	 * 255. The offset_delta value for the frame is given explicitly.
-	 * </i>
-	 *
-	 * @author Rich Arriaga &lt;rich@availlang.org&gt;
+	 * </blockquote>
 	 */
-	static class FullFrame extends FrameType
+	static class FullFrame
+	extends FrameType
 	{
 		/**
 		 * The {@link List} of local {@link VerificationTypeInfo verification
@@ -799,12 +817,14 @@ public class StackMapFrame
 
 		/**
 		 * Construct a new {@link FullFrame}.
+		 *
 		 * @param stack
 		 * @param locals
 		 * @param explicitDeltaOffset
 		 *
 		 */
-		FullFrame (final List<VerificationTypeInfo> stack,
+		FullFrame (
+			final List<VerificationTypeInfo> stack,
 			final List<VerificationTypeInfo> locals,
 			final short explicitDeltaOffset)
 		{
@@ -823,7 +843,8 @@ public class StackMapFrame
 		}
 
 		/**
-		 * Get the {@link List} of {@link VerificationTypeInfo stack items}
+		 * Get the {@link List} of {@link VerificationTypeInfo stack items}.
+		 *
 		 * @return
 		 */
 		public List<VerificationTypeInfo> stack()
@@ -832,7 +853,8 @@ public class StackMapFrame
 		}
 
 		/**
-		 * Get the {@link List} of {@link VerificationTypeInfo local variables}
+		 * Get the {@link List} of {@link VerificationTypeInfo local variables}.
+		 *
 		 * @return
 		 */
 		public List<VerificationTypeInfo> locals()
@@ -907,26 +929,28 @@ public class StackMapFrame
 	/**
 	 * Construct a new {@link StackMapFrame}.
 	 * @param frameTypeValue
-	 * 		The value of the {@link FrameTypeRange}
+	 *        The value of the {@link FrameTypeRange}
 	 * @param stack
-	 * 		The {@link List} of {@link VerificationTypeInfo} representing the
-	 * 		the operand stack.
+	 *        The {@link List} of {@link VerificationTypeInfo} representing the
+	 *        the operand stack.
 	 * @param locals
-	 * 		The {@link List} of {@link VerificationTypeInfo} representing the
-	 * 		the local variables.
+	 *        The {@link List} of {@link VerificationTypeInfo} representing the
+	 *        the local variables.
 	 * @param explicitDeltaOffset
-	 * 		the {@link JavaBytecode bytecode} offset at which the stack
-	 * 		map frame applies.
+	 *        The {@link JavaBytecode bytecode} offset at which the stack
+	 *        map frame applies.
 	 * @throws JVMCodeGenerationException
 	 *
 	 */
 	@SuppressWarnings("null")
-	public StackMapFrame (final byte frameTypeValue,
-		final List<VerificationTypeInfo> stack,
-		final List<VerificationTypeInfo> locals,
-		final short explicitDeltaOffset) throws JVMCodeGenerationException
+	public StackMapFrame (
+			final byte frameTypeValue,
+			final List<VerificationTypeInfo> stack,
+			final List<VerificationTypeInfo> locals,
+			final short explicitDeltaOffset)
+		throws JVMCodeGenerationException
 	{
-		frameTypeDispatchTable[frameTypeValue]
-			.createFrameType(frameTypeValue, stack, locals, explicitDeltaOffset);
+		frameTypeDispatchTable[frameTypeValue].createFrameType(
+			frameTypeValue, stack, locals, explicitDeltaOffset);
 	}
 }

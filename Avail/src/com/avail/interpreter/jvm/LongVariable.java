@@ -33,29 +33,21 @@
 package com.avail.interpreter.jvm;
 
 /**
- * The {@link VerificationTypeInfo <code>Long_variable_info</code>}
- * item indicates that the location has the verification type
- * <code>long</code>.  The <code>Long_variable_info</code> specifies
- * two locations in the local variable array or in the operand stack.
+ * The {@link LongVariable Long_variable_info} item indicates that the location
+ * has the verification type {@code long}. The {@code Long_variable_info}
+ * specifies two locations in the local variable array or in the operand stack.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-public class LongVariable extends VerificationTypeInfo
+public class LongVariable
+extends VerificationTypeInfo
 {
-	/**
-	 * Construct a new {@link IntegerVariable}.
-	 *
-	 */
-	LongVariable()
-	{
-
-	}
-
 	@Override
 	protected int size ()
 	{
 		return 1;
 	}
+
 	@Override
 	byte typeValue ()
 	{

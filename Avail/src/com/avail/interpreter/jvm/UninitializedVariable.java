@@ -36,20 +36,21 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 /**
- * The {@link VerificationTypeInfo
+ * The {@link UninitializedVariable
  * <code>UninitializedThis_variable_info</code>} item indicates that
  * the location has the verification type
  * <code>uninitializedThis</code>.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-public class UninitializedVariable extends VerificationTypeInfo
+public class UninitializedVariable
+extends VerificationTypeInfo
 {
 	/**
-	 * The Offset item indicates the offset, in the code array of the
-	 * <code>Code</code> attribute that contains this
-	 * {@link StackMapTableAttribute}, of the <code>new</code> instruction
-	 * that created the object being stored in the location.
+	 * The offset into the code array of the {@link CodeAttribute Code
+	 * attribute} that contains this {@link StackMapTableAttribute}, of the
+	 * {@link JavaBytecode#new_ new} instruction that created the object being
+	 * stored in the location.
 	 */
 	private final short offset;
 
@@ -58,9 +59,8 @@ public class UninitializedVariable extends VerificationTypeInfo
 	 * @param offset
 	 *
 	 */
-	UninitializedVariable(final short offset)
+	UninitializedVariable (final short offset)
 	{
-		super();
 		this.offset = offset;
 	}
 

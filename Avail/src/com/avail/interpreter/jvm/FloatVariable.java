@@ -33,28 +33,20 @@
 package com.avail.interpreter.jvm;
 
 /**
- * The {@link VerificationTypeInfo <code>Float_variable_info</code>}
- * item indicates that the location has the verification type
- * <code>float</code>.
+ * The {@link FloatVariable Float_variable_info} item indicates that the
+ * location has the verification type {@code float}.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-public class FloatVariable extends VerificationTypeInfo
+public class FloatVariable
+extends VerificationTypeInfo
 {
-	/**
-	 * Construct a new {@link IntegerVariable}.
-	 *
-	 */
-	FloatVariable()
-	{
-
-	}
-
 	@Override
 	protected int size ()
 	{
 		return 1;
 	}
+
 	@Override
 	byte typeValue ()
 	{
