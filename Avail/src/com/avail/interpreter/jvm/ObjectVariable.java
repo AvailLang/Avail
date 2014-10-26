@@ -36,16 +36,16 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 /**
- * The {@link VerificationTypeInfo <code>Object_variable_info</code>}
- * item indicates that the location has the verification type
- * which is the class represented by the {@link ConstantValueAttribute
- * <code>CONSTANT_Class_info</code>} structure found in the
- * {@link ConstantPool <code>constant_poo table</code>} at the index
- * given by <code>cpool_index</code>.
+ * The {@link ObjectVariable Object_variable_info} item indicates that the
+ * location has the verification type which is the class represented by the
+ * {@link ConstantValueAttribute CONSTANT_Class_info} structure found in the
+ * {@link ConstantPool constant_pool table} at the index given by {@code
+ * cpool_index}.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-public class ObjectVariable extends VerificationTypeInfo
+public class ObjectVariable
+extends VerificationTypeInfo
 {
 	/**
 	 *  The index into the {@link ConstantPool}
@@ -54,10 +54,11 @@ public class ObjectVariable extends VerificationTypeInfo
 
 	/**
 	 * Construct a new {@link IntegerVariable}.
-	 * @param cpoolIndex
 	 *
+	 * @param cpoolIndex
+	 *        The {@linkplain ConstantPool constant pool} index.
 	 */
-	ObjectVariable(final short cpoolIndex)
+	ObjectVariable (final short cpoolIndex)
 	{
 		this.cpoolIndex = cpoolIndex;
 	}

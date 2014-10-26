@@ -54,8 +54,9 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_701_MapReplacingNAryKey()
-		.init(3, CanInline, CanFold);
+	public final static Primitive instance =
+		new P_701_MapReplacingNAryKey().init(
+			3, CanInline, CanFold);
 
 	/**
 	 * Recursively traverses the target {@linkplain TupleDescriptor tuple}

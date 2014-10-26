@@ -45,8 +45,9 @@ public final class P_087_CreateMapType extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_087_CreateMapType().init(
-		3, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_087_CreateMapType().init(
+			3, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

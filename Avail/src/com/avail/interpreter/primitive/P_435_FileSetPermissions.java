@@ -63,7 +63,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_435_FileSetPermissions().init(3, CanInline, HasSideEffect);
+		new P_435_FileSetPermissions().init(
+			3, CanInline, HasSideEffect);
 
 	/**
 	 * Convert the specified {@linkplain SetDescriptor set} of {@linkplain

@@ -64,7 +64,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_434_FileGetPermissions().init(2, CanInline, HasSideEffect);
+		new P_434_FileGetPermissions().init(
+			2, CanInline, HasSideEffect);
 
 	/**
 	 * A {@linkplain Map map} from {@linkplain PosixFilePermission POSIX file

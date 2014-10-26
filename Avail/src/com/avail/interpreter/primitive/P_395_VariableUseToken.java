@@ -52,7 +52,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_395_VariableUseToken().init(1, CanFold, CannotFail);
+		new P_395_VariableUseToken().init(
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

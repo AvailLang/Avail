@@ -60,7 +60,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_255_GrammaticalRestriction().init(2, Unknown);
+		new P_255_GrammaticalRestriction().init(
+			2, Unknown);
 
 	@Override
 	public Result attempt (

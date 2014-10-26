@@ -46,8 +46,9 @@ public final class P_281_AsDouble extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_281_AsDouble().init(
-		1, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_281_AsDouble().init(
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

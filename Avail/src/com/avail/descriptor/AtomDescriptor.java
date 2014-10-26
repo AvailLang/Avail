@@ -45,6 +45,7 @@ import com.avail.compiler.AbstractAvailCompiler.ParserState;
 import com.avail.compiler.MessageSplitter;
 import com.avail.exceptions.SignatureException;
 import com.avail.serialization.*;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is
@@ -362,6 +363,19 @@ extends Descriptor
 	A_Bundle o_BundleOrNil (final AvailObject object)
 	{
 		return object.getAtomProperty(messageBundleKey);
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("atom");
+		writer.write("atom name");
+		object.slot(NAME).writeTo(writer);
+		writer.write("issuing module");
+		object.slot(ISSUING_MODULE).writeSummaryTo(writer);
+		writer.endObject();
 	}
 
 	/**

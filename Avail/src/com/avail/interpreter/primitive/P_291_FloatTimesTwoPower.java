@@ -49,7 +49,8 @@ public final class P_291_FloatTimesTwoPower extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_291_FloatTimesTwoPower().init(3, CanFold, CannotFail);
+		new P_291_FloatTimesTwoPower().init(
+			3, CannotFail, CanFold, CanInline);
 
 	/** The Avail integer representing 10^5. */
 	final static A_Number tenK = IntegerDescriptor.fromInt(10_000);

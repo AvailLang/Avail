@@ -38,6 +38,7 @@ import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.utility.evaluation.*;
+import com.avail.utility.json.JSONWriter;
 import java.util.List;
 
 /**
@@ -168,6 +169,28 @@ extends ParseNodeDescriptor
 	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return SEQUENCE_NODE;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("sequence phrase");
+		writer.write("statements");
+		object.slot(STATEMENTS).writeTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("sequence phrase");
+		writer.write("statements");
+		object.slot(STATEMENTS).writeSummaryTo(writer);
+		writer.endObject();
 	}
 
 	/**

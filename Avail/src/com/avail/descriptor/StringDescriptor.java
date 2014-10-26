@@ -36,6 +36,7 @@ import com.avail.annotations.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * {@code StringDescriptor} has Avail strings as its instances. The actual
@@ -83,6 +84,12 @@ extends TupleDescriptor
 		}
 		return super.o_TupleElementsInRangeAreInstancesOf(
 			object, startIndex, endIndex, type);
+	}
+
+	@Override
+	final void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.write(object.asNativeString());
 	}
 
 	/**

@@ -53,7 +53,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_399_DecompileFunction().init(1, CanInline, CanFold, CannotFail);
+		new P_399_DecompileFunction().init(
+			1, CanInline, CanFold, CannotFail);
 
 	@Override
 	public Result attempt (

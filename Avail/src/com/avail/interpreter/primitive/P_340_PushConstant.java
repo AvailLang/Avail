@@ -46,8 +46,9 @@ public final class P_340_PushConstant extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_340_PushConstant().init(
-		-1, SpecialReturnConstant, Private, CannotFail);
+	public final static Primitive instance =
+		new P_340_PushConstant().init(
+			-1, SpecialReturnConstant, Private, CannotFail);
 
 	@Override
 	public Result attempt (

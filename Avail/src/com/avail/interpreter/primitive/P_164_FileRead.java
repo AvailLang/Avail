@@ -78,8 +78,9 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_164_FileRead().init(
-		6, CanInline, HasSideEffect);
+	public final static Primitive instance =
+		new P_164_FileRead().init(
+			6, CanInline, HasSideEffect);
 
 	/**
 	 * The maximum transfer size when reading from a file.  Attempts to read

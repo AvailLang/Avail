@@ -37,6 +37,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * An Avail {@linkplain SetDescriptor set} refers to the root of a Bagwell Ideal
@@ -542,6 +543,38 @@ extends Descriptor
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.SET;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("set");
+		writer.write("elements");
+		writer.startArray();
+		for (final AvailObject o : object)
+		{
+			o.writeTo(writer);
+		}
+		writer.endArray();
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("set");
+		writer.write("elements");
+		writer.startArray();
+		for (final AvailObject o : object)
+		{
+			o.writeSummaryTo(writer);
+		}
+		writer.endArray();
+		writer.endObject();
 	}
 
 	/**

@@ -51,7 +51,8 @@ public final class P_401_BootstrapArgumentMacro extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_401_BootstrapArgumentMacro().init(2, CannotFail, Bootstrap);
+		new P_401_BootstrapArgumentMacro().init(
+			2, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (

@@ -38,6 +38,7 @@ import static com.avail.descriptor.AvailObject.multiplier;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * My instances are called <em>enumerations</em>. This descriptor family is
@@ -742,6 +743,28 @@ extends AbstractEnumerationTypeDescriptor
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.ENUMERATION_TYPE;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		getSuperkind(object).writeTo(writer);
+		writer.write("instances");
+		object.slot(INSTANCES).writeTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		getSuperkind(object).writeSummaryTo(writer);
+		writer.write("instances");
+		object.slot(INSTANCES).writeSummaryTo(writer);
+		writer.endObject();
 	}
 
 	/**

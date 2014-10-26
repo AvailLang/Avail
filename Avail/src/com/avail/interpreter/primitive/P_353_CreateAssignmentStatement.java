@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -58,7 +58,8 @@ public final class P_353_CreateAssignmentStatement extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_353_CreateAssignmentStatement().init(2, CanFold);
+		new P_353_CreateAssignmentStatement().init(
+			2, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

@@ -326,6 +326,7 @@ Extends
 		"_×_",
 		"_÷_",
 		"read_/write_",
+		"_→JSON",
 		"_→block phrase",
 		"_→character",
 		"_→double",

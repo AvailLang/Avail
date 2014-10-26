@@ -64,6 +64,7 @@ import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
+import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
 
 /**
@@ -4610,5 +4611,17 @@ extends AbstractDescriptor
 		final TextInterface textInterface)
 	{
 		o_Traversed(object).textInterface(textInterface);
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		o_Traversed(object).writeTo(writer);
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		o_Traversed(object).writeSummaryTo(writer);
 	}
 }

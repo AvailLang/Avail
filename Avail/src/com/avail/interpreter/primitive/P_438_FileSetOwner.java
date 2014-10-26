@@ -65,7 +65,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_438_FileSetOwner().init(3, CanInline, HasSideEffect);
+		new P_438_FileSetOwner().init(
+			3, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (

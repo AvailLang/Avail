@@ -47,8 +47,9 @@ public final class P_288_FloatModulus extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_288_FloatModulus().init(
-		2, CannotFail, CanInline, CanFold);
+	public final static Primitive instance =
+		new P_288_FloatModulus().init(
+			2, CannotFail, CanInline, CanFold);
 
 	@Override
 	public Result attempt (

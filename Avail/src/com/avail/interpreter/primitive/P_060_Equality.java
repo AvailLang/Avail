@@ -51,8 +51,9 @@ public final class P_060_Equality extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_060_Equality().init(
-		2, CanFold, CanInline, CannotFail);
+	public final static Primitive instance =
+		new P_060_Equality().init(
+			2, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

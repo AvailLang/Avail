@@ -48,6 +48,7 @@ import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * My {@linkplain AvailObject object instances} are variables which can hold
@@ -586,6 +587,30 @@ extends Descriptor
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.VARIABLE;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("variable");
+		writer.write("variable type");
+		object.slot(KIND).writeTo(writer);
+		writer.write("value");
+		object.slot(VALUE).writeSummaryTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("variable");
+		writer.write("variable type");
+		object.slot(KIND).writeSummaryTo(writer);
+		writer.endObject();
 	}
 
 	/**

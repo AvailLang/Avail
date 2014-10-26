@@ -49,8 +49,9 @@ public final class P_220_MethodFromName extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_220_MethodFromName().init(
-		1, CanInline);
+	public final static Primitive instance =
+		new P_220_MethodFromName().init(
+			1, CanInline);
 
 	@Override
 	public Result attempt (

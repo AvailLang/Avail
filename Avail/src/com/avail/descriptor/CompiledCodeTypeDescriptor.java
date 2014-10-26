@@ -36,6 +36,7 @@ import static com.avail.descriptor.CompiledCodeTypeDescriptor.ObjectSlots.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A {@linkplain CompiledCodeTypeDescriptor compiled code type} is the type for
@@ -216,6 +217,17 @@ extends TypeDescriptor
 			return object.makeShared();
 		}
 		return object;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("function implementation type");
+		writer.write("function type");
+		object.slot(FUNCTION_TYPE).writeTo(writer);
+		writer.endObject();
 	}
 
 	/**

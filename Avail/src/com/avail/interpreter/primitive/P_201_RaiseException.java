@@ -54,8 +54,9 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_201_RaiseException().init(
-		1, SwitchesContinuation);
+	public final static Primitive instance =
+		new P_201_RaiseException().init(
+			1, SwitchesContinuation);
 
 	@Override
 	public Result attempt (

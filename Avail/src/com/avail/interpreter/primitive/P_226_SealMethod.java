@@ -56,7 +56,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_226_SealMethod().init(2, CanInline, HasSideEffect);
+		new P_226_SealMethod().init(
+			2, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (

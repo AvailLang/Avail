@@ -59,7 +59,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_624_CreateFiberHeritableAtom().init(1, CanInline);
+		new P_624_CreateFiberHeritableAtom().init(
+			1, CanInline);
 
 	@Override
 	public Result attempt (

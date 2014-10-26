@@ -1,5 +1,5 @@
 /**
- * P_122_AtomHasProperty.java
+ * P_269_ToJSON.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,27 +29,31 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.utility.json.JSONWriter;
 
 /**
- * <strong>Primitive 122:</strong> Answer whether the second {@linkplain
- * AtomDescriptor atom} has a property whose key is the first atom.
+ * <strong>Primitive 269</strong>: Render the given {@linkplain AvailObject
+ * value} into JSON.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_122_AtomHasProperty extends Primitive
+public final class P_269_ToJSON
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_122_AtomHasProperty().init(
-			2, CanInline);
+		new P_269_ToJSON().init(
+			1, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -57,17 +61,12 @@ public final class P_122_AtomHasProperty extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 2;
-		final A_Atom propertyKey = args.get(0);
-		final A_Atom atom = args.get(1);
-		if (atom.isAtomSpecial()
-			|| propertyKey.isAtomSpecial())
-		{
-			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
-		}
-		final A_BasicObject propertyValue = atom.getAtomProperty(propertyKey);
-		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(!propertyValue.equalsNil()));
+		assert args.size() == 1;
+		final A_BasicObject value = args.get(0);
+		final JSONWriter writer = new JSONWriter();
+		value.writeTo(writer);
+		final A_String json = StringDescriptor.from(writer.toString());
+		return interpreter.primitiveSuccess(json);
 	}
 
 	@Override
@@ -75,15 +74,7 @@ public final class P_122_AtomHasProperty extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				ATOM.o(),
-				ATOM.o()),
-			EnumerationTypeDescriptor.booleanObject());
-	}
-
-	@Override
-	protected A_Type privateFailureVariableType ()
-	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_SPECIAL_ATOM.numericCode());
+				ANY.o()),
+			TupleTypeDescriptor.stringType());
 	}
 }

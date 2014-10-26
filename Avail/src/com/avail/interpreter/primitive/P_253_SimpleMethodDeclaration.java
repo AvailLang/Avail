@@ -61,7 +61,8 @@ extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_253_SimpleMethodDeclaration().init(2, Bootstrap, Unknown);
+		new P_253_SimpleMethodDeclaration().init(
+			2, Bootstrap, Unknown);
 
 	@Override
 	public Result attempt (

@@ -108,7 +108,7 @@ Public method "«_‡++»" is
 [
 	tuples : <<>, tuple…|[2..∞)>
 |
-	concatenate tuples
+	Primitive 136;
 ] : tuple;
 
 /**

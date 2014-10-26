@@ -2340,11 +2340,11 @@ public final class Interpreter
 			}
 			else
 			{
-				final List<String> stack = builtinDumpStack();
-				for (final String frame : stack)
-				{
-					builder.append(String.format("%n\t-- %s", frame));
-				}
+//				final List<String> stack = builtinDumpStack();
+//				for (final String frame : stack)
+//				{
+//					builder.append(String.format("%n\t-- %s", frame));
+//				}
 			}
 			builder.append("\n\n");
 		}

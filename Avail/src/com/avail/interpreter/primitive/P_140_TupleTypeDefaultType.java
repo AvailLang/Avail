@@ -47,7 +47,7 @@ public final class P_140_TupleTypeDefaultType extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_140_TupleTypeDefaultType().init(
-			1, CanFold, CannotFail);
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

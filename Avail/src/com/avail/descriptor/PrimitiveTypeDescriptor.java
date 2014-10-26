@@ -38,6 +38,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * The primitive types of Avail are different from the notion of primitive types
@@ -411,6 +412,16 @@ extends TypeDescriptor
 			object.makeShared();
 		}
 		return object;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write(
+			object.slot(NAME).asNativeString().toLowerCase() + " type");
+		writer.endObject();
 	}
 
 	/**

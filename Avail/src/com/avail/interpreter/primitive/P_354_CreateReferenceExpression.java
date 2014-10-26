@@ -33,7 +33,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.exceptions.AvailErrorCode.E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -50,8 +50,9 @@ public final class P_354_CreateReferenceExpression extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_354_CreateReferenceExpression().init(
-		1, CanFold);
+	public final static Primitive instance =
+		new P_354_CreateReferenceExpression().init(
+			1, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

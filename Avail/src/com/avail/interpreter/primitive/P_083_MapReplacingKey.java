@@ -48,8 +48,9 @@ public final class P_083_MapReplacingKey extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_083_MapReplacingKey().init(
-		3, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_083_MapReplacingKey().init(
+			3, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

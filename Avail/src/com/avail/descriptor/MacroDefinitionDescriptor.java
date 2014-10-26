@@ -36,6 +36,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.MACRO_DEFINITION;
 import static com.avail.descriptor.MacroDefinitionDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * Macros are extremely hygienic in Avail.  They are defined almost exactly like
@@ -157,6 +158,39 @@ extends DefinitionDescriptor
 		return SerializerOperation.MACRO_DEFINITION;
 	}
 
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("macro definition");
+		writer.write("definition method");
+		object.slot(DEFINITION_METHOD).methodName().writeTo(writer);
+		writer.write("definition module");
+		object.slot(MODULE).moduleName().writeTo(writer);
+		writer.write("prefix functions");
+		object.slot(PREFIX_FUNCTIONS).writeTo(writer);
+		writer.write("body block");
+		object.slot(BODY_BLOCK).writeTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("macro definition");
+		writer.write("definition method");
+		object.slot(DEFINITION_METHOD).methodName().writeTo(writer);
+		writer.write("definition module");
+		object.slot(MODULE).moduleName().writeTo(writer);
+		writer.write("prefix functions");
+		object.slot(PREFIX_FUNCTIONS).writeSummaryTo(writer);
+		writer.write("body block");
+		object.slot(BODY_BLOCK).writeSummaryTo(writer);
+		writer.endObject();
+	}
 
 	/**
 	 * Create a new macro signature from the provided argument.

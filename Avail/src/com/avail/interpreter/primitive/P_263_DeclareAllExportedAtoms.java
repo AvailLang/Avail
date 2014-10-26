@@ -59,7 +59,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_263_DeclareAllExportedAtoms().init(2, CannotFail, Private);
+		new P_263_DeclareAllExportedAtoms().init(
+			2, CannotFail, Private);
 
 	@Override
 	public Result attempt (

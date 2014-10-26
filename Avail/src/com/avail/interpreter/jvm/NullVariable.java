@@ -33,28 +33,20 @@
 package com.avail.interpreter.jvm;
 
 /**
- * The {@link VerificationTypeInfo <code>Null_variable_info</code>}
- * item indicates that the location has the verification type
- * <code>null</code>.
+ * The {@link NullVariable Null_variable_info} item indicates that the location
+ * has the verification type {@code null}.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-public class NullVariable extends VerificationTypeInfo
+public class NullVariable
+extends VerificationTypeInfo
 {
-	/**
-	 * Construct a new {@link IntegerVariable}.
-	 *
-	 */
-	NullVariable()
-	{
-
-	}
-
 	@Override
 	protected int size ()
 	{
 		return 1;
 	}
+
 	@Override
 	byte typeValue ()
 	{

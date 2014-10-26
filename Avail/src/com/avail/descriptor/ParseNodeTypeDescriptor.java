@@ -40,6 +40,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.IntegerSlots.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * Define the structure and behavior of parse node types.  The parse node types
@@ -84,21 +85,21 @@ extends TypeDescriptor
 	implements IntegerEnumSlotDescriptionEnum
 	{
 		/** The root parse node kind. */
-		PARSE_NODE(null),
+		PARSE_NODE("phrase type", null),
 
 		/** The kind of a parse marker. */
-		MARKER_NODE(PARSE_NODE),
+		MARKER_NODE("marker phrase type", PARSE_NODE),
 
 		/** The abstract parent kind of all expression nodes. */
-		EXPRESSION_NODE(PARSE_NODE),
+		EXPRESSION_NODE("expression phrase type", PARSE_NODE),
 
 		/**
 		 * The kind of an {@linkplain AssignmentNodeDescriptor assignment node}.
 		 */
-		ASSIGNMENT_NODE(EXPRESSION_NODE),
+		ASSIGNMENT_NODE("assignment phrase type", EXPRESSION_NODE),
 
 		/** The kind of a {@linkplain BlockNodeDescriptor block node}. */
-		BLOCK_NODE(EXPRESSION_NODE)
+		BLOCK_NODE("block phrase type", EXPRESSION_NODE)
 		{
 			@Override
 			A_Type mostGeneralInnerType ()
@@ -108,7 +109,7 @@ extends TypeDescriptor
 		},
 
 		/** The kind of a {@linkplain LiteralNodeDescriptor literal node}. */
-		LITERAL_NODE(EXPRESSION_NODE)
+		LITERAL_NODE("literal node type", EXPRESSION_NODE)
 		{
 			@Override
 			A_Type mostGeneralInnerType ()
@@ -120,7 +121,7 @@ extends TypeDescriptor
 		/**
 		 * The kind of a {@linkplain ReferenceNodeDescriptor reference node}.
 		 */
-		REFERENCE_NODE(EXPRESSION_NODE)
+		REFERENCE_NODE("variable reference phrase type", EXPRESSION_NODE)
 		{
 			@Override
 			A_Type mostGeneralInnerType ()
@@ -130,13 +131,13 @@ extends TypeDescriptor
 		},
 
 		/** The kind of a {@linkplain SendNodeDescriptor send node}. */
-		SEND_NODE(EXPRESSION_NODE),
+		SEND_NODE("send phrase type", EXPRESSION_NODE),
 
 		/** The kind of a {@linkplain SequenceNodeDescriptor sequence node}. */
-		SEQUENCE_NODE(PARSE_NODE),
+		SEQUENCE_NODE("sequence phrase type", PARSE_NODE),
 
 		/** The kind of a {@linkplain ListNodeDescriptor list node}. */
-		LIST_NODE(EXPRESSION_NODE)
+		LIST_NODE("list phrase type", EXPRESSION_NODE)
 		{
 			@Override
 			A_Type mostGeneralInnerType ()
@@ -149,7 +150,7 @@ extends TypeDescriptor
 		 * The kind of a {@linkplain VariableUseNodeDescriptor variable use
 		 * node}.
 		 */
-		VARIABLE_USE_NODE(EXPRESSION_NODE)
+		VARIABLE_USE_NODE("variable use phrase type", EXPRESSION_NODE)
 		{
 			@Override
 			A_Type mostGeneralInnerType ()
@@ -162,31 +163,32 @@ extends TypeDescriptor
 		 * The kind of a {@linkplain DeclarationNodeDescriptor declaration
 		 * node}.
 		 */
-		DECLARATION_NODE(PARSE_NODE),
+		DECLARATION_NODE("declaration phrase type", PARSE_NODE),
 
 		/** The kind of an argument declaration node. */
-		ARGUMENT_NODE(DECLARATION_NODE),
+		ARGUMENT_NODE("argument phrase type", DECLARATION_NODE),
 
 		/** The kind of a label declaration node. */
-		LABEL_NODE(DECLARATION_NODE),
+		LABEL_NODE("label phrase type", DECLARATION_NODE),
 
 		/** The kind of a local variable declaration node. */
-		LOCAL_VARIABLE_NODE(DECLARATION_NODE),
+		LOCAL_VARIABLE_NODE("local variable phrase type", DECLARATION_NODE),
 
 		/** The kind of a local constant declaration node. */
-		LOCAL_CONSTANT_NODE(DECLARATION_NODE),
+		LOCAL_CONSTANT_NODE("local constant phrase type", DECLARATION_NODE),
 
 		/** The kind of a module variable declaration node. */
-		MODULE_VARIABLE_NODE(DECLARATION_NODE),
+		MODULE_VARIABLE_NODE("module variable phrase type", DECLARATION_NODE),
 
 		/** The kind of a module constant declaration node. */
-		MODULE_CONSTANT_NODE(DECLARATION_NODE),
+		MODULE_CONSTANT_NODE("module constant phrase type", DECLARATION_NODE),
 
 		/** The kind of a primitive failure reason variable declaration. */
-		PRIMITIVE_FAILURE_REASON_NODE(DECLARATION_NODE),
+		PRIMITIVE_FAILURE_REASON_NODE(
+			"primitive failure reason phrase type", DECLARATION_NODE),
 
 		/** The result of a macro substitution. */
-		MACRO_SUBSTITUTION(PARSE_NODE);
+		MACRO_SUBSTITUTION("macro substitution phrase type", PARSE_NODE);
 
 		/**
 		 * The kind of parse node that this kind is a child of.
@@ -224,14 +226,22 @@ extends TypeDescriptor
 		private final A_Type mostGeneralType =
 			create(mostGeneralInnerType()).makeShared();
 
+		/** The JSON name of this type. */
+		final String jsonName;
+
 		/**
 		 * Construct a new {@link ParseNodeKind}.
 		 *
+		 * @param jsonName
+		 *        The JSON name of this type.
 		 * @param parentKind
 		 *        The kind of parse node of which this is the type.
 		 */
-		ParseNodeKind (final @Nullable ParseNodeKind parentKind)
+		ParseNodeKind (
+			final String jsonName,
+			final @Nullable ParseNodeKind parentKind)
 		{
+			this.jsonName = jsonName;
 			this.parentKind = parentKind;
 			if (parentKind == null)
 			{
@@ -523,6 +533,17 @@ extends TypeDescriptor
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.PARSE_NODE_TYPE;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write(object.parseNodeKind().jsonName);
+		writer.write("expression type");
+		object.slot(EXPRESSION_TYPE).writeTo(writer);
+		writer.endObject();
 	}
 
 	@Override

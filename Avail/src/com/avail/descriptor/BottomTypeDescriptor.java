@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 /**
@@ -537,6 +538,15 @@ extends AbstractEnumerationTypeDescriptor
 		final AvailObject object)
 	{
 		return SerializerOperation.BOTTOM_TYPE;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("bottom");
+		writer.endObject();
 	}
 
 	@Override

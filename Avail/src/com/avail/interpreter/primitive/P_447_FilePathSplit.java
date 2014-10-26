@@ -56,7 +56,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_447_FilePathSplit().init(1, CanInline, CanFold);
+		new P_447_FilePathSplit().init(
+			1, CanInline, CanFold);
 
 	@Override
 	public Result attempt (

@@ -39,6 +39,7 @@ import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.utility.evaluation.*;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * My instances represent {@linkplain ParseNodeDescriptor parse nodes} which
@@ -247,6 +248,28 @@ extends ParseNodeDescriptor
 	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return LIST_NODE;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("list phrase");
+		writer.write("expressions");
+		object.slot(EXPRESSIONS_TUPLE).writeTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("list phrase");
+		writer.write("expressions");
+		object.slot(EXPRESSIONS_TUPLE).writeSummaryTo(writer);
+		writer.endObject();
 	}
 
 	/**

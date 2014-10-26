@@ -48,8 +48,9 @@ public final class P_510_CreatePojoArray extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_510_CreatePojoArray().init(
-		2, CannotFail, CanFold);
+	public final static Primitive instance =
+		new P_510_CreatePojoArray().init(
+			2, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

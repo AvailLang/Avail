@@ -45,8 +45,9 @@ public final class P_100_SetSize extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_100_SetSize().init(
-		1, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_100_SetSize().init(
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

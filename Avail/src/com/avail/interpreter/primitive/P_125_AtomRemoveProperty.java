@@ -50,7 +50,8 @@ public final class P_125_AtomRemoveProperty extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_125_AtomRemoveProperty().init(2, CanInline, HasSideEffect);
+		new P_125_AtomRemoveProperty().init(
+			2, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (

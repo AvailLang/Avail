@@ -45,8 +45,9 @@ public final class P_102_SetUnion extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_102_SetUnion().init(
-		2, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_102_SetUnion().init(
+			2, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

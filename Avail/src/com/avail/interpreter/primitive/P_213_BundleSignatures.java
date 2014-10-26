@@ -49,8 +49,9 @@ public final class P_213_BundleSignatures extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_213_BundleSignatures().init(
-		1, CannotFail, CanInline);
+	public final static Primitive instance =
+		new P_213_BundleSignatures().init(
+			1, CannotFail, CanInline);
 
 	@Override
 	public Result attempt (

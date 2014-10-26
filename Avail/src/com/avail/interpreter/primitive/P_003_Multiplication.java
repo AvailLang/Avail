@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.InfinityDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
 import static com.avail.interpreter.Primitive.Fallibility.*;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.exceptions.AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -50,8 +50,9 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_003_Multiplication().init(
-		2, CanFold);
+	public final static Primitive instance =
+		new P_003_Multiplication().init(
+			2, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

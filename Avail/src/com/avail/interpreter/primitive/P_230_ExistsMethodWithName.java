@@ -51,7 +51,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_230_ExistsMethodWithName().init(1, CannotFail, CanInline);
+		new P_230_ExistsMethodWithName().init(
+			1, CannotFail, CanInline);
 
 	@Override
 	public Result attempt (

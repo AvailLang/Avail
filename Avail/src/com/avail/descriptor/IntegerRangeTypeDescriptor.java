@@ -38,6 +38,7 @@ import java.math.BigInteger;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * My instances represent the types of one or more extended integers. There are
@@ -427,6 +428,19 @@ extends TypeDescriptor
 			object.makeShared();
 		}
 		return object;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("integer type");
+		writer.write("lower bound");
+		object.slot(LOWER_BOUND).writeTo(writer);
+		writer.write("upper bound");
+		object.slot(UPPER_BOUND).writeTo(writer);
+		writer.endObject();
 	}
 
 	/**

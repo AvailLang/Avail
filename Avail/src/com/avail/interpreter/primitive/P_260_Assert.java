@@ -52,8 +52,9 @@ public final class P_260_Assert extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_260_Assert().init(
-		2, Unknown, CannotFail);
+	public final static Primitive instance =
+		new P_260_Assert().init(
+			2, Unknown, CannotFail);
 
 	@Override
 	public Result attempt (

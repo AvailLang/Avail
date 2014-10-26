@@ -51,7 +51,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_070_Hash().init(1, CannotFail, CanFold, CanInline);
+		new P_070_Hash().init(
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

@@ -45,8 +45,9 @@ public final class P_341_PushArgument extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_341_PushArgument().init(
-		1, SpecialReturnSoleArgument, CanFold, CanInline, Private, CannotFail);
+	public final static Primitive instance =
+		new P_341_PushArgument().init(
+			1, SpecialReturnSoleArgument, CanFold, CanInline, Private, CannotFail);
 
 	@Override
 	public Result attempt (

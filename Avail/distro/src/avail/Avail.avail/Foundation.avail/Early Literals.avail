@@ -117,5 +117,5 @@ Method "{«_‡,»}" is
 [
 	elements : <<>, any…|natural number>
 |
-	elements→set
+	Primitive 109;  /*elements→set*/
 ] : set;

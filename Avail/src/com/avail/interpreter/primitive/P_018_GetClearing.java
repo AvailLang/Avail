@@ -52,8 +52,9 @@ public final class P_018_GetClearing extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_018_GetClearing().init(
-		1, CanInline, HasSideEffect);
+	public final static Primitive instance =
+		new P_018_GetClearing().init(
+			1, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (

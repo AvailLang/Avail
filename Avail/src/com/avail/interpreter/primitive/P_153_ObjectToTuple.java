@@ -53,7 +53,7 @@ extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public static final Primitive instance =
-		new P_153_ObjectToTuple().init(1, CanFold, CannotFail);
+		new P_153_ObjectToTuple().init(1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

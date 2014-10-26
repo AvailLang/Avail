@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -46,8 +46,9 @@ public final class P_135_ExtractSubtuple extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_135_ExtractSubtuple().init(
-		3, CanFold);
+	public final static Primitive instance =
+		new P_135_ExtractSubtuple().init(
+			3, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

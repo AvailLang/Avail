@@ -74,8 +74,9 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_165_FileWrite().init(
-		6, CanInline, HasSideEffect);
+	public final static Primitive instance =
+		new P_165_FileWrite().init(
+			6, CanInline, HasSideEffect);
 
 	/**
 	 * The maximum transfer size when writing to a file.  Attempts to write

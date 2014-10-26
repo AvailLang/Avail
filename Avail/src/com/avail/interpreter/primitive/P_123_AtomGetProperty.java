@@ -49,8 +49,9 @@ public final class P_123_AtomGetProperty extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_123_AtomGetProperty().init(
-		2, CanInline);
+	public final static Primitive instance =
+		new P_123_AtomGetProperty().init(
+			2, CanInline);
 
 	@Override
 	public Result attempt (

@@ -58,7 +58,8 @@ extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_254_ReadFromStandardInput().init(0, Unknown);
+		new P_254_ReadFromStandardInput().init(
+			0, Unknown);
 
 	@Override
 	public Result attempt (

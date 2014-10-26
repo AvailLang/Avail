@@ -46,8 +46,9 @@ public final class P_259_ToString extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_259_ToString().init(
-		1, CanInline, CannotFail);
+	public final static Primitive instance =
+		new P_259_ToString().init(
+			1, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (

@@ -46,8 +46,9 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_600_CurrentFiber().init(
-		0, CanInline, CannotFail);
+	public final static Primitive instance =
+		new P_600_CurrentFiber().init(
+			0, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (

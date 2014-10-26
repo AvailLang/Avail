@@ -33,7 +33,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
@@ -52,8 +52,9 @@ public final class P_513_PojoArraySet extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_513_PojoArraySet().init(
-		3, CanFold);
+	public final static Primitive instance =
+		new P_513_PojoArraySet().init(
+			3, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

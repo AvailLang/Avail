@@ -46,8 +46,9 @@ public final class P_511_PojoArrayLength extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_511_PojoArrayLength().init(
-		1, CannotFail, CanFold);
+	public final static Primitive instance =
+		new P_511_PojoArrayLength().init(
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

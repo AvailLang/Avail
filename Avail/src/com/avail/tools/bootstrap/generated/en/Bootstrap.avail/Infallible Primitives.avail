@@ -140,6 +140,7 @@ Uses
 		"_is unassigned",
 		"_mod_",
 		"_reversed",
+		"_→JSON",
 		"_→block phrase",
 		"_→character",
 		"_→double",
@@ -2420,6 +2421,23 @@ Primitive "Assert:_(_)" is
 ] : ⊤;
 
 /**
+ * Render the argument into JSON.
+ *
+ * @category "Primitives"
+ * @method "_→JSON"
+ * @param "value" "any"
+ *        An arbitrary value.
+ * @returns "string"
+ *    A string containing the JSON representation of {@param "value"}.
+ */
+Primitive "_→JSON" is
+[
+	value : any
+|
+	Primitive 269;
+] : string;
+
+/**
  * Compute and answer the numeric argument as a single-precision floating point
  * number.
  *
@@ -2428,7 +2446,7 @@ Primitive "Assert:_(_)" is
  * @param "aNumber" "number"
  *        A number.
  * @returns "float"
- *    A `float` whose value approximates the argument.
+ *    A {@type "float"} whose value approximates the argument.
  */
 Primitive "_→float" is
 [
@@ -2446,7 +2464,7 @@ Primitive "_→float" is
  * @param "aNumeric" "number"
  *        A number.
  * @returns "double"
- *    A `double` whose value approximates the argument.
+ *    A {@type "double"} whose value approximates the argument.
  */
 Primitive "_→double" is
 [

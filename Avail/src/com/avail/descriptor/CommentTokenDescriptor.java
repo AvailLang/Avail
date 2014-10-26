@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.*;
+import com.avail.utility.json.JSONWriter;
 import static com.avail.descriptor.CommentTokenDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.CommentTokenDescriptor.ObjectSlots.*;
 
@@ -132,6 +133,25 @@ extends TokenDescriptor
 		final A_String trailingWhitespace)
 	{
 		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("token");
+		writer.write("start");
+		writer.write(object.slot(START));
+		writer.write("line number");
+		writer.write(object.slot(LINE_NUMBER));
+		writer.write("lexeme");
+		object.slot(STRING).writeTo(writer);
+		writer.write("leading whitespace");
+		writer.write("");
+		writer.write("trailing whitespace");
+		writer.write("");
+		writer.endObject();
 	}
 
 	/**

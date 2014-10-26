@@ -53,7 +53,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_441_FileIsAbsolute().init(1, CanInline, HasSideEffect);
+		new P_441_FileIsAbsolute().init(
+			1, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
