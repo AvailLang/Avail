@@ -36,13 +36,13 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 /**
- * Per the JVM Specification:</br></br>
- * <i>A verification type specifies the type of either one or two locations,
- * where a location is either a single local variable or a single operand
- * stack entry.</i>
+ * Per the JVM Specification:
+ * <blockquote>A verification type specifies the type of either one or two
+ * locations, where a location is either a single local variable or a single
+ * operand stack entry.</blockquote>
  *
- * The {@link VerificationTypeInfo} consists of a one-byte value that is an
- * indication of which type of the discriminated union is being used.
+ * <p>The {@link VerificationTypeInfo} consists of a one-byte value that is an
+ * indication of which type of the discriminated union is being used.</p>
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  *
@@ -52,19 +52,12 @@ import java.io.IOException;
  */
 public abstract class VerificationTypeInfo
 {
-	/** The value of the verification type.
-	 * @return
+	/**
+	 * The value of the verification type.
+	 *
+	 * @return The value of the verification type.
 	 */
 	abstract byte typeValue();
-
-	/**
-	 * Construct a new {@link VerificationTypeInfo}.
-	 *
-	 */
-	protected VerificationTypeInfo ()
-	{
-
-	}
 
 	/**
 	 * Answer the size of the {@linkplain VerificationTypeInfo}.
@@ -90,5 +83,4 @@ public abstract class VerificationTypeInfo
 	{
 		out.writeByte(typeValue());
 	}
-
 }

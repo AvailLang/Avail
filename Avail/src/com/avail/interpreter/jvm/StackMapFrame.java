@@ -54,7 +54,7 @@ public class StackMapFrame
 	static enum FrameTypeRange
 	{
 		@SuppressWarnings("javadoc")
-		Same_Frame((byte)0,(byte)63)
+		Same_Frame(0,63)
 		{
 			@Override
 			SameFrame createFrameType (
@@ -68,7 +68,7 @@ public class StackMapFrame
 		},
 
 		@SuppressWarnings("javadoc")
-		Same_Locals_1_Stack_Item_Frame((byte)64,(byte)127)
+		Same_Locals_1_Stack_Item_Frame(64,127)
 		{
 			@Override
 			SameLocals1StackItemFrame createFrameType (
@@ -82,7 +82,7 @@ public class StackMapFrame
 		},
 
 		@SuppressWarnings("javadoc")
-		Same_Locals_1_Stack_Item_Frame_Extended((byte)247,(byte)247)
+		Same_Locals_1_Stack_Item_Frame_Extended(247,247)
 		{
 			@Override
 			SameLocals1StackItemFrameExtended createFrameType (
@@ -97,7 +97,7 @@ public class StackMapFrame
 		},
 
 		@SuppressWarnings("javadoc")
-		Chop_Frame((byte)248,(byte)250)
+		Chop_Frame(248,250)
 		{
 			@Override
 			ChopFrame createFrameType (
@@ -111,7 +111,7 @@ public class StackMapFrame
 		},
 
 		@SuppressWarnings("javadoc")
-		Same_Frame_Extended((byte)251,(byte)251)
+		Same_Frame_Extended(251,251)
 		{
 			@Override
 			SameFrameExtended createFrameType (
@@ -125,7 +125,7 @@ public class StackMapFrame
 		},
 
 		@SuppressWarnings("javadoc")
-		Append_Frame((byte)252,(byte)254)
+		Append_Frame(252,254)
 		{
 			@Override
 			AppendFrame createFrameType (
@@ -140,7 +140,7 @@ public class StackMapFrame
 		},
 
 		@SuppressWarnings("javadoc")
-		Full_Frame((byte)255,(byte)255)
+		Full_Frame(255,255)
 		{
 			@Override
 			FullFrame createFrameType (
@@ -155,7 +155,7 @@ public class StackMapFrame
 		},
 
 		@SuppressWarnings("javadoc")
-		Not_Used((byte)128,(byte)246)
+		Not_Used(128,246)
 		{
 			@Override
 			FrameType createFrameType (
@@ -189,19 +189,34 @@ public class StackMapFrame
 		 * @param topRange
 		 *        The greatest value inclusive
 		 */
-		private FrameTypeRange (final byte bottomRange, final byte topRange)
+		private FrameTypeRange (final int bottomRange, final int topRange)
 		{
-			this.bottomRange = bottomRange;
-			this.topRange = topRange;
+			final byte tempBottom = (byte)bottomRange;
+			assert (tempBottom == (bottomRange & 255));
+			this.bottomRange = (byte)bottomRange;
+
+			final byte tempTop = (byte)topRange;
+			assert (tempTop == (topRange & 255));
+			this.topRange = (byte)topRange;
 		}
 
 		/**
+		 * Construct a new {@link FrameType}
 		 *
 		 * @param frameTypeValue
+		 *        An unsigned byte value in the range [0,255].  This determines
+		 *        the {@link FrameType}.
 		 * @param stack
+		 *        {@link List} of {@link VerificationTypeInfo stack operand
+		 *        types} representing this {@link StackMapFrame}'s operands.
 		 * @param locals
+		 *        {@link List} of {@link VerificationTypeInfo local variables}
+		 *        of this {@link StackMapFrame}'s local variables.
 		 * @param explicitDeltaOffset
+		 *        The bytecode offset at which the {@link StackMapFrame}
+		 *        applies.
 		 * @return
+		 *        A new {@link FrameType}.
 		 * @throws JVMCodeGenerationException
 		 */
 		abstract FrameType createFrameType (
@@ -215,7 +230,8 @@ public class StackMapFrame
 		 *
 		 * @param valueToCheck
 		 *        The value to check.
-		 * @return
+		 * @return {@code true} if {@code valueToCheck} is in range,
+		 *        {@code false} otherwise.
 		 */
 		boolean inRange (final byte valueToCheck)
 		{
@@ -412,7 +428,8 @@ public class StackMapFrame
 
 		/**
 		 * Get the {@link List} of {@link VerificationTypeInfo stack items}
-		 * @return
+		 *
+		 * @return The {@link List} of {@link VerificationTypeInfo stack items}
 		 */
 		public List<VerificationTypeInfo> stack ()
 		{
@@ -493,7 +510,7 @@ public class StackMapFrame
 		/**
 		 * Get the {@link List} of {@link VerificationTypeInfo stack items}.
 		 *
-		 * @return
+		 * @return The {@link List} of {@link VerificationTypeInfo stack items}.
 		 */
 		public List<VerificationTypeInfo> stack()
 		{
@@ -640,35 +657,34 @@ public class StackMapFrame
 	extends FrameType
 	{
 		/**
-		 * The {@link List} of local {@link VerificationTypeInfo verification
+		 * <p>The {@link List} of local {@link VerificationTypeInfo verification
 		 * types} of the local variables of this {@link StackMapFrame}.
-		 * Should only have size frameValue - 251.
+		 * Should only have size frameValue - 251.</p>
 		 *
-		 * <p>Per the JVM Specification:</p>
+		 * <p><b>Per the JVM Specification:</b></p>
 		 *
-		 * <blockquote>
-		 * The 0th entry in <code>locals</code> represents the verification type
-		 * of the first additional local variable. If <code>locals[M]</code>
-		 * represents local variable <code>N</code>, then: </br></br>
+		 * <blockquote><p>The 0th entry in {@code locals} represents the
+		 * verification type of the first additional local variable. If
+		 * {@code locals[M]} represents local variable {@code N}, then: </p>
 		 *
 		 * <ul>
 		 * <li>{@code locals[M+1]} represents local variable N+1 if {@code
 		 * locals[M]} is one of:
 		 * <ul>
-		 * <li>{@link TopVariable Top_variable_info},</li>
-		 * <li>{@link IntegerVariable Integer_variable_info},</li>
-		 * <li>{@link FloatVariable Float_variable_info},</li>
-		 * <li>{@link NullVariable Null_variable_info},</li>
+		 * <li>{@link TopVariable Top_variable_info}</li>
+		 * <li>{@link IntegerVariable Integer_variable_info}</li>
+		 * <li>{@link FloatVariable Float_variable_info}</li>
+		 * <li>{@link NullVariable Null_variable_info}</li>
 		 * <li>{@link UninitializedThisVariable
-		 * UninitializedThis_variable_info},</li>
-		 * <li>{@link ObjectVariable Object_variable_info}, or</li>
-		 * <li>{@link UninitializedVariable Uninitialized_variable_info}</li>
+		 * UninitializedThis_variable_info}</li>
+		 * <li>{@link ObjectVariable Object_variable_info}</li>
+		 * <li>{@link UninitializedVariable Uninitialized_ßvariable_info}</li>
 		 * </ul>
-		 * <li><code>locals[M+1]</code> represents local variable
-		 * <code>N+2</code> if <code>locals[M]</code> is either
-		 * {@link LongVariable <code>Long_variable_info</code>} or
-		 * {@link DoubleVariable <code>Double_variable_info</code>}.</li>
-		 * </ul>
+		 * <li>{@code locals[M+1]} represents local variable
+		 * {@code N+2} if {@code locals[M]} is either
+		 * {@link LongVariable Long_variable_info} or
+		 * {@link DoubleVariable Double_variable_info}.</li>
+		 * </ul></blockquote>
 		 */
 		private final List<VerificationTypeInfo> locals;
 
@@ -703,7 +719,8 @@ public class StackMapFrame
 		/**
 		 * Get the {@link List} of {@link VerificationTypeInfo local variables}.
 		 *
-		 * @return
+		 * @return The {@link List} of
+		 *    {@link VerificationTypeInfo local variables}.
 		 */
 		public List<VerificationTypeInfo> locals()
 		{
@@ -745,58 +762,65 @@ public class StackMapFrame
 	extends FrameType
 	{
 		/**
-		 * The {@link List} of local {@link VerificationTypeInfo verification
-		 * types} of the local variables of this {@link StackMapFrame}.</br></br>
-		 * <b>Per the JVM Specification:</b></br>
+		 * <p>The {@link List} of local {@link VerificationTypeInfo verification
+		 * types} of the local variables of this {@link StackMapFrame}.</p>
+		 * <p><b>Per the JVM Specification:</b></p>
 		 *
-		 * The 0th entry in <code>locals</code> represents the verification type
-		 * of the first additional local variable. If <code>locals[M]</code>
-		 * represents local variable <code>N</code>, then: </br></br>
+		 * <blockquote><p>The 0th entry in {@code locals} represents the
+		 * verification type of the first additional local variable. If
+		 * {@code locals[M]} represents local variable {@code N}, then: </p>
 		 *
-		 * <ul><li><code>locals[M+1]</code> represents local variable N+1 if
-		 * <code>locals[M]</code> is one of
-		 * {@link TopVariable <code>Top_variable_info},
-		 * {@link IntegerVariable Integer_variable_info},
-		 * {@link FloatVariable Float_variable_info},
-		 * {@link NullVariable Null_variable_info},
-		 * {@link UninitializedThisVariable UninitializedThis_variable_info},
-		 * {@link ObjectVariable Object_variable_info},</code> or
-		 * {@link UninitializedVariable
-		 * <code>Uninitialized_variable_info</code>}</li></br>
-		 * <li><code>locals[M+1]</code> represents local variable
-		 * <code>N+2</code> if <code>locals[M]</code> is either
-		 * {@link LongVariable <code>Long_variable_info</code>} or
-		 * {@link DoubleVariable <code>Double_variable_info</code>}.</li></ul>
+		 * <ul>
+		 * <li>{@code locals[M+1]} represents local variable N+1 if {@code
+		 * locals[M]} is one of:
+		 * <ul>
+		 * <li>{@link TopVariable Top_variable_info}</li>
+		 * <li>{@link IntegerVariable Integer_variable_info}</li>
+		 * <li>{@link FloatVariable Float_variable_info}</li>
+		 * <li>{@link NullVariable Null_variable_info}</li>
+		 * <li>{@link UninitializedThisVariable
+		 * UninitializedThis_variable_info}</li>
+		 * <li>{@link ObjectVariable Object_variable_info}</li>
+		 * <li>{@link UninitializedVariable Uninitialized_ßvariable_info}</li>
+		 * </ul>
+		 * <li>{@code locals[M+1]} represents local variable
+		 * {@code N+2} if {@code locals[M]} is either
+		 * {@link LongVariable Long_variable_info} or
+		 * {@link DoubleVariable Double_variable_info}.</li>
+		 * </ul></blockquote>
 		 */
 		private final List<VerificationTypeInfo> locals;
 
 		/**
-		 * The {@link List} of {@link VerificationTypeInfo stack operands} of
-		 * this {@link StackMapFrame}.</br></br>
-		 * <b>Per the JVM Specification:</b></br>
+		 * <p>The {@link List} of {@link VerificationTypeInfo stack operand
+		 * types} of this {@link StackMapFrame}.</p>
+		 * <p><b>Per the JVM Specification:</b></p>
 		 *
-		 * The 0th entry in <code>stack</code> represents the verification type
+		 * <blockquote><p>The 0th entry in {@code stack} represents the verification type
 		 * of the bottom of the operand stack, and subsequent entries in
-		 * <code>stack</code> represent the verification types of stack entries
+		 * {@code stack} represent the verification types of stack entries
 		 * closer to the top of the operand stack. We refer to the bottom of
 		 * the operand stack as stack entry 0, and to subsequent entries of the
-		 * operand stack as stack entry 1, 2, etc. If <code>stack[M]</code>
-		 * represents stack entry <code>N</code>, then: </br></br>
+		 * operand stack as stack entry 1, 2, etc. If {@code stack[M]}
+		 * represents stack entry {@code N}, then:</p>
 		 *
-		 * <ul><li><code>stack[M+1]</code> represents local variable N+1 if
-		 * <code>stack[M]</code> is one of
-		 * {@link TopVariable <code>Top_variable_info},
-		 * {@link IntegerVariable Integer_variable_info},
-		 * {@link FloatVariable Float_variable_info},
-		 * {@link NullVariable Null_variable_info},
-		 * {@link UninitializedThisVariable UninitializedThis_variable_info},
-		 * {@link ObjectVariable Object_variable_info},</code> or
-		 * {@link UninitializedVariable
-		 * <code>Uninitialized_variable_info</code>}</li></br>
-		 * <li><code>stack[M+1]</code> represents local variable
-		 * <code>N+2</code> if <code>stack[M]</code> is either
-		 * {@link LongVariable <code>Long_variable_info</code>} or
-		 * {@link DoubleVariable <code>Double_variable_info</code>}.</li></ul>
+		 * <ul>
+		 * <li>{@code stack[M+1]} represents local variable N+1 if
+		 * {@code stack[M]} is one of
+		 * <ul>
+		 * <li>{@link TopVariable Top_variable_info}</li>
+		 * <li>{@link IntegerVariable Integer_variable_info}</li>
+		 * <li>{@link FloatVariable Float_variable_info}</li>
+		 * <li>{@link NullVariable Null_variable_info}</li>
+		 * <li>{@link UninitializedThisVariable UninitializedThis_variable_info}</li>
+		 * <li>{@link ObjectVariable Object_variable_info}</li>
+		 * <li>{@link UninitializedVariable Uninitialized_variable_info}</li>
+		 * </ul>
+		 * <li>{@code stack[M+1]} represents local variable
+		 * {@code N+2} if {@code stack[M]} is either
+		 * {@link LongVariable Long_variable_info} or
+		 * {@link DoubleVariable Double_variable_info}.</li>
+		 * </ul></blockquote>
 		 */
 		private final List<VerificationTypeInfo> stack;
 
@@ -845,7 +869,7 @@ public class StackMapFrame
 		/**
 		 * Get the {@link List} of {@link VerificationTypeInfo stack items}.
 		 *
-		 * @return
+		 * @return The {@link List} of {@link VerificationTypeInfo stack items}.
 		 */
 		public List<VerificationTypeInfo> stack()
 		{
@@ -855,7 +879,8 @@ public class StackMapFrame
 		/**
 		 * Get the {@link List} of {@link VerificationTypeInfo local variables}.
 		 *
-		 * @return
+		 * @return The {@link List} of
+		 *       {@link VerificationTypeInfo local variables}.
 		 */
 		public List<VerificationTypeInfo> locals()
 		{
@@ -919,7 +944,7 @@ public class StackMapFrame
 	 * @param out
 	 *        A binary output stream.
 	 * @throws IOException
-	 *         If the operation fails.
+	 *        If the operation fails.
 	 */
 	void writeTo (final DataOutput out) throws IOException
 	{
@@ -928,6 +953,7 @@ public class StackMapFrame
 
 	/**
 	 * Construct a new {@link StackMapFrame}.
+	 *
 	 * @param frameTypeValue
 	 *        The value of the {@link FrameTypeRange}
 	 * @param stack

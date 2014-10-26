@@ -50,17 +50,17 @@ extends VerificationTypeInfo
 	/**
 	 *  The index into the {@link ConstantPool}
 	 */
-	private final short cpoolIndex;
+	private final short constantPoolIndex;
 
 	/**
 	 * Construct a new {@link IntegerVariable}.
 	 *
-	 * @param cpoolIndex
+	 * @param constantPoolIndex
 	 *        The {@linkplain ConstantPool constant pool} index.
 	 */
-	ObjectVariable (final short cpoolIndex)
+	ObjectVariable (final short constantPoolIndex)
 	{
-		this.cpoolIndex = cpoolIndex;
+		this.constantPoolIndex = constantPoolIndex;
 	}
 
 	@Override
@@ -79,6 +79,6 @@ extends VerificationTypeInfo
 	void writeTo (final DataOutput out) throws IOException
 	{
 		out.writeByte(typeValue());
-		out.writeByte(cpoolIndex);
+		out.writeByte(constantPoolIndex);
 	}
 }
