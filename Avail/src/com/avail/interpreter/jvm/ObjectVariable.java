@@ -58,9 +58,9 @@ extends VerificationTypeInfo
 	 * @param constantPoolIndex
 	 *        The {@linkplain ConstantPool constant pool} index.
 	 */
-	ObjectVariable (final short cpoolIndex)
+	ObjectVariable (final short constantPoolIndex)
 	{
-		this.constantPoolIndex = cpoolIndex;
+		this.constantPoolIndex = constantPoolIndex;
 	}
 
 	@Override
