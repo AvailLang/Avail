@@ -33,7 +33,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import com.avail.descriptor.*;
@@ -57,7 +57,8 @@ public final class P_502_CreatePojoConstructorFunction extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_502_CreatePojoConstructorFunction().init(3, CanFold);
+		new P_502_CreatePojoConstructorFunction().init(
+			3, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

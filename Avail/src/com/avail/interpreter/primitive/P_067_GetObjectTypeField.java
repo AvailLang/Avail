@@ -49,7 +49,8 @@ public final class P_067_GetObjectTypeField extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_067_GetObjectTypeField().init(2, CanFold, CanInline);
+		new P_067_GetObjectTypeField().init(
+			2, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

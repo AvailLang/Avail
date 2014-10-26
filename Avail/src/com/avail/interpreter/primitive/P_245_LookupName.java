@@ -52,8 +52,9 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_245_LookupName().init(
-		1, CanInline);
+	public final static Primitive instance =
+		new P_245_LookupName().init(
+			1, CanInline);
 
 	@Override
 	public Result attempt (

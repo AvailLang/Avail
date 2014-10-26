@@ -55,8 +55,9 @@ public final class P_507_InvokeInstancePojoMethod extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_507_InvokeInstancePojoMethod().init(
-		4, Private);
+	public final static Primitive instance =
+		new P_507_InvokeInstancePojoMethod().init(
+			4, Private);
 
 	@Override
 	public Result attempt (

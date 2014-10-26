@@ -53,7 +53,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_267_ExportedNames().init(0, CanInline);
+		new P_267_ExportedNames().init(
+			0, CanInline);
 
 	@Override
 	public Result attempt (

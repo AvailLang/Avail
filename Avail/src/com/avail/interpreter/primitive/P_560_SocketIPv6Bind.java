@@ -58,7 +58,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_560_SocketIPv6Bind().init(3, CanInline, HasSideEffect);
+		new P_560_SocketIPv6Bind().init(
+			3, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (

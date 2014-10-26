@@ -76,7 +76,8 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_404_BootstrapBlockMacro().init(7, Unknown, Bootstrap);
+		new P_404_BootstrapBlockMacro().init(
+			7, Unknown, Bootstrap);
 
 	@Override
 	public Result attempt (

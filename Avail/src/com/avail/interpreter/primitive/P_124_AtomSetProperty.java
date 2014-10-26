@@ -48,8 +48,9 @@ public final class P_124_AtomSetProperty extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_124_AtomSetProperty().init(
-		3, CanInline, HasSideEffect);
+	public final static Primitive instance =
+		new P_124_AtomSetProperty().init(
+			3, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (

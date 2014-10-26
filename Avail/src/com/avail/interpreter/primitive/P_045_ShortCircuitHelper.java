@@ -48,7 +48,8 @@ public final class P_045_ShortCircuitHelper extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_045_ShortCircuitHelper().init(2, Invokes, CannotFail);
+		new P_045_ShortCircuitHelper().init(
+			2, Invokes, CannotFail);
 
 	@Override
 	public Result attempt (

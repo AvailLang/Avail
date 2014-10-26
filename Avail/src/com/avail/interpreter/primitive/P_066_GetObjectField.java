@@ -50,7 +50,8 @@ extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_066_GetObjectField().init(2, CanFold, CanInline);
+		new P_066_GetObjectField().init(
+			2, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

@@ -298,6 +298,8 @@ public final class L2Instruction
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
+		builder.append(offset);
+		builder.append(". ");
 		builder.append(operation.name());
 		final L2NamedOperandType[] types = operation.operandTypes();
 		assert operands.length == types.length;

@@ -49,7 +49,7 @@ public final class P_052_ContinuationCaller extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_052_ContinuationCaller().init(
-			1, CanFold, CannotFail);
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

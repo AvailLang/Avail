@@ -52,7 +52,7 @@ extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_347_TokenLeadingWhitespace().init(
-			1, CanFold, CanInline, CannotFail);
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

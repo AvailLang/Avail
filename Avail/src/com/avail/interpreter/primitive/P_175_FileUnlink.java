@@ -57,8 +57,9 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_175_FileUnlink().init(
-		4, CanInline, HasSideEffect);
+	public final static Primitive instance =
+		new P_175_FileUnlink().init(
+			4, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (

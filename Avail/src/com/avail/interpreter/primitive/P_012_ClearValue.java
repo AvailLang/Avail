@@ -49,8 +49,9 @@ public final class P_012_ClearValue extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_012_ClearValue().init(
-		1, CanInline, HasSideEffect);
+	public final static Primitive instance =
+		new P_012_ClearValue().init(
+			1, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (

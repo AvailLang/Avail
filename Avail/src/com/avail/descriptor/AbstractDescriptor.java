@@ -33,8 +33,6 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.Mutability.*;
-import java.io.PrintStream;
-import java.io.Reader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.math.BigInteger;

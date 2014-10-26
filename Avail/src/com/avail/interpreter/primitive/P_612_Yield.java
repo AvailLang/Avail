@@ -53,7 +53,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_612_Yield().init(0, CannotFail, Unknown);
+		new P_612_Yield().init(
+			0, CannotFail, Unknown);
 
 	@Override
 	public Result attempt (

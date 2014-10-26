@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.InfinityDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
 import static com.avail.interpreter.Primitive.Fallibility.*;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.Arrays;
 import java.util.List;
@@ -51,8 +51,9 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_004_Division().init(
-		2, CanFold);
+	public final static Primitive instance =
+		new P_004_Division().init(
+			2, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

@@ -45,8 +45,9 @@ public final class P_035_ParamsType extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_035_ParamsType().init(
-		1, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_035_ParamsType().init(
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

@@ -64,7 +64,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_611_UnparkFiber().init(1, CannotFail, CanInline, HasSideEffect);
+		new P_611_UnparkFiber().init(
+			1, CannotFail, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (

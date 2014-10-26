@@ -55,7 +55,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_623_DelayedFork().init(4, CanInline, HasSideEffect);
+		new P_623_DelayedFork().init(
+			4, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (

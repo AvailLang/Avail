@@ -52,8 +52,9 @@ public final class P_256_EmergencyExit extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_256_EmergencyExit().init(
-		1, Unknown, CannotFail);
+	public final static Primitive instance =
+		new P_256_EmergencyExit().init(
+			1, Unknown, CannotFail);
 
 	@Override
 	public Result attempt (

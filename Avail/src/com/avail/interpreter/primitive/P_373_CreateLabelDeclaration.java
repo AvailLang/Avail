@@ -55,7 +55,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_373_CreateLabelDeclaration().init(2, CanInline, CannotFail);
+		new P_373_CreateLabelDeclaration().init(
+			2, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (

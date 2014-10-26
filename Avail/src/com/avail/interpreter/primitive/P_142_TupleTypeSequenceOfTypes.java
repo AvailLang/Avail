@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -52,7 +52,7 @@ public final class P_142_TupleTypeSequenceOfTypes extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_142_TupleTypeSequenceOfTypes().init(
-			3, CanFold);
+			3, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

@@ -58,7 +58,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_517_PojoMethodReturnType().init(3, CanInline, CanFold);
+		new P_517_PojoMethodReturnType().init(
+			3, CanInline, CanFold);
 
 	@Override
 	public Result attempt (

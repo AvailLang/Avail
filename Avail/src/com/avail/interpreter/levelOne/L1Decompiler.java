@@ -182,7 +182,12 @@ public class L1Decompiler
 			pc++;
 			L1Operation.values()[nybble].dispatch(dispatcher);
 		}
-		dispatcher.L1Implied_doReturn();
+		// Infallible primitives don't have nybblecodes... except the special
+		// ones (340-342).
+		if (pc > 1)
+		{
+			dispatcher.L1Implied_doReturn();
+		}
 		assert expressionStack.size() == 0
 		: "There should be nothing on the stack after the final return";
 

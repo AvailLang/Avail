@@ -59,7 +59,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_383_CreateSendExpression().init(3, CanFold, CanInline);
+		new P_383_CreateSendExpression().init(
+			3, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

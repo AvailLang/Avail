@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive;
 
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -50,8 +50,9 @@ public final class P_702_ReverseTuple extends Primitive
 	 * Construct a new {@link P_702_ReverseTuple}.
 	 *
 	 */
-	public final static Primitive instance = new P_702_ReverseTuple().init(
-		1, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_702_ReverseTuple().init(
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

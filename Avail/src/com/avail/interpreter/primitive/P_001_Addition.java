@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Fallibility.*;
 import static com.avail.descriptor.InfinityDescriptor.*;
 import static com.avail.exceptions.AvailErrorCode.E_CANNOT_ADD_UNLIKE_INFINITIES;
@@ -51,8 +51,9 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_001_Addition().init(
-		2, CanFold);
+	public final static Primitive instance =
+		new P_001_Addition().init(
+			2, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

@@ -59,7 +59,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_222_DefinitionForArgumentTypes().init(2, CanInline);
+		new P_222_DefinitionForArgumentTypes().init(
+			2, CanInline);
 
 	@Override
 	public Result attempt (

@@ -53,7 +53,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_128_IsCanonicalMessage().init(1, CannotFail, CanInline, CanFold);
+		new P_128_IsCanonicalMessage().init(
+			1, CannotFail, CanInline, CanFold);
 
 	@SuppressWarnings("unused")
 	@Override

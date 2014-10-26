@@ -48,7 +48,7 @@ public final class P_342_GetGlobalVariableValue extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_342_GetGlobalVariableValue().init(
-		1, SpecialReturnGlobalValue, CanFold, CanInline, Private, CannotFail);
+			1, SpecialReturnGlobalValue, CanFold, CanInline, Private, CannotFail);
 
 	@Override
 	public Result attempt (

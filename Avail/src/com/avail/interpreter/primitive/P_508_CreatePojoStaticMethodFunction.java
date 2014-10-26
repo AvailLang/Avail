@@ -33,7 +33,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.lang.reflect.Method;
 import java.util.*;
 import com.avail.descriptor.*;
@@ -57,7 +57,8 @@ extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_508_CreatePojoStaticMethodFunction().init(4, CanFold);
+		new P_508_CreatePojoStaticMethodFunction().init(
+			4, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

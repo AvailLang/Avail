@@ -46,8 +46,9 @@ public final class P_081_KeyInMap extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_081_KeyInMap().init(
-		2, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_081_KeyInMap().init(
+			2, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

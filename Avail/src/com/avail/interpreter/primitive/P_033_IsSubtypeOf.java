@@ -50,8 +50,9 @@ public final class P_033_IsSubtypeOf extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_033_IsSubtypeOf().init(
-		2, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_033_IsSubtypeOf().init(
+			2, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

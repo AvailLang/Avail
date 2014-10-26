@@ -52,8 +52,9 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_040_InvokeWithTuple().init(
-		2, Invokes);
+	public final static Primitive instance =
+		new P_040_InvokeWithTuple().init(
+			2, Invokes);
 
 	@Override
 	public Result attempt (

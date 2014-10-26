@@ -59,7 +59,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_042_DisableTraceVariableWrites().init(0, HasSideEffect);
+		new P_042_DisableTraceVariableWrites().init(
+			0, HasSideEffect);
 
 	@Override
 	public Result attempt (

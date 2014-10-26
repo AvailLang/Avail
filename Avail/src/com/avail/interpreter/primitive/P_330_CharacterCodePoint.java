@@ -46,8 +46,9 @@ public final class P_330_CharacterCodePoint extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_330_CharacterCodePoint().init(
-		1, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_330_CharacterCodePoint().init(
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

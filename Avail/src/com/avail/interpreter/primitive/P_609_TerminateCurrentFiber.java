@@ -51,7 +51,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_609_TerminateCurrentFiber().init(0, Unknown, CannotFail);
+		new P_609_TerminateCurrentFiber().init(
+			0, Unknown, CannotFail);
 
 	@Override
 	public Result attempt (

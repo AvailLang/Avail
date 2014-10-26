@@ -51,7 +51,7 @@ extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_515_PojoArrayTypeContentType().init(
-			1, CanFold, CanInline, CannotFail);
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

@@ -49,8 +49,9 @@ public final class P_007_CreateIntegerRange extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_007_CreateIntegerRange().init(
-		4, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_007_CreateIntegerRange().init(
+			4, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

@@ -48,7 +48,8 @@ public final class P_143_TupleTypeAtThrough extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_143_TupleTypeAtThrough().init(3, CannotFail, CanFold);
+		new P_143_TupleTypeAtThrough().init(
+			3, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

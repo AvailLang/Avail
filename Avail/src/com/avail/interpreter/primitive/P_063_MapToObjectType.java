@@ -48,8 +48,9 @@ public final class P_063_MapToObjectType extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_063_MapToObjectType().init(
-		1, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_063_MapToObjectType().init(
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

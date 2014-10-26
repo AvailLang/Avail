@@ -50,7 +50,8 @@ public final class P_289_FloatTruncatedAsInteger extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_289_FloatTruncatedAsInteger().init(1, CanFold);
+		new P_289_FloatTruncatedAsInteger().init(
+			1, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

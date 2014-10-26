@@ -839,8 +839,15 @@ implements IntegerEnumSlotDescriptionEnum
 		assert primitiveFlags.isEmpty();
 		for (final Flag flag : flags)
 		{
+			assert !primitiveFlags.contains(flag)
+				: "Duplicate flag in " + getClass().getSimpleName();
 			primitiveFlags.add(flag);
 		}
+		// Sanity check certain conditions.
+		assert !primitiveFlags.contains(Flag.CanFold)
+				| primitiveFlags.contains(Flag.CanInline)
+			: "Primitive " + getClass().getSimpleName()
+				+ "has CanFold without CanInline";
 
 		// Register this instance.
 		assert primitiveNumber >= 1 && primitiveNumber <= maxPrimitiveNumber;

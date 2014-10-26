@@ -54,7 +54,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_376_CreateVariableExpression().init(2, CanInline, CannotFail);
+		new P_376_CreateVariableExpression().init(
+			2, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (

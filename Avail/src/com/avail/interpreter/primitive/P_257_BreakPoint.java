@@ -46,8 +46,9 @@ public final class P_257_BreakPoint extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_257_BreakPoint().init(
-		0, Unknown, CannotFail);
+	public final static Primitive instance =
+		new P_257_BreakPoint().init(
+			0, Unknown, CannotFail);
 
 	@Override
 	public Result attempt (

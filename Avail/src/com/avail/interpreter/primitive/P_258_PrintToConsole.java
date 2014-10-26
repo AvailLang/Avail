@@ -60,7 +60,8 @@ extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_258_PrintToConsole().init(1, Unknown);
+		new P_258_PrintToConsole().init(
+			1, Unknown);
 
 	@Override
 	public Result attempt (

@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.lang.reflect.*;
 import java.util.*;
 import com.avail.descriptor.*;
@@ -50,8 +50,9 @@ public final class P_505_BindPojoStaticField extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_505_BindPojoStaticField().init(
-		2, CanFold);
+	public final static Primitive instance =
+		new P_505_BindPojoStaticField().init(
+			2, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

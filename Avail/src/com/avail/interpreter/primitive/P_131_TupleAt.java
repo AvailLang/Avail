@@ -33,7 +33,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -47,8 +47,9 @@ public final class P_131_TupleAt extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_131_TupleAt().init(
-		2, CanFold);
+	public final static Primitive instance =
+		new P_131_TupleAt().init(
+			2, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

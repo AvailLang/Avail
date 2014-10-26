@@ -57,7 +57,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_251_AbstractMethodDeclaration().init(2, Unknown);
+		new P_251_AbstractMethodDeclaration().init(
+			2, Unknown);
 
 	@Override
 	public Result attempt (

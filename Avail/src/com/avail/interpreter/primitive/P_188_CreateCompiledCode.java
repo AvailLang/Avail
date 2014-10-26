@@ -49,7 +49,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_188_CreateCompiledCode().init(7, CanFold);
+		new P_188_CreateCompiledCode().init(
+			7, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

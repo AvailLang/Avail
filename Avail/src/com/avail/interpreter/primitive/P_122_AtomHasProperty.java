@@ -47,8 +47,9 @@ public final class P_122_AtomHasProperty extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_122_AtomHasProperty().init(
-		2, CanInline);
+	public final static Primitive instance =
+		new P_122_AtomHasProperty().init(
+			2, CanInline);
 
 	@Override
 	public Result attempt (

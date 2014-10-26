@@ -66,7 +66,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_561_SocketIPv4Connect().init(6, CanInline, HasSideEffect);
+		new P_561_SocketIPv4Connect().init(
+			6, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (

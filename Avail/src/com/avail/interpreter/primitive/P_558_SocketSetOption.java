@@ -57,7 +57,8 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_558_SocketSetOption().init(2, CanInline, HasSideEffect);
+		new P_558_SocketSetOption().init(
+			2, CanInline, HasSideEffect);
 
 	/**
 	 * A one-based list of the standard socket options.

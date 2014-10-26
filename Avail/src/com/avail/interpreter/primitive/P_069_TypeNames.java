@@ -46,8 +46,9 @@ public final class P_069_TypeNames extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_069_TypeNames().init(
-		1, CanInline, CannotFail);
+	public final static Primitive instance =
+		new P_069_TypeNames().init(
+			1, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (

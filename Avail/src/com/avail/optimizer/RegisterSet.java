@@ -284,6 +284,13 @@ public final class RegisterSet
 		final L2Instruction instruction)
 	{
 		typeAtPut(register, type);
+		if (type.instanceCount().equals(IntegerDescriptor.one())
+			&& !type.isInstanceMeta())
+		{
+			// There is only one value that it could be.
+			final AvailObject onlyPossibleValue = type.instance();
+			stateFor(register).constant = onlyPossibleValue;
+		}
 		propagateWriteTo(register, instruction);
 	}
 
@@ -503,11 +510,11 @@ public final class RegisterSet
 		final RegisterSet original)
 	{
 		this.fixedRegisters = original.fixedRegisters;
-		this.registerStates.clear();
+		registerStates.clear();
 		for (final Map.Entry<L2Register, RegisterState> entry
 			: original.registerStates.entrySet())
 		{
-			this.registerStates.put(
+			registerStates.put(
 				entry.getKey(),
 				new RegisterState(entry.getValue()));
 		}

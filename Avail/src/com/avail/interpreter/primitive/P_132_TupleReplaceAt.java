@@ -48,8 +48,9 @@ public final class P_132_TupleReplaceAt extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_132_TupleReplaceAt().init(
-		3, CanFold, CanInline);
+	public final static Primitive instance =
+		new P_132_TupleReplaceAt().init(
+			3, CanFold, CanInline);
 
 	@Override
 	public Result attempt (

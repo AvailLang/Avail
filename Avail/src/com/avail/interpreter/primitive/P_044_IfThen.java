@@ -48,8 +48,9 @@ public final class P_044_IfThen extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_044_IfThen().init(
-		2, Invokes, CannotFail);
+	public final static Primitive instance =
+		new P_044_IfThen().init(
+			2, Invokes, CannotFail);
 
 	@Override
 	public Result attempt (

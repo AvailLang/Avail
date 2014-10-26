@@ -66,8 +66,9 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_160_FileOpen().init(
-		4, CanInline, HasSideEffect);
+	public final static Primitive instance =
+		new P_160_FileOpen().init(
+			4, CanInline, HasSideEffect);
 
 	/**
 	 * Construct the {@linkplain EnumSet set} of {@linkplain OpenOption open

@@ -213,7 +213,7 @@ public class L2Translator
 	 * Don't inline dispatch logic if there are more than this many possible
 	 * implementations at a call site.
 	 */
-	final static int maxPolymorphismToInlineDispatch = 10;
+	final static int maxPolymorphismToInlineDispatch = 5;
 
 	/**
 	 * An indication of the possible degrees of optimization effort.  These are
@@ -610,8 +610,7 @@ public class L2Translator
 		final Primitive primitive =
 			Primitive.byPrimitiveNumberOrFail(primitiveNumber);
 		if (primitive.hasFlag(SpecialReturnConstant)
-			|| primitive.hasFlag(CanInline)
-			|| primitive.hasFlag(CanFold))
+			|| primitive.hasFlag(CanInline))
 		{
 			return body;
 		}
@@ -2585,6 +2584,12 @@ public class L2Translator
 					new L2ReadVectorOperand(createVector(vector)),
 					new L2WritePointerOperand(stackRegister(stackp)));
 			}
+			// Clean up the stack slots.  That's all but the first slot,
+			// which was just replaced by the tuple.
+			for (int i = 1; i < vector.size(); i++)
+			{
+				moveNil(vector.get(i));
+			}
 		}
 
 		@Override
@@ -2835,7 +2840,7 @@ public class L2Translator
 	/**
 	 * Compute the program state at each instruction. This information includes,
 	 * for each register, its constant value (if any) and type information,
-	 * other register that currently hold equivalent values, and the set of
+	 * other registers that currently hold equivalent values, and the set of
 	 * instructions that may have directly produced the current register value.
 	 */
 	void computeDataFlow ()
@@ -2846,12 +2851,19 @@ public class L2Translator
 		{
 			instructionRegisterSets.add(null);
 		}
-		final Deque<L2Instruction> instructionsToVisit = new ArrayDeque<>();
-		instructionsToVisit.add(instructions.get(0));
-		while (!instructionsToVisit.isEmpty())
+		final int instructionsCount = instructions.size();
+		final boolean[] instructionsToVisit = new boolean[instructionsCount];
+		instructionsToVisit[0] = true;
+		for (
+			int instructionIndex = 0;
+			instructionIndex < instructionsCount;
+			instructionIndex++)
 		{
-			final L2Instruction instruction = instructionsToVisit.removeFirst();
-			final int instructionIndex = instruction.offset();
+			if (!instructionsToVisit[instructionIndex])
+			{
+				continue;
+			}
+			final L2Instruction instruction = instructions.get(instructionIndex);
 			DebugFlag.DATA_FLOW.log(
 				Level.FINEST,
 				"Trace #%d (%s):%n",
@@ -2879,7 +2891,6 @@ public class L2Translator
 				targetRegisterSets,
 				L2Translator.this);
 
-			final List<L2Instruction> toAdd = new ArrayList<>(successorsSize);
 			for (int i = 0; i < successorsSize; i++)
 			{
 				final L2Instruction successor = successors.get(i);
@@ -2922,12 +2933,9 @@ public class L2Translator
 				}
 				if (followIt)
 				{
-					toAdd.add(successor);
+					assert successor.offset() > instructionIndex;
+					instructionsToVisit[successor.offset()] = true;
 				}
-			}
-			for (int i = toAdd.size() - 1; i >= 0; i--)
-			{
-				instructionsToVisit.addFirst(toAdd.get(i));
 			}
 		}
 	}

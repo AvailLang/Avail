@@ -45,8 +45,9 @@ public final class P_109_TupleToSet extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_109_TupleToSet().init(
-		1, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_109_TupleToSet().init(
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
