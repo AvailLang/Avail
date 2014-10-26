@@ -2852,18 +2852,19 @@ public class L2Translator
 			instructionRegisterSets.add(null);
 		}
 		final int instructionsCount = instructions.size();
-		final boolean[] instructionsToVisit = new boolean[instructionsCount];
-		instructionsToVisit[0] = true;
+		final BitSet instructionsToVisit = new BitSet(instructionsCount);
+		instructionsToVisit.set(0);
 		for (
 			int instructionIndex = 0;
 			instructionIndex < instructionsCount;
 			instructionIndex++)
 		{
-			if (!instructionsToVisit[instructionIndex])
+			if (!instructionsToVisit.get(instructionIndex))
 			{
 				continue;
 			}
-			final L2Instruction instruction = instructions.get(instructionIndex);
+			final L2Instruction instruction =
+				instructions.get(instructionIndex);
 			DebugFlag.DATA_FLOW.log(
 				Level.FINEST,
 				"Trace #%d (%s):%n",
@@ -2934,7 +2935,7 @@ public class L2Translator
 				if (followIt)
 				{
 					assert successor.offset() > instructionIndex;
-					instructionsToVisit[successor.offset()] = true;
+					instructionsToVisit.set(successor.offset());
 				}
 			}
 		}

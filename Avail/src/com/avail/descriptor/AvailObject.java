@@ -1482,7 +1482,7 @@ implements
 	 * Answer whether the receiver and the argument, both {@linkplain
 	 * AvailObject objects}, are equal in value.
 	 *
-	 * Note that the argument is of type {@link AvailObject} so that correctly
+	 * Note that the argument is of type {@link A_BasicObject} so that correctly
 	 * typed uses (where the argument is statically known to be an AvailObject)
 	 * proceed normally. Incorrectly typed uses (where the argument is an
 	 * arbitrary Java {@link Object} should show up as calling a deprecated
@@ -1496,7 +1496,7 @@ implements
 	@Override
 	public boolean equals (final A_BasicObject another)
 	{
-		return descriptor.o_Equals(this, another);
+		return this == another || descriptor.o_Equals(this, another);
 	}
 
 	/**

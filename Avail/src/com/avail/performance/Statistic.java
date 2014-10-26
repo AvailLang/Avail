@@ -32,7 +32,15 @@
 
 package com.avail.performance;
 
+import java.text.Collator;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import com.avail.annotations.Nullable;
+import com.avail.utility.Pair;
 
 /**
  * A Statistic is an incremental, summarized recording of a set of integral
@@ -40,42 +48,156 @@ import com.avail.annotations.Nullable;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class Statistic implements Comparable<Statistic>
+public class Statistic
 {
+	/** An immutable collection of related statistics. */
+	public static class StatisticSnapshot
+	implements Comparable<StatisticSnapshot>
+	{
+		/** The number of samples recorded so far. */
+		public final long count;
+
+		/** The smallest sample yet encountered. */
+		public final double min;
+
+		/** The largest sample yet encountered. */
+		public final double max;
+
+		/** The average of all samples recorded so far. */
+		public final double mean;
+
+		/**
+		 * The sum of the squares of differences from the current mean.  This is
+		 * more numerically stable in calculating the variance than the sum of
+		 * squares of the samples.  See <cite> Donald E. Knuth (1998). The Art
+		 * of Computer Programming, volume 2: Seminumerical Algorithms, 3rd
+		 * edn., p. 232. Boston: Addison-Wesley</cite>.  That cites a 1962 paper
+		 * by <cite>B. P. Welford</cite>.
+		 */
+		public final double sumOfDeltaSquares;
+
+		/**
+		 * Construct a new {@link Statistic.StatisticSnapshot} with the given
+		 * values.
+		 *
+		 * @param count
+		 * @param min
+		 * @param max
+		 * @param mean
+		 * @param sumOfDeltaSquares
+		 */
+		StatisticSnapshot (
+			final long count,
+			final double min,
+			final double max,
+			final double mean,
+			final double sumOfDeltaSquares)
+		{
+			this.count = count;
+			this.min = min;
+			this.max = max;
+			this.mean = mean;
+			this.sumOfDeltaSquares = sumOfDeltaSquares;
+		}
+
+		/** The default starting snapshot representing the absence of data. */
+		static StatisticSnapshot initialState = new StatisticSnapshot(
+			0, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, 0.0, 0.0);
+
+		/** Default sort is descending by sum. */
+		@Override
+		public int compareTo (final @Nullable StatisticSnapshot otherSnapshot)
+		{
+			// Compare by descending sums.
+			assert otherSnapshot != null;
+			return Double.compare(otherSnapshot.sum(), this.sum());
+		}
+
+		/**
+		 * Return the number of samples that have been recorded.
+		 *
+		 * @return The sample count.
+		 */
+		public long count ()
+		{
+			return count;
+		}
+
+		/**
+		 * Return the sum of the samples.
+		 *
+		 * @return The sum of the samples.
+		 */
+		public double sum ()
+		{
+			return mean * count;
+		}
+
+		/**
+		 * Answer the corrected variance of the samples.  This is the sum of squares
+		 * of differences from the mean, divided by one less than the number of
+		 * samples.  Fudge it for less than two samples, pretending the variance is
+		 * zero rather than undefined.
+		 *
+		 * @return The Bessel-corrected variance of the samples.
+		 */
+		public double variance ()
+		{
+			if (count <= 1L)
+			{
+				return 0.0;
+			}
+			return sumOfDeltaSquares / (count - 1L);
+		}
+
+		/**
+		 * Answer the Bessel-corrected ("unbiased") standard deviation of these
+		 * samples.  This assumes the samples are not the entire population, and
+		 * therefore the distances of the samples from the mean are really the
+		 * distances from the sample mean, not the actual population mean.
+		 *
+		 * @return The Bessel-corrected standard deviation of the samples.
+		 */
+		public double standardDeviation ()
+		{
+			return Math.sqrt(variance());
+		}
+
+		/**
+		 * Describe this statistic as though its samples are durations in
+		 * nanoseconds.
+		 *
+		 * @param builder Where to describe this statistic.
+		 */
+		public void describeNanosecondsOn (final StringBuilder builder)
+		{
+			final double nanoseconds = sum();
+			builder.append(String.format(
+				nanoseconds >= 999_999_500.0
+					? "%1$, 8.3f s  "
+					: nanoseconds >= 999_999.5
+						? "%2$, 8.3f ms "
+						: "%3$, 8.3f µs ",
+				nanoseconds / 1.0e9,
+				nanoseconds / 1.0e6,
+				nanoseconds / 1.0e3));
+			builder.append(String.format("[N=%,10d] ", count));
+		}
+	}
+
 	/**
 	 * A descriptive name for this statistic.
 	 */
 	private final String name;
 
 	/**
-	 * The number of samples that have been recorded.
+	 * The {@link AtomicReference} holding the current {@link StatisticSnapshot
+	 * snapshot} of this statistics collector.  It's collected together into an
+	 * atomically replaced immutable aggregate object to reduce contention when
+	 * updating.
 	 */
-	private long count = 0;
-
-	/**
-	 * The minimum sample that has been recorded.
-	 */
-	private double min = Double.POSITIVE_INFINITY;
-
-	/**
-	 * The maximum sample that has been recorded.
-	 */
-	private double max = Double.NEGATIVE_INFINITY;
-
-	/**
-	 * The arithmetic mean of the samples that have been recorded.
-	 */
-	private double mean = 0.0;
-
-	/**
-	 * The sum of the squares of differences from the current mean.  This is
-	 * more numerically stable in calculating the variance than the sum of
-	 * squares of the samples.  See <cite> Donald E. Knuth (1998). The Art of
-	 * Computer Programming, volume 2: Seminumerical Algorithms, 3rd edn.,
-	 * p. 232. Boston: Addison-Wesley</cite>.  That cites a 1962 paper by <cite>
-	 * B. P. Welford</cite>.
-	 */
-	private double sumOfDeltaSquares = 0.0;
+	private final AtomicReference<StatisticSnapshot> currentState =
+		new AtomicReference<>(StatisticSnapshot.initialState);
 
 	/**
 	 * Return the name of this statistic.
@@ -88,53 +210,12 @@ public class Statistic implements Comparable<Statistic>
 	}
 
 	/**
-	 * Return the number of samples that have been recorded.
-	 *
-	 * @return The sample count.
+	 * Return an immutable snapshot of this statistic.
+	 * @return The current snapshot.
 	 */
-	public synchronized long count ()
+	public StatisticSnapshot snapshot ()
 	{
-		return count;
-	}
-
-	/**
-	 * Return the sum of the samples.
-	 *
-	 * @return The sum of the samples.
-	 */
-	private synchronized double sum ()
-	{
-		return mean * count;
-	}
-
-	/**
-	 * Answer the corrected variance of the samples.  This is the sum of squares
-	 * of differences from the mean, divided by one less than the number of
-	 * samples.  Fudge it for less than two samples, pretending the variance is
-	 * zero rather than undefined.
-	 *
-	 * @return The Bessel-corrected variance of the samples.
-	 */
-	public synchronized double variance ()
-	{
-		if (count <= 1L)
-		{
-			return 0.0;
-		}
-		return sumOfDeltaSquares / (count - 1L);
-	}
-
-	/**
-	 * Answer the Bessel-corrected ("unbiased") standard deviation of these
-	 * samples.  This assumes the samples are not the entire population, and
-	 * therefore the distances of the samples from the mean are really the
-	 * distances from the sample mean, not the actual population mean.
-	 *
-	 * @return The Bessel-corrected standard deviation of the samples.
-	 */
-	public double standardDeviation ()
-	{
-		return Math.sqrt(variance());
+		return currentState.get();
 	}
 
 	/**
@@ -148,105 +229,30 @@ public class Statistic implements Comparable<Statistic>
 	}
 
 	/**
-	 * Construct a new {@link Statistic} from individually aggregated values.
-	 *
-	 * @param name
-	 *        The name of this statistic.
-	 * @param count
-	 *        The number of samples.
-	 * @param min
-	 *        The minimum sample.
-	 * @param max
-	 *        The maximum sample.
-	 * @param mean
-	 *        The mean of the samples.
-	 * @param sumOfDeltaSquares
-	 *        The sum of the squares of differences from the mean.
-	 */
-	public Statistic (
-		final String name,
-		final long count,
-		final double min,
-		final double max,
-		final double mean,
-		final double sumOfDeltaSquares)
-	{
-		this.name = name;
-		this.count = count;
-		this.min = min;
-		this.max = max;
-		this.mean = mean;
-		this.sumOfDeltaSquares = sumOfDeltaSquares;
-	}
-
-	/**
 	 * Record a new sample, updating any cumulative statistical values.  This is
-	 * synchronized to prevent unsafe concurrent updates.  Note that reading the
-	 * statistical values is only thread safe if performed while holding the
-	 * monitor for this object, or by creating an internally consistent {@link
-	 * #copy()}, which is recommended if multiple coherent values are needed.
+	 * carefully crafted to serialize concurrent updates.
 	 *
 	 * @param sample The sample value to record.
 	 */
-	public synchronized void record (final double sample)
+	public void record (final double sample)
 	{
-		count++;
-		if (sample < min)
+		while (true)
 		{
-			min = sample;
+			final StatisticSnapshot oldState = currentState.get();
+			final long newCount = oldState.count + 1;
+			final double delta = sample - oldState.mean;
+			final double newMean = oldState.mean + delta / newCount;
+			final StatisticSnapshot newState = new StatisticSnapshot(
+				newCount,
+				Math.min(sample, oldState.min),
+				Math.max(sample, oldState.max),
+				newMean,
+				oldState.sumOfDeltaSquares + delta * (sample - newMean));
+			if (currentState.compareAndSet(oldState, newState))
+			{
+				break;
+			}
 		}
-		if (sample > max)
-		{
-			max = sample;
-		}
-		final double delta = sample - mean;
-		mean += delta / count;
-		sumOfDeltaSquares += delta * (sample - mean);
-	}
-
-	/**
-	 * Make a copy of the Statistic object suitable for either adding subsequent
-	 * samples (fully decoupled from the receiver) or for reading mutually
-	 * consistent statistical measures safely in the presence of concurrent
-	 * updates to the receiver.
-	 *
-	 * @return An exact copy of the receiver.
-	 */
-	public synchronized Statistic copy ()
-	{
-		return new Statistic(name, count, min, max, mean, sumOfDeltaSquares);
-	}
-
-	@Override
-	public int compareTo (final @Nullable Statistic otherStat)
-	{
-		// Compare by descending sums.
-		assert otherStat != null;
-		return Double.compare(otherStat.sum(), this.sum());
-	}
-
-	/**
-	 * Describe this statistic as though its samples are durations in
-	 * nanoseconds.
-	 *
-	 * @param builder Where to describe this statistic.
-	 */
-	public void describeNanosecondsOn (final StringBuilder builder)
-	{
-		final double nanoseconds = sum();
-		builder.append(String.format(
-			nanoseconds >= 999_999_500.0
-				? "%1$, 8.3f s  "
-				: nanoseconds >= 999_999.5
-					? "%2$, 8.3f ms "
-					: "%3$, 8.3f µs ",
-			nanoseconds / 1.0e9,
-			nanoseconds / 1.0e6,
-			nanoseconds / 1.0e3));
-		builder.append(String.format(
-			"[N=%,10d] ",
-			count()));
-		builder.append(name());
 	}
 
 	/**
@@ -254,10 +260,48 @@ public class Statistic implements Comparable<Statistic>
 	 */
 	public synchronized void clear ()
 	{
-		count = 0;
-		min = Double.POSITIVE_INFINITY;
-		max = Double.NEGATIVE_INFINITY;
-		mean = 0.0;
-		sumOfDeltaSquares = 0.0;
+		currentState.set(StatisticSnapshot.initialState);
 	}
+
+
+	/**
+	 * Sort a collection of statistics, extracting their snapshots and names as
+	 * pairs.
+	 *
+	 * @param statistics The collection of statistics to sort.
+	 * @return A sorted collection of (String, StatisticsSnapshot) pairs.
+	 */
+	public static List<Pair<String, StatisticSnapshot>> sortedSnapshotPairs (
+		final Collection<Statistic> statistics)
+	{
+		final List<Pair<String, StatisticSnapshot>> namedSnapshots =
+			new ArrayList<>(statistics.size());
+		for (final Statistic stat : statistics)
+		{
+			namedSnapshots.add(
+				new Pair<String, Statistic.StatisticSnapshot>(
+					stat.name(), stat.snapshot()));
+		}
+		Collections.sort(
+			namedSnapshots,
+			new Comparator<Pair<String, StatisticSnapshot>>()
+			{
+				@Override
+				public int compare (
+					final @Nullable Pair<String, StatisticSnapshot> pair1,
+					final @Nullable Pair<String, StatisticSnapshot> pair2)
+				{
+					assert pair1 != null && pair2 != null;
+					final int byStat = pair1.second().compareTo(pair2.second());
+					if (byStat != 0)
+					{
+						return byStat;
+					}
+					return Collator.getInstance().compare(
+						pair1.first(), pair2.first());
+				}
+			});
+		return namedSnapshots;
+	}
+
 }

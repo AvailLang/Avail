@@ -61,6 +61,8 @@ import com.avail.interpreter.primitive.*;
 import com.avail.optimizer.*;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.performance.Statistic;
+import com.avail.performance.Statistic.StatisticSnapshot;
+import com.avail.utility.Pair;
 
 
 /**
@@ -868,15 +870,18 @@ implements IntegerEnumSlotDescriptionEnum
 		for (int i = 1; i <= maxPrimitiveNumber; i++)
 		{
 			final Primitive prim = byPrimitiveNumberOrNull(i);
-			if (prim != null && prim.runningNanos.count() != 0)
+			if (prim != null && prim.runningNanos.snapshot().count() > 0)
 			{
 				stats.add(prim.runningNanos);
 			}
 		}
-		Collections.sort(stats);
-		for (final Statistic stat : stats)
+		final List<Pair<String, StatisticSnapshot>> pairs =
+			Statistic.sortedSnapshotPairs(stats);
+		for (final Pair<String, StatisticSnapshot> pair : pairs)
 		{
-			stat.describeNanosecondsOn(builder);
+			pair.second().describeNanosecondsOn(builder);
+			builder.append(" ");
+			builder.append(pair.first());
 			builder.append('\n');
 		}
 	}
@@ -894,15 +899,19 @@ implements IntegerEnumSlotDescriptionEnum
 		for (int i = 1; i <= maxPrimitiveNumber; i++)
 		{
 			final Primitive prim = byPrimitiveNumberOrNull(i);
-			if (prim != null && prim.resultTypeCheckingNanos.count() != 0)
+			if (prim != null
+				&& prim.resultTypeCheckingNanos.snapshot().count() > 0)
 			{
 				stats.add(prim.resultTypeCheckingNanos);
 			}
 		}
-		Collections.sort(stats);
-		for (final Statistic stat : stats)
+		final List<Pair<String, StatisticSnapshot>> pairs =
+			Statistic.sortedSnapshotPairs(stats);
+		for (final Pair<String, StatisticSnapshot> pair : pairs)
 		{
-			stat.describeNanosecondsOn(builder);
+			pair.second().describeNanosecondsOn(builder);
+			builder.append(" ");
+			builder.append(pair.first());
 			builder.append('\n');
 		}
 	}

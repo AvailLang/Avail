@@ -61,6 +61,7 @@ import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.primitive.*;
 import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
+import com.avail.performance.Statistic.StatisticSnapshot;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.*;
 
@@ -2430,12 +2431,13 @@ public final class Interpreter
 		final StringBuilder builder)
 	{
 		builder.append("Dynamic lookups:\n");
-		final List<Statistic> stats =
-			new ArrayList<>(dynamicLookupStatsByString.values());
-		Collections.sort(stats);
-		for (final Statistic stat : stats)
+		final List<Pair<String, StatisticSnapshot>> namedSnapshots =
+			Statistic.sortedSnapshotPairs(dynamicLookupStatsByBundle.values());
+		for (final Pair<String, StatisticSnapshot> pair: namedSnapshots)
 		{
-			stat.describeNanosecondsOn(builder);
+			pair.second().describeNanosecondsOn(builder);
+			builder.append(" ");
+			builder.append(pair.first());
 			builder.append("\n");
 		}
 	}

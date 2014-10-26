@@ -434,6 +434,17 @@ extends Descriptor
 		return value;
 	}
 
+	/**
+	 * Answer a map like this one but with keyObject->newValueObject instead
+	 * of any existing mapping for keyObject. The original map can be destroyed
+	 * or recycled if canDestroy is true and it's mutable.
+	 *
+	 * @param object The map.
+	 * @param keyObject The key to add or replace.
+	 * @param newValueObject The new value to store under the provided key.
+	 * @param canDestroy Whether the given map may be recycled (if mutable).
+	 * @return The new map, possibly the given one if canDestroy is true.
+	 */
 	@Override @AvailMethod
 	A_Map o_MapAtPuttingCanDestroy (
 		final AvailObject object,
@@ -441,14 +452,11 @@ extends Descriptor
 		final A_BasicObject newValueObject,
 		final boolean canDestroy)
 	{
-		// Answer a map like this one but with keyObject->newValueObject instead
-		// of any existing mapping for keyObject. The original map can be
-		// destroyed or recycled if canDestroy is true and it's mutable.
-//		assert !newValueObject.equalsNil();
 		final A_BasicObject oldRoot = rootBin(object);
+		final A_BasicObject traversedKey = keyObject.traversed();
 		final A_BasicObject newRoot = oldRoot.mapBinAtHashPutLevelCanDestroy(
-			keyObject,
-			keyObject.hash(),
+			traversedKey,
+			traversedKey.hash(),
 			newValueObject,
 			(byte)0,
 			canDestroy);

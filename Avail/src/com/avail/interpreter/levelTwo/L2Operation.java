@@ -33,7 +33,6 @@
 package com.avail.interpreter.levelTwo;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import com.avail.annotations.Nullable;
 import com.avail.descriptor.A_Type;
@@ -44,6 +43,8 @@ import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.*;
 import com.avail.performance.Statistic;
+import com.avail.performance.Statistic.StatisticSnapshot;
+import com.avail.utility.Pair;
 
 /**
  * The instruction set for the {@linkplain Interpreter level two Avail
@@ -400,15 +401,18 @@ public abstract class L2Operation
 		for (final L2Operation operation : values())
 		{
 			if (operation != null
-				&& operation.statisticInNanoseconds.count() > 0)
+				&& operation.statisticInNanoseconds.snapshot().count() > 0)
 			{
 				stats.add(operation.statisticInNanoseconds);
 			}
 		}
-		Collections.sort(stats);
-		for (final Statistic stat : stats)
+		final List<Pair<String, StatisticSnapshot>> pairs =
+			Statistic.sortedSnapshotPairs(stats);
+		for (final Pair<String, StatisticSnapshot> pair : pairs)
 		{
-			stat.describeNanosecondsOn(builder);
+			pair.second().describeNanosecondsOn(builder);
+			builder.append(" ");
+			builder.append(pair.first());
 			builder.append('\n');
 		}
 	}
