@@ -32,54 +32,37 @@
 
 package com.avail.interpreter.jvm;
 
-import java.io.DataOutput;
-import java.io.IOException;
-
 /**
  * The {@link VerificationTypeInfo
- * <code>UninitializedThis_variable_info</code>} item indicates that
+ * <code>Uninitialized_variable_info</code>} item indicates that
  * the location has the verification type
- * <code>uninitializedThis</code>.
+ * <code>uninitialized(Offset)</code>. The <code>Offset</code> item
+ * indicates the offset, in the <code>code</code> array of the
+ * <code>Code</code> attribute that contains this {@link
+ * StackMapTableAttribute}, of the <code>new</code> instruction that
+ * created the object being stored in the location.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
 public class UninitializedThisVariable extends VerificationTypeInfo
 {
 	/**
-	 * The Offset item indicates the offset, in the code array of the
-	 * <code>Code</code> attribute that contains this
-	 * {@link StackMapTableAttribute}, of the <code>new</code> instruction
-	 * that created the object being stored in the location.
-	 */
-	private final short offset;
-
-	/**
 	 * Construct a new {@link IntegerVariable}.
-	 * @param offset
 	 *
 	 */
-	UninitializedThisVariable(final short offset)
+	UninitializedThisVariable()
 	{
-		super();
-		this.offset = offset;
+
 	}
 
 	@Override
 	protected int size ()
 	{
-		return 3;
+		return 1;
 	}
-
 	@Override
 	byte typeValue ()
 	{
-		return 8;
-	}
-
-	@Override
-	void writeTo (final DataOutput out) throws IOException
-	{
-		out.writeByte(typeValue());
-		out.writeByte(offset);
+		return 6;
 	}
 }
