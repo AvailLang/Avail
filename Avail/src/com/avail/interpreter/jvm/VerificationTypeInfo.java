@@ -1,5 +1,5 @@
 /**
- * StackMapTableAttribute.java
+ * StackMapFrame.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -34,61 +34,61 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.List;
 
 /**
- * The StackMapTable attribute is a variable-length attribute in the attributes
- * table of a {@link CodeAttribute}.  There may be at most one StackMapTable
- * attribute in the attributes table of a Code attribute.
+ * Per the JVM Specification:</br></br>
+ * <i>A verification type specifies the type of either one or two locations,
+ * where a location is either a single local variable or a single operand
+ * stack entry.</i>
+ *
+ * The {@link VerificationTypeInfo} consists of a one-byte value that is an
+ * indication of which type of the discriminated union is being used.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
- *  @see <a
- *     href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.4">
- *     The <code>StackMapTable</code> Attribute</a>
+ *
+ * @see <a
+ * 	href="http://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.7.4">
+ * 	StackMapTable</a>
  */
-public class StackMapTableAttribute extends Attribute
+public abstract class VerificationTypeInfo
 {
-	/** The name of the {@link StackMapTableAttribute attribute}. */
-	static final String name = "StackMapTable";
-
-	@Override
-	public String name ()
-	{
-		return name;
-	}
-
-	/** The list of {@linkplain StackMapFrame stack map frames}. */
-	private final List<StackMapFrame> stackMapFrames;
+	/** The value of the verification type.
+	 * @return
+	 */
+	abstract byte typeValue();
 
 	/**
-	 * Construct a new {@link StackMapTableAttribute}.
-	 * @param stackMapFrames
+	 * Construct a new {@link VerificationTypeInfo}.
 	 *
 	 */
-	public StackMapTableAttribute (final List<StackMapFrame> stackMapFrames)
+	protected VerificationTypeInfo ()
 	{
-		this.stackMapFrames = stackMapFrames;
+
 	}
 
-	@Override
+	/**
+	 * Answer the size of the {@linkplain VerificationTypeInfo}.
+	 *
+	 * @return The size of the type.
+	 */
 	protected int size ()
 	{
-		int mySize = 2;
-		for (int i = 0; i < stackMapFrames.size(); i++)
-		{
-			mySize = mySize + stackMapFrames.get(i).size();
-		}
-		return mySize;
+		return 1;
 	}
 
-	@Override
-	public void writeBodyTo (final DataOutput out) throws IOException
+	/**
+	 * Write the {@linkplain VerificationTypeInfo value}'s
+	 * {@linkplain #typeValue} to the specified
+	 * {@linkplain DataOutput binary stream}.
+	 *
+	 * @param out
+	 *        A binary output stream.
+	 * @throws IOException
+	 *         If the operation fails.
+	 */
+	void writeTo (final DataOutput out) throws IOException
 	{
-		out.writeShort((short)stackMapFrames.size());
-
-		for (int i = 0; i < stackMapFrames.size(); i++)
-		{
-			stackMapFrames.get(i).writeTo(out);
-		}
+		out.writeByte(typeValue());
 	}
+
 }

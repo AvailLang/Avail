@@ -35,7 +35,6 @@ package com.avail.interpreter.jvm;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.List;
-import com.avail.interpreter.jvm.ConstantPool.Tag;
 
 /**
  * A {@link StackMapFrame} is a value, represented by a discriminated union,
@@ -50,134 +49,6 @@ import com.avail.interpreter.jvm.ConstantPool.Tag;
  */
 public class StackMapFrame
 {
-
-	/**
-	 * Per the JVM Specification:</br></br>
-	 * <i>A verification type specifies the type of either one or two locations,
-	 * where a location is either a single local variable or a single operand
-	 * stack entry.</i>
-	 *
-	 * The {@link VerificationTypeInfo} consists of a one-byte value that is an
-	 * indication of which type of the discriminated union is being used.
-	 *
-	 * @see <a
-	 * 	href="http://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.7.4">
-	 * 	StackMapTable</a>
-	 */
-	static enum VerificationTypeInfo
-	{
-		/**
-		 * The {@link VerificationTypeInfo <code>Top_variable_info</code>} item
-		 * indicates that the local variable has the verification type
-		 * <code>top</code>.
-		 */
-		Top_Variable (0),
-
-		/**
-		 * The {@link VerificationTypeInfo <code>Integer_variable_info</code>}
-		 * item indicates that the location has the verification type
-		 * <code>int</code>.
-		 */
-		Integer_Variable (1),
-
-		/**
-		 * The {@link VerificationTypeInfo <code>Float_variable_info</code>}
-		 * item indicates that the location has the verification type
-		 * <code>float</code>.
-		 */
-		Float_Variable (2),
-
-		/**
-		 * The {@link VerificationTypeInfo <code>Long_variable_info</code>}
-		 * item indicates that the location has the verification type
-		 * <code>long</code>.  The <code>Long_variable_info</code> specifies
-		 * two locations in the local variable array or in the operand stack.
-		 */
-		Long_Variable (4),
-
-		/**
-		 * The {@link VerificationTypeInfo <code>Double_variable_info</code>}
-		 * item indicates that the location has the verification type
-		 * <code>double</code>. The <code>Double_variable_info</code> specifies
-		 * two locations in the local variable array or in the operand stack.
-		 */
-		Double_Variable (3),
-
-		/**
-		 * The {@link VerificationTypeInfo <code>Null_variable_info</code>}
-		 * item indicates that the location has the verification type
-		 * <code>null</code>.
-		 */
-		Null_Variable (5),
-
-		/**
-		 * The {@link VerificationTypeInfo
-		 * <code>UninitializedThis_variable_info</code>} item indicates that
-		 * the location has the verification type
-		 * <code>uninitializedThis</code>.
-		 */
-		UninitializedThis_Variable (6),
-
-		/**
-		 * The {@link VerificationTypeInfo <code>Object_variable_info</code>}
-		 * item indicates that the location has the verification type
-		 * which is the class represented by the {@link ConstantValueAttribute
-		 * <code>CONSTANT_Class_info</code>} structure found in the
-		 * {@link ConstantPool <code>constant_poo table</code>} at the index
-		 * given by <code>cpool_index</code>.
-		 */
-		Object_Variable (7),
-
-		/**
-		 * The {@link VerificationTypeInfo
-		 * <code>Uninitialized_variable_info</code>} item indicates that
-		 * the location has the verification type
-		 * <code>uninitialized(Offset)</code>. The <code>Offset</code> item
-		 * indicates the offset, in the <code>code</code> array of the
-		 * <code>Code</code> attribute that contains this {@link
-		 * StackMapTableAttribute}, of the <code>new</code> instruction that
-		 * created the object being stored in the location.
-		 */
-		Uninitialized_Variable (8);
-
-		/** The value of the verification type. */
-		final byte value;
-
-		/**
-		 * Construct a new {@link VerificationTypeInfo}.
-		 *
-		 * @param value
-		 *        The value of the verification type.
-		 */
-		private VerificationTypeInfo (final int value)
-		{
-			assert (value & 255) == value;
-			this.value = (byte) value;
-		}
-
-		/**
-		 * Write the {@linkplain Tag tag}'s {@linkplain #value} to the specified
-		 * {@linkplain DataOutput binary stream}.
-		 *
-		 * @param out
-		 *        A binary output stream.
-		 * @throws IOException
-		 *         If the operation fails.
-		 */
-		void writeTo (final DataOutput out) throws IOException
-		{
-			out.writeByte(value);
-		}
-	}
-	/**
-	 * Construct a new {@link StackMapFrame}.
-	 *
-	 */
-	public StackMapFrame ()
-	{
-		// TODO Auto-generated constructor stub
-	}
-
 	/**
 	 * The specified range of acceptable values of {@link FrameType}.
 	 *
@@ -186,25 +57,117 @@ public class StackMapFrame
 	static enum FrameTypeRange
 	{
 		@SuppressWarnings("javadoc")
-		Same_Frame((byte)0,(byte)63),
+		Same_Frame((byte)0,(byte)63)
+		{
+			@Override
+			SameFrame createFrameType(final byte frameTypeValue,
+				final List<VerificationTypeInfo> stack,
+				final List<VerificationTypeInfo> locals,
+				final short explicitDeltaOffset)
+			{
+				return new SameFrame(frameTypeValue);
+			}
+		},
 
 		@SuppressWarnings("javadoc")
-		Same_Locals_1_Stack_Item_Frame((byte)64,(byte)127),
+		Same_Locals_1_Stack_Item_Frame((byte)64,(byte)127)
+		{
+			@Override
+			SameLocals1StackItemFrame createFrameType(final byte frameTypeValue,
+				final List<VerificationTypeInfo> stack,
+				final List<VerificationTypeInfo> locals,
+				final short explicitDeltaOffset)
+				{
+					return new SameLocals1StackItemFrame(frameTypeValue, stack);
+				}
+		},
 
 		@SuppressWarnings("javadoc")
-		Same_Locals_1_Stack_Item_Frame_Extended((byte)247,(byte)247),
+		Same_Locals_1_Stack_Item_Frame_Extended((byte)247,(byte)247)
+		{
+			@Override
+			SameLocals1StackItemFrameExtended createFrameType(
+				final byte frameTypeValue,
+				final List<VerificationTypeInfo> stack,
+				final List<VerificationTypeInfo> locals,
+				final short explicitDeltaOffset)
+				{
+					return new SameLocals1StackItemFrameExtended(
+						frameTypeValue, stack, explicitDeltaOffset);
+				}
+		},
 
 		@SuppressWarnings("javadoc")
-		Chop_Frame((byte)248,(byte)250),
+		Chop_Frame((byte)248,(byte)250)
+		{
+			@Override
+			ChopFrame createFrameType(final byte frameTypeValue,
+				final List<VerificationTypeInfo> stack,
+				final List<VerificationTypeInfo> locals,
+				final short explicitDeltaOffset)
+				{
+					return new ChopFrame(frameTypeValue,explicitDeltaOffset);
+				}
+		},
 
 		@SuppressWarnings("javadoc")
-		Same_Frame_Extended((byte)251,(byte)251),
+		Same_Frame_Extended((byte)251,(byte)251)
+		{
+			@Override
+			SameFrameExtended createFrameType(final byte frameTypeValue,
+				final List<VerificationTypeInfo> stack,
+				final List<VerificationTypeInfo> locals,
+				final short explicitDeltaOffset)
+				{
+					return new SameFrameExtended(explicitDeltaOffset);
+				}
+		},
 
 		@SuppressWarnings("javadoc")
-		Append_Frame((byte)252,(byte)254),
+		Append_Frame((byte)252,(byte)254)
+		{
+			@Override
+			AppendFrame createFrameType(final byte frameTypeValue,
+				final List<VerificationTypeInfo> stack,
+				final List<VerificationTypeInfo> locals,
+				final short explicitDeltaOffset)
+				{
+					return new AppendFrame(frameTypeValue,locals,
+						explicitDeltaOffset);
+				}
+		},
 
 		@SuppressWarnings("javadoc")
-		Full_Frame((byte)255,(byte)255);
+		Full_Frame((byte)255,(byte)255)
+		{
+			@Override
+			FullFrame createFrameType(final byte frameTypeValue,
+				final List<VerificationTypeInfo> stack,
+				final List<VerificationTypeInfo> locals,
+				final short explicitDeltaOffset)
+				{
+					return new FullFrame(stack, locals,
+						explicitDeltaOffset);
+				}
+		},
+
+		@SuppressWarnings("javadoc")
+		Not_Used((byte)128,(byte)246)
+		{
+			@Override
+			FrameType createFrameType(final byte frameTypeValue,
+				final List<VerificationTypeInfo> stack,
+				final List<VerificationTypeInfo> locals,
+				final short explicitDeltaOffset)
+					throws JVMCodeGenerationException
+				{
+					throw new JVMCodeGenerationException(String.format(
+						"Attempted to create a StackMapFrame with frame type" +
+						" value, %d, however that lies in the reserved" +
+						" range, %d - %d", frameTypeValue, bottomRange,
+						topRange));
+				}
+		};
 
 		/** The lowest value inclusive **/
 		final byte bottomRange;
@@ -227,6 +190,20 @@ public class StackMapFrame
 		}
 
 		/**
+		 *
+		 * @param frameTypeValue
+		 * @param stack
+		 * @param locals
+		 * @param explicitDeltaOffset
+		 * @return
+		 * @throws JVMCodeGenerationException
+		 */
+		abstract FrameType createFrameType(byte frameTypeValue,
+			final List<VerificationTypeInfo> stack,
+			final List<VerificationTypeInfo> locals,
+			final short explicitDeltaOffset) throws JVMCodeGenerationException;
+
+		/**
 		 * Check to see if a value is in the specified {@link FrameTypeRange}
 		 * @param valueToCheck
 		 * 		The value to check
@@ -239,12 +216,64 @@ public class StackMapFrame
 	}
 
 	/**
+	 * A table whose indices are the potential frame type values.
+	 */
+	static FrameTypeRange[] frameTypeDispatchTable = new FrameTypeRange[256];
+
+	/**
+	 * Statically initialize the {@link frameTypeDispatchTable} with suitable the
+	 * {@link FrameTypeRange}. Note that this happens as part of class loading.
+	 */
+	static
+	{
+		for (byte i = 0; i < 256; i++)
+		{
+			if (FrameTypeRange.Same_Frame.inRange(i))
+			{
+				frameTypeDispatchTable[i] = FrameTypeRange.Same_Frame;
+			}
+			else if (FrameTypeRange.Same_Locals_1_Stack_Item_Frame.inRange(i))
+			{
+				frameTypeDispatchTable[i] =
+					FrameTypeRange.Same_Locals_1_Stack_Item_Frame;
+			}
+			else if (FrameTypeRange
+				.Same_Locals_1_Stack_Item_Frame_Extended.inRange(i))
+			{
+				frameTypeDispatchTable[i] =
+					FrameTypeRange.Same_Locals_1_Stack_Item_Frame_Extended;
+			}
+			else if (FrameTypeRange.Chop_Frame.inRange(i))
+			{
+				frameTypeDispatchTable[i] = FrameTypeRange.Chop_Frame;
+			}
+			else if (FrameTypeRange.Chop_Frame.inRange(i))
+			{
+				frameTypeDispatchTable[i] = FrameTypeRange.Chop_Frame;
+			}
+			else if (FrameTypeRange.Append_Frame.inRange(i))
+			{
+				frameTypeDispatchTable[i] = FrameTypeRange.Append_Frame;
+			}
+			else if (FrameTypeRange.Full_Frame.inRange(i))
+			{
+				frameTypeDispatchTable[i] = FrameTypeRange.Full_Frame;
+			}
+			else
+			{
+				frameTypeDispatchTable[i] = FrameTypeRange.Not_Used;
+			}
+		}
+
+	}
+
+	/**
 	 * The {@link FrameType} indicates the structural makeup of the
 	 * {@link StackMapFrame}.
 	 *
 	 * @author Rich Arriaga &lt;rich@availlang.org&gt;
 	 */
-	abstract class FrameType
+	abstract static class FrameType
 	{
 		/**
 		 * The frame value indicates the frame type of the {@link StackMapFrame}
@@ -257,6 +286,24 @@ public class StackMapFrame
 		 * @return
 		 */
 		abstract short deltaOffset();
+
+		/**
+		 * Answer the size of the {@linkplain FrameType}.
+		 *
+		 * @return The size of the frame.
+		 */
+		protected abstract int size ();
+
+		/**
+		 * Write the {@linkplain FrameType}'s contents to the specified
+		 * {@linkplain DataOutput binary stream}.
+		 *
+		 * @param out
+		 *        A binary output stream.
+		 * @throws IOException
+		 *         If the operation fails.
+		 */
+		abstract void writeTo (final DataOutput out) throws IOException;
 
 	    /**
 	     * Construct a new {@link FrameType}.
@@ -282,7 +329,7 @@ public class StackMapFrame
 	 *
 	 * @author Rich Arriaga &lt;rich@availlang.org&gt;
 	 */
-	class SameFrame extends FrameType
+	static class SameFrame extends FrameType
 	{
 		/**
 		 * Construct a new {@link SameFrame}.
@@ -298,6 +345,18 @@ public class StackMapFrame
 		short deltaOffset ()
 		{
 			return frameValue;
+		}
+
+		@Override
+		void writeTo (final DataOutput out) throws IOException
+		{
+			out.writeByte(frameValue);
+		}
+
+		@Override
+		protected int size ()
+		{
+			return 1;
 		}
 	}
 
@@ -315,7 +374,7 @@ public class StackMapFrame
 	 *
 	 * @author Rich Arriaga &lt;rich@availlang.org&gt;
 	 */
-	class SameLocals1StackItemFrame extends FrameType
+	static class SameLocals1StackItemFrame extends FrameType
 	{
 		/**
 		 * The {@link List} of {@link VerificationTypeInfo stack operands} of
@@ -351,6 +410,27 @@ public class StackMapFrame
 			return stack;
 		}
 
+		@Override
+		void writeTo (final DataOutput out) throws IOException
+		{
+			out.writeByte(frameValue);
+			for (int i = 0; i < stack.size(); i++)
+			{
+				stack.get(i).writeTo(out);
+			}
+		}
+
+		@Override
+		protected int size ()
+		{
+			int mySize = 1;
+			for (int i = 0; i < stack.size(); i++)
+			{
+				mySize = mySize + stack.get(i).size();
+			}
+			return mySize;
+		}
+
 	}
 	/**
 	 * Per the JVM specification:</br>
@@ -365,7 +445,7 @@ public class StackMapFrame
 	 * </i>
 	 * @author Rich Arriaga &lt;rich@availlang.org&gt;
 	 */
-	class SameLocals1StackItemFrameExtended extends FrameType
+	static class SameLocals1StackItemFrameExtended extends FrameType
 	{
 		/**
 		 * The {@link List} of {@link VerificationTypeInfo stack operands} of
@@ -409,6 +489,27 @@ public class StackMapFrame
 			return stack;
 		}
 
+		@Override
+		void writeTo (final DataOutput out) throws IOException
+		{
+			out.writeByte(frameValue);
+			out.writeByte(explicitDeltaOffset);
+			for (int i = 0; i < stack.size(); i++)
+			{
+				stack.get(i).writeTo(out);
+			}
+		}
+
+		@Override
+		protected int size ()
+		{
+			int mySize = 3;
+			for (int i = 0; i < stack.size(); i++)
+			{
+				mySize = mySize + stack.get(i).size();
+			}
+			return mySize;
+		}
 	}
 	/**
 	 * Per the JVM specification:</br>
@@ -423,7 +524,7 @@ public class StackMapFrame
 	 *
 	 * @author Rich Arriaga &lt;rich@availlang.org&gt;
 	 */
-	class ChopFrame extends FrameType
+	static class ChopFrame extends FrameType
 	{
 		/**
 		 * The bytecode offset at which the {@link StackMapFrame} applies.
@@ -448,6 +549,18 @@ public class StackMapFrame
 			return explicitDeltaOffset;
 		}
 
+		@Override
+		void writeTo (final DataOutput out) throws IOException
+		{
+			out.writeByte(frameValue);
+			out.writeByte(explicitDeltaOffset);
+		}
+
+		@Override
+		protected int size ()
+		{
+			return 3;
+		}
 	}
 
 	/**
@@ -462,7 +575,7 @@ public class StackMapFrame
 	 *
 	 * @author Rich Arriaga &lt;rich@availlang.org&gt;
 	 */
-	class SameFrameExtended extends FrameType
+	static class SameFrameExtended extends FrameType
 	{
 		/**
 		 * The bytecode offset at which the {@link StackMapFrame} applies.
@@ -487,6 +600,18 @@ public class StackMapFrame
 			return explicitDeltaOffset;
 		}
 
+		@Override
+		void writeTo (final DataOutput out) throws IOException
+		{
+			out.writeByte(frameValue);
+			out.writeByte(explicitDeltaOffset);
+		}
+
+		@Override
+		protected int size ()
+		{
+			return 3;
+		}
 	}
 
 	/**
@@ -502,7 +627,7 @@ public class StackMapFrame
 	 *
 	 * @author Rich Arriaga &lt;rich@availlang.org&gt;
 	 */
-	class AppendFrame extends FrameType
+	static class AppendFrame extends FrameType
 	{
 		/**
 		 * The {@link List} of local {@link VerificationTypeInfo verification
@@ -516,21 +641,18 @@ public class StackMapFrame
 		 *
 		 * <ul><li><code>locals[M+1]</code> represents local variable N+1 if
 		 * <code>locals[M]</code> is one of
-		 * {@link VerificationTypeInfo#Top_Variable <code>Top_variable_info},
-		 * {@link VerificationTypeInfo#Integer_Variable Integer_variable_info},
-		 * {@link VerificationTypeInfo#Float_Variable Float_variable_info},
-		 * {@link VerificationTypeInfo#Null_Variable Null_variable_info},
-		 * {@link VerificationTypeInfo#UninitializedThis_Variable
-		 * UninitializedThis_variable_info}, {@link
-		 * VerificationTypeInfo#Object_Variable Object_variable_info},</code> or
-		 * {@link VerificationTypeInfo#Uninitialized_Variable
+		 * {@link TopVariable <code>Top_variable_info},
+		 * {@link IntegerVariable Integer_variable_info},
+		 * {@link FloatVariable Float_variable_info},
+		 * {@link NullVariable Null_variable_info},
+		 * {@link UninitializedThisVariable UninitializedThis_variable_info},
+		 * {@link ObjectVariable Object_variable_info},</code> or
+		 * {@link UninitializedVariable
 		 * <code>Uninitialized_variable_info</code>}</li></br>
 		 * <li><code>locals[M+1]</code> represents local variable
 		 * <code>N+2</code> if <code>locals[M]</code> is either
-		 * {@link VerificationTypeInfo#Long_Variable
-		 * <code>Long_variable_info</code>} or {@link
-		 * VerificationTypeInfo#Double_Variable
-		 * <code>Double_variable_info</code>}.</li></ul>
+		 * {@link LongVariable <code>Long_variable_info</code>} or
+		 * {@link DoubleVariable <code>Double_variable_info</code>}.</li></ul>
 		 */
 		private final List<VerificationTypeInfo> locals;
 
@@ -570,6 +692,27 @@ public class StackMapFrame
 			return locals;
 		}
 
+		@Override
+		void writeTo (final DataOutput out) throws IOException
+		{
+			out.writeByte(frameValue);
+			out.writeByte(explicitDeltaOffset);
+			for (int i = 0; i < locals.size(); i++)
+			{
+				locals.get(i).writeTo(out);
+			}
+		}
+
+		@Override
+		protected int size ()
+		{
+			int mySize = 3;
+			for (int i = 0; i < locals.size(); i++)
+			{
+				mySize = mySize + locals.get(i).size();
+			}
+			return mySize;
+		}
 	}
 
 	/**
@@ -581,7 +724,7 @@ public class StackMapFrame
 	 *
 	 * @author Rich Arriaga &lt;rich@availlang.org&gt;
 	 */
-	class FullFrame extends FrameType
+	static class FullFrame extends FrameType
 	{
 		/**
 		 * The {@link List} of local {@link VerificationTypeInfo verification
@@ -594,21 +737,18 @@ public class StackMapFrame
 		 *
 		 * <ul><li><code>locals[M+1]</code> represents local variable N+1 if
 		 * <code>locals[M]</code> is one of
-		 * {@link VerificationTypeInfo#Top_Variable <code>Top_variable_info},
-		 * {@link VerificationTypeInfo#Integer_Variable Integer_variable_info},
-		 * {@link VerificationTypeInfo#Float_Variable Float_variable_info},
-		 * {@link VerificationTypeInfo#Null_Variable Null_variable_info},
-		 * {@link VerificationTypeInfo#UninitializedThis_Variable
-		 * UninitializedThis_variable_info}, {@link
-		 * VerificationTypeInfo#Object_Variable Object_variable_info},</code> or
-		 * {@link VerificationTypeInfo#Uninitialized_Variable
+		 * {@link TopVariable <code>Top_variable_info},
+		 * {@link IntegerVariable Integer_variable_info},
+		 * {@link FloatVariable Float_variable_info},
+		 * {@link NullVariable Null_variable_info},
+		 * {@link UninitializedThisVariable UninitializedThis_variable_info},
+		 * {@link ObjectVariable Object_variable_info},</code> or
+		 * {@link UninitializedVariable
 		 * <code>Uninitialized_variable_info</code>}</li></br>
 		 * <li><code>locals[M+1]</code> represents local variable
 		 * <code>N+2</code> if <code>locals[M]</code> is either
-		 * {@link VerificationTypeInfo#Long_Variable
-		 * <code>Long_variable_info</code>} or {@link
-		 * VerificationTypeInfo#Double_Variable
-		 * <code>Double_variable_info</code>}.</li></ul>
+		 * {@link LongVariable <code>Long_variable_info</code>} or
+		 * {@link DoubleVariable <code>Double_variable_info</code>}.</li></ul>
 		 */
 		private final List<VerificationTypeInfo> locals;
 
@@ -627,21 +767,18 @@ public class StackMapFrame
 		 *
 		 * <ul><li><code>stack[M+1]</code> represents local variable N+1 if
 		 * <code>stack[M]</code> is one of
-		 * {@link VerificationTypeInfo#Top_Variable <code>Top_variable_info},
-		 * {@link VerificationTypeInfo#Integer_Variable Integer_variable_info},
-		 * {@link VerificationTypeInfo#Float_Variable Float_variable_info},
-		 * {@link VerificationTypeInfo#Null_Variable Null_variable_info},
-		 * {@link VerificationTypeInfo#UninitializedThis_Variable
-		 * UninitializedThis_variable_info}, {@link
-		 * VerificationTypeInfo#Object_Variable Object_variable_info},</code> or
-		 * {@link VerificationTypeInfo#Uninitialized_Variable
+		 * {@link TopVariable <code>Top_variable_info},
+		 * {@link IntegerVariable Integer_variable_info},
+		 * {@link FloatVariable Float_variable_info},
+		 * {@link NullVariable Null_variable_info},
+		 * {@link UninitializedThisVariable UninitializedThis_variable_info},
+		 * {@link ObjectVariable Object_variable_info},</code> or
+		 * {@link UninitializedVariable
 		 * <code>Uninitialized_variable_info</code>}</li></br>
 		 * <li><code>stack[M+1]</code> represents local variable
 		 * <code>N+2</code> if <code>stack[M]</code> is either
-		 * {@link VerificationTypeInfo#Long_Variable
-		 * <code>Long_variable_info</code>} or {@link
-		 * VerificationTypeInfo#Double_Variable
-		 * <code>Double_variable_info</code>}.</li></ul>
+		 * {@link LongVariable <code>Long_variable_info</code>} or
+		 * {@link DoubleVariable <code>Double_variable_info</code>}.</li></ul>
 		 */
 		private final List<VerificationTypeInfo> stack;
 
@@ -703,21 +840,93 @@ public class StackMapFrame
 			return locals;
 		}
 
-		/**
-		 * @return the numberOfLocals
-		 */
-		public short numberOfLocals ()
+		@Override
+		void writeTo (final DataOutput out) throws IOException
 		{
-			return numberOfLocals;
+			out.writeByte(frameValue);
+			out.writeByte(explicitDeltaOffset);
+			out.writeByte(numberOfLocals);
+			for (int i = 0; i < locals.size(); i++)
+			{
+				locals.get(i).writeTo(out);
+			}
+			out.writeByte(numberOfStackItems);
+			for (int i = 0; i < stack.size(); i++)
+			{
+				stack.get(i).writeTo(out);
+			}
 		}
 
-		/**
-		 * @return the numberOfStackItems
-		 */
-		public short numberOfStackItems ()
+		@Override
+		protected int size ()
 		{
-			return numberOfStackItems;
-		}
+			int mySize = 3;
 
+			for (int i = 0; i < stack.size(); i++)
+			{
+				mySize = mySize + stack.get(i).size();
+			}
+
+			for (int i = 0; i < locals.size(); i++)
+			{
+				mySize = mySize + locals.get(i).size();
+			}
+			return mySize;
+		}
+	}
+
+	/**
+	 * The body of the {@link StackMapFrame}.
+	 */
+	private FrameType frame;
+
+	/**
+	 * Answer the size of the {@linkplain StackMapFrame}.
+	 *
+	 * @return The size of the {@link StackMapFrame}.
+	 */
+	public int size ()
+	{
+		return frame.size();
+	}
+
+	/**
+	 * Write the {@linkplain FrameType}'s contents to the specified
+	 * {@linkplain DataOutput binary stream}.
+	 *
+	 * @param out
+	 *        A binary output stream.
+	 * @throws IOException
+	 *         If the operation fails.
+	 */
+	void writeTo (final DataOutput out) throws IOException
+	{
+		frame.writeTo(out);
+	}
+
+	/**
+	 * Construct a new {@link StackMapFrame}.
+	 * @param frameTypeValue
+	 * 		The value of the {@link FrameTypeRange}
+	 * @param stack
+	 * 		The {@link List} of {@link VerificationTypeInfo} representing the
+	 * 		the operand stack.
+	 * @param locals
+	 * 		The {@link List} of {@link VerificationTypeInfo} representing the
+	 * 		the local variables.
+	 * @param explicitDeltaOffset
+	 * 		the {@link JavaBytecode bytecode} offset at which the stack
+	 * 		map frame applies.
+	 * @throws JVMCodeGenerationException
+	 *
+	 */
+	@SuppressWarnings("null")
+	public StackMapFrame (final byte frameTypeValue,
+		final List<VerificationTypeInfo> stack,
+		final List<VerificationTypeInfo> locals,
+		final short explicitDeltaOffset) throws JVMCodeGenerationException
+	{
+		frameTypeDispatchTable[frameTypeValue]
+			.createFrameType(frameTypeValue, stack, locals, explicitDeltaOffset);
 	}
 }

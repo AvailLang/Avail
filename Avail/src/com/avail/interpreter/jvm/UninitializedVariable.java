@@ -1,5 +1,5 @@
 /**
- * StackMapTableAttribute.java
+ * UninitializedVariable.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,63 +32,37 @@
 
 package com.avail.interpreter.jvm;
 
-import java.io.DataOutput;
-import java.io.IOException;
-import java.util.List;
-
 /**
- * The StackMapTable attribute is a variable-length attribute in the attributes
- * table of a {@link CodeAttribute}.  There may be at most one StackMapTable
- * attribute in the attributes table of a Code attribute.
+ * The {@link VerificationTypeInfo
+ * <code>Uninitialized_variable_info</code>} item indicates that
+ * the location has the verification type
+ * <code>uninitialized(Offset)</code>. The <code>Offset</code> item
+ * indicates the offset, in the <code>code</code> array of the
+ * <code>Code</code> attribute that contains this {@link
+ * StackMapTableAttribute}, of the <code>new</code> instruction that
+ * created the object being stored in the location.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
- *  @see <a
- *     href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.4">
- *     The <code>StackMapTable</code> Attribute</a>
  */
-public class StackMapTableAttribute extends Attribute
+public class UninitializedVariable extends VerificationTypeInfo
 {
-	/** The name of the {@link StackMapTableAttribute attribute}. */
-	static final String name = "StackMapTable";
-
-	@Override
-	public String name ()
-	{
-		return name;
-	}
-
-	/** The list of {@linkplain StackMapFrame stack map frames}. */
-	private final List<StackMapFrame> stackMapFrames;
-
 	/**
-	 * Construct a new {@link StackMapTableAttribute}.
-	 * @param stackMapFrames
+	 * Construct a new {@link IntegerVariable}.
 	 *
 	 */
-	public StackMapTableAttribute (final List<StackMapFrame> stackMapFrames)
+	UninitializedVariable()
 	{
-		this.stackMapFrames = stackMapFrames;
+
 	}
 
 	@Override
 	protected int size ()
 	{
-		int mySize = 2;
-		for (int i = 0; i < stackMapFrames.size(); i++)
-		{
-			mySize = mySize + stackMapFrames.get(i).size();
-		}
-		return mySize;
+		return 1;
 	}
-
 	@Override
-	public void writeBodyTo (final DataOutput out) throws IOException
+	byte typeValue ()
 	{
-		out.writeShort((short)stackMapFrames.size());
-
-		for (int i = 0; i < stackMapFrames.size(); i++)
-		{
-			stackMapFrames.get(i).writeTo(out);
-		}
+		return 6;
 	}
 }
