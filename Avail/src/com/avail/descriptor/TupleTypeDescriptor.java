@@ -38,6 +38,7 @@ import static java.lang.Math.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A tuple type can be the {@linkplain AvailObject#kind() type} of a {@linkplain
@@ -544,6 +545,36 @@ extends TypeDescriptor
 			object.makeShared();
 		}
 		return object;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("tuple type");
+		writer.write("leading types");
+		object.slot(TYPE_TUPLE).writeTo(writer);
+		writer.write("default type");
+		object.slot(DEFAULT_TYPE).writeTo(writer);
+		writer.write("cardinality");
+		object.slot(SIZE_RANGE).writeTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("tuple type");
+		writer.write("leading types");
+		object.slot(TYPE_TUPLE).writeSummaryTo(writer);
+		writer.write("default type");
+		object.slot(DEFAULT_TYPE).writeSummaryTo(writer);
+		writer.write("cardinality");
+		object.slot(SIZE_RANGE).writeSummaryTo(writer);
+		writer.endObject();
 	}
 
 	/**

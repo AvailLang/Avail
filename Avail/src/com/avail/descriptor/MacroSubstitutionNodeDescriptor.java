@@ -39,6 +39,7 @@ import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.utility.evaluation.*;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A {@linkplain MacroSubstitutionNodeDescriptor macro substitution node}
@@ -198,6 +199,19 @@ extends ParseNodeDescriptor
 	AvailObject o_StripMacro (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE);
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("macro substitution phrase");
+		writer.write("macro name");
+		object.slot(MACRO_NAME).writeTo(writer);
+		writer.write("output phrase");
+		object.slot(OUTPUT_PARSE_NODE).writeTo(writer);
+		writer.endObject();
 	}
 
 	/**

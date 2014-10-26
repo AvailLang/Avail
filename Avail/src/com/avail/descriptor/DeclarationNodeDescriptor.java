@@ -43,6 +43,7 @@ import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.utility.evaluation.*;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * My instances represent variable and constant statements.  There are several
@@ -749,6 +750,31 @@ extends ParseNodeDescriptor
 		return object.declarationKind().parseNodeKind();
 	}
 
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write(object.declarationKind().kindName() + " phrase");
+		writer.write("token");
+		object.slot(TOKEN).writeTo(writer);
+		writer.write("declared type");
+		object.slot(DECLARED_TYPE).writeTo(writer);
+		final AvailObject initializationExpression =
+			object.slot(INITIALIZATION_EXPRESSION);
+		if (!initializationExpression.equalsNil())
+		{
+			writer.write("initialization expression");
+			initializationExpression.writeTo(writer);
+		}
+		final AvailObject literal = object.slot(LITERAL_OBJECT);
+		if (!literal.equalsNil())
+		{
+			writer.write("literal");
+			literal.writeTo(writer);
+		}
+		writer.endObject();
+	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (

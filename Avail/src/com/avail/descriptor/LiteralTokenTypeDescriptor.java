@@ -37,6 +37,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * I represent the type of some {@link LiteralTokenDescriptor literal tokens}.
@@ -194,6 +195,17 @@ extends TypeDescriptor
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.LITERAL_TOKEN_TYPE;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("literal token type");
+		writer.write("literal type");
+		object.slot(LITERAL_TYPE).writeTo(writer);
+		writer.endObject();
 	}
 
 	/**

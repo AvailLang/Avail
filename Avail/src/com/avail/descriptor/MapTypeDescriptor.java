@@ -37,6 +37,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * An object instance of {@code MapTypeDescriptor} is a type which maps may
@@ -287,6 +288,36 @@ extends TypeDescriptor
 			return object.makeShared();
 		}
 		return object;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("map type");
+		writer.write("key type");
+		object.slot(KEY_TYPE).writeTo(writer);
+		writer.write("value type");
+		object.slot(VALUE_TYPE).writeTo(writer);
+		writer.write("cardinality");
+		object.slot(SIZE_RANGE).writeTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("map type");
+		writer.write("key type");
+		object.slot(KEY_TYPE).writeSummaryTo(writer);
+		writer.write("value type");
+		object.slot(VALUE_TYPE).writeSummaryTo(writer);
+		writer.write("cardinality");
+		object.slot(SIZE_RANGE).writeTo(writer);
+		writer.endObject();
 	}
 
 	/**

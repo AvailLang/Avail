@@ -39,6 +39,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 import static java.lang.Math.min;
 import java.nio.ByteBuffer;
 import com.avail.annotations.*;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * {@code ByteBufferTupleDescriptor} represents a tuple of integers that happen
@@ -508,6 +509,20 @@ extends TupleDescriptor
 			startIndex,
 			endIndex,
 			type);
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		final ByteBuffer buffer =
+			(ByteBuffer) object.slot(BYTE_BUFFER).javaObject();
+		assert buffer != null;
+		writer.startArray();
+		for (int i = 0; i < buffer.limit(); i++)
+		{
+			writer.write(buffer.get(i));
+		}
+		writer.endArray();
 	}
 
 	/**

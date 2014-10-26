@@ -44,6 +44,7 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.utility.evaluation.*;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * My instances represent occurrences of blocks (functions) encountered in code.
@@ -331,6 +332,54 @@ extends ParseNodeDescriptor
 			object.resultType(),
 			object.declaredExceptions(),
 			object.slot(STARTING_LINE_NUMBER));
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("block phrase");
+		final int primitive = object.slot(PRIMITIVE);
+		writer.write("primitive");
+		writer.write(primitive);
+		writer.write("starting line");
+		writer.write(object.slot(STARTING_LINE_NUMBER));
+		writer.write("arguments");
+		object.slot(ARGUMENTS_TUPLE).writeTo(writer);
+		writer.write("statements");
+		object.slot(STATEMENTS_TUPLE).writeTo(writer);
+		writer.write("result type");
+		object.slot(RESULT_TYPE).writeTo(writer);
+		writer.write("needed variables");
+		object.slot(NEEDED_VARIABLES).writeTo(writer);
+		writer.write("declared exceptions");
+		object.slot(DECLARED_EXCEPTIONS).writeTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("block phrase");
+		final int primitive = object.slot(PRIMITIVE);
+		writer.write("primitive");
+		writer.write(primitive);
+		writer.write("starting line");
+		writer.write(object.slot(STARTING_LINE_NUMBER));
+		writer.write("arguments");
+		object.slot(ARGUMENTS_TUPLE).writeSummaryTo(writer);
+		writer.write("statements");
+		object.slot(STATEMENTS_TUPLE).writeSummaryTo(writer);
+		writer.write("result type");
+		object.slot(RESULT_TYPE).writeSummaryTo(writer);
+		writer.write("needed variables");
+		object.slot(NEEDED_VARIABLES).writeSummaryTo(writer);
+		writer.write("declared exceptions");
+		object.slot(DECLARED_EXCEPTIONS).writeSummaryTo(writer);
+		writer.endObject();
 	}
 
 	/**

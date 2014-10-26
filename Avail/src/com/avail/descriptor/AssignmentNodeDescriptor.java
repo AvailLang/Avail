@@ -42,6 +42,7 @@ import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.utility.evaluation.*;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * My instances represent assignment statements.
@@ -231,6 +232,32 @@ extends ParseNodeDescriptor
 	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return ParseNodeKind.ASSIGNMENT_NODE;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("assignment phrase");
+		writer.write("target");
+		object.slot(VARIABLE).writeTo(writer);
+		writer.write("expression");
+		object.slot(EXPRESSION).writeTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("assignment phrase");
+		writer.write("target");
+		object.slot(VARIABLE).writeSummaryTo(writer);
+		writer.write("expression");
+		object.slot(EXPRESSION).writeSummaryTo(writer);
+		writer.endObject();
 	}
 
 	/**

@@ -36,6 +36,7 @@ import static com.avail.descriptor.ObjectTypeDescriptor.ObjectSlots.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * {@code ObjectTypeDescriptor} represents an Avail object type. An object type
@@ -357,6 +358,36 @@ extends TypeDescriptor
 			return object.makeShared();
 		}
 		return object;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("object type");
+		for (final MapDescriptor.Entry entry :
+			object.slot(FIELD_TYPE_MAP).mapIterable())
+		{
+			entry.key().atomName().writeTo(writer);
+			entry.value().writeTo(writer);
+		}
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("object type");
+		for (final MapDescriptor.Entry entry :
+			object.slot(FIELD_TYPE_MAP).mapIterable())
+		{
+			entry.key().atomName().writeTo(writer);
+			entry.value().writeSummaryTo(writer);
+		}
+		writer.endObject();
 	}
 
 	/**

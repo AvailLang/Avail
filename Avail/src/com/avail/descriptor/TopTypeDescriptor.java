@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.*;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * {@code TopTypeDescriptor} implements the type of {@linkplain
@@ -120,6 +121,15 @@ extends PrimitiveTypeDescriptor
 	boolean o_IsTop (final AvailObject object)
 	{
 		return true;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("top type");
+		writer.endObject();
 	}
 
 	/**

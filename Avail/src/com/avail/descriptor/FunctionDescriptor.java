@@ -44,6 +44,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.primitive.P_340_PushConstant;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A function associates {@linkplain CompiledCodeDescriptor compiled code} with
@@ -243,6 +244,47 @@ extends Descriptor
 	{
 		return true;
 	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("function");
+		writer.write("function implementation");
+		object.slot(CODE).writeTo(writer);
+		writer.write("outers");
+		writer.startArray();
+		for (int i = 1, limit = object.variableObjectSlotsCount();
+			i <= limit;
+			i++)
+		{
+			object.slot(OUTER_VAR_AT_, i).writeSummaryTo(writer);
+		}
+		writer.endArray();
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("function");
+		writer.write("function implementation");
+		object.slot(CODE).writeSummaryTo(writer);
+		writer.write("outers");
+		writer.startArray();
+		for (int i = 1, limit = object.variableObjectSlotsCount();
+			i <= limit;
+			i++)
+		{
+			object.slot(OUTER_VAR_AT_, i).writeSummaryTo(writer);
+		}
+		writer.endArray();
+		writer.endObject();
+	}
+
 
 	/**
 	 * Create a function that takes arguments of the specified types, then turns

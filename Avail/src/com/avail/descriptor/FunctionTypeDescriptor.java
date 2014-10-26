@@ -38,6 +38,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * Function types are the types of {@linkplain FunctionDescriptor functions}.
@@ -553,6 +554,36 @@ extends TypeDescriptor
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.FUNCTION_TYPE;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("function type");
+		writer.write("arguments type");
+		object.slot(ARGS_TUPLE_TYPE).writeTo(writer);
+		writer.write("return type");
+		object.slot(RETURN_TYPE).writeTo(writer);
+		writer.write("declared exceptions");
+		object.slot(DECLARED_EXCEPTIONS).writeTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("function type");
+		writer.write("arguments type");
+		object.slot(ARGS_TUPLE_TYPE).writeSummaryTo(writer);
+		writer.write("return type");
+		object.slot(RETURN_TYPE).writeSummaryTo(writer);
+		writer.write("declared exceptions");
+		object.slot(DECLARED_EXCEPTIONS).writeSummaryTo(writer);
+		writer.endObject();
 	}
 
 	/**
