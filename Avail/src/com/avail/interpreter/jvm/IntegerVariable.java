@@ -33,28 +33,20 @@
 package com.avail.interpreter.jvm;
 
 /**
- *  The {@link VerificationTypeInfo <code>Integer_variable_info</code>}
- * item indicates that the location has the verification type
- * <code>int</code>.
+ * The {@link IntegerVariable Integer_variable_info} item indicates that
+ * the location has the verification type {@code int}.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-public class IntegerVariable extends VerificationTypeInfo
+public class IntegerVariable
+extends VerificationTypeInfo
 {
-	/**
-	 * Construct a new {@link IntegerVariable}.
-	 *
-	 */
-	IntegerVariable()
-	{
-
-	}
-
 	@Override
 	protected int size ()
 	{
 		return 1;
 	}
+
 	@Override
 	byte typeValue ()
 	{

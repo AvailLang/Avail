@@ -33,22 +33,14 @@
 package com.avail.interpreter.jvm;
 
 /**
- * The {@link VerificationTypeInfo <code>Top_variable_info</code>} item
- * indicates that the local variable has the verification type <code>top</code>.
+ * The {@link TopVariable Top_variable_info} item indicates that the local
+ * variable has the verification type {@code top}.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-public class TopVariable extends VerificationTypeInfo
+public class TopVariable
+extends VerificationTypeInfo
 {
-	/**
-	 * Construct a new {@link TopVariable}.
-	 *
-	 */
-	TopVariable()
-	{
-
-	}
-
 	@Override
 	protected int size ()
 	{

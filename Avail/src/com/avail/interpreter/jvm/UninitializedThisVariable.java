@@ -33,33 +33,24 @@
 package com.avail.interpreter.jvm;
 
 /**
- * The {@link VerificationTypeInfo
- * <code>Uninitialized_variable_info</code>} item indicates that
- * the location has the verification type
- * <code>uninitialized(Offset)</code>. The <code>Offset</code> item
- * indicates the offset, in the <code>code</code> array of the
- * <code>Code</code> attribute that contains this {@link
- * StackMapTableAttribute}, of the <code>new</code> instruction that
- * created the object being stored in the location.
+ * The {@link UninitializedThisVariable Uninitialized_variable_info} item
+ * indicates that the location has the verification type
+ * {@code uninitialized(Offset)}. The {@code Offset} item indicates the offset,
+ * in the {@code code} array of the {@link CodeAttribute} that contains this
+ * {@link StackMapTableAttribute}, of the {@link JavaBytecode#new_ new}
+ * instruction that created the object being stored in the location.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-public class UninitializedThisVariable extends VerificationTypeInfo
+public class UninitializedThisVariable
+extends VerificationTypeInfo
 {
-	/**
-	 * Construct a new {@link IntegerVariable}.
-	 *
-	 */
-	UninitializedThisVariable()
-	{
-
-	}
-
 	@Override
 	protected int size ()
 	{
 		return 1;
 	}
+
 	@Override
 	byte typeValue ()
 	{

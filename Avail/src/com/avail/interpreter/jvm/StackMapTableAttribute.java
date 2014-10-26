@@ -37,16 +37,18 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * The StackMapTable attribute is a variable-length attribute in the attributes
- * table of a {@link CodeAttribute}.  There may be at most one StackMapTable
- * attribute in the attributes table of a Code attribute.
+ * The {@code StackMapTable} attribute is a variable-length attribute in the
+ * {@linkplain Attribute attributes table} of a {@link CodeAttribute}. There may
+ * be at most one {@code StackMapTable} attribute in the attributes table of a
+ * {@code Code} attribute.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
- *  @see <a
+ * @see <a
  *     href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.4">
  *     The <code>StackMapTable</code> Attribute</a>
  */
-public class StackMapTableAttribute extends Attribute
+public class StackMapTableAttribute
+extends Attribute
 {
 	/** The name of the {@link StackMapTableAttribute attribute}. */
 	static final String name = "StackMapTable";
@@ -62,8 +64,9 @@ public class StackMapTableAttribute extends Attribute
 
 	/**
 	 * Construct a new {@link StackMapTableAttribute}.
-	 * @param stackMapFrames
 	 *
+	 * @param stackMapFrames
+	 *        The list of {@linkplain StackMapFrame stack map frames}.s
 	 */
 	public StackMapTableAttribute (final List<StackMapFrame> stackMapFrames)
 	{

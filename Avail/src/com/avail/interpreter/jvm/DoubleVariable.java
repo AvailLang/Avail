@@ -33,29 +33,22 @@
 package com.avail.interpreter.jvm;
 
 /**
- * The {@link VerificationTypeInfo <code>Double_variable_info</code>}
- * item indicates that the location has the verification type
- * <code>double</code>. The <code>Double_variable_info</code> specifies
- * two locations in the local variable array or in the operand stack.
+ * The {@link DoubleVariable Double_variable_info} item indicates that the
+ * location has the verification type {@code double}. The {@code
+ * Double_variable_info} specifies two locations in the local variable array or
+ * in the operand stack.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-public class DoubleVariable extends VerificationTypeInfo
+public class DoubleVariable
+extends VerificationTypeInfo
 {
-	/**
-	 * Construct a new {@link IntegerVariable}.
-	 *
-	 */
-	DoubleVariable()
-	{
-
-	}
-
 	@Override
 	protected int size ()
 	{
 		return 1;
 	}
+
 	@Override
 	byte typeValue ()
 	{
