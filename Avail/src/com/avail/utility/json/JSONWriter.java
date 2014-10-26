@@ -610,20 +610,19 @@ implements AutoCloseable
 		final JSONState state = stack.removeFirst();
 		state.checkCanWriteAnyValue();
 		state.writePrologueTo(this);
-		if (Float.isFinite(value))
-		{
-			privateWrite(String.format("%g", value));
-		}
-		else if (Float.isInfinite(value))
+		if (Float.isInfinite(value))
 		{
 			privateWrite(value == Float.POSITIVE_INFINITY
 				? "Infinity"
 				: "-Infinity");
 		}
+		else if (Float.isNaN(value))
+		{
+			privateWrite("NaN");
+		}
 		else
 		{
-			assert Float.isNaN(value);
-			privateWrite("NaN");
+			privateWrite(String.format("%g", value));
 		}
 		stack.addFirst(state.nextStateAfterValue());
 	}
@@ -646,20 +645,19 @@ implements AutoCloseable
 		final JSONState state = stack.removeFirst();
 		state.checkCanWriteAnyValue();
 		state.writePrologueTo(this);
-		if (Double.isFinite(value))
-		{
-			privateWrite(String.format("%g", value));
-		}
-		else if (Double.isInfinite(value))
+		if (Double.isInfinite(value))
 		{
 			privateWrite(value == Double.POSITIVE_INFINITY
 				? "Infinity"
 				: "-Infinity");
 		}
+		else if (Double.isNaN(value))
+		{
+			privateWrite("NaN");
+		}
 		else
 		{
-			assert Double.isNaN(value);
-			privateWrite("NaN");
+			privateWrite(String.format("%g", value));
 		}
 		stack.addFirst(state.nextStateAfterValue());
 	}
