@@ -38,6 +38,7 @@ import java.lang.reflect.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.exceptions.*;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A {@code PojoFinalFieldDescriptor} is an Avail {@linkplain VariableDescriptor
@@ -147,6 +148,30 @@ extends Descriptor
 	AvailObject o_Value (final AvailObject object)
 	{
 		return object.slot(CACHED_VALUE);
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("variable");
+		writer.write("variable type");
+		object.kind().writeTo(writer);
+		writer.write("value");
+		object.value().writeSummaryTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("variable");
+		writer.write("variable type");
+		object.kind().writeSummaryTo(writer);
+		writer.endObject();
 	}
 
 	@Override

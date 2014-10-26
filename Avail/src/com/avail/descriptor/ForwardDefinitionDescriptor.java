@@ -37,6 +37,7 @@ import java.util.List;
 import com.avail.annotations.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * This is a forward declaration of a method.  An actual method must be defined
@@ -131,6 +132,36 @@ extends DefinitionDescriptor
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.FORWARD_DEFINITION;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("forward definition");
+		writer.write("definition method");
+		object.slot(DEFINITION_METHOD).methodName().writeTo(writer);
+		writer.write("definition module");
+		object.slot(MODULE).moduleName().writeTo(writer);
+		writer.write("body signature");
+		object.slot(BODY_SIGNATURE).writeTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("forward definition");
+		writer.write("definition method");
+		object.slot(DEFINITION_METHOD).methodName().writeTo(writer);
+		writer.write("definition module");
+		object.slot(MODULE).moduleName().writeTo(writer);
+		writer.write("body signature");
+		object.slot(BODY_SIGNATURE).writeSummaryTo(writer);
+		writer.endObject();
 	}
 
 	/**

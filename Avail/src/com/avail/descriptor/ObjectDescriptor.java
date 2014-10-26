@@ -36,7 +36,9 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ObjectDescriptor.ObjectSlots.*;
 import java.util.*;
 import com.avail.annotations.*;
+import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * Avail {@linkplain ObjectTypeDescriptor user-defined object types} are novel.
@@ -215,6 +217,40 @@ extends Descriptor
 	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
 	{
 		return false;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("object");
+		writer.write("map");
+		writer.startObject();
+		for (final Entry entry : object.slot(FIELD_MAP).mapIterable())
+		{
+			entry.key().atomName().writeTo(writer);
+			entry.value().writeTo(writer);
+		}
+		writer.endObject();
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("object");
+		writer.write("map");
+		writer.startObject();
+		for (final Entry entry : object.slot(FIELD_MAP).mapIterable())
+		{
+			entry.key().atomName().writeTo(writer);
+			entry.value().writeSummaryTo(writer);
+		}
+		writer.endObject();
+		writer.endObject();
 	}
 
 	@Override

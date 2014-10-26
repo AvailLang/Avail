@@ -46,6 +46,7 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.*;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
+import com.avail.utility.json.JSONWriter;
 import com.avail.utility.*;
 
 /**
@@ -1005,6 +1006,13 @@ extends Descriptor
 		return object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
 	}
 
+	@Override
+	A_String o_MethodName (final AvailObject object)
+	{
+		return object.slot(
+			OWNING_BUNDLES).iterator().next().message().atomName();
+	}
+
 	@Override @AvailMethod
 	void o_MethodAddBundle (final AvailObject object, final A_Bundle bundle)
 	{
@@ -1446,6 +1454,32 @@ extends Descriptor
 	A_Set o_Bundles (final AvailObject object)
 	{
 		return object.slot(OWNING_BUNDLES);
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("method");
+		writer.write("aliases");
+		object.slot(OWNING_BUNDLES).writeTo(writer);
+		writer.write("definitions");
+		object.slot(DEFINITIONS_TUPLE).writeTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("method");
+		writer.write("aliases");
+		object.slot(OWNING_BUNDLES).writeSummaryTo(writer);
+		writer.write("definitions");
+		object.slot(DEFINITIONS_TUPLE).writeSummaryTo(writer);
+		writer.endObject();
 	}
 
 	@Override @AvailMethod @ThreadSafe

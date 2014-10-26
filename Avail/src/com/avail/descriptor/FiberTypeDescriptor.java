@@ -38,6 +38,7 @@ import java.util.List;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * {@code FiberTypeDescriptor} represents the type of a {@linkplain
@@ -170,6 +171,28 @@ extends TypeDescriptor
 			return object.makeShared();
 		}
 		return object;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("fiber type");
+		writer.write("result type");
+		object.slot(RESULT_TYPE).writeTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("fiber type");
+		writer.write("result type");
+		object.slot(RESULT_TYPE).writeSummaryTo(writer);
+		writer.endObject();
 	}
 
 	@Override

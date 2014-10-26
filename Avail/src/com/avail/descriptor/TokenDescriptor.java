@@ -39,6 +39,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import com.avail.annotations.*;
 import com.avail.descriptor.Descriptor;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 
 /**
@@ -278,6 +279,25 @@ extends Descriptor
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.TOKEN;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("token");
+		writer.write("start");
+		writer.write(object.slot(START));
+		writer.write("line number");
+		writer.write(object.slot(LINE_NUMBER));
+		writer.write("lexeme");
+		object.slot(STRING).writeTo(writer);
+		writer.write("leading whitespace");
+		object.slot(LEADING_WHITESPACE).writeTo(writer);
+		writer.write("trailing whitespace");
+		object.slot(TRAILING_WHITESPACE).writeTo(writer);
+		writer.endObject();
 	}
 
 	/**

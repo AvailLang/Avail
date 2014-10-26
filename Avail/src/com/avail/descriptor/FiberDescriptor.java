@@ -46,6 +46,7 @@ import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.utility.evaluation.*;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * An Avail {@linkplain FiberDescriptor fiber} represents an independently
@@ -1452,6 +1453,38 @@ extends Descriptor
 		final Primitive p =
 			Primitive.byPrimitiveNumberOrFail(primitiveNumber);
 		log(object, "%s", p.name());
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("fiber");
+		writer.write("fiber name");
+		object.mutableSlot(NAME).writeTo(writer);
+		writer.write("execution state");
+		writer.write(object.executionState().name().toLowerCase());
+		final AvailObject result = object.mutableSlot(RESULT);
+		if (!result.equalsNil())
+		{
+			writer.write("result");
+			result.writeSummaryTo(writer);
+		}
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("fiber");
+		writer.write("fiber name");
+		object.mutableSlot(NAME).writeTo(writer);
+		writer.write("execution state");
+		writer.write(object.executionState().name().toLowerCase());
+		writer.endObject();
 	}
 
 	/**

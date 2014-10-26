@@ -42,6 +42,7 @@ import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.utility.evaluation.*;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * My instances represent the use of some {@linkplain DeclarationNodeDescriptor
@@ -207,6 +208,32 @@ extends ParseNodeDescriptor
 	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return VARIABLE_USE_NODE;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("variable use phrase");
+		writer.write("token");
+		object.slot(USE_TOKEN).writeTo(writer);
+		writer.write("declaration");
+		object.slot(DECLARATION).writeTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("variable use phrase");
+		writer.write("token");
+		object.slot(USE_TOKEN).writeSummaryTo(writer);
+		writer.write("declaration");
+		object.slot(DECLARATION).writeSummaryTo(writer);
+		writer.endObject();
 	}
 
 	@Override

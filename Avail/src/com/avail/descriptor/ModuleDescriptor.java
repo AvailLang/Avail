@@ -43,6 +43,7 @@ import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.utility.evaluation.Continuation0;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A {@linkplain ModuleDescriptor module} is the mechanism by which Avail code
@@ -910,6 +911,21 @@ extends Descriptor
 				true);
 			object.setSlot(ALL_ANCESTORS, union.makeShared());
 		}
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("module");
+		writer.write("name");
+		object.slot(NAME).writeTo(writer);
+		writer.write("versions");
+		object.slot(VERSIONS).writeTo(writer);
+		writer.write("entry points");
+		object.entryPoints().writeTo(writer);
+		writer.endArray();
 	}
 
 	/**

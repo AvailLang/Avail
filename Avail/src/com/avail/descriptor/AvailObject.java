@@ -60,6 +60,7 @@ import com.avail.io.TextInterface;
 import com.avail.serialization.*;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
+import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.*;
 
 /**
@@ -6945,5 +6946,17 @@ implements
 	public void textInterface (final TextInterface textInterface)
 	{
 		descriptor.o_TextInterface(this, textInterface);
+	}
+
+	@Override
+	public void writeTo (final JSONWriter writer)
+	{
+		descriptor.o_WriteTo(this, writer);
+	}
+
+	@Override
+	public void writeSummaryTo (final JSONWriter writer)
+	{
+		descriptor.o_WriteSummaryTo(this, writer);
 	}
 }

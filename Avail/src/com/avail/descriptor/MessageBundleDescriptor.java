@@ -39,6 +39,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.compiler.MessageSplitter;
 import com.avail.exceptions.SignatureException;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A message bundle is how a message name is bound to a {@linkplain
@@ -119,7 +120,7 @@ extends Descriptor
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == GRAMMATICAL_RESTRICTIONS;
+		return e == METHOD || e == GRAMMATICAL_RESTRICTIONS;
 	}
 
 	@Override @AvailMethod
@@ -211,6 +212,17 @@ extends Descriptor
 	int o_Hash (final AvailObject object)
 	{
 		return object.message().hash() ^ 0x0312CAB9;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("message bundle");
+		writer.write("method");
+		object.slot(MESSAGE).atomName().writeTo(writer);
+		writer.endObject();
 	}
 
 	@Override @AvailMethod

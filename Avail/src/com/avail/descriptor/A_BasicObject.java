@@ -42,6 +42,8 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
+import com.avail.utility.json.JSONFriendly;
+import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
 
 /**
@@ -62,6 +64,7 @@ import com.avail.utility.visitor.AvailSubobjectVisitor;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public interface A_BasicObject
+extends JSONFriendly
 {
 	/**
 	 * Answer the object's {@linkplain AbstractDescriptor descriptor}.
@@ -1149,4 +1152,9 @@ public interface A_BasicObject
 	 * @return
 	 */
 	boolean isInitializedWriteOnceVariable ();
+
+	/**
+	 * @param writer
+	 */
+	void writeSummaryTo (JSONWriter writer);
 }

@@ -42,6 +42,7 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.SignatureException;
 import com.avail.utility.evaluation.*;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * My instances represent invocations of multi-methods in Avail code.
@@ -207,6 +208,36 @@ extends ParseNodeDescriptor
 	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return SEND_NODE;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("send phrase");
+		writer.write("arguments");
+		object.slot(ARGUMENTS_LIST_NODE).writeTo(writer);
+		writer.write("bundle");
+		object.slot(BUNDLE).writeTo(writer);
+		writer.write("return type");
+		object.slot(RETURN_TYPE).writeTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("send phrase");
+		writer.write("arguments");
+		object.slot(ARGUMENTS_LIST_NODE).writeSummaryTo(writer);
+		writer.write("bundle");
+		object.slot(BUNDLE).writeSummaryTo(writer);
+		writer.write("return type");
+		object.slot(RETURN_TYPE).writeSummaryTo(writer);
+		writer.endObject();
 	}
 
 	/**

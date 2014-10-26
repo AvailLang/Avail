@@ -37,6 +37,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A boxed, identityless Avail representation of IEEE-754 floating point values.
@@ -646,6 +647,12 @@ extends AbstractNumberDescriptor
 		return aNumber.multiplyByFloatCanDestroy(
 			object,
 			canDestroy);
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.write(getFloat(object));
 	}
 
 	/**

@@ -37,6 +37,7 @@ import java.util.List;
 import com.avail.annotations.*;
 import com.avail.interpreter.primitive.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * Continuation types are the types of {@linkplain ContinuationDescriptor
@@ -247,6 +248,17 @@ extends TypeDescriptor
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.CONTINUATION_TYPE;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("continuation type");
+		writer.write("function type");
+		object.slot(FUNCTION_TYPE).writeTo(writer);
+		writer.endObject();
 	}
 
 	/**

@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * {@code BottomPojoTypeDescriptor} describes the type of Java {@code null},
@@ -223,6 +224,15 @@ extends PojoTypeDescriptor
 		final int indent)
 	{
 		builder.append("pojo ⊥");
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("pojo bottom type");
+		writer.endObject();
 	}
 
 	/**

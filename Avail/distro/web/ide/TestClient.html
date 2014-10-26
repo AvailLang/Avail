@@ -6,7 +6,7 @@
 <link
 	rel="stylesheet"
 	href="http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
-<script src="http://code.jquery.com/jquery-2.0.3.js"></script>
+<script src="http://code.jquery.com/jquery-2.1.1.js"></script>
 <script src="http://code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
 <link
 	rel="stylesheet"
@@ -361,9 +361,23 @@ textarea { background-color: white; }
 							ioWrite(
 								'<span style="color: green">'
 								+ content.expression
-								+ '</span> <strong>⇒</strong> <span style="color: blue">'
-								+ content.result
-								+ '</span>');
+								+ '</span> <strong>⇒</strong> ');
+							try
+							{
+								// We need to parse *twice*, because a JSON
+								// result will be nested within a (JSON)
+								// string.
+								var prettyJSON = highlight(JSON.stringify(
+									JSON.parse(JSON.parse(content.result)), null, 4));
+								ioWrite(prettyJSON + '\n');
+							}
+							catch (ex)
+							{
+								ioWrite(
+									'<span style="color: blue">'
+									+ content.result
+									+ '</span>\n');
+							}
 						}
 						break;
 					}
@@ -374,8 +388,8 @@ textarea { background-color: white; }
 
 	function cmdWrite (msg)
 	{
-		var p = document.createElement("pre");
-		p.style.wordWrap = "break-word";
+		var p = document.createElement('pre');
+		p.style.wordWrap = 'break-word';
 		p.innerHTML = msg;
 		cmdOutput.appendChild(p);
 		cmdOutput.scrollTop = cmdOutput.scrollHeight;
@@ -383,7 +397,10 @@ textarea { background-color: white; }
 
 	function ioWrite (msg)
 	{
-		ioOutput.innerHTML = ioOutput.innerHTML + msg;
+		var span = document.createElement('span');
+		span.style.wordWrap = 'break-word';
+		span.innerHTML = msg;
+		ioOutput.appendChild(span);
 		ioOutput.scrollTop = ioOutput.scrollHeight;
 	}
 
