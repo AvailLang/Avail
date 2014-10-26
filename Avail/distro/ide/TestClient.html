@@ -19,7 +19,11 @@
 	width: 20%;
 	height: 800px;
 	overflow: auto;
-	font-size: 10pt !important;
+	font-size: 10pt;
+}
+.vakata-context
+{
+	font-size: 8pt;
 }
 #buildProgressBar
 {
@@ -140,12 +144,44 @@ textarea { background-color: white; }
 								var path = '/'
 									+ moduleTree.jstree(true).get_path(
 										node, '/');
-								cmdSend('build module ' + path);
+								cmdSend('load module ' + path);
+							}
+						},
+						'Unload' : {
+							'label' : 'Unload',
+							'action' : function (item)
+							{
+								var path = '/'
+									+ moduleTree.jstree(true).get_path(
+										node, '/');
+								cmdSend('unload module ' + path);
+							}
+						},
+						'Unload All' : {
+							'label' : 'Unload All',
+							'separator_before' : true,
+							'action' : function (item)
+							{
+								cmdSend('unload all modules');
+							}
+						},
+						'Clear Repositories' : {
+							'label' : 'Clear Repositories',
+							'separator_before' : true,
+							'action' : function (item)
+							{
+								cmdSend('clear repositories');
 							}
 						}
 					};
 				}
 			}
+		});
+		moduleTree.bind('dblclick.jstree', function (e)
+		{
+			var path = '/' + moduleTree.jstree(true).get_path(
+				e.target, '/');
+			cmdSend('load module ' + path);
 		});
 
 		buildProgressBar = $("#buildProgressBar");
@@ -242,7 +278,7 @@ textarea { background-color: white; }
 						moduleTree.jstree(true).refresh();
 						break;
 					}
-					case 'build module':
+					case 'load module':
 					{
 						if ('upgrade' in response)
 						{
@@ -294,12 +330,40 @@ textarea { background-color: white; }
 						}
 						break;
 					}
+					case 'unload module':
+					{
+						if ('upgrade' in response)
+						{
+							upgrade(response);
+							return;
+						}
+						break;
+					}
+					case 'unload all modules':
+					{
+						if ('upgrade' in response)
+						{
+							upgrade(response);
+							return;
+						}
+						break;
+					}
 					case 'run entry point':
 					{
 						if ('upgrade' in response)
 						{
 							upgrade(response);
 							return;
+						}
+						var content = response.content;
+						if (content.result !== null)
+						{
+							ioWrite(
+								'<span style="color: green">'
+								+ content.expression
+								+ '</span> <strong>⇒</strong> <span style="color: blue">'
+								+ content.result
+								+ '</span>');
 						}
 						break;
 					}

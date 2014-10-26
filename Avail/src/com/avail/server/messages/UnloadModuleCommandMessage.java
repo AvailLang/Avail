@@ -1,5 +1,5 @@
 /**
- * SimpleCommandMessage.java
+ * UnloadModuleCommandMessage.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,37 +32,54 @@
 
 package com.avail.server.messages;
 
-import com.avail.server.AvailServer;
+import com.avail.builder.ModuleName;
+import com.avail.descriptor.A_Module;
 import com.avail.server.io.AvailServerChannel;
 import com.avail.utility.evaluation.Continuation0;
 
 /**
- * A {@code SimpleCommandMessage} contains no state beyond the style of
- * {@linkplain Command command}.
+ * An {@code UnloadModuleCommandMessage} represents a {@link Command#LOAD_MODULE
+ * LOAD_MODULE} {@linkplain Command command}, and carries the {@linkplain
+ * ModuleName name} of the target {@linkplain A_Module module}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class SimpleCommandMessage
+public final class UnloadModuleCommandMessage
 extends CommandMessage
 {
-	/** The {@linkplain Command command}. */
-	private final Command command;
+	/**
+	 * The {@linkplain ModuleName name} of the target {@linkplain A_Module
+	 * module}.
+	 */
+	private final ModuleName target;
+
+	/**
+	 * Answer the {@linkplain ModuleName name} of the target {@linkplain
+	 * A_Module module}.
+	 *
+	 * @return The target module.
+	 */
+	public ModuleName target ()
+	{
+		return target;
+	}
+
+	/**
+	 * Construct a new {@link UnloadModuleCommandMessage}.
+	 *
+	 * @param target
+	 *        The {@linkplain ModuleName name} of the target {@linkplain
+	 *        A_Module module}.
+	 */
+	public UnloadModuleCommandMessage (final ModuleName target)
+	{
+		this.target = target;
+	}
 
 	@Override
 	public Command command ()
 	{
-		return command;
-	}
-
-	/**
-	 * Construct a new {@link SimpleCommandMessage}.
-	 *
-	 * @param command
-	 *        The {@linkplain Command command}.
-	 */
-	SimpleCommandMessage (final Command command)
-	{
-		this.command = command;
+		return Command.UNLOAD_MODULE;
 	}
 
 	@Override
@@ -70,41 +87,7 @@ extends CommandMessage
 		final AvailServerChannel channel,
 		final Continuation0 continuation)
 	{
-		final AvailServer server = channel.server();
-		switch (command)
-		{
-			case COMMANDS:
-				server.commandsThen(channel, this, continuation);
-				break;
-			case MODULE_ROOTS:
-				server.moduleRootsThen(channel, this, continuation);
-				break;
-			case MODULE_ROOT_PATHS:
-				server.moduleRootPathsThen(channel, this, continuation);
-				break;
-			case MODULE_ROOTS_PATH:
-				server.moduleRootsPathThen(channel, this, continuation);
-				break;
-			case SOURCE_MODULES:
-				server.sourceModulesThen(channel, this, continuation);
-				break;
-			case ENTRY_POINTS:
-				server.entryPointsThen(channel, this, continuation);
-				break;
-			case CLEAR_REPOSITORIES:
-				server.clearRepositoriesThen(channel, this, continuation);
-				break;
-			case UNLOAD_ALL_MODULES:
-				server.requestUpgradesForUnloadAllModulesThen(
-					channel, this, continuation);
-				break;
-			case VERSION:
-			case UPGRADE:
-			case LOAD_MODULE:
-			case UNLOAD_MODULE:
-			case RUN_ENTRY_POINT:
-				assert false : "This command should not be dispatched here!";
-				break;
-		}
+		channel.server().requestUpgradesForUnloadModuleThen(
+			channel, this, continuation);
 	}
 }

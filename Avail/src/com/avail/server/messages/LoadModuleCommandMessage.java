@@ -1,5 +1,5 @@
 /**
- * BuildModuleCommandMessage.java
+ * LoadModuleCommandMessage.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -38,13 +38,13 @@ import com.avail.server.io.AvailServerChannel;
 import com.avail.utility.evaluation.Continuation0;
 
 /**
- * A {@code BuildModuleCommandMessage} represents a {@link Command#BUILD_MODULE
- * BUILD_MODULE} {@linkplain Command command}, and carries the {@linkplain
+ * A {@code LoadModuleCommandMessage} represents a {@link Command#LOAD_MODULE
+ * LOAD_MODULE} {@linkplain Command command}, and carries the {@linkplain
  * ModuleName name} of the target {@linkplain A_Module module}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class BuildModuleCommandMessage
+public class LoadModuleCommandMessage
 extends CommandMessage
 {
 	/**
@@ -65,13 +65,13 @@ extends CommandMessage
 	}
 
 	/**
-	 * Construct a new {@link BuildModuleCommandMessage}.
+	 * Construct a new {@link LoadModuleCommandMessage}.
 	 *
 	 * @param target
 	 *        The {@linkplain ModuleName name} of the target {@linkplain
 	 *        A_Module module}.
 	 */
-	public BuildModuleCommandMessage (final ModuleName target)
+	public LoadModuleCommandMessage (final ModuleName target)
 	{
 		this.target = target;
 	}
@@ -79,7 +79,7 @@ extends CommandMessage
 	@Override
 	public Command command ()
 	{
-		return Command.BUILD_MODULE;
+		return Command.LOAD_MODULE;
 	}
 
 	@Override
@@ -87,7 +87,7 @@ extends CommandMessage
 		final AvailServerChannel channel,
 		final Continuation0 continuation)
 	{
-		channel.server().requestUpgradesForBuildModuleThen(
+		channel.server().requestUpgradesForLoadModuleThen(
 			channel, this, continuation);
 	}
 }
