@@ -62,25 +62,21 @@ import com.avail.builder.ModuleRoot;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
 import com.avail.builder.ResolvedModuleName;
+import com.avail.builder.UnresolvedDependencyException;
 import com.avail.compiler.AbstractAvailCompiler.CompilerProgressReporter;
 import com.avail.compiler.AbstractAvailCompiler.ParserState;
+import com.avail.descriptor.A_Module;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
+import com.avail.persistence.IndexedFileException;
+import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
 import com.avail.server.io.AvailServerChannel;
 import com.avail.server.io.ServerInputChannel;
 import com.avail.server.io.WebSocketAdapter;
 import com.avail.server.io.AvailServerChannel.ProtocolState;
-import com.avail.server.messages.BuildModuleCommandMessage;
-import com.avail.server.messages.Command;
-import com.avail.server.messages.CommandMessage;
-import com.avail.server.messages.CommandParseException;
-import com.avail.server.messages.Message;
-import com.avail.server.messages.RunEntryPointCommandMessage;
-import com.avail.server.messages.SimpleCommandMessage;
-import com.avail.server.messages.UpgradeCommandMessage;
-import com.avail.server.messages.VersionCommandMessage;
+import com.avail.server.messages.*;
 import com.avail.utility.IO;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableOrNull;
@@ -105,9 +101,9 @@ public final class AvailServer
 	public static final int protocolVersion = 4;
 
 	/** The supported client protocol versions. */
-	public static final List<Integer> supportedProtocolVersions =
-		Collections.unmodifiableList(Arrays.asList(
-			protocolVersion));
+	public static final Set<Integer> supportedProtocolVersions =
+		Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+			protocolVersion)));
 
 	/**
 	 * The {@linkplain AvailRuntime Avail runtime} managed by this {@linkplain
@@ -175,6 +171,9 @@ public final class AvailServer
 	 * Record an upgrade request issued by this {@linkplain AvailServer server}
 	 * in response to a {@linkplain Command command}.
 	 *
+	 * @param channel
+	 *        The {@linkplain AvailServerChannel channel} that requested the
+	 *        upgrade.
 	 * @param uuid
 	 *        The UUID that identifies the upgrade request.
 	 * @param continuation
@@ -182,6 +181,7 @@ public final class AvailServer
 	 *        channel}.
 	 */
 	public void recordUpgradeRequest (
+		final AvailServerChannel channel,
 		final UUID uuid,
 		final Continuation3<
 			AvailServerChannel, UUID, Continuation0> continuation)
@@ -189,6 +189,25 @@ public final class AvailServer
 		synchronized (pendingUpgrades)
 		{
 			pendingUpgrades.put(uuid, continuation);
+		}
+		channel.recordUpgradeRequest(uuid);
+	}
+
+	/**
+	 * Discontinue the specified pending upgrade requests.
+	 *
+	 * @param uuids
+	 *        The {@link UUID}s of the pending upgrades that should be
+	 *        discontinued.
+	 */
+	public void discontinueUpgradeRequests (final Set<UUID> uuids)
+	{
+		synchronized (pendingUpgrades)
+		{
+			for (final UUID uuid : uuids)
+			{
+				pendingUpgrades.remove(uuid);
+			}
 		}
 	}
 
@@ -271,6 +290,23 @@ public final class AvailServer
 		final String reason)
 	{
 		return newErrorMessage(command, reason, false);
+	}
+
+	/**
+	 * Answer a simple {@linkplain Message message} that just affirms success.
+	 *
+	 * @param command
+	 *        The {@linkplain Command command} for which this is a response.
+	 * @return A message.
+	 */
+	@InnerAccess Message newSimpleSuccessMessage (final Command command)
+	{
+		final JSONWriter writer = new JSONWriter();
+		writer.startObject();
+		writeStatusOn(true, writer);
+		writeCommandOn(command, writer);
+		writer.endObject();
+		return new Message(writer.toString());
 	}
 
 	/**
@@ -498,6 +534,7 @@ public final class AvailServer
 		final SimpleCommandMessage command,
 		final Continuation0 continuation)
 	{
+		assert command.command() == Command.COMMANDS;
 		final Message message = newSuccessMessage(
 			command.command(),
 			new Continuation1<JSONWriter>()
@@ -542,6 +579,7 @@ public final class AvailServer
 		final SimpleCommandMessage command,
 		final Continuation0 continuation)
 	{
+		assert command.command() == Command.MODULE_ROOTS;
 		final Message message = newSuccessMessage(
 			command.command(),
 			new Continuation1<JSONWriter>()
@@ -577,6 +615,7 @@ public final class AvailServer
 		final SimpleCommandMessage command,
 		final Continuation0 continuation)
 	{
+		assert command.command() == Command.MODULE_ROOT_PATHS;
 		final Message message = newSuccessMessage(
 			command.command(),
 			new Continuation1<JSONWriter>()
@@ -611,6 +650,7 @@ public final class AvailServer
 		final SimpleCommandMessage command,
 		final Continuation0 continuation)
 	{
+		assert command.command() == Command.MODULE_ROOTS_PATH;
 		final Message message = newSuccessMessage(
 			command.command(),
 			new Continuation1<JSONWriter>()
@@ -936,6 +976,7 @@ public final class AvailServer
 		final SimpleCommandMessage command,
 		final Continuation0 continuation)
 	{
+		assert command.command() == Command.SOURCE_MODULES;
 		final Message message = newSuccessMessage(
 			command.command(),
 			new Continuation1<JSONWriter>()
@@ -983,7 +1024,7 @@ public final class AvailServer
 	 *        The {@linkplain AvailServerChannel channel} on which the
 	 *        {@linkplain CommandMessage response} should be sent.
 	 * @param command
-	 *        A {@link Command#SOURCE_MODULES SOURCE_MODULES} command message.
+	 *        A {@link Command#ENTRY_POINTS ENTRY_POINTS} command message.
 	 * @param continuation
 	 *        What to do when sufficient processing has occurred (and the
 	 *        {@linkplain AvailServer server} wishes to begin receiving messages
@@ -994,6 +1035,7 @@ public final class AvailServer
 		final SimpleCommandMessage command,
 		final Continuation0 continuation)
 	{
+		assert command.command() == Command.ENTRY_POINTS;
 		final Message message = newSuccessMessage(
 			command.command(),
 			new Continuation1<JSONWriter>()
@@ -1044,6 +1086,46 @@ public final class AvailServer
 					writer.endArray();
 				}
 			});
+		channel.enqueueMessageThen(message, continuation);
+	}
+
+	/**
+	 * Clear all {@linkplain IndexedRepositoryManager binary module
+	 * repositories}.
+	 *
+	 * @param channel
+	 *        The {@linkplain AvailServerChannel channel} on which the
+	 *        {@linkplain CommandMessage response} should be sent.
+	 * @param command
+	 *        A {@link Command#CLEAR_REPOSITORIES CLEAR_REPOSITORIES} command
+	 *        message.
+	 * @param continuation
+	 *        What to do when sufficient processing has occurred (and the
+	 *        {@linkplain AvailServer server} wishes to begin receiving messages
+	 *        again).
+	 */
+	public void clearRepositoriesThen (
+		final AvailServerChannel channel,
+		final SimpleCommandMessage command,
+		final Continuation0 continuation)
+	{
+		assert command.command() == Command.CLEAR_REPOSITORIES;
+		Message message = null;
+		try
+		{
+			for (final ModuleRoot root :
+				runtime.moduleNameResolver().moduleRoots().roots())
+			{
+				root.repository().clear();
+			}
+			message = newSimpleSuccessMessage(command.command());
+		}
+		catch (final IOException|IndexedFileException e)
+		{
+			message = newErrorMessage(
+				command.command(), e.getLocalizedMessage());
+		}
+		assert message != null;
 		channel.enqueueMessageThen(message, continuation);
 	}
 
@@ -1113,6 +1195,7 @@ public final class AvailServer
 	{
 		final UUID uuid = UUID.randomUUID();
 		recordUpgradeRequest(
+			channel,
 			uuid,
 			new Continuation3<AvailServerChannel, UUID, Continuation0>()
 			{
@@ -1138,22 +1221,23 @@ public final class AvailServer
 
 	/**
 	 * Request new I/O-upgraded {@linkplain AvailServerChannel channels} to
-	 * support the {@linkplain AvailBuilder builder}.
+	 * support {@linkplain AvailBuilder#buildTarget(ModuleName,
+	 * CompilerProgressReporter, Continuation3) module loading}.
 	 *
 	 * @param channel
 	 *        The {@linkplain AvailServerChannel channel} on which the
 	 *        {@linkplain CommandMessage response} should be sent.
 	 * @param command
-	 *        A {@link Command#BUILD_MODULE BUILD_MODULE} {@linkplain
-	 *        BuildModuleCommandMessage command message}.
+	 *        A {@link Command#LOAD_MODULE LOAD_MODULE} {@linkplain
+	 *        LoadModuleCommandMessage command message}.
 	 * @param continuation
 	 *        What to do when sufficient processing has occurred (and the
 	 *        {@linkplain AvailServer server} wishes to begin receiving messages
 	 *        again).
 	 */
-	public void requestUpgradesForBuildModuleThen (
+	public void requestUpgradesForLoadModuleThen (
 		final AvailServerChannel channel,
-		final BuildModuleCommandMessage command,
+		final LoadModuleCommandMessage command,
 		final Continuation0 continuation)
 	{
 		requestUpgradesThen(
@@ -1165,21 +1249,21 @@ public final class AvailServer
 				public void value (final @Nullable AvailServerChannel ioChannel)
 				{
 					assert ioChannel != null;
-					buildModule(channel, ioChannel, command);
+					loadModule(channel, ioChannel, command);
 				}
 			},
 			continuation);
 	}
 
 	/**
-	 * The progress interval for {@linkplain #buildModule(
-	 * AvailServerChannel, AvailServerChannel, BuildModuleCommandMessage)
+	 * The progress interval for {@linkplain #loadModule(
+	 * AvailServerChannel, AvailServerChannel, LoadModuleCommandMessage)
 	 * building}, in milliseconds.
 	 */
 	private static final int buildProgressIntervalMillis = 100;
 
 	/**
-	 * Recursively build the specified {@linkplain ModuleName module}.
+	 * Load the specified {@linkplain ModuleName module}.
 	 *
 	 * @param channel
 	 *        The {@linkplain AvailServerChannel channel} on which the
@@ -1187,13 +1271,13 @@ public final class AvailServer
 	 * @param ioChannel
 	 *        The upgraded I/O channel.
 	 * @param command
-	 *        A {@link Command#BUILD_MODULE BUILD_MODULE} {@linkplain
-	 *        BuildModuleCommandMessage command message}.
+	 *        A {@link Command#LOAD_MODULE LOAD_MODULE} {@linkplain
+	 *        LoadModuleCommandMessage command message}.
 	 */
-	@InnerAccess void buildModule (
+	@InnerAccess void loadModule (
 		final AvailServerChannel channel,
 		final AvailServerChannel ioChannel,
-		final BuildModuleCommandMessage command)
+		final LoadModuleCommandMessage command)
 	{
 		assert !channel.state().generalTextIO();
 		assert ioChannel.state().generalTextIO();
@@ -1363,7 +1447,172 @@ public final class AvailServer
 
 	/**
 	 * Request new I/O-upgraded {@linkplain AvailServerChannel channels} to
-	 * support the {@linkplain AvailBuilder builder}.
+	 * support {@linkplain AvailBuilder#unloadTarget(ResolvedModuleName)
+	 * module unloading}.
+	 *
+	 * @param channel
+	 *        The {@linkplain AvailServerChannel channel} on which the
+	 *        {@linkplain CommandMessage response} should be sent.
+	 * @param command
+	 *        A {@link Command#LOAD_MODULE LOAD_MODULE} {@linkplain
+	 *        LoadModuleCommandMessage command message}.
+	 * @param continuation
+	 *        What to do when sufficient processing has occurred (and the
+	 *        {@linkplain AvailServer server} wishes to begin receiving messages
+	 *        again).
+	 */
+	public void requestUpgradesForUnloadModuleThen (
+		final AvailServerChannel channel,
+		final UnloadModuleCommandMessage command,
+		final Continuation0 continuation)
+	{
+		final ResolvedModuleName moduleName;
+		try
+		{
+			moduleName = runtime.moduleNameResolver().resolve(
+				command.target(), null);
+		}
+		catch (final UnresolvedDependencyException e)
+		{
+			final Message message = newErrorMessage(
+				command.command(),
+				e.toString());
+			channel.enqueueMessageThen(
+				message,
+				new Continuation0()
+				{
+					@Override
+					public void value ()
+					{
+						// Do nothing.
+					}
+				});
+			return;
+		}
+		requestUpgradesThen(
+			channel,
+			command,
+			new Continuation1<AvailServerChannel>()
+			{
+				@Override
+				public void value (final @Nullable AvailServerChannel ioChannel)
+				{
+					assert ioChannel != null;
+					unloadModule(channel, ioChannel, command, moduleName);
+				}
+			},
+			continuation);
+	}
+
+	/**
+	 * Request new I/O-upgraded {@linkplain AvailServerChannel channels} to
+	 * support {@linkplain AvailBuilder#unloadTarget(ResolvedModuleName)
+	 * builder} unloading all modules}.
+	 *
+	 * @param channel
+	 *        The {@linkplain AvailServerChannel channel} on which the
+	 *        {@linkplain CommandMessage response} should be sent.
+	 * @param command
+	 *        An {@link Command#UNLOAD_ALL_MODULES UNLOAD_ALL_MODULES}
+	 *        {@linkplain SimpleCommandMessage command message}.
+	 * @param continuation
+	 *        What to do when sufficient processing has occurred (and the
+	 *        {@linkplain AvailServer server} wishes to begin receiving messages
+	 *        again).
+	 */
+	public void requestUpgradesForUnloadAllModulesThen (
+		final AvailServerChannel channel,
+		final SimpleCommandMessage command,
+		final Continuation0 continuation)
+	{
+		assert command.command() == Command.UNLOAD_ALL_MODULES;
+		requestUpgradesThen(
+			channel,
+			command,
+			new Continuation1<AvailServerChannel>()
+			{
+				@Override
+				public void value (final @Nullable AvailServerChannel ioChannel)
+				{
+					assert ioChannel != null;
+					unloadModule(channel, ioChannel, command, null);
+				}
+			},
+			continuation);
+	}
+
+	/**
+	 * Unload the specified {@linkplain ResolvedModuleName module}.
+	 *
+	 * @param channel
+	 *        The {@linkplain AvailServerChannel channel} on which the
+	 *        {@linkplain CommandMessage response} should be sent.
+	 * @param ioChannel
+	 *        The upgraded I/O channel.
+	 * @param command
+	 *        An {@link Command#UNLOAD_MODULE UNLOAD_MODULE} or {@linkplain
+	 *        Command#UNLOAD_ALL_MODULES UNLOAD_ALL_MODULES} {@linkplain
+	 *        CommandMessage command message}.
+	 * @param target
+	 *        The resolved name of the target {@linkplain A_Module module}, or
+	 *        {@code null} if all modules should be unloaded.
+	 */
+	@InnerAccess void unloadModule (
+		final AvailServerChannel channel,
+		final AvailServerChannel ioChannel,
+		final CommandMessage command,
+		final @Nullable ResolvedModuleName target)
+	{
+		assert !channel.state().generalTextIO();
+		assert ioChannel.state().generalTextIO();
+		channel.enqueueMessageThen(
+			newSuccessMessage(
+				command.command(),
+				new Continuation1<JSONWriter>()
+				{
+					@Override
+					public void value (final @Nullable JSONWriter writer)
+					{
+						assert writer != null;
+						writer.write("begin");
+					}
+				}),
+			new Continuation0()
+			{
+				@Override
+				public void value ()
+				{
+					// Do nothing.
+				}
+			});
+		builder.setTextInterface(ioChannel.textInterface());
+		builder.unloadTarget(target);
+		channel.enqueueMessageThen(
+			newSuccessMessage(
+				command.command(),
+				new Continuation1<JSONWriter>()
+				{
+					@Override
+					public void value (final @Nullable JSONWriter writer)
+					{
+						assert writer != null;
+						writer.write("end");
+					}
+				}),
+			new Continuation0()
+			{
+				@Override
+				public void value ()
+				{
+					IO.close(ioChannel);
+				}
+			});
+	}
+
+	/**
+	 * Request new I/O-upgraded {@linkplain AvailServerChannel channels} to
+	 * support {@linkplain AvailBuilder#attemptCommand(String, Continuation2,
+	 * Continuation2, Continuation0) builder} command execution}.
 	 *
 	 * @param channel
 	 *        The {@linkplain AvailServerChannel channel} on which the
@@ -1449,7 +1698,12 @@ public final class AvailServer
 									final @Nullable JSONWriter writer)
 								{
 									assert writer != null;
+									writer.startObject();
+									writer.write("expression");
+									writer.write(command.expression());
+									writer.write("result");
 									writer.writeNull();
+									writer.endObject();
 								}
 							});
 						channel.enqueueMessageThen(
@@ -1489,7 +1743,12 @@ public final class AvailServer
 											final @Nullable JSONWriter writer)
 										{
 											assert writer != null;
+											writer.startObject();
+											writer.write("expression");
+											writer.write(command.expression());
+											writer.write("result");
 											writer.write(string);
+											writer.endObject();
 										}
 									});
 								channel.enqueueMessageThen(

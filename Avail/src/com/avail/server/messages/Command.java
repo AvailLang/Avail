@@ -43,6 +43,7 @@ import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleRoot;
 import com.avail.builder.ModuleRoots;
 import com.avail.descriptor.A_Module;
+import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.server.AvailServer;
 import com.avail.server.io.AvailServerChannel;
 import com.avail.utility.json.JSONWriter;
@@ -96,38 +97,6 @@ public enum Command
 	},
 
 	/**
-	 * List all {@linkplain Command commands}.
-	 */
-	COMMANDS,
-
-	/**
-	 * List all {@linkplain ModuleRoot module roots}.
-	 */
-	MODULE_ROOTS,
-
-	/**
-	 * List all {@linkplain ModuleRoots#writePathsOn(JSONWriter) module root
-	 * paths}.
-	 */
-	MODULE_ROOT_PATHS,
-
-	/**
-	 * Answer the {@linkplain ModuleRoots#modulePath() module roots path}.
-	 */
-	MODULE_ROOTS_PATH,
-
-	/**
-	 * List all source modules reachable from the {@linkplain ModuleRoot module
-	 * roots}.
-	 */
-	SOURCE_MODULES,
-
-	/**
-	 * List all entry points.
-	 */
-	ENTRY_POINTS,
-
-	/**
 	 * Upgrade the receiving {@linkplain AvailServerChannel channel} using a
 	 * server-forged {@link UUID}.
 	 */
@@ -167,10 +136,48 @@ public enum Command
 	},
 
 	/**
-	 * Build the {@linkplain A_Module module} whose source is given by the
+	 * List all {@linkplain Command commands}.
+	 */
+	COMMANDS,
+
+	/**
+	 * List all {@linkplain ModuleRoot module roots}.
+	 */
+	MODULE_ROOTS,
+
+	/**
+	 * List all {@linkplain ModuleRoots#writePathsOn(JSONWriter) module root
+	 * paths}.
+	 */
+	MODULE_ROOT_PATHS,
+
+	/**
+	 * Answer the {@linkplain ModuleRoots#modulePath() module roots path}.
+	 */
+	MODULE_ROOTS_PATH,
+
+	/**
+	 * List all source modules reachable from the {@linkplain ModuleRoot module
+	 * roots}.
+	 */
+	SOURCE_MODULES,
+
+	/**
+	 * List all entry points.
+	 */
+	ENTRY_POINTS,
+
+	/**
+	 * Clear all {@linkplain IndexedRepositoryManager binary module
+	 * repositories}.
+	 */
+	CLEAR_REPOSITORIES,
+
+	/**
+	 * Load the {@linkplain A_Module module} whose source is given by the
 	 * specified fully-qualified path.
 	 */
-	BUILD_MODULE
+	LOAD_MODULE
 	{
 		@Override
 		boolean requiresSpecialParsing ()
@@ -181,15 +188,15 @@ public enum Command
 		@Override
 		public String syntaxHelp ()
 		{
-			return "BUILD MODULE <fully-qualified: MODULE>";
+			return "LOAD MODULE <fully-qualified: MODULE>";
 		}
 
 		@Override
-		public @Nullable BuildModuleCommandMessage parse (final String source)
+		public @Nullable LoadModuleCommandMessage parse (final String source)
 		{
 			final String[] tokens = source.split("\\s+", 3);
 			if (tokens.length < 3
-				|| !tokens[0].equalsIgnoreCase("build")
+				|| !tokens[0].equalsIgnoreCase("load")
 				|| !tokens[1].equalsIgnoreCase("module"))
 			{
 				return null;
@@ -203,9 +210,55 @@ public enum Command
 			{
 				return null;
 			}
-			return new BuildModuleCommandMessage(name);
+			return new LoadModuleCommandMessage(name);
 		}
 	},
+
+	/**
+	 * Unload the {@linkplain A_Module module} whose source is given by the
+	 * specified fully-qualified path.
+	 */
+	UNLOAD_MODULE
+	{
+		@Override
+		boolean requiresSpecialParsing ()
+		{
+			return true;
+		}
+
+		@Override
+		public String syntaxHelp ()
+		{
+			return "UNLOAD MODULE <fully-qualified: MODULE>";
+		}
+
+		@Override
+		public @Nullable CommandMessage parse (final String source)
+		{
+			final String[] tokens = source.split("\\s+", 3);
+			if (tokens.length < 3
+				|| !tokens[0].equalsIgnoreCase("unload")
+				|| !tokens[1].equalsIgnoreCase("module"))
+			{
+				return null;
+			}
+			final ModuleName name;
+			try
+			{
+				name = new ModuleName(tokens[2]);
+			}
+			catch (final IllegalArgumentException e)
+			{
+				return null;
+			}
+			return new UnloadModuleCommandMessage(name);
+		}
+	},
+
+	/**
+	 * Unload all loaded modules.
+	 */
+	UNLOAD_ALL_MODULES,
 
 	/**
 	 * Run the specified entry point.

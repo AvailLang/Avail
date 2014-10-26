@@ -36,6 +36,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 import com.avail.server.AvailServer;
 import com.avail.server.messages.Message;
+import com.avail.utility.IO;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
@@ -129,7 +130,12 @@ extends AvailServerChannel
 						// The message remains on the queue during
 						// transmission (in order to simplify the execution
 						// model). Remove it *after* transmission completes.
-						sendQueue.removeFirst();
+						final Message sentMessage = sendQueue.removeFirst();
+						if (sentMessage.closeAfterSending())
+						{
+							IO.close(AbstractTransportChannel.this);
+							return;
+						}
 						nextMessage = sendQueue.peekFirst();
 						assert sendQueue.size() < maximumSendQueueDepth();
 						// Remove the oldest sender, but release the monitor
