@@ -43,6 +43,7 @@ import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleRoot;
 import com.avail.builder.ModuleRoots;
 import com.avail.descriptor.A_Module;
+import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.server.AvailServer;
 import com.avail.server.io.AvailServerChannel;
 import com.avail.utility.json.JSONWriter;
@@ -57,6 +58,83 @@ import com.avail.utility.json.JSONWriter;
  */
 public enum Command
 {
+	/**
+	 * Negotiate a protocol version.
+	 */
+	VERSION
+	{
+		@Override
+		boolean requiresSpecialParsing ()
+		{
+			return true;
+		}
+
+		@Override
+		public String syntaxHelp ()
+		{
+			return "VERSION <version: INTEGER>";
+		}
+
+		@Override
+		public @Nullable CommandMessage parse (final String source)
+		{
+			final String[] tokens = source.split("\\s+", 2);
+			if (tokens.length < 2 || !tokens[0].equalsIgnoreCase("version"))
+			{
+				return null;
+			}
+			final int version;
+			try
+			{
+				version = Integer.parseInt(tokens[1]);
+			}
+			catch (final NumberFormatException e)
+			{
+				return null;
+			}
+			return new VersionCommandMessage(version);
+		}
+	},
+
+	/**
+	 * Upgrade the receiving {@linkplain AvailServerChannel channel} using a
+	 * server-forged {@link UUID}.
+	 */
+	UPGRADE
+	{
+		@Override
+		boolean requiresSpecialParsing ()
+		{
+			return true;
+		}
+
+		@Override
+		public String syntaxHelp ()
+		{
+			return "UPGRADE <dashed: UUID>";
+		}
+
+		@Override
+		public @Nullable CommandMessage parse (final String source)
+		{
+			final String[] tokens = source.split("\\s+", 2);
+			if (tokens.length < 2 || !tokens[0].equalsIgnoreCase("upgrade"))
+			{
+				return null;
+			}
+			final UUID uuid;
+			try
+			{
+				uuid = UUID.fromString(tokens[1]);
+			}
+			catch (final IllegalArgumentException e)
+			{
+				return null;
+			}
+			return new UpgradeCommandMessage(uuid);
+		}
+	},
+
 	/**
 	 * List all {@linkplain Command commands}.
 	 */
@@ -90,49 +168,16 @@ public enum Command
 	ENTRY_POINTS,
 
 	/**
-	 * Upgrade the receiving {@linkplain AvailServerChannel channel} using a
-	 * server-forged {@link UUID}.
+	 * Clear all {@linkplain IndexedRepositoryManager binary module
+	 * repositories}.
 	 */
-	UPGRADE
-	{
-		@Override
-		boolean requiresSpecialParsing ()
-		{
-			return true;
-		}
-
-		@Override
-		public String syntaxHelp ()
-		{
-			return "UPGRADE <dashed: UUID>";
-		}
-
-		@Override
-		@Nullable CommandMessage parse (final String source)
-		{
-			final String[] tokens = source.split("\\s+", 2);
-			if (tokens.length < 2 || !tokens[0].equalsIgnoreCase("upgrade"))
-			{
-				return null;
-			}
-			final UUID uuid;
-			try
-			{
-				uuid = UUID.fromString(tokens[1]);
-			}
-			catch (final IllegalArgumentException e)
-			{
-				return null;
-			}
-			return new UpgradeCommandMessage(uuid);
-		}
-	},
+	CLEAR_REPOSITORIES,
 
 	/**
-	 * Build the {@linkplain A_Module module} whose source is given by the
+	 * Load the {@linkplain A_Module module} whose source is given by the
 	 * specified fully-qualified path.
 	 */
-	BUILD_MODULE
+	LOAD_MODULE
 	{
 		@Override
 		boolean requiresSpecialParsing ()
@@ -143,15 +188,15 @@ public enum Command
 		@Override
 		public String syntaxHelp ()
 		{
-			return "BUILD MODULE <fully-qualified: MODULE>";
+			return "LOAD MODULE <fully-qualified: MODULE>";
 		}
 
 		@Override
-		@Nullable BuildModuleCommandMessage parse (final String source)
+		public @Nullable LoadModuleCommandMessage parse (final String source)
 		{
 			final String[] tokens = source.split("\\s+", 3);
 			if (tokens.length < 3
-				|| !tokens[0].equalsIgnoreCase("build")
+				|| !tokens[0].equalsIgnoreCase("load")
 				|| !tokens[1].equalsIgnoreCase("module"))
 			{
 				return null;
@@ -165,9 +210,55 @@ public enum Command
 			{
 				return null;
 			}
-			return new BuildModuleCommandMessage(name);
+			return new LoadModuleCommandMessage(name);
 		}
 	},
+
+	/**
+	 * Unload the {@linkplain A_Module module} whose source is given by the
+	 * specified fully-qualified path.
+	 */
+	UNLOAD_MODULE
+	{
+		@Override
+		boolean requiresSpecialParsing ()
+		{
+			return true;
+		}
+
+		@Override
+		public String syntaxHelp ()
+		{
+			return "UNLOAD MODULE <fully-qualified: MODULE>";
+		}
+
+		@Override
+		public @Nullable CommandMessage parse (final String source)
+		{
+			final String[] tokens = source.split("\\s+", 3);
+			if (tokens.length < 3
+				|| !tokens[0].equalsIgnoreCase("unload")
+				|| !tokens[1].equalsIgnoreCase("module"))
+			{
+				return null;
+			}
+			final ModuleName name;
+			try
+			{
+				name = new ModuleName(tokens[2]);
+			}
+			catch (final IllegalArgumentException e)
+			{
+				return null;
+			}
+			return new UnloadModuleCommandMessage(name);
+		}
+	},
+
+	/**
+	 * Unload all loaded modules.
+	 */
+	UNLOAD_ALL_MODULES,
 
 	/**
 	 * Run the specified entry point.
@@ -187,7 +278,7 @@ public enum Command
 		}
 
 		@Override
-		@Nullable RunEntryPointCommandMessage parse (final String source)
+		public @Nullable RunEntryPointCommandMessage parse (final String source)
 		{
 			final String[] tokens = source.split("\\s+", 2);
 			if (tokens.length < 2 || !tokens[0].equalsIgnoreCase("run"))
@@ -219,7 +310,7 @@ public enum Command
 	 * @return A command message, or {@code null} if the tokens could not be
 	 *         understood as a command of this kind.
 	 */
-	@Nullable CommandMessage parse (final String source)
+	public @Nullable CommandMessage parse (final String source)
 	{
 		throw new UnsupportedOperationException();
 	}

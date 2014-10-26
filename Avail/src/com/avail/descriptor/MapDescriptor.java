@@ -39,6 +39,7 @@ import com.avail.annotations.*;
 import com.avail.exceptions.MapException;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * An Avail {@linkplain MapDescriptor map} refers to the root of a Bagwell
@@ -563,6 +564,72 @@ extends Descriptor
 	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
 	{
 		return false;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("map");
+		if (InstanceTypeDescriptor.on(object).keyType().isString())
+		{
+			writer.write("map");
+			writer.startObject();
+			for (final Entry entry : object.mapIterable())
+			{
+				entry.key().writeTo(writer);
+				entry.value().writeTo(writer);
+			}
+			writer.endObject();
+		}
+		else
+		{
+			writer.write("bindings");
+			writer.startArray();
+			for (final Entry entry : object.mapIterable())
+			{
+				writer.startArray();
+				entry.key().writeTo(writer);
+				entry.value().writeTo(writer);
+				writer.endArray();
+			}
+			writer.endArray();
+		}
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("map");
+		if (InstanceTypeDescriptor.on(object).keyType().isString())
+		{
+			writer.write("map");
+			writer.startObject();
+			for (final Entry entry : object.mapIterable())
+			{
+				entry.key().writeTo(writer);
+				entry.value().writeSummaryTo(writer);
+			}
+			writer.endObject();
+		}
+		else
+		{
+			writer.write("bindings");
+			writer.startArray();
+			for (final Entry entry : object.mapIterable())
+			{
+				writer.startArray();
+				entry.key().writeSummaryTo(writer);
+				entry.value().writeSummaryTo(writer);
+				writer.endArray();
+			}
+			writer.endArray();
+		}
+		writer.endObject();
 	}
 
 	/**

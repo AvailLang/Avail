@@ -40,6 +40,7 @@ import java.lang.reflect.Array;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * {@code ArrayPojoTypeDescriptor} describes Java array types. A Java array
@@ -381,6 +382,19 @@ extends PojoTypeDescriptor
 				builder, recursionList, indent);
 		}
 		builder.append(']');
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("array pojo type");
+		writer.write("content type");
+		object.slot(CONTENT_TYPE).writeTo(writer);
+		writer.write("size range");
+		object.slot(SIZE_RANGE).writeTo(writer);
+		writer.endObject();
 	}
 
 	/**

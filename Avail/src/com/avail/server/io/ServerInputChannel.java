@@ -78,7 +78,9 @@ implements TextInputChannel
 
 	/**
 	 * The {@linkplain Deque queue} of {@linkplain Message messages} awaiting
-	 * delivery.
+	 * delivery. It is invariant that there are either pending messages or
+	 * pending {@linkplain #waiters}. Whenever there are no messages, the
+	 * {@linkplain #position} must be {@code 0}.
 	 */
 	private final Deque<Message> messages = new ArrayDeque<>();
 
@@ -145,7 +147,11 @@ implements TextInputChannel
 		}
 	}
 
-	/** The {@linkplain Deque queue} of {@linkplain Waiter waiters}. */
+	/**
+	 * The {@linkplain Deque queue} of {@linkplain Waiter waiters}. It is
+	 * invariant that there are either pending waiters or pending {@linkplain
+	 * #messages}.
+	 */
 	private final Deque<Waiter> waiters = new ArrayDeque<>();
 
 	/**
@@ -155,12 +161,9 @@ implements TextInputChannel
 	private @Nullable CharBuffer markBuffer;
 
 	@Override
-	public void mark (final int readAhead) throws IOException
+	public synchronized void mark (final int readAhead) throws IOException
 	{
-		synchronized (this)
-		{
-			markBuffer = CharBuffer.allocate(readAhead);
-		}
+		markBuffer = CharBuffer.allocate(readAhead);
 	}
 
 	@Override
@@ -174,6 +177,8 @@ implements TextInputChannel
 			{
 				throw new IOException();
 			}
+			// Discard the mark.
+			markBuffer = null;
 			if (waiters.isEmpty())
 			{
 				final Message message = new Message(buffer.toString());
@@ -181,6 +186,7 @@ implements TextInputChannel
 				position = 0;
 				return;
 			}
+			assert messages.isEmpty();
 			assert position == 0;
 			final String content = buffer.toString();
 			final int contentLength = content.length();
@@ -194,11 +200,19 @@ implements TextInputChannel
 				ready.add(waiter);
 				position += size;
 			}
-			// If the message still contains data, then enqueue it.
+			// If the message still contains data, then enqueue it. Preserve the
+			// position.
 			if (position != contentLength)
 			{
-				final Message message = new Message(buffer.toString());
+				assert waiters.isEmpty();
+				final Message message = new Message(content);
 				messages.addFirst(message);
+			}
+			// Otherwise, reset the position (since the whole message was
+			// consumed).
+			else
+			{
+				position = 0;
 			}
 		}
 		for (final Waiter waiter : ready)
@@ -236,6 +250,7 @@ implements TextInputChannel
 				waiters.addLast(waiter);
 				return;
 			}
+			assert waiters.isEmpty();
 			// Otherwise, attempt to fill the buffer.
 			while (buffer.hasRemaining() && !messages.isEmpty())
 			{
@@ -305,7 +320,8 @@ implements TextInputChannel
 				messages.addLast(message);
 				return;
 			}
-			// Otherwise, attempt to feed the message into any waiting waiters.
+			// Otherwise, attempt to feed the message into any waiters.
+			assert messages.isEmpty();
 			assert position == 0;
 			ready = new ArrayList<>();
 			final String content = message.content();
@@ -353,6 +369,11 @@ implements TextInputChannel
 				{
 					messages.addLast(message);
 				}
+			}
+			// Otherwise, reset the position.
+			else
+			{
+				position = 0;
 			}
 		}
 		for (final Waiter waiter : ready)

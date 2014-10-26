@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.PojoDescriptor.ObjectSlots.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A {@code PojoDescriptor} describes a plain-old Java object (pojo) that is
@@ -139,6 +140,32 @@ extends Descriptor
 	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
 	{
 		return false;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("pojo");
+		writer.write("pojo type");
+		object.slot(KIND).writeTo(writer);
+		writer.write("description");
+		writer.write((String) object.slot(RAW_POJO).javaObject());
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("pojo");
+		writer.write("pojo type");
+		object.slot(KIND).writeSummaryTo(writer);
+		writer.write("description");
+		writer.write((String) object.slot(RAW_POJO).javaObject());
+		writer.endObject();
 	}
 
 	@Override

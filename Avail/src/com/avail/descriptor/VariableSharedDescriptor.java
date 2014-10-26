@@ -45,6 +45,7 @@ import com.avail.exceptions.AvailException;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * My {@linkplain AvailObject object instances} are {@linkplain
@@ -373,6 +374,30 @@ extends VariableDescriptor
 	{
 		// Do nothing; just answer the (shared) receiver.
 		return object;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("variable");
+		writer.write("variable type");
+		object.slot(KIND).writeTo(writer);
+		writer.write("value");
+		object.value().writeSummaryTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("variable");
+		writer.write("variable type");
+		object.kind().writeSummaryTo(writer);
+		writer.endObject();
 	}
 
 	/**

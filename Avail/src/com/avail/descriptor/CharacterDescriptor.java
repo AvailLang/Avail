@@ -38,6 +38,7 @@ import java.util.*;
 import com.avail.annotations.*;
 import com.avail.exceptions.MarshalingException;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * {@code CharacterDescriptor} implements an Avail character. Avail characters
@@ -238,6 +239,12 @@ extends Descriptor
 			return SerializerOperation.SHORT_CHARACTER;
 		}
 		return SerializerOperation.LARGE_CHARACTER;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.write(TupleDescriptor.from(object));
 	}
 
 	/**

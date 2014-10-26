@@ -40,6 +40,7 @@ import com.avail.annotations.*;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * I represent the {@linkplain ExtendedIntegerDescriptor extended integers}
@@ -461,6 +462,14 @@ extends ExtendedIntegerDescriptor
 	{
 		// Not finite, so not numerically equal to an integer.
 		return false;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.write(getSign(object) == Sign.POSITIVE
+			? Double.POSITIVE_INFINITY
+			: Double.NEGATIVE_INFINITY);
 	}
 
 	/**

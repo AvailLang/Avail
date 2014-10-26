@@ -37,6 +37,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A {@code VariableTypeDescriptor variable type} is the {@linkplain
@@ -225,6 +226,34 @@ extends TypeDescriptor
 			return object.makeShared();
 		}
 		return object;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("variable type");
+		writer.write("write type");
+		final AvailObject innerType = object.slot(INNER_TYPE);
+		innerType.writeTo(writer);
+		writer.write("read type");
+		innerType.writeTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("variable type");
+		writer.write("write type");
+		final AvailObject innerType = object.slot(INNER_TYPE);
+		innerType.writeSummaryTo(writer);
+		writer.write("read type");
+		innerType.writeSummaryTo(writer);
+		writer.endObject();
 	}
 
 	/**

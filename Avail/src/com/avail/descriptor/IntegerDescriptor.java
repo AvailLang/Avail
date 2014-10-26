@@ -43,6 +43,7 @@ import com.avail.annotations.*;
 import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * An Avail {@linkplain IntegerDescriptor integer} is represented by a little
@@ -1853,6 +1854,19 @@ extends ExtendedIntegerDescriptor
 	boolean o_IsNumericallyIntegral (final AvailObject object)
 	{
 		return true;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		if (object.isLong())
+		{
+			writer.write(object.extractLong());
+		}
+		else
+		{
+			writer.write(object.asBigInteger());
+		}
 	}
 
 	/**

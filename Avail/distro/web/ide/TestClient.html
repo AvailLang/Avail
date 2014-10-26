@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Avail Web Client (Test)</title>
+<link
+	rel="stylesheet"
+	href="http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
+<script src="http://code.jquery.com/jquery-2.1.1.js"></script>
+<script src="http://code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+<link
+	rel="stylesheet"
+	href="jsTree/themes/default/style.min.css">
+<script src="jsTree/jstree.min.js"></script>
+<style type="text/css">
+#moduleTree
+{
+	float: left;
+	width: 20%;
+	height: 800px;
+	overflow: auto;
+	font-size: 10pt;
+}
+.vakata-context
+{
+	font-size: 8pt;
+}
+#buildProgressBar
+{
+	width: 100%;
+	height: 10px;
+}
+#buildProgressBar .ui-progressbar-value
+{
+	background: green;
+}
+#accordionContainer
+{
+	height: 30px;
+	margin: 10px 0px;
+}
+
+#consoleAccordion .ui-accordion
+{
+	padding: 0px;
+}
+
+#consoleAccordion .ui-accordion-header
+{
+	background-color: #f0f0f0;
+	font-size: 8pt;
+	font-variant: small-caps;
+	white-space: pre;
+}
+#consoleAccordion .ui-accordion-content
+{
+	width: 100%;
+	margin: 0px;
+	padding: 0px;
+	overflow-x: auto;
+	overflow-y: scroll;
+	font-family: monospace;
+	font-size: 10pt;
+	white-space: pre;
+	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
+}
+div.transcript
+{
+	width: 100%;
+	height: 500px;
+	margin: 10px 0px;
+	overflow-x: auto;
+	overflow-y: scroll;
+	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
+	background-color: #f0f0f0;
+	font-family: monospace;
+	white-space: pre;
+}
+div.cmdBanner
+{
+	margin: 0px;
+	padding: 0px;
+	color: white;
+	background-color: black;
+}
+div.ioBanner
+{
+	margin: 0px;
+	padding: 0px;
+	color: white;
+	background-color: darkgreen;
+}
+div.errBanner
+{
+	margin: 0px;
+	padding: 0px;
+	color: white;
+	background-color: darkred;
+}
+pre { outline: 1px solid #ccc; padding: 3px; margin: 3px; }
+textarea { background-color: white; }
+.string { color: green; }
+.number { color: darkorange; }
+.boolean { color: blue; }
+.null { color: magenta; }
+.key { color: red; }
+</style>
+<script language="javascript" type="text/javascript">
+	var protocolVersion = 4;
+	var supportedProtocolVersions = [protocolVersion];
+	var availUri = "ws://localhost:40000/avail";
+	var cmdOutput = null, ioOutput = null;
+	var cmdChannel = null, ioChannel = null;
+	var wsInput = null;
+	var moduleTree = null;
+	var buildProgressBar = null;
+	var globalBytes = null;
+	var consoleAccordion = null;
+
+	function wsInit ()
+	{
+		cmdOutput = document.getElementById('cmdOutput');
+		ioOutput = document.getElementById('ioOutput');
+		wsInput = document.getElementById('wsInput');
+
+		moduleTree = $("#moduleTree");
+		moduleTree.jstree({
+			'core' : {
+				'animation' : 200,
+				'multiple' : false,
+				'themes' : {
+					'variant' : 'small'
+				}
+			},
+			'plugins' : [ 'contextmenu' ],
+			'contextmenu' : {
+				'items' : function (node)
+				{
+					return {
+						'Load' : {
+							'label' : 'Load',
+							'action' : function (item)
+							{
+								var path = '/'
+									+ moduleTree.jstree(true).get_path(
+										node, '/');
+								cmdSend('load module ' + path);
+							}
+						},
+						'Unload' : {
+							'label' : 'Unload',
+							'action' : function (item)
+							{
+								var path = '/'
+									+ moduleTree.jstree(true).get_path(
+										node, '/');
+								cmdSend('unload module ' + path);
+							}
+						},
+						'Unload All' : {
+							'label' : 'Unload All',
+							'separator_before' : true,
+							'action' : function (item)
+							{
+								cmdSend('unload all modules');
+							}
+						},
+						'Clear Repositories' : {
+							'label' : 'Clear Repositories',
+							'separator_before' : true,
+							'action' : function (item)
+							{
+								cmdSend('clear repositories');
+							}
+						}
+					};
+				}
+			}
+		});
+		moduleTree.bind('dblclick.jstree', function (e)
+		{
+			var path = '/' + moduleTree.jstree(true).get_path(
+				e.target, '/');
+			cmdSend('load module ' + path);
+		});
+
+		buildProgressBar = $("#buildProgressBar");
+		buildProgressBar.progressbar();
+		buildProgressBar.hide();
+
+		consoleAccordion = $("#consoleAccordion");
+		var collapseCounter = 0;
+		consoleAccordion.accordion({
+			'active' : false,
+			'animate' : 200,
+			'beforeActivate' :
+				function (e, ui)
+				{
+					$("#accordionContainer").height(
+						(collapseCounter % 2 === 0) ? 300 : 30);
+					consoleAccordion.accordion('refresh');
+					collapseCounter++;
+				},
+			'collapsible' : true,
+			'header' : 'h6',
+			'heightStyle' : 'fill'
+		});
+
+		cmdChannel = new WebSocket(availUri);
+		cmdChannel.onopen = function (e)
+		{
+			clearOutput();
+			cmdWrite('<div class="cmdBanner">CONNECTED</div>');
+			cmdSend('version ' + protocolVersion);
+		};
+		cmdChannel.onclose = function (e)
+		{
+			cmdWrite('<div class="cmdBanner">DISCONNECTED</div>');
+			wsInput.disabled = true;
+		};
+		cmdChannel.onerror = function (e)
+		{
+			cmdWrite(
+				'<div class="errBanner">ERROR: ' + e.data + '</div>');
+		};
+		cmdChannel.onmessage = function (e)
+		{
+			{
+				var response = JSON.parse(e.data);
+				var prettyJSON = highlight(JSON.stringify(JSON.parse(e.data), null, 4));
+				cmdWrite(prettyJSON);
+			}
+			if ('command' in response)
+			{
+				switch (response.command)
+				{
+					case 'version':
+					{
+						negotiateVersions(
+							response.content,
+							function ()
+							{
+								cmdWrite('<div class="ioBanner">VERSION NEGOTIATED</div>');
+								cmdSend('source modules');
+							},
+							function ()
+							{
+								cmdWrite(
+									'<div class="errBanner">INCOMPATIBLE VERSIONS</div>');
+								cmdChannel.close();
+							});
+						break;
+					}
+					case 'source modules':
+					{
+						var content = response.content;
+						visitRoots(content, function (node)
+						{
+							if (node.isRoot)
+							{
+								// Do nothing — yet.
+							}
+							else if (node.isPackage)
+							{
+								node.icon = 'images/PackageInTree.png';
+							}
+							else if (node.isResource)
+							{
+								// Do nothing — yet.
+							}
+							else
+							{
+								node.icon = 'images/ModuleInTree.png';
+							}
+						});
+						moduleTree.jstree(true).settings.core.data =
+							content;
+						moduleTree.jstree(true).refresh();
+						break;
+					}
+					case 'load module':
+					{
+						if ('upgrade' in response)
+						{
+							upgrade(response);
+							return;
+						}
+						var content = response.content;
+						switch (typeof content)
+						{
+							case 'object':
+								if ('global' in content)
+								{
+									content.global.forEach(function (update)
+									{
+										if (globalBytes === 0)
+										{
+											if ('totalBytes' in update)
+											{
+												globalBytes =
+													update.totalBytes;
+												buildProgressBar.progressbar(
+													'option',
+													'max',
+													100);
+											}
+										}
+										if ('bytesSoFar' in update)
+										{
+											buildProgressBar.progressbar(
+												'value',
+												100 * (update.bytesSoFar / globalBytes));
+										}
+									});
+								}
+								break;
+							case 'string':
+								if (content === 'begin')
+								{
+									globalBytes = 0;
+									buildProgressBar.show();
+								}
+								else if (content === 'end')
+								{
+									buildProgressBar.progressbar('value', 0);
+									buildProgressBar.progressbar('option', 'max', 0);
+									buildProgressBar.hide();
+								}
+								break;
+						}
+						break;
+					}
+					case 'unload module':
+					{
+						if ('upgrade' in response)
+						{
+							upgrade(response);
+							return;
+						}
+						break;
+					}
+					case 'unload all modules':
+					{
+						if ('upgrade' in response)
+						{
+							upgrade(response);
+							return;
+						}
+						break;
+					}
+					case 'run entry point':
+					{
+						if ('upgrade' in response)
+						{
+							upgrade(response);
+							return;
+						}
+						var content = response.content;
+						if (content.result !== null)
+						{
+							ioWrite(
+								'<span style="color: green">'
+								+ content.expression
+								+ '</span> <strong>⇒</strong> ');
+							try
+							{
+								// We need to parse *twice*, because a JSON
+								// result will be nested within a (JSON)
+								// string.
+								var prettyJSON = highlight(JSON.stringify(
+									JSON.parse(JSON.parse(content.result)), null, 4));
+								ioWrite(prettyJSON + '\n');
+							}
+							catch (ex)
+							{
+								ioWrite(
+									'<span style="color: blue">'
+									+ content.result
+									+ '</span>\n');
+							}
+						}
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	function cmdWrite (msg)
+	{
+		var p = document.createElement('pre');
+		p.style.wordWrap = 'break-word';
+		p.innerHTML = msg;
+		cmdOutput.appendChild(p);
+		cmdOutput.scrollTop = cmdOutput.scrollHeight;
+	}
+
+	function ioWrite (msg)
+	{
+		var span = document.createElement('span');
+		span.style.wordWrap = 'break-word';
+		span.innerHTML = msg;
+		ioOutput.appendChild(span);
+		ioOutput.scrollTop = ioOutput.scrollHeight;
+	}
+
+	function highlight (json)
+	{
+		json = json.replace(/&/g, '&')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;');
+		return json.replace(
+			/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+			function (match)
+			{
+				var cls = 'number';
+				if (/^"/.test(match))
+				{
+					if (/:$/.test(match))
+					{
+						cls = 'key';
+					}
+					else
+					{
+						cls = 'string';
+					}
+				}
+				else if (/true|false/.test(match))
+				{
+					cls = 'boolean';
+				}
+				else if (/null/.test(match))
+				{
+					cls = 'null';
+				}
+				return '<span class="' + cls + '">' + match + '</span>';
+			});
+	}
+
+	function maybeSubmit (e)
+	{
+		// Submit on enter.
+		if (e.keyCode == 13)
+		{
+			e.preventDefault();
+			cmdSend(wsInput.value.substring(0, wsInput.value.length));
+			wsInput.value = '';
+			return false;
+		}
+		return true;
+	}
+
+	function cmdSend (msg)
+	{
+		if (ioChannel === null)
+		{
+			cmdWrite('<span style="color: gray">' + msg + '</span>');
+			cmdChannel.send(msg);
+		}
+		else
+		{
+			ioWrite('<span style="color: green">' + msg + '</span><br/>');
+			ioChannel.send(msg + '\n');
+		}
+	}
+
+	function clearOutput (elem)
+	{
+		var elem = cmdOutput;
+		while (elem.hasChildNodes())
+		{
+			elem.removeChild(elem.firstChild);
+		}
+		elem = ioOutput;
+		while (elem.hasChildNodes())
+		{
+			elem.removeChild(elem.firstChild);
+		}
+	}
+
+	function closeChannels ()
+	{
+		if (cmdChannel !== null)
+		{
+			cmdChannel.close();
+			cmdChannel = null;
+		}
+		if (ioChannel !== null)
+		{
+			ioChannel.close();
+			ioChannel = null;
+		}
+	}
+
+	function visitTree (node, callback)
+	{
+		if (node.hasOwnProperty('children'))
+		{
+			var children = node.children.forEach(function (child)
+			{
+				visitTree(child, callback);
+			});
+		}
+		callback(node);
+	}
+
+	function visitRoots (roots, callback)
+	{
+		roots.forEach(function (root)
+		{
+			visitTree(root, callback);
+		});
+	}
+
+	function negotiateVersions (content, ok, bad)
+	{
+		if (content !== protocolVersion)
+		{
+			var serverVersions = content.supported;
+			var compatible = serverVersions.filter(
+				function (v)
+				{
+					return supportedProtocolVersions.indexOf(
+						v) != -1;
+				});
+			if (compatible.length === 0)
+			{
+				bad();
+				return;
+			}
+		}
+		ok();
+	}
+
+	function upgrade (cmdResponse)
+	{
+		var versionNegotiated = false;
+		ioChannel = new WebSocket(availUri);
+		ioChannel.onopen = function (e)
+		{
+			cmdWrite('<div class="ioBanner">I/O CONNECTED</div>');
+			wsInput.style.backgroundColor = 'yellow';
+			ioChannel.send('version ' + protocolVersion);
+		};
+		ioChannel.onclose = function (e)
+		{
+			cmdWrite('<div class="ioBanner">I/O DISCONNECTED</div>')
+			ioChannel = null;
+			wsInput.style.backgroundColor = 'white';
+		};
+		ioChannel.onerror = function (e)
+		{
+			cmdWrite(
+				'<div class="errBanner">I/O ERROR: ' + e.data + '</div>');
+		};
+		ioChannel.onmessage = function (e)
+		{
+			var response = JSON.parse(e.data);
+			if (!versionNegotiated)
+			{
+				negotiateVersions(
+					response.content,
+					function ()
+					{
+						cmdWrite('<div class="ioBanner">I/O VERSION NEGOTIATED</div>');
+						ioChannel.send('upgrade ' + cmdResponse.upgrade);
+					},
+					function ()
+					{
+						cmdWrite('<div class="errBanner">I/O INCOMPATIBLE VERSIONS</div>');
+						ioChannel.close();
+					});
+				versionNegotiated = true;
+			}
+			else
+			{
+				var content = response.content;
+				switch (response.tag)
+				{
+					case 'out':
+						ioWrite(content);
+						break;
+					case 'err':
+						ioWrite(
+							'<span style="color: red">'
+							+ content
+							+ '</span>');
+						break;
+				}
+			}
+		};
+	}
+</script>
+</head>
+<body onload="wsInit();">
+<div>
+	<div id="moduleTree">
+	<!-- The module tree appears here. -->
+	</div>
+	<div style="float: left; margin: 10px; width: 70%">
+		<div>
+			<textarea id="wsInput" rows="4" cols="80" onkeydown="maybeSubmit(event);"></textarea>
+			<input
+				id="wsButton"
+				type="button"
+				onclick="closeChannels();"
+				value="Close">
+			<input
+				id="wsClear"
+				type="button"
+				onclick="clearOutput();"
+				value="Clear"/>
+		</div>
+		<div id="buildProgressBar">
+		<!-- The build progress bar. -->
+		</div>
+		<div id="accordionContainer">
+			<div id="consoleAccordion">
+				<h6>Command Console</h6>
+				<div id="cmdOutput">
+				<!-- Command content appears here. -->
+				</div>
+			</div>
+		</div>
+		<div class="transcript" id="ioOutput">
+		<!-- I/O content appears here. -->
+		</div>
+	</div>
+</div>
+</body>
+</html>

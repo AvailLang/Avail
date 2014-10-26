@@ -42,6 +42,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * {@code TupleDescriptor} is an abstract descriptor class under which all tuple
@@ -1147,6 +1148,42 @@ extends Descriptor
 		for (int index = startIndex; index <= endIndex; index++)
 		{
 			outputByteBuffer.put((byte) object.extractUnsignedByte());
+		}
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		if (object.isString())
+		{
+			writer.write(object.asNativeString());
+		}
+		else
+		{
+			writer.startArray();
+			for (final AvailObject o : object)
+			{
+				o.writeTo(writer);
+			}
+			writer.endArray();
+		}
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		if (object.isString())
+		{
+			writer.write(object.asNativeString());
+		}
+		else
+		{
+			writer.startArray();
+			for (final AvailObject o : object)
+			{
+				o.writeSummaryTo(writer);
+			}
+			writer.endArray();
 		}
 	}
 

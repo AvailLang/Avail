@@ -39,6 +39,7 @@ import java.util.List;
 import com.avail.annotations.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * My instances are called <em>instance metas</em>, the types of types.  These
@@ -583,6 +584,28 @@ extends AbstractEnumerationTypeDescriptor
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.INSTANCE_META;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		getSuperkind(object).writeTo(writer);
+		writer.write("instances");
+		object.instances().writeTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		getSuperkind(object).writeSummaryTo(writer);
+		writer.write("instances");
+		object.instances().writeSummaryTo(writer);
+		writer.endObject();
 	}
 
 	/**

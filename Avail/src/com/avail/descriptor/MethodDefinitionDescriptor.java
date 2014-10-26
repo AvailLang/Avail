@@ -36,6 +36,7 @@ import static com.avail.descriptor.MethodDefinitionDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD_DEFINITION;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * An object instance of {@code MethodDefinitionDescriptor} represents a
@@ -111,6 +112,36 @@ extends DefinitionDescriptor
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.METHOD_DEFINITION;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("method definition");
+		writer.write("definition method");
+		object.slot(DEFINITION_METHOD).methodName().writeTo(writer);
+		writer.write("definition module");
+		object.slot(MODULE).moduleName().writeTo(writer);
+		writer.write("body block");
+		object.slot(BODY_BLOCK).writeTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("method definition");
+		writer.write("definition method");
+		object.slot(DEFINITION_METHOD).methodName().writeTo(writer);
+		writer.write("definition module");
+		object.slot(MODULE).moduleName().writeTo(writer);
+		writer.write("body block");
+		object.slot(BODY_BLOCK).writeSummaryTo(writer);
+		writer.endObject();
 	}
 
 	/**

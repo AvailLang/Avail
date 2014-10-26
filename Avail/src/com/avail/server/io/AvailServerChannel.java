@@ -32,9 +32,15 @@
 
 package com.avail.server.io;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 import com.avail.annotations.Nullable;
 import com.avail.io.TextInterface;
 import com.avail.server.AvailServer;
+import com.avail.server.messages.CommandMessage;
 import com.avail.server.messages.Message;
 import com.avail.utility.evaluation.Continuation0;
 
@@ -86,39 +92,147 @@ implements AutoCloseable
 	public abstract void receiveMessage (final Message message);
 
 	/**
-	 * Is this {@linkplain AvailServerChannel channel} eligible for upgrade?
+	 * {@code ProtocolState} represents the communication state of a {@linkplain
+	 * AvailServerChannel server channel}.
 	 */
-	private volatile boolean eligibleForUpgrade = true;
+	public static enum ProtocolState
+	{
+		/** Protocol version must be negotiated. */
+		VERSION_NEGOTIATION
+		{
+			@Override
+			Set<ProtocolState> allowedSuccessorStates ()
+			{
+				return Collections.singleton(ELIGIBLE_FOR_UPGRADE);
+			}
+
+			@Override
+			public boolean versionNegotiated ()
+			{
+				return false;
+			}
+		},
+
+		/**
+		 * The {@linkplain AvailServerChannel channel} is eligible for upgrade.
+		 */
+		ELIGIBLE_FOR_UPGRADE
+		{
+			@Override
+			Set<ProtocolState> allowedSuccessorStates ()
+			{
+				return new HashSet<>(Arrays.asList(COMMAND, IO));
+			}
+
+			@Override
+			public boolean eligibleForUpgrade ()
+			{
+				return true;
+			}
+		},
+
+		/**
+		 * The {@linkplain AvailServerChannel channel} should henceforth be
+		 * used to issue {@linkplain CommandMessage commands}.
+		 */
+		COMMAND
+		{
+			@Override
+			Set<ProtocolState> allowedSuccessorStates ()
+			{
+				return Collections.emptySet();
+			}
+		},
+
+		/**
+		 * The {@linkplain AvailServerChannel channel} should henceforth be
+		 * used for general text I/O.
+		 */
+		IO
+		{
+			@Override
+			Set<ProtocolState> allowedSuccessorStates ()
+			{
+				return Collections.emptySet();
+			}
+
+			@Override
+			public boolean generalTextIO ()
+			{
+				return true;
+			}
+		};
+
+		/**
+		 * Answer the allowed successor {@linkplain ProtocolState states} of
+		 * the receiver.
+		 *
+		 * @return The allowed successor states.
+		 */
+		abstract Set<ProtocolState> allowedSuccessorStates ();
+
+		/**
+		 * Does this {@linkplain ProtocolState state} indicate that the version
+		 * has already been negotiated?
+		 *
+		 * @return {@code true} if the version has already been negotiated,
+		 *         {@code false} otherwise.
+		 */
+		public boolean versionNegotiated ()
+		{
+			return true;
+		}
+
+		/**
+		 * Does this {@linkplain ProtocolState state} indicate eligibility for
+		 * upgrade?
+		 *
+		 * @return {@code true} if the state indicates eligibility for upgrade,
+		 *         {@code false} otherwise.
+		 */
+		public boolean eligibleForUpgrade ()
+		{
+			return false;
+		}
+
+		/**
+		 * Does this {@linkplain ProtocolState state} indicate a capability to
+		 * do general text I/O?
+		 *
+		 * @return {@code true} if the state indicates the capability, {@code
+		 *         false} otherwise.
+		 */
+		public boolean generalTextIO ()
+		{
+			return false;
+		}
+	}
+
+	/** The current {@linkplain ProtocolState protocol state}. */
+	private ProtocolState state = ProtocolState.VERSION_NEGOTIATION;
 
 	/**
-	 * Is this {@linkplain AvailServerChannel channel} eligible for upgrade?
+	 * Answer the current {@linkplain ProtocolState protocol state}.
 	 *
-	 * @return {@code true} if the channel is eligible for upgrade, {@code
-	 *         false} otherwise.
+	 * @return The current protocol state.
 	 */
-	public boolean isEligibleForUpgrade ()
+	public ProtocolState state ()
 	{
-		return eligibleForUpgrade;
+		return state;
 	}
 
 	/**
-	 * Mark the {@linkplain AvailServerChannel channel} as ineligible for
-	 * upgrade.
-	 */
-	public void beIneligibleForUpgrade ()
-	{
-		eligibleForUpgrade = false;
-	}
-
-	/**
-	 * Is the {@linkplain AvailServerChannel receiver} a general I/O channel?
+	 * Set the {@linkplain ProtocolState protocol state}.
 	 *
-	 * @return {@code true} if the receiver is a general I/O channel, {@code
-	 *         false} otherwise.
+	 * @param state
+	 *        The new protocol state. This must be an {@linkplain
+	 *        ProtocolState#allowedSuccessorStates() allowed successor} of the
+	 *        {@linkplain #state() current protocol state}.
 	 */
-	public boolean isIOChannel ()
+	public void setState (final ProtocolState state)
 	{
-		return textInterface != null;
+		assert this.state.allowedSuccessorStates().contains(state);
+		this.state = state;
 	}
 
 	/**
@@ -128,8 +242,9 @@ implements AutoCloseable
 	private @Nullable TextInterface textInterface;
 
 	/**
-	 * Answer the {@linkplain TextInterface text interface}. As a precondition
-	 * of invocation, {@link #isIOChannel()} must return {@code true}.
+	 * Answer the {@linkplain TextInterface text interface}. This is applicable
+	 * for {@linkplain ProtocolState#generalTextIO() general text I/O}
+	 * {@linkplain AvailServerChannel channels} only.
 	 *
 	 * @return The text interface.
 	 */
@@ -145,9 +260,44 @@ implements AutoCloseable
 	 */
 	public void upgradeToIOChannel ()
 	{
+		setState(ProtocolState.IO);
 		textInterface = new TextInterface(
 			new ServerInputChannel(this),
 			new ServerOutputChannel(this),
 			new ServerErrorChannel(this));
+	}
+
+	/**
+	 * The {@link UUID}s of any upgrade requests issued by this {@linkplain
+	 * AvailServerChannel channel}.
+	 */
+	private final Set<UUID> requestedUpgrades = new HashSet<>();
+
+	/**
+	 * Record an upgrade request instigated by this {@linkplain
+	 * AvailServerChannel channel}.
+	 *
+	 * @param uuid
+	 *        The {@link UUID} that identifies the upgrade request.
+	 */
+	public void recordUpgradeRequest (final UUID uuid)
+	{
+		synchronized (requestedUpgrades)
+		{
+			requestedUpgrades.add(uuid);
+		}
+	}
+
+	@Override
+	protected void finalize ()
+	{
+		try
+		{
+			server().discontinueUpgradeRequests(requestedUpgrades);
+		}
+		catch (final Throwable e)
+		{
+			// Do not prevent destruction of this channel.
+		}
 	}
 }

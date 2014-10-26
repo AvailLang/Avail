@@ -36,6 +36,7 @@ import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor.ObjectSlots.*
 import static java.lang.Math.*;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * An object instance of {@code ConcatenatedTupleTypeDescriptor} is an
@@ -588,6 +589,22 @@ extends TypeDescriptor
 		becomeRealTupleType(object);
 		object.makeShared();
 		return object.traversed();
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		becomeRealTupleType(object);
+		writer.startObject();
+		writer.write("kind");
+		writer.write("tuple type");
+		writer.write("leading types");
+		object.typeTuple().writeTo(writer);
+		writer.write("default type");
+		object.defaultType().writeTo(writer);
+		writer.write("cardinality");
+		object.sizeRange().writeTo(writer);
+		writer.endObject();
 	}
 
 	/**

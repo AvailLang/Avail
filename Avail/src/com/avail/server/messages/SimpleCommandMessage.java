@@ -91,8 +91,17 @@ extends CommandMessage
 			case ENTRY_POINTS:
 				server.entryPointsThen(channel, this, continuation);
 				break;
-			case BUILD_MODULE:
+			case CLEAR_REPOSITORIES:
+				server.clearRepositoriesThen(channel, this, continuation);
+				break;
+			case UNLOAD_ALL_MODULES:
+				server.requestUpgradesForUnloadAllModulesThen(
+					channel, this, continuation);
+				break;
+			case VERSION:
 			case UPGRADE:
+			case LOAD_MODULE:
+			case UNLOAD_MODULE:
 			case RUN_ENTRY_POINT:
 				assert false : "This command should not be dispatched here!";
 				break;

@@ -1,5 +1,5 @@
 /**
- * BuildModuleCommandMessage.java
+ * DoubleVariable.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,64 +30,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.messages;
-
-import com.avail.builder.ModuleName;
-import com.avail.descriptor.A_Module;
-import com.avail.server.io.AvailServerChannel;
-import com.avail.utility.evaluation.Continuation0;
+package com.avail.interpreter.jvm;
 
 /**
- * A {@code BuildModuleCommandMessage} represents a {@link Command#BUILD_MODULE
- * BUILD_MODULE} {@linkplain Command command}, and carries the {@linkplain
- * ModuleName name} of the target {@linkplain A_Module module}.
+ * The {@link VerificationTypeInfo <code>Double_variable_info</code>}
+ * item indicates that the location has the verification type
+ * <code>double</code>. The <code>Double_variable_info</code> specifies
+ * two locations in the local variable array or in the operand stack.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-public class BuildModuleCommandMessage
-extends CommandMessage
+public class DoubleVariable extends VerificationTypeInfo
 {
 	/**
-	 * The {@linkplain ModuleName name} of the target {@linkplain A_Module
-	 * module}.
-	 */
-	private final ModuleName target;
-
-	/**
-	 * Answer the {@linkplain ModuleName name} of the target {@linkplain
-	 * A_Module module}.
+	 * Construct a new {@link IntegerVariable}.
 	 *
-	 * @return The target module.
 	 */
-	public ModuleName target ()
+	DoubleVariable()
 	{
-		return target;
-	}
 
-	/**
-	 * Construct a new {@link BuildModuleCommandMessage}.
-	 *
-	 * @param target
-	 *        The {@linkplain ModuleName name} of the target {@linkplain
-	 *        A_Module module}.
-	 */
-	public BuildModuleCommandMessage (final ModuleName target)
-	{
-		this.target = target;
 	}
 
 	@Override
-	public Command command ()
+	protected int size ()
 	{
-		return Command.BUILD_MODULE;
+		return 1;
 	}
-
 	@Override
-	public void processThen (
-		final AvailServerChannel channel,
-		final Continuation0 continuation)
+	byte typeValue ()
 	{
-		channel.server().requestUpgradesForBuildModuleThen(
-			channel, this, continuation);
+		return 3;
 	}
 }

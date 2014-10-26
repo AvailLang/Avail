@@ -610,13 +610,28 @@ implements AutoCloseable
 		final JSONState state = stack.removeFirst();
 		state.checkCanWriteAnyValue();
 		state.writePrologueTo(this);
-		privateWrite(String.format("%g", value));
+		if (Float.isFinite(value))
+		{
+			privateWrite(String.format("%g", value));
+		}
+		else if (Float.isInfinite(value))
+		{
+			privateWrite(value == Float.POSITIVE_INFINITY
+				? "Infinity"
+				: "-Infinity");
+		}
+		else
+		{
+			assert Float.isNaN(value);
+			privateWrite("NaN");
+		}
 		stack.addFirst(state.nextStateAfterValue());
 	}
 
 	/**
 	 * Write the specified {@code double} to the underlying document {@linkplain
-	 * Writer writer} as a JSON number.
+	 * Writer writer} as a JSON number. Use JSON 5 extensions (and an additional
+	 * NaN extension).
 	 *
 	 * @param value
 	 *        A {@code double} value.
@@ -631,7 +646,21 @@ implements AutoCloseable
 		final JSONState state = stack.removeFirst();
 		state.checkCanWriteAnyValue();
 		state.writePrologueTo(this);
-		privateWrite(String.format("%g", value));
+		if (Double.isFinite(value))
+		{
+			privateWrite(String.format("%g", value));
+		}
+		else if (Double.isInfinite(value))
+		{
+			privateWrite(value == Double.POSITIVE_INFINITY
+				? "Infinity"
+				: "-Infinity");
+		}
+		else
+		{
+			assert Double.isNaN(value);
+			privateWrite("NaN");
+		}
 		stack.addFirst(state.nextStateAfterValue());
 	}
 

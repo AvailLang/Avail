@@ -68,6 +68,7 @@ import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
+import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
 
 /**
@@ -6027,4 +6028,16 @@ public abstract class AbstractDescriptor
 	abstract void o_TextInterface (
 		AvailObject object,
 		TextInterface textInterface);
+
+	/**
+	 * @param object
+	 * @param writer
+	 */
+	abstract void o_WriteTo (AvailObject object, JSONWriter writer);
+
+	/**
+	 * @param object
+	 * @param writer
+	 */
+	abstract void o_WriteSummaryTo (AvailObject object, JSONWriter writer);
 }

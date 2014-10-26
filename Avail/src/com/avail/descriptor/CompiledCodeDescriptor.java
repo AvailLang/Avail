@@ -46,6 +46,7 @@ import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A {@linkplain CompiledCodeDescriptor compiled code} object is created
@@ -613,6 +614,92 @@ extends Descriptor
 	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
 	{
 		return false;
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("function implementation");
+		writer.write("outers");
+		writer.write(object.slot(NUM_OUTERS));
+		writer.write("arguments");
+		writer.write(object.slot(NUM_ARGS));
+		writer.write("locals");
+		writer.write(object.slot(NUM_LOCALS));
+		writer.write("maximum stack depth");
+		writer.write(object.slot(FRAME_SLOTS));
+		writer.write("nybbles");
+		object.slot(NYBBLES).writeTo(writer);
+		writer.write("function type");
+		object.slot(FUNCTION_TYPE).writeTo(writer);
+		writer.write("method");
+		object.methodName().writeTo(writer);
+		final A_Module module = object.module();
+		if (!module.equalsNil())
+		{
+			writer.write("module");
+			object.module().moduleName().writeTo(writer);
+		}
+		writer.write("starting line number");
+		writer.write(object.startingLineNumber());
+		writer.write("literals");
+		writer.startArray();
+		for (int i = 1, limit = object.variableObjectSlotsCount();
+			i <= limit;
+			i++)
+		{
+			A_BasicObject literal = object.slot(LITERAL_AT_, i);
+			if (literal.equalsNil())
+			{
+				literal = IntegerDescriptor.zero();
+			}
+			literal.writeSummaryTo(writer);
+		}
+		writer.endArray();
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("function implementation");
+		writer.write("outers");
+		writer.write(object.slot(NUM_OUTERS));
+		writer.write("arguments");
+		writer.write(object.slot(NUM_ARGS));
+		writer.write("locals");
+		writer.write(object.slot(NUM_LOCALS));
+		writer.write("maximum stack depth");
+		writer.write(object.slot(FRAME_SLOTS));
+		writer.write("nybbles");
+		object.slot(NYBBLES).writeTo(writer);
+		writer.write("function type");
+		object.slot(FUNCTION_TYPE).writeSummaryTo(writer);
+		writer.write("method");
+		object.methodName().writeTo(writer);
+		writer.write("module");
+		object.module().moduleName().writeTo(writer);
+		writer.write("starting line number");
+		writer.write(object.startingLineNumber());
+		writer.write("literals");
+		writer.startArray();
+		for (int i = 1, limit = object.variableObjectSlotsCount();
+			i <= limit;
+			i++)
+		{
+			A_BasicObject literal = object.slot(LITERAL_AT_, i);
+			if (literal.equalsNil())
+			{
+				literal = IntegerDescriptor.zero();
+			}
+			literal.writeSummaryTo(writer);
+		}
+		writer.endArray();
+		writer.endObject();
 	}
 
 	@Override
