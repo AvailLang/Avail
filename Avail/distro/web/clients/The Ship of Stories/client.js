@@ -73,7 +73,8 @@ function connect ()
 			errorReported = true;
 			reportError(
 				'Unable to connect to Avail server at ' + availURI + '.',
-				'Make sure that the Avail server is running.');
+				'Make sure that the Avail server is running, and that '
+				+ 'your browser correctly supports WebSocket.');
 		}
 	};
 	cmdChannel.onerror = function (e)

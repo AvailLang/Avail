@@ -142,6 +142,7 @@
 .scene-transition:hover
 {
 	background-color: yellow;
+	cursor: pointer;
 }
 
 .scene-transition > p
