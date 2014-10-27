@@ -1,0 +1,168 @@
+/*
+ * style.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * @author Todd L Smith <todd@availlang.org>
+ */
+
+.outer
+{
+	width: 100%;
+	height: 80%;
+	display: table;
+	position: absolute;
+}
+
+.middle
+{
+	display: table-cell;
+	vertical-align: middle;
+}
+
+.inner
+{
+	margin: 0px auto 0px auto;
+	width: 600px;
+}
+
+#progress-bar
+{
+	height: 20px;
+	z-index: 10;
+	background: lightgray;
+}
+
+#progress-bar .ui-progressbar-value
+{
+	background: green;
+}
+
+#error
+{
+	border: 2px solid;
+	border-radius: 25px;
+	background-color: red;
+	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
+}
+
+#error > p
+{
+	text-align: center;
+}
+
+#session-closed
+{
+	border: 2px solid;
+	border-radius: 25px;
+	background-color: blue;
+	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
+}
+
+#session-closed > p
+{
+	text-align: center;
+	color: white;
+}
+
+.scene-title
+{
+	border: 2px solid;
+	border-radius: 25px;
+	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
+	margin: 0px 0px 30px 0px;
+	padding: 0px 10px 0px 10px;
+	background-color: lightblue;
+}
+
+.scene-title > p
+{
+	text-align: center;
+	font-size: 14pt;
+	font-weight: bold;
+	font-variant: small-caps;
+	text-shadow: 2px 2px #dddddd;
+}
+
+.scene-description
+{
+	border: 2px solid;
+	border-radius: 25px;
+	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
+	margin: 0px 0px 30px 0px;
+	padding: 0px 10px 0px 10px;
+	background-color: lightgreen;
+	display: none;
+}
+
+.scene-description > p
+{
+	font-size: 10pt;
+}
+
+.scene-transition
+{
+	border: 2px solid;
+	border-radius: 25px;
+	background-color: pink;
+	margin: 0px 0px 15px 0px;
+	padding: 0px 10px 0px 10px;
+	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
+	display: none;
+}
+
+.scene-transition:hover
+{
+	background-color: yellow;
+}
+
+.scene-transition > p
+{
+	font-size: 10pt;
+	font-style: italic;
+}
+
+.game-over
+{
+	border: 2px solid;
+	border-radius: 25px;
+	background-color: red;
+	margin: 0px 0px 30px 0px;
+	padding: 0px 10px 0px 10px;
+	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
+	display: none;
+}
+
+.game-over > p
+{
+	color: white;
+	text-shadow: 2px 2px #333333;
+}
