@@ -1,5 +1,5 @@
 /**
- * com.avail.utility/LRUCache.java
+ * LRUCache.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *

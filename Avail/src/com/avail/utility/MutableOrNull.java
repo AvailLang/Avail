@@ -1,5 +1,5 @@
 /**
- * Mutable.java
+ * MutableOrNull.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *

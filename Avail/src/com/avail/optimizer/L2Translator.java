@@ -3157,8 +3157,9 @@ public class L2Translator
 				for (final L2Register sourceRegister
 					: instruction.sourceRegisters())
 				{
-					final Set<L2Instruction> providingInstructions =
-						registerSet.stateFor(sourceRegister).sourceInstructions;
+					final List<L2Instruction> providingInstructions =
+						registerSet.stateForReading(sourceRegister)
+							.sourceInstructions();
 					if (!providingInstructions.isEmpty())
 					{
 						DebugFlag.DEAD_INSTRUCTION_REMOVAL.log(

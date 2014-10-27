@@ -38,6 +38,7 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.register.*;
+import static com.avail.utility.PrefixSharingList.*;
 import com.avail.utility.evaluation.*;
 
 /**
@@ -58,8 +59,7 @@ public final class RegisterSet
 	/**
 	 * The mapping from each register to its current state, if any.
 	 */
-	final Map<L2Register, RegisterState> registerStates =
-		new HashMap<>(10);
+	final Map<L2Register, RegisterState> registerStates;
 
 	/**
 	 * Output debug information about this RegisterSet to the specified
@@ -86,19 +86,19 @@ public final class RegisterSet
 		});
 		for (final L2Register reg : sortedRegs)
 		{
-			final RegisterState state = stateFor(reg);
+			final RegisterState state = stateForReading(reg);
 			builder.append(String.format(
 				"%n\t%s = %.100s : %s",
 				reg,
-				state.constant,
-				state.type));
-			final List<L2Register> aliases = state.origins;
+				state.constant(),
+				state.type()));
+			final List<L2Register> aliases = state.origins();
 			if (!aliases.isEmpty())
 			{
 				builder.append(",  ALIASES = ");
 				builder.append(aliases);
 			}
-			final Set<L2Instruction> sources = state.sourceInstructions;
+			final List<L2Instruction> sources = state.sourceInstructions();
 			if (!sources.isEmpty())
 			{
 				builder.append(",  SOURCES = ");
@@ -134,19 +134,45 @@ public final class RegisterSet
 	/**
 	 * Answer the {@link RegisterState} for the specified {@link L2Register},
 	 * creating one and associating it with the register for subsequent lookups.
+	 * Ensure the RegisterState is modifiable, copying it and writing it back if
+	 * necessary.
 	 *
 	 * @param register The L2Register to look up.
-	 * @return The RegisterState that describes the state of the L2Register at
-	 *         a particular point in the generated code.
+	 * @return The mutable RegisterState that describes the state of the
+	 *         L2Register at a particular point in the generated code.
 	 */
-	public RegisterState stateFor (
+	public RegisterState stateForModifying (
 		final L2Register register)
 	{
 		RegisterState state = registerStates.get(register);
 		if (state == null)
 		{
-			state = new RegisterState();
+			state = RegisterState.blank();
+		}
+		if (state.isShared())
+		{
+			state = new RegisterState(state);
 			registerStates.put(register, state);
+		}
+		assert !state.isShared();
+		return state;
+	}
+
+	/**
+	 * Answer the {@link RegisterState} for the specified {@link L2Register},
+	 * creating one and associating it with the register for subsequent lookups.
+	 *
+	 * @param register The L2Register to look up.
+	 * @return The RegisterState that describes the state of the L2Register at
+	 *         a particular point in the generated code.
+	 */
+	public RegisterState stateForReading (
+		final L2Register register)
+	{
+		RegisterState state = registerStates.get(register);
+		if (state == null)
+		{
+			state = RegisterState.blank();
 		}
 		return state;
 	}
@@ -161,7 +187,7 @@ public final class RegisterSet
 	public boolean hasConstantAt (
 		final L2Register register)
 	{
-		return stateFor(register).hasConstant();
+		return stateForReading(register).hasConstant();
 	}
 
 	/**
@@ -181,15 +207,15 @@ public final class RegisterSet
 		final L2Instruction instruction)
 	{
 		final AvailObject strongValue = (AvailObject) value;
-		final RegisterState state = stateFor(register);
-		state.constant = strongValue;
+		final RegisterState state = stateForModifying(register);
+		state.constant(strongValue);
 		if (!strongValue.equalsNil())
 		{
 			final A_Type type =
 				AbstractEnumerationTypeDescriptor.withInstance(strongValue);
 			assert !type.isTop();
 			assert !type.isBottom();
-			state.type = type;
+			state.type(type);
 		}
 		propagateWriteTo(register, instruction);
 	}
@@ -204,7 +230,7 @@ public final class RegisterSet
 	public AvailObject constantAt (
 		final L2Register register)
 	{
-		final AvailObject value = stateFor(register).constant;
+		final AvailObject value = stateForReading(register).constant();
 		assert value != null;
 		return value;
 	}
@@ -217,7 +243,7 @@ public final class RegisterSet
 	public void removeConstantAt (
 		final L2Register register)
 	{
-		stateFor(register).constant = null;
+		stateForModifying(register).constant(null);
 	}
 
 	/**
@@ -230,7 +256,7 @@ public final class RegisterSet
 	public boolean hasTypeAt (
 		final L2Register register)
 	{
-		return stateFor(register).type != null;
+		return stateForReading(register).type() != null;
 	}
 
 	/**
@@ -242,7 +268,7 @@ public final class RegisterSet
 	public A_Type typeAt (
 		final L2Register register)
 	{
-		final A_Type type = stateFor(register).type;
+		final A_Type type = stateForReading(register).type();
 		assert type != null;
 		return type;
 	}
@@ -263,7 +289,7 @@ public final class RegisterSet
 		assert !type.equals(
 			AbstractEnumerationTypeDescriptor.withInstance(
 				NilDescriptor.nil()));
-		stateFor(register).type = type;
+		stateForModifying(register).type(type);
 	}
 
 	/**
@@ -289,7 +315,7 @@ public final class RegisterSet
 		{
 			// There is only one value that it could be.
 			final AvailObject onlyPossibleValue = type.instance();
-			stateFor(register).constant = onlyPossibleValue;
+			stateForModifying(register).constant(onlyPossibleValue);
 		}
 		propagateWriteTo(register, instruction);
 	}
@@ -302,9 +328,8 @@ public final class RegisterSet
 	public void removeTypeAt (
 		final L2Register register)
 	{
-		stateFor(register).type = null;
+		stateForModifying(register).type(null);
 	}
-
 
 	/**
 	 * The sourceRegister's value was just written to the destinationRegister.
@@ -346,17 +371,16 @@ public final class RegisterSet
 			return;
 		}
 		propagateWriteTo(destinationRegister, instruction);
-		final RegisterState sourceState = stateFor(sourceRegister);
-		final RegisterState destinationState = stateFor(destinationRegister);
-		final List<L2Register> sourceOrigins = sourceState.origins;
+		final RegisterState sourceState = stateForReading(sourceRegister);
+		final RegisterState destinationState =
+			stateForModifying(destinationRegister);
+		final List<L2Register> sourceOrigins = sourceState.origins();
 		final List<L2Register> destinationOrigins =
-			new ArrayList<L2Register>(sourceOrigins);
-		destinationOrigins.add(sourceRegister);
-		destinationState.origins.clear();
-		destinationState.origins.addAll(destinationOrigins);
+			append(sourceOrigins, sourceRegister);
+		destinationState.origins(destinationOrigins);
 		for (final L2Register origin : destinationOrigins)
 		{
-			stateFor(origin).invertedOrigins.add(destinationRegister);
+			stateForModifying(origin).addInvertedOrigin(destinationRegister);
 		}
 	}
 
@@ -378,35 +402,30 @@ public final class RegisterSet
 	{
 		// Firstly, the destinationRegister's value is no longer derived
 		// from any other register (until and unless the client says which).
-		final RegisterState destinationState = stateFor(destinationRegister);
-		final List<L2Register> origins = destinationState.origins;
-		if (!origins.isEmpty())
+		final RegisterState destinationState =
+			stateForModifying(destinationRegister);
+		final List<L2Register> origins = destinationState.origins();
+		for (final L2Register origin : origins)
 		{
-			for (final L2Register origin : origins)
-			{
-				stateFor(origin).invertedOrigins.remove(destinationRegister);
-			}
-			origins.clear();
+			stateForModifying(origin).removeInvertedOrigin(
+				destinationRegister);
 		}
+		destinationState.origins(Collections.<L2Register>emptyList());
 
 		// Secondly, any registers that were derived from the old value of
 		// the destinationRegister are no longer equivalent to it.
-		final Set<L2Register> descendants = destinationState.invertedOrigins;
-		if (!descendants.isEmpty())
+		for (final L2Register descendant : destinationState.invertedOrigins())
 		{
-			for (final L2Register descendant : descendants)
-			{
-				final List<L2Register> list = stateFor(descendant).origins;
-				assert list.contains(destinationRegister);
-				list.remove(destinationRegister);
-			}
-			descendants.clear();
+			final RegisterState state = stateForModifying(descendant);
+			assert state.origins().contains(destinationRegister);
+			state.removeOrigin(destinationRegister);
 		}
+		destinationState.invertedOrigins(Collections.<L2Register>emptyList());
 
 		// Finally, *this* is the instruction that produces a value for the
 		// destination.
-		destinationState.sourceInstructions.clear();
-		destinationState.sourceInstructions.add(instruction);
+		destinationState.clearSources();
+		destinationState.addSource(instruction);
 	}
 
 	/**
@@ -426,13 +445,13 @@ public final class RegisterSet
 	{
 		if (givenOperandType.isSource && !givenOperandType.isDestination)
 		{
-			final RegisterState givenState = stateFor(givenRegister);
-			final List<L2Register> origins = givenState.origins;
-			final AvailObject value = givenState.constant;
+			final RegisterState givenState = stateForReading(givenRegister);
+			final List<L2Register> origins = givenState.origins();
+			final AvailObject value = givenState.constant();
 			if (value != null && value.equalsNil())
 			{
 				// Optimization -- always use the dedicated null register.
-				fixed(FixedRegister.NULL);
+				return fixed(FixedRegister.NULL);
 			}
 			if (origins.isEmpty())
 			{
@@ -499,6 +518,7 @@ public final class RegisterSet
 		final EnumMap<FixedRegister, L2ObjectRegister> fixedRegisters)
 	{
 		this.fixedRegisters = fixedRegisters;
+		this.registerStates = new HashMap<L2Register, RegisterState>(10);
 	}
 
 	/**
@@ -506,17 +526,13 @@ public final class RegisterSet
 	 *
 	 * @param original The original RegisterSet to copy.
 	 */
-	RegisterSet (
-		final RegisterSet original)
+	RegisterSet (final RegisterSet original)
 	{
 		this.fixedRegisters = original.fixedRegisters;
-		registerStates.clear();
-		for (final Map.Entry<L2Register, RegisterState> entry
-			: original.registerStates.entrySet())
+		this.registerStates = new HashMap<>(original.registerStates);
+		for (final RegisterState state : registerStates.values())
 		{
-			registerStates.put(
-				entry.getKey(),
-				new RegisterState(entry.getValue()));
+			state.share();
 		}
 	}
 
@@ -533,17 +549,20 @@ public final class RegisterSet
 	 */
 	boolean mergeFrom (final RegisterSet other)
 	{
-		boolean changed = false;
+		boolean registerSetChanged = false;
 		for (final Map.Entry<L2Register, RegisterState> entry
 			: registerStates.entrySet())
 		{
+			boolean entryChanged = false;
 			final L2Register reg = entry.getKey();
-			final RegisterState state = entry.getValue();
-			final RegisterState otherState = other.stateFor(reg);
+			RegisterState state = entry.getValue();
+			// We'll write this back only if it's modified below.
+			state = new RegisterState(state);
+			final RegisterState otherState = other.stateForReading(reg);
 			// Merge in the type information, truncating type information about
 			// registers which are not known in both sources.
-			final A_Type type = state.type;
-			final A_Type otherType = otherState.type;
+			final A_Type type = state.type();
+			final A_Type otherType = otherState.type();
 			if (type != null)
 			{
 				if (otherType != null)
@@ -551,53 +570,65 @@ public final class RegisterSet
 					final A_Type union = otherType.typeUnion(type);
 					if (!union.equals(type))
 					{
-						changed = true;
-						state.type = union;
+						entryChanged = true;
+						state.type(union);
 					}
 				}
 				else
 				{
-					changed = true;
-					state.type = null;
+					entryChanged = true;
+					state.type(null);
 					// No type, so no constant.
-					state.constant = null;
+					state.constant(null);
 				}
 			}
 
 			// Only keep constant information where it agrees.
-			final AvailObject constant = state.constant;
-			final AvailObject otherConstant = otherState.constant;
-			if (constant != null)
+			final AvailObject constant = state.constant();
+			final AvailObject otherConstant = otherState.constant();
+			if (constant != null
+				&& (otherConstant == null || !otherConstant.equals(constant)))
 			{
-				if (otherConstant == null || !otherConstant.equals(constant))
-				{
-					// They disagree, so it's not really a constant here.
-					changed = true;
-					state.constant = null;
-				}
+				// They disagree, so it's not really a constant here.
+				entryChanged = true;
+				state.constant(null);
 			}
 
 			// Keep the intersection of the lists of origin registers.  In
 			// theory the two lists might have overlapping elements in a
 			// different order, but in that case any order will be good enough.
-			final List<L2Register> list = state.origins;
-			final List<L2Register> otherList = otherState.origins;
-			changed |= list.retainAll(otherList);
-		}
-
-		// Rebuild the invertedOrigins from scratch.
-		for (final Map.Entry<L2Register, RegisterState> entry
-			: registerStates.entrySet())
-		{
-			entry.getValue().invertedOrigins.clear();
-		}
-		for (final Map.Entry<L2Register, RegisterState> entry
-			: registerStates.entrySet())
-		{
-			final L2Register target = entry.getKey();
-			for (final L2Register origin : entry.getValue().origins)
+			final List<L2Register> oldList = state.origins();
+			final List<L2Register> otherList = otherState.origins();
+			final List<L2Register> newList = new ArrayList<>(oldList);
+			final boolean listChanged = newList.retainAll(otherList);
+			if (listChanged)
 			{
-				stateFor(origin).invertedOrigins.add(target);
+				entryChanged = true;
+				state.origins(newList);
+				for (final L2Register oldOrigin : oldList)
+				{
+					assert oldOrigin != reg
+						: "Register should not have been its own origin";
+					if (!newList.contains(oldOrigin))
+					{
+						stateForModifying(oldOrigin).removeInvertedOrigin(
+							reg);
+					}
+				}
+				for (final L2Register newOrigin : newList)
+				{
+					assert newOrigin != reg
+						: "Register should not be its own origin";
+					if (!oldList.contains(newOrigin))
+					{
+						stateForModifying(newOrigin).addInvertedOrigin(reg);
+					}
+				}
+			}
+			if (entryChanged)
+			{
+				entry.setValue(state);
+				registerSetChanged = true;
 			}
 		}
 
@@ -606,20 +637,29 @@ public final class RegisterSet
 		// those instructions from being discarded, since their results *may*
 		// be used here.  However, only keep information about registers that
 		// are mentioned in both RegisterSets.
-		final Iterator<Map.Entry<L2Register, RegisterState>> sourcesIterator =
-			registerStates.entrySet().iterator();
-		while (sourcesIterator.hasNext())
+		for (final Map.Entry<L2Register, RegisterState> entry
+			: registerStates.entrySet())
 		{
-			final Map.Entry<L2Register, RegisterState> entry =
-				sourcesIterator.next();
 			final L2Register reg = entry.getKey();
-			final Set<L2Instruction> otherSources =
-				other.stateFor(reg).sourceInstructions;
-			final Set<L2Instruction> sources =
-				entry.getValue().sourceInstructions;
-			changed |= sources.addAll(otherSources);
+			RegisterState state = entry.getValue();
+			final List<L2Instruction> sources = state.sourceInstructions();
+			final List<L2Instruction> otherSources =
+				other.stateForReading(reg).sourceInstructions();
+			for (final L2Instruction otherSource : otherSources)
+			{
+				if (!sources.contains(otherSource))
+				{
+					registerSetChanged = true;
+					if (state.isShared())
+					{
+						state = new RegisterState(state);
+						entry.setValue(state);
+					}
+					state.addSource(otherSource);
+				}
+			}
 		}
-		return changed;
+		return registerSetChanged;
 	}
 
 	@Override
@@ -633,7 +673,7 @@ public final class RegisterSet
 		for (final Map.Entry<L2Register, RegisterState> entry
 			: sorted.entrySet())
 		{
-			final AvailObject constant = entry.getValue().constant;
+			final AvailObject constant = entry.getValue().constant();
 			if (constant != null)
 			{
 				formatter.format("%n\t\t%s = %s", entry.getKey(), constant);
@@ -643,7 +683,7 @@ public final class RegisterSet
 		for (final Map.Entry<L2Register, RegisterState> entry
 			: sorted.entrySet())
 		{
-			final A_Type type = entry.getValue().type;
+			final A_Type type = entry.getValue().type();
 			if (type != null)
 			{
 				formatter.format("%n\t\t%s = %s", entry.getKey(), type);
@@ -653,7 +693,7 @@ public final class RegisterSet
 		for (final Map.Entry<L2Register, RegisterState> entry
 			: sorted.entrySet())
 		{
-			final List<L2Register> origins = entry.getValue().origins;
+			final List<L2Register> origins = entry.getValue().origins();
 			if (!origins.isEmpty())
 			{
 				formatter.format("%n\t\t%s = %s", entry.getKey(), origins);
@@ -663,8 +703,8 @@ public final class RegisterSet
 		for (final Map.Entry<L2Register, RegisterState> entry
 			: sorted.entrySet())
 		{
-			final Set<L2Instruction> sourceInstructions =
-				entry.getValue().sourceInstructions;
+			final List<L2Instruction> sourceInstructions =
+				entry.getValue().sourceInstructions();
 			if (!sourceInstructions.isEmpty())
 			{
 				formatter.format(

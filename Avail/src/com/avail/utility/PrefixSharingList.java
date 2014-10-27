@@ -203,6 +203,15 @@ public class PrefixSharingList<E> extends AbstractList<E>
 	}
 
 	/**
+	 * Check that the receiver is properly constructed.  This is the class
+	 * invariant.  Fail if it is invalid.
+	 */
+	private void validCheck ()
+	{
+		assert allButLast != null || cachedFlatListOrMore != null;
+	}
+
+	/**
 	 * Construct a new {@link PrefixSharingList}.
 	 *
 	 * @param allButLast All but the last element of the new list.
@@ -215,6 +224,7 @@ public class PrefixSharingList<E> extends AbstractList<E>
 		this.size = allButLast.size() + 1;
 		this.allButLast = allButLast;
 		this.lastElement = lastElement;
+		validCheck();
 	}
 
 	/**
@@ -233,7 +243,8 @@ public class PrefixSharingList<E> extends AbstractList<E>
 		this.size = size;
 		this.allButLast = null;
 		this.lastElement = originalList.get(size - 1);
-		this.cachedFlatListOrMore = allButLast;
+		this.cachedFlatListOrMore = originalList;
+		validCheck();
 	}
 
 	/**
@@ -266,6 +277,11 @@ public class PrefixSharingList<E> extends AbstractList<E>
 	public static <E2> List<E2> withoutLast (
 		final List<E2> originalList)
 	{
+		assert originalList.size() > 0;
+		if (originalList.size() == 1)
+		{
+			return Collections.<E2>emptyList();
+		}
 		if (originalList instanceof PrefixSharingList<?>)
 		{
 			final PrefixSharingList<E2>strongOriginal =
@@ -278,10 +294,6 @@ public class PrefixSharingList<E> extends AbstractList<E>
 			final List<E2> flat = strongOriginal.cachedFlatListOrMore;
 			assert flat != null;
 			return new PrefixSharingList<E2>(flat, originalList.size() - 1);
-		}
-		if (originalList.size() <= 1)
-		{
-			return Collections.<E2>emptyList();
 		}
 		return new PrefixSharingList<E2>(
 			originalList,

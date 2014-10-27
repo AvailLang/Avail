@@ -32,7 +32,6 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.Collection;
 import java.util.List;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
@@ -121,14 +120,15 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 		assert instruction.operation == this;
 		final L2ObjectRegister functionRegister =
 			instruction.readObjectRegisterAt(1);
-		final RegisterState state = registerSet.stateFor(functionRegister);
-		final Collection<L2Instruction> functionCreationInstructions =
-			state.sourceInstructions;
+		final RegisterState state =
+			registerSet.stateForReading(functionRegister);
+		final List<L2Instruction> functionCreationInstructions =
+			state.sourceInstructions();
 		if (functionCreationInstructions.size() == 1)
 		{
 			// Exactly one instruction produced the function.
 			final L2Instruction functionCreationInstruction =
-				functionCreationInstructions.iterator().next();
+				functionCreationInstructions.get(0);
 			final int outerIndex = instruction.immediateAt(0);
 			final L2ObjectRegister destinationRegister =
 				instruction.writeObjectRegisterAt(2);
