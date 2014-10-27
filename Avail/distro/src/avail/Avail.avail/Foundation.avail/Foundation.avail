@@ -79,6 +79,7 @@ Extends
 		"Mark for_character|characters of read ahead",
 		"Park current fiber",
 		"Print:_",
+		"Error:_",
 		"Export_as a new name",
 		"Reject parse,expected:_",
 		"Remove_[_]",

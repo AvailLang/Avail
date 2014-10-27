@@ -44,7 +44,8 @@ Uses
 	"The Princess",
 	"The Mad Scientist"
 Entries
-	"Play the Ship of Stories"
+	"Play the Ship of Stories",
+	"Play the Ship of Stories by web"
 Body
 
 /**
@@ -62,4 +63,11 @@ Method "Play the Ship of Stories" is
 	Play a game,
 		creating a context with [a game context],
 		interacting with standard console interface;
+];
+
+Method "Play the Ship of Stories by web" is
+[
+	Play a game,
+		creating a context with [a game context],
+		interacting with web interface;
 ];

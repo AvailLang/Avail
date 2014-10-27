@@ -1,5 +1,5 @@
 /*
- * Choosable Path.avail
+ * Web Interface.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,12 +30,55 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Choosable Path"
+Module "Web Interface"
 Versions
 	"1.0.0 DEV 2014-04-28"
-Extends
-	"Console Interface",
-	"Definitions",
-	"Engine",
-	"Web Interface"
+Uses
+	"Avail",
+	"Commands"
+Names
+	"web interface"
 Body
+
+/**
+ * Answer a web interface for a choosable path story.
+ *
+ * @method "web interface"
+ * @returns "[string, string, <string…|>]→command"
+ */
+Public method "web interface" is
+[
+	[
+		title : string,
+		description : string,
+		transitionDescriptions : <string…|>
+	|
+		$body : command;
+		Print: (<title, description> ++ transitionDescriptions)→JSON;
+		Repeat
+		[
+			line ::= next line from standard input;
+			If line = "quit" then [Exit body with a quit command];
+			If line = "restart" then [Exit body with a restart command];
+			Guard
+			[
+				transitionOrdinal ::= line→integer;
+				If 1 ≤ transitionOrdinal ≤ |transitionDescriptions| then
+				[
+					Cast transitionOrdinal into
+					[
+						validOrdinal : natural number
+					|
+						Exit body with a transition to validOrdinal command
+					] : ⊤;
+				];
+			]
+			intercept
+			[
+				e : invalid-argument exception
+			|
+				/* Ignore malformed input. */
+			];
+		]
+	] : command
+];
