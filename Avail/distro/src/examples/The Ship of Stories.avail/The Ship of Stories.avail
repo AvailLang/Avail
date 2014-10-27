@@ -67,6 +67,12 @@ Method "Play the Ship of Stories" is
 
 Method "Play the Ship of Stories by web" is
 [
+	Print: <
+		"\"The Ship of Stories\" is copyright © 2013-2014, \
+		\|<strong>Cislyn Smith</strong>.",
+		"It is redistributed by <strong>The Avail Foundation, LLC</strong>, \
+		\|with her permission."
+	>→JSON;
 	Play a game,
 		creating a context with [a game context],
 		interacting with web interface;
