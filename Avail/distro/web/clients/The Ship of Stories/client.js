@@ -53,6 +53,7 @@ function connect ()
 	var totalBytes = 0;
 	var connected = false;
 	var errorReported = false;
+	var copyright = null;
 	cmdChannel.onopen = function (e)
 	{
 		connected = true;
@@ -72,7 +73,8 @@ function connect ()
 			errorReported = true;
 			reportError(
 				'Unable to connect to Avail server at ' + availURI + '.',
-				'Make sure that the Avail server is running.');
+				'Make sure that the Avail server is running, and that '
+				+ 'your browser correctly supports WebSocket.');
 		}
 	};
 	cmdChannel.onerror = function (e)
@@ -210,22 +212,30 @@ function connect ()
 							},
 							function (channel, response)
 							{
-								// Nothing is expected on the error stream, so
-								// close the channels and report the error if
-								// it does.
+								// Treat the error stream as a source of debug
+								// information. Log anything that arrives thence.
 								if (response.tag === 'err')
 								{
-									errorReported = true;
-									channel.close();
-									cmdChannel.close();
-									reportError(response.content);
+									console.log(response.content);
 								}
 								else
 								{
 									// The tag should be 'out'. The content
-									// should be a JSON encoded array.
+									// should be a JSON encoded array. The
+									// first message will be the copyright
+									// notice. Story data will follow.
 									var content = JSON.parse(response.content);
-									updateUI(content, channel);
+									if (copyright === null)
+									{
+										copyright = content;
+									}
+									else
+									{
+										updateUI(
+											content,
+											copyright,
+											channel);
+									}
 								}
 							},
 							function (channel, msg)
@@ -275,6 +285,7 @@ function clearUI ()
 	$(".scene-description").remove();
 	$(".scene-transition").remove();
 	$(".game-over").remove();
+	$('.copyright').remove();
 }
 
 /**
@@ -285,10 +296,12 @@ function clearUI ()
  *        - [0]   The scene title.
  *        - [1]   The scene description.
  *        - [2..] The transitions.
+ * @param copyright
+ *        The copyright information, as an array of lines.
  * @param channel
  *        The I/O channel.
  */
-function updateUI (array, channel)
+function updateUI (array, copyright, channel)
 {
 	var title = array[0];
 	var description = array[1];
@@ -352,6 +365,16 @@ function updateUI (array, channel)
 		}
 		$('.scene-transition').show(easing, options, duration);
 	}
+	// Add the copyright notice.
+	div = document.createElement('div');
+	div.className = 'copyright';
+	p = document.createElement('pre');
+	copyright.forEach(function (line)
+	{
+		p.innerHTML = p.innerHTML + line + '\n';
+	});
+	div.appendChild(p);
+	main.append(div);
 }
 
 /**

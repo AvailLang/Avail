@@ -142,6 +142,7 @@
 .scene-transition:hover
 {
 	background-color: yellow;
+	cursor: pointer;
 }
 
 .scene-transition > p
@@ -165,4 +166,18 @@
 {
 	color: white;
 	text-shadow: 2px 2px #333333;
+}
+
+.copyright
+{
+	font-size: 8pt;
+	font-style: italic;
+	margin: 40px 0px 0px 0px;
+	padding: 0px 10px 0px 10px;
+	color: lightgray;
+}
+
+.copyright > pre
+{
+	text-align: center;	
 }
