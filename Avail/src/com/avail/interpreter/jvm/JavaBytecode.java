@@ -1482,6 +1482,12 @@ enum JavaBytecode
 		{
 			return "goto";
 		}
+
+		@Override
+		public boolean isBranch()
+		{
+			return true;
+		}
 	},
 
 	/**
@@ -1500,6 +1506,12 @@ enum JavaBytecode
 		{
 			assert false : "Use GotoInstruction instead";
 			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public boolean isBranch()
+		{
+			return true;
 		}
 	},
 
@@ -1738,6 +1750,12 @@ enum JavaBytecode
 			return new ConditionalBranchInstruction(
 				this, (Label) operands[0]);
 		}
+
+		@Override
+		public boolean isBranch()
+		{
+			return true;
+		}
 	},
 
 	/**
@@ -1757,6 +1775,12 @@ enum JavaBytecode
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
 				this, (Label) operands[0]);
+		}
+
+		@Override
+		public boolean isBranch()
+		{
+			return true;
 		}
 	},
 
@@ -1778,6 +1802,12 @@ enum JavaBytecode
 			return new ConditionalBranchInstruction(
 				this, (Label) operands[0]);
 		}
+
+		@Override
+		public boolean isBranch()
+		{
+			return true;
+		}
 	},
 
 	/**
@@ -1797,6 +1827,12 @@ enum JavaBytecode
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
 				this, (Label) operands[0]);
+		}
+
+		@Override
+		public boolean isBranch()
+		{
+			return true;
 		}
 	},
 
@@ -1818,6 +1854,12 @@ enum JavaBytecode
 			return new ConditionalBranchInstruction(
 				this, (Label) operands[0]);
 		}
+
+		@Override
+		public boolean isBranch()
+		{
+			return true;
+		}
 	},
 
 	/**
@@ -1837,6 +1879,12 @@ enum JavaBytecode
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
 				this, (Label) operands[0]);
+		}
+
+		@Override
+		public boolean isBranch()
+		{
+			return true;
 		}
 	},
 
@@ -1858,6 +1906,12 @@ enum JavaBytecode
 			return new ConditionalBranchInstruction(
 				this, (Label) operands[0]);
 		}
+
+		@Override
+		public boolean isBranch()
+		{
+			return true;
+		}
 	},
 
 	/**
@@ -1877,6 +1931,12 @@ enum JavaBytecode
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
 				this, (Label) operands[0]);
+		}
+
+		@Override
+		public boolean isBranch()
+		{
+			return true;
 		}
 	},
 
@@ -1898,6 +1958,12 @@ enum JavaBytecode
 			return new ConditionalBranchInstruction(
 				this, (Label) operands[0]);
 		}
+
+		@Override
+		public boolean isBranch()
+		{
+			return true;
+		}
 	},
 
 	/**
@@ -1917,6 +1983,12 @@ enum JavaBytecode
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
 				this, (Label) operands[0]);
+		}
+
+		@Override
+		public boolean isBranch()
+		{
+			return true;
 		}
 	},
 
@@ -1938,6 +2010,12 @@ enum JavaBytecode
 			return new ConditionalBranchInstruction(
 				this, (Label) operands[0]);
 		}
+
+		@Override
+		public boolean isBranch()
+		{
+			return true;
+		}
 	},
 
 	/**
@@ -1957,6 +2035,12 @@ enum JavaBytecode
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
 				this, (Label) operands[0]);
+		}
+
+		@Override
+		public boolean isBranch()
+		{
+			return true;
 		}
 	},
 
@@ -1978,6 +2062,12 @@ enum JavaBytecode
 			return new ConditionalBranchInstruction(
 				this, (Label) operands[0]);
 		}
+
+		@Override
+		public boolean isBranch()
+		{
+			return true;
+		}
 	},
 
 	/**
@@ -1997,6 +2087,12 @@ enum JavaBytecode
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
 				this, (Label) operands[0]);
+		}
+
+		@Override
+		public boolean isBranch()
+		{
+			return true;
 		}
 	},
 
@@ -2018,6 +2114,12 @@ enum JavaBytecode
 			return new ConditionalBranchInstruction(
 				this, (Label) operands[0]);
 		}
+
+		@Override
+		public boolean isBranch()
+		{
+			return true;
+		}
 	},
 
 	/**
@@ -2037,6 +2139,12 @@ enum JavaBytecode
 			assert operands.length == 1;
 			return new ConditionalBranchInstruction(
 				this, (Label) operands[0]);
+		}
+
+		@Override
+		public boolean isBranch()
+		{
+			return true;
 		}
 	},
 
@@ -2556,6 +2664,12 @@ enum JavaBytecode
 			assert false : "Use JumpSubroutineInstruction instead";
 			throw new UnsupportedOperationException();
 		}
+
+		@Override
+		public boolean isBranch()
+		{
+			return true;
+		}
 	},
 
 	/**
@@ -2574,6 +2688,12 @@ enum JavaBytecode
 		{
 			assert false : "Use JumpSubroutineInstruction instead";
 			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public boolean isBranch()
+		{
+			return true;
 		}
 	},
 
@@ -3604,6 +3724,17 @@ enum JavaBytecode
 	 *         otherwise.
 	 */
 	public boolean isReturn ()
+	{
+		return false;
+	}
+
+	/**
+	 * Does the {@linkplain JavaBytecode bytecode} create a branch?
+	 *
+	 * @return {@code true} if the bytecode creates a branch, {@code false}
+	 *         otherwise.
+	 */
+	public boolean isBranch()
 	{
 		return false;
 	}

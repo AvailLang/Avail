@@ -68,6 +68,17 @@ abstract class JavaInstruction
 	}
 
 	/**
+	 * A {@linkplain Label} label should only be returned for subclasses of
+	 * {@linkplain JavaInstruction} that have one defined on it.
+	 *
+	 * @return a {@linkplain Label}
+	 */
+	public Label[] labels()
+	{
+		return new Label[0];
+	}
+
+	/**
 	 * Set the address of the label.
 	 *
 	 * @param address
@@ -190,6 +201,17 @@ abstract class JavaInstruction
 	 *         otherwise.
 	 */
 	boolean isReturn ()
+	{
+		return false;
+	}
+
+	/**
+	 * Does the {@linkplain JavaBytecode bytecode} create a branch?
+	 *
+	 * @return {@code true} if the bytecode creates a branch, {@code false}
+	 *         otherwise.
+	 */
+	public boolean isBranch()
 	{
 		return false;
 	}
