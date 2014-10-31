@@ -44,6 +44,9 @@ import com.avail.server.io.AvailServerChannel;
  */
 public class Message
 {
+	/** The maximum allowed size of a frame. */
+	public static final int MAX_SIZE = 1_024_000;
+
 	/** The {@linkplain String content} of the {@linkplain Message message}. */
 	private final String content;
 
