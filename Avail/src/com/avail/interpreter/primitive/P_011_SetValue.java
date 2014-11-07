@@ -33,7 +33,6 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.Arrays;
 import java.util.List;
@@ -43,7 +42,6 @@ import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operation.L2_LABEL;
 import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE;
 import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE_NO_CHECK;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
