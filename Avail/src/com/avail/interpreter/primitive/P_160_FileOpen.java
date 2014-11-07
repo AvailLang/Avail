@@ -71,6 +71,12 @@ extends Primitive
 			4, CanInline, HasSideEffect);
 
 	/**
+	 * Stash the enum values for StandardOpenOption to avoid array copying.
+	 */
+	static final StandardOpenOption[] allStandardOpenOptions =
+		StandardOpenOption.values();
+
+	/**
 	 * Construct the {@linkplain EnumSet set} of {@linkplain OpenOption open
 	 * options} that correspond to the supplied {@linkplain SetDescriptor set}
 	 * of integral option indicators.
@@ -86,7 +92,7 @@ extends Primitive
 		for (final A_Number optionInt : optionInts)
 		{
 			options.add(
-				StandardOpenOption.values()[optionInt.extractInt()]);
+				allStandardOpenOptions[optionInt.extractInt()]);
 		}
 		return options;
 	}

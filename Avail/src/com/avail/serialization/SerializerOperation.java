@@ -1137,7 +1137,7 @@ public enum SerializerOperation
 				trailingWhitespace,
 				start,
 				lineNumber,
-				TokenType.values()[tokenTypeOrdinal]);
+				TokenType.all()[tokenTypeOrdinal]);
 		}
 	},
 
@@ -1184,7 +1184,7 @@ public enum SerializerOperation
 				trailingWhitespace,
 				start,
 				lineNumber,
-				TokenType.values()[tokenTypeOrdinal],
+				TokenType.all()[tokenTypeOrdinal],
 				literal);
 		}
 	},
@@ -2328,7 +2328,7 @@ public enum SerializerOperation
 			final int parseNodeKindOrdinal = subobjects[0].extractInt();
 			final AvailObject expressionType = subobjects[1];
 			final ParseNodeKind parseNodeKind =
-				ParseNodeKind.values()[parseNodeKindOrdinal];
+				ParseNodeKind.all()[parseNodeKindOrdinal];
 			return parseNodeKind.create(expressionType);
 		}
 	},

@@ -199,12 +199,12 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfParseNodeType (
 		final AvailObject object,
-		final AvailObject aParseNodeType);
+		final A_Type aParseNodeType);
 
 	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfPojoType (
 		final AvailObject object,
-		final A_BasicObject aPojoType);
+		final A_Type aPojoType);
 
 	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfPrimitiveTypeEnum (
@@ -345,6 +345,11 @@ extends Descriptor
 		final AvailObject object,
 		final A_Type aPojoType);
 
+	@Override
+	abstract A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
+		final AvailObject object,
+		final Types primitiveTypeEnum);
+
 	@Override @AvailMethod
 	abstract A_Type o_TypeIntersectionOfSetType (
 		final AvailObject object,
@@ -412,6 +417,11 @@ extends Descriptor
 	abstract A_Type o_TypeUnionOfParseNodeType (
 		final AvailObject object,
 		final A_Type aParseNodeType);
+
+	@Override
+	abstract A_Type o_TypeUnionOfPrimitiveTypeEnum (
+		final AvailObject object,
+		final Types primitiveTypeEnum);
 
 	@Override @AvailMethod
 	abstract A_Type o_TypeUnionOfSetType (

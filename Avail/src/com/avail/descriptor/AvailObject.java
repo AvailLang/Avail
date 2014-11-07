@@ -2620,7 +2620,7 @@ implements
 	 */
 	@Override
 	public boolean isSupertypeOfParseNodeType (
-		final AvailObject aParseNodeType)
+		final A_Type aParseNodeType)
 	{
 		return descriptor.o_IsSupertypeOfParseNodeType(this, aParseNodeType);
 	}
@@ -2630,7 +2630,7 @@ implements
 	 */
 	@Override
 	public boolean isSupertypeOfPojoType (
-		final A_BasicObject aPojoType)
+		final A_Type aPojoType)
 	{
 		return descriptor.o_IsSupertypeOfPojoType(this, aPojoType);
 	}
@@ -6958,5 +6958,20 @@ implements
 	public void writeSummaryTo (final JSONWriter writer)
 	{
 		descriptor.o_WriteSummaryTo(this, writer);
+	}
+
+	@Override
+	public A_Type typeIntersectionOfPrimitiveTypeEnum (
+		final Types primitiveTypeEnum)
+	{
+		return descriptor.o_TypeIntersectionOfPrimitiveTypeEnum(
+			this, primitiveTypeEnum);
+	}
+
+	@Override
+	public A_Type typeUnionOfPrimitiveTypeEnum (final Types primitiveTypeEnum)
+	{
+		return descriptor.o_TypeUnionOfPrimitiveTypeEnum(
+			this, primitiveTypeEnum);
 	}
 }

@@ -1792,7 +1792,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_IsSupertypeOfParseNodeType (
 		AvailObject object,
-		AvailObject aParseNodeType);
+		A_Type aParseNodeType);
 
 	/**
 	 * @param object
@@ -1801,7 +1801,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_IsSupertypeOfPojoType (
 		AvailObject object,
-		A_BasicObject aPojoType);
+		A_Type aPojoType);
 
 	/**
 	 * @param object
@@ -6040,4 +6040,22 @@ public abstract class AbstractDescriptor
 	 * @param writer
 	 */
 	abstract void o_WriteSummaryTo (AvailObject object, JSONWriter writer);
+
+	/**
+	 * @param object
+	 * @param primitiveTypeEnum
+	 * @return
+	 */
+	abstract A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
+		AvailObject object,
+		Types primitiveTypeEnum);
+
+	/**
+	 * @param object
+	 * @param primitiveTypeEnum
+	 * @return
+	 */
+	abstract A_Type o_TypeUnionOfPrimitiveTypeEnum (
+		AvailObject object,
+		Types primitiveTypeEnum);
 }

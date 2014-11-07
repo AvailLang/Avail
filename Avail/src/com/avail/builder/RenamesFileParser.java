@@ -440,6 +440,20 @@ public final class RenamesFileParser
 			}
 		};
 
+		/** An array of all {@link ScannerAction} enumeration values. */
+		private static ScannerAction[] all = values();
+
+		/**
+		 * Answer an array of all {@link ScannerAction} enumeration values.
+		 *
+		 * @return An array of all {@link ScannerAction} enum values.  Do not
+		 *         modify the array.
+		 */
+		static ScannerAction[] all ()
+		{
+			return all;
+		}
+
 		/**
 		 * Answer the next {@linkplain Token token} from the {@linkplain
 		 * #reader stream}.
@@ -512,7 +526,7 @@ public final class RenamesFileParser
 		}
 		else
 		{
-			return ScannerAction.values()[scannerTable[c]];
+			return ScannerAction.all()[scannerTable[c]];
 		}
 	}
 

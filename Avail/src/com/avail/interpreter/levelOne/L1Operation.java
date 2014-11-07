@@ -371,6 +371,20 @@ public enum L1Operation
 		}
 	};
 
+	/** An array of all {@link L1Operation} enumeration values. */
+	private static L1Operation[] all = values();
+
+	/**
+	 * Answer an array of all {@link L1Operation} enumeration values.
+	 *
+	 * @return An array of all {@link L1Operation} enum values.  Do not
+	 *         modify the array.
+	 */
+	public static L1Operation[] all ()
+	{
+		return all;
+	}
+
 	/**
 	 * This operation's collection of {@linkplain L1OperandType operand types}.
 	 */

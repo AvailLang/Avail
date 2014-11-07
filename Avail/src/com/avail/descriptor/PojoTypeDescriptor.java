@@ -411,6 +411,9 @@ extends TypeDescriptor
 		AvailObject aPojoType);
 
 	@Override @AvailMethod
+	abstract int o_Hash (AvailObject object);
+
+	@Override @AvailMethod
 	abstract boolean o_IsAbstract (AvailObject object);
 
 	@Override @AvailMethod
@@ -451,7 +454,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfPojoType (
 		final AvailObject object,
-		final A_BasicObject aPojoType)
+		final A_Type aPojoType)
 	{
 		// If aPojoType is a self type, then answer whether object's self type
 		// is a supertype of aPojoType.
@@ -501,9 +504,6 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	abstract int o_Hash (AvailObject object);
-
-	@Override @AvailMethod
 	abstract AvailObject o_JavaAncestors (AvailObject object);
 
 	@Override @AvailMethod
@@ -548,6 +548,41 @@ extends TypeDescriptor
 	abstract A_Type o_TypeIntersectionOfPojoUnfusedType (
 		AvailObject object,
 		A_Type anUnfusedPojoType);
+
+	@Override
+	final A_Type o_TypeUnion (
+		final AvailObject object,
+		final A_Type another)
+	{
+		if (object.isSubtypeOf(another))
+		{
+			return another;
+		}
+		if (another.isSubtypeOf(object))
+		{
+			return object;
+		}
+		return another.typeUnionOfPojoType(object);
+	}
+
+	@Override @AvailMethod
+	abstract A_Type o_TypeUnionOfPojoType (
+		AvailObject object,
+		A_Type aPojoType);
+
+	@Override @AvailMethod
+	abstract A_Type o_TypeUnionOfPojoFusedType (
+		AvailObject object,
+		A_Type aFusedPojoType);
+
+	@Override @AvailMethod
+	abstract A_Type o_TypeUnionOfPojoUnfusedType (
+		AvailObject object,
+		A_Type anUnfusedPojoType);
+
+	@Override @AvailMethod
+	abstract A_Map o_TypeVariables (
+		AvailObject object);
 
 	/**
 	 * Compute the intersection of two {@linkplain PojoTypeDescriptor
@@ -603,41 +638,6 @@ extends TypeDescriptor
 		}
 		return unionAncestors;
 	}
-
-	@Override
-	final A_Type o_TypeUnion (
-		final AvailObject object,
-		final A_Type another)
-	{
-		if (object.isSubtypeOf(another))
-		{
-			return another;
-		}
-		if (another.isSubtypeOf(object))
-		{
-			return object;
-		}
-		return another.typeUnionOfPojoType(object);
-	}
-
-	@Override @AvailMethod
-	abstract A_Type o_TypeUnionOfPojoType (
-		AvailObject object,
-		A_Type aPojoType);
-
-	@Override @AvailMethod
-	abstract A_Type o_TypeUnionOfPojoFusedType (
-		AvailObject object,
-		A_Type aFusedPojoType);
-
-	@Override @AvailMethod
-	abstract A_Type o_TypeUnionOfPojoUnfusedType (
-		AvailObject object,
-		A_Type anUnfusedPojoType);
-
-	@Override @AvailMethod
-	abstract A_Map o_TypeVariables (
-		AvailObject object);
 
 	/**
 	 * Compute the union of two {@linkplain PojoTypeDescriptor pojo

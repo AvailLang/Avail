@@ -200,7 +200,7 @@ extends AbstractEnumerationTypeDescriptor
 		}
 		// Default printing.
 		aStream.append("enumeration of ");
-		object.instances().printOnAvoidingIndent(
+		getInstances(object).printOnAvoidingIndent(
 			aStream,
 			recursionList,
 			indent + 1);
@@ -261,7 +261,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		return (object.instances().hash() ^ 0x15b5b059) * multiplier;
+		return (getInstances(object).hash() ^ 0x15b5b059) * multiplier;
 	}
 
 	@Override @AvailMethod
@@ -309,12 +309,12 @@ extends AbstractEnumerationTypeDescriptor
 	 */
 	@Override
 	final A_Type computeIntersectionWith (
-		final A_Type object,
+		final AvailObject object,
 		final A_Type another)
 	{
 		assert another.isType();
 		A_Set set = SetDescriptor.empty();
-		final A_Set elements = object.instances();
+		final A_Set elements = getInstances(object);
 		if (another.isEnumeration())
 		{
 			// Create a new enumeration containing all non-type elements that
@@ -356,7 +356,7 @@ extends AbstractEnumerationTypeDescriptor
 		{
 			// Keep the instances that comply with another, which is not a union
 			// type.
-			for (final AvailObject element : object.instances())
+			for (final AvailObject element : getInstances(object))
 			{
 				if (element.isInstanceOfKind(another))
 				{
@@ -397,7 +397,7 @@ extends AbstractEnumerationTypeDescriptor
 	 */
 	@Override
 	final A_Type computeUnionWith (
-		final A_Type object,
+		final AvailObject object,
 		final A_Type another)
 	{
 		if (another.isEnumeration())
@@ -405,13 +405,13 @@ extends AbstractEnumerationTypeDescriptor
 			// Create a new enumeration containing all elements from both
 			// enumerations.
 			return AbstractEnumerationTypeDescriptor.withInstances(
-				object.instances().setUnionCanDestroy(
+				getInstances(object).setUnionCanDestroy(
 					another.instances(),
 					false));
 		}
 		// Go up to my nearest kind, then compute the union with the given kind.
 		A_Type union = another;
-		for (final A_BasicObject instance : object.instances())
+		for (final A_BasicObject instance : getInstances(object))
 		{
 			union = union.typeUnion(instance.kind());
 		}
@@ -453,7 +453,7 @@ extends AbstractEnumerationTypeDescriptor
 		final AvailObject object,
 		final AvailObject potentialInstance)
 	{
-		if (object.instances().hasElement(potentialInstance))
+		if (getInstances(object).hasElement(potentialInstance))
 		{
 			return true;
 		}
@@ -510,7 +510,7 @@ extends AbstractEnumerationTypeDescriptor
 	{
 		// Check if object (an enumeration) is a subtype of aType (should also
 		// be a type).  All members of me must also be instances of aType.
-		for (final A_BasicObject instance : object.instances())
+		for (final A_BasicObject instance : getInstances(object))
 		{
 			if (!instance.isInstanceOf(aType))
 			{
@@ -523,7 +523,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsIntegerRangeType (final AvailObject object)
 	{
-		for (final A_BasicObject instance : object.instances())
+		for (final A_BasicObject instance : getInstances(object))
 		{
 			if (!instance.isExtendedInteger())
 			{
@@ -536,7 +536,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsLiteralTokenType (final AvailObject object)
 	{
-		for (final AvailObject instance : object.instances())
+		for (final AvailObject instance : getInstances(object))
 		{
 			if (!instance.isLiteralToken())
 			{
@@ -549,7 +549,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsMapType (final AvailObject object)
 	{
-		for (final A_BasicObject instance : object.instances())
+		for (final A_BasicObject instance : getInstances(object))
 		{
 			if (!instance.isMap())
 			{
@@ -562,7 +562,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSetType (final AvailObject object)
 	{
-		for (final A_BasicObject instance : object.instances())
+		for (final A_BasicObject instance : getInstances(object))
 		{
 			if (!instance.isSet())
 			{
@@ -575,7 +575,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsTupleType (final AvailObject object)
 	{
-		for (final A_BasicObject instance : object.instances())
+		for (final A_BasicObject instance : getInstances(object))
 		{
 			if (!instance.isTuple())
 			{

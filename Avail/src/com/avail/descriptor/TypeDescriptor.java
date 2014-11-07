@@ -227,6 +227,9 @@ extends AbstractTypeDescriptor
 		 */
 		RAW_POJO(NONTYPE);
 
+		/** A value at least as large as this enumeration's membership. */
+		private static final int enumCount = 19;
+
 		/**
 		 * The {@link Types} object representing this type's supertype.
 		 */
@@ -255,8 +258,28 @@ extends AbstractTypeDescriptor
 		/**
 		 * The {@link AvailObject} itself that this represents.
 		 */
-		private @Nullable AvailObject o;
+		private final AvailObject o;
 
+		/**
+		 * A boolean array where the entries correspond to ordinals of other
+		 * Types. They are true precisely when the type with that ordinal is a
+		 * supertype of the current type.
+		 */
+		public final boolean[] superTests = new boolean[enumCount];
+
+		/**
+		 * An array of {@code A_Type}s, where the entries correspond to ordinals
+		 * of other Types, and hold the unions of that type and the current
+		 * type.
+		 */
+		public final A_Type[] unionTypes = new A_Type[enumCount];
+
+		/**
+		 * An array of {@code A_Type}s, where the entries correspond to ordinals
+		 * of other Types, and hold the intersection of that type and the
+		 * current type.
+		 */
+		public final A_Type[] intersectionTypes = new A_Type[enumCount];
 
 		/**
 		 * Construct a new {@linkplain Types} instance with the specified
@@ -274,6 +297,10 @@ extends AbstractTypeDescriptor
 		{
 			this.parent = parent;
 			this.descriptor = descriptor;
+			final String name = descriptor instanceof TopTypeDescriptor
+				? "⊤"
+				: name().toLowerCase().replace('_', ' ');
+			this.o = descriptor.createPrimitiveObjectNamed(name, ordinal());
 		}
 
 		/**
@@ -303,61 +330,96 @@ extends AbstractTypeDescriptor
 		}
 
 		/**
-		 * Set the AvailObject held by this enumeration.
-		 *
-		 * @param object An AvailObject or null.
+		 * Stash a copy of the array of all {@link Types} enum values.
 		 */
-		void set_o (final @Nullable AvailObject object)
-		{
-			this.o = object;
-		}
+		private static Types[] all = values();
 
 		/**
-		 * A two-dimensional table of booleans such that supertypeTable[x][y] is
-		 * true precisely when x is a subtype of y.  The indices are ordinals of
-		 * primitive types.
+		 * Answer the previously stashed copy of the array of all {@link Types}
+		 * enum values.
+		 *
+		 * @return The array of {@link Types} values.  Do not modify the array.
 		 */
-		static final boolean[][] supertypeTable =
-			new boolean [Types.values().length][];
+		public static Types[] all ()
+		{
+			return all;
+		}
 
 		static
 		{
 			// Build all the objects with null fields.
-			for (final Types spec : Types.values())
-			{
-				final String name = spec == TOP
-					? "⊤"
-					: spec.name().toLowerCase().replace('_', ' ');
-				final AvailObject o =
-					spec.descriptor.createPrimitiveObjectNamed(
-						name,
-						spec.ordinal());
-				spec.set_o(o);
-			}
+			assert all.length <= enumCount;
 			// Connect and name the objects.
-			for (final Types spec : Types.values())
+			for (final Types spec : all)
 			{
-				final A_BasicObject o = spec.o();
+				final A_Type o = spec.o();
 				o.parent(
 					spec.parent == null
 						 ? NilDescriptor.nil()
 						: spec.parent().o());
-				final boolean[] row = new boolean [Types.values().length];
-				supertypeTable[spec.ordinal()] = row;
+				final boolean[] supersRow = spec.superTests;
+				assert supersRow != null;
 				Types pointer = spec;
 				while (pointer != null)
 				{
-					row[pointer.ordinal()] = true;
+					final int ancestorOrdinal = pointer.ordinal();
+					supersRow[ancestorOrdinal] = true;
 					pointer = pointer.parent;
 				}
 			}
+			// Precompute all type unions and type intersections.
+			for (final Types a : all)
+			{
+				final A_Type unionRow [] = a.unionTypes;
+				final A_Type intersectionRow [] = a.intersectionTypes;
+				for (final Types b : all)
+				{
+					// First, compute the union.  Move both pointers up the tree
+					// repeatedly until one is a supertype of the other.  Use
+					// that supertype as the union.
+					final int bOrdinal = b.ordinal();
+					Types aAncestor = a;
+					Types bAncestor = b;
+					final Types union;
+					while (true)
+					{
+						final int bAncestorOrdinal = bAncestor.ordinal();
+						if (a.superTests[bAncestorOrdinal])
+						{
+							union = bAncestor;
+							break;
+						}
+						if (b.superTests[aAncestor.ordinal()])
+						{
+							union = aAncestor;
+							break;
+						}
+						aAncestor = aAncestor.parent();
+						bAncestor = bAncestor.parent();
+						// Neither pointer can be null, because if one were at
+						// "top", it would have already been detected as a
+						// supertype of the other.
+					}
+					unionRow[bOrdinal] = union.o();
+					assert a.superTests[union.ordinal()];
+					assert b.superTests[union.ordinal()];
+					// Now compute the type intersection.  Note that since the
+					// types form a tree, any two types related by sub/super
+					// typing have an intersection that's the subtype, and all
+					// other type pairs have bottom as their intersection.
+					intersectionRow[bOrdinal] =
+						a.superTests[bOrdinal] ? a.o() :
+							b.superTests[a.ordinal()] ? b.o() :
+								BottomTypeDescriptor.bottom();
+				}
+			}
 			// Now make all the objects shared.
-			for (final Types spec : Types.values())
+			for (final Types spec : all)
 			{
 				spec.o().makeShared();
 			}
 			// Sanity check them for metacovariance: a<=b -> a.type<=b.type
-			for (final Types spec : Types.values())
+			for (final Types spec : all)
 			{
 				if (spec.parent != null)
 				{
@@ -369,9 +431,107 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
+	boolean o_AcceptsArgTypesFromFunctionType (
+		final AvailObject object,
+		final A_Type functionType)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	boolean o_AcceptsListOfArgTypes (
+		final AvailObject object,
+		final List<? extends A_Type> argTypes)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	boolean o_AcceptsListOfArgValues (
+		final AvailObject object,
+		final List<? extends A_BasicObject> argValues)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	boolean o_AcceptsTupleOfArgTypes (
+		final AvailObject object,
+		final A_Tuple argTypes)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	boolean o_AcceptsTupleOfArguments (
+		final AvailObject object,
+		final A_Tuple arguments)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	A_Type o_ArgsTupleType (
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	A_Type o_ContentType (
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	boolean o_CouldEverBeInvokedWith (
+		final AvailObject object,
+		final List<? extends A_Type> argTypes)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	A_Set o_DeclaredExceptions (
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	A_Type o_DefaultType (
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
 	abstract boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another);
+
+	@Override @AvailMethod
+	A_Type o_FunctionType (
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	A_Map o_FieldTypeMap (
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	boolean o_HasObjectInstance (
+		final AvailObject object,
+		final AvailObject potentialInstance)
+	{
+		return false;
+	}
 
 	@Override @AvailMethod
 	A_Number o_InstanceCount (final AvailObject object)
@@ -380,11 +540,52 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
+	boolean o_IsBetterRepresentationThan (
+		final AvailObject object,
+		final A_BasicObject anotherObject)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	boolean o_IsBetterRepresentationThanTupleType (
+		final AvailObject object,
+		final A_Type aTupleType)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_IsBottom (final AvailObject object)
+	{
+		return false;
+	}
+
+	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aType)
 	{
 		return object.kind().isSubtypeOf(aType);
+	}
+
+	@Override @AvailMethod
+	boolean o_IsIntegerRangeType (
+		final AvailObject object)
+	{
+		return false;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsMapType (final AvailObject object)
+	{
+		return false;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsSetType (final AvailObject object)
+	{
+		return false;
 	}
 
 	@Override @AvailMethod
@@ -470,7 +671,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfParseNodeType (
 		final AvailObject object,
-		final AvailObject aParseNodeType)
+		final A_Type aParseNodeType)
 	{
 		return false;
 	}
@@ -478,7 +679,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfPojoType (
 		final AvailObject object,
-		final A_BasicObject aPojoType)
+		final A_Type aPojoType)
 	{
 		return false;
 	}
@@ -527,6 +728,93 @@ extends AbstractTypeDescriptor
 		final A_Type aPojoType)
 	{
 		return false;
+	}
+
+	@Override
+	boolean o_IsTop (final AvailObject object)
+	{
+		return false;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsTupleType (final AvailObject object)
+	{
+		return false;
+	}
+
+	@Override @AvailMethod
+	A_Type o_KeyType (
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	A_Number o_LowerBound (
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	boolean o_LowerInclusive (
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	@Nullable Object o_MarshalToJava (
+		final AvailObject object,
+		final @Nullable Class<?> ignoredClassHint)
+	{
+		// Most Avail types are opaque to Java, and can be characterized by the
+		// class of AvailObject.
+		return AvailObject.class;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_Name (
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	A_BasicObject o_Parent (
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_RangeIncludesInt (
+		final AvailObject object,
+		final int anInt)
+	{
+		return false;
+	}
+
+	@Override @AvailMethod
+	A_Type o_ReturnType (
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	A_Type o_SizeRange (
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	A_Type o_TypeAtIndex (
+		final AvailObject object,
+		final int index)
+	{
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
@@ -618,6 +906,16 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
+	A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
+		final AvailObject object,
+		final Types primitiveTypeEnum)
+	{
+		return NONTYPE.superTests[primitiveTypeEnum.ordinal()]
+			? object
+			: BottomTypeDescriptor.bottom();
+	}
+
+	@Override @AvailMethod
 	A_Type o_TypeIntersectionOfSetType (
 		final AvailObject object,
 		final A_Type aSetType)
@@ -631,6 +929,13 @@ extends AbstractTypeDescriptor
 		final A_Type aTupleType)
 	{
 		return BottomTypeDescriptor.bottom();
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_TypeTuple (
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
@@ -722,6 +1027,23 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
+	A_Type o_TypeUnionOfPrimitiveTypeEnum (
+		final AvailObject object,
+		final Types primitiveTypeEnum)
+	{
+		Types anotherAncestor = primitiveTypeEnum;
+		while (true)
+		{
+			if (object.isSubtypeOf(anotherAncestor.o()))
+			{
+				return anotherAncestor.o();
+			}
+			anotherAncestor = anotherAncestor.parent;
+			assert anotherAncestor != null;
+		}
+	}
+
+	@Override @AvailMethod
 	A_Type o_TypeUnionOfSetType (
 		final AvailObject object,
 		final A_Type aSetType)
@@ -735,209 +1057,6 @@ extends AbstractTypeDescriptor
 		final A_Type aTupleType)
 	{
 		return object.typeUnion(NONTYPE.o());
-	}
-
-	@Override @AvailMethod
-	boolean o_AcceptsArgTypesFromFunctionType (
-		final AvailObject object,
-		final A_Type functionType)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	boolean o_AcceptsListOfArgTypes (
-		final AvailObject object,
-		final List<? extends A_Type> argTypes)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	boolean o_AcceptsListOfArgValues (
-		final AvailObject object,
-		final List<? extends A_BasicObject> argValues)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	boolean o_AcceptsTupleOfArgTypes (
-		final AvailObject object,
-		final A_Tuple argTypes)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	boolean o_AcceptsTupleOfArguments (
-		final AvailObject object,
-		final A_Tuple arguments)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	A_Type o_ArgsTupleType (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	A_Set o_DeclaredExceptions (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	A_Type o_FunctionType (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	A_Type o_ContentType (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	boolean o_CouldEverBeInvokedWith (
-		final AvailObject object,
-		final List<? extends A_Type> argTypes)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	A_Type o_DefaultType (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	A_Map o_FieldTypeMap (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	boolean o_HasObjectInstance (
-		final AvailObject object,
-		final AvailObject potentialInstance)
-	{
-		return false;
-	}
-
-	@Override @AvailMethod
-	boolean o_IsBetterRepresentationThan (
-		final AvailObject object,
-		final A_BasicObject anotherObject)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	boolean o_IsBetterRepresentationThanTupleType (
-		final AvailObject object,
-		final A_Type aTupleType)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	boolean o_IsIntegerRangeType (
-		final AvailObject object)
-	{
-		return false;
-	}
-
-	@Override @AvailMethod
-	boolean o_IsMapType (final AvailObject object)
-	{
-		return false;
-	}
-
-	@Override @AvailMethod
-	boolean o_IsSetType (final AvailObject object)
-	{
-		return false;
-	}
-
-	@Override @AvailMethod
-	boolean o_IsTupleType (final AvailObject object)
-	{
-		return false;
-	}
-
-	@Override @AvailMethod
-	A_Type o_KeyType (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	A_Number o_LowerBound (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	boolean o_LowerInclusive (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Name (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	A_BasicObject o_Parent (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	A_Type o_ReturnType (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	A_Type o_SizeRange (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	A_Type o_TypeAtIndex (
-		final AvailObject object,
-		final int index)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_TypeTuple (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
@@ -968,36 +1087,6 @@ extends AbstractTypeDescriptor
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
-	}
-
-	@Override
-	@Nullable Object o_MarshalToJava (
-		final AvailObject object,
-		final @Nullable Class<?> ignoredClassHint)
-	{
-		// Most Avail types are opaque to Java, and can be characterized by the
-		// class of AvailObject.
-		return AvailObject.class;
-	}
-
-	@Override
-	boolean o_RangeIncludesInt (
-		final AvailObject object,
-		final int anInt)
-	{
-		return false;
-	}
-
-	@Override
-	boolean o_IsBottom (final AvailObject object)
-	{
-		return false;
-	}
-
-	@Override
-	boolean o_IsTop (final AvailObject object)
-	{
-		return false;
 	}
 
 	/**

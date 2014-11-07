@@ -84,7 +84,7 @@ extends AbstractTypeDescriptor
 	 *         and {@code another}.
 	 */
 	abstract A_Type computeIntersectionWith (
-		final A_Type object,
+		final AvailObject object,
 		final A_Type another);
 
 	/**
@@ -101,7 +101,7 @@ extends AbstractTypeDescriptor
 	 *         and {@code another}.
 	 */
 	abstract A_Type computeUnionWith (
-		final A_Type object,
+		final AvailObject object,
 		final A_Type another);
 
 	/**
@@ -188,6 +188,14 @@ extends AbstractTypeDescriptor
 		final A_Type aParseNodeType)
 	{
 		return computeIntersectionWith(object, aParseNodeType);
+	}
+
+	@Override @AvailMethod
+	final A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
+		final AvailObject object,
+		final Types primitiveTypeEnum)
+	{
+		return computeIntersectionWith(object, primitiveTypeEnum.o());
 	}
 
 	@Override @AvailMethod
@@ -326,6 +334,14 @@ extends AbstractTypeDescriptor
 		final A_Type aPojoType)
 	{
 		return computeUnionWith(object, aPojoType);
+	}
+
+	@Override @AvailMethod
+	final A_Type o_TypeUnionOfPrimitiveTypeEnum (
+		final AvailObject object,
+		final Types primitiveTypeEnum)
+	{
+		return computeUnionWith(object, primitiveTypeEnum.o());
 	}
 
 	@Override @AvailMethod
@@ -564,7 +580,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfParseNodeType (
 		final AvailObject object,
-		final AvailObject aParseNodeType)
+		final A_Type aParseNodeType)
 	{
 		return false;
 	}
@@ -572,7 +588,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfPojoType (
 		final AvailObject object,
-		final A_BasicObject aPojoType)
+		final A_Type aPojoType)
 	{
 		return false;
 	}

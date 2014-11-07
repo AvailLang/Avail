@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.A_BasicObject.multiplier;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ObjectSlots.*;
@@ -317,21 +317,35 @@ extends TypeDescriptor
 			return a;
 		}
 
+		/** An array of all {@link ParseNodeKind} enumeration values. */
+		private static ParseNodeKind[] all = values();
+
+		/**
+		 * Answer an array of all {@link ParseNodeKind} enumeration values.
+		 *
+		 * @return An array of all {@link ParseNodeKind} enum values.  Do not
+		 *         modify the array.
+		 */
+		public static ParseNodeKind[] all ()
+		{
+			return all;
+		}
+
 		/**
 		 * An array where index (t1 * #values) + t2 indicates whether t1 is a
 		 * subkind of t2.
 		 */
 		private static final boolean[] compatibility =
-			new boolean [values().length * values().length];
+			new boolean [all.length * all.length];
 
 		static
 		{
 			// Populate the entire compatibility matrix.
-			for (final ParseNodeKind kind1 : values())
+			for (final ParseNodeKind kind1 : all)
 			{
-				for (final ParseNodeKind kind2 : values())
+				for (final ParseNodeKind kind2 : all)
 				{
-					final int index = kind1.ordinal() * values().length
+					final int index = kind1.ordinal() * all.length
 						+ kind2.ordinal();
 					final boolean compatible =
 						kind1.commonAncestorWith(kind2) == kind2;
@@ -350,7 +364,7 @@ extends TypeDescriptor
 		public final boolean isSubkindOf (final ParseNodeKind purportedParent)
 		{
 			final int index =
-				ordinal() * values().length + purportedParent.ordinal();
+				ordinal() * all.length + purportedParent.ordinal();
 			return compatibility[index];
 		}
 	}
@@ -366,31 +380,6 @@ extends TypeDescriptor
 	A_Type o_ExpressionType (final AvailObject object)
 	{
 		return object.slot(EXPRESSION_TYPE);
-	}
-
-	/**
-	 * Return the {@linkplain ParseNodeKind parse node kind} that this parse
-	 * node type implements.
-	 *
-	 * @return The {@linkplain ParseNodeKind kind} of parse node that the object
-	 *         is.
-	 */
-	@Override @AvailMethod
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
-	{
-		final int ordinal = object.slot(KIND);
-		return ParseNodeKind.values()[ordinal];
-	}
-
-	/**
-	 * {@linkplain ParseNodeTypeDescriptor parse nodes} must implement {@link
-	* AbstractDescriptor#o_Hash(AvailObject) hash}.
-	 */
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		return object.slot(EXPRESSION_TYPE).hash()
-			^ (object.slot(KIND) * multiplier);
 	}
 
 	/**
@@ -425,6 +414,17 @@ extends TypeDescriptor
 				aParseNodeType.expressionType());
  	}
 
+	/**
+	 * {@linkplain ParseNodeTypeDescriptor parse nodes} must implement {@link
+	* AbstractDescriptor#o_Hash(AvailObject) hash}.
+	 */
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		return object.slot(EXPRESSION_TYPE).hash()
+			^ (object.slot(KIND) * multiplier);
+	}
+
 	@Override @AvailMethod
 	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
@@ -434,16 +434,44 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfParseNodeType (
 		final AvailObject object,
-		final AvailObject aParseNodeType)
+		final A_Type aParseNodeType)
 	{
 		final ParseNodeKind myKind = object.parseNodeKind();
 		final ParseNodeKind otherKind = aParseNodeType.parseNodeKind();
 		if (otherKind.isSubkindOf(myKind))
 		{
-			return aParseNodeType.slot(EXPRESSION_TYPE).isSubtypeOf(
+			return aParseNodeType.expressionType().isSubtypeOf(
 				object.slot(EXPRESSION_TYPE));
 		}
 		return false;
+	}
+
+	/**
+	 * Return the {@linkplain ParseNodeKind parse node kind} that this parse
+	 * node type implements.
+	 *
+	 * @return The {@linkplain ParseNodeKind kind} of parse node that the object
+	 *         is.
+	 */
+	@Override @AvailMethod
+	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	{
+		final int ordinal = object.slot(KIND);
+		return ParseNodeKind.all()[ordinal];
+	}
+
+	@Override @AvailMethod
+	boolean o_ParseNodeKindIsUnder (
+		final AvailObject object,
+		final ParseNodeKind expectedParseNodeKind)
+	{
+		return object.parseNodeKind().isSubkindOf(expectedParseNodeKind);
+	}
+
+	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.PARSE_NODE_TYPE;
 	}
 
 	@Override @AvailMethod
@@ -451,14 +479,6 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type another)
 	{
-		if (object.isSubtypeOf(another))
-		{
-			return object;
-		}
-		if (another.isSubtypeOf(object))
-		{
-			return another;
-		}
 		return another.typeIntersectionOfParseNodeType(object);
 	}
 
@@ -467,24 +487,27 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type aParseNodeType)
 	{
-		if (object.isSubtypeOf(aParseNodeType))
+		final ParseNodeKind myKind = object.parseNodeKind();
+		final ParseNodeKind otherKind = aParseNodeType.parseNodeKind();
+		final A_Type myExpressionType = object.slot(EXPRESSION_TYPE);
+		final A_Type otherExpressionType = aParseNodeType.expressionType();
+		if (myKind.isSubkindOf(otherKind)
+			&& myExpressionType.isSubtypeOf(otherExpressionType))
 		{
 			return object;
 		}
-		if (aParseNodeType.isSubtypeOf(object))
+		if (otherKind.isSubkindOf(myKind)
+			&& otherExpressionType.isSubtypeOf(myExpressionType))
 		{
 			return aParseNodeType;
 		}
-		final ParseNodeKind myKind = object.parseNodeKind();
-		final ParseNodeKind otherKind = aParseNodeType.parseNodeKind();
-		final ParseNodeKind ancestor = myKind.commonAncestorWith(otherKind);
-		if (ancestor == myKind || ancestor == otherKind)
+		final ParseNodeKind ancestorKind = myKind.commonAncestorWith(otherKind);
+		if (ancestorKind == myKind || ancestorKind == otherKind)
 		{
 			// One kind is the ancestor of the other.  We can work with that.
 			final A_Type innerIntersection =
-				object.slot(EXPRESSION_TYPE).typeIntersection(
-					aParseNodeType.expressionType());
-			return (ancestor == myKind ? otherKind : myKind).create(
+				myExpressionType.typeIntersection(otherExpressionType);
+			return (ancestorKind == myKind ? otherKind : myKind).create(
 				innerIntersection);
 		}
 		// There may be a common ancestor, but it isn't one of the supplied
@@ -505,34 +528,23 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type aParseNodeType)
 	{
-		if (object.isSubtypeOf(aParseNodeType))
+		final ParseNodeKind myKind = object.parseNodeKind();
+		final ParseNodeKind otherKind = aParseNodeType.parseNodeKind();
+		final A_Type myExpressionType = object.slot(EXPRESSION_TYPE);
+		final A_Type otherExpressionType = aParseNodeType.expressionType();
+		if (myKind.isSubkindOf(otherKind)
+			&& myExpressionType.isSubtypeOf(otherExpressionType))
 		{
 			return aParseNodeType;
 		}
-		if (aParseNodeType.isSubtypeOf(object))
+		if (otherKind.isSubkindOf(myKind)
+			&& otherExpressionType.isSubtypeOf(myExpressionType))
 		{
 			return object;
 		}
-		final ParseNodeKind myKind = object.parseNodeKind();
-		final ParseNodeKind otherKind = aParseNodeType.parseNodeKind();
-		final ParseNodeKind ancestor = myKind.commonAncestorWith(otherKind);
-		return ancestor.create(
-			object.slot(EXPRESSION_TYPE).typeUnion(
-				aParseNodeType.expressionType()));
-	}
-
-	@Override @AvailMethod
-	boolean o_ParseNodeKindIsUnder (
-		final AvailObject object,
-		final ParseNodeKind expectedParseNodeKind)
-	{
-		return object.parseNodeKind().isSubkindOf(expectedParseNodeKind);
-	}
-
-	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
-	{
-		return SerializerOperation.PARSE_NODE_TYPE;
+		final ParseNodeKind ancestorKind = myKind.commonAncestorWith(otherKind);
+		return ancestorKind.create(
+			myExpressionType.typeUnion(otherExpressionType));
 	}
 
 	@Override

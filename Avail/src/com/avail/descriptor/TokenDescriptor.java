@@ -151,6 +151,21 @@ extends Descriptor
 		 * CommentTokenDescriptor}.
 		 */
 		COMMENT;
+
+		/** An array of all {@link TokenType} enumeration values. */
+		private static TokenType[] all = values();
+
+		/**
+		 * Answer an array of all {@link TokenType} enumeration values.
+		 *
+		 * @return An array of all {@link TokenType} enum values.  Do not
+		 *         modify the array.
+		 */
+		public static TokenType[] all ()
+		{
+			return all;
+		}
+
 	}
 
 	@Override
@@ -239,7 +254,7 @@ extends Descriptor
 	TokenType o_TokenType (final AvailObject object)
 	{
 		final int index = object.slot(TOKEN_TYPE_CODE);
-		return TokenType.values()[index];
+		return TokenType.all()[index];
 	}
 
 	@Override @AvailMethod

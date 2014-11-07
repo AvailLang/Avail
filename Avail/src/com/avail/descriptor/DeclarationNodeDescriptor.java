@@ -468,6 +468,23 @@ extends ParseNodeDescriptor
 		}
 
 		/**
+		 * Stash a copy of the array of all {@link DeclarationKind} enum values.
+		 */
+		private static DeclarationKind[] all = values();
+
+		/**
+		 * Answer the previously stashed copy of the array of all {@link
+		 * DeclarationKind} enum values.
+		 *
+		 * @return The array of {@link DeclarationKind} values.  Do not modify
+		 *         the array.
+		 */
+		public static DeclarationKind[] all ()
+		{
+			return all;
+		}
+
+		/**
 		 * Return whether this entity can be written.
 		 *
 		 * @return Whether this entity is assignable.
@@ -651,7 +668,7 @@ extends ParseNodeDescriptor
 	DeclarationKind o_DeclarationKind (
 		final AvailObject object)
 	{
-		return DeclarationKind.values()[object.slot(DECLARATION_KIND)];
+		return DeclarationKind.all()[object.slot(DECLARATION_KIND)];
 	}
 
 

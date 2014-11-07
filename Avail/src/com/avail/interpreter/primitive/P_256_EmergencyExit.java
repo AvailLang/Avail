@@ -87,11 +87,11 @@ public final class P_256_EmergencyExit extends Primitive
 						final int intValue =
 							((A_Number)errorMessageProducer).extractInt();
 						if (intValue >= 0 &&
-							intValue < AvailErrorCode.values().length)
+							intValue < AvailErrorCode.all().length)
 						{
 							builder.append(String.format(
 								" (= %s)",
-								AvailErrorCode.values()[intValue].name()));
+								AvailErrorCode.all()[intValue].name()));
 						}
 					}
 					for (final String frame : stack)

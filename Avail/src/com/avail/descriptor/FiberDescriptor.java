@@ -608,6 +608,20 @@ extends Descriptor
 			}
 		};
 
+		/** An array of all {@link ExecutionState} enumeration values. */
+		private static ExecutionState[] all = values();
+
+		/**
+		 * Answer an array of all {@link ExecutionState} enumeration values.
+		 *
+		 * @return An array of all {@link ExecutionState} enum values.  Do not
+		 *         modify the array.
+		 */
+		static ExecutionState[] all ()
+		{
+			return all;
+		}
+
 		/** The valid successor {@linkplain ExecutionState states}. */
 		protected @Nullable Set<ExecutionState> successors = null;
 
@@ -719,7 +733,7 @@ extends Descriptor
 	@Override @AvailMethod
 	ExecutionState o_ExecutionState (final AvailObject object)
 	{
-		return ExecutionState.values()[object.mutableSlot(EXECUTION_STATE)];
+		return ExecutionState.all()[object.mutableSlot(EXECUTION_STATE)];
 	}
 
 	@Override @AvailMethod
@@ -729,7 +743,7 @@ extends Descriptor
 		{
 			synchronized (object)
 			{
-				final ExecutionState current = ExecutionState.values()
+				final ExecutionState current = ExecutionState.all()
 					[object.mutableSlot(EXECUTION_STATE)];
 				assert current.mayTransitionTo(value);
 				object.setSlot(EXECUTION_STATE, value.ordinal());
@@ -742,7 +756,7 @@ extends Descriptor
 		}
 		else
 		{
-			final ExecutionState current = ExecutionState.values()
+			final ExecutionState current = ExecutionState.all()
 				[object.mutableSlot(EXECUTION_STATE)];
 			assert current.mayTransitionTo(value);
 			object.setSlot(EXECUTION_STATE, value.ordinal());

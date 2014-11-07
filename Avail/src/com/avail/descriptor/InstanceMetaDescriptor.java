@@ -95,9 +95,9 @@ extends AbstractEnumerationTypeDescriptor
 	 * @param object An instance type.
 	 * @return The instance represented by the given instance type.
 	 */
-	private static AvailObject getInstance (final A_Type object)
+	private static AvailObject getInstance (final AvailObject object)
 	{
-		return ((AvailObject) object).slot(INSTANCE);
+		return object.slot(INSTANCE);
 	}
 
 
@@ -148,7 +148,7 @@ extends AbstractEnumerationTypeDescriptor
 	 */
 	@Override
 	final A_Type computeIntersectionWith (
-		final A_Type object,
+		final AvailObject object,
 		final A_Type another)
 	{
 		if (another.isBottom())
@@ -157,8 +157,7 @@ extends AbstractEnumerationTypeDescriptor
 		}
 		if (another.isInstanceMeta())
 		{
-			return on(
-				getInstance(object).typeIntersection(another.instance()));
+			return on(getInstance(object).typeIntersection(another.instance()));
 		}
 		// Another is not an enumeration, and definitely not a meta, and the
 		// only possible superkinds of object (a meta) are ANY and TOP.
@@ -185,7 +184,7 @@ extends AbstractEnumerationTypeDescriptor
 	 */
 	@Override
 	final A_Type computeUnionWith (
-		final A_Type object,
+		final AvailObject object,
 		final A_Type another)
 	{
 		if (another.isBottom())
@@ -194,8 +193,7 @@ extends AbstractEnumerationTypeDescriptor
 		}
 		if (another.isInstanceMeta())
 		{
-			return on(
-				getInstance(object).typeUnion(another.instance()));
+			return on(getInstance(object).typeUnion(another.instance()));
 		}
 		// Unless another is top, then the answer will be any.
 		return ANY.o().typeUnion(another);

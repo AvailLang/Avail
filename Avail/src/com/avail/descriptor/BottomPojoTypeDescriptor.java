@@ -102,7 +102,7 @@ extends PojoTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfPojoType (
 		final AvailObject object,
-		final A_BasicObject aPojoType)
+		final A_Type aPojoType)
 	{
 		return aPojoType.equalsPojoBottomType();
 	}

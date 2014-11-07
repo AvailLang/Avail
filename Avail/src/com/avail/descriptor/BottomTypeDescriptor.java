@@ -61,48 +61,6 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * An instance type is only equal to another instance type, and only when
-	 * they refer to equal instances.
-	 * </p>
-	 */
-	@Override @AvailMethod
-	boolean o_Equals (
-		final AvailObject object,
-		final A_BasicObject another)
-	{
-		final boolean equal = another.equalsEnumerationWithSet(
-			SetDescriptor.empty());
-		if (equal && !another.descriptor().isShared())
-		{
-			object.makeImmutable();
-			another.becomeIndirectionTo(object);
-		}
-		return equal;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * Determine if the object is an {@linkplain
-	 * AbstractEnumerationTypeDescriptor enumeration} over the given {@linkplain
-	 * SetDescriptor set} of instances.  Since the object is the {@linkplain
-	 * BottomTypeDescriptor bottom type}, just check if the set of instances is
-	 * empty.
-	 * </p>
-	 */
-	@Override @AvailMethod
-	boolean o_EqualsEnumerationWithSet (
-		final AvailObject object,
-		final A_Set aSet)
-	{
-		return aSet.setSize() == 0;
-	}
-
-	/**
 	 * Compute the type intersection of the object which is the bottom type,
 	 * and the argument, which may be any type.
 	 *
@@ -116,7 +74,7 @@ extends AbstractEnumerationTypeDescriptor
 	 */
 	@Override final
 	A_Type computeIntersectionWith (
-		final A_Type object,
+		final AvailObject object,
 		final A_Type another)
 	{
 		// Easy -- it's always the type bottom.
@@ -137,208 +95,12 @@ extends AbstractEnumerationTypeDescriptor
 	 */
 	@Override final
 	A_Type computeUnionWith (
-		final A_Type object,
+		final AvailObject object,
 		final A_Type another)
 	{
 		// Easy -- it's always the other type.
 		assert another.isType();
 		return another;
-	}
-
-	@Override @AvailMethod
-	A_Number o_LowerBound (final AvailObject object)
-	{
-		// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
-		// range.
-		return InfinityDescriptor.positiveInfinity();
-	}
-
-	@Override @AvailMethod
-	boolean o_LowerInclusive (final AvailObject object)
-	{
-		// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
-		// range.
-		return false;
-	}
-
-	@Override @AvailMethod
-	A_Number o_UpperBound (final AvailObject object)
-	{
-		// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
-		// range.
-		return InfinityDescriptor.negativeInfinity();
-	}
-
-	@Override @AvailMethod
-	boolean o_UpperInclusive (final AvailObject object)
-	{
-		// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
-		// range.
-		return false;
-	}
-
-	@Override @AvailMethod
-	A_Type o_KeyType (final AvailObject object)
-	{
-		// Answer what type my keys are. Since I'm a degenerate map type,
-		// answer ⊥.
-		return BottomTypeDescriptor.bottom();
-	}
-
-	@Override @AvailMethod
-	A_Type o_SizeRange (final AvailObject object)
-	{
-		// Answer what sizes my instances can be. Since I'm a degenerate
-		// map type, answer ⊥, a degenerate integer type.
-		return BottomTypeDescriptor.bottom();
-	}
-
-	@Override @AvailMethod
-	A_Type o_ValueType (
-		final AvailObject object)
-	{
-		// Answer what type my values are. Since I'm a degenerate map type,
-		// answer ⊥.
-		return BottomTypeDescriptor.bottom();
-	}
-
-	@Override @AvailMethod
-	A_Type o_TypeAtIndex (final AvailObject object, final int index)
-	{
-		// Answer what type the given index would have in an object instance of
-		// me. Answer ⊥ if the index is out of bounds, which is always because
-		// I'm a degenerate tuple type.
-		return BottomTypeDescriptor.bottom();
-	}
-
-	@Override @AvailMethod
-	A_Type o_UnionOfTypesAtThrough (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex)
-	{
-		// Answer the union of the types the given indices would have in an
-		// object instance of me. Answer ⊥ if the index is out of bounds, which
-		// is always because I'm a degenerate tuple type.
-		return BottomTypeDescriptor.bottom();
-	}
-
-	@Override @AvailMethod
-	A_Type o_DefaultType (final AvailObject object)
-	{
-		// Since I'm a degenerate tuple type, I must answer ⊥.
-		return BottomTypeDescriptor.bottom();
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_TypeTuple (final AvailObject object)
-	{
-		// Since I'm a degenerate tuple type, I have no leading types.
-		return TupleDescriptor.empty();
-	}
-
-	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
-	{
-		return true;
-	}
-
-	@Override @AvailMethod
-	boolean o_IsIntegerRangeType (final AvailObject object)
-	{
-		// Because ⊥ is a subtype of all other types, it is considered an
-		// integer range type - in particular, the degenerate integer type
-		// (∞..-∞).
-		return true;
-	}
-
-	@Override @AvailMethod
-	boolean o_IsMapType (final AvailObject object)
-	{
-		// Because ⊥ is a subtype of all other types, it is considered a map
-		// type - in particular, a degenerate map type. Its size range is ⊥, its
-		// key type is ⊥, and its value type is ⊥.
-		return true;
-	}
-
-	@Override @AvailMethod
-	boolean o_IsTupleType (final AvailObject object)
-	{
-		// Because ⊥ is a subtype of all other types, it is considered a tuple
-		// type - in particular, a degenerate tuple type. Its size range is ⊥,
-		// its leading type tuple is <>, and its default type is ⊥.
-		return true;
-	}
-
-	@Override @AvailMethod
-	A_Type o_ArgsTupleType (final AvailObject object)
-	{
-		// Because ⊥ is a subtype of all other types, it is considered a
-		// function type. In particular, if ⊥ is viewed as a function type, it
-		// can take any number of arguments of any type (since there are no
-		// complying function instances).
-		return TupleTypeDescriptor.mostGeneralType();
-	}
-
-	@Override @AvailMethod
-	A_Number o_InstanceCount (final AvailObject object)
-	{
-		// ⊥ is the empty enumeration.
-		return IntegerDescriptor.zero();
-	}
-
-	@Override @AvailMethod
-	A_Set o_Instances (final AvailObject object)
-	{
-		// ⊥ is the empty enumeration.
-		return SetDescriptor.empty();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * Even though bottom is a union-y type (and the most specific one), it
-	 * technically "is" also a kind (a non-union-y type).  Thus, it's still
-	 * technically correct to return bottom as the nearest kind.  Code that
-	 * relies on this operation <em>not</em> returning a union-y type should
-	 * deal with this one special case with correspondingly special logic.
-	 * </p>
-	 */
-	@Override @AvailMethod
-	A_Type o_ComputeSuperkind (final AvailObject object)
-	{
-		return object;
-	}
-
-	@Override @AvailMethod
-	A_Map o_FieldTypeMap (final AvailObject object)
-	{
-		// TODO: [MvG] It's unclear what to return here. Maybe raise an
-		// unchecked exception. Or if we ever implement more precise map types
-		// containing key type -> value type pairs we might be able to change
-		// the object type interface to use one of those instead of a map.
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		return 0x4a22a80a;
-	}
-
-	@Override @AvailMethod
-	boolean o_HasObjectInstance (
-		final AvailObject object,
-		final AvailObject potentialInstance)
-	{
-		return false;
-	}
-
-	@Override @AvailMethod
-	boolean o_IsSetType (final AvailObject object)
-	{
-		return true;
 	}
 
 	@Override @AvailMethod
@@ -382,13 +144,28 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Set o_DeclaredExceptions (final AvailObject object)
+	A_Type o_ArgsTupleType (final AvailObject object)
 	{
-		return SetDescriptor.empty();
+		// Because ⊥ is a subtype of all other types, it is considered a
+		// function type. In particular, if ⊥ is viewed as a function type, it
+		// can take any number of arguments of any type (since there are no
+		// complying function instances).
+		return TupleTypeDescriptor.mostGeneralType();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Even though bottom is a union-y type (and the most specific one), it
+	 * technically "is" also a kind (a non-union-y type).  Thus, it's still
+	 * technically correct to return bottom as the nearest kind.  Code that
+	 * relies on this operation <em>not</em> returning a union-y type should
+	 * deal with this one special case with correspondingly special logic.
+	 * </p>
+	 */
 	@Override @AvailMethod
-	A_Type o_FunctionType (final AvailObject object)
+	A_Type o_ComputeSuperkind (final AvailObject object)
 	{
 		return object;
 	}
@@ -403,6 +180,123 @@ extends AbstractEnumerationTypeDescriptor
 	boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
 		final List<? extends A_Type> argTypes)
+	{
+		return true;
+	}
+
+	@Override @AvailMethod
+	A_Set o_DeclaredExceptions (final AvailObject object)
+	{
+		return SetDescriptor.empty();
+	}
+
+	@Override @AvailMethod
+	A_Type o_DefaultType (final AvailObject object)
+	{
+		// Since I'm a degenerate tuple type, I must answer ⊥.
+		return BottomTypeDescriptor.bottom();
+	}
+
+	/**
+	 * Bottom is an empty {@linkplain AbstractEnumerationTypeDescriptor
+	 * enumeration}, so the answer is {@code false}.
+	 */
+	@Override @AvailMethod
+	boolean o_EnumerationIncludesInstance (
+		final AvailObject object,
+		final AvailObject potentialInstance)
+	{
+		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * An instance type is only equal to another instance type, and only when
+	 * they refer to equal instances.
+	 * </p>
+	 */
+	@Override @AvailMethod
+	boolean o_Equals (
+		final AvailObject object,
+		final A_BasicObject another)
+	{
+		return another.traversed().sameAddressAs(object);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Determine if the object is an {@linkplain
+	 * AbstractEnumerationTypeDescriptor enumeration} over the given {@linkplain
+	 * SetDescriptor set} of instances.  Since the object is the {@linkplain
+	 * BottomTypeDescriptor bottom type}, just check if the set of instances is
+	 * empty.
+	 * </p>
+	 */
+	@Override @AvailMethod
+	boolean o_EqualsEnumerationWithSet (
+		final AvailObject object,
+		final A_Set aSet)
+	{
+		return aSet.setSize() == 0;
+	}
+
+	@Override
+	A_Type o_ExpressionType (
+		final AvailObject object)
+	{
+		return object;
+	}
+
+	@Override @AvailMethod
+	A_Map o_FieldTypeMap (final AvailObject object)
+	{
+		// TODO: [MvG] It's unclear what to return here. Maybe raise an
+		// unchecked exception. Or if we ever implement more precise map types
+		// containing key type -> value type pairs we might be able to change
+		// the object type interface to use one of those instead of a map.
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	A_Type o_FunctionType (final AvailObject object)
+	{
+		return object;
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		return 0x4a22a80a;
+	}
+
+	@Override @AvailMethod
+	boolean o_HasObjectInstance (
+		final AvailObject object,
+		final AvailObject potentialInstance)
+	{
+		return false;
+	}
+
+	@Override @AvailMethod
+	A_Number o_InstanceCount (final AvailObject object)
+	{
+		// ⊥ is the empty enumeration.
+		return IntegerDescriptor.zero();
+	}
+
+	@Override @AvailMethod
+	A_Set o_Instances (final AvailObject object)
+	{
+		// ⊥ is the empty enumeration.
+		return SetDescriptor.empty();
+	}
+
+	@Override
+	boolean o_IsBottom (final AvailObject object)
 	{
 		return true;
 	}
@@ -444,51 +338,32 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Name (final AvailObject object)
+	boolean o_IsIntegerRangeType (final AvailObject object)
 	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	A_BasicObject o_Parent (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	A_Type o_ReturnType (final AvailObject object)
-	{
-		return object;
-	}
-
-	/**
-	 * Bottom is an empty {@linkplain AbstractEnumerationTypeDescriptor
-	 * enumeration}, so the answer is {@code false}.
-	 */
-	@Override @AvailMethod
-	boolean o_EnumerationIncludesInstance (
-		final AvailObject object,
-		final AvailObject potentialInstance)
-	{
-		return false;
-	}
-
-	@Override @AvailMethod
-	A_Type o_ReadType (
-		final AvailObject object)
-	{
-		return TOP.o();
-	}
-
-	@Override @AvailMethod
-	A_Type o_WriteType (
-		final AvailObject object)
-	{
-		return bottom();
+		// Because ⊥ is a subtype of all other types, it is considered an
+		// integer range type - in particular, the degenerate integer type
+		// (∞..-∞).
+		return true;
 	}
 
 	@Override
-	boolean o_IsPojoType (final AvailObject object)
+	boolean o_IsLiteralTokenType (
+		final AvailObject object)
+	{
+		return true;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsMapType (final AvailObject object)
+	{
+		// Because ⊥ is a subtype of all other types, it is considered a map
+		// type - in particular, a degenerate map type. Its size range is ⊥, its
+		// key type is ⊥, and its value type is ⊥.
+		return true;
+	}
+
+	@Override
+	boolean o_IsPojoArrayType (final AvailObject object)
 	{
 		return true;
 	}
@@ -500,29 +375,72 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	boolean o_IsPojoArrayType (final AvailObject object)
-	{
-		return true;
-	}
-
-	@Override
 	boolean o_IsPojoSelfType (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	A_Type o_ExpressionType (
-		final AvailObject object)
-	{
-		return object;
-	}
-
-	@Override
-	boolean o_IsLiteralTokenType (
-		final AvailObject object)
+	boolean o_IsPojoType (final AvailObject object)
 	{
 		return true;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsSetType (final AvailObject object)
+	{
+		return true;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
+	{
+		return true;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsTupleType (final AvailObject object)
+	{
+		// Because ⊥ is a subtype of all other types, it is considered a tuple
+		// type - in particular, a degenerate tuple type. Its size range is ⊥,
+		// its leading type tuple is <>, and its default type is ⊥.
+		return true;
+	}
+
+	@Override @AvailMethod
+	A_Type o_KeyType (final AvailObject object)
+	{
+		// Answer what type my keys are. Since I'm a degenerate map type,
+		// answer ⊥.
+		return BottomTypeDescriptor.bottom();
+	}
+
+	@Override @AvailMethod
+	A_Number o_LowerBound (final AvailObject object)
+	{
+		// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
+		// range.
+		return InfinityDescriptor.positiveInfinity();
+	}
+
+	@Override @AvailMethod
+	boolean o_LowerInclusive (final AvailObject object)
+	{
+		// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
+		// range.
+		return false;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_Name (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	A_BasicObject o_Parent (final AvailObject object)
+	{
+		throw unsupportedOperationException();
 	}
 
 	@Override
@@ -533,11 +451,85 @@ extends AbstractEnumerationTypeDescriptor
 		return false;
 	}
 
+	@Override @AvailMethod
+	A_Type o_ReturnType (final AvailObject object)
+	{
+		return object;
+	}
+
 	@Override
 	SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.BOTTOM_TYPE;
+	}
+
+	@Override @AvailMethod
+	A_Type o_SizeRange (final AvailObject object)
+	{
+		// Answer what sizes my instances can be. Since I'm a degenerate
+		// map type, answer ⊥, a degenerate integer type.
+		return BottomTypeDescriptor.bottom();
+	}
+
+	@Override @AvailMethod
+	A_Type o_TypeAtIndex (final AvailObject object, final int index)
+	{
+		// Answer what type the given index would have in an object instance of
+		// me. Answer ⊥ if the index is out of bounds, which is always because
+		// I'm a degenerate tuple type.
+		return BottomTypeDescriptor.bottom();
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_TypeTuple (final AvailObject object)
+	{
+		// Since I'm a degenerate tuple type, I have no leading types.
+		return TupleDescriptor.empty();
+	}
+
+	@Override @AvailMethod
+	A_Type o_UnionOfTypesAtThrough (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex)
+	{
+		// Answer the union of the types the given indices would have in an
+		// object instance of me. Answer ⊥ if the index is out of bounds, which
+		// is always because I'm a degenerate tuple type.
+		return BottomTypeDescriptor.bottom();
+	}
+
+	@Override @AvailMethod
+	A_Number o_UpperBound (final AvailObject object)
+	{
+		// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
+		// range.
+		return InfinityDescriptor.negativeInfinity();
+	}
+
+	@Override @AvailMethod
+	boolean o_UpperInclusive (final AvailObject object)
+	{
+		// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
+		// range.
+		return false;
+	}
+
+	@Override @AvailMethod
+	A_Type o_ValueType (
+		final AvailObject object)
+	{
+		// Answer what type my values are. Since I'm a degenerate map type,
+		// answer ⊥.
+		return BottomTypeDescriptor.bottom();
+	}
+
+	@Override @AvailMethod
+	A_Type o_ReadType (
+		final AvailObject object)
+	{
+		return TOP.o();
 	}
 
 	@Override
@@ -549,10 +541,11 @@ extends AbstractEnumerationTypeDescriptor
 		writer.endObject();
 	}
 
-	@Override
-	boolean o_IsBottom (final AvailObject object)
+	@Override @AvailMethod
+	A_Type o_WriteType (
+		final AvailObject object)
 	{
-		return true;
+		return bottom();
 	}
 
 	/**

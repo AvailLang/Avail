@@ -1283,9 +1283,8 @@ public final class BootstrapGenerator
 	 */
 	private List<AvailErrorCode> errorCodes ()
 	{
-		final AvailErrorCode[] codes = AvailErrorCode.values();
-		final List<AvailErrorCode> relevant = new ArrayList<>();
-		for (final AvailErrorCode code : codes)
+		final List<AvailErrorCode> relevant = new ArrayList<>(100);
+		for (final AvailErrorCode code : AvailErrorCode.all())
 		{
 			if (code.nativeCode() > 0)
 			{
@@ -1300,14 +1299,14 @@ public final class BootstrapGenerator
 	 * primitive error codes}.
 	 */
 	private final Map<String, AvailErrorCode> errorCodesByName =
-		new HashMap<>(AvailErrorCode.values().length);
+		new HashMap<>(AvailErrorCode.all().length);
 
 	/**
 	 * A {@linkplain Map map} from {@linkplain AvailErrorCode primitive error
 	 * codes} to localized names.
 	 */
 	private final Map<AvailErrorCode, String> namesByErrorCode =
-		new HashMap<>(AvailErrorCode.values().length);
+		new HashMap<>(AvailErrorCode.all().length);
 
 	/**
 	 * Answer a textual representation of the {@linkplain AvailErrorCode

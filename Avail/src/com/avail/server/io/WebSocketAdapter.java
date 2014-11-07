@@ -989,6 +989,20 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		/** A reserved frame. */
 		RESERVED_15;
 
+		/** An array of all {@link Opcode} enumeration values. */
+		private static Opcode[] all = values();
+
+		/**
+		 * Answer an array of all {@link Opcode} enumeration values.
+		 *
+		 * @return An array of all {@link Opcode} enum values.  Do not
+		 *         modify the array.
+		 */
+		public static Opcode[] all ()
+		{
+			return all;
+		}
+
 		/**
 		 * Is the {@linkplain Opcode opcode} valid?
 		 *
@@ -1460,7 +1474,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						final int b = buffer.get();
 						assert !buffer.hasRemaining();
 						frame.isFinalFragment = (b & 0x80) == 0x80;
-						frame.opcode = Opcode.values()[b & 0x0F];
+						frame.opcode = Opcode.all()[b & 0x0F];
 						readPayloadLengthThen(channel, frame, continuation);
 					}
 				}

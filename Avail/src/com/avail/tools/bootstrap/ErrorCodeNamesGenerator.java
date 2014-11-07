@@ -67,7 +67,7 @@ extends PropertiesFileGenerator
 		// This forces initialization of Avail.
 		AvailRuntime.specialObjects();
 		A_Set allErrorCodes = SetDescriptor.empty();
-		for (final AvailErrorCode code : AvailErrorCode.values())
+		for (final AvailErrorCode code : AvailErrorCode.all())
 		{
 			if (!code.isCausedByInstructionFailure())
 			{
@@ -133,7 +133,7 @@ extends PropertiesFileGenerator
 		final PrintWriter writer)
 	{
 		final Set<String> keys = new HashSet<>();
-		for (final AvailErrorCode code : AvailErrorCode.values())
+		for (final AvailErrorCode code : AvailErrorCode.all())
 		{
 			if (code.nativeCode() > 0)
 			{

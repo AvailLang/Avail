@@ -291,9 +291,22 @@ public class StacksParser
 			}
 		};
 
+		/** An array of all {@link StacksTagKeyword} enumeration values. */
+		private static StacksTagKeyword[] all = values();
+
+		/**
+		 * Answer an array of all {@link StacksTagKeyword} enumeration values.
+		 *
+		 * @return An array of all {@link StacksTagKeyword} enum values.  Do not
+		 *         modify the array.
+		 */
+		public static StacksTagKeyword[] all ()
+		{
+			return all;
+		}
+
 		/** The string representation of the keyword */
 		final String lexeme;
-
 
 		/**
 		 * The constructor of the {@link StacksTagKeyword}
@@ -314,7 +327,7 @@ public class StacksParser
 		// Learn the lexeme's of the keywords.
 		static
 		{
-			for (final StacksTagKeyword keyword : StacksTagKeyword.values())
+			for (final StacksTagKeyword keyword : StacksTagKeyword.all())
 			{
 				keywordTable.put(keyword.lexeme, keyword);
 			}

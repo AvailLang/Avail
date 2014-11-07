@@ -227,12 +227,12 @@ extends A_BasicObject
 	/**
 	 */
 	boolean isSupertypeOfParseNodeType (
-		AvailObject aParseNodeType);
+		A_Type aParseNodeType);
 
 	/**
 	 * Dispatch to the descriptor
 	 */
-	boolean isSupertypeOfPojoType (A_BasicObject aPojoType);
+	boolean isSupertypeOfPojoType (A_Type aPojoType);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -448,6 +448,12 @@ extends A_BasicObject
 		A_Type aPojoType);
 
 	/**
+	 * @param primitiveTypeEnum
+	 * @return
+	 */
+	A_Type typeIntersectionOfPrimitiveTypeEnum (Types primitiveTypeEnum);
+
+	/**
 	 * Dispatch to the descriptor.
 	 */
 	A_Type typeIntersectionOfSetType (A_Type aSetType);
@@ -514,6 +520,12 @@ extends A_BasicObject
 	 * @return
 	 */
 	A_Type typeUnionOfPojoType (A_Type aPojoType);
+
+	/**
+	 * @param primitiveTypeEnum
+	 * @return
+	 */
+	A_Type typeUnionOfPrimitiveTypeEnum (Types primitiveTypeEnum);
 
 	/**
 	 * Dispatch to the descriptor.

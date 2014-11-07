@@ -153,7 +153,7 @@ public class TypeConsistencyTest
 		static
 		{
 			// Include all primitive types.
-			for (final Types type : Types.values())
+			for (final Types type : Types.all())
 			{
 				if (!primitiveTypes.containsKey(type))
 				{
@@ -1054,7 +1054,7 @@ public class TypeConsistencyTest
 			final Node nontypeNode = primitiveTypes.get(Types.NONTYPE);
 			final Node atomNode = SOME_ATOM_TYPE;
 			final Node anotherAtomNode = ANOTHER_ATOM_TYPE;
-			for (final ParseNodeKind kind : ParseNodeKind.values())
+			for (final ParseNodeKind kind : ParseNodeKind.all())
 			{
 				// This is future-proofing (for total coverage of parse node
 				// kinds).
@@ -1692,10 +1692,11 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
+				final boolean xSubY = x.subtype(y);
 				for (final Node z : Node.values)
 				{
 					assertT(
-						(!(x.subtype(y) && y.subtype(z)))
+						(!(xSubY && y.subtype(z)))
 							|| x.subtype(z),
 						"subtype transitivity: %s, %s, %s",
 						x,
