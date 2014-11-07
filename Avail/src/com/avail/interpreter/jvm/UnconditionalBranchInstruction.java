@@ -125,6 +125,19 @@ extends JavaInstruction
 		return String.format("%-15s%s", mnemonicForInvalidAddress(), label);
 	}
 
+	@Override
+	public boolean isBranch()
+	{
+		return true;
+	}
+
+	@Override
+	public Label[] labels()
+	{
+		final Label[] labels = {label};
+		return labels;
+	}
+
 	/**
 	 * Construct a new {@link UnconditionalBranchInstruction}.
 	 *

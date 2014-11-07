@@ -61,6 +61,19 @@ extends SimpleInstruction
 		return String.format("%s%s", super.toString(), label);
 	}
 
+	@Override
+	public boolean isBranch()
+	{
+		return true;
+	}
+
+	@Override
+	public Label[] labels()
+	{
+		final Label[] labels = {label};
+		return labels;
+	}
+
 	/**
 	 * Construct a new {@link ConditionalBranchInstruction}.
 	 *

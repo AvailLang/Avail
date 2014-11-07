@@ -42,14 +42,6 @@ public class JVMCodeGenerationException extends Exception
 	/** The serial version identifier. */
 	private static final long serialVersionUID = -2285521985624140958L;
 
-	/**
-	 * Construct a new {@link JVMCodeGenerationException}.
-	 *
-	 */
-	public JVMCodeGenerationException ()
-	{
-
-	}
 
 	/**
 	 * Construct a new {@link JVMCodeGenerationException}.
@@ -60,44 +52,4 @@ public class JVMCodeGenerationException extends Exception
 	{
 		super(message);
 	}
-
-	/**
-	 * Construct a new {@link JVMCodeGenerationException}.
-	 *
-	 * @param cause
-	 */
-	public JVMCodeGenerationException (final Throwable cause)
-	{
-		super(cause);
-	}
-
-	/**
-	 * Construct a new {@link JVMCodeGenerationException}.
-	 *
-	 * @param message
-	 * @param cause
-	 */
-	public JVMCodeGenerationException (final String message,
-		final Throwable cause)
-	{
-		super(message, cause);
-	}
-
-	/**
-	 * Construct a new {@link JVMCodeGenerationException}.
-	 *
-	 * @param message
-	 * @param cause
-	 * @param enableSuppression
-	 * @param writableStackTrace
-	 */
-	public JVMCodeGenerationException (
-		final String message,
-		final Throwable cause,
-		final boolean enableSuppression,
-		final boolean writableStackTrace)
-	{
-		super(message, cause, enableSuppression, writableStackTrace);
-	}
-
 }

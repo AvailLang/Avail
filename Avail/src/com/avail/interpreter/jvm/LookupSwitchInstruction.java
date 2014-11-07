@@ -77,6 +77,18 @@ extends JavaInstruction
 		return 9 + padBytes() + 8 * labels.length;
 	}
 
+	@Override
+	public boolean isBranch()
+	{
+		return true;
+	}
+
+	@Override
+	public Label[] labels()
+	{
+		return labels;
+	}
+
 	/**
 	 * Answer the appropriate {@linkplain JavaBytecode bytecode} for this
 	 * {@linkplain LookupSwitchInstruction instruction}.

@@ -450,31 +450,34 @@ implements TransportAdapter<AsynchronousSocketChannel>
 			}
 			// Validate the request.
 			final String host = map.get("host");
-			if (host == null)
+			if (host != null)
+			{
+				final String[] hostParts = host.split(":", 2);
+				if (!adapter.serverAuthority.equalsIgnoreCase(hostParts[0]))
+				{
+					badHandshake(
+						channel,
+						HttpStatusCode.BAD_REQUEST,
+						"Invalid Server Authority");
+					return null;
+				}
+				if (hostParts.length == 2
+					&& adapter.adapterAddress.getPort()
+						!= Integer.parseInt(hostParts[1]))
+				{
+					badHandshake(
+						channel,
+						HttpStatusCode.BAD_REQUEST,
+						"Invalid Port Number");
+					return null;
+				}
+			}
+			else
 			{
 				badHandshake(
 					channel,
 					HttpStatusCode.BAD_REQUEST,
 					"Host Not Specified");
-				return null;
-			}
-			final String[] hostParts = host.split(":", 2);
-			if (!adapter.serverAuthority.equalsIgnoreCase(hostParts[0]))
-			{
-				badHandshake(
-					channel,
-					HttpStatusCode.BAD_REQUEST,
-					"Invalid Server Authority");
-				return null;
-			}
-			if (hostParts.length == 2
-				&& adapter.adapterAddress.getPort()
-					!= Integer.parseInt(hostParts[1]))
-			{
-				badHandshake(
-					channel,
-					HttpStatusCode.BAD_REQUEST,
-					"Invalid Port Number");
 				return null;
 			}
 			if (!"websocket".equalsIgnoreCase(map.get("upgrade")))
@@ -485,12 +488,33 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					"Invalid Upgrade Header");
 				return null;
 			}
-			if (!"upgrade".equalsIgnoreCase(map.get("connection")))
+			final String connection = map.get("connection");
+			if (connection != null)
+			{
+				final String[] tokens = connection.split(" *, *");
+				boolean includesUpgrade = false;
+				for (final String token : tokens)
+				{
+					if ("upgrade".equalsIgnoreCase(token))
+					{
+						includesUpgrade = true;
+					}
+				}
+				if (!includesUpgrade)
+				{
+					badHandshake(
+						channel,
+						HttpStatusCode.BAD_REQUEST,
+						"Invalid Connection Header");
+					return null;
+				}
+			}
+			else
 			{
 				badHandshake(
 					channel,
 					HttpStatusCode.BAD_REQUEST,
-					"Invalid Connection Header");
+					"Missing Connection Header");
 				return null;
 			}
 			if (!"13".equals(map.get("sec-websocket-version")))
@@ -1090,9 +1114,6 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 */
 	private static final class Frame
 	{
-		/** The maximum allowed size of a frame. */
-		public static final int MAX_SIZE = 1_024_000;
-
 		/** Is this the final fragment of the message? */
 		boolean isFinalFragment;
 
@@ -1703,7 +1724,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 								WebSocketStatusCode.PROTOCOL_ERROR,
 								"8-byte encoding for length=" + len);
 						}
-						else if (len > Frame.MAX_SIZE)
+						else if (len > Message.MAX_SIZE)
 						{
 							fail(
 								channel,
@@ -1711,7 +1732,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 								"length="
 								+ len
 								+ " exceeds maximum length of "
-								+ Frame.MAX_SIZE);
+								+ Message.MAX_SIZE);
 						}
 						else
 						{
