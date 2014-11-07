@@ -30,7 +30,7 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 -->
-<project name="Avail" default="avail-dev">
+<project name="Avail" default="avail">
 	<property name="path.avail" value="${basedir}" />
 	<property name="path.avail.src" value="${path.avail}/src"/>
 	<property name="path.avail.bin" value="${path.avail}/bin"/>
@@ -41,6 +41,7 @@ POSSIBILITY OF SUCH DAMAGE.
 	<property name="jar.avail" value="Avail.jar"/>
 	<property name="path.jar.avail" value="${path.avail.jar}/${jar.avail}"/>
 	<property name="path.jar.dev" value="${path.avail.jar}/AvailDev.jar"/>
+	<property name="path.jar.server" value="${path.avail.jar}/AvailServer.jar"/>
 
 	<property
 		name="path.build-time"
@@ -286,8 +287,7 @@ POSSIBILITY OF SUCH DAMAGE.
 					**/tests/**,
 					com/avail/environment/**,
 					com/avail/tools/**,
-					com/avail/utility/fsm/**,
-					com/avail/utility/json/**"/>
+					com/avail/utility/fsm/**"/>
 			<fileset
 				dir="${path.avail}"
 				includes="resources/build-time.txt"/>
@@ -319,7 +319,43 @@ POSSIBILITY OF SUCH DAMAGE.
 				includes="resources/**"/>
 		</jar>
 	</target>
-	
+
+	<!--
+		Build the Avail server.
+	-->
+	<target
+			name="avail-server"
+			depends="avail-vm"
+			description="Build the Avail development environment.">
+		<jar jarfile="${path.jar.server}" update="false">
+			<manifest>
+				<attribute name="Build-Version" value="${build.time}"/>
+				<attribute name="Built-By" value="${user.name}"/>
+				<attribute name="Class-Path" value="${jar.avail}"/>
+				<attribute
+					name="Main-Class"
+					value="com.avail.server.AvailServer"/>
+				<attribute name="Sealed" value="true"/>
+			</manifest>
+			<fileset
+				dir="${path.avail.bin}"
+				includes="com/avail/server/**"/>
+			<fileset
+				dir="${path.avail}"
+				includes="resources/**"
+				excludes="resources/workbench/**"/>
+		</jar>
+	</target>
+
+	<!--
+		Build all Avail products.
+	-->
+	<target
+			name="avail"
+			depends="avail-vm, avail-server, avail-dev"
+			description="Build all Avail products.">
+	</target>
+
 	<!--
 		Install Avail.
 	-->
@@ -354,7 +390,7 @@ POSSIBILITY OF SUCH DAMAGE.
 	</condition>
 	<target
 			name="install"
-			depends="avail-vm, avail-dev">
+			depends="avail-vm, avail-server, avail-dev">
 		<copy todir="${path.install}" preservelastmodified="true">
 			<fileset
 				dir="${path.avail.distro}"
@@ -368,6 +404,7 @@ POSSIBILITY OF SUCH DAMAGE.
 		</chmod>
 		<chmod perm="755" maxparallel="300">
 			<fileset file="${path.install}/bin/avail-dev"/>
+			<fileset file="${path.install}/bin/avail-server"/>
 		</chmod>
 		<echo level="info">
 ATTENTION ==========================================================
@@ -389,6 +426,10 @@ Once your path has been updated, from any directory you can launch
 the Avail workbench like this:
 
 	avail-dev
+
+Or the Avail server like this:
+
+	avail-server
 
 To develop Avail code, you will also need to set AVAIL_ROOTS to a
 valid module root path. If AVAIL_ROOTS is not set, then avail-dev
