@@ -431,6 +431,9 @@ Or the Avail server like this:
 
 	avail-server
 
+(The server is currently hard-wired to run on port 40000. This will
+change at some point, hopefully soon.)
+
 To develop Avail code, you will also need to set AVAIL_ROOTS to a
 valid module root path. If AVAIL_ROOTS is not set, then avail-dev
 temporarily sets it to:
