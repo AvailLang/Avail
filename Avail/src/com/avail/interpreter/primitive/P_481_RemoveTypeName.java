@@ -1,5 +1,5 @@
 /**
- * P_068_RecordNewTypeName.java
+ * P_481_RemoveTypeName.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -38,17 +38,20 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 68:</strong> Assign a name to a {@linkplain
+ * <strong>Primitive 481:</strong> Unbind a name from a {@linkplain
  * ObjectTypeDescriptor user-defined object type}. This can be useful for
- * debugging.
+ * removing the effect of {@link P_480_RecordNewTypeName} when unloading a
+ * module.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_068_RecordNewTypeName extends Primitive
+public final class P_481_RemoveTypeName extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_068_RecordNewTypeName().init(
+		new P_481_RemoveTypeName().init(
 			2, CanInline, CannotFail, HasSideEffect);
 
 	@Override
@@ -58,12 +61,12 @@ public final class P_068_RecordNewTypeName extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
-		final AvailObject userType = args.get(0);
-		final AvailObject name = args.get(1);
+		final A_String name = args.get(0);
+		final A_Type userType = args.get(1);
 
-		userType.makeImmutable();
 		name.makeImmutable();
-		ObjectTypeDescriptor.setNameForType(userType, name);
+		userType.makeImmutable();
+		ObjectTypeDescriptor.removeNameFromType(name, userType);
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
@@ -72,9 +75,9 @@ public final class P_068_RecordNewTypeName extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
+				TupleTypeDescriptor.stringType(),
 				InstanceMetaDescriptor.on(
-					ObjectTypeDescriptor.mostGeneralType()),
-				TupleTypeDescriptor.stringType()),
+					ObjectTypeDescriptor.mostGeneralType())),
 			TOP.o());
 	}
 }

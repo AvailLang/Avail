@@ -591,8 +591,10 @@ extends Descriptor
 	 * Answer the atom used as a property key to name {@linkplain
 	 * ObjectTypeDescriptor object types}.  This property occurs within each
 	 * atom which occurs as a field type key of the object type.  The value is a
-	 * map from object type to name.  The naming information is set up via
-	 * {@link ObjectTypeDescriptor#setNameForType(A_Type, A_String)}.
+	 * map from object type to the set of names of that exact type (typically
+	 * just one).  The naming information is set up via {@link
+	 * ObjectTypeDescriptor#setNameForType(A_Type, A_String)}, and removed by
+	 * {@link ObjectTypeDescriptor#removeNameFromType(A_String, A_Type)}.
 	 *
 	 * @return An atom that's special because it's known by the virtual machine.
 	 */

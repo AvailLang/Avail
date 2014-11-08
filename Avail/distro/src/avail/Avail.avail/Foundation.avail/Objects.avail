@@ -1035,9 +1035,11 @@ is
 	];
 	/* Define the class: give the object type a name, define a method that
 	 * answers the object type, and define methods that access the field
-	 * definitions and values.
+	 * definitions and values.  Also make sure to remove the name if this module
+	 * is ever unloaded.
 	 */
 	subtype's name := className;
+	After the current module is unloaded, do [Unname className from subtype;];
 	Method className is new []→(subtype's type) applying [subtype];
 	For each immutableAtoms do
 	[

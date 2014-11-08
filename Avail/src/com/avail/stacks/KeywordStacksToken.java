@@ -404,7 +404,7 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 		static final Map<String, StacksKeyword> keywordTable =
 			new HashMap<String, StacksKeyword>();
 
-		// Learn the lexeme's of the keywords.
+		// Learn the lexemes of the keywords.
 		static
 		{
 			for (final StacksKeyword keyword : StacksKeyword.all())

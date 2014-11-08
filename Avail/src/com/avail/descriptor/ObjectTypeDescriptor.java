@@ -97,7 +97,8 @@ extends TypeDescriptor
 			final A_Map fieldTypes = baseType.slot(FIELD_TYPE_MAP);
 			for (final MapDescriptor.Entry entry : fieldTypes.mapIterable())
 			{
-				if (InstanceTypeDescriptor.on(entry.key()).equals(entry.value()))
+				if (InstanceTypeDescriptor.on(
+					entry.key()).equals(entry.value()))
 				{
 					ignoreKeys = ignoreKeys.setWithElementCanDestroy(
 						entry.key(),
@@ -434,11 +435,14 @@ extends TypeDescriptor
 	 * user-defined object type}.  If the only field key {@linkplain
 	 * AtomDescriptor atoms} in the object type are {@linkplain
 	 * AtomDescriptor#o_IsAtomSpecial(AvailObject) special atoms}, then the
-	 * name will not be recorded.
+	 * name will not be recorded.  Note that it is legal for there to be
+	 * multiple names for a particular object type, although this is of
+	 * questionable value.
 	 *
 	 * @param anObjectType
 	 *        A {@linkplain ObjectTypeDescriptor user-defined object type}.
-	 * @param aString A name.
+	 * @param aString
+	 *        A name.
 	 */
 	public static void setNameForType (
 		final A_Type anObjectType,
@@ -446,40 +450,95 @@ extends TypeDescriptor
 	{
 		assert aString.isString();
 		final A_Atom propertyKey = AtomDescriptor.objectTypeNamePropertyKey();
-		int leastNames = Integer.MAX_VALUE;
-		A_Atom keyAtomWithLeastNames = null;
-		A_Map keyAtomNamesMap = null;
-		for (final MapDescriptor.Entry entry
-			: anObjectType.fieldTypeMap().mapIterable())
+		synchronized (propertyKey)
 		{
-			final A_Atom atom = entry.key();
-			if (!atom.isAtomSpecial())
+			int leastNames = Integer.MAX_VALUE;
+			A_Atom keyAtomWithLeastNames = null;
+			A_Map keyAtomNamesMap = null;
+			for (final MapDescriptor.Entry entry
+				: anObjectType.fieldTypeMap().mapIterable())
 			{
-				final A_Map namesMap = atom.getAtomProperty(propertyKey);
-				if (namesMap.equalsNil())
+				final A_Atom atom = entry.key();
+				if (!atom.isAtomSpecial())
 				{
-					keyAtomWithLeastNames = atom;
-					keyAtomNamesMap = MapDescriptor.empty();
-					leastNames = 0;
-					break;
-				}
-				final int mapSize = namesMap.mapSize();
-				if (mapSize < leastNames)
-				{
-					keyAtomWithLeastNames = atom;
-					keyAtomNamesMap = namesMap;
-					leastNames = mapSize;
+					final A_Map namesMap = atom.getAtomProperty(propertyKey);
+					if (namesMap.equalsNil())
+					{
+						keyAtomWithLeastNames = atom;
+						keyAtomNamesMap = MapDescriptor.empty();
+						leastNames = 0;
+						break;
+					}
+					final int mapSize = namesMap.mapSize();
+					if (mapSize < leastNames)
+					{
+						keyAtomWithLeastNames = atom;
+						keyAtomNamesMap = namesMap;
+						leastNames = mapSize;
+					}
 				}
 			}
+			if (keyAtomWithLeastNames != null)
+			{
+				assert keyAtomNamesMap != null;
+				A_Set namesSet = keyAtomNamesMap.hasKey(anObjectType)
+					? keyAtomNamesMap.mapAt(anObjectType)
+					: SetDescriptor.empty();
+				namesSet = namesSet.setWithElementCanDestroy(aString, false);
+				keyAtomNamesMap = keyAtomNamesMap.mapAtPuttingCanDestroy(
+					anObjectType, namesSet, true);
+				keyAtomWithLeastNames.setAtomProperty(
+					propertyKey, keyAtomNamesMap);
+			}
 		}
-		if (keyAtomWithLeastNames != null)
+	}
+	/**
+	 * Remove a type name from the specified {@linkplain ObjectTypeDescriptor
+	 * user-defined object type}.  If the object type does not currently have
+	 * the specified type name, or if this name has already been removed, do
+	 * nothing.
+	 *
+	 * @param aString
+	 *        A name to disassociate from the type.
+	 * @param anObjectType
+	 *        A {@linkplain ObjectTypeDescriptor user-defined object type}.
+	 */
+	public static void removeNameFromType (
+		final A_String aString,
+		final A_Type anObjectType)
+	{
+		assert aString.isString();
+		final A_Atom propertyKey = AtomDescriptor.objectTypeNamePropertyKey();
+		synchronized (propertyKey)
 		{
-			assert keyAtomNamesMap != null;
-			keyAtomNamesMap = keyAtomNamesMap.mapAtPuttingCanDestroy(
-				anObjectType,
-				aString,
-				true);
-			keyAtomWithLeastNames.setAtomProperty(propertyKey, keyAtomNamesMap);
+			for (final MapDescriptor.Entry entry
+				: anObjectType.fieldTypeMap().mapIterable())
+			{
+				final A_Atom atom = entry.key();
+				if (!atom.isAtomSpecial())
+				{
+					A_Map namesMap = atom.getAtomProperty(propertyKey);
+					if (!namesMap.equalsNil() && namesMap.hasKey(anObjectType))
+					{
+						// In theory the user can give this type multiple names,
+						// so only remove the one that we've been told to.
+						A_Set namesSet = namesMap.mapAt(anObjectType);
+						namesSet = namesSet.setWithoutElementCanDestroy(
+							aString, false);
+						if (namesSet.setSize() == 0)
+						{
+							namesMap = namesMap.mapWithoutKeyCanDestroy(
+								anObjectType, false);
+						}
+						else
+						{
+							namesMap = namesMap.mapAtPuttingCanDestroy(
+								anObjectType, namesSet, false);
+						}
+						atom.setAtomProperty(propertyKey, namesMap);
+					}
+				}
+			}
 		}
 	}
 
@@ -499,26 +558,36 @@ extends TypeDescriptor
 	{
 		final A_Atom propertyKey = AtomDescriptor.objectTypeNamePropertyKey();
 		A_Map applicableTypesAndNames = MapDescriptor.empty();
-		for (final MapDescriptor.Entry entry
-			: anObjectType.fieldTypeMap().mapIterable())
+		synchronized (propertyKey)
 		{
-			final A_Map map = entry.key().getAtomProperty(propertyKey);
-			if (!map.equalsNil())
+			for (final MapDescriptor.Entry entry
+				: anObjectType.fieldTypeMap().mapIterable())
 			{
-				for (final MapDescriptor.Entry innerEntry : map.mapIterable())
+				final A_Map map = entry.key().getAtomProperty(propertyKey);
+				if (!map.equalsNil())
 				{
-					if (anObjectType.isSubtypeOf(innerEntry.key()))
+					for (final MapDescriptor.Entry innerEntry :
+						map.mapIterable())
 					{
-						applicableTypesAndNames =
-							applicableTypesAndNames.mapAtPuttingCanDestroy(
-								innerEntry.key(),
-								innerEntry.value(),
-								true);
+						final A_Type namedType = innerEntry.key();
+						if (anObjectType.isSubtypeOf(namedType))
+						{
+							A_Set nameSet = innerEntry.value();
+							if (applicableTypesAndNames.hasKey(namedType))
+							{
+								nameSet = nameSet.setUnionCanDestroy(
+									applicableTypesAndNames.mapAt(namedType),
+									true);
+							}
+							applicableTypesAndNames =
+								applicableTypesAndNames.mapAtPuttingCanDestroy(
+									namedType, nameSet, true);
+						}
 					}
 				}
 			}
+			applicableTypesAndNames.makeImmutable();
 		}
-		applicableTypesAndNames.makeImmutable();
 		A_Map filtered = applicableTypesAndNames;
 		for (final MapDescriptor.Entry childEntry
 			: applicableTypesAndNames.mapIterable())
@@ -532,8 +601,7 @@ extends TypeDescriptor
 					&& childType.isSubtypeOf(parentType))
 				{
 					filtered = filtered.mapWithoutKeyCanDestroy(
-						parentType,
-						true);
+						parentType, true);
 				}
 			}
 		}
@@ -541,7 +609,7 @@ extends TypeDescriptor
 		A_Set baseTypes = SetDescriptor.empty();
 		for (final MapDescriptor.Entry entry : filtered.mapIterable())
 		{
-			names = names.setWithElementCanDestroy(entry.value(), true);
+			names = names.setUnionCanDestroy(entry.value(), true);
 			baseTypes = baseTypes.setWithElementCanDestroy(entry.key(), true);
 		}
 		return TupleDescriptor.from(names, baseTypes);

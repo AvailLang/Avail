@@ -4827,7 +4827,7 @@ public abstract class AbstractAvailCompiler
 											index++;
 											if (index < failureMessages.size())
 											{
-												looper.value();
+												looper.value().value();
 											}
 											else
 											{
@@ -4838,6 +4838,7 @@ public abstract class AbstractAvailCompiler
 									});
 							}
 						};
+						looper.value().value();
 					}
 				});
 			}

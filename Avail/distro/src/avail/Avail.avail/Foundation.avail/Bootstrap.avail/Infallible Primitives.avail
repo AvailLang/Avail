@@ -60,6 +60,7 @@ Uses
 		"Resume_",
 		"Sleep for_millisecond|milliseconds",
 		"Terminate current fiber",
+		"Unname_from_",
 		"Unpark_",
 		"Yield current fiber",
 		"[`…]→_",
@@ -994,28 +995,6 @@ Primitive "enumeration of_" is
 |
 	Primitive 65;
 ] : type;
-
-/**
- * For the purpose of debugging, bind a name to an object type. This name will
- * be used for subtypes that do not bind a more specific name to describe their
- * own subtypes.
- *
- * @category "Primitives" "Types" "Objects" "Mutators"
- * @method "_'s⁇name:=_"
- * @param "anObjectType" "object meta"
- *        An object type.
- * @param "name" "string"
- *        The name that should be bound to the object type. This will replace
- *        a previously bound name.
- * @returns "⊤"
- */
-Primitive "_'s⁇name:=_" is
-[
-	anObjectType : object meta,
-	name : string
-|
-	Primitive 68;
-] : ⊤;
 
 /**
  * Answer the set of locally most-specific names bound to the specified object
@@ -3496,6 +3475,49 @@ Primitive "_→block phrase" is
 |
 	Primitive 399;
 ] : block phrase;
+
+/**
+ * For the purpose of debugging, bind a name to an object type. This name will
+ * be used for subtypes that do not bind a more specific name to describe their
+ * own subtypes.
+ *
+ * @category "Primitives" "Types" "Objects" "Mutators"
+ * @method "_'s⁇name:=_"
+ * @param "anObjectType" "object meta"
+ *        An object type.
+ * @param "name" "string"
+ *        The name that should be bound to the object type. This will replace
+ *        a previously bound name.
+ * @returns "⊤"
+ */
+Primitive "_'s⁇name:=_" is
+[
+	anObjectType : object meta,
+	name : string
+|
+	Primitive 480;
+] : ⊤;
+
+/**
+ * Unbind the specified name from the specified object type.  This undoes the
+ * action of {@method "_'s⁇name:=_"}, generally as an unloading action for a
+ * {@type "module"}.
+ *
+ * @category "Primitives" "Types" "Objects" "Mutators"
+ * @method "Unname_from_"
+ * @param "name" "string"
+ *        The name that should no longer be bound to the object type.
+ * @param "anObjectType" "object meta"
+ *        An object type.
+ * @returns "⊤"
+ */
+Primitive "Unname_from_" is
+[
+	name : string,
+	anObjectType : object meta
+|
+	Primitive 481;
+] : ⊤;
 
 /**
  * Construct and answer a pojo array type whose element type is {@param "elementType"}
