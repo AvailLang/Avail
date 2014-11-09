@@ -257,12 +257,12 @@ _privateWriteBuffer ::=
 [
 	fileWriter : file writer
 |
-	success : boolean := false;
 	If fileWriter's buffer is dirty then
 	[
 		Assert: |fileWriter's buffer| > 0;
 		writeComplete ::= a semaphore named "write is complete" with 0 permits;
 		buffer ::= fileWriter's buffer ?→ <byte…|1..>;
+		success : boolean;
 		writeFiber ::= a fiber writing buffer
 			at fileWriter's buffer start
 			to fileWriter's element source
@@ -276,6 +276,7 @@ _privateWriteBuffer ::=
 					error : {I/O-error code}ᵀ
 				|
 					/* All we know is that I/O failed. */
+					success := false;
 					Signal writeComplete;
 				];
 		Await writeComplete;

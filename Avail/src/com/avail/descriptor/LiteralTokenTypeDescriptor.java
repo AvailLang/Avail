@@ -79,10 +79,18 @@ extends TypeDescriptor
 			indent + 1);
 	}
 
-	@Override @AvailMethod
-	A_Type o_LiteralType (final AvailObject object)
+	@Override
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
-		return object.slot(LITERAL_TYPE);
+		return another.equalsLiteralTokenType(object);
+	}
+
+	@Override
+	boolean o_EqualsLiteralTokenType (
+		final AvailObject object,
+		final A_Type aLiteralTokenType)
+	{
+		return object.literalType().equals(aLiteralTokenType.literalType());
 	}
 
 	@Override @AvailMethod int o_Hash(final AvailObject object)
@@ -97,17 +105,14 @@ extends TypeDescriptor
 	}
 
 	@Override
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	AvailObject o_MakeImmutable (final AvailObject object)
 	{
-		return another.equalsLiteralTokenType(object);
-	}
-
-	@Override
-	boolean o_EqualsLiteralTokenType (
-		final AvailObject object,
-		final A_Type aLiteralTokenType)
-	{
-		return object.literalType().equals(aLiteralTokenType.literalType());
+		if (isMutable())
+		{
+			// There is no immutable descriptor, so share the object.
+			return object.makeShared();
+		}
+		return object;
 	}
 
 	@Override
@@ -125,6 +130,18 @@ extends TypeDescriptor
 	{
 		return aLiteralTokenType.literalType().isSubtypeOf(
 			object.literalType());
+	}
+
+	@Override @AvailMethod
+	A_Type o_LiteralType (final AvailObject object)
+	{
+		return object.slot(LITERAL_TYPE);
+	}
+
+	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.LITERAL_TOKEN_TYPE;
 	}
 
 	@Override @AvailMethod
@@ -161,6 +178,16 @@ extends TypeDescriptor
 		return LiteralTokenTypeDescriptor.create(instance);
 	}
 
+	@Override @AvailMethod
+	A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
+		final AvailObject object,
+		final Types primitiveTypeEnum)
+	{
+		return TOKEN.superTests[primitiveTypeEnum.ordinal()]
+			? object
+			: BottomTypeDescriptor.bottom();
+	}
+
 	@Override
 	A_Type o_TypeUnion (
 		final AvailObject object,
@@ -191,10 +218,12 @@ extends TypeDescriptor
 		return LiteralTokenTypeDescriptor.create(instance);
 	}
 
-	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	@Override @AvailMethod
+	A_Type o_TypeUnionOfPrimitiveTypeEnum (
+		final AvailObject object,
+		final Types primitiveTypeEnum)
 	{
-		return SerializerOperation.LITERAL_TOKEN_TYPE;
+		return TOKEN.unionTypes[primitiveTypeEnum.ordinal()];
 	}
 
 	@Override
@@ -220,17 +249,6 @@ extends TypeDescriptor
 		final AvailObject instance = mutable.create();
 		instance.setSlot(LITERAL_TYPE, literalType.makeImmutable());
 		return instance;
-	}
-
-	@Override
-	AvailObject o_MakeImmutable (final AvailObject object)
-	{
-		if (isMutable())
-		{
-			// There is no immutable descriptor, so share the object.
-			return object.makeShared();
-		}
-		return object;
 	}
 
 	/**

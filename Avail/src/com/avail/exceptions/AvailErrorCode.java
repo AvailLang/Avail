@@ -772,6 +772,20 @@ public enum AvailErrorCode
 	 */
 	E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS (508);
 
+	/** An array of all {@link AvailErrorCode} enumeration values. */
+	private static AvailErrorCode[] all = values();
+
+	/**
+	 * Answer an array of all {@link AvailErrorCode} enumeration values.
+	 *
+	 * @return An array of all {@link AvailErrorCode} enum values.  Do not
+	 *         modify the array.
+	 */
+	public static AvailErrorCode[] all ()
+	{
+		return all;
+	}
+
 	/** The numeric error code. */
 	private final int code;
 

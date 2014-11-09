@@ -286,9 +286,7 @@ public final class RegisterSet
 		final A_Type type)
 	{
 		assert !type.isBottom();
-		assert !type.equals(
-			AbstractEnumerationTypeDescriptor.withInstance(
-				NilDescriptor.nil()));
+		assert !type.equalsInstanceTypeFor(NilDescriptor.nil());
 		stateForModifying(register).type(type);
 	}
 
@@ -501,9 +499,7 @@ public final class RegisterSet
 			instruction);
 		typeAtPut(
 			fixed(FixedRegister.CALLER),
-			ContinuationTypeDescriptor.mostGeneralType());
-		propagateWriteTo(
-			fixed(FixedRegister.CALLER),
+			ContinuationTypeDescriptor.mostGeneralType(),
 			instruction);
 	}
 

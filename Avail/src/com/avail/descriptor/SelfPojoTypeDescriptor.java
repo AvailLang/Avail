@@ -141,7 +141,7 @@ extends PojoTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfPojoType (
 		final AvailObject object,
-		final A_BasicObject aPojoType)
+		final A_Type aPojoType)
 	{
 		// Check type compatibility by computing the set intersection of the
 		// ancestry of the arguments. If the result is not equal to the

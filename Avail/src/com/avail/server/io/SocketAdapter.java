@@ -216,6 +216,11 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						{
 							IO.close(transport);
 						}
+						// If the message is too big, then close the transport.
+						else if (payloadLength > Message.MAX_SIZE)
+						{
+							IO.close(transport);
+						}
 						else
 						{
 							readPayloadThen(

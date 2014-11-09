@@ -94,9 +94,9 @@ extends AbstractEnumerationTypeDescriptor
 	 * @param object An instance type.
 	 * @return The instance represented by the given instance type.
 	 */
-	private static AvailObject getInstance (final A_Type object)
+	private static AvailObject getInstance (final AvailObject object)
 	{
-		return ((AvailObject) object).slot(INSTANCE);
+		return object.slot(INSTANCE);
 	}
 
 
@@ -111,7 +111,7 @@ extends AbstractEnumerationTypeDescriptor
 	 *        {@linkplain AbstractEnumerationTypeDescriptor enumeration}) that
 	 *        is nearest the specified instance type.
 	 */
-	private static A_Type getSuperkind (final A_Type object)
+	private static A_Type getSuperkind (final AvailObject object)
 	{
 		return getInstance(object).kind();
 	}
@@ -146,7 +146,7 @@ extends AbstractEnumerationTypeDescriptor
 	 */
 	@Override final
 	A_Type computeIntersectionWith (
-		final A_Type object,
+		final AvailObject object,
 		final A_Type another)
 	{
 		if (another.isEnumeration())
@@ -190,7 +190,7 @@ extends AbstractEnumerationTypeDescriptor
 	 */
 	@Override final
 	A_Type computeUnionWith (
-		final A_Type object,
+		final AvailObject object,
 		final A_Type another)
 	{
 		if (another.isEnumeration())

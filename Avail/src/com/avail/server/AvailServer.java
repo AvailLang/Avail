@@ -543,7 +543,7 @@ public final class AvailServer
 				public void value (final @Nullable JSONWriter writer)
 				{
 					assert writer != null;
-					final Command[] commands = Command.values();
+					final Command[] commands = Command.all();
 					final List<String> help = new ArrayList<>(commands.length);
 					for (final Command c : commands)
 					{

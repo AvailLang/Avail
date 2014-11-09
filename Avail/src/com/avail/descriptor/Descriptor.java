@@ -117,34 +117,6 @@ extends AbstractDescriptor
 		ALL_OBJECT_SLOTS_
 	}
 
-	/**
-	 * Visit all of the object's object slots, passing the parent and child
-	 * objects to the provided visitor.
-	 *
-	 * @param object
-	 *            The object to scan.
-	 * @param visitor
-	 *            The visitor to invoke.
-	 */
-	@Override
-	void o_ScanSubobjects (
-		final AvailObject object,
-		final AvailSubobjectVisitor visitor)
-	{
-		final int limit = object.objectSlotsCount();
-		for (int i = 1; i <= limit; i++)
-		{
-			final AvailObject child = object.slot(
-				FakeObjectSlotsForScanning.ALL_OBJECT_SLOTS_,
-				i);
-			final AvailObject replacementChild = visitor.invoke(child);
-			object.writeBackSlot(
-				FakeObjectSlotsForScanning.ALL_OBJECT_SLOTS_,
-				i,
-				replacementChild);
-		}
-	}
-
 	@Override
 	boolean o_AcceptsArgTypesFromFunctionType (
 		final AvailObject object,
@@ -186,9 +158,256 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	void o_AddAncestors (final AvailObject object, final A_Set moreAncestors)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	void o_AddDependentChunk (
 		final AvailObject object,
 		final L2Chunk chunk)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_AddEntryPoint (
+		final AvailObject object,
+		final A_String stringName,
+		final A_Atom trueName)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_AddUnloadFunction (
+		final AvailObject object,
+		final A_Function unloadFunction)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_AdjustPcAndStackp (
+		final AvailObject object,
+		final int pc,
+		final int stackp)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Set o_AllAncestors (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Tuple o_ArgumentRestrictionSets (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_String o_AtomName (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_AddBundle (final AvailObject object, final A_Bundle bundle)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_AddImportedName (final AvailObject object, final A_Atom trueName)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_AddPrivateName (final AvailObject object, final A_Atom trueName)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	AvailObject o_ArgOrLocalOrStackAt (final AvailObject object, final int index)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_ArgOrLocalOrStackAtPut (
+		final AvailObject object,
+		final int index,
+		final AvailObject value)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	String o_AsNativeString (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Set o_AsSet (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Tuple o_AsTuple (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Tuple o_ArgumentsTuple (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Atom o_ApparentSendName (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Map o_AllBundles (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Type o_ArgsTupleType (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_AddSemanticRestriction (
+		final AvailObject object,
+		final A_SemanticRestriction restrictionSignature)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_AddSealedArgumentsType (
+		final AvailObject object,
+		final A_Tuple typeTuple)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_AddConstantBinding (
+		final AvailObject object,
+		final A_String name,
+		final A_Variable constantBinding)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_AddVariableBinding (
+		final AvailObject object,
+		final A_String name,
+		final A_Variable variableBinding)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Number o_AddToDoubleCanDestroy (
+		final AvailObject object,
+		final A_Number doubleObject,
+		final boolean canDestroy)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Number o_AddToFloatCanDestroy (
+		final AvailObject object,
+		final A_Number floatObject,
+		final boolean canDestroy)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	BigInteger o_AsBigInteger (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Tuple o_AppendCanDestroy (
+		final AvailObject object,
+		final A_BasicObject newElement,
+		final boolean canDestroy)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Phrase o_ArgumentsListNode (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_AddSeal (
+		final AvailObject object,
+		final A_Atom methodName,
+		final A_Tuple argumentTypes)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	int o_AllocateFromCounter (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	@AvailMethod
+	@Nullable
+	AvailLoader o_AvailLoader (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	@AvailMethod
+	void o_AvailLoader (
+		final AvailObject object,
+		@Nullable final AvailLoader loader)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Variable o_AddWriteReactor (
+		final AvailObject object,
+		final A_Atom key,
+		final VariableAccessReactor reactor)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_AddPrivateNames (
+		final AvailObject object,
+		final A_Set trueNames)
 	{
 		throw unsupportedOperationException();
 	}
@@ -245,25 +464,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddBundle (final AvailObject object, final A_Bundle bundle)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_AddImportedName (final AvailObject object, final A_Atom trueName)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	void o_IntroduceNewName (final AvailObject object, final A_Atom trueName)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_AddPrivateName (final AvailObject object, final A_Atom trueName)
 	{
 		throw unsupportedOperationException();
 	}
@@ -632,7 +833,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsSupertypeOfParseNodeType (
 		final AvailObject object,
-		final AvailObject aParseNodeType)
+		final A_Type aParseNodeType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -640,7 +841,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsSupertypeOfPojoType (
 		final AvailObject object,
-		final A_BasicObject aPojoType)
+		final A_Type aPojoType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -688,21 +889,6 @@ extends AbstractDescriptor
 
 	@Override
 	AvailObject o_LiteralAt (final AvailObject object, final int index)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_ArgOrLocalOrStackAt (final AvailObject object, final int index)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_ArgOrLocalOrStackAtPut (
-		final AvailObject object,
-		final int index,
-		final AvailObject value)
 	{
 		throw unsupportedOperationException();
 	}
@@ -963,6 +1149,34 @@ extends AbstractDescriptor
 		final A_BasicObject forwardDefinition)
 	{
 		throw unsupportedOperationException();
+	}
+
+	/**
+	 * Visit all of the object's object slots, passing the parent and child
+	 * objects to the provided visitor.
+	 *
+	 * @param object
+	 *            The object to scan.
+	 * @param visitor
+	 *            The visitor to invoke.
+	 */
+	@Override
+	void o_ScanSubobjects (
+		final AvailObject object,
+		final AvailSubobjectVisitor visitor)
+	{
+		final int limit = object.objectSlotsCount();
+		for (int i = 1; i <= limit; i++)
+		{
+			final AvailObject child = object.slot(
+				FakeObjectSlotsForScanning.ALL_OBJECT_SLOTS_,
+				i);
+			final AvailObject replacementChild = visitor.invoke(child);
+			object.writeBackSlot(
+				FakeObjectSlotsForScanning.ALL_OBJECT_SLOTS_,
+				i,
+				replacementChild);
+		}
 	}
 
 	@Override
@@ -1338,24 +1552,6 @@ extends AbstractDescriptor
 
 	@Override
 	void o_Value (final AvailObject object, final A_BasicObject value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	String o_AsNativeString (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	A_Set o_AsSet (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	A_Tuple o_AsTuple (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2560,12 +2756,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Tuple o_ArgumentsTuple (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	A_Tuple o_StatementsTuple (final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -2756,12 +2946,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Atom o_ApparentSendName (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	A_Tuple o_Statements (final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -2777,12 +2961,6 @@ extends AbstractDescriptor
 
 	@Override
 	int o_LineNumber (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	A_Map o_AllBundles (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2815,12 +2993,6 @@ extends AbstractDescriptor
 	boolean o_IsLong (final AvailObject object)
 	{
 		return false;
-	}
-
-	@Override
-	A_Type o_ArgsTupleType (final AvailObject object)
-	{
-		throw unsupportedOperationException();
 	}
 
 	@Override
@@ -2943,14 +3115,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddSemanticRestriction (
-		final AvailObject object,
-		final A_SemanticRestriction restrictionSignature)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	void o_RemoveSemanticRestriction (
 		final AvailObject object,
 		final A_SemanticRestriction restriction)
@@ -2960,14 +3124,6 @@ extends AbstractDescriptor
 
 	@Override
 	A_Set o_SemanticRestrictions (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_AddSealedArgumentsType (
-		final AvailObject object,
-		final A_Tuple typeTuple)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2990,24 +3146,6 @@ extends AbstractDescriptor
 	void o_ModuleAddSemanticRestriction (
 		final AvailObject object,
 		final A_SemanticRestriction semanticRestriction)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_AddConstantBinding (
-		final AvailObject object,
-		final A_String name,
-		final A_Variable constantBinding)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_AddVariableBinding (
-		final AvailObject object,
-		final A_String name,
-		final A_Variable variableBinding)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3102,24 +3240,6 @@ extends AbstractDescriptor
 	Order o_NumericCompareToInteger (
 		final AvailObject object,
 		final A_Number anInteger)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	A_Number o_AddToDoubleCanDestroy (
-		final AvailObject object,
-		final A_Number doubleObject,
-		final boolean canDestroy)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	A_Number o_AddToFloatCanDestroy (
-		final AvailObject object,
-		final A_Number floatObject,
-		final boolean canDestroy)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3456,21 +3576,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	BigInteger o_AsBigInteger (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	A_Tuple o_AppendCanDestroy (
-		final AvailObject object,
-		final A_BasicObject newElement,
-		final boolean canDestroy)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	A_Map o_LazyIncompleteCaseInsensitive (final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -3514,12 +3619,6 @@ extends AbstractDescriptor
 
 	@Override
 	boolean o_IsSystemModule (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	A_Phrase o_ArgumentsListNode (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3616,22 +3715,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddSeal (
-		final AvailObject object,
-		final A_Atom methodName,
-		final A_Tuple argumentTypes)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	AvailObject o_Instance (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	int o_AllocateFromCounter (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3918,23 +4002,6 @@ extends AbstractDescriptor
 
 	@Override
 	@AvailMethod
-	@Nullable
-	AvailLoader o_AvailLoader (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	@AvailMethod
-	void o_AvailLoader (
-		final AvailObject object,
-		@Nullable final AvailLoader loader)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	@AvailMethod
 	boolean o_InterruptRequestFlag (
 		final AvailObject object,
 		final InterruptRequestFlag flag)
@@ -4135,49 +4202,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddEntryPoint (
-		final AvailObject object,
-		final A_String stringName,
-		final A_Atom trueName)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	A_Set o_AllAncestors (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_AddAncestors (final AvailObject object, final A_Set moreAncestors)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	A_Bundle o_RestrictedBundle (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	A_Tuple o_ArgumentRestrictionSets (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	A_String o_AtomName (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_AdjustPcAndStackp (
-		final AvailObject object,
-		final int pc,
-		final int stackp)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4245,15 +4270,6 @@ extends AbstractDescriptor
 	boolean o_IsSmallIntegerIntervalTuple (final AvailObject object)
 	{
 		return false;
-	}
-
-	@Override
-	A_Variable o_AddWriteReactor (
-		final AvailObject object,
-		final A_Atom key,
-		final VariableAccessReactor reactor)
-	{
-		throw unsupportedOperationException();
 	}
 
 	@Override
@@ -4364,23 +4380,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddPrivateNames (
-		final AvailObject object,
-		final A_Set trueNames)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	boolean o_HasValue (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_AddUnloadFunction (
-		final AvailObject object,
-		final A_Function unloadFunction)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4469,5 +4469,21 @@ extends AbstractDescriptor
 	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		object.writeTo(writer);
+	}
+
+	@Override
+	A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
+		final AvailObject object,
+		final Types primitiveTypeEnum)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Type o_TypeUnionOfPrimitiveTypeEnum (
+		final AvailObject object,
+		final Types primitiveTypeEnum)
+	{
+		throw unsupportedOperationException();
 	}
 }

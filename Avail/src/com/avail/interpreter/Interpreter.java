@@ -1044,7 +1044,7 @@ public final class Interpreter
 
 	/** The number of fixed object registers in Level Two. */
 	private static final int numberOfFixedRegisters =
-		FixedRegister.values().length;
+		FixedRegister.all().length;
 
 	/**
 	 * Answer the subscript of the register holding the argument or local with

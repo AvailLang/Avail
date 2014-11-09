@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.PrimitiveTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.PrimitiveTypeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
@@ -112,6 +113,50 @@ extends TypeDescriptor
 		aStream.append(object.slot(NAME).asNativeString());
 	}
 
+	/**
+	 * Extract the {@link Types} enum value from this primitive type.
+	 *
+	 * @param object The primitive type.
+	 * @return The {@link Types} enum value.
+	 */
+	private static Types extractEnum (final AvailObject object)
+	{
+		return Types.all()[object.slot(PRIMITIVE_TYPE_ORDINAL)];
+	}
+
+	/**
+	 * Extract the {@link Types} enum value's {@link java.lang.Enum#ordinal()}
+	 * from this primitive type.
+	 *
+	 * @param object The primitive type.
+	 * @return The {@link Types} enum value's ordinal.
+	 */
+	private static int extractOrdinal (final AvailObject object)
+	{
+		return object.slot(PRIMITIVE_TYPE_ORDINAL);
+	}
+
+	@Override @AvailMethod
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	{
+		return another.equalsPrimitiveType(object);
+	}
+
+	@Override @AvailMethod
+	boolean o_EqualsPrimitiveType (
+		final AvailObject object,
+		final A_Type aPrimitiveType)
+	{
+		// Primitive types compare by identity.
+		return object.sameAddressAs(aPrimitiveType);
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		return object.slot(HASH);
+	}
+
 	@Override @AvailMethod
 	AvailObject o_Name (final AvailObject object)
 	{
@@ -131,33 +176,11 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		return object.slot(HASH);
-	}
-
-	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.equalsPrimitiveType(object);
-	}
-
-	@Override @AvailMethod
-	boolean o_EqualsPrimitiveType (
-		final AvailObject object,
-		final A_Type aPrimitiveType)
-	{
-		// Primitive types compare by identity.
-		return object.sameAddressAs(aPrimitiveType);
-	}
-
-	@Override @AvailMethod
 	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		// Check if object (a type) is a subtype of aType (should also be a
 		// type).
-		return aType.isSupertypeOfPrimitiveTypeEnum(
-			Types.values()[object.slot(PRIMITIVE_TYPE_ORDINAL)]);
+		return aType.isSupertypeOfPrimitiveTypeEnum(extractEnum(object));
 	}
 
 	@Override @AvailMethod
@@ -253,7 +276,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfParseNodeType (
 		final AvailObject object,
-		final AvailObject aParseNodeType)
+		final A_Type aParseNodeType)
 	{
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
@@ -269,7 +292,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfPojoType (
 		final AvailObject object,
-		final A_BasicObject aPojoType)
+		final A_Type aPojoType)
 	{
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
@@ -279,9 +302,8 @@ extends TypeDescriptor
 		final AvailObject object,
 		final Types primitiveTypeEnum)
 	{
-		final boolean[] row =
-			TypeDescriptor.Types.supertypeTable[primitiveTypeEnum.ordinal()];
-		return row[object.slot(PRIMITIVE_TYPE_ORDINAL)];
+		return
+			primitiveTypeEnum.superTests[extractOrdinal(object)];
 	}
 
 	@Override @AvailMethod
@@ -312,43 +334,15 @@ extends TypeDescriptor
 		return InstanceMetaDescriptor.topMeta().isSubtypeOf(object);
 	}
 
-	@Override @AvailMethod
-	A_Type o_TypeIntersection (
-		final AvailObject object,
-		final A_Type another)
+	@Override
+	final AvailObject o_MakeImmutable (final AvailObject object)
 	{
-		if (object.isSubtypeOf(another))
+		if (isMutable())
 		{
-			return object;
+			// There is no immutable descriptor; use the shared one.
+			object.makeShared();
 		}
-		if (another.isSubtypeOf(object))
-		{
-			return another;
-		}
-		return BottomTypeDescriptor.bottom();
-	}
-
-	@Override @AvailMethod
-	A_Type o_TypeUnion (
-		final AvailObject object,
-		final A_Type another)
-	{
-		if (object.isSubtypeOf(another))
-		{
-			return another;
-		}
-		if (another.isSubtypeOf(object))
-		{
-			return object;
-		}
-		if (another.isEnumeration())
-		{
-			// Note that at this point neither one can be bottom, since that
-			// would always have been detected as a subtype of the other.
-			assert !another.isBottom();
-			return another.computeSuperkind().typeUnion(object);
-		}
-		return object.slot(PARENT).typeUnion(another);
+		return object;
 	}
 
 	@Override @AvailMethod
@@ -356,7 +350,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
-		for (final Types type : Types.values())
+		for (final Types type : Types.all())
 		{
 			if (object.equals(type.o()))
 			{
@@ -403,15 +397,48 @@ extends TypeDescriptor
 		throw unsupportedOperationException();
 	}
 
-	@Override
-	final AvailObject o_MakeImmutable (final AvailObject object)
+	@Override @AvailMethod
+	A_Type o_TypeIntersection (
+		final AvailObject object,
+		final A_Type another)
 	{
-		if (isMutable())
+		return another.typeIntersectionOfPrimitiveTypeEnum(extractEnum(object));
+	}
+
+	@Override @AvailMethod
+	A_Type o_TypeIntersectionOfParseNodeType (
+		final AvailObject object,
+		final A_Type aParseNodeType)
+	{
+		if (NONTYPE.superTests[extractOrdinal(object)])
 		{
-			// There is no immutable descriptor; use the shared one.
-			object.makeShared();
+			return aParseNodeType;
 		}
-		return object;
+		return BottomTypeDescriptor.bottom();
+	}
+
+	@Override @AvailMethod
+	A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
+		final AvailObject object,
+		final Types primitiveTypeEnum)
+	{
+		return primitiveTypeEnum.intersectionTypes[extractOrdinal(object)];
+	}
+
+	@Override @AvailMethod
+	A_Type o_TypeUnion (
+		final AvailObject object,
+		final A_Type another)
+	{
+		return another.typeUnionOfPrimitiveTypeEnum(extractEnum(object));
+	}
+
+	@Override @AvailMethod
+	A_Type o_TypeUnionOfPrimitiveTypeEnum (
+		final AvailObject object,
+		final Types primitiveTypeEnum)
+	{
+		return primitiveTypeEnum.unionTypes[extractOrdinal(object)];
 	}
 
 	@Override
@@ -444,7 +471,7 @@ extends TypeDescriptor
 		final AvailObject object = create();
 		object.setSlot(NAME, name);
 		object.setSlot(PARENT, NilDescriptor.nil());
-		object.setSlot(HASH, typeNameString.hashCode());
+		object.setSlot(HASH, typeNameString.hashCode() * multiplier);
 		object.setSlot(PRIMITIVE_TYPE_ORDINAL, ordinal);
 		return object;
 	}

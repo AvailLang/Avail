@@ -1215,7 +1215,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsSupertypeOfParseNodeType (
 		final AvailObject object,
-		final AvailObject aParseNodeType)
+		final A_Type aParseNodeType)
 	{
 		return o_Traversed(object).isSupertypeOfParseNodeType(aParseNodeType);
 	}
@@ -1223,7 +1223,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsSupertypeOfPojoType (
 		final AvailObject object,
-		final A_BasicObject aPojoType)
+		final A_Type aPojoType)
 	{
 		return o_Traversed(object).isSupertypeOfPojoType(aPojoType);
 	}
@@ -4623,5 +4623,23 @@ extends AbstractDescriptor
 	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		o_Traversed(object).writeSummaryTo(writer);
+	}
+
+	@Override
+	A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
+		final AvailObject object,
+		final Types primitiveTypeEnum)
+	{
+		return o_Traversed(object).typeIntersectionOfPrimitiveTypeEnum(
+			primitiveTypeEnum);
+	}
+
+	@Override
+	A_Type o_TypeUnionOfPrimitiveTypeEnum (
+		final AvailObject object,
+		final Types primitiveTypeEnum)
+	{
+		return o_Traversed(object).typeUnionOfPrimitiveTypeEnum(
+			primitiveTypeEnum);
 	}
 }

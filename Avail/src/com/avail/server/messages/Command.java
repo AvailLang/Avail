@@ -289,6 +289,20 @@ public enum Command
 		}
 	};
 
+	/** An array of all {@link Command} enumeration values. */
+	private static Command[] all = values();
+
+	/**
+	 * Answer an array of all {@link Command} enumeration values.
+	 *
+	 * @return An array of all {@link Command} enum values.  Do not
+	 *         modify the array.
+	 */
+	public static Command[] all ()
+	{
+		return all;
+	}
+
 	/**
 	 * Do {@linkplain CommandMessage command messages} of this {@linkplain
 	 * Command form} require special parsing?

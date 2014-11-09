@@ -163,12 +163,11 @@ extends AtomWithPropertiesDescriptor
 		final A_Atom key,
 		final A_BasicObject value)
 	{
+		final A_Atom sharedKey = key.makeShared();
+		final A_BasicObject sharedValue = value.makeShared();
 		synchronized (object)
 		{
-			super.o_SetAtomProperty(
-				object,
-				key.traversed().makeShared(),
-				value.traversed().makeShared());
+			super.o_SetAtomProperty(object, sharedKey, sharedValue);
 		}
 	}
 

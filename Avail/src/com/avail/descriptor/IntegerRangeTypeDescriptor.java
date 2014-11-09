@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
 import static com.avail.descriptor.AvailObject.error;
 import java.math.BigInteger;
 import java.util.List;
@@ -92,18 +93,6 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_LowerBound (final AvailObject object)
-	{
-		return object.slot(LOWER_BOUND);
-	}
-
-	@Override @AvailMethod
-	A_Number o_UpperBound (final AvailObject object)
-	{
-		return object.slot(UPPER_BOUND);
-	}
-
-	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsIntegerRangeType(object);
@@ -157,15 +146,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_LowerInclusive (final AvailObject object)
+	boolean o_IsIntegerRangeType (final AvailObject object)
 	{
-		return lowerInclusive;
-	}
-
-	@Override @AvailMethod
-	boolean o_UpperInclusive (final AvailObject object)
-	{
-		return upperInclusive;
+		return true;
 	}
 
 	@Override @AvailMethod
@@ -218,116 +201,26 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersection (
-		final AvailObject object,
-		final A_Type another)
+	A_Number o_LowerBound (final AvailObject object)
 	{
-		if (object.isSubtypeOf(another))
-		{
-			return object;
-		}
-		if (another.isSubtypeOf(object))
-		{
-			return another;
-		}
-		return another.typeIntersectionOfIntegerRangeType(object);
+		return object.slot(LOWER_BOUND);
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfIntegerRangeType (
-		final AvailObject object,
-		final A_Type another)
+	boolean o_LowerInclusive (final AvailObject object)
 	{
-		A_Number minObject = object.slot(LOWER_BOUND);
-		boolean isMinInc = object.lowerInclusive();
-		if (another.lowerBound().equals(minObject))
-		{
-			isMinInc = isMinInc && another.lowerInclusive();
-		}
-		else if (minObject.lessThan(another.lowerBound()))
-		{
-			minObject = another.lowerBound();
-			isMinInc = another.lowerInclusive();
-		}
-		A_Number maxObject = object.slot(UPPER_BOUND);
-		boolean isMaxInc = object.upperInclusive();
-		if (another.upperBound().equals(maxObject))
-		{
-			isMaxInc = isMaxInc && another.upperInclusive();
-		}
-		else if (another.upperBound().lessThan(maxObject))
-		{
-			maxObject = another.upperBound();
-			isMaxInc = another.upperInclusive();
-		}
-		// At least two references now.
-		return IntegerRangeTypeDescriptor.create(
-			minObject.makeImmutable(),
-			isMinInc,
-			maxObject.makeImmutable(),
-			isMaxInc);
+		return lowerInclusive;
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnion (
-		final AvailObject object,
-		final A_Type another)
+	AvailObject o_MakeImmutable (final AvailObject object)
 	{
-		if (object.isSubtypeOf(another))
+		if (isMutable())
 		{
-			return another;
+			// There are no immutable descriptors, so make the object shared.
+			object.makeShared();
 		}
-		if (another.isSubtypeOf(object))
-		{
-			return object;
-		}
-		return another.typeUnionOfIntegerRangeType(object);
-	}
-
-	@Override @AvailMethod
-	A_Type o_TypeUnionOfIntegerRangeType (
-		final AvailObject object,
-		final A_Type another)
-	{
-		A_Number minObject = object.slot(LOWER_BOUND);
-		boolean isMinInc = object.lowerInclusive();
-		if (another.lowerBound().equals(minObject))
-		{
-			isMinInc = isMinInc || another.lowerInclusive();
-		}
-		else if (another.lowerBound().lessThan(minObject))
-		{
-			minObject = another.lowerBound();
-			isMinInc = another.lowerInclusive();
-		}
-		A_Number maxObject = object.slot(UPPER_BOUND);
-		boolean isMaxInc = object.upperInclusive();
-		if (another.upperBound().equals(maxObject))
-		{
-			isMaxInc = isMaxInc || another.upperInclusive();
-		}
-		else if (maxObject.lessThan(another.upperBound()))
-		{
-			maxObject = another.upperBound();
-			isMaxInc = another.upperInclusive();
-		}
-		return IntegerRangeTypeDescriptor.create(
-			minObject,
-			isMinInc,
-			maxObject,
-			isMaxInc);
-	}
-
-	@Override @AvailMethod
-	boolean o_IsIntegerRangeType (final AvailObject object)
-	{
-		return true;
-	}
-
-	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation(final AvailObject object)
-	{
-		return SerializerOperation.INTEGER_RANGE_TYPE;
+		return object;
 	}
 
 	@Override
@@ -419,15 +312,141 @@ extends TypeDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
+	@Override @AvailMethod @ThreadSafe
+	SerializerOperation o_SerializerOperation(final AvailObject object)
 	{
-		if (isMutable())
+		return SerializerOperation.INTEGER_RANGE_TYPE;
+	}
+
+	@Override @AvailMethod
+	A_Type o_TypeIntersection (
+		final AvailObject object,
+		final A_Type another)
+	{
+		if (object.isSubtypeOf(another))
 		{
-			// There are no immutable descriptors, so make the object shared.
-			object.makeShared();
+			return object;
 		}
-		return object;
+		if (another.isSubtypeOf(object))
+		{
+			return another;
+		}
+		return another.typeIntersectionOfIntegerRangeType(object);
+	}
+
+	@Override @AvailMethod
+	A_Type o_TypeIntersectionOfIntegerRangeType (
+		final AvailObject object,
+		final A_Type another)
+	{
+		A_Number minObject = object.slot(LOWER_BOUND);
+		boolean isMinInc = object.lowerInclusive();
+		if (another.lowerBound().equals(minObject))
+		{
+			isMinInc = isMinInc && another.lowerInclusive();
+		}
+		else if (minObject.lessThan(another.lowerBound()))
+		{
+			minObject = another.lowerBound();
+			isMinInc = another.lowerInclusive();
+		}
+		A_Number maxObject = object.slot(UPPER_BOUND);
+		boolean isMaxInc = object.upperInclusive();
+		if (another.upperBound().equals(maxObject))
+		{
+			isMaxInc = isMaxInc && another.upperInclusive();
+		}
+		else if (another.upperBound().lessThan(maxObject))
+		{
+			maxObject = another.upperBound();
+			isMaxInc = another.upperInclusive();
+		}
+		// At least two references now.
+		return IntegerRangeTypeDescriptor.create(
+			minObject.makeImmutable(),
+			isMinInc,
+			maxObject.makeImmutable(),
+			isMaxInc);
+	}
+
+	@Override @AvailMethod
+	A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
+		final AvailObject object,
+		final Types primitiveTypeEnum)
+	{
+		return NUMBER.superTests[primitiveTypeEnum.ordinal()]
+			? object
+			: BottomTypeDescriptor.bottom();
+	}
+
+	@Override @AvailMethod
+	A_Type o_TypeUnion (
+		final AvailObject object,
+		final A_Type another)
+	{
+		if (object.isSubtypeOf(another))
+		{
+			return another;
+		}
+		if (another.isSubtypeOf(object))
+		{
+			return object;
+		}
+		return another.typeUnionOfIntegerRangeType(object);
+	}
+
+	@Override @AvailMethod
+	A_Type o_TypeUnionOfIntegerRangeType (
+		final AvailObject object,
+		final A_Type another)
+	{
+		A_Number minObject = object.slot(LOWER_BOUND);
+		boolean isMinInc = object.lowerInclusive();
+		if (another.lowerBound().equals(minObject))
+		{
+			isMinInc = isMinInc || another.lowerInclusive();
+		}
+		else if (another.lowerBound().lessThan(minObject))
+		{
+			minObject = another.lowerBound();
+			isMinInc = another.lowerInclusive();
+		}
+		A_Number maxObject = object.slot(UPPER_BOUND);
+		boolean isMaxInc = object.upperInclusive();
+		if (another.upperBound().equals(maxObject))
+		{
+			isMaxInc = isMaxInc || another.upperInclusive();
+		}
+		else if (maxObject.lessThan(another.upperBound()))
+		{
+			maxObject = another.upperBound();
+			isMaxInc = another.upperInclusive();
+		}
+		return IntegerRangeTypeDescriptor.create(
+			minObject,
+			isMinInc,
+			maxObject,
+			isMaxInc);
+	}
+
+	@Override @AvailMethod
+	A_Type o_TypeUnionOfPrimitiveTypeEnum (
+		final AvailObject object,
+		final Types primitiveTypeEnum)
+	{
+		return NUMBER.unionTypes[primitiveTypeEnum.ordinal()];
+	}
+
+	@Override @AvailMethod
+	A_Number o_UpperBound (final AvailObject object)
+	{
+		return object.slot(UPPER_BOUND);
+	}
+
+	@Override @AvailMethod
+	boolean o_UpperInclusive (final AvailObject object)
+	{
+		return upperInclusive;
 	}
 
 	@Override

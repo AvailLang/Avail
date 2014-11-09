@@ -1,5 +1,5 @@
 /**
- * P_256_EmergencyExit.java
+ * P_480_RecordNewTypeName.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,30 +31,25 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
-import com.avail.descriptor.FiberDescriptor.ExecutionState;
-import com.avail.exceptions.AvailEmergencyExitException;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
-import com.avail.utility.evaluation.*;
 
 /**
- * <strong>Primitive 256:</strong> Exit the current {@linkplain
- * FiberDescriptor fiber}. The specified argument will be converted
- * internally into a {@code string} and used to report an error message.
+ * <strong>Primitive 480:</strong> Assign a name to a {@linkplain
+ * ObjectTypeDescriptor user-defined object type}. This can be useful for
+ * debugging.
  */
-public final class P_256_EmergencyExit extends Primitive
+public final class P_480_RecordNewTypeName extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_256_EmergencyExit().init(
-			1, Unknown, CannotFail);
+		new P_480_RecordNewTypeName().init(
+			2, CanInline, CannotFail, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -62,51 +57,14 @@ public final class P_256_EmergencyExit extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 1;
-		final A_BasicObject errorMessageProducer = args.get(0);
-		final A_Fiber fiber = interpreter.fiber();
-		final A_Continuation continuation = interpreter.currentContinuation();
-		interpreter.primitiveSuspend();
-		ContinuationDescriptor.dumpStackThen(
-			interpreter.runtime(),
-			fiber.textInterface(),
-			continuation,
-			new Continuation1<List<String>>()
-			{
-				@Override
-				public void value (final @Nullable List<String> stack)
-				{
-					assert stack != null;
-					final StringBuilder builder = new StringBuilder();
-					builder.append(String.format(
-						"A fiber (%s) has exited: %s",
-						fiber.fiberName(),
-						errorMessageProducer));
-					if (errorMessageProducer.isInt())
-					{
-						final int intValue =
-							((A_Number)errorMessageProducer).extractInt();
-						if (intValue >= 0 &&
-							intValue < AvailErrorCode.all().length)
-						{
-							builder.append(String.format(
-								" (= %s)",
-								AvailErrorCode.all()[intValue].name()));
-						}
-					}
-					for (final String frame : stack)
-					{
-						builder.append(String.format("%n\t-- %s", frame));
-					}
-					builder.append("\n\n");
-					final AvailEmergencyExitException killer =
-						new AvailEmergencyExitException(builder.toString());
-					killer.fillInStackTrace();
-					fiber.executionState(ExecutionState.ABORTED);
-					fiber.failureContinuation().value(killer);
-				}
-			});
-		return Result.FIBER_SUSPENDED;
+		assert args.size() == 2;
+		final A_Type userType = args.get(0);
+		final A_String name = args.get(1);
+
+		userType.makeImmutable();
+		name.makeImmutable();
+		ObjectTypeDescriptor.setNameForType(userType, name);
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
@@ -114,7 +72,9 @@ public final class P_256_EmergencyExit extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				ANY.o()),
-			BottomTypeDescriptor.bottom());
+				InstanceMetaDescriptor.on(
+					ObjectTypeDescriptor.mostGeneralType()),
+				TupleTypeDescriptor.stringType()),
+			TOP.o());
 	}
 }

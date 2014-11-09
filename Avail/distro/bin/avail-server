@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# avail-dev
+# avail-server
 # Copyright © 1993-2014, The Avail Foundation, LLC.
 # All rights reserved.
 #
@@ -97,17 +97,9 @@ if [ "X$VM" = "X" ]; then
 	exit 1
 fi
 
-# The JVM for Mac OS X understands a few options that make for a prettier dock.
-OSNAME=$(uname -s)
-if [ $OSNAME = "Darwin" ]; then
-	OSARGS=-Xdock:name=$(basename $0)\ -Xdock:icon=$AVAIL_HOME/images/AvailHammer.png
-else
-	OSARGS=
-fi
-
 # These are the system arguments for the Java virtual machine.
-VMARGS=-classpath\ "$AVAIL_HOME/lib"\ $OSARGS\ "-Djava.util.logging.config.file=$HOME/.avail/logging.properties"\ "-DavailRoots=$AVAIL_ROOTS"\ "-DavailRenames=$AVAIL_RENAMES"
+VMARGS=-classpath\ "$AVAIL_HOME/lib"\ "-Djava.util.logging.config.file=$HOME/.avail/logging.properties"\ "-DavailRoots=$AVAIL_ROOTS"\ "-DavailRenames=$AVAIL_RENAMES"
 
-# Launch the Avail development environment in the background.
-DEVJAR=$AVAIL_HOME/lib/AvailDev.jar
-$VM $VMARGS -jar $DEVJAR &
+# Launch the Avail server in the background.
+SERVJAR=$AVAIL_HOME/lib/AvailServer.jar
+$VM $VMARGS -jar $SERVJAR &

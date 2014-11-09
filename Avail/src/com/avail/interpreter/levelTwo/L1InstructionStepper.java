@@ -365,7 +365,7 @@ implements L1OperationDispatcher
 		final int nybble = nybbles.extractNybbleFromTupleAt(pc);
 		interpreter.integerAtPut(pcRegister(), (pc + 1));
 
-		final L1Operation operation = L1Operation.values()[nybble];
+		final L1Operation operation = L1Operation.all()[nybble];
 		if (debugL1)
 		{
 			Interpreter.log(
@@ -709,7 +709,7 @@ implements L1OperationDispatcher
 		final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
 		pc++;
 		integerAtPut(pcRegister(), pc);
-		L1Operation.values()[nybble + 16].dispatch(this);
+		L1Operation.all()[nybble + 16].dispatch(this);
 	}
 
 	@Override

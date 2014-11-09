@@ -440,7 +440,7 @@ public final class SerializerTest
 	}
 
 	/**
-	 * Test serialization and deserialization of atom references.
+	 * Test serialization and deserialization of functions.
 	 *
 	 * @throws MalformedSerialStreamException If the stream is malformed.
 	 */
@@ -454,10 +454,6 @@ public final class SerializerTest
 		writer.argumentTypes(FLOAT.o());
 		writer.primitiveNumber(P_292_FloatFloor.instance.primitiveNumber);
 		writer.returnType(FLOAT.o());
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(NilDescriptor.nil())));
 		final A_RawFunction code = writer.compiledCode();
 		final A_Function function = FunctionDescriptor.create(
 			code,

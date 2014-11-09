@@ -367,7 +367,7 @@ public class L2Translator
 	 * argument would be if there were any).
 	 */
 	public static int firstArgumentRegisterIndex =
-		FixedRegister.values().length;
+		FixedRegister.all().length;
 
 	/**
 	 * Answer the specified fixed register.
@@ -2209,7 +2209,7 @@ public class L2Translator
 		 * @param newValue
 		 *        The location of the new value.
 		 */
-		@InnerAccess void emitSetVariableOffRamp (
+		public void emitSetVariableOffRamp (
 			final L2Operation setOperation,
 			final L2ReadPointerOperand variable,
 			final L2ReadPointerOperand newValue)
@@ -2335,7 +2335,7 @@ public class L2Translator
 						OptimizationLevel.FIRST_TRANSLATION.ordinal()));
 			}
 			final List<L2ObjectRegister> initialRegisters =
-				new ArrayList<>(FixedRegister.values().length);
+				new ArrayList<>(FixedRegister.all().length);
 			initialRegisters.add(fixed(NULL));
 			initialRegisters.add(fixed(CALLER));
 			initialRegisters.add(fixed(FUNCTION));
@@ -2392,7 +2392,7 @@ public class L2Translator
 			{
 				final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
 				pc++;
-				L1Operation.values()[nybble].dispatch(this);
+				L1Operation.all()[nybble].dispatch(this);
 			}
 			// Translate the implicit L1_doReturn instruction that terminates
 			// the instruction sequence.
@@ -2489,7 +2489,7 @@ public class L2Translator
 			// add 16 to get the L1Operation's ordinal.
 			final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
 			pc++;
-			L1Operation.values()[nybble + 16].dispatch(this);
+			L1Operation.all()[nybble + 16].dispatch(this);
 		}
 
 		@Override
@@ -3290,7 +3290,7 @@ public class L2Translator
 		final Mutable<Integer> intRegMaxIndex = new Mutable<>(-1);
 		final Mutable<Integer> floatRegMaxIndex = new Mutable<>(-1);
 		final Mutable<Integer> objectRegMaxIndex =
-			new Mutable<>(FixedRegister.values().length - 1);
+			new Mutable<>(FixedRegister.all().length - 1);
 		final L2OperandDispatcher dispatcher = new L2OperandDispatcher()
 		{
 			@Override
@@ -3481,7 +3481,7 @@ public class L2Translator
 		final int numRegisters = numFixed + code.numArgsAndLocalsAndStack();
 		architecturalRegisters = new ArrayList<L2ObjectRegister>(numRegisters);
 		fixedRegisterMap = new EnumMap<>(FixedRegister.class);
-		for (final FixedRegister fixedRegister : FixedRegister.values())
+		for (final FixedRegister fixedRegister : FixedRegister.all())
 		{
 			final L2ObjectRegister reg =
 				L2ObjectRegister.precolored(
@@ -3508,7 +3508,7 @@ public class L2Translator
 		architecturalRegisters =
 			new ArrayList<L2ObjectRegister>(firstArgumentRegisterIndex);
 		fixedRegisterMap = new EnumMap<>(FixedRegister.class);
-		for (final FixedRegister fixedRegister : FixedRegister.values())
+		for (final FixedRegister fixedRegister : FixedRegister.all())
 		{
 			final L2ObjectRegister reg =
 				L2ObjectRegister.precolored(

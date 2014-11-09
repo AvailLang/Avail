@@ -66,4 +66,19 @@ public enum FixedRegister
 	 * holding the most recently failed {@link Primitive}'s failure value.
 	 */
 	PRIMITIVE_FAILURE;
+
+	/** An array of all {@link FixedRegister} enumeration values. */
+	private static FixedRegister[] all = values();
+
+	/**
+	 * Answer an array of all {@link FixedRegister} enumeration values.
+	 *
+	 * @return An array of all {@link FixedRegister } enum values.  Do not
+	 *         modify the array.
+	 */
+	public static FixedRegister[] all ()
+	{
+		return all;
+	}
+
 }

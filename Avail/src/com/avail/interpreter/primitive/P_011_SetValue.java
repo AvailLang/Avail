@@ -39,6 +39,15 @@ import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE;
+import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE_NO_CHECK;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
+import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 
 /**
  * <strong>Primitive 11:</strong> Assign the {@linkplain AvailObject value}
@@ -82,6 +91,64 @@ extends Primitive
 				VariableTypeDescriptor.mostGeneralType(),
 				ANY.o()),
 			TOP.o());
+	}
+
+	/**
+	 * Use {@link L2_SET_VARIABLE_NO_CHECK} if possible, otherwise fall back on
+	 * {@link L2_SET_VARIABLE}.
+	 */
+	@Override
+	public void generateL2UnfoldableInlinePrimitive (
+		final L1NaiveTranslator levelOneNaiveTranslator,
+		final A_Function primitiveFunction,
+		final L2RegisterVector args,
+		final L2ObjectRegister resultRegister,
+		final L2RegisterVector preserved,
+		final A_Type expectedType,
+		final L2ObjectRegister failureValueRegister,
+		final L2Instruction successLabel,
+		final boolean canFailPrimitive,
+		final boolean skipReturnCheck)
+	{
+		final L2ObjectRegister varReg = args.registers().get(0);
+		final L2ObjectRegister valueReg = args.registers().get(1);
+
+		final RegisterSet registerSet =
+			levelOneNaiveTranslator.naiveRegisters();
+		final A_Type varType = registerSet.typeAt(varReg);
+		final A_Type valueType = registerSet.typeAt(valueReg);
+		final A_Type varInnerType = varType.writeType();
+		if (valueType.isSubtypeOf(varInnerType))
+		{
+			// It's a statically type-safe assignment.
+			levelOneNaiveTranslator.addInstruction(
+				L2_SET_VARIABLE_NO_CHECK.instance,
+				new L2ReadPointerOperand(varReg),
+				new L2ReadPointerOperand(valueReg),
+				new L2PcOperand(successLabel));
+		}
+		else
+		{
+			// It's not statically type-safe.
+			levelOneNaiveTranslator.addInstruction(
+				L2_SET_VARIABLE.instance,
+				new L2ReadPointerOperand(varReg),
+				new L2ReadPointerOperand(valueReg),
+				new L2PcOperand(successLabel));
+		}
+		// Either way, deal with a failed write by having the primitive
+		// inlined in the fail case.
+		super.generateL2UnfoldableInlinePrimitive(
+			levelOneNaiveTranslator,
+			primitiveFunction,
+			args,
+			resultRegister,
+			preserved,
+			expectedType,
+			failureValueRegister,
+			successLabel,
+			canFailPrimitive,
+			skipReturnCheck);
 	}
 
 	@Override
