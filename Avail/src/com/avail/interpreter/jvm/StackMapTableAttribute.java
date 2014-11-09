@@ -47,7 +47,7 @@ import java.util.List;
  *     href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.4">
  *     The <code>StackMapTable</code> Attribute</a>
  */
-public class StackMapTableAttribute
+class StackMapTableAttribute
 extends Attribute
 {
 	/** The name of the {@link StackMapTableAttribute attribute}. */

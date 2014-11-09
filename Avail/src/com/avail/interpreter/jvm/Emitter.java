@@ -199,7 +199,7 @@ abstract class Emitter<T extends Enum<T> & Modifier>
 	 * @param attribute
 	 *        An attribute.
 	 */
-	public void setAttribute (final Attribute attribute)
+	void setAttribute (final Attribute attribute)
 	{
 		final String name = attribute.name();
 		assert !attributes.containsKey(name);
@@ -208,7 +208,7 @@ abstract class Emitter<T extends Enum<T> & Modifier>
 	}
 
 	/**
-	 * Force the {@linkplain Field field} to be {@linkplain Deprecated
+	 * Force the {@linkplain Emitter emitter} to be {@linkplain Deprecated
 	 * deprecated}.
 	 */
 	public void beDeprecated ()

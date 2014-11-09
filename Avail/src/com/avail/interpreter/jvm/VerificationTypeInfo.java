@@ -50,7 +50,7 @@ import java.io.IOException;
  * 	href="http://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.7.4">
  * 	StackMapTable</a>
  */
-public abstract class VerificationTypeInfo
+abstract class VerificationTypeInfo
 {
 	/**
 	 * The value of the verification type.

@@ -46,7 +46,7 @@ import java.util.List;
  *       href="http://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.7.4">
  *       StackMapTable</a>
  */
-public class StackMapFrame
+class StackMapFrame
 {
 	/**
 	 * The specified range of acceptable values of {@link FrameType}.

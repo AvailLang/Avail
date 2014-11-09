@@ -345,10 +345,12 @@ extends Emitter<MethodModifier>
 		if (currentScope == null)
 		{
 			currentScope = new Scope(parameterIndex);
-			scopeStack.add(currentScope);
 		}
-		final Scope newScope = currentScope.newInnerScope();
-		scopeStack.addFirst(newScope);
+		else
+		{
+			currentScope = currentScope.newInnerScope();
+		}
+		scopeStack.addFirst(currentScope);
 	}
 
 	/**
@@ -507,7 +509,8 @@ extends Emitter<MethodModifier>
 
 	/**
 	 * Introduce a new {@linkplain LocalVariable local variable} into the
-	 * current {@linkplain Scope scope}.
+	 * current {@linkplain Scope scope}. The client must explicitly {@linkplain
+	 * #enterScope() enter a scope} before introducing local variables.
 	 *
 	 * @param name
 	 *        The name of the local variable.
@@ -521,12 +524,8 @@ extends Emitter<MethodModifier>
 		final String descriptor)
 	{
 		assert parameterIndex == firstLocalVariableSlot();
-		Scope currentScope = scopeStack.peekFirst();
-		if (currentScope == null)
-		{
-			currentScope = new Scope(parameterIndex);
-			scopeStack.add(currentScope);
-		}
+		final Scope currentScope = scopeStack.peekFirst();
+		assert currentScope != null;
 		return currentScope.newLocalVariable(name, descriptor);
 	}
 

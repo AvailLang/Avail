@@ -60,8 +60,7 @@ public class StackMapTableBuilder
 		final List<JavaInstruction> instructions)
 	{
 		//The ordered StackMapFrames that will populate the StackMapTable
-		final ArrayList<StackMapFrame> stackMapFrames =
-			new ArrayList<StackMapFrame>();
+		final ArrayList<StackMapFrame> stackMapFrames = new ArrayList<>();
 
 		 //The running offset delta for each {@linkplain StackMapFrame}.  Each
 		 //successive {@linkplain StackMapFrame frame} is offset relative to
@@ -74,7 +73,7 @@ public class StackMapTableBuilder
 		//The number of bytes passed
 		long runningByteCount = offsetDelta;
 
-		final Stack<Label> branchLocationStack = new Stack<Label>();
+		final Stack<Label> branchLocationStack = new Stack<>();
 
 		for (final JavaInstruction tempInstruction : instructions)
 		{

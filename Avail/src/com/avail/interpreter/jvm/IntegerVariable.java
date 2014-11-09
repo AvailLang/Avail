@@ -38,7 +38,7 @@ package com.avail.interpreter.jvm;
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-public class IntegerVariable
+class IntegerVariable
 extends VerificationTypeInfo
 {
 	@Override

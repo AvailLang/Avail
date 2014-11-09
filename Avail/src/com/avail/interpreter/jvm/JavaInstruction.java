@@ -46,7 +46,7 @@ import com.avail.annotations.Nullable;
 abstract class JavaInstruction
 {
 	/**
-	 * Has the label been emitted to an {@linkplain InstructionWriter
+	 * Has the instruction been emitted to an {@linkplain InstructionWriter
 	 * instruction writer} yet?
 	 */
 	boolean emitted = false;
@@ -54,13 +54,13 @@ abstract class JavaInstruction
 	/** The canonical invalid address. */
 	protected static long invalidAddress = -1L;
 
-	/** The address of the label within the compiled method. */
+	/** The address of the instruction within the compiled method. */
 	private long address = invalidAddress;
 
 	/**
-	 * Answer the address of the label within the compiled method.
+	 * Answer the address of the instruction within the compiled method.
 	 *
-	 * @return The address of the label within the compiled method.
+	 * @return The address of the instruction within the compiled method.
 	 */
 	public final long address ()
 	{
@@ -69,17 +69,18 @@ abstract class JavaInstruction
 
 	/**
 	 * A {@linkplain Label} label should only be returned for subclasses of
-	 * {@linkplain JavaInstruction} that have one defined on it.
+	 * {@linkplain JavaInstruction} that target one or more {@linkplain Label
+	 * labels}.
 	 *
-	 * @return a {@linkplain Label}
+	 * @return The target labels.
 	 */
-	public Label[] labels()
+	public Label[] labels ()
 	{
 		return new Label[0];
 	}
 
 	/**
-	 * Set the address of the label.
+	 * Set the address of the instruction.
 	 *
 	 * @param address
 	 *        The address within the compiled method.
@@ -159,19 +160,27 @@ abstract class JavaInstruction
 	 */
 	boolean canConsumeOperands (final List<JavaOperand> operands)
 	{
-		final JavaOperand[] inputOperands = inputOperands();
-		for (int i = 0,
-				j = operands.size() - 1,
-				size = inputOperands.length;
-			i < size;
-			i++, j--)
+		try
 		{
-			if (inputOperands[i].baseOperand() != operands.get(j).baseOperand())
+			final JavaOperand[] inputOperands = inputOperands();
+			for (int i = 0,
+					j = operands.size() - 1,
+					size = inputOperands.length;
+				i < size;
+				i++, j--)
 			{
-				return false;
+				if (inputOperands[i].baseOperand()
+					!= operands.get(j).baseOperand())
+				{
+					return false;
+				}
 			}
+			return true;
 		}
-		return true;
+		catch (final IndexOutOfBoundsException e)
+		{
+			return false;
+		}
 	}
 
 	/**
@@ -211,9 +220,21 @@ abstract class JavaInstruction
 	 * @return {@code true} if the bytecode creates a branch, {@code false}
 	 *         otherwise.
 	 */
-	public boolean isBranch()
+	public boolean isBranch ()
 	{
 		return false;
+	}
+
+	/**
+	 * Can the {@linkplain JavaBytecode bytecode} pass control to the next
+	 * bytecode?
+	 *
+	 * @return {@code true} if the bytecode can fall through, {@code false}
+	 * 		otherwise.
+	 */
+	public boolean canFallThrough ()
+	{
+		return true;
 	}
 
 	/**
