@@ -32,177 +32,21 @@
 
 package com.avail.performance;
 
-import java.text.Collator;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-import com.avail.annotations.Nullable;
-import com.avail.utility.Pair;
+import com.avail.AvailRuntime;
 
-/**
- * A Statistic is an incremental, summarized recording of a set of integral
- * values and times.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
- */
+/** An immutable collection of related statistics. */
 public class Statistic
 {
-	/** An immutable collection of related statistics. */
-	public static class StatisticSnapshot
-	implements Comparable<StatisticSnapshot>
-	{
-		/** The number of samples recorded so far. */
-		public final long count;
+	/** The name of this {@link Statistic}. */
+	public final String name;
 
-		/** The smallest sample yet encountered. */
-		public final double min;
-
-		/** The largest sample yet encountered. */
-		public final double max;
-
-		/** The average of all samples recorded so far. */
-		public final double mean;
-
-		/**
-		 * The sum of the squares of differences from the current mean.  This is
-		 * more numerically stable in calculating the variance than the sum of
-		 * squares of the samples.  See <cite> Donald E. Knuth (1998). The Art
-		 * of Computer Programming, volume 2: Seminumerical Algorithms, 3rd
-		 * edn., p. 232. Boston: Addison-Wesley</cite>.  That cites a 1962 paper
-		 * by <cite>B. P. Welford</cite>.
-		 */
-		public final double sumOfDeltaSquares;
-
-		/**
-		 * Construct a new {@link Statistic.StatisticSnapshot} with the given
-		 * values.
-		 *
-		 * @param count
-		 * @param min
-		 * @param max
-		 * @param mean
-		 * @param sumOfDeltaSquares
-		 */
-		StatisticSnapshot (
-			final long count,
-			final double min,
-			final double max,
-			final double mean,
-			final double sumOfDeltaSquares)
-		{
-			this.count = count;
-			this.min = min;
-			this.max = max;
-			this.mean = mean;
-			this.sumOfDeltaSquares = sumOfDeltaSquares;
-		}
-
-		/** The default starting snapshot representing the absence of data. */
-		static StatisticSnapshot initialState = new StatisticSnapshot(
-			0, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, 0.0, 0.0);
-
-		/** Default sort is descending by sum. */
-		@Override
-		public int compareTo (final @Nullable StatisticSnapshot otherSnapshot)
-		{
-			// Compare by descending sums.
-			assert otherSnapshot != null;
-			return Double.compare(otherSnapshot.sum(), this.sum());
-		}
-
-		/**
-		 * Return the number of samples that have been recorded.
-		 *
-		 * @return The sample count.
-		 */
-		public long count ()
-		{
-			return count;
-		}
-
-		/**
-		 * Return the sum of the samples.
-		 *
-		 * @return The sum of the samples.
-		 */
-		public double sum ()
-		{
-			return mean * count;
-		}
-
-		/**
-		 * Answer the corrected variance of the samples.  This is the sum of squares
-		 * of differences from the mean, divided by one less than the number of
-		 * samples.  Fudge it for less than two samples, pretending the variance is
-		 * zero rather than undefined.
-		 *
-		 * @return The Bessel-corrected variance of the samples.
-		 */
-		public double variance ()
-		{
-			if (count <= 1L)
-			{
-				return 0.0;
-			}
-			return sumOfDeltaSquares / (count - 1L);
-		}
-
-		/**
-		 * Answer the Bessel-corrected ("unbiased") standard deviation of these
-		 * samples.  This assumes the samples are not the entire population, and
-		 * therefore the distances of the samples from the mean are really the
-		 * distances from the sample mean, not the actual population mean.
-		 *
-		 * @return The Bessel-corrected standard deviation of the samples.
-		 */
-		public double standardDeviation ()
-		{
-			return Math.sqrt(variance());
-		}
-
-		/**
-		 * Describe this statistic as though its samples are durations in
-		 * nanoseconds.
-		 *
-		 * @param builder Where to describe this statistic.
-		 */
-		public void describeNanosecondsOn (final StringBuilder builder)
-		{
-			final double nanoseconds = sum();
-			builder.append(String.format(
-				nanoseconds >= 999_999_500.0
-					? "%1$, 8.3f s  "
-					: nanoseconds >= 999_999.5
-						? "%2$, 8.3f ms "
-						: "%3$, 8.3f µs ",
-				nanoseconds / 1.0e9,
-				nanoseconds / 1.0e6,
-				nanoseconds / 1.0e3));
-			builder.append(String.format("[N=%,10d] ", count));
-		}
-	}
+	/** The array of {@link PerInterpreterStatistic}s. */
+	public final PerInterpreterStatistic[] statistics;
 
 	/**
-	 * A descriptive name for this statistic.
-	 */
-	private final String name;
-
-	/**
-	 * The {@link AtomicReference} holding the current {@link StatisticSnapshot
-	 * snapshot} of this statistics collector.  It's collected together into an
-	 * atomically replaced immutable aggregate object to reduce contention when
-	 * updating.
-	 */
-	private final AtomicReference<StatisticSnapshot> currentState =
-		new AtomicReference<>(StatisticSnapshot.initialState);
-
-	/**
-	 * Return the name of this statistic.
+	 * Answer the name of this {@link Statistic}.
 	 *
-	 * @return A string describing this statistic's purpose.
+	 * @return The statistic's name.
 	 */
 	public String name ()
 	{
@@ -210,98 +54,61 @@ public class Statistic
 	}
 
 	/**
-	 * Return an immutable snapshot of this statistic.
-	 * @return The current snapshot.
-	 */
-	public StatisticSnapshot snapshot ()
-	{
-		return currentState.get();
-	}
-
-	/**
-	 * Construct a new {@link Statistic}.
+	 * Construct a new {@link Statistic} with the given name.
 	 *
-	 * @param name The name to attach to this statistic.
+	 * @param name The name to give this {@code ParallelStatistic}.
 	 */
 	public Statistic (final String name)
 	{
 		this.name = name;
-	}
-
-	/**
-	 * Record a new sample, updating any cumulative statistical values.  This is
-	 * carefully crafted to serialize concurrent updates.
-	 *
-	 * @param sample The sample value to record.
-	 */
-	public void record (final double sample)
-	{
-		while (true)
+		statistics = new PerInterpreterStatistic[AvailRuntime.maxInterpreters];
+		for (int i = 0; i < statistics.length; i++)
 		{
-			final StatisticSnapshot oldState = currentState.get();
-			final long newCount = oldState.count + 1;
-			final double delta = sample - oldState.mean;
-			final double newMean = oldState.mean + delta / newCount;
-			final StatisticSnapshot newState = new StatisticSnapshot(
-				newCount,
-				Math.min(sample, oldState.min),
-				Math.max(sample, oldState.max),
-				newMean,
-				oldState.sumOfDeltaSquares + delta * (sample - newMean));
-			if (currentState.compareAndSet(oldState, newState))
-			{
-				break;
-			}
+			statistics[i] = new PerInterpreterStatistic();
 		}
 	}
 
 	/**
-	 * Reset this statistic as though no samples had ever been recorded.
+	 * Record a sample in my {@link PerInterpreterStatistic} having the
+	 * specified contention-avoidance index.
+	 *
+	 * @param sample
+	 *        The sample to add.
+	 * @param index
+	 *        The index specifying which {@link PerInterpreterStatistic} to add
+	 *        the sample to.
 	 */
-	public synchronized void clear ()
+	public void record (final double sample, final int index)
 	{
-		currentState.set(StatisticSnapshot.initialState);
+		statistics[index].record(sample);
 	}
-
 
 	/**
-	 * Sort a collection of statistics, extracting their snapshots and names as
-	 * pairs.
+	 * Aggregate the information from my array of {@link
+	 * PerInterpreterStatistic}s, and return it as a new {@code
+	 * PerInterpreterStatistic}.
 	 *
-	 * @param statistics The collection of statistics to sort.
-	 * @return A sorted collection of (String, StatisticsSnapshot) pairs.
+	 * @return The aggregated {@code PerInterpreterStatistic}.
 	 */
-	public static List<Pair<String, StatisticSnapshot>> sortedSnapshotPairs (
-		final Collection<Statistic> statistics)
+	public PerInterpreterStatistic aggregate ()
 	{
-		final List<Pair<String, StatisticSnapshot>> namedSnapshots =
-			new ArrayList<>(statistics.size());
-		for (final Statistic stat : statistics)
+		final PerInterpreterStatistic accumulator =
+			new PerInterpreterStatistic();
+		for (final PerInterpreterStatistic each : statistics)
 		{
-			namedSnapshots.add(
-				new Pair<String, Statistic.StatisticSnapshot>(
-					stat.name(), stat.snapshot()));
+			each.addTo(accumulator);
 		}
-		Collections.sort(
-			namedSnapshots,
-			new Comparator<Pair<String, StatisticSnapshot>>()
-			{
-				@Override
-				public int compare (
-					final @Nullable Pair<String, StatisticSnapshot> pair1,
-					final @Nullable Pair<String, StatisticSnapshot> pair2)
-				{
-					assert pair1 != null && pair2 != null;
-					final int byStat = pair1.second().compareTo(pair2.second());
-					if (byStat != 0)
-					{
-						return byStat;
-					}
-					return Collator.getInstance().compare(
-						pair1.first(), pair2.first());
-				}
-			});
-		return namedSnapshots;
+		return accumulator;
 	}
 
+	/**
+	 * Clear each of my {@link PerInterpreterStatistic}s.
+	 */
+	public void clear ()
+	{
+		for (final PerInterpreterStatistic each : statistics)
+		{
+			each.clear();
+		}
+	}
 }

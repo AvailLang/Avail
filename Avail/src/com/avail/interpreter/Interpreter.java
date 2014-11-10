@@ -60,8 +60,8 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.primitive.*;
 import com.avail.io.TextInterface;
+import com.avail.performance.PerInterpreterStatistic;
 import com.avail.performance.Statistic;
-import com.avail.performance.Statistic.StatisticSnapshot;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.*;
 
@@ -373,6 +373,12 @@ public final class Interpreter
 	}
 
 	/**
+	 * Capture a unique ID between 0 and the {@link #runtime()}'s {@link
+	 * AvailRuntime#maxInterpreters}.
+	 */
+	public final int interpreterIndex;
+
+	/**
 	 * Construct a new {@link Interpreter}.
 	 *
 	 * @param runtime
@@ -381,6 +387,7 @@ public final class Interpreter
 	public Interpreter (final AvailRuntime runtime)
 	{
 		this.runtime = runtime;
+		interpreterIndex = runtime.allocateInterpreterIndex();
 		pointers[NULL.ordinal()] = NilDescriptor.nil();
 	}
 
@@ -941,7 +948,9 @@ public final class Interpreter
 		final long timeBefore = System.nanoTime();
 		final Result success = primitive.attempt(args, this, skipReturnCheck);
 		final long timeAfter = System.nanoTime();
-		primitive.addNanosecondsRunning(timeAfter - timeBefore);
+		primitive.addNanosecondsRunning(
+			timeAfter - timeBefore,
+			interpreterIndex);
 		assert success != FAILURE || !primitive.hasFlag(Flag.CannotFail);
 		primitiveFunctionBeingAttempted = null;
 		if (debugPrimitives && logger.isLoggable(Level.FINER))
@@ -1826,7 +1835,9 @@ public final class Interpreter
 				// Even though some primitives may suspend the current fiber,
 				// the code still returns here after suspending.  Close enough.
 				final long timeAfter = System.nanoTime();
-				operation.statisticInNanoseconds.record(timeAfter - timeBefore);
+				operation.statisticInNanoseconds.record(
+					timeAfter - timeBefore,
+					interpreterIndex);
 			}
 		}
 	}
@@ -2388,7 +2399,7 @@ public final class Interpreter
 	 * @param bundle A message bundle in which a lookup has just taken place.
 	 * @param nanos A {@code double} indicating how many nanoseconds it took.
 	 */
-	public static synchronized void recordDynamicLookup (
+	public synchronized void recordDynamicLookup (
 		final A_Bundle bundle,
 		final double nanos)
 	{
@@ -2410,7 +2421,7 @@ public final class Interpreter
 			// Reuse the statistic from a previous run (or just created).
 			dynamicLookupStatsByBundle.put(bundle, stat);
 		}
-		stat.record(nanos);
+		stat.record(nanos, interpreterIndex);
 	}
 
 	/**
@@ -2431,9 +2442,10 @@ public final class Interpreter
 		final StringBuilder builder)
 	{
 		builder.append("Dynamic lookups:\n");
-		final List<Pair<String, StatisticSnapshot>> namedSnapshots =
-			Statistic.sortedSnapshotPairs(dynamicLookupStatsByBundle.values());
-		for (final Pair<String, StatisticSnapshot> pair: namedSnapshots)
+		final List<Pair<String, PerInterpreterStatistic>> namedSnapshots =
+			PerInterpreterStatistic.sortedPairs(
+				dynamicLookupStatsByBundle.values());
+		for (final Pair<String, PerInterpreterStatistic> pair: namedSnapshots)
 		{
 			pair.second().describeNanosecondsOn(builder);
 			builder.append(" ");

@@ -67,6 +67,7 @@ import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.utility.LRUCache;
@@ -217,13 +218,39 @@ public final class AvailRuntime
 		Runtime.getRuntime().availableProcessors();
 
 	/**
+	 * The maximum number of {@link Interpreter}s that can be constructed for
+	 * this runtime.
+	 */
+	public static final int maxInterpreters = availableProcessors * 3;
+
+	/**
+	 * A counter from which unique interpreter indices in [0..maxInterpreters)
+	 * are allotted thread-safely.
+	 */
+	public static int nextInterpreterIndex = 0;
+
+	/**
+	 * Allocate the next interpreter index in [0..maxInterpreters)
+	 * thread-safely.
+	 *
+	 * @return A new unique interpreter index.
+	 */
+	public synchronized int allocateInterpreterIndex ()
+	{
+		final int index = nextInterpreterIndex;
+		nextInterpreterIndex++;
+		assert 0 <= index && index < maxInterpreters;
+		return index;
+	}
+
+	/**
 	 * The {@linkplain ThreadPoolExecutor thread pool executor} for
 	 * this {@linkplain AvailRuntime Avail runtime}.
 	 */
 	private final ThreadPoolExecutor executor =
 		new ThreadPoolExecutor(
 			availableProcessors,
-			availableProcessors << 2,
+			maxInterpreters,
 			10L,
 			TimeUnit.SECONDS,
 			new PriorityBlockingQueue<Runnable>(100),
@@ -251,7 +278,7 @@ public final class AvailRuntime
 	private final ThreadPoolExecutor fileExecutor =
 		new ThreadPoolExecutor(
 			availableProcessors,
-			availableProcessors << 2,
+			availableProcessors * 4,
 			10L,
 			TimeUnit.SECONDS,
 			new LinkedBlockingQueue<Runnable>(10),
@@ -280,7 +307,7 @@ public final class AvailRuntime
 	private final ThreadPoolExecutor socketExecutor =
 		new ThreadPoolExecutor(
 			availableProcessors,
-			availableProcessors << 2,
+			availableProcessors * 4,
 			10L,
 			TimeUnit.SECONDS,
 			new LinkedBlockingQueue<Runnable>(),
