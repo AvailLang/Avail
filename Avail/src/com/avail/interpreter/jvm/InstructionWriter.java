@@ -144,6 +144,11 @@ final class InstructionWriter
 		else
 		{
 			assert instruction.isLabel();
+			final JavaInstruction previousInstruction = instructions.peekLast();
+			if (previousInstruction.canFallThrough())
+			{
+				assert newOperandStack().equals(instruction.operandStack());
+			}
 		}
 		instructions.add(instruction);
 		instruction.emitted = true;
@@ -169,7 +174,9 @@ final class InstructionWriter
 			for (final JavaInstruction instruction : instructions)
 			{
 				instruction.setAddress(address);
-				address += instruction.size();
+				final int instructionSize = instruction.size();
+				assert instruction.isLabel() || instructionSize > 0;
+				address += instructionSize;
 			}
 		}
 		codeSize = estimatedCodeSize;

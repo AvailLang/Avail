@@ -39,7 +39,7 @@ package com.avail.interpreter.jvm;
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-public class LongVariable
+class LongVariable
 extends VerificationTypeInfo
 {
 	@Override

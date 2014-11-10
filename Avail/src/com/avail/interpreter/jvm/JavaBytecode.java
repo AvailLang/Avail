@@ -245,6 +245,12 @@ enum JavaBytecode
 		{
 			return true;
 		}
+
+		@Override
+		public boolean canFallThrough ()
+		{
+			return false;
+		}
 	},
 
 	/**
@@ -777,6 +783,12 @@ enum JavaBytecode
 		{
 			return true;
 		}
+
+		@Override
+		public boolean canFallThrough ()
+		{
+			return false;
+		}
 	},
 
 	/**
@@ -1293,6 +1305,12 @@ enum JavaBytecode
 		{
 			return true;
 		}
+
+		@Override
+		public boolean canFallThrough ()
+		{
+			return false;
+		}
 	},
 
 	/**
@@ -1473,7 +1491,7 @@ enum JavaBytecode
 		@Override
 		public JavaInstruction create (final Object... operands)
 		{
-			assert false : "Use GotoInstruction instead";
+			assert false : "Use UnconditionalBranchInstruction instead";
 			throw new UnsupportedOperationException();
 		}
 
@@ -1484,9 +1502,15 @@ enum JavaBytecode
 		}
 
 		@Override
-		public boolean isBranch()
+		public boolean isBranch ()
 		{
 			return true;
+		}
+
+		@Override
+		public boolean canFallThrough ()
+		{
+			return false;
 		}
 	},
 
@@ -1504,14 +1528,20 @@ enum JavaBytecode
 		@Override
 		public JavaInstruction create (final Object... operands)
 		{
-			assert false : "Use GotoInstruction instead";
+			assert false : "Use UnconditionalBranchInstruction instead";
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public boolean isBranch()
+		public boolean isBranch ()
 		{
 			return true;
+		}
+
+		@Override
+		public boolean canFallThrough ()
+		{
+			return false;
 		}
 	},
 
@@ -1752,7 +1782,7 @@ enum JavaBytecode
 		}
 
 		@Override
-		public boolean isBranch()
+		public boolean isBranch ()
 		{
 			return true;
 		}
@@ -1778,7 +1808,7 @@ enum JavaBytecode
 		}
 
 		@Override
-		public boolean isBranch()
+		public boolean isBranch ()
 		{
 			return true;
 		}
@@ -1804,7 +1834,7 @@ enum JavaBytecode
 		}
 
 		@Override
-		public boolean isBranch()
+		public boolean isBranch ()
 		{
 			return true;
 		}
@@ -1830,7 +1860,7 @@ enum JavaBytecode
 		}
 
 		@Override
-		public boolean isBranch()
+		public boolean isBranch ()
 		{
 			return true;
 		}
@@ -1856,7 +1886,7 @@ enum JavaBytecode
 		}
 
 		@Override
-		public boolean isBranch()
+		public boolean isBranch ()
 		{
 			return true;
 		}
@@ -1882,7 +1912,7 @@ enum JavaBytecode
 		}
 
 		@Override
-		public boolean isBranch()
+		public boolean isBranch ()
 		{
 			return true;
 		}
@@ -1908,7 +1938,7 @@ enum JavaBytecode
 		}
 
 		@Override
-		public boolean isBranch()
+		public boolean isBranch ()
 		{
 			return true;
 		}
@@ -1934,7 +1964,7 @@ enum JavaBytecode
 		}
 
 		@Override
-		public boolean isBranch()
+		public boolean isBranch ()
 		{
 			return true;
 		}
@@ -1960,7 +1990,7 @@ enum JavaBytecode
 		}
 
 		@Override
-		public boolean isBranch()
+		public boolean isBranch ()
 		{
 			return true;
 		}
@@ -1986,7 +2016,7 @@ enum JavaBytecode
 		}
 
 		@Override
-		public boolean isBranch()
+		public boolean isBranch ()
 		{
 			return true;
 		}
@@ -2012,7 +2042,7 @@ enum JavaBytecode
 		}
 
 		@Override
-		public boolean isBranch()
+		public boolean isBranch ()
 		{
 			return true;
 		}
@@ -2038,7 +2068,7 @@ enum JavaBytecode
 		}
 
 		@Override
-		public boolean isBranch()
+		public boolean isBranch ()
 		{
 			return true;
 		}
@@ -2064,7 +2094,7 @@ enum JavaBytecode
 		}
 
 		@Override
-		public boolean isBranch()
+		public boolean isBranch ()
 		{
 			return true;
 		}
@@ -2090,7 +2120,7 @@ enum JavaBytecode
 		}
 
 		@Override
-		public boolean isBranch()
+		public boolean isBranch ()
 		{
 			return true;
 		}
@@ -2116,7 +2146,7 @@ enum JavaBytecode
 		}
 
 		@Override
-		public boolean isBranch()
+		public boolean isBranch ()
 		{
 			return true;
 		}
@@ -2142,7 +2172,7 @@ enum JavaBytecode
 		}
 
 		@Override
-		public boolean isBranch()
+		public boolean isBranch ()
 		{
 			return true;
 		}
@@ -2489,6 +2519,12 @@ enum JavaBytecode
 		{
 			return true;
 		}
+
+		@Override
+		public boolean canFallThrough ()
+		{
+			return false;
+		}
 	},
 
 	/**
@@ -2666,7 +2702,7 @@ enum JavaBytecode
 		}
 
 		@Override
-		public boolean isBranch()
+		public boolean isBranch ()
 		{
 			return true;
 		}
@@ -2691,7 +2727,7 @@ enum JavaBytecode
 		}
 
 		@Override
-		public boolean isBranch()
+		public boolean isBranch ()
 		{
 			return true;
 		}
@@ -3083,6 +3119,12 @@ enum JavaBytecode
 		{
 			return true;
 		}
+
+		@Override
+		public boolean canFallThrough ()
+		{
+			return false;
+		}
 	},
 
 	/**
@@ -3453,6 +3495,12 @@ enum JavaBytecode
 			assert operands.length == 1;
 			return new ReturnSubroutineInstruction((LocalVariable) operands[0]);
 		}
+
+		@Override
+		public boolean canFallThrough ()
+		{
+			return false;
+		}
 	},
 
 	/**
@@ -3480,6 +3528,12 @@ enum JavaBytecode
 		public String mnemonic ()
 		{
 			return "return";
+		}
+
+		@Override
+		public boolean canFallThrough ()
+		{
+			return false;
 		}
 	},
 
@@ -3734,9 +3788,21 @@ enum JavaBytecode
 	 * @return {@code true} if the bytecode creates a branch, {@code false}
 	 *         otherwise.
 	 */
-	public boolean isBranch()
+	public boolean isBranch ()
 	{
 		return false;
+	}
+
+	/**
+	 * Can the {@linkplain JavaBytecode bytecode} pass control to the next
+	 * bytecode?
+	 *
+	 * @return {@code true} if the bytecode can fall through, {@code false}
+	 * 		otherwise.
+	 */
+	public boolean canFallThrough ()
+	{
+		return true;
 	}
 
 	/** The input {@linkplain JavaOperand stack operands}. */

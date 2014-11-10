@@ -81,13 +81,13 @@ extends JavaInstruction
 	}
 
 	@Override
-	public boolean isBranch()
+	public boolean isBranch ()
 	{
 		return true;
 	}
 
 	@Override
-	public Label[] labels()
+	public Label[] labels ()
 	{
 		return labels;
 	}
@@ -143,13 +143,13 @@ extends JavaInstruction
 				// Do nothing.
 		}
 		assert defaultLabel.hasValidAddress();
-		out.writeInt((int) defaultLabel.address());
+		out.writeInt((int) (defaultLabel.address() - address()));
 		out.writeInt(lowerBound);
 		out.writeInt(upperBound);
 		for (final Label label : labels)
 		{
 			assert label.hasValidAddress();
-			out.writeInt((int) label.address());
+			out.writeInt((int) (label.address() - address()));
 		}
 	}
 

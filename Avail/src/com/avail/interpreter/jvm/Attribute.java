@@ -48,7 +48,7 @@ import com.avail.interpreter.jvm.ConstantPool.Utf8Entry;
  *     href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7">
  *     Attributes</a>
  */
-public abstract class Attribute
+abstract class Attribute
 {
 	/**
 	 * Answer the name of the {@linkplain Attribute attribute}.

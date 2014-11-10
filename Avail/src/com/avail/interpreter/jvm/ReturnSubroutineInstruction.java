@@ -49,6 +49,12 @@ extends SimpleInstruction
 	private final LocalVariable local;
 
 	@Override
+	public boolean canFallThrough ()
+	{
+		return false;
+	}
+
+	@Override
 	void writeImmediatesTo (final DataOutput out) throws IOException
 	{
 		local.writeTo(out);

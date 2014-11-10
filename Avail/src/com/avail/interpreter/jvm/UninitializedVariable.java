@@ -43,7 +43,7 @@ import java.io.IOException;
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-public class UninitializedVariable
+class UninitializedVariable
 extends VerificationTypeInfo
 {
 	/**

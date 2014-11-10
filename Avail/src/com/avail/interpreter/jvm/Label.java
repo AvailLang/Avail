@@ -60,6 +60,20 @@ extends JavaInstruction
 		return true;
 	}
 
+	/**
+	 * Copy the operand stack from the specified {@linkplain JavaInstruction
+	 * instruction}.
+	 *
+	 * @param instruction
+	 *        An instruction that has already been emitted.
+	 */
+	public void copyOperandStackFrom (final JavaInstruction instruction)
+	{
+		final List<JavaOperand> operands = instruction.operandStack();
+		assert operands != null;
+		setOperandStack(operands);
+	}
+
 	@Override
 	final JavaOperand[] inputOperands ()
 	{

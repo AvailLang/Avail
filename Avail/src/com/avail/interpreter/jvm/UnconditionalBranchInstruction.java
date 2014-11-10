@@ -99,11 +99,11 @@ extends JavaInstruction
 		assert hasValidAddress();
 		if (isWide())
 		{
-			out.writeInt((int) address());
+			out.writeInt((int) (label.address() - address()));
 		}
 		else
 		{
-			out.writeShort((short) address());
+			out.writeShort((short) (label.address() - address()));
 		}
 	}
 
@@ -126,13 +126,19 @@ extends JavaInstruction
 	}
 
 	@Override
-	public boolean isBranch()
+	public boolean isBranch ()
 	{
 		return true;
 	}
 
 	@Override
-	public Label[] labels()
+	public boolean canFallThrough ()
+	{
+		return false;
+	}
+
+	@Override
+	public Label[] labels ()
 	{
 		final Label[] labels = {label};
 		return labels;

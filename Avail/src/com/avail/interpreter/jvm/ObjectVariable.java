@@ -44,7 +44,7 @@ import java.io.IOException;
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-public class ObjectVariable
+class ObjectVariable
 extends VerificationTypeInfo
 {
 	/**

@@ -40,7 +40,7 @@ package com.avail.interpreter.jvm;
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-public class DoubleVariable
+class DoubleVariable
 extends VerificationTypeInfo
 {
 	@Override

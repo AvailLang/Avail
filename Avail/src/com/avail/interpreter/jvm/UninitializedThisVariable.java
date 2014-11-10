@@ -42,7 +42,7 @@ package com.avail.interpreter.jvm;
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-public class UninitializedThisVariable
+class UninitializedThisVariable
 extends VerificationTypeInfo
 {
 	@Override

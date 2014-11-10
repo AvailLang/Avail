@@ -52,7 +52,7 @@ extends SimpleInstruction
 	void writeImmediatesTo (final DataOutput out) throws IOException
 	{
 		assert label.hasValidAddress();
-		out.writeShort((short) label.address());
+		out.writeShort((short) (label.address() - address()));
 	}
 
 	@Override
@@ -62,13 +62,13 @@ extends SimpleInstruction
 	}
 
 	@Override
-	public boolean isBranch()
+	public boolean isBranch ()
 	{
 		return true;
 	}
 
 	@Override
-	public Label[] labels()
+	public Label[] labels ()
 	{
 		final Label[] labels = {label};
 		return labels;

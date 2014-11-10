@@ -138,6 +138,9 @@ public class JVMCodeGeneration
 		SecurityException,
 		IllegalArgumentException
 	{
+//		public class X
+//		{
+//		}
 		final CodeGenerator cg = new CodeGenerator();
 		simpleClassPreambleOn(cg);
 		loadClass(cg);
@@ -154,6 +157,10 @@ public class JVMCodeGeneration
 			NoSuchFieldException,
 			IllegalAccessException
 	{
+//		public class X
+//		{
+//			public static String foo;
+//		}
 		final CodeGenerator cg = new CodeGenerator();
 		simpleClassPreambleOn(cg);
 		final String fieldName = "foo";
@@ -181,6 +188,15 @@ public class JVMCodeGeneration
 		InstantiationException,
 		InvocationTargetException
 	{
+//		The compiler may emit slightly different instructions.
+//		public class Constructor
+//		{
+//			public String foo;
+//			public Constructor (String foo)
+//			{
+//				this.foo = foo;
+//			}
+//		}
 		final CodeGenerator cg = new CodeGenerator();
 		final ConstantPool cp = cg.constantPool();
 		simpleClassPreambleOn(cg);
@@ -225,6 +241,10 @@ public class JVMCodeGeneration
 			SecurityException,
 			IllegalArgumentException
 	{
+//		public abstract class X
+//		{
+//			public abstract String hello (String str);
+//		}
 		final CodeGenerator cg = new CodeGenerator();
 		simpleClassPreambleOn(cg);
 		final String methodName = "hello";
@@ -253,6 +273,13 @@ public class JVMCodeGeneration
 			IllegalArgumentException,
 			InvocationTargetException
 	{
+//		public class X
+//		{
+//			public static String hello (String str)
+//			{
+//				return str;
+//			}
+//		}
 		final CodeGenerator cg = new CodeGenerator();
 		simpleClassPreambleOn(cg);
 		final String methodName = "hello";
@@ -287,6 +314,13 @@ public class JVMCodeGeneration
 			InvocationTargetException,
 			InstantiationException
 	{
+//		public class X
+//		{
+//			public String hello (String str)
+//			{
+//				return str;
+//			}
+//		}
 		final CodeGenerator cg = new CodeGenerator();
 		simpleClassPreambleOn(cg);
 		cg.newDefaultConstructor();
@@ -342,6 +376,7 @@ public class JVMCodeGeneration
 		final HandlerLabel guardEnd = m.newHandlerLabel(
 			"guardEnd", NullPointerException.class);
 		m.addLabel(guardEnd);
+		m.enterScope();
 		final LocalVariable e = m.newLocalVariable(
 			"e", NullPointerException.class);
 		m.store(e);
@@ -371,6 +406,13 @@ public class JVMCodeGeneration
 			InvocationTargetException,
 			InstantiationException
 	{
+//		public class X
+//		{
+//			public int add5 (int augend, int addend)
+//			{
+//				return augend + addend + 5;
+//			}
+//		}
 		final CodeGenerator cg = new CodeGenerator();
 		simpleClassPreambleOn(cg);
 		cg.newDefaultConstructor();
@@ -382,8 +424,8 @@ public class JVMCodeGeneration
 		final LocalVariable addend = m.newParameter("addend");
 		m.load(augend);
 		m.load(addend);
-		m.pushConstant(5);
 		m.doOperator(BinaryOperator.ADDITION, Integer.TYPE);
+		m.pushConstant(5);
 		m.doOperator(BinaryOperator.ADDITION, Integer.TYPE);
 		m.returnToCaller();
 		m.finish();
@@ -399,6 +441,200 @@ public class JVMCodeGeneration
 				final int actual = (int) method.invoke(newInstance, i, j);
 				assertEquals(expected, actual);
 			}
+		}
+	}
+
+	@SuppressWarnings("javadoc")
+	@Test
+	public void gotoJump ()
+		throws
+			IOException,
+			ClassNotFoundException,
+			IllegalAccessException,
+			NoSuchMethodException,
+			SecurityException,
+			IllegalArgumentException,
+			InvocationTargetException,
+			InstantiationException
+	{
+//		public class X
+//		{
+//			public void gotoJump ()
+//			{
+//				goto label;
+//			label:
+//			}
+//		}
+		final CodeGenerator cg = new CodeGenerator();
+		simpleClassPreambleOn(cg);
+		cg.newDefaultConstructor();
+		final String methodName = "gotoJump";
+		final Method m = cg.newMethod(methodName, "()V");
+		final EnumSet<MethodModifier> mmods = EnumSet.of(MethodModifier.PUBLIC);
+		m.setModifiers(mmods);
+		final Label label = m.newLabel("label");
+		m.branchTo(label);
+		m.addLabel(label);
+		m.returnToCaller();
+		m.finish();
+		final Class<?> newClass = loadClass(cg);
+		final java.lang.reflect.Method method =
+			newClass.getMethod(methodName);
+		final Object newInstance = newClass.newInstance();
+		method.invoke(newInstance);
+	}
+
+	@SuppressWarnings("javadoc")
+	@Test
+	public void whileLoop ()
+		throws
+			IOException,
+			ClassNotFoundException,
+			IllegalAccessException,
+			NoSuchMethodException,
+			SecurityException,
+			IllegalArgumentException,
+			InvocationTargetException,
+			InstantiationException
+	{
+//		public class X
+//		{
+//			public int whileLoop (int start)
+//			{
+//				int i = 0;
+//				while (i < start)
+//				{
+//					i++;
+//				}
+//				return start;
+//			}
+//		}
+		final CodeGenerator cg = new CodeGenerator();
+		simpleClassPreambleOn(cg);
+		cg.newDefaultConstructor();
+		final String methodName = "whileLoop";
+		final Method m = cg.newMethod(methodName, "(I)I");
+		final EnumSet<MethodModifier> mmods = EnumSet.of(MethodModifier.PUBLIC);
+		m.setModifiers(mmods);
+		final LocalVariable start = m.newParameter("start");
+		m.enterScope();
+		final LocalVariable i = m.newLocalVariable("i", Integer.TYPE);
+		m.pushConstant(0);
+		m.store(i);
+		final Label topLabel = m.newLabel("top");
+		m.addLabel(topLabel);
+		m.load(i);
+		m.load(start);
+		final Label bottomLabel = m.newLabel("bottom");
+		bottomLabel.copyOperandStackFrom(topLabel);
+		m.branchUnless(PrimitiveComparisonOperator.LESS_THAN,
+			bottomLabel);
+		m.increment(i, 1);
+		m.branchTo(topLabel);
+		m.addLabel(bottomLabel);
+		m.load(start);
+		m.returnToCaller();
+		m.exitScope();
+		m.finish();
+		final Class<?> newClass = loadClass(cg);
+		final java.lang.reflect.Method method =
+			newClass.getMethod(methodName, Integer.TYPE);
+		final Object newInstance = newClass.newInstance();
+		for (int j = 0; j < 10; j++)
+		{
+			final int expected = j;
+			final int actual = (int) method.invoke(newInstance, j);
+			assertEquals(expected, actual);
+		}
+	}
+
+	@SuppressWarnings("javadoc")
+	@Test
+	public void ifElse ()
+		throws
+			IOException,
+			ClassNotFoundException,
+			IllegalAccessException,
+			NoSuchMethodException,
+			SecurityException,
+			IllegalArgumentException,
+			InvocationTargetException
+	{
+//		public class X
+//		{
+//			public static int ifElse(int x)
+//			{
+//				int z = 5;
+//				if (x < 0)
+//				{
+//					int y = x + z + 1;
+//					z = y * 2;
+//				}
+//				else
+//				{
+//					z = z + x;
+//				}
+//				return z * 2;
+//			}
+//		}
+		final CodeGenerator cg = new CodeGenerator();
+		simpleClassPreambleOn(cg);
+		cg.newDefaultConstructor();
+		final String methodName = "ifElse";
+		final Method m = cg.newMethod(methodName, "(I)I");
+		final EnumSet<MethodModifier> mmods =
+			EnumSet.of(MethodModifier.PUBLIC, MethodModifier.STATIC);
+		m.setModifiers(mmods);
+		final LocalVariable x = m.newParameter("x");
+		m.enterScope();
+		final LocalVariable z = m.newLocalVariable("z", Integer.TYPE);
+		m.pushConstant(5);
+		m.store(z);
+		final Label predicateLabel = m.newLabel("predicate");
+		m.addLabel(predicateLabel);
+		m.load(x);
+		final Label elseLabel = m.newLabel("else");
+		m.branchUnless(
+			PrimitiveComparisonOperator.LESS_THAN_ZERO,
+			elseLabel);
+		m.enterScope();
+		m.load(x);
+		m.load(z);
+		m.doOperator(BinaryOperator.ADDITION, Integer.TYPE);
+		m.pushConstant(1);
+		m.doOperator(BinaryOperator.ADDITION, Integer.TYPE);
+		final LocalVariable y = m.newLocalVariable("y", Integer.TYPE);
+		m.store(y);
+		m.load(y);
+		m.pushConstant(2);
+		m.doOperator(BinaryOperator.MULTIPLICATION, Integer.TYPE);
+		m.store(z);
+		m.exitScope();
+		final Label doneLabel = m.newLabel("done");
+		m.branchTo(doneLabel);
+		elseLabel.copyOperandStackFrom(predicateLabel);
+		m.addLabel(elseLabel);
+		m.load(z);
+		m.load(x);
+		m.doOperator(BinaryOperator.ADDITION, Integer.TYPE);
+		m.store(z);
+		doneLabel.copyOperandStackFrom(predicateLabel);
+		m.addLabel(doneLabel);
+		m.load(z);
+		m.pushConstant(2);
+		m.doOperator(BinaryOperator.MULTIPLICATION, Integer.TYPE);
+		m.returnToCaller();
+		m.exitScope();
+		m.finish();
+		final Class<?> newClass = loadClass(cg);
+		final java.lang.reflect.Method method =
+			newClass.getMethod(methodName, Integer.TYPE);
+		final int[] expectedAnswers = {16, 20, 10, 12, 14};
+		for (int j = 0; j <= 4; j++)
+		{
+			final int expected = expectedAnswers[j];
+			final int actual = (int) method.invoke(null, j - 2);
+			assertEquals(expected, actual);
 		}
 	}
 }
