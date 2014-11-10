@@ -37,6 +37,7 @@ Extends
 	"Very Early Definers"
 Uses
 	"Bootstrap",
+	"Early Conditionals",
 	"Early Literals"
 Names
 	"Private abstract method_is_",

@@ -493,13 +493,13 @@ extends SetBinDescriptor
 		/**
 		 * The path through set bins, excluding the leaf (non-bin) element.
 		 */
-		final Deque<AvailObject> binStack = new ArrayDeque<>();
+		final Deque<AvailObject> binStack = new ArrayDeque<>(3);
 
 		/**
 		 * The position navigated through each bin.  It should always contain
 		 * the same number of elements as in binStack.
 		 */
-		final Deque<Integer> subscriptStack = new ArrayDeque<>();
+		final Deque<Integer> subscriptStack = new ArrayDeque<>(3);
 
 		/**
 		 * The next value that will returned by {@link #next()}, or null if the

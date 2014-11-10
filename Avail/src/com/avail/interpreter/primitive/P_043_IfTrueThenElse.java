@@ -1,5 +1,5 @@
 /**
- * P_043_IfThenElse.java
+ * P_043_IfTrueThenElse.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,24 +31,26 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 
 /**
- * <strong>Primitive 43:</strong> Invoke either the {@linkplain
- * FunctionDescriptor trueBlock} or the {@code falseBlock}, depending on
- * {@linkplain EnumerationTypeDescriptor#booleanObject() aBoolean}.
+ * <strong>Primitive 43:</strong> Invoke the {@linkplain FunctionDescriptor
+ * trueBlock}.
  */
-public final class P_043_IfThenElse extends Primitive
+public final class P_043_IfTrueThenElse extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_043_IfThenElse().init(
+		new P_043_IfTrueThenElse().init(
 			3, Invokes, CannotFail);
 
 	@Override
@@ -58,15 +60,39 @@ public final class P_043_IfThenElse extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 3;
-		final A_Atom aBoolean = args.get(0);
+//		final A_Atom ignoredBoolean = args.get(0);
 		final A_Function trueBlock = args.get(1);
-		final A_Function falseBlock = args.get(2);
-		assert trueBlock.code().numArgs() == 0;
-		assert falseBlock.code().numArgs() == 0;
+//		final A_Function ignoredFalseBlock = args.get(2);
 		return interpreter.invokeFunction(
-			aBoolean.extractBoolean() ? trueBlock : falseBlock,
+			trueBlock,
 			Collections.<AvailObject>emptyList(),
 			false);
+	}
+
+	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type trueBlockType = argumentTypes.get(1);
+		return trueBlockType.returnType();
+	}
+
+	/**
+	 * Clear the arguments list (to correspond with the arguments being sent to
+	 * the trueBlock), then answer the register holding the trueBlock.
+	 */
+	@Override
+	public @Nullable L2ObjectRegister foldOutInvoker (
+		final List<L2ObjectRegister> args,
+		final L1NaiveTranslator naiveTranslator)
+	{
+		assert hasFlag(Flag.Invokes);
+		assert !hasFlag(Flag.CanInline);
+		assert !hasFlag(Flag.CanFold);
+
+		final L2ObjectRegister functionReg = args.get(1);
+		args.clear();
+		return functionReg;
 	}
 
 	@Override
@@ -74,7 +100,7 @@ public final class P_043_IfThenElse extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				EnumerationTypeDescriptor.booleanObject(),
+				ANY.o(),
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.empty(),
 					TOP.o()),

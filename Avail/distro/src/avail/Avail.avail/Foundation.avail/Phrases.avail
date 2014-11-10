@@ -36,6 +36,7 @@ Versions
 Extends
 Uses
 	"Bootstrap",
+	"Early Conditionals",
 	"Early Control Structures",
 	"Early Definers",
 	"Early Enumeration Support",

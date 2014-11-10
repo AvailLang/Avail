@@ -216,6 +216,13 @@ public class L2Translator
 	final static int maxPolymorphismToInlineDispatch = 5;
 
 	/**
+	 * Use a series of instance equality checks if we're doing type testing for
+	 * method dispatch code and the type is a non-meta enumeration with at most
+	 * this number of instances.  Otherwise do a type test.
+	 */
+	final static int maxExpandedEqualityChecks = 3;
+
+	/**
 	 * An indication of the possible degrees of optimization effort.  These are
 	 * arranged approximately monotonically increasing in terms of both cost to
 	 * generate and expected performance improvement.
@@ -571,9 +578,9 @@ public class L2Translator
 	 * Attempt to inline an invocation of this method definition.  If it can be
 	 * (and was) inlined, return the primitive function; otherwise return null.
 	 *
-	 * @param definition
-	 *            The {@linkplain MethodDefinitionDescriptor method definition}
-	 *            containing the function that may be inlined or invoked.
+	 * @param function
+	 *            The {@linkplain FunctionDescriptor function} to be inlined or
+	 *            invoked.
 	 * @param args
 	 *            A {@link List} of {@linkplain L2ObjectRegister registers}
 	 *            holding the actual constant values used to look up the method
@@ -587,7 +594,7 @@ public class L2Translator
 	 */
 	@InnerAccess
 	@Nullable A_Function primitiveFunctionToInline (
-		final A_Definition definition,
+		final A_Function function,
 		final List<L2ObjectRegister> args,
 		final RegisterSet registerSet)
 	{
@@ -597,12 +604,7 @@ public class L2Translator
 			argTypes.add(
 				registerSet.hasTypeAt(arg) ? registerSet.typeAt(arg) : ANY.o());
 		}
-		if (!definition.isMethodDefinition())
-		{
-			return null;
-		}
-		final A_Function body = definition.bodyBlock();
-		final int primitiveNumber = body.code().primitiveNumber();
+		final int primitiveNumber = function.code().primitiveNumber();
 		if (primitiveNumber == 0)
 		{
 			return null;
@@ -612,7 +614,7 @@ public class L2Translator
 		if (primitive.hasFlag(SpecialReturnConstant)
 			|| primitive.hasFlag(CanInline))
 		{
-			return body;
+			return function;
 		}
 		return null;
 	}
@@ -1264,11 +1266,47 @@ public class L2Translator
 						assert
 							!intersection.isBottom()
 							: "Impossible condition should have been excluded";
-						addInstruction(
-							L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT.instance,
-							new L2PcOperand(memento.failCheckLabel),
-							new L2ReadPointerOperand(argRegister),
-							new L2ConstantOperand(intersection));
+						if (intersection.isEnumeration()
+							&& !intersection.isInstanceMeta()
+							&& intersection.instanceCount().extractInt() <=
+								maxExpandedEqualityChecks)
+						{
+							final A_Set instances = intersection.instances();
+							if (instances.setSize() == 1)
+							{
+								addInstruction(
+									L2_JUMP_IF_DOES_NOT_EQUAL_CONSTANT.instance,
+									new L2PcOperand(memento.failCheckLabel),
+									new L2ReadPointerOperand(argRegister),
+									new L2ConstantOperand(
+										instances.iterator().next()));
+							}
+							else
+							{
+								final L2Instruction matchedLabel =
+									newLabel("matched enumeration");
+								for (final A_BasicObject instance : instances)
+								{
+									addInstruction(
+										L2_JUMP_IF_EQUALS_CONSTANT.instance,
+										new L2PcOperand(matchedLabel),
+										new L2ReadPointerOperand(argRegister),
+										new L2ConstantOperand(instance));
+								}
+								addInstruction(
+									L2_JUMP.instance,
+									new L2PcOperand(memento.failCheckLabel));
+								addLabel(matchedLabel);
+							}
+						}
+						else
+						{
+							addInstruction(
+								L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT.instance,
+								new L2PcOperand(memento.failCheckLabel),
+								new L2ReadPointerOperand(argRegister),
+								new L2ConstantOperand(intersection));
+						}
 						return memento;
 					}
 				},
@@ -1319,8 +1357,8 @@ public class L2Translator
 							&& (solution = solutions.get(0)).isInstanceOf(
 								METHOD_DEFINITION.o()))
 						{
-							generateMonomorphicCall(
-								bundle, solution, expectedType);
+							generateFunctionInvocation(
+								solution.bodyBlock(), expectedType);
 							// Reset for next type test or call.
 							stackp = initialStackp;
 						}
@@ -1394,22 +1432,15 @@ public class L2Translator
 		 * definition is known, so no lookup is needed at this position in the
 		 * code stream.
 		 *
-		 * @param bundle
-		 *            The {@linkplain MessageBundleDescriptor message bundle}
-		 *            containing the definition to invoke.
-		 * @param definition
-		 *            The specific {@linkplain DefinitionDescriptor definition}
-		 *            to invoke.
+		 * @param originalFunction
+		 *            The {@linkplain FunctionDescriptor function} to invoke.
 		 * @param expectedType
 		 *            The expected return {@linkplain TypeDescriptor type}.
 		 */
-		@InnerAccess void generateMonomorphicCall (
-			final A_Bundle bundle,
-			final A_Definition definition,
+		public void generateFunctionInvocation (
+			final A_Function originalFunction,
 			final A_Type expectedType)
 		{
-			assert definition.isInstanceOf(METHOD_DEFINITION.o());
-			final A_Method method = definition.definitionMethod();
 			// The registers holding slot values that will constitute the
 			// continuation *during* a non-primitive call.
 			final List<L2ObjectRegister> preSlots = new ArrayList<>(numSlots);
@@ -1419,7 +1450,8 @@ public class L2Translator
 			}
 			final L2ObjectRegister expectedTypeReg = newObjectRegister();
 			final L2ObjectRegister failureObjectReg = newObjectRegister();
-			final int nArgs = method.numArgs();
+			final A_RawFunction originalCode = originalFunction.code();
+			final int nArgs = originalCode.numArgs();
 			final List<L2ObjectRegister> preserved = new ArrayList<>(preSlots);
 			assert preserved.size() == numSlots;
 			final List<L2ObjectRegister> args = new ArrayList<>(nArgs);
@@ -1440,11 +1472,47 @@ public class L2Translator
 			preSlots.set(numArgs + numLocals + stackp - 1, expectedTypeReg);
 			// preSlots now contains the registers that will constitute the
 			// continuation during a non-primitive call.
-			final A_Function primFunction =
-				primitiveFunctionToInline(definition, args, naiveRegisters());
+			@Nullable L2ObjectRegister functionReg = null;
+			A_Function functionToInvoke = originalFunction;
+			final Primitive prim = Primitive.byPrimitiveNumberOrNull(
+				originalCode.primitiveNumber());
+			if (prim != null && prim.hasFlag(Invokes))
+			{
+				// If it's an Invokes primitive, then allow it to substitute a
+				// direct invocation of the actual function.  Note that the call
+				// to foldOutInvoker may alter the arguments list to correspond
+				// with the actual function being invoked.
+				assert !prim.hasFlag(CanInline);
+				assert !prim.hasFlag(CanFold);
+				functionReg = prim.foldOutInvoker(args, this);
+				if (functionReg != null)
+				{
+					// Replace the argument types...
+					argTypes.clear();
+					for (final L2ObjectRegister arg : args)
+					{
+						assert naiveRegisters().hasTypeAt(arg);
+						argTypes.add(naiveRegisters().typeAt(arg));
+					}
+					// Allow the target function to be folded or inlined in place of
+					// the invocation if the exact function is known statically.
+					if (naiveRegisters().hasConstantAt(functionReg))
+					{
+						functionToInvoke =
+							naiveRegisters().constantAt(functionReg);
+					}
+				}
+				else
+				{
+					assert args.size() == nArgs;
+					assert argTypes.size() == nArgs;
+				}
+			}
+			final A_Function primFunction = primitiveFunctionToInline(
+				functionToInvoke, args, naiveRegisters());
 			// The convergence point for primitive success and failure paths.
 			final L2Instruction successLabel;
-			successLabel = newLabel("success"); // + bundle.message().atomName());
+			successLabel = newLabel("success"); //+bundle.message().atomName());
 			final L2ObjectRegister tempCallerRegister = newObjectRegister();
 			moveRegister(fixed(CALLER), tempCallerRegister);
 			if (primFunction != null)
@@ -1534,11 +1602,20 @@ public class L2Translator
 			}
 			final L2Instruction postCallLabel = newLabel("postCall");
 			reify(preSlots, tempCallerRegister, postCallLabel);
-			final L2ObjectRegister functionReg = newObjectRegister();
-			A_Type guaranteedReturnType;
-			final A_Function function = definition.bodyBlock();
-			moveConstant(function, functionReg);
-			guaranteedReturnType = function.kind().returnType();
+			final A_Type guaranteedReturnType;
+			if (functionReg == null)
+			{
+				// If the function is not already in a register, then we didn't
+				// inline an Invokes primitive.  Use the original function.
+				functionReg = newObjectRegister();
+				moveConstant(originalFunction, functionReg);
+				guaranteedReturnType = originalFunction.kind().returnType();
+			}
+			else
+			{
+				guaranteedReturnType =
+					naiveRegisters().typeAt(functionReg).returnType();
+			}
 			final boolean canSkip =
 				guaranteedReturnType.isSubtypeOf(expectedType);
 			// Now invoke the method definition's body.
@@ -2029,7 +2106,7 @@ public class L2Translator
 			}
 			final A_Type guaranteedReturnType =
 				primitive.returnTypeGuaranteedByVM(argTypes);
-			assert !guaranteedReturnType.isBottom();
+//			assert !guaranteedReturnType.isBottom();
 			final boolean skipReturnCheck =
 				guaranteedReturnType.isSubtypeOf(expectedType);
 			// This is an *inlineable* primitive, so it can only succeed with

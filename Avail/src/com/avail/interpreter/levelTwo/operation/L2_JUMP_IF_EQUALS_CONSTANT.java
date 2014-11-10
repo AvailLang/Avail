@@ -33,10 +33,15 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import java.util.List;
 import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.RegisterSet;
 
 /**
  * Jump to the target if the object equals the constant.
@@ -67,6 +72,71 @@ public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
 		{
 			interpreter.offset(target);
 		}
+	}
+
+	@Override
+	public boolean regenerate (
+		final L2Instruction instruction,
+		final List<L2Instruction> newInstructions,
+		final RegisterSet registerSet)
+	{
+		// Eliminate tests due to type propagation.
+//		final int target = instruction.pcAt(0);
+		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
+		final A_Type value = instruction.constantAt(2);
+
+		boolean canJump = false;
+		boolean mustJump = false;
+		if (registerSet.hasConstantAt(objectReg))
+		{
+			final AvailObject constant = registerSet.constantAt(objectReg);
+			mustJump = canJump = constant.equals(value);
+		}
+		else
+		{
+			assert registerSet.hasTypeAt(objectReg);
+			final A_Type knownType = registerSet.typeAt(objectReg);
+			assert knownType != null;
+			if (value.isInstanceOf(knownType))
+			{
+				canJump = true;
+			}
+		}
+		if (mustJump)
+		{
+			// It must be that value.  Always jump.  The instructions that
+			// follow the jump will die and be eliminated next pass.
+			assert canJump;
+			newInstructions.add(new L2Instruction(
+				L2_JUMP.instance,
+				instruction.operands[0]));
+			return true;
+		}
+		assert !mustJump;
+		if (!canJump)
+		{
+			// It is never the specified value, so never jump.
+			return true;
+		}
+		// The test could not be eliminated or improved.
+		return super.regenerate(instruction, newInstructions, registerSet);
+	}
+
+	@Override
+	protected void propagateTypes (
+		final L2Instruction instruction,
+		final List<RegisterSet> registerSets,
+		final L2Translator translator)
+	{
+//		final int target = instruction.pcAt(0);
+		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
+		final A_Type value = instruction.constantAt(2);
+
+		assert registerSets.size() == 2;
+//		final RegisterSet fallThroughSet = registerSets.get(0);
+		final RegisterSet postJumpSet = registerSets.get(1);
+
+		postJumpSet.constantAtPut(objectReg, value, instruction);
 	}
 
 	@Override

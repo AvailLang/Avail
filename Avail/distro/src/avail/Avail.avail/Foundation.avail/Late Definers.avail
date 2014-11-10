@@ -38,6 +38,7 @@ Extends
 Uses
 	"Bootstrap",
 	"Control Structures",
+	"Early Conditionals",
 	"Enumeration Support",
 	"Exceptions",
 	"Literals",

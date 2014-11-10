@@ -1937,7 +1937,9 @@ implements
 	@Override
 	public boolean equalsNil ()
 	{
-		return descriptor.o_EqualsNil(this);
+		// Was a dispatch that took indirections into account, but even when we
+		// rebuild the memory substrate we can keep nil from moving around.
+		return this == NilDescriptor.nil();
 	}
 
 	/**

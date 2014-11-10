@@ -38,6 +38,7 @@ Uses
 	"Casts",
 	"Control Structures",
 	"Definers",
+	"Early Conditionals",
 	"Enumeration Support",
 	"Functions",
 	"Literals",

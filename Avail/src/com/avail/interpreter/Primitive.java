@@ -1088,4 +1088,36 @@ implements IntegerEnumSlotDescriptionEnum
 		}
 	}
 
+	/**
+	 * This primitive is being invoked.  It must have the flag {@link
+	 * Flag#Invokes}, but must not contain {@link Flag#CanInline} or {@link
+	 * Flag#CanFold}.  The specific primitive should examine the arguments to
+	 * determine which object register holds the function that is actually being
+	 * invoked, then return that register.  The arguments {@link List} should
+	 * also be updated to correspond with how the replacement function is to be
+	 * invoked.
+	 *
+	 * @param args
+	 *        The argument registers for the primitive call doing the invoking.
+	 *        This list should be replaced with a suitable list of arguments for
+	 *        invoking the replacement function.
+	 * @param naiveTranslator
+	 *        The register set at the position of the call.
+	 * @return
+	 *        The {@link L2ObjectRegister} holding the replacement function to
+	 *        invoke instead of this Invokes primitive.
+	 */
+	public @Nullable L2ObjectRegister foldOutInvoker (
+		final List<L2ObjectRegister> args,
+		final L1NaiveTranslator naiveTranslator)
+	{
+		assert hasFlag(Flag.Invokes);
+		assert !hasFlag(Flag.CanInline);
+		assert !hasFlag(Flag.CanFold);
+
+		assert false
+			: "Primitive subclass with Invokes flag should have "
+				+ "overriden foldOutInvoker()";
+		throw new RuntimeException("Unreachable");
+	}
 }

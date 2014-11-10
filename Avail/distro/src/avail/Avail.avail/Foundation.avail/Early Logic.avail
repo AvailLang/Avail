@@ -36,6 +36,7 @@ Versions
 Uses
 	"Bootstrap",
 	"Definers",
+	"Early Conditionals",
 	"Early Control Structures",
 	"Early Literals"
 Names
@@ -99,7 +100,7 @@ Public method "_∧_" is
 	b : function accepting <> and returning boolean
 |
 	Primitive 45;
-] : boolean;
+] : ⊤;
 
 Public method "_∧_" is
 [
@@ -107,7 +108,22 @@ Public method "_∧_" is
 	b : function accepting <> and returning boolean
 |
 	false
-] : boolean;
+] : false's type;
+
+/**
+ * Improve on Primitive 45's return type.
+ * 
+ * @method "_∧_"
+ * @restricts "boolean's type"
+ * @restricts "[]→boolean's type"
+ */
+Semantic restriction "_∧_" is
+[
+	a : boolean's type,
+	b : (function accepting <> and returning boolean)'s type
+|
+	boolean
+];
 
 /**
  * If the left-hand argument of {@method "_∧_"} is known statically to be
@@ -170,8 +186,8 @@ Semantic restriction "_∧_" is
  *        A boolean.
  * @param "b" "[]→boolean"
  *        A boolean function.
- * @returns "boolean"
- *          {@param "a"} ∨ {@param "b"}.
+ * @returns "⊤"
+ *          {@param "a"} ∨ {@param "b"}, strengthened to boolean later.
  * @category "Primitives" "Logic"
  */
 Public method "_∨_" is
@@ -180,7 +196,7 @@ Public method "_∨_" is
 	b : function accepting <> and returning boolean
 |
 	Primitive 45;
-] : boolean;
+] : ⊤;
 
 Public method "_∨_" is
 [
@@ -188,7 +204,22 @@ Public method "_∨_" is
 	b : function accepting <> and returning boolean
 |
 	true
-] : boolean;
+] : true's type;
+
+/**
+ * Improve on Primitive 45's return type.
+ * 
+ * @method "_∨_"
+ * @restricts "boolean's type"
+ * @restricts "[]→boolean's type"
+ */
+Semantic restriction "_∨_" is
+[
+	a : boolean's type,
+	b : (function accepting <> and returning boolean)'s type
+|
+	boolean
+];
 
 /**
  * If the left-hand argument of {@method "_∨_"} is known statically to be

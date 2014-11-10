@@ -36,6 +36,7 @@ Versions
 Uses
 	"Bootstrap",
 	"Definers",
+	"Early Conditionals",
 	"Early Control Structures",
 	"Early Logic",
 	"Early Math",

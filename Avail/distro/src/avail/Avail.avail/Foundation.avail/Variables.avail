@@ -37,6 +37,7 @@ Extends
 	"Early Variables"
 Uses
 	"Bootstrap",
+	"Early Conditionals",
 	"Early Control Structures",
 	"Early Definers",
 	"Early Logic",
