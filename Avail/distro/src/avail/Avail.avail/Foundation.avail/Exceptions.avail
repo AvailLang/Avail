@@ -1042,6 +1042,8 @@ System exception "untimely-parse-rejection" (71)
 	extends system exception;
 System exception "method-is-sealed" (72)
 	extends definition exception;
+System exception "cannot-overwrite-write-once-variable" (73)
+	extends variable-use exception;
 System exception "atom-already-exists" (74)
 	extends definition exception;
 System exception "cannot-mix-method-and-macro-definitions" (75)
@@ -1050,6 +1052,8 @@ System exception "cannot-create-continuation-for-infallible-primitive-function" 
 	extends invocation exception;
 System exception "illegal-trace-mode" (77)
 	extends trace exception;
+System exception "up-arrow-must-follow-argument" (78)
+	extends bad-message exception;
 System exception "result-disagreed-with-expected-type" (79)
 	extends definition exception;
 System exception "handler-sentinel" (80)
@@ -1068,6 +1072,8 @@ System exception "forward-method-definition" (86)
 	extends definition exception;
 System exception "abstract-method-definition" (87)
 	extends definition exception;
+System exception "observed-variable-written-while-untraced" (88)
+	extends variable-use exception;
 System exception "fiber-is-terminated" (89)
 	extends system exception;
 System exception "fiber-result-unavailable" (90)
@@ -1076,6 +1082,12 @@ System exception "fiber-cannot-join-itself" (91)
 	extends system exception;
 System exception "fiber-produced-incorrectly-typed-result" (92)
 	extends element-access exception;
+System exception "not-open-for-read" (93)
+	extends bad-argument exception;
+System exception "not-open-for-write" (94)
+	extends bad-argument exception;
+System exception "exceeds-vm-limit" (95)
+	extends bad-argument exception;
 System exception "block-contains-invalid-statements" (100)
 	extends bad-phrase exception;
 System exception "block-is-invalid" (101)
@@ -1153,6 +1165,12 @@ System exception "cannot-compute-logarithm-of-nonpositive-number" (1014)
 Private method "Ensure:all error codes have corresponding exceptions" is [];
 Semantic restriction "Ensure:all error codes have corresponding exceptions" is
 [
+	missingSystemExceptions ::= filter VM error codes by
+	[
+		errorCode : natural number
+	|
+		¬errorCode ∈ exceptionsByCode
+	];
 	missingExceptionClasses ::= filter error codes by
 	[
 		errorCode : natural number,
@@ -1160,13 +1178,22 @@ Semantic restriction "Ensure:all error codes have corresponding exceptions" is
 	|
 		¬errorCode ∈ exceptionsByCode
 	];
+	problem : string := "exception classes to be defined for the following";
+	If |missingSystemExceptions| ≠ 0 then
+	[
+		problem := problem ++ " VM exceptions: " ++ “missingSystemExceptions”;
+		If |missingExceptionClasses| ≠ 0 then
+		[
+			problem := problem ++ " and";
+		];
+	];
 	If |missingExceptionClasses| ≠ 0 then
 	[
-		Reject parse, expected:
-			format
-				"exception classes to be defined for the following \
-				\|error codes: “①”"
-			with missingExceptionClasses
+		problem := problem ++ " error codes: " ++ “missingExceptionClasses”;
+	];
+	If |missingSystemExceptions| ≠ 0 ∨ [|missingExceptionClasses| ≠ 0] then
+	[
+		Reject parse, expected: problem
 	];
 	⊤
 ];
