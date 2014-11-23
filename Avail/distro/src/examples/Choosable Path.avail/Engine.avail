@@ -44,6 +44,7 @@ Names
 Body
 
 "game context creator" is a new field atom;
+"beginning flag" is a new field atom;
 "game over flag" is a new field atom;
 "viable transitions" is a new field atom;
 
@@ -57,6 +58,7 @@ Body
 Class "engine context" extends object
 	with mutable fields
 		game context creator : []→context,
+		beginning flag : boolean,
 		game over flag : boolean,
 		viable transitions : <natural number…|>;
 
@@ -101,10 +103,12 @@ Private method "engine context for_" is
 	gameContextCreator : []→context
 |
 	creator : []→context := gameContextCreator;
+	beginning : boolean := true;
 	gameOver : boolean := false;
 	viableTransitions : <natural number…|> := <>;
 	creator() as engine context with
 		game context creator ::= ↑creator,
+		beginning flag ::= ↑beginning,
 		game over flag ::= ↑gameOver,
 		viable transitions ::= ↑viableTransitions
 ] : complete context;
@@ -168,7 +172,10 @@ Private method "Handle_for_" is
 	aCommand : restart command,
 	contextVar : ↑complete context
 |
-	contextVar ?= engine context for ↓contextVar's game context creator;
+	newContext ::= engine context for ↓contextVar's game context creator;
+	contextVar ?= newContext;
+	/* Perform the entry action for the opening scene. */
+	Perform entry action of newContext's current scene for newContext;
 ];
 
 Private method "Handle_for_" is
@@ -199,10 +206,6 @@ Public method "Play a game,⁇creating a context with_,⁇interacting with_" is
 	/* Produce a fresh context for the choosable path story. */
 	aContext : complete context := engine context for gameContextCreator;
 	/* Play the story. */
-	title : string;
-	description : string;
-	transitionDescriptions : <string…|>;
-	first : boolean := true;
 	Until [game is over for aContext] do
 	[
 		/* Processing certain commands may cause the implied context to
@@ -210,9 +213,20 @@ Public method "Play a game,⁇creating a context with_,⁇interacting with_" is
 		 */
 		Use aContext as the implied context for
 		[
+			title : string;
+			description : string;
+			transitionDescriptions : <string…|>;
 			currentScene ::= aContext's current scene;
-			If first ∨ [currentScene ≠ aContext's previous scene] then
+			If aContext's beginning flag ∨
+				[currentScene ≠ aContext's previous scene] then
 			[
+				If aContext's beginning flag then
+				[
+					/* Perform the entry action for the opening scene. */
+					Perform entry action of aContext's current scene
+						for aContext;
+					aContext's beginning flag := false;
+				];
 				title := title of currentScene for aContext;
 				description := description of currentScene for aContext;
 				viableTransitions ::= computed viable transitions for aContext;
@@ -222,6 +236,5 @@ Public method "Play a game,⁇creating a context with_,⁇interacting with_" is
 			aCommand ::= interface(title, description, transitionDescriptions);
 			Handle aCommand for ↑aContext;
 		];
-		first := false;
 	];
 ] : ⊤;
