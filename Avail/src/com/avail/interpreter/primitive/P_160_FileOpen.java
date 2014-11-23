@@ -207,16 +207,12 @@ extends Primitive
 				TupleTypeDescriptor.stringType(),
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				SetTypeDescriptor.setTypeForSizesContentType(
-					IntegerRangeTypeDescriptor.inclusive(
-						IntegerDescriptor.fromInt(0),
-						IntegerDescriptor.fromInt(10)),
+					IntegerRangeTypeDescriptor.wholeNumbers(),
 					IntegerRangeTypeDescriptor.inclusive(
 						IntegerDescriptor.fromInt(0),
 						IntegerDescriptor.fromInt(9))),
 				SetTypeDescriptor.setTypeForSizesContentType(
-					IntegerRangeTypeDescriptor.inclusive(
-						IntegerDescriptor.fromInt(0),
-						IntegerDescriptor.fromInt(9)),
+					IntegerRangeTypeDescriptor.wholeNumbers(),
 					IntegerRangeTypeDescriptor.inclusive(
 						IntegerDescriptor.fromInt(1),
 						IntegerDescriptor.fromInt(9)))),

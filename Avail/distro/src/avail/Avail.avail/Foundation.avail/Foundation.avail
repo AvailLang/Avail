@@ -39,6 +39,7 @@ Extends
 		"Assert:_",
 		"Assert:_(_)",
 		"Shouldn't happen",
+		"Static assert:_†",
 		"assertion-failed exception"
 	),
 	"Atoms" =

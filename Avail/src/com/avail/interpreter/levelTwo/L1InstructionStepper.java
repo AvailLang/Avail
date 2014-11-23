@@ -529,10 +529,12 @@ implements L1OperationDispatcher
 		try
 		{
 			// The value's reference from the stack is now from the variable.
-			localVariable.setValue(value);
+			localVariable.setValueNoCheck(value);
 		}
 		catch (final VariableSetException e)
 		{
+			assert e.numericCode().equals(
+				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED.numericCode());
 			reifyContinuation();
 			interpreter.invokeFunction(
 				interpreter.runtime().implicitObserveFunction(),
@@ -628,10 +630,12 @@ implements L1OperationDispatcher
 		try
 		{
 			// The value's reference from the stack is now from the variable.
-			outerVariable.setValue(newValue);
+			outerVariable.setValueNoCheck(newValue);
 		}
 		catch (final VariableSetException e)
 		{
+			assert e.numericCode().equals(
+				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED.numericCode());
 			reifyContinuation();
 			interpreter.invokeFunction(
 				interpreter.runtime().implicitObserveFunction(),
@@ -782,10 +786,12 @@ implements L1OperationDispatcher
 		try
 		{
 			// The value's reference from the stack is now from the variable.
-			literalVariable.setValue(value);
+			literalVariable.setValueNoCheck(value);
 		}
 		catch (final VariableSetException e)
 		{
+			assert e.numericCode().equals(
+				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED.numericCode());
 			reifyContinuation();
 			interpreter.invokeFunction(
 				interpreter.runtime().implicitObserveFunction(),

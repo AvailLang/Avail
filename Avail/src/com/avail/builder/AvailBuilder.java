@@ -3525,8 +3525,10 @@ public final class AvailBuilder
 									1,
 									1,
 									EXECUTION,
-									"Error executing command: {0}\n{1}",
-									e.getMessage(),
+									"Error executing command:{0}\n{1}",
+									e.getMessage() != null
+										? " " + e.getMessage()
+										: "",
 									trace)
 								{
 									@Override

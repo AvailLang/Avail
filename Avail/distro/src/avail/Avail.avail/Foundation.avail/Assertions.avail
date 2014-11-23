@@ -46,13 +46,16 @@ Extends
 		"_'s⁇type"
 	),
 	"Definers",
+	"Early Assertions" =
+	(
+		"Static assert:_†"
+	),
 	"Exceptions",
 	"Objects"
 Names
 	"Assert:_",
 	"Assert:_(_)",
 	"Shouldn't happen",
-	"Static assert:_†",
 	"assertion-failed exception"
 Body
 

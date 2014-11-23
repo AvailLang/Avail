@@ -158,10 +158,11 @@ extends Primitive
 		}
 		else
 		{
-			final ByteBuffer buffer = ByteBuffer.allocateDirect(
-				min(totalBytes, MAX_WRITE_BUFFER_SIZE));
 			bufferIterator = new Iterator<ByteBuffer>()
 			{
+				final ByteBuffer buffer = ByteBuffer.allocateDirect(
+					min(totalBytes, MAX_WRITE_BUFFER_SIZE));
+
 				int nextSubscript = 1;
 
 				@Override
@@ -174,9 +175,8 @@ extends Primitive
 				public ByteBuffer next ()
 				{
 					assert hasNext();
-					buffer.limit(0);
-					assert buffer.position() == 0;
-					int count = nextSubscript + buffer.capacity() - 1;
+					buffer.clear();
+					int count = nextSubscript + buffer.limit() - 1;
 					if (count >= totalBytes)
 					{
 						// All the rest.
@@ -370,7 +370,6 @@ extends Primitive
 				}
 			}
 		};
-		assert bufferIterator.hasNext();
 		continueWriting.value().value();
 		return interpreter.primitiveSuccess(newFiber);
 	}

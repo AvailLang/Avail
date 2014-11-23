@@ -1147,7 +1147,7 @@ extends Descriptor
 	{
 		for (int index = startIndex; index <= endIndex; index++)
 		{
-			outputByteBuffer.put((byte) object.extractUnsignedByte());
+			outputByteBuffer.put((byte) object.tupleIntAt(index));
 		}
 	}
 

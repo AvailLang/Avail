@@ -985,8 +985,14 @@ Semantic restriction "take«at most»?_from_" is
 	count : [0..∞]'s type,
 	streamType : stream's type
 |
-	min ::= if laxity = true's type then [0] else [⎣count⎦];
-	<<>, streamType's element type's instance…|[min..⎡count⎤+1)>
+	Assert: |laxity| = 1;
+	If ¬laxity's instance ∧ [∞ ∈ count] then
+	[
+		Reject parse, expected:
+			"'at most' clause to be specified when count may be ∞"
+	];
+	min ::= if laxity's instance then [0] else [⎣count⎦ ?→ whole number];
+	<streamType's element type's instance… | min..⎡count⎤>
 ];
 
 /**

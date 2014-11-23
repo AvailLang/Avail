@@ -344,9 +344,22 @@ extends TypeDescriptor
 	/**
 	 * Construct a new map type with the specified permitted range of number of
 	 * elements, the specified types of keys, and the specified types of values.
-	 * Canonicalize the values for singularities, such as the size range being
+	 * Canonicalize the values for singularities:
+	 *
+	 * such as the size range being
 	 * zero (in which case the key type and value type are reduced to
 	 * bottom).
+	 *
+	 * <ul>
+	 * <li>An enumeration for the size range is weakened to a kind.</li>
+	 * <li>A ⊥ key type or value type implies exactly zero elements, or ⊥ as the
+	 * resulting map type if zero is not an allowed size.</li>
+	 * <li>At most zero elements implies ⊥ key and value types.</li>
+	 * <li>A non-meta enumeration for the key type bounds the maximum size of
+	 * the map (e.g., a map from booleans has at most 2 elements).</li>
+	 * <li>Similarly, an integral range for the key type bounds the maximum size
+	 * of the map (you can't have a 1000-element map from bytes).</li>
+	 * </ul>
 	 *
 	 * @param sizeRange
 	 *        An {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -393,7 +406,37 @@ extends TypeDescriptor
 		}
 		else
 		{
-			newSizeRange = sizeRangeKind;
+			final A_Type contentRestrictedSizes;
+			if (keyType.isEnumeration() && !keyType.isInstanceMeta())
+			{
+				// There can't ever be more entries in the map than there are
+				// distinct possible keys.
+				contentRestrictedSizes = IntegerRangeTypeDescriptor.inclusive(
+					IntegerDescriptor.zero(), keyType.instanceCount());
+			}
+			else if (keyType.isIntegerRangeType()
+				&& (keyType.lowerBound().isFinite()
+					|| keyType.upperBound().isFinite()
+					|| keyType.lowerBound().equals(
+						keyType.upperBound())))
+			{
+				// We had already ruled out ⊥ for the keys (and also for the
+				// values), and the latest test rules out [-∞..∞], [-∞..∞),
+				// (-∞..∞], and (-∞..∞), allowing safe subtraction.
+				contentRestrictedSizes = IntegerRangeTypeDescriptor.inclusive(
+					IntegerDescriptor.zero(),
+					keyType.upperBound().minusCanDestroy(
+							keyType.lowerBound(), false)
+						.plusCanDestroy(IntegerDescriptor.one(), false));
+			}
+			else
+			{
+				// Otherwise don't narrow the size range.
+				contentRestrictedSizes =
+					IntegerRangeTypeDescriptor.wholeNumbers();
+			}
+			newSizeRange = sizeRangeKind.typeIntersection(
+				contentRestrictedSizes);
 			newKeyType = keyType;
 			newValueType = valueType;
 		}

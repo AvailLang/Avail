@@ -202,16 +202,53 @@ public final class AvailRuntime
 	 * The {@linkplain ThreadFactory thread factory} for creating {@link
 	 * AvailThread}s on behalf of this {@linkplain AvailRuntime Avail runtime}.
 	 */
-	private final ThreadFactory threadFactory =
-		new ThreadFactory()
+	private final ThreadFactory executorThreadFactory = new ThreadFactory()
+	{
+		@Override
+		public AvailThread newThread (final @Nullable Runnable runnable)
 		{
-			@Override
-			public AvailThread newThread (final @Nullable Runnable runnable)
-			{
-				assert runnable != null;
-				return new AvailThread(AvailRuntime.this, runnable);
-			}
-		};
+			assert runnable != null;
+			return new AvailThread(
+				runnable,
+				new Interpreter(AvailRuntime.this));
+		}
+	};
+
+	/**
+	 * The {@linkplain ThreadFactory thread factory} for creating {@link
+	 * Thread}s for processing file I/O on behalf of this {@linkplain
+	 * AvailRuntime Avail runtime}.
+	 */
+	private final ThreadFactory fileThreadFactory = new ThreadFactory()
+	{
+		AtomicInteger counter = new AtomicInteger();
+
+		@Override
+		public Thread newThread (final @Nullable Runnable runnable)
+		{
+			assert runnable != null;
+			return new Thread(
+				runnable, "AvailFile-" + counter.incrementAndGet());
+		}
+	};
+
+	/**
+	 * The {@linkplain ThreadFactory thread factory} for creating {@link
+	 * Thread}s for processing socket I/O on behalf of this {@linkplain
+	 * AvailRuntime Avail runtime}.
+	 */
+	private final ThreadFactory socketThreadFactory = new ThreadFactory()
+	{
+		AtomicInteger counter = new AtomicInteger();
+
+		@Override
+		public Thread newThread (final @Nullable Runnable runnable)
+		{
+			assert runnable != null;
+			return new Thread(
+				runnable, "AvailSocket-" + counter.incrementAndGet());
+		}
+	};
 
 	/** The number of available processors. */
 	private static final int availableProcessors =
@@ -254,8 +291,8 @@ public final class AvailRuntime
 			10L,
 			TimeUnit.SECONDS,
 			new PriorityBlockingQueue<Runnable>(100),
-			threadFactory,
-			new ThreadPoolExecutor.CallerRunsPolicy());
+			executorThreadFactory,
+			new ThreadPoolExecutor.AbortPolicy());
 
 	/**
 	 * Schedule the specified {@linkplain AvailTask task} for eventual
@@ -282,7 +319,7 @@ public final class AvailRuntime
 			10L,
 			TimeUnit.SECONDS,
 			new LinkedBlockingQueue<Runnable>(10),
-			threadFactory,
+			fileThreadFactory,
 			new ThreadPoolExecutor.CallerRunsPolicy());
 
 	/**
@@ -311,7 +348,7 @@ public final class AvailRuntime
 			10L,
 			TimeUnit.SECONDS,
 			new LinkedBlockingQueue<Runnable>(),
-			threadFactory,
+			socketThreadFactory,
 			new ThreadPoolExecutor.CallerRunsPolicy());
 
 	/**

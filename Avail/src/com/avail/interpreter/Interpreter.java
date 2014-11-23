@@ -42,7 +42,6 @@ import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import static java.lang.Math.*;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.*;
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
@@ -100,7 +99,7 @@ import com.avail.utility.*;
  * {@linkplain Interpreter interpreter} has an arbitrarily large bank of
  * pointer registers (that point to {@linkplain AvailObject Avail objects}),
  * plus a separate bank for {@code int}s (unboxed 32-bit signed integers), and a
- * similar bank yet for {@code double}s (unboxed double-precision floating point
+ * similar bank for {@code double}s (unboxed double-precision floating point
  * numbers). Ideally these will map to machine registers, but more likely they
  * will spill into physical arrays of the appropriate type. Register spilling is
  * a well studied art, and essentially a solved problem. Better yet, the Java
@@ -199,12 +198,6 @@ public final class Interpreter
 		}
 		return null;
 	}
-
-	/** A counter for uniquely numbering the {@code Interpreter}s. */
-	private static AtomicLong uniqueInterpreterCounter = new AtomicLong();
-
-	/** A variable holding this {@code Interpreter}'s unique id. */
-	public final long uniqueId = uniqueInterpreterCounter.incrementAndGet();
 
 	/** Whether to print detailed Level One debug information. */
 	public static boolean debugL1 = false;
@@ -2339,6 +2332,8 @@ public final class Interpreter
 	{
 		final StringBuilder builder = new StringBuilder();
 		builder.append(getClass().getSimpleName());
+		builder.append(" #");
+		builder.append(interpreterIndex);
 		if (fiber == null)
 		{
 			builder.append(" [«unbound»]");

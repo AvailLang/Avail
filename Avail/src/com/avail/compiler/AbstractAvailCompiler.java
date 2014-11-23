@@ -4742,6 +4742,15 @@ public abstract class AbstractAvailCompiler
 											"%n\t\t\t#%d = %s", i, s);
 									}
 								}
+								if (allVisible.isEmpty())
+								{
+									builder.format(
+										"%n\t\tNo implementations are visible "
+										+ "within this module.  This name is "
+										+ "defined in %s.",
+										bundle.message().issuingModule()
+											.moduleName());
+								}
 								c.value(builder.toString());
 							}
 						});

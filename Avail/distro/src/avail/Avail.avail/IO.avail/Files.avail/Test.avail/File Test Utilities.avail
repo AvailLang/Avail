@@ -86,9 +86,7 @@ Public method "Randomly permute file access rights for__times" is
 	f : [{file access right|0..9}]→⊤,
 	count : whole number
 |
-	allRights ::=
-		cast file access right's instances→tuple
-		into [t : <file access right…|9> | t];
+	allRights ::= file access right's instances→tuple ?→ <file access right…|9>;
 	rng ::= a pRNG;
 	Repeat
 	[
@@ -101,6 +99,6 @@ Public method "Randomly permute file access rights for__times" is
 		 * absent).  Just add owner read to keep things happy.
 		 */
 		rights := rights + owner read;
-		f(cast rights into [t : {file access right|0..9} | t]);
+		f(rights);
 	] count times;
 ];

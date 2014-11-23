@@ -801,7 +801,9 @@ extends Descriptor
 			}
 			else
 			{
-				formatter.format("%2d: ", Interpreter.current().uniqueId);
+				formatter.format(
+					"%2d: ",
+					Interpreter.current().interpreterIndex);
 			}
 			formatter.format(pattern, arguments);
 			builder.append("\n");

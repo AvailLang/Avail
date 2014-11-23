@@ -62,16 +62,18 @@ extends Thread
 	/**
 	 * Construct a new {@link AvailThread}.
 	 *
-	 * @param runtime
-	 *        The {@linkplain AvailRuntime Avail runtime} responsible for the
-	 *        new thread.
 	 * @param runnable
 	 *        The {@code Runnable runnable} that the new thread should execute.
+	 * @param interpreter
+	 *        The {@link Interpreter} that this thread will temporarily bind to
+	 *        fibers while they are running in this thread.
 	 */
-	AvailThread (final AvailRuntime runtime, final Runnable runnable)
+	AvailThread (
+		final Runnable runnable,
+		final Interpreter interpreter)
 	{
-		super(runnable);
-		this.runtime = runtime;
-		this.interpreter = new Interpreter(runtime);
+		super(runnable, "AvailThread-" + interpreter.interpreterIndex);
+		this.runtime = interpreter.runtime();
+		this.interpreter = interpreter;
 	}
 }

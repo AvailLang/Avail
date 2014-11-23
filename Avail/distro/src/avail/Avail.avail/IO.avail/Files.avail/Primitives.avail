@@ -72,6 +72,7 @@ Names
 		\|«forked at priority_»",
 	"a fiber synchronizing_with file system,then_else_priority_",
 	"a fiber truncating_to_bytes⁇then_else_priority_",
+	"Refresh_with file system",
 
 	/* File cleanup. */
 	"Using|using_,⁇do_",
@@ -139,8 +140,8 @@ Private method
 [
 	name : string,
 	alignment : whole number,
-	options : {[0..9]|0..10},
-	rights : {[1..9]|0..9}
+	options : {[0..9]|},
+	rights : {[1..9]|}
 |
 	Primitive 160 (e : {
 		invalid-path code,
@@ -173,8 +174,8 @@ Public method
 [
 	fileName : file name,
 	optionalAlignment : <natural number…|0..1>,
-	optionSet : {open option|1..9},
-	optionalAccessRights : <{file access right|0..9}…|0..1>
+	optionSet : {open option|1..},
+	optionalAccessRights : <{file access right|}…|0..1>
 |
 	optionNumbers ::=
 		map optionSet through [opt : open option | opt → numeric code];
@@ -207,8 +208,8 @@ Semantic restriction
 [
 	fileName : file name's type,
 	optionalAlignment : <natural number…|0..1>'s type,
-	optionSet : {open option|1..9}'s type,
-	accessRights : <{file access right|0..9}…|0..1>'s type
+	optionSet : {open option|1..}'s type,
+	accessRights : <{file access right|}…|0..1>'s type
 |
 	readableType : boolean's type := ⊥;
 	writableType : boolean's type := ⊥;
@@ -501,6 +502,34 @@ Public method "a fiber synchronizing_with file system,then_else_priority_" is
 		Raise an exception for e
 	] : fiber (f's handle, succeed, fail, priority)
 ] : fiber;
+
+Private method "private refresh_with file system" is
+[
+	fileHandle : atom
+|
+	Primitive 168 (e : {
+		invalid-handle code,
+		special-atom code,
+		not-open-for-read code}ᵀ);
+	Raise an exception for e
+] : ⊤;
+
+/**
+ * Clear all buffers associated with the specified {@type "file"}.  Subsequent
+ * reads from the file are guaranteed to fetch data at least as new as any
+ * synchronize operations occurring prior to this refresh.
+ * 
+ * @method "Refresh_with file system"
+ * @param "f" "readable file"
+ *        The file whose buffers should be discarded.
+ * @throws "invalid-handle code"
+ */
+Public method "Refresh_with file system" is
+[
+	f : readable file
+|
+	private refresh f's handle with file system;
+] : ⊤;
 
 /**
  * Perform the specified {@type "function" action}, passing {@param "f"} as the
