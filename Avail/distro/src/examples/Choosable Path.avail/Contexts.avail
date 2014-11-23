@@ -42,6 +42,11 @@ Names
 	"current scene",
 	"_'s⁇current scene",
 	"_'s⁇current scene:=_",
+	"`↑_'s⁇current scene",
+	"previous scene",
+	"_'s⁇previous scene",
+	"_'s⁇previous scene:=_",
+	"`↑_'s⁇previous scene",
 
 	/* The implied context. */
 	"Use_as the implied context for_",
@@ -56,6 +61,13 @@ Body
 Public "current scene" is a new field atom;
 
 /**
+ * The previous scene field atom of a {@type "context"}.
+ *
+ * @global "previous scene" "atom"
+ */
+Public "previous scene" is a new field atom;
+
+/**
  * A context represents the visible state of a game. Many choosable path games
  * do not require any visible state beyond the current {@type "scene"}.
  *
@@ -63,7 +75,8 @@ Public "current scene" is a new field atom;
  */
 Public class "context" extends abstract context
 	with mutable field
-		public current scene : abstract scene;
+		public referable current scene : abstract scene,
+		public referable previous scene : abstract scene;
 
 /**
  * This is the fiber-local key to which the current {@type "context"} is bound.

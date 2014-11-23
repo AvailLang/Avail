@@ -45,7 +45,6 @@ Body
 
 "game context creator" is a new field atom;
 "game over flag" is a new field atom;
-"previous scene" is a new field atom;
 "viable transitions" is a new field atom;
 
 /**
@@ -59,7 +58,6 @@ Class "engine context" extends object
 	with mutable fields
 		game context creator : []→context,
 		game over flag : boolean,
-		referable previous scene : scene,
 		viable transitions : <natural number…|>;
 
 /**
@@ -104,14 +102,38 @@ Private method "engine context for_" is
 |
 	creator : []→context := gameContextCreator;
 	gameOver : boolean := false;
-	previousScene : scene;
 	viableTransitions : <natural number…|> := <>;
 	creator() as engine context with
 		game context creator ::= ↑creator,
 		game over flag ::= ↑gameOver,
-		previous scene ::= ↑previousScene,
 		viable transitions ::= ↑viableTransitions
 ] : complete context;
+
+/**
+ * Compute and answer the viable {@type "scene transition"}s for the specified
+ * {@type "context"}.
+ *
+ * @method "computed viable transitions for_"
+ * @param "aContext" "complete context"
+ */
+Private method "computed viable transitions for_" is
+[
+	aContext : complete context
+|
+	map and filter aContext's current scene's transitions by
+	[
+		aTransition : scene transition,
+		index : natural number,
+		keep : [<natural number, string…|2>]→⊤
+	|
+		If aTransition is valid for aContext then
+		[
+			transitionDescription ::=
+				description of aTransition for aContext;
+			keep(<index, transitionDescription>);
+		];
+	]
+];
 
 /**
  * Handle the specified {@type "command"}, performing side-effects on the
@@ -136,6 +158,7 @@ Private method "Handle_for_" is
 		allTransitions[viableTransitions[aCommand's chosen transition]];
 	Perform entry action of chosenTransition for aContext;
 	chosenScene ::= next scene of chosenTransition for aContext;
+	aContext's previous scene := aContext's current scene;
 	aContext's current scene := chosenScene;
 	Perform entry action of chosenScene for aContext;
 ];
@@ -179,6 +202,7 @@ Public method "Play a game,⁇creating a context with_,⁇interacting with_" is
 	title : string;
 	description : string;
 	transitionDescriptions : <string…|>;
+	first : boolean := true;
 	Until [game is over for aContext] do
 	[
 		/* Processing certain commands may cause the implied context to
@@ -186,31 +210,18 @@ Public method "Play a game,⁇creating a context with_,⁇interacting with_" is
 		 */
 		Use aContext as the implied context for
 		[
-			previousScene ::= ↑aContext's previous scene;
 			currentScene ::= aContext's current scene;
-			If previousScene is unassigned ∨ [currentScene≠↓previousScene] then
+			If first ∨ [currentScene ≠ aContext's previous scene] then
 			[
 				title := title of currentScene for aContext;
 				description := description of currentScene for aContext;
-				viableTransitions ::=
-					map and filter currentScene's transitions by
-					[
-						aTransition : scene transition,
-						index : natural number,
-						keep : [<natural number, string…|2>]→⊤
-					|
-						If aTransition is valid for aContext then
-						[
-							transitionDescription ::=
-								description of aTransition for aContext;
-							keep(<index, transitionDescription>);
-						];
-					];
+				viableTransitions ::= computed viable transitions for aContext;
 				aContext's viable transitions := stripe viableTransitions at 1;
 				transitionDescriptions := stripe viableTransitions at 2;
 			];
 			aCommand ::= interface(title, description, transitionDescriptions);
 			Handle aCommand for ↑aContext;
 		];
+		first := false;
 	];
 ] : ⊤;

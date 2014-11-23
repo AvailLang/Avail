@@ -169,6 +169,7 @@ openingSceneName ::= "the opening scene";
 
 /* These atoms are needed by context type constructor synthesis. */
 currentSceneAtom ::= $"current scene";
+previousSceneAtom ::= $"previous scene";
 getAtom ::= $"↓_";
 putAtom ::= $"_`?=_";
 
@@ -218,16 +219,29 @@ is
 	mapVar ::= «`"contextMap"` : field map := ‘`contextMap`’»;
 
 	/* Arrange to set the opening scene. */
+	openingSceneDecl ::= «`"openingScene"` : sceneType
+		:= send getAtom with «<‘`openingSceneVar`’>» : sceneType»;
 	currentSceneVar ::= contextMap[currentSceneAtom];
 	currentSceneDecl ::=
-		«`"currentScene"` : abstract scene
-			:= send getAtom with «<‘`openingSceneVar`’>» : sceneType»;
+		«`"currentScene"` : abstract scene := «↓openingSceneDecl»»;
 	currentSceneUpdate ::=
 		««↓mapVar» := send addBindingAtom with
 			«<
 				send ejectAtom with «< «↑«↓mapVar»» >» : field map,
 				‘`currentSceneAtom`’,
 				«↑«↓currentSceneDecl»»
+			>» : field map»;
+
+	previousSceneVar ::= contextMap[previousSceneAtom];
+	/* Set the previous scene to the opening scene, for safety. */
+	previousSceneDecl ::=
+		«`"previousScene"` : abstract scene := «↓openingSceneDecl»»;
+	previousSceneUpdate ::=
+		««↓mapVar» := send addBindingAtom with
+			«<
+				send ejectAtom with «< «↑«↓mapVar»» >» : field map,
+				‘`previousSceneAtom`’,
+				«↑«↓previousSceneDecl»»
 			>» : field map»;
 
 	/* Declare the local variables that will be captured as the mutable fields
@@ -259,9 +273,9 @@ is
 
 	/* Compile the function. */
 	statements ::=
-		<mapVar, currentSceneDecl>
+		<mapVar, openingSceneDecl, currentSceneDecl, previousSceneDecl>
 		++ instVars
-		++ <currentSceneUpdate>
+		++ <currentSceneUpdate, previousSceneUpdate>
 		++ mapUpdates
 		++ <convert>;
 	newBlock ::= «[ statements ] : contextType»;
@@ -493,6 +507,79 @@ Private method "Name_-specific types" is
 ];
 
 /**
+ * The name of the method that answers the {@type "variable"} containing the
+ * current {@type "scene"}.
+ *
+ * @global "currentSceneName" "nonempty string"
+ */
+currentSceneName ::= "the current scene";
+
+/**
+ * The name of the method that answers the {@type "variable"} containing the
+ * previous {@type "scene"}.
+ *
+ * @global "previousSceneName" "nonempty string"
+ */
+previousSceneName ::= "the previous scene";
+
+/* These atoms are required by accessor synthesis. */
+currentSceneAccessor ::= $"_'s⁇current scene";
+previousSceneAccessor ::= $"_'s⁇previous scene";
+assignCast ::= $"_↑`?=_";
+
+/**
+ * Generate and install the methods for querying {@method "the current scene"}
+ * and {@method "the previous scene"}.
+ *
+ * @method "Install the game-specific scene accessors for_"
+ * @param "contextType" "context's type"
+ */
+Private method "Install the game-specific scene accessors for_" is
+[
+	contextType : context's type
+|
+	sceneType ::= scene for contextType;
+	impliedContext ::= send impliedContextAtom with «<>» : contextType;
+	/* Generate the current scene accessor. We need to produce a local variable
+	 * with the same type as the actual scene type, assign the implied context's
+	 * current scene to it, and then answer this variable.
+	 */
+	currentSceneDecl ::= «`"currentScene"` : sceneType»;
+	currentSceneAssign ::=
+		send assignCast with
+		«<
+			«↑«↓currentSceneDecl»»,
+			send currentSceneAccessor with «< impliedContext >» : sceneType
+		>» : ⊤;
+	currentSceneBlock ::=
+		«[
+			<>
+		|
+			<currentSceneDecl, currentSceneAssign, «↑«↓currentSceneDecl»»>
+		] : ↑sceneType»;
+	Method currentSceneName is currentSceneBlock→function;
+	Export currentSceneName as a new name;
+	/* Generate the previous scene accessor, employing the same strategy
+	 * described above.
+	 */
+	previousSceneDecl ::= «`"previousScene"` : sceneType»;
+	previousSceneAssign ::=
+		send assignCast with
+		«<
+			«↑«↓previousSceneDecl»»,
+			send previousSceneAccessor with «< impliedContext >» : sceneType
+		>» : ⊤;
+	previousSceneBlock ::=
+		«[
+			<>
+		|
+			<previousSceneDecl, previousSceneAssign, «↑«↓previousSceneDecl»»>
+		] : ↑sceneType»;
+	Method previousSceneName is previousSceneBlock→function;
+	Export previousSceneName as a new name;
+];
+
+/**
  * Define the {@type "game context"} as being without any custom state. The only
  * state therefore is {@method "the current scene"}, which is universal for all
  * games. The type {@method "game context"} and the constructor {@method
@@ -510,6 +597,7 @@ Public method "Let the game context be without custom state" is
 		for contextType
 		given initializationTriples;
 	Name contextType-specific types;
+	Install the game-specific scene accessors for contextType;
 	Install the scene vault for contextType;
 ];
 
@@ -580,6 +668,7 @@ is
 		for contextType
 		given initializationTriples;
 	Name contextType-specific types;
+	Install the game-specific scene accessors for contextType;
 	Install boolean accessors
 		for contextType
 		given booleanState[1] else [<>]
