@@ -46,13 +46,17 @@ Extends
 		"_is open"
 	)
 Uses
-	"Common",
+	"Common" =
+	(
+		-"Write_to_",
+		…
+	),
 	"Data Abstractions",
+	"File Access Rights",
 	"File Names",
 	"File Open Options",
 	"Foundation",
-	"Primitives",
-	"Unit Testing"
+	"Primitives"
 Names
 	/* Types. */
 	"file iterator",
@@ -61,10 +65,10 @@ Names
 	"file reader/writer",
 
 	/* Constructors. */
-	"a_for_«aligning buffers to_bytes»",
+	"a_for_«aligning buffers to_bytes»«with options_»«with file access rights_»",
 
-	/* Coherence. */
-	"Synchronize_",
+	/* Other file operations. */
+	"Truncate_to_bytes⁇",
 
 	/* Tests. */
 	"file iterator test suite"
@@ -78,10 +82,6 @@ Body
 /*
 TODO [MvG] - document properly.
 NOTES:
-	Explicitly taking N bytes should use a large buffer, big enough to
-	be aligned but include the entire desired range.  Round down the start to
-	the alignment and round up the end to the alignment.
-
 	-Positioning before the current buffer or *beyond* the byte just *after* the
 	 current buffer should flush the current buffer if necessary, then
 	 invalidate it by replacing it with the empty tuple.  If the next operation
@@ -197,7 +197,7 @@ Public explicit class "file reader" extends file iterator ∩ buffered reader
  * @type "file writer"
  * @supertype "file iterator"
  */
-Public class "file writer" extends file iterator
+Public class "file writer" extends file iterator ∩ buffered writer
 	with field
 		element source : writable file
 	with mutable fields
@@ -290,9 +290,11 @@ _privateWriteBuffer ::=
 
 file iterator's exit buffer method is
 [
-	fileIterator : file iterator
+	aFileIterator : file iterator
 |
-	/* Do nothing. */
+	globalPosition ::= aFileIterator's position;
+	↑aFileIterator's buffer ?= <>;
+	aFileIterator's position := globalPosition;
 ];
 
 file writer's exit buffer method is _privateWriteBuffer;
@@ -301,7 +303,7 @@ file writer's exit buffer method is _privateWriteBuffer;
  * Construct and answer a {@type "readable file iterator"} that is open on the
  * file named by {@param "fn"}.
  *
- * @method "a_for_«aligning buffers to_bytes»"
+ * @method "a_for_«aligning buffers to_bytes»«with options_»«with file access rights_»"
  * @param "fileIteratorType" "file iterator's type"
  * @param "fn" "file name"
  *        The {@method "file name"} of the target file.
@@ -314,20 +316,24 @@ file writer's exit buffer method is _privateWriteBuffer;
  * @raises "I/O exception"
  *         If an I/O error occurs for any reason.
  */
-Public method "a_for_«aligning buffers to_bytes»" is
+Public method "a_for_\
+	\|«aligning buffers to_bytes»\
+	\|«with options_»\
+	\|«with file access rights_»" is
 [
 	fileIteratorType : file iterator's type,
 	fn : file name,
-	optionalAlignment : <natural number…|0..1>
+	optionalAlignment : <natural number…|0..1>,
+	optionSet : <{open option|}…|0..1>,
+	optionalAccessRights : <{file access right|}…|0..1>
 |
-	options : {{read, write}ᵀ|} := ∅;
+	options : {open option|} := optionSet[1] else [∅];
 	If fileIteratorType ⊆ reader then [options := options ∪ {read};];
 	If fileIteratorType ⊆ writer then [options := options ∪ {write};];
 	theIterator ::= a fileIteratorType with
 		element type ::= byte,
 		alignment ::= optionalAlignment[1] else [1],
-		element source ::= fn opened with options
-			options ?→ {{read, write}ᵀ|1..2},
+		element source ::= fn opened with options options ?→ {open option|1..},
 		maximum buffer size ::= optionalAlignment[1] else [32768],
 		position variable := 1,
 		buffer := <>,
@@ -342,11 +348,16 @@ Public method "a_for_«aligning buffers to_bytes»" is
 	theIterator
 ] : file iterator;
 
-Semantic restriction "a_for_«aligning buffers to_bytes»" is
+Semantic restriction "a_for_\
+	\|«aligning buffers to_bytes»\
+	\|«with options_»\
+	\|«with file access rights_»" is
 [
 	fileIteratorMeta : file iterator's type's type,
 	fnType : file name's type,
-	optionalAlignmentType : <natural number…|0..1>'s type
+	optionalAlignmentType : <natural number…|0..1>'s type,
+	optionSet : <{open option|}…|0..1>'s type,
+	optionalAccessRights : <{file access right|}…|0..1>'s type
 |
 	fileIteratorMeta's instance
 ];
@@ -445,6 +456,99 @@ Semantic restriction "Using|using_,⁇do_" is
 ];
 
 /**
+ * Write the elements of the specified {@type "tuple"} to the supplied {@type
+ * "buffered writer"}. This operation should be more efficient than repeatedly
+ * sending {@method "_'s⁇current element:=_"} and {@method "Advance_"}.
+ *
+ * @method "Write_to_"
+ * @param "newElements" "tuple"
+ * @param "aWriter" "file writer"
+ * @returns "⊤"
+ */
+Method "Write_to_" is
+[
+	newElements : tuple,
+	aFileWriter : file writer
+|
+	If |newElements| > 0 then
+	[
+		oldBuffer : tuple := aFileWriter's buffer;
+		startInBuffer : integer := aFileWriter's position in buffer;
+		If ¬ 1 ≤ startInBuffer ≤ |oldBuffer| + 1 then
+		[
+			Private exit aFileWriter's current buffer;
+			oldBuffer := aFileWriter's buffer;
+			startInBuffer := aFileWriter's position in buffer;
+			Assert: 1 ≤ startInBuffer ≤ |oldBuffer| + 1;
+		];
+		If ¬ aFileWriter's buffer is dirty then
+		[
+			/* There's no point in keeping clean data next to the dirty data,
+			 * because of the way we already cache pages in the VM.  If we did,
+			 * we would have to write the clean data whenever the dirty data was
+			 * flushed, which would cost us spurious writes.
+			 */
+			Private exit aFileWriter's current buffer;
+			Assert: aFileWriter's buffer = <>;
+			Assert: aFileWriter's position in buffer = 1;
+			oldBuffer := <>;
+			startInBuffer := 1;
+		];
+		naturalStart ::= startInBuffer ?→ natural number;
+		newBuffer ::= oldBuffer
+			[
+				naturalStart ..
+				(naturalStart + |newElements| - 1) min |oldBuffer|
+			] → newElements;
+		↑aFileWriter's buffer ?= newBuffer;
+		↑aFileWriter's position in buffer ?=
+			aFileWriter's position in buffer + |newElements|;
+		aFileWriter's buffer is dirty := true;
+		/* If we've buffering more than we're permitted, flush the buffer. */
+		If |newBuffer| > aFileWriter's maximum buffer size then
+		[
+			Private exit aFileWriter's current buffer;
+		];
+	];
+];
+
+
+
+/* TODO[MvG] Clean up when we have super sends. */
+_superRefresh ::= (method definition
+	of $"Refresh_"
+	for <random access buffered reader>
+)'s function;
+
+/**
+ * Discard any buffers cached on behalf of this file, including the current
+ * buffer.  This is intended to expose the cache coherence protocol underlying
+ * file buffering in Avail.  After a process completes a {@method
+ * "Synchronize_"} to a file, a subsequent process may {@method "Refresh_"} and
+ * then read the content written by the first process.  It's undefined whether
+ * any particular read will see a previous write if an intervening Synchronize
+ * by the writer and Refresh by the reader are not performed.  Note that
+ * closing a writable file implicitly synchronizes it, and opening a file for
+ * reading starts with an implicit Refresh.
+ * 
+ * @method "Refresh_"
+ * @param "aReader" "file reader"
+ */
+Method "Refresh_" is
+[
+	aReader : file reader
+|
+	Refresh aReader's element source with file system;
+	_superRefresh(aReader);
+] : ⊤;
+
+/* TODO[MvG] Clean up when we have super sends. */
+_superSynchronize ::= (method definition
+		of $"Synchronize_"
+		for <buffered writer>
+	)'s function;
+
+/**
  * Wait for all outstanding writes on this iterator to complete writing to the
  * physical medium associated with the file's filesystem.
  * 
@@ -452,14 +556,19 @@ Semantic restriction "Using|using_,⁇do_" is
  * @param "anIterator" "file writer"
  * @raises "I/O exception"
  */
-Public method "Synchronize_" is
+Method "Synchronize_" is
 [
-	anIterator : file writer
+	aFileWriter : file writer
 |
+	/* First, flush the buffer if it's dirty. */
+	_privateWriteBuffer(aFileWriter);
+	/* Now abandon the buffer. */
+	_superSynchronize(aFileWriter);
+	/* Finally, wait for the file system to say it has synchronized the file. */
 	syncComplete ::= a semaphore named "sync is complete" with 0 permits;
 	hadError : boolean := false;
 	readFiber ::= a fiber
-		synchronizing anIterator's element source with file system,
+		synchronizing aFileWriter's element source with file system,
 		then
 		[
 			Signal syncComplete;
@@ -476,93 +585,37 @@ Public method "Synchronize_" is
 	If hadError then [Raise an I/O exception];
 ];
 
-/** TODO MvG - Document */
-Method "Truncate_" is
+/**
+ * Shorten the {@type "file writer"} to the given size.  If the file is already
+ * that size or smaller, do nothing.
+ * 
+ * @method "Truncate_to_bytes⁇"
+ * @param "anIterator" "file writer"
+ * @param "newSize" "whole number"
+ */
+Method "Truncate_to_bytes⁇" is
 [
-	anIterator : file writer
+	aFileWriter : file writer,
+	newSize : whole number
 |
-	syncComplete ::= a semaphore named "sync is complete" with 0 permits;
+	truncationComplete ::=
+		a semaphore named "truncation is complete" with 0 permits;
 	hadError : boolean := false;
 	readFiber ::= a fiber
-		synchronizing anIterator's element source with file system,
+		truncating aFileWriter's element source
+		to newSize bytes
 		then
 		[
-			Signal syncComplete;
+			Signal truncationComplete;
 		]
 		else
 		[
 			error : {I/O-error code}ᵀ
 		|
 			hadError := true;
-			Signal syncComplete;
+			Signal truncationComplete;
 		]
 		priority current fiber's priority;
-	Await syncComplete;
+	Await truncationComplete;
 	If hadError then [Raise an I/O exception];
 ];
-
-
-"file iterator test suite" is a new atom;
-New test suite file iterator test suite extends I/O test suite;
-
-/* The test directory. */
-testDir ::= a file named test directory;
-
-Test "file iterator(readable)" in file iterator test suite is
-[
-	ref ::= map "abracadabra" through [c : character | c's code point];
-	fn ::= testDir / "abracadabra.txt";
-	iter ::= a file reader for fn;
-	Require: iter is open;
-	Require: take at most ∞ from iter = ref;
-	Require: iter is exhausted;
-	Require: iter is open;
-	Close iter;
-	Require: iter is closed;
-];
-
-Test "file iterator(readable,small buffer)" in file iterator test suite is
-[
-	ref ::= map "abracadabra" through [c : character | c's code point];
-	fn ::= testDir / "abracadabra.txt";
-	iter ::= a file reader for fn aligning buffers to 3 bytes;
-	Require: iter is open;
-	Require: take at most ∞ from iter = ref;
-	Require: iter is exhausted;
-	Require: iter is open;
-	Close iter;
-	Require: iter is closed;
-];
-
-Test "file iterator(readable,reposition)" in file iterator test suite is
-[
-	ref ::= map "abracadabra" through [c : character | c's code point];
-	fn ::= testDir / "abracadabra.txt";
-	iter ::= a file reader for fn;
-	Require: iter is open;
-	Require: take at most ∞ from iter = ref;
-	Require: iter is exhausted;
-	Require: iter is open;
-	iter's position := 1;
-	Require: take at most ∞ from iter = ref;
-	Require: iter is exhausted;
-	Require: iter is open;
-	Close iter;
-	Require: iter is closed;
-];
-
-Test "file iterator(double close)" in file iterator test suite is
-[
-	fn ::= testDir / "abracadabra.txt";
-	iter ::= a file reader for fn;
-	Close iter;
-	Close iter;
-]
-must raise file-closed exception;
-
-Test "file iterator(can't open for reading)" in file iterator test suite is
-[
-	fn ::= testDir / "doesntexist.txt";
-	iter ::= a file reader for fn;
-]
-must raise I/O exception;

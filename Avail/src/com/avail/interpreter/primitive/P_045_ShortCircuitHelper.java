@@ -31,10 +31,14 @@
  */
 package com.avail.interpreter.primitive;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 
 /**
  * <strong>Primitive 45:</strong> Run the zero-argument {@linkplain
@@ -69,14 +73,41 @@ public final class P_045_ShortCircuitHelper extends Primitive
 	}
 
 	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type blockType = argumentTypes.get(1);
+		return blockType.returnType();
+	}
+
+	/**
+	 * Clear the arguments list (to correspond with the arguments being sent to
+	 * the function in the second argument), then answer the register holding
+	 * that function.
+	 */
+	@Override
+	public @Nullable L2ObjectRegister foldOutInvoker (
+		final List<L2ObjectRegister> args,
+		final L1NaiveTranslator naiveTranslator)
+	{
+		assert hasFlag(Flag.Invokes);
+		assert !hasFlag(Flag.CanInline);
+		assert !hasFlag(Flag.CanFold);
+
+		final L2ObjectRegister functionReg = args.get(1);
+		args.clear();
+		return functionReg;
+	}
+
+	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				EnumerationTypeDescriptor.booleanObject(),
+				ANY.o(),
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.empty(),
-					EnumerationTypeDescriptor.booleanObject())),
-			EnumerationTypeDescriptor.booleanObject());
+					TOP.o())),
+			TOP.o());
 	}
 }

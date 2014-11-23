@@ -112,7 +112,9 @@ extends L2Operation
 		final long before = System.nanoTime();
 		final boolean checkOk = result.isInstanceOf(expectedType);
 		final long after = System.nanoTime();
-		primitive.addNanosecondsCheckingResultType(after - before);
+		primitive.addNanosecondsCheckingResultType(
+			after - before,
+			interpreter.interpreterIndex);
 		if (checkOk)
 		{
 			resultReg.set(result, interpreter);

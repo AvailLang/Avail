@@ -37,6 +37,7 @@ Uses
 	"Bootstrap",
 	"Definers",
 	"Early Assertions",
+	"Early Conditionals",
 	"Early Control Structures",
 	"Early Enumeration Support",
 	"Early Literals",

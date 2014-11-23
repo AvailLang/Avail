@@ -46,6 +46,10 @@ Extends
 		"_'s⁇type"
 	),
 	"Definers",
+	"Early Assertions" =
+	(
+		"Static assert:_†"
+	),
 	"Exceptions",
 	"Objects"
 Names

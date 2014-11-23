@@ -2648,8 +2648,7 @@ public class MessageSplitter
 						subexpression = new Optional(subgroup);
 						messagePartPosition++;
 					}
-					else if (token.equals(
-						doubleQuestionMark()))
+					else if (token.equals(doubleQuestionMark()))
 					{
 						if (subgroup.underscoreCount() > 0
 							|| subgroup.hasDagger)
@@ -2662,8 +2661,7 @@ public class MessageSplitter
 						subexpression = new CompletelyOptional(subgroup);
 						messagePartPosition++;
 					}
-					else if (token.equals(
-						exclamationMark()))
+					else if (token.equals(exclamationMark()))
 					{
 						if (subgroup.underscoreCount() > 0
 							|| subgroup.hasDagger

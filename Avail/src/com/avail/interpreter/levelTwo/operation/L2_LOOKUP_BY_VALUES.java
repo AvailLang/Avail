@@ -96,7 +96,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		final A_Definition definitionToCall =
 			method.lookupByValuesFromList(interpreter.argsBuffer, errorCode);
 		final long after = System.nanoTime();
-		Interpreter.recordDynamicLookup(bundle, after - before);
+		interpreter.recordDynamicLookup(bundle, after - before);
 		if (definitionToCall.equalsNil())
 		{
 			errorCodeReg.set(errorCode.value().numericCode(), interpreter);

@@ -42,8 +42,8 @@ import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.*;
+import com.avail.performance.PerInterpreterStatistic;
 import com.avail.performance.Statistic;
-import com.avail.performance.Statistic.StatisticSnapshot;
 import com.avail.utility.Pair;
 
 /**
@@ -401,14 +401,14 @@ public abstract class L2Operation
 		for (final L2Operation operation : values())
 		{
 			if (operation != null
-				&& operation.statisticInNanoseconds.snapshot().count() > 0)
+				&& operation.statisticInNanoseconds.aggregate().count() > 0)
 			{
 				stats.add(operation.statisticInNanoseconds);
 			}
 		}
-		final List<Pair<String, StatisticSnapshot>> pairs =
-			Statistic.sortedSnapshotPairs(stats);
-		for (final Pair<String, StatisticSnapshot> pair : pairs)
+		final List<Pair<String, PerInterpreterStatistic>> pairs =
+			PerInterpreterStatistic.sortedPairs(stats);
+		for (final Pair<String, PerInterpreterStatistic> pair : pairs)
 		{
 			pair.second().describeNanosecondsOn(builder);
 			builder.append(" ");

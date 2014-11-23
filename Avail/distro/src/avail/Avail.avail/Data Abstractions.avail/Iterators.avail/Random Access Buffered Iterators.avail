@@ -50,20 +50,18 @@ Names
 
 	/* Test suites. */
 	"random access test suite",
-	
+
 	/* Protocol for subtypes. */
 	"_'s⁇buffer start",
 	"_'s⁇buffer start:=_"
-
 Body
-
 
 /**
  * Random access buffered iterator is an abstraction that combines the ability
  * to position among the natural numbers and the responsibility for implementing
  * buffering, independently of being able to do anything <em>with</em> the
  * buffers, such as reading or writing.
- * 
+ *
  * @type "random access buffered iterator"
  * @supertype "positionable iterator"
  */
@@ -151,7 +149,6 @@ Method "_'s⁇position" is
 	p ?→ natural number
 ] : natural number;
 
-
 /**
  * Set the current position of the {@type "random access buffered iterator"}.
  * 
@@ -169,8 +166,17 @@ Method "_'s⁇position:=_" is
 	anIterator : random access buffered iterator,
 	newPosition : natural number
 |
-	↑anIterator's position in buffer ?=
-		newPosition - anIterator's buffer start + 1;
+	If |anIterator's buffer| = 0 then
+	[
+		/* Set the global position and reset the position within the buffer. */
+		anIterator's buffer start := newPosition;
+		↑anIterator's position in buffer ?= 1;
+	]
+	else
+	[
+		↑anIterator's position in buffer ?=
+			newPosition - anIterator's buffer start + 1;
+	];
 	Assert: anIterator's position = newPosition;
 ];
 
@@ -203,6 +209,18 @@ random access buffered iterator's advance method is
 
 Seal random access buffered iterator's advance method;
 
+/**
+ * Discard any cached information about the reader, including the current buffer.
+ *
+ * @method "Refresh_"
+ * @param "aReader" "random access buffered reader"
+ */
+Method "Refresh_" is
+[
+	aReader : random access buffered reader
+|
+	↑aReader's buffer ?= <>;
+] : ⊤;
 
 /**
  * Answer a tuple containing (at most) the first {@param "count"} elements of
@@ -232,36 +250,31 @@ Method "take«at most»?_from_" is
 	aReader : random access buffered reader
 |
 	result : tuple := <>;
-	Guard
+	positionInBufferVariable ::= ↑aReader's position in buffer;
+	Until
 	[
-		positionInBufferVariable ::= ↑aReader's position in buffer;
-		Until
-		[
-			aReader is exhausted ∨ [ |result| = count ]
-		]
-		do
-		[
-			/* The "_is exhausted" above set up the buffer if necessary, and
-			 * ensured (because it answered false for us to get here) that the
-			 * buffer contains at least one element of interest to us.
-			 */
-			buffer ::= aReader's buffer;
-			startInBuffer : natural number;
-			startInBuffer ?= ↓positionInBufferVariable;
-			endInBuffer : natural number;
-			endInBuffer ?= (startInBuffer + count - 1 - |result|) min |buffer|;
-			batchSize : natural number;
-			batchSize ?= endInBuffer - startInBuffer + 1;
-			result := eject result ++ buffer[startInBuffer..endInBuffer];
-			positionInBufferVariable ?= 
-				eject positionInBufferVariable + batchSize;
-		];
+		aReader is exhausted ∨ [ |result| = count ]
 	]
-	intercept
+	do
 	[
-		e : exhausted-iterator exception
-	|
-		Unless isLax then [Raise e];
+		/* The "_is exhausted" above set up the buffer if necessary, and
+		 * ensured (because it answered false for us to get here) that the
+		 * buffer contains at least one element of interest to us.
+		 */
+		buffer ::= aReader's buffer;
+		startInBuffer : natural number;
+		startInBuffer ?= ↓positionInBufferVariable;
+		endInBuffer : natural number;
+		endInBuffer ?= (startInBuffer + count - 1 - |result|) min |buffer|;
+		batchSize : natural number;
+		batchSize ?= endInBuffer - startInBuffer + 1;
+		result := eject result ++ buffer[startInBuffer..endInBuffer];
+		positionInBufferVariable ?= 
+			eject positionInBufferVariable + batchSize;
+	];
+	If ¬isLax ∧ [ |result| ≠ count ] then
+	[
+		Raise an exhausted-iterator exception
 	];
 	result
 ] : tuple;

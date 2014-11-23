@@ -125,7 +125,7 @@ public final class RegisterSet
 	 * @param fixedRegister The FixedRegister to look up.
 	 * @return The corresponding L2ObjectRegister.
 	 */
-	L2ObjectRegister fixed (
+	public L2ObjectRegister fixed (
 		final FixedRegister fixedRegister)
 	{
 		return fixedRegisters.get(fixedRegister);

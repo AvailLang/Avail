@@ -1,5 +1,5 @@
 /*
- * Cast.avail
+ * Early Control Structures.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -36,6 +36,7 @@ Versions
 Uses
 	"Bootstrap",
 	"Early Assertions",
+	"Early Conditionals",
 	"Early Definers",
 	"Early Enumeration Support",
 	"Early Literals",

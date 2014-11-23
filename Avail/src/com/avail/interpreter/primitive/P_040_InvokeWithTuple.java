@@ -36,8 +36,14 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.Invokes;
 import static com.avail.interpreter.Primitive.Fallibility.*;
 import java.util.*;
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteVectorOperand;
+import com.avail.interpreter.levelTwo.operation.L2_EXPLODE_TUPLE;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 
 /**
  * <strong>Primitive 40:</strong> {@linkplain FunctionDescriptor Function}
@@ -86,6 +92,99 @@ extends Primitive
 			callArgs.add(anArg);
 		}
 		return interpreter.invokeFunction(block, callArgs, false);
+	}
+
+	/**
+	 * The arguments list initially has two entries: the register holding the
+	 * function to invoke, and the register holding the tuple of arguments to
+	 * pass it.  If it can be determined which registers or constants provided
+	 * each tuple slot, then indicate that this invocation should be transformed
+	 * by answering the register holding the function after replacing the list
+	 * of (two) argument registers by the list of registers that supplied
+	 * entries for the tuple.  If some tuple slots were populated from
+	 * constants, emit suitable constant moves into fresh registers.
+	 *
+	 * If, however, the exact constant function cannot be determined, and it
+	 * cannot be proven that the function's type is adequate to accept the
+	 * arguments (each of whose type must be known here for safety), then don't
+	 * change the list of arguments, and simple return null.
+	 */
+	@Override
+	public @Nullable L2ObjectRegister foldOutInvoker (
+		final List<L2ObjectRegister> args,
+		final L1NaiveTranslator naiveTranslator)
+	{
+		assert hasFlag(Flag.Invokes);
+		assert !hasFlag(Flag.CanInline);
+		assert !hasFlag(Flag.CanFold);
+
+		final L2ObjectRegister functionReg = args.get(0);
+		final L2ObjectRegister argsRegister = args.get(1);
+
+		// First see if there's enough type information available about the
+		// tuple of arguments.
+		final A_Type argsTupleType =
+			naiveTranslator.naiveRegisters().typeAt(argsRegister);
+		final A_Type argsTupleTypeSizes = argsTupleType.sizeRange();
+		if ((!argsTupleTypeSizes.lowerBound().equals(
+				argsTupleTypeSizes.upperBound()))
+			|| !argsTupleTypeSizes.lowerBound().isInt())
+		{
+			// The exact tuple size is not known (or enormous).  Give up.
+			return null;
+		}
+		final int argsSize = argsTupleTypeSizes.lowerBound().extractInt();
+
+		// Now examine the function type.
+		final A_Type functionType =
+			naiveTranslator.naiveRegisters().typeAt(functionReg);
+		final A_Type functionArgsType = functionType.argsTupleType();
+		final A_Type functionTypeSizes = functionArgsType.sizeRange();
+
+		if ((!functionTypeSizes.lowerBound().equals(
+				functionTypeSizes.upperBound()))
+			|| (!functionTypeSizes.lowerBound().isInt())
+			|| (functionTypeSizes.lowerBound().extractInt() != argsSize))
+		{
+			// The exact argument count of the function is not known, is
+			// enormous, or disagrees with the tuple size.
+			return null;
+		}
+
+		// Check if the (same-sized) tuple element types agree with the types
+		// the function will expect.
+		for (int i = 0; i < argsSize; i++)
+		{
+			final A_Type argType = argsTupleType.typeAtIndex(i);
+			if (!argType.isSubtypeOf(functionArgsType.typeAtIndex(i)))
+			{
+				// A tuple element is not strong enough to guarantee successful
+				// invocation of the function.
+				return null;
+			}
+		}
+		// At this point we know the invocation will succeed.  The function it
+		// invokes may be a primitive which could fail, but that's someone
+		// else's problem.
+
+		// Emit code to get the tuple slots into separate registers for the
+		// invocation, *extracting* them from the tuple if necessary.
+		final List<L2ObjectRegister> argsTupleRegisterList =
+			new ArrayList<>(argsSize);
+		for (int i = 0; i < argsSize; i++)
+		{
+			final L2ObjectRegister newReg = naiveTranslator.newObjectRegister();
+			argsTupleRegisterList.add(newReg);
+		}
+		naiveTranslator.addInstruction(
+			L2_EXPLODE_TUPLE.instance,
+			new L2ReadPointerOperand(argsRegister),
+			new L2WriteVectorOperand(
+				naiveTranslator.createVector(argsTupleRegisterList)));
+		// Replace the arguments with the newly allocated registers.
+		args.clear();
+		args.addAll(argsTupleRegisterList);
+		return functionReg;
 	}
 
 	@Override

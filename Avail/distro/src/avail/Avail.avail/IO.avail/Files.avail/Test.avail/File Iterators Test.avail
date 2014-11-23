@@ -1,0 +1,150 @@
+/*
+ * File Iterators Test.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "File Iterators Test"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Extends
+	"Data Abstractions" =
+	(
+		"_'s⁇position",
+		"_'s⁇position:=_"
+	),
+	"Primitives" =
+	(
+		"Using|using_,⁇do_",
+		"_is closed",
+		"_is open"
+	)
+Uses
+	"Common",
+	"Data Abstractions",
+	"File Iterators",
+	"File Management",
+	"File Names",
+	"File Open Options",
+	"Foundation",
+	"Primitives",
+	"Unit Testing"
+/*
+	"File Open Options",
+*/
+Names
+Body
+
+"file iterator test suite" is a new atom;
+New test suite file iterator test suite extends I/O test suite;
+
+/* The test directory. */
+testDir ::= a file named test directory;
+
+Test "file iterator(readable)" in file iterator test suite is
+[
+	ref ::= map "abracadabra" through [c : character | c's code point];
+	fn ::= testDir / "abracadabra.txt";
+	iter ::= a file reader for fn;
+	Require: iter is open;
+	Require: take at most ∞ from iter = ref;
+	Require: iter is exhausted;
+	Require: iter is open;
+	Close iter;
+	Require: iter is closed;
+];
+
+Test "file iterator(readable,small buffer)" in file iterator test suite is
+[
+	ref ::= map "abracadabra" through [c : character | c's code point];
+	fn ::= testDir / "abracadabra.txt";
+	iter ::= a file reader for fn aligning buffers to 3 bytes;
+	Require: iter is open;
+	Require: take at most ∞ from iter = ref;
+	Require: iter is exhausted;
+	Require: iter is open;
+	Close iter;
+	Require: iter is closed;
+];
+
+Test "file iterator(readable,reposition)" in file iterator test suite is
+[
+	ref ::= map "abracadabra" through [c : character | c's code point];
+	fn ::= testDir / "abracadabra.txt";
+	iter ::= a file reader for fn;
+	Require: iter is open;
+	Require: take at most ∞ from iter = ref;
+	Require: iter is exhausted;
+	Require: iter is open;
+	iter's position := 1;
+	Require: take at most ∞ from iter = ref;
+	Require: iter is exhausted;
+	Require: iter is open;
+	Close iter;
+	Require: iter is closed;
+];
+
+Test "file iterator(double close)" in file iterator test suite is
+[
+	fn ::= testDir / "abracadabra.txt";
+	iter ::= a file reader for fn;
+	Close iter;
+	Close iter;
+]
+must raise file-closed exception;
+
+Test "file iterator(can't open for reading)" in file iterator test suite is
+[
+	fn ::= testDir / "doesntexist.txt";
+	iter ::= a file reader for fn;
+]
+must raise I/O exception;
+
+Test "file iterator(refresh/synchronize)" in file iterator test suite is
+[
+	fileName ::= testDir / "deleteme.txt";
+	aWriter ::= a file writer for fileName
+		with options {create, truncate existing};
+	aReader ::= a file reader for fileName;
+	Guard
+	[
+		Write <67, 97, 116> to aWriter;
+		Synchronize aWriter;
+		Refresh aReader;
+		bytes ::= take 3 from aReader;
+		Assert: bytes = <67, 97, 116>;
+		Assert: aReader is exhausted;
+	]
+	ensure
+	[
+		Close aWriter;
+		Close aReader;
+		Unlink fileName;
+	];
+];

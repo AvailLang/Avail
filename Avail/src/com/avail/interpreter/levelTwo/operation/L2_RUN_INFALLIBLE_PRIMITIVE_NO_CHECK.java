@@ -126,7 +126,10 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK extends L2Operation
 			primitive.returnTypeGuaranteedByVM(argTypes);
 		registerSet.removeTypeAt(resultReg);
 		registerSet.removeConstantAt(resultReg);
-		registerSet.typeAtPut(resultReg, guaranteedType, instruction);
+		if (!guaranteedType.isBottom())
+		{
+			registerSet.typeAtPut(resultReg, guaranteedType, instruction);
+		}
 	}
 
 	@Override

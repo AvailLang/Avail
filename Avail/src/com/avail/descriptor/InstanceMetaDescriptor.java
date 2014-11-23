@@ -277,8 +277,8 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	A_Number o_InstanceCount (final AvailObject object)
 	{
-		// Technically my instance are the instance I specify, which is a type,
-		// plus all subtypes of it.  However, to distinguish metas from kinds
+		// Technically my instance is the instance I specify, which is a type,
+		// *plus* all subtypes of it.  However, to distinguish metas from kinds
 		// we need it to answer one here.
 		return IntegerDescriptor.one();
 	}
@@ -399,35 +399,40 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsIntegerRangeType (final AvailObject object)
 	{
-		throw unsupportedOperationException();
+		// A metatype can't be an integer range type.
+		return false;
 	}
 
 
 	@Override @AvailMethod
 	boolean o_IsLiteralTokenType (final AvailObject object)
 	{
-		throw unsupportedOperationException();
+		// A metatype can't be a literal token type.
+		return false;
 	}
 
 
 	@Override @AvailMethod
 	boolean o_IsMapType (final AvailObject object)
 	{
-		throw unsupportedOperationException();
+		// A metatype can't be a map type.
+		return false;
 	}
 
 
 	@Override @AvailMethod
 	boolean o_IsSetType (final AvailObject object)
 	{
-		throw unsupportedOperationException();
+		// A metatype can't be a set type.
+		return false;
 	}
 
 
 	@Override @AvailMethod
 	boolean o_IsTupleType (final AvailObject object)
 	{
-		throw unsupportedOperationException();
+		// A metatype can't be a tuple type.
+		return false;
 	}
 
 

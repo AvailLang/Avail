@@ -77,8 +77,8 @@ extends Primitive
 		}
 		// The block is treated as a top-level construct, so it must not refer
 		// to any outer variables. Any blocks contained by this block may, of
-		// course, refer to outer variables (so long as they are defined by
-		// this block)!
+		// course, refer to outer variables – so long as they are defined by
+		// this block!
 		if (block.neededVariables().tupleSize() > 0)
 		{
 			return interpreter.primitiveFailure(

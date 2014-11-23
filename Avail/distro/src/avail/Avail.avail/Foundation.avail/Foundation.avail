@@ -39,6 +39,7 @@ Extends
 		"Assert:_",
 		"Assert:_(_)",
 		"Shouldn't happen",
+		"Static assert:_†",
 		"assertion-failed exception"
 	),
 	"Atoms" =
@@ -69,8 +70,6 @@ Extends
 		"Euler's number",
 		"Forward method_is_",
 		"Grammatical restriction_is_",
-		"If_then_",
-		"If|if_then_else_",
 		"In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
 		"in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
 		"Invoke|invoke_with_",
@@ -535,6 +534,11 @@ Extends
 		"While_do_alternate with_",
 		"here",
 		"(_)"
+	),
+	"Early Conditionals" =
+	(
+		"If_then_",
+		"If|if_then_else_"
 	),
 	"Enumeration Support" =
 	(

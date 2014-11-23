@@ -60,8 +60,8 @@ import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.interpreter.primitive.*;
 import com.avail.optimizer.*;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
+import com.avail.performance.PerInterpreterStatistic;
 import com.avail.performance.Statistic;
-import com.avail.performance.Statistic.StatisticSnapshot;
 import com.avail.utility.Pair;
 
 
@@ -786,12 +786,14 @@ implements IntegerEnumSlotDescriptionEnum
 	 * Record that some number of nanoseconds were just expended running this
 	 * primitive.
 	 *
-	 * @param deltaNanoseconds
+	 * @param deltaNanoseconds The sample to add, in nanoseconds.
+	 * @param interpreterIndex The contention bin in which to add the sample.
 	 */
 	public void addNanosecondsRunning (
-		final long deltaNanoseconds)
+		final long deltaNanoseconds,
+		final int interpreterIndex)
 	{
-		runningNanos.record(deltaNanoseconds);
+		runningNanos.record(deltaNanoseconds, interpreterIndex);
 	}
 
 	/**
@@ -809,11 +811,15 @@ implements IntegerEnumSlotDescriptionEnum
 	 * type of the value returned by this primitive.
 	 *
 	 * @param deltaNanoseconds
+	 *        The amount of time just spent checking the result type.
+	 * @param interpreterIndex
+	 *        The
 	 */
 	public void addNanosecondsCheckingResultType (
-		final long deltaNanoseconds)
+		final long deltaNanoseconds,
+		final int interpreterIndex)
 	{
-		resultTypeCheckingNanos.record(deltaNanoseconds);
+		resultTypeCheckingNanos.record(deltaNanoseconds, interpreterIndex);
 	}
 
 	/**
@@ -870,14 +876,14 @@ implements IntegerEnumSlotDescriptionEnum
 		for (int i = 1; i <= maxPrimitiveNumber; i++)
 		{
 			final Primitive prim = byPrimitiveNumberOrNull(i);
-			if (prim != null && prim.runningNanos.snapshot().count() > 0)
+			if (prim != null && prim.runningNanos.aggregate().count() > 0)
 			{
 				stats.add(prim.runningNanos);
 			}
 		}
-		final List<Pair<String, StatisticSnapshot>> pairs =
-			Statistic.sortedSnapshotPairs(stats);
-		for (final Pair<String, StatisticSnapshot> pair : pairs)
+		final List<Pair<String, PerInterpreterStatistic>> pairs =
+			PerInterpreterStatistic.sortedPairs(stats);
+		for (final Pair<String, PerInterpreterStatistic> pair : pairs)
 		{
 			pair.second().describeNanosecondsOn(builder);
 			builder.append(" ");
@@ -900,14 +906,14 @@ implements IntegerEnumSlotDescriptionEnum
 		{
 			final Primitive prim = byPrimitiveNumberOrNull(i);
 			if (prim != null
-				&& prim.resultTypeCheckingNanos.snapshot().count() > 0)
+				&& prim.resultTypeCheckingNanos.aggregate().count() > 0)
 			{
 				stats.add(prim.resultTypeCheckingNanos);
 			}
 		}
-		final List<Pair<String, StatisticSnapshot>> pairs =
-			Statistic.sortedSnapshotPairs(stats);
-		for (final Pair<String, StatisticSnapshot> pair : pairs)
+		final List<Pair<String, PerInterpreterStatistic>> pairs =
+			PerInterpreterStatistic.sortedPairs(stats);
+		for (final Pair<String, PerInterpreterStatistic> pair : pairs)
 		{
 			pair.second().describeNanosecondsOn(builder);
 			builder.append(" ");
@@ -1088,4 +1094,36 @@ implements IntegerEnumSlotDescriptionEnum
 		}
 	}
 
+	/**
+	 * This primitive is being invoked.  It must have the flag {@link
+	 * Flag#Invokes}, but must not contain {@link Flag#CanInline} or {@link
+	 * Flag#CanFold}.  The specific primitive should examine the arguments to
+	 * determine which object register holds the function that is actually being
+	 * invoked, then return that register.  The arguments {@link List} should
+	 * also be updated to correspond with how the replacement function is to be
+	 * invoked.
+	 *
+	 * @param args
+	 *        The argument registers for the primitive call doing the invoking.
+	 *        This list should be replaced with a suitable list of arguments for
+	 *        invoking the replacement function.
+	 * @param naiveTranslator
+	 *        The register set at the position of the call.
+	 * @return
+	 *        The {@link L2ObjectRegister} holding the replacement function to
+	 *        invoke instead of this Invokes primitive.
+	 */
+	public @Nullable L2ObjectRegister foldOutInvoker (
+		final List<L2ObjectRegister> args,
+		final L1NaiveTranslator naiveTranslator)
+	{
+		assert hasFlag(Flag.Invokes);
+		assert !hasFlag(Flag.CanInline);
+		assert !hasFlag(Flag.CanFold);
+
+		assert false
+			: "Primitive subclass with Invokes flag should have "
+				+ "overriden foldOutInvoker()";
+		throw new RuntimeException("Unreachable");
+	}
 }

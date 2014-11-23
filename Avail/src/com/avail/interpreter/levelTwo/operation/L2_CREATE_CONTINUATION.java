@@ -76,7 +76,8 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 		final int levelOneStackp = instruction.immediateAt(3);
 		final L2IntegerRegister skipReturnReg =
 			instruction.readIntRegisterAt(4);
-		final L2RegisterVector slotsVector = instruction.readVectorRegisterAt(5);
+		final L2RegisterVector slotsVector =
+			instruction.readVectorRegisterAt(5);
 		final int levelTwoOffset = instruction.pcAt(6);
 		final L2ObjectRegister destReg = instruction.writeObjectRegisterAt(7);
 
@@ -93,12 +94,12 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 				skipReturnCheck,
 				interpreter.chunk(),
 				levelTwoOffset);
-		int index = 1;
-		for (final L2ObjectRegister slotRegister : slotsVector.registers())
+		final List<L2ObjectRegister> registers = slotsVector.registers();
+		for (int index = 0, limit = registers.size(); index < limit; index++)
 		{
 			continuation.argOrLocalOrStackAtPut(
-				index++,
-				slotRegister.in(interpreter));
+				index + 1,
+				interpreter.pointerAt(registers.get(index).finalIndex()));
 		}
 		destReg.set(continuation, interpreter);
 	}

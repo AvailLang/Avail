@@ -77,7 +77,7 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 1;
+		assert args.size() == 4;
 		final A_Atom atom = args.get(0);
 		final A_Function succeed = args.get(1);
 		final A_Function fail = args.get(2);

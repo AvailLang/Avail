@@ -49,6 +49,7 @@ Names
 	"_'s⁇buffer",
 	"_'s⁇maximum buffer size",
 	"_'s⁇position in buffer",
+	"`↑_'s⁇buffer",
 	"`↑_'s⁇position in buffer",
 
 	/* Extension. */
@@ -61,6 +62,10 @@ Names
 	"buffer",
 	"maximum buffer size",
 	"position in buffer",
+
+	/* Operations. */
+	"Refresh_",
+	"Synchronize_",
 
 	/* Test suites. */
 	"buffered iterator test suite"
@@ -193,8 +198,6 @@ Public method "Seal_'s⁇exit buffer method" is
 	Seal method privateExitBufferName at <iteratorType>;
 ] : ⊤;
 
-
-
 /**
  * Define a method to fetch the next buffer for a {@type "buffered reader"}.
  * This is a private operation that should not be called directly from client
@@ -319,36 +322,106 @@ Method "take«at most»?_from_" is
 	aReader : buffered reader
 |
 	result : tuple := <>;
-	Guard
+	Until
 	[
-		Until
-		[
-			aReader is exhausted ∨ [ |result| = count ]
-		]
-		do
-		[
-			/* The "_is exhausted" above set up the buffer if necessary, and
-			 * ensured (because it answered false for us to get here) that the
-			 * buffer contains at least one element of interest to us.
-			 */
-			buffer ::= aReader's buffer;
-			startInBuffer : natural number;
-			startInBuffer ?= aReader's position in buffer;
-			endInBuffer : natural number;
-			endInBuffer ?=
-				(startInBuffer + count - 1 - |result|) min |buffer|;
-			batchSize : natural number;
-			batchSize ?= endInBuffer - startInBuffer + 1;
-			result := eject result ++ buffer[startInBuffer..endInBuffer];
-			aReader's position in buffer :=
-				aReader's position in buffer + batchSize;
-		];
+		aReader is exhausted ∨ [ |result| = count ]
 	]
-	intercept
+	do
 	[
-		e : exhausted-iterator exception
-	|
-		Unless isLax then [Raise e];
+		/* The "_is exhausted" above set up the buffer if necessary, and
+		 * ensured (because it answered false for us to get here) that the
+		 * buffer contains at least one element of interest to us.
+		 */
+		buffer ::= aReader's buffer;
+		startInBuffer : natural number;
+		startInBuffer ?= aReader's position in buffer;
+		endInBuffer : natural number;
+		endInBuffer ?= (startInBuffer + count - 1 - |result|) min |buffer|;
+		batchSize : natural number;
+		batchSize ?= endInBuffer - startInBuffer + 1;
+		result := eject result ++ buffer[startInBuffer..endInBuffer];
+		aReader's position in buffer :=
+			aReader's position in buffer + batchSize;
+	];
+	If ¬isLax ∧ [ |result| ≠ count ] then
+	[
+		Raise an exhausted-iterator exception
 	];
 	result
 ] : tuple;
+
+/**
+ * Write the elements of the specified {@type "tuple"} to the supplied {@type
+ * "buffered writer"}. This operation should be more efficient than repeatedly
+ * sending {@method "_'s⁇current element:=_"} and {@method "Advance_"}.
+ *
+ * @method "Write_to_"
+ * @param "newElements" "tuple"
+ * @param "aWriter" "buffered writer"
+ * @returns "⊤"
+ */
+Method "Write_to_" is
+[
+	newElements : tuple,
+	aWriter : buffered writer
+|
+	If |newElements| > 0 then
+	[
+		oldBuffer : tuple := aWriter's buffer;
+		startInBuffer : integer := aWriter's position in buffer;
+		If ¬ 1 ≤ startInBuffer ≤ |oldBuffer| + 1 then
+		[
+			Private exit aWriter's current buffer;
+			oldBuffer := aWriter's buffer;
+			startInBuffer := aWriter's position in buffer;
+			Assert: 1 ≤ startInBuffer ≤ |oldBuffer| + 1;
+		];
+		naturalStart ::= startInBuffer ?→ natural number;
+		newBuffer ::= oldBuffer
+			[
+				naturalStart ..
+				(naturalStart + |newElements| - 1) min |oldBuffer|
+			] → newElements;
+		aWriter's buffer := newBuffer;
+		aWriter's position in buffer :=
+			aWriter's position in buffer + |newElements|;
+		/* If we've buffered more than we're allowed, flush the buffer. */
+		If |newBuffer| > aWriter's maximum buffer size then
+		[
+			Private exit aWriter's current buffer;
+		];
+	];
+];
+
+/**
+ * Overwriting the current element with {@method "_'s⁇current element:=_"}
+ * probably won't happen much for buffered iterators, but here's the inefficient
+ * implementation in terms of {@method "Write_to_"}.
+ * 
+ * @method "_'s⁇current element:=_"
+ * @param "aWriter" "buffered writer"
+ * @param "element" "any"
+ */
+Method "_'s⁇current element:=_" is
+[
+	aWriter : buffered writer,
+	element : any
+|
+	Write <element> to aWriter;
+	aWriter's position in buffer := aWriter's position in buffer - 1;
+] : ⊤;
+
+/**
+ * Synchronize the {@type "buffered writer" writer}'s buffer with the underlying
+ * device.
+ *
+ * @method "Synchronize_"
+ * @param "aWriter" "buffered writer"
+ * @returns "⊤"
+ */
+Public method "Synchronize_" is
+[
+	aWriter : buffered writer
+|
+	Private exit aWriter's current buffer;
+] : ⊤;

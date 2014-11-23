@@ -254,6 +254,34 @@ extends TupleDescriptor
 		return closeGuillemet;
 	}
 
+	/** A tuple containing just the open-single-guillemet character. */
+	private static final A_String openSingleGuillemet = from("‹").makeShared();
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the open-single guillemet character ("‹").
+	 *
+	 * @return A tuple containing just the open-single-guillemet character.
+	 */
+	public static A_String openSingleGuillemet ()
+	{
+		return openSingleGuillemet;
+	}
+
+	/** A tuple containing just the close-single-guillemet character. */
+	private static final A_String closeSingleGuillemet = from("›").makeShared();
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the close-single-guillemet character ("›").
+	 *
+	 * @return A tuple containing just the close-single-guillemet character.
+	 */
+	public static A_String closeSingleGuillemet ()
+	{
+		return closeSingleGuillemet;
+	}
+
 	/** A tuple containing just the double-dagger character. */
 	private static final A_String doubleDagger = from("‡").makeShared();
 

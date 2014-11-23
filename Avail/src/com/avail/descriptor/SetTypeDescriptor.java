@@ -280,6 +280,18 @@ extends TypeDescriptor
 
 	/**
 	 * Create a set type with the given range of sizes and content type.
+	 * Normalize it certain ways:
+	 *
+	 * <ul>
+	 * <li>An enumeration for the size range is weakened to a kind.</li>
+	 * <li>A ⊥ content type implies exactly zero elements, or ⊥ as the resulting
+	 * set type if zero is not an allowed size.</li>
+	 * <li>At most zero elements implies a ⊥ content type.</li>
+	 * <li>A non-meta enumeration for the content bounds the maximum size of the
+	 * set (e.g., a set of booleans has at most 2 elements).</li>
+	 * <li>Similarly, an integral range for the content type bounds the maximum
+	 * size of the set (you can't have a 1000-element set of bytes).</li>
+	 * </ul>
 	 *
 	 * @param sizeRange
 	 *        The allowed sizes of my instances.
@@ -330,7 +342,37 @@ extends TypeDescriptor
 		}
 		else
 		{
-			newSizeRange = sizeRangeKind;
+			final A_Type contentRestrictedSizes;
+			if (contentType.isEnumeration() && !contentType.isInstanceMeta())
+			{
+				// There can't ever be more elements in the set than there are
+				// distinct possible values.
+				contentRestrictedSizes = IntegerRangeTypeDescriptor.inclusive(
+					IntegerDescriptor.zero(), contentType.instanceCount());
+			}
+			else if (contentType.isIntegerRangeType()
+				&& (contentType.lowerBound().isFinite()
+					|| contentType.upperBound().isFinite()
+					|| contentType.lowerBound().equals(
+						contentType.upperBound())))
+			{
+				// We had already ruled out ⊥, and the latest test rules out
+				// [-∞..∞], [-∞..∞), (-∞..∞], and (-∞..∞), allowing safe
+				// subtraction.
+				contentRestrictedSizes = IntegerRangeTypeDescriptor.inclusive(
+					IntegerDescriptor.zero(),
+					contentType.upperBound().minusCanDestroy(
+							contentType.lowerBound(), false)
+						.plusCanDestroy(IntegerDescriptor.one(), false));
+			}
+			else
+			{
+				// Otherwise don't narrow the size range.
+				contentRestrictedSizes =
+					IntegerRangeTypeDescriptor.wholeNumbers();
+			}
+			newSizeRange = sizeRangeKind.typeIntersection(
+				contentRestrictedSizes);
 			newContentType = contentType;
 		}
 		final AvailObject result = mutable.create();

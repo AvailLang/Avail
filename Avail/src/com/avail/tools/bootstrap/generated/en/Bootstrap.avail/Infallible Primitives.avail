@@ -52,8 +52,6 @@ Uses
 		"Assert:_(_)",
 		"Breakpoint",
 		"Crash:_",
-		"If_then_",
-		"If|if_then_else_",
 		"Park current fiber",
 		"Request termination of_",
 		"Restart_",
@@ -633,51 +631,6 @@ Primitive "[`…]→_" is
 |
 	Primitive 39;
 ] : function meta;
-
-/**
- * Given a predicate value and two functions, invoke one of them and answer its
- * result.
- *
- * @category "Primitives" "Control Structures" "Conditionals"
- * @method "If|if_then_else_"
- * @param "predicate" "boolean"
- *        A predicate value.
- * @param "trueFunction" "nullary procedure"
- *        The function to invoke if {@param "predicate"} is `true`.
- * @param "falseFunction" "nullary procedure"
- *        The function to invoke if {@param "trueFunction"} is `false`.
- * @returns "⊤"
- *    If {@param "predicate"} is `true`, then the value produced by invoking
- *    {@param "trueFunction"}; otherwise, the value produced by invoking {@param "falseFunction"}.
- */
-Primitive "If|if_then_else_" is
-[
-	predicate : boolean,
-	trueFunction : nullary procedure,
-	falseFunction : nullary procedure
-|
-	Primitive 43;
-] : ⊤;
-
-/**
- * Given a predicate value and a function, conditionally invoke the specified
- * function.
- *
- * @category "Primitives" "Control Structures" "Conditionals"
- * @method "If_then_"
- * @param "predicate" "boolean"
- *        A predicate value.
- * @param "trueBlock" "nullary procedure"
- *        The function to invoke if {@param "predicate"} is `true`.
- * @returns "⊤"
- */
-Primitive "If_then_" is
-[
-	predicate : boolean,
-	trueBlock : nullary procedure
-|
-	Primitive 44;
-] : ⊤;
 
 /**
  * Answer the current value of the high-precision timer. The answer has

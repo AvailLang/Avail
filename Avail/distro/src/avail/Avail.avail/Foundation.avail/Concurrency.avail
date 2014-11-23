@@ -47,6 +47,7 @@ Uses
 		…
 	),
 	"Definers",
+	"Early Conditionals",
 	"Enumeration Support",
 	"Exceptions",
 	"Functions",

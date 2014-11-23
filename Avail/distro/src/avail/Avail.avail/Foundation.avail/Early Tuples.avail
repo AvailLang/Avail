@@ -38,6 +38,7 @@ Uses
 	"Bootstrap",
 	"Collections" = ("_[_]else_"),
 	"Definers",
+	"Early Conditionals",
 	"Early Control Structures",
 	"Early Logic",
 	"Early Math",

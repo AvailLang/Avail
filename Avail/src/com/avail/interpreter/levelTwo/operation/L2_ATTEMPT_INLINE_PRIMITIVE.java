@@ -122,7 +122,9 @@ extends L2Operation
 				final AvailObject result = interpreter.latestResult();
 				final boolean checkOk = result.isInstanceOf(expectedType);
 				final long after = System.nanoTime();
-				primitive.addNanosecondsCheckingResultType(after - before);
+				primitive.addNanosecondsCheckingResultType(
+					after - before,
+					interpreter.interpreterIndex);
 				if (!checkOk)
 				{
 					break;
