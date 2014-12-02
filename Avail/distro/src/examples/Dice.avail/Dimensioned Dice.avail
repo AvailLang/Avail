@@ -1,0 +1,214 @@
+/*
+ * Dimensioned Dice.avail
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Dimensioned Dice"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Avail" = (-"_'s⁇result", …),
+	"Dimensional Analysis" =
+	(
+		"_'s⁇extent",
+		"_'s⁇metric",
+		"extent",
+		"metric",
+		"unit",
+		"dimensioned_"
+	),
+	"Expressions",
+	"Random"
+Extends
+	"Dimensional Analysis" = ("__")
+Names
+	"dimensioned dice expression⁇",
+	"dimensioned dice expression⁇outcome"
+Body
+
+/**
+ * A {@type "dimensioned dice expression⁇" dimensioned dice expression} combines
+ * a {@type "dice expression⁇" dice expression"} and a {@type "unit"}.
+ *
+ * @category "Dice" "Dimensional Analysis"
+ * @type "dimensioned dice expression⁇"
+ * @supertype "object"
+ * @field "extent" "dice expression⁇"
+ * @field "metric" "unit"
+ */
+Public explicit class "dimensioned dice expression⁇" extends object
+	with field
+		extent : dice expression,
+		metric : unit;
+
+/**
+ * A {@type "dimensioned dice expression⁇outcome" dimensioned dice expression
+ * outcome} describes the result of pseudorandomly evaluating a {@type
+ * "dimensioned dice expression⁇" dimensioned dice expression}.
+ *
+ * @category "Dice" "Dimensional Analysis"
+ * @type "dimensioned dice expression⁇outcome"
+ * @supertype "object"
+ * @field "detailed outcome" "dice expression⁇outcome"
+ * @field "result" "dimensioned extended integer"
+ */
+Public explicit class "dimensioned dice expression⁇outcome" extends object
+	with fields
+		detailed outcome : dice expression outcome,
+		result : dimensioned extended integer;
+
+/**
+ * Construct and answer a {@type "dimensioned dice expression⁇" dimensioned dice
+ * expression} type with the specified {@type "dice expression⁇" extent} type
+ * and {@type "unit" metric}.
+ *
+ * @category "Dice" "Dimensional Analysis"
+ * @method "__"
+ * @param "theExtent" "dice expression's type"
+ * @param "theMetric" "unit"
+ * @returns "dimensioned dice expression's type"
+ */
+Method "__" is
+[
+	theExtent : dice's type,
+	theMetric : unit
+|
+	extend dimensioned dice with
+		extent : theExtent,
+		metric : theMetric's type
+] : dimensioned dice's type;
+
+Semantic restriction "__" is
+[
+	extentType : dice's type's type,
+	metricType : unit's type
+|
+	(if |metricType| = 1 then
+	[
+		extentType's instance metricType's instance
+	]
+	else
+	[
+		extend dimensioned dice expression with extent : extentType's instance
+	])'s type
+];
+
+/**
+ * Construct and answer a {@type "dimensioned dice expression⁇" dimensioned dice
+ * expression} with the specified {@type "dice expression⁇" extent} and
+ * {@type "unit" metric}.
+ *
+ * @category "Dice" "Dimensional Analysis"
+ * @method "__"
+ * @param "theExtent" "dice expression⁇"
+ * @param "theMetric" "unit"
+ * @returns "dimensioned dice expression⁇"
+ */
+Method "__" is
+[
+	theExtent : dice,
+	theMetric : unit
+|
+	a dimensioned dice expression with
+		extent ::= theExtent,
+		metric ::= theMetric
+] : dimensioned dice expression;
+
+Method "__" is stable at [dice, unit]→dimensioned dice expression;
+
+Semantic restriction "__" is
+[
+	extentType : dice's type,
+	metricType : unit's type
+|
+	if |metricType| = 1 then
+	[
+		extentType (metricType's instance)
+	]
+	else
+	[
+		extend dimensioned dice with
+			extent : extentType,
+			metric : metricType
+	]
+];
+
+/**
+ * Roll {@param "someDice"} and answer the result.
+ *
+ * @category "Dice" "Dimensional Analysis"
+ * @method "«using_,»roll_"
+ * @param "optionalRNG" "<pRNG…|0..1>"
+ *        An optional {@type "pRNG"}. If provided, then it will be used to
+ *        randomly select a face. If not provided, then a default {@type "pRNG"}
+ *        will be used.
+ * @param "someDice" "dimensioned dice expression⁇"
+ *        A {@type "dimensioned dice expression⁇" dimensioned dice expression}.
+ * @returns "dimensioned dice expression⁇outcome"
+ *          The {@type "dimensioned dice expression⁇outcome" outcome}.
+ */
+Method "«using_,»roll_" is
+[
+	optionalRNG : <pRNG…|0..1>,
+	expr : dimensioned dice
+|
+	rng ::= optionalRNG[1] else [default pRNG];
+	outcome ::= using rng, roll expr's extent;
+	a dimensioned dice expression outcome with
+		detailed outcome ::= outcome,
+		result ::= (outcome's result) (expr's metric)
+] : dimensioned dice expression outcome;
+
+Method "“_”" is
+[
+	o : dimensioned dice
+|
+	“o's extent” ++ " " ++ “o's metric”
+] : string;
+
+Method "“_”" is
+[
+	o : dimensioned dice outcome
+|
+	s : string := “o's result” ++ " (";
+	bindings ::= o's detailed outcome's detailed outcome's bindings;
+	i : natural number := 1;
+	Do
+	[
+		aDie ::= bindings[i][1];
+		rolls ::= “bindings[i][2] ?→ <extended integer…|1..>”;
+		s := s ++ “aDie” ++ ": " ++ rolls[2..|rolls|-1];
+		i++;
+	]
+	while [i ≤ |bindings|]
+	alternate with [s := s ++ "; ";];
+	s := s ++ ")";
+	s
+] : string;

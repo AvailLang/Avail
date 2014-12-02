@@ -137,8 +137,16 @@ textarea { background-color: white; }
 				'items' : function (node)
 				{
 					return {
+						'Refresh' : {
+							'label' : 'Refresh',
+							'action' : function (item)
+							{
+								cmdSend('source modules');
+							}
+						},
 						'Load' : {
 							'label' : 'Load',
+							'separator_before' : true,
 							'action' : function (item)
 							{
 								var path = '/'

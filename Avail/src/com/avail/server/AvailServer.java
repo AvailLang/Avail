@@ -787,7 +787,7 @@ public final class AvailServer
 				writer.write("state");
 				writer.startObject();
 				writer.write("opened");
-				writer.write(!isResource);
+				writer.write(isRoot);
 				writer.endObject();
 				boolean missingRepresentative = !isResource;
 				writer.write("children");

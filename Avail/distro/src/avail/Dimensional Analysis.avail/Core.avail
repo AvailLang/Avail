@@ -249,7 +249,7 @@ Semantic restriction "dimensioned_" is
  *        The magnitude type.
  * @param "theUnit" "unit"
  *        The {@type "unit" metric}.
- * @returns "dimensioned quantity"
+ * @returns "dimensioned quantity's type"
  *          The requested {@type "dimensioned quantity"} type.
  */
 Public method "__" is
