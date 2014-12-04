@@ -57,8 +57,9 @@ Names
 	"extend_with«_:_‡,»",
 	"«Public»?«Explicit|explicit»?\
 		\|Class|class_extends_\
-		\|«with immutable⁇field|fields««public»?«reconstructible»?_:_‡,»»\
-		\|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?_:_‡,»»\
+		\|«with immutable⁇field|fields««public»?«reconstructible»?_:_«(accessor⁇_)»‡,»»\
+		\|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?\
+			\|_:_«(««accessor|mutator|referrer»!_‡,»)»‡,»»\
 		\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»",
 	"_as_«with«_::=_‡,»»"
 Body
@@ -419,20 +420,41 @@ Semantic restriction "extend_with«_:_‡,»" is
 	((supertype→tuple ++ newDefinitions' bindings)→object type)'s type
 ];
 
+"accessor name" is a new atom;
+
 /**
- * Compute and answer the accessor name for the specified field atom.
+ * Answer the default name of the accessor method for this field {@type "atom"}.
  *
- * @method "accessor name for_"
+ * @method "_'s⁇default accessor name"
  * @param "fieldAtom" "atom"
- *        A field atom.
- * @returns "string"
- *          The name of the accessor.
+ * @returns "nonempty string"
  */
-Private method "accessor name for_" is
+Private method "_'s⁇default accessor name" is
 [
 	fieldAtom : atom
 |
 	"_'s⁇" ++ fieldAtom's name
+] : nonempty string;
+
+/**
+ * Answer the name of the accessor method for this field {@type "atom"}.
+ *
+ * @method "_'s⁇accessor name"
+ * @param "fieldAtom" "atom"
+ * @returns "nonempty string"
+ */
+Private method "_'s⁇accessor name" is
+[
+	fieldAtom : atom
+|
+	fieldAtom[accessor name]
+];
+
+Semantic restriction "_'s⁇accessor name" is
+[
+	fieldAtom : atom's type
+|
+	nonempty string
 ];
 
 /* These methods are needed for reconstructor synthesis. */
@@ -449,7 +471,7 @@ readTypeAtom ::= $"_'s⁇read type";
 putAtom ::= $"_`?=_";
 
 /**
- * Generate the field accessor method for the specified field declaration.
+ * Generate the field accessor for the specified field declaration.
  *
  * @method "generate_field accessor for_:_(mutable=_)"
  * @param "objectType" "object's type"
@@ -457,8 +479,7 @@ putAtom ::= $"_`?=_";
  * @param "fieldType" "any's type"
  * @param "mutable" "boolean"
  *        {@method "true"} if the field is mutable, {@method "false"} otherwise.
- * @returns "method"
- * 		a field accessor method
+ * @returns "function"
  */
 Private method "generate_field accessor for_:_(mutable=_)" is
 [
@@ -468,7 +489,6 @@ Private method "generate_field accessor for_:_(mutable=_)" is
 	mutable : boolean
 |
 	args ::= <arg «`"x"` : objectType»>;
-/*	toMapMSend ::= send toMapAtom with «<«↓args[1]»>» : field map;*/
 	objectPhrase ::= «↓args[1]»;
 	getFieldSend ::= send objectAtFieldAtom
 		with «<objectPhrase, ‘`fieldAtom`’>» : fieldType;
@@ -499,8 +519,7 @@ Private method "generate_field accessor for_:_(mutable=_)" is
  * @param "fieldType" "any's type"
  * @param "mutable" "boolean"
  *        {@method "true"} if the field is mutable, {@method "false"} otherwise.
- * @returns "semantic restriction"
- * 		the field accessor semantic restriction
+ * @returns "function"
  */
 Private method "generate_field accessor restriction for_:_(mutable=_)" is
 [
@@ -548,7 +567,7 @@ Private method "Generate and install_accessor for«mutable»?_" is
 	fieldAtom : atom
 |
 	objectMap ::= objectType→map;
-	methodName ::= accessor name for fieldAtom;
+	methodName ::= fieldAtom's accessor name;
 	methodAtom ::= atom for methodName;
 	fieldType ::= objectMap[fieldAtom];
 	defineClassAccessor : boolean := false;
@@ -618,56 +637,77 @@ Private method "Generate and install_accessor for«mutable»?_" is
 	];
 ] : ⊤;
 
+"referrer name" is a new atom;
+
 /**
- * Compute and answer the referer name for the specified field atom.
+ * Answer the default name of the referrer method for this field {@type "atom"}.
  *
- * @method "referer name for_"
+ * @method "_'s⁇default referrer name"
  * @param "fieldAtom" "atom"
- *        A field atom.
- * @returns "string"
- *          The name of the accessor.
+ * @returns "nonempty string"
  */
-Private method "referer name for_" is
+Private method "_'s⁇default referrer name" is
 [
 	fieldAtom : atom
 |
-	"`↑" ++ accessor name for fieldAtom
+	"`↑" ++ fieldAtom's default accessor name
+] : nonempty string;
+
+/**
+ * Answer the name of the referrer method for this field {@type "atom"}.
+ *
+ * @method "_'s⁇referrer name"
+ * @param "fieldAtom" "atom"
+ * @returns "nonempty string"
+ */
+Private method "_'s⁇referrer name" is
+[
+	fieldAtom : atom
+|
+	fieldAtom[referrer name]
+];
+
+Semantic restriction "_'s⁇referrer name" is
+[
+	fieldAtom : atom's type
+|
+	nonempty string
 ];
 
 /**
- * Generate and install the field referer for the specified object type and
+ * Generate and install the field referrer for the specified object type and
  * mutable field atom.
  *
- * @method "Generate and install_referer for_"
+ * @method "Generate and install_referrer for_"
  * @param "objectType" "object's type"
  * @param "fieldAtom" "atom"
  * @returns "⊤"
  */
-Private method "Generate and install_referer for mutable_" is
+Private method "Generate and install_referrer for mutable_" is
 [
 	objectType : object meta,
 	fieldAtom : atom
 |
 	objectMap ::= objectType→map;
-	methodName ::= referer name for fieldAtom;
+	methodName ::= fieldAtom's referrer name;
 	methodAtom ::= atom for methodName;
 	fieldType ::= objectMap[fieldAtom];
-	defineReferer : boolean :=
+	defineReferrer : boolean :=
 		if ¬method exists named methodAtom then
 		[
 			/* If the method doesn't exist at all, then define it and install a
-			 * referer.
+			 * referrer.
 			 */
 			true
 		]
 		else
 		[
-			/* If the method does already exist, then install a referer for the
+			/* If the method does already exist, then install a referrer for the
 			 * object type iff one is not already present.
 			 */
 			¬methodAtom has definition for <objectType>
 		];
-	If defineReferer then
+	If defineReferrer then
 	[
 		impl ::= generate objectType field accessor
 			for fieldAtom : fieldType (mutable = false);
@@ -675,20 +715,41 @@ Private method "Generate and install_referer for mutable_" is
 	];
 ] : ⊤;
 
+"mutator name" is a new atom;
+
 /**
- * Compute and answer the mutator name for the specified field atom.
+ * Answer the default name of the mutator method for this field {@type "atom"}.
  *
- * @method "mutator name for_"
+ * @method "_'s⁇default mutator name"
  * @param "fieldAtom" "atom"
- *        A field atom.
- * @returns "string"
- *          The name of the mutator.
+ * @returns "nonempty string"
  */
-Private method "mutator name for_" is
+Private method "_'s⁇default mutator name" is
 [
 	fieldAtom : atom
 |
 	"_'s⁇" ++ fieldAtom's name ++ ":=_"
+] : nonempty string;
+
+/**
+ * Answer the name of the mutator method for this field {@type "atom"}.
+ *
+ * @method "_'s⁇mutator name else_"
+ * @param "fieldAtom" "atom"
+ * @returns "nonempty string"
+ */
+Private method "_'s⁇mutator name" is
+[
+	fieldAtom : atom
+|
+	fieldAtom[mutator name]
+];
+
+Semantic restriction "_'s⁇mutator name" is
+[
+	fieldAtom : atom's type
+|
+	nonempty string
 ];
 
 /**
@@ -706,20 +767,20 @@ Private method "Generate and install_mutator for mutable_" is
 	fieldAtom : atom
 |
 	objectMap ::= objectType→map;
-	methodName ::= mutator name for fieldAtom;
+	methodName ::= fieldAtom's mutator name;
 	methodAtom ::= atom for methodName;
 	fieldType ::= objectMap[fieldAtom];
 	defineMutator : boolean :=
 		if ¬method exists named methodAtom then
 		[
 			/* If the method doesn't exist at all, then define it and install a
-			 * referer.
+			 * referrer.
 			 */
 			true
 		]
 		else
 		[
-			/* If the method does already exist, then install a referer for the
+			/* If the method does already exist, then install a referrer for the
 			 * object type iff one is not already present.
 			 */
 			varType ::= cast fieldType into [t : variable's type | t];
@@ -755,7 +816,8 @@ Private method "reconstructor name for_" is
 [
 	fieldAtoms : <atom…|1..>
 |
-	methodName : <character…|8..> := accessor name for fieldAtoms[1] ++ "::=_";
+	methodName : nonempty string :=
+		fieldAtoms[1]'s default accessor name ++ "::=_";
 	For each fieldAtoms' tail do
 	[
 		fieldAtom : atom
@@ -921,11 +983,13 @@ is
  * only a lexical construct, and is analogous to the distinction between blocks
  * (lexical) and functions (semantic).
  *
- * @method "«Public»?«Explicit|explicit»?\
- *   \|Class|class_extends_\
- *   \|«with immutable⁇field|fields««public»?«reconstructible»?_:_‡,»»\
- *   \|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?_:_‡,»»\
- *   \|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»"
+ * @method
+ *   "«Public»?«Explicit|explicit»?\
+ *     \|Class|class_extends_\
+ *     \|«with immutable⁇field|fields««public»?«reconstructible»?_:_«(accessor⁇_)»‡,»»\
+ *     \|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?\
+ *       \|_:_«(««accessor|mutator|referrer»!_‡,»)»‡,»»\
+ *     \|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»"
  * @param "public" "boolean"
  *        {@method "true"} if the class should be exported by the defining
  *        module, {@method "false"} otherwise.
@@ -941,20 +1005,53 @@ is
  *        The supertype of the class. Type intersection may be used here to
  *        facilitate inheritance from multiple sources.
  * @param "optionalImmutable" 
- *        "<<<boolean, boolean, atom, any meta…|4>…|1..>…|0..1>"
+ *        "<
+ *           <
+ *             <
+ *               boolean,
+ *               boolean,
+ *               atom,
+ *               any meta,
+ *               <nonempty string…|0..1>…
+ *             |5>…
+ *           |1..>…
+ *         |0..1>"
  *        The extension fields of this class. An accessor will be generated for
  *        each field. A reconstructor will be generated for each field tagged as
  *        {@code reconstructible}. Each field tagged as {@code public} must be
- *        exported by the defining module.
+ *        exported by the defining module. Unless a parenthetical name appears
+ *        after a field's type, then its accessor will be given a default name
+ *        ("_'s⁇" ++ the field name).
  * @param "optionalMutable"
- *        "<<<boolean, boolean, boolean, boolean, atom, any meta…|6>…|1..>…|0..1>"
+ *        "<
+ *           <
+ *             <
+ *               boolean,
+ *               boolean,
+ *               boolean,
+ *               boolean,
+ *               atom,
+ *               any meta,
+ *               <
+ *                 <
+ *                   <
+ *                     [1..3],
+ *                     nonempty string…
+ *                   |2>…
+ *                 |1..3>…
+ *               |0..1>…
+ *             |7>…
+ *           |1..>…
+ *         |0..1>"
  *        The mutable fields of this class. An accessor will be generated for
- *        each field. A referer will be generated for each field tagged as 
+ *        each field. A referrer will be generated for each field tagged as 
  *        {@code referable}. A mutator will be generated for each field not
  *        tagged as {@code read-only}. Each field tagged as {@code public} must
- *        have its accessor, referer, and mutator exported by the defining
+ *        have its accessor, referrer, and mutator exported by the defining
  *        module. Each field tagged as {@code shared} will not be cloned (using
- *        a new variable) during reconstruction.
+ *        a new variable) during reconstruction. Unless parenthetical names
+ *        appear after a field's type, then the accessor, mutator, and referrer
+ *        will be given default names as appropriate.
  * @param "optionalReconstructors"
  *        "<<<boolean, <atom…|1..>…|2>…|1..>…|0..1>"
  *        The reconstructors of this class. A reconstructor will be generated
@@ -966,8 +1063,9 @@ is
 Public method
 	"«Public»?«Explicit|explicit»?\
 	\|Class|class_extends_\
-	\|«with immutable⁇field|fields««public»?«reconstructible»?_:_‡,»»\
-	\|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?_:_‡,»»\
+	\|«with immutable⁇field|fields««public»?«reconstructible»?_:_«(accessor⁇_)»‡,»»\
+	\|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?\
+		\|_:_«(««accessor|mutator|referrer»!_‡,»)»‡,»»\
 	\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»"
 is
 [
@@ -975,40 +1073,115 @@ is
 	explicit : boolean,
 	className : nonempty string,
 	supertype : object meta,
-	optionalImmutable : <<<boolean, boolean, atom, any meta…|4>…|1..>…|0..1>,
+	optionalImmutable :
+		<
+			<
+				<
+					boolean,
+					boolean,
+					atom,
+					any meta,
+					<nonempty string…|0..1>…
+				|5>…
+			|1..>…
+		|0..1>,
 	optionalMutable :
-		<<<boolean, boolean, boolean, boolean, atom, any meta…|6>…|1..>…|0..1>,
+		<
+			<
+				<
+					boolean,
+					boolean,
+					boolean,
+					boolean,
+					atom,
+					any meta,
+					<
+						<
+							<
+								[1..3],
+								nonempty string…
+							|2>…
+						|1..3>…
+					|0..1>…
+				|7>…
+			|1..>…
+		|0..1>,
 	optionalReconstructors : <<<boolean, <atom…|1..>…|2>…|1..>…|0..1>
 |
 	newDefinitions : <<atom, any meta…|2>…|> := <>;
 	/* Extract the immutable extensions. */
-	immutable : <<boolean, boolean, atom, any meta…|4>…|> := <>;
-	immutableAtoms : <atom…|> := <>;
+	immutable :
+		<
+			<
+				boolean,
+				boolean,
+				atom,
+				any meta,
+				<nonempty string…|0..1>…
+			|5>…
+		|> := <>;
 	Unless optionalImmutable is empty then
 	[
 		immutable := optionalImmutable[1];
 		newDefinitions := map immutable through
 			[
-				fieldTuple : <boolean, boolean, atom, any meta…|4>
+				fieldTuple :
+					<
+						boolean,
+						boolean,
+						atom,
+						any meta,
+						<nonempty string…|0..1>…
+					|5>
 			|
 				fieldAtom ::= fieldTuple[3];
-				immutableAtoms := eject immutableAtoms ++ <fieldAtom>;
 				<fieldAtom, fieldTuple[4]>
 			];
 	];
 	/* Extract the mutable fields. */
-	mutable : <<boolean, boolean, boolean, boolean, atom, any meta…|6>…|> := <>;
-	mutableAtoms : <atom…|> := <>;
+	mutable :
+		<
+			<
+				boolean,
+				boolean,
+				boolean,
+				boolean,
+				atom,
+				any meta,
+				<
+					<
+						<
+							[1..3],
+							nonempty string…
+						|2>…
+					|1..3>…
+				|0..1>…
+			|7>…
+		|> := <>;
 	Unless optionalMutable is empty then
 	[
 		mutable := optionalMutable[1];
 		newDefinitions := eject newDefinitions ++ map mutable through
 			[
 				fieldTuple :
-					<boolean, boolean, boolean, boolean, atom, any meta…|6>
+					<
+						boolean,
+						boolean,
+						boolean,
+						boolean,
+						atom,
+						any meta,
+						<
+							<
+								<
+									[1..3],
+									nonempty string…
+								|2>…
+							|1..3>…
+						|0..1>…
+					|7>
 			|
 				fieldAtom ::= fieldTuple[5];
-				mutableAtoms := eject mutableAtoms ++ <fieldAtom>;
 				<fieldAtom, ↑fieldTuple[6]>
 			];
 	];
@@ -1042,28 +1215,126 @@ is
 	subtype's name := className;
 	After the current module is unloaded, do [Unname className from subtype;];
 	Method className is new []→(subtype's type) applying [subtype];
-	For each immutableAtoms do
+	For each of immutable do
 	[
-		fieldAtom : atom
+		fieldTuple :
+			<
+				boolean,
+				boolean,
+				atom,
+				any meta,
+				<nonempty string…|0..1>…
+			|5>
 	|
+		fieldAtom ::= fieldTuple[3];
+		accessorName ::= fieldTuple[5][1]
+			else [fieldAtom's default accessor name];
+		If |message accessorName's parameters| ≠ 1 then
+		[
+			early failure function(invalid-argument code)
+		];
+		If ¬accessor name ∈ fieldAtom then
+		[
+			fieldAtom[accessor name] := accessorName;
+		];
+		If fieldAtom's accessor name ≠ accessorName then
+		[
+			early failure function(
+				object-type-extension-changed-field-accessor-name code)
+		];
 		Generate and install subtype accessor for fieldAtom;
 	];
-	For each mutable do
+	For each of mutable do
 	[
-		fieldTuple : <boolean, boolean, boolean, boolean, atom, any meta…|6>
+		fieldTuple :
+			<
+				boolean,
+				boolean,
+				boolean,
+				boolean,
+				atom,
+				any meta,
+				<
+					<
+						<
+							[1..3],
+							nonempty string…
+						|2>…
+					|1..3>…
+				|0..1>…
+			|7>
 	|
 		isShared ::= fieldTuple[2];
 		referable ::= fieldTuple[3];
 		readOnly ::= fieldTuple[4];
 		fieldAtom ::= fieldTuple[5];
+		namesTuple ::= fieldTuple[7][1] else [<>];
+		orderedNames : <nonempty string…|3> :=
+			<
+				fieldAtom's default accessor name,
+				fieldAtom's default mutator name,
+				fieldAtom's default referrer name
+			>;
+		For each of namesTuple do
+		[
+			namePair : <[1..3], nonempty string…|2>
+		|
+			orderedNames := eject orderedNames[namePair[1]]→namePair[2];
+		];
 		/* The shared flag must be set on the field atom *before* any
 		 * reconstructors are generated!
 		 */
 		If isShared then [fieldAtom[shared] := true;];
+		/* Set the accessor, referrer, and mutator names for the atom, if
+		 * necessary. These names should not be changed in subtypes.
+		 */
+		accessorName ::= orderedNames[1];
+		If |message accessorName's parameters| ≠ 1 then
+		[
+			early failure function(invalid-argument code)
+		];
+		If ¬accessor name ∈ fieldAtom then
+		[
+			fieldAtom[accessor name] := accessorName;
+		];
+		If fieldAtom's accessor name ≠ accessorName then
+		[
+			early failure function(
+				object-type-extension-changed-field-accessor-name code)
+		];
+		mutatorName ::= orderedNames[2];
+		If |message mutatorName's parameters| ≠ 2 then
+		[
+			early failure function(invalid-argument code)
+		];
+		If ¬mutator name ∈ fieldAtom then
+		[
+			fieldAtom[mutator name] := mutatorName;
+		];
+		If fieldAtom's mutator name ≠ mutatorName then
+		[
+			early failure function(
+				object-type-extension-changed-field-mutator-name code)
+		];
+		referrerName ::= orderedNames[3];
+		If |message referrerName's parameters| ≠ 1 then
+		[
+			early failure function(invalid-argument code)
+		];
+		If ¬referrer name ∈ fieldAtom then
+		[
+			fieldAtom[referrer name] := referrerName;
+		];
+		If fieldAtom's referrer name ≠ referrerName then
+		[
+			early failure function(
+				object-type-extension-changed-field-referrer-name code)
+		];
+		/* Now install the accessor, referrer, and mutator, as appropriate. */
 		Generate and install subtype accessor for mutable fieldAtom;
 		If referable then
 		[
-			Generate and install subtype referer for mutable fieldAtom;
+			Generate and install subtype referrer for mutable fieldAtom;
 		];
 		Unless readOnly then
 		[
@@ -1073,7 +1344,14 @@ is
 	/* Determine which reconstructors to create. */
 	reconstructors : <<atom…|1..>…|> := map and filter immutable by
 		[
-			triple : <boolean, boolean, atom, any meta…|4>,
+			triple :
+				<
+					boolean,
+					boolean,
+					atom,
+					any meta,
+					<nonempty string…|0..1>…
+				|5>,
 			accept : [<atom…|1..>]→⊤
 		|
 			If triple[2] then
@@ -1111,25 +1389,58 @@ is
  *   or 2) specifies a type which covaries with the field type expressed in the
  *   supertype.
  *
- * @method "«Public»?«Explicit|explicit»?\
- *   \|Class|class_extends_\
- *   \|«with immutable⁇field|fields««public»?«reconstructible»?_:_‡,»»\
- *   \|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?_:_‡,»»\
- *   \|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»"
+ * @method
+ *   "«Public»?«Explicit|explicit»?\
+ *     \|Class|class_extends_\
+ *     \|«with immutable⁇field|fields««public»?«reconstructible»?_:_«(accessor⁇_)»‡,»»\
+ *     \|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?\
+ *       \|_:_«(««accessor|mutator|referrer»!_‡,»)»‡,»»\
+ *     \|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»"
  * @restricts "boolean's type"
  * @restricts "boolean's type"
  * @restricts "nonempty string's type"
  * @restricts "object's type"
- * @restricts "<<<boolean, boolean, atom, any meta…|4>…|1..>…|0..1>'s type"
  * @restricts
- *    "<<<boolean, boolean, boolean, boolean, atom, any meta…|6>…|1..>…|0..1>'s type"
+ *        "<
+ *           <
+ *             <
+ *               boolean,
+ *               boolean,
+ *               atom,
+ *               any meta,
+ *               <nonempty string…|0..1>…
+ *             |5>…
+ *           |1..>…
+ *         |0..1>'s type"
+ * @restricts
+ *        "<
+ *           <
+ *             <
+ *               boolean,
+ *               boolean,
+ *               boolean,
+ *               boolean,
+ *               atom,
+ *               any meta,
+ *               <
+ *                 <
+ *                   <
+ *                     [1..3],
+ *                     nonempty string…
+ *                   |2>…
+ *                 |1..3>…
+ *               |0..1>…
+ *             |7>…
+ *           |1..>…
+ *         |0..1>'s type"
  * @restricts "<<<boolean, <atom…|1..>…|2>…|1..>…|0..1>'s type"
  */
 Semantic restriction
 	"«Public»?«Explicit|explicit»?\
 	\|Class|class_extends_\
-	\|«with immutable⁇field|fields««public»?«reconstructible»?_:_‡,»»\
-	\|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?_:_‡,»»\
+	\|«with immutable⁇field|fields««public»?«reconstructible»?_:_«(accessor⁇_)»‡,»»\
+	\|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?\
+		\|_:_«(««accessor|mutator|referrer»!_‡,»)»‡,»»\
 	\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»"
 is
 [
@@ -1138,9 +1449,38 @@ is
 	classNameType : nonempty string's type,
 	meta : object meta's type,
 	optionalImmutable :
-		<<<boolean, boolean, atom, any meta…|4>…|1..>…|0..1>'s type,
+		<
+			<
+				<
+					boolean,
+					boolean,
+					atom,
+					any meta,
+					<nonempty string…|0..1>…
+				|5>…
+			|1..>…
+		|0..1>'s type,
 	optionalMutable :
-		<<<boolean, boolean, boolean, boolean, atom, any meta…|6>…|1..>…|0..1>'s type,
+		<
+			<
+				<
+					boolean,
+					boolean,
+					boolean,
+					boolean,
+					atom,
+					any meta,
+					<
+						<
+							<
+								[1..3],
+								nonempty string…
+							|2>…
+						|1..3>…
+					|0..1>…
+				|7>…
+			|1..>…
+		|0..1>'s type,
 	optionalReconstructors : <<<boolean, <atom…|1..>…|2>…|1..>…|0..1>'s type
 |
 	public ::= publicType's instance;
@@ -1165,6 +1505,7 @@ is
 	supertype ::= meta's instance;
 	oldDefinitions ::= supertype→map;
 	newDefinitions : field type map := {};
+	allNamesTuple : tuple := <>;
 	From 1 to relevant |optionalImmutable[1]| do
 	[
 		index : natural number
@@ -1180,15 +1521,43 @@ is
 				"all field atoms to be known statically"
 		];
 		fieldAtom ::= atomType's instance;
-		accessorName ::= accessor name for fieldAtom;
+		nameType ::= if def[5][1] = ⊥
+			then [fieldAtom's default accessor name's type]
+			else [def[5][1]];
 		If publicField then
 		[
 			If ¬public then
 			[
 				Reject parse, expected:
-					"\""
-					++ accessorName
+					"field atom \""
+					++ fieldAtom's name
 					++ "\" to be private (because the class is private)"
+			];
+			If |nameType| ≠ 1 then
+			[
+				Reject parse, expected:
+					"accessor name for public field atom \""
+					++ fieldAtom's name
+					++ "\" to be statically known"
+			];
+			accessorName ::= nameType's instance;
+			If |message accessorName's parameters| ≠ 1 then
+			[
+				Reject parse, expected:
+					"accessor name \""
+					++ accessorName
+					++ "\" to specify exactly one underscore"
+			];
+			extantName ::= cast fieldAtom[accessor name] else [accessorName]
+				into [t : nonempty string | t];
+			If accessorName ≠ extantName then
+			[
+				Reject parse, expected:
+					"accessor name \""
+					++ accessorName
+					++ "\" to agree with previous definition ("
+					++ extantName
+					++ ")"
 			];
 			If ¬accessorName ∈ publicNames then
 			[
@@ -1210,6 +1579,7 @@ is
 							\| section (because it is public)"
 				];
 			];
+			allNamesTuple := eject allNamesTuple ++ <accessorName>;
 		];
 		If fieldAtom ∈ newDefinitions then
 		[
@@ -1250,15 +1620,68 @@ is
 				"all field atoms to be known statically"
 		];
 		fieldAtom ::= atomType's instance;
-		accessorName ::= accessor name for fieldAtom;
+		orderedNames : <nonempty string's type…|3> :=
+		<
+			fieldAtom's default accessor name's type,
+			fieldAtom's default mutator name's type,
+			fieldAtom's default referrer name's type
+		>;
+		If def[7][1] ≠ ⊥ then
+		[
+			namesType ::= def[7][1];
+			choicesSeen : {[1..3]|} := ∅;
+			From 1 to relevant |namesType| do
+			[
+				nameIndex : natural number
+			|
+				nameTuple ::= namesType[nameIndex];
+				choice ::= nameTuple[1]'s instance;
+				If choice ∈ choicesSeen then
+				[
+					choiceNames ::= <"accessor", "mutator", "referrer">;
+					Reject parse, expected:
+						choiceNames[choice]
+						++ " name not to be supplied more than once"
+				];
+				choicesSeen := eject choicesSeen + choice;
+				orderedNames := eject orderedNames[choice]→nameTuple[2];
+			];
+		];
 		If publicField then
 		[
 			If ¬public then
 			[
 				Reject parse, expected:
-					"\""
-					++ accessorName
+					"field atom \""
+					++ fieldAtom's name
 					++ "\" to be private (because the class is private)"
+			];
+			If |orderedNames[1]| ≠ 1 then
+			[
+				Reject parse, expected:
+					"accessor name for public field atom \""
+					++ fieldAtom's name
+					++ "\" to be statically known"
+			];
+			accessorName ::= orderedNames[1]'s instance;
+			If |message accessorName's parameters| ≠ 1 then
+			[
+				Reject parse, expected:
+					"accessor name \""
+					++ accessorName
+					++ "\" to specify exactly one underscore"
+			];
+			extantAccessorName ::=
+				cast fieldAtom[accessor name] else [accessorName]
+				into [t : nonempty string | t];
+			If accessorName ≠ extantAccessorName then
+			[
+				Reject parse, expected:
+					"accessor name \""
+					++ accessorName
+					++ "\" to agree with previous definition ("
+					++ extantAccessorName
+					++ ")"
 			];
 			If ¬accessorName ∈ publicNames then
 			[
@@ -1268,21 +1691,75 @@ is
 					++ "\" to be included in the module's \"Names\" section\
 					\| (because it is public)"
 			];
+			allNamesTuple := eject allNamesTuple ++ <accessorName>;
 			If referable then
 			[
-				refererName ::= referer name for fieldAtom;
-				If ¬refererName ∈ publicNames then
+				If |orderedNames[3]| ≠ 1 then
+				[
+					Reject parse, expected:
+						"referrer name for public field atom \""
+						++ fieldAtom's name
+						++ "\" to be statically known"
+				];
+				referrerName ::= orderedNames[3]'s instance;
+				If |message referrerName's parameters| ≠ 1 then
+				[
+					Reject parse, expected:
+						"referrer name \""
+						++ referrerName
+						++ "\" to specify exactly one underscore"
+				];
+				extantReferrerName ::=
+					cast fieldAtom[referrer name] else [referrerName]
+					into [t : nonempty string | t];
+				If referrerName ≠ extantReferrerName then
+				[
+					Reject parse, expected:
+						"referrer name \""
+						++ referrerName
+						++ "\" to agree with previous definition ("
+						++ extantReferrerName
+						++ ")"
+				];
+				If ¬referrerName ∈ publicNames then
 				[
 					Reject parse, expected:
 						"\""
-						++ refererName
+						++ referrerName
 						++ "\" to be included in the module's \"Names\"\
 							\| section (because it is public)"
 				];
+				allNamesTuple := eject allNamesTuple ++ <referrerName>;
 			];
 			Unless readOnly then
 			[
-				mutatorName ::= mutator name for fieldAtom;
+				If |orderedNames[2]| ≠ 1 then
+				[
+					Reject parse, expected:
+						"mutator name for public field atom \""
+						++ fieldAtom's name
+						++ "\" to be statically known"
+				];
+				mutatorName ::= orderedNames[2]'s instance;
+				If |message mutatorName's parameters| ≠ 2 then
+				[
+					Reject parse, expected:
+						"mutator name \""
+						++ mutatorName
+						++ "\" to specify exactly two underscores"
+				];
+				extantMutatorName ::=
+					cast fieldAtom[mutator name] else [mutatorName]
+					into [t : nonempty string | t];
+				If mutatorName ≠ extantMutatorName then
+				[
+					Reject parse, expected:
+						"mutator name \""
+						++ mutatorName
+						++ "\" to agree with previous definition ("
+						++ extantMutatorName
+						++ ")"
+				];
 				If ¬mutatorName ∈ publicNames then
 				[
 					Reject parse, expected:
@@ -1291,6 +1768,7 @@ is
 						++ "\" to be included in the module's \"Names\"\
 							\| section (because it is public)"
 				];
+				allNamesTuple := eject allNamesTuple ++ <mutatorName>;
 			];
 		];
 		If fieldAtom ∈ newDefinitions then
@@ -1356,6 +1834,11 @@ is
 					\| (because it is public)"
 			];
 		];
+	];
+	If |allNamesTuple| ≠ |allNamesTuple→set| then
+	[
+		Reject parse, expected:
+			"no duplication of names among accessors, mutators, and referrers"
 	];
 	⊤
 ];

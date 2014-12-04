@@ -103,20 +103,28 @@ Private method "Next error code is_(_)" is
 Invoke
 [
 	numberedCodes ::= <
+		/* Object type construction. */
 		<1000, "object-type-extension-contains-duplicates">,
 		<1001, "object-type-extension-did-not-produce-subtype">,
-		<1002, "object-instantiation-contains-duplicates">,
-		<1004, "object-instantiation-did-not-produce-instance">,
-		<1005, "invalid-argument">,
-		<1006, "runaway-format-variable">,
-		<1007, "empty-format-variable">,
-		<1008, "invalid-format-metacharacter-escape">,
-		<1009, "invalid-format-metacharacter-use">,
-		<1010, "format-variable-interpolation-failed">,
-		<1011, "invalid-format-variable">,
-		<1012, "missing-format-variable-binding">,
-		<1013, "cannot-compute-logarithm-for-nonpositive-base">,
-		<1014, "cannot-compute-logarithm-of-nonpositive-number">
+		<1002, "object-type-extension-changed-field-accessor-name">,
+		<1003, "object-type-extension-changed-field-referrer-name">,
+		<1004, "object-type-extension-changed-field-mutator-name">,
+		/* Object instantiation. */
+		<1010, "object-instantiation-contains-duplicates">,
+		<1011, "object-instantiation-did-not-produce-instance">,
+		/* General. */
+		<1020, "invalid-argument">,
+		/* String formating. */
+		<1021, "runaway-format-variable">,
+		<1022, "empty-format-variable">,
+		<1023, "invalid-format-metacharacter-escape">,
+		<1024, "invalid-format-metacharacter-use">,
+		<1025, "format-variable-interpolation-failed">,
+		<1026, "invalid-format-variable">,
+		<1027, "missing-format-variable-binding">,
+		/* Math. */
+		<1040, "cannot-compute-logarithm-for-nonpositive-base">,
+		<1041, "cannot-compute-logarithm-of-nonpositive-number">
 	>;
 	From 1 to |numberedCodes| do
 	[

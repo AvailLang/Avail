@@ -1130,29 +1130,35 @@ System exception "object-type-extension-contains-duplicates" (1000)
 	extends definition exception;
 System exception "object-type-extension-did-not-produce-subtype" (1001)
 	extends definition exception;
-System exception "object-instantiation-contains-duplicates" (1002)
+System exception "object-type-extension-changed-field-accessor-name"(1002)
+	extends definition exception;
+System exception "object-type-extension-changed-field-referrer-name"(1003)
+	extends definition exception;
+System exception "object-type-extension-changed-field-mutator-name"(1004)
+	extends definition exception;
+System exception "object-instantiation-contains-duplicates" (1010)
 	extends instantiation exception;
-System exception "object-instantiation-did-not-produce-instance" (1004)
+System exception "object-instantiation-did-not-produce-instance" (1011)
 	extends instantiation exception;
-System exception "invalid-argument" (1005)
+System exception "invalid-argument" (1020)
 	extends bad-format exception;
-System exception "runaway-format-variable" (1006)
+System exception "runaway-format-variable" (1021)
 	extends bad-format exception;
-System exception "empty-format-variable" (1007)
+System exception "empty-format-variable" (1022)
 	extends bad-format exception;
-System exception "invalid-format-metacharacter-escape" (1008)
+System exception "invalid-format-metacharacter-escape" (1023)
 	extends bad-format exception;
-System exception "invalid-format-metacharacter-use" (1009)
+System exception "invalid-format-metacharacter-use" (1024)
 	extends bad-format exception;
-System exception "format-variable-interpolation-failed" (1010)
+System exception "format-variable-interpolation-failed" (1025)
 	extends bad-format exception;
-System exception "invalid-format-variable" (1011)
+System exception "invalid-format-variable" (1026)
 	extends bad-format exception;
-System exception "missing-format-variable-binding" (1012)
+System exception "missing-format-variable-binding" (1027)
 	extends bad-format exception;
-System exception "cannot-compute-logarithm-for-nonpositive-base" (1013)
+System exception "cannot-compute-logarithm-for-nonpositive-base" (1040)
 	extends bad-argument exception;
-System exception "cannot-compute-logarithm-of-nonpositive-number" (1014)
+System exception "cannot-compute-logarithm-of-nonpositive-number" (1041)
 	extends bad-argument exception;
 
 /**

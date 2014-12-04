@@ -816,8 +816,9 @@ Extends
 		"extend_with«_:_‡,»",
 		"«Public»?«Explicit|explicit»?\
 			\|Class|class_extends_\
-			\|«with immutable⁇field|fields««public»?«reconstructible»?_:_‡,»»\
-			\|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?_:_‡,»»\
+			\|«with immutable⁇field|fields««public»?«reconstructible»?_:_«(accessor⁇_)»‡,»»\
+			\|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?\
+				\|_:_«(««accessor|mutator|referrer»!_‡,»)»‡,»»\
 			\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»",
 		"_as_«with«_::=_‡,»»"
 	),
