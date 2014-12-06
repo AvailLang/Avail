@@ -306,11 +306,6 @@ Semantic restriction "_d|D_" is
 		result type : [⎣count⎦..⎡count⎤×⎡n⎤ + 1)'s type
 ];
 
-[
-	ops ::= {"_+_(Dice)", "_-_(Dice)", "_×_(Dice)", "_÷_(Dice)", "-_(Dice)"};
-	Grammatical restriction "_d|D_" is <ops, ops>;
-]();
-
 /**
  * Construct and answer a {@type "dice group"} comprised of {@param "someDice"}.
  *

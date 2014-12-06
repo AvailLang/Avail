@@ -532,9 +532,16 @@ Method "“_”" is
 [
 	arg : dimensioned quantity's type
 |
-	m ::= arg's metric's instance;
-	desc ::= namesByUnit[m] else [unit map “m's unit map”];
-	“arg's extent” ++ " " ++ desc
+	If |arg's metric| = 1 then
+	[
+		m ::= arg's metric's instance;
+		desc ::= namesByUnit[m] else [unit map “m's unit map”];
+		“arg's extent” ++ " " ++ desc
+	]
+	else
+	[
+		"dimensioned " ++ “arg's extent”
+	]
 ] : string;
 
 Method "“_”" is

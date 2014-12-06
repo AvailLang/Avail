@@ -135,13 +135,7 @@ Semantic restriction "Static assert:_†" is
 |
 	If condition = false's type then
 	[
-		Reject parse, expected: "A static assertion to be true, not false"
+		Reject parse, expected: "a static assertion to be true, not false"
 	];
 	⊤
 ];
-
-/*
-Static assert: 2+2=4;
-Static assert: true;
-Static assert: 2+2=5; /*should fail*/
-*/

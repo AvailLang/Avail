@@ -1,5 +1,5 @@
 /*
- * Dice.avail
+ * Avail Restrictions.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,17 +30,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Dice"
+Module "Avail Restrictions"
 Versions
 	"1.0.0 DEV 2014-04-28"
-Extends
-	"Avail" = ("<«_‡,»>"),
-	"Avail Restrictions",
-	"Dice Restrictions",
-	"Die",
-	"Dimensioned Dice",
-	"Expressions",
-	"Random"
-Entries
-	"«using_,»roll_"
+Uses
+	"Avail",
+	"Die" = ("_d|D_")
 Body
+
+[
+	ops ::= {"_+_", "_-_", "_×_", "_÷_", "-_"};
+	Grammatical restriction "_d|D_" is <ops, ops>;
+]();

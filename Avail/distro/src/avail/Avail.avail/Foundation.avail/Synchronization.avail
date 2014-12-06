@@ -396,7 +396,7 @@ Public method "Join_,then honor a termination request" is
 	];
 ];
 
-"name" is a new field atom;
+"mutex name" is a new field atom;
 "owner" is a new field atom;
 "parked fibers" is a new field atom;
 
@@ -419,7 +419,7 @@ Public explicit class "synchronization device" extends object;
  */
 Public class "non-reentrant mutex" extends synchronization device
 	with fields
-		name : nonempty string
+		mutex name : nonempty string ("_'s⁇name")
 	with mutable fields
 		owner : any,
 		referable parked fibers : parking queue;
@@ -485,7 +485,10 @@ Public method "a non-reentrant mutex«named_»" is
 	/* The ownership memento 0 is used to indicate that a mutex is unowned.
 	 * It is non-canonical.
 	 */
-	a non-reentrant mutex with name ::= myName, owner := 0, parked fibers := <>
+	a non-reentrant mutex with
+		mutex name ::= myName,
+		owner := 0,
+		parked fibers := <>
 ] : non-reentrant mutex;
 
 Semantic restriction "a non-reentrant mutex«named_»" is
@@ -495,7 +498,7 @@ Semantic restriction "a non-reentrant mutex«named_»" is
 	myName ::= if ⎣optionalName⎦ = 1
 		then [optionalName[1]]
 		else [defaultName's type];
-	extend non-reentrant mutex with name : myName
+	extend non-reentrant mutex with mutex name : myName
 ];
 
 /**
@@ -684,7 +687,7 @@ Public method "a reentrant mutex«named_»" is
 	 * It is non-canonical.
 	 */
 	a reentrant mutex with
-		name ::= myName,
+		mutex name ::= myName,
 		owner := 0,
 		parked fibers := <>
 ] : reentrant mutex;
@@ -696,7 +699,7 @@ Semantic restriction "a reentrant mutex«named_»" is
 	myName ::= if ⎣optionalName⎦ = 1
 		then [optionalName[1]]
 		else [defaultName's type];
-	extend reentrant mutex with name : myName
+	extend reentrant mutex with mutex name : myName
 ];
 
 /**
@@ -798,7 +801,7 @@ Public method "a monitor«named_»" is
 	 * It is non-canonical.
 	 */
 	a monitor with
-		name ::= myName,
+		mutex name ::= myName,
 		owner := 0,
 		parked fibers := <>,
 		signaler fibers := <>
@@ -811,7 +814,7 @@ Semantic restriction "a monitor«named_»" is
 	myName ::= if ⎣optionalName⎦ = 1
 		then [optionalName[1]]
 		else [defaultName's type];
-	extend monitor with name : myName
+	extend monitor with mutex name : myName
 ];
 
 /**
@@ -1096,7 +1099,7 @@ Public method "Signal_if satisfied" is
  */
 Public class "semaphore" extends synchronization device
 	with fields
-		name : nonempty string,
+		mutex name : nonempty string ("_'s⁇name"),
 		public maximum permits : [0..∞],
 		internal monitor : monitor,
 		availability : condition
@@ -1178,7 +1181,7 @@ Public method "a semaphore«named_»with_«out of_»permit|permits" is
 	cond ::= a condition of mutex such that [availablePermits > 0];
 	Assert: permits ≤ maximumPermits;
 	a semaphore with
-		name ::= myName,
+		mutex name ::= myName,
 		maximum permits ::= maximumPermits,
 		internal monitor ::= mutex,
 		availability ::= cond,
@@ -1197,7 +1200,9 @@ Semantic restriction "a semaphore«named_»with_«out of_»permit|permits" is
 	maximumPermits ::= if ⎣optionalMaximumPermits⎦ = 1
 		then [optionalMaximumPermits[1]]
 		else [∞'s type];
-	extend semaphore with name : myName, maximum permits : maximumPermits
+	extend semaphore with
+		mutex name : myName,
+		maximum permits : maximumPermits
 ];
 
 /**
