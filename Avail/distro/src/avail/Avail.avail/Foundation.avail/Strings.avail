@@ -745,7 +745,7 @@ Semantic restriction "format_with«…::=_‡,»" is
  *        binding (i.e., subscript) for every variable mentioned within the
  *        template.
  * @returns "string"
- *          The result of formatting the template usings the specified bindings.
+ *          The result of formatting the template using the specified bindings.
  * @category "Formatting" "Strings"
  */
 Public stable method "format_with unchecked_" is

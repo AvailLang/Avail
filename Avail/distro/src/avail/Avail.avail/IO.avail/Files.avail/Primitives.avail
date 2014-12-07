@@ -59,6 +59,7 @@ Names
 	"_'s⁇name",
 	"_is open",
 	"_is closed",
+	"_'s⁇alignment",
 	"_'s⁇size",
 
 	/* File I/O. */
@@ -159,11 +160,20 @@ _default_access_rights ::= "rw-r--r--" → file access rights;
  * Answer an abstraction of the file named {@param "n"} that is open for
  * reading. The file position is initially zero ({@code 0}).
  *
- * @method "_opened with options_«with file access rights_»"
+ * @method "_opened«with alignment_»with options_«with file access rights_»"
  * @param "fileName" "file name"
+ * @param "optionalAlignment" "<natural number…|0..1>"
+ *        The read/write buffer alignment that the underlying I/O operations
+ *        should conform to whenever possible.  Individual transfers should
+ *        still be allowed to span multiple alignment zones.
  * @param "optionSet" "{open option|}"
+ *        The set of {@type "open option" options} to control how the file is to
+ *        be opened.
  * @param "accessRights" "<{file access right|}…|0..1>"
+ *        The initial {@type "file access right"}s to give the file in the event
+ *        that a file is created by this operation.
  * @returns "file"
+ *          The {@type file}.
  * @raises "permission-denied exception"
  *         If permission is denied to use the specified {@type "file name"}.
  * @raises "I/O exception"
@@ -306,6 +316,27 @@ Method "Close_" is
 	] : ⊤ (f's handle);
 	f's open state := false;
 ] : ⊤;
+
+/**
+ * Determine the alignment of the specified {@type "file"}.
+ *
+ * @method "_'s⁇alignment"
+ * @param "f" "file"
+ * @raises "file-closed exception"
+ *         If {@param "f"} has already been closed.
+ */
+Method "_'s⁇alignment" is
+[
+	f : file
+|
+	If f is closed then [Raise a file-closed exception];
+	[
+		h : atom
+	|
+		Primitive 162 (e : invalid-handle code's type);
+		Raise an exception for e
+	] : natural number (f's handle)
+] : natural number;
 
 /**
  * Answer the current size of the specified {@type "file"}.
