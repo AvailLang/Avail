@@ -57,6 +57,8 @@ Uses
 	"Types",
 	"Variables"
 Names
+	"Cast|cast_into«_‡,»«else_»",
+	"Choose|choose_from_where«_is_‡,»«,else_»",
 	"Do_until_",
 	"Do_until_alternate with_",
 	"Do_while_",
@@ -64,6 +66,8 @@ Names
 	"Exit_",
 	"From_to_by_do_",
 	"From_to_do_",
+	"here",
+	"If|if_then_«else if_then_»«else_»",
 	"Repeat_",
 	"Repeat__times",
 	"Unless_then_",
@@ -73,10 +77,6 @@ Names
 	"While_",
 	"While_do_",
 	"While_do_alternate with_",
-	"Cast|cast_into«_‡,»«else_»",
-	"Choose|choose_from_where«_is_‡,»«,else_»",
-	"here",
-	"If|if_then_«else if_then_»«else_»",
 	"Unless|unless_then_else_",
 	"Unless|unless_then_«else unless_then_»«else_»",
 
@@ -858,13 +858,10 @@ Public method "If|if_then_«else if_then_»«else_»" is
 [
 	firstPredicate : boolean,
 	firstThen : []→⊤,
-	elseIfTuple : <<[]→boolean, []→⊤…|2>…|1..>,
-	else : <[]→⊤…|0..1>
+	elseIfTuple : <[]→boolean, []→⊤…|2>+,
+	else : []→⊤?
 |
-	if firstPredicate then
-	[
-		firstThen();
-	]
+	if firstPredicate then firstThen
 	else
 	[
 		/* Choose the first of the remaining clauses for which the associated

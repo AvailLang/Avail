@@ -96,14 +96,14 @@ Public method "[«_‡,»]→_" is
  * @method "[«_‡,»]→_"
  * @forbids "2" "_'s⁇type"
  */
-Grammatical restriction "[«_‡,»]→_" is <∅, {"_'s⁇type"}>;
+Grammatical restriction "[«_‡,»]→_" is <∅, {"_'s⁇type", "_`?", "_+", "_*"}>;
 
 /**
  * Make it easier to specify argument types.
  * @method "[`…]→_"
  * @forbids "1" "_'s⁇type"
  */
-Grammatical restriction "[`…]→_" is <{"_'s⁇type"}>;
+Grammatical restriction "[`…]→_" is <{"_'s⁇type", "_`?", "_+", "_*"}>;
 
 /**
  * Tuple type constructor's semantic restriction.

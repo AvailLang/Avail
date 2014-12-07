@@ -50,6 +50,9 @@ Names
 	"«_‡++»",
 	"_[_..]",
 	"_[.._]",
+	"_*",
+	"_+",
+	"_`?",
 
 	/* Exported for use by Tuples. */
 	"Require:_[_.._]is ever valid",
@@ -761,4 +764,98 @@ Semantic restriction "_[_]else_" is
 			union ∪ else's return type
 		]
 	]
+];
+
+/**
+ * Create an optional type from some (non-top) type.  The optional type based on
+ * type X is simply the tuple type of zero or one X's.
+ * 
+ * @method "_`?"
+ * @param "t" "type"
+ *        The type to be made optional.
+ * @returns "<any…|0..1>'s type"
+ *          A zero-or-one element tuple type whose sole element, if present, has
+ *          type t.
+ */
+Public method "_`?" is
+[
+	t : any's type
+|
+	<<>, t…|[0..1]>
+];
+
+/**
+ * Strengthen the optional type derived from the given non-top type.
+ * 
+ * @method "_`?"
+ * @restricts "t" "type's type"
+ *            The type of type being made optional at a call site.
+ */
+Semantic restriction "_`?" is
+[
+	m : any's type's type
+|
+	<<>, m's instance…|[0..1]>'s type
+];
+
+/**
+ * Create a one-or-more type from some (non-top) type.  The one-or-more type
+ * based on type X is simply the tuple type of one or more X's.
+ * 
+ * @method "_+"
+ * @param "t" "type"
+ *        The type to be made one-or-more.
+ * @returns "<any…|1..∞>'s type"
+ *          A one or more element tuple type whose elements have type t.
+ */
+Public method "_+" is
+[
+	t : any's type
+|
+	<<>, t…|[1..∞)>
+];
+
+/**
+ * Strengthen the one-or-more type derived from the given type.
+ * 
+ * @method "_+"
+ * @restricts "t" "type's type"
+ *            The type of type being made one-or-more at a call site.
+ */
+Semantic restriction "_+" is
+[
+	m : any's type's type
+|
+	<<>, m's instance…|[1..∞)>'s type
+];
+
+/**
+ * Create a zero-or-more type from some (non-top) type.  The zero-or-more type
+ * based on type X is simply the tuple type of zero or more X's.
+ * 
+ * @method "_*"
+ * @param "t" "type"
+ *        The type to be made zero-or-more.
+ * @returns "<any…|0..∞>'s type"
+ *          A zero or more element tuple type whose elements have type t.
+ */
+Public method "_*" is
+[
+	t : any's type
+|
+	<<>, t…|[0..∞)>
+];
+
+/**
+ * Strengthen the zero-or-more type derived from the given type.
+ * 
+ * @method "_*"
+ * @restricts "t" "type's type"
+ *            The type of type being made zero-or-more at a call site.
+ */
+Semantic restriction "_*" is
+[
+	m : any's type's type
+|
+	<<>, m's instance…|[0..∞)>'s type
 ];
