@@ -65,7 +65,11 @@ Names
 	"file reader/writer",
 
 	/* Constructors. */
-	"a_for_«aligning buffers to_bytes»«with options_»«with file access rights_»",
+	"a_for_\
+		\|«aligning buffers to_bytes»\
+		\|«buffering at most_bytes»\
+		\|«with options_»\
+		\|«with file access rights_»",
 
 	/* Other file operations. */
 	"Truncate_to_bytes⁇",
@@ -76,95 +80,51 @@ Body
 
 "file position" is a new field atom;
 "alignment" is a new field atom;
-"buffer is dirty" is a new field atom;
 "element source" is a new field atom;
 
-/*
-TODO [MvG] - document properly.
-NOTES:
-	-Positioning before the current buffer or *beyond* the byte just *after* the
-	 current buffer should flush the current buffer if necessary, then
-	 invalidate it by replacing it with the empty tuple.  If the next operation
-	 is a read, it will read the (aligned) buffer.  On the other hand, if the
-	 next operation is a write, the buffer will not need to be fetched.  If a
-	 full bufferful of data is written, no read will have to happen, but if a
-	 buffer flush is forced before a full buffer is available, only the buffered
-	 bytes need to be written.
-	-Writes are not aligned, since that forces an early read.
-	-Writes into a buffer that's aligned due to a read will be re-written
-	 starting at the alignment.  When the write starts, the buffer is
-	 immediately truncated to the nearest aligned location before the write
-	 position.
- 
-	-The read buffer is always aligned.  A request to read more than a single
-	 aligned buffer will figure out which region(s) of data are not in the
-	 current buffer, then do zero, one, or two reads to populate a larger
-	 buffer that's aligned to the nearest alignments that provide the needed
-	 data.  The buffers are concatenated to form a contiguous region if possible
-	 (even if the read merely abuts the previous buffer boundary).  The buffer
-	 is then truncated to conform to the file's read buffer cache limit (always
-	 a multiple of the alignment).
-	-Contiguous writes are accumulated up to the file's write buffer cache limit
-	 before being flushed (updating the overlapping portion of the read buffer).
-	 However, they need not be aligned.  A non-contiguous write within the same
-	 alignment area should perform a read if necessary to populate the write
-	 buffer
-
-	 VM support:
-	 	-ACTION ITEM: File open primitive needs to capture buffer alignment into
-	 	 a new property.
-	 	-AvailRuntime has added an LRUCache of buffers, each of which is
-	 	 associated with a particular file and starting position.  If the buffer
-	 	 is present, it will always be aligned.  Even though the Avail code can
-	 	 request ranges that are unaligned, these ranges are silently extended
-	 	 to the nearest alignment boundaries (floor for start, ceiling for end)
-	 	 before the operating system is consulted, and the read result is sliced
-	 	 into individual aligned pages (via SubrangeTupleDescriptor) which are
-	 	 placed in the cache.  Then a potentially unaligned subtuple is returned
-	 	 from the read primitive, corresponding to the exact requested range.
-	 	-If the requested pages are all present, then the operation system read
-	 	 is skipped, and the pages are spliced together as needed, and a
-	 	 suitable subtuple is returned.
-	 	-The write operation doesn't need to be aligned.  However, for each
-	 	 page partially overwritten by the write, any existing cached buffer is
-	 	 updated prior to the OS write.  Any complete pages are completely
-	 	 replaced with the appropriate subrange of the provided buffer.
-	 Representation of read/write file iterators:
-		-one buffer
-		-buffer dirty flag
-		-current position in file
-		-alignment
-		-buffers are LRU-cached by the VM to speed up reads.  An explicit
-		 "refresh" is needed to remove the buffer, allowing the next read to
-		 replace it.
-	 Invariants:
-		-empty buffer implies buffer dirty flag is clear.
-		-if buffer is dirty then current position in file is between buffer
-		 start and buffer end + 1.
-		-buffer never crosses page boundary.
-	 Sample situations:
-		-empty buffer, read -> fetch ONE aligned page.
-		-empty buffer, write -> accrete buffer as data is appended to it,
-		 flushing when buffer crosses alignment.  If a single large tuple of
-		 bytes is written, multiple alignment boundaries may be crossed.  In
-		 that case, all data up to the last-crossed alignment boundary is
-		 written, and the remaining portion of the buffer, if any, remains as a
-		 dirty buffer.
-		-buffer not dirty, seek adjusts current position and clears the buffer
-		 if the new position is off the buffer.
-		-dirty buffer, seek far -> flush buffer, empties it, set current
-		 position.
-		-dirty buffer, seek on same alignment page but outside buffer -> read
-		 a page from file, overwrite with dirty parts, keep dirty flag set, and
-		 adjust buffer start in file to start of page (i.e., treat whole buffer
-		 as dirty).
-		-support "refresh" operation which flushes if dirty, but empties the
-		 buffer in either case.  It also discards all existing VM-cached buffers
-		 for that file.
-		-support "flush" operation which flushes if the buffer is dirty.
-		-support "commit" operation which flushes and then waits for all
-		 outstanding writes to complete.
-*/
+/* File iterators provide buffered random access to external files.  Buffer
+ * management is a collaboration between the Avail library and the virtual
+ * machine.
+ * 
+ * The parent random access buffered iterator abstraction defines the ability
+ * to position the iterator at any natural number position.  Unaligned reads and
+ * writes are then supported for the subtypes file reader and file writer,
+ * respectively.  However, all reads are padded in the VM to the containing
+ * alignment boundaries.  When an unaligned write is requested, an attempt is
+ * first made to locate cached buffers with which to pad the write out to the
+ * containing alignment boundaries.  If such buffers are not available and if
+ * the operating system is unable to supply such buffers readily, an unaligned
+ * write will simply take longer as the OS must first fetch any pages being
+ * partially written.
+ * 
+ * To mitigate this cost, a best effort is made to perform aligned writes any
+ * time this is possible.  Some libraries might read buffers premptively when
+ * starting to write to a page, but Avail does not, under the assumption that by
+ * the time the buffer is ready to be flushed, it is likely that the entire page
+ * will be overwritten anyhow.
+ * 
+ * A file writer may be created with a maximum buffer amount, which determines
+ * how big a dirty buffer may be before being evicted to disk.  Since the buffer
+ * need not be aligned (at either end), the dirty buffer is only flushed up to
+ * the last alignment boundary, leaving just the residue, if any, in the buffer
+ * (clearing the dirty flag only if there is no residue).
+ * 
+ * As for reading, the buffer will be opportunistically populated:  If the
+ * initial buffer being requested is in the cache, then as many cached buffers
+ * up to the requested read size will be (efficiently) concatenated and
+ * returned.  However, if the initial buffer being requested is not in the
+ * cache, then an OS read is performed up to the lesser of the end of the
+ * requested range or the maximum allowed VM read size or the start of the next
+ * buffer that is actually in the cache.  This avoids reading cached pages while
+ * still providing efficient bulk transfers for cold data.
+ * 
+ * Cache coherence is explicitly maintained via "Refresh_" (a read barrier) and
+ * "Synchronize_" (a write barrier).  Note that all writes first modify the
+ * cache, and then the underlying file.  The LRUCache of pages is global,
+ * spanning all open files.  Each file also maintains a weak set of page keys
+ * (the same keys used in the global LRUCache) that are specific to that file,
+ * for efficient eviction during a "Refresh_" or "Close_".
+ */
 
 /**
  * A file iterator provides streaming access to a backing {@type "file"}.  Its
@@ -175,7 +135,8 @@ NOTES:
  * @type "file iterator"
  * @supertype "positionable buffered iterator"
  */
-Public class "file iterator" extends random access buffered iterator
+Public class "file iterator"
+	extends random access buffered iterator
 	with fields
 		alignment : whole number,
 		element type : byte's type,
@@ -187,7 +148,8 @@ Public class "file iterator" extends random access buffered iterator
  * @type "file reader"
  * @supertype "file iterator"
  */
-Public explicit class "file reader" extends file iterator ∩ buffered reader
+Public explicit class "file reader"
+	extends file iterator ∩ random access buffered reader
 	with field
 		element source : readable file;
 
@@ -197,11 +159,10 @@ Public explicit class "file reader" extends file iterator ∩ buffered reader
  * @type "file writer"
  * @supertype "file iterator"
  */
-Public class "file writer" extends file iterator ∩ buffered writer
+Public class "file writer"
+	extends file iterator ∩ random access buffered writer
 	with field
-		element source : writable file
-	with mutable fields
-		buffer is dirty : boolean;
+		element source : writable file;
 
 /**
  * A file iterator buffers bytes obtained from a backing {@type
@@ -253,6 +214,37 @@ file reader/writer's fetch current buffer method is
 	_privateReadBuffer(aFileReaderWriter)
 ];
 
+Private method "Private file write_into_at_" is
+[
+	bytes : <byte…|1..>,
+	fileWriter : file writer,
+	start : natural number
+|
+	writeComplete ::= a semaphore named "write is complete" with 0 permits;
+	success : boolean;
+	writeFiber ::= a fiber writing bytes
+		at start
+		to fileWriter's element source
+		on success doing
+			[
+				success := true;
+				Signal writeComplete;
+			]
+		on failure doing
+			[
+				error : {I/O-error code}ᵀ
+			|
+				/* All we know is that I/O failed. */
+				success := false;
+				Signal writeComplete;
+			];
+	Await writeComplete;
+	Unless success then
+	[
+		Raise an I/O exception
+	];
+];
+
 _privateWriteBuffer ::=
 [
 	fileWriter : file writer
@@ -260,42 +252,13 @@ _privateWriteBuffer ::=
 	If fileWriter's buffer is dirty then
 	[
 		Assert: |fileWriter's buffer| > 0;
-		writeComplete ::= a semaphore named "write is complete" with 0 permits;
-		buffer ::= fileWriter's buffer ?→ <byte…|1..>;
-		success : boolean;
-		writeFiber ::= a fiber writing buffer
-			at fileWriter's buffer start
-			to fileWriter's element source
-			on success doing
-				[
-					success := true;
-					Signal writeComplete;
-				]
-			on failure doing
-				[
-					error : {I/O-error code}ᵀ
-				|
-					/* All we know is that I/O failed. */
-					success := false;
-					Signal writeComplete;
-				];
-		Await writeComplete;
-		Unless success then
-		[
-			Raise an I/O exception
-		];
+		Private file
+			write fileWriter's buffer ?→ <byte…|1..>
+			into fileWriter
+			at fileWriter's buffer start;
 		fileWriter's buffer is dirty := false;
 	];
 ] : ⊤;
-
-file iterator's exit buffer method is
-[
-	aFileIterator : file iterator
-|
-	globalPosition ::= aFileIterator's position;
-	↑aFileIterator's buffer ?= <>;
-	aFileIterator's position := globalPosition;
-];
 
 file writer's exit buffer method is _privateWriteBuffer;
 
@@ -308,9 +271,25 @@ file writer's exit buffer method is _privateWriteBuffer;
  * @param "fn" "file name"
  *        The {@method "file name"} of the target file.
  * @param "optionalAlignment" "<natural number…|0..1>"
- *        If specified, the number of bytes to buffer from the underlying {@type
- *        "file"}. If not specified, then a default value is used.
- * @returns "readable file iterator"
+ *        If specified, the alignment boundary at which to align writes.  For
+ *        optimal performance and safety, this should be a multiple of both the
+ *        operating system's block size and the physical device's minimum block
+ *        transfer size.  If not specified, a default value is used.
+ * @param "optionalMaximumBuffer" "<natural number…|0..1>"
+ *        If specified, the maximum number of bytes to buffer from/for the
+ *        underlying {@type "file"}. If not specified, a default value is used.
+ *        Writes will still happen with end-boundaries that are multiples of the
+ *        optionalAlignment, but only when the buffer becomes larger than the
+ *        optionalMaximumBuffer size (or when a write is neither contiguous with
+ *        nor overlapping the existing buffer).
+ * @param "optionSet" "<{open option|}…|0..1>"
+ *        The optional set of {@type "open option" options} with which to open
+ *        the file handle.  The subtype of file iterator type that is 
+ * @param "optionalAccessRights" "<{file access right|}…|0..1>"
+ *        The optional {@type "set"} of {@type "file access right"}s to supply
+ *        at file handle opening time, which controls the initial access rights
+ *        of the file only when a new file is constructed.
+ * @returns "file iterator"
  * @raises "permission-denied exception"
  *         If permission is denied to use the specified {@type "file name"}.
  * @raises "I/O exception"
@@ -318,23 +297,29 @@ file writer's exit buffer method is _privateWriteBuffer;
  */
 Public method "a_for_\
 	\|«aligning buffers to_bytes»\
+	\|«buffering at most_bytes»\
 	\|«with options_»\
 	\|«with file access rights_»" is
 [
 	fileIteratorType : file iterator's type,
 	fn : file name,
 	optionalAlignment : <natural number…|0..1>,
+	optionalMaximumBuffer : <natural number…|0..1>,
 	optionSet : <{open option|}…|0..1>,
 	optionalAccessRights : <{file access right|}…|0..1>
 |
 	options : {open option|} := optionSet[1] else [∅];
 	If fileIteratorType ⊆ reader then [options := options ∪ {read};];
 	If fileIteratorType ⊆ writer then [options := options ∪ {write};];
+	rawFile ::= fn opened with options options ?→ {open option|1..};
+	alignment ::= optionalAlignment[1] else [1];
+	maximumBufferSize ::= optionalMaximumBuffer[1] else [32768];
+	Assert: alignment ≤ maximumBufferSize;
 	theIterator ::= a fileIteratorType with
 		element type ::= byte,
-		alignment ::= optionalAlignment[1] else [1],
-		element source ::= fn opened with options options ?→ {open option|1..},
-		maximum buffer size ::= optionalAlignment[1] else [32768],
+		alignment ::= alignment,
+		element source ::= rawFile,
+		maximum buffer size ::= maximumBufferSize,
 		position variable := 1,
 		buffer := <>,
 		position in buffer := 1;
@@ -350,14 +335,16 @@ Public method "a_for_\
 
 Semantic restriction "a_for_\
 	\|«aligning buffers to_bytes»\
+	\|«buffering at most_bytes»\
 	\|«with options_»\
 	\|«with file access rights_»" is
 [
 	fileIteratorMeta : file iterator's type's type,
 	fnType : file name's type,
 	optionalAlignmentType : <natural number…|0..1>'s type,
-	optionSet : <{open option|}…|0..1>'s type,
-	optionalAccessRights : <{file access right|}…|0..1>'s type
+	optionalMaximumBufferType : <natural number…|0..1>'s type,
+	optionSetType : <{open option|}…|0..1>'s type,
+	optionalAccessRightsType : <{file access right|}…|0..1>'s type
 |
 	fileIteratorMeta's instance
 ];
@@ -459,6 +446,13 @@ Semantic restriction "Using|using_,⁇do_" is
  * Write the elements of the specified {@type "tuple"} to the supplied {@type
  * "buffered writer"}. This operation should be more efficient than repeatedly
  * sending {@method "_'s⁇current element:=_"} and {@method "Advance_"}.
+ * 
+ * <p>
+ * After the write to the buffer, we only flush it if it crosses an alignment
+ * boundary; in that case, we flush up to the <em>last</em> alignment boundary
+ * that was crossed.  In the continuous case, this should allow a sequence of
+ * writes to avoid having to fetch buffers from disk prior to writing.
+ * </p>
  *
  * @method "Write_to_"
  * @param "newElements" "tuple"
@@ -468,46 +462,80 @@ Semantic restriction "Using|using_,⁇do_" is
 Method "Write_to_" is
 [
 	newElements : tuple,
-	aFileWriter : file writer
+	aWriter : file writer
 |
 	If |newElements| > 0 then
 	[
-		oldBuffer : tuple := aFileWriter's buffer;
-		startInBuffer : integer := aFileWriter's position in buffer;
-		If ¬ 1 ≤ startInBuffer ≤ |oldBuffer| + 1 then
+		oldBuffer : tuple := aWriter's buffer;
+		startInBuffer : integer := aWriter's position in buffer;
+		If ¬ aWriter's buffer is dirty then
 		[
-			Private exit aFileWriter's current buffer;
-			oldBuffer := aFileWriter's buffer;
-			startInBuffer := aFileWriter's position in buffer;
-			Assert: 1 ≤ startInBuffer ≤ |oldBuffer| + 1;
-		];
-		If ¬ aFileWriter's buffer is dirty then
-		[
-			/* There's no point in keeping clean data next to the dirty data,
-			 * because of the way we already cache pages in the VM.  If we did,
-			 * we would have to write the clean data whenever the dirty data was
-			 * flushed, which would cost us spurious writes.
+			/* There's no point in keeping clean data next to the dirty data.
+			 * If we did, we would have to write the clean data whenever the
+			 * dirty data was flushed, which would cost us spurious writes.
+			 * Hopefully the backing artifact or OS or VM will cache data to
+			 * allow unaligned writes-after-reads to still be efficient.
 			 */
-			Private exit aFileWriter's current buffer;
-			Assert: aFileWriter's buffer = <>;
-			Assert: aFileWriter's position in buffer = 1;
+			aWriter's buffer start := aWriter's position;
+			↑aWriter's position in buffer ?= 1;
+			↑aWriter's buffer ?= <>;
+			oldBuffer := <>;
+			startInBuffer := 1;
+		]
+		else if [¬ 1 ≤ startInBuffer ≤ |oldBuffer| + 1] then
+		[
+			/* This write does not extend or overwrite the current buffer, so
+			 * flush the entire existing buffer before starting the new write.
+			 */
+			Private file
+				write aWriter's buffer ?→ <byte…|1..>
+				into aWriter
+				at aWriter's buffer start;
+			aWriter's buffer is dirty := false;
+			aWriter's buffer start := aWriter's position;
+			↑aWriter's position in buffer ?= 1;
+			↑aWriter's buffer ?= <>;
 			oldBuffer := <>;
 			startInBuffer := 1;
 		];
+		Assert: 1 ≤ startInBuffer ≤ |oldBuffer| + 1;
+		/* Determine if we will exceed the maximum buffer size. */
 		naturalStart ::= startInBuffer ?→ natural number;
 		newBuffer ::= oldBuffer
 			[
 				naturalStart ..
 				(naturalStart + |newElements| - 1) min |oldBuffer|
 			] → newElements;
-		↑aFileWriter's buffer ?= newBuffer;
-		↑aFileWriter's position in buffer ?=
-			aFileWriter's position in buffer + |newElements|;
-		aFileWriter's buffer is dirty := true;
-		/* If we've buffering more than we're permitted, flush the buffer. */
-		If |newBuffer| > aFileWriter's maximum buffer size then
+		newBufferSize ::= |newBuffer|;
+		If newBufferSize ≥ aWriter's maximum buffer size then
 		[
-			Private exit aFileWriter's current buffer;
+			/* Flush the buffer up to the last alignment boundary.  Just for
+			 * safety, if the backing file has an alignment that is bigger than
+			 * the maximum buffer size (which should be prevented at creation
+			 * time), then don't flush until we've actually crossed an alignment
+			 * boundary.
+			 */
+			aFile ::= aWriter's element source;
+			newPosition ::= aWriter's position + |newElements|;
+			endOfBuffer ::= naturalStart + newBufferSize - 1;
+			residue ::= (endOfBuffer mod aFile's alignment) max 0;
+			toWrite ::= (newBufferSize - residue) ?→ natural number;
+			Private file
+				write newBuffer[1 .. toWrite] ?→ <byte…|1..>
+				into aWriter
+				at naturalStart;
+			aWriter's buffer is dirty := residue ≠ 0;
+			aWriter's buffer start := naturalStart + toWrite;
+			↑aWriter's position in buffer ?=
+				newPosition - naturalStart - toWrite;
+			↑aWriter's buffer ?= newBuffer[toWrite + 1..];
+		]
+		else
+		[
+			/* Just keep it in the buffer. */
+			↑aWriter's buffer ?= newBuffer;
+			↑aWriter's position in buffer ?= naturalStart + |newElements|;
+			aWriter's buffer is dirty := true;
 		];
 	];
 ];

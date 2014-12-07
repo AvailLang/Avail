@@ -52,9 +52,16 @@ Names
 	"random access test suite",
 
 	/* Protocol for subtypes. */
+	"_'s⁇buffer is dirty",
+	"_'s⁇buffer is dirty:=_",
 	"_'s⁇buffer start",
-	"_'s⁇buffer start:=_"
+	"_'s⁇buffer start:=_",
+	"_'s⁇write tuple method is_"
 Body
+
+"buffer is dirty" is a new field atom;
+
+privateWriteName ::= $"Private write_in_at_";
 
 /**
  * Random access buffered iterator is an abstraction that combines the ability
@@ -96,7 +103,9 @@ Public class "random access buffered reader"
  * @supertype "writer"
  */
 Public class "random access buffered writer"
-	extends random access buffered iterator ∩ writer;
+	extends random access buffered iterator ∩ writer
+	with mutable field
+		public buffer is dirty : boolean;
 
 /**
  * A random access buffered reader/writer supports explicitly {@method
@@ -199,6 +208,119 @@ Method "_is exhausted" is
 		]
 ] : boolean;
 
+Private abstract method privateWriteName is
+	[tuple, random access buffered writer, natural number]→⊤;
+
+/**
+ * There is already a buffer-exiting method defined in {@type
+ * "buffered iterator"}, but because we want more control over buffer alignment
+ * we now define a method ({@method "_'s⁇write tuple method is_"}) to define
+ * an implementation of a private method that writes an arbitrary tuple of bytes
+ * at the specified position into the construct backing some writer.
+ * 
+ * @method "_'s⁇write tuple method is_"
+ * @param "writerType" "random access buffered writer's type"
+ *        The writer's type, as a cross check for the implementation.
+ * @param "implementation" "[tuple, ⊥, natural number]→⊤"
+ *        The new method extension.  Its first argument is the tuple to write,
+ *        the second argument is the writer, and the third argument is the
+ *        starting position at which the tuple is to be written to whatever is
+ *        backing the writer.
+ */
+Public method "_'s⁇write tuple method is_" is
+[
+	writerType : random access buffered writer's type,
+	implementation : [tuple, ⊥, natural number]→⊤
+|
+	Private method privateWriteName is implementation;
+] : ⊤;
+
+/**
+ * Strengthen the {@method "_'s⁇write tuple method is_"} method so that the
+ * supplied function accepts the specified {@type "writer"} subtype.
+ * 
+ * @method "_'s⁇write tuple method is_"
+ * @restricts "writerType" "random access buffered writer's type's type"
+ *        The type of the writer's type, which must be known statically.  This
+ *        is used to cross check against the implementation.
+ * @restricts "implementation" "([tuple, ⊥, natural number]→⊤)'s type"
+ *            The new method extension.  Its first argument is the tuple to
+ *            write, the second argument is the writer, and the third argument
+ *            is the starting position at which the tuple is to be written to
+ *            whatever is backing the writer.
+ * @returns "⊤'s type"
+ */
+Public method "_'s⁇write tuple method is_" is
+[
+	writerMeta : random access buffered writer's type's type,
+	implementationType : ([tuple, ⊥, natural number]→⊤)'s type
+|
+	If implementationType[1] = ⊥
+		∨ [implementationType[2] = ⊥
+		∨ [implementationType[3] = ⊥]]
+	then
+	[
+		Reject parse, expected:
+			"function's parameter types to be statically known"
+	];
+	writerType ::= writerMeta's instance;
+	If ¬implementationType[2] ⊆ writerType then
+	[
+		Reject parse, expected:
+			"function's second parameter type ("
+			++ “implementationType[2]”
+			++ ") to be a subtype of the writer type ("
+			++ “writerMeta's instance”
+			++ ")"
+	];
+	elementType ::= writerType's element type;
+	If ¬ <elementType…|1..> ⊆ implementationType[1] then
+	[
+		Reject parse, expected:
+			"function's first parameter type ("
+			++ “implementationType[1]”
+			++ ") to accept any non-empty tuple of the writer's element type ("
+			++ “elementType”
+			++ ")"
+	];
+	If ¬ natural number ⊆ implementationType[3] then
+	[
+		Reject parse, expected:
+			"function's third parameter type ("
+			++ “implementationType[3]”
+			++ ") to accept any natural number for positioning"
+	];
+	⊤
+];
+
+/*
+ * The exit buffer method for a random access buffered iterator does nothing.
+ * The subtype random access buffered writer will invoke the private write
+ * operation.
+ */
+random access buffered iterator's exit buffer method is
+[
+	aWriter : random access buffered iterator
+|
+	/* Do nothing */
+];
+
+/*
+ * The exit buffer method for a random access buffered writer simply writes out
+ * the whole buffer (via the private tuple writing method) and then empties it.
+ */
+random access buffered writer's exit buffer method is
+[
+	aWriter : random access buffered writer
+|
+	globalPosition ::= aWriter's position;
+	Private write aWriter's buffer in aWriter at aWriter's buffer start;
+	aWriter's buffer is dirty := false;
+	aWriter's buffer start := globalPosition;
+	↑aWriter's position in buffer ?= 1;
+	↑aWriter's buffer ?= <>;
+	aWriter's position := globalPosition;
+];
 
 random access buffered iterator's advance method is
 [
@@ -278,3 +400,87 @@ Method "take«at most»?_from_" is
 	];
 	result
 ] : tuple;
+
+/**
+ * Write the elements of the specified {@type "tuple"} to the supplied {@type
+ * "buffered writer"}. This operation should be more efficient than repeatedly
+ * sending {@method "_'s⁇current element:=_"} and {@method "Advance_"}.
+ *
+ * @method "Write_to_"
+ * @param "newElements" "tuple"
+ * @param "aWriter" "random access buffered writer"
+ * @returns "⊤"
+ */
+Method "Write_to_" is
+[
+	newElements : tuple,
+	aWriter : random access buffered writer
+|
+	If |newElements| > 0 then
+	[
+		oldBuffer : tuple := aWriter's buffer;
+		startInBuffer : integer := aWriter's position in buffer;
+		If ¬ aWriter's buffer is dirty then
+		[
+			/* There's no point in keeping clean data next to the dirty data.
+			 * If we did, we would have to write the clean data whenever the
+			 * dirty data was flushed, which would cost us spurious writes.
+			 * Hopefully the backing artifact or OS or VM will cache data to
+			 * allow unaligned writes-after-reads to still be efficient.
+			 */
+			aWriter's buffer start := aWriter's position;
+			↑aWriter's position in buffer ?= 1;
+			↑aWriter's buffer ?= <>;
+			oldBuffer := <>;
+			startInBuffer := 1;
+		]
+		else if [¬ 1 ≤ startInBuffer ≤ |oldBuffer| + 1] then
+		[
+			/* This write does not extend or overwrite the current buffer, so
+			 * flush the entire existing buffer before starting the new write.
+			 */
+			Private
+				write aWriter's buffer
+				in aWriter
+				at aWriter's buffer start;
+			aWriter's buffer is dirty := false;
+			aWriter's buffer start := aWriter's position;
+			↑aWriter's position in buffer ?= 1;
+			↑aWriter's buffer ?= <>;
+			oldBuffer := <>;
+			startInBuffer := 1;
+		];
+		Assert: 1 ≤ startInBuffer ≤ |oldBuffer| + 1;
+		/* Determine if we will exceed the maximum buffer size. */
+		naturalStart ::= startInBuffer ?→ natural number;
+		newBufferSize ::= (naturalStart + |newElements| - 1) max |oldBuffer|;
+		newBuffer ::= oldBuffer
+			[
+				naturalStart ..
+				(naturalStart + |newElements| - 1) min |oldBuffer|
+			] → newElements;
+		If newBufferSize ≥ aWriter's maximum buffer size then
+		[
+			/* Flush the buffer completely.  Subtypes may wish to limit this
+			 * to the last reached alignment boundary.
+			 */
+			Private
+				write newBuffer
+				in aWriter
+				at aWriter's buffer start;
+			aWriter's buffer start := aWriter's position + |newElements|;
+			↑aWriter's position in buffer ?= 1;
+			↑aWriter's buffer ?= <>;
+			oldBuffer := <>;
+			startInBuffer := 1;
+			aWriter's buffer is dirty := false;
+		]
+		else
+		[
+			/* Just keep it in the buffer. */
+			↑aWriter's buffer ?= newBuffer;
+			↑aWriter's position in buffer ?= naturalStart + |newElements|;
+			aWriter's buffer is dirty := true;
+		];
+	];
+];

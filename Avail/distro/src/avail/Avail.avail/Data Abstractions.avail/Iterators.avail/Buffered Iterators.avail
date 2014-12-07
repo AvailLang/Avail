@@ -161,6 +161,18 @@ Public method "_'s⁇exit buffer method is_" is
 	Private method privateExitBufferName is implementation;
 ] : ⊤;
 
+/**
+ * Strengthen the buffer-exiting method definer {@method
+ * "_'s⁇exit buffer method is_"} to ensure that the supplied function will
+ * accept the expected subtype of {@type "iterator"}.
+ *
+ * @method "_'s⁇exit buffer method is_"
+ * @restricts "iteratorType" "random access buffered iterator's type's type"
+ *            The iterator's metatype, as a cross check for the implementation.
+ * @restricts "implementation" "[⊥]→⊤'s type"
+ *            The new method extension's metatype. The argument is the iterator.
+ * @returns "⊤'s type"
+ */
 Semantic restriction "_'s⁇exit buffer method is_" is
 [
 	iteratorMeta : buffered iterator's type's type,
@@ -371,6 +383,9 @@ Method "Write_to_" is
 		startInBuffer : integer := aWriter's position in buffer;
 		If ¬ 1 ≤ startInBuffer ≤ |oldBuffer| + 1 then
 		[
+			/* This write does not extend or overwrite the current buffer, so
+			 * flush the entire existing buffer before starting the new write.
+			 */
 			Private exit aWriter's current buffer;
 			oldBuffer := aWriter's buffer;
 			startInBuffer := aWriter's position in buffer;
@@ -386,7 +401,7 @@ Method "Write_to_" is
 		aWriter's position in buffer :=
 			aWriter's position in buffer + |newElements|;
 		/* If we've buffered more than we're allowed, flush the buffer. */
-		If |newBuffer| > aWriter's maximum buffer size then
+		If |newBuffer| ≥ aWriter's maximum buffer size then
 		[
 			Private exit aWriter's current buffer;
 		];
