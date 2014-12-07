@@ -45,6 +45,7 @@ Uses
 	"Functions",
 	"Logic",
 	"Strings",
+	"Tuples",
 	"Types",
 	"Variables"
 Names
@@ -321,7 +322,7 @@ Public method "Observe|observe_" is
 			Remove current fiber[observing];
 			Guard
 			[
-				For each of reactors in parallel do [r : write reactor | r();];
+				For each of reactors do [r : write reactor | r();];
 			]
 			intercept [e : worker exception | Raise e's causal exception];
 		];
