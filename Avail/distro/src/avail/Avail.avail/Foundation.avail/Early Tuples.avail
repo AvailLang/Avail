@@ -773,7 +773,7 @@ Semantic restriction "_[_]else_" is
  * @method "_`?"
  * @param "t" "type"
  *        The type to be made optional.
- * @returns "<any…|0..1>'s type"
+ * @returns "any?'s type"
  *          A zero-or-one element tuple type whose sole element, if present, has
  *          type t.
  */

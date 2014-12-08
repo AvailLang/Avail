@@ -849,7 +849,7 @@ Semantic restriction "{_`|}" is
  * cardinalities.
  *
  * @method "set«_»of_"
- * @param "optionalSizes" "<whole number meta…|0..1>"
+ * @param "optionalSizes" "whole number meta?"
  *	If specified, then the range of allowed cardinalities. Defaults to whole 
  *  number.
  * @param "elementType" "any meta"
@@ -861,7 +861,7 @@ Semantic restriction "{_`|}" is
  */
 Public method "set«_»of_" is
 [
-	optionalSizes : <whole number meta…|0..1>,
+	optionalSizes : whole number meta?,
 	elementType : any meta
 |
 	{elementType | optionalSizes[1] else [whole number]}
@@ -869,12 +869,12 @@ Public method "set«_»of_" is
 
 /**
  * @method "set«_»of_"
- * @restricts "<whole number meta…|0..1>'s type"
+ * @restricts "whole number meta?'s type"
  * @restricts "any meta's type"
  */
 Semantic restriction "set«_»of_" is
 [
-	optionalSizes : <whole number meta…|0..1>'s type,
+	optionalSizes : whole number meta?'s type,
 	elementType : any meta's type
 |
 	sizes ::= if ⎡optionalSizes⎤ = 0

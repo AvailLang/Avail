@@ -3050,11 +3050,11 @@ Semantic restriction "quicksort_with_" is
 
 Method "quicksort_with_" is
 [
-	trivial : <any…|0..1>,
+	trivial : any?,
 	comparator : [⊥, ⊥]→boolean
 |
 	trivial
-] : <any…|0..1>;
+] : any?;
 
 Method "quicksort_with_" is
 [
@@ -3195,11 +3195,11 @@ Semantic restriction "merge sort_with_" is
 
 Method "merge sort_with_" is
 [
-	trivial : <any…|0..1>,
+	trivial : any?,
 	comparator : [⊥, ⊥]→boolean
 |
 	trivial
-] : <any…|0..1>;
+] : any?;
 
 Method "merge sort_with_" is
 [

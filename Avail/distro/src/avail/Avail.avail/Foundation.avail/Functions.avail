@@ -91,7 +91,7 @@ invokeAtom ::= atom for "Invoke|invoke_with_";
  * @method "_partially evaluate with_"
  * @param "originalFunction" "function"
  *        The function to ultimately invoke.
- * @param "pairs" "<<<any…|0..1>, boolean…|2>…|>"
+ * @param "pairs" "<<any?, boolean…|2>…|>"
  *        The arguments and place-holder underscores.  Either the first element
  *        must be a size one tuple and the second element is false, or the first
  *        element is the empty tuple and the second element is true.
@@ -104,7 +104,7 @@ invokeAtom ::= atom for "Invoke|invoke_with_";
 Private method "_partially evaluate with_" is
 [
 	originalFunction : function,
-	pairs : <<<any…|0..1>, boolean…|2>…|>
+	pairs : <<any?, boolean…|2>…|>
 |
 	originalType ::= originalFunction's type;
 	argumentTypes ::= originalType's parameters' type;
@@ -162,7 +162,7 @@ Private method "_partially evaluate with_" is
  * @method "_(««_»«`_»?‡,»)"
  * @param "originalFunction" "function"
  *        The function to ultimately invoke.
- * @param "pairs" "<<<any…|0..1>, boolean…|2>…|>"
+ * @param "pairs" "<<any?, boolean…|2>…|>"
  *        The arguments and place-holder underscores.  Either the first element
  *        must be a size one tuple and the second element is false, or the first
  *        element is the empty tuple and the second element is true. At least
@@ -178,7 +178,7 @@ Private method "_partially evaluate with_" is
 Public method "_(««_»«`_»?‡,»)" is
 [
 	originalFunction : function,
-	pairs : <<<any…|0..1>, boolean…|2>…|>
+	pairs : <<any?, boolean…|2>…|>
 |
 	originalFunction partially evaluate with pairs
 ] : function;
@@ -186,19 +186,19 @@ Public method "_(««_»«`_»?‡,»)" is
 /**
  * @method "_(««_»«`_»?‡,»)"
  * @restricts "function's type"
- * @restricts "<<<any…|0..1>, boolean…|2>…|>'s type"
+ * @restricts "<<any?, boolean…|2>…|>'s type"
  */
 Semantic restriction "_(««_»«`_»?‡,»)" is
 [
 	originalFunction : function's type,
-	pairs : <<<any…|0..1>, boolean…|2>…|>'s type
+	pairs : <<any?, boolean…|2>…|>'s type
 |
 	Assert: ⎣pairs⎦ = ⎡pairs⎤ (
 		"Need a definite number of arguments and underscores");
 	pairTypes ::= pairs[1..⎣pairs⎦];
 	argumentTypes : <any's type…|> := <>;
 	For each pairTypes do [
-			pairType : <<any…|0..1>, boolean…|2>'s type,
+			pairType : <any?, boolean…|2>'s type,
 			index : natural number
 		|
 			underscoreType ::= pairType[2];
@@ -271,7 +271,7 @@ Public method "_(_,`…)" is [
 	originalFunction : function,
 	firstValue : any
 |
-	pairs : <<<any…|0..1>, boolean…|2>…|> := <<<firstValue>, false>>;
+	pairs : <<any?, boolean…|2>…|> := <<<firstValue>, false>>;
 	argumentsType ::= originalFunction's type's parameters' type;
 	From 2 to ⎣argumentsType⎦ do [
 		index : natural number
@@ -329,7 +329,7 @@ Public method "_(`…,_)" is [
 	originalFunction : function,
 	lastValue : any
 |
-	pairs : <<<any…|0..1>, boolean…|2>…|> := <<<lastValue>, false>>;
+	pairs : <<any?, boolean…|2>…|> := <<<lastValue>, false>>;
 	argumentsType ::= originalFunction's type's parameters' type;
 	From 2 to ⎣argumentsType⎦ do [
 		index : natural number

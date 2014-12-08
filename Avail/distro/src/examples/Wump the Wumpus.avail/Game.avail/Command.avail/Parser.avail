@@ -57,14 +57,14 @@ Private method "Didn't understand" is
  * instead expecting one of {@param "node"}'s viable next tokens.
  *
  * @method "Didn't understand_,expected a child of_"
- * @param "optionalBadToken" "<nonempty string…|0..1>"
+ * @param "optionalBadToken" "nonempty string?"
  *        If specified, then the unexpected command token.
  * @param "node" "root command node"
  *        A {@type "root command node" node} in the command tree.
  */
 Private method "«Didn't understand_,»Expected|expected a child of_" is
 [
-	optionalBadToken : <nonempty string…|0..1>,
+	optionalBadToken : nonempty string?,
 	node : root command node
 |
 	badToken ::= optionalBadToken[1] else [""];

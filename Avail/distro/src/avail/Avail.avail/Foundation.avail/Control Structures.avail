@@ -846,7 +846,7 @@ Public method "Require:_'s⁇keeper is valid" is
  *        A lexically constructed tuple of 2-tuples. Each 2-tuple has as its
  *        first element a predicate function and as its second element an action
  *        to perform if the predicate function answers {@method "true"}.
- * @param "else" "<[]→⊤…|0..1>"
+ * @param "else" "[]→⊤?"
  *        A lexically constructed tuple that optionally contains the action to
  *        perform if {@param "firstPredicate"} is {@method "false"} and all 
  *        predicates of {@param "elseIfTuple"} answer {@method "false"}.
@@ -910,14 +910,14 @@ Public method "If|if_then_«else if_then_»«else_»" is
  * @restricts "boolean's type"
  * @restricts "[]→⊤'s type"
  * @restricts "<<[]→boolean, []→⊤…|2>…|1..>'s type"
- * @restricts "<[]→⊤…|0..1>'s type"
+ * @restricts "[]→⊤?'s type"
  */
 Semantic restriction "If|if_then_«else if_then_»«else_»" is
 [
 	firstPredicate : boolean's type,
 	firstThen : []→⊤'s type,
 	elseIfTuple : <<[]→boolean, []→⊤…|2>…|1..>'s type,
-	else : <[]→⊤…|0..1>'s type
+	else : []→⊤?'s type
 |
 	/* `ambiguous` tracks whether any of the predicates cannot be proven to
 	 * answer a specific value. It is set to `true` when a predicate's return
@@ -1160,7 +1160,7 @@ Semantic restriction "Unless|unless_then_else_" is
  *        A lexically constructed tuple of 2-tuples. Each 2-tuple has as its
  *        first element a predicate function and as its second element an
  *        action to perform if the predicate function answers {@method "false"}.
- * @param "else" "<[]→⊤…|0..1>"
+ * @param "else" "[]→⊤?"
  *        A lexically constructed tuple that optionally contains the action to
  *        perform if {@param "firstPredicate"} is {@method "true"} and all 
  *        predicates of {@param "elseIfTuple"} answer {@method "true"}.
@@ -1173,7 +1173,7 @@ Public method "Unless|unless_then_«else unless_then_»«else_»" is
 	firstPredicate : boolean,
 	firstThen : []→⊤,
 	elseUnlessTuple : <<[]→boolean, []→⊤…|2>…|1..>,
-	else : <[]→⊤…|0..1>
+	else : []→⊤?
 |
 	if ¬firstPredicate then
 	[
@@ -1227,14 +1227,14 @@ Public method "Unless|unless_then_«else unless_then_»«else_»" is
  * @restricts "boolean's type"
  * @restricts "[]→⊤'s type"
  * @restricts "<<[]→boolean, []→⊤…|2>…|1..>'s type"
- * @restricts "<[]→⊤…|0..1>'s type"
+ * @restricts "[]→⊤?'s type"
  */
 Semantic restriction "Unless|unless_then_«else unless_then_»«else_»" is
 [
 	firstPredicate : boolean's type,
 	firstThen : []→⊤'s type,
 	elseUnlessTuple : <<[]→boolean, []→⊤…|2>…|1..>'s type,
-	else : <[]→⊤…|0..1>'s type
+	else : []→⊤?'s type
 |
 	/* `ambiguous` tracks whether any of the predicates cannot be proven to
 	 * answer a specific value. It is set to `true` when a predicate's return
@@ -1883,7 +1883,7 @@ Semantic restriction "Until_do_alternate with_" is
  * @param "caseTuple" "<[⊥]→⊤…|2..>"
  *        A tuple of arity-1 functions. The first of these able to accept
  *        {@param "value"} will be applied to it.
- * @param "else" "<[]→⊤…|0..1>"
+ * @param "else" "[]→⊤?"
  *        An optional arity-0 function. If provided, then it will be invoked iff
  *        no function of {@param "caseTuple"} is able to accept {@param 
  *        "value"}.
@@ -1895,7 +1895,7 @@ Public method "Cast|cast_into«_‡,»«else_»" is
 [
 	value : any,
 	caseTuple : <[⊥]→⊤…|2..>,
-	else : <[]→⊤…|0..1>
+	else : []→⊤?
 |
 	index : natural number := 1;
 	[
@@ -1924,13 +1924,13 @@ Public method "Cast|cast_into«_‡,»«else_»" is
  * @method "Cast|cast_into«_‡,»«else_»"
  * @restricts "any meta"
  * @restricts "<[⊥]→⊤…|2..>'s type"
- * @restricts "<[]→⊤…|0..1>'s type"
+ * @restricts "[]→⊤?'s type"
  */
 Semantic restriction "Cast|cast_into«_‡,»«else_»" is
 [
 	valueType : any meta,
 	caseTuple : <[⊥]→⊤…|2..>'s type,
-	else : <[]→⊤…|0..1>'s type
+	else : []→⊤?'s type
 |
 	acceptSize ::= relevant |caseTuple|;
 	union : type := ⊥;
@@ -1981,7 +1981,7 @@ Semantic restriction "Cast|cast_into«_‡,»«else_»" is
  *        A tuple of 2-tuples whose first element is an instance of {@param 
  *        "enum"} and whose second element is an arity-0 function. This function 
  *        will be performed if {@param "value"} equals the first element.
- * @param "else" "<[]→⊤…|0..1>"
+ * @param "else" "[]→⊤?"
  *        A tuple optionally containing the function to invoke if {@param 
  *        "value"} does not match any of the cases. This represents the default 
  *        case.
@@ -1994,7 +1994,7 @@ Public method "Choose|choose_from_where«_is_‡,»«,else_»" is
 	value : any,
 	enum : type,
 	caseTuple : <<any, []→⊤…|2>…|1..>,
-	else : <[]→⊤…|0..1>
+	else : []→⊤?
 |
 	index : natural number := 1;
 	[
@@ -2030,14 +2030,14 @@ Public method "Choose|choose_from_where«_is_‡,»«,else_»" is
  * @restricts "any meta"
  * @restricts "type's type"
  * @restricts "<<any, []→⊤…|2>…|1..>'s type"
- * @restricts "<[]→⊤…|0..1>'s type"
+ * @restricts "[]→⊤?'s type"
  */
 Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 [
 	valueType : any meta,
 	meta : type's type,
 	caseTuple : <<any, []→⊤…|2>…|1..>'s type,
-	else : <[]→⊤…|0..1>'s type
+	else : []→⊤?'s type
 |
 	$body : type;
 	If |meta| ≠ 1 ∨ [ ¬0 < |meta's instance| < ∞ ] then

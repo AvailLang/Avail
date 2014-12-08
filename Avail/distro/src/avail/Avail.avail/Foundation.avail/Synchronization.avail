@@ -471,7 +471,7 @@ defaultName ::= "«unnamed»";
  * Construct and answer a {@type "non-reentrant mutex"}.
  *
  * @method "a non-reentrant mutex«named_»"
- * @param "optionalName" "<nonempty string…|0..1>"
+ * @param "optionalName" "nonempty string?"
  *        If specified, then the name of the mutex, for improved diagnostics.
  *        If not specified, then {@code "«unnamed»"}.
  * @returns "non-reentrant mutex"
@@ -479,7 +479,7 @@ defaultName ::= "«unnamed»";
  */
 Public method "a non-reentrant mutex«named_»" is
 [
-	optionalName : <nonempty string…|0..1>
+	optionalName : nonempty string?
 |
 	myName ::= optionalName[1] else [defaultName];
 	/* The ownership memento 0 is used to indicate that a mutex is unowned.
@@ -493,7 +493,7 @@ Public method "a non-reentrant mutex«named_»" is
 
 Semantic restriction "a non-reentrant mutex«named_»" is
 [
-	optionalName : <nonempty string…|0..1>'s type
+	optionalName : nonempty string?'s type
 |
 	myName ::= if ⎣optionalName⎦ = 1
 		then [optionalName[1]]
@@ -680,7 +680,7 @@ Method "“_”" is
  */
 Public method "a reentrant mutex«named_»" is
 [
-	optionalName : <nonempty string…|0..1>
+	optionalName : nonempty string?
 |
 	myName ::= optionalName[1] else [defaultName];
 	/* The ownership memento 0 is used to indicate that a mutex is unowned.
@@ -694,7 +694,7 @@ Public method "a reentrant mutex«named_»" is
 
 Semantic restriction "a reentrant mutex«named_»" is
 [
-	optionalName : <nonempty string…|0..1>'s type
+	optionalName : nonempty string?'s type
 |
 	myName ::= if ⎣optionalName⎦ = 1
 		then [optionalName[1]]
@@ -794,7 +794,7 @@ Semantic restriction "_'s⁇originating monitor" is
  */
 Public method "a monitor«named_»" is
 [
-	optionalName : <nonempty string…|0..1>
+	optionalName : nonempty string?
 |
 	myName ::= optionalName[1] else [defaultName];
 	/* The ownership memento 0 is used to indicate that a monitor is unowned.
@@ -809,7 +809,7 @@ Public method "a monitor«named_»" is
 
 Semantic restriction "a monitor«named_»" is
 [
-	optionalName : <nonempty string…|0..1>'s type
+	optionalName : nonempty string?'s type
 |
 	myName ::= if ⎣optionalName⎦ = 1
 		then [optionalName[1]]
@@ -1156,12 +1156,12 @@ Public class "binary semaphore" extends semaphore
  * Construct and answer a {@type "semaphore"}.
  *
  * @method "a semaphore«named_»with_«out of_»permit|permits"
- * @param "optionalName" "<nonempty string…|0..1>"
+ * @param "optionalName" "nonempty string?"
  *        If specified, then the name of the semaphore, for improved
  *        diagnostics. If not specified, then {@code "«unnamed»"} is used.
  * @param "permits" "[0..∞]"
  *        The number of permits initially available.
- * @param "optionalMaximumPermits" "<[0..∞]…|0..1>"
+ * @param "optionalMaximumPermits" "[0..∞]?"
  *        If specified, then the maximum number of permits supported by the new
  *        semaphore. If not specified, then {@method "∞"}.
  * @returns "semaphore"
@@ -1169,9 +1169,9 @@ Public class "binary semaphore" extends semaphore
  */
 Public method "a semaphore«named_»with_«out of_»permit|permits" is
 [
-	optionalName : <nonempty string…|0..1>,
+	optionalName : nonempty string?,
 	permits : [0..∞],
-	optionalMaximumPermits : <[0..∞]…|0..1>
+	optionalMaximumPermits : [0..∞]?
 |
 	myName ::= optionalName[1] else [defaultName];
 	maximumPermits ::= optionalMaximumPermits[1] else [∞];
@@ -1190,9 +1190,9 @@ Public method "a semaphore«named_»with_«out of_»permit|permits" is
 
 Semantic restriction "a semaphore«named_»with_«out of_»permit|permits" is
 [
-	optionalName : <nonempty string…|0..1>'s type,
+	optionalName : nonempty string?'s type,
 	permits : [0..∞]'s type,
-	optionalMaximumPermits : <[0..∞]…|0..1>'s type
+	optionalMaximumPermits : [0..∞]?'s type
 |
 	myName ::= if ⎣optionalName⎦ = 1
 		then [optionalName[1]]

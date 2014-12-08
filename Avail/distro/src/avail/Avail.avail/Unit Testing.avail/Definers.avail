@@ -415,7 +415,7 @@ Private method "Forget_" is
  *        should belong.
  * @param "test" "[]→⊤"
  *        The unit test.
- * @param "optionalException" "<exception…|0..1>"
+ * @param "optionalException" "exception?"
  *        If specified, then {@param "test"} must raise an exception of this
  *        type when applied. If not specified, then "test" must not raise any
  *        exceptions.
@@ -431,7 +431,7 @@ is
 	suiteID : atom,
 	platformOptionality : boolean,
 	test : []→⊤,
-	optionalException : <exception's type…|0..1>
+	optionalException : exception's type?
 |
 	Lock suite lock for
 	[
@@ -469,14 +469,14 @@ is
  * @restricts "string's type"
  * @restricts "atom's type"
  * @restricts "[]→⊤'s type"
- * @restricts "<exception's type…|0..1>'s type"
+ * @restricts "exception's type?'s type"
  */
 Semantic restriction "Test_in_is_«must raise_»" is
 [
 	name : string's type,
 	suiteID : atom's type,
 	test : []→⊤'s type,
-	optionalException : <exception's type…|0..1>'s type
+	optionalException : exception's type?'s type
 |
 	If ⎡optionalException⎤ = 1 then
 	[

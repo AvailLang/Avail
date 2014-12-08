@@ -115,7 +115,7 @@ Semantic restriction "_'s⁇name" is
  * Construct and answer a {@type "client socket"}.
  *
  * @method "a client socket«named_»"
- * @param "optionalName" "<nonempty string…|0..1>"
+ * @param "optionalName" "nonempty string?"
  *        An optional string that describes the purpose of the client socket at
  *        a high level, provided for debugging purposes only. If not specified,
  *        then the default name {@code "«unnamed»"} is used.
@@ -123,7 +123,7 @@ Semantic restriction "_'s⁇name" is
  */
 Public method "a client socket«named_»" is
 [
-	optionalName : <nonempty string…|0..1>
+	optionalName : nonempty string?
 |
 	name ::= optionalName[1] else [defaultName];
 	h ::=
@@ -458,7 +458,7 @@ is
  * @param "failure" "[exception]→⊤"
  *        The function to apply to the {@type "exception"} that classifies the
  *        failure of the asynchronous connect operation.
- * @param "optionalPriority" "<byte…|0..1>"
+ * @param "optionalPriority" "byte?"
  *        If specified, then the priority of the new fiber. If not specified,
  *        then the new fiber will run at the same priority as the {@method
  *        "current fiber"}.
@@ -476,7 +476,7 @@ is
 	peerAddress : socket address,
 	success : []→⊤,
 	failure : [exception]→⊤,
-	optionalPriority : <byte…|0..1>
+	optionalPriority : byte?
 |
 	addr ::= peerAddress's address;
 	port ::= peerAddress's port;
@@ -497,7 +497,7 @@ is
 	peerAddress : socket address's type,
 	success : []→⊤'s type,
 	failure : [exception]→⊤'s type,
-	optionalPriority : <byte…|0..1>'s type
+	optionalPriority : byte?'s type
 |
 	fiber→(success's return type ∪ failure's return type)
 ];
@@ -523,7 +523,7 @@ is
  * @param "failure" "[exception]→⊤"
  *        The function to apply to the {@type "exception"} that classifies the
  *        failure of the asynchronous read operation.
- * @param "optionalPriority" "<byte…|0..1>"
+ * @param "optionalPriority" "byte?"
  *        If specified, then the priority of the new fiber. If not specified,
  *        then the new fiber will run at the same priority as the {@method
  *        "current fiber"}.
@@ -541,7 +541,7 @@ is
 	s : client socket,
 	success : [<byte…|>, boolean]→⊤,
 	failure : [exception]→⊤,
-	optionalPriority : <byte…|0..1>
+	optionalPriority : byte?
 |
 	adjustedCount ::= count min (2^31-1);
 	bad ::= [c : natural number | failure(an exception for c);];
@@ -572,7 +572,7 @@ is
  * @restricts "client socket's type"
  * @restricts "[]→⊤'s type"
  * @restricts "[exception]→⊤'s type"
- * @restricts "<byte…|0..1>'s type"
+ * @restricts "byte?'s type"
  */
 Semantic restriction
 	"a fiber reading_byte|bytes from_,⁇\
@@ -584,7 +584,7 @@ is
 	s : client socket's type,
 	success : []→⊤'s type,
 	failure : [exception]→⊤'s type,
-	optionalPriority : <byte…|0..1>'s type
+	optionalPriority : byte?'s type
 |
 	fiber→(success's return type ∪ failure's return type)
 ];
@@ -608,7 +608,7 @@ is
  * @param "failure" "[exception]→⊤"
  *        The function to apply to the {@type "exception"} that classifies the
  *        failure of the asynchronous write operation.
- * @param "optionalPriority" "<byte…|0..1>"
+ * @param "optionalPriority" "byte?"
  *        If specified, then the priority of the new fiber. If not specified,
  *        then the new fiber will run at the same priority as the {@method
  *        "current fiber"}.
@@ -626,7 +626,7 @@ is
 	s : client socket,
 	success : []→⊤,
 	failure : [exception]→⊤,
-	optionalPriority : <byte…|0..1>
+	optionalPriority : byte?
 |
 	bad ::= [c : natural number | failure(an exception for c);];
 	priority ::= optionalPriority[1] else [current fiber's priority];
@@ -656,7 +656,7 @@ is
  * @restricts "client socket's type"
  * @restricts "[]→⊤'s type"
  * @restricts "[exception]→⊤'s type"
- * @restricts "<byte…|0..1>'s type"
+ * @restricts "byte?'s type"
  */
 Semantic restriction
 	"a fiber writing_to_,⁇\
@@ -668,7 +668,7 @@ is
 	s : client socket's type,
 	success : []→⊤'s type,
 	failure : [exception]→⊤'s type,
-	optionalPriority : <byte…|0..1>'s type
+	optionalPriority : byte?'s type
 |
 	fiber→(success's return type ∪ failure's return type)
 ];

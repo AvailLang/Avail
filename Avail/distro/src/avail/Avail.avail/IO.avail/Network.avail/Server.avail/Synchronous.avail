@@ -50,7 +50,7 @@ defaultName ::= "«unnamed»";
  * socket"}. Answer the resultant {@type "client socket"}.
  *
  * @method "accept a new connection«named_»on_"
- * @param "optionalName" "<nonempty string…|0..1>"
+ * @param "optionalName" "nonempty string?"
  *        An optional string that describes the purpose of the client socket at
  *        a high level, provided for debugging purposes only. If not specified,
  *        then the default name {@code "«unnamed»"} is used.
@@ -60,7 +60,7 @@ defaultName ::= "«unnamed»";
  */
 Public method "accept a new connection«named_»on_" is
 [
-	optionalName : <nonempty string…|0..1>,
+	optionalName : nonempty string?,
 	s : server socket
 |
 	clientName ::= optionalName[1] else [defaultName];

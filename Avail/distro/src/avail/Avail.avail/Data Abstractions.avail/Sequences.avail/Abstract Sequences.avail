@@ -90,7 +90,7 @@ Public explicit class "sequence" extends object
  * type.
  *
  * @method "sequence«_»of_"
- * @param "optionalSize" "<[0..∞]'s type…|0..1>"
+ * @param "optionalSize" "[0..∞]'s type?"
  *        If specified, then the size restriction for instances; defaults to
  *        [0..∞].
  * @param "elementType" "any's type"
@@ -100,7 +100,7 @@ Public explicit class "sequence" extends object
  */
 Public method "sequence«_»of_" is
 [
-	optionalSizes : <[0..∞]'s type…|0..1>,
+	optionalSizes : [0..∞]'s type?,
 	elementType : any's type
 |
 	sizes ::= optionalSizes[1] else [[0..∞]];

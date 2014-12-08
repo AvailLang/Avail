@@ -417,7 +417,7 @@ Semantic restriction "all values of_" is
  * sender need not explicitly establish a fence.
  *
  * @method "first«_»value|values of_"
- * @param "optionalMaxValues" "<whole number…|0..1>"
+ * @param "optionalMaxValues" "whole number?"
  *        If specified, then the requested number of values; otherwise, {@code
  *        1}. If fewer than the requested number of values are available, then
  *        answer all available values.
@@ -431,7 +431,7 @@ Semantic restriction "all values of_" is
  */
 Public method "first«_»value|values of_" is
 [
-	optionalMaxValues : <[0..∞]…|0..1>,
+	optionalMaxValues : [0..∞]?,
 	aFunction : []→any
 |
 	maxValues ::= optionalMaxValues[1] else [1];
@@ -462,12 +462,12 @@ Public method "first«_»value|values of_" is
 
 /**
  * @method "first«_»value|values of_"
- * @restricts "<[0..∞]…|0..1>'s type"
+ * @restricts "[0..∞]?'s type"
  * @restricts "[]→any's type"
  */
 Semantic restriction "first«_»value|values of_" is
 [
-	optionalMaxValues : <[0..∞]…|0..1>'s type,
+	optionalMaxValues : [0..∞]?'s type,
 	functionType : []→any's type
 |
 	maxValues ::=

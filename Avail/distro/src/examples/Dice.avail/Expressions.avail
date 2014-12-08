@@ -215,7 +215,7 @@ Semantic restriction "integrate_and_with_" is
  *
  * @category "Dice"
  * @method "«using_,»roll_"
- * @param "optionalRNG" "<pRNG…|0..1>"
+ * @param "optionalRNG" "pRNG?"
  *        An optional {@type "pRNG"}. If provided, then it will be used to
  *        randomly select a face. If not provided, then a default {@type "pRNG"}
  *        will be used.
@@ -224,11 +224,11 @@ Semantic restriction "integrate_and_with_" is
  * @returns "dice outcome"
  *          The {@type "dice expression⁇outcome" outcome}.
  */
-Public abstract method "«using_,»roll_" is [<pRNG…|0..1>, dice]→dice outcome;
+Public abstract method "«using_,»roll_" is [pRNG?, dice]→dice outcome;
 
 Semantic restriction "«using_,»roll_" is
 [
-	optionalRNG : <pRNG…|0..1>'s type,
+	optionalRNG : pRNG?'s type,
 	someDice : dice's type
 |
 	extend dice outcome with result : someDice's result type's instance
@@ -286,7 +286,7 @@ Semantic restriction "constant(_)" is
 
 Method "«using_,»roll_" is
 [
-	optionalRNG : <pRNG…|0..1>,
+	optionalRNG : pRNG?,
 	c : constant dice expression
 |
 	a dice outcome with detailed outcome ::= {}, result ::= c's constant value
@@ -374,7 +374,7 @@ Method "“_”" is
 
 Method "«using_,»roll_" is
 [
-	optionalRNG : <pRNG…|0..1>,
+	optionalRNG : pRNG?,
 	expr : addition dice expression
 |
 	rng ::= optionalRNG[1] else [default pRNG];
@@ -456,7 +456,7 @@ Method "“_”" is
 
 Method "«using_,»roll_" is
 [
-	optionalRNG : <pRNG…|0..1>,
+	optionalRNG : pRNG?,
 	expr : subtraction dice expression
 |
 	rng ::= optionalRNG[1] else [default pRNG];
@@ -538,7 +538,7 @@ Method "“_”" is
 
 Method "«using_,»roll_" is
 [
-	optionalRNG : <pRNG…|0..1>,
+	optionalRNG : pRNG?,
 	expr : multiplication dice expression
 |
 	rng ::= optionalRNG[1] else [default pRNG];
@@ -620,7 +620,7 @@ Method "“_”" is
 
 Method "«using_,»roll_" is
 [
-	optionalRNG : <pRNG…|0..1>,
+	optionalRNG : pRNG?,
 	expr : division dice expression
 |
 	rng ::= optionalRNG[1] else [default pRNG];
@@ -678,7 +678,7 @@ Method "“_”" is
 
 Method "«using_,»roll_" is
 [
-	optionalRNG : <pRNG…|0..1>,
+	optionalRNG : pRNG?,
 	expr : negation dice expression
 |
 	rng ::= optionalRNG[1] else [default pRNG];

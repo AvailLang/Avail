@@ -145,7 +145,7 @@ Public class "unit test" extends object
 		public suite ID : atom,
 		public body : []→⊤,
 		public platform optionality : boolean,
-		public expected exception type : <exception's type…|0..1>;
+		public expected exception type : exception's type?;
 
 Method "“_”" is
 [
