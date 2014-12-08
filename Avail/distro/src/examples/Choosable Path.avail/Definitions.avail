@@ -1402,7 +1402,7 @@ Semantic restriction "a⁇transition|transitions«_‡,⁇and⁇»" is
  * @method
  *    "_«is titled by_,⁇»and⁇is described by_,⁇«and⁇upon entry does_,⁇»«and⁇has_»"
  * @param "sceneVar" "variable"
- * @param "optionalTitler" "nonempty string ∪ []→string?"
+ * @param "optionalTitler" "(nonempty string ∪ []→string)?"
  *        If supplied, then either 1) a {@type "nonempty string"} that
  *        represents a static title or 2) a function that produces the title on
  *        demand.
@@ -1420,10 +1420,10 @@ Public method
 is
 [
 	sceneVar : variable,
-	optionalTitler : nonempty string ∪ []→string?,
+	optionalTitler : (nonempty string ∪ []→string)?,
 	describer : nonempty string ∪ []→string,
 	optionalEntryAction : []→⊤?,
-	optionalTransitions : <<scene transition…|>…|0..1>
+	optionalTransitions : <scene transition…|>?
 |
 	titler ::=
 		optionalTitler[1]
