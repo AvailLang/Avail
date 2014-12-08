@@ -57,6 +57,9 @@ Names
 	"UUID",
 	"a UUID",
 
+	"serialize_",
+	"deserialize_from_",
+
 	/* Exported for use by Tuples. */
 	"Require:_[_.._]is ever valid",
 	"tuple type of_[_.._]"
@@ -884,3 +887,43 @@ Public method "a UUID" is
 [
 	Primitive 134;
 ] : <<>, byte…|16's type>;
+
+/**
+ * Convert the specified {@type "any" value} to a {@type "tuple"} of {@type
+ * "byte"}s. This {@type "tuple"} can be {@method "deserialize_" deserialized}
+ * later to reconstitute the argument.
+ *
+ * @method "serialize_"
+ * @param "value" "any"
+ * @returns "byte+"
+ *          A serialization of {@param "value"}.
+ */
+Public method "serialize_" is
+[
+	value : any
+|
+	Primitive 270 (failureCode : serialization-failed code's type);
+	Invoke early failure function with <failureCode>
+] : byte+;
+
+/**
+ * Convert the specified {@type "tuple" tuple} of {@type "byte"}s into a {@type
+ * "tuple"} of {@type "any" values}.
+ *
+ * @method "deserialize_from_"
+ * @param "serializedBytes" "byte+"
+ *        A {@method "serialize_" serialization} of arbitrary values.
+ * @param "context" "module"
+ *        The {@type "module"} that should be consulted to resolve {@type
+ *        "atom"}s.
+ * @returns "any+"
+ *          The deserialized values.
+ */
+Public method "deserialize_from_" is
+[
+	serializedBytes : byte+,
+	context : module
+|
+	Primitive 271 (failureCode : deserialization-failed code's type);
+	Invoke early failure function with <failureCode>
+] : any+;

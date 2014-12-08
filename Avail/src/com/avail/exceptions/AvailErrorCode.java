@@ -43,6 +43,8 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelOne.L1Instruction;
 import com.avail.interpreter.primitive.P_352_RejectParsing;
+import com.avail.serialization.Deserializer;
+import com.avail.serialization.Serializer;
 
 /**
  * {@code AvailErrorCode} is an enumeration of all possible failures of
@@ -652,8 +654,16 @@ public enum AvailErrorCode
 	 */
 	E_EXCEEDS_VM_LIMIT (95),
 
-//	E_??? (96)
-//	E_??? (97)
+	/**
+	 * {@linkplain Serializer Serialization} failed.
+	 */
+	E_SERIALIZATION_FAILED (96),
+
+	/**
+	 * {@linkplain Deserializer Deserialization} failed.
+	 */
+	E_DESERIALIZATION_FAILED (97),
+
 //	E_??? (98)
 //	E_??? (99)
 

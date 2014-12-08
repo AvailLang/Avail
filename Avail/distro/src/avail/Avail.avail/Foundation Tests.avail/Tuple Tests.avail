@@ -554,3 +554,118 @@ Test "integer interval tuple" in tuple test suite is
 	concatThree ::= left ++ right;
 	Require: 1 to 10 by 1 = concatThree;
 ];
+
+[
+	thisModule ::= current module;
+	Private method "this module" is [thisModule];
+]();
+
+Test "serialization" in tuple test suite is
+[
+	$label;
+	forCapture : string := "Take me!";
+	/* Each line that initializes "expected" tests a distinct range of
+	 * serializer functionality.
+	 */
+	expected ::=
+		/* The integers 1 through 10 encode distinctly. */
+		/*  1 - 10 */ 1 to 10 ++
+		<
+			/* 11 .. 255 */
+		/* 11 - 12 */ 11, 255,
+			/* 256 .. 65535 */
+		/* 13 - 14 */ 256, 65535,
+			/* -2^31 .. 2^31 - 1 */
+		/* 15 - 16 */ -2^31, 2^31 - 1,
+			/* Large integers */
+		/* 17      */ 2^100,
+			/* Special objects */
+		/* 18 - 20 */ ∅, ⊤, ⊥,
+			/* Special atoms */
+		/* 21 - 22 */ true, false,
+			/* Latin-1 characters */
+		/* 23      */ ¢a,
+			/* BMP characters */
+		/* 24      */ ¢あ,
+			/* Large characters */
+		/* 25      */ ¢𝄞,
+			/* Floats */
+		/* 26      */ 4.0→float,
+			/* Doubles */
+		/* 27      */ 6.0221413e23,
+			/* General tuples */
+		/* 28      */ <5, "ham sandwich", ∅>,
+			/* Byte strings */
+		/* 29      */ "Latin-1 string",
+			/* BMP strings */
+		/* 30      */ "おめでとうございます",
+			/* Large strings */
+		/* 31      */ "「𝄞は良いですね」と言いました。",
+			/* Byte tuples */
+		/* 32      */ 50 to 60,
+			/* Nybble tuples */
+		/* 33      */ 0 to 15,
+			/* Sets */
+		/* 34      */ 1 to 10→set,
+			/* Maps */
+		/* 35      */ {1 → "一", 2 → "二", 3 → "三"},
+			/* Objects */
+		/* 36      */ a bad-argument exception,
+			/* Object types */
+		/* 37      */ bad-argument exception,
+			/* Atoms */
+		/* 38      */ tuple test suite,
+			/* Function implementations */
+		/* 39      */ [x : integer := 5; x]'s implementation,
+			/* Clean functions */
+		/* 40 - 41 */ [1 + 2], [x : [1..5], y : [6..10] | x + y],
+			/* General functions */
+		/* 42      */ [forCapture],
+			/* Variables */
+		/* 43      */ ↑forCapture,
+			/* Tokens */
+		/* 44      */ `"token"`,
+			/* Continuations */
+		/* 45      */ label,
+			/* Fiber types */
+		/* 46      */ fiber→set,
+			/* Function types */
+		/* 47      */ […]→float,
+			/* Tuple types */
+		/* 48 - 49 */ extended integer+, <double, float, nonempty string…|2..6>,
+			/* Integer types */
+		/* 50 - 51 */ (-∞..8], [8..∞),
+			/* Continuation types */
+		/* 52      */ $[integer, string]→tuple,
+			/* Enumeration types */
+		/* 53      */ {1, 2, 3, 5, 8, 13, "cheese"}ᵀ,
+			/* Instance types */
+		/* 54 - 55 */ 1's type, "fish"'s type,
+			/* Instance metatypes */
+		/* 56 - 57 */ tuple's type, map's type,
+			/* Set types */
+		/* 58      */ {character|5..12},
+			/* Map types */
+		/* 59      */ {whole number → natural number|3..},
+			/* Bottom */
+		/* 60      */ ⊥
+		>;
+	bytes ::= serialize expected;
+	actual ::= deserialize bytes from this module;
+	Require: |actual| = 1;
+	actualTuple ::= actual[1] ?→ tuple;
+	Require: |actualTuple| = |expected|;
+	failed : natural number* := <>;
+	From 1 to |expected| do
+	[
+		index : natural number
+	|
+		expectedValue ::= expected[index];
+		actualValue ::= actual[index];
+		If actualValue ≠ expectedValue then
+		[
+			failed := eject failed ++ <index>;
+		];
+	];
+	Require: failed = <>;
+];

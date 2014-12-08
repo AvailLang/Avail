@@ -35,7 +35,7 @@ package com.avail.utility;
 import java.io.*;
 
 /**
- * The null output stream discards all print arguments without printing.
+ * A {@code NullOutputStream} discards everything written to it.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
