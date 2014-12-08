@@ -50,14 +50,14 @@ rng : pRNG;
  * Seed {@method "the RNG"}.
  *
  * @method "seed the RNG«with_»"
- * @param "optionalSeed" "<[0..2^32)…|0..1>"
+ * @param "optionalSeed" "[0..2^32)?"
  *        If specified, then an unsigned 32-bit number that will be used to
  *        seed the pseudorandom number generator. Otherwise, use the number of
  *        milliseconds since the UNIX Epoch.
  */
 Public method "seed the RNG«with_»" is
 [
-	optionalSeed : <[0..2^32)…|0..1>
+	optionalSeed : [0..2^32)?
 |
 	seed ::= optionalSeed[1] else [milliseconds since the Epoch mod 2^32];
 	rng := a Mersenne Twister from seed;

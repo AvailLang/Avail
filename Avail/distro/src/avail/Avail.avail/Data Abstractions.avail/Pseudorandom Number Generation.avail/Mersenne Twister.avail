@@ -174,14 +174,14 @@ Private method "a Mersenne Twister stream from_" is
  * Epoch" current time} is used to initialize the generator.
  * 
  * @method "a Mersenne Twister«from_»"
- * @param "optionalSeed" "<[0..1<<32)…|0..1>"
+ * @param "optionalSeed" "[0..1<<32)?"
  *        An optional seed.
  * @returns "Mersenne Twister"
  *          A Mersenne Twister pseudorandom number generator.
  */
 Public method "a Mersenne Twister«from_»" is
 [
-	optionalSeed : <[0..1<<32)…|0..1>
+	optionalSeed : [0..1<<32)?
 |
 	seed ::= optionalSeed[1] else
 		[(high-precision timer value mod ((1<<32) - 1)) + 1];

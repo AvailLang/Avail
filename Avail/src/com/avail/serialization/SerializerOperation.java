@@ -48,7 +48,8 @@ import com.avail.interpreter.levelTwo.L2Chunk;
  *
  * <p>
  * The ordinal is passed in the constructor as a cross-check, to increase the
- * difficulty of (accidentally) changing the serialized representation without.
+ * difficulty of (accidentally) changing the serialized representation without
+ * due care for migration of existing serialized data.
  * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

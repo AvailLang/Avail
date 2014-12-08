@@ -139,7 +139,7 @@ Method "“_”" is
  *        A {@type "creature"} that has not yet been placed.
  * @param "setting" "cave"
  *        The {@type "cave"} into which {@param "critter"} should be placed.
- * @param "optionalBanned" "<{room|}…|0..1>"
+ * @param "optionalBanned" "{room|}?"
  *        If specified, then a {@type "set"} of {@type "room"}s banned from
  *        consideration when placing {@param "critter"}.
  */
@@ -147,7 +147,7 @@ Private method "Set initial placement of_in_«,avoiding_»" is
 [
 	critter : creature,
 	setting : cave,
-	optionalBanned : <{room|}…|0..1>
+	optionalBanned : {room|}?
 |
 	/* Default to the empty set if no rooms were specifically disallowed. */
 	banned ::= optionalBanned[1] else [∅];
@@ -165,7 +165,7 @@ Method "Set initial placement of_in_«,avoiding_»" is
 [
 	critter : agent,
 	setting : cave,
-	optionalBanned : <{room|}…|0..1>
+	optionalBanned : {room|}?
 |
 	banned ::= optionalBanned[1] else [∅];
 	/* Always place the agent into the entrance room. */

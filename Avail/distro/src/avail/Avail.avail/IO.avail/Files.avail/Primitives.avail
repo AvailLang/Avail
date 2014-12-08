@@ -162,14 +162,14 @@ _default_access_rights ::= "rw-r--r--" → file access rights;
  *
  * @method "_opened«with alignment_»with options_«with file access rights_»"
  * @param "fileName" "file name"
- * @param "optionalAlignment" "<natural number…|0..1>"
+ * @param "optionalAlignment" "natural number?"
  *        The read/write buffer alignment that the underlying I/O operations
  *        should conform to whenever possible.  Individual transfers should
  *        still be allowed to span multiple alignment zones.
  * @param "optionSet" "{open option|}"
  *        The set of {@type "open option" options} to control how the file is to
  *        be opened.
- * @param "accessRights" "<{file access right|}…|0..1>"
+ * @param "accessRights" "{file access right|}?"
  *        The initial {@type "file access right"}s to give the file in the event
  *        that a file is created by this operation.
  * @returns "file"
@@ -183,9 +183,9 @@ Public method
 	"_opened«with alignment_»with options_«with file access rights_»" is
 [
 	fileName : file name,
-	optionalAlignment : <natural number…|0..1>,
+	optionalAlignment : natural number?,
 	optionSet : {open option|1..},
-	optionalAccessRights : <{file access right|}…|0..1>
+	optionalAccessRights : {file access right|}?
 |
 	optionNumbers ::=
 		map optionSet through [opt : open option | opt → numeric code];
@@ -217,9 +217,9 @@ Semantic restriction
 	"_opened«with alignment_»with options_«with file access rights_»" is
 [
 	fileName : file name's type,
-	optionalAlignment : <natural number…|0..1>'s type,
+	optionalAlignment : natural number?'s type,
 	optionSet : {open option|1..}'s type,
-	accessRights : <{file access right|}…|0..1>'s type
+	accessRights : {file access right|}?'s type
 |
 	readableType : boolean's type := ⊥;
 	writableType : boolean's type := ⊥;
@@ -445,7 +445,7 @@ Public method
 	f : readable file,
 	success : [<byte…|0..∞>]→⊤,
 	failure : [{I/O-error code}ᵀ]→⊤,
-	optionalPriority : <byte…|0..1>
+	optionalPriority : byte?
 |
 	private starting at start
 		read bytesToRead bytes
@@ -483,7 +483,7 @@ Public method
 	f : writable file,
 	success : []→⊤,
 	failure : [{I/O-error code}ᵀ]→⊤,
-	optionalPriority : <byte…|0..1>
+	optionalPriority : byte?
 |
 	private starting at start
 		write bytesToWrite

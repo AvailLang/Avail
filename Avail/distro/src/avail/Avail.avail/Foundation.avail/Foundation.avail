@@ -184,6 +184,7 @@ Extends
 		"primfail`«_:_`»",
 		"primitive description of_",
 		"primitive failure reason phrase",
+		"read_/write_",
 		"semantic restrictions for_given_",
 		"send phrase",
 		"send_with_:_",
@@ -325,7 +326,6 @@ Extends
 		"_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)",
 		"_×_",
 		"_÷_",
-		"read_/write_",
 		"_→JSON",
 		"_→block phrase",
 		"_→character",
@@ -539,6 +539,12 @@ Extends
 	(
 		"If_then_",
 		"If|if_then_else_"
+	),
+	"Early Tuples" =
+	(
+		"_*",
+		"_+",
+		"_`?"
 	),
 	"Enumeration Support" =
 	(

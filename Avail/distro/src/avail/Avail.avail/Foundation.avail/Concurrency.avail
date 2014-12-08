@@ -669,7 +669,7 @@ is
  * 
  * @method "For each of⁇_in parallel«_-way»do_"
  * @param "aTuple" "tuple"
- * @param "optionalLimit" "<natural number…|0..1>"
+ * @param "optionalLimit" "natural number?"
  *        If specified, then the maximum number of worker {@type "fiber"}s
  *        permitted to run in parallel. If not specified, then permit {@method
  *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
@@ -686,7 +686,7 @@ is
 Public method "For each of⁇_in parallel«_-way»do_" is
 [
 	aTuple : tuple,
-	optionalLimit : <natural number…|0..1>,
+	optionalLimit : natural number?,
 	action : [⊥, ⊥]→⊤
 |
 	workUnitRunner : [[]→⊤]→⊤;
@@ -721,7 +721,7 @@ Public method "For each of⁇_in parallel«_-way»do_" is
  * 
  * @method "For each of⁇_in parallel«_-way»do_"
  * @param "aTuple" "tuple"
- * @param "optionalLimit" "<natural number…|0..1>"
+ * @param "optionalLimit" "natural number?"
  *        If specified, then the maximum number of worker {@type "fiber"}s
  *        permitted to run in parallel. If not specified, then permit {@method
  *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
@@ -737,7 +737,7 @@ Public method "For each of⁇_in parallel«_-way»do_" is
 Public method "For each of⁇_in parallel«_-way»do_" is
 [
 	aTuple : tuple,
-	optionalLimit : <natural number…|0..1>,
+	optionalLimit : natural number?,
 	action : [⊥]→⊤
 |
 	limit ::= optionalLimit[1] else [default maximum worker fibers];
@@ -757,13 +757,13 @@ Public method "For each of⁇_in parallel«_-way»do_" is
  * 
  * @method "For each of⁇_in parallel do_"
  * @restricts "tuple meta"
- * @restricts "<natural number…|0..1>'s type"
+ * @restricts "natural number?'s type"
  * @restricts "function meta"
  */
 Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 [
 	tupleType : tuple meta,
-	optionalLimit : <natural number…|0..1>'s type,
+	optionalLimit : natural number?'s type,
 	action : function meta
 |
 	Require: action accepts tupleType (check indices);
@@ -777,7 +777,7 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
  * 
  * @method "For each of⁇_in parallel«_-way»do_"
  * @param "aSet" "set"
- * @param "optionalLimit" "<natural number…|0..1>"
+ * @param "optionalLimit" "natural number?"
  *        If specified, then the maximum number of worker {@type "fiber"}s
  *        permitted to run in parallel. If not specified, then permit {@method
  *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
@@ -794,7 +794,7 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 Public method "For each of⁇_in parallel«_-way»do_" is
 [
 	aSet : set,
-	optionalLimit : <natural number…|0..1>,
+	optionalLimit : natural number?,
 	action : [⊥]→⊤
 |
 	limit ::= optionalLimit[1] else [default maximum worker fibers];
@@ -809,13 +809,13 @@ Public method "For each of⁇_in parallel«_-way»do_" is
 /**
  * @method "For each of⁇_in parallel«_-way»do_"
  * @restricts "set meta"
- * @restricts "<natural number…|0..1>'s type"
+ * @restricts "natural number?'s type"
  * @restricts "[⊥]→⊤'s type"
  */
 Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 [
 	setType : set meta,
-	optionalLimit : <natural number…|0..1>'s type,
+	optionalLimit : natural number?'s type,
 	action : [⊥]→⊤'s type
 |
 	Require: action accepts setType;
@@ -829,7 +829,7 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
  * 
  * @method "For each of⁇_in parallel«_-way»do_"
  * @param "aMap" "map"
- * @param "optionalLimit" "<natural number…|0..1>"
+ * @param "optionalLimit" "natural number?"
  *        If specified, then the maximum number of worker {@type "fiber"}s
  *        permitted to run in parallel. If not specified, then permit {@method
  *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
@@ -846,7 +846,7 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 Public method "For each of⁇_in parallel«_-way»do_" is
 [
 	aMap : map,
-	optionalLimit : <natural number…|0..1>,
+	optionalLimit : natural number?,
 	action : [⊥, ⊥]→⊤
 |
 	limit ::= optionalLimit[1] else [default maximum worker fibers];
@@ -861,13 +861,13 @@ Public method "For each of⁇_in parallel«_-way»do_" is
 /**
  * @method "For each of⁇_in parallel«_-way»do_"
  * @restricts "map meta"
- * @restricts "<natural number…|0..1>'s type"
+ * @restricts "natural number?'s type"
  * @restricts "[⊥, ⊥]→⊤'s type"
  */
 Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 [
 	mapType : map meta,
-	optionalLimit : <natural number…|0..1>'s type,
+	optionalLimit : natural number?'s type,
 	action : [⊥, ⊥]→⊤'s type
 |
 	Require: action accepts mapType;
@@ -881,7 +881,7 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
  *
  * @method "map_in parallel«_-way»through_"
  * @param "aTuple" "tuple"
- * @param "optionalLimit" "<natural number…|0..1>"
+ * @param "optionalLimit" "natural number?"
  *        If specified, then the maximum number of worker {@type "fiber"}s
  *        permitted to run in parallel. If not specified, then permit {@method
  *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
@@ -900,7 +900,7 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 Public method "map_in parallel«_-way»through_" is
 [
 	aTuple : tuple,
-	optionalLimit : <natural number…|0..1>,
+	optionalLimit : natural number?,
 	transformer : [⊥, ⊥]→any
 |
 	workUnitRunner : [[]→⊤]→⊤;
@@ -945,7 +945,7 @@ Public method "map_in parallel«_-way»through_" is
  * @param "aTuple" "tuple"
  * @param "transformer" "[⊥]→any"
  *        A function that accepts an element of the tuple.
- * @param "optionalLimit" "<natural number…|0..1>"
+ * @param "optionalLimit" "natural number?"
  *        If specified, then the maximum number of worker {@type "fiber"}s
  *        permitted to run in parallel. If not specified, then permit {@method
  *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
@@ -961,7 +961,7 @@ Public method "map_in parallel«_-way»through_" is
 Public method "map_in parallel«_-way»through_" is
 [
 	aTuple : tuple,
-	optionalLimit : <natural number…|0..1>,
+	optionalLimit : natural number?,
 	transformer : [⊥]→any
 |
 	limit ::= optionalLimit[1] else [default maximum worker fibers];
@@ -979,13 +979,13 @@ Public method "map_in parallel«_-way»through_" is
  * 
  * @method "map_in parallel«_-way»through_"
  * @restricts "tuple meta"
- * @restricts "<natural number…|0..1>"
+ * @restricts "natural number?"
  * @restricts "[…]→any's type"
  */
 Semantic restriction "map_in parallel«_-way»through_" is
 [
 	tupleType : tuple meta,
-	optionalLimit : <natural number…|0..1>'s type,
+	optionalLimit : natural number?'s type,
 	transformer : […]→any's type
 |
 	Require: transformer accepts tupleType (check indices);
@@ -1007,7 +1007,7 @@ Semantic restriction "map_in parallel«_-way»through_" is
  *
  * @method "map_in parallel«_-way»through_"
  * @param "aSet" "set"
- * @param "optionalLimit" "<natural number…|0..1>"
+ * @param "optionalLimit" "natural number?"
  *        If specified, then the maximum number of worker {@type "fiber"}s
  *        permitted to run in parallel. If not specified, then permit {@method
  *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
@@ -1025,7 +1025,7 @@ Semantic restriction "map_in parallel«_-way»through_" is
 Public method "map_in parallel«_-way»through_" is
 [
 	aSet : set,
-	optionalLimit : <natural number…|0..1>,
+	optionalLimit : natural number?,
 	transformer : [⊥]→any
 |
 	workUnitRunner : [[]→⊤]→⊤;
@@ -1067,13 +1067,13 @@ Public method "map_in parallel«_-way»through_" is
  * 
  * @method "map_in parallel«_-way»through_"
  * @restricts "set meta"
- * @restricts "<natural number…|0..1>'s type"
+ * @restricts "natural number?'s type"
  * @restricts "[⊥]→any's type"
  */
 Semantic restriction "map_in parallel«_-way»through_" is
 [
 	setType : set meta,
-	optionalLimit : <natural number…|0..1>'s type,
+	optionalLimit : natural number?'s type,
 	transformer : [⊥]→any's type
 |
 	Require: transformer accepts setType;
@@ -1096,7 +1096,7 @@ Semantic restriction "map_in parallel«_-way»through_" is
  *
  * @method "map_in parallel«_-way»through_"
  * @param "aMap" "map"
- * @param "optionalLimit" "<natural number…|0..1>"
+ * @param "optionalLimit" "natural number?"
  *        If specified, then the maximum number of worker {@type "fiber"}s
  *        permitted to run in parallel. If not specified, then permit {@method
  *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
@@ -1115,7 +1115,7 @@ Semantic restriction "map_in parallel«_-way»through_" is
 Public method "map_in parallel«_-way»through_" is
 [
 	aMap : map,
-	optionalLimit : <natural number…|0..1>,
+	optionalLimit : natural number?,
 	transformer : [⊥, ⊥]→any
 |
 	workUnitRunner : [[]→⊤]→⊤;
@@ -1158,13 +1158,13 @@ Public method "map_in parallel«_-way»through_" is
  *
  * @method "map_in parallel«_-way»through_"
  * @restricts "map meta"
- * @restricts "<natural number…|0..1>"
+ * @restricts "natural number?"
  * @restricts "[⊥, ⊥]→any's type"
  */
 Semantic restriction "map_in parallel«_-way»through_" is
 [
 	mapType : map meta,
-	optionalLimit : <natural number…|0..1>'s type,
+	optionalLimit : natural number?'s type,
 	transformer : [⊥, ⊥]→any's type
 |
 	Require: transformer accepts mapType;
@@ -1188,7 +1188,7 @@ Semantic restriction "map_in parallel«_-way»through_" is
  *
  * @method "filter_in parallel«_-way»by_"
  * @param "aTuple" "tuple"
- * @param "optionalLimit" "<natural number…|0..1>"
+ * @param "optionalLimit" "natural number?"
  *        If specified, then the maximum number of worker {@type "fiber"}s
  *        permitted to run in parallel. If not specified, then permit {@method
  *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
@@ -1208,7 +1208,7 @@ Semantic restriction "map_in parallel«_-way»through_" is
 Public method "filter_in parallel«_-way»by_" is
 [
 	aTuple : tuple,
-	optionalLimit : <natural number…|0..1>,
+	optionalLimit : natural number?,
 	predicate : [⊥, ⊥]→boolean
 |
 	workUnitRunner : [[]→⊤]→⊤;
@@ -1257,7 +1257,7 @@ Public method "filter_in parallel«_-way»by_" is
  *
  * @method "filter_in parallel«_-way»by_"
  * @param "aTuple" "tuple"
- * @param "optionalLimit" "<natural number…|0..1>"
+ * @param "optionalLimit" "natural number?"
  *        If specified, then the maximum number of worker {@type "fiber"}s
  *        permitted to run in parallel. If not specified, then permit {@method
  *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
@@ -1276,7 +1276,7 @@ Public method "filter_in parallel«_-way»by_" is
 Public method "filter_in parallel«_-way»by_" is
 [
 	aTuple : tuple,
-	optionalLimit : <natural number…|0..1>,
+	optionalLimit : natural number?,
 	predicate : [⊥]→boolean
 |
 	limit ::= optionalLimit[1] else [default maximum worker fibers];
@@ -1294,13 +1294,13 @@ Public method "filter_in parallel«_-way»by_" is
  * 
  * @method "filter_in parallel«_-way»by_"
  * @restricts "tuple meta"
- * @restricts "<natural number…|0..1>"
+ * @restricts "natural number?"
  * @restricts "[…]→boolean's type"
  */
 Semantic restriction "filter_in parallel«_-way»by_" is
 [
 	tupleType : tuple meta,
-	optionalLimit : <natural number…|0..1>'s type,
+	optionalLimit : natural number?'s type,
 	predicate : […]→boolean's type
 |
 	Require: predicate accepts tupleType (check indices);
@@ -1322,7 +1322,7 @@ Semantic restriction "filter_in parallel«_-way»by_" is
  *
  * @method "filter_in parallel«_-way»by_"
  * @param "aSet" "set"
- * @param "optionalLimit" "<natural number…|0..1>"
+ * @param "optionalLimit" "natural number?"
  *        If specified, then the maximum number of worker {@type "fiber"}s
  *        permitted to run in parallel. If not specified, then permit {@method
  *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
@@ -1341,7 +1341,7 @@ Semantic restriction "filter_in parallel«_-way»by_" is
 Public method "filter_in parallel«_-way»by_" is
 [
 	aSet : set,
-	optionalLimit : <natural number…|0..1>,
+	optionalLimit : natural number?,
 	predicate : [⊥]→boolean
 |
 	workUnitRunner : [[]→⊤]→⊤;
@@ -1384,13 +1384,13 @@ Public method "filter_in parallel«_-way»by_" is
  * 
  * @method "filter_in parallel«_-way»by_"
  * @restricts "set meta"
- * @restricts "<natural number…|0..1>"
+ * @restricts "natural number?"
  * @restricts "[…]→boolean's type"
  */
 Semantic restriction "filter_in parallel«_-way»by_" is
 [
 	setType : set meta,
-	optionalLimit : <natural number…|0..1>'s type,
+	optionalLimit : natural number?'s type,
 	predicate : […]→boolean's type
 |
 	Require: predicate accepts setType;
@@ -1406,7 +1406,7 @@ Semantic restriction "filter_in parallel«_-way»by_" is
  *
  * @method "filter_in parallel«_-way»by_"
  * @param "aMap" "map"
- * @param "optionalLimit" "<natural number…|0..1>"
+ * @param "optionalLimit" "natural number?"
  *        If specified, then the maximum number of worker {@type "fiber"}s
  *        permitted to run in parallel. If not specified, then permit {@method
  *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
@@ -1425,7 +1425,7 @@ Semantic restriction "filter_in parallel«_-way»by_" is
 Public method "filter_in parallel«_-way»by_" is
 [
 	aMap : map,
-	optionalLimit : <natural number…|0..1>,
+	optionalLimit : natural number?,
 	predicate : [⊥, ⊥]→boolean
 |
 	workUnitRunner : [[]→⊤]→⊤;
@@ -1470,13 +1470,13 @@ Public method "filter_in parallel«_-way»by_" is
  * 
  * @method "filter_in parallel«_-way»by_"
  * @restricts "map meta"
- * @restricts "<natural number…|0..1>"
+ * @restricts "natural number?"
  * @restricts "[…]→boolean's type"
  */
 Semantic restriction "filter_in parallel«_-way»by_" is
 [
 	mapType : map meta,
-	optionalLimit : <natural number…|0..1>'s type,
+	optionalLimit : natural number?'s type,
 	predicate : […]→boolean's type
 |
 	Require: predicate accepts mapType;
@@ -1497,7 +1497,7 @@ Semantic restriction "filter_in parallel«_-way»by_" is
  *
  * @method "map and filter_in parallel«_-way»by_"
  * @param "aTuple" "tuple"
- * @param "optionalLimit" "<natural number…|0..1>"
+ * @param "optionalLimit" "natural number?"
  *        If specified, then the maximum number of worker {@type "fiber"}s
  *        permitted to run in parallel. If not specified, then permit {@method
  *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
@@ -1517,7 +1517,7 @@ Semantic restriction "filter_in parallel«_-way»by_" is
 Public method "map and filter_in parallel«_-way»by_" is
 [
 	aTuple : tuple,
-	optionalLimit : <natural number…|0..1>,
+	optionalLimit : natural number?,
 	accumulator : [⊥, ⊥, ⊥]→⊤
 |
 	workUnitRunner : [[]→⊤]→⊤;
@@ -1573,13 +1573,13 @@ Public method "map and filter_in parallel«_-way»by_" is
  * 
  * @method "map and filter_in parallel«_-way»by_"
  * @restricts "tuple meta"
- * @restricts "<natural number…|0..1>"
+ * @restricts "natural number?"
  * @restricts "[⊥, ⊥, ⊥]→⊤'s type"
  */
 Semantic restriction "map and filter_in parallel«_-way»by_" is
 [
 	tupleType : tuple meta,
-	optionalLimit : <natural number…|0..1>'s type,
+	optionalLimit : natural number?'s type,
 	accumulator : [⊥, ⊥, ⊥]→⊤'s type
 |
 	Require: accumulator accepts tupleType (check indices);
@@ -1610,7 +1610,7 @@ Semantic restriction "map and filter_in parallel«_-way»by_" is
  *
  * @method "map and filter_in parallel«_-way»by_"
  * @param "aTuple" "tuple"
- * @param "optionalLimit" "<natural number…|0..1>"
+ * @param "optionalLimit" "natural number?"
  *        If specified, then the maximum number of worker {@type "fiber"}s
  *        permitted to run in parallel. If not specified, then permit {@method
  *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
@@ -1630,7 +1630,7 @@ Semantic restriction "map and filter_in parallel«_-way»by_" is
 Public method "map and filter_in parallel«_-way»by_" is
 [
 	aTuple : tuple,
-	optionalLimit : <natural number…|0..1>,
+	optionalLimit : natural number?,
 	accumulator : [⊥, ⊥]→⊤
 |
 	workUnitRunner : [[]→⊤]→⊤;
@@ -1685,13 +1685,13 @@ Public method "map and filter_in parallel«_-way»by_" is
  * 
  * @method "map and filter_in parallel«_-way»by_"
  * @restricts "tuple meta"
- * @restricts "<natural number…|0..1>"
+ * @restricts "natural number?"
  * @restricts "[⊥, ⊥, ⊥]→⊤'s type"
  */
 Semantic restriction "map and filter_in parallel«_-way»by_" is
 [
 	tupleType : tuple meta,
-	optionalLimit : <natural number…|0..1>'s type,
+	optionalLimit : natural number?'s type,
 	accumulator : [⊥, ⊥]→⊤'s type
 |
 	Require: accumulator accepts tupleType;
@@ -1722,7 +1722,7 @@ Semantic restriction "map and filter_in parallel«_-way»by_" is
  *
  * @method "map and filter_in parallel«_-way»by_"
  * @param "aSet" "set"
- * @param "optionalLimit" "<natural number…|0..1>"
+ * @param "optionalLimit" "natural number?"
  *        If specified, then the maximum number of worker {@type "fiber"}s
  *        permitted to run in parallel. If not specified, then permit {@method
  *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
@@ -1741,7 +1741,7 @@ Semantic restriction "map and filter_in parallel«_-way»by_" is
 Public method "map and filter_in parallel«_-way»by_" is
 [
 	aSet : set,
-	optionalLimit : <natural number…|0..1>,
+	optionalLimit : natural number?,
 	accumulator : [⊥, ⊥]→⊤
 |
 	workUnitRunner : [[]→⊤]→⊤;
@@ -1796,13 +1796,13 @@ Public method "map and filter_in parallel«_-way»by_" is
  * 
  * @method "map and filter_in parallel«_-way»by_"
  * @restricts "set meta"
- * @restricts "<natural number…|0..1>"
+ * @restricts "natural number?"
  * @restricts "[⊥, ⊥]→⊤'s type"
  */
 Semantic restriction "map and filter_in parallel«_-way»by_" is
 [
 	setType : set meta,
-	optionalLimit : <natural number…|0..1>'s type,
+	optionalLimit : natural number?'s type,
 	accumulator : [⊥, ⊥]→⊤'s type
 |
 	Require: accumulator accepts setType;
@@ -1831,7 +1831,7 @@ Semantic restriction "map and filter_in parallel«_-way»by_" is
  *
  * @method "map and filter_in parallel«_-way»by_"
  * @param "aMap" "map"
- * @param "optionalLimit" "<natural number…|0..1>"
+ * @param "optionalLimit" "natural number?"
  *        If specified, then the maximum number of worker {@type "fiber"}s
  *        permitted to run in parallel. If not specified, then permit {@method
  *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
@@ -1850,7 +1850,7 @@ Semantic restriction "map and filter_in parallel«_-way»by_" is
 Public method "map and filter_in parallel«_-way»by_" is
 [
 	aMap : map,
-	optionalLimit : <natural number…|0..1>,
+	optionalLimit : natural number?,
 	accumulator : [⊥, ⊥, ⊥]→⊤
 |
 	workUnitRunner : [[]→⊤]→⊤;
@@ -1909,13 +1909,13 @@ Public method "map and filter_in parallel«_-way»by_" is
  * 
  * @method "map and filter_in parallel«_-way»by_"
  * @restricts "map meta"
- * @restricts "<natural number…|0..1>"
+ * @restricts "natural number?"
  * @restricts "[⊥, ⊥, ⊥]→⊤'s type"
  */
 Semantic restriction "map and filter_in parallel«_-way»by_" is
 [
 	mapType : map meta,
-	optionalLimit : <natural number…|0..1>'s type,
+	optionalLimit : natural number?'s type,
 	accumulator : [⊥, ⊥, ⊥]→⊤'s type
 |
 	Require: accumulator accepts mapType;

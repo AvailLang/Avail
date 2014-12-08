@@ -270,22 +270,22 @@ file writer's exit buffer method is _privateWriteBuffer;
  * @param "fileIteratorType" "file iterator's type"
  * @param "fn" "file name"
  *        The {@method "file name"} of the target file.
- * @param "optionalAlignment" "<natural number…|0..1>"
+ * @param "optionalAlignment" "natural number?"
  *        If specified, the alignment boundary at which to align writes.  For
  *        optimal performance and safety, this should be a multiple of both the
  *        operating system's block size and the physical device's minimum block
  *        transfer size.  If not specified, a default value is used.
- * @param "optionalMaximumBuffer" "<natural number…|0..1>"
+ * @param "optionalMaximumBuffer" "natural number?"
  *        If specified, the maximum number of bytes to buffer from/for the
  *        underlying {@type "file"}. If not specified, a default value is used.
  *        Writes will still happen with end-boundaries that are multiples of the
  *        optionalAlignment, but only when the buffer becomes larger than the
  *        optionalMaximumBuffer size (or when a write is neither contiguous with
  *        nor overlapping the existing buffer).
- * @param "optionSet" "<{open option|}…|0..1>"
+ * @param "optionSet" "{open option|}?"
  *        The optional set of {@type "open option" options} with which to open
  *        the file handle.  The subtype of file iterator type that is 
- * @param "optionalAccessRights" "<{file access right|}…|0..1>"
+ * @param "optionalAccessRights" "{file access right|}?"
  *        The optional {@type "set"} of {@type "file access right"}s to supply
  *        at file handle opening time, which controls the initial access rights
  *        of the file only when a new file is constructed.
@@ -303,10 +303,10 @@ Public method "a_for_\
 [
 	fileIteratorType : file iterator's type,
 	fn : file name,
-	optionalAlignment : <natural number…|0..1>,
-	optionalMaximumBuffer : <natural number…|0..1>,
-	optionSet : <{open option|}…|0..1>,
-	optionalAccessRights : <{file access right|}…|0..1>
+	optionalAlignment : natural number?,
+	optionalMaximumBuffer : natural number?,
+	optionSet : {open option|}?,
+	optionalAccessRights : {file access right|}?
 |
 	options : {open option|} := optionSet[1] else [∅];
 	If fileIteratorType ⊆ reader then [options := options ∪ {read};];
@@ -341,10 +341,10 @@ Semantic restriction "a_for_\
 [
 	fileIteratorMeta : file iterator's type's type,
 	fnType : file name's type,
-	optionalAlignmentType : <natural number…|0..1>'s type,
-	optionalMaximumBufferType : <natural number…|0..1>'s type,
-	optionSetType : <{open option|}…|0..1>'s type,
-	optionalAccessRightsType : <{file access right|}…|0..1>'s type
+	optionalAlignmentType : natural number?'s type,
+	optionalMaximumBufferType : natural number?'s type,
+	optionSetType : {open option|}?'s type,
+	optionalAccessRightsType : {file access right|}?'s type
 |
 	fileIteratorMeta's instance
 ];

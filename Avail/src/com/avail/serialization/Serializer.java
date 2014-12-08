@@ -68,7 +68,7 @@ public class Serializer
 	 * will be output for it at the appropriate time.
 	 */
 	final Map<A_BasicObject, SerializerInstruction> encounteredObjects =
-		new HashMap<>(1000);
+		new HashMap<>(100);
 
 	/**
 	 * All variables that must have their values assigned to them upon

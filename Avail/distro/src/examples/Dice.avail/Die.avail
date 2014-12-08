@@ -208,7 +208,7 @@ Semantic restriction "a die showing_" is
 
 Method "«using_,»roll_" is
 [
-	optionalRNG : <pRNG…|0..1>,
+	optionalRNG : pRNG?,
 	aDie : standard die
 |
 	rng ::= optionalRNG[1] else [default pRNG];
@@ -223,7 +223,7 @@ Method "«using_,»roll_" is
 
 Method "«using_,»roll_" is
 [
-	optionalRNG : <pRNG…|0..1>,
+	optionalRNG : pRNG?,
 	aDie : nonstandard die
 |
 	rng ::= optionalRNG[1] else [default pRNG];
@@ -363,7 +363,7 @@ Semantic restriction "a dice group with_" is
 
 Method "«using_,»roll_" is
 [
-	optionalRNG : <pRNG…|0..1>,
+	optionalRNG : pRNG?,
 	someDice : dice group
 |
 	rng ::= optionalRNG[1] else [default pRNG];
@@ -430,7 +430,7 @@ Method "“_”" is
  * @method "_(drop lowest«_»)"
  * @param "group" "dice group"
  *        A {@type "dice group"}.
- * @param "optionalCount" "<integer…|0..1>"
+ * @param "optionalCount" "integer?"
  *        The number of dice that should be dropped, or {@code 1} if not
  *        specified.
  * @returns "drop dice expression"
@@ -439,7 +439,7 @@ Method "“_”" is
 Public method "_(drop the⁇lowest«_»)" is
 [
 	group : dice group,
-	optionalCount : <whole number…|0..1>
+	optionalCount : whole number?
 |
 	count ::= optionalCount[1] else [1];
 	Assert: count ≤ |group's members|;
@@ -457,7 +457,7 @@ Public method "_(drop the⁇lowest«_»)" is
 Semantic restriction "_(drop the⁇lowest«_»)" is
 [
 	group : dice group's type,
-	optionalCount : <whole number…|0..1>'s type
+	optionalCount : whole number?'s type
 |
 	members ::= group's members;
 	count ::= if ⎣optionalCount⎦ = 1 then [optionalCount[1]] else [1's type];
@@ -504,7 +504,7 @@ Semantic restriction "_(drop the⁇lowest«_»)" is
  * @method "_(drop lowest«_»)"
  * @param "group" "dice group"
  *        A {@type "dice group"}.
- * @param "optionalCount" "<integer…|0..1>"
+ * @param "optionalCount" "integer?"
  *        The number of dice that should be dropped, or {@code 1} if not
  *        specified.
  * @returns "drop dice expression"
@@ -513,7 +513,7 @@ Semantic restriction "_(drop the⁇lowest«_»)" is
 Public method "_(drop the⁇highest«_»)" is
 [
 	group : dice group,
-	optionalCount : <whole number…|0..1>
+	optionalCount : whole number?
 |
 	count ::= optionalCount[1] else [1];
 	Assert: count ≤ |group's members|;
@@ -531,7 +531,7 @@ Public method "_(drop the⁇highest«_»)" is
 Semantic restriction "_(drop the⁇highest«_»)" is
 [
 	group : dice group's type,
-	optionalCount : <whole number…|0..1>'s type
+	optionalCount : whole number?'s type
 |
 	members ::= group's members;
 	count ::= if ⎣optionalCount⎦ = 1 then [optionalCount[1]] else [1's type];
@@ -570,7 +570,7 @@ Semantic restriction "_(drop the⁇highest«_»)" is
 
 Method "«using_,»roll_" is
 [
-	optionalRNG : <pRNG…|0..1>,
+	optionalRNG : pRNG?,
 	expr : drop dice expression
 |
 	rng ::= optionalRNG[1] else [default pRNG];

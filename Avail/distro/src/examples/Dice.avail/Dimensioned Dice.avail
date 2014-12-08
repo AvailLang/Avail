@@ -165,7 +165,7 @@ Semantic restriction "__" is
  *
  * @category "Dice" "Dimensional Analysis"
  * @method "«using_,»roll_"
- * @param "optionalRNG" "<pRNG…|0..1>"
+ * @param "optionalRNG" "pRNG?"
  *        An optional {@type "pRNG"}. If provided, then it will be used to
  *        randomly select a face. If not provided, then a default {@type "pRNG"}
  *        will be used.
@@ -176,7 +176,7 @@ Semantic restriction "__" is
  */
 Method "«using_,»roll_" is
 [
-	optionalRNG : <pRNG…|0..1>,
+	optionalRNG : pRNG?,
 	expr : dimensioned dice
 |
 	rng ::= optionalRNG[1] else [default pRNG];

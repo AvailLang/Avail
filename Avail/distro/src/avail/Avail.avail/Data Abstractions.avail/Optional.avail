@@ -69,7 +69,7 @@ Private method "actual value" is [_actualValue];
  */
 Explicit class "optional" extends object
 	with fields
-		actual value : <any…|0..1>;
+		actual value : any?;
 
 /**
  * Construct and answer an {@type "optional"} type.
@@ -85,7 +85,7 @@ Public method "optional_" is
 [
 	valueType : any's type
 |
-	extend optional with actual value : <valueType…|0..1>
+	extend optional with actual value : valueType?
 ] : optional's type;
 
 /**
@@ -96,7 +96,7 @@ Semantic restriction "optional_" is
 [
 	valueMeta : any's type's type
 |
-	(extend optional with actual value : <valueMeta's instance…|0..1>)'s type
+	(extend optional with actual value : valueMeta's instance?)'s type
 ];
 
 /**

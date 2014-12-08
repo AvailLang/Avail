@@ -1402,14 +1402,14 @@ Semantic restriction "a⁇transition|transitions«_‡,⁇and⁇»" is
  * @method
  *    "_«is titled by_,⁇»and⁇is described by_,⁇«and⁇upon entry does_,⁇»«and⁇has_»"
  * @param "sceneVar" "variable"
- * @param "optionalTitler" "<nonempty string ∪ []→string…|0..1>"
+ * @param "optionalTitler" "nonempty string ∪ []→string?"
  *        If supplied, then either 1) a {@type "nonempty string"} that
  *        represents a static title or 2) a function that produces the title on
  *        demand.
  * @param "describer" "nonempty string ∪ []→string"
  *        Either 1) a {@type "nonempty string"} that represents a static
  *        description or 2) a function that produces the description on demand.
- * @param "optionalEntryAction" "<[]→⊤…|0..1>"
+ * @param "optionalEntryAction" "[]→⊤?"
  *        If supplied, then an action to perform upon entry to this scene.
  * @param "optionalTransitions" "<<scene transition…|>…|0..1>"
  *        If supplied, then complete listing of all {@type "scene transition"}s
@@ -1420,9 +1420,9 @@ Public method
 is
 [
 	sceneVar : variable,
-	optionalTitler : <nonempty string ∪ []→string…|0..1>,
+	optionalTitler : nonempty string ∪ []→string?,
 	describer : nonempty string ∪ []→string,
-	optionalEntryAction : <[]→⊤…|0..1>,
+	optionalEntryAction : []→⊤?,
 	optionalTransitions : <<scene transition…|>…|0..1>
 |
 	titler ::=
@@ -1463,9 +1463,9 @@ Semantic restriction
 is
 [
 	varType : variable's type,
-	titlerType : <nontype's type…|0..1>'s type,
+	titlerType : nontype's type?'s type,
 	describerType : nontype's type,
-	entryType : <[]→⊤…|0..1>'s type,
+	entryType : []→⊤?'s type,
 	transitionsType : <<scene transition…|>…|0..1>'s type
 |
 	contextType ::= dynamic game context type;
