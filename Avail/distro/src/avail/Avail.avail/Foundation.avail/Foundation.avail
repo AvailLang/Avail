@@ -936,6 +936,8 @@ Extends
 	"Tuples" =
 	(
 		"Require:_accepts_«(check indices)»?",
+		"UUID",
+		"a UUID",
 		"all indices of_in_",
 		"all indices of_where_",
 		"distinct_",

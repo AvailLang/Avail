@@ -51,6 +51,9 @@ Names
 	"_[_..]",
 	"_[.._]",
 
+	"UUID",
+	"a UUID",
+
 	/* Exported for use by Tuples. */
 	"Require:_[_.._]is ever valid",
 	"tuple type of_[_.._]"
@@ -762,3 +765,25 @@ Semantic restriction "_[_]else_" is
 		]
 	]
 ];
+
+/**
+ * A {@type "UUID"} is a universally unique identifier.
+ *
+ * @type "UUID"
+ * @supertype "<byte…|16>"
+ */
+Public method "UUID" is [<<>, byte…|16's type>];
+
+/**
+ * Generate and answer a cryptographically strong pseudo-random universally
+ * unique identifier (UUID) as a 16-byte {@type "tuple"}.
+ *
+ * @category "Primitives"
+ * @method "a UUID"
+ * @returns "<byte…|16>"
+ *          The requested UUID.
+ */
+Public method "a UUID" is
+[
+	Primitive 134;
+] : <<>, byte…|16's type>;
