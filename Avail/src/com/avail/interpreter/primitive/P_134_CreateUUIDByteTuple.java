@@ -1,5 +1,5 @@
 /**
- * NullOutputStream.java
+ * P_134_CreateUUIDByteTuple.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,21 +30,56 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility;
+package com.avail.interpreter.primitive;
 
-import java.io.*;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.UUID;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
 
 /**
- * A {@code NullOutputStream} discards everything written to it.
+ * <strong>Primitive 134</strong>: Answer a cryptographically strong
+ * pseudo-random {@link UUID} as a 16-byte {@link ByteBufferTupleDescriptor
+ * tuple}.
  *
- * @author Leslie Schultz &lt;leslie@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class NullOutputStream
-extends OutputStream
+public final class P_134_CreateUUIDByteTuple
+extends Primitive
 {
+	/**
+	 * The sole instance of this primitive class. Accessed through reflection.
+	 */
+	public final static Primitive instance =
+		new P_134_CreateUUIDByteTuple().init(
+			0, CannotFail, CanInline, HasSideEffect);
+
 	@Override
-	public void write (final int b) throws IOException
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
-		// Do nothing.
+		assert args.size() == 0;
+		final UUID uuid = UUID.randomUUID();
+		final ByteBuffer bytes = ByteBuffer.allocateDirect(16);
+		bytes.putLong(uuid.getMostSignificantBits());
+		bytes.putLong(uuid.getLeastSignificantBits());
+		bytes.rewind();
+		return interpreter.primitiveSuccess(
+			ByteBufferTupleDescriptor.forByteBuffer(bytes));
+	}
+
+	@Override
+	protected A_Type privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.empty(),
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				IntegerRangeTypeDescriptor.singleInt(16),
+				TupleDescriptor.empty(),
+				IntegerRangeTypeDescriptor.bytes()));
 	}
 }

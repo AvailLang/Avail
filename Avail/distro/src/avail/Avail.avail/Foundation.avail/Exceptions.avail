@@ -1088,6 +1088,10 @@ System exception "not-open-for-write" (94)
 	extends bad-argument exception;
 System exception "exceeds-vm-limit" (95)
 	extends bad-argument exception;
+System exception "serialization-failed" (96)
+	extends bad-argument exception;
+System exception "deserialization-failed" (97)
+	extends bad-argument exception;
 System exception "block-contains-invalid-statements" (100)
 	extends bad-phrase exception;
 System exception "block-is-invalid" (101)

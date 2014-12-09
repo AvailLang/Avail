@@ -942,8 +942,11 @@ Extends
 	"Tuples" =
 	(
 		"Require:_accepts_«(check indices)»?",
+		"UUID",
+		"a UUID",
 		"all indices of_in_",
 		"all indices of_where_",
+		"deserialize_from_",
 		"distinct_",
 		"drop from_until_",
 		"drop from_while_",
@@ -960,6 +963,7 @@ Extends
 		"replace all occurrences of_in_with_",
 		"replace the first occurrence of_in_with_",
 		"right fold_through_",
+		"serialize_",
 		"split_after_",
 		"split_before_",
 		"stripe_at_",

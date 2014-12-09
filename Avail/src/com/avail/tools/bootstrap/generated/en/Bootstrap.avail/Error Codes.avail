@@ -80,6 +80,7 @@ Names
 	/*  36 */ "declaration-kind-does-not-support-assignment code",
 	/*  37 */ "declaration-kind-does-not-support-reference code",
 	/*  65 */ "declaration-type-must-not-be-top-or-bottom code",
+	/*  97 */ "deserialization-failed code",
 	/* 202 */ "directory-not-empty code",
 	/*  53 */ "double-question-mark-must-follow-a-simple-or-simple-group code",
 	/*  95 */ "exceeds-vm-limit code",
@@ -146,6 +147,7 @@ Names
 	/*  40 */ "result-type-should-covary-with-arguments code",
 	/*  64 */ "return-type-is-mandatory-with-primitives-or-labels code",
 	/* 105 */ "sequence-contains-invalid-statements code",
+	/*  96 */ "serialization-failed code",
 	/*  18 */ "shift-and-truncate-requires-non-negative code",
 	/*  41 */ "special-atom code",
 	/*  10 */ "subscript-out-of-bounds code",
@@ -628,6 +630,16 @@ Primitive "not-open-for-write code" is
 Primitive "exceeds-vm-limit code" is
 [
 	95
+];
+
+Primitive "serialization-failed code" is
+[
+	96
+];
+
+Primitive "deserialization-failed code" is
+[
+	97
 ];
 
 Primitive "block-contains-invalid-statements code" is

@@ -715,9 +715,8 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * A {@linkplain StringDescriptor tuple of characters} whose code points all
-	 * fall in the range 0..65535.  Write the compressed number of characters
-	 * then each compressed character.
+	 * A {@linkplain StringDescriptor tuple of integers} whose values all
+	 * fall in the range 0..255.
 	 */
 	BYTE_TUPLE(28, UNCOMPRESSED_BYTE_TUPLE.as("tuple of bytes"))
 	{
@@ -738,9 +737,8 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * A {@linkplain StringDescriptor tuple of characters} whose code points all
-	 * fall in the range 0..65535.  Write the compressed number of characters
-	 * then each compressed character.
+	 * A {@linkplain StringDescriptor tuple of integers} whose values fall in
+	 * the range 0..255.
 	 */
 	NYBBLE_TUPLE(29, UNCOMPRESSED_NYBBLE_TUPLE.as("tuple of nybbles"))
 	{
