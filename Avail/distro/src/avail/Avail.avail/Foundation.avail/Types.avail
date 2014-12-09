@@ -266,7 +266,7 @@ Semantic restriction "<«_‡,»`…`|_.._>" is
 	bound ::= cast ⎡maximumSizeType⎤ + 1 into [ t : [0..∞] | t ];
 	lower ::= ⎣minimumSizeType⎦;
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
-		[t: <any's type…|0..∞> | t];
+		[t: any's type* | t];
 
 	<allTypesToUse,defaultTypeTypeInstance…|[lower..bound)>'s type
 ];
@@ -350,7 +350,7 @@ Semantic restriction "<«_‡,»`…`|_..>" is
 
 	lower ::= ⎣minimumSizeType⎦;
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
-		[t: <any's type…|0..∞> | t];
+		[t: any's type* | t];
 
 	<allTypesToUse,defaultTypeTypeInstance…|[lower..∞)>'s type
 ];
@@ -435,7 +435,7 @@ Semantic restriction "<«_‡,»`…`|.._>" is
 
 	bound ::= cast ⎡maximumSizeType⎤ + 1 into [ t : [0..∞] | t ];
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
-		[t: <any's type…|0..∞> | t];
+		[t: any's type* | t];
 
 	<allTypesToUse,defaultTypeTypeInstance…|[0..bound)>'s type
 ];
@@ -521,7 +521,7 @@ Semantic restriction "<«_‡,»`…`|_>" is
 	lower ::= ⎣exactSizeType⎦;
 	upper ::= cast ⎡exactSizeType⎤ + 1 into [ t : [0..∞] | t ];
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
-		[t: <any's type…|0..∞> | t];
+		[t: any's type* | t];
 
 	<allTypesToUse,defaultTypeTypeInstance…|[lower..upper)>'s type
 ];
@@ -598,7 +598,7 @@ Semantic restriction "<«_‡,»`…`|>" is
 		];
 
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
-		[t: <any's type…|0..∞> | t];
+		[t: any's type* | t];
 
 	<allTypesToUse,defaultTypeTypeInstance…|[0..∞)>'s type
 ];

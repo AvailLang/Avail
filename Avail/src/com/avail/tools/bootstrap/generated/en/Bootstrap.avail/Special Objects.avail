@@ -2378,7 +2378,7 @@ Primitive "fiber meta" is
  *
  * @category "Primitives" "Types"
  * @type "nonempty string"
- * @alias "<character…|1..∞>"
+ * @alias "character+"
  */
 Primitive "nonempty string" is
 [
@@ -2426,7 +2426,7 @@ Primitive "nonempty set of atom" is
  *
  * @category "Primitives" "Types"
  * @type "nonempty tuple"
- * @alias "<any…|1..∞>"
+ * @alias "any+"
  */
 Primitive "nonempty tuple" is
 [

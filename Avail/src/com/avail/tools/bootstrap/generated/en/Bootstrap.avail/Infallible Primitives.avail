@@ -2787,7 +2787,7 @@ Primitive "_⇒_" is
  * @method "_'s⁇lexeme"
  * @param "aToken" "token"
  *        A token.
- * @returns "<character…|1..∞>"
+ * @returns "character+"
  *    The source text of {@param "aToken"}.
  */
 Primitive "_'s⁇lexeme" is

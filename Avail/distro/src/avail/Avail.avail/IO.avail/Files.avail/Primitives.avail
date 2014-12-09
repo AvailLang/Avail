@@ -422,7 +422,7 @@ Private method
 	start : natural number,
 	bytesToRead : [1..∞],
 	fileHandle : atom,
-	into : [<byte…|0..∞>]→⊤,
+	into : [byte*]→⊤,
 	else : [{I/O-error code}ᵀ]→⊤,
 	priority : byte
 |
@@ -443,7 +443,7 @@ Public method
 	bytesToRead : [1..∞],
 	start : natural number,
 	f : readable file,
-	success : [<byte…|0..∞>]→⊤,
+	success : [byte*]→⊤,
 	failure : [{I/O-error code}ᵀ]→⊤,
 	optionalPriority : byte?
 |
@@ -458,7 +458,7 @@ Public method
 Private method "private starting at_write_to_then_else_priority_" is
 [
 	start : natural number,
-	bytesToWrite : <byte…|1..∞>,
+	bytesToWrite : byte+,
 	fileHandle : atom,
 	then : []→⊤,
 	else : [{I/O-error code}ᵀ]→⊤,
@@ -478,7 +478,7 @@ Public method
 		\|on failure doing_,⁇\
 		\|«forked at priority_»" is
 [
-	bytesToWrite : <byte…|1..∞>,
+	bytesToWrite : byte+,
 	start : natural number,
 	f : writable file,
 	success : []→⊤,

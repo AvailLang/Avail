@@ -1219,7 +1219,7 @@ Semantic restriction "_>>_" is
 ];
 
 Private forward method "_positive range pairs"
-	is [whole number's type] → <whole number's type…|0..∞>;
+	is [whole number's type] → (whole number's type*);
 
 /**
  * Compute the ranges as for "_range pairs" (below), but with the knowledge that
@@ -1227,13 +1227,13 @@ Private forward method "_positive range pairs"
  * 
  * @method "_positive range pairs"
  * @param "range" "whole number's type"
- * @returns "<whole number's type…|0..∞>"
+ * @returns "whole number's type*"
  */
 Private method "_positive range pairs" is
 [
 	range : whole number's type
 |
-	$outer : <whole number's type…|0..∞>;
+	$outer : whole number's type*;
 	If range = ⊥ then
 	[
 		Exit outer with <>
@@ -1297,7 +1297,7 @@ Private method "_positive range pairs" is
 	strongLowBits : whole number :=
 		cast lowBits into [x : whole number | x];
 	[
-		$loop : <whole number's type…|0..∞>;
+		$loop : whole number's type*;
 		subrangeEnd ::= low + strongLowBits;
 		If subrangeEnd ∈ range then
 		[
@@ -1309,8 +1309,8 @@ Private method "_positive range pairs" is
 		Assert: strongLowBits ≠ 0;
 		strongLowBits := strongLowBits << -1;
 		Restart loop
-	] : <whole number's type…|0..∞> ()
-] : <whole number's type…|0..∞>;
+	] : whole number's type* ()
+] : whole number's type*;
 
 /**
  * Decompose an integer type into a tuple of contiguous smaller integer types.
@@ -1329,7 +1329,7 @@ Private method "_positive range pairs" is
  * 
  * @method "_range pairs"
  * @param "range" "integer's type"
- * @returns "<extended integer's type…|0..∞>"
+ * @returns "extended integer's type*"
  */
 Private method "_range pairs" is
 [
@@ -1351,7 +1351,7 @@ Private method "_range pairs" is
 	positiveRegion ::= rangeKind ∩ [0..∞);
 	pairs := pairs ++ positiveRegion positive range pairs;
 	pairs
-] : <extended integer's type…|0..∞>;
+] : extended integer's type*;
 
 /**
  * Strengthen bitwise-and operation.

@@ -1332,7 +1332,7 @@ Semantic restriction "last index of_where_" is
  * 		The tuple to search
  * @param "predicate" "[⊥]→boolean"
  *        A function that accepts the elements of the tuple.
- * @returns "<natural number…|0..∞>"
+ * @returns "natural number*"
  *          The indices of all the satisfactory elements of the predicate.
  * @category "Tuples" "Queries"
  */
@@ -1341,7 +1341,7 @@ Public method "all indices of_where_" is
 	aTuple : tuple,
 	predicate : [⊥]→boolean
 |
-	indices : <natural number…|0..∞> := <>;
+	indices : natural number* := <>;
 	From 1 to |aTuple| by 1 do
 	[
 		index : natural number
@@ -1352,7 +1352,7 @@ Public method "all indices of_where_" is
 		];
 	];
 	indices
-] : <natural number…|0..∞>;
+] : natural number*;
 
 /**
  * Ensure that the function will accept all elements of the tuple.
@@ -2657,7 +2657,7 @@ Semantic restriction "_'s⁇last" is
  * Sum the elements of the specified tuple of integers.
  *
  * @method "∑_"
- * @param "intTuple" "<extended integer…|0..∞>"
+ * @param "intTuple" "extended integer*"
  *        A tuple of integers.
  * @returns "extended integer"
  *          An integer.
@@ -2665,14 +2665,14 @@ Semantic restriction "_'s⁇last" is
  */
 Public stable method "∑_" is
 [
-	intTuple : <extended integer…|0..∞>
+	intTuple : extended integer*
 |
 	0
 ] : extended integer;
 
 Public stable method "∑_" is
 [
-	intTuple : <extended integer…|1..∞>
+	intTuple : extended integer+
 |
 	left fold intTuple through
 		[i : extended integer, ri : extended integer | i + ri]
@@ -2688,7 +2688,7 @@ Public stable method "∑_" is
  * We actually use a faster technique over the homogenous part of the tuple.
  *
  * @method "∑_"
- * @param "intTupleType" "<extended integer…|0..∞>'s type"
+ * @param "intTupleType" "extended integer*'s type"
  *        A tuple type whose default type is {@type "extended integer"}.
  * @returns "extended integer's type"
  *          The strongest integer range that can be computed for the argument.
@@ -2696,7 +2696,7 @@ Public stable method "∑_" is
  */
 Method "∑_" is
 [
-	intTupleType : <extended integer…|0..∞>'s type
+	intTupleType : extended integer*'s type
 |
 	leading ::= intTupleType's leading types;
 	defaultType ::= intTupleType's default type;
@@ -2749,11 +2749,11 @@ Method "∑_" is
  * Strengthen the return type
  *
  * @method "∑_"
- * @restricts "<extended integer…|1..∞>'s type"
+ * @restricts "extended integer+'s type"
  */
 Semantic restriction "∑_" is
 [
-	intTupleType : <extended integer…|0..∞>'s type
+	intTupleType : extended integer*'s type
 |
 	∑ intTupleType
 ];
@@ -2762,7 +2762,7 @@ Semantic restriction "∑_" is
  * Take the product of the elements of a tuple of integers.
  *
  * @method "∏_"
- * @param "intTuple" "<extended integer…|1..∞>"
+ * @param "intTuple" "extended integer+"
  *        A tuple of integers.
  * @returns "extended integer"
  *          An integer.
@@ -2770,7 +2770,7 @@ Semantic restriction "∑_" is
  */
 Public stable method "∏_" is
 [
-	intTuple : <extended integer…|1..∞>
+	intTuple : extended integer+
 |
 	left fold intTuple through 
 	[
@@ -2786,11 +2786,11 @@ Public stable method "∏_" is
  * Strengthen the return type
  *
  * @method "∏_"
- * @restricts "<integer…|1..∞>'s type"
+ * @restricts "integer+'s type"
  *
 Semantic restriction "∏_" is
 [
-	intTupleType : <integer…|1..∞>'s type
+	intTupleType : integer+'s type
 |
 	leading ::= intTupleType's leading types;
 	defaultType ::= intTupleType's default type;
@@ -2807,7 +2807,7 @@ Print: "x=";
 Print: “x”;
 			y::= cast (⎣x⎦) into [n : integer | n]
 		];
-		∏ (cast x into [iTuple : <integer…|1..∞> | iTuple] )); 
+		∏ (cast x into [iTuple : integer+ | iTuple] )); 
 Print: "y=";
 Print: “y”;
 
@@ -2831,7 +2831,7 @@ Print: “z”;
 		|
 			x ::= cast i into [it : integer's type | it];
 			cast (⎡x⎤) into [n : integer | n]
-		]) into [iTuple : <integer…|1..∞> | iTuple] )) × 
+		]) into [iTuple : integer+ | iTuple] )) × 
 			((⎡intTupleType's default type⎤) ^
 			(⎡intTupleType⎤ - leadingSize))
 	]

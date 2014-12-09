@@ -805,7 +805,7 @@ Semantic restriction "_`?" is
  * @method "_+"
  * @param "t" "type"
  *        The type to be made one-or-more.
- * @returns "<any…|1..∞>'s type"
+ * @returns "any+'s type"
  *          A one or more element tuple type whose elements have type t.
  */
 Public method "_+" is
@@ -836,7 +836,7 @@ Semantic restriction "_+" is
  * @method "_*"
  * @param "t" "type"
  *        The type to be made zero-or-more.
- * @returns "<any…|0..∞>'s type"
+ * @returns "any*'s type"
  *          A zero or more element tuple type whose elements have type t.
  */
 Public method "_*" is
