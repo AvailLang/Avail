@@ -95,7 +95,7 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_NOT_OPEN_FOR_WRITE);
 		}
-		final AvailRuntime runtime = AvailRuntime.current();
+
 		// Don't block an execution thread - use the runtime's file executor
 		// pool instead.  That keeps all the execution threads humming, even if
 		// there are several pending blocking I/O operations (like sync).  Note
@@ -118,6 +118,7 @@ extends Primitive
 		succeed.makeShared();
 		fail.makeShared();
 
+		final AvailRuntime runtime = interpreter.runtime();
 		runtime.executeFileTask(new AvailTask(priorityInt)
 		{
 			@Override

@@ -809,6 +809,7 @@ Extends
 	"Maps" =
 	(
 		"counts for_",
+		"environment map",
 		"integrate_and_with_",
 		"integrate«_‡,and⁇»with_"
 	),
@@ -946,7 +947,7 @@ Extends
 		"a UUID",
 		"all indices of_in_",
 		"all indices of_where_",
-		"deserialize_from_",
+		"deserialize_based on_",
 		"distinct_",
 		"drop from_until_",
 		"drop from_while_",

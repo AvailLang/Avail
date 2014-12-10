@@ -849,5 +849,95 @@ Method "Write_to_" is
 	];
 ];
 
+Semantic restriction "Write_to_" is
+[
+	newElements : tuple's type,
+	writerType : writer's type
+|
+	unionType ::= ∪ newElements[1..relevant |newElements|];
+	If ¬ unionType ⊆ writerType's element type's instance then
+	[
+		Reject parse, expected:
+			format
+				"writer to accept all members of the supplied tuple \
+				\|(but “①” isn't a subtype of “②”)"
+			with unionType, writerType's element type's instance
+	];
+	⊤
+];
+
+/**
+ * Write a 2's complement signed 16-bit integer to the supplied {@type "writer"}
+ * in network byte order.
+ *
+ * @method "Write_to_"
+ * @param "aShort" "[-2^15..2^15)"
+ * @param "aWriter" "extend writer with element type : byte's type"
+ *        A {@type "writer"} of {@type "byte"}s.
+ * @returns "⊤"
+ */
+Method "Write_to_" is
+[
+	aShort : [-2^15..2^15),
+	aWriter : extend writer with element type : byte's type
+|
+	bytes ::= <
+		(aShort >> 8) bit∧ 255,
+		aShort bit∧ 255>;
+	Write bytes to aWriter;
+];
+
+/**
+ * Write a 2's complement signed 32-bit integer to the supplied {@type "writer"}
+ * in network byte order.
+ *
+ * @method "Write_to_"
+ * @param "anInt" "[-2^31..2^31)"
+ * @param "aWriter" "extend writer with element type : byte's type"
+ *        A {@type "writer"} of {@type "byte"}s.
+ * @returns "⊤"
+ */
+Method "Write_to_" is
+[
+	anInt : [-2^31..2^31),
+	aWriter : extend writer with element type : byte's type
+|
+	bytes ::= <
+		(anInt >> 24) bit∧ 255,
+		(anInt >> 16) bit∧ 255,
+		(anInt >> 8) bit∧ 255,
+		anInt bit∧ 255
+	>;
+	Write bytes to aWriter;
+];
+
+/**
+ * Write a 2's complement signed 64-bit integer to the supplied {@type "writer"}
+ * in network byte order.
+ *
+ * @method "Write_to_"
+ * @param "aLong" "[-2^63..2^63)"
+ * @param "aWriter" "extend writer with element type : byte's type"
+ *        A {@type "writer"} of {@type "byte"}s.
+ * @returns "⊤"
+ */
+Method "Write_to_" is
+[
+	aLong : [-2^63..2^63),
+	aWriter : extend writer with element type : byte's type
+|
+	bytes ::= <
+		(aLong >> 56) bit∧ 255,
+		(aLong >> 48) bit∧ 255,
+		(aLong >> 40) bit∧ 255,
+		(aLong >> 32) bit∧ 255,
+		(aLong >> 24) bit∧ 255,
+		(aLong >> 16) bit∧ 255,
+		(aLong >> 8) bit∧ 255,
+		aLong bit∧ 255
+	>;
+	Write bytes to aWriter;
+];
+
 Public "iterators test suite" is a new field atom;
 New test suite iterators test suite extends data abstractions test suite;

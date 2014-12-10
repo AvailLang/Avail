@@ -68,26 +68,25 @@ extends Primitive
 		assert args.size() == 2;
 		final A_Tuple bytes = args.get(0);
 		final A_Module module = args.get(1);
-		final ByteArrayInputStream in;
-		// Build the input stream for the deserializer.
+
+		final byte[] byteArray;
 		if (bytes.isByteArrayTuple())
 		{
-			in = new ByteArrayInputStream(bytes.byteArray());
+			byteArray = bytes.byteArray();
 		}
 		else if (bytes.isByteBufferTuple())
 		{
 			final ByteBuffer buffer = bytes.byteBuffer();
 			if (buffer.hasArray())
 			{
-				in = new ByteArrayInputStream(buffer.array());
+				byteArray = buffer.array();
 			}
 			else
 			{
 				buffer.rewind();
 				final int limit = buffer.limit();
-				final byte[] byteArray = new byte[limit];
+				byteArray = new byte[limit];
 				buffer.get(byteArray);
-				in = new ByteArrayInputStream(byteArray);
 			}
 		}
 		else
@@ -95,8 +94,10 @@ extends Primitive
 			final int limit = bytes.tupleSize();
 			final ByteBuffer buffer = ByteBuffer.allocate(limit);
 			bytes.transferIntoByteBuffer(1, limit, buffer);
-			in = new ByteArrayInputStream(buffer.array());
+			byteArray = buffer.array();
 		}
+
+		final ByteArrayInputStream in = new ByteArrayInputStream(byteArray);
 		final List<A_BasicObject> values = new ArrayList<>();
 		final Deserializer deserializer = new Deserializer(
 			in, interpreter.runtime());
@@ -121,10 +122,10 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.oneOrMoreOf(
+				TupleTypeDescriptor.zeroOrMoreOf(
 					IntegerRangeTypeDescriptor.bytes()),
 				MODULE.o()),
-			TupleTypeDescriptor.oneOrMoreOf(ANY.o()));
+			TupleTypeDescriptor.zeroOrMoreOf(ANY.o()));
 	}
 
 	@Override

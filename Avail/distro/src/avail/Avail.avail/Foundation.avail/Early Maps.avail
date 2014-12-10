@@ -47,6 +47,8 @@ Uses
 	"Math",
 	"Types",
 	"Variables"
+Names
+	"environment map"
 Body
 
 /**
@@ -304,3 +306,17 @@ Semantic restriction "_[_]else_" is
 		mapType's value type ∪ default's return type
 	]
 ];
+
+/**
+ * Answer the Avail virtual machine's environment as a {@type "map"} from
+ * environment variable names to values.
+ *
+ * @method "environment map"
+ * @returns "{string→string|}"
+ *          The environment {@type "map"}. On systems that do not support
+ *          environment variables, this {@type "map"} will be empty.
+ */
+Public method "environment map" is
+[
+	Primitive 278;
+] : {string → string | whole number};

@@ -874,6 +874,8 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 	if ⎣mapType⎦ > 0 ∧ [action's return type = ⊥] then [⊥] else [⊤]
 ];
 
+"filler" is a new atom;
+	
 /**
  * Concurrently apply {@param "transformer"} to each consecutive element of
  * {@param "aTuple"}, collecting the results into a new tuple (and preserving
@@ -912,7 +914,6 @@ Public method "map_in parallel«_-way»through_" is
 	/* Fork a fiber for each element. */
 	limit ::= optionalLimit[1] else [default maximum worker fibers];
 	lock ::= a non-reentrant mutex named "results mutex";
-	filler ::= new atom named "filler";
 	results : tuple := |aTuple| of filler;
 	injector ::=
 		injector from 1 to |aTuple| by 1 doing
@@ -1219,7 +1220,6 @@ Public method "filter_in parallel«_-way»by_" is
 		store an exception into ↑killer;
 	limit ::= optionalLimit[1] else [default maximum worker fibers];
 	lock ::= a non-reentrant mutex named "results mutex";
-	filler ::= new atom named "filler";
 	results : tuple := |aTuple| of filler;
 	injector ::=
 		injector from 1 to |aTuple| by 1 doing
@@ -1528,7 +1528,6 @@ Public method "map and filter_in parallel«_-way»by_" is
 		store an exception into ↑killer;
 	limit ::= optionalLimit[1] else [default maximum worker fibers];
 	lock ::= a non-reentrant mutex named "results mutex";
-	filler ::= new atom named "filler";
 	results : tuple := |aTuple| of filler;
 	injector ::=
 		injector from 1 to |aTuple| by 1 doing
@@ -1641,7 +1640,6 @@ Public method "map and filter_in parallel«_-way»by_" is
 		store an exception into ↑killer;
 	limit ::= optionalLimit[1] else [default maximum worker fibers];
 	lock ::= a non-reentrant mutex named "results mutex";
-	filler ::= new atom named "filler";
 	results : tuple := |aTuple| of filler;
 	injector ::=
 		injector from 1 to |aTuple| by 1 doing

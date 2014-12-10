@@ -136,7 +136,7 @@ Body
  * @supertype "positionable buffered iterator"
  */
 Public class "file iterator"
-	extends random access buffered iterator
+	extends sizable random access buffered iterator
 	with fields
 		alignment : whole number,
 		element type : byte's type,
@@ -175,6 +175,12 @@ Public class "file writer"
 Public class "file reader/writer"
 	extends file reader ∩ file writer;
 
+Method "`|_`|" is
+[
+	fileIterator : file iterator
+|
+	fileIterator's element source's size
+];
 
 _privateReadBuffer ::=
 [
@@ -308,7 +314,8 @@ Public method "a_for_\
 	optionSet : {open option|}?,
 	optionalAccessRights : {file access right|}?
 |
-	options : {open option|} := optionSet[1] else [∅];
+	originalOptions ::= optionSet[1] else [∅];
+	options : {open option|} := originalOptions - append;
 	If fileIteratorType ⊆ reader then [options := options ∪ {read};];
 	If fileIteratorType ⊆ writer then [options := options ∪ {write};];
 	rawFile ::= fn opened with options options ?→ {open option|1..};
@@ -320,7 +327,8 @@ Public method "a_for_\
 		alignment ::= alignment,
 		element source ::= rawFile,
 		maximum buffer size ::= maximumBufferSize,
-		position variable := 1,
+		position variable :=
+			if append ∈ originalOptions then [rawFile's size + 1] else [1],
 		buffer := <>,
 		position in buffer := 1;
 	Cast theIterator into
@@ -395,6 +403,23 @@ Method "Close_" is
 	anIterator : file iterator
 |
 	Close anIterator's element source;
+];
+
+/**
+ * Close the {@type "file"} underlying the specified {@type "file writer"}.
+ * {@method "Synchronize_" Synchronize} with the file system before closing.
+ *
+ * @method "Close_"
+ * @param "anIterator" "file iterator"
+ * @raises "file-closed exception"
+ *         If {@param "anIterator"} has already been closed.
+ */
+Method "Close_" is
+[
+	aWriter : file writer
+|
+	Synchronize aWriter;
+	Close aWriter's element source;
 ];
 
 /**

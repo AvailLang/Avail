@@ -65,7 +65,7 @@ Names
 	"current working directory"
 Body
 
-"name" is a new field atom;
+"string name" is a new field atom;
 
 /**
  * A file name represents a node, actual or hypothetical, within a file system.
@@ -75,7 +75,7 @@ Body
  */
 Public class "file name" extends object
 	with fields
-		public name : string;
+		public string name : string ("_'s⁇name");
 
 Stable method "“_”" is
 [
@@ -100,14 +100,14 @@ Public stable method "a file named_" is
 [
 	n : string
 |
-	a file name with name ::= n
+	a file name with string name ::= n
 ] : file name;
 
 Semantic restriction "a file named_" is
 [
 	n : string's type
 |
-	extend file name with name : n
+	extend file name with string name : n
 ];
 
 /**
@@ -126,14 +126,14 @@ Public stable method "./_" is
 [
 	n : string
 |
-	a file name with name ::= n
+	a file name with string name ::= n
 ] : file name;
 
 Semantic restriction "./_" is
 [
 	n : string's type
 |
-	extend file name with name : n
+	extend file name with string name : n
 ];
 
 /**

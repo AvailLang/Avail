@@ -36,6 +36,7 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.*;
 import java.util.List;
+import com.avail.AvailRuntime.FileHandle;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
@@ -63,19 +64,18 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_Atom handle = args.get(0);
+		final A_Atom atom = args.get(0);
 		final A_BasicObject pojo =
-			handle.getAtomProperty(AtomDescriptor.fileKey());
+			atom.getAtomProperty(AtomDescriptor.fileKey());
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
-		final RandomAccessFile file =
-			(RandomAccessFile) pojo.javaObjectNotNull();
+		final FileHandle handle = (FileHandle) pojo.javaObjectNotNull();
 		final long fileSize;
 		try
 		{
-			fileSize = file.length();
+			fileSize = handle.channel.size();
 		}
 		catch (final IOException e)
 		{

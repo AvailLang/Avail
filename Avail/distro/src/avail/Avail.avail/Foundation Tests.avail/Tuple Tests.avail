@@ -625,33 +625,31 @@ Test "serialization" in tuple test suite is
 		/* 43      */ ↑forCapture,
 			/* Tokens */
 		/* 44      */ `"token"`,
-			/* Continuations */
-		/* 45      */ label,
 			/* Fiber types */
-		/* 46      */ fiber→set,
+		/* 45      */ fiber→set,
 			/* Function types */
-		/* 47      */ […]→float,
+		/* 46      */ […]→float,
 			/* Tuple types */
-		/* 48 - 49 */ extended integer+, <double, float, nonempty string…|2..6>,
+		/* 47 - 48 */ extended integer+, <double, float, nonempty string…|2..6>,
 			/* Integer types */
-		/* 50 - 51 */ (-∞..8], [8..∞),
+		/* 49 - 50 */ (-∞..8], [8..∞),
 			/* Continuation types */
-		/* 52      */ $[integer, string]→tuple,
+		/* 51      */ $[integer, string]→tuple,
 			/* Enumeration types */
-		/* 53      */ {1, 2, 3, 5, 8, 13, "cheese"}ᵀ,
+		/* 52      */ {1, 2, 3, 5, 8, 13, "cheese"}ᵀ,
 			/* Instance types */
-		/* 54 - 55 */ 1's type, "fish"'s type,
+		/* 53 - 54 */ 1's type, "fish"'s type,
 			/* Instance metatypes */
-		/* 56 - 57 */ tuple's type, map's type,
+		/* 55 - 56 */ tuple's type, map's type,
 			/* Set types */
-		/* 58      */ {character|5..12},
+		/* 57      */ {character|5..12},
 			/* Map types */
-		/* 59      */ {whole number → natural number|3..},
+		/* 58      */ {whole number → natural number|3..},
 			/* Bottom */
-		/* 60      */ ⊥
+		/* 59      */ ⊥
 		>;
 	bytes ::= serialize expected;
-	actual ::= deserialize bytes from this module;
+	actual ::= deserialize bytes based on this module;
 	Require: |actual| = 1;
 	actualTuple ::= actual[1] ?→ tuple;
 	Require: |actualTuple| = |expected|;
@@ -661,8 +659,41 @@ Test "serialization" in tuple test suite is
 		index : natural number
 	|
 		expectedValue ::= expected[index];
-		actualValue ::= actual[index];
-		If actualValue ≠ expectedValue then
+		actualValue ::= actualTuple[index];
+		/* Function implementations have identity. */
+		If expectedValue ∈ function implementation then
+		[
+			expectedImplementation ::= expectedValue ?→ function implementation;
+			actualImplementation ::= actualValue ?→ function implementation;
+			If actualImplementation's nybblecodes
+				≠ expectedImplementation's nybblecodes then
+			[
+				failed := eject failed ++ <index>;
+			];
+		]
+		/* Functions have identity. */
+		else if [expectedValue ∈ function] then
+		[
+			expectedFunction ::= expectedValue ?→ function;
+			actualFunction ::= actualValue ?→ function;
+			If actualFunction's implementation's nybblecodes
+				≠ expectedFunction's implementation's nybblecodes then
+			[
+				failed := eject failed ++ <index>;
+			];
+		]
+		/* Variables have identity. */
+		else if [expectedValue ∈ variable] then
+		[
+			expectedVariable ::= expectedValue ?→ ↑string;
+			actualVariable ::= expectedValue ?→ ↑string;
+			If ↓actualVariable ≠ ↓expectedVariable then
+			[
+				failed := eject failed ++ <index>;
+			];
+		]
+		/* All other values in the input tuple are identityless. */
+		else if [actualValue ≠ expectedValue] then
 		[
 			failed := eject failed ++ <index>;
 		];

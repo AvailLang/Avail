@@ -58,7 +58,7 @@ Names
 	"a UUID",
 
 	"serialize_",
-	"deserialize_from_",
+	"deserialize_based on_",
 
 	/* Exported for use by Tuples. */
 	"Require:_[_.._]is ever valid",
@@ -910,20 +910,20 @@ Public method "serialize_" is
  * Convert the specified {@type "tuple" tuple} of {@type "byte"}s into a {@type
  * "tuple"} of {@type "any" values}.
  *
- * @method "deserialize_from_"
- * @param "serializedBytes" "byte+"
+ * @method "deserialize_based on_"
+ * @param "serializedBytes" "byte*"
  *        A {@method "serialize_" serialization} of arbitrary values.
  * @param "context" "module"
  *        The {@type "module"} that should be consulted to resolve {@type
  *        "atom"}s.
- * @returns "any+"
+ * @returns "any*"
  *          The deserialized values.
  */
-Public method "deserialize_from_" is
+Public method "deserialize_based on_" is
 [
-	serializedBytes : byte+,
+	serializedBytes : byte*,
 	context : module
 |
 	Primitive 271 (failureCode : deserialization-failed code's type);
 	Invoke early failure function with <failureCode>
-] : any+;
+] : any*;

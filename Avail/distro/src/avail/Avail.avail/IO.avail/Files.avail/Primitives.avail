@@ -75,6 +75,14 @@ Names
 	"a fiber truncating_to_bytes⁇then_else_priority_",
 	"Refresh_with file system",
 
+	/* Directory I/O. */
+	"a fiber creating a directory named_\
+		\|«with file access rights_,⁇»\
+		\|then_,⁇\
+		\|else_,⁇\
+		\|«forked at priority_»",
+	"Create a directory named_«with file access rights_»",
+
 	/* File cleanup. */
 	"Using|using_,⁇do_",
 
@@ -605,6 +613,117 @@ Semantic restriction "Using|using_,⁇do_" is
 	];
 	action's return type
 ];
+
+Private method
+	"private create directory_file access rights_then_else_priority_"
+is
+[
+	fn : string,
+	rights : {[1..9]|},
+	succeed : []→⊤,
+	fail : [{file-exists code, I/O-error code, permission-denied code}ᵀ]→⊤,
+	priority : byte
+|
+	Primitive 450 (e : {invalid-path code}ᵀ);
+	Raise an exception for e
+] : fiber→⊤;
+
+_default_directory_access_rights ::= "rwxr-xr-x"→file access rights;
+
+/**
+ * Create a new directory asynchronously. If the operation succeeds, then
+ * eventually apply {@param "succeed"} in the answered {@type "fiber"}. If the
+ * operation fails, then eventually apply {@param "fail"} to the error code in
+ * the answered {@type "fiber"}.
+ *
+ * @method 
+ *   "a fiber creating a directory named_\
+ *      \|«with file access rights_,⁇»\
+ *      \|then_,⁇\
+ *      \|else_,⁇\
+ *      \|«forked at priority_»"
+ * @param "fn" "file name"
+ *        The {@type "file name" name} of the target to create.
+ * @param "optionalRights" "{file access right|}?"
+ *        The {@type "file access right"}s with which to create the new
+ *        directory. If not specified, then default to <code>rw-r--r--</code>.
+ *        If the file system does not support {@type "file access right"}s, then
+ *        just create the directory.
+ * @param "succeed" "[]→⊤"
+ *        What to do after the directory is successfully created.
+ * @param "fail" "[{I/O-error code, permission-denied code}}ᵀ]→⊤"
+ *        What to do with the error code if directory creation fails.
+ * @param "optionalPriority" "byte?"
+ *        The priority at which to launch the answerd {@type "fiber"}. If not
+ *        specified, then default to the {@method "_'s⁇priority" priority} of
+ *        the {@method "current fiber"}.
+ * @returns "fiber→⊤"
+ *          The {@type "fiber"} which will apply {@param "succeed"} or {@param
+ *          "fail"}, as appropriate.
+ */
+Public method
+	"a fiber creating a directory named_\
+		\|«with file access rights_,⁇»\
+		\|then_,⁇\
+		\|else_,⁇\
+		\|«forked at priority_»"
+is
+[
+	fn : file name,
+	optionalRights : {file access right|}?,
+	succeed : []→⊤,
+	fail : [{file-exists code, I/O-error code, permission-denied code}ᵀ]→⊤,
+	optionalPriority : byte?
+|
+	rights ::= map optionalRights[1] else [_default_directory_access_rights]
+		through [r : file access right | r→numeric code];
+	private create directory fn's name
+		file access rights rights
+		then succeed
+		else fail
+		priority optionalPriority[1] else [current fiber's priority]
+] : fiber→⊤;
+
+/**
+ * Create a new directory synchronously.
+ *
+ * @method "Create a directory named_«with file access rights_»"
+ * @param "fn" "file name"
+ *        The {@type "file name" name} of the target to create.
+ * @param "optionalRights" "{file access right|}?"
+ *        The {@type "file access right"}s with which to create the new
+ *        directory. If not specified, then default to <code>rw-r--r--</code>.
+ *        If the file system does not support {@type "file access right"}s, then
+ *        just create the directory.
+ * @returns "⊤"
+ * @raises "permission-denied exception"
+ *         If the operation is not permitted.
+ * @raises "I/O exception"
+ *         If an I/O error occurred.
+ */
+Public method "Create a directory named_«with file access rights_»" is
+[
+	fn : file name,
+	optionalRights : {file access right|}?
+|
+	rights ::= map optionalRights[1] else [_default_directory_access_rights]
+		through [r : file access right | r→numeric code];
+	sem ::= a semaphore named "create " ++ fn's name with 0 out of 1 permits;
+	killer : exception;
+	Ignore: private create directory fn's name
+		file access rights rights
+		then [Signal sem;]
+		else
+		[
+			e : {file-exists code, I/O-error code, permission-denied code}ᵀ
+		|
+			killer := an exception for e;
+			Signal sem;
+		]
+		priority current fiber's priority;
+	Await sem;
+	If killer is assigned then [Raise killer];
+] : ⊤;
 
 /**
  * Disallow the general object constructor for file-related types.
