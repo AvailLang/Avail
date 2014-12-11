@@ -76,6 +76,11 @@ Names
 
 	/* Conversions. */
 	"_(base_)",
+	"_→string",
+
+	/* Hexadecimal. */
+	"“_”(hex)",
+	"“_”(UUID)",
 
 	/* Trimming. */
 	"trim_"
@@ -924,10 +929,11 @@ Semantic restriction "format_with«_‡,»" is
 ];
 
 /* Code point constants needed by `_(base_)`. */
-baseAlphabet ::=
+baseAlphabetTuple ::=
 	"0123456789\
 	\|ABCDEFGHIJKLMNOPQRSTUVWXYZ\
-	\|abcdefghijklmnopqrstuvwxyz"→set;
+	\|abcdefghijklmnopqrstuvwxyz";
+baseAlphabet ::= baseAlphabetTuple→set;
 cp_0 ::= ¢0's code point;
 cp_9 ::= ¢9's code point;
 cp_a ::= ¢a's code point;
@@ -1829,7 +1835,7 @@ Stable method "“_”" is
  * @returns "string"
  * @category "Tuples" "Strings" "Transformers"
  */
-Public method "trim_" is
+Public stable method "trim_" is
 [
 	s : string
 |
@@ -1837,3 +1843,81 @@ Public method "trim_" is
 	end ::= last index of s where [c: character | ¬c is whitespace];
 	s[start..end]
 ] : string;
+
+/**
+ * Answer a transformation of {@param "aTuple"} such that every constituent
+ * {@type "code point"} is replaced with its corresponding {@type "character"},
+ * preserving order.
+ *
+ * @method "_→string"
+ * @param "aTuple" "code point*"
+ * @returns "string"
+ * @category "Tuples" "Strings" "Transformers"
+ */
+Public stable method "_→string" is
+[
+	aTuple : code point*
+|
+	map aTuple through [c : code point | c→character]
+] : string;
+
+/**
+ * Render the supplied {@type "tuple"} of {@type "byte"}s as a hexadecimal
+ * textual representation.
+ *
+ * @category "Strings"
+ * @method "“_”(hex)"
+ * @param "bytes" "byte*"
+ * @returns "string"
+ * @category "Tuples" "Strings" "Transformers"
+ */
+Public stable method "“_”(hex)" is
+[
+	bytes : byte*
+|
+	s : string := "";
+	From 1 to |bytes| do
+	[
+		index : natural number
+	|
+		high ::= (bytes[index] >> 4) bit∧ 15;
+		low ::= bytes[index] bit∧ 15;
+		s := eject s ++ <baseAlphabetTuple[high+1], baseAlphabetTuple[low+1]>;
+	];
+	s
+] : string;
+
+Semantic restriction "“_”(hex)" is
+[
+	bytes : byte*'s type
+|
+	<<>, character… | [⎣bytes⎦ × 2 .. ⎡bytes⎤ × 2 + 1)>
+];
+
+/**
+ * Render the supplied {@type "UUID"} as a hexadecimal textual representation.
+ *
+ * @method "“_”(hex)"
+ * @param "bytes" "byte*"
+ * @returns "string"
+ * @category "Tuples" "Strings" "Transformers"
+ */
+Public stable method "“_”(UUID)" is
+[
+	uuid : UUID
+|
+	hex ::= “uuid” (hex);
+	format "‘①’-‘②’-‘③’-‘④’-‘⑤’" with
+		hex[1..8],
+		hex[9..12],
+		hex[13..16],
+		hex[17..20],
+		(hex[21..32])
+] : nonempty string;
+
+Semantic restriction "“_”(UUID)" is
+[
+	uuid : UUID's type
+|
+	<character…|36>
+];

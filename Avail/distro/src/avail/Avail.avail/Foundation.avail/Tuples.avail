@@ -79,6 +79,7 @@ Names
 	"∑_",
 	"∏_",
 	"_ends with_",
+	"_padded with_to a multiple of_",
 	"_occurrences⁇of_",
 	"_starts with_",
 	"_to_",
@@ -3945,28 +3946,66 @@ Method "replace all occurrences of_in_with_" is
 			]
 			else 
 			[
-			 	newTuple := newTuple ++ aTuple[index..];
-			 	index := index + |aTuple|-1;
+				newTuple := newTuple ++ aTuple[index..];
+				index := index + |aTuple|-1;
 			];
 		];
 		newTuple
 	]
 ] : tuple;
-	
+
 Semantic restriction "replace all occurrences of_in_with_" is
 [
 	subtuple : <any…|1..>'s type,
 	aTuple : tuple's type,
 	replacementTuple : tuple's type
- |
- 	defaultType ::= ∪ aTuple[1..∞] ∪ ∪replacementTuple[1..∞];
+|
+	defaultType ::= ∪ aTuple[1..∞] ∪ ∪replacementTuple[1..∞];
 	if ⎡aTuple⎤ = 0 then [<>'s type]
 	else if [⎡aTuple⎤ < ⎣subtuple⎦] then [aTuple]
 	else
 	[
-	 	lower ::= min <⎣aTuple⎦,⎣replacementTuple⎦>;
-	 	upper ::= if ⎡replacementTuple⎤ ≤ ⎡subtuple⎤ then [⎡aTuple⎤]
-	 		else [∞];
-	 	<defaultType…|lower..upper>
+		lower ::= min <⎣aTuple⎦,⎣replacementTuple⎦>;
+		upper ::= if ⎡replacementTuple⎤ ≤ ⎡subtuple⎤ then [⎡aTuple⎤]
+			else [∞];
+		<defaultType…|lower..upper>
 	]
+];
+
+/**
+ * Derive a {@type "tuple"} from {@param "aTuple"} such that the end is padded
+ * to a multiple of {@param "base"} with occurrences of {@param "pad"}.
+ *
+ * @method "_padded with_to a multiple of_"
+ * @param "aTuple" "tuple"
+ * @param "pad" "any"
+ * @param "base" "whole number"
+ * @returns "aTuple"
+ * @category "Tuples"
+ */
+Method "_padded with_to a multiple of_" is
+[
+	aTuple : tuple,
+	pad : any,
+	base : whole number
+|
+	If base ≤ 1 then [aTuple]
+	else
+	[
+		diff ::= 0 max (base - |aTuple| mod base);
+		padSize ::= if diff = base then [0] else [diff];
+		aTuple ++ padSize of pad
+	]
+] : tuple;
+
+Semantic restriction "_padded with_to a multiple of_" is
+[
+	tupleType : tuple's type,
+	padType : any's type,
+	baseType : whole number's type
+|
+	unionType ::= ∪ tupleType[1..relevant |tupleType|] ∪ padType;
+	min ::= ⎣tupleType⎦;
+	max ::= 0 max (⎡tupleType⎤ + ⎡baseType⎤ - 1);
+	<unionType…|min..max>
 ];

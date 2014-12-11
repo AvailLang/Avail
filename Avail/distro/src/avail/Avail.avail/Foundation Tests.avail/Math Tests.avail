@@ -543,3 +543,19 @@ Test "least common multiple" in math test suite is
 	Require: least common multiple of 9 and 10 = 90;
 	Require: least common multiple of 6426 and 13680 = 4883760;
 ];
+
+Test "signed byte encoding" in math test suite is
+[
+	expected ::= -128 to 127;
+	actual ::= map expected through
+		[b : [-128..127] | an integer from 8 bits of b];
+	Require: actual = expected;
+];
+
+Test "unsigned byte encoding" in math test suite is
+[
+	expected ::= 0 to 255;
+	actual ::= map expected through
+		[b : byte | an unsigned integer from 8 bits of b];
+	Require: actual = expected;
+];

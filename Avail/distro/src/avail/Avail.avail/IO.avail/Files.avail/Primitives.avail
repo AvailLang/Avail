@@ -660,6 +660,8 @@ _default_directory_access_rights ::= "rwxr-xr-x"→file access rights;
  * @returns "fiber→⊤"
  *          The {@type "fiber"} which will apply {@param "succeed"} or {@param
  *          "fail"}, as appropriate.
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} does not represent a valid path.
  */
 Public method
 	"a fiber creating a directory named_\
@@ -696,6 +698,8 @@ is
  *        If the file system does not support {@type "file access right"}s, then
  *        just create the directory.
  * @returns "⊤"
+ * @raises "invalid-path exception"
+ *         If {@param "fn"} does not represent a valid path.
  * @raises "permission-denied exception"
  *         If the operation is not permitted.
  * @raises "I/O exception"

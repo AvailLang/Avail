@@ -36,14 +36,19 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.CopyOption;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import com.avail.AvailRuntime;
+import com.avail.AvailTask;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
@@ -52,6 +57,8 @@ import com.avail.interpreter.*;
  * the destination path. Try not to overwrite an existing destination. This
  * operation is only likely to work for two paths provided by the same
  * {@linkplain FileStore file store}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_174_FileRename
 extends Primitive
@@ -61,7 +68,7 @@ extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_174_FileRename().init(
-			2, CanInline, HasSideEffect);
+			6, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -69,9 +76,14 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 2;
+		assert args.size() == 6;
 		final A_String source = args.get(0);
 		final A_String destination = args.get(1);
+		final A_Atom replaceExisting = args.get(2);
+		final A_Function succeed = args.get(3);
+		final A_Function fail = args.get(4);
+		final A_Number priority = args.get(5);
+
 		final AvailRuntime runtime = AvailRuntime.current();
 		final Path sourcePath;
 		final Path destinationPath;
@@ -86,31 +98,88 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_INVALID_PATH);
 		}
-		// Make a best effort to forbid clobbering the destination file.
-		if (Files.exists(destinationPath, AvailRuntime.followSymlinks(false)))
-		{
-			return interpreter.primitiveFailure(E_IO_ERROR);
-		}
-		try
-		{
-			Files.move(
+
+		final int priorityInt = priority.extractInt();
+		final A_Fiber current = interpreter.fiber();
+		final A_Fiber newFiber = FiberDescriptor.newFiber(
+			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
+			priorityInt,
+			StringDescriptor.format(
+				"Asynchronous rename (prim 174), %s → %s",
 				sourcePath,
-				destinationPath,
-				StandardCopyOption.ATOMIC_MOVE);
-		}
-		catch (final SecurityException|AccessDeniedException e)
+				destinationPath));
+		newFiber.availLoader(current.availLoader());
+		newFiber.heritableFiberGlobals(
+			current.heritableFiberGlobals().makeShared());
+		newFiber.textInterface(current.textInterface());
+		newFiber.makeShared();
+		succeed.makeShared();
+		fail.makeShared();
+
+		final boolean replace = replaceExisting.extractBoolean();
+		runtime.executeFileTask(new AvailTask(priorityInt)
 		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED);
-		}
-		catch (final NoSuchFileException e)
-		{
-			return interpreter.primitiveFailure(E_NO_FILE);
-		}
-		catch (final IOException e)
-		{
-			return interpreter.primitiveFailure(E_IO_ERROR);
-		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+			@Override
+			public void value ()
+			{
+				final List<CopyOption> options = new ArrayList<>();
+				if (replace)
+				{
+					options.add(StandardCopyOption.REPLACE_EXISTING);
+				}
+				try
+				{
+					Files.move(
+						sourcePath,
+						destinationPath,
+						options.toArray(new CopyOption[options.size()]));
+				}
+				catch (final SecurityException|AccessDeniedException e)
+				{
+					Interpreter.runOutermostFunction(
+						runtime,
+						newFiber,
+						fail,
+						Collections.singletonList(
+							E_PERMISSION_DENIED.numericCode()));
+					return;
+				}
+				catch (final NoSuchFileException e)
+				{
+					Interpreter.runOutermostFunction(
+						runtime,
+						newFiber,
+						fail,
+						Collections.singletonList(E_NO_FILE.numericCode()));
+					return;
+				}
+				catch (final FileAlreadyExistsException e)
+				{
+					Interpreter.runOutermostFunction(
+						runtime,
+						newFiber,
+						fail,
+						Collections.singletonList(
+							E_FILE_EXISTS.numericCode()));
+					return;
+				}
+				catch (final IOException e)
+				{
+					Interpreter.runOutermostFunction(
+						runtime,
+						newFiber,
+						fail,
+						Collections.singletonList(E_IO_ERROR.numericCode()));
+					return;
+				}
+				Interpreter.runOutermostFunction(
+					runtime,
+					newFiber,
+					succeed,
+					Collections.<A_BasicObject>emptyList());
+			}
+		});
+		return interpreter.primitiveSuccess(newFiber);
 	}
 
 	@Override
@@ -119,19 +188,29 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				TupleTypeDescriptor.stringType(),
-				TupleTypeDescriptor.stringType()),
-			TOP.o());
+				TupleTypeDescriptor.stringType(),
+				EnumerationTypeDescriptor.booleanObject(),
+				FunctionTypeDescriptor.create(
+					TupleDescriptor.empty(),
+					TOP.o()),
+				FunctionTypeDescriptor.create(
+					TupleDescriptor.from(
+						AbstractEnumerationTypeDescriptor.withInstances(
+							TupleDescriptor.from(
+								E_PERMISSION_DENIED.numericCode(),
+								E_FILE_EXISTS.numericCode(),
+								E_NO_FILE.numericCode(),
+								E_IO_ERROR.numericCode())
+							.asSet())),
+					TOP.o()),
+				IntegerRangeTypeDescriptor.bytes()),
+			FiberTypeDescriptor.forResultType(TOP.o()));
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			TupleDescriptor.from(
-				E_INVALID_PATH.numericCode(),
-				E_PERMISSION_DENIED.numericCode(),
-				E_NO_FILE.numericCode(),
-				E_IO_ERROR.numericCode()
-			).asSet());
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_INVALID_PATH.numericCode());
 	}
 }

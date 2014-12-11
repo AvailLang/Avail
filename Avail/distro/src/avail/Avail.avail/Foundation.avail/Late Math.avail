@@ -54,6 +54,10 @@ Uses
 	"Types",
 	"Variables"
 Names
+	"_bits of_",
+	"an integer from_",
+	"an unsigned integer from_",
+
 	/* Compound assignment. */
 	"_↑+=_",
 	"_+=_",
@@ -552,3 +556,85 @@ Grammatical restriction
 	"_↑+=_", "_+=_",
 	"_↑+=_", "_+=_"
 } is <{"`↑_↑"}, ∅>;
+
+/**
+ * Render a 2's complement integer as bytes in network byte order.
+ *
+ * @method "Write_bits of_to_"
+ * @param "bits" "whole number"
+ *        The number of bits to render. This must be a multiple of
+ *        <code>8</code>.
+ * @param "anInteger" "integer"
+ *        The {@type "integer"} to encode. It must not overflow the specified
+ *        number of bits.
+ * @returns "⊤"
+ */
+Public stable method "_bits of_" is
+[
+	bits : whole number,
+	anInteger : integer
+|
+	Assert: bits bit∧ 7 = 0 ("bits must be multiple of 8");
+	Assert: anInteger >> bits ∈ {0, -1} ("anInteger to be constrained by bits");
+	bytes : byte* := <>;
+	residue : integer := anInteger;
+	Repeat
+	[
+		bytes := <residue bit∧ 255> ++ eject bytes;
+		residue := eject residue >> 8;
+	] bits ÷ 8 times;
+	bytes
+] : byte*;
+
+Semantic restriction "_bits of_" is
+[
+	bitsType : whole number's type,
+	integerType : integer's type
+|
+	if ⎣bitsType⎦ > 0 then [byte+] else [⊤]
+];
+
+/**
+ * Compose an {@type "integer"} from the specified {@type "tuple"} of {@type
+ * "byte"}s.
+ *
+ * @method "an integer from_"
+ * @param "bytes" "byte+"
+ *        A {@type "tuple"} that represents an encoding of a signed 2's
+ *        complement integer, in network byte order.
+ * @returns "integer"
+ */
+Public stable method "an integer from_" is
+[
+	bytes : byte+
+|
+	value : integer := -(bytes[1] >> 7);
+	For each of bytes do [b : byte | value := (eject value << 8) bit∨ b;];
+	value
+] : integer;
+
+/**
+ * Compose an {@type "integer"} from the specified {@type "tuple"} of {@type
+ * "byte"}s.
+ *
+ * @method "an unsigned integer from_"
+ * @param "bytes" "byte+"
+ *        A {@type "tuple"} that represents an encoding of an unsigned 2's
+ *        complement integer, in network byte order.
+ * @returns "whole number"
+ */
+Public stable method "an unsigned integer from_" is
+[
+	bytes : byte+
+|
+	value : integer := 0;
+	For each of bytes do [b : byte | value := (eject value << 8) bit∨ b;];
+	value
+];
+
+Semantic restriction "an unsigned integer from_" is
+[
+	bytes : byte+'s type
+|
+	whole number
+];

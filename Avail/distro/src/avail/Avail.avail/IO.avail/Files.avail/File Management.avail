@@ -40,7 +40,12 @@ Names
 	/* File moving. */
 	"Move_to_(overwrite=_)",
 	"Move_to_«,⁇overwriting if necessary»?",
-	"Rename_to_",
+	"a fiber renaming_to_\
+		\|«(overwrite=_)»,⁇\
+		\|then_,⁇\
+		\|else_,⁇\
+		\|«forked at priority_»",
+	"Rename_to_«(overwrite=_)»",
 
 	/* File copying. */
 	"Recursively⁇Copy|copy_to_\
@@ -55,43 +60,147 @@ Names
 	"«Recursively»?Unlink|unlink_«if necessary»?«,⁇following symlinks»?"
 Body
 
+Private method "private rename_to_replace existing_then_else_priority_" is
+[
+	src : string,
+	dest : string,
+	replace : boolean,
+	succeed : []→⊤,
+	fail :
+		[{
+			permission-denied code,
+			file-exists code,
+			no-file code,
+			I/O-error code}ᵀ
+		]→⊤,
+	priority : byte
+|
+	Primitive 174 (e : invalid-path code's type);
+	Raise an exception for e
+] : fiber→⊤;
+
 /**
- * Rename {@param "src"} to {@param "dest"}. Make a best effort to avoid
- * overwriting an existing file. This operation is only likely to work if
- * {@param "src"} and {@param "dest"} each reside on the same file system.
+ * Rename {@param "src"} to {@param "dest"} asynchronously. If the operation
+ * succeeds, then eventually apply {@param "succeed"} in the answered {@type
+ * "fiber"}. If the operation fails, then eventually apply {@param "fail"} to
+ * the error code in the answered {@type "fiber"}.
  *
- * @method "Rename_to_"
+ * @method 
+ *    "a fiber renaming_to_\
+ *    \|«(overwrite=_)»,⁇\
+ *    \|then_,⁇\
+ *    \|else_,⁇\
+ *    \|«forked at priority_»"
  * @param "src" "file name"
  *        The source {@type "file name"}.
  * @param "dest" "file name"
  *        The destination {@type "file name"}.
+ * @param "optionalReplace" "boolean"
+ *        {@method "true"} if an existing destination file should be replaced,
+ *        {@method "false"} otherwise. If not specified, then default to
+ *        {@method "false"}.
+ * @param "succeed" "[]→⊤"
+ *        What to do after the rename is successful.
+ * @param "fail"
+ *        "[{
+ *           permission-denied code,
+ *           file-exists code,
+ *           no-file code,
+ *           I/O-error code
+ *         }ᵀ]→⊤,
+ *        What to do with the error code if renaming fails.
+ * @param "optionalPriority" "byte?"
+ *        The priority at which to launch the answerd {@type "fiber"}. If not
+ *        specified, then default to the {@method "_'s⁇priority" priority} of
+ *        the {@method "current fiber"}.
+ * @returns "fiber→⊤"
+ *          The {@type "fiber"} which will apply {@param "succeed"} or {@param
+ *          "fail"}, as appropriate.
+ * @raises "invalid-path exception"
+ *         If either {@param "src"} or {@param "dest"} cannot be understood as a
+ *         path.
+ */
+Public method
+	"a fiber renaming_to_\
+		\|«(overwrite=_)»,⁇\
+		\|then_,⁇\
+		\|else_,⁇\
+		\|«forked at priority_»"
+is
+[
+	src : file name,
+	dest : file name,
+	optionalReplace : boolean?,
+	succeed : []→⊤,
+	fail :
+		[{
+			permission-denied code,
+			file-exists code,
+			no-file code,
+			I/O-error code
+		}ᵀ]→⊤,
+	optionalPriority : byte?
+|
+	private rename src's name to dest's name
+		replace existing optionalReplace[1] else [false]
+		then succeed
+		else fail
+		priority optionalPriority[1] else [current fiber's priority]
+] : fiber→⊤;
+
+/**
+ * Rename {@param "src"} to {@param "dest"} synchronously.
+ *
+ * @method "Rename_to_«(overwrite=_)»"
+ * @param "src" "file name"
+ *        The source {@type "file name"}.
+ * @param "dest" "file name"
+ *        The destination {@type "file name"}.
+ * @param "optionalReplace" "boolean"
+ *        {@method "true"} if an existing destination file should be replaced,
+ *        {@method "false"} otherwise. If not specified, then default to
+ *        {@method "false"}.
  * @returns "⊤"
  * @raises "invalid-path exception"
  *         If either {@param "src"} or {@param "dest"} cannot be understood as a
  *         path.
+ * @raises "permission-denied exception"
+ *         If the operation is not permitted.
  * @raises "no-file exception"
  *         If {@param "src"} does not exist.
+ * @raises "file-exists exception"
+ *         If {@param "dest"} exists but {@param "replace"} is {@method
+ *         "false"}.
  * @raises "I/O exception"
  *         If an I/O error occurs for any reason.
- * @raises "permission-denied exception"
- *         If permission is denied to use either of the named files.
  */
-Public method "Rename_to_" is
+Public method "Rename_to_«(overwrite=_)»" is
 [
 	src : file name,
-	dest : file name
+	dest : file name,
+	optionalReplace : boolean?
 |
-	[
-		s : string,
-		d : string
-	|
-		Primitive 174 (e : {
-			invalid-path code,
-			no-file code,
-			I/O-error code,
-			permission-denied code}ᵀ);
-		Raise an exception for e
-	] : ⊤ (src's name, dest's name);
+	semName ::= format "rename ‘①’ to ‘②’" with src's name, dest's name;
+	sem ::= a semaphore named semName with 0 out of 1 permits;
+	killer : exception;
+	Ignore: private rename src's name to dest's name
+		replace existing optionalReplace[1] else [false]
+		then [Signal sem;]
+		else
+		[
+			e : {
+				permission-denied code,
+				file-exists code,
+				no-file code,
+				I/O-error code
+			}ᵀ
+		|
+			killer := an exception for e;
+			Signal sem;
+		]
+		priority current fiber's priority;
+	Await sem;
+	If killer is assigned then [Raise killer];
 ] : ⊤;
 
 /**

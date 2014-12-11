@@ -107,7 +107,8 @@ extends Primitive
 		final A_Function fail = args.get(3);
 		final A_Number priority = args.get(4);
 
-		final FileSystem fileSystem = AvailRuntime.current().fileSystem();
+		final AvailRuntime runtime = interpreter.runtime();
+		final FileSystem fileSystem = runtime.fileSystem();
 		final Path path;
 		try
 		{
@@ -137,7 +138,6 @@ extends Primitive
 		final Set<PosixFilePermission> permissions = permissionsFor(ordinals);
 		final FileAttribute<Set<PosixFilePermission>> attr =
 			PosixFilePermissions.asFileAttribute(permissions);
-		final AvailRuntime runtime = interpreter.runtime();
 		runtime.executeFileTask(new AvailTask(priorityInt)
 		{
 			@Override

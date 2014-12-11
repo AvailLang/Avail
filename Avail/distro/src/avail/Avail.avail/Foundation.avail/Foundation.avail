@@ -540,12 +540,6 @@ Extends
 		"If_then_",
 		"If|if_then_else_"
 	),
-	"Early Tuples" =
-	(
-		"_*",
-		"_+",
-		"_`?"
-	),
 	"Enumeration Support" =
 	(
 		"{_}ᵀ",
@@ -621,6 +615,7 @@ Extends
 		"declaration-kind-does-not-support-reference exception",
 		"definition exception",
 		"descriptive exception",
+		"deserialization-failed exception",
 		"descriptive_",
 		"directory-not-empty exception",
 		"double-question-mark-must-follow-a-simple-or-simple-group exception",
@@ -688,6 +683,7 @@ Extends
 		"runaway-format-variable exception",
 		"security exception",
 		"sequence-contains-invalid-statements exception",
+		"serialization-failed exception",
 		"special-atom exception",
 		"subscript-out-of-bounds exception",
 		"termination-requested exception",
@@ -748,6 +744,8 @@ Extends
 	),
 	"Late Math" =
 	(
+		"an integer from_",
+		"an unsigned integer from_",
 		"greatest common denominator of_and_",
 		"least common multiple of_and_",
 		"log_of_",
@@ -768,6 +766,7 @@ Extends
 		"_is finite",
 		"_is infinite",
 		"_is odd",
+		"_bits of_",
 		"_>_",
 		"_≥_",
 		"_↑+=_",
@@ -889,6 +888,9 @@ Extends
 		"(a`|an)“_”«else_»",
 		"(the)“_”«else_»",
 		"_(base_)",
+		"_→string",
+		"“_”(hex)",
+		"“_”(UUID)",
 		"“_”«else_»(as list partitioned by_)",
 		"“_”«else_»(as simple list)",
 		"“_”«else_»(as«conjunctive|disjunctive»!list)",
@@ -976,6 +978,7 @@ Extends
 		"∏_",
 		"_ends with_",
 		"_occurrences⁇of_",
+		"_padded with_to a multiple of_",
 		"_starts with_",
 		"_to_",
 		"_'s⁇head",
@@ -988,6 +991,9 @@ Extends
 		"_[.._]else_",
 		"_[_.._]→_",
 		"_[_↔_]",
+		"_*",
+		"_+",
+		"_`?",
 		"«_‡zip»",
 		"«_‡++»"
 	),
