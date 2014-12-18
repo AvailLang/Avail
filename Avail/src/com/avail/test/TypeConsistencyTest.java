@@ -1148,6 +1148,32 @@ public class TypeConsistencyTest
 							EMPTY_TUPLE,
 							null);
 						break;
+					case FIRST_OF_SEQUENCE_NODE:
+						addMultiHelper(
+							kind,
+							topNode,
+							anyNode,
+							nontypeNode,
+							atomNode,
+							anotherAtomNode,
+							FIBER,
+							MOST_GENERAL_FUNCTION,
+							NOTHING_TO_INT_FUNCTION,
+							INT_TO_INT_FUNCTION,
+							INTS_TO_INT_FUNCTION,
+							MOST_SPECIFIC_FUNCTION,
+							TUPLE,
+							SET,
+							STRING,
+							EXTENDED_INTEGER,
+							ROOT_VARIABLE,
+							INT_VARIABLE,
+							SOME_ATOM_VARIABLE,
+							BOTTOM_VARIABLE,
+							UNIT_STRING,
+							EMPTY_TUPLE,
+							null);
+						break;
 					case LIST_NODE:
 						addMultiHelper(
 							kind,

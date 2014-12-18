@@ -364,6 +364,24 @@ public class MessageSplitter
 			@Nullable Iterator<AvailObject> arguments,
 			StringBuilder builder,
 			int indent);
+
+		/**
+		 * Answer whether the pretty-printed representation of this {@link
+		 * Expression} should be separated from its left sibling with a space.
+		 *
+		 * @return Whether this expression should be preceded by a space if it
+		 *         has a left sibling.
+		 */
+		abstract boolean shouldBeSeparatedOnLeft ();
+
+		/**
+		 * Answer whether the pretty-printed representation of this {@link
+		 * Expression} should be separated from its right sibling with a space.
+		 *
+		 * @return Whether this expression should be followed by a space if it
+		 *         has a right sibling.
+		 */
+		abstract boolean shouldBeSeparatedOnRight ();
 	}
 
 	/**
@@ -440,6 +458,38 @@ public class MessageSplitter
 		{
 			final A_String token = messageParts.get(tokenIndex - 1);
 			builder.append(token.asNativeString());
+		}
+
+		final String charactersThatLikeSpacesBefore = "(=+-×÷*/∧∨:?";
+
+		final String charactersThatLikeSpacesAfter = ")]=+-×÷*/∧∨→";
+
+		@Override
+		boolean shouldBeSeparatedOnLeft ()
+		{
+			final String token =
+				messageParts.get(tokenIndex - 1).asNativeString();
+			assert token.length() > 0;
+			final int firstCharacter = token.codePointAt(0);
+			if (Character.isUnicodeIdentifierPart(firstCharacter))
+			{
+				return true;
+			}
+			return charactersThatLikeSpacesBefore.indexOf(firstCharacter) >= 0;
+		}
+
+		@Override
+		boolean shouldBeSeparatedOnRight ()
+		{
+			final String token =
+				messageParts.get(tokenIndex - 1).asNativeString();
+			assert token.length() > 0;
+			final int lastCharacter = token.codePointBefore(token.length());
+			if (Character.isUnicodeIdentifierPart(lastCharacter))
+			{
+				return true;
+			}
+			return charactersThatLikeSpacesAfter.indexOf(lastCharacter) >= 0;
 		}
 	}
 
@@ -524,6 +574,18 @@ public class MessageSplitter
 				builder,
 				new ArrayList<A_BasicObject>(),
 				indent + 1);
+		}
+
+		@Override
+		boolean shouldBeSeparatedOnLeft ()
+		{
+			return true;
+		}
+
+		@Override
+		boolean shouldBeSeparatedOnRight ()
+		{
+			return true;
 		}
 	}
 
@@ -1232,29 +1294,44 @@ public class MessageSplitter
 			{
 				expressionsToVisit = expressionsBeforeDagger;
 			}
-			boolean isFirst = true;
+			boolean needsSpace = false;
 			for (final Expression expr : expressionsToVisit)
 			{
-				if (!isFirst)
-				{
-					builder.append(" ");
-				}
 				if (expr == null)
 				{
 					// Place-holder for the double-dagger.
 					builder.append("‡");
+					needsSpace = false;
 				}
 				else
 				{
+					if (needsSpace && expr.shouldBeSeparatedOnLeft())
+					{
+						builder.append(" ");
+					}
+					final int oldLength = builder.length();
 					expr.printWithArguments(
 						argumentProvider,
 						builder,
 						indent);
+					needsSpace = expr.shouldBeSeparatedOnRight()
+						&& builder.length() != oldLength;
 				}
-				isFirst = false;
 			}
 			assert !argumentProvider.hasNext();
 			builder.append("»");
+		}
+
+		@Override
+		boolean shouldBeSeparatedOnLeft ()
+		{
+			return false;
+		}
+
+		@Override
+		boolean shouldBeSeparatedOnRight ()
+		{
+			return false;
 		}
 	}
 
@@ -1441,6 +1518,22 @@ public class MessageSplitter
 			}
 			builder.append("#");
 		}
+
+		@Override
+		boolean shouldBeSeparatedOnLeft ()
+		{
+			// This Counter node should be separated on the left if the
+			// contained group should be.
+			return group.shouldBeSeparatedOnLeft();
+		}
+
+		@Override
+		boolean shouldBeSeparatedOnRight ()
+		{
+			// This Counter node should be separated on the right to emphasize
+			// the trailing "#".
+			return true;
+		}
 	}
 
 	/**
@@ -1598,6 +1691,22 @@ public class MessageSplitter
 					true);
 			}
 		}
+
+		@Override
+		boolean shouldBeSeparatedOnLeft ()
+		{
+			// For now.  Eventually we could find out whether there were even
+			// any tokens printed by passing an argument iterator.
+			return true;
+		}
+
+		@Override
+		boolean shouldBeSeparatedOnRight ()
+		{
+			// For now.  Eventually we could find out whether there were even
+			// any tokens printed by passing an argument iterator.
+			return true;
+		}
 	}
 
 	/**
@@ -1733,12 +1842,25 @@ public class MessageSplitter
 			// Make sure we don't consume any arguments.  In case the expression
 			// is itself a group, provide a dummy argument for it, containing
 			// just a single empty list.
-			final A_Phrase listNode = ListNodeDescriptor.empty();
 			expression.printWithArguments(
-				TupleDescriptor.from(listNode).iterator(),
+				Collections.<AvailObject>emptyIterator(),
 				builder,
 				indent);
 			builder.append("⁇");
+		}
+
+		@Override
+		boolean shouldBeSeparatedOnLeft ()
+		{
+			return expression.shouldBeSeparatedOnLeft();
+		}
+
+		@Override
+		boolean shouldBeSeparatedOnRight ()
+		{
+			// Emphasize the double question mark that will always be printed
+			// by ensuring a space follows it.
+			return true;
 		}
 	}
 
@@ -1842,6 +1964,21 @@ public class MessageSplitter
 				builder,
 				indent);
 			builder.append("~");
+		}
+
+		@Override
+		boolean shouldBeSeparatedOnLeft ()
+		{
+			return expression.shouldBeSeparatedOnLeft();
+		}
+
+		@Override
+		boolean shouldBeSeparatedOnRight ()
+		{
+			// Since we show the tilde (~) after the subexpression, and since
+			// case insensitivity is most likely to apply to textual tokens, we
+			// visually emphasize the tilde by ensuring a space follows it.
+			return true;
 		}
 	}
 
@@ -2022,6 +2159,19 @@ public class MessageSplitter
 				isFirst = false;
 			}
 		}
+
+		@Override
+		boolean shouldBeSeparatedOnLeft ()
+		{
+			return alternatives.get(0).shouldBeSeparatedOnLeft();
+		}
+
+		@Override
+		boolean shouldBeSeparatedOnRight ()
+		{
+			final Expression last = alternatives.get(alternatives.size() - 1);
+			return last.shouldBeSeparatedOnRight();
+		}
 	}
 
 	/**
@@ -2182,7 +2332,6 @@ public class MessageSplitter
 			exitTarget = list.size() + 1;
 		}
 
-
 		@Override
 		public String toString ()
 		{
@@ -2213,6 +2362,21 @@ public class MessageSplitter
 				builder,
 				indent);
 			builder.append("»!");
+		}
+
+		@Override
+		boolean shouldBeSeparatedOnLeft ()
+		{
+			// Starts with a guillemet, so don't bother with a leading space.
+			return false;
+		}
+
+		@Override
+		boolean shouldBeSeparatedOnRight ()
+		{
+			// Don't bother with a space after the close guillemet and
+			// exclamation mark.
+			return false;
 		}
 	}
 
@@ -2288,6 +2452,20 @@ public class MessageSplitter
 		{
 			builder.append("§");
 		}
+
+		@Override
+		boolean shouldBeSeparatedOnLeft ()
+		{
+			// The section symbol should always stand out.
+			return true;
+		}
+
+		@Override
+		boolean shouldBeSeparatedOnRight ()
+		{
+			// The section symbol should always stand out.
+			return true;
+		}
 	}
 
 	/**
@@ -2357,6 +2535,16 @@ public class MessageSplitter
 			messageName.asNativeString(),
 			partsList.toString(),
 			instructionsList.toString()));
+	}
+
+	/**
+	 * Answer the {@link A_String} that is being decomposed as a message name.
+	 *
+	 * @return The name of the message being split.
+	 */
+	public A_String messageName ()
+	{
+		return messageName;
 	}
 
 	/**

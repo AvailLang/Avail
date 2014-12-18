@@ -291,18 +291,20 @@ extends Descriptor
 	 *
 	 * @param methodName The message name, an {@linkplain AtomDescriptor atom}.
 	 * @param method The method that this bundle represents.
+	 * @param splitter A MessageSplitter for this message name.
 	 * @return A new {@linkplain MessageBundleDescriptor message bundle}.
 	 * @throws SignatureException If the message name is malformed.
 	 */
 	public static A_Bundle newBundle (
 		final A_Atom methodName,
-		final A_Method method)
+		final A_Method method,
+		final MessageSplitter splitter)
 	throws SignatureException
 	{
 		assert methodName.isAtom();
+		assert splitter.numberOfArguments() == method.numArgs();
+		assert splitter.messageName().equals(methodName.atomName());
 
-		final MessageSplitter splitter = new MessageSplitter(
-			methodName.atomName());
 		final AvailObject result = mutable.create();
 		result.setSlot(METHOD, method);
 		result.setSlot(MESSAGE, methodName);

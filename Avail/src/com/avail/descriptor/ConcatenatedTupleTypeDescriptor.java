@@ -202,60 +202,6 @@ extends TypeDescriptor
 		return object.hash();
 	}
 
-	/**
-	 * Answer what type the given index would have in an object instance of me.
-	 * Answer bottom if the index is definitely out of bounds.
-	 */
-	@Override @AvailMethod
-	A_Type o_TypeAtIndex (final AvailObject object, final int index)
-	{
-		if (index <= 0)
-		{
-			return BottomTypeDescriptor.bottom();
-		}
-
-		final A_Number firstUpper =
-			object.slot(FIRST_TUPLE_TYPE).sizeRange().upperBound();
-		final A_Number secondUpper =
-			object.slot(SECOND_TUPLE_TYPE).sizeRange().upperBound();
-		final A_Number totalUpper =
-			firstUpper.noFailPlusCanDestroy(secondUpper, false);
-		if (totalUpper.isFinite())
-		{
-			final A_Number indexObject = IntegerDescriptor.fromInt(index);
-			if (indexObject.greaterThan(totalUpper))
-			{
-				return BottomTypeDescriptor.bottom();
-			}
-		}
-		final A_Number firstLower =
-			object.slot(FIRST_TUPLE_TYPE).sizeRange().lowerBound();
-		if (index <= firstLower.extractInt())
-		{
-			return object.slot(FIRST_TUPLE_TYPE).typeAtIndex(index);
-		}
-		// Besides possibly being at a fixed offset within the firstTupleType,
-		// the index might represent a range of possible indices of the
-		// secondTupleType, depending on the spread between the first tuple
-		// type's lower and upper bounds. Compute the union of these types.
-		final A_Type typeUnion =
-			object.slot(FIRST_TUPLE_TYPE).typeAtIndex(index);
-		int startIndex;
-		if (firstUpper.isFinite())
-		{
-			startIndex = max((index - firstUpper.extractInt()), 1);
-		}
-		else
-		{
-			startIndex = 1;
-		}
-		final int endIndex = index - firstLower.extractInt();
-		assert endIndex >= startIndex;
-		return typeUnion.typeUnion(
-			object.slot(SECOND_TUPLE_TYPE).unionOfTypesAtThrough(
-				startIndex, endIndex));
-	}
-
 	@Override @AvailMethod
 	A_Type o_UnionOfTypesAtThrough (
 		final AvailObject object,
@@ -366,20 +312,6 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Since this is really tricky, just compute the TupleTypeDescriptor that
-	 * this is shorthand for.  Answer that tupleType's typeTuple.  This is the
-	 * leading types of the tupleType, up to but not including where they all
-	 * have the same type.  Don't run this from within a garbage collection, as
-	 * it allocates objects.
-	 */
-	@Override @AvailMethod
-	A_Tuple o_TypeTuple (final AvailObject object)
-	{
-		becomeRealTupleType(object);
-		return object.typeTuple();
-	}
-
-	/**
 	 * Check if object is a subtype of aType.  They should both be types.
 	 */
 	@Override @AvailMethod
@@ -441,6 +373,70 @@ extends TypeDescriptor
 			}
 		}
 		return true;
+	}
+
+	@Override
+	A_Tuple o_TupleOfTypesFromTo (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex)
+	{
+		becomeRealTupleType(object);
+		return super.o_TupleOfTypesFromTo(object, startIndex, endIndex);
+	}
+
+	/**
+	 * Answer what type the given index would have in an object instance of me.
+	 * Answer bottom if the index is definitely out of bounds.
+	 */
+	@Override @AvailMethod
+	A_Type o_TypeAtIndex (final AvailObject object, final int index)
+	{
+		if (index <= 0)
+		{
+			return BottomTypeDescriptor.bottom();
+		}
+	
+		final A_Number firstUpper =
+			object.slot(FIRST_TUPLE_TYPE).sizeRange().upperBound();
+		final A_Number secondUpper =
+			object.slot(SECOND_TUPLE_TYPE).sizeRange().upperBound();
+		final A_Number totalUpper =
+			firstUpper.noFailPlusCanDestroy(secondUpper, false);
+		if (totalUpper.isFinite())
+		{
+			final A_Number indexObject = IntegerDescriptor.fromInt(index);
+			if (indexObject.greaterThan(totalUpper))
+			{
+				return BottomTypeDescriptor.bottom();
+			}
+		}
+		final A_Number firstLower =
+			object.slot(FIRST_TUPLE_TYPE).sizeRange().lowerBound();
+		if (index <= firstLower.extractInt())
+		{
+			return object.slot(FIRST_TUPLE_TYPE).typeAtIndex(index);
+		}
+		// Besides possibly being at a fixed offset within the firstTupleType,
+		// the index might represent a range of possible indices of the
+		// secondTupleType, depending on the spread between the first tuple
+		// type's lower and upper bounds. Compute the union of these types.
+		final A_Type typeUnion =
+			object.slot(FIRST_TUPLE_TYPE).typeAtIndex(index);
+		int startIndex;
+		if (firstUpper.isFinite())
+		{
+			startIndex = max((index - firstUpper.extractInt()), 1);
+		}
+		else
+		{
+			startIndex = 1;
+		}
+		final int endIndex = index - firstLower.extractInt();
+		assert endIndex >= startIndex;
+		return typeUnion.typeUnion(
+			object.slot(SECOND_TUPLE_TYPE).unionOfTypesAtThrough(
+				startIndex, endIndex));
 	}
 
 	@Override @AvailMethod
@@ -505,6 +501,20 @@ extends TypeDescriptor
 			newSizesObject,
 			newLeading,
 			newDefault);
+	}
+
+	/**
+	 * Since this is really tricky, just compute the TupleTypeDescriptor that
+	 * this is shorthand for.  Answer that tupleType's typeTuple.  This is the
+	 * leading types of the tupleType, up to but not including where they all
+	 * have the same type.  Don't run this from within a garbage collection, as
+	 * it allocates objects.
+	 */
+	@Override @AvailMethod
+	A_Tuple o_TypeTuple (final AvailObject object)
+	{
+		becomeRealTupleType(object);
+		return object.typeTuple();
 	}
 
 	@Override @AvailMethod

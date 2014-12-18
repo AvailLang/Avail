@@ -1454,6 +1454,9 @@ public final class AvailRuntime
 				InfinityDescriptor.positiveInfinity(),false),
 			TupleDescriptor.empty(),
 			ANY.o());
+		// Some of these entries may need to be shuffled into earlier slots to
+		// maintain reasonable topical consistency.
+		specials[140] = FIRST_OF_SEQUENCE_NODE.mostGeneralType();
 
 		System.arraycopy(specials, 0, specialObjects, 0, specials.length);
 
@@ -1725,6 +1728,7 @@ public final class AvailRuntime
 		{
 			final A_Bundle bundle = methodName.bundleOrCreate();
 			final A_Method method = bundle.bundleMethod();
+			assert method.numArgs() == sealSignature.tupleSize();
 			method.addSealedArgumentsType(sealSignature);
 		}
 		finally

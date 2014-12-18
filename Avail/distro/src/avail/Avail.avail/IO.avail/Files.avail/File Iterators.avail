@@ -456,7 +456,7 @@ Semantic restriction "Using|using_,⁇do_" is
 	anIterator : file iterator's type,
 	action : [⊥]→⊤'s type
 |
-	If ¬anIterator ⊆ action[1] then
+	If anIterator ⊈ action[1] then
 	[
 		Reject parse, expected:
 			format

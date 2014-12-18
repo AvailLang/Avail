@@ -1,5 +1,5 @@
 /**
- * SequenceNodeDescriptor.java
+ * FirstOfSequenceNodeDescriptor.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,21 +33,26 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.SequenceNodeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.FirstOfSequenceNodeDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * My instances represent a sequence of {@linkplain ParseNodeDescriptor parse
- * nodes} to be treated as statements, except possibly the last one.
+ * nodes} to be treated as statements, except possibly the <em>first</em> one.
+ * All parse nodes are executed, and all results except the one from the first
+ * parse node are discarded.  The {@linkplain FirstOfSequenceNodeDescriptor
+ * first-of-sequence} node's effective value is the value produced by the first
+ * parse node.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class SequenceNodeDescriptor
+public final class FirstOfSequenceNodeDescriptor
 extends ParseNodeDescriptor
 {
 	/**
@@ -57,9 +62,15 @@ extends ParseNodeDescriptor
 	implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@linkplain ParseNodeDescriptor statements} that should be
-		 * considered to execute sequentially, discarding each result except
-		 * possibly for that of the last statement.
+		 * The {@link A_Tuple} of {@linkplain ParseNodeDescriptor expressions}
+		 * that should be considered to execute sequentially, discarding each
+		 * result except for that of the <em>first</em> expression. There must
+		 * be at least one expression.  All expressions but the first must be
+		 * typed as ⊤.  The first one is also allowed to be typed as ⊤, but even
+		 * if so, if the actual value produced is more specific (i.e., not
+		 * {@linkplain NilDescriptor#nil() nil}, then that is what the
+		 * {@linkplain FirstOfSequenceNodeDescriptor first-of-sequence} node's
+		 * effective value will be.
 		 */
 		STATEMENTS
 	}
@@ -75,13 +86,13 @@ extends ParseNodeDescriptor
 	{
 		final A_Tuple statements = object.slot(STATEMENTS);
 		assert statements.tupleSize() > 0;
-		return statements.tupleAt(statements.tupleSize()).expressionType();
+		return statements.tupleAt(1).expressionType();
 	}
 
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		return object.slot(STATEMENTS).hash() + 0xE38140CA;
+		return object.slot(STATEMENTS).hash() ^ 0x70EDD231;
 	}
 
 	@Override @AvailMethod
@@ -101,11 +112,13 @@ extends ParseNodeDescriptor
 		final A_Tuple statements = object.slot(STATEMENTS);
 		final int statementsCount = statements.tupleSize();
 		assert statements.tupleSize() > 0;
-		for (int i = 1; i < statementsCount; i++)
+		// Leave the first statement's value on the stack while evaluating the
+		// subsequent statements.
+		statements.tupleAt(1).emitValueOn(codeGenerator);
+		for (int i = 2; i <= statementsCount; i++)
 		{
 			statements.tupleAt(i).emitEffectOn(codeGenerator);
 		}
-		statements.tupleAt(statementsCount).emitValueOn(codeGenerator);
 	}
 
 	@Override @AvailMethod
@@ -113,10 +126,23 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		for (final A_Phrase statement : object.slot(STATEMENTS))
+		// It's unclear under what circumstances this construct would be asked
+		// to emit itself only for effect.  Regardless, keep the first
+		// expression's value on the stack until the other statements have all
+		// executed... then pop it.  Even though there will be no significant
+		// runtime difference, it will makes disassembly more faithful.
+		final A_Tuple statements = object.slot(STATEMENTS);
+		final int statementsCount = statements.tupleSize();
+		assert statements.tupleSize() > 0;
+		// Leave the first statement's value on the stack while evaluating the
+		// subsequent statements.
+		statements.tupleAt(1).emitValueOn(codeGenerator);
+		for (int i = 2; i <= statementsCount; i++)
 		{
-			statement.emitEffectOn(codeGenerator);
+			statements.tupleAt(i).emitEffectOn(codeGenerator);
 		}
+		// Finally, pop the first expression's value.
+		codeGenerator.emitPop();
 	}
 
 	@Override @AvailMethod
@@ -159,16 +185,35 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final List<A_Phrase> accumulatedStatements)
 	{
-		for (final A_Phrase statement : object.slot(STATEMENTS))
+		final A_Tuple statements = object.slot(STATEMENTS);
+		// Process the first expression, then grab the final value-producing
+		// expression back *off* the list.
+		statements.tupleAt(1).flattenStatementsInto(accumulatedStatements);
+		final A_Phrase valueProducer = accumulatedStatements.remove(
+			accumulatedStatements.size() - 1);
+		final List<A_Phrase> myFlatStatements = new ArrayList<>();
+		myFlatStatements.add(valueProducer);
+		for (int i = 2, limit = statements.tupleSize(); i <= limit; i++)
 		{
-			statement.flattenStatementsInto(accumulatedStatements);
+			statements.tupleAt(i).flattenStatementsInto(myFlatStatements);
+		}
+		if (myFlatStatements.size() == 1)
+		{
+			accumulatedStatements.add(myFlatStatements.get(0));
+		}
+		else
+		{
+			final A_Phrase newFirstOfSequence =
+				FirstOfSequenceNodeDescriptor.newStatements(
+					TupleDescriptor.fromList(myFlatStatements));
+			accumulatedStatements.add(newFirstOfSequence);
 		}
 	}
 
 	@Override
 	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
-		return SEQUENCE_NODE;
+		return FIRST_OF_SEQUENCE_NODE;
 	}
 
 	@Override
@@ -176,7 +221,7 @@ extends ParseNodeDescriptor
 	{
 		writer.startObject();
 		writer.write("kind");
-		writer.write("sequence phrase");
+		writer.write("first-of-sequence phrase");
 		writer.write("statements");
 		object.slot(STATEMENTS).writeTo(writer);
 		writer.endObject();
@@ -187,57 +232,59 @@ extends ParseNodeDescriptor
 	{
 		writer.startObject();
 		writer.write("kind");
-		writer.write("sequence phrase");
+		writer.write("first-of-sequence phrase");
 		writer.write("statements");
 		object.slot(STATEMENTS).writeSummaryTo(writer);
 		writer.endObject();
 	}
 
 	/**
-	 * Create a new {@linkplain SequenceNodeDescriptor sequence node} from the
-	 * given {@linkplain TupleDescriptor tuple} of {@linkplain
+	 * Create a new {@linkplain FirstOfSequenceNodeDescriptor first-of-sequence
+	 * node} from the given {@linkplain TupleDescriptor tuple} of {@linkplain
 	 * ParseNodeDescriptor statements}.
 	 *
 	 * @param statements
 	 *        The expressions to assemble into a {@linkplain
-	 *        SequenceNodeDescriptor sequence node}.
-	 * @return The resulting sequence node.
+	 *        FirstOfSequenceNodeDescriptor first-of-sequence node}, the
+	 *        <em>first</em> of which provides the value.
+	 * @return The resulting first-of-sequence node.
 	 */
 	public static A_Phrase newStatements (final A_Tuple statements)
 	{
 		final AvailObject instance = mutable.create();
+		assert statements.tupleSize() > 1;
 		instance.setSlot(STATEMENTS, statements);
 		instance.makeShared();
 		return instance;
 	}
 
 	/**
-	 * Construct a new {@link SequenceNodeDescriptor}.
+	 * Construct a new {@link FirstOfSequenceNodeDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	private SequenceNodeDescriptor (final Mutability mutability)
+	private FirstOfSequenceNodeDescriptor (final Mutability mutability)
 	{
 		super(mutability, ObjectSlots.class, null);
 	}
 
-	/** The mutable {@link SequenceNodeDescriptor}. */
-	private static final SequenceNodeDescriptor mutable =
-		new SequenceNodeDescriptor(Mutability.MUTABLE);
+	/** The mutable {@link FirstOfSequenceNodeDescriptor}. */
+	private static final FirstOfSequenceNodeDescriptor mutable =
+		new FirstOfSequenceNodeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	SequenceNodeDescriptor mutable ()
+	FirstOfSequenceNodeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
-	/** The shared {@link SequenceNodeDescriptor}. */
-	private static final SequenceNodeDescriptor shared =
-		new SequenceNodeDescriptor(Mutability.SHARED);
+	/** The shared {@link FirstOfSequenceNodeDescriptor}. */
+	private static final FirstOfSequenceNodeDescriptor shared =
+		new FirstOfSequenceNodeDescriptor(Mutability.SHARED);
 
 	@Override
-	SequenceNodeDescriptor shared ()
+	FirstOfSequenceNodeDescriptor shared ()
 	{
 		return shared;
 	}

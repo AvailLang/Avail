@@ -81,6 +81,7 @@ Names
 	/* 120 */ "field tuple",
 	/*  94 */ "field type map",
 	/* 119 */ "field type tuple",
+	/* 140 */ "first of sequence phrase",
 	/*  15 */ "float",
 	/*  45 */ "forward definition",
 	/*   4 */ "function",
@@ -323,6 +324,7 @@ _nonempty_set_of_atom                   ::= special object 136;
 _nonempty_tuple                         ::= special object 137;
 _tuple_of_integer                       ::= special object 138;
 _two_or_more_tuple                      ::= special object 139;
+_first_of_sequence_phrase               ::= special object 140;
 
 /**
  * The practical abstract root of the Avail type lattice. {@code "any"} is the
@@ -2455,5 +2457,17 @@ Primitive "tuple of integer" is
 Primitive "two or more tuple" is
 [
 	_two_or_more_tuple
+];
+
+/**
+ * TODO: Special object description goes here.
+ *
+ * @category "Primitives" "Types"
+ * @type "first of sequence phrase"
+ * @alias "first of sequence phrase⇒⊤"
+ */
+Primitive "first of sequence phrase" is
+[
+	_first_of_sequence_phrase
 ];
 

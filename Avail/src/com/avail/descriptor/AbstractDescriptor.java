@@ -6058,4 +6058,15 @@ public abstract class AbstractDescriptor
 	abstract A_Type o_TypeUnionOfPrimitiveTypeEnum (
 		AvailObject object,
 		Types primitiveTypeEnum);
+
+	/**
+	 * @param object
+	 * @param startIndex
+	 * @param endIndex
+	 * @return
+	 */
+	abstract A_Tuple o_TupleOfTypesFromTo (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex);
 }

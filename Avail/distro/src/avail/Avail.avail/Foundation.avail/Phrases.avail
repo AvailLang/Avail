@@ -46,7 +46,8 @@ Names
 	"`«↓_`»",
 	"`«<«_‡,»>`»",
 	"`«[_`|_]:_`»",
-	"`«[_]:_`»"
+	"`«[_]:_`»",
+	"this token:…"
 Body
 
 /**
@@ -317,3 +318,18 @@ Semantic restriction "_→function" is
 |
 	blockType's semantic type
 ];
+
+/**
+ * Answer the actual token that occurs in the source text at the indicated
+ * position.
+ * 
+ * @method "this token:…"
+ * @param "t" "token"
+ *        A token actually occurring at the invocation site in the source.
+ */
+Public method "this token:…" is
+[
+	t : token
+|
+	t
+] : token;

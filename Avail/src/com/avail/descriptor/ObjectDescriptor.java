@@ -265,7 +265,7 @@ extends Descriptor
 		final A_Set names = pair.tupleAt(1);
 		final A_Set baseTypes = pair.tupleAt(2);
 		boolean first = true;
-		builder.append("Instance of (");
+		builder.append("a/an ");
 		for (final A_String name : names)
 		{
 			if (!first)
@@ -280,11 +280,7 @@ extends Descriptor
 		}
 		if (first)
 		{
-			builder.append("unnamed object type)");
-		}
-		else
-		{
-			builder.append(")");
+			builder.append("object");
 		}
 		A_Set ignoreKeys = SetDescriptor.empty();
 		for (final A_Type baseType : baseTypes)

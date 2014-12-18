@@ -1,5 +1,5 @@
 /**
- * P_480_RecordNewTypeName.java
+ * P_390_FirstOfSequenceStatements.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,27 +29,32 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 480:</strong> Assign a name to a {@linkplain
- * ObjectTypeDescriptor user-defined object type}. This can be useful for
- * debugging.
+ * <strong>Primitive 390</strong>: Answer the specified {@linkplain
+ * FirstOfSequenceNodeDescriptor first-of-sequence}'s {@linkplain
+ * TupleDescriptor tuple} of statements.  The first statement's result will be
+ * the result produced by this first-of-sequence.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_480_RecordNewTypeName extends Primitive
+public final class P_390_FirstOfSequenceStatements
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_480_RecordNewTypeName().init(
-			2, CanInline, CannotFail, HasSideEffect);
+		new P_390_FirstOfSequenceStatements().init(
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
@@ -57,14 +62,9 @@ public final class P_480_RecordNewTypeName extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 2;
-		final A_Type userType = args.get(0);
-		final A_String name = args.get(1);
-
-		userType.makeImmutable();
-		name.makeImmutable();
-		ObjectTypeDescriptor.setNameForType(userType, name, false);
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		assert args.size() == 1;
+		final A_Phrase seq = args.get(0);
+		return interpreter.primitiveSuccess(seq.statements());
 	}
 
 	@Override
@@ -72,9 +72,8 @@ public final class P_480_RecordNewTypeName extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				InstanceMetaDescriptor.on(
-					ObjectTypeDescriptor.mostGeneralType()),
-				TupleTypeDescriptor.stringType()),
-			TOP.o());
+				FIRST_OF_SEQUENCE_NODE.mostGeneralType()),
+			TupleTypeDescriptor.zeroOrMoreOf(
+				PARSE_NODE.mostGeneralType()));
 	}
 }

@@ -71,6 +71,7 @@ extends TypeDescriptor
 		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
+		final A_Map myFieldTypeMap = object.fieldTypeMap();
 		final A_Tuple pair = namesAndBaseTypesForType(object);
 		final A_Set names = pair.tupleAt(1);
 		final A_Set baseTypes = pair.tupleAt(2);
@@ -89,26 +90,35 @@ extends TypeDescriptor
 		}
 		if (first)
 		{
-			builder.append("Unnamed object type");
+			builder.append("object");
 		}
 		A_Set ignoreKeys = SetDescriptor.empty();
-		for (final AvailObject baseType : baseTypes)
+		for (final A_Type baseType : baseTypes)
 		{
-			final A_Map fieldTypes = baseType.slot(FIELD_TYPE_MAP);
+			final A_Map fieldTypes = baseType.fieldTypeMap();
 			for (final MapDescriptor.Entry entry : fieldTypes.mapIterable())
 			{
-				if (InstanceTypeDescriptor.on(
-					entry.key()).equals(entry.value()))
+				final A_Atom atom = entry.key();
+				final A_Type type = entry.value();
+				if (type.isEnumeration()
+					&& type.instanceCount().equals(IntegerDescriptor.one())
+					&& type.instance().equals(atom))
 				{
 					ignoreKeys = ignoreKeys.setWithElementCanDestroy(
-						entry.key(),
-						true);
+						atom, true);
+				}
+				else if (myFieldTypeMap.mapAt(atom).equals(type))
+				{
+					// Also eliminate keys whose field type is no stronger than
+					// it is in the named object type(s).
+					ignoreKeys = ignoreKeys.setWithElementCanDestroy(
+						atom, true);
 				}
 			}
 		}
 		first = true;
 		for (final MapDescriptor.Entry entry
-			: object.slot(FIELD_TYPE_MAP).mapIterable())
+			: object.fieldTypeMap().mapIterable())
 		{
 			if (!ignoreKeys.hasElement(entry.key()))
 			{
@@ -435,18 +445,24 @@ extends TypeDescriptor
 	 * user-defined object type}.  If the only field key {@linkplain
 	 * AtomDescriptor atoms} in the object type are {@linkplain
 	 * AtomDescriptor#o_IsAtomSpecial(AvailObject) special atoms}, then the
-	 * name will not be recorded.  Note that it is legal for there to be
-	 * multiple names for a particular object type, although this is of
+	 * name will not be recorded (unless allowSpecialAtomsToHoldName is true,
+	 * which is really only for naming special object types like {@link
+	 * #exceptionType}).  Note that it is technically <em>legal</em> for there
+	 * to be multiple names for a particular object type, although this is of
 	 * questionable value.
 	 *
 	 * @param anObjectType
 	 *        A {@linkplain ObjectTypeDescriptor user-defined object type}.
 	 * @param aString
 	 *        A name.
+	 * @param allowSpecialAtomsToHoldName
+	 *        Whether to allow the object type name to be attached to a special
+	 *        atom.
 	 */
 	public static void setNameForType (
 		final A_Type anObjectType,
-		final A_String aString)
+		final A_String aString,
+		final boolean allowSpecialAtomsToHoldName)
 	{
 		assert aString.isString();
 		final A_Atom propertyKey = AtomDescriptor.objectTypeNamePropertyKey();
@@ -459,7 +475,7 @@ extends TypeDescriptor
 				: anObjectType.fieldTypeMap().mapIterable())
 			{
 				final A_Atom atom = entry.key();
-				if (!atom.isAtomSpecial())
+				if (allowSpecialAtomsToHoldName || !atom.isAtomSpecial())
 				{
 					final A_Map namesMap = atom.getAtomProperty(propertyKey);
 					if (namesMap.equalsNil())
@@ -771,7 +787,7 @@ extends TypeDescriptor
 				TupleDescriptor.from(
 					exceptionAtom,
 					InstanceTypeDescriptor.on(exceptionAtom))));
-		setNameForType(type, StringDescriptor.from("exception"));
+		setNameForType(type, StringDescriptor.from("exception"), true);
 		exceptionType = type.makeShared();
 	}
 

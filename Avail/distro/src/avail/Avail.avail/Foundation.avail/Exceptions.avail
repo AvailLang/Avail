@@ -47,6 +47,7 @@ Uses
 	"Logic",
 	"Math",
 	"Objects",
+	"Phrases",
 	"Strings",
 	"Tuples",
 	"Types",
@@ -248,11 +249,40 @@ Private method "Mark nearest guard frame with_" is
 	early failure function(failureCode)
 ] : ⊤;
 
+Private method "private-do-and-also-function" is
+[
+	_argDecl1 ::= arg «this token: arg1 : []→⊤»;
+	_argUse1 ::= «↓_argDecl1»(this token: arg1);
+	_statement1 ::= send $"_(«_‡,»)" with «<_argUse1, «<>»>» : ⊤;
+
+	_argDecl2 ::= arg «this token: arg2 : []→⊤»;
+	_argUse2 ::= «↓_argDecl2»(this token: arg2);
+	_statement2 ::= send $"_(«_‡,»)" with «<_argUse2, «<>»>» : ⊤;
+
+	_first_of_sequence ::= first-of-seq «<_statement1, _statement2>»;
+	_block ::=
+		«[
+			<_argDecl1, _argDecl2>
+		|
+			Primitive 0
+			<_first_of_sequence>
+		] : ⊤ ^ ∅»;
+	_block → function
+] : function;
+
+/**
+ * Execute the first block then the second block, but answer the result, if any,
+ * of executing the first block.  It must operate this way even if the first
+ * block actually passed in is of type ⊤ but secretly returns something more
+ * specific.
+ */
+
+Private method "Do_and also_" is private-do-and-also-function;
+
 /**
  * This is a helper for {@method "Private guard_intercept_ensure_"}. Run
  * {@param "body"} and then {@param "unwind"}. If {@param "body"} produces a
- * value, then polymorphism and a semantic restriction make sure that it gets
- * returned.
+ * value then return it.
  *
  * @method "Run_and_"
  * @param "body" "[]→⊤"
@@ -265,23 +295,13 @@ Private method "Run_and_" is
 	body : []→⊤,
 	unwind : []→⊤
 |
-	body();
-	Mark nearest guard frame with handler-sentinel code;
-	unwind();
-	Mark nearest guard frame with unwind-sentinel code;
+	Do body and also
+	[
+		Mark nearest guard frame with handler-sentinel code;
+		unwind();
+		Mark nearest guard frame with unwind-sentinel code;
+	];
 ] : ⊤;
-
-Method "Run_and_" is
-[
-	body : []→any,
-	unwind : []→⊤
-|
-	result ::= body();
-	Mark nearest guard frame with handler-sentinel code;
-	unwind();
-	Mark nearest guard frame with unwind-sentinel code;
-	result
-] : any;
 
 /**
  * Though this is the primitive guard method, it is merely a helper for

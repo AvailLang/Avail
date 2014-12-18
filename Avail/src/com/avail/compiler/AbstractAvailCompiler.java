@@ -761,7 +761,7 @@ public abstract class AbstractAvailCompiler
 						final A_Bundle oldBundle = oldAtom.bundleOrCreate();
 						final A_Method method = oldBundle.bundleMethod();
 						newBundle = MessageBundleDescriptor.newBundle(
-							newAtom, method);
+							newAtom, method, new MessageSplitter(newString));
 					}
 					catch (final SignatureException e)
 					{
@@ -772,8 +772,7 @@ public abstract class AbstractAvailCompiler
 							+ "\"";
 					}
 					newAtom.setAtomProperty(
-						AtomDescriptor.messageBundleKey(),
-						newBundle);
+						AtomDescriptor.messageBundleKey(), newBundle);
 					atomsToImport = atomsToImport.setWithElementCanDestroy(
 						newAtom, true);
 				}

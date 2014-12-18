@@ -4489,4 +4489,13 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	A_Tuple o_TupleOfTypesFromTo (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex)
+	{
+		throw unsupportedOperationException();
+	}
 }

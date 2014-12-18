@@ -1356,9 +1356,9 @@ public final class Interpreter
 		// Wipe out the existing registers for safety. This is technically
 		// optional, but not doing so may (1) hide bugs, and (2) leak
 		// references to values in registers.
-		wipeObjectRegisters();
 		if (caller.equalsNil())
 		{
+			wipeObjectRegisters();
 			terminateFiber(value);
 			return;
 		}
@@ -1369,6 +1369,7 @@ public final class Interpreter
 			final A_Type expectedType = caller.stackAt(stackp);
 			if (!value.isInstanceOf(expectedType))
 			{
+				wipeObjectRegisters();
 				pointerAtPut(CALLER, caller);
 				invokeFunction(
 					runtime.resultDisagreedWithExpectedTypeFunction(),
@@ -1377,6 +1378,7 @@ public final class Interpreter
 				return;
 			}
 		}
+		wipeObjectRegisters();
 		final A_Continuation updatedCaller = caller.ensureMutable();
 		updatedCaller.stackAtPut(stackp, value);
 		prepareToResumeContinuation(updatedCaller);
@@ -1548,7 +1550,7 @@ public final class Interpreter
 	 * @param marker An exception handling state marker.
 	 * @return The {@linkplain Result success state}.
 	 */
-	public Result markNearestGuard (final AvailObject marker)
+	public Result markNearestGuard (final A_Number marker)
 	{
 		final int primNum = P_200_CatchException.instance.primitiveNumber;
 		A_Continuation continuation = pointerAt(CALLER);
@@ -1558,8 +1560,8 @@ public final class Interpreter
 			if (code.primitiveNumber() == primNum)
 			{
 				assert code.numArgs() == 3;
-				final A_Variable failureVariable = continuation
-					.argOrLocalOrStackAt(4);
+				final A_Variable failureVariable =
+					continuation.argOrLocalOrStackAt(4);
 				// Only allow certain state transitions.
 				if (marker.equals(E_HANDLER_SENTINEL.numericCode())
 					&& failureVariable.value().extractInt() != 0)

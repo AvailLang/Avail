@@ -63,7 +63,7 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final AvailObject code = args.get(0);
+		final A_Number code = args.get(0);
 		return interpreter.markNearestGuard(code);
 	}
 

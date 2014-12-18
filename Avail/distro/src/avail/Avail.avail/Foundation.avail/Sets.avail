@@ -56,7 +56,6 @@ Names
 	"_⊂_",
 	"_⊇_",
 	"_⊉_",
-	"_⊈_",
 	"_⊃_",
 	"_∌_",
 	"_⊄_",
@@ -863,7 +862,7 @@ Semantic restriction "_⊉_" is
  *          to {@param "b"}, {@method "false"} otherwise.
  * @category "Sets" "Queries"
  */
-Public stable method "_⊈_" is
+Stable method "_⊈_" is
 [
 	a : set,
 	b : set

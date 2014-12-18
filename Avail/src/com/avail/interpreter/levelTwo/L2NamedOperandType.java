@@ -76,6 +76,12 @@ public class L2NamedOperandType
 		return name;
 	}
 
+	@Override
+	public String toString()
+	{
+		return operandType.name() + "(" + name + ")";
+	}
+
 	/**
 	 * Construct a new {@link L2NamedOperandType}.
 	 *

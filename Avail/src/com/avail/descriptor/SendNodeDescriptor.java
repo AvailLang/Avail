@@ -261,6 +261,7 @@ extends ParseNodeDescriptor
 		final A_Type returnType)
 	{
 		assert bundle.isInstanceOfKind(Types.MESSAGE_BUNDLE.o());
+		assert argsListNode.parseNodeKind().isSubkindOf(LIST_NODE);
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(ARGUMENTS_LIST_NODE, argsListNode);
 		newObject.setSlot(BUNDLE, bundle);

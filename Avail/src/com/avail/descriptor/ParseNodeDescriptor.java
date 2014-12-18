@@ -107,7 +107,7 @@ extends Descriptor
 	 * The {@link #o_ApparentSendName(AvailObject) apparentSendName} of
 	 * something that isn't a {@linkplain SendNodeDescriptor send node} or
 	 * {@linkplain MacroSubstitutionNodeDescriptor macro substitution node} is
-	 * always the {@link NilDescriptor#nil() void} object.
+	 * always the {@link NilDescriptor#nil() nil} object.
 	 */
 	@Override @AvailMethod
 	A_Atom o_ApparentSendName (final AvailObject object)
