@@ -2672,8 +2672,6 @@ public class L2Translator
 		@Override
 		public void L1_doPop ()
 		{
-			assert stackp == code.maxStackDepth()
-			: "Pop should only only occur at end of statement";
 			moveNil(stackRegister(stackp));
 			stackp++;
 		}

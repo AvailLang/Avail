@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.*;
@@ -253,8 +254,16 @@ extends Descriptor
 		/** Used for showing the types of captured variables and constants. */
 		OUTER_TYPE_,
 
-		/** Used for showing a tuple of all literals of the code. */
-		ALL_LITERALS
+		/** Used for showing an L1 disassembly of the code. */
+		L1_DISASSEMBLY,
+
+		/** Used for showing a tuple of all literals of the code. They're
+		 * grouped together under one literal to reduce the amount of
+		 * spurious (excruciatingly slow) computation done in the Eclipse
+		 * debugger.  Keeping this entry collapsed avoids having to compute the
+		 * print representations of the literals.
+		 */
+		ALL_LITERALS;
 	}
 
 	/**
@@ -286,6 +295,17 @@ extends Descriptor
 					i,
 					object.localTypeAt(i)));
 		}
+		final StringBuilder disassembled = new StringBuilder();
+		object.printOnAvoidingIndent(
+			disassembled, new ArrayList<A_BasicObject>(), 0);
+		final String[] content = new String[1];
+		content[0] = disassembled.toString();
+		fields.add(
+			new AvailObjectFieldHelper(
+				object,
+				FakeSlots.L1_DISASSEMBLY,
+				-1,
+				content));
 		final List<AvailObject> allLiterals = new ArrayList<>();
 		for (int i = 1; i <= object.numLiterals(); i++)
 		{
@@ -801,8 +821,8 @@ extends Descriptor
 		code.setSlot(FRAME_SLOTS, slotCount);
 		code.setSlot(NUM_OUTERS, outersSize);
 		code.setSlot(PRIMITIVE_NUMBER, primitive);
-		code.setSlot(NYBBLES, nybbles);
-		code.setSlot(FUNCTION_TYPE, functionType);
+		code.setSlot(NYBBLES, nybbles.makeShared());
+		code.setSlot(FUNCTION_TYPE, functionType.makeShared());
 		code.setSlot(PROPERTY_ATOM, NilDescriptor.nil());
 		code.setSlot(STARTING_CHUNK, L2Chunk.unoptimizedChunk().chunkPojo);
 		code.setSlot(INVOCATION_STATISTIC, statisticPojo);
@@ -811,28 +831,31 @@ extends Descriptor
 		int dest;
 		for (dest = 1; dest <= literalsSize; dest++)
 		{
-			code.setSlot(LITERAL_AT_, dest, literals.tupleAt(dest));
+			code.setSlot(
+				LITERAL_AT_, dest, literals.tupleAt(dest).makeShared());
 		}
 		for (int i = 1; i <= outersSize; i++)
 		{
-			code.setSlot(LITERAL_AT_, dest++, outerTypes.tupleAt(i));
+			code.setSlot(
+				LITERAL_AT_, dest++, outerTypes.tupleAt(i).makeShared());
 		}
 		for (int i = 1; i <= locals; i++)
 		{
-			code.setSlot(LITERAL_AT_, dest++, localTypes.tupleAt(i));
+			code.setSlot(
+				LITERAL_AT_, dest++, localTypes.tupleAt(i).makeShared());
 		}
 		assert dest == literalsSize + outersSize + locals + 1;
 
 		final A_Atom propertyAtom = AtomWithPropertiesDescriptor.create(
 			TupleDescriptor.empty(),
 			module);
-		code.setSlot(PROPERTY_ATOM, propertyAtom);
 		propertyAtom.setAtomProperty(
 			lineNumberKeyAtom(),
 			IntegerDescriptor.fromInt(lineNumber));
+		code.setSlot(PROPERTY_ATOM, propertyAtom.makeShared());
 		final int hash = propertyAtom.hash() ^ -0x3087B215;
 		code.setSlot(HASH, hash);
-		code.makeImmutable();
+		code.makeShared();
 		return code;
 	}
 

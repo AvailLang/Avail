@@ -4642,4 +4642,13 @@ extends AbstractDescriptor
 		return o_Traversed(object).typeUnionOfPrimitiveTypeEnum(
 			primitiveTypeEnum);
 	}
+
+	@Override
+	A_Tuple o_TupleOfTypesFromTo (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex)
+	{
+		return o_Traversed(object).tupleOfTypesFromTo(startIndex, endIndex);
+	}
 }

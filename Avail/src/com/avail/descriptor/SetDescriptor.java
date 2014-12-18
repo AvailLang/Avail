@@ -194,7 +194,9 @@ extends Descriptor
 		// TODO: [MvG] Unfortunately, this also has time at least proportional
 		// to the set sizes, even if the sets are virtually identical and share
 		// structural subcomponents.  We can do better, ostensibly by navigating
-		// the tries together, checking for structural sharing.
+		// the tries together, checking for structural sharing.  Perhaps also
+		// coalescing bins that happen to be equivalent, but that's harder to
+		// check safely.
 		if (!rootBin(object).isBinSubsetOf(aSet))
 		{
 			return false;

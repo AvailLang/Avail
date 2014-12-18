@@ -229,6 +229,7 @@ Names
 	"current module's exported names",
 	"enumeration of_",
 	"fiber→_",
+	"first-of-seq`«_`»",
 	"function accepting_and returning_",
 	"function from_and_",
 	"high-precision timer value",

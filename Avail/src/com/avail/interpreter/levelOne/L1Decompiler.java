@@ -392,8 +392,36 @@ public class L1Decompiler
 		@Override
 		public void L1_doPop ()
 		{
-			statements.add(popExpression());
-			assert expressionStack.isEmpty();
+			if (expressionStack.size() == 1)
+			{
+				statements.add(popExpression());
+			}
+			else
+			{
+				// This is very rare – it's a non-first statement of a
+				// FirstOfSequence node.  Determine if we're constructing or
+				// extending an existing FirstOfSequence.
+				final A_Phrase lastExpression = popExpression();
+				final A_Phrase penultimateExpression = popExpression();
+				final A_Tuple newStatements;
+				if (penultimateExpression.parseNodeKind()
+					== FIRST_OF_SEQUENCE_NODE)
+				{
+					// Extend an existing FirstOfSequence node.
+					newStatements =
+						penultimateExpression.statements().appendCanDestroy(
+							lastExpression, false);
+				}
+				else
+				{
+					// Create a two-element FirstOfSequence node.
+					newStatements = TupleDescriptor.from(
+						penultimateExpression, lastExpression);
+				}
+				pushExpression(
+					FirstOfSequenceNodeDescriptor.newStatements(
+						newStatements));
+			}
 		}
 
 		@Override

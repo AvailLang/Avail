@@ -375,15 +375,9 @@ extends MapBinDescriptor
 					object.makeSubobjectsImmutable();
 				}
 				objectToModify = AvailObjectRepresentation.newLike(
-					descriptorFor(MUTABLE, level),
-					object,
-					0,
-					0);
+					descriptorFor(MUTABLE, level), object, 0, 0);
 			}
-			objectToModify.setSlot(
-				SUB_BINS_,
-				physicalIndex,
-				newSubBin);
+			objectToModify.setSlot(SUB_BINS_, physicalIndex, newSubBin);
 		}
 		else
 		{
@@ -396,14 +390,10 @@ extends MapBinDescriptor
 			objectToModify = descriptorFor(MUTABLE, level).create(
 				objectEntryCount + 1);
 			objectToModify.setSlot(
-				BIT_VECTOR,
-				vector | bitShift(1, logicalIndex));
+				BIT_VECTOR, vector | bitShift(1, logicalIndex));
 			for (int i = 1, end = physicalIndex - 1; i <= end; i++)
 			{
-				objectToModify.setSlot(
-					SUB_BINS_,
-					i,
-					object.slot(SUB_BINS_,i));
+				objectToModify.setSlot(SUB_BINS_, i, object.slot(SUB_BINS_,i));
 			}
 			final A_BasicObject newSingleBin =
 				LinearMapBinDescriptor.createSingle(
@@ -415,27 +405,16 @@ extends MapBinDescriptor
 			for (int i = physicalIndex; i <= objectEntryCount; i++)
 			{
 				objectToModify.setSlot(
-					SUB_BINS_,
-					i + 1,
-					object.slot(SUB_BINS_, i));
+					SUB_BINS_, i + 1, object.slot(SUB_BINS_, i));
 			}
 		}
 		assert objectToModify.descriptor.isMutable();
+		objectToModify.setSlot(KEYS_HASH, oldKeysHash + hashDelta);
+		objectToModify.setSlot(VALUES_HASH_OR_ZERO, 0);
+		objectToModify.setSlot(BIN_SIZE, oldSize + delta);
+		objectToModify.setSlot(BIN_KEY_UNION_KIND_OR_NULL, NilDescriptor.nil());
 		objectToModify.setSlot(
-			KEYS_HASH,
-			oldKeysHash + hashDelta);
-		objectToModify.setSlot(
-			VALUES_HASH_OR_ZERO,
-			0);
-		objectToModify.setSlot(
-			BIN_SIZE,
-			oldSize + delta);
-		objectToModify.setSlot(
-			BIN_KEY_UNION_KIND_OR_NULL,
-			NilDescriptor.nil());
-		objectToModify.setSlot(
-			BIN_VALUE_UNION_KIND_OR_NULL,
-			NilDescriptor.nil());
+			BIN_VALUE_UNION_KIND_OR_NULL, NilDescriptor.nil());
 		check(objectToModify);
 		return objectToModify;
 	}
@@ -492,15 +471,11 @@ extends MapBinDescriptor
 		final int oldKeysHash = object.slot(KEYS_HASH);
 		final int masked = vector & bitShift(1, logicalIndex) - 1;
 		final int physicalIndex = bitCount(masked) + 1;
-		final AvailObject oldSubBin = object.slot(
-			SUB_BINS_,
-			physicalIndex);
+		final AvailObject oldSubBin = object.slot(SUB_BINS_, physicalIndex);
 		final int oldSubBinKeysHash = oldSubBin.mapBinKeysHash();
 		final int oldSubBinSize = oldSubBin.binSize();
 		final A_BasicObject newSubBin = oldSubBin.mapBinRemoveKeyHashCanDestroy(
-			key,
-			keyHash,
-			canDestroy);
+			key, keyHash, canDestroy);
 		final int delta;
 		final int deltaHash;
 		final AvailObject objectToModify;
@@ -522,9 +497,7 @@ extends MapBinDescriptor
 				if (source != physicalIndex)
 				{
 					objectToModify.setSlot(
-						SUB_BINS_,
-						destination,
-						object.slot(SUB_BINS_, source));
+						SUB_BINS_, destination, object.slot(SUB_BINS_, source));
 					destination++;
 				}
 			}
@@ -547,26 +520,17 @@ extends MapBinDescriptor
 			else
 			{
 				objectToModify = AvailObjectRepresentation.newLike(
-					descriptorFor(MUTABLE, level),
-					object,
-					0,
-					0);
+					descriptorFor(MUTABLE, level), object, 0, 0);
 			}
-			objectToModify.setSlot(
-				SUB_BINS_,
-				physicalIndex,
-				newSubBin);
+			objectToModify.setSlot(SUB_BINS_, physicalIndex, newSubBin);
 		}
 		assert objectToModify.descriptor.isMutable();
 		objectToModify.setSlot(BIN_SIZE, oldSize + delta);
 		objectToModify.setSlot(KEYS_HASH, oldKeysHash + deltaHash);
 		objectToModify.setSlot(VALUES_HASH_OR_ZERO, 0);
+		objectToModify.setSlot(BIN_KEY_UNION_KIND_OR_NULL, NilDescriptor.nil());
 		objectToModify.setSlot(
-			BIN_KEY_UNION_KIND_OR_NULL,
-			NilDescriptor.nil());
-		objectToModify.setSlot(
-			BIN_VALUE_UNION_KIND_OR_NULL,
-			NilDescriptor.nil());
+			BIN_VALUE_UNION_KIND_OR_NULL, NilDescriptor.nil());
 		check(objectToModify);
 		return objectToModify;
 	}
@@ -748,18 +712,11 @@ extends MapBinDescriptor
 		result.setSlot(VALUES_HASH_OR_ZERO, 0);
 		result.setSlot(BIN_SIZE, 0);
 		result.setSlot(BIT_VECTOR, bitVector);
-		result.setSlot(
-			BIN_KEY_UNION_KIND_OR_NULL,
-			NilDescriptor.nil());
-		result.setSlot(
-			BIN_VALUE_UNION_KIND_OR_NULL,
-			NilDescriptor.nil());
+		result.setSlot(BIN_KEY_UNION_KIND_OR_NULL, NilDescriptor.nil());
+		result.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, NilDescriptor.nil());
 		for (int i = 1; i <= newSize; i++)
 		{
-			result.setSlot(
-				SUB_BINS_,
-				i,
-				NilDescriptor.nil());
+			result.setSlot(SUB_BINS_, i, NilDescriptor.nil());
 		}
 		check(result);
 		return result;

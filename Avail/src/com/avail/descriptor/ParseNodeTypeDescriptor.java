@@ -136,6 +136,12 @@ extends TypeDescriptor
 		/** The kind of a {@linkplain SequenceNodeDescriptor sequence node}. */
 		SEQUENCE_NODE("sequence phrase type", PARSE_NODE),
 
+		/**
+		 * The kind of a {@linkplain FirstOfSequenceNodeDescriptor
+		 * first-of-sequence node}.
+		 */
+		FIRST_OF_SEQUENCE_NODE("first-of-sequence phrase type", PARSE_NODE),
+
 		/** The kind of a {@linkplain ListNodeDescriptor list node}. */
 		LIST_NODE("list phrase type", EXPRESSION_NODE)
 		{

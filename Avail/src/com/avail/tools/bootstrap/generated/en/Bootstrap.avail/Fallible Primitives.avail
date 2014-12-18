@@ -108,6 +108,7 @@ Uses
 		"current fiber[_]:=_",
 		"current module",
 		"current module's exported names",
+		"first-of-seq`«_`»",
 		"function from_and_",
 		"in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
 		"invoke_with_,⁇forked at priority_",
@@ -2439,6 +2440,27 @@ Primitive "seq`«_`»" is
 		sequence-contains-invalid-statements code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : sequence phrase;
+
+/**
+ * Construct and answer a first-of-sequence node from the specified tuple of
+ * statements.
+ *
+ * @category "Primitives"
+ * @method "first-of-seq`«_`»"
+ * @param "statements" "phrase tuple"
+ *        A tuple of statements.
+ * @returns "first of sequence phrase⇒⊤"
+ *    The requested first-of-sequence node.
+ * @raises "sequence-contains-invalid-statements exception"
+ */
+Primitive "first-of-seq`«_`»" is
+[
+	statements : phrase tuple
+|
+	Primitive 389 (failureCode : {
+		sequence-contains-invalid-statements code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : first of sequence phrase;
 
 /**
  * Construct and answer a fully parameterized pojo type.

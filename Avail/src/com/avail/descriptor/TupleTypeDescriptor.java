@@ -264,6 +264,35 @@ extends TypeDescriptor
 		return object.slot(DEFAULT_TYPE);
 	}
 
+	@Override @AvailMethod
+	A_Tuple o_TupleOfTypesFromTo (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex)
+	{
+		// Answer the tuple of types over the given range of indices.  Any
+		// indices out of range for this tuple type will be ⊥.
+		final int size = endIndex - startIndex + 1;
+		final A_Tuple result =
+			ObjectTupleDescriptor.createUninitialized(endIndex);
+		// Initialize the slots JUST for garbage collector safety in future
+		// incarnations.
+		for (int i = 1; i <= size; i++)
+		{
+			result.objectTupleAtPut(i, BottomTypeDescriptor.bottom());
+		}
+		int destIndex = 1;
+		for (
+			int sourceIndex = startIndex;
+			sourceIndex <= endIndex;
+			sourceIndex++, destIndex++)
+		{
+			result.objectTupleAtPut(
+				destIndex, object.typeAtIndex(sourceIndex).makeImmutable());
+		}
+		return result;
+	}
+
 	/**
 	 * {@inheritDoc}
 	 *

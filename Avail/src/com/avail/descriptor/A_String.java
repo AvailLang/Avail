@@ -49,5 +49,4 @@ extends A_Tuple
 	 * @return The corresponding Java string.
 	 */
 	String asNativeString ();
-
 }

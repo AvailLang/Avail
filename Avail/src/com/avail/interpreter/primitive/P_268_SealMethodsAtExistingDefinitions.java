@@ -97,8 +97,7 @@ extends Primitive
 							final A_Type function = definition.bodySignature();
 							final A_Type params = function.argsTupleType();
 							final A_Tuple signature =
-								params.typeTuple().appendCanDestroy(
-									params.defaultType(), false);
+								params.tupleOfTypesFromTo(1, method.numArgs());
 							try
 							{
 								runtime.addSeal(name, signature);

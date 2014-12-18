@@ -68,7 +68,9 @@ Names
 	"{_→_`|.._}",
 	"{_→_`|}",
 	/* Conversion utilities. */
-	"“_”(cardinality restriction)"
+	"“_”(cardinality restriction)",
+	/* Shorthand. */
+	"_⊈_"
 Body
 
 /**
@@ -1252,3 +1254,40 @@ Semantic restriction "∪_" is
 	];
 	union's type
 ] : type's type;
+
+/**
+ * Is {@param "a"} not a subtype of {@param "b"}?
+ *
+ * @method "_⊈_"
+ * @param "a" "type"
+ * @param "b" "type"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "a"} is not a subtype of {@param "b"},
+ *          {@method "false"} otherwise.
+ */
+Public method "_⊈_" is
+[
+	a : type,
+	b : type
+|
+	¬ a ⊆ b
+];
+
+/**
+ * @method "_⊈_"
+ * @restricts "metaA" "type's type"
+ * @restricts "metaB" "type's type"
+ */
+Semantic restriction "_⊈_" is
+[
+	typeA : type's type,
+	typeB : type's type
+|
+	/* The basic rule is this: If the type intersection of typeA's instance and
+	 * typeB's instance is ⊥, then the result must be true. Otherwise all bets
+	 * are off.
+	 */
+	if typeA ∩ typeB ⊆ ⊥'s type
+		then [true's type]
+		else [boolean]
+];

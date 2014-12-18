@@ -867,7 +867,7 @@ Primitive "_=_" is
  * @param "fieldsToValues" "field map"
  *        A map whose keys are the fields of the new object and whose values are
  *        the corresponding field values.
- * @returns "Unnamed object type"
+ * @returns "object"
  *    The requested object.
  */
 Primitive "_→object" is
@@ -903,7 +903,7 @@ Primitive "_→map" is
  * @param "fieldsToTypes" "field type map"
  *        A map whose keys are the fields of the new object and whose values are
  *        the corresponding field types.
- * @returns "(Unnamed object type)'s type"
+ * @returns "(object)'s type"
  *    The requested object type.
  */
 Primitive "_→object type" is
@@ -1862,7 +1862,7 @@ Primitive "_++_" is
  *        A tuple whose elements are 2-tuples. Each 2-tuple's first element is
  *        an atom (i.e., the field identifier) and its second element is the
  *        value type permitted by the field.
- * @returns "(Unnamed object type)'s type"
+ * @returns "(object)'s type"
  *    The requested object type.
  */
 Primitive "_→object type" is
@@ -1901,7 +1901,7 @@ Primitive "_→tuple" is
  *        A tuple whose elements are 2-tuples. Each 2-tuple's first element is
  *        an atom (i.e., the field identifier) and its second element is
  *        associated value.
- * @returns "Unnamed object type"
+ * @returns "object"
  *    The requested object.
  */
 Primitive "_→object" is
@@ -2787,7 +2787,7 @@ Primitive "_⇒_" is
  * @method "_'s⁇lexeme"
  * @param "aToken" "token"
  *        A token.
- * @returns "character+"
+ * @returns "<character…|1..∞>"
  *    The source text of {@param "aToken"}.
  */
 Primitive "_'s⁇lexeme" is
@@ -3285,6 +3285,24 @@ Primitive "_'s⁇statements" is
 	aSequence : sequence phrase
 |
 	Primitive 388;
+] : phrase tuple;
+
+/**
+ * Answer the tuple of statements that constitute the specified
+ * first-of-sequence.
+ *
+ * @category "Primitives" "Phrases" "Queries"
+ * @method "_'s⁇statements"
+ * @param "aFirstOfSequence" "first of sequence phrase"
+ *        A first-of-sequence.
+ * @returns "<phrase⇒⊤…|>"
+ *    The requested tuple of statements.
+ */
+Primitive "_'s⁇statements" is
+[
+	aFirstOfSequence : first of sequence phrase
+|
+	Primitive 390;
 ] : phrase tuple;
 
 /**

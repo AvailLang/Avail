@@ -869,7 +869,6 @@ Extends
 		"_⊂_",
 		"_⊇_",
 		"_⊉_",
-		"_⊈_",
 		"_⊃_",
 		"_∌_",
 		"_⊄_",
@@ -1015,7 +1014,8 @@ Extends
 		"{_→_`|_..}",
 		"{_→_`|.._}",
 		"{_→_`|}",
-		"“_”(cardinality restriction)"
+		"“_”(cardinality restriction)",
+		"_⊈_"
 	),
 	"Variables" =
 	(

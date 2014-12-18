@@ -353,7 +353,7 @@ extends Descriptor
 			final MessageSplitter splitter = new MessageSplitter(name);
 			numArgs = splitter.numberOfArguments();
 			final A_Method method = MethodDescriptor.newMethod(numArgs);
-			bundle = MessageBundleDescriptor.newBundle(object, method);
+			bundle = MessageBundleDescriptor.newBundle(object, method, splitter);
 			object.setAtomProperty(messageBundleKey, bundle);
 		}
 		return bundle;

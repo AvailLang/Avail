@@ -76,7 +76,9 @@ extends Primitive
 			return interpreter.primitiveFailure(
 				E_SEQUENCE_CONTAINS_INVALID_STATEMENTS);
 		}
-		return interpreter.primitiveSuccess(statements);
+		final A_Phrase sequence =
+			SequenceNodeDescriptor.newStatements(statements);
+		return interpreter.primitiveSuccess(sequence);
 	}
 
 	@Override

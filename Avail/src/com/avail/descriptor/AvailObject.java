@@ -6976,4 +6976,12 @@ implements
 		return descriptor.o_TypeUnionOfPrimitiveTypeEnum(
 			this, primitiveTypeEnum);
 	}
+
+	@Override
+	public A_Tuple tupleOfTypesFromTo (
+		final int startIndex,
+		final int endIndex)
+	{
+		return descriptor.o_TupleOfTypesFromTo(this, startIndex, endIndex);
+	}
 }

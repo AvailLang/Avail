@@ -323,6 +323,15 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
+	 * @param startIndex
+	 * @param endIndex
+	 * @return
+	 */
+	A_Tuple tupleOfTypesFromTo (final int startIndex, final int endIndex);
+
+	/**
+	 * Dispatch to the descriptor.
 	 */
 	A_Type typeAtIndex (int index);
 

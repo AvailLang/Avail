@@ -465,7 +465,7 @@ extends Descriptor
 			setRootBin(object, newRoot);
 			return object;
 		}
-		else if (isMutable())
+		if (isMutable())
 		{
 			object.makeImmutable();
 		}

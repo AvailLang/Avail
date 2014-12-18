@@ -62,7 +62,7 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final AvailObject token = args.get(0);
+		final A_Token token = args.get(0);
 		return interpreter.primitiveSuccess(
 			LiteralNodeDescriptor.fromToken(token));
 	}
