@@ -51,7 +51,7 @@ New test suite, concurrency test suite, extends foundation test suite;
 Test "reenter non-reentrant mutex" in concurrency test suite is
 [
 	mutex ::= a non-reentrant mutex;
-	Lock mutex for [Lock mutex for [Raise an exception]]
+	Lock mutex for [Lock mutex for [Raise an exception];];
 ]
 must raise reentry exception;
 

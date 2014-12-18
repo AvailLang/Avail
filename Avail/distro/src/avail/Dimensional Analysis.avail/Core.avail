@@ -332,7 +332,7 @@ stateLock : non-reentrant mutex := a non-reentrant mutex named "state lock";
  */
 namesByUnit : {unit→string|} := {};
 
-Public method "names by unit" is [Lock stateLock for[namesByUnit]];
+Public method "names by unit" is [lock stateLock for[namesByUnit]];
 
 /**
  * Prefer {@param "name"} for printing the specified {@type "unit"}.
@@ -364,7 +364,7 @@ Public method "Prefer_for printing_" is
  */
 symbolsByUnit : {unit→string|} := {};
 
-Public method "symbols by unit" is [Lock stateLock for [symbolsByUnit]];
+Public method "symbols by unit" is [lock stateLock for [symbolsByUnit]];
 
 /**
  * Prefer {@param "symbol"} for printing {@type "dimensioned quantity"
@@ -2068,7 +2068,7 @@ Public explicit class "no-such-conversion exception" extends exception
  */
 converters : {<unit, unit…|2> → unit conversion function|} := {};
 
-Private method "all converters" is [Lock stateLock for [converters]];
+Private method "all converters" is [lock stateLock for [converters]];
 
 conversionAtom ::= $"_converted to_";
 

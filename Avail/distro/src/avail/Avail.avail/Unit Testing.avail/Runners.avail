@@ -183,7 +183,7 @@ Private method "Setup:_" is
 [
 	aSuite : unit test suite
 |
-	guard
+	Guard
 	[
 		For each setup for aSuite do [setup : []→⊤ | setup();];
 	]
@@ -211,7 +211,7 @@ Private method "Setup:_" is
 [
 	aTest : unit test
 |
-	guard
+	Guard
 	[
 		For each setup for aTest do [setup : []→⊤ | setup();];
 	]
@@ -239,7 +239,7 @@ Private method "Tear down:_" is
 [
 	aSuite : unit test suite
 |
-	guard
+	Guard
 	[
 		For each tear down for aSuite do [tearDown : []→⊤ | tearDown();];
 	]
@@ -267,7 +267,7 @@ Private method "Tear down:_" is
 [
 	aTest : unit test
 |
-	guard
+	Guard
 	[
 		For each tear down for aTest do [tearDown : []→⊤ | tearDown();];
 	]

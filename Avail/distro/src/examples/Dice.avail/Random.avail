@@ -81,6 +81,7 @@ Public method "default pRNG" is
  *        A {@type "pRNG"}.
  * @param "action" "[]→⊤"
  *        The function to which the specified {@type "pRNG"} should be scoped.
+ * @returns "⊤"
  */
 Public method "Using|using_,do_" is
 [

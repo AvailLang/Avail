@@ -62,7 +62,9 @@ Names
 	"_'s⁇real path«(don't follow if symlink)»?",
 
 	/* Noteworthy file names. */
-	"current working directory"
+	"current working directory",
+	"home directory",
+	"temporary directory"
 Body
 
 "string name" is a new field atom;
@@ -543,3 +545,38 @@ Public stable method "_'s⁇parent path" is
 ] : file name;
 
 Grammatical restriction "«_‡/»" is <{"«_‡/»"}>;
+
+/**
+ * Answer the home directory of the user who owns the Avail virtual machine
+ * process.
+ *
+ * @method "home directory"
+ * @returns "file name"
+ * @returns "no-file exception"
+ *          If the home directory could not be determined.
+ */
+Public method "home directory" is
+[
+	/* Unix. */
+	./${HOME}
+		/* Windows. */
+		else [${HOMEPATH}
+			else [Raise a no-file exception]]
+] : file name;
+
+/**
+ * Answer the preferred directory for creating temporary files.
+ *
+ * @method "temporary directory"
+ * @returns "file name"
+ * @returns "no-file exception"
+ *          If the temporary directory could not be determined.
+ */
+Public method "temporary directory" is
+[
+	/* Unix. */
+	./${TMPDIR}
+		/* Windows. */
+		else [${TEMP} else [${TMP}
+			else [Raise a no-file exception]]]
+] : file name;

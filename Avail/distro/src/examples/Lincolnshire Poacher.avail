@@ -129,7 +129,7 @@ Private method "Start Lincolnshire Poacher" is
 						Clear serverAddress;
 						Signal serverOffline;
 					];
-				]
+				];
 			];
 		];
 		Await serverOnline;

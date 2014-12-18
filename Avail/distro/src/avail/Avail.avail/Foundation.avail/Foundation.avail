@@ -564,6 +564,7 @@ Extends
 	"Exceptions" =
 	(
 		"Current fiber's unhandled exception handler is_",
+		"Guard|guard_«intercept_»«ensure_»",
 		"Honor a termination request",
 		"Java exception",
 		"Java-class-not-available exception",
@@ -572,7 +573,6 @@ Extends
 		"Java-marshaling-failed exception",
 		"Java-method-not-available exception",
 		"Java-method-reference-is-ambiguous exception",
-		"Guard|guard_«intercept_»«ensure_»",
 		"Raise_",
 		"a Java exception caused by_",
 		"abstract-method-definition exception",
@@ -810,7 +810,8 @@ Extends
 		"counts for_",
 		"environment map",
 		"integrate_and_with_",
-		"integrate«_‡,and⁇»with_"
+		"integrate«_‡,and⁇»with_",
+		"${…}«else_»"
 	),
 	"Methods" =
 	(
@@ -904,7 +905,7 @@ Extends
 		"Await__time|times",
 		"Join_",
 		"Join_,then honor a termination request",
-		"Lock|lock_for_",
+		"Lock_for_",
 		"Park current fiber,then honor a termination request",
 		"Signal_",
 		"Signal__time|times",
@@ -923,6 +924,7 @@ Extends
 		"condition exception",
 		"counting semaphore",
 		"dequeue_from_",
+		"lock_for_",
 		"monitor",
 		"non-reentrant mutex",
 		"parking queue",

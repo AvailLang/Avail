@@ -42,13 +42,15 @@ Uses
 	"Early Conditionals",
 	"Early Control Structures",
 	"Early Logic",
+	"Early Tuples",
 	"Enumeration Support",
 	"Literals",
 	"Math",
 	"Types",
 	"Variables"
 Names
-	"environment map"
+	"environment map",
+	"${…}«else_»"
 Body
 
 /**
@@ -315,8 +317,63 @@ Semantic restriction "_[_]else_" is
  * @returns "{string→string|}"
  *          The environment {@type "map"}. On systems that do not support
  *          environment variables, this {@type "map"} will be empty.
+ * @category "Maps" "Queries"
  */
 Public method "environment map" is
 [
 	Primitive 278;
 ] : {string → string | whole number};
+
+/**
+ * Answer the value of the requested environment variable.
+ *
+ * @method "${…}«else_»"
+ * @param "aToken" "token"
+ *        The name of the environment variable.
+ * @param "else" "[]→string"
+ *        The {@type "function"} to evaluate to produce a default if the
+ *        environment does not include an appropriately named variable.
+ * @returns "string"
+ * @category "Maps" "Queries"
+ */
+Public method "${…}«else_»" is
+[
+	aToken : token,
+	else : []→string?
+|
+	environment map[aToken's lexeme]
+		else [else[1] else 
+			[invoke early failure function with <key-not-found code>]]
+];
+
+/**
+ * Answer the value of the requested environment variable.
+ *
+ * @method "${…}"
+ * @param "aLiteralToken" "literalToken"
+ *        The name of the environment variable.
+ * @param "else" "[]→string"
+ *        The {@type "function"} to evaluate to produce a default if the
+ *        environment does not include an appropriately named variable.
+ * @returns "string"
+ * @category "Maps" "Queries"
+ */
+Public method "${…}«else_»" is
+[
+	aToken : literal token,
+	else : []→string?
+|
+	environment map[
+		cast aToken's value into [t : string | t]
+		else [aToken's lexeme]]
+	else [else[1] else
+		[invoke early failure function with <key-not-found code>]]
+];
+
+Semantic restriction "${…}«else_»" is
+[
+	aToken : token's type,
+	else : []→string?'s type
+|
+	string
+];
