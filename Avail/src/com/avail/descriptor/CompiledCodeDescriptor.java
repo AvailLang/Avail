@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.*;

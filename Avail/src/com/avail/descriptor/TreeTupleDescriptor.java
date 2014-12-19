@@ -747,6 +747,8 @@ extends TupleDescriptor
 		final A_Tuple tuple2,
 		final boolean canDestroy)
 	{
+		final int size1 = tuple1.tupleSize();
+		final int size2 = tuple2.tupleSize();
 		final int level1 = tuple1.treeTupleLevel();
 		final int level2 = tuple2.treeTupleLevel();
 		assert level1 > 0 || level2 > 0;
@@ -765,7 +767,7 @@ extends TupleDescriptor
 				? 0
 				: tuple1.hashOrZero()
 					+ (tuple2.hashOrZero()
-						* multiplierRaisedTo(tuple1.tupleSize()));
+						* multiplierRaisedTo(size1));
 		if (level1 > level2)
 		{
 			final int childCount1 = tuple1.childCount();
@@ -790,8 +792,7 @@ extends TupleDescriptor
 			result.setSlot(
 				CUMULATIVE_SIZE_AT_,
 				childCount1,
-				tuple1.slot(CUMULATIVE_SIZE_AT_, childCount1)
-					+ tuple2.tupleSize());
+				tuple1.slot(CUMULATIVE_SIZE_AT_, childCount1) + size2);
 			result.setSlot(HASH_OR_ZERO, newHash);
 			check(result);
 			return result;
@@ -799,6 +800,9 @@ extends TupleDescriptor
 		assert level1 < level2;
 		final int childCount2 = tuple2.childCount();
 		final A_Tuple oldFirst = tuple2.childAt(1);
+		// Don't allow oldFirst to be clobbered, otherwise tuple2 will have
+		// incorrect cumulative sizes.
+		oldFirst.makeImmutable();
 		final A_Tuple newFirst = tuple1.concatenateWith(oldFirst, true);
 		if (newFirst.treeTupleLevel() == level2)
 		{

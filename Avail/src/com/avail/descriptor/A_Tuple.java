@@ -406,11 +406,6 @@ extends A_BasicObject, Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	short rawByteAt (int index);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	void rawByteAtPut (int index, short anInteger);
 
 	/**

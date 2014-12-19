@@ -122,7 +122,7 @@ extends TupleDescriptor
 			index1 <= endIndex1;
 			index1++, index2++)
 		{
-			if (object.rawByteAt(index1) != aByteTuple.rawByteAt(index2))
+			if (object.tupleIntAt(index1) != aByteTuple.tupleIntAt(index2))
 			{
 				return false;
 			}
@@ -250,16 +250,6 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	short o_RawByteAt (
-		final AvailObject object,
-		final int index)
-	{
-		//  Answer the byte at the given index.
-		assert index >= 1 && index <= object.tupleSize();
-		return object.byteSlotAt(RAW_QUAD_AT_, index);
-	}
-
-	@Override @AvailMethod
 	void o_RawByteAtPut (
 		final AvailObject object,
 		final int index,
@@ -316,6 +306,7 @@ extends TupleDescriptor
 		final int index)
 	{
 		// Answer the integer element at the given index in the tuple object.
+		assert index >= 1 && index <= object.tupleSize();
 		return object.byteSlotAt(RAW_QUAD_AT_, index);
 	}
 
@@ -359,7 +350,7 @@ extends TupleDescriptor
 		for (int index = end; index >= start; index--)
 		{
 			final int itemHash = IntegerDescriptor.hashOfUnsignedByte(
-				object.rawByteAt(index)) ^ preToggle;
+				(short) object.tupleIntAt(index)) ^ preToggle;
 			hash = hash * multiplier + itemHash;
 		}
 		return hash * multiplier;
@@ -420,7 +411,7 @@ extends TupleDescriptor
 				result.byteSlotAtPut(
 					RAW_QUAD_AT_,
 					dest,
-					otherTuple.rawByteAt(src));
+					(short) otherTuple.tupleIntAt(src));
 			}
 			result.setSlot(HASH_OR_ZERO, 0);
 			return result;
@@ -513,7 +504,7 @@ extends TupleDescriptor
 		writer.startArray();
 		for (int i = 1, limit = object.tupleSize(); i <= limit; i++)
 		{
-			writer.write(object.rawByteAt(i));
+			writer.write((short) object.tupleIntAt(i));
 		}
 		writer.endArray();
 	}

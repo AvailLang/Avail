@@ -318,13 +318,18 @@ Public method "a_for_\
 	options : {open option|} := originalOptions - append;
 	If fileIteratorType ⊆ reader then [options := options ∪ {read};];
 	If fileIteratorType ⊆ writer then [options := options ∪ {write};];
-	rawFile ::= fn opened with options options ?→ {open option|1..};
-	alignment ::= optionalAlignment[1] else [1];
+	proposedAlignment ::= optionalAlignment[1] else [0];
+	rawFile ::= fn opened
+		with alignment proposedAlignment
+		with options options ?→ {open option|1..}
+		with file access rights optionalAccessRights[1]
+			else [default file access rights];
 	maximumBufferSize ::= optionalMaximumBuffer[1] else [32768];
-	Assert: alignment ≤ maximumBufferSize;
+	actualAlignment ::= rawFile's alignment;
+	Assert: actualAlignment ≤ maximumBufferSize;
 	theIterator ::= a fileIteratorType with
 		element type ::= byte,
-		alignment ::= alignment,
+		alignment ::= actualAlignment,
 		element source ::= rawFile,
 		maximum buffer size ::= maximumBufferSize,
 		position variable :=
@@ -489,6 +494,7 @@ Method "Write_to_" is
 	newElements : tuple,
 	aWriter : file writer
 |
+	oldPosition ::= aWriter's position;
 	If |newElements| > 0 then
 	[
 		oldBuffer : tuple := aWriter's buffer;
@@ -525,11 +531,11 @@ Method "Write_to_" is
 		];
 		Assert: 1 ≤ startInBuffer ≤ |oldBuffer| + 1;
 		/* Determine if we will exceed the maximum buffer size. */
-		naturalStart ::= startInBuffer ?→ natural number;
+		naturalStartInBuffer ::= startInBuffer ?→ natural number;
 		newBuffer ::= oldBuffer
 			[
-				naturalStart ..
-				(naturalStart + |newElements| - 1) min |oldBuffer|
+				naturalStartInBuffer ..
+				(naturalStartInBuffer + |newElements| - 1) min |oldBuffer|
 			] → newElements;
 		newBufferSize ::= |newBuffer|;
 		If newBufferSize ≥ aWriter's maximum buffer size then
@@ -541,28 +547,30 @@ Method "Write_to_" is
 			 * boundary.
 			 */
 			aFile ::= aWriter's element source;
-			newPosition ::= aWriter's position + |newElements|;
-			endOfBuffer ::= naturalStart + newBufferSize - 1;
+			newPosition ::= oldPosition + |newElements|;
+			endOfBuffer ::= aWriter's buffer start + newBufferSize - 1;
 			residue ::= (endOfBuffer mod aFile's alignment) max 0;
 			toWrite ::= (newBufferSize - residue) ?→ natural number;
 			Private file
 				write newBuffer[1 .. toWrite] ?→ <byte…|1..>
 				into aWriter
-				at naturalStart;
+				at aWriter's buffer start;
 			aWriter's buffer is dirty := residue ≠ 0;
-			aWriter's buffer start := naturalStart + toWrite;
+			aWriter's buffer start := aWriter's buffer start + toWrite;
 			↑aWriter's position in buffer ?=
-				newPosition - naturalStart - toWrite;
+				newPosition - aWriter's buffer start + 1;
 			↑aWriter's buffer ?= newBuffer[toWrite + 1..];
 		]
 		else
 		[
 			/* Just keep it in the buffer. */
 			↑aWriter's buffer ?= newBuffer;
-			↑aWriter's position in buffer ?= naturalStart + |newElements|;
+			↑aWriter's position in buffer ?=
+				naturalStartInBuffer + |newElements|;
 			aWriter's buffer is dirty := true;
 		];
 	];
+	Assert: aWriter's position = oldPosition + |newElements|;
 ];
 
 

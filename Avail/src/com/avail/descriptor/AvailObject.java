@@ -3440,16 +3440,6 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public short rawByteAt (
-		final int index)
-	{
-		return descriptor.o_RawByteAt(this, index);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public void rawByteAtPut (
 		final int index,
 		final short anInteger)

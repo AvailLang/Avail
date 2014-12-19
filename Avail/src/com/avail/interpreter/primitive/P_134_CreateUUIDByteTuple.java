@@ -67,7 +67,7 @@ extends Primitive
 		final ByteBuffer bytes = ByteBuffer.allocateDirect(16);
 		bytes.putLong(uuid.getMostSignificantBits());
 		bytes.putLong(uuid.getLeastSignificantBits());
-		bytes.rewind();
+		bytes.flip();
 		return interpreter.primitiveSuccess(
 			ByteBufferTupleDescriptor.forByteBuffer(bytes));
 	}

@@ -76,14 +76,13 @@ extends Primitive
 		}
 		else if (bytes.isByteBufferTuple())
 		{
-			final ByteBuffer buffer = bytes.byteBuffer();
+			final ByteBuffer buffer = bytes.byteBuffer().slice();
 			if (buffer.hasArray())
 			{
 				byteArray = buffer.array();
 			}
 			else
 			{
-				buffer.rewind();
 				final int limit = buffer.limit();
 				byteArray = new byte[limit];
 				buffer.get(byteArray);

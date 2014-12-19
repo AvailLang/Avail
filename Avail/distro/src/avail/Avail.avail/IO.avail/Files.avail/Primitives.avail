@@ -88,6 +88,10 @@ Names
 
 	/* File exceptions. */
 	"file-closed exception",
+	
+	/* File access rights. */
+	"default directory access rights",
+	"default file access rights",
 
 	/* Unit testing. */
 	"file primitives test suite"
@@ -165,15 +169,25 @@ Private method
 _default_access_rights ::= "rw-r--r--" → file access rights;
 
 /**
+ * Answer the default {@type "file access right"}s with which files should be
+ * created.
+ * 
+ * @method "default file access rights"
+ * @returns "{file access right|}"
+ */
+Public method "default file access rights" is [_default_access_rights];
+
+/**
  * Answer an abstraction of the file named {@param "n"} that is open for
  * reading. The file position is initially zero ({@code 0}).
  *
  * @method "_opened«with alignment_»with options_«with file access rights_»"
  * @param "fileName" "file name"
- * @param "optionalAlignment" "natural number?"
+ * @param "optionalAlignment" "whole number?"
  *        The read/write buffer alignment that the underlying I/O operations
  *        should conform to whenever possible.  Individual transfers should
- *        still be allowed to span multiple alignment zones.
+ *        still be allowed to span multiple alignment zones.  A zero is used to
+ *        specify a suitable default provided by the primitive.
  * @param "optionSet" "{open option|}"
  *        The set of {@type "open option" options} to control how the file is to
  *        be opened.
@@ -191,7 +205,7 @@ Public method
 	"_opened«with alignment_»with options_«with file access rights_»" is
 [
 	fileName : file name,
-	optionalAlignment : natural number?,
+	optionalAlignment : whole number?,
 	optionSet : {open option|1..},
 	optionalAccessRights : {file access right|}?
 |
@@ -629,6 +643,18 @@ is
 ] : fiber→⊤;
 
 _default_directory_access_rights ::= "rwxr-xr-x"→file access rights;
+
+/**
+ * Answer the default {@type "file access right"}s with which directories should
+ * be created.
+ * 
+ * @method "default directory access rights"
+ * @returns "{file access right|}"
+ */
+Public method "default directory access rights" is
+[
+	_default_directory_access_rights
+];
 
 /**
  * Create a new directory asynchronously. If the operation succeeds, then

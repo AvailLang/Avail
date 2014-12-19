@@ -34,34 +34,71 @@ Module "File Test Utilities"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
-	"Common" = ("test directory"),
+	"Common",
 	"Data Abstractions",
 	"Foundation",
 	"File Access Rights",
-	"File Names"
+	"File Iterators",
+	"File Management",
+	"File Names",
+	"File Open Options",
+	"Primitives",
+	"Unit Testing"
 Names
 	/* File names. */
+	"test directory",
 	"abracadabra.txt",
 	"scratch.txt",
 
 	/* Potentially unsupported operations. */
 	"Try_",
 
-	/* Initialization. */
-	"Set standard file access rights",
-
 	/* Utilities. */
 	"Randomly permute file access rights for__times"
 Body
 
+Private method "a test directory" is
+[
+	temporary directory/“a UUID” (UUID)
+];
+
+/* The test directory. */
+testDir : file name;
+
+Before running I/O test suite, do
+[
+	testDir := a test directory;
+	Create a directory named testDir;
+	Using a file writer for testDir/"abracadabra.txt"
+		with options {create new}, do
+	[
+		f : file writer
+	|
+		bytes ::= take at most ∞ from
+			a reader over "abracadabra"
+				converted by a utf8 encoder;
+		Write bytes to f;
+	];
+	Close a file writer for testDir/"scratch.txt"
+		with options {create new};
+];
+
+After running I/O test suite, do
+[
+	Recursively unlink testDir if necessary;
+	Clear testDir;
+];
+
+Method "test directory" is [testDir];
+
 Public method "abracadabra.txt" is
 [
-	./test directory/"abracadabra.txt"
+	test directory/"abracadabra.txt"
 ];
 
 Public method "scratch.txt" is
 [
-	./test directory/"scratch.txt"
+	test directory/"scratch.txt"
 ];
 
 Public method "Try_" is
@@ -71,15 +108,6 @@ Public method "Try_" is
 	Guard aFunction
 	intercept [e : unsupported-operation exception | /* Ignore. */];
 ] : ⊤;
-
-Public method "Set standard file access rights" is
-[
-	Try
-	[
-		abracadabra.txt's access rights := {owner read, group read};
-		scratch.txt's access rights := {owner read, group read};
-	];
-];
 
 Public method "Randomly permute file access rights for__times" is
 [

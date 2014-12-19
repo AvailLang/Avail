@@ -41,7 +41,6 @@ Extends
 	"Converters",
 	"Graphs",
 	"Iterators",
-/*	"Optional"*/  /* The "+_" operator leads to confusing diagnostics. */
 	"Pseudorandom Number Generation",
 	"Sequences",
 	"Streams"

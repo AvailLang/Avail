@@ -305,7 +305,7 @@ extends Primitive
 							final A_Tuple subtuple =
 								bytesTuple.copyTupleFromToCanDestroy(
 									offsetInBuffer,
-									alignment,
+									offsetInBuffer + alignment - 1,
 									false
 								).makeShared();
 							assert subtuple.tupleSize() == alignment;

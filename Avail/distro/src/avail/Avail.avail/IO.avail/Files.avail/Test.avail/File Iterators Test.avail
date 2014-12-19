@@ -52,22 +52,20 @@ Uses
 	"File Management",
 	"File Names",
 	"File Open Options",
+	"File Test Utilities",
 	"Foundation",
 	"Primitives",
 	"Unit Testing"
-Names
 Body
 
 "file iterator test suite" is a new atom;
 New test suite file iterator test suite extends I/O test suite;
+Do not run tests in file iterator test suite in parallel;
 
-/* The test directory. */
-testDir ::= a file named test directory;
-
-Test "file iterator(readable)" in file iterator test suite is
+Test "file iterator (readable)" in file iterator test suite is
 [
 	ref ::= map "abracadabra" through [c : character | c's code point];
-	fn ::= testDir / "abracadabra.txt";
+	fn ::= abracadabra.txt;
 	iter ::= a file reader for fn;
 	Require: iter is open;
 	Require: take at most ∞ from iter = ref;
@@ -77,10 +75,10 @@ Test "file iterator(readable)" in file iterator test suite is
 	Require: iter is closed;
 ];
 
-Test "file iterator(readable,small buffer)" in file iterator test suite is
+Test "file iterator (readable,small buffer)" in file iterator test suite is
 [
 	ref ::= map "abracadabra" through [c : character | c's code point];
-	fn ::= testDir / "abracadabra.txt";
+	fn ::= abracadabra.txt;
 	iter ::= a file reader for fn aligning buffers to 3 bytes;
 	Require: iter is open;
 	Require: take at most ∞ from iter = ref;
@@ -90,10 +88,10 @@ Test "file iterator(readable,small buffer)" in file iterator test suite is
 	Require: iter is closed;
 ];
 
-Test "file iterator(readable,reposition)" in file iterator test suite is
+Test "file iterator (readable,reposition)" in file iterator test suite is
 [
 	ref ::= map "abracadabra" through [c : character | c's code point];
-	fn ::= testDir / "abracadabra.txt";
+	fn ::= abracadabra.txt;
 	iter ::= a file reader for fn;
 	Require: iter is open;
 	Require: take at most ∞ from iter = ref;
@@ -107,27 +105,27 @@ Test "file iterator(readable,reposition)" in file iterator test suite is
 	Require: iter is closed;
 ];
 
-Test "file iterator(double close)" in file iterator test suite is
+Test "file iterator (double close)" in file iterator test suite is
 [
-	fn ::= testDir / "abracadabra.txt";
+	fn ::= abracadabra.txt;
 	iter ::= a file reader for fn;
 	Close iter;
 	Close iter;
 ]
 must raise file-closed exception;
 
-Test "file iterator(can't open for reading)" in file iterator test suite is
+Test "file iterator (can't open for reading)" in file iterator test suite is
 [
-	fn ::= testDir / "doesntexist.txt";
+	fn ::= test directory / "doesntexist.txt";
 	iter ::= a file reader for fn;
 ]
 must raise I/O exception;
 
-Test "file iterator(refresh/synchronize)" in file iterator test suite is
+Test "file iterator (refresh/synchronize)" in file iterator test suite is
 [
-	fileName ::= testDir / "deleteme.txt";
+	fileName ::= test directory / "deleteme.txt";
 	aWriter ::= a file writer for fileName
-		with options {create, truncate existing};
+		with options {create new};
 	aReader ::= a file reader for fileName;
 	Guard
 	[
@@ -136,6 +134,85 @@ Test "file iterator(refresh/synchronize)" in file iterator test suite is
 		Refresh aReader;
 		bytes ::= take 3 from aReader;
 		Assert: bytes = <67, 97, 116>;
+		Assert: aReader is exhausted;
+	]
+	ensure
+	[
+		Close aWriter;
+		Close aReader;
+		Unlink fileName;
+	];
+];
+
+Test "file iterator (alignment)" in file iterator test suite is
+[
+	fileName ::= test directory / "deleteme.txt";
+	aWriter ::= a file writer for fileName
+		aligning buffers to 3 bytes
+		buffering at most 13 bytes
+		with options {create new};
+	aReader ::= a file reader for fileName
+		aligning buffers to 4 bytes
+		buffering at most 11 bytes;
+	Guard
+	[
+		prng ::= a pRNG;
+		memory : byte* := <>;
+		Repeat
+		[
+			size ::= prng's next [0..50];
+			segment ::= map 1 to size through [n : any | prng's next byte];
+			Write segment to aWriter;
+			memory := eject memory ++ segment;
+		] 50 times;
+		Synchronize aWriter;
+		Refresh aReader;
+		bytes ::= take at most ∞ from aReader;
+		Assert: bytes = memory;
+		Assert: aReader is exhausted;
+	]
+	ensure
+	[
+		Close aWriter;
+		Close aReader;
+		Unlink fileName;
+	];
+];
+
+Test "file iterator (scattered write)" in file iterator test suite is
+[
+	fileName ::= test directory / "deleteme.txt";
+	aWriter ::= a file writer for fileName
+		aligning buffers to 3 bytes
+		buffering at most 13 bytes
+		with options {create new};
+	aReader ::= a file reader for fileName
+		aligning buffers to 4 bytes
+		buffering at most 11 bytes;
+	Guard
+	[
+		prng ::= a pRNG;
+		memory : byte* := <>;
+		Repeat
+		[
+			start ::= prng's next [1..1000];
+			size ::= prng's next [0..50];
+			segment ::= map 1 to size through [n : any | prng's next byte];
+			aWriter's position := start;
+			Write segment to aWriter;
+			If start > |memory| + 1 then
+			[
+				extension ::= start - |memory| ?→ natural number;
+				memory := eject memory ++ extension of 0;
+			];
+			memory := memory
+				[start .. (start + size - 1) min |memory|]
+				→ segment;
+		] 50 times;
+		Synchronize aWriter;
+		Refresh aReader;
+		bytes ::= take at most ∞ from aReader;
+		Assert: bytes = memory;
 		Assert: aReader is exhausted;
 	]
 	ensure

@@ -1455,12 +1455,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	short o_RawByteAt (final AvailObject object, final int index)
-	{
-		return o_Traversed(object).rawByteAt(index);
-	}
-
-	@Override
 	void o_RawByteAtPut (
 		final AvailObject object,
 		final int index,
@@ -4650,5 +4644,12 @@ extends AbstractDescriptor
 		final int endIndex)
 	{
 		return o_Traversed(object).tupleOfTypesFromTo(startIndex, endIndex);
+	}
+
+	@Override
+	boolean o_ShowValueInNameForDebugger (
+		final AvailObject object)
+	{
+		return o_Traversed(object).showValueInNameForDebugger();
 	}
 }

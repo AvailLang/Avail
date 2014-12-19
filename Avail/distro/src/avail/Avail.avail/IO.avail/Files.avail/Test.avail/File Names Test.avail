@@ -34,11 +34,7 @@ Module "File Names Test"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
-	"Common" =
-	(
-		"I/O test suite",
-		"test directory"
-	),
+	"Common",
 	"Data Abstractions",
 	"File Access Rights",
 	"File Metadata",
@@ -53,36 +49,32 @@ Body
 "file names test suite" is a new atom;
 New test suite file names test suite extends I/O test suite;
 
-Before running each test in file names test suite, do
-[
-	Set standard file access rights;
-];
-
 Test "exists" in file names test suite is
 [
 	fn1 ::= abracadabra.txt;
-	fn2 ::= ./test directory/"doesnotexist.txt";
+	fn2 ::= test directory/"doesnotexist.txt";
 	Require: fn1 exists;
 	Require: ¬fn2 exists;
 ];
 
 Test "absolute path" in file names test suite is
 [
-	fn ::= abracadabra.txt;
+	fn ::= ./"somewhere relative.txt";
 	Require: ¬fn is absolute;
-	absoluteTest ::= ./test directory's absolute path;
+	Require: fn's absolute path is absolute;
+	absoluteTest ::= test directory's absolute path;
 	Require: absoluteTest is absolute;
-	absoluteFile ::= fn's absolute path;
+	absoluteFile ::= abracadabra.txt's absolute path;
 	Require: absoluteFile is absolute;
 	Require: absoluteFile = absoluteTest / "abracadabra.txt";
-	Require: absoluteTest names the same file as ./test directory;
-	Require: absoluteFile names the same file as fn;
+	Require: absoluteTest names the same file as test directory;
+	Require: absoluteFile names the same file as abracadabra.txt;
 ];
 
 Test "real path" in file names test suite is
 [
 	fn ::= abracadabra.txt;
-	Require: ¬fn is absolute;
+	Require: fn is absolute;
 	real ::= fn's real path;
 	Require: real is absolute;
 	Require: real names the same file as fn;
@@ -105,35 +97,12 @@ Test "same file" in file names test suite is
 
 Test "current working directory" in file names test suite is
 [
-	fn ::= abracadabra.txt;
-	Require: ¬fn is absolute;
 	cwd ::= current working directory;
 	Require: cwd is absolute;
-	fn2 ::= cwd/"distro"/"src"/"avail"/"Avail.avail"/"IO.avail"
-		/"Files.avail"/"test"/"abracadabra.txt";
-	Require: fn2 is absolute;
-	Require: fn names the same file as fn2;
 	dot ::= a file named ".";
 	Require: cwd names the same file as dot;
 	empty ::= a file named "";
 	Require: cwd names the same file as empty;
-];
-
-Test "path decomposition" in file names test suite is
-[
-	Require: concatenate abracadabra.txt's path components = abracadabra.txt;
-	absolute ::= abracadabra.txt's absolute path;
-	ref ::=
-		map <
-			"avail",
-			"Avail.avail",
-			"IO.avail",
-			"Files.avail",
-			"test",
-			"abracadabra.txt">
-		through [s : string | ./s];
-	components ::= absolute's path components;
-	Require: components ends with ref;
 ];
 
 Test "path decomposition permutations" in file names test suite is

@@ -98,6 +98,7 @@ extends Primitive
 		final A_Function succeed = args.get(3);
 		final A_Function fail = args.get(4);
 		final A_Number priority = args.get(5);
+
 		final A_BasicObject pojo =
 			atom.getAtomProperty(AtomDescriptor.fileKey());
 		if (pojo.equalsNil())

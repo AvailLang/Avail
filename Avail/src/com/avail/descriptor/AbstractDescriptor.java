@@ -2113,15 +2113,6 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @param index
-	 * @return
-	 */
-	abstract short o_RawByteAt (
-		AvailObject object,
-		int index);
-
-	/**
-	 * @param object
-	 * @param index
 	 * @param anInteger
 	 */
 	abstract void o_RawByteAtPut (

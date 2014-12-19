@@ -34,11 +34,7 @@ Module "File Metadata Test"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
-	"Common" =
-	(
-		"I/O test suite",
-		"test directory"
-	),
+	"Common",
 	"File Access Rights",
 	"File Metadata",
 	"File Names",
@@ -52,20 +48,6 @@ Body
 
 "file metadata test suite" is a new atom;
 New test suite file metadata test suite extends I/O test suite;
-
-Before running file metadata test suite, do
-[
-	/* TODO: [TLS] Make sure that abracadabra.txt contains the eponymous
-	 * text.
-	 */
-	/* TODO: [TLS] Create a symbolic link for file type testing. */
-];
-
-After running file metadata test suite, do
-[
-	Set standard file access rights;
-	/* TODO: [TLS] Remove the symbolic link for file type testing. */
-];
 
 Test "file ID" in file metadata test suite is
 [
@@ -89,7 +71,7 @@ Test "file types" in file metadata test suite is
 	Require: fn1's file type = regular file;
 	Require: fn1 is regular file;
 	Require: fn1's metadata is regular file;
-	fn2 ::= ./test directory;
+	fn2 ::= test directory;
 	Require: fn2's file type = directory;
 	Require: fn2 is directory;
 	Require: fn2's metadata is directory;

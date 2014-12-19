@@ -95,29 +95,16 @@ extends Primitive
 		final ByteBuffer buffer;
 		if (tuple.isByteBufferTuple())
 		{
-			buffer = tuple.byteBuffer();
-			buffer.rewind();
+			buffer = tuple.byteBuffer().slice();
 		}
 		else if (tuple.isByteArrayTuple())
 		{
 			buffer = ByteBuffer.wrap(tuple.byteArray());
 		}
-		else if (tuple.isByteTuple())
-		{
-			buffer = ByteBuffer.allocateDirect(tuple.tupleSize());
-			for (int i = 1, end = tuple.tupleSize(); i <= end; i++)
-			{
-				buffer.put((byte) tuple.rawByteAt(i));
-			}
-			buffer.flip();
-		}
 		else
 		{
 			buffer = ByteBuffer.allocateDirect(tuple.tupleSize());
-			for (int i = 1, end = tuple.tupleSize(); i <= end; i++)
-			{
-				buffer.put((byte) tuple.tupleAt(i).extractInt());
-			}
+			tuple.transferIntoByteBuffer(1, tuple.tupleSize(), buffer);
 			buffer.flip();
 		}
 		final A_Fiber current = interpreter.fiber();

@@ -127,6 +127,7 @@ extends Primitive
 						final @Nullable Void unused)
 					{
 						assert bytesRead != null;
+						buffer.flip();
 						Interpreter.runOutermostFunction(
 							runtime,
 							newFiber,

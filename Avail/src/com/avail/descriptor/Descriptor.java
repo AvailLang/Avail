@@ -1030,12 +1030,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	short o_RawByteAt (final AvailObject object, final int index)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	void o_RawByteAtPut (
 		final AvailObject object,
 		final int index,
@@ -3751,7 +3745,7 @@ extends AbstractDescriptor
 	String o_NameForDebugger (final AvailObject object)
 	{
 		String typeName = getClass().getSimpleName();
-		if (typeName.matches(".*Descriptor"))
+		if (typeName.endsWith("Descriptor"))
 		{
 			typeName = typeName.substring(0, typeName.length() - 10);
 		}

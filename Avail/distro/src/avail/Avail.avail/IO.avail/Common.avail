@@ -45,14 +45,8 @@ Names
 	"read«at most»?_byte|bytes from_",
 
 	/* Unit testing. */
-	"I/O test suite",
-	"test directory"
+	"I/O test suite"
 Body
 
 "I/O test suite" is a new atom;
 I/O test suite is a new test suite;
-
-Public method "test directory" is
-[
-	"distro/src/avail/Avail.avail/IO.avail/Files.avail/test"
-];

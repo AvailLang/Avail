@@ -153,10 +153,6 @@ public class MessageSplitter
 	/** The top-most {@linkplain Group group}. */
 	final Group rootGroup;
 
-	/** An {@link Iterator} (of {@link AvailObject}s) that's always at end. */
-	final static Iterator<AvailObject> emptyIterator =
-		Collections.<AvailObject>emptyList().iterator();
-
 	/**
 	 * An {@code Expression} represents a structural view of part of the
 	 * message name.
@@ -460,8 +456,18 @@ public class MessageSplitter
 			builder.append(token.asNativeString());
 		}
 
+		/**
+		 * Characters which, if they start a token, should vote for having a
+		 * space before the token.  If the predecessor agrees, there will be a
+		 * space.
+		 */
 		final String charactersThatLikeSpacesBefore = "(=+-×÷*/∧∨:?";
 
+		/**
+		 * Characters which, if they end a token, should vote for having a
+		 * space after the token.  If the successor agrees, there will be a
+		 * space.
+		 */
 		final String charactersThatLikeSpacesAfter = ")]=+-×÷*/∧∨→";
 
 		@Override
@@ -1511,7 +1517,7 @@ public class MessageSplitter
 					builder.append(" ");
 				}
 				group.printGroupOccurrence(
-					emptyIterator,
+					Collections.<AvailObject>emptyIterator(),
 					builder,
 					indent,
 					isArgumentOrGroup());
@@ -1685,7 +1691,7 @@ public class MessageSplitter
 			if (flag)
 			{
 				group.printGroupOccurrence(
-					emptyIterator,
+					Collections.<AvailObject>emptyIterator(),
 					builder,
 					indent,
 					true);
@@ -1839,11 +1845,19 @@ public class MessageSplitter
 			final StringBuilder builder,
 			final int indent)
 		{
-			// Make sure we don't consume any arguments.  In case the expression
-			// is itself a group, provide a dummy argument for it, containing
-			// just a single empty list.
+			// Don't consume any real arguments.  In case the expression is
+			// itself a group, synthesize a dummy argument for it, containing
+			// just an entry for that group.  The entry should itself contain a
+			// single empty list of arguments for an occurrence.  That is, there
+			// is one argument-position worth of arguments in the iterator, and
+			// it holds one occurrence of the group (to make it print once), and
+			// since it's really a CompletelyOptional group, the occurrence has
+			// no values within it.
+			final A_Phrase emptyListNode = ListNodeDescriptor.empty();
+			final A_Phrase oneEmptyListNode = ListNodeDescriptor.newExpressions(
+				TupleDescriptor.from(emptyListNode));
 			expression.printWithArguments(
-				Collections.<AvailObject>emptyIterator(),
+				TupleDescriptor.from(oneEmptyListNode).iterator(),
 				builder,
 				indent);
 			builder.append("⁇");
@@ -1852,7 +1866,7 @@ public class MessageSplitter
 		@Override
 		boolean shouldBeSeparatedOnLeft ()
 		{
-			return expression.shouldBeSeparatedOnLeft();
+			return expression.isGroup() || expression.shouldBeSeparatedOnLeft();
 		}
 
 		@Override
@@ -2358,7 +2372,7 @@ public class MessageSplitter
 			final Expression alternative =
 				alternation.alternatives().get(index - 1);
 			alternative.printWithArguments(
-				emptyIterator,
+				Collections.<AvailObject>emptyIterator(),
 				builder,
 				indent);
 			builder.append("»!");

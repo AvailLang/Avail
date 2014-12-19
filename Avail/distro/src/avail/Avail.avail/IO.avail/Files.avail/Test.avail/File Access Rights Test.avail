@@ -34,11 +34,7 @@ Module "File Access Rights Test"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
-	"Common" =
-	(
-		"I/O test suite",
-		"test directory"
-	),
+	"Common",
 	"File Access Rights",
 	"File Names",
 	"File Test Utilities",
@@ -52,11 +48,6 @@ Body
 New test suite file access rights test suite extends I/O test suite;
 
 Do not run tests in file access rights test suite in parallel;
-
-After running file access rights test suite, do
-[
-	Set standard file access rights;
-];
 
 Test "owner read" in file access rights test suite is
 [

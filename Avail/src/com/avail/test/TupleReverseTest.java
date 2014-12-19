@@ -253,24 +253,22 @@ public class TupleReverseTest
 	public void testByteBufferTupleDescriptorReverse ()
 	{
 		final ByteBuffer aByteBuffer = ByteBuffer.allocate(36);
-
 		for (int i = 1; i < 37; i++)
 		{
 			aByteBuffer.put((byte) (1 + i));
 		}
-
+		aByteBuffer.flip();
 		final A_Tuple myByteBufferTuple =
 			ByteBufferTupleDescriptor
 				.forByteBuffer(aByteBuffer)
 				.makeImmutable();
 
 		final ByteBuffer aByteBufferReversed = ByteBuffer.allocate(36);
-
 		for (int i = 36; i > 0; i--)
 		{
 			aByteBufferReversed.put((byte)(1 + i));
 		}
-
+		aByteBufferReversed.flip();
 		final A_Tuple myByteBufferTupleReversed =
 			ByteBufferTupleDescriptor
 				.forByteBuffer(aByteBufferReversed)
@@ -282,7 +280,7 @@ public class TupleReverseTest
 		assertEquals(myByteBufferTuple.tupleReverse(),
 			myByteBufferTupleReversed);
 
-		assertEquals(myByteBufferTuple,shouldBeSame);
+		assertEquals(myByteBufferTuple, shouldBeSame);
 		assertEquals(myByteBufferTuple.tupleAt(2),
 			myByteBufferTuple.tupleReverse().tupleAt(35));
 
@@ -291,7 +289,7 @@ public class TupleReverseTest
 		aByteBufferSmall.put((byte) 1);
 		aByteBufferSmall.put((byte) 2);
 		aByteBufferSmall.put((byte) 3);
-
+		aByteBufferSmall.flip();
 		final A_Tuple myByteBufferTupleSmall =
 			ByteBufferTupleDescriptor
 				.forByteBuffer(aByteBufferSmall)
@@ -301,7 +299,7 @@ public class TupleReverseTest
 		aByteBufferSmallReversed.put((byte) 3);
 		aByteBufferSmallReversed.put((byte) 2);
 		aByteBufferSmallReversed.put((byte) 1);
-
+		aByteBufferSmallReversed.flip();
 		final A_Tuple myByteBufferTupleSmallReversed =
 			ByteBufferTupleDescriptor
 				.forByteBuffer(aByteBufferSmallReversed)

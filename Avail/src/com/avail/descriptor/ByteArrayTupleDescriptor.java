@@ -315,18 +315,6 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	short o_RawByteAt (
-		final AvailObject object,
-		final int index)
-	{
-		// Answer the byte at the given index.
-		assert index >= 1 && index <= object.tupleSize();
-		final byte[] array =
-			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
-		return (short) (array[index - 1] & 0xFF);
-	}
-
-	@Override @AvailMethod
 	void o_RawByteAtPut (
 		final AvailObject object,
 		final int index,
@@ -346,6 +334,7 @@ extends TupleDescriptor
 	int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		// Answer the integer element at the given index in the tuple object.
+		assert index >= 1 && index <= object.tupleSize();
 		final byte[] array =
 			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
 		return array[index - 1] & 0xFF;

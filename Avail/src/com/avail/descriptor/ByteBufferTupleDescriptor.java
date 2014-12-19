@@ -309,18 +309,6 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	short o_RawByteAt (
-		final AvailObject object,
-		final int index)
-	{
-		// Answer the byte at the given index.
-		assert index >= 1 && index <= object.tupleSize();
-		final ByteBuffer buffer =
-			(ByteBuffer) object.slot(BYTE_BUFFER).javaObjectNotNull();
-		return (short) (buffer.get(index - 1) & 0xFF);
-	}
-
-	@Override @AvailMethod
 	void o_RawByteAtPut (
 		final AvailObject object,
 		final int index,
@@ -339,6 +327,7 @@ extends TupleDescriptor
 	int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		// Answer the integer element at the given index in the tuple object.
+		assert index >= 1 && index <= object.tupleSize();
 		final ByteBuffer buffer =
 			(ByteBuffer) object.slot(BYTE_BUFFER).javaObjectNotNull();
 		return buffer.get(index - 1) & 0xFF;
@@ -364,7 +353,7 @@ extends TupleDescriptor
 		{
 			// Remember to adjust between 1-based inclusive and 0-based
 			// inclusive/exclusive.
-			result.rawByteAtPut(size-i+1, originalBuffer.get(i - 1));
+			result.rawByteAtPut(size - i + 1, originalBuffer.get(i - 1));
 		}
 		result.hashOrZero(0);
 		return result;
@@ -593,6 +582,7 @@ extends TupleDescriptor
 	 */
 	public static AvailObject forByteBuffer (final ByteBuffer buffer)
 	{
+		assert buffer.position() == 0;
 		final AvailObject wrapped = RawPojoDescriptor.identityWrap(buffer);
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(HASH_OR_ZERO, 0);
