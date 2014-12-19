@@ -57,6 +57,8 @@ Names
 	"UUID",
 	"a UUID",
 
+	"SHA-_digest of_",
+
 	"serialize_",
 	"deserialize_based on_",
 
@@ -927,3 +929,38 @@ Public method "deserialize_based on_" is
 	Primitive 271 (failureCode : deserialization-failed code's type);
 	Invoke early failure function with <failureCode>
 ] : any*;
+
+/**
+ * Compute the cryptographic message digest of the specified {@type "tuple"} of
+ * {@type "byte"}s. Use the indicated algorithm, one of:
+ *
+ * <ul>
+ * <li>SHA-1</li>
+ * <li>SHA-256</li>
+ * <li>SHA-384</li>
+ * <li>SHA-512</li>
+ * </ul>
+ *
+ * @method "SHA-_digest of_"
+ * @param "algorithm" "{1, 256, 384, 512}ᵀ"
+ * @param "bytes" "byte*"
+ * @returns "byte+"
+ */
+Public stable method "SHA-_digest of_" is
+[
+	algorithm : {1, 256, 384, 512}ᵀ,
+	bytes : byte*
+|
+	Primitive 145;
+] : byte+;
+
+Semantic restriction "SHA-_digest of_" is
+[
+	algorithm : {1, 256, 384, 512}ᵀ's type,
+	bytes : byte*'s type
+|
+	sizes ::= {1 → 20, 256 → 32, 384 → 48, 512 → 64};
+	low ::= cast sizes[⎣algorithm⎦] into [t : natural number | t];
+	high ::= cast sizes[⎡algorithm⎤] into [t : natural number | t];
+	<<>, byte… | [low .. high]>
+];

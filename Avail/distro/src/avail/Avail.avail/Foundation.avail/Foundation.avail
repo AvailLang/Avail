@@ -904,7 +904,7 @@ Extends
 		"Await__time|times",
 		"Join_",
 		"Join_,then honor a termination request",
-		"Lock_for_",
+		"Lock|lock_for_",
 		"Park current fiber,then honor a termination request",
 		"Signal_",
 		"Signal__time|times",
@@ -923,7 +923,6 @@ Extends
 		"condition exception",
 		"counting semaphore",
 		"dequeue_from_",
-		"lock_for_",
 		"monitor",
 		"non-reentrant mutex",
 		"parking queue",
@@ -946,6 +945,7 @@ Extends
 	"Tuples" =
 	(
 		"Require:_accepts_«(check indices)»?",
+		"SHA-_digest of_",
 		"UUID",
 		"a UUID",
 		"all indices of_in_",
