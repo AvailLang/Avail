@@ -3878,7 +3878,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final A_Tuple aByteArrayTuple)
 	{
-		throw unsupportedOperationException();
+		return false;
 	}
 
 	@Override
