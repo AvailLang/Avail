@@ -237,6 +237,14 @@ Public method "Before running_,⁇do_" is
 		before ::= suite's suite fixture setup ++ <setup>;
 		suites by atom :=
 			suites by atom + id→suite's suite fixture setup ::= before;
+		After the current module is unloaded, do
+		[
+			Lock suite lock for
+			[
+				suites by atom := suites by atom + id
+					→suite's suite fixture setup ::= (before - setup);
+			];
+		];
 	];
 ] : ⊤;
 
@@ -287,6 +295,14 @@ Public method "Before running each test in_,⁇do_" is
 		before ::= suite's test fixture setup ++ <setup>;
 		suites by atom :=
 			suites by atom + id→suite's test fixture setup ::= before;
+		After the current module is unloaded, do
+		[
+			Lock suite lock for
+			[
+				suites by atom := suites by atom + id
+					→suite's test fixture setup ::= (before - setup);
+			];
+		];
 	];
 ] : ⊤;
 
@@ -336,6 +352,14 @@ Public method "After running_,⁇do_" is
 		after ::= suite's suite fixture tear down ++ <tearDown>;
 		suites by atom :=
 			suites by atom + id→suite's suite fixture tear down ::= after;
+		After the current module is unloaded, do
+		[
+			Lock suite lock for
+			[
+				suites by atom := suites by atom + id
+					→suite's suite fixture tear down ::= (after - tearDown);
+			];
+		];
 	];
 ] : ⊤;
 
@@ -369,6 +393,14 @@ Public method "After running each test in_,⁇do_" is
 		after ::= suite's test fixture tear down ++ <tearDown>;
 		suites by atom :=
 			suites by atom + id→suite's test fixture tear down ::= after;
+		After the current module is unloaded, do
+		[
+			Lock suite lock for
+			[
+				suites by atom := suites by atom + id
+					→suite's test fixture tear down ::= (after - tearDown);
+			];
+		];
 	];
 ] : ⊤;
 
