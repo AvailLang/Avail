@@ -37,7 +37,7 @@ import java.util.List;
 import com.avail.annotations.Nullable;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
-import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;
 
 /**
@@ -69,7 +69,7 @@ extends Primitive
 		{
 			splitter = new MessageSplitter(name);
 		}
-		catch (final SignatureException e)
+		catch (final MalformedMessageException e)
 		{
 			return interpreter.primitiveFailure(e);
 		}

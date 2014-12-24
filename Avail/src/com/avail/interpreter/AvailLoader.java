@@ -211,6 +211,8 @@ public final class AvailLoader
 	 * @param extendGrammar
 	 *        {@code true} if the method name should be added to the current
 	 *        module's bundle tree, {@code false} otherwise.
+	 * @throws MalformedMessageException
+	 *         If the message name is malformed.
 	 * @throws SignatureException
 	 *         If the signature is invalid.
 	 */
@@ -218,12 +220,13 @@ public final class AvailLoader
 			final A_Atom methodName,
 			final A_Function bodyBlock,
 			final boolean extendGrammar)
-		throws SignatureException
+		throws MalformedMessageException, SignatureException
 	{
 		assert methodName.isAtom();
 		assert bodyBlock.isFunction();
 
-		final MessageSplitter splitter = new MessageSplitter(methodName.atomName());
+		final MessageSplitter splitter =
+			new MessageSplitter(methodName.atomName());
 		splitter.checkImplementationSignature(bodyBlock.kind());
 		final int numArgs = splitter.numberOfArguments();
 		if (bodyBlock.code().numArgs() != numArgs)
@@ -315,17 +318,20 @@ public final class AvailLoader
 	 *        A {@linkplain AtomDescriptor method name}.
 	 * @param bodySignature
 	 *        A {@linkplain MethodDefinitionDescriptor method signature}.
+	 * @throws MalformedMessageException
+	 *         If the message name is malformed.
 	 * @throws SignatureException
-	 *         If the signature is malformed.
+	 *         If there is a problem with the signature.
 	 */
 	public final void addForwardStub (
 			final A_Atom methodName,
 			final A_Type bodySignature)
-		throws SignatureException
+		throws MalformedMessageException, SignatureException
 	{
 		methodName.makeShared();
 		bodySignature.makeShared();
-		final MessageSplitter splitter = new MessageSplitter(methodName.atomName());
+		final MessageSplitter splitter =
+			new MessageSplitter(methodName.atomName());
 		splitter.checkImplementationSignature(bodySignature);
 		final A_Type bodyArgsTupleType = bodySignature.argsTupleType();
 		//  Add the stubbed method definition.
@@ -389,13 +395,15 @@ public final class AvailLoader
 	 *        A {@linkplain AtomDescriptor method name}.
 	 * @param bodySignature
 	 *        The {@linkplain MethodDefinitionDescriptor method signature}.
+	 * @throws MalformedMessageException
+	 *         If the message name is malformed.
 	 * @throws SignatureException
-	 *         If the signature is malformed.
+	 *         If there is a problem with the signature.
 	 */
 	public final void addAbstractSignature (
 			final A_Atom methodName,
 			final A_Type bodySignature)
-		throws SignatureException
+		throws MalformedMessageException, SignatureException
 	{
 		final MessageSplitter splitter = new MessageSplitter(
 			methodName.atomName());
@@ -486,6 +494,8 @@ public final class AvailLoader
 	 * @param macroBody
 	 *        A {@linkplain FunctionDescriptor function} that manipulates parse
 	 *        nodes.
+	 * @throws MalformedMessageException
+	 *         If the macro signature is malformed.
 	 * @throws SignatureException
 	 *         If the macro signature is invalid.
 	 */
@@ -493,7 +503,7 @@ public final class AvailLoader
 			final A_Atom methodName,
 			final A_Tuple prefixFunctions,
 			final A_Function macroBody)
-		throws SignatureException
+		throws MalformedMessageException, SignatureException
 	{
 		assert methodName.isAtom();
 		assert macroBody.isFunction();
@@ -610,13 +620,15 @@ public final class AvailLoader
 	 *        The method name, an {@linkplain AtomDescriptor atom}.
 	 * @param seal
 	 *        The signature at which to seal the method.
+	 * @throws MalformedMessageException
+	 *         If the macro signature is malformed.
 	 * @throws SignatureException
-	 *         If the signature is invalid.
+	 *         If the macro signature is invalid.
 	 */
 	public final void addSeal (
 			final A_Atom methodName,
 			final A_Tuple seal)
-		throws SignatureException
+		throws MalformedMessageException, SignatureException
 	{
 		assert methodName.isAtom();
 		assert seal.isTuple();
@@ -646,13 +658,15 @@ public final class AvailLoader
 	 *        The {@linkplain TupleDescriptor tuple} of {@linkplain
 	 *        SetDescriptor sets} of {@linkplain AtomDescriptor atoms} that name
 	 *        methods.
+	 * @throws MalformedMessageException
+	 *         If one of the specified names is inappropriate as a method name.
 	 * @throws SignatureException
 	 *         If one of the specified names is inappropriate as a method name.
 	 */
 	public void addGrammaticalRestrictions (
 			final A_Atom methodName,
 			final A_Tuple illegalArgMsgs)
-		throws SignatureException
+		throws MalformedMessageException, SignatureException
 	{
 		methodName.makeShared();
 		illegalArgMsgs.makeShared();

@@ -39,7 +39,7 @@ import java.util.*;
 import org.junit.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
-import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.MalformedMessageException;
 
 /**
  * Test the {@link MessageSplitter}.  It splits method names into a sequence of
@@ -1045,10 +1045,10 @@ public class MessageSplitterTest
 	/**
 	 * Test: Split the test cases.
 	 *
-	 * @throws SignatureException If the message name is malformed.
+	 * @throws MalformedMessageException If the message name is malformed.
 	 */
 	@Test
-	public void testSplitting () throws SignatureException
+	public void testSplitting () throws MalformedMessageException
 	{
 		for (final Case splitCase : splitCases)
 		{

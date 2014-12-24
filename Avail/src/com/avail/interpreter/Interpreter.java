@@ -42,6 +42,7 @@ import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import static java.lang.Math.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.*;
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
@@ -2214,37 +2215,51 @@ public final class Interpreter
 		final List<? extends A_BasicObject> values,
 		final Continuation1<List<String>> continuation)
 	{
-		final int limit = values.size();
-		if (limit == 0)
+		final int valuesCount = values.size();
+		if (valuesCount == 0)
 		{
 			continuation.value(Collections.<String>emptyList());
 			return;
 		}
-		final Mutable<Integer> outstanding = new Mutable<>(limit);
-		final String[] strings = new String[limit];
-		for (int i = 0; i < limit; i++)
+		// Deduplicate the list of values for performance…
+		final Map<A_BasicObject, List<Integer>> map =
+			new HashMap<>(valuesCount);
+		for (int i = 0; i < values.size(); i++)
 		{
-			final int finalI = i;
+			final A_BasicObject value = values.get(i);
+			List<Integer> indices = map.get(value);
+			if (indices == null)
+			{
+				indices = new ArrayList<>();
+				map.put(value, indices);
+			}
+			indices.add(i);
+		}
+		final AtomicInteger outstanding = new AtomicInteger(map.size());
+		final String[] strings = new String[valuesCount];
+		for (final Map.Entry<A_BasicObject, List<Integer>> entry
+			: map.entrySet())
+		{
+			final List<Integer> indicesToWrite = entry.getValue();
 			stringifyThen(
 				runtime,
 				textInterface,
-				values.get(finalI),
+				entry.getKey(),
 				new Continuation1<String>()
 				{
 					@Override
 					public void value (final @Nullable String arg)
 					{
 						assert arg != null;
-						strings[finalI] = arg;
-						synchronized (outstanding)
+						for (final int indexToWrite : indicesToWrite)
 						{
-							outstanding.value--;
-							if (outstanding.value == 0)
-							{
-								final List<String> stringList =
-									Arrays.asList(strings);
-								continuation.value(stringList);
-							}
+							strings[indexToWrite] = arg;
+						}
+						if (outstanding.decrementAndGet() == 0)
+						{
+							final List<String> stringList =
+								Arrays.asList(strings);
+							continuation.value(stringList);
 						}
 					}
 				});

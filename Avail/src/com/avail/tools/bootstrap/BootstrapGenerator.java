@@ -226,7 +226,6 @@ public final class BootstrapGenerator
 			moduleVersionString(versions),
 			preamble.getString(bootstrapDefiningMethod.name()),
 			preamble.getString(bootstrapSpecialObject.name()),
-			preamble.getString(bootstrapStringifier.name()),
 			vmVersionString(versions)));
 	}
 

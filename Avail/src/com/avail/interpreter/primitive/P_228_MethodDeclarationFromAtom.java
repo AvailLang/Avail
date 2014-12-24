@@ -42,6 +42,7 @@ import java.util.List;
 import com.avail.*;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 import com.avail.utility.evaluation.*;
@@ -102,7 +103,9 @@ extends Primitive
 								NilDescriptor.nil(),
 								skipReturnCheck);
 						}
-						catch (final SignatureException e)
+						catch (
+							final MalformedMessageException
+								| SignatureException e)
 						{
 							Interpreter.resumeFromFailedPrimitive(
 								AvailRuntime.current(),

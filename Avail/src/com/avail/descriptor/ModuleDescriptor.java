@@ -40,7 +40,7 @@ import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.exceptions.AvailRuntimeException;
-import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.json.JSONWriter;
@@ -766,7 +766,7 @@ extends Descriptor
 									{
 										runtime.removeSeal(methodName, seal);
 									}
-									catch (final SignatureException e)
+									catch (final MalformedMessageException e)
 									{
 										assert false
 											: "This should not happen!";

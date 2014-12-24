@@ -86,7 +86,7 @@ extends Primitive
 					atom,
 					exclusionsTuple);
 			}
-			catch (final SignatureException e)
+			catch (final MalformedMessageException | SignatureException e)
 			{
 				return interpreter.primitiveFailure(e);
 			}

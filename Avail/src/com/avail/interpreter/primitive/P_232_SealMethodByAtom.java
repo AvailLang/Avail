@@ -77,7 +77,9 @@ extends Primitive
 		{
 			loader.addSeal(methodName, sealSignature);
 		}
-		catch (final SignatureException e)
+		catch (
+			final MalformedMessageException
+				| SignatureException e)
 		{
 			return interpreter.primitiveFailure(e);
 		}

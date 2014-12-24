@@ -38,7 +38,10 @@ Uses
 	"Very Early Definers"
 Names
 	"<«_‡,»>",
-	"{«_‡,»}"
+	"{«_‡,»}",
+	"“_”"
+Pragma
+	"stringify=“_”"
 Body
 
 /**

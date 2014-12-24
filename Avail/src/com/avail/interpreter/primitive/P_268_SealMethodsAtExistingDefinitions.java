@@ -39,7 +39,7 @@ import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailRuntimeException;
-import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;
 
 /**
@@ -103,7 +103,7 @@ extends Primitive
 								runtime.addSeal(name, signature);
 								module.addSeal(name, signature);
 							}
-							catch (final SignatureException e)
+							catch (final MalformedMessageException e)
 							{
 								assert false : "This should not happen!";
 								throw new AvailRuntimeException(e.errorCode());

@@ -229,7 +229,6 @@ Extends
 		"{_`|_}",
 		"{_→_`|_}",
 		"‘_’",
-		"“_”",
 		"`↑_",
 		"↓_",
 		"∪_",
@@ -381,7 +380,7 @@ Extends
 		"declaration-kind-does-not-support-assignment code",
 		"declaration-kind-does-not-support-reference code",
 		"directory-not-empty code",
-		"double-question-mark-must-follow-a-simple-or-simple-group code",
+		"double-question-mark-must-follow-a-token-or-simple-group code",
 		"exceeds-vm-limit code",
 		"exclamation-mark-must-follow-an-alternation-group code",
 		"expected-operator-after-backquote code",
@@ -444,7 +443,7 @@ Extends
 		"unbalanced-guillemets code",
 		"untimely-parse-rejection code",
 		"unwind-sentinel code",
-		"vertical-bar-must-follow-a-simple-or-simple-group code",
+		"vertical-bar-must-separate-tokens-or-simple-groups code",
 		"wrong-outers code"
 	),
 	"Casts" =
@@ -540,6 +539,10 @@ Extends
 		"If_then_",
 		"If|if_then_else_"
 	),
+	"Early Literals" =
+	(
+		"“_”"
+	),
 	"Enumeration Support" =
 	(
 		"{_}ᵀ",
@@ -618,7 +621,7 @@ Extends
 		"deserialization-failed exception",
 		"descriptive_",
 		"directory-not-empty exception",
-		"double-question-mark-must-follow-a-simple-or-simple-group exception",
+		"double-question-mark-must-follow-a-token-or-simple-group exception",
 		"element-access exception",
 		"empty-format-variable exception",
 		"error message",
@@ -697,7 +700,7 @@ Extends
 		"untimely-parse-rejection exception",
 		"unwind-sentinel exception",
 		"variable-use exception",
-		"vertical-bar-must-follow-a-simple-or-simple-group exception",
+		"vertical-bar-must-separate-tokens-or-simple-groups exception",
 		"wrong-outers exception",
 		"_caused by_",
 		"_'s⁇causal exception",

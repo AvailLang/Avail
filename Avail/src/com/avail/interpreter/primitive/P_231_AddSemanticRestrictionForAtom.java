@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.List;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 
@@ -92,7 +93,7 @@ extends Primitive
 					interpreter.module());
 			loader.addSemanticRestriction(restriction);
 		}
-		catch (final SignatureException e)
+		catch (final MalformedMessageException | SignatureException e)
 		{
 			return interpreter.primitiveFailure(e);
 		}

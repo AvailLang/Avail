@@ -90,11 +90,10 @@ extends Primitive
 					interpreter.module());
 			loader.addSemanticRestriction(restriction);
 		}
-		catch (final AmbiguousNameException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
-		catch (final SignatureException e)
+		catch (
+			final MalformedMessageException
+				| AmbiguousNameException
+				| SignatureException e)
 		{
 			return interpreter.primitiveFailure(e);
 		}

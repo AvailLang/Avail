@@ -44,6 +44,7 @@ import com.avail.compiler.scanning.AvailScanner;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.exceptions.*;
+import com.avail.utility.Generator;
 
 /**
  * {@code MessageSplitter} is used to split Avail message names into a sequence
@@ -74,9 +75,9 @@ public class MessageSplitter
 			E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP.numericCode(),
 			E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP.numericCode(),
 			E_TILDE_MUST_NOT_FOLLOW_ARGUMENT.numericCode(),
-			E_VERTICAL_BAR_MUST_FOLLOW_A_SIMPLE_OR_SIMPLE_GROUP.numericCode(),
+			E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS.numericCode(),
 			E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP.numericCode(),
-			E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_OR_SIMPLE_GROUP
+			E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_TOKEN_OR_SIMPLE_GROUP
 				.numericCode(),
 			E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION.numericCode(),
 			E_EXPECTED_OPERATOR_AFTER_BACKQUOTE.numericCode(),
@@ -85,7 +86,8 @@ public class MessageSplitter
 	/**
 	 * The Avail string to be parsed.
 	 */
-	private final A_String messageName;
+	@InnerAccess
+	final A_String messageName;
 
 	/**
 	 * The individual tokens ({@linkplain StringDescriptor strings})
@@ -126,8 +128,13 @@ public class MessageSplitter
 	 * another backquote.</li>
 	 * </ul></p>
 	 */
-	final List<A_String> messageParts =
-		new ArrayList<>(10);
+	final List<A_String> messageParts = new ArrayList<>(10);
+
+	/**
+	 * A collection of one-based positions in the original string, corresponding
+	 * to the {@link #messageParts} that have been extracted.
+	 */
+	final List<Integer> messagePartPositions = new ArrayList<>(10);
 
 	/** The current one-based parsing position in the list of tokens. */
 	private int messagePartPosition;
@@ -767,6 +774,13 @@ public class MessageSplitter
 		 * (‡) has been encountered in the tokens for this group.
 		 */
 		boolean hasDagger = false;
+
+		/**
+		 * If a {@linkplain StringDescriptor#doubleDagger() double dagger} (‡)
+		 * has been encountered, this holds the one-based index of the {@link
+		 * #messageParts message part} that was the double dagger.
+		 */
+		int daggerPosition = -1;
 
 		/**
 		 * How many {@linkplain StringDescriptor#underscore() argument tokens}
@@ -2490,11 +2504,11 @@ public class MessageSplitter
 	 * @param messageName
 	 *        An Avail {@linkplain StringDescriptor string} specifying the
 	 *        keywords and arguments of some message being defined.
-	 * @throws SignatureException
+	 * @throws MalformedMessageException
 	 *         If the message name is malformed.
 	 */
 	public MessageSplitter (final A_String messageName)
-		throws SignatureException
+		throws MalformedMessageException
 	{
 		this.messageName = messageName;
 		messageName.makeImmutable();
@@ -2503,11 +2517,17 @@ public class MessageSplitter
 		rootGroup = parseGroup();
 		if (rootGroup.hasDagger)
 		{
-			throwSignatureException(E_INCORRECT_USE_OF_DOUBLE_DAGGER);
+			throwMalformedMessageException(
+				E_INCORRECT_USE_OF_DOUBLE_DAGGER,
+				rootGroup.daggerPosition,
+				"Double-dagger (‡) must not occur unquoted outside a group");
 		}
 		if (messagePartPosition != messageParts.size() + 1)
 		{
-			throwSignatureException(E_UNBALANCED_GUILLEMETS);
+			throwMalformedMessageException(
+				E_UNBALANCED_GUILLEMETS,
+				messagePartPosition,
+				"Close guillemet (») had no corresponding open guillemet («)");
 		}
 		// Emit it twice -- once to calculate the branch positions, and then
 		// again to output using the correct branches.
@@ -2619,11 +2639,11 @@ public class MessageSplitter
 	 * Do not do any semantic analysis here, not even backquote processing –
 	 * that would lead to confusion over whether an operator was supposed to be
 	 * treated as a special token like open-guillemet («) rather than like a
-	 * backquote-escaped token).
+	 * backquote-escaped open-guillemet token.
 	 *
-	 * @throws SignatureException If the signature is invalid.
+	 * @throws MalformedMessageException If the signature is invalid.
 	 */
-	private void splitMessage () throws SignatureException
+	private void splitMessage () throws MalformedMessageException
 	{
 		if (messageName.tupleSize() == 0)
 		{
@@ -2639,8 +2659,16 @@ public class MessageSplitter
 					|| isCharacterAnUnderscoreOrSpaceOrOperator(
 						(char) messageName.tupleAt(position - 1).codePoint()))
 				{
-					// Problem is before the space.
-					throwSignatureException(E_METHOD_NAME_IS_NOT_CANONICAL);
+					// Problem is before the space.  Stuff the rest of the input
+					// in as a final token to make diagnostics look right.
+					messageParts.add(
+						(A_String)messageName.copyTupleFromToCanDestroy(
+							position, messageName.tupleSize(), false));
+					messagePartPositions.add(position);
+					throwMalformedMessageException(
+						E_METHOD_NAME_IS_NOT_CANONICAL,
+						messageParts.size() - 1,
+						"Expected alphanumeric character before space");
 				}
 				//  Skip the space.
 				position++;
@@ -2649,7 +2677,14 @@ public class MessageSplitter
 							(char) messageName.tupleAt(position).codePoint()))
 				{
 					// Problem is after the space.
-					throwSignatureException(E_METHOD_NAME_IS_NOT_CANONICAL);
+					messageParts.add(
+						(A_String)messageName.copyTupleFromToCanDestroy(
+							position, messageName.tupleSize(), false));
+					messagePartPositions.add(position);
+					throwMalformedMessageException(
+						E_METHOD_NAME_IS_NOT_CANONICAL,
+						messageParts.size(),
+						"Expected alphanumeric character after space");
 				}
 			}
 			else if (isCharacterAnUnderscoreOrSpaceOrOperator(ch))
@@ -2659,10 +2694,12 @@ public class MessageSplitter
 						position,
 						position,
 						false)));
+				messagePartPositions.add(position);
 				position++;
 			}
 			else
 			{
+				messagePartPositions.add(position);
 				final int start = position;
 				while (position <= messageName.tupleSize()
 						&& !isCharacterAnUnderscoreOrSpaceOrOperator(
@@ -2697,21 +2734,40 @@ public class MessageSplitter
 	 *
 	 * @return A {@link Group} expression parsed from the {@link #messageParts}.
 	 *
-	 * @throws SignatureException If the method name is malformed.
+	 * @throws MalformedMessageException If the method name is malformed.
 	 */
-	Group parseGroup () throws SignatureException
+	Group parseGroup ()
+		throws MalformedMessageException
 	{
 		List<Expression> alternatives = new ArrayList<Expression>();
+		boolean justParsedVerticalBar = false;
 		final Group group = new Group();
 		while (true)
 		{
+			assert !justParsedVerticalBar || !alternatives.isEmpty();
 			if (messagePartPosition > messageParts.size())
 			{
+				if (justParsedVerticalBar)
+				{
+					throwMalformedMessageException(
+						E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS,
+						messagePartPosition,
+						"A vertical bar (|) may only separate tokens or simple "
+						+ "groups");
+				}
 				return group;
 			}
 			A_String token = messageParts.get(messagePartPosition - 1);
 			if (token.equals(closeGuillemet()))
 			{
+				if (justParsedVerticalBar)
+				{
+					throwMalformedMessageException(
+						E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS,
+						messagePartPosition,
+						"A vertical bar (|) may only separate tokens or simple "
+						+ "groups");
+				}
 				return group;
 			}
 			else if (token.equals(underscore()))
@@ -2719,8 +2775,10 @@ public class MessageSplitter
 				if (alternatives.size() > 0)
 				{
 					// Alternations may not contain arguments.
-					throwSignatureException(
-						E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS);
+					throwMalformedMessageException(
+						E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS,
+						messagePartPosition,
+						"Alternations must not contain arguments");
 				}
 				messagePartPosition++;
 				Argument argument = null;
@@ -2754,8 +2812,10 @@ public class MessageSplitter
 				if (alternatives.size() > 0)
 				{
 					// Alternations may not contain arguments.
-					throwSignatureException(
-						E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS);
+					throwMalformedMessageException(
+						E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS,
+						messagePartPosition,
+						"Alternations must not contain arguments");
 				}
 				group.addExpression(new RawTokenArgument());
 				messagePartPosition++;
@@ -2765,45 +2825,66 @@ public class MessageSplitter
 				if (group.hasDagger)
 				{
 					// Two daggers were encountered in a group.
-					throwSignatureException(E_INCORRECT_USE_OF_DOUBLE_DAGGER);
+					throwMalformedMessageException(
+						E_INCORRECT_USE_OF_DOUBLE_DAGGER,
+						messagePartPosition,
+						"A group must have at most one double-dagger (‡)");
 				}
 				if (alternatives.size() > 0)
 				{
-					// Alternations may not contain arguments.
-					throwSignatureException(
-						E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS);
+					// Alternations may not contain arguments (or ‡).
+					throwMalformedMessageException(
+						E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS,
+						messagePartPosition,
+						"Alternations must not contain a double-dagger");
 				}
 				group.hasDagger = true;
+				group.daggerPosition = messagePartPosition;
 				messagePartPosition++;
 			}
 			else if (token.equals(octothorp()))
 			{
-				throwSignatureException(
-					E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP);
+				throwMalformedMessageException(
+					E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP,
+					messagePartPosition,
+					"An octothorp (#) may only follow a simple group («»)");
 			}
 			else if (token.equals(questionMark()))
 			{
-				throwSignatureException(
-					E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP);
+				throwMalformedMessageException(
+					E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP,
+					messagePartPosition,
+					"A question mark (?) may only follow a simple group («»)");
 			}
 			else if (token.equals(tilde()))
 			{
-				throwSignatureException(E_TILDE_MUST_NOT_FOLLOW_ARGUMENT);
+				throwMalformedMessageException(
+					E_TILDE_MUST_NOT_FOLLOW_ARGUMENT,
+					messagePartPosition,
+					"A tilde (~) must not follow an argument");
 			}
 			else if (token.equals(verticalBar()))
 			{
-				throwSignatureException(
-					E_VERTICAL_BAR_MUST_FOLLOW_A_SIMPLE_OR_SIMPLE_GROUP);
+				throwMalformedMessageException(
+					E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS,
+					messagePartPosition,
+					"A vertical bar (|) may only separate tokens or simple "
+					+ "groups");
 			}
 			else if (token.equals(exclamationMark()))
 			{
-				throwSignatureException(
-					E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP);
+				throwMalformedMessageException(
+					E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP,
+					messagePartPosition,
+					"An exclamation mark (!) may only follow an alternation "
+					+ "group");
 			}
 			else if (token.equals(upArrow()))
 			{
-				throwSignatureException(
-					E_UP_ARROW_MUST_FOLLOW_ARGUMENT);
+				throwMalformedMessageException(
+					E_UP_ARROW_MUST_FOLLOW_ARGUMENT,
+					messagePartPosition,
+					"An up-arrow (↑) may only follow an argument");
 			}
 			else if (token.equals(openGuillemet()))
 			{
@@ -2811,6 +2892,7 @@ public class MessageSplitter
 				// close guillemet, and add the group.
 				messagePartPosition++;
 				final Group subgroup = parseGroup();
+				justParsedVerticalBar = false;
 				if (messagePartPosition <= messageParts.size())
 				{
 					token = messageParts.get(messagePartPosition - 1);
@@ -2819,7 +2901,10 @@ public class MessageSplitter
 				if (!token.equals(closeGuillemet()))
 				{
 					// Expected matching close guillemet.
-					throwSignatureException(E_UNBALANCED_GUILLEMETS);
+					throwMalformedMessageException(
+						E_UNBALANCED_GUILLEMETS,
+						messagePartPosition,
+						"Expected close guillemet (») to end group");
 				}
 				messagePartPosition++;
 				// Try to parse a counter, optional, and/or case-insensitive.
@@ -2832,8 +2917,11 @@ public class MessageSplitter
 						if (subgroup.underscoreCount() > 0)
 						{
 							// Counting group may not contain arguments.
-							throwSignatureException(
-								E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP);
+							throwMalformedMessageException(
+								E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP,
+								messagePartPosition,
+								"An octothorp (#) may only follow a simple "
+								+ "group");
 						}
 						subexpression = new Counter(subgroup);
 						messagePartPosition++;
@@ -2844,8 +2932,12 @@ public class MessageSplitter
 							|| subgroup.hasDagger)
 						{
 							// Optional group may not contain arguments.
-							throwSignatureException(
-								E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP);
+							throwMalformedMessageException(
+								E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP,
+								messagePartPosition,
+								"A question mark (?) may only follow a simple "
+								+ "group, not one with a double-dagger (‡) or "
+								+ "arguments");
 						}
 						subexpression = new Optional(subgroup);
 						messagePartPosition++;
@@ -2857,8 +2949,12 @@ public class MessageSplitter
 						{
 							// Completely optional group may not contain
 							// arguments or double daggers.
-							throwSignatureException(
-								E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_OR_SIMPLE_GROUP);
+							throwMalformedMessageException(
+								E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_TOKEN_OR_SIMPLE_GROUP,
+								messagePartPosition,
+								"A double question mark (⁇) may only follow "
+								+ "a token or simple group, not one with a "
+								+ "double-dagger (‡) or arguments");
 						}
 						subexpression = new CompletelyOptional(subgroup);
 						messagePartPosition++;
@@ -2874,11 +2970,16 @@ public class MessageSplitter
 							// Numbered choice group may not contain
 							// underscores.  The group must also consist of an
 							// alternation.
-							throwSignatureException(
-								E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP);
+							throwMalformedMessageException(
+								E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP,
+								messagePartPosition,
+								"An exclamation mark (!) may only follow an "
+								+ "alternation group");
 						}
-						subexpression = new NumberedChoice(
-							(Alternation)(subgroup.expressionsBeforeDagger.get(0)));
+						final Expression alternation =
+							subgroup.expressionsBeforeDagger.get(0);
+						subexpression =
+							new NumberedChoice((Alternation)alternation);
 						messagePartPosition++;
 					}
 				}
@@ -2890,8 +2991,11 @@ public class MessageSplitter
 					{
 						if (!subexpression.isLowerCase())
 						{
-							throwSignatureException(
-								E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION);
+							throwMalformedMessageException(
+								E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION,
+								messagePartPosition,
+								"Tilde (~) may only occur after a lowercase "
+								+ "token or a group of lowercase tokens");
 						}
 						subexpression = new CaseInsensitive(subexpression);
 						messagePartPosition++;
@@ -2912,21 +3016,34 @@ public class MessageSplitter
 						alternatives = new ArrayList<Expression>();
 					}
 					group.addExpression(subexpression);
+					justParsedVerticalBar = false;
 				}
 				else
 				{
 					if (subexpression.underscoreCount() > 0)
 					{
 						// Alternations may not contain arguments.
-						throwSignatureException(
-							E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS);
+						throwMalformedMessageException(
+							E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS,
+							messagePartPosition,
+							"Alternatives must not contain arguments");
 					}
 					alternatives.add(subexpression);
 					messagePartPosition++;
+					justParsedVerticalBar = true;
 				}
 			}
 			else if (token.equals(sectionSign()))
 			{
+				if (alternatives.size() > 0)
+				{
+					throwMalformedMessageException(
+						E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS,
+						messagePartPosition,
+						"Alternative must not contain a section "
+						+ "checkpoint (§)");
+				}
+				assert !justParsedVerticalBar;
 				group.addExpression(new SectionCheckpoint());
 				messagePartPosition++;
 			}
@@ -2935,12 +3052,17 @@ public class MessageSplitter
 				// Parse a backquote.
 				if (token.equals(backQuote()))
 				{
-					messagePartPosition++;  // eat the backquote
+					// Eat the backquote.
+					justParsedVerticalBar = false;
+					messagePartPosition++;
 					if (messagePartPosition > messageParts.size())
 					{
 						// Expected operator character after backquote, not end.
-						throwSignatureException(
-							E_EXPECTED_OPERATOR_AFTER_BACKQUOTE);
+						throwMalformedMessageException(
+							E_EXPECTED_OPERATOR_AFTER_BACKQUOTE,
+							messagePartPosition,
+							"Backquote (`) must be followed by an operator "
+							+ "character");
 					}
 					token = messageParts.get(messagePartPosition - 1);
 					if (token.tupleSize() != 1
@@ -2948,11 +3070,15 @@ public class MessageSplitter
 							(char)token.tupleAt(1).codePoint()))
 					{
 						// Expected operator character after backquote.
-						throwSignatureException(
-							E_EXPECTED_OPERATOR_AFTER_BACKQUOTE);
+						throwMalformedMessageException(
+							E_EXPECTED_OPERATOR_AFTER_BACKQUOTE,
+							messagePartPosition,
+							"Backquote (`) must be followed by an operator "
+							+ "character");
 					}
 				}
 				// Parse a regular keyword or operator.
+				justParsedVerticalBar = false;
 				Expression subexpression = new Simple(messagePartPosition);
 				messagePartPosition++;
 				// Parse a completely optional.
@@ -2973,8 +3099,11 @@ public class MessageSplitter
 					{
 						if (!subexpression.isLowerCase())
 						{
-							throwSignatureException(
-								E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION);
+							throwMalformedMessageException(
+								E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION,
+								messagePartPosition,
+								"Tilde (~) may only occur after a lowercase "
+								+ "token or a group of lowercase tokens");
 						}
 						subexpression = new CaseInsensitive(subexpression);
 						messagePartPosition++;
@@ -2995,11 +3124,13 @@ public class MessageSplitter
 						alternatives = new ArrayList<Expression>();
 					}
 					group.addExpression(subexpression);
+					justParsedVerticalBar = false;
 				}
 				else
 				{
 					alternatives.add(subexpression);
 					messagePartPosition++;
+					justParsedVerticalBar = true;
 				}
 			}
 		}
@@ -3134,6 +3265,59 @@ public class MessageSplitter
 		throws SignatureException
 	{
 		throw new SignatureException(errorCode);
+	}
+
+	/**
+	 * Throw a {@link MalformedMessageException} with the given error code.
+	 *
+	 * @param errorCode
+	 *        The {@link AvailErrorCode} that indicates the problem.
+	 * @param messagePartIndex
+	 *        The zero-based index of the offending message part.
+	 * @param errorMessage
+	 *        A description of the problem.
+	 * @throws MalformedMessageException
+	 *         Always, with the given error code and diagnostic message.
+	 */
+	void throwMalformedMessageException (
+			final AvailErrorCode errorCode,
+			final int messagePartIndex,
+			final String errorMessage)
+		throws MalformedMessageException
+	{
+		throw new MalformedMessageException(
+			errorCode,
+			new Generator<String>()
+			{
+				@Override
+				public String value ()
+				{
+					final StringBuilder builder = new StringBuilder();
+					builder.append(errorMessage);
+					final String errorIndicator =
+						AbstractAvailCompiler.errorIndicatorSymbol;
+					builder.append(". See arrow (");
+					builder.append(errorIndicator);
+					builder.append(") in: \"");
+					final int characterIndex =
+						messagePartIndex > 0
+							? messagePartIndex <= messagePartPositions.size()
+								? messagePartPositions.get(messagePartIndex - 1)
+								: messageName.tupleSize() + 1
+							: 0;
+					final A_String before =
+						(A_String)messageName.copyTupleFromToCanDestroy(
+							1, characterIndex - 1, false);
+					final A_String after =
+						(A_String)messageName.copyTupleFromToCanDestroy(
+							characterIndex, messageName.tupleSize(), false);
+					builder.append(before.asNativeString());
+					builder.append(errorIndicator);
+					builder.append(after.asNativeString());
+					builder.append("\"");
+					return builder.toString();
+				}
+			});
 	}
 
 	/**

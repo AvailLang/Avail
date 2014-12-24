@@ -39,7 +39,7 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.levelTwo.L2Chunk;
 
 /**
@@ -1517,7 +1517,7 @@ public enum SerializerOperation
 			{
 				return atom.bundleOrCreate();
 			}
-			catch (final SignatureException e)
+			catch (final MalformedMessageException e)
 			{
 				throw new RuntimeException(
 					"Bundle should not have been serialized with malformed "

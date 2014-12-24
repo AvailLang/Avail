@@ -1,5 +1,5 @@
 /**
- * SignatureException.java
+ * MalformedMessageException.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,38 +32,56 @@
 
 package com.avail.exceptions;
 
-import com.avail.descriptor.*;
+import com.avail.compiler.MessageSplitter;
+import com.avail.utility.Generator;
 
 /**
- * A {@code SignatureException} is thrown when a {@linkplain
- * DefinitionDescriptor definition} of a method is invalid.  This might indicate
- * a compatibility problem between the argument signature and the message name,
- * or perhaps an inconsistency between the signature and other signatures
- * already installed in the system.
- *
- * <p>Note that this is distinct from a {@link MalformedMessageException}, which
- * indicates a syntactic error in the message name itself.</p>
+ * A {@code MalformedMessageException} is thrown when a method name is malformed
+ * and therefore cannot be converted to parsing instructions.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @see DefinitionDescriptor
- * @see MalformedMessageException
+ *
+ * @see SignatureException
  */
-public final class SignatureException
+public final class MalformedMessageException
 extends AvailException
 {
 	/** The serial version identifier. */
-	private static final long serialVersionUID = -1062035730137304902L;
+	private static final long serialVersionUID = -1566262280388678301L;
 
 	/**
-	 * Construct a new {@link SignatureException} with the specified {@linkplain
-	 * AvailErrorCode error code}.
+	 * A {@link Generator} that can produce a description of what the problem
+	 * is with the message name.
+	 */
+	private final Generator<String> describer;
+
+	/**
+	 * Construct a new {@link MalformedMessageException} with the specified
+	 * {@linkplain AvailErrorCode error code} and the specified {@link
+	 * Generator} that describes the problem.
 	 *
 	 * @param errorCode
 	 *        The {@linkplain AvailErrorCode error code}.
+	 * @param describer
+	 *        A {@link Generator} that produces a {@link String} describing what
+	 *        was malformed about the signature that failed to be parsed by a
+	 *        {@link MessageSplitter}.
 	 */
-	public SignatureException (
-		final AvailErrorCode errorCode)
+	public MalformedMessageException (
+		final AvailErrorCode errorCode,
+		final Generator<String> describer)
 	{
 		super(errorCode);
+		this.describer = describer;
+	}
+
+	/**
+	 * Answer a description of how the signature is malformed.
+	 *
+	 * @return A description of what is wrong with the signature being analyzed.
+	 */
+	public String describeProblem ()
+	{
+		return describer.value();
 	}
 }

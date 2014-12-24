@@ -50,7 +50,13 @@ import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
-import com.avail.exceptions.*;
+import com.avail.exceptions.AvailErrorCode;
+import com.avail.exceptions.AvailException;
+import com.avail.exceptions.MalformedMessageException;
+import com.avail.exceptions.MethodDefinitionException;
+import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.VariableGetException;
+import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
@@ -4181,7 +4187,7 @@ extends AbstractDescriptor
 
 	@Override
 	A_Bundle o_BundleOrCreate (final AvailObject object)
-		throws SignatureException
+		throws MalformedMessageException
 	{
 		throw unsupportedOperationException();
 	}

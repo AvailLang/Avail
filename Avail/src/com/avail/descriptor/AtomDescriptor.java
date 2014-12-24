@@ -43,7 +43,7 @@ import com.avail.AvailRuntime.FileHandle;
 import com.avail.annotations.*;
 import com.avail.compiler.AbstractAvailCompiler.ParserState;
 import com.avail.compiler.MessageSplitter;
-import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.serialization.*;
 import com.avail.utility.json.JSONWriter;
 
@@ -343,7 +343,7 @@ extends Descriptor
 
 	@Override
 	A_Bundle o_BundleOrCreate (final AvailObject object)
-		throws SignatureException
+		throws MalformedMessageException
 	{
 		A_Bundle bundle = object.getAtomProperty(messageBundleKey);
 		if (bundle.equalsNil())
@@ -593,8 +593,9 @@ extends Descriptor
 	 * atom which occurs as a field type key of the object type.  The value is a
 	 * map from object type to the set of names of that exact type (typically
 	 * just one).  The naming information is set up via {@link
-	 * ObjectTypeDescriptor#setNameForType(A_Type, A_String)}, and removed by
-	 * {@link ObjectTypeDescriptor#removeNameFromType(A_String, A_Type)}.
+	 * ObjectTypeDescriptor#setNameForType(A_Type, A_String, boolean)}, and
+	 * removed by {@link ObjectTypeDescriptor#removeNameFromType(A_String,
+	 * A_Type)}.
 	 *
 	 * @return An atom that's special because it's known by the virtual machine.
 	 */
