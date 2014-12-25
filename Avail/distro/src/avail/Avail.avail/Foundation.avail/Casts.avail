@@ -241,7 +241,7 @@ Semantic restriction "Cast|cast_into_else_" is
  * @param "caseTuple" "<[⊥]→⊤…|2..>"
  *        A tuple of arity-1 functions. The first of these able to accept
  *        {@param "value"} will be applied to it.
- * @param "else" "[]→⊤?"
+ * @param "else" "([]→⊤)?"
  *        An optional arity-0 function. If provided, then it will be invoked iff
  *        no function of {@param "caseTuple"} is able to accept {@param 
  *        "value"}.
@@ -256,7 +256,7 @@ Public method "Cast|cast_into«_‡,»«else_»" is
 [
 	value : any,
 	caseTuple : <[⊥]→⊤…|2..>,
-	else : []→⊤?
+	else : ([]→⊤)?
 |
 	index : natural number := 1;
 	[
@@ -291,13 +291,13 @@ Public method "Cast|cast_into«_‡,»«else_»" is
  * @method "Cast|cast_into«_‡,»«else_»" 
  * @restricts "any meta"
  * @restricts "<[⊥]→⊤…|2..>'s type"
- * @restricts "[]→⊤?'s type"
+ * @restricts "([]→⊤)?'s type"
  */
 Semantic restriction "Cast|cast_into«_‡,»«else_»" is
 [
 	valueType : any meta,
 	caseTuple : <[⊥]→⊤…|2..>'s type,
-	else : []→⊤?'s type
+	else : ([]→⊤)?'s type
 |
 	acceptSize ::= relevant |caseTuple|;
 	union : type := ⊥;

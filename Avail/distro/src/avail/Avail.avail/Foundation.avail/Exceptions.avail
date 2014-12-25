@@ -330,7 +330,7 @@ Private method "Run_and_" is
  *    The protected function.
  * @param "handlers" "<[⊥]→⊤…|>"
  *    A tuple of exception handlers.
- * @param "optionalUnwind" "[]→⊤?"
+ * @param "optionalUnwind" "([]→⊤)?"
  *    If specified, then a function to apply after either the successful
  *    completion of {@param "body"} or an unwind through this continuation.
  * @returns "⊤"
@@ -340,7 +340,7 @@ Private method "Private guard_intercept_ensure_" is
 [
 	body : []→⊤,
 	handlers : <[⊥]→⊤…|>,
-	optionalUnwind : []→⊤?
+	optionalUnwind : ([]→⊤)?
 |
 	Primitive 200 (failureCode :
 		{
@@ -540,7 +540,7 @@ Private method "Handle_with_and_" is
  *    The protected function.
  * @param "handlers" "<[⊥]→⊤…|>"
  *    A tuple of exception handlers.
- * @param "optionalUnwind" "[]→⊤?"
+ * @param "optionalUnwind" "([]→⊤)?"
  *    If specified, then a function to apply after either the successful
  *    completion of {@param "body"} or an unwind through this continuation.
  * @returns "⊤"
@@ -550,7 +550,7 @@ Public method "Guard|guard_«intercept_»«ensure_»" is
 [
 	body : []→⊤,
 	handlers : <[⊥]→⊤…|>,
-	optionalUnwind : []→⊤?
+	optionalUnwind : ([]→⊤)?
 |
 	unwind ::= optionalUnwind[1] else [[]];
 	realHandlers ::=
@@ -596,13 +596,13 @@ Public method "Guard|guard_«intercept_»«ensure_»" is
  * @method "Guard|guard_«intercept_»«ensure_»"
  * @restricts "[]→⊤'s type"
  * @restricts "<[⊥]→⊤…|>'s type"
- * @restricts "[]→⊤?'s type"
+ * @restricts "([]→⊤)?'s type"
  */
 Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 [
 	bodyType : []→⊤'s type,
 	handlersType : <[⊥]→⊤…|>'s type,
-	unwindType : []→⊤?'s type
+	unwindType : ([]→⊤)?'s type
 |
 	returnType : type := bodyType's return type;
 	handlerCount ::= ⎣handlersType⎦;

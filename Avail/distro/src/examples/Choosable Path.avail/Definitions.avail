@@ -1409,9 +1409,9 @@ Semantic restriction "a⁇transition|transitions«_‡,⁇and⁇»" is
  * @param "describer" "nonempty string ∪ []→string"
  *        Either 1) a {@type "nonempty string"} that represents a static
  *        description or 2) a function that produces the description on demand.
- * @param "optionalEntryAction" "[]→⊤?"
+ * @param "optionalEntryAction" "([]→⊤)?"
  *        If supplied, then an action to perform upon entry to this scene.
- * @param "optionalTransitions" "<<scene transition…|>…|0..1>"
+ * @param "optionalTransitions" "scene transition*?"
  *        If supplied, then complete listing of all {@type "scene transition"}s
  *        from this scene.
  */
@@ -1422,8 +1422,8 @@ is
 	sceneVar : variable,
 	optionalTitler : (nonempty string ∪ []→string)?,
 	describer : nonempty string ∪ []→string,
-	optionalEntryAction : []→⊤?,
-	optionalTransitions : <scene transition…|>?
+	optionalEntryAction : ([]→⊤)?,
+	optionalTransitions : scene transition*?
 |
 	titler ::=
 		optionalTitler[1]
@@ -1465,8 +1465,8 @@ is
 	varType : variable's type,
 	titlerType : nontype's type?'s type,
 	describerType : nontype's type,
-	entryType : []→⊤?'s type,
-	transitionsType : <<scene transition…|>…|0..1>'s type
+	entryType : ([]→⊤)?'s type,
+	transitionsType : scene transition*?'s type
 |
 	contextType ::= dynamic game context type;
 	Require: scene varType agrees with contextType;

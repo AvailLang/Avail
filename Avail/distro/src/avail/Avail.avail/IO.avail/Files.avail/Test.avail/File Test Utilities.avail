@@ -76,7 +76,7 @@ Before running I/O test suite, do
 	|
 		bytes ::= take at most ∞ from
 			a reader over "abracadabra"
-				converted by a utf8 encoder;
+				converted by a UTF8 encoder;
 		Write bytes to f;
 	];
 	Close a file writer for testDir/"scratch.txt"

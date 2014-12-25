@@ -397,7 +397,7 @@ Private method "private truncate_to_then_else_priority_" is
 		special-atom code,
 		not-open-for-write code}ᵀ);
 	Raise an exception for e
-] : fiber;
+] : fiber→⊤;
 
 
 /**
@@ -436,7 +436,7 @@ Public method "a fiber truncating_to_bytes⁇then_else_priority_" is
 		then success
 		else failure
 		priority priority
-] : fiber;
+] : fiber→⊤;
 
 Private method
 	"private starting at_read_byte|bytes from_into_else_priority_" is

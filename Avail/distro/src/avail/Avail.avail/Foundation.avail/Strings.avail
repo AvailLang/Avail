@@ -1190,7 +1190,7 @@ Method "“_”" is
  * @method "“_”«else_»(as simple list)"
  * @param "aTuple" "tuple"
  *        An arbitrary tuple.
- * @param "optionalEmptyText" "[]→string?"
+ * @param "optionalEmptyText" "([]→string)?"
  *        If specified, then the function to apply if the tuple is empty. If not
  *        specified, then {@code ["(empty)"]} will be used.
  * @returns "string"
@@ -1200,7 +1200,7 @@ Method "“_”" is
 Public method "“_”«else_»(as simple list)" is
 [
 	aTuple : tuple,
-	optionalEmptyText : []→string?
+	optionalEmptyText : ([]→string)?
 |
 	if aTuple is empty then [optionalEmptyText[1] else [["(empty)"]]()]
 	else
@@ -1234,7 +1234,7 @@ Method "“_”" is
  * @method "“_”«else_»(as simple list)"
  * @param "aSet" "set"
  *        An arbitrary set.
- * @param "optionalEmptyText" "[]→string?"
+ * @param "optionalEmptyText" "([]→string)?"
  *        If specified, then the function to apply if the set is empty. If not
  *        specified, then {@code ["(empty)"]} will be used.
  * @returns "string"
@@ -1244,7 +1244,7 @@ Method "“_”" is
 Public method "“_”«else_»(as simple list)" is
 [
 	aSet : set,
-	optionalEmptyText : []→string?
+	optionalEmptyText : ([]→string)?
 |
 	emptyText ::= optionalEmptyText[1] else [["(empty)"]]();
 	“aSet→tuple” else [emptyText] (as simple list)
@@ -1290,7 +1290,7 @@ Method "“_”" is
  *    \|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
  * @param "aTuple" "tuple"
  *        An arbitrary tuple.
- * @param "optionalEmptyText" "[]→string?"
+ * @param "optionalEmptyText" "([]→string)?"
  *        If specified, then the function to apply if the tuple is empty. If not
  *        specified, then {@code ["(empty)"]} will be used.
  * @param "mode" "[1..2]"
@@ -1305,7 +1305,7 @@ Method "“_”" is
 Public abstract method
 	"“_”«else_»\
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
-is [tuple, []→string?, [1..2]]→string;
+is [tuple, ([]→string)?, [1..2]]→string;
 
 Method
 	"“_”«else_»\
@@ -1313,7 +1313,7 @@ Method
 is
 [
 	aTuple : <⊥…|0>,
-	optionalEmptyText : []→string?,
+	optionalEmptyText : ([]→string)?,
 	mode : [1..2]
 |
 	optionalEmptyText[1] else [["(empty)"]]()
@@ -1325,7 +1325,7 @@ Method
 is
 [
 	aTuple : <any…|1>,
-	optionalEmptyText : []→string?,
+	optionalEmptyText : ([]→string)?,
 	mode : [1..2]
 |
 	elem ::= aTuple[1];
@@ -1338,7 +1338,7 @@ Method
 is
 [
 	aTuple : <any…|2>,
-	optionalEmptyText : []→string?,
+	optionalEmptyText : ([]→string)?,
 	mode : [1..2]
 |
 	s1 ::= cast aTuple[1] into [t : string | t] else [“aTuple[1]”];
@@ -1352,7 +1352,7 @@ Method
 is
 [
 	aTuple : <any…|3..>,
-	optionalEmptyText : []→string?,
+	optionalEmptyText : ([]→string)?,
 	mode : [1..2]
 |
 	s : string := "";
@@ -1378,7 +1378,7 @@ is
  * @method "“_”«else_»(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
  * @param "aTuple" "tuple"
  *        An arbitrary tuple.
- * @param "optionalEmptyText" "[]→string?"
+ * @param "optionalEmptyText" "([]→string)?"
  *        If specified, then the function to apply if the tuple is empty. If not
  *        specified, then {@code ["(empty)"]} will be used.
  * @param "mode" "[1..2]"
@@ -1393,7 +1393,7 @@ is
 Abstract method
 	"“_”«else_»\
 	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
-is [set, []→string?, [1..2]]→string;
+is [set, ([]→string)?, [1..2]]→string;
 
 Method
 	"“_”«else_»\
@@ -1401,7 +1401,7 @@ Method
 is
 [
 	aSet : {⊥|0},
-	optionalEmptyText : []→string?,
+	optionalEmptyText : ([]→string)?,
 	mode : [1..2]
 |
 	optionalEmptyText[1] else [["(empty)"]]()
@@ -1413,7 +1413,7 @@ Method
 is
 [
 	aSet : {any|1},
-	optionalEmptyText : []→string?,
+	optionalEmptyText : ([]→string)?,
 	mode : [1..2]
 |
 	aTuple ::= aSet→tuple;
@@ -1427,7 +1427,7 @@ Method
 is
 [
 	aSet : {any|2},
-	optionalEmptyText : []→string?,
+	optionalEmptyText : ([]→string)?,
 	mode : [1..2]
 |
 	aTuple ::= aSet→tuple;
@@ -1442,7 +1442,7 @@ Method
 is
 [
 	aSet : {any|3..},
-	optionalEmptyText : []→string?,
+	optionalEmptyText : ([]→string)?,
 	mode : [1..2]
 |
 	aTuple ::= aSet→tuple;
@@ -1469,7 +1469,7 @@ is
  * @method "“_”«else_»(as«conjunctive|disjunctive»!list)"
  * @param "aTuple" "tuple"
  *        An arbitrary tuple.
- * @param "optionalEmptyText" "[]→string?"
+ * @param "optionalEmptyText" "([]→string)?"
  *        If specified, then the function to apply if the tuple is empty. If not
  *        specified, then {@code ["(empty)"]} will be used.
  * @param "mode" "[1..2]"
@@ -1482,12 +1482,12 @@ is
  * @category "Tuples" "Stringification"
  */
 Public abstract method "“_”«else_»(as«conjunctive|disjunctive»!list)"
-	is [tuple, []→string?, [1..2]]→string;
+	is [tuple, ([]→string)?, [1..2]]→string;
 
 Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 [
 	aTuple : <⊥…|0>,
-	optionalEmptyText : []→string?,
+	optionalEmptyText : ([]→string)?,
 	mode : [1..2]
 |
 	optionalEmptyText[1] else [["(empty)"]]()
@@ -1496,7 +1496,7 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 [
 	aTuple : <any…|1>,
-	optionalEmptyText : []→string?,
+	optionalEmptyText : ([]→string)?,
 	mode : [1..2]
 |
 	elem ::= aTuple[1];
@@ -1506,7 +1506,7 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 [
 	aTuple : <any…|2>,
-	optionalEmptyText : []→string?,
+	optionalEmptyText : ([]→string)?,
 	mode : [1..2]
 |
 	s1 ::= cast aTuple[1] into [t : string | t] else [“aTuple[1]”];
@@ -1517,7 +1517,7 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 [
 	aTuple : <any…|3..>,
-	optionalEmptyText : []→string?,
+	optionalEmptyText : ([]→string)?,
 	mode : [1..2]
 |
 	s : string := "";
@@ -1546,7 +1546,7 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
  * @method "“_”«else_»(as«conjunctive|disjunctive»!list)"
  * @param "aSet" "set"
  *        An arbitrary set.
- * @param "optionalEmptyText" "[]→string?"
+ * @param "optionalEmptyText" "([]→string)?"
  *        If specified, then the function to apply if the set is empty. If not
  *        specified, then {@code ["(empty)"]} will be used.
  * @param "mode" "[1..2]"
@@ -1559,12 +1559,12 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
  * @category "Sets" "Stringification"
  */
 Abstract method "“_”«else_»(as«conjunctive|disjunctive»!list)"
-	is [set, []→string?, [1..2]]→string;
+	is [set, ([]→string)?, [1..2]]→string;
 
 Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 [
 	aSet : {⊥|0},
-	optionalEmptyText : []→string?,
+	optionalEmptyText : ([]→string)?,
 	mode : [1..2]
 |
 	optionalEmptyText[1] else [["(empty)"]]()
@@ -1573,7 +1573,7 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 [
 	aSet : {any|1},
-	optionalEmptyText : []→string?,
+	optionalEmptyText : ([]→string)?,
 	mode : [1..2]
 |
 	aTuple ::= aSet→tuple;
@@ -1584,7 +1584,7 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 [
 	aSet : {any|2},
-	optionalEmptyText : []→string?,
+	optionalEmptyText : ([]→string)?,
 	mode : [1..2]
 |
 	aTuple ::= aSet→tuple;
@@ -1596,7 +1596,7 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 [
 	aSet : {any|3..},
-	optionalEmptyText : []→string?,
+	optionalEmptyText : ([]→string)?,
 	mode : [1..2]
 |
 	aTuple ::= aSet→tuple;
@@ -1624,7 +1624,7 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
  * @method "“_”«else_»(as list partitioned by_)"
  * @param "aTuple" "tuple"
  *        An arbitrary tuple.
- * @param "optionalEmptyText" "[]→string?"
+ * @param "optionalEmptyText" "([]→string)?"
  *        If specified, then the function to apply if the tuple is empty. If not
  *        specified, then {@code ["(empty)"]} will be used.
  * @param "separator" "string"
@@ -1637,7 +1637,7 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 Method "“_”«else_»(as list partitioned by_)" is
 [
 	aTuple : tuple,
-	optionalEmptyText : []→string?,
+	optionalEmptyText : ([]→string)?,
 	separator : string
 |
 	if aTuple is empty then [optionalEmptyText[1] else [["(empty)"]]()]
@@ -1664,7 +1664,7 @@ Method "“_”«else_»(as list partitioned by_)" is
  * @method "“_”«else_»(as list partitioned by_)"
  * @param "aSet" "set"
  *        An arbitrary set.
- * @param "optionalEmptyText" "[]→string?"
+ * @param "optionalEmptyText" "([]→string)?"
  *        If specified, then the function to apply if the set is empty. If not
  *        specified, then {@code ["(empty)"]} will be used.
  * @param "separator" "string"
@@ -1677,7 +1677,7 @@ Method "“_”«else_»(as list partitioned by_)" is
 Method "“_”«else_»(as list partitioned by_)" is
 [
 	aSet : set,
-	optionalEmptyText : []→string?,
+	optionalEmptyText : ([]→string)?,
 	separator : string
 |
 	emptyText ::= optionalEmptyText[1] else [["(empty)"]];

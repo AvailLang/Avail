@@ -148,7 +148,7 @@ extends Primitive
 			}
 		});
 
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(newFiber);
 	}
 
 	@Override

@@ -93,19 +93,9 @@ Public method "[«_‡,»]→_" is
 	function accepting argTypes and returning returnType
 ] : function meta;
 
-/**
- * Make it easier to specify argument types.
- * @method "[«_‡,»]→_"
- * @forbids "2" "_'s⁇type"
- */
-Grammatical restriction "[«_‡,»]→_" is <∅, {"_'s⁇type", "_`?", "_+", "_*"}>;
-
-/**
- * Make it easier to specify argument types.
- * @method "[`…]→_"
- * @forbids "1" "_'s⁇type"
- */
-Grammatical restriction "[`…]→_" is <{"_'s⁇type", "_`?", "_+", "_*"}>;
+Grammatical restriction {"_`?", "_+", "_*"} is <{"[«_‡,»]→_", "[`…]→_"}>;
+Grammatical restriction "[«_‡,»]→_" is <∅, {"_'s⁇type"}>;
+Grammatical restriction "[`…]→_" is <{"_'s⁇type"}>;
 
 /**
  * Tuple type constructor's semantic restriction.

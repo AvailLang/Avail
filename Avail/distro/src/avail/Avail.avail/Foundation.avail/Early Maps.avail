@@ -339,7 +339,7 @@ Public method "environment map" is
 Public method "${…}«else_»" is
 [
 	aToken : token,
-	else : []→string?
+	else : ([]→string)?
 |
 	environment map[aToken's lexeme]
 		else [else[1] else 
@@ -361,7 +361,7 @@ Public method "${…}«else_»" is
 Public method "${…}«else_»" is
 [
 	aToken : literal token,
-	else : []→string?
+	else : ([]→string)?
 |
 	environment map[
 		cast aToken's value into [t : string | t]
@@ -373,7 +373,7 @@ Public method "${…}«else_»" is
 Semantic restriction "${…}«else_»" is
 [
 	aToken : token's type,
-	else : []→string?'s type
+	else : ([]→string)?'s type
 |
 	string
 ];
