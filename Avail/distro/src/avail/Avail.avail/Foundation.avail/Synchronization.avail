@@ -101,6 +101,7 @@ Names
 
 	/* Low-level synchronization. */
 	"Atomically update_using_",
+	"Atomically update_↑using_",
 	"Honor a termination request",
 	"Join_",
 	"Join_,then honor a termination request",
@@ -113,7 +114,7 @@ Names
 	"unsafely atomically compare_to_and,⁇if equal,⁇store_"
 Body
 
-Semantic restriction "atomically read_and store_" is
+Semantic restriction "atomically read_↑and store_" is
 [
 	varType : variable's type,
 	valueType : any's type
@@ -128,7 +129,7 @@ Semantic restriction "atomically read_and store_" is
 	⊤
 ];
 
-Semantic restriction "atomically compare_to_and,⁇if equal,⁇store_" is
+Semantic restriction "atomically compare_↑to_and,⁇if equal,⁇store_" is
 [
 	varType : variable's type,
 	referenceType : any's type,
@@ -154,69 +155,16 @@ Semantic restriction "atomically compare_to_and,⁇if equal,⁇store_" is
 ];
 
 /**
- * Atomically read the value of {@param "var"} and store {@param "newValue"}.
- * No semantic restriction for this operation exists to ensure that the
- * assignment is possible, so it is suitable for generic use.
- *
- * @method "unsafely atomically read_and store_"
- * @param "var" "variable"
- *        A variable.
- * @param "newValue" "any"
- *        The new value to store into {@param "var"}.
- * @returns "any"
- *          The value originally stored in {@param "var"}.
- * @category "Synchronization" "Primitives" "Variables" "Queries" "Mutators"
- */
-Public method "unsafely atomically read_and store_" is
-[
-	var : variable,
-	newValue : any
-|
-	Primitive 20 (failureCode : natural number);
-	Raise an exception for failureCode
-] : any;
-
-/**
- * Atomically read the value of {@param "var"}, compare it to {@param
- * "reference"}, and, if they are discovered to be equal, store {@param
- * "newValue"} into {@param "var"}. No semantic restriction for this operation
- * exists to ensure that the assignment is possible, so it is suitable for
- * generic use.
- *
- * @method "unsafely atomically compare_to_and,⁇if equal,⁇store_"
- * @param "var" "variable"
- *        A variable.
- * @param "reference" "any"
- *        The value against which the content of {@param "var"} should be
- *        compared.
- * @param "newValue" "any"
- *        The new value to store into {@param "var"}.
- * @returns "boolean"
- *          {@method "true"} if the operation succeeded and {@param "newValue"}
- *          was stored into {@param "var"}, {@method "false"} otherwise.
- * @category "Synchronization" "Primitives" "Variables" "Queries" "Mutators"
- */
-Public method "unsafely atomically compare_to_and,⁇if equal,⁇store_" is
-[
-	var : variable,
-	reference : any,
-	newValue : any
-|
-	Primitive 21 (failureCode : natural number);
-	Raise an exception for failureCode
-] : boolean;
-
-/**
  * Atomically update the specified variable to a value derived from its current
  * value and the given function.
  *
- * @method "Atomically update_using_"
+ * @method "Atomically update_↑using_"
  * @param "var" "variable"
  * @param "f" "[any]→any"
  * @returns "⊤"
  * @category "Synchronization" "Variables" "Mutators" "Queries"
  */
-Public method "Atomically update_using_" is
+Public method "Atomically update_↑using_" is
 [
 	var : variable,
 	f : [any]→any
@@ -229,7 +177,9 @@ Public method "Atomically update_using_" is
 	];
 ] : ⊤;
 
-Semantic restriction "Atomically update_using_" is
+Alias "Atomically update_using_" to "Atomically update_↑using_";
+
+Semantic restriction "Atomically update_↑using_" is
 [
 	var : variable's type,
 	f : [any]→any's type

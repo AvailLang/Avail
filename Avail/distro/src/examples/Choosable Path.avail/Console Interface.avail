@@ -86,13 +86,13 @@ Private method "prettify_" is
 		[
 			If pretty[indices[base]] = ¢"\n" then
 			[
-				convert := convert ++ <indices[base]>;
+				convert ++= <indices[base]>;
 			];
 		]
 		else
 		[
 			Assert: run > 1;
-			shrink := shrink ++ <<indices[base], indices[base] + run - 1>>;
+			shrink ++= <<indices[base], indices[base] + run - 1>>;
 		];
 
 		base := base + run;

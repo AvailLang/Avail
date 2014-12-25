@@ -250,7 +250,7 @@ Test "basic transmission" in network test suite is
 					endOfStream : boolean
 				|
 					Require: ¬endOfStream;
-					read := read ++ justRead;
+					read ++= justRead;
 					Signal sem;
 				]
 				on failure doing

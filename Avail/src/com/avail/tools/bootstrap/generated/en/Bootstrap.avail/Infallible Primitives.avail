@@ -136,9 +136,9 @@ Uses
 		"_has terminated",
 		"_is a primitive",
 		"_is a valid message",
-		"_is unassigned",
 		"_mod_",
 		"_reversed",
+		"_↑is unassigned",
 		"_→JSON",
 		"_→block phrase",
 		"_→character",
@@ -366,14 +366,14 @@ Primitive "new`↑_" is
  * Is the specified variable unassigned?
  *
  * @category "Primitives" "Variables" "Queries"
- * @method "_is unassigned"
+ * @method "_↑is unassigned"
  * @param "var" "variable"
  *        A variable.
  * @returns "boolean"
  *    {@method "true"} if the variable does not contain a value, {@method
  *    "false"} otherwise.
  */
-Primitive "_is unassigned" is
+Primitive "_↑is unassigned" is
 [
 	var : variable
 |

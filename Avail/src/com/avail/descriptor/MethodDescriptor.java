@@ -982,7 +982,7 @@ extends Descriptor
 			{
 				aStream.append(" a.k.a. ");
 			}
-			aStream.append(eachBundle.message()/*.name()*/.toString());
+			aStream.append(eachBundle.message().toString());
 			first = false;
 		}
 	}

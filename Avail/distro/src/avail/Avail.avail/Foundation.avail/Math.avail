@@ -1349,7 +1349,7 @@ Private method "_range pairs" is
 		true
 	];
 	positiveRegion ::= rangeKind ∩ [0..∞);
-	pairs := pairs ++ positiveRegion positive range pairs;
+	pairs ++= positiveRegion positive range pairs;
 	pairs
 ] : extended integer's type*;
 

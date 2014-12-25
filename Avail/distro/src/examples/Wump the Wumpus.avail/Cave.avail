@@ -262,7 +262,7 @@ Method "“_”" is
 	[
 		aRoom : room
 	|
-		s := s ++ "\n\t" ++ “aRoom”;
+		s ++= "\n\t" ++ “aRoom”;
 	];
 	s
 ] : string;

@@ -211,13 +211,13 @@ Public method "Method_is stable at_" is
 		argType ::= functionType[index];
 		argToken ::= `argName`;
 		argDecl ::= arg «argToken : argType's type»;
-		argDecls := cast concatenate <eject ↑argDecls, <argDecl>>
+		argDecls := cast concatenate <eject argDecls, <argDecl>>
 			into [t : <<>, argument phrase…|whole number> | t];
 		argUse ::= «↓argDecl»(`argToken`);
-		argUses := cast concatenate <eject ↑argUses, <argUse>>
+		argUses := cast concatenate <eject argUses, <argUse>>
 			into [t : <<>, variable use phrase…|whole number> | t];
 		instance ::= send instanceAtom with «<argUse>» : argType;
-		instances := cast concatenate <eject ↑instances, <instance>>
+		instances := cast concatenate <eject instances, <instance>>
 			into [t : <<>, send phrase⇒any…|whole number> | t];
 		true
 	];

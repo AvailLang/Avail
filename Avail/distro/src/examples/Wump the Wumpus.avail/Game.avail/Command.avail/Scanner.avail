@@ -120,7 +120,7 @@ Public method "tokenize_" is
 			 * source string and append it to the tuple of tokens.
 			 */
 			t ::= cast s[tokenStart..i-1] into [x : nonempty string | x];
-			tokens := tokens ++ <t>;
+			tokens ++= <t>;
 		];
 	];
 	tokens

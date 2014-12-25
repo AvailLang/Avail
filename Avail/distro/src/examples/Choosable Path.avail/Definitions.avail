@@ -934,7 +934,7 @@ Public method "Let«_‡,⁇and⁇»be a⁇scene|scenes" is
 		 * statically. So dynamically create a variable of the right type.
 		 */
 		sceneVar ::= new ↑sceneType;
-		sceneVaultUpdates := sceneVaultUpdates ++ <<sceneVar, name>>;
+		sceneVaultUpdates ++= <<sceneVar, name>>;
 
 		/* Generate the scene accessor as a method that answers the variable
 		 * that contains the corresponding scene. Originally this variable will
@@ -1265,7 +1265,7 @@ Private method "Generate scene transition constructors" is
 			[
 				argName ::= argNames[index];
 				arg ::= arg «`argName` : argType»;
-				args := args ++ <arg>;
+				args ++= <arg>;
 				outputIndex++;
 				argMap := argMap + index→outputIndex;
 			]
@@ -1711,7 +1711,7 @@ Private method "Verify all scenes in_are reachable from_" is
 				scenes from namesByScene's keys
 				named by scenesByName
 				reachable from aTransition's next scene;
-			unvisited := unvisited ++ nextScenes \ noted→tuple;
+			unvisited ++= nextScenes \ noted→tuple;
 			noted := noted ∪ nextScenes;
 		];
 	];

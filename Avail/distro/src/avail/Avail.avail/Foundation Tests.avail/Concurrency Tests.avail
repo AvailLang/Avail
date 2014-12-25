@@ -424,7 +424,7 @@ Test "for-each in parallel (small window)" in concurrency test suite is
 	[
 		i : natural number
 	|
-		s := s ++ ref[i..i];
+		s ++= ref[i..i];
 	];
 	Require: s = ref;
 ];

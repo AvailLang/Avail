@@ -260,11 +260,11 @@ Method "“_”" is
 		i : natural number := 1;
 		Do
 		[
-			s := s ++ “m[i]”;
+			s ++= “m[i]”;
 			i++;
 		]
 		while [i ≤ |m|]
-		alternate with [s := s ++ ", ";];
+		alternate with [s ++= ", ";];
 		s
 	]
 ] : string;
@@ -411,12 +411,12 @@ Method "“_”" is
 		if |dropCount| = 0 then ["0"]
 		else if [|dropCount| = 1] then [""]
 		else [“|dropCount|” ++ " "];
-	s := s ++ count;
+	s ++= count;
 	adjective ::=
 		if dropCount > 0 then ["highest"]
 		else if [dropCount = 0] then [""]
 		else ["lowest"];
-	s := s ++ adjective ++ ")";
+	s ++= adjective ++ ")";
 	s
 ];
 

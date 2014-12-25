@@ -62,6 +62,9 @@ Names
 	"serialize_",
 	"deserialize_based on_",
 
+	"_↑++=_",
+	"_++=_",
+
 	/* Exported for use by Tuples. */
 	"Require:_[_.._]is ever valid",
 	"tuple type of_[_.._]"
@@ -963,4 +966,48 @@ Semantic restriction "SHA-_digest of_" is
 	low ::= cast sizes[⎣algorithm⎦] into [t : natural number | t];
 	high ::= cast sizes[⎡algorithm⎤] into [t : natural number | t];
 	<<>, byte… | [low .. high]>
+];
+
+Private method "compound concatenation assignment" is
+[
+	[
+		var : ↑tuple,
+		t : tuple
+	|
+		value ::= eject var;
+		var ?= value ++ t;
+	] : ⊤
+];
+
+/**
+ * Concatenate the value of {@param "var"} and {@param "t"} and store the result
+ * into {@param "var"}.
+ *
+ * @method "_↑++=_"
+ * @param "var" "↑tuple"
+ * @param "t" "tuple"
+ * @returns "⊤"
+ */
+Public method "_↑++=_" is
+[
+	var : read tuple/write ⊥,
+	t : tuple
+|
+	value ::= eject var;
+	var ?= value ++ t;
+] : ⊤;
+
+Alias "_++=_" to "_↑++=_";
+
+Semantic restriction "_↑++=_" is
+[
+	varType : (read tuple/write ⊥)'s type,
+	tupleType : tuple's type
+|
+	resultType ::= tupleType ++ varType's read type;
+	If ¬resultType ⊆ varType's write type then
+	[
+		Reject parse, expected: "variable to accept " ++ “resultType”
+	];
+	⊤
 ];

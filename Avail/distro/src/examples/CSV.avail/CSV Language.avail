@@ -111,7 +111,7 @@ Public method "«_‡,»" is
 	record : <string…|1..>
 |
 	Validate record;
-	records := records ++ <record>;
+	records ++= <record>;
 ];
 
 /**
@@ -288,7 +288,7 @@ Public method "Display CSV(as a table«with headers»?)" is
 					++ (uppercased padded to metrics[index] characters)
 					++ " "
 			];
-		text := text ++ "\n";
+		text ++= "\n";
 		text := left fold <text> ++ 1 to |record| through
 			[
 				index : natural number,
@@ -296,7 +296,7 @@ Public method "Display CSV(as a table«with headers»?)" is
 			|
 				textSoFar ++ metrics[index] of ¢- ++ " "
 			];
-		text := text ++ "\n";
+		text ++= "\n";
 	];
 
 	/* Accumulate each of the data records into the text collector. */
@@ -313,7 +313,7 @@ Public method "Display CSV(as a table«with headers»?)" is
 					++ (record[index] padded to metrics[index] characters)
 					++ " "
 			];
-		text := text ++ "\n";
+		text ++= "\n";
 	];
 
 	/* Display the collected text. */

@@ -1211,15 +1211,15 @@ Semantic restriction "Ensure:all error codes have corresponding exceptions" is
 	problem : string := "exception classes to be defined for the following";
 	If |missingSystemExceptions| ≠ 0 then
 	[
-		problem := problem ++ " VM exceptions: " ++ “missingSystemExceptions”;
+		problem ++= " VM exceptions: " ++ “missingSystemExceptions”;
 		If |missingExceptionClasses| ≠ 0 then
 		[
-			problem := problem ++ " and";
+			problem ++= " and";
 		];
 	];
 	If |missingExceptionClasses| ≠ 0 then
 	[
-		problem := problem ++ " error codes: " ++ “missingExceptionClasses”;
+		problem ++= " error codes: " ++ “missingExceptionClasses”;
 	];
 	If |missingSystemExceptions| ≠ 0 ∨ [|missingExceptionClasses| ≠ 0] then
 	[

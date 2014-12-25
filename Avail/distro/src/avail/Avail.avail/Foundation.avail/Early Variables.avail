@@ -40,23 +40,29 @@ Uses
 	"Early Enumeration Support",
 	"Early Literals"
 Names
-	"Clear_",
 	"Clear_↑",
-	"Swap_and_",
 	"Swap_↑and_↑",
-	"atomically compare_to_and,⁇if equal,⁇store_",
 	"atomically compare_↑to_and,⁇if equal,⁇store_",
-	"atomically read_and store_",
 	"atomically read_↑and store_",
-	"atomically read_and add_",
 	"atomically read_↑and add_",
-	"eject_",
 	"eject_↑",
-	"_`?=_",
+	"unsafely atomically read_↑and store_",
+	"unsafely atomically compare_↑to_and,⁇if equal,⁇store_",
 	"_↑`?=_",
-	"_`?=_'s⁇initialization",
 	"_↑`?=_'s⁇initialization",
 	"`↑_↑",
+
+	"Clear_",
+	"Swap_and_",
+	"atomically compare_to_and,⁇if equal,⁇store_",
+	"atomically read_and store_",
+	"atomically read_and add_",
+	"eject_",
+	"unsafely atomically read_and store_",
+	"unsafely atomically compare_to_and,⁇if equal,⁇store_",
+	"_`?=_",
+	"_`?=_'s⁇initialization",
+	"`_↑",
 
 	/* These are bootstrapping methods, and should not leak out of
 	 * Foundation.
@@ -94,17 +100,6 @@ Semantic restriction "`↑_↑" is
 	varType : variable meta
 |
 	varType
-];
-
-/**
- * @method "eject_"
- * @restricts "variable meta"
- */
-Semantic restriction "eject_" is
-[
-	varType : variable meta
-|
-	varType's read type
 ];
 
 Method "observe function" is
@@ -171,22 +166,6 @@ variableFailureFunction ::=
  * Store {@param "value"} into the specified variable.
  *
  * @category "Primitives" "Variables" "Mutators"
- * @method "_`?=_"
- * @param "var" "variable"
- *        A variable.
- * @param "value" "any"
- *        The value that should be stored into {@param "var"}.
- * @returns "⊤"
- * @raises "cannot-store-incorrectly-typed-value exception"
- * @raises "cannot-overwrite-write-once-variable exception"
- * @raises "Java-marshaling-failed exception"
- * @raises "cannot-modify-final-Java-field exception"
- */
-
-/**
- * Store {@param "value"} into the specified variable.
- *
- * @category "Primitives" "Variables" "Mutators"
  * @method "_↑`?=_"
  * @param "var" "variable"
  *        A variable.
@@ -198,10 +177,9 @@ variableFailureFunction ::=
  * @raises "Java-marshaling-failed exception"
  * @raises "cannot-modify-final-Java-field exception"
  */
-
 Invoke
 [
-	f : function accepting <variable, any> and returning ⊤;
+	f : function;
 	f :=
 		[
 			var : variable,
@@ -215,8 +193,71 @@ Invoke
 				observed-variable-written-while-untraced code});
 			Invoke variableFailureFunction with <failureCode, f, <var, value>>;
 		] : ⊤;
-	Public method "_`?=_" is f;
 	Public method "_↑`?=_" is f;
+	Alias "_`?=_" to atom for "_↑`?=_";
+]
+with <>;
+
+/**
+ * Clear the specified variable. This resets it to the unassigned state.
+ *
+ * @category "Primitives" "Variables" "Mutators"
+ * @method "Clear_↑"
+ * @param "var" "variable"
+ *        A variable.
+ * @returns "⊤"
+ * @raises "cannot-overwrite-write-once-variable exception"
+ * @raises "Java-marshaling-failed exception"
+ * @raises "cannot-modify-final-Java-field exception"
+ */
+Invoke
+[
+	f : function;
+	f :=
+		[
+			var : variable
+		|
+			Primitive 12 (failureCode : enumeration of {
+				cannot-overwrite-write-once-variable code,
+				Java-marshaling-failed code,
+				cannot-modify-final-Java-field code,
+				observed-variable-written-while-untraced code});
+			Invoke variableFailureFunction with <failureCode, f, <var>>;
+		] : ⊤;
+	Public method "Clear_↑" is f;
+	Alias "Clear_" to atom for "Clear_↑";
+]
+with <>;
+
+/**
+ * Exchange the contents of the two variables. This is more efficient than
+ * using an intermediate variable, and permits additional optimizations by the
+ * virtual machine.
+ *
+ * @category "Primitives" "Variables" "Mutators"
+ * @method "Swap_↑and_↑"
+ * @param "arg1" "variable"
+ *        A variable.
+ * @param "arg2" "variable"
+ *        A variable.
+ * @returns "⊤"
+ * @raises "cannot-swap-contents-of-differently-typed-variables exception"
+ */
+Invoke
+[
+	f : function;
+	f :=
+		[
+			var1 : variable,
+			var2 : variable
+		|
+			Primitive 15 (failureCode : enumeration of {
+				cannot-swap-contents-of-differently-typed-variables code,
+				observed-variable-written-while-untraced code});
+			Invoke variableFailureFunction with <failureCode, f, <var1, var2>>;
+		] : ⊤;
+	Public method "Swap_↑and_↑" is f;
+	Alias "Swap_and_" to atom for "Swap_↑and_↑";
 ]
 with <>;
 
@@ -259,115 +300,6 @@ Semantic restriction "invoke_with_expecting_" is
 ];
 
 /**
- * Clear the specified variable. This resets it to the unassigned state.
- *
- * @category "Primitives" "Variables" "Mutators"
- * @method "Clear_"
- * @param "var" "variable"
- *        A variable.
- * @returns "⊤"
- * @raises "cannot-overwrite-write-once-variable exception"
- * @raises "Java-marshaling-failed exception"
- * @raises "cannot-modify-final-Java-field exception"
- */
-
-/**
- * Clear the specified variable. This resets it to the unassigned state.
- *
- * @category "Primitives" "Variables" "Mutators"
- * @method "Clear_↑"
- * @param "var" "variable"
- *        A variable.
- * @returns "⊤"
- * @raises "cannot-overwrite-write-once-variable exception"
- * @raises "Java-marshaling-failed exception"
- * @raises "cannot-modify-final-Java-field exception"
- */
-
-Invoke
-[
-	f : function accepting <variable> and returning ⊤;
-	f :=
-		[
-			var : variable
-		|
-			Primitive 12 (failureCode : enumeration of {
-				cannot-overwrite-write-once-variable code,
-				Java-marshaling-failed code,
-				cannot-modify-final-Java-field code,
-				observed-variable-written-while-untraced code});
-			Invoke variableFailureFunction with <failureCode, f, <var>>;
-		] : ⊤;
-	Public method "Clear_" is f;
-	Public method "Clear_↑" is f;
-]
-with <>;
-
-/**
- * Exchange the contents of the two variables. This is more efficient than
- * using an intermediate variable, and permits additional optimizations by the
- * virtual machine.
- *
- * @category "Primitives" "Variables" "Mutators"
- * @method "Swap_and_"
- * @param "arg1" "variable"
- *        A variable.
- * @param "arg2" "variable"
- *        A variable.
- * @returns "⊤"
- * @raises "cannot-swap-contents-of-differently-typed-variables exception"
- */
-
-/**
- * Exchange the contents of the two variables. This is more efficient than
- * using an intermediate variable, and permits additional optimizations by the
- * virtual machine.
- *
- * @category "Primitives" "Variables" "Mutators"
- * @method "Swap_↑and_↑"
- * @param "arg1" "variable"
- *        A variable.
- * @param "arg2" "variable"
- *        A variable.
- * @returns "⊤"
- * @raises "cannot-swap-contents-of-differently-typed-variables exception"
- */
-
-Invoke
-[
-	f : function accepting <variable, variable> and returning ⊤;
-	f :=
-		[
-			var1 : variable,
-			var2 : variable
-		|
-			Primitive 15 (failureCode : enumeration of {
-				cannot-swap-contents-of-differently-typed-variables code,
-				observed-variable-written-while-untraced code});
-			Invoke variableFailureFunction with <failureCode, f, <var1, var2>>;
-		] : ⊤;
-	Public method "Swap_and_" is f;
-	Public method "Swap_↑and_↑" is f;
-]
-with <>;
-
-/**
- * Eject and answer the contents of the specified variable. The variable is
- * in the unassigned state after the primitive completes.
- *
- * @category "Primitives" "Variables" "Queries" "Mutators"
- * @method "eject_"
- * @param "var" "variable"
- *        A variable.
- * @returns "any"
- *    The value ejected from the variable.
- * @raises "cannot-read-unassigned-variable exception"
- * @raises "cannot-overwrite-write-once-variable exception"
- * @raises "Java-marshaling-failed exception"
- * @raises "cannot-modify-final-Java-field exception"
- */
-
-/**
  * Eject and answer the contents of the specified variable. The variable is
  * in the unassigned state after the primitive completes.
  *
@@ -382,10 +314,9 @@ with <>;
  * @raises "Java-marshaling-failed exception"
  * @raises "cannot-modify-final-Java-field exception"
  */
-
 Invoke
 [
-	f : function accepting <variable> and returning ⊤;
+	f : function;
 	f :=
 		[
 			var : variable
@@ -400,28 +331,21 @@ Invoke
 			with <failureCode, f, <var>>
 			expecting any
 		] : any;
-	Public method "eject_" is f;
 	Public method "eject_↑" is f;
+	Alias "eject_" to atom for "eject_↑";
 ]
 with <>;
 
 /**
- * Atomically read the value of {@param "var"} and store {@param "newValue"}.
- *
- * @category "Primitives" "Variables" "Queries" "Mutators" "Synchronization"
- * @method "atomically read_and store_"
- * @param "var" "variable"
- *        A variable.
- * @param "newValue" "any"
- *        The new value to store into {@param "var"}.
- * @returns "any"
- *    The value originally stored in {@param "var"}.
- * @raises "cannot-read-unassigned-variable exception"
- * @raises "cannot-store-incorrectly-typed-value exception"
- * @raises "cannot-overwrite-write-once-variable exception"
- * @raises "Java-marshaling-failed exception"
- * @raises "cannot-modify-final-Java-field exception"
+ * @method "eject_"
+ * @restricts "variable meta"
  */
+Semantic restriction "eject_↑" is
+[
+	varType : variable meta
+|
+	varType's read type
+];
 
 /**
  * Atomically read the value of {@param "var"} and store {@param "newValue"}.
@@ -440,10 +364,9 @@ with <>;
  * @raises "Java-marshaling-failed exception"
  * @raises "cannot-modify-final-Java-field exception"
  */
-
 Invoke
 [
-	f : function accepting <variable, any> and returning any;
+	f : function;
 	f :=
 		[
 			var : variable,
@@ -460,34 +383,10 @@ Invoke
 			with <failureCode, f, <var, newValue>>
 			expecting any
 		] : any;
-	Public method "atomically read_and store_" is f;
 	Public method "atomically read_↑and store_" is f;
+	Alias "atomically read_and store_" to atom for "atomically read_↑and store_";
 ]
 with <>;
-
-/**
- * Atomically read the value of {@param "var"}, compare it to {@param
- * "reference"}, and, if they are discovered to be equal, store {@param
- * "newValue"}.
- *
- * @category "Primitives" "Variables" "Queries" "Mutators" "Synchronization"
- * @method "atomically compare_to_and,⁇if equal,⁇store_"
- * @param "var" "variable"
- *        A variable.
- * @param "reference" "any"
- *        The value against which the content of {@param "var"} should be
- *        compared.
- * @param "newValue" "any"
- *        The new value to conditionally store into {@param "var"}.
- * @returns "boolean"
- *    {@method "true"} if the operation succeeded and {@param "newValue"} was
- *    stored into {@param "var"}, {@method "false"} otherwise.
- * @raises "cannot-read-unassigned-variable exception"
- * @raises "cannot-store-incorrectly-typed-value exception"
- * @raises "cannot-overwrite-write-once-variable exception"
- * @raises "Java-marshaling-failed exception"
- * @raises "cannot-modify-final-Java-field exception"
- */
 
 /**
  * Atomically read the value of {@param "var"}, compare it to {@param
@@ -512,10 +411,9 @@ with <>;
  * @raises "Java-marshaling-failed exception"
  * @raises "cannot-modify-final-Java-field exception"
  */
-
 Invoke
 [
-	f : function accepting <variable, any, any> and returning boolean;
+	f : function;
 	f :=
 		[
 			var : variable,
@@ -533,30 +431,11 @@ Invoke
 			with <failureCode, f, <var, reference, newValue>>
 			expecting boolean
 		] : boolean;
-	Public method "atomically compare_to_and,⁇if equal,⁇store_" is f;
 	Public method "atomically compare_↑to_and,⁇if equal,⁇store_" is f;
+	Alias "atomically compare_to_and,⁇if equal,⁇store_"
+		to atom for "atomically compare_↑to_and,⁇if equal,⁇store_";
 ]
 with <>;
-
-/**
- * Atomically compute the sum of the value stored in {@param "var"} and {@param
- * "addend"}, and store the sum back into {@param "var"}.
- *
- * @category "Primitives" "Variables" "Queries" "Mutators" "Synchronization"
- * @method "atomically read_and add_"
- * @param "var" "readable extended integer variable"
- *        A variable containing the augend.
- * @param "addend" "extended integer"
- *        The addend.
- * @returns "[-∞..∞]"
- *    The augend, i.e., the value originally stored in {@param "var"}.
- * @raises "cannot-add-unlike-infinities exception"
- * @raises "cannot-read-unassigned-variable exception"
- * @raises "cannot-store-incorrectly-typed-value exception"
- * @raises "cannot-overwrite-write-once-variable exception"
- * @raises "Java-marshaling-failed exception"
- * @raises "cannot-modify-final-Java-field exception"
- */
 
 /**
  * Atomically compute the sum of the value stored in {@param "var"} and {@param
@@ -577,12 +456,9 @@ with <>;
  * @raises "Java-marshaling-failed exception"
  * @raises "cannot-modify-final-Java-field exception"
  */
-
 Invoke
 [
-	f : function
-			accepting <readable extended integer variable, extended integer>
-			and returning extended integer;
+	f : function;
 	f :=
 		[
 			var : readable extended integer variable,
@@ -600,26 +476,10 @@ Invoke
 			with <failureCode, f, <var, addend>>
 			expecting extended integer
 		] : extended integer;
-	Public method "atomically read_and add_" is f;
 	Public method "atomically read_↑and add_" is f;
+	Alias "atomically read_and add_" to atom for "atomically read_↑and add_";
 ]
 with <>;
-
-/**
- * If the specified declaration has an initialization expression, then store it
- * into {@param "var"}.
- *
- * @category "Primitives" "Variables" "Phrases" "Queries" "Mutators"
- * @method "_`?=_'s⁇initialization"
- * @param "var" "write-only expression variable"
- *        A variable.
- * @param "aDeclaration" "declaration phrase"
- *        A declaration.
- * @returns "boolean"
- *    {@method "true"} if {@param "aDeclaration"} has an initialization
- *    expression and it was written into {@param "var"}, {@method "false"}
- *    otherwise.
- */
 
 /**
  * If the specified declaration has an initialization expression, then store it
@@ -636,12 +496,9 @@ with <>;
  *    expression and it was written into {@param "var"}, {@method "false"}
  *    otherwise.
  */
-
 Invoke
 [
-	f : function
-			accepting <write-only expression variable, declaration phrase>
-			and returning boolean;
+	f : function;
 	f :=
 		[
 			var : write-only expression variable,
@@ -653,7 +510,92 @@ Invoke
 			with <failureCode, f, <var, aDeclaration>>
 			expecting boolean
 		] : boolean;
-	Public method "_`?=_'s⁇initialization" is f;
 	Public method "_↑`?=_'s⁇initialization" is f;
+	Alias "_`?=_'s⁇initialization" to atom for "_↑`?=_'s⁇initialization";
+]
+with <>;
+
+/**
+ * Atomically read the value of {@param "var"} and store {@param "newValue"}.
+ * No semantic restriction for this operation exists to ensure that the
+ * assignment is possible, so it is suitable for generic use.
+ *
+ * @method "unsafely atomically read_↑and store_"
+ * @param "var" "variable"
+ *        A variable.
+ * @param "newValue" "any"
+ *        The new value to store into {@param "var"}.
+ * @returns "any"
+ *          The value originally stored in {@param "var"}.
+ * @category "Synchronization" "Primitives" "Variables" "Queries" "Mutators"
+ */
+Invoke
+[
+	f : function;
+	f :=
+		[
+			var : variable,
+			newValue : any
+		|
+			Primitive 20 (failureCode : enumeration of {
+				cannot-read-unassigned-variable code,
+				cannot-store-incorrectly-typed-value code,
+				cannot-overwrite-write-once-variable code,
+				Java-marshaling-failed code,
+				cannot-modify-final-Java-field code,
+				observed-variable-written-while-untraced code});
+			invoke variableFailureFunction
+			with <failureCode, f, <var, newValue>>
+			expecting any
+		] : any;
+	Public method "unsafely atomically read_↑and store_" is f;
+	Alias "unsafely atomically read_and store_"
+		to atom for "unsafely atomically read_↑and store_";
+]
+with <>;
+
+/**
+ * Atomically read the value of {@param "var"}, compare it to {@param
+ * "reference"}, and, if they are discovered to be equal, store {@param
+ * "newValue"} into {@param "var"}. No semantic restriction for this operation
+ * exists to ensure that the assignment is possible, so it is suitable for
+ * generic use.
+ *
+ * @method "unsafely atomically compare_↑to_and,⁇if equal,⁇store_"
+ * @param "var" "variable"
+ *        A variable.
+ * @param "reference" "any"
+ *        The value against which the content of {@param "var"} should be
+ *        compared.
+ * @param "newValue" "any"
+ *        The new value to store into {@param "var"}.
+ * @returns "boolean"
+ *          {@method "true"} if the operation succeeded and {@param "newValue"}
+ *          was stored into {@param "var"}, {@method "false"} otherwise.
+ * @category "Synchronization" "Primitives" "Variables" "Queries" "Mutators"
+ */
+Invoke
+[
+	f : function;
+	f :=
+		[
+			var : variable,
+			reference : any,
+			newValue : any
+		|
+			Primitive 21 (failureCode : enumeration of {
+				cannot-read-unassigned-variable code,
+				cannot-store-incorrectly-typed-value code,
+				cannot-overwrite-write-once-variable code,
+				Java-marshaling-failed code,
+				cannot-modify-final-Java-field code,
+				observed-variable-written-while-untraced code});
+			invoke variableFailureFunction
+			with <failureCode, f, <var, reference, newValue>>
+			expecting boolean
+		] : boolean;
+	Public method "unsafely atomically compare_↑to_and,⁇if equal,⁇store_" is f;
+	Alias "unsafely atomically compare_to_and,⁇if equal,⁇store_"
+		to atom for "unsafely atomically compare_↑to_and,⁇if equal,⁇store_";
 ]
 with <>;

@@ -204,11 +204,11 @@ Method "“_”" is
 	[
 		aDie ::= bindings[i][1];
 		rolls ::= “bindings[i][2] ?→ <extended integer…|1..>”;
-		s := s ++ “aDie” ++ ": " ++ rolls[2..|rolls|-1];
+		s ++= “aDie” ++ ": " ++ rolls[2..|rolls|-1];
 		i++;
 	]
 	while [i ≤ |bindings|]
-	alternate with [s := s ++ "; ";];
-	s := s ++ ")";
+	alternate with [s ++= "; ";];
+	s ++= ")";
 	s
 ] : string;

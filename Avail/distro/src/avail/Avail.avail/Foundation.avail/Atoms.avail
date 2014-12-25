@@ -49,6 +49,14 @@ Names
 	"«Public»?_is a|an new⁇field⁇atom"
 Body
 
+Method "Alias_to_" is
+[
+	newName : string,
+	oldName : string
+|
+	Alias newName to atom for oldName;
+];
+
 /**
  * Answer the value associated with the property {@param "key"} of {@param
  * "anAtom"}. If no such property exists, then answer the result of applying
@@ -131,7 +139,7 @@ Semantic restriction "«Public»?_is a|an new⁇field⁇atom" is
 				name,
 				"\" not to specify any parameters">;
 			s : string;
-			↑s ?= t;
+			s ?= t;
 			Reject parse, expected: s
 		];
 		If public ∧ [¬name ∈ publicNames] then
@@ -141,7 +149,7 @@ Semantic restriction "«Public»?_is a|an new⁇field⁇atom" is
 				name,
 				"\" to be included in the module's \"Names\" section">;
 			s : string;
-			↑s ?= t;
+			s ?= t;
 			Reject parse, expected: s
 		];
 	];
@@ -196,7 +204,7 @@ Semantic restriction "«Public»?_is a new⁇heritable«fiber-local»⁇atom" is
 				name,
 				"\" not to specify any parameters">;
 			s : string;
-			↑s ?= t;
+			s ?= t;
 			Reject parse, expected: s
 		];
 		If public ∧ [¬name ∈ publicNames] then
@@ -206,7 +214,7 @@ Semantic restriction "«Public»?_is a new⁇heritable«fiber-local»⁇atom" is
 				name,
 				"\" to be included in the module's \"Names\" section">;
 			s : string;
-			↑s ?= t;
+			s ?= t;
 			Reject parse, expected: s
 		];
 	];

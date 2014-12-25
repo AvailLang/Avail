@@ -1349,7 +1349,7 @@ Public method "all indices of_where_" is
 	|
 		If predicate(aTuple[index]) then
 		[
-			indices := indices ++ <index>;
+			indices ++= <index>;
 		];
 	];
 	indices
@@ -3767,7 +3767,7 @@ Method "all indices of_in_" is
 			w := first index of subtuple in aTuple[index..];
 			if w > 0 then 
 			[
-				occurrences := occurrences ++ <cast w + index - 1 into 
+				occurrences ++= <cast w + index - 1 into 
 					[n : natural number | n]>;
 				index := index + w + |subtuple| - 1;
 			]
@@ -3916,10 +3916,10 @@ Method "replace all occurrences of_in_with_" is
 		[
 			If <aTuple[index]> = subtuple then
 			[
-			 	newTuple := newTuple ++ replacementTuple;
+			 	newTuple ++= replacementTuple;
 			] else
 			[
-				newTuple := newTuple ++ <aTuple[index]>;
+				newTuple ++= <aTuple[index]>;
 			];
 			index++;
 		];
@@ -3940,13 +3940,13 @@ Method "replace all occurrences of_in_with_" is
 			[
 			 	lastPreSubtupleIndex : natural number := cast w - 2 + index into 
 			 		[n : natural number | n];
-			 	newTuple := newTuple ++ aTuple[index..lastPreSubtupleIndex] ++
+			 	newTuple ++= aTuple[index..lastPreSubtupleIndex] ++
 			 		replacementTuple;	
 				index := index + w + |subtuple|-1;
 			]
 			else 
 			[
-				newTuple := newTuple ++ aTuple[index..];
+				newTuple ++= aTuple[index..];
 				index := index + |aTuple|-1;
 			];
 		];

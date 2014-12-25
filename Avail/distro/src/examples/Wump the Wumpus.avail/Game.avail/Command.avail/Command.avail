@@ -435,7 +435,7 @@ Action "shooting" is
 					the cave[nextId]
 				];
 			Move a crooked arrow to nextRoom;
-			path := path ++ <nextRoom>;
+			path ++= <nextRoom>;
 		];
 		Quiver check;
 		true

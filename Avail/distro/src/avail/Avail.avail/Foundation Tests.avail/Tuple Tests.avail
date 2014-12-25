@@ -120,7 +120,7 @@ Test "for each of do" in tuple test suite is
 	[
 	 	n : natural number
 	 |
-	 	b := b ++ <n>;
+	 	b ++= <n>;
 	];
 	Require: b = a;
 ];
@@ -493,7 +493,7 @@ Test "integer interval tuple" in tuple test suite is
 					[
 						i : integer
 					|
-						expected := expected ++ <i>;
+						expected ++= <i>;
 					];
 				];
 				Guard
@@ -526,7 +526,7 @@ Test "integer interval tuple" in tuple test suite is
 	[
 		i : integer
 	|
-		expected := expected ++ <i>;
+		expected ++= <i>;
 	];
 	Require: 12345678901 to 12345678907 by 2 = expected;
 

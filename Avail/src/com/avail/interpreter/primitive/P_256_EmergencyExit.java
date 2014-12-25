@@ -91,7 +91,7 @@ public final class P_256_EmergencyExit extends Primitive
 						{
 							builder.append(String.format(
 								" (= %s)",
-								AvailErrorCode.all()[intValue].name()));
+								AvailErrorCode.byNumericCode(intValue).name()));
 						}
 					}
 					for (final String frame : stack)

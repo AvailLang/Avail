@@ -276,7 +276,7 @@ Public method "_(_,`…)" is [
 	From 2 to ⎣argumentsType⎦ do [
 		index : natural number
 	|
-		pairs := pairs ++ <<<>, true>>;
+		pairs ++= <<<>, true>>;
 	];
 	originalFunction partially evaluate with pairs
 ];
