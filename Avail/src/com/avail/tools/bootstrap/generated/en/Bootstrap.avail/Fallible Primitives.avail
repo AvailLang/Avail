@@ -1020,9 +1020,9 @@ Primitive "method for_" is
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
- * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "up-arrow-must-follow-argument exception"
  * @raises "no-method-definition exception"
@@ -1049,9 +1049,9 @@ Primitive "method definition of_for_" is
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
-		double-question-mark-must-follow-a-simple-or-simple-group code,
+		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
-		vertical-bar-must-follow-a-simple-or-simple-group code,
+		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		up-arrow-must-follow-argument code,
 		no-method-definition code,
@@ -1083,9 +1083,9 @@ Primitive "method definition of_for_" is
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
- * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  */
 Primitive "`|message_'s⁇parameters`|" is
@@ -1107,9 +1107,9 @@ Primitive "`|message_'s⁇parameters`|" is
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
-		double-question-mark-must-follow-a-simple-or-simple-group code,
+		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
-		vertical-bar-must-follow-a-simple-or-simple-group code,
+		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		up-arrow-must-follow-argument code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -1139,9 +1139,9 @@ Primitive "`|message_'s⁇parameters`|" is
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
- * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  */
 Primitive "message_contains groups" is
@@ -1163,9 +1163,9 @@ Primitive "message_contains groups" is
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
-		double-question-mark-must-follow-a-simple-or-simple-group code,
+		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
-		vertical-bar-must-follow-a-simple-or-simple-group code,
+		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		up-arrow-must-follow-argument code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -1200,9 +1200,9 @@ Primitive "message_contains groups" is
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
- * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "loading-is-over exception"
  */
@@ -1228,9 +1228,9 @@ Primitive "Seal method_at_" is
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
-		double-question-mark-must-follow-a-simple-or-simple-group code,
+		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
-		vertical-bar-must-follow-a-simple-or-simple-group code,
+		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code}ᵀ);
@@ -1268,9 +1268,9 @@ Primitive "Seal method_at_" is
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
- * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "loading-is-over exception"
  * @raises "method-is-sealed exception"
@@ -1298,9 +1298,9 @@ Primitive "Abstract method_is_" is
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
-		double-question-mark-must-follow-a-simple-or-simple-group code,
+		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
-		vertical-bar-must-follow-a-simple-or-simple-group code,
+		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
 		method-is-sealed code,
@@ -1376,9 +1376,9 @@ Primitive "_has definition for_" is
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
- * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "loading-is-over exception"
  */
@@ -1404,9 +1404,9 @@ Primitive "Semantic restriction_is_" is
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
-		double-question-mark-must-follow-a-simple-or-simple-group code,
+		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
-		vertical-bar-must-follow-a-simple-or-simple-group code,
+		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code}ᵀ);
@@ -1441,9 +1441,9 @@ Primitive "Semantic restriction_is_" is
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
- * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "loading-is-over exception"
  */
@@ -1468,9 +1468,9 @@ Primitive "Seal method_at_" is
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
-		double-question-mark-must-follow-a-simple-or-simple-group code,
+		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
-		vertical-bar-must-follow-a-simple-or-simple-group code,
+		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code}ᵀ);
@@ -1602,9 +1602,9 @@ Primitive "Export_as a new name" is
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
- * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "loading-is-over exception"
  */
@@ -1631,9 +1631,9 @@ Primitive "Semantic restriction_is_" is
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
-		double-question-mark-must-follow-a-simple-or-simple-group code,
+		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
-		vertical-bar-must-follow-a-simple-or-simple-group code,
+		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code}ᵀ);
@@ -1683,9 +1683,9 @@ Primitive "Semantic restriction_is_" is
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
- * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "macro-prefix-functions-must-return-top exception"
  * @raises "macro-prefix-function-argument-must-be-a-parse-node exception"
@@ -1715,9 +1715,9 @@ Primitive "Macro_is«_,»_" is
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
-		double-question-mark-must-follow-a-simple-or-simple-group code,
+		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
-		vertical-bar-must-follow-a-simple-or-simple-group code,
+		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		macro-prefix-functions-must-return-top code,
 		macro-prefix-function-argument-must-be-a-parse-node code,
@@ -1756,9 +1756,9 @@ Primitive "Macro_is«_,»_" is
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
- * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "loading-is-over exception"
  * @raises "method-is-sealed exception"
@@ -1787,9 +1787,9 @@ Primitive "Abstract method_is_" is
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
-		double-question-mark-must-follow-a-simple-or-simple-group code,
+		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
-		vertical-bar-must-follow-a-simple-or-simple-group code,
+		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
 		method-is-sealed code,
@@ -1830,9 +1830,9 @@ Primitive "Abstract method_is_" is
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
- * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "loading-is-over exception"
  * @raises "method-is-sealed exception"
@@ -1861,9 +1861,9 @@ Primitive "Forward method_is_" is
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
-		double-question-mark-must-follow-a-simple-or-simple-group code,
+		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
-		vertical-bar-must-follow-a-simple-or-simple-group code,
+		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
 		method-is-sealed code,
@@ -1926,9 +1926,9 @@ Primitive "next character" is
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
- * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "loading-is-over exception"
  */
@@ -1954,9 +1954,9 @@ Primitive "Grammatical restriction_is_" is
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
-		double-question-mark-must-follow-a-simple-or-simple-group code,
+		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
-		vertical-bar-must-follow-a-simple-or-simple-group code,
+		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code}ᵀ);
@@ -2054,9 +2054,9 @@ Primitive "Reset to mark" is
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
- * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "loading-is-over exception"
  */
@@ -2081,9 +2081,9 @@ Primitive "Grammatical restriction_is_" is
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
-		double-question-mark-must-follow-a-simple-or-simple-group code,
+		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
-		vertical-bar-must-follow-a-simple-or-simple-group code,
+		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code}ᵀ);
@@ -2386,9 +2386,9 @@ Primitive "_→function" is
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
- * @raises "double-question-mark-must-follow-a-simple-or-simple-group exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-follow-a-simple-or-simple-group exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  */
 Primitive "send_with_:_" is
@@ -2413,9 +2413,9 @@ Primitive "send_with_:_" is
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
-		double-question-mark-must-follow-a-simple-or-simple-group code,
+		double-question-mark-must-follow-a-token-or-simple-group code,
 		alternative-must-not-contain-arguments code,
-		vertical-bar-must-follow-a-simple-or-simple-group code,
+		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		up-arrow-must-follow-argument code}ᵀ);
 	Private invoke _fail_primitive with failureCode

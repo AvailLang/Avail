@@ -39,8 +39,8 @@ import java.util.Arrays;
 import java.util.List;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.MethodDefinitionException;
-import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 
 /**
@@ -90,7 +90,7 @@ extends Primitive
 			assert !definition.equalsNil();
 			return interpreter.primitiveSuccess(definition);
 		}
-		catch (final SignatureException|MethodDefinitionException e)
+		catch (final MalformedMessageException | MethodDefinitionException e)
 		{
 			return interpreter.primitiveFailure(e.errorCode());
 		}

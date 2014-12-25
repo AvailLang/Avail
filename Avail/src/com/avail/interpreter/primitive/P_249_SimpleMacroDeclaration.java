@@ -157,7 +157,9 @@ extends Primitive
 								skipReturnCheck);
 						}
 						catch (
-							final AmbiguousNameException|SignatureException e)
+							final MalformedMessageException
+								| SignatureException
+								| AmbiguousNameException e)
 						{
 							Interpreter.resumeFromFailedPrimitive(
 								AvailRuntime.current(),

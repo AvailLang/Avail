@@ -62,7 +62,7 @@ import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.exceptions.AvailEmergencyExitException;
-import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.primitive.P_352_RejectParsing;
 import com.avail.io.TextInterface;
@@ -763,7 +763,7 @@ public abstract class AbstractAvailCompiler
 						newBundle = MessageBundleDescriptor.newBundle(
 							newAtom, method, new MessageSplitter(newString));
 					}
-					catch (final SignatureException e)
+					catch (final MalformedMessageException e)
 					{
 						return
 							"well-formed signature for " + newString
@@ -821,7 +821,7 @@ public abstract class AbstractAvailCompiler
 					}
 					module.addEntryPoint(name, trueName);
 				}
-				catch (final SignatureException e)
+				catch (final MalformedMessageException e)
 				{
 					return
 						"entry point \"" + name.asNativeString()

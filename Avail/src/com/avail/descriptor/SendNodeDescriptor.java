@@ -40,7 +40,7 @@ import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 
@@ -93,7 +93,7 @@ extends ParseNodeDescriptor
 			splitter = new MessageSplitter(
 				object.bundle().message().atomName());
 		}
-		catch (final SignatureException e)
+		catch (final MalformedMessageException e)
 		{
 			builder.append("*** Malformed selector: ");
 			builder.append(e.errorCode().name());

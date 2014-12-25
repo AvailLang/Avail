@@ -37,7 +37,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
-import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;
 
 /**
@@ -70,7 +70,7 @@ extends Primitive
 		{
 			splitter = new MessageSplitter(name);
 		}
-		catch (final SignatureException e)
+		catch (final MalformedMessageException e)
 		{
 			assert false : "The method name was extracted from a real bundle!";
 		}

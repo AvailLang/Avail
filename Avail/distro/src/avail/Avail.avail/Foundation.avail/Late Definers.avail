@@ -69,8 +69,10 @@ Public method "Require:_is canonical" is
 	If |nameType| = 1 ∧ [¬nameType's instance is a valid message] then
 	[
 		Reject parse, expected:
-			format "message to be canonical (but “①” is not)"
-			with nameType's instance
+			format "message to be canonical, but ‘①’ is not:\n\t‘②’"
+			with
+				nameType's instance's name,
+				non-canonical problem with nameType's instance's name
 	];
 ] : ⊤;
 
@@ -95,8 +97,10 @@ Public method "Require:_is canonical" is
 		If ¬trueName is a valid message then
 		[
 			Reject parse, expected:
-				format "message to be canonical (but “①” is not)"
-				with nameType's instance
+				format "message to be canonical, but ‘①’ is not:\n\t‘②’"
+				with
+					nameType's instance,
+					non-canonical problem with nameType's instance
 		];
 	];
 ] : ⊤;

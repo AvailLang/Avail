@@ -54,6 +54,7 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
 import com.avail.exceptions.VariableGetException;
@@ -4281,7 +4282,7 @@ extends AbstractDescriptor
 
 	@Override
 	A_Bundle o_BundleOrCreate (final AvailObject object)
-		throws SignatureException
+		throws MalformedMessageException
 	{
 		return o_Traversed(object).bundleOrCreate();
 	}

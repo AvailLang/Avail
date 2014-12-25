@@ -39,7 +39,7 @@ import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
-import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.L1Instruction;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
@@ -136,7 +136,7 @@ extends Primitive
 			// Now set the wrapper as the implicit observe function.
 			AvailRuntime.current().setImplicitObserveFunction(wrapper);
 		}
-		catch (final SignatureException e)
+		catch (final MalformedMessageException e)
 		{
 			assert false : "This isn't possible!";
 			throw new RuntimeException();

@@ -1713,13 +1713,13 @@ public final class AvailRuntime
 	 *        The method name, an {@linkplain AtomDescriptor atom}.
 	 * @param sealSignature
 	 *        The tuple of types at which to seal the method.
-	 * @throws SignatureException
+	 * @throws MalformedMessageException
 	 *         If anything is wrong with the method name.
 	 */
 	public void addSeal (
 			final A_Atom methodName,
 			final A_Tuple sealSignature)
-		throws SignatureException
+		throws MalformedMessageException
 	{
 		assert methodName.isAtom();
 		assert sealSignature.isTuple();
@@ -1745,13 +1745,13 @@ public final class AvailRuntime
 	 * @param sealSignature
 	 *        The signature at which to unseal the method. There may be other
 	 *        seals remaining, even at this very signature.
-	 * @throws SignatureException
+	 * @throws MalformedMessageException
 	 *         If anything is wrong with the method name.
 	 */
 	public void removeSeal (
 			final A_Atom methodName,
 			final A_Tuple sealSignature)
-		throws SignatureException
+		throws MalformedMessageException
 	{
 		runtimeLock.writeLock().lock();
 		try

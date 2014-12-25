@@ -40,7 +40,7 @@ import java.util.*;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.exceptions.*;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;
 
 /**
@@ -87,7 +87,7 @@ extends Primitive
 			}
 			bundle = messageName.bundleOrCreate();
 		}
-		catch (final SignatureException e)
+		catch (final MalformedMessageException e)
 		{
 			return interpreter.primitiveFailure(e.errorCode());
 		}

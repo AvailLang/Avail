@@ -38,7 +38,7 @@ import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailRuntimeException;
-import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.L1Instruction;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
@@ -85,7 +85,7 @@ extends Primitive
 					writer.addLiteral(atom.bundleOrCreate()),
 					writer.addLiteral(TupleTypeDescriptor.stringType())));
 		}
-		catch (final SignatureException e)
+		catch (final MalformedMessageException e)
 		{
 			assert false : "This should never happen!";
 			throw new AvailRuntimeException(e.errorCode());

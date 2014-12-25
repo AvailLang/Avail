@@ -186,6 +186,7 @@ Uses
 		"new_[_]",
 		"new_applying_",
 		"new`↑_",
+		"non-canonical problem with_",
 		"primfail`«_:_`»",
 		"primitive description of_",
 		"read_/write_",
@@ -2073,6 +2074,24 @@ Primitive "_'s⁇literals" is
 |
 	Primitive 187;
 ] : tuple;
+
+/**
+ * Describe why the given proposed message name is invalid.
+ *
+ * @category "Primitives"
+ * @method "non-canonical problem with_"
+ * @param "messageName" "string"
+ *        The proposed message name.
+ * @returns "string"
+ *    A string describing the malformation of the proposed message name, or the
+ *    empty string if it is well-formed.
+ */
+Primitive "non-canonical problem with_" is
+[
+	messageName : string
+|
+	Primitive 210;
+] : string;
 
 /**
  * Answer the specified definition's function type.

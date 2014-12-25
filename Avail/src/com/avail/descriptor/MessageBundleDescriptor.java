@@ -37,7 +37,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
 import java.util.List;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.MessageSplitter;
-import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -293,13 +293,13 @@ extends Descriptor
 	 * @param method The method that this bundle represents.
 	 * @param splitter A MessageSplitter for this message name.
 	 * @return A new {@linkplain MessageBundleDescriptor message bundle}.
-	 * @throws SignatureException If the message name is malformed.
+	 * @throws MalformedMessageException If the message name is malformed.
 	 */
 	public static A_Bundle newBundle (
 		final A_Atom methodName,
 		final A_Method method,
 		final MessageSplitter splitter)
-	throws SignatureException
+	throws MalformedMessageException
 	{
 		assert methodName.isAtom();
 		assert splitter.numberOfArguments() == method.numArgs();

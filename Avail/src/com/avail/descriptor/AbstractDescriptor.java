@@ -58,6 +58,7 @@ import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.AvailUnsupportedOperationException;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
 import com.avail.exceptions.VariableGetException;
@@ -5676,10 +5677,10 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @return
-	 * @throws SignatureException
+	 * @throws MalformedMessageException
 	 */
 	abstract A_Bundle o_BundleOrCreate (AvailObject object)
-		throws SignatureException;
+		throws MalformedMessageException;
 
 	/**
 	 * @param object

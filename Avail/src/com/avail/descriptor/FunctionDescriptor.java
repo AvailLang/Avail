@@ -39,7 +39,7 @@ import java.util.Collections;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.exceptions.AvailRuntimeException;
-import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.primitive.P_340_PushConstant;
@@ -550,7 +550,7 @@ extends Descriptor
 							MethodDescriptor.vmCrashAtom().bundleOrCreate()),
 						writer.addLiteral(BottomTypeDescriptor.bottom())));
 			}
-			catch (final SignatureException e)
+			catch (final MalformedMessageException e)
 			{
 				assert false : "This should not happen!";
 				throw new AvailRuntimeException(e.errorCode());
@@ -606,7 +606,7 @@ extends Descriptor
 						MethodDescriptor.vmCrashAtom().bundleOrCreate()),
 					writer.addLiteral(BottomTypeDescriptor.bottom())));
 		}
-		catch (final SignatureException e)
+		catch (final MalformedMessageException e)
 		{
 			assert false : "This should not happen!";
 			throw new AvailRuntimeException(e.errorCode());

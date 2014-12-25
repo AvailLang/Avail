@@ -1,5 +1,5 @@
 /**
- * P_224_MethodNameParametersCount.java
+ * P_208_IncompleteMessages.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,33 +29,28 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package com.avail.interpreter.primitive;
 
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import com.avail.annotations.Nullable;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 224</strong>: Treating the {@linkplain StringDescriptor
- * string} argument as a {@linkplain MethodDescriptor method} name, answer the
- * number of arguments expected for a valid send of the name.
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * <strong>Primitive 210:</strong> Answer a string describing why the given
+ * string is unsuitable as a {@linkplain MessageBundleDescriptor message} name.
+ * If the given string is actually suitable, answer the empty string.
  */
-public final class P_224_MethodNameParametersCount
-extends Primitive
+public final class P_210_DescribeNoncanonicalMessage extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
+	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_224_MethodNameParametersCount().init(
-			1, CanFold, CanInline);
+		new P_210_DescribeNoncanonicalMessage().init(
+			1, CanInline, CanFold, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -64,19 +59,18 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_String name = args.get(0);
-		@Nullable MessageSplitter splitter = null;
+		final A_String messageName = args.get(0);
 		try
 		{
-			splitter = new MessageSplitter(name);
+			@SuppressWarnings("unused")
+			final MessageSplitter splitter = new MessageSplitter(messageName);
 		}
 		catch (final MalformedMessageException e)
 		{
-			return interpreter.primitiveFailure(e);
+			return interpreter.primitiveSuccess(
+				StringDescriptor.from(e.describeProblem()));
 		}
-		assert splitter != null;
-		return interpreter.primitiveSuccess(IntegerDescriptor.fromInt(
-			splitter.numberOfArguments()));
+		return interpreter.primitiveSuccess(TupleDescriptor.empty());
 	}
 
 	@Override
@@ -85,13 +79,6 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				TupleTypeDescriptor.stringType()),
-			IntegerRangeTypeDescriptor.wholeNumbers());
-	}
-
-	@Override
-	protected A_Type privateFailureVariableType ()
-	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			MessageSplitter.possibleErrors);
+			TupleTypeDescriptor.stringType());
 	}
 }

@@ -40,7 +40,10 @@ import static java.lang.Math.*;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
-import com.avail.exceptions.*;
+import com.avail.exceptions.AvailErrorCode;
+import com.avail.exceptions.MalformedMessageException;
+import com.avail.exceptions.MethodDefinitionException;
+import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.*;
@@ -1617,7 +1620,7 @@ extends Descriptor
 		{
 			bundle = atom.bundleOrCreate();
 		}
-		catch (final SignatureException e)
+		catch (final MalformedMessageException e)
 		{
 			assert false : "This should not happen!";
 			throw new RuntimeException(

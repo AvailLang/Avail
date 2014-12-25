@@ -79,11 +79,10 @@ extends Primitive
 				loader.lookupName(methodName),
 				argumentTypes);
 		}
-		catch (final AmbiguousNameException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
-		catch (final SignatureException e)
+		catch (
+			final MalformedMessageException
+				| SignatureException
+				| AmbiguousNameException e)
 		{
 			return interpreter.primitiveFailure(e);
 		}

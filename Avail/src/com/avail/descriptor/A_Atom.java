@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.MalformedMessageException;
 
 /**
  * {@code A_Atom} is an interface that specifies the atom-specific operations
@@ -110,10 +110,10 @@ extends A_BasicObject
 	 * associated with it, create one for that purpose and install it.
 	 *
 	 * @return The atom's message bundle.
-	 * @throws SignatureException
+	 * @throws MalformedMessageException
 	 *         If anything is wrong with the message name.
 	 */
-	A_Bundle bundleOrCreate () throws SignatureException;
+	A_Bundle bundleOrCreate () throws MalformedMessageException;
 
 	/**
 	 * Answer the {@linkplain MessageBundleDescriptor message bundle} associated

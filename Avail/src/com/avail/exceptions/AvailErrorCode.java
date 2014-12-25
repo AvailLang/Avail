@@ -364,7 +364,7 @@ public enum AvailErrorCode
 	 * A double question mark (⁇) may only occur after a keyword, operator, or
 	 * guillemet group which has no arguments or subgroups.
 	 */
-	E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_OR_SIMPLE_GROUP (53),
+	E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_TOKEN_OR_SIMPLE_GROUP (53),
 
 	/**
 	 * An alternation must not contain arguments. It must comprise only simple
@@ -376,7 +376,7 @@ public enum AvailErrorCode
 	 * A vertical bar (|) may only occur after a keyword, operator, or
 	 * guillemet group which has no arguments or subgroups.
 	 */
-	E_VERTICAL_BAR_MUST_FOLLOW_A_SIMPLE_OR_SIMPLE_GROUP (55),
+	E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS (55),
 
 	/**
 	 * A {@link Double} {@linkplain Double#NaN not-a-number} or {@link Float}

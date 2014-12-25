@@ -39,6 +39,7 @@ import java.util.List;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AmbiguousNameException;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
@@ -109,11 +110,10 @@ extends Primitive
 					loader.lookupName(string),
 					disallowed);
 			}
-			catch (final AmbiguousNameException e)
-			{
-				return interpreter.primitiveFailure(e);
-			}
-			catch (final SignatureException e)
+			catch (
+				final MalformedMessageException
+					| SignatureException
+					| AmbiguousNameException e)
 			{
 				return interpreter.primitiveFailure(e);
 			}

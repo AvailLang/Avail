@@ -6610,7 +6610,7 @@ implements
 	}
 
 	@Override
-	public A_Bundle bundleOrCreate () throws SignatureException
+	public A_Bundle bundleOrCreate () throws MalformedMessageException
 	{
 		return descriptor.o_BundleOrCreate(this);
 	}

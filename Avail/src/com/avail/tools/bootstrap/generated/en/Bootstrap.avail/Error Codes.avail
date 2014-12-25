@@ -82,7 +82,7 @@ Names
 	/*  65 */ "declaration-type-must-not-be-top-or-bottom code",
 	/*  97 */ "deserialization-failed code",
 	/* 202 */ "directory-not-empty code",
-	/*  53 */ "double-question-mark-must-follow-a-simple-or-simple-group code",
+	/*  53 */ "double-question-mark-must-follow-a-token-or-simple-group code",
 	/*  95 */ "exceeds-vm-limit code",
 	/*  38 */ "exclamation-mark-must-follow-an-alternation-group code",
 	/*  46 */ "expected-operator-after-backquote code",
@@ -158,7 +158,7 @@ Names
 	/*  71 */ "untimely-parse-rejection code",
 	/*  83 */ "unwind-sentinel code",
 	/*  78 */ "up-arrow-must-follow-argument code",
-	/*  55 */ "vertical-bar-must-follow-a-simple-or-simple-group code",
+	/*  55 */ "vertical-bar-must-separate-tokens-or-simple-groups code",
 	/*  20 */ "wrong-outers code"
 Body
 
@@ -417,7 +417,7 @@ Primitive "tilde-must-not-follow-argument code" is
 	52
 ];
 
-Primitive "double-question-mark-must-follow-a-simple-or-simple-group code" is
+Primitive "double-question-mark-must-follow-a-token-or-simple-group code" is
 [
 	53
 ];
@@ -427,7 +427,7 @@ Primitive "alternative-must-not-contain-arguments code" is
 	54
 ];
 
-Primitive "vertical-bar-must-follow-a-simple-or-simple-group code" is
+Primitive "vertical-bar-must-separate-tokens-or-simple-groups code" is
 [
 	55
 ];

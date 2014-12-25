@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.*;
-import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.MalformedMessageException;
 import com.avail.serialization.Serializer;
 
 /**
@@ -173,7 +173,7 @@ extends AtomWithPropertiesDescriptor
 
 	@Override @AvailMethod
 	A_Bundle o_BundleOrCreate (final AvailObject object)
-		throws SignatureException
+		throws MalformedMessageException
 	{
 		synchronized (object)
 		{

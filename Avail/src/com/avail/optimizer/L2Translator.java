@@ -1228,7 +1228,6 @@ public class L2Translator
 					}
 				}
 			}
-			assert !allPossible.isEmpty();
 			// NOTE: Don't use the method's testing tree.  It encodes
 			// information about the known types of arguments that may be too
 			// weak for our purposes.  It's still correct, but it may produce
