@@ -66,6 +66,8 @@ Names
 	/* Simplified forking. */
 	"Fork_",
 	"fork_",
+	"In_millisecond|milliseconds,⁇fork_",
+	"in_millisecond|milliseconds,⁇fork_",
 
 	/* Parallel constructs. */
 	"For each of⁇_in parallel«_-way»do_",
@@ -308,6 +310,76 @@ Public method "fork_" is
  */
 Semantic restriction "fork_" is
 [
+	functionType : []→⊤'s type
+|
+	fiber→(functionType's return type)
+];
+
+/**
+ * When at least the specified number of milliseconds have elapsed, fork a new
+ * {@type "fiber"} at the {@method "current fiber"}'s priority. The new {@type
+ * "fiber"} will invoke the given {@type "function"} with the supplied
+ * arguments. A best effort will be made to start the {@type "fiber"} as soon as
+ * the delay has expired, but no real-time guarantees are made.
+ *
+ * @category "Primitives" "Concurrency" "Time" "Control Structures"
+ * @method "In_millisecond|milliseconds,⁇fork_"
+ * @param "delayMillis" "nonnegative extended integer"
+ *        The minimum number of milliseconds to delay the start of the new
+ *        fiber.
+ * @param "aFunction" "function"
+ *        A function.
+ * @returns "⊤"
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-argument-type exception"
+ */
+Public method "In_millisecond|milliseconds,⁇fork_" is
+[
+	delay : [0..∞],
+	aFunction : []→⊤
+|
+	In delay milliseconds,
+		invoke aFunction with <>
+		forked at priority current fiber's priority;
+] : ⊤;
+
+/**
+ * When at least the specified number of milliseconds have elapsed, fork a new
+ * {@type "fiber"} at the {@method "current fiber"}'s priority. The new {@type
+ * "fiber"} will invoke the given {@type "function"} with the supplied
+ * arguments. A best effort will be made to start the {@type "fiber"} as soon as
+ * the delay has expired, but no real-time guarantees are made.
+ *
+ * @category "Primitives" "Concurrency" "Time" "Control Structures"
+ * @method "In_millisecond|milliseconds,⁇fork_"
+ * @param "delayMillis" "nonnegative extended integer"
+ *        The minimum number of milliseconds to delay the start of the new
+ *        fiber.
+ * @param "aFunction" "function"
+ *        A function.
+ * @returns "fiber"
+ *          The new fiber.
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-argument-type exception"
+ */
+Public method "in_millisecond|milliseconds,⁇fork_" is
+[
+	delay : [0..∞],
+	aFunction : []→⊤
+|
+	in delay milliseconds,
+		invoke aFunction with <>
+		forked at priority current fiber's priority
+] : fiber;
+
+/**
+ * @method "in_millisecond|milliseconds,⁇fork_"
+ * @restricts "[0..∞]'s type"
+ * @restricts "[]→⊤'s type"
+ */
+Semantic restriction "in_millisecond|milliseconds,⁇fork_" is
+[
+	delayType : [0..∞]'s type,
 	functionType : []→⊤'s type
 |
 	fiber→(functionType's return type)

@@ -263,14 +263,7 @@ Semantic restriction "For each of⁇_do_" is
 	action : [⊥]→⊤'s type
 |
 	Require: action accepts setType;
-	if ⎣setType⎦ > 0 ∧ [ action's return type = ⊥ ] then
-	[
-		⊥
-	]
-	else
-	[
-		⊤
-	]
+	if ⎣setType⎦ > 0 ∧ [ action's return type = ⊥ ] then [⊥] else [⊤]
 ];
 
 /**

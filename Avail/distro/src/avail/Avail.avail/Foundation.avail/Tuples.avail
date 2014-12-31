@@ -91,6 +91,8 @@ Names
 	"_[.._]else_",
 	"_[_.._]→_",
 	"_[_↔_]",
+	"_↑-=_",
+	"_-=_",
 	"«_‡zip»"
 Body
 
@@ -3328,13 +3330,81 @@ Semantic restriction "_-_" is
 	];
 	If allDisjoint then
 	[
-		tupleType
+		Reject parse, expected:
+			"tuple subtraction to have a possible effect (but "
+			++ “element”
+			++ " is disjoint from every element type)"
 	]
 	else
 	[
 		union ::= ∪ tupleType[1..|tupleType's leading types|+1];
 		<union… | 0 max (⎣tupleType⎦-1).. ⎡tupleType⎤>
 	]
+];
+
+/**
+ * Construct a tuple like the one stored in {@param "var"}, but with the
+ * leftmost occurrence of {@param "doomed"} removed, and store the result into
+ * {@param "var"}.
+ *
+ * @method "_↑-=_"
+ * @param "var" "read tuple/write ⊥"
+ *        A {@type "variable"} containing a {@type "tuple"}.
+ * @param "doomed" "any"
+ *        A value.
+ * @returns "⊤"
+ * @category "Tuples" "Transformations" "Variables"
+ */
+Public method "_↑-=_" is
+[
+	var : read tuple/write ⊥,
+	doomed : any
+|
+	value ::= eject var;
+	var ?= value - doomed;
+] : ⊤;
+
+Alias "_-=_" to "_↑-=_";
+
+/**
+ * @method "_↑-=_"
+ * @restricts "(read tuple/write ⊥)'s type"
+ * @restricts "any meta"
+ */
+Semantic restriction "_↑-=_" is
+[
+	varType : (read tuple/write ⊥)'s type,
+	element : any meta
+|
+	tupleType ::= varType's read type;
+	allDisjoint : boolean := true;
+	From 1 to |tuple's leading types| + 1 do
+	[
+		index : natural number
+	|
+		If tupleType[index] ∩ element ≠ ⊥ then
+		[
+			allDisjoint := false;
+		];
+		allDisjoint
+	];
+	If allDisjoint then
+	[
+		Reject parse, expected:
+			"tuple subtraction to have a possible effect (but "
+			++ “element”
+			++ " is disjoint from every element type)"
+	]
+	else
+	[
+		union ::= ∪ tupleType[1..|tupleType's leading types|+1];
+		resultType ::= <union… | 0 max (⎣tupleType⎦-1).. ⎡tupleType⎤>;
+		If ¬resultType ⊆ varType's write type then
+		[
+			Reject parse, expected: "variable to accept " ++ “resultType”
+		];
+	];
+	⊤
 ];
 
 /**
