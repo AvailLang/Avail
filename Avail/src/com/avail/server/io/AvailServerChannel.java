@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 import com.avail.annotations.Nullable;
 import com.avail.io.TextInterface;
 import com.avail.server.AvailServer;
@@ -299,5 +300,22 @@ implements AutoCloseable
 		{
 			// Do not prevent destruction of this channel.
 		}
+	}
+
+	/**
+	 * The next {@linkplain CommandMessage command} {@linkplain AtomicLong
+	 * identifier} to issue.
+	 */
+	private final AtomicLong commandId = new AtomicLong(1);
+
+	/**
+	 * Answer the next {@linkplain CommandMessage command identifier} from the
+	 * {@linkplain AvailServerChannel channel}'s internal sequence.
+	 *
+	 * @return The next command identifier.
+	 */
+	public long nextCommandId ()
+	{
+		return commandId.getAndIncrement();
 	}
 }

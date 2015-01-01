@@ -51,6 +51,35 @@ public abstract class CommandMessage
 	public abstract Command command ();
 
 	/**
+	 * The identifier of the {@linkplain CommandMessage message}. This
+	 * identifier should appear in any responses to this message.
+	 */
+	private long commandId;
+
+	/**
+	 * Answer the identifier of the {@linkplain CommandMessage message}. This
+	 * identifier should appear in any responses to this message.
+	 *
+	 * @return The command identifier.
+	 */
+	public long commandId ()
+	{
+		return commandId;
+	}
+
+	/**
+	 * Answer the identifier of the {@linkplain CommandMessage message}. This
+	 * identifier should appear in any responses to this message.
+	 *
+	 * @param commandId
+	 *        The command identifier.
+	 */
+	public void setCommandId (final long commandId)
+	{
+		this.commandId = commandId;
+	}
+
+	/**
 	 * Process this {@linkplain CommandMessage command message} on behalf of the
 	 * specified {@linkplain AvailServerChannel channel}.
 	 *

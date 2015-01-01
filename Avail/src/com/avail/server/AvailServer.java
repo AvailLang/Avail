@@ -242,12 +242,28 @@ public final class AvailServer
 	}
 
 	/**
+	 * Write an {@code "id"} field into the JSON object being written.
+	 *
+	 * @param commandId
+	 *        The command identifier.
+	 * @param writer
+	 *        A {@link JSONWriter}.
+	 */
+	private void writeCommandIdentifierOn (
+		final long commandId,
+		final JSONWriter writer)
+	{
+		writer.write("id");
+		writer.write(commandId);
+	}
+
+	/**
 	 * Answer an error {@linkplain Message message} that incorporates the
 	 * specified reason.
 	 *
 	 * @param command
-	 *        The {@linkplain Command command} that failed, or {@code null} if
-	 *        the command could not be determined.
+	 *        The {@linkplain CommandMessage command} that failed, or {@code
+	 *        null} if the command could not be determined.
 	 * @param reason
 	 *        The reason for the failure.
 	 * @param closeAfterSending
@@ -257,7 +273,7 @@ public final class AvailServer
 	 * @return A message.
 	 */
 	@InnerAccess Message newErrorMessage (
-		final @Nullable Command command,
+		final @Nullable CommandMessage command,
 		final String reason,
 		final boolean closeAfterSending)
 	{
@@ -266,7 +282,8 @@ public final class AvailServer
 		writeStatusOn(false, writer);
 		if (command != null)
 		{
-			writeCommandOn(command, writer);
+			writeCommandOn(command.command(), writer);
+			writeCommandIdentifierOn(command.commandId(), writer);
 		}
 		writer.write("reason");
 		writer.write(reason);
@@ -279,14 +296,14 @@ public final class AvailServer
 	 * specified reason.
 	 *
 	 * @param command
-	 *        The {@linkplain Command command} that failed, or {@code null} if
-	 *        the command could not be determined.
+	 *        The {@linkplain CommandMessage command} that failed, or {@code
+	 *        null} if the command could not be determined.
 	 * @param reason
 	 *        The reason for the failure.
 	 * @return A message.
 	 */
 	@InnerAccess Message newErrorMessage (
-		final @Nullable Command command,
+		final @Nullable CommandMessage command,
 		final String reason)
 	{
 		return newErrorMessage(command, reason, false);
@@ -296,15 +313,17 @@ public final class AvailServer
 	 * Answer a simple {@linkplain Message message} that just affirms success.
 	 *
 	 * @param command
-	 *        The {@linkplain Command command} for which this is a response.
+	 *        The {@linkplain CommandMessage command} for which this is a
+	 *        response.
 	 * @return A message.
 	 */
-	@InnerAccess Message newSimpleSuccessMessage (final Command command)
+	@InnerAccess Message newSimpleSuccessMessage (final CommandMessage command)
 	{
 		final JSONWriter writer = new JSONWriter();
 		writer.startObject();
 		writeStatusOn(true, writer);
-		writeCommandOn(command, writer);
+		writeCommandOn(command.command(), writer);
+		writeCommandIdentifierOn(command.commandId(), writer);
 		writer.endObject();
 		return new Message(writer.toString());
 	}
@@ -314,19 +333,21 @@ public final class AvailServer
 	 * specified generated content.
 	 *
 	 * @param command
-	 *        The {@linkplain Command command} for which this is a response.
+	 *        The {@linkplain CommandMessage command} for which this is a
+	 *        response.
 	 * @param content
 	 *        How to write the content of the message.
 	 * @return A message.
 	 */
 	@InnerAccess Message newSuccessMessage (
-		final Command command,
+		final CommandMessage command,
 		final Continuation1<JSONWriter> content)
 	{
 		final JSONWriter writer = new JSONWriter();
 		writer.startObject();
 		writeStatusOn(true, writer);
-		writeCommandOn(command, writer);
+		writeCommandOn(command.command(), writer);
+		writeCommandIdentifierOn(command.commandId(), writer);
 		writer.write("content");
 		content.value(writer);
 		writer.endObject();
@@ -338,20 +359,21 @@ public final class AvailServer
 	 * incorporates the specified {@link UUID}.
 	 *
 	 * @param command
-	 *        The {@linkplain Command command} on whose behalf the upgrade is
-	 *        requested.
+	 *        The {@linkplain CommandMessage command} on whose behalf the
+	 *        upgrade is requested.
 	 * @param uuid
 	 *        The {@code UUID} that denotes the I/O connection.
 	 * @return A message.
 	 */
 	@InnerAccess Message newIOUpgradeRequestMessage (
-		final Command command,
+		final CommandMessage command,
 		final UUID uuid)
 	{
 		final JSONWriter writer = new JSONWriter();
 		writer.startObject();
 		writeStatusOn(true, writer);
-		writeCommandOn(command, writer);
+		writeCommandOn(command.command(), writer);
+		writeCommandIdentifierOn(command.commandId(), writer);
 		writer.write("upgrade");
 		writer.write(uuid.toString());
 		writer.endObject();
@@ -384,6 +406,7 @@ public final class AvailServer
 					message.content());
 				if (command != null)
 				{
+					command.setCommandId(channel.nextCommandId());
 					command.processThen(channel, receiveNext);
 				}
 				else
@@ -400,6 +423,7 @@ public final class AvailServer
 				try
 				{
 					final CommandMessage command = Command.parse(message);
+					command.setCommandId(channel.nextCommandId());
 					command.processThen(channel, receiveNext);
 				}
 				catch (final CommandParseException e)
@@ -422,6 +446,7 @@ public final class AvailServer
 				try
 				{
 					final CommandMessage command = Command.parse(message);
+					command.setCommandId(channel.nextCommandId());
 					command.processThen(channel, receiveNext);
 				}
 				catch (final CommandParseException e)
@@ -467,7 +492,7 @@ public final class AvailServer
 		if (channel.state().versionNegotiated())
 		{
 			final Message message = newErrorMessage(
-				command.command(), "version already negotiated");
+				command, "version already negotiated");
 			channel.enqueueMessageThen(message, continuation);
 			return;
 		}
@@ -476,7 +501,7 @@ public final class AvailServer
 		if (supportedProtocolVersions.contains(version))
 		{
 			message = newSuccessMessage(
-				command.command(),
+				command,
 				new Continuation1<JSONWriter>()
 				{
 					@Override
@@ -490,7 +515,7 @@ public final class AvailServer
 		else
 		{
 			message = newSuccessMessage(
-				command.command(),
+				command,
 				new Continuation1<JSONWriter>()
 				{
 					@Override
@@ -536,7 +561,7 @@ public final class AvailServer
 	{
 		assert command.command() == Command.COMMANDS;
 		final Message message = newSuccessMessage(
-			command.command(),
+			command,
 			new Continuation1<JSONWriter>()
 			{
 				@Override
@@ -581,7 +606,7 @@ public final class AvailServer
 	{
 		assert command.command() == Command.MODULE_ROOTS;
 		final Message message = newSuccessMessage(
-			command.command(),
+			command,
 			new Continuation1<JSONWriter>()
 			{
 				@Override
@@ -617,7 +642,7 @@ public final class AvailServer
 	{
 		assert command.command() == Command.MODULE_ROOT_PATHS;
 		final Message message = newSuccessMessage(
-			command.command(),
+			command,
 			new Continuation1<JSONWriter>()
 			{
 				@Override
@@ -652,7 +677,7 @@ public final class AvailServer
 	{
 		assert command.command() == Command.MODULE_ROOTS_PATH;
 		final Message message = newSuccessMessage(
-			command.command(),
+			command,
 			new Continuation1<JSONWriter>()
 			{
 				@Override
@@ -978,7 +1003,7 @@ public final class AvailServer
 	{
 		assert command.command() == Command.SOURCE_MODULES;
 		final Message message = newSuccessMessage(
-			command.command(),
+			command,
 			new Continuation1<JSONWriter>()
 			{
 				@Override
@@ -1037,7 +1062,7 @@ public final class AvailServer
 	{
 		assert command.command() == Command.ENTRY_POINTS;
 		final Message message = newSuccessMessage(
-			command.command(),
+			command,
 			new Continuation1<JSONWriter>()
 			{
 				@Override
@@ -1118,12 +1143,11 @@ public final class AvailServer
 			{
 				root.repository().clear();
 			}
-			message = newSimpleSuccessMessage(command.command());
+			message = newSimpleSuccessMessage(command);
 		}
 		catch (final IOException|IndexedFileException e)
 		{
-			message = newErrorMessage(
-				command.command(), e.getLocalizedMessage());
+			message = newErrorMessage(command, e.getLocalizedMessage());
 		}
 		assert message != null;
 		channel.enqueueMessageThen(message, continuation);
@@ -1151,7 +1175,7 @@ public final class AvailServer
 		if (!channel.state().eligibleForUpgrade())
 		{
 			final Message message = newErrorMessage(
-				command.command(), "channel not eligible for upgrade");
+				command, "channel not eligible for upgrade");
 			channel.enqueueMessageThen(message, continuation);
 			return;
 		}
@@ -1163,7 +1187,7 @@ public final class AvailServer
 		if (upgrader == null)
 		{
 			final Message message = newErrorMessage(
-				command.command(), "no such upgrade");
+				command, "no such upgrade");
 			channel.enqueueMessageThen(message, continuation);
 			return;
 		}
@@ -1215,7 +1239,7 @@ public final class AvailServer
 				}
 			});
 		channel.enqueueMessageThen(
-			newIOUpgradeRequestMessage(command.command(), uuid),
+			newIOUpgradeRequestMessage(command, uuid),
 			afterEnqueuing);
 	}
 
@@ -1291,7 +1315,7 @@ public final class AvailServer
 		};
 		channel.enqueueMessageThen(
 			newSuccessMessage(
-				command.command(),
+				command,
 				new Continuation1<JSONWriter>()
 				{
 					@Override
@@ -1324,7 +1348,7 @@ public final class AvailServer
 				if (!locals.isEmpty() && !globals.isEmpty())
 				{
 					final Message message = newSuccessMessage(
-						command.command(),
+						command,
 						new Continuation1<JSONWriter>()
 						{
 							@Override
@@ -1425,7 +1449,7 @@ public final class AvailServer
 		assert globalUpdates.isEmpty();
 		channel.enqueueMessageThen(
 			newSuccessMessage(
-				command.command(),
+				command,
 				new Continuation1<JSONWriter>()
 				{
 					@Override
@@ -1474,9 +1498,7 @@ public final class AvailServer
 		}
 		catch (final UnresolvedDependencyException e)
 		{
-			final Message message = newErrorMessage(
-				command.command(),
-				e.toString());
+			final Message message = newErrorMessage(command, e.toString());
 			channel.enqueueMessageThen(
 				message,
 				new Continuation0()
@@ -1567,7 +1589,7 @@ public final class AvailServer
 		assert ioChannel.state().generalTextIO();
 		channel.enqueueMessageThen(
 			newSuccessMessage(
-				command.command(),
+				command,
 				new Continuation1<JSONWriter>()
 				{
 					@Override
@@ -1589,7 +1611,7 @@ public final class AvailServer
 		builder.unloadTarget(target);
 		channel.enqueueMessageThen(
 			newSuccessMessage(
-				command.command(),
+				command,
 				new Continuation1<JSONWriter>()
 				{
 					@Override
@@ -1690,7 +1712,7 @@ public final class AvailServer
 					if (value.equalsNil())
 					{
 						final Message message = newSuccessMessage(
-							command.command(),
+							command,
 							new Continuation1<JSONWriter>()
 							{
 								@Override
@@ -1735,7 +1757,7 @@ public final class AvailServer
 							public void value (final @Nullable String string)
 							{
 								final Message message = newSuccessMessage(
-									command.command(),
+									command,
 									new Continuation1<JSONWriter>()
 									{
 										@Override
