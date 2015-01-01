@@ -133,8 +133,8 @@ Test "file iterator (refresh/synchronize)" in file iterator test suite is
 		Synchronize aWriter;
 		Refresh aReader;
 		bytes ::= take 3 from aReader;
-		Assert: bytes = <67, 97, 116>;
-		Assert: aReader is exhausted;
+		Require: bytes = <67, 97, 116>;
+		Require: aReader is exhausted;
 	]
 	ensure
 	[
@@ -168,8 +168,8 @@ Test "file iterator (alignment)" in file iterator test suite is
 		Synchronize aWriter;
 		Refresh aReader;
 		bytes ::= take at most ∞ from aReader;
-		Assert: bytes = memory;
-		Assert: aReader is exhausted;
+		Require: bytes = memory;
+		Require: aReader is exhausted;
 	]
 	ensure
 	[
@@ -212,8 +212,8 @@ Test "file iterator (scattered write)" in file iterator test suite is
 		Synchronize aWriter;
 		Refresh aReader;
 		bytes ::= take at most ∞ from aReader;
-		Assert: bytes = memory;
-		Assert: aReader is exhausted;
+		Require: bytes = memory;
+		Require: aReader is exhausted;
 	]
 	ensure
 	[

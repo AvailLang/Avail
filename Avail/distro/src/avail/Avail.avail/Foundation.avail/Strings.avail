@@ -1205,9 +1205,17 @@ Public method "“_”«else_»(as simple list)" is
 	if aTuple is empty then [optionalEmptyText[1] else [["(empty)"]]()]
 	else
 	[
-		s ::= “aTuple”;
-		if |s| > 2 ∧ [s[1] = ¢< ∧ [s[|s|] = ¢>]] then [s[2..|s|-1]]
-		else [s]
+		s : string := "";
+		index : natural number := 1;
+		Do
+		[
+			elem ::= aTuple[index];
+			s := eject s ++ cast elem into [t : string | t] else [“elem”];
+			index++;
+		]
+		while [index ≤ |aTuple|]
+		alternate with [s := eject s ++ ", ";];
+		s
 	]
 ] : string;
 

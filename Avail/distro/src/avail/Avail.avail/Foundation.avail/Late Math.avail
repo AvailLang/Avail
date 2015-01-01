@@ -59,10 +59,10 @@ Names
 	"an unsigned integer from_",
 
 	/* Compound assignment. */
-	"_↑+=_",
-	"_+=_",
-	"_↑-=_",
-	"_-=_"
+	"_↑+=_", "_+=_",
+	"_↑-=_", "_-=_",
+	"_↑×=_", "_×=_",
+	"_↑÷=_", "_÷=_"
 Body
 
 cannotRaiseZeroToZero ::= "either base or exponent not to be 0";
@@ -452,16 +452,6 @@ Stable method "log_of_" is
 	Raise a cannot-compute-logarithm-of-nonpositive-number exception
 ] : ⊥;
 
-Private method "compound addition function" is
-[
-	[
-		var : read number/write ⊥,
-		delta : number
-	|
-		var ?= eject var + delta;
-	] : ⊤
-];
-
 /**
  * Increment the variable by {@param "delta"}.
  *
@@ -475,32 +465,15 @@ Private method "compound addition function" is
  * @raises "cannot-add-unlike-infinities exception"
  * @raises "cannot-store-incorrectly-typed-value exception"
  */
-Public method "_↑+=_" is compound addition function;
-
-/**
- * Increment the variable by {@param "delta"}.
- *
- * @method "_↑+=_"
- * @category "Variables" "Mathematics" "Integers"
- * @param "var" "variable"
- *        A numeric variable.
- * @param "delta" "number"
- *        The amount by which to increment {@param "var"}.
- * @returns "⊤"
- * @raises "cannot-add-unlike-infinities exception"
- * @raises "cannot-store-incorrectly-typed-value exception"
- */
-Public method "_+=_" is compound addition function;
-
-Private method "compound subtraction function" is
+Public method "_↑+=_" is
 [
-	[
-		var : read number/write ⊥,
-		delta : number
-	|
-		var ?= eject var - delta;
-	] : ⊤
-];
+	var : read number/write ⊥,
+	delta : number
+|
+	var ?= eject var + delta;
+] : ⊤;
+
+Alias "_+=_" to "_↑+=_";
 
 /**
  * Decrement the variable by {@param "delta"}.
@@ -515,22 +488,62 @@ Private method "compound subtraction function" is
  * @raises "cannot-subtract-like-infinities exception"
  * @raises "cannot-store-incorrectly-typed-value exception"
  */
-Public method "_↑-=_" is compound subtraction function;
+Public method "_↑-=_" is
+[
+	var : read number/write ⊥,
+	delta : number
+|
+	var ?= eject var - delta;
+] : ⊤;
+
+Alias "_-=_" to "_↑-=_";
 
 /**
- * Increment the variable by {@param "delta"}.
+ * Multiply the variable by {@param "multiplier"}.
  *
- * @method "_↑-=_"
+ * @method "_↑×=_"
  * @category "Variables" "Mathematics" "Integers"
  * @param "var" "variable"
  *        A numeric variable.
- * @param "delta" "number"
- *        The amount by which to decrement {@param "var"}.
+ * @param "multiplier" "number"
+ *        The amount by which to multiply {@param "var"}.
  * @returns "⊤"
- * @raises "cannot-subtract-like-infinities exception"
+ * @raises "cannot-multiply-zero-and-infinity exception"
  * @raises "cannot-store-incorrectly-typed-value exception"
  */
-Public method "_-=_" is compound subtraction function;
+Public method "_↑×=_" is
+[
+	var : read number/write ⊥,
+	multiplier : number
+|
+	var ?= eject var × multiplier;
+] : ⊤;
+
+Alias "_×=_" to "_↑×=_";
+
+/**
+ * Divide the variable by {@param "divisor"}.
+ *
+ * @method "_↑÷=_"
+ * @category "Variables" "Mathematics" "Integers"
+ * @param "var" "variable"
+ *        A numeric variable.
+ * @param "divisor" "number"
+ *        The amount by which to divide {@param "var"}.
+ * @returns "⊤"
+ * @raises "cannot-divide-by-zero exception"
+ * @raises "cannot-divide-infinities exception"
+ * @raises "cannot-store-incorrectly-typed-value exception"
+ */
+Public method "_↑÷=_" is
+[
+	var : read number/write ⊥,
+	divisor : number
+|
+	var ?= eject var ÷ divisor;
+] : ⊤;
+
+Alias "_÷=_" to "_↑÷=_";
 
 Private method "compound arithmetic semantic restriction" is
 [
@@ -547,14 +560,16 @@ Private method "compound arithmetic semantic restriction" is
 ];
 
 Semantic restriction "_↑+=_" is compound arithmetic semantic restriction;
-Semantic restriction "_+=_" is compound arithmetic semantic restriction;
 Semantic restriction "_↑-=_" is compound arithmetic semantic restriction;
-Semantic restriction "_-=_" is compound arithmetic semantic restriction;
+Semantic restriction "_↑×=_" is compound arithmetic semantic restriction;
+Semantic restriction "_↑÷=_" is compound arithmetic semantic restriction;
 
 Grammatical restriction
 {
 	"_↑+=_", "_+=_",
-	"_↑+=_", "_+=_"
+	"_↑-=_", "_-=_",
+	"_↑×=_", "_×=_",
+	"_↑÷=_", "_÷=_"
 } is <{"`↑_↑"}, ∅>;
 
 /**

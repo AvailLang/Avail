@@ -968,17 +968,6 @@ Semantic restriction "SHA-_digest of_" is
 	<<>, byte… | [low .. high]>
 ];
 
-Private method "compound concatenation assignment" is
-[
-	[
-		var : ↑tuple,
-		t : tuple
-	|
-		value ::= eject var;
-		var ?= value ++ t;
-	] : ⊤
-];
-
 /**
  * Concatenate the value of {@param "var"} and {@param "t"} and store the result
  * into {@param "var"}.
@@ -993,8 +982,7 @@ Public method "_↑++=_" is
 	var : read tuple/write ⊥,
 	t : tuple
 |
-	value ::= eject var;
-	var ?= value ++ t;
+	var ?= eject var ++ t;
 ] : ⊤;
 
 Alias "_++=_" to "_↑++=_";
