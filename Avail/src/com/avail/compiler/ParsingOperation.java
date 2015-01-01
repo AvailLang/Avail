@@ -143,7 +143,7 @@ public enum ParsingOperation
 
 	/**
 	 * {@code 16*N+0} - Branch to instruction N. Attempt to continue parsing at
-	 * each of the next instruction and instruction N.
+	 * both the next instruction and instruction N.
 	 */
 	BRANCH(0)
 	{
@@ -328,7 +328,8 @@ public enum ParsingOperation
 
 	/**
 	 * Answer the instruction coding of the receiver for the given operand. The
-	 * receiver must be arity one ({@code 1}).
+	 * receiver must be arity one ({@code 1}), which is equivalent to its
+	 * ordinal being greater than or equal to {@code #distinctInstructions}.
 	 *
 	 * @param operand The operand.
 	 * @return The instruction coding.
@@ -339,6 +340,11 @@ public enum ParsingOperation
 		{
 			throw new UnsupportedOperationException();
 		}
+		// The operand should be positive, but allow -1 to represent undefined
+		// branch targets.  The generated code with a -1 operand will be wrong,
+		// but the first pass of code emission calculates the correct branch
+		// targets, and the second pass uses the correct targets.
+		assert operand > 0 || operand == -1;
 		final int result = (operand << distinctInstructionsShift) + modulus;
 		assert operand(result) == operand : "Overflow detected";
 		return result;

@@ -176,6 +176,15 @@ public interface L1OperationDispatcher
 	void L1Ext_doDuplicate ();
 
 	/**
+	 * Permute the top N stack elements as specified by a literal permutation
+	 * tuple.  For example, if A, B, and C have been pushed, in that order, a
+	 * permute tuple of <2, 3, 1> indicates the stack should have A in the
+	 * second slot, B in the 3rd, and C in the 1st.  It has the same effect as
+	 * having pushed C, and A, and B, in that order.
+	 */
+	void L1Ext_doPermute ();
+
+	/**
 	 * This shouldn't happen unless the compiler is out of sync with the
 	 * interpreter.
 	 */

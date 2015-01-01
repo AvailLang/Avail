@@ -1034,7 +1034,8 @@ Primitive "Alias_to_" is
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
 		atom-already-exists code,
-		up-arrow-must-follow-argument code}ᵀ);
+		up-arrow-must-follow-argument code,
+		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1123,7 +1124,8 @@ Primitive "method definition of_for_" is
 		incorrect-type-for-numbered-choice code,
 		up-arrow-must-follow-argument code,
 		no-method-definition code,
-		ambiguous-method-definition code}ᵀ);
+		ambiguous-method-definition code,
+		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : definition;
 
@@ -1179,7 +1181,8 @@ Primitive "`|message_'s⁇parameters`|" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		up-arrow-must-follow-argument code}ᵀ);
+		up-arrow-must-follow-argument code,
+		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : whole number;
 
@@ -1235,7 +1238,8 @@ Primitive "message_contains groups" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		up-arrow-must-follow-argument code}ᵀ);
+		up-arrow-must-follow-argument code,
+		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : boolean;
 
@@ -1301,7 +1305,8 @@ Primitive "Seal method_at_" is
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
-		up-arrow-must-follow-argument code}ᵀ);
+		up-arrow-must-follow-argument code,
+		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1373,7 +1378,8 @@ Primitive "Abstract method_is_" is
 		loading-is-over code,
 		method-is-sealed code,
 		cannot-mix-method-and-macro-definitions code,
-		up-arrow-must-follow-argument code}ᵀ);
+		up-arrow-must-follow-argument code,
+		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1477,7 +1483,8 @@ Primitive "Semantic restriction_is_" is
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
-		up-arrow-must-follow-argument code}ᵀ);
+		up-arrow-must-follow-argument code,
+		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1541,7 +1548,8 @@ Primitive "Seal method_at_" is
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
-		up-arrow-must-follow-argument code}ᵀ);
+		up-arrow-must-follow-argument code,
+		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1704,7 +1712,8 @@ Primitive "Semantic restriction_is_" is
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
-		up-arrow-must-follow-argument code}ᵀ);
+		up-arrow-must-follow-argument code,
+		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1791,7 +1800,8 @@ Primitive "Macro_is«_,»_" is
 		macro-prefix-function-argument-must-be-a-parse-node code,
 		macro-must-return-a-parse-node code,
 		loading-is-over code,
-		up-arrow-must-follow-argument code}ᵀ);
+		up-arrow-must-follow-argument code,
+		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1862,7 +1872,8 @@ Primitive "Abstract method_is_" is
 		loading-is-over code,
 		method-is-sealed code,
 		cannot-mix-method-and-macro-definitions code,
-		up-arrow-must-follow-argument code}ᵀ);
+		up-arrow-must-follow-argument code,
+		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -1936,7 +1947,8 @@ Primitive "Forward method_is_" is
 		loading-is-over code,
 		method-is-sealed code,
 		cannot-mix-method-and-macro-definitions code,
-		up-arrow-must-follow-argument code}ᵀ);
+		up-arrow-must-follow-argument code,
+		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -2027,7 +2039,8 @@ Primitive "Grammatical restriction_is_" is
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
-		up-arrow-must-follow-argument code}ᵀ);
+		up-arrow-must-follow-argument code,
+		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -2154,7 +2167,8 @@ Primitive "Grammatical restriction_is_" is
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
-		up-arrow-must-follow-argument code}ᵀ);
+		up-arrow-must-follow-argument code,
+		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -2485,7 +2499,8 @@ Primitive "send_with_:_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		up-arrow-must-follow-argument code}ᵀ);
+		up-arrow-must-follow-argument code,
+		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : send phrase;
 

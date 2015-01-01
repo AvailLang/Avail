@@ -169,7 +169,7 @@ public enum L1Operation
 
 	/**
 	 * Extract the value from the specified local variable or constant.  If the
-	 * variable is mutable, null it out in the continuation.  Raised a suitable
+	 * variable is mutable, null it out in the continuation.  Raise a suitable
 	 * runtime exception if the variable does not have a value.
 	 */
 	L1_doGetLocalClearing(7, L1OperandType.LOCAL)
@@ -340,9 +340,42 @@ public enum L1Operation
 	},
 
 	/**
+	 * Permute the top N stack elements based on the literal which is an N-tuple
+	 * of distinct integers in [1..N] (i.e., a permutation).  The mutability of
+	 * the values is unaffected.
+	 * </p>
+	 *
+	 * <p>
+	 * The first pushed value is considered position 1, and the most recently
+	 * pushed value (the top of stack) is considered position N.  The algorithm
+	 * behaves as though a scratch N-array is available.  The elements of the
+	 * stack and of the permutation tuple are examined in lock-step, and each
+	 * value is placed into the temporary array at the position indicated in the
+	 * permutation tuple.  The entire array is then pushed back on the stack
+	 * (starting with the first element of the array).
+	 * </p>
+	 *
+	 * <p>
+	 * As an example, if the nybblecodes have already pushed A, B, and C, in
+	 * that order, the permute nybblecode with the tuple <2,3,1> would transfer
+	 * A into array slot 2, B into array slot 3, and C into array slot 1,
+	 * yielding the array [C,A,B].  These would then replace the original values
+	 * as though C, A, and B had been pushed, in that order.
+	 * </p>
+	 */
+	L1Ext_doPermute(20, L1OperandType.LITERAL)
+	{
+		@Override
+		public void dispatch (final L1OperationDispatcher operationDispatcher)
+		{
+			operationDispatcher.L1Ext_doPermute();
+		}
+	},
+
+	/**
 	 * An unsupported instruction was encountered.
 	 */
-	L1Ext_doReserved(20)
+	L1Ext_doReserved(21)
 	{
 		@Override
 		public void dispatch(final L1OperationDispatcher operationDispatcher)
@@ -355,7 +388,7 @@ public enum L1Operation
 	 * The nybblecode stream has been exhausted, and all that's left is to
 	 * perform an implicit return to the caller.
 	 */
-	L1Implied_Return(21)
+	L1Implied_Return(22)
 	{
 		@Override
 		public void dispatch(final L1OperationDispatcher operationDispatcher)

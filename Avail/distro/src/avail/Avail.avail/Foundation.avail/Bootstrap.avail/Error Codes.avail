@@ -97,6 +97,7 @@ Names
 	/*  80 */ "handler-sentinel code",
 	/* 204 */ "illegal-option code",
 	/*  77 */ "illegal-trace-mode code",
+	/*  98 */ "inconsistent-argument-reordering code",
 	/*  12 */ "incorrect-argument-type code",
 	/*  11 */ "incorrect-number-of-arguments code",
 	/*  47 */ "incorrect-type-for-boolean-group code",
@@ -640,6 +641,11 @@ Primitive "serialization-failed code" is
 Primitive "deserialization-failed code" is
 [
 	97
+];
+
+Primitive "inconsistent-argument-reordering code" is
+[
+	98
 ];
 
 Primitive "block-contains-invalid-statements code" is

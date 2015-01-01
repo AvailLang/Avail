@@ -257,6 +257,12 @@ abstract class L1StackTracker implements L1OperationDispatcher
 	}
 
 	@Override
+	public void L1Ext_doPermute ()
+	{
+		// No change.
+	}
+
+	@Override
 	public void L1Ext_doReserved ()
 	{
 		error("Reserved nybblecode");

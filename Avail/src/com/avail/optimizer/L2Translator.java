@@ -2787,6 +2787,27 @@ public class L2Translator
 		}
 
 		@Override
+		public void L1Ext_doPermute ()
+		{
+			// Move into the permuted temps, then back to the stack.  This puts
+			// the responsibility for optimizing away extra moves (by coloring
+			// the registers) on the optimizer.
+   			final A_Tuple permutation = code.literalAt(getInteger());
+			final int size = permutation.tupleSize();
+			final L2ObjectRegister[] temps = new L2ObjectRegister[size];
+			for (int i = size; i >= 1; i--)
+			{
+				final L2ObjectRegister temp = newObjectRegister();
+				moveRegister(stackRegister(stackp - i + 1), temp);
+				temps[permutation.tupleIntAt(i) - 1] = temp;
+			}
+			for (int i = size; i >= 1; i--)
+			{
+				moveRegister(temps[i - 1], stackRegister(stackp - i + 1));
+			}
+		}
+
+		@Override
 		public void L1Ext_doGetLiteral ()
 		{
 			final L2ObjectRegister tempReg = newObjectRegister();

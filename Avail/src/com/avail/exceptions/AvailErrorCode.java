@@ -664,8 +664,13 @@ public enum AvailErrorCode
 	 */
 	E_DESERIALIZATION_FAILED (97),
 
-//	E_??? (98)
-//	E_??? (99)
+	/**
+	 * {@linkplain MessageSplitter} encountered inconsistent argument reordering
+	 * indicators in a message name.
+	 */
+	E_INCONSISTENT_ARGUMENT_REORDERING (98),
+
+	//	E_??? (99)
 
 	/**
 	 * A proposed {@linkplain BlockNodeDescriptor block expression} contains

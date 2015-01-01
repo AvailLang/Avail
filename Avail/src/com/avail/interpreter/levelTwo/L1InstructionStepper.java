@@ -812,6 +812,23 @@ implements L1OperationDispatcher
 	}
 
 	@Override
+	public void L1Ext_doPermute ()
+	{
+		final A_Tuple permutation = literalAt(getInteger());
+		final int size = permutation.tupleSize();
+		final AvailObject[] values = new AvailObject[size];
+		final int stackp = integerAt(stackpRegister());
+		for (int i = size; i >= 1; i--)
+		{
+			values[permutation.tupleIntAt(i) - 1] = pointerAt(stackp - i + 1);
+		}
+		for (int i = size; i >= 1; i--)
+		{
+			pointerAtPut(stackp - i + 1, values[i - 1]);
+		}
+	}
+
+	@Override
 	public void L1Ext_doReserved ()
 	{
 		throw new RuntimeException("Nybblecode is not supported");

@@ -652,6 +652,21 @@ public class L1Decompiler
 		}
 
 		@Override
+		public void L1Ext_doPermute ()
+		{
+			final A_Tuple permutation = code.literalAt(getInteger());
+			final int size = permutation.tupleSize();
+			final A_BasicObject[] values = new A_BasicObject[size];
+			for (int i = size; i >= 1; i--)
+			{
+				values[permutation.tupleIntAt(i) - 1] = popExpression();
+			}
+			assert false
+			: "TODO: verify this against a subsequent call instruction";
+			//TODO MvG VERIFY against a subsequent call instruction.
+		}
+
+		@Override
 		public void L1Ext_doGetLiteral ()
 		{
 			final A_Token globalToken = TokenDescriptor.create(

@@ -1112,6 +1112,8 @@ System exception "serialization-failed" (96)
 	extends bad-argument exception;
 System exception "deserialization-failed" (97)
 	extends bad-argument exception;
+System exception "inconsistent-argument-reordering" (98)
+	extends bad-message exception;
 System exception "block-contains-invalid-statements" (100)
 	extends bad-phrase exception;
 System exception "block-is-invalid" (101)
