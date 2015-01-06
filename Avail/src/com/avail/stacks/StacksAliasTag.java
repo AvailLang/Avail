@@ -59,7 +59,7 @@ public class StacksAliasTag extends AbstractStacksTag
 
 	@Override
 	public String toHTML (final HTMLFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog)
+		final int hashID, final StacksErrorLog errorLog, int position)
 	{
 		final StringBuilder stringBuilder = new StringBuilder();
 		final int listSize = aliases.size();

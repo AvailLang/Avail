@@ -83,7 +83,7 @@ public class StacksGlobalTag extends AbstractStacksTag
 
 	@Override
 	public String toHTML (final HTMLFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog)
+		final int hashID, final StacksErrorLog errorLog, int position)
 	{
 		return globalName.toHTML(htmlFileMap, hashID, errorLog);
 	}

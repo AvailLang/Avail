@@ -84,7 +84,7 @@ public class StacksRestrictsTag extends AbstractStacksTag
 
 	@Override
 	public String toHTML (final HTMLFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog)
+		final int hashID, final StacksErrorLog errorLog, int position)
 	{
 		final StringBuilder paramTypeBuilder = new StringBuilder();
 		if (htmlFileMap.internalLinks().containsKey(paramMetaType.lexeme()))

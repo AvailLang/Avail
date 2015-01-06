@@ -83,7 +83,7 @@ public class StacksRaisesTag extends AbstractStacksTag
 
 	@Override
 	public String toHTML (final HTMLFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog)
+		final int hashID, final StacksErrorLog errorLog, int position)
 	{
 		final StringBuilder exceptionBuilder = new StringBuilder();
 		if (htmlFileMap.internalLinks().containsKey(exceptionName.lexeme()))
