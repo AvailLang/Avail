@@ -1470,7 +1470,8 @@ extends AbstractAvailCompiler
 											statements,
 											returnType,
 											checkedExceptions,
-											startOfBlock.peekToken().lineNumber());
+											startOfBlock
+												.peekToken().lineNumber());
 									attempt(
 										afterExceptions,
 										continuation,
@@ -1597,7 +1598,7 @@ extends AbstractAvailCompiler
 	void completedSendNodeForMacro (
 		final ParserState stateBeforeCall,
 		final ParserState stateAfterCall,
-		final List<A_Phrase> argumentExpressions,
+		final A_Phrase argumentsListNode,
 		final A_Bundle bundle,
 		final Con<A_Phrase> continuation)
 	{

@@ -46,6 +46,8 @@ import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_ONE_L1_INSTRUCTION;
 import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_UNTIL_INTERRUPT;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
+import com.avail.performance.Statistic;
+import com.avail.tools.compiler.configuration.StatisticReport;
 import com.avail.utility.MutableOrNull;
 
 /**
@@ -67,6 +69,12 @@ implements L1OperationDispatcher
 	 * A reusable buffer for holding arguments for method invocations.
 	 */
 	private final List<AvailObject> argsBuffer;
+
+	/** Statistic for recording checked non-primitive returns from L1. */
+	private final static Statistic checkedNonPrimitiveReturn =
+		new Statistic(
+			"Checked non-primitive return from L1",
+			StatisticReport.NON_PRIMITIVE_RETURN_LEVELS);
 
 	/**
 	 * Construct a new {@link L1InstructionStepper}.
@@ -818,13 +826,14 @@ implements L1OperationDispatcher
 		final int size = permutation.tupleSize();
 		final AvailObject[] values = new AvailObject[size];
 		final int stackp = integerAt(stackpRegister());
-		for (int i = size; i >= 1; i--)
+		for (int i = 1; i <= size; i++)
 		{
-			values[permutation.tupleIntAt(i) - 1] = pointerAt(stackp - i + 1);
+			values[permutation.tupleIntAt(i) - 1] =
+				pointerAt(stackp + size - i);
 		}
-		for (int i = size; i >= 1; i--)
+		for (int i = 1; i <= size; i++)
 		{
-			pointerAtPut(stackp - i + 1, values[i - 1]);
+			pointerAtPut(stackp + size - i, values[i - 1]);
 		}
 	}
 
@@ -840,6 +849,17 @@ implements L1OperationDispatcher
 		final A_Continuation caller = pointerAt(CALLER);
 		final AvailObject value = pop();
 		final boolean skipCheck = integerAt(skipReturnCheckRegister()) != 0;
-		interpreter.returnToCaller(caller, value, skipCheck);
+		if (skipCheck)
+		{
+			interpreter.returnToCaller(caller, value, skipCheck);
+		}
+		else
+		{
+			final long before = System.nanoTime();
+			interpreter.returnToCaller(caller, value, skipCheck);
+			final long after = System.nanoTime();
+			checkedNonPrimitiveReturn.record(
+				after - before, interpreter.interpreterIndex);
+		}
 	}
 }

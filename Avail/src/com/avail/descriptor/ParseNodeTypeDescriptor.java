@@ -153,6 +153,18 @@ extends TypeDescriptor
 		},
 
 		/**
+		 * The kind of a {@linkplain PermutedListNodeDescriptor permuted list
+		 * node}. */
+		PERMUTED_LIST_NODE("permuted list phrase type", LIST_NODE)
+		{
+			@Override
+			A_Type mostGeneralInnerType ()
+			{
+				return TupleTypeDescriptor.mostGeneralType();
+			}
+		},
+
+		/**
 		 * The kind of a {@linkplain VariableUseNodeDescriptor variable use
 		 * node}.
 		 */

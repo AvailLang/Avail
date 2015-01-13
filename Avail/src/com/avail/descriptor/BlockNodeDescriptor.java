@@ -536,8 +536,7 @@ extends ParseNodeDescriptor
 		block.setSlot(ARGUMENTS_TUPLE, arguments);
 		block.setSlot(PRIMITIVE, primitive.extractInt());
 		block.setSlot(
-			STATEMENTS_TUPLE,
-			TupleDescriptor.fromList(flattenedStatements));
+			STATEMENTS_TUPLE, TupleDescriptor.fromList(flattenedStatements));
 		block.setSlot(RESULT_TYPE, resultType);
 		block.setSlot(NEEDED_VARIABLES, NilDescriptor.nil());
 		block.setSlot(DECLARED_EXCEPTIONS, declaredExceptions);
@@ -641,10 +640,16 @@ extends ParseNodeDescriptor
 		{
 			explicitResultType = null;
 		}
+		@Nullable A_Set declaredExceptions = object.declaredExceptions();
+		if (declaredExceptions.setSize() == 0)
+		{
+			declaredExceptions = null;
+		}
 		if (argCount == 0
-				&& primitive == 0
-				&& statementsSize == 1
-				&& explicitResultType == null)
+			&& primitive == 0
+			&& statementsSize == 1
+			&& explicitResultType == null
+			&& declaredExceptions == null)
 		{
 			builder.append('[');
 			statementsTuple.tupleAt(1).printOnAvoidingIndent(
@@ -741,6 +746,11 @@ extends ParseNodeDescriptor
 		{
 			builder.append(" : ");
 			builder.append(explicitResultType.toString());
+		}
+		if (declaredExceptions != null)
+		{
+			builder.append(" ^ ");
+			builder.append(declaredExceptions.toString());
 		}
 	}
 

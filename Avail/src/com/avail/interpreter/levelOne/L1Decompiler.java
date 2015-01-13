@@ -637,9 +637,8 @@ public class L1Decompiler
 		 *
 		 * <p>Pop the expression (that represents the right hand side of the
 		 * assignment), push a special {@linkplain MarkerNodeDescriptor marker}
-		 * whose markerValue is the {@linkplain NilDescriptor#nil() null
-		 * object}, then push the right-hand side expression back onto the
-		 * expression stack.</p>
+		 * whose markerValue is {@linkplain NilDescriptor#nil() nil}, then push
+		 * the right-hand side expression back onto the expression stack.</p>
 		 */
 		@Override
 		public void L1Ext_doDuplicate ()
@@ -811,7 +810,7 @@ public class L1Decompiler
 					return prefix + newCount.toString();
 				}
 			};
-
+		// Synthesize fake outers as literals to allow decompilation.
 		final List<A_Phrase> functionOuters =
 			new ArrayList<>(aFunction.numOuterVars());
 		for (int i = 1; i <= aFunction.numOuterVars(); i++)

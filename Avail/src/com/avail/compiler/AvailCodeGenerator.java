@@ -589,6 +589,19 @@ public class AvailCodeGenerator
 	}
 
 	/**
+	 * Emit code to permute the top N items on the stack with the given
+	 * N-element permutation.
+	 *
+	 * @param permutation
+	 *        A tuple of one-based integers that forms a permutation.
+	 */
+	public void emitPermute (final A_Tuple permutation)
+	{
+		final int index = indexOfLiteral(permutation);
+		instructions.add(new AvailPermute(index));
+	}
+
+	/**
 	 * Emit code to pop the top value from the stack.
 	 */
 	public void emitPop ()

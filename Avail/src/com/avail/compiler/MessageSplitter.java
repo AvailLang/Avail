@@ -38,6 +38,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.StringDescriptor.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import com.avail.annotations.*;
 import com.avail.compiler.AbstractAvailCompiler.ParserState;
 import com.avail.compiler.scanning.AvailScanner;
@@ -84,24 +85,38 @@ public class MessageSplitter
 			E_UP_ARROW_MUST_FOLLOW_ARGUMENT.numericCode(),
 			E_INCONSISTENT_ARGUMENT_REORDERING.numericCode())).makeShared();
 
-	/**
-	 * A map from the Unicode code points for the 51 circled number characters
-	 * (0 through 50 inclusive), found in various regions of the Unicode code
-	 * space.
-	 */
-	static final Map<Integer, Integer> circledNumbersMap = new HashMap<>(100);
+	/** A String containing all 51 circled numbers. */
+	static final String circledNumbersString =
+		"⓪①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯" +
+		"⑰⑱⑲⑳㉑㉒㉓㉔㉕㉖㉗㉘㉙㉚㉛㉜㉝" +
+		"㉞㉟㊱㊲㊳㊴㊵㊶㊷㊸㊹㊺㊻㊼㊽㊾㊿";
 
+	/** How many circled numbers are in Unicode. */
+	static final int circledNumbersCount =
+		circledNumbersString.codePointCount(0, circledNumbersString.length());
+
+	/** An array of the circled number code points. */
+	static final int [] circledNumberCodePoints = new int[circledNumbersCount];
+
+	/**
+	 * A map from the Unicode code points for the circled number characters
+	 * found in various regions of the Unicode code space.  See {@link
+	 * #circledNumbersString}.
+	 */
+	static final Map<Integer, Integer> circledNumbersMap =
+		new HashMap<>(circledNumbersCount);
+
+	/* Initialize circledNumbersMap and circledNumberCodePoints */
 	static
 	{
-		final String circledNumber =
-			"⓪①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯" +
-			"⑰⑱⑲⑳㉑㉒㉓㉔㉕㉖㉗㉘㉙㉚㉛㉜㉝" +
-			"㉞㉟㊱㊲㊳㊴㊵㊶㊷㊸㊹㊺㊻㊼㊽㊾㊿";
+		assert circledNumbersCount == 51;
 		int pointer = 0;
-		while (pointer < circledNumber.length())
+		int arrayPointer = 0;
+		while (pointer < circledNumbersString.length())
 		{
-			final int codePoint = circledNumber.codePointAt(pointer);
+			final int codePoint = circledNumbersString.codePointAt(pointer);
 			circledNumbersMap.put(codePoint, pointer);
+			circledNumberCodePoints[arrayPointer++] = codePoint;
 			pointer += Character.charCount(codePoint);
 		}
 	}
@@ -182,6 +197,19 @@ public class MessageSplitter
 
 	/** The top-most {@linkplain Sequence sequence}. */
 	final Sequence rootSequence;
+
+	/**
+	 * The tuple of all encountered permutations (tuples of integers) found in
+	 * all message names.  Keeping a statically accessible tuple shared between
+	 * message names allows {@link A_BundleTree bundle trees} to easily get to
+	 * the permutations they need without having a separate per-tree structure.
+	 *
+	 * <p>The field is an {@link AtomicReference}, and is accessed in a
+	 * wait-free way with compare-and-set and retry.  The tuple itself should
+	 * always be marked as shared.  This mechanism is thread-safe.</p>
+	 */
+	public static AtomicReference<A_Tuple> permutations =
+		new AtomicReference<A_Tuple>(TupleDescriptor.empty());
 
 	/**
 	 * An {@code Expression} represents a structural view of part of the
@@ -822,10 +850,11 @@ public class MessageSplitter
 		final List<Expression> arguments = new ArrayList<>();
 
 		/**
-		 * My sequence of argument/group subexpressions, in the order in which
-		 * the arguments will be passed to the method.
+		 * My one-based permutation that takes argument expressions from the
+		 * order in which they occur to the order in which they are bound to
+		 * arguments at a call site.
 		 */
-		final List<Expression> permutedArguments = new ArrayList<>(); //TODO
+		final List<Integer> permutedArguments = new ArrayList<>();
 
 		/**
 		 * A three-state indicator of whether my argument components should be
@@ -961,7 +990,7 @@ public class MessageSplitter
 			{
 				final Expression argumentOrGroup =
 					argumentsAreReordered == Boolean.TRUE
-						? permutedArguments.get(i - 1)
+						? arguments.get(permutedArguments.get(i - 1) - 1)
 						: arguments.get(i - 1);
 				final A_Type providedType = argumentType.typeAtIndex(i);
 				assert !providedType.isBottom();
@@ -976,30 +1005,55 @@ public class MessageSplitter
 			final int partialListsCount)
 		{
 			/*
-			 * Generate code to parse the sequence.  After parsing, the parsed
-			 * expressions for all arguments, ellipses, and subgroups are on the
-			 * stack.
+			 * Generate code to parse the sequence.  After parsing, the stack
+			 * contains a new list of parsed expressions for all arguments,
+			 * ellipses, and subgroups that were encountered.
+			 */
+			list.add(NEW_LIST.encoding());
+			emitWithoutInitialNewListPushOn (
+				list, caseInsensitive, partialListsCount);
+		}
+
+		/**
+		 * Emit parsing instructions that assume that there has already been an
+		 * empty list pushed, onto which to accumulate arguments.
+		 *
+		 * @param list
+		 *        The list of instructions to augment.
+		 * @param caseInsensitive
+		 *        Whether to parse case-insensitively.
+		 * @param partialListsCount
+		 *        The number of partial lists already pushed.
+		 */
+		@InnerAccess void emitWithoutInitialNewListPushOn (
+			final List<Integer> list,
+			final boolean caseInsensitive,
+			final int partialListsCount)
+		{
+			/* After parsing, the list that's already on the stack will contain
+			 * all arguments, ellipses, and subgroups that were encountered.
 			 */
 			for (final Expression expression : expressions)
 			{
-				final int stackAdjustment =
-					expression.isArgumentOrGroup() ? 1 : 0;
+				final boolean isPush = expression.isArgumentOrGroup();
 				expression.emitOn(
 					list,
 					caseInsensitive,
-					partialListsCount + stackAdjustment);
-//				TODO MvG REVISIT THIS BEFORE COMMIT to ensure double-wrapped groups work, too.
-//				// Append as soon as the value's available (rather than
-//				// leaving it on the stack until non-argument keywords and
-//				// such have been parsed).  Either way works, since exactly
-//				// one subexpression before the dagger must be an argument
-//				// or group, but the stack adjustment logic is easier this
-//				// way.
-//				if (expression.isArgumentOrGroup())
-//				{
-//					// Add a raw answer (no sublist) to the outer list.
-//					list.add(APPEND_ARGUMENT.encoding());
-//				}
+					partialListsCount + 1);
+				if (isPush)
+				{
+					list.add(APPEND_ARGUMENT.encoding());
+				}
+			}
+			if (argumentsAreReordered == Boolean.TRUE)
+			{
+				final A_Tuple permutationTuple =
+					TupleDescriptor.fromIntegerList(permutedArguments);
+				final int permutationIndex =
+					indexForPermutation(permutationTuple);
+				// This sequence was already collected into a list node as the
+				// arguments/groups were parsed.  Permute the list.
+				list.add(PERMUTE_LIST.encoding(permutationIndex));
 			}
 		}
 
@@ -1016,6 +1070,11 @@ public class MessageSplitter
 					builder.append(", ");
 				}
 				builder.append(e.toString());
+				if (e.canBeReordered() && e.explicitOrdinal() != -1)
+				{
+					builder.appendCodePoint(
+						circledNumberCodePoints[e.explicitOrdinal()]);
+				}
 				first = false;
 			}
 			builder.append(")");
@@ -1126,6 +1185,8 @@ public class MessageSplitter
 					+ "to the number of arguments/groups, but must not be "
 					+ "in ascending order (got " + usedOrdinalsList + ")");
 			}
+			assert permutedArguments.isEmpty();
+			permutedArguments.addAll(usedOrdinalsList);
 		}
 	}
 
@@ -1493,9 +1554,11 @@ public class MessageSplitter
 				 * push empty list (a compound solution)
 				 * ...Stuff before dagger, where arguments and subgroups must
 				 * ...be followed by "append" instruction.
+				 * permute left-half arguments tuple if necessary
 				 * branch to @loopExit
 				 * ...Stuff after dagger, nothing if dagger is omitted.  Must
 				 * ...follow argument or subgroup with "append" instruction.
+				 * permute *only* right half of solution tuple if necessary
 				 * append  (add complete solution)
 				 * check progress and update saved position, or abort.
 				 * jump @loopStart
@@ -1503,7 +1566,7 @@ public class MessageSplitter
 				 * append  (add partial solution up to dagger)
 				 * check progress and update saved position, or abort.
 				 * @loopSkip:
-				 * under-pop parse position (remove 2nd from top of stack)
+				 * pop parse position from mark stack
 				 */
 				list.add(SAVE_PARSE_POSITION.encoding());
 				list.add(NEW_LIST.encoding());
@@ -1537,6 +1600,16 @@ public class MessageSplitter
 						list.add(APPEND_ARGUMENT.encoding());
 					}
 				}
+				if (beforeDagger.argumentsAreReordered == Boolean.TRUE)
+				{
+					// Permute the list on top of stack.
+					final A_Tuple permutationTuple =
+						TupleDescriptor.fromIntegerList(
+							beforeDagger.permutedArguments);
+					final int permutationIndex =
+						indexForPermutation(permutationTuple);
+					list.add(PERMUTE_LIST.encoding(permutationIndex));
+				}
 				list.add(BRANCH.encoding(loopExit));
 				for (final Expression expression : afterDagger.expressions)
 				{
@@ -1555,6 +1628,38 @@ public class MessageSplitter
 						list.add(APPEND_ARGUMENT.encoding());
 					}
 				}
+				if (afterDagger.argumentsAreReordered == Boolean.TRUE)
+				{
+					// Permute just the right portion of the list on top of
+					// stack.  The left portion was already adjusted in case it
+					// was the last iteration and didn't have a right side.
+					final int leftArgCount = beforeDagger.arguments.size();
+					final int rightArgCount = afterDagger.arguments.size();
+					final int adjustedPermutationSize =
+						leftArgCount + rightArgCount;
+					final ArrayList<Integer> adjustedPermutationList =
+						new ArrayList<>(adjustedPermutationSize);
+					for (int i = 1; i <= leftArgCount; i++)
+					{
+						// The left portion is the identity permutation, since
+						// the actual left permutation was already applied.
+						adjustedPermutationList.add(i);
+					}
+					for (int i = 0; i < rightArgCount; i++)
+					{
+						// Adjust the right permutation by the size of the left
+						// part.
+						adjustedPermutationList.add(
+							afterDagger.arguments.get(i).explicitOrdinal()
+							+ leftArgCount);
+					}
+					final A_Tuple permutationTuple =
+						TupleDescriptor.fromIntegerList(
+							adjustedPermutationList);
+					final int permutationIndex =
+						indexForPermutation(permutationTuple);
+					list.add(PERMUTE_LIST.encoding(permutationIndex));
+				}
 				list.add(APPEND_ARGUMENT.encoding());
 				list.add(ENSURE_PARSE_PROGRESS.encoding());
 				list.add(JUMP.encoding(loopStart));
@@ -1572,7 +1677,14 @@ public class MessageSplitter
 			final List<String> strings = new ArrayList<>();
 			for (final Expression e : beforeDagger.expressions)
 			{
-				strings.add(e.toString());
+				final StringBuilder builder = new StringBuilder();
+				builder.append(e);
+				if (e.canBeReordered() && e.explicitOrdinal() != -1)
+				{
+					builder.appendCodePoint(
+						circledNumberCodePoints[e.explicitOrdinal()]);
+				}
+				strings.add(builder.toString());
 			}
 			if (hasDagger)
 			{
@@ -1722,22 +1834,6 @@ public class MessageSplitter
 		boolean shouldBeSeparatedOnRight ()
 		{
 			return false;
-		}
-
-		/**
-		 * Check that if ordinals were specified for my N argument positions,
-		 * that they are all present and constitute a permutation of [1..N].
-		 * If not, throw a {@link MalformedMessageException}.
-		 *
-		 * @throws MalformedMessageException
-		 *         If the arguments have reordering numerals (circled numbers),
-		 *         but they don't form a non-trivial permutation of [1..N].
-		 */
-		public void checkForConsistentOrdinals ()
-			throws MalformedMessageException
-		{
-			beforeDagger.checkForConsistentOrdinals();
-			afterDagger.checkForConsistentOrdinals();
 		}
 	}
 
@@ -2053,7 +2149,11 @@ public class MessageSplitter
 			 */
 			list.add(BRANCH.encoding(absent));
 			list.add(SAVE_PARSE_POSITION.encoding());
-			sequence.emitOn(list, caseInsensitive, partialListsCount);
+			assert sequence.argumentsAreReordered != Boolean.TRUE;
+			for (final Expression expression : sequence.expressions)
+			{
+				expression.emitOn(list, caseInsensitive, partialListsCount);
+			}
 			list.add(ENSURE_PARSE_PROGRESS.encoding());
 			list.add(DISCARD_SAVED_PARSE_POSITION.encoding());
 			list.add(PUSH_TRUE.encoding());
@@ -2897,6 +2997,49 @@ public class MessageSplitter
 	}
 
 	/**
+	 * Answer the index of the given permutation (tuple of integers), adding it
+	 * to the global {@link #permutations} tuple if necessary.
+	 *
+	 * @param permutation
+	 *        The permutation whose globally unique one-based index should be
+	 *        determined.
+	 * @return The permutation's one-based index.
+	 */
+	static int indexForPermutation (final A_Tuple permutation)
+	{
+		while (true)
+		{
+			final A_Tuple before = permutations.get();
+			for (int i = 1; i <= before.tupleSize(); i++)
+			{
+				if (before.tupleAt(i).equals(permutation))
+				{
+					return i;
+				}
+			}
+			final A_Tuple after = before.appendCanDestroy(permutation, false);
+			after.makeShared();
+			if (permutations.compareAndSet(before, after))
+			{
+				return after.tupleSize();
+			}
+		}
+	}
+
+	/**
+	 * Answer the permutation having the given one-based index.  We need a read
+	 * barrier here, but no lock, since the tuple of tuples is only appended to,
+	 * ensuring all extant indices will always be valid.
+	 *
+	 * @param index The index of the permutation to retrieve.
+	 * @return The permutation (a {@linkplain A_Tuple tuple} of Avail integers).
+	 */
+	static A_Tuple permutationAtIndex (final int index)
+	{
+		return permutations.get().tupleAt(index);
+	}
+
+	/**
 	 * Construct a new {@link MessageSplitter}, parsing the provided message
 	 * into token strings and generating {@linkplain ParsingOperation parsing
 	 * instructions} for parsing occurrences of this message.
@@ -2938,11 +3081,9 @@ public class MessageSplitter
 		}
 		// Emit it twice -- once to calculate the branch positions, and then
 		// again to output using the correct branches.
-		for (int i = 1; i <= 2; i++)
-		{
-			instructions.clear();
-			rootSequence.emitOn(instructions, false, 0);
-		}
+		rootSequence.emitWithoutInitialNewListPushOn(instructions, false, 0);
+		instructions.clear();
+		rootSequence.emitWithoutInitialNewListPushOn(instructions, false, 0);
 	}
 
 	/**
@@ -3184,6 +3325,7 @@ public class MessageSplitter
 						"Expecting another token or simple group after the "
 							+ "vertical bar (|)");
 				}
+				sequence.checkForConsistentOrdinals();
 				return sequence;
 			}
 			if (token.equals(closeGuillemet()) || token.equals(doubleDagger()))

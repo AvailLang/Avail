@@ -1122,9 +1122,9 @@ Public method "Public variable_is_" is
 |
 	readType ::= cast var's type's read type into [t : any's type | t];
 	writeType ::= cast var's type's write type into [t : any's type | t];
-	Method accessorName is
-		new function accepting <> and returning readType
-		applying [ ↓var ];
+	decl ::= «module variable var (this token: SomeModuleVariable)»;
+	readerBlock ::= «[<>| <«↓decl»>] : readType»;
+	Method accessorName is readerBlock → function;
 	Method cast concatenate <accessorName, ":=_"> into [t : string | t] is
 		new function accepting <writeType> and returning ⊤
 		applying [t : any | var ?= t;];
@@ -1180,7 +1180,7 @@ Public method "Public read-only variable_is_" is
 /**
  * Ensure that the new methods are introduced by the module's "Names" section.
  * 
- * @method "Public variable_is_"
+ * @method "Public read-only variable_is_"
  * @restricts "variable meta"
  * @restricts "string's type"
  */

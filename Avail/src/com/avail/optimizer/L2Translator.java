@@ -1087,6 +1087,24 @@ public class L2Translator
 		}
 
 		/**
+		 * Generate instructions to move {@linkplain NilDescriptor#nil() nil}
+		 * into each of the specified {@link L2ObjectRegister registers}.
+		 *
+		 * @param destinationRegisters Which registers to clear.
+		 */
+		public void moveNils (
+			final Collection<L2ObjectRegister> destinationRegisters)
+		{
+			for (final L2ObjectRegister destinationRegister : destinationRegisters)
+			{
+				addInstruction(
+					L2_MOVE.instance,
+					new L2ReadPointerOperand(fixed(NULL)),
+					new L2WritePointerOperand(destinationRegister));
+			}
+		}
+
+		/**
 		 * Generate instruction(s) to move from one register to another.
 		 *
 		 * @param sourceRegister Where to read the AvailObject.
@@ -1113,14 +1131,14 @@ public class L2Translator
 		 *        A {@linkplain List list} containing the {@linkplain
 		 *        L2ObjectRegister object registers} that correspond to the
 		 *        slots of the current continuation.
-		 * @param reifiedRegister
+		 * @param newContinuationRegister
 		 *        The destination register for the reified continuation.
 		 * @param resumeLabel
 		 *        Where to resume execution of the current continuation.
 		 */
 		public void reify (
 			final List<L2ObjectRegister> slots,
-			final L2ObjectRegister reifiedRegister,
+			final L2ObjectRegister newContinuationRegister,
 			final L2Instruction resumeLabel)
 		{
 			addInstruction(
@@ -1132,7 +1150,7 @@ public class L2Translator
 				new L2ReadIntOperand(skipReturnCheckRegister),
 				new L2ReadVectorOperand(createVector(slots)),
 				new L2PcOperand(resumeLabel),
-				new L2WritePointerOperand(reifiedRegister));
+				new L2WritePointerOperand(newContinuationRegister));
 		}
 
 		/**
@@ -1493,8 +1511,9 @@ public class L2Translator
 						assert naiveRegisters().hasTypeAt(arg);
 						argTypes.add(naiveRegisters().typeAt(arg));
 					}
-					// Allow the target function to be folded or inlined in place of
-					// the invocation if the exact function is known statically.
+					// Allow the target function to be folded or inlined in
+					// place of the invocation if the exact function is known
+					// statically.
 					if (naiveRegisters().hasConstantAt(functionReg))
 					{
 						functionToInvoke =
@@ -1512,8 +1531,7 @@ public class L2Translator
 			// The convergence point for primitive success and failure paths.
 			final L2Instruction successLabel;
 			successLabel = newLabel("success"); //+bundle.message().atomName());
-			final L2ObjectRegister tempCallerRegister = newObjectRegister();
-			moveRegister(fixed(CALLER), tempCallerRegister);
+			final L2ObjectRegister reifiedCallerRegister = newObjectRegister();
 			if (primFunction != null)
 			{
 				// Inline the primitive. Attempt to fold it if the primitive
@@ -1600,7 +1618,7 @@ public class L2Translator
 				postSlots.add(continuationSlot(slotIndex));
 			}
 			final L2Instruction postCallLabel = newLabel("postCall");
-			reify(preSlots, tempCallerRegister, postCallLabel);
+			reify(preSlots, reifiedCallerRegister, postCallLabel);
 			final A_Type guaranteedReturnType;
 			if (functionReg == null)
 			{
@@ -1623,7 +1641,7 @@ public class L2Translator
 				// Already tried the primitive.
 				addInstruction(
 					L2_INVOKE_AFTER_FAILED_PRIMITIVE.instance,
-					new L2ReadPointerOperand(tempCallerRegister),
+					new L2ReadPointerOperand(reifiedCallerRegister),
 					new L2ReadPointerOperand(functionReg),
 					new L2ReadVectorOperand(createVector(args)),
 					new L2ReadPointerOperand(failureObjectReg),
@@ -1633,7 +1651,7 @@ public class L2Translator
 			{
 				addInstruction(
 					L2_INVOKE.instance,
-					new L2ReadPointerOperand(tempCallerRegister),
+					new L2ReadPointerOperand(reifiedCallerRegister),
 					new L2ReadPointerOperand(functionReg),
 					new L2ReadVectorOperand(createVector(args)),
 					new L2ImmediateOperand(canSkip ? 1 : 0));
@@ -1918,6 +1936,7 @@ public class L2Translator
 			{
 				// Use the first literal as the return value.
 				final AvailObject value = primitiveFunction.code().literalAt(1);
+				moveNils(args);
 				moveConstant(value, resultRegister);
 				// Restriction might be too strong even on a constant method.
 				if (value.isInstanceOf(expectedType))
@@ -1956,6 +1975,7 @@ public class L2Translator
 				// Use the only argument as the return value.
 				assert primitiveFunction.code().numArgs() == 1;
 				assert args.size() == 1;
+				// moveNils(args); // No need, since that slot holds the result.
 				final L2ObjectRegister arg = args.get(0);
 				if (registerSet.hasConstantAt(arg))
 				{
@@ -1987,6 +2007,7 @@ public class L2Translator
 			if (primitive.hasFlag(SpecialReturnGlobalValue))
 			{
 				// The first literal is a variable; return its value.
+				// moveNils(args); // No need, since that slot holds the result.
 				final A_Variable variable =
 					primitiveFunction.code().literalAt(1);
 				if (variable.isInitializedWriteOnceVariable())
@@ -2089,6 +2110,7 @@ public class L2Translator
 					if (value.isInstanceOf(expectedType))
 					{
 						value.makeImmutable();
+						moveNils(args);
 						moveConstant(value, resultRegister);
 						canFailPrimitive.value = false;
 						return value;
@@ -2798,12 +2820,12 @@ public class L2Translator
 			for (int i = size; i >= 1; i--)
 			{
 				final L2ObjectRegister temp = newObjectRegister();
-				moveRegister(stackRegister(stackp - i + 1), temp);
+				moveRegister(stackRegister(stackp + size - i), temp);
 				temps[permutation.tupleIntAt(i) - 1] = temp;
 			}
 			for (int i = size; i >= 1; i--)
 			{
-				moveRegister(temps[i - 1], stackRegister(stackp - i + 1));
+				moveRegister(temps[i - 1], stackRegister(stackp + size - i));
 			}
 		}
 

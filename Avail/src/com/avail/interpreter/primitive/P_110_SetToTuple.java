@@ -62,6 +62,20 @@ public final class P_110_SetToTuple extends Primitive
 	}
 
 	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final List<? extends A_Type> argumentTypes)
+	{
+		assert argumentTypes.size() == 1;
+		final A_Type setType = argumentTypes.get(0);
+
+		// The order of elements is unstable, but we can still say how many
+		// elements, and bound each element to the set's element type.
+		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+			setType.sizeRange(),
+			TupleDescriptor.empty(),
+			setType.contentType());
+	}
+	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(

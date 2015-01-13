@@ -1183,6 +1183,15 @@ public class TypeConsistencyTest
 							EMPTY_TUPLE,
 							null);
 						break;
+					case PERMUTED_LIST_NODE:
+						addMultiHelper(
+							kind,
+							TUPLE,
+							STRING,
+							UNIT_STRING,
+							EMPTY_TUPLE,
+							null);
+						break;
 					case VARIABLE_USE_NODE:
 					case ASSIGNMENT_NODE:
 					case LITERAL_NODE:

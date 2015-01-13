@@ -33,6 +33,7 @@
 package com.avail.performance;
 
 import com.avail.AvailRuntime;
+import com.avail.tools.compiler.configuration.StatisticReport;
 
 /** An immutable collection of related statistics. */
 public class Statistic
@@ -56,9 +57,12 @@ public class Statistic
 	/**
 	 * Construct a new {@link Statistic} with the given name.
 	 *
-	 * @param name The name to give this {@code ParallelStatistic}.
+	 * @param name
+	 *        The name to give this statistic.
+	 * @param report
+	 *        The report under which this statistic is classified.
 	 */
-	public Statistic (final String name)
+	public Statistic (final String name, final StatisticReport report)
 	{
 		this.name = name;
 		statistics = new PerInterpreterStatistic[AvailRuntime.maxInterpreters];
@@ -66,6 +70,7 @@ public class Statistic
 		{
 			statistics[i] = new PerInterpreterStatistic();
 		}
+		report.registerStatistic(this);
 	}
 
 	/**

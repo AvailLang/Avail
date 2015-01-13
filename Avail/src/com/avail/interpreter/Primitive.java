@@ -60,9 +60,8 @@ import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.interpreter.primitive.*;
 import com.avail.optimizer.*;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
-import com.avail.performance.PerInterpreterStatistic;
 import com.avail.performance.Statistic;
-import com.avail.utility.Pair;
+import com.avail.tools.compiler.configuration.StatisticReport;
 
 
 /**
@@ -437,7 +436,10 @@ implements IntegerEnumSlotDescriptionEnum
 	public short primitiveNumber;
 
 	/**
-	 * The number of arguments this primitive expects.
+	 * The number of arguments this primitive expects.  For {@link
+	 * P_340_PushConstant} this is -1, but that primitive cannot be used
+	 * explicitly in Avail code – it's plugged in automatically for functions
+	 * that immediately return a constant.
 	 */
 	int argCount;
 
@@ -779,8 +781,9 @@ implements IntegerEnumSlotDescriptionEnum
 	 * A performance metric indicating how long was spent executing each
 	 * primitive.
 	 */
-	final Statistic runningNanos =
-		new Statistic(getClass().getSimpleName() + " (running)");
+	final Statistic runningNanos = new Statistic(
+		getClass().getSimpleName() + " (running)",
+		StatisticReport.PRIMITIVES);
 
 	/**
 	 * Record that some number of nanoseconds were just expended running this
@@ -803,8 +806,9 @@ implements IntegerEnumSlotDescriptionEnum
 	 * #returnTypeGuaranteedByVM(List)} to return a stronger
 	 * type, perhaps allowing the level two optimizer to skip more checks.
 	 */
-	final Statistic resultTypeCheckingNanos =
-		new Statistic(getClass().getSimpleName() + " (checking result)");
+	final Statistic resultTypeCheckingNanos = new Statistic(
+		getClass().getSimpleName() + " (checking result)",
+		StatisticReport.PRIMITIVE_RETURN_TYPE_CHECKS);
 
 	/**
 	 * Record that some number of nanoseconds were just expended checking the
@@ -828,9 +832,14 @@ implements IntegerEnumSlotDescriptionEnum
 	 * primitive expects to be invoked, and the remaining arguments are
 	 * {@linkplain Flag flags}.
 	 *
-	 * @param theArgCount The number of arguments the primitive expects.
-	 * @param flags The flags that describe how the {@link L2Translator} should
-	 *              deal with this primitive.
+	 * @param theArgCount
+	 *        The number of arguments the primitive expects.  The value -1 is
+	 *        used by the special primitive {@link P_340_PushConstant} to
+	 *        indicate it may have any number of arguments.  However, note that
+	 *        that primitive cannot be used explicitly in Avail code.
+	 * @param flags
+	 *        The flags that describe how the {@link L2Translator} should deal
+	 *        with this primitive.
 	 * @return The initialized primitive.
 	 */
 	protected Primitive init (
@@ -862,80 +871,6 @@ implements IntegerEnumSlotDescriptionEnum
 		assert byPrimitiveNumber[primitiveNumber] == null;
 		byPrimitiveNumber[primitiveNumber] = this;
 		return this;
-	}
-
-	/**
-	 * Produce a report showing which primitives cost the most time to run.
-	 *
-	 * @param builder The {@link StringBuilder} into which to write the report.
-	 */
-	public static void reportRunTimes (final StringBuilder builder)
-	{
-		builder.append("Primitive run times:\n");
-		final List<Statistic> stats = new ArrayList<>();
-		for (int i = 1; i <= maxPrimitiveNumber; i++)
-		{
-			final Primitive prim = byPrimitiveNumberOrNull(i);
-			if (prim != null && prim.runningNanos.aggregate().count() > 0)
-			{
-				stats.add(prim.runningNanos);
-			}
-		}
-		final List<Pair<String, PerInterpreterStatistic>> pairs =
-			PerInterpreterStatistic.sortedPairs(stats);
-		for (final Pair<String, PerInterpreterStatistic> pair : pairs)
-		{
-			pair.second().describeNanosecondsOn(builder);
-			builder.append(" ");
-			builder.append(pair.first());
-			builder.append('\n');
-		}
-	}
-
-	/**
-	 * Produce a report showing which primitives cost the most time to have
-	 * their result types checked.
-	 *
-	 * @param builder The {@link StringBuilder} into which to write the report.
-	 */
-	public static void reportReturnCheckTimes (final StringBuilder builder)
-	{
-		builder.append("Primitive return dynamic checks:\n");
-		final List<Statistic> stats = new ArrayList<>();
-		for (int i = 1; i <= maxPrimitiveNumber; i++)
-		{
-			final Primitive prim = byPrimitiveNumberOrNull(i);
-			if (prim != null
-				&& prim.resultTypeCheckingNanos.aggregate().count() > 0)
-			{
-				stats.add(prim.resultTypeCheckingNanos);
-			}
-		}
-		final List<Pair<String, PerInterpreterStatistic>> pairs =
-			PerInterpreterStatistic.sortedPairs(stats);
-		for (final Pair<String, PerInterpreterStatistic> pair : pairs)
-		{
-			pair.second().describeNanosecondsOn(builder);
-			builder.append(" ");
-			builder.append(pair.first());
-			builder.append('\n');
-		}
-	}
-
-	/**
-	 * Clear all statistics related to primitives.
-	 */
-	public static void clearAllStats ()
-	{
-		for (int i = 1; i <= maxPrimitiveNumber; i++)
-		{
-			final Primitive prim = byPrimitiveNumberOrNull(i);
-			if (prim != null)
-			{
-				prim.runningNanos.clear();
-				prim.resultTypeCheckingNanos.clear();
-			}
-		}
 	}
 
 	/**

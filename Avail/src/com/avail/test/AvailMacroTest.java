@@ -33,8 +33,9 @@
 package com.avail.test;
 
 import java.io.*;
+import java.util.EnumSet;
 import com.avail.builder.*;
-import com.avail.interpreter.Primitive;
+import com.avail.tools.compiler.configuration.StatisticReport;
 
 /**
  * Test suite for the Avail macro compiler.
@@ -64,10 +65,13 @@ extends AbstractAvailTest
 		compile(new ModuleName("/avail/bootstrap-syntax"));
 		System.out.flush();
 		System.err.printf(
-			"%ntime elapsed = %dms%n", System.currentTimeMillis() - startTime);
-		final StringBuilder builder = new StringBuilder();
-		Primitive.reportReturnCheckTimes(builder);
-		System.err.printf("%nPrimitive return type-check times:%n%s",
-			builder);
+			"%ntime elapsed = %dms%n",
+			System.currentTimeMillis() - startTime);
+		final String reportString = StatisticReport.produceReports(
+			EnumSet.<StatisticReport>of(
+				StatisticReport.PRIMITIVE_RETURN_TYPE_CHECKS));
+		System.err.printf(
+			"%nPrimitive return type-check times:%n%s",
+			reportString);
 	}
 }

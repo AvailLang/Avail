@@ -448,15 +448,16 @@ extends TypeDescriptor
 		{
 			return true;
 		}
-		if (!aFunctionType.returnType().isSubtypeOf(
-			object.slot(RETURN_TYPE)))
+		if (!aFunctionType.returnType().isSubtypeOf(object.slot(RETURN_TYPE)))
 		{
 			return false;
 		}
+		final A_Set inners = object.slot(DECLARED_EXCEPTIONS);
+		// A ⊆ B if everything A can throw was declared by B
 		each_outer:
-		for (final AvailObject outer : aFunctionType.declaredExceptions())
+		for (final A_Type outer : aFunctionType.declaredExceptions())
 		{
-			for (final AvailObject inner : object.slot(DECLARED_EXCEPTIONS))
+			for (final A_Type inner : inners)
 			{
 				if (outer.isSubtypeOf(inner))
 				{

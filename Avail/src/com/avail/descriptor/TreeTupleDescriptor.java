@@ -956,7 +956,7 @@ extends TupleDescriptor
 		final AvailObject newTree = TreeTupleDescriptor
 			.createUninitializedTree(object.treeTupleLevel(), childCount);
 		int cumulativeSize = 0;
-		for (int src = childCount,dest = 1; src > 0; src--, dest++)
+		for (int src = childCount, dest = 1; src > 0; src--, dest++)
 		{
 			final A_Tuple child = object.childAt(src);
 			newTree.setSlot(

@@ -4498,4 +4498,30 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	A_Phrase o_List (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Tuple o_Permutation (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_EmitAllValuesOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	int o_ListSize (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
 }

@@ -66,6 +66,59 @@ extends Primitive
 	}
 
 	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final List<? extends A_Type> argumentTypes)
+	{
+		assert argumentTypes.size() == 2;
+		final A_Type aRange = argumentTypes.get(0);
+		final A_Type bRange = argumentTypes.get(1);
+
+		// If either value is constrained to a positive range, then at least
+		// guarantee the bit-wise and can't be greater than or equal to the next
+		// higher power of two of that range's upper bound.
+		final long upper;
+		if (aRange.lowerBound().greaterOrEqual(IntegerDescriptor.zero())
+			&& aRange.upperBound().isLong())
+		{
+			if (bRange.lowerBound().greaterOrEqual(IntegerDescriptor.zero())
+				&& bRange.upperBound().isLong())
+			{
+				upper = Math.min(
+					aRange.upperBound().extractLong(),
+					bRange.upperBound().extractLong());
+			}
+			else
+			{
+				upper = aRange.upperBound().extractLong();
+			}
+		}
+		else if (bRange.lowerBound().greaterOrEqual(IntegerDescriptor.zero())
+			&& bRange.upperBound().isLong())
+		{
+			upper = bRange.upperBound().extractLong();
+		}
+		else
+		{
+			// Give up, as the result may be negative or exceed a long.
+			return super.returnTypeGuaranteedByVM(argumentTypes);
+		}
+		// At least one value is positive, so the result is positive.
+		// At least one is a long, so the result must be a long.
+		final long highOneBit = Long.highestOneBit(upper);
+		if (highOneBit == 0)
+		{
+			// One of the ranges is constrained to be exactly zero.
+			return IntegerRangeTypeDescriptor.singleInt(0);
+		}
+		final long maxValue = (highOneBit - 1) | highOneBit;
+		return IntegerRangeTypeDescriptor.create(
+			IntegerDescriptor.zero(),
+			true,
+			IntegerDescriptor.fromLong(maxValue),
+			true);
+	}
+
+	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(

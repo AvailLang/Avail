@@ -34,13 +34,17 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.List;
 import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.performance.Statistic;
+import com.avail.tools.compiler.configuration.StatisticReport;
 
 /**
  * Return into the provided continuation with the given return value.  The
@@ -57,6 +61,12 @@ public class L2_RETURN extends L2Operation
 			READ_POINTER.is("return value"),
 			READ_INT.is("skip check"));
 
+	/** Statistic for recording checked non-primitive returns from L2. */
+	private final static Statistic checkedNonPrimitiveReturn =
+		new Statistic(
+			"Checked non-primitive return from L2",
+			StatisticReport.NON_PRIMITIVE_RETURN_LEVELS);
+
 	@Override
 	public void step (
 		final L2Instruction instruction,
@@ -71,7 +81,29 @@ public class L2_RETURN extends L2Operation
 		final A_Continuation continuation = continuationReg.in(interpreter);
 		final AvailObject value = valueReg.in(interpreter);
 		final boolean skipCheck = skipCheckReg.in(interpreter) != 0;
-		interpreter.returnToCaller(continuation, value, skipCheck);
+		if (skipCheck)
+		{
+			interpreter.returnToCaller(continuation, value, skipCheck);
+		}
+		else
+		{
+			final A_RawFunction returnee = continuation.equalsNil()
+				? null
+				: continuation.function().code();
+			final A_RawFunction returner = returnee == null
+				? null
+				: interpreter.pointerAt(FixedRegister.FUNCTION).code();
+			final long before = System.nanoTime();
+			interpreter.returnToCaller(continuation, value, skipCheck);
+			final long after = System.nanoTime();
+			checkedNonPrimitiveReturn.record(
+				after - before, interpreter.interpreterIndex);
+			if (returnee != null)
+			{
+				interpreter.recordCheckedReturnFromTo(
+					returner, returnee, after - before);
+			}
+		}
 	}
 
 	@Override

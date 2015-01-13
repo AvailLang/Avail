@@ -45,16 +45,10 @@ import java.io.ByteArrayOutputStream;
  */
 public class AvailPop extends AvailInstruction
 {
-
-
-	// nybblecodes
-
 	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)
 	{
-		//  Write nybbles to the stream (a WriteStream on a ByteArray).
-
 		L1Operation.L1_doPop.writeTo(aStream);
 	}
 }

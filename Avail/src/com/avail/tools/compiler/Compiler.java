@@ -43,9 +43,6 @@ import com.avail.builder.*;
 import com.avail.compiler.AbstractAvailCompiler.*;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.ModuleDescriptor;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.io.ConsoleInputChannel;
 import com.avail.io.ConsoleOutputChannel;
 import com.avail.io.TextInterface;
@@ -229,7 +226,6 @@ public class Compiler
 	private static Continuation3<ModuleName, Long, Long> globalTracker(
 		final CompilerConfiguration configuration)
 	{
-		//
 		return new Continuation3<ModuleName, Long, Long>()
 		{
 			@Override
@@ -279,40 +275,6 @@ public class Compiler
 		{
 			throw new IndexedFileException(e);
 		}
-	}
-
-	/**
-	 * Output the appropriate {@linkplain StatisticReport reports}.
-	 *
-	 * @param configuration The compiler configuration where the report settings
-	 *                      are stored.
-	 */
-	private static void printReports(final CompilerConfiguration configuration)
-	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append("\n\n");
-		if (configuration.reports().contains(StatisticReport.L2_OPERATIONS))
-		{
-			L2Operation.reportStatsOn(builder);
-			builder.append("\n");
-		}
-		if (configuration.reports().contains(StatisticReport.DYNAMIC_LOOKUPS))
-		{
-			Interpreter.reportDynamicLookups(builder);
-			builder.append("\n");
-		}
-		if (configuration.reports().contains(StatisticReport.PRIMITIVES))
-		{
-			Primitive.reportRunTimes(builder);
-			builder.append("\n");
-		}
-		if (configuration.reports().contains(
-			StatisticReport.PRIMITIVE_RETURN_TYPE_CHECKS))
-		{
-			Primitive.reportReturnCheckTimes(builder);
-			builder.append("\n");
-		}
-		System.out.print(builder.toString());
 	}
 
 	/**
@@ -386,7 +348,9 @@ public class Compiler
 				// Successful compilation.
 				if (configuration.hasReports())
 				{
-					printReports(configuration);
+					System.out.append(
+						StatisticReport.produceReports(
+							configuration.reports()));
 				}
 			}
 

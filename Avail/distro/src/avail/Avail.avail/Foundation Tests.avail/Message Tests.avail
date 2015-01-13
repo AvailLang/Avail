@@ -1,5 +1,5 @@
-/**
- * P_376_CreateVariableExpression.java
+/*
+ * Message Tests.avail
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,53 +30,74 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive;
+Module "Message Tests"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Common",
+	"Foundation" =
+	(
+		"_[_.._]" → "from_②to_③of_①",
+		…
+	),
+	"Unit Testing"
+Names
+	"message test suite"
+Body
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.interpreter.*;
+"message test suite" is a new atom;
+New test suite message test suite extends foundation test suite;
 
-/**
- * <strong>Primitive 376</strong>: Create a {@linkplain
- * ParseNodeKind#LOCAL_VARIABLE_NODE local variable declaration} from the
- * specified {@linkplain TokenDescriptor token} and type.
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
- */
-public final class P_376_CreateVariableExpression
-extends Primitive
-{
-	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
-	 */
-	public final static Primitive instance =
-		new P_376_CreateVariableExpression().init(
-			2, CanInline, CannotFail);
+Private method "moo_②count_①" is
+[
+	count : integer,
+	moo : string
+|
+	"Cow says " ++ moo ++ ", " ++ “count” ++ " times\n"
+];
 
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
-	{
-		assert args.size() == 2;
-		final A_Token token = args.get(0);
-		final A_Type type = args.get(1);
-		return interpreter.primitiveSuccess(
-			DeclarationNodeDescriptor.newVariable(token, type));
-	}
+Test "top-level permute two arguments" in message test suite is
+[
+	Require:
+		moo "hello" count 5
+		= "Cow says hello, 5 times\n";
+];
 
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				TOKEN.o(),
-				InstanceMetaDescriptor.anyMeta()),
-			LOCAL_VARIABLE_NODE.mostGeneralType());
-	}
-}
+Test "top-level tuple subrange rename" in message test suite is
+[
+	Require:
+		(from 2 to 5 of "catdog")
+		= "atdo";
+];
+
+Private method "five_⑤,one_①,four_④,two_②,three_③" is
+[
+	one : 1's type,
+	two : 2's type,
+	three : 3's type,
+	four : 4's type,
+	five : 5's type
+|
+	<one, two, three, four, five>
+];
+
+Test "top-level five-way permute" in message test suite is
+[
+	Require:
+		(five 5, one 1, four 4, two 2, three 3)
+		= <1,2,3,4,5>;
+];
+
+Private method "Triples«_②:_③:_①‡,»" is
+[
+	triples : <10's type, 20's type, 30's type…|3>+
+|
+	triples
+];
+
+Test "second-level triples" in message test suite is
+[
+	Require:
+		(Triples 20:30:10, 20:30:10)
+		= <<10, 20, 30>, <10, 20, 30>>;
+];

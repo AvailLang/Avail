@@ -585,7 +585,6 @@ extends TypeDescriptor
 		final AvailObject result = descriptor.create();
 		result.setSlot(LOWER_BOUND, low);
 		result.setSlot(UPPER_BOUND, high);
-		result.makeImmutable();
 		return result;
 	}
 

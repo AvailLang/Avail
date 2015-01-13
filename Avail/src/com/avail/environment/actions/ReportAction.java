@@ -33,14 +33,13 @@
 package com.avail.environment.actions;
 
 import java.awt.event.*;
+import java.util.EnumSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.StyledDocument;
 import com.avail.annotations.*;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.tools.compiler.configuration.StatisticReport;
 
 /**
  * A {@code ReportAction} dumps performance information obtained from
@@ -53,20 +52,15 @@ extends AbstractWorkbenchAction
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-		final StringBuilder builder = new StringBuilder();
-		L2Operation.reportStatsOn(builder);
-		builder.append("\n");
-		Interpreter.reportDynamicLookups(builder);
-		builder.append("\n");
-		Primitive.reportRunTimes(builder);
-		builder.append("\n");
-		Primitive.reportReturnCheckTimes(builder);
+		final EnumSet<StatisticReport> reports =
+			EnumSet.allOf(StatisticReport.class);
+		final String reportsString = StatisticReport.produceReports(reports);
 		final StyledDocument doc = workbench.transcript.getStyledDocument();
 		try
 		{
 			doc.insertString(
 				doc.getLength(),
-				builder.toString(),
+				reportsString,
 				doc.getStyle(AvailWorkbench.infoStyleName));
 		}
 		catch (final BadLocationException e)

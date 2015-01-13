@@ -61,6 +61,20 @@ public final class P_086_MapKeysAsSet extends Primitive
 	}
 
 	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final List<? extends A_Type> argumentTypes)
+	{
+		assert argumentTypes.size() == 1;
+		final A_Type mapType = argumentTypes.get(0);
+
+		// There can't be any duplicate keys in the map, so the size range is
+		// the same for the set.
+		return SetTypeDescriptor.setTypeForSizesContentType(
+			mapType.sizeRange(),
+			mapType.keyType());
+	}
+
+	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(

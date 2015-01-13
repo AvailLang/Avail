@@ -166,14 +166,10 @@ extends ParseNodeDescriptor
 		final AvailCodeGenerator codeGenerator)
 	{
 		final A_Phrase arguments = object.slot(ARGUMENTS_LIST_NODE);
-		final A_Tuple tuple = arguments.expressionsTuple();
-		for (final A_Phrase argNode : tuple)
-		{
-			argNode.emitValueOn(codeGenerator);
-		}
+		arguments.emitAllValuesOn(codeGenerator);
 		final A_Bundle bundle = object.slot(BUNDLE);
 		codeGenerator.emitCall(
-			tuple.tupleSize(),
+			arguments.expressionType().sizeRange().upperBound().extractInt(),
 			bundle,
 			object.returnType());
 	}

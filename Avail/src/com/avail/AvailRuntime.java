@@ -114,6 +114,45 @@ public final class AvailRuntime
 	}
 
 	/**
+	 * This is a volatile static field used for the sole purpose of establishing
+	 * very weak happens-before relations between threads without using mutual
+	 * exclusions or any blocking other than memory barriers.
+	 */
+	private static volatile int synchronizationBarrierField;
+
+	/**
+	 * Ensure writes from this thread that happen before the call to
+	 * writeBarrier() complete before any writes that occur after.  If another
+	 * thread performs a readBarrier() and then sees a value that was written
+	 * after the writeBarrier(), then any subsequent read will be guaranteed to
+	 * see values at least as recent as the writes that occurred before the
+	 * writeBarrier().
+	 *
+	 * <p>This is a very weak condition, and should only be used to ensure
+	 * a weak ordering of writes and reads suitable for implementing the
+	 * double-check pattern.  Or anti-pattern, since it's so difficult to get
+	 * right in general.</p>
+	 */
+	public static void writeBarrier ()
+	{
+		synchronizationBarrierField = 0;
+	}
+
+	/**
+	 * Say some other thread performs some writes, then executes a writeBarrier,
+	 * then performs more writes.  Ensure that after the readBarrier completes,
+	 * if an observation of a write performed after the writeBarrier is
+	 * detected, all values written before the writeBarrier will be visible.
+	 */
+	public static void readBarrier ()
+	{
+		@SuppressWarnings("unused")
+		final
+		int ignored = synchronizationBarrierField;
+	}
+
+
+	/**
 	 * Answer the build version, as set by the build process.
 	 *
 	 * @return The build version, or {@code "dev"} if Avail is not running from
@@ -1457,6 +1496,7 @@ public final class AvailRuntime
 		// Some of these entries may need to be shuffled into earlier slots to
 		// maintain reasonable topical consistency.
 		specials[140] = FIRST_OF_SEQUENCE_NODE.mostGeneralType();
+		specials[141] = PERMUTED_LIST_NODE.mostGeneralType();
 
 		System.arraycopy(specials, 0, specialObjects, 0, specials.length);
 

@@ -1,5 +1,5 @@
 /**
- * P_376_CreateVariableExpression.java
+ * P_391_CreateModuleVariableDeclaration.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -41,20 +41,21 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 376</strong>: Create a {@linkplain
- * ParseNodeKind#LOCAL_VARIABLE_NODE local variable declaration} from the
- * specified {@linkplain TokenDescriptor token} and type.
+ * <strong>Primitive 391</strong>: Create a new {@linkplain
+ * ParseNodeKind#MODULE_VARIABLE_NODE module variable declaration} from the
+ * specified {@linkplain TokenDescriptor token} and actual {@linkplain
+ * A_Variable variable}.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_376_CreateVariableExpression
+public final class P_391_CreateModuleVariableDeclaration
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_376_CreateVariableExpression().init(
+		new P_391_CreateModuleVariableDeclaration().init(
 			2, CanInline, CannotFail);
 
 	@Override
@@ -64,10 +65,11 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
-		final A_Token token = args.get(0);
-		final A_Type type = args.get(1);
+		final A_Variable variable = args.get(0);
+		final A_Token token = args.get(1);
 		return interpreter.primitiveSuccess(
-			DeclarationNodeDescriptor.newVariable(token, type));
+			DeclarationNodeDescriptor.newModuleVariable(
+				token, variable, NilDescriptor.nil()));
 	}
 
 	@Override
@@ -75,8 +77,8 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TOKEN.o(),
-				InstanceMetaDescriptor.anyMeta()),
-			LOCAL_VARIABLE_NODE.mostGeneralType());
+				VariableTypeDescriptor.mostGeneralType(),
+				TOKEN.o()),
+			MODULE_VARIABLE_NODE.mostGeneralType());
 	}
 }

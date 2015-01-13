@@ -6974,4 +6974,28 @@ implements
 	{
 		return descriptor.o_TupleOfTypesFromTo(this, startIndex, endIndex);
 	}
+
+	@Override
+	public A_Phrase list ()
+	{
+		return descriptor.o_List(this);
+	}
+
+	@Override
+	public A_Tuple permutation ()
+	{
+		return descriptor.o_Permutation(this);
+	}
+
+	@Override
+	public void emitAllValuesOn (final AvailCodeGenerator codeGenerator)
+	{
+		descriptor.o_EmitAllValuesOn(this, codeGenerator);
+	}
+
+	@Override
+	public int listSize ()
+	{
+		return descriptor.o_ListSize(this);
+	}
 }

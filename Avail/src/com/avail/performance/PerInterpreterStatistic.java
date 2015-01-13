@@ -32,16 +32,9 @@
 
 package com.avail.performance;
 
-import java.text.Collator;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.Nullable;
 import com.avail.interpreter.Interpreter;
-import com.avail.utility.Pair;
 
 /**
  * A {@code PerInterpreterStatistic} is an incremental, summarized recording of
@@ -259,46 +252,4 @@ implements Comparable<PerInterpreterStatistic>
 		mean = 0.0;
 		sumOfDeltaSquares = 0.0;
 	}
-
-	/**
-	 * Sort a collection of {@link PerInterpreterStatistic} by descending
-	 * sum and then ascending name (locale-sensitively).
-	 *
-	 * @param statistics The collection of per-interpreter statistics to sort.
-	 * @return A sorted collection of (String, StatisticsSnapshot) pairs.
-	 */
-	public static List<Pair<String, PerInterpreterStatistic>> sortedPairs (
-		final Collection<Statistic> statistics)
-	{
-		final List<Pair<String, PerInterpreterStatistic>> namedSnapshots =
-			new ArrayList<>(statistics.size());
-		for (final Statistic stat : statistics)
-		{
-			final PerInterpreterStatistic aggregate = stat.aggregate();
-			namedSnapshots.add(
-				new Pair<String, PerInterpreterStatistic>(
-					stat.name(), aggregate));
-		}
-		Collections.sort(
-			namedSnapshots,
-			new Comparator<Pair<String, PerInterpreterStatistic>>()
-			{
-				@Override
-				public int compare (
-					final @Nullable Pair<String, PerInterpreterStatistic> pair1,
-					final @Nullable Pair<String, PerInterpreterStatistic> pair2)
-				{
-					assert pair1 != null && pair2 != null;
-					final int byStat = pair1.second().compareTo(pair2.second());
-					if (byStat != 0)
-					{
-						return byStat;
-					}
-					return Collator.getInstance().compare(
-						pair1.first(), pair2.first());
-				}
-			});
-		return namedSnapshots;
-	}
-
 }

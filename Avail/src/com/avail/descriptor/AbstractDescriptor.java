@@ -5922,8 +5922,8 @@ public abstract class AbstractDescriptor
 	 * @param primitiveNumber
 	 */
 	abstract void o_RecordLatestPrimitive (
-		final AvailObject object,
-		final short primitiveNumber);
+		AvailObject object,
+		short primitiveNumber);
 
 	/**
 	 * @param object
@@ -6058,7 +6058,33 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract A_Tuple o_TupleOfTypesFromTo (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex);
+		AvailObject object,
+		int startIndex,
+		int endIndex);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Phrase o_List (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Tuple o_Permutation (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param codeGenerator
+	 */
+	abstract void o_EmitAllValuesOn (
+		AvailObject object,
+		AvailCodeGenerator codeGenerator);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract int o_ListSize (AvailObject object);
 }

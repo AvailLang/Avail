@@ -432,8 +432,7 @@ implements A_BasicObject
 		final ObjectSlotsEnum field)
 	{
 		checkSlot(field);
-		final AvailObject result = objectSlots[field.ordinal()];
-		return result;
+		return objectSlots[field.ordinal()];
 	}
 
 	/**
@@ -490,8 +489,7 @@ implements A_BasicObject
 		final int subscript)
 	{
 		checkSlot(field);
-		final AvailObject result = objectSlots[field.ordinal() + subscript - 1];
-		return result;
+		return objectSlots[field.ordinal() + subscript - 1];
 	}
 
 	/**
@@ -531,12 +529,10 @@ implements A_BasicObject
 		{
 			synchronized (this)
 			{
-				final AvailObject result = objectSlots[field.ordinal()];
-				return result;
+				return objectSlots[field.ordinal()];
 			}
 		}
-		final AvailObject result = objectSlots[field.ordinal()];
-		return result;
+		return objectSlots[field.ordinal()];
 	}
 
 	/**

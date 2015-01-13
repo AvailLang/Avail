@@ -114,7 +114,7 @@ extends Descriptor
 		 * method name by the {@link MessageSplitter}, which has a description
 		 * of the complete instruction set.
 		 */
-		PARSING_INSTRUCTIONS
+		PARSING_INSTRUCTIONS;
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (

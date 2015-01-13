@@ -4653,4 +4653,30 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).showValueInNameForDebugger();
 	}
+
+	@Override
+	A_Phrase o_List (final AvailObject object)
+	{
+		return o_Traversed(object).list();
+	}
+
+	@Override
+	A_Tuple o_Permutation (final AvailObject object)
+	{
+		return o_Traversed(object).permutation();
+	}
+
+	@Override
+	void o_EmitAllValuesOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		o_Traversed(object).emitAllValuesOn(codeGenerator);
+	}
+
+	@Override
+	int o_ListSize (final AvailObject object)
+	{
+		return o_Traversed(object).listSize();
+	}
 }

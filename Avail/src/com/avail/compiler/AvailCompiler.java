@@ -182,7 +182,7 @@ extends AbstractAvailCompiler
 	void completedSendNodeForMacro (
 		final ParserState stateBeforeCall,
 		final ParserState stateAfterCall,
-		final List<A_Phrase> passedArgumentExpressions,
+		final A_Phrase argumentsListNode,
 		final A_Bundle bundle,
 		final Con<A_Phrase> continuation)
 	{
@@ -192,15 +192,16 @@ extends AbstractAvailCompiler
 		final A_Definition macroDefinition = definitions.tupleAt(1);
 		final A_Function macroBody = macroDefinition.bodyBlock();
 		final A_Type macroBodyKind = macroBody.kind();
-		final List<A_Phrase> argumentExpressions =
-			new ArrayList<>(passedArgumentExpressions.size());
+		final A_Tuple argumentsTuple = argumentsListNode.expressionsTuple();
+		final int argCount = argumentsTuple.tupleSize();
 		// Strip off macro substitution wrappers from the arguments.  These
 		// were preserved only long enough to test grammatical restrictions.
-		for (final A_Phrase argumentExpression : passedArgumentExpressions)
+		final List<A_Phrase> argumentsList = new ArrayList<>(argCount);
+		for (final A_Phrase argument : argumentsList)
 		{
-			argumentExpressions.add(argumentExpression.stripMacro());
+			argumentsList.add(argument.stripMacro());
 		}
-		if (!macroBodyKind.acceptsListOfArgValues(argumentExpressions))
+		if (!macroBodyKind.acceptsListOfArgValues(argumentsList))
 		{
 			stateAfterCall.expected(new Describer()
 			{
@@ -209,13 +210,12 @@ extends AbstractAvailCompiler
 					final @Nullable Continuation1<String> c)
 				{
 					assert c != null;
-					final List<Integer> disagreements =
-						new ArrayList<>();
+					final List<Integer> disagreements = new ArrayList<>();
 					for (int i = 1; i <= macroBody.code().numArgs(); i++)
 					{
 						final A_Type type =
 							macroBodyKind.argsTupleType().typeAtIndex(i);
-						final A_Phrase value = argumentExpressions.get(i - 1);
+						final A_Phrase value = argumentsList.get(i - 1);
 						if (!value.isInstanceOf(type))
 						{
 							disagreements.add(i);
@@ -223,7 +223,7 @@ extends AbstractAvailCompiler
 					}
 					assert disagreements.size() > 0;
 					final List<A_BasicObject> values =
-						new ArrayList<A_BasicObject>(argumentExpressions);
+						new ArrayList<A_BasicObject>(argumentsList);
 					values.add(macroBodyKind);
 					Interpreter.stringifyThen(
 						runtime,
@@ -265,7 +265,7 @@ extends AbstractAvailCompiler
 		// A macro can't have semantic restrictions, so just run it.
 		evaluateFunctionThen(
 			macroBody,
-			argumentExpressions,
+			argumentsList,
 			false,
 			new Continuation1<AvailObject>()
 			{

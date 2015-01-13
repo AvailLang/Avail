@@ -283,6 +283,21 @@ public enum ParsingOperation
 		{
 			return operand(instruction);
 		}
+	},
+
+	/**
+	 * {@code 16*N+9} - Permute the elements of the list node on the top of the
+	 * stack via the permutation found via {@linkplain
+	 * MessageSplitter#permutationAtIndex(int)}.  The list node must be the same
+	 * size as the permutation.
+	 */
+	PERMUTE_LIST(9)
+	{
+		@Override
+		public int permutationIndex (final int instruction)
+		{
+			return operand(instruction);
+		}
 	};
 
 	/**
@@ -461,6 +476,18 @@ public enum ParsingOperation
 	 * @return The conversion rule, or {@code 0} if the assumption was false.
 	 */
 	public ParsingConversionRule conversionRule (final int instruction)
+	{
+		throw new RuntimeException("Parsing instruction is inappropriate");
+	}
+
+	/**
+	 * Extract the index of the permutation for a {@link #PERMUTE_LIST}
+	 * parsing instruction.
+	 *
+	 * @param instruction A coded instruction.
+	 * @return The index of the permutation.
+	 */
+	public int permutationIndex (final int instruction)
 	{
 		throw new RuntimeException("Parsing instruction is inappropriate");
 	}

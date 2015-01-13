@@ -135,6 +135,12 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
+	int o_ListSize (final AvailObject object)
+	{
+		return object.slot(EXPRESSIONS_TUPLE).tupleSize();
+	}
+
+	@Override
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
@@ -168,6 +174,18 @@ extends ParseNodeDescriptor
 	{
 		return object.kind().equals(aParseNode.kind())
 			&& object.expressionsTuple().equals(aParseNode.expressionsTuple());
+	}
+
+	@Override
+	void o_EmitAllValuesOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		final A_Tuple childNodes = object.expressionsTuple();
+		for (final A_Phrase expr : childNodes)
+		{
+			expr.emitValueOn(codeGenerator);
+		}
 	}
 
 	@Override @AvailMethod

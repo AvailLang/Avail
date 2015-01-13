@@ -38,9 +38,7 @@ import javax.swing.text.StyledDocument;
 import com.avail.annotations.*;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.tools.compiler.configuration.StatisticReport;
 
 /**
  * A {@code ClearReportAction} clears performance information obtained from
@@ -53,9 +51,10 @@ extends AbstractWorkbenchAction
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-		L2Operation.clearAllStats();
-		Primitive.clearAllStats();
-		Interpreter.clearDynamicLookupStats();
+		for (final StatisticReport report : StatisticReport.values())
+		{
+			report.clear();
+		}
 		final StyledDocument doc = workbench.transcript.getStyledDocument();
 		try
 		{

@@ -1012,8 +1012,8 @@ extends ParseNodeDescriptor
 
 	/**
 	 * Construct a new {@linkplain DeclarationNodeDescriptor declaration} of a
-	 * {@linkplain DeclarationKind#MODULE_VARIABLE module variable} without an
-	 * initialization expression.
+	 * {@linkplain DeclarationKind#MODULE_VARIABLE module variable} with or
+	 * without an initialization expression.
 	 *
 	 * @param token
 	 *        The {@linkplain TokenDescriptor token} that is the defining
@@ -1022,7 +1022,8 @@ extends ParseNodeDescriptor
 	 *        The actual {@linkplain VariableDescriptor variable} to be used
 	 *        as a module variable.
 	 * @param initializationExpression
-	 *        The expression (or null) used to initialize this module variable.
+	 *        The expression (or {@linkplain NilDescriptor#nil() nil}) used to
+	 *        initialize this module variable.
 	 * @return The new module variable declaration.
 	 */
 	public static A_Phrase newModuleVariable(

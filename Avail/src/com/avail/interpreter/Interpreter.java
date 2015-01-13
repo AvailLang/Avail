@@ -60,8 +60,8 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.primitive.*;
 import com.avail.io.TextInterface;
-import com.avail.performance.PerInterpreterStatistic;
 import com.avail.performance.Statistic;
+import com.avail.tools.compiler.configuration.StatisticReport;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.*;
 
@@ -2427,7 +2427,9 @@ public final class Interpreter
 			if (stat == null)
 			{
 				// First time -- create a new statistic.
-				stat = new Statistic("Lookup " + nameString);
+				stat = new Statistic(
+					"Lookup " + nameString,
+					StatisticReport.DYNAMIC_LOOKUPS);
 				dynamicLookupStatsByString.put(name, stat);
 			}
 			// Reuse the statistic from a previous run (or just created).
@@ -2437,33 +2439,68 @@ public final class Interpreter
 	}
 
 	/**
-	 * Clear all dynamic lookup statistics.
+	 * Detailed statistics about checked non-primitive returns.  This is a map
+	 * whose keys are raw functions doing the returning, and whose values are
+	 * maps from the raw functions being returned into to a statistic.
 	 */
-	public static synchronized void clearDynamicLookupStats ()
-	{
-		dynamicLookupStatsByString.clear();
-		dynamicLookupStatsByBundle.clear();
-	}
+	private static final Map<A_RawFunction, Map<A_RawFunction, Statistic>>
+		checkedReturnMaps = new WeakHashMap<>();
 
 	/**
-	 * Produce a report about the dynamic method lookups that have occurred.
-	 *
-	 * @param builder
+	 * Statistics about checked non-primitive returns, keyed by the {@link
+	 * Statistic}'s name (which includes information about both the returner and
+	 * the returnee).  This holds the statistics strongly to allow the same
+	 * statistics to be used after unloading/loading.
 	 */
-	public static synchronized void reportDynamicLookups (
-		final StringBuilder builder)
+	private static final Map<A_String, Statistic>
+		checkedReturnMapsByString = new HashMap<>();
+
+	/**
+	 * Record the fact that when returning from the specified returner into the
+	 * returnee, the return value was checked against the expected type, and it
+	 * took the specified number of nanoseconds.
+	 *
+	 * @param returner The {@link A_RawFunction} which was returning.
+	 * @param returnee The {@link A_RawFunction} being returned into.
+	 * @param nanos The number of nanoseconds it took to check the result type.
+	 */
+	public void recordCheckedReturnFromTo (
+		final A_RawFunction returner,
+		final A_RawFunction returnee,
+		final double nanos)
 	{
-		builder.append("Dynamic lookups:\n");
-		final List<Pair<String, PerInterpreterStatistic>> namedSnapshots =
-			PerInterpreterStatistic.sortedPairs(
-				dynamicLookupStatsByBundle.values());
-		for (final Pair<String, PerInterpreterStatistic> pair: namedSnapshots)
+		Statistic statistic;
+		synchronized (checkedReturnMaps)
 		{
-			pair.second().describeNanosecondsOn(builder);
-			builder.append(" ");
-			builder.append(pair.first());
-			builder.append("\n");
+			Map<A_RawFunction, Statistic> submap =
+				checkedReturnMaps.get(returner);
+			if (submap == null)
+			{
+				submap = new WeakHashMap<>();
+				checkedReturnMaps.put(returner, submap);
+			}
+			statistic = submap.get(returnee);
+			if (statistic == null)
+			{
+				final StringBuilder builder = new StringBuilder();
+				builder.append("Return from ");
+				builder.append(returner.methodName().asNativeString());
+				builder.append(" to ");
+				builder.append(returnee.methodName().asNativeString());
+				final String nameString = builder.toString();
+				final A_String availString = StringDescriptor.from(nameString);
+				statistic = checkedReturnMapsByString.get(availString);
+				if (statistic == null)
+				{
+					statistic = new Statistic(
+						nameString,
+						StatisticReport.NON_PRIMITIVE_RETURN_TYPE_CHECKS);
+					checkedReturnMapsByString.put(availString, statistic);
+					submap.put(returnee, statistic);
+				}
+			}
 		}
+		statistic.record(nanos, interpreterIndex);
 	}
 
 	/**

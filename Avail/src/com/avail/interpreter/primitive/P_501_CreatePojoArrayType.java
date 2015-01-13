@@ -58,7 +58,7 @@ public final class P_501_CreatePojoArrayType extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
-		final AvailObject type = args.get(0);
+		final A_Type type = args.get(0);
 		final AvailObject sizes = args.get(1);
 		return interpreter.primitiveSuccess(
 			PojoTypeDescriptor.forArrayTypeWithSizeRange(

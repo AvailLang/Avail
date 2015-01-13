@@ -1,5 +1,5 @@
 /**
- * P_376_CreateVariableExpression.java
+ * AvailPermute.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,53 +30,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive;
+package com.avail.compiler.instruction;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.interpreter.*;
+import java.io.ByteArrayOutputStream;
+import com.avail.interpreter.levelOne.L1Operation;
+
 
 /**
- * <strong>Primitive 376</strong>: Create a {@linkplain
- * ParseNodeKind#LOCAL_VARIABLE_NODE local variable declaration} from the
- * specified {@linkplain TokenDescriptor token} and type.
+ * Permute the top N stack items via a permutation found in a literal tuple.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_376_CreateVariableExpression
-extends Primitive
+public class AvailPermute extends AvailInstructionWithIndex
 {
 	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
+	 * Construct a new {@link AvailPermute}.
+	 *
+	 * @param permutationIndex
+	 *        The literal index of the tuple with which to permute the top
+	 *        region of the stack.
 	 */
-	public final static Primitive instance =
-		new P_376_CreateVariableExpression().init(
-			2, CanInline, CannotFail);
-
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+	public AvailPermute (final int permutationIndex)
 	{
-		assert args.size() == 2;
-		final A_Token token = args.get(0);
-		final A_Type type = args.get(1);
-		return interpreter.primitiveSuccess(
-			DeclarationNodeDescriptor.newVariable(token, type));
+		super(permutationIndex);
 	}
 
 	@Override
-	protected A_Type privateBlockTypeRestriction ()
+	public void writeNybblesOn (final ByteArrayOutputStream aStream)
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				TOKEN.o(),
-				InstanceMetaDescriptor.anyMeta()),
-			LOCAL_VARIABLE_NODE.mostGeneralType());
+		L1Operation.L1Ext_doPermute.writeTo(aStream);
+		writeIntegerOn(index, aStream);
 	}
 }

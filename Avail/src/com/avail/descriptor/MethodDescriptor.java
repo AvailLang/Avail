@@ -513,7 +513,7 @@ extends Descriptor
 		private final List<A_Type> knownArgumentTypes;
 
 		/** The type to test against an argument type at this node. */
-		private @Nullable A_Type argumentTypeToTest;
+		private volatile @Nullable A_Type argumentTypeToTest;
 
 		/** The 1-based index of the argument to be tested at this node. */
 		@InnerAccess int argumentPositionToTest = -1;
@@ -601,7 +601,16 @@ extends Descriptor
 		{
 			if (argumentTypeToTest == null)
 			{
-				chooseCriterion();
+				synchronized (this)
+				{
+					// We have to double-check if another thread has run
+					// chooseCriterion() since our first check.  We're in a
+					// synchronized mutual exclusion, so this is a stable check.
+					if (argumentTypeToTest == null)
+					{
+						chooseCriterion();
+					}
+				}
 			}
 		}
 
@@ -698,6 +707,7 @@ extends Descriptor
 			final A_Type bestArgsTupleType = bestSignature.argsTupleType();
 			final int numArgs =
 				bestArgsTupleType.sizeRange().lowerBound().extractInt();
+			A_Type selectedArgumentTypeToTest = null;
 			for (int i = 1; i <= numArgs; i++)
 			{
 				final A_Type knownType = knownArgumentTypes.get(i - 1);
@@ -705,23 +715,23 @@ extends Descriptor
 				if (!knownType.isSubtypeOf(criterionType))
 				{
 					argumentPositionToTest = i;
-					argumentTypeToTest = criterionType;
+					selectedArgumentTypeToTest = criterionType;
 					break;
 				}
 			}
 			assert argumentPositionToTest >= 1;
+			assert selectedArgumentTypeToTest != null;
 			final A_Type oldArgType =
 				knownArgumentTypes.get(argumentPositionToTest - 1);
 			final List<A_Type> newPositiveKnownTypes =
 				new ArrayList<>(knownArgumentTypes);
 			final A_Type replacementArgType =
-				argumentTypeToTest().typeIntersection(oldArgType);
+				selectedArgumentTypeToTest.typeIntersection(oldArgType);
 			// Sanity check:  Make sure we at least improve type knowledge in
 			// the positive case.
 			assert !replacementArgType.equals(oldArgType);
 			newPositiveKnownTypes.set(
-				argumentPositionToTest - 1,
-				replacementArgType);
+				argumentPositionToTest - 1, replacementArgType);
 			// Compute the positive/undecided lists, both for the condition
 			// being true and for the condition being false.
 			final List<A_Definition> positiveIfTrue =
@@ -747,14 +757,15 @@ extends Descriptor
 					undecidedIfFalse);
 			}
 			ifCheckHolds = LookupTree.createTree(
-				positiveIfTrue,
-				undecidedIfTrue,
-				newPositiveKnownTypes);
+				positiveIfTrue, undecidedIfTrue, newPositiveKnownTypes);
 			ifCheckFails = LookupTree.createTree(
-				positiveDefinitions,
-				undecidedIfFalse,
-				knownArgumentTypes);
+				positiveDefinitions, undecidedIfFalse, knownArgumentTypes);
 			assert undecidedIfFalse.size() < undecidedDefinitions.size();
+			// This is a volatile write, so all previous writes had to precede
+			// it.  If another process runs expandIfNecessary(), it will either
+			// see null for this field, or see non-null and be guaranteed that
+			// all subsequent reads will see all the previous writes.
+			argumentTypeToTest = selectedArgumentTypeToTest;
 		}
 
 		/**
@@ -1256,28 +1267,25 @@ extends Descriptor
 		final List<? extends A_BasicObject> argumentList,
 		final MutableOrNull<AvailErrorCode> errorCode)
 	{
-		synchronized (object)
+		LookupTree tree = object.testingTree();
+		List<A_Definition> solutions;
+		while ((solutions = tree.solutionOrNull()) == null)
 		{
-			LookupTree tree = object.testingTree();
-			List<A_Definition> solutions;
-			while ((solutions = tree.solutionOrNull()) == null)
-			{
-				tree = tree.lookupStepByValues(argumentList);
-			}
-			if (solutions.size() == 1)
-			{
-				return solutions.get(0);
-			}
-			if (solutions.size() == 0)
-			{
-				errorCode.value = AvailErrorCode.E_NO_METHOD_DEFINITION;
-			}
-			else
-			{
-				errorCode.value = AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION;
-			}
-			return NilDescriptor.nil();
+			tree = tree.lookupStepByValues(argumentList);
 		}
+		if (solutions.size() == 1)
+		{
+			return solutions.get(0);
+		}
+		if (solutions.size() == 0)
+		{
+			errorCode.value = AvailErrorCode.E_NO_METHOD_DEFINITION;
+		}
+		else
+		{
+			errorCode.value = AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION;
+		}
+		return NilDescriptor.nil();
 	}
 
 	/**
@@ -1349,23 +1357,31 @@ extends Descriptor
 	@Override @AvailMethod
 	LookupTree o_TestingTree (final AvailObject object)
 	{
-		synchronized (object)
+		A_BasicObject result = object.slot(PRIVATE_TESTING_TREE);
+		if (result.equalsNil())
 		{
-			A_BasicObject result = object.slot(PRIVATE_TESTING_TREE);
-			if (result.equalsNil())
+			synchronized (object)
 			{
-				final List<A_Type> initialTypes =
-					Collections.<A_Type>nCopies(object.numArgs(), ANY.o());
-				final A_Tuple allDefinitions = object.slot(DEFINITIONS_TUPLE);
-				final LookupTree tree = LookupTree.createRoot(
-					object,
-					TupleDescriptor.<A_Definition>toList(allDefinitions),
-					initialTypes);
-				result = RawPojoDescriptor.identityWrap(tree).makeShared();
-				object.setSlot(PRIVATE_TESTING_TREE, result);
+				AvailRuntime.readBarrier();
+				result = object.slot(PRIVATE_TESTING_TREE);
+				if (result.equalsNil())
+				{
+					final List<A_Type> initialTypes =
+						Collections.<A_Type>nCopies(object.numArgs(), ANY.o());
+					final A_Tuple allDefinitions =
+						object.slot(DEFINITIONS_TUPLE);
+					final LookupTree tree = LookupTree.createRoot(
+						object,
+						TupleDescriptor.<A_Definition>toList(allDefinitions),
+						initialTypes);
+					result = RawPojoDescriptor.identityWrap(tree).makeShared();
+					// Assure all writes are committed before setting the tree.
+					AvailRuntime.writeBarrier();
+					object.setSlot(PRIVATE_TESTING_TREE, result);
+				}
 			}
-			return (LookupTree) result.javaObject();
 		}
+		return (LookupTree) result.javaObject();
 	}
 
 	@Override @AvailMethod

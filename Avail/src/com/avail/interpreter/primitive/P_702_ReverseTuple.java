@@ -33,13 +33,13 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import java.util.List;
 
 /**
- * TODO: Document P_702_ReverseTuple!
+ * <strong>Primitive 702</strong>: Produce a {@linkplain A_Tuple#reverseTuple()
+ * reverse of the given tuple; same elements, opposite order.
  *
  * @author Richard A Arriaga &lt;rich@availlang.org&gt;
  */
@@ -63,6 +63,32 @@ public final class P_702_ReverseTuple extends Primitive
 		assert args.size() == 1;
 		final A_Tuple tuple = args.get(0);
 		return interpreter.primitiveSuccess(tuple.tupleReverse());
+	}
+
+	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type tupleType = argumentTypes.get(0);
+		if (tupleType.typeTuple().tupleSize() == 0)
+		{
+			// The tuple type is homogeneous.  Answer the same tuple type, since
+			// it's its own inverse.
+			return tupleType;
+		}
+		final A_Type tupleSizes = tupleType.sizeRange();
+		final A_Number tupleSizeLowerBound = tupleSizes.lowerBound();
+		if (!tupleSizeLowerBound.equals(tupleSizes.upperBound())
+			|| !tupleSizeLowerBound.isInt())
+		{
+			// Variable number of <key,value> pairs.  Give up.
+			return super.returnTypeGuaranteedByVM(argumentTypes);
+		}
+		final int tupleSize = tupleSizeLowerBound.extractInt();
+		final A_Tuple elementTypes = tupleType.tupleOfTypesFromTo(1, tupleSize);
+		final A_Tuple reversedElementTypes = elementTypes.tupleReverse();
+		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+			tupleSizes, reversedElementTypes, BottomTypeDescriptor.bottom());
 	}
 
 	@Override

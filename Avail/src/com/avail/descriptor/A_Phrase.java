@@ -258,4 +258,31 @@ extends A_BasicObject
 	 * @return
 	 */
 	A_BasicObject literalObject ();
+
+	/**
+	 * @return
+	 */
+	A_Phrase list ();
+
+	/**
+	 * @return
+	 */
+	A_Tuple permutation ();
+
+	/**
+	 * Emit code to push each value produced by the expressions of a {@linkplain
+	 * ListNodeDescriptor list node} or {@linkplain PermutedListNodeDescriptor
+	 * permuted list node}.
+	 *
+	 * @param codeGenerator Where to write the L1 instructions.
+	 */
+	void emitAllValuesOn (AvailCodeGenerator codeGenerator);
+
+	/**
+	 * Answer the number of expressions (and the resulting tuple size) in this
+	 * list node or permuted list node.
+	 *
+	 * @return The size of the list.
+	 */
+	int listSize ();
 }

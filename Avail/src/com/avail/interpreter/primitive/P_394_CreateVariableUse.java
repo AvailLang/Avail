@@ -65,7 +65,7 @@ extends Primitive
 	{
 		assert args.size() == 2;
 		final AvailObject decl = args.get(0);
-		final AvailObject token = args.get(1);
+		final A_Token token = args.get(1);
 		return interpreter.primitiveSuccess(
 			VariableUseNodeDescriptor.newUse(token, decl));
 	}

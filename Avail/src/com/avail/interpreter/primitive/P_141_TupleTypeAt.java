@@ -70,6 +70,28 @@ public final class P_141_TupleTypeAt extends Primitive
 	}
 
 	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type tupleMeta = argumentTypes.get(0);
+		final A_Type indexType = argumentTypes.get(1);
+
+		final A_Type tupleType = tupleMeta.instance();
+		final A_Number minIndex = indexType.lowerBound();
+		final A_Number maxIndex = indexType.upperBound();
+		final int maxIndexInt = maxIndex.isInt()
+			? maxIndex.extractInt()
+			: Integer.MAX_VALUE;
+		if (minIndex.isInt())
+		{
+			return tupleType.unionOfTypesAtThrough(
+				minIndex.extractInt(), maxIndexInt);
+		}
+		return super.returnTypeGuaranteedByVM(
+			argumentTypes);
+	}
+
+	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(

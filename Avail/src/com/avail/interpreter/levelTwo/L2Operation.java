@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo;
 
-import java.util.ArrayList;
 import java.util.List;
 import com.avail.annotations.Nullable;
 import com.avail.descriptor.A_Type;
@@ -42,9 +41,8 @@ import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.*;
-import com.avail.performance.PerInterpreterStatistic;
 import com.avail.performance.Statistic;
-import com.avail.utility.Pair;
+import com.avail.tools.compiler.configuration.StatisticReport;
 
 /**
  * The instruction set for the {@linkplain Interpreter level two Avail
@@ -187,7 +185,8 @@ public abstract class L2Operation
 		{
 			final String className = this.getClass().getSimpleName();
 			name = className;
-			statisticInNanoseconds = new Statistic(className);
+			statisticInNanoseconds = new Statistic(
+				className, StatisticReport.L2_OPERATIONS);
 			ordinal = numValues;
 			values[ordinal] = this;
 			numValues++;
@@ -387,48 +386,6 @@ public abstract class L2Operation
 		assert instruction.operation == this;
 		newInstructions.add(instruction);
 		return false;
-	}
-
-	/**
-	 * Report performance statistics about all L2Operations.
-	 *
-	 * @param builder Where to write the report.
-	 */
-	public static void reportStatsOn (final StringBuilder builder)
-	{
-		builder.append("Level Two Operations:\n");
-		final List<Statistic> stats = new ArrayList<>();
-		for (final L2Operation operation : values())
-		{
-			if (operation != null
-				&& operation.statisticInNanoseconds.aggregate().count() > 0)
-			{
-				stats.add(operation.statisticInNanoseconds);
-			}
-		}
-		final List<Pair<String, PerInterpreterStatistic>> pairs =
-			PerInterpreterStatistic.sortedPairs(stats);
-		for (final Pair<String, PerInterpreterStatistic> pair : pairs)
-		{
-			pair.second().describeNanosecondsOn(builder);
-			builder.append(" ");
-			builder.append(pair.first());
-			builder.append('\n');
-		}
-	}
-
-	/**
-	 * Clear performance statistics about all L2Operations.
-	 */
-	public static void clearAllStats ()
-	{
-		for (final L2Operation operation : values())
-		{
-			if (operation != null)
-			{
-				operation.statisticInNanoseconds.clear();
-			}
-		}
 	}
 
 	/**

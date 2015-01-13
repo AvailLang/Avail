@@ -3575,6 +3575,25 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
+	 * Pre-build the state of the initial parse stack.  Now that the top-most
+	 * arguments get concatenated into a list, simply start with a list
+	 * containing one empty list node.
+	 */
+	private static List<A_Phrase> initialParseStack =
+		Collections.<A_Phrase>singletonList(
+			ListNodeDescriptor.empty());
+
+	/**
+	 * Pre-build the state of the initial mark stack.  This stack keeps track of
+	 * parsing positions to detect if progress has been made at certain points.
+	 * This mechanism serves to prevent empty expressions from being considered
+	 * an occurrence of a repeated or optional subexpression, even if it would
+	 * otherwise be recognized as such.
+	 */
+	private static List<Integer> initialMarkStack =
+		Collections.<Integer>emptyList();
+
+	/**
 	 * Parse a send node. To prevent infinite left-recursion and false
 	 * ambiguity, we only allow a send with a leading keyword to be parsed from
 	 * here, since leading underscore sends are dealt with iteratively
@@ -3595,8 +3614,8 @@ public abstract class AbstractAvailCompiler
 			null,
 			start,
 			false,  // Nothing consumed yet.
-			Collections.<A_Phrase>emptyList(),
-			Collections.<Integer>emptyList(),
+			initialParseStack,
+			initialMarkStack,
 			continuation);
 	}
 
@@ -3626,8 +3645,8 @@ public abstract class AbstractAvailCompiler
 			leadingArgument,
 			initialTokenPosition,
 			false,  // Leading argument does not yet count as something parsed.
-			Collections.<A_Phrase>emptyList(),
-			Collections.<Integer>emptyList(),
+			initialParseStack,
+			initialMarkStack,
 			continuation);
 	}
 
@@ -3771,10 +3790,11 @@ public abstract class AbstractAvailCompiler
 			for (final MapDescriptor.Entry entry : complete.mapIterable())
 			{
 				assert marksSoFar.isEmpty();
+				assert argsSoFar.size() == 1;
 				completedSendNode(
 					initialTokenPosition,
 					start,
-					argsSoFar,
+					argsSoFar.get(0),
 					entry.value(),
 					continuation);
 			}
@@ -4513,6 +4533,29 @@ public abstract class AbstractAvailCompiler
 					listOfArgs);
 				break;
 			}
+			case PERMUTE_LIST:
+			{
+				final int permutationIndex = op.permutationIndex(instruction);
+				final A_Tuple permutation =
+					MessageSplitter.permutationAtIndex(permutationIndex);
+				final A_Phrase poppedList = last(argsSoFar);
+				List<A_Phrase> stack = withoutLast(argsSoFar);
+				stack = append(
+					stack,
+					PermutedListNodeDescriptor.fromListAndPermutation(
+						poppedList, permutation));
+				eventuallyParseRestOfSendNode(
+					"Continue send after permute list",
+					start,
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					stack,
+					marksSoFar,
+					continuation);
+				break;
+			}
 		}
 	}
 
@@ -4971,9 +5014,9 @@ public abstract class AbstractAvailCompiler
 	 *            message.
 	 * @param stateAfterCall
 	 *            The parsing state after the message.
-	 * @param argumentExpressions
-	 *            The {@linkplain ParseNodeDescriptor parse nodes} that will
-	 *            be arguments of the new send node.
+	 * @param argumentsListNode
+	 *            The {@linkplain ListNodeDescriptor list node} that will hold
+	 *            all the arguments of the new send node.
 	 * @param bundle
 	 *            The {@linkplain MessageBundleDescriptor message bundle}
 	 *            that identifies the message to be sent.
@@ -4983,7 +5026,7 @@ public abstract class AbstractAvailCompiler
 	void completedSendNode (
 		final ParserState stateBeforeCall,
 		final ParserState stateAfterCall,
-		final List<A_Phrase> argumentExpressions,
+		final A_Phrase argumentsListNode,
 		final A_Bundle bundle,
 		final Con<A_Phrase> continuation)
 	{
@@ -4999,17 +5042,18 @@ public abstract class AbstractAvailCompiler
 			completedSendNodeForMacro(
 				stateBeforeCall,
 				stateAfterCall,
-				argumentExpressions,
+				argumentsListNode,
 				bundle,
 				continuation);
 			return;
 		}
 		// It invokes a method (not a macro).
-		final List<A_Type> argTypes =
-			new ArrayList<>(argumentExpressions.size());
-		for (final A_Phrase argumentExpression : argumentExpressions)
+		final A_Type argTupleType = argumentsListNode.expressionType();
+		final int argCount = argumentsListNode.listSize();
+		final List<A_Type> argTypes = new ArrayList<>(argCount);
+		for (int i = 1; i <= argCount; i++)
 		{
-			argTypes.add(argumentExpression.expressionType());
+			argTypes.add(argTupleType.typeAtIndex(i));
 		}
 		// Parsing a method send can't affect the scope.
 		assert stateAfterCall.clientDataMap.equals(
@@ -5030,8 +5074,7 @@ public abstract class AbstractAvailCompiler
 					assert returnType != null;
 					final A_Phrase sendNode = SendNodeDescriptor.from(
 						bundle,
-						ListNodeDescriptor.newExpressions(
-							TupleDescriptor.fromList(argumentExpressions)),
+						argumentsListNode,
 						returnType);
 					attempt(afterState, continuation, sendNode);
 				}
@@ -5251,9 +5294,9 @@ public abstract class AbstractAvailCompiler
 	 *            message.
 	 * @param stateAfterCall
 	 *            The parsing state after the message.
-	 * @param argumentExpressions
-	 *            The {@linkplain ParseNodeDescriptor parse nodes} that will be
-	 *            arguments of the new send node.
+	 * @param argumentsListNode
+	 *            The {@linkplain ListNodeDescriptor list node} that will hold
+	 *            all the arguments of the new send node.
 	 * @param bundle
 	 *            The {@linkplain MessageBundleDescriptor message bundle} that
 	 *            identifies the message to be sent.
@@ -5263,7 +5306,7 @@ public abstract class AbstractAvailCompiler
 	abstract void completedSendNodeForMacro (
 		final ParserState stateBeforeCall,
 		final ParserState stateAfterCall,
-		final List<A_Phrase> argumentExpressions,
+		final A_Phrase argumentsListNode,
 		final A_Bundle bundle,
 		final Con<A_Phrase> continuation);
 
