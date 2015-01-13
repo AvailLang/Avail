@@ -50,10 +50,11 @@ public abstract class AbstractStacksTag
 	 * @param hashID
 	 * 		The hash portion of the id for linking to this element on page.
 	 * @param errorLog The {@linkplain StacksErrorLog}
+	 * @param position TODO
 	 * @return the HTML tagged content
 	 */
 	public abstract String toHTML(final HTMLFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog);
+		final int hashID, final StacksErrorLog errorLog, int position);
 
 	/**
 	 * @param numberOfTabs

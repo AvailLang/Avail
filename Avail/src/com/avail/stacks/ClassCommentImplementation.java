@@ -121,7 +121,7 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 		if (categories.size() > 0)
 		{
 			stringBuilder.append(categories.get(0).toHTML(htmlFileMap,
-				hashID, errorLog));
+				hashID, errorLog, 1));
 		}
 
 		final int listSize = supertypes.size();
@@ -142,12 +142,12 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 			{
 				stringBuilder
 					.append(supertypes.get(i).toHTML(htmlFileMap,
-						hashID, errorLog))
+						hashID, errorLog, 1))
 					.append(", ");
 			}
 			stringBuilder
 				.append(supertypes.get(listSize - 1).toHTML(htmlFileMap,
-					hashID, errorLog))
+					hashID, errorLog, 1))
 				.append("\n" + tabs(2) + "</div>\n");
 		}
 
@@ -193,7 +193,7 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 			for (final StacksFieldTag fieldTag : fields)
 			{
 				stringBuilder.append(fieldTag.toHTML(htmlFileMap,
-					hashID, errorLog));
+					hashID, errorLog, 1));
 			}
 			stringBuilder.append(tabs(3) + "</tbody>\n")
 				.append(tabs(2) + "</table>\n");

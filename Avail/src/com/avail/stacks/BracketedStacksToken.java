@@ -367,7 +367,7 @@ public class BracketedStacksToken extends RegionStacksToken
 					{
 						return new StacksLinkTag (
 							(QuotedStacksToken) links.get(0))
-								.toHTML(htmlFileMap, hashID, errorLog);
+								.toHTML(htmlFileMap, hashID, errorLog, 1);
 					}
 					catch (final ClassCastException e)
 					{
@@ -394,7 +394,7 @@ public class BracketedStacksToken extends RegionStacksToken
 
 					return new StacksLinkTag (link,
 						links.subList(1, links.size()))
-							.toHTML(htmlFileMap, hashID, errorLog);
+							.toHTML(htmlFileMap, hashID, errorLog, 1);
 				}
 				catch (final ClassCastException e)
 				{
@@ -736,7 +736,7 @@ public class BracketedStacksToken extends RegionStacksToken
 					{
 						return new StacksLinkTag (
 							(QuotedStacksToken) links.get(0))
-								.toHTML(htmlFileMap, hashID, errorLog);
+								.toHTML(htmlFileMap, hashID, errorLog, 1);
 					}
 					catch (final ClassCastException e)
 					{
@@ -762,7 +762,7 @@ public class BracketedStacksToken extends RegionStacksToken
 						(RegionStacksToken) links.get(0);
 
 					return new StacksSeeTag (link)
-							.toHTML(htmlFileMap, hashID, errorLog);
+							.toHTML(htmlFileMap, hashID, errorLog, 1);
 				}
 				catch (final ClassCastException e)
 				{

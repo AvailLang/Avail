@@ -167,7 +167,7 @@ public class SemanticRestrictionCommentImplementation extends
 		for (final StacksRestrictsTag restrictsTag : restricts)
 		{
 			stringBuilder.append(restrictsTag.toHTML(htmlFileMap, hashID,
-				errorLog));
+				errorLog, 1));
 		}
 
 		if (!returnsContent.isEmpty())
@@ -179,7 +179,7 @@ public class SemanticRestrictionCommentImplementation extends
 				+ "colspan=\"")
 				.append(colSpan).append("\">Returns</th>\n")
 				.append(returnsContent.get(0).toHTML(htmlFileMap, hashID,
-					errorLog));
+					errorLog, 1));
 		}
 
 		return stringBuilder.append(tabs(3) + "</tbody>\n")

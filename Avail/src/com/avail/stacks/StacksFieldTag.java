@@ -100,7 +100,7 @@ public class StacksFieldTag extends AbstractStacksTag
 
 	@Override
 	public String toHTML(final HTMLFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog)
+		final int hashID, final StacksErrorLog errorLog, int position)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append(tabs(4) + "<tr "

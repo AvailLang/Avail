@@ -94,7 +94,7 @@ public class StacksForbidsTag extends AbstractStacksTag
 
 	@Override
 	public String toHTML (final HTMLFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog)
+		final int hashID, final StacksErrorLog errorLog, int position)
 	{
 		final int rowSize = forbidMethods.size();
 		final StringBuilder stringBuilder = new StringBuilder()

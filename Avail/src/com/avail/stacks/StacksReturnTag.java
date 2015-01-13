@@ -83,7 +83,7 @@ public class StacksReturnTag extends AbstractStacksTag
 
 	@Override
 	public String toHTML(final HTMLFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog)
+		final int hashID, final StacksErrorLog errorLog, int position)
 	{
 		final StringBuilder returnTypeBuilder = new StringBuilder();
 		if (htmlFileMap.internalLinks().containsKey(returnType.lexeme()))

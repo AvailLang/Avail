@@ -109,7 +109,7 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 		if (categories.size() > 0)
 		{
 			stringBuilder.append(categories.get(0).toHTML(htmlFileMap, hashID,
-				errorLog));
+				errorLog, 1));
 		}
 
 		stringBuilder.append(tabs(1) + "<div "

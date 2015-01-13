@@ -168,7 +168,7 @@ public class GrammaticalRestrictionCommentImplementation extends
 		for (final int arity : forbids.navigableKeySet())
 		{
 			stringBuilder.append(forbids.get(arity).toHTML(htmlFileMap, hashID,
-				errorLog));
+				errorLog, 1));
 		}
 
 		stringBuilder.append(tabs(3) + "</tbody>\n")

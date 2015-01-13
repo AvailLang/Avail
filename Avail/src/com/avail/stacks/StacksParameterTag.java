@@ -100,7 +100,7 @@ public class StacksParameterTag extends AbstractStacksTag
 
 	@Override
 	public String toHTML(final HTMLFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog)
+		final int hashID, final StacksErrorLog errorLog, final int position)
 	{
 		final StringBuilder paramTypeBuilder = new StringBuilder();
 		if (htmlFileMap.internalLinks().containsKey(paramType.lexeme()))
@@ -123,6 +123,12 @@ public class StacksParameterTag extends AbstractStacksTag
 			.append(tabs(4) + "<tr "
 				+ HTMLBuilder.tagClass(HTMLClass.classMethodParameters)
 				+ ">\n")
+			.append(tabs(5) + "<td ")
+			.append(HTMLBuilder
+					.tagClass(HTMLClass.classStacks, HTMLClass.classICode)
+				+ ">")
+			.append(position)
+			.append("</td>\n")
 			.append(tabs(5) + "<td id=\"")
 			.append(paramName.lexeme()).append(hashID).append("\" ")
 			.append(HTMLBuilder

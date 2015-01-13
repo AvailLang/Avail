@@ -65,7 +65,7 @@ public class StacksMethodTag extends AbstractStacksTag
 
 	@Override
 	public String toHTML (final HTMLFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog)
+		final int hashID, final StacksErrorLog errorLog, int position)
 	{
 		return methodName.toHTML(htmlFileMap, hashID, errorLog);
 	}

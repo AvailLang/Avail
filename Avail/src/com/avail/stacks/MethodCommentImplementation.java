@@ -140,13 +140,13 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		if (categories.size() > 0)
 		{
 			stringBuilder.append(categories.get(0).toHTML(htmlFileMap,
-				hashID, errorLog));
+				hashID, errorLog, 1));
 		}
 
 		if (aliases.size() > 0)
 		{
 			stringBuilder.append(aliases.get(0).toHTML(htmlFileMap,
-				hashID, errorLog));
+				hashID, errorLog, 1));
 		}
 
 		stringBuilder.append(tabs(2) + "<div "
@@ -167,8 +167,12 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 			stringBuilder.append(tabs(5) + "<th "
 				+ HTMLBuilder.tagClass(
 					HTMLClass.classStacks, HTMLClass.classIColLabelNarrow)
+				+ " scope=\"col\">Position</th>\n");
+			stringBuilder.append(tabs(5) + "<th "
+				+ HTMLBuilder.tagClass(
+					HTMLClass.classStacks, HTMLClass.classIColLabelNarrow)
 				+ " scope=\"col\">Name</th>\n");
-			colSpan = 2;
+			colSpan = 3;
 		}
 
 		stringBuilder
@@ -195,10 +199,12 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 			.append(tabs(4) + "</tr>\n");
 		}
 
+		//The ordered position of the parameter in the method signature.
+		int position = 1;
 		for (final StacksParameterTag paramTag : parameters)
 		{
 			stringBuilder.append(paramTag.toHTML(htmlFileMap,
-				hashID, errorLog));
+				hashID, errorLog, position++));
 		}
 
 		stringBuilder.append(tabs(4) + "<tr>\n")
@@ -208,7 +214,7 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 				+ " colspan=\"")
 			.append(colSpan).append("\">Returns</th>\n")
 			.append(returnsContent.toHTML(htmlFileMap,
-				hashID, errorLog));
+				hashID, errorLog, 1));
 
 		if (exceptionCount > 0)
 		{
@@ -222,7 +228,7 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 			for (final StacksRaisesTag exception : exceptions)
 			{
 				stringBuilder.append(exception.toHTML(htmlFileMap,
-					hashID, errorLog));
+					hashID, errorLog, 1));
 			}
 		}
 

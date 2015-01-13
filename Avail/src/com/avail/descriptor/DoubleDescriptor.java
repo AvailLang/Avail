@@ -217,7 +217,7 @@ extends AbstractNumberDescriptor
 		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
-		aStream.append(getDouble(object));
+		aStream.append(String.format("%.8g", getDouble(object)));
 	}
 
 	/**
