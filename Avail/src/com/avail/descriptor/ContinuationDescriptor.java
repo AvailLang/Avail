@@ -432,8 +432,8 @@ extends Descriptor
 	 * @return The new continuation.
 	 */
 	public static A_Continuation create (
-		final AvailObject function,
-		final AvailObject caller,
+		final A_Function function,
+		final A_Continuation caller,
 		final boolean skipReturnCheck,
 		final L2Chunk startingChunk,
 		final int startingOffset,

@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelOne;
 
 import java.io.ByteArrayOutputStream;
+import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 
 /**
@@ -373,9 +374,68 @@ public enum L1Operation
 	},
 
 	/**
+	 * Examine the top of stack, make it immutable, then push its type.  This
+	 * is used to set up parameters for a {@link #L1Ext_doSuperCall},
+	 * specifically parameters that are not a super-cast.
+	 */
+	L1Ext_doGetType(21)
+	{
+		@Override
+		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		{
+			operationDispatcher.L1Ext_doGetType();
+		}
+	},
+
+	/**
+	 * The operand N indicates how many values and types have been pushed,
+	 * interleaved, onto the stack, starting with the first value.  Pop the N
+	 * values and N types, then push two things: an N-element tuple holding the
+	 * values, and an N-element {@linkplain TupleTypeDescriptor tuple type}.
+	 *
+	 * <p>This operation is used by the supercall mechanism when there are
+	 * guillemet groups in the name of the method to be invoked.  See {@link
+	 * MessageSplitter} and its related classes to understand how guillemet
+	 * groups work.</p>
+	 */
+	L1Ext_doMakeTupleAndType(22, L1OperandType.IMMEDIATE)
+	{
+		@Override
+		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		{
+			operationDispatcher.L1Ext_doMakeTupleAndType();
+		}
+	},
+
+	/**
+	 * Invoke a method with a supercall.
+	 *
+	 * <p>The first operand is an index into the current code's {@link
+	 * AvailObject#literalAt(int) literals}, which specifies a {@linkplain
+	 * MethodDescriptor method} that contains a collection of {@linkplain
+	 * MethodDefinitionDescriptor method definitions} that might be
+	 * invoked.  The stack is expected to contain top-level arguments and
+	 * argument types, interleaved.</p>
+	 *
+	 * <p>The second operand specifies a literal which is the expected return
+	 * type of the end.  When the invoked method eventually returns, the
+	 * proposed return value is checked against the pushed type, and if it
+	 * agrees then this stack entry is replaced by the returned value.  If it
+	 * disagrees, a runtime exception is thrown instead.</p>
+	 */
+	L1Ext_doSuperCall(23, L1OperandType.LITERAL, L1OperandType.LITERAL)
+	{
+		@Override
+		public void dispatch(final L1OperationDispatcher operationDispatcher)
+		{
+			operationDispatcher.L1Ext_doSuperCall();
+		}
+	},
+
+	/**
 	 * An unsupported instruction was encountered.
 	 */
-	L1Ext_doReserved(21)
+	L1Ext_doReserved(24)
 	{
 		@Override
 		public void dispatch(final L1OperationDispatcher operationDispatcher)
@@ -388,7 +448,7 @@ public enum L1Operation
 	 * The nybblecode stream has been exhausted, and all that's left is to
 	 * perform an implicit return to the caller.
 	 */
-	L1Implied_Return(22)
+	L1Implied_Return(25)
 	{
 		@Override
 		public void dispatch(final L1OperationDispatcher operationDispatcher)

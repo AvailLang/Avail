@@ -1,5 +1,5 @@
 /**
- * AvailCall.java
+ * AvailSuperCall.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -37,37 +37,31 @@ import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 
 /**
- * This is a multi-method call instruction.  The opcode is followed by the index
- * of the message (a {@linkplain MethodDescriptor method}), then the index of
- * the literal that holds the return type for this call site.
+ * This is a multi-method super-call instruction.  The opcode is followed by the
+ * index of the message (a {@linkplain MethodDescriptor method}), then the index
+ * of the literal that holds the return type for this call site.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class AvailCall extends AvailInstructionWithIndex
+public class AvailSuperCall extends AvailCall
 {
 	/**
-	 * The index of the literal that holds the call-site specific return type.
-	 */
-	int verifyIndex;
-
-	/**
-	 * Construct a new {@link AvailCall}.
+	 * Construct a new {@link AvailSuperCall}.
 	 *
 	 * @param messageIndex The index of the literal that holds the message (a
 	 *                     {@linkplain MethodDescriptor method}).
 	 * @param verifyIndex The index of the literal that holds the return type.
 	 */
-	public AvailCall (final int messageIndex, final int verifyIndex)
+	public AvailSuperCall (final int messageIndex, final int verifyIndex)
 	{
-		super(messageIndex);
-		this.verifyIndex = verifyIndex;
+		super(messageIndex, verifyIndex);
 	}
 
 	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)
 	{
-		L1Operation.L1_doCall.writeTo(aStream);
+		L1Operation.L1Ext_doSuperCall.writeTo(aStream);
 		writeIntegerOn(index, aStream);
 		writeIntegerOn(verifyIndex, aStream);
 	}

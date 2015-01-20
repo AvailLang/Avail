@@ -231,36 +231,13 @@ extends AbstractNumberDescriptor
 	 *            The boxed Avail {@code DoubleDescriptor double-precision
 	 *            floating point object}.
 	 */
-	private static AvailObject privateDouble (final double aDouble)
+	public static A_Number fromDouble (final double aDouble)
 	{
 		final AvailObject result = mutable.create();
 		final long castAsLong = Double.doubleToRawLongBits(aDouble);
 		result.setSlot(LOW_INT, (int)castAsLong);
 		result.setSlot(HIGH_INT, (int)(castAsLong >> 32));
 		return result;
-	}
-
-	/**
-	 * Construct an Avail boxed {@linkplain DoubleDescriptor double-precision
-	 * floating point object} from the passed {@code double}.
-	 *
-	 * @param aDouble
-	 *            The Java {@code double} to box.
-	 * @return
-	 *            The boxed Avail {@code DoubleDescriptor double-precision
-	 *            floating point object}.
-	 */
-	public static A_Number fromDouble (final double aDouble)
-	{
-		if (Double.isNaN(aDouble))
-		{
-			return notANumber();
-		}
-		if (Double.isInfinite(aDouble))
-		{
-			return aDouble > 0.0d ? positiveInfinity() : negativeInfinity();
-		}
-		return privateDouble(aDouble);
 	}
 
 	/**
@@ -812,17 +789,5 @@ extends AbstractNumberDescriptor
 	DoubleDescriptor shared ()
 	{
 		return shared;
-	}
-
-	static
-	{
-		Sign.POSITIVE.limitDoubleObject =
-			privateDouble(Double.POSITIVE_INFINITY).makeShared();
-		Sign.NEGATIVE.limitDoubleObject =
-			privateDouble(Double.NEGATIVE_INFINITY).makeShared();
-		Sign.INDETERMINATE.limitDoubleObject =
-			privateDouble(Double.NaN).makeShared();
-		Sign.ZERO.limitDoubleObject =
-			privateDouble(0.0d).makeShared();
 	}
 }

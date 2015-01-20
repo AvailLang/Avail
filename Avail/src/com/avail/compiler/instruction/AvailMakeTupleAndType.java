@@ -1,5 +1,5 @@
 /**
- * AvailCall.java
+ * AvailMakeTupleAndType.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,43 +32,42 @@
 
 package com.avail.compiler.instruction;
 
-import com.avail.descriptor.MethodDescriptor;
-import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
+import com.avail.interpreter.levelOne.L1Operation;
 
 /**
- * This is a multi-method call instruction.  The opcode is followed by the index
- * of the message (a {@linkplain MethodDescriptor method}), then the index of
- * the literal that holds the return type for this call site.
+ * Pop N interleaved values and types off the stack (2N total), then push the
+ * N element tuple and N element tuple type constructed from the values and
+ * types.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class AvailCall extends AvailInstructionWithIndex
+public class AvailMakeTupleAndType extends AvailInstruction
 {
 	/**
-	 * The index of the literal that holds the call-site specific return type.
+	 * The size of the tuple to create.  This is also the size of the tuple
+	 * type to create.
 	 */
-	int verifyIndex;
+	final int count;
 
-	/**
-	 * Construct a new {@link AvailCall}.
-	 *
-	 * @param messageIndex The index of the literal that holds the message (a
-	 *                     {@linkplain MethodDescriptor method}).
-	 * @param verifyIndex The index of the literal that holds the return type.
-	 */
-	public AvailCall (final int messageIndex, final int verifyIndex)
-	{
-		super(messageIndex);
-		this.verifyIndex = verifyIndex;
-	}
 
 	@Override
 	public void writeNybblesOn (
-			final ByteArrayOutputStream aStream)
+		final ByteArrayOutputStream aStream)
 	{
-		L1Operation.L1_doCall.writeTo(aStream);
-		writeIntegerOn(index, aStream);
-		writeIntegerOn(verifyIndex, aStream);
+		L1Operation.L1Ext_doMakeTupleAndType.writeTo(aStream);
+		writeIntegerOn(count, aStream);
+	}
+
+	/**
+	 * Construct a new {@link AvailMakeTupleAndType} that consumes twice the
+	 * specified number of elements from the stack to create a tuple and a
+	 * corresponding type.
+	 *
+	 * @param count Half the number of stack elements to consume.
+	 */
+	public AvailMakeTupleAndType (final int count)
+	{
+		this.count = count;
 	}
 }

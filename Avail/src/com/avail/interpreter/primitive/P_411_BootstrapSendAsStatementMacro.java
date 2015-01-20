@@ -61,7 +61,7 @@ public final class P_411_BootstrapSendAsStatementMacro extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final AvailObject sendNode = args.get(0);
+		final A_Phrase sendNode = args.get(0);
 
 		if (!sendNode.expressionType().isTop())
 		{

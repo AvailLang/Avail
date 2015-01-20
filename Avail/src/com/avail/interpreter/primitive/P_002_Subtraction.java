@@ -150,26 +150,21 @@ extends Primitive
 	{
 		final A_Type aType = argumentTypes.get(0);
 		final A_Type bType = argumentTypes.get(1);
-		if (aType.isIntegerRangeType() && bType.isIntegerRangeType())
+
+		final boolean aTypeIncludesNegativeInfinity =
+			negativeInfinity().isInstanceOf(aType);
+		final boolean aTypeIncludesInfinity =
+			positiveInfinity().isInstanceOf(aType);
+		final boolean bTypeIncludesNegativeInfinity =
+			negativeInfinity().isInstanceOf(bType);
+		final boolean bTypeIncludesInfinity =
+			positiveInfinity().isInstanceOf(bType);
+		if ((aTypeIncludesNegativeInfinity && bTypeIncludesNegativeInfinity)
+			|| (aTypeIncludesInfinity && bTypeIncludesInfinity))
 		{
-			final boolean aTypeIncludesNegativeInfinity =
-				negativeInfinity().isInstanceOf(aType);
-			final boolean aTypeIncludesInfinity =
-				positiveInfinity().isInstanceOf(aType);
-			final boolean bTypeIncludesNegativeInfinity =
-				negativeInfinity().isInstanceOf(bType);
-			final boolean bTypeIncludesInfinity =
-				positiveInfinity().isInstanceOf(bType);
-			if ((aTypeIncludesNegativeInfinity && bTypeIncludesNegativeInfinity)
-				|| (aTypeIncludesInfinity && bTypeIncludesInfinity))
-			{
-				return CallSiteCanFail;
-			}
+			return CallSiteCanFail;
 		}
-		return (aType.isFloat() || aType.isDouble()
-				|| bType.isFloat() || bType.isDouble())
-			? CallSiteCannotFail
-			: CallSiteCanFail;
+		return CallSiteCannotFail;
 	}
 
 	@Override

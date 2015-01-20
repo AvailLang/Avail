@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.A_BasicObject.multiplier;
+import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ObjectSlots.*;
@@ -127,6 +127,18 @@ extends TypeDescriptor
 			A_Type mostGeneralInnerType ()
 			{
 				return VariableTypeDescriptor.mostGeneralType();
+			}
+		},
+
+		/**
+		 * The kind of a {@linkplain SuperCastNodeDescriptor super cast node}.
+		 */
+		SUPER_CAST_NODE("super cast phrase", EXPRESSION_NODE)
+		{
+			@Override
+			A_Type mostGeneralInnerType ()
+			{
+				return Types.ANY.o();
 			}
 		},
 

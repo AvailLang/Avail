@@ -285,4 +285,40 @@ extends A_BasicObject
 	 * @return The size of the list.
 	 */
 	int listSize ();
+
+	/**
+	 * This is a {@link SuperCastNodeDescriptor super cast node}; answer the
+	 * type by which this argument should be looked up.
+	 *
+	 * @return The type to use for this argument when performing a call.
+	 */
+	A_Type typeForLookup ();
+
+	/**
+	 * This is an expression acting as an argument, a recursive {@linkplain
+	 * ListNodeDescriptor list node} of arguments, a recursive {@linkplain
+	 * PermutedListNodeDescriptor permuted list node} of arguments, or a
+	 * {@linkplain SuperCastNodeDescriptor super-cast node}.  Answer whether it
+	 * either is or contains (within the recursive list structure) a super-cast
+	 * node.
+	 *
+	 * @return Whether this is a super-cast node or a recursive list or permuted
+	 *         list containing one.
+	 */
+	boolean hasSuperCast ();
+
+	/**
+	 * Emit code for this phrase, leaving its value and its type on the stack.
+	 *
+	 * @param codeGenerator Where to emit the code.
+	 */
+	void emitForSuperSendOn (AvailCodeGenerator codeGenerator);
+
+	/**
+	 * Emit code for each element of this list phrase, leaving the values and
+	 * types interspersed on the stack.
+	 *
+	 * @param codeGenerator Where to emit the code.
+	 */
+	void emitAllForSuperSendOn (AvailCodeGenerator codeGenerator);
 }

@@ -100,7 +100,6 @@ extends AbstractEnumerationTypeDescriptor
 		return object.slot(INSTANCE);
 	}
 
-
 	/**
 	 * Answer the kind that is nearest to the given object, an {@linkplain
 	 * InstanceMetaDescriptor instance meta}.  Since all metatypes are
@@ -204,7 +203,6 @@ extends AbstractEnumerationTypeDescriptor
 	{
 		return getInstance(object);
 	}
-
 
 	@Override @AvailMethod
 	boolean o_IsInstanceMeta (final AvailObject object)
@@ -329,13 +327,11 @@ extends AbstractEnumerationTypeDescriptor
 		throw unsupportedOperationException();
 	}
 
-
 	@Override @AvailMethod
 	A_Number o_LowerBound (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
-
 
 	@Override @AvailMethod
 	boolean o_LowerInclusive (final AvailObject object)
@@ -343,13 +339,11 @@ extends AbstractEnumerationTypeDescriptor
 		throw unsupportedOperationException();
 	}
 
-
 	@Override @AvailMethod
 	A_Number o_UpperBound (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
-
 
 	@Override @AvailMethod
 	boolean o_UpperInclusive (final AvailObject object)
@@ -357,13 +351,11 @@ extends AbstractEnumerationTypeDescriptor
 		throw unsupportedOperationException();
 	}
 
-
 	@Override @AvailMethod
 	A_Type o_TypeAtIndex (final AvailObject object, final int index)
 	{
 		throw unsupportedOperationException();
 	}
-
 
 	@Override @AvailMethod
 	A_Type o_UnionOfTypesAtThrough (
@@ -374,13 +366,11 @@ extends AbstractEnumerationTypeDescriptor
 		throw unsupportedOperationException();
 	}
 
-
 	@Override @AvailMethod
 	A_Type o_DefaultType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
-
 
 	@Override @AvailMethod
 	A_Type o_SizeRange (final AvailObject object)
@@ -388,13 +378,11 @@ extends AbstractEnumerationTypeDescriptor
 		throw unsupportedOperationException();
 	}
 
-
 	@Override @AvailMethod
 	A_Tuple o_TypeTuple (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
-
 
 	@Override @AvailMethod
 	boolean o_IsIntegerRangeType (final AvailObject object)
@@ -403,14 +391,12 @@ extends AbstractEnumerationTypeDescriptor
 		return false;
 	}
 
-
 	@Override @AvailMethod
 	boolean o_IsLiteralTokenType (final AvailObject object)
 	{
 		// A metatype can't be a literal token type.
 		return false;
 	}
-
 
 	@Override @AvailMethod
 	boolean o_IsMapType (final AvailObject object)
@@ -419,7 +405,6 @@ extends AbstractEnumerationTypeDescriptor
 		return false;
 	}
 
-
 	@Override @AvailMethod
 	boolean o_IsSetType (final AvailObject object)
 	{
@@ -427,14 +412,12 @@ extends AbstractEnumerationTypeDescriptor
 		return false;
 	}
 
-
 	@Override @AvailMethod
 	boolean o_IsTupleType (final AvailObject object)
 	{
 		// A metatype can't be a tuple type.
 		return false;
 	}
-
 
 	@Override @AvailMethod
 	boolean o_AcceptsArgTypesFromFunctionType (
@@ -444,7 +427,6 @@ extends AbstractEnumerationTypeDescriptor
 		throw unsupportedOperationException();
 	}
 
-
 	@Override @AvailMethod
 	boolean o_AcceptsListOfArgTypes (
 		final AvailObject object,
@@ -452,7 +434,6 @@ extends AbstractEnumerationTypeDescriptor
 	{
 		throw unsupportedOperationException();
 	}
-
 
 	@Override @AvailMethod
 	boolean o_AcceptsListOfArgValues (
@@ -462,7 +443,6 @@ extends AbstractEnumerationTypeDescriptor
 		throw unsupportedOperationException();
 	}
 
-
 	@Override @AvailMethod
 	boolean o_AcceptsTupleOfArgTypes (
 		final AvailObject object,
@@ -470,7 +450,6 @@ extends AbstractEnumerationTypeDescriptor
 	{
 		throw unsupportedOperationException();
 	}
-
 
 	@Override @AvailMethod
 	boolean o_AcceptsTupleOfArguments (
@@ -480,13 +459,11 @@ extends AbstractEnumerationTypeDescriptor
 		throw unsupportedOperationException();
 	}
 
-
 	@Override @AvailMethod
 	A_Type o_ArgsTupleType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
-
 
 	@Override @AvailMethod
 	A_Set o_DeclaredExceptions (final AvailObject object)
@@ -494,20 +471,17 @@ extends AbstractEnumerationTypeDescriptor
 		throw unsupportedOperationException();
 	}
 
-
 	@Override @AvailMethod
 	A_Type o_FunctionType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
-
 	@Override @AvailMethod
 	A_Type o_ContentType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
-
 
 	@Override @AvailMethod
 	boolean o_CouldEverBeInvokedWith (
@@ -517,13 +491,11 @@ extends AbstractEnumerationTypeDescriptor
 		throw unsupportedOperationException();
 	}
 
-
 	@Override @AvailMethod
 	A_Type o_KeyType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
-
 
 	@Override @AvailMethod
 	AvailObject o_Name (final AvailObject object)
@@ -531,13 +503,11 @@ extends AbstractEnumerationTypeDescriptor
 		throw unsupportedOperationException();
 	}
 
-
 	@Override @AvailMethod
 	A_BasicObject o_Parent (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
-
 
 	@Override @AvailMethod
 	A_Type o_ReturnType (final AvailObject object)
@@ -545,13 +515,11 @@ extends AbstractEnumerationTypeDescriptor
 		throw unsupportedOperationException();
 	}
 
-
 	@Override @AvailMethod
 	A_Type o_ValueType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
-
 
 	@Override @AvailMethod
 	A_Type o_ReadType (final AvailObject object)
@@ -559,20 +527,17 @@ extends AbstractEnumerationTypeDescriptor
 		throw unsupportedOperationException();
 	}
 
-
 	@Override @AvailMethod
 	A_Type o_WriteType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
-
 	@Override @AvailMethod
 	A_Type o_ExpressionType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
-
 
 	@Override @AvailMethod
 	boolean o_HasObjectInstance (
@@ -581,7 +546,6 @@ extends AbstractEnumerationTypeDescriptor
 	{
 		throw unsupportedOperationException();
 	}
-
 
 	@Override @AvailMethod
 	SerializerOperation o_SerializerOperation (final AvailObject object)

@@ -82,7 +82,8 @@ Pragma
 	"macro=408=_:=_;",     /* assignment */
 	"macro=409=↑_",        /* variable reference */
 	"macro=410=…",         /* variable use */
-	"macro=411=_;"         /* send as statement */
+	"macro=411=_;",        /* send as statement */
+	"macro=412=(_::_†)"    /* super-cast */
 
 Versions
 Extends
@@ -101,9 +102,6 @@ Names
 		\|]\
 		\|«:_†»\
 		\|«^«_†‡,»»",
-/*	"…:_†",      /* argument declaration */ */
-/*	"(…:_†)",    /* primitive failure declaration */ */
-/*	"$…«:_†»;",  /* label declaration */ */
 	"…:_†;",     /* variable declaration */
 	"…::=_;",    /* constant declaration */
 	"…:_†:=_;",  /* initializing variable declaration */

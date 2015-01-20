@@ -198,7 +198,39 @@ extends ParseNodeDescriptor
 		{
 			expr.emitValueOn(codeGenerator);
 		}
-		codeGenerator.emitMakeList(childNodes.tupleSize());
+		codeGenerator.emitMakeTuple(childNodes.tupleSize());
+	}
+
+	@Override
+	void o_EmitAllForSuperSendOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		for (final A_Phrase expression : object.slot(EXPRESSIONS_TUPLE))
+		{
+			expression.emitForSuperSendOn(codeGenerator);
+		}
+	}
+
+	@Override
+	void o_EmitForSuperSendOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		if (object.hasSuperCast())
+		{
+			object.emitAllForSuperSendOn(codeGenerator);
+			codeGenerator.emitMakeTupleAndType(
+				object.slot(EXPRESSIONS_TUPLE).tupleSize());
+		}
+		else
+		{
+			// This list node doesn't recursively contain any super casts, so
+			// don't bother constructing the type piecemeal – just get the whole
+			// tuple onto the stack, then extract its type.
+			object.emitValueOn(codeGenerator);
+			codeGenerator.emitGetType();
+		}
 	}
 
 	@Override @AvailMethod
@@ -266,6 +298,19 @@ extends ParseNodeDescriptor
 	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return LIST_NODE;
+	}
+
+	@Override
+	boolean o_HasSuperCast (final AvailObject object)
+	{
+		for (final A_Phrase node : object.slot(EXPRESSIONS_TUPLE))
+		{
+			if (node.hasSuperCast())
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override

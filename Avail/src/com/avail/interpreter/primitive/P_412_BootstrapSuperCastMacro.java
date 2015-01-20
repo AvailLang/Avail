@@ -1,6 +1,6 @@
 /**
- * P_003_Multiplication.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * P_412_BootstrapSuperCastMacro.java
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,30 +29,33 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.InfinityDescriptor.*;
-import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
-import static com.avail.interpreter.Primitive.Fallibility.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY;
-import java.util.List;
+import java.util.*;
+import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
-import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 3:</strong> Multiply two extended integers.
+ * The {@code P_412_BootstrapSuperCastMacro} primitive is used to create a
+ * {@linkplain SuperCastNodeDescriptor super-cast phrase}.  This is used to
+ * control method lookup, and is a generalization of the concept of {@code
+ * super} found in some object-oriented languages.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_003_Multiplication
-extends Primitive
+public final class P_412_BootstrapSuperCastMacro extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_003_Multiplication().init(
-			2, CanFold, CanInline);
+		new P_412_BootstrapSuperCastMacro().init(
+			1, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
@@ -61,16 +64,31 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
-		final A_Number a = args.get(0);
-		final A_Number b = args.get(1);
-		try
+		final A_Phrase expressionNode = args.get(0);
+		final A_Phrase typeLiteral = args.get(1);
+
+		final A_Type type = typeLiteral.token().literal();
+		if (type.isTop() || type.isBottom())
 		{
-			return interpreter.primitiveSuccess(a.timesCanDestroy(b, true));
+			throw new AvailRejectedParseException(
+				StringDescriptor.from(
+					"supercast type to be something other than " + type));
 		}
-		catch (final ArithmeticException e)
+		final A_Type expressionType = expressionNode.expressionType();
+		if (!expressionType.isSubtypeOf(type) || expressionType.equals(type))
 		{
-			return interpreter.primitiveFailure(e);
+			throw new AvailRejectedParseException(
+				StringDescriptor.from(
+					"supercast type ("
+					+ type
+					+ ") to be a (strict) supertype of the expression's type ("
+					+ expressionType
+					+ ")"));
 		}
+		final A_Phrase superCast =
+			SuperCastNodeDescriptor.create(expressionNode, type);
+		superCast.makeImmutable();
+		return interpreter.primitiveSuccess(superCast);
 	}
 
 	@Override
@@ -78,40 +96,8 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				NUMBER.o(),
-				NUMBER.o()),
-			NUMBER.o());
-	}
-
-	@Override
-	public Fallibility fallibilityForArgumentTypes (
-		final List<? extends A_Type> argumentTypes)
-	{
-		final A_Type aType = argumentTypes.get(0);
-		final A_Type bType = argumentTypes.get(1);
-
-		final boolean aTypeIncludesZero =
-			IntegerDescriptor.zero().isInstanceOf(aType);
-		final boolean aTypeIncludesInfinity =
-			negativeInfinity().isInstanceOf(aType)
-			|| positiveInfinity().isInstanceOf(aType);
-		final boolean bTypeIncludesZero =
-			IntegerDescriptor.zero().isInstanceOf(bType);
-		final boolean bTypeIncludesInfinity =
-			negativeInfinity().isInstanceOf(bType)
-			|| positiveInfinity().isInstanceOf(bType);
-		if ((aTypeIncludesZero && bTypeIncludesInfinity)
-			|| (aTypeIncludesInfinity && bTypeIncludesZero))
-		{
-			return CallSiteCanFail;
-		}
-		return CallSiteCannotFail;
-	}
-
-	@Override
-	protected A_Type privateFailureVariableType ()
-	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_CANNOT_MULTIPLY_ZERO_AND_INFINITY.numericCode());
+				EXPRESSION_NODE.create(ANY.o()),
+				LITERAL_NODE.create(InstanceMetaDescriptor.anyMeta())),
+			SUPER_CAST_NODE.mostGeneralType());
 	}
 }

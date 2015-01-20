@@ -473,6 +473,29 @@ public class AvailCodeGenerator
 	}
 
 	/**
+	 * Write a super-call.  I expect my arguments and their types to have been
+	 * pushed already (interleaved).
+	 *
+	 * @param nArgs The number of arguments that the method accepts.
+	 * @param bundle The message bundle for the method in which to look up the
+	 *               method definition being invoked.
+	 * @param returnType The expected return type of the call.
+	 */
+	public void emitSuperCall (
+		final int nArgs,
+		final A_Bundle bundle,
+		final A_Type returnType)
+	{
+		final int messageIndex = indexOfLiteral(bundle);
+		final int returnIndex = indexOfLiteral(returnType);
+		instructions.add(new AvailSuperCall(messageIndex, returnIndex));
+		// Pops off arguments and their types.
+		decreaseDepth(nArgs * 2);
+		// Pushes expected return type, to be overwritten by return value.
+		increaseDepth(1);
+	}
+
+	/**
 	 * Create a function from {@code CompiledCodeDescriptor compiled code} and
 	 * the pushed outer (lexically bound) variables.
 	 *
@@ -502,6 +525,15 @@ public class AvailCodeGenerator
 	}
 
 	/**
+	 * Emit code to duplicate the element at the top of the stack.
+	 */
+	public void emitDuplicate ()
+	{
+		increaseDepth(1);
+		instructions.add(new AvailDuplicate());
+	}
+
+	/**
 	 * Emit code to get the value of a literal variable.
 	 *
 	 * @param aLiteral
@@ -518,12 +550,12 @@ public class AvailCodeGenerator
 	}
 
 	/**
-	 * Emit code to duplicate the element at the top of the stack.
+	 * Emit code to peek the top of stack and push its type.
 	 */
-	public void emitDuplicate ()
+	public void emitGetType ()
 	{
-		increaseDepth(1);
-		instructions.add(new AvailDuplicate());
+		increaseDepth(depth);
+		instructions.add(new AvailGetType());
 	}
 
 	/**
@@ -580,12 +612,30 @@ public class AvailCodeGenerator
 	 *
 	 * @param count How many pushed items to pop for the new tuple.
 	 */
-	public void emitMakeList (
+	public void emitMakeTuple (
 		final int count)
 	{
 		instructions.add(new AvailMakeTuple(count));
 		decreaseDepth(count);
 		increaseDepth(1);
+	}
+
+	/**
+	 * There are N <value, type> pairs on the stack as interleaved values.
+	 * Collect the values into a tuple, and collect the types into a tuple type.
+	 * Replace the 2N entries with the tuple and the tuple type.
+	 *
+	 * @param count
+	 *        The size of the tuple, which is also the size of the tuple type,
+	 *        and which is half the number of elements to consume from the
+	 *        stack.
+	 */
+	public void emitMakeTupleAndType (
+		final int count)
+	{
+		instructions.add(new AvailMakeTupleAndType(count));
+		decreaseDepth(2 * count);
+		increaseDepth(2);
 	}
 
 	/**

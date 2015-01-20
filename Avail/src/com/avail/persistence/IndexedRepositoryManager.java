@@ -32,6 +32,7 @@
 
 package com.avail.persistence;
 
+import static com.avail.descriptor.AvailObject.multiplier;
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -44,7 +45,6 @@ import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
 import com.avail.builder.*;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.TupleDescriptor;
@@ -213,9 +213,9 @@ public class IndexedRepositoryManager
 	@InnerAccess static int mix (final int currentHash, final long newLong)
 	{
 		int h = currentHash;
-		h *= A_BasicObject.multiplier;
+		h *= multiplier;
 		h += (int)newLong;
-		h *= A_BasicObject.multiplier;
+		h *= multiplier;
 		h ^= (int)(newLong >> 32);
 		return h;
 	}
@@ -570,7 +570,7 @@ public class IndexedRepositoryManager
 			int h = isPackage ? 0xDEAD_BEEF : 0xA_CABBA6E;
 			for (int i = 0; i < sourceDigest.length; i++)
 			{
-				h = h * A_BasicObject.multiplier + sourceDigest[i];
+				h = h * multiplier + sourceDigest[i];
 			}
 			return h;
 		}

@@ -95,7 +95,7 @@ extends Descriptor
 		/**
 		 * The {@link #limitDouble} as an Avail object.
 		 */
-		protected @Nullable A_Number limitDoubleObject;
+		protected final A_Number limitDoubleObject;
 
 		/**
 		 *  Answer the Avail {@link DoubleDescriptor double-precision} value
@@ -105,15 +105,13 @@ extends Descriptor
 		 */
 		protected A_Number limitDoubleObject ()
 		{
-			final A_Number limit = limitDoubleObject;
-			assert limit != null;
-			return limit;
+			return limitDoubleObject;
 		}
 
 		/**
 		 * The {@link #limitFloat} as an Avail object.
 		 */
-		protected @Nullable AvailObject limitFloatObject;
+		protected final A_Number limitFloatObject;
 
 		/**
 		 *  Answer the Avail {@link FloatDescriptor single-precision} value
@@ -123,9 +121,7 @@ extends Descriptor
 		 */
 		protected A_Number limitFloatObject ()
 		{
-			final A_Number limit = limitFloatObject;
-			assert limit != null;
-			return limit;
+			return limitFloatObject;
 		}
 
 		/**
@@ -136,7 +132,9 @@ extends Descriptor
 		private Sign (final double limitDouble)
 		{
 			this.limitDouble = limitDouble;
+			this.limitDoubleObject = DoubleDescriptor.fromDouble(limitDouble);
 			this.limitFloat = (float)limitDouble;
+			this.limitFloatObject = FloatDescriptor.fromFloat(limitFloat);
 		}
 
 		/**

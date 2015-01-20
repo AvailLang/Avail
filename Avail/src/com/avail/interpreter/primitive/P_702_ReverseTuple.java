@@ -38,8 +38,8 @@ import com.avail.interpreter.*;
 import java.util.List;
 
 /**
- * <strong>Primitive 702</strong>: Produce a {@linkplain A_Tuple#reverseTuple()
- * reverse of the given tuple; same elements, opposite order.
+ * <strong>Primitive 702</strong>: Produce a {@linkplain A_Tuple#tupleReverse()
+ * reverse} of the given tuple; same elements, opposite order.
  *
  * @author Richard A Arriaga &lt;rich@availlang.org&gt;
  */

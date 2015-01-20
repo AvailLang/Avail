@@ -165,13 +165,19 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		final A_Phrase arguments = object.slot(ARGUMENTS_LIST_NODE);
-		arguments.emitAllValuesOn(codeGenerator);
 		final A_Bundle bundle = object.slot(BUNDLE);
-		codeGenerator.emitCall(
-			arguments.expressionType().sizeRange().upperBound().extractInt(),
-			bundle,
-			object.returnType());
+		final int argCount = bundle.bundleMethod().numArgs();
+		final A_Phrase arguments = object.slot(ARGUMENTS_LIST_NODE);
+		if (arguments.hasSuperCast())
+		{
+			arguments.emitAllForSuperSendOn(codeGenerator);
+			codeGenerator.emitSuperCall(argCount, bundle, object.returnType());
+		}
+		else
+		{
+			arguments.emitAllValuesOn(codeGenerator);
+			codeGenerator.emitCall(argCount, bundle, object.returnType());
+		}
 	}
 
 	@Override @AvailMethod

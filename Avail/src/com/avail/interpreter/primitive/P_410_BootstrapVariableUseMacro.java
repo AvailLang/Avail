@@ -66,12 +66,12 @@ public final class P_410_BootstrapVariableUseMacro extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Phrase variableNameLiteral = args.get(0);
+
 		assert variableNameLiteral.isInstanceOf(LITERAL_NODE.mostGeneralType());
 		final A_Token literalToken = variableNameLiteral.token();
 		assert literalToken.tokenType() == TokenType.SYNTHETIC_LITERAL;
 		final A_Token actualToken = literalToken.literal();
 		assert actualToken.isInstanceOf(TOKEN.o());
-
 		if (actualToken.tokenType() != TokenType.KEYWORD)
 		{
 			throw new AvailRejectedParseException(

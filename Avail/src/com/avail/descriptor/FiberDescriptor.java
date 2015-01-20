@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.FiberDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.FiberDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
@@ -1379,9 +1380,7 @@ extends Descriptor
 				// This guarantees the uniqueness of fiber hashes (modulo 2^32),
 				// but makes it play more nicely with sets (to prevent
 				// clumping).
-				hash = (AvailRuntime.nextFiberId()
-					* A_BasicObject.multiplier)
-					^ 0x4058A781;
+				hash = (AvailRuntime.nextFiberId() * multiplier) ^ 0x4058A781;
 			}
 			while (hash == 0);
 			object.setSlot(HASH_OR_ZERO, hash);

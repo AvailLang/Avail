@@ -1241,7 +1241,8 @@ public class L2Translator
 					{
 						// It has too many possible implementations to be worth
 						// inlining all of them.
-						generateSlowPolymorphicCall(bundle, expectedType);
+						generateSlowPolymorphicCall(
+							bundle, expectedType, false);
 						return;
 					}
 				}
@@ -1375,7 +1376,7 @@ public class L2Translator
 								METHOD_DEFINITION.o()))
 						{
 							generateFunctionInvocation(
-								solution.bodyBlock(), expectedType);
+								solution.bodyBlock(), expectedType, false);
 							// Reset for next type test or call.
 							stackp = initialStackp;
 						}
@@ -1445,6 +1446,213 @@ public class L2Translator
 		}
 
 		/**
+		 * Generate code to perform a multimethod invocation.
+		 *
+		 * @param bundle
+		 *            The {@linkplain MessageBundleDescriptor message bundle} to
+		 *            invoke.
+		 * @param expectedType
+		 *            The expected return {@linkplain TypeDescriptor type}.
+		 */
+		private void generateSuperCall (
+			final A_Bundle bundle,
+			final A_Type expectedType)
+		{
+			final A_Method method = bundle.bundleMethod();
+			contingentValues =
+				contingentValues.setWithElementCanDestroy(method, true);
+			final L2Instruction afterCall =
+				newLabel("After super call"); // + bundle.message().toString());
+			final int nArgs = method.numArgs();
+			final List<A_Type> argTypes = new ArrayList<>(nArgs);
+			final int initialStackp = stackp;
+			for (int i = nArgs * 2 - 2; i >= 0; i -= 2)
+			{
+				final L2ObjectRegister typeReg = stackRegister(stackp + i);
+				final A_Type meta = naiveRegisters().typeAt(typeReg);
+				final A_Type type = meta.instance();
+				// Note that we lose information about exact types being used
+				// for a lookup.  At most we'd save some redundant type tests.
+				argTypes.add(type);
+			}
+			final List<A_Definition> allPossible = new ArrayList<>();
+			for (final A_Definition definition : method.definitionsTuple())
+			{
+				if (definition.bodySignature().couldEverBeInvokedWith(argTypes))
+				{
+					allPossible.add(definition);
+					if (allPossible.size() > maxPolymorphismToInlineDispatch)
+					{
+						// It has too many possible implementations to be worth
+						// inlining all of them.
+						generateSlowPolymorphicCall(
+							bundle, expectedType, true);
+						return;
+					}
+				}
+			}
+			// NOTE: Don't use the method's testing tree.  It encodes
+			// information about the known types of arguments that may be too
+			// weak for our purposes.  It's still correct, but it may produce
+			// extra tests that supplying this site's argTypes would eliminate.
+			final LookupTree tree =
+				LookupTree.createRoot(method, allPossible, argTypes);
+			final Mutable<Integer> branchLabelCounter = new Mutable<Integer>(1);
+			tree.<InternalNodeMemento>traverseEntireTree(
+				// preInternalNode
+				new Transformer2<Integer, A_Type, InternalNodeMemento>()
+				{
+					@Override
+					public @Nullable InternalNodeMemento value (
+						final @Nullable Integer argumentIndexToTest,
+						final @Nullable A_Type typeToTest)
+					{
+						assert argumentIndexToTest != null;
+						assert typeToTest != null;
+						assert stackp == initialStackp;
+						final InternalNodeMemento memento =
+							new InternalNodeMemento(
+								argumentIndexToTest,
+								typeToTest,
+								branchLabelCounter.value++);
+						final L2ObjectRegister argTypeReg = stackRegister(
+							stackp + (nArgs - argumentIndexToTest) * 2);
+						final A_Type existingType =
+							naiveRegisters().typeAt(argTypeReg).instance();
+						// Strengthen the test based on what's already known
+						// about the argument.  Eventually we can decide whether
+						// to strengthen based on the expected cost of the type
+						// check.
+						final A_Type intersection =
+							existingType.typeIntersection(typeToTest);
+						assert
+							!intersection.isBottom()
+							: "Impossible condition should have been excluded";
+						addInstruction(
+							L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT.instance,
+							new L2PcOperand(memento.failCheckLabel),
+							new L2ReadPointerOperand(argTypeReg),
+							new L2ConstantOperand(intersection));
+						return memento;
+					}
+				},
+				// intraInternalNode
+				new Continuation1<InternalNodeMemento> ()
+				{
+					@Override
+					public void value (
+						final @Nullable InternalNodeMemento memento)
+					{
+						assert memento != null;
+						if (naiveRegisters != null)
+						{
+							addInstruction(
+								L2_JUMP.instance,
+								new L2PcOperand(afterCall));
+						}
+						addLabel(memento.failCheckLabel);
+					}
+				},
+				// postInternalNode
+				new Continuation1<InternalNodeMemento> ()
+				{
+					@Override
+					public void value (
+						final @Nullable InternalNodeMemento memento)
+					{
+						assert memento != null;
+						if (naiveRegisters != null)
+						{
+							addInstruction(
+								L2_JUMP.instance,
+								new L2PcOperand(afterCall));
+						}
+					}
+				},
+				// forEachLeafNode
+				new Continuation1<List<A_Definition>>()
+				{
+					@Override
+					public void value(
+						final @Nullable List<A_Definition> solutions)
+					{
+						assert solutions != null;
+						assert stackp == initialStackp;
+						A_Definition solution;
+						if (solutions.size() == 1
+							&& (solution = solutions.get(0)).isInstanceOf(
+								METHOD_DEFINITION.o()))
+						{
+							generateFunctionInvocation(
+								solution.bodyBlock(), expectedType, true);
+							// Reset for next type test or call.
+							stackp = initialStackp;
+						}
+						else
+						{
+							// Collect the arguments into a tuple and invoke the
+							// handler for failed method lookups.
+							final A_Set solutionsSet =
+								SetDescriptor.fromCollection(solutions);
+							final List<L2ObjectRegister> argumentRegisters =
+								new ArrayList<>(nArgs);
+							for (int i = (nArgs - 1) * 2 + 1; i >= 1; i -= 2)
+							{
+								final L2ObjectRegister argReg =
+									stackRegister(stackp + i);
+								argumentRegisters.add(argReg);
+							}
+							final L2ObjectRegister errorCodeReg =
+								newObjectRegister();
+							addInstruction(
+								L2_DIAGNOSE_LOOKUP_FAILURE.instance,
+								new L2ConstantOperand(solutionsSet),
+								new L2WritePointerOperand(errorCodeReg));
+							final L2ObjectRegister invalidSendReg =
+								newObjectRegister();
+							addInstruction(
+								L2_GET_INVALID_MESSAGE_SEND_FUNCTION.instance,
+								new L2WritePointerOperand(invalidSendReg));
+							// Make the method itself accessible to the code.
+							final L2ObjectRegister methodReg =
+								newObjectRegister();
+							moveConstant(method, methodReg);
+							// Collect the arguments into a tuple.
+							final L2ObjectRegister argumentsTupleReg =
+								newObjectRegister();
+							addInstruction(
+								L2_CREATE_TUPLE.instance,
+								new L2ReadVectorOperand(
+									createVector(argumentRegisters)),
+								new L2WritePointerOperand(argumentsTupleReg));
+							final List<L2ObjectRegister> slots =
+								continuationSlotsList(numSlots);
+							// The continuation must be reified prior to
+							// invoking the failure function.
+							final L2Instruction unreachable =
+								newLabel("unreachable");
+							final L2ObjectRegister reifiedRegister =
+								newObjectRegister();
+							reify(slots, reifiedRegister, unreachable);
+							addInstruction(
+								L2_INVOKE.instance,
+								new L2ReadPointerOperand(reifiedRegister),
+								new L2ReadPointerOperand(invalidSendReg),
+								new L2ReadVectorOperand(createVector(
+									Arrays.asList(
+										errorCodeReg,
+										methodReg,
+										argumentsTupleReg))),
+								new L2ImmediateOperand(1));
+							unreachableCode(unreachable);
+						}
+					}
+				});
+			addLabel(afterCall);
+			stackp = initialStackp + nArgs * 2 - 1;
+		}
+
+		/**
 		 * Generate code to perform a monomorphic invocation.  The exact method
 		 * definition is known, so no lookup is needed at this position in the
 		 * code stream.
@@ -1453,10 +1661,15 @@ public class L2Translator
 		 *            The {@linkplain FunctionDescriptor function} to invoke.
 		 * @param expectedType
 		 *            The expected return {@linkplain TypeDescriptor type}.
+		 * @param argsAreInSuperLayout
+		 *            Whether this was looked up as a super call, with the
+		 *            arguments interspersed with their argument lookup types on
+		 *            the stack.
 		 */
 		public void generateFunctionInvocation (
 			final A_Function originalFunction,
-			final A_Type expectedType)
+			final A_Type expectedType,
+			final boolean argsAreInSuperLayout)
 		{
 			// The registers holding slot values that will constitute the
 			// continuation *during* a non-primitive call.
@@ -1475,6 +1688,16 @@ public class L2Translator
 			final List<A_Type> argTypes = new ArrayList<>(nArgs);
 			for (int i = nArgs; i >= 1; i--)
 			{
+				if (argsAreInSuperLayout)
+				{
+					// Skip an argument type slot.  Note that argTypes will
+					// still get the argument's type, not the argument *lookup*
+					// type.
+					preSlots.set(
+						numArgs + numLocals + stackp - 1,
+						fixed(NULL));
+					stackp++;
+				}
 				final L2ObjectRegister arg = stackRegister(stackp);
 				assert naiveRegisters().hasTypeAt(arg);
 				argTypes.add(0, naiveRegisters().typeAt(arg));
@@ -1504,7 +1727,7 @@ public class L2Translator
 				functionReg = prim.foldOutInvoker(args, this);
 				if (functionReg != null)
 				{
-					// Replace the argument types...
+					// Replace the argument types to agree with updated args.
 					argTypes.clear();
 					for (final L2ObjectRegister arg : args)
 					{
@@ -1696,10 +1919,14 @@ public class L2Translator
 		 *            containing the definition to invoke.
 		 * @param expectedType
 		 *            The expected return {@linkplain TypeDescriptor type}.
+		 * @param argsAreInSuperLayout
+		 *            Whether the arguments are interspersed with their argument
+		 *            lookup types on the stack for a super call.
 		 */
 		private void generateSlowPolymorphicCall (
 			final A_Bundle bundle,
-			final A_Type expectedType)
+			final A_Type expectedType,
+			final boolean argsAreInSuperLayout)
 		{
 			final A_Method method = bundle.bundleMethod();
 			// The registers holding slot values that will constitute the
@@ -1713,14 +1940,27 @@ public class L2Translator
 			final int nArgs = method.numArgs();
 			final List<L2ObjectRegister> preserved = new ArrayList<>(preSlots);
 			assert preserved.size() == numSlots;
-			final List<L2ObjectRegister> args = new ArrayList<>(nArgs);
-			final List<A_Type> argTypes = new ArrayList<>(nArgs);
+			final List<L2ObjectRegister> argRegs = new ArrayList<>(nArgs);
+			final List<L2ObjectRegister> argTypeRegs =
+				new ArrayList<L2ObjectRegister>();
 			for (int i = nArgs; i >= 1; i--)
 			{
-				final L2ObjectRegister arg = stackRegister(stackp);
-				assert naiveRegisters().hasTypeAt(arg);
-				argTypes.add(0, naiveRegisters().typeAt(arg));
-				args.add(0, arg);
+				if (argsAreInSuperLayout)
+				{
+					// Skip an argument type slot.  Note that argTypes will
+					// still get the argument's type, not the argument *lookup*
+					// type.
+					final L2ObjectRegister argTypeReg = stackRegister(stackp);
+					argTypeRegs.add(argTypeReg);
+					assert naiveRegisters().hasTypeAt(argTypeReg);
+					preSlots.set(
+						numArgs + numLocals + stackp - 1,
+						fixed(NULL));
+					stackp++;
+				}
+				final L2ObjectRegister argReg = stackRegister(stackp);
+				assert naiveRegisters().hasTypeAt(argReg);
+				argRegs.add(0, argReg);
 				preSlots.set(
 					numArgs + numLocals + stackp - 1,
 					fixed(NULL));
@@ -1793,13 +2033,26 @@ public class L2Translator
 			final L2Instruction lookupSucceeded = newLabel("lookupSucceeded");
 			final L2ObjectRegister functionReg = newObjectRegister();
 			final L2ObjectRegister errorCodeReg = newObjectRegister();
-			addInstruction(
-				L2_LOOKUP_BY_VALUES.instance,
-				new L2SelectorOperand(bundle),
-				new L2ReadVectorOperand(createVector(args)),
-				new L2WritePointerOperand(functionReg),
-				new L2PcOperand(lookupSucceeded),
-				new L2WritePointerOperand(errorCodeReg));
+			if (argsAreInSuperLayout)
+			{
+				addInstruction(
+					L2_LOOKUP_BY_TYPES.instance,
+					new L2SelectorOperand(bundle),
+					new L2ReadVectorOperand(createVector(argTypeRegs)),
+					new L2WritePointerOperand(functionReg),
+					new L2PcOperand(lookupSucceeded),
+					new L2WritePointerOperand(errorCodeReg));
+			}
+			else
+			{
+				addInstruction(
+					L2_LOOKUP_BY_VALUES.instance,
+					new L2SelectorOperand(bundle),
+					new L2ReadVectorOperand(createVector(argRegs)),
+					new L2WritePointerOperand(functionReg),
+					new L2PcOperand(lookupSucceeded),
+					new L2WritePointerOperand(errorCodeReg));
+			}
 			// Emit the failure off-ramp.
 			final L2ObjectRegister invalidSendReg = newObjectRegister();
 			addInstruction(
@@ -1812,7 +2065,7 @@ public class L2Translator
 			final L2ObjectRegister argumentsTupleReg = newObjectRegister();
 			addInstruction(
 				L2_CREATE_TUPLE.instance,
-				new L2ReadVectorOperand(createVector(args)),
+				new L2ReadVectorOperand(createVector(argRegs)),
 				new L2WritePointerOperand(argumentsTupleReg));
 			addInstruction(
 				L2_INVOKE.instance,
@@ -1833,7 +2086,7 @@ public class L2Translator
 				L2_INVOKE.instance,
 				new L2ReadPointerOperand(tempCallerRegister),
 				new L2ReadPointerOperand(functionReg),
-				new L2ReadVectorOperand(createVector(args)),
+				new L2ReadVectorOperand(createVector(argRegs)),
 				new L2ImmediateOperand(0));
 			// The method being invoked will run until it returns, and the next
 			// instruction will be here (if the chunk isn't invalidated in the
@@ -2551,6 +2804,54 @@ public class L2Translator
 		}
 
 		@Override
+		public void L1_doPushLiteral ()
+		{
+			final AvailObject constant = code.literalAt(getInteger());
+			stackp--;
+			moveConstant(constant, stackRegister(stackp));
+		}
+
+		@Override
+		public void L1_doPushLastLocal ()
+		{
+			final int localIndex = getInteger();
+			stackp--;
+			moveRegister(
+				argumentOrLocal(localIndex),
+				stackRegister(stackp));
+			moveNil(argumentOrLocal(localIndex));
+		}
+
+		@Override
+		public void L1_doPushLocal ()
+		{
+			final int localIndex = getInteger();
+			stackp--;
+			moveRegister(
+				argumentOrLocal(localIndex),
+				stackRegister(stackp));
+			addInstruction(
+				L2_MAKE_IMMUTABLE.instance,
+				new L2ReadPointerOperand(stackRegister(stackp)));
+		}
+
+		@Override
+		public void L1_doPushLastOuter ()
+		{
+			final int outerIndex = getInteger();
+			stackp--;
+			addInstruction(
+				L2_MOVE_OUTER_VARIABLE.instance,
+				new L2ImmediateOperand(outerIndex),
+				new L2ReadPointerOperand(fixed(FUNCTION)),
+				new L2WritePointerOperand(stackRegister(stackp)),
+				new L2ConstantOperand(code.outerTypeAt(outerIndex)));
+			addInstruction(
+				L2_MAKE_IMMUTABLE.instance,
+				new L2ReadPointerOperand(stackRegister(stackp)));
+		}
+
+		@Override
 		public void L1_doClose ()
 		{
 			final int count = getInteger();
@@ -2581,24 +2882,16 @@ public class L2Translator
 		}
 
 		@Override
-		public void L1_doExtension ()
+		public void L1_doSetLocal ()
 		{
-			// The extension nybblecode was encountered.  Read another nybble and
-			// add 16 to get the L1Operation's ordinal.
-			final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
-			pc++;
-			L1Operation.all()[nybble + 16].dispatch(this);
-		}
-
-		@Override
-		public void L1_doGetLocal ()
-		{
-			final int index = getInteger();
-			stackp--;
-			emitGetVariableOffRamp(
-				L2_GET_VARIABLE.instance,
-				new L2ReadPointerOperand(argumentOrLocal(index)),
-				new L2WritePointerOperand(stackRegister(stackp)));
+			final int localIndex = getInteger();
+			final L2ObjectRegister local =
+				argumentOrLocal(localIndex);
+			emitSetVariableOffRamp(
+				L2_SET_VARIABLE_NO_CHECK.instance,
+				new L2ReadPointerOperand(local),
+				new L2ReadPointerOperand(stackRegister(stackp)));
+			stackp++;
 		}
 
 		@Override
@@ -2613,7 +2906,7 @@ public class L2Translator
 		}
 
 		@Override
-		public void L1_doGetOuter ()
+		public void L1_doPushOuter ()
 		{
 			final int outerIndex = getInteger();
 			stackp--;
@@ -2623,10 +2916,16 @@ public class L2Translator
 				new L2ReadPointerOperand(fixed(FUNCTION)),
 				new L2WritePointerOperand(stackRegister(stackp)),
 				new L2ConstantOperand(code.outerTypeAt(outerIndex)));
-			emitGetVariableOffRamp(
-				L2_GET_VARIABLE.instance,
-				new L2ReadPointerOperand(stackRegister(stackp)),
-				new L2WritePointerOperand(stackRegister(stackp)));
+			addInstruction(
+				L2_MAKE_IMMUTABLE.instance,
+				new L2ReadPointerOperand(stackRegister(stackp)));
+		}
+
+		@Override
+		public void L1_doPop ()
+		{
+			moveNil(stackRegister(stackp));
+			stackp++;
 		}
 
 		@Override
@@ -2643,6 +2942,38 @@ public class L2Translator
 			emitGetVariableOffRamp(
 				L2_GET_VARIABLE_CLEARING.instance,
 				new L2ReadPointerOperand(stackRegister(stackp)),
+				new L2WritePointerOperand(stackRegister(stackp)));
+		}
+
+		@Override
+		public void L1_doSetOuter ()
+		{
+			final int outerIndex = getInteger();
+			final L2ObjectRegister tempReg = newObjectRegister();
+			addInstruction(
+				L2_MAKE_IMMUTABLE.instance,
+				new L2ReadPointerOperand(stackRegister(stackp)));
+			addInstruction(
+				L2_MOVE_OUTER_VARIABLE.instance,
+				new L2ImmediateOperand(outerIndex),
+				new L2ReadPointerOperand(fixed(FUNCTION)),
+				new L2WritePointerOperand(tempReg),
+				new L2ConstantOperand(code.outerTypeAt(outerIndex)));
+			emitSetVariableOffRamp(
+				L2_SET_VARIABLE_NO_CHECK.instance,
+				new L2ReadPointerOperand(tempReg),
+				new L2ReadPointerOperand(stackRegister(stackp)));
+			stackp++;
+		}
+
+		@Override
+		public void L1_doGetLocal ()
+		{
+			final int index = getInteger();
+			stackp--;
+			emitGetVariableOffRamp(
+				L2_GET_VARIABLE.instance,
+				new L2ReadPointerOperand(argumentOrLocal(index)),
 				new L2WritePointerOperand(stackRegister(stackp)));
 		}
 
@@ -2691,25 +3022,7 @@ public class L2Translator
 		}
 
 		@Override
-		public void L1_doPop ()
-		{
-			moveNil(stackRegister(stackp));
-			stackp++;
-		}
-
-		@Override
-		public void L1_doPushLastLocal ()
-		{
-			final int localIndex = getInteger();
-			stackp--;
-			moveRegister(
-				argumentOrLocal(localIndex),
-				stackRegister(stackp));
-			moveNil(argumentOrLocal(localIndex));
-		}
-
-		@Override
-		public void L1_doPushLastOuter ()
+		public void L1_doGetOuter ()
 		{
 			final int outerIndex = getInteger();
 			stackp--;
@@ -2719,75 +3032,77 @@ public class L2Translator
 				new L2ReadPointerOperand(fixed(FUNCTION)),
 				new L2WritePointerOperand(stackRegister(stackp)),
 				new L2ConstantOperand(code.outerTypeAt(outerIndex)));
-			addInstruction(
-				L2_MAKE_IMMUTABLE.instance,
-				new L2ReadPointerOperand(stackRegister(stackp)));
+			emitGetVariableOffRamp(
+				L2_GET_VARIABLE.instance,
+				new L2ReadPointerOperand(stackRegister(stackp)),
+				new L2WritePointerOperand(stackRegister(stackp)));
 		}
 
 		@Override
-		public void L1_doPushLiteral ()
+		public void L1_doExtension ()
 		{
+			// The extension nybblecode was encountered.  Read another nybble and
+			// add 16 to get the L1Operation's ordinal.
+			final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
+			pc++;
+			L1Operation.all()[nybble + 16].dispatch(this);
+		}
+
+		@Override
+		public void L1Ext_doPushLabel ()
+		{
+			anyPushLabelsEncountered = true;
+			stackp--;
+			final List<L2ObjectRegister> vectorWithOnlyArgsPreserved =
+				new ArrayList<>(numSlots);
+			for (int i = 1; i <= numArgs; i++)
+			{
+				vectorWithOnlyArgsPreserved.add(
+					continuationSlot(i));
+			}
+			for (int i = numArgs + 1; i <= numSlots; i++)
+			{
+				vectorWithOnlyArgsPreserved.add(fixed(NULL));
+			}
+			final L2ObjectRegister destReg = stackRegister(stackp);
+			addInstruction(
+				L2_CREATE_CONTINUATION.instance,
+				new L2ReadPointerOperand(fixed(CALLER)),
+				new L2ReadPointerOperand(fixed(FUNCTION)),
+				new L2ImmediateOperand(1),
+				new L2ImmediateOperand(code.maxStackDepth() + 1),
+				new L2ReadIntOperand(skipReturnCheckRegister),
+				new L2ReadVectorOperand(
+					createVector(vectorWithOnlyArgsPreserved)),
+				new L2PcOperand(restartLabel),
+				new L2WritePointerOperand(destReg));
+
+			// Freeze all fields of the new object, including its caller,
+			// function, and arguments.
+			addInstruction(
+				L2_MAKE_SUBOBJECTS_IMMUTABLE.instance,
+				new L2ReadPointerOperand(destReg));
+		}
+
+		@Override
+		public void L1Ext_doGetLiteral ()
+		{
+			final L2ObjectRegister tempReg = newObjectRegister();
 			final AvailObject constant = code.literalAt(getInteger());
 			stackp--;
-			moveConstant(constant, stackRegister(stackp));
+			moveConstant(constant, tempReg);
+			emitGetVariableOffRamp(
+				L2_GET_VARIABLE.instance,
+				new L2ReadPointerOperand(tempReg),
+				new L2WritePointerOperand(stackRegister(stackp)));
 		}
 
 		@Override
-		public void L1_doPushLocal ()
+		public void L1Ext_doSetLiteral ()
 		{
-			final int localIndex = getInteger();
-			stackp--;
-			moveRegister(
-				argumentOrLocal(localIndex),
-				stackRegister(stackp));
-			addInstruction(
-				L2_MAKE_IMMUTABLE.instance,
-				new L2ReadPointerOperand(stackRegister(stackp)));
-		}
-
-		@Override
-		public void L1_doPushOuter ()
-		{
-			final int outerIndex = getInteger();
-			stackp--;
-			addInstruction(
-				L2_MOVE_OUTER_VARIABLE.instance,
-				new L2ImmediateOperand(outerIndex),
-				new L2ReadPointerOperand(fixed(FUNCTION)),
-				new L2WritePointerOperand(stackRegister(stackp)),
-				new L2ConstantOperand(code.outerTypeAt(outerIndex)));
-			addInstruction(
-				L2_MAKE_IMMUTABLE.instance,
-				new L2ReadPointerOperand(stackRegister(stackp)));
-		}
-
-		@Override
-		public void L1_doSetLocal ()
-		{
-			final int localIndex = getInteger();
-			final L2ObjectRegister local =
-				argumentOrLocal(localIndex);
-			emitSetVariableOffRamp(
-				L2_SET_VARIABLE_NO_CHECK.instance,
-				new L2ReadPointerOperand(local),
-				new L2ReadPointerOperand(stackRegister(stackp)));
-			stackp++;
-		}
-
-		@Override
-		public void L1_doSetOuter ()
-		{
-			final int outerIndex = getInteger();
+			final AvailObject constant = code.literalAt(getInteger());
 			final L2ObjectRegister tempReg = newObjectRegister();
-			addInstruction(
-				L2_MAKE_IMMUTABLE.instance,
-				new L2ReadPointerOperand(stackRegister(stackp)));
-			addInstruction(
-				L2_MOVE_OUTER_VARIABLE.instance,
-				new L2ImmediateOperand(outerIndex),
-				new L2ReadPointerOperand(fixed(FUNCTION)),
-				new L2WritePointerOperand(tempReg),
-				new L2ConstantOperand(code.outerTypeAt(outerIndex)));
+			moveConstant(constant, tempReg);
 			emitSetVariableOffRamp(
 				L2_SET_VARIABLE_NO_CHECK.instance,
 				new L2ReadPointerOperand(tempReg),
@@ -2830,52 +3145,102 @@ public class L2Translator
 		}
 
 		@Override
-		public void L1Ext_doGetLiteral ()
+		public void L1Ext_doGetType ()
 		{
-			final L2ObjectRegister tempReg = newObjectRegister();
-			final AvailObject constant = code.literalAt(getInteger());
+			final L2ObjectRegister valueReg = stackRegister(stackp);
 			stackp--;
-			moveConstant(constant, tempReg);
-			emitGetVariableOffRamp(
-				L2_GET_VARIABLE.instance,
-				new L2ReadPointerOperand(tempReg),
-				new L2WritePointerOperand(stackRegister(stackp)));
+			final L2ObjectRegister typeReg = stackRegister(stackp);
+			addInstruction(
+				L2_GET_TYPE.instance,
+				new L2ReadPointerOperand(valueReg),
+				new L2WritePointerOperand(typeReg));
 		}
 
 		@Override
-		public void L1Ext_doPushLabel ()
+		public void L1Ext_doMakeTupleAndType ()
 		{
-			anyPushLabelsEncountered = true;
-			stackp--;
-			final List<L2ObjectRegister> vectorWithOnlyArgsPreserved =
-				new ArrayList<>(numSlots);
-			for (int i = 1; i <= numArgs; i++)
+			final int count = getInteger();
+			final List<L2ObjectRegister> valuesVector = new ArrayList<>(count);
+			final List<L2ObjectRegister> typesVector = new ArrayList<>(count);
+			for (int i = 1; i <= count; i++)
 			{
-				vectorWithOnlyArgsPreserved.add(
-					continuationSlot(i));
+				typesVector.add(0, stackRegister(stackp++));
+				valuesVector.add(0, stackRegister(stackp++));
 			}
-			for (int i = numArgs + 1; i <= numSlots; i++)
+			final L2ObjectRegister valueReg = stackRegister(--stackp);
+			final L2ObjectRegister typeReg = stackRegister(--stackp);
+			// Fold the values into a constant tuple if possible.
+{
+			final List<AvailObject> constants = new ArrayList<>(count);
+			for (final L2ObjectRegister reg : valuesVector)
 			{
-				vectorWithOnlyArgsPreserved.add(fixed(NULL));
+				if (!naiveRegisters().hasConstantAt(reg))
+				{
+					break;
+				}
+				constants.add(naiveRegisters().constantAt(reg));
 			}
-			final L2ObjectRegister destReg = stackRegister(stackp);
-			addInstruction(
-				L2_CREATE_CONTINUATION.instance,
-				new L2ReadPointerOperand(fixed(CALLER)),
-				new L2ReadPointerOperand(fixed(FUNCTION)),
-				new L2ImmediateOperand(1),
-				new L2ImmediateOperand(code.maxStackDepth() + 1),
-				new L2ReadIntOperand(skipReturnCheckRegister),
-				new L2ReadVectorOperand(
-					createVector(vectorWithOnlyArgsPreserved)),
-				new L2PcOperand(restartLabel),
-				new L2WritePointerOperand(destReg));
+			if (constants.size() == count)
+			{
+				// The tuple elements are all constants.  Fold it.
+				final A_Tuple tuple = TupleDescriptor.fromList(constants);
+				addInstruction(
+					L2_MOVE_CONSTANT.instance,
+					new L2ConstantOperand(tuple),
+					new L2WritePointerOperand(valueReg));
+			}
+			else
+			{
+				addInstruction(
+					L2_CREATE_TUPLE.instance,
+					new L2ReadVectorOperand(createVector(valuesVector)),
+					new L2WritePointerOperand(valueReg));
+			}
+}
+			// Fold the types into constant tuple type if possible.
+			final List<AvailObject> constantTypes = new ArrayList<>(count);
+			for (final L2ObjectRegister reg : typesVector)
+			{
+				if (!naiveRegisters().hasConstantAt(reg))
+				{
+					break;
+				}
+				constantTypes.add(naiveRegisters().constantAt(reg));
+			}
+			if (constantTypes.size() == count)
+			{
+				// The types are all constants.  Fold it.
+				final A_Type tupleType = TupleTypeDescriptor.forTypes(
+					constantTypes.toArray(new A_Type[count]));
+				addInstruction(
+					L2_MOVE_CONSTANT.instance,
+					new L2ConstantOperand(tupleType),
+					new L2WritePointerOperand(typeReg));
+			}
+			else
+			{
+				addInstruction(
+					L2_CREATE_TUPLE_TYPE.instance,
+					new L2ReadVectorOperand(createVector(typesVector)),
+					new L2WritePointerOperand(valueReg));
+			}
+			// Clean up the stack slots.  That's all but the first two slots,
+			// which were just replaced by the tuple and tuple type.  Those two
+			// slots are also the first elements of the valuesVector and
+			// typesVector.
+			for (int i = 1; i < count; i++)
+			{
+				moveNil(valuesVector.get(i));
+				moveNil(typesVector.get(i));
+			}
+		}
 
-			// Freeze all fields of the new object, including its caller,
-			// function, and arguments.
-			addInstruction(
-				L2_MAKE_SUBOBJECTS_IMMUTABLE.instance,
-				new L2ReadPointerOperand(destReg));
+		@Override
+		public void L1Ext_doSuperCall ()
+		{
+			final AvailObject method = code.literalAt(getInteger());
+			final AvailObject expectedType = code.literalAt(getInteger());
+			generateSuperCall(method, expectedType);
 		}
 
 		@Override
@@ -2885,19 +3250,6 @@ public class L2Translator
 			// translator.
 			error("That nybblecode is not supported");
 			return;
-		}
-
-		@Override
-		public void L1Ext_doSetLiteral ()
-		{
-			final AvailObject constant = code.literalAt(getInteger());
-			final L2ObjectRegister tempReg = newObjectRegister();
-			moveConstant(constant, tempReg);
-			emitSetVariableOffRamp(
-				L2_SET_VARIABLE_NO_CHECK.instance,
-				new L2ReadPointerOperand(tempReg),
-				new L2ReadPointerOperand(stackRegister(stackp)));
-			stackp++;
 		}
 
 		@Override
@@ -2911,6 +3263,7 @@ public class L2Translator
 			assert stackp == code.maxStackDepth();
 			stackp = Integer.MIN_VALUE;
 		}
+
 	}
 
 

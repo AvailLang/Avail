@@ -91,26 +91,21 @@ extends Primitive
 	{
 		final A_Type aType = argumentTypes.get(0);
 		final A_Type bType = argumentTypes.get(1);
-		if (aType.isIntegerRangeType() && bType.isIntegerRangeType())
+
+		final boolean aTypeIncludesInfinity =
+			negativeInfinity().isInstanceOf(aType)
+			|| positiveInfinity().isInstanceOf(aType);
+		final boolean bTypeIncludesInfinity =
+			negativeInfinity().isInstanceOf(bType)
+			|| positiveInfinity().isInstanceOf(bType);
+		final boolean bTypeIncludesZero =
+			IntegerDescriptor.zero().isInstanceOf(bType);
+		if (bTypeIncludesZero
+			|| (aTypeIncludesInfinity && bTypeIncludesInfinity))
 		{
-			final boolean aTypeIncludesInfinity =
-				negativeInfinity().isInstanceOf(aType)
-				|| positiveInfinity().isInstanceOf(aType);
-			final boolean bTypeIncludesInfinity =
-				negativeInfinity().isInstanceOf(bType)
-				|| positiveInfinity().isInstanceOf(bType);
-			final boolean bTypeIncludesZero =
-				IntegerDescriptor.zero().isInstanceOf(bType);
-			if (bTypeIncludesZero
-				|| (aTypeIncludesInfinity && bTypeIncludesInfinity))
-			{
-				return CallSiteCanFail;
-			}
+			return CallSiteCanFail;
 		}
-		return (aType.isFloat() || aType.isDouble()
-				|| bType.isFloat() || bType.isDouble())
-			? CallSiteCannotFail
-			: CallSiteCanFail;
+		return CallSiteCannotFail;
 	}
 
 	@Override

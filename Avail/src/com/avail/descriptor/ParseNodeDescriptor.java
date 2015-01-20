@@ -168,6 +168,15 @@ extends Descriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator);
 
+	@Override
+	void o_EmitForSuperSendOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		// This is a normal argument.  Push it, then push its type.
+		object.emitValueOn(codeGenerator);
+		codeGenerator.emitGetType();
+	}
 
 	/**
 	 * A special enumeration used to visit all object slots for copying.
@@ -306,6 +315,15 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	abstract ParseNodeKind o_ParseNodeKind (final AvailObject object);
+
+	@Override
+	boolean o_HasSuperCast (final AvailObject object)
+	{
+		// Terminate the recursion through the recursive list structure.  If
+		// this isn't overridden in a subclass then it must be a bottom-level
+		// argument to a send.
+		return false;
+	}
 
 	@Override @AvailMethod
 	AvailObject o_StripMacro (final AvailObject object)

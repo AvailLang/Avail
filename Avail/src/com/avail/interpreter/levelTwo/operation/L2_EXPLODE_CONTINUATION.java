@@ -99,7 +99,7 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 		targetFunctionReg.set(continuation.function(), interpreter);
 		skipReturnCheckReg.set(
 			continuation.skipReturnFlag() ? 1 : 0,
-				interpreter);
+			interpreter);
 	}
 
 	@Override

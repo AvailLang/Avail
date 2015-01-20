@@ -115,23 +115,26 @@ extends AbstractAvailCompiler
 			new Con<Con<A_Phrase>>("Detect ambiguity")
 			{
 				@Override
-				public void value (
-					final @Nullable ParserState realStart,
-					final @Nullable Con<A_Phrase> whenFoundStatement)
+				public void valueNotNull (
+					final ParserState realStart,
+					final Con<A_Phrase> whenFoundStatement)
 				{
-					assert realStart != null;
-					assert whenFoundStatement != null;
 					parseExpressionThen(
 						realStart,
 						new Con<A_Phrase>("End of statement")
 						{
 							@Override
-							public void value (
-								final @Nullable ParserState afterExpression,
-								final @Nullable A_Phrase expression)
+							public void valueNotNull (
+								final ParserState afterExpression,
+								final A_Phrase expression)
 							{
-								assert afterExpression != null;
-								assert expression != null;
+								if (expression.hasSuperCast())
+								{
+									afterExpression.expected(
+										"an outer level statement, "
+										+ "not a supercast");
+									return;
+								}
 								if (expression.expressionType().isTop())
 								{
 									whenFoundStatement.value(
@@ -161,12 +164,10 @@ extends AbstractAvailCompiler
 			new Con<A_Phrase>("Optional leading argument send")
 			{
 				@Override
-				public void value (
-					final @Nullable ParserState afterSubexpression,
-					final @Nullable A_Phrase subexpression)
+				public void valueNotNull (
+					final ParserState afterSubexpression,
+					final A_Phrase subexpression)
 				{
-					assert afterSubexpression != null;
-					assert subexpression != null;
 					parseOptionalLeadingArgumentSendAfterThen(
 						start,
 						afterSubexpression,

@@ -227,10 +227,10 @@ implements Comparable<AvailTask>, Runnable
 		this.priority = priority;
 	}
 
-	@SuppressWarnings("null")
 	@Override
 	public int compareTo (final @Nullable AvailTask other)
 	{
+		assert other != null;
 		return Integer.compare(priority, other.priority);
 	}
 

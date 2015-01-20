@@ -39,7 +39,7 @@ import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.utility.PrefixSharingList.*;
-import static java.lang.Math.min;
+import static java.lang.Math.*;
 import static java.util.Arrays.asList;
 import java.io.*;
 import java.nio.*;
@@ -1313,9 +1313,8 @@ public abstract class AbstractAvailCompiler
 	 * @param <AnswerType>
 	 *        The type of the second parameter of the {@linkplain
 	 *        #value(ParserState, Object)} method.
-	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
-	abstract class Con<AnswerType>
+	abstract class ConNullable<AnswerType>
 	implements Continuation2<ParserState, AnswerType>
 	{
 		/**
@@ -1336,7 +1335,7 @@ public abstract class AbstractAvailCompiler
 		 * @param description The provided description.
 		 * @param descriptionParameters The description parameters.
 		 */
-		Con (
+		ConNullable (
 			final String description,
 			final Object... descriptionParameters)
 		{
@@ -1358,6 +1357,52 @@ public abstract class AbstractAvailCompiler
 			@Nullable AnswerType answer);
 	}
 
+	/**
+	 * This is a subtype of {@link ConNullable}, but it has an abstract
+	 * valueNotNull method that subclasses must define (and the value method
+	 * is declared final).  If null checking was part of Java's type system
+	 * (where it belongs) we wouldn't have to build these kludges just to factor
+	 * out the null safety boilerplate code.
+	 *
+	 * @param <AnswerType> The kind of value produced by this continuation.
+	 */
+	abstract class Con<AnswerType>
+	extends ConNullable<AnswerType>
+	{
+		/**
+		 * Construct a new {@link Con} with the provided description.
+		 *
+		 * @param description The provided description.
+		 * @param descriptionParameters The description parameters.
+		 */
+		Con (
+			final String description,
+			final Object... descriptionParameters)
+		{
+			super(description, descriptionParameters);
+		}
+
+		/**
+		 * The method that will be invoked when a value has been produced.
+		 * Neither the value nor the ParserState may be null.
+		 *
+		 * @param state The parser state after the value was produced.
+		 * @param answer The produced value.
+		 */
+		public abstract void valueNotNull (
+			ParserState state,
+			AnswerType answer);
+
+		@Override
+		public final void value (
+			final @Nullable ParserState state,
+			final @Nullable AnswerType answer)
+		{
+			assert state != null;
+			assert answer != null;
+			valueNotNull(state, answer);
+		}
+	}
 
 	/**
 	 * A {@link Runnable} which supports a natural ordering (via the {@link
@@ -1520,12 +1565,10 @@ public abstract class AbstractAvailCompiler
 			new Con<A_Phrase>("Record solution")
 			{
 				@Override
-				public void value (
-					final @Nullable ParserState afterSolution,
-					final @Nullable A_Phrase aSolution)
+				public void valueNotNull (
+					final ParserState afterSolution,
+					final A_Phrase aSolution)
 				{
-					assert afterSolution != null;
-					assert aSolution != null;
 					final int myCount;
 					synchronized (AbstractAvailCompiler.this)
 					{
@@ -3671,7 +3714,9 @@ public abstract class AbstractAvailCompiler
 		final A_Phrase node,
 		final Con<A_Phrase> continuation)
 	{
-		// It's optional, so try it with no wrapping.
+		// It's optional, so try it with no wrapping.  We have to try this even
+		// if it's a supercast, since we may be parsing an expression to be a
+		// non-leading argument of some send.
 		attempt(afterLeadingArgument, continuation, node);
 
 		// Don't wrap it if its type is top.
@@ -3686,12 +3731,10 @@ public abstract class AbstractAvailCompiler
 			new Con<A_Phrase>("Possible leading argument send")
 			{
 				@Override
-				public void value (
-					final @Nullable ParserState afterLeadingArgument2,
-					final @Nullable A_Phrase node2)
+				public void valueNotNull (
+					final ParserState afterLeadingArgument2,
+					final A_Phrase node2)
 				{
-					assert afterLeadingArgument2 != null;
-					assert node2 != null;
 					parseLeadingArgumentSendAfterThen(
 						afterLeadingArgument2,
 						node2,
@@ -3699,12 +3742,10 @@ public abstract class AbstractAvailCompiler
 						new Con<A_Phrase>("Leading argument send")
 						{
 							@Override
-							public void value (
-								final @Nullable ParserState afterSend,
-								final @Nullable A_Phrase leadingSend)
+							public void valueNotNull (
+								final ParserState afterSend,
+								final A_Phrase leadingSend)
 							{
-								assert afterSend != null;
-								assert leadingSend != null;
 								parseOptionalLeadingArgumentSendAfterThen(
 									startOfLeadingArgument,
 									afterSend,
@@ -3974,12 +4015,10 @@ public abstract class AbstractAvailCompiler
 					new Con<A_Phrase>("Argument of message send")
 					{
 						@Override
-						public void value (
-							final @Nullable ParserState afterArg,
-							final @Nullable A_Phrase newArg)
+						public void valueNotNull (
+							final ParserState afterArg,
+							final A_Phrase newArg)
 						{
-							assert afterArg != null;
-							assert newArg != null;
 							final List<A_Phrase> newArgsSoFar =
 								append(argsSoFar, newArg);
 							eventuallyParseRestOfSendNode(
@@ -5130,12 +5169,10 @@ public abstract class AbstractAvailCompiler
 					new Con<A_Phrase>("Argument expression")
 					{
 						@Override
-						public void value (
-							final @Nullable ParserState afterArgument,
-							final @Nullable A_Phrase argument)
+						public void valueNotNull (
+							final ParserState afterArgument,
+							final A_Phrase argument)
 						{
-							assert afterArgument != null;
-							assert argument != null;
 							attempt(afterArgument, continuation, argument);
 						}
 					});
@@ -5148,7 +5185,114 @@ public abstract class AbstractAvailCompiler
 			// consume the provided first argument now.
 			assert !canReallyParse;
 			attempt(start, continuation, firstArgOrNull);
+			// Don't look for a supercast here, since the nature of a
+			// supercast's parentheses means we won't ever treat an already
+			// parsed complete (non-supercast) subexpression as a leading
+			// supercast argument.
 		}
+	}
+
+	/**
+	 * Parse a supercast clause, which has the form "(expr :: type)".
+	 *
+	 * @param start
+	 *            Where to start parsing a supercast.
+	 * @param continuation
+	 *            What to do with the supercast phrase.
+	 */
+	void parseSupercastThen (
+		final ParserState start,
+		final Con<A_Phrase> continuation)
+	{
+		if (!start.peekToken(OPEN_PARENTHESIS))
+		{
+			// Never suggest a supercast if there is no open parenthesis.
+			return;
+		}
+		final ParserState afterOpenParen = start.afterToken();
+		parseExpressionThen(afterOpenParen, new Con<A_Phrase>(
+			"supercast base expression after open parenthesis")
+		{
+			@Override
+			public void valueNotNull (
+				final ParserState afterExpr,
+				final A_Phrase expr)
+			{
+				if (expr.hasSuperCast())
+				{
+					afterExpr.expected(
+						"supercast's expression not to be another supercast");
+					return;
+				}
+				if (!afterExpr.peekToken(COLON))
+				{
+					// We saw "(expr" and no colon; don't suggest a supercast.
+					return;
+				}
+				final ParserState afterColon = afterExpr.afterToken();
+				if (!afterColon.peekToken(
+					COLON, "second colon of :: for supercast"))
+				{
+					return;
+				}
+				final ParserState afterTwoColons = afterColon.afterToken();
+				parseAndEvaluateExpressionYieldingInstanceOfThen(
+					afterTwoColons,
+					InstanceMetaDescriptor.topMeta(),
+					new Con<AvailObject>(
+						"supercast's type expression after two colons (::)")
+					{
+						@Override
+						public void valueNotNull (
+							final ParserState afterType,
+							final AvailObject typeForLookup)
+						{
+							if (!afterType.peekToken(
+								CLOSE_PARENTHESIS,
+								"close parenthesis to end supercast"))
+							{
+								return;
+							}
+							final ParserState afterCast =
+								afterType.afterToken();
+							final A_Type exprType = expr.expressionType();
+							if (!exprType.isSubtypeOf(typeForLookup)
+								|| exprType.equals(typeForLookup))
+							{
+								afterCast.expected(
+									new Describer()
+									{
+										@Override
+										public void describeThen (
+											final Continuation1<String>
+												continuationAfterDescribing)
+										{
+											final StringBuilder builder =
+												new StringBuilder();
+											builder.append(
+												"provided supercast type (");
+											builder.append(typeForLookup);
+											builder.append(
+												") to be a strict supertype of "
+												+ "the expression's type (");
+											builder.append(exprType);
+											builder.append(")");
+											continuationAfterDescribing.value(
+												builder.toString());
+										}
+									});
+							}
+							else
+							{
+								final A_Phrase supercast =
+									SuperCastNodeDescriptor.create(
+										expr, typeForLookup);
+								attempt(afterCast, continuation, supercast);
+							}
+						}
+					});
+			}
+		});
 	}
 
 	/**
@@ -5212,12 +5356,16 @@ public abstract class AbstractAvailCompiler
 			new Con<A_Phrase>("Global-scoped argument of message")
 			{
 				@Override
-				public void value (
-					final @Nullable ParserState afterArg,
-					final @Nullable A_Phrase newArg)
+				public void valueNotNull (
+					final ParserState afterArg,
+					final A_Phrase newArg)
 				{
-					assert afterArg != null;
-					assert newArg != null;
+					if (newArg.hasSuperCast())
+					{
+						afterArg.expected(
+							"global-scoped argument, not supercast");
+						return;
+					}
 					if (firstArgOrNull != null)
 					{
 						// A leading argument was already supplied.  We
@@ -5966,12 +6114,10 @@ public abstract class AbstractAvailCompiler
 		parseOutermost.value = new Con<A_Phrase>("Outermost statement")
 		{
 			@Override
-			public void value (
-				final @Nullable ParserState afterStatement,
-				final @Nullable A_Phrase unambiguousStatement)
+			public void valueNotNull (
+				final ParserState afterStatement,
+				final A_Phrase unambiguousStatement)
 			{
-				assert afterStatement != null;
-				assert unambiguousStatement != null;
 				synchronized (AbstractAvailCompiler.this)
 				{
 					assert workUnitsQueued == workUnitsCompleted;
@@ -6247,12 +6393,16 @@ public abstract class AbstractAvailCompiler
 						initialState,
 						new Con<A_Phrase>("Reached end")
 						{
-							@SuppressWarnings("null")
 							@Override
-							public void value (
-								final @Nullable ParserState afterExpression,
-								final @Nullable A_Phrase expression)
+							public void valueNotNull (
+								final ParserState afterExpression,
+								final A_Phrase expression)
 							{
+								if (expression.hasSuperCast())
+								{
+									afterExpression.expected(
+										"a valid command, not a supercast");
+								}
 								if (afterExpression.atEnd())
 								{
 									synchronized (solutions)
@@ -6485,12 +6635,10 @@ public abstract class AbstractAvailCompiler
 								new Con<A_Phrase>("Uncached expression")
 								{
 									@Override
-									public void value (
-										final @Nullable ParserState afterExpr,
-										final @Nullable A_Phrase expr)
+									public void valueNotNull (
+										final ParserState afterExpr,
+										final A_Phrase expr)
 									{
-										assert afterExpr != null;
-										assert expr != null;
 										synchronized (fragmentCache)
 										{
 											fragmentCache.addSolution(
@@ -6553,12 +6701,19 @@ public abstract class AbstractAvailCompiler
 			startWithoutScope,
 			new Con<A_Phrase>("Evaluate expression")
 			{
-				@SuppressWarnings("null")
 				@Override
-				public void value (
-					final @Nullable ParserState afterExpression,
-					final @Nullable A_Phrase expression)
+				public void valueNotNull (
+					final ParserState afterExpression,
+					final A_Phrase expression)
 				{
+					if (expression.hasSuperCast())
+					{
+						afterExpression.expected(
+							"a statically scoped expression of type "
+							+ someType.toString()
+							+ ", not a supercast");
+						return;
+					}
 					if (!expression.expressionType().isSubtypeOf(someType))
 					{
 						afterExpression.expected(

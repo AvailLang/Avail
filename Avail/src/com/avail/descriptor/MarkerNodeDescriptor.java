@@ -144,12 +144,12 @@ extends ParseNodeDescriptor
 
 	/**
 	 * Create a {@linkplain MarkerNodeDescriptor marker node} wrapping the given
-	 * {@link AvailObject}.
+	 * {@link A_BasicObject}.
 	 *
 	 * @param markerValue The value to wrap.
 	 * @return A new immutable marker node.
 	 */
-	public static AvailObject create (final AvailObject markerValue)
+	public static AvailObject create (final A_BasicObject markerValue)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(MARKER_VALUE, markerValue);

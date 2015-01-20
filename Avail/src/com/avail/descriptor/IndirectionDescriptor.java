@@ -4679,4 +4679,32 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).listSize();
 	}
+
+	@Override
+	A_Type o_TypeForLookup (final AvailObject object)
+	{
+		return o_Traversed(object).typeForLookup();
+	}
+
+	@Override
+	boolean o_HasSuperCast (final AvailObject object)
+	{
+		return o_Traversed(object).hasSuperCast();
+	}
+
+	@Override
+	void o_EmitForSuperSendOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		o_Traversed(object).emitForSuperSendOn(codeGenerator);
+	}
+
+	@Override
+	void o_EmitAllForSuperSendOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		o_Traversed(object).emitAllForSuperSendOn(codeGenerator);
+	}
 }

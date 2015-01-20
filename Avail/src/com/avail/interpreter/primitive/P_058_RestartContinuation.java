@@ -36,6 +36,12 @@ import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
+import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 
 /**
  * <strong>Primitive 58:</strong> Restart the given {@linkplain
@@ -51,7 +57,7 @@ public final class P_058_RestartContinuation extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_058_RestartContinuation().init(
-			1, CannotFail, SwitchesContinuation);
+			1, CanInline, CannotFail, SwitchesContinuation);
 
 	@Override
 	public Result attempt (
@@ -72,6 +78,29 @@ public final class P_058_RestartContinuation extends Primitive
 		// so we don't need to mark the continuation as immutable.
 		interpreter.prepareToRestartContinuation(con);
 		return CONTINUATION_CHANGED;
+	}
+
+	@Override
+	public void generateL2UnfoldableInlinePrimitive (
+		final L1NaiveTranslator levelOneNaiveTranslator,
+		final A_Function primitiveFunction,
+		final L2RegisterVector args,
+		final L2ObjectRegister resultRegister,
+		final L2RegisterVector preserved,
+		final A_Type expectedType,
+		final L2ObjectRegister failureValueRegister,
+		final L2Instruction successLabel,
+		final boolean canFailPrimitive,
+		final boolean skipReturnCheck)
+	{
+		final L2ObjectRegister continuationReg = args.registers().get(0);
+
+		// A restart works with every continuation that is created by a label.
+		// TODO [MvG] - eventually we should check that the given continuation
+		// has that form (pc=1, stack empty).
+		levelOneNaiveTranslator.addInstruction(
+			L2_RESTART_CONTINUATION.instance,
+			new L2ReadPointerOperand(continuationReg));
 	}
 
 	@Override

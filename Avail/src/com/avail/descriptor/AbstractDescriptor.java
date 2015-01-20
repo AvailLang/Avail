@@ -6087,4 +6087,32 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract int o_ListSize (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Type o_TypeForLookup (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_HasSuperCast (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param codeGenerator
+	 */
+	abstract void o_EmitAllForSuperSendOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator);
+
+	/**
+	 * @param object
+	 * @param codeGenerator
+	 */
+	abstract void o_EmitForSuperSendOn (
+		AvailObject object,
+		AvailCodeGenerator codeGenerator);
 }

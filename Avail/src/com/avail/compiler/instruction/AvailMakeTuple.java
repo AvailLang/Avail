@@ -42,12 +42,10 @@ import com.avail.interpreter.levelOne.L1Operation;
  */
 public class AvailMakeTuple extends AvailInstruction
 {
-
 	/**
 	 * The size of the tuple to create.
 	 */
 	final int count;
-
 
 	@Override
 	public void writeNybblesOn (
@@ -56,7 +54,6 @@ public class AvailMakeTuple extends AvailInstruction
 		L1Operation.L1_doMakeTuple.writeTo(aStream);
 		writeIntegerOn(count, aStream);
 	}
-
 
 	/**
 	 * Construct a new {@link AvailMakeTuple} that consumes the specified number
@@ -68,5 +65,4 @@ public class AvailMakeTuple extends AvailInstruction
 	{
 		this.count = count;
 	}
-
 }

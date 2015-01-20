@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.PojoDescriptor.ObjectSlots.*;
 import java.util.List;
 import com.avail.annotations.*;
@@ -99,7 +100,7 @@ extends Descriptor
 	int o_Hash (final AvailObject object)
 	{
 		int hash = object.slot(RAW_POJO).hash() ^ 0x749101DD;
-		hash *= A_BasicObject.multiplier;
+		hash *= multiplier;
 		hash += object.slot(KIND).hash();
 		return hash;
 	}

@@ -793,7 +793,6 @@ extends TypeDescriptor
 
 	/**
 	 * Answer the most general exception type. This is just an {@linkplain
-	 * InstanceTypeDescriptor instance type} on an {@linkplain
 	 * ObjectTypeDescriptor object type} that contains a well-known {@linkplain
 	 * #exceptionAtom() atom}.
 	 *
@@ -802,5 +801,21 @@ extends TypeDescriptor
 	public static A_Type exceptionType ()
 	{
 		return exceptionType;
+	}
+
+	/**
+	 * The type of the most general exception type.
+	 */
+	private static final A_Type exceptionMeta =
+		InstanceMetaDescriptor.on(exceptionType);
+
+	/**
+	 * Answer the most general exception type's type.
+	 *
+	 * @return The most general exception meta.
+	 */
+	public static A_Type exceptionMeta ()
+	{
+		return exceptionMeta;
 	}
 }

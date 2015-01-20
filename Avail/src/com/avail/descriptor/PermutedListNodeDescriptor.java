@@ -194,8 +194,52 @@ extends ParseNodeDescriptor
 		final AvailCodeGenerator codeGenerator)
 	{
 		object.slot(LIST).emitAllValuesOn(codeGenerator);
-		codeGenerator.emitPermute(object.permutation());
-		codeGenerator.emitMakeList(object.permutation().tupleSize());
+		final A_Tuple permutation = object.slot(PERMUTATION);
+		codeGenerator.emitPermute(permutation);
+		codeGenerator.emitMakeTuple(permutation.tupleSize());
+	}
+
+	@Override
+	void o_EmitAllForSuperSendOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		object.slot(LIST).emitAllForSuperSendOn(codeGenerator);
+		// We now have valueX, typeX, valueY, typeY, etc. on the stack.  Now do
+		// a permutation that moves pairs of values instead of singles.
+		final A_Tuple permutation = object.slot(PERMUTATION);
+		final int size = permutation.tupleSize();
+		final List<Integer> biggerPermutation = new ArrayList<>(size * 2);
+		for (int i = 1; i <= size; i++)
+		{
+			final int oldTargetIndex = permutation.tupleIntAt(i);
+			biggerPermutation.add(oldTargetIndex * 2 - 1);
+			biggerPermutation.add(oldTargetIndex * 2);
+		}
+		codeGenerator.emitPermute(
+			TupleDescriptor.fromIntegerList(biggerPermutation));
+		// Now we have the permuted <value, type> pairs on the stack.
+	}
+
+	@Override
+	void o_EmitForSuperSendOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		if (object.hasSuperCast())
+		{
+			object.emitAllForSuperSendOn(codeGenerator);
+			codeGenerator.emitMakeTupleAndType(
+				object.slot(PERMUTATION).tupleSize());
+		}
+		else
+		{
+			// This permuted list node doesn't recursively contain any super
+			// casts, so don't bother constructing the type piecemeal – just get
+			// the whole permuted tuple onto the stack and extract its type.
+			object.emitValueOn(codeGenerator);
+			codeGenerator.emitGetType();
+		}
 	}
 
 	@Override @AvailMethod
@@ -227,6 +271,12 @@ extends ParseNodeDescriptor
 	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return PERMUTED_LIST_NODE;
+	}
+
+	@Override
+	boolean o_HasSuperCast (final AvailObject object)
+	{
+		return object.slot(LIST).hasSuperCast();
 	}
 
 	@Override

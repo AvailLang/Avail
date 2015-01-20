@@ -39,6 +39,7 @@ import java.util.*;
 import java.util.logging.Level;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
+import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
@@ -679,8 +680,7 @@ implements L1OperationDispatcher
 	public void L1_doMakeTuple ()
 	{
 		final int count = getInteger();
-		final AvailObject tuple =
-			ObjectTupleDescriptor.createUninitialized(count);
+		final A_Tuple tuple = ObjectTupleDescriptor.createUninitialized(count);
 		for (int i = count; i >= 1; i--)
 		{
 			tuple.objectTupleAtPut(i, pop());
@@ -727,7 +727,7 @@ implements L1OperationDispatcher
 	@Override
 	public void L1Ext_doPushLabel ()
 	{
-		final AvailObject function = pointerAt(FUNCTION);
+		final A_Function function = pointerAt(FUNCTION);
 		final A_RawFunction code = function.code();
 		final int numArgs = code.numArgs();
 		assert code.primitiveNumber() == 0;
@@ -835,6 +835,120 @@ implements L1OperationDispatcher
 		{
 			pointerAtPut(stackp + size - i, values[i - 1]);
 		}
+	}
+
+	@Override
+	public void L1Ext_doGetType ()
+	{
+		final int stackp = integerAt(stackpRegister());
+		final AvailObject value = pointerAt(stackp);
+		// It's still on the stack and referenced from the type, so make it
+		// immutable.
+		value.makeImmutable();
+		push(AbstractEnumerationTypeDescriptor.withInstance(value));
+	}
+
+	@Override
+	public void L1Ext_doMakeTupleAndType ()
+	{
+		final int count = getInteger();
+		final A_Tuple tuple = ObjectTupleDescriptor.createUninitialized(count);
+		final A_Type[] types = new A_Type[count];
+		for (int i = count; i >= 1; i--)
+		{
+			types[i - 1] = pop();
+			tuple.objectTupleAtPut(i, pop());
+		}
+		tuple.hashOrZero(0);
+		push(tuple);
+		push(TupleTypeDescriptor.forTypes(types));
+	}
+
+	@Override
+	public void L1Ext_doSuperCall ()
+	{
+		final A_Bundle bundle = literalAt(getInteger());
+		final A_Type expectedReturnType = literalAt(getInteger());
+		final int numArgs = bundle.bundleMethod().numArgs();
+		if (debugL1)
+		{
+			Interpreter.log(
+				interpreter.fiber,
+				Level.FINE,
+				"L1 supercall {0}",
+				bundle.message().atomName());
+		}
+		argsBuffer.clear();
+		final A_Tuple typesTuple =
+			ObjectTupleDescriptor.createUninitialized(numArgs);
+		for (int i = numArgs; i >= 1; i--)
+		{
+			typesTuple.objectTupleAtPut(i, pop());
+			argsBuffer.add(0, pop());
+		}
+		typesTuple.hashOrZero(0);
+
+
+		final A_Method method = bundle.bundleMethod();
+		final MutableOrNull<AvailErrorCode> errorCode = new MutableOrNull<>();
+		A_Definition matching;
+		try
+		{
+			matching = method.lookupByTypesFromTuple(typesTuple);
+		}
+		catch (final MethodDefinitionException e)
+		{
+			errorCode.value = e.errorCode();
+			matching = NilDescriptor.nil();
+		}
+		if (matching.equalsNil())
+		{
+			reifyContinuation();
+			interpreter.invokeFunction(
+				interpreter.runtime().invalidMessageSendFunction(),
+				Arrays.asList(
+					errorCode.value().numericCode(),
+					method,
+					TupleDescriptor.fromList(argsBuffer)),
+				true);
+			return;
+		}
+		if (matching.isForwardDefinition())
+		{
+			reifyContinuation();
+			interpreter.invokeFunction(
+				interpreter.runtime().invalidMessageSendFunction(),
+				Arrays.asList(
+					E_FORWARD_METHOD_DEFINITION.numericCode(),
+					method,
+					TupleDescriptor.fromList(argsBuffer)),
+				true);
+			return;
+		}
+		if (matching.isAbstractDefinition())
+		{
+			reifyContinuation();
+			interpreter.invokeFunction(
+				interpreter.runtime().invalidMessageSendFunction(),
+				Arrays.asList(
+					E_ABSTRACT_METHOD_DEFINITION.numericCode(),
+					method,
+					TupleDescriptor.fromList(argsBuffer)),
+				true);
+			return;
+		}
+		// Leave the expected return type pushed on the stack.  This will be
+		// used when the method returns, and it also helps distinguish label
+		// continuations from call continuations.
+		push(expectedReturnType);
+
+		// Call the method...
+		reifyContinuation();
+		interpreter.invokePossiblePrimitiveWithReifiedCaller(
+			matching.bodyBlock(),
+			pointerAt(CALLER),
+			expectedReturnType.isTop());
+
 	}
 
 	@Override

@@ -88,38 +88,18 @@ extends AbstractNumberDescriptor
 
 	/**
 	 * Construct an Avail boxed {@linkplain FloatDescriptor floating point
-	 * object} from the passed {@code float}.
-	 *
-	 * @param aFloat The Java {@code float} to box.
-	 * @return The boxed Avail {@linkplain FloatDescriptor float}.
-	 */
-	public static AvailObject privateFloat (final float aFloat)
-	{
-		final AvailObject result = mutable.create();
-		result.setSlot(
-			RAW_INT,
-			Float.floatToRawIntBits(aFloat));
-		return result;
-	}
-
-	/**
-	 * Construct an Avail boxed {@linkplain FloatDescriptor floating point
-	 * object} from the passed {@code float}.
+	 * object} from the passed {@code float}.  Don't answer an existing object.
 	 *
 	 * @param aFloat The Java {@code float} to box.
 	 * @return The boxed Avail {@linkplain FloatDescriptor float}.
 	 */
 	public static A_Number fromFloat (final float aFloat)
 	{
-		if (Float.isNaN(aFloat))
-		{
-			return notANumber();
-		}
-		if (Float.isInfinite(aFloat))
-		{
-			return aFloat > 0.0f ? positiveInfinity() : negativeInfinity();
-		}
-		return privateFloat(aFloat);
+		final AvailObject result = mutable.create();
+		result.setSlot(
+			RAW_INT,
+			Float.floatToRawIntBits(aFloat));
+		return result;
 	}
 
 	/**
@@ -694,17 +674,5 @@ extends AbstractNumberDescriptor
 	FloatDescriptor shared ()
 	{
 		return shared;
-	}
-
-	static
-	{
-		Sign.POSITIVE.limitFloatObject =
-			privateFloat(Float.POSITIVE_INFINITY).makeShared();
-		Sign.NEGATIVE.limitFloatObject =
-			privateFloat(Float.NEGATIVE_INFINITY).makeShared();
-		Sign.INDETERMINATE.limitFloatObject =
-			privateFloat(Float.NaN).makeShared();
-		Sign.ZERO.limitFloatObject =
-			privateFloat(0.0f).makeShared();
 	}
 }

@@ -242,6 +242,16 @@ public class L1Decompiler
 	}
 
 	/**
+	 * Answer the top value of the expression stack without removing it.
+	 *
+	 * @return The parse node that's still on the top of the stack.
+	 */
+	@InnerAccess A_Phrase peekExpression ()
+	{
+		return expressionStack.get(expressionStack.size() - 1);
+	}
+
+	/**
 	 * Pop one {@linkplain ParseNodeDescriptor parse node} off the expression
 	 * stack and return it.
 	 *
@@ -283,6 +293,29 @@ public class L1Decompiler
 	}
 
 	/**
+	 * An {@link Enum} whose ordinals can be used as marker values in
+	 * {@linkplain MarkerNodeDescriptor marker nodes}.
+	 */
+	static enum MarkerTypes {
+		/**
+		 * A marker standing for a duplicate of some value that was on the
+		 * stack.
+		 */
+		dup,
+
+		/**
+		 * A marker standing for the type of some value that was on the stack.
+		 */
+		getType;
+
+		/**
+		 * A pre-built marker for this enumeration value.
+		 */
+		public final A_Phrase marker = MarkerNodeDescriptor.create(
+			IntegerDescriptor.fromInt(ordinal()));
+	}
+
+	/**
 	 * The {@link L1OperationDispatcher} used by the {@linkplain L1Decompiler
 	 * decompiler} to dispatch {@link L1Operation}s. This allows {@code
 	 * L1Decompiler} to hide the implemented interface methods of {@code
@@ -306,151 +339,6 @@ public class L1Decompiler
 					TupleDescriptor.fromList(callArgs)),
 				type);
 			pushExpression(sendNode);
-		}
-
-		@Override
-		public void L1_doClose ()
-		{
-			final int nOuters = getInteger();
-			final A_RawFunction theCode = code.literalAt(getInteger());
-			final List<A_Phrase> theOuters = popExpressions(nOuters);
-			for (final A_Phrase outer : theOuters)
-			{
-				assert
-					outer.isInstanceOfKind(VARIABLE_USE_NODE.mostGeneralType())
-					|| outer.isInstanceOfKind(REFERENCE_NODE.mostGeneralType())
-					|| outer.isInstanceOfKind(LITERAL_NODE.mostGeneralType());
-			}
-			final A_Phrase blockNode =
-				new L1Decompiler(
-					theCode,
-					theOuters,
-					tempGenerator
-				).block();
-			pushExpression(blockNode);
-		}
-
-		@Override
-		public void L1_doExtension ()
-		{
-			final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
-			pc++;
-			L1Operation.values()[nybble + 16].dispatch(this);
-		}
-
-		@Override
-		public void L1_doGetLocal ()
-		{
-			final A_Phrase localDecl =
-				locals.get(getInteger() - code.numArgs() - 1);
-			final AvailObject useNode = VariableUseNodeDescriptor.newUse(
-				localDecl.token(),
-				localDecl);
-			pushExpression(useNode);
-		}
-
-		@Override
-		public void L1_doGetLocalClearing ()
-		{
-			L1_doGetLocal();
-		}
-
-		@Override
-		public void L1_doGetOuter ()
-		{
-			final A_Phrase use;
-			final int outerIndex = getInteger();
-			final A_Phrase outer = outers.get(outerIndex - 1);
-			if (outer.kind().parseNodeKindIsUnder(LITERAL_NODE))
-			{
-				pushExpression(outer);
-				return;
-			}
-			final A_Phrase outerDecl = outer.variable().declaration();
-			use = VariableUseNodeDescriptor.newUse(
-				outerDecl.token(),
-				outerDecl);
-			pushExpression(use);
-		}
-
-		@Override
-		public void L1_doGetOuterClearing ()
-		{
-			L1_doGetOuter();
-		}
-
-		@Override
-		public void L1_doMakeTuple ()
-		{
-			final int count = getInteger();
-			final List<A_Phrase> expressions = popExpressions(count);
-			final A_Phrase listNode = ListNodeDescriptor.newExpressions(
-				TupleDescriptor.fromList(expressions));
-			pushExpression(listNode);
-		}
-
-		@Override
-		public void L1_doPop ()
-		{
-			if (expressionStack.size() == 1)
-			{
-				statements.add(popExpression());
-			}
-			else
-			{
-				// This is very rare – it's a non-first statement of a
-				// FirstOfSequence node.  Determine if we're constructing or
-				// extending an existing FirstOfSequence.
-				final A_Phrase lastExpression = popExpression();
-				final A_Phrase penultimateExpression = popExpression();
-				final A_Tuple newStatements;
-				if (penultimateExpression.parseNodeKind()
-					== FIRST_OF_SEQUENCE_NODE)
-				{
-					// Extend an existing FirstOfSequence node.
-					newStatements =
-						penultimateExpression.statements().appendCanDestroy(
-							lastExpression, false);
-				}
-				else
-				{
-					// Create a two-element FirstOfSequence node.
-					newStatements = TupleDescriptor.from(
-						penultimateExpression, lastExpression);
-				}
-				pushExpression(
-					FirstOfSequenceNodeDescriptor.newStatements(
-						newStatements));
-			}
-		}
-
-		@Override
-		public void L1_doPushLastLocal ()
-		{
-			final int index = getInteger();
-			final boolean isArg = index <= code.numArgs();
-			final A_Phrase decl = isArg
-				? args.get(index - 1)
-				: locals.get(index - code.numArgs() - 1);
-			final A_Phrase use = VariableUseNodeDescriptor.newUse(
-				decl.token(),
-				decl);
-			use.isLastUse(true);
-			if (isArg)
-			{
-				pushExpression(use);
-			}
-			else
-			{
-				final A_Phrase ref = ReferenceNodeDescriptor.fromUse(use);
-				pushExpression(ref);
-			}
-		}
-
-		@Override
-		public void L1_doPushLastOuter ()
-		{
-			L1_doPushOuter();
 		}
 
 		@Override
@@ -498,7 +386,7 @@ public class L1Decompiler
 				if (value.equalsNil())
 				{
 					// The last "statement" may just push nil.
-					// Such a statement will be re-synthetized during code
+					// Such a statement will be re-synthesized during code
 					// generation, so don't bother reconstructing it now.
 					assert pc > nybbles.tupleSize()
 					: "nil can only be (implicitly) pushed at the "
@@ -520,6 +408,29 @@ public class L1Decompiler
 						LiteralNodeDescriptor.fromToken(token);
 					pushExpression(literalNode);
 				}
+			}
+		}
+
+		@Override
+		public void L1_doPushLastLocal ()
+		{
+			final int index = getInteger();
+			final boolean isArg = index <= code.numArgs();
+			final A_Phrase decl = isArg
+				? args.get(index - 1)
+				: locals.get(index - code.numArgs() - 1);
+			final A_Phrase use = VariableUseNodeDescriptor.newUse(
+				decl.token(),
+				decl);
+			use.isLastUse(true);
+			if (isArg)
+			{
+				pushExpression(use);
+			}
+			else
+			{
+				final A_Phrase ref = ReferenceNodeDescriptor.fromUse(use);
+				pushExpression(ref);
 			}
 		}
 
@@ -546,9 +457,31 @@ public class L1Decompiler
 		}
 
 		@Override
-		public void L1_doPushOuter ()
+		public void L1_doPushLastOuter ()
 		{
-			pushExpression(outers.get(getInteger() - 1));
+			L1_doPushOuter();
+		}
+
+		@Override
+		public void L1_doClose ()
+		{
+			final int nOuters = getInteger();
+			final A_RawFunction theCode = code.literalAt(getInteger());
+			final List<A_Phrase> theOuters = popExpressions(nOuters);
+			for (final A_Phrase outer : theOuters)
+			{
+				assert
+					outer.isInstanceOfKind(VARIABLE_USE_NODE.mostGeneralType())
+					|| outer.isInstanceOfKind(REFERENCE_NODE.mostGeneralType())
+					|| outer.isInstanceOfKind(LITERAL_NODE.mostGeneralType());
+			}
+			final A_Phrase blockNode =
+				new L1Decompiler(
+					theCode,
+					theOuters,
+					tempGenerator
+				).block();
+			pushExpression(blockNode);
 		}
 
 		@Override
@@ -564,22 +497,73 @@ public class L1Decompiler
 				variableUse,
 				valueNode,
 				false);
-			if (expressionStack.isEmpty())
+			if (expressionStack.isEmpty()
+				|| peekExpression().parseNodeKind() != MARKER_NODE)
 			{
 				statements.add(assignmentNode);
 			}
 			else
 			{
-				// We had better see a marker with a top markerValue, otherwise
-				// the code generator didn't do what we expected.  Remove that
-				// bogus marker and replace it with the (embedded) assignment
-				// node itself.
+				// We had better see a dup marker, otherwise the code generator
+				// didn't do what we expected.  Remove the marker and replace it
+				// with the (embedded) assignment node itself.
 				final A_Phrase duplicateExpression = popExpression();
-				assert duplicateExpression.isInstanceOfKind(
-					MARKER_NODE.mostGeneralType());
-				assert duplicateExpression.markerValue().equalsNil();
+				assert duplicateExpression.equals(MarkerTypes.dup.marker);
 				expressionStack.add(assignmentNode);
 			}
+		}
+
+		@Override
+		public void L1_doGetLocalClearing ()
+		{
+			L1_doGetLocal();
+		}
+
+		@Override
+		public void L1_doPushOuter ()
+		{
+			pushExpression(outers.get(getInteger() - 1));
+		}
+
+		@Override
+		public void L1_doPop ()
+		{
+			if (expressionStack.size() == 1)
+			{
+				statements.add(popExpression());
+			}
+			else
+			{
+				// This is very rare – it's a non-first statement of a
+				// FirstOfSequence node.  Determine if we're constructing or
+				// extending an existing FirstOfSequence.
+				final A_Phrase lastExpression = popExpression();
+				final A_Phrase penultimateExpression = popExpression();
+				final A_Tuple newStatements;
+				if (penultimateExpression.parseNodeKind()
+					== FIRST_OF_SEQUENCE_NODE)
+				{
+					// Extend an existing FirstOfSequence node.
+					newStatements =
+						penultimateExpression.statements().appendCanDestroy(
+							lastExpression, false);
+				}
+				else
+				{
+					// Create a two-element FirstOfSequence node.
+					newStatements = TupleDescriptor.from(
+						penultimateExpression, lastExpression);
+				}
+				pushExpression(
+					FirstOfSequenceNodeDescriptor.newStatements(
+						newStatements));
+			}
+		}
+
+		@Override
+		public void L1_doGetOuterClearing ()
+		{
+			L1_doGetOuter();
 		}
 
 		@Override
@@ -618,74 +602,60 @@ public class L1Decompiler
 			}
 			else
 			{
-				// We had better see a marker with a top markerValue, otherwise
-				// the code generator didn't do what we expected.  Remove that
-				// bogus marker and replace it with the (embedded) assignment
-				// node itself.
+				// We had better see a dup marker, otherwise the code generator
+				// didn't do what we expected.  Remove that marker and replace
+				// it with the (embedded) assignment node itself.
 				final A_Phrase duplicateExpression = popExpression();
-				assert duplicateExpression.isInstanceOfKind(
-					MARKER_NODE.mostGeneralType());
-				assert duplicateExpression.markerValue().equalsNil();
+				assert duplicateExpression.equals(MarkerTypes.dup.marker);
 				expressionStack.add(assignmentNode);
 			}
 		}
 
-		/**
-		 * The presence of the {@linkplain L1Operation operation} indicates that
-		 * an assignment is being used as a subexpression or final statement
-		 * from a non-void valued {@linkplain FunctionDescriptor block}.
-		 *
-		 * <p>Pop the expression (that represents the right hand side of the
-		 * assignment), push a special {@linkplain MarkerNodeDescriptor marker}
-		 * whose markerValue is {@linkplain NilDescriptor#nil() nil}, then push
-		 * the right-hand side expression back onto the expression stack.</p>
-		 */
 		@Override
-		public void L1Ext_doDuplicate ()
+		public void L1_doGetLocal ()
 		{
-			final A_Phrase rightSide = popExpression();
-			final A_Phrase marker = MarkerNodeDescriptor.create(
-				NilDescriptor.nil());
-			pushExpression(marker);
-			pushExpression(rightSide);
+			final A_Phrase localDecl =
+				locals.get(getInteger() - code.numArgs() - 1);
+			final AvailObject useNode = VariableUseNodeDescriptor.newUse(
+				localDecl.token(),
+				localDecl);
+			pushExpression(useNode);
 		}
 
 		@Override
-		public void L1Ext_doPermute ()
+		public void L1_doMakeTuple ()
 		{
-			final A_Tuple permutation = code.literalAt(getInteger());
-			final int size = permutation.tupleSize();
-			final A_BasicObject[] values = new A_BasicObject[size];
-			for (int i = size; i >= 1; i--)
+			final int count = getInteger();
+			final List<A_Phrase> expressions = popExpressions(count);
+			final A_Phrase listNode = ListNodeDescriptor.newExpressions(
+				TupleDescriptor.fromList(expressions));
+			pushExpression(listNode);
+		}
+
+		@Override
+		public void L1_doGetOuter ()
+		{
+			final A_Phrase use;
+			final int outerIndex = getInteger();
+			final A_Phrase outer = outers.get(outerIndex - 1);
+			if (outer.kind().parseNodeKindIsUnder(LITERAL_NODE))
 			{
-				values[permutation.tupleIntAt(i) - 1] = popExpression();
+				pushExpression(outer);
+				return;
 			}
-			assert false
-			: "TODO: verify this against a subsequent call instruction";
-			//TODO MvG VERIFY against a subsequent call instruction.
+			final A_Phrase outerDecl = outer.variable().declaration();
+			use = VariableUseNodeDescriptor.newUse(
+				outerDecl.token(),
+				outerDecl);
+			pushExpression(use);
 		}
 
 		@Override
-		public void L1Ext_doGetLiteral ()
+		public void L1_doExtension ()
 		{
-			final A_Token globalToken = TokenDescriptor.create(
-				StringDescriptor.from("SomeGlobal"),
-				TupleDescriptor.empty(),
-				TupleDescriptor.empty(),
-				0,
-				0,
-				TokenType.KEYWORD);
-			final A_BasicObject globalVar = code.literalAt(getInteger());
-
-			final A_Phrase decl =
-				DeclarationNodeDescriptor.newModuleVariable(
-					globalToken,
-					globalVar,
-					NilDescriptor.nil());
-			final A_Phrase varUse = VariableUseNodeDescriptor.newUse(
-				globalToken,
-				decl);
-			pushExpression(varUse);
+			final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
+			pc++;
+			L1Operation.values()[nybble + 16].dispatch(this);
 		}
 
 		@Override
@@ -721,10 +691,26 @@ public class L1Decompiler
 		}
 
 		@Override
-		public void L1Ext_doReserved ()
+		public void L1Ext_doGetLiteral ()
 		{
-			error("Illegal extended nybblecode: F+"
-				+ nybbles.extractNybbleFromTupleAt(pc - 1));
+			final A_Token globalToken = TokenDescriptor.create(
+				StringDescriptor.from("SomeGlobal"),
+				TupleDescriptor.empty(),
+				TupleDescriptor.empty(),
+				0,
+				0,
+				TokenType.KEYWORD);
+			final A_BasicObject globalVar = code.literalAt(getInteger());
+
+			final A_Phrase decl =
+				DeclarationNodeDescriptor.newModuleVariable(
+					globalToken,
+					globalVar,
+					NilDescriptor.nil());
+			final A_Phrase varUse = VariableUseNodeDescriptor.newUse(
+				globalToken,
+				decl);
+			pushExpression(varUse);
 		}
 
 		@Override
@@ -756,16 +742,73 @@ public class L1Decompiler
 			}
 			else
 			{
-				// We had better see a marker with a top markerValue, otherwise
-				// the code generator didn't do what we expected.  Remove that
-				// bogus marker and replace it with the (embedded) assignment
-				// node itself.
+				// We had better see a dup marker, otherwise the code generator
+				// didn't do what we expected.  Remove that marker and replace
+				// it with the (embedded) assignment node itself.
 				final A_Phrase duplicateExpression = popExpression();
-				assert duplicateExpression.isInstanceOfKind(
-					MARKER_NODE.mostGeneralType());
-				assert duplicateExpression.markerValue().equalsNil();
+				assert duplicateExpression.equals(MarkerTypes.dup.marker);
 				expressionStack.add(assignmentNode);
 			}
+		}
+
+		/**
+		 * The presence of the {@linkplain L1Operation operation} indicates that
+		 * an assignment is being used as a subexpression or final statement
+		 * from a non-void valued {@linkplain FunctionDescriptor block}.
+		 *
+		 * <p>Pop the expression (that represents the right hand side of the
+		 * assignment), push a special {@linkplain MarkerNodeDescriptor
+		 * marker node} representing the dup, then push the right-hand side
+		 * expression back onto the expression stack.</p>
+		 */
+		@Override
+		public void L1Ext_doDuplicate ()
+		{
+			final A_Phrase rightSide = popExpression();
+			pushExpression(MarkerTypes.dup.marker);
+			pushExpression(rightSide);
+		}
+
+		@Override
+		public void L1Ext_doPermute ()
+		{
+			final A_Tuple permutation = code.literalAt(getInteger());
+			final int size = permutation.tupleSize();
+			final A_BasicObject[] values = new A_BasicObject[size];
+			for (int i = size; i >= 1; i--)
+			{
+				values[permutation.tupleIntAt(i) - 1] = popExpression();
+			}
+			assert false
+			: "TODO: verify this against a subsequent call instruction";
+			//TODO MvG VERIFY against a subsequent call instruction.
+		}
+
+		@Override
+		public void L1Ext_doGetType ()
+		{
+			pushExpression(MarkerTypes.getType.marker);
+		}
+
+		@Override
+		public void L1Ext_doMakeTupleAndType ()
+		{
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void L1Ext_doSuperCall ()
+		{
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void L1Ext_doReserved ()
+		{
+			error("Illegal extended nybblecode: F+"
+				+ nybbles.extractNybbleFromTupleAt(pc - 1));
 		}
 
 		@Override
@@ -811,9 +854,9 @@ public class L1Decompiler
 				}
 			};
 		// Synthesize fake outers as literals to allow decompilation.
-		final List<A_Phrase> functionOuters =
-			new ArrayList<>(aFunction.numOuterVars());
-		for (int i = 1; i <= aFunction.numOuterVars(); i++)
+		final int outerCount = aFunction.numOuterVars();
+		final List<A_Phrase> functionOuters = new ArrayList<>(outerCount);
+		for (int i = 1; i <= outerCount; i++)
 		{
 			final A_BasicObject outerObject = aFunction.outerVarAt(i);
 			final A_Token token = LiteralTokenDescriptor.create(

@@ -105,6 +105,16 @@ implements
 		A_Variable
 {
 	/**
+	 * A good multiplier for a multiplicative random generator.  This constant
+	 * is a primitive element of the group (Z[2<sup>32</sup>],*), specifically
+	 * 1664525, as taken from Knuth, <cite>The Art of Computer
+	 * Programming</cite>, Vol. 2, 2<sup>nd</sup> ed., page 102, row 26. See
+	 * also pages 19, 20, theorems B and C. The period of the cycle based on
+	 * this multiplicative generator is 2<sup>30</sup>.
+	 */
+	public static final int multiplier = 1664525;
+
+	/**
 	 * Report a virtual machine problem.
 	 *
 	 * @param messagePattern A {@link String} describing the problem.
@@ -6997,5 +7007,29 @@ implements
 	public int listSize ()
 	{
 		return descriptor.o_ListSize(this);
+	}
+
+	@Override
+	public A_Type typeForLookup ()
+	{
+		return descriptor.o_TypeForLookup(this);
+	}
+
+	@Override
+	public boolean hasSuperCast ()
+	{
+		return descriptor.o_HasSuperCast(this);
+	}
+
+	@Override
+	public void emitForSuperSendOn (final AvailCodeGenerator codeGenerator)
+	{
+		descriptor.o_EmitForSuperSendOn(this, codeGenerator);
+	}
+
+	@Override
+	public void emitAllForSuperSendOn (final AvailCodeGenerator codeGenerator)
+	{
+		descriptor.o_EmitAllForSuperSendOn(this, codeGenerator);
 	}
 }

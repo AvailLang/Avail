@@ -1,5 +1,5 @@
 /**
- * L2_RESUME_CONTINUATION.java
+ * AvailGetType.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,54 +30,31 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.compiler.instruction;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import com.avail.descriptor.A_Continuation;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.primitive.P_057_ExitContinuationWithResult;
-import com.avail.interpreter.primitive.P_058_RestartContinuation;
+import java.io.ByteArrayOutputStream;
+import com.avail.interpreter.levelOne.L1Operation;
+
 
 /**
- * Continue running the provided continuation.  Note that this is neither an
- * {@linkplain P_057_ExitContinuationWithResult Exit} nor a {@linkplain
- * P_058_RestartContinuation Restart}, but something different.
+ * Push the top of stack's type.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2_RESUME_CONTINUATION extends L2Operation
+public class AvailGetType extends AvailInstruction
 {
 	/**
-	 * Initialize the sole instance.
+	 * Construct a new {@link AvailGetType}.
 	 */
-	public final static L2Operation instance =
-		new L2_RESUME_CONTINUATION().init(
-			READ_POINTER.is("continuation to resume"));
-
-	@Override
-	public void step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public AvailGetType ()
 	{
-		final L2ObjectRegister continuationReg =
-			instruction.readObjectRegisterAt(0);
-
-		final A_Continuation continuation = continuationReg.in(interpreter);
-		interpreter.prepareToResumeContinuation(continuation);
+		super();
 	}
 
 	@Override
-	public boolean hasSideEffect ()
+	public void writeNybblesOn (
+			final ByteArrayOutputStream aStream)
 	{
-		// Never remove this.
-		return true;
-	}
-
-	@Override
-	public boolean reachesNextInstruction ()
-	{
-		return false;
+		L1Operation.L1Ext_doGetType.writeTo(aStream);
 	}
 }
