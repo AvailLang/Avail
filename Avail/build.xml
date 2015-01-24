@@ -286,6 +286,7 @@ POSSIBILITY OF SUCH DAMAGE.
 				excludes="
 					**/tests/**,
 					com/avail/environment/**,
+					com/avail/tools/**,
 					com/avail/utility/fsm/**"/>
 			<fileset
 				dir="${path.avail}"

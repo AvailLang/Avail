@@ -61,7 +61,7 @@ import com.avail.interpreter.primitive.*;
 import com.avail.optimizer.*;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.performance.Statistic;
-import com.avail.tools.compiler.configuration.StatisticReport;
+import com.avail.performance.StatisticReport;
 
 
 /**

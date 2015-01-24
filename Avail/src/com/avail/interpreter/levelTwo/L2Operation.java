@@ -42,7 +42,7 @@ import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.*;
 import com.avail.performance.Statistic;
-import com.avail.tools.compiler.configuration.StatisticReport;
+import com.avail.performance.StatisticReport;
 
 /**
  * The instruction set for the {@linkplain Interpreter level two Avail

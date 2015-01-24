@@ -61,7 +61,7 @@ import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.primitive.*;
 import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
-import com.avail.tools.compiler.configuration.StatisticReport;
+import com.avail.performance.StatisticReport;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.*;
 
