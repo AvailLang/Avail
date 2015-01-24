@@ -314,6 +314,15 @@ extends Descriptor
 		return o_EqualsAnyTuple(object, aTuple);
 	}
 
+	@Override
+	boolean o_EqualsRepeatedElementTuple (
+		final AvailObject object,
+		final A_Tuple aTuple)
+	{
+		// Default to generic tuple comparison.
+		return o_EqualsAnyTuple(object, aTuple);
+	}
+
 	@Override @AvailMethod
 	boolean o_EqualsNybbleTuple (
 		final AvailObject object,
@@ -575,6 +584,23 @@ extends Descriptor
 			startIndex1,
 			endIndex1,
 			aSmallIntegerIntervalTuple,
+			startIndex2);
+	}
+
+	@Override @AvailMethod
+	boolean o_CompareFromToWithRepeatedElementTupleStartingAt (
+		final AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple aRepeatedElementTuple,
+		final int startIndex2)
+	{
+		// Compare sections of two tuples. Default to generic comparison.
+		return o_CompareFromToWithAnyTupleStartingAt(
+			object,
+			startIndex1,
+			endIndex1,
+			aRepeatedElementTuple,
 			startIndex2);
 	}
 

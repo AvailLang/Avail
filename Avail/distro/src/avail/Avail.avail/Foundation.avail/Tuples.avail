@@ -80,7 +80,6 @@ Names
 	"∏_",
 	"_ends with_",
 	"_padded with_to a multiple of_",
-	"_occurrences⁇of_",
 	"_starts with_",
 	"_to_",
 	"_'s⁇head",
@@ -1373,31 +1372,7 @@ Semantic restriction "all indices of_where_" is
 	<natural number…|0..⎡tupleType⎤ + 1>
 ];
 
-/**
- * Construct and answer a tuple whose elements are each {@param "value"}.
- * 
- * @method "_occurrences⁇of_"
- * @param "count" "whole number"
- *        The number of elements in the resulting tuple.
- * @param "value" "any"
- *        The repeated value.
- * @returns "tuple"
- *          A tuple containing {@param "count"} occurrences of {@param "value"}.
- * @category "Tuples" "Constructors"
- */
-Public stable method "_occurrences⁇of_" is
-[
-	count : whole number,
-	value : any
-|
-	accumulator : tuple := <>;
-	Repeat
-	[
-		accumulator := eject accumulator ++ <value>;
-	]
-	count times;
-	accumulator
-];
+Method "_occurrences⁇of_" is stable at [whole number, any]→tuple;
 
 /**
  * @method "_occurrences⁇of_"

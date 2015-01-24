@@ -584,6 +584,21 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	boolean o_CompareFromToWithRepeatedElementTupleStartingAt (
+		final AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple aRepeatedElementTuple,
+		final int startIndex2)
+	{
+		return o_Traversed(object).compareFromToWithRepeatedElementTupleStartingAt(
+			startIndex1,
+			endIndex1,
+			aRepeatedElementTuple,
+			startIndex2);
+	}
+
+	@Override
 	boolean o_CompareFromToWithNybbleTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
@@ -783,6 +798,15 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).equalsSmallIntegerIntervalTuple(
 			aSmallIntegerIntervalTuple);
+	}
+
+	@Override
+	boolean o_EqualsRepeatedElementTuple (
+		final AvailObject object,
+		final A_Tuple aRepeatedElementTuple)
+	{
+		return o_Traversed(object).equalsRepeatedElementTuple(
+			aRepeatedElementTuple);
 	}
 
 	@Override
@@ -4409,6 +4433,12 @@ extends AbstractDescriptor
 	boolean o_IsSmallIntegerIntervalTuple (final AvailObject object)
 	{
 		return o_Traversed(object).isSmallIntegerIntervalTuple();
+	}
+
+	@Override
+	boolean o_IsRepeatedElementTuple (final AvailObject object)
+	{
+		return o_Traversed(object).isRepeatedElementTuple();
 	}
 
 	@Override
