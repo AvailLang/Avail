@@ -99,14 +99,48 @@ extends ExtendedIntegerDescriptor
 		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
-		final int integerCount = object.integerSlotsCount();
-		if (integerCount <= 2)
+		if (object.isLong())
 		{
+			// The *vast* majority of uses, extends a bit beyond 9 quintillion.
 			aStream.append(object.extractLong());
 		}
 		else
 		{
-			aStream.append(object.asBigInteger());
+			// A slower approach that deals with huge numbers.  Collect groups
+			// of 18 digits at a time by repeatedly dividing by a quintillion
+			// and recording the moduli.
+			A_Number residue = object.makeImmutable();
+			if (object.lessThan(zero()))
+			{
+				aStream.append('-');
+				residue = zero().minusCanDestroy(residue, false);
+			}
+			// Make room for a little more than is needed.
+			final long[] digitGroups = new long[object.integerSlotsCount()];
+			int digitGroupSubscript = 0;
+			do
+			{
+				final A_Number quotient = residue.divideCanDestroy(
+					quintillionInteger, false);
+				final A_Number modulus = residue.minusCanDestroy(
+					quotient.timesCanDestroy(quintillionInteger, false),
+					false);
+				assert modulus.isLong();
+				digitGroups[digitGroupSubscript++] = modulus.extractLong();
+				residue = quotient;
+			} while (residue.greaterThan(zero()));
+			// Write the first big digit (up to 18 actual digits).
+			aStream.append(digitGroups[--digitGroupSubscript]);
+			while (--digitGroupSubscript >= 0)
+			{
+				// We add a quintillion to force otherwise-leading zeroes to be
+				// output, then skip the bogus leading 1.  It's still several
+				// quintillion from overflowing a long.
+				final String paddedString = Long.toString(
+					quintillionLong + digitGroups[digitGroupSubscript]);
+				assert paddedString.length() == 19;
+				aStream.append(paddedString, 1, 19);
+			}
 		}
 	}
 
@@ -142,6 +176,7 @@ extends ExtendedIntegerDescriptor
 		final int slotsCount = object.integerSlotsCount();
 		if (slotsCount != anAvailInteger.integerSlotsCount())
 		{
+			// Assume integers being compared are always normalized (trimmed).
 			return false;
 		}
 		for (int i = 1; i <= slotsCount; i++)
@@ -2287,4 +2322,17 @@ extends ExtendedIntegerDescriptor
 		neg.rawSignedIntegerAtPut(1, -1);
 		negativeOne = neg.makeShared();
 	}
+
+	/**
+	 * One (U.S.) quintillion, which is 10^18.  This is the largest power of ten
+	 * representable as a signed long.
+	 */
+	private static final long quintillionLong = 1_000_000_000_000_000_000L;
+
+	/**
+	 * One (U.S.) quintillion, which is 10^18.  This is the largest power of ten
+	 * for which {@link #o_IsLong(AvailObject)} returns true.
+	 */
+	private static final A_Number quintillionInteger =
+		IntegerDescriptor.fromLong(quintillionLong);
 }

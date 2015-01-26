@@ -84,6 +84,87 @@ extends Primitive
 	}
 
 	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type aType = argumentTypes.get(0);
+		final A_Type bType = argumentTypes.get(1);
+
+		if (aType.isEnumeration() && bType.isEnumeration())
+		{
+			final A_Set aInstances = aType.instances();
+			final A_Set bInstances = bType.instances();
+			// Compute the Cartesian product as an enumeration if there will
+			// be few enough entries.
+			if (aInstances.setSize() * (long)bInstances.setSize() < 100)
+			{
+				A_Set answers = SetDescriptor.empty();
+				for (final A_Number aInstance : aInstances)
+				{
+					for (final A_Number bInstance : bInstances)
+					{
+						try
+						{
+							answers = answers.setWithElementCanDestroy(
+								aInstance.timesCanDestroy(bInstance, false),
+								false);
+						}
+						catch (final ArithmeticException e)
+						{
+							// Ignore that combination of inputs, as it will
+							// fail rather than return a value.
+						}
+					}
+				}
+				return AbstractEnumerationTypeDescriptor.withInstances(
+					answers);
+			}
+		}
+		if (aType.isIntegerRangeType() && bType.isIntegerRangeType())
+		{
+			// Don't bother computing a precise bound except for positive
+			// multiplications.  A semantic restriction can certainly do
+			// better than this, and at some future time it may be
+			// profitable to compute an exact bound for this primitive for
+			// all extended integer multiplications.
+			final A_Number zero = IntegerDescriptor.zero();
+			if (aType.lowerBound().greaterOrEqual(zero)
+				&& bType.lowerBound().greaterOrEqual(zero))
+			{
+				try
+				{
+					final A_Number low =
+						aType.lowerBound().timesCanDestroy(
+							bType.lowerBound(), false);
+					final A_Number high =
+						aType.upperBound().timesCanDestroy(
+							bType.upperBound(), false);
+					final boolean highInclusive =
+						aType.upperInclusive()
+							&& bType.upperInclusive();
+					return IntegerRangeTypeDescriptor.create(
+						low, true, high, highInclusive);
+				}
+				catch (final ArithmeticException e)
+				{
+					// Fall-through to general case.
+				}
+			}
+			if (aType.isSubtypeOf(IntegerRangeTypeDescriptor.integers())
+				&& bType.isSubtypeOf(IntegerRangeTypeDescriptor.integers()))
+			{
+				// integer × integer is always integer.
+				return IntegerRangeTypeDescriptor.integers();
+			}
+			// Otherwise one multiplicand might be infinity, so to keep the
+			// logic simple just include both infinities.
+			return IntegerRangeTypeDescriptor.extendedIntegers();
+		}
+		return AbstractNumberDescriptor.binaryNumericOperationTypeBound(
+			aType, bType);
+	}
+
+	@Override
 	public Fallibility fallibilityForArgumentTypes (
 		final List<? extends A_Type> argumentTypes)
 	{

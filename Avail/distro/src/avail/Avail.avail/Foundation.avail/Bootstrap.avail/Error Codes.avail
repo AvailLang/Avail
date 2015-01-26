@@ -152,6 +152,9 @@ Names
 	/*  18 */ "shift-and-truncate-requires-non-negative code",
 	/*  41 */ "special-atom code",
 	/*  10 */ "subscript-out-of-bounds code",
+	/* 107 */ "supercast-expression-must-not-also-be-a-supercast code",
+	/* 106 */ "supercast-expression-type-must-not-be-top-or-bottom code",
+	/* 108 */ "supercast-must-be-strict-supertype-of-expression-type code",
 	/*  52 */ "tilde-must-not-follow-argument code",
 	/*  30 */ "too-large-to-represent code",
 	/*  31 */ "type-restriction-must-accept-only-types code",
@@ -671,6 +674,21 @@ Primitive "block-compilation-failed code" is
 Primitive "sequence-contains-invalid-statements code" is
 [
 	105
+];
+
+Primitive "supercast-expression-type-must-not-be-top-or-bottom code" is
+[
+	106
+];
+
+Primitive "supercast-expression-must-not-also-be-a-supercast code" is
+[
+	107
+];
+
+Primitive "supercast-must-be-strict-supertype-of-expression-type code" is
+[
+	108
 ];
 
 Primitive "no-file code" is

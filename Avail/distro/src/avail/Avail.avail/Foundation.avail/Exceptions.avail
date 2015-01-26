@@ -1124,6 +1124,12 @@ System exception "block-compilation-failed" (103)
 	extends code-generation exception;
 System exception "sequence-contains-invalid-statements" (105)
 	extends bad-phrase exception;
+System exception "supercast-expression-type-must-not-be-top-or-bottom" (106)
+	extends bad-phrase exception;
+System exception "supercast-expression-must-not-also-be-a-supercast" (107)
+	extends bad-phrase exception;
+System exception "supercast-must-be-strict-supertype-of-expression-type" (108)
+	extends bad-phrase exception;
 System exception "no-file" (200)
 	extends I/O exception;
 System exception "file-exists" (201)

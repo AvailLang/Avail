@@ -65,22 +65,6 @@ Names
 	"«_‡«=|≥|>»!»"
 Body
 
-Method "“_”" is
-[
-	n : number
-|
-	/* Lose the ¢d or ¢f suffix. */
-	s ::= primitive description of n;
-	s[1..cast |s| - 1 into [t : natural number | t]]
-] : string;
-
-Method "“_”" is
-[
-	n : extended integer
-|
-	primitive description of n
-] : string;
-
 Forward method "_mod_" is [number, number]→number;
 Public stable forward method "-_" is [number]→number;
 
@@ -217,7 +201,7 @@ negativeOne ::= 0 - 1;
  *          The negation of the argument.
  * @category "Mathematics" "Numbers"
  */
-Method "-_" is
+Stable method "-_" is
 [
 	a : number
 |
@@ -1593,3 +1577,11 @@ Public stable method "least common multiple of_and_" is
 	cast input1 × input2 ÷ greatest common denominator of input1 and input2
 		into [n : natural number | n]
 ] : natural number;
+
+/*
+ * Strengthen some stable primitive methods.
+ */
+
+Method "_→float" is stable at [number]→float;
+
+Method "_→double" is stable at [number]→float;

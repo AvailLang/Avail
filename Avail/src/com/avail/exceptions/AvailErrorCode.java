@@ -702,7 +702,25 @@ public enum AvailErrorCode
 	 */
 	E_SEQUENCE_CONTAINS_INVALID_STATEMENTS (105),
 
-//	E_??? (106),
+	/**
+	 * Attempted to create a supercast from a base expression that yields a
+	 * value of type top or bottom.
+	 */
+	E_SUPERCAST_EXPRESSION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM (106),
+
+	/**
+	 * Attempted to create a supercast whose base expression is also a supercast
+	 * phrase.
+	 */
+	E_SUPERCAST_EXPRESSION_MUST_NOT_ALSO_BE_A_SUPERCAST (107),
+
+	/**
+	 * Attempted to create a supercast from a base expression that yields a
+	 * value of type top or bottom.
+	 */
+	E_SUPERCAST_MUST_BE_STRICT_SUPERTYPE_OF_EXPRESSION_TYPE (108),
+
+//	E_??? (109),
 
 	/**
 	 * The specified {@linkplain Path path} does not name an existing file.

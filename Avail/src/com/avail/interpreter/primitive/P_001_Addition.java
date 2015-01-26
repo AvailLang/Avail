@@ -140,8 +140,8 @@ extends Primitive
 		{
 			// $FALL-THROUGH$
 		}
-		return super.returnTypeGuaranteedByVM(
-			argumentTypes);
+		return AbstractNumberDescriptor.binaryNumericOperationTypeBound(
+			aType, bType);
 	}
 
 	@Override

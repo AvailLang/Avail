@@ -3187,10 +3187,12 @@ public class MessageSplitter
 		final StringBuilder builder,
 		final int indent)
 	{
+		builder.append("«");
 		rootSequence.printWithArguments(
 			sendNode.argumentsListNode().expressionsTuple().iterator(),
 			builder,
 			indent);
+		builder.append("»");
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /**
- * P_004_Division.java
+ * P_346_CreateSuperCastExpression.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,28 +31,29 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.InfinityDescriptor.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Fallibility.*;
-import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 4:</strong> Divide an extended integer by another one.
+ * <strong>Primitive 346:</strong> Transform a base expression and a type into
+ * a {@linkplain SuperCastNodeDescriptor supercast phrase} that will use that
+ * type for lookup.  Fail if the type is not a strict supertype of that which
+ * will be produced by the expression.  Also fail if the expression is itself a
+ * supertype, or if it is top-valued or bottom-valued.
  */
-public final class P_004_Division
-extends Primitive
+public final class P_346_CreateSuperCastExpression extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_004_Division().init(
+		new P_346_CreateSuperCastExpression().init(
 			2, CanFold, CanInline);
 
 	@Override
@@ -62,17 +63,29 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
-		final A_Number a = args.get(0);
-		final A_Number b = args.get(1);
-		try
+		final A_Phrase expression = args.get(0);
+		final A_Type lookupType = args.get(1);
+
+		final A_Type expressionType = expression.expressionType();
+		if (expressionType.isBottom() || expressionType.isTop())
 		{
-			return interpreter.primitiveSuccess(
-				a.divideCanDestroy(b, true));
+			return interpreter.primitiveFailure(
+				E_SUPERCAST_EXPRESSION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM);
 		}
-		catch (final ArithmeticException e)
+		if (expression.parseNodeKind().isSubkindOf(SUPER_CAST_NODE))
 		{
-			return interpreter.primitiveFailure(e);
+			return interpreter.primitiveFailure(
+				E_SUPERCAST_EXPRESSION_MUST_NOT_ALSO_BE_A_SUPERCAST);
 		}
+		if (!expressionType.isSubtypeOf(lookupType)
+			|| expressionType.equals(lookupType))
+		{
+			return interpreter.primitiveFailure(
+				E_SUPERCAST_MUST_BE_STRICT_SUPERTYPE_OF_EXPRESSION_TYPE);
+		}
+		final A_Phrase supercast = SuperCastNodeDescriptor.create(
+			expression, lookupType);
+		return interpreter.primitiveSuccess(supercast);
 	}
 
 	@Override
@@ -80,43 +93,9 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				NUMBER.o(),
-				NUMBER.o()),
-			NUMBER.o());
-	}
-
-	@Override
-	public A_Type returnTypeGuaranteedByVM (
-		final List<? extends A_Type> argumentTypes)
-	{
-		final A_Type aType = argumentTypes.get(0);
-		final A_Type bType = argumentTypes.get(1);
-
-		return AbstractNumberDescriptor.binaryNumericOperationTypeBound(
-			aType, bType);
-	}
-
-	@Override
-	public Fallibility fallibilityForArgumentTypes (
-		final List<? extends A_Type> argumentTypes)
-	{
-		final A_Type aType = argumentTypes.get(0);
-		final A_Type bType = argumentTypes.get(1);
-
-		final boolean aTypeIncludesInfinity =
-			negativeInfinity().isInstanceOf(aType)
-			|| positiveInfinity().isInstanceOf(aType);
-		final boolean bTypeIncludesInfinity =
-			negativeInfinity().isInstanceOf(bType)
-			|| positiveInfinity().isInstanceOf(bType);
-		final boolean bTypeIncludesZero =
-			IntegerDescriptor.zero().isInstanceOf(bType);
-		if (bTypeIncludesZero
-			|| (aTypeIncludesInfinity && bTypeIncludesInfinity))
-		{
-			return CallSiteCanFail;
-		}
-		return CallSiteCannotFail;
+				EXPRESSION_NODE.create(ANY.o()),
+				InstanceMetaDescriptor.anyMeta()),
+			SUPER_CAST_NODE.mostGeneralType());
 	}
 
 	@Override
@@ -124,7 +103,8 @@ extends Primitive
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			SetDescriptor.fromCollection(Arrays.asList(
-				E_CANNOT_DIVIDE_BY_ZERO.numericCode(),
-				E_CANNOT_DIVIDE_INFINITIES.numericCode())));
+				E_SUPERCAST_EXPRESSION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM.numericCode(),
+				E_SUPERCAST_EXPRESSION_MUST_NOT_ALSO_BE_A_SUPERCAST.numericCode(),
+				E_SUPERCAST_MUST_BE_STRICT_SUPERTYPE_OF_EXPRESSION_TYPE.numericCode())));
 	}
 }

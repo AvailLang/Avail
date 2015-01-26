@@ -297,14 +297,42 @@ public final class Interpreter
 	 * Fake slots used to show stack traces in the Eclipse Java debugger.
 	 */
 	enum FakeStackTraceSlots
-	implements ObjectSlotsEnum
+	implements ObjectSlotsEnum, IntegerSlotsEnum
 	{
+		/**
+		 * The offset of the current L2 instruction.
+		 */
+		L2_OFFSET,
+
+		/**
+		 * The current frame's L2 instructions.
+		 */
+		L2_INSTRUCTIONS,
+
+		/**
+		 * The function that was being executed.
+		 */
+		CURRENT_FUNCTION,
+
 		/**
 		 * The chain of {@linkplain ContinuationDescriptor continuations} of the
 		 * {@linkplain FiberDescriptor fiber} bound to this
 		 * {@linkplain Interpreter interpreter}.
 		 */
-		FRAMES
+		FRAMES,
+
+		/**
+		 * The pointer register values.  These are wrapped an extra layer deep
+		 * in a 1-tuple to ensure Eclipse won't spend years repeatedly producing
+		 * the print representations of things you would never want to see and
+		 * didn't ask for.
+		 */
+		POINTERS,
+
+		/**
+		 * The integer register values.
+		 */
+		INTEGERS
 	}
 
 	/**
@@ -324,6 +352,22 @@ public final class Interpreter
 	 */
 	public AvailObjectFieldHelper[] describeForDebugger ()
 	{
+		final Object[] outerArray =
+			new Object[FakeStackTraceSlots.values().length];
+
+		// Extract the current L2 offset...
+		outerArray[FakeStackTraceSlots.L2_OFFSET.ordinal()] =
+			new AvailIntegerValueHelper(offset());
+
+		// Produce the current chunk's L2 instructions...
+		outerArray[FakeStackTraceSlots.L2_INSTRUCTIONS.ordinal()] =
+			chunk().instructions;
+
+		// Produce the current chunk's L2 instructions...
+		outerArray[FakeStackTraceSlots.CURRENT_FUNCTION.ordinal()] =
+			pointers[FUNCTION.ordinal()];
+
+		// Build the stack frames...
 		final List<A_Continuation> frames = new ArrayList<>(50);
 		A_Continuation frame = pointers[CALLER.ordinal()];
 		if (frame != null)
@@ -334,20 +378,37 @@ public final class Interpreter
 				frame = frame.caller();
 			}
 		}
-		final A_Tuple framesTuple = TupleDescriptor.fromList(frames);
-		final A_Tuple outerTuple = TupleDescriptor.from(framesTuple);
-		final List<AvailObjectFieldHelper> outerList =
-			new ArrayList<>();
-		assert outerTuple.tupleSize() == FakeStackTraceSlots.values().length;
+		outerArray[FakeStackTraceSlots.FRAMES.ordinal()] =
+			TupleDescriptor.fromList(frames);
+
+		// Now collect the pointer register values, wrapped in 1-tuples to
+		// suppress printing by the Eclipse debugger...
+		outerArray[FakeStackTraceSlots.POINTERS.ordinal()] =
+			TupleDescriptor.fromList(
+				Arrays.asList(pointers).subList(0, chunk().numObjects()));
+
+		// May as well show the integer registers too...
+		final int numInts = chunk().numIntegers();
+		final List<Integer> integersList = new ArrayList<>(numInts);
+		for (int i = 0; i < numInts; i++)
+		{
+			integersList.add(integers[i]);
+		}
+		outerArray[FakeStackTraceSlots.INTEGERS.ordinal()] =
+			TupleDescriptor.fromIntegerList(integersList);
+
+		// Now put all the top level constructs together...
+		final AvailObjectFieldHelper[] helpers =
+			new AvailObjectFieldHelper[FakeStackTraceSlots.values().length];
 		for (final FakeStackTraceSlots field : FakeStackTraceSlots.values())
 		{
-			outerList.add(new AvailObjectFieldHelper(
-				outerTuple,
+			helpers[field.ordinal()] = new AvailObjectFieldHelper(
+				NilDescriptor.nil(),
 				field,
 				-1,
-				outerTuple.tupleAt(field.ordinal() + 1)));
+				outerArray[field.ordinal()]);
 		}
-		return outerList.toArray(new AvailObjectFieldHelper[outerList.size()]);
+		return helpers;
 	}
 
 	/**

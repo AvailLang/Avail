@@ -39,7 +39,6 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.*;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
@@ -48,8 +47,8 @@ import com.avail.optimizer.RegisterSet;
 /**
  * Execute a primitive with the provided arguments, writing the result into
  * the specified register. The primitive must not fail. Check that the resulting
- * object's type agrees with the provided expected type, branching if it does
- * not.
+ * object's type agrees with the provided expected type, branching if it does,
+ * otherwise falling through to failure reporting code.
  *
  * <p>
  * Unlike for {@link L2_INVOKE} and related operations, we do not provide
@@ -134,25 +133,21 @@ extends L2Operation
 		// This operation *checks* that the returned object is of the specified
 		// expectedType, so if the operation completes normally, the resultReg
 		// *will* have the expected type.
-		final RegisterSet registerSet = registerSets.get(1);
-		registerSet.removeTypeAt(resultReg);
-		registerSet.removeConstantAt(resultReg);
-		registerSet.typeAtPut(resultReg, expectedType, instruction);
+		final RegisterSet successRegisterSet = registerSets.get(1);
+		successRegisterSet.removeTypeAt(resultReg);
+		successRegisterSet.removeConstantAt(resultReg);
+		successRegisterSet.typeAtPut(resultReg, expectedType, instruction);
 	}
 
 	@Override
 	public boolean hasSideEffect (final L2Instruction instruction)
 	{
-		// It depends on the primitive.
-		assert instruction.operation == this;
-		final L2PrimitiveOperand primitiveOperand =
-			(L2PrimitiveOperand) instruction.operands[0];
-		final Primitive primitive = primitiveOperand.primitive;
-		final boolean mustKeep = primitive.hasFlag(Flag.HasSideEffect)
-			|| primitive.hasFlag(Flag.CatchException)
-			|| primitive.hasFlag(Flag.Invokes)
-			|| primitive.hasFlag(Flag.SwitchesContinuation)
-			|| primitive.hasFlag(Flag.Unknown);
-		return mustKeep;
+		// One would think that an invocation of an infallible primitive whose
+		// result is not needed would not have a side-effect.  One would be
+		// wrong for this kind of instruction, however, since it is required to
+		// verify that the primitive result satisfies a strengthened return
+		// type (and report a problem if it doesn't).  That counts as a side
+		// effect, preventing this instruction from simply evaporating.
+		return true;
 	}
 }

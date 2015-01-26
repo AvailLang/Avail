@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -132,9 +133,11 @@ extends Descriptor
 		private Sign (final double limitDouble)
 		{
 			this.limitDouble = limitDouble;
-			this.limitDoubleObject = DoubleDescriptor.fromDouble(limitDouble);
+			this.limitDoubleObject =
+				DoubleDescriptor.fromDouble(limitDouble).makeShared();
 			this.limitFloat = (float)limitDouble;
-			this.limitFloatObject = FloatDescriptor.fromFloat(limitFloat);
+			this.limitFloatObject =
+				FloatDescriptor.fromFloat(limitFloat).makeShared();
 		}
 
 		/**
@@ -597,6 +600,70 @@ extends Descriptor
 			possibleResults.add(EQUAL);
 		}
 		return possibleResults;
+	}
+
+	/**
+	 * Apply the usual rules of type promotion for some unspecified binary
+	 * numeric operation (like +, -, ×, ÷).
+	 *
+	 * @param aType One argument's numeric type.
+	 * @param bType The other argument's numeric type.
+	 * @return The strongest type we can determine for these input types without
+	 *         analyzing actual integer ranges and instance types.
+	 */
+	public static A_Type binaryNumericOperationTypeBound (
+		final A_Type aType,
+		final A_Type bType)
+	{
+		A_Type union = BottomTypeDescriptor.bottom();
+		if (!aType.typeIntersection(DOUBLE.o()).isBottom()
+			|| !bType.typeIntersection(DOUBLE.o()).isBottom())
+		{
+			// One of the values might be a double.
+			if (aType.isSubtypeOf(DOUBLE.o())
+				|| bType.isSubtypeOf(DOUBLE.o()))
+			{
+				// One of the types is definitely a double, so the result *must*
+				// be a double.
+				return DOUBLE.o();
+			}
+			union = union.typeUnion(DOUBLE.o());
+		}
+		if (!aType.typeIntersection(FLOAT.o()).isBottom()
+			|| !bType.typeIntersection(FLOAT.o()).isBottom())
+		{
+			// One of the values might be a float.
+			if (aType.isSubtypeOf(FLOAT.o())
+				|| bType.isSubtypeOf(FLOAT.o()))
+			{
+				// One is definitely a float.
+				if (union.isBottom())
+				{
+					// Neither could be a double, but one is definitely a float.
+					// Therefore the result must be a float.
+					return FLOAT.o();
+				}
+			}
+			// Add float as a possibility.
+			union = union.typeUnion(FLOAT.o());
+		}
+		final A_Type extendedIntegers =
+			IntegerRangeTypeDescriptor.extendedIntegers();
+		if (!aType.typeIntersection(extendedIntegers).isBottom()
+			&& !bType.typeIntersection(extendedIntegers).isBottom())
+		{
+			// *Both* could be extended integers, so the result could be also.
+			if (aType.isSubtypeOf(extendedIntegers)
+				&& bType.isSubtypeOf(extendedIntegers))
+			{
+				// Both are definitely extended integers, so the result must
+				// also be an extended integer.
+				return extendedIntegers;
+			}
+			union = union.typeUnion(extendedIntegers);
+		}
+		assert !union.isBottom();
+		return union;
 	}
 
 	@Override @AvailMethod

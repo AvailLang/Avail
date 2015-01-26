@@ -1,5 +1,5 @@
 /**
- * P_004_Division.java
+ * P_345_SuperCastExpression.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,29 +31,25 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.InfinityDescriptor.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Fallibility.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 4:</strong> Divide an extended integer by another one.
+ * <strong>Primitive 345:</strong> Extract the base expression from a
+ * {@linkplain SuperCastNodeDescriptor supercast phrase}.
  */
-public final class P_004_Division
-extends Primitive
+public final class P_345_SuperCastExpression extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_004_Division().init(
-			2, CanFold, CanInline);
+		new P_345_SuperCastExpression().init(
+			1, CanFold, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -61,18 +57,10 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 2;
-		final A_Number a = args.get(0);
-		final A_Number b = args.get(1);
-		try
-		{
-			return interpreter.primitiveSuccess(
-				a.divideCanDestroy(b, true));
-		}
-		catch (final ArithmeticException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
+		assert args.size() == 1;
+		final A_Phrase supercast = args.get(0);
+
+		return interpreter.primitiveSuccess(supercast.expression());
 	}
 
 	@Override
@@ -80,51 +68,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				NUMBER.o(),
-				NUMBER.o()),
-			NUMBER.o());
-	}
-
-	@Override
-	public A_Type returnTypeGuaranteedByVM (
-		final List<? extends A_Type> argumentTypes)
-	{
-		final A_Type aType = argumentTypes.get(0);
-		final A_Type bType = argumentTypes.get(1);
-
-		return AbstractNumberDescriptor.binaryNumericOperationTypeBound(
-			aType, bType);
-	}
-
-	@Override
-	public Fallibility fallibilityForArgumentTypes (
-		final List<? extends A_Type> argumentTypes)
-	{
-		final A_Type aType = argumentTypes.get(0);
-		final A_Type bType = argumentTypes.get(1);
-
-		final boolean aTypeIncludesInfinity =
-			negativeInfinity().isInstanceOf(aType)
-			|| positiveInfinity().isInstanceOf(aType);
-		final boolean bTypeIncludesInfinity =
-			negativeInfinity().isInstanceOf(bType)
-			|| positiveInfinity().isInstanceOf(bType);
-		final boolean bTypeIncludesZero =
-			IntegerDescriptor.zero().isInstanceOf(bType);
-		if (bTypeIncludesZero
-			|| (aTypeIncludesInfinity && bTypeIncludesInfinity))
-		{
-			return CallSiteCanFail;
-		}
-		return CallSiteCannotFail;
-	}
-
-	@Override
-	protected A_Type privateFailureVariableType ()
-	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_CANNOT_DIVIDE_BY_ZERO.numericCode(),
-				E_CANNOT_DIVIDE_INFINITIES.numericCode())));
+				SUPER_CAST_NODE.mostGeneralType()),
+			EXPRESSION_NODE.create(ANY.o()));
 	}
 }

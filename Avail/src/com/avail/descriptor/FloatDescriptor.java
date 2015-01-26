@@ -218,7 +218,6 @@ extends AbstractNumberDescriptor
 		final int indent)
 	{
 		aStream.append(object.extractFloat());
-		aStream.append('f');
 	}
 
 	@Override @AvailMethod

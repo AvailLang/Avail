@@ -1497,6 +1497,7 @@ public final class AvailRuntime
 		// maintain reasonable topical consistency.
 		specials[140] = FIRST_OF_SEQUENCE_NODE.mostGeneralType();
 		specials[141] = PERMUTED_LIST_NODE.mostGeneralType();
+		specials[142] = SUPER_CAST_NODE.mostGeneralType();
 
 		System.arraycopy(specials, 0, specialObjects, 0, specials.length);
 

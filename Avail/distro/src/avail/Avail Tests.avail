@@ -212,9 +212,9 @@ Private method "Debug tests" is
 		|
 			Print: format "“①”. “②”\n" with index, test;
 		];
-		Print: "Enter subtest number, 0 for parent/exit, or \"run\".\n";
+		Print: "Enter subtest number, 0 for parent/exit, \"run\", or \"run N\".\n";
 		command := next line from standard input;
-		If command ∈ <enumeration of "0123456789"→set…|1..> then
+		If command ∈ (enumeration of "0123456789"→set)+ then
 		[
 			subscript ::= command (base 10);
 			If subscript = 0 then
@@ -244,25 +244,31 @@ Private method "Debug tests" is
 				Print: "Invalid subtest number.\n";
 			];
 		]
-		else if [command = "run"] then
+		else if [command starts with "run"] then
 		[
-			If currentEntry[1] = root test suite ID then
+			count ::= if |command| = 3
+				then [1]
+				else [trim (command[4..]) → natural number];
+			Repeat
 			[
-				Run all tests;
-			]
-			else
-			[
-				Guard
+				If currentEntry[1] = root test suite ID then
 				[
-					Print: “report on currentEntry[1]”;
+					Run all tests;
 				]
-				intercept
+				else
 				[
-					e : no-such-test exception
-				|
-					Print: “report on all tests in currentEntry[1]”;
+					Guard
+					[
+						Print: “report on currentEntry[1]”;
+					]
+					intercept
+					[
+						e : no-such-test exception
+					|
+						Print: “report on all tests in currentEntry[1]”;
+					];
 				];
-			];
+			] count times;
 		]
 		else
 		[

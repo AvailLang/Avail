@@ -102,6 +102,7 @@ Uses
 		"`«[_`|Primitive__]:_^_`»",
 		"`«_:=_`»",
 		"`«`↑_`»",
+		"`«supercast(_::_)`»",
 		"all atoms for_",
 		"atom for_",
 		"constructor of_,⁇parameterized by_,⁇on failure doing_",
@@ -2266,6 +2267,33 @@ Primitive "_→extended integer" is
 		cannot-convert-not-a-number-to-integer code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : extended integer;
+
+/**
+ * Construct a supercast phrase.
+ *
+ * @category "Primitives"
+ * @method "`«supercast(_::_)`»"
+ * @param "baseExpression" "expression yielding any"
+ *        The base phrase that produces the argument to be passed in a call.
+ * @param "lookupType" "any meta"
+ *        The type to use to lookup this argument rather than its actual type.
+ * @returns "super cast phrase⇒any"
+ *    A supercast phrase.
+ * @raises "supercast-expression-type-must-not-be-top-or-bottom exception"
+ * @raises "supercast-expression-must-not-also-be-a-supercast exception"
+ * @raises "supercast-must-be-strict-supertype-of-expression-type exception"
+ */
+Primitive "`«supercast(_::_)`»" is
+[
+	baseExpression : expression yielding any,
+	lookupType : any meta
+|
+	Primitive 346 (failureCode : {
+		supercast-expression-type-must-not-be-top-or-bottom code,
+		supercast-expression-must-not-also-be-a-supercast code,
+		supercast-must-be-strict-supertype-of-expression-type code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : super cast phrase;
 
 /**
  * Construct and answer an assignment expression.
