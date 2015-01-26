@@ -44,6 +44,7 @@ import com.avail.annotations.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
+import com.avail.performance.StatisticReport;
 import com.avail.tools.options.DefaultOption;
 import com.avail.tools.options.GenericHelpOption;
 import com.avail.tools.options.GenericOption;

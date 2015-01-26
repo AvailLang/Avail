@@ -44,7 +44,7 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.performance.Statistic;
-import com.avail.tools.compiler.configuration.StatisticReport;
+import com.avail.performance.StatisticReport;
 
 /**
  * Return into the provided continuation with the given return value.  The

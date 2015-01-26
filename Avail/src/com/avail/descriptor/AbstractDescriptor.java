@@ -1391,6 +1391,34 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain RepeatedElementTupleDescriptor repeated
+	 * element tuple}. The size of the subrange of both objects is determined
+	 * by the index range supplied for the receiver.
+	 *
+	 * @param object
+	 *        The receiver.
+	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
+	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
+	 * @param aRepeatedElementTuple
+	 *        The repeated element tuple used in the comparison.
+	 * @param startIndex2
+	 *        The inclusive lower bound of the repeated element tuple's
+	 *        subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
+	 * @see AvailObject#compareFromToWithByteTupleStartingAt(int, int, A_Tuple, int)
+	 */
+	abstract boolean o_CompareFromToWithRepeatedElementTupleStartingAt (
+		AvailObject object,
+		int startIndex1,
+		int endIndex1,
+		A_Tuple aRepeatedElementTuple,
+		int startIndex2);
+
+	/**
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
 	 * subrange of the given {@linkplain NybbleTupleDescriptor nybble tuple}.
 	 * The size of the subrange of both objects is determined by the index range
 	 * supplied for the receiver.
@@ -3992,6 +4020,12 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
+	abstract boolean o_IsRepeatedElementTuple (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
 	abstract boolean o_IsIntegerRangeType (AvailObject object);
 
 	/**
@@ -5809,6 +5843,15 @@ public abstract class AbstractDescriptor
 	abstract boolean o_EqualsSmallIntegerIntervalTuple (
 		AvailObject object,
 		A_Tuple aSmallIntegerIntervalTuple);
+
+	/**
+	 * @param object
+	 * @param aRepeatedElementTuple
+	 * @return
+	 */
+	abstract boolean o_EqualsRepeatedElementTuple (
+		AvailObject object,
+		A_Tuple aRepeatedElementTuple);
 
 	/**
 	 * @param object

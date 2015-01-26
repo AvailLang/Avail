@@ -88,6 +88,7 @@ Uses
 		"_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)",
 		"_has definition for_",
 		"_is unambiguous",
+		"_occurrences⁇of_",
 		"_parameterized by_",
 		"_to_by_",
 		"_«[_]»→_",
@@ -926,6 +927,29 @@ Primitive "_[_.._]" is
 		negative-size code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : tuple of any meta;
+
+/**
+ * Construct and answer a tuple whose elements are each {@param "value"}.
+ *
+ * @category "Primitives" "Tuples" "Constructors"
+ * @method "_occurrences⁇of_"
+ * @param "count" "whole number"
+ *        The number of elements in the resulting tuple.
+ * @param "value" "any"
+ *        The repeated value.
+ * @returns "tuple"
+ *    A tuple containing {@param "count"} occurrences of {@param "value"}.
+ * @raises "exceeds-vm-limit exception"
+ */
+Primitive "_occurrences⁇of_" is
+[
+	count : whole number,
+	value : any
+|
+	Primitive 146 (failureCode : {
+		exceeds-vm-limit code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : tuple;
 
 /**
  * Construct and answer a function implementation from the specified arguments.

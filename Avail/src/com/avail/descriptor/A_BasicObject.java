@@ -1120,6 +1120,11 @@ extends JSONFriendly
 	boolean isSmallIntegerIntervalTuple ();
 
 	/**
+	 * @return
+	 */
+	boolean isRepeatedElementTuple ();
+
+	/**
 	 * @param object
 	 * @return
 	 */
@@ -1130,6 +1135,12 @@ extends JSONFriendly
 	 * @return
 	 */
 	boolean equalsSmallIntegerIntervalTuple (A_Tuple object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	boolean equalsRepeatedElementTuple (A_Tuple object);
 
 	/**
 	 * @param critical

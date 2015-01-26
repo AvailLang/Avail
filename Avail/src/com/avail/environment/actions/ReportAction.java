@@ -39,7 +39,7 @@ import javax.swing.text.StyledDocument;
 import com.avail.annotations.*;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
-import com.avail.tools.compiler.configuration.StatisticReport;
+import com.avail.performance.StatisticReport;
 
 /**
  * A {@code ReportAction} dumps performance information obtained from

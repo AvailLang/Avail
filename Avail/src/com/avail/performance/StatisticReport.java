@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.tools.compiler.configuration;
+package com.avail.performance;
 
 import java.text.Collator;
 import java.util.ArrayList;
@@ -40,8 +40,6 @@ import java.util.EnumSet;
 import java.util.List;
 import com.avail.annotations.Nullable;
 import com.avail.descriptor.A_RawFunction;
-import com.avail.performance.PerInterpreterStatistic;
-import com.avail.performance.Statistic;
 import com.avail.utility.Pair;
 
 /**

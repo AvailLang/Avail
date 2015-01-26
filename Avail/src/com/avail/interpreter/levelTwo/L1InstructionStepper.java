@@ -48,7 +48,7 @@ import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_ONE_L1_INSTRUCTION;
 import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_UNTIL_INTERRUPT;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.performance.Statistic;
-import com.avail.tools.compiler.configuration.StatisticReport;
+import com.avail.performance.StatisticReport;
 import com.avail.utility.MutableOrNull;
 
 /**

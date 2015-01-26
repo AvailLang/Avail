@@ -35,7 +35,7 @@ package com.avail.test;
 import java.io.*;
 import java.util.EnumSet;
 import com.avail.builder.*;
-import com.avail.tools.compiler.configuration.StatisticReport;
+import com.avail.performance.StatisticReport;
 
 /**
  * Test suite for the Avail macro compiler.

@@ -581,6 +581,17 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	boolean o_CompareFromToWithRepeatedElementTupleStartingAt (
+		final AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple aRepeatedElementTuple,
+		final int startIndex2)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	boolean o_CompareFromToWithNybbleTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
@@ -2183,6 +2194,14 @@ extends AbstractDescriptor
 
 	@Override
 	boolean o_EqualsSmallIntegerIntervalTuple (
+		final AvailObject object,
+		final A_Tuple aTuple)
+	{
+		return false;
+	}
+
+	@Override
+	boolean o_EqualsRepeatedElementTuple (
 		final AvailObject object,
 		final A_Tuple aTuple)
 	{
@@ -4271,6 +4290,12 @@ extends AbstractDescriptor
 
 	@Override
 	boolean o_IsSmallIntegerIntervalTuple (final AvailObject object)
+	{
+		return false;
+	}
+
+	@Override
+	boolean o_IsRepeatedElementTuple (final AvailObject object)
 	{
 		return false;
 	}

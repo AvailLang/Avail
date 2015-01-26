@@ -33,7 +33,6 @@
 package com.avail.performance;
 
 import com.avail.AvailRuntime;
-import com.avail.tools.compiler.configuration.StatisticReport;
 
 /** An immutable collection of related statistics. */
 public class Statistic

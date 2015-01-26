@@ -1147,6 +1147,38 @@ implements
 
 	/**
 	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain RepeatedElementTupleDescriptor repeated
+	 * element tuple}. The size of the subrange of both objects is determined
+	 * by the index range supplied for the receiver.
+	 *
+	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
+	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
+	 * @param aRepeatedElementTuple
+	 *        The repeated element tuple used in the comparison.
+	 * @param startIndex2
+	 *        The inclusive lower bound of the repeated element tuple's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
+	 */
+	@Override
+	public boolean compareFromToWithRepeatedElementTupleStartingAt (
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple aRepeatedElementTuple,
+		final int startIndex2)
+	{
+		return descriptor.o_CompareFromToWithRepeatedElementTupleStartingAt(
+			this,
+			startIndex1,
+			endIndex1,
+			aRepeatedElementTuple,
+			startIndex2);
+	}
+
+	/**
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
 	 * subrange of the given {@linkplain NybbleTupleDescriptor nybble tuple}.
 	 * The size of the subrange of both objects is determined by the index range
 	 * supplied for the receiver.
@@ -1593,6 +1625,26 @@ implements
 			this,
 			aSmallIntegerIntervalTuple);
 	}
+
+	/**
+	 * Answer whether the receiver, an {@linkplain AvailObject object}, and the
+	 * argument, a {@linkplain RepeatedElementTupleDescriptor repeated element
+	 * tuple}, are equal in value.
+	 *
+	 * @param aRepeatedElementTuple The repeated element tuple to be compared
+	 *                               to the receiver.
+	 * @return {@code true} if the receiver is a repeated element tuple and of
+	 *         value equal to the argument, {@code false} otherwise.
+	 */
+	@Override
+	public boolean equalsRepeatedElementTuple (
+		final A_Tuple aRepeatedElementTuple)
+	{
+		return descriptor.o_EqualsRepeatedElementTuple(
+			this,
+			aRepeatedElementTuple);
+	}
+
 	/**
 	 * Answer whether the receiver, an {@linkplain AvailObject object}, is a
 	 * character with a code point equal to the integer argument.
@@ -2439,6 +2491,15 @@ implements
 	public boolean isSmallIntegerIntervalTuple ()
 	{
 		return descriptor.o_IsSmallIntegerIntervalTuple(this);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	@Override
+	public boolean isRepeatedElementTuple ()
+	{
+		return descriptor.o_IsRepeatedElementTuple(this);
 	}
 
 	/**
