@@ -1584,4 +1584,4 @@ Public stable method "least common multiple of_and_" is
 
 Method "_→float" is stable at [number]→float;
 
-Method "_→double" is stable at [number]→float;
+Method "_→double" is stable at [number]→double;
