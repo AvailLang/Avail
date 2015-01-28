@@ -5086,8 +5086,11 @@ public abstract class AbstractAvailCompiler
 				continuation);
 			return;
 		}
-		// It invokes a method (not a macro).
-		final A_Type argTupleType = argumentsListNode.expressionType();
+		// It invokes a method (not a macro).  Note that we grab the lookup
+		// types rather than the argument types, since if this is a supercall we
+		// want to know what semantic restrictions and function return types
+		// will be reached by the method definition(s) actually being invoked.
+		final A_Type argTupleType = argumentsListNode.typeForLookup();
 		final int argCount = argumentsListNode.listSize();
 		final List<A_Type> argTypes = new ArrayList<>(argCount);
 		for (int i = 1; i <= argCount; i++)

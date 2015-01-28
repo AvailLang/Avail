@@ -134,6 +134,24 @@ extends ParseNodeDescriptor
 		return expressionType(object);
 	}
 
+	@Override @AvailMethod
+	A_Type o_TypeForLookup (final AvailObject object)
+	{
+		final A_Tuple expressions = object.slot(EXPRESSIONS_TUPLE);
+		final A_Type[] types = new A_Type[expressions.tupleSize()];
+		for (int i = 0; i < types.length; i++)
+		{
+			final A_Type lookupType =
+				expressions.tupleAt(i + 1).typeForLookup();
+			if (lookupType.isBottom())
+			{
+				return BottomTypeDescriptor.bottom();
+			}
+			types[i] = lookupType;
+		}
+		return TupleTypeDescriptor.forTypes(types);
+	}
+
 	@Override
 	int o_ListSize (final AvailObject object)
 	{

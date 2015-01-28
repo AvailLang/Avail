@@ -58,8 +58,8 @@ public final class P_144_TupleTypeConcatenate extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
-		final A_BasicObject tupleType1 = args.get(0);
-		final A_BasicObject tupleType2 = args.get(1);
+		final A_Type tupleType1 = args.get(0);
+		final A_Type tupleType2 = args.get(1);
 		return interpreter.primitiveSuccess(
 			ConcatenatedTupleTypeDescriptor.concatenatingAnd(
 				tupleType1,

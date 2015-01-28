@@ -396,7 +396,7 @@ extends TypeDescriptor
 		{
 			return BottomTypeDescriptor.bottom();
 		}
-	
+
 		final A_Number firstUpper =
 			object.slot(FIRST_TUPLE_TYPE).sizeRange().upperBound();
 		final A_Number secondUpper =
@@ -632,10 +632,11 @@ extends TypeDescriptor
 	 *        the concatenations of instances of the two given tupletypes.
 	 */
 	public static AvailObject concatenatingAnd (
-		final A_BasicObject firstObject,
-		final A_BasicObject secondObject)
+		final A_Type firstObject,
+		final A_Type secondObject)
 	{
-		assert firstObject.isTupleType() && secondObject.isTupleType();
+		assert firstObject.isTupleType() && !firstObject.isBottom();
+		assert secondObject.isTupleType() && !secondObject.isBottom();
 		final AvailObject result = mutable.create();
 		result.setSlot(FIRST_TUPLE_TYPE, firstObject.makeImmutable());
 		result.setSlot(SECOND_TUPLE_TYPE, secondObject.makeImmutable());

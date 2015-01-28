@@ -87,6 +87,12 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	A_Type o_TypeForLookup (final AvailObject object)
+	{
+		return object.expressionType();
+	}
+
+	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aType)
