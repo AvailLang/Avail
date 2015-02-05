@@ -313,6 +313,12 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
+	A_Tuple o_FieldTypeTuple (final AvailObject object)
+	{
+	return getSuperkind(object).fieldTypeTuple();
+	}
+
+	@Override @AvailMethod
 	A_Number o_LowerBound (final AvailObject object)
 	{
 		final AvailObject instance = getInstance(object);
