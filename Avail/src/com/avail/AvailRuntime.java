@@ -1808,6 +1808,82 @@ public final class AvailRuntime
 	}
 
 	/**
+	 * Add a macro prefix function at the given prefix function index (also
+	 * called the section checkpoint index) in the given method.
+	 *
+	 * @param method The method to which to add the prefix function.
+	 * @param index The index for which to add a prefix function.
+	 * @param prefixFunction The function to add.
+	 */
+	public void addPrefixFunction (
+		final A_Method method,
+		final int index,
+		final A_Function prefixFunction)
+	{
+		runtimeLock.writeLock().lock();
+		try
+		{
+			A_Tuple functionTuples = method.prefixFunctions();
+			assert 1 <= index && index <= functionTuples.tupleSize();
+			A_Tuple functionTuple = functionTuples.tupleAt(index);
+			functionTuple = functionTuple.appendCanDestroy(
+				prefixFunction, true);
+			functionTuples = functionTuples.tupleAtPuttingCanDestroy(
+				index, functionTuple, true);
+			method.prefixFunctions(functionTuples);
+		}
+		finally
+		{
+			runtimeLock.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Remove a macro prefix function at the given prefix function index (also
+	 * called the section checkpoint index) in the given method.
+	 *
+	 * @param method The method from which to remove the prefix function.
+	 * @param index The index in which the prefix function should be found.
+	 * @param prefixFunction The function to remove (one occurrence of).
+	 */
+	public void removePrefixFunction (
+		final A_Method method,
+		final int index,
+		final A_Function prefixFunction)
+	{
+		runtimeLock.writeLock().lock();
+		try
+		{
+			A_Tuple functionTuples = method.prefixFunctions();
+			assert 1 <= index && index <= functionTuples.tupleSize();
+			A_Tuple functionTuple = functionTuples.tupleAt(index);
+			final int functionTupleSize = functionTuple.tupleSize();
+			int indexToRemove = Integer.MIN_VALUE;
+			for (int i = 1; i <= functionTupleSize; i++)
+			{
+				if (functionTuple.tupleAt(i).equals(prefixFunction))
+				{
+					indexToRemove = i;
+					break;
+				}
+			}
+			assert indexToRemove > 0;
+			final A_Tuple part1 = functionTuple.copyTupleFromToCanDestroy(
+				1, indexToRemove - 1, false);
+			final A_Tuple part2 = functionTuple.copyTupleFromToCanDestroy(
+				indexToRemove + 1, functionTupleSize, false);
+			functionTuple = part1.concatenateWith(part2, true);
+			functionTuples = functionTuples.tupleAtPuttingCanDestroy(
+				index, functionTuple, true);
+			method.prefixFunctions(functionTuples);
+		}
+		finally
+		{
+			runtimeLock.writeLock().unlock();
+		}
+	}
+
+	/**
 	 * The {@linkplain ReentrantLock lock} that guards access to the Level One
 	 * {@linkplain #levelOneSafeTasks -safe} and {@linkplain
 	 * #levelOneUnsafeTasks -unsafe} queues and counters.

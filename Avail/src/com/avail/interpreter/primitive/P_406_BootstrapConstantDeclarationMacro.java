@@ -79,24 +79,21 @@ public final class P_406_BootstrapConstantDeclarationMacro extends Primitive
 		if (innerNameToken.tokenType() != KEYWORD)
 		{
 			throw new AvailRejectedParseException(
-				StringDescriptor.from(
-					"Constant name to be alphanumeric"));
+				"Constant name to be alphanumeric");
 		}
 		final A_Type initializationType =
 			initializationExpression.expressionType();
 		if (initializationType.isTop())
 		{
 			throw new AvailRejectedParseException(
-				StringDescriptor.from(
-					"constant initialization expression to have a type"
-					+ " other than ⊤"));
+				"constant initialization expression to have a type"
+				+ " other than ⊤");
 		}
 		if (initializationType.isBottom())
 		{
 			throw new AvailRejectedParseException(
-				StringDescriptor.from(
-					"constant initialization expression to have a type"
-					+ " other than ⊥"));
+				"constant initialization expression to have a type"
+				+ " other than ⊥");
 		}
 
 		final A_Phrase constantDeclaration =

@@ -40,6 +40,7 @@ import static java.lang.Math.*;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
+import com.avail.compiler.ParsingOperation;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.MethodDefinitionException;
@@ -47,23 +48,25 @@ import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.*;
+import com.avail.optimizer.L2Translator;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.*;
 
 /**
- * A method maintains all definitions that have the same name.  At
- * compile time a name is looked up and the corresponding method is
- * stored as a literal in the object code.  At runtime the actual function is
- * located within the method and then invoked.  The methods also keep track of
+ * A method maintains all definitions that have the same name.  At compile time
+ * a name is looked up and the corresponding method is stored as a literal in
+ * the object code for a call site.  At runtime the actual function is located
+ * within the method and then invoked.  The methods also keep track of
  * bidirectional dependencies, so that a change of membership causes an
  * immediate invalidation of optimized level two code that depends on the
  * previous membership.
  *
- * <p>To support macros safely, a method must contain either all
- * {@linkplain MacroDefinitionDescriptor macro signatures} or all non-macro
- * {@linkplain DefinitionDescriptor signatures}, but not both.</p>
+ * <p>Methods and macros are stored in separate lists.  Note that macros may be
+ * polymorphic (multiple {@linkplain MacroDefinitionDescriptor definitions}),
+ * and a lookup structure is used at compile time to decide which macro is most
+ * specific.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -108,15 +111,14 @@ extends Descriptor
 
 		/**
 		 * The {@linkplain TupleDescriptor tuple} of {@linkplain
-		 * DefinitionDescriptor definitions} that constitute this multimethod
-		 * (or multimacro).
+		 * DefinitionDescriptor definitions} that constitute this multimethod.
 		 */
 		DEFINITIONS_TUPLE,
 
 		/**
 		 * A {@linkplain RawPojoDescriptor raw pojo} holding a {@link
 		 * LookupTree} used to determine the most specific method definition
-		 * that satisfies supplied argument types.  A {@linkplain
+		 * that satisfies the supplied argument types.  A {@linkplain
 		 * NilDescriptor#nil() nil} indicates the tree has not yet been
 		 * constructed.
 		 */
@@ -131,6 +133,12 @@ extends Descriptor
 		 * call's return value is expected to conform.  This type strengthening
 		 * is <em>assumed</em> to hold at compile time (of the call) and
 		 * <em>checked</em> at runtime.
+		 *
+		 * <p>When the {@link L2Translator} inlines a {@link Primitive} method
+		 * definition, it asks the primitive what type it guarantees ({@link
+		 * Primitive#returnTypeGuaranteedByVM(List)}) to return for the specific
+		 * provided argument types.  If that return type is sufficiently strong,
+		 * the above runtime check may be waived.</p>
 		 */
 		SEMANTIC_RESTRICTIONS_SET,
 
@@ -149,7 +157,32 @@ extends Descriptor
 		 * chunks.  This field holds the {@linkplain NilDescriptor#nil() nil}
 		 * object initially.
 		 */
-		DEPENDENT_CHUNKS_WEAK_SET_POJO
+		DEPENDENT_CHUNKS_WEAK_SET_POJO,
+
+		/**
+		 * The {@linkplain A_Tuple tuple} of {@linkplain
+		 * MacroDefinitionDescriptor macro definitions} that are defined for
+		 * this macro.
+		 */
+		MACRO_DEFINITIONS_TUPLE,
+
+		/**
+		 * A {@linkplain RawPojoDescriptor raw pojo} holding a {@link
+		 * LookupTree} used to determine the most specific {@linkplain
+		 * MacroDefinitionDescriptor macro definition} that satisfies the
+		 * supplied argument types.  A {@linkplain NilDescriptor#nil() nil}
+		 * indicates the tree has not yet been constructed.
+		 */
+		MACRO_TESTING_TREE,
+
+		/**
+		 * A {@linkplain A_Tuple tuple} of (unordered) tuples of {@linkplain
+		 * A_Function functions} to invoke each time a {@linkplain
+		 * ParsingOperation#RUN_PREFIX_FUNCTION} parsing operation is
+		 * encountered, which corresponds to reaching an occurrence of a
+		 * section checkpoint ("§") in the message name.
+		 */
+		MACRO_PREFIX_FUNCTIONS;
 	}
 
 	/**
@@ -778,24 +811,72 @@ extends Descriptor
 			/**
 			 * The definition's signature equals the criterion.
 			 */
-			SAME_TYPE,
+			SAME_TYPE
+			{
+				@Override
+				public void applyEffect (
+					final A_Definition undecidedDefinition,
+					final List<A_Definition> ifTruePositiveDefinitions,
+					final List<A_Definition> ifTrueUndecidedDefinitions,
+					final List<A_Definition> ifFalseUndecidedDefinitions)
+				{
+					ifTruePositiveDefinitions.add(undecidedDefinition);
+				}
+			},
 
 			/**
 			 * The definition is a proper ancestor of the criterion.
 			 */
-			PROPER_ANCESTOR_TYPE,
+			PROPER_ANCESTOR_TYPE
+			{
+				@Override
+				public void applyEffect (
+					final A_Definition undecidedDefinition,
+					final List<A_Definition> ifTruePositiveDefinitions,
+					final List<A_Definition> ifTrueUndecidedDefinitions,
+					final List<A_Definition> ifFalseUndecidedDefinitions)
+				{
+					ifTruePositiveDefinitions.add(undecidedDefinition);
+					ifFalseUndecidedDefinitions.add(undecidedDefinition);
+				}
+			},
 
 			/**
 			 * The definition is a proper descendant of the criterion.
 			 */
-			PROPER_DESCENDANT_TYPE,
+			PROPER_DESCENDANT_TYPE
+			{
+				@Override
+				public void applyEffect (
+					final A_Definition undecidedDefinition,
+					final List<A_Definition> ifTruePositiveDefinitions,
+					final List<A_Definition> ifTrueUndecidedDefinitions,
+					final List<A_Definition> ifFalseUndecidedDefinitions)
+				{
+					ifTrueUndecidedDefinitions.add(undecidedDefinition);
+				}
+			},
+
 
 			/**
 			 * The definition's signature and the criterion are not directly
 			 * related, but may share subtypes other than {@linkplain
 			 * BottomTypeDescriptor bottom} (⊥).
 			 */
-			UNRELATED_TYPE,
+			UNRELATED_TYPE
+			{
+				@Override
+				public void applyEffect (
+					final A_Definition undecidedDefinition,
+					final List<A_Definition> ifTruePositiveDefinitions,
+					final List<A_Definition> ifTrueUndecidedDefinitions,
+					final List<A_Definition> ifFalseUndecidedDefinitions)
+				{
+					ifTrueUndecidedDefinitions.add(undecidedDefinition);
+					ifFalseUndecidedDefinitions.add(undecidedDefinition);
+				}
+			},
+
 
 			/**
 			 * The definition's signature and the criterion have ⊥ as their
@@ -805,7 +886,18 @@ extends Descriptor
 			 * successful test against the criterion <em>eliminates</em> the
 			 * other definition from being considered possible.
 			 */
-			DISJOINT_TYPE;
+			DISJOINT_TYPE
+			{
+				@Override
+				public void applyEffect (
+					final A_Definition undecidedDefinition,
+					final List<A_Definition> ifTruePositiveDefinitions,
+					final List<A_Definition> ifTrueUndecidedDefinitions,
+					final List<A_Definition> ifFalseUndecidedDefinitions)
+				{
+					ifFalseUndecidedDefinitions.add(undecidedDefinition);
+				}
+			};
 
 			/**
 			 * Conditionally augment the supplied lists with the provided
@@ -828,33 +920,11 @@ extends Descriptor
 			 *            A list of definitions that will be applicable to some
 			 *            arguments if the arguments do not meet the criterion.
 			 */
-			public void applyEffect (
+			public abstract void applyEffect (
 				final A_Definition undecidedDefinition,
 				final List<A_Definition> ifTruePositiveDefinitions,
 				final List<A_Definition> ifTrueUndecidedDefinitions,
-				final List<A_Definition> ifFalseUndecidedDefinitions)
-			{
-				switch (this)
-				{
-					case SAME_TYPE:
-						ifTruePositiveDefinitions.add(undecidedDefinition);
-						break;
-					case PROPER_ANCESTOR_TYPE:
-						ifTruePositiveDefinitions.add(undecidedDefinition);
-						ifFalseUndecidedDefinitions.add(undecidedDefinition);
-						break;
-					case PROPER_DESCENDANT_TYPE:
-						ifTrueUndecidedDefinitions.add(undecidedDefinition);
-						break;
-					case UNRELATED_TYPE:
-						ifTrueUndecidedDefinitions.add(undecidedDefinition);
-						ifFalseUndecidedDefinitions.add(undecidedDefinition);
-						break;
-					case DISJOINT_TYPE:
-						ifFalseUndecidedDefinitions.add(undecidedDefinition);
-						break;
-				}
-			}
+				final List<A_Definition> ifFalseUndecidedDefinitions);
 
 			/**
 			 * Compare two signatures (tuple types).  The first is the
@@ -966,9 +1036,12 @@ extends Descriptor
 		return e == OWNING_BUNDLES
 			|| e == DEFINITIONS_TUPLE
 			|| e == PRIVATE_TESTING_TREE
-			|| e == DEPENDENT_CHUNKS_WEAK_SET_POJO
 			|| e == SEMANTIC_RESTRICTIONS_SET
-			|| e == SEALED_ARGUMENTS_TYPES_TUPLE;
+			|| e == SEALED_ARGUMENTS_TYPES_TUPLE
+			|| e == DEPENDENT_CHUNKS_WEAK_SET_POJO
+			|| e == MACRO_DEFINITIONS_TUPLE
+			|| e == MACRO_TESTING_TREE
+			|| e == MACRO_PREFIX_FUNCTIONS;
 	}
 
 	@Override
@@ -978,7 +1051,9 @@ extends Descriptor
 		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
-		final int size = object.definitionsTuple().tupleSize();
+		final int size =
+			object.definitionsTuple().tupleSize()
+			+ object.macroDefinitionsTuple().tupleSize();
 		aStream.append(Integer.toString(size));
 		aStream.append(" definition");
 		if (size != 1)
@@ -1005,6 +1080,16 @@ extends Descriptor
 		synchronized (object)
 		{
 			return object.slot(DEFINITIONS_TUPLE);
+		}
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_MacroDefinitionsTuple (final AvailObject object)
+	{
+		assert isShared();
+		synchronized (object)
+		{
+			return object.slot(MACRO_DEFINITIONS_TUPLE);
 		}
 	}
 
@@ -1465,6 +1550,18 @@ extends Descriptor
 			{
 				return false;
 			}
+			if (object.slot(MACRO_DEFINITIONS_TUPLE).tupleSize() > 0)
+			{
+				return false;
+			}
+			for (final A_Tuple nthPrefixFunctions
+				: object.slot(MACRO_PREFIX_FUNCTIONS))
+			{
+				if (nthPrefixFunctions.tupleSize() > 0)
+				{
+					return false;
+				}
+			}
 			return true;
 		}
 	}
@@ -1473,6 +1570,21 @@ extends Descriptor
 	A_Set o_Bundles (final AvailObject object)
 	{
 		return object.slot(OWNING_BUNDLES);
+	}
+
+	@Override
+	A_Tuple o_PrefixFunctions (final AvailObject object)
+	{
+		return object.slot(MACRO_PREFIX_FUNCTIONS);
+	}
+
+	@Override
+	public void o_PrefixFunctions(
+		final AvailObject object,
+		final A_Tuple prefixFunctions)
+	{
+		assert prefixFunctions.tupleSize() == object.slot(NUM_ARGS);
+		object.setSlot(MACRO_PREFIX_FUNCTIONS, prefixFunctions);
 	}
 
 	@Override
@@ -1485,6 +1597,10 @@ extends Descriptor
 		object.slot(OWNING_BUNDLES).writeTo(writer);
 		writer.write("definitions");
 		object.slot(DEFINITIONS_TUPLE).writeTo(writer);
+		writer.write("macro definitions");
+		object.slot(MACRO_DEFINITIONS_TUPLE).writeTo(writer);
+		writer.write("macro prefix functions");
+		object.slot(MACRO_PREFIX_FUNCTIONS).writeTo(writer);
 		writer.endObject();
 	}
 
@@ -1498,6 +1614,10 @@ extends Descriptor
 		object.slot(OWNING_BUNDLES).writeSummaryTo(writer);
 		writer.write("definitions");
 		object.slot(DEFINITIONS_TUPLE).writeSummaryTo(writer);
+		writer.write("macro definitions");
+		object.slot(MACRO_DEFINITIONS_TUPLE).writeSummaryTo(writer);
+		writer.write("macro prefix functions");
+		object.slot(MACRO_PREFIX_FUNCTIONS).writeSummaryTo(writer);
 		writer.endObject();
 	}
 
@@ -1534,6 +1654,12 @@ extends Descriptor
 		result.setSlot(SEMANTIC_RESTRICTIONS_SET, SetDescriptor.empty());
 		result.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, TupleDescriptor.empty());
 		result.setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, NilDescriptor.nil());
+		result.setSlot(MACRO_DEFINITIONS_TUPLE, TupleDescriptor.empty());
+		result.setSlot(MACRO_TESTING_TREE, NilDescriptor.nil());
+		result.setSlot(
+			MACRO_PREFIX_FUNCTIONS,
+			RepeatedElementTupleDescriptor.createRepeatedElementTuple(
+				numArgs, TupleDescriptor.empty()));
 		result.makeShared();
 		return result;
 	}

@@ -489,8 +489,6 @@ public final class AvailLoader
 	 *
 	 * @param methodName
 	 *        The macro's name, an {@linkplain AtomDescriptor atom}.
-	 * @param prefixFunctions
-	 *            The tuple of prefix functions.
 	 * @param macroBody
 	 *        A {@linkplain FunctionDescriptor function} that manipulates parse
 	 *        nodes.
@@ -501,7 +499,6 @@ public final class AvailLoader
 	 */
 	public void addMacroBody (
 			final A_Atom methodName,
-			final A_Tuple prefixFunctions,
 			final A_Function macroBody)
 		throws MalformedMessageException, SignatureException
 	{
@@ -517,14 +514,10 @@ public final class AvailLoader
 		final A_Method method = bundle.bundleMethod();
 		// Make it so we can safely hold onto these things in the VM.
 		methodName.makeShared();
-		prefixFunctions.makeShared();
 		macroBody.makeShared();
 		// Add the macro definition.
 		final AvailObject macroDefinition = MacroDefinitionDescriptor.create(
-			method,
-			module,
-			prefixFunctions,
-			macroBody);
+			method, module, macroBody);
 		module().moduleAddDefinition(macroDefinition);
 		final A_Type macroBodyType = macroBody.kind();
 		for (final A_Definition existingDefinition : method.definitionsTuple())
@@ -569,7 +562,40 @@ public final class AvailLoader
 				theModule.moduleAddDefinition(macroDefinition);
 			}
 		});
+	}
 
+	/**
+	 * Add the specified {@link A_Function} as a macro prefix function.  A
+	 * prefix function runs at specific section checkpoints while parsing a
+	 * macro invocation, allowing actions like declarations of local variables.
+	 *
+	 * @param methodName The {@link A_Atom} naming the method.
+	 * @param index The prefix function subscript.
+	 * @param prefixFunction The prefix function.
+	 * @throws MalformedMessageException If the message is malformed.
+	 */
+	public void addPrefixFunction (
+			final A_Atom methodName,
+			final int index,
+			final A_Function prefixFunction)
+		throws MalformedMessageException
+	{
+		final A_Bundle bundle = methodName.bundleOrCreate();
+		final A_Method method = bundle.bundleMethod();
+		runtime.addPrefixFunction(method, index, prefixFunction);
+		final A_Module theModule = module;
+		final A_BundleTree root = rootBundleTree();
+		theModule.lock(new Continuation0()
+		{
+			@Override
+			public void value ()
+			{
+				theModule.moduleAddPrefixFunction(
+					method, index, prefixFunction);
+				root.addBundle(bundle);
+				root.flushForNewOrChangedBundle(bundle);
+			}
+		});
 	}
 
 	/**

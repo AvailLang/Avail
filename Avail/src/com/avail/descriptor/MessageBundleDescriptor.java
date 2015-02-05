@@ -90,9 +90,9 @@ extends Descriptor
 		 * method name's tokens. These tokens may be a single operator
 		 * character, a sequence of alphanumerics, the underscore "_", an open
 		 * guillemet "«", a close guillemet "»", the double-dagger "‡", the
-		 * ellipsis "…", or any backquoted character "`x". Some of the parsing
-		 * instructions index this tuple (e.g., to represent parsing a
-		 * particular keyword). This tuple is produced by the {@link
+		 * ellipsis "…", or any backquoted non-alphanumeric character "`$". Some
+		 * of the parsing instructions index this tuple (e.g., to represent
+		 * parsing a particular keyword). This tuple is produced by the {@link
 		 * MessageSplitter}.
 		 */
 		MESSAGE_PARTS,

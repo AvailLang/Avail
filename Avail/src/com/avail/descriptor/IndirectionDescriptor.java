@@ -4737,4 +4737,29 @@ extends AbstractDescriptor
 	{
 		o_Traversed(object).emitAllForSuperSendOn(codeGenerator);
 	}
+
+	@Override
+	A_Tuple o_MacroDefinitionsTuple (final AvailObject object)
+	{
+		return o_Traversed(object).macroDefinitionsTuple();
+	}
+
+	@Override
+	public void o_PrefixFunctions(
+		final AvailObject object,
+		final A_Tuple prefixFunctions)
+	{
+		o_Traversed(object).prefixFunctions(prefixFunctions);
+	}
+
+	@Override
+	void o_ModuleAddPrefixFunction(
+		final AvailObject object,
+		final A_Method method,
+		final int index,
+		final A_Function prefixFunction)
+	{
+		o_Traversed(object).moduleAddPrefixFunction(
+			method, index, prefixFunction);
+	}
 }

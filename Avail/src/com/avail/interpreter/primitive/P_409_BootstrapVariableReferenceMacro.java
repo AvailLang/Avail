@@ -67,9 +67,8 @@ public final class P_409_BootstrapVariableReferenceMacro extends Primitive
 		if (!declaration.declarationKind().isVariable())
 		{
 			throw new AvailRejectedParseException(
-				StringDescriptor.from(
-					"a variable that supports reference-taking, not a "
-					+ declaration.declarationKind().nativeKindName()));
+				"a variable that supports reference-taking, not a "
+				+ declaration.declarationKind().nativeKindName());
 		}
 		final A_Phrase reference = ReferenceNodeDescriptor.fromUse(
 			variableUse);

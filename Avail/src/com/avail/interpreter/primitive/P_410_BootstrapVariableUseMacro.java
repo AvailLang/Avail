@@ -75,8 +75,7 @@ public final class P_410_BootstrapVariableUseMacro extends Primitive
 		if (actualToken.tokenType() != TokenType.KEYWORD)
 		{
 			throw new AvailRejectedParseException(
-				StringDescriptor.from(
-					"variable name to be a keyword token"));
+				"variable name to be a keyword token");
 		}
 		final A_String variableNameString = actualToken.string();
 		final A_Map fiberGlobals = interpreter.fiber().fiberGlobals();
@@ -118,10 +117,9 @@ public final class P_410_BootstrapVariableUseMacro extends Primitive
 		if (!module.constantBindings().hasKey(variableNameString))
 		{
 			throw new AvailRejectedParseException(
-				StringDescriptor.from(
-					"variable "
-					+ variableNameString.toString()
-					+ " to be in scope"));
+				"variable "
+				+ variableNameString.toString()
+				+ " to be in scope");
 		}
 		final A_BasicObject variableObject =
 			module.constantBindings().mapAt(variableNameString);

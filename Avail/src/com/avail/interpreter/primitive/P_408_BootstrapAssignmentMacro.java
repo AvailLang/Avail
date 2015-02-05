@@ -68,9 +68,8 @@ public final class P_408_BootstrapAssignmentMacro extends Primitive
 		if (!declaration.declarationKind().isVariable())
 		{
 			throw new AvailRejectedParseException(
-				StringDescriptor.from(
-					"a name of a variable, not a "
-					+ declaration.declarationKind().nativeKindName()));
+				"a name of a variable, not a "
+				+ declaration.declarationKind().nativeKindName());
 		}
 		if (!valueExpression.expressionType().isSubtypeOf(
 			declaration.declaredType()))

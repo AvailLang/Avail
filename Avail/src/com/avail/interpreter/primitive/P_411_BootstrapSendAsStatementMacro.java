@@ -66,8 +66,7 @@ public final class P_411_BootstrapSendAsStatementMacro extends Primitive
 		if (!sendNode.expressionType().isTop())
 		{
 			throw new AvailRejectedParseException(
-				StringDescriptor.from(
-					"statement's type to be ⊤"));
+				"statement's type to be ⊤");
 		}
 		return interpreter.primitiveSuccess(sendNode);
 	}

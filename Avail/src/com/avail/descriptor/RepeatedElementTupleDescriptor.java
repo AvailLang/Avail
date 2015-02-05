@@ -34,10 +34,10 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.RepeatedElementTupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.RepeatedElementTupleDescriptor.ObjectSlots.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.utility.Generator;
 
 /**
  * {@code RepeatedElementTupleDescriptor} represents a tuple with a single
@@ -168,42 +168,31 @@ extends TupleDescriptor
 			return true;
 		}
 
-		// If the objects do not refer to the same memory but the tuples are
-		// identical,
-		if (object.equals(aRepeatedElementTuple))
+		if (object.slot(ELEMENT).equals(aRepeatedElementTuple.tupleAt(1)))
 		{
-			// indirect one to the other if it is not shared.
-			if (!isShared())
+			// The elements are the same, so the subranges must be as well.
+			// Coalesce equal tuples as a nicety.
+			if (object.slot(SIZE) == aRepeatedElementTuple.tupleSize())
 			{
-				aRepeatedElementTuple.makeImmutable();
-				object.becomeIndirectionTo(aRepeatedElementTuple);
+				// Indirect one to the other if it is not shared.
+				if (!isShared())
+				{
+					aRepeatedElementTuple.makeImmutable();
+					object.becomeIndirectionTo(aRepeatedElementTuple);
+				}
+				else if (!aRepeatedElementTuple.descriptor().isShared())
+				{
+					object.makeImmutable();
+					aRepeatedElementTuple.becomeIndirectionTo(object);
+				}
 			}
-			else if (!aRepeatedElementTuple.descriptor().isShared())
-			{
-				object.makeImmutable();
-				aRepeatedElementTuple.becomeIndirectionTo(object);
-			}
-
-			// If the subranges start at the same place, they are the same.
-			if (startIndex1 == startIndex2)
-			{
-				return true;
-			}
-			return false;
+			// Regardless of the starting positions, the subranges are the same.
+			return true;
 		}
 
-		// Finally, check the subranges.
-		final A_Tuple first = object.copyTupleFromToCanDestroy(
-			startIndex1,
-			endIndex1,
-			false);
-		final A_Tuple second = aRepeatedElementTuple.copyTupleFromToCanDestroy(
-			startIndex2,
-			startIndex2 + endIndex1 - startIndex1,
-			false);
-		return first.equals(second);
+		// The elements differ, so the subranges must differ.
+		return false;
 	}
-
 
 	@Override
 	A_Tuple o_ConcatenateWith (
@@ -248,7 +237,7 @@ extends TupleDescriptor
 				}
 
 				// Otherwise, create a new repeated element tuple.
-				return createRepeatedElementTuple(newSize, object.slot(ELEMENT));
+				return createRepeatedElementTuple(newSize, element);
 			}
 		}
 		if (otherTuple.treeTupleLevel() == 0)
@@ -280,21 +269,20 @@ extends TupleDescriptor
 
 		// If the objects do not refer to the same memory, check if the tuples
 		// are identical.
-		final AvailObject firstTraversed = object.traversed();
 		final AvailObject secondTraversed = aRepeatedElementTuple.traversed();
 
 		// Check that the slots match.
-		final int firstHash = firstTraversed.slot(HASH_OR_ZERO);
+		final int firstHash = object.slot(HASH_OR_ZERO);
 		final int secondHash = secondTraversed.slot(HASH_OR_ZERO);
 		if (firstHash != 0 && secondHash != 0 && firstHash != secondHash)
 		{
 			return false;
 		}
-		if (firstTraversed.slot(SIZE) != secondTraversed.slot(SIZE))
+		if (object.slot(SIZE) != secondTraversed.slot(SIZE))
 		{
 			return false;
 		}
-		if (!firstTraversed.slot(ELEMENT).equals(secondTraversed.slot(ELEMENT)))
+		if (!object.slot(ELEMENT).equals(secondTraversed.slot(ELEMENT)))
 		{
 			return false;
 		}
@@ -342,18 +330,97 @@ extends TupleDescriptor
 		// index we should have newValueObject. This may destroy the original
 		// tuple if canDestroy is true.
 		assert index >= 1 && index <= object.tupleSize();
-		if (!canDestroy || !isMutable())
+		final AvailObject element = object.slot(ELEMENT);
+		if (element.equals(newValueObject))
 		{
-			/* TODO: [LAS] Later - Create nybble or byte tuples if appropriate. */
-			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
-				index,
-				newValueObject,
-				true);
+			// Replacement is the same as the repeating element.
+			if (!canDestroy)
+			{
+				object.makeImmutable();
+			}
+			return object;
 		}
-		object.objectTupleAtPut(index, newValueObject);
-		// Invalidate the hash value.
-		object.hashOrZero(0);
-		return object;
+		final int size = object.slot(SIZE);
+		// The result will be reasonably small, so make it flat.
+		if (size < 64)
+		{
+			element.makeImmutable();
+			A_Tuple result = null;
+			if (element.isInt())
+			{
+				// Make it a numeric tuple.
+				result = TupleDescriptor.fromIntegerList(
+					Collections.nCopies(size, element.extractInt()));
+			}
+			else if (element.isCharacter())
+			{
+				// Make it a string.
+				final int codePoint = element.codePoint();
+				if (codePoint <= 255)
+				{
+					result = StringDescriptor.mutableByteStringFromGenerator(
+						size,
+						new Generator<Integer>()
+						{
+							@Override
+							public Integer value ()
+							{
+								return codePoint;
+							}
+						});
+				}
+				else if (codePoint <= 65535)
+				{
+					result = StringDescriptor.mutableTwoByteStringFromGenerator(
+						size,
+						new Generator<Integer>()
+						{
+							@Override
+							public Integer value ()
+							{
+								return codePoint;
+							}
+						});
+				}
+			}
+			if (result == null)
+			{
+				result = ObjectTupleDescriptor.createUninitialized(size);
+				for (int i = 1; i <= size; i++)
+				{
+					result.objectTupleAtPut(i, element);
+				}
+			}
+			// Replace the element, which might need to switch representation in
+			// some cases which we assume are infrequent.
+			return result.tupleAtPuttingCanDestroy(index, newValueObject, true);
+		}
+		// Otherwise, a flat tuple would be unacceptably large, so use append
+		// and concatenate to construct what will probably be a tree tuple.
+		final A_Tuple left = object.copyTupleFromToCanDestroy(
+			1, index - 1, false);
+		final A_Tuple right = object.copyTupleFromToCanDestroy(
+			index + 1, size, false);
+		return left.appendCanDestroy(newValueObject, true).concatenateWith(
+			right, true);
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_AppendCanDestroy (
+		final AvailObject object,
+		final A_BasicObject newElement,
+		final boolean canDestroy)
+	{
+		if (object.slot(ELEMENT).equals(newElement))
+		{
+			if (canDestroy && isMutable())
+			{
+				object.setSlot(SIZE, object.slot(SIZE) + 1);
+				return object;
+			}
+			return createRepeatedElementTuple(object.slot(SIZE), newElement);
+		}
+		return super.o_AppendCanDestroy(object, newElement, canDestroy);
 	}
 
 	@Override @AvailMethod
@@ -446,13 +513,7 @@ extends TupleDescriptor
 		// create a normal tuple with them in it instead.
 		if (size < minimumRepeatSize)
 		{
-			final List<A_BasicObject> members =
-				new ArrayList<A_BasicObject>(size);
-			for (int i = 0; i < size; i++)
-			{
-				members.add(element);
-			}
-			return TupleDescriptor.fromList(members);
+			return TupleDescriptor.fromList(Collections.nCopies(size, element));
 		}
 
 		// No other efficiency shortcuts. Create a repeated element tuple.

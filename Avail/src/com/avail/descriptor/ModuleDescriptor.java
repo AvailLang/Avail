@@ -216,11 +216,18 @@ extends Descriptor
 		ENTRY_POINTS,
 
 		/**
+		 * A {@linkplain TupleDescriptor tuple} of tuples containing a
+		 * {@linkplain A_Method method}, an {@linkplain IntegerDescriptor
+		 * index}, and a {@linkplain A_Function function}.
+		 */
+		PREFIX_FUNCTIONS,
+
+		/**
 		 * A {@linkplain TupleDescriptor tuple} of {@linkplain
 		 * FunctionDescriptor functions} that should be applied when this
 		 * {@linkplain ModuleDescriptor module} is unloaded.
 		 */
-		UNLOAD_FUNCTIONS
+		UNLOAD_FUNCTIONS;
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
@@ -239,6 +246,7 @@ extends Descriptor
 			|| e == SEMANTIC_RESTRICTIONS
 			|| e == SEALS
 			|| e == ENTRY_POINTS
+			|| e == PREFIX_FUNCTIONS
 			|| e == UNLOAD_FUNCTIONS
 			|| e == FLAGS_AND_COUNTER;
 	}
@@ -510,6 +518,27 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	void o_ModuleAddPrefixFunction (
+		final AvailObject object,
+		final A_Method method,
+		final int index,
+		final A_Function prefixFunction)
+	{
+		synchronized (object)
+		{
+			final A_Tuple triple = TupleDescriptor.from(
+				method,
+				IntegerDescriptor.fromInt(index),
+				prefixFunction);
+			A_Tuple prefixFunctions = object.slot(PREFIX_FUNCTIONS);
+			prefixFunctions = prefixFunctions.appendCanDestroy(
+				triple, true);
+			prefixFunctions = prefixFunctions.makeShared();
+			object.setSlot(PREFIX_FUNCTIONS, prefixFunctions);
+		}
+	}
+
+	@Override @AvailMethod
 	void o_AddVariableBinding (
 		final AvailObject object,
 		final A_String name,
@@ -775,6 +804,15 @@ extends Descriptor
 									}
 								}
 							}
+							// Remove prefix functions.
+							for (final A_Tuple triple
+								: object.slot(PREFIX_FUNCTIONS))
+							{
+								runtime.removePrefixFunction(
+									triple.tupleAt(1),
+									triple.tupleAt(2).extractInt(),
+									triple.tupleAt(3));
+							}
 						}
 						afterRemoval.value();
 					}
@@ -971,6 +1009,7 @@ extends Descriptor
 		module.setSlot(SEMANTIC_RESTRICTIONS, emptySet);
 		module.setSlot(SEALS, emptyMap);
 		module.setSlot(ENTRY_POINTS, emptyMap);
+		module.setSlot(PREFIX_FUNCTIONS, emptyTuple);
 		module.setSlot(UNLOAD_FUNCTIONS, emptyTuple);
 		module.setSlot(COUNTER, 0);
 		// Adding the module to its ancestors set will cause recursive scanning

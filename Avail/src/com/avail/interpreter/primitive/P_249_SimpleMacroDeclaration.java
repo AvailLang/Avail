@@ -75,6 +75,7 @@ extends Primitive
 		final A_String string = args.get(0);
 		final A_Tuple prefixFunctions = args.get(1);
 		final A_Function function = args.get(2);
+
 		final A_Fiber fiber = interpreter.fiber();
 		final AvailLoader loader = fiber.availLoader();
 		if (loader == null)
@@ -133,9 +134,9 @@ extends Primitive
 					{
 						try
 						{
+							final A_Atom atom = loader.lookupName(string);
 							loader.addMacroBody(
-								loader.lookupName(string),
-								prefixFunctions,
+								atom,
 								function);
 							int counter = 1;
 							for (final A_Function prefixFunction
@@ -144,8 +145,11 @@ extends Primitive
 								prefixFunction.code().setMethodName(
 									StringDescriptor.format(
 										"Macro prefix #%d of %s",
-										counter++,
+										counter,
 										string));
+								loader.addPrefixFunction(
+									atom, counter, prefixFunction);
+								counter++;
 							}
 							function.code().setMethodName(
 								StringDescriptor.format(

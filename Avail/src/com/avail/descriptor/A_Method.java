@@ -254,4 +254,27 @@ extends A_ChunkDependable
 	 *        A message bundle.
 	 */
 	void methodAddBundle (A_Bundle bundle);
+
+	/**
+	 * Answer the {@linkplain TupleDescriptor tuple} of tuples of macro prefix
+	 * {@linkplain FunctionDescriptor functions} for this method.  These
+	 * functions allow parsing actions to be performed while parsing is still
+	 * occurring, typically to bring new variable and constant {@linkplain
+	 * DeclarationNodeDescriptor declarations} into scope.
+	 *
+	 * @return This method's macro prefix function lists.
+	 */
+	A_Tuple prefixFunctions ();
+
+	/**
+	 * Replace the method's tuple of macro prefix function tuples.
+	 *
+	 * @param functionTuples A tuple of tuples of functions.
+	 */
+	void prefixFunctions (A_Tuple functionTuples);
+
+	/**
+	 * @return
+	 */
+	A_Tuple macroDefinitionsTuple ();
 }

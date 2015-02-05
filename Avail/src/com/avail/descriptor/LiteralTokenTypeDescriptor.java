@@ -172,7 +172,7 @@ extends TypeDescriptor
 		// Note that the 'inner' type must be made immutable in case one of the
 		// input literal token types is mutable (and may be destroyed
 		// *recursively* by post-primitive code).
-		final A_BasicObject instance = object.literalType().typeIntersection(
+		final A_Type instance = object.literalType().typeIntersection(
 			aLiteralTokenType.literalType());
 		instance.makeImmutable();
 		return LiteralTokenTypeDescriptor.create(instance);
@@ -244,7 +244,7 @@ extends TypeDescriptor
 	 * @param literalType The type with which to constrain literal values.
 	 * @return A {@link LiteralTokenTypeDescriptor literal token type}.
 	 */
-	public static AvailObject create (final A_BasicObject literalType)
+	public static AvailObject create (final A_Type literalType)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(LITERAL_TYPE, literalType.makeImmutable());

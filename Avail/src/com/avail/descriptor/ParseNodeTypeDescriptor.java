@@ -292,7 +292,7 @@ extends TypeDescriptor
 		 *        which is of the type being constructed.
 		 * @return The new parse node type, whose kind is the receiver.
 		 */
-		public final AvailObject create (final A_Type expressionType)
+		public final A_Type create (final A_Type expressionType)
 		{
 			A_Type boundedExpressionType = expressionType;
 			final AvailObject type = mutable.create();
@@ -615,41 +615,18 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link ParseNodeTypeDescriptor}.
+	 * Answer a list node type for the given sequence of types.  That's
+	 * the type of a list node which when evaluated will produce values
+	 * of those corresponding types.
 	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param types
+	 *        The types of values produced by such a list node's
+	 *        corresponding expressions.
+	 * @return A list node type.
 	 */
-	public ParseNodeTypeDescriptor (final Mutability mutability)
+	public static A_Type list (final A_Type... types)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
-	}
-
-	/** The mutable {@link ParseNodeTypeDescriptor}. */
-	static final ParseNodeTypeDescriptor mutable =
-		new ParseNodeTypeDescriptor(Mutability.MUTABLE);
-
-	@Override
-	ParseNodeTypeDescriptor mutable ()
-	{
-		return mutable;
-	}
-
-	/** The shared {@link ParseNodeTypeDescriptor}. */
-	private static final ParseNodeTypeDescriptor shared =
-		new ParseNodeTypeDescriptor(Mutability.SHARED);
-
-	@Override
-	ParseNodeTypeDescriptor immutable ()
-	{
-		// There is no immutable descriptor.
-		return shared;
-	}
-
-	@Override
-	ParseNodeTypeDescriptor shared ()
-	{
-		return shared;
+		return LIST_NODE.create(TupleTypeDescriptor.forTypes(types));
 	}
 
 	/**
@@ -695,5 +672,43 @@ extends TypeDescriptor
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Construct a new {@link ParseNodeTypeDescriptor}.
+	 *
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 */
+	public ParseNodeTypeDescriptor (final Mutability mutability)
+	{
+		super(mutability, ObjectSlots.class, IntegerSlots.class);
+	}
+
+	/** The mutable {@link ParseNodeTypeDescriptor}. */
+	static final ParseNodeTypeDescriptor mutable =
+		new ParseNodeTypeDescriptor(Mutability.MUTABLE);
+
+	@Override
+	ParseNodeTypeDescriptor mutable ()
+	{
+		return mutable;
+	}
+
+	/** The shared {@link ParseNodeTypeDescriptor}. */
+	private static final ParseNodeTypeDescriptor shared =
+		new ParseNodeTypeDescriptor(Mutability.SHARED);
+
+	@Override
+	ParseNodeTypeDescriptor immutable ()
+	{
+		// There is no immutable descriptor.
+		return shared;
+	}
+
+	@Override
+	ParseNodeTypeDescriptor shared ()
+	{
+		return shared;
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * P_400_BootstrapBlockAfterArgumentPrefix.java
+ * P_400_BootstrapPrefixBlockArgument.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -37,24 +37,25 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 
 /**
- * The {@code P_400_BootstrapBlockAfterArgumentPrefix} primitive is used as a
- * prefix function for bootstrapping argument declarations within a {@link
+ * The {@code P_400_BootstrapPrefixBlockArgument} primitive is used as a prefix
+ * function for bootstrapping argument declarations within a {@link
  * P_404_BootstrapBlockMacro block}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_400_BootstrapBlockAfterArgumentPrefix extends Primitive
+public final class P_400_BootstrapPrefixBlockArgument extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_400_BootstrapBlockAfterArgumentPrefix().init(
+		new P_400_BootstrapPrefixBlockArgument().init(
 			1, Bootstrap);
 
 	@Override
@@ -64,7 +65,11 @@ public final class P_400_BootstrapBlockAfterArgumentPrefix extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_Tuple allBlockArguments = args.get(0);
+		final A_Phrase blockArgumentsPhrase = args.get(0);
+
+		final A_Tuple allBlockArguments =
+			blockArgumentsPhrase.expressionsTuple();
+
 		final AvailLoader loader = interpreter.fiber().availLoader();
 		if (loader == null)
 		{
@@ -83,16 +88,14 @@ public final class P_400_BootstrapBlockAfterArgumentPrefix extends Primitive
 		final A_Token argToken = labelPhrase.token();
 		final A_Type argType = typePhrase.token().literal();
 		assert argType.isType();
-
-		if (argType.isTop() || argType.isBottom())
+		if (argType.isBottom())
 		{
-			return interpreter.primitiveFailure(
-				E_DECLARATION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM);
+			throw new AvailRejectedParseException(
+				"block parameter type not to be ⊥");
 		}
 
 		final A_Phrase argDeclaration =
 			DeclarationNodeDescriptor.newArgument(argToken, argType);
-
 		// Add the binding and we're done.
 		final AvailErrorCode error = loader.addDeclaration(argDeclaration);
 		if (error != null)
@@ -107,17 +110,28 @@ public final class P_400_BootstrapBlockAfterArgumentPrefix extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				/* Optional arguments section */
-				TupleTypeDescriptor.zeroOrOneOf(
-					/* Arguments are present */
-					TupleTypeDescriptor.oneOrMoreOf(
-						/* An argument */
-						TupleTypeDescriptor.forTypes(
-							/* Argument name */
-							LITERAL_NODE.create(TOKEN.o()),
-							/* Argument type */
-							LITERAL_NODE.create(
-								InstanceMetaDescriptor.anyMeta()))))),
+				/* Macro argument is a parse node. */
+				LIST_NODE.create(
+					/* Optional arguments section. */
+					TupleTypeDescriptor.zeroOrOneOf(
+						/* Arguments are present. */
+						TupleTypeDescriptor.oneOrMoreOf(
+							/* An argument. */
+							TupleTypeDescriptor.forTypes(
+								/* Argument name, a literal node holding a
+								 * synthetic token holding the real token.
+								 */
+								LITERAL_NODE.create(
+									/* The outer synthetic literal token. */
+									LiteralTokenTypeDescriptor.create(
+										/* Inner original token. */
+										TOKEN.o())),
+								/* Argument type. */
+								LITERAL_NODE.create(
+									/* The synthetic literal token. */
+									LiteralTokenTypeDescriptor.create(
+										/* Holding the type. */
+										InstanceMetaDescriptor.anyMeta()))))))),
 			TOP.o());
 	}
 
@@ -127,6 +141,7 @@ public final class P_400_BootstrapBlockAfterArgumentPrefix extends Primitive
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			SetDescriptor.fromCollection(Arrays.asList(
 				E_DECLARATION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM.numericCode(),
+				E_LOADING_IS_OVER.numericCode(),
 				E_LOCAL_DECLARATION_SHADOWS_ANOTHER.numericCode())));
 	}
 }

@@ -61,7 +61,7 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_BasicObject literalValueType = args.get(0);
+		final A_Type literalValueType = args.get(0);
 		return interpreter.primitiveSuccess(
 			LiteralTokenTypeDescriptor.create(literalValueType));
 	}

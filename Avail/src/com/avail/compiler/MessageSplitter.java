@@ -1855,7 +1855,7 @@ public class MessageSplitter
 	 * group. The message "«very»#good" accepts a single argument: the count of
 	 * occurrences of "very".</p>
 	 */
-	final class Counter
+	final static class Counter
 	extends Expression
 	{
 		/** The {@linkplain Group group} whose occurrences should be counted. */
@@ -2053,7 +2053,7 @@ public class MessageSplitter
 	 * AtomDescriptor#trueObject() true} if the token "very" occurred and
 	 * {@linkplain AtomDescriptor#falseObject() false} if it did not.</p>
 	 */
-	final class Optional
+	final static class Optional
 	extends Expression
 	{
 		/** The optional {@link Sequence}. */
@@ -2394,7 +2394,7 @@ public class MessageSplitter
 	 * insensitive parsing. It is indicated by a trailing {@linkplain
 	 * StringDescriptor#tilde() tilde} ("~").
 	 */
-	final class CaseInsensitive
+	final static class CaseInsensitive
 	extends Expression
 	{
 		/**
@@ -2523,7 +2523,7 @@ public class MessageSplitter
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
-	final class Alternation
+	final static class Alternation
 	extends Expression
 	{
 		/** The alternative {@linkplain Expression expressions}. */
@@ -2721,7 +2721,7 @@ public class MessageSplitter
 	 * failed parse if some method like "_cheese" is not present.
 	 * </p>
 	 */
-	final class NumberedChoice
+	final static class NumberedChoice
 	extends Expression
 	{
 		/**
@@ -3787,6 +3787,15 @@ public class MessageSplitter
 	}
 
 	/**
+	 * Answer the number of section checkpoints (§) present in the method name.
+	 *
+	 * @return The number of section checkpoints.
+	 */
+	public int numberOfSectionCheckpoints ()
+	{
+		return numberOfSectionCheckpoints;
+	}
+	/**
 	 * Check that an {@linkplain DefinitionDescriptor implementation} with
 	 * the given {@linkplain FunctionTypeDescriptor signature} is appropriate
 	 * for a message like this.
@@ -3868,7 +3877,7 @@ public class MessageSplitter
 	 * @param errorCode The {@link AvailErrorCode} that indicates the problem.
 	 * @throws SignatureException Always, with the given error code.
 	 */
-	void throwSignatureException (
+	static void throwSignatureException (
 			final AvailErrorCode errorCode)
 		throws SignatureException
 	{

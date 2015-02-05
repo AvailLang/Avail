@@ -71,9 +71,7 @@ public final class P_407_BootstrapInitializingVariableDeclarationMacro extends P
 		if (type.isTop() || type.isBottom())
 		{
 			throw new AvailRejectedParseException(
-				StringDescriptor.from(
-					"variable's declared type to be something other than "
-					+ type));
+				"variable's declared type to be something other than " + type);
 		}
 		if (!initializingExpression.expressionType().isSubtypeOf(type))
 		{

@@ -1125,7 +1125,7 @@ extends Descriptor
 	 * one of the copies is not kept after the call.
 	 */
 	@Override @AvailMethod
-	public A_Tuple o_AppendCanDestroy (
+	A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
 		final A_BasicObject newElement,
 		final boolean canDestroy)

@@ -4577,4 +4577,29 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	A_Tuple o_MacroDefinitionsTuple (
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	public void o_PrefixFunctions(
+		final AvailObject object,
+		final A_Tuple prefixFunctions)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_ModuleAddPrefixFunction (
+		final AvailObject object,
+		final A_Method method,
+		final int index,
+		final A_Function prefixFunction)
+	{
+		throw unsupportedOperationException();
+	}
 }

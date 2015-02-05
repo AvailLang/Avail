@@ -83,14 +83,6 @@ extends DefinitionDescriptor
 		MODULE,
 
 		/**
-		 * The {@linkplain TupleDescriptor tuple} of prefix {@linkplain
-		 * FunctionDescriptor functions} to invoke at parse points corresponding
-		 * to occurrences of the {@linkplain StringDescriptor#sectionSign()
-		 * section sign} (§) in the method name.
-		 */
-		PREFIX_FUNCTIONS,
-
-		/**
 		 * The {@linkplain FunctionDescriptor function} to invoke to transform
 		 * the (complete) argument parse nodes into a suitable replacement parse
 		 * node.
@@ -114,13 +106,6 @@ extends DefinitionDescriptor
 		final AvailObject object)
 	{
 		return object.bodyBlock().kind();
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_PrefixFunctions (
-		final AvailObject object)
-	{
-		return object.slot(PREFIX_FUNCTIONS);
 	}
 
 	@Override @AvailMethod
@@ -168,8 +153,6 @@ extends DefinitionDescriptor
 		object.slot(DEFINITION_METHOD).methodName().writeTo(writer);
 		writer.write("definition module");
 		object.slot(MODULE).moduleName().writeTo(writer);
-		writer.write("prefix functions");
-		object.slot(PREFIX_FUNCTIONS).writeTo(writer);
 		writer.write("body block");
 		object.slot(BODY_BLOCK).writeTo(writer);
 		writer.endObject();
@@ -185,8 +168,6 @@ extends DefinitionDescriptor
 		object.slot(DEFINITION_METHOD).methodName().writeTo(writer);
 		writer.write("definition module");
 		object.slot(MODULE).moduleName().writeTo(writer);
-		writer.write("prefix functions");
-		object.slot(PREFIX_FUNCTIONS).writeSummaryTo(writer);
 		writer.write("body block");
 		object.slot(BODY_BLOCK).writeSummaryTo(writer);
 		writer.endObject();
@@ -200,10 +181,6 @@ extends DefinitionDescriptor
 	 *            this macro definition.
 	 * @param definitionModule
 	 *            The module in which this definition is added.
-	 * @param prefixFunctions
-	 *            The tuple of functions to invoke as the {@linkplain
-	 *            StringDescriptor#sectionSign() section signs} (§) are
-	 *            "reached" while parsing invocations of the method.
 	 * @param bodyBlock
 	 *            The body of the signature.  This will be invoked when a call
 	 *            site is compiled, passing the sub<em>expressions</em> (
@@ -214,13 +191,11 @@ extends DefinitionDescriptor
 	public static AvailObject create (
 		final A_Method method,
 		final A_Module definitionModule,
-		final A_Tuple prefixFunctions,
 		final A_Function bodyBlock)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(DEFINITION_METHOD, method);
 		instance.setSlot(MODULE, definitionModule);
-		instance.setSlot(PREFIX_FUNCTIONS, prefixFunctions);
 		instance.setSlot(BODY_BLOCK, bodyBlock);
 		instance.makeShared();
 		return instance;

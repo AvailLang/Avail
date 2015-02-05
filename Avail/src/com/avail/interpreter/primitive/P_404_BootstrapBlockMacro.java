@@ -115,7 +115,7 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 			optionalArgumentDeclarations.tupleSize() == 0
 				? TupleDescriptor.empty()
 				: optionalArgumentDeclarations.tupleAt(1);
-		// Look up the names of the argument that were declared in the first
+		// Look up the names of the arguments that were declared in the first
 		// prefix function.
 		final List<A_Phrase> argumentDeclarationsList =
 			new ArrayList<>(argumentDeclarationPairs.tupleSize());

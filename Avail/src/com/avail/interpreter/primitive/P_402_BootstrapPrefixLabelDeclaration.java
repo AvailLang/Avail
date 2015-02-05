@@ -1,5 +1,5 @@
 /**
- * P_402_BootstrapPrimitiveFailureDeclarationMacro.java
+ * P_402_BootstrapPrefixLabelDeclaration.java
  * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -40,21 +40,21 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * The {@code P_402_BootstrapPrimitiveFailureDeclarationMacro} primitive is used
+ * The {@code P_402_BootstrapPrefixLabelDeclaration} primitive is used
  * for bootstrapping declaration of a {@link #PRIMITIVE_FAILURE_REASON_NODE
  * primitive failure variable} which holds the reason for a primitive's failure.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_402_BootstrapPrimitiveFailureDeclarationMacro
+public final class P_402_BootstrapPrefixLabelDeclaration
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_402_BootstrapPrimitiveFailureDeclarationMacro().init(
-			2, CannotFail, Bootstrap);
+		new P_402_BootstrapPrefixLabelDeclaration().init(
+			3, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
@@ -62,12 +62,9 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 2;
+		assert args.size() == 3;
 		final A_Token failureVariableName = args.get(0);
 		final A_Type type = args.get(1);
-
-		//TODO[MvG]: Eventually prevent ⊥ from being an accepted type.  For
-		//other bootstrap macro primitives, too.
 
 		final A_Phrase failureDeclaration =
 			DeclarationNodeDescriptor.newPrimitiveFailureVariable(
@@ -82,10 +79,52 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				/* Primitive failure variable name token */
-				TOKEN.o(),
-				/* Primitive failure variable type */
-				InstanceMetaDescriptor.anyMeta()),
-			PRIMITIVE_FAILURE_REASON_NODE.mostGeneralType());
+				/* Macro argument is a parse node. */
+				LIST_NODE.create(
+					/* Optional arguments section. */
+					TupleTypeDescriptor.zeroOrOneOf(
+						/* Arguments are present. */
+						TupleTypeDescriptor.oneOrMoreOf(
+							/* An argument. */
+							TupleTypeDescriptor.forTypes(
+								/* Argument name, a literal node holding a
+								 * synthetic token holding the real token.
+								 */
+								LITERAL_NODE.create(
+									/* The outer synthetic literal token. */
+									LiteralTokenTypeDescriptor.create(
+										/* Inner original token. */
+										TOKEN.o())),
+								/* Argument type. */
+								LITERAL_NODE.create(
+									/* The synthetic literal token. */
+									LiteralTokenTypeDescriptor.create(
+										/* Holding the type. */
+										InstanceMetaDescriptor.anyMeta())))))),
+				/* Macro argument is a parse node. */
+				LIST_NODE.create(
+					/* Optional primitive failure variable declaration. */
+					TupleTypeDescriptor.zeroOrOneOf(
+						/* Primitive failure variable parts. */
+						TupleTypeDescriptor.forTypes(
+							/* Primitive failure variable name token */
+							TOKEN.o(),
+							/* Primitive failure variable type */
+							LITERAL_NODE.create(
+								/* The synthetic literal token. */
+								LiteralTokenTypeDescriptor.create(
+									/* Holding the failure var's type. */
+									InstanceMetaDescriptor.anyMeta()))))),
+				/* Macro argument is a parse node. */
+				LIST_NODE.create(
+					/* Optional label declaration. */
+					TupleTypeDescriptor.zeroOrOneOf(
+						/* Primitive label type. */
+						LITERAL_NODE.create(
+							/* The synthetic literal token. */
+							LiteralTokenTypeDescriptor.create(
+								/* Holding the label's return type. */
+								InstanceMetaDescriptor.anyMeta()))))),
+			TOP.o());
 	}
 }

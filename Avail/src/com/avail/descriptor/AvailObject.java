@@ -6253,6 +6253,15 @@ implements
 	}
 
 	/**
+	 * @param prefixFunctions
+	 */
+	@Override
+	public void prefixFunctions (final A_Tuple prefixFunctions)
+	{
+		descriptor.o_PrefixFunctions(this, prefixFunctions);
+	}
+
+	/**
 	 * @param aByteArrayTuple
 	 * @return
 	 */
@@ -7092,5 +7101,21 @@ implements
 	public void emitAllForSuperSendOn (final AvailCodeGenerator codeGenerator)
 	{
 		descriptor.o_EmitAllForSuperSendOn(this, codeGenerator);
+	}
+
+	@Override
+	public A_Tuple macroDefinitionsTuple ()
+	{
+		return descriptor.o_MacroDefinitionsTuple(this);
+	}
+
+	@Override
+	public void moduleAddPrefixFunction (
+		final A_Method method,
+		final int index,
+		final A_Function prefixFunction)
+	{
+		descriptor.o_ModuleAddPrefixFunction(
+			this, method, index, prefixFunction);
 	}
 }

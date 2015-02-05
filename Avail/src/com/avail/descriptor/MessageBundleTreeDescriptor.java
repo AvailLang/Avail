@@ -207,9 +207,9 @@ extends Descriptor
 		 * If we wait until all tokens and arguments of a potential method send
 		 * have been parsed before checking that all the arguments have the
 		 * right types and precedence then we may spend a <em>lot</em> of extra
-		 * effort parsing unnecessary expressions. For example, the "_*_"
+		 * effort parsing unnecessary expressions. For example, the "_×_"
 		 * operation might not allow a "_+_" call for its left or right
-		 * arguments, so parsing "1+2*…" as "(1+2)*…" is wasted effort.
+		 * arguments, so parsing "1+2×…" as "(1+2)×…" is wasted effort.
 		 *
 		 * <p>This is especially expensive for operations with many arguments
 		 * that could otherwise be culled by the shapes and types of early
@@ -251,7 +251,39 @@ extends Descriptor
 		 * checkArgument} instruction that all message bundles in this message
 		 * bundle tree must have.</p>
 		 */
-		LAZY_PREFILTER_MAP
+		LAZY_PREFILTER_MAP;
+
+//		/**
+//		 * Macros sometimes have to have a "side-effect" like placing new
+//		 * variable declarations into the current scope – but before the entire
+//		 * macro invocation has been parsed.  We use the notion of {@link
+//		 * A_Method#prefixFunctions()} to represent what to do at various
+//		 * "section checkpoints" (indicated by a "§" symbol in the method name)
+//		 * while parsing a macro.
+//		 *
+//		 * <p>Because different macros having the same prefix may exist, and
+//		 * macros may be polymorphic, there will be cases where there are
+//		 * multiple distinct prefix functions to run during parsing.  However,
+//		 * we have to keep an entanglement between which prefix function was run
+//		 * and which macro definitions required that function to have run in its
+//		 * history.  Therefore, we diverge the tree between the {@link
+//		 * ParsingOperation#PREPARE_TO_RUN_PREFIX_FUNCTION} and the {@link
+//		 * ParsingOperation#RUN_PREFIX_FUNCTION} that always follows it.  That
+//		 * is, we produce a collection of successor trees at the {@code
+//		 * ParsingOperation#PREPARE_TO_RUN_PREFIX_FUNCTION}, one for each
+//		 * message bundle.  We use this slot to hold the list of successor
+//		 * {@linkplain A_BundleTree message bundle trees}.  When parsing arrives
+//		 * at a destination tree (representing a single bundle), it executes
+//		 * each of the Nth prefix functions for that bundle in parallel, in the
+//		 * hopes that (if there are multiple), only one will lead to a
+//		 * successful parse of the entire top-level expression.</p>
+//		 *
+//		 * <p>This slot, like most of the others, gets populated by the {@link
+//		 * A_BundleTree#expand(A_Module)} operation, but in particular, is only
+//		 * ever non-empty when a message bundle tree's current instruction is a
+//		 * {@link ParsingOperation#PREPARE_TO_RUN_PREFIX_FUNCTION}.</p>
+//		 */
+//		LAZY_MACRO_PREFIX_SINGLETONS;
 	}
 
 	@Override
@@ -259,13 +291,13 @@ extends Descriptor
 		final AbstractSlotsEnum e)
 	{
 		return e == HASH_OR_ZERO
+			|| e == ALL_BUNDLES
+			|| e == UNCLASSIFIED
 			|| e == LAZY_COMPLETE
 			|| e == LAZY_INCOMPLETE
 			|| e == LAZY_INCOMPLETE_CASE_INSENSITIVE
 			|| e == LAZY_ACTIONS
-			|| e == LAZY_PREFILTER_MAP
-			|| e == UNCLASSIFIED
-			|| e == ALL_BUNDLES;
+			|| e == LAZY_PREFILTER_MAP;
 	}
 
 	@Override @AvailMethod
@@ -379,20 +411,31 @@ extends Descriptor
 	int o_Hash (final AvailObject object)
 	{
 		assert isShared();
-		synchronized (object)
+		int hash = object.slot(HASH_OR_ZERO);
+		// The double-check (anti-)pattern is appropriate here, because it's
+		// an integer field that transitions once from zero to a non-zero hash
+		// value.  If our unprotected read sees a zero, we get the monitor and
+		// re-test, setting the hash if necessary.  Otherwise, we've read the
+		// non-zero hash that was set once inside some lock in the past, without
+		// any synchronization cost.  The usual caveats about reordered writes
+		// to non-final fields is irrelevant, since it's just an int field.
+		if (hash == 0)
 		{
-			int hash = object.slot(HASH_OR_ZERO);
-			if (hash == 0)
+			synchronized (object)
 			{
-				do
+				hash = object.slot(HASH_OR_ZERO);
+				if (hash == 0)
 				{
-					hash = AvailRuntime.nextHash();
+					do
+					{
+						hash = AvailRuntime.nextHash();
+					}
+					while (hash == 0);
+					object.setSlot(HASH_OR_ZERO, hash);
 				}
-				while (hash == 0);
-				object.setSlot(HASH_OR_ZERO, hash);
 			}
-			return hash;
 		}
+		return hash;
 	}
 
 	@Override @AvailMethod
@@ -478,7 +521,6 @@ extends Descriptor
 		}
 	}
 
-
 	/**
 	 * Expand the bundle tree if there's anything unclassified in it.
 	 */
@@ -508,12 +550,9 @@ extends Descriptor
 			final A_Set allAncestorModules = module.allAncestors();
 			for (final MapDescriptor.Entry entry : unclassified.mapIterable())
 			{
-				final AvailObject message = entry.key();
-				final AvailObject bundle = entry.value();
 				updateForMessageAndBundle(
-					message,
+					entry.value(),
 					allAncestorModules,
-					bundle,
 					complete,
 					incomplete,
 					caseInsensitive,
@@ -535,9 +574,8 @@ extends Descriptor
 	/**
 	 * Categorize a single message/bundle pair.
 	 *
-	 * @param message
-	 * @param allAncestorModules
 	 * @param bundle
+	 * @param allAncestorModules
 	 * @param complete
 	 * @param incomplete
 	 * @param caseInsensitive
@@ -546,9 +584,8 @@ extends Descriptor
 	 * @param pc
 	 */
 	private static void updateForMessageAndBundle (
-		final A_Atom message,
-		final A_Set allAncestorModules,
 		final A_Bundle bundle,
+		final A_Set allAncestorModules,
 		final Mutable<A_Map> complete,
 		final Mutable<A_Map> incomplete,
 		final Mutable<A_Map> caseInsensitive,
@@ -569,7 +606,7 @@ extends Descriptor
 		{
 			// It's past the end of the parsing instructions.
 			complete.value = complete.value.mapAtPuttingCanDestroy(
-				message,
+				bundle.message(),
 				bundle,
 				true);
 			return;
@@ -603,10 +640,26 @@ extends Descriptor
 			subtree.addBundle(bundle);
 			return;
 		}
-
-		// It's not a keyword parsing instruction.
 		final A_Number instructionObject =
 			IntegerDescriptor.fromInt(instruction);
+		if (op == PREPARE_TO_RUN_PREFIX_FUNCTION)
+		{
+			// Each possible message bundle gets its own successor message
+			// bundle tree.
+			final A_BundleTree newTarget = newPc(pc + 1);
+			newTarget.addBundle(bundle);
+			A_Tuple successors = actionMap.value.hasKey(instructionObject)
+				? actionMap.value.mapAt(instructionObject)
+				: TupleDescriptor.empty();
+			successors = successors.appendCanDestroy(newTarget, true);
+			actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
+				instructionObject,
+				successors,
+				true);
+			// We added it to the actions, so don't fall through.
+			return;
+		}
+		// It's not a keyword parsing instruction.
 		final List<Integer> nextPcs = op.successorPcs(instruction, pc);
 		final int checkArgumentIndex = op.checkArgumentIndex(instruction);
 		if (checkArgumentIndex > 0)
@@ -722,7 +775,6 @@ extends Descriptor
 		}
 	}
 
-
 	/**
 	 * Update information in this {@linkplain MessageBundleTreeDescriptor
 	 * message bundle tree} to reflect the latest information about the
@@ -730,8 +782,8 @@ extends Descriptor
 	 *
 	 * <p>The bundle may have been added, or updated (but not removed), so if
 	 * the bundle has already been classified in this tree (via {@link
-	 * #o_Expand(AvailObject, A_Module)}, we may need to invalidate some of the tree's
-	 * lazy structures.</p>
+	 * #o_Expand(AvailObject, A_Module)}, we may need to invalidate some of the
+	 * tree's lazy structures.</p>
 	 */
 	@Override
 	void o_FlushForNewOrChangedBundle (
@@ -740,19 +792,21 @@ extends Descriptor
 	{
 		final A_Map allBundles = object.slot(ALL_BUNDLES);
 		assert allBundles.hasKey(bundle.message());
-		if (!object.slot(UNCLASSIFIED).hasKey(bundle))
+		if (object.slot(UNCLASSIFIED).hasKey(bundle))
 		{
-			// It has been classified already, so flush the lazy structures
-			// for safety, moving everything back to unclassified.
-			final A_Map emptyMap = MapDescriptor.empty();
-			object.setSlot(LAZY_COMPLETE, emptyMap);
-			object.setSlot(LAZY_INCOMPLETE, emptyMap);
-			object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
-			object.setSlot(LAZY_ACTIONS, emptyMap);
-			object.setSlot(LAZY_PREFILTER_MAP, emptyMap);
-			allBundles.makeImmutable();
-			object.setSlot(UNCLASSIFIED, allBundles);
+			// It hasn't been classified yet, so there's nothing to clean up.
+			return;
 		}
+		// It has been classified already, so flush the lazy structures
+		// for safety, moving everything back to unclassified.
+		final A_Map emptyMap = MapDescriptor.empty();
+		object.setSlot(LAZY_COMPLETE, emptyMap);
+		object.setSlot(LAZY_INCOMPLETE, emptyMap);
+		object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
+		object.setSlot(LAZY_ACTIONS, emptyMap);
+		object.setSlot(LAZY_PREFILTER_MAP, emptyMap);
+		allBundles.makeImmutable();
+		object.setSlot(UNCLASSIFIED, allBundles);
 	}
 
 	/**

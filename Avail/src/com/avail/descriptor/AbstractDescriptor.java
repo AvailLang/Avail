@@ -6158,4 +6158,30 @@ public abstract class AbstractDescriptor
 	abstract void o_EmitForSuperSendOn (
 		AvailObject object,
 		AvailCodeGenerator codeGenerator);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Tuple o_MacroDefinitionsTuple (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param prefixFunctions
+	 */
+	abstract void o_PrefixFunctions (
+		AvailObject object,
+		A_Tuple prefixFunctions);
+
+	/**
+	 * @param object
+	 * @param method
+	 * @param index
+	 * @param prefixFunction
+	 */
+	abstract void o_ModuleAddPrefixFunction (
+		AvailObject object,
+		A_Method method,
+		int index,
+		A_Function prefixFunction);
 }

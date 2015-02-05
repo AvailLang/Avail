@@ -3905,7 +3905,7 @@ public abstract class AbstractAvailCompiler
 				if (prefilter.hasKey(argumentBundle))
 				{
 					eventuallyParseRestOfSendNode(
-						"Continue send after productive grammatical "
+						"Continue send after an effective grammatical "
 							+ "restriction",
 						start,
 						prefilter.mapAt(argumentBundle),
@@ -4145,7 +4145,9 @@ public abstract class AbstractAvailCompiler
 				break;
 			}
 			case PARSE_RAW_TOKEN:
-				// Parse a raw token and continue.
+				// Parse a raw token and continue.  In particular, push a
+				// literal node whose token is a synthetic literal token whose
+				// value is the actual token that was parsed.
 				assert successorTrees.tupleSize() == 1;
 				if (firstArgOrNull != null)
 				{
@@ -4444,6 +4446,18 @@ public abstract class AbstractAvailCompiler
 			}
 			case PREPARE_TO_RUN_PREFIX_FUNCTION:
 			{
+				/*
+				 * Prepare a copy of the arguments that have been parsed so far,
+				 * and push them as a list node onto the parse stack, in
+				 * preparation for a RUN_PREFIX_FUNCTION, which must come next.
+				 * The current instruction and the following one are always
+				 * generated at the point a section checkpoint (§) is found in
+				 * a method name.
+				 *
+				 * Also note that this instruction was detected specially by
+				 * MessageBundleTreeDescriptor.o_Expand(AvailObject), preventing
+				 * the successors from having multiple bundles in the same tree.
+				 */
 				List<A_Phrase> stackCopy = argsSoFar;
 				// subtract one because zero is an invalid operand.
 				for (int i = op.fixupDepth(instruction) - 1; i > 0; i--)
@@ -4459,117 +4473,134 @@ public abstract class AbstractAvailCompiler
 				final A_Phrase newListNode =
 					ListNodeDescriptor.newExpressions(
 						TupleDescriptor.fromList(stackCopy));
-				assert successorTrees.tupleSize() == 1;
-				eventuallyParseRestOfSendNode(
-					"Continue send after preparing to run prefix function (§)",
-					start,
-					successorTrees.tupleAt(1),
-					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					append(argsSoFar, newListNode),
-					marksSoFar,
-					continuation);
+				final List<A_Phrase> newStack = append(argsSoFar, newListNode);
+				for (final A_BundleTree successorTree : successorTrees)
+				{
+					eventuallyParseRestOfSendNode(
+						"Continue after preparing to run prefix function (§)",
+						start,
+						successorTree,
+						firstArgOrNull,
+						initialTokenPosition,
+						consumedAnything,
+						newStack,
+						marksSoFar,
+						continuation);
+				}
 				break;
 			}
 			case RUN_PREFIX_FUNCTION:
 			{
-				// Extract the list node pushed by the
-				// PREPARE_TO_RUN_PREFIX_FUNCTION instruction that should have
-				// just run.  Run the indicated prefix function, which will
-				// communicate parser state changes via fiber globals.
-				// TODO[MvG] We still have to deal with splitting the bundles
-				// into synthetic singletons so that only the prefix functions
-				// in the same tuple of related functions will have run along
-				// any of the paths.  That's essential both for polymorphic
-				// macros and just for macros whose names share a common prefix.
+				/* Extract the list node pushed by the
+				 * PREPARE_TO_RUN_PREFIX_FUNCTION instruction that should have
+				 * just run.  Pass it to the indicated prefix function, which
+				 * will communicate parser state changes via fiber globals.
+				 *
+				 * We are always operating on a single bundle here (and in the
+				 * successor message bundle tree), because the message bundle
+				 * tree's o_Expand(AvailObject) detected the previous
+				 * instruction, always a PREPARE_TO_RUN_PREFIX_FUNCTION, and
+				 * put each bundle into a new tree.
+				 *
+				 * Attempt each Nth prefix function of the sole bundle, since
+				 * each one must be explored to determine if it contributes to
+				 * an unambiguous top-level statement.
+				 */
 				assert successorTrees.tupleSize() == 1;
 				final A_BundleTree successorTree = successorTrees.tupleAt(1);
+				// Look inside the only successor to find the only bundle.
 				final A_Map bundlesMap = successorTree.allBundles();
 				assert bundlesMap.mapSize() == 1;
-				final A_Bundle bundle =
-					bundlesMap.valuesAsTuple().tupleAt(1);
-				final A_Tuple definitions =
-					bundle.bundleMethod().definitionsTuple();
-				assert definitions.tupleSize() == 1;
-				final A_Definition definition = definitions.tupleAt(1);
-				assert definition.isMacroDefinition();
-				final int prefixFunctionSubscript =
-					op.prefixFunctionSubscript(instruction);
-				final A_Tuple prefixFunctions = definition.prefixFunctions();
-				final A_Function prefixFunction =
-					prefixFunctions.tupleAt(prefixFunctionSubscript);
-
-				final A_Phrase listNodeOfArgsSoFar = last(argsSoFar);
-				final List<AvailObject> listOfArgs = TupleDescriptor.toList(
-					listNodeOfArgsSoFar.expressionsTuple());
-				final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
-					prefixFunction.kind().returnType(),
-					loader(),
-					StringDescriptor.format(
-						"Macro prefix %s, in %s:%d",
-						prefixFunction.code().methodName(),
-						prefixFunction.code().module().moduleName(),
-						prefixFunction.code().startingLineNumber()));
-				A_Map fiberGlobals = fiber.fiberGlobals();
-				fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
-					clientDataGlobalKey,
-					start.clientDataMap.makeImmutable(),
-					true);
-				fiber.fiberGlobals(fiberGlobals);
-				fiber.textInterface(textInterface);
-				fiber.resultContinuation(workUnitCompletion(
-					start.peekToken(),
-					new Continuation1<AvailObject>()
-					{
-						@Override
-						public void value (
-							final @Nullable AvailObject ignoredResult)
-						{
-							// The prefix function ran successfully.
-							final A_Map replacementClientDataMap =
-								fiber.fiberGlobals().mapAt(clientDataGlobalKey);
-							final ParserState newState = new ParserState(
-								start.position,
-								replacementClientDataMap);
-							eventuallyParseRestOfSendNode(
-								"Continue after successful prefix function (§)",
-								newState,
-								successorTrees.tupleAt(1),
-								firstArgOrNull,
-								initialTokenPosition,
-								consumedAnything,
-								argsSoFar,
-								marksSoFar,
-								continuation);
-						}
-					}));
-				fiber.failureContinuation(new Continuation1<Throwable>()
+				final A_Bundle bundle = bundlesMap.mapIterable().next().value();
+				final A_Tuple prefixFunctionTuples =
+					bundle.bundleMethod().prefixFunctions();
+				final int prefixIndex = op.prefixFunctionSubscript(instruction);
+				final A_Tuple prefixFunctions =
+					prefixFunctionTuples.tupleAt(prefixIndex);
+				if (prefixFunctions.tupleSize() == 0)
 				{
-					@Override
-					public void value (final @Nullable Throwable e)
-					{
-						assert e != null;
-						// The prefix function failed in some way.
-						start.expected(new Describer()
+					// Warn about the missing prefix function.
+					start.expected(
+						"macro "
+						+ bundle.message()
+						+ " to have at least one prefix function #"
+						+ prefixIndex);
+					break;
+				}
+				final A_Phrase prefixArgumentsList = last(argsSoFar);
+				final List<A_Phrase> withoutPrefixArguments =
+					withoutLast(argsSoFar);
+				final List<AvailObject> listOfArgs = TupleDescriptor.toList(
+					prefixArgumentsList.expressionsTuple());
+				startWorkUnits(prefixFunctions.tupleSize());
+				for (final A_Function prefixFunction : prefixFunctions)
+				{
+					final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
+						prefixFunction.kind().returnType(),
+						loader(),
+						StringDescriptor.format(
+							"Macro prefix %s, in %s:%d",
+							prefixFunction.code().methodName(),
+							prefixFunction.code().module().moduleName(),
+							prefixFunction.code().startingLineNumber()));
+					A_Map fiberGlobals = fiber.fiberGlobals();
+					fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
+						clientDataGlobalKey,
+						start.clientDataMap.makeImmutable(),
+						true);
+					fiber.fiberGlobals(fiberGlobals);
+					fiber.textInterface(textInterface);
+					fiber.resultContinuation(workUnitCompletion(
+						start.peekToken(),
+						new Continuation1<AvailObject>()
 						{
 							@Override
-							public void describeThen (
-								final Continuation1<String> c)
+							public void value (
+								final @Nullable AvailObject ignoredResult)
 							{
-								c.value(
-									"prefix function not to have failed with:\n"
-									+ e.toString());
+								// The prefix function ran successfully.
+								final A_Map replacementClientDataMap =
+									fiber.fiberGlobals().mapAt(
+										clientDataGlobalKey);
+								final ParserState newState = new ParserState(
+									start.position,
+									replacementClientDataMap);
+								eventuallyParseRestOfSendNode(
+									"Continue after prefix function (§)",
+									newState,
+									successorTrees.tupleAt(1),
+									firstArgOrNull,
+									initialTokenPosition,
+									consumedAnything,
+									withoutPrefixArguments,
+									marksSoFar,
+									continuation);
 							}
-						});
-					}
-				});
-				startWorkUnit();
-				Interpreter.runOutermostFunction(
-					runtime,
-					fiber,
-					prefixFunction,
-					listOfArgs);
+						}));
+					fiber.failureContinuation(new Continuation1<Throwable>()
+					{
+						@Override
+						public void value (final @Nullable Throwable e)
+						{
+							assert e != null;
+							// The prefix function failed in some way.
+							start.expected(new Describer()
+							{
+								@Override
+								public void describeThen (
+									final Continuation1<String> c)
+								{
+									c.value(
+										"prefix function not to have failed"
+										+ " with:\n"
+										+ e.toString());
+								}
+							});
+						}
+					});
+					Interpreter.runOutermostFunction(
+						runtime, fiber, prefixFunction, listOfArgs);
+				}
 				break;
 			}
 			case PERMUTE_LIST:

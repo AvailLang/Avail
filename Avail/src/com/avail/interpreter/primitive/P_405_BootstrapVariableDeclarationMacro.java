@@ -70,9 +70,7 @@ public final class P_405_BootstrapVariableDeclarationMacro extends Primitive
 		if (type.isTop() || type.isBottom())
 		{
 			throw new AvailRejectedParseException(
-				StringDescriptor.from(
-					"variable's declared type to be something other than "
-					+ type));
+				"variable's declared type to be something other than " + type);
 		}
 		final A_Phrase variableDeclaration =
 			DeclarationNodeDescriptor.newVariable(

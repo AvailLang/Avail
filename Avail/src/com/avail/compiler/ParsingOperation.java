@@ -244,13 +244,17 @@ public enum ParsingOperation
 
 	/**
 	 * {@code 16*N+7} - A macro has been parsed up to a {@link
-	 * SectionCheckpoint} (§).  Make a copy of the parse stack, stripping out
-	 * {@link MarkerNodeDescriptor marker nodes}, then perform the equivalent of
-	 * an {@link #APPEND_ARGUMENT} on the copy, the specified number of times
-	 * minus one (because zero is not a legal operand).  Make it into a single
-	 * {@linkplain ListNodeDescriptor list node} and push it onto the original
-	 * parse stack.  It will be consumed by a subsequent {@link
+	 * SectionCheckpoint} (§).  Make a copy of the parse stack, then perform the
+	 * equivalent of an {@link #APPEND_ARGUMENT} on the copy, the specified
+	 * number of times minus one (because zero is not a legal operand).  Make it
+	 * into a single {@linkplain ListNodeDescriptor list node} and push it onto
+	 * the original parse stack.  It will be consumed by a subsequent {@link
 	 * #RUN_PREFIX_FUNCTION}.
+	 *
+	 * <p>This instruction is detected specially by the {@linkplain
+	 * MessageBundleTreeDescriptor message bundle tree}'s {@linkplain
+	 * A_BundleTree#expand(A_Module)} operation.  Its successors are separated
+	 * into distinct message bundle trees, one per message bundle.</p>
 	 */
 	PREPARE_TO_RUN_PREFIX_FUNCTION(7)
 	{
@@ -268,11 +272,11 @@ public enum ParsingOperation
 	 * Consume the previously pushed copy of the parse stack.  The current
 	 * {@link AbstractAvailCompiler.ParserState}'s {@linkplain
 	 * AbstractAvailCompiler.ParserState#clientDataMap} is stashed in the
-	 * current {@link FiberDescriptor fiber}'s {@linkplain
+	 * new {@link FiberDescriptor fiber}'s {@linkplain
 	 * AvailObject#fiberGlobals()} and retrieved afterward, so the prefix
 	 * function and macros can alter the scope or communicate with each other
 	 * by manipulating this {@linkplain MapDescriptor map}.  This technique
-	 * prevents chatter between separate processes (i.e., parsing can still be
+	 * prevents chatter between separate fibers (i.e., parsing can still be
 	 * done in parallel) and between separate linguistic abstractions (the keys
 	 * are atoms and are therefore modular).
 	 */

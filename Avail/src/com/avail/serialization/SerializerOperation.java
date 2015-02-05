@@ -1313,8 +1313,7 @@ public enum SerializerOperation
 	 * during serialization, chosen arbitrarily.  During deserialization, the
 	 * message bundle is looked up, and its method is extracted.
 	 */
-	METHOD (45,
-		OBJECT_REFERENCE.as("random method bundle"))
+	METHOD (45, OBJECT_REFERENCE.as("arbitrary method bundle"))
 	{
 		@Override
 		A_BasicObject[] decompose (final AvailObject object)

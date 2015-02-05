@@ -67,7 +67,9 @@ extends PrimitiveThrownException
 	}
 
 	/**
-	 * Construct a new {@link AvailRejectedParseException}.
+	 * Construct a new {@link AvailRejectedParseException}.  If this diagnostic
+	 * is deemed relevant, the string will be presented after the word
+	 * "Expected...".
 	 *
 	 * @param rejectionString
 	 *        The {@linkplain StringDescriptor error message} indicating why
@@ -77,5 +79,20 @@ extends PrimitiveThrownException
 		final A_String rejectionString)
 	{
 		this.rejectionString = rejectionString;
+	}
+
+	/**
+	 * Construct a new {@link AvailRejectedParseException} with a Java {@link
+	 * String} as the explanation.  If this diagnostic is deemed relevant, the
+	 * string will be presented after the word "Expected...".
+	 *
+	 * @param rejectionJavaString
+	 *        The Java {@link String} indicating why a particular parse was
+	 *        rejected.
+	 */
+	public AvailRejectedParseException (
+		final String rejectionJavaString)
+	{
+		this.rejectionString = StringDescriptor.from(rejectionJavaString);
 	}
 }

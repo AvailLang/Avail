@@ -123,16 +123,4 @@ extends A_BasicObject
 	 * @return The method definition's function.
 	 */
 	A_Function bodyBlock ();
-
-	/**
-	 * If this is a {@linkplain MacroDefinitionDescriptor macro definition} then
-	 * answer the {@linkplain TupleDescriptor tuple} of prefix {@linkplain
-	 * FunctionDescriptor functions}.  These functions allow parsing actions to
-	 * be performed while parsing is still occurring, typically to bring new
-	 * variable and constant {@linkplain DeclarationNodeDescriptor declarations}
-	 * into scope.
-	 *
-	 * @return This macro definition's prefix functions.
-	 */
-	A_Tuple prefixFunctions ();
 }
