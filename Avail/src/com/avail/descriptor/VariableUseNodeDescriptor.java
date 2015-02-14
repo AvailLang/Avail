@@ -1,6 +1,6 @@
 /**
  * VariableUseNodeDescriptor.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * modification, are permitted provided that the following conditions are met:
