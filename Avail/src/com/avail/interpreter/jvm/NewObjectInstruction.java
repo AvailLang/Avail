@@ -45,9 +45,16 @@ import com.avail.interpreter.jvm.ConstantPool.ClassEntry;
  */
 final class NewObjectInstruction
 extends SimpleInstruction
+implements NewInstruction
 {
 	/** The {@linkplain ClassEntry entry} for the class to instantiate. */
 	private final ClassEntry classEntry;
+
+	@Override
+	public String descriptor ()
+	{
+		return classEntry.descriptor();
+	}
 
 	@Override
 	void writeImmediatesTo (final DataOutput out) throws IOException

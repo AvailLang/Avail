@@ -1,5 +1,5 @@
 /**
- * TopVariable.java
+ * DoubleTypeInfo.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,12 +33,14 @@
 package com.avail.interpreter.jvm;
 
 /**
- * The {@link TopVariable Top_variable_info} item indicates that the local
- * variable has the verification type {@code top}.
+ * The {@link DoubleTypeInfo Double_variable_info} item indicates that the
+ * location has the verification type {@code double}. The {@code
+ * Double_variable_info} specifies two locations in the local variable array or
+ * in the operand stack.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-class TopVariable
+class DoubleTypeInfo
 extends VerificationTypeInfo
 {
 	@Override
@@ -50,6 +52,12 @@ extends VerificationTypeInfo
 	@Override
 	byte typeValue ()
 	{
-		return 0;
+		return 3;
+	}
+
+	@Override
+	JavaOperand baseOperand ()
+	{
+		return JavaOperand.DOUBLE;
 	}
 }

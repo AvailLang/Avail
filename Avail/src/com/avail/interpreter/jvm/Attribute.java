@@ -70,10 +70,15 @@ abstract class Attribute
 	 *
 	 * @param out
 	 *        A binary output stream.
+	 * @param constantPool
+	 *        The {@linkplain ConstantPool constant pool}.
 	 * @throws IOException
 	 *         If the operation fails.
 	 */
-	public abstract void writeBodyTo (DataOutput out) throws IOException;
+	public abstract void writeBodyTo (
+			DataOutput out,
+			ConstantPool constantPool)
+		throws IOException;
 
 	/**
 	 * Write the {@linkplain Attribute attribute} as an {@code attribute_info}
@@ -82,8 +87,7 @@ abstract class Attribute
 	 * @param out
 	 *        A binary output stream.
 	 * @param constantPool
-	 *        The {@linkplain ConstantPool constant pool} to use to encode the
-	 *        {@linkplain #name() attribute name} as a {@link Utf8Entry}.
+	 *        The {@linkplain ConstantPool constant pool}.
 	 * @throws IOException
 	 *         If the operation fails.
 	 */
@@ -94,6 +98,6 @@ abstract class Attribute
 		attributeNameEntry.writeIndexTo(out);
 		final int size = size();
 		out.writeInt(size);
-		writeBodyTo(out);
+		writeBodyTo(out, constantPool);
 	}
 }

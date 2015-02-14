@@ -1,5 +1,5 @@
 /**
- * UninitializedThisVariable.java
+ * NewInstruction.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,27 +33,24 @@
 package com.avail.interpreter.jvm;
 
 /**
- * The {@link UninitializedThisVariable Uninitialized_variable_info} item
- * indicates that the location has the verification type
- * {@code uninitialized(Offset)}. The {@code Offset} item indicates the offset,
- * in the {@code code} array of the {@link CodeAttribute} that contains this
- * {@link StackMapTableAttribute}, of the {@link JavaBytecode#new_ new}
- * instruction that created the object being stored in the location.
+ * {@code NewInstruction} marks a concrete {@linkplain JavaInstruction
+ * instruction} as creating a new object.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-class UninitializedThisVariable
-extends VerificationTypeInfo
+interface NewInstruction
 {
-	@Override
-	protected int size ()
-	{
-		return 1;
-	}
+	/**
+	 * Answer the address of the instruction within the compiled method.
+	 *
+	 * @return The address of the instruction within the compiled method.
+	 */
+	public long address ();
 
-	@Override
-	byte typeValue ()
-	{
-		return 6;
-	}
+	/**
+	 * Answer the descriptor of the type of the value created.
+	 *
+	 * @return The descriptor.
+	 */
+	public String descriptor ();
 }

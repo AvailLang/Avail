@@ -53,33 +53,34 @@ extends SimpleInstruction
 	final RefEntry methodEntry;
 
 	/**
-	 * Answer the {@linkplain JavaOperand parameters} expected by the referenced
-	 * method.
+	 * Answer the {@linkplain VerificationTypeInfo parameters} expected by the
+	 * referenced method.
 	 *
 	 * @return The expected parameters.
 	 */
-	List<JavaOperand> parameters ()
+	List<VerificationTypeInfo> parameters ()
 	{
-		final List<JavaOperand> parameters =
+		final List<VerificationTypeInfo> parameters =
 			parameterOperands(methodEntry.descriptor());
-		parameters.add(0, JavaOperand.OBJECTREF);
+		parameters.add(
+			0,
+			JavaOperand.OBJECTREF.create(methodEntry.classDescriptor()));
 		return parameters;
 	}
 
 	@Override
-	final boolean canConsumeOperands (final List<JavaOperand> operands)
+	final boolean canConsumeOperands (final List<VerificationTypeInfo> operands)
 	{
-		final List<JavaOperand> parameters = parameters();
+		final List<VerificationTypeInfo> parameters = parameters();
 		final int size = operands.size();
 		try
 		{
 			final int parametersSize = parameters.size();
-			final List<JavaOperand> topOperands = operands.subList(
+			final List<VerificationTypeInfo> topOperands = operands.subList(
 				size - parametersSize, size);
 			for (int i = 0; i < parametersSize; i++)
 			{
-				if (!topOperands.get(i).baseOperand().equals(
-					parameters.get(i).baseOperand()))
+				if (!topOperands.get(i).isSubtypeOf(parameters.get(i)))
 				{
 					return false;
 				}
@@ -93,23 +94,24 @@ extends SimpleInstruction
 	}
 
 	@Override
-	final JavaOperand[] inputOperands ()
+	final VerificationTypeInfo[] inputOperands ()
 	{
-		final List<JavaOperand> parameters = parameters();
-		return parameters.toArray(new JavaOperand[parameters.size()]);
+		final List<VerificationTypeInfo> parameters = parameters();
+		return parameters.toArray(new VerificationTypeInfo[parameters.size()]);
 	}
 
 	@Override
-	final JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
+	final VerificationTypeInfo[] outputOperands (
+		final List<VerificationTypeInfo> operandStack)
 	{
-		final List<JavaOperand> operands = new ArrayList<>(1);
-		final JavaOperand returnOperand = returnOperand(
+		final List<VerificationTypeInfo> operands = new ArrayList<>(1);
+		final VerificationTypeInfo returnOperand = returnOperand(
 			methodEntry.descriptor());
 		if (returnOperand != null)
 		{
 			operands.add(returnOperand);
 		}
-		return operands.toArray(new JavaOperand[operands.size()]);
+		return operands.toArray(new VerificationTypeInfo[operands.size()]);
 	}
 
 	@Override

@@ -85,13 +85,16 @@ extends Attribute
 	}
 
 	@Override
-	public void writeBodyTo (final DataOutput out) throws IOException
+	public void writeBodyTo (
+			final DataOutput out,
+			final ConstantPool constantPool)
+		throws IOException
 	{
 		out.writeShort((short)stackMapFrames.size());
 
 		for (int i = 0; i < stackMapFrames.size(); i++)
 		{
-			stackMapFrames.get(i).writeTo(out);
+			stackMapFrames.get(i).writeTo(out, constantPool);
 		}
 	}
 }

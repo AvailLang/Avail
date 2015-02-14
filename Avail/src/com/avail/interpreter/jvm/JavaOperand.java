@@ -42,13 +42,37 @@ import com.avail.annotations.Nullable;
 enum JavaOperand
 {
 	/** The operand is a {@code reference} index. */
-	OBJECTREF (Object.class),
+	OBJECTREF (Object.class)
+	{
+		@Override
+		public ObjectTypeInfo create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new ObjectTypeInfo((String) operands[0]);
+		}
+	},
 
 	/** The operand is {@code null}. */
-	NULL (OBJECTREF, Object.class),
+	NULL (OBJECTREF, Object.class)
+	{
+		@Override
+		public NullTypeInfo create (final Object... operands)
+		{
+			assert operands.length == 0;
+			return new NullTypeInfo();
+		}
+	},
 
 	/** The operand is an array reference. */
-	ARRAYREF (OBJECTREF, Object.class),
+	ARRAYREF (OBJECTREF, Object.class)
+	{
+		@Override
+		public ObjectTypeInfo create (final Object... operands)
+		{
+			assert operands.length == 1;
+			return new ObjectTypeInfo((String) operands[0]);
+		}
+	},
 
 	/** The operand is an {@code int}. */
 	INT (Integer.TYPE),
@@ -97,6 +121,13 @@ enum JavaOperand
 		{
 			return CATEGORY_2;
 		}
+
+		@Override
+		public LongTypeInfo create (final Object... operands)
+		{
+			assert operands.length == 0;
+			return new LongTypeInfo();
+		}
 	},
 
 	/** The operand is a {@code long} 0L. */
@@ -106,6 +137,13 @@ enum JavaOperand
 		public JavaOperand computationalCategory ()
 		{
 			return CATEGORY_2;
+		}
+
+		@Override
+		public LongTypeInfo create (final Object... operands)
+		{
+			assert operands.length == 0;
+			return new LongTypeInfo();
 		}
 	},
 
@@ -117,19 +155,58 @@ enum JavaOperand
 		{
 			return CATEGORY_2;
 		}
+
+		@Override
+		public LongTypeInfo create (final Object... operands)
+		{
+			assert operands.length == 0;
+			return new LongTypeInfo();
+		}
 	},
 
 	/** The operand is a {@code float}. */
-	FLOAT (Float.TYPE),
+	FLOAT (Float.TYPE)
+	{
+		@Override
+		public FloatTypeInfo create (final Object... operands)
+		{
+			assert operands.length == 0;
+			return new FloatTypeInfo();
+		}
+	},
 
 	/** The operand is a {@code float} 0.0f. */
-	FLOAT_0 (FLOAT, Float.TYPE),
+	FLOAT_0 (FLOAT, Float.TYPE)
+	{
+		@Override
+		public FloatTypeInfo create (final Object... operands)
+		{
+			assert operands.length == 0;
+			return new FloatTypeInfo();
+		}
+	},
 
 	/** The operand is a {@code float} 1.0f. */
-	FLOAT_1 (FLOAT, Float.TYPE),
+	FLOAT_1 (FLOAT, Float.TYPE)
+	{
+		@Override
+		public FloatTypeInfo create (final Object... operands)
+		{
+			assert operands.length == 0;
+			return new FloatTypeInfo();
+		}
+	},
 
 	/** The operand is a {@code float} 2.0f. */
-	FLOAT_2 (FLOAT, Float.TYPE),
+	FLOAT_2 (FLOAT, Float.TYPE)
+	{
+		@Override
+		public FloatTypeInfo create (final Object... operands)
+		{
+			assert operands.length == 0;
+			return new FloatTypeInfo();
+		}
+	},
 
 	/** The operand is a {@code double}. */
 	DOUBLE (Double.TYPE)
@@ -138,6 +215,13 @@ enum JavaOperand
 		public JavaOperand computationalCategory ()
 		{
 			return CATEGORY_2;
+		}
+
+		@Override
+		public DoubleTypeInfo create (final Object... operands)
+		{
+			assert operands.length == 0;
+			return new DoubleTypeInfo();
 		}
 	},
 
@@ -149,6 +233,13 @@ enum JavaOperand
 		{
 			return CATEGORY_2;
 		}
+
+		@Override
+		public DoubleTypeInfo create (final Object... operands)
+		{
+			assert operands.length == 0;
+			return new DoubleTypeInfo();
+		}
 	},
 
 	/** The operand is a {@code double} 1.0d. */
@@ -158,6 +249,13 @@ enum JavaOperand
 		public JavaOperand computationalCategory ()
 		{
 			return CATEGORY_2;
+		}
+
+		@Override
+		public DoubleTypeInfo create (final Object... operands)
+		{
+			assert operands.length == 0;
+			return new DoubleTypeInfo();
 		}
 	},
 
@@ -173,6 +271,12 @@ enum JavaOperand
 		public boolean isCategory ()
 		{
 			return true;
+		}
+
+		@Override
+		public VerificationTypeInfo create (final Object... operands)
+		{
+			throw new UnsupportedOperationException();
 		}
 	},
 
@@ -195,6 +299,12 @@ enum JavaOperand
 		{
 			return CATEGORY_2;
 		}
+
+		@Override
+		public VerificationTypeInfo create (final Object... operands)
+		{
+			throw new UnsupportedOperationException();
+		}
 	},
 
 	/** The operand is an arbitrary field. */
@@ -205,16 +315,36 @@ enum JavaOperand
 		{
 			throw new UnsupportedOperationException();
 		}
+
+		@Override
+		public VerificationTypeInfo create (final Object... operands)
+		{
+			throw new UnsupportedOperationException();
+		}
 	},
 
 	/** The operand is a return address. */
-	RETURN_ADDRESS (Void.TYPE),
+	RETURN_ADDRESS (Void.TYPE)
+	{
+		@Override
+		public TopTypeInfo create (final Object... operands)
+		{
+			assert operands.length == 0;
+			return new TopTypeInfo();
+		}
+	},
 
 	/** Represents multiple operands. */
 	PLURAL (Void.TYPE)
 	{
 		@Override
 		public JavaOperand computationalCategory ()
+		{
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public VerificationTypeInfo create (final Object... operands)
 		{
 			throw new UnsupportedOperationException();
 		}
@@ -301,14 +431,29 @@ enum JavaOperand
 	}
 
 	/**
-	 * Answer the {@linkplain JavaOperand operand} kind for the specified
-	 * {@linkplain Class type}.
+	 * Create a {@linkplain VerificationTypeInfo type identifier} that
+	 * represents values consistent with the {@linkplain #baseOperand()
+	 * base operand}.
+	 *
+	 * @param operands
+	 *        The operands.
+	 * @return A type identifier.
+	 */
+	public VerificationTypeInfo create (final Object... operands)
+	{
+		assert operands.length == 0;
+		return new IntegerTypeInfo();
+	}
+
+	/**
+	 * Answer the {@linkplain VerificationTypeInfo operand} kind for the
+	 * specified {@linkplain Class type}.
 	 *
 	 * @param type
 	 *        A type.
 	 * @return An operand kind.
 	 */
-	static JavaOperand forType (final Class<?> type)
+	static VerificationTypeInfo forType (final Class<?> type)
 	{
 		if (type.isPrimitive())
 		{
@@ -317,19 +462,19 @@ enum JavaOperand
 				|| type == Short.TYPE
 				|| type == Integer.TYPE)
 			{
-				return INT;
+				return INT.create();
 			}
 			if (type == Float.TYPE)
 			{
-				return FLOAT;
+				return FLOAT.create();
 			}
 			if (type == Double.TYPE)
 			{
-				return DOUBLE;
+				return DOUBLE.create();
 			}
 			assert type == Long.TYPE;
-			return LONG;
+			return LONG.create();
 		}
-		return OBJECTREF;
+		return OBJECTREF.create(JavaDescriptors.forType(type));
 	}
 }

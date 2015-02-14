@@ -78,7 +78,10 @@ extends Attribute
 	}
 
 	@Override
-	public void writeBodyTo (final DataOutput out) throws IOException
+	public void writeBodyTo (
+			final DataOutput out,
+			final ConstantPool constantPool)
+		throws IOException
 	{
 		initialValueEntry.writeIndexTo(out);
 	}

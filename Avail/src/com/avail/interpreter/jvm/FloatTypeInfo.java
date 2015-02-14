@@ -1,5 +1,5 @@
 /**
- * UninitializedVariable.java
+ * FloatTypeInfo.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,54 +32,30 @@
 
 package com.avail.interpreter.jvm;
 
-import java.io.DataOutput;
-import java.io.IOException;
-
 /**
- * The {@link UninitializedVariable
- * <code>UninitializedThis_variable_info</code>} item indicates that
- * the location has the verification type
- * <code>uninitializedThis</code>.
+ * The {@link FloatTypeInfo Float_variable_info} item indicates that the
+ * location has the verification type {@code float}.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-class UninitializedVariable
+class FloatTypeInfo
 extends VerificationTypeInfo
 {
-	/**
-	 * The offset into the code array of the {@link CodeAttribute Code
-	 * attribute} that contains this {@link StackMapTableAttribute}, of the
-	 * {@link JavaBytecode#new_ new} instruction that created the object being
-	 * stored in the location.
-	 */
-	private final short offset;
-
-	/**
-	 * Construct a new {@link IntegerVariable}.
-	 * @param offset
-	 *
-	 */
-	UninitializedVariable (final short offset)
-	{
-		this.offset = offset;
-	}
-
 	@Override
 	protected int size ()
 	{
-		return 3;
+		return 1;
 	}
 
 	@Override
 	byte typeValue ()
 	{
-		return 8;
+		return 2;
 	}
 
 	@Override
-	void writeTo (final DataOutput out) throws IOException
+	JavaOperand baseOperand ()
 	{
-		out.writeByte(typeValue());
-		out.writeByte(offset);
+		return JavaOperand.FLOAT;
 	}
 }

@@ -46,9 +46,8 @@ abstract class ArrayAccessInstruction
 extends JavaInstruction
 {
 	/**
-	 * The {@linkplain Class type} of the array, either a {@linkplain
-	 * Class#isPrimitive() primitive type} or {@link Object Object.class} for
-	 * a reference type.
+	 * The {@linkplain Class type} of the array, possibly a {@linkplain
+	 * Class#isPrimitive() primitive type}.
 	 */
 	private final Class<?> type;
 
@@ -74,8 +73,7 @@ extends JavaInstruction
 	 */
 	private JavaBytecode bytecode ()
 	{
-		final int index = type == Object.class ? 0
-			: type == Boolean.TYPE ? 1
+		final int index = type == Boolean.TYPE ? 1
 			: type == Byte.TYPE ? 1
 			: type == Character.TYPE ? 2
 			: type == Double.TYPE ? 3
@@ -83,21 +81,54 @@ extends JavaInstruction
 			: type == Integer.TYPE ? 5
 			: type == Long.TYPE ? 6
 			: type == Short.TYPE ? 7
-			: -1;
+			: 0;
 		assert index != -1;
 		return bytecodes()[index];
 	}
 
 	@Override
-	final JavaOperand[] inputOperands ()
+	final VerificationTypeInfo[] inputOperands ()
 	{
-		return bytecode().inputOperands();
+		final JavaOperand[] input = bytecode().inputOperands();
+		final VerificationTypeInfo[] operands =
+			new VerificationTypeInfo[input.length];
+		for (int i = 0, size = input.length; i < size; i++)
+		{
+			final JavaOperand base = input[i].baseOperand();
+			if (base == JavaOperand.OBJECTREF)
+			{
+				operands[i] = JavaOperand.OBJECTREF.create(
+					JavaDescriptors.forType(type));
+			}
+			else
+			{
+				operands[i] = base.create();
+			}
+		}
+		return operands;
 	}
 
 	@Override
-	final JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
+	final VerificationTypeInfo[] outputOperands (
+		final List<VerificationTypeInfo> operandStack)
 	{
-		return bytecode().outputOperands();
+		final JavaOperand[] output = bytecode().outputOperands();
+		final VerificationTypeInfo[] operands =
+			new VerificationTypeInfo[output.length];
+		for (int i = 0, size = output.length; i < size; i++)
+		{
+			final JavaOperand base = output[i].baseOperand();
+			if (base == JavaOperand.OBJECTREF)
+			{
+				operands[i] = JavaOperand.OBJECTREF.create(
+					JavaDescriptors.forType(type));
+			}
+			else
+			{
+				operands[i] = base.create();
+			}
+		}
+		return operands;
 	}
 
 	@Override

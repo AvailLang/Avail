@@ -45,18 +45,19 @@ final class DupX2Instruction
 extends SimpleInstruction
 {
 	@Override
-	boolean canConsumeOperands (final List<JavaOperand> operands)
+	boolean canConsumeOperands (final List<VerificationTypeInfo> operands)
 	{
 		final int size = operands.size();
 		try
 		{
-			final JavaOperand topOperand = operands.get(size - 1);
-			final JavaOperand secondOperand = operands.get(size - 2);
+			final VerificationTypeInfo topOperand = operands.get(size - 1);
+			final VerificationTypeInfo secondOperand = operands.get(size - 2);
 			if (topOperand.computationalCategory() == CATEGORY_1)
 			{
 				if (secondOperand.computationalCategory() == CATEGORY_1)
 				{
-					final JavaOperand thirdOperand = operands.get(size - 3);
+					final VerificationTypeInfo thirdOperand =
+						operands.get(size - 3);
 					return thirdOperand.computationalCategory() == CATEGORY_1;
 				}
 				assert secondOperand.computationalCategory() == CATEGORY_2;
@@ -71,23 +72,26 @@ extends SimpleInstruction
 	}
 
 	@Override
-	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
+	VerificationTypeInfo[] outputOperands (
+		final List<VerificationTypeInfo> operandStack)
 	{
 		assert canConsumeOperands(operandStack);
 		final int size = operandStack.size();
-		final JavaOperand topOperand = operandStack.get(size - 1);
-		final JavaOperand secondOperand = operandStack.get(size - 2);
-		final JavaOperand[] out;
+		final VerificationTypeInfo topOperand = operandStack.get(size - 1);
+		final VerificationTypeInfo secondOperand = operandStack.get(size - 2);
+		final VerificationTypeInfo[] out;
 		if (secondOperand.computationalCategory() == CATEGORY_1)
 		{
-			final JavaOperand thirdOperand = operandStack.get(size - 3);
-			out = new JavaOperand[]
+			final VerificationTypeInfo thirdOperand =
+				operandStack.get(size - 3);
+			out = new VerificationTypeInfo[]
 				{topOperand, thirdOperand, secondOperand, topOperand};
 		}
 		else
 		{
 			assert secondOperand.computationalCategory() == CATEGORY_2;
-			out = new JavaOperand[] {topOperand, secondOperand, topOperand};
+			out = new VerificationTypeInfo[]
+				{topOperand, secondOperand, topOperand};
 		}
 		return out;
 	}

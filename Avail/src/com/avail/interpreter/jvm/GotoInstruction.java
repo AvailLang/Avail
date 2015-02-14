@@ -49,7 +49,8 @@ extends UnconditionalBranchInstruction
 	}
 
 	@Override
-	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
+	VerificationTypeInfo[] outputOperands (
+		final List<VerificationTypeInfo> operandStack)
 	{
 		return noOperands;
 	}

@@ -81,7 +81,7 @@ extends JavaInstruction
 	abstract JavaBytecode bytecode ();
 
 	@Override
-	final JavaOperand[] inputOperands ()
+	final VerificationTypeInfo[] inputOperands ()
 	{
 		assert bytecode().inputOperands().length == 0;
 		return noOperands;

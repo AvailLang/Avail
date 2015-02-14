@@ -1,5 +1,5 @@
 /**
- * StackMapFrame.java
+ * ObjectTypeInfo.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -37,107 +37,104 @@ import java.io.IOException;
 import com.avail.annotations.Nullable;
 
 /**
- * Per the JVM Specification:
- * <blockquote>A verification type specifies the type of either one or two
- * locations, where a location is either a single local variable or a single
- * operand stack entry.</blockquote>
- *
- * <p>The {@link VerificationTypeInfo} consists of a one-byte value that is an
- * indication of which type of the discriminated union is being used.</p>
+ * The {@link ObjectTypeInfo Object_variable_info} item indicates that the
+ * location has the verification type which is the class represented by the
+ * {@link ConstantValueAttribute CONSTANT_Class_info} structure found in the
+ * {@link ConstantPool constant_pool table} at the index given by {@code
+ * cpool_index}.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
- *
- * @see <a
- * 	href="http://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.7.4">
- * 	StackMapTable</a>
  */
-abstract class VerificationTypeInfo
+class ObjectTypeInfo
+extends VerificationTypeInfo
 {
 	/**
-	 * The value of the verification type.
-	 *
-	 * @return The value of the verification type.
+	 * The {@linkplain JavaDescriptors class descriptor} of the referenced
+	 * class.
 	 */
-	abstract byte typeValue ();
+	private final String classDescriptor;
 
 	/**
-	 * Answer the size of the {@linkplain VerificationTypeInfo}.
+	 * Construct a new {@link IntegerTypeInfo}.
 	 *
-	 * @return The size of the type.
+	 * @param classDescriptor
+	 *        The {@linkplain JavaDescriptors class descriptor} of the
+	 *        referenced class.
 	 */
+	ObjectTypeInfo (final String classDescriptor)
+	{
+		this.classDescriptor = classDescriptor;
+	}
+
+	@Override
 	protected int size ()
 	{
-		return 1;
+		return 3;
 	}
 
-	/**
-	 * Answer the {@linkplain JavaOperand#baseOperand() base operand}.
-	 *
-	 * @return The base operand.
-	 */
-	abstract JavaOperand baseOperand ();
-
-	/**
-	 * Answer the {@linkplain JavaOperand#computationalCategory() computational
-	 * category}.
-	 *
-	 * @return The computational category.
-	 */
-	final JavaOperand computationalCategory ()
+	@Override
+	byte typeValue ()
 	{
-		return baseOperand().computationalCategory();
+		return 7;
 	}
 
-	/**
-	 * Is the type indicated by this {@linkplain VerificationTypeInfo type
-	 * identifier} a subtype of the type indicated by the argument?
-	 *
-	 * @param other
-	 *        Another type identifier.
-	 * @return {@code true} if this type identifier denotes a subtype of the
-	 *         argument's referent, {@code false}.
-	 */
+	@Override
+	JavaOperand baseOperand ()
+	{
+		return JavaOperand.OBJECTREF;
+	}
+
+	@Override
 	public boolean isSubtypeOf (final VerificationTypeInfo other)
 	{
-		return equals(other);
+		// TODO: Fix this! This is horribly wrong!
+		if (equals(other))
+		{
+			return true;
+		}
+		if (other instanceof ObjectTypeInfo)
+		{
+			final ObjectTypeInfo info = (ObjectTypeInfo) other;
+			if (info.classDescriptor.equals(
+				JavaDescriptors.forType(Object.class)))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
 	public boolean equals (final @Nullable Object obj)
 	{
-		return getClass().isInstance(obj);
+		if (obj instanceof ObjectTypeInfo)
+		{
+			final ObjectTypeInfo other = (ObjectTypeInfo) obj;
+			return classDescriptor.equals(other.classDescriptor);
+		}
+		return false;
 	}
 
 	@Override
 	public int hashCode ()
 	{
 		// The magic number is a prime.
-		return getClass().hashCode() * 234977;
+		return classDescriptor.hashCode() * 8235991;
 	}
 
-	/**
-	 * Write the {@linkplain VerificationTypeInfo value}'s
-	 * {@linkplain #typeValue} to the specified
-	 * {@linkplain DataOutput binary stream}.
-	 *
-	 * @param out
-	 *        A binary output stream.
-	 * @param constantPool
-	 *        The {@linkplain ConstantPool constant pool}.
-	 * @throws IOException
-	 *         If the operation fails.
-	 */
+	@Override
 	void writeTo (
 			final DataOutput out,
 			final ConstantPool constantPool)
 		throws IOException
 	{
-		out.writeByte(typeValue());
+		super.writeTo(out, constantPool);
+		out.writeShort(constantPool.classConstant(classDescriptor).index);
 	}
 
 	@Override
 	public String toString ()
 	{
-		return baseOperand().toString();
+		return String.format("%s(%s)", baseOperand(), classDescriptor);
 	}
 }

@@ -50,9 +50,11 @@ extends Label
 	private final String throwableDescriptor;
 
 	@Override
-	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
+	VerificationTypeInfo[] outputOperands (
+		final List<VerificationTypeInfo> operandStack)
 	{
-		return new JavaOperand[] {JavaOperand.OBJECTREF};
+		return new VerificationTypeInfo[]
+			{JavaOperand.OBJECTREF.create(throwableDescriptor)};
 	}
 
 	/**

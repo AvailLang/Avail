@@ -70,7 +70,10 @@ extends Attribute
 	}
 
 	@Override
-	public void writeBodyTo (final DataOutput out) throws IOException
+	public void writeBodyTo (
+			final DataOutput out,
+			final ConstantPool constantPool)
+		throws IOException
 	{
 		out.writeShort(throwableEntries.size());
 		for (final ClassEntry entry : throwableEntries)

@@ -34,6 +34,7 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * The immediate value of a {@code NewObjectArrayInstruction} encodes a
@@ -43,9 +44,30 @@ import java.io.IOException;
  */
 final class NewArrayInstruction
 extends SimpleInstruction
+implements NewInstruction
 {
 	/** The primitive {@linkplain Class type}. */
 	private final Class<?> primitiveType;
+
+	@Override
+	public String descriptor ()
+	{
+		return JavaDescriptors.forType(primitiveType);
+	}
+
+	@Override
+	VerificationTypeInfo[] outputOperands (
+		final List<VerificationTypeInfo> operandStack)
+	{
+		final JavaOperand[] input = bytecode().outputOperands();
+		final VerificationTypeInfo[] operands =
+			new VerificationTypeInfo[input.length];
+		for (int i = 0, size = input.length; i < size; i++)
+		{
+			operands[i] = input[i].create("[");
+		}
+		return operands;
+	}
 
 	@Override
 	void writeImmediatesTo (final DataOutput out) throws IOException

@@ -74,6 +74,17 @@ public final class LocalVariable
 	}
 
 	/**
+	 * Answer the {@linkplain VerificationTypeInfo type identifier} for
+	 * the {@linkplain LocalVariable local variable}.
+	 *
+	 * @return The type identifier.
+	 */
+	VerificationTypeInfo typeInfo ()
+	{
+		return JavaDescriptors.typeInfoFor(descriptor);
+	}
+
+	/**
 	 * Answer the number of slot units consumed by the {@linkplain LocalVariable
 	 * local variable}.
 	 *

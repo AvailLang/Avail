@@ -279,6 +279,17 @@ public class ConstantPool
 		abstract JavaOperand operand ();
 
 		/**
+		 * Answer the {@linkplain VerificationTypeInfo type identifier}
+		 * associated with the constant.
+		 *
+		 * @return The type identifier.
+		 */
+		VerificationTypeInfo typeInfo ()
+		{
+			return operand().create();
+		}
+
+		/**
 		 * Construct a new {@link ConstantEntry}.
 		 *
 		 * @param index
@@ -578,6 +589,12 @@ public class ConstantPool
 			return JavaOperand.OBJECTREF;
 		}
 
+		@Override
+		VerificationTypeInfo typeInfo ()
+		{
+			return JavaOperand.OBJECTREF.create(descriptor());
+		}
+
 		/**
 		 * Does the {@linkplain ClassEntry entry} represent an array type?
 		 */
@@ -698,6 +715,16 @@ public class ConstantPool
 		String name ()
 		{
 			return nameAndTypeEntry.name();
+		}
+
+		/**
+		 * Answer the descriptor of the referenced class.
+		 *
+		 * @return The descriptor of the referenced class.
+		 */
+		String classDescriptor ()
+		{
+			return classEntry.descriptor();
 		}
 
 		/**

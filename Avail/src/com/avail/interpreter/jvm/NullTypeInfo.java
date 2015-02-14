@@ -1,5 +1,5 @@
 /**
- * NullVariable.java
+ * NullTypeInfo.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,12 +33,12 @@
 package com.avail.interpreter.jvm;
 
 /**
- * The {@link NullVariable Null_variable_info} item indicates that the location
+ * The {@link NullTypeInfo Null_variable_info} item indicates that the location
  * has the verification type {@code null}.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-class NullVariable
+class NullTypeInfo
 extends VerificationTypeInfo
 {
 	@Override
@@ -51,5 +51,17 @@ extends VerificationTypeInfo
 	byte typeValue ()
 	{
 		return 5;
+	}
+
+	@Override
+	JavaOperand baseOperand ()
+	{
+		return JavaOperand.OBJECTREF;
+	}
+
+	@Override
+	public String toString ()
+	{
+		return String.format("%s(%s)", baseOperand(), null);
 	}
 }

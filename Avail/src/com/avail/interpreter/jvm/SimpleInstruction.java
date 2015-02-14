@@ -58,15 +58,30 @@ extends JavaInstruction
 	}
 
 	@Override
-	JavaOperand[] inputOperands ()
+	VerificationTypeInfo[] inputOperands ()
 	{
-		return bytecode.inputOperands();
+		final JavaOperand[] input = bytecode.inputOperands();
+		final VerificationTypeInfo[] operands =
+			new VerificationTypeInfo[input.length];
+		for (int i = 0, size = input.length; i < size; i++)
+		{
+			operands[i] = input[i].create();
+		}
+		return operands;
 	}
 
 	@Override
-	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
+	VerificationTypeInfo[] outputOperands (
+		final List<VerificationTypeInfo> operandStack)
 	{
-		return bytecode.outputOperands();
+		final JavaOperand[] input = bytecode.outputOperands();
+		final VerificationTypeInfo[] operands =
+			new VerificationTypeInfo[input.length];
+		for (int i = 0, size = input.length; i < size; i++)
+		{
+			operands[i] = input[i].create();
+		}
+		return operands;
 	}
 
 	@Override

@@ -45,12 +45,12 @@ final class DupInstruction
 extends SimpleInstruction
 {
 	@Override
-	boolean canConsumeOperands (final List<JavaOperand> operands)
+	boolean canConsumeOperands (final List<VerificationTypeInfo> operands)
 	{
 		final int size = operands.size();
 		try
 		{
-			final JavaOperand topOperand = operands.get(size - 1);
+			final VerificationTypeInfo topOperand = operands.get(size - 1);
 			if (topOperand.computationalCategory() == CATEGORY_1)
 			{
 				return true;
@@ -64,12 +64,13 @@ extends SimpleInstruction
 	}
 
 	@Override
-	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
+	VerificationTypeInfo[] outputOperands (
+		final List<VerificationTypeInfo> operandStack)
 	{
 		assert canConsumeOperands(operandStack);
 		final int size = operandStack.size();
-		final JavaOperand topOperand = operandStack.get(size - 1);
-		return new JavaOperand[] {topOperand, topOperand};
+		final VerificationTypeInfo topOperand = operandStack.get(size - 1);
+		return new VerificationTypeInfo[] {topOperand, topOperand};
 	}
 
 	/**

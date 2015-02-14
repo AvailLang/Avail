@@ -98,22 +98,23 @@ extends JavaInstruction
 	}
 
 	@Override
-	boolean canConsumeOperands (final List<JavaOperand> operands)
+	boolean canConsumeOperands (final List<VerificationTypeInfo> operands)
 	{
 		return true;
 	}
 
 	@Override
-	JavaOperand[] inputOperands ()
+	VerificationTypeInfo[] inputOperands ()
 	{
 		assert bytecode().inputOperands().length == 0;
 		return noOperands;
 	}
 
 	@Override
-	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
+	VerificationTypeInfo[] outputOperands (
+		final List<VerificationTypeInfo> operandStack)
 	{
-		return new JavaOperand[] {entry.operand()};
+		return new VerificationTypeInfo[] {entry.typeInfo()};
 	}
 
 	@Override

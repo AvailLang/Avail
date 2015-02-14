@@ -1,5 +1,5 @@
 /**
- * ObjectVariable.java
+ * TopTypeInfo.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,53 +32,37 @@
 
 package com.avail.interpreter.jvm;
 
-import java.io.DataOutput;
-import java.io.IOException;
-
 /**
- * The {@link ObjectVariable Object_variable_info} item indicates that the
- * location has the verification type which is the class represented by the
- * {@link ConstantValueAttribute CONSTANT_Class_info} structure found in the
- * {@link ConstantPool constant_pool table} at the index given by {@code
- * cpool_index}.
+ * The {@link TopTypeInfo Top_variable_info} item indicates that the local
+ * variable has the verification type {@code top}.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-class ObjectVariable
+class TopTypeInfo
 extends VerificationTypeInfo
 {
-	/**
-	 *  The index into the {@link ConstantPool}
-	 */
-	private final short constantPoolIndex;
-
-	/**
-	 * Construct a new {@link IntegerVariable}.
-	 *
-	 * @param constantPoolIndex
-	 *        The {@linkplain ConstantPool constant pool} index.
-	 */
-	ObjectVariable (final short constantPoolIndex)
-	{
-		this.constantPoolIndex = constantPoolIndex;
-	}
-
 	@Override
 	protected int size ()
 	{
-		return 3;
+		return 1;
 	}
 
 	@Override
 	byte typeValue ()
 	{
-		return 7;
+		return 0;
 	}
 
 	@Override
-	void writeTo (final DataOutput out) throws IOException
+	JavaOperand baseOperand ()
 	{
-		out.writeByte(typeValue());
-		out.writeByte(constantPoolIndex);
+		//TODO WHAT IS IT?
+		return JavaOperand.INT;
+	}
+
+	@Override
+	public String toString ()
+	{
+		return getClass().getSimpleName();
 	}
 }

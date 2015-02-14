@@ -1,5 +1,5 @@
 /**
- * FloatVariable.java
+ * LongTypeInfo.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,12 +33,13 @@
 package com.avail.interpreter.jvm;
 
 /**
- * The {@link FloatVariable Float_variable_info} item indicates that the
- * location has the verification type {@code float}.
+ * The {@link LongTypeInfo Long_variable_info} item indicates that the location
+ * has the verification type {@code long}. The {@code Long_variable_info}
+ * specifies two locations in the local variable array or in the operand stack.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-class FloatVariable
+class LongTypeInfo
 extends VerificationTypeInfo
 {
 	@Override
@@ -50,6 +51,12 @@ extends VerificationTypeInfo
 	@Override
 	byte typeValue ()
 	{
-		return 2;
+		return 4;
+	}
+
+	@Override
+	JavaOperand baseOperand ()
+	{
+		return JavaOperand.LONG;
 	}
 }

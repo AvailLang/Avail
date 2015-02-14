@@ -46,15 +46,15 @@ final class Dup2Instruction
 extends SimpleInstruction
 {
 	@Override
-	boolean canConsumeOperands (final List<JavaOperand> operands)
+	boolean canConsumeOperands (final List<VerificationTypeInfo> operands)
 	{
 		final int size = operands.size();
 		try
 		{
-			final JavaOperand topOperand = operands.get(size - 1);
+			final VerificationTypeInfo topOperand = operands.get(size - 1);
 			if (topOperand.computationalCategory() == CATEGORY_1)
 			{
-				final JavaOperand nextOperand = operands.get(size - 2);
+				final VerificationTypeInfo nextOperand = operands.get(size - 2);
 				return nextOperand.computationalCategory() == CATEGORY_1;
 			}
 			return topOperand.computationalCategory() == CATEGORY_2;
@@ -67,22 +67,23 @@ extends SimpleInstruction
 	}
 
 	@Override
-	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
+	VerificationTypeInfo[] outputOperands (
+		final List<VerificationTypeInfo> operandStack)
 	{
 		assert canConsumeOperands(operandStack);
 		final int size = operandStack.size();
-		final JavaOperand topOperand = operandStack.get(size - 1);
-		final JavaOperand[] out;
+		final VerificationTypeInfo topOperand = operandStack.get(size - 1);
+		final VerificationTypeInfo[] out;
 		if (topOperand.computationalCategory() == CATEGORY_1)
 		{
-			final JavaOperand nextOperand = operandStack.get(size - 2);
-			out = new JavaOperand[]
+			final VerificationTypeInfo nextOperand = operandStack.get(size - 2);
+			out = new VerificationTypeInfo[]
 				{nextOperand, topOperand, nextOperand, topOperand};
 		}
 		else
 		{
 			assert topOperand.computationalCategory() == CATEGORY_2;
-			out = new JavaOperand[] {topOperand, topOperand};
+			out = new VerificationTypeInfo[] {topOperand, topOperand};
 		}
 		return out;
 	}

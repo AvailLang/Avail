@@ -94,22 +94,23 @@ final class InstructionWriter
 	}
 
 	/**
-	 * Answer the state of the {@linkplain JavaOperand stack} after considering
-	 * the side effects of the most recent {@linkplain JavaInstruction
-	 * instruction}.
+	 * Answer the state of the {@linkplain VerificationTypeInfo stack} after
+	 * considering the side effects of the most recent {@linkplain
+	 * JavaInstruction instruction}.
 	 *
 	 * @return The new operand stack.
 	 */
-	private List<JavaOperand> newOperandStack ()
+	private List<VerificationTypeInfo> newOperandStack ()
 	{
 		final JavaInstruction instr = instructions.peekLast();
 		if (instr != null)
 		{
-			if (!instr.isReturn())
+			if (instr.canFallThrough())
 			{
-				final List<JavaOperand> operands = instr.operandStack();
+				final List<VerificationTypeInfo> operands =
+					instr.operandStack();
 				assert operands != null;
-				final List<JavaOperand> after = new ArrayList<>(
+				final List<VerificationTypeInfo> after = new ArrayList<>(
 					operands.subList(
 						0,
 						operands.size() - instr.inputOperands().length));
@@ -134,10 +135,11 @@ final class InstructionWriter
 	{
 		assert !instruction.emitted;
 		assert codeSize == -1L;
-		final List<JavaOperand> operands = instruction.operandStack();
+		final List<VerificationTypeInfo> operands = instruction.operandStack();
 		if (operands == null)
 		{
-			final List<JavaOperand> newOperandStack = newOperandStack();
+			final List<VerificationTypeInfo> newOperandStack =
+				newOperandStack();
 			assert instruction.canConsumeOperands(newOperandStack);
 			instruction.setOperandStack(newOperandStack);
 		}
@@ -207,9 +209,11 @@ final class InstructionWriter
 		final StringBuilder builder = new StringBuilder(1000);
 		for (final JavaInstruction instruction : instructions)
 		{
+			final String instructionText = instruction.toString().replaceAll(
+				String.format("%n"), String.format("%n\t"));
 			if (instruction.isLabel())
 			{
-				builder.append(instruction);
+				builder.append(instructionText);
 				builder.append(':');
 			}
 			else
@@ -220,7 +224,7 @@ final class InstructionWriter
 					builder.append(String.format("%5d", instruction.address()));
 					builder.append(": ");
 				}
-				builder.append(instruction);
+				builder.append(instructionText);
 			}
 			builder.append('\n');
 		}

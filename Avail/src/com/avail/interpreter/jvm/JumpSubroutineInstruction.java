@@ -49,9 +49,10 @@ extends UnconditionalBranchInstruction
 	}
 
 	@Override
-	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
+	VerificationTypeInfo[] outputOperands (
+		final List<VerificationTypeInfo> operandStack)
 	{
-		return bytecode().outputOperands();
+		return new VerificationTypeInfo[] {JavaOperand.RETURN_ADDRESS.create()};
 	}
 
 	@Override

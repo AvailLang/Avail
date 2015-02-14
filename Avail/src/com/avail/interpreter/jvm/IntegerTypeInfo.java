@@ -1,5 +1,5 @@
 /**
- * IntegerVariable.java
+ * IntegerTypeInfo.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,12 +33,12 @@
 package com.avail.interpreter.jvm;
 
 /**
- * The {@link IntegerVariable Integer_variable_info} item indicates that
+ * The {@link IntegerTypeInfo Integer_variable_info} item indicates that
  * the location has the verification type {@code int}.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-class IntegerVariable
+final class IntegerTypeInfo
 extends VerificationTypeInfo
 {
 	@Override
@@ -51,5 +51,11 @@ extends VerificationTypeInfo
 	byte typeValue ()
 	{
 		return 1;
+	}
+
+	@Override
+	JavaOperand baseOperand ()
+	{
+		return JavaOperand.INT;
 	}
 }

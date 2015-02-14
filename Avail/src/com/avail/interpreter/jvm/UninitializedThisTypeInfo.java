@@ -1,5 +1,5 @@
 /**
- * LongVariable.java
+ * UninitializedThisTypeInfo.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,13 +33,16 @@
 package com.avail.interpreter.jvm;
 
 /**
- * The {@link LongVariable Long_variable_info} item indicates that the location
- * has the verification type {@code long}. The {@code Long_variable_info}
- * specifies two locations in the local variable array or in the operand stack.
+ * The {@link UninitializedThisTypeInfo Uninitialized_variable_info} item
+ * indicates that the location has the verification type
+ * {@code uninitialized(Offset)}. The {@code Offset} item indicates the offset,
+ * in the {@code code} array of the {@link CodeAttribute} that contains this
+ * {@link StackMapTableAttribute}, of the {@link JavaBytecode#new_ new}
+ * instruction that created the object being stored in the location.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-class LongVariable
+class UninitializedThisTypeInfo
 extends VerificationTypeInfo
 {
 	@Override
@@ -51,6 +54,18 @@ extends VerificationTypeInfo
 	@Override
 	byte typeValue ()
 	{
-		return 4;
+		return 6;
+	}
+
+	@Override
+	JavaOperand baseOperand ()
+	{
+		return JavaOperand.OBJECTREF;
+	}
+
+	@Override
+	public String toString ()
+	{
+		return getClass().getSimpleName();
 	}
 }
