@@ -634,7 +634,7 @@ Semantic restriction "group_by_" is
 	defaultType ::= ∪ aTupleType[1..|aTupleType's leading types| + 1];
 	keyType ::= discriminatorType's return type;
 	lowerBound ::= if ⎣tupleCardinality⎦ = 0 then [0] else [1];
-	upperBound ::= if tupleUpperBound > |keyType| 
+	upperBound ::= if tupleUpperBound > |keyType| ∧ [¬keyType ⊆ type] 
 		then [|keyType|]
 		else [tupleUpperBound];
 	valueType ::= <defaultType… | 1..tupleUpperBound>;
