@@ -1,6 +1,6 @@
 /*
  * The Ship of Stories.avail
- * Copyright © 2013-2014, Cislyn Smith.
+ * Copyright © 2013-2015, Cislyn Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@ Verify story;
 Method "Play the Ship of Stories" is
 [
 	Print:
-		"[\"The Ship of Stories\" is copyright © 2013-2014, Cislyn Smith. It is \
+		"[\"The Ship of Stories\" is copyright © 2013-2015, Cislyn Smith. It is \
 		\|redistributed by The Avail Foundation, LLC, with her permission.]\n\n";
 	Play a game,
 		creating a context with [a game context],
@@ -68,7 +68,7 @@ Method "Play the Ship of Stories" is
 Method "Play the Ship of Stories by web" is
 [
 	Print: <
-		"\"The Ship of Stories\" is copyright © 2013-2014, \
+		"\"The Ship of Stories\" is copyright © 2013-2015, \
 		\|<strong>Cislyn Smith</strong>.",
 		"It is redistributed by <strong>The Avail Foundation, LLC</strong>, \
 		\|with her permission."

@@ -1,6 +1,6 @@
 /**
  * UnconditionalBranchInstruction.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -81,7 +81,7 @@ extends JavaInstruction
 	abstract JavaBytecode bytecode ();
 
 	@Override
-	final JavaOperand[] inputOperands ()
+	final VerificationTypeInfo[] inputOperands ()
 	{
 		assert bytecode().inputOperands().length == 0;
 		return noOperands;

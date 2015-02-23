@@ -1,6 +1,6 @@
 /**
  * LocalVariableAccessInstruction.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,8 +75,7 @@ extends JavaInstruction
 	{
 		final String descriptor = local.descriptor();
 		final Class<?> type = JavaDescriptors.typeForDescriptor(descriptor);
-		final int rowIndex = type == Object.class ? 0
-			: type == Float.TYPE ? 1
+		final int rowIndex = type == Float.TYPE ? 1
 			: type == Double.TYPE ? 2
 			: type == Boolean.TYPE ? 3
 			: type == Byte.TYPE ? 3
@@ -84,22 +83,31 @@ extends JavaInstruction
 			: type == Integer.TYPE ? 3
 			: type == Short.TYPE ? 3
 			: type == Long.TYPE ? 4
-			: -1;
+			: 0;
 		assert rowIndex != -1;
 		final int columnIndex = Math.min(local.index, 4);
 		return bytecodes()[5 * rowIndex + columnIndex];
 	}
 
 	@Override
-	final JavaOperand[] inputOperands ()
+	final VerificationTypeInfo[] inputOperands ()
 	{
-		return bytecode().inputOperands();
+		if (bytecode().inputOperands().length > 0)
+		{
+			return new VerificationTypeInfo[] {local.typeInfo()};
+		}
+		return noOperands;
 	}
 
 	@Override
-	final JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
+	final VerificationTypeInfo[] outputOperands (
+		final List<VerificationTypeInfo> operandStack)
 	{
-		return bytecode().outputOperands();
+		if (bytecode().outputOperands().length > 0)
+		{
+			return new VerificationTypeInfo[] {local.typeInfo()};
+		}
+		return noOperands;
 	}
 
 	@Override

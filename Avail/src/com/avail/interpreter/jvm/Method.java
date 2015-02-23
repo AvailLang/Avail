@@ -1,6 +1,6 @@
 /**
  * Method.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -879,13 +879,11 @@ extends Emitter<MethodModifier>
 	 * Emit code to push an array element onto the operand stack.
 	 *
 	 * @param type
-	 *        The {@linkplain Class type} of the array, either a {@linkplain
-	 *        Class#isPrimitive() primitive type} or {@link Object Object.class}
-	 *        for a reference type.
+	 *        The {@linkplain Class type} of the array, possibly a {@linkplain
+	 *        Class#isPrimitive() primitive type}.
 	 */
 	public void loadArrayElement (final Class<?> type)
 	{
-		assert type.isPrimitive() || type == Object.class;
 		writer.append(new ArrayLoadInstruction(type));
 	}
 
@@ -1630,7 +1628,9 @@ extends Emitter<MethodModifier>
 	 */
 	public void returnToCaller ()
 	{
-		final JavaOperand returnType =
+		// TODO: This needs to append a ReturnInstruction (which doesn't exist
+		// yet) that is able to consume an appropriate argument from the stack.
+		final VerificationTypeInfo returnType =
 			JavaDescriptors.returnOperand(descriptor());
 		final JavaBytecode bytecode;
 		if (returnType == null)

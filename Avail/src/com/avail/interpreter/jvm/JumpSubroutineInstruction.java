@@ -1,6 +1,6 @@
 /**
  * JumpSubroutineInstruction.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,9 +49,10 @@ extends UnconditionalBranchInstruction
 	}
 
 	@Override
-	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
+	VerificationTypeInfo[] outputOperands (
+		final List<VerificationTypeInfo> operandStack)
 	{
-		return bytecode().outputOperands();
+		return new VerificationTypeInfo[] {JavaOperand.RETURN_ADDRESS.create()};
 	}
 
 	@Override

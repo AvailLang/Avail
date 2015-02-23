@@ -1,6 +1,6 @@
 /**
  * JVMCodeGeneration.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,10 +40,13 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 import org.junit.Test;
 import com.avail.annotations.Nullable;
 import com.avail.interpreter.jvm.*;
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
 /**
  * Test {@link CodeGenerator}.
@@ -636,5 +639,487 @@ public class JVMCodeGeneration
 			final int actual = (int) method.invoke(null, j - 2);
 			assertEquals(expected, actual);
 		}
+	}
+
+@SuppressWarnings("javadoc")
+@Test
+public void tableSwitchCase ()
+	throws
+		IOException,
+		ClassNotFoundException,
+		IllegalAccessException,
+		NoSuchMethodException,
+		SecurityException,
+		IllegalArgumentException,
+		InvocationTargetException,
+		InstantiationException
+	{
+//		public class TableSwitchCase {
+//
+//		  	public int switchCase (int input)
+//		  	{
+//		  		int output;
+//		  		switch (input)
+//		  		{
+//		  			case 0:
+//		  			{
+//		  				output = input - 1;
+//		  				break;
+//		  			}
+//		  			case 1:
+//		  			{
+//		  				output = 2 * input;
+//		  				break;
+//		  			}
+//		  			case 2:
+//		  			{
+//		  				output = 2 + input;
+//		  				break;
+//		  			}
+//		  			case 3:
+//		  			{
+//		  				output = 3 + input;
+//		  				break;
+//		  			}
+//		  			case 4:
+//		  			{
+//		  				output = 32 / input;
+//		  				break;
+//		  			}
+//		  			default:
+//		  			{
+//		  				output = input;
+//		  				break;
+//		  			}
+//		  		}
+//		  		return output;
+//		  	}
+//		}
+
+		final CodeGenerator cg = new CodeGenerator();
+		simpleClassPreambleOn(cg);
+		cg.newDefaultConstructor();
+		final String methodName = "switchCase";
+		final Method m = cg.newMethod(methodName, "(I)I");
+		final EnumSet<MethodModifier> mmods =
+			EnumSet.of(MethodModifier.PUBLIC);
+		m.setModifiers(mmods);
+		final LocalVariable input = m.newParameter("input");
+		m.enterScope();
+		final LocalVariable output = m.newLocalVariable("output", Integer.TYPE);
+		m.load(input);
+		final ArrayList<Label> switchLabels = new ArrayList<>();
+		final Label label0 = m.newLabel("L0");
+		final Label label1 = m.newLabel("L1");
+		final Label label2 = m.newLabel("L2");
+		final Label label3 = m.newLabel("L3");
+		final Label label4 = m.newLabel("L4");
+		final Label labelDefault = m.newLabel("default");
+		switchLabels.add(label0);
+		switchLabels.add(label1);
+		switchLabels.add(label2);
+		switchLabels.add(label3);
+		switchLabels.add(label4);
+		m.tableSwitch(0, 4, switchLabels, labelDefault);
+		m.addLabel(label0);
+		m.enterScope();
+		m.load(input);
+		m.pushConstant(1);
+		m.doOperator(BinaryOperator.SUBTRACTION, Integer.TYPE);
+		m.store(output);
+		final Label doneLabel = m.newLabel("done");
+		m.exitScope();
+		m.branchTo(doneLabel);
+		m.addLabel(label1);
+		m.enterScope();
+		m.pushConstant(2);
+		m.load(input);
+		m.doOperator(BinaryOperator.MULTIPLICATION, Integer.TYPE);
+		m.store(output);
+		m.exitScope();
+		m.branchTo(doneLabel);
+		m.addLabel(label2);
+		m.enterScope();
+		m.pushConstant(2);
+		m.load(input);
+		m.doOperator(BinaryOperator.ADDITION, Integer.TYPE);
+		m.store(output);
+		m.exitScope();
+		m.branchTo(doneLabel);
+		m.addLabel(label3);
+		m.enterScope();
+		m.pushConstant(3);
+		m.load(input);
+		m.doOperator(BinaryOperator.ADDITION, Integer.TYPE);
+		m.store(output);
+		m.exitScope();
+		m.branchTo(doneLabel);
+		m.addLabel(label4);
+		m.enterScope();
+		m.pushConstant(32);
+		m.load(input);
+		m.doOperator(BinaryOperator.DIVISION, Integer.TYPE);
+		m.store(output);
+		m.exitScope();
+		m.branchTo(doneLabel);
+		m.addLabel(labelDefault);
+		m.enterScope();
+		m.load(input);
+		m.store(output);
+		m.exitScope();
+		m.addLabel(doneLabel);
+		m.load(output);
+		m.returnToCaller();
+		m.exitScope();
+		m.finish();
+		final Class<?> newClass = loadClass(cg);
+		final java.lang.reflect.Method method =
+			newClass.getMethod(methodName, Integer.TYPE);
+		final Object newInstance = newClass.newInstance();
+		final int[] expectedAnswers = {-1, 2, 4, 6, 8, 5};
+		for (int j = 0; j <= 5; j++)
+		{
+			final int expected = expectedAnswers[j];
+			final int actual = (int) method.invoke(newInstance, j);
+			assertEquals(expected, actual);
+		}
+	}
+
+@SuppressWarnings("javadoc")
+@Test
+public void lookupSwitchCase ()
+	throws
+		IOException,
+		ClassNotFoundException,
+		IllegalAccessException,
+		NoSuchMethodException,
+		SecurityException,
+		IllegalArgumentException,
+		InvocationTargetException,
+		InstantiationException
+	{
+//	public class SwitchLookupCase {
+//
+//	  	public int switchLookupCase (int input)
+//	  	{
+//	  		int output;
+//	  		switch (input)
+//	  		{
+//	  			case 0:
+//	  			{
+//	  				output = input - 1;
+//	  				break;
+//	  			}
+//	  			case 10:
+//	  			{
+//	  				output = 2 * input;
+//	  				break;
+//	  			}
+//	  			case 100:
+//	  			{
+//	  				output = 2 + input;
+//	  				break;
+//	  			}
+//	  			case 1000:
+//	  			{
+//	  				output = 3 + input;
+//	  				break;
+//	  			}
+//	  			case 10000:
+//	  			{
+//	  				output = 100000 / input;
+//	  				break;
+//	  			}
+//	  			default:
+//	  			{
+//	  				output = input;
+//	  				break;
+//	  			}
+//	  		}
+//	  		return output;
+//	  	}
+//	}
+
+		final CodeGenerator cg = new CodeGenerator();
+		simpleClassPreambleOn(cg);
+		cg.newDefaultConstructor();
+		final String methodName = "switchCase";
+		final Method m = cg.newMethod(methodName, "(I)I");
+		final EnumSet<MethodModifier> mmods =
+			EnumSet.of(MethodModifier.PUBLIC);
+		m.setModifiers(mmods);
+		final LocalVariable input = m.newParameter("input");
+		m.enterScope();
+		final LocalVariable output = m.newLocalVariable("output", Integer.TYPE);
+		m.load(input);
+		final ArrayList<Label> switchLabels = new ArrayList<>();
+		final Label label0 = m.newLabel("L0");
+		final Label label1 = m.newLabel("L10");
+		final Label label2 = m.newLabel("L100");
+		final Label label3 = m.newLabel("L1000");
+		final Label label4 = m.newLabel("L10000");
+		final Label labelDefault = m.newLabel("default");
+		switchLabels.add(label0);
+		switchLabels.add(label1);
+		switchLabels.add(label2);
+		switchLabels.add(label3);
+		switchLabels.add(label4);
+		final List<Integer> keys = new ArrayList<>();
+		keys.add(0);
+		keys.add(10);
+		keys.add(100);
+		keys.add(1000);
+		keys.add(10000);
+		m.lookupSwitch(keys , switchLabels, labelDefault);
+		m.addLabel(label0);
+		m.enterScope();
+		m.load(input);
+		m.pushConstant(1);
+		m.doOperator(BinaryOperator.SUBTRACTION, Integer.TYPE);
+		m.store(output);
+		final Label doneLabel = m.newLabel("done");
+		m.exitScope();
+		m.branchTo(doneLabel);
+		m.addLabel(label1);
+		m.enterScope();
+		m.pushConstant(2);
+		m.load(input);
+		m.doOperator(BinaryOperator.MULTIPLICATION, Integer.TYPE);
+		m.store(output);
+		m.exitScope();
+		m.branchTo(doneLabel);
+		m.addLabel(label2);
+		m.enterScope();
+		m.pushConstant(2);
+		m.load(input);
+		m.doOperator(BinaryOperator.ADDITION, Integer.TYPE);
+		m.store(output);
+		m.exitScope();
+		m.branchTo(doneLabel);
+		m.addLabel(label3);
+		m.enterScope();
+		m.pushConstant(3);
+		m.load(input);
+		m.doOperator(BinaryOperator.ADDITION, Integer.TYPE);
+		m.store(output);
+		m.exitScope();
+		m.branchTo(doneLabel);
+		m.addLabel(label4);
+		m.enterScope();
+		m.pushConstant(100000);
+		m.load(input);
+		m.doOperator(BinaryOperator.DIVISION, Integer.TYPE);
+		m.store(output);
+		m.exitScope();
+		m.branchTo(doneLabel);
+		m.addLabel(labelDefault);
+		m.enterScope();
+		m.load(input);
+		m.store(output);
+		m.exitScope();
+		m.addLabel(doneLabel);
+		m.load(output);
+		m.returnToCaller();
+		m.exitScope();
+		m.finish();
+		final Class<?> newClass = loadClass(cg);
+		final java.lang.reflect.Method method =
+			newClass.getMethod(methodName, Integer.TYPE);
+		final Object newInstance = newClass.newInstance();
+		final int[] expectedAnswers = {-1, 20, 102, 1003, 10, 5};
+		final List<Integer> testValues = new ArrayList<>();
+		testValues.add(0);
+		testValues.add(10);
+		testValues.add(100);
+		testValues.add(1000);
+		testValues.add(10000);
+		testValues.add(5);
+		int i = 0;
+		for (final Integer j : testValues)
+		{
+			final int expected = expectedAnswers[i];
+			final int actual = (int) method.invoke(newInstance, j);
+			i++;
+			assertEquals(expected, actual);
+		}
+	}
+
+@SuppressWarnings("javadoc")
+@Test
+public void forLoop ()
+	throws
+		IOException,
+		ClassNotFoundException,
+		IllegalAccessException,
+		NoSuchMethodException,
+		SecurityException,
+		IllegalArgumentException,
+		InvocationTargetException,
+		InstantiationException
+	{
+//	public class Spin
+//	{
+//		public void forLoop()
+//		{
+//			for (int j = 0; j < 57; j++)
+//			{
+//					;
+//			}
+//		}
+//	}
+
+		final CodeGenerator cg = new CodeGenerator();
+		simpleClassPreambleOn(cg);
+		cg.newDefaultConstructor();
+		final String methodName = "forLoop";
+		final Method m = cg.newMethod(methodName, "()I");
+		final EnumSet<MethodModifier> mmods =
+			EnumSet.of(MethodModifier.PUBLIC);
+		m.setModifiers(mmods);
+		m.enterScope();
+		final LocalVariable i = m.newLocalVariable("i", Integer.TYPE);
+		m.pushConstant(0);
+		m.store(i);
+		final LocalVariable j = m.newLocalVariable("j", Integer.TYPE);
+		m.pushConstant(0);
+		m.store(j);
+		final Label startLabel = m.newLabel("start");
+		m.addLabel(startLabel);
+		m.load(j);
+		m.pushConstant(57);
+		final Label doneLabel = m.newLabel("done");
+		m.branchUnless(
+			PrimitiveComparisonOperator.LESS_THAN,
+			doneLabel);
+		m.enterScope();
+		m.increment(i, 1);
+		m.increment(j, 1);
+		m.exitScope();
+		m.branchTo(startLabel);
+		m.addLabel(doneLabel);
+		m.load(i);
+		m.returnToCaller();
+		m.exitScope();
+		m.finish();
+		final Class<?> newClass = loadClass(cg);
+		final java.lang.reflect.Method method =
+			newClass.getMethod(methodName);
+		final Object newInstance = newClass.newInstance();
+
+		final int actual = (int) method.invoke(newInstance);
+		assertEquals(57, actual);
+	}
+
+@SuppressWarnings("javadoc")
+@Test
+public void arraySum ()
+	throws
+		IOException,
+		ClassNotFoundException,
+		IllegalAccessException,
+		NoSuchMethodException,
+		SecurityException,
+		IllegalArgumentException,
+		InvocationTargetException,
+		InstantiationException
+	{
+
+//	public class ArrayManipulator
+//	{
+//		public int sumArray (int input)
+//		{
+//			int[] intArray = {1,2,3,4,5,6};
+//			int total = input;
+//
+//			for (int number : intArray)
+//			{
+//				total += number;
+//			}
+//
+//			return total;
+//		}
+//	}
+
+		final CodeGenerator cg = new CodeGenerator();
+		simpleClassPreambleOn(cg);
+		cg.newDefaultConstructor();
+		final String methodName = "arraySum";
+		final Method m = cg.newMethod(methodName, "(I)I");
+		final EnumSet<MethodModifier> mmods =
+			EnumSet.of(MethodModifier.PUBLIC);
+		m.setModifiers(mmods);
+		m.enterScope();
+		final LocalVariable input = m.newParameter("input"); //#1
+		m.pushConstant(6);
+		m.newArray("I");
+		m.dup();
+		m.pushConstant(0);
+		m.pushConstant(1);
+		m.storeArrayElement(Integer.TYPE);
+		m.dup();
+		m.pushConstant(1);
+		m.pushConstant(2);
+		m.storeArrayElement(Integer.TYPE);
+		m.dup();
+		m.pushConstant(2);
+		m.pushConstant(3);
+		m.storeArrayElement(Integer.TYPE);
+		m.dup();
+		m.pushConstant(3);
+		m.pushConstant(4);
+		m.storeArrayElement(Integer.TYPE);
+		m.dup();
+		m.pushConstant(4);
+		m.pushConstant(5);
+		m.storeArrayElement(Integer.TYPE);
+		m.dup();
+		m.pushConstant(5);
+		m.pushConstant(6);
+		m.storeArrayElement(Integer.TYPE);
+		final LocalVariable intArray =
+			m.newLocalVariable("intArray", Array.class); //#2
+		m.store(intArray);
+		final LocalVariable total = m.newLocalVariable("total", Integer.TYPE); //#3
+		m.load(input);
+		m.store(total); //line 31
+		final LocalVariable arr$ = m.newLocalVariable("arr$", Integer.TYPE); //#4
+		m.load(intArray);
+		m.store(arr$);
+		final LocalVariable len$ = m.newLocalVariable("i$", Integer.TYPE); //#5
+		m.arraySize();
+		m.store(len$);
+		final LocalVariable i$ = m.newLocalVariable("i$", Integer.TYPE); //#6
+		m.pushConstant(0);
+		m.store(i$);
+		m.load(i$);
+		m.load(len$);
+		final Label endLoopLabel = m.newLabel("endLoop");
+		final Label startLoopLabel = m.newLabel("startLoop");
+		m.addLabel(startLoopLabel);
+		m.branchUnless(PrimitiveComparisonOperator.LESS_THAN, endLoopLabel); //line 47
+		m.enterScope();
+		m.load(arr$);
+		m.load(i$);
+		m.loadArrayElement(Integer.TYPE);
+		final LocalVariable number = m.newLocalVariable("number", Integer.TYPE);
+		m.store(number);
+		m.load(total);
+		m.load(number);
+		m.doOperator(BinaryOperator.ADDITION, Integer.TYPE);
+		m.store(total);
+		m.increment(i$, 1);
+		m.exitScope();
+		m.branchTo(startLoopLabel);
+		m.addLabel(endLoopLabel);
+		m.load(total);
+		m.returnToCaller();
+		m.finish();
+		final Class<?> newClass = loadClass(cg);
+		final java.lang.reflect.Method method =
+			newClass.getMethod(methodName);
+		final Object newInstance = newClass.newInstance();
+
+		final int actual = (int) method.invoke(newInstance);
+		assertEquals(21, actual);
 	}
 }

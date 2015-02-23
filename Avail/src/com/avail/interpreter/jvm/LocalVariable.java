@@ -1,6 +1,6 @@
 /**
  * LocalVariable.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,6 +71,17 @@ public final class LocalVariable
 	public String descriptor ()
 	{
 		return descriptor;
+	}
+
+	/**
+	 * Answer the {@linkplain VerificationTypeInfo type identifier} for
+	 * the {@linkplain LocalVariable local variable}.
+	 *
+	 * @return The type identifier.
+	 */
+	VerificationTypeInfo typeInfo ()
+	{
+		return JavaDescriptors.typeInfoFor(descriptor);
 	}
 
 	/**

@@ -1,6 +1,6 @@
 /**
  * Dup2X1Instruction.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,16 +45,17 @@ final class Dup2X1Instruction
 extends SimpleInstruction
 {
 	@Override
-	boolean canConsumeOperands (final List<JavaOperand> operands)
+	boolean canConsumeOperands (final List<VerificationTypeInfo> operands)
 	{
 		final int size = operands.size();
 		try
 		{
-			final JavaOperand topOperand = operands.get(size - 1);
-			final JavaOperand secondOperand = operands.get(size - 2);
+			final VerificationTypeInfo topOperand = operands.get(size - 1);
+			final VerificationTypeInfo secondOperand = operands.get(size - 2);
 			if (topOperand.computationalCategory() == CATEGORY_1)
 			{
-				final JavaOperand thirdOperand = operands.get(size - 3);
+				final VerificationTypeInfo thirdOperand =
+					operands.get(size - 3);
 				return secondOperand.computationalCategory() == CATEGORY_1
 					&& thirdOperand.computationalCategory() == CATEGORY_1;
 			}
@@ -69,18 +70,20 @@ extends SimpleInstruction
 	}
 
 	@Override
-	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
+	VerificationTypeInfo[] outputOperands (
+		final List<VerificationTypeInfo> operandStack)
 	{
 		assert canConsumeOperands(operandStack);
 		final int size = operandStack.size();
-		final JavaOperand topOperand = operandStack.get(size - 1);
-		final JavaOperand secondOperand = operandStack.get(size - 2);
-		final JavaOperand[] out;
+		final VerificationTypeInfo topOperand = operandStack.get(size - 1);
+		final VerificationTypeInfo secondOperand = operandStack.get(size - 2);
+		final VerificationTypeInfo[] out;
 		if (topOperand.computationalCategory() == CATEGORY_1)
 		{
-			final JavaOperand thirdOperand = operandStack.get(size - 3);
+			final VerificationTypeInfo thirdOperand =
+				operandStack.get(size - 3);
 			out =
-				new JavaOperand[]
+				new VerificationTypeInfo[]
 				{
 					secondOperand,
 					topOperand,
@@ -92,7 +95,8 @@ extends SimpleInstruction
 		else
 		{
 			assert topOperand.computationalCategory() == CATEGORY_2;
-			out = new JavaOperand[] {topOperand, secondOperand, topOperand};
+			out = new VerificationTypeInfo[]
+				{topOperand, secondOperand, topOperand};
 		}
 		return out;
 	}

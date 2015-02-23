@@ -1,6 +1,6 @@
 /**
  * NewObjectArrayInstruction.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,7 @@ import com.avail.interpreter.jvm.ConstantPool.ClassEntry;
  */
 final class NewObjectArrayInstruction
 extends JavaInstruction
+implements NewInstruction
 {
 	/** The {@linkplain ClassEntry class entry} of the array type. */
 	private final ClassEntry classEntry;
@@ -72,6 +73,12 @@ extends JavaInstruction
 		return isMultidimensional() ? 4 : 3;
 	}
 
+	@Override
+	public String descriptor ()
+	{
+		return classEntry.descriptor();
+	}
+
 	/**
 	 * Answer the appropriate {@linkplain JavaBytecode bytecode} for the
 	 * {@linkplain NewObjectArrayInstruction instruction}.
@@ -86,7 +93,7 @@ extends JavaInstruction
 	}
 
 	@Override
-	boolean canConsumeOperands (final List<JavaOperand> operands)
+	boolean canConsumeOperands (final List<VerificationTypeInfo> operands)
 	{
 		final int size = operands.size();
 		try
@@ -107,17 +114,20 @@ extends JavaInstruction
 	}
 
 	@Override
-	JavaOperand[] inputOperands ()
+	VerificationTypeInfo[] inputOperands ()
 	{
-		final JavaOperand[] operands = new JavaOperand[dimensions];
-		Arrays.fill(operands, JavaOperand.COUNT);
+		final VerificationTypeInfo[] operands =
+			new VerificationTypeInfo[dimensions];
+		Arrays.fill(operands, JavaOperand.COUNT.create());
 		return operands;
 	}
 
 	@Override
-	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
+	VerificationTypeInfo[] outputOperands (
+		final List<VerificationTypeInfo> operandStack)
 	{
-		return bytecode().outputOperands();
+		return new VerificationTypeInfo[]
+			{JavaDescriptors.typeInfoFor(classEntry.descriptor())};
 	}
 
 	@Override
@@ -142,9 +152,9 @@ extends JavaInstruction
 		if (isMultidimensional())
 		{
 			return String.format(
-				"%-15s%s [%d]", super.toString(), classEntry, dimensions);
+				"%-15s%s [%d]", bytecode(), classEntry, dimensions);
 		}
-		return String.format("%-15s%s", super.toString(), classEntry);
+		return String.format("%-15s%s", bytecode(), classEntry);
 	}
 
 	/**

@@ -1,6 +1,6 @@
 /**
  * HandlerLabel.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,9 +50,11 @@ extends Label
 	private final String throwableDescriptor;
 
 	@Override
-	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
+	VerificationTypeInfo[] outputOperands (
+		final List<VerificationTypeInfo> operandStack)
 	{
-		return new JavaOperand[] {JavaOperand.OBJECTREF};
+		return new VerificationTypeInfo[]
+			{JavaOperand.OBJECTREF.create(throwableDescriptor)};
 	}
 
 	/**

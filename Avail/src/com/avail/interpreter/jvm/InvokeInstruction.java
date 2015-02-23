@@ -1,6 +1,6 @@
 /**
  * InvokeInstruction.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,9 +47,9 @@ final class InvokeInstruction
 extends AbstractInvokeInstruction
 {
 	@Override
-	List<JavaOperand> parameters ()
+	List<VerificationTypeInfo> parameters ()
 	{
-		final List<JavaOperand> parameters;
+		final List<VerificationTypeInfo> parameters;
 		switch (bytecode())
 		{
 			case invokestatic:
@@ -58,7 +58,10 @@ extends AbstractInvokeInstruction
 			case invokespecial:
 			case invokevirtual:
 				parameters = parameterOperands(methodEntry.descriptor());
-				parameters.add(0, JavaOperand.OBJECTREF);
+				parameters.add(
+					0,
+					JavaOperand.OBJECTREF.create(
+						methodEntry.classDescriptor()));
 				break;
 			case invokedynamic:
 			case invokeinterface:

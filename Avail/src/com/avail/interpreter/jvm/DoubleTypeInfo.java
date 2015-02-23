@@ -1,6 +1,6 @@
 /**
- * UninitializedThisVariable.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * DoubleTypeInfo.java
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,16 +33,14 @@
 package com.avail.interpreter.jvm;
 
 /**
- * The {@link UninitializedThisVariable Uninitialized_variable_info} item
- * indicates that the location has the verification type
- * {@code uninitialized(Offset)}. The {@code Offset} item indicates the offset,
- * in the {@code code} array of the {@link CodeAttribute} that contains this
- * {@link StackMapTableAttribute}, of the {@link JavaBytecode#new_ new}
- * instruction that created the object being stored in the location.
+ * The {@link DoubleTypeInfo Double_variable_info} item indicates that the
+ * location has the verification type {@code double}. The {@code
+ * Double_variable_info} specifies two locations in the local variable array or
+ * in the operand stack.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-class UninitializedThisVariable
+class DoubleTypeInfo
 extends VerificationTypeInfo
 {
 	@Override
@@ -54,6 +52,12 @@ extends VerificationTypeInfo
 	@Override
 	byte typeValue ()
 	{
-		return 6;
+		return 3;
+	}
+
+	@Override
+	JavaOperand baseOperand ()
+	{
+		return JavaOperand.DOUBLE;
 	}
 }

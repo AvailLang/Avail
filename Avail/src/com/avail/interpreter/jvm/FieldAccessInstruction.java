@@ -1,6 +1,6 @@
 /**
  * FieldAccessInstruction.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import com.avail.interpreter.jvm.ConstantPool.FieldrefEntry;
 
@@ -91,46 +90,52 @@ extends JavaInstruction
 	}
 
 	/**
-	 * Quasi-destructively update the specified array to replace occurrences of
-	 * {@link JavaOperand#VALUE VALUE} with the {@linkplain JavaOperand operand}
-	 * that corresponds with the {@linkplain FieldrefEntry referenced}
-	 * {@linkplain Field field}'s {@linkplain Class type}.
+	 * Build an array to replace occurrences of {@link JavaOperand#OBJECTREF
+	 * OBJECTREF} and {@link JavaOperand#VALUE VALUE} with the {@linkplain
+	 * VerificationTypeInfo operand} that corresponds with the {@linkplain
+	 * FieldrefEntry referenced} {@linkplain Field field}'s {@linkplain Class
+	 * type}.
 	 *
 	 * @param operands
 	 *        An array of operands.
 	 * @return An array of operands that reflects the substitution.
 	 */
-	private JavaOperand[] substituteOperands (final JavaOperand[] operands)
+	private VerificationTypeInfo[] substituteOperands (
+		final JavaOperand[] operands)
 	{
-		JavaOperand[] result = operands;
-		boolean copied = false;
+		final VerificationTypeInfo[] result =
+			new VerificationTypeInfo[operands.length];
 		for (int i = 0; i < operands.length; i++)
 		{
-			if (operands[i] == JavaOperand.VALUE)
+			switch (operands[i].baseOperand())
 			{
-				// Copy the operands on write.
-				if (!copied)
+				case OBJECTREF:
+				case VALUE:
 				{
-					result = Arrays.copyOf(operands, operands.length);
-					copied = true;
+					final Class<?> type = JavaDescriptors.typeForDescriptor(
+						fieldrefEntry.descriptor());
+					result[i] = JavaOperand.forType(type);
+					break;
 				}
-				final Class<?> type = JavaDescriptors.typeForDescriptor(
-					fieldrefEntry.descriptor());
-				final JavaOperand newOperand = JavaOperand.forType(type);
-				result[i] = newOperand;
+				default:
+				{
+					result[i] = operands[i].create();
+					break;
+				}
 			}
 		}
 		return result;
 	}
 
 	@Override
-	final JavaOperand[] inputOperands ()
+	final VerificationTypeInfo[] inputOperands ()
 	{
 		return substituteOperands(bytecode().inputOperands());
 	}
 
 	@Override
-	final JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
+	final VerificationTypeInfo[] outputOperands (
+		final List<VerificationTypeInfo> operandStack)
 	{
 		return substituteOperands(bytecode().outputOperands());
 	}

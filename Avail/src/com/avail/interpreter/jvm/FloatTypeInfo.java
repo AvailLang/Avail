@@ -1,6 +1,6 @@
 /**
- * DoubleVariable.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * FloatTypeInfo.java
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,14 +33,12 @@
 package com.avail.interpreter.jvm;
 
 /**
- * The {@link DoubleVariable Double_variable_info} item indicates that the
- * location has the verification type {@code double}. The {@code
- * Double_variable_info} specifies two locations in the local variable array or
- * in the operand stack.
+ * The {@link FloatTypeInfo Float_variable_info} item indicates that the
+ * location has the verification type {@code float}.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-class DoubleVariable
+class FloatTypeInfo
 extends VerificationTypeInfo
 {
 	@Override
@@ -52,6 +50,12 @@ extends VerificationTypeInfo
 	@Override
 	byte typeValue ()
 	{
-		return 3;
+		return 2;
+	}
+
+	@Override
+	JavaOperand baseOperand ()
+	{
+		return JavaOperand.FLOAT;
 	}
 }

@@ -1,6 +1,6 @@
 /**
- * FloatVariable.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * UninitializedTypeInfo.java
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,24 +32,89 @@
 
 package com.avail.interpreter.jvm;
 
+import java.io.DataOutput;
+import java.io.IOException;
+import com.avail.annotations.Nullable;
+
 /**
- * The {@link FloatVariable Float_variable_info} item indicates that the
- * location has the verification type {@code float}.
+ * The {@link UninitializedTypeInfo
+ * <code>UninitializedThis_variable_info</code>} item indicates that
+ * the location has the verification type
+ * <code>uninitializedThis</code>.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-class FloatVariable
+class UninitializedTypeInfo
 extends VerificationTypeInfo
 {
+	/**
+	 * The {@link NewInstruction instruction} that created the object being
+	 * stored in the location.
+	 */
+	private final NewInstruction instruction;
+
+	/**
+	 * Construct a new {@link IntegerTypeInfo}.
+	 *
+	 * @param instruction
+	 *        The {@link NewInstruction instruction} that created the object
+	 *        being stored in the location.
+	 */
+	UninitializedTypeInfo (final NewInstruction instruction)
+	{
+		this.instruction = instruction;
+	}
+
 	@Override
 	protected int size ()
 	{
-		return 1;
+		return 3;
 	}
 
 	@Override
 	byte typeValue ()
 	{
-		return 2;
+		return 8;
+	}
+
+	@Override
+	JavaOperand baseOperand ()
+	{
+		return JavaDescriptors.typeInfoFor(
+			instruction.descriptor()).baseOperand();
+	}
+
+	@Override
+	public boolean equals (final @Nullable Object obj)
+	{
+		if (obj instanceof UninitializedTypeInfo)
+		{
+			final UninitializedTypeInfo other = (UninitializedTypeInfo) obj;
+			return instruction == other.instruction;
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode ()
+	{
+		// The magic number is a prime.
+		return instruction.hashCode() * 34537;
+	}
+
+	@Override
+	void writeTo (
+			final DataOutput out,
+			final ConstantPool constantPool)
+		throws IOException
+	{
+		super.writeTo(out, constantPool);
+		out.writeShort((short) instruction.address());
+	}
+
+	@Override
+	public String toString ()
+	{
+		return String.format("%s(%s)", getClass().getSimpleName(), instruction);
 	}
 }

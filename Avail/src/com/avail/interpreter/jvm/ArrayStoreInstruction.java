@@ -1,6 +1,6 @@
 /**
  * ArrayStoreInstruction.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,9 +57,8 @@ extends ArrayAccessInstruction
 	 * Construct a new {@link ArrayStoreInstruction}.
 	 *
 	 * @param type
-	 *        The {@linkplain Class type} of the array, either a {@linkplain
-	 *        Class#isPrimitive() primitive type} or {@link Object Object.class}
-	 *        for a reference type.
+	 *        The {@linkplain Class type} of the array, possibly a {@linkplain
+	 *        Class#isPrimitive() primitive type}.
 	 */
 	ArrayStoreInstruction (final Class<?> type)
 	{

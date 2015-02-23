@@ -1,6 +1,6 @@
 /**
  * StackMapFrame.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -324,10 +324,15 @@ class StackMapFrame
 		 *
 		 * @param out
 		 *        A binary output stream.
+		 * @param constantPool
+		 *        The {@linkplain ConstantPool constant pool}.
 		 * @throws IOException
 		 *         If the operation fails.
 		 */
-		abstract void writeTo (final DataOutput out) throws IOException;
+		abstract void writeTo (
+				DataOutput out,
+				ConstantPool constantPool)
+			throws IOException;
 
 		/**
 		 * Construct a new {@link FrameType}.
@@ -372,7 +377,10 @@ class StackMapFrame
 		}
 
 		@Override
-		void writeTo (final DataOutput out) throws IOException
+		void writeTo (
+				final DataOutput out,
+				final ConstantPool constantPool)
+			throws IOException
 		{
 			out.writeByte(frameValue);
 		}
@@ -437,12 +445,15 @@ class StackMapFrame
 		}
 
 		@Override
-		void writeTo (final DataOutput out) throws IOException
+		void writeTo (
+				final DataOutput out,
+				final ConstantPool constantPool)
+			throws IOException
 		{
 			out.writeByte(frameValue);
 			for (int i = 0; i < stack.size(); i++)
 			{
-				stack.get(i).writeTo(out);
+				stack.get(i).writeTo(out, constantPool);
 			}
 		}
 
@@ -518,13 +529,16 @@ class StackMapFrame
 		}
 
 		@Override
-		void writeTo (final DataOutput out) throws IOException
+		void writeTo (
+				final DataOutput out,
+				final ConstantPool constantPool)
+			throws IOException
 		{
 			out.writeByte(frameValue);
 			out.writeByte(explicitDeltaOffset);
 			for (int i = 0; i < stack.size(); i++)
 			{
-				stack.get(i).writeTo(out);
+				stack.get(i).writeTo(out, constantPool);
 			}
 		}
 
@@ -579,7 +593,10 @@ class StackMapFrame
 		}
 
 		@Override
-		void writeTo (final DataOutput out) throws IOException
+		void writeTo (
+				final DataOutput out,
+				final ConstantPool constantPool)
+			throws IOException
 		{
 			out.writeByte(frameValue);
 			out.writeByte(explicitDeltaOffset);
@@ -628,7 +645,10 @@ class StackMapFrame
 		}
 
 		@Override
-		void writeTo (final DataOutput out) throws IOException
+		void writeTo (
+				final DataOutput out,
+				final ConstantPool constantPool)
+			throws IOException
 		{
 			out.writeByte(frameValue);
 			out.writeByte(explicitDeltaOffset);
@@ -671,19 +691,19 @@ class StackMapFrame
 		 * <li>{@code locals[M+1]} represents local variable N+1 if {@code
 		 * locals[M]} is one of:
 		 * <ul>
-		 * <li>{@link TopVariable Top_variable_info}</li>
-		 * <li>{@link IntegerVariable Integer_variable_info}</li>
-		 * <li>{@link FloatVariable Float_variable_info}</li>
-		 * <li>{@link NullVariable Null_variable_info}</li>
-		 * <li>{@link UninitializedThisVariable
+		 * <li>{@link TopTypeInfo Top_variable_info}</li>
+		 * <li>{@link IntegerTypeInfo Integer_variable_info}</li>
+		 * <li>{@link FloatTypeInfo Float_variable_info}</li>
+		 * <li>{@link NullTypeInfo Null_variable_info}</li>
+		 * <li>{@link UninitializedThisTypeInfo
 		 * UninitializedThis_variable_info}</li>
-		 * <li>{@link ObjectVariable Object_variable_info}</li>
-		 * <li>{@link UninitializedVariable Uninitialized_ßvariable_info}</li>
+		 * <li>{@link ObjectTypeInfo Object_variable_info}</li>
+		 * <li>{@link UninitializedTypeInfo Uninitialized_ßvariable_info}</li>
 		 * </ul>
 		 * <li>{@code locals[M+1]} represents local variable
 		 * {@code N+2} if {@code locals[M]} is either
-		 * {@link LongVariable Long_variable_info} or
-		 * {@link DoubleVariable Double_variable_info}.</li>
+		 * {@link LongTypeInfo Long_variable_info} or
+		 * {@link DoubleTypeInfo Double_variable_info}.</li>
 		 * </ul></blockquote>
 		 */
 		private final List<VerificationTypeInfo> locals;
@@ -728,13 +748,16 @@ class StackMapFrame
 		}
 
 		@Override
-		void writeTo (final DataOutput out) throws IOException
+		void writeTo (
+				final DataOutput out,
+				final ConstantPool constantPool)
+			throws IOException
 		{
 			out.writeByte(frameValue);
 			out.writeByte(explicitDeltaOffset);
 			for (int i = 0; i < locals.size(); i++)
 			{
-				locals.get(i).writeTo(out);
+				locals.get(i).writeTo(out, constantPool);
 			}
 		}
 
@@ -774,19 +797,19 @@ class StackMapFrame
 		 * <li>{@code locals[M+1]} represents local variable N+1 if {@code
 		 * locals[M]} is one of:
 		 * <ul>
-		 * <li>{@link TopVariable Top_variable_info}</li>
-		 * <li>{@link IntegerVariable Integer_variable_info}</li>
-		 * <li>{@link FloatVariable Float_variable_info}</li>
-		 * <li>{@link NullVariable Null_variable_info}</li>
-		 * <li>{@link UninitializedThisVariable
+		 * <li>{@link TopTypeInfo Top_variable_info}</li>
+		 * <li>{@link IntegerTypeInfo Integer_variable_info}</li>
+		 * <li>{@link FloatTypeInfo Float_variable_info}</li>
+		 * <li>{@link NullTypeInfo Null_variable_info}</li>
+		 * <li>{@link UninitializedThisTypeInfo
 		 * UninitializedThis_variable_info}</li>
-		 * <li>{@link ObjectVariable Object_variable_info}</li>
-		 * <li>{@link UninitializedVariable Uninitialized_ßvariable_info}</li>
+		 * <li>{@link ObjectTypeInfo Object_variable_info}</li>
+		 * <li>{@link UninitializedTypeInfo Uninitialized_ßvariable_info}</li>
 		 * </ul>
 		 * <li>{@code locals[M+1]} represents local variable
 		 * {@code N+2} if {@code locals[M]} is either
-		 * {@link LongVariable Long_variable_info} or
-		 * {@link DoubleVariable Double_variable_info}.</li>
+		 * {@link LongTypeInfo Long_variable_info} or
+		 * {@link DoubleTypeInfo Double_variable_info}.</li>
 		 * </ul></blockquote>
 		 */
 		private final List<VerificationTypeInfo> locals;
@@ -808,18 +831,18 @@ class StackMapFrame
 		 * <li>{@code stack[M+1]} represents local variable N+1 if
 		 * {@code stack[M]} is one of
 		 * <ul>
-		 * <li>{@link TopVariable Top_variable_info}</li>
-		 * <li>{@link IntegerVariable Integer_variable_info}</li>
-		 * <li>{@link FloatVariable Float_variable_info}</li>
-		 * <li>{@link NullVariable Null_variable_info}</li>
-		 * <li>{@link UninitializedThisVariable UninitializedThis_variable_info}</li>
-		 * <li>{@link ObjectVariable Object_variable_info}</li>
-		 * <li>{@link UninitializedVariable Uninitialized_variable_info}</li>
+		 * <li>{@link TopTypeInfo Top_variable_info}</li>
+		 * <li>{@link IntegerTypeInfo Integer_variable_info}</li>
+		 * <li>{@link FloatTypeInfo Float_variable_info}</li>
+		 * <li>{@link NullTypeInfo Null_variable_info}</li>
+		 * <li>{@link UninitializedThisTypeInfo UninitializedThis_variable_info}</li>
+		 * <li>{@link ObjectTypeInfo Object_variable_info}</li>
+		 * <li>{@link UninitializedTypeInfo Uninitialized_variable_info}</li>
 		 * </ul>
 		 * <li>{@code stack[M+1]} represents local variable
 		 * {@code N+2} if {@code stack[M]} is either
-		 * {@link LongVariable Long_variable_info} or
-		 * {@link DoubleVariable Double_variable_info}.</li>
+		 * {@link LongTypeInfo Long_variable_info} or
+		 * {@link DoubleTypeInfo Double_variable_info}.</li>
 		 * </ul></blockquote>
 		 */
 		private final List<VerificationTypeInfo> stack;
@@ -888,19 +911,22 @@ class StackMapFrame
 		}
 
 		@Override
-		void writeTo (final DataOutput out) throws IOException
+		void writeTo (
+				final DataOutput out,
+				final ConstantPool constantPool)
+			throws IOException
 		{
 			out.writeByte(frameValue);
 			out.writeByte(explicitDeltaOffset);
 			out.writeByte(numberOfLocals);
 			for (int i = 0; i < locals.size(); i++)
 			{
-				locals.get(i).writeTo(out);
+				locals.get(i).writeTo(out, constantPool);
 			}
 			out.writeByte(numberOfStackItems);
 			for (int i = 0; i < stack.size(); i++)
 			{
-				stack.get(i).writeTo(out);
+				stack.get(i).writeTo(out, constantPool);
 			}
 		}
 
@@ -943,12 +969,17 @@ class StackMapFrame
 	 *
 	 * @param out
 	 *        A binary output stream.
+	 * @param constantPool
+	 *        The {@linkplain ConstantPool constant pool}.
 	 * @throws IOException
-	 *        If the operation fails.
+	 *         If the operation fails.
 	 */
-	void writeTo (final DataOutput out) throws IOException
+	void writeTo (
+			final DataOutput out,
+			final ConstantPool constantPool)
+		throws IOException
 	{
-		frame.writeTo(out);
+		frame.writeTo(out, constantPool);
 	}
 
 	/**

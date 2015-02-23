@@ -1,6 +1,6 @@
 /**
- * ObjectVariable.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * ObjectTypeInfo.java
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,10 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import com.avail.annotations.Nullable;
 
 /**
- * The {@link ObjectVariable Object_variable_info} item indicates that the
+ * The {@link ObjectTypeInfo Object_variable_info} item indicates that the
  * location has the verification type which is the class represented by the
  * {@link ConstantValueAttribute CONSTANT_Class_info} structure found in the
  * {@link ConstantPool constant_pool table} at the index given by {@code
@@ -44,23 +45,25 @@ import java.io.IOException;
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-class ObjectVariable
+class ObjectTypeInfo
 extends VerificationTypeInfo
 {
 	/**
-	 *  The index into the {@link ConstantPool}
+	 * The {@linkplain JavaDescriptors class descriptor} of the referenced
+	 * class.
 	 */
-	private final short constantPoolIndex;
+	private final String classDescriptor;
 
 	/**
-	 * Construct a new {@link IntegerVariable}.
+	 * Construct a new {@link IntegerTypeInfo}.
 	 *
-	 * @param constantPoolIndex
-	 *        The {@linkplain ConstantPool constant pool} index.
+	 * @param classDescriptor
+	 *        The {@linkplain JavaDescriptors class descriptor} of the
+	 *        referenced class.
 	 */
-	ObjectVariable (final short constantPoolIndex)
+	ObjectTypeInfo (final String classDescriptor)
 	{
-		this.constantPoolIndex = constantPoolIndex;
+		this.classDescriptor = classDescriptor;
 	}
 
 	@Override
@@ -76,9 +79,62 @@ extends VerificationTypeInfo
 	}
 
 	@Override
-	void writeTo (final DataOutput out) throws IOException
+	JavaOperand baseOperand ()
 	{
-		out.writeByte(typeValue());
-		out.writeByte(constantPoolIndex);
+		return JavaOperand.OBJECTREF;
+	}
+
+	@Override
+	public boolean isSubtypeOf (final VerificationTypeInfo other)
+	{
+		// TODO: Fix this! This is horribly wrong!
+		if (equals(other))
+		{
+			return true;
+		}
+		if (other instanceof ObjectTypeInfo)
+		{
+			final ObjectTypeInfo info = (ObjectTypeInfo) other;
+			if (info.classDescriptor.equals(
+				JavaDescriptors.forType(Object.class)))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public boolean equals (final @Nullable Object obj)
+	{
+		if (obj instanceof ObjectTypeInfo)
+		{
+			final ObjectTypeInfo other = (ObjectTypeInfo) obj;
+			return classDescriptor.equals(other.classDescriptor);
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode ()
+	{
+		// The magic number is a prime.
+		return classDescriptor.hashCode() * 8235991;
+	}
+
+	@Override
+	void writeTo (
+			final DataOutput out,
+			final ConstantPool constantPool)
+		throws IOException
+	{
+		super.writeTo(out, constantPool);
+		out.writeShort(constantPool.classConstant(classDescriptor).index);
+	}
+
+	@Override
+	public String toString ()
+	{
+		return String.format("%s(%s)", baseOperand(), classDescriptor);
 	}
 }

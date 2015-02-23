@@ -1,6 +1,6 @@
 /**
  * ConstantPool.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -277,6 +277,17 @@ public class ConstantPool
 		 * @return An operand.
 		 */
 		abstract JavaOperand operand ();
+
+		/**
+		 * Answer the {@linkplain VerificationTypeInfo type identifier}
+		 * associated with the constant.
+		 *
+		 * @return The type identifier.
+		 */
+		VerificationTypeInfo typeInfo ()
+		{
+			return operand().create();
+		}
 
 		/**
 		 * Construct a new {@link ConstantEntry}.
@@ -578,6 +589,12 @@ public class ConstantPool
 			return JavaOperand.OBJECTREF;
 		}
 
+		@Override
+		VerificationTypeInfo typeInfo ()
+		{
+			return JavaOperand.OBJECTREF.create(descriptor());
+		}
+
 		/**
 		 * Does the {@linkplain ClassEntry entry} represent an array type?
 		 */
@@ -698,6 +715,16 @@ public class ConstantPool
 		String name ()
 		{
 			return nameAndTypeEntry.name();
+		}
+
+		/**
+		 * Answer the descriptor of the referenced class.
+		 *
+		 * @return The descriptor of the referenced class.
+		 */
+		String classDescriptor ()
+		{
+			return classEntry.descriptor();
 		}
 
 		/**

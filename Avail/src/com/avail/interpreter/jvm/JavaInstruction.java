@@ -1,6 +1,6 @@
 /**
  * JavaInstruction.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -102,75 +102,77 @@ abstract class JavaInstruction
 		return address != invalidAddress;
 	}
 
-	/** An empty array of {@linkplain JavaOperand operands}. */
-	static final JavaOperand[] noOperands = {};
+	/** An empty array of {@linkplain VerificationTypeInfo operands}. */
+	static final VerificationTypeInfo[] noOperands = {};
 
 	/**
-	 * Answer the {@linkplain JavaOperand operands} consumed by the {@linkplain
-	 * JavaInstruction instruction}.
+	 * Answer the {@linkplain VerificationTypeInfo operands} consumed by the
+	 * {@linkplain JavaInstruction instruction}.
 	 *
 	 * @return The operands consumed by the instruction.
 	 */
-	abstract JavaOperand[] inputOperands ();
+	abstract VerificationTypeInfo[] inputOperands ();
 
 	/**
-	 * Answer the {@linkplain JavaOperand operands} produced by the {@linkplain
-	 * JavaInstruction instruction}.
+	 * Answer the {@linkplain VerificationTypeInfo operands} produced by the
+	 * {@linkplain JavaInstruction instruction}.
 	 *
 	 * @param operands
 	 *        The operand stack before the instruction consumes its input
 	 *        operands.
 	 * @return The operands produced by the instruction.
 	 */
-	abstract JavaOperand[] outputOperands (List<JavaOperand> operands);
+	abstract VerificationTypeInfo[] outputOperands (
+		List<VerificationTypeInfo> operands);
 
-	/** The {@linkplain JavaOperand operand} stack. */
-	private @Nullable List<JavaOperand> operandStack;
+	/** The {@linkplain VerificationTypeInfo operand} stack. */
+	private @Nullable List<VerificationTypeInfo> operandStack;
 
 	/**
-	 * Answer the expected state of the {@linkplain JavaOperand operand} stack
-	 * at the start of this {@linkplain JavaInstruction instruction}.
+	 * Answer the expected state of the {@linkplain
+	 * VerificationTypeInfo operand} stack at the start of this {@linkplain
+	 * JavaInstruction instruction}.
 	 *
 	 * @return The operand stack.
 	 */
-	@Nullable List<JavaOperand> operandStack ()
+	@Nullable List<VerificationTypeInfo> operandStack ()
 	{
 		return operandStack;
 	}
 
 	/**
-	 * Set the expected state of the {@linkplain JavaOperand operand} stack at
-	 * the start of this {@linkplain JavaInstruction instruction}.
+	 * Set the expected state of the {@linkplain VerificationTypeInfo operand}
+	 * stack at the start of this {@linkplain JavaInstruction instruction}.
 	 *
 	 * @param operandStack The operand stack.
 	 */
-	void setOperandStack (final List<JavaOperand> operandStack)
+	void setOperandStack (final List<VerificationTypeInfo> operandStack)
 	{
 		this.operandStack = operandStack;
 	}
 
 	/**
 	 * Can this {@linkplain JavaInstruction instruction} type-safely consume
-	 * its {@linkplain JavaOperand operands} from the specified operand stack?
+	 * its {@linkplain VerificationTypeInfo operands} from the specified
+	 * operand stack?
 	 *
 	 * @param operands
 	 *        An operand stack.
 	 * @return {@code true} if the instruction can consume its operands, {@code
 	 *         false} otherwise.
 	 */
-	boolean canConsumeOperands (final List<JavaOperand> operands)
+	boolean canConsumeOperands (final List<VerificationTypeInfo> operands)
 	{
 		try
 		{
-			final JavaOperand[] inputOperands = inputOperands();
+			final VerificationTypeInfo[] inputOperands = inputOperands();
 			for (int i = 0,
 					j = operands.size() - 1,
 					size = inputOperands.length;
 				i < size;
 				i++, j--)
 			{
-				if (inputOperands[i].baseOperand()
-					!= operands.get(j).baseOperand())
+				if (!operands.get(j).isSubtypeOf(inputOperands[i]))
 				{
 					return false;
 				}
@@ -273,4 +275,7 @@ abstract class JavaInstruction
 		writeBytecodeTo(out);
 		writeImmediatesTo(out);
 	}
+
+	@Override
+	public abstract String toString ();
 }

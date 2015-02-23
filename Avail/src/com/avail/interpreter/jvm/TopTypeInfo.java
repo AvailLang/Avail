@@ -1,6 +1,6 @@
 /**
- * IntegerVariable.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * TopTypeInfo.java
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,12 @@
 package com.avail.interpreter.jvm;
 
 /**
- * The {@link IntegerVariable Integer_variable_info} item indicates that
- * the location has the verification type {@code int}.
+ * The {@link TopTypeInfo Top_variable_info} item indicates that the local
+ * variable has the verification type {@code top}.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-class IntegerVariable
+class TopTypeInfo
 extends VerificationTypeInfo
 {
 	@Override
@@ -50,6 +50,19 @@ extends VerificationTypeInfo
 	@Override
 	byte typeValue ()
 	{
-		return 1;
+		return 0;
+	}
+
+	@Override
+	JavaOperand baseOperand ()
+	{
+		//TODO WHAT IS IT?
+		return JavaOperand.INT;
+	}
+
+	@Override
+	public String toString ()
+	{
+		return getClass().getSimpleName();
 	}
 }

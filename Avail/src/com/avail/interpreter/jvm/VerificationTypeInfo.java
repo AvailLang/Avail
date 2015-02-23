@@ -1,6 +1,6 @@
 /**
  * StackMapFrame.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import com.avail.annotations.Nullable;
 
 /**
  * Per the JVM Specification:
@@ -57,7 +58,7 @@ abstract class VerificationTypeInfo
 	 *
 	 * @return The value of the verification type.
 	 */
-	abstract byte typeValue();
+	abstract byte typeValue ();
 
 	/**
 	 * Answer the size of the {@linkplain VerificationTypeInfo}.
@@ -70,17 +71,73 @@ abstract class VerificationTypeInfo
 	}
 
 	/**
+	 * Answer the {@linkplain JavaOperand#baseOperand() base operand}.
+	 *
+	 * @return The base operand.
+	 */
+	abstract JavaOperand baseOperand ();
+
+	/**
+	 * Answer the {@linkplain JavaOperand#computationalCategory() computational
+	 * category}.
+	 *
+	 * @return The computational category.
+	 */
+	final JavaOperand computationalCategory ()
+	{
+		return baseOperand().computationalCategory();
+	}
+
+	/**
+	 * Is the type indicated by this {@linkplain VerificationTypeInfo type
+	 * identifier} a subtype of the type indicated by the argument?
+	 *
+	 * @param other
+	 *        Another type identifier.
+	 * @return {@code true} if this type identifier denotes a subtype of the
+	 *         argument's referent, {@code false}.
+	 */
+	public boolean isSubtypeOf (final VerificationTypeInfo other)
+	{
+		return equals(other);
+	}
+
+	@Override
+	public boolean equals (final @Nullable Object obj)
+	{
+		return getClass().isInstance(obj);
+	}
+
+	@Override
+	public int hashCode ()
+	{
+		// The magic number is a prime.
+		return getClass().hashCode() * 234977;
+	}
+
+	/**
 	 * Write the {@linkplain VerificationTypeInfo value}'s
 	 * {@linkplain #typeValue} to the specified
 	 * {@linkplain DataOutput binary stream}.
 	 *
 	 * @param out
 	 *        A binary output stream.
+	 * @param constantPool
+	 *        The {@linkplain ConstantPool constant pool}.
 	 * @throws IOException
 	 *         If the operation fails.
 	 */
-	void writeTo (final DataOutput out) throws IOException
+	void writeTo (
+			final DataOutput out,
+			final ConstantPool constantPool)
+		throws IOException
 	{
 		out.writeByte(typeValue());
+	}
+
+	@Override
+	public String toString ()
+	{
+		return baseOperand().toString();
 	}
 }

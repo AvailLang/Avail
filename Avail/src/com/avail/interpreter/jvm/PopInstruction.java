@@ -1,6 +1,6 @@
 /**
  * PopInstruction.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,12 +45,12 @@ final class PopInstruction
 extends SimpleInstruction
 {
 	@Override
-	boolean canConsumeOperands (final List<JavaOperand> operands)
+	boolean canConsumeOperands (final List<VerificationTypeInfo> operands)
 	{
 		final int size = operands.size();
 		try
 		{
-			final JavaOperand topOperand = operands.get(size - 1);
+			final VerificationTypeInfo topOperand = operands.get(size - 1);
 			if (topOperand.computationalCategory() == CATEGORY_1)
 			{
 				return true;

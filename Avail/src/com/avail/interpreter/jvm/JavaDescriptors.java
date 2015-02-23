@@ -1,6 +1,6 @@
 /**
  * JavaDescriptors.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -381,6 +381,39 @@ final class JavaDescriptors
 	}
 
 	/**
+	 * Answer the {@linkplain VerificationTypeInfo type identifier} for the
+	 * given descriptor.
+	 *
+	 * @param descriptor
+	 *        A descriptor.
+	 * @return The type identifier.
+	 */
+	static VerificationTypeInfo typeInfoFor (final String descriptor)
+	{
+		switch (descriptor.codePointAt(0))
+		{
+			case 'L':
+			{
+				return JavaOperand.OBJECTREF.create(descriptor);
+			}
+			case 'B':
+			case 'C':
+			case 'I':
+			case 'S':
+			case 'Z':
+				return JavaOperand.INT.create();
+			case 'F':
+				return JavaOperand.FLOAT.create();
+			case 'D':
+				return JavaOperand.DOUBLE.create();
+			case 'J':
+				return JavaOperand.LONG.create();
+			default:
+				throw new IllegalArgumentException();
+		}
+	}
+
+	/**
 	 * Answer the {@code targetIndex}-th parameter descriptor from the specified
 	 * method descriptor.
 	 *
@@ -516,9 +549,10 @@ final class JavaDescriptors
 	 *        A {@linkplain #forMethod(Class, Class...) method descriptor}.
 	 * @return The operands that correspond to the parameter types.
 	 */
-	static List<JavaOperand> parameterOperands (final String descriptor)
+	static List<VerificationTypeInfo> parameterOperands (
+		final String descriptor)
 	{
-		final List<JavaOperand> operands = new ArrayList<>();
+		final List<VerificationTypeInfo> operands = new ArrayList<>();
 		if (descriptor.codePointAt(0) != '(')
 		{
 			throw new IllegalArgumentException();
@@ -532,33 +566,39 @@ final class JavaDescriptors
 					case ')':
 						return operands;
 					case 'L':
+					{
+						final int startIndex = index;
+						int endIndex;
 						while (true)
 						{
 							// Skip up to the semicolon.
 							final int codePoint = descriptor.codePointAt(index);
 							if (codePoint == ';')
 							{
+								endIndex = index + 1;
 								break;
 							}
 							index += Character.charCount(codePoint);
 						}
-						operands.add(JavaOperand.OBJECTREF);
+						operands.add(JavaOperand.OBJECTREF.create(
+							descriptor.substring(startIndex, endIndex)));
 						break;
+					}
 					case 'B':
 					case 'C':
 					case 'I':
 					case 'S':
 					case 'Z':
-						operands.add(JavaOperand.INT);
+						operands.add(JavaOperand.INT.create());
 						break;
 					case 'F':
-						operands.add(JavaOperand.FLOAT);
+						operands.add(JavaOperand.FLOAT.create());
 						break;
 					case 'D':
-						operands.add(JavaOperand.DOUBLE);
+						operands.add(JavaOperand.DOUBLE.create());
 						break;
 					case 'J':
-						operands.add(JavaOperand.LONG);
+						operands.add(JavaOperand.LONG.create());
 						break;
 					default:
 						throw new IllegalArgumentException();
@@ -572,15 +612,16 @@ final class JavaDescriptors
 	}
 
 	/**
-	 * Answer the {@linkplain JavaOperand operand} that corresponds to the
-	 * return type of a method described by the specified descriptor.
+	 * Answer the {@linkplain VerificationTypeInfo operand} that corresponds to
+	 * the return type of a method described by the specified descriptor.
 	 *
 	 * @param descriptor
 	 *        A {@linkplain #forMethod(Class, Class...) method descriptor}.
 	 * @return The appropriate operand, or {@code null} if the method is {@code
 	 *         void}.
 	 */
-	static @Nullable JavaOperand returnOperand (final String descriptor)
+	static @Nullable VerificationTypeInfo returnOperand (
+		final String descriptor)
 	{
 		if (descriptor.codePointAt(0) != '(')
 		{
@@ -601,6 +642,8 @@ final class JavaDescriptors
 			switch (descriptor.codePointAt(index))
 			{
 				case 'L':
+				{
+					final int classIndex = index;
 					while (true)
 					{
 						// Skip up to the semicolon.
@@ -611,19 +654,21 @@ final class JavaDescriptors
 						}
 						index += Character.charCount(codePoint);
 					}
-					return JavaOperand.OBJECTREF;
+					return JavaOperand.OBJECTREF.create(
+						descriptor.substring(classIndex));
+				}
 				case 'B':
 				case 'C':
 				case 'I':
 				case 'S':
 				case 'Z':
-					return JavaOperand.INT;
+					return JavaOperand.INT.create();
 				case 'F':
-					return JavaOperand.FLOAT;
+					return JavaOperand.FLOAT.create();
 				case 'D':
-					return JavaOperand.DOUBLE;
+					return JavaOperand.DOUBLE.create();
 				case 'J':
-					return JavaOperand.LONG;
+					return JavaOperand.LONG.create();
 				case 'V':
 					return null;
 				default:

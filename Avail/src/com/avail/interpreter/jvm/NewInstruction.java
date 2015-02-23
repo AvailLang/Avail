@@ -1,6 +1,6 @@
 /**
- * TopVariable.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * NewInstruction.java
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,23 +33,24 @@
 package com.avail.interpreter.jvm;
 
 /**
- * The {@link TopVariable Top_variable_info} item indicates that the local
- * variable has the verification type {@code top}.
+ * {@code NewInstruction} marks a concrete {@linkplain JavaInstruction
+ * instruction} as creating a new object.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-class TopVariable
-extends VerificationTypeInfo
+interface NewInstruction
 {
-	@Override
-	protected int size ()
-	{
-		return 1;
-	}
+	/**
+	 * Answer the address of the instruction within the compiled method.
+	 *
+	 * @return The address of the instruction within the compiled method.
+	 */
+	public long address ();
 
-	@Override
-	byte typeValue ()
-	{
-		return 0;
-	}
+	/**
+	 * Answer the descriptor of the type of the value created.
+	 *
+	 * @return The descriptor.
+	 */
+	public String descriptor ();
 }

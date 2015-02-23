@@ -1,6 +1,6 @@
 /**
  * TableSwitchInstruction.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Formatter;
 import java.util.List;
 
 /**
@@ -69,7 +70,7 @@ extends JavaInstruction
 		{
 			return 0;
 		}
-		return (int) (-address() & 3);
+		return (int) (-(address() + 1) & 3);
 	}
 
 	@Override
@@ -104,15 +105,32 @@ extends JavaInstruction
 	}
 
 	@Override
-	JavaOperand[] inputOperands ()
+	VerificationTypeInfo[] inputOperands ()
 	{
-		return bytecode().inputOperands();
+		return new VerificationTypeInfo[] {JavaOperand.INDEX.create()};
 	}
 
 	@Override
-	JavaOperand[] outputOperands (final List<JavaOperand> operandStack)
+	VerificationTypeInfo[] outputOperands (
+		final List<VerificationTypeInfo> operandStack)
 	{
-		return bytecode().outputOperands();
+		return noOperands;
+	}
+
+	@Override
+	public String toString ()
+	{
+		@SuppressWarnings("resource")
+		final Formatter formatter = new Formatter();
+		final int size = labels.length;
+		formatter.format("%s [0..%d]%n\t{", bytecode(), size);
+		for (int i = 0; i < size; i++)
+		{
+			final Label label = labels[i];
+			formatter.format("%n\t\t[%d] → %s", i, label);
+		}
+		formatter.format("%n\t\tdefault → %s%n\t}", defaultLabel);
+		return formatter.toString();
 	}
 
 	@Override
