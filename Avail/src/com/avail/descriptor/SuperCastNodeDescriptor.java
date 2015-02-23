@@ -104,11 +104,11 @@ extends ParseNodeDescriptor
 		final List<A_BasicObject> recursionList,
 		final int indent)
 	{
-		builder.append("«");
+		builder.append("«(");
 		builder.append(object.expression());
 		builder.append(" :: ");
 		builder.append(object.typeForLookup());
-		builder.append("»");
+		builder.append(")»");
 	}
 
 	@Override @AvailMethod
@@ -154,7 +154,8 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
-		final A_Phrase expression = aBlock.valueNotNull(object.slot(EXPRESSION));
+		final A_Phrase expression =
+			aBlock.valueNotNull(object.slot(EXPRESSION));
 		object.setSlot(EXPRESSION, expression);
 	}
 

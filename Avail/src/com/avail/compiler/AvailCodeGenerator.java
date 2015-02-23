@@ -554,7 +554,7 @@ public class AvailCodeGenerator
 	 */
 	public void emitGetType ()
 	{
-		increaseDepth(depth);
+		increaseDepth(1);
 		instructions.add(new AvailGetType());
 	}
 
