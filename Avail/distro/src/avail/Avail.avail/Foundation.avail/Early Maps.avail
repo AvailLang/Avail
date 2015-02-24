@@ -342,9 +342,9 @@ Public method "${…}«else_»" is
 	else : ([]→string)?
 |
 	environment map[aToken's lexeme]
-		else [else[1] else 
-			[invoke early failure function with <key-not-found code>]]
-];
+		else else[1]
+			else [invoke early failure function with <key-not-found code>]
+] : string;
 
 /**
  * Answer the value of the requested environment variable.
@@ -366,14 +366,6 @@ Public method "${…}«else_»" is
 	environment map[
 		cast aToken's value into [t : string | t]
 		else [aToken's lexeme]]
-	else [else[1] else
-		[invoke early failure function with <key-not-found code>]]
-];
-
-Semantic restriction "${…}«else_»" is
-[
-	aToken : token's type,
-	else : ([]→string)?'s type
-|
-	string
-];
+	else else[1] else
+		[invoke early failure function with <key-not-found code>]
+] : string;
