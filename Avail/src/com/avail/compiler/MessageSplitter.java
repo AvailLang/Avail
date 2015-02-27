@@ -3116,6 +3116,21 @@ public class MessageSplitter
 			if (instructionInt >= ParsingOperation.distinctInstructions)
 			{
 				builder.append("(" + op.operand(instructionInt) + ")");
+				switch (op)
+				{
+					case PARSE_PART:
+					case PARSE_PART_CASE_INSENSITIVELY:
+					{
+						builder.append(" = ");
+						builder.append(
+							messageParts.get(op.operand(instructionInt)));
+						break;
+					}
+					default:
+					{
+						// Do nothing.
+					}
+				}
 			}
 			builder.append("\n");
 		}
