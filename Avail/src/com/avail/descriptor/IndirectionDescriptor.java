@@ -3756,12 +3756,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsSystemModule (final AvailObject object)
-	{
-		return o_Traversed(object).isSystemModule();
-	}
-
-	@Override
 	A_Type o_LiteralType (final AvailObject object)
 	{
 		return o_Traversed(object).literalType();
@@ -3943,14 +3937,6 @@ extends AbstractDescriptor
 		final int anInt)
 	{
 		return o_Traversed(object).rangeIncludesInt(anInt);
-	}
-
-	@Override
-	void o_IsSystemModule (
-		final AvailObject object,
-		final boolean isSystemModule)
-	{
-		o_Traversed(object).isSystemModule(isSystemModule);
 	}
 
 	@Override

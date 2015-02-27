@@ -128,7 +128,7 @@ final class Resources
 	 * @return A key that may be used to access a purely alphabetic Avail name
 	 *         of the special object in the appropriate {@linkplain
 	 *         ResourceBundle resource bundle}. This name should be suitable for
-	 *         use as a variable name in a system module.
+	 *         use as a variable name in a module.
 	 */
 	public static String specialObjectAlphabeticKey (final int index)
 	{

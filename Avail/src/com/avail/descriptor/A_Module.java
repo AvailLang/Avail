@@ -32,9 +32,6 @@
 
 package com.avail.descriptor;
 
-import com.avail.compiler.AbstractAvailCompiler.ExpectedToken;
-import com.avail.compiler.AvailCompiler;
-import com.avail.compiler.AvailSystemCompiler;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.primitive.P_246_PublishName;
 import com.avail.utility.evaluation.Continuation0;
@@ -50,29 +47,6 @@ import com.avail.utility.evaluation.Continuation0;
 public interface A_Module
 extends A_BasicObject
 {
-	/**
-	 * Answer whether this module is a system module.  System modules use the
-	 * built-in syntax of the {@link AvailSystemCompiler} rather than the
-	 * experimental macro syntax of the {@link AvailCompiler}.  System modules
-	 * start (not counting comments) with the token {@link
-	 * ExpectedToken#MODULE "Module"}.  The experimental macro compiler is
-	 * specified with "{@link ExpectedToken#EXPERIMENTAL Experimental} {@link
-	 * ExpectedToken#MODULE Module}".
-	 *
-	 * @return Whether this is a system module.
-	 */
-	boolean isSystemModule ();
-
-	/**
-	 * Set whether this module is a system module.
-	 *
-	 * @param isSystemModule
-	 *        A boolean indicating whether this module should be a system
-	 *        module.
-	 * @see #isSystemModule()
-	 */
-	void isSystemModule (boolean isSystemModule);
-
 	/**
 	 * Answer the name of this module.
 	 *

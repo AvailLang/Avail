@@ -426,11 +426,6 @@ public abstract class AbstractAvailCompiler
 		public final ResolvedModuleName moduleName;
 
 		/**
-		 * Whether this is the header of a system module.
-		 */
-		public boolean isSystemModule;
-
-		/**
 		 * The versions for which the module undergoing compilation guarantees
 		 * support.
 		 */
@@ -515,8 +510,6 @@ public abstract class AbstractAvailCompiler
 		{
 			serializer.serialize(
 				StringDescriptor.from(moduleName.qualifiedName()));
-			serializer.serialize(
-				AtomDescriptor.objectFromBoolean(isSystemModule));
 			serializer.serialize(TupleDescriptor.fromList(versions));
 			serializer.serialize(tuplesForSerializingModuleImports());
 			serializer.serialize(TupleDescriptor.fromList(exportedNames));
@@ -577,9 +570,6 @@ public abstract class AbstractAvailCompiler
 			{
 				throw new RuntimeException("Incorrect module name");
 			}
-			final A_Atom theSystemFlag = deserializer.deserialize();
-			assert theSystemFlag != null;
-			isSystemModule = theSystemFlag.extractBoolean();
 			final A_Tuple theVersions = deserializer.deserialize();
 			assert theVersions != null;
 			versions.clear();
@@ -961,21 +951,6 @@ public abstract class AbstractAvailCompiler
 	@InnerAccess final TextInterface textInterface;
 
 	/**
-	 * Answer whether this is a {@linkplain AvailSystemCompiler system
-	 * compiler}.  A system compiler is used for modules that start with the
-	 * keyword "{@linkplain ExpectedToken#MODULE Module}".  The experimental
-	 * macro compiler is the other option, and is specified by "{@linkplain
-	 * ExpectedToken#EXPERIMENTAL Experimental} {@linkplain ExpectedToken#MODULE
-	 * Module}".
-	 *
-	 * @return Whether this is a system compiler.
-	 */
-	boolean isSystemCompiler ()
-	{
-		return false;
-	}
-
-	/**
 	 * These are the tokens that are understood by the Avail compilers. Most of
 	 * these tokens exist to support the {@linkplain AvailSystemCompiler system
 	 * compiler}, though a few (related to module headers) are needed also by
@@ -983,18 +958,6 @@ public abstract class AbstractAvailCompiler
 	 */
 	public enum ExpectedToken
 	{
-		/**
-		 * Module header token. Currently must be the first token of modules
-		 * for which we want to use the experimental {@link AvailCompiler}
-		 * rather than the {@link AvailSystemCompiler}.
-		 *
-		 * <p>
-		 * TODO[MvG] - When we have a fully working macro compiler we should
-		 * make it be default and remove this special token.
-		 * </p>
-		 */
-		EXPERIMENTAL("Legacy", KEYWORD),
-
 		/** Module header token: Precedes the name of the defined module. */
 		MODULE("Module", KEYWORD),
 
@@ -1193,14 +1156,12 @@ public abstract class AbstractAvailCompiler
 				{
 					assert sourceText != null;
 					final AvailScannerResult result;
-					final List<A_Token> tokens;
 					try
 					{
 						result = tokenize(
 							sourceText,
 							resolvedName.qualifiedName(),
 							stopAfterBodyToken);
-						tokens = result.outputTokens();
 					}
 					catch (final AvailScannerException e)
 					{
@@ -1222,23 +1183,11 @@ public abstract class AbstractAvailCompiler
 						return;
 					}
 					final AbstractAvailCompiler compiler;
-					if (!tokens.isEmpty()
-						&& tokens.get(0).string().equals(EXPERIMENTAL.lexeme()))
-					{
-						compiler = new AvailSystemCompiler(
-							resolvedName,
-							result,
-							textInterface,
-							problemHandler);
-					}
-					else
-					{
-						compiler = new AvailCompiler(
-							resolvedName,
-							result,
-							textInterface,
-							problemHandler);
-					}
+					compiler = new AvailCompiler(
+						resolvedName,
+						result,
+						textInterface,
+						problemHandler);
 					succeed.value(compiler);
 				}
 			},
@@ -1273,7 +1222,6 @@ public abstract class AbstractAvailCompiler
 		this.commentTokens = scannerResult.commentTokens();
 		this.textInterface = textInterface;
 		this.problemHandler = problemHandler;
-		module.isSystemModule(isSystemCompiler());
 	}
 
 	/**
@@ -7051,16 +6999,6 @@ public abstract class AbstractAvailCompiler
 
 		firstRelevantTokenOfSection = tokens.isEmpty() ? null : tokens.get(0);
 
-		// The module header must begin with either EXPERIMENTAL MODULE or
-		// MODULE, followed by the local name of the module.
-		if (isSystemCompiler())
-		{
-			if (!state.peekToken(EXPERIMENTAL, "Experimental keyword"))
-			{
-				return null;
-			}
-			state = state.afterToken();
-		}
 		if (!state.peekToken(ExpectedToken.MODULE, "Module keyword"))
 		{
 			return null;

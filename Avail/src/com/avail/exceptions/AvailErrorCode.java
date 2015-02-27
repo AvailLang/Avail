@@ -39,8 +39,6 @@ import com.avail.AvailRuntime;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.interpreter.Primitive;
-import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelOne.L1Instruction;
 import com.avail.interpreter.primitive.P_352_RejectParsing;
 import com.avail.serialization.Deserializer;

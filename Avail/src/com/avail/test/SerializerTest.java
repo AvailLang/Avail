@@ -413,10 +413,8 @@ public final class SerializerTest
 	{
 		final A_Module inputModule = ModuleDescriptor.newModule(
 			StringDescriptor.from("Imported"));
-		inputModule.isSystemModule(false);
 		final A_Module currentModule = ModuleDescriptor.newModule(
 			StringDescriptor.from("Current"));
-		inputModule.isSystemModule(false);
 		final A_Atom atom1 = AtomDescriptor.create(
 			StringDescriptor.from("importAtom1"),
 			inputModule);

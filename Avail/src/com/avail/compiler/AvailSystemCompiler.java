@@ -105,12 +105,6 @@ extends AbstractAvailCompiler
 		super(moduleName, scannerResult, textInterface, problemHandler);
 	}
 
-	@Override
-	boolean isSystemCompiler ()
-	{
-		return true;
-	}
-
 	/**
 	 * Return a new {@linkplain ParserState parser state} like the given one,
 	 * but with the given declaration added.
