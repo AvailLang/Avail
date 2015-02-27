@@ -3087,31 +3087,38 @@ public class MessageSplitter
 	}
 
 	/**
-	 * Dump debugging information about this {@linkplain MessageSplitter} to
-	 * the specified {@linkplain StringBuilder builder}.
-	 *
-	 * @param builder
-	 *        The accumulator.
-	 */
+	* Dump debugging information about this {@linkplain MessageSplitter} to
+	* the specified {@linkplain StringBuilder builder}.
+	*
+	* @param builder
+	*        The accumulator.
+	*/
 	public void dumpForDebug (final StringBuilder builder)
 	{
-		final List<String> partsList =
-			new ArrayList<>(messageParts.size());
+		builder.append(messageName.asNativeString());
+		builder.append("\n------\n");
 		for (final A_String part : messageParts)
 		{
-			partsList.add(part.asNativeString());
+			builder.append("\t");
+			builder.append(part.asNativeString());
+			builder.append("\n");
 		}
-		final A_Tuple instructionsTuple = instructionsTuple();
-		final List<Integer> instructionsList = new ArrayList<>();
-		for (final A_Number instruction : instructionsTuple)
+		builder.append("\n------\n");
+		int counter = 1;
+		for (final A_Number instruction : instructionsTuple())
 		{
-			instructionsList.add(instruction.extractInt());
+			final int instructionInt = instruction.extractInt();
+			final ParsingOperation op = ParsingOperation.decode(instructionInt);
+			builder.append("\t");
+			builder.append(counter++);
+			builder.append(". ");
+			builder.append(op.name());
+			if (instructionInt >= ParsingOperation.distinctInstructions)
+			{
+				builder.append("(" + op.operand(instructionInt) + ")");
+			}
+			builder.append("\n");
 		}
-		builder.append(String.format(
-			"%s  ->  %s  ->  %s%n",
-			messageName.asNativeString(),
-			partsList.toString(),
-			instructionsList.toString()));
 	}
 
 	/**
