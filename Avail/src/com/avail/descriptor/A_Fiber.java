@@ -41,6 +41,7 @@ import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.interpreter.AvailLoader;
 import com.avail.io.TextInterface;
+import com.avail.utility.Generator;
 import com.avail.utility.evaluation.*;
 
 /**
@@ -132,9 +133,9 @@ extends A_BasicObject
 	A_String fiberName ();
 
 	/**
-	 * @param value
+	 * @param generator
 	 */
-	void fiberName (A_String value);
+	void fiberNameGenerator (Generator<A_String> generator);
 
 	/**
 	 * @return

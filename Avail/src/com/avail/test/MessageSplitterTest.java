@@ -915,7 +915,7 @@ public class MessageSplitterTest
 				NEW_LIST.encoding(),
 				BRANCH.encoding(25),
 				NEW_LIST.encoding(),
-				PARSE_RAW_TOKEN.encoding(),
+				PARSE_RAW_KEYWORD_TOKEN.encoding(),
 				APPEND_ARGUMENT.encoding(),
 				PARSE_PART.encoding(5), 	// ":" in arg declaration
 				PARSE_ARGUMENT_IN_MODULE_SCOPE.encoding(),
@@ -954,7 +954,7 @@ public class MessageSplitterTest
 				BRANCH.encoding(63),
 				NEW_LIST.encoding(),
 				PARSE_PART.encoding(19),	// "(" before prim failure var
-				PARSE_RAW_TOKEN.encoding(),
+				PARSE_RAW_KEYWORD_TOKEN.encoding(),
 				APPEND_ARGUMENT.encoding(),
 				PARSE_PART.encoding(21),	// ":" in prim failure var decl
 				PARSE_ARGUMENT_IN_MODULE_SCOPE.encoding(),
@@ -987,7 +987,7 @@ public class MessageSplitterTest
 				BRANCH.encoding(94),
 				NEW_LIST.encoding(),
 				PARSE_PART.encoding(30),	// "$" in label declaration
-				PARSE_RAW_TOKEN.encoding(),
+				PARSE_RAW_KEYWORD_TOKEN.encoding(),
 				APPEND_ARGUMENT.encoding(),
 				PARSE_PART.encoding(32),	// ":" in label declaration
 				PARSE_ARGUMENT_IN_MODULE_SCOPE.encoding(),

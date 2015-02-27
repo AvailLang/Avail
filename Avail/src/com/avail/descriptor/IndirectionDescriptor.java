@@ -63,6 +63,7 @@ import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.Generator;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
@@ -2945,7 +2946,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_OutputParseNode (
+	A_Phrase o_OutputParseNode (
 		final AvailObject object)
 	{
 		return o_Traversed(object).outputParseNode();
@@ -3990,7 +3991,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_StripMacro (
+	A_Phrase o_StripMacro (
 		final AvailObject object)
 	{
 		return o_Traversed(object).stripMacro();
@@ -4281,9 +4282,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_FiberName (final AvailObject object, final A_String value)
+	void o_FiberNameGenerator (
+		final AvailObject object,
+		final Generator<A_String> generator)
 	{
-		o_Traversed(object).fiberName(value);
+		o_Traversed(object).fiberNameGenerator(generator);
 	}
 
 	@Override
@@ -4705,12 +4708,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_ListSize (final AvailObject object)
-	{
-		return o_Traversed(object).listSize();
-	}
-
-	@Override
 	A_Type o_TypeForLookup (final AvailObject object)
 	{
 		return o_Traversed(object).typeForLookup();
@@ -4761,5 +4758,45 @@ extends AbstractDescriptor
 	{
 		o_Traversed(object).moduleAddPrefixFunction(
 			method, index, prefixFunction);
+	}
+
+	@Override
+	A_Definition o_LookupMacroByPhraseTuple (
+		final AvailObject object,
+		final A_Tuple argumentPhraseTuple,
+		final MutableOrNull<AvailErrorCode> errorCode)
+	{
+		return o_Traversed(object).lookupMacroByPhraseTuple(
+			argumentPhraseTuple, errorCode);
+	}
+
+	@Override
+	LookupTree o_MacroTestingTree(final AvailObject object)
+	{
+		return o_Traversed(object).macroTestingTree();
+	}
+
+	@Override
+	A_Phrase o_ExpressionAt (final AvailObject object, final int index)
+	{
+		return o_Traversed(object).expressionAt(index);
+	}
+
+	@Override
+	int o_ExpressionsSize (final AvailObject object)
+	{
+		return o_Traversed(object).expressionsSize();
+	}
+
+	@Override
+	int o_ParsingPc (final AvailObject object)
+	{
+		return o_Traversed(object).parsingPc();
+	}
+
+	@Override
+	boolean o_IsMacroSubstitutionNode (final AvailObject object)
+	{
+		return o_Traversed(object).isMacroSubstitutionNode();
 	}
 }

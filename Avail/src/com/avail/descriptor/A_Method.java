@@ -277,4 +277,18 @@ extends A_ChunkDependable
 	 * @return
 	 */
 	A_Tuple macroDefinitionsTuple ();
+
+	/**
+	 * @param argumentPhraseTuple
+	 * @param errorCode
+	 * @return
+	 */
+	A_Definition lookupMacroByPhraseTuple (
+		A_Tuple argumentPhraseTuple,
+		MutableOrNull<AvailErrorCode> errorCode);
+
+	/**
+	 * @return
+	 */
+	LookupTree macroTestingTree ();
 }

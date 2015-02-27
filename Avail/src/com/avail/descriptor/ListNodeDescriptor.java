@@ -78,15 +78,6 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Getter for field expressionsTuple.
-	 */
-	@Override @AvailMethod
-	A_Tuple o_ExpressionsTuple (final AvailObject object)
-	{
-		return object.slot(EXPRESSIONS_TUPLE);
-	}
-
-	/**
 	 * Lazily compute and install the expression type of the specified
 	 * {@linkplain ListNodeDescriptor object}.
 	 *
@@ -121,43 +112,6 @@ extends ParseNodeDescriptor
 		return tupleType;
 	}
 
-	@Override @AvailMethod
-	A_Type o_ExpressionType (final AvailObject object)
-	{
-		if (isShared())
-		{
-			synchronized (object)
-			{
-				return expressionType(object);
-			}
-		}
-		return expressionType(object);
-	}
-
-	@Override @AvailMethod
-	A_Type o_TypeForLookup (final AvailObject object)
-	{
-		final A_Tuple expressions = object.slot(EXPRESSIONS_TUPLE);
-		final A_Type[] types = new A_Type[expressions.tupleSize()];
-		for (int i = 0; i < types.length; i++)
-		{
-			final A_Type lookupType =
-				expressions.tupleAt(i + 1).typeForLookup();
-			if (lookupType.isBottom())
-			{
-				return BottomTypeDescriptor.bottom();
-			}
-			types[i] = lookupType;
-		}
-		return TupleTypeDescriptor.forTypes(types);
-	}
-
-	@Override
-	int o_ListSize (final AvailObject object)
-	{
-		return object.slot(EXPRESSIONS_TUPLE).tupleSize();
-	}
-
 	@Override
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
@@ -180,18 +134,54 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	void o_ChildrenDo (
+		final AvailObject object,
+		final Continuation1<A_Phrase> aBlock)
 	{
-		return object.expressionsTuple().hash() ^ 0xC143E977;
+		for (final AvailObject expression : object.expressionsTuple())
+		{
+			aBlock.value(expression);
+		}
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	void o_ChildrenMap (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
-		return object.kind().equals(aParseNode.kind())
-			&& object.expressionsTuple().equals(aParseNode.expressionsTuple());
+		A_Tuple expressions = object.expressionsTuple();
+		for (int i = 1; i <= expressions.tupleSize(); i++)
+		{
+			expressions = expressions.tupleAtPuttingCanDestroy(
+				i,
+				aBlock.valueNotNull(expressions.tupleAt(i)),
+				true);
+		}
+		object.setSlot(EXPRESSIONS_TUPLE, expressions);
+	}
+
+	/**
+	 * Create a new {@code ListNodeDescriptor list node} with one more parse
+	 * node added to the end of the list.
+	 *
+	 * @param object
+	 *        The list node to extend.
+	 * @param newParseNode
+	 *        The parse node to append.
+	 * @return
+	 *         A new {@code ListNodeDescriptor list node} with the parse node
+	 *         appended.
+	 */
+	@Override @AvailMethod
+	A_Phrase o_CopyWith (
+		final AvailObject object,
+		final A_Phrase newParseNode)
+	{
+		final A_Tuple oldTuple = object.slot(EXPRESSIONS_TUPLE);
+		final A_Tuple newTuple = oldTuple.appendCanDestroy(
+			newParseNode,
+			true);
+		return ListNodeDescriptor.newExpressions(newTuple);
 	}
 
 	@Override
@@ -252,70 +242,50 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_ChildrenMap (
+	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final A_Phrase aParseNode)
 	{
-		A_Tuple expressions = object.expressionsTuple();
-		for (int i = 1; i <= expressions.tupleSize(); i++)
-		{
-			expressions = expressions.tupleAtPuttingCanDestroy(
-				i,
-				aBlock.valueNotNull(expressions.tupleAt(i)),
-				true);
-		}
-		object.setSlot(EXPRESSIONS_TUPLE, expressions);
-	}
-
-
-	@Override @AvailMethod
-	void o_ChildrenDo (
-		final AvailObject object,
-		final Continuation1<A_Phrase> aBlock)
-	{
-		for (final AvailObject expression : object.expressionsTuple())
-		{
-			aBlock.value(expression);
-		}
-	}
-
-
-	@Override @AvailMethod
-	void o_ValidateLocally (
-		final AvailObject object,
-		final @Nullable A_Phrase parent)
-	{
-		// Do nothing.
-	}
-
-	/**
-	 * Create a new {@code ListNodeDescriptor list node} with one more parse
-	 * node added to the end of the list.
-	 *
-	 * @param object
-	 *        The list node to extend.
-	 * @param newParseNode
-	 *        The parse node to append.
-	 * @return
-	 *         A new {@code ListNodeDescriptor list node} with the parse node
-	 *         appended.
-	 */
-	@Override @AvailMethod
-	A_Phrase o_CopyWith (
-		final AvailObject object,
-		final A_Phrase newParseNode)
-	{
-		final A_Tuple oldTuple = object.slot(EXPRESSIONS_TUPLE);
-		final A_Tuple newTuple = oldTuple.appendCanDestroy(
-			newParseNode,
-			true);
-		return ListNodeDescriptor.newExpressions(newTuple);
+		return !aParseNode.isMacroSubstitutionNode()
+			&& object.kind().equals(aParseNode.kind())
+			&& object.expressionsTuple().equals(aParseNode.expressionsTuple());
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	A_Phrase o_ExpressionAt (final AvailObject object, final int index)
 	{
-		return LIST_NODE;
+		return object.slot(EXPRESSIONS_TUPLE).tupleAt(index);
+	}
+
+	@Override
+	int o_ExpressionsSize (final AvailObject object)
+	{
+		return object.slot(EXPRESSIONS_TUPLE).tupleSize();
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_ExpressionsTuple (final AvailObject object)
+	{
+		return object.slot(EXPRESSIONS_TUPLE);
+	}
+
+	@Override @AvailMethod
+	A_Type o_ExpressionType (final AvailObject object)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				return expressionType(object);
+			}
+		}
+		return expressionType(object);
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		return object.expressionsTuple().hash() ^ 0xC143E977;
 	}
 
 	@Override
@@ -329,6 +299,66 @@ extends ParseNodeDescriptor
 			}
 		}
 		return false;
+	}
+
+	@Override
+	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	{
+		return LIST_NODE;
+	}
+
+	@Override
+	A_Phrase o_StripMacro (final AvailObject object)
+	{
+		// Strip away macro substitution nodes inside my recursive list
+		// structure.  This has to be done recursively over list nodes because
+		// of the way the "leaf" nodes are checked for grammatical restrictions,
+		// but the "root" nodes are what get passed into functions.
+		A_Tuple expressionsTuple =
+			object.slot(EXPRESSIONS_TUPLE).makeImmutable();
+		boolean anyStripped = false;
+		for (int i = 1, end = expressionsTuple.tupleSize(); i <= end; i++)
+		{
+			final A_Phrase originalElement = expressionsTuple.tupleAt(i);
+			final A_Phrase strippedElement = originalElement.stripMacro();
+			if (!originalElement.equals(strippedElement))
+			{
+				expressionsTuple = expressionsTuple.tupleAtPuttingCanDestroy(
+					i, strippedElement, true);
+				anyStripped = true;
+			}
+		}
+		if (anyStripped)
+		{
+			return newExpressions(expressionsTuple);
+		}
+		return object;
+	}
+
+	@Override @AvailMethod
+	A_Type o_TypeForLookup (final AvailObject object)
+	{
+		final A_Tuple expressions = object.slot(EXPRESSIONS_TUPLE);
+		final A_Type[] types = new A_Type[expressions.tupleSize()];
+		for (int i = 0; i < types.length; i++)
+		{
+			final A_Type lookupType =
+				expressions.tupleAt(i + 1).typeForLookup();
+			if (lookupType.isBottom())
+			{
+				return BottomTypeDescriptor.bottom();
+			}
+			types[i] = lookupType;
+		}
+		return TupleTypeDescriptor.forTypes(types);
+	}
+
+	@Override @AvailMethod
+	void o_ValidateLocally (
+		final AvailObject object,
+		final @Nullable A_Phrase parent)
+	{
+		// Do nothing.
 	}
 
 	@Override

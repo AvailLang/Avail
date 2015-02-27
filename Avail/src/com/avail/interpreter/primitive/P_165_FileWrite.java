@@ -48,6 +48,7 @@ import com.avail.AvailRuntime.FileHandle;
 import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.utility.Generator;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.Continuation0;
@@ -127,9 +128,16 @@ extends Primitive
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
-			StringDescriptor.format(
-				"Asynchronous file write (prim 165), %s",
-				handle.filename));
+			new Generator<A_String>()
+			{
+				@Override
+				public A_String value ()
+				{
+					return StringDescriptor.format(
+						"Asynchronous file write (prim 165), %s",
+						handle.filename);
+				}
+			});
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());

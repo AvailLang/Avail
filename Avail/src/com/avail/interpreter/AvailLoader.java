@@ -41,6 +41,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.exceptions.*;
 import com.avail.io.TextInterface;
 import com.avail.utility.*;
@@ -508,8 +509,15 @@ public final class AvailLoader
 		final MessageSplitter splitter = new MessageSplitter(
 			methodName.atomName());
 		final int numArgs = splitter.numberOfArguments();
-		assert macroBody.code().numArgs() == numArgs
-			: "Wrong number of arguments in macro definition";
+		if (macroBody.code().numArgs() != numArgs)
+		{
+			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
+		}
+		if (!macroBody.code().functionType().returnType().isSubtypeOf(
+			ParseNodeKind.PARSE_NODE.mostGeneralType()))
+		{
+			throw new SignatureException(E_MACRO_MUST_RETURN_A_PARSE_NODE);
+		}
 		final A_Bundle bundle = methodName.bundleOrCreate();
 		final A_Method method = bundle.bundleMethod();
 		// Make it so we can safely hold onto these things in the VM.
@@ -520,7 +528,8 @@ public final class AvailLoader
 			method, module, macroBody);
 		module().moduleAddDefinition(macroDefinition);
 		final A_Type macroBodyType = macroBody.kind();
-		for (final A_Definition existingDefinition : method.definitionsTuple())
+		for (final A_Definition existingDefinition
+			: method.macroDefinitionsTuple())
 		{
 			final A_Type existingType = existingDefinition.bodySignature();
 			final boolean same = existingType.argsTupleType().equals(
@@ -530,24 +539,8 @@ public final class AvailLoader
 				throw new SignatureException(
 					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES);
 			}
-			if (existingType.acceptsArgTypesFromFunctionType(macroBodyType))
-			{
-				if (!macroBodyType.returnType().isSubtypeOf(
-					existingType.returnType()))
-				{
-					throw new SignatureException(
-						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS);
-				}
-			}
-			if (macroBodyType.acceptsArgTypesFromFunctionType(existingType))
-			{
-				if (!existingType.returnType().isSubtypeOf(
-					macroBodyType.returnType()))
-				{
-					throw new SignatureException(
-						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS);
-				}
-			}
+			// Note: Macro definitions don't have to satisfy a covariance
+			// relationship with their result types, since they're static.
 		}
 		method.methodAddDefinition(macroDefinition);
 		final A_Module theModule = module;
@@ -758,6 +751,7 @@ public final class AvailLoader
 		A_Map clientData = fiberGlobals.mapAt(clientDataGlobalKey);
 		A_Map bindings = clientData.mapAt(compilerScopeMapKey);
 		final A_String declarationName = declaration.token().string();
+		assert declarationName.isString();
 		if (bindings.hasKey(declarationName))
 		{
 			return E_LOCAL_DECLARATION_SHADOWS_ANOTHER;
@@ -827,10 +821,17 @@ public final class AvailLoader
 					final A_Fiber fiber = FiberDescriptor.newFiber(
 						TypeDescriptor.Types.TOP.o(),
 						FiberDescriptor.loaderPriority,
-						StringDescriptor.format(
-							"Unload function #%d for module %s",
-							index,
-							module().moduleName()));
+						new Generator<A_String>()
+						{
+							@Override
+							public A_String value ()
+							{
+								return StringDescriptor.format(
+									"Unload function #%d for module %s",
+									index,
+									module().moduleName());
+							}
+						});
 					fiber.textInterface(textInterface);
 					fiber.resultContinuation(
 						new Continuation1<AvailObject>()
@@ -869,6 +870,36 @@ public final class AvailLoader
 		onExit.value().value();
 	}
 
+
+	/**
+	 * Look up the {@linkplain DeclarationNodeDescriptor declaration} with the
+	 * given name in the current compiler scope.  This information is associated
+	 * with the current {@link Interpreter}, and therefore the {@linkplain
+	 * A_Fiber fiber} that it is executing.  If no such binding exists, answer
+	 * {@code null}.  The module scope is not consulted by this mechanism.
+	 *
+	 * @param name
+	 *        The name of the binding to look up in the current scope.
+	 * @return The {@linkplain DeclarationNodeDescriptor declaration} that was
+	 *         requested, or {@code null} if there is no binding in scope with
+	 *         that name.
+	 */
+	public final @Nullable A_Phrase lookupBindingOrNull (
+		final A_String name)
+	{
+		final A_Fiber fiber = FiberDescriptor.current();
+		final A_Map fiberGlobals = fiber.fiberGlobals();
+		final A_Map clientData = fiberGlobals.mapAt(
+			AtomDescriptor.clientDataGlobalKey());
+		final A_Map bindings = clientData.mapAt(
+			AtomDescriptor.compilerScopeMapKey());
+		if (bindings.hasKey(name))
+		{
+			return bindings.mapAt(name);
+		}
+		return null;
+	}
+
 	/**
 	 * Look up the given {@linkplain TupleDescriptor string} in the current
 	 * {@linkplain ModuleDescriptor module}'s namespace. Answer the
@@ -877,11 +908,10 @@ public final class AvailLoader
 	 * true names.
 	 *
 	 * @param stringName
-	 *            An Avail {@linkplain TupleDescriptor string}.
-	 * @return
-	 *            A {@linkplain AtomDescriptor true name}.
+	 *        An Avail {@linkplain TupleDescriptor string}.
+	 * @return A {@linkplain AtomDescriptor true name}.
 	 * @throws AmbiguousNameException
-	 *            If the string could represent several different true names.
+	 *         If the string could represent several different true names.
 	 */
 	public final A_Atom lookupName (final A_String stringName)
 		throws AmbiguousNameException

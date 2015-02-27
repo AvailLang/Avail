@@ -1976,15 +1976,20 @@ public final class Interpreter
 		final List<? extends A_BasicObject> arguments)
 	{
 		assert aFiber.executionState() == UNSTARTED;
-		//TODO [MvG] - This slows down fiber creation.
-		final A_RawFunction code = function.code();
-		aFiber.fiberName(
-			(A_String)(aFiber.fiberName().concatenateWith(
-				StringDescriptor.format(
-					" %s @ line #%d",
-					code.methodName(),
-					code.startingLineNumber()),
-				false)));
+		aFiber.fiberNameGenerator(
+			new Generator<A_String>()
+			{
+				@Override
+				public A_String value ()
+				{
+					final A_RawFunction code = function.code();
+					return StringDescriptor.format(
+						"Outermost %s @ %s:%d",
+						code.methodName(),
+						code.module().moduleName(),
+						code.startingLineNumber());
+				}
+			});
 		executeFiber(
 			runtime,
 			aFiber,
@@ -2216,7 +2221,14 @@ public final class Interpreter
 		final A_Fiber fiber = FiberDescriptor.newFiber(
 			TupleTypeDescriptor.stringType(),
 			FiberDescriptor.stringificationPriority,
-			StringDescriptor.from("Stringification"));
+			new Generator<A_String>()
+			{
+				@Override
+				public A_String value ()
+				{
+					return StringDescriptor.from("Stringification");
+				}
+			});
 		fiber.textInterface(textInterface);
 		fiber.resultContinuation(new Continuation1<AvailObject>()
 		{
@@ -2569,7 +2581,10 @@ public final class Interpreter
 	 * restart implicitly observed assignments.
 	 */
 	private static final A_Function assignmentFunction =
-		FunctionDescriptor.newPrimitiveFunction(P_011_SetValue.instance);
+		FunctionDescriptor.newPrimitiveFunction(
+			P_011_SetValue.instance,
+			NilDescriptor.nil(),
+			0);
 
 	/**
 	 * Answer the bootstrapped {@linkplain P_011_SetValue assignment function}

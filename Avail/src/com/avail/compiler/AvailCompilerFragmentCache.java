@@ -56,7 +56,6 @@ public class AvailCompilerFragmentCache
 	private final Map<ParserState, AvailCompilerBipartiteRendezvous> solutions =
 		new HashMap<>(100);
 
-
 	/**
 	 * Answer whether expression parsing has started at this position.
 	 *
@@ -90,16 +89,18 @@ public class AvailCompilerFragmentCache
 	 * waiting actions with it.
 	 *
 	 * @param state
-	 *            The {@link ParserState} at which parsing took place.
-	 * @param solution
-	 *            The {@link AvailCompilerCachedSolution solution} found
-	 *            starting at that position.
+	 *        The {@link ParserState} at which parsing took place.
+	 * @param endState
+	 *        The parse position after the parseNode.
+	 * @param parseNode
+	 *        The parse node that was parsed.
 	 */
 	void addSolution (
 		final ParserState state,
-		final AvailCompilerCachedSolution solution)
+		final ParserState endState,
+		final A_Phrase parseNode)
 	{
-		solutions.get(state).addSolution(solution);
+		solutions.get(state).addSolution(endState, parseNode);
 	}
 
 	/**

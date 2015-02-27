@@ -126,6 +126,14 @@ extends A_BasicObject
 	A_Tuple expressionsTuple ();
 
 	/**
+	 * Extract the N<sup>th</sup> expression.
+	 *
+	 * @param index Which expression to extract.
+	 * @return The chosen phrase.
+	 */
+	A_Phrase expressionAt (int index);
+
+	/**
 	 * Return the parse node's expression type, which is the type of object that
 	 * will be produced by this parse node.
 	 *
@@ -184,7 +192,7 @@ extends A_BasicObject
 	/**
 	 * @return
 	 */
-	A_BasicObject outputParseNode ();
+	A_Phrase outputParseNode ();
 
 	/**
 	 * Also declared in {@link A_Type} for {@linkplain ParseNodeTypeDescriptor
@@ -228,7 +236,7 @@ extends A_BasicObject
 	/**
 	 * @return
 	 */
-	AvailObject stripMacro ();
+	A_Phrase stripMacro ();
 
 	/**
 	 * @return
@@ -279,14 +287,6 @@ extends A_BasicObject
 	void emitAllValuesOn (AvailCodeGenerator codeGenerator);
 
 	/**
-	 * Answer the number of expressions (and the resulting tuple size) in this
-	 * list node or permuted list node.
-	 *
-	 * @return The size of the list.
-	 */
-	int listSize ();
-
-	/**
 	 * This is a {@link SuperCastNodeDescriptor super cast node}; answer the
 	 * type by which this argument should be looked up.
 	 *
@@ -321,4 +321,16 @@ extends A_BasicObject
 	 * @param codeGenerator Where to emit the code.
 	 */
 	void emitAllForSuperSendOn (AvailCodeGenerator codeGenerator);
+
+	/**
+	 * Answer the number of expressions in this list phrase.
+	 *
+	 * @return The list's size.
+	 */
+	int expressionsSize ();
+
+	/**
+	 * @return
+	 */
+	boolean isMacroSubstitutionNode ();
 }

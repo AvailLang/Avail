@@ -192,7 +192,7 @@ extends Descriptor
 	public abstract static class LookupTree
 	{
 		/**
-		 * Lookup the most-specific definitions that match the provided
+		 * Lookup the most-specific definitions that match the provided list of
 		 * arguments.  An empty list indicates there were no applicable
 		 * definitions.  More than one entry indicates an ambiguous lookup, due
 		 * to multiple incomparable, locally most-specific definitions.
@@ -202,6 +202,18 @@ extends Descriptor
 		 */
 		abstract LookupTree lookupStepByValues (
 			List<? extends A_BasicObject> argValues);
+
+		/**
+		 * Lookup the most-specific definitions that match the provided tuple of
+		 * arguments.  An empty list indicates there were no applicable
+		 * definitions.  More than one entry indicates an ambiguous lookup, due
+		 * to multiple incomparable, locally most-specific definitions.
+		 *
+		 * @param argValues The arguments of the call.
+		 * @return The list of most applicable definitions.
+		 */
+		abstract LookupTree lookupStepByValues (
+			A_Tuple argValues);
 
 		/**
 		 * Answer the lookup solution ({@link List} of {@linkplain A_Definition
@@ -502,6 +514,14 @@ extends Descriptor
 		@Override
 		LookupTree lookupStepByValues (
 			final List<? extends A_BasicObject> argValues)
+		{
+			error("Attempting to lookup past leaf of decision tree");
+			return this;
+		}
+
+		@Override
+		LookupTree lookupStepByValues (
+			final A_Tuple argValues)
 		{
 			error("Attempting to lookup past leaf of decision tree");
 			return this;
@@ -984,6 +1004,21 @@ extends Descriptor
 		}
 
 		@Override
+		LookupTree lookupStepByValues (
+			final A_Tuple argValues)
+		{
+			expandIfNecessary();
+			final A_Type testType = argumentTypeToTest();
+			final A_BasicObject argument =
+				argValues.tupleAt(argumentPositionToTest);
+			if (argument.isInstanceOf(testType))
+			{
+				return ifCheckHolds();
+			}
+			return ifCheckFails();
+		}
+
+		@Override
 		LookupTree lookupStepByTypes (
 			final List<? extends A_Type> argTypes)
 		{
@@ -1073,83 +1108,6 @@ extends Descriptor
 		}
 	}
 
-	@Override @AvailMethod
-	A_Tuple o_DefinitionsTuple (final AvailObject object)
-	{
-		assert isShared();
-		synchronized (object)
-		{
-			return object.slot(DEFINITIONS_TUPLE);
-		}
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_MacroDefinitionsTuple (final AvailObject object)
-	{
-		assert isShared();
-		synchronized (object)
-		{
-			return object.slot(MACRO_DEFINITIONS_TUPLE);
-		}
-	}
-
-	@Override @AvailMethod
-	A_Set o_SemanticRestrictions (final AvailObject object)
-	{
-		return object.slot(SEMANTIC_RESTRICTIONS_SET);
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_SealedArgumentsTypesTuple (final AvailObject object)
-	{
-		return object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
-	}
-
-	@Override
-	A_String o_MethodName (final AvailObject object)
-	{
-		return object.slot(
-			OWNING_BUNDLES).iterator().next().message().atomName();
-	}
-
-	@Override @AvailMethod
-	void o_MethodAddBundle (final AvailObject object, final A_Bundle bundle)
-	{
-		A_Set bundles = object.slot(OWNING_BUNDLES);
-		bundles = bundles.setWithElementCanDestroy(bundle, false);
-		bundles.makeShared();
-		object.setSlot(OWNING_BUNDLES, bundles);
-	}
-
-	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.traversed().sameAddressAs(object);
-	}
-
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		return object.slot(HASH);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
-	{
-		if (isMutable())
-		{
-			// A method is always shared. Never make it immutable.
-			return object.makeShared();
-		}
-		return object;
-	}
-
-	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
-	{
-		return METHOD.o();
-	}
-
 	@SuppressWarnings("unchecked")
 	@Override @AvailMethod
 	void o_AddDependentChunk (
@@ -1182,77 +1140,38 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_MethodAddDefinition (
+	void o_AddSealedArgumentsType (
 		final AvailObject object,
-		final A_Definition definition)
-	throws SignatureException
+		final A_Tuple typeTuple)
 	{
-		// Method manipulation takes place while all fibers are L1-precise and
-		// suspended.  Use a global lock at the outermost calls to side-step
-		// deadlocks.  Because no fiber is running we don't have to protect
-		// subsystems like the L2Translator from these changes.
-		L2Chunk.invalidationLock.lock();
-		try
+		synchronized (object)
 		{
-			final A_Tuple oldTuple = object.definitionsTuple();
-			if (oldTuple.tupleSize() > 0)
-			{
-				// Ensure that we're not mixing macro and non-macro signatures.
-				if (definition.isMacroDefinition()
-					!= oldTuple.tupleAt(1).isMacroDefinition())
-				{
-					throw new SignatureException(
-						AvailErrorCode
-							.E_CANNOT_MIX_METHOD_AND_MACRO_DEFINITIONS);
-				}
-			}
-			final A_Tuple seals = object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
-			final A_Type bodySignature = definition.bodySignature();
-			final A_Type paramTypes = bodySignature.argsTupleType();
-			for (final A_Tuple seal : seals)
-			{
-				final A_Type sealType =
-					TupleTypeDescriptor.forTypes(TupleDescriptor.toArray(seal));
-				if (paramTypes.isSubtypeOf(sealType))
-				{
-					throw new SignatureException(
-						AvailErrorCode.E_METHOD_IS_SEALED);
-				}
-			}
-			final A_Tuple newTuple =
-				oldTuple.appendCanDestroy(definition, true);
-			object.setSlot(DEFINITIONS_TUPLE, newTuple.makeShared());
-			membershipChanged(object);
-		}
-		finally
-		{
-			L2Chunk.invalidationLock.unlock();
+			assert typeTuple.isTuple();
+			final A_Tuple oldTuple = object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
+			final A_Tuple newTuple = oldTuple.appendCanDestroy(typeTuple, true);
+			object.setSlot(
+				SEALED_ARGUMENTS_TYPES_TUPLE,
+				newTuple.traversed().makeShared());
 		}
 	}
 
-	/**
-	 * Look up all method definitions that could match the given argument
-	 * types. Answer a {@linkplain List list} of {@linkplain
-	 * MethodDefinitionDescriptor method signatures}.
-	 */
 	@Override @AvailMethod
-	List<A_Definition> o_FilterByTypes (
+	void o_AddSemanticRestriction (
 		final AvailObject object,
-		final List<? extends A_Type> argTypes)
+		final A_SemanticRestriction restriction)
 	{
-		final List<A_Definition> result = new ArrayList<>(3);
-		// Use the accessor instead of reading the slot directly (to acquire the
-		// monitor first).
-		final A_Tuple impsTuple = object.definitionsTuple();
-		for (int i = 1, end = impsTuple.tupleSize(); i <= end; i++)
+		synchronized (object)
 		{
-			final AvailObject imp = impsTuple.tupleAt(i);
-			if (imp.bodySignature().acceptsListOfArgTypes(argTypes))
-			{
-				result.add(imp);
-			}
+			A_Set set = object.slot(SEMANTIC_RESTRICTIONS_SET);
+			set = set.setWithElementCanDestroy(restriction, true);
+			object.setSlot(SEMANTIC_RESTRICTIONS_SET, set.makeShared());
 		}
-		return result;
+	}
+
+	@Override
+	A_Set o_Bundles (final AvailObject object)
+	{
+		return object.slot(OWNING_BUNDLES);
 	}
 
 	/**
@@ -1291,6 +1210,53 @@ extends Descriptor
 		return result;
 	}
 
+	@Override @AvailMethod
+	A_Tuple o_DefinitionsTuple (final AvailObject object)
+	{
+		assert isShared();
+		synchronized (object)
+		{
+			return object.slot(DEFINITIONS_TUPLE);
+		}
+	}
+
+	@Override @AvailMethod
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	{
+		return another.traversed().sameAddressAs(object);
+	}
+
+	/**
+	 * Look up all method definitions that could match the given argument
+	 * types. Answer a {@linkplain List list} of {@linkplain
+	 * MethodDefinitionDescriptor method signatures}.
+	 */
+	@Override @AvailMethod
+	List<A_Definition> o_FilterByTypes (
+		final AvailObject object,
+		final List<? extends A_Type> argTypes)
+	{
+		final List<A_Definition> result = new ArrayList<>(3);
+		// Use the accessor instead of reading the slot directly (to acquire the
+		// monitor first).
+		final A_Tuple impsTuple = object.definitionsTuple();
+		for (int i = 1, end = impsTuple.tupleSize(); i <= end; i++)
+		{
+			final AvailObject imp = impsTuple.tupleAt(i);
+			if (imp.bodySignature().acceptsListOfArgTypes(argTypes))
+			{
+				result.add(imp);
+			}
+		}
+		return result;
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		return object.slot(HASH);
+	}
+
 	/**
 	 * Test if the definition is present within this method.
 	 */
@@ -1309,223 +1275,6 @@ extends Descriptor
 			}
 		}
 		return false;
-	}
-
-	/**
-	 * Look up the definition to invoke, given a tuple of argument types.
-	 * Use the testingTree to find the definition to invoke.
-	 */
-	@Override @AvailMethod
-	A_Definition o_LookupByTypesFromTuple (
-			final AvailObject object,
-			final A_Tuple argumentTypeTuple)
-		throws MethodDefinitionException
-	{
-		final List<A_Type> argumentTypesList =
-			TupleDescriptor.toList(argumentTypeTuple);
-		synchronized (object)
-		{
-			LookupTree tree = object.testingTree();
-			List<A_Definition> solutions;
-			while ((solutions = tree.solutionOrNull()) == null)
-			{
-				tree = tree.lookupStepByTypes(argumentTypesList);
-			}
-			if (solutions.size() != 1)
-			{
-				throw solutions.size() < 1
-					? MethodDefinitionException.noMethodDefinition()
-					: MethodDefinitionException.ambiguousMethodDefinition();
-			}
-			return solutions.get(0);
-		}
-	}
-
-	/**
-	 * Look up the definition to invoke, given an array of argument values.
-	 * Use the testingTree to find the definition to invoke (answer void if
-	 * a lookup error occurs).
-	 */
-	@Override @AvailMethod
-	A_Definition o_LookupByValuesFromList (
-		final AvailObject object,
-		final List<? extends A_BasicObject> argumentList,
-		final MutableOrNull<AvailErrorCode> errorCode)
-	{
-		LookupTree tree = object.testingTree();
-		List<A_Definition> solutions;
-		while ((solutions = tree.solutionOrNull()) == null)
-		{
-			tree = tree.lookupStepByValues(argumentList);
-		}
-		if (solutions.size() == 1)
-		{
-			return solutions.get(0);
-		}
-		if (solutions.size() == 0)
-		{
-			errorCode.value = AvailErrorCode.E_NO_METHOD_DEFINITION;
-		}
-		else
-		{
-			errorCode.value = AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION;
-		}
-		return NilDescriptor.nil();
-	}
-
-	/**
-	 * Remove the chunk from my set of dependent chunks because it has been
-	 * invalidated by a new definition in either me or another method on which
-	 * the chunk is contingent.
-	 */
-	@Override @AvailMethod
-	void o_RemoveDependentChunk (
-		final AvailObject object,
-		final L2Chunk chunk)
-	{
-		assert L2Chunk.invalidationLock.isHeldByCurrentThread();
-		final A_BasicObject pojo =
-			object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
-		if (!pojo.equalsNil())
-		{
-			@SuppressWarnings("unchecked")
-			final Set<L2Chunk> chunkSet =
-				(Set<L2Chunk>) pojo.javaObjectNotNull();
-			chunkSet.remove(chunk);
-		}
-	}
-
-	/**
-	 * Remove the definition from me. Causes dependent chunks to be
-	 * invalidated.
-	 */
-	@Override @AvailMethod
-	void o_RemoveDefinition (
-		final AvailObject object,
-		final A_Definition definition)
-	{
-		assert !definition.definitionModule().equalsNil();
-		// Method manipulation takes place while all fibers are L1-precise and
-		// suspended.  Use a global lock at the outermost calls to side-step
-		// deadlocks.  Because no fiber is running we don't have to protect
-		// subsystems like the L2Translator from these changes.
-		L2Chunk.invalidationLock.lock();
-		try
-		{
-			A_Tuple definitionsTuple = object.slot(DEFINITIONS_TUPLE);
-			definitionsTuple = TupleDescriptor.without(
-				definitionsTuple,
-				definition);
-			object.setSlot(
-				DEFINITIONS_TUPLE,
-				definitionsTuple.traversed().makeShared());
-			membershipChanged(object);
-		}
-		finally
-		{
-			L2Chunk.invalidationLock.unlock();
-		}
-	}
-
-	@Override @AvailMethod
-	int o_NumArgs (final AvailObject object)
-	{
-		return object.slot(NUM_ARGS);
-	}
-
-	/**
-	 * Answer the cached privateTestingTree. If there's a nil in that slot,
-	 * compute and cache the testing tree based on the definitionsTuple.
-	 * The tree should be a {@linkplain RawPojoDescriptor raw pojo} holding a
-	 * {@link LookupTree}.
-	 */
-	@Override @AvailMethod
-	LookupTree o_TestingTree (final AvailObject object)
-	{
-		A_BasicObject result = object.slot(PRIVATE_TESTING_TREE);
-		if (result.equalsNil())
-		{
-			synchronized (object)
-			{
-				AvailRuntime.readBarrier();
-				result = object.slot(PRIVATE_TESTING_TREE);
-				if (result.equalsNil())
-				{
-					final List<A_Type> initialTypes =
-						Collections.<A_Type>nCopies(object.numArgs(), ANY.o());
-					final A_Tuple allDefinitions =
-						object.slot(DEFINITIONS_TUPLE);
-					final LookupTree tree = LookupTree.createRoot(
-						object,
-						TupleDescriptor.<A_Definition>toList(allDefinitions),
-						initialTypes);
-					result = RawPojoDescriptor.identityWrap(tree).makeShared();
-					// Assure all writes are committed before setting the tree.
-					AvailRuntime.writeBarrier();
-					object.setSlot(PRIVATE_TESTING_TREE, result);
-				}
-			}
-		}
-		return (LookupTree) result.javaObject();
-	}
-
-	@Override @AvailMethod
-	void o_AddSemanticRestriction (
-		final AvailObject object,
-		final A_SemanticRestriction restriction)
-	{
-		synchronized (object)
-		{
-			A_Set set = object.slot(SEMANTIC_RESTRICTIONS_SET);
-			set = set.setWithElementCanDestroy(restriction, true);
-			object.setSlot(SEMANTIC_RESTRICTIONS_SET, set.makeShared());
-		}
-	}
-
-	@Override @AvailMethod
-	void o_RemoveSemanticRestriction (
-		final AvailObject object,
-		final A_SemanticRestriction restriction)
-	{
-		synchronized (object)
-		{
-			A_Set set = object.slot(SEMANTIC_RESTRICTIONS_SET);
-			set = set.setWithoutElementCanDestroy(restriction, true);
-			object.setSlot(SEMANTIC_RESTRICTIONS_SET, set.makeShared());
-		}
-	}
-
-	@Override @AvailMethod
-	void o_AddSealedArgumentsType (
-		final AvailObject object,
-		final A_Tuple typeTuple)
-	{
-		synchronized (object)
-		{
-			assert typeTuple.isTuple();
-			final A_Tuple oldTuple = object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
-			final A_Tuple newTuple = oldTuple.appendCanDestroy(typeTuple, true);
-			object.setSlot(
-				SEALED_ARGUMENTS_TYPES_TUPLE,
-				newTuple.traversed().makeShared());
-		}
-	}
-
-	@Override @AvailMethod
-	void o_RemoveSealedArgumentsType (
-		final AvailObject object,
-		final A_Tuple typeTuple)
-	{
-		synchronized (object)
-		{
-			final A_Tuple oldTuple = object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
-			final A_Tuple newTuple =
-				TupleDescriptor.without(oldTuple, typeTuple);
-			assert newTuple.tupleSize() == oldTuple.tupleSize() - 1;
-			object.setSlot(
-				SEALED_ARGUMENTS_TYPES_TUPLE,
-				newTuple.traversed().makeShared());
-		}
 	}
 
 	@Override @AvailMethod
@@ -1566,10 +1315,238 @@ extends Descriptor
 		}
 	}
 
-	@Override
-	A_Set o_Bundles (final AvailObject object)
+	@Override @AvailMethod
+	A_Type o_Kind (final AvailObject object)
 	{
-		return object.slot(OWNING_BUNDLES);
+		return METHOD.o();
+	}
+
+	/**
+	 * Look up the definition to invoke, given a tuple of argument types.
+	 * Use the testingTree to find the definition to invoke.
+	 */
+	@Override @AvailMethod
+	A_Definition o_LookupByTypesFromTuple (
+			final AvailObject object,
+			final A_Tuple argumentTypeTuple)
+		throws MethodDefinitionException
+	{
+		final List<A_Type> argumentTypesList =
+			TupleDescriptor.toList(argumentTypeTuple);
+		synchronized (object)
+		{
+			LookupTree tree = object.testingTree();
+			List<A_Definition> solutions;
+			while ((solutions = tree.solutionOrNull()) == null)
+			{
+				tree = tree.lookupStepByTypes(argumentTypesList);
+			}
+			if (solutions.size() != 1)
+			{
+				throw solutions.size() < 1
+					? MethodDefinitionException.noMethodDefinition()
+					: MethodDefinitionException.ambiguousMethodDefinition();
+			}
+			return solutions.get(0);
+		}
+	}
+
+	/**
+	 * Look up the definition to invoke, given an array of argument values.
+	 * Use the testingTree to find the definition to invoke (answer nil if
+	 * a lookup error occurs).
+	 */
+	@Override @AvailMethod
+	A_Definition o_LookupByValuesFromList (
+		final AvailObject object,
+		final List<? extends A_BasicObject> argumentList,
+		final MutableOrNull<AvailErrorCode> errorCode)
+	{
+		LookupTree tree = object.testingTree();
+		List<A_Definition> solutions;
+		while ((solutions = tree.solutionOrNull()) == null)
+		{
+			tree = tree.lookupStepByValues(argumentList);
+		}
+		if (solutions.size() == 1)
+		{
+			return solutions.get(0);
+		}
+		if (solutions.size() == 0)
+		{
+			errorCode.value = AvailErrorCode.E_NO_METHOD_DEFINITION;
+		}
+		else
+		{
+			errorCode.value = AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION;
+		}
+		return NilDescriptor.nil();
+	}
+
+	/**
+	 * Look up the macro definition to invoke, given an array of argument
+	 * phrases.  Use the macroTestingTree to find the macro definition to invoke
+	 * (answer nil if a lookup error occurs).
+	 *
+	 * <p>Note that this testing tree approach is only applicable if all of the
+	 * macro definitions are visible (defined in the current module or an
+	 * ancestor.  That should be the <em>vast</em> majority of the use of
+	 * macros, but when it isn't, other lookup approaches are necessary.</p>
+	 */
+	@Override @AvailMethod
+	A_Definition o_LookupMacroByPhraseTuple (
+		final AvailObject object,
+		final A_Tuple argumentPhraseTuple,
+		final MutableOrNull<AvailErrorCode> errorCode)
+	{
+		LookupTree tree = object.macroTestingTree();
+		List<A_Definition> solutions;
+		while ((solutions = tree.solutionOrNull()) == null)
+		{
+			tree = tree.lookupStepByValues(argumentPhraseTuple);
+		}
+		if (solutions.size() == 1)
+		{
+			return solutions.get(0);
+		}
+		if (solutions.size() == 0)
+		{
+			errorCode.value = AvailErrorCode.E_NO_METHOD_DEFINITION;
+		}
+		else
+		{
+			errorCode.value = AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION;
+		}
+		return NilDescriptor.nil();
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_MacroDefinitionsTuple (final AvailObject object)
+	{
+		assert isShared();
+		synchronized (object)
+		{
+			return object.slot(MACRO_DEFINITIONS_TUPLE);
+		}
+	}
+
+	/**
+	 * Answer the cached macroTestingTree. If there's a nil in that slot,
+	 * compute and cache the testing tree based on the macroDefinitionsTuple.
+	 * The tree should be a {@linkplain RawPojoDescriptor raw pojo} holding a
+	 * {@link LookupTree}.
+	 */
+	@Override @AvailMethod
+	LookupTree o_MacroTestingTree (final AvailObject object)
+	{
+		A_BasicObject result = object.slot(MACRO_TESTING_TREE);
+		if (result.equalsNil())
+		{
+			synchronized (object)
+			{
+				AvailRuntime.readBarrier();
+				result = object.slot(MACRO_TESTING_TREE);
+				if (result.equalsNil())
+				{
+					final List<A_Type> initialTypes =
+						Collections.<A_Type>nCopies(object.numArgs(), ANY.o());
+					final A_Tuple allDefinitions =
+						object.slot(MACRO_DEFINITIONS_TUPLE);
+					final LookupTree tree = LookupTree.createRoot(
+						object,
+						TupleDescriptor.<A_Definition>toList(allDefinitions),
+						initialTypes);
+					result = RawPojoDescriptor.identityWrap(tree).makeShared();
+					// Assure all writes are committed before setting the tree.
+					AvailRuntime.writeBarrier();
+					object.setSlot(MACRO_TESTING_TREE, result);
+				}
+			}
+		}
+		return (LookupTree) result.javaObject();
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MakeImmutable (final AvailObject object)
+	{
+		if (isMutable())
+		{
+			// A method is always shared. Never make it immutable.
+			return object.makeShared();
+		}
+		return object;
+	}
+
+	@Override @AvailMethod
+	void o_MethodAddBundle (final AvailObject object, final A_Bundle bundle)
+	{
+		A_Set bundles = object.slot(OWNING_BUNDLES);
+		bundles = bundles.setWithElementCanDestroy(bundle, false);
+		bundles.makeShared();
+		object.setSlot(OWNING_BUNDLES, bundles);
+	}
+
+	@Override @AvailMethod
+	void o_MethodAddDefinition (
+		final AvailObject object,
+		final A_Definition definition)
+	throws SignatureException
+	{
+		// Method manipulation takes place while all fibers are L1-precise and
+		// suspended.  Use a global lock at the outermost calls to side-step
+		// deadlocks.  Because no fiber is running we don't have to protect
+		// subsystems like the L2Translator from these changes.
+		L2Chunk.invalidationLock.lock();
+		try
+		{
+			final A_Type bodySignature = definition.bodySignature();
+			final A_Type paramTypes = bodySignature.argsTupleType();
+			if (definition.isMacroDefinition())
+			{
+				// Install the macro.
+				final A_Tuple oldTuple = object.slot(MACRO_DEFINITIONS_TUPLE);
+
+				final A_Tuple newTuple = oldTuple.appendCanDestroy(
+					definition, true);
+				object.setSlot(MACRO_DEFINITIONS_TUPLE, newTuple.makeShared());
+			}
+			else
+			{
+				final A_Tuple oldTuple = object.slot(DEFINITIONS_TUPLE);
+				final A_Tuple seals = object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
+				for (final A_Tuple seal : seals)
+				{
+					final A_Type sealType = TupleTypeDescriptor.forTypes(
+						TupleDescriptor.toArray(seal));
+					if (paramTypes.isSubtypeOf(sealType))
+					{
+						throw new SignatureException(
+							AvailErrorCode.E_METHOD_IS_SEALED);
+					}
+				}
+				final A_Tuple newTuple = oldTuple.appendCanDestroy(
+					definition, true);
+				object.setSlot(DEFINITIONS_TUPLE, newTuple.makeShared());
+			}
+			membershipChanged(object);
+		}
+		finally
+		{
+			L2Chunk.invalidationLock.unlock();
+		}
+	}
+
+	@Override
+	A_String o_MethodName (final AvailObject object)
+	{
+		return object.slot(
+			OWNING_BUNDLES).iterator().next().message().atomName();
+	}
+
+	@Override @AvailMethod
+	int o_NumArgs (final AvailObject object)
+	{
+		return object.slot(NUM_ARGS);
 	}
 
 	@Override
@@ -1579,12 +1556,150 @@ extends Descriptor
 	}
 
 	@Override
-	public void o_PrefixFunctions(
+	public void o_PrefixFunctions (
 		final AvailObject object,
 		final A_Tuple prefixFunctions)
 	{
 		assert prefixFunctions.tupleSize() == object.slot(NUM_ARGS);
 		object.setSlot(MACRO_PREFIX_FUNCTIONS, prefixFunctions);
+	}
+
+	/**
+	 * Remove the definition from me. Causes dependent chunks to be
+	 * invalidated.
+	 */
+	@Override @AvailMethod
+	void o_RemoveDefinition (
+		final AvailObject object,
+		final A_Definition definition)
+	{
+		assert !definition.definitionModule().equalsNil();
+		// Method manipulation takes place while all fibers are L1-precise and
+		// suspended.  Use a global lock at the outermost calls to side-step
+		// deadlocks.  Because no fiber is running we don't have to protect
+		// subsystems like the L2Translator from these changes.
+		L2Chunk.invalidationLock.lock();
+		try
+		{
+			A_Tuple definitionsTuple = object.slot(DEFINITIONS_TUPLE);
+			definitionsTuple = TupleDescriptor.without(
+				definitionsTuple,
+				definition);
+			object.setSlot(
+				DEFINITIONS_TUPLE,
+				definitionsTuple.traversed().makeShared());
+			membershipChanged(object);
+		}
+		finally
+		{
+			L2Chunk.invalidationLock.unlock();
+		}
+	}
+
+	/**
+	 * Remove the chunk from my set of dependent chunks because it has been
+	 * invalidated by a new definition in either me or another method on which
+	 * the chunk is contingent.
+	 */
+	@Override @AvailMethod
+	void o_RemoveDependentChunk (
+		final AvailObject object,
+		final L2Chunk chunk)
+	{
+		assert L2Chunk.invalidationLock.isHeldByCurrentThread();
+		final A_BasicObject pojo =
+			object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
+		if (!pojo.equalsNil())
+		{
+			@SuppressWarnings("unchecked")
+			final Set<L2Chunk> chunkSet =
+				(Set<L2Chunk>) pojo.javaObjectNotNull();
+			chunkSet.remove(chunk);
+		}
+	}
+
+	@Override @AvailMethod
+	void o_RemoveSealedArgumentsType (
+		final AvailObject object,
+		final A_Tuple typeTuple)
+	{
+		synchronized (object)
+		{
+			final A_Tuple oldTuple = object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
+			final A_Tuple newTuple =
+				TupleDescriptor.without(oldTuple, typeTuple);
+			assert newTuple.tupleSize() == oldTuple.tupleSize() - 1;
+			object.setSlot(
+				SEALED_ARGUMENTS_TYPES_TUPLE,
+				newTuple.traversed().makeShared());
+		}
+	}
+
+	@Override @AvailMethod
+	void o_RemoveSemanticRestriction (
+		final AvailObject object,
+		final A_SemanticRestriction restriction)
+	{
+		synchronized (object)
+		{
+			A_Set set = object.slot(SEMANTIC_RESTRICTIONS_SET);
+			set = set.setWithoutElementCanDestroy(restriction, true);
+			object.setSlot(SEMANTIC_RESTRICTIONS_SET, set.makeShared());
+		}
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_SealedArgumentsTypesTuple (final AvailObject object)
+	{
+		return object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
+	}
+
+	@Override @AvailMethod
+	A_Set o_SemanticRestrictions (final AvailObject object)
+	{
+		return object.slot(SEMANTIC_RESTRICTIONS_SET);
+	}
+
+	@Override @AvailMethod @ThreadSafe
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.METHOD;
+	}
+
+	/**
+	 * Answer the cached privateTestingTree. If there's a nil in that slot,
+	 * compute and cache the testing tree based on the definitionsTuple.
+	 * The tree should be a {@linkplain RawPojoDescriptor raw pojo} holding a
+	 * {@link LookupTree}.
+	 */
+	@Override @AvailMethod
+	LookupTree o_TestingTree (final AvailObject object)
+	{
+		A_BasicObject result = object.slot(PRIVATE_TESTING_TREE);
+		if (result.equalsNil())
+		{
+			synchronized (object)
+			{
+				AvailRuntime.readBarrier();
+				result = object.slot(PRIVATE_TESTING_TREE);
+				if (result.equalsNil())
+				{
+					final List<A_Type> initialTypes =
+						Collections.<A_Type>nCopies(object.numArgs(), ANY.o());
+					final A_Tuple allDefinitions =
+						object.slot(DEFINITIONS_TUPLE);
+					final LookupTree tree = LookupTree.createRoot(
+						object,
+						TupleDescriptor.<A_Definition>toList(allDefinitions),
+						initialTypes);
+					result = RawPojoDescriptor.identityWrap(tree).makeShared();
+					// Assure all writes are committed before setting the tree.
+					AvailRuntime.writeBarrier();
+					object.setSlot(PRIVATE_TESTING_TREE, result);
+				}
+			}
+		}
+		return (LookupTree) result.javaObject();
 	}
 
 	@Override
@@ -1619,12 +1734,6 @@ extends Descriptor
 		writer.write("macro prefix functions");
 		object.slot(MACRO_PREFIX_FUNCTIONS).writeSummaryTo(writer);
 		writer.endObject();
-	}
-
-	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (final AvailObject object)
-	{
-		return SerializerOperation.METHOD;
 	}
 
 	/**
@@ -1682,10 +1791,9 @@ extends Descriptor
 		{
 			// Copy the set of chunks to avoid modification during iteration.
 			@SuppressWarnings("unchecked")
-			final
-			Set<L2Chunk> originalSet = (Set<L2Chunk>) pojo.javaObjectNotNull();
-			final Set<L2Chunk> chunksToInvalidate =
-				new HashSet<>(originalSet);
+			final Set<L2Chunk> originalSet =
+				(Set<L2Chunk>) pojo.javaObjectNotNull();
+			final Set<L2Chunk> chunksToInvalidate = new HashSet<>(originalSet);
 			for (final L2Chunk chunk : chunksToInvalidate)
 			{
 				chunk.invalidate();
@@ -1771,8 +1879,8 @@ extends Descriptor
 		final A_Method method = bundle.bundleMethod();
 		for (final Primitive primitive : primitives)
 		{
-			final A_Function function =
-				FunctionDescriptor.newPrimitiveFunction(primitive);
+			final A_Function function = FunctionDescriptor.newPrimitiveFunction(
+				primitive, NilDescriptor.nil(), 0);
 			final A_Definition definition = MethodDefinitionDescriptor.create(
 				method,
 				NilDescriptor.nil(),  // System definitions have no module.

@@ -138,7 +138,6 @@ extends Primitive
 					E_LOADING_IS_OVER.numericCode(),
 					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES.numericCode(),
 					E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS.numericCode(),
-					E_CANNOT_MIX_METHOD_AND_MACRO_DEFINITIONS.numericCode(),
 					E_METHOD_IS_SEALED.numericCode()))
 				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
 	}

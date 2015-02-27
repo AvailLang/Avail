@@ -34,6 +34,7 @@ package com.avail.compiler;
 
 import java.util.*;
 import com.avail.compiler.AbstractAvailCompiler.Con;
+import com.avail.compiler.AbstractAvailCompiler.ParserState;
 import com.avail.descriptor.*;
 
 /**
@@ -78,17 +79,20 @@ public class AvailCompilerBipartiteRendezvous
 	/**
 	 * Record a new solution, and also run any waiting actions with it.
 	 *
-	 * @param solution The new solution.
+	 * @param endState The parse position after the parseNode.
+	 * @param parseNode The parse node that was parsed.
 	 */
-	void addSolution (final AvailCompilerCachedSolution solution)
+	void addSolution (
+		final ParserState endState,
+		final A_Phrase parseNode)
 	{
-		solution.parseNode.makeImmutable();
+		final AvailCompilerCachedSolution solution =
+			new AvailCompilerCachedSolution(
+				endState, parseNode.makeShared());
 		solutions.add(solution);
 		for (final Con<A_Phrase> action : actions)
 		{
-			action.value(
-				solution.endState(),
-				solution.parseNode());
+			action.value(endState, parseNode);
 		}
 	}
 
@@ -102,9 +106,7 @@ public class AvailCompilerBipartiteRendezvous
 		actions.add(action);
 		for (final AvailCompilerCachedSolution solution : solutions)
 		{
-			action.value(
-				solution.endState(),
-				solution.parseNode());
+			action.value(solution.endState(), solution.parseNode());
 		}
 	}
 }

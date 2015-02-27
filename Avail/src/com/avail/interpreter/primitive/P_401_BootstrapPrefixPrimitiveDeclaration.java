@@ -1,5 +1,5 @@
 /**
- * P_402_BootstrapPrefixLabelDeclaration.java
+ * P_401_BootstrapPrefixPrimitiveDeclaration.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -37,6 +37,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+import com.avail.annotations.Nullable;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
@@ -44,21 +45,22 @@ import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 
 /**
- * The {@code P_402_BootstrapPrefixLabelDeclaration} primitive is used
- * for bootstrapping declaration of a {@link #PRIMITIVE_FAILURE_REASON_NODE
- * primitive failure variable} which holds the reason for a primitive's failure.
+ * The {@code P_401_BootstrapPrefixVariableDeclaration} primitive is used for
+ * bootstrapping declaration of a primitive declaration, including an optional
+ * {@link #PRIMITIVE_FAILURE_REASON_NODE primitive failure variable} which holds
+ * the reason for a primitive's failure.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_402_BootstrapPrefixLabelDeclaration
+public final class P_401_BootstrapPrefixPrimitiveDeclaration
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_402_BootstrapPrefixLabelDeclaration().init(
-			3, CannotFail, Bootstrap);
+		new P_401_BootstrapPrefixPrimitiveDeclaration().init(
+			2, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
@@ -66,87 +68,118 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 3;
+		assert args.size() == 2;
 		final A_Phrase optionalBlockArgumentsList = args.get(0);
-//		final A_Phrase optionalPrimFailurePhrase = args.get(1);
-		final A_Phrase optionalLabelPhrase = args.get(2);
+		final A_Phrase optionalPrimPhrase = args.get(1);
 
 		final AvailLoader loader = interpreter.fiber().availLoader();
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
-
-		// Note that because the section marker occurs inside the optionality
-		// of the label declaration, this function will only be invoked when
-		// there truly is a label declaration.
-		assert optionalLabelPhrase.expressionsSize() == 1;
-		final A_Phrase labelPairPhrase = optionalLabelPhrase.expressionAt(1);
-		assert labelPairPhrase.expressionsSize() == 2;
-		final A_Phrase labelNamePhrase = labelPairPhrase.expressionAt(1);
-		final A_Token labelName = labelNamePhrase.token().literal();
-		if (labelName.tokenType() != TokenType.KEYWORD)
+		assert optionalPrimPhrase.expressionsSize() == 1;
+		final A_Phrase primPhrase = optionalPrimPhrase.expressionAt(1);
+		final A_Phrase primNumberPhrase = primPhrase.expressionAt(1);
+		if (!primNumberPhrase.kind().parseNodeKindIsUnder(LITERAL_NODE))
 		{
 			throw new AvailRejectedParseException(
-				"label name to be alphanumeric");
+				"primitive specification to be a literal");
 		}
-		final A_Phrase optionalLabelReturnTypePhrase =
-			labelPairPhrase.expressionAt(2);
-		final A_Type labelReturnType;
-		if (optionalLabelReturnTypePhrase.expressionsSize() == 1)
+		final A_Number primNumber =
+			primNumberPhrase.token().literal().literal();
+		if (!primNumber.isInt())
 		{
-			final A_Phrase labelReturnTypePhrase =
-				optionalLabelReturnTypePhrase.expressionAt(1);
-			assert labelReturnTypePhrase.parseNodeKind().isSubkindOf(
-				LITERAL_NODE);
-			labelReturnType = labelReturnTypePhrase.token().literal();
+			throw new AvailRejectedParseException(
+				"primitive specification to be a literal integer");
 		}
-		else
+		final int primInt = primNumber.extractInt();
+		if (!Primitive.supportsPrimitive(primInt))
 		{
-			// If the label doesn't specify a return type, use bottom.  Because
-			// of continuation return type contravariance, this is the most
-			// general answer.
-			labelReturnType = BottomTypeDescriptor.bottom();
+			throw new AvailRejectedParseException(
+				"a supported primitive number, not " + primInt);
 		}
+		final Primitive prim = Primitive.byPrimitiveNumberOrNull(primInt);
+		assert prim != null;
 
-		// Re-extract all the argument types so we can specify the exact type of
-		// the continuation.
-		final List<A_Type> blockArgumentTypes = new ArrayList<>();
-		if (optionalBlockArgumentsList.expressionsSize() > 0)
+		// Check that the primitive signature agrees with the arguments.
+		final List<A_Phrase> blockArgumentPhrases = new ArrayList<>();
+		if (optionalBlockArgumentsList.expressionsSize() == 1)
 		{
-			assert optionalBlockArgumentsList.expressionsSize() == 1;
 			final A_Phrase blockArgumentsList =
 				optionalBlockArgumentsList.expressionAt(1);
 			assert blockArgumentsList.expressionsSize() >= 1;
-			for (final A_Phrase argumentPair :
-				blockArgumentsList.expressionsTuple())
+			for (final A_Phrase pair : blockArgumentsList.expressionsTuple())
 			{
-				assert argumentPair.expressionsSize() == 2;
-				final A_Phrase typePhrase = argumentPair.expressionAt(2);
-				assert typePhrase.isInstanceOfKind(
-					LITERAL_NODE.create(InstanceMetaDescriptor.anyMeta()));
-				final A_Type argType = typePhrase.token().literal();
-				assert argType.isType();
-				blockArgumentTypes.add(argType);
+				assert pair.expressionsSize() == 2;
+				final A_Phrase namePhrase = pair.expressionAt(1);
+				final A_String name = namePhrase.token().literal().string();
+				assert name.isString();
+				final A_Phrase declaration = loader.lookupBindingOrNull(name);
+				assert declaration != null;
+				blockArgumentPhrases.add(declaration);
 			}
 		}
-		final A_Type functionType = FunctionTypeDescriptor.create(
-			TupleDescriptor.fromList(blockArgumentTypes), labelReturnType);
-		final A_Type continuationType =
-			ContinuationTypeDescriptor.forFunctionType(functionType);
-		final A_Phrase labelDeclaration =
-			DeclarationNodeDescriptor.newLabel(labelName, continuationType);
-		final AvailErrorCode error = loader.addDeclaration(labelDeclaration);
-		if (error != null)
+		final @Nullable String problem =
+			Primitive.validatePrimitiveAcceptsArguments(
+				primInt, blockArgumentPhrases);
+		if (problem != null)
 		{
-			if (error == E_LOCAL_DECLARATION_SHADOWS_ANOTHER)
+			throw new AvailRejectedParseException(problem);
+		}
+
+		// The section marker occurs inside the optionality of the primitive
+		// clause, but outside the primitive failure variable declaration.
+		// Therefore, the variable declaration is not required to be present.
+		// Make sure the failure variable is present exactly when it should be.
+		final A_Phrase optionalFailure = primPhrase.expressionAt(2);
+		if (optionalFailure.expressionsSize() == 1)
+		{
+			if (prim.hasFlag(CannotFail))
 			{
 				throw new AvailRejectedParseException(
-					"label %s to have a name that doesn't shadow another"
-					+ " local declaration",
-					labelName.string());
+					"no primitive failure variable declaration for this "
+					+ "infallible primitive");
 			}
-			return interpreter.primitiveFailure(error);
+			final A_Phrase failurePair = optionalFailure.expressionAt(1);
+			assert failurePair.expressionsSize() == 2;
+			final A_Phrase failureNamePhrase = failurePair.expressionAt(1);
+			final A_Token failureName = failureNamePhrase.token().literal();
+			if (failureName.tokenType() != TokenType.KEYWORD)
+			{
+				throw new AvailRejectedParseException(
+					"primitive failure variable name to be alphanumeric");
+			}
+			final A_Phrase failureTypePhrase = failurePair.expressionAt(2);
+			final A_Type failureType = failureTypePhrase.token().literal();
+			if (failureType.isBottom())
+			{
+				throw new AvailRejectedParseException(
+					"primitive failure variable type not to be ⊥");
+			}
+			final A_Phrase failureDeclaration =
+				DeclarationNodeDescriptor.newPrimitiveFailureVariable(
+					failureName, failureType);
+			final AvailErrorCode error =
+				loader.addDeclaration(failureDeclaration);
+			if (error != null)
+			{
+				if (error == E_LOCAL_DECLARATION_SHADOWS_ANOTHER)
+				{
+					throw new AvailRejectedParseException(
+						"primitive failure variable to have a name that "
+						+ "doesn't shadow another local declaration");
+				}
+				return interpreter.primitiveFailure(error);
+			}
+		}
+		else
+		{
+			if (!prim.hasFlag(CannotFail))
+			{
+				throw new AvailRejectedParseException(
+					"a primitive failure variable declaration for this "
+					+ "fallible primitive");
+			}
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
@@ -183,19 +216,7 @@ extends Primitive
 									/* Primitive failure variable name token */
 									TOKEN.o(),
 									/* Primitive failure variable type */
-									InstanceMetaDescriptor.anyMeta()))))),
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
-					/* Optional label declaration. */
-					TupleTypeDescriptor.zeroOrOneOf(
-						/* Label parts. */
-						TupleTypeDescriptor.forTypes(
-							/* Label name */
-							TOKEN.o(),
-							/* Optional label return type. */
-							TupleTypeDescriptor.zeroOrOneOf(
-								/* Label return type. */
-								InstanceMetaDescriptor.topMeta()))))),
+									InstanceMetaDescriptor.anyMeta())))))),
 			TOP.o());
 	}
 }

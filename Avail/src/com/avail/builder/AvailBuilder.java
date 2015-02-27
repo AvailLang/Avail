@@ -1871,15 +1871,24 @@ public final class AvailBuilder
 					}
 					if (function != null)
 					{
-						final A_RawFunction code = function.code();
+						final A_Function finalFunction = function;
 						final A_Fiber fiber = newLoaderFiber(
 							function.kind().returnType(),
 							availLoader,
-							StringDescriptor.format(
-								"Load repo module %s, in %s:%d",
-								code.methodName(),
-								code.module().moduleName(),
-								code.startingLineNumber()));
+							new Generator<A_String>()
+							{
+								@Override
+								public A_String value ()
+								{
+									final A_RawFunction code =
+										finalFunction.code();
+									return StringDescriptor.format(
+										"Load repo module %s, in %s:%d",
+										code.methodName(),
+										code.module().moduleName(),
+										code.startingLineNumber());
+								}
+							});
 						fiber.textInterface(textInterface);
 						fiber.resultContinuation(runNext.value());
 						fiber.failureContinuation(fail);
@@ -3494,9 +3503,17 @@ public final class AvailBuilder
 					final A_Fiber fiber = FiberDescriptor.newFiber(
 						function.kind().returnType(),
 						FiberDescriptor.commandPriority,
-						StringDescriptor.format(
-							"Running command: %s",
-							phrase));
+						new Generator<A_String>()
+						{
+							@Override
+							public A_String value ()
+							{
+								// TODO Auto-generated method stub
+								return StringDescriptor.format(
+									"Running command: %s",
+									phrase);
+							}
+						});
 					fiber.textInterface(textInterface);
 					fiber.resultContinuation(
 						new Continuation1<AvailObject>()

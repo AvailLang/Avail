@@ -44,6 +44,7 @@ import com.avail.compiler.AbstractAvailCompiler.ParserState;
 import com.avail.compiler.scanning.AvailScanner;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.exceptions.*;
 import com.avail.utility.Generator;
 
@@ -144,7 +145,14 @@ public class MessageSplitter
 	 * (#) and {@linkplain StringDescriptor#questionMark() question mark} (?)
 	 * modify the output of repeated substructures to produce either a count
 	 * of the repetitions or a boolean indicating whether an optional
-	 * substructure was present.</li>
+	 * subexpression (expecting no arguments) was present.</li>
+	 * <li>Placing a {@linkplain StringDescriptor#questionMark() question mark}
+	 * (?) after a group containing arguments but no {@linkplain
+	 * StringDescriptor#doubleDagger() double-dagger} (‡) will limit the
+	 * repetitions of the group to at most one.  Although limiting the method
+	 * definitions to only accept 0..1 occurrences would accomplish the same
+	 * grammatical narrowing, the parser might still attempt to parse more than
+	 * one occurrence, leading to unnecessarily confusing diagnostics.</li>
 	 * <li>An {@linkplain StringDescriptor#exclamationMark() exclamation mark}
 	 * (!) can follow a group of alternations to produce the 1-based index of
 	 * the alternative that actually occurred.</li>
@@ -154,16 +162,32 @@ public class MessageSplitter
 	 * occur immediately after an underscore to cause the argument expression to
 	 * be evaluated in the static scope during compilation.  This is applicable
 	 * to both methods and macros.</li>
+	 * <li>An {@linkplain StringDescriptor#upArrow() up-arrow} (↑) after an
+	 * underscore indicates an in-scope variable name is to be parsed.  The
+	 * subexpression causes the variable itself to be provided, rather than its
+	 * value.</li>
+	 * <li>An {@linkplain StringDescriptor#exclamationMark() exclamation mark}
+	 * (!) may occur after the underscore instead, to indicate the argument
+	 * expression may be ⊤-valued or ⊥-valued.  Since a function (and therefore
+	 * a method definition) cannot accept a ⊤-valued argument, this mechanism
+	 * only makes sense for macros, since macros bodies are passed phrases,
+	 * which may be typed as <em>yielding</em> a top-valued result.</li>
 	 * <li>An {@linkplain StringDescriptor#ellipsis() ellipsis} (…) matches a
-	 * single {@linkplain TokenDescriptor token}.</li>
-	 * <li>A {@linkplain StringDescriptor#sectionSign() section sign} (§) is
-	 * used to mark where a macro's Nth {@linkplain
-	 * AvailObject#prefixFunctions() prefix function} should be invoked with
-	 * the current parse stack up to that point.</li>
+	 * single {@linkplain TokenDescriptor keyword token}.</li>
+	 * <li>An {@linkplain StringDescriptor#exclamationMark() exclamation mark}
+	 * (!) after an ellipsis indicates <em>any</em> token will be accepted at
+	 * that position.</li>
+	 * <li>An {@linkplain StringDescriptor#octothorp() octothorp} (#) after an
+	 * ellipsis indicates only a <em>literal</em> token will be accepted.</li>
+	 * <li>The N<sup>th</sup> {@linkplain StringDescriptor#sectionSign() section
+	 * sign} (§) in a message name indicates where a macro's N<sup>th</sup>
+	 * {@linkplain AvailObject#prefixFunctions() prefix function} should be
+	 * invoked with the current parse stack up to that point.</li>
 	 * <li>A {@linkplain StringDescriptor#backQuote() backquote} (`) can
 	 * precede any operator character, such as guillemets or double dagger, to
 	 * ensure it is not used in a special way. A backquote may also operate on
-	 * another backquote.</li>
+	 * another backquote (to indicate that an actual backquote token will appear
+	 * in a call).</li>
 	 * </ul></p>
 	 */
 	final List<A_String> messageParts = new ArrayList<>(10);
@@ -699,7 +723,7 @@ public class MessageSplitter
 
 	/**
 	 * A {@linkplain ArgumentInModuleScope} is an occurrence of an {@linkplain
-	 * StringDescriptor#ellipsis() underscore} (_) in a message name, followed
+	 * StringDescriptor#underscore() underscore} (_) in a message name, followed
 	 * immediately by a {@linkplain StringDescriptor#singleDagger() single
 	 * dagger} (†). It indicates where an argument is expected, but the argument
 	 * must not make use of any local declarations. The argument expression will
@@ -746,53 +770,12 @@ public class MessageSplitter
 	}
 
 	/**
-	 * A {@linkplain RawTokenArgument} is an occurrence of {@linkplain
-	 * StringDescriptor#ellipsis() ellipsis} (…) in a message name. It indicates
-	 * where a raw token argument is expected. This is an unusual kind of
-	 * argument, in that the next token in the input stream is captured and
-	 * passed as a literal argument to the macro.
-	 */
-	final class RawTokenArgument
-	extends Argument
-	{
-		/**
-		 * Construct a RawTokenArgument.
-		 */
-		RawTokenArgument ()
-		{
-			super();
-		}
-
-		@Override
-		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive,
-			final int partialListsCount)
-		{
-			list.add(PARSE_RAW_TOKEN.encoding());
-		}
-
-		@Override
-		public void printWithArguments (
-			final @Nullable Iterator<AvailObject> arguments,
-			final StringBuilder builder,
-			final int indent)
-		{
-			assert arguments != null;
-			// Describe the token that was parsed as this raw token argument.
-			arguments.next().printOnAvoidingIndent(
-				builder,
-				new ArrayList<A_BasicObject>(),
-				indent + 1);
-		}
-	}
-
-	/**
 	 * A {@linkplain VariableQuote} is an occurrence of {@linkplain
-	 * StringDescriptor#upArrow() up arrow} (↑) in a message name. It indicates
-	 * that the modified underscore must correspond to a {@linkplain
-	 * VariableDescriptor variable} that is currently in-scope. It produces a
-	 * {@linkplain ReferenceNodeDescriptor reference} to the variable.
+	 * StringDescriptor#upArrow() up arrow} (↑) after an underscore in a
+	 * message name. It indicates that the expression must be the name of a
+	 * {@linkplain VariableDescriptor variable} that is currently in-scope. It
+	 * produces a {@linkplain ReferenceNodeDescriptor reference} to the
+	 * variable, rather than extracting its value.
 	 */
 	final class VariableQuote
 	extends Argument
@@ -827,6 +810,157 @@ public class MessageSplitter
 				new ArrayList<A_BasicObject>(),
 				indent + 1);
 			builder.append("↑");
+		}
+	}
+
+	/**
+	 * An {@linkplain ArgumentForMacroOnly} is the translation of an {@linkplain
+	 * StringDescriptor#underscore() underscore} (_) in a message name, followed
+	 * immediately by an {@linkplain StringDescriptor#exclamationMark()
+	 * exclamation mark} (!).  It indicates where an argument is expected – but
+	 * the argument is allowed to be ⊤-valued or ⊥-valued.  Functions (and
+	 * therefore method definitions) may not take arguments of type ⊤ or ⊥, so
+	 * this mechanism is restricted to use by macros, where the phrases
+	 * themselves (including phrases yielding ⊤ or ⊥) are what get passed to
+	 * the macro body.
+	 *
+	 * <p>Because {@link ListNodeDescriptor list phrases} have an {@linkplain
+	 * A_Phrase#expressionType()} that depends on the types of the expressinType
+	 * of each subexpression, and because ⊥ as an element in a tuple type makes
+	 * the entire resulting tuple type also be ⊥, we can't just directly accept
+	 * an expression that produces ⊤ or ⊥ (e.g., the resulting list's apparent
+	 * cardinality would be lost, as ⊥ is a subtype of every tuple type.</p>
+	 */
+	final class ArgumentForMacroOnly
+	extends Argument
+	{
+		/**
+		 * Parse an argument expression which might be top-valued.
+		 */
+		@Override
+		void emitOn (
+			final List<Integer> list,
+			final boolean caseInsensitive,
+			final int partialListsCount)
+		{
+			list.add(PARSE_TOP_VALUED_ARGUMENT.encoding());
+			list.add(CHECK_ARGUMENT.encoding(absoluteUnderscoreIndex));
+		}
+
+		@Override
+		public void printWithArguments (
+			final @Nullable Iterator<AvailObject> arguments,
+			final StringBuilder builder,
+			final int indent)
+		{
+			assert arguments != null;
+			// Produce an ordinary description of the argument, even though it
+			// might have an expression type of top.
+			arguments.next().printOnAvoidingIndent(
+				builder,
+				new ArrayList<A_BasicObject>(),
+				indent + 1);
+		}
+	}
+
+	/**
+	 * A {@linkplain RawTokenArgument} is an occurrence of {@linkplain
+	 * StringDescriptor#ellipsis() ellipsis} (…) in a message name, followed by
+	 * an {@linkplain StringDescriptor#exclamationMark() exclamation mark} (!).
+	 * It indicates where <em>any</em> raw token is expected, which gets
+	 * captured as an argument, wrapped in a literal phrase.
+	 */
+	class RawTokenArgument
+	extends Argument
+	{
+		/**
+		 * Construct a RawTokenArgument.
+		 */
+		RawTokenArgument ()
+		{
+			super();
+		}
+
+		@Override
+		void emitOn (
+			final List<Integer> list,
+			final boolean caseInsensitive,
+			final int partialListsCount)
+		{
+			list.add(PARSE_ANY_RAW_TOKEN.encoding());
+		}
+
+		@Override
+		public void printWithArguments (
+			final @Nullable Iterator<AvailObject> arguments,
+			final StringBuilder builder,
+			final int indent)
+		{
+			assert arguments != null;
+			// Describe the token that was parsed as this raw token argument.
+			arguments.next().printOnAvoidingIndent(
+				builder,
+				new ArrayList<A_BasicObject>(),
+				indent + 1);
+		}
+	}
+
+	/**
+	 * A {@linkplain RawKeywordTokenArgument} is an occurrence of {@linkplain
+	 * StringDescriptor#ellipsis() ellipsis} (…) in a message name. It indicates
+	 * where a raw keyword token argument is expected. Like its superclass, the
+	 * {@link RawTokenArgument}, the token is captured after being placed in a
+	 * literal phrase, but in this case the token is restricted to be a {@link
+	 * TokenType#KEYWORD keyword} (i.e., alphanumeric).
+	 */
+	final class RawKeywordTokenArgument
+	extends RawTokenArgument
+	{
+		/**
+		 * Construct a RawKeywordTokenArgument.
+		 */
+		RawKeywordTokenArgument ()
+		{
+			super();
+		}
+
+		@Override
+		void emitOn (
+			final List<Integer> list,
+			final boolean caseInsensitive,
+			final int partialListsCount)
+		{
+			list.add(PARSE_RAW_KEYWORD_TOKEN.encoding());
+		}
+	}
+
+	/**
+	 * A {@linkplain RawLiteralTokenArgument} is an occurrence of {@linkplain
+	 * StringDescriptor#ellipsis() ellipsis} (…) in a message name, followed by
+	 * an {@linkplain StringDescriptor#octothorp() octothorp} (#). It indicates
+	 * where a raw literal token argument is expected. Like its superclass, the
+	 * {@link RawTokenArgument}, the token is capture after being placed in a
+	 * literal phrase, but in this case the token is restricted to be a {@link
+	 * TokenType#LITERAL} (currently positive integers, doubles, and strings).
+	 */
+	final class RawLiteralTokenArgument
+	extends RawTokenArgument
+	{
+		/**
+		 * Construct a RawLiteralTokenArgument.
+		 */
+		RawLiteralTokenArgument ()
+		{
+			super();
+		}
+
+		@Override
+		void emitOn (
+			final List<Integer> list,
+			final boolean caseInsensitive,
+			final int partialListsCount)
+		{
+			list.add(PARSE_RAW_LITERAL_TOKEN.encoding());
 		}
 	}
 
@@ -1252,6 +1386,16 @@ public class MessageSplitter
 		final Sequence afterDagger;
 
 		/**
+		 * The minimum number of occurrences accepted for this group.
+		 */
+		int minimumCardinality = 0;
+
+		/**
+		 * The maximum number of occurrences accepted for this group.
+		 */
+		int maximumCardinality = Integer.MAX_VALUE;
+
+		/**
 		 * The one-based position in the instruction stream to branch to in
 		 * order to parse zero occurrences of this group. Set during the first
 		 * pass of code generation.
@@ -1346,6 +1490,29 @@ public class MessageSplitter
 		}
 
 		/**
+		 * Set the minimum number of times this group may occur.
+		 *
+		 * @param min
+		 *        My new minimum cardinality (n≥0).
+		 */
+		void minimumCardinality (final int min)
+		{
+			minimumCardinality = min;
+		}
+
+		/**
+		 * Set the maximum number of times this group may occur.
+		 *
+		 * @param max
+		 *        My new maximum cardinality, or {@link Integer#MAX_VALUE} to
+		 *        stand for {@link InfinityDescriptor#positiveInfinity()}.
+		 */
+		void maximumCardinality (final int max)
+		{
+			maximumCardinality = max;
+		}
+
+		/**
 		 * Determine if this group should generate a {@linkplain TupleDescriptor
 		 * tuple} of plain arguments or a tuple of fixed-length tuples of plain
 		 * arguments.
@@ -1391,6 +1558,21 @@ public class MessageSplitter
 			if (!argumentType.isTupleType())
 			{
 				// The group produces a tuple.
+				throwSignatureException(E_INCORRECT_TYPE_FOR_GROUP);
+			}
+
+			final A_Type requiredRange = IntegerRangeTypeDescriptor.create(
+				IntegerDescriptor.fromInt(minimumCardinality),
+				true,
+				maximumCardinality == Integer.MAX_VALUE
+					? InfinityDescriptor.positiveInfinity()
+					: IntegerDescriptor.fromInt(maximumCardinality + 1),
+				false);
+
+			if (!argumentType.sizeRange().isSubtypeOf(requiredRange))
+			{
+				// The method's parameter should have a cardinality that's a
+				// subtype of what the message name requires.
 				throwSignatureException(E_INCORRECT_TYPE_FOR_GROUP);
 			}
 
@@ -1494,6 +1676,11 @@ public class MessageSplitter
 				list.add(NEW_LIST.encoding());
 				list.add(BRANCH.encoding(loopSkip));
 				final int loopStart = list.size() + 1;
+				if (maximumCardinality < Integer.MAX_VALUE)
+				{
+					list.add(
+						CHECK_AT_MOST.encoding(maximumCardinality));
+				}
 				for (final Expression expression : beforeDagger.expressions)
 				{
 					// If this is an argument then it doesn't matter what we
@@ -1536,6 +1723,10 @@ public class MessageSplitter
 				loopExit = list.size() + 1;
 				list.add(ENSURE_PARSE_PROGRESS.encoding());
 				loopSkip = list.size() + 1;
+				if (minimumCardinality > 0)
+				{
+					list.add(CHECK_AT_LEAST.encoding(minimumCardinality));
+				}
 				list.add(DISCARD_SAVED_PARSE_POSITION.encoding());
 			}
 			else
@@ -1572,6 +1763,10 @@ public class MessageSplitter
 				list.add(NEW_LIST.encoding());
 				list.add(BRANCH.encoding(loopSkip));
 				final int loopStart = list.size() + 1;
+				if (maximumCardinality < Integer.MAX_VALUE)
+				{
+					list.add(CHECK_AT_MOST.encoding(maximumCardinality));
+				}
 				list.add(NEW_LIST.encoding());
 				for (final Expression expression : beforeDagger.expressions)
 				{
@@ -1647,8 +1842,8 @@ public class MessageSplitter
 					}
 					for (int i = 0; i < rightArgCount; i++)
 					{
-						// Adjust the right permutation by the size of the left
-						// part.
+						// Adjust the right permutation indices by the size of
+						// the left part.
 						adjustedPermutationList.add(
 							afterDagger.arguments.get(i).explicitOrdinal()
 							+ leftArgCount);
@@ -1667,6 +1862,10 @@ public class MessageSplitter
 				list.add(APPEND_ARGUMENT.encoding());
 				list.add(ENSURE_PARSE_PROGRESS.encoding());
 				loopSkip = list.size() + 1;
+				if (minimumCardinality > 0)
+				{
+					list.add(CHECK_AT_LEAST.encoding(minimumCardinality));
+				}
 				list.add(DISCARD_SAVED_PARSE_POSITION.encoding());
 			}
 		}
@@ -1696,7 +1895,24 @@ public class MessageSplitter
 			}
 
 			final StringBuilder builder = new StringBuilder();
-			builder.append("Group(");
+			builder.append("Group");
+			if (minimumCardinality != 0
+				|| maximumCardinality != Integer.MAX_VALUE)
+			{
+				builder.append("[");
+				builder.append(minimumCardinality);
+				builder.append("..");
+				if (maximumCardinality == Integer.MAX_VALUE)
+				{
+					builder.append("∞)");
+				}
+				else
+				{
+					builder.append(maximumCardinality);
+					builder.append("]");
+				}
+			}
+			builder.append("(");
 			boolean first = true;
 			for (final String s : strings)
 			{
@@ -2215,12 +2431,12 @@ public class MessageSplitter
 
 	/**
 	 * A {@code CompletelyOptional} is a special {@linkplain Expression
-	 * expression} indicated by two {@linkplain StringDescriptor#questionMark()
-	 * question marks} following a {@linkplain Simple simple} or {@linkplain
-	 * Group simple group}. It may not contain {@linkplain Argument arguments}
-	 * or non-simple subgroups and it may not contain a {@linkplain
-	 * StringDescriptor#doubleDagger() double dagger}. The expression may appear
-	 * zero or one times.
+	 * expression} indicated by a {@linkplain
+	 * StringDescriptor#doubleQuestionMark() double question mark} following a
+	 * {@linkplain Simple simple} or {@linkplain Group simple group}. It may not
+	 * contain {@linkplain Argument arguments} or non-simple subgroups and it
+	 * may not contain a {@linkplain StringDescriptor#doubleDagger() double
+	 * dagger}. The expression may appear zero or one times.
 	 *
 	 * <p>A completely optional does not produce any information. No facility is
 	 * provided to determine whether there was an occurrence of the expression.
@@ -3123,7 +3339,7 @@ public class MessageSplitter
 					{
 						builder.append(" = ");
 						builder.append(
-							messageParts.get(op.operand(instructionInt)));
+							messageParts.get(op.operand(instructionInt) - 1));
 						break;
 					}
 					default:
@@ -3410,6 +3626,11 @@ public class MessageSplitter
 						messagePartPosition++;
 						argument = new VariableQuote();
 					}
+					else if (nextToken.equals(exclamationMark()))
+					{
+						messagePartPosition++;
+						argument = new ArgumentForMacroOnly();
+					}
 				}
 				// If the argument wasn't set already (because it wasn't
 				// followed by a modifier), then set it here.
@@ -3429,8 +3650,23 @@ public class MessageSplitter
 						E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS,
 						"Alternations must not contain arguments");
 				}
-				sequence.addExpression(new RawTokenArgument());
 				messagePartPosition++;
+				@Nullable
+				final A_String nextToken = currentMessagePartOrNull();
+				if (nextToken != null && nextToken.equals(exclamationMark()))
+				{
+					sequence.addExpression(new RawTokenArgument());
+					messagePartPosition++;
+				}
+				else if (nextToken != null && nextToken.equals(octothorp()))
+				{
+					sequence.addExpression(new RawLiteralTokenArgument());
+					messagePartPosition++;
+				}
+				else
+				{
+					sequence.addExpression(new RawKeywordTokenArgument());
+				}
 			}
 			else if (token.equals(octothorp()))
 			{
@@ -3442,7 +3678,8 @@ public class MessageSplitter
 			{
 				throwMalformedMessageException(
 					E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP,
-					"A question mark (?) may only follow a simple group («»)");
+					"A question mark (?) may only follow a simple group "
+					+ "(optional) or a group with no double-dagger (‡)");
 			}
 			else if (token.equals(tilde()))
 			{
@@ -3462,7 +3699,7 @@ public class MessageSplitter
 				throwMalformedMessageException(
 					E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP,
 					"An exclamation mark (!) may only follow an alternation "
-					+ "group");
+					+ "group (or follow an underscore for macros)");
 			}
 			else if (token.equals(upArrow()))
 			{
@@ -3536,17 +3773,28 @@ public class MessageSplitter
 					}
 					else if (token.equals(questionMark()))
 					{
-						if (subgroup.underscoreCount() > 0
-							|| subgroup.hasDagger)
+						if (subgroup.hasDagger)
 						{
-							// Optional group may not contain arguments.
+							// A question mark after a group with underscores
+							// means zero or one occurrence, so a double-dagger
+							// would be pointless.
 							throwMalformedMessageException(
 								E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP,
 								"A question mark (?) may only follow a simple "
-								+ "group, not one with a double-dagger (‡) or "
-								+ "arguments");
+								+ "group (optional) or a group with arguments "
+								+ "(0 or 1 occurrences), but not one with a "
+								+ "double-dagger (‡), since that implies "
+								+ "multiple occurrences to be separated");
 						}
-						subexpression = new Optional(subgroup.beforeDagger);
+						if (subgroup.underscoreCount() > 0)
+						{
+							subgroup.maximumCardinality(1);
+							subexpression = subgroup;
+						}
+						else
+						{
+							subexpression = new Optional(subgroup.beforeDagger);
+						}
 						messagePartPosition++;
 					}
 					else if (token.equals(doubleQuestionMark()))
@@ -3579,7 +3827,8 @@ public class MessageSplitter
 							throwMalformedMessageException(
 								E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP,
 								"An exclamation mark (!) may only follow an "
-								+ "alternation group");
+								+ "alternation group or (for macros) an "
+								+ "underscore");
 						}
 						final Expression alternation =
 							subgroup.beforeDagger.expressions.get(0);

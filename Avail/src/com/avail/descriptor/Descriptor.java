@@ -61,6 +61,7 @@ import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.Generator;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
@@ -2962,7 +2963,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_OutputParseNode (final AvailObject object)
+	A_Phrase o_OutputParseNode (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3875,7 +3876,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_StripMacro (final AvailObject object)
+	A_Phrase o_StripMacro (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4166,10 +4167,12 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
+	 * @param generator
 	 */
 	@Override
-	void o_FiberName (final AvailObject object, final A_String value)
+	void o_FiberNameGenerator (
+		final AvailObject object,
+		final Generator<A_String> generator)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4545,12 +4548,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_ListSize (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	A_Type o_TypeForLookup (final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -4599,6 +4596,45 @@ extends AbstractDescriptor
 		final A_Method method,
 		final int index,
 		final A_Function prefixFunction)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Definition o_LookupMacroByPhraseTuple (
+		final AvailObject object,
+		final A_Tuple argumentPhraseTuple,
+		final MutableOrNull<AvailErrorCode> errorCode)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	LookupTree o_MacroTestingTree (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Phrase o_ExpressionAt (final AvailObject object, final int index)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	int o_ExpressionsSize (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	int o_ParsingPc (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_IsMacroSubstitutionNode (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

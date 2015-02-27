@@ -99,12 +99,6 @@ extends ParseNodeDescriptor
 		return object.slot(PERMUTATION);
 	}
 
-	@Override
-	int o_ListSize (final AvailObject object)
-	{
-		return object.slot(PERMUTATION).tupleSize();
-	}
-
 	/**
 	 * Lazily compute and install the expression type of the specified
 	 * {@linkplain PermutedListNodeDescriptor object}.
@@ -174,7 +168,8 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final A_Phrase aParseNode)
 	{
-		return object.kind().equals(aParseNode.kind())
+		return !aParseNode.isMacroSubstitutionNode()
+			&& object.kind().equals(aParseNode.kind())
 			&& object.list().equals(aParseNode.list())
 			&& object.permutation().equals(aParseNode.permutation());
 	}
@@ -240,6 +235,25 @@ extends ParseNodeDescriptor
 			object.emitValueOn(codeGenerator);
 			codeGenerator.emitGetType();
 		}
+	}
+
+	@Override
+	A_Phrase o_ExpressionAt (final AvailObject object, final int index)
+	{
+		// DON'T transform the index.
+		return object.slot(LIST).expressionAt(index);
+	}
+
+	@Override
+	int o_ExpressionsSize (final AvailObject object)
+	{
+		return object.slot(LIST).expressionsSize();
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_ExpressionsTuple (final AvailObject object)
+	{
+		return object.slot(LIST).expressionsTuple();
 	}
 
 	@Override @AvailMethod

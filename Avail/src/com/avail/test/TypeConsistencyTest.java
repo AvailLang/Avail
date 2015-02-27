@@ -1060,6 +1060,8 @@ public class TypeConsistencyTest
 				// kinds).
 				switch (kind)
 				{
+					case MARKER_NODE:
+						break;
 					case BLOCK_NODE:
 						addMultiHelper(
 							kind,
@@ -1068,21 +1070,6 @@ public class TypeConsistencyTest
 							INT_TO_INT_FUNCTION,
 							INTS_TO_INT_FUNCTION,
 							MOST_SPECIFIC_FUNCTION,
-							null);
-						break;
-					case MARKER_NODE:
-						break;
-					case ARGUMENT_NODE:
-					case DECLARATION_NODE:
-					case LABEL_NODE:
-					case LOCAL_CONSTANT_NODE:
-					case LOCAL_VARIABLE_NODE:
-					case MODULE_CONSTANT_NODE:
-					case PRIMITIVE_FAILURE_REASON_NODE:
-					case MODULE_VARIABLE_NODE:
-						addMultiHelper(
-							kind,
-							topNode,
 							null);
 						break;
 					case REFERENCE_NODE:
@@ -1094,8 +1081,49 @@ public class TypeConsistencyTest
 							BOTTOM_VARIABLE,
 							null);
 						break;
-					case EXPRESSION_NODE:
+					case ASSIGNMENT_NODE:
+					case LITERAL_NODE:
+					case SUPER_CAST_NODE:
+					case VARIABLE_USE_NODE:
+						addMultiHelper(
+							kind,
+							anyNode,
+							nontypeNode,
+							atomNode,
+							anotherAtomNode,
+							FIBER,
+							MOST_GENERAL_FUNCTION,
+							NOTHING_TO_INT_FUNCTION,
+							INT_TO_INT_FUNCTION,
+							INTS_TO_INT_FUNCTION,
+							MOST_SPECIFIC_FUNCTION,
+							TUPLE,
+							SET,
+							STRING,
+							EXTENDED_INTEGER,
+							ROOT_VARIABLE,
+							INT_VARIABLE,
+							SOME_ATOM_VARIABLE,
+							BOTTOM_VARIABLE,
+							null);
+						break;
+					case STATEMENT_NODE:
+					case DECLARATION_NODE:
+					case ARGUMENT_NODE:
+					case LABEL_NODE:
+					case LOCAL_VARIABLE_NODE:
+					case LOCAL_CONSTANT_NODE:
+					case MODULE_VARIABLE_NODE:
+					case MODULE_CONSTANT_NODE:
+					case PRIMITIVE_FAILURE_REASON_NODE:
+					case EXPRESSION_AS_STATEMENT_NODE:
+						addMultiHelper(
+							kind,
+							topNode,
+							null);
+						break;
 					case PARSE_NODE:
+					case EXPRESSION_NODE:
 					case SEND_NODE:
 					case SEQUENCE_NODE:
 					case FIRST_OF_SEQUENCE_NODE:
@@ -1132,32 +1160,6 @@ public class TypeConsistencyTest
 							STRING,
 							UNIT_STRING,
 							EMPTY_TUPLE,
-							null);
-						break;
-					case VARIABLE_USE_NODE:
-					case ASSIGNMENT_NODE:
-					case SUPER_CAST_NODE:
-					case LITERAL_NODE:
-						addMultiHelper(
-							kind,
-							anyNode,
-							nontypeNode,
-							atomNode,
-							anotherAtomNode,
-							FIBER,
-							MOST_GENERAL_FUNCTION,
-							NOTHING_TO_INT_FUNCTION,
-							INT_TO_INT_FUNCTION,
-							INTS_TO_INT_FUNCTION,
-							MOST_SPECIFIC_FUNCTION,
-							TUPLE,
-							SET,
-							STRING,
-							EXTENDED_INTEGER,
-							ROOT_VARIABLE,
-							INT_VARIABLE,
-							SOME_ATOM_VARIABLE,
-							BOTTOM_VARIABLE,
 							null);
 						break;
 					case MACRO_SUBSTITUTION:

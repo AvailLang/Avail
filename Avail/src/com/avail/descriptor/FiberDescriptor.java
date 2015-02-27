@@ -46,6 +46,7 @@ import com.avail.annotations.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
+import com.avail.utility.Generator;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 
@@ -322,22 +323,16 @@ extends Descriptor
 	implements ObjectSlotsEnum
 	{
 		/**
-		 * The result type of this {@linkplain FiberDescriptor fiber}'s
-		 * {@linkplain FiberTypeDescriptor type}.
-		 */
-		RESULT_TYPE,
-
-		/**
 		 * The current {@linkplain ContinuationDescriptor state of execution} of
 		 * the fiber.
 		 */
 		CONTINUATION,
 
 		/**
-		 * The client specified name of the {@linkplain FiberDescriptor
-		 * fiber}.
+		 * The result type of this {@linkplain FiberDescriptor fiber}'s
+		 * {@linkplain FiberTypeDescriptor type}.
 		 */
-		NAME,
+		RESULT_TYPE,
 
 		/**
 		 * A map from {@linkplain AtomDescriptor atoms} to values. Each fiber
@@ -392,12 +387,6 @@ extends Descriptor
 		FAILURE_CONTINUATION,
 
 		/**
-		 * A {@linkplain StringDescriptor string} describing why this fiber was
-		 * created.  Useful for debugging.
-		 */
-		DEBUG_FIBER_PURPOSE,
-
-		/**
 		 * A {@linkplain SetDescriptor set} of {@linkplain FiberDescriptor
 		 * fibers} waiting to join the current fiber.
 		 */
@@ -436,6 +425,21 @@ extends Descriptor
 		 * TextInterface text interface}.
 		 */
 		TEXT_INTERFACE,
+
+		/**
+		 * A {@link RawPojoDescriptor raw pojo} holding a {@link Generator} of
+		 * {@link A_String}.  The generator should avoid execution of Avail
+		 * code, as that could easily lead to deadlocks.
+		 */
+		NAME_GENERATOR,
+
+		/**
+		 * The name of this fiber.  It's either an Avail {@linkplain A_String
+		 * string} or {@code nil}.  If nil, asking for the name should cause the
+		 * {@link #NAME_GENERATOR} to run, and the resulting string to be cached
+		 * here.
+		 */
+		NAME_OR_NIL,
 
 		/**
 		 * The in-memory debug log for this fiber.  This reduces contention
@@ -1056,15 +1060,33 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_FiberName (final AvailObject object)
+	A_String o_FiberName (final AvailObject object)
 	{
-		return object.mutableSlot(NAME);
+		A_String name = object.slot(NAME_OR_NIL);
+		if (name.equalsNil())
+		{
+			// Compute it from the generator.
+			final AvailObject pojo = object.mutableSlot(NAME_GENERATOR);
+			@SuppressWarnings("unchecked")
+			final Generator<A_String> generator =
+				(Generator<A_String>) pojo.javaObjectNotNull();
+			name = generator.value();
+			// Save it for next time.
+			object.setMutableSlot(NAME_OR_NIL, name);
+		}
+		return name;
 	}
 
 	@Override @AvailMethod
-	void o_FiberName (final AvailObject object, final A_String value)
+	void o_FiberNameGenerator (
+		final AvailObject object,
+		final Generator<A_String> generator)
 	{
-		object.setMutableSlot(NAME, value);
+		object.setMutableSlot(
+			NAME_GENERATOR,
+			RawPojoDescriptor.identityWrap(generator));
+		// And clear the cached name.
+		object.setMutableSlot(NAME_OR_NIL, NilDescriptor.nil());
 	}
 
 	@Override @AvailMethod
@@ -1477,7 +1499,7 @@ extends Descriptor
 		writer.write("kind");
 		writer.write("fiber");
 		writer.write("fiber name");
-		object.mutableSlot(NAME).writeTo(writer);
+		object.fiberName().writeTo(writer);
 		writer.write("execution state");
 		writer.write(object.executionState().name().toLowerCase());
 		final AvailObject result = object.mutableSlot(RESULT);
@@ -1496,7 +1518,7 @@ extends Descriptor
 		writer.write("kind");
 		writer.write("fiber");
 		writer.write("fiber name");
-		object.mutableSlot(NAME).writeTo(writer);
+		object.fiberName().writeTo(writer);
 		writer.write("execution state");
 		writer.write(object.executionState().name().toLowerCase());
 		writer.endObject();
@@ -1597,23 +1619,24 @@ extends Descriptor
 	 *        The expected result type.
 	 * @param priority
 	 *        The initial priority.
-	 * @param purpose
-	 *        A debug string indicating why this fiber was created.
+	 * @param nameGenerator
+	 *        A {@link Generator} that produces an Avail {@link A_String string}
+	 *        to name this fiber on demand.  Please don't run Avail code to do
+	 *        so, since if this is evaluated during fiber execution it will
+	 *        cause the current {@link Thread}'s execution to block, potentially
+	 *        starving the execution pool.
 	 * @return The new fiber.
 	 */
 	public static A_Fiber newFiber (
 		final A_Type resultType,
 		final int priority,
-		final A_String purpose)
+		final Generator<A_String> nameGenerator)
 	{
 		final AvailObject fiber = FiberDescriptor.mutable.create();
 		fiber.setSlot(RESULT_TYPE, resultType.makeImmutable());
 		fiber.setSlot(
-			NAME,
-			StringDescriptor.format(
-				"unnamed, creation time = %d, hash = %d",
-				System.currentTimeMillis(),
-				fiber.hash()));
+			NAME_GENERATOR, RawPojoDescriptor.identityWrap(nameGenerator));
+		fiber.setSlot(NAME_OR_NIL, NilDescriptor.nil());
 		fiber.setSlot(PRIORITY, priority);
 		fiber.setSlot(CONTINUATION, NilDescriptor.nil());
 		fiber.setSlot(EXECUTION_STATE, UNSTARTED.ordinal());
@@ -1633,17 +1656,16 @@ extends Descriptor
 				new WeakHashMap<A_Variable, Boolean>()));
 		fiber.setSlot(REIFICATION_WAITERS, SetDescriptor.empty());
 		fiber.setSlot(
-			TEXT_INTERFACE,
-			AvailRuntime.current().textInterfacePojo());
+			TEXT_INTERFACE, AvailRuntime.current().textInterfacePojo());
 
-		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
-		fiber.setSlot(DEBUG_FIBER_PURPOSE, purpose);
+		final int id = uniqueDebugCounter.incrementAndGet();
+		fiber.setSlot(DEBUG_UNIQUE_ID, id);
 		final AvailObject logPojo;
 		if (debugFibers)
 		{
 			final StringBuilder builder = new StringBuilder(200);
 			builder.append("new: ");
-			builder.append(purpose);
+			builder.append(id);
 			builder.append("\n");
 			logPojo = RawPojoDescriptor.identityWrap(builder);
 		}
@@ -1665,25 +1687,25 @@ extends Descriptor
 	 *        The expected result type.
 	 * @param loader
 	 *        An Avail loader.
-	 * @param purpose
-	 *        A debug string indicating why this fiber was created.
+	 * @param nameGenerator
+	 *        A {@link Generator} that produces an Avail {@link A_String string}
+	 *        to name this fiber on demand.  Please don't run Avail code to do
+	 *        so, since if this is evaluated during fiber execution it will
+	 *        cause the current {@link Thread}'s execution to block, potentially
+	 *        starving the execution pool.
 	 * @return The new fiber.
 	 */
 	public static A_Fiber newLoaderFiber (
 		final A_Type resultType,
 		final AvailLoader loader,
-		final A_String purpose)
+		final Generator<A_String> nameGenerator)
 	{
 		final A_Module module = loader.module();
 		assert module != null;
 		final AvailObject fiber = FiberDescriptor.mutable.create();
 		fiber.setSlot(RESULT_TYPE, resultType.makeImmutable());
 		fiber.setSlot(
-			NAME,
-			StringDescriptor.format(
-				"loader fiber #%d for %s",
-				AvailRuntime.nextHash(),
-				module.moduleName()));
+			NAME_GENERATOR, RawPojoDescriptor.identityWrap(nameGenerator));
 		fiber.setSlot(PRIORITY, FiberDescriptor.loaderPriority);
 		fiber.setSlot(CONTINUATION, NilDescriptor.nil());
 		fiber.setSlot(EXECUTION_STATE, UNSTARTED.ordinal());
@@ -1703,17 +1725,15 @@ extends Descriptor
 				new WeakHashMap<A_Variable, Boolean>()));
 		fiber.setSlot(REIFICATION_WAITERS, SetDescriptor.empty());
 		fiber.setSlot(
-			TEXT_INTERFACE,
-			AvailRuntime.current().textInterfacePojo());
-
-		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
-		fiber.setSlot(DEBUG_FIBER_PURPOSE, purpose);
+			TEXT_INTERFACE, AvailRuntime.current().textInterfacePojo());
+		final int id = uniqueDebugCounter.incrementAndGet();
+		fiber.setSlot(DEBUG_UNIQUE_ID, id);
 		final AvailObject logPojo;
 		if (debugFibers)
 		{
 			final StringBuilder builder = new StringBuilder(200);
 			builder.append("newLoader: ");
-			builder.append(purpose);
+			builder.append(nameGenerator.value());
 			builder.append("\n");
 			logPojo = RawPojoDescriptor.identityWrap(builder);
 		}

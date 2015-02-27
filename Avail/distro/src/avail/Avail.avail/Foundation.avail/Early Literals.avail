@@ -120,5 +120,146 @@ Method "{«_‡,»}" is
 [
 	elements : <<>, any…|natural number>
 |
-	Primitive 109;  /*elements→set*/
+	Primitive 109;
 ] : set;
+
+/*
+ * Here are some early grammatical restrictions to improve the performance of
+ * parsing the bootstrap macros. We lead with a few private method
+ * definitions and restrictions needed to enable sends of
+ * "Grammatical restriction_is_".
+ */
+
+Method "<«_‡,»>(tuple of string)" is
+[
+	elements : tuple
+|
+	elements
+] : tuple;
+
+Semantic restriction "<«_‡,»>(tuple of string)" is
+[
+	elements : tuple meta
+|
+	<<>, string… | natural number>
+];
+
+Method "<«_‡,»>(tuple of set of string)" is
+[
+	elements : tuple
+|
+	elements
+] : tuple;
+
+Semantic restriction "<«_‡,»>(tuple of set of string)" is
+[
+	elements : tuple meta
+|
+	<<>, set of string… | natural number>
+];
+
+Method "{«_‡,»}(set of string)" is
+[
+	elements : tuple
+|
+	Primitive 109;
+] : set;
+
+Semantic restriction "{«_‡,»}(set of string)" is
+[
+	elements : tuple meta
+|
+	{string | natural number}
+];
+
+blockMacro ::= "\
+	\|[\
+		\|««…:_†§‡,»`|»?\
+		\|«Primitive…#«(…:_†)»?§;»?\
+		\|«$…«:_†»?;§»?\
+		\|«_!§»\
+		\|«_!»?\
+	\|]\
+	\|«:_†»?\
+	\|«^«_†‡,»»?";
+
+bootstrapMacroExpression ::=
+{
+	blockMacro,
+	"…:_†;",
+	"…::=_;",
+	"…:_†:=_;",
+	"…:=_;",
+	"…",
+	"_!;",
+	"(_::_†)"
+} (set of string);
+
+badStatementExpression ::=
+	{
+		blockMacro,
+		"…",
+		"(_::_†)"
+	} (set of string);
+
+badTypeExpression ::=
+	{
+		blockMacro,
+		"…:_†;",
+		"…::=_;",
+		"…:_†:=_;",
+		"…:=_;",
+		"_!;",
+		"(_::_†)"
+	} (set of string);
+
+badSourceExpression ::=
+	{
+		"…:_†;",
+		"…::=_;",
+		"…:_†:=_;",
+		"…:=_;",
+		"_!;",
+		"(_::_†)"
+	} (set of string);
+
+/* Restrict block construction. */
+Grammatical restriction {blockMacro} (set of string)
+is
+	<
+		∅,
+		badTypeExpression,
+		∅,
+		∅,
+		badTypeExpression,
+		∅,
+		badTypeExpression,
+		badStatementExpression,
+		{"(_::_†)"} (set of string),
+		badTypeExpression,
+		badTypeExpression
+	> (tuple of set of string);
+
+/* Restrict variable declaration. */
+Grammatical restriction {"…:_†;"} (set of string)
+	is <∅, badTypeExpression> (tuple of set of string);
+
+/* Restrict constant definition. */
+Grammatical restriction {"…::=_;"} (set of string)
+	is <∅, badSourceExpression> (tuple of set of string);
+
+/* Restrict initializing variable definition. */
+Grammatical restriction {"…:_†:=_;"} (set of string)
+	is <∅, badTypeExpression, badSourceExpression> (tuple of set of string);
+
+/* Restrict assignment. */
+Grammatical restriction {"…:=_;"} (set of string)
+	is <∅, badSourceExpression> (tuple of set of string);
+
+/* Restrict send as statement. */
+Grammatical restriction {"_!;"} (set of string)
+	is <bootstrapMacroExpression> (tuple of set of string);
+
+/* Restrict supercast. */
+Grammatical restriction {"(_::_†)"} (set of string)
+	is <badSourceExpression, badTypeExpression> (tuple of set of string);

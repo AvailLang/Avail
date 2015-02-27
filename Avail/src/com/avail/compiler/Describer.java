@@ -37,7 +37,7 @@ import com.avail.utility.evaluation.*;
 /**
  * A {@code Describer} produces a message and forwards it to a supplied
  * {@linkplain Continuation1 continuation}. It is used by the {@linkplain
- * AbstractAvailCompiler compiler} to support stringification in a
+ * AbstractAvailCompiler compiler} to support lazy stringification in a
  * continuation-passing style.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

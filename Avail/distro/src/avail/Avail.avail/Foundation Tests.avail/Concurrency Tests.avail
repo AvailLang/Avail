@@ -249,10 +249,10 @@ Test "delayed fork" in concurrency test suite is
 			with <>,
 			forked at priority 50;
 	Join forked;
-	Require: forked has terminated;
-	Require: ¬forked has result;
-	Require: now is assigned;
-	Require: now - then ≥ delay;
+	Require: forked has terminated ("1");
+	Require: ¬forked has result ("2");
+	Require: now is assigned ("3");
+	Require: now - then ≥ delay ("4");
 ];
 
 Test "delayed fork (orphan)" in concurrency test suite is

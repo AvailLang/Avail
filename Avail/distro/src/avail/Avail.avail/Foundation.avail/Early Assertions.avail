@@ -39,8 +39,7 @@ Uses
 	"Early Definers"
 Names
 	"Assert:_",
-	"Shouldn't happen",
-	"Static assert:_†"
+	"Shouldn't happen"
 Body
 
 /**
@@ -104,38 +103,3 @@ Public method "Shouldn't happen" is
 	Assert: false
 		("This should not be possible; debug the VM and/or system library.")
 ] : ⊥;
-
-/**
- * Verify a boolean expression is true at compile time.  Since runtime would be
- * too late to matter, we simply accept any boolean here and rely on the
- * semantic restrictions to do the compile time check.
- * 
- * @method "Static assert:_†"
- * @param "condition" "boolean"
- *        The condition that will have already been checked by a semantic
- *        restriction.
- */
-Public method "Static assert:_†" is
-[
-	condition : boolean
-|
-	/* No need to do anything at runtime. */
-] : ⊤;
-
-/**
- * Check that a static assertion is true at compile time.
- * 
- * @method "Static assert:_†"
- * @restricts "condition" "boolean's type"
- *            The condition to check now.
- */
-Semantic restriction "Static assert:_†" is
-[
-	condition : boolean's type
-|
-	If condition = false's type then
-	[
-		Reject parse, expected: "a static assertion to be true, not false"
-	];
-	⊤
-];

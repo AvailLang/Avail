@@ -300,62 +300,6 @@ extends Descriptor
 			|| e == LAZY_PREFILTER_MAP;
 	}
 
-	@Override @AvailMethod
-	A_Map o_AllBundles (final AvailObject object)
-	{
-		return object.slot(ALL_BUNDLES);
-	}
-
-	@Override @AvailMethod
-	A_Map o_LazyComplete (final AvailObject object)
-	{
-		assert isShared();
-		synchronized (object)
-		{
-			return object.slot(LAZY_COMPLETE);
-		}
-	}
-
-	@Override @AvailMethod
-	A_Map o_LazyIncomplete (final AvailObject object)
-	{
-		assert isShared();
-		synchronized (object)
-		{
-			return object.slot(LAZY_INCOMPLETE);
-		}
-	}
-
-	@Override @AvailMethod
-	A_Map o_LazyIncompleteCaseInsensitive (final AvailObject object)
-	{
-		assert isShared();
-		synchronized (object)
-		{
-			return object.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE);
-		}
-	}
-
-	@Override @AvailMethod
-	A_Map o_LazyActions (final AvailObject object)
-	{
-		assert isShared();
-		synchronized (object)
-		{
-			return object.slot(LAZY_ACTIONS);
-		}
-	}
-
-	@Override @AvailMethod
-	A_Map o_LazyPrefilterMap (final AvailObject object)
-	{
-		assert isShared();
-		synchronized (object)
-		{
-			return object.slot(LAZY_PREFILTER_MAP);
-		}
-	}
-
 	@Override
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
@@ -387,61 +331,6 @@ extends Descriptor
 			builder.append(" entries");
 		}
 		builder.append(")");
-	}
-
-	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
-	{
-		if (isMutable())
-		{
-			// Never actually make a message bundle tree immutable. They are
-			// always shared.
-			return object.makeShared();
-		}
-		return object;
-	}
-
-	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.traversed().sameAddressAs(object);
-	}
-
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		assert isShared();
-		int hash = object.slot(HASH_OR_ZERO);
-		// The double-check (anti-)pattern is appropriate here, because it's
-		// an integer field that transitions once from zero to a non-zero hash
-		// value.  If our unprotected read sees a zero, we get the monitor and
-		// re-test, setting the hash if necessary.  Otherwise, we've read the
-		// non-zero hash that was set once inside some lock in the past, without
-		// any synchronization cost.  The usual caveats about reordered writes
-		// to non-final fields is irrelevant, since it's just an int field.
-		if (hash == 0)
-		{
-			synchronized (object)
-			{
-				hash = object.slot(HASH_OR_ZERO);
-				if (hash == 0)
-				{
-					do
-					{
-						hash = AvailRuntime.nextHash();
-					}
-					while (hash == 0);
-					object.setSlot(HASH_OR_ZERO, hash);
-				}
-			}
-		}
-		return hash;
-	}
-
-	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
-	{
-		return MESSAGE_BUNDLE_TREE.o();
 	}
 
 	/**
@@ -476,49 +365,16 @@ extends Descriptor
 		}
 	}
 
-	/**
-	 * Remove the bundle with the given message name (expanded as parts).
-	 * Answer true if this tree is now empty and should be removed.
-	 */
 	@Override @AvailMethod
-	boolean o_RemoveBundleNamed (
-		final AvailObject object,
-		final A_Atom message)
+	A_Map o_AllBundles (final AvailObject object)
 	{
-		assert message.isAtom();
-		synchronized (object)
-		{
-			AvailObject allBundles = object.slot(ALL_BUNDLES);
-			if (allBundles.hasKey(message))
-			{
-				allBundles = allBundles.mapWithoutKeyCanDestroy(
-					message,
-					true).traversed().makeShared();
-				object.setSlot(ALL_BUNDLES, allBundles);
-				AvailObject unclassified = object.slot(UNCLASSIFIED);
-				if (unclassified.hasKey(message))
-				{
-					// Easy to do.
-					unclassified = unclassified.mapWithoutKeyCanDestroy(
-						message,
-						true).traversed().makeShared();
-				}
-				else
-				{
-					// Not so easy -- just clear everything.
-					final A_Map emptyMap = MapDescriptor.empty();
-					object.setSlot(LAZY_COMPLETE, emptyMap);
-					object.setSlot(LAZY_INCOMPLETE, emptyMap);
-					object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
-					object.setSlot(LAZY_ACTIONS, emptyMap);
-					object.setSlot(LAZY_PREFILTER_MAP, emptyMap);
-					allBundles = allBundles.traversed().makeShared();
-					unclassified = allBundles;
-				}
-				object.setSlot(UNCLASSIFIED, unclassified);
-			}
-			return allBundles.mapSize() == 0;
-		}
+		return object.slot(ALL_BUNDLES);
+	}
+
+	@Override @AvailMethod
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	{
+		return another.traversed().sameAddressAs(object);
 	}
 
 	/**
@@ -572,6 +428,190 @@ extends Descriptor
 	}
 
 	/**
+	 * Update information in this {@linkplain MessageBundleTreeDescriptor
+	 * message bundle tree} to reflect the latest information about the
+	 * {@linkplain MessageBundleDescriptor message bundle} with the given name.
+	 *
+	 * <p>The bundle may have been added, or updated (but not removed), so if
+	 * the bundle has already been classified in this tree (via {@link
+	 * #o_Expand(AvailObject, A_Module)}, we may need to invalidate some of the
+	 * tree's lazy structures.</p>
+	 */
+	@Override
+	void o_FlushForNewOrChangedBundle (
+		final AvailObject object,
+		final A_Bundle bundle)
+	{
+		final A_Map allBundles = object.slot(ALL_BUNDLES);
+		assert allBundles.hasKey(bundle.message());
+		if (object.slot(UNCLASSIFIED).hasKey(bundle))
+		{
+			// It hasn't been classified yet, so there's nothing to clean up.
+			return;
+		}
+		// It has been classified already, so flush the lazy structures
+		// for safety, moving everything back to unclassified.
+		final A_Map emptyMap = MapDescriptor.empty();
+		object.setSlot(LAZY_COMPLETE, emptyMap);
+		object.setSlot(LAZY_INCOMPLETE, emptyMap);
+		object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
+		object.setSlot(LAZY_ACTIONS, emptyMap);
+		object.setSlot(LAZY_PREFILTER_MAP, emptyMap);
+		allBundles.makeImmutable();
+		object.setSlot(UNCLASSIFIED, allBundles);
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		assert isShared();
+		int hash = object.slot(HASH_OR_ZERO);
+		// The double-check (anti-)pattern is appropriate here, because it's
+		// an integer field that transitions once from zero to a non-zero hash
+		// value.  If our unprotected read sees a zero, we get the monitor and
+		// re-test, setting the hash if necessary.  Otherwise, we've read the
+		// non-zero hash that was set once inside some lock in the past, without
+		// any synchronization cost.  The usual caveats about reordered writes
+		// to non-final fields is irrelevant, since it's just an int field.
+		if (hash == 0)
+		{
+			synchronized (object)
+			{
+				hash = object.slot(HASH_OR_ZERO);
+				if (hash == 0)
+				{
+					do
+					{
+						hash = AvailRuntime.nextHash();
+					}
+					while (hash == 0);
+					object.setSlot(HASH_OR_ZERO, hash);
+				}
+			}
+		}
+		return hash;
+	}
+
+	@Override @AvailMethod
+	A_Type o_Kind (final AvailObject object)
+	{
+		return MESSAGE_BUNDLE_TREE.o();
+	}
+
+	@Override @AvailMethod
+	A_Map o_LazyActions (final AvailObject object)
+	{
+		assert isShared();
+		synchronized (object)
+		{
+			return object.slot(LAZY_ACTIONS);
+		}
+	}
+
+	@Override @AvailMethod
+	A_Map o_LazyComplete (final AvailObject object)
+	{
+		assert isShared();
+		synchronized (object)
+		{
+			return object.slot(LAZY_COMPLETE);
+		}
+	}
+
+	@Override @AvailMethod
+	A_Map o_LazyIncomplete (final AvailObject object)
+	{
+		assert isShared();
+		synchronized (object)
+		{
+			return object.slot(LAZY_INCOMPLETE);
+		}
+	}
+
+	@Override @AvailMethod
+	A_Map o_LazyIncompleteCaseInsensitive (final AvailObject object)
+	{
+		assert isShared();
+		synchronized (object)
+		{
+			return object.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE);
+		}
+	}
+
+	@Override @AvailMethod
+	A_Map o_LazyPrefilterMap (final AvailObject object)
+	{
+		assert isShared();
+		synchronized (object)
+		{
+			return object.slot(LAZY_PREFILTER_MAP);
+		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MakeImmutable (final AvailObject object)
+	{
+		if (isMutable())
+		{
+			// Never actually make a message bundle tree immutable. They are
+			// always shared.
+			return object.makeShared();
+		}
+		return object;
+	}
+
+	@Override
+	int o_ParsingPc (final AvailObject object)
+	{
+		return object.slot(PARSING_PC);
+	}
+
+	/**
+	 * Remove the bundle with the given message name (expanded as parts).
+	 * Answer true if this tree is now empty and should be removed.
+	 */
+	@Override @AvailMethod
+	boolean o_RemoveBundleNamed (
+		final AvailObject object,
+		final A_Atom message)
+	{
+		assert message.isAtom();
+		synchronized (object)
+		{
+			AvailObject allBundles = object.slot(ALL_BUNDLES);
+			if (allBundles.hasKey(message))
+			{
+				allBundles = allBundles.mapWithoutKeyCanDestroy(
+					message,
+					true).traversed().makeShared();
+				object.setSlot(ALL_BUNDLES, allBundles);
+				AvailObject unclassified = object.slot(UNCLASSIFIED);
+				if (unclassified.hasKey(message))
+				{
+					// Easy to do.
+					unclassified = unclassified.mapWithoutKeyCanDestroy(
+						message,
+						true).traversed().makeShared();
+				}
+				else
+				{
+					// Not so easy -- just clear everything.
+					final A_Map emptyMap = MapDescriptor.empty();
+					object.setSlot(LAZY_COMPLETE, emptyMap);
+					object.setSlot(LAZY_INCOMPLETE, emptyMap);
+					object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
+					object.setSlot(LAZY_ACTIONS, emptyMap);
+					object.setSlot(LAZY_PREFILTER_MAP, emptyMap);
+					allBundles = allBundles.traversed().makeShared();
+					unclassified = allBundles;
+				}
+				object.setSlot(UNCLASSIFIED, unclassified);
+			}
+			return allBundles.mapSize() == 0;
+		}
+	}
+
+	/**
 	 * Categorize a single message/bundle pair.
 	 *
 	 * @param bundle
@@ -593,9 +633,11 @@ extends Descriptor
 		final Mutable<A_Map> prefilterMap,
 		final int pc)
 	{
-		if (bundle.bundleMethod().definitionsTuple().tupleSize() == 0)
+		final A_Method method = bundle.bundleMethod();
+		if (method.definitionsTuple().tupleSize() == 0
+			&& method.macroDefinitionsTuple().tupleSize() == 0)
 		{
-			// There are no definitions of this method, so there's no reason
+			// There are no method or macro definitions, so there's no reason
 			// to try to parse it.  This can happen when grammatical
 			// restrictions are defined before a method is implemented, a
 			// reasonably common situation.
@@ -773,40 +815,6 @@ extends Descriptor
 		{
 			successor.addBundle(bundle);
 		}
-	}
-
-	/**
-	 * Update information in this {@linkplain MessageBundleTreeDescriptor
-	 * message bundle tree} to reflect the latest information about the
-	 * {@linkplain MessageBundleDescriptor message bundle} with the given name.
-	 *
-	 * <p>The bundle may have been added, or updated (but not removed), so if
-	 * the bundle has already been classified in this tree (via {@link
-	 * #o_Expand(AvailObject, A_Module)}, we may need to invalidate some of the
-	 * tree's lazy structures.</p>
-	 */
-	@Override
-	void o_FlushForNewOrChangedBundle (
-		final AvailObject object,
-		final A_Bundle bundle)
-	{
-		final A_Map allBundles = object.slot(ALL_BUNDLES);
-		assert allBundles.hasKey(bundle.message());
-		if (object.slot(UNCLASSIFIED).hasKey(bundle))
-		{
-			// It hasn't been classified yet, so there's nothing to clean up.
-			return;
-		}
-		// It has been classified already, so flush the lazy structures
-		// for safety, moving everything back to unclassified.
-		final A_Map emptyMap = MapDescriptor.empty();
-		object.setSlot(LAZY_COMPLETE, emptyMap);
-		object.setSlot(LAZY_INCOMPLETE, emptyMap);
-		object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
-		object.setSlot(LAZY_ACTIONS, emptyMap);
-		object.setSlot(LAZY_PREFILTER_MAP, emptyMap);
-		allBundles.makeImmutable();
-		object.setSlot(UNCLASSIFIED, allBundles);
 	}
 
 	/**

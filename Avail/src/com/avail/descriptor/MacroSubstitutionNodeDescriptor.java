@@ -102,7 +102,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_OutputParseNode (final AvailObject object)
+	A_Phrase o_OutputParseNode (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE);
 	}
@@ -126,7 +126,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final A_Phrase aParseNode)
 	{
-		return object.kind().equals(aParseNode.kind())
+		return aParseNode.isMacroSubstitutionNode()
 			&& object.slot(MACRO_NAME).equals(aParseNode.apparentSendName())
 			&& object.slot(OUTPUT_PARSE_NODE).equals(
 				aParseNode.outputParseNode());
@@ -192,11 +192,11 @@ extends ParseNodeDescriptor
 	@Override
 	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
-		return ParseNodeKind.MACRO_SUBSTITUTION;
+		return object.slot(OUTPUT_PARSE_NODE).parseNodeKind();
 	}
 
 	@Override
-	AvailObject o_StripMacro (final AvailObject object)
+	A_Phrase o_StripMacro (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE);
 	}
@@ -212,6 +212,12 @@ extends ParseNodeDescriptor
 		writer.write("output phrase");
 		object.slot(OUTPUT_PARSE_NODE).writeTo(writer);
 		writer.endObject();
+	}
+
+	@Override
+	boolean o_IsMacroSubstitutionNode (final AvailObject object)
+	{
+		return true;
 	}
 
 	/**

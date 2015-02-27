@@ -51,6 +51,7 @@ import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.utility.Generator;
 
 /**
  * <strong>Primitive 174:</strong> Rename the source {@linkplain Path path} to
@@ -104,10 +105,17 @@ extends Primitive
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priorityInt,
-			StringDescriptor.format(
-				"Asynchronous rename (prim 174), %s → %s",
-				sourcePath,
-				destinationPath));
+			new Generator<A_String>()
+			{
+				@Override
+				public A_String value ()
+				{
+					return StringDescriptor.format(
+						"Asynchronous file rename (prim 174), %s → %s",
+						sourcePath,
+						destinationPath);
+				}
+			});
 		newFiber.availLoader(current.availLoader());
 		newFiber.heritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared());

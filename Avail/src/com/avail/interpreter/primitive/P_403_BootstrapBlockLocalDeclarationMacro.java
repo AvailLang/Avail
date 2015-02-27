@@ -38,8 +38,10 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 
 /**
@@ -65,36 +67,61 @@ public final class P_403_BootstrapBlockLocalDeclarationMacro extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 4;
-		@SuppressWarnings("unused")
-		final A_Tuple optionalArgumentDeclarations = args.get(0);
-		@SuppressWarnings("unused")
-		final A_Tuple optionalPrimitive = args.get(1);
-		@SuppressWarnings("unused")
-		final A_Tuple optionalLabel = args.get(2);
-		final A_Tuple statementsSoFar = args.get(3);
+//		final A_Phrase blockArgumentsPhrase = args.get(0);
+//		final A_Phrase optionalPrimFailurePhrase = args.get(1);
+//		final A_Phrase optionalLabelPhrase = args.get(2);
+		final A_Phrase statementsPhrase = args.get(3);
 
-		final A_Fiber fiber = interpreter.fiber();
-		final AvailLoader loader = fiber.availLoader();
-		final A_Map fiberGlobals = fiber.fiberGlobals();
-		final A_Atom clientDataKey = AtomDescriptor.clientDataGlobalKey();
-		if (loader == null || !fiberGlobals.hasKey(clientDataKey))
+		final AvailLoader loader = interpreter.fiber().availLoader();
+		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
 
+		// At this point the statements so far are a list node – not a sequence.
+		final int statementCountSoFar = statementsPhrase.expressionsSize();
+		// The section marker is inside the repetition, so this primitive could
+		// only be invoked if there is at least one statement.
+		assert statementCountSoFar > 0;
+		final A_Phrase latestStatementLiteral =
+			statementsPhrase.expressionAt(statementCountSoFar);
 		final A_Phrase latestStatement =
-			statementsSoFar.tupleAt(statementsSoFar.tupleSize());
-		// If it's a local variable or constant declaration then add it to the
-		// scope; otherwise do nothing.
-		if (latestStatement.parseNodeKindIsUnder(DECLARATION_NODE))
+			latestStatementLiteral.token().literal();
+		if (!latestStatement.parseNodeKind().isSubkindOf(DECLARATION_NODE))
 		{
-			final DeclarationKind kind = latestStatement.declarationKind();
-			if (kind == LOCAL_VARIABLE || kind == LOCAL_CONSTANT)
+			// This isn't a declaration, it's some other kind of statement.
+			// For now, just ensure it has type ⊤.  The macro body will deal
+			// with it later.
+			if (!latestStatement.expressionType().equals(TOP.o()))
 			{
-				loader.addDeclaration(latestStatement);
+				throw new AvailRejectedParseException(
+					"statement to have type ⊤");
 			}
+			return interpreter.primitiveSuccess(NilDescriptor.nil());
 		}
-
+		final DeclarationKind declarationKind =
+			latestStatement.declarationKind();
+		if (declarationKind != LOCAL_CONSTANT
+			&& declarationKind != LOCAL_VARIABLE)
+		{
+			// I don't know why there's a non-local declaration in here.
+			throw new AvailRejectedParseException(
+				"declaration to be a local variable or constant, not %s",
+				declarationKind.name());
+		}
+		final AvailErrorCode error = loader.addDeclaration(latestStatement);
+		if (error != null)
+		{
+			if (error == E_LOCAL_DECLARATION_SHADOWS_ANOTHER)
+			{
+				throw new AvailRejectedParseException(
+					"local %s %s to have a name that doesn't shadow another"
+					+ " local declaration",
+					declarationKind == LOCAL_CONSTANT ? "constant" : "variable",
+					latestStatement.token().string());
+			}
+			return interpreter.primitiveFailure(error);
+		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
@@ -103,60 +130,55 @@ public final class P_403_BootstrapBlockLocalDeclarationMacro extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				/* Optional arguments section */
-				TupleTypeDescriptor.zeroOrOneOf(
-					/* Arguments are present */
-					TupleTypeDescriptor.oneOrMoreOf(
-						/* An argument */
-						TupleTypeDescriptor.forTypes(
-							/* Argument name */
-							LITERAL_NODE.create(TOKEN.o()),
-							/* Argument type */
-							LITERAL_NODE.create(
-								InstanceMetaDescriptor.anyMeta())))),
-				/* Optional primitive section with optional failure variable:
-				 * <<[0..65535], <primitive failure phrase |0..1> |2> |0..1>,
-				 */
-				TupleTypeDescriptor.zeroOrOneOf(
-					TupleTypeDescriptor.forTypes(
-						LITERAL_NODE.create(
-							/* Primitive number */
-							IntegerRangeTypeDescriptor.unsignedShorts()),
-						TupleTypeDescriptor.zeroOrOneOf(
-							/* The primitive failure variable is present */
+				/* Macro argument is a parse node. */
+				LIST_NODE.create(
+					/* Optional arguments section. */
+					TupleTypeDescriptor.zeroOrOneOf(
+						/* Arguments are present. */
+						TupleTypeDescriptor.oneOrMoreOf(
+							/* An argument. */
 							TupleTypeDescriptor.forTypes(
-								/* Primitive failure variable name */
-								LITERAL_NODE.create(TOKEN.o()),
-								/* Primitive failure variable type */
-								LITERAL_NODE.create(
+								/* Argument name, a token. */
+								TOKEN.o(),
+								/* Argument type. */
+								InstanceMetaDescriptor.anyMeta())))),
+				/* Macro argument is a parse node. */
+				LIST_NODE.create(
+					/* Optional primitive declaration. */
+					TupleTypeDescriptor.zeroOrOneOf(
+						/* Primitive declaration */
+						TupleTypeDescriptor.forTypes(
+							/* Primitive number. */
+							TOKEN.o(),
+							/* Optional failure variable declaration. */
+							TupleTypeDescriptor.zeroOrOneOf(
+								/* Primitive failure variable parts. */
+								TupleTypeDescriptor.forTypes(
+									/* Primitive failure variable name token */
+									TOKEN.o(),
+									/* Primitive failure variable type */
 									InstanceMetaDescriptor.anyMeta()))))),
-				/* Optional label */
-				TupleTypeDescriptor.zeroOrOneOf(
-					/* Label is present */
-					TupleTypeDescriptor.forTypes(
-						/* Label name */
-						LITERAL_NODE.create(TOKEN.o()),
-						/* Label return type */
-						LITERAL_NODE.create(InstanceMetaDescriptor.anyMeta()))),
-				/* Statements */
-				TupleTypeDescriptor.zeroOrMoreOf(
-					EXPRESSION_NODE.mostGeneralType())),
-			BLOCK_NODE.mostGeneralType());
-	}
-
-	@Override
-	protected A_Type privateFailureVariableType ()
-	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			TupleDescriptor.from(
-				E_OPERATION_NOT_SUPPORTED.numericCode(),
-				E_LOADING_IS_OVER.numericCode(),
-				E_PRIMITIVE_FALLIBILITY_DISAGREES_WITH_FAILURE_VARIABLE.numericCode(),
-				E_INFALLIBLE_PRIMITIVE_MUST_NOT_HAVE_STATEMENTS.numericCode(),
-				E_FINAL_EXPRESSION_SHOULD_AGREE_WITH_DECLARED_RETURN_TYPE.numericCode(),
-				E_PRIMITIVE_SHOULD_AGREE_WITH_DECLARED_RETURN_TYPE.numericCode(),
-				E_LABEL_TYPE_SHOULD_AGREE_WITH_DECLARED_RETURN_TYPE.numericCode(),
-				E_RETURN_TYPE_IS_MANDATORY_WITH_PRIMITIVES_OR_LABELS.numericCode()
-			).asSet());
+				/* Macro argument is a parse node. */
+				LIST_NODE.create(
+					/* Optional label declaration. */
+					TupleTypeDescriptor.zeroOrOneOf(
+						/* Label parts. */
+						TupleTypeDescriptor.forTypes(
+							/* Label name */
+							TOKEN.o(),
+							/* Optional label return type. */
+							TupleTypeDescriptor.zeroOrOneOf(
+								/* Label return type. */
+								InstanceMetaDescriptor.topMeta())))),
+				/* Macro argument is a parse node. */
+				LIST_NODE.create(
+					/* Statements and declarations so far. */
+					TupleTypeDescriptor.zeroOrMoreOf(
+						/* The "_!" mechanism wrapped each statement or
+						 * declaration inside a literal phrase, so expect a
+						 * phrase here instead of TOP.o().
+						 */
+						PARSE_NODE.mostGeneralType()))),
+			TOP.o());
 	}
 }

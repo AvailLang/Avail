@@ -1396,8 +1396,7 @@ public final class AvailRuntime
 			TupleDescriptor.from(
 				BottomTypeDescriptor.bottom()),
 			TOP.o());
-		specials[106] = InstanceTypeDescriptor.on(
-			IntegerDescriptor.zero());
+		specials[106] = InstanceTypeDescriptor.on(IntegerDescriptor.zero());
 		specials[107] = FunctionTypeDescriptor.forReturnType(
 			InstanceMetaDescriptor.topMeta());
 		specials[108] =
@@ -1408,21 +1407,18 @@ public final class AvailRuntime
 					InstanceMetaDescriptor.topMeta()));
 		specials[109] = FunctionTypeDescriptor.forReturnType(
 			PARSE_NODE.mostGeneralType());
-		specials[110] = InstanceTypeDescriptor.on(
-			IntegerDescriptor.two());
+		specials[110] = InstanceTypeDescriptor.on(IntegerDescriptor.two());
 		specials[111] = DoubleDescriptor.fromDouble(Math.E);
 		specials[112] = InstanceTypeDescriptor.on(
 			DoubleDescriptor.fromDouble(Math.E));
-		specials[113] = InstanceMetaDescriptor.on(
-			PARSE_NODE.mostGeneralType());
+		specials[113] = InstanceMetaDescriptor.on(PARSE_NODE.mostGeneralType());
 		specials[114] = SetTypeDescriptor.setTypeForSizesContentType(
 			IntegerRangeTypeDescriptor.wholeNumbers(),
 			ATOM.o());
 		specials[115] = TOKEN.o();
 		specials[116] = LiteralTokenTypeDescriptor.mostGeneralType();
 		specials[117] =
-			TupleTypeDescriptor.zeroOrMoreOf(
-				InstanceMetaDescriptor.anyMeta());
+			TupleTypeDescriptor.zeroOrMoreOf(InstanceMetaDescriptor.anyMeta());
 		specials[118] =
 			IntegerRangeTypeDescriptor.inclusive(
 				IntegerDescriptor.zero(),
@@ -1440,11 +1436,9 @@ public final class AvailRuntime
 					TupleDescriptor.from(ATOM.o()),
 					ANY.o()));
 		specials[121] =
-			TupleTypeDescriptor.zeroOrMoreOf(
-				PARSE_NODE.mostGeneralType());
+			TupleTypeDescriptor.zeroOrMoreOf(PARSE_NODE.mostGeneralType());
 		specials[122] =
-			TupleTypeDescriptor.zeroOrMoreOf(
-				ARGUMENT_NODE.mostGeneralType());
+			TupleTypeDescriptor.zeroOrMoreOf(ARGUMENT_NODE.mostGeneralType());
 		specials[123] =
 			TupleTypeDescriptor.zeroOrMoreOf(
 				DECLARATION_NODE.mostGeneralType());
@@ -1453,8 +1447,7 @@ public final class AvailRuntime
 				TOP.o(),
 				EXPRESSION_NODE.create(BottomTypeDescriptor.bottom()));
 		specials[125] =
-			TupleTypeDescriptor.zeroOrMoreOf(
-				EXPRESSION_NODE.create(ANY.o()));
+			TupleTypeDescriptor.zeroOrMoreOf(EXPRESSION_NODE.create(ANY.o()));
 		specials[126] = EXPRESSION_NODE.create(ANY.o());
 		specials[127] =
 			FunctionTypeDescriptor.create(
@@ -1830,7 +1823,7 @@ public final class AvailRuntime
 				prefixFunction, true);
 			functionTuples = functionTuples.tupleAtPuttingCanDestroy(
 				index, functionTuple, true);
-			method.prefixFunctions(functionTuples);
+			method.prefixFunctions(functionTuples.makeShared());
 		}
 		finally
 		{
@@ -1875,7 +1868,7 @@ public final class AvailRuntime
 			functionTuple = part1.concatenateWith(part2, true);
 			functionTuples = functionTuples.tupleAtPuttingCanDestroy(
 				index, functionTuple, true);
-			method.prefixFunctions(functionTuples);
+			method.prefixFunctions(functionTuples.makeShared());
 		}
 		finally
 		{

@@ -39,6 +39,7 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.utility.Generator;
 
 /**
  * <strong>Primitive 622</strong>: Schedule a new {@linkplain FiberDescriptor
@@ -108,11 +109,19 @@ extends Primitive
 		final A_Fiber orphan = FiberDescriptor.newFiber(
 			function.kind().returnType(),
 			priority.extractInt(),
-			StringDescriptor.format(
-				"Delayed fork orphan (prim 622), %s, %s:%d",
-				function.code().methodName(),
-				function.code().module().moduleName(),
-				function.code().startingLineNumber()));
+			new Generator<A_String>()
+			{
+				@Override
+				public A_String value ()
+				{
+					final A_RawFunction code = function.code();
+					return StringDescriptor.format(
+						"Delayed fork orphan (prim 622), %s, %s:%d",
+						code.methodName(),
+						code.module().moduleName(),
+						code.startingLineNumber());
+				}
+			});
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		orphan.availLoader(current.availLoader());

@@ -224,9 +224,11 @@ public final class BootstrapGenerator
 			preamble.getString(originModuleHeader.name()),
 			preamble.getString(originModuleName.name()),
 			moduleVersionString(versions),
+			vmVersionString(versions),
 			preamble.getString(bootstrapDefiningMethod.name()),
 			preamble.getString(bootstrapSpecialObject.name()),
-			vmVersionString(versions)));
+			preamble.getString(bootstrapMacroNames.name()),
+			preamble.getString(bootstrapMacros.name())));
 	}
 
 	/**

@@ -1359,8 +1359,8 @@ Semantic restriction "_bit∧_" is
 		exit ::= [
 			moreValues : {extended integer|0..∞}
 		|
-			values := values ∪ moreValues;
-			Exit includeLabel with 123
+			values := eject values ∪ moreValues;
+			Exit includeLabel with <>  /* "Exit_" is not yet defined. */
 		];
 		If x = ∞ then
 		[

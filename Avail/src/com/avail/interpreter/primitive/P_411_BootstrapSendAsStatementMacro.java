@@ -33,15 +33,19 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+import com.avail.annotations.Nullable;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
  * The {@code P_411_BootstrapSendAsStatementMacro} primitive is used to allow
- * message sends producing ⊤ to be used as statements.
+ * message sends producing ⊤ to be used as statements, by wrapping them inside
+ * {@linkplain ExpressionAsStatementNodeDescriptor expression-as-statement
+ * phrases}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -52,7 +56,7 @@ public final class P_411_BootstrapSendAsStatementMacro extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_411_BootstrapSendAsStatementMacro().init(
-			1, CannotFail, Bootstrap);
+			1, Bootstrap);
 
 	@Override
 	public Result attempt (
@@ -61,14 +65,31 @@ public final class P_411_BootstrapSendAsStatementMacro extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_Phrase sendNode = args.get(0);
+		final A_Phrase sendPhraseInLiteral = args.get(0);
 
-		if (!sendNode.expressionType().isTop())
+		final @Nullable AvailLoader loader = interpreter.fiber().availLoader();
+		if (loader == null)
+		{
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
+		final A_Phrase sendPhrase = sendPhraseInLiteral.token().literal();
+		if (!sendPhrase.parseNodeKind().isSubkindOf(SEND_NODE))
 		{
 			throw new AvailRejectedParseException(
-				"statement's type to be ⊤");
+				"statement to be a ⊤-valued send node, not a "
+				+ sendPhrase.parseNodeKind().name()
+				+ ": "
+				+ sendPhrase);
 		}
-		return interpreter.primitiveSuccess(sendNode);
+		if (!sendPhrase.expressionType().isTop())
+		{
+			throw new AvailRejectedParseException(
+				"statement's type to be ⊤, but it was "
+				+ sendPhrase.expressionType());
+		}
+		final A_Phrase sendAsStatement =
+			ExpressionAsStatementNodeDescriptor.fromExpression(sendPhrase);
+		return interpreter.primitiveSuccess(sendAsStatement);
 	}
 
 	@Override
@@ -77,7 +98,14 @@ public final class P_411_BootstrapSendAsStatementMacro extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				/* The send node to treat as a statement */
-				SEND_NODE.mostGeneralType()),
+				LITERAL_NODE.mostGeneralType()),
 			SEND_NODE.mostGeneralType());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_UNTIMELY_PARSE_REJECTION.numericCode());
 	}
 }

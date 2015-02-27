@@ -87,27 +87,23 @@ extends Primitive
 				final A_Method method = bundle.bundleMethod();
 				final A_Tuple definitions = method.definitionsTuple();
 				// Ignore macros.
-				if (definitions.tupleSize() != 0
-					&& !definitions.tupleAt(1).isMacroDefinition())
+				for (final A_Definition definition : definitions)
 				{
-					for (final A_Definition definition : definitions)
+					if (!definition.isForwardDefinition())
 					{
-						if (!definition.isForwardDefinition())
+						final A_Type function = definition.bodySignature();
+						final A_Type params = function.argsTupleType();
+						final A_Tuple signature =
+							params.tupleOfTypesFromTo(1, method.numArgs());
+						try
 						{
-							final A_Type function = definition.bodySignature();
-							final A_Type params = function.argsTupleType();
-							final A_Tuple signature =
-								params.tupleOfTypesFromTo(1, method.numArgs());
-							try
-							{
-								runtime.addSeal(name, signature);
-								module.addSeal(name, signature);
-							}
-							catch (final MalformedMessageException e)
-							{
-								assert false : "This should not happen!";
-								throw new AvailRuntimeException(e.errorCode());
-							}
+							runtime.addSeal(name, signature);
+							module.addSeal(name, signature);
+						}
+						catch (final MalformedMessageException e)
+						{
+							assert false : "This should not happen!";
+							throw new AvailRuntimeException(e.errorCode());
 						}
 					}
 				}

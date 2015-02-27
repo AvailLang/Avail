@@ -429,7 +429,7 @@ Primitive "boolean" is
  *
  * A character literal is expressed as a cent sign {@code "¢"} (U+00A2) followed
  * by a single-character lexeme or length-one string literal. Avail character
- * literal notation is provided by the method {@method "¢…"}. The
+ * literal notation is provided by the method {@method "¢…!"}. The
  * single-character form is sufficient for nearly every character, but the
  * string literal form must be employed when the desired character is a
  * quotation mark {@code "\""} (U+0022), semicolon {@code ";"} (U+003B), or
@@ -2498,3 +2498,4 @@ Primitive "super cast phrase" is
 [
 	_super_cast_phrase
 ];
+

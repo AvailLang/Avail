@@ -42,6 +42,7 @@ import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
+import com.avail.utility.Generator;
 
 /**
  * <strong>Primitive 554</strong>: Accept an incoming connection on the
@@ -97,9 +98,16 @@ extends Primitive
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
-			StringDescriptor.format(
-				"Server socket accept (prim 554), name=%s",
-				name));
+			new Generator<A_String>()
+			{
+				@Override
+				public A_String value ()
+				{
+					return StringDescriptor.format(
+						"Server socket accept (prim 554), name=%s",
+						name);
+				}
+			});
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());

@@ -36,6 +36,7 @@ import static com.avail.compiler.ParsingConversionRule.*;
 import java.util.*;
 import com.avail.compiler.MessageSplitter.SectionCheckpoint;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 
 /**
  * {@code ParsingOperation} describes the operations available for parsing Avail
@@ -51,85 +52,111 @@ public enum ParsingOperation
 	 */
 
 	/**
-	 * {@code 0} - Parse an argument of a message send, pushing the expression
-	 * onto the parse stack.
-	 */
-	PARSE_ARGUMENT(0),
-
-	/**
-	 * {@code 1} - Push a new {@linkplain ListNodeDescriptor list} that
+	 * {@code 0} - Push a new {@linkplain ListNodeDescriptor list} that
 	 * contains an {@linkplain TupleDescriptor#empty() empty tuple} of
 	 * {@linkplain ParseNodeDescriptor phrases} onto the parse stack.
 	 */
-	NEW_LIST(1),
+	NEW_LIST(0),
 
 	/**
-	 * {@code 2} - Pop an argument from the parse stack of the current
+	 * {@code 1} - Pop an argument from the parse stack of the current
 	 * potential message send. Pop a {@linkplain ListNodeDescriptor list} from
 	 * the parse stack. Append the argument to the list. Push the resultant list
 	 * onto the parse stack.
 	 */
-	APPEND_ARGUMENT(2),
+	APPEND_ARGUMENT(1),
 
 	/**
-	 * {@code 3} - Push a {@linkplain MarkerNodeDescriptor marker} representing
+	 * {@code 2} - Push a {@linkplain MarkerNodeDescriptor marker} representing
 	 * the current parse position onto the mark stack.
 	 */
-	SAVE_PARSE_POSITION(3),
+	SAVE_PARSE_POSITION(2),
 
 	/**
-	 * {@code 4} - Pop the top marker off the mark stack.
+	 * {@code 3} - Pop the top marker off the mark stack.
 	 */
-	DISCARD_SAVED_PARSE_POSITION(4),
+	DISCARD_SAVED_PARSE_POSITION(3),
 
 	/**
-	 * {@code 5} - Pop the top marker off the mark stack and compare it to the
+	 * {@code 4} - Pop the top marker off the mark stack and compare it to the
 	 * current parse position.  If they're the same, abort the current parse,
 	 * otherwise push the current parse position onto the mark stack in place of
 	 * the old marker and continue parsing.
 	 */
-	ENSURE_PARSE_PROGRESS(5),
+	ENSURE_PARSE_PROGRESS(4),
 
 	/**
-	 * {@code 6} - Parse a {@linkplain TokenDescriptor raw token}, leaving it
-	 * on the parse stack.
-	 */
-	PARSE_RAW_TOKEN(6),
-
-	/**
-	 * {@code 7} - Parse an argument of a message send, using the <em>outermost
-	 * (module) scope</em>.  Leave it on the parse stack.
-	 */
-	PARSE_ARGUMENT_IN_MODULE_SCOPE(7),
-
-	/**
-	 * {@code 8} - Push a {@link LiteralNodeDescriptor literal node}
+	 * {@code 5} - Push a {@link LiteralNodeDescriptor literal node}
 	 * containing the {@linkplain AtomDescriptor Avail false boolean}.
 	 */
-	PUSH_FALSE(8),
+	PUSH_FALSE(5),
 
 	/**
-	 * {@code 9} - Push a {@link LiteralNodeDescriptor literal node}
+	 * {@code 6} - Push a {@link LiteralNodeDescriptor literal node}
 	 * containing the {@linkplain AtomDescriptor Avail true boolean}.
 	 */
-	PUSH_TRUE(9),
+	PUSH_TRUE(6),
 
 	/**
-	 * {@code 10} - Parse a {@linkplain TokenDescriptor raw token}. It should
+	 * {@code 7} - Parse an ordinary argument of a message send, pushing the
+	 * expression onto the parse stack.
+	 */
+	PARSE_ARGUMENT(7),
+
+	/**
+	 * {@code 8} - Parse an expression, even one whose expressionType is ⊤,
+	 * then push <em>a literal node wrapping this expression</em> onto the parse
+	 * stack.
+	 *
+	 * <p>If we didn't wrap the parse node inside a literal node, we wouldn't be
+	 * able to process sequences of statements in macros, since they would each
+	 * have an expressionType of ⊤ (or if one was ⊥, the entire expressionType
+	 * would also be ⊥).  Instead, they will have the expressionType phrase⇒⊤
+	 * (or phrase⇒⊥), which is perfectly fine to put inside a list node during
+	 * parsing.</p>
+	 */
+	PARSE_TOP_VALUED_ARGUMENT(8),
+
+	/**
+	 * {@code 9} - Parse a {@linkplain TokenDescriptor raw token}. It should
 	 * correspond to a {@linkplain VariableDescriptor variable} that is
-	 * in-scope. Push a {@linkplain ReferenceNodeDescriptor variable reference
+	 * in scope. Push a {@linkplain ReferenceNodeDescriptor variable reference
 	 * phrase} onto the parse stack.
 	 */
-	PARSE_VARIABLE_REFERENCE(10),
+	PARSE_VARIABLE_REFERENCE(9),
 
-	/** Reserved for future parsing concepts. */
-	RESERVED_11(11),
+	/**
+	 * {@code 10} - Parse an argument of a message send, using the <em>outermost
+	 * (module) scope</em>.  Leave it on the parse stack.
+	 */
+	PARSE_ARGUMENT_IN_MODULE_SCOPE(10),
 
-	/** Reserved for future parsing concepts. */
-	RESERVED_12(12),
+	/**
+	 * {@code 11} - Parse <em>any</em> {@linkplain TokenDescriptor raw token},
+	 * leaving it on the parse stack.
+	 *
+	 * <p>This is used by the {@link MessageSplitter.RawTokenArgument} message
+	 * expression, denoted by the characters "…!" in the message name.</p>
+	 */
+	PARSE_ANY_RAW_TOKEN(11),
 
-	/** Reserved for future parsing concepts. */
-	RESERVED_13(13),
+	/**
+	 * {@code 12} - Parse a raw <em>{@linkplain TokenType#KEYWORD keyword}</em>
+	 * {@linkplain TokenDescriptor token}, leaving it on the parse stack.
+	 *
+	 * <p>This is used by the {@link MessageSplitter.RawKeywordTokenArgument}
+	 * message expression, denoted by characters "…" in the message name.</p>
+	 */
+	PARSE_RAW_KEYWORD_TOKEN(12),
+
+	/**
+	 * {@code 13} - Parse a raw <em>{@linkplain TokenType#LITERAL literal}</em>
+	 * {@linkplain TokenDescriptor token}, leaving it on the parse stack.
+	 *
+	 * <p>This is used by the {@link MessageSplitter.RawLiteralTokenArgument}
+	 * message expression, denoted by characters "…#" in the message name.</p>
+	 */
+	PARSE_RAW_LITERAL_TOKEN(13),
 
 	/** Reserved for future parsing concepts. */
 	RESERVED_14(14),
@@ -187,39 +214,12 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+3} - Apply grammatical restrictions to the Nth leaf argument
-	 * (underscore/ellipsis) of the current message.
-	 */
-	CHECK_ARGUMENT(3)
-	{
-		@Override
-		public int checkArgumentIndex (final int instruction)
-		{
-			return operand(instruction);
-		}
-	},
-
-	/**
-	 * {@code 16*N+4} - Pop an argument from the parse stack and apply the
-	 * {@linkplain ParsingConversionRule conversion rule} specified by N.
-	 */
-	CONVERT(4)
-	{
-		@Override
-		public ParsingConversionRule conversionRule (
-			final int instruction)
-		{
-			return ruleNumber(operand(instruction));
-		}
-	},
-
-	/**
-	 * {@code 16*N+5} - Parse the Nth {@linkplain MessageSplitter#messageParts
+	 * {@code 16*N+3} - Parse the Nth {@linkplain MessageSplitter#messageParts
 	 * message part} of the current message. This will be a specific {@linkplain
 	 * TokenDescriptor token}. It should be matched case insensitively against
 	 * the source token.
 	 */
-	PARSE_PART_CASE_INSENSITIVELY(5)
+	PARSE_PART_CASE_INSENSITIVELY(3)
 	{
 		@Override
 		public int keywordIndex (final int instruction)
@@ -229,16 +229,43 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+6} - Push a {@link LiteralNodeDescriptor literal node}
+	 * {@code 16*N+4} - Push a {@link LiteralNodeDescriptor literal node}
 	 * containing an {@linkplain IntegerDescriptor Avail integer} based on the
 	 * operand.
 	 */
-	PUSH_INTEGER_LITERAL(6)
+	PUSH_INTEGER_LITERAL(4)
 	{
 		@Override
 		public int integerToPush (final int instruction)
 		{
 			return operand(instruction);
+		}
+	},
+
+	/**
+	 * {@code 16*N+5} - Apply grammatical restrictions to the Nth leaf argument
+	 * (underscore/ellipsis) of the current message.
+	 */
+	CHECK_ARGUMENT(5)
+	{
+		@Override
+		public int checkArgumentIndex (final int instruction)
+		{
+			return operand(instruction);
+		}
+	},
+
+	/**
+	 * {@code 16*N+6} - Pop an argument from the parse stack and apply the
+	 * {@linkplain ParsingConversionRule conversion rule} specified by N.
+	 */
+	CONVERT(6)
+	{
+		@Override
+		public ParsingConversionRule conversionRule (
+			final int instruction)
+		{
+			return ruleNumber(operand(instruction));
 		}
 	},
 
@@ -299,6 +326,34 @@ public enum ParsingOperation
 	{
 		@Override
 		public int permutationIndex (final int instruction)
+		{
+			return operand(instruction);
+		}
+	},
+
+	/**
+	 * {@code 16*N+10} - Check that the list node on the top of the stack has at
+	 * least the specified size.  Proceed to the next instruction only if this
+	 * is the case.
+	 */
+	CHECK_AT_LEAST(10)
+	{
+		@Override
+		public int requiredMinimumSize (final int instruction)
+		{
+			return operand(instruction);
+		}
+	},
+
+	/**
+	 * {@code 16*N+11} - Check that the list node on the top of the stack has at
+	 * most the specified size.  Proceed to the next instruction only if this
+	 * is the case.
+	 */
+	CHECK_AT_MOST(11)
+	{
+		@Override
+		public int requiredMaximumSize (final int instruction)
 		{
 			return operand(instruction);
 		}
@@ -492,6 +547,30 @@ public enum ParsingOperation
 	 * @return The index of the permutation.
 	 */
 	public int permutationIndex (final int instruction)
+	{
+		throw new RuntimeException("Parsing instruction is inappropriate");
+	}
+
+	/**
+	 * Extract the minimum size that the list on the top of the stack must be
+	 * to continue parsing.
+	 *
+	 * @param instruction A coded instruction.
+	 * @return The minimum list size.
+	 */
+	public int requiredMinimumSize (final int instruction)
+	{
+		throw new RuntimeException("Parsing instruction is inappropriate");
+	}
+
+	/**
+	 * Extract the maximum size that the list on the top of the stack may be
+	 * to continue parsing.
+	 *
+	 * @param instruction A coded instruction.
+	 * @return The maximum list size.
+	 */
+	public int requiredMaximumSize (final int instruction)
 	{
 		throw new RuntimeException("Parsing instruction is inappropriate");
 	}

@@ -75,11 +75,10 @@ public final class P_406_BootstrapConstantDeclarationMacro extends Primitive
 		assert syntheticLiteralNameToken.tokenType() == SYNTHETIC_LITERAL;
 		final A_Token innerNameToken = syntheticLiteralNameToken.literal();
 		assert innerNameToken.isInstanceOfKind(TOKEN.o());
-
 		if (innerNameToken.tokenType() != KEYWORD)
 		{
 			throw new AvailRejectedParseException(
-				"Constant name to be alphanumeric");
+				"new constant name to be alphanumeric");
 		}
 		final A_Type initializationType =
 			initializationExpression.expressionType();

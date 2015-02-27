@@ -91,7 +91,6 @@ Names
 	/*  92 */ "fiber-produced-incorrectly-typed-result code",
 	/*  90 */ "fiber-result-unavailable code",
 	/* 201 */ "file-exists code",
-	/*  61 */ "final-expression-should-agree-with-declared-return-type code",
 	/*  86 */ "forward-method-definition code",
 	/*  27 */ "function-disagrees-with-primitive-restriction code",
 	/*  80 */ "handler-sentinel code",
@@ -106,13 +105,11 @@ Names
 	/*  32 */ "incorrect-type-for-group code",
 	/*  57 */ "incorrect-type-for-numbered-choice code",
 	/*  43 */ "incorrect-use-of-double-dagger code",
-	/*  58 */ "infallible-primitive-must-not-have-statements code",
 	/*  25 */ "invalid-handle code",
 	/* 205 */ "invalid-path code",
 	/*  26 */ "invalid-primitive-number code",
 	/*  33 */ "invalid-special-object-number code",
 	/*  21 */ "key-not-found code",
-	/*  63 */ "label-type-should-agree-with-declared-return-type code",
 	/*  70 */ "loading-is-over code",
 	/*  66 */ "local-declaration-shadows-another code",
 	/*  28 */ "local-type-literal-is-not-a-type code",
@@ -140,13 +137,10 @@ Names
 	/* 203 */ "partial-success code",
 	/*  24 */ "permission-denied code",
 	/* 501 */ "pojo-type-is-abstract code",
-	/*  60 */ "primitive-fallibility-disagrees-with-failure-variable code",
-	/*  62 */ "primitive-should-agree-with-declared-return-type code",
 	/*  50 */ "question-mark-must-follow-a-simple-group code",
 	/*  39 */ "redefined-with-same-argument-types code",
 	/*  79 */ "result-disagreed-with-expected-type code",
 	/*  40 */ "result-type-should-covary-with-arguments code",
-	/*  64 */ "return-type-is-mandatory-with-primitives-or-labels code",
 	/* 105 */ "sequence-contains-invalid-statements code",
 	/*  96 */ "serialization-failed code",
 	/*  18 */ "shift-and-truncate-requires-non-negative code",
@@ -446,39 +440,9 @@ Primitive "incorrect-type-for-numbered-choice code" is
 	57
 ];
 
-Primitive "infallible-primitive-must-not-have-statements code" is
-[
-	58
-];
-
 Primitive "macro-prefix-functions-must-return-top code" is
 [
 	59
-];
-
-Primitive "primitive-fallibility-disagrees-with-failure-variable code" is
-[
-	60
-];
-
-Primitive "final-expression-should-agree-with-declared-return-type code" is
-[
-	61
-];
-
-Primitive "primitive-should-agree-with-declared-return-type code" is
-[
-	62
-];
-
-Primitive "label-type-should-agree-with-declared-return-type code" is
-[
-	63
-];
-
-Primitive "return-type-is-mandatory-with-primitives-or-labels code" is
-[
-	64
 ];
 
 Primitive "declaration-type-must-not-be-top-or-bottom code" is

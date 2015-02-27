@@ -392,11 +392,7 @@ public enum AvailErrorCode
 	 */
 	E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE (57),
 
-	/**
-	 * A {@link Primitive} has the flag {@link Flag#CannotFail}, so it should
-	 * not have any statements to run in the event of a failed primitive.
-	 */
-	E_INFALLIBLE_PRIMITIVE_MUST_NOT_HAVE_STATEMENTS (58),
+//	E_??? (58),
 
 	/**
 	 * A macro prefix function is invoked when a potential macro site reaches
@@ -405,37 +401,15 @@ public enum AvailErrorCode
 	 */
 	E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP (59),
 
-	/**
-	 * A {@link Primitive} either has the flag {@linkplain Flag#CannotFail} and
-	 * has a failure variable, or it does not have that flag and has no failure
-	 * variable.
-	 */
-	E_PRIMITIVE_FALLIBILITY_DISAGREES_WITH_FAILURE_VARIABLE (60),
+//	E_??? (60),
 
-	/**
-	 * The type of value returned by the implicit return at the end of a
-	 * {@linkplain BlockNodeDescriptor block} should be a subtype of the block's
-	 * explicit return type declaration.
-	 */
-	E_FINAL_EXPRESSION_SHOULD_AGREE_WITH_DECLARED_RETURN_TYPE (61),
+//	E_??? (61),
 
-	/**
-	 * The type of value potentially returned by a block's {@link Primitive}
-	 * should be a subtype of the block's explicit return type declaration.
-	 */
-	E_PRIMITIVE_SHOULD_AGREE_WITH_DECLARED_RETURN_TYPE (62),
+//	E_??? (62),
 
-	/**
-	 * A label's return type should be a subtype of the containing block's
-	 * declared return type.
-	 */
-	E_LABEL_TYPE_SHOULD_AGREE_WITH_DECLARED_RETURN_TYPE (63),
+//	E_??? (63),
 
-	/**
-	 * If a primitive declaration or label is specified, then a block must
-	 * have an explicitly declared return type.
-	 */
-	E_RETURN_TYPE_IS_MANDATORY_WITH_PRIMITIVES_OR_LABELS (64),
+//	E_??? (64),
 
 	/**
 	 * A {@link DeclarationNodeDescriptor declaration} is of type {@linkplain
@@ -505,10 +479,11 @@ public enum AvailErrorCode
 	E_ATOM_ALREADY_EXISTS (74),
 
 	/**
-	 * An attempt was made to add both a method definition and a macro
-	 * definition in the same method.  This is not allowed.
+	 * It seems that a prefix function did not set up things the way that the
+	 * corresponding macro body expected.  Alternatively, a prefix function may
+	 * notice that a previous prefix function behaved unexpectedly.
 	 */
-	E_CANNOT_MIX_METHOD_AND_MACRO_DEFINITIONS (75),
+	E_INCONSISTENT_PREFIX_FUNCTION (75),
 
 	/**
 	 * The VM does not normally instantiate continuations for infallible

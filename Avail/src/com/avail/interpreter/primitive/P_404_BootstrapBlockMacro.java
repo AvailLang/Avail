@@ -32,14 +32,17 @@
 
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
-import com.avail.annotations.*;
+import java.util.ArrayList;
+import java.util.List;
+import com.avail.annotations.Nullable;
+import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 
 /**
  * The {@code P_404_BootstrapBlockMacro} primitive is used for bootstrapping
@@ -86,13 +89,13 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 7;
-		final A_Tuple optionalArgumentDeclarations = args.get(0);
-		final A_Tuple optionalPrimitive = args.get(1);
-		final A_Tuple optionalLabel = args.get(2);
-		final A_Tuple statements = args.get(3);
-		final A_Tuple optionalReturnExpression = args.get(4);
-		final A_Tuple optionalReturnType = args.get(5);
-		final A_Tuple optionalExceptionTypes = args.get(6);
+		final A_Phrase optionalArgumentDeclarations = args.get(0);
+		final A_Phrase optionalPrimitive = args.get(1);
+		final A_Phrase optionalLabel = args.get(2);
+		final A_Phrase statements = args.get(3);
+		final A_Phrase optionalReturnExpression = args.get(4);
+		final A_Phrase optionalReturnType = args.get(5);
+		final A_Phrase optionalExceptionTypes = args.get(6);
 
 		final A_Map fiberGlobals = interpreter.fiber().fiberGlobals();
 		final A_Atom clientDataKey = AtomDescriptor.clientDataGlobalKey();
@@ -105,29 +108,32 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 		if (!clientData.hasKey(scopeMapKey))
 		{
 			// It looks like somebody removed all the scope information.
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION);
 		}
 		final A_Map scopeMap = clientData.mapAt(scopeMapKey);
 
 		final List<A_Phrase> allStatements = new ArrayList<>();
 
+		assert optionalArgumentDeclarations.expressionsSize() <= 1;
 		final A_Tuple argumentDeclarationPairs =
-			optionalArgumentDeclarations.tupleSize() == 0
+			optionalArgumentDeclarations.expressionsSize() == 0
 				? TupleDescriptor.empty()
-				: optionalArgumentDeclarations.tupleAt(1);
+				: optionalArgumentDeclarations.expressionAt(1)
+					.expressionsTuple();
 		// Look up the names of the arguments that were declared in the first
 		// prefix function.
 		final List<A_Phrase> argumentDeclarationsList =
 			new ArrayList<>(argumentDeclarationPairs.tupleSize());
 		{
-			for (final A_Tuple declarationPair : argumentDeclarationPairs)
+			for (final A_Phrase declarationPair : argumentDeclarationPairs)
 			{
 				final A_String declarationName =
-					declarationPair.tupleAt(1).token().string();
+					declarationPair.expressionAt(1).token().string();
 				if (!scopeMap.hasKey(declarationName))
 				{
 					// The argument binding is missing.
-					return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+					return interpreter.primitiveFailure(
+						E_INCONSISTENT_PREFIX_FUNCTION);
 				}
 				argumentDeclarationsList.add(scopeMap.mapAt(declarationName));
 			}
@@ -136,34 +142,44 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 		// Deal with the primitive declaration if present.
 		int primNumber = 0;
 		boolean canHaveStatements = true;
-		assert optionalPrimitive.tupleSize() <= 1;
+		assert optionalPrimitive.expressionsSize() <= 1;
 		@Nullable A_Type primitiveReturnType = null;
-		if (optionalPrimitive.tupleSize() != 0)
+		@Nullable Primitive primitive = null;
+		if (optionalPrimitive.expressionsSize() == 1)
 		{
-			final A_Tuple primitivePart = optionalPrimitive.tupleAt(1);
-			primNumber = primitivePart.tupleIntAt(1);
-			final Primitive primitive =
-				Primitive.byPrimitiveNumberOrNull(primNumber);
+			final A_Phrase primitivePart = optionalPrimitive.expressionAt(1);
+			primNumber = primitivePart.expressionAt(1).token()
+				.literal().literal().extractInt();
+			primitive = Primitive.byPrimitiveNumberOrNull(primNumber);
 			if (primitive == null)
 			{
-				return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED);
+				return interpreter.primitiveFailure(
+					E_INCONSISTENT_PREFIX_FUNCTION);
 			}
 			canHaveStatements = !primitive.hasFlag(CannotFail);
-			final A_Tuple optionalFailurePairs = optionalPrimitive.tupleAt(2);
-			assert optionalFailurePairs.tupleSize() <= 1;
-			if ((optionalFailurePairs.tupleSize() == 1) != canHaveStatements)
+			final A_Phrase optionalFailurePair = primitivePart.expressionAt(2);
+			assert optionalFailurePair.expressionsSize() <= 1;
+			if ((optionalFailurePair.expressionsSize() == 1)
+				!= canHaveStatements)
 			{
-				return interpreter.primitiveFailure(
-					E_PRIMITIVE_FALLIBILITY_DISAGREES_WITH_FAILURE_VARIABLE);
+				throw new AvailRejectedParseException(
+					!canHaveStatements
+						? "infallible primitive function not to have statements"
+						: "fallible primitive function to have statements");
 			}
-			if (optionalFailurePairs.tupleSize() == 1)
+			if (optionalFailurePair.expressionsSize() == 1)
 			{
+				final A_Phrase failurePair =
+					optionalFailurePair.expressionAt(1);
+				final A_Token failureToken =
+					failurePair.expressionAt(1).token();
 				final A_String failureDeclarationName =
-					optionalFailurePairs.tupleAt(1).tupleAt(1);
+					failureToken.literal().string();
 				if (!scopeMap.hasKey(failureDeclarationName))
 				{
 					// The primitive failure variable binding is missing.
-					return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+					return interpreter.primitiveFailure(
+						E_INCONSISTENT_PREFIX_FUNCTION);
 				}
 				final A_Phrase failureDeclaration =
 					scopeMap.mapAt(failureDeclarationName);
@@ -174,96 +190,127 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 
 		// Deal with the label if present.
 		@Nullable A_Type labelReturnType = null;
-		assert optionalLabel.tupleSize() <= 1;
-		if (optionalLabel.tupleSize() == 1)
+		@Nullable A_String labelDeclarationName = null;
+		assert optionalLabel.expressionsSize() <= 1;
+		if (optionalLabel.expressionsSize() == 1)
 		{
-			final A_String labelDeclarationName =
-				optionalLabel.tupleAt(1).tupleAt(1);
+			final A_Phrase presentLabel = optionalLabel.expressionAt(1);
+			final A_Token labelToken = presentLabel.expressionAt(1).token();
+			labelDeclarationName = labelToken.literal().string();
 			if (!scopeMap.hasKey(labelDeclarationName))
 			{
 				// The label binding is missing.
-				return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+				return interpreter.primitiveFailure(
+					E_INCONSISTENT_PREFIX_FUNCTION);
 			}
+			final A_Phrase optionalLabelReturnTypePhrase =
+				presentLabel.expressionAt(2);
 			final A_Phrase label = scopeMap.mapAt(labelDeclarationName);
 			allStatements.add(label);
-			labelReturnType = label.declaredType().functionType().returnType();
+			if (optionalLabelReturnTypePhrase.expressionsSize() == 1)
+			{
+				// Label's type was explicitly provided.
+				labelReturnType =
+					label.declaredType().functionType().returnType();
+			}
 		}
 
-		for (final A_Phrase statement : statements)
+		// Deal with the statements.
+		for (final A_Phrase statement : statements.expressionsTuple())
 		{
-			allStatements.add(statement);
+			allStatements.add(statement.token().literal());
 		}
-		assert optionalReturnExpression.tupleSize() <= 1;
+		assert optionalReturnExpression.expressionsSize() <= 1;
 		final A_Type deducedReturnType;
-		if (optionalReturnExpression.tupleSize() == 1)
+		if (optionalReturnExpression.expressionsSize() == 1)
 		{
+			final A_Phrase returnLiteralPhrase =
+				optionalReturnExpression.expressionAt(1);
+			assert returnLiteralPhrase.parseNodeKind().isSubkindOf(
+				LITERAL_NODE);
 			final A_Phrase returnExpression =
-				optionalReturnExpression.tupleAt(1);
+				returnLiteralPhrase.token().literal();
 			allStatements.add(returnExpression);
 			deducedReturnType = returnExpression.expressionType();
 		}
 		else
 		{
-			deducedReturnType = TOP.o();
+			if (primitive != null && primitive.hasFlag(CannotFail))
+			{
+				// An infallible primitive must have no statements.
+				deducedReturnType =
+					primitive.blockTypeRestriction().returnType();
+			}
+			else
+			{
+				deducedReturnType = TOP.o();
+			}
 		}
 
 		if (allStatements.size() > 0 && !canHaveStatements)
 		{
-			return interpreter.primitiveFailure(
-				E_INFALLIBLE_PRIMITIVE_MUST_NOT_HAVE_STATEMENTS);
+			throw new AvailRejectedParseException(
+				"infallible primitive function not to have statements");
 		}
 
 		final @Nullable A_Type declaredReturnType =
-			optionalReturnType.tupleSize() != 0
-				? optionalReturnType.tupleAt(1)
+			optionalReturnType.expressionsSize() != 0
+				? optionalReturnType.expressionAt(1).token().literal()
 				: null;
-		// Make sure the last expression's type <= the declared return type, if
-		// applicable.  Also make sure the primitive's return type <= the
+		// Make sure the last expression's type ⊆ the declared return type, if
+		// applicable.  Also make sure the primitive's return type ⊆ the
 		// declared return type.  Finally, make sure that the label's return
-		// type <= the block's effective return type.
+		// type ⊆ the block's effective return type.
 		if (declaredReturnType != null)
 		{
 			if (!deducedReturnType.isSubtypeOf(declaredReturnType))
 			{
-				return interpreter.primitiveFailure(
-					E_FINAL_EXPRESSION_SHOULD_AGREE_WITH_DECLARED_RETURN_TYPE);
+				throw new AvailRejectedParseException(
+					"final expression's type to agree with the declared "
+					+ "return type");
 			}
 			if (primitiveReturnType != null
 				&& !primitiveReturnType.isSubtypeOf(declaredReturnType))
 			{
-				return interpreter.primitiveFailure(
-					E_PRIMITIVE_SHOULD_AGREE_WITH_DECLARED_RETURN_TYPE);
+				throw new AvailRejectedParseException(
+					"primitive's intrinsic return type to agree with the "
+					+ "declared return type");
 			}
 			if (labelReturnType != null
 				&& !labelReturnType.isSubtypeOf(declaredReturnType))
 			{
-				return interpreter.primitiveFailure(
-					E_LABEL_TYPE_SHOULD_AGREE_WITH_DECLARED_RETURN_TYPE);
+				throw new AvailRejectedParseException(
+					"label's declared return type to agree with the "
+					+ "function's declared return type");
 			}
 		}
-		else
+		else if (primitiveReturnType != null)
 		{
-			if (labelReturnType != null || primitiveReturnType != null)
-			{
-				return interpreter.primitiveFailure(
-					E_RETURN_TYPE_IS_MANDATORY_WITH_PRIMITIVES_OR_LABELS);
-			}
+			// If it's a primitive, then the block must declare an explicit
+			// return type.
+			throw new AvailRejectedParseException(
+				"primitive function to declare its return type");
 		}
 		final A_Type returnType =
-			declaredReturnType != null
-				? declaredReturnType
-				: deducedReturnType;
-		final A_Set exceptionsSet =
-			optionalExceptionTypes.tupleSize() == 0
-				? SetDescriptor.empty()
-				: optionalExceptionTypes.tupleAt(1).asSet();
+			declaredReturnType != null ? declaredReturnType : deducedReturnType;
+		A_Set exceptionsSet = SetDescriptor.empty();
+		if (optionalExceptionTypes.expressionsSize() == 1)
+		{
+			for (final A_Phrase exceptionTypePhrase
+				: optionalExceptionTypes.expressionAt(1).expressionsTuple())
+			{
+				exceptionsSet = exceptionsSet.setWithElementCanDestroy(
+					exceptionTypePhrase.token().literal(), true);
+			}
+			exceptionsSet = exceptionsSet.makeImmutable();
+		}
 		final A_Phrase block = BlockNodeDescriptor.newBlockNode(
-			allStatements,
+			argumentDeclarationsList,
 			primNumber,
 			allStatements,
 			returnType,
 			exceptionsSet,
-			primNumber);
+			0); //TODO[MvG] Figure out how to get the line number information.
 		block.makeImmutable();
 		return interpreter.primitiveSuccess(block);
 	}
@@ -273,54 +320,68 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				/* Optional arguments section */
-				TupleTypeDescriptor.zeroOrOneOf(
-					/* Arguments are present */
-					TupleTypeDescriptor.oneOrMoreOf(
-						/* An argument */
-						TupleTypeDescriptor.forTypes(
-							/* Argument name */
-							LITERAL_NODE.create(TOKEN.o()),
-							/* Argument type */
-							LITERAL_NODE.create(
-								InstanceMetaDescriptor.anyMeta())))),
-				/* Optional primitive section with optional failure variable:
-				 * <<[0..65535], <primitive failure phrase |0..1> |2> |0..1>,
-				 */
-				TupleTypeDescriptor.zeroOrOneOf(
-					TupleTypeDescriptor.forTypes(
-						LITERAL_NODE.create(
-							/* Primitive number */
-							IntegerRangeTypeDescriptor.unsignedShorts()),
-						TupleTypeDescriptor.zeroOrOneOf(
-							/* The primitive failure variable is present */
+				/* Macro argument is a parse node. */
+				LIST_NODE.create(
+					/* Optional arguments section. */
+					TupleTypeDescriptor.zeroOrOneOf(
+						/* Arguments are present. */
+						TupleTypeDescriptor.oneOrMoreOf(
+							/* An argument. */
 							TupleTypeDescriptor.forTypes(
-								/* Primitive failure variable name */
-								LITERAL_NODE.create(TOKEN.o()),
-								/* Primitive failure variable type */
-								LITERAL_NODE.create(
+								/* Argument name, a token. */
+								TOKEN.o(),
+								/* Argument type. */
+								InstanceMetaDescriptor.anyMeta())))),
+				/* Macro argument is a parse node. */
+				LIST_NODE.create(
+					/* Optional primitive declaration. */
+					TupleTypeDescriptor.zeroOrOneOf(
+						/* Primitive declaration */
+						TupleTypeDescriptor.forTypes(
+							/* Primitive number. */
+							TOKEN.o(),
+							/* Optional failure variable declaration. */
+							TupleTypeDescriptor.zeroOrOneOf(
+								/* Primitive failure variable parts. */
+								TupleTypeDescriptor.forTypes(
+									/* Primitive failure variable name token */
+									TOKEN.o(),
+									/* Primitive failure variable type */
 									InstanceMetaDescriptor.anyMeta()))))),
-				/* Optional label */
-				TupleTypeDescriptor.zeroOrOneOf(
-					/* Label is present */
-					TupleTypeDescriptor.forTypes(
-						/* Label name */
-						LITERAL_NODE.create(TOKEN.o()),
-						/* Label return type */
-						LITERAL_NODE.create(InstanceMetaDescriptor.anyMeta()))),
-				/* Statements */
-				TupleTypeDescriptor.zeroOrMoreOf(
-					EXPRESSION_NODE.mostGeneralType()),
+				/* Macro argument is a parse node. */
+				LIST_NODE.create(
+					/* Optional label declaration. */
+					TupleTypeDescriptor.zeroOrOneOf(
+						/* Label parts. */
+						TupleTypeDescriptor.forTypes(
+							/* Label name */
+							TOKEN.o(),
+							/* Optional label return type. */
+							TupleTypeDescriptor.zeroOrOneOf(
+								/* Label return type. */
+								InstanceMetaDescriptor.topMeta())))),
+				/* Macro argument is a parse node. */
+				LIST_NODE.create(
+					/* Statements and declarations so far. */
+					TupleTypeDescriptor.zeroOrMoreOf(
+						/* The "_!" mechanism wrapped each statement inside a
+						 * literal phrase, so expect a phrase here instead of
+						 * TOP.o().
+						 */
+						STATEMENT_NODE.mostGeneralType())),
 				/* Optional return expression */
-				TupleTypeDescriptor.zeroOrOneOf(
-					EXPRESSION_NODE.create(ANY.o())),
+				LIST_NODE.create(
+					TupleTypeDescriptor.zeroOrOneOf(
+						PARSE_NODE.create(ANY.o()))),
 				/* Optional return type */
-				TupleTypeDescriptor.zeroOrOneOf(
-					InstanceMetaDescriptor.topMeta()),
+				LIST_NODE.create(
+					TupleTypeDescriptor.zeroOrOneOf(
+						InstanceMetaDescriptor.topMeta())),
 				/* Optional tuple of exception types */
-				TupleTypeDescriptor.zeroOrOneOf(
-					TupleTypeDescriptor.oneOrMoreOf(
-						ObjectTypeDescriptor.exceptionType()))),
+				LIST_NODE.create(
+					TupleTypeDescriptor.zeroOrOneOf(
+						TupleTypeDescriptor.oneOrMoreOf(
+							ObjectTypeDescriptor.exceptionType())))),
 			BLOCK_NODE.mostGeneralType());
 	}
 
@@ -329,14 +390,8 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			TupleDescriptor.from(
-				E_OPERATION_NOT_SUPPORTED.numericCode(),
 				E_LOADING_IS_OVER.numericCode(),
-				E_PRIMITIVE_FALLIBILITY_DISAGREES_WITH_FAILURE_VARIABLE.numericCode(),
-				E_INFALLIBLE_PRIMITIVE_MUST_NOT_HAVE_STATEMENTS.numericCode(),
-				E_FINAL_EXPRESSION_SHOULD_AGREE_WITH_DECLARED_RETURN_TYPE.numericCode(),
-				E_PRIMITIVE_SHOULD_AGREE_WITH_DECLARED_RETURN_TYPE.numericCode(),
-				E_LABEL_TYPE_SHOULD_AGREE_WITH_DECLARED_RETURN_TYPE.numericCode(),
-				E_RETURN_TYPE_IS_MANDATORY_WITH_PRIMITIVES_OR_LABELS.numericCode()
+				E_INCONSISTENT_PREFIX_FUNCTION.numericCode()
 			).asSet());
 	}
 }

@@ -500,14 +500,21 @@ extends Descriptor
 	 * the {@link MethodDescriptor#vmCrashAtom}'s bundle with a tuple of passed
 	 * arguments followed by the primitive failure value.
 	 *
-	 * @param primitive The {@link Primitive} to use.
+	 * @param primitive
+	 *        The {@link Primitive} to use.
+	 * @param module
+	 *        The {@link A_Module module} making this primitive function.
+	 * @param lineNumber
+	 *        The line number on which the new function should be said to occur.
 	 * @return A function.
 	 */
-	public static A_Function newPrimitiveFunction (final Primitive primitive)
+	public static A_Function newPrimitiveFunction (
+		final Primitive primitive,
+		final A_Module module,
+		final int lineNumber)
 	{
 		final L1InstructionWriter writer = new L1InstructionWriter(
-			NilDescriptor.nil(),
-			0);
+			module, lineNumber);
 		writer.primitiveNumber(primitive.primitiveNumber);
 		final A_Type functionType = primitive.blockTypeRestriction();
 		final A_Type argsTupleType = functionType.argsTupleType();

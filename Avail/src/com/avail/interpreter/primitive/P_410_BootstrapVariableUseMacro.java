@@ -67,6 +67,11 @@ public final class P_410_BootstrapVariableUseMacro extends Primitive
 		assert args.size() == 1;
 		final A_Phrase variableNameLiteral = args.get(0);
 
+		final @Nullable AvailLoader loader = interpreter.fiber().availLoader();
+		if (loader == null)
+		{
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
 		assert variableNameLiteral.isInstanceOf(LITERAL_NODE.mostGeneralType());
 		final A_Token literalToken = variableNameLiteral.token();
 		assert literalToken.tokenType() == TokenType.SYNTHETIC_LITERAL;
@@ -75,7 +80,7 @@ public final class P_410_BootstrapVariableUseMacro extends Primitive
 		if (actualToken.tokenType() != TokenType.KEYWORD)
 		{
 			throw new AvailRejectedParseException(
-				"variable name to be a keyword token");
+				"variable to be alphanumeric");
 		}
 		final A_String variableNameString = actualToken.string();
 		final A_Map fiberGlobals = interpreter.fiber().fiberGlobals();
@@ -93,11 +98,6 @@ public final class P_410_BootstrapVariableUseMacro extends Primitive
 		}
 		// Not in a block scope. See if it's a module variable or module
 		// constant...
-		final @Nullable AvailLoader loader = interpreter.fiber().availLoader();
-		if (loader == null)
-		{
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
-		}
 		final A_Module module = loader.module();
 		if (module.variableBindings().hasKey(variableNameString))
 		{
@@ -117,9 +117,7 @@ public final class P_410_BootstrapVariableUseMacro extends Primitive
 		if (!module.constantBindings().hasKey(variableNameString))
 		{
 			throw new AvailRejectedParseException(
-				"variable "
-				+ variableNameString.toString()
-				+ " to be in scope");
+				"variable to be in scope");
 		}
 		final A_BasicObject variableObject =
 			module.constantBindings().mapAt(variableNameString);

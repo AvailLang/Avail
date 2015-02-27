@@ -38,6 +38,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.*;
 
 /**
@@ -66,6 +67,13 @@ public final class P_405_BootstrapVariableDeclarationMacro extends Primitive
 		final A_Phrase variableNameLiteral = args.get(0);
 		final A_Phrase typeLiteral = args.get(1);
 
+		final A_Token name = variableNameLiteral.token().literal();
+		if (name.tokenType() != TokenType.KEYWORD)
+		{
+			throw new AvailRejectedParseException(
+				"new variable name to be alphanumeric, not %s",
+				name);
+		}
 		final A_Type type = typeLiteral.token().literal();
 		if (type.isTop() || type.isBottom())
 		{
@@ -73,9 +81,7 @@ public final class P_405_BootstrapVariableDeclarationMacro extends Primitive
 				"variable's declared type to be something other than " + type);
 		}
 		final A_Phrase variableDeclaration =
-			DeclarationNodeDescriptor.newVariable(
-				variableNameLiteral.token().literal(), // contains another token
-				type);
+			DeclarationNodeDescriptor.newVariable(name, type);
 		variableDeclaration.makeImmutable();
 		return interpreter.primitiveSuccess(variableDeclaration);
 	}
@@ -85,10 +91,14 @@ public final class P_405_BootstrapVariableDeclarationMacro extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				/* Variable name token */
-				LITERAL_NODE.create(TOKEN.o()),
-				/* Variable type */
-				InstanceMetaDescriptor.anyMeta()),
+				/* Variable name phrase. */
+				LITERAL_NODE.create(
+					/* The variable name. */
+					TOKEN.o()),
+				/* Variable type phrase. */
+				LITERAL_NODE.create(
+					/* The variable type. */
+					InstanceMetaDescriptor.anyMeta())),
 			LOCAL_VARIABLE_NODE.mostGeneralType());
 	}
 }

@@ -108,7 +108,8 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final A_Phrase aParseNode)
 	{
-		return object.kind().equals(aParseNode.kind())
+		return !aParseNode.isMacroSubstitutionNode()
+			&& object.kind().equals(aParseNode.kind())
 			&& object.markerValue().equals(aParseNode.markerValue());
 	}
 

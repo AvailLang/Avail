@@ -53,6 +53,7 @@ import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.utility.Generator;
 
 /**
  * <strong>Primitive 450</strong>: Create a directory with the indicated name
@@ -124,9 +125,16 @@ extends Primitive
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priorityInt,
-			StringDescriptor.format(
-				"Asynchronous create directory (prim 450), %s",
-				path));
+			new Generator<A_String>()
+			{
+				@Override
+				public A_String value ()
+				{
+					return StringDescriptor.format(
+						"Asynchronous create directory (prim 450), %s",
+						path);
+				}
+			});
 		newFiber.availLoader(current.availLoader());
 		newFiber.heritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared());

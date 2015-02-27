@@ -48,7 +48,8 @@ Uses
 Names
 	"{«_→_‡,»}",
 	"$…",
-	"¢…"
+	"$…#",
+	"¢…!"
 Body
 
 Method "`|_`|" is stable at
@@ -318,13 +319,13 @@ Semantic restriction "⎡_⎤" is
 ];
 
 /**
- * Construct an atom literal from an arbitrary token. The atom is obtained via
+ * Construct an atom literal from a keyword token. The atom is obtained via
  * {@method "atom for_"}, i.e., it is looked up using in the current module's 
  * context. The name of the atom is provided by the argument's lexeme.
  * 
  * @method "$…"
  * @param "aToken" "token"
- *        An arbitrary token.
+ *        An arbitrary keyword token.
  * @returns "atom"
  *          An atom.
  * @category "Atoms" "Constructors"
@@ -335,28 +336,6 @@ Public method "$…" is
 |
 	atom for aToken's lexeme
 ] : atom;
-
-/**
- * Construct an atom literal from an arbitrary token. The atom is obtained via
- * {@method "atom for_"}, i.e., it is looked up using in the current module's 
- * context. If the token is a string literal, then use its value instead of its 
- * lexeme for the name of the atom.
- * 
- * @method "$…"
- * @param "aToken" "literal token"
- *        An arbitrary literal token.
- * @returns "atom"
- *          An atom.
- * @category "Atoms" "Constructors"
- */
-Public method "$…" is
-[
-	aToken : literal token
-|
-	atom for
-		cast aToken's value into [ value : string | value ]
-		else [ aToken's lexeme ]
-];
 
 /**
  * Furnish the exact atom. When the semantic restriction is run, the atom will
@@ -372,75 +351,90 @@ Semantic restriction "$…" is
 |
 	Assert: |tokenType| = 1 ("token must be statically known");
 	instance ::= tokenType's instance;
-	value ::=
-		cast instance into
-		[
-			literalToken : literal token
-		|
-			cast literalToken's value into [ t : string | t ]
-			else [ instance's lexeme ]
-		]
-		else
-		[
-			instance's lexeme
-		];
+	value ::= instance's lexeme;
 	(atom for value)'s type
 ];
 
 /**
- * Construct a character literal from an arbitrary token.
+ * Construct an atom literal from a string literal token. The atom is obtained
+ * via {@method "atom for_"}, i.e., it is looked up in the current module's
+ * context. If the token is a string literal, then use its value instead of its 
+ * lexeme for the name of the atom.
  * 
- * @method "¢…"
+ * @method "$…#"
+ * @param "aToken" "literal token⇒string"
+ *        An arbitrary literal token.
+ * @returns "atom"
+ *          An atom.
+ * @category "Atoms" "Constructors"
+ */
+Public method "$…#" is
+[
+	aToken : literal token⇒string
+|
+	atom for aToken's value
+];
+
+/**
+ * Furnish the exact atom. When the semantic restriction is run, the atom will
+ * be introduced into the current module (if it isn't already present). When the
+ * method actually runs, it will find the same atom.
+ * 
+ * @method "$…#"
+ * @restricts "(literal token⇒string)'s type"
+ */
+Semantic restriction "$…#" is
+[
+	tokenType : (literal token⇒string)'s type
+|
+	Assert: |tokenType| = 1 ("token must be statically known");
+	literalToken ::= tokenType's instance;
+	value ::= literalToken's value;
+	(atom for value)'s type
+];
+
+/**
+ * Construct a character literal from an arbitrary one-character token.
+ * 
+ * @method "¢…!"
  * @param "aToken" "token"
  *        An arbitary token.
  * @returns "character"
  *          A character.
  * @category "Unicode" "Constructors"
  */
-Public method "¢…" is
+Public method "¢…!" is
 [
 	aToken : token
 |
-	lexeme ::= aToken's lexeme;
-	lexeme[1]
+	aToken's lexeme[1]
 ];
 
 /**
- * Construct a character literal from an arbitrary literal token. If the token
- * is a string literal, then use its value instead of its lexeme. This allows
- * capture of characters like space and double quote (").
+ * Construct a character literal from a literal string token of length one.
+ * This allows capture of characters like space and double quote (").
  * 
- * @method "¢…"
- * @param "aToken" "literal token"
- *        An arbitrary literal token.
+ * @method "¢…!"
+ * @param "aToken" "literal token⇒<character…|1>"
+ *        A literal token yielding a string of length one.
  * @returns "character"
  *          A character.
  * @category "Unicode" "Constructors"
  */
-Public method "¢…" is
+Public method "¢…!" is
 [
-	aToken : literal token
+	aToken : literal token⇒<<>, character…|1's type>
 |
-	cast aToken's value into
-	[
-		value : string
-	|
-		value[1]
-	]
-	else
-	[
-		lexeme ::= aToken's lexeme;
-		lexeme[1]
-	]
+	aToken's value[1]
 ];
 
 /**
  * Enforce that a character literal contains only a single character.
  * 
- * @method "¢…"
+ * @method "¢…!"
  * @restricts "token's type"
  */
-Semantic restriction "¢…" is
+Semantic restriction "¢…!" is
 [
 	tokenType : token's type
 |

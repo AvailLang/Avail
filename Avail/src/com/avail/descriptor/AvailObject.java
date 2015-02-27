@@ -58,6 +58,7 @@ import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.serialization.*;
+import com.avail.utility.Generator;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
@@ -4518,7 +4519,10 @@ implements
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Extract the expression from the {@linkplain
+	 * ParseNodeKind#ASSIGNMENT_NODE assignment phrase} or {@linkplain
+	 * ParseNodeKind#EXPRESSION_AS_STATEMENT_NODE expression-as-statement
+	 * phrase}.
 	 */
 	@Override
 	public A_Phrase expression ()
@@ -4807,7 +4811,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public AvailObject outputParseNode ()
+	public A_Phrase outputParseNode ()
 	{
 		return descriptor.o_OutputParseNode(this);
 	}
@@ -6226,7 +6230,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public AvailObject stripMacro ()
+	public A_Phrase stripMacro ()
 	{
 		return descriptor.o_StripMacro(this);
 	}
@@ -6663,12 +6667,12 @@ implements
 	}
 
 	/**
-	 * @param value
+	 * @param generator
 	 */
 	@Override
-	public void fiberName (final A_String value)
+	public void fiberNameGenerator (final Generator<A_String> generator)
 	{
-		descriptor.o_FiberName(this, value);
+		descriptor.o_FiberNameGenerator(this, generator);
 	}
 
 	@Override
@@ -7074,12 +7078,6 @@ implements
 	}
 
 	@Override
-	public int listSize ()
-	{
-		return descriptor.o_ListSize(this);
-	}
-
-	@Override
 	public A_Type typeForLookup ()
 	{
 		return descriptor.o_TypeForLookup(this);
@@ -7117,5 +7115,44 @@ implements
 	{
 		descriptor.o_ModuleAddPrefixFunction(
 			this, method, index, prefixFunction);
+	}
+
+	@Override
+	public A_Definition lookupMacroByPhraseTuple (
+		final A_Tuple argumentPhraseTuple,
+		final MutableOrNull<AvailErrorCode> errorCode)
+	{
+		return descriptor.o_LookupMacroByPhraseTuple(
+			this, argumentPhraseTuple, errorCode);
+	}
+
+	@Override
+	public LookupTree macroTestingTree ()
+	{
+		return descriptor.o_MacroTestingTree(this);
+	}
+
+	@Override
+	public A_Phrase expressionAt (final int index)
+	{
+		return descriptor.o_ExpressionAt(this, index);
+	}
+
+	@Override
+	public int expressionsSize ()
+	{
+		return descriptor.o_ExpressionsSize(this);
+	}
+
+	@Override
+	public int parsingPc ()
+	{
+		return descriptor.o_ParsingPc(this);
+	}
+
+	@Override
+	public boolean isMacroSubstitutionNode ()
+	{
+		return descriptor.o_IsMacroSubstitutionNode(this);
 	}
 }

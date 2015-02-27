@@ -34,9 +34,12 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.MessageBundleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.MessageSplitter;
+import com.avail.compiler.ParsingOperation;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -115,6 +118,87 @@ extends Descriptor
 		 * of the complete instruction set.
 		 */
 		PARSING_INSTRUCTIONS;
+	}
+
+	/**
+	 * Used for describing logical aspects of the bundle in the Eclipse
+	 * debugger.
+	 */
+	public static enum FakeSlots
+	implements ObjectSlotsEnum
+	{
+		/** Used for showing the parsing instructions symbolically. */
+		SYMBOLIC_INSTRUCTIONS;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Show the types of local variables and outer variables.
+	 */
+	@Override
+	AvailObjectFieldHelper[] o_DescribeForDebugger (
+		final AvailObject object)
+	{
+		final List<AvailObjectFieldHelper> fields = new ArrayList<>();
+		fields.addAll(Arrays.asList(super.o_DescribeForDebugger(object)));
+
+		A_Tuple descriptionsTuple;
+		try
+		{
+			final MessageSplitter splitter =
+				new MessageSplitter(object.message().atomName());
+			final A_Tuple instructionsTuple = splitter.instructionsTuple();
+			final List<A_String> descriptionsList = new ArrayList<>();
+			for (
+				int i = 1, end = instructionsTuple.tupleSize();
+				i <= end;
+				i++)
+			{
+				final int encodedInstruction = instructionsTuple.tupleIntAt(i);
+				final ParsingOperation operation =
+					ParsingOperation.decode(encodedInstruction);
+				final int operand = operation.operand(encodedInstruction);
+				final StringBuilder builder = new StringBuilder();
+				builder.append(i);
+				builder.append(". ");
+				builder.append(operation.name());
+				if (operand > 0)
+				{
+					builder.append(" (");
+					builder.append(operand);
+					builder.append(")");
+					switch (operation)
+					{
+						case PARSE_PART:
+						case PARSE_PART_CASE_INSENSITIVELY:
+						{
+							builder.append(" P=<");
+							builder.append(
+								object.messageParts().tupleAt(operand)
+									.asNativeString());
+							builder.append(">");
+							break;
+						}
+						default:
+							// Do nothing.
+					}
+				}
+				descriptionsList.add(StringDescriptor.from(builder.toString()));
+			}
+			descriptionsTuple = TupleDescriptor.fromList(descriptionsList);
+		}
+		catch (final MalformedMessageException e)
+		{
+			descriptionsTuple = StringDescriptor.format(
+				"Problem splitting bundle: %s", e.errorCode());
+		}
+		fields.add(new AvailObjectFieldHelper(
+			object,
+			FakeSlots.SYMBOLIC_INSTRUCTIONS,
+			-1,
+			descriptionsTuple));
+		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (

@@ -32,15 +32,19 @@
 
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
+import static com.avail.interpreter.Primitive.Flag.Bootstrap;
+import java.util.Arrays;
+import java.util.List;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.exceptions.AvailErrorCode;
-import com.avail.interpreter.*;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 
 /**
  * The {@code P_400_BootstrapPrefixBlockArgument} primitive is used as a prefix
@@ -65,10 +69,7 @@ public final class P_400_BootstrapPrefixBlockArgument extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_Phrase blockArgumentsPhrase = args.get(0);
-
-		final A_Tuple allBlockArguments =
-			blockArgumentsPhrase.expressionsTuple();
+		final A_Phrase optionalBlockArgumentsList = args.get(0);
 
 		final AvailLoader loader = interpreter.fiber().availLoader();
 		if (loader == null)
@@ -76,16 +77,26 @@ public final class P_400_BootstrapPrefixBlockArgument extends Primitive
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
 
-		final A_Tuple latestBlockArgument =
-			allBlockArguments.tupleAt(allBlockArguments.tupleSize());
-		assert latestBlockArgument.tupleSize() == 2;
-		final A_Phrase labelPhrase = latestBlockArgument.tupleAt(1);
-		final A_Phrase typePhrase = latestBlockArgument.tupleAt(2);
+		assert optionalBlockArgumentsList.expressionsSize() == 1;
+		final A_Phrase blockArgumentsList =
+			optionalBlockArgumentsList.expressionAt(1);
+		assert blockArgumentsList.expressionsSize() >= 1;
+		final A_Phrase lastPair = blockArgumentsList.expressionAt(
+			blockArgumentsList.expressionsSize());
+		assert lastPair.expressionsSize() == 2;
+		final A_Phrase namePhrase = lastPair.expressionAt(1);
+		final A_Phrase typePhrase = lastPair.expressionAt(2);
 
-		assert labelPhrase.isInstanceOfKind(LITERAL_NODE.create(TOKEN.o()));
+		assert namePhrase.isInstanceOfKind(LITERAL_NODE.create(TOKEN.o()));
 		assert typePhrase.isInstanceOfKind(
 			LITERAL_NODE.create(InstanceMetaDescriptor.anyMeta()));
-		final A_Token argToken = labelPhrase.token();
+		final A_Token outerArgToken = namePhrase.token();
+		final A_Token argToken = outerArgToken.literal();
+		if (argToken.tokenType() != TokenType.KEYWORD)
+		{
+			throw new AvailRejectedParseException(
+				"argument name to be alphanumeric");
+		}
 		final A_Type argType = typePhrase.token().literal();
 		assert argType.isType();
 		if (argType.isBottom())
@@ -100,6 +111,13 @@ public final class P_400_BootstrapPrefixBlockArgument extends Primitive
 		final AvailErrorCode error = loader.addDeclaration(argDeclaration);
 		if (error != null)
 		{
+			if (error == E_LOCAL_DECLARATION_SHADOWS_ANOTHER)
+			{
+				throw new AvailRejectedParseException(
+					"argument %s to have a name that doesn't shadow another"
+					+ " local declaration",
+					argToken.string());
+			}
 			return interpreter.primitiveFailure(error);
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
@@ -118,20 +136,10 @@ public final class P_400_BootstrapPrefixBlockArgument extends Primitive
 						TupleTypeDescriptor.oneOrMoreOf(
 							/* An argument. */
 							TupleTypeDescriptor.forTypes(
-								/* Argument name, a literal node holding a
-								 * synthetic token holding the real token.
-								 */
-								LITERAL_NODE.create(
-									/* The outer synthetic literal token. */
-									LiteralTokenTypeDescriptor.create(
-										/* Inner original token. */
-										TOKEN.o())),
+								/* Argument name, a token. */
+								TOKEN.o(),
 								/* Argument type. */
-								LITERAL_NODE.create(
-									/* The synthetic literal token. */
-									LiteralTokenTypeDescriptor.create(
-										/* Holding the type. */
-										InstanceMetaDescriptor.anyMeta()))))))),
+								InstanceMetaDescriptor.anyMeta()))))),
 			TOP.o());
 	}
 

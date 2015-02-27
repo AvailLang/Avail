@@ -290,6 +290,12 @@ extends Descriptor
 		final AvailObject object,
 		final Continuation1<A_Phrase> aBlock);
 
+	@Override
+	boolean o_IsMacroSubstitutionNode (final AvailObject object)
+	{
+		return false;
+	}
+
 	/**
 	 * Validate this node, throwing an exception if there is a problem.
 	 *
@@ -332,7 +338,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_StripMacro (final AvailObject object)
+	A_Phrase o_StripMacro (final AvailObject object)
 	{
 		return object;
 	}

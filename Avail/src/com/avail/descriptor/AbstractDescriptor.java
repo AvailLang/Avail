@@ -67,6 +67,7 @@ import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.Generator;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
@@ -4297,7 +4298,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_OutputParseNode (
+	abstract A_Phrase o_OutputParseNode (
 		AvailObject object);
 
 	/**
@@ -5371,7 +5372,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_StripMacro (
+	abstract A_Phrase o_StripMacro (
 		final AvailObject object);
 
 	/**
@@ -5686,9 +5687,11 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
+	 * @param generator
 	 */
-	abstract void o_FiberName (AvailObject object, A_String value);
+	abstract void o_FiberNameGenerator (
+		AvailObject object,
+		Generator<A_String> generator);
 
 	/**
 	 * @param object
@@ -6129,12 +6132,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract int o_ListSize (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	abstract A_Type o_TypeForLookup (AvailObject object);
 
 	/**
@@ -6184,4 +6181,46 @@ public abstract class AbstractDescriptor
 		A_Method method,
 		int index,
 		A_Function prefixFunction);
+
+	/**
+	 * @param object
+	 * @param argumentPhraseTuple
+	 * @param errorCode
+	 * @return
+	 */
+	abstract A_Definition o_LookupMacroByPhraseTuple (
+		AvailObject object,
+		A_Tuple argumentPhraseTuple,
+		MutableOrNull<AvailErrorCode> errorCode);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract LookupTree o_MacroTestingTree (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	abstract A_Phrase o_ExpressionAt (AvailObject object, int index);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract int o_ExpressionsSize (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract int o_ParsingPc (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsMacroSubstitutionNode (AvailObject object);
 }

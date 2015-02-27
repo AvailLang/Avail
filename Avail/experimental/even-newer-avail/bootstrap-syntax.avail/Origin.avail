@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Experimental Module "Origin"
+Module "Origin"
 Pragma
 	"method=253=Primitive_is_",
 	"method=240=special object_",
@@ -68,21 +68,20 @@ Pragma
 	 */
 	"macro=400,401,402,403,404=\
 		\|[\
-			\|««…:_†§‡,»`|»\
-			\|«Primitive_«(…:_†)§»;»\
-			\|«$…:_†§»\
-			\|«_§»\
-			\|«_»\
+			\|««…:_†§‡,»`|»?\
+			\|«Primitive…#«(…:_†)»?§;»?\
+			\|«$…«:_†»?;§»?\
+			\|«_!§»\
+			\|«_!»?\
 		\|]\
-		\|«:_†»\
-		\|«^«_†‡,»»",
+		\|«:_†»?\
+		\|«^«_†‡,»»?",
 	"macro=405=…:_†;",     /* variable declaration */
 	"macro=406=…::=_;",    /* constant declaration */
 	"macro=407=…:_†:=_;",  /* initializing variable declaration */
-	"macro=408=_:=_;",     /* assignment */
-	"macro=409=↑_",        /* variable reference */
+	"macro=408=…:=_;",     /* assignment */
 	"macro=410=…",         /* variable use */
-	"macro=411=_;",        /* send as statement */
+	"macro=411=_!;",       /* send as statement */
 	"macro=412=(_::_†)"    /* super-cast */
 
 Versions
@@ -91,23 +90,21 @@ Uses
 Names
 	"Primitive_is_",
 	"special object_",
-	
 	"\
 		\|[\
-			\|««…:_†§‡,»`|»\
-			\|«Primitive_«(…:_†)§»;»\
-			\|«$…:_†§»\
-			\|«_§»\
-			\|«_»\
+			\|««…:_†§‡,»`|»?\
+			\|«Primitive…#«(…:_†)»?§;»?\
+			\|«$…«:_†»?;§»?\
+			\|«_!§»\
+			\|«_!»?\
 		\|]\
-		\|«:_†»\
-		\|«^«_†‡,»»",
+		\|«:_†»?\
+		\|«^«_†‡,»»?",
 	"…:_†;",     /* variable declaration */
 	"…::=_;",    /* constant declaration */
 	"…:_†:=_;",  /* initializing variable declaration */
-	"_:=_;",     /* assignment */
-	"↑_",        /* variable reference */
+	"…:=_;",     /* assignment */
 	"…",         /* variable use */
-	"_;"         /* send as statement */
+	"_!;"        /* send as statement */
 
 Body

@@ -37,6 +37,10 @@ Uses
 	"Avail",
 	"Dimensional Analysis" = (-"point", -"p", …)
 Extends
+	"Avail" =
+	(
+		"_!;"
+	),
 	"Dimensional Analysis" = ("__")
 Names
 	/* Points. */

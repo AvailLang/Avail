@@ -34,7 +34,33 @@ Module "Dice Restrictions"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
-	"Avail" = ("<«_‡,»>", "{«_‡,»}", "Grammatical restriction_is_", "_(«_‡,»)"),
+	"Avail" =
+	(
+		/* Core Avail Syntax */
+		"\
+			\|[\
+				\|««…:_†§‡,»`|»?\
+				\|«Primitive…#«(…:_†)»?§;»?\
+				\|«$…«:_†»?;§»?\
+				\|«_!§»\
+				\|«_!»?\
+			\|]\
+			\|«:_†»?\
+			\|«^«_†‡,»»?",
+		"…:_†;",
+		"…::=_;",
+		"…:_†:=_;",
+		"…:=_;",
+		"…",
+		"_!;",
+		"(_::_†)",
+
+		/* Methods */
+		"<«_‡,»>",
+		"{«_‡,»}",
+		"Grammatical restriction_is_",
+		"_(«_‡,»)"
+	),
 	"Die" = ("_d|D_"),
 	"Expressions"
 Body

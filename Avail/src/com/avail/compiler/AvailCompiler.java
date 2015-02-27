@@ -35,12 +35,13 @@ package com.avail.compiler;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import com.avail.annotations.Nullable;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.problems.ProblemHandler;
 import com.avail.compiler.scanning.AvailScannerResult;
 import com.avail.descriptor.*;
-import com.avail.interpreter.Interpreter;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.io.TextInterface;
 import com.avail.utility.evaluation.*;
 
@@ -110,6 +111,9 @@ extends AbstractAvailCompiler
 		final Con<A_Phrase> continuation,
 		final Continuation0 afterFail)
 	{
+		// If a parsing error happens during parsing of this outermost
+		// statement, only show the section of the file starting here.
+		firstRelevantTokenOfSection = tokens.get(start.position);
 		tryIfUnambiguousThen(
 			start,
 			new Con<Con<A_Phrase>>("Detect ambiguity")
@@ -128,24 +132,20 @@ extends AbstractAvailCompiler
 								final ParserState afterExpression,
 								final A_Phrase expression)
 							{
-								if (expression.hasSuperCast())
+								final ParseNodeKind parseNodeKind =
+									expression.parseNodeKind();
+								if (!parseNodeKind.isSubkindOf(STATEMENT_NODE))
 								{
 									afterExpression.expected(
-										"an outer level statement, "
-										+ "not a supercast");
-									return;
+										"an outer level statement, not "
+										+ parseNodeKind.name()
+										+ "(" + expression + ")");
 								}
-								if (expression.expressionType().isTop())
+								else
 								{
 									whenFoundStatement.value(
 										afterExpression,
 										expression);
-								}
-								else
-								{
-									afterExpression.expected(
-										"outer level statement "
-										+ "to have top type");
 								}
 							}
 						});
@@ -160,21 +160,21 @@ extends AbstractAvailCompiler
 		final ParserState start,
 		final Con<A_Phrase> continuation)
 	{
-		final Con<A_Phrase> newContinuation =
-			new Con<A_Phrase>("Optional leading argument send")
+		final Con<A_Phrase> newContinuation = new Con<A_Phrase>(
+			"Optional leading argument send")
+		{
+			@Override
+			public void valueNotNull (
+				final ParserState afterSubexpression,
+				final A_Phrase subexpression)
 			{
-				@Override
-				public void valueNotNull (
-					final ParserState afterSubexpression,
-					final A_Phrase subexpression)
-				{
-					parseOptionalLeadingArgumentSendAfterThen(
-						start,
-						afterSubexpression,
-						subexpression,
-						continuation);
-				}
-			};
+				parseOptionalLeadingArgumentSendAfterThen(
+					start,
+					afterSubexpression,
+					subexpression,
+					continuation);
+			}
+		};
 		parseLeadingKeywordSendThen(start, newContinuation);
 		parseSimpleThen(start, newContinuation);
 	}
@@ -185,135 +185,95 @@ extends AbstractAvailCompiler
 		final ParserState stateAfterCall,
 		final A_Phrase argumentsListNode,
 		final A_Bundle bundle,
+		final A_Definition macroDefinitionToInvoke,
 		final Con<A_Phrase> continuation)
 	{
-		final A_Method method = bundle.bundleMethod();
-		final A_Tuple definitions = method.definitionsTuple();
-		assert definitions.tupleSize() == 1;
-		final A_Definition macroDefinition = definitions.tupleAt(1);
-		final A_Function macroBody = macroDefinition.bodyBlock();
+		final A_Function macroBody = macroDefinitionToInvoke.bodyBlock();
 		final A_Type macroBodyKind = macroBody.kind();
 		final A_Tuple argumentsTuple = argumentsListNode.expressionsTuple();
 		final int argCount = argumentsTuple.tupleSize();
 		// Strip off macro substitution wrappers from the arguments.  These
 		// were preserved only long enough to test grammatical restrictions.
 		final List<A_Phrase> argumentsList = new ArrayList<>(argCount);
-		for (final A_Phrase argument : argumentsList)
+		for (final A_Phrase argument : argumentsTuple)
 		{
 			argumentsList.add(argument.stripMacro());
 		}
+		if (argumentsList.size() == 7)
+		{
+			if (argumentsList.get(4).expressionsSize() > 1)
+			{
+				// TODO [MvG] Remove debug
+				System.out.println("Found one.");
+			}
+		}
 		if (!macroBodyKind.acceptsListOfArgValues(argumentsList))
 		{
-			stateAfterCall.expected(new Describer()
-			{
-				@Override
-				public void describeThen (
-					final @Nullable Continuation1<String> c)
-				{
-					assert c != null;
-					final List<Integer> disagreements = new ArrayList<>();
-					for (int i = 1; i <= macroBody.code().numArgs(); i++)
-					{
-						final A_Type type =
-							macroBodyKind.argsTupleType().typeAtIndex(i);
-						final A_Phrase value = argumentsList.get(i - 1);
-						if (!value.isInstanceOf(type))
-						{
-							disagreements.add(i);
-						}
-					}
-					assert disagreements.size() > 0;
-					final List<A_BasicObject> values =
-						new ArrayList<A_BasicObject>(argumentsList);
-					values.add(macroBodyKind);
-					Interpreter.stringifyThen(
-						runtime,
-						textInterface,
-						values,
-						new Continuation1<List<String>>()
-						{
-							@Override
-							public void value (
-								final @Nullable List<String> list)
-							{
-								assert list != null;
-								final int size = list.size();
-								c.value(String.format(
-									"macro arguments %s to agree with "
-									+ "definition:%n"
-									+ "\tmacro = %s%n"
-									+ "\texpected = %s%n"
-									+ "\targuments = %s%n",
-									disagreements,
-									bundle.message().atomName(),
-									list.get(size - 1),
-									list.subList(0, size - 1)));
-							}
-						});
-				}
-			});
+			// TODO [MvG] Remove debug
+			System.out.println(
+				String.format(
+					"Macro signature failure:\n\twanted:%s\n\tgot:%s",
+					macroBodyKind,
+					argumentsTuple));
+//			stateAfterCall.expected("different argument types for macro");
 			return;
 		}
-		// Declarations introduced in the macro should now be moved
-		// out of scope.
-		// TODO: [MvG] Use a fiber to store the parser state.
-		final ParserState reportedStateDuringValidation = new ParserState(
-			stateAfterCall.position - 1,
-			stateBeforeCall.clientDataMap);
-		final ParserState stateAfter = new ParserState(
-			stateAfterCall.position,
-			stateBeforeCall.clientDataMap);
-		// A macro can't have semantic restrictions, so just run it.
-		evaluateFunctionThen(
-			macroBody,
+		startWorkUnit();
+		final AtomicBoolean hasRunEither = new AtomicBoolean(false);
+		evaluateMacroFunctionThen(
+			macroDefinitionToInvoke,
 			argumentsList,
-			false,
-			new Continuation1<AvailObject>()
-			{
-				@Override
-				public void value (final @Nullable AvailObject replacement)
+			stateAfterCall.clientDataMap,
+			workUnitCompletion(
+				stateAfterCall.peekToken(),
+				hasRunEither,
+				new Continuation1<AvailObject>()
 				{
-					assert replacement != null;
-					if (replacement.isInstanceOfKind(
-						PARSE_NODE.mostGeneralType()))
+					@Override
+					public void value (final @Nullable AvailObject replacement)
 					{
+						assert replacement != null;
+						assert replacement.isInstanceOfKind(
+							PARSE_NODE.mostGeneralType());
 						final A_Phrase substitution =
 							MacroSubstitutionNodeDescriptor.fromNameAndNode(
 								bundle.message(),
 								replacement);
+						// Declarations introduced inside the macro should be
+						// removed from the scope (at the parse position after
+						// the macro body runs).  Strip all client data, in
+						// fact, to make the default mechanisms nested.
+						final ParserState stateAfter = new ParserState(
+							stateAfterCall.position,
+							stateBeforeCall.clientDataMap);
 						attempt(stateAfter, continuation, substitution);
 					}
-					else
-					{
-						stateAfterCall.expected(
-							"macro body ("
-							+ bundle.message().atomName()
-							+ ") to produce a parse node");
-					}
-				}
-			},
-			new Continuation1<Throwable>()
-			{
-				@Override
-				public void value (final @Nullable Throwable e)
+				}),
+			workUnitCompletion(
+				stateAfterCall.peekToken(),
+				hasRunEither,
+				new Continuation1<Throwable>()
 				{
-					assert e != null;
-					if (e instanceof AvailRejectedParseException)
+					@Override
+					public void value (final @Nullable Throwable e)
 					{
-						final AvailRejectedParseException rej =
-							(AvailRejectedParseException) e;
-						stateAfterCall.expected(
-							rej.rejectionString().asNativeString());
+						assert e != null;
+						if (e instanceof AvailRejectedParseException)
+						{
+							final AvailRejectedParseException rej =
+								(AvailRejectedParseException) e;
+							stateAfterCall.expected(
+								rej.rejectionString().asNativeString());
+						}
+						else
+						{
+							stateAfterCall.expected(
+								"evaluation of macro body not to raise an "
+								+ "unhandled exception:\n\t"
+								+ e);
+						}
 					}
-					else
-					{
-						stateAfterCall.expected(
-							"evaluation of macro body not to raise an "
-							+ "unhandled exception:\n\t"
-							+ e);
-					}
-				}
-			});
+				}));
 	}
 
 	/**

@@ -39,7 +39,6 @@ Extends
 		"Assert:_",
 		"Assert:_(_)",
 		"Shouldn't happen",
-		"Static assert:_†",
 		"assertion-failed exception"
 	),
 	"Atoms" =
@@ -62,6 +61,26 @@ Extends
 	),
 	"Bootstrap" =
 	(
+		/* Core Avail Syntax */
+		"\
+			\|[\
+				\|««…:_†§‡,»`|»?\
+				\|«Primitive…#«(…:_†)»?§;»?\
+				\|«$…«:_†»?;§»?\
+				\|«_!§»\
+				\|«_!»?\
+			\|]\
+			\|«:_†»?\
+			\|«^«_†‡,»»?",
+		"…:_†;",
+		"…::=_;",
+		"…:_†:=_;",
+		"…:=_;",
+		"…",
+		"_!;",
+		"(_::_†)",
+
+		/* Methods */
 		"Abstract method_is_",
 		"After the current module is unloaded,⁇do_",
 		"Alias_to_",
@@ -795,7 +814,8 @@ Extends
 		"{«_‡,»}",
 		"{«_→_‡,»}",
 		"$…",
-		"¢…"
+		"$…#",
+		"¢…!"
 	),
 	"Logic" =
 	(
@@ -886,7 +906,7 @@ Extends
 	(
 		"format_with unchecked_",
 		"format_with_",
-		"format_with«…::=_‡,»",
+		"format_with«…!::=_‡,»",
 		"format_with«_‡,»",
 		"partially format_with_",
 		"partially format_with«…::=_‡,»",

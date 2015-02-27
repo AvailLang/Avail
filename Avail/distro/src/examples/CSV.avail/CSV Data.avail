@@ -31,7 +31,8 @@
  */
 
 Module "CSV Data"
-Uses "CSV Language" = ("«_‡,»")
+Uses
+	"CSV Language" = ("«_‡,»", "_!;")
 Body
 
 "last name", "first name", "d.o.b.";

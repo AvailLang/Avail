@@ -37,6 +37,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.utility.Generator;
 
 /**
  * <strong>Primitive 614</strong>: Set the name of the specified {@linkplain
@@ -63,7 +64,15 @@ extends Primitive
 		assert args.size() == 2;
 		final A_Fiber fiber = args.get(0);
 		final A_String name = args.get(1);
-		fiber.fiberName(name);
+		fiber.fiberNameGenerator(
+			new Generator<A_String>()
+			{
+				@Override
+				public A_String value ()
+				{
+					return name;
+				}
+			});
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 

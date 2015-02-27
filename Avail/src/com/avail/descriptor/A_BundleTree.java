@@ -107,4 +107,14 @@ extends A_BasicObject
 	 *               added or modified in this bundle tree.
 	 */
 	void flushForNewOrChangedBundle (A_Bundle bundle);
+
+	/**
+	 * Answer the program counter that this bundle tree represents.  All bundles
+	 * still reachable here are at the same position in their state machines,
+	 * and all instructions already executed for these bundles are identical
+	 * (between bundles).
+	 *
+	 * @return The index into the bundle tree's bundles' parsing instructions.
+	 */
+	int parsingPc ();
 }

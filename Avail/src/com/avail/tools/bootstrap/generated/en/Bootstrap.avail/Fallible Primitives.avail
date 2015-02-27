@@ -1372,7 +1372,7 @@ Primitive "Seal method_at_" is
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "loading-is-over exception"
  * @raises "method-is-sealed exception"
- * @raises "cannot-mix-method-and-macro-definitions exception"
+ * @raises "up-arrow-must-follow-argument exception"
  */
 Primitive "Abstract method_is_" is
 [
@@ -1402,7 +1402,6 @@ Primitive "Abstract method_is_" is
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
 		method-is-sealed code,
-		cannot-mix-method-and-macro-definitions code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -1769,6 +1768,7 @@ Primitive "Semantic restriction_is_" is
  * @param "body" "macro function"
  *        The function that implements the macro.
  * @returns "⊤"
+ * @raises "incorrect-number-of-arguments exception"
  * @raises "incorrect-argument-type exception"
  * @raises "incorrect-type-for-group exception"
  * @raises "macro-argument-must-be-a-parse-node exception"
@@ -1792,7 +1792,6 @@ Primitive "Semantic restriction_is_" is
  * @raises "macro-prefix-functions-must-return-top exception"
  * @raises "macro-prefix-function-argument-must-be-a-parse-node exception"
  * @raises "macro-must-return-a-parse-node exception"
- * @raises "loading-is-over exception"
  */
 Primitive "Macro_is«_,»_" is
 [
@@ -1801,6 +1800,7 @@ Primitive "Macro_is«_,»_" is
 	body : macro function
 |
 	Primitive 249 (failureCode : {
+		incorrect-number-of-arguments code,
 		incorrect-argument-type code,
 		incorrect-type-for-group code,
 		macro-argument-must-be-a-parse-node code,
@@ -1865,7 +1865,7 @@ Primitive "Macro_is«_,»_" is
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "loading-is-over exception"
  * @raises "method-is-sealed exception"
- * @raises "cannot-mix-method-and-macro-definitions exception"
+ * @raises "up-arrow-must-follow-argument exception"
  */
 Primitive "Abstract method_is_" is
 [
@@ -1896,7 +1896,6 @@ Primitive "Abstract method_is_" is
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
 		method-is-sealed code,
-		cannot-mix-method-and-macro-definitions code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -1940,7 +1939,7 @@ Primitive "Abstract method_is_" is
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "loading-is-over exception"
  * @raises "method-is-sealed exception"
- * @raises "cannot-mix-method-and-macro-definitions exception"
+ * @raises "up-arrow-must-follow-argument exception"
  */
 Primitive "Forward method_is_" is
 [
@@ -1971,7 +1970,6 @@ Primitive "Forward method_is_" is
 		incorrect-type-for-numbered-choice code,
 		loading-is-over code,
 		method-is-sealed code,
-		cannot-mix-method-and-macro-definitions code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode

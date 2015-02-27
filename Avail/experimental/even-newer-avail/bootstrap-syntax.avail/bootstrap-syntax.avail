@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Experimental Module "bootstrap-syntax"
+Module "bootstrap-syntax"
 Versions "dev"
 Extends
 	"Origin"
@@ -40,5 +40,46 @@ Body
 
 _any ::= special object 1;
 _foo ::= _any;
-Primitive "Crash_" is [hint : _any | Primitive 256;];
-Crash "foo";
+_number ::= special object 16;
+_string ::= special object 28;
+_top ::= special object 35;
+Primitive "⊤" is [_top];
+_bottom ::= special object 29;
+
+
+_crash ::=
+[
+	reason : _any
+|
+	Primitive 256;
+] : _bottom;
+
+Primitive "Crash_" is _crash;
+
+Primitive "Print:_" is
+[
+	s : _string
+|
+	Primitive 258 (x : _any);
+	Crash x
+] : _top;
+
+_z ::= special object 3;
+_www ::=
+[
+	juice : _any
+|
+	Primitive "_and_" is
+	[
+		hint1 : _number,
+		hint2 : _number
+	|
+	/*	Primitive 1 (f : _any);*/
+		$lab : ⊤;
+		a : _any;
+		b : _any;
+		juice
+	] : ⊤;
+];
+
+Print: "foo";

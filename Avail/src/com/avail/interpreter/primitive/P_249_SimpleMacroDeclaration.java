@@ -135,9 +135,7 @@ extends Primitive
 						try
 						{
 							final A_Atom atom = loader.lookupName(string);
-							loader.addMacroBody(
-								atom,
-								function);
+							loader.addMacroBody(atom, function);
 							int counter = 1;
 							for (final A_Function prefixFunction
 								: prefixFunctions)
@@ -198,6 +196,7 @@ extends Primitive
 			SetDescriptor.fromCollection(Arrays.asList(
 					E_LOADING_IS_OVER.numericCode(),
 					E_AMBIGUOUS_NAME.numericCode(),
+					E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode(),
 					E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE
 						.numericCode(),
 					E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP.numericCode(),

@@ -43,7 +43,7 @@ import com.avail.descriptor.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class AvailCompilerCachedSolution
+final class AvailCompilerCachedSolution
 {
 
 	/**

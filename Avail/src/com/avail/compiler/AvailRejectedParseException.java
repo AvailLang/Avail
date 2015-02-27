@@ -32,8 +32,10 @@
 
 package com.avail.compiler;
 
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.exceptions.PrimitiveThrownException;
+import com.avail.utility.Generator;
 
 /**
  * An {@code AvailCompilerException} is thrown by the {@linkplain
@@ -53,7 +55,13 @@ extends PrimitiveThrownException
 	 * The {@linkplain StringDescriptor error message} indicating why a
 	 * particular parse was rejected.
 	 */
-	final A_String rejectionString;
+	@Nullable A_String rejectionString;
+
+	/**
+	 * A {@link Generator} that will produce the rejectionString if needed.
+	 * May be null if the rejectionString is provided directly.
+	 */
+	@Nullable Generator<A_String> rejectionGenerator;
 
 	/**
 	 * Return the {@linkplain StringDescriptor error message} indicating why
@@ -63,7 +71,15 @@ extends PrimitiveThrownException
 	 */
 	public A_String rejectionString ()
 	{
-		return rejectionString;
+		if (rejectionString == null)
+		{
+			final Generator<A_String> generator = rejectionGenerator;
+			assert generator != null;
+			rejectionString = generator.value();
+		}
+		final A_String availString = rejectionString;
+		assert availString != null;
+		return availString;
 	}
 
 	/**
@@ -72,27 +88,43 @@ extends PrimitiveThrownException
 	 * "Expected...".
 	 *
 	 * @param rejectionString
-	 *        The {@linkplain StringDescriptor error message} indicating why
-	 *        a particular parse was rejected.
+	 *        The Avail {@linkplain A_String string} indicating why a particular
+	 *        parse was rejected.
 	 */
 	public AvailRejectedParseException (
 		final A_String rejectionString)
 	{
+		this.rejectionGenerator = null;
 		this.rejectionString = rejectionString;
 	}
 
 	/**
 	 * Construct a new {@link AvailRejectedParseException} with a Java {@link
-	 * String} as the explanation.  If this diagnostic is deemed relevant, the
+	 * String} as the pattern for the explanation, and arguments to be
+	 * substituted into the pattern.  If this diagnostic is deemed relevant, the
 	 * string will be presented after the word "Expected...".
 	 *
-	 * @param rejectionJavaString
-	 *        The Java {@link String} indicating why a particular parse was
-	 *        rejected.
+	 * @param rejectionPattern
+	 *        The String to use as a pattern in {@linkplain
+	 *        String#format(String, Object...)}.  The arguments with which to
+	 *        instantiate the pattern are also supplied.
+	 * @param rejectionArguments
+	 *        The arguments that should be substituted into the pattern.
 	 */
 	public AvailRejectedParseException (
-		final String rejectionJavaString)
+		final String rejectionPattern,
+		final Object... rejectionArguments)
 	{
-		this.rejectionString = StringDescriptor.from(rejectionJavaString);
+		this.rejectionGenerator = new Generator<A_String>()
+		{
+			@Override
+			public A_String value ()
+			{
+				final String string = String.format(
+					rejectionPattern, rejectionArguments);
+				return StringDescriptor.from(string);
+			}
+		};
+		this.rejectionString = null;
 	}
 }

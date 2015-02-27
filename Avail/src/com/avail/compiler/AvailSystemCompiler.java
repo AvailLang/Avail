@@ -348,16 +348,14 @@ extends AbstractAvailCompiler
 						return;
 					}
 					if (!afterExpression.peekToken(
-						SEMICOLON,
-						"; to end statement"))
+						SEMICOLON, "; to end statement"))
 					{
 						return;
 					}
 					if (expression.expressionType().isTop())
 					{
 						continuation.value(
-							afterExpression.afterToken(),
-							expression);
+							afterExpression.afterToken(), expression);
 					}
 					else
 					{
@@ -958,8 +956,7 @@ extends AbstractAvailCompiler
 					}
 					final A_Phrase declaration =
 						DeclarationNodeDescriptor.newPrimitiveFailureVariable(
-							localName,
-							type);
+							localName,type);
 					attempt(
 						withDeclaration(afterType, declaration),
 						continuation,
@@ -1005,13 +1002,9 @@ extends AbstractAvailCompiler
 		}
 
 		if (start.peekToken(
-			VERTICAL_BAR,
-			"a vertical bar after block arguments"))
+			VERTICAL_BAR, "a vertical bar after block arguments"))
 		{
-			attempt(
-				start.afterToken(),
-				continuation,
-				argsSoFar);
+			attempt(start.afterToken(), continuation, argsSoFar);
 		}
 	}
 
@@ -1577,6 +1570,7 @@ extends AbstractAvailCompiler
 		final ParserState stateAfterCall,
 		final A_Phrase argumentsListNode,
 		final A_Bundle bundle,
+		final A_Definition macroDefinitionToInvoke,
 		final Con<A_Phrase> continuation)
 	{
 		stateAfterCall.expected(new Describer()
@@ -1629,9 +1623,9 @@ extends AbstractAvailCompiler
 		final ParserState afterPrimitiveKeyword = start.afterToken();
 		final A_Token token = afterPrimitiveKeyword.peekToken();
 		if (token.tokenType() != LITERAL
-				|| !token.literal().isInstanceOfKind(
-					IntegerRangeTypeDescriptor.unsignedShorts())
-				|| token.literal().extractInt() == 0)
+			|| !token.literal().isInstanceOfKind(
+				IntegerRangeTypeDescriptor.unsignedShorts())
+			|| token.literal().extractInt() == 0)
 		{
 			afterPrimitiveKeyword.expected(
 				"A non-zero unsigned short [1..65535] "
@@ -1801,8 +1795,7 @@ extends AbstractAvailCompiler
 			if (lastStatement.expressionType().isBottom())
 			{
 				start.expected(
-					"end of statements, since the previous "
-					+ "one has type ⊥");
+					"end of statements, since the previous one has type ⊥");
 				return;
 			}
 			if (!lastStatement.expressionType().isTop())

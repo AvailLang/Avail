@@ -145,15 +145,6 @@ extends TypeDescriptor
 		/** The kind of a {@linkplain SendNodeDescriptor send node}. */
 		SEND_NODE("send phrase type", EXPRESSION_NODE),
 
-		/** The kind of a {@linkplain SequenceNodeDescriptor sequence node}. */
-		SEQUENCE_NODE("sequence phrase type", PARSE_NODE),
-
-		/**
-		 * The kind of a {@linkplain FirstOfSequenceNodeDescriptor
-		 * first-of-sequence node}.
-		 */
-		FIRST_OF_SEQUENCE_NODE("first-of-sequence phrase type", PARSE_NODE),
-
 		/** The kind of a {@linkplain ListNodeDescriptor list node}. */
 		LIST_NODE("list phrase type", EXPRESSION_NODE)
 		{
@@ -189,11 +180,23 @@ extends TypeDescriptor
 			}
 		},
 
+		/** The kind of a {@linkplain SequenceNodeDescriptor sequence node}. */
+		SEQUENCE_NODE("sequence phrase type", PARSE_NODE),
+
+		/**
+		 * The kind of a {@linkplain FirstOfSequenceNodeDescriptor
+		 * first-of-sequence node}.
+		 */
+		FIRST_OF_SEQUENCE_NODE("first-of-sequence phrase type", PARSE_NODE),
+
+		/** A phrase that does not produce a result. */
+		STATEMENT_NODE("statement phrase type", PARSE_NODE),
+
 		/**
 		 * The kind of a {@linkplain DeclarationNodeDescriptor declaration
 		 * node}.
 		 */
-		DECLARATION_NODE("declaration phrase type", PARSE_NODE),
+		DECLARATION_NODE("declaration phrase type", STATEMENT_NODE),
 
 		/** The kind of an argument declaration node. */
 		ARGUMENT_NODE("argument phrase type", DECLARATION_NODE),
@@ -216,6 +219,13 @@ extends TypeDescriptor
 		/** The kind of a primitive failure reason variable declaration. */
 		PRIMITIVE_FAILURE_REASON_NODE(
 			"primitive failure reason phrase type", DECLARATION_NODE),
+
+		/**
+		 * A statement phrase built from an expression.  At the moment, only
+		 * assignments and sends can be expression-as-statement phrases.
+		 */
+		EXPRESSION_AS_STATEMENT_NODE(
+			"expression as statement phrase type", STATEMENT_NODE),
 
 		/** The result of a macro substitution. */
 		MACRO_SUBSTITUTION("macro substitution phrase type", PARSE_NODE);
