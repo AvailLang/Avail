@@ -3123,7 +3123,7 @@ public class MessageSplitter
 					{
 						builder.append(" = ");
 						builder.append(
-							messageParts.get(op.operand(instructionInt)));
+							messageParts.get(op.operand(instructionInt) - 1));
 						break;
 					}
 					default:
