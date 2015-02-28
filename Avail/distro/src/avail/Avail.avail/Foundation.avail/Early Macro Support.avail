@@ -1,5 +1,5 @@
 /*
- * Wump the Wumpus.avail
+ * Early Macro Support.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,9 +30,80 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Wump the Wumpus"
+Module "Early Macro Support"
 Versions
 	"1.0.0 DEV 2014-04-28"
-Extends
-	"Playing"
+Uses
+	"Bootstrap",
+	"Very Early Definers"
+Names
+	"parse map",
+	"parse map:=_",
+	"scope map",
+	"scope map:=_"
 Body
+
+/**
+ * Answer the current parse map. This is available only to macro definitions and
+ * their prefix functions.
+ *
+ * @method "parse map"
+ * @returns "{atom→any|}"
+ */
+Method "parse map" is
+[
+	current fiber[parse map key]
+];
+
+Semantic restriction "parse map" is
+[
+	{atom → any | whole number}
+];
+
+/**
+ * Set the current parse map. This is available only to macro definitions and
+ * their prefix functions.
+ *
+ * @method "parse map:=_"
+ * @param "aMap" "{atom→any|}"
+ * @returns "⊤"
+ */
+Method "parse map:=_" is
+[
+	aMap : {atom → any | whole number}
+|
+	current fiber[parse map key] := aMap;
+];
+
+/**
+ * Answer the current scope map. This is available only to macro definitions and
+ * their prefix functions.
+ *
+ * @method "scope map"
+ * @returns "{nonempty string→declaration phrase|}"
+ */
+Method "scope map" is
+[
+	parse map[scope map key]
+];
+
+Semantic restriction "scope map" is
+[
+	{nonempty string → declaration phrase | whole number}
+];
+
+/**
+ * Set the current scope map. This is available only to macro definitions and
+ * their prefix functions.
+ *
+ * @method "scope map:=_"
+ * @param "aMap" "{atom→any|}"
+ * @returns "⊤"
+ */
+Method "scope map:=_" is
+[
+	aMap : {nonempty string → declaration phrase | whole number}
+|
+	parseMap ::= parse map + scope map key → aMap;
+	current fiber[parse map key] := parseMap;
+];

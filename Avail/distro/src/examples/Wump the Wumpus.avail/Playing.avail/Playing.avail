@@ -1,5 +1,5 @@
 /*
- * Wump the Wumpus.avail
+ * Playing.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,9 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Wump the Wumpus"
+Module "Playing"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Extends
-	"Playing"
+	"English"
 Body

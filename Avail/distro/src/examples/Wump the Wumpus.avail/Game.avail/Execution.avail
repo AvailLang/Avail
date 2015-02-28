@@ -1,0 +1,196 @@
+/*
+ * Execution.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Execution"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Avail",
+	"Movable Entities"
+Extends
+	"Common" =
+	(
+		"a game of Wump the Wumpus"
+	),
+	"Context" =
+	(
+		"Use_as the implied game and do_",
+		"the agent",
+		"the first swarm",
+		"the second swarm",
+		"the wumpus"
+	),
+	"Exploration" =
+	(
+		"Look around«,having just entered»?"
+	),
+	"IO" =
+	(
+		"Report:_",
+		"Wump the Wumpus reader",
+		"Wump the Wumpus reader:=_",
+		"Wump the Wumpus reporter",
+		"Wump the Wumpus reporter:=_"
+	),
+	"Movable Entities" =
+	(
+		"_is«alive|dead»!"
+	),
+	"Turn" =
+	(
+		"Give_a turn"
+	)
+Names
+	/* Game control flow. */
+	"Game over",
+	"Until the game is over,do_",
+
+	/* Salutations and farewells. */
+	"Welcome",
+	"Goodbye",
+
+	/* Reporting. */
+	"Report cowardice",
+	"Report defeat",
+	"Report victory"
+Body
+
+/**
+ * Repeatly apply {@param "action"} until the {@type "Wump the Wumpus" game} is
+ * over. The argument should be an implementation of the game's turn sequence.
+ *
+ * @method "Until the game is over,do_"
+ * @param "action" "[]→⊤"
+ *        The implementation of the {@type "Wump the Wumpus" game}'s turn
+ *        sequence.
+ */
+Public method "Until the game is over,do_" is
+[
+	action : []→⊤
+|
+	Backtracking fence
+	[
+		/* This is a little bit tricky. "first try" establishes a checkpoint
+		 * for backtracking later. Initially it answers "true", but a
+		 * subsequent send of "Try again" causes the checkpoint to return a
+		 * second time, this time answering "false". So after a "Try again",
+		 * "first try" exits with "false", meaning that the predicate is not
+		 * satisfied. Thus "action" will not be applied a second time.
+		 */
+		If first try then
+		[
+			/* Repeatedly apply "action". */
+			Repeat [action();]
+		];
+	];
+];
+
+/**
+ * The game is over. Resume the checkpoint saved by
+ * {@method "Use_as the implied game and do_"}.
+ *
+ * @method "Game over"
+ */
+Public method "Game over" is [Try again];
+
+Method "Kill_" is
+[
+	anAgent : agent
+|
+	Assert: anAgent = the agent;
+	the agent's life flag := false;
+	Game over
+];
+
+Method "Kill_" is
+[
+	aWumpus : wumpus
+|
+	Assert: aWumpus = the wumpus;
+	the wumpus's life flag := false;
+	Now the wumpus is inactive;
+];
+
+/**
+ * Report a welcome message to the player.
+ *
+ * @method "Welcome"
+ * @returns "⊤"
+ */
+Public method "Welcome" is
+[
+	Report: "Welcome to WUMP THE WUMPUS. Type \"help\" for instructions.\n\n";
+];
+
+/**
+ * Report a farewell message to the player.
+ *
+ * @method "Goodbye"
+ * @returns "⊤"
+ */
+Public method "Goodbye" is
+[
+	Report: "*** GAME OVER ***\n";
+];
+
+/**
+ * Report victory to the player.
+ *
+ * @method "Report victory"
+ * @returns "⊤"
+ */
+Public method "Report victory" is
+[
+	Report: "You slew the dreaded wumpus and escaped with your life!\n";
+];
+
+/**
+ * Report cowardice to the player.
+ *
+ * @method "Report cowardice"
+ * @returns "⊤"
+ */
+Public method "Report cowardice" is
+[
+	Report: "Oh, I see. Runnin' away, eh? Disgraceful!\n";
+];
+
+/**
+ * Report defeat to the player.
+ *
+ * @method "Report defeat"
+ * @returns "⊤"
+ */
+Public method "Report defeat" is
+[
+	Report: "Better luck in your next life?\n";
+];
