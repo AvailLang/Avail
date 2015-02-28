@@ -1815,7 +1815,6 @@ public final class AvailBuilder
 					new Deserializer(inputStream, runtime);
 				final ModuleHeader header = new ModuleHeader(moduleName);
 				header.deserializeHeaderFrom(deserializer);
-				module.isSystemModule(header.isSystemModule);
 				final String errorString = header.applyToModule(
 					module, runtime);
 				if (errorString != null)

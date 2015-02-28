@@ -73,16 +73,16 @@ extends Descriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * A composite field containing a {@link #IS_SYSTEM_MODULE} flag
-		 * indicating whether this is a system module, and a 31-bit {@link
-		 * #COUNTER} for generating integers unique to this module.
+		 * A composite field containing with bit-fields for modules and a
+		 * (currently 31-bit) {@link #COUNTER} for generating integers unique to
+		 * this module.
 		 */
 		FLAGS_AND_COUNTER;
 
 		/**
-		 * A flag indicating if this is a system module.
+		 * An unused one-bit flag.
 		 */
-		static BitField IS_SYSTEM_MODULE = bitField(
+		static BitField RESERVED_1 = bitField(
 			FLAGS_AND_COUNTER,
 			31,
 			1);
@@ -260,27 +260,6 @@ extends Descriptor
 	{
 		builder.append("Module: ");
 		builder.append(object.moduleName().toString());
-	}
-
-	@Override @AvailMethod
-	boolean o_IsSystemModule (final AvailObject object)
-	{
-		synchronized (object)
-		{
-			return object.slot(IS_SYSTEM_MODULE) != 0;
-		}
-	}
-
-	@Override @AvailMethod
-	void o_IsSystemModule (
-		final AvailObject object,
-		final boolean isSystemModule)
-	{
-		assert isShared();
-		synchronized (object)
-		{
-			object.setSlot(IS_SYSTEM_MODULE, isSystemModule ? 1 : 0);
-		}
 	}
 
 	@Override @AvailMethod

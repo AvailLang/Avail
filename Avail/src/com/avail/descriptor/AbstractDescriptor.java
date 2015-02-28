@@ -5105,13 +5105,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract boolean o_IsSystemModule (
-		final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	abstract A_Phrase o_ArgumentsListNode (
 		final AvailObject object);
 
@@ -5319,14 +5312,6 @@ public abstract class AbstractDescriptor
 	abstract boolean o_RangeIncludesInt (
 		final AvailObject object,
 		final int anInt);
-
-	/**
-	 * @param object
-	 * @param isSystemModule
-	 */
-	abstract void o_IsSystemModule (
-		final AvailObject object,
-		final boolean isSystemModule);
 
 	/**
 	 * @param object

@@ -5918,15 +5918,6 @@ implements
 	 * @return
 	 */
 	@Override
-	public boolean isSystemModule ()
-	{
-		return descriptor.o_IsSystemModule(this);
-	}
-
-	/**
-	 * @return
-	 */
-	@Override
 	public A_Type literalType ()
 	{
 		return descriptor.o_LiteralType(this);
@@ -6163,16 +6154,6 @@ implements
 	public boolean rangeIncludesInt (final int anInt)
 	{
 		return descriptor.o_RangeIncludesInt(this, anInt);
-	}
-
-	/**
-	 * @param isSystemModule
-	 */
-	@Override
-	public void isSystemModule (
-		final boolean isSystemModule)
-	{
-		descriptor.o_IsSystemModule(this, isSystemModule);
 	}
 
 	/**

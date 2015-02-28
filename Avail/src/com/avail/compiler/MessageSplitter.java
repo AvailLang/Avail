@@ -161,7 +161,7 @@ public class MessageSplitter
 	 * <li>A {@linkplain StringDescriptor#singleDagger() single dagger} (†) may
 	 * occur immediately after an underscore to cause the argument expression to
 	 * be evaluated in the static scope during compilation.  This is applicable
-	 * to both methods and macros.</li>
+	 * to both methods and macros.  The expression must yield a type.</li>
 	 * <li>An {@linkplain StringDescriptor#upArrow() up-arrow} (↑) after an
 	 * underscore indicates an in-scope variable name is to be parsed.  The
 	 * subexpression causes the variable itself to be provided, rather than its

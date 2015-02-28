@@ -3641,12 +3641,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsSystemModule (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	A_Type o_LiteralType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -3812,14 +3806,6 @@ extends AbstractDescriptor
 
 	@Override
 	boolean o_RangeIncludesInt (final AvailObject object, final int anInt)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_IsSystemModule (
-		final AvailObject object,
-		final boolean isSystemModule)
 	{
 		throw unsupportedOperationException();
 	}
