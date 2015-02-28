@@ -1491,6 +1491,8 @@ public final class AvailRuntime
 		specials[140] = FIRST_OF_SEQUENCE_NODE.mostGeneralType();
 		specials[141] = PERMUTED_LIST_NODE.mostGeneralType();
 		specials[142] = SUPER_CAST_NODE.mostGeneralType();
+		specials[143] = AtomDescriptor.clientDataGlobalKey();
+		specials[144] = AtomDescriptor.compilerScopeMapKey();
 
 		System.arraycopy(specials, 0, specialObjects, 0, specials.length);
 
@@ -1512,7 +1514,9 @@ public final class AvailRuntime
 			CompiledCodeDescriptor.methodNameKeyAtom(),
 			CompiledCodeDescriptor.lineNumberKeyAtom(),
 			AtomDescriptor.messageBundleKey(),
-			MethodDescriptor.vmDeclareStringifierAtom()));
+			MethodDescriptor.vmDeclareStringifierAtom(),
+			AtomDescriptor.clientDataGlobalKey(),
+			AtomDescriptor.compilerScopeMapKey()));
 
 		for (final A_Atom atom : specialAtomsList)
 		{

@@ -33,7 +33,6 @@
 Module "Phrases"
 Versions
 	"1.0.0 DEV 2014-04-28"
-Extends
 Uses
 	"Bootstrap",
 	"Early Conditionals",
@@ -231,7 +230,7 @@ Semantic restriction "`«[_]:_`»" is
 	statements : <<>, phrase…|whole number>'s type,
 	returnType : type's type
 |
-	block phrase⇒([…]→cast returnType's instance into [ t : type | t ])
+	block phrase⇒([…]→cast returnType's instance into [t : type | t])
 ];
 
 /**
@@ -249,7 +248,7 @@ Semantic restriction "send_with_:_" is
 	/* Parse nodes have identity, so it isn't safe to strengthen more than
 	 * this.
 	 */
-	send phrase⇒cast returnType's instance into [ t : type | t ]
+	send phrase⇒cast returnType's instance into [t : type | t]
 ];
 
 /**
@@ -264,19 +263,10 @@ Semantic restriction "_'s⁇semantic type" is
 |
 	if |blockType| = 1 then
 	[
-		if blockType's instance's type ⊆ type then
-		[
-			function meta
-		]
-		else
-		[
-			cast blockType's instance into [ t : function meta's type | t ]
-		]
+		if blockType's instance's type ⊆ type then [function meta]
+		else [cast blockType's instance into [t : function meta's type | t]]
 	]
-	else
-	[
-		function meta
-	]
+	else [function meta]
 ];
 
 /**
@@ -293,7 +283,7 @@ Semantic restriction "_'s⁇semantic type" is
 ];
 
 /**
- * A list type's semantic type is always a tuple of expressions yielding any.
+ * A list type's semantic type is always a tuple of values.
  * 
  * @method "_'s⁇semantic type"
  * @restricts "list phrase's type's type"
@@ -302,7 +292,7 @@ Semantic restriction "_'s⁇semantic type" is
 [
 	listType : list phrase's type's type
 |
-	<<>, expression phrase⇒any…|whole number>
+	tuple meta
 ];
 
 /**
@@ -333,3 +323,26 @@ Public method "this token:…" is
 |
 	t
 ] : token;
+
+Semantic restriction "_'s⁇expressions" is
+[
+	listType : list phrase's type
+|
+	semanticType ::= listType's semantic type;
+	upper ::=
+		cast |semanticType's leading types| + 1 into [t : natural number | t];
+	leadingTypes : tuple := <>;
+	From 1 to upper do
+	[
+		index : natural number
+	|
+		leadingTypes := concatenate
+			<leadingTypes, <expression phrase ⇒ semanticType[index]>>;
+		true
+	];
+	strongLeadingTypes ::=
+		cast leadingTypes
+		into [t : <<>, any meta… | whole number> | t];
+	defaultType ::= cast strongLeadingTypes[upper] into [t : any meta | t];
+	<strongLeadingTypes, defaultType… | ||semanticType||>
+];

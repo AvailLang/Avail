@@ -567,6 +567,13 @@ Extends
 	(
 		"“_”"
 	),
+	"Early Macro Support" =
+	(
+		"parse map",
+		"parse map:=_",
+		"scope map",
+		"scope map:=_"
+	),
 	"Enumeration Support" =
 	(
 		"{_}ᵀ",
