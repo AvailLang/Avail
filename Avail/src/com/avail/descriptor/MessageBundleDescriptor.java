@@ -101,6 +101,12 @@ extends Descriptor
 		MESSAGE_PARTS,
 
 		/**
+		 * The {@link MessageSplitter} that describes how to parse invocations
+		 * of this message bundle.
+		 */
+		MESSAGE_SPLITTER_POJO,
+
+		/**
 		 * A {@linkplain SetDescriptor set} of {@linkplain
 		 * GrammaticalRestrictionDescriptor grammatical restrictions} that apply
 		 * to this message bundle.
@@ -131,118 +137,11 @@ extends Descriptor
 		SYMBOLIC_INSTRUCTIONS;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * Show the types of local variables and outer variables.
-	 */
-	@Override
-	AvailObjectFieldHelper[] o_DescribeForDebugger (
-		final AvailObject object)
-	{
-		final List<AvailObjectFieldHelper> fields = new ArrayList<>();
-		fields.addAll(Arrays.asList(super.o_DescribeForDebugger(object)));
-
-		A_Tuple descriptionsTuple;
-		try
-		{
-			final MessageSplitter splitter =
-				new MessageSplitter(object.message().atomName());
-			final A_Tuple instructionsTuple = splitter.instructionsTuple();
-			final List<A_String> descriptionsList = new ArrayList<>();
-			for (
-				int i = 1, end = instructionsTuple.tupleSize();
-				i <= end;
-				i++)
-			{
-				final int encodedInstruction = instructionsTuple.tupleIntAt(i);
-				final ParsingOperation operation =
-					ParsingOperation.decode(encodedInstruction);
-				final int operand = operation.operand(encodedInstruction);
-				final StringBuilder builder = new StringBuilder();
-				builder.append(i);
-				builder.append(". ");
-				builder.append(operation.name());
-				if (operand > 0)
-				{
-					builder.append(" (");
-					builder.append(operand);
-					builder.append(")");
-					switch (operation)
-					{
-						case PARSE_PART:
-						case PARSE_PART_CASE_INSENSITIVELY:
-						{
-							builder.append(" P=<");
-							builder.append(
-								object.messageParts().tupleAt(operand)
-									.asNativeString());
-							builder.append(">");
-							break;
-						}
-						default:
-							// Do nothing.
-					}
-				}
-				descriptionsList.add(StringDescriptor.from(builder.toString()));
-			}
-			descriptionsTuple = TupleDescriptor.fromList(descriptionsList);
-		}
-		catch (final MalformedMessageException e)
-		{
-			descriptionsTuple = StringDescriptor.format(
-				"Problem splitting bundle: %s", e.errorCode());
-		}
-		fields.add(new AvailObjectFieldHelper(
-			object,
-			FakeSlots.SYMBOLIC_INSTRUCTIONS,
-			-1,
-			descriptionsTuple));
-		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
-	}
-
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return e == METHOD || e == GRAMMATICAL_RESTRICTIONS;
 	}
-
-	@Override @AvailMethod
-	A_Method o_BundleMethod (final AvailObject object)
-	{
-		return object.mutableSlot(METHOD);
-	}
-
-	@Override @AvailMethod
-	A_Set o_GrammaticalRestrictions (final AvailObject object)
-	{
-		return object.mutableSlot(GRAMMATICAL_RESTRICTIONS);
-	}
-
-	@Override @AvailMethod
-	A_Atom o_Message (final AvailObject object)
-	{
-		return object.slot(MESSAGE);
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_MessageParts (final AvailObject object)
-	{
-		return object.slot(MESSAGE_PARTS);
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_ParsingInstructions (final AvailObject object)
-	{
-		return object.slot(PARSING_INSTRUCTIONS);
-	}
-
-	@Override @AvailMethod
-	SerializerOperation o_SerializerOperation (final AvailObject object)
-	{
-		return SerializerOperation.MESSAGE_BUNDLE;
-	}
-
 
 	@Override @AvailMethod
 	void o_AddGrammaticalRestriction (
@@ -260,6 +159,126 @@ extends Descriptor
 		{
 			addGrammaticalRestriction(object, grammaticalRestriction);
 		}
+	}
+
+	@Override @AvailMethod
+	A_Method o_BundleMethod (final AvailObject object)
+	{
+		return object.mutableSlot(METHOD);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Show the types of local variables and outer variables.
+	 */
+	@Override
+	AvailObjectFieldHelper[] o_DescribeForDebugger (
+		final AvailObject object)
+	{
+		final List<AvailObjectFieldHelper> fields = new ArrayList<>();
+		fields.addAll(Arrays.asList(super.o_DescribeForDebugger(object)));
+
+		final A_Tuple instructionsTuple = object.parsingInstructions();
+		final List<A_String> descriptionsList = new ArrayList<>();
+		for (
+			int i = 1, end = instructionsTuple.tupleSize();
+			i <= end;
+			i++)
+		{
+			final int encodedInstruction = instructionsTuple.tupleIntAt(i);
+			final ParsingOperation operation =
+				ParsingOperation.decode(encodedInstruction);
+			final int operand = operation.operand(encodedInstruction);
+			final StringBuilder builder = new StringBuilder();
+			builder.append(i);
+			builder.append(". ");
+			builder.append(operation.name());
+			if (operand > 0)
+			{
+				builder.append(" (");
+				builder.append(operand);
+				builder.append(")");
+				switch (operation)
+				{
+					case PARSE_PART:
+					case PARSE_PART_CASE_INSENSITIVELY:
+					{
+						builder.append(" P=<");
+						builder.append(
+							object.messageParts().tupleAt(operand)
+								.asNativeString());
+						builder.append(">");
+						break;
+					}
+					default:
+						// Do nothing.
+				}
+			}
+			descriptionsList.add(StringDescriptor.from(builder.toString()));
+		}
+		final A_Tuple descriptionsTuple = TupleDescriptor.fromList(descriptionsList);
+		fields.add(new AvailObjectFieldHelper(
+			object,
+			FakeSlots.SYMBOLIC_INSTRUCTIONS,
+			-1,
+			descriptionsTuple));
+		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
+	}
+
+	@Override @AvailMethod
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	{
+		return another.traversed().sameAddressAs(object);
+	}
+
+	@Override @AvailMethod
+	A_Set o_GrammaticalRestrictions (final AvailObject object)
+	{
+		return object.mutableSlot(GRAMMATICAL_RESTRICTIONS);
+	}
+
+	@Override @AvailMethod
+	boolean o_HasGrammaticalRestrictions (final AvailObject object)
+	{
+		return object.mutableSlot(GRAMMATICAL_RESTRICTIONS).setSize() > 0;
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		return object.message().hash() ^ 0x0312CAB9;
+	}
+
+	@Override @AvailMethod
+	A_Type o_Kind (final AvailObject object)
+	{
+		return MESSAGE_BUNDLE.o();
+	}
+
+	@Override @AvailMethod
+	A_Atom o_Message (final AvailObject object)
+	{
+		return object.slot(MESSAGE);
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_MessageParts (final AvailObject object)
+	{
+		return object.slot(MESSAGE_PARTS);
+	}
+
+	@Override @AvailMethod
+	MessageSplitter o_MessageSplitter(final AvailObject object)
+	{
+		final A_BasicObject splitterPojo = object.slot(MESSAGE_SPLITTER_POJO);
+		return (MessageSplitter)splitterPojo.javaObject();
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_ParsingInstructions (final AvailObject object)
+	{
+		return object.slot(PARSING_INSTRUCTIONS);
 	}
 
 	@Override @AvailMethod
@@ -281,22 +300,11 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_HasGrammaticalRestrictions (final AvailObject object)
+	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
-		return object.mutableSlot(GRAMMATICAL_RESTRICTIONS).setSize() > 0;
+		return SerializerOperation.MESSAGE_BUNDLE;
 	}
 
-	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.traversed().sameAddressAs(object);
-	}
-
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		return object.message().hash() ^ 0x0312CAB9;
-	}
 
 	@Override
 	void o_WriteTo (final AvailObject object, final JSONWriter writer)
@@ -307,12 +315,6 @@ extends Descriptor
 		writer.write("method");
 		object.slot(MESSAGE).atomName().writeTo(writer);
 		writer.endObject();
-	}
-
-	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
-	{
-		return MESSAGE_BUNDLE.o();
 	}
 
 	/**
@@ -389,10 +391,13 @@ extends Descriptor
 		assert splitter.numberOfArguments() == method.numArgs();
 		assert splitter.messageName().equals(methodName.atomName());
 
+		final AvailObject splitterPojo =
+			RawPojoDescriptor.identityWrap(splitter);
 		final AvailObject result = mutable.create();
 		result.setSlot(METHOD, method);
 		result.setSlot(MESSAGE, methodName);
 		result.setSlot(MESSAGE_PARTS, splitter.messageParts());
+		result.setSlot(MESSAGE_SPLITTER_POJO, splitterPojo);
 		result.setSlot(GRAMMATICAL_RESTRICTIONS, SetDescriptor.empty());
 		result.setSlot(PARSING_INSTRUCTIONS, splitter.instructionsTuple());
 		result.makeShared();

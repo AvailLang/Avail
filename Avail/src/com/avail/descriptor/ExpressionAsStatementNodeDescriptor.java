@@ -107,11 +107,21 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
+	void o_EmitEffectOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		final A_Phrase expression = object.slot(EXPRESSION);
+		expression.emitEffectOn(codeGenerator);
+	}
+
+	@Override @AvailMethod
 	void o_EmitValueOn (
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		object.slot(EXPRESSION).emitValueOn(codeGenerator);
+		final A_Phrase expression = object.slot(EXPRESSION);
+		expression.emitValueOn(codeGenerator);
 	}
 
 	@Override @AvailMethod

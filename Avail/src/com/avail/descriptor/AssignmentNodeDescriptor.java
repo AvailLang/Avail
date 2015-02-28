@@ -165,9 +165,7 @@ extends ParseNodeDescriptor
 		final DeclarationKind declarationKind = declaration.declarationKind();
 		assert declarationKind.isVariable();
 		object.slot(EXPRESSION).emitValueOn(codeGenerator);
-		declarationKind.emitVariableAssignmentForOn(
-			declaration,
-			codeGenerator);
+		declarationKind.emitVariableAssignmentForOn(declaration, codeGenerator);
 	}
 
 	@Override @AvailMethod
@@ -179,10 +177,20 @@ extends ParseNodeDescriptor
 		final DeclarationKind declarationKind = declaration.declarationKind();
 		assert declarationKind.isVariable();
 		object.slot(EXPRESSION).emitValueOn(codeGenerator);
-		codeGenerator.emitDuplicate();
-		declarationKind.emitVariableAssignmentForOn(
-			declaration,
-			codeGenerator);
+		if (isInline(object))
+		{
+			codeGenerator.emitDuplicate();
+			declarationKind.emitVariableAssignmentForOn(
+				declaration, codeGenerator);
+		}
+		else
+		{
+			// This assignment is the last statement in a sequence.  Don't leak
+			// the assigned value, since it's *not* an inlined assignment.
+			declarationKind.emitVariableAssignmentForOn(
+				declaration, codeGenerator);
+			codeGenerator.emitPushLiteral(NilDescriptor.nil());
+		}
 	}
 
 	@Override @AvailMethod
@@ -190,7 +198,8 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
-		object.setSlot(EXPRESSION, aBlock.valueNotNull(object.slot(EXPRESSION)));
+		object.setSlot(EXPRESSION,
+			aBlock.valueNotNull(object.slot(EXPRESSION)));
 		object.setSlot(VARIABLE, aBlock.valueNotNull(object.slot(VARIABLE)));
 	}
 

@@ -7136,4 +7136,10 @@ implements
 	{
 		return descriptor.o_IsMacroSubstitutionNode(this);
 	}
+
+	@Override
+	public MessageSplitter messageSplitter ()
+	{
+		return descriptor.o_MessageSplitter(this);
+	}
 }

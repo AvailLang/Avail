@@ -48,6 +48,15 @@ public interface A_Bundle
 extends A_BasicObject
 {
 	/**
+	 * Add a {@linkplain GrammaticalRestrictionDescriptor grammatical
+	 * restriction} to the receiver.
+	 *
+	 * @param grammaticalRestriction The grammatical restriction to be added.
+	 */
+	void addGrammaticalRestriction (
+		A_GrammaticalRestriction grammaticalRestriction);
+
+	/**
 	 * Answer the {@linkplain MethodDescriptor method} that this bundle names.
 	 * Multiple bundles may refer to the same method to support renaming of
 	 * imported names.
@@ -63,6 +72,14 @@ extends A_BasicObject
 	 * @return This bundle's grammatical restrictions.
 	 */
 	A_Set grammaticalRestrictions ();
+
+	/**
+	 * Answer whether this bundle has any {@linkplain
+	 * GrammaticalRestrictionDescriptor grammatical restrictions}.
+	 *
+	 * @return Whether this bundle has grammatical restrictions.
+	 */
+	boolean hasGrammaticalRestrictions ();
 
 	/**
 	 * Answer the name of this bundle.  It must be parsable as a method name
@@ -84,6 +101,14 @@ extends A_BasicObject
 	A_Tuple messageParts ();
 
 	/**
+	 * Answer the {@link MessageSplitter} holding parse planning information for
+	 * invocations of this message bundle.
+	 *
+	 * @return The bundle's {@link MessageSplitter}.
+	 */
+	MessageSplitter messageSplitter ();
+
+	/**
 	 * Answer a {@linkplain TupleDescriptor tuple} of {@linkplain
 	 * IntegerDescriptor integers} encoding the {@linkplain ParsingOperation
 	 * parsing instructions} required to parse a call to this bundle's method
@@ -100,15 +125,6 @@ extends A_BasicObject
 	A_Tuple parsingInstructions ();
 
 	/**
-	 * Add a {@linkplain GrammaticalRestrictionDescriptor grammatical
-	 * restriction} to the receiver.
-	 *
-	 * @param grammaticalRestriction The grammatical restriction to be added.
-	 */
-	void addGrammaticalRestriction (
-		A_GrammaticalRestriction grammaticalRestriction);
-
-	/**
 	 * Remove a {@linkplain GrammaticalRestrictionDescriptor grammatical
 	 * restriction} from the receiver.
 	 *
@@ -116,12 +132,4 @@ extends A_BasicObject
 	 */
 	void removeGrammaticalRestriction (
 		A_GrammaticalRestriction obsoleteRestriction);
-
-	/**
-	 * Answer whether this bundle has any {@linkplain
-	 * GrammaticalRestrictionDescriptor grammatical restrictions}.
-	 *
-	 * @return Whether this bundle has grammatical restrictions.
-	 */
-	boolean hasGrammaticalRestrictions ();
 }

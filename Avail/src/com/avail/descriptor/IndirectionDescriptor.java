@@ -4785,4 +4785,10 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).isMacroSubstitutionNode();
 	}
+
+	@Override
+	MessageSplitter o_MessageSplitter (final AvailObject object)
+	{
+		return o_Traversed(object).messageSplitter();
+	}
 }

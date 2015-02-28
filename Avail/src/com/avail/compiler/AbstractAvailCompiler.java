@@ -3658,7 +3658,7 @@ public abstract class AbstractAvailCompiler
 							try
 							{
 								final MessageSplitter splitter =
-									new MessageSplitter(name);
+									atom.bundleOrCreate().messageSplitter();
 								final int instruction =
 									splitter.instructionsTuple().tupleIntAt(pc);
 								final ParsingOperation operation =
@@ -4076,7 +4076,8 @@ public abstract class AbstractAvailCompiler
 	 * @param start
 	 *            Where to start parsing.
 	 * @param instruction
-	 *            The {@linkplain MessageSplitter instruction} to execute.
+	 *            An int encoding the {@linkplain ParsingOperation
+	 *            parsing instruction} to execute.
 	 * @param firstArgOrNull
 	 *            Either the already-parsed first argument or null. If we're
 	 *            looking for leading-argument message sends to wrap an

@@ -35,7 +35,6 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;
@@ -56,7 +55,6 @@ extends Primitive
 		new P_128_IsCanonicalMessage().init(
 			1, CannotFail, CanInline, CanFold);
 
-	@SuppressWarnings("unused")
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
@@ -68,8 +66,9 @@ extends Primitive
 		try
 		{
 			// Ignore the return value. We just want to see if the name is
-			// canonical.
-			new MessageSplitter(name.atomName());
+			// canonical; attempting to create the bundle and its associated
+			// MessageSplitter should suffice.
+			name.bundleOrCreate();
 			return interpreter.primitiveSuccess(AtomDescriptor.trueObject());
 		}
 		catch (final MalformedMessageException e)

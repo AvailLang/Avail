@@ -37,7 +37,6 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
-import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;
 
 /**
@@ -64,17 +63,8 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Bundle bundle = args.get(0);
-		final A_String name = bundle.message().atomName();
-		MessageSplitter splitter = null;
-		try
-		{
-			splitter = new MessageSplitter(name);
-		}
-		catch (final MalformedMessageException e)
-		{
-			assert false : "The method name was extracted from a real bundle!";
-		}
-		assert splitter != null;
+
+		final MessageSplitter splitter = bundle.messageSplitter();
 		return interpreter.primitiveSuccess(IntegerDescriptor.fromInt(
 			splitter.numberOfArguments()));
 	}

@@ -4624,4 +4624,10 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	MessageSplitter o_MessageSplitter (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
 }

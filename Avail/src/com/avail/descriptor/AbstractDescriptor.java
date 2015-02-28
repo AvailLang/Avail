@@ -6208,4 +6208,10 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract boolean o_IsMacroSubstitutionNode (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract MessageSplitter o_MessageSplitter (AvailObject object);
 }

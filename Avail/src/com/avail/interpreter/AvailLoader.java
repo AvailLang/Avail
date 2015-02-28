@@ -226,8 +226,8 @@ public final class AvailLoader
 		assert methodName.isAtom();
 		assert bodyBlock.isFunction();
 
-		final MessageSplitter splitter =
-			new MessageSplitter(methodName.atomName());
+		final A_Bundle bundle = methodName.bundleOrCreate();
+		final MessageSplitter splitter = bundle.messageSplitter();
 		splitter.checkImplementationSignature(bodyBlock.kind());
 		final int numArgs = splitter.numberOfArguments();
 		if (bodyBlock.code().numArgs() != numArgs)
@@ -239,7 +239,6 @@ public final class AvailLoader
 		methodName.makeShared();
 		bodyBlock.makeShared();
 		//  Add the method definition.
-		final A_Bundle bundle = methodName.bundleOrCreate();
 		final A_Method method = bundle.bundleMethod();
 		final A_Definition newMethodDefinition =
 			MethodDefinitionDescriptor.create(method, module, bodyBlock);
@@ -331,12 +330,11 @@ public final class AvailLoader
 	{
 		methodName.makeShared();
 		bodySignature.makeShared();
-		final MessageSplitter splitter =
-			new MessageSplitter(methodName.atomName());
+		final A_Bundle bundle = methodName.bundleOrCreate();
+		final MessageSplitter splitter = bundle.messageSplitter();
 		splitter.checkImplementationSignature(bodySignature);
 		final A_Type bodyArgsTupleType = bodySignature.argsTupleType();
 		//  Add the stubbed method definition.
-		final A_Bundle bundle = methodName.bundleOrCreate();
 		final A_Method method = bundle.bundleMethod();
 		for (final A_Definition definition : method.definitionsTuple())
 		{
@@ -406,8 +404,8 @@ public final class AvailLoader
 			final A_Type bodySignature)
 		throws MalformedMessageException, SignatureException
 	{
-		final MessageSplitter splitter = new MessageSplitter(
-			methodName.atomName());
+		final A_Bundle bundle = methodName.bundleOrCreate();
+		final MessageSplitter splitter = bundle.messageSplitter();
 		final int numArgs = splitter.numberOfArguments();
 		final A_Type bodyArgsSizes = bodySignature.argsTupleType().sizeRange();
 		assert bodyArgsSizes.lowerBound().equals(
@@ -420,12 +418,9 @@ public final class AvailLoader
 		methodName.makeShared();
 		bodySignature.makeShared();
 		//  Add the method definition.
-		final A_Bundle bundle = methodName.bundleOrCreate();
 		final A_Method method = bundle.bundleMethod();
 		final A_Definition newDefinition = AbstractDefinitionDescriptor.create(
-			method,
-			module,
-			bodySignature);
+			method, module, bodySignature);
 		module().moduleAddDefinition(newDefinition);
 		@Nullable AvailObject forward = null;
 		for (final AvailObject existingDefinition : method.definitionsTuple())
@@ -506,8 +501,8 @@ public final class AvailLoader
 		assert methodName.isAtom();
 		assert macroBody.isFunction();
 
-		final MessageSplitter splitter = new MessageSplitter(
-			methodName.atomName());
+		final A_Bundle bundle = methodName.bundleOrCreate();
+		final MessageSplitter splitter = bundle.messageSplitter();
 		final int numArgs = splitter.numberOfArguments();
 		if (macroBody.code().numArgs() != numArgs)
 		{
@@ -518,12 +513,11 @@ public final class AvailLoader
 		{
 			throw new SignatureException(E_MACRO_MUST_RETURN_A_PARSE_NODE);
 		}
-		final A_Bundle bundle = methodName.bundleOrCreate();
-		final A_Method method = bundle.bundleMethod();
 		// Make it so we can safely hold onto these things in the VM.
 		methodName.makeShared();
 		macroBody.makeShared();
 		// Add the macro definition.
+		final A_Method method = bundle.bundleMethod();
 		final AvailObject macroDefinition = MacroDefinitionDescriptor.create(
 			method, module, macroBody);
 		module().moduleAddDefinition(macroDefinition);
@@ -651,8 +645,8 @@ public final class AvailLoader
 	{
 		assert methodName.isAtom();
 		assert seal.isTuple();
-		final MessageSplitter splitter = new MessageSplitter(
-			methodName.atomName());
+		final A_Bundle bundle = methodName.bundleOrCreate();
+		final MessageSplitter splitter = bundle.messageSplitter();
 		if (seal.tupleSize() != splitter.numberOfArguments())
 		{
 			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
@@ -689,14 +683,13 @@ public final class AvailLoader
 	{
 		methodName.makeShared();
 		illegalArgMsgs.makeShared();
-		final MessageSplitter splitter = new MessageSplitter(
-			methodName.atomName());
+		final A_Bundle bundle = methodName.bundleOrCreate();
+		final MessageSplitter splitter = bundle.messageSplitter();
 		final int numArgs = splitter.numberOfUnderscores();
 		if (illegalArgMsgs.tupleSize() != numArgs)
 		{
 			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
-		final A_Bundle bundle = methodName.bundleOrCreate();
 		final A_Module theModule = module;
 		final List<A_Set> bundleSets =
 			new ArrayList<>(illegalArgMsgs.tupleSize());

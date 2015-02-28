@@ -406,7 +406,7 @@ public class MessageSplitter
 		 *
 		 * @param list
 		 *        The list of integers {@linkplain MessageSplitter encoding}
-		 *        parsing instructions.
+		 *        {@link ParsingOperation parsing instructions}.
 		 * @param caseInsensitive
 		 *        Should keywords be matched case insensitively?
 		 * @param partialListsCount
@@ -3436,7 +3436,8 @@ public class MessageSplitter
 	/**
 	 * Answer a {@linkplain TupleDescriptor tuple} of Avail {@linkplain
 	 * IntegerDescriptor integers} describing how to parse this message.
-	 * See {@link MessageSplitter} for a description of the parse instructions.
+	 * See {@link MessageSplitter} and {@link ParsingOperation} for an
+	 * understanding of the parse instructions.
 	 *
 	 * @return The tuple of integers encoding parse instructions for this
 	 *         message.

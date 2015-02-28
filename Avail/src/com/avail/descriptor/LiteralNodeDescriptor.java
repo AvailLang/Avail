@@ -216,7 +216,7 @@ extends ParseNodeDescriptor
 		final AvailObject token = LiteralTokenDescriptor.create(
 			literalValue.isString()
 				? (A_String)literalValue
-				: StringDescriptor.from("Synthetic literal: " + literalValue),
+				: StringDescriptor.from("Synthetic literal"),
 			TupleDescriptor.empty(),
 			TupleDescriptor.empty(),
 			0,

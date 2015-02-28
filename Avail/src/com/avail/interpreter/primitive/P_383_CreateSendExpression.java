@@ -78,14 +78,13 @@ extends Primitive
 		final A_Bundle bundle;
 		try
 		{
-			final MessageSplitter splitter =
-				new MessageSplitter(messageName.atomName());
+			bundle = messageName.bundleOrCreate();
+			final MessageSplitter splitter = bundle.messageSplitter();
 			if (splitter.numberOfArguments() != argsCount)
 			{
 				return interpreter.primitiveFailure(
 					E_INCORRECT_NUMBER_OF_ARGUMENTS);
 			}
-			bundle = messageName.bundleOrCreate();
 		}
 		catch (final MalformedMessageException e)
 		{

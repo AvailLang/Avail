@@ -37,9 +37,7 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.Arrays;
 import java.util.List;
-import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
-import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.*;
 
@@ -78,9 +76,7 @@ extends Primitive
 			{
 				throw MethodDefinitionException.noMethod();
 			}
-			final MessageSplitter splitter =
-				new MessageSplitter(atom.atomName());
-			if (splitter.numberOfArguments() != argTypes.tupleSize())
+			if (bundle.bundleMethod().numArgs() != argTypes.tupleSize())
 			{
 				return interpreter.primitiveFailure(
 					E_INCORRECT_NUMBER_OF_ARGUMENTS);
@@ -90,7 +86,7 @@ extends Primitive
 			assert !definition.equalsNil();
 			return interpreter.primitiveSuccess(definition);
 		}
-		catch (final MalformedMessageException | MethodDefinitionException e)
+		catch (final MethodDefinitionException e)
 		{
 			return interpreter.primitiveFailure(e.errorCode());
 		}
@@ -115,7 +111,6 @@ extends Primitive
 					E_NO_METHOD.numericCode(),
 					E_NO_METHOD_DEFINITION.numericCode(),
 					E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
-					E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode()))
-				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
+					E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode())));
 	}
 }

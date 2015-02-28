@@ -70,6 +70,7 @@ extends Primitive
 		final A_Function function = args.get(1);
 		final A_Tuple argTuple = args.get(2);
 		final A_Number priority = args.get(3);
+
 		// Ensure that the function is callable with the specified arguments.
 		final int numArgs = argTuple.tupleSize();
 		if (function.code().numArgs() != numArgs)
@@ -77,8 +78,7 @@ extends Primitive
 			return interpreter.primitiveFailure(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
-		final List<AvailObject> callArgs =
-			new ArrayList<>(numArgs);
+		final List<AvailObject> callArgs = new ArrayList<>(numArgs);
 		final A_Type tupleType = function.kind().argsTupleType();
 		for (int i = 1; i <= numArgs; i++)
 		{

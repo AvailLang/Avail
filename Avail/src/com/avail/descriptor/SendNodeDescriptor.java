@@ -40,7 +40,6 @@ import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.exceptions.MalformedMessageException;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 
@@ -88,18 +87,7 @@ extends ParseNodeDescriptor
 		final int indent)
 	{
 		final MessageSplitter splitter;
-		try
-		{
-			splitter = new MessageSplitter(
-				object.bundle().message().atomName());
-		}
-		catch (final MalformedMessageException e)
-		{
-			builder.append("*** Malformed selector: ");
-			builder.append(e.errorCode().name());
-			builder.append("***");
-			return;
-		}
+		splitter = object.bundle().messageSplitter();
 		splitter.printSendNodeOnIndent(
 			object,
 			builder,
