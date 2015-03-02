@@ -4605,7 +4605,9 @@ public abstract class AbstractAvailCompiler
 				 * the successors from having multiple bundles in the same tree.
 				 */
 				List<A_Phrase> stackCopy = argsSoFar;
-				for (int i = op.fixupDepth(instruction); i > 0; i--)
+				// Only do N-1 steps.  We simply couldn't encode zero as an
+				// operand, so we always bias by one automatically.
+				for (int i = op.fixupDepth(instruction); i > 1; i--)
 				{
 					// Pop the last element and append it to the second last.
 					final A_Phrase value = last(stackCopy);

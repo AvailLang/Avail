@@ -33,12 +33,14 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.CovariantPhraseParameterization.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.IntegerSlots.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.descriptor.ParseNodeTypeDescriptor.CovariantPhraseParameterization;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -61,7 +63,14 @@ extends TypeDescriptor
 		/**
 		 * The type of value that this expression would produce.
 		 */
-		EXPRESSION_TYPE
+		EXPRESSION_TYPE,
+
+		/**
+		 * The tuple of covariant phrase parameterizations.  See each individual
+		 * {@link ParseNodeKind} for a description of how each slot of the tuple
+		 * is to be interpreted.
+		 */
+		COVARIANT_PHRASE_PARAMETERIZATIONS
 	}
 
 	/**
@@ -78,6 +87,56 @@ extends TypeDescriptor
 		KIND;
 	}
 
+	public final static class CovariantPhraseParameterization
+	{
+		/**
+		 * The name to print when describing this parameterization of some
+		 * phrase type.
+		 */
+		final String name;
+
+		/**
+		 * The most general type this parameterization can have.
+		 *
+		 * <p>If a phrase type has this type for this parameterization, the
+		 * parameterization won't be shown at all in the print representation
+		 * of the type.
+		 */
+		final A_Type mostGeneralType;
+
+		/**
+		 * The one-based index of this parameterization within
+		 */
+		@InnerAccess
+		int index = -1;
+
+		CovariantPhraseParameterization (
+			final String name,
+			final A_Type mostGeneralType)
+		{
+			this.name = name;
+			this.mostGeneralType = mostGeneralType;
+		}
+	}
+
+	final static CovariantPhraseParameterization co(
+		final String name,
+		final A_Type mostGeneralType)
+	{
+		return new CovariantPhraseParameterization(name, mostGeneralType);
+	}
+
+	final static CovariantPhraseParameterization[] parameterizations(
+		final CovariantPhraseParameterization... all)
+	{
+		for (int i = 0; i < all.length; i++)
+		{
+			assert all[i].index == -1;
+			all[i].index = i + 1;
+		}
+		return all;
+	}
+
 	/**
 	 * My hierarchy of kinds of parse nodes.
 	 */
@@ -85,22 +144,72 @@ extends TypeDescriptor
 	implements IntegerEnumSlotDescriptionEnum
 	{
 		/** The root parse node kind. */
-		PARSE_NODE("phrase type", null),
+		PARSE_NODE("phrase type", null)
+		{
+			@Override
+			CovariantPhraseParameterization[] privateParameterizations ()
+			{
+				return parameterizations();
+			}
+		},
 
 		/** The kind of a parse marker. */
-		MARKER_NODE("marker phrase type", PARSE_NODE),
+		MARKER_NODE("marker phrase type", PARSE_NODE)
+		{
+			@Override
+			CovariantPhraseParameterization[] privateParameterizations ()
+			{
+				return parameterizations(
+					co("value", InstanceMetaDescriptor.anyMeta()));
+			}
+		},
 
 		/** The abstract parent kind of all expression nodes. */
-		EXPRESSION_NODE("expression phrase type", PARSE_NODE),
+		EXPRESSION_NODE("expression phrase type", PARSE_NODE)
+		{
+			@Override
+			CovariantPhraseParameterization[] privateParameterizations ()
+			{
+				return parameterizations();
+			}
+		},
 
 		/**
 		 * The kind of an {@linkplain AssignmentNodeDescriptor assignment node}.
 		 */
-		ASSIGNMENT_NODE("assignment phrase type", EXPRESSION_NODE),
+		ASSIGNMENT_NODE("assignment phrase type", EXPRESSION_NODE)
+		{
+			@Override
+			CovariantPhraseParameterization[] privateParameterizations ()
+			{
+				return parameterizations(
+					co("expression", EXPRESSION_NODE.mostGeneralType()),
+					co("declaration", DECLARATION_NODE.mostGeneralType()));
+			}
+		},
 
 		/** The kind of a {@linkplain BlockNodeDescriptor block node}. */
 		BLOCK_NODE("block phrase type", EXPRESSION_NODE)
 		{
+			@Override
+			CovariantPhraseParameterization[] privateParameterizations ()
+			{
+				return parameterizations(
+					co("arguments", TupleTypeDescriptor.oneOrMoreOf(
+						ARGUMENT_NODE.mostGeneralType())),
+					co("primitive", IntegerRangeTypeDescriptor.inclusive(
+						IntegerDescriptor.zero(),
+						IntegerDescriptor.fromInt(65535))),
+					co("failure",
+						PRIMITIVE_FAILURE_REASON_NODE.mostGeneralType()),
+					co("label", LABEL_NODE.mostGeneralType()),
+					co("statements", SEQUENCE_NODE.mostGeneralType()),
+					co("exceptions",
+						SetTypeDescriptor.setTypeForSizesContentType(
+							IntegerRangeTypeDescriptor.wholeNumbers(),
+							ObjectTypeDescriptor.exceptionType())));
+			}
+
 			@Override
 			A_Type mostGeneralInnerType ()
 			{
@@ -111,6 +220,13 @@ extends TypeDescriptor
 		/** The kind of a {@linkplain LiteralNodeDescriptor literal node}. */
 		LITERAL_NODE("literal node type", EXPRESSION_NODE)
 		{
+			@Override
+			CovariantPhraseParameterization[] privateParameterizations ()
+			{
+				return parameterizations(
+					co("token", TOKEN.o()));
+			}
+
 			@Override
 			A_Type mostGeneralInnerType ()
 			{
@@ -124,6 +240,13 @@ extends TypeDescriptor
 		REFERENCE_NODE("variable reference phrase type", EXPRESSION_NODE)
 		{
 			@Override
+			CovariantPhraseParameterization[] privateParameterizations ()
+			{
+				return parameterizations(
+					co("declaration", DECLARATION_NODE.mostGeneralType()));
+			}
+
+			@Override
 			A_Type mostGeneralInnerType ()
 			{
 				return VariableTypeDescriptor.mostGeneralType();
@@ -135,6 +258,14 @@ extends TypeDescriptor
 		 */
 		SUPER_CAST_NODE("super cast phrase", EXPRESSION_NODE)
 		{
+			@Override
+			CovariantPhraseParameterization[] privateParameterizations ()
+			{
+				return parameterizations(
+					co("expression", EXPRESSION_NODE.create(ANY.o())),
+					co("lookup type", InstanceMetaDescriptor.anyMeta()));
+			}
+
 			@Override
 			A_Type mostGeneralInnerType ()
 			{
@@ -246,6 +377,17 @@ extends TypeDescriptor
 		}
 
 		/**
+		 * The enumeration values are responsible for providing an array of
+		 * {@link CovariantPhraseParameterization}s that indicate how this kind
+		 * of type is to be parameterized.
+		 *
+		 * @return An array of {@link CovariantPhraseParameterization}s.
+		 */
+//		abstract CovariantPhraseParameterization[] privateParameterizations ();
+		//TODO Remove debug
+		CovariantPhraseParameterization[] privateParameterizations () {return null;}
+
+		/**
 		 * The most general inner type for this kind of parse node.
 		 *
 		 * @return The most general inner type for this kind of parse node.
@@ -268,6 +410,11 @@ extends TypeDescriptor
 
 		/** The JSON name of this type. */
 		final String jsonName;
+
+		/**
+		 * The covariant parameterizations of this phrase type.
+		 */
+		CovariantPhraseParameterization[] parameterizations;
 
 		/**
 		 * Construct a new {@link ParseNodeKind}.
@@ -311,6 +458,8 @@ extends TypeDescriptor
 			boundedExpressionType.makeImmutable();
 			type.setSlot(EXPRESSION_TYPE, boundedExpressionType);
 			type.setSlot(KIND, ordinal());
+			type.setSlot(
+				COVARIANT_PHRASE_PARAMETERIZATIONS, NilDescriptor.nil());
 			return type;
 		}
 

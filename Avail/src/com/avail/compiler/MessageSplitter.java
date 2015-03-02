@@ -1169,12 +1169,11 @@ public class MessageSplitter
 			 */
 			for (final Expression expression : expressions)
 			{
-				final boolean isPush = expression.isArgumentOrGroup();
 				expression.emitOn(
 					list,
 					caseInsensitive,
-					partialListsCount + 1);
-				if (isPush)
+					partialListsCount);
+				if (expression.isArgumentOrGroup())
 				{
 					list.add(APPEND_ARGUMENT.encoding());
 				}
@@ -1683,26 +1682,10 @@ public class MessageSplitter
 				}
 				for (final Expression expression : beforeDagger.expressions)
 				{
-					// If this is an argument then it doesn't matter what we
-					// adjust by, since an argument can't contain a checkpoint.
-					// If it's a group then it will start by pushing an empty
-					// list to accumulate repeated solutions.  We have to push
-					// that list of solutions onto our list of solutions if the
-					// group contains a checkpoint (even if the checkpoint is
-					// before any arguments), so it's +1.  Thus, it's a +1
-					// whether it's an argument or a group.
-					final int stackAdjustment =
-						expression.isArgumentOrGroup() ? 1 : 0;
 					expression.emitOn(
 						list,
 						caseInsensitive,
-						partialListsCount + stackAdjustment);
-					// Append as soon as the value's available (rather than
-					// leaving it on the stack until non-argument keywords and
-					// such have been parsed).  Either way works, since exactly
-					// one subexpression before the dagger must be an argument
-					// or group, but the stack adjustment logic is easier this
-					// way.
+						partialListsCount + 1);
 					if (expression.isArgumentOrGroup())
 					{
 						// Add a raw answer (no sublist) to the outer list.
@@ -1770,25 +1753,12 @@ public class MessageSplitter
 				list.add(NEW_LIST.encoding());
 				for (final Expression expression : beforeDagger.expressions)
 				{
-					// We always have to append the current (potentially
-					// partial) iteration to the outer list, so we always have
-					// at least a +1 adjustment for checkpoints.  The logic
-					// related to an additional adjustment of +1 is whether the
-					// subexpression could have produced a partially formed
-					// argument (never) or group at the point a checkpoint is
-					// reached.  Since we push arguments/groups as we go through
-					// our direct children, we only have to worry about this for
-					// the case of a group.  The group will deal with its own
-					// adjustments, so just deal with the fact that we have
-					// to append our latest solution (+1) after pushing the
-					// partially formed group (another +1).  Thus, it's a +2
-					// when it's an argument (doesn't matter) or a group.
-					final int stackAdjustment =
-						expression.isArgumentOrGroup() ? 2 : 1;
+					// This group builds a list of tuples (i.e., it's
+					// double-wrapped), so adjust the partialListsCount by 2.
 					expression.emitOn(
 						list,
 						caseInsensitive,
-						partialListsCount + stackAdjustment);
+						partialListsCount + 2);
 					if (expression.isArgumentOrGroup())
 					{
 						// Add to the current solution, which is a sublist.
@@ -1808,13 +1778,12 @@ public class MessageSplitter
 				list.add(BRANCH.encoding(loopExit));
 				for (final Expression expression : afterDagger.expressions)
 				{
-					// Adjust it the same way we did before the double dagger.
-					final int stackAdjustment =
-						expression.isArgumentOrGroup() ? 2 : 1;
+					// This group builds a list of tuples (i.e., it's
+					// double-wrapped), so adjust the partialListsCount by 2.
 					expression.emitOn(
 						list,
 						caseInsensitive,
-						partialListsCount + stackAdjustment);
+						partialListsCount + 2);
 					if (expression.isArgumentOrGroup())
 					{
 						// Same logic for arguments/groups before the double
@@ -3297,9 +3266,9 @@ public class MessageSplitter
 		}
 		// Emit it twice -- once to calculate the branch positions, and then
 		// again to output using the correct branches.
-		rootSequence.emitWithoutInitialNewListPushOn(instructions, false, 0);
+		rootSequence.emitWithoutInitialNewListPushOn(instructions, false, 1);
 		instructions.clear();
-		rootSequence.emitWithoutInitialNewListPushOn(instructions, false, 0);
+		rootSequence.emitWithoutInitialNewListPushOn(instructions, false, 1);
 	}
 
 	/**
