@@ -649,6 +649,14 @@ Public macro "For…from_to_by_§do_" is
 	step : expression phrase ⇒ integer
 |
 	counterToken ::= counterPhrase's token;
+	counterName ::= counterToken's lexeme;
+	If counterName ∈ scope map then
+	[
+		Reject parse, expected:
+			"loop variable "
+			++ counterName
+			++ " to have a name that doesn't shadow another local declaration"
+	];
 	min ::= ⎣start's semantic type⎦;
 	max ::= ⎡end's semantic type⎤;
 	counterType ::= (min - 1 .. max + 1);

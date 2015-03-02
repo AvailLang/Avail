@@ -166,8 +166,9 @@ extends Primitive
 				if (error == E_LOCAL_DECLARATION_SHADOWS_ANOTHER)
 				{
 					throw new AvailRejectedParseException(
-						"primitive failure variable to have a name that "
-						+ "doesn't shadow another local declaration");
+						"primitive failure variable %s to have a name that "
+						+ "doesn't shadow another local declaration",
+						failureName.string());
 				}
 				return interpreter.primitiveFailure(error);
 			}
