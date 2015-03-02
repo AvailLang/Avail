@@ -3513,6 +3513,12 @@ public final class AvailBuilder
 									phrase);
 							}
 						});
+					A_Map fiberGlobals = fiber.fiberGlobals();
+					fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
+						AtomDescriptor.clientDataGlobalKey(),
+						MapDescriptor.empty(),
+						true);
+					fiber.fiberGlobals(fiberGlobals);
 					fiber.textInterface(textInterface);
 					fiber.resultContinuation(
 						new Continuation1<AvailObject>()
