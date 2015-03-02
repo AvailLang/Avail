@@ -52,9 +52,7 @@ Names
 	"_'s⁇scale factor::=_"
 Body
 
-/* Field atoms. */
-_scaleFactor ::= $"scale factor";
-Public method "scale factor" is [_scaleFactor];
+Public method "scale factor" is [$"scale factor"];
 
 /**
  * An SI unit defines a family that relates units that differ only by scale.

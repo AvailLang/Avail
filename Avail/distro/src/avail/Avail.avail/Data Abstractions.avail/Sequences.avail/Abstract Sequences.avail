@@ -168,9 +168,7 @@ Semantic restriction "`|_`|" is
 	sequenceType's sequence size
 ];
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-_privateSubscriptName ::= $"private_[_]";
-Abstract method _privateSubscriptName is [sequence, natural number]→any;
+Abstract method $"private_[_]" is [sequence, natural number]→any;
 
 /**
  * Define a method to subscript a sequence. The public operation, {@method
@@ -193,7 +191,7 @@ Public method "_'s⁇subscript method is_" is
 	sequenceType : sequence's type,
 	implementation : [⊥, natural number]→any
 |
-	Private method _privateSubscriptName is implementation;
+	Private method $"private_[_]" is implementation;
 ] : ⊤;
 
 Semantic restriction "_'s⁇subscript method is_" is
@@ -379,10 +377,9 @@ Public method "an empty sequence" is [_theEmptySequence];
 /* Seal the public operations. */
 Seal method "_[_]" at <sequence, natural number>;
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-_decoratedSequence ::= $"decorated sequence|sequences";
 "index offset" is a new field atom;
-Private method "decorated sequence|sequences" is [_decoratedSequence];
+Private method "decorated sequence|sequences"
+	is [$"decorated sequence|sequences"];
 
 /**
  * A sliced sequence is a lazy window onto another sequence. The elements of

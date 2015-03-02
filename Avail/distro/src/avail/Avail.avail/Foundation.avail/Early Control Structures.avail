@@ -71,32 +71,18 @@ Public method "Ignore:_" is
  * the compiler in disambiguating expressions. Used well, it also improves
  * readability of source text by programmers.
  *
- * @method "(_)"
- * @param "value" "any"
- *        A value, usually produced by a method send expression.
- * @returns "any"
+ * @macro "(_)"
+ * @param "expr" "expression phrase"
+ *        An expression.
+ * @returns "expression phrase"
  *        The argument.
  * @category "Control Structures"
  */
-Public method "(_)" is
+Public macro "(_)" is
 [
-	value : any
+	expr : expression phrase
 |
-	value
-];
-
-/**
- * A parenthesized expression should have the same static return type that it
- * would were the parentheses not present.
- * 
- * @method "(_)"
- * @restricts "type"
- */
-Semantic restriction "(_)" is
-[
-	value : type
-|
-	value
+	expr
 ];
 
 /**

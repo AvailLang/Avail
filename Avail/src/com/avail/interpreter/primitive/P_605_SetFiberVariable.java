@@ -32,7 +32,6 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -51,7 +50,7 @@ extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_605_SetFiberVariable().init(
-			2, CanInline, HasSideEffect);
+			2, CannotFail, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -62,10 +61,6 @@ extends Primitive
 		assert args.size() == 2;
 		final A_Atom key = args.get(0);
 		final A_BasicObject value = args.get(1);
-		if (key.isAtomSpecial())
-		{
-			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
-		}
 		final A_Fiber fiber = interpreter.fiber();
 		if (key.getAtomProperty(AtomDescriptor.heritableKey()).equalsNil())
 		{
@@ -94,12 +89,5 @@ extends Primitive
 				ATOM.o(),
 				ANY.o()),
 			TOP.o());
-	}
-
-	@Override
-	protected A_Type privateFailureVariableType ()
-	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_SPECIAL_ATOM.numericCode());
 	}
 }

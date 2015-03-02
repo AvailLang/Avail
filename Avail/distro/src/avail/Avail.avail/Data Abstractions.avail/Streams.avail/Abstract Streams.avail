@@ -72,9 +72,6 @@ Names
 	 */
 Body
 
-privateHeadName ::= $"private_'s⁇head";
-privateTailName ::= $"private_'s⁇tail";
-
 Public "decorated stream|streams" is a new field atom;
 "transformer" is a new field atom;
 "filter" is a new field atom;
@@ -133,7 +130,7 @@ Abstract method "_is empty" is [stream]→boolean;
  * @returns "any"
  *          The first element of the specified stream.
  */
-Private abstract method privateHeadName is [stream]→any;
+Private abstract method $"private_'s⁇head" is [stream]→any;
 
 /**
  * Ensure that the specified stream is not empty, then answer its first element.
@@ -191,7 +188,7 @@ Public method "_'s⁇head method is_" is
 	streamType : stream's type,
 	implementation : [⊥]→any
 |
-	Private method privateHeadName is implementation;
+	Private method $"private_'s⁇head" is implementation;
 ] : ⊤;
 
 /**
@@ -233,7 +230,7 @@ Semantic restriction "_'s⁇head method is_" is
  * @returns "stream"
  *          The requested stream.
  */
-Private abstract method privateTailName is [stream]→stream;
+Private abstract method $"private_'s⁇tail" is [stream]→stream;
 
 /**
  * Ensure that the specified stream is not empty, then construct and answer a
@@ -289,7 +286,7 @@ Public method "_'s⁇tail method is_" is
 	streamType : stream's type,
 	implementation : [⊥]→stream
 |
-	Private method privateTailName is implementation;
+	Private method $"private_'s⁇tail" is implementation;
 ] : ⊤;
 
 /**

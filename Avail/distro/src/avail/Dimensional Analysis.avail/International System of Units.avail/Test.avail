@@ -43,8 +43,6 @@ Names
 	"SI test suite"
 Body
 
-_testSuite ::= $"SI test suite";
-
 /**
  * Answer the SI test suite identifier.
  * 
@@ -52,6 +50,6 @@ _testSuite ::= $"SI test suite";
  * @returns "atom"
  *          The requsted test suite identifier.
  */
-Public method "SI test suite" is [_testSuite];
+Public method "SI test suite" is [$"SI test suite"];
 
 New test suite SI test suite extends dimensional analysis test suite;

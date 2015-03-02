@@ -61,8 +61,6 @@ Body
 
 "buffer is dirty" is a new field atom;
 
-privateWriteName ::= $"Private write_in_at_";
-
 /**
  * Random access buffered iterator is an abstraction that combines the ability
  * to position among the natural numbers and the responsibility for implementing
@@ -208,7 +206,7 @@ Method "_is exhausted" is
 		]
 ] : boolean;
 
-Private abstract method privateWriteName is
+Private abstract method $"Private write_in_at_" is
 	[tuple, random access buffered writer, natural number]→⊤;
 
 /**
@@ -232,7 +230,7 @@ Public method "_'s⁇write tuple method is_" is
 	writerType : random access buffered writer's type,
 	implementation : [tuple, ⊥, natural number]→⊤
 |
-	Private method privateWriteName is implementation;
+	Private method $"Private write_in_at_" is implementation;
 ] : ⊤;
 
 /**

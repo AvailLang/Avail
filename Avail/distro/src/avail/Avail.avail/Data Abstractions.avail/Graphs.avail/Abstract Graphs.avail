@@ -73,25 +73,15 @@ Names
 	"no-such-vertex exception"
 Body
 
-_vertexType ::= $"vertex type";
-_edgeType ::= $"edge type";
-_predecessors ::= $predecessors;
-_successors ::= $successors;
-_source ::= $source;
-_destination ::= $destination;
-_edgeLabel ::= $"edge label";
-_targetVertex ::= $"target vertex";
-_targetEdge ::= $"target edge";
-
-Private method "vertex type" is [_vertexType];
-Private method "edge type" is [_edgeType];
-Private method "predecessors" is [_predecessors];
-Private method "successors" is [_successors];
-Private method "source" is [_source];
-Private method "destination" is [_destination];
-Private method "edge label" is [_edgeLabel];
-Private method "target vertex" is [_targetVertex];
-Private method "target edge" is [_targetEdge];
+Private method "vertex type" is [$"vertex type"];
+Private method "edge type" is [$"edge type"];
+Private method "predecessors" is [$predecessors];
+Private method "successors" is [$successors];
+Private method "source" is [$source];
+Private method "destination" is [$destination];
+Private method "edge label" is [$"edge label"];
+Private method "target vertex" is [$"target vertex"];
+Private method "target edge" is [$"target edge"];
 
 /**
  * A graph comprises vertices and directed edges.

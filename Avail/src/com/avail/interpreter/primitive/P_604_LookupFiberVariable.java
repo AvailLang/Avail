@@ -62,10 +62,6 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Atom key = args.get(0);
-		if (key.isAtomSpecial())
-		{
-			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
-		}
 		final A_Fiber fiber = interpreter.fiber();
 		// Choose the correct map based on the heritability of the key.
 		final A_Map globals =
@@ -95,7 +91,6 @@ extends Primitive
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			SetDescriptor.fromCollection(Arrays.asList(
-				E_SPECIAL_ATOM.numericCode(),
 				E_NO_SUCH_FIBER_VARIABLE.numericCode())));
 	}
 }

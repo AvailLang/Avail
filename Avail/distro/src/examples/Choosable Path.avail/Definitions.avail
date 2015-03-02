@@ -139,11 +139,6 @@ Private method "context type,initialization triples,and atom map given_and_" is
 	<contextType, initializationTriples, atomsByName>
 ] : <context's type, <<atom, any's type, any…|3>…|>, {string→atom|}…|3>;
 
-/* These atoms are needed for context constructor synthesis. */
-ejectAtom ::= $"eject_";
-addBindingAtom ::= $"_+_→_";
-toObjectAtom ::= $"_→object";
-
 /**
  * The name of the method that answers the game-specific {@type "context"} type.
  *
@@ -166,12 +161,6 @@ contextConstructorName ::= "a game context";
  * @global "openingSceneName" "nonempty string"
  */
 openingSceneName ::= "the opening scene";
-
-/* These atoms are needed by context type constructor synthesis. */
-currentSceneAtom ::= $"current scene";
-previousSceneAtom ::= $"previous scene";
-getAtom ::= $"↓_";
-putAtom ::= $"_`?=_";
 
 /**
  * Generate and install a type accessor named {@method "game context"} to answer
@@ -220,27 +209,27 @@ is
 
 	/* Arrange to set the opening scene. */
 	openingSceneDecl ::= «`"openingScene"` : sceneType
-		:= send getAtom with «<‘`openingSceneVar`’>» : sceneType»;
-	currentSceneVar ::= contextMap[currentSceneAtom];
+		:= send $"↓_" with «<‘`openingSceneVar`’>» : sceneType»;
+	currentSceneVar ::= contextMap[$"current scene"];
 	currentSceneDecl ::=
 		«`"currentScene"` : abstract scene := «↓openingSceneDecl»»;
 	currentSceneUpdate ::=
-		««↓mapVar» := send addBindingAtom with
+		««↓mapVar» := send $"_+_→_" with
 			«<
-				send ejectAtom with «< «↑«↓mapVar»» >» : field map,
-				‘`currentSceneAtom`’,
+				send $"eject_" with «< «↑«↓mapVar»» >» : field map,
+				‘`$"current scene"`’,
 				«↑«↓currentSceneDecl»»
 			>» : field map»;
 
-	previousSceneVar ::= contextMap[previousSceneAtom];
+	previousSceneVar ::= contextMap[$"previous scene"];
 	/* Set the previous scene to the opening scene, for safety. */
 	previousSceneDecl ::=
 		«`"previousScene"` : abstract scene := «↓openingSceneDecl»»;
 	previousSceneUpdate ::=
-		««↓mapVar» := send addBindingAtom with
+		««↓mapVar» := send $"_+_→_" with
 			«<
-				send ejectAtom with «< «↑«↓mapVar»» >» : field map,
-				‘`previousSceneAtom`’,
+				send $"eject_" with «< «↑«↓mapVar»» >» : field map,
+				‘`$"previous scene"`’,
 				«↑«↓previousSceneDecl»»
 			>» : field map»;
 
@@ -261,15 +250,15 @@ is
 			initTriple : <atom, any's type, any…|3>,
 			index : natural number
 		|
-			ejectSend ::= send ejectAtom with «< «↑«↓mapVar»» >» : field map;
-			addBindingSend ::= send addBindingAtom
+			ejectSend ::= send $"eject_" with «< «↑«↓mapVar»» >» : field map;
+			addBindingSend ::= send $"_+_→_"
 				with «< ejectSend, ‘`initTriple[1]`’, «↑«↓instVars[index]»» >»
 				: field map;
 			««↓mapVar» := addBindingSend»
 		];
 
 	/* Convert the field map into an object. */
-	convert ::= send toObjectAtom with «< «↓mapVar» >» : contextType;
+	convert ::= send $"_→object" with «< «↓mapVar» >» : contextType;
 
 	/* Compile the function. */
 	statements ::=
@@ -285,12 +274,6 @@ is
 		<{contextTypeName}, ∅, ∅>;
 	Export contextConstructorName as a new name;
 ];
-
-/* These atoms are required by accessor synthesis. */
-impliedContextAtom ::= $"the implied context";
-toMapAtom ::= $"_→map";
-mapAtAtom ::= $"_[_]";
-notAtom ::= $"¬_";
 
 /**
  * Construct and answer a {@type "phrase"} that produces the field variable
@@ -312,11 +295,11 @@ Private method "get_'s⁇_field variable expression for_" is
 	stateType : any's type,
 	fieldAtom : atom
 |
-	send mapAtAtom with
+	send $"_[_]" with
 	«<
-		send toMapAtom with
+		send $"_→map" with
 		«<
-			send impliedContextAtom with «<>» : contextType
+			send $"the implied context" with «<>» : contextType
 		>» : field map,
 		‘`fieldAtom`’
 	>» : ↑stateType
@@ -349,7 +332,7 @@ Private method "Install boolean accessors for_given_and_" is
 			for fieldAtom;
 		positiveInterrogativeBlock ::=
 			«[
-				<send getAtom with «< getVar >» : boolean>
+				<send $"↓_" with «< getVar >» : boolean>
 			] : boolean»;
 		Method positive is positiveInterrogativeBlock→function;
 		Export positive as a new name;
@@ -358,9 +341,9 @@ Private method "Install boolean accessors for_given_and_" is
 		negative ::= quartet[3];
 		negativeInterrogativeBlock ::=
 			«[
-				<send notAtom with
+				<send $"¬_" with
 				«<
-					send getAtom with «< getVar >» : boolean
+					send $"↓_" with «< getVar >» : boolean
 				>» : boolean >
 			] : boolean»;
 		Method negative is negativeInterrogativeBlock→function;
@@ -370,7 +353,7 @@ Private method "Install boolean accessors for_given_and_" is
 		positiveSetter ::= "Now " ++ positive;
 		positiveSetterBlock ::=
 			«[
-				<send putAtom with «< getVar, ‘`true`’ >» : ⊤>
+				<send $"_`?=_" with «< getVar, ‘`true`’ >» : ⊤>
 			] : ⊤»;
 		Method positiveSetter is positiveSetterBlock→function;
 		Export positiveSetter as a new name;
@@ -379,7 +362,7 @@ Private method "Install boolean accessors for_given_and_" is
 		negativeSetter ::= "Now " ++ negative;
 		negativeSetterBlock ::=
 			«[
-				<send putAtom with «< getVar, ‘`false`’ >» : ⊤>
+				<send $"_`?=_" with «< getVar, ‘`false`’ >» : ⊤>
 			] : ⊤»;
 		Method negativeSetter is negativeSetterBlock→function;
 		Export negativeSetter as a new name;
@@ -418,7 +401,7 @@ Private method "Install non-boolean accessors for_given_and_" is
 				get contextType's stateType field variable expression
 				for fieldAtom;
 			accessorBlock ::=
-				«[ <send getAtom with «< getVar >» : stateType> ] : stateType»;
+				«[ <send $"↓_" with «< getVar >» : stateType> ] : stateType»;
 			accessorFunction ::= accessorBlock→function;
 			Method accessor is accessorFunction;
 			Export accessor as a new name;
@@ -430,7 +413,7 @@ Private method "Install non-boolean accessors for_given_and_" is
 				«[
 					<mutatorArg>
 				|
-					<send putAtom with «< getVar, «↓mutatorArg» >» : ⊤>
+					<send $"_`?=_" with «< getVar, «↓mutatorArg» >» : ⊤>
 				] : ⊤»;
 			mutatorFunction ::= mutatorBlock→function;
 			Method mutator is mutatorFunction;
@@ -522,11 +505,6 @@ currentSceneName ::= "the current scene";
  */
 previousSceneName ::= "the previous scene";
 
-/* These atoms are required by accessor synthesis. */
-currentSceneAccessor ::= $"_'s⁇current scene";
-previousSceneAccessor ::= $"_'s⁇previous scene";
-assignCast ::= $"_↑`?=_";
-
 /**
  * Generate and install the methods for querying {@method "the current scene"}
  * and {@method "the previous scene"}.
@@ -539,17 +517,17 @@ Private method "Install the game-specific scene accessors for_" is
 	contextType : context's type
 |
 	sceneType ::= scene for contextType;
-	impliedContext ::= send impliedContextAtom with «<>» : contextType;
+	impliedContext ::= send $"the implied context" with «<>» : contextType;
 	/* Generate the current scene accessor. We need to produce a local variable
 	 * with the same type as the actual scene type, assign the implied context's
 	 * current scene to it, and then answer this variable.
 	 */
 	currentSceneDecl ::= «`"currentScene"` : sceneType»;
 	currentSceneAssign ::=
-		send assignCast with
+		send $"_↑`?=_" with
 		«<
 			«↑«↓currentSceneDecl»»,
-			send currentSceneAccessor with «< impliedContext >» : sceneType
+			send $"_'s⁇current scene" with «< impliedContext >» : sceneType
 		>» : ⊤;
 	currentSceneBlock ::=
 		«[
@@ -564,10 +542,10 @@ Private method "Install the game-specific scene accessors for_" is
 	 */
 	previousSceneDecl ::= «`"previousScene"` : sceneType»;
 	previousSceneAssign ::=
-		send assignCast with
+		send $"_↑`?=_" with
 		«<
 			«↑«↓previousSceneDecl»»,
-			send previousSceneAccessor with «< impliedContext >» : sceneType
+			send $"_'s⁇previous scene" with «< impliedContext >» : sceneType
 		>» : ⊤;
 	previousSceneBlock ::=
 		«[
@@ -1124,9 +1102,6 @@ Private method "Require:scene_agrees with_" is
 	];
 ] : ⊤;
 
-/* These atoms are required by game-specific context wrapper synthesis. */
-invokeAtom ::= $"_(«_‡,»)";
-
 /**
  * Answer a unary function that wraps the specified nullary function. The outer
  * function accepts an argument of the game-specific {@type "context"} type.
@@ -1147,7 +1122,7 @@ Private method "unary wrapper on_" is
 	«[
 		<arg «`"c"` : contextType»>
 	|
-		<send invokeAtom with «<‘`nullary`’, «<>»>» : returnType>
+		<send $"_(«_‡,»)" with «<‘`nullary`’, «<>»>» : returnType>
 	] : returnType»→function
 ];
 
@@ -1178,9 +1153,9 @@ Private method "target wrapper on_" is
 		<arg «`"c"` : contextType»>
 	|
 		<
-			send getAtom with
+			send $"↓_" with
 			«<
-				send invokeAtom with «<‘`nullary`’, «<>»>» : ↑sceneType
+				send $"_(«_‡,»)" with «<‘`nullary`’, «<>»>» : ↑sceneType
 			>» : sceneType
 		>
 	] : sceneType»→function
@@ -1192,15 +1167,6 @@ Semantic restriction "target wrapper on_" is
 |
 	[⊥]→scene
 ];
-
-/* These atoms are needed for scene transition constructor synthesis. */
-unaryWrapperAtom ::= $"unary wrapper on_";
-targetWrapperAtom ::= $"target wrapper on_";
-sceneConstructorAtom ::=
-	$"a scene transition to_,⁇contingent on_,⁇before entry doing_,⁇described by_";
-dynamicContextTypeAtom ::= $"dynamic game context type";
-requireSceneAtom ::= $"Require:scene_agrees with_";
-sceneTransitionAtom ::= $"scene transition for_";
 
 /**
  * Generate every valid {@type "scene transition"} constructor and its semantic
@@ -1284,7 +1250,7 @@ Private method "Generate scene transition constructors" is
 				argUse ::= «↓args[argMap[index]] else [arg «`"bogus"` : ⊥»]»;
 				if index = 1 then
 				[
-					send targetWrapperAtom with
+					send $"target wrapper on_" with
 					«<
 						if argType = variable
 						then [«[<> | <argUse>] : variable»]
@@ -1293,21 +1259,21 @@ Private method "Generate scene transition constructors" is
 				]
 				else if [index = 2] then
 				[
-					send unaryWrapperAtom with
+					send $"unary wrapper on_" with
 					«<
 						if argType = ⊥ then [‘`[true]`’] else [argUse]
 					>» : [⊥]→boolean
 				]
 				else if [index = 3] then
 				[
-					send unaryWrapperAtom with
+					send $"unary wrapper on_" with
 					«<
 						if argType = ⊥ then [‘`[]`’] else [argUse]
 					>» : [⊥]→⊤
 				]
 				else
 				[
-					send unaryWrapperAtom with
+					send $"unary wrapper on_" with
 					«<
 						if argType = nonempty string
 						then [«[<> | <argUse>] : nonempty string»]
@@ -1317,7 +1283,8 @@ Private method "Generate scene transition constructors" is
 			];
 		/* Construct the scene transition constructor send. */
 		constructorSend ::=
-			send sceneConstructorAtom
+			send $"a scene transition to_,\
+					\|⁇contingent on_,⁇before entry doing_,⁇described by_"
 				with wrapperSends→list phrase
 				: scene transition;
 		/* Construct the method body. */
@@ -1345,17 +1312,17 @@ Private method "Generate scene transition constructors" is
 		/* Construct the body of the semantic restriction. */
 		contextTypeDecl ::=
 			«`"contextType"` : context's type :=
-				send dynamicContextTypeAtom with «<>» : context's type»;
+				send $"dynamic game context type" with «<>» : context's type»;
 		restrictionBlock ::=
 			«[
 				argTypes
 			|
 				<
 					contextTypeDecl,
-					send requireSceneAtom
+					send $"Require:scene_agrees with_"
 						with «<«↓argTypes[1]», «↓contextTypeDecl»>»
 						: ⊤,
-					send sceneTransitionAtom
+					send $"scene transition for_"
 						with «<«↓contextTypeDecl»>»
 						: scene transition's type
 				>

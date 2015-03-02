@@ -251,6 +251,13 @@ Semantic restriction "send_with_:_" is
 	send phrase⇒cast returnType's instance into [t : type | t]
 ];
 
+Semantic restriction "_'s⁇semantic type" is
+[
+	expressionType : expression phrase's type
+|
+	expressionType's semantic type's type
+];
+
 /**
  * A block type's semantic type is always a function type.
  *
@@ -267,6 +274,19 @@ Semantic restriction "_'s⁇semantic type" is
 		else [cast blockType's instance into [t : function meta's type | t]]
 	]
 	else [function meta]
+];
+
+/**
+ * An expression phrase's type's semantic type is always a value's type.
+ *
+ * @method "_'s⁇semantic type"
+ * @restricts "expression phrase's type's type"
+ */
+Semantic restriction "_'s⁇semantic type" is
+[
+	expressionType : expression phrase's type's type
+|
+	any meta
 ];
 
 /**
@@ -345,4 +365,11 @@ Semantic restriction "_'s⁇expressions" is
 		into [t : <<>, any meta… | whole number> | t];
 	defaultType ::= cast strongLeadingTypes[upper] into [t : any meta | t];
 	<strongLeadingTypes, defaultType… | ||semanticType||>
+];
+
+Semantic restriction "_'s⁇token" is
+[
+	literalType : literal phrase's type
+|
+	literal token ⇒ (literalType's semantic type)
 ];

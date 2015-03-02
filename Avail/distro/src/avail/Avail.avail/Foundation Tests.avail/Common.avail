@@ -40,8 +40,6 @@ Names
 	"Foundation|foundation test suite"
 Body
 
-_testSuite ::= $"foundation test suite";
-
 /**
  * Answer the foundation test suite identifier.
  * 
@@ -49,6 +47,6 @@ _testSuite ::= $"foundation test suite";
  * @returns "atom"
  *          The requsted test suite identifier.
  */
-Public method "Foundation|foundation test suite" is [ _testSuite ];
+Public method "Foundation|foundation test suite" is [$"foundation test suite"];
 
 Foundation test suite is a new test suite;

@@ -45,9 +45,6 @@ Names
 	"Data|data abstractions test suite"
 Body
 
-_elementType ::= $"element type";
-_testSuite ::= $"data abstraction test suite";
-
 /**
  * Answer the field atom that represents an iterators's element type.
  * 
@@ -55,7 +52,7 @@ _testSuite ::= $"data abstraction test suite";
  * @returns "atom"
  *          The requested field atom.
  */
-Public method "element type" is [ _elementType ];
+Public method "element type" is [$"element type"];
 
 /**
  * Answer the test suite identifier for the data abstractions test suite.
@@ -64,6 +61,7 @@ Public method "element type" is [ _elementType ];
  * @returns "atom"
  *          The requested test suite identifier.
  */
-Public method "Data|data abstractions test suite" is [ _testSuite ];
+Public method "Data|data abstractions test suite"
+	is [$"data abstraction test suite"];
 
 Data abstractions test suite is a new test suite;

@@ -83,15 +83,6 @@ _prefixes ::=
 
 Public method "prefixes" is [_prefixes];
 
-/* These methods are needed for scaling function synthesis. */
-metricAtom ::= $"_'s⁇metric";
-scaleFactorAtom ::= $"_'s⁇scale factor";
-minusAtom ::= $"_-_";
-powerAtom ::= $"_^_";
-extentAtom ::= $"_'s⁇extent";
-timesAtom ::= $"_×_";
-juxtapositionAtom ::= $"__";
-
 /**
  * Construct and answer a scaling function suitable for converting between
  * {@type "SI unit"}s within the same family.
@@ -113,26 +104,24 @@ Private method "SI scaling function for_" is
 	quantityType ::= extend SI dimensioned quantity with metric : unitType;
 	args ::= <arg «`"quantity"` : quantityType», arg «`"aUnit"` : unitType»>;
 	/* Construct the expression to obtain the scaling factor. */
-	metricSend ::= send metricAtom with «<«↓args[1]»>» : SI unit;
-	minuend ::= send scaleFactorAtom with «<metricSend>» : integer;
-	subtrahend ::= send scaleFactorAtom with «<«↓args[2]»>» : integer;
-	exponent ::= send minusAtom with «<minuend, subtrahend>» : integer;
-	scaleFactor ::= send powerAtom with «<‘`10`’, exponent>» : number;
+	metricSend ::= send $"_'s⁇metric" with «<«↓args[1]»>» : SI unit;
+	minuend ::= send $"_'s⁇scale factor" with «<metricSend>» : integer;
+	subtrahend ::= send $"_'s⁇scale factor" with «<«↓args[2]»>» : integer;
+	exponent ::= send $"_-_" with «<minuend, subtrahend>» : integer;
+	scaleFactor ::= send $"_^_" with «<‘`10`’, exponent>» : number;
 	/* Construct the expression to obtain the scaled magnitude. */
-	extentSend ::= send extentAtom with «<«↓args[1]»>» : number;
-	scaled ::= send timesAtom with «<extentSend, scaleFactor>» : number;
+	extentSend ::= send $"_'s⁇extent" with «<«↓args[1]»>» : number;
+	scaled ::= send $"_×_" with «<extentSend, scaleFactor>» : number;
 	/* Construct the expression to obtain the resultant SI dimensioned
 	 * quantity.
 	 */
-	juxtapositionSend ::= send juxtapositionAtom
+	juxtapositionSend ::= send $"__"
 		with «<scaled, «↓args[2]»>»
 		: quantityType;
 	/* Construct and answer the requested function. */
 	newBlock ::= «[ args | <juxtapositionSend> ] : dimensioned quantity»;
 	cast newBlock→function into [t : unit conversion function | t]
 ] : unit conversion function;
-
-conversionAtom ::= $"_converted to_";
 
 /**
  * Define an SI {@type "base unit"}. This makes available not only the unscaled
@@ -186,7 +175,7 @@ Public method "_(_)is an SI base unit" is
 	aUnit ::= a unitType with unit map ::= def, scale factor ::= 0;
 	Prefer symbol for printing aUnit in a dimensioned quantity;
 	scalingFunction ::= SI scaling function for unitType;
-	Method conversionAtom is scalingFunction;
+	Method $"_converted to_" is scalingFunction;
 ] : ⊤;
 
 Completely seal method "_(_)is an SI base unit";
@@ -248,19 +237,14 @@ Public method "_(_)is an SI derived unit equivalent to_" is
 			aUnit
 		];
 	quantityType ::= extend SI dimensioned quantity with metric : unitType;
-	Unless conversionAtom has definition for <quantityType, unitType> then
+	Unless $"_converted to_" has definition for <quantityType, unitType> then
 	[
 		scalingFunction ::= SI scaling function for unitType;
-		Method conversionAtom is scalingFunction;
+		Method $"_converted to_" is scalingFunction;
 	];
 ] : ⊤;
 
 Completely seal method "_(_)is an SI derived unit equivalent to_";
-
-/* These methods are needed for scaling function synthesis. */
-extentAtom ::= $"_'s⁇extent";
-juxtapositionAtom ::= $"__";
-divideAtom ::= $"_÷_";
 
 /**
  * Construct and answer a {@type "function"} suitable for converting an {@type
@@ -283,7 +267,7 @@ Private method "function for scaling from_to_by_using_" is
 	a : SI unit,
 	b : unit,
 	scaleFactor : number,
-	scaleOperator : {timesAtom, divideAtom}ᵀ
+	scaleOperator : {$"_×_", $"_÷_"}ᵀ
 |
 	/* Construct the argument declarations. The first argument is a dimensioned
 	 * quantity, the second is the target unit.
@@ -293,16 +277,16 @@ Private method "function for scaling from_to_by_using_" is
 	qB ::= extend dimensioned quantity with metric : (b's type);
 	args ::= <arg «`"quantity"` : qA», arg «`"aUnit"` : b's type»>;
 	/* Construct the expression to obtain the SI scaling factor. */
-	metricSend ::= send metricAtom with «<«↓args[1]»>» : SI unit;
-	exponent ::= send scaleFactorAtom with «<metricSend>» : integer;
-	siScaleFactor ::= send powerAtom with «<‘`10`’, exponent>» : number;
+	metricSend ::= send $"_'s⁇metric" with «<«↓args[1]»>» : SI unit;
+	exponent ::= send $"_'s⁇scale factor" with «<metricSend>» : integer;
+	siScaleFactor ::= send $"_^_" with «<‘`10`’, exponent>» : number;
 	/* Construct the expression to obtain the SI scaled magnitude. */
-	extentSend ::= send extentAtom with «<«↓args[1]»>» : number;
-	siScaled ::= send timesAtom with «<extentSend, siScaleFactor>» : number;
+	extentSend ::= send $"_'s⁇extent" with «<«↓args[1]»>» : number;
+	siScaled ::= send $"_×_" with «<extentSend, siScaleFactor>» : number;
 	/* Construct the expression to obtain the final scaled magnitude. */
 	scaled ::= send scaleOperator with «<siScaled, ‘`scaleFactor`’>» : number;
 	/* Construct the expression to obtain the resultant dimensioned quantity. */
-	juxtapositionSend ::= send juxtapositionAtom
+	juxtapositionSend ::= send $"__"
 		with «<scaled, «↓args[2]»>»
 		: qB;
 	/* Construct and answer the requested function. */
@@ -331,7 +315,7 @@ Private method "function for scaling from_to_by_using_" is
 	a : unit,
 	b : SI unit,
 	scaleFactor : number,
-	scaleOperator : {timesAtom, divideAtom}ᵀ
+	scaleOperator : {$"_×_", $"_÷_"}ᵀ
 |
 	/* Construct the argument declarations. The first argument is a dimensioned
 	 * quantity, the second is the target unit.
@@ -345,15 +329,15 @@ Private method "function for scaling from_to_by_using_" is
 			arg «`"aUnit"` : extend SI unit with unit map : b's unit map's type»
 		>;
 	/* Construct the expression to obtain the scaled magnitude. */
-	extentSend ::= send extentAtom with «<«↓args[1]»>» : number;
+	extentSend ::= send $"_'s⁇extent" with «<«↓args[1]»>» : number;
 	scaled ::= send scaleOperator with «<extentSend, ‘`scaleFactor`’>» : number;
 	/* Construct the expression to obtain the SI scaling factor. */
-	exponent ::= send scaleFactorAtom with «<«↓args[2]»>» : integer;
-	siScaleFactor ::= send powerAtom with «<‘`10`’, exponent>» : number;
+	exponent ::= send $"_'s⁇scale factor" with «<«↓args[2]»>» : integer;
+	siScaleFactor ::= send $"_^_" with «<‘`10`’, exponent>» : number;
 	/* Construct the expression to obtain the final scaled magnitude. */
-	siScaled ::= send divideAtom with «<scaled, siScaleFactor>» : number;
+	siScaled ::= send $"_÷_" with «<scaled, siScaleFactor>» : number;
 	/* Construct the expression to obtain the resultant dimensioned quantity. */
-	juxtapositionSend ::= send juxtapositionAtom
+	juxtapositionSend ::= send $"__"
 		with «<siScaled, «↓args[2]»>»
 		: qB;
 	/* Construct and answer the requested function. */
@@ -384,16 +368,16 @@ Method "Conversion rule:_≍_" is
 	metricA ::= a's metric;
 	metricB ::= b's metric;
 	scaleFactor ::= b's extent;
-	Method conversionAtom is function for scaling
+	Method $"_converted to_" is function for scaling
 		from metricA
 		to metricB
 		by scaleFactor
-		using timesAtom;
-	Method conversionAtom is function for scaling
+		using $"_×_";
+	Method $"_converted to_" is function for scaling
 		from metricB
 		to metricA
 		by scaleFactor
-		using divideAtom;
+		using $"_÷_";
 ] : ⊤;
 
 /**
@@ -419,14 +403,14 @@ Method "Conversion rule:_≍_" is
 	metricA ::= a's metric;
 	metricB ::= b's metric;
 	scaleFactor ::= b's extent;
-	Method conversionAtom is function for scaling
+	Method $"_converted to_" is function for scaling
 		from metricA
 		to metricB
 		by scaleFactor
-		using timesAtom;
-	Method conversionAtom is function for scaling
+		using $"_×_";
+	Method $"_converted to_" is function for scaling
 		from metricB
 		to metricA
 		by scaleFactor
-		using divideAtom;
+		using $"_÷_";
 ] : ⊤;

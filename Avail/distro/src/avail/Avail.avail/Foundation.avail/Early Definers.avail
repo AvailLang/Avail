@@ -46,6 +46,7 @@ Names
 	"Public abstract method_is_",
 	"Public forward method_is_",
 	"Public method_is_",
+	"Public macro_is«_,»_",
 	"Require:_is public",
 	"Require:_is private"
 Body
@@ -714,3 +715,45 @@ Method "Grammatical restriction_is_" is
 	]
 	with <{methodName}>;
 ] : ⊤;
+
+/**
+ * Define a new public macro. The semantic restriction ensures that the method
+ * is named in the current module's "Names" section. This should not be used to
+ * extend existing macros.
+ * 
+ * @method "Public macro_is_"
+ * @param "macroName" "string"
+ *        The atom that uniquely names the new method.
+ * @param "prefixFunctions" "function*"
+ *        The prefix functions associated with this macro.
+ * @param "body" "macro function"
+ *        The original implementation of the macro.
+ * @returns "⊤"
+ * @category "Primitives" "Declarations" "Methods"
+ */
+Method "Public macro_is«_,»_" is
+[
+	macroName : string,
+	prefixFunctions : tuple of functions,
+	body : macro function
+|
+	Primitive 249 (failureCode : natural number);
+	Invoke early failure function with <failureCode>;
+] : ⊤;
+
+/**
+ * Ensure that the new macro is introduced by the module's "Names" section.
+ * 
+ * @method "Public abstract method_is_"
+ * @restricts "string's type"
+ * @restricts "function meta's type"
+ */
+Semantic restriction "Public macro_is«_,»_" is
+[
+	macroNameType : string's type,
+	prefixFunctionsType : tuple of functions's type,
+	bodyType : macro function's type
+|
+	Require: macroNameType is public;
+	⊤
+];

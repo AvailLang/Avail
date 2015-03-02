@@ -176,6 +176,7 @@ Uses
 		"concatenate_",
 		"current fiber",
 		"current fiber is applying a semantic restriction",
+		"current fiber[_]:=_",
 		"enumeration of_",
 		"fiber→_",
 		"function accepting_and returning_",
@@ -3727,6 +3728,29 @@ Primitive "_'s⁇priority:=_" is
 	priority : byte
 |
 	Primitive 602;
+] : ⊤;
+
+/**
+ * Set the value bound to {@param "key"} in the current fiber's environment,
+ * overwriting any previous value. Since the fiber's environment essentially
+ * contains fiber-local variables (i.e. bindings from atoms to arbitrary
+ * values), this operation effectively writes a fiber-local variable.
+ *
+ * @category "Primitives" "Concurrency" "Mutators"
+ * @method "current fiber[_]:=_"
+ * @param "key" "atom"
+ *        The key whose value should be (over)written.
+ * @param "value" "any"
+ *        The new value.
+ * @returns "⊤"
+ * @raises "{6}"
+ */
+Primitive "current fiber[_]:=_" is
+[
+	key : atom,
+	value : any
+|
+	Primitive 605;
 ] : ⊤;
 
 /**

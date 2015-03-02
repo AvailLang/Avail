@@ -47,6 +47,7 @@ Uses
 	"Early Assertions",
 	"Early Conditionals",
 	"Early Functions",
+	"Early Macro Support",
 	"Early Maps",
 	"Early Tuples",
 	"Early Sets",
@@ -54,6 +55,7 @@ Uses
 	"Literals",
 	"Logic",
 	"Math",
+	"Phrases",
 	"Types",
 	"Variables"
 Names
@@ -64,6 +66,7 @@ Names
 	"Do_while_",
 	"Do_while_alternate with_",
 	"Exit_",
+	"For…from_to_by_§do_",
 	"From_to_by_do_",
 	"From_to_do_",
 	"here",
@@ -616,6 +619,63 @@ Semantic restriction "From_to_by_do_" is
 	then [⊥]
 	else [⊤]
 ];
+
+/**
+ * Counting loop with customizable step. Invoke {@param "action"} once for every
+ * consecutive value = {@param "start"} + N × {@param "step"} ≤ {@param "end"}.
+ * 
+ * @macro "For…from_to_by_§do_"
+ * @param "i" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable.
+ * @param "start" "expression phrase ⇒ integer"
+ *        An {@type "expression phrase"} that yields the start value, inclusive.
+ * @param "end" "expression phrase ⇒ extended integer"
+ *        An {@type "expression phrase"} that yields the end value, inclusive.
+ * @param "step" "expression phrase ⇒ integer"
+ *        An {@type "expression phrase"} that yields the amount by which to
+ *        adjust the value after each iteration.
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops"
+ */
+Public macro "For…from_to_by_§do_" is
+[
+	counterPhrase : literal phrase ⇒ token,
+	start : expression phrase ⇒ integer,
+	end : expression phrase ⇒ extended integer,
+	step : expression phrase ⇒ integer
+|
+	counterToken ::= counterPhrase's token;
+	min ::= ⎣start's semantic type⎦;
+	max ::= ⎡end's semantic type⎤;
+	counterType ::= (min - 1 .. max + 1);
+	scope map := scope map
+		+ counterToken's lexeme
+		→ arg «counterToken : counterType»;
+],
+[
+	counterPhrase : literal phrase ⇒ token,
+	start : expression phrase ⇒ integer,
+	end : expression phrase ⇒ extended integer,
+	step : expression phrase ⇒ integer,
+	action : block phrase ⇒ []→⊤
+|
+	name ::= counterPhrase's token's lexeme;
+	send $"From_to_by_do_" with
+	«<
+		start,
+		end,
+		step,
+		«[
+			<cast scope map[name] into [d : argument phrase | d]>
+		|
+			action's statements
+		] : ⊤»
+	>» : ⊤
+] : send phrase ⇒ ⊤;
 
 /**
  * Counting loop with early exit support. Invoke {@param "action"} once for 

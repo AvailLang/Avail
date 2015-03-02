@@ -41,10 +41,7 @@ Names
 	"_delimited by any of_"
 Body
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-_delimiter ::= $"delimiter|delimiters";
-
-Private method "delimiter|delimiters" is [ _delimiter ];
+Private method "delimiter|delimiters" is [$"delimiter|delimiters"];
 
 /**
  * A delimited stream answers tuples of elements from its decorated stream.

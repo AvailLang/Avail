@@ -71,10 +71,6 @@ Names
 	"buffered iterator test suite"
 Body
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-privateExitBufferName ::= $"Private exit_'s⁇current buffer";
-privateFetchCurrentBufferName ::= $"private_'s⁇fetch current buffer";
-
 "buffer" is a new field atom;
 "position in buffer" is a new field atom;
 "maximum buffer size" is a new field atom;
@@ -132,10 +128,10 @@ Semantic restriction "_'s⁇buffer" is
 	<anIteratorType's element type's instance…|>
 ];
 
-Private abstract method privateExitBufferName is
+Private abstract method $"Private exit_'s⁇current buffer" is
 	[buffered iterator]→⊤;
 
-Private abstract method privateFetchCurrentBufferName is
+Private abstract method $"private_'s⁇fetch current buffer" is
 	[buffered reader]→tuple;
 
 /**
@@ -158,7 +154,7 @@ Public method "_'s⁇exit buffer method is_" is
 	iteratorType : buffered iterator's type,
 	implementation : [⊥]→⊤
 |
-	Private method privateExitBufferName is implementation;
+	Private method $"Private exit_'s⁇current buffer" is implementation;
 ] : ⊤;
 
 /**
@@ -207,7 +203,7 @@ Public method "Seal_'s⁇exit buffer method" is
 [
 	iteratorType : buffered iterator's type
 |
-	Seal method privateExitBufferName at <iteratorType>;
+	Seal method $"Private exit_'s⁇current buffer" at <iteratorType>;
 ] : ⊤;
 
 /**
@@ -228,7 +224,7 @@ Public method "_'s⁇fetch current buffer method is_" is
 	readerType : buffered reader's type,
 	implementation : [⊥]→tuple
 |
-	Private method privateFetchCurrentBufferName is implementation;
+	Private method $"private_'s⁇fetch current buffer" is implementation;
 ] : ⊤;
 
 Semantic restriction "_'s⁇fetch current buffer method is_" is
@@ -265,7 +261,7 @@ Public method "Seal_'s⁇fetch current buffer method" is
 [
 	readerType : buffered reader's type
 |
-	Seal method privateFetchCurrentBufferName at <readerType>;
+	Seal method $"private_'s⁇fetch current buffer" at <readerType>;
 ] : ⊤;
 
 

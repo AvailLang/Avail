@@ -762,6 +762,7 @@ Extends
 		"Private stable method_is_",
 		"Public abstract method_is_",
 		"Public forward method_is_",
+		"Public macro_is«_,»_",
 		"Public method_is_",
 		"Public stable abstract method_is_",
 		"Public stable forward method_is_",
