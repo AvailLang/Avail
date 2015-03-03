@@ -48,7 +48,8 @@ public class CommentImplementationBuilder
 	private HTMLFileMap hTMLFileMap;
 
 	/**
-	 * The alias keyword provides alias to which the method is referred to by
+	 * The alias keyword provides alias to which the method/macro is referred
+	 * to by
 	 */
 	private final ArrayList<StacksAliasTag> aliases;
 
@@ -328,7 +329,7 @@ public class CommentImplementationBuilder
 	}
 
 	/**
-	 * The method keyword indicates the name of the method implementation.
+	 * The globals keyword indicates the name of the method implementation.
 	 */
 	private final ArrayList<StacksGlobalTag> globalVariables;
 
@@ -428,6 +429,50 @@ public class CommentImplementationBuilder
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed @method tag section; "
 				+ "has wrong # of @method components.</li>",
+				moduleLeafName,
+				commentStartLine());
+			throw new StacksCommentBuilderException(errorMessage, this);
+		}
+	}
+
+	/**
+	 * The macro keyword indicates the name of the macro implementation.
+	 */
+	private final ArrayList<StacksMacroTag> macros;
+
+	/**
+	 * @param tagContentTokens
+	 * 		The tokens held by the tag
+	 * @throws ClassCastException
+	 * @throws StacksCommentBuilderException
+	 */
+	public void addStacksMacroTag(
+		 final ArrayList<AbstractStacksToken> tagContentTokens)
+			 throws ClassCastException, StacksCommentBuilderException
+	{
+		if (tagContentTokens.size() == 1)
+		{
+			try
+			{
+				macros.add(new StacksMacroTag (
+					(QuotedStacksToken) tagContentTokens.get(0)));
+			}
+			catch (final ClassCastException e)
+			{
+				final String errorMessage = String.format("\n<li><strong>%s"
+					+ "</strong><em> Line #: %d</em>: Malformed @macro "
+					+ "tag section; expected a quoted method name immediately "
+					+ "following the @macro tag.</li>",
+					moduleLeafName,
+					commentStartLine());
+				throw new StacksCommentBuilderException(errorMessage, this);
+			}
+		}
+		else
+		{
+			final String errorMessage = String.format("\n<li><strong>%s"
+				+ "</strong><em> Line #: %d</em>: Malformed @macro tag section; "
+				+ "has wrong # of @macro components.</li>",
 				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
@@ -849,6 +894,7 @@ public class CommentImplementationBuilder
 		this.forbids = new TreeMap<Integer,StacksForbidsTag>();
 		this.globalVariables = new ArrayList<StacksGlobalTag>(0);
 		this.methods = new ArrayList<StacksMethodTag>(0);
+		this.macros = new ArrayList<StacksMacroTag>(0);
 		this.parameters = new ArrayList<StacksParameterTag>(0);
 		this.raises = new ArrayList<StacksRaisesTag>(0);
 		this.restricts = new ArrayList<StacksRestrictsTag>(0);
@@ -937,94 +983,186 @@ public class CommentImplementationBuilder
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
 
-		if (types.isEmpty() && !methods.isEmpty() && globalVariables.isEmpty())
+		if (types.isEmpty() && (!methods.isEmpty() || !macros.isEmpty())
+			&& globalVariables.isEmpty())
 		{
-			if (methods.size() > 1)
+			if (macros.isEmpty())
 			{
-				final String errorMessage = String.format("\n<li><strong>%s"
-				+ "</strong><em> Line #: %d</em>: Malformed has wrong # of "
-					+ "@method identifying tags.</li>",
-					moduleLeafName,
-					commentStartLine());
-				throw new StacksCommentBuilderException(errorMessage, this);
-			}
-			if (!restricts.isEmpty() && parameters.isEmpty() &&
-				forbids.isEmpty())
-			{
-				final ArrayList<String> orderedInputTypes =
-					new ArrayList<String>(0);
-				for (final StacksRestrictsTag restrict : restricts)
-				{
-					orderedInputTypes.add(restrict.paramMetaType().lexeme());
-				}
-
-				final SemanticRestrictionCommentSignature signature =
-					new SemanticRestrictionCommentSignature(
-						methods.get(0).methodName().lexeme(),moduleName,
-						orderedInputTypes);
-
-				return new SemanticRestrictionCommentImplementation(signature,
-					commentStartLine (), authors, sees, description(),
-					categories, aliases, restricts,returns);
-			}
-
-			if (restricts.isEmpty() && !parameters.isEmpty() &&
-				forbids.isEmpty())
-			{
-				if (returns.isEmpty())
+				if (methods.size() > 1)
 				{
 					final String errorMessage = String.format("\n<li><strong>%s"
-						+ "</strong><em> Line #: %d</em>: Malformed comment; "
-						+ "has no obvious @returns tag.</li>",
+					+ "</strong><em> Line #: %d</em>: Malformed has wrong # of "
+						+ "@method identifying tags.</li>",
 						moduleLeafName,
 						commentStartLine());
 					throw new StacksCommentBuilderException(errorMessage, this);
 				}
-				final ArrayList<String> orderedInputTypes =
-					new ArrayList<String>(0);
-				for (final StacksParameterTag param : parameters)
+				if (!restricts.isEmpty() && parameters.isEmpty() &&
+					forbids.isEmpty())
 				{
-					orderedInputTypes.add(param.paramType().lexeme());
+					final ArrayList<String> orderedInputTypes =
+						new ArrayList<String>(0);
+					for (final StacksRestrictsTag restrict : restricts)
+					{
+						orderedInputTypes.add(restrict.paramMetaType().lexeme());
+					}
+
+					final SemanticRestrictionCommentSignature signature =
+						new SemanticRestrictionCommentSignature(
+							methods.get(0).methodName().lexeme(),moduleName,
+							orderedInputTypes);
+
+					return new SemanticRestrictionCommentImplementation(signature,
+						commentStartLine (), authors, sees, description(),
+						categories, aliases, restricts,returns);
 				}
 
-				final MethodCommentSignature signature =
-					new MethodCommentSignature(
-						methods.get(0).methodName().lexeme(),
-						moduleName(), orderedInputTypes,
-						returns.get(0).returnType().lexeme());
+				if (restricts.isEmpty() && !parameters.isEmpty() &&
+					forbids.isEmpty())
+				{
+					if (returns.isEmpty())
+					{
+						final String errorMessage = String.format("\n<li><strong>%s"
+							+ "</strong><em> Line #: %d</em>: Malformed comment; "
+							+ "has no obvious @returns tag.</li>",
+							moduleLeafName,
+							commentStartLine());
+						throw new StacksCommentBuilderException(errorMessage, this);
+					}
+					final ArrayList<String> orderedInputTypes =
+						new ArrayList<String>(0);
+					for (final StacksParameterTag param : parameters)
+					{
+						orderedInputTypes.add(param.paramType().lexeme());
+					}
 
-				return new MethodCommentImplementation(signature,
-					commentStartLine (), authors, sees, description(),
-					categories, aliases, parameters,returns.get(0), raises);
-			}
+					final MethodCommentSignature signature =
+						new MethodCommentSignature(
+							methods.get(0).methodName().lexeme(),
+							moduleName(), orderedInputTypes,
+							returns.get(0).returnType().lexeme());
 
-			if (restricts.isEmpty() && parameters.isEmpty() &&
-				!forbids.isEmpty())
-			{
-				final CommentSignature signature =
-					new CommentSignature(
-						methods.get(0).methodName().lexeme(), moduleName());
+					return new MethodCommentImplementation(signature,
+						commentStartLine (), authors, sees, description(),
+						categories, aliases, parameters,returns.get(0), raises);
+				}
 
-				return new GrammaticalRestrictionCommentImplementation(
-					signature, commentStartLine (), authors, sees,
-					description(), categories, aliases, forbids);
-			}
+				if (restricts.isEmpty() && parameters.isEmpty() &&
+					!forbids.isEmpty())
+				{
+					final CommentSignature signature =
+						new CommentSignature(
+							methods.get(0).methodName().lexeme(), moduleName());
 
-			if (restricts.isEmpty() && parameters.isEmpty() &&
-				forbids.isEmpty() && !returns.isEmpty())
-			{
-				final ArrayList<String> orderedInputTypes =
-					new ArrayList<String>(0);
+					return new GrammaticalRestrictionCommentImplementation(
+						signature, commentStartLine (), authors, sees,
+						description(), categories, aliases, forbids);
+				}
 
-				final MethodCommentSignature signature =
-					new MethodCommentSignature(
-						methods.get(0).methodName().lexeme(), moduleName(),
-						orderedInputTypes,
-						returns.get(0).returnType().lexeme());
+				if (restricts.isEmpty() && parameters.isEmpty() &&
+					forbids.isEmpty() && !returns.isEmpty())
+				{
+					final ArrayList<String> orderedInputTypes =
+						new ArrayList<String>(0);
 
-				return new MethodCommentImplementation(signature,
-					commentStartLine (), authors, sees, description(),
-					categories, aliases, parameters, returns.get(0), raises);
+					final MethodCommentSignature signature =
+						new MethodCommentSignature(
+							methods.get(0).methodName().lexeme(), moduleName(),
+							orderedInputTypes,
+							returns.get(0).returnType().lexeme());
+
+					return new MethodCommentImplementation(signature,
+						commentStartLine (), authors, sees, description(),
+						categories, aliases, parameters, returns.get(0), raises);
+				}
+			} else {
+				if (macros.size() > 1)
+				{
+					final String errorMessage = String.format("\n<li><strong>%s"
+					+ "</strong><em> Line #: %d</em>: Malformed has wrong # of "
+						+ "@macro identifying tags.</li>",
+						moduleLeafName,
+						commentStartLine());
+					throw new StacksCommentBuilderException(errorMessage, this);
+				}
+				if (!restricts.isEmpty() && parameters.isEmpty() &&
+					forbids.isEmpty())
+				{
+					final ArrayList<String> orderedInputTypes =
+						new ArrayList<String>(0);
+					for (final StacksRestrictsTag restrict : restricts)
+					{
+						orderedInputTypes.add(restrict.paramMetaType().lexeme());
+					}
+
+					final SemanticRestrictionCommentSignature signature =
+						new SemanticRestrictionCommentSignature(
+							macros.get(0).methodName().lexeme(),moduleName,
+							orderedInputTypes);
+
+					return new SemanticRestrictionCommentImplementation(signature,
+						commentStartLine (), authors, sees, description(),
+						categories, aliases, restricts,returns);
+				}
+
+				if (restricts.isEmpty() && !parameters.isEmpty() &&
+					forbids.isEmpty())
+				{
+					if (returns.isEmpty())
+					{
+						final String errorMessage = String.format("\n<li><strong>%s"
+							+ "</strong><em> Line #: %d</em>: Malformed comment; "
+							+ "has no obvious @returns tag.</li>",
+							moduleLeafName,
+							commentStartLine());
+						throw new StacksCommentBuilderException(errorMessage, this);
+					}
+					final ArrayList<String> orderedInputTypes =
+						new ArrayList<String>(0);
+					for (final StacksParameterTag param : parameters)
+					{
+						orderedInputTypes.add(param.paramType().lexeme());
+					}
+
+					final MethodCommentSignature signature =
+						new MethodCommentSignature(
+							macros.get(0).methodName().lexeme(),
+							moduleName(), orderedInputTypes,
+							returns.get(0).returnType().lexeme());
+
+					return new MacroCommentImplementation(signature,
+						commentStartLine (), authors, sees, description(),
+						categories, aliases, parameters,returns.get(0), raises);
+				}
+
+				if (restricts.isEmpty() && parameters.isEmpty() &&
+					!forbids.isEmpty())
+				{
+					final CommentSignature signature =
+						new CommentSignature(
+							macros.get(0).methodName().lexeme(), moduleName());
+
+					return new GrammaticalRestrictionCommentImplementation(
+						signature, commentStartLine (), authors, sees,
+						description(), categories, aliases, forbids);
+				}
+
+				if (restricts.isEmpty() && parameters.isEmpty() &&
+					forbids.isEmpty() && !returns.isEmpty())
+				{
+					final ArrayList<String> orderedInputTypes =
+						new ArrayList<String>(0);
+
+					final MethodCommentSignature signature =
+						new MethodCommentSignature(
+							macros.get(0).methodName().lexeme(), moduleName(),
+							orderedInputTypes,
+							returns.get(0).returnType().lexeme());
+
+					return new MacroCommentImplementation(signature,
+						commentStartLine (), authors, sees, description(),
+						categories, aliases, parameters, returns.get(0), raises);
+				}
 			}
 		}
 

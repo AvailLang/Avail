@@ -136,6 +136,14 @@ public abstract class StacksImportModule
 	/**
 	 * @param key the name of the method used as a key to look up
 	 * ImplementationGroup in the map.
+	 * @param implementation the method implementation to add.
+	 */
+	public abstract void addMacroImplementation (final A_String key,
+		final MacroCommentImplementation implementation);
+
+	/**
+	 * @param key the name of the method used as a key to look up
+	 * ImplementationGroup in the map.
 	 * @param implementation the semantic restriction implementation to
 	 * add.
 	 */

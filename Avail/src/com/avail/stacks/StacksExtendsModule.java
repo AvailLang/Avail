@@ -125,6 +125,23 @@ public class StacksExtendsModule extends StacksImportModule
 	}
 
 	@Override
+	public void addMacroImplementation (final A_String key,
+		final MacroCommentImplementation implementation)
+	{
+		if (implementations().containsKey(key))
+		{
+			implementations().get(key).addMacro(implementation);
+		}
+
+		//Should only have one group, anything else would be an error in Avail.
+		for (final ImplementationGroup group :
+			extendsMethodLeafNameToModuleName().get(key).values())
+		{
+			group.addMacro(implementation);
+		}
+	}
+
+	@Override
 	public void addSemanticImplementation (final A_String key,
 		final SemanticRestrictionCommentImplementation implementation)
 	{

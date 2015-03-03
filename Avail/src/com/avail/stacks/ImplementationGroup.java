@@ -143,6 +143,37 @@ public class ImplementationGroup
 	}
 
 	/**
+	 * A map keyed by a unique identifier to {@linkplain
+	 * MethodCommentImplementation methods}
+	 */
+	private final HashMap<String,MacroCommentImplementation> macros;
+
+	/**
+	 * @return the {@linkplain MethodCommentImplementation methods}
+	 */
+	public HashMap<String,MacroCommentImplementation> macros ()
+	{
+		return macros;
+	}
+
+	/**
+	 * @param newMacro the {@linkplain MethodCommentImplementation method}
+	 * to add
+	 */
+	public void addMacro (final MacroCommentImplementation newMacro)
+	{
+		macros.put(newMacro.identityCheck(),newMacro);
+		addAlias(newMacro.signature().name());
+
+		//Will only ever be one category tag in categories
+		for (final QuotedStacksToken category :
+			newMacro.categories.get(0).categories())
+		{
+			categories.add(category.lexeme());
+		}
+	}
+
+	/**
 	 * A list of {@linkplain SemanticRestrictionCommentImplementation
 	 * semantic restrictions}
 	 */
@@ -282,6 +313,7 @@ public class ImplementationGroup
 	{
 		this.name = name;
 		this.methods = new HashMap<String,MethodCommentImplementation>();
+		this.macros = new HashMap<String,MacroCommentImplementation>();
 		this.semanticRestrictions =
 			new HashMap<String,SemanticRestrictionCommentImplementation>();
 		this.grammaticalRestrictions =
@@ -308,6 +340,7 @@ public class ImplementationGroup
 	{
 		this.name = name;
 		this.methods = group.methods();
+		this.macros = group.macros();
 		this.semanticRestrictions = group.semanticRestrictions();
 		this.grammaticalRestrictions = group.grammaticalRestrictions();
 		this.aliases = group.aliases();
@@ -437,6 +470,68 @@ public class ImplementationGroup
 				stringBuilder.append(tabs(1) + "</div>\n");
 			}
 		}
+		else if (!macros.isEmpty()) {
+			if (!grammaticalRestrictions.isEmpty())
+			{
+				final int listSize = grammaticalRestrictions.size();
+				final ArrayList<GrammaticalRestrictionCommentImplementation>
+					restrictions = new ArrayList
+						<GrammaticalRestrictionCommentImplementation>();
+				restrictions.addAll(grammaticalRestrictions.values());
+				if (listSize > 1)
+				{
+					for (int i = 1; i < listSize; i++)
+					{
+						restrictions.get(0)
+							.mergeGrammaticalRestrictionImplementations(
+								restrictions.get(i));
+					}
+
+				}
+				stringBuilder
+					.append(restrictions.get(0)
+						.toHTML(htmlFileMap,nameOfGroup, errorLog));
+			}
+
+			stringBuilder.append(tabs(1) + "<h4 "
+					+ HTMLBuilder.tagClass(HTMLClass.classMethodSectionHeader)
+					+ ">Definitions:</h4>\n")
+				.append(tabs(1)
+					+ "<div "
+					+ HTMLBuilder
+						.tagClass(HTMLClass.classMethodSectionContent) + ">\n");
+
+			for (final MacroCommentImplementation implementation :
+				macros.values())
+			{
+				stringBuilder.append(implementation.toHTML(htmlFileMap,
+					nameOfGroup, errorLog));
+			}
+
+			stringBuilder.append(tabs(1) + "</div>\n");
+
+			if (!semanticRestrictions.isEmpty())
+			{
+				stringBuilder
+					.append(tabs(1) + "<h4 "
+						+ HTMLBuilder
+							.tagClass(HTMLClass.classMethodSectionHeader)
+						+ ">Semantic restrictions:</h4>\n")
+					.append(tabs(1) + "<div "
+						+ HTMLBuilder
+							.tagClass(HTMLClass.classMethodSectionContent)
+						+ ">\n");
+
+				for (final SemanticRestrictionCommentImplementation
+					implementation : semanticRestrictions.values())
+				{
+					stringBuilder.append(implementation.toHTML(htmlFileMap,
+						nameOfGroup, errorLog));
+				}
+
+				stringBuilder.append(tabs(1) + "</div>\n");
+			}
+		}
 		else if (!(global == null))
 		{
 			stringBuilder.append(global().toHTML(htmlFileMap, nameOfGroup,
@@ -471,6 +566,7 @@ public class ImplementationGroup
 	public boolean isPopulated()
 	{
 		return (!methods.isEmpty() ||
+			!macros.isEmpty() ||
 			!(global == null) ||
 			!(classImplementation == null));
 	}
@@ -586,6 +682,7 @@ public class ImplementationGroup
 		classImplementation = group.classImplementation();
 		global = group.global();
 		methods.putAll(group.methods());
+		macros.putAll(group.macros());
 		semanticRestrictions.putAll(group.semanticRestrictions());
 		grammaticalRestrictions.putAll(group.grammaticalRestrictions());
 	}

@@ -160,6 +160,22 @@ public class StacksParser
 		/**
 		 * The method keyword indicates the name of the method implementation.
 		 */
+		MACRO("@macro")
+		{
+			@Override
+			void addTokensToBuilder (
+				final CommentImplementationBuilder builder,
+				 final ArrayList<AbstractStacksToken> tagContentTokens,
+				 final HTMLFileMap htmlFileMap)
+					 throws ClassCastException, StacksCommentBuilderException
+			{
+				builder.addStacksMacroTag(tagContentTokens);
+			}
+		},
+
+		/**
+		 * The method keyword indicates the name of the method implementation.
+		 */
 		METHOD("@method")
 		{
 			@Override
