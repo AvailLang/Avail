@@ -143,10 +143,8 @@ Semantic restriction "«_‡,»" is
 	/* Ensure that every column is an instance type, i.e. a statically known
 	 * value.
 	 */
-	From 1 to size do
+	For each columnIndex from 1 to size do
 	[
-		columnIndex : natural number
-	|
 		Unless |recordType[columnIndex]| = 1 then
 		[
 			Reject parse, expected:

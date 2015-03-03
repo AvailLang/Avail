@@ -349,10 +349,8 @@ Semantic restriction "a dice group with_" is
 |
 	leadCount ::= |someDice's leading types|;
 	ranges : <extended integer's type…|> := <>;
-	From 1 to leadCount do
+	For each index from 1 to leadCount do
 	[
-		index : natural number
-	|
 		ranges := eject ranges ++ <someDice[index]'s result type's instance>;
 	];
 	default ::= someDice[leadCount + 1]'s result type's instance;
@@ -470,10 +468,8 @@ Semantic restriction "_(drop the⁇lowest«_»)" is
 			with ⎣count⎦, ⎡members⎤
 	];
 	ranges : <extended integer's type…|> := <>;
-	From 1 to |members' leading types| + 1 do
+	For each index from 1 to |members' leading types| + 1 do
 	[
-		index : natural number
-	|
 		ranges := eject ranges ++ <members[index]'s result type's instance>;
 	];
 	min ::= quicksort map ranges through [r : extended integer's type | ⎣r⎦];
@@ -544,10 +540,8 @@ Semantic restriction "_(drop the⁇highest«_»)" is
 			with ⎣count⎦, ⎡members⎤
 	];
 	ranges : <extended integer's type…|> := <>;
-	From 1 to |members' leading types| + 1 do
+	For each index from 1 to |members' leading types| + 1 do
 	[
-		index : natural number
-	|
 		ranges := eject ranges ++ <members[index]'s result type's instance>;
 	];
 	min ::= quicksort map ranges through [r : extended integer's type | ⎣r⎦];

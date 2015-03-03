@@ -85,7 +85,7 @@ Test "addition" in dimensional analysis test suite is
 		Require: q + -q = 0 K;
 		Require: q + 1 K > q;
 		Require: q + q = q × 2;
-		From 1 to 10 do [i : [1..10] | Require: q + i K = i K + q; ];
+		For each i from 1 to 10 do [Require: q + i K = i K + q; ];
 	];
 	Require: 2147483647 m + 1 m = 2147483648 m;
 	Require: 9223372036854775807 s + 1 s = 9223372036854775808 s;

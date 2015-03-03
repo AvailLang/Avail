@@ -611,10 +611,8 @@ Public method "injector from_to_by_doing_in parallel_-way" is
 	sem ::= a semaphore named "injection semaphore" with limit permits;
 	invoke
 	[
-		From start to end by step do
+		For each index from start to end by step do
 		[
-			index : integer
-		|
 			Honor a termination request;
 			Await sem;
 			invoke [Guard [action(index);] ensure [Signal sem;];]

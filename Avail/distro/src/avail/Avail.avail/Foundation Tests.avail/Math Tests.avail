@@ -62,14 +62,10 @@ Test "integer range bounds" in math test suite is
 	Require: ⎣natural number⎦ is inclusive;
 	Require: ∞ = ⎡natural number⎤;
 	Require: ¬⎡natural number⎤ is inclusive;
-	From 1 to 10 do
+	For each i from 1 to 10 do
 	[
-		i : [1..10]
-	|
-		From 1 to 10 do
+		For each j from 1 to 10 do
 		[
-			j : [1..10]
-		|
 			t1 ::= [i..j];
 			t2 ::= [i..j);
 			t3 ::= (i..j];
@@ -116,17 +112,15 @@ Test "integer range bounds" in math test suite is
 
 Test "finite/infinite" in math test suite is
 [
-	From 1 to 10 do [i : [1..10] | Require: i is finite; ];
+	For each i from 1 to 10 do [Require: i is finite;];
 	Require: ∞ is infinite;
 	Require: -∞ is infinite;
 ];
 
 Test "comparison" in math test suite is
 [
-	From 1 to 10 do
+	For each i from 1 to 10 do
 	[
-		i : [1..10]
-	|
 		Require: i = i;
 		Require: i ≤ i;
 		Require: i ≥ i;
@@ -159,15 +153,13 @@ Test "negation" in math test suite is
 
 Test "addition" in math test suite is
 [
-	From 1 to 10 do
+	For each i from 1 to 10 do
 	[
-		i : [1..10]
-	|
 		Require: i + 0 = i;
 		Require: i + -i = 0;
 		Require: i + 1 > i;
 		Require: i + i = i × 2;
-		From 1 to 10 do [j : [1..10] | Require: i + j = j + i; ];
+		For each j from 1 to 10 do [Require: i + j = j + i;];
 	];
 	Require: 2147483647 + 1 = 2147483648;
 	Require: 9223372036854775807 + 1 = 9223372036854775808;
@@ -194,14 +186,12 @@ Test "cannot add unlike infinities" in math test suite is
 
 Test "subtraction" in math test suite is
 [
-	From 1 to 10 do
+	For each i from 1 to 10 do
 	[
-		i : [1..10]
-	|
 		Require: i - 0 = i;
 		Require: i - i = 0;
 		Require: i - -i = i + i;
-		For each 1 to 10 do [j : [1..10] | Require: i - j = -(j - i); ];
+		For each j from 1 to 10 do [Require: i - j = -(j - i); ];
 	];
 	Require: -2147483648 - 1 = -2147483649;
 	Require: -9223372036854775808 - 1 = -9223372036854775809;
@@ -228,16 +218,14 @@ Test "cannot subtract like infinities" in math test suite is
 
 Test "multiplication" in math test suite is
 [
-	From 1 to 10 do
+	For each i from 1 to 10 do
 	[
-		i : [1..10]
-	|
 		Require: i × 0 = 0;
 		Require: i × 1 = i;
 		Require: i × -1 = -i;
 		Require: -i × -i = i × i;
 		Require: i × ∞ = ∞;
-		For each 1 to 10 do [j : [1..10] | Require: i × j = j × i; ];
+		For each j from 1 to 10 do [Require: i × j = j × i; ];
 	];
 	Require: 2 × 2 = 4;
 	Require: 9 × 9 = 81;
@@ -268,17 +256,15 @@ Test "cannot multiply zero and infinity" in math test suite is
 
 Test "division" in math test suite is
 [
-	From 1 to 10 do
+	For each i from 1 to 10 do
 	[
-		i : [1..10]
-	|
 		Require: i ÷ 1 = i;
 		Require: i ÷ i = 1;
 		Require: i ÷ -1 = -i;
 		Require: -i ÷ 1 = -i;
 		Require: -i ÷ -1 = i;
 		Require: i ÷ ∞ = 0;
-		For each 1 to 10 do [j : [1..10] | Require: i÷j = j÷i → [i=j]; ];
+		For each j from 1 to 10 do [Require: i÷j = j÷i → [i=j];];
 	];
 	Require: 4 ÷ 2 = 2;
 	Require: 81 ÷ 9 = 9;
@@ -315,10 +301,8 @@ Test "division" in math test suite is
 Test "mod" in math test suite is
 [
 	ref ::= concatenate 3 of (0 to 9);
-	From 0 to 29 do
+	For each i from 0 to 29 do
 	[
-		i : [0..29]
-	|
 		Require: i mod ∞ = i;
 		Require: i mod 10 = ref[i + 1];
 	];
@@ -345,10 +329,8 @@ Test "cannot divide infinities" in math test suite is
 Test "even/odd" in math test suite is
 [
 	ref ::= concatenate 10 of <true, false>;
-	From 1 to 20 do
+	For each i from 1 to 20 do
 	[
-		i : [1..20]
-	|
 		Require: i is odd = ref[i];
 		Require: i is even = ¬ref[i];
 	];
@@ -380,16 +362,12 @@ Test "maximum function" in math test suite is
 
 Test "simple exponentiation" in math test suite is
 [
-	From 1 to 10 do
+	For each i from 1 to 10 do
 	[
-		i : [1..10]
-	|
 		Require: i^0 = 1;
 		Require: i^1 = i;
-		From 2 to 10 do
+		For each j from 2 to 10 do
 		[
-			j : [2..10]
-		|
 			Require: ∏ j occurrences of i = i^j;
 		];
 	];
@@ -512,10 +490,8 @@ Test "bit∧" in math test suite is
 		bit∧ "1001010101010101110010101010101010010100101001010110101" (base 2)
 		   = "0001010101000000100010000010101000010100101000000100000" (base 2);
 	/* Some power-of-two boundary conditions. */
-	From 1 to 100 do
+	For each i from 1 to 100 do
 	[
-		i : natural number
-	|
 		power : integer := 1<<i;
 		Require: power bit∧ power = power;
 		Require: power bit∧ (power - 1) = 0;

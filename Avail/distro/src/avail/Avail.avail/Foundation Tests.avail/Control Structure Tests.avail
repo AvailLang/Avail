@@ -285,10 +285,10 @@ Test "choose from where" in control structure test suite is
 Test "from to do" in control structure test suite is
 [
 	a : whole number := 0;
-	From 1 to 5 do [n : natural number | a := n;];
+	For each n from 1 to 5 do [a := n;];
 	Require: 5 = a;
 
 	b : whole number := 0;
-	From 1 to 8 by 2 do [n : natural number | b += 1;];
+	For each n from 1 to 8 by 2 do [b += 1;];
 	Require: 4 = b;
 ];

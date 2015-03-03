@@ -194,7 +194,6 @@ Uses
 		"primfail`«_:_`»",
 		"primitive description of_",
 		"read_/write_",
-		"semantic restrictions for_given_",
 		"termination requested",
 		"{_`|_}",
 		"{_→_`|_}",
@@ -2249,28 +2248,6 @@ Primitive "_'s⁇name" is
 |
 	Primitive 243;
 ] : string;
-
-/**
- * Compute and answer the semantic restrictions that would run at a call site
- * of {@param "aMethod"} applied with the specified tuple of arguments.
- *
- * @category "Primitives" "Methods" "Semantic Restrictions" "Queries"
- * @method "semantic restrictions for_given_"
- * @param "aMethod" "method"
- *        A method.
- * @param "arguments" "tuple of any meta"
- *        The tuple of arguments that should be used to filter the semantic
- *        restrictions.
- * @returns "<[…]→(⊤)'s type…|>"
- *    The requested semantic restrictions.
- */
-Primitive "semantic restrictions for_given_" is
-[
-	aMethod : method,
-	arguments : tuple of any meta
-|
-	Primitive 247;
-] : tuple of semantic restriction function;
 
 /**
  * Does the argument denote a valid primitive?

@@ -83,10 +83,8 @@ Semantic restriction "method definition of_for_" is
 	If |methodNameType| = 1 ∧ [⎣parametersType⎦ = ⎡parametersType⎤] then
 	[
 		args : <any meta…|> := <>;
-		From 1 to ⎣parametersType⎦ do
+		For each index from 1 to ⎣parametersType⎦ do
 		[
-			index : natural number
-		|
 			args := (eject args) ++ <parametersType[index]'s instance>;
 		];
 		methodName ::= methodNameType's instance;

@@ -694,10 +694,8 @@ is
 			"game context not to be redefined"
 	];
 	names : {string|} := ∅;
-	From 1 to relevant |booleanState[1]| do
+	For each index from 1 to relevant |booleanState[1]| do
 	[
-		index : natural number
-	|
 		def ::= booleanState[1][index];
 		Unless {|def[1]|, |def[3]|} = {1} then
 		[
@@ -755,10 +753,8 @@ is
 		names := names ∪ newNames;
 	];
 	typesSoFar : {type|} := ∅;
-	From 1 to relevant |typedState| do
+	For each typeIndex from 1 to relevant |typedState| do
 	[
-		typeIndex : natural number
-	|
 		typeDef ::= typedState[typeIndex];
 		stateType ::= typeDef[1]'s instance;
 		If stateType ⊆ boolean then
@@ -774,10 +770,8 @@ is
 					\|(but at least two sections are typed “①”)"
 				with stateType
 		];
-		From 1 to relevant |typeDef[2]| do
+		For each index from 1 to relevant |typeDef[2]| do
 		[
-			index : natural number
-		|
 			def ::= typeDef[2][index];
 			Unless |def[1]| = 1 then
 			[
@@ -956,10 +950,8 @@ Semantic restriction "Let«_‡,⁇and⁇»be a⁇scene|scenes" is
 	sceneNames : <nonempty string…|1..>'s type
 |
 	names : {string|} := ∅;
-	From 1 to relevant |sceneNames| do
+	For each index from 1 to relevant |sceneNames| do
 	[
-		index : natural number
-	|
 		nameType ::= sceneNames[index];
 		Unless |nameType| = 1 then
 		[

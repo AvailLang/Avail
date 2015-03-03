@@ -105,11 +105,9 @@ Private method "prettify_" is
 		pretty := pretty[where]→¢" ";
 	];
 	/* Compress each run bigger than two into a run of two. */
-	From |shrink| to 1 by -1 do
+	For each index from |shrink| to 1 by -1 do
 	[
-		where : natural number
-	|
-		range ::= shrink[where];
+		range ::= shrink[index];
 		lineFeedCount ::= count of pretty[range[1]..range[2]]
 			where [c : character | c = ¢"\n"];
 		replacement ::= if lineFeedCount < 2 then [" "] else ["\n\n"];

@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -50,8 +51,7 @@ extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_247_SemanticRestrictions().init(
-			2, CanInline, CannotFail);
+		new P_247_SemanticRestrictions().init(2, CanInline);
 
 	@Override
 	public Result attempt (
@@ -62,6 +62,12 @@ extends Primitive
 		assert args.size() == 2;
 		final A_Method method = args.get(0);
 		final A_Tuple argTypes = args.get(1);
+
+		if (method.numArgs() != argTypes.tupleSize())
+		{
+			return interpreter.primitiveFailure(
+				E_INCORRECT_NUMBER_OF_ARGUMENTS);
+		}
 		final A_Set restrictions = method.semanticRestrictions();
 		final List<A_Function> applicable =
 			new ArrayList<>(restrictions.setSize());
@@ -88,5 +94,14 @@ extends Primitive
 			TupleTypeDescriptor.zeroOrMoreOf(
 				FunctionTypeDescriptor.forReturnType(
 					InstanceMetaDescriptor.topMeta())));
+	}
+
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode())));
 	}
 }

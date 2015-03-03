@@ -579,10 +579,8 @@ Semantic restriction "partially format_with«…::=_‡,»" is
 		stringSites ::= filter sites by [site : format site | site[2] = text];
 		stringVars ::= (stripe stringSites at 1)→set;
 		bindingVars : {string|} := ∅;
-		From 1 to ⎣bindings⎦ do
+		For each index from 1 to ⎣bindings⎦ do
 		[
-			index : natural number
-		|
 			binding ::= bindings[index];
 			var ::= format variable for binding[1]'s instance;
 			If var ∈ stringVars ∧ [ ¬binding[2] ⊆ string ] then
@@ -680,10 +678,8 @@ Semantic restriction "format_with«…!::=_‡,»" is
 		stringSites ::= filter sites by [site : format site | site[2] = text];
 		stringVars ::= (stripe stringSites at 1)→set;
 		bindingVars : {string|} := ∅;
-		From 1 to ⎣bindings⎦ do
+		For each index from 1 to ⎣bindings⎦ do
 		[
-			index : natural number
-		|
 			binding ::= bindings[index];
 			var ::= format variable for binding[1]'s instance;
 			If var ∈ stringVars ∧ [ ¬binding[2] ⊆ string ] then
@@ -1040,10 +1036,8 @@ Method "_≤_" is
 	s2 : string
 |
 	$body : boolean;
-	From 1 to |s1| min |s2| do
+	For each index from 1 to |s1| min |s2| do
 	[
-		index : natural number
-	|
 		cp1 ::= s1[index]'s code point;
 		cp2 ::= s2[index]'s code point;
 		If cp1 < cp2 then [Exit body with true]
@@ -1088,10 +1082,8 @@ Method "_≥_" is
 	s2 : string
 |
 	$body : boolean;
-	From 1 to |s1| min |s2| do
+	For each index from 1 to |s1| min |s2| do
 	[
-		index : natural number
-	|
 		cp1 ::= s1[index]'s code point;
 		cp2 ::= s2[index]'s code point;
 		If cp1 > cp2 then [Exit body with true]
@@ -1364,10 +1356,8 @@ is
 	mode : [1..2]
 |
 	s : string := "";
-	From 1 to |aTuple| - 1 do
+	For each index from 1 to |aTuple| - 1 do
 	[
-		index : natural number
-	|
 		tx ::= cast aTuple[index] into [t : string | t] else [“aTuple[index]”];
 		s := eject s ++ tx ++ ", ";
 	];
@@ -1455,10 +1445,8 @@ is
 |
 	aTuple ::= aSet→tuple;
 	s : string := "";
-	From 1 to |aTuple| - 1 do
+	For each index from 1 to |aTuple| - 1 do
 	[
-		index : natural number
-	|
 		tx ::= cast aTuple[index] into [t : string | t] else [“aTuple[index]”];
 		s := eject s ++ tx ++ ", ";
 	];
@@ -1529,10 +1517,8 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 	mode : [1..2]
 |
 	s : string := "";
-	From 1 to |aTuple| - 2 do
+	For each index from 1 to |aTuple| - 2 do
 	[
-		index : natural number
-	|
 		tx ::= cast aTuple[index] into [t : string | t] else [“aTuple[index]”];
 		s := eject s ++ tx ++ ", ";
 	];
@@ -1609,10 +1595,8 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 |
 	aTuple ::= aSet→tuple;
 	s : string := "";
-	From 1 to |aTuple| - 2 do
+	For each index from 1 to |aTuple| - 2 do
 	[
-		index : natural number
-	|
 		tx ::= cast aTuple[index] into [t : string | t] else [“aTuple[index]”];
 		s := eject s ++ tx ++ ", ";
 	];
@@ -1884,10 +1868,8 @@ Public stable method "“_”(hex)" is
 	bytes : byte*
 |
 	s : string := "";
-	From 1 to |bytes| do
+	For each index from 1 to |bytes| do
 	[
-		index : natural number
-	|
 		high ::= (bytes[index] >> 4) bit∧ 15;
 		low ::= bytes[index] bit∧ 15;
 		s := eject s ++ <baseAlphabetTuple[high+1], baseAlphabetTuple[low+1]>;

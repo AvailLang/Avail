@@ -72,11 +72,9 @@ Method "Seal method_at_" is
 	functionType : function's type
 |
 	argTypes : <any's type…|> := <>;
-	From 1 to ⎡functionType's parameters' type⎤ do
+	For each index from 1 to ⎡functionType's parameters' type⎤ do
 	[
-		index : natural number
-	|
-		argTypes := eject argTypes ++ <functionType[1]>;
+		argTypes := eject argTypes ++ <functionType[index]>;
 	];
 	Seal method methodName at argTypes;
 ] : ⊤;
@@ -96,10 +94,8 @@ Semantic restriction "Seal method_at_" is
 		methodName ::= nameType's instance;
 		functionType ::= functionMeta's instance;
 		argTypes : <any's type…|> := <>;
-		From 1 to ⎡functionType's parameters' type⎤ do
+		For each index from 1 to ⎡functionType's parameters' type⎤ do
 		[
-			index : natural number
-		|
 			argTypes := eject argTypes ++ <functionType[index]>;
 		];
 		returnType ::= functionType's return type;

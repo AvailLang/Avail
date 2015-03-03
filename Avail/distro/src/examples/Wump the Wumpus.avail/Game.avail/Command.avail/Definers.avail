@@ -267,10 +267,8 @@ Semantic restriction "«Bad»?Command|Commands|command|commands«_‡,»is|are_"
 	 * type's leading (and default) types, ensuring that each type is an
 	 * instance type.
 	 */
-	From 1 to ⎣syntaxesType⎦ do
+	For each index from 1 to ⎣syntaxesType⎦ do
 	[
-		index : natural number
-	|
 		/* Each syntax should be well-known to the compiler; a string literal,
 		 * for instance. "`|_`|" returns the size of a type, i.e., the
 		 * cardinality of its membership. If the answer is finite, then the

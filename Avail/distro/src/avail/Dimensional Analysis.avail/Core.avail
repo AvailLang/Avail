@@ -770,10 +770,8 @@ Public stable method "_^_" is
 	a unitType with unit map ::= unitMap
 ] : unit;
 
-From 2 to |prettyPowers| do
+For each index from 2 to |prettyPowers| do
 [
-	index : [2..|prettyPowers|]
-|
 	exponent ::= index;
 	Stable method "_" ++ prettyPowers[index..index] is
 	[
@@ -1529,10 +1527,8 @@ Semantic restriction "_^_" is
 	resultType
 ];
 
-From 2 to |prettyPowers| do
+For each index from 2 to |prettyPowers| do
 [
-	index : [2..|prettyPowers|]
-|
 	exponent ::= index;
 	name ::= "_" ++ prettyPowers[index..index];
 	Stable method name is
@@ -1841,10 +1837,8 @@ Semantic restriction "«_‡=»" is
 	aTupleType : <dimensioned quantity…|3..>'s type
 |
 	ref ::= aTupleType[1];
-	From 2 to |aTupleType's leading types| + 1 (Avail) do
+	For each index from 2 to |aTupleType's leading types| + 1 (Avail) do
 	[
-		index : natural number
-	|
 		arg ::= aTupleType[index];
 		If arg ∩ ref = ⊥ then
 		[
@@ -1897,10 +1891,8 @@ Public method "«_‡«=|≤|<»!»" is
 	args : <<dimensioned quantity, [1..3]…|1..2>…|3..∞>
 |
 	result : boolean := true;
-	From 1 to |args| - 1 (Avail) do
+	For each index from 1 to |args| - 1 (Avail) do
 	[
-		index : natural number
-	|
 		arg ::= args[index];
 		Assert: |arg| = 2 ("args ≠ <aNumber, comparisonOperatorSubscript>");
 		/* Determine which predicate to apply. */
@@ -1943,10 +1935,8 @@ Public method "«_‡«=|≥|>»!»" is
 	args : <<dimensioned quantity, [1..3]…|1..2>…|3..∞>
 |
 	result : boolean := true;
-	From 1 to |args| - 1 (Avail) do
+	For each index from 1 to |args| - 1 (Avail) do
 	[
-		index : natural number
-	|
 		arg ::= args[index];
 		Assert: |arg| = 2 ("args ≠ <aNumber, comparisonOperatorSubscript>");
 		/* Determine which predicate to apply. */
@@ -1975,10 +1965,8 @@ Private method "inequality chain restriction function" is
 		exactSize ::= ⎣args⎦ - 1 (Avail);
 		allEquals : boolean := true;
 		ref ::= args[1][1];
-		From 1 to exactSize do
+		For each index from 1 to exactSize do
 		[
-			index : natural number
-		|
 			arg ::= args[index];
 			If index > 1 ∧ [arg[1] ∩ ref = ⊥] then
 			[

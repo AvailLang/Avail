@@ -266,10 +266,8 @@ Public method "Require:_are sensible" is
 	options : <<socket option, any…|2>…|>'s type
 |
 	seen : {socket option|} := ∅;
-	From 1 to relevant |options| do
+	For each index from 1 to relevant |options| do
 	[
-		index : natural number
-	|
 		def ::= options[index];
 		optionType ::= def[1];
 		valueType ::= def[2];

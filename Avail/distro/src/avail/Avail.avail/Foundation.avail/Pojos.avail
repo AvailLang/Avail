@@ -145,10 +145,8 @@ Semantic restriction "constructor of_,⁇parameterized by_,⁇on failure doing_"
 	if limit is finite then
 	[
 		args : <any's type…|> := <>;
-		From 1 to limit do
+		For each index from 1 to limit do
 		[
-			index : natural number
-		|
 			arg ::= parameterTypes[index]'s instance;
 			args := eject args ++ <arg>;
 		];
@@ -176,10 +174,8 @@ Semantic restriction "method_._,⁇parameterized by_,⁇on failure doing_" is
 	[
 		pojoType ::= pojoMeta's instance;
 		args : <any's type…|> := <pojoType>;
-		From 1 to limit do
+		For each index from 1 to limit do
 		[
-			index : natural number
-		|
 			arg ::= parameterTypes[index]'s instance;
 			args := eject args ++ <arg>;
 		];
@@ -213,10 +209,8 @@ Semantic restriction "static method_._,⁇parameterized by_,⁇on failure doing_
 	If limit is finite then
 	[
 		args : <any's type…|> := <>;
-		From 1 to limit do
+		For each index from 1 to limit do
 		[
-			index : natural number
-		|
 			arg ::= parameterTypes[index]'s instance;
 			args := eject args ++ <arg>;
 		];
@@ -392,10 +386,8 @@ Semantic restriction "constructor of_«parameterized by»⁇_" is
 	if limit is finite then
 	[
 		args : <any's type…|> := <>;
-		From 1 to limit do
+		For each index from 1 to limit do
 		[
-			index : natural number
-		|
 			arg ::= parameterTypes[index]'s instance;
 			args := eject args ++ <arg>;
 		];
@@ -476,10 +468,8 @@ Semantic restriction "method_._«parameterized by»⁇_" is
 	[
 		pojoType ::= pojoMeta's instance;
 		args : <any's type…|> := <pojoType>;
-		From 1 to limit do
+		For each index from 1 to limit do
 		[
-			index : natural number
-		|
 			arg ::= parameterTypes[index]'s instance;
 			args := eject args ++ <arg>;
 		];
@@ -565,10 +555,8 @@ Semantic restriction "static method_._«parameterized by»⁇_" is
 	If limit is finite then
 	[
 		args : <any's type…|> := <>;
-		From 1 to limit do
+		For each index from 1 to limit do
 		[
-			index : natural number
-		|
 			arg ::= parameterTypes[index]'s instance;
 			args := eject args ++ <arg>;
 		];

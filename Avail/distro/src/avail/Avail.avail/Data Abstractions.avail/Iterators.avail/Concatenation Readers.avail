@@ -182,11 +182,9 @@ Private method "concatenation semantic restriction" is
 		readers : <reader…|>'s type
 	|
 		elementType : any's type's type := ⊥;
-		From 1 to (⎣readers⎦ min (|readers' leading types| + 1)) do
+		For each i from 1 to (⎣readers⎦ min (|readers' leading types| + 1)) do
 		[
-			index : natural number
-		|
-			elementType := eject elementType ∪ readers[index]'s element type;
+			elementType := eject elementType ∪ readers[i]'s element type;
 		];
 		extend concatenation reader with
 			element type : elementType,

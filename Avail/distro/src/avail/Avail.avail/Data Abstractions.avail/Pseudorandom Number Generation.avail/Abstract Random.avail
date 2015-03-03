@@ -278,10 +278,8 @@ Public method "_'s⁇next shuffling of_" is
 	aTuple : tuple
 |
 	result : tuple := aTuple;
-	From |aTuple| to 2 by -1 do
+	For each index from |aTuple| to 2 by -1 do
 	[
-		index : [2..∞)
-	|
 		randomIndex ::= rng's next [1..index];
 		result := eject result[index↔randomIndex];
 	];

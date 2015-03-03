@@ -54,10 +54,8 @@ Test "Cartesian product" in backtracking test suite is
 Test "partial Cartesian product" in backtracking test suite is
 [
 	ref ::= (5 of true ++ 5 of false) zip (1 to 5 ++ 1 to 5);
-	From 0 to |ref| do
+	For each i from 0 to |ref| do
 	[
-		i : whole number
-	|
 		product ::= first i values of
 			[<trial element of <true, false>, trial# of 5>];
 		Require: product = ref[1..i];
@@ -71,15 +69,11 @@ Private method "_queens" is
 	queens : <natural number…|> := 1 to n;
 	Backtracking fence
 	[
-		From 1 to n do
+		For each i from 1 to n do
 		[
-			i : natural number
-		|
 			queens := eject queens[i] → trial# of n;
-			From 1 to i - 1 do
+			For each j from 1 to i - 1 do
 			[
-				j : natural number
-			|
 				If queens[i] = queens[j] then [Try again];
 				If |queens[i] - queens[j]| = i - j then [Try again];
 			];

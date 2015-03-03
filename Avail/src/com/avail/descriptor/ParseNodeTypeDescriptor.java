@@ -815,9 +815,8 @@ extends TypeDescriptor
 			if (i + 1 < statementCount)
 			{
 				valid =
-					(kind.parseNodeKindIsUnder(ASSIGNMENT_NODE)
-						|| kind.parseNodeKindIsUnder(DECLARATION_NODE)
-						|| kind.parseNodeKindIsUnder(LABEL_NODE)
+					(kind.parseNodeKindIsUnder(STATEMENT_NODE)
+						|| kind.parseNodeKindIsUnder(ASSIGNMENT_NODE)
 						|| kind.parseNodeKindIsUnder(SEND_NODE))
 					&& kind.expressionType().isTop();
 			}

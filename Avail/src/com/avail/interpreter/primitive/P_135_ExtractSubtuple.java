@@ -102,9 +102,15 @@ public final class P_135_ExtractSubtuple extends Primitive
 			final A_Number oldEnd2 = endType.upperBound();
 			final A_Number oldEnd = oldEnd1.greaterOrEqual(oldEnd2)
 				? oldEnd2 : oldEnd1;
+			final A_Number newLower =
+				endType.lowerBound().minusCanDestroy(adjustment, false);
+			final A_Number realLower =
+				newLower.lessThan(IntegerDescriptor.zero())
+				? IntegerDescriptor.zero()
+				: newLower;
 			final A_Number newEnd = oldEnd.minusCanDestroy(adjustment, false);
 			final A_Type newSizes = IntegerRangeTypeDescriptor.create(
-				endType.lowerBound().minusCanDestroy(adjustment, false),
+				realLower,
 				true,
 				newEnd.plusCanDestroy(IntegerDescriptor.one(), true),
 				false);

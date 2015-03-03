@@ -800,11 +800,9 @@ Private method "concatenation semantic restriction" is
 		streams : <stream…|>'s type
 	|
 		elementType : any's type's type := ⊥;
-		From 1 to (⎣streams⎦ min (|streams' leading types| + 1)) do
+		For each i from 1 to (⎣streams⎦ min (|streams' leading types| + 1)) do
 		[
-			index : natural number
-		|
-			elementType := eject elementType ∪ streams[index]'s element type;
+			elementType := eject elementType ∪ streams[i]'s element type;
 		];
 		extend concatenation stream with
 			element type : elementType,
@@ -913,11 +911,9 @@ Private method "zip semantic restriction" is
 		streams : <stream…|1..>'s type
 	|
 		types : <any's type…|> := <>;
-		From 1 to (⎣streams⎦ min (|streams' leading types| + 1)) do
+		For each i from 1 to (⎣streams⎦ min (|streams' leading types| + 1)) do
 		[
-			index : natural number
-		|
-			types := eject types ++ <streams[index]'s element type's instance>;
+			types := eject types ++ <streams[i]'s element type's instance>;
 		];
 		nonempty ::= cast types into [ t : <any's type…|1..> | t ];
 		elementType ::=

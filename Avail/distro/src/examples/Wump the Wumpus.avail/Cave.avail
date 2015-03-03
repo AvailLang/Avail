@@ -288,10 +288,8 @@ Public method "a cave" is
 	 * connects all the rooms.
 	 */
 	shuffledIds : <room id…|20> := the RNG's next shuffling of 1 to 20;
-	From 1 to 20 do
+	For each index from 1 to 20 do
 	[
-		index : [1..20]
-	|
 		/* Use the index to select a room. */
 		id ::= shuffledIds[index];
 		theRoom : unfinished room := rooms[id];
@@ -314,10 +312,8 @@ Public method "a cave" is
 	];
 	/* This is a set of rooms lacking the requisite three tunnels. */
 	incompleteRooms : {room id|0..20} := (1 to 20)→set;
-	From 1 to 20 do
+	For each id from 1 to 20 do
 	[
-		id : room id
-	|
 		/* If this room was completed by a previous step, then ignore it. */
 		If id ∈ incompleteRooms then
 		[

@@ -92,10 +92,8 @@ Private method "next state after_" is
 	vector : <[0..1<<32)…|624>
 |
 	next : <[0..1<<32)…|624> := vector;
-	From 1 to 624 do
+	For each i from 1 to 624 do
 	[
-		i : natural number
-	|
 		y ::= (next[i] bit∧ (1<<31)) 
 			bit∨ (next[i mod 624+1] bit∧ ((1<<31) - 1));
 		v ::= next[(i+396) mod 624+1] bit⊕ (y ÷ 2);
@@ -145,10 +143,8 @@ Private method "untwisted Mersenne Twister from_" is
 	seed : [0..1<<32)
 |
 	vector : <[0..1<<32)…|1..> := <seed>;
-	From 1 to 623 do
+	For each i from 1 to 623 do
 	[
-		i : natural number
-	|
 		last ::= vector's last;
 		value ::= 1812433253 × (last bit⊕ (last ÷ (1<<30))) + i;
 		vector := eject vector ++ <value mod (1<<32)>;

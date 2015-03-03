@@ -273,11 +273,7 @@ Public method "_(_,`…)" is [
 |
 	pairs : <<any?, boolean…|2>…|> := <<<firstValue>, false>>;
 	argumentsType ::= originalFunction's type's parameters' type;
-	From 2 to ⎣argumentsType⎦ do [
-		index : natural number
-	|
-		pairs ++= <<<>, true>>;
-	];
+	For each index from 2 to ⎣argumentsType⎦ do [pairs ++= <<<>, true>>;];
 	originalFunction partially evaluate with pairs
 ];
 
@@ -331,11 +327,8 @@ Public method "_(`…,_)" is [
 |
 	pairs : <<any?, boolean…|2>…|> := <<<lastValue>, false>>;
 	argumentsType ::= originalFunction's type's parameters' type;
-	From 2 to ⎣argumentsType⎦ do [
-		index : natural number
-	|
-		pairs := <<<>, true>> ++ pairs;
-	];
+	For each index from 2 to ⎣argumentsType⎦
+		do [pairs := <<<>, true>> ++ pairs;];
 	originalFunction partially evaluate with pairs
 ];
 

@@ -612,10 +612,8 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 		Reject parse, expected:
 			"at least one exception handler or an unwind handler"
 	];
-	From 1 to handlerCount do
+	For each index from 1 to handlerCount do
 	[
-		index : natural number
-	|
 		handlerType ::= handlersType[index];
 		argType ::= handlerType[1];
 		If argType = ⊥ then
@@ -632,10 +630,8 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 				with argType
 		];
 		hidingArgTypes : <type…|> := <>;
-		From 1 to index - 1 do
+		For each inner from 1 to index - 1 do
 		[
-			inner : natural number
-		|
 			previousArgType ::= handlersType[inner][1];
 			If argType ⊆ previousArgType then
 			[
@@ -1364,14 +1360,19 @@ Public method "“_”(stack summary)" is
 |
 	dump ::= e's stack summary;
 	text : string := "";
-	From |dump| to 1 by -1 do
+	For each index from |dump| to 1 by -1 do
 	[
-		index : natural number
-	|
 		frame ::= dump[index];
 		text := eject text ++ (format "\t‘①’\n" with frame);
 	];
 	text
+];
+
+Method "“_”(stack summary)" is
+[
+	e : descriptive exception
+|
+	"(" ++ e's error message ++ ")\n" ++ “(e :: exception)” (stack summary)
 ];
 
 /**
@@ -1399,10 +1400,8 @@ Public method "“_”(frames_of stack summary«,⁇renumbered starting at_»)" 
 	dump ::= e's stack summary;
 	text : string := "";
 	ordinal : natural number := start[1] else [1];
-	From ⎣range⎦ to ⎡range⎤ min |dump| do
+	For each index from ⎣range⎦ to ⎡range⎤ min |dump| do
 	[
-		index : natural number
-	|
 		frame ::= dump[index];
 		colon ::= first index of ":" in frame;
 		Assert: colon ≠ 0;
@@ -1412,6 +1411,17 @@ Public method "“_”(frames_of stack summary«,⁇renumbered starting at_»)" 
 		ordinal++;
 	];
 	text
+];
+
+Method "“_”(frames_of stack summary«,⁇renumbered starting at_»)" is
+[
+	e : descriptive exception,
+	range : [1..∞)'s type,
+	start : natural number?
+|
+	"(" ++ e's error message ++ ")\n"
+	++ “(e :: exception)” (frames range of stack summary,
+		renumbered starting at start[1] else [1])
 ];
 
 /**

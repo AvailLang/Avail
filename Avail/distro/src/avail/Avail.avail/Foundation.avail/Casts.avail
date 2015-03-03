@@ -39,7 +39,7 @@ Uses
 	"Bootstrap",
 	"Control Structures" =
 	(
-		"From_to_do_",
+		"For each…from_to_§do_",
 		"If|if_then_«else if_then_»«else_»",
 		"(_)"
 	),
@@ -301,10 +301,8 @@ Semantic restriction "Cast|cast_into«_‡,»«else_»" is
 |
 	acceptSize ::= relevant |caseTuple|;
 	union : type := ⊥;
-	From 1 to acceptSize do
+	For each index from 1 to acceptSize do
 	[
-		index : natural number
-	|
 		functionType ::= caseTuple[index];
 		If valueType ⊆ functionType[1] then
 		[
@@ -402,10 +400,8 @@ Semantic restriction "Cast|cast each of_into_" is
 		Reject parse, expected:
 			"number of inputs to match number of function parameters"
 	];
-	From 1 to ⎣valuesType⎦ do
+	For each index from 1 to ⎣valuesType⎦ do
 	[
-		index : natural number
-	|
 		valueType ::= valuesType[index];
 		paramType ::= paramsType[index];
 		If valueType ⊆ paramType then
@@ -495,10 +491,8 @@ Semantic restriction "Cast|cast each of_into_else_" is
 		Reject parse, expected:
 			"number of inputs to match number of function parameters"
 	];
-	From 1 to ⎣valuesType⎦ do
+	For each index from 1 to ⎣valuesType⎦ do
 	[
-		index : natural number
-	|
 		valueType ::= valuesType[index];
 		paramType ::= paramsType[index];
 		If valueType ⊆ paramType then

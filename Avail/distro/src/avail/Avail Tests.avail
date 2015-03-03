@@ -154,7 +154,8 @@ Private method "Run all tests in_" is
  */
 Private method "Run all tests repeatedly" is
 [
-	From 1 to ∞ do [x : natural number |
+	For each x from 1 to ∞ do
+	[
 		Print: "Starting run #" ++ “x” ++ "\n";
 		Run all tests;
 	]
@@ -171,7 +172,8 @@ Private method "Run all tests in_repeatedly" is
 [
 	suiteID : atom
 |
-	From 1 to ∞ do [x : natural number |
+	For each x from 1 to ∞ do
+	[
 		Print: "Starting run #" ++ “x” ++ "\n";
 		Run all tests in suiteID;
 	]

@@ -121,6 +121,7 @@ Uses
 		"new⁇heritable«fiber-local»⁇atom named_",
 		"next character",
 		"return type of_._«parameterized by»⁇_",
+		"semantic restrictions for_given_",
 		"send_with_:_",
 		"seq`«_`»",
 		"static method_._,⁇parameterized by_,⁇on failure doing_",
@@ -1643,6 +1644,31 @@ Primitive "Export_as a new name" is
 		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
+
+/**
+ * Compute and answer the semantic restrictions that would run at a call site
+ * of {@param "aMethod"} applied with the specified tuple of arguments.
+ *
+ * @category "Primitives" "Methods" "Semantic Restrictions" "Queries"
+ * @method "semantic restrictions for_given_"
+ * @param "aMethod" "method"
+ *        A method.
+ * @param "arguments" "tuple of any meta"
+ *        The tuple of arguments that should be used to filter the semantic
+ *        restrictions.
+ * @returns "<[…]→(⊤)'s type…|>"
+ *    The requested semantic restrictions.
+ */
+Primitive "semantic restrictions for_given_" is
+[
+	aMethod : method,
+	arguments : tuple of any meta
+|
+	Primitive 247 (failureCode : {
+		incorrect-number-of-arguments code,
+		incorrect-argument-type code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : tuple of semantic restriction function;
 
 /**
  * Define the specified semantic restriction. Henceforth whenever the method

@@ -66,7 +66,8 @@ Names
 	"Do_while_",
 	"Do_while_alternate with_",
 	"Exit_",
-	"For…from_to_by_§do_",
+	"For each…from_to_§do_",
+	"For each…from_to_by_§do_",
 	"From_to_by_do_",
 	"From_to_do_",
 	"here",
@@ -624,10 +625,12 @@ Semantic restriction "From_to_by_do_" is
  * Counting loop with customizable step. Invoke {@param "action"} once for every
  * consecutive value = {@param "start"} + N × {@param "step"} ≤ {@param "end"}.
  * 
- * @macro "For…from_to_by_§do_"
+ * @macro "For each…from_to_by_§do_"
  * @param "i" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
- *        whose value is the name of the loop variable.
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type (based on {@param
+ *        "start"}, {@param "end"}, and {@param "step"}).
  * @param "start" "expression phrase ⇒ integer"
  *        An {@type "expression phrase"} that yields the start value, inclusive.
  * @param "end" "expression phrase ⇒ extended integer"
@@ -641,7 +644,7 @@ Semantic restriction "From_to_by_do_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops"
  */
-Public macro "For…from_to_by_§do_" is
+Public macro "For each…from_to_by_§do_" is
 [
 	counterPhrase : literal phrase ⇒ token,
 	start : expression phrase ⇒ integer,
@@ -657,12 +660,17 @@ Public macro "For…from_to_by_§do_" is
 			++ counterName
 			++ " to have a name that doesn't shadow another local declaration"
 	];
-	min ::= ⎣start's semantic type⎦;
-	max ::= ⎡end's semantic type⎤;
-	counterType ::= (min - 1 .. max + 1);
-	scope map := scope map
-		+ counterToken's lexeme
-		→ arg «counterToken : counterType»;
+	startType ::= start's semantic type;
+	endType ::= end's semantic type;
+	stepType ::= step's semantic type;
+	counterType ::=
+		if stepType ⊆ [0..∞) then [(⎣startType⎦ - 1 .. ⎡endType⎤ + 1)]
+		else
+		[
+			if stepType ⊆ (-∞..-1] then [(⎣endType⎦ - 1 .. ⎡startType⎤ + 1)]
+			else [(startType ∪ endType) ∩ integer]
+		];
+	scope map := scope map + counterName → arg «counterToken : counterType»;
 ],
 [
 	counterPhrase : literal phrase ⇒ token,
@@ -672,6 +680,25 @@ Public macro "For…from_to_by_§do_" is
 	action : block phrase ⇒ []→⊤
 |
 	name ::= counterPhrase's token's lexeme;
+	startType ::= start's semantic type;
+	endType ::= end's semantic type;
+	stepType ::= step's semantic type;
+	blockType ::= [⊥]→(action's semantic type's return type);
+	restrictions ::= semantic restrictions
+		for method for $"From_to_by_do_"
+		given <startType, endType, stepType, blockType>;
+	returnType : type := ⊤;
+	From 1 to |restrictions| by 1 do
+	[
+		index : natural number
+	|
+		returnType := returnType
+			∩ restrictions[index](startType, endType, stepType, blockType);
+	];
+	statements ::= action's statements;
+	blockReturnType ::= cast statements
+		into [t : phrase+ | t[|t|]'s semantic type]
+		else [⊤];
 	send $"From_to_by_do_" with
 	«<
 		start,
@@ -681,8 +708,8 @@ Public macro "For…from_to_by_§do_" is
 			<cast scope map[name] into [d : argument phrase | d]>
 		|
 			action's statements
-		] : ⊤»
-	>» : ⊤
+		] : blockReturnType»
+	>» : returnType
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -787,6 +814,86 @@ Semantic restriction "From_to_do_" is
 	definitelyRuns ::= ⎡start⎤ ≤ ⎣end⎦;
 	if endSet = {∞} ∨ [definitelyRuns ∧ [return = ⊥]] then [⊥] else [⊤]
 ];
+
+/**
+ * Counting loop with customizable step. Invoke {@param "action"} once for every
+ * consecutive number in the range established by {@param "start"} and {@param 
+ * "end"}.
+ * 
+ * @macro "For each…from_to_§do_"
+ * @param "i" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type (based on {@param
+ *        "start"}, {@param "end"}, and {@param "step"}).
+ * @param "start" "expression phrase ⇒ integer"
+ *        An {@type "expression phrase"} that yields the start value, inclusive.
+ * @param "end" "expression phrase ⇒ extended integer"
+ *        An {@type "expression phrase"} that yields the end value, inclusive.
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops"
+ */
+Public macro "For each…from_to_§do_" is
+[
+	counterPhrase : literal phrase ⇒ token,
+	start : expression phrase ⇒ integer,
+	end : expression phrase ⇒ extended integer
+|
+	counterToken ::= counterPhrase's token;
+	counterName ::= counterToken's lexeme;
+	If counterName ∈ scope map then
+	[
+		Reject parse, expected:
+			"loop variable "
+			++ counterName
+			++ " to have a name that doesn't shadow another local declaration"
+	];
+	counterType ::= (⎣start's semantic type⎦-1 .. ⎡end's semantic type⎤+1);
+	scope map := scope map
+		+ counterName
+		→ arg «counterToken : counterType»;
+],
+[
+	counterPhrase : literal phrase ⇒ token,
+	start : expression phrase ⇒ integer,
+	end : expression phrase ⇒ extended integer,
+	action : block phrase ⇒ []→⊤
+|
+	name ::= counterPhrase's token's lexeme;
+	startType ::= start's semantic type;
+	endType ::= end's semantic type;
+	stepType ::= 1's type;
+	blockType ::= [⊥]→(action's semantic type's return type);
+	restrictions ::= semantic restrictions
+		for method for $"From_to_by_do_"
+		given <startType, endType, stepType, blockType>;
+	returnType : type := ⊤;
+	From 1 to |restrictions| by 1 do
+	[
+		index : natural number
+	|
+		returnType := returnType
+			∩ restrictions[index](startType, endType, stepType, blockType);
+	];
+	statements ::= action's statements;
+	blockReturnType ::= cast statements
+		into [t : phrase+ | t[|t|]'s semantic type]
+		else [⊤];
+	send $"From_to_by_do_" with
+	«<
+		start,
+		end,
+		‘`1`’,
+		«[
+			<cast scope map[name] into [d : argument phrase | d]>
+		|
+			statements
+		] : blockReturnType»
+	>» : returnType
+] : send phrase ⇒ ⊤;
 
 /**
  * Restart the continuation with the specified arguments. Execution proceeds as

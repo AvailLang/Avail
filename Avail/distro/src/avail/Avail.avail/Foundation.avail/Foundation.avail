@@ -538,6 +538,8 @@ Extends
 		"Do_while_",
 		"Do_while_alternate with_",
 		"Exit_",
+		"For each…from_to_§do_",
+		"For each…from_to_by_§do_",
 		"From_to_by_do_",
 		"From_to_do_",
 		"If|if_then_«else if_then_»«else_»",

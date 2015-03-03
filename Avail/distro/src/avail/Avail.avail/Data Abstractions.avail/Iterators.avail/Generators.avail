@@ -243,7 +243,7 @@ Test "generator basics" in generator test suite is
 		[
 			yield : [[1..10]]→⊤
 		|
-			From 1 to 10 do [i : [1..10] | yield(i);];
+			For each i from 1 to 10 do [yield(i);];
 		];
 	For each iter do
 	[
@@ -262,7 +262,7 @@ Test "generator raises exception" in generator test suite is
 		[
 			yield : [[0..10]]→⊤
 		|
-			From 10 to 0 by -1 do [i : [0..10] | yield(10 ÷ i);];
+			For each i from 10 to 0 by -1 do [yield(10 ÷ i);];
 		];
 	For each iter do
 	[
@@ -281,8 +281,8 @@ Test "generator with multiple yields" in generator test suite is
 		[
 			yield : [[1..10]]→⊤
 		|
-			From 1 to 5 do [i : [1..5] | yield(i);];
-			From 6 to 10 do [i : [6..10] | yield(i);];
+			For each i from 1 to 5 do [yield(i);];
+			For each i from 6 to 10 do [yield(i);];
 		];
 	For each iter do
 	[
@@ -299,7 +299,7 @@ Test "generator with no yields" in generator test suite is
 		[
 			yield : [[1..10]]→⊤
 		|
-			From 1 to 10 do [i : [1..10] | /* Do nothing. */];
+			For each i from 1 to 10 do [/* Do nothing. */];
 		];
 	Require: iter is exhausted;
 ];

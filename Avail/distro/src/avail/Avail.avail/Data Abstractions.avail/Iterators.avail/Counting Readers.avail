@@ -706,10 +706,8 @@ Test "counting reader (sequential position)" in counting reader test suite is
 [
 	iter : (sizable iterator positioned by natural number) ∩ reader of integer;
 	iter := a counting reader from 1 to 5;
-	From 1 to 5 do
+	For each i from 1 to 5 do
 	[
-		i : [1..5]
-	|
 		iter's position := i;
 		Require: take 5 - i + 1 from iter = i to 5;
 		Require: iter is exhausted;

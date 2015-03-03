@@ -435,10 +435,8 @@ Semantic restriction "«_‡/»" is
 |
 	instanceCounts : {[0..∞]|} := ∅;
 	size ::= |fns's leading types| + 1;
-	From 1 to size do
+	For each i from 1 to size do
 	[
-		i : natural number
-	|
 		instanceCounts := eject instanceCounts + |fns[i]|;
 	];
 	If instanceCounts = {1} then
@@ -484,10 +482,8 @@ Semantic restriction "«_‡/»" is
 |
 	instanceCounts : {[0..∞]|} := ∅;
 	size ::= |fns's leading types| + 1;
-	From 1 to size do
+	For each i from 1 to size do
 	[
-		i : natural number
-	|
 		instanceCounts := eject instanceCounts + |fns[i]|;
 	];
 	If instanceCounts = {1} then

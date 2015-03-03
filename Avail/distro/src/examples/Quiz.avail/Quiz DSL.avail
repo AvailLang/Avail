@@ -309,10 +309,8 @@ Semantic restriction "Multiple Choice(_)._«A:_«✔»?»" is
 	Require: quiz is defined;
 	uniqueAnswers : {string|} := ∅;
 	anyCorrect : boolean := false;
-	From 1 to ⎣answers⎦ do
+	For each index from 1 to ⎣answers⎦ do
 	[
-		index : natural number
-	|
 		uniqueAnswers := uniqueAnswers + answers[index][1]'s instance;
 		If answers[index][2]'s instance then [anyCorrect := true;];
 	];
@@ -551,10 +549,8 @@ Semantic restriction "Short Answer(_)._«A:_»" is
 	Require: quiz is defined;
 	uniqueAnswers : {string|} := ∅;
 	noncanonical : <string…|> := <>;
-	From 1 to ⎣correctAnswers⎦ do
+	For each index from 1 to ⎣correctAnswers⎦ do
 	[
-		index : natural number
-	|
 		anAnswer ::= correctAnswers[index]'s instance;
 		If trim anAnswer ≠ anAnswer then
 		[

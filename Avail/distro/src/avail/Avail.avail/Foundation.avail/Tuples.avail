@@ -909,10 +909,8 @@ Private method "zip function" is
 	|
 		accumulator : <tuple…|> := <>;
 		limit ::= min map tuples through [ aTuple : tuple | |aTuple| ];
-		From 1 to limit do
+		For each index from 1 to limit do
 		[
-			index : natural number
-		|
 			group : tuple := <>;
 			For each tuples do
 			[
@@ -1013,10 +1011,8 @@ Private method "zip semantic restriction" is
 				];
 			resultTypes : <tuple meta…|> := <>;
 			/* Examine the relevant element types of all inputs. */
-			From 1 to limit do
+			For each index from 1 to limit do
 			[
-				index : natural number
-			|
 				zipped : tuple of any meta := <>;
 				/* Examine the `index`-th element type of each input. Accumulate
 				 * the results into `zipped`.
@@ -1078,10 +1074,8 @@ Public method "left fold_through_" is
 	transformer : [⊥, ⊥]→any
 |
 	result : any := aTuple[1];
-	From 2 to |aTuple| do
+	For each index from 2 to |aTuple| do
 	[
-		index : natural number
-	|
 		result := transformer(aTuple[index], eject result);
 	];
 	result
@@ -1165,10 +1159,8 @@ Public method "right fold_through_" is
 	transformer : [⊥, ⊥]→any
 |
 	result : any := aTuple[|aTuple|];
-	From |aTuple| - 1 to 1 by -1 do
+	For each index from |aTuple| - 1 to 1 by -1 do
 	[
-		index : natural number
-	|
 		result := transformer(aTuple[index], eject result);
 	];
 	result
@@ -1249,10 +1241,8 @@ Public method "first index of_where_" is
 	predicate : [⊥]→boolean
 |
 	$body : natural number;
-	From 1 to |aTuple| do
+	For each index from 1 to |aTuple| do
 	[
-		index : natural number
-	|
 		If predicate(aTuple[index]) then
 		[
 			Exit body with index
@@ -1296,10 +1286,8 @@ Public method "last index of_where_" is
 	predicate : [⊥]→boolean
 |
 	$body : natural number;
-	From |aTuple| to 1 by -1 do
+	For each index from |aTuple| to 1 by -1 do
 	[
-		index : natural number
-	|
 		If predicate(aTuple[index]) then
 		[
 			Exit body with index
@@ -1344,10 +1332,8 @@ Public method "all indices of_where_" is
 	predicate : [⊥]→boolean
 |
 	indices : natural number* := <>;
-	From 1 to |aTuple| by 1 do
+	For each index from 1 to |aTuple| by 1 do
 	[
-		index : natural number
-	|
 		If predicate(aTuple[index]) then
 		[
 			indices ++= <index>;
@@ -1436,10 +1422,8 @@ Public stable method "_to_" is
 	accumulator : string := <>;
 	startCodePoint ::= start's code point;
 	endCodePoint ::= end's code point;
-	From startCodePoint to endCodePoint do
+	For each value from startCodePoint to endCodePoint do
 	[
-		value : code point
-	|
 		accumulator := eject accumulator ++ <value→character>;
 	];
 	accumulator
@@ -1629,16 +1613,14 @@ Semantic restriction "_∈_" is
  *          {@param "subtuple"}, {@method "false"} otherwise.
  * @category "Tuples" "Collections" "Queries"
  */
-Method "_⊆_" is
+Stable method "_⊆_" is
 [
 	subtuple : tuple,
 	aTuple : tuple
 |
 	matched : boolean := false;
-	From 1 to |aTuple| - |subtuple| + 1 do
+	For each index from 1 to |aTuple| - |subtuple| + 1 do
 	[
-		index : natural number
-	|
 		matched := aTuple[index..index + |subtuple| - 1] = subtuple;
 		¬matched
 	];
@@ -1658,7 +1640,7 @@ Method "_⊆_" is
  *          {@param "subtuple"}, {@method "false"} otherwise.
  * @category "Tuples" "Collections" "Queries"
  */
-Method "_⊇_" is
+Stable method "_⊇_" is
 [
 	aTuple : tuple,
 	subtuple : tuple
@@ -1681,11 +1663,7 @@ Private method "subsequence restriction function" is
 		subtuple : tuple meta,
 		aTuple : tuple meta
 	|
-		if |subtuple| = 1 ∧ [ |aTuple| = 1 ] then
-		[
-			(subtuple's instance ⊆ aTuple's instance)'s type
-		]
-		else if [ ⎣subtuple⎦ > ⎡aTuple⎤ ] then
+		if ⎣subtuple⎦ > ⎡aTuple⎤ then
 		[
 			false's type
 		]
@@ -1694,15 +1672,8 @@ Private method "subsequence restriction function" is
 			subtupleElementType ::=
 				∪ subtuple[1..|subtuple's leading types| + 1];
 			elementType ::= ∪ aTuple[1..|aTuple's leading types| + 1];
-			if subtupleElementType ∩ elementType = ⊥ then
-			[
-				false's type
-			]
-			/* Can't strengthen. */
-			else
-			[
-				⊤
-			]
+			if subtupleElementType ∩ elementType = ⊥ then [false's type]
+			else [⊤]
 		]
 	] : type
 ] : [tuple meta, tuple meta]→type;
@@ -1720,7 +1691,7 @@ Private method "subsequence restriction function" is
  *          {@param "prefix"}, {@method "false"} otherwise.
  * @category "Tuples" "Queries"
  */
-Public method "_starts with_" is
+Public stable method "_starts with_" is
 [
 	aTuple : tuple,
 	prefix : tuple
@@ -1741,7 +1712,7 @@ Public method "_starts with_" is
  *          {@param "suffix"}, {@method "false"} otherwise.
  * @category "Tuples" "Queries"
  */
-Public method "_ends with_" is
+Public stable method "_ends with_" is
 [
 	aTuple : tuple,
 	suffix : tuple
@@ -2025,10 +1996,8 @@ Semantic restriction "stripe_at_" is
 	uncertainty ::= cast ⎡index⎤ - ⎣index⎦
 		into [ t : [0..∞] | t ];
 	stripeTypes : <any meta…|> := <>;
-	From 1 to |tupleType's leading types| + 1 do
+	For each typeIndex from 1 to |tupleType's leading types| + 1 do
 	[
-		typeIndex : natural number
-	|
 		innerType ::= tupleType[typeIndex];
 		If ⎣index⎦ > ⎡innerType⎤ then
 		[
@@ -2045,10 +2014,8 @@ Semantic restriction "stripe_at_" is
 		];
 		union : any meta := ⊥;
 		limit ::= uncertainty min (|innerType's leading types| + 1);
-		From 0 to limit do
+		For each delta from 0 to limit do
 		[
-			delta : whole number
-		|
 			innerIndex ::= ⎣index⎦ + delta;
 			union := eject union ∪ innerType[innerIndex];
 		];
@@ -2334,10 +2301,8 @@ Semantic restriction "_[_]→_" is
 	If indexLower ≤ |leadingTypes| then
 	[
 		limit ::= indexUpper min |leadingTypes|;
-		From indexLower to limit do
+		For each leadingIndex from indexLower to limit do
 		[
-			leadingIndex : natural number
-		|
 			original ::= leadingTypes[leadingIndex];
 			/* If only one possible element is affected (because the lower and
 			 * upper bound of `index` are equal), then we can simply replace the
@@ -2686,10 +2651,8 @@ Method "∑_" is
 	/* Account for elements up to firstLimit: the end of leading or the smallest
 	 * tuple, whichever comes first.
 	 */
-	From 1 to firstLimit do
+	For each elementIndex from 1 to firstLimit do
 	[
-		elementIndex : natural number
-	|
 		range := range + intTupleType[elementIndex];
 	];
 	/* Account for elements from firstLimit + 1 up to the smallest tuple.  The
@@ -2701,10 +2664,8 @@ Method "∑_" is
 	];
 	union : extended integer's type := range;
 	/* Account for elements from the smallest tuple up to leadingSize. */
-	From minTupleSize + 1 to leadingSize do
+	For each elementIndex from minTupleSize + 1 to leadingSize do
 	[
-		elementIndex : natural number
-	|
 		range := range + intTupleType[elementIndex];
 		union := union ∪ range;
 	];
@@ -2843,10 +2804,8 @@ Private method "insertion sort_with_" is
 	comparator : [⊥, ⊥]→boolean
 |
 	output : <any…|2..> := aTuple;
-	From 2 to |aTuple| do
+	For each i from 2 to |aTuple| do
 	[
-		i : [2..10]
-	|
 		j : [1..9] := i-1;
 		k : [2..10] := i;
 		While [j > 1 ∧ [comparator(output[k],output[j])]]
@@ -3293,10 +3252,8 @@ Semantic restriction "_-_" is
 	element : any meta
 |
 	allDisjoint : boolean := true;
-	From 1 to |tuple's leading types| + 1 do
+	For each index from 1 to |tuple's leading types| + 1 do
 	[
-		index : natural number
-	|
 		If tupleType[index] ∩ element ≠ ⊥ then
 		[
 			allDisjoint := false;
@@ -3353,10 +3310,8 @@ Semantic restriction "_↑-=_" is
 |
 	tupleType ::= varType's read type;
 	allDisjoint : boolean := true;
-	From 1 to |tuple's leading types| + 1 do
+	For each index from 1 to |tuple's leading types| + 1 do
 	[
-		index : natural number
-	|
 		If tupleType[index] ∩ element ≠ ⊥ then
 		[
 			allDisjoint := false;
@@ -3848,8 +3803,8 @@ Method "replace the first occurrence of_in_with_" is
 	subtuple : <any…|1..>,
 	aTuple : <any…|0>,
 	replacementTuple : tuple
- |
- 	<>
+|
+	<>
 ] : <>'s type;
 
 Method "replace the first occurrence of_in_with_" is
@@ -3857,9 +3812,8 @@ Method "replace the first occurrence of_in_with_" is
 	subtuple : <any…|1..>,
 	aTuple : <any…|1..>,
 	replacementTuple : tuple
- |
-
- 	if |subtuple| > |aTuple| then [aTuple]
+|
+	if |subtuple| > |aTuple| then [aTuple]
 	else if [subtuple = aTuple] then [replacementTuple]
 	else
 	[
@@ -3867,51 +3821,51 @@ Method "replace the first occurrence of_in_with_" is
 		if subtupleStart = 0 then [aTuple]
 		else
 		[
-		 	index : natural number := cast subtupleStart - 1 into 
-		 		[n : natural number | n];
-		 	nextIndex : natural number := subtupleStart + |subtuple|; 
-		 	aTuple[..index] ++ replacementTuple ++ aTuple[nextIndex..]
+			index : natural number := cast subtupleStart - 1 into 
+				[n : natural number | n];
+			nextIndex : natural number := subtupleStart + |subtuple|; 
+			aTuple[..index] ++ replacementTuple ++ aTuple[nextIndex..]
 		]
 	]
 ] : tuple;
-	
+
 Semantic restriction "replace the first occurrence of_in_with_" is
 [
 	subtuple : <any…|1..>'s type,
 	aTuple : tuple's type,
 	replacementTuple : tuple's type
- |
- 	defaultType ::= ∪ aTuple[1..∞] ∪ ∪replacementTuple[1..∞];
+|
+	defaultType ::= ∪ aTuple[1..∞] ∪ ∪replacementTuple[1..∞];
 	if ⎡aTuple⎤ = 0 then [<>'s type]
 	else if [⎡aTuple⎤ < ⎣subtuple⎦] then [aTuple]
 	else if [⎡replacementTuple⎤ < ⎣subtuple⎦] then
 	[
-	 	lower ::=  cast ⎡aTuple⎤ + ⎡replacementTuple⎤ - ⎣subtuple⎦
-	 		into [w : [0..∞) | w];
-	 	upper ::= ⎡aTuple⎤;
-	 	<defaultType…|lower..upper>
+		lower ::= cast 0 max (⎡aTuple⎤ + ⎡replacementTuple⎤ - ⎣subtuple⎦)
+			into [w : [0..∞) | w];
+		upper ::= ⎡aTuple⎤;
+		<defaultType…|lower..upper>
 	]
 	else if [⎡subtuple⎤ < ⎣replacementTuple⎦] then
 	[
-	 	lower ::=  cast ⎡aTuple⎤ into [w : [0..∞) | w];
-	 	upper ::= cast ⎡aTuple⎤ + ⎣replacementTuple⎦ - ⎡subtuple⎤
-	 		into [w : [0..∞) | w];
-	 	<defaultType…|lower..upper>
+		lower ::= cast ⎡aTuple⎤ into [w : [0..∞) | w];
+		upper ::= cast 0 max (⎡aTuple⎤ + ⎣replacementTuple⎦ - ⎡subtuple⎤)
+			into [w : [0..∞) | w];
+		<defaultType…|lower..upper>
 	]
-	else if [⎡subtuple⎤ = ⎣replacementTuple⎦ ∧ 
+	else if [⎡subtuple⎤ = ⎣replacementTuple⎦ ∧
 		[⎡replacementTuple⎤ = ⎣subtuple⎦]] then
 	[
-	 	lower ::=  cast ⎡aTuple⎤ into [w : [0..∞) | w];
-	 	upper ::= cast ⎡aTuple⎤ + ⎣replacementTuple⎦ - ⎡subtuple⎤
-	 		into [w : [0..∞) | w];
-	 	<defaultType…|lower..upper>
+		lower ::=  cast ⎡aTuple⎤ into [w : [0..∞) | w];
+		upper ::= cast 0 max (⎡aTuple⎤ + ⎣replacementTuple⎦ - ⎡subtuple⎤)
+			into [w : [0..∞) | w];
+		<defaultType…|lower..upper>
 	]
 	else
 	[
-	 	lower ::= min <⎣aTuple⎦,⎣replacementTuple⎦>;
-	 	upper ::= if ⎡replacementTuple⎤ ≤ ⎡subtuple⎤ then [⎡aTuple⎤]
-	 		else [∞];
-	 	<defaultType…|lower..upper>
+		lower ::= min <⎣aTuple⎦,⎣replacementTuple⎦>;
+		upper ::= if ⎡replacementTuple⎤ ≤ ⎡subtuple⎤ then [⎡aTuple⎤]
+			else [∞];
+		<defaultType…|lower..upper>
 	]
 ];
 
@@ -3941,8 +3895,8 @@ Method "replace all occurrences of_in_with_" is
 	subtuple : <any…|1..>,
 	aTuple : <any…|0>,
 	replacementTuple : tuple
- |
- 	<>
+|
+	<>
 ] : <>'s type;
 
 Method "replace all occurrences of_in_with_" is
@@ -3950,7 +3904,7 @@ Method "replace all occurrences of_in_with_" is
 	subtuple : <any…|1..>,
 	aTuple : <any…|1..>,
 	replacementTuple : tuple
- |
+|
 	if |subtuple| > |aTuple| then [aTuple]
 	else if [subtuple = aTuple] then [replacementTuple]
 	else if [|subtuple| = 1] then
@@ -3961,8 +3915,9 @@ Method "replace all occurrences of_in_with_" is
 		[
 			If <aTuple[index]> = subtuple then
 			[
-			 	newTuple ++= replacementTuple;
-			] else
+				newTuple ++= replacementTuple;
+			]
+			else
 			[
 				newTuple ++= <aTuple[index]>;
 			];
@@ -3983,10 +3938,10 @@ Method "replace all occurrences of_in_with_" is
 			w := first index of subtuple in aTuple[index..];
 			If w > 0 then 
 			[
-			 	lastPreSubtupleIndex : natural number := cast w - 2 + index into 
-			 		[n : natural number | n];
-			 	newTuple ++= aTuple[index..lastPreSubtupleIndex] ++
-			 		replacementTuple;	
+				lastPreSubtupleIndex : natural number := cast w - 2 + index into 
+					[n : natural number | n];
+				newTuple ++= aTuple[index..lastPreSubtupleIndex] ++
+					replacementTuple;
 				index := index + w + |subtuple|-1;
 			]
 			else 
