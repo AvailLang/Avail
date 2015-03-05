@@ -4791,4 +4791,10 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).messageSplitter();
 	}
+
+	@Override @AvailMethod
+	int o_TokenIndex (final AvailObject object)
+	{
+		return o_Traversed(object).tokenIndex();
+	}
 }

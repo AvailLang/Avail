@@ -173,6 +173,7 @@ public class AvailScanner
 			TupleDescriptor.empty(),
 			startOfToken,
 			lineNumber,
+			outputTokens.size(),
 			tokenType);
 		token.makeShared();
 		outputTokens.add(token);
@@ -198,6 +199,7 @@ public class AvailScanner
 			TupleDescriptor.empty(),
 			startOfToken,
 			lineNumber,
+			outputTokens.size(),
 			TokenType.LITERAL,
 			anAvailObject);
 		token.makeShared();
@@ -210,15 +212,19 @@ public class AvailScanner
 	/**
 	 * Add the provided {@linkplain CommentTokenDescriptor comment
 	 * token}.
-	 *@param startLine The line the token started.
+	 *
+	 * @param startLine The line the token started.
 	 * @return The newly added token.
 	 */
 	@InnerAccess A_Token addCurrentCommentToken (final int startLine)
 	{
 		final A_Token token = CommentTokenDescriptor.create(
 			StringDescriptor.from(currentTokenString()),
+			previousWhitespace,
+			TupleDescriptor.empty(),
 			startOfToken,
-			startLine);
+			startLine,
+			outputTokens.size());  // The index it would have if it were normal.
 		token.makeShared();
 		commentTokens.add(token);
 		previousToken = null;

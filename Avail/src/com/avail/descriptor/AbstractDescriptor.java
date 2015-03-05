@@ -6214,4 +6214,10 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract MessageSplitter o_MessageSplitter (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract int o_TokenIndex (AvailObject object);
 }

@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.*;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.utility.json.JSONWriter;
 import static com.avail.descriptor.CommentTokenDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.CommentTokenDescriptor.ObjectSlots.*;
@@ -55,6 +56,13 @@ extends TokenDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
+		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
+		 * indicates what basic kind of token this is.
+		 */
+		@EnumField(describedBy=TokenType.class)
+		TOKEN_TYPE_CODE,
+
+		/**
 		 * The starting position in the source file. Currently signed 32 bits,
 		 * but this may change at some point -- not that we really need to parse
 		 * 2GB of <em>Avail</em> source in one file, due to its deeply flexible
@@ -69,21 +77,21 @@ extends TokenDescriptor
 		LINE_NUMBER,
 
 		/**
-		 * The {@link Enum#ordinal() ordinal} of the {@link
-		 * TokenDescriptor.TokenType} that
-		 * indicates what basic kind of token this is.
+		 * The zero-based token number within the source file's tokenization.
+		 * Currently signed 32 bits, which should be plenty.
 		 */
-		@EnumField(describedBy=TokenType.class)
-		TOKEN_TYPE_CODE;
+		TOKEN_INDEX;
 
 		static
 		{
+			assert TokenDescriptor.IntegerSlots.TOKEN_TYPE_CODE.ordinal()
+				== TOKEN_TYPE_CODE.ordinal();
 			assert TokenDescriptor.IntegerSlots.START.ordinal()
 				== START.ordinal();
 			assert TokenDescriptor.IntegerSlots.LINE_NUMBER.ordinal()
 				== LINE_NUMBER.ordinal();
-			assert TokenDescriptor.IntegerSlots.TOKEN_TYPE_CODE.ordinal()
-				== TOKEN_TYPE_CODE.ordinal();
+			assert TokenDescriptor.IntegerSlots.TOKEN_INDEX.ordinal()
+				== TOKEN_INDEX.ordinal();
 		}
 	}
 
@@ -104,35 +112,15 @@ extends TokenDescriptor
 		 * optimization for case insensitive parsing.
 		 */
 		@HideFieldInDebugger
-		LOWER_CASE_STRING;
+		LOWER_CASE_STRING,
 
-		static
-		{
-			assert TokenDescriptor.ObjectSlots.STRING.ordinal()
-				== STRING.ordinal();
-			assert TokenDescriptor.ObjectSlots.LOWER_CASE_STRING.ordinal()
-				== LOWER_CASE_STRING.ordinal();
-		}
-	}
+		/** The {@linkplain A_String leading whitespace}. */
+		@HideFieldInDebugger
+		LEADING_WHITESPACE,
 
-	@Override
-	A_String o_LeadingWhitespace (final AvailObject object)
-	{
-		return TupleDescriptor.empty();
-	}
-
-	@Override
-	A_String o_TrailingWhitespace (final AvailObject object)
-	{
-		return TupleDescriptor.empty();
-	}
-
-	@Override
-	void o_TrailingWhitespace (
-		final AvailObject object,
-		final A_String trailingWhitespace)
-	{
-		throw unsupportedOperationException();
+		/** The {@linkplain A_String trailing whitespace}. */
+		@HideFieldInDebugger
+		TRAILING_WHITESPACE
 	}
 
 	@Override
@@ -155,23 +143,40 @@ extends TokenDescriptor
 	}
 
 	/**
-	 * Create and initialize a new {@linkplain TokenDescriptor token}.
+	 * Create and initialize a new {@linkplain CommentTokenDescriptor comment
+	 * token}.
 	 *
-	 * @param string The token text.
-	 * @param start The token's starting character position in the file.
-	 * @param lineNumber The line number on which the token occurred.
-	 * @return The new token.
+	 * @param string
+	 *        The token text.
+	 * @param leadingWhitespace
+	 *        The leading whitespace.
+	 * @param trailingWhitespace
+	 *        The trailing whitespace.
+	 * @param start
+	 *        The token's starting character position in the file.
+	 * @param lineNumber
+	 *        The line number on which the token occurred.
+	 * @param tokenIndex
+	 *        The zero-based token number within the source file.  -1 for
+	 *        synthetic tokens.
+	 * @return The new comment token.
 	 */
-	public static A_Token create (
+	public static AvailObject create (
 		final A_String string,
+		final A_String leadingWhitespace,
+		final A_String trailingWhitespace,
 		final int start,
-		final int lineNumber)
+		final int lineNumber,
+		final int tokenIndex)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(STRING, string);
+		instance.setSlot(LEADING_WHITESPACE, leadingWhitespace);
+		instance.setSlot(TRAILING_WHITESPACE, trailingWhitespace);
 		instance.setSlot(LOWER_CASE_STRING, NilDescriptor.nil());
 		instance.setSlot(START, start);
 		instance.setSlot(LINE_NUMBER, lineNumber);
+		instance.setSlot(TOKEN_INDEX, tokenIndex);
 		instance.setSlot(TOKEN_TYPE_CODE, TokenType.COMMENT.ordinal());
 		return instance;
 	}

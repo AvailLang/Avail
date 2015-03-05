@@ -255,7 +255,7 @@ extends Descriptor
 	{
 		int h = 0x593599A;
 		h ^= object.caller().hash();
-		h = h + object.function().hash() + object.pc() * object.stackp();
+		h += object.function().hash() + object.pc() * object.stackp();
 		for (int i = object.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
 			h = h * 23 + 0x221C9 ^ object.argOrLocalOrStackAt(i).hash();

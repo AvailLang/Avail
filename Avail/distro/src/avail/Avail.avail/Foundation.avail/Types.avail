@@ -1167,6 +1167,23 @@ Semantic restriction "`|`|_`|`|" is
 ];
 
 /**
+ * Generic function type construction can at least statically ensure the return
+ * type.
+ * 
+ * @method "[`…]→_"
+ * @restricts "type's type"
+ */
+Semantic restriction "[`…]→_" is
+[
+	returnType : type's type
+|
+	return ::= if |returnType| = 1
+		then [returnType's instance]
+		else [⊤];
+	([…]→return)'s type
+];
+
+/**
  * Function type construction can at least statically ensure the correct number
  * of arguments and the return type.
  * 

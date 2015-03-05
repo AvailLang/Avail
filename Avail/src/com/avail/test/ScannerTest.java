@@ -167,6 +167,7 @@ public final class ScannerTest
 					TupleDescriptor.empty(),
 					start,
 					1,
+					-1,
 					tokenType);
 				return token;
 			}
@@ -323,6 +324,7 @@ public final class ScannerTest
 						TupleDescriptor.empty(),
 						start,
 						1,
+						-1,
 						LITERAL,
 						literal);
 				return token;
@@ -457,6 +459,7 @@ public final class ScannerTest
 						TupleDescriptor.empty(),
 						input.length(),
 						1,
+						-1,
 						END_OF_FILE),
 					scannedTokens.get(scannedTokens.size() - 1));
 				scannedTokens = scannedTokens.subList(
@@ -505,6 +508,7 @@ public final class ScannerTest
 			TupleDescriptor.empty(),
 			0,
 			0,
+			-1,
 			LITERAL,
 			FloatDescriptor.fromFloat(1.5f)));
 		literals.add(LiteralTokenDescriptor.create(
@@ -513,6 +517,7 @@ public final class ScannerTest
 			TupleDescriptor.empty(),
 			0,
 			0,
+			-1,
 			LITERAL,
 			FloatDescriptor.fromFloat(1.5f)));
 		literals.add(LiteralTokenDescriptor.create(
@@ -521,6 +526,7 @@ public final class ScannerTest
 			TupleDescriptor.empty(),
 			0,
 			0,
+			-1,
 			LITERAL,
 			FloatDescriptor.fromFloat(2.5f)));
 		literals.add(LiteralTokenDescriptor.create(
@@ -529,6 +535,7 @@ public final class ScannerTest
 			TupleDescriptor.empty(),
 			0,
 			0,
+			-1,
 			LITERAL,
 			DoubleDescriptor.fromDouble(2.5)));
 		for (int i = 0; i < literals.size(); i++)

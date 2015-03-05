@@ -599,6 +599,7 @@ public abstract class AbstractAvailCompiler
 					TupleDescriptor.empty(),
 					0,
 					0,
+					-1,
 					LITERAL,
 					pragmaString));
 			}
@@ -903,20 +904,29 @@ public abstract class AbstractAvailCompiler
 	 * The position of the rightmost {@linkplain TokenDescriptor token} reached
 	 * by any parsing attempt.
 	 */
-	@InnerAccess int greatestGuess;
+	@InnerAccess int greatestGuess = -1;
 
 	/**
-	 * The {@linkplain List list} of {@linkplain String} {@linkplain Generator
-	 * generators} that describe what was expected (but not found) at the
-	 * {@linkplain #greatestGuess rightmost reached position}.
+	 * The number of parse positions to keep prior to the rightmost reached
+	 * point, just to increase available diagnostic information.
 	 */
-	@InnerAccess final List<Describer> greatExpectations = new ArrayList<>();
+	@InnerAccess final int guessWindowSize = 3;
+
+	/**
+	 * The {@linkplain List list} of lists of {@linkplain String} {@linkplain
+	 * Generator generators} that describe what was expected (but not found) at
+	 * each of the positions reached so far.  Only the lists from
+	 * {@code greatestGuess - guessWindowSize} through {@code greatestGuess}
+	 * have non-empty lists, an invariant maintained as greatestGuess increases.
+	 */
+	@InnerAccess final List<List<Describer>> greatExpectations =
+		new ArrayList<>();
 
 	/**
 	 * The first token of the snippet of code to regurgitate when reporting a
 	 * parsing error.
 	 */
-	protected @Nullable A_Token firstRelevantTokenOfSection;
+	protected int firstRelevantTokenIndexOfSection = 0;
 
 	/** The memoization of results of previous parsing attempts. */
 	final @InnerAccess AvailCompilerFragmentCache fragmentCache =
@@ -1801,15 +1811,20 @@ public abstract class AbstractAvailCompiler
 		{
 			synchronized (AbstractAvailCompiler.this)
 			{
-				if (position == greatestGuess)
+				assert greatExpectations.size() == greatestGuess + 1;
+				while (position > greatestGuess)
 				{
-					greatExpectations.add(describer);
+					final int toWipe = greatestGuess - guessWindowSize;
+					if (toWipe >= 0)
+					{
+						greatExpectations.get(toWipe).clear();
+					}
+					greatExpectations.add(new ArrayList<Describer>());
+					greatestGuess++;
 				}
-				if (position > greatestGuess)
+				if (position >= greatestGuess - guessWindowSize)
 				{
-					greatestGuess = position;
-					greatExpectations.clear();
-					greatExpectations.add(describer);
+					greatExpectations.get(position).add(describer);
 				}
 			}
 		}
@@ -2487,10 +2502,7 @@ public abstract class AbstractAvailCompiler
 			final boolean stopAfterBodyToken)
 		throws AvailScannerException
 	{
-		return AvailScanner.scanString(
-			source,
-			moduleName,
-			stopAfterBodyToken);
+		return AvailScanner.scanString(source, moduleName, stopAfterBodyToken);
 	}
 
 	/**
@@ -2516,12 +2528,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	static A_Phrase treeMapWithParent (
 		final A_Phrase object,
-		final Transformer3<
-				A_Phrase,
-				A_Phrase,
-				List<A_Phrase>,
-				A_Phrase>
-			aBlock,
+		final Transformer3<A_Phrase, A_Phrase, List<A_Phrase>, A_Phrase> aBlock,
 		final A_Phrase parentNode,
 		final List<A_Phrase> outerNodes,
 		final Map<A_Phrase, A_Phrase> nodeMap)
@@ -2540,17 +2547,11 @@ public abstract class AbstractAvailCompiler
 					assert child != null;
 					assert child.isInstanceOfKind(PARSE_NODE.mostGeneralType());
 					return treeMapWithParent(
-						child,
-						aBlock,
-						objectCopy,
-						outerNodes,
-						nodeMap);
+						child, aBlock, objectCopy, outerNodes, nodeMap);
 				}
 			});
 		final A_Phrase transformed = aBlock.valueNotNull(
-			objectCopy,
-			parentNode,
-			outerNodes);
+			objectCopy, parentNode, outerNodes);
 		transformed.makeShared();
 		nodeMap.put(object, transformed);
 		return transformed;
@@ -2568,6 +2569,41 @@ public abstract class AbstractAvailCompiler
 		return new SimpleDescriber(string);
 	}
 
+	private final class ProblemsAtToken
+	implements Comparable<ProblemsAtToken>
+	{
+		A_Token token;
+
+		String indicator;
+
+		List<Describer> describers;
+
+		ProblemsAtToken (
+			final A_Token token,
+			final String indicator,
+			final List<Describer> describers)
+		{
+			this.token = token;
+			this.indicator = indicator;
+			this.describers = describers;
+		}
+
+		@Override
+		public int compareTo (final @Nullable ProblemsAtToken otherToken)
+		{
+			assert otherToken != null;
+			return Integer.compare(token.start(), otherToken.token.start());
+		}
+	}
+
+	/** A bunch of dash characters, wide enough to catch the eye. */
+	static final String rowOfDashes =
+		"---------------------------------------------------------------------";
+
+	/** The 26 letters of the English alphabet, inside circles. */
+	final static String circledLetters =
+		"ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ";
+
 	/**
 	 * Report an error by throwing an {@link AvailCompilerException}. The
 	 * exception encapsulates the {@linkplain ResolvedModuleName module name} of
@@ -2580,62 +2616,147 @@ public abstract class AbstractAvailCompiler
 	 * @param afterFail
 	 *        What to do after actually reporting the error.
 	 */
-	void reportError (final Continuation0 afterFail)
+	void reportError (
+		final Continuation0 afterFail)
 	{
-		final A_Token token;
-		final List<Describer> expectations;
-		synchronized (this)
-		{
-			token = tokens.get(greatestGuess);
-			expectations = new ArrayList<Describer>(greatExpectations);
-		}
-		reportError(token, "Expected...", expectations, afterFail);
+		reportError("Expected at %s, line %d...", afterFail);
 	}
 
-	/** A bunch of dash characters, wide enough to catch the eye. */
-	static final String rowOfDashes =
-		"---------------------------------------------------------------------";
+	/**
+	 * Report an error by throwing an {@link AvailCompilerException}. The
+	 * exception encapsulates the {@linkplain ResolvedModuleName module name} of
+	 * the {@linkplain ModuleDescriptor module} undergoing compilation, the
+	 * error string, and the text position. This position is the rightmost
+	 * position encountered during the parse, and the error strings in {@link
+	 * #greatExpectations} are the things that were expected but not found at
+	 * that position. This seems to work very well in practice.
+	 *
+	 * @param headerMessagePattern
+	 *        The message pattern that introduces each group of problems.  The
+	 *        first argument is where the indicator string goes, and the second
+	 *        is for the line number.
+	 * @param afterFail
+	 *        What to do after actually reporting the error.
+	 */
+	synchronized void reportError (
+		final String headerMessagePattern,
+		final Continuation0 afterFail)
+	{
+		final List<ProblemsAtToken> groupedProblems = new ArrayList<>();
+		int letterOffset = 0;
+		int supplementaryCounter = 0;
+		for (
+			int i = greatestGuess;
+			i >= max(greatestGuess - guessWindowSize, 0);
+			i--)
+		{
+			final List<Describer> describers =
+				new ArrayList<>(greatExpectations.get(i));
+			if (!describers.isEmpty())
+			{
+				final int nextLetterOffset =
+					circledLetters.offsetByCodePoints(letterOffset, 1);
+				String indicator = circledLetters.substring(
+					letterOffset, nextLetterOffset);
+				if (supplementaryCounter > 0)
+				{
+					// Follow the circled Z with the value of an increasing
+					// counter, plus a space to visually separate it from any
+					// subsequent token.
+					indicator += Integer.toString(supplementaryCounter) + " ";
+				}
+				// Keep using Ⓩ (circled Z) if we're looking back more than 26
+				// tokens for problems.
+				if (nextLetterOffset < circledLetters.length())
+				{
+					letterOffset = nextLetterOffset;
+				}
+				else
+				{
+					// Start using Ⓩ (circled Z) followed by an increasing
+					// numeric value.
+					supplementaryCounter++;
+				}
+				groupedProblems.add(
+					new ProblemsAtToken(tokens.get(i), indicator, describers));
+			}
+		}
+		assert !groupedProblems.isEmpty();
+		reportError(groupedProblems, headerMessagePattern, afterFail);
+	}
+
+	/**
+	 * Report one specific terminal problem and call the failure continuation to
+	 * abort compilation.
+	 *
+	 * @param token
+	 * @param headerMessagePattern
+	 * @param message
+	 * @param failure
+	 */
+	@InnerAccess void reportError (
+		final A_Token token,
+		final String headerMessagePattern,
+		final String message,
+		final Continuation0 failure)
+	{
+		for (
+			int i = max(greatestGuess - guessWindowSize, 0);
+			i <= greatestGuess;
+			i++)
+		{
+			greatExpectations.get(i).clear();
+		}
+		final int tokenIndex = token.tokenIndex();
+		while (greatestGuess < tokenIndex)
+		{
+			greatExpectations.add(new ArrayList<Describer>());
+			greatestGuess++;
+		}
+		greatestGuess = tokenIndex;
+		greatExpectations.get(tokenIndex).add(generate(message));
+		reportError(headerMessagePattern, failure);
+	}
 
 	/**
 	 * Report a parsing problem; after reporting it, execute afterFail.
 	 *
-	 * @param token
-	 *        Where the error occurred.
-	 * @param banner
-	 *        The string that introduces the problem text.
-	 * @param problems
-	 *        A list of {@linkplain Describer describers} that may be
-	 *        invoked to produce problem strings.
+	 * @param groupedProblems
+	 *        The {@link List} of {@link ProblemsAtToken} to report.  Each
+	 *        {@code ProblemsAtToken} describes the problems that occurred at
+	 *        some token's position.
+	 * @param headerMessagePattern
+	 *        The message pattern to be populated and written before each group
+	 *        of problems.  Its arguments are the group's {@linkplain
+	 *        ProblemsAtToken#indicator} and the problematic token's line
+	 *        number.
 	 * @param afterFail
-	 *        What to do after the error has actually been reported.
+	 *        What to do after the problems have actually been reported.
 	 */
 	void reportError (
-		final A_Token token,
-		final String banner,
-		final List<Describer> problems,
+		final List<ProblemsAtToken> groupedProblems,
+		final String headerMessagePattern,
 		final Continuation0 afterFail)
 	{
-		assert problems.size() > 0 : "Bug - empty problem list";
-		final int lineNumber = token.lineNumber();
-		final int charPos = token.start();
-		final int startOfLine = source.lastIndexOf('\n', charPos - 1) + 1;
-		int startLineNumber;
-		int startOfFirstLine;
-		final @Nullable A_Token firstToken = firstRelevantTokenOfSection;
-		if (firstToken != null)
-		{
-			startLineNumber = firstToken.lineNumber();
-			startOfFirstLine = source.lastIndexOf(
-				'\n', firstToken.start() - 1) + 1;
-		}
-		else
-		{
-			startOfFirstLine =
-				source.lastIndexOf('\n', startOfLine - 2) + 1;
-			startLineNumber = (startOfFirstLine != startOfLine)
-				? lineNumber - 1
-				: lineNumber;
-		}
+		final List<ProblemsAtToken> ascending =
+			new ArrayList<>(groupedProblems);
+		Collections.sort(ascending);
+
+		// Figure out where to start showing the file content.  Never show the
+		// content before the line on which firstRelevantTokenIndexOfSection
+		// resides.
+		assert firstRelevantTokenIndexOfSection >= 0;
+		final A_Token firstToken = tokens.get(firstRelevantTokenIndexOfSection);
+		final int startLineNumber = firstToken.lineNumber();
+		final int startOfFirstLine =
+			source.lastIndexOf('\n', firstToken.start() - 1) + 1;
+
+		// Now figure out the last line to show, which if possible should be the
+		// line after the last problem token.
+		final ProblemsAtToken lastProblem = ascending.get(ascending.size() - 1);
+		final int finalLineNumber = lastProblem.token.lineNumber();
+		final int startOfLine =
+			source.lastIndexOf('\n', lastProblem.token.start() - 1) + 1;
 		int startOfNextLine = source.indexOf('\n', startOfLine) + 1;
 		startOfNextLine = (startOfNextLine != 0)
 			? startOfNextLine
@@ -2644,89 +2765,63 @@ public abstract class AbstractAvailCompiler
 		startOfSecondNextLine = (startOfSecondNextLine != 0)
 			? startOfSecondNextLine
 			: source.length();
-		final StringBuilder snippet = new StringBuilder(100);
-		@SuppressWarnings("resource")
-		final Formatter formatter = new Formatter(snippet);
-		final int lineBreaksInsideToken =
-			token.string().asNativeString().split("\n").length - 1;
-		final int lastLineNumber = (startOfNextLine != startOfSecondNextLine)
-			? lineNumber + lineBreaksInsideToken + 1
-			: lineNumber + lineBreaksInsideToken;
-		final int lineNumberWidth = Integer.toString(lastLineNumber).length();
-		final String pattern = ">>> %" + lineNumberWidth + "d: ";
-		int currentPosition = startOfFirstLine;
-		int currentLine = startLineNumber;
-		do
-		{
-			formatter.format(pattern, currentLine);
-			int nextStart = source.indexOf('\n', currentPosition) + 1;
-			if (nextStart == 0)
-			{
-				nextStart = source.length();
-			}
-			if (currentLine == lineNumber)
-			{
-				snippet.append(source, currentPosition, charPos);
-				// Indicate where the error is.
-				snippet.append(errorIndicatorSymbol);
-				snippet.append(" ");
-				snippet.append(source, charPos, max(nextStart - 1, charPos));
-			}
-			else
-			{
-				snippet.append(source, currentPosition, nextStart - 1);
-			}
-			snippet.append('\n');
-			currentPosition = nextStart;
-			currentLine++;
-		}
-		while (currentLine <= lastLineNumber);
 
+		// Insert the problem location indicators...
+		int sourcePosition = startOfFirstLine;
+		final StringBuilder unnumbered = new StringBuilder();
+		for (final ProblemsAtToken eachProblem : ascending)
+		{
+			final int newPosition = eachProblem.token.start();
+			unnumbered.append(source, sourcePosition, newPosition);
+			unnumbered.append(eachProblem.indicator);
+			sourcePosition = newPosition;
+		}
+		unnumbered.append(source, sourcePosition, startOfSecondNextLine);
+
+		// Insert line numbers...
+		final int maxDigits = Integer.toString(finalLineNumber + 1).length();
 		@SuppressWarnings("resource")
 		final Formatter text = new Formatter();
-		text.format("%s", snippet);
-		text.format(">>>%s%n", rowOfDashes);
-		text.format(">>> %s", banner);
-		final Set<String> alreadySeen = new HashSet<>(problems.size());
-		final Mutable<Integer> outstanding = new Mutable<>(problems.size());
-		final Continuation1<String> decrement = new Continuation1<String>()
+		text.format(
+			"%s",
+			Strings.addLineNumbers(
+				unnumbered.toString(),
+				">>> %" + maxDigits + "d: %s",
+				startLineNumber));
+		text.format(">>>%s", rowOfDashes);
+
+		// Now output all the problems, in the original group order.  Start off
+		// with an empty problemIterator to keep the code simple.
+		final ModuleName moduleName = moduleName();
+		final Iterator<ProblemsAtToken> groupIterator =
+			groupedProblems.iterator();
+		final Mutable<Iterator<Describer>> problemIterator =
+			new Mutable<>(Collections.<Describer>emptyIterator());
+		final Set<String> alreadySeen = new HashSet<>();
+		final MutableOrNull<Continuation0> continueReport =
+			new MutableOrNull<>();
+		continueReport.value = new Continuation0()
 		{
 			@Override
-			public void value (final @Nullable String message)
+			public void value ()
 			{
-				assert message != null;
-				synchronized (outstanding)
+				if (!problemIterator.value.hasNext())
 				{
-					// Ignore duplicate messages.
-					if (!alreadySeen.contains(message))
+					// Start a new problem group...
+					if (!groupIterator.hasNext())
 					{
-						alreadySeen.add(message);
-						text.format(
-							"%n>>>\t%s",
-							message.replace("\n", "\n>>>\t"));
-					}
-					// Decrement the count of outstanding describers. When
-					// the count reaches zero, then produce the remainder of
-					// the message.
-					outstanding.value--;
-					assert outstanding.value >= 0;
-					if (outstanding.value == 0)
-					{
-						final ModuleName moduleName = moduleName();
+						// Done everything.  Pass the complete text forward.
+						compilationIsInvalid = true;
+						// Generate the footer that indicates the module and
+						// line where the last indicator was found.
 						text.format(
 							"%n(file=\"%s\", line=%d)",
 							moduleName.qualifiedName(),
-							token.lineNumber());
+							lastProblem.token.lineNumber());
 						text.format("%n>>>%s", rowOfDashes);
-						int endOfLine = source.indexOf('\n', charPos);
-						if (endOfLine == -1)
-						{
-							endOfLine = source.length();
-						}
-						compilationIsInvalid = true;
 						handleProblem(new Problem(
 							moduleName,
-							token,
+							lastProblem.token,
 							PARSE,
 							"{0}",
 							text.toString())
@@ -2738,24 +2833,41 @@ public abstract class AbstractAvailCompiler
 								afterFail.value();
 							}
 						});
+						// Generate the footer that indicates the module and
+						// line where the last indicator was found.
+						return;
 					}
+					// Advance to the next problem group...
+					final ProblemsAtToken newGroup = groupIterator.next();
+					text.format(
+						"%n>>> " + headerMessagePattern,
+						newGroup.indicator,
+						newGroup.token.lineNumber());
+					problemIterator.value = newGroup.describers.iterator();
+					alreadySeen.clear();
+					assert problemIterator.value.hasNext();
 				}
+				problemIterator.value.next().describeThen(
+					new Continuation1<String>()
+					{
+						@Override
+						public void value (@Nullable final String message)
+						{
+							assert message != null;
+							// Suppress duplicate messages.
+							if (!alreadySeen.contains(message))
+							{
+								alreadySeen.add(message);
+								text.format(
+									"%n>>>\t\t%s",
+									message.replace("\n", "\n>>>\t\t"));
+							}
+							continueReport.value().value();
+						}
+					});
 			}
 		};
-		// Generate the error strings in parallel.
-		for (final Describer describer : problems)
-		{
-			eventuallyDo(
-				token,
-				new Continuation0()
-				{
-					@Override
-					public void value ()
-					{
-						describer.describeThen(decrement);
-					}
-				});
-		}
+		continueReport.value().value();
 	}
 
 	/**
@@ -4229,12 +4341,14 @@ public abstract class AbstractAvailCompiler
 			{
 				final A_Atom booleanValue =
 					AtomDescriptor.objectFromBoolean(op == PUSH_TRUE);
+				final A_Token innerToken = initialTokenPosition.peekToken();
 				final A_Token token = LiteralTokenDescriptor.create(
 					StringDescriptor.from(booleanValue.toString()),
-					initialTokenPosition.peekToken().leadingWhitespace(),
-					initialTokenPosition.peekToken().trailingWhitespace(),
-					initialTokenPosition.peekToken().start(),
-					initialTokenPosition.peekToken().lineNumber(),
+					innerToken.leadingWhitespace(),
+					innerToken.trailingWhitespace(),
+					innerToken.start(),
+					innerToken.lineNumber(),
+					innerToken.tokenIndex(),
 					LITERAL,
 					booleanValue);
 				final A_Phrase literalNode =
@@ -4290,6 +4404,27 @@ public abstract class AbstractAvailCompiler
 			}
 			case PARSE_VARIABLE_REFERENCE:
 			{
+//TODO MvG - This shouldn't parse tokens explicitly or access the scope map.
+//				parseSendArgumentWithExplanationThen(
+//					start,
+//					" (a variable reference in some message)",
+//					firstArgOrNull,
+//					firstArgOrNull == null
+//						&& initialTokenPosition.position != start.position,
+//					false,
+//					new Con<A_Phrase>("Variable reference argument")
+//					{
+//						@Override
+//						public void valueNotNull (
+//							ParserState state,
+//							A_Phrase answer)
+//						{
+//							if (answer)
+//
+//
+//						}
+//					}
+//					continuation);
 				// A variable name must be a keyword token.
 				final A_Token token = start.peekToken();
 				if (token.tokenType() != KEYWORD)
@@ -4322,18 +4457,14 @@ public abstract class AbstractAvailCompiler
 					final A_Variable variable = module.variableBindings().mapAt(
 						variableName);
 					declaration = DeclarationNodeDescriptor.newModuleVariable(
-						token,
-						variable,
-						NilDescriptor.nil());
+						token, variable, NilDescriptor.nil());
 				}
 				else if (module.constantBindings().hasKey(variableName))
 				{
 					final A_Variable variable = module.constantBindings().mapAt(
 						variableName);
 					declaration = DeclarationNodeDescriptor.newModuleConstant(
-						token,
-						variable,
-						NilDescriptor.nil());
+						token, variable, NilDescriptor.nil());
 				}
 				// If the variable was not declared, then reject the parse.
 				if (declaration == null)
@@ -4440,6 +4571,7 @@ public abstract class AbstractAvailCompiler
 					newToken.trailingWhitespace(),
 					newToken.start(),
 					newToken.lineNumber(),
+					newToken.tokenIndex(),
 					SYNTHETIC_LITERAL,
 					newToken);
 				final A_Phrase literalNode =
@@ -4566,12 +4698,14 @@ public abstract class AbstractAvailCompiler
 			{
 				final A_Number integerValue = IntegerDescriptor.fromInt(
 					op.integerToPush(instruction));
+				final A_Token innerToken = initialTokenPosition.peekToken();
 				final A_Token token = LiteralTokenDescriptor.create(
 					StringDescriptor.from(integerValue.toString()),
-					initialTokenPosition.peekToken().leadingWhitespace(),
-					initialTokenPosition.peekToken().trailingWhitespace(),
-					initialTokenPosition.peekToken().start(),
-					initialTokenPosition.peekToken().lineNumber(),
+					innerToken.leadingWhitespace(),
+					innerToken.trailingWhitespace(),
+					innerToken.start(),
+					innerToken.lineNumber(),
+					innerToken.tokenIndex(),
 					LITERAL,
 					integerValue);
 				final A_Phrase literalNode =
@@ -6406,12 +6540,11 @@ public abstract class AbstractAvailCompiler
 			{
 				reportError(
 					pragmaToken,
-					"Malformed pragma:",
-					Arrays.asList(generate(
-						String.format(
-							"Expected macro pragma to reference "
+					"Malformed pragma at %s on line %d:",
+					String.format(
+						"Expected macro pragma to reference "
 							+ "a valid primitive, not %s",
-							primNum))),
+						primNum),
 					failure);
 				return;
 			}
@@ -6450,10 +6583,11 @@ public abstract class AbstractAvailCompiler
 		{
 			reportError(
 				pragmaToken,
-				"Problem in stringification macro:",
-				Arrays.asList(generate(
+				"Problem in stringification macro at %s on line %d:",
+				String.format(
 					"stringification method \"%s\" should be introduced"
-					+ " in this module")),
+						+ " in this module",
+					availName.asNativeString()),
 				failure);
 			return;
 		}
@@ -6461,9 +6595,10 @@ public abstract class AbstractAvailCompiler
 		{
 			reportError(
 				pragmaToken,
-				"Problem in stringification macro:",
-				Arrays.asList(generate(
-					"stringification method \"%s\" is ambiguous")),
+				"Problem in stringification macro at %s on line %d:",
+				String.format(
+					"stringification method \"%s\" is ambiguous",
+					availName.asNativeString()),
 				failure);
 			return;
 		}
@@ -6523,9 +6658,8 @@ public abstract class AbstractAvailCompiler
 				{
 					reportError(
 						pragmaToken,
-						"Malformed pragma:",
-						Arrays.asList(generate(
-							"Pragma should have the form key=value")),
+						"Malformed pragma at %s on line %d:",
+						"Pragma should have the form key=value",
 						failure);
 					return;
 				}
@@ -6559,13 +6693,13 @@ public abstract class AbstractAvailCompiler
 					default:
 						reportError(
 							pragmaToken,
-							"Malformed pragma:",
-							Arrays.asList(generate(
-								String.format(
-									"Pragma key should be one of %s, %s, or %s",
-									PRAGMA_METHOD.lexemeJavaString,
-									PRAGMA_MACRO.lexemeJavaString,
-									PRAGMA_STRINGIFY.lexemeJavaString))),
+							"Malformed pragma at %s on line %d:",
+							String.format(
+								"Pragma key should be one of %s, %s, %s, or %s",
+								PRAGMA_CHECK.lexemeJavaString,
+								PRAGMA_METHOD.lexemeJavaString,
+								PRAGMA_MACRO.lexemeJavaString,
+								PRAGMA_STRINGIFY.lexemeJavaString),
 							failure);
 						return;
 				}
@@ -6676,14 +6810,6 @@ public abstract class AbstractAvailCompiler
 			{
 				// The counters must be read in this order for correctness.
 				assert workUnitsCompleted.get() == workUnitsQueued.get();
-
-				if (!unambiguousStatement.expressionType().isTop())
-				{
-					afterStatement.expected(
-						"top-level statement to have type ⊤");
-					reportError(afterFail);
-					return;
-				}
 
 				// Clear the section of the fragment cache associated with
 				// the (outermost) statement just parsed...
@@ -7000,7 +7126,7 @@ public abstract class AbstractAvailCompiler
 				MapDescriptor.empty(),
 				false));
 
-		firstRelevantTokenOfSection = tokens.isEmpty() ? null : tokens.get(0);
+		firstRelevantTokenIndexOfSection = 0;
 
 		if (!state.peekToken(ExpectedToken.MODULE, "Module keyword"))
 		{
@@ -7034,6 +7160,7 @@ public abstract class AbstractAvailCompiler
 		while (true)
 		{
 			final A_Token token = state.peekToken();
+			firstRelevantTokenIndexOfSection = state.position;
 			final A_String lexeme = token.string();
 			int tokenIndex = 0;
 			for (final ExpectedToken expectedToken : expected)
@@ -7057,7 +7184,7 @@ public abstract class AbstractAvailCompiler
 				}
 				else
 				{
-					final Describer expectedMessage = new Describer()
+					state.expected(new Describer()
 					{
 						@Override
 						public void describeThen (
@@ -7082,8 +7209,7 @@ public abstract class AbstractAvailCompiler
 							}
 							c.value(builder.toString());
 						}
-					};
-					state.expected(expectedMessage);
+					});
 				}
 				return null;
 			}

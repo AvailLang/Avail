@@ -152,6 +152,7 @@ public class L1Decompiler
 				TupleDescriptor.empty(),
 				0,
 				0,
+				-1,
 				TokenType.KEYWORD);
 			final A_Phrase decl = DeclarationNodeDescriptor.newArgument(
 				token,
@@ -167,6 +168,7 @@ public class L1Decompiler
 				TupleDescriptor.empty(),
 				0,
 				0,
+				-1,
 				TokenType.KEYWORD);
 			final A_Phrase decl = DeclarationNodeDescriptor.newVariable(
 				token,
@@ -367,6 +369,7 @@ public class L1Decompiler
 							TupleDescriptor.empty(),
 							0,
 							0,
+							-1,
 							TokenType.LITERAL,
 							varObject);
 					final A_Phrase literalNode =
@@ -402,6 +405,7 @@ public class L1Decompiler
 							TupleDescriptor.empty(),
 							0,
 							0,
+							-1,
 							TokenType.LITERAL,
 							value);
 					final AvailObject literalNode =
@@ -676,6 +680,7 @@ public class L1Decompiler
 					TupleDescriptor.empty(),
 					0,
 					0,
+					-1,
 					TokenType.KEYWORD);
 				label = DeclarationNodeDescriptor.newLabel(
 					labelToken,
@@ -699,6 +704,7 @@ public class L1Decompiler
 				TupleDescriptor.empty(),
 				0,
 				0,
+				-1,
 				TokenType.KEYWORD);
 			final A_BasicObject globalVar = code.literalAt(getInteger());
 
@@ -722,6 +728,7 @@ public class L1Decompiler
 				TupleDescriptor.empty(),
 				0,
 				0,
+				-1,
 				TokenType.KEYWORD);
 			final AvailObject globalVar = code.literalAt(getInteger());
 
@@ -865,6 +872,7 @@ public class L1Decompiler
 				TupleDescriptor.empty(),
 				0,
 				0,
+				-1,
 				TokenType.SYNTHETIC_LITERAL,
 				outerObject);
 			final A_Phrase literalNode =

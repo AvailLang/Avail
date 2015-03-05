@@ -183,7 +183,7 @@ extends AbstractAvailCompiler
 	{
 		// If a parsing error happens during parsing of this outermost
 		// statement, only show the section of the file starting here.
-		firstRelevantTokenOfSection = tokens.get(start.position);
+		firstRelevantTokenIndexOfSection = start.position;
 		tryIfUnambiguousThen(
 			start,
 			new Con<Con<A_Phrase>>("Detect ambiguity")

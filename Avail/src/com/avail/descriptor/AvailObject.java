@@ -7142,4 +7142,10 @@ implements
 	{
 		return descriptor.o_MessageSplitter(this);
 	}
+
+	@Override
+	public int tokenIndex ()
+	{
+		return descriptor.o_TokenIndex(this);
+	}
 }

@@ -32,6 +32,8 @@
 
 package com.avail.utility;
 
+import java.util.Formatter;
+
 /**
  * {@code Strings} provides various string utilities.
  *
@@ -85,5 +87,41 @@ public final class Strings
 		}
 		builder.append('"');
 		return builder.toString();
+	}
+
+	/**
+	 * Add line numbers to the given string.  Start the numbering at the
+	 * specified value.
+	 *
+	 * @param source
+	 *        The string to add line numbers to.
+	 * @param pattern
+	 *        The pattern to use on each line.  The first pattern argument is
+	 *        the line number (int), and the second is the String containing
+	 *        the line, including a terminal '\n'.
+	 * @param startingLineNumber
+	 *        What to number the first line as.
+	 * @return
+	 */
+	public static String addLineNumbers (
+		final String source,
+		final String pattern,
+		final int startingLineNumber)
+	{
+		int line = startingLineNumber;
+		int position = 0;
+		try (final Formatter formatter = new Formatter())
+		{
+			while (position < source.length())
+			{
+				int nextStart = source.indexOf('\n', position);
+				nextStart = nextStart == -1 ? source.length() : nextStart + 1;
+				formatter.format(
+					pattern, line, source.substring(position, nextStart));
+				position = nextStart;
+				line++;
+			}
+			return formatter.toString();
+		}
 	}
 }

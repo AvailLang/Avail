@@ -1105,6 +1105,7 @@ public enum SerializerOperation
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("trailing whitespace"),
 		SIGNED_INT.as("start position"),
 		SIGNED_INT.as("line number"),
+		SIGNED_INT.as("token index"),
 		BYTE.as("token type code"))
 	{
 		@Override
@@ -1116,6 +1117,7 @@ public enum SerializerOperation
 				object.trailingWhitespace(),
 				IntegerDescriptor.fromInt(object.start()),
 				IntegerDescriptor.fromInt(object.lineNumber()),
+				IntegerDescriptor.fromInt(object.tokenIndex()),
 				IntegerDescriptor.fromInt(object.tokenType().ordinal()));
 		}
 
@@ -1124,18 +1126,20 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final AvailObject string = subobjects[0];
-			final AvailObject leadingWhitespace = subobjects[1];
-			final AvailObject trailingWhitespace = subobjects[2];
+			final A_String string = subobjects[0];
+			final A_String leadingWhitespace = subobjects[1];
+			final A_String trailingWhitespace = subobjects[2];
 			final int start = subobjects[3].extractInt();
 			final int lineNumber = subobjects[4].extractInt();
-			final int tokenTypeOrdinal = subobjects[5].extractInt();
+			final int tokenIndex = subobjects[5].extractInt();
+			final int tokenTypeOrdinal = subobjects[6].extractInt();
 			return TokenDescriptor.create(
 				string,
 				leadingWhitespace,
 				trailingWhitespace,
 				start,
 				lineNumber,
+				tokenIndex,
 				TokenType.all()[tokenTypeOrdinal]);
 		}
 	},
@@ -1150,6 +1154,7 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("literal value"),
 		SIGNED_INT.as("start position"),
 		SIGNED_INT.as("line number"),
+		SIGNED_INT.as("token index"),
 		BYTE.as("token type code"))
 	{
 		@Override
@@ -1162,6 +1167,7 @@ public enum SerializerOperation
 				object.literal(),
 				IntegerDescriptor.fromInt(object.start()),
 				IntegerDescriptor.fromInt(object.lineNumber()),
+				IntegerDescriptor.fromInt(object.tokenIndex()),
 				IntegerDescriptor.fromInt(object.tokenType().ordinal()));
 		}
 
@@ -1170,19 +1176,21 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final AvailObject string = subobjects[0];
-			final AvailObject leadingWhitespace = subobjects[1];
-			final AvailObject trailingWhitespace = subobjects[2];
+			final A_String string = subobjects[0];
+			final A_String leadingWhitespace = subobjects[1];
+			final A_String trailingWhitespace = subobjects[2];
 			final AvailObject literal = subobjects[3];
 			final int start = subobjects[4].extractInt();
 			final int lineNumber = subobjects[5].extractInt();
-			final int tokenTypeOrdinal = subobjects[6].extractInt();
+			final int tokenIndex = subobjects[6].extractInt();
+			final int tokenTypeOrdinal = subobjects[7].extractInt();
 			return LiteralTokenDescriptor.create(
 				string,
 				leadingWhitespace,
 				trailingWhitespace,
 				start,
 				lineNumber,
+				tokenIndex,
 				TokenType.all()[tokenTypeOrdinal],
 				literal);
 		}
@@ -1193,16 +1201,22 @@ public enum SerializerOperation
 	 */
 	COMMENT_TOKEN (42,
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("token string"),
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("leading whitespace"),
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("trailing whitespace"),
 		SIGNED_INT.as("start position"),
-		SIGNED_INT.as("line number"))
+		SIGNED_INT.as("line number"),
+		SIGNED_INT.as("token index"))
 	{
 		@Override
 		A_BasicObject[] decompose (final AvailObject object)
 		{
 			return array(
 				object.string(),
+				object.leadingWhitespace(),
+				object.trailingWhitespace(),
 				IntegerDescriptor.fromInt(object.start()),
-				IntegerDescriptor.fromInt(object.lineNumber()));
+				IntegerDescriptor.fromInt(object.lineNumber()),
+				IntegerDescriptor.fromInt(object.tokenIndex()));
 		}
 
 		@Override
@@ -1210,13 +1224,19 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final AvailObject string = subobjects[0];
-			final int start = subobjects[1].extractInt();
-			final int lineNumber = subobjects[2].extractInt();
+			final A_String string = subobjects[0];
+			final A_String leading = subobjects[1];
+			final A_String trailing = subobjects[2];
+			final int start = subobjects[3].extractInt();
+			final int lineNumber = subobjects[4].extractInt();
+			final int tokenIndex = subobjects[5].extractInt();
 			return CommentTokenDescriptor.create(
 				string,
+				leading,
+				trailing,
 				start,
-				lineNumber);
+				lineNumber,
+				tokenIndex);
 		}
 	},
 

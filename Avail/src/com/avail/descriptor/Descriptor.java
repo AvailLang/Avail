@@ -4630,4 +4630,10 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override @AvailMethod
+	int o_TokenIndex (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
 }

@@ -36,6 +36,7 @@ import static com.avail.descriptor.LiteralTokenDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import com.avail.annotations.*;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -57,7 +58,14 @@ extends TokenDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The starting position in the source file.  Currently signed 32 bits,
+		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
+		 * indicates what basic kind of token this is.
+		 */
+		@EnumField(describedBy=TokenType.class)
+		TOKEN_TYPE_CODE,
+
+		/**
+		 * The starting position in the source file. Currently signed 32 bits,
 		 * but this may change at some point -- not that we really need to parse
 		 * 2GB of <em>Avail</em> source in one file, due to its deeply flexible
 		 * syntax.
@@ -65,27 +73,27 @@ extends TokenDescriptor
 		START,
 
 		/**
-		 * The line number in the source file.  Currently signed 32bits, which
+		 * The line number in the source file. Currently signed 32 bits, which
 		 * should be plenty.
 		 */
 		LINE_NUMBER,
 
 		/**
-		 * The {@link Enum#ordinal() ordinal} of the {@link
-		 * TokenDescriptor.TokenType} that indicates what basic kind of token
-		 * this is.
+		 * The zero-based token number within the source file's tokenization.
+		 * Currently signed 32 bits, which should be plenty.
 		 */
-		@EnumField(describedBy=TokenType.class)
-		TOKEN_TYPE_CODE;
+		TOKEN_INDEX;
 
 		static
 		{
+			assert TokenDescriptor.IntegerSlots.TOKEN_TYPE_CODE.ordinal()
+				== TOKEN_TYPE_CODE.ordinal();
 			assert TokenDescriptor.IntegerSlots.START.ordinal()
 				== START.ordinal();
 			assert TokenDescriptor.IntegerSlots.LINE_NUMBER.ordinal()
 				== LINE_NUMBER.ordinal();
-			assert TokenDescriptor.IntegerSlots.TOKEN_TYPE_CODE.ordinal()
-				== TOKEN_TYPE_CODE.ordinal();
+			assert TokenDescriptor.IntegerSlots.TOKEN_INDEX.ordinal()
+				== TOKEN_INDEX.ordinal();
 		}
 	}
 
@@ -110,9 +118,11 @@ extends TokenDescriptor
 		LOWER_CASE_STRING,
 
 		/** The {@linkplain A_String leading whitespace}. */
+		@HideFieldInDebugger
 		LEADING_WHITESPACE,
 
 		/** The {@linkplain A_String trailing whitespace}. */
+		@HideFieldInDebugger
 		TRAILING_WHITESPACE,
 
 		/**
@@ -217,7 +227,8 @@ extends TokenDescriptor
 	}
 
 	/**
-	 * Create and initialize a new {@linkplain TokenDescriptor token}.
+	 * Create and initialize a new {@linkplain LiteralTokenDescriptor literal
+	 * token}.
 	 *
 	 * @param string
 	 *        The token text.
@@ -229,10 +240,13 @@ extends TokenDescriptor
 	 *        The token's starting character position in the file.
 	 * @param lineNumber
 	 *        The line number on which the token occurred.
+	 * @param tokenIndex
+	 *        The zero-based token number within the source file.  -1 for
+	 *        synthetic tokens.
 	 * @param tokenType
 	 *        The type of token to create.
-	 * @param literal The literal.
-	 * @return The new token.
+	 * @param literal The literal value.
+	 * @return The new literal token.
 	 */
 	public static AvailObject create (
 		final A_String string,
@@ -240,6 +254,7 @@ extends TokenDescriptor
 		final A_String trailingWhitespace,
 		final int start,
 		final int lineNumber,
+		final int tokenIndex,
 		final TokenType tokenType,
 		final A_BasicObject literal)
 	{
@@ -250,6 +265,7 @@ extends TokenDescriptor
 		instance.setSlot(LOWER_CASE_STRING, NilDescriptor.nil());
 		instance.setSlot(START, start);
 		instance.setSlot(LINE_NUMBER, lineNumber);
+		instance.setSlot(TOKEN_INDEX, tokenIndex);
 		instance.setSlot(TOKEN_TYPE_CODE, tokenType.ordinal());
 		instance.setSlot(LITERAL, literal);
 		return instance;

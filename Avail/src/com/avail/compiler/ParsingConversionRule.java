@@ -83,13 +83,15 @@ public enum ParsingConversionRule
 			final A_Tuple expressions = input.expressionsTuple();
 			final A_Number count = IntegerDescriptor.fromInt(
 				expressions.tupleSize());
+			final A_Token innerToken = currentParserState.peekToken();
 			final AvailObject token =
 				LiteralTokenDescriptor.create(
 					StringDescriptor.from(count.toString()),
-					initialParserState.peekToken().leadingWhitespace(),
-					initialParserState.peekToken().trailingWhitespace(),
-					initialParserState.peekToken().start(),
-					initialParserState.peekToken().lineNumber(),
+					innerToken.leadingWhitespace(),
+					innerToken.trailingWhitespace(),
+					innerToken.start(),
+					innerToken.lineNumber(),
+					innerToken.tokenIndex(),
 					LITERAL,
 					count);
 			continuation.value(LiteralNodeDescriptor.fromToken(token));

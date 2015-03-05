@@ -34,6 +34,7 @@ package com.avail.compiler;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
+import static java.lang.Math.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import com.avail.annotations.Nullable;
@@ -113,7 +114,15 @@ extends AbstractAvailCompiler
 	{
 		// If a parsing error happens during parsing of this outermost
 		// statement, only show the section of the file starting here.
-		firstRelevantTokenOfSection = tokens.get(start.position);
+		final int fillLimit = min(start.position, greatestGuess + 1);
+		if (start.position < fillLimit)
+		{
+			Collections.fill(
+				greatExpectations.subList(
+					firstRelevantTokenIndexOfSection, fillLimit),
+				Collections.<Describer>emptyList());
+		}
+		firstRelevantTokenIndexOfSection = start.position;
 		tryIfUnambiguousThen(
 			start,
 			new Con<Con<A_Phrase>>("Detect ambiguity")
@@ -144,8 +153,7 @@ extends AbstractAvailCompiler
 								else
 								{
 									whenFoundStatement.value(
-										afterExpression,
-										expression);
+										afterExpression, expression);
 								}
 							}
 						});
@@ -169,10 +177,7 @@ extends AbstractAvailCompiler
 				final A_Phrase subexpression)
 			{
 				parseOptionalLeadingArgumentSendAfterThen(
-					start,
-					afterSubexpression,
-					subexpression,
-					continuation);
+					start, afterSubexpression, subexpression, continuation);
 			}
 		};
 		parseLeadingKeywordSendThen(start, newContinuation);

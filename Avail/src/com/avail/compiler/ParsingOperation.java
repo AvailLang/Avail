@@ -360,6 +360,11 @@ public enum ParsingOperation
 	};
 
 	/**
+	 * My array of values, since {@link Enum}.values() makes a copy every time.
+	 */
+	static final ParsingOperation[] all = values();
+
+	/**
 	 * The binary logarithm of the number of distinct instructions supported by
 	 * the coding scheme.  It must be integral.
 	 */
@@ -586,12 +591,12 @@ public enum ParsingOperation
 	{
 		if (instruction < distinctInstructions)
 		{
-			return values()[instruction];
+			return all[instruction];
 		}
 		// It's parametric, so it resides in the next 'distinctInstructions'
 		// region of enum values.  Mask it and add the offset.
 		final int subscript = (instruction & (distinctInstructions - 1))
 			+ distinctInstructions;
-		return values()[subscript];
+		return all[subscript];
 	}
 }

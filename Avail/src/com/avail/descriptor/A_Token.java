@@ -125,7 +125,16 @@ extends A_BasicObject
 
 	/**
 	 * Answer this token's module of origin.
+	 *
 	 * @return The module this token appears in
 	 */
 	A_String moduleName ();
+
+	/**
+	 * Answer the zero-based index of this token within the list of this
+	 * module's tokenized source.
+	 *
+	 * @return The zero-based subscript of this token.
+	 */
+	int tokenIndex ();
 }

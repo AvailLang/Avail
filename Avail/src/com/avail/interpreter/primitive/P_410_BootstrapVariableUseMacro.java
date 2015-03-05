@@ -77,12 +77,13 @@ public final class P_410_BootstrapVariableUseMacro extends Primitive
 		assert literalToken.tokenType() == TokenType.SYNTHETIC_LITERAL;
 		final A_Token actualToken = literalToken.literal();
 		assert actualToken.isInstanceOf(TOKEN.o());
+		final A_String variableNameString = actualToken.string();
 		if (actualToken.tokenType() != TokenType.KEYWORD)
 		{
 			throw new AvailRejectedParseException(
-				"variable to be alphanumeric");
+				"variable %s to be alphanumeric",
+				variableNameString);
 		}
-		final A_String variableNameString = actualToken.string();
 		final A_Map fiberGlobals = interpreter.fiber().fiberGlobals();
 		final A_Map clientData = fiberGlobals.mapAt(
 			AtomDescriptor.clientDataGlobalKey());
@@ -117,7 +118,8 @@ public final class P_410_BootstrapVariableUseMacro extends Primitive
 		if (!module.constantBindings().hasKey(variableNameString))
 		{
 			throw new AvailRejectedParseException(
-				"variable to be in scope");
+				"variable %s to be in scope",
+				variableNameString);
 		}
 		final A_BasicObject variableObject =
 			module.constantBindings().mapAt(variableNameString);

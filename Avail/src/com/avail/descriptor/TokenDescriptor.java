@@ -57,6 +57,13 @@ extends Descriptor
 	implements IntegerSlotsEnum
 	{
 		/**
+		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
+		 * indicates what basic kind of token this is.
+		 */
+		@EnumField(describedBy=TokenType.class)
+		TOKEN_TYPE_CODE,
+
+		/**
 		 * The starting position in the source file. Currently signed 32 bits,
 		 * but this may change at some point -- not that we really need to parse
 		 * 2GB of <em>Avail</em> source in one file, due to its deeply flexible
@@ -71,11 +78,10 @@ extends Descriptor
 		LINE_NUMBER,
 
 		/**
-		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
-		 * indicates what basic kind of token this is.
+		 * The zero-based token number within the source file's tokenization.
+		 * Currently signed 32 bits, which should be plenty.
 		 */
-		@EnumField(describedBy=TokenType.class)
-		TOKEN_TYPE_CODE
+		TOKEN_INDEX;
 	}
 
 	/**
@@ -98,9 +104,11 @@ extends Descriptor
 		LOWER_CASE_STRING,
 
 		/** The {@linkplain A_String leading whitespace}. */
+		@HideFieldInDebugger
 		LEADING_WHITESPACE,
 
 		/** The {@linkplain A_String trailing whitespace}. */
+		@HideFieldInDebugger
 		TRAILING_WHITESPACE
 	}
 
@@ -175,32 +183,6 @@ extends Descriptor
 			|| e == TRAILING_WHITESPACE;
 	}
 
-	@Override @AvailMethod
-	A_String o_String (final AvailObject object)
-	{
-		return object.slot(STRING);
-	}
-
-	@Override @AvailMethod
-	A_String o_LeadingWhitespace (final AvailObject object)
-	{
-		return object.slot(LEADING_WHITESPACE);
-	}
-
-	@Override @AvailMethod
-	A_String o_TrailingWhitespace (final AvailObject object)
-	{
-		return object.slot(TRAILING_WHITESPACE);
-	}
-
-	@Override @AvailMethod
-	void o_TrailingWhitespace (
-		final AvailObject object,
-		final A_String trailingWhitespace)
-	{
-		object.setSlot(TRAILING_WHITESPACE, trailingWhitespace);
-	}
-
 	/**
 	 * Lazily compute and install the lowercase variant of the specified
 	 * {@linkplain TokenDescriptor token}'s lexeme.
@@ -226,54 +208,6 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_String o_LowerCaseString (final AvailObject object)
-	{
-		if (isShared())
-		{
-			synchronized (object)
-			{
-				return lowerCaseString(object);
-			}
-		}
-		return lowerCaseString(object);
-	}
-
-	@Override @AvailMethod
-	int o_Start (final AvailObject object)
-	{
-		return object.slot(START);
-	}
-
-	@Override @AvailMethod
-	int o_LineNumber (final AvailObject object)
-	{
-		return object.slot(LINE_NUMBER);
-	}
-
-	@Override @AvailMethod
-	TokenType o_TokenType (final AvailObject object)
-	{
-		final int index = object.slot(TOKEN_TYPE_CODE);
-		return TokenType.all()[index];
-	}
-
-	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
-	{
-		return TOKEN.o();
-	}
-
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		return
-			(object.string().hash() * multiplier
-				+ object.start()) * multiplier
-				+ object.tokenType().ordinal()
-			^ 0x62CE7BA2;
-	}
-
-	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsToken(object);
@@ -290,10 +224,90 @@ extends Descriptor
 				|| object.literal().equals(aToken.literal()));
 	}
 
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		return
+			(object.string().hash() * multiplier
+				+ object.start()) * multiplier
+				+ object.tokenType().ordinal()
+			^ 0x62CE7BA2;
+	}
+
+	@Override @AvailMethod
+	A_Type o_Kind (final AvailObject object)
+	{
+		return TOKEN.o();
+	}
+
+	@Override @AvailMethod
+	A_String o_LeadingWhitespace (final AvailObject object)
+	{
+		return object.slot(LEADING_WHITESPACE);
+	}
+
+	@Override @AvailMethod
+	int o_LineNumber (final AvailObject object)
+	{
+		return object.slot(LINE_NUMBER);
+	}
+
+	@Override @AvailMethod
+	A_String o_LowerCaseString (final AvailObject object)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				return lowerCaseString(object);
+			}
+		}
+		return lowerCaseString(object);
+	}
+
 	@Override
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.TOKEN;
+	}
+
+	@Override @AvailMethod
+	int o_Start (final AvailObject object)
+	{
+		return object.slot(START);
+	}
+
+	@Override @AvailMethod
+	A_String o_String (final AvailObject object)
+	{
+		return object.slot(STRING);
+	}
+
+	@Override @AvailMethod
+	A_String o_TrailingWhitespace (final AvailObject object)
+	{
+		return object.slot(TRAILING_WHITESPACE);
+	}
+
+	@Override @AvailMethod
+	void o_TrailingWhitespace (
+		final AvailObject object,
+		final A_String trailingWhitespace)
+	{
+		object.setSlot(TRAILING_WHITESPACE, trailingWhitespace);
+	}
+
+	@Override @AvailMethod
+	int o_TokenIndex (final AvailObject object)
+	{
+		return object.slot(TOKEN_INDEX);
+	}
+
+	@Override @AvailMethod
+	TokenType o_TokenType (final AvailObject object)
+	{
+		final int index = object.slot(TOKEN_TYPE_CODE);
+		return TokenType.all()[index];
 	}
 
 	@Override
@@ -328,6 +342,9 @@ extends Descriptor
 	 *        The token's starting character position in the file.
 	 * @param lineNumber
 	 *        The line number on which the token occurred.
+	 * @param tokenIndex
+	 *        The zero-based token number within the source file.  -1 for
+	 *        synthetic tokens.
 	 * @param tokenType
 	 *        The type of token to create.
 	 * @return The new token.
@@ -338,6 +355,7 @@ extends Descriptor
 		final A_String trailingWhitespace,
 		final int start,
 		final int lineNumber,
+		final int tokenIndex,
 		final TokenType tokenType)
 	{
 		final AvailObject instance = mutable.create();
@@ -347,6 +365,7 @@ extends Descriptor
 		instance.setSlot(LOWER_CASE_STRING, NilDescriptor.nil());
 		instance.setSlot(START, start);
 		instance.setSlot(LINE_NUMBER, lineNumber);
+		instance.setSlot(TOKEN_INDEX, tokenIndex);
 		instance.setSlot(TOKEN_TYPE_CODE, tokenType.ordinal());
 		return instance;
 	}
@@ -366,6 +385,7 @@ extends Descriptor
 			TupleDescriptor.empty(),
 			0,
 			1,
+			0,
 			TokenType.END_OF_FILE);
 	}
 
