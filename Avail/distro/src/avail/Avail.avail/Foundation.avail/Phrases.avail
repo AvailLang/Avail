@@ -41,12 +41,14 @@ Uses
 	"Early Enumeration Support",
 	"Early Literals"
 Names
+	"Evaluate|evaluate_",
+	"this token:…",
+	"_compiled",
 	"``_``",
 	"`«↓_`»",
 	"`«<«_‡,»>`»",
 	"`«[_`|_]:_`»",
-	"`«[_]:_`»",
-	"this token:…"
+	"`«[_]:_`»"
 Body
 
 /**
@@ -57,7 +59,7 @@ Body
  */
 Invoke
 [
-	exclusions ::= cast {"_'s⁇type"} into [ t : {string|natural number} | t ];
+	exclusions ::= cast {"_'s⁇type"} into [t : {string|natural number} | t];
 	Grammatical restriction "_⇒_" is <∅, exclusions>;
 ]
 with <>;
@@ -372,4 +374,46 @@ Semantic restriction "_'s⁇token" is
 	literalType : literal phrase's type
 |
 	literal token ⇒ (literalType's semantic type)
+];
+
+/**
+ * Construct a {@type "function"} to evaluate the specified {@type "phrase"}.
+ *
+ * @method "_compiled"
+ * @param "aPhrase" "phrase"
+ * @returns "[…]→⊤"
+ */
+Public method "_compiled" is
+[
+	aPhrase : phrase
+|
+	«[<> | <aPhrase>] : aPhrase's semantic type» → function
+] : function;
+
+Semantic restriction "_compiled" is
+[
+	phraseType : phrase's type
+|
+	function accepting <> and returning phraseType's semantic type 
+];
+
+/**
+ * Evaluate the specified {@type "phrase"} to produce its value.
+ *
+ * @method "Evaluate|evaluate_"
+ * @param "aPhrase" "phrase"
+ * @returns "⊤"
+ */
+Public method "Evaluate|evaluate_" is
+[
+	aPhrase : phrase
+|
+	Invoke aPhrase compiled with <>;
+] : ⊤;
+
+Semantic restriction "Evaluate|evaluate_" is
+[
+	phraseType : phrase's type
+|
+	phraseType's semantic type
 ];

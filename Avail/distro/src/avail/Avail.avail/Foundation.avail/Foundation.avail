@@ -877,6 +877,9 @@ Extends
 	),
 	"Phrases" =
 	(
+		"Evaluate|evaluate_",
+		"this token:…",
+		"_compiled",
 		"``_``",
 		"`«↓_`»",
 		"`«<«_‡,»>`»",
