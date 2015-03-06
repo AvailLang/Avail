@@ -855,3 +855,122 @@ Semantic restriction "{«_→_‡,»}" is
  * bounds operations.
  */
 Grammatical restriction {"⎣_⎦", "⎡_⎤"} is <{"`|`|_`|`|"}>;
+
+/**
+ * Attempt to produce a literal {@type "tuple"} from the specified lexical
+ * {@type "list phrase" list} of {@type "expression phrase" expression}s. This
+ * folding is only possible if each subordinate expression is a {@type
+ * "literal phrase"}. If any subordinate expression implies dynamic behavior,
+ * then we must not fold to a specific tuple.
+ *
+ * @macro "<«_‡,»>"
+ * @param "exprs" "list phrase ⇒ tuple"
+ * @returns "phrase ⇒ tuple"
+ */
+Macro "<«_‡,»>" is
+[
+	exprs : list phrase ⇒ tuple
+|
+	Cast exprs' expressions into
+	[
+		literals : <<>, literal phrase…|whole number>
+	|
+		values : tuple := <>;
+		From 1 to |literals| do
+		[
+			index : natural number
+		|
+			values := concatenate
+				<eject values, <literals[index]'s token's value>>;
+			true
+		];
+		‘`values`’
+	]
+	else [exprs]
+];
+
+/**
+ * Attempt to produce a literal {@type "set"} from the specified lexical
+ * {@type "list phrase" list} of {@type "expression phrase" expression}s. This
+ * folding is only possible if each subordinate expression is a {@type
+ * "literal phrase"}. If any subordinate expression implies dynamic behavior,
+ * then we must not fold to a specific set.
+ *
+ * @macro "{«_‡,»}"
+ * @param "exprs" "list phrase ⇒ nonempty tuple"
+ * @returns "phrase ⇒ set"
+ */
+Macro "{«_‡,»}" is
+[
+	exprs : list phrase ⇒ nonempty tuple
+|
+	cast exprs' expressions into
+	[
+		literals : <<>, literal phrase…|natural number>
+	|
+		values : tuple := <>;
+		From 1 to |literals| do
+		[
+			index : natural number
+		|
+			values := concatenate
+				<eject values, <literals[index]'s token's value>>;
+			true
+		];
+		‘`values→set`’
+	]
+	else [restricted send $"{«_‡,»}" with <exprs> : set]
+];
+
+/**
+ * Attempt to produce a literal {@type "map"} from the specified lexical
+ * {@type "list phrase" list} of {@type "expression phrase" expression}s. This
+ * folding is only possible if each subordinate expression is a {@type
+ * "literal phrase"}. If any subordinate expression implies dynamic behavior,
+ * then we must not fold to a specific map.
+ *
+ * @macro "{«_→_‡,»}"
+ * @param "exprs" "list phrase ⇒ tuple"
+ * @returns "phrase ⇒ set"
+ */
+Macro "{«_→_‡,»}" is
+[
+	exprs : list phrase ⇒ <<>, <<>, any… | 2's type>… | whole number>
+|
+	values : tuple := <>;
+	literalizable : boolean := true;
+	Cast exprs' expressions into
+	[
+		literals : <<>, list phrase ⇒ <<>, any… | 2's type>… | whole number>
+	|
+		From 1 to |literals| do
+		[
+			index : natural number
+		|
+			bindingPhrase ::= literals[index];
+			Cast bindingPhrase's expressions into
+			[
+				bindingTuple : <<>, literal phrase…|2's type>
+			|
+				values := concatenate
+				<
+					eject values,
+					<
+						<
+							bindingTuple[1]'s token's value,
+							bindingTuple[2]'s token's value
+						>
+					>
+				>;
+				true
+			]
+			else [literalizable := false;];
+			literalizable
+		];
+	]
+	else [literalizable := false;];
+	bindings ::= cast values
+		into [t : <<>, <<>, any… | 2's type>… | whole number> | t];
+	if literalizable then [‘`bindings→map`’]
+	else [restricted send $"{«_→_‡,»}" with <exprs> : map]
+];

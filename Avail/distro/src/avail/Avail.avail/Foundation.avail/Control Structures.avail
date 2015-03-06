@@ -684,23 +684,12 @@ Public macro "For each…from_to_by_§do_" is
 	endType ::= end's semantic type;
 	stepType ::= step's semantic type;
 	blockType ::= [⊥]→(action's semantic type's return type);
-	restrictions ::= semantic restrictions
-		for method for $"From_to_by_do_"
-		given <startType, endType, stepType, blockType>;
-	returnType : type := ⊤;
-	From 1 to |restrictions| by 1 do
-	[
-		index : natural number
-	|
-		returnType := returnType
-			∩ restrictions[index](startType, endType, stepType, blockType);
-	];
 	statements ::= action's statements;
 	blockReturnType ::= cast statements
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
-	send $"From_to_by_do_" with
-	«<
+	restricted send $"From_to_by_do_" with
+	<
 		start,
 		end,
 		step,
@@ -709,7 +698,7 @@ Public macro "For each…from_to_by_§do_" is
 		|
 			action's statements
 		] : blockReturnType»
-	>» : returnType
+	> : ⊤
 ] : send phrase ⇒ ⊤;
 
 /**

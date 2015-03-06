@@ -39,9 +39,11 @@ Uses
 	"Early Control Structures",
 	"Early Definers",
 	"Early Enumeration Support",
-	"Early Literals"
+	"Early Literals",
+	"Early Variables"
 Names
 	"Evaluate|evaluate_",
+	"restricted send_with_:_",
 	"this token:…",
 	"_compiled",
 	"``_``",
@@ -416,4 +418,75 @@ Semantic restriction "Evaluate|evaluate_" is
 	phraseType : phrase's type
 |
 	phraseType's semantic type
+];
+
+/*
+ * This is a bootstrap function invoker, needed by "restricted send_with_:_" in
+ * order to procure a result from a function application.
+ */
+Private method "private invoke_with_" is
+[
+	aFunction : function,
+	arguments : tuple
+|
+	Primitive 40 (failureCode : natural number);
+	Invoke early failure function with <failureCode>
+] : ⊤;
+
+Semantic restriction "private invoke_with_" is
+[
+	functionType : function meta,
+	argumentsType : tuple meta
+|
+	type
+];
+
+/**
+ * Given a {@type "atom" message}, a {@type "tuple"} of its argument {@type
+ * "expression phrase"}s, and its basic return type, answer a {@type
+ * "send phrase"} with an appropriately strengthened return type. This runs the
+ * semantic restrictions associated with the indicated {@type "method"}, and
+ * therefore is only appropriate to call from a semantic restriction or a macro.
+ *
+ * @method "restricted send_with_:_"
+ * @param "message" "atom"
+ *        The name of the target {@type "method"}.
+ * @param "args" "expression phrase*"
+ *        The argument expressions at the virtualized call site.
+ * @param "basicReturnType" "type"
+ *        The basic return type of the {@type "method"}, before any semantic
+ *        restrictions have been applied.
+ * @returns "send phrase"
+ */
+Public method "restricted send_with_:_" is
+[
+	message : atom,
+	args : <<>, expression phrase⇒any…|whole number>,
+	basicReturnType : type
+|
+	weakArgsTypeTuple : tuple := <>;
+	From 1 to |args| do
+	[
+		index : natural number
+	|
+		argPhrase ::= cast args[index] into [t : phrase | t];
+		weakArgsTypeTuple :=
+			concatenate <eject weakArgsTypeTuple, <argPhrase's semantic type>>;
+		true
+	];
+	argsTypeTuple ::= cast weakArgsTypeTuple
+		into [t : <<>, any meta…|whole number> | t];
+	restrictions ::=
+		semantic restrictions for (method for message) given argsTypeTuple;
+	returnType : type := basicReturnType;
+	From 1 to |restrictions| do
+	[
+		index : natural number
+	|
+		restriction ::= cast restrictions[index] into [t : function | t];
+		strongType ::= private invoke restriction with argsTypeTuple;
+		returnType := eject returnType ∩ strongType;
+		true
+	];
+	send message with args→list phrase : returnType
 ];

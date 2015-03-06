@@ -146,7 +146,6 @@ Semantic restriction "<_,_`…`|_>" is
 			];
 		true
 	];
-
 	finalDefaultType ::=
 		if |defaultTypeType| ≠ 1 then
 		[

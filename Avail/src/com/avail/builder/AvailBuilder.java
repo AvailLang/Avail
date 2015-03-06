@@ -3234,7 +3234,7 @@ public final class AvailBuilder
 			{
 				module.addImportedName(entry.value());
 			}
-			final AbstractAvailCompiler compiler = new AvailSystemCompiler(
+			final AbstractAvailCompiler compiler = new AvailCompiler(
 				module,
 				scanResult,
 				textInterface,

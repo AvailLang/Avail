@@ -1581,14 +1581,19 @@ extends Descriptor
 		L2Chunk.invalidationLock.lock();
 		try
 		{
-			A_Tuple definitionsTuple = object.slot(DEFINITIONS_TUPLE);
+			final ObjectSlotsEnum slot =
+				!definition.isMacroDefinition()
+				? DEFINITIONS_TUPLE
+				: MACRO_DEFINITIONS_TUPLE;
+			A_Tuple definitionsTuple = object.slot(slot);
 			definitionsTuple = TupleDescriptor.without(
 				definitionsTuple,
 				definition);
 			object.setSlot(
-				DEFINITIONS_TUPLE,
+				slot,
 				definitionsTuple.traversed().makeShared());
 			membershipChanged(object);
+
 		}
 		finally
 		{
@@ -1803,6 +1808,7 @@ extends Descriptor
 		}
 		// Clear the privateTestingTree cache.
 		object.setSlot(PRIVATE_TESTING_TREE, NilDescriptor.nil());
+		object.setSlot(MACRO_TESTING_TREE, NilDescriptor.nil());
 	}
 
 	/**

@@ -7064,8 +7064,12 @@ public abstract class AbstractAvailCompiler
 				@Override
 				public void value ()
 				{
-					final ParserState initialState =
-						new ParserState(0, MapDescriptor.empty());
+					final ParserState initialState = new ParserState(
+						0,
+						MapDescriptor.empty().mapAtPuttingCanDestroy(
+							compilerScopeMapKey,
+							MapDescriptor.empty(),
+							false));
 					// Rollback the module transaction no matter what happens.
 					parseExpressionThen(
 						initialState,

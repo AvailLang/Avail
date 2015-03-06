@@ -878,6 +878,7 @@ Extends
 	"Phrases" =
 	(
 		"Evaluate|evaluate_",
+		"restricted send_with_:_",
 		"this token:…",
 		"_compiled",
 		"``_``",

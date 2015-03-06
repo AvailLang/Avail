@@ -197,6 +197,7 @@ extends Primitive
 					E_LOADING_IS_OVER.numericCode(),
 					E_AMBIGUOUS_NAME.numericCode(),
 					E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode(),
+					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES.numericCode(),
 					E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE
 						.numericCode(),
 					E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP.numericCode(),
