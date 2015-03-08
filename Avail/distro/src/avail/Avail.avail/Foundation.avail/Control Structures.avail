@@ -485,13 +485,16 @@ Public method "From_to_by_do_" is
 	step : [0..∞),
 	action : [⊥]→⊤
 |
-	From start to end by step do
+	value : extended integer := start;
 	[
-		value : integer
-	|
-		action(value);
-		true
-	];
+		$loop;
+		If value ≤ end then
+		[
+			action(value);
+			value := eject value + step;
+			Restart loop
+		];
+	]();
 ];
 
 /**
@@ -517,13 +520,16 @@ Public method "From_to_by_do_" is
 	step : (-∞..-1],
 	action : [⊥]→⊤
 |
-	From start to end by step do
+	value : extended integer := start;
 	[
-		value : integer
-	|
-		action(value);
-		true
-	];
+		$loop;
+		If value ≥ end then
+		[
+			action(value);
+			value := eject value + step;
+			Restart loop
+		];
+	]();
 ];
 
 /**
@@ -725,7 +731,19 @@ Public method "From_to_do_" is
 	end : extended integer,
 	action : [⊥]→boolean
 |
-	From start to end by 1 do action;
+	value : extended integer := start;
+	[
+		$loop;
+		If value ≤ end then
+		[
+			continue ::= action(value);
+			If continue then
+			[
+				value++;
+				Restart loop
+			];
+		];
+	]();
 ];
 
 /**
@@ -773,13 +791,16 @@ Public method "From_to_do_" is
 	end : extended integer,
 	action : [⊥]→⊤
 |
-	From start to end by 1 do
+	value : extended integer := start;
 	[
-		value : integer
-	|
-		action(value);
-		true
-	];
+		$loop;
+		If value ≤ end then
+		[
+			action(value);
+			value++;
+			Restart loop
+		];
+	]();
 ];
 
 /**
