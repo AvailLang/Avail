@@ -175,12 +175,12 @@ Semantic restriction "_mod_" is type promotion function for
 	a : number,
 	b : number
 |
-	If b = 0 ∧ [ a ∈ extended integer ] then
+	If b = 0 ∧ a ∈ extended integer then
 	[
 		Reject parse, expected: cannotDivideByZeroMessage
 	];
 	infinities ::= {∞, -∞};
-	If a ∈ infinities ∧ [ b ∈ infinities ] then
+	If a ∈ infinities ∧ b ∈ infinities then
 	[
 		Reject parse, expected: cannotDivideTwoInfinitiesMessage
 	];
@@ -394,12 +394,12 @@ Method "_+_" is
 	[
 		lower ::= ⎣a⎦ + ⎣b⎦ - 1;
 		lowerInclusive ::=
-			(⎣a⎦ is inclusive ∧ [⎣a⎦ is infinite])
-			∨ [⎣b⎦ is inclusive ∧ [⎣b⎦ is infinite]];
+			(⎣a⎦ is inclusive ∧ ⎣a⎦ is infinite)
+			∨ (⎣b⎦ is inclusive ∧ ⎣b⎦ is infinite);
 		upper ::= ⎡a⎤ + ⎡b⎤ + 1;
 		upperInclusive ::=
-			(⎡a⎤ is inclusive ∧ [⎡a⎤ is infinite])
-			∨ [⎡b⎤ is inclusive ∧ [⎡b⎤ is infinite]];
+			(⎡a⎤ is inclusive ∧ ⎡a⎤ is infinite)
+			∨ (⎡b⎤ is inclusive ∧ ⎡b⎤ is infinite);
 		integer range
 			from lower (inclusive=lowerInclusive)
 			to upper (inclusive=upperInclusive)
@@ -428,7 +428,7 @@ Method "_×_" is
 		{⎣a⎦, ⎡a⎤},
 		{⎣b⎦, ⎡b⎤}
 	};
-	If bounds = {{0}, {∞}} ∨ [ bounds = {{0}, {-∞}} ] then
+	If bounds = {{0}, {∞}} ∨ bounds = {{0}, {-∞}} then
 	[
 		Reject parse, expected: cannotMultiplyMessage
 	]
@@ -445,7 +445,7 @@ Method "_×_" is
 			[
 				lower ::= ⎣positiveA⎦ × ⎣positiveB⎦;
 				upper ::= ⎡positiveA⎤ × ⎡positiveB⎤;
-				isInfinite ::= ∞ ∈ positiveA ∨ [∞ ∈ positiveB];
+				isInfinite ::= ∞ ∈ positiveA ∨ ∞ ∈ positiveB;
 				range ::= integer range
 					from lower (inclusive=true)
 					to upper + 1 (inclusive=isInfinite);
@@ -454,7 +454,7 @@ Method "_×_" is
 			If negativeB ≠ ⊥ then
 			[
 				lower ::= ⎡positiveA⎤ × ⎣negativeB⎦;
-				isInfinite ::= ∞ ∈ positiveA ∨ [-∞ ∈ negativeB];
+				isInfinite ::= ∞ ∈ positiveA ∨ -∞ ∈ negativeB;
 				upper ::= ⎣positiveA⎦ × ⎡negativeB⎤;
 				range ::= integer range
 					from lower - 1 (inclusive=isInfinite)
@@ -467,7 +467,7 @@ Method "_×_" is
 			If positiveB ≠ ⊥ then
 			[
 				lower ::= ⎣negativeA⎦ × ⎡positiveB⎤;
-				isInfinite ::= -∞ ∈ negativeA ∨ [∞ ∈ positiveB];
+				isInfinite ::= -∞ ∈ negativeA ∨ ∞ ∈ positiveB;
 				upper ::= ⎡negativeA⎤ × ⎣positiveB⎦;
 				range ::= integer range
 					from lower - 1 (inclusive=isInfinite)
@@ -478,7 +478,7 @@ Method "_×_" is
 			[
 				lower ::= ⎡negativeA⎤ × ⎡negativeB⎤;
 				upper ::= ⎣negativeA⎦ × ⎣negativeB⎦;
-				isInfinite ::= -∞ ∈ negativeA ∨ [-∞ ∈ negativeB];
+				isInfinite ::= -∞ ∈ negativeA ∨ -∞ ∈ negativeB;
 				range ::= integer range
 					from lower (inclusive=true)
 					to upper + 1 (inclusive=isInfinite);
@@ -488,7 +488,7 @@ Method "_×_" is
 		/* Zero is handled specially, to prevent multiplication of 0 and ±∞ by
 		 * one of the preceding clauses.
 		 */
-		If 0's type ⊆ a ∨ [ 0's type ⊆ b ] then
+		If 0's type ⊆ a ∨ 0's type ⊆ b then
 		[
 			result := eject result ∪ 0's type;
 		];
@@ -645,10 +645,7 @@ Method "_÷_" is
 	denominator : extended integer
 |
 	/* Produce ⊥ if the numerator range is ⊥ or the denominator is 0. */
-	if numeratorRange = ⊥ ∨ [ denominator = 0 ] then
-	[
-		⊥
-	]
+	if numeratorRange = ⊥ ∨ denominator = 0 then [⊥]
 	else
 	[
 		/* ±∞ divided by any finite nonzero value is 0. */
@@ -704,7 +701,7 @@ Method "_÷_" is
 	];
 	numeratorSet ::= {⎣a⎦, ⎡a⎤};
 	infinities ::= {{∞}, {-∞}};
-	If numeratorSet ∈ infinities ∧ [ denominatorSet ∈ infinities ] then
+	If numeratorSet ∈ infinities ∧ denominatorSet ∈ infinities then
 	[
 		Reject parse, expected: cannotDivideTwoInfinitiesMessage
 	];
@@ -764,14 +761,14 @@ Semantic restriction "_mod_" is
 	];
 	numeratorSet ::= {⎣a⎦, ⎡a⎤};
 	infinities ::= {{∞}, {-∞}};
-	If numeratorSet ∈ infinities ∧ [ denominatorSet ∈ infinities ] then
+	If numeratorSet ∈ infinities ∧ denominatorSet ∈ infinities then
 	[
 		Reject parse, expected: cannotDivideTwoInfinitiesMessage
 	];
 	if ⎣b⎦ = ⎡b⎤
-		∧ [ ⎣a⎦ is finite
-		∧ [ ⎡a⎤ is finite
-		∧ [ ⎣a⎦ ÷ ⎣b⎦ = ⎡a⎤ ÷ ⎣b⎦ ] ] ]
+		∧ ⎣a⎦ is finite
+		∧ ⎡a⎤ is finite
+		∧ ⎣a⎦ ÷ ⎣b⎦ = ⎡a⎤ ÷ ⎣b⎦
 	then
 	[
 		[⎣a⎦ mod ⎣b⎦ .. ⎡a⎤ mod ⎣b⎦]
@@ -1481,7 +1478,7 @@ Semantic restriction "_<<_keeping_bits" is
 	truncationBits : whole number's type
 |
 	high : [0..∞] := ∞;
-	If ⎡baseInteger⎤ ≠ ∞ ∧ [ ⎡shiftFactor⎤ ≠ ∞ ] then
+	If ⎡baseInteger⎤ ≠ ∞ ∧ ⎡shiftFactor⎤ ≠ ∞ then
 	[
 		finiteBaseMax : whole number;
 		finiteBaseMax ?= ⎡baseInteger⎤;

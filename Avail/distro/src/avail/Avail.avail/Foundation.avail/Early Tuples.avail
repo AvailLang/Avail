@@ -631,8 +631,8 @@ Semantic restriction "_→set" is
 		into [ t : natural number | t ];
 	union ::= ∪ tupleType[1..typeLimit];
 	if ⎣tupleType⎦ = ⎡tupleType⎤
-		∧ [ |union| = ⎣tupleType⎦
-		∧ [ ¬union ⊆ type ] ]
+		∧ |union| = ⎣tupleType⎦
+		∧ ¬union ⊆ type
 	then
 	[
 		/* If the size of the tuple is known, and the type union of its element
@@ -756,10 +756,7 @@ Semantic restriction "_[_]else_" is
 	index : integer's type,
 	else : (function accepting <> and returning any)'s type
 |
-	if ⎣index⎦ > ⎡tupleType⎤ ∨ [⎡index⎤ < 1] then
-	[
-		else's return type
-	]
+	if ⎣index⎦ > ⎡tupleType⎤ ∨ ⎡index⎤ < 1 then [else's return type]
 	else
 	[
 		min ::= ⎣index⎦ max 1;

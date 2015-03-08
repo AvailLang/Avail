@@ -287,7 +287,7 @@ Public method "a counting reader from_to_by_" is
 	last : number,
 	delta : number
 |
-	Require: delta < 0 ∨ [delta > 0];
+	Require: delta < 0 ∨ delta > 0;
 	actualSize : [0..∞] := if first ≤ last ≤ first
 		then [1]
 		else [(⎣(last - first) ÷ delta⎦→extended integer + 1) max 0];
@@ -418,7 +418,7 @@ Semantic restriction "a counting reader from_to_by_" is
 		[
 			delta : number
 		|
-			If delta > 0 ∨ [ delta < 0 ] then
+			If delta > 0 ∨ delta < 0 then
 			[
 				maxSize := maxSize
 					max ((⎣maxSpan ÷ delta⎦→extended integer + 1) max 0);
@@ -426,24 +426,23 @@ Semantic restriction "a counting reader from_to_by_" is
 					min ((⎣minSpan ÷ delta⎦→extended integer + 1) max 0);
 			];
 		];
-		elementType ::= if startType ⊆ double ∨ [deltaType ⊆ double]
-			then [double]
-		else if [startType ⊆ float ∨ [deltaType ⊆ float]]
-			then [float]
-		else
-		[
-			cast <startType, deltaType, endType> into
-			[
-				triple : <extended integer's type…|3>
-			|
-				[⎣triple[1]⎦ min ⎣triple[3]⎦
-					..⎡triple[1]⎤ max ⎡triple[3]⎤]
-			]
+		elementType ::=
+			if startType ⊆ double ∨ deltaType ⊆ double then [double]
+			else if [startType ⊆ float ∨ deltaType ⊆ float] then [float]
 			else
 			[
-				number
-			]
-		];
+				cast <startType, deltaType, endType> into
+				[
+					triple : <extended integer's type…|3>
+				|
+					[⎣triple[1]⎦ min ⎣triple[3]⎦
+						..⎡triple[1]⎤ max ⎡triple[3]⎤]
+				]
+				else
+				[
+					number
+				]
+			];
 		extend counting number reader with
 			position variable : naturalNumberVariable,
 			element type : elementType's type,

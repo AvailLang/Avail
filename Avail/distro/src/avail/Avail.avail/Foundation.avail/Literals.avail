@@ -34,7 +34,12 @@ Module "Literals"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Extends
-	"Early Literals"
+	"Early Literals" =
+	(
+		"<«_‡,»>",
+		"{«_‡,»}",
+		"“_”"
+	)
 Uses
 	"Bootstrap",
 	"Definers",
@@ -756,7 +761,7 @@ Semantic restriction "{«_→_‡,»}" is
 				 * `{natural number's type→any's type|1}`, which frequently
 				 * leads to (absurd) runtime type errors.
 				 */
-				if instanceK's type ⊆ type ∨ [ instanceV's type ⊆ type ] then
+				if instanceK's type ⊆ type ∨ instanceV's type ⊆ type then
 				[
 					false
 				]

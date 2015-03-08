@@ -194,7 +194,7 @@ Private method "command definer" is
 					/* If this is a bad command, then also add a transition to
 					 * the bad successors map.
 					 */
-					If ¬isBad ∧ [commandToken ∉ node's good nodes] then
+					If ¬isBad ∧ commandToken ∉ node's good nodes then
 					[
 						goodNode ::= a command node;
 						node's good nodes :=
@@ -290,7 +290,7 @@ Semantic restriction "«Bad»?Command|Commands|command|commands«_‡,»is|are_"
 	parametersType ::= actionType's parameters' type;
 	Assert: ⎣parametersType⎦ = ⎡parametersType⎤;
 	Assert: ⎣parametersType⎦ ≤ 1;
-	If ⎣parametersType⎦ = 1 ∧ [¬actionType[1] ⊆ tuple] then
+	If ⎣parametersType⎦ = 1 ∧ ¬actionType[1] ⊆ tuple then
 	[
 		Reject parse, expected:
 			format
@@ -374,7 +374,7 @@ Semantic restriction "Action_is_" is
 	parametersType ::= actionType's parameters' type;
 	Assert: ⎣parametersType⎦ = ⎡parametersType⎤;
 	Assert: ⎣parametersType⎦ ≤ 1;
-	If ⎣parametersType⎦ = 1 ∧ [¬actionType[1] ⊆ tuple] then
+	If ⎣parametersType⎦ = 1 ∧ ¬actionType[1] ⊆ tuple then
 	[
 		Reject parse, expected:
 			format

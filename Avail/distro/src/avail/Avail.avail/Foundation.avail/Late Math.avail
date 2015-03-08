@@ -117,14 +117,14 @@ Private method "exponentiation type promotion function for_" is
 		a : number's type,
 		b : number's type
 	|
-		if |a| = 1 ∧ [|b| = 1] then
+		if |a| = 1 ∧ |b| = 1 then
 		[
 			/* The exact values are known statically. Calculate it exactly. */
 			(invoke operator with <a's instance, b's instance>)'s type
 		]
 		else
 		[
-			if a ⊆ double ∨ [b ⊆ double] then
+			if a ⊆ double ∨ b ⊆ double then
 			[
 				/* At least one is known to be double, which forces the result
 				 * to be a double.
@@ -133,7 +133,7 @@ Private method "exponentiation type promotion function for_" is
 			]
 			else
 			[
-				if a = number ∨ [b = number] then
+				if a = number ∨ b = number then
 				[
 					/* Neither is known to be a double, and at least one is as
 					 * weak as a number.  The weak one might be a double at run
@@ -144,7 +144,7 @@ Private method "exponentiation type promotion function for_" is
 				else
 				[
 					/* Neither one is as weak as number. */
-					if a ⊆ float ∨ [b ⊆ float] then
+					if a ⊆ float ∨ b ⊆ float then
 					[
 						/* Either {float,float} or {float,int}, which each
 						 * produce a float.
@@ -153,7 +153,7 @@ Private method "exponentiation type promotion function for_" is
 					]
 					else
 					[
-						if a ⊆ extended integer ∧ [b ⊆ [0..∞]]
+						if a ⊆ extended integer ∧ b ⊆ [0..∞]
 						then [extended integer]
 						else [number]
 					]
@@ -189,7 +189,7 @@ Semantic restriction "_^_" is exponentiation type promotion function for
 	];
 	If a ∈ extended integer then
 	[
-		If a < 0 ∧ [ b ∈ {-∞, ∞} ] then
+		If a < 0 ∧ b ∈ {-∞, ∞} then
 		[
 			Reject parse, expected: cannotRaiseNegativeToInfinity
 		];
@@ -203,10 +203,7 @@ Method "_^_" is
 	exponent : [∞..∞]
 |
 	/* Forbid [-∞..-1]^∞ and 1^∞.  For all other n, n^∞=∞. */
-	If base < 0 ∨ [ base = 1 ] then
-	[
-		Raise an arithmetic exception
-	];
+	If base < 0 ∨ base = 1 then [Raise an arithmetic exception];
 	if base = 0 then [0] else [∞]
 ] : {0, ∞}ᵀ;
 
@@ -355,7 +352,7 @@ Method "_^_" is
 					[
 						value : extended integer :=
 							interestingBase ^ interestingPower;
-						If baseInclusive ∧ [interestingPower ∈ power] then
+						If baseInclusive ∧ interestingPower ∈ power then
 						[
 							range := range ∪ [value..value];
 						]
@@ -380,15 +377,15 @@ Method "_^_" is
 	[
 		(⎣openLimits⎦..⎡openLimits⎤)
 	]
-	else if [ -∞ ∈ openLimits ∧ [ ∞ ∈ openLimits ] ] then
+	else if [-∞ ∈ openLimits ∧ ∞ ∈ openLimits] then
 	[
 		range ∪ integer
 	]
-	else if [ -∞ ∈ openLimits ] then
+	else if [-∞ ∈ openLimits] then
 	[
 		range ∪ (-∞..⎡range⎤)
 	]
-	else if [ ∞ ∈ openLimits ] then
+	else if [∞ ∈ openLimits] then
 	[
 		range ∪ (⎣range⎦..∞)
 	]

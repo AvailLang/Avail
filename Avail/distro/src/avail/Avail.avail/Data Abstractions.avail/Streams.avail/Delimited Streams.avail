@@ -72,8 +72,7 @@ delimited stream's head method is
 |
 	head : tuple := <>;
 	rest : stream := aStream's decorated stream;
-	Until [ rest is empty ∨ [ rest starts with aStream's delimiter ] ]
-	do
+	Until [rest is empty ∨ rest starts with aStream's delimiter] do
 	[
 		head := eject head ++ <rest's head>;
 		rest := eject rest's tail;
@@ -86,8 +85,7 @@ delimited stream's tail method is
 	aStream : delimited stream
 |
 	rest : stream := aStream's decorated stream;
-	Until [ rest is empty ∨ [ rest starts with aStream's delimiter ] ]
-	do
+	Until [ rest is empty ∨ rest starts with aStream's delimiter] do
 	[
 		rest := eject rest's tail;
 	];
@@ -153,8 +151,8 @@ multiply delimited stream's head method is
 	rest : stream := aStream's decorated stream;
 	Until
 	[
-		rest is empty ∨ [ any of aStream's delimiters satisfies
-			[ delimiter : tuple | rest starts with delimiter ] ]
+		rest is empty ∨ any of aStream's delimiters satisfies
+			[delimiter : tuple | rest starts with delimiter]
 	]
 	do
 	[

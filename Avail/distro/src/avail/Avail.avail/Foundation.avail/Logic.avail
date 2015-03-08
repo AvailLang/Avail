@@ -380,7 +380,7 @@ Public method "_←_" is
 	a : boolean,
 	b : []→boolean
 |
-	a ∨ [¬b()]
+	a ∨ ¬b()
 ] : boolean;
 
 Method "_←_" is
@@ -455,14 +455,11 @@ Semantic restriction "_↔_" is
 	aType : boolean's type,
 	bType : boolean's type
 |
-	if (aType ≠ boolean) ∧ [bType ≠ boolean] then 
+	if (aType ≠ boolean) ∧ bType ≠ boolean then 
 	[
 		(aType = bType)'s type
-	] 
-	else 
-	[
-		⊤
 	]
+	else [⊤]
 ];
 
 /**
@@ -481,7 +478,7 @@ Public method "_↛_" is
 	a : boolean,
 	b : []→boolean
 |
-	a ∧ [¬b()]
+	a ∧ ¬b()
 ] : boolean;
 
 Method "_↛_" is
@@ -542,7 +539,7 @@ Public method "_↚_" is
 	a : boolean,
 	b : []→boolean
 |
-	(¬a) ∧ [b()]
+	(¬a) ∧ b()
 ] : boolean;
 
 Method "_↚_" is
@@ -621,12 +618,12 @@ Grammatical restriction "¬_" is
  * negation.
  * 
  * @method "_∧_"
- * @forbids 1 "_∨_" "_→_" "_↔_" "_←_" "_⊕_" "_↛_" "_↚_"
- * @forbids 2 "_∧_" "_∨_" "_⊕_" "_→_" "_↔_" "_←_" "_↛_" "_↚_"
+ * @forbids 1 "_⊕_" "_→_" "_↔_" "_←_" "_↛_" "_↚_"
+ * @forbids 2 "_⊕_" "_→_" "_↔_" "_←_" "_↛_" "_↚_"
  */
 Grammatical restriction "_∧_" is
-	<{"_∨_", "_→_", "_↔_", "_←_", "_⊕_", "_↛_", "_↚_"},
-	{"_∧_", "_∨_", "_⊕_", "_→_", "_↔_", "_←_", "_↛_", "_↚_"}>;
+	<{"_⊕_", "_→_", "_↔_", "_←_", "_↛_", "_↚_"},
+	{"_⊕_", "_→_", "_↔_", "_←_", "_↛_", "_↚_"}>;
 
 /**
  * OR operation is third highest precedence among logical operators, after
@@ -638,7 +635,7 @@ Grammatical restriction "_∧_" is
  */
 Grammatical restriction "_∨_" is 
 	<{"_→_", "_↔_", "_←_", "_⊕_", "_↛_", "_↚_"},
-	{"_∨_", "_→_", "_↔_", "_←_", "_⊕_", "_↛_", "_↚_"}>;
+	{"_→_", "_↔_", "_←_", "_⊕_", "_↛_", "_↚_"}>;
 
 /**
  * (Non-)implications and converse (non-)implications share the fourth highest
@@ -701,11 +698,7 @@ Semantic restriction "_=_" is
 	a : any meta,
 	b : any meta
 |
-	if |a| = 1
-		∧ [ |b| = 1
-		∧ [ ¬a's instance ∈ type
-		∧ [ ¬b's instance ∈ type ] ] ]
-	then
+	if |a| = 1 ∧ |b| = 1 ∧ ¬a's instance ∈ type ∧ ¬b's instance ∈ type then
 	[
 		(a's instance = b's instance)'s type
 	]
@@ -713,7 +706,7 @@ Semantic restriction "_=_" is
 	[
 		if a ∩ b = ⊥ then
 		[
-			Assert: a ≠ ⊥ ∧ [ b ≠ ⊥ ];
+			Assert: a ≠ ⊥ ∧ b ≠ ⊥;
 			false's type
 		]
 		else

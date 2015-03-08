@@ -175,7 +175,7 @@ Private method "Require:_accepts_" is
 		Reject parse, expected:
 			"repeatedly applied function to accept at least two arguments"
 	];
-	If action[1] ≠ ⊥ ∧ [ ¬mapType's key type ⊆ action[1] ] then
+	If action[1] ≠ ⊥ ∧ ¬mapType's key type ⊆ action[1] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all keys ∈ "
@@ -184,7 +184,7 @@ Private method "Require:_accepts_" is
 			++ “action[1]”
 			++ ")"
 	];
-	If action[2] ≠ ⊥ ∧ [ ¬mapType's value type ⊆ action[2] ] then
+	If action[2] ≠ ⊥ ∧ ¬mapType's value type ⊆ action[2] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all values ∈ "
@@ -210,14 +210,8 @@ Semantic restriction "For each of⁇_do_" is
 	action : [⊥, ⊥]→⊤'s type
 |
 	Require: action accepts mapType;
-	if ⎣mapType⎦ > 0 ∧ [ action's return type = ⊥ ] then
-	[
-		⊥
-	]
-	else
-	[
-		⊤
-	]
+	if ⎣mapType⎦ > 0 ∧ action's return type = ⊥ then [⊥]
+	else [⊤]
 ];
 
 /**
@@ -576,9 +570,9 @@ Semantic restriction "_∈_" is
 	else
 	[
 		if (¬mapKeyType ∈ type)
-			∧ [|mapKeyType| = ⎣mapType⎦
-			∧ [|mapKeyType| = ⎡mapType⎤
-			∧ [keyType ⊆ mapKeyType]]]
+			∧ |mapKeyType| = ⎣mapType⎦
+			∧ |mapKeyType| = ⎡mapType⎤
+			∧ keyType ⊆ mapKeyType
 		then
 		[
 			true's type
@@ -634,7 +628,7 @@ Semantic restriction "group_by_" is
 	defaultType ::= ∪ aTupleType[1..|aTupleType's leading types| + 1];
 	keyType ::= discriminatorType's return type;
 	lowerBound ::= if ⎣tupleCardinality⎦ = 0 then [0] else [1];
-	upperBound ::= if tupleUpperBound > |keyType| ∧ [¬keyType ⊆ type] 
+	upperBound ::= if tupleUpperBound > |keyType| ∧ ¬keyType ⊆ type 
 		then [|keyType|]
 		else [tupleUpperBound];
 	valueType ::= <defaultType… | 1..tupleUpperBound>;
@@ -782,7 +776,7 @@ Semantic restriction "integrate_and_with_" is
 	supplementMapType : map's type,
 	actionType : [⊥,⊥,⊥]→map's type
 |
-	if actionType[1] ≠ ⊥ ∧ [¬baseMapType ⊆ actionType[1]] then
+	if actionType[1] ≠ ⊥ ∧ ¬baseMapType ⊆ actionType[1] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept "
@@ -792,7 +786,7 @@ Semantic restriction "integrate_and_with_" is
 			++ ")"
 	]
 	else if [actionType[2] ≠ ⊥
-		∧ [¬supplementMapType's key type ⊆ actionType[2]]] then
+		∧ ¬supplementMapType's key type ⊆ actionType[2]] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all key ∈ "
@@ -802,7 +796,7 @@ Semantic restriction "integrate_and_with_" is
 			++ ")"
 	]
 	else if [actionType[3] ≠ ⊥
-		∧ [¬supplementMapType's value type ⊆ actionType[3]]] then
+		∧ ¬supplementMapType's value type ⊆ actionType[3]] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all values ∈ "
@@ -858,7 +852,7 @@ Semantic restriction "integrate«_‡,and⁇»with_" is
 	mapsType :<map…|2..>'s type,
 	actionType : [⊥,⊥,⊥]→map's type
 |
-	If actionType[1] ≠ ⊥ ∧ [¬mapsType[1] ⊆ actionType[1]] then
+	If actionType[1] ≠ ⊥ ∧ ¬mapsType[1] ⊆ actionType[1] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept to the first element \
@@ -874,7 +868,7 @@ Semantic restriction "integrate«_‡,and⁇»with_" is
 
 	For each i from 2 to | mapsType's leading types | + 1 do
 	[
-		If actionType[2] ≠ ⊥ ∧ [¬mapsType[i]'s key type ⊆ actionType[2]] then
+		If actionType[2] ≠ ⊥ ∧ ¬mapsType[i]'s key type ⊆ actionType[2] then
 		[
 			Reject parse, expected:
 				"repeatedly applied function to the input tuple element at "
@@ -885,7 +879,7 @@ Semantic restriction "integrate«_‡,and⁇»with_" is
 				++ “actionType[2]”
 				++ ")"
 		];
-		If actionType[3] ≠ ⊥ ∧ [¬mapsType[i]'s value type ⊆ actionType[3]] then
+		If actionType[3] ≠ ⊥ ∧ ¬mapsType[i]'s value type ⊆ actionType[3] then
 		[
 			Reject parse, expected:
 				"repeatedly applied function to the input tuple element at "

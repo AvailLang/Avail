@@ -403,8 +403,8 @@ is
 			with context, describerType[1]
 	];
 	Unless sceneType[1] = predicateType[1]
-		∧ [sceneType[1] = entryType[1]]
-		∧ [sceneType[1] = describerType[1]]
+		∧ sceneType[1] = entryType[1]
+		∧ sceneType[1] = describerType[1]
 	then
 	[
 		Reject parse, expected:
@@ -480,8 +480,8 @@ is
 			with context, describerType[1]
 	];
 	Unless titleType[1] = describerType[1]
-		∧ [titleType[1] = entryType[1]
-		∧ [nextScenes[1]'s context type ⊆ titleType[1]]]
+		∧ titleType[1] = entryType[1]
+		∧ nextScenes[1]'s context type ⊆ titleType[1]
 	then
 	[
 		Reject parse, expected:

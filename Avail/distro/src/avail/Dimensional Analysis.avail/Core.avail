@@ -1037,7 +1037,7 @@ Semantic restriction "_×_" is
 			b : number
 		|
 			terms ::= {a, b};
-			If terms = {0, ∞} ∨ [ terms = {0, -∞} ] then
+			If terms = {0, ∞} ∨ terms = {0, -∞} then
 			[
 				Reject parse, expected: "terms not be 0 and ±∞"
 			];
@@ -1099,7 +1099,7 @@ Semantic restriction "_×_" is
 			b : number
 		|
 			terms ::= {a, b};
-			If terms = {0, ∞} ∨ [ terms = {0, -∞} ] then
+			If terms = {0, ∞} ∨ terms = {0, -∞} then
 			[
 				Reject parse, expected: "terms not be 0 and ±∞"
 			];
@@ -1156,7 +1156,7 @@ Semantic restriction "_×_" is
 			b : number
 		|
 			terms ::= {a, b};
-			If terms = {0, ∞} ∨ [ terms = {0, -∞} ] then
+			If terms = {0, ∞} ∨ terms = {0, -∞} then
 			[
 				Reject parse, expected: "terms not be 0 and ±∞"
 			];
@@ -1219,12 +1219,12 @@ Semantic restriction "_÷_" is
 			a : number,
 			b : number
 		|
-			If b = 0 ∧ [ a's type ⊆ extended integer ] then
+			If b = 0 ∧ a's type ⊆ extended integer then
 			[
 				Reject parse, expected: "denominator not to be 0"
 			];
 			infinities ::= {∞, -∞};
-			If a ∈ infinities ∧ [ b ∈ infinities ] then
+			If a ∈ infinities ∧ b ∈ infinities then
 			[
 				Reject parse, expected:
 					"either numerator or denominator to be finite"
@@ -1286,12 +1286,12 @@ Semantic restriction "_÷_" is
 			a : number,
 			b : number
 		|
-			If b = 0 ∧ [ a's type ⊆ extended integer ] then
+			If b = 0 ∧ a's type ⊆ extended integer then
 			[
 				Reject parse, expected: "denominator not to be 0"
 			];
 			infinities ::= {∞, -∞};
-			If a ∈ infinities ∧ [ b ∈ infinities ] then
+			If a ∈ infinities ∧ b ∈ infinities then
 			[
 				Reject parse, expected:
 					"either numerator or denominator to be finite"
@@ -1348,12 +1348,12 @@ Semantic restriction "_÷_" is
 			a : number,
 			b : number
 		|
-			If b = 0 ∧ [ a's type ⊆ extended integer ] then
+			If b = 0 ∧ a's type ⊆ extended integer then
 			[
 				Reject parse, expected: "denominator not to be 0"
 			];
 			infinities ::= {∞, -∞};
-			If a ∈ infinities ∧ [ b ∈ infinities ] then
+			If a ∈ infinities ∧ b ∈ infinities then
 			[
 				Reject parse, expected:
 					"either numerator or denominator to be finite"
@@ -1408,12 +1408,12 @@ Semantic restriction "_mod_" is
 			a : number,
 			b : number
 		|
-			If b = 0 ∧ [ a's type ⊆ extended integer ] then
+			If b = 0 ∧ a's type ⊆ extended integer then
 			[
 				Reject parse, expected: "denominator not to be 0"
 			];
 			infinities ::= {∞, -∞};
-			If a ∈ infinities ∧ [ b ∈ infinities ] then
+			If a ∈ infinities ∧ b ∈ infinities then
 			[
 				Reject parse, expected:
 					"either numerator or denominator to be finite"
@@ -1438,9 +1438,9 @@ Semantic restriction "_mod_" is
 	a ::= q's extent;
 	numericType ::=
 		if ⎣b⎦ = ⎡b⎤
-			∧ [ ⎣a⎦ is finite
-			∧ [ ⎡a⎤ is finite
-			∧ [ ⎣a⎦ ÷ ⎣b⎦ (Avail) = ⎡a⎤ ÷ ⎣b⎦ (Avail) ] ] ]
+			∧ ⎣a⎦ is finite
+			∧ ⎡a⎤ is finite
+			∧ ⎣a⎦ ÷ ⎣b⎦ (Avail) = ⎡a⎤ ÷ ⎣b⎦ (Avail)
 		then
 		[
 			[⎣a⎦ mod ⎣b⎦ (Avail) .. ⎡a⎤ mod ⎣b⎦ (Avail)]
@@ -1968,7 +1968,7 @@ Private method "inequality chain restriction function" is
 		For each index from 1 to exactSize do
 		[
 			arg ::= args[index];
-			If index > 1 ∧ [arg[1] ∩ ref = ⊥] then
+			If index > 1 ∧ arg[1] ∩ ref = ⊥ then
 			[
 				Require: ref's metric and arg[1]'s metric are compatible;
 			];
@@ -2112,7 +2112,7 @@ Semantic restriction "_converted to_" is
 				with key[1]
 		];
 		Unless key ∈ all converters ∨
-			[$"_converted to_" is implemented at <quantityType, unitType>]
+			$"_converted to_" is implemented at <quantityType, unitType>
 		then
 		[
 			Reject parse, expected:
@@ -2218,8 +2218,7 @@ Semantic restriction "Conversion method is_,⁇inverse is_" is
 	[
 		Exit body with ⊤
 	];
-	Unless functionType[1] ⊆ dimensioned quantity ∧ [functionType[2] ⊆ unit]
-	then
+	Unless functionType[1] ⊆ dimensioned quantity ∧ functionType[2] ⊆ unit then
 	[
 		Reject parse, expected:
 			format
@@ -2229,7 +2228,7 @@ Semantic restriction "Conversion method is_,⁇inverse is_" is
 	];
 	strong1 ::= cast functionType[1] into [t : dimensioned quantity's type | t];
 	strong2 ::= cast functionType[2] into [t : unit's type | t];
-	Unless |strong1's metric| = 1 ∧ [|strong2| = 1] then
+	Unless |strong1's metric| = 1 ∧ |strong2| = 1 then
 	[
 		Reject parse, expected:
 			"units to be statically known"

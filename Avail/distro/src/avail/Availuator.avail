@@ -184,13 +184,13 @@ Method "Help" is
 		\|\t\t\t\t\t |\n\
 		\|\t\t\t\t\t\tj : [1..9] := i-1;\n\
 		\|\t\t\t\t\t\tk : [2..10] := i;\n\
-		\|\t\t\t\t\t\tWhile [j > 1 ∧ [comparator(output[k],output[j])]]\n\
+		\|\t\t\t\t\t\tWhile [j > 1 ∧ comparator(output[k], output[j])]\n\
 		\|\t\t\t\t\t\tdo [\n\
 		\|\t\t\t\t\t\t\toutput := output[k↔j];\n\
 		\|\t\t\t\t\t\t\tk--;\n\
 		\|\t\t\t\t\t\t\tj--;\n\
 		\|\t\t\t\t\t\t];\n\
-		\|\t\t\t\t\t\toutput := if j = 1 ∧ [comparator(output[k],output[j])] then\n\
+		\|\t\t\t\t\t\toutput := if j = 1 ∧ comparator(output[k], output[j]) then\n\
 		\|\t\t\t\t\t\t[output[k↔j]] else [output];\n\
 		\|\t\t\t\t\t];\n\
 		\|\t\t\t\t\toutput\n\

@@ -782,7 +782,7 @@ and has transition
 Plot Hole Progression
 is titled by 
 	[
-	if the Princess is in the party ∧ [the Assistant is in the party] then 
+	if the Princess is in the party ∧ the Assistant is in the party then 
 		[
 		"With a little help from my friends"
 		] 
@@ -793,7 +793,7 @@ is titled by
 	]
 and is described by
 	[
-	if the Princess is in the party ∧ [the Assistant is in the party] then 
+	if the Princess is in the party ∧ the Assistant is in the party then 
 		[
 		"The three of you wander the halls of the Ship of Stories for what feels like 
 		ages. You peer through many other plot holes, but they don't seem relevant to 
@@ -835,15 +835,15 @@ and is described by
 	]
 and has transitions
 	to Ultimate Win
-	contingent on [the Princess is in the party ∧ [the Assistant is in the party]]
+	contingent on [the Princess is in the party ∧ the Assistant is in the party]
 	described by "Open the door"
 and
 	to Princess Path
-	contingent on [the Assistant is in the party ∧ [the Princess is not in the party]]
+	contingent on [the Assistant is in the party ∧ the Princess is not in the party]
 	described by "Go check out that singing."
 and
 	to Assistant Path
-	contingent on [the Princess is in the party ∧ [the Assistant is not in the party]]
+	contingent on [the Princess is in the party ∧ the Assistant is not in the party]
 	described by "Now, just what is that sound all about?"
 ;
 

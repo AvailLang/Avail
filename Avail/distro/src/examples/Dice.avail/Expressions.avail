@@ -191,7 +191,7 @@ Semantic restriction "integrate_and_with_" is
 	arg2 : dice outcome's type,
 	merger : [⊥, ⊥]→extended integer's type
 |
-	If merger[1] ≠ ⊥ ∧ [¬extended integer ⊆ merger[1]] then
+	If merger[1] ≠ ⊥ ∧ ¬extended integer ⊆ merger[1] then
 	[
 		Reject parse, expected:
 			format
@@ -199,7 +199,7 @@ Semantic restriction "integrate_and_with_" is
 				\|(but instead it accepts “②”)"
 			with extended integer, merger[1]
 	];
-	If merger[2] ≠ ⊥ ∧ [¬extended integer ⊆ merger[2]] then
+	If merger[2] ≠ ⊥ ∧ ¬extended integer ⊆ merger[2] then
 	[
 		Reject parse, expected:
 			format

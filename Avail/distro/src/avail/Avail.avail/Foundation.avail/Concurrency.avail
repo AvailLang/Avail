@@ -462,7 +462,7 @@ Public method "the future of_" is
 	worker : fiber;
 	mutex ::= a monitor named "future monitor";
 	cond ::= a condition of mutex 
-		such that [ex is assigned ∨ [result is assigned]];
+		such that [ex is assigned ∨ result is assigned];
 	worker :=
 		fork
 		[
@@ -690,7 +690,7 @@ is
 	workersFinished : whole number := 0;
 	mutex ::= a monitor named "parallel for-each monitor";
 	done ::= a condition of mutex
-		such that [killer is assigned ∨ [workersFinished = workUnitCount]];
+		such that [killer is assigned ∨ workersFinished = workUnitCount];
 	/* Write back the worker management function. */
 	workUnitRunner ?=
 		[
@@ -837,7 +837,7 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 	action : function meta
 |
 	Require: action accepts tupleType (check indices);
-	if ⎣tupleType⎦ > 0 ∧ [action's return type = ⊥] then [⊥] else [⊤]
+	if ⎣tupleType⎦ > 0 ∧ action's return type = ⊥ then [⊥] else [⊤]
 ];
 
 /**
@@ -889,7 +889,7 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 	action : [⊥]→⊤'s type
 |
 	Require: action accepts setType;
-	if ⎣setType⎦ > 0 ∧ [action's return type = ⊥] then [⊥] else [⊤]
+	if ⎣setType⎦ > 0 ∧ action's return type = ⊥ then [⊥] else [⊤]
 ];
 
 /**
@@ -941,7 +941,7 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 	action : [⊥, ⊥]→⊤'s type
 |
 	Require: action accepts mapType;
-	if ⎣mapType⎦ > 0 ∧ [action's return type = ⊥] then [⊥] else [⊤]
+	if ⎣mapType⎦ > 0 ∧ action's return type = ⊥ then [⊥] else [⊤]
 ];
 
 "filler" is a new atom;

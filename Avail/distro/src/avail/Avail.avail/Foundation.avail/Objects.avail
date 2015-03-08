@@ -97,8 +97,7 @@ Semantic restriction "_→object type" is
 	/* If the enumeration of keys is known and equals the cardinality of the
 	 * map, then answer the nearest object type supertype with these keys.
 	 */
-	if ⎣mapType⎦ = ⎡mapType⎤
-		∧ [ |mapType's key type| = ⎣mapType⎦ ] then
+	if ⎣mapType⎦ = ⎡mapType⎤ ∧ |mapType's key type| = ⎣mapType⎦ then
 	[
 		atoms ::= mapType's key type's instances;
 		defs ::= atoms→tuple zip |atoms| of mapType's value type's instance;
@@ -198,8 +197,7 @@ Semantic restriction "_→object" is
 	/* If the enumeration of keys is known and equals the cardinality of the
 	 * map, then answer the nearest object type supertype with these keys.
 	 */
-	if ⎣mapType⎦ = ⎡mapType⎤
-		∧ [ |mapType's key type| = ⎣mapType⎦ ] then
+	if ⎣mapType⎦ = ⎡mapType⎤ ∧ |mapType's key type| = ⎣mapType⎦ then
 	[
 		atoms ::= mapType's key type's instances;
 		fieldAssignments ::= atoms→tuple zip |atoms| of mapType's value type;
@@ -553,10 +551,10 @@ Private method "Generate and install_accessor for«mutable»?_" is
 	/* If the method doesn't exist at all, then define it and install
 	 * accessors.
 	 */
-	If ¬method exists named methodAtom ∨
-		[methodAtom has definition for <objectType> ∧
-			[method definition of methodAtom for <objectType>
-				∈ abstract definition]]
+	If ¬method exists named methodAtom
+		∨ (methodAtom has definition for <objectType>
+			∧ method definition of methodAtom for <objectType>
+				∈ abstract definition)
 	then
 	[
 		defineClassAccessor := true;
@@ -675,10 +673,10 @@ Private method "Generate and install_referrer for mutable_" is
 	methodAtom ::= atom for methodName;
 	fieldType ::= objectMap[fieldAtom];
 	defineReferrer : boolean :=
-		if ¬method exists named methodAtom ∨
-			[methodAtom has definition for <objectType> ∧
-				[method definition of methodAtom for <objectType>
-					∈ abstract definition]]
+		if ¬method exists named methodAtom
+			∨ (methodAtom has definition for <objectType>
+				∧ method definition of methodAtom for <objectType>
+					∈ abstract definition)
 		then
 		[
 			/* If the method doesn't exist at all, then define it and install a
@@ -757,10 +755,10 @@ Private method "Generate and install_mutator for mutable_" is
 	methodAtom ::= atom for methodName;
 	fieldType ::= objectMap[fieldAtom];
 	defineMutator : boolean :=
-		if ¬method exists named methodAtom ∨
-			[methodAtom has definition for <objectType> ∧
-				[method definition of methodAtom for <objectType>
-					∈ abstract definition]]
+		if ¬method exists named methodAtom
+			∨ (methodAtom has definition for <objectType>
+				∧ method definition of methodAtom for <objectType>
+					∈ abstract definition)
 		then
 		[
 			/* If the method doesn't exist at all, then define it and install a
@@ -899,7 +897,7 @@ Private method "Generate and install_reconstructor for_" is
 		fieldAtom : atom,
 		fieldType : any meta
 	|
-		If ¬shared ∈ fieldAtom ∧ [fieldType ⊆ variable] then
+		If ¬shared ∈ fieldAtom ∧ fieldType ⊆ variable then
 		[
 			varType ::= cast fieldType into [t : variable meta | t];
 			readType ::= cast varType's read type into [t : any meta | t];
@@ -1448,7 +1446,7 @@ is
 |
 	public ::= publicType's instance;
 	publicNames ::= current module's public names;
-	If public ∧ [ |classNameType| ≠ 1 ] then
+	If public ∧ |classNameType| ≠ 1 then
 	[
 		Reject parse, expected:
 			"public class modifier to be provided only when the class name \
@@ -1457,7 +1455,7 @@ is
 	If |classNameType| = 1 then
 	[
 		className ::= classNameType's instance;
-		If public ∧ [ ¬className ∈ publicNames ] then
+		If public ∧ ¬className ∈ publicNames then
 		[
 			Reject parse, expected:
 				"\""
@@ -1880,7 +1878,7 @@ Public method "a|an_«with«_«:»?:=_‡,»»" is
 			/* Any field whose type is an instance type on a nontype may have
 			 * its value synthesized.
 			 */
-			If |fieldType| = 1 ∧ [fieldType ⊆ nontype] then
+			If |fieldType| = 1 ∧ fieldType ⊆ nontype then
 			[
 				syntheticAssignments := eject syntheticAssignments
 					++ <<fieldAtom, fieldType's instance>>;
@@ -2005,7 +2003,7 @@ Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
 		fieldAtom : atom,
 		fieldType : any meta
 	|
-		If |fieldType| = 1 ∧ [¬fieldType ⊆ type] then
+		If |fieldType| = 1 ∧ ¬fieldType ⊆ type then
 		[
 			assignments := eject assignments + fieldAtom→fieldType;
 		]
@@ -2064,7 +2062,7 @@ Public method "_as_«with«_::=_‡,»»" is
 		fieldAtom : atom,
 		fieldType : any meta
 	|
-		If |fieldType| = 1 ∧ [¬fieldType ⊆ type] then
+		If |fieldType| = 1 ∧ ¬fieldType ⊆ type then
 		[
 			identityAssignments := eject identityAssignments
 				++ <<fieldAtom, fieldType's instance>>;
@@ -2142,7 +2140,7 @@ Semantic restriction "_as_«with«_::=_‡,»»" is
 		fieldAtom : atom,
 		fieldType : any meta
 	|
-		If |fieldType| = 1 ∧ [ ¬fieldType ⊆ type ] then
+		If |fieldType| = 1 ∧ ¬fieldType ⊆ type then
 		[
 			assignments := eject assignments + fieldAtom→fieldType;
 		];

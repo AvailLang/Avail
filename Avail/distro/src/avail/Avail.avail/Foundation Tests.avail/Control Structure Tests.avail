@@ -195,8 +195,8 @@ Test "while loops" in control structure test suite is
 
 	c : whole number := 0;
 	d : integer := 8;
-	While [c < 10 ∧ [d > 0]] do [c += 1;] alternate with [d -= 1;];
-	Require: (d = 0) ∧ [c = 9];
+	While [c < 10 ∧ d > 0] do [c += 1;] alternate with [d -= 1;];
+	Require: d = 0 ∧ c = 9;
 
 	e : integer := 10;
 	Do [e -= 1;] while [e ≥ 5];
@@ -204,8 +204,8 @@ Test "while loops" in control structure test suite is
 
 	f : integer := 10;
 	g : integer := -2;
-	Do [f -= 1;] while [f ≥ 3 ∨ [g < 12]] alternate with [g += 1;];
-	Require: (f = -5) ∧ [g = 12];
+	Do [f -= 1;] while [f ≥ 3 ∨ g < 12] alternate with [g += 1;];
+	Require: f = -5 ∧ g = 12;
 ];
 
 Test "until loops" in control structure test suite is
@@ -216,8 +216,8 @@ Test "until loops" in control structure test suite is
 
 	d : integer := 0;
 	c : integer := 11;
-	Do [d += 2;] until [d ≥ 7 ∧ [c < 10]] alternate with [c -= 4;];
-	Require: (d = 8) ∧ [c = -1];
+	Do [d += 2;] until [d ≥ 7 ∧ c < 10] alternate with [c -= 4;];
+	Require: d = 8 ∧ c = -1;
 
 	a : whole number := 0;
 	Until [a += 1; a > 6];
@@ -229,8 +229,8 @@ Test "until loops" in control structure test suite is
 
 	f : whole number := 0;
 	g : integer := 8;
-	Until [f > 10 ∧ [g ≤ 0]] do [f += 10;] alternate with [g -= 1;];
-	Require: (f = 90) ∧ [g = 0];
+	Until [f > 10 ∧ g ≤ 0] do [f += 10;] alternate with [g -= 1;];
+	Require: f = 90 ∧ g = 0;
 ];
 
 Test "repeat" in control structure test suite is

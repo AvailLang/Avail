@@ -584,7 +584,7 @@ Semantic restriction "Let the game context be without custom state" is
 	contextTypeAtom ::= atom for contextTypeName;
 	contextConstructorAtom ::= atom for contextConstructorName;
 	If method exists named contextTypeAtom
-		∨ [method exists named contextConstructorAtom]
+		∨ method exists named contextConstructorAtom
 	then
 	[
 		Reject parse, expected:
@@ -687,7 +687,7 @@ is
 	contextTypeAtom ::= atom for contextTypeName;
 	contextConstructorAtom ::= atom for contextConstructorName;
 	If method exists named contextTypeAtom
-		∨ [method exists named contextConstructorAtom]
+		∨ method exists named contextConstructorAtom
 	then
 	[
 		Reject parse, expected:
@@ -1429,9 +1429,7 @@ is
 |
 	contextType ::= dynamic game context type;
 	Require: scene varType agrees with contextType;
-	Unless describerType ⊆ nonempty string
-		∨ [describerType ⊆ []→string]
-	then
+	Unless describerType ⊆ nonempty string ∨ describerType ⊆ []→string then
 	[
 		Reject parse, expected:
 			format
@@ -1441,9 +1439,7 @@ is
 	];
 	Unless titlerType[1] = ⊥ then
 	[
-		Unless titlerType[1] ⊆ nonempty string
-			∨ [titlerType[1] ⊆ []→string]
-		then
+		Unless titlerType[1] ⊆ nonempty string ∨ titlerType[1] ⊆ []→string then
 		[
 			Reject parse, expected:
 				format
@@ -1551,7 +1547,7 @@ is
 			/* If the literal is a variable, then check its contents to see if
 			 * it contains a scene.
 			 */
-			If v is assigned ∧ [↓v ∈ scenes] then
+			If v is assigned ∧ ↓v ∈ scenes then
 			[
 				aScene ::= cast ↓v into [s : scene | s];
 				reachable ?= ↓reachable + aScene;

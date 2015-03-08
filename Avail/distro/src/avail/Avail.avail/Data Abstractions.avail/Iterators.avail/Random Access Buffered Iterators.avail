@@ -254,8 +254,8 @@ Public method "_'s⁇write tuple method is_" is
 	implementationType : ([tuple, ⊥, natural number]→⊤)'s type
 |
 	If implementationType[1] = ⊥
-		∨ [implementationType[2] = ⊥
-		∨ [implementationType[3] = ⊥]]
+		∨ implementationType[2] = ⊥
+		∨ implementationType[3] = ⊥
 	then
 	[
 		Reject parse, expected:
@@ -371,10 +371,7 @@ Method "take«at most»?_from_" is
 |
 	result : tuple := <>;
 	positionInBufferVariable ::= ↑aReader's position in buffer;
-	Until
-	[
-		aReader is exhausted ∨ [ |result| = count ]
-	]
+	Until [aReader is exhausted ∨ |result| = count]
 	do
 	[
 		/* The "_is exhausted" above set up the buffer if necessary, and
@@ -392,7 +389,7 @@ Method "take«at most»?_from_" is
 		positionInBufferVariable ?= 
 			eject positionInBufferVariable + batchSize;
 	];
-	If ¬isLax ∧ [ |result| ≠ count ] then
+	If ¬isLax ∧ |result| ≠ count then
 	[
 		Raise an exhausted-iterator exception
 	];

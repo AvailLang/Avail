@@ -154,17 +154,11 @@ Semantic restriction "For each of⁇_do_" is
 	 * 4. The action is definitely invoked and it never terminates.
 	 */
 	if step ⊆ [0..0]
-		∨ [ (step ⊆ [0..∞) ∧ [ endSet = {∞} ])
-		∨ [ (step ⊆ (-∞..-1] ∧ [ endSet = {-∞} ])
-		∨ [ definitelyRuns ∧ [ return = ⊥ ] ] ] ]
-	then
-	[
-		⊥
-	]
-	else
-	[
-		⊤
-	]
+		∨ (step ⊆ [0..∞) ∧ endSet = {∞})
+		∨ (step ⊆ (-∞..-1] ∧ endSet = {-∞})
+		∨ (definitelyRuns ∧ return = ⊥)
+	then [⊥]
+	else [⊤]
 ];
 
 /**
@@ -259,22 +253,11 @@ Semantic restriction "a counting stream from_to_by_" is
 	deltaType : number's type
 |
 	elementType ::=
-		if startType ⊆ double ∨ [deltaType ⊆ double] then
-		[
-			double
-		]
-		else if [startType ⊆ float ∨ [endType ⊆ float]] then
-		[
-			float
-		]
-		else if [startType⊆extended integer ∧ [endType⊆extended integer]] then
-		[
-			extended integer
-		]
-		else
-		[
-			number
-		];
+		if startType ⊆ double ∨ deltaType ⊆ double then [double]
+		else if [startType ⊆ float ∨ endType ⊆ float] then [float]
+		else if [startType⊆extended integer ∧ endType ⊆ extended integer]
+			then [extended integer]
+		else [number];
 	extend counting number stream with
 		element type : elementType's type,
 		next : elementType,

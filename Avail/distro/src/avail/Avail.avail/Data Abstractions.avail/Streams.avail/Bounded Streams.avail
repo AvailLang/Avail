@@ -60,7 +60,7 @@ Method "_is empty" is
 [
 	aStream : bounded stream
 |
-	aStream's remaining elements = 0 ∨ [ aStream's decorated stream is empty ]
+	aStream's remaining elements = 0 ∨ aStream's decorated stream is empty
 ] : boolean;
 
 bounded stream's head method is

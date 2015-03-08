@@ -38,7 +38,8 @@ Uses
 	"Definers",
 	"Early Conditionals",
 	"Early Control Structures",
-	"Early Literals"
+	"Early Literals",
+	"Phrases"
 Names
 	"¬_",
 	"_∧_",
@@ -177,6 +178,33 @@ Semantic restriction "_∧_" is
 ];
 
 /**
+ * Given two arbitrary {@type "boolean"}-valued {@type "phrase"}s, answer a
+ * logical conjunction, i.e., AND, {@type "send phrase" phrase}. The resulting
+ * phrase short-circuits the computation, i.e., only evaluates {@param "b"} if
+ * {@param "a"} is {@method "true"}.
+ *
+ * @method "_∧_"
+ * @param "a" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yield a {@type "boolean"}.
+ * @param "b" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yield a {@type "boolean"}.
+ * @returns "send phrase ⇒ boolean"
+ *          {@param "a"} ∧ {@param "b"}.
+ * @category "Primitives" "Logic"
+ */
+Macro "_∧_" is
+[
+	a : expression phrase ⇒ boolean,
+	b : expression phrase ⇒ boolean
+|
+	restricted send atom for "_∧_" with
+	<
+		a,
+		«[<> | <b>] : boolean»
+	> : boolean
+];
+
+/**
  * Compute and answer the logical disjunction, i.e., OR, of the arguments.
  * Short-circuit the computation, i.e., only evaluate {@param "b"} if {@param
  * "a"} is {@method "false"}.
@@ -273,6 +301,33 @@ Semantic restriction "_∨_" is
 ];
 
 /**
+ * Given two arbitrary {@type "boolean"}-valued {@type "phrase"}s, answer a
+ * logical disjunction, i.e., OR, {@type "send phrase" phrase}. The resulting
+ * phrase short-circuits the computation, i.e., only evaluates {@param "b"} if
+ * {@param "a"} is {@method "false"}.
+ *
+ * @method "_∨_"
+ * @param "a" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yield a {@type "boolean"}.
+ * @param "b" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yield a {@type "boolean"}.
+ * @returns "send phrase ⇒ boolean"
+ *          {@param "a"} ∧ {@param "b"}.
+ * @category "Primitives" "Logic"
+ */
+Macro "_∨_" is
+[
+	a : expression phrase ⇒ boolean,
+	b : expression phrase ⇒ boolean
+|
+	restricted send atom for "_∨_" with
+	<
+		a,
+		«[<> | <b>] : boolean»
+	> : boolean
+];
+
+/**
  * Are the arguments unequal?
  * 
  * @method "_≠_"
@@ -292,3 +347,16 @@ Public stable method "_≠_" is
 |
 	¬a = b
 ] : boolean;
+
+/* Make logical operators left associative. */
+Grammatical restriction {"_∧_", "_∨_"} (set of string) is
+<
+	{"_∧_", "_∨_"} (set of string),
+	∅
+> (tuple of set of string);
+
+Grammatical restriction {"_=_", "_≠_"} (set of string) is
+<
+	{"_∧_", "_∨_"} (set of string),
+	{"_∧_", "_∨_"} (set of string)
+> (tuple of set of string);

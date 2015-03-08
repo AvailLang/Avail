@@ -98,7 +98,7 @@ Public method "_'s⁇next«value in»⁇_" is
 	rng : pRNG,
 	range : integer's type
 |
-	If range = ⊥ ∨ [⎡range⎤ = ∞] then
+	If range = ⊥ ∨ ⎡range⎤ = ∞ then
 	[
 		Raise an incorrect-argument-type exception
 	];

@@ -96,7 +96,7 @@ Semantic restriction "_∩_" is
 |
 	innerType ::= typeA's element type ∩ (typeB's element type);
 	upper : [0..∞] := ⎡typeA⎤ min ⎡typeB⎤;
-	If |innerType| ≠ ∞ ∧ [innerType ∩ (type's type) ≠ ⊥] then
+	If |innerType| ≠ ∞ ∧ innerType ∩ (type's type) ≠ ⊥ then
 	[
 		/* There are a limited number of possible values. */
 		upper := upper min |innerType|;
@@ -138,15 +138,9 @@ Semantic restriction "_⊆_" is
 	 * must be subsets of typeB's instance if typeA's element type is a
 	 * subtype of typeB's element type.
 	 */
-	if |elementB| ≠ ∞
-		∧ [ ⎣sizesB⎦ = ⎡sizesB⎤
-		∧ [ |elementB| = ⎣sizesB⎦ ] ]
-	then
+	if |elementB| ≠ ∞ ∧ ⎣sizesB⎦ = ⎡sizesB⎤ ∧ |elementB| = ⎣sizesB⎦ then
 	[
-		if elementA ⊆ elementB then
-		[
-			true's type
-		]
+		if elementA ⊆ elementB then [true's type]
 		else basicRule
 	]
 	else basicRule
@@ -165,25 +159,15 @@ Semantic restriction "_∈_" is
 	setType : set meta
 |
 	elementType ::= setType's element type;
-	if valueType ∩ elementType = ⊥ then
-	[
-		false's type
-	]
+	if valueType ∩ elementType = ⊥ then [false's type]
 	else
 	[
 		if (¬elementType ∈ type)
-			∧ [|elementType| = ⎣setType⎦
-			∧ [|elementType| = ⎡setType⎤
-			∧ [valueType ⊆ elementType]]]
-		then
-		[
-			true's type
-		]
-		else
-		[
-			/* Can't strengthen. */
-			⊤
-		]
+			∧ |elementType| = ⎣setType⎦
+			∧ |elementType| = ⎡setType⎤
+			∧ valueType ⊆ elementType
+		then [true's type]
+		else [⊤]
 	]
 ];
 
