@@ -330,7 +330,7 @@ Private method "test metric for_" is
 			e : exception
 		|
 			isOptional ::= test's platform optionality;
-			if isOptional ∧ [e ∈ unsupported-operation exception] then
+			if isOptional ∧ e ∈ unsupported-operation exception then
 			[
 				a unit test exclusion with test ID ::= test's test ID
 			]

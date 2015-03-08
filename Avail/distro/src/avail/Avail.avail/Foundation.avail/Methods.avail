@@ -80,7 +80,7 @@ Semantic restriction "method definition of_for_" is
 	parametersType : <any meta…|>'s type
 |
 	result : type := ⊤;
-	If |methodNameType| = 1 ∧ [⎣parametersType⎦ = ⎡parametersType⎤] then
+	If |methodNameType| = 1 ∧ ⎣parametersType⎦ = ⎡parametersType⎤ then
 	[
 		args : <any meta…|> := <>;
 		For each index from 1 to ⎣parametersType⎦ do

@@ -443,7 +443,7 @@ Method "Require:_accepts_" is
 	readerType : reader's type
 |
 	elementType ::= readerType's element type's instance;
-	If actionType[1] ≠ ⊥ ∧ [ ¬elementType ⊆ actionType[1] ] then
+	If actionType[1] ≠ ⊥ ∧ ¬elementType ⊆ actionType[1] then
 	[
 		Reject parse, expected:
 			format
@@ -563,7 +563,7 @@ Semantic restriction "take«at most»?_from_" is
 	readerType : reader's type
 |
 	Assert: |laxity| = 1;
-	If ¬laxity's instance ∧ [∞ ∈ count] then
+	If ¬laxity's instance ∧ ∞ ∈ count then
 	[
 		Reject parse, expected:
 			"'at most' clause to be specified when count may be ∞"
@@ -612,7 +612,7 @@ Method "take from_while_" is
 	result : tuple := <>;
 	While
 	[
-		aReader is not exhausted ∧ [predicate(aReader's current element)]
+		aReader is not exhausted ∧ predicate(aReader's current element)
 	]
 	do
 	[
@@ -747,14 +747,8 @@ Method "Drop from_while_" is
 	aReader : reader,
 	predicate : [⊥]→boolean
 |
-	While
-	[
-		aReader is not exhausted ∧ [predicate(aReader's current element)]
-	]
-	do
-	[
-		Advance aReader;
-	];
+	While [aReader is not exhausted ∧ predicate(aReader's current element)]
+	do [Advance aReader;];
 ] : ⊤;
 
 /**

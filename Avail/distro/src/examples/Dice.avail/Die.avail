@@ -179,7 +179,7 @@ Public method "a die showing_" is
 	faces : <extended integer…|1..>
 |
 	uniqueFaces ::= faces→set;
-	if |uniqueFaces| = |faces| ∧ [uniqueFaces = (1 to |faces|)→set] then
+	if |uniqueFaces| = |faces| ∧ uniqueFaces = (1 to |faces|)→set then
 	[
 		faceType ::= cast enumeration of uniqueFaces
 			into [t : natural number's type | t];

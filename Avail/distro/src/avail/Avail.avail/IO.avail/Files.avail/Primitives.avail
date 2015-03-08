@@ -267,7 +267,7 @@ Semantic restriction
 			then [boolean]
 			else [false's type];
 	];
-	If (readableType = false's type) ∧ [writableType = false's type] then
+	If readableType = false's type ∧ writableType = false's type then
 	[
 		Reject parse, expected: "file open to specify read or write or both"
 	];

@@ -79,7 +79,7 @@ Private method "prettify_" is
 		While
 		[
 			forward ::= base + run;
-			forward ≤ |indices| ∧ [indices[forward] - indices[base] = run]
+			forward ≤ |indices| ∧ indices[forward] - indices[base] = run
 		]
 		do [run++;];
 		If run = 1 then

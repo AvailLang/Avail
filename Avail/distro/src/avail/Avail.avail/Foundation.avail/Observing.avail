@@ -238,7 +238,7 @@ Semantic restriction "Whenever_changes,⁇do_" is
 	traceFunction : []→any's type,
 	action : [⊥]→⊤'s type
 |
-	If action[1] ≠ ⊥ ∧ [¬traceFunction's return type ⊆ action[1]] then
+	If action[1] ≠ ⊥ ∧ ¬traceFunction's return type ⊆ action[1] then
 	[
 		Reject parse, expected:
 			format

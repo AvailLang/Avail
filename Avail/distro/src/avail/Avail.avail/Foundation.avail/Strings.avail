@@ -315,7 +315,7 @@ Public stable method "partially format_with_" is
 			],
 			text is
 			[
-				If var ∈ vars ∧ [ ¬var ∈ string ] then badType;
+				If var ∈ vars ∧ ¬var ∈ string then badType;
 				cast vars[var] else ["‘" ++ var ++ "’"] into [ t : string | t ]
 			],
 			escape is
@@ -583,7 +583,7 @@ Semantic restriction "partially format_with«…::=_‡,»" is
 		[
 			binding ::= bindings[index];
 			var ::= format variable for binding[1]'s instance;
-			If var ∈ stringVars ∧ [ ¬binding[2] ⊆ string ] then
+			If var ∈ stringVars ∧ ¬binding[2] ⊆ string then
 			[
 				Reject parse, expected:
 					"format variable "
@@ -682,7 +682,7 @@ Semantic restriction "format_with«…!::=_‡,»" is
 		[
 			binding ::= bindings[index];
 			var ::= format variable for binding[1]'s instance;
-			If var ∈ stringVars ∧ [ ¬binding[2] ⊆ string ] then
+			If var ∈ stringVars ∧ ¬binding[2] ⊆ string then
 			[
 				Reject parse, expected:
 					"format variable "
@@ -891,7 +891,7 @@ Semantic restriction "format_with«_‡,»" is
 			|
 				var ::= <circledNumbers[index]>;
 				bindingType ::= bindingsType[index];
-				If var ∈ stringVars ∧ [ ¬bindingType ⊆ string ] then
+				If var ∈ stringVars ∧ ¬bindingType ⊆ string then
 				[
 					Reject parse, expected:
 						"format variable "
@@ -1006,7 +1006,7 @@ Method "_→_" is
 	range : extended integer's type
 |
 	fail ::= [early failure function(invalid-argument code)];
-	If |str| > 1 ∧ [str[1] = ¢0] then fail;
+	If |str| > 1 ∧ str[1] = ¢0 then fail;
 	n ::= str (base 10);
 	if n ∈ range then [n] else fail
 ] : extended integer;
@@ -1062,7 +1062,7 @@ Method "_<_" is
 	s1 : string,
 	s2 : string
 |
-	s1 ≤ s2 ∧ [s1 ≠ s2]
+	s1 ≤ s2 ∧ s1 ≠ s2
 ] : boolean;
 
 /**
@@ -1108,7 +1108,7 @@ Method "_>_" is
 	s1 : string,
 	s2 : string
 |
-	s1 ≥ s2 ∧ [s1 ≠ s2]
+	s1 ≥ s2 ∧ s1 ≠ s2
 ] : boolean;
 
 /**

@@ -225,7 +225,7 @@ Method "Require:_accepts_«(check indices)»?" is
 			"repeatedly applied function to accept at least one argument"
 	];
 	union ::= ∪ tupleType[1..|tupleType's leading types| + 1];
-	If action[1] ≠ ⊥ ∧ [¬union ⊆ action[1]] then
+	If action[1] ≠ ⊥ ∧ ¬union ⊆ action[1] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all elements of the tuple ⊆ "
@@ -235,9 +235,9 @@ Method "Require:_accepts_«(check indices)»?" is
 			++ ")"
 	];
 	If checkIndices
-		∧ [⎣action's parameters' type⎦ ≥ 2
-		∧ [action[2] ≠ ⊥
-		∧ [¬[1..⎡tupleType⎤ + 1) ⊆ action[2]]]]
+		∧ ⎣action's parameters' type⎦ ≥ 2
+		∧ action[2] ≠ ⊥
+		∧ ¬[1..⎡tupleType⎤ + 1) ⊆ action[2]
 	then
 	[
 		Reject parse, expected:
@@ -264,7 +264,7 @@ Semantic restriction "For each of⁇_do_" is
 	action : function meta
 |
 	Require: action accepts tupleType;
-	if ⎣tupleType⎦ > 0 ∧ [ action's return type = ⊥ ] then [⊥] else [⊤]
+	if ⎣tupleType⎦ > 0 ∧ action's return type = ⊥ then [⊥] else [⊤]
 ];
 
 /**
@@ -1109,7 +1109,7 @@ Semantic restriction "left fold_through_" is
 		else [ headType ];
 	returnType ::= transformer's return type;
 	finalType ::= headType ∪ returnType;
-	If transformer[1] ≠ ⊥ ∧ [ ¬restType ⊆ transformer[1] ] then
+	If transformer[1] ≠ ⊥ ∧ ¬restType ⊆ transformer[1] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function's first parameter to accept all\
@@ -1119,7 +1119,7 @@ Semantic restriction "left fold_through_" is
 			++ “transformer[1]”
 			++ ")"
 	];
-	If transformer[2] ≠ ⊥ ∧ [ ¬finalType ⊆ transformer[2] ] then
+	If transformer[2] ≠ ⊥ ∧ ¬finalType ⊆ transformer[2] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function's second parameter to accept the\
@@ -1197,7 +1197,7 @@ Semantic restriction "right fold_through_" is
 	restType ::= ∪ tupleType[1..lastIndexEnd - 1];
 	returnType ::= transformer's return type;
 	finalType ::= lastType ∪ returnType;
-	If transformer[1] ≠ ⊥ ∧ [ ¬restType ⊆ transformer[1] ] then
+	If transformer[1] ≠ ⊥ ∧ ¬restType ⊆ transformer[1] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function's first parameter to accept all\
@@ -1207,7 +1207,7 @@ Semantic restriction "right fold_through_" is
 			++ “transformer[1]”
 			++ ")"
 	];
-	If transformer[2] ≠ ⊥ ∧ [ ¬finalType ⊆ transformer[2] ] then
+	If transformer[2] ≠ ⊥ ∧ ¬finalType ⊆ transformer[2] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function's second parameter to accept the\
@@ -1453,9 +1453,7 @@ Semantic restriction "_to_" is
 	max ::= ⎡end⎤;
 	uncertainty ::= ⎡start⎤ - ⎣start⎦;
 	sizes ::= [0 max (⎣end⎦ - ⎡start⎤ + 1) .. max - min + 2);
-	if uncertainty is finite
-		∧ [sizes ≠ ⊥
-		∧ [⎡sizes⎤ is finite]] then
+	if uncertainty is finite ∧ sizes ≠ ⊥ ∧ ⎡sizes⎤ is finite then
 	[
 		finiteMin ::= cast min into [t : integer | t];
 		finiteMax ::= cast max into [t : integer | t];
@@ -1531,7 +1529,7 @@ Semantic restriction "_to_by_" is
 		low := ⎣start⎦;
 		high := ⎡end⎤;
 		diff ::= ⎣end⎦ - ⎡start⎤;
-		rangeFrom ::= if diff is infinite ∧ [⎡delta⎤ is infinite]
+		rangeFrom ::= if diff is infinite ∧ ⎡delta⎤ is infinite
 			then [0]
 			else [0 max (diff ÷ ⎡delta⎤ + 1)];
 		rangeTo ::= (high - low) ÷ ⎣delta⎦ + 1;
@@ -1542,7 +1540,7 @@ Semantic restriction "_to_by_" is
 		low := ⎣end⎦;
 		high := ⎡start⎤;
 		diff ::= ⎣start⎦ - ⎡end⎤;
-		rangeFrom ::= if diff is infinite ∧ [⎡delta⎤ is infinite]
+		rangeFrom ::= if diff is infinite ∧ ⎡delta⎤ is infinite
 			then [0]
 			else [0 max (diff ÷ -⎡delta⎤ + 1)];
 		rangeTo ::= (high - low) ÷ -⎣delta⎦ + 1;
@@ -2810,14 +2808,13 @@ Private method "insertion sort_with_" is
 	[
 		j : [1..9] := i-1;
 		k : [2..10] := i;
-		While [j > 1 ∧ [comparator(output[k],output[j])]]
-		do
+		While [j > 1 ∧ comparator(output[k], output[j])] do
 		[
 			output := output[k↔j];
 			k--;
 			j--;
 		];
-		output := if j = 1 ∧ [comparator(output[k],output[j])] then 
+		output := if j = 1 ∧ [comparator(output[k], output[j])] then
 			[output[k↔j]] else [output];
 	];
 	output
@@ -2834,7 +2831,7 @@ Semantic restriction "insertion sort_with_" is
 	comparator : [⊥, ⊥]→boolean's type
 |
 	union ::= ∪ tupleType[1..|tupleType's leading types|+1];
-	If comparator[1] ≠ ⊥ ∧ [¬union ⊆ comparator[1]] then
+	If comparator[1] ≠ ⊥ ∧ ¬union ⊆ comparator[1] then
 	[
 		Reject parse, expected:
 			"first parameter of comparison function to accept all elements ∈ "
@@ -2843,7 +2840,7 @@ Semantic restriction "insertion sort_with_" is
 			++ “comparator[1]”
 			++ ")"
 	];
-	If comparator[2] ≠ ⊥ ∧ [¬union ⊆ comparator[2]] then
+	If comparator[2] ≠ ⊥ ∧ ¬union ⊆ comparator[2] then
 	[
 		Reject parse, expected:
 			"second parameter of comparison function to accept all elements ∈ "
@@ -2966,7 +2963,7 @@ Semantic restriction "quicksort_with_" is
 	comparator : [⊥, ⊥]→boolean's type
 |
 	union ::= ∪ tupleType[1..|tupleType's leading types|+1];
-	If comparator[1] ≠ ⊥ ∧ [¬union ⊆ comparator[1]] then
+	If comparator[1] ≠ ⊥ ∧ ¬union ⊆ comparator[1] then
 	[
 		Reject parse, expected:
 			"first parameter of comparison function to accept all elements ∈ "
@@ -2975,7 +2972,7 @@ Semantic restriction "quicksort_with_" is
 			++ “comparator[1]”
 			++ ")"
 	];
-	If comparator[2] ≠ ⊥ ∧ [¬union ⊆ comparator[2]] then
+	If comparator[2] ≠ ⊥ ∧ ¬union ⊆ comparator[2] then
 	[
 		Reject parse, expected:
 			"second parameter of comparison function to accept all elements ∈ "
@@ -3063,7 +3060,7 @@ Private method "merge_with_" is
 	input2 : tuple := splitInput[2];
 	output : tuple := input1 ++ input2;
 
-	While [i ≤ |input1| ∧  [j ≤ |input2|]]
+	While [i ≤ |input1| ∧ j ≤ |input2|]
 	do
 	[
 		If comparator(input1[i], input2[j]) then
@@ -3111,7 +3108,7 @@ Semantic restriction "merge sort_with_" is
 	comparator : [⊥, ⊥]→boolean's type
 |
 	union ::= ∪ tupleType[1..|tupleType's leading types|+1];
-	If comparator[1] ≠ ⊥ ∧ [¬union ⊆ comparator[1]] then
+	If comparator[1] ≠ ⊥ ∧ ¬union ⊆ comparator[1] then
 	[
 		Reject parse, expected:
 			"first parameter of comparison function to accept all elements ∈ "
@@ -3120,7 +3117,7 @@ Semantic restriction "merge sort_with_" is
 			++ “comparator[1]”
 			++ ")"
 	];
-	If comparator[2] ≠ ⊥ ∧ [¬union ⊆ comparator[2]] then
+	If comparator[2] ≠ ⊥ ∧ ¬union ⊆ comparator[2] then
 	[
 		Reject parse, expected:
 			"second parameter of comparison function to accept all elements ∈ "
@@ -3367,7 +3364,7 @@ Public method "_[_.._]else_" is
 	end : integer,
 	else : function accepting <> and returning any
 |
-	if start ∈ [1..|aTuple| + 1] ∧ [end  ∈ [0..|aTuple|] ∧ [start - 1 ≤ end]]
+	if start ∈ [1..|aTuple| + 1] ∧ end  ∈ [0..|aTuple|] ∧ start - 1 ≤ end
 	then [aTuple[cast start into [t : natural number | t]..
 		cast end into [t : whole number | t]]]
 	else else
@@ -3855,7 +3852,7 @@ Semantic restriction "replace the first occurrence of_in_with_" is
 		<defaultType…|lower..upper>
 	]
 	else if [⎡subtuple⎤ = ⎣replacementTuple⎦ ∧
-		[⎡replacementTuple⎤ = ⎣subtuple⎦]] then
+		⎡replacementTuple⎤ = ⎣subtuple⎦] then
 	[
 		lower ::=  cast ⎡aTuple⎤ into [w : [0..∞) | w];
 		upper ::= cast 0 max (⎡aTuple⎤ + ⎣replacementTuple⎦ - ⎡subtuple⎤)

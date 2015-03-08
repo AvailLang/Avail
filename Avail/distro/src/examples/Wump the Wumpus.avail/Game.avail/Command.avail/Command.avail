@@ -382,7 +382,7 @@ Action "shooting" is
 		↑the agent's count of remaining arrows--;
 		/* If the agent is adjacent to the wumpus, then wake it up. */
 		If ¬the wumpus is active
-			∧ [the agent's location ∈ the wumpus's location's adjacent rooms]
+			∧ the agent's location ∈ the wumpus's location's adjacent rooms
 		then
 		[
 			Report:
@@ -482,7 +482,7 @@ Bad commands "shoot self", "shoot myself", "shoot me" are
 		↑the agent's count of remaining arrows--;
 		Report: "Ow. You are bleeding now.\n";
 		/* Sometimes the wumpus smells blood. */
-		If the wumpus is alive ∧ [the RNG's next [1..3] < 3] then
+		If the wumpus is alive ∧ the RNG's next [1..3] < 3 then
 		[
 			Report: "*SNIFF* *SNIFF* \"Wumpus smells hero!\"\n";
 			Now the wumpus is active;

@@ -402,7 +402,7 @@ Semantic restriction "From_to_by_do_" is
 				(start ∪ end) ∩ integer
 			]
 		];
-	If action[1] ≠ ⊥ ∧ [ ¬subscripts ⊆ action[1] ] then
+	If action[1] ≠ ⊥ ∧ ¬subscripts ⊆ action[1] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all values in the range "
@@ -436,9 +436,9 @@ Semantic restriction "From_to_by_do_" is
 	 * 4. The action is definitely invoked and it never terminates.
 	 */
 	if step ⊆ [0..0]
-		∨ [(step ⊆ [0..∞) ∧ [endSet = {∞} ∧ [return = true's type]])
-		∨ [(step ⊆ (-∞..-1] ∧ [endSet = {-∞} ∧ [return = true's type]])
-		∨ [definitelyRuns ∧ [return = ⊥]]]]
+		∨ [(step ⊆ [0..∞) ∧ endSet = {∞} ∧ return = true's type)
+		∨ [(step ⊆ (-∞..-1] ∧ endSet = {-∞} ∧ return = true's type)
+		∨ [definitelyRuns ∧ return = ⊥]]]
 	then [⊥]
 	else [⊤]
 ];
@@ -566,7 +566,7 @@ Public method "Require:_accepts subscripts from_to_by_" is
 				(start ∪ end) ∩ integer
 			]
 		];
-	If action[1] ≠ ⊥ ∧ [¬subscripts ⊆ action[1]] then
+	If action[1] ≠ ⊥ ∧ ¬subscripts ⊆ action[1] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all values in the range "
@@ -620,9 +620,9 @@ Semantic restriction "From_to_by_do_" is
 	 * 4. The action is definitely invoked and it never terminates.
 	 */
 	if step ⊆ [0..0]
-		∨ [(step ⊆ [0..∞) ∧ [endSet = {∞}])
-		∨ [(step ⊆ (-∞..-1] ∧ [endSet = {-∞}])
-		∨ [definitelyRuns ∧ [return = ⊥]]]]
+		∨ [(step ⊆ [0..∞) ∧ endSet = {∞})
+		∨ [(step ⊆ (-∞..-1] ∧ endSet = {-∞})
+		∨ [definitelyRuns ∧ return = ⊥]]]
 	then [⊥]
 	else [⊤]
 ];
@@ -765,7 +765,7 @@ Semantic restriction "From_to_do_" is
 	return ::= action's return type;
 	endSet ::= {⎣end⎦, ⎡end⎤};
 	definitelyRuns ::= ⎡start⎤ ≤ ⎣end⎦;
-	if (endSet = {∞} ∧ [return = true's type]) ∨ [definitelyRuns ∧ [return = ⊥]]
+	if (endSet = {∞} ∧ return = true's type) ∨ [definitelyRuns ∧ return = ⊥]
 	then [⊥]
 	else [⊤]
 ];
@@ -822,7 +822,7 @@ Semantic restriction "From_to_do_" is
 	return ::= action's return type;
 	endSet ::= {⎣end⎦, ⎡end⎤};
 	definitelyRuns ::= ⎡start⎤ ≤ ⎣end⎦;
-	if endSet = {∞} ∨ [definitelyRuns ∧ [return = ⊥]] then [⊥] else [⊤]
+	if endSet = {∞} ∨ [definitelyRuns ∧ return = ⊥] then [⊥] else [⊤]
 ];
 
 /**
@@ -892,8 +892,8 @@ Public macro "For each…from_to_§do_" is
 	blockReturnType ::= cast statements
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
-	send $"From_to_by_do_" with
-	«<
+	restricted send $"From_to_by_do_" with
+	<
 		start,
 		end,
 		‘`1`’,
@@ -902,7 +902,7 @@ Public macro "For each…from_to_§do_" is
 		|
 			statements
 		] : blockReturnType»
-	>» : returnType
+	> : returnType
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -1066,7 +1066,7 @@ Public method "If|if_then_«else if_then_»«else_»" is
 		/* If none of the predicates answered `true`, then choose the "else"
 		 * clause (if one was provided).
 		 */
-		If action is unassigned ∧ [ |else| = 1 ] then
+		If action is unassigned ∧ |else| = 1 then
 		[
 			action := else[1];
 		];
@@ -1158,7 +1158,7 @@ Semantic restriction "If|if_then_«else if_then_»«else_»" is
 			elseIf ::= elseIfTuple[index];
 			predicateReturnType ::= elseIf[1]'s return type;
 			actionReturnType ::= elseIf[2]'s return type;
-			If ¬ambiguous ∧ [ predicateReturnType = true's type ] then
+			If ¬ambiguous ∧ predicateReturnType = true's type then
 			[
 				exact := actionReturnType;
 			];
@@ -1383,7 +1383,7 @@ Public method "Unless|unless_then_«else unless_then_»«else_»" is
 		/* If none of the predicates answered `false`, then choose the "else"
 		 * clause (if one was provided).
 		 */
-		If action is unassigned ∧ [ |else| = 1 ] then
+		If action is unassigned ∧ |else| = 1 then
 		[
 			action := else[1];
 		];
@@ -1475,7 +1475,7 @@ Semantic restriction "Unless|unless_then_«else unless_then_»«else_»" is
 			elseUnless ::= elseUnlessTuple[index];
 			predicateReturnType ::= elseUnless[1]'s return type;
 			actionReturnType ::= elseUnless[2]'s return type;
-			If ¬ambiguous ∧ [ predicateReturnType = true's type ] then
+			If ¬ambiguous ∧ predicateReturnType = true's type then
 			[
 				exact := actionReturnType;
 			];
@@ -2269,7 +2269,7 @@ Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 				++ " occurs more than once"
 		];
 		caseEnum := eject caseEnum ∪ case[1];
-		If |valueType| = 1 ∧ [ valueType = case[1] ] then
+		If |valueType| = 1 ∧ valueType = case[1] then
 		[
 			Exit body with case[2]'s return type
 		];
@@ -2278,7 +2278,7 @@ Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 			union := eject union ∪ case[2]'s return type;
 		];
 	];
-	If caseEnum ≠ enum ∧ [ ⎣else⎦ ≠ 1 ] then
+	If caseEnum ≠ enum ∧ ⎣else⎦ ≠ 1 then
 	[
 		allCases ::= enum's instances;
 		handledCases ::= caseEnum's instances;

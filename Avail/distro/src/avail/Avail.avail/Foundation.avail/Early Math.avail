@@ -586,8 +586,7 @@ Private method "minimum semantic restriction" is
 			upper ::= ⎡value⎤;
 			If upper = max then
 			[
-				maxInclusive :=
-					maxInclusive ∧ [ ⎡value⎤ is inclusive ];
+				maxInclusive := maxInclusive ∧ ⎡value⎤ is inclusive;
 			]
 			else
 			[
@@ -599,7 +598,7 @@ Private method "minimum semantic restriction" is
 			];
 			true
 		];
-		if (min = max) ∧ [ minInclusive = maxInclusive ] then
+		if min = max ∧ minInclusive = maxInclusive then
 		[
 			min's type
 		]
@@ -727,7 +726,7 @@ Private method "maximum semantic restriction" is
 			lower ::= ⎣value⎦;
 			If min = lower then
 			[
-				minInclusive := minInclusive ∧ [⎣value⎦ is inclusive];
+				minInclusive := minInclusive ∧ ⎣value⎦ is inclusive;
 			]
 			else
 			[
@@ -752,7 +751,7 @@ Private method "maximum semantic restriction" is
 			];
 			true
 		];
-		if (min = max) ∧ [minInclusive = maxInclusive] then
+		if min = max ∧ minInclusive = maxInclusive then
 		[
 			min's type
 		]
@@ -974,7 +973,7 @@ Public method "type promotion function for_" is
 		a : number's type,
 		b : number's type
 	|
-		if |a| = 1 ∧ [ |b| = 1 ] then
+		if |a| = 1 ∧ |b| = 1 then
 		[
 			/* The exact values are known statically. Calculate it exactly. */
 			(invoke operator with <a's instance, b's instance>)'s type
@@ -1010,9 +1009,9 @@ Public method "type promotion function for_" is
 					]
 					else
 					[
-						if a ⊆ extended integer ∧ [ b ⊆ extended integer ]
-						then [ extended integer ]
-						else [ number ]
+						if a ⊆ extended integer ∧ b ⊆ extended integer
+						then [extended integer]
+						else [number]
 					]
 				]
 			]
@@ -1090,12 +1089,12 @@ Semantic restriction "_÷_" is type promotion function for
 	a : number,
 	b : number
 |
-	If b = 0 ∧ [ a's type ⊆ extended integer ] then
+	If b = 0 ∧ a's type ⊆ extended integer then
 	[
 		Reject parse, expected: cannotDivideByZeroMessage
 	];
 	infinities ::= {∞, -∞};
-	If a ∈ infinities ∧ [ b ∈ infinities ] then
+	If a ∈ infinities ∧ b ∈ infinities then
 	[
 		Reject parse, expected: cannotDivideTwoInfinitiesMessage
 	];

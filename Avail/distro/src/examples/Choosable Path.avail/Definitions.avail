@@ -1551,7 +1551,7 @@ is
 			/* If the literal is a variable, then check its contents to see if
 			 * it contains a scene.
 			 */
-			If v is assigned ∧ [↓v ∈ scenes] then
+			If v is assigned ∧ ↓v ∈ scenes then
 			[
 				aScene ::= cast ↓v into [s : scene | s];
 				reachable ?= ↓reachable + aScene;

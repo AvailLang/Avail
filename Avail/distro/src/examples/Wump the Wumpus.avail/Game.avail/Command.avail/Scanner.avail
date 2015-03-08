@@ -88,17 +88,17 @@ Public method "tokenize_" is
 			/* Consecutive letters constitute a token. */
 			If c is a letter then
 			[
-				While [i++; i ≤ |s| ∧ [s[i] is a letter]];
+				While [i++; i ≤ |s| ∧ s[i] is a letter];
 			]
 			/* Consecutive Arabic numerals constitute a token. */
 			else if [c is an Arabic numeral] then
 			[
-				While [i++; i ≤ |s| ∧ [s[i] is an Arabic numeral]];
+				While [i++; i ≤ |s| ∧ s[i] is an Arabic numeral];
 			]
 			/* A string token begins and ends with a quotation mark ("). */
 			else if [c = ¢"\""] then
 			[
-				While [i++; i ≤ |s| ∧ [s[i] ≠ ¢"\""]];
+				While [i++; i ≤ |s| ∧ s[i] ≠ ¢"\""];
 				i++;
 				/* "_[_]else_" is less strict about the subscript, saving us a
 				 * cast here. Characters and numbers are disjoint, so zero (0)

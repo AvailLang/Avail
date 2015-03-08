@@ -462,7 +462,7 @@ Method "Require:_accepts_" is
 	streamType : stream's type
 |
 	elementType ::= streamType's element type's instance;
-	If actionType[1] ≠ ⊥ ∧ [ ¬elementType ⊆ actionType[1] ] then
+	If actionType[1] ≠ ⊥ ∧ ¬elementType ⊆ actionType[1] then
 	[
 		Reject parse, expected:
 			format
@@ -979,7 +979,7 @@ Semantic restriction "take«at most»?_from_" is
 	streamType : stream's type
 |
 	Assert: |laxity| = 1;
-	If ¬laxity's instance ∧ [∞ ∈ count] then
+	If ¬laxity's instance ∧ ∞ ∈ count then
 	[
 		Reject parse, expected:
 			"'at most' clause to be specified when count may be ∞"
@@ -1009,8 +1009,7 @@ Method "take from_while_" is
 |
 	result : tuple := <>;
 	rest : stream := aStream;
-	While [¬rest is empty ∧ [predicate(rest's head)]]
-	do
+	While [¬rest is empty ∧ predicate(rest's head)] do
 	[
 		result := eject result ++ <rest's head>;
 		rest := eject rest's tail;
@@ -1138,8 +1137,7 @@ Method "drop from_while_" is
 	predicate : [⊥]→boolean
 |
 	rest : stream := aStream;
-	While [¬rest is empty ∧ [predicate(rest's head)]]
-	do
+	While [¬rest is empty ∧ predicate(rest's head)] do
 	[
 		rest := eject rest's tail;
 	];

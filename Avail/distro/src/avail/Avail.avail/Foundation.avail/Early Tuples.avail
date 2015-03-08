@@ -631,8 +631,8 @@ Semantic restriction "_→set" is
 		into [ t : natural number | t ];
 	union ::= ∪ tupleType[1..typeLimit];
 	if ⎣tupleType⎦ = ⎡tupleType⎤
-		∧ [ |union| = ⎣tupleType⎦
-		∧ [ ¬union ⊆ type ] ]
+		∧ |union| = ⎣tupleType⎦
+		∧ ¬union ⊆ type
 	then
 	[
 		/* If the size of the tuple is known, and the type union of its element

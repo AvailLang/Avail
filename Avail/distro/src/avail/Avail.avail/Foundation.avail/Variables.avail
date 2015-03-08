@@ -151,7 +151,7 @@ Semantic restriction "Swap_↑and_↑" is
 	typeB : variable meta
 |
 	if typeA's read type ⊆ typeB's write type
-		∧ [ typeB's read type ⊆ typeB's write type ]
+		∧ typeB's read type ⊆ typeB's write type
 	then [⊤]
 	else
 	[

@@ -98,7 +98,7 @@ Semantic restriction "_+_" is
 	/* If the element type is an instance type and equal to `valueType`,
 	 * then the value is already present; the set type does not change.
 	 */
-	if |elementType| = 1 ∧ [ elementType = valueType ] then
+	if |elementType| = 1 ∧ elementType = valueType then
 	[
 		setType
 	]
@@ -141,7 +141,7 @@ Semantic restriction "_-_" is
 	[
 		setType
 	]
-	else if [|value| = 1 ∧ [|elementType| ≠ ∞]] then
+	else if [|value| = 1 ∧ |elementType| ≠ ∞] then
 	[
 		instances ::= elementType's instances \ value's instances;
 		newElementType ::=
@@ -237,7 +237,7 @@ Method "Require:_accepts_" is
 		Reject parse, expected:
 			"repeatedly applied function to accept at least one argument"
 	];
-	If action[1] ≠ ⊥ ∧ [ ¬setType's element type ⊆ action[1] ] then
+	If action[1] ≠ ⊥ ∧ ¬setType's element type ⊆ action[1] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all elements of the set ∈ "
@@ -263,7 +263,7 @@ Semantic restriction "For each of⁇_do_" is
 	action : [⊥]→⊤'s type
 |
 	Require: action accepts setType;
-	if ⎣setType⎦ > 0 ∧ [ action's return type = ⊥ ] then [⊥] else [⊤]
+	if ⎣setType⎦ > 0 ∧ action's return type = ⊥ then [⊥] else [⊤]
 ];
 
 /**
@@ -698,7 +698,7 @@ Public stable method "_⊂_" is
 	a : set,
 	b : set
 |
-	|a| ≠ |b| ∧ [ a ⊆ b ]
+	|a| ≠ |b| ∧ a ⊆ b
 ] : boolean;
 
 /**
@@ -725,12 +725,9 @@ Semantic restriction "_⊂_" is
 	 * must be subsets of `typeB`'s instance if `typeA`'s element type is a
 	 * subtype of `typeB`'s element type.
 	 */
-	if |elementB| ≠ ∞
-		∧ [ ⎣sizesB⎦ = ⎡sizesB⎤
-		∧ [ |elementB| = ⎣sizesB⎦ ] ]
-	then
+	if |elementB| ≠ ∞ ∧ ⎣sizesB⎦ = ⎡sizesB⎤ ∧ |elementB| = ⎣sizesB⎦ then
 	[
-		if ⎡typeA⎤ < |elementB| ∧ [ elementA ⊆ elementB ] then [ true's type ]
+		if ⎡typeA⎤ < |elementB| ∧ elementA ⊆ elementB then [ true's type ]
 		else basicRule
 	]
 	else basicRule
@@ -779,12 +776,9 @@ Semantic restriction "_⊇_" is
 	 * must be subsets of `typeB`'s instance if `typeA`'s element type is a
 	 * subtype of `typeB`'s element type.
 	 */
-	if |elementB| ≠ ∞
-		∧ [ ⎣sizesB⎦ = ⎡sizesB⎤
-		∧ [ |elementB| = ⎣sizesB⎦ ] ]
-	then
+	if |elementB| ≠ ∞ ∧ ⎣sizesB⎦ = ⎡sizesB⎤ ∧ |elementB| = ⎣sizesB⎦ then
 	[
-		if elementA ⊆ elementB then [ true's type ]
+		if elementA ⊆ elementB then [true's type]
 		else basicRule
 	]
 	else basicRule
@@ -833,12 +827,9 @@ Semantic restriction "_⊉_" is
 	 * must be subsets of `typeA`'s instance if `typeB`'s element type is a
 	 * subtype of `typeA`'s element type.
 	 */
-	if |elementA| ≠ ∞
-		∧ [ ⎣sizesA⎦ = ⎡sizesA⎤
-		∧ [ |elementA| = ⎣sizesA⎦ ] ]
-	then
+	if |elementA| ≠ ∞ ∧ ⎣sizesA⎦ = ⎡sizesA⎤ ∧ |elementA| = ⎣sizesA⎦ then
 	[
-		if elementB ⊆ elementA then [ false's type ]
+		if elementB ⊆ elementA then [false's type]
 		else basicRule
 	]
 	else basicRule
@@ -887,12 +878,9 @@ Semantic restriction "_⊈_" is
 	 * must be subsets of `typeB`'s instance if `typeA`'s element type is a
 	 * subtype of `typeB`'s element type.
 	 */
-	if |elementB| ≠ ∞
-		∧ [ ⎣sizesB⎦ = ⎡sizesB⎤
-		∧ [ |elementB| = ⎣sizesB⎦ ] ]
-	then
+	if |elementB| ≠ ∞ ∧ ⎣sizesB⎦ = ⎡sizesB⎤ ∧ |elementB| = ⎣sizesB⎦ then
 	[
-		if elementA ⊆ elementB then [ false's type ]
+		if elementA ⊆ elementB then [false's type]
 		else basicRule
 	]
 	else basicRule
@@ -941,12 +929,10 @@ Semantic restriction "_⊃_" is
 	 * must be subsets of `typeB`'s instance if `typeA`'s element type is a
 	 * subtype of `typeB`'s element type.
 	 */
-	if |elementB| ≠ ∞
-		∧ [ ⎣sizesB⎦ = ⎡sizesB⎤
-		∧ [ |elementB| = ⎣sizesB⎦ ] ]
+	if |elementB| ≠ ∞ ∧ ⎣sizesB⎦ = ⎡sizesB⎤ ∧ |elementB| = ⎣sizesB⎦
 	then
 	[
-		if ⎡typeA⎤ < |elementB| ∧ [ elementA ⊆ elementB ] then [ true's type ]
+		if ⎡typeA⎤ < |elementB| ∧ elementA ⊆ elementB then [true's type]
 		else basicRule
 	]
 	else basicRule
@@ -1036,12 +1022,10 @@ Semantic restriction "_⊄_" is
 	 * must be subsets of `typeB`'s instance if `typeA`'s element type is a
 	 * subtype of `typeB`'s element type.
 	 */
-	if |elementB| ≠ ∞
-		∧ [ ⎣sizesB⎦ = ⎡sizesB⎤
-		∧ [ |elementB| = ⎣sizesB⎦ ] ]
+	if |elementB| ≠ ∞ ∧ ⎣sizesB⎦ = ⎡sizesB⎤ ∧ |elementB| = ⎣sizesB⎦
 	then
 	[
-		if ⎡typeA⎤ < |elementB| ∧ [ elementA ⊆ elementB ] then [ false's type]
+		if ⎡typeA⎤ < |elementB| ∧ elementA ⊆ elementB then [false's type]
 		else basicRule
 	]
 	else basicRule
@@ -1076,11 +1060,11 @@ Semantic restriction "_∌_" is
 	setType : set meta,
 	valueType : any meta
 |
-	if |valueType| = 1 ∧ [ |setType| = 1 ] then
+	if |valueType| = 1 ∧ |setType| = 1 then
 	[
 		(valueType's instance ∉ setType's instance)'s type
 	]
-	else if [ valueType ∩ (setType's element type) = ⊥ ] then
+	else if [valueType ∩ (setType's element type) = ⊥] then
 	[
 		true's type
 	]
@@ -1134,12 +1118,10 @@ Semantic restriction "_⊅_" is
 	 * must be subsets of `typeB`'s instance if `typeA`'s element type is a
 	 * subtype of `typeB`'s element type.
 	 */
-	if |elementA| ≠ ∞
-		∧ [ ⎣sizesA⎦ = ⎡sizesA⎤
-		∧ [ |elementA| = ⎣sizesA⎦ ] ]
+	if |elementA| ≠ ∞ ∧ ⎣sizesA⎦ = ⎡sizesA⎤ ∧ |elementA| = ⎣sizesA⎦
 	then
 	[
-		if ⎡typeB⎤ < |elementA| ∧ [ elementB ⊆ elementA ] then [ false's type]
+		if ⎡typeB⎤ < |elementA| ∧ elementB ⊆ elementA then [false's type]
 		else basicRule
 	]
 	else basicRule

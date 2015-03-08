@@ -39,7 +39,12 @@ Uses
 Names
 	"<«_‡,»>",
 	"{«_‡,»}",
-	"“_”"
+	"“_”",
+
+	/* These are provided for bootstrapping grammatical restrictions only. */
+	"<«_‡,»>(tuple of string)",
+	"<«_‡,»>(tuple of set of string)",
+	"{«_‡,»}(set of string)"
 Pragma
 	"stringify=“_”"
 Body

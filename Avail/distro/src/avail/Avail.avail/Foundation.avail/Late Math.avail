@@ -117,7 +117,7 @@ Private method "exponentiation type promotion function for_" is
 		a : number's type,
 		b : number's type
 	|
-		if |a| = 1 ∧ [|b| = 1] then
+		if |a| = 1 ∧ |b| = 1 then
 		[
 			/* The exact values are known statically. Calculate it exactly. */
 			(invoke operator with <a's instance, b's instance>)'s type
@@ -153,7 +153,7 @@ Private method "exponentiation type promotion function for_" is
 					]
 					else
 					[
-						if a ⊆ extended integer ∧ [b ⊆ [0..∞]]
+						if a ⊆ extended integer ∧ b ⊆ [0..∞]
 						then [extended integer]
 						else [number]
 					]
@@ -189,7 +189,7 @@ Semantic restriction "_^_" is exponentiation type promotion function for
 	];
 	If a ∈ extended integer then
 	[
-		If a < 0 ∧ [ b ∈ {-∞, ∞} ] then
+		If a < 0 ∧ b ∈ {-∞, ∞} then
 		[
 			Reject parse, expected: cannotRaiseNegativeToInfinity
 		];
@@ -355,7 +355,7 @@ Method "_^_" is
 					[
 						value : extended integer :=
 							interestingBase ^ interestingPower;
-						If baseInclusive ∧ [interestingPower ∈ power] then
+						If baseInclusive ∧ interestingPower ∈ power then
 						[
 							range := range ∪ [value..value];
 						]
@@ -380,15 +380,15 @@ Method "_^_" is
 	[
 		(⎣openLimits⎦..⎡openLimits⎤)
 	]
-	else if [ -∞ ∈ openLimits ∧ [ ∞ ∈ openLimits ] ] then
+	else if [-∞ ∈ openLimits ∧ ∞ ∈ openLimits] then
 	[
 		range ∪ integer
 	]
-	else if [ -∞ ∈ openLimits ] then
+	else if [-∞ ∈ openLimits] then
 	[
 		range ∪ (-∞..⎡range⎤)
 	]
-	else if [ ∞ ∈ openLimits ] then
+	else if [∞ ∈ openLimits] then
 	[
 		range ∪ (⎣range⎦..∞)
 	]

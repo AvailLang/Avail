@@ -68,18 +68,18 @@ Test "negation" in logic test suite is
 
 Test "logical conjunction" in logic test suite is
 [ 
-  	Require: true ∧ [true];
-	Require: false ∧ [true] = false;
-	Require: true ∧ [false] = false;
-	Require: false ∧ [false] = false;
-	Require: ¬false ∧ [true] = true;
-	Require: ¬true ∧ [true] = false;
-	Require: true ∧ [true ∧ [true ∧ [true ∧ [true]]]];
-	Require: true ∧ [true ∧ [true ∧ [true ∧ [true ∧ [false]]]]] = false;
-	Require: true ↑ [true] = false;
-	Require: true ↑ [false] = true;
+  	Require: true ∧ true;
+	Require: (false ∧ true) = false;
+	Require: (true ∧ false) = false;
+	Require: (false ∧ false) = false;
+	Require: (¬false ∧ true) = true;
+	Require: (¬true ∧ true) = false;
+	Require: true ∧ true ∧ true ∧ true ∧ true;
+	Require: (true ∧ true ∧ true ∧ true ∧ true ∧ false) = false;
+	Require: (true ↑ [true]) = false;
+	Require: (true ↑ [false]) = true;
 	secondCheckPass : boolean := true;
-	Require: false ↑ [secondCheckPass := false; false] = true;
+	Require: (false ↑ [secondCheckPass := false; false]) = true;
 	Require: secondCheckPass;
 ];
 
@@ -145,7 +145,7 @@ Test "inequalities" in logic test suite is
 	Require: 2 ≤ 3;
 	Require: 2 ≤ 3 < 5;
 	Require: 6 ≥ 4 > 1;
-	Require: 6 ≥ 3 ∧ [2 < 7];
+	Require: 6 ≥ 3 ∧ 2 < 7;
 	Require: 2 ≤ 3 < 5 ≤ 100;
 	Require: 75 > 45 ≥ 45 > 3 > -∞;
 ];

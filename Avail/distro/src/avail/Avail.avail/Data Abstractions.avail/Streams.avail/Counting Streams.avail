@@ -154,9 +154,9 @@ Semantic restriction "For each of⁇_do_" is
 	 * 4. The action is definitely invoked and it never terminates.
 	 */
 	if step ⊆ [0..0]
-		∨ [ (step ⊆ [0..∞) ∧ [ endSet = {∞} ])
-		∨ [ (step ⊆ (-∞..-1] ∧ [ endSet = {-∞} ])
-		∨ [ definitelyRuns ∧ [ return = ⊥ ] ] ] ]
+		∨ [ (step ⊆ [0..∞) ∧ endSet = {∞})
+		∨ [ (step ⊆ (-∞..-1] ∧ endSet = {-∞})
+		∨ [ definitelyRuns ∧ return = ⊥] ] ]
 	then
 	[
 		⊥
@@ -267,7 +267,7 @@ Semantic restriction "a counting stream from_to_by_" is
 		[
 			float
 		]
-		else if [startType⊆extended integer ∧ [endType⊆extended integer]] then
+		else if [startType⊆extended integer ∧ endType ⊆ extended integer] then
 		[
 			extended integer
 		]

@@ -607,7 +607,7 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 	returnType : type := bodyType's return type;
 	handlerCount ::= ⎣handlersType⎦;
 	unwindCount ::= ⎣unwindType⎦;
-	If handlerCount = 0 ∧ [unwindCount = 0] then
+	If handlerCount = 0 ∧ unwindCount = 0 then
 	[
 		Reject parse, expected:
 			"at least one exception handler or an unwind handler"

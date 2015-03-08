@@ -392,7 +392,7 @@ Method "take«at most»?_from_" is
 		positionInBufferVariable ?= 
 			eject positionInBufferVariable + batchSize;
 	];
-	If ¬isLax ∧ [ |result| ≠ count ] then
+	If ¬isLax ∧ |result| ≠ count then
 	[
 		Raise an exhausted-iterator exception
 	];

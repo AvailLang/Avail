@@ -118,7 +118,7 @@ Method "_'s⁇position:=_" is
 	/* Only allow a position memento previously allocated by this reader to be
 	 * used to change its current position.
 	 */
-	Unless reader id ∈ position  ∧ [position[reader id] = aReader] then
+	Unless reader id ∈ position ∧ position[reader id] = aReader then
 	[
 		Raise an invalid-position exception
 	];

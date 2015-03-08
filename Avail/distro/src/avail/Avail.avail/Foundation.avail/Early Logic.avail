@@ -38,7 +38,8 @@ Uses
 	"Definers",
 	"Early Conditionals",
 	"Early Control Structures",
-	"Early Literals"
+	"Early Literals",
+	"Phrases"
 Names
 	"¬_",
 	"_∧_",
@@ -176,6 +177,18 @@ Semantic restriction "_∧_" is
 	false's type
 ];
 
+Macro "_∧_" is
+[
+	a : expression phrase ⇒ boolean,
+	b : expression phrase ⇒ boolean
+|
+	restricted send atom for "_∧_" with
+	<
+		a,
+		«[<> | <b>] : boolean»
+	> : boolean
+];
+
 /**
  * Compute and answer the logical disjunction, i.e., OR, of the arguments.
  * Short-circuit the computation, i.e., only evaluate {@param "b"} if {@param
@@ -292,3 +305,16 @@ Public stable method "_≠_" is
 |
 	¬a = b
 ] : boolean;
+
+/* Make logical operators left associative. */
+Grammatical restriction {"_∧_", "_∨_"} (set of string) is
+<
+	{"_∧_", "_∨_"} (set of string),
+	∅
+> (tuple of set of string);
+
+Grammatical restriction {"_=_", "_≠_"} (set of string) is
+<
+	{"_∧_", "_∨_"} (set of string),
+	{"_∧_", "_∨_"} (set of string)
+> (tuple of set of string);
