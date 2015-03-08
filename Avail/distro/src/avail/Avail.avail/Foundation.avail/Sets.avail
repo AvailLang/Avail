@@ -42,12 +42,14 @@ Uses
 	"Definers",
 	"Early Conditionals",
 	"Early Functions",
+	"Early Macro Support",
 	"Early Maps",
 	"Early Tuples",
 	"Enumeration Support",
 	"Literals",
 	"Logic",
 	"Math",
+	"Phrases",
 	"Types",
 	"Variables"
 Names
@@ -265,6 +267,80 @@ Semantic restriction "For each of⁇_do_" is
 	Require: action accepts setType;
 	if ⎣setType⎦ > 0 ∧ [ action's return type = ⊥ ] then [⊥] else [⊤]
 ];
+
+/**
+ * Set iterating-loop that invokes {@param "action"} once for every
+ * {@param "elementPhrase"} int {@param "aSet"} 
+ * 
+ * @macro "For each…of_§do_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aSet"}.
+ * @param "aSet" "expression phrase ⇒ set"
+ *        An {@type "expression phrase"} that yields the set to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops" "Collections" "Sets"
+ */
+Macro "For each…of_§do_" is
+[
+	elementPhrase : literal phrase ⇒ token,
+	aSet : expression phrase ⇒ set
+|
+	/* Establish local loop variable is unique*/
+	elementToken ::= elementPhrase's token;
+	elementName ::= elementToken's lexeme;
+	If elementName ∈ scope map then
+	[
+		Reject parse, expected:
+			"loop variable "
+			++ elementName
+			++ " to have a name that doesn't shadow another local declaration"
+	];	
+	/* Determine the strongest type of the loop variable for aTuple */
+	aSetType ::= aSet's semantic type;
+	elementType ::= aSetType's element type;
+	scope map := scope map + elementName → arg «elementToken : elementType»;
+],
+[
+	elementPhrase : literal phrase ⇒ token,
+	aSet : expression phrase ⇒ set,
+	action : block phrase ⇒ []→⊤
+|
+	/* Build the block function */
+	name ::= elementPhrase's token's lexeme;
+	aSetType ::= aSet's semantic type;
+	blockType ::= [⊥]→(action's semantic type's return type);
+	restrictions ::= semantic restrictions
+		for method for $"For each of⁇_do_"
+		given <aSetType, blockType>;
+	returnType : type := ⊤;
+	From 1 to |restrictions| by 1 do
+	[
+		index : natural number
+	|
+		returnType := returnType
+			∩ restrictions[index](aSetType, blockType);
+	];
+	statements ::= action's statements;
+	blockReturnType ::= cast statements
+		into [t : phrase+ | t[|t|]'s semantic type]
+		else [⊤];
+
+	send $"For each of⁇_do_" with
+	«<
+		aSet,
+		«[
+			<cast scope map[name] into [d : argument phrase | d]>
+		|
+			statements
+		] : blockReturnType»
+	>» : returnType
+] : send phrase ⇒ ⊤;
 
 /**
  * Iteratively apply {@param "transformer"} to each element of {@param "aSet"},

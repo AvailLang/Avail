@@ -213,6 +213,17 @@ Test "for each of do" in set test suite is
 	Require: b = a;
 ];
 
+Test "macro for each of do" in set test suite is
+[
+	a ::= {1,2,3,4};
+	b : set := ∅;
+	For each element of a do
+	[
+	 	b := b + element;
+	];
+	Require: b = a;
+];
+
 Test "count of where" in set test suite is
 [
 	a ::= {1,2,3,4};
