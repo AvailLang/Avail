@@ -47,6 +47,7 @@ Uses
 	"Enumeration Support",
 	"Literals",
 	"Math",
+	"Phrases",
 	"Types",
 	"Variables"
 Names
@@ -131,9 +132,10 @@ Public stable method "_⊕_" is
 ] : boolean;
 
 /**
- * Compute and answer the logical NAND of the arguments. This is equivalent to
- * ¬({@param "a"} ∧ {@param "b"}). Short-circuit the computation, i.e., only 
- * evaluate {@param "b"} if {@param "a"} is {@method "true"}.
+ * Compute and answer the alternative denial, i.e., NAND, of the arguments. This
+ * is equivalent to ¬({@param "a"} ∧ {@param "b"}). Short-circuit the
+ * computation, i.e., only evaluate {@param "b"} if {@param "a"} is {@method
+ * "true"}.
  * 
  * @method "_`↑_"
  * @param "a" "boolean"
@@ -209,9 +211,36 @@ Semantic restriction "_`↑_" is
 ];
 
 /**
- * Compute and answer the logical NOR of the arguments. This is equivalent to
- * ¬({@param "a"} ∨ {@param "b"}). Short-circuit the computation, i.e., only 
- * evaluate {@param "b"} if {@param "a"} is {@method "false"}.
+ * Given two arbitrary {@type "boolean"}-valued {@type "phrase"}s, answer an
+ * alternative denial, i.e., NAND, {@type "send phrase" phrase}. The resulting
+ * phrase short-circuits the computation, i.e., only evaluates {@param "b"} if
+ * {@param "a"} is {@method "true"}.
+ *
+ * @method "_`↑_"
+ * @param "a" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yield a {@type "boolean"}.
+ * @param "b" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yield a {@type "boolean"}.
+ * @returns "send phrase ⇒ boolean"
+ *          {@param "a"} ↑ {@param "b"}.
+ * @category "Primitives" "Logic"
+ */
+Macro "_`↑_" is
+[
+	a : expression phrase ⇒ boolean,
+	b : expression phrase ⇒ boolean
+|
+	restricted send atom for "_`↑_" with
+	<
+		a,
+		«[<> | <b>] : boolean»
+	> : boolean
+];
+
+/**
+ * Compute and answer the joint denial, i.e., NOR, of the arguments. This is
+ * equivalent to ¬({@param "a"} ∨ {@param "b"}). Short-circuit the computation,
+ * i.e., only evaluate {@param "b"} if {@param "a"} is {@method "false"}.
  *
  * @method "_↓_"
  * @param "a" "boolean"
@@ -304,6 +333,33 @@ Semantic restriction "_↓_" is
 ];
 
 /**
+ * Given two arbitrary {@type "boolean"}-valued {@type "phrase"}s, answer a
+ * joint denial, i.e., NOR, {@type "send phrase" phrase}. The resulting
+ * phrase short-circuits the computation, i.e., only evaluates {@param "b"} if
+ * {@param "a"} is {@method "false"}.
+ *
+ * @method "_↓_"
+ * @param "a" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yield a {@type "boolean"}.
+ * @param "b" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yield a {@type "boolean"}.
+ * @returns "send phrase ⇒ boolean"
+ *          {@param "a"} ↓ {@param "b"}.
+ * @category "Primitives" "Logic"
+ */
+Macro "_↓_" is
+[
+	a : expression phrase ⇒ boolean,
+	b : expression phrase ⇒ boolean
+|
+	restricted send atom for "_↓_" with
+	<
+		a,
+		«[<> | <b>] : boolean»
+	> : boolean
+];
+
+/**
  * Compute and answer the material conditional of the arguments. This is the
  * equivalent of (¬{@param "a"}) ∨ {@param "b"}. Short-circuit the computation, 
  * i.e., only evaluate {@param "b"} if {@param "a"} is {@method "true"}.
@@ -365,6 +421,33 @@ Semantic restriction "_→_" is
 ];
 
 /**
+ * Given two arbitrary {@type "boolean"}-valued {@type "phrase"}s, answer a
+ * material conditional {@type "send phrase" phrase}. The resulting phrase
+ * short-circuits the computation, i.e., only evaluates {@param "b"} if {@param
+ * "a"} is {@method "true"}.
+ *
+ * @method "_→_"
+ * @param "a" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yield a {@type "boolean"}.
+ * @param "b" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yield a {@type "boolean"}.
+ * @returns "send phrase ⇒ boolean"
+ *          {@param "a"} → {@param "b"}.
+ * @category "Primitives" "Logic"
+ */
+Macro "_→_" is
+[
+	a : expression phrase ⇒ boolean,
+	b : expression phrase ⇒ boolean
+|
+	restricted send atom for "_→_" with
+	<
+		a,
+		«[<> | <b>] : boolean»
+	> : boolean
+];
+
+/**
  * Compute and answer the converse implication of the arguments. This is
  * equivalent to {@param "a"} ∨ ¬{@param "b"}. Short-circuit the computation, 
  * i.e., only evaluate {@param "b"} if {@param "a"}  is false.
@@ -422,6 +505,33 @@ Semantic restriction "_←_" is
 	b : []→(false's type)'s type
 |
 	true's type
+];
+
+/**
+ * Given two arbitrary {@type "boolean"}-valued {@type "phrase"}s, answer a
+ * converse implication {@type "send phrase" phrase}. The resulting phrase
+ * short-circuits the computation, i.e., only evaluates {@param "b"} if {@param
+ * "a"} is {@method "true"}.
+ *
+ * @method "_←_"
+ * @param "a" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yield a {@type "boolean"}.
+ * @param "b" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yield a {@type "boolean"}.
+ * @returns "send phrase ⇒ boolean"
+ *          {@param "a"} ← {@param "b"}.
+ * @category "Primitives" "Logic"
+ */
+Macro "_←_" is
+[
+	a : expression phrase ⇒ boolean,
+	b : expression phrase ⇒ boolean
+|
+	restricted send atom for "_←_" with
+	<
+		a,
+		«[<> | <b>] : boolean»
+	> : boolean
 ];
 
 /**
@@ -524,6 +634,33 @@ Semantic restriction "_↛_" is
 ];
 
 /**
+ * Given two arbitrary {@type "boolean"}-valued {@type "phrase"}s, answer a
+ * material nonimplication {@type "send phrase" phrase}. The resulting phrase
+ * short-circuits the computation, i.e., only evaluates {@param "b"} if {@param
+ * "a"} is {@method "true"}.
+ *
+ * @method "_↛_"
+ * @param "a" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yield a {@type "boolean"}.
+ * @param "b" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yield a {@type "boolean"}.
+ * @returns "send phrase ⇒ boolean"
+ *          {@param "a"} ↛ {@param "b"}.
+ * @category "Primitives" "Logic"
+ */
+Macro "_↛_" is
+[
+	a : expression phrase ⇒ boolean,
+	b : expression phrase ⇒ boolean
+|
+	restricted send atom for "_↛_" with
+	<
+		a,
+		«[<> | <b>] : boolean»
+	> : boolean
+];
+
+/**
  * Compute and answer the converse nonimplication of the arguments. This is
  * equivalent to (¬{@param "a"}) ∧ {@param "b"}. Short-circuit the computation, 
  * i.e., only evaluate {@param "b"} if {@param "a"} is {@method "false"}.
@@ -600,6 +737,33 @@ Semantic restriction "_↚_" is
 	b : []→(true's type)'s type
 |
 	true's type
+];
+
+/**
+ * Given two arbitrary {@type "boolean"}-valued {@type "phrase"}s, answer a
+ * converse nonimplication {@type "send phrase" phrase}. The resulting phrase
+ * short-circuits the computation, i.e., only evaluates {@param "b"} if {@param
+ * "a"} is {@method "true"}.
+ *
+ * @method "_↚_"
+ * @param "a" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yield a {@type "boolean"}.
+ * @param "b" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yield a {@type "boolean"}.
+ * @returns "send phrase ⇒ boolean"
+ *          {@param "a"} ↚ {@param "b"}.
+ * @category "Primitives" "Logic"
+ */
+Macro "_↚_" is
+[
+	a : expression phrase ⇒ boolean,
+	b : expression phrase ⇒ boolean
+|
+	restricted send atom for "_↚_" with
+	<
+		a,
+		«[<> | <b>] : boolean»
+	> : boolean
 ];
 
 /**
