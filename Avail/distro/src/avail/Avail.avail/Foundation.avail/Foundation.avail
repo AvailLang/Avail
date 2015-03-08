@@ -498,6 +498,7 @@ Extends
 	(
 		"For each of⁇_do_",
 		"For each…of_§do_",
+		"For each…,…of_§do_",
 		"Require:_accepts_",
 		"any of_satisfies_",
 		"count of_where_",

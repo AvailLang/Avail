@@ -118,6 +118,17 @@ Test "for each of do" in tuple test suite is
 	b : tuple := <>;
 	For each of a do [n : natural number | b ++= <n>;];
 	Require: b = a;
+	
+	c : tuple := <>;
+	For each of a do [
+		n : natural number,
+		index : [1..4]
+	| 
+		c ++= <n>;
+		c ++= <index>;
+		
+	];
+	Require: c = <1,1,2,2,3,3,4,4>;
 ];
 
 Test "macro for each of do" in tuple test suite is
@@ -129,6 +140,16 @@ Test "macro for each of do" in tuple test suite is
 	 	If element is even then [b := b ++ <element>;];
 	];
 	Require: b = <2,4>;
+
+	c : natural number* := <>;
+	For each element, i of a do 
+	[
+		If element is odd then [
+			c ++= <element>;
+			c ++= <i>;
+		];
+	];
+	Require: c = <1,1,3,3,5,5>;
 ];
 
 Test "count of where" in tuple test suite is
