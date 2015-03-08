@@ -120,6 +120,17 @@ Test "for each of do" in tuple test suite is
 	Require: b = a;
 ];
 
+Test "macro for each of do" in tuple test suite is
+[
+	a ::= <1,2,3,4,5>;
+	b : natural number* := <>;
+	For each element of a do
+	[
+	 	If element is even then [b := b ++ <element>;];
+	];
+	Require: b = <2,4>;
+];
+
 Test "count of where" in tuple test suite is
 [
 	a ::= <1,2,3,4>;

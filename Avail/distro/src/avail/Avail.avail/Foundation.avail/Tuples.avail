@@ -43,11 +43,13 @@ Uses
 	"Early Assertions",
 	"Early Conditionals",
 	"Early Functions",
+	"Early Macro Support",
 	"Early Maps",
 	"Enumeration Support",
 	"Literals",
 	"Logic",
 	"Math",
+	"Phrases",
 	"Types",
 	"Variables"
 Names
@@ -4009,3 +4011,78 @@ Semantic restriction "_padded with_to a multiple of_" is
 	max ::= 0 max (⎡tupleType⎤ + ⎡baseType⎤ - 1);
 	<unionType…|min..max>
 ];
+
+/**
+ * Tuple iterating-loop that invokes {@param "action"} once for every
+ * {@param "elementPhrase"} int {@param "aTuple"} 
+ * 
+ * @macro "For each…of_§do_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops" "Collections" "Tuples"
+ */
+Macro "For each…of_§do_" is
+[
+	elementPhrase : literal phrase ⇒ token,
+	aTuple : expression phrase ⇒ tuple
+|
+	/* Establish local loop variable is unique*/
+	elementToken ::= elementPhrase's token;
+	elementName ::= elementToken's lexeme;
+	If elementName ∈ scope map then
+	[
+		Reject parse, expected:
+			"loop variable "
+			++ elementName
+			++ " to have a name that doesn't shadow another local declaration"
+	];	
+	/* Determine the strongest type of the loop variable for aTuple */
+	aTupleType ::= aTuple's semantic type;
+	tupleOfTypes ::= aTupleType's leading types ++ <aTupleType's default type>;
+	elementType ::= ∪ tupleOfTypes;
+	scope map := scope map + elementName → arg «elementToken : elementType»;
+],
+[
+	elementPhrase : literal phrase ⇒ token,
+	aTuple : expression phrase ⇒ tuple,
+	action : block phrase ⇒ []→⊤
+|
+	/* Build the block function */
+	name ::= elementPhrase's token's lexeme;
+	aTupleType ::= aTuple's semantic type;
+	blockType ::= [⊥]→(action's semantic type's return type);
+	restrictions ::= semantic restrictions
+		for method for $"For each of⁇_do_"
+		given <aTupleType, blockType>;
+	returnType : type := ⊤;
+	From 1 to |restrictions| by 1 do
+	[
+		index : natural number
+	|
+		returnType := returnType
+			∩ restrictions[index](aTupleType, blockType);
+	];
+	statements ::= action's statements;
+	blockReturnType ::= cast statements
+		into [t : phrase+ | t[|t|]'s semantic type]
+		else [⊤];
+
+	send $"For each of⁇_do_" with
+	«<
+		aTuple,
+		«[
+			<cast scope map[name] into [d : argument phrase | d]>
+		|
+			statements
+		] : blockReturnType»
+	>» : returnType
+] : send phrase ⇒ ⊤;
