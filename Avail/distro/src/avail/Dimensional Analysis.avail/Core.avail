@@ -1037,7 +1037,7 @@ Semantic restriction "_×_" is
 			b : number
 		|
 			terms ::= {a, b};
-			If terms = {0, ∞} ∨ [ terms = {0, -∞} ] then
+			If terms = {0, ∞} ∨ terms = {0, -∞} then
 			[
 				Reject parse, expected: "terms not be 0 and ±∞"
 			];
@@ -1099,7 +1099,7 @@ Semantic restriction "_×_" is
 			b : number
 		|
 			terms ::= {a, b};
-			If terms = {0, ∞} ∨ [ terms = {0, -∞} ] then
+			If terms = {0, ∞} ∨ terms = {0, -∞} then
 			[
 				Reject parse, expected: "terms not be 0 and ±∞"
 			];
@@ -1156,7 +1156,7 @@ Semantic restriction "_×_" is
 			b : number
 		|
 			terms ::= {a, b};
-			If terms = {0, ∞} ∨ [ terms = {0, -∞} ] then
+			If terms = {0, ∞} ∨ terms = {0, -∞} then
 			[
 				Reject parse, expected: "terms not be 0 and ±∞"
 			];
@@ -2112,7 +2112,7 @@ Semantic restriction "_converted to_" is
 				with key[1]
 		];
 		Unless key ∈ all converters ∨
-			[$"_converted to_" is implemented at <quantityType, unitType>]
+			$"_converted to_" is implemented at <quantityType, unitType>
 		then
 		[
 			Reject parse, expected:

@@ -552,9 +552,9 @@ Private method "Generate and install_accessor for«mutable»?_" is
 	 * accessors.
 	 */
 	If ¬method exists named methodAtom
-		∨ [methodAtom has definition for <objectType>
+		∨ (methodAtom has definition for <objectType>
 			∧ method definition of methodAtom for <objectType>
-				∈ abstract definition]
+				∈ abstract definition)
 	then
 	[
 		defineClassAccessor := true;
@@ -674,9 +674,9 @@ Private method "Generate and install_referrer for mutable_" is
 	fieldType ::= objectMap[fieldAtom];
 	defineReferrer : boolean :=
 		if ¬method exists named methodAtom
-			∨ [methodAtom has definition for <objectType>
+			∨ (methodAtom has definition for <objectType>
 				∧ method definition of methodAtom for <objectType>
-					∈ abstract definition]
+					∈ abstract definition)
 		then
 		[
 			/* If the method doesn't exist at all, then define it and install a
@@ -756,9 +756,9 @@ Private method "Generate and install_mutator for mutable_" is
 	fieldType ::= objectMap[fieldAtom];
 	defineMutator : boolean :=
 		if ¬method exists named methodAtom
-			∨ [methodAtom has definition for <objectType>
+			∨ (methodAtom has definition for <objectType>
 				∧ method definition of methodAtom for <objectType>
-					∈ abstract definition]
+					∈ abstract definition)
 		then
 		[
 			/* If the method doesn't exist at all, then define it and install a

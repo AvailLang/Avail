@@ -177,6 +177,21 @@ Semantic restriction "_∧_" is
 	false's type
 ];
 
+/**
+ * Given two arbitrary {@type "boolean"}-valued {@type "phrase"}s, answer a
+ * logical conjunction, i.e., AND, {@type "send phrase" phrase}. The resulting
+ * phrase short-circuits the computation, i.e., only evaluates {@param "b"} if
+ * {@param "a"} is {@method "true"}.
+ *
+ * @method "_∧_"
+ * @param "a" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yield a {@type "boolean"}.
+ * @param "b" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yield a {@type "boolean"}.
+ * @returns "send phrase ⇒ boolean"
+ *          {@param "a"} ∧ {@param "b"}.
+ * @category "Primitives" "Logic"
+ */
 Macro "_∧_" is
 [
 	a : expression phrase ⇒ boolean,
@@ -283,6 +298,33 @@ Semantic restriction "_∨_" is
 	b : (function accepting <> and returning true's type)'s type
 |
 	true's type
+];
+
+/**
+ * Given two arbitrary {@type "boolean"}-valued {@type "phrase"}s, answer a
+ * logical disjunction, i.e., OR, {@type "send phrase" phrase}. The resulting
+ * phrase short-circuits the computation, i.e., only evaluates {@param "b"} if
+ * {@param "a"} is {@method "false"}.
+ *
+ * @method "_∨_"
+ * @param "a" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yield a {@type "boolean"}.
+ * @param "b" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yield a {@type "boolean"}.
+ * @returns "send phrase ⇒ boolean"
+ *          {@param "a"} ∧ {@param "b"}.
+ * @category "Primitives" "Logic"
+ */
+Macro "_∨_" is
+[
+	a : expression phrase ⇒ boolean,
+	b : expression phrase ⇒ boolean
+|
+	restricted send atom for "_∨_" with
+	<
+		a,
+		«[<> | <b>] : boolean»
+	> : boolean
 ];
 
 /**

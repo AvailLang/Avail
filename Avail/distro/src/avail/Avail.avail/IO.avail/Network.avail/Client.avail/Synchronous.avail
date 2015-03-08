@@ -132,7 +132,7 @@ Method "read«at most»?_byte|bytes from_" is
 			on failure doing [e : exception | killer := e; Signal sem;];
 		Await sem;
 		If killer is assigned then [Raise killer];
-		soft ∨ [endOfStream ∨ [|data| = count]]
+		soft ∨ endOfStream ∨ |data| = count
 	];
 	data
 ] : <byte…|>;

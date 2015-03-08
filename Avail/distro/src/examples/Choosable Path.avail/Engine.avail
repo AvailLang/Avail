@@ -218,7 +218,7 @@ Public method "Play a game,⁇creating a context with_,⁇interacting with_" is
 			transitionDescriptions : <string…|>;
 			currentScene ::= aContext's current scene;
 			If aContext's beginning flag ∨
-				[currentScene ≠ aContext's previous scene] then
+				currentScene ≠ aContext's previous scene then
 			[
 				If aContext's beginning flag then
 				[

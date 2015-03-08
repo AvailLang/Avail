@@ -240,8 +240,8 @@ Private method
 			[t : extended integer meta | t];
 		/* Specifically do not accommodate ⊥. */
 		integer range
-			from ⎣instance⎦ (inclusive=⎣instance⎦ is inclusive ∨ [mode = 1])
-			to ⎡instance⎤ (inclusive=⎡instance⎤ is inclusive ∨ [mode = 2])
+			from ⎣instance⎦ (inclusive=⎣instance⎦ is inclusive ∨ mode = 1)
+			to ⎡instance⎤ (inclusive=⎡instance⎤ is inclusive ∨ mode = 2)
 	]
 ];
 
@@ -572,8 +572,7 @@ Private method "minimum semantic restriction" is
 			lower ::= ⎣value⎦;
 			If lower = min then
 			[
-				minInclusive :=
-					minInclusive ∨ [ ⎣value⎦ is inclusive ];
+				minInclusive := minInclusive ∨ ⎣value⎦ is inclusive;
 			]
 			else
 			[
@@ -739,7 +738,7 @@ Private method "maximum semantic restriction" is
 			upper ::= ⎡value⎤;
 			If max = upper then
 			[
-				maxInclusive := maxInclusive ∨ [⎡value⎤ is inclusive];
+				maxInclusive := maxInclusive ∨ ⎡value⎤ is inclusive;
 			]
 			else
 			[
@@ -980,7 +979,7 @@ Public method "type promotion function for_" is
 		]
 		else
 		[
-			if a ⊆ double ∨ [ b ⊆ double ] then
+			if a ⊆ double ∨ b ⊆ double then
 			[
 				/* At least one is known to be double, which forces the result
 				 * to be a double.
@@ -989,7 +988,7 @@ Public method "type promotion function for_" is
 			]
 			else
 			[
-				if a = number ∨ [ b = number ] then
+				if a = number ∨ b = number then
 				[
 					/* Neither is known to be a double, and at least one is as
 					 * weak as a number.  The weak one might be a double at run
@@ -1000,7 +999,7 @@ Public method "type promotion function for_" is
 				else
 				[
 					/* Neither one is as weak as number. */
-					if a ⊆ float ∨ [ b ⊆ float ] then
+					if a ⊆ float ∨ b ⊆ float then
 					[
 						/* Either {float,float} or {float,int}, which each
 						 * produce a float.
@@ -1072,7 +1071,7 @@ Semantic restriction "_×_" is type promotion function for
 	b : number
 |
 	terms ::= {a, b};
-	If terms = {0, ∞} ∨ [ terms = {0, -∞} ] then
+	If terms = {0, ∞} ∨ terms = {0, -∞} then
 	[
 		Reject parse, expected: cannotMultiplyMessage
 	];

@@ -410,7 +410,7 @@ Action "shooting" is
 			/* Note that the first shot will never fly wild. */
 			nextRoom ::=
 				If flyingWild
-					∨ [the cave[nextId] ∉ path[|path|]'s adjacent rooms] then
+					∨ the cave[nextId] ∉ path[|path|]'s adjacent rooms then
 				[
 					Unless flyingWild then
 					[

@@ -586,8 +586,7 @@ Method "_is empty" is
 |
 	found : boolean := false;
 	rest : stream := aStream's decorated stream;
-	Until [ found ∨ [ rest is empty ] ]
-	do
+	Until [found ∨ rest is empty] do
 	[
 		If aStream's filter(rest's head) then
 		[
@@ -1047,8 +1046,7 @@ Method "take from_until_" is
 |
 	result : tuple := <>;
 	rest : stream := aStream;
-	Until [rest is empty ∨ [predicate(rest's head)]]
-	do
+	Until [rest is empty ∨ predicate(rest's head)] do
 	[
 		result := eject result ++ <rest's head>;
 		rest := eject rest's tail;
@@ -1173,8 +1171,7 @@ Method "drop from_until_" is
 	predicate : [⊥]→boolean
 |
 	rest : stream := aStream;
-	Until [rest is empty ∨ [predicate(rest's head)]]
-	do
+	Until [rest is empty ∨ predicate(rest's head)] do
 	[
 		rest := eject rest's tail;
 	];

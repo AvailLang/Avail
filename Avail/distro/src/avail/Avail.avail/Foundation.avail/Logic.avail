@@ -380,7 +380,7 @@ Public method "_←_" is
 	a : boolean,
 	b : []→boolean
 |
-	a ∨ [¬b()]
+	a ∨ ¬b()
 ] : boolean;
 
 Method "_←_" is

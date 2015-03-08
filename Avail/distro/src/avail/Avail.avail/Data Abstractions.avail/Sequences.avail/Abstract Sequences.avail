@@ -297,21 +297,12 @@ Semantic restriction "_[_]else_" is
 	index : integer's type,
 	else : []→any's type
 |
-	if ⎣index⎦ > ⎡sequenceType⎤ ∨ [⎡index⎤ < 1] then
-	[
-		else's return type
-	]
+	if ⎣index⎦ > ⎡sequenceType⎤ ∨ ⎡index⎤ < 1 then [else's return type]
 	else
 	[
 		elementType ::= sequenceType's element type's instance;
-		if index ⊆ [1..⎣sequenceType⎦] then
-		[
-			elementType
-		]
-		else
-		[
-			elementType ∪ else's return type
-		]
+		if index ⊆ [1..⎣sequenceType⎦] then [elementType]
+		else [elementType ∪ else's return type]
 	]
 ];
 

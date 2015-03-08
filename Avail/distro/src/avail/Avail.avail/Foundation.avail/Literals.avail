@@ -761,7 +761,7 @@ Semantic restriction "{«_→_‡,»}" is
 				 * `{natural number's type→any's type|1}`, which frequently
 				 * leads to (absurd) runtime type errors.
 				 */
-				if instanceK's type ⊆ type ∨ [ instanceV's type ⊆ type ] then
+				if instanceK's type ⊆ type ∨ instanceV's type ⊆ type then
 				[
 					false
 				]

@@ -124,7 +124,7 @@ Private method "exponentiation type promotion function for_" is
 		]
 		else
 		[
-			if a ⊆ double ∨ [b ⊆ double] then
+			if a ⊆ double ∨ b ⊆ double then
 			[
 				/* At least one is known to be double, which forces the result
 				 * to be a double.
@@ -133,7 +133,7 @@ Private method "exponentiation type promotion function for_" is
 			]
 			else
 			[
-				if a = number ∨ [b = number] then
+				if a = number ∨ b = number then
 				[
 					/* Neither is known to be a double, and at least one is as
 					 * weak as a number.  The weak one might be a double at run
@@ -144,7 +144,7 @@ Private method "exponentiation type promotion function for_" is
 				else
 				[
 					/* Neither one is as weak as number. */
-					if a ⊆ float ∨ [b ⊆ float] then
+					if a ⊆ float ∨ b ⊆ float then
 					[
 						/* Either {float,float} or {float,int}, which each
 						 * produce a float.
@@ -203,10 +203,7 @@ Method "_^_" is
 	exponent : [∞..∞]
 |
 	/* Forbid [-∞..-1]^∞ and 1^∞.  For all other n, n^∞=∞. */
-	If base < 0 ∨ [ base = 1 ] then
-	[
-		Raise an arithmetic exception
-	];
+	If base < 0 ∨ base = 1 then [Raise an arithmetic exception];
 	if base = 0 then [0] else [∞]
 ] : {0, ∞}ᵀ;
 

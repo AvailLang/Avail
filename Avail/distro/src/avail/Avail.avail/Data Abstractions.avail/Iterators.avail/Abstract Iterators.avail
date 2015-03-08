@@ -661,11 +661,7 @@ Method "take from_until_" is
 	predicate : [⊥]→boolean
 |
 	result : tuple := <>;
-	Until
-	[
-		aReader is exhausted ∨ [predicate(aReader's current element)]
-	]
-	do
+	Until [aReader is exhausted ∨ predicate(aReader's current element)] do
 	[
 		result := eject result ++ <aReader's current element>;
 		Advance aReader;
@@ -788,11 +784,7 @@ Method "Drop from_until_" is
 	aReader : reader,
 	predicate : [⊥]→boolean
 |
-	Until
-	[
-		aReader is exhausted ∨ [predicate(aReader's current element)]
-	]
-	do
+	Until [aReader is exhausted ∨ predicate(aReader's current element)] do
 	[
 		Advance aReader;
 	];

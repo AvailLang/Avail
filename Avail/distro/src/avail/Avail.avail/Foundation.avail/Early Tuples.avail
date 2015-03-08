@@ -756,10 +756,7 @@ Semantic restriction "_[_]else_" is
 	index : integer's type,
 	else : (function accepting <> and returning any)'s type
 |
-	if ⎣index⎦ > ⎡tupleType⎤ ∨ [⎡index⎤ < 1] then
-	[
-		else's return type
-	]
+	if ⎣index⎦ > ⎡tupleType⎤ ∨ ⎡index⎤ < 1 then [else's return type]
 	else
 	[
 		min ::= ⎣index⎦ max 1;

@@ -216,7 +216,7 @@ Private stable method "format sites for_" is
 				[
 					start ::= (index++);
 					If index > |template|
-						∨ [ ¬template[index] ∈ format metacharacters ]
+						∨ ¬template[index] ∈ format metacharacters
 					then
 					[
 						early failure function(

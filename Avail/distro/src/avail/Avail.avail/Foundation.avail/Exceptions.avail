@@ -1225,7 +1225,7 @@ Semantic restriction "Ensure:all error codes have corresponding exceptions" is
 	[
 		problem ++= " error codes: " ++ “missingExceptionClasses”;
 	];
-	If |missingSystemExceptions| ≠ 0 ∨ [|missingExceptionClasses| ≠ 0] then
+	If |missingSystemExceptions| ≠ 0 ∨ |missingExceptionClasses| ≠ 0 then
 	[
 		Reject parse, expected: problem
 	];

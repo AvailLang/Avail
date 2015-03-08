@@ -72,8 +72,7 @@ Method "_is exhausted" is
 [
 	aReader : bounded reader
 |
-	aReader's remaining elements = 0
-		∨ [aReader's component reader is exhausted]
+	aReader's remaining elements = 0 ∨ aReader's component reader is exhausted
 ] : boolean;
 
 /* Fetch the current element from this bounded reader. */

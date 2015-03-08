@@ -204,7 +204,7 @@ Test "while loops" in control structure test suite is
 
 	f : integer := 10;
 	g : integer := -2;
-	Do [f -= 1;] while [f ≥ 3 ∨ [g < 12]] alternate with [g += 1;];
+	Do [f -= 1;] while [f ≥ 3 ∨ g < 12] alternate with [g += 1;];
 	Require: f = -5 ∧ g = 12;
 ];
 

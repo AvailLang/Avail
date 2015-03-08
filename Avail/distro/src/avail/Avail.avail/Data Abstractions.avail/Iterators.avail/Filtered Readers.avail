@@ -88,7 +88,7 @@ Method "_is exhausted" is
 |
 	found : boolean := false;
 	inner ::= aReader's component reader;
-	Until [found ∨ [inner is exhausted]]
+	Until [found ∨ inner is exhausted]
 	do
 	[
 		If aReader's filter(inner's current element) then

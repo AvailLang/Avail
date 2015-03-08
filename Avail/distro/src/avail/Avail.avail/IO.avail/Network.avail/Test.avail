@@ -261,7 +261,7 @@ Test "basic transmission" in network test suite is
 					Signal sem;
 				];
 			Await sem;
-			killer is assigned ∨ [|read| = |data|]
+			killer is assigned ∨ |read| = |data|
 		];
 		If killer is assigned then [Raise killer];
 		Require: read = data;
