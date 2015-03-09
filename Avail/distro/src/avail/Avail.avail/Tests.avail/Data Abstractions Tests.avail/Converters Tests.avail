@@ -1,0 +1,117 @@
+/*
+ * Converters Tests.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Converters Tests"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Common",
+	"Data Abstractions",
+	"Foundation",
+	"Unit Testing"
+
+Names
+	"converters test suite",
+	"UTF8 converters test suite"
+Body
+
+"converters test suite" is a new field atom;
+New test suite converters test suite extends data abstractions test suite;
+
+Public "UTF8 converters test suite" is a new atom;
+New test suite UTF8 converters test suite extends converters test suite;
+
+Test "string encoding" in UTF8 converters test suite is
+[
+	testString ::= "⊤⊥↓↑±∅∊∰∡℀Pog?";
+	encoder ::= a UTF8 encoder;
+	encodedTestString ::= encoder process testString;
+	Assert: flush encoder = <>;
+	expectedEncoding ::= <226,138,164,226,138,165,226,134,147,226,134,145,194,
+			177,226,136,133,226,136,138,226,136,176,226,136,161,226,132,128,80,
+			111,103,63>;
+	Require: encodedTestString = expectedEncoding;
+];
+
+Test "byte decoding" in UTF8 converters test suite is
+[
+	testEncoding ::= <226,138,164,226,138,165,226,134,147,226,134,145,194,177,
+		226,136,133,226,136,138,226,136,176,226,136,161,226,132,128,80,111,103,
+		63>;
+	decoder ::= a UTF8 decoder;
+	decodedTestEncoding ::= decoder process testEncoding;
+	Assert: flush decoder = <>;
+	expectedDecodedString ::= "⊤⊥↓↑±∅∊∰∡℀Pog?";
+	Require: decodedTestEncoding = expectedDecodedString;
+];
+
+Test "full decoding reader" in UTF8 converters test suite is
+[
+	testEncodingIterator ::= a reader over <226,138,164,226,138,165,226,134,
+		147,226,134,145,194,177,226,136,133,226,136,138,226,136,176,226,136,161,
+		226,132,128,80,111,103,63>;
+	decoded ::= testEncodingIterator converted by a UTF8 decoder;
+	decodedTestEncoding ::= take at most ∞ from decoded;
+	expectedDecodedString ::= "⊤⊥↓↑±∅∊∰∡℀Pog?";
+	Require: decodedTestEncoding = expectedDecodedString;
+];
+
+Test "partial decoding reader" in UTF8 converters test suite is
+[
+	testEncodingIterator ::= a reader over <226,138,164,226,138,165,226,134,
+		147,63,226,134,145,194,177,226,136,133,226,136,138,226,136,176,226,136,
+		161,226,132,128,80,111,103,63>;
+	decoded ::= testEncodingIterator converted by a UTF8 decoder;
+	decodedTestEncoding ::= take at most 4 from decoded;
+	expectedDecodedString ::= "⊤⊥↓?";
+	Require: decodedTestEncoding = expectedDecodedString;
+];
+
+Test "full encoding reader" in UTF8 converters test suite is
+[
+	testString ::= "⊤⊥↓↑±∅∊∰∡℀Pog?";
+	encodedTestString ::= take at most ∞
+		from a reader over testString converted by a UTF8 encoder;
+	expectedEncoding ::=  <226,138,164,226,138,165,226,134,147,226,134,145,194,
+			177,226,136,133,226,136,138,226,136,176,226,136,161,226,132,128,80,
+			111,103,63>;
+	Require: encodedTestString = expectedEncoding;
+];
+
+Test "partial encoding reader" in UTF8 converters test suite is
+[
+	testString ::= "⊤⊥↓?↑±∅∊∰∡℀Pog?";
+	encodedTestString ::= take at most 10
+		from a reader over testString converted by a UTF8 encoder;
+	expectedEncoding ::=  <226,138,164,226,138,165,226,134,147,63>;
+	Require: encodedTestString = expectedEncoding;
+];
