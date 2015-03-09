@@ -53,6 +53,7 @@ Body
  *
  * @type "bounded reader"
  * @supertype "reader"
+ * @category "Data Abstractions" "Readers"
  */
 Class "bounded reader" extends reader
 	with fields
@@ -67,6 +68,7 @@ Class "bounded reader" extends reader
  * @param "aReader" "bounded reader"
  * @returns "boolean"
  *          Whether the reader is exhausted.
+ * @category "Data Abstractions" "Readers"
  */
 Method "_is exhausted" is
 [
@@ -104,6 +106,7 @@ bounded reader's advance method is
  * @returns "reader"
  *          A reader incapable of producing more than {@param "limit"}
  *          elements of {@param "aReader"}.
+ * @category "Data Abstractions" "Readers"
  */
 Public stable method "_limited to_elements" is
 [

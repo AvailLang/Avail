@@ -63,7 +63,7 @@ Body
  * current element, it answers the result of applying the function to the
  * current element of the decorated reader.
  * 
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @type "mapped reader"
  * @supertype "reader"
  */
@@ -75,7 +75,7 @@ Class "mapped reader" extends decorated reader
 /**
  * A mapped reader is exhausted when its component reader is exhausted.
  * 
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "_is exhausted"
  * @restricts "aReader" "mapped reader"
  * @returns "boolean"
@@ -111,7 +111,7 @@ mapped reader's advance method is
  * the consecutive elements of {@param "aReader"}. The result is lazy, so
  * {@param "aReader"} may be infinite.
  * 
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "map_through_"
  * @param "aReader" "reader"
  *        The source {@type "reader"}.
@@ -138,7 +138,7 @@ Method "map_through_" is
  * strengthen the resulting type to be a reader that produces elements whose
  * type is the transformer's return type.
  * 
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "map_through_"
  * @restricts "readerType" "reader's type"
  *        The source {@type "reader"}.

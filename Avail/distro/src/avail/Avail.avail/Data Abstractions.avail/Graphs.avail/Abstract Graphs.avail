@@ -87,6 +87,7 @@ Private method "target edge" is [$"target edge"];
  * A graph comprises vertices and directed edges.
  *
  * @type "graph"
+ * @category "Data Abstractions" "Graphs"
  */
 Public explicit class "graph" extends object
 	with fields
@@ -101,6 +102,7 @@ Public explicit class "graph" extends object
  *        The type of vertices of {@type "graph"}s of the answered type.
  * @returns "graph's type"
  *          The requested {@type "graph"} type.
+ * @category "Data Abstractions" "Graphs"
  */
 Public method "graph of_" is
 [
@@ -115,6 +117,7 @@ Public method "graph of_" is
  *
  * @type "unlabeled graph"
  * @supertype "graph"
+ * @category "Data Abstractions" "Graphs"
  */
 Public explicit class "unlabeled graph" extends graph;
 
@@ -127,6 +130,7 @@ Public explicit class "unlabeled graph" extends graph;
  *        The type of vertices of {@type "graph"}s of the answered type.
  * @returns "unlabeled graph's type"
  *          The requested {@type "unlabeled graph"} type.
+ * @category "Data Abstractions" "Graphs"
  */
 Public method "unlabeled graph of_" is
 [
@@ -141,6 +145,7 @@ Public method "unlabeled graph of_" is
  *
  * @type "labeled graph"
  * @supertype "graph"
+ * @category "Data Abstractions" "Graphs"
  */
 Public explicit class "labeled graph" extends graph
 	with fields
@@ -155,6 +160,7 @@ Public explicit class "labeled graph" extends graph
  *        The type of vertices of {@type "graph"}s of the answered type.
  * @returns "labeled graph's type"
  *          The requested {@type "labeled graph"} type.
+ * @category "Data Abstractions" "Graphs"
  */
 Public method "graph of_,⁇labeled by_" is
 [
@@ -174,6 +180,7 @@ Public method "graph of_,⁇labeled by_" is
  *        The source vertex.
  * @field "destination" "any"
  *        The destination vertex.
+ * @category "Data Abstractions" "Graphs"
  */
 Public class "edge" extends object
 	with fields
@@ -191,6 +198,7 @@ Public class "edge" extends object
  *        The type of the destination vertex.
  * @returns "edge's type"
  *          The requested {@type "edge"} type.
+ * @category "Data Abstractions" "Graphs"
  */
 Public method "edge from_to_" is
 [
@@ -212,6 +220,7 @@ Public method "edge from_to_" is
  *        The destination vertex.
  * @returns "edge"
  *          The requested edge.
+ * @category "Data Abstractions" "Graphs"
  */
 Public method "an edge from_to_" is
 [
@@ -237,6 +246,7 @@ Semantic restriction "an edge from_to_" is
  * @supertype "edge"
  * @field "edge label" "any"
  *        A value associated with the edge.
+ * @category "Data Abstractions" "Graphs"
  */
 Public class "labeled edge" extends edge
 	with fields
@@ -255,6 +265,7 @@ Public class "labeled edge" extends edge
  *        The type of the label.
  * @returns "labeled edge's type"
  *          The requested {@type "labeled edge"} type.
+ * @category "Data Abstractions" "Graphs"
  */
 Public method "edge from_to_,⁇labeled by_" is
 [
@@ -280,6 +291,7 @@ Public method "edge from_to_,⁇labeled by_" is
  *        The label.
  * @returns "edge"
  *          The requested edge.
+ * @category "Data Abstractions" "Graphs"
  */
 Public method "an edge from_to_,⁇labeled by_" is
 [
@@ -311,6 +323,7 @@ Semantic restriction "an edge from_to_,⁇labeled by_" is
  *        A graph.
  * @returns "{any|}" 
  * 		The {@type "set"} of vertices.
+ * @category "Data Abstractions" "Graphs"
  */
 Public abstract method "_'s⁇vertices" is [graph]→set;
 
@@ -330,6 +343,7 @@ Semantic restriction "_'s⁇vertices" is
  *        A graph.
  * @returns "{edge|}"
  * 		 The {@type "set"} of {@type "edge"}s.
+ * @category "Data Abstractions" "Graphs"
  */
 Public abstract method "_'s⁇edges" is [graph]→{edge|};
 
@@ -364,6 +378,7 @@ Semantic restriction "_'s⁇edges" is
  *        A map from vertices to the sets of predecessor vertices.
  * @field "successors" "{any→set|}"
  *        A map from vertices to the sets of successor vertices.
+ * @category "Data Abstractions" "Graphs"
  */
 Explicit class "basic unlabeled graph" extends unlabeled graph
 	with fields
@@ -419,6 +434,7 @@ Method "_'s⁇edges" is
  * @field "successors" "{any→{any→set|}|}"
  *        A map from vertices to maps from edge labels to sets of successor
  *        vertices.
+ * @category "Data Abstractions" "Graphs"
  */
 Explicit class "basic labeled graph" extends labeled graph
 	with fields
@@ -482,6 +498,7 @@ Method "_'s⁇edges" is
  * @returns "graph"
  *          A graph based on {@param "aGraph"} that definitely contains {@param
  *          "aVertex"}.
+ * @category "Data Abstractions" "Graphs"
  */
 Abstract method "_+_" is [graph, any]→graph;
 
@@ -544,6 +561,7 @@ Semantic restriction "_+_" is
  * @returns "graph"
  *          A graph based on {@param "aGraph"} that definitely does not contain
  *          {@param "aVertex"}.
+ * @category "Data Abstractions" "Graphs"
  */
 Abstract method "_-_" is [graph, any]→graph;
 
@@ -658,6 +676,7 @@ Semantic restriction "_-_" is
  *
  * @type "graph exception"
  * @supertype "exception"
+ * @category "Data Abstractions" "Graphs" "Exceptions"
  */
 Public explicit class "graph exception" extends exception;
 
@@ -667,6 +686,7 @@ Public explicit class "graph exception" extends exception;
  *
  * @type "no-such-vertex exception"
  * @supertype "graph exception"
+ * @category "Data Abstractions" "Graphs" "Exceptions"
  */
 Public explicit class "no-such-vertex exception" extends graph exception
 	with fields
@@ -678,6 +698,7 @@ Public explicit class "no-such-vertex exception" extends graph exception
  *
  * @type "no-such-edge exception"
  * @supertype "graph exception"
+ * @category "Data Abstractions" "Graphs" "Exceptions"
  */
 Public explicit class "no-such-edge exception" extends graph exception
 	with fields
@@ -699,6 +720,7 @@ Public explicit class "no-such-edge exception" extends graph exception
  * @raises "no-such-vertex exception"
  *         If {@param "anEdge"} references vertices that are not present in
  *         {@param "aGraph"}.
+ * @category "Data Abstractions" "Graphs"
  */
 Abstract method "_+_" is [graph, edge]→graph;
 
@@ -750,6 +772,7 @@ Semantic restriction "_+_" is
  * @raises "no-such-vertex exception"
  *         If {@param "anEdge"} references vertices that are not present in
  *         {@param "aGraph"}.
+ * @category "Data Abstractions" "Graphs"
  */
 Method "_+_" is
 [

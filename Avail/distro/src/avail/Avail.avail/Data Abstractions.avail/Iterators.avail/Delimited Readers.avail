@@ -55,6 +55,7 @@ Body
  *
  * @type "delimited reader"
  * @supertype "reader"
+ * @category "Data Abstractions" "Readers"
  */
 Class "delimited reader" extends decorated reader
 	with fields
@@ -132,6 +133,7 @@ delimited reader's advance method is
  *        The delimiter.
  * @returns "reader of tuple"
  *          The requested reader.
+ * @category "Data Abstractions" "Readers"
  */
 Public method "_delimited by_" is
 [

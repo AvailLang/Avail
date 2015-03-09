@@ -52,6 +52,7 @@ Body
  * @method "pRNG constructor:=_"
  * @param "constructor" "[]→pRNG"
  * @returns "⊤"
+ * @category "Data Abstractions" "Random"
  * @see {@method "a pRNG"}
  */
 Public method "pRNG constructor:=_" is
@@ -70,6 +71,7 @@ Public method "pRNG constructor:=_" is
  *
  * @method "pRNG constructor"
  * @returns "[]→pRNG"
+ * @category "Data Abstractions" "Random"
  */
 Public method "pRNG constructor" is
 [
@@ -84,6 +86,7 @@ Semantic restriction "pRNG constructor" is [[]→pRNG];
  *
  * @method "a pRNG"
  * @returns "pRNG"
+ * @category "Data Abstractions" "Random"
  */
 Public method "a pRNG" is
 [

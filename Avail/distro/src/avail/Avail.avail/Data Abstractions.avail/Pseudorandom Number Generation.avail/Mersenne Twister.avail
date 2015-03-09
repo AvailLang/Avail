@@ -54,8 +54,7 @@ Body
  *
  * @type "Mersenne Twister"
  * @supertype "stream"
- * @category "Data Abstractions"
- * @category "Pseudorandom Number Generation"
+ * @category "Data Abstractions" "Random"
  * @see
  * "M. Matsumoto and T. Nishimura, \"Mersenne Twister: A 623-dimensionally
  * equidistributed uniform pseudorandom number generator\", ACM Trans. on
@@ -86,6 +85,7 @@ Method "_is empty" is
  *        A Mersenne Twister state vector.
  * @returns "<[0..1<<32)…|624>"
  *          A refreshed Mersenne Twister state vector.
+ * @category "Data Abstractions" "Random"
  */
 Private method "next state after_" is
 [
@@ -137,6 +137,7 @@ Mersenne Twister's tail method is
  *        A seed.
  * @returns "Mersenne Twister"
  *          An untwisted Mersenne Twister pseudorandom number generator.
+ * @category "Data Abstractions" "Random"
  */
 Private method "untwisted Mersenne Twister from_" is
 [
@@ -174,6 +175,7 @@ Method "a Mersenne Twister stream from_" is
  *        An optional seed.
  * @returns "Mersenne Twister"
  *          A Mersenne Twister pseudorandom number generator.
+ * @category "Data Abstractions" "Random"
  */
 Public method "a Mersenne Twister«from_»" is
 [
@@ -232,6 +234,7 @@ Method "a Mersenne Twister stream from_" is
  *        A seed.
  * @returns "Mersenne Twister"
  *          A Mersenne Twister pseudorandom number generator.
+ * @category "Data Abstractions" "Random"
  */
 Public method "a Mersenne Twister from_" is
 [

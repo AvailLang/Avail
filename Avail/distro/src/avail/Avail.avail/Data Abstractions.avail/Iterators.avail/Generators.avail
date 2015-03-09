@@ -55,6 +55,7 @@ Body
  *
  * @type "generator"
  * @supertype "iterator"
+ * @category "Data Abstractions" "Readers"
  */
 Class "generator" extends reader
 	with mutable fields
@@ -115,6 +116,7 @@ generator's advance method is
  *        to a value, yields control to the client and answers the value.
  * @returns "generator"
  *          The requested generator.
+ * @category "Data Abstractions" "Readers"
  */
 Public method "generator for_" is
 [

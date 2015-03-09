@@ -59,6 +59,7 @@ naturalNumberVariable ::= ↑natural number;
  * @type "tuple reader"
  * @supertype "positionable iterator"
  * @supertype "reader"
+ * @category "Data Abstractions" "Readers"
  */
 Class "tuple reader" extends
 		reader ∩ (sizable positionable iterator positioned by natural number)
@@ -114,6 +115,7 @@ Method "_'s⁇position:=_" is
  * @restrict "_'s⁇position:=_" is
  * @param "anIterator" "tuple reader's type"
  * @param "position" "natural number's type"
+ * @category "Data Abstractions" "Readers"
  */
 Semantic restriction "_'s⁇position:=_" is
 [
@@ -158,6 +160,7 @@ Method "`|_'s⁇remaining elements`|" is
  *        A tuple.
  * @returns "iterator"
  *          The requested iterator.
+ * @category "Data Abstractions" "Readers"
  */
 Public method "a reader over_" is
 [
@@ -197,6 +200,7 @@ Semantic restriction "a reader over_" is
  *        A set.
  * @returns "iterator"
  *          The requested iterator.
+ * @category "Data Abstractions" "Readers"
  */
 Public method "a reader over_" is
 [
@@ -228,6 +232,7 @@ Semantic restriction "a reader over_" is
  *        A map.
  * @returns "iterator"
  *          The requested iterator.
+ * @category "Data Abstractions" "Readers"
  */
 Public method "a reader over_" is
 [

@@ -56,6 +56,7 @@ Grammatical restriction "sizable_" is <{"_positioned by_†"}>;
  * @param "anIterator" "sizable positionable iterator"
  * @returns "[0..∞]"
  *    The number of elements remaining in {@param "anIterator"}.
+ * @category "Data Abstractions" "Iterators"
  */
 Public abstract method "`|_'s⁇remaining elements`|"
 	is [sizable positionable iterator]→[0..∞];

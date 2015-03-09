@@ -270,7 +270,7 @@ Semantic restriction "For each of⁇_do_" is
 	
 /**
  * Tuple iterating-loop that invokes {@param "action"} once for every
- * {@param "elementPhrase"} int {@param "aTuple"} 
+ * {@param "elementPhrase"} in {@param "aTuple"} 
  * 
  * @macro "For each…of_§do_"
  * @param "elementPhrase" "literal phrase ⇒ token"

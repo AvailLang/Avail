@@ -58,9 +58,9 @@ Body
  * A concatenation reader produces values from a sequenced collection of
  * readers.
  *
- * @category "Data Abstractions"
  * @type "concatenation reader"
  * @supertype "reader"
+ * @category "Data Abstractions" "Readers"
  */
 Class "concatenation reader" extends reader
 	with field
@@ -77,6 +77,7 @@ Class "concatenation reader" extends reader
  * @param "aReader" "concatenation reader"
  * @returns "boolean"
  *          Whether the sequence of readers is itself exhausted.
+ * @category "Data Abstractions" "Readers"
  */
 Method "_is exhausted" is
 [
@@ -119,12 +120,12 @@ concatenation reader's advance method is
  * Construct and answer an {@type "reader"} that produces values from the
  * specified tuple of readers The result first produces the values of the
  * first element of the tuple, then the second, etc.
- * @category "Data Abstractions"
  * @method "concatenate_"
  * @param "readers" "<reader…|>"
  *        A tuple of readers.
  * @returns "reader"
  *          The requested reader.
+ * @category "Data Abstractions" "Readers"
  */
 Method "concatenate_" is
 [
@@ -147,12 +148,12 @@ Method "concatenate_" is
  * Construct and answer an {@type "reader"} that produces values from the
  * specified tuple of readers The result first produces the values of the
  * first lexical argument, then the second, etc.
- * @category "Data Abstractions"
  * @method "«_‡++»"
  * @param "readers" "<reader…|>"
  *        A tuple of readers.
  * @returns "reader"
  *          The requested reader.
+ * @category "Data Abstractions" "Readers"
  */
 Method "«_‡++»" is
 [
@@ -195,6 +196,7 @@ Private method "concatenation semantic restriction" is
  * @method "concatenate_"
  * @restricts "readers" "<reader…|>'s type"
  * @returns "concatenation reader"
+ * @category "Data Abstractions" "Readers"
  */
 Semantic restriction "concatenate_" is concatenation semantic restriction;
 
@@ -205,5 +207,6 @@ Semantic restriction "concatenate_" is concatenation semantic restriction;
  * @method "concatenate_"
  * @restricts "readers" "<reader…|>'s type"
  * @returns "concatenation reader"
+ * @category "Data Abstractions" "Readers"
  */
 Semantic restriction "«_‡++»" is concatenation semantic restriction;

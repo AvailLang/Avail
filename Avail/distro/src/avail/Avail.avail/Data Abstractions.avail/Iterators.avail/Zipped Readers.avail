@@ -59,7 +59,7 @@ Body
  * A zipped reader produces zipped tuples from a sequenced collection of
  * readers.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @type "zipped reader"
  * @supertype "reader"
  */
@@ -74,6 +74,7 @@ Explicit class "zipped reader" extends reader
  * @method "_is exhausted"
  * @param "aReader" "zipped reader"
  * @returns "boolean"
+ * @category "Data Abstractions" "Readers"
  */
 Method "_is exhausted" is
 [
@@ -107,7 +108,7 @@ zipped reader's advance method is
  * consecutive input reader. The answer is exhausted when any of the input
  * readers becomes exhausted.
  * 
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "zip_"
  * @param "readers" "<reader…|>"
  *        A tuple of readers.
@@ -133,7 +134,7 @@ Method "zip_" is
  * consecutive input reader. The answer is exhausted when any of the input
  * readers becomes exhausted.
  * 
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "«_‡zip»"
  * @param "readers" "<reader…|>"
  *        A tuple of readers.
@@ -156,7 +157,7 @@ Method "«_‡zip»" is
  * Answer a function suitable for use as a semantic restriction for the
  * {@method "zip_"} and {@method "«_‡zip»"} methods.
  * 
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "zip semantic restriction"
  * @returns "[<reader…|>'s type]→(zipped reader's type)"
  *          The requested function.
@@ -187,6 +188,7 @@ Private method "zip semantic restriction" is
  * @method "zip_"
  * @restricts "readers" "<reader…|1..>'s type"
  * @returns "zipped reader"
+ * @category "Data Abstractions" "Readers"
  */
 Semantic restriction "zip_" is zip semantic restriction;
 
@@ -196,5 +198,6 @@ Semantic restriction "zip_" is zip semantic restriction;
  * @method "zip_"
  * @restricts "readers" "<reader…|1..>'s type"
  * @returns "zipped reader"
+ * @category "Data Abstractions" "Readers"
  */
 Semantic restriction "«_‡zip»" is zip semantic restriction;

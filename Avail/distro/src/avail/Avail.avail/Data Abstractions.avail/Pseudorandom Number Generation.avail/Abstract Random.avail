@@ -56,6 +56,7 @@ Body
  * random sequence of numbers.
  *
  * @type "pRNG"
+ * @category "Data Abstractions" "Random"
  */
 Public explicit class "pRNG" extends reader
 	with fields
@@ -70,6 +71,7 @@ Public explicit class "pRNG" extends reader
  *        The type of value produced by iterators of the answered type.
  * @returns "pRNG's type"
  *          The requested pRNG type.
+ * @category "Data Abstractions" "Random"
  */
 Public method "pRNG of_" is
 [
@@ -90,6 +92,7 @@ Public method "pRNG of_" is
  *        type}. The result will lie within this range.
  * @returns "whole number"
  *          A pseudorandom value that is an instance of {@param "range"}.
+ * @category "Data Abstractions" "Random"
  * @raises "incorrect-argument-type exception"
  *         If ⎡{@param "range"}⎤ is ∞.
  */
@@ -138,6 +141,7 @@ Semantic restriction "_'s⁇next«value in»⁇_" is
  * @param "enum" "type"
  * @returns "any"
  *          A pseudorandomly selected instance of {@param "enum"}.
+ * @category "Data Abstractions" "Random"
  */
 Method "_'s⁇next«value in»⁇_" is
 [
@@ -180,6 +184,7 @@ Semantic restriction "_'s⁇next«value in»⁇_" is
  *        A non-empty tuple.
  * @returns "any"
  *          A pseudorandomly selected element of {@param "aTuple"}.
+ * @category "Data Abstractions" "Random"
  */
 Public method "_'s⁇next element of_" is
 [
@@ -210,6 +215,7 @@ Semantic restriction "_'s⁇next element of_" is
  *        A non-empty set.
  * @returns "any"
  *          A pseudorandomly selected element of {@param "aSet"}.
+ * @category "Data Abstractions" "Random"
  */
 Method "_'s⁇next element of_" is
 [
@@ -241,6 +247,7 @@ Semantic restriction "_'s⁇next element of_" is
  *        A non-empty map.
  * @returns "any"
  *          A pseudorandomly selected element of {@param "aMap"}.
+ * @category "Data Abstractions" "Random"
  */
 Public method "_'s⁇next binding of_" is
 [
@@ -271,6 +278,7 @@ Semantic restriction "_'s⁇next binding of_" is
  *        A tuple.
  * @returns "tuple"
  *          A permutation of {@param "aTuple"}.
+ * @category "Data Abstractions" "Random"
  */
 Public method "_'s⁇next shuffling of_" is
 [

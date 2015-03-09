@@ -46,6 +46,7 @@ Body
  *
  * @type "sizable iterator"
  * @supertype "iterator"
+ * @category "Data Abstractions" "Iterators"
  */
 Public explicit class "sizable iterator" extends iterator;
 
@@ -58,6 +59,7 @@ Public explicit class "sizable iterator" extends iterator;
  *        An {@type "iterator"} type.
  * @returns "sizable iterator's type"
  *          The requested iterator type.
+ * @category "Data Abstractions" "Iterators"
  */
 Public method "sizable_" is
 [
@@ -78,5 +80,6 @@ Grammatical restriction "sizable_" is <{"iterator"}>;
  * @returns "[0..∞]"
  *          The number of elements covered by {@param "anIterator"}, included
  *          any elements already answered.
+ * @category "Data Abstractions" "Iterators"
  */
 Abstract method "`|_`|" is [sizable iterator]→[0..∞];

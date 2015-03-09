@@ -69,6 +69,7 @@ Body
  *
  * @type "random access buffered iterator"
  * @supertype "positionable iterator"
+ * @category "Data Abstractions" "Iterators"
  */
 Public explicit class "random access buffered iterator"
 	extends buffered iterator positioned by natural number;
@@ -84,6 +85,7 @@ Public explicit class "random access buffered iterator"
  * @type "random access buffered reader"
  * @supertype "random access buffered iterator"
  * @supertype "reader"
+ * @category "Data Abstractions" "Iterators"
  */
 Public class "random access buffered reader"
 	extends random access buffered iterator ∩ reader;
@@ -99,6 +101,7 @@ Public class "random access buffered reader"
  * @type "random access buffered writer"
  * @supertype "random access buffered iterator"
  * @supertype "writer"
+ * @category "Data Abstractions" "Iterators"
  */
 Public class "random access buffered writer"
 	extends random access buffered iterator ∩ writer
@@ -117,6 +120,7 @@ Public class "random access buffered writer"
  * @type "random access buffered reader/writer"
  * @supertype "random access buffered reader"
  * @supertype "random access buffered writer"
+ * @category "Data Abstractions" "Iterators"
  */
 Public class "random access buffered reader/writer"
 	extends random access buffered reader
@@ -145,6 +149,7 @@ Public method "_'s⁇buffer start:=_" is
  *        A {@type "random access buffered iterator"}.
  * @returns "⊤"
  *        The iterator's current position, a natural number.
+ * @category "Data Abstractions" "Iterators"
  * @raises "invalid-position exception"
  *         If {@param "position"} is not a valid memento.
  */
@@ -165,6 +170,7 @@ Method "_'s⁇position" is
  * @param "position" "natural number"
  *        A position memento that represents a valid position.
  * @returns "⊤"
+ * @category "Data Abstractions" "Iterators"
  * @raises "invalid-position exception"
  *         If {@param "position"} is not a valid memento.
  */
@@ -224,6 +230,8 @@ Private abstract method $"Private write_in_at_" is
  *        the second argument is the writer, and the third argument is the
  *        starting position at which the tuple is to be written to whatever is
  *        backing the writer.
+ * @returns "⊤"
+ * @category "Data Abstractions" "Iterators"
  */
 Public method "_'s⁇write tuple method is_" is
 [
@@ -247,6 +255,7 @@ Public method "_'s⁇write tuple method is_" is
  *            is the starting position at which the tuple is to be written to
  *            whatever is backing the writer.
  * @returns "⊤'s type"
+ * @category "Data Abstractions" "Iterators"
  */
 Public method "_'s⁇write tuple method is_" is
 [
@@ -334,6 +343,8 @@ Seal random access buffered iterator's advance method;
  *
  * @method "Refresh_"
  * @param "aReader" "random access buffered reader"
+ * @returns "⊤"
+ * @category "Data Abstractions" "Iterators"
  */
 Method "Refresh_" is
 [
@@ -359,6 +370,7 @@ Method "Refresh_" is
  * @returns "tuple"
  *          A tuple containing the first {@param "count"} elements of {@param
  *          "aReader"}, possibly less if {@param isLax} is {@code true}.
+ * @category "Data Abstractions" "Iterators"
  * @raises "exhausted-iterator exception"
  *         If {@param "isLax"} is {@code false} and {@param "aReader"} does
  *         not contain {@param "count"} elements.
@@ -405,6 +417,7 @@ Method "take«at most»?_from_" is
  * @param "newElements" "tuple"
  * @param "aWriter" "random access buffered writer"
  * @returns "⊤"
+ * @category "Data Abstractions" "Iterators"
  */
 Method "Write_to_" is
 [

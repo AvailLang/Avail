@@ -61,6 +61,7 @@ Body
  *
  * @type "exhausted reader"
  * @supertype "iterator"
+ * @category "Data Abstractions" "Readers"
  */
 Public explicit class "exhausted reader" extends reader
 	with fields
@@ -69,12 +70,12 @@ Public explicit class "exhausted reader" extends reader
 /**
  * An {@type "exhausted reader"} is always exhausted.
  * 
- * @category "Data Abstractions"
  * @method "_is exhausted"
  * @param "anIterator" "exhausted reader"
  *        An {@type "exhausted reader"}.
  * @returns "true's type"
  *          {@code true}.
+ * @category "Data Abstractions" "Readers"
  */
 Method "_is exhausted" is
 [
@@ -112,7 +113,7 @@ theExhaustedReader ::= an exhausted reader with element type ::= ⊥;
 /**
  * Answer an {@type "exhausted reader"}.
  * 
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "an exhausted reader"
  * @returns "exhausted reader"
  *          An exhausted reader.
@@ -124,6 +125,7 @@ Public method "an exhausted reader" is [ theExhaustedReader ];
  *
  * @method "a|an_«with«_:=_‡,»»"
  * @forbids "1" "exhausted reader"
+ * @category "Data Abstractions" "Readers"
  */
 Grammatical restriction "a|an_«with«_:=_‡,»»"
 	is <{"exhausted reader"}, ∅, ∅>;

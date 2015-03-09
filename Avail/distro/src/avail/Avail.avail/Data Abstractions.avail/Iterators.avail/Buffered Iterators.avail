@@ -85,6 +85,7 @@ Body
  * 
  * @type "buffered iterator"
  * @supertype "iterator"
+ * @category "Data Abstractions" "Iterators"
  */
 Public explicit class "buffered iterator" extends iterator
 	with immutable fields
@@ -101,6 +102,7 @@ Public explicit class "buffered iterator" extends iterator
  * @type "buffered reader"
  * @supertype "buffered iterator"
  * @supertype "reader"
+ * @category "Data Abstractions" "Iterators"
  */
 Public class "buffered reader"
 	extends buffered iterator ∩ reader;
@@ -114,6 +116,7 @@ Public class "buffered reader"
  * @type "buffered writer"
  * @supertype "buffered iterator"
  * @supertype "writer"
+ * @category "Data Abstractions" "Iterators"
  */
 Public class "buffered writer"
 	extends buffered iterator ∩ writer;
@@ -146,6 +149,7 @@ Private abstract method $"private_'s⁇fetch current buffer" is
  * @param "implementation" "[⊥]→⊤"
  *        The new method extension. The argument is the iterator.
  * @returns "⊤"
+ * @category "Data Abstractions" "Iterators"
  */
 Public method "_'s⁇exit buffer method is_" is
 [
@@ -166,6 +170,7 @@ Public method "_'s⁇exit buffer method is_" is
  * @restricts "implementation" "[⊥]→⊤'s type"
  *            The new method extension's metatype. The argument is the iterator.
  * @returns "⊤'s type"
+ * @category "Data Abstractions" "Iterators"
  */
 Semantic restriction "_'s⁇exit buffer method is_" is
 [
@@ -196,6 +201,7 @@ Semantic restriction "_'s⁇exit buffer method is_" is
  * @method "Seal_'s⁇exit buffer method"
  * @param "iteratorType" "buffered iterator's type"
  * @returns "⊤"
+ * @category "Data Abstractions" "Iterators"
  */
 Public method "Seal_'s⁇exit buffer method" is
 [
@@ -216,6 +222,7 @@ Public method "Seal_'s⁇exit buffer method" is
  * @param "implementation" "[⊥]→tuple"
  *        The new method extension. The argument is the reader.
  * @returns "⊤"
+ * @category "Data Abstractions" "Iterators"
  */
 Public method "_'s⁇fetch current buffer method is_" is
 [
@@ -254,6 +261,7 @@ Semantic restriction "_'s⁇fetch current buffer method is_" is
  * @method "Seal_'s⁇fetch current buffer method"
  * @param "readerType" "buffered reader's type"
  * @returns "⊤"
+ * @category "Data Abstractions" "Iterators"
  */
 Public method "Seal_'s⁇fetch current buffer method" is
 [
@@ -317,6 +325,7 @@ buffered iterator's advance method is
  * @returns "tuple"
  *          A tuple containing the first {@param "count"} elements of {@param
  *          "aReader"}, possibly less if {@param isLax} is {@code true}.
+ * @category "Data Abstractions" "Iterators"
  * @raises "exhausted-iterator exception"
  *         If {@param "isLax"} is {@code false} and {@param "aReader"} does
  *         not contain {@param "count"} elements.
@@ -361,6 +370,7 @@ Method "take«at most»?_from_" is
  * @param "newElements" "tuple"
  * @param "aWriter" "buffered writer"
  * @returns "⊤"
+ * @category "Data Abstractions" "Iterators"
  */
 Method "Write_to_" is
 [
@@ -406,6 +416,7 @@ Method "Write_to_" is
  * @method "_'s⁇current element:=_"
  * @param "aWriter" "buffered writer"
  * @param "element" "any"
+ * @category "Data Abstractions" "Iterators"
  */
 Method "_'s⁇current element:=_" is
 [
@@ -423,6 +434,7 @@ Method "_'s⁇current element:=_" is
  * @method "Synchronize_"
  * @param "aWriter" "buffered writer"
  * @returns "⊤"
+ * @category "Data Abstractions" "Iterators"
  */
 Public method "Synchronize_" is
 [

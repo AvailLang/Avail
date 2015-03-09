@@ -63,7 +63,7 @@ Body
  * current element, it answers the first element of the decorated reader that
  * satisfies the filter function.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @type "filtered reader"
  * @supertype "reader"
  */
@@ -75,7 +75,7 @@ Class "filtered reader" extends decorated reader
  * Determine if the {@type "filtered reader"} is exhausted.  This may cause the
  * decorated reader to be advanced multiple times.
  * 
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "_is exhausted"
  * @param "aReader" "filtered reader"
  * @returns "boolean"
@@ -137,7 +137,7 @@ filtered reader's advance method is
  *
  * Which will require infinite computation after advancing beyond the element
  * {@code 10}.
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "filter_by_"
  * @param "aReader" "reader"
  *        An {@type "reader"}.
@@ -165,7 +165,7 @@ Method "filter_by_" is
  * strengthen the result to be a {@type "reader"} whose elements are the same as
  * those of the inner reader.
  * 
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "filter_by_"
  * @restricts "readerType" "reader's type"
  *        An {@type "reader"}.

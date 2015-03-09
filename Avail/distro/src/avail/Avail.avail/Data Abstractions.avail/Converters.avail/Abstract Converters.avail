@@ -72,6 +72,7 @@ Public "conversion type" is a new field atom;
  *        What to produce when a sequence of input elements is invalid.  It may
  *        raise an exception to indicate the problem, or return a tuple suitable
  *        for use in lieu of the conversion function.
+ * @category "Data Abstractions" "Converters"
  */
 Public explicit class "converter" extends object
 	with fields
@@ -88,6 +89,7 @@ Public explicit class "converter" extends object
  *        The type of element produced by the converter.
  * @returns "converter's type"
  *          The resulting converter type.
+ * @category "Data Abstractions" "Converters"
  */
 Public method "converter from_to_" is
 [
@@ -113,6 +115,7 @@ Public method "converter from_to_" is
  *        The input values to be consumed.
  * @returns "tuple"
  *          The output values produced by the converter.
+ * @category "Data Abstractions" "Converters"
  */
 Public abstract method "_process_" is
 	[converter, tuple] → tuple;
@@ -124,6 +127,7 @@ Public abstract method "_process_" is
  * @method "_process_"
  * @restricts "converter's type"
  * @restricts "tuple's type"
+ * @category "Data Abstractions" "Converters"
  */
 Semantic restriction "_process_" is
 [
@@ -146,6 +150,10 @@ Semantic restriction "_process_" is
  * The end of data has been encountered.  Produce output from any previously
  * buffered input.  Subclasses may allow subsequent data to be processed after
  * a flush, but they are not required to.
+ * 
+ * @method "flush_"
+ * @param "aConverter" "converter"
+ * @category "Data Abstractions" "Converters"
  */
 Public abstract method "flush_" is [converter]→<any…|>;
 
@@ -154,6 +162,7 @@ Public abstract method "flush_" is [converter]→<any…|>;
  * 
  * @method "flush_"
  * @restricts "converter's type"
+ * @category "Data Abstractions" "Converters"
  */
 Semantic restriction "flush_" is
 [

@@ -50,4 +50,81 @@ Extends
 	"Sizable Positionable Iterators",
 	"Stream Readers",
 	"Zipped Readers"
+Uses
+	"Foundation"
 Body
+
+/**
+ * Reader iterating-loop that invokes {@param "action"} once for every
+ * {@param "elementPhrase"} in {@param "aReader"} 
+ * 
+ * @macro "For each…of_§do_"
+ * @category "Data Abstractions" "Readers"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on of 
+ *        {@param "aReader"}'s element type.
+ * @param "aReader" "expression phrase ⇒ reader"
+ *        An {@type "expression phrase"} that yields the reader to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops" "Readers" "Data Abstractions"
+ */
+Macro "For each…of_§do_" is
+[
+	elementPhrase : literal phrase ⇒ token,
+	aReader : expression phrase ⇒ reader
+|
+	/* Establish local loop variable is unique*/
+	elementToken ::= elementPhrase's token;
+	elementName ::= elementToken's lexeme;
+	If elementName ∈ scope map then
+	[
+		Reject parse, expected:
+			"loop variable "
+			++ elementName
+			++ " to have a name that doesn't shadow another local declaration"
+	];	
+	/* Determine the strongest type of the loop variable for aReader */
+	aReaderType ::= aReader's semantic type;
+	elementType ::= aReaderType's element type's instance;
+	scope map := scope map + elementName → arg «elementToken : elementType»;
+],
+[
+	elementPhrase : literal phrase ⇒ token,
+	aReader : expression phrase ⇒ reader,
+	action : block phrase ⇒ []→⊤
+|
+	/* Build the block function */
+	name ::= elementPhrase's token's lexeme;
+	aReaderType ::= aReader's semantic type;
+	blockType ::= [⊥]→(action's semantic type's return type);
+	restrictions ::= semantic restrictions
+		for method for $"For each of⁇_do_"
+		given <aReaderType, blockType>;
+	returnType : type := ⊤;
+	From 1 to |restrictions| by 1 do
+	[
+		index : natural number
+	|
+		returnType := returnType
+			∩ restrictions[index](aReaderType, blockType);
+	];
+	statements ::= action's statements;
+	blockReturnType ::= cast statements
+		into [t : phrase+ | t[|t|]'s semantic type]
+		else [⊤];
+
+	restricted send $"For each of⁇_do_" with
+	<
+		aReader,
+		«[
+			<cast scope map[name] into [d : argument phrase | d]>
+		|
+			statements
+		] : blockReturnType»
+	> : returnType
+] : send phrase ⇒ ⊤;

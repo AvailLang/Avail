@@ -88,7 +88,7 @@ Body
 
 /**
  * Stream iterating-loop that invokes {@param "action"} once for every
- * {@param "elementPhrase"} int {@param "aStream"} 
+ * {@param "elementPhrase"} in {@param "aStream"} 
  * 
  * @macro "For each…of_§do_"
  * @category "Data Abstractions" "Streams"
@@ -103,7 +103,7 @@ Body
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        loop.
  * @returns "send phrase ⇒ ⊤"
- * @category "Control Structures" "Loops" "Collections" "Tuples"
+ * @category "Control Structures" "Loops" "Readers" "Data Abstractions"
  */
 Macro "For each…of_§do_" is
 [

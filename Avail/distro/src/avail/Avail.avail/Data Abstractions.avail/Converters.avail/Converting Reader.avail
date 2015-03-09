@@ -65,6 +65,7 @@ conversionBufferSize ::= 200;
  *        The converter that wraps the base reader.
  * @field "buffer" "tuple"
  *        The mutable buffer of converted but not yet consumed data.
+ * @category "Data Abstractions" "Converters" "Readers"
  */
 Public class "converting reader" extends reader
 	with fields
@@ -84,6 +85,7 @@ Public class "converting reader" extends reader
  *        The type of element produced by this reader.
  * @returns "converting reader's type"
  *          The resulting converting reader type.
+ * @category "Data Abstractions" "Converters" "Readers"
  */
 Public method "converting reader from_to_" is
 [
@@ -136,6 +138,8 @@ processInvokingFunction ::= unsafe sender of $"_process_" returning tuple;
  * 
  * @method "_is exhausted"
  * @param "aReader" "converting reader"
+ * @returns "boolean"
+ * @category "Data Abstractions" "Converters" "Readers"
  */
 Method "_is exhausted" is
 [
@@ -181,6 +185,8 @@ converting reader's current element method is
  * 
  * @method "_is exhausted"
  * @param "aReader" "converting reader"
+ * @returns "⊤"
+ * @category "Data Abstractions" "Converters" "Readers"
  */
 converting reader's advance method is
 [

@@ -50,7 +50,7 @@ Body
 /**
  * This abstract class is for building decorators on another reader.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @type "decorated reader"
  * @supertype "reader"
  */

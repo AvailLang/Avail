@@ -67,6 +67,7 @@ atomVariable ::= ↑atom;
  * @type "stream reader"
  * @supertype "positionable iterator"
  * @supertype "reader"
+ * @category "Data Abstractions" "Readers"
  */
 Public class "stream reader" extends reader ∩ positionable iterator
 	with field
@@ -136,6 +137,7 @@ Method "_'s⁇position:=_" is
  *    aStream - A stream.
  * @returns "stream reader"
  *    The requested reader.
+ * @category "Data Abstractions" "Readers"
  */
 Public method "a reader over_" is
 [

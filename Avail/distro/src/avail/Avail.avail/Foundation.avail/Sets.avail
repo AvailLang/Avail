@@ -270,7 +270,7 @@ Semantic restriction "For each of⁇_do_" is
 
 /**
  * Set iterating-loop that invokes {@param "action"} once for every
- * {@param "elementPhrase"} int {@param "aSet"} 
+ * {@param "elementPhrase"} in {@param "aSet"} 
  * 
  * @macro "For each…of_§do_"
  * @param "elementPhrase" "literal phrase ⇒ token"

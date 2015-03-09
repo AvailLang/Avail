@@ -62,6 +62,7 @@ naturalNumberVariable ::= ↑natural number;
  * @type "counting number reader"
  * @supertype "reader"
  * @supertype "sizable positionable iterator"
+ * @category "Data Abstractions" "Readers"
  */
 Class "counting number reader" extends reader ∩ sizable positionable iterator
 	with fields
@@ -77,6 +78,7 @@ Class "counting number reader" extends reader ∩ sizable positionable iterator
  *
  * @type "counting integer reader"
  * @supertype "counting number reader"
+ * @category "Data Abstractions" "Readers"
  */
 Class "counting integer reader" extends counting number reader
 	with fields
@@ -219,6 +221,7 @@ Semantic restriction "For each of⁇_do_" is
  *        answered by the reader.
  * @returns "reader of integer"
  *          The requested reader.
+ * @category "Data Abstractions" "Readers"
  */
 Public method "a counting reader from_to_" is
 [
@@ -280,6 +283,7 @@ Semantic restriction "a counting reader from_to_" is
  *        differ.
  * @returns "reader of number"
  *          The requested reader.
+ * @category "Data Abstractions" "Readers"
  */
 Public method "a counting reader from_to_by_" is
 [

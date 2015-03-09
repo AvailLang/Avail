@@ -35,6 +35,7 @@ Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
 	"Common",
+	"Data Abstractions",
 	"Foundation",
 	"Unit Testing"
 Names
@@ -43,3 +44,22 @@ Body
 
 Public "iterators test suite" is a new field atom;
 New test suite iterators test suite extends data abstractions test suite;
+
+Test "for each of do" in iterators test suite is
+[
+	a ::= a reader over <1,2,3,4>;
+	b : tuple := <>;
+	For each of a do [n : natural number | b ++= <n>;];
+	Require: b = <1,2,3,4>;
+];
+
+Test "macro for each of do" in iterators test suite is
+[
+	a ::= a reader over <1,2,3,4,5>;
+	b : natural number* := <>;
+	For each element of a do
+	[
+	 	If element is even then [b := b ++ <element>;];
+	];
+	Require: b = <2,4>;
+];
