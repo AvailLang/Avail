@@ -1188,17 +1188,8 @@ is
 	subtype's name := className;
 	After the current module is unloaded, do [Unname className from subtype;];
 	Method className is new []→(subtype's type) applying [subtype];
-	For each of immutable do
+	For each fieldTuple of immutable do
 	[
-		fieldTuple :
-			<
-				boolean,
-				boolean,
-				atom,
-				any meta,
-				nonempty string?…
-			|5>
-	|
 		fieldAtom ::= fieldTuple[3];
 		accessorName ::= fieldTuple[5][1]
 			else [fieldAtom's default accessor name];
@@ -1217,24 +1208,8 @@ is
 		];
 		Generate and install subtype accessor for fieldAtom;
 	];
-	For each of mutable do
+	For each fieldTuple of mutable do
 	[
-		fieldTuple :
-			<
-				boolean,
-				boolean,
-				boolean,
-				boolean,
-				atom,
-				any meta,
-				<
-					<
-						[1..3],
-						nonempty string…
-					|2>…
-				|1..3>?…
-			|7>
-	|
 		isShared ::= fieldTuple[2];
 		referable ::= fieldTuple[3];
 		readOnly ::= fieldTuple[4];
@@ -1246,10 +1221,8 @@ is
 				fieldAtom's default mutator name,
 				fieldAtom's default referrer name
 			>;
-		For each of namesTuple do
+		For each namePair of namesTuple do
 		[
-			namePair : <[1..3], nonempty string…|2>
-		|
 			orderedNames := eject orderedNames[namePair[1]]→namePair[2];
 		];
 		/* The shared flag must be set on the field atom *before* any

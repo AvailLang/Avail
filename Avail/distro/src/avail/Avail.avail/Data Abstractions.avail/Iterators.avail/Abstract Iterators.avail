@@ -821,10 +821,8 @@ Method "Write_to_" is
  	newElements : tuple,
 	aWriter : writer
 |
-	For each of newElements do
+	For each element of newElements do
 	[
-		element : any
-	|
 		aWriter's current element := element;
 		Advance aWriter;
 	];

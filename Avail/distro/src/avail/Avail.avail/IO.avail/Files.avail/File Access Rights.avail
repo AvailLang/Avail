@@ -187,11 +187,8 @@ Method "“_”" is
 		"others read",
 		"others write",
 		"others execute">;
-	For each of rights do
+	For each rightName, index of rights do
 	[
-		rightName : nonempty string,
-		index : [1..9]
-	|
 		class ::=
 			choose cast (index - 1) ÷ 3 into [t : {0, 1, 2}ᵀ | t]
 			from {0, 1, 2}ᵀ
@@ -227,11 +224,8 @@ fileAccessRights ::=
 >;
 
 fileAccessRightsReverseMap : {private file access right → [1..9]|} := {};
-For each of fileAccessRights do
+For each right, index of fileAccessRights do
 [
-	right : private file access right,
-	index : [1..9]
-|
 	fileAccessRightsReverseMap := fileAccessRightsReverseMap + right → index;
 ];
 

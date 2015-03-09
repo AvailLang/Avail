@@ -229,11 +229,8 @@ Method "Eavesdrop" is
 					|
 						cast weirdNumbers[i..i + 4] into [t : <byte…|5> | t]
 					];
-				For each of quintets do
+				For each q, i of quintets do
 				[
-					q : <byte…|5>,
-					i : natural number
-				|
 					If i = 1 then [Identify agent: q;]
 					else [Show code block: q;];
 				];

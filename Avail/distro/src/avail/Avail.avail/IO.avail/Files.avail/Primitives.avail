@@ -248,10 +248,8 @@ Semantic restriction
 	If |optionSet| ≠ ∞ then
 	[
 		/* Check each possibility, typically just one. */
-		For each of optionSet's instances do
+		For each possibleSet of optionSet's instances do
 		[
-			possibleSet : {open option|}
-		|
 			readableType :=
 				readableType ∪ ((read option ∈ possibleSet)'s type);
 			writableType :=

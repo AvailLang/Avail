@@ -141,10 +141,8 @@ Method "_process_" is
 	sourceTuple : string
 |
 	output : byte* := <>;
-	For each of sourceTuple do
+	For each c of sourceTuple do
 	[
-		c : character
-	|
 		output := eject output ++ bytes from c's code point;
 	];
 	output
@@ -251,10 +249,8 @@ Method "_process_" is
 			/* Extract the bytes and decode them. */
 			accumulator : whole number := leadByte bit∧ (255 >> count);
 			index++;
-			For each of continuationBytes do
+			For each nextByte of continuationBytes do
 			[
-				nextByte : byte
-			|
 				accumulator := (eject accumulator << 6) + (nextByte bit∧ 63);
 				index++;
 			];

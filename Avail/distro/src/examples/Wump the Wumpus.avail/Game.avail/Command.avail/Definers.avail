@@ -172,19 +172,15 @@ Private method "command definer" is
 		syntaxes : <nonempty string…|1..>,
 		theAction : […]→boolean
 	|
-		For each of syntaxes do
+		For each syntax of syntaxes do
 		[
-			syntax : nonempty string
-		|
 			tokens ::= tokenize syntax;
 			node : root command node := commandTree;
 			/* Install the syntax for the new command into the global command
 			 * tree.
 			 */
-			For each of tokens do
+			For each commandToken of tokens do
 			[
-				commandToken : nonempty string
-			|
 				Unless commandToken ∈ node's next nodes then
 				[
 					/* Associate the new command node with the current token. */

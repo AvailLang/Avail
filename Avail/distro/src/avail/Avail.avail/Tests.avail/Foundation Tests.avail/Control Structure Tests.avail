@@ -78,12 +78,7 @@ Test "continuations" in control structure test suite is
 		t : <integer…|3..>
 	|
 		$find : boolean;
-		For each of t do
-		[
-			i : integer
-		|
-			If i = queryValue then [Exit find with true];
-		];
+		For each i of t do [If i = queryValue then [Exit find with true];];
 		false
 	]:boolean;
 	Require: locate(5,<1,4,5,7>);

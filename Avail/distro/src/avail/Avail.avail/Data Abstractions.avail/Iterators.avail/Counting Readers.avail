@@ -418,10 +418,8 @@ Semantic restriction "a counting reader from_to_by_" is
 			else [minEnd - maxStart];
 		minSize : [0..∞] := ∞;
 		maxSize : [0..∞] := 0;
-		For each of extremeDeltas do
+		For each delta of extremeDeltas do
 		[
-			delta : number
-		|
 			If delta > 0 ∨ delta < 0 then
 			[
 				maxSize := maxSize

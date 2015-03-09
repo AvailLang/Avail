@@ -621,7 +621,7 @@ Public stable method "an integer from_" is
 	bytes : byte+
 |
 	value : integer := -(bytes[1] >> 7);
-	For each of bytes do [b : byte | value := (eject value << 8) bit∨ b;];
+	For each b of bytes do [value := (eject value << 8) bit∨ b;];
 	value
 ] : integer;
 
@@ -640,7 +640,7 @@ Public stable method "an unsigned integer from_" is
 	bytes : byte+
 |
 	value : integer := 0;
-	For each of bytes do [b : byte | value := (eject value << 8) bit∨ b;];
+	For each b of bytes do [value := (eject value << 8) bit∨ b;];
 	value
 ];
 

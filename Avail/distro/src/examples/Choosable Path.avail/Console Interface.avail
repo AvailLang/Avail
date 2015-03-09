@@ -98,12 +98,7 @@ Private method "prettify_" is
 		base := base + run;
 	];
 	/* Convert singleton line feeds to spaces. */
-	For each of convert do
-	[
-		where : natural number
-	|
-		pretty := pretty[where]→¢" ";
-	];
+	For each where of convert do [pretty := pretty[where]→¢" ";];
 	/* Compress each run bigger than two into a run of two. */
 	For each index from |shrink| to 1 by -1 do
 	[
@@ -150,11 +145,8 @@ Public method "standard console interface" is
 		]
 		else
 		[
-			For each of transitionDescriptions do
+			For each transitionDescription, index of transitionDescriptions do
 			[
-				transitionDescription : string,
-				index : natural number
-			|
 				Print:
 					format "“①”) ‘②’\n\n"
 					with index, prettify transitionDescription;

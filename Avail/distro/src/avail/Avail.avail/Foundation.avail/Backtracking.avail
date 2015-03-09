@@ -279,10 +279,7 @@ Public method "trial element of_" is
 	aTuple : tuple
 |
 	$body : any;
-	For each of aTuple do
-	[
-		element : any
-	|
+	For each element of aTuple do [
 		If first try then [Exit body with element];
 	];
 	Try again
@@ -320,10 +317,8 @@ Public method "trial element of_" is
 	aSet : set
 |
 	$body : any;
-	For each of aSet→tuple do
+	For each element of aSet→tuple do
 	[
-		element : any
-	|
 		If first try then [Exit body with element];
 	];
 	Try again

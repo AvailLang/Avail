@@ -131,10 +131,8 @@ Public method "accumulated sensory information" is
 	 * canonical ordering to learn what features are associated with which
 	 * rooms.
 	 */
-	For each of the RNG's next shuffling of nearbyRooms→tuple do
+	For each nextRoom of the RNG's next shuffling of nearbyRooms→tuple do
 	[
-		nextRoom : room
-	|
 		If nextRoom contains the wumpus then
 		[
 			info ++= nearby wumpus message;

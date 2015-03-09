@@ -126,10 +126,8 @@ Public method "Read and execute the next command" is
 	args : tuple := <>;
 	/* Try to match the command against the command tree. */
 	node : root command node := command tree;
-	For each of tokens do
+	For each commandToken of tokens do
 	[
-		commandToken : nonempty string
-	|
 		/* The player's commands should be construed case-insensitively. */
 		canonicalToken : nonempty string := lowercase commandToken;
 		/* If the token is numeric, then check to see if the special token

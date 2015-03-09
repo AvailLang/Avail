@@ -322,7 +322,7 @@ Public method "Observe|observe_" is
 			Remove current fiber[observing];
 			Guard
 			[
-				For each of reactors do [r : write reactor | r();];
+				For each r of reactors do [r();];
 			]
 			intercept [e : worker exception | Raise e's causal exception];
 		];

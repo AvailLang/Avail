@@ -258,12 +258,7 @@ Method "“_”" is
 	aCave : cave
 |
 	s : string := "a cave with rooms:";
-	For each of aCave's network of rooms do
-	[
-		aRoom : room
-	|
-		s ++= "\n\t" ++ “aRoom”;
-	];
+	For each aRoom of aCave's network of rooms do [s ++= "\n\t" ++ “aRoom”;];
 	s
 ] : string;
 

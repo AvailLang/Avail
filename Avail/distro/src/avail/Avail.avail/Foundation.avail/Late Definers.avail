@@ -135,7 +135,7 @@ Public method "Require:_is unambiguous" is
 	];
 ] : ⊤;
 
-For each of
+For each name of
 <
 	"Method_is_",
 	"Private abstract method_is_",
@@ -156,8 +156,6 @@ For each of
 >
 do
 [
-	name : string
-|
 	Semantic restriction name is
 	[
 		nameType : string's type,

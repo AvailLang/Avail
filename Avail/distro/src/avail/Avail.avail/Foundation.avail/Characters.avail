@@ -1053,10 +1053,8 @@ Private method "recase restriction for elements∈_using_" is
 					converted : {character|} := ∅;
 					if |charType| is finite then
 					[
-						For each of charType's instances do
+						For each c of charType's instances do
 						[
-							c : character
-						|
 							converted := eject converted + converter(c);
 						];
 						cast enumeration of converted

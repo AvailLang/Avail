@@ -303,10 +303,8 @@ Public method "Display CSV(as a table«with headers»?)" is
 	];
 
 	/* Accumulate each of the data records into the text collector. */
-	For each of dataRecords do
+	For each record of dataRecords do
 	[
-		record : <string…|1..>
-	|
 		text := left fold <text> ++ 1 to |record| through
 			[
 				index : natural number,

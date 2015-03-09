@@ -114,10 +114,8 @@ Test "basic counting semaphore" in concurrency test suite is
 			invoke [Signal sem;] with <>, forked at priority 50
 		];
 	Await sem count times;
-	For each of fibers do
+	For each forked of fibers do
 	[
-		forked : fiber
-	|
 		Join forked;
 		Require: forked has terminated;
 	];
@@ -143,21 +141,13 @@ Test "heritable fiber variables" in concurrency test suite is
 		u1 → ∅,
 		u2 → "golem"
 	};
-	For each of fiberLocals do
-	[
-		key : atom,
-		value : any
-	|
-		current fiber[key] := value;
-	];
+	For each key → value of fiberLocals do [current fiber[key] := value;];
 	inherited : {atom→any|} := {};
 	forked ::=
 		invoke
 		[
-			For each of fiberLocals' keys do
+			For each key of fiberLocals' keys do
 			[
-				key : atom
-			|
 				If key ∈ current fiber then
 				[
 					inherited := inherited + key→current fiber[key];
@@ -190,24 +180,16 @@ Test "heritable fiber variables (orphan)" in concurrency test suite is
 		u1 → 100,
 		u2 → {"United States" → "Washington, D.C."}
 	};
-	For each of fiberLocals do
-	[
-		key : atom,
-		value : any
-	|
-		current fiber[key] := value;
-	];
+	For each key → value of fiberLocals do [current fiber[key] := value;];
 	mutex ::= a monitor named "heritable fiber variables";
 	isDone : boolean := false;
 	done ::= a condition of mutex such that [isDone];
 	inherited : {atom→any|} := {};
 	Invoke
 	[
-		For each of fiberLocals' keys do
+		For each key of fiberLocals' keys do
 		[
-			key : atom
-		|
-			If key ∈ current fiber then
+		 If key ∈ current fiber then
 			[
 				inherited := inherited + key→current fiber[key];
 			];
@@ -281,13 +263,7 @@ Test "heritable fiber variables (delayed fork)" in concurrency test suite is
 		u1 → ∅,
 		u2 → "golem"
 	};
-	For each of fiberLocals do
-	[
-		key : atom,
-		value : any
-	|
-		current fiber[key] := value;
-	];
+	For each key → value of fiberLocals do [current fiber[key] := value;];
 	inherited : {atom→any|} := {};
 	delay ::= 10;
 	then ::= milliseconds since the Epoch;
@@ -297,10 +273,8 @@ Test "heritable fiber variables (delayed fork)" in concurrency test suite is
 		invoke
 		[
 			now := milliseconds since the Epoch;
-			For each of fiberLocals' keys do
+			For each key of fiberLocals' keys do
 			[
-				key : atom
-			|
 				If key ∈ current fiber then
 				[
 					inherited := inherited + key→current fiber[key];
@@ -335,13 +309,7 @@ Test "heritable fiber variables (delayed fork, orphan)"
 		u1 → 100,
 		u2 → {"United States" → "Washington, D.C."}
 	};
-	For each of fiberLocals do
-	[
-		key : atom,
-		value : any
-	|
-		current fiber[key] := value;
-	];
+	For each key → value of fiberLocals do [current fiber[key] := value;];
 	mutex ::= a monitor named "heritable fiber variables";
 	isDone : boolean := false;
 	done ::= a condition of mutex such that [isDone];
@@ -353,10 +321,8 @@ Test "heritable fiber variables (delayed fork, orphan)"
 		invoke
 		[
 			now := milliseconds since the Epoch;
-			For each of fiberLocals' keys do
+			For each key of fiberLocals' keys do
 			[
-				key : atom
-			|
 				If key ∈ current fiber then
 				[
 					inherited := inherited + key→current fiber[key];

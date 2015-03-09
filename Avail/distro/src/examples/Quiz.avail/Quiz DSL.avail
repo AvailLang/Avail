@@ -616,11 +616,8 @@ Private method "_'s⁇score" is
 	gradeSheet : grade sheet
 |
 	score : whole number point := 0 pt;
-	For each of gradeSheet's answers do
+	For each q → a of gradeSheet's answers do
 	[
-		q : question,
-		a : answer
-	|
 		If a correctly answers q then [score := score + q's weight;];
 	];
 	score
@@ -784,11 +781,8 @@ Private method "Administer_" is
 			aQuiz's title,
 			(0 max 79 - |aQuiz's title|) of ¢=;
 	count ::= |aQuiz's questions|;
-	For each of aQuiz's questions do
+	For each aQuestion, index of aQuiz's questions do
 	[
-		aQuestion : question,
-		index : natural number
-	|
 		Print: format "\n[#“①” of “②”]\n" with index, count;
 		Present aQuestion;
 	];

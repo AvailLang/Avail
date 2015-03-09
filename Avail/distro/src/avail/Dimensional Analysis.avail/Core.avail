@@ -1488,12 +1488,9 @@ Method "_^_(unit map)" is
 	minExponent : extended integer := ∞;
 	maxExponent : extended integer := -∞;
 	unitMap ::= aUnit's unit map;
-	For each of unitMap do
+	For each key → exponent of unitMap do
 	[
-		key : atom,
-		exponent : integer
-	|
-		exponentType ::= exponent's type × power (Avail);
+	 	exponentType ::= exponent's type × power (Avail);
 		minExponent := eject minExponent min ⎣exponentType⎦;
 		maxExponent := eject maxExponent max ⎡exponentType⎤;
 	];

@@ -100,10 +100,8 @@ Private method "context type,initialization triples,and atom map given_and_" is
 	/* Build the field type map for the game-specific context type. Start with
 	 * the boolean fields, since they require special support.
 	 */
-	For each of booleanQuartets do
+	For each quartet of booleanQuartets do
 	[
-		quartet : <string, boolean, string, boolean…|4>
-	|
 		/* Use the positve form to name the field atom. */
 		positive ::= quartet[1];
 		fieldAtom ::= atom for positive;
@@ -113,15 +111,11 @@ Private method "context type,initialization triples,and atom map given_and_" is
 			++ <<fieldAtom, boolean, quartet[2]>>;
 	];
 	/* Now augment the field type map with the non-boolean fields. */
-	For each of nonBooleanState do
+	For each typeSection of nonBooleanState do
 	[
-		typeSection : <any's type, <<string, any…|2>…|1..>…|2>
-	|
 		fieldType ::= typeSection[1];
-		For each of typeSection[2] do
+		For each fieldDefinition of typeSection[2] do
 		[
-			fieldDefinition : <string, any…|2>
-		|
 			fieldName ::= fieldDefinition[1];
 			fieldAtom ::= atom for fieldName;
 			atomsByName := atomsByName + fieldName→fieldAtom;
@@ -320,10 +314,8 @@ Private method "Install boolean accessors for_given_and_" is
 	booleanQuintets : <<string, boolean, string, boolean…|4>…|>,
 	atomsByName : {string→atom|}
 |
-	For each of booleanQuintets do
+	For each quartet of booleanQuintets do
 	[
-		quartet : <string, boolean, string, boolean…|4>
-	|
 		/* Generate and install the positive interrogative accessor. */
 		positive ::= quartet[1];
 		fieldAtom ::= atomsByName[positive];
@@ -385,15 +377,11 @@ Private method "Install non-boolean accessors for_given_and_" is
 	atomsByName : {string→atom|}
 |
 	/* Iterate through the sections of state variables. */
-	For each of nonBooleanState do
+	For each typeSection of nonBooleanState do
 	[
-		typeSection : <any's type, <<string, any…|2>…|1..>…|2>
-	|
 		stateType ::= typeSection[1];
-		For each of typeSection[2] do
+		For each stateDefinition of typeSection[2] do
 		[
-			stateDefinition : <string, any…|2>
-		|
 			/* Generate and install the accessor. */
 			accessor ::= stateDefinition[1];
 			fieldAtom ::= atomsByName[accessor];
@@ -897,10 +885,8 @@ Public method "Let«_‡,⁇and⁇»be a⁇scene|scenes" is
 	sceneType ::= scene for contextType;
 	sceneVaultUpdates : <<variable, nonempty string…|2>…|> := <>;
 	/* Declare the scenes. */
-	For each of sceneNames do
+	For each name of sceneNames do
 	[
-		name : nonempty string
-	|
 		/* We want to get the variable's content type exactly right, but can't
 		 * do this statically because we don't know the game context type
 		 * statically. So dynamically create a variable of the right type.
@@ -923,10 +909,8 @@ Public method "Let«_‡,⁇and⁇»be a⁇scene|scenes" is
 	Lock sceneVaultLock for
 	[
 		sceneVaultVar ::= dynamic scene vault for sceneType;
-		For each of sceneVaultUpdates do
+		For each aBinding of sceneVaultUpdates do
 		[
-			aBinding : <variable, nonempty string…|2>
-		|
 			sceneVar ::= aBinding[1];
 			internalName ::= aBinding[2];
 			sceneVaultMap ::=
@@ -1191,10 +1175,8 @@ Private method "Generate scene transition constructors" is
 	 */
 	publicNames ::= current module's public names;
 	argNames ::= <"target", "predicate", "action", "description">;
-	For each of combinations do
+	For each combination of combinations do
 	[
-		combination : <any's type…|4>
-	|
 		/* Construct the name of the method. The predication and activation
 		 * dimensions are implicit in many constructors.
 		 */
@@ -1214,11 +1196,8 @@ Private method "Generate scene transition constructors" is
 		args : <argument phrase…|> := <>;
 		argMap : {[1..4]→[0..4]|} := {};
 		outputIndex : [0..4] := 0;
-		For each of combination do
+		For each argType, index of combination do
 		[
-			argType : any's type,
-			index : [1..4]
-		|
 			If argType ≠ ⊥ then
 			[
 				argName ::= argNames[index];
@@ -1536,10 +1515,8 @@ is
 |
 	/* Explore the scene function's literals and outers. */
 	impl ::= sceneFunction's implementation;
-	For each of impl's literals ++ sceneFunction's outer variables do
+	For each aLiteral of impl's literals ++ sceneFunction's outer variables do
 	[
-		aLiteral : any
-	|
 		Cast aLiteral into
 		[
 			v : variable
@@ -1637,11 +1614,8 @@ Private method "Verify all scenes in_are reachable from_" is
 	 */
 	scenesByName : {nonempty string→scene|} := {};
 	namesByScene : {scene→nonempty string|} := {};
-	For each of sceneVault do
+	For each sceneVar → internalName of sceneVault do
 	[
-		sceneVar : variable,
-		internalName : nonempty string
-	|
 		aScene ::= cast ↓sceneVar into [s : scene | s];
 		scenesByName := scenesByName + internalName→aScene;
 		namesByScene := namesByScene + aScene→internalName;
@@ -1658,10 +1632,8 @@ Private method "Verify all scenes in_are reachable from_" is
 		aScene ::= unvisited[1];
 		unvisited := unvisited[2..];
 		/* Process each transition from this scene. */
-		For each of aScene's transitions do
+		For each aTransition of aScene's transitions do
 		[
-			aTransition : scene transition
-		|
 			nextScenes ::=
 				scenes from namesByScene's keys
 				named by scenesByName
@@ -1704,11 +1676,8 @@ Semantic restriction "Verify story" is
 		cast ↓sceneVaultVar
 		into [m : {variable→nonempty string|} | m];
 	undetailedScenes : {nonempty string|} := ∅;
-	For each of sceneVault do
+	For each sceneVar → internalName of sceneVault do
 	[
-		sceneVar : variable,
-		internalName : nonempty string
-	|
 		If sceneVar is unassigned then
 		[
 			undetailedScenes := undetailedScenes + internalName;

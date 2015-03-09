@@ -403,10 +403,8 @@ Action "shooting" is
 		/* The arrow will make |ids| transitions, but not necessarily to the
 		 * intended rooms -- only if the player got them right!
 		 */
-		For each of ids do
+		For each nextId of ids do
 		[
-			nextId : room id
-		|
 			/* Note that the first shot will never fly wild. */
 			nextRoom ::=
 				If flyingWild

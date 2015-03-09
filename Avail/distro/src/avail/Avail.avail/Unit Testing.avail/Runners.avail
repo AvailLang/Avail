@@ -739,11 +739,8 @@ Private method "report for_,⁇organized by_,⁇with headers given by_" is
 				[t : unit test exclusion | $skipped]
 		];
 	badResults : <unit test failure…|> := <>;
-	For each of organizer(report) do
+	For each key → results of organizer(report) do
 	[
-		key : any,
-		results : <unit test result…|>
-	|
 		desc := eject desc
 			++ left fold <heading(key)> ++ results through
 				[
