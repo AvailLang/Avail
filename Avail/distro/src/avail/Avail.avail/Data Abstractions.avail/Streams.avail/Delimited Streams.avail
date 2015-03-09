@@ -52,6 +52,7 @@ Private method "delimiter|delimiters" is [$"delimiter|delimiters"];
  * @field "element type" "tuple's type"
  * @field "reconstructible decorated stream" "stream"
  * @field "delimiter" "<any…|1..>"
+ * @category "Data Abstractions" "Streams"
  */
 Class "delimited stream" extends stream
 	with fields
@@ -108,6 +109,7 @@ delimited stream's tail method is
  *    delimiterTuple - The delimiter.
  * @returns "stream of tuple"
  *    The requested stream.
+ * @category "Data Abstractions" "Streams"
  */
 Public method "_delimited by_" is
 [
@@ -138,6 +140,7 @@ Semantic restriction "_delimited by_" is
  * @type "multiply delimited stream"
  * @supertype "delimited stream"
  * @field "delimiters" "<<any…|1..>…|1..>;"
+ * @category "Data Abstractions" "Streams"
  */
 Explicit class "multiply delimited stream" extends delimited stream
 	with fields
@@ -206,6 +209,7 @@ multiply delimited stream's tail method is
  *    delimiterTuple - The delimiter.
  * @returns "stream of tuple"
  *    The requested stream.
+ * @category "Data Abstractions" "Streams"
  */
 Public method "_delimited by any of_" is
 [

@@ -155,31 +155,3 @@ Semantic restriction "_delimited by_" is
 		component reader : readerType,
 		delimiter : delimiterType
 ];
-
-"delimited reader test suite" is a new atom;
-New test suite delimited reader test suite extends iterators test suite;
-
-Test "delimited reader basics" in delimited reader test suite is
-[
-	ref ::= 1 to 10;
-	d ::= <1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, 9, 0, 10>;
-	index : natural number := 1;
-	iter ::= a reader over d delimited by <0>;
-	For each iter do
-	[
-		element : <[0..10]…|>
-	|
-		Require: element = <ref[(index++)]>;
-	];
-	Require: index = (|ref| + 1);
-];
-
-Test "delimited reader(no occurrences)" in delimited reader test suite is
-[
-	ref ::= 1 to 10;
-	iter ::= a reader over 1 to 10 delimited by <0>;
-	element ::= iter's current element;
-	Require: element = ref;
-	Advance iter;
-	Require: iter is exhausted;
-];

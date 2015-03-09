@@ -37,7 +37,7 @@ Extends
 	"Advanced Math",
 	"Data Abstractions",
 	"Foundation",
-	"Foundation Tests",
 	"IO",
+	"Tests",
 	"Unit Testing"
 Body

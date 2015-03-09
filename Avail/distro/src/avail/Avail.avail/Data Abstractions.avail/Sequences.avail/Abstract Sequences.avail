@@ -57,9 +57,7 @@ Extends
 		"«_‡++»"
 	)
 Uses
-	"Common" = ("Data|data abstractions test suite"),
-	"Foundation",
-	"Unit Testing" = ("New test suite,⁇_,⁇extends_")
+	"Foundation"
 Names
 	"an empty sequence",
 	"empty sequence",

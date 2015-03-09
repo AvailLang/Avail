@@ -42,17 +42,20 @@ Uses
 	"Definers",
 	"Early Conditionals",
 	"Early Functions",
+	"Early Macro Support",
 	"Early Tuples",
 	"Enumeration Support",
 	"Literals",
 	"Logic",
 	"Math",
+	"Phrases",
 	"Sets",
 	"Tuples",
 	"Types",
 	"Variables"
 Names
 	"counts for_",
+	"For each…→…of_§do_",
 	"integrate_and_with_",
 	"integrate«_‡,and⁇»with_"
 Body
@@ -213,6 +216,107 @@ Semantic restriction "For each of⁇_do_" is
 	if ⎣mapType⎦ > 0 ∧ action's return type = ⊥ then [⊥]
 	else [⊤]
 ];
+
+/**
+ * Map iterating-loop that invokes {@param "action"} once for every
+ * {@param "elementPhrase"} → {@param "elementPhrase"} in {@param "aMap"}.
+ * 
+ * @macro "For each…→…of_§do_"
+ * @param "keyPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the map key loop variable. The generated 
+ *        loop variable is given the strongest possible type based on the map
+ *        key type of {@param "aMap"}.
+ * @param "valuePhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the map value loop index variable. The 
+ *        generated loop variable is given the strongest possible type based on
+ *        the map value type of {@param "aMap"}.
+ * @param "aMap" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the map to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops" "Collections" "Maps"
+ */
+Macro "For each…→…of_§do_" is
+[
+	keyPhrase : literal phrase ⇒ token,
+	valuePhrase : literal phrase ⇒ token,
+	aMap : expression phrase ⇒ map
+|
+	/* Establish local loop variable is unique*/
+	keyToken ::= keyPhrase's token;
+	keyName ::= keyToken's lexeme;
+	If keyName ∈ scope map then
+	[
+		Reject parse, expected:
+			"loop variable "
+			++ keyName
+			++ " to have a name that doesn't shadow another local declaration"
+	];
+
+	/* Establish aMap value variable */
+	valueToken ::= valuePhrase's token;
+	valueName ::= valueToken's lexeme;
+	If valueName ∈ scope map then
+	[
+		Reject parse, expected:
+			"loop value variable "
+			++ valueName
+			++ " to have a name that doesn't shadow another local declaration"
+	];
+	
+	/* Determine the strongest type of the loop key variable for aMap */
+	aMapType ::= aMap's semantic type;
+	keyType ::= aMapType's key type;
+	scope map := scope map + keyName → arg «keyToken : keyType»;
+	
+	/* Determine the strongest type of the loop value variable for aMap */
+	valueType ::= aMapType's value type;
+	scope map := scope map + valueName → arg «valueToken : valueType»;
+],
+[
+	keyPhrase : literal phrase ⇒ token,
+	valuePhrase : literal phrase ⇒ token,
+	aMap : expression phrase ⇒ map,
+	action : block phrase ⇒ []→⊤
+|
+	/* Build the block function */
+	keyName ::= keyPhrase's token's lexeme;
+	valueName ::= valuePhrase's token's lexeme;
+	aMapType ::= aMap's semantic type;
+	blockType ::= [⊥,⊥]→(action's semantic type's return type);
+	restrictions ::= semantic restrictions
+		for method for $"For each of⁇_do_"
+		given <aMapType, blockType>;
+	returnType : type := ⊤;
+	From 1 to |restrictions| by 1 do
+	[
+		value : natural number
+	|
+		returnType := returnType
+			∩ restrictions[value](aMapType, blockType);
+	];
+	statements ::= action's statements;
+	blockReturnType ::= cast statements
+		into [t : phrase+ | t[|t|]'s semantic type]
+		else [⊤];
+
+	castToPhrase ::= [s : nonempty string | 
+		cast scope map[s] into [d : argument phrase | d]];
+	
+	restricted send $"For each of⁇_do_" with
+	<
+		aMap,
+		«[
+			<castToPhrase(keyName), castToPhrase(valueName)>
+		|
+			statements
+		] : blockReturnType»
+	> : returnType
+] : send phrase ⇒ ⊤;
 
 /**
  * Iteratively apply {@param "transformer"} to each binding of {@param "aMap"},

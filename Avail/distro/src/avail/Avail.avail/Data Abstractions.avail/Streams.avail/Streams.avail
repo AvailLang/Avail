@@ -37,6 +37,7 @@ Extends
 	"Abstract Streams" =
 	(
 		"For each of⁇_do_",
+		"For each…of_§do_",
 		"an empty stream",
 		"concatenate_",
 		"drop from_until_",
@@ -81,4 +82,81 @@ Extends
 		"_delimited by_",
 		"_delimited by any of_"
 	)
+Uses
+	"Foundation"
 Body
+
+/**
+ * Stream iterating-loop that invokes {@param "action"} once for every
+ * {@param "elementPhrase"} int {@param "aStream"} 
+ * 
+ * @macro "For each…of_§do_"
+ * @category "Data Abstractions" "Streams"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on of 
+ *        {@param "aStream"}'s element type.
+ * @param "aStream" "expression phrase ⇒ stream"
+ *        An {@type "expression phrase"} that yields the stream to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops" "Collections" "Tuples"
+ */
+Macro "For each…of_§do_" is
+[
+	elementPhrase : literal phrase ⇒ token,
+	aStream : expression phrase ⇒ stream
+|
+	/* Establish local loop variable is unique*/
+	elementToken ::= elementPhrase's token;
+	elementName ::= elementToken's lexeme;
+	If elementName ∈ scope map then
+	[
+		Reject parse, expected:
+			"loop variable "
+			++ elementName
+			++ " to have a name that doesn't shadow another local declaration"
+	];	
+	/* Determine the strongest type of the loop variable for aStream */
+	aStreamType ::= aStream's semantic type;
+	elementType ::= aStreamType's element type's instance;
+	scope map := scope map + elementName → arg «elementToken : elementType»;
+],
+[
+	elementPhrase : literal phrase ⇒ token,
+	aStream : expression phrase ⇒ stream,
+	action : block phrase ⇒ []→⊤
+|
+	/* Build the block function */
+	name ::= elementPhrase's token's lexeme;
+	aStreamType ::= aStream's semantic type;
+	blockType ::= [⊥]→(action's semantic type's return type);
+	restrictions ::= semantic restrictions
+		for method for $"For each of⁇_do_"
+		given <aStreamType, blockType>;
+	returnType : type := ⊤;
+	From 1 to |restrictions| by 1 do
+	[
+		index : natural number
+	|
+		returnType := returnType
+			∩ restrictions[index](aStreamType, blockType);
+	];
+	statements ::= action's statements;
+	blockReturnType ::= cast statements
+		into [t : phrase+ | t[|t|]'s semantic type]
+		else [⊤];
+
+	restricted send $"For each of⁇_do_" with
+	<
+		aStream,
+		«[
+			<cast scope map[name] into [d : argument phrase | d]>
+		|
+			statements
+		] : blockReturnType»
+	> : returnType
+] : send phrase ⇒ ⊤;

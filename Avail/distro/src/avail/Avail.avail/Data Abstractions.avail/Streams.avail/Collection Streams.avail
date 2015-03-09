@@ -52,6 +52,7 @@ Body
  * @field "element type" "any's type"
  * @field "collection" "<any…|>"
  * @field "index" "natural number"
+ * @category "Data Abstractions" "Streams"
  */
 Class "tuple stream" extends stream
 	with fields
@@ -95,6 +96,7 @@ tuple stream's tail method is
  *    aTuple - A tuple.
  * @returns "stream"
  *    The requested stream.
+ * @category "Data Abstractions" "Streams"
  */
 Public stable method "a stream over_" is
 [
@@ -127,6 +129,7 @@ Semantic restriction "a stream over_" is
  *    aSet - A set.
  * @returns "stream"
  *    The requested stream.
+ * @category "Data Abstractions" "Streams"
  */
 Public method "a stream over_" is
 [
@@ -158,6 +161,7 @@ Semantic restriction "a stream over_" is
  *    aMap - A map.
  * @returns "stream"
  *    The requested stream.
+ * @category "Data Abstractions" "Streams"
  */
 Public method "a stream over_" is
 [

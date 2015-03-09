@@ -36,6 +36,5 @@ Versions
 Extends
 	"Abstract Random",
 	"Generic Construction",
-	"Mersenne Twister",
-	"Test"
+	"Mersenne Twister"
 Body

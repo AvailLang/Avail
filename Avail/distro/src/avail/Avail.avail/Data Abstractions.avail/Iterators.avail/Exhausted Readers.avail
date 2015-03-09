@@ -49,9 +49,7 @@ Extends
 	)
 Uses
 	"Abstract Iterators",
-	"Common" = ("Data|data abstractions test suite"),
-	"Foundation",
-	"Unit Testing" = ("New test suite,⁇_,⁇extends_")
+	"Foundation"
 Names
 	"an exhausted reader",
 	"exhausted reader"

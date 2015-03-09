@@ -48,9 +48,7 @@ Extends
 	)
 Uses
 	"Abstract Iterators",
-	"Common" = ("Data|data abstractions test suite"),
-	"Foundation",
-	"Unit Testing" = ("New test suite,⁇_,⁇extends_")
+	"Foundation"
 Names
 	"zipped reader"
 Body

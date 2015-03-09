@@ -50,6 +50,7 @@ Body
  * @supertype "stream"
  * @field "decorated stream" "stream"
  * @field "remaining elements" "whole number"
+ * @category "Data Abstractions" "Streams"
  */
 Class "bounded stream" extends stream
 	with fields
@@ -92,6 +93,7 @@ bounded stream's tail method is
  * @returns "stream"
  *    A stream incapable of producing no more than `limit` elements of
  *    `aStream`.
+ * @category "Data Abstractions" "Streams"
  */
 Public stable method "_limited to_elements" is
 [

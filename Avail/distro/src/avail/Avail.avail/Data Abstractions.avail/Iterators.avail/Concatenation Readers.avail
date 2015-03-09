@@ -45,10 +45,8 @@ Extends
 	)
 Uses
 	"Abstract Iterators",
-	"Common" = ("Data|data abstractions test suite"),
 	"Exhausted Readers",
-	"Foundation",
-	"Unit Testing" = ("New test suite,⁇_,⁇extends_")
+	"Foundation"
 Names
 	"concatenation reader"
 Body

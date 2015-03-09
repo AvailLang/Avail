@@ -42,9 +42,7 @@ Extends
 		"take from_while_"
 	)
 Uses
-	"Common" = ("Data|data abstractions test suite"),
-	"Foundation",
-	"Unit Testing" = ("New test suite,⁇_,⁇extends_")
+	"Foundation"
 Names
 	"Advance_",
 	"Drop from_until_",
@@ -847,6 +845,3 @@ Semantic restriction "Write_to_" is
 	];
 	⊤
 ];
-
-Public "iterators test suite" is a new field atom;
-New test suite iterators test suite extends data abstractions test suite;

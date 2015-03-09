@@ -39,10 +39,8 @@ Uses
 Names
 	/* Attributes. */
 	"element type",
-	"_'s⁇element type",
+	"_'s⁇element type"
 
-	/* Test suite identifiers. */
-	"Data|data abstractions test suite"
 Body
 
 /**
@@ -53,15 +51,3 @@ Body
  *          The requested field atom.
  */
 Public method "element type" is [$"element type"];
-
-/**
- * Answer the test suite identifier for the data abstractions test suite.
- *
- * @method "data abstractions test suite"
- * @returns "atom"
- *          The requested test suite identifier.
- */
-Public method "Data|data abstractions test suite"
-	is [$"data abstraction test suite"];
-
-Data abstractions test suite is a new test suite;

@@ -36,11 +36,9 @@ Versions
 Uses
 	"Abstract Iterators",
 	"Common",
-	"Foundation",
-	"Unit Testing"
+	"Foundation"
 Names
-	"generator for_",
-	"generator test suite"
+	"generator for_"
 Body
 
 "current value" is a new field atom;
@@ -230,76 +228,4 @@ Semantic restriction "generator for_" is
 				"generator function to accept [⊥]→⊤ (but it only accepts “①”)"
 				with functionType[1]
 		]
-];
-
-"generator test suite" is a new atom;
-New test suite generator test suite extends iterators test suite;
-
-Test "generator basics" in generator test suite is
-[
-	ref ::= 1 to 10;
-	index : natural number := 1;
-	iter ::= generator for
-		[
-			yield : [[1..10]]→⊤
-		|
-			For each i from 1 to 10 do [yield(i);];
-		];
-	For each iter do
-	[
-		element : [1..10]
-	|
-		Require: element = ref[(index++)];
-	];
-	Require: index = (|ref| + 1);
-];
-
-Test "generator raises exception" in generator test suite is
-[
-	ref ::= map 10 to 1 by -1 through [i : [1..10] | 10 ÷ i];
-	index : natural number := 1;
-	iter ::= generator for
-		[
-			yield : [[0..10]]→⊤
-		|
-			For each i from 10 to 0 by -1 do [yield(10 ÷ i);];
-		];
-	For each iter do
-	[
-		element : [0..10]
-	|
-		Require: element = ref[(index++)];
-	];
-]
-must raise cannot-divide-by-zero exception;
-
-Test "generator with multiple yields" in generator test suite is
-[
-	ref ::= 1 to 10;
-	index : natural number := 1;
-	iter ::= generator for
-		[
-			yield : [[1..10]]→⊤
-		|
-			For each i from 1 to 5 do [yield(i);];
-			For each i from 6 to 10 do [yield(i);];
-		];
-	For each iter do
-	[
-		element : [1..10]
-	|
-		Require: element = ref[(index++)];
-	];
-	Require: index = (|ref| + 1);
-];
-
-Test "generator with no yields" in generator test suite is
-[
-	iter ::= generator for
-		[
-			yield : [[1..10]]→⊤
-		|
-			For each i from 1 to 10 do [/* Do nothing. */];
-		];
-	Require: iter is exhausted;
 ];

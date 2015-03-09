@@ -34,7 +34,6 @@ Module "Abstract Converters"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
-	"Common" = ("Data|data abstractions test suite"),
 	"Foundation",
 	"Iterators",
 	"Unit Testing"
@@ -42,7 +41,6 @@ Names
 	"conversion type",
 	"converter",
 	"converter from_to_",
-	"converters test suite",
 	"_'s⁇conversion type",
 /*	"malformed-encoding exception",*/
 /*	"_'s⁇invalid sequence",*/
@@ -163,6 +161,3 @@ Semantic restriction "flush_" is
 |
 	<aConverterType's conversion type's instance's return type…|>
 ];
-
-Public "converters test suite" is a new field atom;
-New test suite converters test suite extends data abstractions test suite;

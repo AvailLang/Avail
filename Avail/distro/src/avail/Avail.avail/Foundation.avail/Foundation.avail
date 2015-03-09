@@ -498,7 +498,6 @@ Extends
 	(
 		"For each of⁇_do_",
 		"For each…of_§do_",
-		"For each…,…of_§do_",
 		"Require:_accepts_",
 		"any of_satisfies_",
 		"count of_where_",
@@ -849,6 +848,7 @@ Extends
 	(
 		"counts for_",
 		"environment map",
+		"For each…→…of_§do_",
 		"integrate_and_with_",
 		"integrate«_‡,and⁇»with_",
 		"${…}«else_»"
@@ -1003,6 +1003,7 @@ Extends
 		"first index of_in_",
 		"first index of_where_",
 		"last index of_where_",
+		"For each…,…of_§do_",
 		"left fold_through_",
 		"merge sort_",
 		"merge sort_with_",

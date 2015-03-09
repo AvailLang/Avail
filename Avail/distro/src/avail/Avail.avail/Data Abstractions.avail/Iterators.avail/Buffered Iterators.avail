@@ -65,10 +65,8 @@ Names
 
 	/* Operations. */
 	"Refresh_",
-	"Synchronize_",
+	"Synchronize_"
 
-	/* Test suites. */
-	"buffered iterator test suite"
 Body
 
 "buffer" is a new field atom;

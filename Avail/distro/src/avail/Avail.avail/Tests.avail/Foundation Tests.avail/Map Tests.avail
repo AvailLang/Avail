@@ -133,6 +133,14 @@ Test "for each of do" in map test suite is
 	Require: a = b;
 ];
 
+Test "macro for each of do" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+	b : map := {};
+	For each s → n of a do [b := b + s→n;];
+	Require: a = b;
+];
+
 Test "count of where" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};

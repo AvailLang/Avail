@@ -55,6 +55,7 @@ Body
  * @field "reconstructible next" "number"
  * @field "step" "number"
  * @field "maximum" "number"
+ * @category "Data Abstractions" "Streams"
  */
 Class "counting number stream" extends stream
 	with fields
@@ -75,6 +76,7 @@ Class "counting number stream" extends stream
  * @field "next" "integer"
  * @field "step" "integer"
  * @field "maximum" "extended integer"
+ * @category "Data Abstractions" "Streams"
  */
 Class "counting integer stream" extends counting number stream
 	with fields
@@ -174,6 +176,7 @@ Semantic restriction "For each of⁇_do_" is
  *       answered by the stream.
  * @returns "stream of integer"
  *    The requested stream.
+ * @category "Data Abstractions" "Streams"
  */
 Public method "a counting stream from_to_" is
 [
@@ -227,6 +230,7 @@ Semantic restriction "a counting stream from_to_" is
  *       differ.
  * @returns "stream of number"
  *    The requested stream.
+ * @category "Data Abstractions" "Streams"
  */
 Public method "a counting stream from_to_by_" is
 [
@@ -292,6 +296,7 @@ Semantic restriction "a counting stream from_to_by_" is
  *       differ.
  * @returns "stream of integer"
  *    The requested stream.
+ * @category "Data Abstractions" "Streams"
  */
 Public method "a counting stream from_to_by_" is
 [
