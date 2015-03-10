@@ -33,14 +33,12 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.CovariantPhraseParameterization.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
-import com.avail.descriptor.ParseNodeTypeDescriptor.CovariantPhraseParameterization;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -127,14 +125,14 @@ extends TypeDescriptor
 	}
 
 	final static CovariantPhraseParameterization[] parameterizations(
-		final CovariantPhraseParameterization... all)
+		final CovariantPhraseParameterization... parameterizations)
 	{
-		for (int i = 0; i < all.length; i++)
+		for (int i = 0; i < parameterizations.length; i++)
 		{
-			assert all[i].index == -1;
-			all[i].index = i + 1;
+			assert parameterizations[i].index == -1;
+			parameterizations[i].index = i + 1;
 		}
-		return all;
+		return parameterizations;
 	}
 
 	/**
@@ -414,7 +412,7 @@ extends TypeDescriptor
 		/**
 		 * The covariant parameterizations of this phrase type.
 		 */
-		CovariantPhraseParameterization[] parameterizations;
+		@Nullable CovariantPhraseParameterization[] parameterizations;
 
 		/**
 		 * Construct a new {@link ParseNodeKind}.

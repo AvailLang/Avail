@@ -193,8 +193,6 @@ extends AbstractAvailCompiler
 		final A_Definition macroDefinitionToInvoke,
 		final Con<A_Phrase> continuation)
 	{
-		final A_Function macroBody = macroDefinitionToInvoke.bodyBlock();
-		final A_Type macroBodyKind = macroBody.kind();
 		final A_Tuple argumentsTuple = argumentsListNode.expressionsTuple();
 		final int argCount = argumentsTuple.tupleSize();
 		// Strip off macro substitution wrappers from the arguments.  These
@@ -203,25 +201,6 @@ extends AbstractAvailCompiler
 		for (final A_Phrase argument : argumentsTuple)
 		{
 			argumentsList.add(argument.stripMacro());
-		}
-		if (argumentsList.size() == 7)
-		{
-			if (argumentsList.get(4).expressionsSize() > 1)
-			{
-				// TODO [MvG] Remove debug
-				System.out.println("Found one.");
-			}
-		}
-		if (!macroBodyKind.acceptsListOfArgValues(argumentsList))
-		{
-			// TODO [MvG] Remove debug
-			System.out.println(
-				String.format(
-					"Macro signature failure:\n\twanted:%s\n\tgot:%s",
-					macroBodyKind,
-					argumentsTuple));
-//			stateAfterCall.expected("different argument types for macro");
-			return;
 		}
 		startWorkUnit();
 		final AtomicBoolean hasRunEither = new AtomicBoolean(false);
@@ -242,8 +221,7 @@ extends AbstractAvailCompiler
 							PARSE_NODE.mostGeneralType());
 						final A_Phrase substitution =
 							MacroSubstitutionNodeDescriptor.fromNameAndNode(
-								bundle.message(),
-								replacement);
+								bundle.message(), replacement);
 						// Declarations introduced inside the macro should be
 						// removed from the scope (at the parse position after
 						// the macro body runs).  Strip all client data, in
@@ -302,7 +280,30 @@ extends AbstractAvailCompiler
 		}
 		else
 		{
-			start.expected("simple expression");
+			start.expected(new Describer()
+			{
+				@Override
+				public void describeThen (
+					final Continuation1<String> withDescription)
+				{
+					assert withDescription != null;
+					final List<String> causes = new ArrayList<>();
+					ConNullable<A_Phrase> remainder = continuation;
+					while (causes.size() < 10 && remainder != null)
+					{
+						remainder = remainder.addCauseTo(causes);
+					}
+					final StringBuilder builder = new StringBuilder();
+					builder.append(
+						"simple expression with these causes:");
+					for (final String cause : causes)
+					{
+						builder.append("\n\t");
+						builder.append(cause);
+					}
+					withDescription.value(builder.toString());
+				}
+			});
 		}
 	}
 }

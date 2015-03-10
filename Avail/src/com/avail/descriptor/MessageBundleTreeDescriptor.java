@@ -648,12 +648,9 @@ extends Descriptor
 		{
 			// It's past the end of the parsing instructions.
 			complete.value = complete.value.mapAtPuttingCanDestroy(
-				bundle.message(),
-				bundle,
-				true);
+				bundle.message(), bundle, true);
 			return;
 		}
-
 		final int instruction = instructions.tupleIntAt(pc);
 		final ParsingOperation op = ParsingOperation.decode(instruction);
 		final int keywordIndex = op.keywordIndex(instruction);
@@ -675,9 +672,7 @@ extends Descriptor
 			{
 				subtree = newPc(pc + 1);
 				map.value = map.value.mapAtPuttingCanDestroy(
-					part,
-					subtree,
-					true);
+					part, subtree, true);
 			}
 			subtree.addBundle(bundle);
 			return;
@@ -695,9 +690,7 @@ extends Descriptor
 				: TupleDescriptor.empty();
 			successors = successors.appendCanDestroy(newTarget, true);
 			actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
-				instructionObject,
-				successors,
-				true);
+				instructionObject, successors, true);
 			// We added it to the actions, so don't fall through.
 			return;
 		}
@@ -722,9 +715,7 @@ extends Descriptor
 			{
 				successor = newPc(pc + 1);
 				actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
-					instructionObject,
-					TupleDescriptor.from(successor),
-					true);
+					instructionObject, TupleDescriptor.from(successor), true);
 			}
 			A_Set forbiddenBundles = SetDescriptor.empty();
 			for (final A_GrammaticalRestriction restriction
@@ -739,8 +730,7 @@ extends Descriptor
 						restriction.argumentRestrictionSets().tupleAt(
 							checkArgumentIndex);
 					forbiddenBundles = forbiddenBundles.setUnionCanDestroy(
-						bundles,
-						true);
+						bundles, true);
 				}
 			}
 			// Add it to every existing branch where it's permitted.
@@ -773,9 +763,7 @@ extends Descriptor
 					}
 					prefilterMap.value =
 						prefilterMap.value.mapAtPuttingCanDestroy(
-							restrictedBundle,
-							newTarget,
-							true);
+							restrictedBundle, newTarget, true);
 				}
 			}
 			// Finally, add it to the action map.  This had to be

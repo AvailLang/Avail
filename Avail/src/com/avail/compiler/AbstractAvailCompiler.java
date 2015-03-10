@@ -35,7 +35,6 @@ import static com.avail.compiler.AbstractAvailCompiler.ExpectedToken.*;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.problems.ProblemType.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
@@ -60,6 +59,7 @@ import com.avail.compiler.problems.ProblemHandler;
 import com.avail.compiler.problems.ProblemType;
 import com.avail.compiler.scanning.*;
 import com.avail.descriptor.*;
+import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.exceptions.AvailAssertionFailedException;
@@ -491,6 +491,12 @@ public abstract class AbstractAvailCompiler
 		 * string {@linkplain LiteralTokenDescriptor literals}.
 		 */
 		public final List<A_Token> pragmas = new ArrayList<>();
+
+		/**
+		 * The token index at which the pragma section starts, if any, otherwise
+		 * zero.
+		 */
+		public int pragmaStart = 0;
 
 		/**
 		 * Construct a new {@link AbstractAvailCompiler.ModuleHeader}.
@@ -1290,8 +1296,7 @@ public abstract class AbstractAvailCompiler
 		final Object [] descriptionParameters;
 
 		/**
-		 * Construct a new {@link AvailCompiler.Con} with the provided
-		 * description.
+		 * Construct a new {@link ConNullable} with the provided description.
 		 *
 		 * @param description The provided description.
 		 * @param descriptionParameters The description parameters.
@@ -1307,9 +1312,28 @@ public abstract class AbstractAvailCompiler
 		@Override
 		public String toString ()
 		{
-			return "Con("
+			return
+				"Con("
 				+ String.format(description, descriptionParameters)
 				+ ")";
+		}
+
+		/**
+		 * Add to the chain of causes that describes what could be accomplished
+		 * by invoking this continuation with a result.  Answer another
+		 * continuation capable of extending the chain of causes, or if not
+		 * available answer {@code null}.
+		 *
+		 * @param causes
+		 *        The list of strings to append a new cause to.
+		 * @return Either null or a continuation capable of providing more
+		 *         basic causes for this continuation.
+		 */
+		public @Nullable ConNullable<AnswerType> addCauseTo (
+			final List<String> causes)
+		{
+			causes.add(String.format(description, descriptionParameters));
+			return null;
 		}
 
 		@Override
@@ -2569,15 +2593,37 @@ public abstract class AbstractAvailCompiler
 		return new SimpleDescriber(string);
 	}
 
+	/**
+	 * An aggregate of problems at a specific token.  It also includes the
+	 * {@link String} used to mark the location of the problem in the source
+	 * text.
+	 */
 	private final class ProblemsAtToken
 	implements Comparable<ProblemsAtToken>
 	{
+		/** The token at which these problems occurred. */
 		A_Token token;
 
+		/**
+		 * The indicator {@link String} that marks the location of the problems
+		 * in the source text.
+		 */
 		String indicator;
 
+		/** A list of {@link Describer}s able to describe the problems. */
 		List<Describer> describers;
 
+		/**
+		 * Construct a new {@link ProblemsAtToken}.
+		 *
+		 * @param token
+		 *        The token at which the problems occurred.
+		 * @param indicator
+		 *        The {@link String} that marks the problems in the source.
+		 * @param describers
+		 *        The {@link List} of {@link Describer}s that describe the
+		 *        problems at the specified token.
+		 */
 		ProblemsAtToken (
 			final A_Token token,
 			final String indicator,
@@ -2777,6 +2823,12 @@ public abstract class AbstractAvailCompiler
 			sourcePosition = newPosition;
 		}
 		unnumbered.append(source, sourcePosition, startOfSecondNextLine);
+		// Ensure the last character is a newline.
+		if (unnumbered.length() == 0 ||
+			unnumbered.codePointBefore(unnumbered.length()) != '\n')
+		{
+			unnumbered.append('\n');
+		}
 
 		// Insert line numbers...
 		final int maxDigits = Integer.toString(finalLineNumber + 1).length();
@@ -3525,8 +3577,9 @@ public abstract class AbstractAvailCompiler
 	 * declared in the module's scope.
 	 *
 	 * @param startState
-	 *        The start {@linkplain ParserState state}, for line number
-	 *        reporting.
+	 *        The start {@link ParserState}, for line number reporting.
+	 * @param afterStatement
+	 *        The {@link ParserState} just after the statement.
 	 * @param expressionOrMacro
 	 *        The expression to compile and evaluate as a top-level statement in
 	 *        the module.
@@ -3540,6 +3593,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	void evaluateModuleStatementThen (
 		final ParserState startState,
+		final ParserState afterStatement,
 		final A_Phrase expressionOrMacro,
 		final Continuation0 onSuccess,
 		final Continuation0 afterFail)
@@ -3596,10 +3650,26 @@ public abstract class AbstractAvailCompiler
 		// It's a declaration, but the parser couldn't previously tell that it
 		// was at module scope.
 		final A_String name = expression.token().string();
+		final @Nullable String shadowProblem =
+			module.variableBindings().hasKey(name)
+				? "module variable"
+				: module.constantBindings().hasKey(name)
+					? "module constant"
+					: null;
 		switch (expression.declarationKind())
 		{
 			case LOCAL_CONSTANT:
 			{
+				if (shadowProblem != null)
+				{
+					afterStatement.expected(
+						"new module constant "
+						+ name
+						+ " not to have same name as existing "
+						+ shadowProblem);
+					reportError(afterFail);
+					return;
+				}
 				evaluatePhraseThen(
 					expression.initializationExpression(),
 					expression.token().lineNumber(),
@@ -3650,6 +3720,16 @@ public abstract class AbstractAvailCompiler
 			}
 			case LOCAL_VARIABLE:
 			{
+				if (shadowProblem != null)
+				{
+					afterStatement.expected(
+						"new module variable "
+						+ name
+						+ " not to have same name as existing "
+						+ shadowProblem);
+					reportError(afterFail);
+					return;
+				}
 				final A_Variable var = VariableDescriptor.forContentType(
 					expression.declaredType());
 				module.addVariableBinding(name, var);
@@ -4123,7 +4203,8 @@ public abstract class AbstractAvailCompiler
 		if (anyPrefilter)
 		{
 			final A_Phrase latestArgument = last(argsSoFar);
-			if (latestArgument.isInstanceOfKind(SEND_NODE.mostGeneralType()))
+			if (latestArgument.isMacroSubstitutionNode()
+				|| latestArgument.isInstanceOfKind(SEND_NODE.mostGeneralType()))
 			{
 				final A_Bundle argumentBundle =
 					latestArgument.apparentSendName().bundleOrNil();
@@ -4372,7 +4453,16 @@ public abstract class AbstractAvailCompiler
 				assert successorTrees.tupleSize() == 1;
 				parseSendArgumentWithExplanationThen(
 					start,
-					" (an argument of some message)",
+					new Generator<String>()
+					{
+						@Override
+						public String value ()
+						{
+							return op == PARSE_ARGUMENT
+								? "an argument of some message"
+								: "a top-valued argument of some message";
+						}
+					},
 					firstArgOrNull,
 					firstArgOrNull == null
 						&& initialTokenPosition.position != start.position,
@@ -4404,104 +4494,88 @@ public abstract class AbstractAvailCompiler
 			}
 			case PARSE_VARIABLE_REFERENCE:
 			{
-//TODO MvG - This shouldn't parse tokens explicitly or access the scope map.
-//				parseSendArgumentWithExplanationThen(
-//					start,
-//					" (a variable reference in some message)",
-//					firstArgOrNull,
-//					firstArgOrNull == null
-//						&& initialTokenPosition.position != start.position,
-//					false,
-//					new Con<A_Phrase>("Variable reference argument")
-//					{
-//						@Override
-//						public void valueNotNull (
-//							ParserState state,
-//							A_Phrase answer)
-//						{
-//							if (answer)
-//
-//
-//						}
-//					}
-//					continuation);
-				// A variable name must be a keyword token.
-				final A_Token token = start.peekToken();
-				if (token.tokenType() != KEYWORD)
-				{
-					// Only count this as a possibility if at least one token
-					// has already been parsed for this message, otherwise this
-					// feedback would be too noisy.
-					if (consumedAnything)
+				parseSendArgumentWithExplanationThen(
+					start,
+					new Generator<String>()
 					{
-						start.expected("variable name to be a keyword");
-					}
-					break;
-				}
-				// Look up the variable in the local scope first.
-				final A_String variableName = token.string();
-				final A_Map clientMap = start.clientDataMap;
-				final A_Atom scopeMapKey = AtomDescriptor.compilerScopeMapKey();
-				final A_Map scopeMap = clientMap.hasKey(scopeMapKey)
-					? clientMap.mapAt(scopeMapKey)
-					: MapDescriptor.empty();
-				A_Phrase declaration = null;
-				if (scopeMap.hasKey(variableName))
-				{
-					declaration = scopeMap.mapAt(variableName);
-				}
-				// If the variable is not in the local scope, then check the
-				// module scope.
-				if (module.variableBindings().hasKey(variableName))
-				{
-					final A_Variable variable = module.variableBindings().mapAt(
-						variableName);
-					declaration = DeclarationNodeDescriptor.newModuleVariable(
-						token, variable, NilDescriptor.nil());
-				}
-				else if (module.constantBindings().hasKey(variableName))
-				{
-					final A_Variable variable = module.constantBindings().mapAt(
-						variableName);
-					declaration = DeclarationNodeDescriptor.newModuleConstant(
-						token, variable, NilDescriptor.nil());
-				}
-				// If the variable was not declared, then reject the parse.
-				if (declaration == null)
-				{
-					start.expected(
-						"variable "
-						+ variableName
-						+ " to have been declared before use");
-					break;
-				}
-				// If the variable is a constant, then reject the parse.
-				if (declaration.declarationKind() != LOCAL_VARIABLE
-					&& declaration.declarationKind() != MODULE_VARIABLE)
-				{
-					start.expected(
-						"variable "
-						+ variableName
-						+ " to be a local variable or a module variable");
-					break;
-				}
-				// Create a variable use.
-				final A_Phrase variableUse = VariableUseNodeDescriptor.newUse(
-					token,
-					declaration);
-				// Now create the variable reference.
-				final A_Phrase variableReference =
-					ReferenceNodeDescriptor.fromUse(variableUse);
-				eventuallyParseRestOfSendNode(
-					"Continue send after variable quotation",
-					start.afterToken(),
-					successorTrees.tupleAt(1),
+						@Override
+						public String value ()
+						{
+							return "a variable reference in some message";
+						}
+					},
 					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					append(argsSoFar, variableReference),
-					marksSoFar,
-					continuation);
+					firstArgOrNull == null
+						&& initialTokenPosition.position != start.position,
+					false,
+					new Con<A_Phrase>("Variable reference argument")
+					{
+						@Override
+						public void valueNotNull (
+							final ParserState afterUse,
+							final A_Phrase variableUse)
+						{
+							assert successorTrees.tupleSize() == 1;
+							final A_Phrase rawVariableUse =
+								variableUse.stripMacro();
+							if (!rawVariableUse.parseNodeKind().isSubkindOf(
+								VARIABLE_USE_NODE))
+							{
+								if (consumedAnything)
+								{
+									// At least one token besides the variable
+									// use has been encountered, so go ahead and
+									// report that we expected a variable.
+									afterUse.expected(
+										describeWhyVariableUseIsExpected(
+											successorTrees.tupleAt(1)));
+								}
+								// It wasn't a variable use node, so give up.
+								return;
+							}
+							// Make sure taking a reference is appropriate.
+							final DeclarationKind declarationKind =
+								rawVariableUse.declaration().declarationKind();
+							if (!declarationKind.isVariable())
+							{
+								if (consumedAnything)
+								{
+									// Only complain about this not being a
+									// variable if we've parsed something
+									// besides the variable reference argument.
+									afterUse.expected(
+										"variable for reference argument to "
+										+ "be assignable, not "
+										+ declarationKind.nativeKindName());
+								}
+								return;
+							}
+							// Create a variable reference.  Note that we don't
+							// have to test for a non-macro send phrase, since
+							// it has to be a variable use phrase.
+							final A_Phrase rawVariableReference =
+								ReferenceNodeDescriptor.fromUse(rawVariableUse);
+							final A_Phrase variableReference =
+								variableUse.isMacroSubstitutionNode()
+									? MacroSubstitutionNodeDescriptor
+										.fromNameAndNode(
+											variableUse.apparentSendName(),
+											rawVariableReference)
+									: rawVariableReference;
+							eventuallyParseRestOfSendNode(
+								"Continue send after variable quotation",
+								afterUse,
+								successorTrees.tupleAt(1),
+								null,
+								initialTokenPosition,
+								// The argument counts as something that was
+								// consumed if it's not a leading argument...
+								firstArgOrNull == null,
+								append(argsSoFar, variableReference),
+								marksSoFar,
+								continuation);
+						}
+					});
 				break;
 			}
 			case PARSE_ARGUMENT_IN_MODULE_SCOPE:
@@ -5493,6 +5567,49 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
+	 * Produce a {@link Describer} that says a variable use was expected, and
+	 * indicates why.
+	 *
+	 * @param successorTree
+	 *        The next {@link A_BundleTree} after the current instruction.
+	 * @return The {@link Describer}.
+	 */
+	Describer describeWhyVariableUseIsExpected (
+		final A_BundleTree successorTree)
+	{
+		return new Describer()
+		{
+			@Override
+			public void describeThen (
+				final Continuation1<String> continuation)
+			{
+				final A_Map bundles = successorTree.allBundles();
+				final StringBuilder builder = new StringBuilder();
+				builder.append("a variable use, for one of:");
+				if (bundles.mapSize() > 2)
+				{
+					builder.append("\n\t");
+				}
+				else
+				{
+					builder.append(" ");
+				}
+				boolean first = true;
+				for (final MapDescriptor.Entry entry : bundles.mapIterable())
+				{
+					if (!first)
+					{
+						builder.append(", ");
+					}
+					builder.append(entry.key());
+					first = false;
+				}
+				continuation.value(builder.toString());
+			}
+		};
+	}
+
+	/**
 	 * A complete {@linkplain SendNodeDescriptor send node} has been parsed.
 	 * Create the send node and invoke the continuation.
 	 *
@@ -5744,7 +5861,7 @@ public abstract class AbstractAvailCompiler
 	 * @param start
 	 *            Where to start parsing.
 	 * @param explanation
-	 *            A {@link String} indicating why it's parsing an argument.
+	 *            A {@link Describer} explaining why it's parsing an argument.
 	 * @param firstArgOrNull
 	 *            Either a parse node to use as the argument, or null if we
 	 *            should parse one now.
@@ -5760,7 +5877,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	void parseSendArgumentWithExplanationThen (
 		final ParserState start,
-		final String explanation,
+		final Generator<String> explanation,
 		final @Nullable A_Phrase firstArgOrNull,
 		final boolean canReallyParse,
 		final boolean wrapInLiteral,
@@ -5807,6 +5924,13 @@ public abstract class AbstractAvailCompiler
 								wrapAsLiteralIf(argument, wrapInLiteral));
 						}
 
+						@Override
+						public @Nullable ConNullable<A_Phrase> addCauseTo (
+							final List<String> causes)
+						{
+							causes.add(explanation.value());
+							return continuation;
+						}
 					});
 			}
 		}
@@ -5863,108 +5987,6 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Parse a supercast clause, which has the form "(expr :: type)".
-	 *
-	 * @param start
-	 *            Where to start parsing a supercast.
-	 * @param continuation
-	 *            What to do with the supercast phrase.
-	 */
-	void parseSupercastThen (
-		final ParserState start,
-		final Con<A_Phrase> continuation)
-	{
-		if (!start.peekToken(OPEN_PARENTHESIS))
-		{
-			// Never suggest a supercast if there is no open parenthesis.
-			return;
-		}
-		final ParserState afterOpenParen = start.afterToken();
-		parseExpressionThen(afterOpenParen, new Con<A_Phrase>(
-			"supercast base expression after open parenthesis")
-		{
-			@Override
-			public void valueNotNull (
-				final ParserState afterExpr,
-				final A_Phrase expr)
-			{
-				if (expr.hasSuperCast())
-				{
-					afterExpr.expected(
-						"supercast's expression not to be another supercast");
-					return;
-				}
-				if (!afterExpr.peekToken(COLON))
-				{
-					// We saw "(expr" and no colon; don't suggest a supercast.
-					return;
-				}
-				final ParserState afterColon = afterExpr.afterToken();
-				if (!afterColon.peekToken(
-					COLON, "second colon of :: for supercast"))
-				{
-					return;
-				}
-				final ParserState afterTwoColons = afterColon.afterToken();
-				parseAndEvaluateExpressionYieldingInstanceOfThen(
-					afterTwoColons,
-					InstanceMetaDescriptor.topMeta(),
-					new Con<AvailObject>(
-						"supercast's type expression after two colons (::)")
-					{
-						@Override
-						public void valueNotNull (
-							final ParserState afterType,
-							final AvailObject typeForLookup)
-						{
-							if (!afterType.peekToken(
-								CLOSE_PARENTHESIS,
-								"close parenthesis to end supercast"))
-							{
-								return;
-							}
-							final ParserState afterCast =
-								afterType.afterToken();
-							final A_Type exprType = expr.expressionType();
-							if (exprType.isSubtypeOf(typeForLookup)
-								&& !exprType.equals(typeForLookup))
-							{
-								final A_Phrase supercast =
-									SuperCastNodeDescriptor.create(
-										expr, typeForLookup);
-								attempt(afterCast, continuation, supercast);
-								return;
-							}
-							// Otherwise the supercast's lookup type was not a
-							// proper supertype of the value's actual type.
-							afterCast.expected(new Describer()
-							{
-								@Override
-								public void describeThen (
-									final Continuation1<String>
-										continuationAfterDescribing)
-								{
-									final StringBuilder builder =
-										new StringBuilder();
-									builder.append(
-										"provided supercast type (");
-									builder.append(typeForLookup);
-									builder.append(
-										") to be a strict supertype of "
-										+ "the expression's type (");
-									builder.append(exprType);
-									builder.append(")");
-									continuationAfterDescribing.value(
-										builder.toString());
-								}
-							});
-						}
-					});
-			}
-		});
-	}
-
-	/**
 	 * Parse an argument in the top-most scope.  This is an important capability
 	 * for parsing type expressions, and the macro facility may make good use
 	 * of it for other purposes.
@@ -6018,7 +6040,14 @@ public abstract class AbstractAvailCompiler
 			clientDataInGlobalScope);
 		parseSendArgumentWithExplanationThen(
 			startInGlobalScope,
-			" (a global-scoped argument of some message)",
+			new Generator<String>()
+			{
+				@Override
+				public String value ()
+				{
+					return "a global-scoped argument for:\n";
+				}
+			},
 			firstArgOrNull,
 			firstArgOrNull == null
 				&& initialTokenPosition.position != start.position,
@@ -6083,9 +6112,7 @@ public abstract class AbstractAvailCompiler
 					final List<A_Phrase> newArgsSoFar =
 						append(argsSoFar, newArg);
 					final ParserState afterArgButInScope =
-						new ParserState(
-							afterArg.position,
-							start.clientDataMap);
+						new ParserState(afterArg.position, start.clientDataMap);
 					eventuallyParseRestOfSendNode(
 						"Continue send after argument in module scope",
 						afterArgButInScope,
@@ -6269,7 +6296,7 @@ public abstract class AbstractAvailCompiler
 				nameLiteral,
 				LiteralNodeDescriptor.syntheticFrom(function))),
 			TOP.o());
-		evaluateModuleStatementThen(state, send, success, failure);
+		evaluateModuleStatementThen(state, state, send, success, failure);
 	}
 
 	/**
@@ -6338,7 +6365,7 @@ public abstract class AbstractAvailCompiler
 				LiteralNodeDescriptor.syntheticFrom(functionsTuple),
 				LiteralNodeDescriptor.syntheticFrom(body))),
 			TOP.o());
-		evaluateModuleStatementThen(state, send, success, failure);
+		evaluateModuleStatementThen(state, state, send, success, failure);
 	}
 
 	/**
@@ -6608,7 +6635,7 @@ public abstract class AbstractAvailCompiler
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
 				LiteralNodeDescriptor.syntheticFrom(atom))),
 			TOP.o());
-		evaluateModuleStatementThen(state, send, success, failure);
+		evaluateModuleStatementThen(state, state, send, success, failure);
 	}
 
 	/**
@@ -6629,6 +6656,8 @@ public abstract class AbstractAvailCompiler
 		final Continuation0 success,
 		final Continuation0 failure)
 	{
+		// Report pragma installation problems relative to the pragma section.
+		firstRelevantTokenIndexOfSection = moduleHeader().pragmaStart;
 		final Iterator<A_Token> iterator = moduleHeader().pragmas.iterator();
 		final MutableOrNull<Continuation0> body = new MutableOrNull<>();
 		final Continuation0 next = new Continuation0()
@@ -6646,7 +6675,9 @@ public abstract class AbstractAvailCompiler
 			{
 				if (!iterator.hasNext())
 				{
-					// Done with all the pragmas, if any.
+					// Done with all the pragmas, if any.  Report any new
+					// problems relative to the body section.
+					firstRelevantTokenIndexOfSection = state.position;
 					success.value();
 					return;
 				}
@@ -6811,11 +6842,9 @@ public abstract class AbstractAvailCompiler
 				// The counters must be read in this order for correctness.
 				assert workUnitsCompleted.get() == workUnitsQueued.get();
 
-				// Clear the section of the fragment cache associated with
-				// the (outermost) statement just parsed...
-				fragmentCache.clear();
 				evaluateModuleStatementThen(
 					lastStart.value,
+					afterStatement,
 					unambiguousStatement,
 					new Continuation0()
 					{
@@ -6872,6 +6901,10 @@ public abstract class AbstractAvailCompiler
 							// Otherwise, report success.
 							else
 							{
+								// Clear the section of the fragment cache
+								// associated with the (outermost) statement
+								// just parsed and executed...
+								fragmentCache.clear();
 								final Continuation0 reporter = successReporter;
 								assert reporter != null;
 								reporter.value();
@@ -6914,8 +6947,8 @@ public abstract class AbstractAvailCompiler
 	/**
 	 * Parse a {@linkplain ModuleHeader module header} from the {@linkplain
 	 * TokenDescriptor token} list.  Eventually, and in some thread, invoke
-	 * either the {@code successContinuation} or the {@code
-	 * failureContinuation}, depending on whether the parsing was successful.
+	 * either the {@code onSuccess} continuation or the {@code afterFail}
+	 * continuation, depending on whether the parsing was successful.
 	 *
 	 * @param onSuccess
 	 *        What to do when the header has been parsed.
@@ -7147,8 +7180,9 @@ public abstract class AbstractAvailCompiler
 		if (!moduleName().localName().equals(
 			localName.asNativeString()))
 		{
-			state.expected("declared local module name to agree with "
-					+ "fully-qualified module name");
+			state.expected(
+				"declared local module name to agree with "
+				+ "fully-qualified module name");
 			return null;
 		}
 		state = state.afterToken();
@@ -7246,7 +7280,8 @@ public abstract class AbstractAvailCompiler
 			// On NAMES, record the names.
 			else if (lexeme.equals(NAMES.lexeme()))
 			{
-				state = parseStringLiterals(state, moduleHeader().exportedNames);
+				state = parseStringLiterals(
+					state, moduleHeader().exportedNames);
 			}
 			// ON ENTRIES, record the names.
 			else if (lexeme.equals(ENTRIES.lexeme()))
@@ -7256,6 +7291,9 @@ public abstract class AbstractAvailCompiler
 			// On PRAGMA, record the pragma string literals.
 			else if (lexeme.equals(PRAGMA.lexeme()))
 			{
+				// Keep track of where the pragma section starts so that when we
+				// actually perform them, we can report on just that section.
+				moduleHeader().pragmaStart  = firstRelevantTokenIndexOfSection;
 				state = parseStringLiteralTokens(state, moduleHeader().pragmas);
 			}
 			// If the parser state is now null, then fail the parse.
@@ -7316,6 +7354,21 @@ public abstract class AbstractAvailCompiler
 											fragmentCache.addSolution(
 												start, afterExpr, expr);
 										}
+									}
+
+									@Override
+									public @Nullable ConNullable<A_Phrase>
+										addCauseTo (
+											final List<String> causes)
+									{
+										final String cause;
+										synchronized (fragmentCache)
+										{
+											cause = fragmentCache.chooseCause(
+												start);
+										}
+										causes.add(cause);
+										return originalContinuation;
 									}
 								});
 						}

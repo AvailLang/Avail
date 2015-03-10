@@ -795,6 +795,7 @@ public class MessageSplitter
 			final int partialListsCount)
 		{
 			list.add(PARSE_VARIABLE_REFERENCE.encoding());
+			list.add(CHECK_ARGUMENT.encoding(absoluteUnderscoreIndex));
 		}
 
 		@Override

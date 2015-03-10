@@ -1970,4 +1970,106 @@ extends AbstractAvailCompiler
 				}
 			});
 	}
+
+	/**
+	 * Parse a supercast clause, which has the form "(expr :: type)".
+	 *
+	 * @param start
+	 *            Where to start parsing a supercast.
+	 * @param continuation
+	 *            What to do with the supercast phrase.
+	 */
+	void parseSupercastThen (
+		final ParserState start,
+		final Con<A_Phrase> continuation)
+	{
+		if (!start.peekToken(OPEN_PARENTHESIS))
+		{
+			// Never suggest a supercast if there is no open parenthesis.
+			return;
+		}
+		final ParserState afterOpenParen = start.afterToken();
+		parseExpressionThen(afterOpenParen, new Con<A_Phrase>(
+			"supercast base expression after open parenthesis")
+		{
+			@Override
+			public void valueNotNull (
+				final ParserState afterExpr,
+				final A_Phrase expr)
+			{
+				if (expr.hasSuperCast())
+				{
+					afterExpr.expected(
+						"supercast's expression not to be another supercast");
+					return;
+				}
+				if (!afterExpr.peekToken(COLON))
+				{
+					// We saw "(expr" and no colon; don't suggest a supercast.
+					return;
+				}
+				final ParserState afterColon = afterExpr.afterToken();
+				if (!afterColon.peekToken(
+					COLON, "second colon of :: for supercast"))
+				{
+					return;
+				}
+				final ParserState afterTwoColons = afterColon.afterToken();
+				parseAndEvaluateExpressionYieldingInstanceOfThen(
+					afterTwoColons,
+					InstanceMetaDescriptor.topMeta(),
+					new Con<AvailObject>(
+						"supercast's type expression after two colons (::)")
+					{
+						@Override
+						public void valueNotNull (
+							final ParserState afterType,
+							final AvailObject typeForLookup)
+						{
+							if (!afterType.peekToken(
+								CLOSE_PARENTHESIS,
+								"close parenthesis to end supercast"))
+							{
+								return;
+							}
+							final ParserState afterCast =
+								afterType.afterToken();
+							final A_Type exprType = expr.expressionType();
+							if (exprType.isSubtypeOf(typeForLookup)
+								&& !exprType.equals(typeForLookup))
+							{
+								final A_Phrase supercast =
+									SuperCastNodeDescriptor.create(
+										expr, typeForLookup);
+								attempt(afterCast, continuation, supercast);
+								return;
+							}
+							// Otherwise the supercast's lookup type was not a
+							// proper supertype of the value's actual type.
+							afterCast.expected(new Describer()
+							{
+								@Override
+								public void describeThen (
+									final Continuation1<String>
+										continuationAfterDescribing)
+								{
+									final StringBuilder builder =
+										new StringBuilder();
+									builder.append(
+										"provided supercast type (");
+									builder.append(typeForLookup);
+									builder.append(
+										") to be a strict supertype of "
+										+ "the expression's type (");
+									builder.append(exprType);
+									builder.append(")");
+									continuationAfterDescribing.value(
+										builder.toString());
+								}
+							});
+						}
+					});
+			}
+		});
+	}
 }

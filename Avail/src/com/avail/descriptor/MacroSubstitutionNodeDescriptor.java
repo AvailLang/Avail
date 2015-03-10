@@ -232,7 +232,7 @@ extends ParseNodeDescriptor
 	 */
 	public static AvailObject fromNameAndNode(
 		final A_Atom macroName,
-		final AvailObject outputParseNode)
+		final A_Phrase outputParseNode)
 	{
 		final AvailObject newNode = mutable.create();
 		newNode.setSlot(MACRO_NAME, macroName);
