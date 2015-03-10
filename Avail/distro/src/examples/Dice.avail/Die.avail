@@ -618,7 +618,7 @@ Method "«using_,»roll_" is
 		|
 			intersection : {extended integer|} := mustDrop→set ∩ rolls→set;
 			newRolls : <extended integer…|> := rolls;
-			Until [intersection is empty] do
+			Until intersection is empty do
 			[
 				doomed ::= intersection→tuple[1];
 				newRolls := eject newRolls - doomed;

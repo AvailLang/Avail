@@ -201,7 +201,7 @@ Private stable method "format sites for_" is
 			sites := eject sites ++ <<varName, interpType, start, index>>;
 		];
 	invalid ::= [early failure function(invalid-format-metacharacter-use code)];
-	While [ index ≤ |template| ] do
+	While  index ≤ |template| do
 	[
 		char ::= template[index];
 		/* Handle a metacharacter. */
@@ -1168,7 +1168,7 @@ Method "“_”" is
 			s := eject s ++ “elem”;
 			index++;
 		]
-		while [index ≤ |aTuple|]
+		while index ≤ |aTuple|
 		alternate with [s := eject s ++ ", ";];
 		s := eject s ++ ">";
 		cast s into [t : <character…|2..> | t]
@@ -1205,7 +1205,7 @@ Public method "“_”«else_»(as simple list)" is
 			s := eject s ++ cast elem into [t : string | t] else [“elem”];
 			index++;
 		]
-		while [index ≤ |aTuple|]
+		while index ≤ |aTuple|
 		alternate with [s := eject s ++ ", ";];
 		s
 	]
@@ -1265,7 +1265,7 @@ Method "“_”" is
 	s : string := "{";
 	index : natural number := 1;
 	bindings ::= aMap's bindings;
-	While [index ≤ |bindings|] do
+	While index ≤ |bindings| do
 	[
 		binding ::= bindings[index];
 		key ::= binding[1];
@@ -1643,8 +1643,7 @@ Method "“_”«else_»(as list partitioned by_)" is
 			s := eject s ++ tx;
 			i++;
 		]
-		while [i ≤ |aTuple|]
-		alternate with [s := eject s ++ separator;];
+		while i ≤ |aTuple| alternate with [s := eject s ++ separator;];
 		s
 	]
 ] : string;

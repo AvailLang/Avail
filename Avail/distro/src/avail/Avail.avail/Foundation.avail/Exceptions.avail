@@ -1454,7 +1454,7 @@ is
 	e : exception := ex;
 	msg : string := "";
 	firstTime : boolean := true;
-	While [e is assigned] do
+	While e is assigned do
 	[
 		name ::= “e's type's names” (as list partitioned by " ∩ ");
 		msg := eject msg ++ (a|an) “name” ++ "\n";

@@ -118,7 +118,7 @@ Method "“_”" is
 		s : nonempty string := "<";
 		leadingTypes ::= t's leading types;
 		index : natural number := 1;
-		While [index ≤ |leadingTypes|]
+		While index ≤ |leadingTypes|
 		do [s := eject s ++ “leadingTypes[(index++)]” ++ ", ";];
 		s := eject s ++ “t's default type” ++ "…|";
 		lower ::= ⎣t⎦;
@@ -3142,7 +3142,7 @@ Private method "insertion sort_with_" is
 	[
 		j : [1..9] := i-1;
 		k : [2..10] := i;
-		While [j > 1 ∧ comparator(output[k], output[j])] do
+		While j > 1 ∧ comparator(output[k], output[j]) do
 		[
 			output := output[k↔j];
 			k--;
@@ -3395,7 +3395,7 @@ Private method "merge_with_" is
 	input2 : tuple := splitInput[2];
 	output : tuple := input1 ++ input2;
 
-	While [i ≤ |input1| ∧ j ≤ |input2|]
+	While i ≤ |input1| ∧ j ≤ |input2|
 	do
 	[
 		If comparator(input1[i], input2[j]) then
@@ -3892,11 +3892,7 @@ Private method "self overlap_" is
 	overlap : {tuple→natural number|} := {};
 	position : natural number := 2;
 	current : natural number := 1;
-	While
-	[
-		|aTuple| > position
-	]
-	do
+	While |aTuple| > position do
 	[
 		/*create a map for each state of a tuple, what it would be mapped back
 		 * to.  The key is a subtuple of the input tuple, the value is the 
@@ -3989,11 +3985,7 @@ Method "first index of_in_" is
 		tupleIndex : natural number := 1;
 		subtupleIndex : natural number := 1;
 		overlapTable : {tuple→natural number|} := self overlap subtuple;
-		Until
-		[
-			found ∨ tupleIndex + |subtuple| - subtupleIndex > |aTuple|
-		]
-		do
+		Until found ∨ tupleIndex + |subtuple| - subtupleIndex > |aTuple| do
 		[
 			If aTuple[tupleIndex] = subtuple[subtupleIndex] then
 			[
@@ -4090,10 +4082,7 @@ Method "all indices of_in_" is
 		index : natural number := 1;
 		occurrences : <natural number…|> := <>;
 		w : whole number := 0;
-		While [
-			index + |subtuple| ≤ |aTuple| 
-		]
-		do
+		While index + |subtuple| ≤ |aTuple| do
 		[
 			w := first index of subtuple in aTuple[index..];
 			if w > 0 then 
@@ -4242,7 +4231,7 @@ Method "replace all occurrences of_in_with_" is
 	[
 		newTuple : tuple := <>;
 		index : natural number := 1;
-		While [index ≤ |aTuple|] do
+		While index ≤ |aTuple| do
 		[
 			If <aTuple[index]> = subtuple then
 			[
@@ -4261,10 +4250,7 @@ Method "replace all occurrences of_in_with_" is
 		index : natural number := 1;
 		newTuple : tuple := <>;
 		w : whole number := 0;
-		While [
-			index + |subtuple| ≤ |aTuple| 
-		]
-		do
+		While index + |subtuple| ≤ |aTuple| do
 		[
 			w := first index of subtuple in aTuple[index..];
 			If w > 0 then 

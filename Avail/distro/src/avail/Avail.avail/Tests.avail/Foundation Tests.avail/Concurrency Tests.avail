@@ -706,7 +706,7 @@ Test "request termination of running fiber" in concurrency test suite is
 		forked ::=
 			invoke
 			[
-				Until [termination requested] do [Yield current fiber;];
+				Until termination requested do [Yield current fiber;];
 				"仕上がります"
 			]
 			with <>,
@@ -725,7 +725,7 @@ Test "request termination of parked fiber" in concurrency test suite is
 	Repeat
 	[
 		forked ::=
-			invoke [Do [Park current fiber;] until [termination requested];]
+			invoke [Do [Park current fiber;] until termination requested;]
 			with <>,
 			forked at priority 50;
 		Request termination of forked;
@@ -740,7 +740,7 @@ Test "request termination of joining fiber" in concurrency test suite is
 	Repeat
 	[
 		forked ::=
-			invoke [Do [Park current fiber;] until [termination requested];]
+			invoke [Do [Park current fiber;] until termination requested;]
 			with <>,
 			forked at priority 50;
 		joiner ::=
@@ -766,7 +766,7 @@ Test "request termination of sleeping fiber" in concurrency test suite is
 			invoke
 			[
 				Do [Sleep for 1000000 milliseconds;]
-				until [termination requested];
+				until termination requested;
 			]
 			with <>,
 			forked at priority 50;
@@ -784,7 +784,7 @@ Test "request termination of permanently sleeping fiber"
 	[
 		forked ::=
 			invoke
-				[Do [Sleep for ∞ milliseconds;] until [termination requested];]
+				[Do [Sleep for ∞ milliseconds;] until termination requested;]
 			with <>,
 			forked at priority 50;
 		Request termination of forked;

@@ -76,7 +76,7 @@ Public method "tokenize_" is
 |
 	tokens : <nonempty string…|> := <>;
 	i : natural number := 1;
-	Until [i > |s|] do
+	Until i > |s| do
 	[
 		/* Ignore whitespace. */
 		While s[i] is whitespace do [i++;];

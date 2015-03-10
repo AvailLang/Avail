@@ -206,7 +206,7 @@ Public method "Play a game,⁇creating a context with_,⁇interacting with_" is
 	/* Produce a fresh context for the choosable path story. */
 	aContext : complete context := engine context for gameContextCreator;
 	/* Play the story. */
-	Until [game is over for aContext] do
+	Until game is over for aContext do
 	[
 		/* Processing certain commands may cause the implied context to
 		 * change.

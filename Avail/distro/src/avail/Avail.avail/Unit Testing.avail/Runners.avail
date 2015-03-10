@@ -78,8 +78,7 @@ Private method "setup for_" is
 |
 	setup : <[]→⊤…|> := <>;
 	suiteID : atom := aSuite's suite ID;
-	Until [suiteID = root test suite ID]
-	do
+	Until suiteID = root test suite ID do
 	[
 		suite ::= suites by atom[suiteID];
 		setup := suite's suite fixture setup ++ eject setup;
@@ -105,8 +104,7 @@ Private method "setup for_" is
 |
 	setup : <[]→⊤…|> := <>;
 	suiteID : atom := aTest's suite ID;
-	Until [suiteID = root test suite ID]
-	do
+	Until suiteID = root test suite ID do
 	[
 		suite ::= suites by atom[suiteID];
 		setup := suite's test fixture setup ++ eject setup;
@@ -132,8 +130,7 @@ Private method "tear down for_" is
 |
 	tearDown : <[]→⊤…|> := <>;
 	suiteID : atom := aSuite's suite ID;
-	Until [suiteID = root test suite ID]
-	do
+	Until suiteID = root test suite ID do
 	[
 		suite ::= suites by atom[suiteID];
 		tearDown := eject tearDown ++ suite's suite fixture tear down;
@@ -159,8 +156,7 @@ Private method "tear down for_" is
 |
 	tearDown : <[]→⊤…|> := <>;
 	suiteID : atom := aTest's suite ID;
-	Until [suiteID = root test suite ID]
-	do
+	Until suiteID = root test suite ID do
 	[
 		suite ::= suites by atom[suiteID];
 		tearDown := eject tearDown ++ suite's test fixture tear down;

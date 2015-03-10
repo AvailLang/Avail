@@ -730,7 +730,7 @@ Private method "Present_" is
 		Print: "[T]rue or [F]alse?  ";
 		choice := try [lowercase next line from standard input] else [""];
 	]
-	until [choice ∈ {"t", "f"}];
+	until choice ∈ {"t", "f"};
 	User answered (if choice = "t" then [trueAnswer] else [falseAnswer])
 		to aQuestion;
 ] : ⊤;

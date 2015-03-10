@@ -60,7 +60,7 @@ Method "_st|nd|rd|th Fibonacci number" is
 	cache[n] else
 	[
 		next : natural number;
-		Until [|cache| = n] do
+		Until |cache| = n do
 		[
 			next := generator();
 			cache := cache + |cache|+1 → next;

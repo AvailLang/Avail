@@ -101,7 +101,7 @@ delimited reader's advance method is
 		result : tuple := <>;
 		delimiter ::= aReader's delimiter;
 		index : natural number := 1;
-		Until [inner is exhausted ∨ index > |delimiter|]
+		Until inner is exhausted ∨ index > |delimiter|
 		do
 		[
 			value ::= inner's current element;

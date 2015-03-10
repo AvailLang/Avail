@@ -59,7 +59,7 @@ Private method "tries to guess_from range_" is
 	count : natural number := 1;
 	guess : extended integer;
 	Do [guess := player's next try for a number in theRange;]
-	until [guess = theNumber]
+	until guess = theNumber
 	alternate with
 	[
 		If guess = sentinel then [/* Don't do anything special. */]

@@ -316,8 +316,7 @@ Public method "Join_" is
 [
 	joinee : fiber
 |
-	Until [joinee has terminated]
-	do [Attempt to join joinee;];
+	Until joinee has terminated	do [Attempt to join joinee;];
 ];
 
 /**
@@ -338,8 +337,7 @@ Public method "Join_,then honor a termination request" is
 [
 	joinee : fiber
 |
-	Until [joinee has terminated]
-	do
+	Until joinee has terminated	do
 	[
 		Attempt to join joinee;
 		Honor a termination request;
@@ -541,8 +539,7 @@ Private method "Acquire_" is
 	 */
 	else
 	[
-		Until [mutex's owner = current fiber]
-		do
+		Until mutex's owner = current fiber	do
 		[
 			Park current fiber;
 			If termination requested then
@@ -916,8 +913,10 @@ Public method "Await_" is
 		mutex ::= aCondition's originating monitor;
 		Ignore: priority enqueue current fiber on ↑aCondition's parked fibers;
 		Schedule next parked fiber or release mutex;
-		Until [mutex's owner = current fiber]
-		do [Park current fiber, then honor a termination request;];
+		
+		Until mutex's owner = current fiber	do 
+		[Park current fiber, then honor a termination request;];
+		
 		/* The current fiber owns the lock again, and has been signaled that the
 		 * condition is true. Assert this.
 		 */
@@ -1005,8 +1004,8 @@ Public method "Signal_" is
 		mutex's owner := head;
 		Unpark head;
 		/* Park the current fiber. */
-		Until [mutex's owner = current fiber]
-		do [Park current fiber, then honor a termination request;];
+		Until mutex's owner = current fiber do
+		[Park current fiber, then honor a termination request;];
 	];
 ] : ⊤;
 

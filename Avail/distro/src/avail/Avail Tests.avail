@@ -277,8 +277,5 @@ Private method "Debug tests" is
 			Print: "Invalid command.\n\n";
 		];
 	]
-	until
-	[
-		stack is empty
-	];
+	until stack is empty;
 ];
