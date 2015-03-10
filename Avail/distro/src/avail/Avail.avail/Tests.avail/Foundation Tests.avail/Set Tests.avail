@@ -36,6 +36,7 @@ Versions
 Uses
 	"Common",
 	"Foundation",
+	"Data Abstractions",
 	"Unit Testing"
 Names
 	"set test suite"
@@ -255,4 +256,27 @@ Test "filter by" in set test suite is
  	c ::= filter a by [n : natural number | n > 2000];
  	Require: b = {2,4};
  	Require: c = ∅;
+];
+
+Test "no order and no duplicates" in set test suite is
+[
+	rng : pRNG := a pRNG;
+	
+	s : {[-10..10] |} := ∅;
+	t : <[-10..10]…|> := <>;
+	
+	/* copy a stream of duplicate random numbers into a set and tuple */
+	
+	Repeat 
+	[ 
+		v ::= rng's next value in [-10..10];
+		s := s + v;
+		t := <v> ++ t;
+	] 40 times;
+	
+	/* the set s (with no order and no duplicates) is required to be equal to 
+	 * the set version of tuple t (with order and duplicates) 
+	 */
+	
+	Require: s = t→set;
 ];

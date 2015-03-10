@@ -990,6 +990,100 @@ Semantic restriction "each of_satisfies_" is
 ];
 
 /**
+ * Answer a function that computes a body function.
+ * 
+ * @method "predicated body function(_,_)"
+ * @param "anAtom" "atom" the atom that represents the function that the
+ * 		macro builds
+ * @param "baseReturnType" "type" the base return type of the method
+ * @returns "[literal phrase ⇒ token, expression phrase ⇒ tuple, 
+ *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
+ *          The requested function.
+ */
+Private method "predicated body function(_,_)" is
+[
+ 	anAtom : atom,
+ 	baseReturnType : type
+|
+	[
+		elementPhrase : literal phrase ⇒ token,
+		aTuple : expression phrase ⇒ tuple,
+		predicateBlock : block phrase ⇒ []→ boolean
+	|
+		name ::= elementPhrase's token's lexeme;
+		aTupleType ::= aTuple's semantic type;
+		blockType ::= [⊥]→(predicateBlock's semantic type's return type);
+		restrictions ::= semantic restrictions
+			for method for anAtom
+			given <aTupleType, blockType>;
+		returnType : type := baseReturnType;
+			From 1 to |restrictions| by 1 do
+			[
+				index : natural number
+			|
+				returnType := returnType
+					∩ restrictions[index](aTupleType, blockType);
+			];
+			statements ::= predicateBlock's statements;
+			blockReturnType ::= cast statements
+				into [t : phrase+ | t[|t|]'s semantic type]
+				else [⊤];
+		restricted send anAtom with
+		<
+			aTuple, 
+			«[
+			  	<cast scope map[name] into [d : argument phrase | d]>
+			 | 
+			 	statements
+			 ] : blockReturnType»
+		> : returnType
+	] : send phrase ⇒ ⊤
+] : [literal phrase ⇒ token, expression phrase ⇒ tuple, 
+     block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤;
+
+/**
+ * Compute and answer whether any of the elements of {@param "aTuple"} satisfies
+ * the specified function. Do not examine more elements than necessary.
+ * 
+ * @macro "any…of_§satisfies_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over
+ * @param "predicateBlock" "block phrase ⇒ []→boolean"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        predicate function.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops" "Collections" "Tuples"
+ */
+Macro "any…of_§satisfies_" is a tuple iteration prefix function,
+	predicated body function($"any of_satisfies_", boolean);
+
+/**
+ * Compute and answer whether all of the elements of {@param "aTuple"} satisfies
+ * the specified function. Do not examine more elements than necessary.
+ * 
+ * @macro "each…of_§satisfies_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over
+ * @param "predicateBlock" "block phrase ⇒ []→boolean"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        predicate function.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops" "Collections" "Tuples"
+ */
+Macro "each…of_§satisfies_" is a tuple iteration prefix function,
+	predicated body function($"each of_satisfies_", boolean);
+
+/**
  * Compute and answer the count of elements of {@param "aTuple"} that satisfy 
  * the given predicate.
  * 
@@ -1049,6 +1143,27 @@ Semantic restriction "count of_where_" is
 	Require: predicate accepts tupleType (check indices);
 	[0..⎡tupleType⎤ + 1)
 ];
+	
+/**
+ * Compute and answer the count of elements of {@param "aTuple"} that satisfy 
+ * the given predicate.
+ * 
+ * @macro "count…of_§where_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over
+ * @param "predicateBlock" "block phrase ⇒ []→boolean"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        predicate function.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops" "Collections" "Tuples"
+ */
+Macro "count…of_§where_" is a tuple iteration prefix function,
+	predicated body function($"count of_where_", whole number);	
 
 /**
  * Compute and answer the distinct elements of {@param "aTuple"}, preserving 
@@ -2417,57 +2532,7 @@ Public method "drop from_until_" is
  */
 Semantic restriction "drop from_until_" is drop-until semantic restriction;
 
-/**
- * Answer a function that computes a body function.
- * 
- * @method "body function(_,_)"
- * @param "anAtom" "atom" the atom that represents the function that the
- * 		macro builds
- * @param "baseReturnType" "type" the base return type of the method
- * @returns "[literal phrase ⇒ token, expression phrase ⇒ tuple, 
- *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
- *          The requested function.
- */
-Private method "body function(_,_)" is
-[
- 	anAtom : atom,
- 	baseReturnType : type
-|
-	[
-		elementPhrase : literal phrase ⇒ token,
-		aTuple : expression phrase ⇒ tuple,
-		predicateBlock : block phrase ⇒ []→ boolean
-	|
-		name ::= elementPhrase's token's lexeme;
-		aTupleType ::= aTuple's semantic type;
-		blockType ::= [⊥]→(predicateBlock's semantic type's return type);
-		restrictions ::= semantic restrictions
-			for method for anAtom
-			given <aTupleType, blockType>;
-		returnType : type := baseReturnType;
-			From 1 to |restrictions| by 1 do
-			[
-				index : natural number
-			|
-				returnType := returnType
-					∩ restrictions[index](aTupleType, blockType);
-			];
-			statements ::= predicateBlock's statements;
-			blockReturnType ::= cast statements
-				into [t : phrase+ | t[|t|]'s semantic type]
-				else [⊤];
-		restricted send anAtom with
-		<
-			aTuple, 
-			«[
-			  	<cast scope map[name] into [d : argument phrase | d]>
-			 | 
-			 	statements
-			 ] : blockReturnType»
-		> : returnType
-	] : send phrase ⇒ ⊤
-] : [literal phrase ⇒ token, expression phrase ⇒ tuple, 
-     block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤;
+
 	
 /**
  * Answer a tuple containing the prefix of {@param "aTuple"} that answered
@@ -2481,7 +2546,6 @@ Private method "body function(_,_)" is
  *        {@param "aTuple"}'s element type.
  * @param "aTuple" "expression phrase ⇒ tuple"
  *        An {@type "expression phrase"} that yields the tuple to iterate over
- * @param "action" "block phrase ⇒ []→⊤"
  * @param "predicateBlock" "block phrase ⇒ []→boolean"
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        predicate function.
@@ -2489,7 +2553,7 @@ Private method "body function(_,_)" is
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
 Public macro "take…from_§while_" is a tuple iteration prefix function,
-	body function($"take from_while_", tuple);
+	predicated body function($"take from_while_", tuple);
 
 /**
  * Answer a tuple containing the prefix of {@param "aTuple"} that answered
@@ -2503,7 +2567,6 @@ Public macro "take…from_§while_" is a tuple iteration prefix function,
  *        {@param "aTuple"}'s element type.
  * @param "aTuple" "expression phrase ⇒ tuple"
  *        An {@type "expression phrase"} that yields the tuple to iterate over
- * @param "action" "block phrase ⇒ []→⊤"
  * @param "predicateBlock" "block phrase ⇒ []→boolean"
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        predicate function.
@@ -2511,7 +2574,7 @@ Public macro "take…from_§while_" is a tuple iteration prefix function,
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
 Public macro "take…from_§until_" is a tuple iteration prefix function,
-	body function($"take from_until_", tuple);
+	predicated body function($"take from_until_", tuple);
 
 /**
  * Compute and answer the suffix of {@param "aTuple"} that begins with the 
@@ -2525,7 +2588,6 @@ Public macro "take…from_§until_" is a tuple iteration prefix function,
  *        {@param "aTuple"}'s element type.
  * @param "aTuple" "expression phrase ⇒ tuple"
  *        An {@type "expression phrase"} that yields the tuple to iterate over
- * @param "action" "block phrase ⇒ []→⊤"
  * @param "predicateBlock" "block phrase ⇒ []→boolean"
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        predicate function.
@@ -2533,7 +2595,7 @@ Public macro "take…from_§until_" is a tuple iteration prefix function,
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
 Public macro "drop…from_§while_" is a tuple iteration prefix function,
-	body function($"drop from_while_", tuple);
+	predicated body function($"drop from_while_", tuple);
 
 /**
  * Compute and answer the suffix of {@param "aTuple"} that begins with the 
@@ -2547,7 +2609,6 @@ Public macro "drop…from_§while_" is a tuple iteration prefix function,
  *        {@param "aTuple"}'s element type.
  * @param "aTuple" "expression phrase ⇒ tuple"
  *        An {@type "expression phrase"} that yields the tuple to iterate over
- * @param "action" "block phrase ⇒ []→⊤"
  * @param "predicateBlock" "block phrase ⇒ []→boolean"
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        predicate function.
@@ -2555,7 +2616,7 @@ Public macro "drop…from_§while_" is a tuple iteration prefix function,
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
 Public macro "drop…from_§until_" is a tuple iteration prefix function,
-	body function($"drop from_until_", tuple);
+	predicated body function($"drop from_until_", tuple);
 
 /**
  * Answer a tuple containing every element of {@param "aTuple"} except for the 
