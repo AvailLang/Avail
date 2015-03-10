@@ -40,7 +40,9 @@ Extends
 		"For each of⁇_do_",
 		"For each…of_§do_",
 		"take from_until_",
-		"take from_while_"
+		"take from_while_",
+		"take…from_§until_",
+		"take…from_§while_"
 	)
 Uses
 	"Foundation"
@@ -609,11 +611,7 @@ Method "take from_while_" is
 	predicate : [⊥]→boolean
 |
 	result : tuple := <>;
-	While
-	[
-		aReader is not exhausted ∧ predicate(aReader's current element)
-	]
-	do
+	While aReader is not exhausted ∧ predicate(aReader's current element) do
 	[
 		result := eject result ++ <aReader's current element>;
 		Advance aReader;
@@ -742,8 +740,8 @@ Method "Drop from_while_" is
 	aReader : reader,
 	predicate : [⊥]→boolean
 |
-	While [aReader is not exhausted ∧ predicate(aReader's current element)]
-	do [Advance aReader;];
+	While aReader is not exhausted ∧ predicate(aReader's current element) 
+		do [Advance aReader;];
 ] : ⊤;
 
 /**

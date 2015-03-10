@@ -79,7 +79,7 @@ Public method "tokenize_" is
 	Until [i > |s|] do
 	[
 		/* Ignore whitespace. */
-		While [s[i] is whitespace] do [i++;];
+		While s[i] is whitespace do [i++;];
 		If i ≤ |s| then
 		[
 			/* Remember where the current token began. */

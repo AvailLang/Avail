@@ -70,7 +70,7 @@ Private method "prettify_" is
 	convert : <natural number…|> := <>;
 	shrink : <<natural number, whole number…|2>…|> := <>;
 	base : natural number := 1;
-	While [base ≤ |indices|] do
+	While base ≤ |indices| do
 	[
 		/* Compute the run length of continguous line feeds at the
 		 * current index.

@@ -66,3 +66,48 @@ Test "macro for each of do" in streams test suite is
 	];
 	Require: b = <2,4>;
 ];
+
+Test "stream (take from_while_)" in streams test suite is
+[
+	ref ::= 1 to 5;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
+	result ::= take from iter while [n : [1..100] | n ≤ 5];
+	For each result do
+	[
+		element : [1..100]
+	|
+		Require: element = ref[(index++)];
+	];
+	Require: iter's current element = 6;
+];
+
+Test "stream (take…from_§while_)" in streams test suite is
+[
+	ref ::= 1 to 5;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
+	result ::= take n from iter while [n ≤ 5];
+	For each element of result do [Require: element = ref[(index++)];];
+	Require: iter's current element = 6;
+];
+
+Test "stream (take from_until_)" in streams test suite is
+[
+	ref ::= 1 to 5;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
+	result ::= take from iter until [n : [1..100] | n ≥ 6];
+	For each element of result do [Require: element = ref[(index++)];];
+	Require: iter's current element = 6;
+];
+
+Test "stream (take…from_§until_)" in streams test suite is
+[
+	ref ::= 1 to 5;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
+	result ::= take n from iter until [n ≥ 6];
+	For each element of result do [Require: element = ref[(index++)];];
+	Require: iter's current element = 6;
+];

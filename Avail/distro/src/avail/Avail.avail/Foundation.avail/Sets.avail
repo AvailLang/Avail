@@ -301,7 +301,7 @@ Macro "For each…of_§do_" is
 			++ elementName
 			++ " to have a name that doesn't shadow another local declaration"
 	];	
-	/* Determine the strongest type of the loop variable for aTuple */
+	/* Determine the strongest type of the loop variable for aSet */
 	aSetType ::= aSet's semantic type;
 	elementType ::= aSetType's element type;
 	scope map := scope map + elementName → arg «elementToken : elementType»;
@@ -330,16 +330,16 @@ Macro "For each…of_§do_" is
 	blockReturnType ::= cast statements
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
-
-	send $"For each of⁇_do_" with
-	«<
+		
+	restricted send $"For each of⁇_do_" with
+	<
 		aSet,
 		«[
 			<cast scope map[name] into [d : argument phrase | d]>
 		|
 			statements
 		] : blockReturnType»
-	>» : returnType
+	> : returnType
 ] : send phrase ⇒ ⊤;
 
 /**

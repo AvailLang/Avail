@@ -1677,6 +1677,31 @@ Semantic restriction "While_do_" is
 ];
 
 /**
+ * Basic conditional while loop macro. Invoke {@param "expressionPhrase"}. If 
+ * {@param "expressionPhrase"} answers {@method "true"}, then invoke 
+ * {@param "action"} and repeat.
+ * 
+ * @macro "While_do_"
+ * @param "expressionPhrase" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yields a {@type "boolean"}
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of 
+ *        the loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops"
+ */
+Macro "While_do_" is
+[
+	expressionPhrase : expression phrase ⇒ boolean,
+	action : block phrase ⇒ []→⊤
+|
+	restricted send $"While_do_" with
+	<
+		«[<> | <expressionPhrase>] : boolean», action
+	> : ⊤
+] : send phrase ⇒ ⊤;
+
+/**
  * Basic conditional loop. Invoke {@param "predicate"}. If {@param "predicate"} 
  * answers {@method "false"}, then invoke {@param "action"} and repeat.
  * 
@@ -1726,6 +1751,31 @@ Semantic restriction "Until_do_" is
 ];
 
 /**
+ * Basic conditional loop macro. Invoke {@param "expressionPhrase"}. If 
+ * {@param "expressionPhrase"} answers {@method "false"}, then invoke 
+ * {@param "action"} and repeat.
+ * 
+ * @macro "Until_do_"
+ * @param "expressionPhrase" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yields a {@type "boolean"}
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of 
+ *        the loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops"
+ */
+Macro "Until_do_" is
+[
+	expressionPhrase : expression phrase ⇒ boolean,
+	action : block phrase ⇒ []→⊤
+|
+	restricted send $"Until_do_" with
+	<
+		«[<> | <expressionPhrase>] : boolean», action
+	> : ⊤
+] : send phrase ⇒ ⊤;
+
+/**
  * Basic conditional loop. Invoke {@param "action"} and then {@param 
  * "predicate"}. If {@param "predicate"} answers {@method "true"}, then repeat.
  * 
@@ -1768,6 +1818,31 @@ Semantic restriction "Do_while_" is
 	then [⊥]
 	else [⊤]
 ];
+
+/**
+ * Basic conditional loop. Invoke {@param "action"} and then {@param 
+ * "expressionPhrase"}. If {@param "expressionPhrase"} answers 
+ * {@method "true"}, then repeat.
+ * 
+ * @macro "Do_while_"
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of 
+ *        the loop.
+ * @param "expressionPhrase" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yields a {@type "boolean"}
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops"
+ */
+Macro "Do_while_" is
+[
+	action : block phrase ⇒ []→⊤,
+	expressionPhrase : expression phrase ⇒ boolean
+|
+	restricted send $"Do_while_" with
+	<
+		action,	«[<> | <expressionPhrase>] : boolean»
+	> : ⊤
+] : send phrase ⇒ ⊤;
 
 /**
  * Conditional loop with alternation. Invoke {@param "action"} and then {@param 
@@ -1819,6 +1894,34 @@ Semantic restriction "Do_while_alternate with_" is
 	then [⊥]
 	else [⊤]
 ];
+
+/**
+ * Conditional loop with alternation. Invoke {@param "action"} and then {@param 
+ * "expressionPhrase"}. If {@param "expressionPhrase"} answers 
+ * {@method "true"}, then invoke {@param "between"}. Then repeat.
+ * 
+ * @macro "Do_while_alternate with_"
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of 
+ *        the loop.
+ * @param "expressionPhrase" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yields a {@type "boolean"}
+ * @param "between" "block phrase ⇒ []→⊤"
+ *        The function to apply between applications of {@param "action"}.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops"
+ */
+Macro "Do_while_alternate with_" is
+[
+	action : block phrase ⇒ []→⊤,
+	expressionPhrase : expression phrase ⇒ boolean,
+	between : block phrase ⇒ []→⊤
+|
+	restricted send $"Do_while_alternate with_" with
+	<
+		action,	«[<> | <expressionPhrase>] : boolean», between
+	> : ⊤
+] : send phrase ⇒ ⊤;
 
 /**
  * Conditional loop with alternation.
@@ -1874,6 +1977,32 @@ Semantic restriction "While_do_alternate with_" is
 ];
 
 /**
+ * Conditional while loop with alternation.
+ * 
+ * @macro "While_do_alternate with_"
+ * @param "expressionPhrase" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yields a {@type "boolean"}
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of 
+ *        the loop.
+ * @param "between" "block phrase ⇒ []→⊤"
+ *        The function to apply between applications of {@param "action"}.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops"
+ */
+Macro "While_do_alternate with_" is
+[
+	expressionPhrase : expression phrase ⇒ boolean,
+	action : block phrase ⇒ []→⊤,
+	between : block phrase ⇒ []→⊤
+|
+	restricted send $"While_do_alternate with_" with
+	<
+		«[<> | <expressionPhrase>] : boolean», action, between
+	> : ⊤
+] : send phrase ⇒ ⊤;
+
+/**
  * Basic conditional loop. Invoke {@param "action"} and then {@param 
  * "predicate"}. If {@param "predicate"} answers {@method "false"}, then repeat.
  * 
@@ -1916,6 +2045,31 @@ Semantic restriction "Do_until_" is
 	then [⊥]
 	else [⊤]
 ];
+
+/**
+ * Basic conditional loop. Invoke {@param "action"} and then {@param 
+ * "expressionPhrase"}. If {@param "expressionPhrase"} answers 
+ * {@method "false"}, then repeat.
+ * 
+ * @macro "Do_until_"
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of 
+ *        the loop.
+ * @param "expressionPhrase" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yields a {@type "boolean"}
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops"
+ */
+Macro "Do_until_" is
+[
+	action : block phrase ⇒ []→⊤,
+	expressionPhrase : expression phrase ⇒ boolean
+|
+	restricted send $"Do_until_" with
+	<
+		action,	«[<> | <expressionPhrase>] : boolean»
+	> : ⊤
+] : send phrase ⇒ ⊤;
 
 /**
  * Conditional loop with alternation. Invoke {@param "action"} and then {@param 
@@ -1969,6 +2123,34 @@ Semantic restriction "Do_until_alternate with_" is
 ];
 
 /**
+ * Conditional loop with alternation. Invoke {@param "action"} and then {@param 
+ * "expressionPhrase"}. If {@param "expressionPhrase"} answers 
+ * {@method "false"}, then invoke {@param "between"}. Then repeat.
+ * 
+ * @macro "Do_until_alternate with_"
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of 
+ *        the loop.
+ * @param "expressionPhrase" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yields a {@type "boolean"}
+ * @param "between" "block phrase ⇒ []→⊤"
+ *        The function to apply between applications of {@param "action"}.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops"
+ */
+Macro "Do_until_alternate with_" is
+[
+	action : block phrase ⇒ []→⊤,
+	expressionPhrase : expression phrase ⇒ boolean,
+	between : block phrase ⇒ []→⊤
+|
+	restricted send $"Do_until_alternate with_" with
+	<
+		action,	«[<> | <expressionPhrase>] : boolean», between
+	> : ⊤
+] : send phrase ⇒ ⊤;
+
+/**
  * Conditional loop with alternation.
  * 
  * @method "Until_do_alternate with_"
@@ -2020,6 +2202,32 @@ Semantic restriction "Until_do_alternate with_" is
 	then [⊥]
 	else [⊤]
 ];
+
+/**
+ * Conditional loop with alternation.
+ * 
+ * @macro "Until_do_alternate with_"
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of 
+ *        the loop.
+ * @param "expressionPhrase" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that yields a {@type "boolean"}
+ * @param "between" "block phrase ⇒ []→⊤"
+ *        The function to apply between applications of {@param "action"}.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops"
+ */
+Macro "Until_do_alternate with_" is
+[
+	expressionPhrase : expression phrase ⇒ boolean,
+	action : block phrase ⇒ []→⊤,
+	between : block phrase ⇒ []→⊤
+|
+	restricted send $"Until_do_alternate with_" with
+	<
+		«[<> | <expressionPhrase>] : boolean», action, between
+	> : ⊤
+] : send phrase ⇒ ⊤;
 
 /**
  * Invoke the first function of {@param "caseTuple"} that accepts {@param 

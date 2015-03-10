@@ -766,7 +766,7 @@ Private method "report for_,⁇organized by_,⁇with headers given by_" is
 	/* Compute details. */
 	details : string := "";
 	index : natural number := 1;
-	While [index ≤ |badResults|]
+	While index ≤ |badResults|
 	do
 	[
 		result ::= badResults[index];

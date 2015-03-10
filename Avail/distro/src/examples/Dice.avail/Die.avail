@@ -263,7 +263,7 @@ Method "“_”" is
 			s ++= “m[i]”;
 			i++;
 		]
-		while [i ≤ |m|]
+		while i ≤ |m|
 		alternate with [s ++= ", ";];
 		s
 	]

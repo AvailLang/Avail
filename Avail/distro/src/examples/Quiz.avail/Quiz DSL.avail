@@ -704,7 +704,7 @@ Private method "Present_" is
 		Print: "Your answer?  ";
 		choice := try [next line from standard input→[1..|choices|]] else [0];
 	]
-	while [choice = 0];
+	while choice = 0;
 	User answered choices[1 max choice] to aQuestion;
 ] : ⊤;
 
@@ -757,7 +757,7 @@ Private method "Present_" is
 		Print: "Your answer?  ";
 		shortAnswer := try [next line from standard input] else [""];
 	]
-	while [trim shortAnswer = ""];
+	while trim shortAnswer = "";
 	User answered an answer with text ::= shortAnswer to aQuestion;
 ] : ⊤;
 

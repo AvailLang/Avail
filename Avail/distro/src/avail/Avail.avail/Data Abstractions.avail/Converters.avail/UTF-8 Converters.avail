@@ -232,12 +232,11 @@ Method "_process_" is
 	leadByte : byte;
 	count : [0..4];
 	While
-	[
 		index ≤ |in| ∧ [
 			leadByte := in[index];
 			count := byte count for leadByte;
-			index + count - 1 ≤ |in|]
-	]
+			index + count - 1 ≤ |in|
+		]
 	do
 	[
 		continuationBytes : byte*;

@@ -86,10 +86,7 @@ Method "_is exhausted" is
 	index : ↑natural number := ↑aReader's reader index;
 	readers ::= aReader's readers;
 	limit ::= |readers|;
-	While [↓index ≤ limit ∧ readers[↓index] is exhausted] do
-	[
-		index++;
-	];
+	While ↓index ≤ limit ∧ readers[↓index] is exhausted do [index++;];
 	↓index > limit
 ] : boolean;
 

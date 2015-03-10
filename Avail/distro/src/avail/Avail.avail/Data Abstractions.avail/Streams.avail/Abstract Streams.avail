@@ -46,6 +46,8 @@ Extends
 		"map_through_",
 		"take from_until_",
 		"take from_while_",
+		"take…from_§until_",
+		"take…from_§while_",
 		"zip_",
 		"_is empty",
 		"_starts with_",
@@ -750,7 +752,7 @@ concatenation stream's head method is
 |
 	index : natural number := aStream's stream index;
 	streams ::= aStream's decorated streams;
-	While [ streams[index] is empty ] do [ index++; ];
+	While streams[index] is empty do [ index++; ];
 	streams[index]'s head
 ];
 
@@ -760,7 +762,7 @@ concatenation stream's tail method is
 |
 	index : natural number := aStream's stream index;
 	streams ::= aStream's decorated streams;
-	While [ streams[index] is empty ] do [ index++; ];
+	While streams[index] is empty do [ index++; ];
 	a concatenation stream with
 		element type ::= aStream's element type,
 		decorated streams ::= streams[index]→(streams[index]'s tail),
@@ -1047,7 +1049,7 @@ Method "take from_while_" is
 |
 	result : tuple := <>;
 	rest : stream := aStream;
-	While [¬rest is empty ∧ predicate(rest's head)] do
+	While ¬rest is empty ∧ predicate(rest's head) do
 	[
 		result := eject result ++ <rest's head>;
 		rest := eject rest's tail;
@@ -1177,7 +1179,7 @@ Method "drop from_while_" is
 	predicate : [⊥]→boolean
 |
 	rest : stream := aStream;
-	While [¬rest is empty ∧ predicate(rest's head)] do
+	While ¬rest is empty ∧ predicate(rest's head) do
 	[
 		rest := eject rest's tail;
 	];

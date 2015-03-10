@@ -207,7 +207,7 @@ Method "“_”" is
 		s ++= “aDie” ++ ": " ++ rolls[2..|rolls|-1];
 		i++;
 	]
-	while [i ≤ |bindings|]
+	while i ≤ |bindings|
 	alternate with [s ++= "; ";];
 	s ++= ")";
 	s

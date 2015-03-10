@@ -275,6 +275,30 @@ Test "take from tuple" in tuple test suite is
 	Require: take from a while [n : natural number | n < 7] = a;
 ];
 
+Test "drop from tuple (macro)" in tuple test suite is
+[
+	a ::= <1,2,3,2,1,4,5,6>;
+	Require: drop 4 from a = <1,4,5,6>;
+	Require: drop 8 from a = <>;
+	Require: drop 0 from a = a;
+	Require: drop n from a until [n > 3] = <4,5,6>;
+	Require: drop n from a until [n > 6] = <>;
+	Require: drop n from a while [n < 3] = <3,2,1,4,5,6>;
+	Require: drop n from a while [n < 7] = <>;	
+];
+
+Test "take from tuple (macro)" in tuple test suite is
+[
+	a ::= <1,2,3,2,1,4,5,6>;
+	Require: take 4 from a = <1,2,3,2>;
+	Require: take 8 from a = a;
+	Require: take 0 from a = <>;
+	Require: take n from a until [n > 3] = <1,2,3,2,1>;
+	Require: take n from a until [n > 6] = a;
+	Require: take n from a while [n ≤ 2] = <1,2>;
+	Require: take n from a while [n < 7] = a;
+];
+
 Test "split tuple" in tuple test suite is
 [
 	a ::= <1,2,3,2,1,4,5,6>;

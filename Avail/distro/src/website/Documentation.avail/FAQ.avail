@@ -45,7 +45,7 @@ Method "√_" is
 |
 	oldGuess : double := -1.0;
 	guess : double := 1.0;
-	While [|guess - oldGuess| > 0.0000005] do
+	While |guess - oldGuess| > 0.0000005 do
 	[
 		oldGuess := guess;
 		guess := (guess + n ÷ guess) ÷ 2;
