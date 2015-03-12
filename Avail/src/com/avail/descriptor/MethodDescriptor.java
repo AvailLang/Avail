@@ -1561,7 +1561,6 @@ extends Descriptor
 		final AvailObject object,
 		final A_Tuple prefixFunctions)
 	{
-		assert prefixFunctions.tupleSize() == object.slot(NUM_ARGS);
 		object.setSlot(MACRO_PREFIX_FUNCTIONS, prefixFunctions);
 	}
 
