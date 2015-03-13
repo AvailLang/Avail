@@ -171,6 +171,15 @@ Test "count of where" in tuple test suite is
 	Require: c = 0;
 ];
 
+Test "count of where (macro)" in tuple test suite is
+[
+	a ::= <1,2,3,4>;
+	b ::= count of n in a where [n mod 2 = 0];
+	c ::= count of n in a where [n > 2000];
+	Require: b = 2;
+	Require: c = 0;
+];
+
 Test "each of satisfies" in tuple test suite is
 [
 	a ::= <1,2,3,4>;

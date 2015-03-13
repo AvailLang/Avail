@@ -774,7 +774,7 @@ Semantic restriction "count of_where_" is
  * Compute and answer the count of elements of {@param "aSet"} that satisfy 
  * the given predicate.
  * 
- * @macro "count…of_§where_"
+ * @macro "count of…in_§where_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
@@ -788,7 +788,7 @@ Semantic restriction "count of_where_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Queries" "Collections" "Sets"
  */
-Macro "count…of_§where_" is a set iteration prefix function,
+Macro "count of…in_§where_" is a set iteration prefix function,
 	predicate body function($"count of_where_", whole number);
 
 /**
