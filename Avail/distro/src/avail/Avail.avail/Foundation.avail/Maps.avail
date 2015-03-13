@@ -55,6 +55,7 @@ Uses
 Names
 	"any…→…of_§satisfies_",
 	"counts for_",
+	"count…→…of_§where_",
 	"each…→…of_§satisfies_",
 	"For each…→…of_§do_",
 	"integrate_and_with_",
@@ -779,6 +780,30 @@ Semantic restriction "_∈_" is
 		]
 	]
 ];
+
+/**
+ * Compute and answer the count of elements of {@param "aMap"} that satisfy 
+ * the given predicate.
+ * 
+ * @macro "count…→…of_§where_"
+ * @param "keyPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable representing the key of
+ *        the map.
+ * @param "valuePhrase" "literal phrase ⇒ token"
+ *       A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable representing the value of
+ *        the map.
+ * @param "aMap" "expression phrase ⇒ map"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over
+ * @param "predicateBlock" "block phrase ⇒ []→boolean"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        predicate function.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Queries" "Collections" "Sets"
+ */
+Macro "count…→…of_§where_" is a map iteration prefix function,
+	predicate body function($"count of_where_", whole number);
 
 /**
  * Categorize the elements of {@param "aTuple"} via {@param "discriminator"}.

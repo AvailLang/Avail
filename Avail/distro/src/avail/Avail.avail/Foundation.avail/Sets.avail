@@ -769,6 +769,27 @@ Semantic restriction "count of_where_" is
 	Require: predicate accepts setType;
 	[0..⎡setType⎤ + 1)
 ];
+	
+/**
+ * Compute and answer the count of elements of {@param "aSet"} that satisfy 
+ * the given predicate.
+ * 
+ * @macro "count…of_§where_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aSet"}.
+ * @param "aSet" "expression phrase ⇒ set"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over
+ * @param "predicateBlock" "block phrase ⇒ []→boolean"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        predicate function.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Queries" "Collections" "Sets"
+ */
+Macro "count…of_§where_" is a set iteration prefix function,
+	predicate body function($"count of_where_", whole number);
 
 /**
  * Compute and answer the symmetric difference between the two sets, being the

@@ -243,6 +243,15 @@ Test "count of where" in set test suite is
  	Require: c = 0;
 ];
 
+Test "count of where (macros)" in set test suite is
+[
+	a ::= {1,2,3,4};
+ 	b ::= count n of a where [n mod 2 = 0];
+ 	c ::= count n of a where [n > 2000];
+ 	Require: b = 2;
+ 	Require: c = 0;
+];
+
 Test "each of satisfies" in set test suite is
 [
 	a ::= {1,2,3,4};

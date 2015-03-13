@@ -1135,7 +1135,7 @@ Semantic restriction "count of_where_" is
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        predicate function.
  * @returns "send phrase ⇒ ⊤"
- * @category "Control Structures" "Loops" "Collections" "Tuples"
+ * @category "Queries" "Collections" "Tuples"
  */
 Macro "count…of_§where_" is a tuple iteration prefix function,
 	predicate body function($"count of_where_", whole number);	

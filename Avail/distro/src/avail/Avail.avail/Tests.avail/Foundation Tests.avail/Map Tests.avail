@@ -159,6 +159,15 @@ Test "count of where" in map test suite is
  	Require: c = 0;
 ];
 
+Test "count of where (macro)" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+ 	b ::= count s → n of a where [n mod 2 = 0];
+ 	c ::= count s → n of a where [n > 2000];
+ 	Require: b = 2;
+ 	Require: c = 0;
+];
+
 Test "each of satisfies" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
