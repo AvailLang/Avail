@@ -3429,22 +3429,30 @@ Private method "merge_with_" is
 	input2 : tuple := splitInput[2];
 	output : tuple := input1 ++ input2;
 
-	While i ≤ |input1| ∧ j ≤ |input2|
+	input1_size ::= |input1|;
+	input2_size ::= |input2|;
+
+	While i ≤ input1_size ∧ j ≤ input2_size
 	do
 	[
-		If comparator(input1[i], input2[j]) then
+		i1 ::= input1[i];
+		i2 ::= input2[j];
+		
+		If comparator(i1, i2) then
 		[
-			output := output[k]→input1[i];
+			output := output[k]→i1;
 			i++;
 		]
 		else
 		[
-			output := output[k]→input2[j];
+			output := output[k]→i2;
 			j++;
 		];
 		k++;
 	];
-	if i < |input1| then [output[..k-1] ++ input1[i..]]
+	
+	/* concatenate remaining input */
+	if i ≤ input1_size then [output[..k-1] ++ input1[i..]]
 	else [output[..k-1] ++ input2[j..]]
 ]: tuple;
 
@@ -3521,7 +3529,11 @@ Public method "merge sort_with_" is
  |
 		left : tuple := merge sort aTuple[..|aTuple| ÷ 2] with comparator;
 		right: tuple := merge sort aTuple[|aTuple| ÷ 2 + 1..] with comparator;
-		merge <left,right> with comparator
+		merge: tuple := merge <left,right> with comparator;
+		
+		Assert: (|left| + |right|) = |merge|;
+		
+		merge
 ]: tuple;
 
 /**
