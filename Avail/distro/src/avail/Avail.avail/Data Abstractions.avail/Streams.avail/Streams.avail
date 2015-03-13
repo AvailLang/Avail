@@ -99,20 +99,11 @@ Private method "a stream prefix function" is
 		elementPhrase : literal phrase ⇒ token,
 		aStream : expression phrase ⇒ stream
 	|
-		/* Establish local loop variable is unique*/
-		elementToken ::= elementPhrase's token;
-		elementName ::= elementToken's lexeme;
-		If elementName ∈ scope map then
+		Declare loop variable elementPhrase as
 		[
-			Reject parse, expected:
-				"loop variable "
-				++ elementName
-				++ " to have a name that doesn't shadow another local declaration"
-		];	
-		/* Determine the strongest type of the loop variable for aStream */
-		aStreamType ::= aStream's semantic type;
-		elementType ::= aStreamType's element type's instance;
-		scope map := scope map + elementName → arg «elementToken : elementType»;
+		 	aStreamType ::= aStream's semantic type;
+			aStreamType's element type's instance
+		];
 	]
 ]: [literal phrase ⇒ token, expression phrase ⇒ stream]→⊤;
 	

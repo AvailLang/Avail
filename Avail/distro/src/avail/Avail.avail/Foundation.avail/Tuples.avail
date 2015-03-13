@@ -967,7 +967,7 @@ Semantic restriction "each of_satisfies_" is
 /**
  * Answer a function that computes a body function.
  * 
- * @method "predicated body function(_,_)"
+ * @method "predicate body function(_,_)"
  * @param "anAtom" "atom" the atom that represents the function that the
  * 		macro builds
  * @param "baseReturnType" "type" the base return type of the method
@@ -975,7 +975,7 @@ Semantic restriction "each of_satisfies_" is
  *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
  *          The requested function.
  */
-Private method "predicated body function(_,_)" is
+Private method "predicate body function(_,_)" is
 [
  	anAtom : atom,
  	baseReturnType : type
@@ -1032,10 +1032,10 @@ Private method "predicated body function(_,_)" is
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        predicate function.
  * @returns "send phrase ⇒ ⊤"
- * @category "Control Structures" "Loops" "Collections" "Tuples"
+ * @category "Collections" "Tuples" "Queries"
  */
 Macro "any…of_§satisfies_" is a tuple iteration prefix function,
-	predicated body function($"any of_satisfies_", boolean);
+	predicate body function($"any of_satisfies_", boolean);
 
 /**
  * Compute and answer whether all of the elements of {@param "aTuple"} satisfies
@@ -1053,10 +1053,10 @@ Macro "any…of_§satisfies_" is a tuple iteration prefix function,
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        predicate function.
  * @returns "send phrase ⇒ ⊤"
- * @category "Control Structures" "Loops" "Collections" "Tuples"
+ * @category "Collections" "Tuples" "Queries"
  */
 Macro "each…of_§satisfies_" is a tuple iteration prefix function,
-	predicated body function($"each of_satisfies_", boolean);
+	predicate body function($"each of_satisfies_", boolean);
 
 /**
  * Compute and answer the count of elements of {@param "aTuple"} that satisfy 
@@ -1138,7 +1138,7 @@ Semantic restriction "count of_where_" is
  * @category "Control Structures" "Loops" "Collections" "Tuples"
  */
 Macro "count…of_§where_" is a tuple iteration prefix function,
-	predicated body function($"count of_where_", whole number);	
+	predicate body function($"count of_where_", whole number);	
 
 /**
  * Compute and answer the distinct elements of {@param "aTuple"}, preserving 
@@ -2507,8 +2507,6 @@ Public method "drop from_until_" is
  */
 Semantic restriction "drop from_until_" is drop-until semantic restriction;
 
-
-	
 /**
  * Answer a tuple containing the prefix of {@param "aTuple"} that answered
  * {@method "true"} to {@param "predicateBlock"}.
@@ -2528,7 +2526,7 @@ Semantic restriction "drop from_until_" is drop-until semantic restriction;
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
 Public macro "take…from_§while_" is a tuple iteration prefix function,
-	predicated body function($"take from_while_", tuple);
+	predicate body function($"take from_while_", tuple);
 
 /**
  * Answer a tuple containing the prefix of {@param "aTuple"} that answered
@@ -2549,7 +2547,7 @@ Public macro "take…from_§while_" is a tuple iteration prefix function,
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
 Public macro "take…from_§until_" is a tuple iteration prefix function,
-	predicated body function($"take from_until_", tuple);
+	predicate body function($"take from_until_", tuple);
 
 /**
  * Compute and answer the suffix of {@param "aTuple"} that begins with the 
@@ -2570,7 +2568,7 @@ Public macro "take…from_§until_" is a tuple iteration prefix function,
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
 Public macro "drop…from_§while_" is a tuple iteration prefix function,
-	predicated body function($"drop from_while_", tuple);
+	predicate body function($"drop from_while_", tuple);
 
 /**
  * Compute and answer the suffix of {@param "aTuple"} that begins with the 
@@ -2591,7 +2589,7 @@ Public macro "drop…from_§while_" is a tuple iteration prefix function,
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
 Public macro "drop…from_§until_" is a tuple iteration prefix function,
-	predicated body function($"drop from_until_", tuple);
+	predicate body function($"drop from_until_", tuple);
 
 /**
  * Answer a tuple containing every element of {@param "aTuple"} except for the 

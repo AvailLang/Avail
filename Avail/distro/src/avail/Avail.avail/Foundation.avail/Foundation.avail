@@ -850,7 +850,9 @@ Extends
 	),
 	"Maps" =
 	(
+		"any…→…of_§satisfies_",
 		"counts for_",
+		"each…→…of_§satisfies_",
 		"environment map",
 		"For each…→…of_§do_",
 		"integrate_and_with_",
