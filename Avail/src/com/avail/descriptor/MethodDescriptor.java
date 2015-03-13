@@ -40,6 +40,7 @@ import static java.lang.Math.*;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
+import com.avail.compiler.MessageSplitter;
 import com.avail.compiler.ParsingOperation;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MalformedMessageException;
@@ -1560,7 +1561,6 @@ extends Descriptor
 		final AvailObject object,
 		final A_Tuple prefixFunctions)
 	{
-		assert prefixFunctions.tupleSize() == object.slot(NUM_ARGS);
 		object.setSlot(MACRO_PREFIX_FUNCTIONS, prefixFunctions);
 	}
 
@@ -1754,10 +1754,16 @@ extends Descriptor
 	 * privateTestingTree, and its set of dependents chunk indices can all be
 	 * updated (while holding a lock).</p>
 	 *
-	 * @param numArgs The number of arguments that this method expects.
+	 * @param numArgs
+	 *        The number of arguments that this method expects.
+	 * @param numSections
+	 *        The number of {@link MessageSplitter#numberOfSectionCheckpoints()
+	 *        section checkpoints} (§).
 	 * @return A new method with no name.
 	 */
-	public static AvailObject newMethod (final int numArgs)
+	public static AvailObject newMethod (
+		final int numArgs,
+		final int numSections)
 	{
 		final AvailObject result = mutable.create();
 		result.setSlot(HASH, AvailRuntime.nextHash());
@@ -1773,7 +1779,7 @@ extends Descriptor
 		result.setSlot(
 			MACRO_PREFIX_FUNCTIONS,
 			RepeatedElementTupleDescriptor.createRepeatedElementTuple(
-				numArgs, TupleDescriptor.empty()));
+				numSections, TupleDescriptor.empty()));
 		result.makeShared();
 		return result;
 	}

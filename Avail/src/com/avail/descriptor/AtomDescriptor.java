@@ -349,11 +349,12 @@ extends Descriptor
 		if (bundle.equalsNil())
 		{
 			final A_String name = object.slot(NAME);
-			final int numArgs;
 			final MessageSplitter splitter = new MessageSplitter(name);
-			numArgs = splitter.numberOfArguments();
-			final A_Method method = MethodDescriptor.newMethod(numArgs);
-			bundle = MessageBundleDescriptor.newBundle(object, method, splitter);
+			final A_Method method = MethodDescriptor.newMethod(
+				splitter.numberOfArguments(),
+				splitter.numberOfSectionCheckpoints());
+			bundle =
+				MessageBundleDescriptor.newBundle(object, method, splitter);
 			object.setAtomProperty(messageBundleKey, bundle);
 		}
 		return bundle;

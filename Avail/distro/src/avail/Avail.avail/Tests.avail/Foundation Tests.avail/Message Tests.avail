@@ -101,3 +101,32 @@ Test "second-level triples" in message test suite is
 		(Triples 20:30:10, 20:30:10)
 		= <<10, 20, 30>, <10, 20, 30>>;
 ];
+
+Private method "_call_" is [ a : number,  b : number  | a × b ];
+Private method "_call_" is [ a : number,  b : integer | a + b ];
+Private method "_call_" is [ a : integer, b : number  | a - b ];
+
+Method "ambiguous super call" is 
+[
+	Require: (3::number) call (4::number) = 12;
+	Require: (3::number) call (4::integer) = 7;
+	Require: (3::integer) call (4::number) = -1;
+	Require: 
+		[ (1::integer) call (2::integer) ] 
+			raises ambiguous-method-definition exception;
+];
+
+Private method  "_call" is [ a : any | "hello" ] : any;
+Private method  "_call" is [ a : number | -a ] : number;
+Private method  "_call" is [ a : natural number | a ] : natural number;
+
+Method "typed super call" is
+[
+	r1 : natural number := (4::natural number) call;
+	r2 : number := (4::number) call;
+	r3 : any := (4::any) call;  
+
+	Require: r1 = 4;
+	Require: r2 = -4;
+	Require: r3 = "hello";
+];
