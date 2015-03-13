@@ -1,0 +1,99 @@
+/*
+ * Macro Support.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Macro Support"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Extends
+	"Early Macro Support",
+	"Phrases"
+Uses
+	"Bootstrap",
+	"Early Definers",
+	"Early Conditionals",
+	"Early Maps",
+	"Early Literals"
+Names
+	"Declare loop variable_as_"
+Body
+
+/*
+ * This is a bootstrap function invoker, needed by "restricted send_with_:_" in
+ * order to procure a result from a function application.
+ */
+Private method "private invoke_with_" is
+[
+	aFunction : function,
+	arguments : tuple
+|
+	Primitive 40 (failureCode : natural number);
+	Invoke early failure function with <failureCode>
+] : ⊤;
+
+Semantic restriction "private invoke_with_" is
+[
+	functionType : function meta,
+	argumentsType : tuple meta
+|
+	any's type
+];
+
+/**
+ * Create a local variable in a macro and add to the scope
+ * 
+ * @method "Declare loop variable_as_"
+ * @param "varNamePhrase" "literal phrase ⇒ token" The name of the variable
+ * @param "varTypeFunction" "function accepting <> and returning any meta"
+ * 		A function that determines the type of the variable
+ * @returns "⊤"
+ */
+Public method "Declare loop variable_as_" is
+[
+	varNamePhrase : literal phrase ⇒ token,
+	varTypeFunction : function accepting <> and returning any meta
+|
+	varToken ::= varNamePhrase's token;
+	varName ::= varToken's lexeme;
+	If varName ∈ scope map then
+	[
+		Reject parse, expected:
+			concatenate
+			<
+				"loop variable",
+				varName,
+				" to have a name that doesn't shadow another local declaration"
+			>
+	];
+	varType ::= private invoke varTypeFunction with <>;
+	varDecl ::= arg «varToken : varType»;
+	scope map := scope map + varName → varDecl;
+];
