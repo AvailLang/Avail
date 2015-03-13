@@ -1123,7 +1123,7 @@ Semantic restriction "count of_where_" is
  * Compute and answer the count of elements of {@param "aTuple"} that satisfy 
  * the given predicate.
  * 
- * @macro "count…of_§where_"
+ * @macro "count of…in_§where_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
@@ -1137,7 +1137,7 @@ Semantic restriction "count of_where_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Queries" "Collections" "Tuples"
  */
-Macro "count…of_§where_" is a tuple iteration prefix function,
+Macro "count of…in_§where_" is a tuple iteration prefix function,
 	predicate body function($"count of_where_", whole number);	
 
 /**
@@ -1860,7 +1860,7 @@ Stable method "_∈_" is
 	value : any,
 	aTuple : tuple
 |
-	any of aTuple satisfies [ element : any | element = value ]
+	any element of aTuple satisfies [element = value ]
 ] : boolean;
 
 /**

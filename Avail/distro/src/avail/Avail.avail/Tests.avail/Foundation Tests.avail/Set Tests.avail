@@ -246,8 +246,8 @@ Test "count of where" in set test suite is
 Test "count of where (macros)" in set test suite is
 [
 	a ::= {1,2,3,4};
- 	b ::= count n of a where [n mod 2 = 0];
- 	c ::= count n of a where [n > 2000];
+ 	b ::= count of n in a where [n mod 2 = 0];
+ 	c ::= count of n in a where [n > 2000];
  	Require: b = 2;
  	Require: c = 0;
 ];

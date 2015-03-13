@@ -502,7 +502,7 @@ Extends
 		"any of_satisfies_",
 		"any…of_§satisfies_",
 		"count of_where_",
-		"count…of_§where_",
+		"count of…in_§where_",
 		"each of_satisfies_",
 		"each…of_§satisfies_",
 		"filter_by_",
@@ -852,7 +852,7 @@ Extends
 	(
 		"any…→…of_§satisfies_",
 		"counts for_",
-		"count…→…of_§where_",
+		"count of…→…in_§where_",
 		"each…→…of_§satisfies_",
 		"environment map",
 		"For each…→…of_§do_",
