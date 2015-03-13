@@ -47,7 +47,7 @@ Uses
 	"Early Assertions",
 	"Early Conditionals",
 	"Early Functions",
-	"Early Macro Support",
+	"Macro Support",
 	"Early Maps",
 	"Early Tuples",
 	"Early Sets",
@@ -55,7 +55,6 @@ Uses
 	"Literals",
 	"Logic",
 	"Math",
-	"Phrases",
 	"Types",
 	"Variables"
 Names

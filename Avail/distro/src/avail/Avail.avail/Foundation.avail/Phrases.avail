@@ -40,8 +40,10 @@ Uses
 	"Early Definers",
 	"Early Enumeration Support",
 	"Early Literals",
+	"Early Macro Support",
 	"Early Variables"
 Names
+	/*"Declare loop variable_as_",*/
 	"Evaluate|evaluate_",
 	"restricted send_with_:_",
 	"this token:…",
