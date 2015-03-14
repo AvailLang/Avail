@@ -152,8 +152,8 @@ multiply delimited stream's head method is
 |
 	head : tuple := <>;
 	rest : stream := aStream's decorated stream;
-	Until rest is empty ∨ any of aStream's delimiters satisfies
-		[delimiter : tuple | rest starts with delimiter]
+	Until rest is empty ∨ any delimiter of aStream's delimiters satisfies
+		[rest starts with delimiter]
 	do
 	[
 		head := eject head ++ <rest's head>;

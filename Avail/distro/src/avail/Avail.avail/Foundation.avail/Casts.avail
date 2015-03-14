@@ -359,11 +359,8 @@ Public method "Cast|cast each of_into_" is
 	paramTypes ::= map 1 to limit through [t : natural number | sig[t]];
 	Assert: |valueTypes| = |paramTypes|;
 	zipped ::= valueTypes zip paramTypes;
-	ok ::= each of zipped satisfies [t : <type…|2> | t[1] ⊆ t[2]];
-	if ok then
-	[
-		invoke accept with values;
-	]
+	ok ::= each t of zipped satisfies [t[1] ⊆ t[2]];
+	if ok then [invoke accept with values;]
 	else
 	[
 		Raise a bad-cast exception with
@@ -453,11 +450,8 @@ Public method "Cast|cast each of_into_else_" is
 	paramTypes ::= map 1 to limit through [t : natural number | sig[t]];
 	Assert: |valueTypes| = |paramTypes|;
 	zipped ::= valueTypes zip paramTypes;
-	ok ::= each of zipped satisfies [t : <type…|2> | t[1] ⊆ t[2]];
-	if ok then
-	[
-		invoke accept with values;
-	]
+	ok ::= each t of zipped satisfies [t[1] ⊆ t[2]];
+	if ok then [invoke accept with values;]
 	else reject;
 ];
 

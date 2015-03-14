@@ -1846,7 +1846,7 @@ Stable method "_∈_" is
 	value : any,
 	aTuple : tuple
 |
-	any element of aTuple satisfies [element = value ]
+	any element of aTuple satisfies [element = value]
 ] : boolean;
 
 /**

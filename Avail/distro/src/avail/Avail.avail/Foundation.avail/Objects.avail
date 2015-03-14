@@ -577,8 +577,8 @@ Private method "Generate and install_accessor for«mutable»?_" is
 		theMethod ::= method for methodAtom;
 		restrictions ::= semantic restrictions for theMethod
 			given <objectType's type's type>;
-		needToRestrict ::= ¬any of restrictions satisfies
-			[r : […]→type | r's type[1] = (objectType's type's type)];
+		needToRestrict ::= ¬any r of restrictions satisfies
+			[r's type[1] = (objectType's type's type)];
 		If needToRestrict then
 		[
 			Semantic restriction methodName is
@@ -602,8 +602,8 @@ Private method "Generate and install_accessor for«mutable»?_" is
 		theMethod ::= method for methodAtom;
 		restrictions ::=
 			semantic restrictions for theMethod given <objectType's type>;
-		needToRestrict ::= ¬any of restrictions satisfies
-			[r : […]→type | r's type[1] = (objectType's type)];
+		needToRestrict ::= ¬any r of restrictions satisfies
+			[r's type[1] = (objectType's type)];
 		If needToRestrict then
 		[
 			sem ::= generate objectType field accessor restriction

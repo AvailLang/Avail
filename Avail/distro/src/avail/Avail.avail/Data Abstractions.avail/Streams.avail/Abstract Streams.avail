@@ -740,7 +740,7 @@ Method "_is empty" is
 |
 	index ::= aStream's stream index;
 	streams ::= aStream's decorated streams;
-	each of streams[index..] satisfies [s : stream | s is empty]
+	each s of streams[index..] satisfies [s is empty]
 ] : boolean;
 
 concatenation stream's head method is
@@ -864,7 +864,7 @@ Method "_is empty" is
 [
 	aStream : zipped stream
 |
-	any of aStream's decorated streams satisfies [s : stream | s is empty]
+	any s of aStream's decorated streams satisfies [s is empty]
 ] : boolean;
 
 zipped stream's head method is
