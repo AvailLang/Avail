@@ -52,10 +52,8 @@ Test "delimited reader basics" in delimited reader test suite is
 	d ::= <1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, 9, 0, 10>;
 	index : natural number := 1;
 	iter ::= a reader over d delimited by <0>;
-	For each iter do
+	For each element of iter do
 	[
-		element : <[0..10]…|>
-	|
 		Require: element = <ref[(index++)]>;
 	];
 	Require: index = (|ref| + 1);

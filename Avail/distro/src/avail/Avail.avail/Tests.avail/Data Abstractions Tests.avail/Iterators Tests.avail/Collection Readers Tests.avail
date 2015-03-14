@@ -51,10 +51,8 @@ Test "tuple reader basics" in tuple reader test suite is
 	ref ::= 1 to 10;
 	index : natural number := 1;
 	iter ::= a reader over 1 to 10;
-	For each iter do
+	For each element of iter do
 	[
-		element : [1..10]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
@@ -65,10 +63,8 @@ Test "tuple reader (map)" in tuple reader test suite is
 	ref ::= <1, 4, 9, 16, 25, 36, 49, 64, 81, 100>;
 	index : natural number := 1;
 	iter ::= map a reader over 1 to 10 through [i : [1..10] | i × i];
-	For each iter do
+	For each element of iter do
 	[
-		element : [1..100]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
@@ -80,10 +76,8 @@ Test "tuple reader (filter)" in tuple reader test suite is
 	index : natural number := 1;
 	iter ::= filter a reader over 1 to 10
 		by [i : [1..10] | i is even];
-	For each iter do
+	For each element of iter do
 	[
-		element : [1..10]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
@@ -104,10 +98,8 @@ Test "tuple reader (concatenation)" in tuple reader test suite is
 		a reader over 9 to 10,
 		an exhausted reader>;
 	iter ::= concatenate iters;
-	For each iter do
+	For each element of iter do
 	[
-		element : [1..10]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
@@ -137,10 +129,8 @@ Test "tuple reader (lexical concatenation)"
 		++ iters[7]
 		++ iters[8]
 		++ iters[9];
-	For each iter do
+	For each element of iter do
 	[
-		element : [1..10]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
@@ -157,10 +147,8 @@ Test "tuple reader (zip)" in tuple reader test suite is
 		map a reader over 1 to 10
 			through [n : [1..10] | n × n]>;
 	iter ::= zip iters;
-	For each iter do
+	For each element of iter do
 	[
-		element : <[1..10], [1..100]…|2>
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
@@ -177,10 +165,8 @@ Test "tuple reader (lexical zip)" in tuple reader test suite is
 		map a reader over 1 to 10
 			through [n : [1..10] | n × n]>;
 	iter ::= iters[1] zip iters[2];
-	For each iter do
+	For each element of iter do
 	[
-		element : <[1..10], [1..100]…|2>
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
@@ -192,10 +178,8 @@ Test "tuple reader (take_from_)" in tuple reader test suite is
 	index : natural number := 1;
 	iter ::= a reader over 1 to 10;
 	result ::= take 5 from iter;
-	For each result do
+	For each element of result do
 	[
-		element : [1..10]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: iter's current element = 6;
@@ -208,10 +192,8 @@ Test "tuple reader (take from_while_)" in tuple reader test suite is
 	index : natural number := 1;
 	iter ::= a reader over 1 to 10;
 	result ::= take from iter while [n : [1..10] | n ≤ 5];
-	For each result do
+	For each element of result do
 	[
-		element : [1..10]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: iter's current element = 6;
@@ -223,10 +205,8 @@ Test "tuple reader (take from_until_)" in tuple reader test suite is
 	index : natural number := 1;
 	iter ::= a reader over 1 to 10;
 	result ::= take from iter until [n : [1..10] | n ≥ 6];
-	For each result do
+	For each element of result do
 	[
-		element : [1..10]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: iter's current element = 6;
@@ -238,10 +218,8 @@ Test "tuple reader (Drop_from_)" in tuple reader test suite is
 	index : natural number := 1;
 	iter ::= a reader over 1 to 10;
 	Drop 5 from iter;
-	For each iter do
+	For each element of iter do
 	[
-		element : [1..10]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
@@ -254,10 +232,8 @@ Test "tuple reader (Drop from_while_)" in tuple reader test suite is
 	index : natural number := 1;
 	iter ::= a reader over 1 to 10;
 	Drop from iter while [n : [1..10] | n ≤ 5];
-	For each iter do
+	For each element of iter do
 	[
-		element : [1..10]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
@@ -269,10 +245,8 @@ Test "tuple reader (Drop from_until_)" in tuple reader test suite is
 	index : natural number := 1;
 	iter ::= a reader over 1 to 10;
 	Drop from iter until [n : [1..10] | n ≥ 6];
-	For each iter do
+	For each element of iter do
 	[
-		element : [1..10]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
@@ -310,10 +284,8 @@ Test "tuple reader (remaining elements)" in tuple reader test suite is
 [
 	iter ::= a reader over 1 to 10;
 	remaining : integer := |iter|;
-	For each iter do
+	For each element of iter do
 	[
-		element : [1..10]
-	|
 		Require: |iter's remaining elements| = remaining;
 		remaining--;
 	];

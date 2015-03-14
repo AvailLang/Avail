@@ -819,10 +819,8 @@ Method "any of_satisfies_" is
 	predicate : [⊥]→boolean
 |
 	$body : boolean;
-	For each aTuple do
+	For each element of aTuple do
 	[
-		element : any
-	|
 		If predicate(element) then
 		[
 			Exit body with true
@@ -852,11 +850,8 @@ Method "any of_satisfies_" is
 	predicate : [⊥, ⊥]→boolean
 |
 	$body : boolean;
-	For each aTuple do
+	For each element, index of aTuple do
 	[
-		element : any,
-		index : natural number
-	|
 		If predicate(element, index) then
 		[
 			Exit body with true
@@ -902,10 +897,8 @@ Method "each of_satisfies_" is
 	predicate : [⊥]→boolean
 |
 	$body : boolean;
-	For each aTuple do
+	For each element of aTuple do
 	[
-		element : any
-	|
 		Unless predicate(element) then
 		[
 			Exit body with false
@@ -935,11 +928,8 @@ Method "each of_satisfies_" is
 	predicate : [⊥, ⊥]→boolean
 |
 	$body : boolean;
-	For each aTuple do
+	For each element, index of aTuple do
 	[
-		element : any,
-		index : natural number
-	|
 		Unless predicate(element, index) then
 		[
 			Exit body with false
@@ -1198,10 +1188,8 @@ Private method "zip function" is
 		For each index from 1 to limit do
 		[
 			group : tuple := <>;
-			For each tuples do
+			For each aTuple of tuples do
 			[
-				aTuple : tuple
-			|
 				group := eject group ++ <aTuple[index]>;
 			];
 			accumulator := eject accumulator ++ <group>;
@@ -1303,10 +1291,8 @@ Private method "zip semantic restriction" is
 				/* Examine the `index`-th element type of each input. Accumulate
 				 * the results into `zipped`.
 				 */
-				For each types do
+				For each tupleType of types do
 				[
-					tupleType : tuple meta
-				|
 					zipped := eject zipped ++ <tupleType[index]>;
 				];
 				nonempty ::= cast zipped

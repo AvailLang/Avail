@@ -127,10 +127,8 @@ Test "bounded reader (lexical concatenation)"
 		++ iters[7]
 		++ iters[8]
 		++ iters[9];
-	For each iter do
+	For each element of iter do
 	[
-		element : [1..100]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
@@ -147,10 +145,8 @@ Test "bounded reader (zip)" in bounded reader test suite is
 		map a counting reader from 1 to 100 limited to 10 elements
 			through [n : [1..100] | n × n]>;
 	iter ::= zip iters;
-	For each iter do
+	For each element of iter do
 	[
-		element : <[1..100], [1..10000]…|2>
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
@@ -167,10 +163,8 @@ Test "bounded reader (lexical zip)" in bounded reader test suite is
 		map a counting reader from 1 to 100 limited to 10 elements
 			through [n : [1..100] | n × n]>;
 	iter ::= iters[1] zip iters[2];
-	For each iter do
+	For each element of iter do
 	[
-		element : <[1..100], [1..10000]…|2>
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
@@ -182,10 +176,8 @@ Test "bounded reader (take_from_)" in bounded reader test suite is
 	index : natural number := 1;
 	iter ::= a counting reader from 1 to 100 limited to 10 elements;
 	result ::= take 5 from iter;
-	For each result do
+	For each element of result do
 	[
-		element : [1..100]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: iter's current element = 6;
@@ -198,10 +190,8 @@ Test "bounded reader (take from_while_)" in bounded reader test suite is
 	index : natural number := 1;
 	iter ::= a counting reader from 1 to 100 limited to 10 elements;
 	result ::= take from iter while [n : [1..100] | n ≤ 5];
-	For each result do
+	For each element of result do
 	[
-		element : [1..100]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: iter's current element = 6;

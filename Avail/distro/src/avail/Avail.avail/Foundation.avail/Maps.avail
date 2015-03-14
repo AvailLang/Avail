@@ -589,11 +589,8 @@ Method "any of_satisfies_" is
 	predicate : [⊥, ⊥]→boolean
 |
 	$body : boolean;
-	For each aMap do
+	For each key → value of aMap do
 	[
-		key : any,
-		value : any
-	|
 		If predicate(key, value) then
 		[
 			Exit body with true
@@ -637,11 +634,8 @@ Method "each of_satisfies_" is
 	predicate : [⊥, ⊥]→boolean
 |
 	$body : boolean;
-	For each aMap do
+	For each key → value of aMap do
 	[
-		key : any,
-		value : any
-	|
 		Unless predicate(key, value) then
 		[
 			Exit body with false
@@ -826,10 +820,8 @@ Method "group_by_" is
 	discriminator : [⊥]→any
 |
 	groups : {any→tuple|} := {};
-	For each aTuple do
+	For each element of aTuple do
 	[
-		element : any
-	|
 		key ::= discriminator(element);
 		group ::= groups[key] else [ <> ] ++ <element>;
 		groups := eject groups + key→group;
@@ -876,10 +868,8 @@ Method "group_by_" is
 	discriminator : [⊥]→any
 |
 	groups : {any→set|} := {};
-	For each aSet do
+	For each element of aSet do
 	[
-		element : any
-	|
 		key ::= discriminator(element);
 		group ::= groups[key] else [ ∅ ] + element;
 		groups := eject groups + key→group;
@@ -966,11 +956,8 @@ Public method "integrate_and_with_" is
 |
 	baseMapkeys ::= baseMap's keys;
 	newMap : map := baseMap;
-	For each supplementMap do
+	For each supplementKey → supplementValue of supplementMap do
 	[
-		supplementKey : any,
-		supplementValue : any
-	|
 		newMap :=
 			if baseMapkeys ∋ supplementKey then
 			[

@@ -66,10 +66,8 @@ Test "counting reader (map)" in counting reader test suite is
 	ref ::= <1, 4, 9, 16, 25, 36, 49, 64, 81, 100>;
 	index : natural number := 1;
 	iter ::= map a counting reader from 1 to 10 through [i : [1..10] | i × i];
-	For each iter do
+	For each element of iter do
 	[
-		element : [1..100]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
@@ -81,10 +79,8 @@ Test "counting reader (filter)" in counting reader test suite is
 	index : natural number := 1;
 	iter ::= filter a counting reader from 1 to 10
 		by [i : [1..10] | i is even];
-	For each iter do
+	For each element of iter do
 	[
-		element : [1..10]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
@@ -105,10 +101,8 @@ Test "counting reader (concatenation)" in counting reader test suite is
 		a counting reader from 9 to 10,
 		an exhausted reader>;
 	iter ::= concatenate iters;
-	For each iter do
+	For each element of iter do
 	[
-		element : [1..10]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
@@ -138,10 +132,8 @@ Test "counting reader (lexical concatenation)"
 		++ iters[7]
 		++ iters[8]
 		++ iters[9];
-	For each iter do
+	For each element of iter do
 	[
-		element : [1..10]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
@@ -158,10 +150,8 @@ Test "counting reader (zip)" in counting reader test suite is
 		map a counting reader from 1 to 10
 			through [n : [1..10] | n × n]>;
 	iter ::= zip iters;
-	For each iter do
+	For each element of iter do
 	[
-		element : <[1..10], [1..100]…|2>
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
@@ -178,10 +168,8 @@ Test "counting reader (lexical zip)" in counting reader test suite is
 		map a counting reader from 1 to 10
 			through [n : [1..10] | n × n]>;
 	iter ::= iters[1] zip iters[2];
-	For each iter do
+	For each element of iter do
 	[
-		element : <[1..10], [1..100]…|2>
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
@@ -193,10 +181,8 @@ Test "counting reader (take_from_)" in counting reader test suite is
 	index : natural number := 1;
 	iter ::= a counting reader from 1 to 10;
 	result ::= take 5 from iter;
-	For each result do
+	For each element of result do
 	[
-		element : [1..10]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: iter's current element = 6;
@@ -209,10 +195,8 @@ Test "counting reader (take from_while_)" in counting reader test suite is
 	index : natural number := 1;
 	iter ::= a counting reader from 1 to 10;
 	result ::= take from iter while [n : [1..10] | n ≤ 5];
-	For each result do
+	For each element of result do
 	[
-		element : [1..10]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: iter's current element = 6;
@@ -224,10 +208,8 @@ Test "counting reader (take from_until_)" in counting reader test suite is
 	index : natural number := 1;
 	iter ::= a counting reader from 1 to 10;
 	result ::= take from iter until [n : [1..10] | n ≥ 6];
-	For each result do
+	For each element of result do
 	[
-		element : [1..10]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: iter's current element = 6;
@@ -309,11 +291,8 @@ Test "counting reader (position with stride)" in counting reader test suite is
 [
 	iter : (sizable iterator positioned by natural number) ∩ reader of integer;
 	iter := a counting reader from 2 to 16 by 3;
-	For each 2 to 16 by 3 do
+	For each value, index of 2 to 16 by 3 do
 	[
-		value : [2..16],
-		index : [1..5]
-	|
 		iter's position := index;
 		Require: take 5 - index + 1 from iter = value to 16 by 3;
 		Require: iter is exhausted;
