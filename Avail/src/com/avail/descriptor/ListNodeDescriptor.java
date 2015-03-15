@@ -302,6 +302,14 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
+	void o_StatementsDo (
+		final AvailObject object,
+		final Continuation1<A_Phrase> continuation)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return LIST_NODE;

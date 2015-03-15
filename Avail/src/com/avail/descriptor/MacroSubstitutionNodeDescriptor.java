@@ -172,6 +172,14 @@ extends ParseNodeDescriptor
 		aBlock.value(object.slot(OUTPUT_PARSE_NODE));
 	}
 
+	@Override
+	void o_StatementsDo (
+		final AvailObject object,
+		final Continuation1<A_Phrase> continuation)
+	{
+		object.slot(OUTPUT_PARSE_NODE).statementsDo(continuation);
+	}
+
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,

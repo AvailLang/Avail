@@ -6220,4 +6220,12 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract int o_TokenIndex (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param continuation
+	 */
+	abstract void o_StatementsDo (
+		AvailObject object,
+		Continuation1<A_Phrase> continuation);
 }

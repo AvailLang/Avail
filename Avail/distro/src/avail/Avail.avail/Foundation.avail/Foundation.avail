@@ -843,6 +843,7 @@ Extends
 	"Macro Support" =
 	(
 		"Declare loop variable_as_",
+		"Require:_named_does not shadow",
 		"parse map",
 		"parse map:=_",
 		"scope map",
@@ -1103,7 +1104,8 @@ Extends
 		"_↑is assigned", "_is assigned",
 		"_is unassigned",
 		"↓_else_",
-		"`↑_↑"
+		"`↑_↑",
+		"«…‡,»::=_;"
 	)
 Body
 

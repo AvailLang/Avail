@@ -343,6 +343,11 @@ extends Descriptor
 		return object;
 	}
 
+	@Override @AvailMethod
+	abstract void o_StatementsDo (
+		final AvailObject object,
+		final Continuation1<A_Phrase> continuation);
+
 	@Override int maximumIndent ()
 	{
 		return Integer.MAX_VALUE;

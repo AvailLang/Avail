@@ -309,17 +309,17 @@ extends TypeDescriptor
 			}
 		},
 
+		/** A phrase that does not produce a result. */
+		STATEMENT_NODE("statement phrase type", PARSE_NODE),
+
 		/** The kind of a {@linkplain SequenceNodeDescriptor sequence node}. */
-		SEQUENCE_NODE("sequence phrase type", PARSE_NODE),
+		SEQUENCE_NODE("sequence phrase type", STATEMENT_NODE),
 
 		/**
 		 * The kind of a {@linkplain FirstOfSequenceNodeDescriptor
 		 * first-of-sequence node}.
 		 */
-		FIRST_OF_SEQUENCE_NODE("first-of-sequence phrase type", PARSE_NODE),
-
-		/** A phrase that does not produce a result. */
-		STATEMENT_NODE("statement phrase type", PARSE_NODE),
+		FIRST_OF_SEQUENCE_NODE("first-of-sequence phrase type", STATEMENT_NODE),
 
 		/**
 		 * The kind of a {@linkplain DeclarationNodeDescriptor declaration

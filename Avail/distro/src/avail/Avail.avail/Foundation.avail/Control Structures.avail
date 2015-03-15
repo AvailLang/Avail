@@ -47,13 +47,13 @@ Uses
 	"Early Assertions",
 	"Early Conditionals",
 	"Early Functions",
-	"Macro Support",
 	"Early Maps",
 	"Early Tuples",
 	"Early Sets",
 	"Enumeration Support",
 	"Literals",
 	"Logic",
+	"Macro Support",
 	"Math",
 	"Types",
 	"Variables"
@@ -656,26 +656,20 @@ Public macro "For each…from_to_by_§do_" is
 	end : expression phrase ⇒ extended integer,
 	step : expression phrase ⇒ integer
 |
-	counterToken ::= counterPhrase's token;
-	counterName ::= counterToken's lexeme;
-	If counterName ∈ scope map then
+	Declare loop variable counterPhrase as
 	[
-		Reject parse, expected:
-			"loop variable "
-			++ counterName
-			++ " to have a name that doesn't shadow another local declaration"
+		startType ::= start's semantic type;
+		endType ::= end's semantic type;
+		stepType ::= step's semantic type;
+		counterType ::=
+			if stepType ⊆ [0..∞) then [(⎣startType⎦ - 1 .. ⎡endType⎤ + 1)]
+			else
+			[
+				if stepType ⊆ (-∞..-1] then [(⎣endType⎦-1 .. ⎡startType⎤+1)]
+				else [(startType ∪ endType) ∩ integer]
+			];
+		counterType
 	];
-	startType ::= start's semantic type;
-	endType ::= end's semantic type;
-	stepType ::= step's semantic type;
-	counterType ::=
-		if stepType ⊆ [0..∞) then [(⎣startType⎦ - 1 .. ⎡endType⎤ + 1)]
-		else
-		[
-			if stepType ⊆ (-∞..-1] then [(⎣endType⎦ - 1 .. ⎡startType⎤ + 1)]
-			else [(startType ∪ endType) ∩ integer]
-		];
-	scope map := scope map + counterName → arg «counterToken : counterType»;
 ],
 [
 	counterPhrase : literal phrase ⇒ token,
@@ -851,19 +845,8 @@ Public macro "For each…from_to_§do_" is
 	start : expression phrase ⇒ integer,
 	end : expression phrase ⇒ extended integer
 |
-	counterToken ::= counterPhrase's token;
-	counterName ::= counterToken's lexeme;
-	If counterName ∈ scope map then
-	[
-		Reject parse, expected:
-			"loop variable "
-			++ counterName
-			++ " to have a name that doesn't shadow another local declaration"
-	];
-	counterType ::= (⎣start's semantic type⎦-1 .. ⎡end's semantic type⎤+1);
-	scope map := scope map
-		+ counterName
-		→ arg «counterToken : counterType»;
+	Declare loop variable counterPhrase as
+		[(⎣start's semantic type⎦-1 .. ⎡end's semantic type⎤+1)];
 ],
 [
 	counterPhrase : literal phrase ⇒ token,

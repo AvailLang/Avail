@@ -335,8 +335,7 @@ Commands "label NUMBER as STRING", "label #NUMBER as STRING" are
 [
 	args : <room id, string…|2>
 |
-	id ::= args[1];
-	name ::= args[2];
+	id, name ::= args;
 	theRoom ::= the cave[id];
 	theRoom's label := name;
 	Report:

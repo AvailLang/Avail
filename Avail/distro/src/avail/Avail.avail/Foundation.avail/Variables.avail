@@ -42,10 +42,12 @@ Uses
 	"Early Control Structures",
 	"Early Definers",
 	"Early Logic",
+	"Early Macro Support",
 	"Early Math",
 	"Early Variables",
 	"Enumeration Support",
-	"Literals"
+	"Literals",
+	"Phrases"
 Names
 	/* Dynamic variable creation. */
 	"(↓new`↑_:=_)",
@@ -64,7 +66,10 @@ Names
 	/* Variable assignment. */
 	"_is unassigned",
 	"_↑is assigned", "_is assigned",
-	"↓_else_"
+	"↓_else_",
+
+	/* Destructuring tuple assignment. */
+	"«…‡,»::=_;"
 Body
 
 Semantic restriction "_'s⁇read type" is
@@ -377,7 +382,7 @@ Semantic restriction "(++_↑)" is
 	readType ::= varType's read type;
 	if readType ⊆ extended integer then
 	[
-		readRange ::= cast readType into [ t : extended integer meta | t ];
+		readRange ::= cast readType into [t : extended integer meta | t];
 		lower ::= ⎣readRange⎦ + 1;
 		upper ::= ⎡readRange⎤ + 1;
 		integer range
@@ -522,7 +527,7 @@ Semantic restriction "(--_↑)" is
 	readType ::= varType's read type;
 	if readType ⊆ extended integer then
 	[
-		readRange ::= cast readType into [ t : extended integer meta | t ];
+		readRange ::= cast readType into [t : extended integer meta | t];
 		lower ::= ⎣readRange⎦ - 1;
 		upper ::= ⎡readRange⎤ - 1;
 		integer range
@@ -587,6 +592,151 @@ Semantic restriction "↓_else_" is
 	else : (function accepting <> and returning any)'s type
 |
 	varType's read type ∪ else's return type
+];
+
+/**
+ * Destructure a {@type "tuple"} into a {@type "sequence"} of {@method
+ * "`«_::=_`»" constant bindings} that correspond to the first N elements of the
+ * tuple, where N is the size of the {@type "tuple"} denoted by {@param
+ * "namesPhrase"}.
+ *
+ * @macro "«…‡,»::=_"
+ * @param "namesPhrase" "list phrase ⇒ <<>, token…|[2..∞)>"
+ *        A {@type "list phrase"} that evaluates to the {@type "tuple"} of
+ *        {@type "token"}s corresponding to the names of the local constants
+ *        into which {@param "tuplePhrase"} will be destructured.
+ * @param "tuplePhrase" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields to {@type "tuple"} to be
+ *        destructured. This phrase is evaluated only once (not once per
+ *        binding).
+ * @returns "sequence phrase"
+ */
+Public macro "«…‡,»::=_;" is
+[
+	namesPhrase : list phrase ⇒ <<>, token…|[2..∞)>,
+	tuplePhrase : expression phrase ⇒ tuple
+|
+	namePhrases ::= namesPhrase's expressions;
+	nameTokens : tuple := <>;
+	From 1 to |namePhrases| do
+	[
+		index : natural number
+	|
+		namePhrase ::=
+			cast namePhrases[index] into [t : literal phrase ⇒ token | t];
+		nameToken ::= namePhrase's token;
+		name ::= nameToken's lexeme;
+		Require: "local constant" named name does not shadow;
+		nameTokens := concatenate <eject nameTokens, <nameToken>>;
+		true
+	];
+	If |nameTokens| ≠ |nameTokens→set| then
+	[
+		Reject parse, expected:
+			"local constants in destructuring tuple binding to \
+			\|have distinct names"
+	];
+	tupleType ::= tuplePhrase's semantic type;
+	If |nameTokens| > ⎣tupleType⎦ then
+	[
+		Reject parse, expected:
+			"local constants in destructuring tuple binding not to exceed the
+			\|minimum size of the source tuple"
+	];
+	strongNameTokens ::=
+		cast nameTokens into [t : <<>, token…|natural number> | t];
+	/* Give the temporary tuple binding an untypeable name, so that the
+	 * programmer can't refer to it. It doesn't matter if subsequent operations
+	 * shadow it.
+	 */
+	tupleBinding ::= «`"\"aTuple\""` ::= tuplePhrase»;
+	bindings : tuple := <tupleBinding>;
+	From 1 to |strongNameTokens| do
+	[
+		index : natural number
+	|
+		nameToken ::= strongNameTokens[index];
+		at ::= restricted send $"_[_]" with <«↓tupleBinding», ‘`index`’> : any;
+		binding ::= «nameToken ::= at»;
+		bindings := concatenate <eject bindings, <binding>>;
+		true
+	];
+	strongBindings ::=
+		cast bindings into [t : <<>, phrase…|natural number> | t];
+	seq «strongBindings»
+];
+
+/**
+ * Destructure a {@type "tuple meta" tuple type} into a {@type "sequence"} of
+ * {@method "`«_::=_`»" constant bindings} that correspond to the first N
+ * elements of the tuple type, where N is the size of the {@type "tuple"}
+ * denoted by {@param "namesPhrase"}.
+ *
+ * @macro "«…‡,»::=_"
+ * @param "namesPhrase" "list phrase ⇒ <<>, token…|[2..∞)>"
+ *        A {@type "list phrase"} that evaluates to the {@type "tuple"} of
+ *        {@type "token"}s corresponding to the names of the local constants
+ *        into which {@param "tupleTypePhrase"} will be destructured.
+ * @param "tupleTypePhrase" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields to {@type "tuple"} to be
+ *        destructured. This phrase is evaluated only once (not once per
+ *        binding).
+ * @returns "sequence phrase"
+ */
+Public macro "«…‡,»::=_;" is
+[
+	namesPhrase : list phrase ⇒ <<>, token…|[2..∞)>,
+	tupleTypePhrase : expression phrase ⇒ tuple meta
+|
+	namePhrases ::= namesPhrase's expressions;
+	nameTokens : tuple := <>;
+	From 1 to |namePhrases| do
+	[
+		index : natural number
+	|
+		namePhrase ::=
+			cast namePhrases[index] into [t : literal phrase ⇒ token | t];
+		nameToken ::= namePhrase's token;
+		name ::= nameToken's lexeme;
+		Require: "local constant" named name does not shadow;
+		nameTokens := concatenate <eject nameTokens, <nameToken>>;
+		true
+	];
+	If |nameTokens| ≠ |nameTokens→set| then
+	[
+		Reject parse, expected:
+			"local constants in destructuring tuple binding to \
+			\|have distinct names"
+	];
+	tupleType ::= tupleTypePhrase's semantic type's instance;
+	If |nameTokens| > ⎣tupleType⎦ then
+	[
+		Reject parse, expected:
+			"local constants in destructuring tuple type binding not to exceed \"
+			\|the minimum size of the source tuple"
+	];
+	strongNameTokens ::=
+		cast nameTokens into [t : <<>, token…|natural number> | t];
+	/* Give the temporary tuple binding an untypeable name, so that the
+	 * programmer can't refer to it. It doesn't matter if subsequent operations
+	 * shadow it.
+	 */
+	tupleTypeBinding ::= «`"\"aTupleType\""` ::= tupleTypePhrase»;
+	bindings : tuple := <tupleTypeBinding>;
+	From 1 to |strongNameTokens| do
+	[
+		index : natural number
+	|
+		nameToken ::= strongNameTokens[index];
+		at ::=
+			restricted send $"_[_]" with <«↓tupleTypeBinding», ‘`index`’> : any;
+		binding ::= «nameToken ::= at»;
+		bindings := concatenate <eject bindings, <binding>>;
+		true
+	];
+	strongBindings ::=
+		cast bindings into [t : <<>, phrase…|natural number> | t];
+	seq «strongBindings»
 ];
 
 /* This is always invalid, so we might as well forbid it early. */

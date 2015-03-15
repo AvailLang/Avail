@@ -1259,10 +1259,8 @@ Method "“_”" is
 	bindings ::= aMap's bindings;
 	While index ≤ |bindings| do
 	[
-		binding ::= bindings[index];
-		key ::= binding[1];
+		key, value ::= bindings[index];
 		s := eject s ++ “key”;
-		value ::= binding[2];
 		s := eject s ++ "→" ++ “value”;
 		index++;
 	]
