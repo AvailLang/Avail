@@ -71,20 +71,11 @@ Private method "a reader prefix function" is
 		elementPhrase : literal phrase ⇒ token,
 		aReader : expression phrase ⇒ reader
 	|
-		/* Establish local loop variable is unique*/
-		elementToken ::= elementPhrase's token;
-		elementName ::= elementToken's lexeme;
-		If elementName ∈ scope map then
+		Declare loop variable elementPhrase as
 		[
-			Reject parse, expected:
-				"loop variable "
-				++ elementName
-				++ " to have a name that doesn't shadow another local declaration"
-		];	
-		/* Determine the strongest type of the loop variable for aReader */
-		aReaderType ::= aReader's semantic type;
-		elementType ::= aReaderType's element type's instance;
-		scope map := scope map + elementName → arg «elementToken : elementType»;
+			aReaderType ::= aReader's semantic type;
+			aReaderType's element type's instance
+		];
 	]
 ]: [literal phrase ⇒ token, expression phrase ⇒ reader]→⊤;
 

@@ -4636,4 +4636,12 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	void o_StatementsDo (
+		final AvailObject object,
+		final Continuation1<A_Phrase> continuation)
+	{
+		throw unsupportedOperationException();
+	}
 }

@@ -333,4 +333,14 @@ extends A_BasicObject
 	 * @return
 	 */
 	boolean isMacroSubstitutionNode ();
+
+	/**
+	 * Iterate through each {@linkplain ParseNodeKind#SEQUENCE_NODE statement
+	 * phrase} recursively within the receiver, applying the {@linkplain
+	 * Continuation1 continuation} to each.
+	 *
+	 * @param continuation
+	 *        A continuation.
+	 */
+	void statementsDo (Continuation1<A_Phrase> continuation);
 }

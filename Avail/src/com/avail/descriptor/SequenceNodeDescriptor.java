@@ -147,6 +147,17 @@ extends ParseNodeDescriptor
 		}
 	}
 
+	@Override
+	void o_StatementsDo (
+		final AvailObject object,
+		final Continuation1<A_Phrase> continuation)
+	{
+		for (final AvailObject statement : object.slot(STATEMENTS))
+		{
+			continuation.value(statement);
+		}
+	}
+
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,

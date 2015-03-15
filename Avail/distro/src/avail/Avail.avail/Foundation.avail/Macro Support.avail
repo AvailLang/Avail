@@ -1,5 +1,5 @@
 /*
- * Delimited Readers Tests.avail
+ * Macro Support.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,41 +30,61 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Delimited Readers Tests"
+Module "Macro Support"
 Versions
 	"1.0.0 DEV 2014-04-28"
+Extends
+	"Early Macro Support",
+	"Phrases"
 Uses
-	"Abstract Iterators Tests",
-	"Common",
-	"Data Abstractions",
-	"Foundation",
-	"Unit Testing"
+	"Bootstrap",
+	"Early Definers",
+	"Early Conditionals",
+	"Early Maps",
+	"Early Literals"
 Names
-	"delimited reader test suite"
+	"Declare loop variable_as_"
 Body
 
-"delimited reader test suite" is a new atom;
-New test suite delimited reader test suite extends iterators test suite;
-
-Test "delimited reader basics" in delimited reader test suite is
+/*
+ * This is a bootstrap function invoker, needed by "restricted send_with_:_" in
+ * order to procure a result from a function application.
+ */
+Private method "private invoke_with_" is
 [
-	ref ::= 1 to 10;
-	d ::= <1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, 9, 0, 10>;
-	index : natural number := 1;
-	iter ::= a reader over d delimited by <0>;
-	For each element of iter do
-	[
-		Require: element = <ref[(index++)]>;
-	];
-	Require: index = (|ref| + 1);
+	aFunction : function,
+	arguments : tuple
+|
+	Primitive 40 (failureCode : natural number);
+	Invoke early failure function with <failureCode>
+] : ⊤;
+
+Semantic restriction "private invoke_with_" is
+[
+	functionType : function meta,
+	argumentsType : tuple meta
+|
+	any's type
 ];
 
-Test "delimited reader(no occurrences)" in delimited reader test suite is
+/**
+ * Create a local variable in a macro and add to the scope
+ * 
+ * @method "Declare loop variable_as_"
+ * @param "varNamePhrase" "literal phrase ⇒ token" The name of the variable
+ * @param "varTypeFunction" "function accepting <> and returning any meta"
+ *        A function that determines the type of the variable
+ * @returns "⊤"
+ */
+Public method "Declare loop variable_as_" is
 [
-	ref ::= 1 to 10;
-	iter ::= a reader over 1 to 10 delimited by <0>;
-	element ::= iter's current element;
-	Require: element = ref;
-	Advance iter;
-	Require: iter is exhausted;
+	varNamePhrase : literal phrase ⇒ token,
+	varTypeFunction : function accepting <> and returning any meta
+|
+	varToken ::= varNamePhrase's token;
+	varName ::= varToken's lexeme;
+	Require: "loop variable" named varName does not shadow;
+	varType ::= private invoke varTypeFunction with <>;
+	varDecl ::= arg «varToken : varType»;
+	scope map := scope map + varName → varDecl;
 ];

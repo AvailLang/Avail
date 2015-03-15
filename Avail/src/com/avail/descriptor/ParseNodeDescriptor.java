@@ -263,12 +263,6 @@ extends Descriptor
 		return false;
 	}
 
-	@Override
-	boolean o_IsMacroSubstitutionNode (final AvailObject object)
-	{
-		return false;
-	}
-
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
 		final AvailObject object,
@@ -283,6 +277,12 @@ extends Descriptor
 			return object.parseNodeKind().isSubkindOf(aType.parseNodeKind())
 				&& object.expressionType().isSubtypeOf(aType.expressionType());
 		}
+		return false;
+	}
+
+	@Override
+	boolean o_IsMacroSubstitutionNode (final AvailObject object)
+	{
 		return false;
 	}
 
@@ -314,16 +314,21 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract ParseNodeKind o_ParseNodeKind (final AvailObject object);
 
-	@Override @AvailMethod
-	A_Phrase o_StripMacro (final AvailObject object)
-	{
-		return object;
-	}
-
 	@Override
 	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
 	{
 		return false;
+	}
+
+	@Override @AvailMethod
+	abstract void o_StatementsDo (
+		final AvailObject object,
+		final Continuation1<A_Phrase> continuation);
+
+	@Override @AvailMethod
+	A_Phrase o_StripMacro (final AvailObject object)
+	{
+		return object;
 	}
 
 	@Override @AvailMethod

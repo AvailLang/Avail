@@ -79,8 +79,8 @@ Method "Give_a turn" is
 		If the RNG's next [1..4] < 4 then
 		[
 			/* If the agent is right next door, then go devour her. Yum! */
-			If any of the wumpus's location's adjacent rooms satisfies
-				[r : room | r contains the agent]
+			If any r of the wumpus's location's adjacent rooms satisfies
+				[r contains the agent]
 			then
 			[
 				Move the wumpus to the agent's location;

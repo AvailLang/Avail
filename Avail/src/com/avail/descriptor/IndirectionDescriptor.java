@@ -4797,4 +4797,12 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).tokenIndex();
 	}
+
+	@Override
+	void o_StatementsDo (
+		final AvailObject object,
+		final Continuation1<A_Phrase> continuation)
+	{
+		o_Traversed(object).statementsDo(continuation);
+	}
 }

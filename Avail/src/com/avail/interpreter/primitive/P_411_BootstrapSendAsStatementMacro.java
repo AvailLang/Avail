@@ -98,8 +98,8 @@ public final class P_411_BootstrapSendAsStatementMacro extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				/* The send node to treat as a statement */
-				LITERAL_NODE.mostGeneralType()),
-			SEND_NODE.mostGeneralType());
+				LITERAL_NODE.create(SEND_NODE.mostGeneralType())),
+			STATEMENT_NODE.mostGeneralType());
 	}
 
 	@Override

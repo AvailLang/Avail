@@ -201,6 +201,15 @@ Test "any satisfies" in set test suite is
  	Require: c = false;
 ];
 
+Test "any satisfies (macro)" in set test suite is
+[
+ 	a ::= {1,2,3,4};
+ 	b ::= any n of a satisfies [n mod 2 = 0];
+ 	c ::= any n of a satisfies [n > 200];
+ 	Require: b = true;
+ 	Require: c = false;
+];
+
 Test "for each of do" in set test suite is
 [
 	a ::= {1,2,3,4};
@@ -234,6 +243,15 @@ Test "count of where" in set test suite is
  	Require: c = 0;
 ];
 
+Test "count of where (macros)" in set test suite is
+[
+	a ::= {1,2,3,4};
+ 	b ::= count of n in a where [n mod 2 = 0];
+ 	c ::= count of n in a where [n > 2000];
+ 	Require: b = 2;
+ 	Require: c = 0;
+];
+
 Test "each of satisfies" in set test suite is
 [
 	a ::= {1,2,3,4};
@@ -244,6 +262,20 @@ Test "each of satisfies" in set test suite is
  		n ≤ 2
  	];
  	c ::= each of a satisfies [n : natural number | n > 0];
+ 	Require: b = false;
+ 	Require: counter = 3;
+ 	Require: c = true;
+];
+
+Test "each of satisfies (macro)" in set test suite is
+[
+	a ::= {1,2,3,4};
+	counter : whole number := 0;
+ 	b ::= each n of a satisfies [ 
+		counter := counter +1; 
+ 		n ≤ 2
+ 	];
+ 	c ::= each n of a satisfies [n > 0];
  	Require: b = false;
  	Require: counter = 3;
  	Require: c = true;

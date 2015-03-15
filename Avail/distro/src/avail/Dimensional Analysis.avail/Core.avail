@@ -622,17 +622,13 @@ Public stable method "_·_(unit map)" is
 	differenceKeys ::= mapX's keys Δ mapY's keys;
 	intersectionKeys ::= mapX's keys ∩ mapY's keys;
 	unitMap : {atom→integer|} := {};
-	For each differenceKeys do
+	For each key of differenceKeys do
 	[
-		key : atom
-	|
 		exponent ::= mapX[key] else [mapY[key]];
 		unitMap := eject unitMap + key→exponent;
 	];
-	For each intersectionKeys do
+	For each key of intersectionKeys do
 	[
-		key : atom
-	|
 		exponent ::= mapX[key] + mapY[key] (Avail);
 		Unless exponent = 0 then
 		[

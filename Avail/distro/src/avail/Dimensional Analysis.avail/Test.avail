@@ -41,10 +41,8 @@ Body
 
 Test "comparison" in dimensional analysis test suite is
 [
-	For each map 1 to 10 through [i : [1..10] | i m] do
+	For each q of map 1 to 10 through [i : [1..10] | i m] do
 	[
-		q : [1..10] m
-	|
 		Require: q = q;
 		Require: q ≤ q;
 		Require: q ≥ q;
@@ -64,10 +62,8 @@ Test "comparison" in dimensional analysis test suite is
 
 Test "negation" in dimensional analysis test suite is
 [
-	For each map 1 to 10 through [i : [1..10] | i s] do
+	For each q of map 1 to 10 through [i : [1..10] | i s] do
 	[
-		q : [1..∞] s
-	|
 		Require: -q ≠ q;
 		Require: |-q| = q;
 		Require: -(-q) = q;
@@ -77,10 +73,8 @@ Test "negation" in dimensional analysis test suite is
 
 Test "addition" in dimensional analysis test suite is
 [
-	For each map 1 to 10 through [i : [1..10] | i K] do
+	For each q of  map 1 to 10 through [i : [1..10] | i K] do
 	[
-		q : [1..10] K
-	|
 		Require: q + 0 K = q;
 		Require: q + -q = 0 K;
 		Require: q + 1 K > q;
@@ -120,14 +114,12 @@ must raise incompatible-quantities exception;
 
 Test "subtraction" in dimensional analysis test suite is
 [
-	For each map 1 to 10 through [i : [1..10] | i cd] do
+	For each q of map 1 to 10 through [i : [1..10] | i cd] do
 	[
-		q : [1..10] cd
-	|
 		Require: q - 0 cd = q;
 		Require: q - q = 0 cd;
 		Require: q - -q = q + q;
-		For each 1 to 10 do [i : [1..10] | Require: q - i cd = -(i cd - q); ];
+		For each i of 1 to 10 do [Require: q - i cd = -(i cd - q);];
 	];
 	Require: -2147483648 m - 1 m = -2147483649 m;
 	Require: -9223372036854775808 s - 1 s = -9223372036854775809 s;

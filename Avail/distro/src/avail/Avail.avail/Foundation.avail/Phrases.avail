@@ -40,8 +40,10 @@ Uses
 	"Early Definers",
 	"Early Enumeration Support",
 	"Early Literals",
+	"Early Macro Support",
 	"Early Variables"
 Names
+	/*"Declare loop variable_as_",*/
 	"Evaluate|evaluate_",
 	"restricted send_with_:_",
 	"this token:…",
@@ -489,4 +491,13 @@ Public method "restricted send_with_:_" is
 		true
 	];
 	send message with args→list phrase : returnType
+];
+
+Semantic restriction "restricted send_with_:_" is
+[
+	messageType : atom's type,
+	argsType : <<>, expression phrase⇒any…|whole number>'s type,
+	basicReturnMeta : type
+|
+	send phrase ⇒ (cast basicReturnMeta's instance into [t : type | t])
 ];

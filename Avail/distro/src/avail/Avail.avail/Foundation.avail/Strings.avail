@@ -298,10 +298,8 @@ Public stable method "partially format_with_" is
 	badType ::=
 		[early failure function(format-variable-interpolation-failed code)];
 	index : natural number := 1;
-	For each sites do
+	For each site of sites do
 	[
-		site : format site
-	|
 		/* Append any characters between the last site and the previous site
 		 * onto the output.
 		 */
@@ -419,10 +417,8 @@ Public stable method "format_with_" is
 	badType ::=
 		[early failure function(format-variable-interpolation-failed code)];
 	index : natural number := 1;
-	For each sites do
+	For each site of sites do
 	[
-		site : format site
-	|
 		/* Append any characters between the last site and the previous site
 		 * onto the output.
 		 */
@@ -761,10 +757,8 @@ Public stable method "format_with unchecked_" is
 	badType ::=
 		[early failure function(format-variable-interpolation-failed code)];
 	index : natural number := 1;
-	For each sites do
+	For each site of sites do
 	[
-		site : format site
-	|
 		/* Append any characters between the last site and the previous site
 		 * onto the output.
 		 */
@@ -972,10 +966,8 @@ Public stable method "_(base_)" is
 		else
 		[
 			partial : whole number := 0;
-			For each realDigits do
+			For each digit of realDigits do
 			[
-				digit : character
-			|
 				If ¬digit ∈ baseAlphabet then fail;
 				cp ::= cast digit's code point into [t : [cp_0..cp_z] | t];
 				value ::=
@@ -1267,10 +1259,8 @@ Method "“_”" is
 	bindings ::= aMap's bindings;
 	While index ≤ |bindings| do
 	[
-		binding ::= bindings[index];
-		key ::= binding[1];
+		key, value ::= bindings[index];
 		s := eject s ++ “key”;
-		value ::= binding[2];
 		s := eject s ++ "→" ++ “value”;
 		index++;
 	]

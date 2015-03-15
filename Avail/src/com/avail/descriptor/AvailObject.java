@@ -7148,4 +7148,13 @@ implements
 	{
 		return descriptor.o_TokenIndex(this);
 	}
+
+	/**
+	 * @param continuation
+	 */
+	@Override
+	public void statementsDo (final Continuation1<A_Phrase> continuation)
+	{
+		descriptor.o_StatementsDo(this, continuation);
+	}
 }

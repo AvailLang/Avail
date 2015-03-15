@@ -197,46 +197,44 @@ Semantic restriction "_(««_»«`_»?‡,»)" is
 		"Need a definite number of arguments and underscores");
 	pairTypes ::= pairs[1..⎣pairs⎦];
 	argumentTypes : <any's type…|> := <>;
-	For each pairTypes do [
-			pairType : <any?, boolean…|2>'s type,
-			index : natural number
-		|
-			underscoreType ::= pairType[2];
-			If underscoreType = true's type then
-			[
-				If ¬ ||pairType[1]|| ⊆ [0..0] then
-				[
-					Reject parse, expected:
-						"either no argument or no underscore for partial \
-						\|function application, index " ++ “index” ++
-						".  The arguments were:\n" ++ “pairTypes” ++ "."
-				];
-				argumentType ::= originalFunction[index];
-				argumentTypes := eject argumentTypes ++ <argumentType>;
-			]
-			else if [underscoreType = false's type] then
-			[
-				If ¬ ||pairType[1]|| ⊆ [1..1] then
-				[
-					Reject parse, expected:
-						"either an argument or an underscore for partial \
-						\|function application, at index " ++ “index” ++
-						".  The arguments were:\n" ++ “pairTypes” ++ "."
-				];
-				valueType ::= pairType[1][1];
-				If ¬ valueType ⊆ originalFunction[index] then
-				[
-					Reject parse, expected:
-						"type of argument #" ++ “index” ++
-						" to be a subtype of " ++ “originalFunction[index]” ++
-						", not of type " ++ “valueType”
-				];
-			]
-			else
+	For each pairType, index of pairTypes do
+	[
+		underscoreType ::= pairType[2];
+		If underscoreType = true's type then
+		[
+			If ¬ ||pairType[1]|| ⊆ [0..0] then
 			[
 				Reject parse, expected:
-					"statically determined presence or absence of an underscore"
+					"either no argument or no underscore for partial \
+					\|function application, index " ++ “index” ++
+					".  The arguments were:\n" ++ “pairTypes” ++ "."
 			];
+			argumentType ::= originalFunction[index];
+			argumentTypes := eject argumentTypes ++ <argumentType>;
+		]
+		else if [underscoreType = false's type] then
+		[
+			If ¬ ||pairType[1]|| ⊆ [1..1] then
+			[
+				Reject parse, expected:
+					"either an argument or an underscore for partial \
+					\|function application, at index " ++ “index” ++
+					".  The arguments were:\n" ++ “pairTypes” ++ "."
+			];
+			valueType ::= pairType[1][1];
+			If ¬ valueType ⊆ originalFunction[index] then
+			[
+				Reject parse, expected:
+					"type of argument #" ++ “index” ++
+					" to be a subtype of " ++ “originalFunction[index]” ++
+					", not of type " ++ “valueType”
+			];
+		]
+		else
+		[
+			Reject parse, expected:
+				"statically determined presence or absence of an underscore"
+		];
 	];
 	If |argumentTypes| = 0 then
 	[

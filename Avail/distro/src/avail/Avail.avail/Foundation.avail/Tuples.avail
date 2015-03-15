@@ -43,13 +43,12 @@ Uses
 	"Early Assertions",
 	"Early Conditionals",
 	"Early Functions",
-	"Early Macro Support",
 	"Early Maps",
 	"Enumeration Support",
 	"Literals",
 	"Logic",
+	"Macro Support",
 	"Math",
-	"Phrases",
 	"Types",
 	"Variables"
 Names
@@ -272,6 +271,23 @@ Semantic restriction "For each of⁇_do_" is
 	if ⎣tupleType⎦ > 0 ∧ action's return type = ⊥ then [⊥] else [⊤]
 ];
 
+/*
+ * A method that returns a function that returns the strongest type of all the
+ * elements in aTuple.
+ */
+Private method "_'s⁇strengthening function" is
+[
+	aTuple : expression phrase ⇒ tuple
+|
+ 	[
+		/* Determine the strongest type of the loop variable for aTuple */
+		aTupleType ::= aTuple's semantic type;
+		tupleOfTypes ::= aTupleType's leading types ++ 
+			<aTupleType's default type>;
+		∪ tupleOfTypes
+	] : any's type
+]:[]→(any's type);
+
 /**
  * Answer a function that computes a prefix function.
  * 
@@ -286,20 +302,7 @@ Private method "a tuple iteration prefix function" is
 		aTuple : expression phrase ⇒ tuple
 	|
 		/* Establish local loop variable is unique*/
-		elementToken ::= elementPhrase's token;
-		elementName ::= elementToken's lexeme;
-		If elementName ∈ scope map then
-		[
-			Reject parse, expected:
-				"loop variable "
-				++ elementName
-				++ " to have a name that doesn't shadow another local declaration"
-		];	
-		/* Determine the strongest type of the loop variable for aTuple */
-		aTupleType ::= aTuple's semantic type;
-		tupleOfTypes ::= aTupleType's leading types ++ <aTupleType's default type>;
-		elementType ::= ∪ tupleOfTypes;
-		scope map := scope map + elementName → arg «elementToken : elementType»;
+		Declare loop variable elementPhrase as aTuple's strengthening function;
 	]
 ]: [literal phrase ⇒ token, expression phrase ⇒ tuple]→⊤;
 	
@@ -388,37 +391,9 @@ Macro "For each…,…of_§do_" is
 	indexPhrase : literal phrase ⇒ token,
 	aTuple : expression phrase ⇒ tuple
 |
-	/* Establish local loop variable is unique*/
-	elementToken ::= elementPhrase's token;
-	elementName ::= elementToken's lexeme;
-	If elementName ∈ scope map then
-	[
-		Reject parse, expected:
-			"loop variable "
-			++ elementName
-			++ " to have a name that doesn't shadow another local declaration"
-	];
-
-	/* Establish aTuple index variable */
-	indexToken ::= indexPhrase's token;
-	indexName ::= indexToken's lexeme;
-	If indexName ∈ scope map then
-	[
-		Reject parse, expected:
-			"loop index variable "
-			++ indexName
-			++ " to have a name that doesn't shadow another local declaration"
-	];
-	
-	/* Determine the strongest type of the loop variable for aTuple */
+	Declare loop variable elementPhrase as aTuple's strengthening function;
 	aTupleType ::= aTuple's semantic type;
-	tupleOfTypes ::= aTupleType's leading types ++ <aTupleType's default type>;
-	elementType ::= ∪ tupleOfTypes;
-	scope map := scope map + elementName → arg «elementToken : elementType»;
-	
-	/* Determine the strongest type for the index variable */
-	indexType ::= (0 .. ⎡aTupleType⎤+1);
-	scope map := scope map + indexName → arg «indexToken : indexType»;
+	Declare loop variable indexPhrase as [(0 .. ⎡aTupleType⎤+1)];
 ],
 [
 	elementPhrase : literal phrase ⇒ token,
@@ -844,10 +819,8 @@ Method "any of_satisfies_" is
 	predicate : [⊥]→boolean
 |
 	$body : boolean;
-	For each aTuple do
+	For each element of aTuple do
 	[
-		element : any
-	|
 		If predicate(element) then
 		[
 			Exit body with true
@@ -877,11 +850,8 @@ Method "any of_satisfies_" is
 	predicate : [⊥, ⊥]→boolean
 |
 	$body : boolean;
-	For each aTuple do
+	For each element, index of aTuple do
 	[
-		element : any,
-		index : natural number
-	|
 		If predicate(element, index) then
 		[
 			Exit body with true
@@ -927,10 +897,8 @@ Method "each of_satisfies_" is
 	predicate : [⊥]→boolean
 |
 	$body : boolean;
-	For each aTuple do
+	For each element of aTuple do
 	[
-		element : any
-	|
 		Unless predicate(element) then
 		[
 			Exit body with false
@@ -960,11 +928,8 @@ Method "each of_satisfies_" is
 	predicate : [⊥, ⊥]→boolean
 |
 	$body : boolean;
-	For each aTuple do
+	For each element, index of aTuple do
 	[
-		element : any,
-		index : natural number
-	|
 		Unless predicate(element, index) then
 		[
 			Exit body with false
@@ -992,7 +957,7 @@ Semantic restriction "each of_satisfies_" is
 /**
  * Answer a function that computes a body function.
  * 
- * @method "predicated body function(_,_)"
+ * @method "predicate body function(_,_)"
  * @param "anAtom" "atom" the atom that represents the function that the
  * 		macro builds
  * @param "baseReturnType" "type" the base return type of the method
@@ -1000,7 +965,7 @@ Semantic restriction "each of_satisfies_" is
  *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
  *          The requested function.
  */
-Private method "predicated body function(_,_)" is
+Private method "predicate body function(_,_)" is
 [
  	anAtom : atom,
  	baseReturnType : type
@@ -1057,10 +1022,10 @@ Private method "predicated body function(_,_)" is
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        predicate function.
  * @returns "send phrase ⇒ ⊤"
- * @category "Control Structures" "Loops" "Collections" "Tuples"
+ * @category "Collections" "Tuples" "Queries"
  */
 Macro "any…of_§satisfies_" is a tuple iteration prefix function,
-	predicated body function($"any of_satisfies_", boolean);
+	predicate body function($"any of_satisfies_", boolean);
 
 /**
  * Compute and answer whether all of the elements of {@param "aTuple"} satisfies
@@ -1078,10 +1043,10 @@ Macro "any…of_§satisfies_" is a tuple iteration prefix function,
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        predicate function.
  * @returns "send phrase ⇒ ⊤"
- * @category "Control Structures" "Loops" "Collections" "Tuples"
+ * @category "Collections" "Tuples" "Queries"
  */
 Macro "each…of_§satisfies_" is a tuple iteration prefix function,
-	predicated body function($"each of_satisfies_", boolean);
+	predicate body function($"each of_satisfies_", boolean);
 
 /**
  * Compute and answer the count of elements of {@param "aTuple"} that satisfy 
@@ -1148,7 +1113,7 @@ Semantic restriction "count of_where_" is
  * Compute and answer the count of elements of {@param "aTuple"} that satisfy 
  * the given predicate.
  * 
- * @macro "count…of_§where_"
+ * @macro "count of…in_§where_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
@@ -1160,10 +1125,10 @@ Semantic restriction "count of_where_" is
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        predicate function.
  * @returns "send phrase ⇒ ⊤"
- * @category "Control Structures" "Loops" "Collections" "Tuples"
+ * @category "Queries" "Collections" "Tuples"
  */
-Macro "count…of_§where_" is a tuple iteration prefix function,
-	predicated body function($"count of_where_", whole number);	
+Macro "count of…in_§where_" is a tuple iteration prefix function,
+	predicate body function($"count of_where_", whole number);	
 
 /**
  * Compute and answer the distinct elements of {@param "aTuple"}, preserving 
@@ -1223,10 +1188,8 @@ Private method "zip function" is
 		For each index from 1 to limit do
 		[
 			group : tuple := <>;
-			For each tuples do
+			For each aTuple of tuples do
 			[
-				aTuple : tuple
-			|
 				group := eject group ++ <aTuple[index]>;
 			];
 			accumulator := eject accumulator ++ <group>;
@@ -1328,10 +1291,8 @@ Private method "zip semantic restriction" is
 				/* Examine the `index`-th element type of each input. Accumulate
 				 * the results into `zipped`.
 				 */
-				For each types do
+				For each tupleType of types do
 				[
-					tupleType : tuple meta
-				|
 					zipped := eject zipped ++ <tupleType[index]>;
 				];
 				nonempty ::= cast zipped
@@ -1885,7 +1846,7 @@ Stable method "_∈_" is
 	value : any,
 	aTuple : tuple
 |
-	any of aTuple satisfies [ element : any | element = value ]
+	any element of aTuple satisfies [element = value]
 ] : boolean;
 
 /**
@@ -2532,8 +2493,6 @@ Public method "drop from_until_" is
  */
 Semantic restriction "drop from_until_" is drop-until semantic restriction;
 
-
-	
 /**
  * Answer a tuple containing the prefix of {@param "aTuple"} that answered
  * {@method "true"} to {@param "predicateBlock"}.
@@ -2553,7 +2512,7 @@ Semantic restriction "drop from_until_" is drop-until semantic restriction;
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
 Public macro "take…from_§while_" is a tuple iteration prefix function,
-	predicated body function($"take from_while_", tuple);
+	predicate body function($"take from_while_", tuple);
 
 /**
  * Answer a tuple containing the prefix of {@param "aTuple"} that answered
@@ -2574,7 +2533,7 @@ Public macro "take…from_§while_" is a tuple iteration prefix function,
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
 Public macro "take…from_§until_" is a tuple iteration prefix function,
-	predicated body function($"take from_until_", tuple);
+	predicate body function($"take from_until_", tuple);
 
 /**
  * Compute and answer the suffix of {@param "aTuple"} that begins with the 
@@ -2595,7 +2554,7 @@ Public macro "take…from_§until_" is a tuple iteration prefix function,
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
 Public macro "drop…from_§while_" is a tuple iteration prefix function,
-	predicated body function($"drop from_while_", tuple);
+	predicate body function($"drop from_while_", tuple);
 
 /**
  * Compute and answer the suffix of {@param "aTuple"} that begins with the 
@@ -2616,7 +2575,7 @@ Public macro "drop…from_§while_" is a tuple iteration prefix function,
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
 Public macro "drop…from_§until_" is a tuple iteration prefix function,
-	predicated body function($"drop from_until_", tuple);
+	predicate body function($"drop from_until_", tuple);
 
 /**
  * Answer a tuple containing every element of {@param "aTuple"} except for the 
@@ -3456,22 +3415,30 @@ Private method "merge_with_" is
 	input2 : tuple := splitInput[2];
 	output : tuple := input1 ++ input2;
 
-	While i ≤ |input1| ∧ j ≤ |input2|
+	input1_size ::= |input1|;
+	input2_size ::= |input2|;
+
+	While i ≤ input1_size ∧ j ≤ input2_size
 	do
 	[
-		If comparator(input1[i], input2[j]) then
+		i1 ::= input1[i];
+		i2 ::= input2[j];
+		
+		If comparator(i1, i2) then
 		[
-			output := output[k]→input1[i];
+			output := output[k]→i1;
 			i++;
 		]
 		else
 		[
-			output := output[k]→input2[j];
+			output := output[k]→i2;
 			j++;
 		];
 		k++;
 	];
-	if i < |input1| then [output[..k-1] ++ input1[i..]]
+	
+	/* concatenate remaining input */
+	if i ≤ input1_size then [output[..k-1] ++ input1[i..]]
 	else [output[..k-1] ++ input2[j..]]
 ]: tuple;
 
@@ -3548,7 +3515,11 @@ Public method "merge sort_with_" is
  |
 		left : tuple := merge sort aTuple[..|aTuple| ÷ 2] with comparator;
 		right: tuple := merge sort aTuple[|aTuple| ÷ 2 + 1..] with comparator;
-		merge <left,right> with comparator
+		merge: tuple := merge <left,right> with comparator;
+		
+		Assert: (|left| + |right|) = |merge|;
+		
+		merge
 ]: tuple;
 
 /**

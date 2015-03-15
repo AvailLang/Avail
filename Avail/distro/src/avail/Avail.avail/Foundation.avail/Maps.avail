@@ -42,19 +42,21 @@ Uses
 	"Definers",
 	"Early Conditionals",
 	"Early Functions",
-	"Early Macro Support",
 	"Early Tuples",
 	"Enumeration Support",
 	"Literals",
 	"Logic",
+	"Macro Support",
 	"Math",
-	"Phrases",
 	"Sets",
 	"Tuples",
 	"Types",
 	"Variables"
 Names
+	"any…→…of_§satisfies_",
 	"counts for_",
+	"count of…→…in_§where_",
+	"each…→…of_§satisfies_",
 	"For each…→…of_§do_",
 	"integrate_and_with_",
 	"integrate«_‡,and⁇»with_"
@@ -218,6 +220,26 @@ Semantic restriction "For each of⁇_do_" is
 ];
 
 /**
+ * Answer a function that computes a prefix function.
+ * 
+ * @method "a map iteration prefix function"
+ * @returns "[literal phrase ⇒ token, expression phrase ⇒ map]→⊤"
+ *          The requested function.
+ */
+Private method "a map iteration prefix function" is
+[
+	[
+		keyPhrase : literal phrase ⇒ token,
+		valuePhrase : literal phrase ⇒ token,
+		aMap : expression phrase ⇒ map
+	|
+		aMapType ::= aMap's semantic type;
+		Declare loop variable keyPhrase as [aMapType's key type];
+		Declare loop variable valuePhrase as [aMapType's value type];
+	]
+]: [literal phrase ⇒ token, literal phrase ⇒ token, expression phrase ⇒ map]→⊤;
+
+/**
  * Map iterating-loop that invokes {@param "action"} once for every
  * {@param "elementPhrase"} → {@param "elementPhrase"} in {@param "aMap"}.
  * 
@@ -240,43 +262,7 @@ Semantic restriction "For each of⁇_do_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Collections" "Maps"
  */
-Macro "For each…→…of_§do_" is
-[
-	keyPhrase : literal phrase ⇒ token,
-	valuePhrase : literal phrase ⇒ token,
-	aMap : expression phrase ⇒ map
-|
-	/* Establish local loop variable is unique*/
-	keyToken ::= keyPhrase's token;
-	keyName ::= keyToken's lexeme;
-	If keyName ∈ scope map then
-	[
-		Reject parse, expected:
-			"loop variable "
-			++ keyName
-			++ " to have a name that doesn't shadow another local declaration"
-	];
-
-	/* Establish aMap value variable */
-	valueToken ::= valuePhrase's token;
-	valueName ::= valueToken's lexeme;
-	If valueName ∈ scope map then
-	[
-		Reject parse, expected:
-			"loop value variable "
-			++ valueName
-			++ " to have a name that doesn't shadow another local declaration"
-	];
-	
-	/* Determine the strongest type of the loop key variable for aMap */
-	aMapType ::= aMap's semantic type;
-	keyType ::= aMapType's key type;
-	scope map := scope map + keyName → arg «keyToken : keyType»;
-	
-	/* Determine the strongest type of the loop value variable for aMap */
-	valueType ::= aMapType's value type;
-	scope map := scope map + valueName → arg «valueToken : valueType»;
-],
+Macro "For each…→…of_§do_" is a map iteration prefix function,
 [
 	keyPhrase : literal phrase ⇒ token,
 	valuePhrase : literal phrase ⇒ token,
@@ -319,6 +305,64 @@ Macro "For each…→…of_§do_" is
 ] : send phrase ⇒ ⊤;
 
 /**
+ * Answer a function that computes a body function.
+ * 
+ * @method "predicate body function(_,_)"
+ * @param "anAtom" "atom" the atom that represents the function that the
+ * 		macro builds
+ * @param "baseReturnType" "type" the base return type of the method
+ * @returns "[literal phrase ⇒ token, expression phrase ⇒ map, 
+ *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
+ *          The requested function.
+ */
+Private method "predicate body function(_,_)" is
+[
+ 	anAtom : atom,
+ 	baseReturnType : type
+|
+	[
+		keyPhrase : literal phrase ⇒ token,
+		valuePhrase : literal phrase ⇒ token,
+		aMap : expression phrase ⇒ map,
+		predicateBlock : block phrase ⇒ []→ boolean
+	| 
+		keyName ::= keyPhrase's token's lexeme;
+		valueName ::= valuePhrase's token's lexeme;
+		aMapType ::= aMap's semantic type;
+		blockType ::= [⊥]→(predicateBlock's semantic type's return type);
+
+		restrictions ::= semantic restrictions
+			for method for anAtom
+			given <aMapType, blockType>;
+		returnType : type := baseReturnType;
+			From 1 to |restrictions| by 1 do
+			[
+				index : natural number
+			|
+				returnType := returnType
+					∩ restrictions[index](aMapType, blockType);
+			];
+			statements ::= predicateBlock's statements;
+			blockReturnType ::= cast statements
+				into [t : phrase+ | t[|t|]'s semantic type]
+				else [⊤];
+
+			castToPhrase ::= [s : nonempty string | 
+				cast scope map[s] into [d : argument phrase | d]];
+		restricted send anAtom with
+		<
+			aMap, 
+			«[
+			  	<castToPhrase(keyName), castToPhrase(valueName)>
+			 | 
+			 	statements
+			 ] : blockReturnType»
+		> : returnType
+	] : send phrase ⇒ ⊤
+] : [literal phrase ⇒ token, literal phrase ⇒ token, expression phrase ⇒ map, 
+     block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤;
+		
+/**
  * Iteratively apply {@param "transformer"} to each binding of {@param "aMap"},
  * in no particular order, collecting the results into a new map. The resultant
  * map has the same keys as the original, but its values have been transformed
@@ -348,9 +392,7 @@ Method "map_through_" is
 		$loop;
 		If index ≤ end then
 		[
-			binding ::= bindings[index];
-			key ::= binding[1];
-			value ::= binding[2];
+			key, value ::= bindings[index];
 			result := eject result + key→transformer(key, value);
 			index++;
 			Restart loop
@@ -413,9 +455,7 @@ Method "filter_by_" is
 		$loop;
 		If index ≤ end then
 		[
-			binding ::= bindings[index];
-			key ::= binding[1];
-			value ::= binding[2];
+			key, value ::= bindings[index];
 			If predicate(key, value) then
 			[
 				result := eject result + key→value;
@@ -479,9 +519,7 @@ Method "map and filter_by_" is
 		If index ≤ end then
 		[
 			hasAlreadyKept : boolean := false;
-			binding ::= bindings[index];
-			key ::= binding[1];
-			value ::= binding[2];
+			key, value ::= bindings[index];
 			accumulator(
 				key,
 				value,
@@ -545,11 +583,8 @@ Method "any of_satisfies_" is
 	predicate : [⊥, ⊥]→boolean
 |
 	$body : boolean;
-	For each aMap do
+	For each key → value of aMap do
 	[
-		key : any,
-		value : any
-	|
 		If predicate(key, value) then
 		[
 			Exit body with true
@@ -593,11 +628,8 @@ Method "each of_satisfies_" is
 	predicate : [⊥, ⊥]→boolean
 |
 	$body : boolean;
-	For each aMap do
+	For each key → value of aMap do
 	[
-		key : any,
-		value : any
-	|
 		Unless predicate(key, value) then
 		[
 			Exit body with false
@@ -621,6 +653,54 @@ Semantic restriction "each of_satisfies_" is
 	Require: predicate accepts mapType;
 	predicate's return type
 ];
+
+/**
+ * Compute and answer whether any of the elements of {@param "aTuple"} satisfies
+ * the specified function. Do not examine more elements than necessary.
+ * 
+ * @macro "any…→…of_§satisfies_"
+ * @param "keyPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable representing the key of
+ *        the map.
+ * @param "valuePhrase" "literal phrase ⇒ token"
+ *       A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable representing the value of
+ *        the map.
+ * @param "aMap" "expression phrase ⇒ map"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over
+ * @param "predicateBlock" "block phrase ⇒ []→boolean"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        predicate function.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Collections" "Tuples" "Queries"
+ */
+Macro "any…→…of_§satisfies_" is a map iteration prefix function,
+	predicate body function($"any of_satisfies_", boolean);
+
+/**
+ * Compute and answer whether all of the elements of {@param "aTuple"} satisfies
+ * the specified function. Do not examine more elements than necessary.
+ * 
+ * @macro "each…→…of_§satisfies_"
+ * @param "keyPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable representing the key of
+ *        the map.
+ * @param "valuePhrase" "literal phrase ⇒ token"
+ *       A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable representing the value of
+ *        the map.
+ * @param "aMap" "expression phrase ⇒ map"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over
+ * @param "predicateBlock" "block phrase ⇒ []→boolean"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        predicate function.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Collections" "Tuples" "Queries"
+ */
+Macro "each…→…of_§satisfies_" is a map iteration prefix function,
+	predicate body function($"each of_satisfies_", boolean);
 
 /**
  * Compute and answer the count of bindings of {@param "aMap"} that satisfy the
@@ -689,6 +769,30 @@ Semantic restriction "_∈_" is
 ];
 
 /**
+ * Compute and answer the count of elements of {@param "aMap"} that satisfy 
+ * the given predicate.
+ * 
+ * @macro "count of…→…in_§where_"
+ * @param "keyPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable representing the key of
+ *        the map.
+ * @param "valuePhrase" "literal phrase ⇒ token"
+ *       A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable representing the value of
+ *        the map.
+ * @param "aMap" "expression phrase ⇒ map"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over
+ * @param "predicateBlock" "block phrase ⇒ []→boolean"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        predicate function.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Queries" "Collections" "Sets"
+ */
+Macro "count of…→…in_§where_" is a map iteration prefix function,
+	predicate body function($"count of_where_", whole number);
+
+/**
  * Categorize the elements of {@param "aTuple"} via {@param "discriminator"}.
  *
  * @method "group_by_"
@@ -709,10 +813,8 @@ Method "group_by_" is
 	discriminator : [⊥]→any
 |
 	groups : {any→tuple|} := {};
-	For each aTuple do
+	For each element of aTuple do
 	[
-		element : any
-	|
 		key ::= discriminator(element);
 		group ::= groups[key] else [ <> ] ++ <element>;
 		groups := eject groups + key→group;
@@ -759,10 +861,8 @@ Method "group_by_" is
 	discriminator : [⊥]→any
 |
 	groups : {any→set|} := {};
-	For each aSet do
+	For each element of aSet do
 	[
-		element : any
-	|
 		key ::= discriminator(element);
 		group ::= groups[key] else [ ∅ ] + element;
 		groups := eject groups + key→group;
@@ -849,11 +949,8 @@ Public method "integrate_and_with_" is
 |
 	baseMapkeys ::= baseMap's keys;
 	newMap : map := baseMap;
-	For each supplementMap do
+	For each supplementKey → supplementValue of supplementMap do
 	[
-		supplementKey : any,
-		supplementValue : any
-	|
 		newMap :=
 			if baseMapkeys ∋ supplementKey then
 			[

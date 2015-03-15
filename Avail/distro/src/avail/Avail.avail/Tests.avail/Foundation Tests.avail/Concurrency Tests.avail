@@ -86,7 +86,7 @@ Test "fork and multiple join" in concurrency test suite is
 		|
 			invoke [Join target;] with <>, forked at priority 50
 		];
-	For each waiters do [f : fiber | Join f;];
+	For each f of waiters do [Join f;];
 	Require: map waiters→set + target
 		through [f : fiber | f has terminated] = {true};
 	Require: target has result;
