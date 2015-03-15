@@ -93,6 +93,36 @@ extends TupleDescriptor
 	private static final int maximumCopySize = 64;
 
 	@Override @AvailMethod
+	A_Tuple o_AppendCanDestroy (
+		final AvailObject object,
+		final A_BasicObject newElement,
+		final boolean canDestroy)
+	{
+		final int originalSize = object.tupleSize();
+		final int intValue;
+		if (originalSize >= maximumCopySize
+			|| !object.isInt()
+			|| ((intValue = object.extractInt()) & 255) != intValue)
+		{
+			// Transition to a tree tuple.
+			final A_Tuple singleton = TupleDescriptor.from(newElement);
+			return object.concatenateWith(singleton, canDestroy);
+		}
+		// Convert to a ByteTupleDescriptor.
+		final ByteBuffer buffer =
+			(ByteBuffer) object.slot(BYTE_BUFFER).javaObjectNotNull();
+		final int newSize = originalSize + 1;
+		final AvailObject result =
+			ByteTupleDescriptor.mutableObjectOfSize(newSize);
+		for (int i = 1; i <= newSize; i++)
+		{
+			result.rawByteAtPut(i, (short)(buffer.get(i - 1) & 0xFF));
+		}
+		result.rawByteAtPut(newSize, (short)intValue);
+		return result;
+	}
+
+	@Override @AvailMethod
 	ByteBuffer o_ByteBuffer (final AvailObject object)
 	{
 		return (ByteBuffer) object.slot(BYTE_BUFFER).javaObject();
@@ -112,9 +142,9 @@ extends TupleDescriptor
 		{
 			final int itemHash = IntegerDescriptor.hashOfUnsignedByte(
 				(short) (buffer.get(index) & 0xFF)) ^ preToggle;
-			hash = hash * multiplier + itemHash;
+			hash = (hash + itemHash) * multiplier;
 		}
-		return hash * multiplier;
+		return hash;
 	}
 
 	@Override @AvailMethod

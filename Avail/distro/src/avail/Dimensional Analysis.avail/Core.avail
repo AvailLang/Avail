@@ -792,7 +792,8 @@ For each index from 2 to |prettyPowers| do
 
 	/* Establish the precedence of exponentiation. */
 	Grammatical restriction power is <product ∪ power, product>;
-	Grammatical restriction superscript is <product ∪ power ∪ superscript>;
+	Grammatical restriction superscript
+		is <product ∪ power ∪ superscript ∪ {"__"}>;
 ]();
 
 /**

@@ -97,6 +97,40 @@ extends TupleDescriptor
 		SUBTUPLE_AT_;
 	}
 
+	@Override @AvailMethod
+	A_Tuple o_AppendCanDestroy (
+		final AvailObject object,
+		final A_BasicObject newElement,
+		final boolean canDestroy)
+	{
+		// Fall back to concatenating a singleton tuple.
+		final A_Tuple singleton = TupleDescriptor.from(newElement);
+		return concatenateAtLeastOneTree(object, singleton, canDestroy);
+	}
+
+	/**
+	 * Answer approximately how many bits per entry are taken up by this object.
+	 *
+	 * <p>Make this always seem a little worse than flat representations.</p>
+	 */
+	@Override @AvailMethod
+	int o_BitsPerEntry (final AvailObject object)
+	{
+		return 65;
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_ChildAt (final AvailObject object, final int childIndex)
+	{
+		return object.slot(SUBTUPLE_AT_, childIndex);
+	}
+
+	@Override @AvailMethod
+	int o_ChildCount (final AvailObject object)
+	{
+		return object.variableObjectSlotsCount();
+	}
+
 	/**
 	 * {@inheritDoc}
 	 *
@@ -223,41 +257,55 @@ extends TupleDescriptor
 			object, startIndex1, endIndex1, anObjectTuple, startIndex2);
 	}
 
+	/**
+	 * Hash part of the tuple object.
+	 */
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	int o_ComputeHashFromTo (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex)
 	{
-		return another.equalsAnyTuple(object);
+		final int tupleSize = object.tupleSize();
+		assert 1 <= startIndex && startIndex <= tupleSize;
+		assert startIndex - 1 <= endIndex && endIndex <= tupleSize;
+		if (endIndex == 0)
+		{
+			assert startIndex == 1;
+			return 0;
+		}
+		// Non-empty range, so start and end are both within range.
+		final int startChildSubscript =
+			childSubscriptForIndex(object, startIndex);
+		final int endChildSubscript =
+			childSubscriptForIndex(object, endIndex);
+		int hash = 0;
+		for (int i = startChildSubscript; i <= endChildSubscript; i++)
+		{
+			// At least one element of this child is involved in the hash.
+			final int startOfChild = offsetForChildSubscript(object, i) + 1;
+			final int endOfChild = object.slot(CUMULATIVE_SIZE_AT_, i);
+			final int startIndexInChild =
+				max(0, startIndex - startOfChild) + 1;
+			final int endIndexInChild =
+				min(endOfChild, endIndex) - startOfChild + 1;
+			final A_Tuple child = object.slot(SUBTUPLE_AT_, i);
+			int sectionHash =
+				child.hashFromTo(startIndexInChild, endIndexInChild);
+			final int indexAdjustment = startOfChild + startIndexInChild - 2;
+			sectionHash *= TupleDescriptor.multiplierRaisedTo(indexAdjustment);
+			hash += sectionHash;
+		}
+		return hash;
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsAnyTuple (
+	A_Tuple o_ConcatenateWith (
 		final AvailObject object,
-		final A_Tuple anotherTuple)
+		final A_Tuple otherTuple,
+		final boolean canDestroy)
 	{
-		if (object.sameAddressAs(anotherTuple))
-		{
-			return true;
-		}
-		if (object.tupleSize() != anotherTuple.tupleSize())
-		{
-			return false;
-		}
-		if (object.hash() != anotherTuple.hash())
-		{
-			return false;
-		}
-		if (level < anotherTuple.treeTupleLevel())
-		{
-			// The other tuple has a deeper structure.  Break the other tuple
-			// down for the comparison to increase the chance that common
-			// subtuples will be discovered (and skipped/coalesced).
-			return anotherTuple.equalsAnyTuple(object);
-		}
-		return object.compareFromToWithStartingAt(
-			1,
-			object.tupleSize(),
-			anotherTuple,
-			1);
+		return concatenateAtLeastOneTree(object, otherTuple, canDestroy);
 	}
 
 	/**
@@ -361,12 +409,241 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_ConcatenateWith (
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	{
+		return another.equalsAnyTuple(object);
+	}
+
+	@Override @AvailMethod
+	boolean o_EqualsAnyTuple (
 		final AvailObject object,
-		final A_Tuple otherTuple,
+		final A_Tuple anotherTuple)
+	{
+		if (object.sameAddressAs(anotherTuple))
+		{
+			return true;
+		}
+		if (object.tupleSize() != anotherTuple.tupleSize())
+		{
+			return false;
+		}
+		if (object.hash() != anotherTuple.hash())
+		{
+			return false;
+		}
+		if (level < anotherTuple.treeTupleLevel())
+		{
+			// The other tuple has a deeper structure.  Break the other tuple
+			// down for the comparison to increase the chance that common
+			// subtuples will be discovered (and skipped/coalesced).
+			return anotherTuple.equalsAnyTuple(object);
+		}
+		return object.compareFromToWithStartingAt(
+			1,
+			object.tupleSize(),
+			anotherTuple,
+			1);
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_ReplaceFirstChild (
+		final AvailObject object,
+		final A_Tuple replacementChild)
+	{
+		assert replacementChild.treeTupleLevel() == level - 1;
+		final A_Tuple oldChild = object.slot(SUBTUPLE_AT_, 1);
+		final int replacementSize = replacementChild.tupleSize();
+		final int delta = replacementSize - oldChild.tupleSize();
+		final AvailObject result = isMutable()
+			? object
+			: newLike(mutable(), object, 0, 0);
+		final int oldHash = object.slot(HASH_OR_ZERO);
+		if (oldHash != 0)
+		{
+			final int hashMinusFirstChild = oldHash - oldChild.hash();
+			final int rescaledHashWithoutFirstChild =
+				hashMinusFirstChild * multiplierRaisedTo(delta);
+			final int newHash =
+				rescaledHashWithoutFirstChild + replacementChild.hash();
+			result.setSlot(HASH_OR_ZERO, newHash);
+		}
+		result.setSlot(SUBTUPLE_AT_, 1, replacementChild);
+		final int childCount = object.childCount();
+		if (delta != 0)
+		{
+			for (int childIndex = 1; childIndex <= childCount; childIndex++)
+			{
+				result.setSlot(
+					CUMULATIVE_SIZE_AT_,
+					childIndex,
+					result.slot(CUMULATIVE_SIZE_AT_, childIndex) + delta);
+			}
+		}
+		check(result);
+		return result;
+	}
+
+	@Override
+	void o_TransferIntoByteBuffer (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final ByteBuffer outputByteBuffer)
+	{
+		final int lowChildIndex = childSubscriptForIndex(object, startIndex);
+		final int highChildIndex = childSubscriptForIndex(object, endIndex);
+		if (lowChildIndex == highChildIndex)
+		{
+			// Starts and ends in the same child.  Pass the buck downwards.
+			final int offset = offsetForChildSubscript(object, lowChildIndex);
+			object.childAt(lowChildIndex).transferIntoByteBuffer(
+				startIndex - offset,
+				endIndex - offset,
+				outputByteBuffer);
+			return;
+		}
+		assert lowChildIndex < highChildIndex;
+		// The endpoints occur in distinct children.
+		final int leftOffset = offsetForChildSubscript(object, lowChildIndex);
+		A_Tuple child = object.childAt(lowChildIndex);
+		child.transferIntoByteBuffer(
+			startIndex - leftOffset,
+			child.tupleSize(),
+			outputByteBuffer);
+		for (
+			int childIndex = lowChildIndex + 1;
+			childIndex < highChildIndex;
+			childIndex ++)
+		{
+			child = object.childAt(childIndex);
+			child.transferIntoByteBuffer(
+				1, child.tupleSize(), outputByteBuffer);
+		}
+		child = object.childAt(highChildIndex);
+		final int rightOffset = offsetForChildSubscript(object, highChildIndex);
+		child.transferIntoByteBuffer(
+			1,
+			endIndex - rightOffset,
+			outputByteBuffer);
+	}
+
+	@Override @AvailMethod
+	int o_TreeTupleLevel (final AvailObject object)
+	{
+		return level;
+	}
+
+	/**
+	 * Answer the element at the given index in the tuple object.
+	 */
+	@Override @AvailMethod
+	AvailObject o_TupleAt (final AvailObject object, final int index)
+	{
+		final int childSubscript = childSubscriptForIndex(object, index);
+		final int offset = offsetForChildSubscript(object, childSubscript);
+		final A_Tuple child = object.slot(SUBTUPLE_AT_, childSubscript);
+		return child.tupleAt(index - offset);
+	}
+
+	/**
+	 * Answer a tuple with all the elements of object except at the given index
+	 * we should have newValueObject.  This may destroy the original tuple if
+	 * canDestroy is true.
+	 */
+	@Override @AvailMethod
+	A_Tuple o_TupleAtPuttingCanDestroy (
+		final AvailObject object,
+		final int index,
+		final A_BasicObject newValueObject,
 		final boolean canDestroy)
 	{
-		return concatenateAtLeastOneTree(object, otherTuple, canDestroy);
+		assert index >= 1 && index <= object.tupleSize();
+		AvailObject result = object;
+		if (!(canDestroy && isMutable()))
+		{
+			result = AvailObjectRepresentation.newLike(mutable(), object, 0, 0);
+		}
+		final int subtupleSubscript = childSubscriptForIndex(object, index);
+		final A_Tuple oldSubtuple =
+			object.slot(SUBTUPLE_AT_, subtupleSubscript);
+		final int delta = offsetForChildSubscript(object, subtupleSubscript);
+		final int oldHash = object.slot(HASH_OR_ZERO);
+		if (oldHash != 0)
+		{
+			// Maintain the already-computed hash.
+			final A_BasicObject oldValue = oldSubtuple.tupleAt(index - delta);
+			final int adjustment = newValueObject.hash() - oldValue.hash();
+			final int scaledAdjustment = adjustment * multiplierRaisedTo(index);
+			result.setSlot(HASH_OR_ZERO, oldHash + scaledAdjustment);
+		}
+		final A_Tuple newSubtuple = oldSubtuple.tupleAtPuttingCanDestroy(
+			index - delta,
+			newValueObject,
+			canDestroy);
+		result.setSlot(SUBTUPLE_AT_, subtupleSubscript, newSubtuple);
+		check(result);
+		return result;
+	}
+
+	@Override
+	boolean o_TupleElementsInRangeAreInstancesOf (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final A_Type type)
+	{
+		final int tupleSize = object.tupleSize();
+		assert 1 <= startIndex && startIndex <= tupleSize;
+		assert startIndex - 1 <= endIndex && endIndex <= tupleSize;
+		if (endIndex == startIndex - 1)
+		{
+			return true;
+		}
+		// Non-empty range, so start and end are both within range.
+		final int startChildSubscript =
+			childSubscriptForIndex(object, startIndex);
+		final int endChildSubscript =
+			childSubscriptForIndex(object, endIndex);
+		for (int i = startChildSubscript; i <= endChildSubscript; i++)
+		{
+			// At least one element of this child is involved in the hash.
+			final int startOfChild = offsetForChildSubscript(object, i) + 1;
+			final int endOfChild = object.slot(CUMULATIVE_SIZE_AT_, i);
+			final int startIndexInChild =
+				max(0, startIndex - startOfChild) + 1;
+			final int endIndexInChild =
+				min(endOfChild, endIndex) - startOfChild + 1;
+			final A_Tuple child = object.slot(SUBTUPLE_AT_, i);
+			if (!child.tupleElementsInRangeAreInstancesOf(
+				startIndexInChild, endIndexInChild, type))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Answer the integer element at the given index in the tuple object.
+	 */
+	@Override @AvailMethod
+	int o_TupleIntAt (final AvailObject object, final int index)
+	{
+		final int childSubscript = childSubscriptForIndex(object, index);
+		final int offset = offsetForChildSubscript(object, childSubscript);
+		final A_Tuple child = object.slot(SUBTUPLE_AT_, childSubscript);
+		return child.tupleIntAt(index - offset);
+	}
+
+	/**
+	 * Answer the number of elements in the tuple as an int.
+	 */
+	@Override @AvailMethod
+	int o_TupleSize (final AvailObject object)
+	{
+		return object.slot(
+			CUMULATIVE_SIZE_AT_,
+			object.variableObjectSlotsCount());
 	}
 
 	/**
@@ -465,272 +742,6 @@ extends TupleDescriptor
 			level + 1,
 			newHash);
 		return newNode;
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_ReplaceFirstChild (
-		final AvailObject object,
-		final A_Tuple replacementChild)
-	{
-		assert replacementChild.treeTupleLevel() == level - 1;
-		final A_Tuple oldChild = object.slot(SUBTUPLE_AT_, 1);
-		final int replacementSize = replacementChild.tupleSize();
-		final int delta = replacementSize - oldChild.tupleSize();
-		final AvailObject result = isMutable()
-			? object
-			: newLike(mutable(), object, 0, 0);
-		final int oldHash = object.slot(HASH_OR_ZERO);
-		if (oldHash != 0)
-		{
-			final int hashMinusFirstChild = oldHash - oldChild.hash();
-			final int rescaledHashWithoutFirstChild =
-				hashMinusFirstChild * multiplierRaisedTo(delta);
-			final int newHash =
-				rescaledHashWithoutFirstChild + replacementChild.hash();
-			result.setSlot(HASH_OR_ZERO, newHash);
-		}
-		result.setSlot(SUBTUPLE_AT_, 1, replacementChild);
-		final int childCount = object.childCount();
-		if (delta != 0)
-		{
-			for (int childIndex = 1; childIndex <= childCount; childIndex++)
-			{
-				result.setSlot(
-					CUMULATIVE_SIZE_AT_,
-					childIndex,
-					result.slot(CUMULATIVE_SIZE_AT_, childIndex) + delta);
-			}
-		}
-		check(result);
-		return result;
-	}
-
-	/**
-	 * Answer the element at the given index in the tuple object.
-	 */
-	@Override @AvailMethod
-	AvailObject o_TupleAt (final AvailObject object, final int index)
-	{
-		final int childSubscript = childSubscriptForIndex(object, index);
-		final int offset = offsetForChildSubscript(object, childSubscript);
-		final A_Tuple child = object.slot(SUBTUPLE_AT_, childSubscript);
-		return child.tupleAt(index - offset);
-	}
-
-	/**
-	 * Answer a tuple with all the elements of object except at the given index
-	 * we should have newValueObject.  This may destroy the original tuple if
-	 * canDestroy is true.
-	 */
-	@Override @AvailMethod
-	A_Tuple o_TupleAtPuttingCanDestroy (
-		final AvailObject object,
-		final int index,
-		final A_BasicObject newValueObject,
-		final boolean canDestroy)
-	{
-		assert index >= 1 && index <= object.tupleSize();
-		AvailObject result = object;
-		if (!(canDestroy && isMutable()))
-		{
-			result = AvailObjectRepresentation.newLike(mutable(), object, 0, 0);
-		}
-		final int subtupleSubscript = childSubscriptForIndex(object, index);
-		final A_Tuple oldSubtuple =
-			object.slot(SUBTUPLE_AT_, subtupleSubscript);
-		final int delta = offsetForChildSubscript(object, subtupleSubscript);
-		final int oldHash = object.slot(HASH_OR_ZERO);
-		if (oldHash != 0)
-		{
-			// Maintain the already-computed hash.
-			final A_BasicObject oldValue = oldSubtuple.tupleAt(index - delta);
-			final int adjustment = newValueObject.hash() - oldValue.hash();
-			final int scaledAdjustment = adjustment * multiplierRaisedTo(index);
-			result.setSlot(HASH_OR_ZERO, oldHash + scaledAdjustment);
-		}
-		final A_Tuple newSubtuple = oldSubtuple.tupleAtPuttingCanDestroy(
-			index - delta,
-			newValueObject,
-			canDestroy);
-		result.setSlot(SUBTUPLE_AT_, subtupleSubscript, newSubtuple);
-		check(result);
-		return result;
-	}
-
-	/**
-	 * Answer the integer element at the given index in the tuple object.
-	 */
-	@Override @AvailMethod
-	int o_TupleIntAt (final AvailObject object, final int index)
-	{
-		final int childSubscript = childSubscriptForIndex(object, index);
-		final int offset = offsetForChildSubscript(object, childSubscript);
-		final A_Tuple child = object.slot(SUBTUPLE_AT_, childSubscript);
-		return child.tupleIntAt(index - offset);
-	}
-
-	/**
-	 * Answer the number of elements in the tuple as an int.
-	 */
-	@Override @AvailMethod
-	int o_TupleSize (final AvailObject object)
-	{
-		return object.slot(
-			CUMULATIVE_SIZE_AT_,
-			object.variableObjectSlotsCount());
-	}
-
-	/**
-	 * Answer approximately how many bits per entry are taken up by this object.
-	 *
-	 * <p>Make this always seem a little worse than flat representations.</p>
-	 */
-	@Override @AvailMethod
-	int o_BitsPerEntry (final AvailObject object)
-	{
-		return 65;
-	}
-
-	@Override @AvailMethod
-	int o_TreeTupleLevel (final AvailObject object)
-	{
-		return level;
-	}
-
-	@Override @AvailMethod
-	int o_ChildCount (final AvailObject object)
-	{
-		return object.variableObjectSlotsCount();
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_ChildAt (final AvailObject object, final int childIndex)
-	{
-		return object.slot(SUBTUPLE_AT_, childIndex);
-	}
-
-	/**
-	 * Hash part of the tuple object.
-	 */
-	@Override @AvailMethod
-	int o_ComputeHashFromTo (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex)
-	{
-		final int tupleSize = object.tupleSize();
-		assert 1 <= startIndex && startIndex <= tupleSize;
-		assert startIndex - 1 <= endIndex && endIndex <= tupleSize;
-		if (endIndex == 0)
-		{
-			assert startIndex == 1;
-			return 0;
-		}
-		// Non-empty range, so start and end are both within range.
-		final int startChildSubscript =
-			childSubscriptForIndex(object, startIndex);
-		final int endChildSubscript =
-			childSubscriptForIndex(object, endIndex);
-		int hash = 0;
-		for (int i = startChildSubscript; i <= endChildSubscript; i++)
-		{
-			// At least one element of this child is involved in the hash.
-			final int startOfChild = offsetForChildSubscript(object, i) + 1;
-			final int endOfChild = object.slot(CUMULATIVE_SIZE_AT_, i);
-			final int startIndexInChild =
-				max(0, startIndex - startOfChild) + 1;
-			final int endIndexInChild =
-				min(endOfChild, endIndex) - startOfChild + 1;
-			final A_Tuple child = object.slot(SUBTUPLE_AT_, i);
-			int sectionHash =
-				child.hashFromTo(startIndexInChild, endIndexInChild);
-			final int indexAdjustment = startOfChild + startIndexInChild - 2;
-			sectionHash *= TupleDescriptor.multiplierRaisedTo(indexAdjustment);
-			hash += sectionHash;
-		}
-		return hash;
-	}
-
-	@Override
-	void o_TransferIntoByteBuffer (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex,
-		final ByteBuffer outputByteBuffer)
-	{
-		final int lowChildIndex = childSubscriptForIndex(object, startIndex);
-		final int highChildIndex = childSubscriptForIndex(object, endIndex);
-		if (lowChildIndex == highChildIndex)
-		{
-			// Starts and ends in the same child.  Pass the buck downwards.
-			final int offset = offsetForChildSubscript(object, lowChildIndex);
-			object.childAt(lowChildIndex).transferIntoByteBuffer(
-				startIndex - offset,
-				endIndex - offset,
-				outputByteBuffer);
-			return;
-		}
-		assert lowChildIndex < highChildIndex;
-		// The endpoints occur in distinct children.
-		final int leftOffset = offsetForChildSubscript(object, lowChildIndex);
-		A_Tuple child = object.childAt(lowChildIndex);
-		child.transferIntoByteBuffer(
-			startIndex - leftOffset,
-			child.tupleSize(),
-			outputByteBuffer);
-		for (
-			int childIndex = lowChildIndex + 1;
-			childIndex < highChildIndex;
-			childIndex ++)
-		{
-			child = object.childAt(childIndex);
-			child.transferIntoByteBuffer(
-				1, child.tupleSize(), outputByteBuffer);
-		}
-		child = object.childAt(highChildIndex);
-		final int rightOffset = offsetForChildSubscript(object, highChildIndex);
-		child.transferIntoByteBuffer(
-			1,
-			endIndex - rightOffset,
-			outputByteBuffer);
-	}
-
-	@Override
-	boolean o_TupleElementsInRangeAreInstancesOf (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex,
-		final A_Type type)
-	{
-		final int tupleSize = object.tupleSize();
-		assert 1 <= startIndex && startIndex <= tupleSize;
-		assert startIndex - 1 <= endIndex && endIndex <= tupleSize;
-		if (endIndex == startIndex - 1)
-		{
-			return true;
-		}
-		// Non-empty range, so start and end are both within range.
-		final int startChildSubscript =
-			childSubscriptForIndex(object, startIndex);
-		final int endChildSubscript =
-			childSubscriptForIndex(object, endIndex);
-		for (int i = startChildSubscript; i <= endChildSubscript; i++)
-		{
-			// At least one element of this child is involved in the hash.
-			final int startOfChild = offsetForChildSubscript(object, i) + 1;
-			final int endOfChild = object.slot(CUMULATIVE_SIZE_AT_, i);
-			final int startIndexInChild =
-				max(0, startIndex - startOfChild) + 1;
-			final int endIndexInChild =
-				min(endOfChild, endIndex) - startOfChild + 1;
-			final A_Tuple child = object.slot(SUBTUPLE_AT_, i);
-			if (!child.tupleElementsInRangeAreInstancesOf(
-				startIndexInChild, endIndexInChild, type))
-			{
-				return false;
-			}
-		}
-		return true;
 	}
 
 	/**

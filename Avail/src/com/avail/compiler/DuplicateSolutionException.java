@@ -1,5 +1,5 @@
 /**
- * AvailMacroTest.java
+ * DuplicateSolutionException.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,48 +30,26 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.test;
-
-import java.io.*;
-import java.util.EnumSet;
-import com.avail.builder.*;
-import com.avail.performance.StatisticReport;
+package com.avail.compiler;
 
 /**
- * Test suite for the Avail macro compiler.
+ * Indicates that two equal solutions have been produced by the parser for some
+ * intermediate expression.  While we could allow this to proceed, and in some
+ * cases both solutions might even be eliminated by subsequent parsing steps, it
+ * seems unlikely that a valid subexpression should be parsable in two ways.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class AvailMacroTest
-extends AbstractAvailTest
+public class DuplicateSolutionException extends Exception
 {
-	static
-	{
-		roots = new ModuleRoots(
-			"avail=" + new File("even-newer-avail").getAbsolutePath());
-	}
+	/** The serial version identifier. */
+	private static final long serialVersionUID = -6329252274205064940L;
 
 	/**
-	 * Test: Compile the Test module of the (new) Avail library.
-	 *
-	 * @throws Exception
-	 *         If an {@linkplain Exception exception} occurs.
+	 * Construct a new {@link DuplicateSolutionException}.
 	 */
-//TODO[MvG] - Restore test when it's actually supported.
-//	@Test
-	public void availMacroTest () throws Exception
+	public DuplicateSolutionException ()
 	{
-		final long startTime = System.currentTimeMillis();
-		compile(new ModuleName("/avail/bootstrap-syntax"));
-		System.out.flush();
-		System.err.printf(
-			"%ntime elapsed = %dms%n",
-			System.currentTimeMillis() - startTime);
-		final String reportString = StatisticReport.produceReports(
-			EnumSet.<StatisticReport>of(
-				StatisticReport.PRIMITIVE_RETURN_TYPE_CHECKS));
-		System.err.printf(
-			"%nPrimitive return type-check times:%n%s",
-			reportString);
+		super();
 	}
 }

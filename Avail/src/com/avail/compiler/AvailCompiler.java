@@ -34,7 +34,6 @@ package com.avail.compiler;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
-import static java.lang.Math.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import com.avail.annotations.Nullable;
@@ -44,6 +43,7 @@ import com.avail.compiler.scanning.AvailScannerResult;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.io.TextInterface;
+import com.avail.utility.Generator;
 import com.avail.utility.evaluation.*;
 
 /**
@@ -64,6 +64,8 @@ extends AbstractAvailCompiler
 	 * @param textInterface
 	 *        The {@linkplain TextInterface text interface} for any {@linkplain
 	 *        A_Fiber fibers} started by this compiler.
+	 * @param pollForAbort
+	 *        How to quickly check if the client wants to abort compilation.
 	 * @param problemHandler
 	 *        The {@link ProblemHandler} used for reporting compilation
 	 *        problems.
@@ -72,9 +74,15 @@ extends AbstractAvailCompiler
 		final A_Module module,
 		final AvailScannerResult scannerResult,
 		final TextInterface textInterface,
+		final Generator<Boolean> pollForAbort,
 		final ProblemHandler problemHandler)
 	{
-		super(module, scannerResult, textInterface, problemHandler);
+		super(
+			module,
+			scannerResult,
+			textInterface,
+			pollForAbort,
+			problemHandler);
 	}
 
 	/**
@@ -87,6 +95,8 @@ extends AbstractAvailCompiler
 	 * @param textInterface
 	 *        The {@linkplain TextInterface text interface} for any {@linkplain
 	 *        A_Fiber fibers} started by this compiler.
+	 * @param pollForAbort
+	 *        How to quickly check if the client wants to abort compilation.
 	 * @param problemHandler
 	 *        The {@linkplain ProblemHandler problem handler}.
 	 */
@@ -94,9 +104,15 @@ extends AbstractAvailCompiler
 		final ResolvedModuleName moduleName,
 		final AvailScannerResult scannerResult,
 		final TextInterface textInterface,
+		final Generator<Boolean> pollForAbort,
 		final ProblemHandler problemHandler)
 	{
-		super(moduleName, scannerResult, textInterface, problemHandler);
+		super(
+			moduleName,
+			scannerResult,
+			textInterface,
+			pollForAbort,
+			problemHandler);
 	}
 
 	/**
@@ -114,15 +130,7 @@ extends AbstractAvailCompiler
 	{
 		// If a parsing error happens during parsing of this outermost
 		// statement, only show the section of the file starting here.
-		final int fillLimit = min(start.position, greatestGuess + 1);
-		if (start.position < fillLimit)
-		{
-			Collections.fill(
-				greatExpectations.subList(
-					firstRelevantTokenIndexOfSection, fillLimit),
-				Collections.<Describer>emptyList());
-		}
-		firstRelevantTokenIndexOfSection = start.position;
+		recordExpectationsRelativeTo(start.position);
 		tryIfUnambiguousThen(
 			start,
 			new Con<Con<A_Phrase>>("Detect ambiguity")

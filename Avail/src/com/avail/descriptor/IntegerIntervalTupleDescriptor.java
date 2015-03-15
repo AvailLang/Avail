@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.IntegerIntervalTupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.IntegerIntervalTupleDescriptor.ObjectSlots.*;
 import java.util.ArrayList;
@@ -110,73 +111,37 @@ extends TupleDescriptor
 	private static int maximumCopySize = 4;
 
 	@Override @AvailMethod
-	public boolean o_IsIntegerIntervalTuple(final AvailObject object)
-	{
-		return true;
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_CopyTupleFromToCanDestroy (
+	A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
-		final int start,
-		final int end,
+		final A_BasicObject newElement,
 		final boolean canDestroy)
 	{
-		// Ensure parameters are in bounds
-		assert 1 <= start && start <= end + 1;
-		final int oldSize = object.slot(SIZE);
-		final int newSize = end - start + 1;
-		assert 0 <= end && end <= oldSize;
-
-		// If the requested copy is a proper subrange, create it.
-		if (newSize != oldSize)
+		final int originalSize = object.tupleSize();
+		final A_Number endValue = object.slot(END);
+		final A_Number deltaValue = object.slot(DELTA);
+		final A_Number nextValue = endValue.plusCanDestroy(deltaValue, false);
+		if (newElement.equals(nextValue))
 		{
-			final A_Number delta = object.slot(DELTA).makeImmutable();
-			final A_Number oldStartValue = object.slot(START);
-
-			final A_Number newStartValue = oldStartValue.plusCanDestroy(
-				delta.multiplyByIntegerCanDestroy(
-					IntegerDescriptor.fromInt(start - 1),
-					true),
-				canDestroy);
-			final A_Number newEndValue = newStartValue.plusCanDestroy(
-				delta.multiplyByIntegerCanDestroy(
-					IntegerDescriptor.fromInt(newSize - 1),
-					true),
-				false);
-
-			if (isMutable() && canDestroy)
-			{
-				// Recycle the object.
-				object.setSlot(START, newStartValue);
-				object.setSlot(END, newEndValue);
-				object.setSlot(SIZE, newSize);
-				return object;
-			}
-			return createInterval(newStartValue, newEndValue, delta);
+			final AvailObject result = canDestroy && isMutable()
+				? object
+				: newLike(mutable, object, 0, 0);
+			result.setSlot(END, newElement);
+			result.setSlot(SIZE, originalSize + 1);
+			result.setSlot(HASH_OR_ZERO, 0);
+			return result;
 		}
-
-		// Otherwise, this method is requesting a full copy of the original.
-		if (isMutable() && !canDestroy)
-		{
-			object.makeImmutable();
-		}
-		return object;
+		// Transition to a tree tuple.
+		final A_Tuple singleton = TupleDescriptor.from(newElement);
+		return object.concatenateWith(singleton, canDestroy);
 	}
 
-	@Override @AvailMethod
-	boolean o_CompareFromToWithStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple anotherObject,
-		final int startIndex2)
+	@Override
+	int o_BitsPerEntry (final AvailObject object)
 	{
-		return anotherObject.compareFromToWithIntegerIntervalTupleStartingAt(
-			startIndex2,
-			startIndex2 + endIndex1 - startIndex1,
-			object,
-			startIndex1);
+		// Consider a billion element tuple. Since an interval tuple requires
+		// only O(1) storage, irrespective of its size, the average bits per
+		// entry is 0.
+		return 0;
 	}
 
 	@Override @AvailMethod
@@ -231,6 +196,69 @@ extends TupleDescriptor
 		return first.equals(second);
 	}
 
+	@Override @AvailMethod
+	boolean o_CompareFromToWithStartingAt (
+		final AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple anotherObject,
+		final int startIndex2)
+	{
+		return anotherObject.compareFromToWithIntegerIntervalTupleStartingAt(
+			startIndex2,
+			startIndex2 + endIndex1 - startIndex1,
+			object,
+			startIndex1);
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_CopyTupleFromToCanDestroy (
+		final AvailObject object,
+		final int start,
+		final int end,
+		final boolean canDestroy)
+	{
+		// Ensure parameters are in bounds
+		assert 1 <= start && start <= end + 1;
+		final int oldSize = object.slot(SIZE);
+		final int newSize = end - start + 1;
+		assert 0 <= end && end <= oldSize;
+
+		// If the requested copy is a proper subrange, create it.
+		if (newSize != oldSize)
+		{
+			final A_Number delta = object.slot(DELTA).makeImmutable();
+			final A_Number oldStartValue = object.slot(START);
+
+			final A_Number newStartValue = oldStartValue.plusCanDestroy(
+				delta.multiplyByIntegerCanDestroy(
+					IntegerDescriptor.fromInt(start - 1),
+					true),
+				canDestroy);
+			final A_Number newEndValue = newStartValue.plusCanDestroy(
+				delta.multiplyByIntegerCanDestroy(
+					IntegerDescriptor.fromInt(newSize - 1),
+					true),
+				false);
+
+			if (isMutable() && canDestroy)
+			{
+				// Recycle the object.
+				object.setSlot(START, newStartValue);
+				object.setSlot(END, newEndValue);
+				object.setSlot(SIZE, newSize);
+				return object;
+			}
+			return createInterval(newStartValue, newEndValue, delta);
+		}
+
+		// Otherwise, this method is requesting a full copy of the original.
+		if (isMutable() && !canDestroy)
+		{
+			object.makeImmutable();
+		}
+		return object;
+	}
 
 	@Override
 	A_Tuple o_ConcatenateWith (
@@ -356,13 +384,10 @@ extends TupleDescriptor
 
 	}
 
-	@Override
-	int o_BitsPerEntry (final AvailObject object)
+	@Override @AvailMethod
+	public boolean o_IsIntegerIntervalTuple(final AvailObject object)
 	{
-		// Consider a billion element tuple. Since an interval tuple requires
-		// only O(1) storage, irrespective of its size, the average bits per
-		// entry is 0.
-		return 0;
+		return true;
 	}
 
 	@Override @AvailMethod
@@ -400,6 +425,39 @@ extends TupleDescriptor
 		// Invalidate the hash value.
 		object.hashOrZero(0);
 		return object;
+	}
+
+	@Override
+	boolean o_TupleElementsInRangeAreInstancesOf (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final A_Type type)
+	{
+		final A_Number start = object.tupleAt(startIndex);
+		final A_Number end = object.tupleAt(endIndex);
+		final A_Number low;
+		final A_Number high;
+		if (start.lessThan(end))
+		{
+			low = start;
+			high = end;
+		}
+		else
+		{
+			low = end;
+			high = start;
+		}
+		if (type.isSupertypeOfIntegerRangeType(
+			IntegerRangeTypeDescriptor.inclusive(low, high)))
+		{
+			return true;
+		}
+		return super.o_TupleElementsInRangeAreInstancesOf(
+			object,
+			startIndex,
+			endIndex,
+			type);
 	}
 
 	@Override @AvailMethod
@@ -440,79 +498,6 @@ extends TupleDescriptor
 	int o_TupleSize (final AvailObject object)
 	{
 		return object.slot(SIZE);
-	}
-
-	@Override
-	boolean o_TupleElementsInRangeAreInstancesOf (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex,
-		final A_Type type)
-	{
-		final A_Number start = object.tupleAt(startIndex);
-		final A_Number end = object.tupleAt(endIndex);
-		final A_Number low;
-		final A_Number high;
-		if (start.lessThan(end))
-		{
-			low = start;
-			high = end;
-		}
-		else
-		{
-			low = end;
-			high = start;
-		}
-		if (type.isSupertypeOfIntegerRangeType(
-			IntegerRangeTypeDescriptor.inclusive(low, high)))
-		{
-			return true;
-		}
-		return super.o_TupleElementsInRangeAreInstancesOf(
-			object,
-			startIndex,
-			endIndex,
-			type);
-	}
-
-	/** The mutable {@link IntegerIntervalTupleDescriptor}. */
-	public static final IntegerIntervalTupleDescriptor mutable =
-		new IntegerIntervalTupleDescriptor(Mutability.MUTABLE);
-
-	@Override
-	IntegerIntervalTupleDescriptor mutable ()
-	{
-		return mutable;
-	}
-
-	/** The immutable {@link IntegerIntervalTupleDescriptor}. */
-	private static final IntegerIntervalTupleDescriptor immutable =
-		new IntegerIntervalTupleDescriptor(Mutability.IMMUTABLE);
-
-	@Override
-	IntegerIntervalTupleDescriptor immutable ()
-	{
-		return immutable;
-	}
-
-	/** The shared {@link IntegerIntervalTupleDescriptor}. */
-	private static final IntegerIntervalTupleDescriptor shared =
-		new IntegerIntervalTupleDescriptor(Mutability.SHARED);
-
-	@Override
-	IntegerIntervalTupleDescriptor shared ()
-	{
-		return shared;
-	}
-
-	/**
-	 * Construct a new {@link IntegerIntervalTupleDescriptor}.
-	 *
-	 * @param mutability
-	 */
-	private IntegerIntervalTupleDescriptor (final Mutability mutability)
-	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/**
@@ -606,5 +591,45 @@ extends TupleDescriptor
 		interval.setSlot(DELTA, delta.makeImmutable());
 		interval.setSlot(SIZE, size);
 		return interval;
+	}
+
+	/** The mutable {@link IntegerIntervalTupleDescriptor}. */
+	public static final IntegerIntervalTupleDescriptor mutable =
+		new IntegerIntervalTupleDescriptor(Mutability.MUTABLE);
+
+	@Override
+	IntegerIntervalTupleDescriptor mutable ()
+	{
+		return mutable;
+	}
+
+	/** The immutable {@link IntegerIntervalTupleDescriptor}. */
+	private static final IntegerIntervalTupleDescriptor immutable =
+		new IntegerIntervalTupleDescriptor(Mutability.IMMUTABLE);
+
+	@Override
+	IntegerIntervalTupleDescriptor immutable ()
+	{
+		return immutable;
+	}
+
+	/** The shared {@link IntegerIntervalTupleDescriptor}. */
+	private static final IntegerIntervalTupleDescriptor shared =
+		new IntegerIntervalTupleDescriptor(Mutability.SHARED);
+
+	@Override
+	IntegerIntervalTupleDescriptor shared ()
+	{
+		return shared;
+	}
+
+	/**
+	 * Construct a new {@link IntegerIntervalTupleDescriptor}.
+	 *
+	 * @param mutability
+	 */
+	private IntegerIntervalTupleDescriptor (final Mutability mutability)
+	{
+		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 }

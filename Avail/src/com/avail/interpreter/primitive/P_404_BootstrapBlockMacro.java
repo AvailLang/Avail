@@ -82,6 +82,15 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 		new P_404_BootstrapBlockMacro().init(
 			7, Unknown, Bootstrap);
 
+	/** The key to the client parsing data in the fiber's environment. */
+	final A_Atom clientDataKey = AtomDescriptor.clientDataGlobalKey();
+
+	/** The key to the variable scope map in the client parsing data. */
+	final A_Atom scopeMapKey = AtomDescriptor.compilerScopeMapKey();
+
+	/** The key to the used tokens tuple in the fiber's environment. */
+	final A_Atom usedTokensKey = AtomDescriptor.usedTokensKey();
+
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
@@ -98,19 +107,23 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 		final A_Phrase optionalExceptionTypes = args.get(6);
 
 		final A_Map fiberGlobals = interpreter.fiber().fiberGlobals();
-		final A_Atom clientDataKey = AtomDescriptor.clientDataGlobalKey();
 		if (!fiberGlobals.hasKey(clientDataKey))
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
 		final A_Map clientData = fiberGlobals.mapAt(clientDataKey);
-		final A_Atom scopeMapKey = AtomDescriptor.compilerScopeMapKey();
 		if (!clientData.hasKey(scopeMapKey))
 		{
 			// It looks like somebody removed all the scope information.
 			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION);
 		}
+		if (!clientData.hasKey(usedTokensKey))
+		{
+			// It looks like somebody removed the used tokens information.
+			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION);
+		}
 		final A_Map scopeMap = clientData.mapAt(scopeMapKey);
+		final A_Tuple tokens = clientData.mapAt(usedTokensKey);
 
 		final List<A_Phrase> allStatements = new ArrayList<>();
 
@@ -304,13 +317,18 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 			}
 			exceptionsSet = exceptionsSet.makeImmutable();
 		}
+		// The block's line number is the line of the first token that's part of
+		// the block but not part of any subexpression.
+		final int lineNumber = tokens.tupleSize() == 0
+			? 0
+			: tokens.tupleAt(1).lineNumber();
 		final A_Phrase block = BlockNodeDescriptor.newBlockNode(
 			argumentDeclarationsList,
 			primNumber,
 			allStatements,
 			returnType,
 			exceptionsSet,
-			0); //TODO[MvG] Figure out how to get the line number information.
+			lineNumber);
 		block.makeImmutable();
 		return interpreter.primitiveSuccess(block);
 	}

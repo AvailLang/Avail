@@ -921,18 +921,18 @@ public abstract class AbstractAvailCompiler
 	/**
 	 * The {@linkplain List list} of lists of {@linkplain String} {@linkplain
 	 * Generator generators} that describe what was expected (but not found) at
-	 * each of the positions reached so far.  Only the lists from
-	 * {@code greatestGuess - guessWindowSize} through {@code greatestGuess}
-	 * have non-empty lists, an invariant maintained as greatestGuess increases.
+	 * each of the positions reached since the {@link
+	 * #firstExpectation}.
 	 */
 	@InnerAccess final List<List<Describer>> greatExpectations =
 		new ArrayList<>();
 
 	/**
 	 * The first token of the snippet of code to regurgitate when reporting a
-	 * parsing error.
+	 * parsing error.  This is also the offset to add to token positions to
+	 * index into {@link #greatExpectations}.
 	 */
-	protected int firstRelevantTokenIndexOfSection = 0;
+	protected int firstExpectation = 0;
 
 	/** The memoization of results of previous parsing attempts. */
 	final @InnerAccess AvailCompilerFragmentCache fragmentCache =
@@ -955,6 +955,15 @@ public abstract class AbstractAvailCompiler
 		AtomDescriptor.compilerScopeMapKey();
 
 	/**
+	 * The special {@linkplain AtomDescriptor atom} used to locate the list of
+	 * used tokens so far for the current call site, within the {@linkplain
+	 * #clientDataGlobalKey current parsing information} stashed within a
+	 * fiber's globals.
+	 */
+	@InnerAccess static final A_Atom usedTokensKey =
+		AtomDescriptor.usedTokensKey();
+
+	/**
 	 * The {@link ProblemHandler} used for reporting compilation problems.
 	 */
 	@InnerAccess final ProblemHandler problemHandler;
@@ -967,10 +976,7 @@ public abstract class AbstractAvailCompiler
 	@InnerAccess final TextInterface textInterface;
 
 	/**
-	 * These are the tokens that are understood by the Avail compilers. Most of
-	 * these tokens exist to support the {@linkplain AvailSystemCompiler system
-	 * compiler}, though a few (related to module headers) are needed also by
-	 * the {@linkplain AvailCompiler standard compiler}.
+	 * These are the tokens that are understood directly by the Avail compiler.
 	 */
 	public enum ExpectedToken
 	{
@@ -1030,19 +1036,11 @@ public abstract class AbstractAvailCompiler
 		 */
 		NAMES("Names", KEYWORD),
 
-		/**
-		 * Module header token: Precedes the list of entry points.
-		 */
+		/** Module header token: Precedes the list of entry points. */
 		ENTRIES("Entries", KEYWORD),
 
 		/** Module header token: Precedes the contents of the defined module. */
 		BODY("Body", KEYWORD),
-
-		/** Leads a primitive binding. */
-		PRIMITIVE("Primitive", KEYWORD),
-
-		/** Leads a label. */
-		DOLLAR_SIGN("$", OPERATOR),
 
 		/** Module header token: Separates string literals. */
 		COMMA(",", OPERATOR),
@@ -1057,31 +1055,13 @@ public abstract class AbstractAvailCompiler
 		ELLIPSIS("…", OPERATOR),
 
 		/** Uses related to declaration and assignment. */
-		COLON(":", OPERATOR),
-
-		/** Uses related to declaration and assignment. */
 		EQUALS("=", OPERATOR),
-
-		/** Leads a lexical block. */
-		OPEN_SQUARE("[", OPERATOR),
-
-		/** Ends a lexical block. */
-		CLOSE_SQUARE("]", OPERATOR),
-
-		/** Leads a function body. */
-		VERTICAL_BAR("|", OPERATOR),
-
-		/** Leads an exception set. */
-		CARET("^", OPERATOR),
 
 		/** Module header token: Uses related to grouping. */
 		OPEN_PARENTHESIS("(", OPERATOR),
 
 		/** Module header token: Uses related to grouping. */
-		CLOSE_PARENTHESIS(")", OPERATOR),
-
-		/** End of statement. */
-		SEMICOLON(";", OPERATOR);
+		CLOSE_PARENTHESIS(")", OPERATOR);
 
 		/** The Java {@link String} form of the lexeme. */
 		public final String lexemeJavaString;
@@ -1146,6 +1126,8 @@ public abstract class AbstractAvailCompiler
 	 * @param textInterface
 	 *        The {@linkplain TextInterface text interface} for any {@linkplain
 	 *        A_Fiber fibers} started by the new compiler.
+	 * @param pollForAbort
+	 *        A zero-argument continuation to invoke
 	 * @param succeed
 	 *        What to do with the resultant compiler in the event of success.
 	 *        This is a continuation that accepts the new compiler.
@@ -1159,6 +1141,7 @@ public abstract class AbstractAvailCompiler
 		final ResolvedModuleName resolvedName,
 		final boolean stopAfterBodyToken,
 		final TextInterface textInterface,
+		final Generator<Boolean> pollForAbort,
 		final Continuation1<AbstractAvailCompiler> succeed,
 		final Continuation0 afterFail,
 		final ProblemHandler problemHandler)
@@ -1203,6 +1186,7 @@ public abstract class AbstractAvailCompiler
 						resolvedName,
 						result,
 						textInterface,
+						pollForAbort,
 						problemHandler);
 					succeed.value(compiler);
 				}
@@ -1221,6 +1205,8 @@ public abstract class AbstractAvailCompiler
 	 * @param textInterface
 	 *        The {@linkplain TextInterface text interface} for any {@linkplain
 	 *        A_Fiber fibers} started by this compiler.
+	 * @param pollForAbort
+	 *        How to quickly check if the client wants to abort compilation.
 	 * @param problemHandler
 	 *        The {@link ProblemHandler} used for reporting compilation
 	 *        problems.
@@ -1229,6 +1215,7 @@ public abstract class AbstractAvailCompiler
 		final A_Module module,
 		final AvailScannerResult scannerResult,
 		final TextInterface textInterface,
+		final Generator<Boolean> pollForAbort,
 		final ProblemHandler problemHandler)
 	{
 		this.moduleHeader = null;
@@ -1237,6 +1224,7 @@ public abstract class AbstractAvailCompiler
 		this.tokens = scannerResult.outputTokens();
 		this.commentTokens = scannerResult.commentTokens();
 		this.textInterface = textInterface;
+		this.pollForAbort = pollForAbort;
 		this.problemHandler = problemHandler;
 	}
 
@@ -1251,6 +1239,8 @@ public abstract class AbstractAvailCompiler
 	 * @param textInterface
 	 *        The {@linkplain TextInterface text interface} for any {@linkplain
 	 *        A_Fiber fibers} started by this compiler.
+	 * @param pollForAbort
+	 *        How to quickly check if the client wants to abort compilation.
 	 * @param problemHandler
 	 *        The {@link ProblemHandler} used for reporting compilation
 	 *        problems.
@@ -1259,6 +1249,7 @@ public abstract class AbstractAvailCompiler
 		final ResolvedModuleName moduleName,
 		final AvailScannerResult scannerResult,
 		final TextInterface textInterface,
+		final Generator<Boolean> pollForAbort,
 		final ProblemHandler problemHandler)
 	{
 		this.moduleHeader = new ModuleHeader(moduleName);
@@ -1268,6 +1259,7 @@ public abstract class AbstractAvailCompiler
 		this.tokens = scannerResult.outputTokens();
 		this.commentTokens = scannerResult.commentTokens();
 		this.textInterface = textInterface;
+		this.pollForAbort = pollForAbort;
 		this.problemHandler = problemHandler;
 	}
 
@@ -1472,6 +1464,9 @@ public abstract class AbstractAvailCompiler
 	 * module at the earliest convenience.
 	 */
 	@InnerAccess volatile boolean isShuttingDown = false;
+
+	/** A way to quickly test if the client wishes to shut down prematurely. */
+	@InnerAccess final Generator<Boolean> pollForAbort;
 
 	/**
 	 * This {@code boolean} is set when the {@link #problemHandler} decides that
@@ -1818,8 +1813,8 @@ public abstract class AbstractAvailCompiler
 
 		/**
 		 * Record an expectation at the current parse position. The expectations
-		 * captured at the rightmost parse position constitute the error message
-		 * in case the parse fails.
+		 * captured at the rightmost few reached parse positions constitute the
+		 * error message in case the parse fails.
 		 *
 		 * <p>
 		 * The expectation is a {@linkplain Describer}, in case constructing a
@@ -1835,20 +1830,24 @@ public abstract class AbstractAvailCompiler
 		{
 			synchronized (AbstractAvailCompiler.this)
 			{
-				assert greatExpectations.size() == greatestGuess + 1;
+				assert greatExpectations.size() ==
+					greatestGuess + 1 - firstExpectation;
+				int toWipe = greatestGuess - guessWindowSize - firstExpectation;
 				while (position > greatestGuess)
 				{
-					final int toWipe = greatestGuess - guessWindowSize;
 					if (toWipe >= 0)
 					{
-						greatExpectations.get(toWipe).clear();
+						greatExpectations.set(
+							toWipe, Collections.<Describer>emptyList());
 					}
 					greatExpectations.add(new ArrayList<Describer>());
 					greatestGuess++;
+					toWipe++;
 				}
 				if (position >= greatestGuess - guessWindowSize)
 				{
-					greatExpectations.get(position).add(describer);
+					greatExpectations.get(position - firstExpectation).add(
+						describer);
 				}
 			}
 		}
@@ -2673,9 +2672,9 @@ public abstract class AbstractAvailCompiler
 	 * exception encapsulates the {@linkplain ResolvedModuleName module name} of
 	 * the {@linkplain ModuleDescriptor module} undergoing compilation, the
 	 * error string, and the text position. This position is the rightmost
-	 * position encountered during the parse, and the error strings in {@link
-	 * #greatExpectations} are the things that were expected but not found at
-	 * that position. This seems to work very well in practice.
+	 * position encountered during the parse, and the lists of error strings in
+	 * {@link #greatExpectations} are the things that were expected but not
+	 * found at those positions. This seems to work very well in practice.
 	 *
 	 * @param headerMessagePattern
 	 *        The message pattern that introduces each group of problems.  The
@@ -2693,11 +2692,11 @@ public abstract class AbstractAvailCompiler
 		int supplementaryCounter = 0;
 		for (
 			int i = greatestGuess;
-			i >= max(greatestGuess - guessWindowSize, 0);
+			i >= max(greatestGuess - guessWindowSize, firstExpectation);
 			i--)
 		{
 			final List<Describer> describers =
-				new ArrayList<>(greatExpectations.get(i));
+				new ArrayList<>(greatExpectations.get(i - firstExpectation));
 			if (!describers.isEmpty())
 			{
 				final int nextLetterOffset =
@@ -2746,13 +2745,6 @@ public abstract class AbstractAvailCompiler
 		final String message,
 		final Continuation0 failure)
 	{
-		for (
-			int i = max(greatestGuess - guessWindowSize, 0);
-			i <= greatestGuess;
-			i++)
-		{
-			greatExpectations.get(i).clear();
-		}
 		final int tokenIndex = token.tokenIndex();
 		while (greatestGuess < tokenIndex)
 		{
@@ -2760,7 +2752,8 @@ public abstract class AbstractAvailCompiler
 			greatestGuess++;
 		}
 		greatestGuess = tokenIndex;
-		greatExpectations.get(tokenIndex).add(generate(message));
+		greatExpectations.get(tokenIndex - firstExpectation).add(
+			generate(message));
 		reportError(headerMessagePattern, failure);
 	}
 
@@ -2784,6 +2777,12 @@ public abstract class AbstractAvailCompiler
 		final String headerMessagePattern,
 		final Continuation0 afterFail)
 	{
+		if (pollForAbort.value())
+		{
+			// Never report errors during a client-initiated abort.
+			afterFail.value();
+			return;
+		}
 		final List<ProblemsAtToken> ascending =
 			new ArrayList<>(groupedProblems);
 		Collections.sort(ascending);
@@ -2791,8 +2790,8 @@ public abstract class AbstractAvailCompiler
 		// Figure out where to start showing the file content.  Never show the
 		// content before the line on which firstRelevantTokenIndexOfSection
 		// resides.
-		assert firstRelevantTokenIndexOfSection >= 0;
-		final A_Token firstToken = tokens.get(firstRelevantTokenIndexOfSection);
+		assert firstExpectation >= 0;
+		final A_Token firstToken = tokens.get(firstExpectation);
 		final int startLineNumber = firstToken.lineNumber();
 		final int startOfFirstLine =
 			source.lastIndexOf('\n', firstToken.start() - 1) + 1;
@@ -3187,6 +3186,7 @@ public abstract class AbstractAvailCompiler
 				try
 				{
 					// Don't actually run tasks if canceling.
+					isShuttingDown |= pollForAbort.value();
 					if (!isShuttingDown)
 					{
 						continuation.value(value);
@@ -3962,6 +3962,11 @@ public abstract class AbstractAvailCompiler
 		final ParserState start,
 		final Con<A_Phrase> continuation)
 	{
+		A_Map clientMap = start.clientDataMap;
+		// Start accumulating tokens related to this leading-keyword message
+		// send at its first token.
+		clientMap = clientMap.mapAtPuttingCanDestroy(
+			usedTokensKey, TupleDescriptor.empty(), false);
 		parseRestOfSendNode(
 			start,
 			loader().rootBundleTree(),
@@ -3970,7 +3975,20 @@ public abstract class AbstractAvailCompiler
 			false,  // Nothing consumed yet.
 			initialParseStack,
 			initialMarkStack,
-			continuation);
+			new Con<A_Phrase>("Done parsing leading keyword send")
+			{
+				@Override
+				public void valueNotNull(
+					final ParserState after,
+					final A_Phrase send)
+				{
+					// Discard the client information related to this send, now
+					// that we'll be going back to parsing an outer construct.
+					continuation.value(
+						new ParserState(after.position, start.clientDataMap),
+						send);
+				}
+			});
 	}
 
 	/**
@@ -3993,15 +4011,33 @@ public abstract class AbstractAvailCompiler
 	{
 		assert start.position != initialTokenPosition.position;
 		assert leadingArgument != null;
+		A_Map clientMap = start.clientDataMap;
+		// Start accumulating tokens related to this leading-argument message
+		// send after the leading argument.
+		clientMap = clientMap.mapAtPuttingCanDestroy(
+			usedTokensKey, TupleDescriptor.empty(), false);
 		parseRestOfSendNode(
-			start,
+			new ParserState(start.position, clientMap),
 			loader().rootBundleTree(),
 			leadingArgument,
 			initialTokenPosition,
 			false,  // Leading argument does not yet count as something parsed.
 			initialParseStack,
 			initialMarkStack,
-			continuation);
+			new Con<A_Phrase>("Done parsing leading argument send")
+			{
+				@Override
+				public void valueNotNull(
+					final ParserState after,
+					final A_Phrase send)
+				{
+					// Discard the client information related to this send, now
+					// that we'll be going back to parsing an outer construct.
+					continuation.value(
+						new ParserState(after.position, start.clientDataMap),
+						send);
+				}
+			});
 	}
 
 	/**
@@ -4155,9 +4191,19 @@ public abstract class AbstractAvailCompiler
 				if (incomplete.hasKey(keywordString))
 				{
 					keywordRecognized = true;
+					// Record this token for the call site.
+					A_Map clientMap = start.clientDataMap;
+					clientMap = clientMap.mapAtPuttingCanDestroy(
+						usedTokensKey,
+						clientMap.mapAt(usedTokensKey).appendCanDestroy(
+							keywordToken, false),
+						false);
+					final ParserState afterRecordingToken = new ParserState(
+						start.afterToken().position,
+						clientMap);
 					eventuallyParseRestOfSendNode(
 						"Continue send after a keyword",
-						start.afterToken(),
+						afterRecordingToken,
 						incomplete.mapAt(keywordString),
 						null,
 						initialTokenPosition,
@@ -4183,9 +4229,19 @@ public abstract class AbstractAvailCompiler
 				if (caseInsensitive.hasKey(keywordString))
 				{
 					keywordRecognized = true;
+					// Record this token for the call site.
+					A_Map clientMap = start.clientDataMap;
+					clientMap = clientMap.mapAtPuttingCanDestroy(
+						usedTokensKey,
+						clientMap.mapAt(usedTokensKey).appendCanDestroy(
+							keywordToken, false),
+						false);
+					final ParserState afterRecordingToken = new ParserState(
+						start.afterToken().position,
+						clientMap);
 					eventuallyParseRestOfSendNode(
 						"Continue send after a case-insensitive keyword",
-						start.afterToken(),
+						afterRecordingToken,
 						caseInsensitive.mapAt(keywordString),
 						null,
 						initialTokenPosition,
@@ -6657,7 +6713,7 @@ public abstract class AbstractAvailCompiler
 		final Continuation0 failure)
 	{
 		// Report pragma installation problems relative to the pragma section.
-		firstRelevantTokenIndexOfSection = moduleHeader().pragmaStart;
+		recordExpectationsRelativeTo(moduleHeader().pragmaStart);
 		final Iterator<A_Token> iterator = moduleHeader().pragmas.iterator();
 		final MutableOrNull<Continuation0> body = new MutableOrNull<>();
 		final Continuation0 next = new Continuation0()
@@ -6677,7 +6733,7 @@ public abstract class AbstractAvailCompiler
 				{
 					// Done with all the pragmas, if any.  Report any new
 					// problems relative to the body section.
-					firstRelevantTokenIndexOfSection = state.position;
+					recordExpectationsRelativeTo(state.position);
 					success.value();
 					return;
 				}
@@ -6742,8 +6798,8 @@ public abstract class AbstractAvailCompiler
 	/**
 	 * Parse a {@linkplain ModuleHeader module header} from the {@linkplain
 	 * TokenDescriptor token list} and apply any side-effects. Then {@linkplain
-	 * #parseModuleBody(ParserState, Continuation0) parse a module body} and
-	 * apply any side-effects.
+	 * #parseAndExecuteOutermostStatements(ParserState, Continuation0) parse the
+	 * module body} and apply any side-effects.
 	 *
 	 * @param afterFail
 	 *        What to do after compilation fails.
@@ -6797,7 +6853,8 @@ public abstract class AbstractAvailCompiler
 								@Override
 								public void value ()
 								{
-									parseModuleBody(afterHeader, afterFail);
+									parseAndExecuteOutermostStatements(
+										afterHeader, afterFail);
 								}
 							});
 					}
@@ -6813,48 +6870,50 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Parse a {@linkplain ModuleDescriptor module} from the {@linkplain
-	 * TokenDescriptor token} list and install it into the {@linkplain
-	 * AvailRuntime runtime}.
+	 * Parse a {@linkplain ModuleDescriptor module} body from the {@linkplain
+	 * TokenDescriptor token} list, execute it, and repeat if we're not at the
+	 * end of the module.
 	 *
-	 * @param afterHeader
+	 * @param start
 	 *        The {@linkplain ParserState parse state} after parsing a
 	 *        {@linkplain ModuleHeader module header}.
 	 * @param afterFail
 	 *        What to do after compilation fails.
 	 */
-	@InnerAccess void parseModuleBody (
-		final ParserState afterHeader,
+	@InnerAccess void parseAndExecuteOutermostStatements (
+		final ParserState start,
 		final Continuation0 afterFail)
 	{
-		final Mutable<ParserState> lastStart =
-			new Mutable<>(afterHeader);
-		final AvailLoader theLoader = loader();
-		final MutableOrNull<Con<A_Phrase>> parseOutermost =
-			new MutableOrNull<>();
-		parseOutermost.value = new Con<A_Phrase>("Outermost statement")
-		{
-			@Override
-			public void valueNotNull (
-				final ParserState afterStatement,
-				final A_Phrase unambiguousStatement)
+		recordExpectationsRelativeTo(start.position);
+		parseOutermostStatement(
+			start,
+			new Con<A_Phrase>("Outermost statement")
 			{
-				// The counters must be read in this order for correctness.
-				assert workUnitsCompleted.get() == workUnitsQueued.get();
+				@Override
+				public void valueNotNull (
+					final ParserState afterStatement,
+					final A_Phrase unambiguousStatement)
+				{
+					// The counters must be read in this order for correctness.
+					assert workUnitsCompleted.get() == workUnitsQueued.get();
 
-				evaluateModuleStatementThen(
-					lastStart.value,
-					afterStatement,
-					unambiguousStatement,
-					new Continuation0()
-					{
-						@Override
-						public void value ()
+					evaluateModuleStatementThen(
+						start,
+						afterStatement,
+						unambiguousStatement,
+						new Continuation0()
 						{
-							// If this was not the last statement, then report
-							// progress.
-							if (!afterStatement.atEnd())
+							@Override
+							public void value ()
 							{
+								if (afterStatement.atEnd())
+								{
+									// It was the last statement.
+									reachedEndOfModule(
+										afterStatement, afterFail);
+									return;
+								}
+								// Not the last statement; report progress.
 								final CompilerProgressReporter reporter =
 									progressReporter;
 								assert reporter != null;
@@ -6870,61 +6929,71 @@ public abstract class AbstractAvailCompiler
 										@Override
 										public void value ()
 										{
-											lastStart.value = afterStatement;
-											clearExpectations();
-											parseOutermostStatement(
+											parseAndExecuteOutermostStatements(
 												new ParserState(
 													afterStatement.position,
-													afterHeader.clientDataMap),
-												parseOutermost.value(),
+													start.clientDataMap),
 												afterFail);
 										}
 									});
 							}
-							// Otherwise, make sure that all forwards were
-							// resolved.
-							else if (theLoader.pendingForwards.setSize() != 0)
-							{
-								@SuppressWarnings("resource")
-								final Formatter formatter = new Formatter();
-								formatter.format(
-									"the following forwards to be resolved:");
-								for (final A_BasicObject forward
-									: theLoader.pendingForwards)
-								{
-									formatter.format("%n\t%s", forward);
-								}
-								afterStatement.expected(formatter.toString());
-								reportError(afterFail);
-								return;
-							}
-							// Otherwise, report success.
-							else
-							{
-								// Clear the section of the fragment cache
-								// associated with the (outermost) statement
-								// just parsed and executed...
-								fragmentCache.clear();
-								final Continuation0 reporter = successReporter;
-								assert reporter != null;
-								reporter.value();
-							}
-						}
-					},
-					afterFail);
+						},
+						afterFail);
+				}
+			},
+			afterFail);
+	}
+
+	/**
+	 * We just reached the end of the module.
+	 *
+	 * @param afterModule
+	 * @param afterFail
+	 */
+	@InnerAccess void reachedEndOfModule (
+		final ParserState afterModule,
+		final Continuation0 afterFail)
+	{
+		final AvailLoader theLoader = loader();
+		if (theLoader.pendingForwards.setSize() != 0)
+		{
+			@SuppressWarnings("resource")
+			final Formatter formatter = new Formatter();
+			formatter.format("the following forwards to be resolved:");
+			for (final A_BasicObject forward : theLoader.pendingForwards)
+			{
+				formatter.format("%n\t%s", forward);
 			}
-		};
-		clearExpectations();
-		parseOutermostStatement(afterHeader, parseOutermost.value(), afterFail);
+			afterModule.expected(formatter.toString());
+			reportError(afterFail);
+			return;
+		}
+		// Clear the section of the fragment cache
+		// associated with the (outermost) statement
+		// just parsed and executed...
+		synchronized (fragmentCache)
+		{
+			fragmentCache.clear();
+		}
+		final Continuation0 reporter = successReporter;
+		assert reporter != null;
+		reporter.value();
 	}
 
 	/**
 	 * Clear any information about potential problems encountered during
-	 * parsing.
+	 * parsing.  Reset the problem information to record relative to the
+	 * provided zero-based token number.
+	 *
+	 * @param firstTokenIndex
+	 *        The earliest token index for which we should record problem
+	 *        information.
 	 */
-	@InnerAccess synchronized void clearExpectations ()
+	@InnerAccess synchronized void recordExpectationsRelativeTo (
+		final int firstTokenIndex)
 	{
-		greatestGuess = -1;
+		firstExpectation = firstTokenIndex;
+		greatestGuess = firstTokenIndex - 1;
 		greatExpectations.clear();
 	}
 
@@ -6959,7 +7028,7 @@ public abstract class AbstractAvailCompiler
 		final Continuation1<ModuleHeader> onSuccess,
 		final Continuation0 afterFail)
 	{
-		clearExpectations();
+		recordExpectationsRelativeTo(0);
 		if (parseModuleHeader(true) != null)
 		{
 			onSuccess.value(moduleHeader());
@@ -7097,12 +7166,13 @@ public abstract class AbstractAvailCompiler
 				@Override
 				public void value ()
 				{
+					A_Map clientData = MapDescriptor.empty();
+					clientData = clientData.mapAtPuttingCanDestroy(
+						compilerScopeMapKey, MapDescriptor.empty(), true);
+					clientData = clientData.mapAtPuttingCanDestroy(
+						usedTokensKey, TupleDescriptor.empty(), true);
 					final ParserState initialState = new ParserState(
-						0,
-						MapDescriptor.empty().mapAtPuttingCanDestroy(
-							compilerScopeMapKey,
-							MapDescriptor.empty(),
-							false));
+						0, clientData);
 					// Rollback the module transaction no matter what happens.
 					parseExpressionThen(
 						initialState,
@@ -7156,14 +7226,14 @@ public abstract class AbstractAvailCompiler
 	{
 		// Create the initial parser state: no tokens have been seen, and no
 		// names are in scope.
-		ParserState state = new ParserState(
-			0,
-			MapDescriptor.empty().mapAtPuttingCanDestroy(
-				compilerScopeMapKey,
-				MapDescriptor.empty(),
-				false));
+		A_Map clientData = MapDescriptor.empty();
+		clientData = clientData.mapAtPuttingCanDestroy(
+			compilerScopeMapKey, MapDescriptor.empty(), true);
+		clientData = clientData.mapAtPuttingCanDestroy(
+			usedTokensKey, TupleDescriptor.empty(), true);
+		ParserState state = new ParserState(0, clientData);
 
-		firstRelevantTokenIndexOfSection = 0;
+		recordExpectationsRelativeTo(0);
 
 		if (!state.peekToken(ExpectedToken.MODULE, "Module keyword"))
 		{
@@ -7198,7 +7268,7 @@ public abstract class AbstractAvailCompiler
 		while (true)
 		{
 			final A_Token token = state.peekToken();
-			firstRelevantTokenIndexOfSection = state.position;
+			recordExpectationsRelativeTo(state.position);
 			final A_String lexeme = token.string();
 			int tokenIndex = 0;
 			for (final ExpectedToken expectedToken : expected)
@@ -7293,7 +7363,7 @@ public abstract class AbstractAvailCompiler
 			{
 				// Keep track of where the pragma section starts so that when we
 				// actually perform them, we can report on just that section.
-				moduleHeader().pragmaStart  = firstRelevantTokenIndexOfSection;
+				moduleHeader().pragmaStart  = firstExpectation;
 				state = parseStringLiteralTokens(state, moduleHeader().pragmas);
 			}
 			// If the parser state is now null, then fail the parse.
@@ -7334,43 +7404,64 @@ public abstract class AbstractAvailCompiler
 			if (!fragmentCache.hasStartedParsingAt(start))
 			{
 				fragmentCache.indicateParsingHasStartedAt(start);
+				final Con<A_Phrase> action = new Con<A_Phrase>(
+					"Uncached expression")
+				{
+					@Override
+					public void valueNotNull (
+						final ParserState afterExpr,
+						final A_Phrase expr)
+					{
+						try
+						{
+							synchronized (fragmentCache)
+							{
+								fragmentCache.addSolution(
+									start, afterExpr, expr);
+							}
+						}
+						catch (final DuplicateSolutionException e)
+						{
+							handleProblem(new Problem(
+								moduleName(),
+								afterExpr.peekToken(),
+								PARSE,
+								"Duplicate expressions were parsed at the same "
+									+ "position (line {0}): {1}",
+								start.position,
+								expr)
+							{
+								@Override
+								public void abortCompilation ()
+								{
+									isShuttingDown = true;
+								}
+							});
+						}
+					}
+
+					@Override
+					public @Nullable ConNullable<A_Phrase>
+						addCauseTo (
+							final List<String> causes)
+					{
+						final String cause;
+						synchronized (fragmentCache)
+						{
+							cause = fragmentCache.chooseCause(
+								start);
+						}
+						causes.add(cause);
+						return originalContinuation;
+					}
+				};
 				workUnitDo(
 					new Continuation0()
 					{
 						@Override
 						public void value ()
 						{
-							parseExpressionUncachedThen(
-								start,
-								new Con<A_Phrase>("Uncached expression")
-								{
-									@Override
-									public void valueNotNull (
-										final ParserState afterExpr,
-										final A_Phrase expr)
-									{
-										synchronized (fragmentCache)
-										{
-											fragmentCache.addSolution(
-												start, afterExpr, expr);
-										}
-									}
-
-									@Override
-									public @Nullable ConNullable<A_Phrase>
-										addCauseTo (
-											final List<String> causes)
-									{
-										final String cause;
-										synchronized (fragmentCache)
-										{
-											cause = fragmentCache.chooseCause(
-												start);
-										}
-										causes.add(cause);
-										return originalContinuation;
-									}
-								});
+							parseExpressionUncachedThen(start, action);
 						}
 					},
 					start,

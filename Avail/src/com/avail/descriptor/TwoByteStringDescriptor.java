@@ -88,6 +88,42 @@ extends StringDescriptor
 	int unusedShortsOfLastWord;
 
 	@Override @AvailMethod
+	A_Tuple o_AppendCanDestroy (
+		final AvailObject object,
+		final A_BasicObject newElement,
+		final boolean canDestroy)
+	{
+		final int originalSize = object.tupleSize();
+		final int intValue;
+		if (originalSize >= maximumCopySize
+			|| !object.isCharacter()
+			|| ((intValue = object.codePoint()) & 0xFFFF) != intValue)
+		{
+			// Transition to a tree tuple.
+			final A_Tuple singleton = TupleDescriptor.from(newElement);
+			return object.concatenateWith(singleton, canDestroy);
+		}
+		final int newSize = originalSize + 1;
+		if (isMutable() && canDestroy && (originalSize & 1) != 0)
+		{
+			// Enlarge it in place, using more of the final partial int field.
+			object.descriptor = descriptorFor(MUTABLE, newSize);
+			object.rawShortForCharacterAtPut(newSize, intValue);
+			object.setSlot(HASH_OR_ZERO, 0);
+			return object;
+		}
+		// Copy to a potentially larger ByteTupleDescriptor.
+		final AvailObject result = newLike(
+			descriptorFor(MUTABLE, newSize),
+			object,
+			0,
+			(originalSize & 1) == 0 ? 1 : 0);
+		result.rawShortForCharacterAtPut(newSize, intValue);
+		object.setSlot(HASH_OR_ZERO, 0);
+		return result;
+	}
+
+	@Override @AvailMethod
 	boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
@@ -329,10 +365,11 @@ extends StringDescriptor
 		{
 			final int itemHash =
 				CharacterDescriptor.computeHashOfCharacterWithCodePoint(
-					object.rawShortForCharacterAt(index));
-			hash = hash * multiplier + (itemHash ^ preToggle);
+					object.rawShortForCharacterAt(index))
+				^ preToggle;
+			hash = (hash + itemHash) * multiplier;
 		}
-		return hash * multiplier;
+		return hash;
 	}
 
 	@Override

@@ -102,7 +102,7 @@ Public stable forward method "-_" is [number]→number;
 	 * @forbids "2" "_×_" "_÷_" "_mod_" "_+_" "_-_"
 	 */
 	Grammatical restriction product is <sum, sumAndProduct>;
-	
+
 	/**
 	 * @method "-_"
 	 * @forbids "1" "_×_" "_÷_" "_mod_" "_+_" "_-_" "-_" "«_‡max»" "«_‡min»" "∞"
@@ -146,14 +146,14 @@ Public stable forward method "-_" is [number]→number;
 	 * @forbids "2" "_bit∧_"
 	 */
 	Grammatical restriction "_bit∧_" is <∅, {"_bit∧_"}>;
-	
+
 	/**
 	 * Make left-associative.
 	 * @method "_bit∨_"
 	 * @forbids "2" "_bit∨_"
 	 */
 	Grammatical restriction "_bit∨_" is <∅, {"_bit∨_"}>;
-	
+
 	/**
 	 * Make left-associative.
 	 * @method "_bit⊕_"
@@ -201,7 +201,7 @@ negativeOne ::= 0 - 1;
  *          The negation of the argument.
  * @category "Mathematics" "Numbers"
  */
-Stable method "-_" is
+Method "-_" is
 [
 	a : number
 |
@@ -1535,7 +1535,7 @@ Public method "nonpositive integer" is [(-∞..0]];
  * @returns "integer" the greates common denominator of the numbers.
  */
 
-Stable forward method "greatest common denominator of_and_" is 
+Forward method "greatest common denominator of_and_" is 
 	[natural number, natural number] → natural number;
 
 Stable method "greatest common denominator of_and_" is 

@@ -343,6 +343,16 @@ public final class AvailBuilder
 	 */
 	public volatile boolean shouldStopBuild = false;
 
+	/** Create a Generator<Boolean> for polling for abort requests. */
+	public final Generator<Boolean> pollForAbort = new Generator<Boolean>()
+	{
+		@Override
+		public Boolean value()
+		{
+			return shouldStopBuild;
+		}
+	};
+
 	/**
 	 * Cancel the build at the next convenient stopping point for each module.
 	 */
@@ -817,6 +827,7 @@ public final class AvailBuilder
 				resolvedName,
 				true,
 				textInterface,
+				pollForAbort,
 				new Continuation1<AbstractAvailCompiler>()
 				{
 					@Override
@@ -1328,6 +1339,7 @@ public final class AvailBuilder
 				resolvedName,
 				true,
 				textInterface,
+				pollForAbort,
 				new Continuation1<AbstractAvailCompiler>()
 				{
 					@Override
@@ -2070,6 +2082,7 @@ public final class AvailBuilder
 				moduleName,
 				false,
 				textInterface,
+				pollForAbort,
 				continuation,
 				new Continuation0()
 				{
@@ -2934,9 +2947,9 @@ public final class AvailBuilder
 		final ModuleName target,
 		final Path documentationPath)
 	{
+		shouldStopBuild = false;
 		try
 		{
-			shouldStopBuild = false;
 			final BuildTracer tracer = new BuildTracer();
 			tracer.trace(target);
 			final DocumentationTracer documentationTracer =
@@ -2971,9 +2984,9 @@ public final class AvailBuilder
 			final File destinationFile)
 		throws IOException
 	{
+		shouldStopBuild = false;
 		try
 		{
-			shouldStopBuild = false;
 			final BuildTracer tracer = new BuildTracer();
 			tracer.trace(target);
 			final GraphTracer graphTracer = new GraphTracer(
@@ -3093,6 +3106,7 @@ public final class AvailBuilder
 			AvailObject, Continuation1<Continuation0>> onSuccess,
 		final Continuation0 onFailure)
 	{
+		shouldStopBuild = false;
 		runtime.execute(new AvailTask(commandPriority)
 		{
 			@Override
@@ -3238,6 +3252,7 @@ public final class AvailBuilder
 				module,
 				scanResult,
 				textInterface,
+				pollForAbort,
 				new BuilderProblemHandler("«collection only»")
 				{
 					@Override
@@ -3450,8 +3465,7 @@ public final class AvailBuilder
 			{
 				if (solution.isInstanceOfKind(SEND_NODE.mostGeneralType()))
 				{
-					final A_Bundle bundle = solution.bundle();
-					final A_Atom name = bundle.message();
+					final A_Atom name = solution.apparentSendName();
 					final String nameString = name.atomName().asNativeString();
 					if (moduleEntryPoints.contains(nameString))
 					{

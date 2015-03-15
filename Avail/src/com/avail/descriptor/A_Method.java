@@ -81,9 +81,6 @@ extends A_ChunkDependable
 	 * Add the {@linkplain A_Definition definition} to this {@linkplain A_Method
 	 * method}. Causes dependent {@linkplain L2Chunk chunks} to be invalidated.
 	 *
-	 * Macro signatures and non-macro signatures should not be combined in the
-	 * same method.
-	 *
 	 * @param definition The definition to be added.
 	 * @throws SignatureException
 	 *         If the definition could not be added.
@@ -274,21 +271,47 @@ extends A_ChunkDependable
 	void prefixFunctions (A_Tuple functionTuples);
 
 	/**
-	 * @return
+	 * Answer the tuple of {@linkplain MacroDefinitionDescriptor macro
+	 * definitions} for this method.  Their order is irrelevant, but fixed for
+	 * use by the {@link #macroTestingTree()}.
+	 *
+	 * @return A tuple of {@link A_Definition macro definitions}.
 	 */
 	A_Tuple macroDefinitionsTuple ();
 
 	/**
+	 * Look up the macro definition to invoke, given an array of argument
+	 * phrases.  Use the {@link #macroTestingTree()} to find the macro
+	 * definition to invoke.  Answer nil if a lookup error occurs, in which case
+	 * the errorCode will be set to either {@link
+	 * AvailErrorCode#E_NO_METHOD_DEFINITION} or {@link
+	 * AvailErrorCode#E_AMBIGUOUS_METHOD_DEFINITION}.
+	 *
+	 * <p>Note that this testing tree approach is only applicable if all of the
+	 * macro definitions are visible (defined in the current module or an
+	 * ancestor.  That should be the <em>vast</em> majority of the use of
+	 * macros, but when it isn't, other lookup approaches are necessary.</p>
+	 *
 	 * @param argumentPhraseTuple
+	 *        The argument phrases destined to be transformed by the macro.
 	 * @param errorCode
-	 * @return
+	 *        A {@link MutableOrNull} which will receive the error code if any.
+	 * @return The most specific {@linkplain MacroDefinitionDescriptor macro
+	 *         definition} for these arguments, or {@linkplain
+	 *         NilDescriptor#nil() nil}.
 	 */
 	A_Definition lookupMacroByPhraseTuple (
 		A_Tuple argumentPhraseTuple,
 		MutableOrNull<AvailErrorCode> errorCode);
 
 	/**
-	 * @return
+	 * Answer a {@link LookupTree} with which one can determine which
+	 * {@linkplain MacroDefinitionDescriptor macro definition} should be used
+	 * for a tuple of argument {@linkplain ParseNodeDescriptor phrases}.  This
+	 * tree is only used if all macro definitions are visible (expected to be
+	 * the overwhelming majority of cases), otherwise another technique is used.
+	 *
+	 * @return The {@link LookupTree} used for polymorphic macros.
 	 */
 	LookupTree macroTestingTree ();
 }

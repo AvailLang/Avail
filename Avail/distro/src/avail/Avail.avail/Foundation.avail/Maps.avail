@@ -660,7 +660,6 @@ Semantic restriction "count of_where_" is
 	[0..⎡mapType⎤ + 1)
 ];
 
-Method "_∈_" is stable at [any, map]→boolean;
 Semantic restriction "_∈_" is
 [
 	keyType : any meta,

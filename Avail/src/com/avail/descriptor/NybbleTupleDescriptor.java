@@ -98,18 +98,48 @@ extends TupleDescriptor
 	int unusedNybblesOfLastWord;
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithStartingAt (
+	A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple anotherObject,
-		final int startIndex2)
+		final A_BasicObject newElement,
+		final boolean canDestroy)
 	{
-		return anotherObject.compareFromToWithNybbleTupleStartingAt(
-			startIndex2,
-			(startIndex2 + endIndex1 - startIndex1),
-			object,
-			startIndex1);
+		final int originalSize = object.tupleSize();
+		final int intValue;
+		if (originalSize >= maximumCopySize
+			|| !object.isInt()
+			|| ((intValue = object.extractInt()) & 0xF) != intValue)
+		{
+			// Transition to a tree tuple.
+			final A_Tuple singleton = TupleDescriptor.from(newElement);
+			return object.concatenateWith(singleton, canDestroy);
+		}
+		final int newSize = originalSize + 1;
+		final AvailObject result;
+		if (isMutable() && canDestroy && (originalSize & 7) != 0)
+		{
+			// Enlarge it in place, using more of the final partial int field.
+			result = object;
+			result.descriptor = descriptorFor(MUTABLE, newSize);
+		}
+		else
+		{
+			result = newLike(
+				descriptorFor(MUTABLE, newSize),
+				object,
+				0,
+				(originalSize & 7) == 0 ? 1 : 0);
+		}
+		setNybble(result, newSize, (byte)intValue);
+		result.setSlot(HASH_OR_ZERO, 0);
+		return result;
+	}
+
+	@Override @AvailMethod
+	int o_BitsPerEntry (final AvailObject object)
+	{
+		// Answer approximately how many bits per entry are taken up by this
+		// object.
+		return 4;
 	}
 
 	@Override @AvailMethod
@@ -143,237 +173,18 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.equalsNybbleTuple(object);
-	}
-
-	@Override @AvailMethod
-	boolean o_EqualsNybbleTuple (
+	boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
-		final A_Tuple aNybbleTuple)
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple anotherObject,
+		final int startIndex2)
 	{
-		// First, check for object-structure (address) identity.
-		if (object.sameAddressAs(aNybbleTuple))
-		{
-			return true;
-		}
-		if (object.tupleSize() != aNybbleTuple.tupleSize())
-		{
-			return false;
-		}
-		if (object.hash() != aNybbleTuple.hash())
-		{
-			return false;
-		}
-		if (!object.compareFromToWithNybbleTupleStartingAt(
-			1,
-			object.tupleSize(),
-			aNybbleTuple,
-			1))
-		{
-			return false;
-		}
-		// They're equal, but occupy disjoint storage. If possible, then replace
-		// one with an indirection to the other to reduce storage costs and the
-		// frequency of nybble-wise comparisons.
-		if (!isShared())
-		{
-			aNybbleTuple.makeImmutable();
-			object.becomeIndirectionTo(aNybbleTuple);
-		}
-		else if (!aNybbleTuple.descriptor().isShared())
-		{
-			object.makeImmutable();
-			aNybbleTuple.becomeIndirectionTo(object);
-		}
-		return true;
-	}
-
-	@Override @AvailMethod
-	boolean o_IsBetterRepresentationThan (
-		final AvailObject object,
-		final A_BasicObject anotherObject)
-	{
-		// Given two objects that are known to be equal, is the first one in a
-		// better form (more compact, more efficient, older generation) than the
-		// second one? Currently there is no more desirable representation than
-		// a nybble tuple.
-		return true;
-	}
-
-	@Override @AvailMethod
-	boolean o_IsInstanceOfKind (
-		final AvailObject object,
-		final A_Type aType)
-	{
-		if (aType.isSupertypeOfPrimitiveTypeEnum(NONTYPE))
-		{
-			return true;
-		}
-		if (!aType.isTupleType())
-		{
-			return false;
-		}
-		// See if it's an acceptable size...
-		if (!aType.sizeRange().rangeIncludesInt(object.tupleSize()))
-		{
-			return false;
-		}
-		// Tuple's size is out of range.
-		final A_Tuple typeTuple = aType.typeTuple();
-		final int breakIndex = min(object.tupleSize(), typeTuple.tupleSize());
-		for (int i = 1; i <= breakIndex; i++)
-		{
-			if (!object.tupleAt(i).isInstanceOf(aType.typeAtIndex(i)))
-			{
-				return false;
-			}
-		}
-		final A_Type defaultTypeObject = aType.defaultType();
-		if (IntegerRangeTypeDescriptor.nybbles().isSubtypeOf(defaultTypeObject))
-		{
-			return true;
-		}
-		for (int i = breakIndex + 1, end = object.tupleSize(); i <= end; i++)
-		{
-			if (!object.tupleAt(i).isInstanceOf(defaultTypeObject))
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-
-	@Override @AvailMethod
-	void o_RawNybbleAtPut (
-		final AvailObject object,
-		final int nybbleIndex,
-		final byte aNybble)
-	{
-		assert isMutable();
-		setNybble(object, nybbleIndex, aNybble);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
-	{
-		if (isMutable())
-		{
-			object.descriptor = descriptorFor(IMMUTABLE, object.tupleSize());
-		}
-		return object;
-	}
-
-	@Override @AvailMethod
-	AvailObject o_MakeShared (final AvailObject object)
-	{
-		if (!isShared())
-		{
-			object.descriptor = descriptorFor(SHARED, object.tupleSize());
-		}
-		return object;
-	}
-
-	@Override @AvailMethod
-	byte o_ExtractNybbleFromTupleAt (
-		final AvailObject object,
-		final int nybbleIndex)
-	{
-		return getNybble(object, nybbleIndex);
-	}
-
-	@Override @AvailMethod
-	AvailObject o_TupleAt (final AvailObject object, final int index)
-	{
-		// Answer the element at the given index in the nybble tuple object.
-		return (AvailObject)IntegerDescriptor.fromUnsignedByte(
-			getNybble(object, index));
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_TupleAtPuttingCanDestroy (
-		final AvailObject object,
-		final int nybbleIndex,
-		final A_BasicObject newValueObject,
-		final boolean canDestroy)
-	{
-		// Answer a tuple with all the elements of object except at the given
-		// index we should have newValueObject.  This may destroy the original
-		// tuple if canDestroy is true.
-		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
-		if (!newValueObject.isNybble())
-		{
-			if (newValueObject.isUnsignedByte())
-			{
-				return copyAsMutableByteTuple(object).tupleAtPuttingCanDestroy(
-					nybbleIndex,
-					newValueObject,
-					true);
-			}
-			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
-				nybbleIndex,
-				newValueObject,
-				true);
-		}
-		if (!canDestroy || !isMutable())
-		{
-			return copyAsMutableByteTuple(object).tupleAtPuttingCanDestroy(
-				nybbleIndex,
-				newValueObject,
-				true);
-		}
-		// All clear.  Clobber the object in place...
-		final AvailObject strongValue = (AvailObject)newValueObject;
-		object.rawNybbleAtPut(nybbleIndex, strongValue.extractNybble());
-		object.hashOrZero(0);
-		//  ...invalidate the hash value. Probably cheaper than computing the
-		// difference or even testing for an actual change.
-		return object;
-	}
-
-	@Override @AvailMethod
-	int o_TupleIntAt (final AvailObject object, final int index)
-	{
-		// Answer the integer element at the given index in the nybble tuple
-		// object.
-		return getNybble(object, index);
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_TupleReverse(final AvailObject object)
-	{
-		final int size = object.tupleSize();
-		if (size >= maximumCopySize)
-		{
-			return super.o_TupleReverse(object);
-		}
-
-		// It's not empty, it's not a total copy, and it's reasonably small.
-		// Just copy the applicable nybbles out.  In theory we could use
-		// newLike() if start is 1.  Make sure to mask the last word in that
-		// case.
-		final AvailObject result = mutableObjectOfSize(size);
-		for (int i = 1; i <= size; i++)
-		{
-			setNybble(result, i, getNybble(object, size-i+1));
-		}
-		return result;
-	}
-
-	@Override @AvailMethod
-	int o_TupleSize (final AvailObject object)
-	{
-		return (object.variableIntegerSlotsCount() << 3)
-			- unusedNybblesOfLastWord;
-	}
-
-	@Override @AvailMethod
-	int o_BitsPerEntry (final AvailObject object)
-	{
-		// Answer approximately how many bits per entry are taken up by this
-		// object.
-		return 4;
+		return anotherObject.compareFromToWithNybbleTupleStartingAt(
+			startIndex2,
+			(startIndex2 + endIndex1 - startIndex1),
+			object,
+			startIndex1);
 	}
 
 	@Override @AvailMethod
@@ -389,10 +200,11 @@ extends TupleDescriptor
 		for (int nybbleIndex = end; nybbleIndex >= start; nybbleIndex--)
 		{
 			final int itemHash = IntegerDescriptor.hashOfUnsignedByte(
-				getNybble(object, nybbleIndex));
-			hash = hash * multiplier + (itemHash ^ preToggle);
+					getNybble(object, nybbleIndex))
+				^ preToggle;
+			hash = (hash + itemHash) * multiplier;
 		}
-		return hash * multiplier;
+		return hash;
 	}
 
 	@Override @AvailMethod
@@ -500,6 +312,147 @@ extends TupleDescriptor
 			object, start, end, canDestroy);
 	}
 
+	@Override @AvailMethod
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	{
+		return another.equalsNybbleTuple(object);
+	}
+
+	@Override @AvailMethod
+	boolean o_EqualsNybbleTuple (
+		final AvailObject object,
+		final A_Tuple aNybbleTuple)
+	{
+		// First, check for object-structure (address) identity.
+		if (object.sameAddressAs(aNybbleTuple))
+		{
+			return true;
+		}
+		if (object.tupleSize() != aNybbleTuple.tupleSize())
+		{
+			return false;
+		}
+		if (object.hash() != aNybbleTuple.hash())
+		{
+			return false;
+		}
+		if (!object.compareFromToWithNybbleTupleStartingAt(
+			1,
+			object.tupleSize(),
+			aNybbleTuple,
+			1))
+		{
+			return false;
+		}
+		// They're equal, but occupy disjoint storage. If possible, then replace
+		// one with an indirection to the other to reduce storage costs and the
+		// frequency of nybble-wise comparisons.
+		if (!isShared())
+		{
+			aNybbleTuple.makeImmutable();
+			object.becomeIndirectionTo(aNybbleTuple);
+		}
+		else if (!aNybbleTuple.descriptor().isShared())
+		{
+			object.makeImmutable();
+			aNybbleTuple.becomeIndirectionTo(object);
+		}
+		return true;
+	}
+
+	@Override @AvailMethod
+	byte o_ExtractNybbleFromTupleAt (
+		final AvailObject object,
+		final int nybbleIndex)
+	{
+		return getNybble(object, nybbleIndex);
+	}
+
+	@Override @AvailMethod
+	boolean o_IsBetterRepresentationThan (
+		final AvailObject object,
+		final A_BasicObject anotherObject)
+	{
+		// Given two objects that are known to be equal, is the first one in a
+		// better form (more compact, more efficient, older generation) than the
+		// second one? Currently there is no more desirable representation than
+		// a nybble tuple.
+		return true;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsInstanceOfKind (
+		final AvailObject object,
+		final A_Type aType)
+	{
+		if (aType.isSupertypeOfPrimitiveTypeEnum(NONTYPE))
+		{
+			return true;
+		}
+		if (!aType.isTupleType())
+		{
+			return false;
+		}
+		// See if it's an acceptable size...
+		if (!aType.sizeRange().rangeIncludesInt(object.tupleSize()))
+		{
+			return false;
+		}
+		// Tuple's size is out of range.
+		final A_Tuple typeTuple = aType.typeTuple();
+		final int breakIndex = min(object.tupleSize(), typeTuple.tupleSize());
+		for (int i = 1; i <= breakIndex; i++)
+		{
+			if (!object.tupleAt(i).isInstanceOf(aType.typeAtIndex(i)))
+			{
+				return false;
+			}
+		}
+		final A_Type defaultTypeObject = aType.defaultType();
+		if (IntegerRangeTypeDescriptor.nybbles().isSubtypeOf(defaultTypeObject))
+		{
+			return true;
+		}
+		for (int i = breakIndex + 1, end = object.tupleSize(); i <= end; i++)
+		{
+			if (!object.tupleAt(i).isInstanceOf(defaultTypeObject))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MakeImmutable (final AvailObject object)
+	{
+		if (isMutable())
+		{
+			object.descriptor = descriptorFor(IMMUTABLE, object.tupleSize());
+		}
+		return object;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MakeShared (final AvailObject object)
+	{
+		if (!isShared())
+		{
+			object.descriptor = descriptorFor(SHARED, object.tupleSize());
+		}
+		return object;
+	}
+
+	@Override @AvailMethod
+	void o_RawNybbleAtPut (
+		final AvailObject object,
+		final int nybbleIndex,
+		final byte aNybble)
+	{
+		assert isMutable();
+		setNybble(object, nybbleIndex, aNybble);
+	}
+
 	@Override
 	void o_TransferIntoByteBuffer (
 		final AvailObject object,
@@ -511,6 +464,55 @@ extends TupleDescriptor
 		{
 			outputByteBuffer.put(getNybble(object, index));
 		}
+	}
+
+	@Override @AvailMethod
+	AvailObject o_TupleAt (final AvailObject object, final int index)
+	{
+		// Answer the element at the given index in the nybble tuple object.
+		return (AvailObject)IntegerDescriptor.fromUnsignedByte(
+			getNybble(object, index));
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_TupleAtPuttingCanDestroy (
+		final AvailObject object,
+		final int nybbleIndex,
+		final A_BasicObject newValueObject,
+		final boolean canDestroy)
+	{
+		// Answer a tuple with all the elements of object except at the given
+		// index we should have newValueObject.  This may destroy the original
+		// tuple if canDestroy is true.
+		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
+		if (!newValueObject.isNybble())
+		{
+			if (newValueObject.isUnsignedByte())
+			{
+				return copyAsMutableByteTuple(object).tupleAtPuttingCanDestroy(
+					nybbleIndex,
+					newValueObject,
+					true);
+			}
+			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
+				nybbleIndex,
+				newValueObject,
+				true);
+		}
+		if (!canDestroy || !isMutable())
+		{
+			return copyAsMutableByteTuple(object).tupleAtPuttingCanDestroy(
+				nybbleIndex,
+				newValueObject,
+				true);
+		}
+		// All clear.  Clobber the object in place...
+		final AvailObject strongValue = (AvailObject)newValueObject;
+		object.rawNybbleAtPut(nybbleIndex, strongValue.extractNybble());
+		object.hashOrZero(0);
+		//  ...invalidate the hash value. Probably cheaper than computing the
+		// difference or even testing for an actual change.
+		return object;
 	}
 
 	@Override
@@ -529,6 +531,42 @@ extends TupleDescriptor
 			startIndex,
 			endIndex,
 			type);
+	}
+
+	@Override @AvailMethod
+	int o_TupleIntAt (final AvailObject object, final int index)
+	{
+		// Answer the integer element at the given index in the nybble tuple
+		// object.
+		return getNybble(object, index);
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_TupleReverse(final AvailObject object)
+	{
+		final int size = object.tupleSize();
+		if (size >= maximumCopySize)
+		{
+			return super.o_TupleReverse(object);
+		}
+
+		// It's not empty, it's not a total copy, and it's reasonably small.
+		// Just copy the applicable nybbles out.  In theory we could use
+		// newLike() if start is 1.  Make sure to mask the last word in that
+		// case.
+		final AvailObject result = mutableObjectOfSize(size);
+		for (int i = 1; i <= size; i++)
+		{
+			setNybble(result, i, getNybble(object, size-i+1));
+		}
+		return result;
+	}
+
+	@Override @AvailMethod
+	int o_TupleSize (final AvailObject object)
+	{
+		return (object.variableIntegerSlotsCount() << 3)
+			- unusedNybblesOfLastWord;
 	}
 
 	/**

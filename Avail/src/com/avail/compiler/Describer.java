@@ -42,7 +42,7 @@ import com.avail.utility.evaluation.*;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-interface Describer
+abstract class Describer
 {
 	/**
 	 * Assemble a message and pass it into the specified {@linkplain
@@ -51,5 +51,16 @@ interface Describer
 	 * @param continuation
 	 *        What to do with the message.
 	 */
-	public void describeThen (Continuation1<String> continuation);
+	public abstract void describeThen (Continuation1<String> continuation);
+
+	/**
+	 * Answer whether this {@link Describer} has been made irrelevant since
+	 * being recorded.
+	 *
+	 * @return Whether to suppress output of this {@code Describer}.
+	 */
+	public boolean shouldSuppress ()
+	{
+		return false;
+	}
 }
