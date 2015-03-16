@@ -107,11 +107,15 @@ Macro "For each…of_§do_" is a reader prefix function,
 	/* Build the block function */
 	name ::= elementPhrase's token's lexeme;
 	aReaderType ::= aReader's semantic type;
-	blockType ::= [⊥]→(action's semantic type's return type);
+	inputType ::= aReaderType's element type's instance;
+	actionType ::= action's semantic type;
+	blockType ::= [inputType]→(actionType's return type);
+
 	restrictions ::= semantic restrictions
 		for method for $"For each of⁇_do_"
 		given <aReaderType, blockType>;
 	returnType : type := ⊤;
+	
 	From 1 to |restrictions| by 1 do
 	[
 		index : natural number
@@ -123,7 +127,6 @@ Macro "For each…of_§do_" is a reader prefix function,
 	blockReturnType ::= cast statements
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
-
 	restricted send $"For each of⁇_do_" with
 	<
 		aReader,
@@ -134,7 +137,7 @@ Macro "For each…of_§do_" is a reader prefix function,
 		] : blockReturnType»
 	> : returnType
 ] : send phrase ⇒ ⊤;
- 
+		
 /**
  * Answer a function that computes a body function.
  * 

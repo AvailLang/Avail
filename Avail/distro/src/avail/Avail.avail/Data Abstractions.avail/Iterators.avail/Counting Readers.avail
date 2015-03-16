@@ -174,8 +174,8 @@ Semantic restriction "For each of⁇_do_" is
 	actionType : [⊥]→⊤'s type
 |
 	parameterType ::= actionType[1];
-	elementType ::= readerType's element type's instance;
-	If ¬elementType ⊆ parameterType then
+	elementType ::= readerType's element type's instance;	
+	If parameterType ≠ ⊥ ∧ ¬elementType ⊆ parameterType then
 	[
 		Reject parse, expected:
 			format "action block argument (“①”) to accept \

@@ -273,7 +273,9 @@ Macro "For each…→…of_§do_" is a map iteration prefix function,
 	keyName ::= keyPhrase's token's lexeme;
 	valueName ::= valuePhrase's token's lexeme;
 	aMapType ::= aMap's semantic type;
-	blockType ::= [⊥,⊥]→(action's semantic type's return type);
+	keyType ::= aMapType's key type;
+	valueType ::= aMapType's value type;
+	blockType ::= [keyType, valueType]→(action's semantic type's return type);
 	restrictions ::= semantic restrictions
 		for method for $"For each of⁇_do_"
 		given <aMapType, blockType>;
@@ -329,7 +331,10 @@ Private method "predicate body function(_,_)" is
 		keyName ::= keyPhrase's token's lexeme;
 		valueName ::= valuePhrase's token's lexeme;
 		aMapType ::= aMap's semantic type;
-		blockType ::= [⊥]→(predicateBlock's semantic type's return type);
+		keyType ::= aMapType's key type;
+		valueType ::= aMapType's value type;
+		blockType ::= 
+			[keyType, valueType]→(predicateBlock's semantic type's return type);
 
 		restrictions ::= semantic restrictions
 			for method for anAtom

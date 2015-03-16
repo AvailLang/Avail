@@ -332,7 +332,9 @@ Private method "predicate body function(_,_)" is
 	|
 		name ::= elementPhrase's token's lexeme;
 		aTupleType ::= aTuple's semantic type;
-		blockType ::= [⊥]→(predicateBlock's semantic type's return type);
+		elementType ::= aTuple's strengthening function();
+		blockType ::= 
+			[elementType]→(predicateBlock's semantic type's return type);
 		restrictions ::= semantic restrictions
 			for method for anAtom
 			given <aTupleType, blockType>;
@@ -389,7 +391,8 @@ Macro "For each…of_§do_" is a tuple iteration prefix function,
 	/* Build the block function */
 	name ::= elementPhrase's token's lexeme;
 	aTupleType ::= aTuple's semantic type;
-	blockType ::= [⊥]→(action's semantic type's return type);
+	inputType ::= aTuple's strengthening function();
+	blockType ::= [inputType]→(action's semantic type's return type);
 	restrictions ::= semantic restrictions
 		for method for $"For each of⁇_do_"
 		given <aTupleType, blockType>;
@@ -461,7 +464,10 @@ Macro "For each…,…of_§do_" is
 	elementName ::= elementPhrase's token's lexeme;
 	indexName ::= indexPhrase's token's lexeme;
 	aTupleType ::= aTuple's semantic type;
-	blockType ::= [⊥,⊥]→(action's semantic type's return type);
+	elementType ::= aTuple's strengthening function();
+	indexingType ::= (0 .. ⎡aTupleType⎤+1);
+	blockType ::= 
+		[elementType, indexingType]→(action's semantic type's return type);
 	restrictions ::= semantic restrictions
 		for method for $"For each of⁇_do_"
 		given <aTupleType, blockType>;

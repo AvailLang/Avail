@@ -61,6 +61,18 @@ Test "counting reader basics" in counting reader test suite is
 	Require: index = (|ref| + 1);
 ];
 
+Test "counting reader basics (macro)" in counting reader test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 10;
+	For each element of iter do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
 Test "counting reader (map)" in counting reader test suite is
 [
 	ref ::= <1, 4, 9, 16, 25, 36, 49, 64, 81, 100>;

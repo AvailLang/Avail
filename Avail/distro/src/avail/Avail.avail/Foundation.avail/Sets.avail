@@ -317,7 +317,8 @@ Macro "For each…of_§do_" is a set iteration prefix function,
 	/* Build the block function */
 	name ::= elementPhrase's token's lexeme;
 	aSetType ::= aSet's semantic type;
-	blockType ::= [⊥]→(action's semantic type's return type);
+	elementType ::= aSetType's element type;
+	blockType ::= [elementType]→(action's semantic type's return type);
 	restrictions ::= semantic restrictions
 		for method for $"For each of⁇_do_"
 		given <aSetType, blockType>;
@@ -368,7 +369,9 @@ Private method "predicate body function(_,_)" is
 	|
 		name ::= elementPhrase's token's lexeme;
 		aSetType ::= aSet's semantic type;
-		blockType ::= [⊥]→(predicateBlock's semantic type's return type);
+		elementType ::= aSetType's element type;
+		blockType ::= 
+			[elementType]→(predicateBlock's semantic type's return type);
 		restrictions ::= semantic restrictions
 			for method for anAtom
 			given <aSetType, blockType>;

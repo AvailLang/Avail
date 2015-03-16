@@ -135,7 +135,8 @@ Macro "For each…of_§do_" is a stream prefix function,
 	/* Build the block function */
 	name ::= elementPhrase's token's lexeme;
 	aStreamType ::= aStream's semantic type;
-	blockType ::= [⊥]→(action's semantic type's return type);
+	elementType ::= aStreamType's element type's instance;
+	blockType ::= [elementType]→(action's semantic type's return type);
 	restrictions ::= semantic restrictions
 		for method for $"For each of⁇_do_"
 		given <aStreamType, blockType>;
@@ -186,7 +187,9 @@ Private method "predicate body function(_,_)" is
 	|
 		name ::= elementPhrase's token's lexeme;
 		aStreamType ::= aStream's semantic type;
-		blockType ::= [⊥]→(predicateBlock's semantic type's return type);
+		elementType ::= aStreamType's element type's instance;
+		blockType ::= 
+			[elementType]→(predicateBlock's semantic type's return type);
 		restrictions ::= semantic restrictions
 			for method for anAtom
 			given <aStreamType, blockType>;
