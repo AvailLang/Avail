@@ -64,31 +64,38 @@ Names
 	"Set stability failure function to_"
 Body
 
-Private method "stable invoker"
-	is [function accepting <> and returning type];
-Private method "stable guard"
-	is [function accepting <stable invoker> and returning type];
+Private method "stable invoker" is
+	[function accepting <> and returning literal phrase];
+Private method "recovery invoker" is
+	[function accepting <> and returning send phrase⇒any];
+Private method "stable guard" is
+[
+	function
+		accepting <stable invoker, recovery invoker>
+		and returning expression phrase⇒any
+];
 
 /**
  * This is the {@type "function"} that wraps invocations of stable methods in
- * generated semantic restrictions produced by {@method "Method_is stable at_"}.
- * The boostrap version simply applies the argument, but once {@type
- * "exception"}s are live, then another function is substituted that suppresses
- * exceptions raised by stable methods at singularities. It's bad practice, in
- * general, to swallow exceptions, but this is the least cumbersome approach to
- * this particular issue.
+ * generated macros produced by {@method "Method_is stable at_"}. The first
+ * argument is a {@type "function"} that attempts to perform the stable method
+ * with the correct arguments and, on success, produces a {@type
+ * "literal phrase"} that wraps the result. In the event of failure, the second
+ * argument is invoked to produce a {@type "send phrase"} that will try the
+ * operation at runtime.
  *
- * @global "failureFunction" "[[]→type]→type"
+ * @global "failureFunction"
+ *         "[[]→literal phrase, []→send phrase⇒any]→expression phrase⇒any"
  */
 failureFunction : stable guard :=
-	[f : function accepting <> and returning type | invoke f with <>];
+	[f : stable invoker, r : recovery invoker | invoke f with <>];
 
 Method "stability failure function" is [failureFunction];
 
 /**
  * Set the {@global "failureFunction"} that wraps invocations of stable methods
- * in semantic restrictions produced by {@method "Method_is stable at_"}. This
- * is a bootstap method, and should not escape "Foundation".
+ * in macros produced by {@method "Method_is stable at_"}. This is a bootstap
+ * method, and should not escape "Foundation".
  *
  * @method "Set stability failure function to_"
  * @param "f" "[[]→type]→type"
@@ -99,10 +106,11 @@ Method "Set stability failure function to_"
 	is [f : stable guard | failureFunction := f; ];
 
 /**
- * Utility method for "Method_is stable at_".  Test whether the tuple of types
- * have exactly one instance each.  Even though ⊥'s type is technically a
- * metatype rather than a pure enumeration, it only has one instance (⊥).
- * 
+ * Utility method for {@method "Method_is stable at_"}.  Test whether the
+ * elements of the tuple of types have exactly one instance each. Even though
+ * ⊥'s type is technically a metatype rather than a pure enumeration, it only
+ * has one instance (⊥).
+ *
  * @method "«_‡,»are all singular"
  * @returns "boolean"
  */
@@ -116,24 +124,12 @@ Private method "«_‡,»are all singular" is
 		index : natural number
 	|
 		argType ::= cast argTypes[index] into [t : type | t];
-		If (|argType| = 1) = false then
-		[
-			Exit method with false
-		];
-		if (argType's instance ∈ type) = false then
-		[
-			true
-		]
+		If (|argType| = 1) = false then [Exit method with false];
+		if (argType's instance ∈ type) = false then [true]
 		else
 		[
-			if argType = ⊥'s type's type then
-			[
-				true
-			]
-			else
-			[
-				Exit method with false
-			]
+			if argType = ⊥'s type's type then [true]
+			else [Exit method with false]
 		]
 	];
 	true
@@ -141,20 +137,23 @@ Private method "«_‡,»are all singular" is
 
 /* These methods are needed for autogeneration of stable method restrictions. */
 ifThenElseAtom ::= atom for "If|if_then_else_";
-instanceAtom ::= atom for "_'s⁇instance";
-typeAtom ::= atom for "_'s⁇type";
+semanticTypeAtom ::= atom for "_'s⁇semantic type";
 areAllSingularAtom ::= atom for "«_‡,»are all singular";
 invokeAtom ::= atom for "Invoke|invoke_with_";
 readVarAtom ::= atom for "↓_";
+instanceAtom ::= atom for "_'s⁇instance";
+tokenAtom ::= atom for "``_``";
+literalAtom ::= atom for "‘_’";
+restrictedSendAtom ::= atom for "restricted send_with_:_";
+
 
 /**
- * Declare that the method referenced by {@param "methodName"} is stable for the 
- * given signature. A stable method produces the same value for the same
- * arguments on every call. Automatically generate and install a semantic 
- * restriction that will statically strengthen the answer produced at a call 
- * site to a precisely known value when all arguments are themselves precisely 
- * known.
- * 
+ * Declare that the {@type "method"} referenced by {@param "methodName"} is
+ * stable for the given signature. A stable method produces the same value for
+ * the same arguments on every call. Automatically generate and install a macro
+ * that will fold the call site away, replacing it with a precisely known value
+ * when all arguments types are themselves precisely known.
+ *
  * @method "Method_is stable at_"
  * @param "methodAtom" "atom"
  *        The name of the stable method.
@@ -174,34 +173,59 @@ Public method "Method_is stable at_" is
 	 *
 	 * And automatically generate something like this:
 	 *
-	 *    Semantic restriction "_[_]→_" is
+	 *    Macro "_[_]→_" is
 	 *    [
-	 *        arg1 : tuple's type,
-	 *        arg2 : natural number's type,
-	 *        arg3 : any's type
+	 *        arg1 : expression phrase ⇒ tuple,
+	 *        arg2 : expression phrase ⇒ natural number,
+	 *        arg3 : expression phrase ⇒ any
 	 *    |
-	 *        if <arg1, arg2, arg3> are all singular
+	 *        if <
+	 *            arg1's semantic type,
+	 *            arg2's semantic type,
+	 *            arg3's semantic type
+	 *        > are all singular
+	 *        then
 	 *        [
-	 *            invoke failureFunction with <[
-	 *                (arg1's instance[arg2's instance]→arg3's instance)'s type
-	 *            ]>
+	 *            invoke failureFunction with
+	 *            <
+	 *                [
+	 *                    ‘`(arg1's semantic type's instance
+	 *                        [arg2's semantic type's instance]
+	 *                        →arg3's semantic type's instance)`’
+	 *                ],
+	 *                [
+	 *                    restricted send "_[_]→_" with
+	 *                    <
+	 *                        arg1,
+	 *                        arg2,
+	 *                        arg3
+	 *                    > : any
+	 *                ]
+	 *            >
 	 *        ]
 	 *        else
 	 *        [
-	 *            ⊤
+	 *            restricted send "_[_]→_" with
+	 *            <
+	 *                arg1,
+	 *                arg2,
+	 *                arg3
+	 *            > : any
 	 *        ]
-	 *    ] : type;
+	 *    ];
 	 *
 	 * The code below generalizes the above to any method name and set of
 	 * parameter types. Note that we do not actually have to synthesize an
-	 * invocation of "(_)" or "<«_‡,»>".
+	 * invocation of "<«_‡,»>".
 	 */
-	resultType ::= functionType's return type's type;
+	resultType ::= cast functionType's return type into [t : any meta | t];
 	argDecls : <<>, argument phrase…|whole number> := <>;
 	argUses : <<>, variable use phrase…|whole number> := <>;
+	semanticTypes : <<>, send phrase⇒any…|whole number> := <>;
 	instances : <<>, send phrase⇒any…|whole number> := <>;
-	/* Construct the tuples of argument declarations, argument uses, and
-	 * expressions to extract the singular instances.
+	/* Construct the tuples of argument declarations, argument uses, expressions
+	 * to extract semantic types, and expressions to extract the singular
+	 * instances.
 	 */
 	From 1 to |message methodName's name's parameters| do
 	[
@@ -210,39 +234,54 @@ Public method "Method_is stable at_" is
 		argName ::= cast concatenate <"arg", “index”> into [t : string | t];
 		argType ::= functionType[index];
 		argToken ::= `argName`;
-		argDecl ::= arg «argToken : argType's type»;
+		argDecl ::= arg «argToken : expression phrase ⇒ argType»;
 		argDecls := cast concatenate <eject argDecls, <argDecl>>
 			into [t : <<>, argument phrase…|whole number> | t];
-		argUse ::= «↓argDecl»(`argToken`);
+		argUse ::= «↓argDecl»;
 		argUses := cast concatenate <eject argUses, <argUse>>
 			into [t : <<>, variable use phrase…|whole number> | t];
-		instance ::= send instanceAtom with «<argUse>» : argType;
+		semanticType ::= send semanticTypeAtom with «<argUse>» : argType's type;
+		semanticTypes := cast concatenate <eject semanticTypes, <semanticType>>
+			into [t : <<>, send phrase⇒any…|whole number> | t];
+		instance ::= send instanceAtom with «<semanticType>» : argType;
 		instances := cast concatenate <eject instances, <instance>>
 			into [t : <<>, send phrase⇒any…|whole number> | t];
 		true
 	];
 	/* Construct the predicate. */
-	instanceCheck ::=
-		send areAllSingularAtom
-		with «<argUses → list phrase>»
-		: boolean;
-	/* Construct the true block, i.e., the one that strengthens. */
-	answer ::= send methodName with instances → list phrase : any;
-	answerType ::= send typeAtom with «<answer>» : resultType;
-	answerBlock ::= «[<answerType>] : resultType»;
+	check ::=
+		send areAllSingularAtom with «<semanticTypes → list phrase>» : boolean;
+	/* Construct the false block, i.e., the one that doesn't fold. */
+	sendPhrase ::=
+		send restrictedSendAtom with
+		«<
+			‘`methodName`’,
+			argUses → list phrase,
+			‘`resultType`’
+		>» : (send phrase ⇒ any);
+	falseBlock ::= «[<sendPhrase>] : send phrase ⇒ any»;
+	/* Construct the true block, i.e., the one that folds. */
+	answer ::= send methodName with instances → list phrase : resultType;
+	answerToken ::=
+		send tokenAtom with «<answer>» : (literal token ⇒ resultType);
+	answerPhrase ::=
+		send literalAtom with «<answerToken>» : (literal phrase ⇒ resultType);
+	answerBlock ::= «[<answerPhrase>] : (literal phrase ⇒ resultType)»;
 	read ::= send readVarAtom with «<‘`↑failureFunction`’>» : function;
-	invoke ::= send invokeAtom with «<read, «<answerBlock>»>» : type;
-	answerTypeBlock ::= «[<invoke>] : type»;
-	/* Construct the false block, i.e., the one that doesn't strengthen. */
-	cantStrengthenBlock ::= «[<‘`⊤`’>] : ⊤'s type»;
+	invoke ::=
+		send invokeAtom
+		with «<read, «<answerBlock, falseBlock>»>»
+		: (expression phrase ⇒ resultType);
+	trueBlock ::= «[<invoke>] : expression phrase ⇒ resultType»;
 	/* Construct the branch. */
-	branch ::= send ifThenElseAtom
-		with «<instanceCheck, answerTypeBlock, cantStrengthenBlock>» : type;
+	branch ::=
+		send ifThenElseAtom
+		with «<check, trueBlock, falseBlock>» : expression phrase ⇒ any;
 	/* Construct the function. */
-	restrictionBlock ::= «[argDecls | <branch>] : type»;
-	restrictionFunction ::= restrictionBlock→function;
-	/* Install the semantic restriction. */
-	Semantic restriction methodName is restrictionFunction;
+	macroBody ::= «[argDecls | <branch>] : expression phrase ⇒ any»;
+	macroFunction ::= macroBody→function;
+	/* Install the macro. */
+	Macro methodName is macroFunction;
 ] : ⊤;
 
 /**

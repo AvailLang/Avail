@@ -105,51 +105,44 @@ extends TupleDescriptor
 		BASIS_TUPLE;
 	}
 
+	@Override @AvailMethod
+	A_Tuple o_AppendCanDestroy (
+		final AvailObject object,
+		final A_BasicObject newElement,
+		final boolean canDestroy)
+	{
+		final int startIndex = object.slot(START_INDEX);
+		final int originalSize = object.slot(SIZE);
+		final int endIndex = startIndex + originalSize - 1;
+		final AvailObject basisTuple = object.slot(BASIS_TUPLE);
+		if (endIndex < basisTuple.tupleSize()
+			&& basisTuple.tupleAt(endIndex).equals(newElement))
+		{
+			// We merely need to increase the range.
+			if (canDestroy && isMutable())
+			{
+				object.setSlot(SIZE, originalSize + 1);
+				object.setSlot(HASH_OR_ZERO, 0);
+				return object;
+			}
+			basisTuple.makeImmutable();
+			return createSubrange(basisTuple, startIndex, originalSize + 1);
+		}
+		// Fall back to concatenating with a singleton.
+		final A_Tuple singleton = TupleDescriptor.from(newElement);
+		return object.concatenateWith(singleton, canDestroy);
+	}
+
 	/**
-	 * {@inheritDoc}
+	 * Answer approximately how many bits per entry are taken up by this object.
 	 *
-	 * <p>
-	 * Compare a subrange of this subrange tuple with part of the given tuple.
-	 * </p>
+	 * <p>Make this always seem a little better than the worst flat
+	 * representation.</p>
 	 */
 	@Override @AvailMethod
-	boolean o_CompareFromToWithStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple anotherObject,
-		final int startIndex2)
+	int o_BitsPerEntry (final AvailObject object)
 	{
-		if (object.sameAddressAs(anotherObject) && startIndex1 == startIndex2)
-		{
-			return true;
-		}
-		final int offset = object.slot(START_INDEX);
-		if  (!object.slot(BASIS_TUPLE).compareFromToWithStartingAt(
-			startIndex1 + offset - 1,
-			endIndex1 + offset - 1,
-			anotherObject,
-			startIndex2))
-		{
-			return false;
-		}
-		if (startIndex1 == 1
-			&& startIndex2 == 1
-			&& endIndex1 == object.tupleSize()
-			&& endIndex1 == anotherObject.tupleSize())
-		{
-			if (!isShared())
-			{
-				anotherObject.makeImmutable();
-				object.becomeIndirectionTo(anotherObject);
-			}
-			else if (!anotherObject.descriptor().isShared())
-			{
-				object.makeImmutable();
-				anotherObject.becomeIndirectionTo(object);
-			}
-		}
-		return true;
+		return 63;
 	}
 
 	@Override @AvailMethod
@@ -200,36 +193,104 @@ extends TupleDescriptor
 			object, startIndex1, endIndex1, anObjectTuple, startIndex2);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Compare a subrange of this subrange tuple with part of the given tuple.
+	 * </p>
+	 */
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.equalsAnyTuple(object);
-	}
-
-	@Override @AvailMethod
-	boolean o_EqualsAnyTuple (
+	boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
-		final A_Tuple anotherTuple)
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple anotherObject,
+		final int startIndex2)
 	{
-		if (object.sameAddressAs(anotherTuple))
+		if (object.sameAddressAs(anotherObject) && startIndex1 == startIndex2)
 		{
 			return true;
 		}
-		if (object.tupleSize() != anotherTuple.tupleSize())
+		final int offset = object.slot(START_INDEX);
+		if  (!object.slot(BASIS_TUPLE).compareFromToWithStartingAt(
+			startIndex1 + offset - 1,
+			endIndex1 + offset - 1,
+			anotherObject,
+			startIndex2))
 		{
 			return false;
 		}
-		if (object.hash() != anotherTuple.hash())
+		if (startIndex1 == 1
+			&& startIndex2 == 1
+			&& endIndex1 == object.tupleSize()
+			&& endIndex1 == anotherObject.tupleSize())
 		{
-			return false;
+			if (!isShared())
+			{
+				anotherObject.makeImmutable();
+				object.becomeIndirectionTo(anotherObject);
+			}
+			else if (!anotherObject.descriptor().isShared())
+			{
+				object.makeImmutable();
+				anotherObject.becomeIndirectionTo(object);
+			}
 		}
-		final int startIndex = object.slot(START_INDEX);
+		return true;
+	}
+
+	/**
+	 * Hash part of the tuple object.
+	 */
+	@Override @AvailMethod
+	int o_ComputeHashFromTo (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex)
+	{
+		final A_Tuple basis = object.slot(BASIS_TUPLE);
 		final int size = object.slot(SIZE);
-		return object.slot(BASIS_TUPLE).compareFromToWithStartingAt(
-			startIndex,
-			startIndex + size - 1,
-			anotherTuple,
-			1);
+		assert 1 <= startIndex && startIndex <= size;
+		assert startIndex - 1 <= endIndex && endIndex <= size;
+		final int adjustment = object.slot(START_INDEX) - 1;
+		return basis.computeHashFromTo(
+			startIndex + adjustment,
+			endIndex + adjustment);
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_ConcatenateWith (
+		final AvailObject object,
+		final A_Tuple otherTuple,
+		final boolean canDestroy)
+	{
+		assert object.tupleSize() > 0;
+		if (otherTuple.tupleSize() == 0)
+		{
+			object.makeImmutable();
+			return object;
+		}
+		if (!canDestroy)
+		{
+			object.makeImmutable();
+			otherTuple.makeImmutable();
+		}
+		if (otherTuple.treeTupleLevel() == 0)
+		{
+			// No tree tuples are involved yet.  Create a bottom-level tree
+			// tuple on these two level zero tuples (the tuples may be flat or
+			// subranges).
+			return TreeTupleDescriptor.createPair(
+				object,
+				otherTuple,
+				1,
+				0);
+		}
+		return TreeTupleDescriptor.concatenateAtLeastOneTree(
+			object,
+			otherTuple,
+			true);
 	}
 
 	/**
@@ -273,37 +334,53 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_ConcatenateWith (
-		final AvailObject object,
-		final A_Tuple otherTuple,
-		final boolean canDestroy)
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
-		assert object.tupleSize() > 0;
-		if (otherTuple.tupleSize() == 0)
+		return another.equalsAnyTuple(object);
+	}
+
+	@Override @AvailMethod
+	boolean o_EqualsAnyTuple (
+		final AvailObject object,
+		final A_Tuple anotherTuple)
+	{
+		if (object.sameAddressAs(anotherTuple))
 		{
-			object.makeImmutable();
-			return object;
+			return true;
 		}
-		if (!canDestroy)
+		if (object.tupleSize() != anotherTuple.tupleSize())
 		{
-			object.makeImmutable();
-			otherTuple.makeImmutable();
+			return false;
 		}
-		if (otherTuple.treeTupleLevel() == 0)
+		if (object.hash() != anotherTuple.hash())
 		{
-			// No tree tuples are involved yet.  Create a bottom-level tree
-			// tuple on these two level zero tuples (the tuples may be flat or
-			// subranges).
-			return TreeTupleDescriptor.createPair(
-				object,
-				otherTuple,
-				1,
-				0);
+			return false;
 		}
-		return TreeTupleDescriptor.concatenateAtLeastOneTree(
-			object,
-			otherTuple,
-			true);
+		final int startIndex = object.slot(START_INDEX);
+		final int size = object.slot(SIZE);
+		return object.slot(BASIS_TUPLE).compareFromToWithStartingAt(
+			startIndex,
+			startIndex + size - 1,
+			anotherTuple,
+			1);
+	}
+
+	@Override
+	void o_TransferIntoByteBuffer (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final ByteBuffer outputByteBuffer)
+	{
+		final A_Tuple basis = object.slot(BASIS_TUPLE);
+		final int size = object.slot(SIZE);
+		assert 1 <= startIndex && startIndex <= size;
+		assert startIndex - 1 <= endIndex && endIndex <= size;
+		final int adjustment = object.slot(START_INDEX) - 1;
+		basis.transferIntoByteBuffer(
+			startIndex + adjustment,
+			endIndex + adjustment,
+			outputByteBuffer);
 	}
 
 	/**
@@ -387,6 +464,20 @@ extends TupleDescriptor
 		return leftPart.concatenateWith(rightPart, true);
 	}
 
+	@Override
+	boolean o_TupleElementsInRangeAreInstancesOf (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final A_Type type)
+	{
+		final int offset = object.slot(START_INDEX) - 1;
+		return object.slot(BASIS_TUPLE).tupleElementsInRangeAreInstancesOf(
+			startIndex + offset,
+			endIndex + offset,
+			type);
+	}
+
 	/**
 	 * Answer the integer element at the given index in the tuple object.
 	 */
@@ -419,69 +510,6 @@ extends TupleDescriptor
 	int o_TupleSize (final AvailObject object)
 	{
 		return object.slot(SIZE);
-	}
-
-	/**
-	 * Answer approximately how many bits per entry are taken up by this object.
-	 *
-	 * <p>Make this always seem a little better than the worst flat
-	 * representation.</p>
-	 */
-	@Override @AvailMethod
-	int o_BitsPerEntry (final AvailObject object)
-	{
-		return 63;
-	}
-
-	/**
-	 * Hash part of the tuple object.
-	 */
-	@Override @AvailMethod
-	int o_ComputeHashFromTo (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex)
-	{
-		final A_Tuple basis = object.slot(BASIS_TUPLE);
-		final int size = object.slot(SIZE);
-		assert 1 <= startIndex && startIndex <= size;
-		assert startIndex - 1 <= endIndex && endIndex <= size;
-		final int adjustment = object.slot(START_INDEX) - 1;
-		return basis.computeHashFromTo(
-			startIndex + adjustment,
-			endIndex + adjustment);
-	}
-
-	@Override
-	void o_TransferIntoByteBuffer (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex,
-		final ByteBuffer outputByteBuffer)
-	{
-		final A_Tuple basis = object.slot(BASIS_TUPLE);
-		final int size = object.slot(SIZE);
-		assert 1 <= startIndex && startIndex <= size;
-		assert startIndex - 1 <= endIndex && endIndex <= size;
-		final int adjustment = object.slot(START_INDEX) - 1;
-		basis.transferIntoByteBuffer(
-			startIndex + adjustment,
-			endIndex + adjustment,
-			outputByteBuffer);
-	}
-
-	@Override
-	boolean o_TupleElementsInRangeAreInstancesOf (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex,
-		final A_Type type)
-	{
-		final int offset = object.slot(START_INDEX) - 1;
-		return object.slot(BASIS_TUPLE).tupleElementsInRangeAreInstancesOf(
-			startIndex + offset,
-			endIndex + offset,
-			type);
 	}
 
 	/**

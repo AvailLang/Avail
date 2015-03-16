@@ -895,22 +895,22 @@ extends Descriptor
 	 * <math xmlns="http://www.w3.org/1998/Math/MathML">
 	 * <mrow>
 	 *   <mrow>
-	 *     <mo>&InvisibleTimes;</mo>
 	 *     <msub><mi>h</mi><mn>1</mn></msub>
+	 *     <mo>&InvisibleTimes;</mo>
 	 *     <msup><mi>a</mi><mn>1</mn></msup>
 	 *   </mrow>
 	 *   <mo>+</mo>
 	 *   <mrow>
-	 *     <mo>&InvisibleTimes;</mo>
 	 *     <msub><mi>h</mi><mn>2</mn></msub>
+	 *     <mo>&InvisibleTimes;</mo>
 	 *     <msup><mi>a</mi><mn>2</mn></msup>
 	 *   </mrow>
 	 *   <mo>+</mo>
 	 *   <mi>&hellip;</mi>
 	 *   <mo>+</mo>
 	 *   <mrow>
-	 *     <mo>&InvisibleTimes;</mo>
 	 *     <msub><mi>h</mi><mi>n</mi></msub>
+	 *     <mo>&InvisibleTimes;</mo>
 	 *     <msup><mi>a</mi><mi>n</mi></msup>
 	 *   </mrow>
 	 * </mrow>/</math>.
@@ -948,17 +948,15 @@ extends Descriptor
 	 * the new hash by adding
 	 * <math xmlns="http://www.w3.org/1998/Math/MathML">
 	 * <mrow>
-	 *   <mrow>
-	 *     <msub>
-	 *       <mi>h</mi>
-	 *       <mi><mrow><mi>n</mi><mo>&plus;</mo><mn>1</mn></mrow></mi>
-	 *     </msub>
-	 *     <mo>&InvisibleTimes;</mo>
-	 *     <msup>
-	 *       <mi>a</mi>
-	 *       <mi><mrow><mi>n</mi><mo>&plus;</mo><mn>1</mn></mrow></mi>
-	 *     </msup>
-	 *   </mrow>
+	 *   <msub>
+	 *     <mi>h</mi>
+	 *     <mrow><mi>n</mi><mo>&plus;</mo><mn>1</mn></mrow>
+	 *   </msub>
+	 *   <mo>&InvisibleTimes;</mo>
+	 *   <msup>
+	 *     <mi>a</mi>
+	 *     <mrow><mi>n</mi><mo>&plus;</mo><mn>1</mn></mrow>
+	 *   </msup>
 	 * </mrow></math>
 	 * to the previous hash.  Similarly, concatenating two tuples of length x
 	 * and y is a simple matter of multiplying the right tuple's hash by
@@ -985,9 +983,9 @@ extends Descriptor
 		for (int index = end; index >= start; index--)
 		{
 			final int itemHash = object.tupleAt(index).hash() ^ preToggle;
-			hash = hash * multiplier + itemHash;
+			hash = (hash + itemHash) * multiplier;
 		}
-		return hash * multiplier;
+		return hash;
 	}
 
 	@Override @AvailMethod
@@ -1125,26 +1123,10 @@ extends Descriptor
 	 * one of the copies is not kept after the call.
 	 */
 	@Override @AvailMethod
-	A_Tuple o_AppendCanDestroy (
+	abstract A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
 		final A_BasicObject newElement,
-		final boolean canDestroy)
-	{
-		final int originalSize = object.tupleSize();
-		if (originalSize >= ObjectTupleDescriptor.maximumCopySize)
-		{
-			final A_Tuple singleton = TupleDescriptor.from(newElement);
-			return object.concatenateWith(singleton, canDestroy);
-		}
-		final A_Tuple newTuple = ObjectTupleDescriptor.createUninitialized(
-			originalSize + 1);
-		for (int i = 1; i <= originalSize; i++)
-		{
-			newTuple.objectTupleAtPut(i, object.tupleAt(i));
-		}
-		newTuple.objectTupleAtPut(originalSize + 1, newElement);
-		return newTuple;
-	}
+		final boolean canDestroy);
 
 	@Override
 	int o_TreeTupleLevel (final AvailObject object)

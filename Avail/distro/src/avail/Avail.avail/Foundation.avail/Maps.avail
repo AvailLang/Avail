@@ -392,9 +392,7 @@ Method "map_through_" is
 		$loop;
 		If index ≤ end then
 		[
-			binding ::= bindings[index];
-			key ::= binding[1];
-			value ::= binding[2];
+			key, value ::= bindings[index];
 			result := eject result + key→transformer(key, value);
 			index++;
 			Restart loop
@@ -457,9 +455,7 @@ Method "filter_by_" is
 		$loop;
 		If index ≤ end then
 		[
-			binding ::= bindings[index];
-			key ::= binding[1];
-			value ::= binding[2];
+			key, value ::= bindings[index];
 			If predicate(key, value) then
 			[
 				result := eject result + key→value;
@@ -523,9 +519,7 @@ Method "map and filter_by_" is
 		If index ≤ end then
 		[
 			hasAlreadyKept : boolean := false;
-			binding ::= bindings[index];
-			key ::= binding[1];
-			value ::= binding[2];
+			key, value ::= bindings[index];
 			accumulator(
 				key,
 				value,
@@ -589,11 +583,8 @@ Method "any of_satisfies_" is
 	predicate : [⊥, ⊥]→boolean
 |
 	$body : boolean;
-	For each aMap do
+	For each key → value of aMap do
 	[
-		key : any,
-		value : any
-	|
 		If predicate(key, value) then
 		[
 			Exit body with true
@@ -637,11 +628,8 @@ Method "each of_satisfies_" is
 	predicate : [⊥, ⊥]→boolean
 |
 	$body : boolean;
-	For each aMap do
+	For each key → value of aMap do
 	[
-		key : any,
-		value : any
-	|
 		Unless predicate(key, value) then
 		[
 			Exit body with false
@@ -752,7 +740,6 @@ Semantic restriction "count of_where_" is
 	[0..⎡mapType⎤ + 1)
 ];
 
-Method "_∈_" is stable at [any, map]→boolean;
 Semantic restriction "_∈_" is
 [
 	keyType : any meta,
@@ -826,10 +813,8 @@ Method "group_by_" is
 	discriminator : [⊥]→any
 |
 	groups : {any→tuple|} := {};
-	For each aTuple do
+	For each element of aTuple do
 	[
-		element : any
-	|
 		key ::= discriminator(element);
 		group ::= groups[key] else [ <> ] ++ <element>;
 		groups := eject groups + key→group;
@@ -876,10 +861,8 @@ Method "group_by_" is
 	discriminator : [⊥]→any
 |
 	groups : {any→set|} := {};
-	For each aSet do
+	For each element of aSet do
 	[
-		element : any
-	|
 		key ::= discriminator(element);
 		group ::= groups[key] else [ ∅ ] + element;
 		groups := eject groups + key→group;
@@ -966,11 +949,8 @@ Public method "integrate_and_with_" is
 |
 	baseMapkeys ::= baseMap's keys;
 	newMap : map := baseMap;
-	For each supplementMap do
+	For each supplementKey → supplementValue of supplementMap do
 	[
-		supplementKey : any,
-		supplementValue : any
-	|
 		newMap :=
 			if baseMapkeys ∋ supplementKey then
 			[

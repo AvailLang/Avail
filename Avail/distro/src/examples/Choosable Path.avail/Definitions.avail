@@ -116,11 +116,10 @@ Private method "context type,initialization triples,and atom map given_and_" is
 		fieldType ::= typeSection[1];
 		For each fieldDefinition of typeSection[2] do
 		[
-			fieldName ::= fieldDefinition[1];
+			fieldName, initialValue ::= fieldDefinition;
 			fieldAtom ::= atom for fieldName;
 			atomsByName := atomsByName + fieldName→fieldAtom;
 			typeMap := typeMap + fieldAtom→↑fieldType;
-			initialValue ::= fieldDefinition[2];
 			initializationTriples := initializationTriples
 				++ <<fieldAtom, fieldType, initialValue>>;
 		];
@@ -555,10 +554,8 @@ Private method "Install the game-specific scene accessors for_" is
  */
 Public method "Let the game context be without custom state" is
 [
-	triple ::=
+	contextType, initializationTriples ::=
 		context type, initialization triples, and atom map given <> and <>;
-	contextType ::= triple[1];
-	initializationTriples ::= triple[2];
 	Install game-specific type accessor and constructor
 		for contextType
 		given initializationTriples;
@@ -624,12 +621,9 @@ is
 	booleanState : <<<string, boolean, string, boolean…|4>…|1..>…|0..1>,
 	nonBooleanState : <<any's type, <<string, any…|2>…|1..>…|2>…|>
 |
-	triple ::=
+	contextType, initializationTriples, atomsByType ::=
 		context type, initialization triples, and atom map
 		given booleanState and nonBooleanState;
-	contextType ::= triple[1];
-	initializationTriples ::= triple[2];
-	atomsByType ::= triple[3];
 	Install game-specific type accessor and constructor
 		for contextType
 		given initializationTriples;
@@ -911,8 +905,7 @@ Public method "Let«_‡,⁇and⁇»be a⁇scene|scenes" is
 		sceneVaultVar ::= dynamic scene vault for sceneType;
 		For each aBinding of sceneVaultUpdates do
 		[
-			sceneVar ::= aBinding[1];
-			internalName ::= aBinding[2];
+			sceneVar, internalName ::= aBinding;
 			sceneVaultMap ::=
 				cast ↓sceneVaultVar into [v : {variable→nonempty string|} | v];
 			sceneVaultVar ?= sceneVaultMap + sceneVar→internalName;

@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.RepeatedElementTupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.RepeatedElementTupleDescriptor.ObjectSlots.*;
 import java.util.Collections;
@@ -413,14 +414,16 @@ extends TupleDescriptor
 	{
 		if (object.slot(ELEMENT).equals(newElement))
 		{
-			if (canDestroy && isMutable())
-			{
-				object.setSlot(SIZE, object.slot(SIZE) + 1);
-				return object;
-			}
-			return createRepeatedElementTuple(object.slot(SIZE), newElement);
+			final AvailObject result = canDestroy && isMutable()
+				?  object
+				: newLike(mutable, object, 0, 0);
+			result.setSlot(SIZE, object.slot(SIZE) + 1);
+			result.setSlot(HASH_OR_ZERO, 0);
+			return result;
 		}
-		return super.o_AppendCanDestroy(object, newElement, canDestroy);
+		// Transition to a tree tuple.
+		final A_Tuple singleton = TupleDescriptor.from(newElement);
+		return object.concatenateWith(singleton, canDestroy);
 	}
 
 	@Override @AvailMethod

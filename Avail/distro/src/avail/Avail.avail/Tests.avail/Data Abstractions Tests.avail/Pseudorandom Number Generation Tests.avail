@@ -114,7 +114,7 @@ Test "next shuffling" in pRNG test suite is
 	[
 		shuffled ::= rng's next shuffling of numbers;
 		aSet : set := ∅;
-		For each shuffled do [i : [1..10] | aSet := eject aSet + i;];
+		For each i of shuffled do [aSet := eject aSet + i;];
 		Require: aSet = ref;
 	] 10 times;
 ];

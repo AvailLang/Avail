@@ -176,6 +176,7 @@ Names
 	/* 106 */ "type of zero",
 	/* 105 */ "unary procedure",
 	/* 103 */ "unsigned short",
+	/* 145 */ "used tokens key",
 	/*   7 */ "variable",
 	/*   8 */ "variable meta",
 	/*  56 */ "variable reference phrase",
@@ -333,6 +334,7 @@ _permuted_list_phrase                   ::= special object 141;
 _super_cast_phrase                      ::= special object 142;
 _parse_map_key                          ::= special object 143;
 _scope_map_key                          ::= special object 144;
+_used_tokens_key                        ::= special object 145;
 
 /**
  * The practical abstract root of the Avail type lattice. {@code "any"} is the
@@ -2525,5 +2527,17 @@ Primitive "parse map key" is
 Primitive "scope map key" is
 [
 	_scope_map_key
+];
+
+/**
+ * TODO: Special object description goes here.
+ *
+ * @category "Primitives" "Constants"
+ * @method "used tokens key"
+ * @returns "used tokens key's type"
+ */
+Primitive "used tokens key" is
+[
+	_used_tokens_key
 ];
 

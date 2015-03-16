@@ -90,18 +90,48 @@ extends TupleDescriptor
 	private final int unusedBytesOfLastWord;
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithStartingAt (
+	A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple anotherObject,
-		final int startIndex2)
+		final A_BasicObject newElement,
+		final boolean canDestroy)
 	{
-		return anotherObject.compareFromToWithByteTupleStartingAt(
-			startIndex2,
-			startIndex2 + endIndex1 - startIndex1,
+		final int originalSize = object.tupleSize();
+		final int intValue;
+		if (originalSize >= maximumCopySize
+			|| !object.isInt()
+			|| ((intValue = object.extractInt()) & 255) != intValue)
+		{
+			// Transition to a tree tuple.
+			final A_Tuple singleton = TupleDescriptor.from(newElement);
+			return object.concatenateWith(singleton, canDestroy);
+		}
+		final int newSize = originalSize + 1;
+		if (isMutable() && canDestroy && (originalSize & 3) != 0)
+		{
+			// Enlarge it in place, using more of the final partial int field.
+			object.descriptor = descriptorFor(MUTABLE, newSize);
+			object.rawByteAtPut(newSize, (short)intValue);
+			object.setSlot(HASH_OR_ZERO, 0);
+			return object;
+		}
+		// Copy to a potentially larger ByteTupleDescriptor.
+		final AvailObject result = newLike(
+			descriptorFor(MUTABLE, newSize),
 			object,
-			startIndex1);
+			0,
+			(originalSize & 3) == 0 ? 1 : 0);
+		result.rawByteAtPut(newSize, (short)intValue);
+		object.setSlot(HASH_OR_ZERO, 0);
+		return result;
+	}
+
+	@Override @AvailMethod
+	int o_BitsPerEntry (
+		final AvailObject object)
+	{
+		// Answer approximately how many bits per entry are taken up by this
+		// object.
+		return 8;
 	}
 
 	@Override @AvailMethod
@@ -128,6 +158,143 @@ extends TupleDescriptor
 			}
 		}
 		return true;
+	}
+
+	@Override @AvailMethod
+	boolean o_CompareFromToWithStartingAt (
+		final AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple anotherObject,
+		final int startIndex2)
+	{
+		return anotherObject.compareFromToWithByteTupleStartingAt(
+			startIndex2,
+			startIndex2 + endIndex1 - startIndex1,
+			object,
+			startIndex1);
+	}
+
+	@Override @AvailMethod
+	int o_ComputeHashFromTo (
+		final AvailObject object,
+		final int start,
+		final int end)
+	{
+		// See comment in superclass. This method must produce the same value.
+		int hash = 0;
+		for (int index = end; index >= start; index--)
+		{
+			final int itemHash = IntegerDescriptor.hashOfUnsignedByte(
+				(short) object.tupleIntAt(index)) ^ preToggle;
+			hash = (hash + itemHash) * multiplier;
+		}
+		return hash;
+	}
+
+	@Override
+	A_Tuple o_ConcatenateWith (
+		final AvailObject object,
+		final A_Tuple otherTuple,
+		final boolean canDestroy)
+	{
+		final int size1 = object.tupleSize();
+		if (size1 == 0)
+		{
+			if (!canDestroy)
+			{
+				otherTuple.makeImmutable();
+			}
+			return otherTuple;
+		}
+		final int size2 = otherTuple.tupleSize();
+		if (size2 == 0)
+		{
+			if (!canDestroy)
+			{
+				object.makeImmutable();
+			}
+			return object;
+		}
+		final int newSize = size1 + size2;
+		if (otherTuple.isByteTuple() && newSize <= maximumCopySize)
+		{
+			// Copy the bytes.
+			final int newWordCount = (newSize + 3) >>> 2;
+			final int deltaSlots =
+				newWordCount - object.variableIntegerSlotsCount();
+			final AvailObject result;
+			if (canDestroy && isMutable() && deltaSlots == 0)
+			{
+				// We can reuse the receiver; it has enough int slots.
+				result = object;
+				result.descriptor = descriptorFor(MUTABLE, newSize);
+			}
+			else
+			{
+				result = newLike(
+					descriptorFor(MUTABLE, newSize), object, 0, deltaSlots);
+			}
+			int dest = size1 + 1;
+			for (int src = 1; src <= size2; src++, dest++)
+			{
+				result.byteSlotAtPut(
+					RAW_QUAD_AT_,
+					dest,
+					(short) otherTuple.tupleIntAt(src));
+			}
+			result.setSlot(HASH_OR_ZERO, 0);
+			return result;
+		}
+		if (!canDestroy)
+		{
+			object.makeImmutable();
+			otherTuple.makeImmutable();
+		}
+		if (otherTuple.treeTupleLevel() == 0)
+		{
+			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
+		}
+		return TreeTupleDescriptor.concatenateAtLeastOneTree(
+			object,
+			otherTuple,
+			true);
+	}
+
+	@Override
+	A_Tuple o_CopyTupleFromToCanDestroy (
+		final AvailObject object,
+		final int start,
+		final int end,
+		final boolean canDestroy)
+	{
+		assert 1 <= start && start <= end + 1;
+		final int tupleSize = object.tupleSize();
+		assert 0 <= end && end <= tupleSize;
+		final int size = end - start + 1;
+		if (size > 0 && size < tupleSize && size < maximumCopySize)
+		{
+			// It's not empty, it's not a total copy, and it's reasonably small.
+			// Just copy the applicable bytes out.  In theory we could use
+			// newLike() if start is 1.  Make sure to mask the last word in that
+			// case.
+			final AvailObject result = mutableObjectOfSize(size);
+			int dest = 1;
+			for (int src = start; src <= end; src++, dest++)
+			{
+				result.byteSlotAtPut(
+					RAW_QUAD_AT_,
+					dest,
+					object.byteSlotAt(RAW_QUAD_AT_, src));
+			}
+			if (canDestroy)
+			{
+				object.assertObjectUnreachableIfMutable();
+			}
+			return result;
+		}
+		return super.o_CopyTupleFromToCanDestroy(
+			object, start, end, canDestroy);
 	}
 
 	@Override @AvailMethod
@@ -260,6 +427,19 @@ extends TupleDescriptor
 		object.byteSlotAtPut(RAW_QUAD_AT_, index, anInteger);
 	}
 
+	@Override
+	void o_TransferIntoByteBuffer (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final ByteBuffer outputByteBuffer)
+	{
+		for (int index = startIndex; index <= endIndex; index++)
+		{
+			outputByteBuffer.put((byte) object.byteSlotAt(RAW_QUAD_AT_, index));
+		}
+	}
+
 	@Override @AvailMethod
 	AvailObject o_TupleAt (
 		final AvailObject object,
@@ -300,6 +480,24 @@ extends TupleDescriptor
 		return result;
 	}
 
+	@Override
+	boolean o_TupleElementsInRangeAreInstancesOf (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final A_Type type)
+	{
+		if (IntegerRangeTypeDescriptor.bytes().isSubtypeOf(type))
+		{
+			return true;
+		}
+		return super.o_TupleElementsInRangeAreInstancesOf(
+			object,
+			startIndex,
+			endIndex,
+			type);
+	}
+
 	@Override @AvailMethod
 	int o_TupleIntAt (
 		final AvailObject object,
@@ -331,171 +529,9 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_BitsPerEntry (
-		final AvailObject object)
-	{
-		// Answer approximately how many bits per entry are taken up by this
-		// object.
-		return 8;
-	}
-
-	@Override @AvailMethod
-	int o_ComputeHashFromTo (
-		final AvailObject object,
-		final int start,
-		final int end)
-	{
-		// See comment in superclass. This method must produce the same value.
-		int hash = 0;
-		for (int index = end; index >= start; index--)
-		{
-			final int itemHash = IntegerDescriptor.hashOfUnsignedByte(
-				(short) object.tupleIntAt(index)) ^ preToggle;
-			hash = hash * multiplier + itemHash;
-		}
-		return hash * multiplier;
-	}
-
-	@Override @AvailMethod
 	int o_TupleSize (final AvailObject object)
 	{
 		return object.variableIntegerSlotsCount() * 4 - unusedBytesOfLastWord;
-	}
-
-	@Override
-	A_Tuple o_ConcatenateWith (
-		final AvailObject object,
-		final A_Tuple otherTuple,
-		final boolean canDestroy)
-	{
-		final int size1 = object.tupleSize();
-		if (size1 == 0)
-		{
-			if (!canDestroy)
-			{
-				otherTuple.makeImmutable();
-			}
-			return otherTuple;
-		}
-		final int size2 = otherTuple.tupleSize();
-		if (size2 == 0)
-		{
-			if (!canDestroy)
-			{
-				object.makeImmutable();
-			}
-			return object;
-		}
-		final int newSize = size1 + size2;
-		if (otherTuple.isByteTuple() && newSize <= maximumCopySize)
-		{
-			// Copy the bytes.
-			final int newWordCount = (newSize + 3) >>> 2;
-			final int deltaSlots =
-				newWordCount - object.variableIntegerSlotsCount();
-			final AvailObject result;
-			if (canDestroy && isMutable() && deltaSlots == 0)
-			{
-				// We can reuse the receiver; it has enough int slots.
-				result = object;
-				result.descriptor = descriptorFor(MUTABLE, newSize);
-			}
-			else
-			{
-				result = newLike(
-					descriptorFor(MUTABLE, newSize), object, 0, deltaSlots);
-			}
-			int dest = size1 + 1;
-			for (int src = 1; src <= size2; src++, dest++)
-			{
-				result.byteSlotAtPut(
-					RAW_QUAD_AT_,
-					dest,
-					(short) otherTuple.tupleIntAt(src));
-			}
-			result.setSlot(HASH_OR_ZERO, 0);
-			return result;
-		}
-		if (!canDestroy)
-		{
-			object.makeImmutable();
-			otherTuple.makeImmutable();
-		}
-		if (otherTuple.treeTupleLevel() == 0)
-		{
-			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
-		}
-		return TreeTupleDescriptor.concatenateAtLeastOneTree(
-			object,
-			otherTuple,
-			true);
-	}
-
-	@Override
-	A_Tuple o_CopyTupleFromToCanDestroy (
-		final AvailObject object,
-		final int start,
-		final int end,
-		final boolean canDestroy)
-	{
-		assert 1 <= start && start <= end + 1;
-		final int tupleSize = object.tupleSize();
-		assert 0 <= end && end <= tupleSize;
-		final int size = end - start + 1;
-		if (size > 0 && size < tupleSize && size < maximumCopySize)
-		{
-			// It's not empty, it's not a total copy, and it's reasonably small.
-			// Just copy the applicable bytes out.  In theory we could use
-			// newLike() if start is 1.  Make sure to mask the last word in that
-			// case.
-			final AvailObject result = mutableObjectOfSize(size);
-			int dest = 1;
-			for (int src = start; src <= end; src++, dest++)
-			{
-				result.byteSlotAtPut(
-					RAW_QUAD_AT_,
-					dest,
-					object.byteSlotAt(RAW_QUAD_AT_, src));
-			}
-			if (canDestroy)
-			{
-				object.assertObjectUnreachableIfMutable();
-			}
-			return result;
-		}
-		return super.o_CopyTupleFromToCanDestroy(
-			object, start, end, canDestroy);
-	}
-
-	@Override
-	void o_TransferIntoByteBuffer (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex,
-		final ByteBuffer outputByteBuffer)
-	{
-		for (int index = startIndex; index <= endIndex; index++)
-		{
-			outputByteBuffer.put((byte) object.byteSlotAt(RAW_QUAD_AT_, index));
-		}
-	}
-
-	@Override
-	boolean o_TupleElementsInRangeAreInstancesOf (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex,
-		final A_Type type)
-	{
-		if (IntegerRangeTypeDescriptor.bytes().isSubtypeOf(type))
-		{
-			return true;
-		}
-		return super.o_TupleElementsInRangeAreInstancesOf(
-			object,
-			startIndex,
-			endIndex,
-			type);
 	}
 
 	@Override

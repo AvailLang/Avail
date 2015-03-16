@@ -526,6 +526,16 @@ extends Descriptor
 		createSpecialAtom("Compilation scope");
 
 	/**
+	 * The atom used as a key in a {@link ParserState}'s {@linkplain
+	 * ParserState#clientDataMap} to accumulate the tuple of tokens that have
+	 * been parsed so far for the current method/macro site.  This only includes
+	 * tokens that were explicitly mentioned in the method name, not tokens
+	 * found in subexpressions.
+	 */
+	private static final A_Atom usedTokensKey =
+		createSpecialAtom("Explicit tokens");
+
+	/**
 	 * The atom used as a key in a {@linkplain FiberDescriptor fiber}'s global
 	 * map to extract the current {@link ParserState}'s {@linkplain
 	 * ParserState#clientDataMap}.
@@ -615,6 +625,19 @@ extends Descriptor
 	public static A_Atom compilerScopeMapKey ()
 	{
 		return compilerScopeMapKey;
+	}
+
+	/**
+	 * Answer the atom used to identify the entry in a {@linkplain
+	 * ParserState}'s {@linkplain ParserState#clientDataMap client data map}
+	 * which holds the current tuple of encountered tokens.
+	 *
+	 * @return The tokens that have matched so far with the current method/macro
+	 *         site's tokens (as determined by the {@link MessageSplitter})
+	 */
+	public static A_Atom usedTokensKey ()
+	{
+		return usedTokensKey;
 	}
 
 	/**

@@ -36,7 +36,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.ParseNodeTypeDescriptor.*;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.utility.evaluation.*;
 
 /**
@@ -48,142 +48,6 @@ import com.avail.utility.evaluation.*;
 public abstract class ParseNodeDescriptor
 extends Descriptor
 {
-	/**
-	 * Construct a new {@link ParseNodeDescriptor}.
-	 *
-	 * @param mutability
-	 *            The {@linkplain Mutability mutability} of the new descriptor.
-	 * @param objectSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            ObjectSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no object slots.
-	 * @param integerSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            IntegerSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no integer slots.
-	 */
-	protected ParseNodeDescriptor (
-		final Mutability mutability,
-		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
-		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
-	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
-	}
-
-	/**
-	 * Return the parse node's expression type, which is the type of object that
-	 * will be produced by this parse node.
-	 *
-	 * @return The {@linkplain TypeDescriptor type} of the {@link AvailObject}
-	 *         that will be produced by this parse node.
-	 */
-	@Override @AvailMethod
-	abstract A_Type o_ExpressionType (final AvailObject object);
-
-	@Override @AvailMethod
-	final A_Type o_Kind (final AvailObject object)
-	{
-		return object.parseNodeKind().create(object.expressionType());
-	}
-
-	@Override @AvailMethod
-	A_Type o_TypeForLookup (final AvailObject object)
-	{
-		return object.expressionType();
-	}
-
-	@Override @AvailMethod
-	boolean o_IsInstanceOfKind (
-		final AvailObject object,
-		final A_Type aType)
-	{
-		if (PARSE_NODE.mostGeneralType().isSubtypeOf(aType))
-		{
-			return true;
-		}
-		if (aType.isSubtypeOf(PARSE_NODE.mostGeneralType()))
-		{
-			return object.parseNodeKind().isSubkindOf(aType.parseNodeKind())
-				&& object.expressionType().isSubtypeOf(aType.expressionType());
-		}
-		return false;
-	}
-
-	/**
-	 * The {@link #o_ApparentSendName(AvailObject) apparentSendName} of
-	 * something that isn't a {@linkplain SendNodeDescriptor send node} or
-	 * {@linkplain MacroSubstitutionNodeDescriptor macro substitution node} is
-	 * always the {@link NilDescriptor#nil() nil} object.
-	 */
-	@Override @AvailMethod
-	A_Atom o_ApparentSendName (final AvailObject object)
-	{
-		return NilDescriptor.nil();
-	}
-
-	/**
-	 * {@linkplain ParseNodeDescriptor parse nodes} must implement {@link
-	 * AbstractDescriptor#o_Hash(AvailObject) hash}.
-	 */
-	@Override @AvailMethod
-	abstract int o_Hash (final AvailObject object);
-
-	/**
-	 * {@linkplain ParseNodeDescriptor parse nodes} must implement {@link
-	 * ParseNodeDescriptor#o_EqualsParseNode(AvailObject, A_Phrase)}.
-	 */
-	@Override @AvailMethod
-	final boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.equalsParseNode(object);
-	}
-
-	/**
-	 * Compare this parse node to the given parse node.
-	 */
-	@Override @AvailMethod
-	abstract boolean o_EqualsParseNode (
-		final AvailObject object,
-		final A_Phrase aParseNode);
-
-	/**
-	 * Emit the effect of this node.  By default that means to emit the value of
-	 * the node, then to pop the unwanted value from the stack.
-	 *
-	 * @param object The parse node.
-	 * @param codeGenerator Where to emit the code.
-	 */
-	@Override @AvailMethod
-	void o_EmitEffectOn (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
-	{
-		object.emitValueOn(codeGenerator);
-		codeGenerator.emitPop();
-	}
-
-	/**
-	 * Emit the value of this node.  That means emit a sequence of instructions
-	 * that will cause this node's value to end up on the stack.
-	 *
-	 * @param object The parse node.
-	 * @param codeGenerator Where to emit the code.
-	 */
-	@Override @AvailMethod
-	abstract void o_EmitValueOn (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator);
-
-	@Override
-	void o_EmitForSuperSendOn (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
-	{
-		// This is a normal argument.  Push it, then push its type.
-		object.emitValueOn(codeGenerator);
-		codeGenerator.emitGetType();
-	}
-
 	/**
 	 * A special enumeration used to visit all object slots for copying.
 	 */
@@ -208,6 +72,54 @@ extends Descriptor
 		 */
 		ALL_INTEGER_SLOTS_
 	}
+
+	@Override int maximumIndent ()
+	{
+		return Integer.MAX_VALUE;
+	}
+
+	/**
+	 * The {@link #o_ApparentSendName(AvailObject) apparentSendName} of
+	 * something that isn't a {@linkplain SendNodeDescriptor send node} or
+	 * {@linkplain MacroSubstitutionNodeDescriptor macro substitution node} is
+	 * always the {@link NilDescriptor#nil() nil} object.
+	 */
+	@Override @AvailMethod
+	A_Atom o_ApparentSendName (final AvailObject object)
+	{
+		return NilDescriptor.nil();
+	}
+
+	/**
+	 * Visit every node constituting this parse tree, invoking the passed {@link
+	 * Continuation1} with each.
+	 *
+	 * @param object
+	 *            The {@linkplain ParseNodeDescriptor parse node} to traverse.
+	 * @param aBlock
+	 *            The {@linkplain Continuation1 action} to perform with each of
+	 *            this parse node's children.
+	 */
+	@Override @AvailMethod
+	abstract void o_ChildrenDo (
+		final AvailObject object,
+		final Continuation1<A_Phrase> aBlock);
+
+	/**
+	 * Visit and transform the direct descendants of this parse node.  Map this
+	 * {@linkplain ParseNodeDescriptor parse node}'s children through the
+	 * (destructive) transformation specified by aBlock, assigning them back
+	 * into my slots.
+	 *
+	 * @param object The {@linkplain ParseNodeDescriptor parse node} to
+	 *               transform.
+	 * @param aBlock The {@linkplain Transformer1 transformation} through which
+	 *               to map this parse node's children.
+	 */
+	@Override @AvailMethod
+	abstract void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<A_Phrase, A_Phrase> aBlock);
 
 	/**
 	 * If the receiver is immutable, make an equivalent mutable copy of that
@@ -260,40 +172,169 @@ extends Descriptor
 	}
 
 	/**
-	 * Visit and transform the direct descendants of this parse node.  Map this
-	 * {@linkplain ParseNodeDescriptor parse node}'s children through the
-	 * (destructive) transformation specified by aBlock, assigning them back
-	 * into my slots.
+	 * Emit the effect of this node.  By default that means to emit the value of
+	 * the node, then to pop the unwanted value from the stack.
 	 *
-	 * @param object The {@linkplain ParseNodeDescriptor parse node} to
-	 *               transform.
-	 * @param aBlock The {@linkplain Transformer1 transformation} through which
-	 *               to map this parse node's children.
+	 * @param object The parse node.
+	 * @param codeGenerator Where to emit the code.
 	 */
 	@Override @AvailMethod
-	abstract void o_ChildrenMap (
+	void o_EmitEffectOn (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock);
+		final AvailCodeGenerator codeGenerator)
+	{
+		object.emitValueOn(codeGenerator);
+		codeGenerator.emitPop();
+	}
+
+	@Override
+	void o_EmitForSuperSendOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		// This is a normal argument.  Push it, then push its type.
+		object.emitValueOn(codeGenerator);
+		codeGenerator.emitGetType();
+	}
 
 	/**
-	 * Visit every node constituting this parse tree, invoking the passed {@link
-	 * Continuation1} with each.
+	 * Emit the value of this node.  That means emit a sequence of instructions
+	 * that will cause this node's value to end up on the stack.
 	 *
-	 * @param object
-	 *            The {@linkplain ParseNodeDescriptor parse node} to traverse.
-	 * @param aBlock
-	 *            The {@linkplain Continuation1 action} to perform with each of
-	 *            this parse node's children.
+	 * @param object The parse node.
+	 * @param codeGenerator Where to emit the code.
 	 */
 	@Override @AvailMethod
-	abstract void o_ChildrenDo (
+	abstract void o_EmitValueOn (
 		final AvailObject object,
-		final Continuation1<A_Phrase> aBlock);
+		final AvailCodeGenerator codeGenerator);
+
+	/**
+	 * {@linkplain ParseNodeDescriptor parse nodes} must implement {@link
+	 * ParseNodeDescriptor#o_EqualsParseNode(AvailObject, A_Phrase)}.
+	 */
+	@Override @AvailMethod
+	final boolean o_Equals (
+		final AvailObject object,
+		final A_BasicObject another)
+	{
+		return another.equalsParseNode(object);
+	}
+
+	/**
+	 * Compare this parse node to the given parse node.
+	 */
+	@Override @AvailMethod
+	abstract boolean o_EqualsParseNode (
+		final AvailObject object,
+		final A_Phrase aParseNode);
+
+	/**
+	 * Return the parse node's expression type, which is the type of object that
+	 * will be produced by this parse node.
+	 *
+	 * @return The {@linkplain TypeDescriptor type} of the {@link AvailObject}
+	 *         that will be produced by this parse node.
+	 */
+	@Override @AvailMethod
+	abstract A_Type o_ExpressionType (final AvailObject object);
+
+	@Override @AvailMethod
+	void o_FlattenStatementsInto (
+		final AvailObject object,
+		final List<A_Phrase> accumulatedStatements)
+	{
+		accumulatedStatements.add(object);
+	}
+
+	/**
+	 * {@linkplain ParseNodeDescriptor parse nodes} must implement {@link
+	 * AbstractDescriptor#o_Hash(AvailObject) hash}.
+	 */
+	@Override @AvailMethod
+	abstract int o_Hash (final AvailObject object);
+
+	@Override
+	boolean o_HasSuperCast (final AvailObject object)
+	{
+		// Terminate the recursion through the recursive list structure.  If
+		// this isn't overridden in a subclass then it must be a bottom-level
+		// argument to a send.
+		return false;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsInstanceOfKind (
+		final AvailObject object,
+		final A_Type aType)
+	{
+		if (PARSE_NODE.mostGeneralType().isSubtypeOf(aType))
+		{
+			return true;
+		}
+		if (aType.isSubtypeOf(PARSE_NODE.mostGeneralType()))
+		{
+			return object.parseNodeKind().isSubkindOf(aType.parseNodeKind())
+				&& object.expressionType().isSubtypeOf(aType.expressionType());
+		}
+		return false;
+	}
 
 	@Override
 	boolean o_IsMacroSubstitutionNode (final AvailObject object)
 	{
 		return false;
+	}
+
+	@Override @AvailMethod
+	final A_Type o_Kind (final AvailObject object)
+	{
+		return object.parseNodeKind().create(object.expressionType());
+	}
+
+	@Override
+	final AvailObject o_MakeImmutable (final AvailObject object)
+	{
+		if (isMutable())
+		{
+			// None of the subclasses define an immutable descriptor, so make
+			// the argument shared instead.
+			return object.makeShared();
+		}
+		return object;
+	}
+
+	/**
+	 * Return the {@linkplain ParseNodeKind parse node kind} that this parse
+	 * node's type implements.
+	 *
+	 * @return The {@linkplain ParseNodeKind kind} of parse node that the
+	 *         object's type would be.
+	 */
+	@Override @AvailMethod
+	abstract ParseNodeKind o_ParseNodeKind (final AvailObject object);
+
+	@Override
+	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
+	{
+		return false;
+	}
+
+	@Override @AvailMethod
+	abstract void o_StatementsDo (
+		final AvailObject object,
+		final Continuation1<A_Phrase> continuation);
+
+	@Override @AvailMethod
+	A_Phrase o_StripMacro (final AvailObject object)
+	{
+		return object;
+	}
+
+	@Override @AvailMethod
+	A_Type o_TypeForLookup (final AvailObject object)
+	{
+		return object.expressionType();
 	}
 
 	/**
@@ -309,62 +350,6 @@ extends Descriptor
 	abstract void o_ValidateLocally (
 		final AvailObject object,
 		final @Nullable A_Phrase parent);
-
-	@Override @AvailMethod
-	void o_FlattenStatementsInto (
-		final AvailObject object,
-		final List<A_Phrase> accumulatedStatements)
-	{
-		accumulatedStatements.add(object);
-	}
-
-	/**
-	 * Return the {@linkplain ParseNodeKind parse node kind} that this parse
-	 * node's type implements.
-	 *
-	 * @return The {@linkplain ParseNodeKind kind} of parse node that the
-	 *         object's type would be.
-	 */
-	@Override @AvailMethod
-	abstract ParseNodeKind o_ParseNodeKind (final AvailObject object);
-
-	@Override
-	boolean o_HasSuperCast (final AvailObject object)
-	{
-		// Terminate the recursion through the recursive list structure.  If
-		// this isn't overridden in a subclass then it must be a bottom-level
-		// argument to a send.
-		return false;
-	}
-
-	@Override @AvailMethod
-	A_Phrase o_StripMacro (final AvailObject object)
-	{
-		return object;
-	}
-
-	@Override int maximumIndent ()
-	{
-		return Integer.MAX_VALUE;
-	}
-
-	@Override
-	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
-	{
-		return false;
-	}
-
-	@Override
-	final AvailObject o_MakeImmutable (final AvailObject object)
-	{
-		if (isMutable())
-		{
-			// None of the subclasses define an immutable descriptor, so make
-			// the argument shared instead.
-			return object.makeShared();
-		}
-		return object;
-	}
 
 	/**
 	 * Visit the entire tree with the given {@linkplain Continuation3 block},
@@ -398,6 +383,28 @@ extends Descriptor
 				}
 			});
 		aBlock.value(object, parentNode);
+	}
+
+	/**
+	 * Construct a new {@link ParseNodeDescriptor}.
+	 *
+	 * @param mutability
+	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param objectSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            ObjectSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no object slots.
+	 * @param integerSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            IntegerSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no integer slots.
+	 */
+	protected ParseNodeDescriptor (
+		final Mutability mutability,
+		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
+		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
+	{
+		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
 	}
 
 	@Override

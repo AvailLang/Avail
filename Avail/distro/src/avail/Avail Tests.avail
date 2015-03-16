@@ -207,11 +207,8 @@ Private method "Debug tests" is
 		[
 			Print: "0. exit test debugger\n";
 		];
-		For each currentEntry[2] do
+		For each test, index of currentEntry[2] do
 		[
-			test : atom,
-			index : natural number
-		|
 			Print: format "“①”. “②”\n" with index, test;
 		];
 		Print: "Enter subtest number, 0 for parent/exit, \"run\", or \"run N\".\n";

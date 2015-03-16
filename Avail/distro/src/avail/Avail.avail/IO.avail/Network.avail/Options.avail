@@ -268,9 +268,7 @@ Public method "Require:_are sensible" is
 	seen : {socket option|} := ∅;
 	For each index from 1 to relevant |options| do
 	[
-		def ::= options[index];
-		optionType ::= def[1];
-		valueType ::= def[2];
+		optionType, valueType ::= options[index];
 		If |optionType| ≠ 1 then
 		[
 			Reject parse, expected:

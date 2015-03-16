@@ -349,11 +349,8 @@ Public method "a cave" is
 	 * into pit rooms.
 	 */
 	shuffledIds := the RNG's next shuffling of 1 to 20;
-	For each shuffledIds do
+	For each id, subscript of shuffledIds do
 	[
-		id : room id,
-		subscript : [1..20]
-	|
 		/* The method "_as_«with«_:=_‡,»»" produces a variant of an object that
 		 * is an instance of the target subtype. "unfinished room" has three
 		 * subtypes: "room", "entrace room", and "pit room". "entrance room"

@@ -615,10 +615,8 @@ Method "any of_satisfies_" is
 	predicate : [⊥]→boolean
 |
 	$body : boolean;
-	For each aSet do
+	For each element of aSet do
 	[
-		element : any
-	|
 		If predicate(element) then
 		[
 			Exit body with true
@@ -662,10 +660,8 @@ Method "each of_satisfies_" is
 	predicate : [⊥]→boolean
 |
 	$body : boolean;
-	For each aSet do
+	For each element of aSet do
 	[
-		element : any
-	|
 		Unless predicate(element) then
 		[
 			Exit body with false

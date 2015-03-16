@@ -611,11 +611,8 @@ Method "«using_,»roll_" is
 	mustDrop : <extended integer…|> := droppedRolls;
 	[
 		$loop : ⊤;
-		For each outcome's detailed outcome do
+		For each aDie → rolls of outcome's detailed outcome do
 		[
-			aDie : die,
-			rolls : <extended integer…|>
-		|
 			intersection : {extended integer|} := mustDrop→set ∩ rolls→set;
 			newRolls : <extended integer…|> := rolls;
 			Until intersection is empty do

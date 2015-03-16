@@ -87,38 +87,38 @@ extends TupleDescriptor
 	public static final int maximumCopySize = 32;
 
 	@Override @AvailMethod
-	AvailObject o_TupleAt (final AvailObject object, final int subscript)
+	A_Tuple o_AppendCanDestroy (
+		final AvailObject object,
+		final A_BasicObject newElement,
+		final boolean canDestroy)
 	{
-		return object.slot(TUPLE_AT_, subscript);
+		final int originalSize = object.tupleSize();
+		if (originalSize >= maximumCopySize)
+		{
+			// Transition to a tree tuple.
+			final A_Tuple singleton = TupleDescriptor.from(newElement);
+			return object.concatenateWith(singleton, canDestroy);
+		}
+		if (!canDestroy)
+		{
+			newElement.makeImmutable();
+			if (isMutable())
+			{
+				object.makeImmutable();
+			}
+		}
+		final AvailObject newTuple = newLike(mutable, object, 1, 0);
+		newTuple.objectTupleAtPut(originalSize + 1, newElement);
+		newTuple.setSlot(HASH_OR_ZERO, 0);
+		return newTuple;
 	}
 
-	/**
-	 * @param object
-	 * @param index
-	 * @param anObject
-	 */
 	@Override @AvailMethod
-	void o_ObjectTupleAtPut (
-		final AvailObject object,
-		final int index,
-		final A_BasicObject anObject)
+	int o_BitsPerEntry (final AvailObject object)
 	{
-		object.setSlot(TUPLE_AT_, index, anObject);
-	}
-
-	@Override @AvailMethod
-	boolean o_CompareFromToWithStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple anotherObject,
-		final int startIndex2)
-	{
-		return anotherObject.compareFromToWithObjectTupleStartingAt(
-			startIndex2,
-			(startIndex2 + endIndex1 - startIndex1),
-			object,
-			startIndex1);
+		// Answer approximately how many bits per entry are taken up by this
+		// object.
+		return 64;
 	}
 
 	@Override @AvailMethod
@@ -149,141 +149,18 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.equalsObjectTuple(object);
-	}
-
-	@Override @AvailMethod
-	boolean o_EqualsObjectTuple (
+	boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
-		final A_Tuple anObjectTuple)
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple anotherObject,
+		final int startIndex2)
 	{
-		if (object.sameAddressAs(anObjectTuple))
-		{
-			return true;
-		}
-		if (o_TupleSize(object) != anObjectTuple.tupleSize())
-		{
-			return false;
-		}
-		if (o_Hash(object) != anObjectTuple.hash())
-		{
-			return false;
-		}
-		if (!object.compareFromToWithObjectTupleStartingAt(
-			1,
-			object.tupleSize(),
-			anObjectTuple,
-			1))
-		{
-			return false;
-		}
-		if (anObjectTuple.isBetterRepresentationThan(object))
-		{
-			if (!isShared())
-			{
-				anObjectTuple.makeImmutable();
-				object.becomeIndirectionTo(anObjectTuple);
-			}
-		}
-		else
-		{
-			if (!anObjectTuple.descriptor().isShared())
-			{
-				object.makeImmutable();
-				anObjectTuple.becomeIndirectionTo(object);
-			}
-		}
-		return true;
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_TupleAtPuttingCanDestroy (
-		final AvailObject object,
-		final int index,
-		final A_BasicObject newValueObject,
-		final boolean canDestroy)
-	{
-		// Answer a tuple with all the elements of object except at the given
-		// index we should have newValueObject.  This may destroy the original
-		// tuple if canDestroy is true.
-		assert index >= 1 && index <= object.tupleSize();
-		if (!canDestroy || !isMutable())
-		{
-			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
-				index,
-				newValueObject,
-				true);
-		}
-		object.objectTupleAtPut(index, newValueObject);
-		// Invalidate the hash value.
-		object.hashOrZero(0);
-		return object;
-	}
-
-	@Override @AvailMethod
-	boolean o_IsByteTuple (final AvailObject object)
-	{
-		// If it's cheap to check my elements, just do it.  This can help keep
-		// representations smaller and faster when concatenating short, quickly
-		// built object tuples that happen to only contain bytes onto the start
-		// of end of other byte tuples.
-		final int tupleSize = object.tupleSize();
-		if (tupleSize <= 5)
-		{
-			for (int i = 1; i <= tupleSize; i++)
-			{
-				if (!object.slot(TUPLE_AT_, i).isUnsignedByte())
-				{
-					return false;
-				}
-			}
-			return true;
-		}
-		return false;
-	}
-
-
-	@Override @AvailMethod
-	int o_TupleIntAt (final AvailObject object, final int index)
-	{
-		// Answer the integer element at the given index in the tuple object.
-		return object.tupleAt(index).extractInt();
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_TupleReverse(final AvailObject object)
-	{
-		final int size = object.tupleSize();
-		if (size >= maximumCopySize)
-		{
-			return super.o_TupleReverse(object);
-		}
-
-		final AvailObject instance =
-			mutable.create(size);
-
-		for (int i = 1; i <= size; i++)
-		{
-			instance.objectTupleAtPut(size-i+1, object.tupleAt(i));
-		}
-		return instance;
-	}
-
-	@Override @AvailMethod
-	int o_TupleSize (final AvailObject object)
-	{
-		// Answer the number of elements in the object (as a Java int).
-		return object.variableObjectSlotsCount();
-	}
-
-	@Override @AvailMethod
-	int o_BitsPerEntry (final AvailObject object)
-	{
-		// Answer approximately how many bits per entry are taken up by this
-		// object.
-		return 64;
+		return anotherObject.compareFromToWithObjectTupleStartingAt(
+			startIndex2,
+			(startIndex2 + endIndex1 - startIndex1),
+			object,
+			startIndex1);
 	}
 
 	@Override @AvailMethod
@@ -296,10 +173,10 @@ extends TupleDescriptor
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
-			final int itemHash = object.tupleAt(index).hash();
-			hash = hash * multiplier + (itemHash ^ preToggle);
+			final int itemHash = object.tupleAt(index).hash() ^ preToggle;
+			hash = (hash + itemHash) * multiplier;
 		}
-		return hash * multiplier;
+		return hash;
 	}
 
 	@Override @AvailMethod
@@ -399,6 +276,155 @@ extends TupleDescriptor
 		}
 		return super.o_CopyTupleFromToCanDestroy(
 			object, start, end, canDestroy);
+	}
+
+	@Override @AvailMethod
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	{
+		return another.equalsObjectTuple(object);
+	}
+
+	@Override @AvailMethod
+	boolean o_EqualsObjectTuple (
+		final AvailObject object,
+		final A_Tuple anObjectTuple)
+	{
+		if (object.sameAddressAs(anObjectTuple))
+		{
+			return true;
+		}
+		if (o_TupleSize(object) != anObjectTuple.tupleSize())
+		{
+			return false;
+		}
+		if (o_Hash(object) != anObjectTuple.hash())
+		{
+			return false;
+		}
+		if (!object.compareFromToWithObjectTupleStartingAt(
+			1,
+			object.tupleSize(),
+			anObjectTuple,
+			1))
+		{
+			return false;
+		}
+		if (anObjectTuple.isBetterRepresentationThan(object))
+		{
+			if (!isShared())
+			{
+				anObjectTuple.makeImmutable();
+				object.becomeIndirectionTo(anObjectTuple);
+			}
+		}
+		else
+		{
+			if (!anObjectTuple.descriptor().isShared())
+			{
+				object.makeImmutable();
+				anObjectTuple.becomeIndirectionTo(object);
+			}
+		}
+		return true;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsByteTuple (final AvailObject object)
+	{
+		// If it's cheap to check my elements, just do it.  This can help keep
+		// representations smaller and faster when concatenating short, quickly
+		// built object tuples that happen to only contain bytes onto the start
+		// of end of other byte tuples.
+		final int tupleSize = object.tupleSize();
+		if (tupleSize <= 5)
+		{
+			for (int i = 1; i <= tupleSize; i++)
+			{
+				if (!object.slot(TUPLE_AT_, i).isUnsignedByte())
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * @param object
+	 * @param index
+	 * @param anObject
+	 */
+	@Override @AvailMethod
+	void o_ObjectTupleAtPut (
+		final AvailObject object,
+		final int index,
+		final A_BasicObject anObject)
+	{
+		object.setSlot(TUPLE_AT_, index, anObject);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_TupleAt (final AvailObject object, final int subscript)
+	{
+		return object.slot(TUPLE_AT_, subscript);
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_TupleAtPuttingCanDestroy (
+		final AvailObject object,
+		final int index,
+		final A_BasicObject newValueObject,
+		final boolean canDestroy)
+	{
+		// Answer a tuple with all the elements of object except at the given
+		// index we should have newValueObject.  This may destroy the original
+		// tuple if canDestroy is true.
+		assert index >= 1 && index <= object.tupleSize();
+		if (!canDestroy || !isMutable())
+		{
+			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
+				index,
+				newValueObject,
+				true);
+		}
+		object.objectTupleAtPut(index, newValueObject);
+		// Invalidate the hash value.
+		object.hashOrZero(0);
+		return object;
+	}
+
+	@Override @AvailMethod
+	int o_TupleIntAt (final AvailObject object, final int index)
+	{
+		// Answer the integer element at the given index in the tuple object.
+		return object.tupleAt(index).extractInt();
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_TupleReverse(final AvailObject object)
+	{
+		final int size = object.tupleSize();
+		if (size >= maximumCopySize)
+		{
+			return super.o_TupleReverse(object);
+		}
+
+		final AvailObject instance =
+			mutable.create(size);
+
+		for (int i = 1; i <= size; i++)
+		{
+			instance.objectTupleAtPut(size-i+1, object.tupleAt(i));
+		}
+		return instance;
+	}
+
+	@Override @AvailMethod
+	int o_TupleSize (final AvailObject object)
+	{
+		// Answer the number of elements in the object (as a Java int).
+		return object.variableObjectSlotsCount();
 	}
 
 	/**

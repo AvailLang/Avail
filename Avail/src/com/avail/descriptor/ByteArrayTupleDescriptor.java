@@ -92,95 +92,47 @@ extends TupleDescriptor
 	private static final int maximumCopySize = 64;
 
 	@Override @AvailMethod
+	A_Tuple o_AppendCanDestroy (
+		final AvailObject object,
+		final A_BasicObject newElement,
+		final boolean canDestroy)
+	{
+		final int originalSize = object.tupleSize();
+		final int intValue;
+		if (originalSize >= maximumCopySize
+			|| !object.isInt()
+			|| ((intValue = object.extractInt()) & 255) != intValue)
+		{
+			// Transition to a tree tuple.
+			final A_Tuple singleton = TupleDescriptor.from(newElement);
+			return object.concatenateWith(singleton, canDestroy);
+		}
+		// Convert to a ByteTupleDescriptor.
+		final byte[] array =
+			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
+		final int newSize = originalSize + 1;
+		final AvailObject result =
+			ByteTupleDescriptor.mutableObjectOfSize(newSize);
+		for (int i = 1; i <= newSize; i++)
+		{
+			result.rawByteAtPut(i, (short)(array[i - 1] & 0xFF));
+		}
+		result.rawByteAtPut(newSize, (short)intValue);
+		return result;
+	}
+
+	@Override @AvailMethod
+	int o_BitsPerEntry (final AvailObject object)
+	{
+		// Answer approximately how many bits per entry are taken up by this
+		// object.
+		return 8;
+	}
+
+	@Override @AvailMethod
 	byte[] o_ByteArray (final AvailObject object)
 	{
 		return (byte[]) object.slot(BYTE_ARRAY_POJO).javaObject();
-	}
-
-	@Override @AvailMethod
-	int o_ComputeHashFromTo (
-		final AvailObject object,
-		final int start,
-		final int end)
-	{
-		// See comment in superclass. This method must produce the same value.
-		final byte[] array = (byte[])
-			object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
-		int hash = 0;
-		for (int index = end - 1, first = start - 1; index >= first; index--)
-		{
-			final int itemHash = IntegerDescriptor.hashOfUnsignedByte(
-				(short) (array[index] & 0xFF)) ^ preToggle;
-			hash = hash * multiplier + itemHash;
-		}
-		return hash * multiplier;
-	}
-
-	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.equalsByteArrayTuple(object);
-	}
-
-	@Override @AvailMethod
-	boolean o_EqualsByteArrayTuple (
-		final AvailObject object,
-		final A_Tuple aByteArrayTuple)
-	{
-		// First, check for object-structure (address) identity.
-		if (object.sameAddressAs(aByteArrayTuple))
-		{
-			return true;
-		}
-		if (object.byteArray() == aByteArrayTuple.byteArray())
-		{
-			return true;
-		}
-		if (object.tupleSize() != aByteArrayTuple.tupleSize())
-		{
-			return false;
-		}
-		if (object.hash() != aByteArrayTuple.hash())
-		{
-			return false;
-		}
-		if (!object.compareFromToWithByteArrayTupleStartingAt(
-			1,
-			object.tupleSize(),
-			aByteArrayTuple,
-			1))
-		{
-			return false;
-		}
-		// They're equal, but occupy disjoint storage. If possible, then
-		// replace one with an indirection to the other to keep down the
-		// frequency of byte-wise comparisons.
-		if (!isShared())
-		{
-			aByteArrayTuple.makeImmutable();
-			object.becomeIndirectionTo(aByteArrayTuple);
-		}
-		else if (!aByteArrayTuple.descriptor().isShared())
-		{
-			object.makeImmutable();
-			aByteArrayTuple.becomeIndirectionTo(object);
-		}
-		return true;
-	}
-
-	@Override @AvailMethod
-	boolean o_CompareFromToWithStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple anotherObject,
-		final int startIndex2)
-	{
-		return anotherObject.compareFromToWithByteArrayTupleStartingAt(
-			startIndex2,
-			startIndex2 + endIndex1 - startIndex1,
-			object,
-			startIndex1);
 	}
 
 	@Override @AvailMethod
@@ -213,196 +165,37 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsByteTuple (final AvailObject object)
-	{
-		return true;
-	}
-
-	@Override @AvailMethod
-	boolean o_IsByteArrayTuple (final AvailObject object)
-	{
-		return true;
-	}
-
-	@Override @AvailMethod
-	boolean o_IsInstanceOfKind (
+	boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
-		final A_Type aType)
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple anotherObject,
+		final int startIndex2)
 	{
-		if (aType.isSupertypeOfPrimitiveTypeEnum(NONTYPE))
-		{
-			return true;
-		}
-		if (!aType.isTupleType())
-		{
-			return false;
-		}
-		// See if it's an acceptable size...
-		if (!aType.sizeRange().rangeIncludesInt(object.tupleSize()))
-		{
-			return false;
-		}
-		// tuple's size is out of range.
-		final A_Tuple typeTuple = aType.typeTuple();
-		final int breakIndex = min(object.tupleSize(), typeTuple.tupleSize());
-		for (int i = 1; i <= breakIndex; i++)
-		{
-			if (!object.tupleAt(i).isInstanceOf(aType.typeAtIndex(i)))
-			{
-				return false;
-			}
-		}
-		final A_Type defaultTypeObject = aType.defaultType();
-		if (IntegerRangeTypeDescriptor.bytes().isSubtypeOf(defaultTypeObject))
-		{
-			return true;
-		}
-		for (int i = breakIndex + 1, end = object.tupleSize(); i <= end; i++)
-		{
-			if (!object.tupleAt(i).isInstanceOf(defaultTypeObject))
-			{
-				return false;
-			}
-		}
-		return true;
+		return anotherObject.compareFromToWithByteArrayTupleStartingAt(
+			startIndex2,
+			startIndex2 + endIndex1 - startIndex1,
+			object,
+			startIndex1);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TupleAt (final AvailObject object, final int index)
-	{
-		// Answer the element at the given index in the tuple object.
-		final byte[] array =
-			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
-		return (AvailObject)IntegerDescriptor.fromUnsignedByte(
-			(short) (array[index - 1] & 0xFF));
-	}
-
-	@Override
-	@AvailMethod
-	A_Tuple o_TupleAtPuttingCanDestroy (
+	int o_ComputeHashFromTo (
 		final AvailObject object,
-		final int index,
-		final A_BasicObject newValueObject,
-		final boolean canDestroy)
+		final int start,
+		final int end)
 	{
-		// Answer a tuple with all the elements of object except at the given
-		// index we should have newValueObject. This may destroy the original
-		// tuple if canDestroy is true.
-		assert index >= 1 && index <= object.tupleSize();
-		if (!newValueObject.isUnsignedByte())
+		// See comment in superclass. This method must produce the same value.
+		final byte[] array = (byte[])
+			object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
+		int hash = 0;
+		for (int index = end - 1, first = start - 1; index >= first; index--)
 		{
-			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
-				index,
-				newValueObject,
-				true);
+			final int itemHash = IntegerDescriptor.hashOfUnsignedByte(
+				(short) (array[index] & 0xFF)) ^ preToggle;
+			hash = (hash + itemHash) * multiplier;
 		}
-		if (!canDestroy || !isMutable())
-		{
-			return copyAsMutableByteArrayTuple(object).tupleAtPuttingCanDestroy(
-				index,
-				newValueObject,
-				true);
-		}
-		// Clobber the object in place...
-		final byte theByte =
-			(byte) ((AvailObject)newValueObject).extractUnsignedByte();
-		final byte[] array =
-			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
-		array[index - 1] = theByte;
-		object.hashOrZero(0);
-		//  ...invalidate the hash value.
-		return object;
-	}
-
-	@Override @AvailMethod
-	void o_RawByteAtPut (
-		final AvailObject object,
-		final int index,
-		final short anInteger)
-	{
-		// Set the byte at the given index.
-		assert isMutable();
-		assert index >= 1 && index <= object.tupleSize();
-		final byte theByte = (byte) anInteger;
-		final byte[] array =
-			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
-		array[index - 1] = theByte;
-	}
-
-	@Override
-	@AvailMethod
-	int o_TupleIntAt (final AvailObject object, final int index)
-	{
-		// Answer the integer element at the given index in the tuple object.
-		assert index >= 1 && index <= object.tupleSize();
-		final byte[] array =
-			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
-		return array[index - 1] & 0xFF;
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_TupleReverse(final AvailObject object)
-	{
-		final int size = object.tupleSize();
-		if (size >= maximumCopySize)
-		{
-			return super.o_TupleReverse(object);
-		}
-
-		// It's not empty, it's not a total copy, and it's reasonably small.
-		// Just copy the applicable bytes out.  In theory we could use
-		// newLike() if start is 1.  Make sure to mask the last word in that
-		// case.
-		final byte[] originalBytes = object.byteArray();
-		final AvailObject result =
-			ByteTupleDescriptor.mutableObjectOfSize(size);
-		for (int i = 1; i <= size; i++)
-		{
-			// Remember to adjust between 1-based inclusive and 0-based
-			// inclusive/exclusive.
-			result.rawByteAtPut(size-i+1, originalBytes[i - 1]);
-		}
-		result.hashOrZero(0);
-		return result;
-
-	}
-
-	@Override @AvailMethod
-	int o_BitsPerEntry (final AvailObject object)
-	{
-		// Answer approximately how many bits per entry are taken up by this
-		// object.
-		return 8;
-	}
-
-	@Override @AvailMethod
-	int o_TupleSize (final AvailObject object)
-	{
-		final byte[] array =
-			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
-		return array.length;
-	}
-
-	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
-	{
-		if (isMutable())
-		{
-			object.descriptor = immutable;
-			object.slot(BYTE_ARRAY_POJO).makeImmutable();
-		}
-		return object;
-	}
-
-	@Override @AvailMethod
-	AvailObject o_MakeShared (final AvailObject object)
-	{
-		if (!isShared())
-		{
-			object.descriptor = shared;
-			object.slot(BYTE_ARRAY_POJO).makeShared();
-		}
-		return object;
+		return hash;
 	}
 
 	@Override
@@ -491,6 +284,150 @@ extends TupleDescriptor
 			object, start, end, canDestroy);
 	}
 
+	@Override @AvailMethod
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	{
+		return another.equalsByteArrayTuple(object);
+	}
+
+	@Override @AvailMethod
+	boolean o_EqualsByteArrayTuple (
+		final AvailObject object,
+		final A_Tuple aByteArrayTuple)
+	{
+		// First, check for object-structure (address) identity.
+		if (object.sameAddressAs(aByteArrayTuple))
+		{
+			return true;
+		}
+		if (object.byteArray() == aByteArrayTuple.byteArray())
+		{
+			return true;
+		}
+		if (object.tupleSize() != aByteArrayTuple.tupleSize())
+		{
+			return false;
+		}
+		if (object.hash() != aByteArrayTuple.hash())
+		{
+			return false;
+		}
+		if (!object.compareFromToWithByteArrayTupleStartingAt(
+			1,
+			object.tupleSize(),
+			aByteArrayTuple,
+			1))
+		{
+			return false;
+		}
+		// They're equal, but occupy disjoint storage. If possible, then
+		// replace one with an indirection to the other to keep down the
+		// frequency of byte-wise comparisons.
+		if (!isShared())
+		{
+			aByteArrayTuple.makeImmutable();
+			object.becomeIndirectionTo(aByteArrayTuple);
+		}
+		else if (!aByteArrayTuple.descriptor().isShared())
+		{
+			object.makeImmutable();
+			aByteArrayTuple.becomeIndirectionTo(object);
+		}
+		return true;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsByteArrayTuple (final AvailObject object)
+	{
+		return true;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsByteTuple (final AvailObject object)
+	{
+		return true;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsInstanceOfKind (
+		final AvailObject object,
+		final A_Type aType)
+	{
+		if (aType.isSupertypeOfPrimitiveTypeEnum(NONTYPE))
+		{
+			return true;
+		}
+		if (!aType.isTupleType())
+		{
+			return false;
+		}
+		// See if it's an acceptable size...
+		if (!aType.sizeRange().rangeIncludesInt(object.tupleSize()))
+		{
+			return false;
+		}
+		// tuple's size is out of range.
+		final A_Tuple typeTuple = aType.typeTuple();
+		final int breakIndex = min(object.tupleSize(), typeTuple.tupleSize());
+		for (int i = 1; i <= breakIndex; i++)
+		{
+			if (!object.tupleAt(i).isInstanceOf(aType.typeAtIndex(i)))
+			{
+				return false;
+			}
+		}
+		final A_Type defaultTypeObject = aType.defaultType();
+		if (IntegerRangeTypeDescriptor.bytes().isSubtypeOf(defaultTypeObject))
+		{
+			return true;
+		}
+		for (int i = breakIndex + 1, end = object.tupleSize(); i <= end; i++)
+		{
+			if (!object.tupleAt(i).isInstanceOf(defaultTypeObject))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MakeImmutable (final AvailObject object)
+	{
+		if (isMutable())
+		{
+			object.descriptor = immutable;
+			object.slot(BYTE_ARRAY_POJO).makeImmutable();
+		}
+		return object;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MakeShared (final AvailObject object)
+	{
+		if (!isShared())
+		{
+			object.descriptor = shared;
+			object.slot(BYTE_ARRAY_POJO).makeShared();
+		}
+		return object;
+	}
+
+	@Override @AvailMethod
+	void o_RawByteAtPut (
+		final AvailObject object,
+		final int index,
+		final short anInteger)
+	{
+		// Set the byte at the given index.
+		assert isMutable();
+		assert index >= 1 && index <= object.tupleSize();
+		final byte theByte = (byte) anInteger;
+		final byte[] array =
+			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
+		array[index - 1] = theByte;
+	}
+
 	@Override
 	void o_TransferIntoByteBuffer (
 		final AvailObject object,
@@ -503,6 +440,53 @@ extends TupleDescriptor
 			byteArray,
 			startIndex - 1,
 			endIndex - startIndex + 1);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_TupleAt (final AvailObject object, final int index)
+	{
+		// Answer the element at the given index in the tuple object.
+		final byte[] array =
+			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
+		return (AvailObject)IntegerDescriptor.fromUnsignedByte(
+			(short) (array[index - 1] & 0xFF));
+	}
+
+	@Override
+	@AvailMethod
+	A_Tuple o_TupleAtPuttingCanDestroy (
+		final AvailObject object,
+		final int index,
+		final A_BasicObject newValueObject,
+		final boolean canDestroy)
+	{
+		// Answer a tuple with all the elements of object except at the given
+		// index we should have newValueObject. This may destroy the original
+		// tuple if canDestroy is true.
+		assert index >= 1 && index <= object.tupleSize();
+		if (!newValueObject.isUnsignedByte())
+		{
+			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
+				index,
+				newValueObject,
+				true);
+		}
+		if (!canDestroy || !isMutable())
+		{
+			return copyAsMutableByteArrayTuple(object).tupleAtPuttingCanDestroy(
+				index,
+				newValueObject,
+				true);
+		}
+		// Clobber the object in place...
+		final byte theByte =
+			(byte) ((AvailObject)newValueObject).extractUnsignedByte();
+		final byte[] array =
+			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
+		array[index - 1] = theByte;
+		object.hashOrZero(0);
+		//  ...invalidate the hash value.
+		return object;
 	}
 
 	@Override
@@ -521,6 +505,52 @@ extends TupleDescriptor
 			startIndex,
 			endIndex,
 			type);
+	}
+
+	@Override
+	@AvailMethod
+	int o_TupleIntAt (final AvailObject object, final int index)
+	{
+		// Answer the integer element at the given index in the tuple object.
+		assert index >= 1 && index <= object.tupleSize();
+		final byte[] array =
+			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
+		return array[index - 1] & 0xFF;
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_TupleReverse(final AvailObject object)
+	{
+		final int size = object.tupleSize();
+		if (size >= maximumCopySize)
+		{
+			return super.o_TupleReverse(object);
+		}
+
+		// It's not empty, it's not a total copy, and it's reasonably small.
+		// Just copy the applicable bytes out.  In theory we could use
+		// newLike() if start is 1.  Make sure to mask the last word in that
+		// case.
+		final byte[] originalBytes = object.byteArray();
+		final AvailObject result =
+			ByteTupleDescriptor.mutableObjectOfSize(size);
+		for (int i = 1; i <= size; i++)
+		{
+			// Remember to adjust between 1-based inclusive and 0-based
+			// inclusive/exclusive.
+			result.rawByteAtPut(size-i+1, originalBytes[i - 1]);
+		}
+		result.hashOrZero(0);
+		return result;
+
+	}
+
+	@Override @AvailMethod
+	int o_TupleSize (final AvailObject object)
+	{
+		final byte[] array =
+			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
+		return array.length;
 	}
 
 	@Override

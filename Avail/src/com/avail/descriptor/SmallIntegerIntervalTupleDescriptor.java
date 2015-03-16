@@ -96,50 +96,45 @@ extends TupleDescriptor
 	private final int maximumCopySize = 32;
 
 	@Override @AvailMethod
-	public boolean o_IsSmallIntegerIntervalTuple(final AvailObject object)
-	{
-		return true;
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_CopyTupleFromToCanDestroy (
+	A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
-		final int start,
-		final int end,
+		final A_BasicObject newElement,
 		final boolean canDestroy)
 	{
-		// Ensure parameters are in bounds
-		assert 1 <= start && start <= end + 1;
-		final int oldSize = object.slot(SIZE);
-		final int newSize = end - start + 1;
-		assert 0 <= end && end <= oldSize;
-
-		// If the requested copy is a proper subrange, create it.
-		if (newSize != oldSize)
+		final int originalSize = object.tupleSize();
+		final long endValue = object.slot(END);
+		final long deltaValue = object.slot(DELTA);
+		final long nextValue = endValue + deltaValue;
+		if (newElement.isInt()
+			&& ((A_Number)newElement).extractInt() == endValue + deltaValue
+			&& originalSize < Integer.MAX_VALUE)
 		{
-			final int delta = object.slot(DELTA);
-			final int oldStartValue = object.slot(START);
-
-			final int newStartValue = oldStartValue + delta * (start - 1);
-			final int newEndValue = newStartValue + delta * (newSize - 1);
-
-			if (isMutable() && canDestroy)
+			// Extend the interval.
+			if (canDestroy & isMutable())
 			{
-				// Recycle the object.
-				object.setSlot(START, newStartValue);
-				object.setSlot(END, newEndValue);
-				object.setSlot(SIZE, newSize);
+				object.setSlot(END, (int)nextValue);
+				object.setSlot(SIZE, originalSize + 1);
+				object.setSlot(HASH_OR_ZERO, 0);
 				return object;
 			}
-			return createInterval(newStartValue, newEndValue, delta);
+			// Create another small integer interval.
+			return createInterval(
+				object.slot(START),
+				(int)(nextValue + deltaValue),
+				originalSize + 1);
 		}
+		// Fall back to concatenating a singleton.
+		final A_Tuple singleton = TupleDescriptor.from(newElement);
+		return object.concatenateWith(singleton, canDestroy);
+	}
 
-		// Otherwise, this method is requesting a full copy of the original.
-		if (isMutable() && !canDestroy)
-		{
-			object.makeImmutable();
-		}
-		return object;
+	@Override
+	int o_BitsPerEntry (final AvailObject object)
+	{
+		// Consider a billion element tuple. Since a small interval tuple
+		// requires only O(1) storage, irrespective of its size, the average
+		// bits per entry is 0.
+		return 0;
 	}
 
 	@Override @AvailMethod
@@ -276,6 +271,47 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
+	A_Tuple o_CopyTupleFromToCanDestroy (
+		final AvailObject object,
+		final int start,
+		final int end,
+		final boolean canDestroy)
+	{
+		// Ensure parameters are in bounds
+		assert 1 <= start && start <= end + 1;
+		final int oldSize = object.slot(SIZE);
+		final int newSize = end - start + 1;
+		assert 0 <= end && end <= oldSize;
+
+		// If the requested copy is a proper subrange, create it.
+		if (newSize != oldSize)
+		{
+			final int delta = object.slot(DELTA);
+			final int oldStartValue = object.slot(START);
+
+			final int newStartValue = oldStartValue + delta * (start - 1);
+			final int newEndValue = newStartValue + delta * (newSize - 1);
+
+			if (isMutable() && canDestroy)
+			{
+				// Recycle the object.
+				object.setSlot(START, newStartValue);
+				object.setSlot(END, newEndValue);
+				object.setSlot(SIZE, newSize);
+				return object;
+			}
+			return createInterval(newStartValue, newEndValue, delta);
+		}
+
+		// Otherwise, this method is requesting a full copy of the original.
+		if (isMutable() && !canDestroy)
+		{
+			object.makeImmutable();
+		}
+		return object;
+	}
+
+	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsSmallIntegerIntervalTuple(object);
@@ -333,13 +369,10 @@ extends TupleDescriptor
 
 	}
 
-	@Override
-	int o_BitsPerEntry (final AvailObject object)
+	@Override @AvailMethod
+	public boolean o_IsSmallIntegerIntervalTuple(final AvailObject object)
 	{
-		// Consider a billion element tuple. Since a small interval tuple
-		// requires only O(1) storage, irrespective of its size, the average
-		// bits per entry is 0.
-		return 0;
+		return true;
 	}
 
 	@Override @AvailMethod
@@ -377,6 +410,39 @@ extends TupleDescriptor
 		// Invalidate the hash value.
 		object.hashOrZero(0);
 		return object;
+	}
+
+	@Override
+	boolean o_TupleElementsInRangeAreInstancesOf (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex,
+		final A_Type type)
+	{
+		final A_Number start = object.tupleAt(startIndex);
+		final A_Number end = object.tupleAt(endIndex);
+		final A_Number low;
+		final A_Number high;
+		if (start.lessThan(end))
+		{
+			low = start;
+			high = end;
+		}
+		else
+		{
+			low = end;
+			high = start;
+		}
+		if (type.isSupertypeOfIntegerRangeType(
+			IntegerRangeTypeDescriptor.inclusive(low, high)))
+		{
+			return true;
+		}
+		return super.o_TupleElementsInRangeAreInstancesOf(
+			object,
+			startIndex,
+			endIndex,
+			type);
 	}
 
 	@Override @AvailMethod
@@ -420,39 +486,6 @@ extends TupleDescriptor
 	int o_TupleSize (final AvailObject object)
 	{
 		return object.slot(SIZE);
-	}
-
-	@Override
-	boolean o_TupleElementsInRangeAreInstancesOf (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex,
-		final A_Type type)
-	{
-		final A_Number start = object.tupleAt(startIndex);
-		final A_Number end = object.tupleAt(endIndex);
-		final A_Number low;
-		final A_Number high;
-		if (start.lessThan(end))
-		{
-			low = start;
-			high = end;
-		}
-		else
-		{
-			low = end;
-			high = start;
-		}
-		if (type.isSupertypeOfIntegerRangeType(
-			IntegerRangeTypeDescriptor.inclusive(low, high)))
-		{
-			return true;
-		}
-		return super.o_TupleElementsInRangeAreInstancesOf(
-			object,
-			startIndex,
-			endIndex,
-			type);
 	}
 
 	/** The mutable {@link SmallIntegerIntervalTupleDescriptor}. */
@@ -512,22 +545,20 @@ extends TupleDescriptor
 		final A_Number delta)
 	{
 		// Size is always an integer, so no need to check it.
-
-		final A_Number integerMin =
-			IntegerDescriptor.fromInt(Integer.MIN_VALUE);
-		final A_Number integerMax =
-			IntegerDescriptor.fromInt(Integer.MAX_VALUE);
-
-		if (newStart.greaterOrEqual(integerMin)
-				&& newStart.lessOrEqual(integerMax)
-			&& newEnd.lessOrEqual(integerMax)
-				&& newEnd.lessOrEqual(integerMax)
-			&& delta.lessOrEqual(integerMax)
-				&& delta.lessOrEqual(integerMax))
+		if (!newStart.isInt() || !newEnd.isInt() || !delta.isInt())
 		{
-			return true;
+			return false;
 		}
-		return false;
+		final long size =
+			(newEnd.extractLong() - newStart.extractLong())
+					/ delta.extractInt()
+				+ 1L;
+		if (size != (int)size)
+		{
+			// They're all ints, but the size is bigger than Integer.MAX_VALUE.
+			return false;
+		}
+		return true;
 	}
 
 	/**

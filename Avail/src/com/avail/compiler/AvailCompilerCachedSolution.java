@@ -32,6 +32,7 @@
 
 package com.avail.compiler;
 
+import com.avail.annotations.Nullable;
 import com.avail.compiler.AbstractAvailCompiler.ParserState;
 import com.avail.descriptor.*;
 
@@ -79,6 +80,24 @@ final class AvailCompilerCachedSolution
 		return parseNode;
 	}
 
+	@Override
+	public boolean equals (final @Nullable Object obj)
+	{
+		if (!(obj instanceof AvailCompilerCachedSolution))
+		{
+			return false;
+		}
+		final AvailCompilerCachedSolution other =
+			(AvailCompilerCachedSolution)obj;
+		return endState.equals(other.endState)
+			&& parseNode.equals(other.parseNode);
+	}
+
+	@Override
+	public int hashCode ()
+	{
+		return parseNode.hash();
+	}
 
 	@Override
 	public String toString ()

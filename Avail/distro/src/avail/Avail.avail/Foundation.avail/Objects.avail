@@ -156,10 +156,8 @@ Semantic restriction "_→object type" is
 		else if [ |atomType| ≠ ∞ ] then
 		[
 			atoms ::= atomType's instances;
-			For each atoms do
+			For each fieldAtom of atoms do
 			[
-				fieldAtom : atom
-			|
 				fieldType ::= constraints[fieldAtom] else [ ⊥ ] ∪ defType;
 				constraints := eject constraints + fieldAtom→fieldType;
 			];
@@ -238,16 +236,14 @@ Semantic restriction "_→object" is
 	universal : any meta := ⊥;
 	For each index from 1 to limit do
 	[
-		defTuple ::= tupleType[index];
-		atomType ::= defTuple[1];
-		defType ::= defTuple[2];
+		atomType, defType ::= tupleType[index];
 		/* The field atom is known exactly. Therefore, we can confidently
 		 * say that the resulting object type must contain this field.
 		 */
 		if |atomType| = 1 then
 		[
 			fieldAtom ::= atomType's instance;
-			fieldType ::= defs[fieldAtom] else [ ⊥ ] ∪ defType;
+			fieldType ::= defs[fieldAtom] else [⊥] ∪ defType;
 			defs := eject defs + fieldAtom→fieldType;
 		]
 		/* We know one or more fields with which this type is associated, so
@@ -256,11 +252,9 @@ Semantic restriction "_→object" is
 		else if [ |atomType| ≠ ∞ ] then
 		[
 			atoms ::= atomType's instances;
-			For each atoms do
+			For each fieldAtom of atoms do
 			[
-				fieldAtom : atom
-			|
-				fieldType ::= constraints[fieldAtom] else [ ⊥ ] ∪ defType;
+				fieldType ::= constraints[fieldAtom] else [⊥] ∪ defType;
 				constraints := eject constraints + fieldAtom→fieldType;
 			];
 		]
@@ -581,8 +575,8 @@ Private method "Generate and install_accessor for«mutable»?_" is
 		theMethod ::= method for methodAtom;
 		restrictions ::= semantic restrictions for theMethod
 			given <objectType's type's type>;
-		needToRestrict ::= ¬any of restrictions satisfies
-			[r : […]→type | r's type[1] = (objectType's type's type)];
+		needToRestrict ::= ¬any r of restrictions satisfies
+			[r's type[1] = (objectType's type's type)];
 		If needToRestrict then
 		[
 			Semantic restriction methodName is
@@ -606,8 +600,8 @@ Private method "Generate and install_accessor for«mutable»?_" is
 		theMethod ::= method for methodAtom;
 		restrictions ::=
 			semantic restrictions for theMethod given <objectType's type>;
-		needToRestrict ::= ¬any of restrictions satisfies
-			[r : […]→type | r's type[1] = (objectType's type)];
+		needToRestrict ::= ¬any r of restrictions satisfies
+			[r's type[1] = (objectType's type)];
 		If needToRestrict then
 		[
 			sem ::= generate objectType field accessor restriction
@@ -806,10 +800,8 @@ Private method "reconstructor name for_" is
 |
 	methodName : nonempty string :=
 		fieldAtoms[1]'s default accessor name ++ "::=_";
-	For each fieldAtoms' tail do
+	For each fieldAtom of fieldAtoms' tail do
 	[
-		fieldAtom : atom
-	|
 		methodName := eject methodName ++ "," ++ fieldAtom's name ++ "::=_";
 	];
 	methodName
@@ -892,11 +884,8 @@ Private method "Generate and install_reconstructor for_" is
 	 * shared.
 	 */
 	cloning : <phrase…|> := <>;
-	For each objectType→map do
+	For each fieldAtom → fieldType of objectType→map do
 	[
-		fieldAtom : atom,
-		fieldType : any meta
-	|
 		If ¬shared ∈ fieldAtom ∧ fieldType ⊆ variable then
 		[
 			varType ::= cast fieldType into [t : variable meta | t];
@@ -1314,10 +1303,8 @@ is
 			];
 	];
 	/* Generate the reconstructors. */
-	For each reconstructors do
+	For each atoms of reconstructors do
 	[
-		atoms : <atom…|1..>
-	|
 		Generate and install subtype reconstructor for atoms;
 		Generate and install subtype reconstructor's semantic restriction
 			for atoms;
@@ -1840,11 +1827,8 @@ Public method "a|an_«with«_«:»?:=_‡,»»" is
 	 * not to override any user assignments.
 	 */
 	syntheticAssignments : field tuple := <>;
-	For each objectMap do
+	For each fieldAtom → fieldType of objectMap do
 	[
-		fieldAtom : atom,
-		fieldType : any meta
-	|
 		/* Don't override the user's assignments. */
 		If ¬fieldAtom ∈ fieldAtoms then
 		[
@@ -1971,11 +1955,8 @@ Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
 		];
 		assignments := eject assignments + fieldAtom→valueType;
 	];
-	For each definitions do
+	For each fieldAtom → fieldType of definitions do
 	[
-		fieldAtom : atom,
-		fieldType : any meta
-	|
 		If |fieldType| = 1 ∧ ¬fieldType ⊆ type then
 		[
 			assignments := eject assignments + fieldAtom→fieldType;
@@ -2030,11 +2011,8 @@ Public method "_as_«with«_::=_‡,»»" is
 	];
 	objectMap ::= objectType→map;
 	identityAssignments : <<atom, any…|2>…|> := <>;
-	For each objectMap do
+	For each fieldAtom → fieldType of objectMap do
 	[
-		fieldAtom : atom,
-		fieldType : any meta
-	|
 		If |fieldType| = 1 ∧ ¬fieldType ⊆ type then
 		[
 			identityAssignments := eject identityAssignments
@@ -2077,9 +2055,7 @@ Semantic restriction "_as_«with«_::=_‡,»»" is
 	assignments : field type map := instance→map;
 	For each index from 1 to relevant |optional[1]| do
 	[
-		def ::= optional[1][index];
-		atomType ::= def[1];
-		valueType ::= def[2];
+		atomType, valueType ::= optional[1][index];
 		If |atomType| ≠ 1 then
 		[
 			Reject parse, expected: "all field atoms to be known statically"
@@ -2108,11 +2084,8 @@ Semantic restriction "_as_«with«_::=_‡,»»" is
 		];
 		assignments := eject assignments + fieldAtom→valueType;
 	];
-	For each definitions do
+	For each fieldAtom → fieldType of definitions do
 	[
-		fieldAtom : atom,
-		fieldType : any meta
-	|
 		If |fieldType| = 1 ∧ ¬fieldType ⊆ type then
 		[
 			assignments := eject assignments + fieldAtom→fieldType;

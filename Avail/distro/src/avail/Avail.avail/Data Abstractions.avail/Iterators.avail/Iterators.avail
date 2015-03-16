@@ -73,7 +73,7 @@ Private method "a reader prefix function" is
 	|
 		Declare loop variable elementPhrase as
 		[
-		 	aReaderType ::= aReader's semantic type;
+			aReaderType ::= aReader's semantic type;
 			aReaderType's element type's instance
 		];
 	]

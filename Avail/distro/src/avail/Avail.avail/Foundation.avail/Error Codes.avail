@@ -130,9 +130,7 @@ Invoke
 	[
 		i : natural number
 	|
-		pair ::= numberedCodes[i];
-		errorNumber ::= pair[1];
-		errorString ::= pair[2];
+		errorNumber, errorString ::= numberedCodes[i];
 		Next error code is errorString (errorNumber);
 		true
 	];

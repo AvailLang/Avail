@@ -38,11 +38,14 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+import com.avail.annotations.Nullable;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
+import com.avail.utility.MutableOrNull;
+import com.avail.utility.evaluation.Continuation1;
 
 /**
  * The {@code P_403_BootstrapBlockLocalDeclarationMacro} primitive is used for
@@ -87,40 +90,56 @@ public final class P_403_BootstrapBlockLocalDeclarationMacro extends Primitive
 			statementsPhrase.expressionAt(statementCountSoFar);
 		final A_Phrase latestStatement =
 			latestStatementLiteral.token().literal();
-		if (!latestStatement.parseNodeKind().isSubkindOf(DECLARATION_NODE))
+		final MutableOrNull<AvailErrorCode> error = new MutableOrNull<>();
+		latestStatement.statementsDo(new Continuation1<A_Phrase>()
 		{
-			// This isn't a declaration, it's some other kind of statement.
-			// For now, just ensure it has type ⊤.  The macro body will deal
-			// with it later.
-			if (!latestStatement.expressionType().equals(TOP.o()))
+			@Override
+			public void value (final @Nullable A_Phrase statement)
 			{
-				throw new AvailRejectedParseException(
-					"statement to have type ⊤");
+				assert statement != null;
+				if (!statement.parseNodeKind().isSubkindOf(DECLARATION_NODE))
+				{
+					// This isn't a declaration, it's some other kind of
+					// statement. For now, just ensure it has type ⊤.  The
+					// macro body will deal with it later.
+					if (!statement.expressionType().equals(TOP.o()))
+					{
+						throw new AvailRejectedParseException(
+							"statement to have type ⊤");
+					}
+					return;
+				}
+				final DeclarationKind declarationKind =
+					statement.declarationKind();
+				if (declarationKind != LOCAL_CONSTANT
+					&& declarationKind != LOCAL_VARIABLE)
+				{
+					// I don't know why there's a non-local declaration in here.
+					throw new AvailRejectedParseException(
+						"declaration to be a local variable or constant, "
+						+ "not %s",
+						declarationKind.name());
+				}
+				error.value = loader.addDeclaration(statement);
+				if (error.value != null)
+				{
+					if (error.value() == E_LOCAL_DECLARATION_SHADOWS_ANOTHER)
+					{
+						throw new AvailRejectedParseException(
+							"local %s %s to have a name that doesn't shadow "
+							+ "another local declaration",
+							declarationKind == LOCAL_CONSTANT
+								? "constant"
+								: "variable",
+							statement.token().string());
+					}
+					return;
+				}
 			}
-			return interpreter.primitiveSuccess(NilDescriptor.nil());
-		}
-		final DeclarationKind declarationKind =
-			latestStatement.declarationKind();
-		if (declarationKind != LOCAL_CONSTANT
-			&& declarationKind != LOCAL_VARIABLE)
+		});
+		if (error.value != null)
 		{
-			// I don't know why there's a non-local declaration in here.
-			throw new AvailRejectedParseException(
-				"declaration to be a local variable or constant, not %s",
-				declarationKind.name());
-		}
-		final AvailErrorCode error = loader.addDeclaration(latestStatement);
-		if (error != null)
-		{
-			if (error == E_LOCAL_DECLARATION_SHADOWS_ANOTHER)
-			{
-				throw new AvailRejectedParseException(
-					"local %s %s to have a name that doesn't shadow another"
-					+ " local declaration",
-					declarationKind == LOCAL_CONSTANT ? "constant" : "variable",
-					latestStatement.token().string());
-			}
-			return interpreter.primitiveFailure(error);
+			return interpreter.primitiveFailure(error.value());
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
@@ -178,7 +197,7 @@ public final class P_403_BootstrapBlockLocalDeclarationMacro extends Primitive
 						 * declaration inside a literal phrase, so expect a
 						 * phrase here instead of TOP.o().
 						 */
-						PARSE_NODE.mostGeneralType()))),
+						STATEMENT_NODE.mostGeneralType()))),
 			TOP.o());
 	}
 }

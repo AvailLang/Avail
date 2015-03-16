@@ -80,14 +80,22 @@ public class AvailCompilerBipartiteRendezvous
 	 *
 	 * @param endState The parse position after the parseNode.
 	 * @param parseNode The parse node that was parsed.
+	 * @throws DuplicateSolutionException
+	 *         If the parse node and end state are equal to a solution already
+	 *         recorded.
 	 */
 	void addSolution (
 		final ParserState endState,
 		final A_Phrase parseNode)
+	throws DuplicateSolutionException
 	{
 		final AvailCompilerCachedSolution solution =
 			new AvailCompilerCachedSolution(
 				endState, parseNode.makeShared());
+		if (solutions.contains(solution))
+		{
+			throw new DuplicateSolutionException();
+		}
 		solutions.add(solution);
 		for (final Con<A_Phrase> action : actions)
 		{

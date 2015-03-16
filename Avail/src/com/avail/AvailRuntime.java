@@ -1235,8 +1235,7 @@ public final class AvailRuntime
 	static
 	{
 		// Set up the special objects.
-		final A_BasicObject[] specials =
-			new A_BasicObject[specialObjects.length];
+		final A_BasicObject[] specials = specialObjects;
 		specials[1] = ANY.o();
 		specials[2] = EnumerationTypeDescriptor.booleanObject();
 		specials[3] = CHARACTER.o();
@@ -1493,8 +1492,7 @@ public final class AvailRuntime
 		specials[142] = SUPER_CAST_NODE.mostGeneralType();
 		specials[143] = AtomDescriptor.clientDataGlobalKey();
 		specials[144] = AtomDescriptor.compilerScopeMapKey();
-
-		System.arraycopy(specials, 0, specialObjects, 0, specials.length);
+		specials[145] = AtomDescriptor.usedTokensKey();
 
 		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
 		// depends on the order of this list.
@@ -1516,7 +1514,8 @@ public final class AvailRuntime
 			AtomDescriptor.messageBundleKey(),
 			MethodDescriptor.vmDeclareStringifierAtom(),
 			AtomDescriptor.clientDataGlobalKey(),
-			AtomDescriptor.compilerScopeMapKey()));
+			AtomDescriptor.compilerScopeMapKey(),
+			AtomDescriptor.usedTokensKey()));
 
 		for (final A_Atom atom : specialAtomsList)
 		{

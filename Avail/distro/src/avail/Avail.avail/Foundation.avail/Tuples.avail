@@ -875,10 +875,8 @@ Method "any of_satisfies_" is
 	predicate : [⊥]→boolean
 |
 	$body : boolean;
-	For each aTuple do
+	For each element of aTuple do
 	[
-		element : any
-	|
 		If predicate(element) then
 		[
 			Exit body with true
@@ -908,11 +906,8 @@ Method "any of_satisfies_" is
 	predicate : [⊥, ⊥]→boolean
 |
 	$body : boolean;
-	For each aTuple do
+	For each element, index of aTuple do
 	[
-		element : any,
-		index : natural number
-	|
 		If predicate(element, index) then
 		[
 			Exit body with true
@@ -958,10 +953,8 @@ Method "each of_satisfies_" is
 	predicate : [⊥]→boolean
 |
 	$body : boolean;
-	For each aTuple do
+	For each element of aTuple do
 	[
-		element : any
-	|
 		Unless predicate(element) then
 		[
 			Exit body with false
@@ -991,11 +984,8 @@ Method "each of_satisfies_" is
 	predicate : [⊥, ⊥]→boolean
 |
 	$body : boolean;
-	For each aTuple do
+	For each element, index of aTuple do
 	[
-		element : any,
-		index : natural number
-	|
 		Unless predicate(element, index) then
 		[
 			Exit body with false
@@ -1202,10 +1192,8 @@ Private method "zip function" is
 		For each index from 1 to limit do
 		[
 			group : tuple := <>;
-			For each tuples do
+			For each aTuple of tuples do
 			[
-				aTuple : tuple
-			|
 				group := eject group ++ <aTuple[index]>;
 			];
 			accumulator := eject accumulator ++ <group>;
@@ -1307,10 +1295,8 @@ Private method "zip semantic restriction" is
 				/* Examine the `index`-th element type of each input. Accumulate
 				 * the results into `zipped`.
 				 */
-				For each types do
+				For each tupleType of types do
 				[
-					tupleType : tuple meta
-				|
 					zipped := eject zipped ++ <tupleType[index]>;
 				];
 				nonempty ::= cast zipped
@@ -1927,7 +1913,7 @@ Stable method "_∈_" is
 	value : any,
 	aTuple : tuple
 |
-	any element of aTuple satisfies [element = value ]
+	any element of aTuple satisfies [element = value]
 ] : boolean;
 
 /**
@@ -3496,22 +3482,30 @@ Private method "merge_with_" is
 	input2 : tuple := splitInput[2];
 	output : tuple := input1 ++ input2;
 
-	While i ≤ |input1| ∧ j ≤ |input2|
+	input1_size ::= |input1|;
+	input2_size ::= |input2|;
+
+	While i ≤ input1_size ∧ j ≤ input2_size
 	do
 	[
-		If comparator(input1[i], input2[j]) then
+		i1 ::= input1[i];
+		i2 ::= input2[j];
+		
+		If comparator(i1, i2) then
 		[
-			output := output[k]→input1[i];
+			output := output[k]→i1;
 			i++;
 		]
 		else
 		[
-			output := output[k]→input2[j];
+			output := output[k]→i2;
 			j++;
 		];
 		k++;
 	];
-	if i < |input1| then [output[..k-1] ++ input1[i..]]
+	
+	/* concatenate remaining input */
+	if i ≤ input1_size then [output[..k-1] ++ input1[i..]]
 	else [output[..k-1] ++ input2[j..]]
 ]: tuple;
 
@@ -3588,7 +3582,11 @@ Public method "merge sort_with_" is
  |
 		left : tuple := merge sort aTuple[..|aTuple| ÷ 2] with comparator;
 		right: tuple := merge sort aTuple[|aTuple| ÷ 2 + 1..] with comparator;
-		merge <left,right> with comparator
+		merge: tuple := merge <left,right> with comparator;
+		
+		Assert: (|left| + |right|) = |merge|;
+		
+		merge
 ]: tuple;
 
 /**

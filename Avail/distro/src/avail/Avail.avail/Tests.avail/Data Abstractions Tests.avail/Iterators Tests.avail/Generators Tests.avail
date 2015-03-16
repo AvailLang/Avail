@@ -56,10 +56,8 @@ Test "generator basics" in generator test suite is
 		|
 			For each i from 1 to 10 do [yield(i);];
 		];
-	For each iter do
+	For each element of iter do
 	[
-		element : [1..10]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);
@@ -75,10 +73,8 @@ Test "generator raises exception" in generator test suite is
 		|
 			For each i from 10 to 0 by -1 do [yield(10 ÷ i);];
 		];
-	For each iter do
+	For each element of iter do
 	[
-		element : [0..10]
-	|
 		Require: element = ref[(index++)];
 	];
 ]
@@ -95,10 +91,8 @@ Test "generator with multiple yields" in generator test suite is
 			For each i from 1 to 5 do [yield(i);];
 			For each i from 6 to 10 do [yield(i);];
 		];
-	For each iter do
+	For each element of iter do
 	[
-		element : [1..10]
-	|
 		Require: element = ref[(index++)];
 	];
 	Require: index = (|ref| + 1);

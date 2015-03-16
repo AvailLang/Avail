@@ -852,22 +852,11 @@ implements A_BasicObject
 		final int intSlotsCount)
 	{
 		super(descriptor);
-		if (objectSlotsSize == 0)
-		{
-			objectSlots = emptyObjectSlots;
-		}
-		else
-		{
-			objectSlots = new AvailObject[objectSlotsSize];
-		}
-
-		if (intSlotsCount == 0)
-		{
-			intSlots = emptyIntegerSlots;
-		}
-		else
-		{
-			intSlots = new int[intSlotsCount];
-		}
+		objectSlots = objectSlotsSize == 0
+			? emptyObjectSlots
+			: new AvailObject[objectSlotsSize];
+		intSlots = intSlotsCount == 0
+			? emptyIntegerSlots
+			:new int[intSlotsCount];
 	}
 }

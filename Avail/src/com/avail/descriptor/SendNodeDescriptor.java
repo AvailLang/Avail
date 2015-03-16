@@ -187,6 +187,14 @@ extends ParseNodeDescriptor
 		aBlock.value(object.slot(ARGUMENTS_LIST_NODE));
 	}
 
+	@Override
+	void o_StatementsDo (
+		final AvailObject object,
+		final Continuation1<A_Phrase> continuation)
+	{
+		throw unsupportedOperationException();
+	}
+
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,

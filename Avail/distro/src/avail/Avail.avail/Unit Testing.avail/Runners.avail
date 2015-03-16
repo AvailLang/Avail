@@ -181,7 +181,7 @@ Private method "Setup:_" is
 |
 	Guard
 	[
-		For each setup for aSuite do [setup : []→⊤ | setup();];
+		For each setup of setup for aSuite do [setup();];
 	]
 	intercept
 	[
@@ -209,7 +209,7 @@ Private method "Setup:_" is
 |
 	Guard
 	[
-		For each setup for aTest do [setup : []→⊤ | setup();];
+		For each setup of setup for aTest do [setup();];
 	]
 	intercept
 	[
@@ -237,7 +237,7 @@ Private method "Tear down:_" is
 |
 	Guard
 	[
-		For each tear down for aSuite do [tearDown : []→⊤ | tearDown();];
+		For each tearDown of tear down for aSuite do [tearDown();];
 	]
 	intercept
 	[
@@ -265,7 +265,7 @@ Private method "Tear down:_" is
 |
 	Guard
 	[
-		For each tear down for aTest do [tearDown : []→⊤ | tearDown();];
+		For each tearDown of tear down for aTest do [tearDown();];
 	]
 	intercept
 	[
@@ -424,7 +424,7 @@ Private method "Run each_,raising_on error" is
 |
 	Guard
 	[
-		For each actions do [action : []→⊤ | action();];
+		For each action of actions do [action();];
 	]
 	intercept
 	[
@@ -466,10 +466,8 @@ Private method "recursively visit_,on entering do_,on leaving do_" is
 	leaveAction : [root unit test suite]→⊤
 |
 	results : tuple := enterAction(aSuite);
-	For each aSuite's child suite IDs do
+	For each childID of aSuite's child suite IDs do
 	[
-		childID : atom
-	|
 		childResults ::=
 			recursively visit suites by atom[childID],
 			on entering do enterAction,

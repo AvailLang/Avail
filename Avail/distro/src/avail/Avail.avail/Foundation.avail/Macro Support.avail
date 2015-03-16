@@ -73,7 +73,7 @@ Semantic restriction "private invoke_with_" is
  * @method "Declare loop variable_as_"
  * @param "varNamePhrase" "literal phrase ⇒ token" The name of the variable
  * @param "varTypeFunction" "function accepting <> and returning any meta"
- * 		A function that determines the type of the variable
+ *        A function that determines the type of the variable
  * @returns "⊤"
  */
 Public method "Declare loop variable_as_" is
@@ -83,16 +83,7 @@ Public method "Declare loop variable_as_" is
 |
 	varToken ::= varNamePhrase's token;
 	varName ::= varToken's lexeme;
-	If varName ∈ scope map then
-	[
-		Reject parse, expected:
-			concatenate
-			<
-				"loop variable",
-				varName,
-				" to have a name that doesn't shadow another local declaration"
-			>
-	];
+	Require: "loop variable" named varName does not shadow;
 	varType ::= private invoke varTypeFunction with <>;
 	varDecl ::= arg «varToken : varType»;
 	scope map := scope map + varName → varDecl;

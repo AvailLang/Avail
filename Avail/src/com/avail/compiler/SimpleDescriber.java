@@ -40,7 +40,7 @@ import com.avail.utility.evaluation.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class SimpleDescriber implements Describer
+class SimpleDescriber extends Describer
 {
 	/** The string provided at construction time. */
 	final String string;

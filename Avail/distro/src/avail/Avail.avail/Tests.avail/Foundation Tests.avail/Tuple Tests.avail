@@ -36,6 +36,7 @@ Versions
 Uses
 	"Common",
 	"Foundation",
+	"Data Abstractions",
 	"Unit Testing"
 Names
 	"tuple test suite"
@@ -437,6 +438,26 @@ Test "small merge sort" in tuple test suite is
 	Require: <1,4,6> = ref;
 ];
 
+Test "deterministic merge- and quicksort should be equal" in tuple test suite is
+[
+	ref : <natural number…|> := <2,9,5,12,1,8,4,11,7,3,10,6>;
+	Require: merge sort ref = quicksort ref;
+];
+
+Test "random merge- and quicksort should be equal" in tuple test suite is
+[
+	rng : pRNG := a pRNG;
+	ref : <[-50..50]…|> := <>;
+	
+	Repeat 
+	[ 
+		v ::= rng's next value in [-50..50];
+		ref := ref ++ <v>;
+	] 100 times;
+	
+	Require: merge sort ref = quicksort ref;
+];
+
 Test "merge sort" in tuple test suite is
 [
 	ref : <natural number…|>;
@@ -780,4 +801,13 @@ Test "serialization" in tuple test suite is
 		];
 	];
 	Require: failed = <> ("serialization failed");
+];
+
+Test "destructuring tuple binding" in tuple test suite is
+[
+	t ::= 1 to 3;
+	x, y, z ::= t;
+	Require: x = t[1] = 1;
+	Require: y = t[2] = 2;
+	Require: z = t[3] = 3;
 ];

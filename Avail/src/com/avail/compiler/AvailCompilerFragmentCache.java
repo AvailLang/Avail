@@ -67,6 +67,7 @@ public class AvailCompilerFragmentCache
 	boolean hasStartedParsingAt (
 		final ParserState state)
 	{
+		assert Thread.holdsLock(this);
 		return solutions.containsKey(state);
 	}
 
@@ -79,6 +80,7 @@ public class AvailCompilerFragmentCache
 	void indicateParsingHasStartedAt (
 		final ParserState state)
 	{
+		assert Thread.holdsLock(this);
 		assert !hasStartedParsingAt(state);
 		solutions.put(state, new AvailCompilerBipartiteRendezvous());
 		assert hasStartedParsingAt(state);
@@ -94,12 +96,17 @@ public class AvailCompilerFragmentCache
 	 *        The parse position after the parseNode.
 	 * @param parseNode
 	 *        The parse node that was parsed.
+	 * @throws DuplicateSolutionException
+	 *         If the parse node and end state are equal to a solution already
+	 *         recorded.
 	 */
 	void addSolution (
 		final ParserState state,
 		final ParserState endState,
 		final A_Phrase parseNode)
+	throws DuplicateSolutionException
 	{
+		assert Thread.holdsLock(this);
 		solutions.get(state).addSolution(endState, parseNode);
 	}
 
@@ -118,6 +125,7 @@ public class AvailCompilerFragmentCache
 		final ParserState state,
 		final Con<A_Phrase> action)
 	{
+		assert Thread.holdsLock(this);
 		solutions.get(state).addAction(action);
 	}
 
@@ -128,6 +136,7 @@ public class AvailCompilerFragmentCache
 	 */
 	void clear ()
 	{
+		assert Thread.holdsLock(this);
 		solutions.clear();
 	}
 
@@ -141,6 +150,7 @@ public class AvailCompilerFragmentCache
 	String chooseCause (
 		final ParserState state)
 	{
+		assert Thread.holdsLock(this);
 		final AvailCompilerBipartiteRendezvous rendezvous =
 			solutions.get(state);
 		if (rendezvous == null)

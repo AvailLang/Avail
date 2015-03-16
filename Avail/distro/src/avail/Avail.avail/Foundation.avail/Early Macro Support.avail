@@ -35,12 +35,20 @@ Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
 	"Bootstrap",
+	"Early Conditionals",
+	"Early Literals",
 	"Very Early Definers"
 Names
+	/* Access to the parse map. */
 	"parse map",
 	"parse map:=_",
+
+	/* Access to the bootstrap scope map. */
 	"scope map",
-	"scope map:=_"
+	"scope map:=_",
+
+	/* Shadowing. */
+	"Require:_named_does not shadow"
 Body
 
 /**
@@ -107,3 +115,48 @@ Method "scope map:=_" is
 	parseMap ::= parse map + scope map key → aMap;
 	current fiber[parse map key] := parseMap;
 ];
+
+Method "private concatenate_" is
+[
+	tupleOfTuples : tuple of tuple
+|
+	Primitive 136;
+] : tuple;
+
+Semantic restriction "private concatenate_" is
+[
+	tupleOfTuples : tuple of tuple's type
+|
+	nonempty string
+];
+
+/**
+ * Require that the proposed variable name does not shadow another local name.
+ * Reject the current parse if it does. This method is intended to be invoked
+ * only as a consequence of running a macro.
+ *
+ * @method "Require:_named_does not shadow"
+ * @param "varRole" "nonempty string"
+ *        A short description of the role of the proprosed variable, e.g.,
+ *        "constant", "loop variable", etc.
+ * @param "varName" "nonempty string"
+ *        The proposed name of the new local.
+ * @returns "⊤"
+ */
+Method "Require:_named_does not shadow" is
+[
+	varRole : nonempty string,
+	varName : nonempty string
+|
+	If varName ∈ scope map then
+	[
+		Reject parse, expected:
+			private concatenate
+			<
+				varRole,
+				" ",
+				varName,
+				" to have a name that doesn't shadow another local declaration"
+			>
+	];
+] : ⊤;
