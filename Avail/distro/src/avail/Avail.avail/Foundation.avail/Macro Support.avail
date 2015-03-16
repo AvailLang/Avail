@@ -47,8 +47,8 @@ Names
 Body
 
 /*
- * This is a bootstrap function invoker, needed by "restricted send_with_:_" in
- * order to procure a result from a function application.
+ * This is a bootstrap function invoker, needed by "Declare loop variable_as_" 
+ * in order to procure a result from a function application.
  */
 Private method "private invoke_with_" is
 [

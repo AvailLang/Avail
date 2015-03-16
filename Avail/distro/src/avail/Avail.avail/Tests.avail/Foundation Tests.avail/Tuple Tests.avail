@@ -237,14 +237,13 @@ Test "tuple search" in tuple test suite is
 [
 	a ::= <1,2,3,2,1,4,5,6>;
 	b ::= <1,2,3,4,6,2,3>;
-	t ::= "The way to the heart is through the chest cavity, not through the \
-			\|stomach, silly!";
+	t ::= "The way to the heart is through the stomach";
 	Require: all indices of <> in <> = <>;
 	Require: all indices of <2> in <> = <>;
 	Require: all indices of <2> in a = <2,4>;
 	Require: all indices of <> in a = <>;
 	Require: all indices of <2,3> in b = <2,6>;
-	Require: all indices of "the" in t = <12,33,63>;
+	Require: all indices of "the" in t = <12,33>;
 	Require: first index of <> in <> = 0;
 	Require: first index of <2> in <> = 0;
 	Require: first index of <2> in a = 2;
@@ -255,6 +254,19 @@ Test "tuple search" in tuple test suite is
 	Require: first index of a where [n : natural number | n > 10] = 0;
 	Require: all indices of a where [n : natural number | n < 2] = <1,5>;
 	Require: all indices of a where [n : natural number | n > 20] = <>;
+];
+
+Test "tuple search (macros)" in tuple test suite is
+[
+	a ::= <1,2,3,2,1,4,5,6>;
+	b ::= <1,2,3,4,6,2,3>;
+
+	Require: (last index n of a where [n < 5]) = 6;
+	Require: (last index n of a where [n > 10]) = 0;
+	Require: first index n of a where [n < 5] = 1;
+	Require: first index n of a where [n > 10] = 0;
+	Require: all indices n of a where [n < 2] = <1,5>;
+	Require: all indices n of a where [n > 20] = <>;
 ];
 
 Test "subtuple replace" in tuple test suite is

@@ -55,6 +55,7 @@ Names
 	"Require:_accepts_«(check indices)»?",
 	"all indices of_in_",
 	"all indices of_where_",
+	"all indices…of_§where_",
 	"distinct_",
 	"drop from_until_",
 	"drop from_while_",
@@ -63,8 +64,10 @@ Names
 	"drop_from_",
 	"first index of_in_",
 	"first index of_where_",
+	"first index…of_§where_",
 	"For each…,…of_§do_",
 	"last index of_where_",
+	"last index…of_§where_",
 	"left fold_through_",
 	"merge sort_",
 	"merge sort_with_",
@@ -305,6 +308,59 @@ Private method "a tuple iteration prefix function" is
 		Declare loop variable elementPhrase as aTuple's strengthening function;
 	]
 ]: [literal phrase ⇒ token, expression phrase ⇒ tuple]→⊤;
+	
+/**
+ * Answer a function that computes a body function.
+ * 
+ * @method "predicate body function(_,_)"
+ * @param "anAtom" "atom" the atom that represents the function that the
+ * 		macro builds
+ * @param "baseReturnType" "type" the base return type of the method
+ * @returns "[literal phrase ⇒ token, expression phrase ⇒ tuple, 
+ *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
+ *          The requested function.
+ */
+Private method "predicate body function(_,_)" is
+[
+ 	anAtom : atom,
+ 	baseReturnType : type
+|
+	[
+		elementPhrase : literal phrase ⇒ token,
+		aTuple : expression phrase ⇒ tuple,
+		predicateBlock : block phrase ⇒ []→ boolean
+	|
+		name ::= elementPhrase's token's lexeme;
+		aTupleType ::= aTuple's semantic type;
+		blockType ::= [⊥]→(predicateBlock's semantic type's return type);
+		restrictions ::= semantic restrictions
+			for method for anAtom
+			given <aTupleType, blockType>;
+		returnType : type := baseReturnType;
+
+		From 1 to |restrictions| by 1 do
+		[
+			index : natural number
+		|
+			returnType := returnType
+				∩ restrictions[index](aTupleType, blockType);
+		];
+		statements ::= predicateBlock's statements;
+		blockReturnType ::= cast statements
+			into [t : phrase+ | t[|t|]'s semantic type]
+			else [⊤];
+		restricted send anAtom with
+		<
+			aTuple, 
+			«[
+			  	<cast scope map[name] into [d : argument phrase | d]>
+			 | 
+			 	statements
+			 ] : blockReturnType»
+		> : returnType
+	] : send phrase ⇒ ⊤
+] : [literal phrase ⇒ token, expression phrase ⇒ tuple, 
+     block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤;
 	
 /**
  * Tuple iterating-loop that invokes {@param "action"} once for every
@@ -965,58 +1021,6 @@ Semantic restriction "each of_satisfies_" is
 ];
 
 /**
- * Answer a function that computes a body function.
- * 
- * @method "predicate body function(_,_)"
- * @param "anAtom" "atom" the atom that represents the function that the
- * 		macro builds
- * @param "baseReturnType" "type" the base return type of the method
- * @returns "[literal phrase ⇒ token, expression phrase ⇒ tuple, 
- *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
- *          The requested function.
- */
-Private method "predicate body function(_,_)" is
-[
- 	anAtom : atom,
- 	baseReturnType : type
-|
-	[
-		elementPhrase : literal phrase ⇒ token,
-		aTuple : expression phrase ⇒ tuple,
-		predicateBlock : block phrase ⇒ []→ boolean
-	|
-		name ::= elementPhrase's token's lexeme;
-		aTupleType ::= aTuple's semantic type;
-		blockType ::= [⊥]→(predicateBlock's semantic type's return type);
-		restrictions ::= semantic restrictions
-			for method for anAtom
-			given <aTupleType, blockType>;
-		returnType : type := baseReturnType;
-			From 1 to |restrictions| by 1 do
-			[
-				index : natural number
-			|
-				returnType := returnType
-					∩ restrictions[index](aTupleType, blockType);
-			];
-			statements ::= predicateBlock's statements;
-			blockReturnType ::= cast statements
-				into [t : phrase+ | t[|t|]'s semantic type]
-				else [⊤];
-		restricted send anAtom with
-		<
-			aTuple, 
-			«[
-			  	<cast scope map[name] into [d : argument phrase | d]>
-			 | 
-			 	statements
-			 ] : blockReturnType»
-		> : returnType
-	] : send phrase ⇒ ⊤
-] : [literal phrase ⇒ token, expression phrase ⇒ tuple, 
-     block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤;
-
-/**
  * Compute and answer whether any of the elements of {@param "aTuple"} satisfies
  * the specified function. Do not examine more elements than necessary.
  * 
@@ -1552,6 +1556,27 @@ Semantic restriction "first index of_where_" is
 	Require: predicate accepts tupleType (check indices);
 	[0..⎡tupleType⎤ + 1)
 ];
+	
+/**
+ * Compute and answer the index of the first element of {@param "aTuple"} that 
+ * satisfies the specified predicate.
+ * 
+ * @macro "first index…of_§where_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over
+ * @param "predicateBlock" "block phrase ⇒ []→boolean"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        predicate function.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Queries" "Collections" "Tuples"
+ */
+Macro "first index…of_§where_" is a tuple iteration prefix function,
+	predicate body function($"first index of_where_", whole number);
 
 /**
  * Compute and answer the index of the last element of {@param "aTuple"} that 
@@ -1598,6 +1623,27 @@ Semantic restriction "last index of_where_" is
 	[0..⎡tupleType⎤ + 1)
 ];
 	
+/**
+ * Compute and answer the index of the last element of {@param "aTuple"} that 
+ * satisfies the specified predicate.
+ * 
+ * @macro "last index…of_§where_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over
+ * @param "predicateBlock" "block phrase ⇒ []→boolean"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        predicate function.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Queries" "Collections" "Tuples"
+ */
+Macro "last index…of_§where_" is a tuple iteration prefix function,
+	predicate body function($"last index of_where_", whole number);
+	
 	
 /**
  * Compute and answer the indices of all the elements of {@param "aTuple"} that 
@@ -1643,6 +1689,27 @@ Semantic restriction "all indices of_where_" is
 	Require: predicateType accepts tupleType (check indices);
 	<natural number…|0..⎡tupleType⎤ + 1>
 ];
+
+/**
+ * Compute and answer the indices of all the elements of {@param "aTuple"} that 
+ * satisfies the specified predicate.
+ * 
+ * @macro "all indices…of_§where_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over
+ * @param "predicateBlock" "block phrase ⇒ []→boolean"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        predicate function.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Queries" "Collections" "Tuples"
+ */
+Macro "all indices…of_§where_" is a tuple iteration prefix function,
+	predicate body function($"all indices of_where_", natural number*);
 
 Method "_occurrences⁇of_" is stable at [whole number, any]→tuple;
 
