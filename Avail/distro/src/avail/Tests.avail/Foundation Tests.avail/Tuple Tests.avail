@@ -225,8 +225,21 @@ Test "filter by" in tuple test suite is
 	a ::= <1,2,3,4>;
 	b ::= filter a by [n : natural number | n mod 2 = 0];
 	c ::= filter a by [n : natural number | n > 2000];
+	d ::= filter a by [n : natural number, i : natural number | (n + i) > 5];
 	Require: b = <2,4>;
 	Require: c = <>;
+	Require: d = <3,4>;
+];
+
+Test "filter by (macro)" in tuple test suite is
+[
+	a ::= <1,2,3,4>;
+	b ::= filter n in a by [n mod 2 = 0];
+	c ::= filter n in a by [n > 2000];
+	d ::= filter n,i in a by [(n + i) > 5];
+	Require: b = <2,4>;
+	Require: c = <>;
+	Require: d = <3,4>;
 ];
 
 Test "alternative answer via else" in tuple test suite is

@@ -62,6 +62,7 @@ Names
 	"drop…from_§until_",
 	"drop…from_§while_",
 	"drop_from_",
+	"filter…,…in_§by_",
 	"first index of_in_",
 	"first index of_where_",
 	"first index…of_§where_",
@@ -737,6 +738,56 @@ Semantic restriction "filter_by_" is
 		<<>, union…|sizes>
 	]
 ];
+
+/**
+ * Iteratively apply {@param "predicate"} to each consecutive element of 
+ * {@param "aTuple"}, collecting those elements for which {@param "predicate"} 
+ * answers {@method "true"} into a new tuple (and preserving ordering). Answer 
+ * the new tuple.
+ * 
+ * @macro "filter…in_§by_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ any"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops" "Collections" "Tuples"
+ */
+Macro "filter…in_§by_" is a tuple iteration prefix function,
+	body function($"filter_by_",tuple);
+/**
+ * Iteratively apply {@param "predicate"} to each consecutive element and index
+ * of {@param "aTuple"}, collecting those elements for which {@param 
+ * "predicate"} answers {@method "true"} into a new tuple (and preserving 
+ * ordering). Answer the new tuple.
+ * 
+ * @macro "filter…,…in_§by_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "indexPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop index variable. The generated
+ *        loop variable is given the strongest possible type based on the 
+ *        cardinality of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Loops" "Collections" "Tuples"
+ */
+Macro "filter…,…in_§by_" is a two-input tuple iteration prefix function,
+	two-input body function($"filter_by_",tuple);
 
 /**
  * Iteratively apply {@param "accumulator"} to the consecutive elements of 
