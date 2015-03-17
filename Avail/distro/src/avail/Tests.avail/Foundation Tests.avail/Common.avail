@@ -1,5 +1,5 @@
 /*
- * Files.avail
+ * Common.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,16 +30,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Files"
+Module "Common"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Extends
-	"File Access Rights",
-	"File Iterators",
-	"File Management",
-	"File Metadata",
-	"File Names",
-	"File Open Options",
-	"File Principals",
-	"Primitives"
+	"Avail"
+Names
+	"Foundation|foundation test suite"
 Body
+
+/**
+ * Answer the foundation test suite identifier.
+ * 
+ * @method "foundation test suite"
+ * @returns "atom"
+ *          The requsted test suite identifier.
+ */
+Public method "Foundation|foundation test suite" is [$"foundation test suite"];
+
+Foundation test suite is a new test suite;

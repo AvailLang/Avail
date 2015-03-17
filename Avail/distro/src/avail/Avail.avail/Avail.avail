@@ -38,6 +38,5 @@ Extends
 	"Data Abstractions",
 	"Foundation",
 	"IO",
-	"Tests",
 	"Unit Testing"
 Body

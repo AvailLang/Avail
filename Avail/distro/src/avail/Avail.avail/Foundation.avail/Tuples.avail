@@ -69,6 +69,7 @@ Names
 	"last index of_where_",
 	"last index…of_§where_",
 	"left fold_through_",
+	"map each…,…in_§through_",
 	"merge sort_",
 	"merge sort_with_",
 	"quicksort_",
@@ -310,9 +311,31 @@ Private method "a tuple iteration prefix function" is
 ]: [literal phrase ⇒ token, expression phrase ⇒ tuple]→⊤;
 	
 /**
+ * Answer a function that computes a prefix function.
+ * 
+ * @method "a tuple iteration prefix function"
+ * @returns "[literal phrase ⇒ token, expression phrase ⇒ tuple]→⊤"
+ *          The requested function.
+ */
+Private method "a two-input tuple iteration prefix function" is
+[
+	[
+		elementPhrase : literal phrase ⇒ token,
+		indexPhrase : literal phrase ⇒ token,
+		aTuple : expression phrase ⇒ tuple
+	|
+		Declare loop variable elementPhrase as aTuple's strengthening function;
+		aTupleType ::= aTuple's semantic type;
+		Declare loop variable indexPhrase as [(0 .. ⎡aTupleType⎤+1)];
+	]
+]: [literal phrase ⇒ token, 
+    literal phrase ⇒ token,
+    expression phrase ⇒ tuple]→⊤;
+	
+/**
  * Answer a function that computes a body function.
  * 
- * @method "predicate body function(_,_)"
+ * @method "body function(_,_)"
  * @param "anAtom" "atom" the atom that represents the function that the
  * 		macro builds
  * @param "baseReturnType" "type" the base return type of the method
@@ -320,7 +343,7 @@ Private method "a tuple iteration prefix function" is
  *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
  *          The requested function.
  */
-Private method "predicate body function(_,_)" is
+Private method "body function(_,_)" is
 [
  	anAtom : atom,
  	baseReturnType : type
@@ -328,7 +351,7 @@ Private method "predicate body function(_,_)" is
 	[
 		elementPhrase : literal phrase ⇒ token,
 		aTuple : expression phrase ⇒ tuple,
-		predicateBlock : block phrase ⇒ []→ boolean
+		predicateBlock : block phrase ⇒ []→⊤
 	|
 		name ::= elementPhrase's token's lexeme;
 		aTupleType ::= aTuple's semantic type;
@@ -355,14 +378,68 @@ Private method "predicate body function(_,_)" is
 		<
 			aTuple, 
 			«[
-			  	<cast scope map[name] into [d : argument phrase | d]>
+				<cast scope map[name] into [d : argument phrase | d]>
 			 | 
-			 	statements
-			 ] : blockReturnType»
+				statements
+			] : blockReturnType»
 		> : returnType
 	] : send phrase ⇒ ⊤
 ] : [literal phrase ⇒ token, expression phrase ⇒ tuple, 
-     block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤;
+     block phrase ⇒ []→ ⊤]→send phrase ⇒ ⊤;
+			 
+/**
+ * 
+ */
+Private method "two-input body function(_,_)" is
+[
+	anAtom : atom,
+	baseReturnType : type
+|
+	[
+		elementPhrase : literal phrase ⇒ token,
+		indexPhrase : literal phrase ⇒ token,
+		aTuple : expression phrase ⇒ tuple,
+		action : block phrase ⇒ []→⊤
+	|
+		/* Build the block function */
+		elementName ::= elementPhrase's token's lexeme;
+		indexName ::= indexPhrase's token's lexeme;
+		aTupleType ::= aTuple's semantic type;
+		elementType ::= aTuple's strengthening function();
+		indexingType ::= (0 .. ⎡aTupleType⎤+1);
+		blockType ::= 
+			[elementType, indexingType]→(action's semantic type's return type);
+		restrictions ::= semantic restrictions
+			for method for anAtom
+			given <aTupleType, blockType>;
+		returnType : type := baseReturnType;
+		From 1 to |restrictions| by 1 do
+		[
+			index : natural number
+		|
+			returnType := returnType
+				∩ restrictions[index](aTupleType, blockType);
+		];
+		statements ::= action's statements;
+		blockReturnType ::= cast statements
+			into [t : phrase+ | t[|t|]'s semantic type]
+			else [⊤];
+	
+		castToPhrase ::= [s : nonempty string | 
+			cast scope map[s] into [d : argument phrase | d]];
+		
+		restricted send anAtom with
+		<
+			aTuple,
+			«[
+				<castToPhrase(elementName), castToPhrase(indexName)>
+			|
+				statements
+			] : blockReturnType»
+		> : returnType
+	] : send phrase ⇒ ⊤
+]:[literal phrase ⇒ token, literal phrase ⇒ token, expression phrase ⇒ tuple, 
+   block phrase ⇒ []→ ⊤]→send phrase ⇒ ⊤;
 	
 /**
  * Tuple iterating-loop that invokes {@param "action"} once for every
@@ -383,42 +460,7 @@ Private method "predicate body function(_,_)" is
  * @category "Control Structures" "Loops" "Collections" "Tuples"
  */
 Macro "For each…of_§do_" is a tuple iteration prefix function,
-[
-	elementPhrase : literal phrase ⇒ token,
-	aTuple : expression phrase ⇒ tuple,
-	action : block phrase ⇒ []→⊤
-|
-	/* Build the block function */
-	name ::= elementPhrase's token's lexeme;
-	aTupleType ::= aTuple's semantic type;
-	inputType ::= aTuple's strengthening function();
-	blockType ::= [inputType]→(action's semantic type's return type);
-	restrictions ::= semantic restrictions
-		for method for $"For each of⁇_do_"
-		given <aTupleType, blockType>;
-	returnType : type := ⊤;
-	From 1 to |restrictions| by 1 do
-	[
-		index : natural number
-	|
-		returnType := returnType
-			∩ restrictions[index](aTupleType, blockType);
-	];
-	statements ::= action's statements;
-	blockReturnType ::= cast statements
-		into [t : phrase+ | t[|t|]'s semantic type]
-		else [⊤];
-
-	restricted send $"For each of⁇_do_" with
-	<
-		aTuple,
-		«[
-			<cast scope map[name] into [d : argument phrase | d]>
-		|
-			statements
-		] : blockReturnType»
-	> : returnType
-] : send phrase ⇒ ⊤;
+	body function($"For each of⁇_do_",⊤);
 		
 /**
  * Tuple iterating-loop that invokes {@param "action"} once for every
@@ -444,59 +486,8 @@ Macro "For each…of_§do_" is a tuple iteration prefix function,
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Collections" "Tuples"
  */
-Macro "For each…,…of_§do_" is
-[
-	elementPhrase : literal phrase ⇒ token,
-	indexPhrase : literal phrase ⇒ token,
-	aTuple : expression phrase ⇒ tuple
-|
-	Declare loop variable elementPhrase as aTuple's strengthening function;
-	aTupleType ::= aTuple's semantic type;
-	Declare loop variable indexPhrase as [(0 .. ⎡aTupleType⎤+1)];
-],
-[
-	elementPhrase : literal phrase ⇒ token,
-	indexPhrase : literal phrase ⇒ token,
-	aTuple : expression phrase ⇒ tuple,
-	action : block phrase ⇒ []→⊤
-|
-	/* Build the block function */
-	elementName ::= elementPhrase's token's lexeme;
-	indexName ::= indexPhrase's token's lexeme;
-	aTupleType ::= aTuple's semantic type;
-	elementType ::= aTuple's strengthening function();
-	indexingType ::= (0 .. ⎡aTupleType⎤+1);
-	blockType ::= 
-		[elementType, indexingType]→(action's semantic type's return type);
-	restrictions ::= semantic restrictions
-		for method for $"For each of⁇_do_"
-		given <aTupleType, blockType>;
-	returnType : type := ⊤;
-	From 1 to |restrictions| by 1 do
-	[
-		index : natural number
-	|
-		returnType := returnType
-			∩ restrictions[index](aTupleType, blockType);
-	];
-	statements ::= action's statements;
-	blockReturnType ::= cast statements
-		into [t : phrase+ | t[|t|]'s semantic type]
-		else [⊤];
-
-	castToPhrase ::= [s : nonempty string | 
-		cast scope map[s] into [d : argument phrase | d]];
-	
-	restricted send $"For each of⁇_do_" with
-	<
-		aTuple,
-		«[
-			<castToPhrase(elementName), castToPhrase(indexName)>
-		|
-			statements
-		] : blockReturnType»
-	> : returnType
-] : send phrase ⇒ ⊤;
+Macro "For each…,…of_§do_" is a two-input tuple iteration prefix function,
+	two-input body function($"For each of⁇_do_", ⊤);
 
 /**
  * Iteratively apply {@param "transformer"} to each consecutive element of 
@@ -592,6 +583,55 @@ Semantic restriction "map_through_" is
 	];
 	<<>, transformer's return type… | ||tupleType||>
 ];
+
+/**
+ * Iteratively apply {@param "transformer"} to each consecutive element of 
+ * {@param "aTuple"}, collecting the results into a new tuple (and preserving 
+ * ordering of the transformed elements). Answer this tuple.
+ * 
+ * @macro "map each…in_§through_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ any"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops" "Collections" "Tuples"
+ */
+Macro "map each…in_§through_" is a tuple iteration prefix function,
+	body function($"map_through_",tuple);
+
+/**
+ * Iteratively apply {@param "transformer"} to each consecutive element of 
+ * {@param "aTuple"}, collecting the results into a new tuple (and preserving 
+ * ordering of the transformed elements). Answer this {@type "tuple"}.
+ * 
+ * @macro "map each…,…in_§through_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "indexPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop index variable. The generated
+ *        loop variable is given the strongest possible type based on the 
+ *        cardinality of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Loops" "Collections" "Tuples"
+ */
+Macro "map each…,…in_§through_" is a two-input tuple iteration prefix function,
+	two-input body function($"map_through_",tuple);
 
 /**
  * Iteratively apply {@param "predicate"} to each consecutive element of 
@@ -1035,7 +1075,7 @@ Semantic restriction "each of_satisfies_" is
  * @category "Collections" "Tuples" "Queries"
  */
 Macro "any…of_§satisfies_" is a tuple iteration prefix function,
-	predicate body function($"any of_satisfies_", boolean);
+	body function($"any of_satisfies_", boolean);
 
 /**
  * Compute and answer whether all of the elements of {@param "aTuple"} satisfies
@@ -1056,7 +1096,7 @@ Macro "any…of_§satisfies_" is a tuple iteration prefix function,
  * @category "Collections" "Tuples" "Queries"
  */
 Macro "each…of_§satisfies_" is a tuple iteration prefix function,
-	predicate body function($"each of_satisfies_", boolean);
+	body function($"each of_satisfies_", boolean);
 
 /**
  * Compute and answer the count of elements of {@param "aTuple"} that satisfy 
@@ -1138,7 +1178,7 @@ Semantic restriction "count of_where_" is
  * @category "Queries" "Collections" "Tuples"
  */
 Macro "count of…in_§where_" is a tuple iteration prefix function,
-	predicate body function($"count of_where_", whole number);	
+	body function($"count of_where_", whole number);	
 
 /**
  * Compute and answer the distinct elements of {@param "aTuple"}, preserving 
@@ -1568,7 +1608,7 @@ Semantic restriction "first index of_where_" is
  * @category "Queries" "Collections" "Tuples"
  */
 Macro "first index…of_§where_" is a tuple iteration prefix function,
-	predicate body function($"first index of_where_", whole number);
+	body function($"first index of_where_", whole number);
 
 /**
  * Compute and answer the index of the last element of {@param "aTuple"} that 
@@ -1634,7 +1674,7 @@ Semantic restriction "last index of_where_" is
  * @category "Queries" "Collections" "Tuples"
  */
 Macro "last index…of_§where_" is a tuple iteration prefix function,
-	predicate body function($"last index of_where_", whole number);
+	body function($"last index of_where_", whole number);
 	
 	
 /**
@@ -1701,7 +1741,7 @@ Semantic restriction "all indices of_where_" is
  * @category "Queries" "Collections" "Tuples"
  */
 Macro "all indices…of_§where_" is a tuple iteration prefix function,
-	predicate body function($"all indices of_where_", natural number*);
+	body function($"all indices of_where_", natural number*);
 
 Method "_occurrences⁇of_" is stable at [whole number, any]→tuple;
 
@@ -2585,7 +2625,7 @@ Semantic restriction "drop from_until_" is drop-until semantic restriction;
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
 Public macro "take…from_§while_" is a tuple iteration prefix function,
-	predicate body function($"take from_while_", tuple);
+	body function($"take from_while_", tuple);
 
 /**
  * Answer a tuple containing the prefix of {@param "aTuple"} that answered
@@ -2606,7 +2646,7 @@ Public macro "take…from_§while_" is a tuple iteration prefix function,
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
 Public macro "take…from_§until_" is a tuple iteration prefix function,
-	predicate body function($"take from_until_", tuple);
+	body function($"take from_until_", tuple);
 
 /**
  * Compute and answer the suffix of {@param "aTuple"} that begins with the 
@@ -2627,7 +2667,7 @@ Public macro "take…from_§until_" is a tuple iteration prefix function,
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
 Public macro "drop…from_§while_" is a tuple iteration prefix function,
-	predicate body function($"drop from_while_", tuple);
+	body function($"drop from_while_", tuple);
 
 /**
  * Compute and answer the suffix of {@param "aTuple"} that begins with the 
@@ -2648,7 +2688,7 @@ Public macro "drop…from_§while_" is a tuple iteration prefix function,
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
 Public macro "drop…from_§until_" is a tuple iteration prefix function,
-	predicate body function($"drop from_until_", tuple);
+	body function($"drop from_until_", tuple);
 
 /**
  * Answer a tuple containing every element of {@param "aTuple"} except for the 

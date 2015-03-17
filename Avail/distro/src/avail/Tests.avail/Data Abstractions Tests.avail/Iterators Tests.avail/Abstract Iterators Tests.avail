@@ -1,5 +1,5 @@
 /*
- * Files.avail
+ * Abstract Iterators Tests.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,16 +30,33 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Files"
+Module "Abstract Iterators Tests"
 Versions
 	"1.0.0 DEV 2014-04-28"
-Extends
-	"File Access Rights",
-	"File Iterators",
-	"File Management",
-	"File Metadata",
-	"File Names",
-	"File Open Options",
-	"File Principals",
-	"Primitives"
+Uses
+	"Common"
+Names
+	"iterators test suite"
 Body
+
+Public "iterators test suite" is a new field atom;
+New test suite iterators test suite extends data abstractions test suite;
+
+Test "for each of do" in iterators test suite is
+[
+	a ::= a reader over <1,2,3,4>;
+	b : tuple := <>;
+	For each of a do [n : natural number | b ++= <n>;];
+	Require: b = <1,2,3,4>;
+];
+
+Test "macro for each of do" in iterators test suite is
+[
+	a ::= a reader over <1,2,3,4,5>;
+	b : natural number* := <>;
+	For each element of a do
+	[
+	 	If element is even then [b := b ++ <element>;];
+	];
+	Require: b = <2,4>;
+];

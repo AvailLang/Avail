@@ -1,5 +1,5 @@
 /*
- * Files.avail
+ * Assertion Tests.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,16 +30,78 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Files"
+Module "Assertion Tests"
 Versions
 	"1.0.0 DEV 2014-04-28"
-Extends
-	"File Access Rights",
-	"File Iterators",
-	"File Management",
-	"File Metadata",
-	"File Names",
-	"File Open Options",
-	"File Principals",
-	"Primitives"
+Uses
+	"Common"
+Names
+	"assertion test suite"
 Body
+
+"assertion test suite" is a new atom;
+New test suite assertion test suite extends foundation test suite;
+
+Test "basic assertions" in assertion test suite is
+[
+	Guard 
+	[
+	 	Assert: 5 = 5;
+		Assert: "foo" = "foo";
+		Assert: true = true;
+		Assert: 5 < 6;
+		Assert: ∞ = ∞;
+	]
+	intercept [e : assertion-failed exception | Require: false];
+];
+
+Test "assertion failed exception" in assertion test suite is
+[
+ 	Require: 
+ 	[
+ 	 	func :: =
+ 	 	[
+ 	 	 	a : natural number,
+ 	 	 	b : natural number
+ 	 	 |
+ 	 	 	a = b
+ 	 	];
+ 	 	Assert: func(5,6);
+ 	] raises assertion-failed exception;
+
+	Require: 
+ 	[
+	 	func :: =
+	 	[
+	 	 	a : boolean,
+	 	 	b : boolean
+	 	 |
+	 	 	a = b
+	 	];
+	 	Assert: func(true,false);
+ 	] raises assertion-failed exception;
+
+	Require: 
+ 	[
+	 	func :: =
+ 	 	[
+ 	 	 	a : integer,
+ 	 	 	b : integer
+ 	 	 |
+ 	 	 	a ≥ b
+ 	 	]; 
+ 	 	Assert: func(-10,62);
+ 	] raises assertion-failed exception;
+
+	Require: 
+ 	[
+	 	func :: =
+ 	 	[
+ 	 	 	a : extended integer,
+ 	 	 	b : extended integer
+ 	 	 |
+ 	 	 	a ≥ b
+ 	 	]; 
+ 	 	Assert: func(-∞,∞);
+ 	] raises assertion-failed exception;
+]; 

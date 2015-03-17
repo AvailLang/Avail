@@ -59,7 +59,8 @@ Names
 	"each…→…of_§satisfies_",
 	"For each…→…of_§do_",
 	"integrate_and_with_",
-	"integrate«_‡,and⁇»with_"
+	"integrate«_‡,and⁇»with_",
+	"map each…→…in_§through_"
 Body
 
 Method "“_”" is
@@ -240,76 +241,9 @@ Private method "a map iteration prefix function" is
 ]: [literal phrase ⇒ token, literal phrase ⇒ token, expression phrase ⇒ map]→⊤;
 
 /**
- * Map iterating-loop that invokes {@param "action"} once for every
- * {@param "elementPhrase"} → {@param "elementPhrase"} in {@param "aMap"}.
- * 
- * @macro "For each…→…of_§do_"
- * @param "keyPhrase" "literal phrase ⇒ token"
- *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
- *        whose value is the name of the map key loop variable. The generated 
- *        loop variable is given the strongest possible type based on the map
- *        key type of {@param "aMap"}.
- * @param "valuePhrase" "literal phrase ⇒ token"
- *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
- *        whose value is the name of the map value loop index variable. The 
- *        generated loop variable is given the strongest possible type based on
- *        the map value type of {@param "aMap"}.
- * @param "aMap" "expression phrase ⇒ tuple"
- *        An {@type "expression phrase"} that yields the map to iterate over
- * @param "action" "block phrase ⇒ []→⊤"
- *        A zero-argument {@type "block phrase"} that represents the body of the
- *        loop.
- * @returns "send phrase ⇒ ⊤"
- * @category "Control Structures" "Loops" "Collections" "Maps"
- */
-Macro "For each…→…of_§do_" is a map iteration prefix function,
-[
-	keyPhrase : literal phrase ⇒ token,
-	valuePhrase : literal phrase ⇒ token,
-	aMap : expression phrase ⇒ map,
-	action : block phrase ⇒ []→⊤
-|
-	/* Build the block function */
-	keyName ::= keyPhrase's token's lexeme;
-	valueName ::= valuePhrase's token's lexeme;
-	aMapType ::= aMap's semantic type;
-	keyType ::= aMapType's key type;
-	valueType ::= aMapType's value type;
-	blockType ::= [keyType, valueType]→(action's semantic type's return type);
-	restrictions ::= semantic restrictions
-		for method for $"For each of⁇_do_"
-		given <aMapType, blockType>;
-	returnType : type := ⊤;
-	From 1 to |restrictions| by 1 do
-	[
-		value : natural number
-	|
-		returnType := returnType
-			∩ restrictions[value](aMapType, blockType);
-	];
-	statements ::= action's statements;
-	blockReturnType ::= cast statements
-		into [t : phrase+ | t[|t|]'s semantic type]
-		else [⊤];
-
-	castToPhrase ::= [s : nonempty string | 
-		cast scope map[s] into [d : argument phrase | d]];
-	
-	restricted send $"For each of⁇_do_" with
-	<
-		aMap,
-		«[
-			<castToPhrase(keyName), castToPhrase(valueName)>
-		|
-			statements
-		] : blockReturnType»
-	> : returnType
-] : send phrase ⇒ ⊤;
-
-/**
  * Answer a function that computes a body function.
  * 
- * @method "predicate body function(_,_)"
+ * @method "body function(_,_)"
  * @param "anAtom" "atom" the atom that represents the function that the
  * 		macro builds
  * @param "baseReturnType" "type" the base return type of the method
@@ -317,7 +251,7 @@ Macro "For each…→…of_§do_" is a map iteration prefix function,
  *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
  *          The requested function.
  */
-Private method "predicate body function(_,_)" is
+Private method "body function(_,_)" is
 [
  	anAtom : atom,
  	baseReturnType : type
@@ -326,7 +260,7 @@ Private method "predicate body function(_,_)" is
 		keyPhrase : literal phrase ⇒ token,
 		valuePhrase : literal phrase ⇒ token,
 		aMap : expression phrase ⇒ map,
-		predicateBlock : block phrase ⇒ []→ boolean
+		predicateBlock : block phrase ⇒ []→ ⊤
 	| 
 		keyName ::= keyPhrase's token's lexeme;
 		valueName ::= valuePhrase's token's lexeme;
@@ -365,8 +299,34 @@ Private method "predicate body function(_,_)" is
 		> : returnType
 	] : send phrase ⇒ ⊤
 ] : [literal phrase ⇒ token, literal phrase ⇒ token, expression phrase ⇒ map, 
-     block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤;
-		
+     block phrase ⇒ []→ ⊤]→send phrase ⇒ ⊤;
+
+/**
+ * Map iterating-loop that invokes {@param "action"} once for every
+ * {@param "elementPhrase"} → {@param "elementPhrase"} in {@param "aMap"}.
+ * 
+ * @macro "For each…→…of_§do_"
+ * @param "keyPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the map key loop variable. The generated 
+ *        loop variable is given the strongest possible type based on the map
+ *        key type of {@param "aMap"}.
+ * @param "valuePhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the map value loop index variable. The 
+ *        generated loop variable is given the strongest possible type based on
+ *        the map value type of {@param "aMap"}.
+ * @param "aMap" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the map to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops" "Collections" "Maps"
+ */
+Macro "For each…→…of_§do_" is a map iteration prefix function,
+	body function($"For each of⁇_do_",⊤);
+
 /**
  * Iteratively apply {@param "transformer"} to each binding of {@param "aMap"},
  * in no particular order, collecting the results into a new map. The resultant
@@ -431,6 +391,36 @@ Semantic restriction "map_through_" is
 	];
 	{mapType's key type → transformer's return type | ||mapType||}
 ];
+
+/**
+ * Iteratively apply {@param "transformer"} to each binding of {@param "aMap"},
+ * in no particular order, collecting the results into a new map. The resultant
+ * map has the same keys as the original, but its values have been transformed
+ * via {@param "transformer"}.
+ * 
+ * @macro "map each…→…in_§through_"
+ * @param "keyPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the map key loop variable. The generated 
+ *        loop variable is given the strongest possible type based on the map
+ *        key type of {@param "aMap"}.
+ * @param "valuePhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the map value loop index variable. The 
+ *        generated loop variable is given the strongest possible type based on
+ *        the map value type of {@param "aMap"}.
+ * @param "aMap" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the map to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Loops" "Collections" "Maps"
+ */
+Macro "map each…→…in_§through_" is a map iteration prefix function,
+	body function($"map_through_",map);
+
+
 
 /**
  * Iteratively apply {@param "predicate"} to each binding of {@param "aMap"}, in
@@ -681,7 +671,7 @@ Semantic restriction "each of_satisfies_" is
  * @category "Collections" "Tuples" "Queries"
  */
 Macro "any…→…of_§satisfies_" is a map iteration prefix function,
-	predicate body function($"any of_satisfies_", boolean);
+	body function($"any of_satisfies_", boolean);
 
 /**
  * Compute and answer whether all of the elements of {@param "aTuple"} satisfies
@@ -705,7 +695,7 @@ Macro "any…→…of_§satisfies_" is a map iteration prefix function,
  * @category "Collections" "Tuples" "Queries"
  */
 Macro "each…→…of_§satisfies_" is a map iteration prefix function,
-	predicate body function($"each of_satisfies_", boolean);
+	body function($"each of_satisfies_", boolean);
 
 /**
  * Compute and answer the count of bindings of {@param "aMap"} that satisfy the
@@ -795,7 +785,7 @@ Semantic restriction "_∈_" is
  * @category "Queries" "Collections" "Sets"
  */
 Macro "count of…→…in_§where_" is a map iteration prefix function,
-	predicate body function($"count of_where_", whole number);
+	body function($"count of_where_", whole number);
 
 /**
  * Categorize the elements of {@param "aTuple"} via {@param "discriminator"}.

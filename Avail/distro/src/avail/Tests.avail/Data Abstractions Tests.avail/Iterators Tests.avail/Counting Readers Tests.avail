@@ -1,0 +1,336 @@
+/*
+ * Counting Readers Tests.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Counting Readers Tests"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Abstract Iterators Tests",
+	"Common"
+Names
+	"counting reader test suite"
+Body
+
+
+"counting reader test suite" is a new atom;
+New test suite counting reader test suite extends iterators test suite;
+
+Test "counting reader basics" in counting reader test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 10;
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "counting reader basics (macro)" in counting reader test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 10;
+	For each element of iter do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "counting reader (map)" in counting reader test suite is
+[
+	ref ::= <1, 4, 9, 16, 25, 36, 49, 64, 81, 100>;
+	index : natural number := 1;
+	iter ::= map a counting reader from 1 to 10 through [i : [1..10] | i × i];
+	For each element of iter do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "counting reader (map - macro)" in counting reader test suite is
+[
+	ref ::= <1, 4, 9, 16, 25, 36, 49, 64, 81, 100>;
+	index : natural number := 1;
+	iter ::= map each i in a counting reader from 1 to 10 through [i × i];
+	For each element of iter do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "counting reader (filter)" in counting reader test suite is
+[
+	ref ::= <2, 4, 6, 8, 10>;
+	index : natural number := 1;
+	iter ::= filter a counting reader from 1 to 10
+		by [i : [1..10] | i is even];
+	For each element of iter do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "counting reader (concatenation)" in counting reader test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iters ::= <
+		an exhausted reader,
+		a counting reader from 1 to 2,
+		an exhausted reader,
+		an exhausted reader,
+		a counting reader from 3 to 7,
+		an exhausted reader,
+		a counting reader from 8 to 8,
+		a counting reader from 9 to 10,
+		an exhausted reader>;
+	iter ::= concatenate iters;
+	For each element of iter do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "counting reader (lexical concatenation)"
+	in counting reader test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iters ::= <
+		an exhausted reader,
+		a counting reader from 1 to 2,
+		an exhausted reader,
+		an exhausted reader,
+		a counting reader from 3 to 7,
+		an exhausted reader,
+		a counting reader from 8 to 8,
+		a counting reader from 9 to 10,
+		an exhausted reader>;
+	iter ::= iters[1]
+		++ iters[2]
+		++ iters[3]
+		++ iters[4]
+		++ iters[5]
+		++ iters[6]
+		++ iters[7]
+		++ iters[8]
+		++ iters[9];
+	For each element of iter do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "counting reader (zip)" in counting reader test suite is
+[
+	ref ::= <
+		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
+		<6, 36>, <7, 49>, <8, 64>, <9, 81>, <10, 100>>;
+	index : natural number := 1;
+	iters ::= <
+		a counting reader from 1 to 10,
+		map a counting reader from 1 to 10
+			through [n : [1..10] | n × n]>;
+	iter ::= zip iters;
+	For each element of iter do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "counting reader (lexical zip)" in counting reader test suite is
+[
+	ref ::= <
+		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
+		<6, 36>, <7, 49>, <8, 64>, <9, 81>, <10, 100>>;
+	index : natural number := 1;
+	iters ::= <
+		a counting reader from 1 to 10,
+		map a counting reader from 1 to 10
+			through [n : [1..10] | n × n]>;
+	iter ::= iters[1] zip iters[2];
+	For each element of iter do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "counting reader (take_from_)" in counting reader test suite is
+[
+	ref ::= 1 to 5;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 10;
+	result ::= take 5 from iter;
+	For each element of result do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: iter's current element = 6;
+	Require: [take 6 from iter] raises exhausted-iterator exception;
+];
+
+Test "counting reader (take from_while_)" in counting reader test suite is
+[
+	ref ::= 1 to 5;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 10;
+	result ::= take from iter while [n : [1..10] | n ≤ 5];
+	For each element of result do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: iter's current element = 6;
+];
+
+Test "counting reader (take from_until_)" in counting reader test suite is
+[
+	ref ::= 1 to 5;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 10;
+	result ::= take from iter until [n : [1..10] | n ≥ 6];
+	For each element of result do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: iter's current element = 6;
+];
+
+Test "counting reader (Drop_from_)" in counting reader test suite is
+[
+	ref ::= 6 to 10;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 10;
+	Drop 5 from iter;
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+	Require: [Drop 6 from iter;] raises exhausted-iterator exception;
+];
+
+Test "counting reader (Drop from_while_)" in counting reader test suite is
+[
+	ref ::= 6 to 10;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 10;
+	Drop from iter while [n : [1..10] | n ≤ 5];
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "counting reader (Drop from_until_)" in counting reader test suite is
+[
+	ref ::= 6 to 10;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 10;
+	Drop from iter until [n : [1..10] | n ≥ 6];
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "counting reader (size)" in counting reader test suite is
+[
+	iter : sizable reader := a counting reader from 1 to 10;
+	Require: |iter| = 10;
+	iter := a counting reader from 3 to 16;
+	Require: |iter| = 14;
+	iter := a counting reader from 2 to 16 by 3;
+	Require: |iter| = 5;
+	iter := a counting reader from -5 to 25 by 5;
+	Require: |iter| = 7;
+	iter := a counting reader from -6.25 to 21.4 by 3.1;
+	Require: |iter| = 9;
+];
+
+Test "counting reader (sequential position)" in counting reader test suite is
+[
+	iter : (sizable iterator positioned by natural number) ∩ reader of integer;
+	iter := a counting reader from 1 to 5;
+	For each i from 1 to 5 do
+	[
+		iter's position := i;
+		Require: take 5 - i + 1 from iter = i to 5;
+		Require: iter is exhausted;
+	];
+];
+
+Test "counting reader (position with stride)" in counting reader test suite is
+[
+	iter : (sizable iterator positioned by natural number) ∩ reader of integer;
+	iter := a counting reader from 2 to 16 by 3;
+	For each value, index of 2 to 16 by 3 do
+	[
+		iter's position := index;
+		Require: take 5 - index + 1 from iter = value to 16 by 3;
+		Require: iter is exhausted;
+	];
+];
+
+Test "counting reader (remaining elements)" in counting reader test suite is
+[
+	iter ::= a counting reader from 2 to 10 by 3;
+	remaining : integer := |iter|;
+	For each iter do
+	[
+		element : [2..10]
+	|
+		Require: |iter's remaining elements| = remaining;
+		remaining--;
+	];
+	Require: iter is exhausted;
+	Require: |iter's remaining elements| = remaining;
+];

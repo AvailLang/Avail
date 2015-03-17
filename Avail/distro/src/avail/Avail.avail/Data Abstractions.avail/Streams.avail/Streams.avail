@@ -48,6 +48,7 @@ Extends
 		"empty-stream exception",
 		"filter_by_",
 		"map_through_",
+		"map each…in_§through_",
 		"stream",
 		"stream of_",
 		"take from_until_",
@@ -106,68 +107,11 @@ Private method "a stream prefix function" is
 		];
 	]
 ]: [literal phrase ⇒ token, expression phrase ⇒ stream]→⊤;
-	
-/**
- * Stream iterating-loop that invokes {@param "action"} once for every
- * {@param "elementPhrase"} in {@param "aStream"} 
- * 
- * @macro "For each…of_§do_"
- * @category "Data Abstractions" "Streams"
- * @param "elementPhrase" "literal phrase ⇒ token"
- *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
- *        whose value is the name of the loop variable. The generated loop
- *        variable is given the strongest possible type based on of 
- *        {@param "aStream"}'s element type.
- * @param "aStream" "expression phrase ⇒ stream"
- *        An {@type "expression phrase"} that yields the stream to iterate over
- * @param "action" "block phrase ⇒ []→⊤"
- *        A zero-argument {@type "block phrase"} that represents the body of the
- *        loop.
- * @returns "send phrase ⇒ ⊤"
- * @category "Control Structures" "Loops" "Readers" "Data Abstractions"
- */
-Macro "For each…of_§do_" is a stream prefix function,
-[
-	elementPhrase : literal phrase ⇒ token,
-	aStream : expression phrase ⇒ stream,
-	action : block phrase ⇒ []→⊤
-|
-	/* Build the block function */
-	name ::= elementPhrase's token's lexeme;
-	aStreamType ::= aStream's semantic type;
-	elementType ::= aStreamType's element type's instance;
-	blockType ::= [elementType]→(action's semantic type's return type);
-	restrictions ::= semantic restrictions
-		for method for $"For each of⁇_do_"
-		given <aStreamType, blockType>;
-	returnType : type := ⊤;
-	From 1 to |restrictions| by 1 do
-	[
-		index : natural number
-	|
-		returnType := returnType
-			∩ restrictions[index](aStreamType, blockType);
-	];
-	statements ::= action's statements;
-	blockReturnType ::= cast statements
-		into [t : phrase+ | t[|t|]'s semantic type]
-		else [⊤];
-
-	restricted send $"For each of⁇_do_" with
-	<
-		aStream,
-		«[
-			<cast scope map[name] into [d : argument phrase | d]>
-		|
-			statements
-		] : blockReturnType»
-	> : returnType
-] : send phrase ⇒ ⊤;
 
 /**
  * Answer a function that computes a body function.
  * 
- * @method "predicate body function(_,_)"
+ * @method "body function(_,_)"
  * @param "anAtom" "atom" the atom that represents the function that the
  * 		macro builds
  * @param "baseReturnType" "type" the base return type of the method
@@ -175,7 +119,7 @@ Macro "For each…of_§do_" is a stream prefix function,
  *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
  *          The requested function.
  */
-Private method "predicate body function(_,_)" is
+Private method "body function(_,_)" is
 [
  	anAtom : atom,
  	baseReturnType : type
@@ -183,7 +127,7 @@ Private method "predicate body function(_,_)" is
 	[
 		elementPhrase : literal phrase ⇒ token,
 		aStream : expression phrase ⇒ stream,
-		predicateBlock : block phrase ⇒ []→ boolean
+		predicateBlock : block phrase ⇒ []→ ⊤
 	|
 		name ::= elementPhrase's token's lexeme;
 		aStreamType ::= aStream's semantic type;
@@ -216,8 +160,30 @@ Private method "predicate body function(_,_)" is
 		> : returnType
 	] : send phrase ⇒ ⊤
 ] : [literal phrase ⇒ token, expression phrase ⇒ stream, 
-     block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤;
-	
+     block phrase ⇒ []→ ⊤]→send phrase ⇒ ⊤;
+
+/**
+ * Stream iterating-loop that invokes {@param "action"} once for every
+ * {@param "elementPhrase"} in {@param "aStream"} 
+ * 
+ * @macro "For each…of_§do_"
+ * @category "Data Abstractions" "Streams"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on of 
+ *        {@param "aStream"}'s element type.
+ * @param "aStream" "expression phrase ⇒ stream"
+ *        An {@type "expression phrase"} that yields the stream to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops" "Readers" "Data Abstractions"
+ */
+ Macro "For each…of_§do_" is a stream prefix function,
+ 	body function($"For each of⁇_do_", ⊤);
+
 /**
  * Answer a tuple containing the prefix of {@param "aStream"} that answered
  * {@method "true"} to {@param "predicateBlock"}.
@@ -238,7 +204,7 @@ Private method "predicate body function(_,_)" is
  * @category "Transformers" "Streams" "Data Abstractions"
  */
 Macro "take…from_§while_" is a stream prefix function,
-	predicate body function($"take from_while_", tuple);
+	body function($"take from_while_", tuple);
 
 /**
  * Answer a tuple containing the prefix of {@param "aStream"} that answered
@@ -260,4 +226,27 @@ Macro "take…from_§while_" is a stream prefix function,
  * @category "Transformers" "Streams" "Data Abstractions"
  */
 Macro "take…from_§until_" is a stream prefix function,
-	predicate body function($"take from_until_", tuple);
+	body function($"take from_until_", tuple);
+
+/**
+ * Construct and answer a stream that applies `theTransformer` to the
+ * consecutive elements of `aStream`. The result is lazy, so `aStream` may be
+ * infinite.
+ * 
+ * @macro "map each…in_§through_"
+ * @category "Data Abstractions" "Streams"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on of 
+ *        {@param "aStream"}'s element type.
+ * @param "aStream" "expression phrase ⇒ reader"
+ *        An {@type "expression phrase"} that yields the reader to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Loops" "Streams" "Data Abstractions"
+ */
+Macro "map each…in_§through_" is a stream prefix function,
+	body function($"map_§through_", stream);

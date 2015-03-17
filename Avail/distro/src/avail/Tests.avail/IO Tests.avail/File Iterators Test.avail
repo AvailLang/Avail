@@ -1,0 +1,213 @@
+/*
+ * File Iterators Test.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "File Iterators Test"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Extends
+	"Common" =
+	(
+		"_'s⁇position",
+		"_'s⁇position:=_",
+		"Using|using_,⁇do_",
+		"_is closed",
+		"_is open"
+	)
+Uses
+	"Common",
+	"File Test Utilities"
+Body
+
+"file iterator test suite" is a new atom;
+New test suite file iterator test suite extends I/O test suite;
+Do not run tests in file iterator test suite in parallel;
+
+Test "file iterator (readable)" in file iterator test suite is
+[
+	ref ::= map "abracadabra" through [c : character | c's code point];
+	fn ::= abracadabra.txt;
+	iter ::= a file reader for fn;
+	Require: iter is open;
+	Require: take at most ∞ from iter = ref;
+	Require: iter is exhausted;
+	Require: iter is open;
+	Close iter;
+	Require: iter is closed;
+];
+
+Test "file iterator (readable,small buffer)" in file iterator test suite is
+[
+	ref ::= map "abracadabra" through [c : character | c's code point];
+	fn ::= abracadabra.txt;
+	iter ::= a file reader for fn aligning buffers to 3 bytes;
+	Require: iter is open;
+	Require: take at most ∞ from iter = ref;
+	Require: iter is exhausted;
+	Require: iter is open;
+	Close iter;
+	Require: iter is closed;
+];
+
+Test "file iterator (readable,reposition)" in file iterator test suite is
+[
+	ref ::= map "abracadabra" through [c : character | c's code point];
+	fn ::= abracadabra.txt;
+	iter ::= a file reader for fn;
+	Require: iter is open;
+	Require: take at most ∞ from iter = ref;
+	Require: iter is exhausted;
+	Require: iter is open;
+	iter's position := 1;
+	Require: take at most ∞ from iter = ref;
+	Require: iter is exhausted;
+	Require: iter is open;
+	Close iter;
+	Require: iter is closed;
+];
+
+Test "file iterator (double close)" in file iterator test suite is
+[
+	fn ::= abracadabra.txt;
+	iter ::= a file reader for fn;
+	Close iter;
+	Close iter;
+]
+must raise file-closed exception;
+
+Test "file iterator (can't open for reading)" in file iterator test suite is
+[
+	fn ::= test directory / "doesntexist.txt";
+	iter ::= a file reader for fn;
+]
+must raise I/O exception;
+
+Test "file iterator (refresh/synchronize)" in file iterator test suite is
+[
+	fileName ::= test directory / "deleteme.txt";
+	aWriter ::= a file writer for fileName
+		with options {create new};
+	aReader ::= a file reader for fileName;
+	Guard
+	[
+		Write <67, 97, 116> to aWriter;
+		Synchronize aWriter;
+		Refresh aReader;
+		bytes ::= take 3 from aReader;
+		Require: bytes = <67, 97, 116>;
+		Require: aReader is exhausted;
+	]
+	ensure
+	[
+		Close aWriter;
+		Close aReader;
+		Unlink fileName;
+	];
+];
+
+Test "file iterator (alignment)" in file iterator test suite is
+[
+	fileName ::= test directory / "deleteme.txt";
+	aWriter ::= a file writer for fileName
+		aligning buffers to 3 bytes
+		buffering at most 13 bytes
+		with options {create new};
+	aReader ::= a file reader for fileName
+		aligning buffers to 4 bytes
+		buffering at most 11 bytes;
+	Guard
+	[
+		prng ::= a pRNG;
+		memory : byte* := <>;
+		Repeat
+		[
+			size ::= prng's next [0..50];
+			segment ::= map 1 to size through [n : any | prng's next byte];
+			Write segment to aWriter;
+			memory := eject memory ++ segment;
+		] 50 times;
+		Synchronize aWriter;
+		Refresh aReader;
+		bytes ::= take at most ∞ from aReader;
+		Require: bytes = memory;
+		Require: aReader is exhausted;
+	]
+	ensure
+	[
+		Close aWriter;
+		Close aReader;
+		Unlink fileName;
+	];
+];
+
+Test "file iterator (scattered write)" in file iterator test suite is
+[
+	fileName ::= test directory / "deleteme.txt";
+	aWriter ::= a file writer for fileName
+		aligning buffers to 3 bytes
+		buffering at most 13 bytes
+		with options {create new};
+	aReader ::= a file reader for fileName
+		aligning buffers to 4 bytes
+		buffering at most 11 bytes;
+	Guard
+	[
+		prng ::= a pRNG;
+		memory : byte* := <>;
+		Repeat
+		[
+			start ::= prng's next [1..1000];
+			size ::= prng's next [0..50];
+			segment ::= map 1 to size through [n : any | prng's next byte];
+			aWriter's position := start;
+			Write segment to aWriter;
+			If start > |memory| + 1 then
+			[
+				extension ::= start - |memory| ?→ natural number;
+				memory := eject memory ++ extension of 0;
+			];
+			memory := memory
+				[start .. (start + size - 1) min |memory|]
+				→ segment;
+		] 50 times;
+		Synchronize aWriter;
+		Refresh aReader;
+		bytes ::= take at most ∞ from aReader;
+		Require: bytes = memory;
+		Require: aReader is exhausted;
+	]
+	ensure
+	[
+		Close aWriter;
+		Close aReader;
+		Unlink fileName;
+	];
+];

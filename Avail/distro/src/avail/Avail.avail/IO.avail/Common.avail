@@ -42,11 +42,5 @@ Names
 
 	/* I/O. */
 	"Write_to_",
-	"read«at most»?_byte|bytes from_",
-
-	/* Unit testing. */
-	"I/O test suite"
+	"read«at most»?_byte|bytes from_"
 Body
-
-"I/O test suite" is a new atom;
-I/O test suite is a new test suite;

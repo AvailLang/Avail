@@ -1,0 +1,277 @@
+/*
+ * IO Tests.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "IO Tests"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Extends
+	"Common",
+	"File Access Rights Test",
+	"File Iterators Test",
+	"File Metadata Test",
+	"File Names Test",
+	"Network Tests"
+Body
+
+/* TODO: [TLS] Rewrite these tests and distribute them into subordinate
+ * testing modules.
+ */
+
+/*
+Test "file name(rename)" in file access rights test suite is
+[
+	src ::= a file named testDir ++ "/source.empty";
+	dest ::= a file named testDir ++ "/destination.empty";
+	Require: src exists;
+	Require: ¬dest exists;
+	Rename src to dest;
+	Require: ¬src exists;
+	Require: dest exists;
+	Rename dest to src;
+	Require: src exists;
+	Require: ¬dest exists;
+];
+
+Test "file name(unlink)" in file access rights test suite is
+[
+	fn ::= a file named testDir ++ "/delete.me";
+	Require: ¬fn exists;
+	Using a writable file named fn, do [f : file |];
+	Require: fn exists;
+	Unlink fn;
+	Require: ¬fn exists;
+];
+
+Test "file(open readable,close)" in file access rights test suite is
+[
+	fn ::= abracadabra.txt;
+	f ::= a readable file named fn;
+	Require: 1 = f's position;
+	Require: 11 = f's size;
+	Close f;
+];
+
+Test "file(open writable,close)" in file access rights test suite is
+[
+	fn ::= a file named testDir ++ "/scratch.txt";
+	f ::= a writable file named fn;
+	Require: 1 = f's position;
+	Require: 12 = f's size;
+	Close f;
+];
+
+Test "file(open readable&writable,close)" in file access rights test suite is
+[
+	fn ::= a file named testDir ++ "/scratch.txt";
+	f ::= a readable, writable file named fn;
+	Require: 1 = f's position;
+	Require: 12 = f's size;
+	Close f;
+];
+
+Test "file(open variable mode,close)" in file access rights test suite is
+[
+	rdfn ::= a file named testDir ++ "/abracadabra.txt";
+	rf : readable file := a file named rdfn (mode={read mode});
+	Close rf;
+	wrfn ::= testDir ++ "/scratch.txt" as file name;
+	wf : writable file := a file named wrfn (mode={write mode});
+	Close wf;
+	rwf : readable, writable file :=
+		a file named wrfn (mode={read mode, write mode});
+	Close rwf;
+];
+
+Test "file(size)" in file access rights test suite is
+[
+	fn ::= abracadabra.txt;
+	Using a readable file named fn, do
+	[
+		f : readable file
+	|
+		Require: 11 = f's size;
+	];
+];
+
+Test "file(read fully)" in file access rights test suite is
+[
+	ref ::= map "abracadabra" through [c : character | c's code point];
+	fn ::= abracadabra.txt;
+	Using a readable file named fn, do
+	[
+		f : readable file
+	|
+		contents ::= next ∞ bytes from f;
+		Require: ref = contents;
+	];
+];
+
+Test "file(read in parts)" in file access rights test suite is
+[
+	ref ::= map "abracadabra" through [c : character | c's code point];
+	fn ::= abracadabra.txt;
+	Using a readable file named fn, do
+	[
+		f : readable file
+	|
+		contents : tuple := next 5 bytes from f;
+		Require: ref[1..5] = contents;
+		contents := eject contents ++ next 6 bytes from f;
+		Require: ref = contents;
+		/* This reads past the end of the file. */
+		contents := next 1 bytes from f;
+		Require: <> = contents;
+	];
+];
+
+Test "file(resize)" in file access rights test suite is
+[
+	ref1 ::= map "beluga whale" through
+		[c : character | cast c's code point into [t : [0..255] | t]];
+	ref2 ::= ref1 ++ 100 of ¢" " ++ "1";
+	fn ::= a file named testDir ++ "/scratch.txt";
+	Using a readable, writable file named fn, do
+	[
+		f : readable, writable file
+	|
+		Require: 12 = f's size;
+		Require: 1 = f's position;
+		contents ::= next ∞ bytes from f;
+		Require: ref1 = contents;
+		Require: 12 = f's size;
+		Require: 13 = f's position;
+		f's size := 112;
+		Require: 112 = f's size;
+		Require: 13 = f's position;
+		suffix ::= <cast ¢1's code point into [t : [0..255] | t]>;
+		Write suffix to f;
+		Require: 112 = f's size;
+		Require: 14 = f's position;
+		f's size := 0;
+		Require: 0 = f's size;
+		Require: 1 = f's position;
+		Write ref1 to f;
+		Require: 12 = f's size;
+		Require: 13 = f's position;
+	];
+];
+
+Test "file(reposition)" in file access rights test suite is
+[
+	ref1 ::= map "beluga whale" through
+		[c : character | cast c's code point into [t : [0..255] | t]];
+	ref2 ::= ref1 ++ 100 of ¢" " ++ "1";
+	fn ::= a file named testDir ++ "/scratch.txt";
+	Using a readable, writable file named fn, do
+	[
+		f : readable, writable file
+	|
+		Require: 1 = f's position;
+		Require: 12 = f's size;
+		contents : tuple := next ∞ bytes from f;
+		Require: ref1 = contents;
+		Require: 13 = f's position;
+		Require: 12 = f's size;
+		f's position := 1;
+		Require: 1 = f's position;
+		contents := next ∞ bytes from f;
+		Require: ref1 = contents;
+		Require: 13 = f's position;
+		Require: 12 = f's size;
+		f's position := 200;
+		Require: 200 = f's position;
+		Require: 12 = f's size;
+		suffix ::= <cast ¢1's code point into [t : [0..255] | t]>;
+		Write suffix to f;
+		Require: 200 = f's size;
+		Require: 201 = f's position;
+		f's size := 12;
+		Require: 12 = f's size;
+		Require: 13 = f's position;
+	];
+];
+
+Test "file(round trip)" in file access rights test suite is
+[
+	ref ::= map "my life as a parrot" through
+		[c : character | cast c's code point into [t : [0..255] | t]];
+	fn ::= a file named testDir ++ "/roundtrip.txt";
+	Require: ¬fn exists;
+	Using a readable, writable file named fn, do
+	[
+		f : readable, writable file
+	|
+		Require: fn exists;
+		Write ref to f;
+		Synchronize f with file system;
+		Require: |ref| = f's position - 1;
+		Require: |ref| = f's size;
+		f's position := 1;
+		contents ::= next |ref| bytes from f;
+		Require: |ref| = f's position - 1;
+		Require: |ref| = f's size;
+		Require: ref = contents;
+	];
+	Unlink fn;
+	Require: ¬fn exists;
+];
+
+Test "file(double close)" in file access rights test suite is
+[
+	fn ::= abracadabra.txt;
+	f ::= a readable file named fn;
+	Close f;
+	Close f;
+]
+must raise file-closed exception;
+
+Test "file(can't open for reading)" in file access rights test suite is
+[
+	fn ::= a file named testDir ++ "/doesntexist.txt";
+	f ::= a readable file named fn;
+]
+must raise I/O exception;
+
+Test "file(can't open for writing)" in file access rights test suite is
+[
+	fn ::= abracadabra.txt;
+	f ::= a writable file named fn;
+]
+must raise I/O exception;
+
+Test "file(can't open for reading,writing)" in file access rights test suite is
+[
+	fn ::= abracadabra.txt;
+	f ::= a readable, writable file named fn;
+]
+must raise I/O exception;
+*/

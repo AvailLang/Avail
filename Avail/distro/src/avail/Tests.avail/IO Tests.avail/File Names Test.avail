@@ -1,0 +1,122 @@
+/*
+ * File Names Test.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "File Names Test"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Common",
+	"File Test Utilities"
+Names
+	"file names test suite"
+Body
+
+"file names test suite" is a new atom;
+New test suite file names test suite extends I/O test suite;
+
+Test "exists" in file names test suite is
+[
+	fn1 ::= abracadabra.txt;
+	fn2 ::= test directory/"doesnotexist.txt";
+	Require: fn1 exists;
+	Require: ¬fn2 exists;
+];
+
+Test "absolute path" in file names test suite is
+[
+	fn ::= ./"somewhere relative.txt";
+	Require: ¬fn is absolute;
+	Require: fn's absolute path is absolute;
+	absoluteTest ::= test directory's absolute path;
+	Require: absoluteTest is absolute;
+	absoluteFile ::= abracadabra.txt's absolute path;
+	Require: absoluteFile is absolute;
+	Require: absoluteFile = absoluteTest / "abracadabra.txt";
+	Require: absoluteTest names the same file as test directory;
+	Require: absoluteFile names the same file as abracadabra.txt;
+];
+
+Test "real path" in file names test suite is
+[
+	fn ::= abracadabra.txt;
+	Require: fn is absolute;
+	real ::= fn's real path;
+	Require: real is absolute;
+	Require: real names the same file as fn;
+	Require: real names the same file as fn's absolute path;
+	Require: real's metadata's file ID = fn's metadata's file ID;
+];
+
+Test "same file" in file names test suite is
+[
+	Require: abracadabra.txt names the same file as abracadabra.txt;
+	Require:
+		abracadabra.txt names the same file as abracadabra.txt's absolute path;
+	Require:
+		abracadabra.txt names the same file as abracadabra.txt's real path;
+	Require: scratch.txt names the same file as scratch.txt;
+	Require: scratch.txt names the same file as scratch.txt's absolute path;
+	Require: scratch.txt names the same file as scratch.txt's real path;
+	Require: ¬abracadabra.txt names the same file as scratch.txt;
+];
+
+Test "current working directory" in file names test suite is
+[
+	cwd ::= current working directory;
+	Require: cwd is absolute;
+	dot ::= a file named ".";
+	Require: cwd names the same file as dot;
+	empty ::= a file named "";
+	Require: cwd names the same file as empty;
+];
+
+Test "path decomposition permutations" in file names test suite is
+[
+	rng ::= a pRNG;
+	allComponents ::= map ¢a to ¢z through [c : character | <c>];
+	Repeat
+	[
+		n ::= rng's next [1..12];
+		components ::= map 1 to n through
+			[_ : any | a file named rng's next element of allComponents];
+		path ::= concatenate components;
+		Require: path's path components = components;
+	] 10 times;
+];
+
+Test "parent path" in file names test suite is
+[
+	Require: ./""'s parent path = ./"";
+	Require: ./"a"'s parent path = ./"";
+	Require: ./"a"/"b"'s parent path = ./"a";
+	Require: ./"a"/"b"/"c"/"d"/"e"'s parent path = ./"a"/"b"/"c"/"d";
+];

@@ -37,6 +37,5 @@ Extends
 	"Address",
 	"Client",
 	"Options",
-	"Server",
-	"Test"
+	"Server"
 Body

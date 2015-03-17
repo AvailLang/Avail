@@ -1,5 +1,5 @@
 /*
- * Files.avail
+ * Generators Tests.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,16 +30,78 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Files"
+Module "Generators Tests"
 Versions
 	"1.0.0 DEV 2014-04-28"
-Extends
-	"File Access Rights",
-	"File Iterators",
-	"File Management",
-	"File Metadata",
-	"File Names",
-	"File Open Options",
-	"File Principals",
-	"Primitives"
+Uses
+	"Abstract Iterators Tests",
+	"Common"
+Names
+	"generator test suite"
 Body
+
+"generator test suite" is a new atom;
+New test suite generator test suite extends iterators test suite;
+
+Test "generator basics" in generator test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iter ::= generator for
+		[
+			yield : [[1..10]]→⊤
+		|
+			For each i from 1 to 10 do [yield(i);];
+		];
+	For each element of iter do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "generator raises exception" in generator test suite is
+[
+	ref ::= map 10 to 1 by -1 through [i : [1..10] | 10 ÷ i];
+	index : natural number := 1;
+	iter ::= generator for
+		[
+			yield : [[0..10]]→⊤
+		|
+			For each i from 10 to 0 by -1 do [yield(10 ÷ i);];
+		];
+	For each element of iter do
+	[
+		Require: element = ref[(index++)];
+	];
+]
+must raise cannot-divide-by-zero exception;
+
+Test "generator with multiple yields" in generator test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iter ::= generator for
+		[
+			yield : [[1..10]]→⊤
+		|
+			For each i from 1 to 5 do [yield(i);];
+			For each i from 6 to 10 do [yield(i);];
+		];
+	For each element of iter do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "generator with no yields" in generator test suite is
+[
+	iter ::= generator for
+		[
+			yield : [[1..10]]→⊤
+		|
+			For each i from 1 to 10 do [/* Do nothing. */];
+		];
+	Require: iter is exhausted;
+];

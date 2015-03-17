@@ -44,6 +44,7 @@ Extends
 		"drop from_while_",
 		"filter_by_",
 		"map_through_",
+		"map each…in_§through_",
 		"take from_until_",
 		"take from_while_",
 		"take…from_§until_",

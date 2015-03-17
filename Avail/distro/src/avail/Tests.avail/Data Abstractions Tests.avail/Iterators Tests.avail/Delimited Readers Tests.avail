@@ -1,5 +1,5 @@
 /*
- * Files.avail
+ * Delimited Readers Tests.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,16 +30,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Files"
+Module "Delimited Readers Tests"
 Versions
 	"1.0.0 DEV 2014-04-28"
-Extends
-	"File Access Rights",
-	"File Iterators",
-	"File Management",
-	"File Metadata",
-	"File Names",
-	"File Open Options",
-	"File Principals",
-	"Primitives"
+Uses
+	"Abstract Iterators Tests",
+	"Common"
+Names
+	"delimited reader test suite"
 Body
+
+"delimited reader test suite" is a new atom;
+New test suite delimited reader test suite extends iterators test suite;
+
+Test "delimited reader basics" in delimited reader test suite is
+[
+	ref ::= 1 to 10;
+	d ::= <1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, 9, 0, 10>;
+	index : natural number := 1;
+	iter ::= a reader over d delimited by <0>;
+	For each element of iter do
+	[
+		Require: element = <ref[(index++)]>;
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "delimited reader(no occurrences)" in delimited reader test suite is
+[
+	ref ::= 1 to 10;
+	iter ::= a reader over 1 to 10 delimited by <0>;
+	element ::= iter's current element;
+	Require: element = ref;
+	Advance iter;
+	Require: iter is exhausted;
+];

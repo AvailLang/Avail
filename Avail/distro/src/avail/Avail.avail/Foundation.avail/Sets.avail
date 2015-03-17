@@ -289,67 +289,10 @@ Private method "a set iteration prefix function" is
 	]
 ]: [literal phrase ⇒ token, expression phrase ⇒ set]→⊤;
 
-
-/**
- * Set iterating-loop that invokes {@param "action"} once for every
- * {@param "elementPhrase"} in {@param "aSet"} 
- * 
- * @macro "For each…of_§do_"
- * @param "elementPhrase" "literal phrase ⇒ token"
- *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
- *        whose value is the name of the loop variable. The generated loop
- *        variable is given the strongest possible type based on the type union
- *        of the leading types and default type of {@param "aSet"}.
- * @param "aSet" "expression phrase ⇒ set"
- *        An {@type "expression phrase"} that yields the set to iterate over
- * @param "action" "block phrase ⇒ []→⊤"
- *        A zero-argument {@type "block phrase"} that represents the body of the
- *        loop.
- * @returns "send phrase ⇒ ⊤"
- * @category "Control Structures" "Loops" "Collections" "Sets"
- */
-Macro "For each…of_§do_" is a set iteration prefix function,
-[
-	elementPhrase : literal phrase ⇒ token,
-	aSet : expression phrase ⇒ set,
-	action : block phrase ⇒ []→⊤
-|
-	/* Build the block function */
-	name ::= elementPhrase's token's lexeme;
-	aSetType ::= aSet's semantic type;
-	elementType ::= aSetType's element type;
-	blockType ::= [elementType]→(action's semantic type's return type);
-	restrictions ::= semantic restrictions
-		for method for $"For each of⁇_do_"
-		given <aSetType, blockType>;
-	returnType : type := ⊤;
-	From 1 to |restrictions| by 1 do
-	[
-		index : natural number
-	|
-		returnType := returnType
-			∩ restrictions[index](aSetType, blockType);
-	];
-	statements ::= action's statements;
-	blockReturnType ::= cast statements
-		into [t : phrase+ | t[|t|]'s semantic type]
-		else [⊤];
-		
-	restricted send $"For each of⁇_do_" with
-	<
-		aSet,
-		«[
-			<cast scope map[name] into [d : argument phrase | d]>
-		|
-			statements
-		] : blockReturnType»
-	> : returnType
-] : send phrase ⇒ ⊤;
-		
 /**
  * Answer a function that computes a body function.
  * 
- * @method "predicate body function(_,_)"
+ * @method "body function(_,_)"
  * @param "anAtom" "atom" the atom that represents the function that the
  * 		macro builds
  * @param "baseReturnType" "type" the base return type of the method
@@ -357,7 +300,7 @@ Macro "For each…of_§do_" is a set iteration prefix function,
  *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
  *          The requested function.
  */
-Private method "predicate body function(_,_)" is
+Private method "body function(_,_)" is
 [
  	anAtom : atom,
  	baseReturnType : type
@@ -365,7 +308,7 @@ Private method "predicate body function(_,_)" is
 	[
 		elementPhrase : literal phrase ⇒ token,
 		aSet : expression phrase ⇒ set,
-		predicateBlock : block phrase ⇒ []→ boolean
+		predicateBlock : block phrase ⇒ []→ ⊤
 	|
 		name ::= elementPhrase's token's lexeme;
 		aSetType ::= aSet's semantic type;
@@ -398,7 +341,28 @@ Private method "predicate body function(_,_)" is
 		> : returnType
 	] : send phrase ⇒ ⊤
 ] : [literal phrase ⇒ token, expression phrase ⇒ set, 
-     block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤;
+     block phrase ⇒ []→ ⊤]→send phrase ⇒ ⊤;
+
+/**
+ * Set iterating-loop that invokes {@param "action"} once for every
+ * {@param "elementPhrase"} in {@param "aSet"} 
+ * 
+ * @macro "For each…of_§do_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aSet"}.
+ * @param "aSet" "expression phrase ⇒ set"
+ *        An {@type "expression phrase"} that yields the set to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops" "Collections" "Sets"
+ */
+Macro "For each…of_§do_" is a set iteration prefix function,
+	body function($"For each of⁇_do_", ⊤);
 
 /**
  * Iteratively apply {@param "transformer"} to each element of {@param "aSet"},
@@ -460,6 +424,28 @@ Semantic restriction "map_through_" is
 	];
 	{transformer's return type | ||setType||}
 ];
+
+/**
+ * Iteratively apply {@param "transformer"} to each element of {@param "aSet"},
+ * collecting the results into a new tuple. The set is traversed in no
+ * particular order. Answer the resultant set.
+ * 
+ * @macro "map each…in_§through_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aSet"}.
+ * @param "aSet" "expression phrase ⇒ set"
+ *        An {@type "expression phrase"} that yields the set to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops" "Collections" "Sets"
+ */
+Macro "map each…in_§through_" is a set iteration prefix function,
+	body function($"map_through_",set);
 
 /**
  * Iteratively apply {@param "predicate"} to each element of {@param "aSet"}, in
@@ -708,7 +694,7 @@ Semantic restriction "each of_satisfies_" is
  * @category "Collections" "Sets" "Queries"
  */
 Macro "any…of_§satisfies_" is a set iteration prefix function,
-	predicate body function($"any of_satisfies_", boolean);
+	body function($"any of_satisfies_", boolean);
 
 /**
  * Compute and answer whether all of the elements of {@param "aSet"} satisfies
@@ -729,7 +715,7 @@ Macro "any…of_§satisfies_" is a set iteration prefix function,
  * @category "Collections" "Sets" "Queries"
  */
 Macro "each…of_§satisfies_" is a set iteration prefix function,
-	predicate body function($"each of_satisfies_", boolean);
+	body function($"each of_satisfies_", boolean);
 
 /**
  * Compute and answer the count of elements of {@param "aSet"} that satisfy the
@@ -788,7 +774,7 @@ Semantic restriction "count of_where_" is
  * @category "Queries" "Collections" "Sets"
  */
 Macro "count of…in_§where_" is a set iteration prefix function,
-	predicate body function($"count of_where_", whole number);
+	body function($"count of_where_", whole number);
 
 /**
  * Compute and answer the symmetric difference between the two sets, being the

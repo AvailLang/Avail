@@ -34,9 +34,10 @@ Module "Avail Tests"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
-	"Avail" = ("all test suites"→"the test suites", …)
+	"Avail" = ("all test suites"→"the test suites", …),
+	"Tests"
 Extends
-	"Avail" =
+	"Tests" =
 	(
 		"assertion test suite",
 		"backtracking test suite",

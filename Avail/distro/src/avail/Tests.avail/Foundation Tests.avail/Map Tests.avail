@@ -1,0 +1,308 @@
+/*
+ * Map Tests.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Map Tests"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Common"
+Names
+	"map test suite"
+Body
+
+/* The test suite identifier. */
+"map test suite" is a new atom;
+
+New test suite map test suite extends foundation test suite;
+
+Test "map cardinality" in map test suite is
+[
+	a ::= {1→"foo",2→"bar",3→"frog",4→"prince"};
+	Require: 4 = |a|;
+	Require: 0 = |{}|;
+	Require: true = {} is empty;
+];
+
+Test "keys values and bindings" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+	b ::= a's values;
+	Require: {"foo","bar","frog","prince"} = a's keys;
+	Require: ∅ = {}'s keys;
+	Require: <1,2,3,4> = merge sort a's values;
+	Require: <> = {}'s values;
+	/*Require: a's type's key type ⊆ string;*/
+	/*Require: a's type's value type ⊆ [1..4];*/
+	Require: "foo" ∈ a;
+	Require: <<"foo",1>,<"bar",2>,<"frog",3>,<"prince",4>> = a's bindings;
+
+];
+
+Test "add and remove from map" in map test suite is
+[
+	a : map := {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+	b ::= a + "bird"→5;
+	c ::= a - "foo";
+	Require: {"foo"→1,"bar"→2,"frog"→3,"prince"→4,"bird"→5} = b;
+	Require: {"bar"→2,"frog"→3,"prince"→4} = c;
+];
+
+Test "alternative answer via else" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+	Require: 1 = a["foo"] else [5];
+	Require: 5 = a["club"] else [5];
+];
+
+Test "map through" in map test suite is
+[
+ 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+ 	b ::= map a through [s : string, n : natural number | n × 2];
+ 	Require: b = {"foo"→2,"bar"→4,"frog"→6,"prince"→8};
+];
+
+Test "map through (macro)" in map test suite is
+[
+ 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+ 	b ::= map each s→n in a through [n × 2];
+ 	Require: b = {"foo"→2,"bar"→4,"frog"→6,"prince"→8};
+];
+
+Test "map and filter" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+ 	b ::= map and filter a by 
+ 	[
+ 	 	s : string,
+ 	 	n : natural number,
+ 	 	accept : [natural number]→⊤
+ 	 | 
+ 	 	m ::= n + 2;
+ 		If m mod 2 = 0 then
+ 		[
+ 		 	accept(m);
+ 		];
+ 	];
+ 	Require: b = {"bar"→4,"prince"→6};
+];
+
+Test "any satisfies" in map test suite is
+[
+ 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+ 	b ::= any of a satisfies [s : string, n : natural number | n mod 2 = 0];
+ 	c ::= any of a satisfies [s : string, n : natural number | n > 200];
+ 	Require: b = true;
+ 	Require: c = false;
+];
+
+Test "any satisfies (macro)" in map test suite is
+[
+ 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+ 	b ::= any s→n of a satisfies [n mod 2 = 0];
+ 	c ::= any s→n of a satisfies [n > 200];
+ 	Require: b = true;
+ 	Require: c = false;
+];
+
+Test "for each of do" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+	b : map := {};
+	For each of a do
+	[
+	 	s : string,
+	 	n : natural number
+	 |
+	 	b := b + s→n;
+	];
+	Require: a = b;
+];
+
+Test "macro for each of do" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+	b : map := {};
+	For each s → n of a do [b := b + s→n;];
+	Require: a = b;
+];
+
+Test "count of where" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+ 	b ::= count of a where [s : string, n : natural number | n mod 2 = 0];
+ 	c ::= count of a where [s : string, n : natural number | n > 2000];
+ 	Require: b = 2;
+ 	Require: c = 0;
+];
+
+Test "count of where (macro)" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+ 	b ::= count of s → n in a where [n mod 2 = 0];
+ 	c ::= count of s → n in a where [n > 2000];
+ 	Require: b = 2;
+ 	Require: c = 0;
+];
+
+Test "each of satisfies" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+	counter : whole number := 0;
+ 	b ::= each s→n of a satisfies 
+ 	[
+		counter := counter +1; 
+ 		n ≤ 2
+ 	];
+ 	c ::= each s→n of a satisfies [n > 0];
+ 	Require: b = false;
+ 	Require: counter = 3;
+ 	Require: c = true;
+];
+
+Test "filter by" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+ 	b ::= filter a by [s : string, n : natural number | n mod 2 = 0];
+ 	c ::= filter a by [s : string, n : natural number | n > 2000];
+ 	Require: b = {"bar"→2,"prince"→4};
+ 	Require: c = {};
+];
+
+Test "group by" in map test suite is
+[
+ 	/* Group by values */
+ 	a ::= <1,2,3,4,5>;
+ 	b ::= group a by [n: natural number | n is even]; 	
+ 	Require: b = {false→<1, 3, 5>, true→<2, 4>};
+ 	
+ 	/*Group by types*/
+ 	c ::= <whole number, string, natural number, boolean, 5's type>;
+ 	d ::= group c by [t : type | t ⊆ number];
+ 	Require: d = 
+ 		{true→<whole number, natural number, 5's type>, 
+ 		false→<string, boolean>};
+];		
+
+Test "counts for" in map test suite is
+[
+ 	a ::= <"foo","bar","frog","prince","prince","foo","nickel","foo">;
+ 	Require: counts for a = {"foo"→3,"bar"→1,"frog"→1,"prince"→2,"nickel"→1};
+];
+
+Test "integrate maps" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+	b ::= {"foo"→9,"sharks are awesome!"→40};
+	c ::= integrate a and b with
+	[
+	 	m : {string→integer|},
+	 	k : string,
+	 	v : natural number
+	 |
+	 	chosenValue ::= if m[k] > v then [m[k]] else [v]; 
+	 	m + k → chosenValue
+	];
+	Require: {"foo"→9,"bar"→2,"frog"→3,"prince"→4,"sharks are awesome!"→40} = c;
+	d ::= {"laser"→9000,"foo"→9,"sharks are awesome!"→40};
+	e ::= {"mute"→0,"too"→11};
+	f : {string→integer|} := integrate a, b, d, and e with
+	[
+	 	m : {string→integer|},
+	 	k : string,
+	 	v : whole number
+	 |
+	 	chosenValue ::= if m[k] > v then [m[k]] else [v]; 
+	 	m + k → chosenValue
+	];
+	Require: {"laser"→9000,"foo"→9,"bar"→2,"frog"→3,"prince"→4,
+		"sharks are awesome!"→40,"mute"→0,"too"→11} = f;
+];
+
+Test "quasi-destructive simple map at key replace" in map test suite is
+[
+	m : {string→natural number|} := {"foo"→1,"boo"→2,"zoo"→3};
+	n ::= m["foo"] → 4;
+	Require: n = {"foo"→4,"boo"→2,"zoo"→3};
+];
+
+Test "quasi-destructive n-ary complex map update" in map test suite is
+[
+	t : {string→<{string→<string…|2>|2},natural number…|2>|} := 
+		{
+			"foo"→<
+				{"hippo"→<"submarine","bunnies">,
+				"raven"→<"lolipop","turkey">},
+				2>,
+			"boo"→<
+				{"tree"→<"jet","fury">,
+					"zippo"→<"weevil","sarlak">},
+				5>
+		};
+
+	n ::= t["boo"][1]["zippo"][1] → "jawa";
+	Require: n = {
+		"foo"→<
+			{"hippo"→<"submarine","bunnies">,
+			"raven"→<"lolipop","turkey">},
+			2>,
+		"boo"→<
+			{"tree"→<"jet","fury">,
+			"zippo"→<"jawa","sarlak">},
+			5>
+		};
+];
+
+Test "quasi-destructive n-ary very complex map update" in map test suite is
+[
+	t : {string→<{string→<string…|2>|2},natural number…|2>|} := 
+		{
+			"foo"→<
+				{"hippo"→<"submarine","bunnies">,
+				"raven"→<"lolipop","turkey">},
+				2>,
+			"boo"→<
+				{"tree"→<"jet","fury">,
+					"zippo"→<"weevil","sarlak">},
+				5>
+		};
+		n ::= t["boo"][1]["tree"] → <"boat","jaws">;
+		Require: n = {
+			"foo"→<
+				{"hippo"→<"submarine","bunnies">,
+				"raven"→<"lolipop","turkey">},
+				2>,
+			"boo"→<
+				{"tree"→<"boat","jaws">,
+				"zippo"→<"weevil","sarlak">},
+				5>
+		};
+];

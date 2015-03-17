@@ -1,0 +1,269 @@
+/*
+ * Network Tests.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Network Tests"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Common"
+Names
+	"network test suite"
+Body
+
+"network test suite" is a new atom;
+New test suite network test suite extends I/O test suite;
+
+Test "server socket (create)" in network test suite is
+[
+	s ::= a server socket named "bogus";
+	Guard [Require: "bogus" = s's name;]
+	ensure [Close s;];
+];
+
+Test "server socket (set option)" in network test suite is
+[
+	s ::= a server socket named "bogus";
+	Guard
+	[
+		s's receive buffer size := 32768;
+		s's address reusability := true;
+		Require: s's name = "bogus";
+	]
+	ensure [Close s;];
+];
+
+Test "server socket (bind IPv4)" in network test suite is
+[
+	s ::= a server socket named "bogus";
+	Require: s's name = "bogus";
+	addr ::= 127 .0 .0 .1:0;
+	Guard
+	[
+		Bind s to addr;
+		Require: addr ≠ s's address;
+	]
+	ensure [Close s;];
+];
+
+Test "server socket (rebind reusable IPv4)" in network test suite is
+[
+	s : server socket := a server socket named "bind";
+	Require: s's name = "bind";
+	addr ::=
+		guard
+		[
+			Bind s to 127 .0 .0 .1:0;
+			Require: 127 .0 .0 .1:0 ≠ s's address;
+			s's address
+		]
+		ensure [Close s;];
+	s := a server socket named "rebind";
+	Require: s's name = "rebind";
+	Guard
+	[
+		s's address reusability := true;
+		Bind s to addr;
+		Require: s's address = addr;
+	]
+	ensure [Close s;];
+];
+
+Test "server socket (bind closed IPv4)" in network test suite is
+[
+	s ::= a server socket named "doomed";
+	Close s;
+	addr ::= 127 .0 .0 .1:0;
+	Bind s to addr;
+]
+must raise I/O exception;
+
+Test "basic connection" in network test suite is
+[
+	server ::= a server socket;
+	accepted : client socket;
+	killer : exception;
+	serverFiber ::=
+		guard
+		[
+			server's address reusability := true;
+			Bind server to 127 .0 .0 .1:0;
+			a fiber waiting until server accepts a new connection,
+				on success doing
+				[
+					c : client socket
+				|
+					c's address reusability := true;
+					accepted := c;
+				],
+				on failure doing [e : exception | killer := e;]
+		]
+		intercept
+		[
+			e : exception
+		|
+			Close server;
+			Raise e
+		];
+	client ::= a client socket;
+	clientFiber ::=
+		guard
+		[
+			client's address reusability := true;
+			Bind client to 127 .0 .0 .1:0;
+			a fiber connecting client to server's address,
+				on success doing [/* Nothing. */],
+				on failure doing [e : exception | killer := e;]
+		]
+		intercept
+		[
+			e : exception
+		|
+			Close server;
+			Close client;
+			If accepted is assigned then [Close accepted;];
+			Raise e
+		];
+	Guard
+	[
+		Join serverFiber;
+		Join clientFiber;
+		If killer is assigned then [Raise killer];
+	]
+	ensure
+	[
+		Close server;
+		Close client;
+		Close accepted;
+	];
+];
+
+Test "basic transmission" in network test suite is
+[
+	server ::= a server socket;
+	sem ::= a semaphore named "transmission" with 0 out of 2 permits;
+	accepted : client socket;
+	killer : exception;
+	/* Accepting new connections. */
+	Guard
+	[
+		server's address reusability := true;
+		Bind server to 127 .0 .0. 1:0;
+		Ignore: a fiber waiting until server accepts a new connection,
+			on success doing
+			[
+				c : client socket
+			|
+				c's address reusability := true;
+				accepted := c;
+				Signal sem;
+			],
+			on failure doing [e : exception | killer := e; Signal sem;];
+	]
+	intercept
+	[
+		e : exception
+	|
+		Close server;
+		Raise e
+	];
+	/* Connect. */
+	client ::= a client socket;
+	Guard
+	[
+		client's address reusability := true;
+		Bind client to 127 .0 .0 .1:0;
+		Ignore: a fiber connecting client to server's address,
+			on success doing [Signal sem;],
+			on failure doing [e : exception | killer := e; Signal sem;];
+	]
+	intercept
+	[
+		e : exception
+	|
+		Close server;
+		Close client;
+		If accepted is assigned then [Close accepted;];
+		Raise e
+	];
+	Repeat
+	[
+		Await sem;
+		If killer is assigned then
+		[
+			Close server;
+			Close client;
+			If accepted is assigned then [Close accepted;];
+			Raise killer
+		];
+	] 2 times;
+	/* Send data. */
+	data ::=
+		map "Hello, world!\n"
+		through [c : character | c's code point bit∧ 255];
+	Guard
+	[
+		Ignore: a fiber writing data to client,
+			on success doing [/* Nothing. */],
+			on failure doing [e : exception | killer := e; Signal sem;];
+		read : <byte…|> := <>;
+		Until
+		[
+			Ignore: a fiber reading (|data| - |read|) max 0 bytes from accepted,
+				on success doing
+				[
+					justRead : <byte…|>,
+					endOfStream : boolean
+				|
+					Require: ¬endOfStream;
+					read ++= justRead;
+					Signal sem;
+				]
+				on failure doing
+				[
+					e : exception
+				|
+					killer := e;
+					Signal sem;
+				];
+			Await sem;
+			killer is assigned ∨ |read| = |data|
+		];
+		If killer is assigned then [Raise killer];
+		Require: read = data;
+	]
+	ensure
+	[
+		Close server;
+		Close client;
+		Close accepted;
+	];
+];

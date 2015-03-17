@@ -1,0 +1,290 @@
+/*
+ * Bounded Readers Tests.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Bounded Readers Tests"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Abstract Iterators Tests",
+	"Common"
+Names
+	"bounded reader test suite"
+Body
+
+"bounded reader test suite" is a new atom;
+New test suite bounded reader test suite extends iterators test suite;
+
+Test "bounded reader basics" in bounded reader test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
+	For each element of iter do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "bounded reader (map)" in bounded reader test suite is
+[
+	ref ::= <1, 4, 9, 16, 25, 36, 49, 64, 81, 100>;
+	index : natural number := 1;
+	iter ::= map a counting reader from 1 to 100 limited to 10 elements
+		through [i : [1..100] | i × i];
+	For each element of iter do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "bounded reader (map - macro)" in bounded reader test suite is
+[
+	ref ::= <1, 4, 9, 16, 25, 36, 49, 64, 81, 100>;
+	index : natural number := 1;
+	iter ::= map each i in a counting reader from 
+		1 to 100 limited to 10 elements through [i × i];
+	For each element of iter do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "bounded reader (filter)" in bounded reader test suite is
+[
+	ref ::= <2, 4, 6, 8, 10>;
+	index : natural number := 1;
+	iter ::= filter a counting reader from 1 to 100 limited to 10 elements
+		by [i : [1..100] | i is even];
+	For each element of iter do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "bounded reader (concatenation)" in bounded reader test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iters ::= <
+		an exhausted reader,
+		a counting reader from 1 to 2,
+		an exhausted reader,
+		an exhausted reader,
+		a counting reader from 3 to 7,
+		an exhausted reader,
+		a counting reader from 8 to 8,
+		a counting reader from 9 to 10,
+		an exhausted reader>;
+	iter ::= concatenate iters;
+	For each element of iter do [Require: element = ref[(index++)];];
+	Require: index = (|ref| + 1);
+];
+
+Test "bounded reader (lexical concatenation)"
+	in bounded reader test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iters ::= <
+		an exhausted reader,
+		a counting reader from 1 to 2,
+		an exhausted reader,
+		an exhausted reader,
+		a counting reader from 3 to 7,
+		an exhausted reader,
+		a counting reader from 8 to 8,
+		a counting reader from 9 to 10,
+		an exhausted reader>;
+	iter ::= iters[1]
+		++ iters[2]
+		++ iters[3]
+		++ iters[4]
+		++ iters[5]
+		++ iters[6]
+		++ iters[7]
+		++ iters[8]
+		++ iters[9];
+	For each element of iter do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "bounded reader (zip)" in bounded reader test suite is
+[
+	ref ::= <
+		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
+		<6, 36>, <7, 49>, <8, 64>, <9, 81>, <10, 100>>;
+	index : natural number := 1;
+	iters ::= <
+		a counting reader from 1 to 100 limited to 10 elements,
+		map a counting reader from 1 to 100 limited to 10 elements
+			through [n : [1..100] | n × n]>;
+	iter ::= zip iters;
+	For each element of iter do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "bounded reader (lexical zip)" in bounded reader test suite is
+[
+	ref ::= <
+		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
+		<6, 36>, <7, 49>, <8, 64>, <9, 81>, <10, 100>>;
+	index : natural number := 1;
+	iters ::= <
+		a counting reader from 1 to 100 limited to 10 elements,
+		map a counting reader from 1 to 100 limited to 10 elements
+			through [n : [1..100] | n × n]>;
+	iter ::= iters[1] zip iters[2];
+	For each element of iter do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "bounded reader (take_from_)" in bounded reader test suite is
+[
+	ref ::= 1 to 5;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
+	result ::= take 5 from iter;
+	For each element of result do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: iter's current element = 6;
+	Require: [take 6 from iter] raises exhausted-iterator exception;
+];
+
+Test "bounded reader (take from_while_)" in bounded reader test suite is
+[
+	ref ::= 1 to 5;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
+	result ::= take from iter while [n : [1..100] | n ≤ 5];
+	For each element of result do
+	[
+		Require: element = ref[(index++)];
+	];
+	Require: iter's current element = 6;
+];
+
+Test "bounded reader (take…from_§while_)" in bounded reader test suite is
+[
+	ref ::= 1 to 5;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
+	result ::= take n from iter while [n ≤ 5];
+	For each element of result do [Require: element = ref[(index++)];];
+	Require: iter's current element = 6;
+];
+
+Test "bounded reader (take from_until_)" in bounded reader test suite is
+[
+	ref ::= 1 to 5;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
+	result ::= take from iter until [n : [1..100] | n ≥ 6];
+	For each element of result do [Require: element = ref[(index++)];];
+	Require: iter's current element = 6;
+];
+
+Test "bounded reader (take…from_§until_)" in bounded reader test suite is
+[
+	ref ::= 1 to 5;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
+	result ::= take n from iter until [n ≥ 6];
+	For each element of result do [Require: element = ref[(index++)];];
+	Require: iter's current element = 6;
+];
+
+Test "bounded reader (Drop_from_)" in bounded reader test suite is
+[
+	ref ::= 6 to 10;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
+	Drop 5 from iter;
+	For each element of iter do [Require: element = ref[(index++)];];
+	Require: index = (|ref| + 1);
+	Require: [Drop 6 from iter;] raises exhausted-iterator exception;
+];
+
+Test "bounded reader (Drop from_while_)" in bounded reader test suite is
+[
+	ref ::= 6 to 10;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
+	Drop from iter while [n : [1..100] | n ≤ 5];
+	For each element of iter do [Require: element = ref[(index++)];];
+	Require: index = (|ref| + 1);
+];
+
+Test "bounded reader (Drop from_until_)" in bounded reader test suite is
+[
+	ref ::= 6 to 10;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
+	Drop from iter until [n : [1..100] | n ≥ 6];
+	For each element of iter do [Require: element = ref[(index++)];];
+	Require: index = (|ref| + 1);
+];
+
+Test "bounded reader (Drop…from_§while_)" in bounded reader test suite is
+[
+	ref ::= 6 to 10;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
+	Drop n from iter while [n ≤ 5];
+	For each element of iter do [Require: element = ref[(index++)];];
+	Require: index = (|ref| + 1);
+];
+
+Test "bounded reader (Drop…from_§until_)" in bounded reader test suite is
+[
+	ref ::= 6 to 10;
+	index : natural number := 1;
+	iter ::= a counting reader from 1 to 100 limited to 10 elements;
+	Drop n from iter until [n ≥ 6];
+	For each element of iter do [Require: element = ref[(index++)];];
+	Require: index = (|ref| + 1);
+];
+

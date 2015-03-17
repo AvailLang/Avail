@@ -1,0 +1,177 @@
+/*
+ * Logic Tests.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Logic Tests"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Common"
+Names
+	"logic test suite"
+Body
+
+/* The test suite identifier. */
+"logic test suite" is a new atom;
+
+New test suite logic test suite extends foundation test suite;
+
+Test "boolean identity" in logic test suite is
+[
+ 	Require: true = true;
+	Require: false = false;
+	Require: true ≠ false;
+	Require: false ≠ true;
+];
+
+Test "negation" in logic test suite is
+[
+	Require: ¬true = false;
+	Require: ¬false = true;
+	Require: ¬¬¬true = false;
+	Require: ¬¬true = true;
+	Require: ¬¬false = false;
+	Require: ¬¬¬false = true;
+	Require: ¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬true = false;
+	Require: ¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬false = false;
+];
+
+Test "logical conjunction" in logic test suite is
+[ 
+  	Require: true ∧ true;
+	Require: (false ∧ true) = false;
+	Require: (true ∧ false) = false;
+	Require: (false ∧ false) = false;
+	Require: (¬false ∧ true) = true;
+	Require: (¬true ∧ true) = false;
+	Require: true ∧ true ∧ true ∧ true ∧ true;
+	Require: (true ∧ true ∧ true ∧ true ∧ true ∧ false) = false;
+	Require: (true ↑ true) = false;
+	Require: (true ↑ false) = true;
+	secondCheckPass : boolean := true;
+	Require: (false ↑ [secondCheckPass := false; false]) = true;
+	Require: secondCheckPass;
+];
+
+Test "logical disjunction" in logic test suite is
+[ 
+  	Require: true ∨ true;
+	Require: (false ∨ true) = true;
+	Require: (true ∨ false) = true;
+	Require: (false ∨ false) = false;
+	Require: (¬false ∨ true) = true;
+	Require: (¬true ∨ true) = true;
+	Require: true ∨ true ∨ true ∨ true ∨ true;
+	Require: (true ∨ true ∨ true ∨ true ∨ true ∨ false) = true;
+	Require: (false ∨ false ∨ false ∨ false ∨ false ∨ false) = false;
+	Require: (true ↓ true) = false;
+	Require: (false ↓ true) = false;
+	Require: (false ↓ false) = true;
+	secondCheckPass : boolean := true;
+	Require: (true ↓ [secondCheckPass := false; false]) = false;
+	Require: secondCheckPass;
+];
+
+Test "logical exclusive disjunction" in logic test suite is
+[ 
+  	Require: true ⊕ false;
+	Require: false ⊕ true;
+	Require: (true ⊕ true) = false;
+	Require: (false ⊕ false) = false;
+	Require: (¬false ⊕ true) = false;
+	Require: ¬true ⊕ true;
+	Require: true ⊕ true ⊕ true ⊕ true ⊕ true;
+	Require: (true ⊕ true ⊕ true ⊕ true ⊕ true ⊕ true) = false;
+	Require: true ⊕ true ⊕ true ⊕ true ⊕ true ⊕ false;
+	Require: (false ⊕ false ⊕ false ⊕ false) = false;
+];
+
+Test "equality" in logic test suite is
+[
+ 	Require: 1 = 1;
+	Require: ¢a = ¢a;
+	Require: <11,20> = <11,20>;
+	Require: "foo" = "foo";
+	Require: {11,20} = {20,11};
+	Require: {11→"foo",12→"bar"} = {12→"bar",11→"foo"};
+	Require: 1 ≠ 2;
+	Require: ¢a ≠ ¢b;
+	Require: <11,20> ≠ <20,11>;
+	Require: "foo" ≠ "bar";
+	Require: "foo" ≠ 2;
+	Require: {11→"foo"} ≠ {11→"bar"};
+	Require: (true = false = false = false) = false;
+	Require: true = true = true = true;
+	Require: (true = true = true = true) ≠ false;
+];
+
+Test "inequalities" in logic test suite is
+[
+ 	Require: 1 < 2;
+	Require: 3 > 2;
+	Require: 2 ≥ 2;
+	Require: 2 ≥ 1;
+	Require: 2 ≤ 2;
+	Require: 2 ≤ 3;
+	Require: 2 ≤ 3 < 5;
+	Require: 6 ≥ 4 > 1;
+	Require: 6 ≥ 3 ∧ 2 < 7;
+	Require: 2 ≤ 3 < 5 ≤ 100;
+	Require: 75 > 45 ≥ 45 > 3 > -∞;
+];
+
+Test "material conditional" in logic test suite is
+[
+ 	Require: true → true;
+	Require: (true → false) = false;
+	Require: false → true;
+	Require: false → false;
+	Require: true ← true;
+	Require: true ← false;
+	Require: (false ← true) = false;
+	Require: false ← false;
+	Require: (true ↛ true) = false;
+	Require: true ↛ false;
+	Require: (false ↛ true) = false;
+	Require: (false ↛ false) = false;
+	Require: (true ↚ true) = false;
+	Require: (true ↚ false) = false;
+	Require: false ↚ true;
+	Require: (false ↚ false) = false;
+];
+
+Test "logical biconditional" in logic test suite is
+[
+ 	Require: true ↔ true;
+	Require: (true ↔ false) = false;
+	Require: (false ↔ true) = false;
+	Require: false ↔ false;
+];	
