@@ -63,7 +63,7 @@ Private method "Send numbers to_" is
 		count ::= 5 × rng's next [5..51];
 		Write <count> to client;
 		/* Send some mysterious numbers. */
-		weirdNumbers ::= map 1 to count through [i : byte | rng's next [0..9]];
+		weirdNumbers ::= map each i in 1 to count through [rng's next [0..9]];
 		Write weirdNumbers to client;
 	]
 	ensure [Close client;];
@@ -223,10 +223,8 @@ Method "Eavesdrop" is
 				weirdNumbers ::= read expected bytes from client;
 				/* Report the mysterious numbers. */
 				size ::= cast |weirdNumbers| into [s : [5..255] | s];
-				quintets ::= map 1 to size - 1 by 5 through
+				quintets ::= map each i in 1 to size - 1 by 5 through
 					[
-						i : [1..255]
-					|
 						cast weirdNumbers[i..i + 4] into [t : <byte…|5> | t]
 					];
 				For each q, i of quintets do

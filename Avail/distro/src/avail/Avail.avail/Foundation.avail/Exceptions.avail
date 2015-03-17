@@ -570,10 +570,8 @@ Public method "Guard|guard_«intercept_»«ensure_»" is
 		 */
 		else
 		[
-			map handlers through
+			map each handler in handlers through
 			[
-				handler : [⊥]→⊤
-			|
 				handlerType ::= handler's type;
 				/* Make sure that the new handler has the same signature as
 				 * the wrapped handler.

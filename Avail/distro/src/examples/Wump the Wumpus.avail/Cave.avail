@@ -420,7 +420,7 @@ Public method "_'s⁇pit rooms" is
 [
 	c : cave
 |
-	map c's pit ids through [id : room id | c[id]]
+	map each id in c's pit ids through [c[id]]
 ] : {room|2};
 
 Semantic restriction "_'s⁇pit rooms" is [c : cave's type | {pit room|2} ];

@@ -78,10 +78,8 @@ Test "fork and join with result" in concurrency test suite is
 Test "fork and multiple join" in concurrency test suite is
 [
 	target ::= invoke [3^20] with <>, forked at priority 50;
-	waiters ::= map 1 to 10 through
+	waiters ::= map each ignored in 1 to 10 through
 		[
-			ignored : [1..10]
-		|
 			invoke [Join target;] with <>, forked at priority 50
 		];
 	For each f of waiters do [Join f;];
@@ -105,10 +103,8 @@ Test "basic counting semaphore" in concurrency test suite is
 	count ::= 10;
 	sem ::= a semaphore with 0 out of count permits;
 	fibers ::=
-		map 1 to 10 through
+		map each ignored in 1 to 10 through
 		[
-			ignored : [1..10]
-		|
 			invoke [Signal sem;] with <>, forked at priority 50
 		];
 	Await sem count times;
@@ -418,14 +414,14 @@ Test "for-each in parallel (worker exception)" in concurrency test suite is
 Test "map in parallel (tuple)" in concurrency test suite is
 [
 	result ::= map 1 to 10 in parallel through [i : [1..10] | i × 5];
-	expected ::= map 1 to 10 through [i : [1..10] | i × 5];
+	expected ::= map each i in 1 to 10 through [i × 5];
 	Require: result = expected;
 ];
 
 Test "map in parallel (tuple, small window)" in concurrency test suite is
 [
 	result ::= map 1 to 10 in parallel 2-way through [i : [1..10] | i × 5];
-	expected ::= map 1 to 10 through [i : [1..10] | i × 5];
+	expected ::= map each i in 1 to 10 through [i × 5];
 	Require: result = expected;
 ];
 
@@ -443,14 +439,14 @@ Test "map in parallel (tuple, worker exception)" in concurrency test suite is
 Test "map in parallel (set)" in concurrency test suite is
 [
 	result ::= map 1 to 10→set in parallel through [i : [1..10] | i × 5];
-	expected ::= map 1 to 10→set through [i : [1..10] | i × 5];
+	expected ::= map each i in 1 to 10→set through [i × 5];
 	Require: result = expected;
 ];
 
 Test "map in parallel (set, small window)" in concurrency test suite is
 [
 	result ::= map 1 to 10→set in parallel 3-way through [i : [1..10] | i × 5];
-	expected ::= map 1 to 10→set through [i : [1..10] | i × 5];
+	expected ::= map each i in 1 to 10→set through [i × 5];
 	Require: result = expected;
 ];
 
@@ -469,16 +465,16 @@ Test "map in parallel (map)" in concurrency test suite is
 [
 	m ::= 1 to 10 zip map 1 to 10 through [n : [1..10] | n × n]→map;
 	result ::= map m in parallel through [k : [1..10], v : [1..100] | k × v];
-	expected ::= map m through [k : [1..10], v : [1..100] | k × v];
+	expected ::= map each k→v in m through [k × v];
 	Require: result = expected;
 ];
 
 Test "map in parallel (map, small window)" in concurrency test suite is
 [
-	m ::= 1 to 10 zip map 1 to 10 through [n : [1..10] | n × n]→map;
+	m ::= 1 to 10 zip map each n in 1 to 10 through [n × n]→map;
 	result ::= map m in parallel 5-way
 		through [k : [1..10], v : [1..100] | k × v];
-	expected ::= map m through [k : [1..10], v : [1..100] | k × v];
+	expected ::= map each k→v in m through [k × v];
 	Require: result = expected;
 ];
 
@@ -552,7 +548,7 @@ Test "filter in parallel (set, worker exception)" in concurrency test suite is
 
 Test "filter in parallel (map)" in concurrency test suite is
 [
-	m ::= 1 to 10 zip map 1 to 10 through [i : [1..10] | i is odd]→map;
+	m ::= 1 to 10 zip map each i in 1 to 10 through [i is odd]→map;
 	result ::= filter m in parallel by [k : [1..10], v : boolean | v];
 	expected ::= filter m by [k : [1..10], v : boolean | v];
 	Require: result = expected;
@@ -560,7 +556,7 @@ Test "filter in parallel (map)" in concurrency test suite is
 
 Test "filter in parallel (map, small window)" in concurrency test suite is
 [
-	m ::= 1 to 10 zip map 1 to 10 through [i : [1..10] | i is odd]→map;
+	m ::= 1 to 10 zip map each i in 1 to 10 through [i is odd]→map;
 	result ::= filter m in parallel 3-way by [k : [1..10], v : boolean | v];
 	expected ::= filter m by [k : [1..10], v : boolean | v];
 	Require: result = expected;
@@ -652,7 +648,7 @@ Test "map and filter in parallel (map)" in concurrency test suite is
 		|
 			If k is odd then [s(2 × v);];
 		];
-	m ::= 1 to 10 zip map 1 to 10 through [i : [1..10] | i × i]→map;
+	m ::= 1 to 10 zip map each i in 1 to 10 through [i × i]→map;
 	result ::= map and filter m in parallel by f;
 	expected ::= map and filter m by f;
 	Require: result = expected;
@@ -669,7 +665,7 @@ Test "map and filter in parallel (map, small window)"
 	|
 		If k is odd then [s(2 × v);];
 	];
-	m ::= 1 to 10 zip map 1 to 10 through [i : [1..10] | i × i]→map;
+	m ::= 1 to 10 zip map each i in 1 to 10 through [i × i]→map;
 	result ::= map and filter m in parallel 4-way by f;
 	expected ::= map and filter m by f;
 	Require: result = expected;
@@ -686,7 +682,7 @@ Test "map and filter in parallel (map, worker exception)"
 		|
 			If k is odd then [s(v÷(k-1));];
 		];
-	m ::= 1 to 10 zip map 1 to 10 through [i : [1..10] | i × i]→map;
+	m ::= 1 to 10 zip map each i in 1 to 10 through [i × i]→map;
 	result ::=
 		guard [map and filter m in parallel by f]
 		intercept [e : worker exception | e];

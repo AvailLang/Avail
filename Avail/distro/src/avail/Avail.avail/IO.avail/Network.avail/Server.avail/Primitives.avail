@@ -140,13 +140,8 @@ Method "_'s⁇«_:=_‡,»" is
 	s : server socket,
 	options : <<server socket option, any…|2>…|1..2>
 |
-	optionMap ::=
-		map options through
-		[
-			binding : <server socket option, any…|2>
-		|
-			<binding[1]'s option#, binding[2]>
-		]→map;
+	optionMap ::=map each binding in options through
+		[<binding[1]'s option#, binding[2]>]→map;
 	[
 		h : atom,
 		m : {[1..2]→any|0..2}

@@ -208,12 +208,10 @@ Private method "column metrics for_" is
 [
 	someRecords : <<string…|1..>…|1..>
 |
-	map 1 to |someRecords[1]| through
+	map each columnIndex in 1 to |someRecords[1]| through
 	[
-		columnIndex : natural number
-	|
-		max map stripe someRecords at columnIndex through
-			[col : string | 1 max |col|]
+		max map each col in stripe someRecords at columnIndex through
+			[1 max |col|]
 	]
 ];
 

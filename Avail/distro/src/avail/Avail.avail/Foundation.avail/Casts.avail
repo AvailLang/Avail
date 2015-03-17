@@ -353,10 +353,10 @@ Public method "Cast|cast each of_into_" is
 	values : tuple,
 	accept : function
 |
-	valueTypes ::= map values through [t : any | t's type];
+	valueTypes ::= map each t in values through [t's type];
 	sig ::= accept's type's parameters' type;
 	limit ::= cast ⎡sig⎤ into [t : natural number | t];
-	paramTypes ::= map 1 to limit through [t : natural number | sig[t]];
+	paramTypes ::= map each t in 1 to limit through [sig[t]];
 	Assert: |valueTypes| = |paramTypes|;
 	zipped ::= valueTypes zip paramTypes;
 	ok ::= each t of zipped satisfies [t[1] ⊆ t[2]];
@@ -444,10 +444,10 @@ Public method "Cast|cast each of_into_else_" is
 	accept : function,
 	reject : []→⊤
 |
-	valueTypes ::= map values through [t : any | t's type];
+	valueTypes ::= map each t in values through [t's type];
 	sig ::= accept's type's parameters' type;
 	limit ::= cast ⎡sig⎤ into [t : natural number | t];
-	paramTypes ::= map 1 to limit through [t : natural number | sig[t]];
+	paramTypes ::= map each t in 1 to limit through [sig[t]];
 	Assert: |valueTypes| = |paramTypes|;
 	zipped ::= valueTypes zip paramTypes;
 	ok ::= each t of zipped satisfies [t[1] ⊆ t[2]];

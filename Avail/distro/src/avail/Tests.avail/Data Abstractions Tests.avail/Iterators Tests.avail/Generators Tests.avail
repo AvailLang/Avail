@@ -62,7 +62,7 @@ Test "generator basics" in generator test suite is
 
 Test "generator raises exception" in generator test suite is
 [
-	ref ::= map 10 to 1 by -1 through [i : [1..10] | 10 ÷ i];
+	ref ::= map each i in 10 to 1 by -1 through [10 ÷ i];
 	index : natural number := 1;
 	iter ::= generator for
 		[

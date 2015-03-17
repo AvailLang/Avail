@@ -172,11 +172,8 @@ Semantic restriction "_→object type" is
 		];
 	];
 	/* Weaken each value of `defs` by all applicable constraints. */
-	defs := map eject defs through
+	defs := map each fieldAtom → fieldType in eject defs through
 		[
-			fieldAtom : atom,
-			fieldType : any meta
-		|
 			fieldType ∪ constraints[fieldAtom] else [ ⊥ ] ∪ universal
 		];
 	(defs→object type)'s type
@@ -268,11 +265,8 @@ Semantic restriction "_→object" is
 		];
 	];
 	/* Weaken each value of `defs` by all applicable constraints. */
-	defs := map eject defs through
+	defs := map each fieldAtom → fieldType in eject defs through
 		[
-			fieldAtom : atom,
-			fieldType : any meta
-		|
 			fieldType ∪ constraints[fieldAtom] else [ ⊥ ] ∪ universal
 		];
 	defs→object type
@@ -869,11 +863,8 @@ Private method "Generate and install_reconstructor for_" is
 	toMapMSend ::= send $"_→map" with «<«↓args[1]»>» : field map;
 	mapDecl ::= «`"objectMap"` : field map := toMapMSend»;
 	/* Emit code to migrate the target fields to their new values. */
-	assignments ::= map fieldAtoms through
+	assignments ::= map each fieldAtom, index in fieldAtoms through
 		[
-			fieldAtom : atom,
-			index : natural number
-		|
 			ejectSend ::= send $"eject_" with «<«↑«↓mapDecl»»>» : field map;
 			addBindingSend ::= send $"_+_→_"
 				with «<ejectSend, ‘`fieldAtom`’, «↓args[index + 1]»>»
@@ -935,11 +926,8 @@ is
 	/* Construct the body of the semantic restriction method. */
 	toMapMSend ::= send $"_→map" with «<«↓args[1]»>» : field type map;
 	mapDecl ::= «`"objectMap"` : field type map := toMapMSend»;
-	assignments ::= map fieldAtoms through
+	assignments ::= map each fieldAtom, index in fieldAtoms through
 		[
-			fieldAtom : atom,
-			index : natural number
-		|
 			ejectSend ::=
 				send $"eject_" with «<«↑«↓mapDecl»»>» : field type map;
 			addBindingSend ::= send $"_+_→_"
@@ -1090,17 +1078,8 @@ is
 	Unless optionalImmutable is empty then
 	[
 		immutable := optionalImmutable[1];
-		newDefinitions := map immutable through
+		newDefinitions := map each fieldTuple in immutable through
 			[
-				fieldTuple :
-					<
-						boolean,
-						boolean,
-						atom,
-						any meta,
-						nonempty string?…
-					|5>
-			|
 				fieldAtom ::= fieldTuple[3];
 				<fieldAtom, fieldTuple[4]>
 			];
@@ -1125,24 +1104,9 @@ is
 	Unless optionalMutable is empty then
 	[
 		mutable := optionalMutable[1];
-		newDefinitions := eject newDefinitions ++ map mutable through
+		newDefinitions := eject newDefinitions ++ 
+			map each fieldTuple in mutable through
 			[
-				fieldTuple :
-					<
-						boolean,
-						boolean,
-						boolean,
-						boolean,
-						atom,
-						any meta,
-						<
-							<
-								[1..3],
-								nonempty string…
-							|2>…
-						|1..3>?…
-					|7>
-			|
 				fieldAtom ::= fieldTuple[5];
 				<fieldAtom, ↑fieldTuple[6]>
 			];
@@ -1295,12 +1259,8 @@ is
 	Unless optionalReconstructors is empty then
 	[
 		specs ::= optionalReconstructors[1];
-		reconstructors := eject reconstructors ++ map specs through
-			[
-				spec : <boolean, <atom…|1..>…|2>
-			|
-				spec[2]
-			];
+		reconstructors := eject reconstructors ++ 
+			map each spec in specs through [spec[2]];
 	];
 	/* Generate the reconstructors. */
 	For each atoms of reconstructors do
@@ -1785,10 +1745,8 @@ Public method "a|an_«with«_«:»?:=_‡,»»" is
 	 * appropriately typed variables whenever assignment forms are encountered.
 	 */
 	assignments ::=
-		map defs through
+		map each def in defs through
 		[
-			def : <atom, boolean, any…|3>
-		|
 			fieldAtom ::= def[1];
 			If fieldAtom ∈ fieldAtoms then
 			[

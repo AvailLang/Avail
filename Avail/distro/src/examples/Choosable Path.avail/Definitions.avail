@@ -229,20 +229,14 @@ is
 	/* Declare the local variables that will be captured as the mutable fields
 	 * of the new game-specific context.
 	 */
-	instVars ::= map initializationTriples through
+	instVars ::= map each initTriple, index in initializationTriples through
 		[
-			initTriple : <atom, any's type, any…|3>,
-			index : natural number
-		|
 			«`initTriple[1]'s name` : initTriple[2] := ‘`initTriple[3]`’»
 		];
 
 	/* Generate the map construction expressions. */
-	mapUpdates ::= map initializationTriples through
+	mapUpdates ::= map each initTriple, index in initializationTriples through
 		[
-			initTriple : <atom, any's type, any…|3>,
-			index : natural number
-		|
 			ejectSend ::= send $"eject_" with «< «↑«↓mapVar»» >» : field map;
 			addBindingSend ::= send $"_+_→_"
 				with «< ejectSend, ‘`initTriple[1]`’, «↑«↓instVars[index]»» >»
@@ -1205,11 +1199,8 @@ Private method "Generate scene transition constructors" is
 			];
 		];
 		/* Construct the wrapper generation sends. */
-		wrapperSends ::= map combination through
+		wrapperSends ::= map  each argType, index in combination through
 			[
-				argType : any's type,
-				index : [1..4]
-			|
 				/* The "bogus" parameter will never be used. */
 				argUse ::= «↓args[argMap[index]] else [arg «`"bogus"` : ⊥»]»;
 				if index = 1 then
@@ -1641,7 +1632,7 @@ Private method "Verify all scenes in_are reachable from_" is
 	unreachable ::= namesByScene's keys \ noted;
 	Unless unreachable = ∅ then
 	[
-		names ::= map unreachable through [s : scene | namesByScene[s]];
+		names ::= map each s in unreachable through [namesByScene[s]];
 		Reject parse, expected:
 			format
 				"all scenes to be transitively reachable from the opening \

@@ -102,7 +102,7 @@ Test "current working directory" in file names test suite is
 Test "path decomposition permutations" in file names test suite is
 [
 	rng ::= a pRNG;
-	allComponents ::= map ¢a to ¢z through [c : character | <c>];
+	allComponents ::= map each c in ¢a to ¢z through [<c>];
 	Repeat
 	[
 		n ::= rng's next [1..12];

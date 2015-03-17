@@ -407,7 +407,7 @@ Public stable method "concatenate_" is
 		|
 			Primitive 446 (e : {invalid-path code}ᵀ);
 			Raise an exception for e
-		] : string (map fns through [fn : file name | fn's name]);
+		] : string (map each fn in fns through [fn's name]);
 	a file named path
 ] : file name;
 
@@ -442,7 +442,7 @@ Semantic restriction "«_‡/»" is
 	If instanceCounts = {1} then
 	[
 		instances ::=
-			map 1 to size through [i : natural number | fns[i]'s instance];
+			map each i in 1 to size through [fns[i]'s instance];
 		{concatenate instances}ᵀ
 	]
 	else
@@ -488,8 +488,8 @@ Semantic restriction "«_‡/»" is
 	];
 	If instanceCounts = {1} then
 	[
-		instances ::= <fns[1]'s instance> ++ map 2 to size through
-			[i : [2..∞) | a file named fns[i]'s instance];
+		instances ::= <fns[1]'s instance> ++ 
+			map each i in 2 to size through [a file named fns[i]'s instance];
 		{concatenate instances}ᵀ
 	]
 	else
@@ -519,7 +519,7 @@ Public stable method "_'s⁇path components" is
 			Primitive 447 (e : {invalid-path code}ᵀ);
 			Raise an exception for e
 		] : <string…|1..> (fn's name);
-	map components through [c : string | a file named c]
+	map each c in components through [a file named c]
 ] : <file name…|1..>;
 
 /**

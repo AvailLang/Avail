@@ -300,8 +300,8 @@ Commands "move to NUMBER", "move to #NUMBER" are moving;
 Action "compass rebuttal" is
 [
 	nearby ::=
-		map the agent's location's adjacent rooms through
-		[r : room | r's room#];
+		map each r in the agent's location's adjacent rooms through
+		[r's room#];
 	choice ::= the RNG's next element of nearby;
 	Report:
 		format
@@ -322,7 +322,7 @@ Bad commands "n", "e", "s", "w", "u", "d" are compass rebuttal;
 /* Wrong game. */
 Bad command "go fish" is
 [
-	ranks ::= map 2 to 10 through [i : [2..10] | “i” ++ "'s"]
+	ranks ::= map each i in 2 to 10 through [“i” ++ "'s"]
 		++ <"aces", "jacks", "queens", "kings">;
 	Report:
 		format "Sorry, wrong game… But do you have any ‘rank’?\n"

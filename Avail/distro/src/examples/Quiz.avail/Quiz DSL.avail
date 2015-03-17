@@ -209,7 +209,7 @@ Private method "_'s⁇total weight" is
 	[
 		qs : <question…|1..>
 	|
-		∑ map qs through [q : question | q's weight's extent]
+		∑ map each q in qs through [q's weight's extent]
 	]
 	else [0]) pt
 ];
@@ -269,8 +269,8 @@ Public method "Multiple Choice(_)._«A:_«✔»?»" is
 	questionText : nonempty string,
 	answerTuples : <<nonempty string, boolean…|2>…|1..>
 |
-	answers ::= map answerTuples through
-		[t : <nonempty string, any…|2> | an answer with text ::= t[1]];
+	answers ::= map each t in answerTuples through 
+		[an answer with text ::= t[1]];
 	correctAnswers ::= (map and filter answerTuples by
 		[
 			t : <nonempty string, boolean…|2>,
@@ -495,8 +495,8 @@ Private method "_correctly answers_" is
 	aQuestion : short-answer question
 |
 	(anAnswer's text ::= lowercase trim anAnswer's text)
-		∈ map aQuestion's correct answers through
-			[a : answer | a's text ::= lowercase trim a's text]
+		∈ map each a in aQuestion's correct answers through
+			[a's text ::= lowercase trim a's text]
 ] : boolean;
 
 /**
@@ -520,8 +520,8 @@ Public method "Short Answer(_)._«A:_»" is
 	newQuestion ::= a short-answer question with
 		text ::= questionText,
 		weight ::= weight,
-		correct answers ::= (map correctAnswers through
-			[a : nonempty string | an answer with text ::= a])→set;
+		correct answers ::= (map each a in correctAnswers through
+			[an answer with text ::= a])→set;
 	current quiz's questions := current quiz's questions ++ <newQuestion>;
 ] : ⊤;
 
@@ -695,8 +695,8 @@ Private method "Present_" is
 |
 	/* Randomize the order in which the answers are presented. */
 	choices ::= a pRNG's next shuffling of aQuestion's answers;
-	text ::= “aQuestion” ++ concatenate map choices through
-		[a : answer, i : [1..∞) | format "“①”)  ‘②’\n" with i, a's text];
+	text ::= “aQuestion” ++ concatenate map each a, i in choices through
+		[format "“①”)  ‘②’\n" with i, a's text];
 	Print: text;
 	choice : whole number := 0;
 	Do

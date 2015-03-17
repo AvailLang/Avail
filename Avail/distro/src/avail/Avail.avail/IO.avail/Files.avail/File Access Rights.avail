@@ -387,7 +387,7 @@ Public method "_'s⁇access rights(follow if symlink=_)" is
 				I/O-error code}ᵀ);
 			Raise an exception for e
 		] : {[1..9]|0..9} (fn's name, followIfSymlink);
-	map ordinals through [i : [1..9] | fileAccessRights[i]]
+	map each i in ordinals through [fileAccessRights[i]]
 ] : {file access right|0..9};
 
 /**
@@ -448,7 +448,7 @@ Public method "_'s⁇access rights:=_(follow if symlink=_)" is
 	rights : {file access right|0..9},
 	followIfSymlink : boolean
 |
-	ordinals ::= map rights through [r : file access right | r's access#];
+	ordinals ::= map each r in rights through [r's access#];
 	[
 		s : string,
 		r : {[1..9]|0..9},

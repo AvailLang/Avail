@@ -210,7 +210,7 @@ Public method
 	optionalAccessRights : {file access right|}?
 |
 	optionNumbers ::=
-		map optionSet through [opt : open option | opt → numeric code];
+		map each opt in optionSet through [opt → numeric code];
 	accessRights ::= optionalAccessRights [1] else [_default_access_rights];
 	accessRightNumbers ::= map accessRights
 		through [r : file access right | r → numeric code];

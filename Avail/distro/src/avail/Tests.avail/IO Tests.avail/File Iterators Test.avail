@@ -53,7 +53,7 @@ Do not run tests in file iterator test suite in parallel;
 
 Test "file iterator (readable)" in file iterator test suite is
 [
-	ref ::= map "abracadabra" through [c : character | c's code point];
+	ref ::= map each c in "abracadabra" through [c's code point];
 	fn ::= abracadabra.txt;
 	iter ::= a file reader for fn;
 	Require: iter is open;
@@ -66,7 +66,7 @@ Test "file iterator (readable)" in file iterator test suite is
 
 Test "file iterator (readable,small buffer)" in file iterator test suite is
 [
-	ref ::= map "abracadabra" through [c : character | c's code point];
+	ref ::= map each c in "abracadabra" through [c's code point];
 	fn ::= abracadabra.txt;
 	iter ::= a file reader for fn aligning buffers to 3 bytes;
 	Require: iter is open;
@@ -79,7 +79,7 @@ Test "file iterator (readable,small buffer)" in file iterator test suite is
 
 Test "file iterator (readable,reposition)" in file iterator test suite is
 [
-	ref ::= map "abracadabra" through [c : character | c's code point];
+	ref ::= map each c in "abracadabra" through [c's code point];
 	fn ::= abracadabra.txt;
 	iter ::= a file reader for fn;
 	Require: iter is open;

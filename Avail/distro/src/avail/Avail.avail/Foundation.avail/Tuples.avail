@@ -1234,7 +1234,7 @@ Private method "zip function" is
 		tuples : <tuple…|1..>
 	|
 		accumulator : <tuple…|> := <>;
-		limit ::= min map tuples through [ aTuple : tuple | |aTuple| ];
+		limit ::= min map each aTuple in tuples through [|aTuple| ];
 		For each index from 1 to limit do
 		[
 			group : tuple := <>;
@@ -1310,29 +1310,15 @@ Private method "zip semantic restriction" is
 			types ::= cast tuplesType[1..relevant |tuplesType|]
 				into [ t : <tuple meta…|1..> | t ];
 			/* Find the smallest of the lower bounds of the inputs. */
-			lower ::=
-				min map types through
-				[
-					tupleType : tuple meta
-				|
-					⎣tupleType⎦
-				];
+			lower ::= min map each tupleType in types through[⎣tupleType⎦];
+			
 			/* Find the smallest of the upper bounds of the inputs. */
-			upper ::=
-				min map types through
-				[
-					tupleType : tuple meta
-				|
-					⎡tupleType⎤
-				];
+			upper ::= min map each tupleType in types through [⎡tupleType⎤];
+			
 			/* Find the maximum number of element types to scan. */
-			limit ::=
-				max map types through
-				[
-					tupleType : tuple meta
-				|
-					|tupleType's leading types| + 1
-				];
+			limit ::= max map each tupleType in types through
+				[|tupleType's leading types| + 1];
+				 
 			resultTypes : <tuple meta…|> := <>;
 			/* Examine the relevant element types of all inputs. */
 			For each index from 1 to limit do
@@ -1840,15 +1826,11 @@ Semantic restriction "_to_" is
 	[
 		finiteMin ::= cast min into [t : integer | t];
 		finiteMax ::= cast max into [t : integer | t];
+		
 		/* Don't obsess — just compute the first 100 prefix types. */
 		limitedMax ::= finiteMax min (finiteMin + 100);
-		types ::=
-			map finiteMin to limitedMax through
-			[
-				x : integer
-			|
-				[x .. (finiteMax min (x + uncertainty)) + 1)
-			];
+		types ::= map each x in finiteMin to limitedMax through
+			[[x .. (finiteMax min (x + uncertainty)) + 1)];
 		defaultType ::=
 			if finiteMax ≠ limitedMax then
 			[
@@ -2361,7 +2343,7 @@ Public stable method "stripe_at_" is
 	aTuple : <<any…|1..>…|>,
 	index : natural number
 |
-	map aTuple through [ inner : <any…|1..> | inner[index] ]
+	map each inner in aTuple through [inner[index] ]
 ] : tuple;
 
 /**
@@ -3204,10 +3186,8 @@ Semantic restriction "∏_" is
 	lowIndex ::= leadingSize min ⎣leading's type⎦;
 	lowBound ::= if leadingSize > 0 then 
 	[
-		m ::=  map leading[1..lowIndex] through
+		m ::=  map each i in leading[1..lowIndex] through
 		[
-			i : any's type
-		|
 			x::=cast i into [it : integer's type | it];
 Print: "x=";
 Print: “x”;
@@ -3231,10 +3211,8 @@ Print: “z”;
 	];
 	upBound ::= if leadingSize > 0 then 
 	[
-		(∏ (cast (map leading[1..lowIndex] through
+		(∏ (cast (map each i in leading[1..lowIndex] through
 		[
-			i : any's type
-		|
 			x ::= cast i into [it : integer's type | it];
 			cast (⎡x⎤) into [n : integer | n]
 		]) into [iTuple : integer+ | iTuple] )) × 

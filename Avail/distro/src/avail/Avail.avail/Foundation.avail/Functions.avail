@@ -381,13 +381,9 @@ Public method "unsafe sender of_returning_" is
 	returnType : type
 |
 	argCount ::= |message methodName's name's parameters|;
-	args ::= map 1 to argCount through
-		[
-			index : natural number
-		|
-			arg «`"x" ++ “index”` : any»
-		];
-	uses ::= map args through [a : argument phrase | «↓a»];
+	args ::= map each index in 1 to argCount through
+		[arg «`"x" ++ “index”` : any»];
+	uses ::= map each a in args through [«↓a»];
 	send ::= send methodName with uses→list phrase : returnType;
 	block ::= «[args | <send>] : returnType»;
 	block→function

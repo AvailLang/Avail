@@ -420,8 +420,6 @@ Semantic restriction "map_through_" is
 Macro "map each…→…in_§through_" is a map iteration prefix function,
 	body function($"map_through_",map);
 
-
-
 /**
  * Iteratively apply {@param "predicate"} to each binding of {@param "aMap"}, in
  * no particular order, collecting those bindings for which {@param "predicate"}
@@ -904,7 +902,7 @@ Public stable method "counts for_" is
 	aTuple : tuple
 |
 	groups ::= group aTuple by [a : any | a];
-	map groups through [k : any, t : tuple | |t|]
+	map each k→t in groups through [|t|]
 ] : map;
 
 Semantic restriction "counts for_" is

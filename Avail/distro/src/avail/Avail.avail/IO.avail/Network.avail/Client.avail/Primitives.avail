@@ -151,10 +151,8 @@ Method "_'s⁇«_:=_‡,»" is
 	options : <<client socket option, any…|2>…|1..5>
 |
 	optionMap ::=
-		map options through
+		map each binding in options through
 		[
-			binding : <client socket option, any…|2>
-		|
 			<binding[1]'s option#, binding[2]>
 		]→map;
 	[

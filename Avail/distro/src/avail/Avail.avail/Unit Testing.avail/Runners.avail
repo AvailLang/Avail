@@ -869,8 +869,7 @@ Public method "all tests in_" is
 		[
 			aSuite : root unit test suite
 		|
-			map aSuite's unit tests through
-				[aTest : unit test | aTest's test ID]
+			map each aTest in aSuite's unit tests through [aTest's test ID]
 		],
 		on leaving do
 		[

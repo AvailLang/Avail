@@ -1099,7 +1099,7 @@ Stable method "uppercase_" is
 [
 	s : string
 |
-	map s through [c : character | uppercase c]
+	map each c in s through [uppercase c]
 ] : string;
 
 Semantic restriction "uppercase_" is recase restriction
@@ -1153,7 +1153,7 @@ Stable method "lowercase_" is
 [
 	s : string
 |
-	map s through [c : character | lowercase c]
+	map each c in s through [lowercase c]
 ] : string;
 
 Semantic restriction "lowercase_" is recase restriction
@@ -1192,7 +1192,7 @@ Stable method "titlecase_" is
 [
 	s : string
 |
-	map s through [c : character | titlecase c]
+	map each c in s through [titlecase c]
 ] : string;
 
 Semantic restriction "titlecase_" is recase restriction

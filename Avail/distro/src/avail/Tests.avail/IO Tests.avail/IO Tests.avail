@@ -155,8 +155,8 @@ Test "file(read in parts)" in file access rights test suite is
 
 Test "file(resize)" in file access rights test suite is
 [
-	ref1 ::= map "beluga whale" through
-		[c : character | cast c's code point into [t : [0..255] | t]];
+	ref1 ::= map each c in "beluga whale" through
+		[cast c's code point into [t : [0..255] | t]];
 	ref2 ::= ref1 ++ 100 of ¢" " ++ "1";
 	fn ::= a file named testDir ++ "/scratch.txt";
 	Using a readable, writable file named fn, do
@@ -187,8 +187,8 @@ Test "file(resize)" in file access rights test suite is
 
 Test "file(reposition)" in file access rights test suite is
 [
-	ref1 ::= map "beluga whale" through
-		[c : character | cast c's code point into [t : [0..255] | t]];
+	ref1 ::= map each c in "beluga whale" through
+		[cast c's code point into [t : [0..255] | t]];
 	ref2 ::= ref1 ++ 100 of ¢" " ++ "1";
 	fn ::= a file named testDir ++ "/scratch.txt";
 	Using a readable, writable file named fn, do
@@ -222,8 +222,8 @@ Test "file(reposition)" in file access rights test suite is
 
 Test "file(round trip)" in file access rights test suite is
 [
-	ref ::= map "my life as a parrot" through
-		[c : character | cast c's code point into [t : [0..255] | t]];
+	ref ::= map each c in "my life as a parrot" through
+		[cast c's code point into [t : [0..255] | t]];
 	fn ::= a file named testDir ++ "/roundtrip.txt";
 	Require: ¬fn exists;
 	Using a readable, writable file named fn, do

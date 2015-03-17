@@ -336,8 +336,8 @@ Method "a dice group with_" is
 [
 	someDice : <die…|1..>
 |
-	min ::= ∑ map someDice through [d : die | min d's faces];
-	max ::= ∑ map someDice through [d : die | max d's faces];
+	min ::= ∑ map each d in someDice through [min d's faces];
+	max ::= ∑ map each d in someDice through [max d's faces];
 	a dice group with
 		members ::= someDice,
 		result type ::= (min-1..max+1)
@@ -366,7 +366,7 @@ Method "«using_,»roll_" is
 |
 	rng ::= optionalRNG[1] else [default pRNG];
 	individualOutcomes ::=
-		map someDice's members through [aDie : die | using rng, roll aDie];
+		map each aDie in someDice's members through [using rng, roll aDie];
 	tabulaRasa ::= a dice outcome with detailed outcome ::= {}, result ::= 0;
 	left fold <tabulaRasa> ++ individualOutcomes through
 	[
@@ -442,8 +442,8 @@ Public method "_(drop the⁇lowest«_»)" is
 	count ::= optionalCount[1] else [1];
 	Assert: count ≤ |group's members|;
 	members ::= cast group's members into [t : <die…|1..> | t];
-	min ::= min map members through [aDie : die | min aDie's faces];
-	max ::= max map members through [aDie : die | max aDie's faces];
+	min ::= min map each aDie in members through [min aDie's faces];
+	max ::= max map each aDie in members through [max aDie's faces];
 	groupType ::= group's result type;
 	resultType ::= (⎣groupType⎦-min-1..⎡groupType⎤-max+1);
 	a drop dice expression with
@@ -472,8 +472,8 @@ Semantic restriction "_(drop the⁇lowest«_»)" is
 	[
 		ranges := eject ranges ++ <members[index]'s result type's instance>;
 	];
-	min ::= quicksort map ranges through [r : extended integer's type | ⎣r⎦];
-	max ::= quicksort map ranges through [r : extended integer's type | ⎡r⎤];
+	min ::= quicksort map each r in ranges through [⎣r⎦];
+	max ::= quicksort map each r in ranges through [⎡r⎤];
 	minDelta ::=
 		cast min[1..⎡count⎤ min |min|]
 		into [t : <extended integer…|1..> | ∑ t]
@@ -514,8 +514,8 @@ Public method "_(drop the⁇highest«_»)" is
 	count ::= optionalCount[1] else [1];
 	Assert: count ≤ |group's members|;
 	members ::= cast group's members into [t : <die…|1..> | t];
-	min ::= min map members through [aDie : die | min aDie's faces];
-	max ::= max map members through [aDie : die | max aDie's faces];
+	min ::= min map each aDie in members through [min aDie's faces];
+	max ::= max map each aDie in members through [max aDie's faces];
 	groupType ::= group's result type;
 	resultType ::= (⎣groupType⎦-min-1..⎡groupType⎤-max+1);
 	a drop dice expression with
@@ -544,8 +544,8 @@ Semantic restriction "_(drop the⁇highest«_»)" is
 	[
 		ranges := eject ranges ++ <members[index]'s result type's instance>;
 	];
-	min ::= quicksort map ranges through [r : extended integer's type | ⎣r⎦];
-	max ::= quicksort map ranges through [r : extended integer's type | ⎡r⎤];
+	min ::= quicksort map each r in ranges through [⎣r⎦];
+	max ::= quicksort map each r in ranges through [⎡r⎤];
 	minDelta ::=
 		cast min[1..⎡count⎤ min |min|]
 		into [t : <extended integer…|1..> | ∑ t]
