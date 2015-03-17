@@ -197,6 +197,15 @@ Test "filter by" in map test suite is
  	Require: c = {};
 ];
 
+Test "filter by (macro)" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+ 	b ::= filter s→n in a by [n mod 2 = 0];
+ 	c ::= filter s→n in a by [n > 2000];
+ 	Require: b = {"bar"→2,"prince"→4};
+ 	Require: c = {};
+];
+
 Test "group by" in map test suite is
 [
  	/* Group by values */

@@ -761,6 +761,7 @@ Semantic restriction "filter_by_" is
  */
 Macro "filter…in_§by_" is a tuple iteration prefix function,
 	body function($"filter_by_",tuple);
+
 /**
  * Iteratively apply {@param "predicate"} to each consecutive element and index
  * of {@param "aTuple"}, collecting those elements for which {@param 

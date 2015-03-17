@@ -57,6 +57,7 @@ Names
 	"counts for_",
 	"count of…→…in_§where_",
 	"each…→…of_§satisfies_",
+	"filter…→…in_§by_",
 	"For each…→…of_§do_",
 	"integrate_and_with_",
 	"integrate«_‡,and⁇»with_",
@@ -477,6 +478,33 @@ Semantic restriction "filter_by_" is
 	else if [predicate's return type = false's type] then [{}'s type]
 	else [{mapType's key type → mapType's value type | [0..⎡mapType⎤ + 1)}]
 ];
+	
+/**
+ * Iteratively apply {@param "predicate"} to each binding of {@param "aMap"}, in
+ * no particular order, collecting those bindings for which {@param "predicate"}
+ * answers {@method "true"} into a new map. Answer the new map.
+ * 
+ * @macro "filter…→…in_§by_"
+ * @param "keyPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the map key loop variable. The generated 
+ *        loop variable is given the strongest possible type based on the map
+ *        key type of {@param "aMap"}.
+ * @param "valuePhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the map value loop index variable. The 
+ *        generated loop variable is given the strongest possible type based on
+ *        the map value type of {@param "aMap"}.
+ * @param "aMap" "expression phrase ⇒ map"
+ *        An {@type "expression phrase"} that yields the map to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Loops" "Collections" "Maps"
+ */
+Macro "filter…→…in_§by_" is a map iteration prefix function,
+	body function($"filter_by_", map);
 
 /**
  * Iteratively apply {@param "accumulator"} to the bindings of {@param "aMap"},

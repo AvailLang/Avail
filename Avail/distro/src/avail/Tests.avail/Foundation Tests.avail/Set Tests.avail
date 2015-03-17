@@ -287,6 +287,15 @@ Test "filter by" in set test suite is
  	Require: c = ∅;
 ];
 
+Test "filter by (macro)" in set test suite is
+[
+	a ::= {1,2,3,4};
+ 	b ::= filter n in a by [n mod 2 = 0];
+ 	c ::= filter n in a by [n > 2000];
+ 	Require: b = {2,4};
+ 	Require: c = ∅;
+];
+
 Test "no order and no duplicates" in set test suite is
 [
 	rng : pRNG := a pRNG;

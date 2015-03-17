@@ -506,6 +506,29 @@ Semantic restriction "filter_by_" is
 ];
 
 /**
+ * Iteratively apply {@param "predicate"} to each consecutive element of 
+ * {@param "aSet"}, collecting those elements for which {@param "predicate"} 
+ * answers {@method "true"} into a new set. Answer 
+ * the new set.
+ * 
+ * @macro "filter…in_§by_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aSet"}.
+ * @param "aSet" "expression phrase ⇒ any"
+ *        An {@type "expression phrase"} that yields the set to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops" "Collections" "Sets"
+ */
+Macro "filter…in_§by_" is a set iteration prefix function,
+	body function($"filter_by_",set);
+
+/**
  * Iteratively apply {@param "accumulator"} to the elements of {@param "aSet"},
  * in no particular order, in order to transform and filter its elements into a
  * new set. When {@param "accumulator"} is invoked, it is passed a "keeper"
