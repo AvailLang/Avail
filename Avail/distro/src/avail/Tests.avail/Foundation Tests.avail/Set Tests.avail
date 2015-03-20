@@ -284,11 +284,11 @@ Test "filter by" in set test suite is
  	Require: c = ∅;
 ];
 
-Test "filter by (macro)" in set test suite is
+Test "select each (macro)" in set test suite is
 [
 	a ::= {1,2,3,4};
- 	b ::= filter n in a by [n mod 2 = 0];
- 	c ::= filter n in a by [n > 2000];
+ 	b ::= select each n from a where [n mod 2 = 0];
+ 	c ::= select each n from a where [n > 2000];
  	Require: b = {2,4};
  	Require: c = ∅;
 ];

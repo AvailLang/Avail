@@ -53,15 +53,15 @@ Uses
 	"Types",
 	"Variables"
 Names
-	"any…→…of_§satisfies_",
+	"any…→…in|of_§satisfies_",
 	"counts for_",
-	"count of…→…in_§where_",
-	"each…→…of_§satisfies_",
-	"filter…→…in_§by_",
-	"For each…→…of_§do_",
+	"count of…→…from|in|of_§where_",
+	"each…→…in|of_§satisfies_",
+	"select each…→…from_§where_",
+	"For each…→…in|of_§do_",
 	"integrate_and_with_",
 	"integrate«_‡,and⁇»with_",
-	"map each…→…in_§through_"
+	"map each…→…in|of_§through_"
 Body
 
 Method "“_”" is
@@ -306,7 +306,7 @@ Private method "body function(_,_)" is
  * Map iterating-loop that invokes {@param "action"} once for every
  * {@param "elementPhrase"} → {@param "elementPhrase"} in {@param "aMap"}.
  * 
- * @macro "For each…→…of_§do_"
+ * @macro "For each…→…in|of_§do_"
  * @param "keyPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the map key loop variable. The generated 
@@ -325,7 +325,7 @@ Private method "body function(_,_)" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Collections" "Maps"
  */
-Macro "For each…→…of_§do_" is a map iteration prefix function,
+Macro "For each…→…in|of_§do_" is a map iteration prefix function,
 	body function($"For each of⁇_do_",⊤);
 
 /**
@@ -399,7 +399,7 @@ Semantic restriction "map_through_" is
  * map has the same keys as the original, but its values have been transformed
  * via {@param "transformer"}.
  * 
- * @macro "map each…→…in_§through_"
+ * @macro "map each…→…in|of_§through_"
  * @param "keyPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the map key loop variable. The generated 
@@ -418,7 +418,7 @@ Semantic restriction "map_through_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Loops" "Collections" "Maps"
  */
-Macro "map each…→…in_§through_" is a map iteration prefix function,
+Macro "map each…→…in|of_§through_" is a map iteration prefix function,
 	body function($"map_through_",map);
 
 /**
@@ -484,7 +484,7 @@ Semantic restriction "filter_by_" is
  * no particular order, collecting those bindings for which {@param "predicate"}
  * answers {@method "true"} into a new map. Answer the new map.
  * 
- * @macro "filter…→…in_§by_"
+ * @macro "select each…→…from_§where_"
  * @param "keyPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the map key loop variable. The generated 
@@ -503,7 +503,7 @@ Semantic restriction "filter_by_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Loops" "Collections" "Maps"
  */
-Macro "filter…→…in_§by_" is a map iteration prefix function,
+Macro "select each…→…from_§where_" is a map iteration prefix function,
 	body function($"filter_by_", map);
 
 /**
@@ -679,7 +679,7 @@ Semantic restriction "each of_satisfies_" is
  * Compute and answer whether any of the elements of {@param "aTuple"} satisfies
  * the specified function. Do not examine more elements than necessary.
  * 
- * @macro "any…→…of_§satisfies_"
+ * @macro "any…→…in|of_§satisfies_"
  * @param "keyPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable representing the key of
@@ -696,14 +696,14 @@ Semantic restriction "each of_satisfies_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Collections" "Tuples" "Queries"
  */
-Macro "any…→…of_§satisfies_" is a map iteration prefix function,
+Macro "any…→…in|of_§satisfies_" is a map iteration prefix function,
 	body function($"any of_satisfies_", boolean);
 
 /**
  * Compute and answer whether all of the elements of {@param "aTuple"} satisfies
  * the specified function. Do not examine more elements than necessary.
  * 
- * @macro "each…→…of_§satisfies_"
+ * @macro "each…→…in|of_§satisfies_"
  * @param "keyPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable representing the key of
@@ -720,7 +720,7 @@ Macro "any…→…of_§satisfies_" is a map iteration prefix function,
  * @returns "send phrase ⇒ ⊤"
  * @category "Collections" "Tuples" "Queries"
  */
-Macro "each…→…of_§satisfies_" is a map iteration prefix function,
+Macro "each…→…in|of_§satisfies_" is a map iteration prefix function,
 	body function($"each of_satisfies_", boolean);
 
 /**
@@ -793,7 +793,7 @@ Semantic restriction "_∈_" is
  * Compute and answer the count of elements of {@param "aMap"} that satisfy 
  * the given predicate.
  * 
- * @macro "count of…→…in_§where_"
+ * @macro "count of…→…from|in|of_§where_"
  * @param "keyPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable representing the key of
@@ -810,7 +810,7 @@ Semantic restriction "_∈_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Queries" "Collections" "Sets"
  */
-Macro "count of…→…in_§where_" is a map iteration prefix function,
+Macro "count of…→…from|in|of_§where_" is a map iteration prefix function,
 	body function($"count of_where_", whole number);
 
 /**

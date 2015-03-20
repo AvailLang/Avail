@@ -37,7 +37,7 @@ Extends
 	"Abstract Streams" =
 	(
 		"For each of⁇_do_",
-		"For each…of_§do_",
+		"For each…in|of_§do_",
 		"an empty stream",
 		"concatenate_",
 		"drop from_until_",
@@ -48,7 +48,7 @@ Extends
 		"empty-stream exception",
 		"filter_by_",
 		"map_through_",
-		"map each…in_§through_",
+		"map each…in|of_§through_",
 		"stream",
 		"stream of_",
 		"take from_until_",
@@ -166,7 +166,7 @@ Private method "body function(_,_)" is
  * Stream iterating-loop that invokes {@param "action"} once for every
  * {@param "elementPhrase"} in {@param "aStream"} 
  * 
- * @macro "For each…of_§do_"
+ * @macro "For each…in|of_§do_"
  * @category "Data Abstractions" "Streams"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
@@ -181,7 +181,7 @@ Private method "body function(_,_)" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Readers" "Data Abstractions"
  */
- Macro "For each…of_§do_" is a stream prefix function,
+ Macro "For each…in|of_§do_" is a stream prefix function,
  	body function($"For each of⁇_do_", ⊤);
 
 /**
@@ -233,7 +233,7 @@ Macro "take…from_§until_" is a stream prefix function,
  * consecutive elements of `aStream`. The result is lazy, so `aStream` may be
  * infinite.
  * 
- * @macro "map each…in_§through_"
+ * @macro "map each…in|of_§through_"
  * @category "Data Abstractions" "Streams"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
@@ -248,5 +248,5 @@ Macro "take…from_§until_" is a stream prefix function,
  * @returns "send phrase ⇒ ⊤"
  * @category "Loops" "Streams" "Data Abstractions"
  */
-Macro "map each…in_§through_" is a stream prefix function,
+Macro "map each…in|of_§through_" is a stream prefix function,
 	body function($"map_§through_", stream);

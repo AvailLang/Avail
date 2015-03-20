@@ -38,13 +38,13 @@ Extends
 	"Foundation" =
 	(
 		"For each of⁇_do_",
-		"For each…of_§do_",
+		"For each…in|of_§do_",
 		"concatenate_",
 		"drop from_until_",
 		"drop from_while_",
 		"filter_by_",
 		"map_through_",
-		"map each…in_§through_",
+		"map each…in|of_§through_",
 		"take from_until_",
 		"take from_while_",
 		"take…from_§until_",
