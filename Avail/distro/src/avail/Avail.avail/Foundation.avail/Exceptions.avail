@@ -1664,7 +1664,7 @@ noUnhandledExceptionHandler :=
 		 * error message to the stardard error stream and terminate the current
 		 * fiber.
 		 */
-		If current fiber is applying a semantic restriction then
+		If current fiber can reject a parse then
 		[
 			Reject parse, expected: msg
 		];

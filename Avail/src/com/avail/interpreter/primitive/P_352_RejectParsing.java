@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.FiberDescriptor.GeneralFlag.APPLYING_SEMANTIC_RESTRICTION;
+import static com.avail.descriptor.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.List;
@@ -60,7 +60,7 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		if (!interpreter.fiber().generalFlag(APPLYING_SEMANTIC_RESTRICTION))
+		if (!interpreter.fiber().generalFlag(CAN_REJECT_PARSE))
 		{
 			return interpreter.primitiveFailure(E_UNTIMELY_PARSE_REJECTION);
 		}

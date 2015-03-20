@@ -121,7 +121,7 @@ Method "zip_" is
 |
 	types ::= map readers through [i : reader | i's element type];
 	elementType ::=
-		<types[1..|types| - 1], types[|types|]… | |readers|'s type>;
+		<types[1..|types| - 1], types' last… | |readers|'s type>;
 	a zipped reader with
 		element type ::= elementType,
 		readers ::= readers
@@ -147,7 +147,7 @@ Method "«_‡zip»" is
 |
 	types ::= map readers through [i : reader | i's element type];
 	elementType ::=
-		<types[1..|types| - 1], types[|types|]… | |readers|'s type>;
+		<types[1..|types| - 1], types' last… | |readers|'s type>;
 	a zipped reader with
 		element type ::= elementType,
 		readers ::= readers
@@ -174,7 +174,7 @@ Private method "zip semantic restriction" is
 		];
 		nonempty ::= cast types into [t : <any's type…|1..> | t];
 		elementType ::=
-			<nonempty[1..|nonempty| - 1], nonempty[|nonempty|]…
+			<nonempty[1..|nonempty| - 1], nonempty's last…
 				| ||readers||>;
 		extend zipped reader with
 			element type : elementType's type,

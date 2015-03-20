@@ -72,10 +72,7 @@ Names
 		\|«with file access rights_»",
 
 	/* Other file operations. */
-	"Truncate_to_bytes⁇",
-
-	/* Tests. */
-	"file iterator test suite"
+	"Truncate_to_bytes⁇"
 Body
 
 "file position" is a new field atom;

@@ -116,7 +116,7 @@ Private method "body function(_,_)" is
 			];
 			statements ::= predicateBlock's statements;
 			blockReturnType ::= cast statements
-				into [t : phrase+ | t[|t|]'s semantic type]
+				into [t : phrase+ | t's last's semantic type]
 				else [⊤];
 		restricted send anAtom with
 		<

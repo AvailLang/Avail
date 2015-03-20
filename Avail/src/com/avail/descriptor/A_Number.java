@@ -523,7 +523,7 @@ extends A_BasicObject
 	 * Answer an ordering between the receiver and the argument.  This compares
 	 * the underlying real numeric values of the two {@link A_Number}s, which
 	 * does not necessarily agree with the {@link #equals(A_BasicObject)}
-	 * semantics.  In particular, under numerical ordering, 5 = 5.0 = 5.0→float,
+	 * semantics.  In particular, under numerical ordering, 5 = 5.0 = 5.0f,
 	 * and 0.0/0.0 is incomparable to every number, even itself.  Under ordinary
 	 * equality (the {@link #equals(A_BasicObject)} method), an integer never
 	 * equals a float, and neither ever equals a double.  However, 0.0/0.0 is

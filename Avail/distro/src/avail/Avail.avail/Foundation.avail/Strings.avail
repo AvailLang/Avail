@@ -913,7 +913,12 @@ baseAlphabetTuple ::=
 	"0123456789\
 	\|ABCDEFGHIJKLMNOPQRSTUVWXYZ\
 	\|abcdefghijklmnopqrstuvwxyz";
-baseAlphabet ::= baseAlphabetTuple→set;
+baseAlphabets ::=
+	map each base in 2 to 36 through
+	[
+		baseAlphabetTuple[..base]
+		++ baseAlphabetTuple[37..36 max (36 + base - 10)] → set
+	];
 cp_0 ::= ¢0's code point;
 cp_9 ::= ¢9's code point;
 cp_a ::= ¢a's code point;
@@ -951,6 +956,7 @@ Public stable method "_(base_)" is
 		realDigits := digits[2..];
 		multiplier := -1;
 	];
+	baseAlphabet ::= baseAlphabets[base-1];
 	answer ::=
 		if realDigits[1] = ¢∞ then [∞]
 		else
@@ -1341,7 +1347,7 @@ is
 		tx ::= cast aTuple[index] into [t : string | t] else [“aTuple[index]”];
 		s := eject s ++ tx ++ ", ";
 	];
-	last ::= aTuple[|aTuple|];
+	last ::= aTuple's last;
 	tx ::= cast last into [t : string | t] else [“last”];
 	s := eject s ++ <"and ", "or ">[mode] ++ tx;
 	s
@@ -1430,7 +1436,7 @@ is
 		tx ::= cast aTuple[index] into [t : string | t] else [“aTuple[index]”];
 		s := eject s ++ tx ++ ", ";
 	];
-	last ::= aTuple[|aTuple|];
+	last ::= aTuple's last;
 	tx ::= cast last into [t : string | t] else [“last”];
 	s := eject s ++ <"and ", "or ">[mode] ++ tx;
 	s
@@ -1505,7 +1511,7 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 	nextLast ::= aTuple[|aTuple| - 1];
 	tx : string := cast nextLast into [t : string | t] else [“nextLast”];
 	s := eject s ++ tx;
-	last ::= aTuple[|aTuple|];
+	last ::= aTuple's last;
 	tx := cast last into [t : string | t] else [“last”];
 	s := eject s ++ <" and ", " or ">[mode] ++ tx;
 	s
@@ -1583,7 +1589,7 @@ Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
 	nextLast ::= aTuple[|aTuple| - 1];
 	tx : string := cast nextLast into [t : string | t] else [“nextLast”];
 	s := eject s ++ tx;
-	last ::= aTuple[|aTuple|];
+	last ::= aTuple's last;
 	tx := cast last into [t : string | t] else [“last”];
 	s := eject s ++ <" and ", " or ">[mode] ++ tx;
 	s

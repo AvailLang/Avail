@@ -421,8 +421,7 @@ public class AvailScanner
 	{
 		/**
 		 * A digit was encountered. Scan a (positive) numeric constant. The
-		 * constant may be an integer, float, or double.  Note that if a decimal
-		 * point is present there must be digits on each side of it.
+		 * constant must be an integer.
 		 */
 		DIGIT ()
 		{
@@ -432,92 +431,22 @@ public class AvailScanner
 			{
 				scanner.backUp();
 				assert scanner.position() == scanner.startOfToken();
-				boolean isReal = false;  // Might be an integer.
 				while (scanner.peekIsDigit())
 				{
 					scanner.next();
 				}
-				if (scanner.peekFor('.'))
-				{
-					// Decimal point appeared, so fractional digits are
-					// mandatory.  Otherwise expressions like [10..20] would be
-					// horribly, horribly ugly.
-					if (scanner.peekIsDigit())
-					{
-						isReal = true;
-						while (scanner.peekIsDigit())
-						{
-							scanner.next();
-						}
-					}
-					else
-					{
-						// Put that dot back down.  It's not a decimal point.
-						scanner.backUp();
-					}
-				}
-				final int beforeE = scanner.position();
-				if (scanner.peekFor('e') || scanner.peekFor('E'))
-				{
-					if (scanner.peekFor('-') || scanner.peekFor('+'))
-					{
-						// Optional exponent sign.
-					}
-					if (scanner.peekIsDigit())
-					{
-						isReal = true;
-						while (scanner.peekIsDigit())
-						{
-							scanner.next();
-						}
-					}
-					else
-					{
-						scanner.position(beforeE);
-					}
-				}
 
 				// Now convert the thing to numeric form.
-				A_Number result;
-				if (!isReal)
+				scanner.position(scanner.startOfToken());
+				A_Number result = IntegerDescriptor.zero();
+				final A_Number ten = IntegerDescriptor.ten();
+				while (scanner.peekIsDigit())
 				{
-					// It's a positive integer.
-					scanner.position(scanner.startOfToken());
-					result = IntegerDescriptor.zero();
-					final A_Number ten = IntegerDescriptor.ten();
-					while (scanner.peekIsDigit())
-					{
-						result = result.noFailTimesCanDestroy(ten, true);
-						result = result.noFailPlusCanDestroy(
-							IntegerDescriptor.fromUnsignedByte(
-								scanner.nextDigitValue()),
-							true);
-					}
-				}
-				else
-				{
-					// It's a double.
-					final StringBuilder builder = new StringBuilder();
-					final int end = scanner.position();
-					scanner.position(scanner.startOfToken());
-					while (scanner.position() < end)
-					{
-						builder.appendCodePoint(scanner.next());
-					}
-					try
-					{
-						result = DoubleDescriptor.fromDouble(
-							Double.valueOf(builder.toString()));
-					}
-					catch (final NumberFormatException e)
-					{
-						throw new AvailScannerException(
-							"Malformed floating point constant ("
-								+ builder.toString()
-								+ "): "
-								+ e.toString(),
-							scanner);
-					}
+					result = result.noFailTimesCanDestroy(ten, true);
+					result = result.noFailPlusCanDestroy(
+						IntegerDescriptor.fromUnsignedByte(
+							scanner.nextDigitValue()),
+						true);
 				}
 				scanner.addCurrentLiteralToken(result);
 			}

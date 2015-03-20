@@ -903,7 +903,7 @@ Method "zip_" is
 	streams : <stream…|1..>
 |
 	types ::= map streams through [s : stream | s's element type];
-	elementType ::= <types[1..|types| - 1], types[|types|]… | |streams|'s type>;
+	elementType ::= <types[1..|types| - 1], types' last… | |streams|'s type>;
 	a zipped stream with
 		element type ::= elementType,
 		decorated streams ::= streams
@@ -927,7 +927,7 @@ Method "«_‡zip»" is
 	streams : <stream…|2..>
 |
 	types ::= map streams through [s : stream | s's element type];
-	elementType ::= <types[1..|types| - 1], types[|types|]… | |streams|'s type>;
+	elementType ::= <types[1..|types| - 1], types' last… | |streams|'s type>;
 	a zipped stream with
 		element type ::= elementType,
 		decorated streams ::= streams
@@ -953,7 +953,7 @@ Private method "zip semantic restriction" is
 		];
 		nonempty ::= cast types into [ t : <any's type…|1..> | t ];
 		elementType ::=
-			<nonempty[1..|nonempty| - 1], nonempty[|nonempty|]…
+			<nonempty[1..|nonempty| - 1], nonempty's last…
 				| ||streams||>;
 		extend zipped stream with
 			element type : elementType's type,

@@ -61,6 +61,9 @@ Names
 	"_is whitespace"
 Body
 
+/* Mark some character-related operations as stable. */
+Method "_'s⁇code point" is stable at [character]→code point;
+
 arabicNumerals ::= (48 to 57)→set;
 
 toUpperCase ::=

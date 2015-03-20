@@ -1,5 +1,5 @@
 /**
- * P_625_IsApplyingSemanticRestriction.java
+ * P_093_ConstructDoubleFromParts.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,27 +32,27 @@
 
 package com.avail.interpreter.primitive;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.descriptor.FiberDescriptor.GeneralFlag.APPLYING_SEMANTIC_RESTRICTION;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 625</strong>: Is the {@linkplain FiberDescriptor#current()
- * current} {@linkplain FiberDescriptor fiber} running a semantic restriction?
+ * <strong>Primitive 93</strong>: Construct a nonnegative {@linkplain A_Number
+ * double} from parts supplied as {@linkplain A_Token literal tokens}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_625_IsApplyingSemanticRestriction
+public final class P_093_ConstructDoubleFromParts
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_625_IsApplyingSemanticRestriction().init(
-			0, CannotFail, CanInline, CanFold);
+		new P_093_ConstructDoubleFromParts().init(
+			3, CannotFail, CanInline, CanFold);
 
 	@Override
 	public Result attempt (
@@ -60,18 +60,49 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 0;
-		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(
-				interpreter.fiber().generalFlag(
-					APPLYING_SEMANTIC_RESTRICTION)));
+		assert args.size() == 3;
+		final A_Token integerPart = args.get(0);
+		final A_Token fractionalPart = args.get(1);
+		final A_Token exponentPart = args.get(2);
+
+		// Since we expect that this primitive will only be used for building
+		// floating-point literals, it doesn't need to be particularly
+		// efficient. We therefore convert the different parts to strings,
+		// compose a floating-point numeral, and then ask Java to parse and
+		// convert. This is less efficient than doing the work ourselves, but
+		// gives us the opportunity to leverage well-tested and tuned Java
+		// library code.
+		final String numeral =
+			integerPart.string().asNativeString()
+			+ "."
+			+ fractionalPart.string().asNativeString()
+			+ "e"
+			+ exponentPart.string().asNativeString();
+		final A_Number result;
+		try
+		{
+			result = DoubleDescriptor.fromDouble(Double.valueOf(numeral));
+		}
+		catch (final NumberFormatException e)
+		{
+			assert false :
+				"This shouldn't happen, since we control the numeral!";
+			throw e;
+		}
+		return interpreter.primitiveSuccess(result);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.empty(),
-			EnumerationTypeDescriptor.booleanObject());
+			TupleDescriptor.from(
+				LiteralTokenTypeDescriptor.create(
+					IntegerRangeTypeDescriptor.wholeNumbers()),
+				LiteralTokenTypeDescriptor.create(
+					IntegerRangeTypeDescriptor.wholeNumbers()),
+				LiteralTokenTypeDescriptor.create(
+					IntegerRangeTypeDescriptor.integers())),
+			DOUBLE.o());
 	}
 }

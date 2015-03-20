@@ -228,7 +228,7 @@ Names
 	"concatenate_",
 	"constructor of_,⁇parameterized by_,⁇on failure doing_",
 	"current fiber",
-	"current fiber is applying a semantic restriction",
+	"current fiber can reject a parse",
 	"current fiber[_]",
 	"current fiber[_]:=_",
 	"current module",

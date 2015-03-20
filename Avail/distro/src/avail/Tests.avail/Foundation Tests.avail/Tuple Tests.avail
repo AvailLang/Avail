@@ -715,7 +715,7 @@ Test "serialization" in tuple test suite is
 			/* Large characters */
 		/* 25      */ ¢𝄞,
 			/* Floats */
-		/* 26      */ 4.0→float,
+		/* 26      */ 4.0f,
 			/* Doubles */
 		/* 27      */ 6.0221413e23,
 			/* General tuples */

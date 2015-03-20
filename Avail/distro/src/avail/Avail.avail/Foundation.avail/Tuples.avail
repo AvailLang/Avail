@@ -3094,7 +3094,7 @@ Semantic restriction "_'s⁇last" is
 	aTupleType : <any…|1..>'s type
 |
 	upper ::= ⎡aTupleType⎤ min (|aTupleType's leading types| + 1);
-	∪ aTupleType[⎣aTupleType⎦..upper]
+	∪ aTupleType[⎣aTupleType⎦..upper max ⎣aTupleType⎦]
 ];
 
 /**
