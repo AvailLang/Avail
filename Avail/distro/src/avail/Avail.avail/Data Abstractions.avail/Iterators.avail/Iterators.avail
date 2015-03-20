@@ -134,7 +134,7 @@ Private method "body function(_,_)" is
  * Reader iterating-loop that invokes {@param "action"} once for every
  * {@param "elementPhrase"} in {@param "aReader"} 
  * 
- * @macro "For each…of_§do_"
+ * @macro "For each…in|of_§do_"
  * @category "Data Abstractions" "Readers"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
@@ -149,7 +149,7 @@ Private method "body function(_,_)" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Readers" "Data Abstractions"
  */
-Macro "For each…of_§do_" is a reader prefix function,
+Macro "For each…in|of_§do_" is a reader prefix function,
 	body function($"For each of⁇_do_", ⊤);
 
 /**
@@ -245,7 +245,7 @@ Public macro "Drop…from_§while_" is a reader prefix function,
  * the consecutive elements of {@param "aReader"}. The result is lazy, so
  * {@param "aReader"} may be infinite.
  * 
- * @macro "map each…in_§through_"
+ * @macro "map each…in|of_§through_"
  * @category "Data Abstractions" "Readers"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
@@ -260,5 +260,5 @@ Public macro "Drop…from_§while_" is a reader prefix function,
  * @returns "send phrase ⇒ ⊤"
  * @category "Loops" "Readers" "Data Abstractions"
  */
-Macro "map each…in_§through_" is a reader prefix function,
+Macro "map each…in|of_§through_" is a reader prefix function,
 	body function($"map_through_", reader);
