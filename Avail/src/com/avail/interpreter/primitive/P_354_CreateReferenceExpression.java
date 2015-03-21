@@ -62,11 +62,10 @@ public final class P_354_CreateReferenceExpression extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Phrase variableUse = args.get(0);
+
 		final A_Phrase declaration = variableUse.declaration();
-		assert declaration != null;
-		final A_Type declarationType = declaration.kind();
-		if (!declarationType.parseNodeKindIsUnder(MODULE_VARIABLE_NODE)
-			&& !declarationType.parseNodeKindIsUnder(LOCAL_VARIABLE_NODE))
+		if (!declaration.parseNodeKindIsUnder(MODULE_VARIABLE_NODE)
+			&& !declaration.parseNodeKindIsUnder(LOCAL_VARIABLE_NODE))
 		{
 			return interpreter.primitiveFailure(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE);

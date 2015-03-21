@@ -182,7 +182,8 @@ public class L1Decompiler
 		{
 			final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
 			pc++;
-			L1Operation.values()[nybble].dispatch(dispatcher);
+			final L1Operation op = L1Operation.all()[nybble];
+			op.dispatch(dispatcher);
 		}
 		// Infallible primitives don't have nybblecodes... except the special
 		// ones (340-342).
@@ -308,7 +309,13 @@ public class L1Decompiler
 		/**
 		 * A marker standing for the type of some value that was on the stack.
 		 */
-		getType;
+		getType,
+
+		/**
+		 * A marker indicating the value below it has been permuted, and should
+		 * be checked by a subsequent call operation;
+		 */
+		permute;
 
 		/**
 		 * A pre-built marker for this enumeration value.
@@ -332,14 +339,31 @@ public class L1Decompiler
 			final A_Type type = code.literalAt(getInteger());
 			final A_Method method = bundle.bundleMethod();
 			final int nArgs = method.numArgs();
-			final List<A_Phrase> callArgs = popExpressions(nArgs);
-			// Choose a name arbitrarily (eventually we should decompile in a
-			// scope which will help choose well among alternative names).
+			@Nullable A_Tuple permutationTuple = null;
+			if (nArgs > 1
+				&& peekExpression().equals(MarkerTypes.permute.marker))
+			{
+				// We just hit a permute of the top N items of the stack.  This
+				// is due to a permutation of the top-level arguments of a call,
+				// not an embedded guillemet expression (otherwise we would have
+				// hit an L1_doMakeTuple instead of this call).  A literal node
+				// containing the permutation to apply was pushed before the
+				// marker.
+				popExpression();
+				final A_Phrase permutationLiteral = popExpression();
+				assert permutationLiteral.parseNodeKindIsUnder(LITERAL_NODE);
+				permutationTuple = permutationLiteral.token().literal();
+			}
+			final A_Tuple argsTuple =
+				TupleDescriptor.fromList(popExpressions(nArgs));
+			A_Phrase listNode = ListNodeDescriptor.newExpressions(argsTuple);
+			if (permutationTuple != null)
+			{
+				listNode = PermutedListNodeDescriptor.fromListAndPermutation(
+					listNode, permutationTuple);
+			}
 			final A_Phrase sendNode = SendNodeDescriptor.from(
-				bundle,
-				ListNodeDescriptor.newExpressions(
-					TupleDescriptor.fromList(callArgs)),
-				type);
+				bundle, listNode, type);
 			pushExpression(sendNode);
 		}
 
@@ -424,8 +448,7 @@ public class L1Decompiler
 				? args.get(index - 1)
 				: locals.get(index - code.numArgs() - 1);
 			final A_Phrase use = VariableUseNodeDescriptor.newUse(
-				decl.token(),
-				decl);
+				decl.token(), decl);
 			use.isLastUse(true);
 			if (isArg)
 			{
@@ -480,11 +503,7 @@ public class L1Decompiler
 					|| outer.isInstanceOfKind(LITERAL_NODE.mostGeneralType());
 			}
 			final A_Phrase blockNode =
-				new L1Decompiler(
-					theCode,
-					theOuters,
-					tempGenerator
-				).block();
+				new L1Decompiler(theCode, theOuters, tempGenerator).block();
 			pushExpression(blockNode);
 		}
 
@@ -495,12 +514,9 @@ public class L1Decompiler
 				getInteger() - code.numArgs() - 1);
 			final A_Phrase valueNode = popExpression();
 			final A_Phrase variableUse = VariableUseNodeDescriptor.newUse(
-				localDecl.token(),
-				localDecl);
+				localDecl.token(), localDecl);
 			final A_Phrase assignmentNode = AssignmentNodeDescriptor.from(
-				variableUse,
-				valueNode,
-				false);
+				variableUse, valueNode, false);
 			if (expressionStack.isEmpty()
 				|| peekExpression().parseNodeKind() != MARKER_NODE)
 			{
@@ -584,9 +600,7 @@ public class L1Decompiler
 				assert variableObject.isInstanceOfKind(
 					VariableTypeDescriptor.mostGeneralType());
 				outerDecl = DeclarationNodeDescriptor.newModuleVariable(
-					token,
-					variableObject,
-					NilDescriptor.nil());
+					token, variableObject, NilDescriptor.nil());
 			}
 			else
 			{
@@ -595,8 +609,7 @@ public class L1Decompiler
 				outerDecl = outerExpr.variable().declaration();
 			}
 			final A_Phrase variableUse = VariableUseNodeDescriptor.newUse(
-				outerDecl.token(),
-				outerDecl);
+				outerDecl.token(), outerDecl);
 			final A_Phrase valueExpr = popExpression();
 			final A_Phrase assignmentNode =
 				AssignmentNodeDescriptor.from(variableUse, valueExpr, false);
@@ -621,8 +634,7 @@ public class L1Decompiler
 			final A_Phrase localDecl =
 				locals.get(getInteger() - code.numArgs() - 1);
 			final AvailObject useNode = VariableUseNodeDescriptor.newUse(
-				localDecl.token(),
-				localDecl);
+				localDecl.token(), localDecl);
 			pushExpression(useNode);
 		}
 
@@ -630,9 +642,27 @@ public class L1Decompiler
 		public void L1_doMakeTuple ()
 		{
 			final int count = getInteger();
+			@Nullable A_Tuple permutationTuple = null;
+			if (count > 1
+				&& peekExpression().equals(MarkerTypes.permute.marker))
+			{
+				// We just hit a permute of the top N items of the stack.  This
+				// is due to a permutation within a guillemet expression.  A
+				// literal node containing the permutation to apply was pushed
+				// before the marker.
+				popExpression();
+				final A_Phrase permutationLiteral = popExpression();
+				assert permutationLiteral.parseNodeKindIsUnder(LITERAL_NODE);
+				permutationTuple = permutationLiteral.token().literal();
+			}
 			final List<A_Phrase> expressions = popExpressions(count);
-			final A_Phrase listNode = ListNodeDescriptor.newExpressions(
+			A_Phrase listNode = ListNodeDescriptor.newExpressions(
 				TupleDescriptor.fromList(expressions));
+			if (permutationTuple != null)
+			{
+				listNode = PermutedListNodeDescriptor.fromListAndPermutation(
+					listNode, permutationTuple);
+			}
 			pushExpression(listNode);
 		}
 
@@ -642,7 +672,7 @@ public class L1Decompiler
 			final A_Phrase use;
 			final int outerIndex = getInteger();
 			final A_Phrase outer = outers.get(outerIndex - 1);
-			if (outer.kind().parseNodeKindIsUnder(LITERAL_NODE))
+			if (outer.parseNodeKindIsUnder(LITERAL_NODE))
 			{
 				pushExpression(outer);
 				return;
@@ -659,7 +689,7 @@ public class L1Decompiler
 		{
 			final byte nybble = nybbles.extractNybbleFromTupleAt(pc);
 			pc++;
-			L1Operation.values()[nybble + 16].dispatch(this);
+			L1Operation.all()[nybble + 16].dispatch(this);
 		}
 
 		@Override
@@ -710,12 +740,9 @@ public class L1Decompiler
 
 			final A_Phrase decl =
 				DeclarationNodeDescriptor.newModuleVariable(
-					globalToken,
-					globalVar,
-					NilDescriptor.nil());
+					globalToken, globalVar, NilDescriptor.nil());
 			final A_Phrase varUse = VariableUseNodeDescriptor.newUse(
-				globalToken,
-				decl);
+				globalToken, decl);
 			pushExpression(varUse);
 		}
 
@@ -731,16 +758,13 @@ public class L1Decompiler
 				-1,
 				TokenType.KEYWORD);
 			final AvailObject globalVar = code.literalAt(getInteger());
-
-			final A_Phrase decl =
+			final A_Phrase declaration =
 				DeclarationNodeDescriptor.newModuleVariable(
 					globalToken,
 					globalVar,
 					NilDescriptor.nil());
-
 			final A_Phrase varUse = VariableUseNodeDescriptor.newUse(
-				globalToken,
-				decl);
+				globalToken, declaration);
 			final A_Phrase assignmentNode =
 				AssignmentNodeDescriptor.from(varUse, popExpression(), false);
 			if (expressionStack.isEmpty())
@@ -779,16 +803,13 @@ public class L1Decompiler
 		@Override
 		public void L1Ext_doPermute ()
 		{
+			// Note that this applies to any guillemet group, not just the top
+			// level implicit list of arguments to a call.  It's also used for
+			// permuting both the arguments and their types in the case of a
+			// super-call to a bundle containing permutations.
 			final A_Tuple permutation = code.literalAt(getInteger());
-			final int size = permutation.tupleSize();
-			final A_BasicObject[] values = new A_BasicObject[size];
-			for (int i = size; i >= 1; i--)
-			{
-				values[permutation.tupleIntAt(i) - 1] = popExpression();
-			}
-			assert false
-			: "TODO: verify this against a subsequent call instruction";
-			//TODO MvG VERIFY against a subsequent call instruction.
+			pushExpression(LiteralNodeDescriptor.syntheticFrom(permutation));
+			pushExpression(MarkerTypes.permute.marker);
 		}
 
 		@Override
@@ -800,15 +821,23 @@ public class L1Decompiler
 		@Override
 		public void L1Ext_doMakeTupleAndType ()
 		{
-			// TODO Auto-generated method stub
-
+			final int listSize = getInteger();
+			final A_Phrase listNode = reconstructListWithSupercasts(listSize);
+			pushExpression(listNode);
+			pushExpression(MarkerTypes.getType.marker);
 		}
 
 		@Override
 		public void L1Ext_doSuperCall ()
 		{
-			// TODO Auto-generated method stub
-
+			final A_Bundle bundle = code.literalAt(getInteger());
+			final A_Type type = code.literalAt(getInteger());
+			final A_Method method = bundle.bundleMethod();
+			final int nArgs = method.numArgs();
+			final A_Phrase argsNode = reconstructListWithSupercasts(nArgs);
+			final A_Phrase sendNode = SendNodeDescriptor.from(
+				bundle, argsNode, type);
+			pushExpression(sendNode);
 		}
 
 		@Override
@@ -832,6 +861,78 @@ public class L1Decompiler
 			}
 			assert expressionStack.size() == 0
 			: "There should be nothing on the stack after a return";
+		}
+
+		/**
+		 * Given that there are {@code nArgs} values and types interleaved on
+		 * the stack, pop all 2*nArgs of them, and build a suitable list phrase
+		 * (or permuted list phrase if there was also a permutation literal and
+		 * permute marker pushed after).  The list phrase either includes at
+		 * least one supercast directly, or contains at least one list phrase
+		 * recursively that includes one or more supercasts.  The non-supercast
+		 * elements have getType markers instead of type literals.
+		 *
+		 * @param nArgs
+		 *        The number of <argument, type> pairs to expect on the stack.
+		 *        This is also the size of the resulting list phrase.
+		 * @return A list phrase or permuted list phrase containing at least one
+		 *         supercast somewhere within the recursive list structure.
+		 */
+		private A_Phrase reconstructListWithSupercasts (final int nArgs)
+		{
+			@Nullable A_Tuple permutationTuple = null;
+			if (nArgs > 1
+				&& peekExpression().equals(MarkerTypes.permute.marker))
+			{
+				// We just hit a permute of the top N items of the stack.  This
+				// is due to a permutation of the top-level arguments of a call,
+				// not an embedded guillemet expression (otherwise we would have
+				// hit an L1_doMakeTuple instead of this call).  A literal node
+				// containing the permutation to apply was pushed before the
+				// marker.
+				popExpression();
+				final A_Phrase permutationLiteral = popExpression();
+				assert permutationLiteral.parseNodeKindIsUnder(LITERAL_NODE);
+				final A_Tuple bigPermutationTuple =
+					permutationLiteral.token().literal();
+				// Since this is a super call, the permutation tuple was doubled
+				// in length to cause the <value,type> pairs (found in
+				// consecutive slots) to be permuted as a unit.  Undo the
+				// doubling to get the original permutation.
+				final int bigPermutationSize = bigPermutationTuple.tupleSize();
+				final List<Integer> undoubled =
+					new ArrayList<>(bigPermutationSize >> 1);
+				for (int i = 2; i <= bigPermutationSize; i += 2)
+				{
+					undoubled.add(bigPermutationTuple.tupleIntAt(i) >> 1);
+				}
+				permutationTuple = TupleDescriptor.fromIntegerList(undoubled);
+			}
+			final List<A_Phrase> argsList = new ArrayList<>(nArgs);
+			for (int i = 1; i <= nArgs; i++)
+			{
+				final A_Phrase argTypeExpr = popExpression();
+				final A_Phrase arg = popExpression();
+				if (argTypeExpr.equals(MarkerTypes.getType.marker))
+				{
+					argsList.add(0, arg);
+				}
+				else
+				{
+					argsList.add(
+						0,
+						SuperCastNodeDescriptor.create(
+							arg,
+							argTypeExpr.token().literal()));
+				}
+			}
+			final A_Phrase listNode = ListNodeDescriptor.newExpressions(
+				TupleDescriptor.fromList(argsList));
+			final A_Phrase argsNode = permutationTuple != null
+				? PermutedListNodeDescriptor.fromListAndPermutation(
+					listNode, permutationTuple)
+				: listNode;
+			return argsNode;
 		}
 	};
 

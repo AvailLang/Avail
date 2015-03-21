@@ -110,7 +110,7 @@ extends ParseNodeDescriptor
 		final A_Phrase aParseNode)
 	{
 		return !aParseNode.isMacroSubstitutionNode()
-			&& object.kind().equals(aParseNode.kind())
+			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
 			&& object.slot(VARIABLE).equals(aParseNode.variable());
 	}
 

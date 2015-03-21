@@ -316,21 +316,19 @@ extends Descriptor
 		writer.argumentTypes(argTypesArray);
 		writer.returnType(returnType);
 		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(function)));
+			L1Operation.L1_doPushLiteral,
+			writer.addLiteral(function));
 		for (int i = 1; i <= numArgs; i++)
 		{
-			writer.write(new L1Instruction(L1Operation.L1_doPushLastLocal, i));
+			writer.write(L1Operation.L1_doPushLastLocal, i);
 		}
-		writer.write(new L1Instruction(L1Operation.L1_doMakeTuple, numArgs));
+		writer.write(L1Operation.L1_doMakeTuple, numArgs);
 		final A_Bundle bundle =
 			MethodDescriptor.vmFunctionApplyAtom().bundleOrNil();
 		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doCall,
-				writer.addLiteral(bundle),
-				writer.addLiteral(returnType)));
+			L1Operation.L1_doCall,
+			writer.addLiteral(bundle),
+			writer.addLiteral(returnType));
 		final AvailObject code = writer.compiledCode();
 		final A_Function newFunction = FunctionDescriptor.create(
 			code,
@@ -368,20 +366,17 @@ extends Descriptor
 		writer.argumentTypes(new A_Type[] {tupleType});
 		writer.returnType(returnType);
 		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(function)));
+			L1Operation.L1_doPushLiteral,
+			writer.addLiteral(function));
 		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doPushLastLocal,
-				1));
+			L1Operation.L1_doPushLastLocal,
+			1);
 		final A_Bundle bundle =
 			MethodDescriptor.vmFunctionApplyAtom().bundleOrNil();
 		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doCall,
-				writer.addLiteral(bundle),
-				writer.addLiteral(returnType)));
+			L1Operation.L1_doCall,
+			writer.addLiteral(bundle),
+			writer.addLiteral(returnType));
 		final A_RawFunction code = writer.compiledCode();
 		final A_Function newFunction = FunctionDescriptor.create(
 			code,
@@ -483,9 +478,8 @@ extends Descriptor
 		writer.argumentTypes();
 		writer.returnType(TOP.o());
 		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(NilDescriptor.nil())));
+			L1Operation.L1_doPushLiteral,
+			writer.addLiteral(NilDescriptor.nil()));
 		final AvailObject code = writer.compiledCode();
 		final A_Function newFunction = FunctionDescriptor.create(
 			code,
@@ -535,27 +529,19 @@ extends Descriptor
 					IntegerRangeTypeDescriptor.naturalNumbers()));
 			for (int i = 1; i <= numArgs; i++)
 			{
-				writer.write(
-					new L1Instruction(L1Operation.L1_doPushLastLocal, i));
+				writer.write(L1Operation.L1_doPushLastLocal, i);
 			}
 			// Get the failure code.
-			writer.write(
-				new L1Instruction(
-					L1Operation.L1_doGetLocal,
-					failureLocal));
+			writer.write(L1Operation.L1_doGetLocal, failureLocal);
 			// Put the arguments and failure code into a tuple.
-			writer.write(
-				new L1Instruction(
-					L1Operation.L1_doMakeTuple,
-					numArgs + 1));
+			writer.write(L1Operation.L1_doMakeTuple, numArgs + 1);
 			try
 			{
 				writer.write(
-					new L1Instruction(
-						L1Operation.L1_doCall,
-						writer.addLiteral(
-							MethodDescriptor.vmCrashAtom().bundleOrCreate()),
-						writer.addLiteral(BottomTypeDescriptor.bottom())));
+					L1Operation.L1_doCall,
+					writer.addLiteral(
+						MethodDescriptor.vmCrashAtom().bundleOrCreate()),
+					writer.addLiteral(BottomTypeDescriptor.bottom()));
 			}
 			catch (final MalformedMessageException e)
 			{
@@ -589,29 +575,23 @@ extends Descriptor
 		writer.argumentTypesTuple(paramTypes);
 		writer.returnType(BottomTypeDescriptor.bottom());
 		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(StringDescriptor.from(
-					"unexpected VM failure"))));
+			L1Operation.L1_doPushLiteral,
+			writer.addLiteral(StringDescriptor.from(
+				"unexpected VM failure")));
 		final int numArgs = paramTypes.tupleSize();
 		for (int i = 1; i <= numArgs; i++)
 		{
-			writer.write(
-				new L1Instruction(L1Operation.L1_doPushLastLocal, i));
+			writer.write(L1Operation.L1_doPushLastLocal, i);
 		}
 		// Put the error message and arguments into a tuple.
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doMakeTuple,
-				numArgs + 1));
+		writer.write(L1Operation.L1_doMakeTuple, numArgs + 1);
 		try
 		{
 			writer.write(
-				new L1Instruction(
-					L1Operation.L1_doCall,
-					writer.addLiteral(
-						MethodDescriptor.vmCrashAtom().bundleOrCreate()),
-					writer.addLiteral(BottomTypeDescriptor.bottom())));
+				L1Operation.L1_doCall,
+				writer.addLiteral(
+					MethodDescriptor.vmCrashAtom().bundleOrCreate()),
+				writer.addLiteral(BottomTypeDescriptor.bottom()));
 		}
 		catch (final MalformedMessageException e)
 		{

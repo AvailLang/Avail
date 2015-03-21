@@ -70,10 +70,10 @@ public final class P_353_CreateAssignmentStatement extends Primitive
 		assert args.size() == 2;
 		final A_Phrase variable = args.get(0);
 		final A_Phrase expression = args.get(1);
-		final A_Type declarationType =
-			variable.declaration().kind();
-		if (!declarationType.parseNodeKindIsUnder(MODULE_VARIABLE_NODE)
-			&& !declarationType.parseNodeKindIsUnder(LOCAL_VARIABLE_NODE))
+
+		final A_Phrase declaration = variable.declaration();
+		if (!declaration.parseNodeKindIsUnder(MODULE_VARIABLE_NODE)
+			&& !declaration.parseNodeKindIsUnder(LOCAL_VARIABLE_NODE))
 		{
 			return interpreter.primitiveFailure(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT);
@@ -85,9 +85,7 @@ public final class P_353_CreateAssignmentStatement extends Primitive
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
 		}
 		final A_Phrase assignment = AssignmentNodeDescriptor.from(
-			variable,
-			expression,
-			false);
+			variable, expression, false);
 		return interpreter.primitiveSuccess(assignment);
 	}
 

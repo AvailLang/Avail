@@ -164,7 +164,7 @@ extends ParseNodeDescriptor
 		final A_Phrase aParseNode)
 	{
 		return !aParseNode.isMacroSubstitutionNode()
-			&& object.kind().equals(aParseNode.kind())
+			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
 			&& object.slot(USE_TOKEN).equals(aParseNode.token())
 			&& object.slot(DECLARATION).equals(aParseNode.declaration())
 			&& object.isLastUse() == aParseNode.isLastUse();
@@ -182,19 +182,20 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_ChildrenMap (
-		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
-	{
-		// Do nothing.
-	}
-
-	@Override @AvailMethod
 	void o_ChildrenDo (
 		final AvailObject object,
 		final Continuation1<A_Phrase> aBlock)
 	{
-		// Do nothing.
+		aBlock.value(object.slot(DECLARATION));
+	}
+
+	@Override @AvailMethod
+	void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
+	{
+		object.setSlot(
+			DECLARATION, aBlock.valueNotNull(object.slot(DECLARATION)));
 	}
 
 	@Override

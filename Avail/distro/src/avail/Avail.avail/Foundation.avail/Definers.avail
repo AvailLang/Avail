@@ -103,45 +103,149 @@ Method "stability failure function" is [failureFunction];
  * @returns "⊤"
  */
 Method "Set stability failure function to_"
-	is [f : stable guard | failureFunction := f; ];
+	is [f : stable guard | failureFunction := f;];
 
 /**
  * Utility method for {@method "Method_is stable at_"}.  Test whether the
- * elements of the tuple of types have exactly one instance each. Even though
- * ⊥'s type is technically a metatype rather than a pure enumeration, it only
- * has one instance (⊥).
- *
- * @method "«_‡,»are all singular"
- * @returns "boolean"
+ * given expression is singularly typed, meaning there is only one possible
+ * value it could produce. Even though ⊥'s type is technically a metatype rather
+ * than a pure enumeration, it only has one instance (⊥).
  */
-Private method "«_‡,»are all singular" is
+Private method "_is singular expression" is
 [
-	argTypes : <<>, type…|whole number>
+	anExpression : expression phrase
 |
 	$method : boolean;
-	From 1 to |argTypes| do
+	expressionType ::= anExpression's semantic type;
+	If (|expressionType| = 1) = false then [Exit method with false];
+	if (expressionType's instance ∈ type) = false then [true]
+	else [expressionType = ⊥'s type's type]
+] : boolean;
+
+/**
+ * Literal phrases are always foldable, even if they produce a type.  Normally
+ * yielding a type means a subtype could be returned instead, but that's not the
+ * case for a literal phrase.
+ */
+Private method "_is singular expression" is
+[
+	anExpression : literal phrase
+|
+	true
+];
+
+/**
+ * Override to reject folding in the presence of a super cast phrase.
+ */
+Private method "_is singular expression" is
+[
+	anExpression : super cast phrase
+|
+	false
+];
+
+/**
+ * Override to scan list phrases for super cast phrases, which will then be
+ * rejected from folding.
+ */
+Private method "_is singular expression" is
+[
+	anExpression : list phrase
+|
+	$method : boolean;
+	expressions ::= anExpression's expressions;
+	From 1 to |expressions| do
 	[
 		index : natural number
 	|
-		argType ::= cast argTypes[index] into [t : type | t];
-		If (|argType| = 1) = false then [Exit method with false];
-		if (argType's instance ∈ type) = false then [true]
-		else
-		[
-			if argType = ⊥'s type's type then [true]
-			else [Exit method with false]
-		]
+		element ::= cast expressions[index] into [t : expression phrase | t];
+		if element is singular expression then [true]
+		else [Exit method with false]
 	];
 	true
-] : boolean;
+];
+
+/**
+ * Utility method for {@method "Method_is stable at_"}.  Test whether the
+ * elements of the tuple of expressions all have types that have exactly one
+ * instance each. Even though ⊥'s type is technically a metatype rather than a
+ * pure enumeration, it only has one instance (⊥).
+ */
+Private method "«_‡,»are all singular expressions" is
+[
+	argExpressions : <<>, expression phrase…|whole number>
+|
+	$method : boolean;
+	From 1 to |argExpressions| do
+	[
+		index : natural number
+	|
+		arg ::= cast argExpressions[index] into [t : expression phrase | t];
+		if arg is singular expression then [true]
+		else [Exit method with false]
+	];
+	true
+];
+
+/*
+ * Given an expression that answered true to "_is singular expression", extract
+ * the singular value that would be produced by the phrase.
+ */
+Private method "extract singular value from_" is
+[
+	anExpression : expression phrase
+|
+	t ::= anExpression's semantic type;
+	Assert: |t| = 1
+		("The expression produced a type, which is not stable \
+		\|due to metacovariance.");
+	t's instance
+] : any;
+
+/*
+ * Overridden to extract each list element's value, assembling them into a
+ * tuple.  This is to agree with the list phrase's implementation of
+ * "_is singular expression".
+ */
+Private method "extract singular value from_" is
+[
+	anExpression : list phrase
+|
+	valueTuple : tuple := <>;
+	expressions ::= anExpression's expressions;
+	From 1 to |expressions| do
+	[
+		i : natural number
+	|
+		elementExpression ::= cast expressions[i]
+			into [e : expression phrase | e];
+		value ::= extract singular value from elementExpression;
+		valueTuple := concatenate <eject valueTuple, <value>>;
+		true
+	];
+	valueTuple
+] : any;
+
+/*
+ * Overridden to extract the token's value.  This allows constant expressions
+ * to be folded, even if they result in a type (which would normally be blocked
+ * from folding because metacovariance causes subtypes to also comply with that
+ * type's type).
+ */
+Private method "extract singular value from_" is
+[
+	anExpression : literal phrase
+|
+	anExpression's token's value
+] : any;
+
 
 /* These methods are needed for autogeneration of stable method restrictions. */
 ifThenElseAtom ::= atom for "If|if_then_else_";
-semanticTypeAtom ::= atom for "_'s⁇semantic type";
-areAllSingularAtom ::= atom for "«_‡,»are all singular";
+areAllSingularAtom ::= atom for "«_‡,»are all singular expressions";
 invokeAtom ::= atom for "Invoke|invoke_with_";
 readVarAtom ::= atom for "↓_";
-instanceAtom ::= atom for "_'s⁇instance";
+extractValueAtom ::= atom for "extract singular value from_";
 tokenAtom ::= atom for "``_``";
 literalAtom ::= atom for "‘_’";
 restrictedSendAtom ::= atom for "restricted send_with_:_";
@@ -179,38 +283,25 @@ Public method "Method_is stable at_" is
 	 *        arg2 : expression phrase ⇒ natural number,
 	 *        arg3 : expression phrase ⇒ any
 	 *    |
-	 *        if <
-	 *            arg1's semantic type,
-	 *            arg2's semantic type,
-	 *            arg3's semantic type
-	 *        > are all singular
-	 *        then
+	 *        if <arg1, arg2, arg3> are all singular expressions then
 	 *        [
 	 *            invoke failureFunction with
 	 *            <
 	 *                [
-	 *                    ‘`(arg1's semantic type's instance
-	 *                        [arg2's semantic type's instance]
-	 *                        →arg3's semantic type's instance)`’
+	 *                    ‘`(extract singular value from arg1
+	 *                        [extract singular value from arg2]
+	 *                        →extract singular value from arg3)`’
 	 *                ],
 	 *                [
-	 *                    restricted send "_[_]→_" with
-	 *                    <
-	 *                        arg1,
-	 *                        arg2,
-	 *                        arg3
-	 *                    > : any
+	 *                    restricted send "_[_]→_"
+	 *                        with <arg1, arg2, arg3> : any
 	 *                ]
 	 *            >
 	 *        ]
 	 *        else
 	 *        [
-	 *            restricted send "_[_]→_" with
-	 *            <
-	 *                arg1,
-	 *                arg2,
-	 *                arg3
-	 *            > : any
+	 *            restricted send "_[_]→_"
+	 *                with <arg1, arg2, arg3> : any
 	 *        ]
 	 *    ];
 	 *
@@ -221,7 +312,6 @@ Public method "Method_is stable at_" is
 	resultType ::= cast functionType's return type into [t : any meta | t];
 	argDecls : <<>, argument phrase…|whole number> := <>;
 	argUses : <<>, variable use phrase…|whole number> := <>;
-	semanticTypes : <<>, send phrase⇒any…|whole number> := <>;
 	instances : <<>, send phrase⇒any…|whole number> := <>;
 	/* Construct the tuples of argument declarations, argument uses, expressions
 	 * to extract semantic types, and expressions to extract the singular
@@ -240,17 +330,14 @@ Public method "Method_is stable at_" is
 		argUse ::= «↓argDecl»;
 		argUses := cast concatenate <eject argUses, <argUse>>
 			into [t : <<>, variable use phrase…|whole number> | t];
-		semanticType ::= send semanticTypeAtom with «<argUse>» : argType's type;
-		semanticTypes := cast concatenate <eject semanticTypes, <semanticType>>
-			into [t : <<>, send phrase⇒any…|whole number> | t];
-		instance ::= send instanceAtom with «<semanticType>» : argType;
+		instance ::= send extractValueAtom with «<argUse>» : argType;
 		instances := cast concatenate <eject instances, <instance>>
 			into [t : <<>, send phrase⇒any…|whole number> | t];
 		true
 	];
 	/* Construct the predicate. */
 	check ::=
-		send areAllSingularAtom with «<semanticTypes → list phrase>» : boolean;
+		send areAllSingularAtom with «<argUses → list phrase>» : boolean;
 	/* Construct the false block, i.e., the one that doesn't fold. */
 	sendPhrase ::=
 		send restrictedSendAtom with

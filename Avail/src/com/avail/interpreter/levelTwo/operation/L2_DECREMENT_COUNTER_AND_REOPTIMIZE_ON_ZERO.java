@@ -75,7 +75,7 @@ extends L2Operation
 					L2Chunk.countdownForNewlyOptimizedCode());
 				L2Translator.translateToLevelTwo(
 					theCode,
-					OptimizationLevel.values()[targetOptimizationLevel],
+					OptimizationLevel.all()[targetOptimizationLevel],
 					interpreter);
 				translated.value = true;
 			}

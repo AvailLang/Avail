@@ -3890,10 +3890,10 @@ extends AbstractDescriptor
 	@Override
 	boolean o_CompareFromToWithByteArrayTupleStartingAt (
 		final AvailObject object,
-		final int i,
-		final int tupleSize,
+		final int startIndex1,
+		final int endIndex1,
 		final A_Tuple aByteArrayTuple,
-		final int j)
+		final int startIndex2)
 	{
 		throw unsupportedOperationException();
 	}

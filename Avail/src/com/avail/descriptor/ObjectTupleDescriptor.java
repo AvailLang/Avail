@@ -234,6 +234,15 @@ extends TupleDescriptor
 	}
 
 	/**
+	 * Answer a mutable copy of object that holds arbitrary objects.
+	 */
+	@Override @AvailMethod
+	A_Tuple o_CopyAsMutableObjectTuple (final AvailObject object)
+	{
+		return newLike(mutable, object, 0, 0);
+	}
+
+	/**
 	 * If a subrange ends up getting constructed from this object tuple then it
 	 * may leak memory.  The references that are out of bounds of the subrange
 	 * might no longer be semantically reachable by Avail, but Java won't be

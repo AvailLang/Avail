@@ -72,7 +72,7 @@ public final class P_346_CreateSuperCastExpression extends Primitive
 			return interpreter.primitiveFailure(
 				E_SUPERCAST_EXPRESSION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM);
 		}
-		if (expression.parseNodeKind().isSubkindOf(SUPER_CAST_NODE))
+		if (expression.parseNodeKindIsUnder(SUPER_CAST_NODE))
 		{
 			return interpreter.primitiveFailure(
 				E_SUPERCAST_EXPRESSION_MUST_NOT_ALSO_BE_A_SUPERCAST);

@@ -97,7 +97,7 @@ extends Primitive
 		{
 			final A_Phrase labelReturnTypePhrase =
 				optionalLabelReturnTypePhrase.expressionAt(1);
-			assert labelReturnTypePhrase.parseNodeKind().isSubkindOf(
+			assert labelReturnTypePhrase.parseNodeKindIsUnder(
 				LITERAL_NODE);
 			labelReturnType = labelReturnTypePhrase.token().literal();
 		}

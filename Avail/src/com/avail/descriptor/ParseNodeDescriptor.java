@@ -134,41 +134,12 @@ extends Descriptor
 	@Override @AvailMethod
 	A_Phrase o_CopyMutableParseNode (final AvailObject object)
 	{
+		object.makeSubobjectsImmutable();
 		if (isMutable())
 		{
 			return object;
 		}
-		final int objectCount = object.objectSlotsCount();
-		final int integerCount = object.integerSlotsCount();
-
-		final AbstractDescriptor mutableDescriptor = mutable();
-		assert mutableDescriptor.getClass() == object.descriptor().getClass();
-
-		final AvailObject copy =
-			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
-				objectCount - numberOfFixedObjectSlots,
-				integerCount - numberOfFixedIntegerSlots,
-				mutableDescriptor);
-		for (int i = 1; i <= objectCount; i++)
-		{
-			final AvailObject slotValue = object.slot(
-				FakeObjectSlots.ALL_OBJECT_SLOTS_,
-				i);
-			// Potentially share the object.
-			slotValue.makeImmutable();
-			copy.setSlot(
-				FakeObjectSlots.ALL_OBJECT_SLOTS_,
-				i,
-				slotValue);
-		}
-		for (int i = 1; i <= integerCount; i++)
-		{
-			copy.setSlot(
-				FakeIntegerSlots.ALL_INTEGER_SLOTS_,
-				i,
-				object.slot(FakeIntegerSlots.ALL_INTEGER_SLOTS_, i));
-		}
-		return copy;
+		return AvailObjectRepresentation.newLike(mutable(), object, 0, 0);
 	}
 
 	/**
@@ -274,7 +245,7 @@ extends Descriptor
 		}
 		if (aType.isSubtypeOf(PARSE_NODE.mostGeneralType()))
 		{
-			return object.parseNodeKind().isSubkindOf(aType.parseNodeKind())
+			return object.parseNodeKindIsUnder(aType.parseNodeKind())
 				&& object.expressionType().isSubtypeOf(aType.expressionType());
 		}
 		return false;
@@ -313,6 +284,14 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	abstract ParseNodeKind o_ParseNodeKind (final AvailObject object);
+
+	@Override @AvailMethod
+	boolean o_ParseNodeKindIsUnder (
+		final AvailObject object,
+		final ParseNodeKind expectedParseNodeKind)
+	{
+		return object.parseNodeKind().isSubkindOf(expectedParseNodeKind);
+	}
 
 	@Override
 	public boolean o_ShowValueInNameForDebugger (final AvailObject object)

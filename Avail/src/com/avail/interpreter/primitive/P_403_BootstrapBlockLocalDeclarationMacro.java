@@ -97,7 +97,7 @@ public final class P_403_BootstrapBlockLocalDeclarationMacro extends Primitive
 			public void value (final @Nullable A_Phrase statement)
 			{
 				assert statement != null;
-				if (!statement.parseNodeKind().isSubkindOf(DECLARATION_NODE))
+				if (!statement.parseNodeKindIsUnder(DECLARATION_NODE))
 				{
 					// This isn't a declaration, it's some other kind of
 					// statement. For now, just ensure it has type ⊤.  The

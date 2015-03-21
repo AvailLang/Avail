@@ -1092,8 +1092,6 @@ public class MessageSplitter
 			final int sectionNumber)
 		throws SignatureException
 		{
-			//TODO[MvG]: Deal with a sectionNumber somehow.
-
 			// Always expect a tuple of solutions here.
 			if (argumentType.isBottom())
 			{
@@ -1546,8 +1544,6 @@ public class MessageSplitter
 			final int sectionNumber)
 		throws SignatureException
 		{
-			//TODO[MvG]: Deal with the sectionNumber somehow.
-
 			// Always expect a tuple of solutions here.
 			if (argumentType.isBottom())
 			{
@@ -1660,11 +1656,10 @@ public class MessageSplitter
 				 * push empty list
 				 * branch to @loopSkip
 				 * @loopStart:
-				 * ...Stuff before dagger.
-				 * append  (add solution)
+				 * ...Stuff before dagger, appending sole argument.
 				 * branch to @loopExit (even if no dagger)
-				 * ...Stuff after dagger, nothing if dagger is omitted.  Must
-				 * ...follow argument or subgroup with "append" instruction.
+				 * ...Stuff after dagger, nothing if dagger is omitted.
+				 * ...Must not contain an argument or subgroup.
 				 * check progress and update saved position, or abort.
 				 * jump to @loopStart
 				 * @loopExit:
@@ -1678,8 +1673,7 @@ public class MessageSplitter
 				final int loopStart = list.size() + 1;
 				if (maximumCardinality < Integer.MAX_VALUE)
 				{
-					list.add(
-						CHECK_AT_MOST.encoding(maximumCardinality));
+					list.add(CHECK_AT_MOST.encoding(maximumCardinality));
 				}
 				for (final Expression expression : beforeDagger.expressions)
 				{

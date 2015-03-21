@@ -5385,18 +5385,18 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param i
-	 * @param tupleSize
+	 * @param startIndex1
+	 * @param endIndex1
 	 * @param aByteArrayTuple
-	 * @param j
+	 * @param startIndex2
 	 * @return
 	 */
 	abstract boolean o_CompareFromToWithByteArrayTupleStartingAt (
 		final AvailObject object,
-		final int i,
-		final int tupleSize,
+		final int startIndex1,
+		final int endIndex1,
 		final A_Tuple aByteArrayTuple,
-		final int j);
+		final int startIndex2);
 
 	/**
 	 * @param object

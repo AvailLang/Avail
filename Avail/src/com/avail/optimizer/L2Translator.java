@@ -266,7 +266,21 @@ public class L2Translator
 		 * exceed the cost of generating corresponding Java bytecodes.
 		 */
 		@Deprecated
-		NATIVE
+		NATIVE;
+
+		/** An array of all {@link OptimizationLevel} enumeration values. */
+		private static OptimizationLevel[] all = values();
+
+		/**
+		 * Answer an array of all {@link OptimizationLevel} enumeration values.
+		 *
+		 * @return An array of all {@link OptimizationLevel} enum values.  Do
+		 *         not modify the array.
+		 */
+		public static OptimizationLevel[] all ()
+		{
+			return all;
+		}
 	}
 
 	/**
@@ -621,7 +635,7 @@ public class L2Translator
 
 	/**
 	 * The {@code L1NaiveTranslator} simply transliterates a sequence of
-	 * {@linkplain L1Instruction level one instructions} into one or more simple
+	 * {@linkplain L1Operation level one instructions} into one or more simple
 	 * {@linkplain L2Instruction level two instructions}, under the assumption
 	 * that further optimization steps will be able to transform this code into
 	 * something much more efficient – without altering the level one semantics.

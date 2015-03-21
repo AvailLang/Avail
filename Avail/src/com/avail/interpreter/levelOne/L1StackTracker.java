@@ -40,19 +40,19 @@ import com.avail.descriptor.AvailObject;
 
 /**
  * An {@code L1StackTracker} verifies the integrity of a sequence of {@link
- * L1Instruction}s and calculates how big a stack will be necessary.
+ * L1Operation}s and operands, and calculates how big a stack will be necessary.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 abstract class L1StackTracker implements L1OperationDispatcher
 {
 	/**
-	 * The operands of the {@link L1Instruction} being traced.
+	 * The operands of the {@link L1Operation} being traced.
 	 */
 	@Nullable int [] currentOperands = null;
 
 	/**
-	 * @return The current {@link L1Instruction}'s encoded operands.
+	 * @return The current {@link L1Operation}'s encoded operands.
 	 */
 	int [] currentOperands ()
 	{
@@ -111,17 +111,20 @@ abstract class L1StackTracker implements L1OperationDispatcher
 	}
 
 	/**
-	 * Record the effect of an {@link L1Instruction}.
+	 * Record the effect of an L1 instruction.
 	 *
-	 * @param instruction The instruction to record.
+	 * @param operation The {@link L1Operation}.
+	 * @param operands The operation's {@code int} operands.
 	 */
-	void track (final L1Instruction instruction)
+	void track (
+		final L1Operation operation,
+		final int... operands)
 	{
 		assert reachable;
 		assert currentDepth >= 0;
 		assert maxDepth >= currentDepth;
-		currentOperands = instruction.operands();
-		instruction.operation().dispatch(this);
+		currentOperands = operands;
+		operation.dispatch(this);
 		currentOperands = null;
 		assert currentDepth >= 0;
 		maxDepth = max(maxDepth, currentDepth);

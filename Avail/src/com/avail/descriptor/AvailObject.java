@@ -6258,21 +6258,21 @@ implements
 	}
 
 	/**
-	 * @param i
-	 * @param tupleSize
+	 * @param startIndex1
+	 * @param endIndex1
 	 * @param aByteArrayTuple
-	 * @param j
+	 * @param startIndex2
 	 * @return
 	 */
 	@Override
 	public boolean compareFromToWithByteArrayTupleStartingAt (
-		final int i,
-		final int tupleSize,
+		final int startIndex1,
+		final int endIndex1,
 		final A_Tuple aByteArrayTuple,
-		final int j)
+		final int startIndex2)
 	{
 		return descriptor.o_CompareFromToWithByteArrayTupleStartingAt(
-			this, i, tupleSize, aByteArrayTuple, j);
+			this, startIndex1, endIndex1, aByteArrayTuple, startIndex2);
 	}
 
 	/**

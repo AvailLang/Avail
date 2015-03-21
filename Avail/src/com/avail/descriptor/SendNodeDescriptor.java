@@ -95,6 +95,13 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
+	A_Atom o_ApparentSendName (final AvailObject object)
+	{
+		final A_Bundle bundle = object.slot(BUNDLE);
+		return bundle.message();
+	}
+
+	@Override @AvailMethod
 	A_Phrase o_ArgumentsListNode (final AvailObject object)
 	{
 		return object.slot(ARGUMENTS_LIST_NODE);
@@ -107,46 +114,21 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_ReturnType (final AvailObject object)
-	{
-		return object.slot(RETURN_TYPE);
-	}
-
-
-	@Override @AvailMethod
-	A_Type o_ExpressionType (final AvailObject object)
-	{
-		return object.slot(RETURN_TYPE);
-	}
-
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		return
-			(object.slot(ARGUMENTS_LIST_NODE).hash() * multiplier
-				^ object.slot(BUNDLE).hash()) * multiplier
-				- object.slot(RETURN_TYPE).hash()
-			^ 0x90E39B4D;
-	}
-
-	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	void o_ChildrenDo (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final Continuation1<A_Phrase> aBlock)
 	{
-		return !aParseNode.isMacroSubstitutionNode()
-			&& object.kind().equals(aParseNode.kind())
-			&& object.slot(BUNDLE).equals(aParseNode.bundle())
-			&& object.slot(ARGUMENTS_LIST_NODE).equals(
-				aParseNode.argumentsListNode())
-			&& object.slot(RETURN_TYPE).equals(aParseNode.returnType());
+		aBlock.value(object.slot(ARGUMENTS_LIST_NODE));
 	}
 
 	@Override @AvailMethod
-	A_Atom o_ApparentSendName (final AvailObject object)
+	void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
-		final A_Bundle bundle = object.slot(BUNDLE);
-		return bundle.message();
+		object.setSlot(
+			ARGUMENTS_LIST_NODE,
+			aBlock.valueNotNull(object.slot(ARGUMENTS_LIST_NODE)));
 	}
 
 	@Override @AvailMethod
@@ -170,21 +152,44 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_ChildrenMap (
+	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final A_Phrase aParseNode)
 	{
-		object.setSlot(
-			ARGUMENTS_LIST_NODE,
-			aBlock.valueNotNull(object.slot(ARGUMENTS_LIST_NODE)));
+		return !aParseNode.isMacroSubstitutionNode()
+			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
+			&& object.slot(BUNDLE).equals(aParseNode.bundle())
+			&& object.slot(ARGUMENTS_LIST_NODE).equals(
+				aParseNode.argumentsListNode())
+			&& object.slot(RETURN_TYPE).equals(aParseNode.returnType());
 	}
 
 	@Override @AvailMethod
-	void o_ChildrenDo (
-		final AvailObject object,
-		final Continuation1<A_Phrase> aBlock)
+	A_Type o_ExpressionType (final AvailObject object)
 	{
-		aBlock.value(object.slot(ARGUMENTS_LIST_NODE));
+		return object.slot(RETURN_TYPE);
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		return
+			(object.slot(ARGUMENTS_LIST_NODE).hash() * multiplier
+				^ object.slot(BUNDLE).hash()) * multiplier
+				- object.slot(RETURN_TYPE).hash()
+			^ 0x90E39B4D;
+	}
+
+	@Override
+	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	{
+		return SEND_NODE;
+	}
+
+	@Override @AvailMethod
+	A_Type o_ReturnType (final AvailObject object)
+	{
+		return object.slot(RETURN_TYPE);
 	}
 
 	@Override
@@ -204,9 +209,18 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
-		return SEND_NODE;
+		writer.startObject();
+		writer.write("kind");
+		writer.write("send phrase");
+		writer.write("arguments");
+		object.slot(ARGUMENTS_LIST_NODE).writeSummaryTo(writer);
+		writer.write("bundle");
+		object.slot(BUNDLE).writeSummaryTo(writer);
+		writer.write("return type");
+		object.slot(RETURN_TYPE).writeSummaryTo(writer);
+		writer.endObject();
 	}
 
 	@Override
@@ -221,21 +235,6 @@ extends ParseNodeDescriptor
 		object.slot(BUNDLE).writeTo(writer);
 		writer.write("return type");
 		object.slot(RETURN_TYPE).writeTo(writer);
-		writer.endObject();
-	}
-
-	@Override
-	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
-	{
-		writer.startObject();
-		writer.write("kind");
-		writer.write("send phrase");
-		writer.write("arguments");
-		object.slot(ARGUMENTS_LIST_NODE).writeSummaryTo(writer);
-		writer.write("bundle");
-		object.slot(BUNDLE).writeSummaryTo(writer);
-		writer.write("return type");
-		object.slot(RETURN_TYPE).writeSummaryTo(writer);
 		writer.endObject();
 	}
 
@@ -260,7 +259,7 @@ extends ParseNodeDescriptor
 		final A_Type returnType)
 	{
 		assert bundle.isInstanceOfKind(Types.MESSAGE_BUNDLE.o());
-		assert argsListNode.parseNodeKind().isSubkindOf(LIST_NODE);
+		assert argsListNode.parseNodeKindIsUnder(LIST_NODE);
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(ARGUMENTS_LIST_NODE, argsListNode);
 		newObject.setSlot(BUNDLE, bundle);

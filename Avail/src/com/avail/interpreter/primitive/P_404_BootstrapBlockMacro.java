@@ -239,12 +239,13 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 		{
 			final A_Phrase returnLiteralPhrase =
 				optionalReturnExpression.expressionAt(1);
-			assert returnLiteralPhrase.parseNodeKind().isSubkindOf(
-				LITERAL_NODE);
+			assert returnLiteralPhrase.parseNodeKindIsUnder(LITERAL_NODE);
 			final A_Phrase returnExpression =
 				returnLiteralPhrase.token().literal();
 			allStatements.add(returnExpression);
-			deducedReturnType = returnExpression.expressionType();
+			deducedReturnType = labelReturnType == null
+				? returnExpression.expressionType()
+				: returnExpression.expressionType().typeUnion(labelReturnType);
 		}
 		else
 		{
@@ -279,8 +280,12 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 			if (!deducedReturnType.isSubtypeOf(declaredReturnType))
 			{
 				throw new AvailRejectedParseException(
-					"final expression's type to agree with the declared "
-					+ "return type");
+					labelReturnType == null
+						? "final expression's type to agree with the declared "
+							+ "return type"
+						: "the union of the final expression's type and the "
+							+ "label's declared type to agree with the "
+							+ "declared return type");
 			}
 			if (primitiveReturnType != null
 				&& !primitiveReturnType.isSubtypeOf(declaredReturnType))

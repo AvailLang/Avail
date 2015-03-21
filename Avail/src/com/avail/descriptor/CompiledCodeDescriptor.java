@@ -53,7 +53,6 @@ import com.avail.utility.json.JSONWriter;
  * whenever a block is compiled. It contains instructions and literals that
  * encode how to perform the block. In particular, its main feature is a
  * {@linkplain NybbleTupleDescriptor tuple} of nybbles that encode {@linkplain
- * L1Instruction level-one instructions}, which consist of {@linkplain
  * L1Operation operations} and their {@linkplain L1OperandType operands}.
  *
  * <p>
@@ -205,7 +204,7 @@ extends Descriptor
 
 		/**
 		 * The literal objects that are referred to numerically by some of the
-		 * operands of {@linkplain L1Instruction level one instructions} encoded
+		 * operands of {@linkplain L1Operation level one instructions} encoded
 		 * in the {@linkplain #NYBBLES nybblecodes}.
 		 */
 		@HideFieldInDebugger

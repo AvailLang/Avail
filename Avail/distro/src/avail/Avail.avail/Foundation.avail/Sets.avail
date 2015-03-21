@@ -156,6 +156,8 @@ Semantic restriction "_-_" is
 	]
 ];
 
+Method "_→tuple" is stable at [set]→tuple;
+
 /**
  * @method "_→tuple"
  * @restricts "set meta"

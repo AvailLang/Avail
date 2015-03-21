@@ -80,7 +80,7 @@ extends Primitive
 		assert optionalPrimPhrase.expressionsSize() == 1;
 		final A_Phrase primPhrase = optionalPrimPhrase.expressionAt(1);
 		final A_Phrase primNumberPhrase = primPhrase.expressionAt(1);
-		if (!primNumberPhrase.kind().parseNodeKindIsUnder(LITERAL_NODE))
+		if (!primNumberPhrase.parseNodeKindIsUnder(LITERAL_NODE))
 		{
 			throw new AvailRejectedParseException(
 				"primitive specification to be a literal");

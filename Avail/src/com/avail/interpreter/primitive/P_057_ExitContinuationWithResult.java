@@ -82,7 +82,8 @@ public final class P_057_ExitContinuationWithResult extends Primitive
 		}
 		final A_Type linkStrengthenedType = caller.stackAt(
 			caller.stackp());
-		assert linkStrengthenedType.isSubtypeOf(expectedType);
+//		(not guaranteed by VM, just by semantic restriction on Exit_with_).
+//		assert linkStrengthenedType.isSubtypeOf(expectedType);
 		if (!result.isInstanceOf(expectedType))
 		{
 			// Wasn't strong enough to meet the block's declared type.

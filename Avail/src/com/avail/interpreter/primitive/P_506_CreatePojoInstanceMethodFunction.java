@@ -165,19 +165,19 @@ extends Primitive
 			TupleTypeDescriptor.zeroOrMoreOf(
 				RAW_POJO.o()));
 		writer.returnType(TOP.o());
-		writer.write(new L1Instruction(
+		writer.write(
 			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(failFunction)));
-		writer.write(new L1Instruction(
+			writer.addLiteral(failFunction));
+		writer.write(
 			L1Operation.L1_doGetLocal,
 			writer.createLocal(VariableTypeDescriptor.wrapInnerType(
-				PojoTypeDescriptor.forClass(Throwable.class)))));
-		writer.write(new L1Instruction(L1Operation.L1_doMakeTuple, 1));
-		writer.write(new L1Instruction(
+				PojoTypeDescriptor.forClass(Throwable.class))));
+		writer.write(L1Operation.L1_doMakeTuple, 1);
+		writer.write(
 			L1Operation.L1_doCall,
 			writer.addLiteral(
 				MethodDescriptor.vmFunctionApplyAtom().bundleOrNil()),
-			writer.addLiteral(BottomTypeDescriptor.bottom())));
+			writer.addLiteral(BottomTypeDescriptor.bottom()));
 		final A_Function innerFunction = FunctionDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty()).makeImmutable();
@@ -199,32 +199,30 @@ extends Primitive
 			method.getGenericReturnType(),
 			pojoType.typeVariables());
 		writer.returnType(returnType);
-		writer.write(new L1Instruction(
+		writer.write(
 			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(innerFunction)));
-		writer.write(new L1Instruction(
+			writer.addLiteral(innerFunction));
+		writer.write(
 			L1Operation.L1_doPushLiteral,
 			writer.addLiteral(
-				RawPojoDescriptor.equalityWrap(method))));
+				RawPojoDescriptor.equalityWrap(method)));
 		final int limit = allParamTypes.size();
 		for (int i = 1; i <= limit; i++)
 		{
-			writer.write(new L1Instruction(L1Operation.L1_doPushLocal, i));
+			writer.write(L1Operation.L1_doPushLocal, i);
 		}
-		writer.write(new L1Instruction(
+		writer.write(
 			L1Operation.L1_doMakeTuple,
-			allParamTypes.size() - 1));
-		writer.write(new L1Instruction(
+			allParamTypes.size() - 1);
+		writer.write(
 			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(marshaledTypesTuple)));
-		writer.write(new L1Instruction(
-			L1Operation.L1_doMakeTuple,
-			4));
-		writer.write(new L1Instruction(
+			writer.addLiteral(marshaledTypesTuple));
+		writer.write(L1Operation.L1_doMakeTuple, 4);
+		writer.write(
 			L1Operation.L1_doCall,
 			writer.addLiteral(
 				MethodDescriptor.vmFunctionApplyAtom().bundleOrNil()),
-			writer.addLiteral(returnType)));
+			writer.addLiteral(returnType));
 		final A_Function outerFunction = FunctionDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty()).makeImmutable();

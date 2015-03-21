@@ -40,7 +40,8 @@ import com.avail.descriptor.*;
 /**
  * An instance of {@code L1Disassembler} converts a {@linkplain
  * CompiledCodeDescriptor compiled code object} into a textual representation
- * of its sequence of {@linkplain L1Instruction level one instructions}.
+ * of its sequence of {@linkplain L1Operation level one operations} and their
+ * {@linkplain L1OperandType operands}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -60,8 +61,7 @@ public class L1Disassembler
 
 	/**
 	 * The (mutable) {@link List} of {@link AvailObject}s to avoid recursing
-	 * into while printing the {@linkplain L1Instruction level one
-	 * instructions}.
+	 * into while printing the {@linkplain L1Operation level one operations}.
 	 */
 	List<A_BasicObject> recursionList;
 
@@ -201,7 +201,7 @@ public class L1Disassembler
 			{
 				nybble = 16 + nybbles.extractNybbleFromTupleAt(pc++);
 			}
-			final L1Operation operation = L1Operation.values()[nybble];
+			final L1Operation operation = L1Operation.all()[nybble];
 			final L1OperandType[] operandTypes = operation.operandTypes();
 			builder.append(operation.name());
 			if (operandTypes.length > 0)
