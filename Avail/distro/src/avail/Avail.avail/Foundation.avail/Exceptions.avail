@@ -1720,5 +1720,13 @@ Set stability failure function to
 	op : []→literal phrase,
 	recover : []→(send phrase ⇒ any)
 |
-	guard op intercept [e : exception | recover()]
+	guard op
+	intercept
+	[
+		e : exception
+	|
+		Reject parse, expected:
+			"stable method not to failure during macro evaluation:\n"
+			++ “e” (stack summary)
+	]
 ] : expression phrase ⇒ any;
