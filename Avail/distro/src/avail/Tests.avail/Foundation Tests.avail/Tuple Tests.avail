@@ -832,3 +832,20 @@ Test "destructuring tuple binding" in tuple test suite is
 	Require: y = t[2] = 2;
 	Require: z = t[3] = 3;
 ];
+
+Test "tuple appending" in tuple test suite is
+[
+	/* strongly typed appends */
+	
+	a : <1's type, 2's type, 3's type…|3> := <1,2,3>;
+	b : <1's type, 2's type, 3's type,4's type…|4> := a + 4;
+
+	Require: <1,2,3,4> = b;
+	
+	/* strongly typed multiple appends */
+		
+	c ::= <"b",1,-2>;
+	d : <string,1's type,number,string,number,double…|6> := c + "a" + 5 + 0.1;
+	
+	Require: <"b",1,-2,"a",5,0.1> = d;
+];
