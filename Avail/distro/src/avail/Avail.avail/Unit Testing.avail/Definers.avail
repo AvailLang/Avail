@@ -101,7 +101,7 @@ Private method "Forget_" is
 		 * suites.
 		 */
 		childSuites : <atom…|> :=
-			filter parent's child suite IDs by [id : atom | id ≠ suiteID];
+			select each id from parent's child suite IDs where [id ≠ suiteID];
 		If isRootTestSuite then
 		[
 			root suite := root suite's child suite IDs ::= childSuites;
@@ -426,8 +426,7 @@ Private method "Forget_" is
 		/* Remove the test from its enclosing test suite. */
 		suiteID ::= test's suite ID;
 		suite ::= suites by atom[suiteID];
-		suiteTests ::=
-			filter suite's unit tests by [t : unit test | t ≠ test];
+		suiteTests ::= select each t from suite's unit tests where [t ≠ test];
 		newSuite ::= suite's unit tests ::= suiteTests;
 		suites by atom := suites by atom + suiteID→newSuite;
 	];

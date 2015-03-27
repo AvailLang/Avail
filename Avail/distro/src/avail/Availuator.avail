@@ -167,6 +167,7 @@ Method "Help" is
 		\|\t\t\t✦ !10m × 50m\n\
 		\|\t\t\t✦ !∑<1,2,5,7>\n\
 		\|\t\t\t✦ !filter 10 to 40 by [x: [10..40] | x^2 is even]\n\n\
+		\|\t\t\t✦ !select each x from 10 to 40 where [x^2 is even]\n\n\
 		\|\t3. \"Run_\" [[…]→⊤]→⊤\n\
 		\|\t\tRun the specified function. If it produces a value, then answer \
 		\|that value. A function must be inside a bracketed region: Run []\n\
@@ -209,6 +210,7 @@ Method "Help" is
 		\|\t\tExamples:\n\
 		\|\t\t\t✦ time [5^2]\n\
 		\|\t\t\t✦ time [filter 10 to 40 by [x: [10..40] | x^2 is even]]\n\
+		\|\t\t\t✦ time [select each x from 10 to 40 where [x^2 is even]]\n\n\
 		\|\t\t\t✦ time\n\
 		\|\t\t\t\t[\n\
 		\|\t\t\t\t\tfibonacci : [integer]→integer; \n\

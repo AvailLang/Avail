@@ -1316,7 +1316,7 @@ Public method "filter_in parallel«_-way»by_" is
 		Request termination of injector;
 		Raise a worker exception with causal exception ::= killer
 	];
-	filter results by [a : any | a ≠ filler]
+	select each a from results where [a ≠ filler]
 ];
 
 /**
@@ -1631,7 +1631,7 @@ Public method "map and filter_in parallel«_-way»by_" is
 		Request termination of injector;
 		Raise a worker exception with causal exception ::= killer
 	];
-	filter results by [a : any | a ≠ filler]
+	select each a from results where [a ≠ filler]
 ];
 
 /**
@@ -1742,7 +1742,7 @@ Public method "map and filter_in parallel«_-way»by_" is
 		Request termination of injector;
 		Raise a worker exception with causal exception ::= killer
 	];
-	filter results by [a : any | a ≠ filler]
+	select each a from results where [a ≠ filler]
 ];
 
 /**

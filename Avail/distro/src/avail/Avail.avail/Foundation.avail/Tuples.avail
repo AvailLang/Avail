@@ -1394,10 +1394,8 @@ Public stable method "distinct_" is
 	aTuple : tuple
 |
 	seen : set := ∅;
-	filter aTuple by
+	select each element from aTuple where
 	[
-		element : any
-	|
 		if ¬element ∈ seen then
 		[
 			seen := eject seen + element;
@@ -3574,8 +3572,8 @@ Method "quicksort_" is
 			else [nonpivotBoundaryIndex]];
 	pivot ::= numbers[pivotIndex];
 	withoutPivot ::= numbers[..pivotIndex-1] ++ numbers[pivotIndex+1..];
-	lesser ::= filter withoutPivot by [n : number | n ≤ pivot];
-	greater ::= filter withoutPivot by [n : number | n > pivot];
+	lesser ::= select each n from withoutPivot where [n ≤ pivot];
+	greater ::= select each n from withoutPivot where [n > pivot];
 	quicksort lesser ++ <pivot> ++ quicksort greater
 ];
 
@@ -3664,10 +3662,8 @@ Method "quicksort_with_" is
 		else [halfSize];
 	pivot ::= aTuple[pivotIndex];
 	withoutPivot ::= aTuple[..pivotIndex-1] ++ aTuple[pivotIndex+1..];
-	lesser ::= filter withoutPivot by
-		[a : any | comparator(a, pivot)];
-	greater ::= filter withoutPivot by
-		[a : any | ¬comparator(a, pivot)];
+	lesser ::= select each a from withoutPivot where [comparator(a, pivot)];
+	greater ::= select each a from withoutPivot where [¬comparator(a, pivot)];
 	quicksort lesser with comparator
 		++ <pivot>
 		++ quicksort greater with comparator
