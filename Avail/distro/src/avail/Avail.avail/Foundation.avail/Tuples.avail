@@ -53,6 +53,7 @@ Uses
 	"Variables"
 Names
 	"Require:_accepts_«(check indices)»?",
+	"a tuple iteration prefix function",
 	"all indices of_in_",
 	"all indices of_where_",
 	"all indices…in|of_§where_",
@@ -86,6 +87,7 @@ Names
 	"take…from_§until_",
 	"take…from_§while_",
 	"take_from_",
+	"tuple body function(_,_)",
 	"zip_",
 	"∑_",
 	"∏_",
@@ -300,7 +302,7 @@ Private method "_'s⁇strengthening function" is
  * @returns "[literal phrase ⇒ token, expression phrase ⇒ tuple]→⊤"
  *          The requested function.
  */
-Private method "a tuple iteration prefix function" is
+Public method "a tuple iteration prefix function" is
 [
 	[
 		elementPhrase : literal phrase ⇒ token,
@@ -374,7 +376,7 @@ Private method "«indexed»?return type(_,_,_,_)" is
 /**
  * Answer a function that computes a body function.
  * 
- * @method "body function(_,_)"
+ * @method "tuple body function(_,_)"
  * @param "anAtom" "atom" the atom that represents the function that the
  * 		macro builds
  * @param "baseReturnType" "type" the base return type of the method
@@ -382,7 +384,7 @@ Private method "«indexed»?return type(_,_,_,_)" is
  *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
  *          The requested function.
  */
-Private method "body function(_,_)" is
+Public method "tuple body function(_,_)" is
 [
  	anAtom : atom,
  	baseReturnType : type
@@ -415,7 +417,7 @@ Private method "body function(_,_)" is
 /**
  * Answer a function that computes a two-input body function.
  * 
- * @method "body function(_,_)"
+ * @method "tuple body function(_,_)"
  * @param "anAtom" "atom" the atom that represents the function that the
  * 		macro builds
  * @param "baseReturnType" "type" the base return type of the method
@@ -423,7 +425,7 @@ Private method "body function(_,_)" is
  *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
  *          The requested function.
  */
-Private method "two-input body function(_,_)" is
+Private method "two-input tuple body function(_,_)" is
 [
 	anAtom : atom,
 	baseReturnType : type
@@ -479,7 +481,7 @@ Private method "two-input body function(_,_)" is
  * @category "Control Structures" "Loops" "Collections" "Tuples"
  */
 Macro "For each…in|of_§do_" is a tuple iteration prefix function,
-	body function($"For each of⁇_do_",⊤);
+	tuple body function($"For each of⁇_do_",⊤);
 		
 /**
  * Tuple iterating-loop that invokes {@param "action"} once for every
@@ -506,7 +508,7 @@ Macro "For each…in|of_§do_" is a tuple iteration prefix function,
  * @category "Control Structures" "Loops" "Collections" "Tuples"
  */
 Macro "For each…,…in|of_§do_" is a two-input tuple iteration prefix function,
-	two-input body function($"For each of⁇_do_", ⊤);
+	two-input tuple body function($"For each of⁇_do_", ⊤);
 
 /**
  * Iteratively apply {@param "transformer"} to each consecutive element of 
@@ -623,7 +625,7 @@ Semantic restriction "map_through_" is
  * @category "Control Structures" "Loops" "Collections" "Tuples"
  */
 Macro "map each…in|of_§through_" is a tuple iteration prefix function,
-	body function($"map_through_",tuple);
+	tuple body function($"map_through_",tuple);
 
 /**
  * Iteratively apply {@param "transformer"} to each consecutive element of 
@@ -651,7 +653,7 @@ Macro "map each…in|of_§through_" is a tuple iteration prefix function,
  */
 Macro "map each…,…in|of_§through_" is 
 	a two-input tuple iteration prefix function,
-	two-input body function($"map_through_",tuple);
+	two-input tuple body function($"map_through_",tuple);
 
 /**
  * Iteratively apply {@param "predicate"} to each consecutive element of 
@@ -779,7 +781,7 @@ Semantic restriction "filter_by_" is
  * @category "Control Structures" "Loops" "Collections" "Tuples"
  */
 Macro "select each…from_§where_" is a tuple iteration prefix function,
-	body function($"filter_by_",tuple);
+	tuple body function($"filter_by_",tuple);
 
 /**
  * Iteratively apply {@param "predicate"} to each consecutive element and index
@@ -807,7 +809,7 @@ Macro "select each…from_§where_" is a tuple iteration prefix function,
  * @category "Loops" "Collections" "Tuples"
  */
 Macro "select each…,…from_§where_" is a two-input tuple iteration prefix function,
-	two-input body function($"filter_by_",tuple);
+	two-input tuple body function($"filter_by_",tuple);
 
 /**
  * Iteratively apply {@param "predicate"} to each consecutive element of 
@@ -913,18 +915,26 @@ Macro "reject each…,…from_§where_" is
 	
 	elementName ::= elementPhrase's token's lexeme;
 	indexName ::= indexPhrase's token's lexeme;
-	size ::= |statements|;
+	size ::= cast |statements| into [n: natural number | n];
+	end ::= cast size-1 into [n : natural number | n];
+	lastPhrase ::= cast statements[size] into [e : expression phrase⇒any | e];
 	restricted send $"filter_by_" with
 	<
 		aTuple,
 		«[
 			<castToPhrase(elementName), castToPhrase(indexName)>
 		|
-			statements[..size-1] ++ 
-				<restricted send $"¬_" with <statements[size]>
+			statements[..end] ++ 
+				<restricted send $"¬_" with <lastPhrase> : boolean>
 		] : blockReturnType»
 	> : returnType
-] : send phrase ⇒ ⊤;*/
+] : send phrase ⇒ ⊤;
+		
+rt ::= <1,2,3,5>;
+nt ::= reject each n,i from rt where [n+i < 5];
+Print: "nt=";
+Print: “nt”;
+Print: "\n";*/
 
 /**
  * Iteratively apply {@param "accumulator"} to the consecutive elements of 
@@ -1263,7 +1273,7 @@ Semantic restriction "each of_satisfies_" is
  * @category "Collections" "Tuples" "Queries"
  */
 Macro "any…in|of_§satisfies_" is a tuple iteration prefix function,
-	body function($"any of_satisfies_", boolean);
+	tuple body function($"any of_satisfies_", boolean);
 
 /**
  * Compute and answer whether all of the elements of {@param "aTuple"} satisfies
@@ -1284,7 +1294,7 @@ Macro "any…in|of_§satisfies_" is a tuple iteration prefix function,
  * @category "Collections" "Tuples" "Queries"
  */
 Macro "each…in|of_§satisfies_" is a tuple iteration prefix function,
-	body function($"each of_satisfies_", boolean);
+	tuple body function($"each of_satisfies_", boolean);
 
 /**
  * Compute and answer the count of elements of {@param "aTuple"} that satisfy 
@@ -1366,7 +1376,7 @@ Semantic restriction "count of_where_" is
  * @category "Queries" "Collections" "Tuples"
  */
 Macro "count of…from|in|of_§where_" is a tuple iteration prefix function,
-	body function($"count of_where_", whole number);	
+	tuple body function($"count of_where_", whole number);	
 
 /**
  * Compute and answer the distinct elements of {@param "aTuple"}, preserving 
@@ -1782,7 +1792,7 @@ Semantic restriction "first index of_where_" is
  * @category "Queries" "Collections" "Tuples"
  */
 Macro "first index…in|of_§where_" is a tuple iteration prefix function,
-	body function($"first index of_where_", whole number);
+	tuple body function($"first index of_where_", whole number);
 
 /**
  * Compute and answer the index of the last element of {@param "aTuple"} that 
@@ -1848,7 +1858,7 @@ Semantic restriction "last index of_where_" is
  * @category "Queries" "Collections" "Tuples"
  */
 Macro "last index…in|of_§where_" is a tuple iteration prefix function,
-	body function($"last index of_where_", whole number);
+	tuple body function($"last index of_where_", whole number);
 	
 	
 /**
@@ -1915,7 +1925,7 @@ Semantic restriction "all indices of_where_" is
  * @category "Queries" "Collections" "Tuples"
  */
 Macro "all indices…in|of_§where_" is a tuple iteration prefix function,
-	body function($"all indices of_where_", natural number*);
+	tuple body function($"all indices of_where_", natural number*);
 
 Method "_occurrences⁇of_" is stable at [whole number, any]→tuple;
 
@@ -2795,7 +2805,7 @@ Semantic restriction "drop from_until_" is drop-until semantic restriction;
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
 Public macro "take…from_§while_" is a tuple iteration prefix function,
-	body function($"take from_while_", tuple);
+	tuple body function($"take from_while_", tuple);
 
 /**
  * Answer a tuple containing the prefix of {@param "aTuple"} that answered
@@ -2816,7 +2826,7 @@ Public macro "take…from_§while_" is a tuple iteration prefix function,
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
 Public macro "take…from_§until_" is a tuple iteration prefix function,
-	body function($"take from_until_", tuple);
+	tuple body function($"take from_until_", tuple);
 
 /**
  * Compute and answer the suffix of {@param "aTuple"} that begins with the 
@@ -2837,7 +2847,7 @@ Public macro "take…from_§until_" is a tuple iteration prefix function,
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
 Public macro "drop…from_§while_" is a tuple iteration prefix function,
-	body function($"drop from_while_", tuple);
+	tuple body function($"drop from_while_", tuple);
 
 /**
  * Compute and answer the suffix of {@param "aTuple"} that begins with the 
@@ -2858,7 +2868,7 @@ Public macro "drop…from_§while_" is a tuple iteration prefix function,
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
 Public macro "drop…from_§until_" is a tuple iteration prefix function,
-	body function($"drop from_until_", tuple);
+	tuple body function($"drop from_until_", tuple);
 
 /**
  * Answer a tuple containing every element of {@param "aTuple"} except for the 

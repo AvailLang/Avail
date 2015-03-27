@@ -916,6 +916,44 @@ Semantic restriction "group_by_" is
 ];
 
 /**
+ * Categorize the elements of {@param "aTuple"} via {@param "discriminator"}.
+ *
+ * @method "group each…in|of_§by_"
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to categorize.
+ * @param "discriminator" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        function that accepts each element of the tuple and answers a value
+ *        that represents the group to which the element belongs.
+ * @returns "send phrase ⇒ map"
+ *          A map whose keys describe groups and whose elements are the groups
+ *          themselves, i.e., the tuples of elements that constitute the
+ *          described group.
+ * @category "Collections" "Tuples" "Maps" "Transformers"
+ */
+Macro "group each…in|of_§by_" is a tuple iteration prefix function,
+	tuple body function($"group_by_", any);
+
+/**
+ * Categorize the elements of {@param "aTuple"} via {@param "discriminator"}.
+ *
+ * @method "group each…in|of_§by_"
+ * @param "aSet" "expression phrase ⇒ set"
+ *        An {@type "expression phrase"} that yields the set to categorize.
+ * @param "discriminator" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        function that accepts each element of the set and answers a value
+ *        that represents the group to which the element belongs.
+ * @returns "send phrase ⇒ map"
+ *          A map whose keys describe groups and whose elements are the groups
+ *          themselves, i.e., the sets of elements that constitute the described
+ *          group.
+ * @category "Collections" "Sets" "Maps" "Transformers"
+ */
+Macro "group each…in|of_§by_" is a set iteration prefix function,
+	set body function($"group_by_", any);
+
+/**
  * Group the elements of {@param "aTuple"} by their frequency.
  *
  * @method "counts for_"
@@ -929,7 +967,7 @@ Public stable method "counts for_" is
 [
 	aTuple : tuple
 |
-	groups ::= group aTuple by [a : any | a];
+	groups ::= group each a in aTuple by [a];
 	map each k→t in groups through [|t|]
 ] : map;
 

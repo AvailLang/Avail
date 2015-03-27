@@ -246,7 +246,6 @@ Public macro "Drop…from_§while_" is a reader prefix function,
  * {@param "aReader"} may be infinite.
  * 
  * @macro "map each…in|of_§through_"
- * @category "Data Abstractions" "Readers"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
@@ -262,3 +261,26 @@ Public macro "Drop…from_§while_" is a reader prefix function,
  */
 Macro "map each…in|of_§through_" is a reader prefix function,
 	body function($"map_through_", reader);
+
+/**
+ * Iteratively apply {@param "predicate"} to each consecutive element of 
+ * {@param "aReader"}, collecting those elements for which {@param "predicate"} 
+ * answers {@method "true"} into a new reader (and preserving ordering). Answer 
+ * the new reader.
+ * 
+ * @macro "select each…from_§where_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aReader"}.
+ * @param "aReader" "expression phrase ⇒ any"
+ *        An {@type "expression phrase"} that yields the reader to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Loops" "Data Abstractions" "Readers"
+ */
+Macro "select each…from_§where_" is a reader prefix function,
+	body function($"filter_by_",reader);

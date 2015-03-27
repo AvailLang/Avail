@@ -45,6 +45,7 @@ Extends
 		"filter_by_",
 		"map_through_",
 		"map each…in|of_§through_",
+		"select each…from_§where_",
 		"take from_until_",
 		"take from_while_",
 		"take…from_§until_",
