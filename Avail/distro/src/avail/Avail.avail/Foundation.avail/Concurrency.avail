@@ -53,6 +53,7 @@ Uses
 	"Functions",
 	"Literals",
 	"Logic",
+	"Macro Support",
 	"Math",
 	"Objects",
 	"Synchronization",
@@ -71,6 +72,8 @@ Names
 
 	/* Parallel constructs. */
 	"For each of⁇_in parallel«_-way»do_",
+	"For each…in|of_§in parallel«_-way»do_",
+	"For each…,…in|of_§in parallel«_-way»do_",
 	"Store a runner of_work units into_,\
 		\|⁇store a waiter into_,\
 		\|⁇store an exception into_",
@@ -732,6 +735,45 @@ is
 	synchronizer ?= [Lock mutex for [Await done;];];
 ] : ⊤;
 
+/*The following methods, 
+ * 	"return type(_,_,_,_)"
+ * 	"index return type(_,_,_,_)"
+ * evaluate the return types of methods given a tuple input to a block.*/
+Private method "«indexed»?return type(_,_,_,_,_)" is
+[
+ 	indexed : boolean,
+	aTuple : expression phrase ⇒ tuple,
+	optionalLimit : expression phrase ⇒ natural number?,
+	action : block phrase ⇒ []→⊤,
+	baseReturnType : type,
+	anAtom : atom
+|
+	elementType ::= aTuple's strengthening function();
+	aTupleType ::= aTuple's semantic type;
+	optionalLimitType ::= optionalLimit's semantic type;
+	blockType ::= if indexed then
+	[
+		indexingType ::= (0 .. ⎡aTupleType⎤+1);
+		[elementType, indexingType]→(action's semantic type's return type)
+	] else
+	[
+		[elementType]→(action's semantic type's return type)
+	];
+
+	restrictions ::= semantic restrictions
+		for method for anAtom
+		given <aTupleType, optionalLimitType, blockType>;
+	returnType : type := baseReturnType;
+	From 1 to |restrictions| by 1 do
+	[
+		index : natural number
+	|
+		returnType := returnType
+			∩ restrictions[index](aTupleType, optionalLimitType, blockType);
+	];
+	returnType
+]:type;
+
 /**
  * Concurrently apply {@param "action"} to each consecutive element of {@param
  * "aTuple"}. Wait until all forked {@type "fiber"s} have completed before
@@ -825,7 +867,7 @@ Public method "For each of⁇_in parallel«_-way»do_" is
  * If the tuple is certainly nonempty and the function certainly does not
  * complete if applied, then answer ⊥.
  * 
- * @method "For each of⁇_in parallel do_"
+ * @method "For each of⁇_in parallel«_-way»do_"
  * @restricts "tuple meta"
  * @restricts "natural number?'s type"
  * @restricts "function meta"
@@ -839,6 +881,125 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 	Require: action accepts tupleType (check indices);
 	if ⎣tupleType⎦ > 0 ∧ action's return type = ⊥ then [⊥] else [⊤]
 ];
+
+/**
+ * Concurrently apply {@param "action"} to each consecutive element of {@param
+ * "aTuple"}. Wait until all forked fibers have completed before returning
+ * control to the caller.
+ * 
+ * @method "For each of⁇_in parallel«_-way»do_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ * @param "optionalLimit" "expression phrase ⇒ natural number?"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A function that includes the elements of the tuple.
+ * @returns "⊤"
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops"
+ * @category "Collections" "Tuples"
+ */
+Public macro "For each…in|of_§in parallel«_-way»do_" 
+	is a tuple iteration prefix function,
+[
+ 	elementPhrase : literal phrase ⇒ token,
+ 	aTuple : expression phrase ⇒ tuple,
+ 	optionalLimit : expression phrase ⇒ natural number?,
+	action : block phrase ⇒ []→⊤
+|
+	anAtom ::= $"For each of⁇_in parallel«_-way»do_";
+	returnType ::= 
+			return type(aTuple, optionalLimit, action, ⊤, anAtom);
+	statements ::= action's statements;
+	blockReturnType ::= cast statements
+		into [t : phrase+ | t[|t|]'s semantic type]
+		else [⊤];
+	name ::= elementPhrase's token's lexeme;
+	restricted send anAtom with
+	<
+		aTuple, 
+		optionalLimit,
+		«[
+			<cast scope map[name] into [d : argument phrase | d]>
+		 | 
+			statements
+		] : blockReturnType»
+	> : returnType
+] : send phrase ⇒ ⊤;
+
+/**
+ * Concurrently apply {@param "action"} to each consecutive element of {@param
+ * "aTuple"}. Wait until all forked {@type "fiber"s} have completed before
+ * returning control to the caller.
+ * 
+ * @method "For each of⁇_in parallel«_-way»do_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ * @param "optionalLimit" "expression phrase ⇒ natural number?"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A function that includes 1) an element of the tuple and 2) the index
+ *        of that element.
+ * @returns "⊤"
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops"
+ * @category "Collections" "Tuples"
+ */
+Public macro "For each…,…in|of_§in parallel«_-way»do_" 
+	is a two-input tuple iteration prefix function,
+[
+ 	elementPhrase : literal phrase ⇒ token,
+ 	indexPhrase : literal phrase ⇒ token,
+ 	aTuple : expression phrase ⇒ tuple,
+ 	optionalLimit : expression phrase ⇒ natural number?,
+	action : block phrase ⇒ []→⊤
+|
+	anAtom ::= $"For each of⁇_in parallel«_-way»do_";
+	returnType ::= 
+		return type(aTuple, optionalLimit, action, ⊤, anAtom);
+ 	statements ::= action's statements;
+	blockReturnType ::= cast statements
+		into [t : phrase+ | t[|t|]'s semantic type]
+		else [⊤];
+	elementName ::= elementPhrase's token's lexeme;
+	indexName ::= indexPhrase's token's lexeme;
+	
+	castToPhrase ::= [s : nonempty string | 
+		cast scope map[s] into [d : argument phrase | d]];
+	restricted send anAtom with
+	<
+		aTuple, 
+		optionalLimit,
+		«[
+			<castToPhrase(elementName), castToPhrase(indexName)>
+		 | 
+			statements
+		] : blockReturnType»
+	> : returnType
+] : send phrase ⇒ ⊤;
+/*	Test code for building this set of macros
+For each n,i of 1 to 10 in parallel do
+[
+	Print: "i + n=";
+	Print: “i + n”;
+	Print: "\n";
+];*/
 
 /**
  * Concurrently apply {@param "action"} to each element of {@param

@@ -54,6 +54,7 @@ Uses
 Names
 	"Require:_accepts_«(check indices)»?",
 	"a tuple iteration prefix function",
+	"a two-input tuple iteration prefix function",
 	"all indices of_in_",
 	"all indices of_where_",
 	"all indices…in|of_§where_",
@@ -97,6 +98,7 @@ Names
 	"_to_",
 	"_'s⁇head",
 	"_'s⁇last",
+	"_'s⁇strengthening function",
 	"_'s⁇tail",
 	"_[_.._]else_",
 	"_[_..]else_",
@@ -282,7 +284,7 @@ Semantic restriction "For each of⁇_do_" is
  * A method that returns a function that returns the strongest type of all the
  * elements in aTuple.
  */
-Private method "_'s⁇strengthening function" is
+Public method "_'s⁇strengthening function" is
 [
 	aTuple : expression phrase ⇒ tuple
 |
@@ -320,7 +322,7 @@ Public method "a tuple iteration prefix function" is
  * @returns "[literal phrase ⇒ token, expression phrase ⇒ tuple]→⊤"
  *          The requested function.
  */
-Private method "a two-input tuple iteration prefix function" is
+Public method "a two-input tuple iteration prefix function" is
 [
 	[
 		elementPhrase : literal phrase ⇒ token,
