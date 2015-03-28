@@ -33,18 +33,12 @@
 Module "File Iterators Test"
 Versions
 	"1.0.0 DEV 2014-04-28"
-Extends
-	"Common" =
-	(
-		"_'s⁇position",
-		"_'s⁇position:=_",
-		"Using|using_,⁇do_",
-		"_is closed",
-		"_is open"
-	)
 Uses
+	"Avail",
 	"Common",
 	"File Test Utilities"
+Names
+	"file iterator test suite"
 Body
 
 "file iterator test suite" is a new atom;

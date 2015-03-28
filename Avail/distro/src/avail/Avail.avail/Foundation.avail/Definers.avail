@@ -430,76 +430,6 @@ Private method "Require:message_does not specify lexical groups" is
 ] : ⊤;
 
 /**
- * Reject the current parse if any of the argument's parameter types are
- * metatypes, i.e., the actual argument is a type, or function types. Take no
- * action if the argument's parameter types are not available.
- * 
- * @method "Require:_'s⁇parameters are not metatypes or function types"
- * @param "functionType" "function meta"
- *        A function type.
- * @returns "⊤"
- */
-Private method "Require:_'s⁇parameters are not metatypes or function types" is
-[
-	functionType : function meta
-|
-	parametersType ::= functionType's parameters' type;
-	cast ||parametersType||'s genuine upper bound into
-	[
-		limit : whole number
-	|
-		From 1 to limit do
-		[
-			index : natural number
-		|
-			parameterType ::= parametersType[index];
-			If parameterType = ⊥ then
-			[
-				/* Can't tell anything about this argument. */
-			]
-			else
-			[
-				If parameterType ⊆ type then
-				[
-					messageTuple ::= concatenate <
-						"parameter type (",
-						“parameterType”,
-						") not to be a metatype; metacovariance will allow \
-						\|subtypes of this type, causing the operation not to \
-						\|be stable">;
-					Invoke
-					[
-						messageString : string
-					|
-						Reject parse, expected: messageString
-					]
-					with <messageTuple>
-				];
-				If parameterType ⊆ function then
-				[
-					messageTuple ::= concatenate <
-						"parameter type (",
-						“parameterType”,
-						") not to be a function type">;
-					Invoke
-					[
-						messageString : string
-					|
-						Reject parse, expected: messageString
-					]
-					with <messageTuple>
-				];
-			];
-			true
-		];
-	]
-	else
-	[
-		/* Can't check the parameter types. */
-	];
-] : ⊤;
-
-/**
  * If possible, then ensure that the parameters are not types; because of
  * metacovariance, the operation would not actually be stable.
  * 
@@ -513,7 +443,6 @@ Semantic restriction "Method_is stable at_" is
 	functionType : function meta
 |
 	Require: message nameType does not specify lexical groups;
-	Require: functionType's parameters are not metatypes or function types;
 	⊤
 ];
 
@@ -554,12 +483,6 @@ Semantic restriction "Stable abstract method_is_" is
 	functionMeta : function meta's type
 |
 	Require: message nameType does not specify lexical groups;
-	If |functionMeta| = 1 then
-	[
-		functionType ::= cast functionMeta's instances→tuple[1] into
-			[ t : function meta | t ];
-		Require: functionType's parameters are not metatypes or function types;
-	];
 	⊤
 ];
 
@@ -632,12 +555,6 @@ Semantic restriction "Stable forward method_is_" is
 	functionMeta : function meta's type
 |
 	Require: message nameType does not specify lexical groups;
-	If |functionMeta| = 1 then
-	[
-		functionType ::= cast functionMeta's instances→tuple[1] into
-			[ t : function meta | t ];
-		Require: functionType's parameters are not metatypes or function types;
-	];
 	⊤
 ];
 
@@ -707,7 +624,6 @@ Semantic restriction "Stable method_is_" is
 	functionType : function meta
 |
 	Require: message nameType does not specify lexical groups;
-	Require: functionType's parameters are not metatypes or function types;
 	⊤
 ];
 
@@ -777,12 +693,6 @@ Semantic restriction "Public stable abstract method_is_" is
 |
 	Require: nameType is public;
 	Require: message nameType does not specify lexical groups;
-	If |functionMeta| = 1 then
-	[
-		functionType ::= cast functionMeta's instances→tuple[1] into
-			[ t : function meta | t ];
-		Require: functionType's parameters are not metatypes or function types;
-	];
 	⊤
 ];
 
@@ -865,12 +775,6 @@ Semantic restriction "Public stable forward method_is_" is
 |
 	Require: nameType is public;
 	Require: message nameType does not specify lexical groups;
-	If |functionMeta| = 1 then
-	[
-		functionType ::= cast functionMeta's instances→tuple[1] into
-			[ t : function meta | t ];
-		Require: functionType's parameters are not metatypes or function types;
-	];
 	⊤
 ];
 
@@ -951,7 +855,6 @@ Semantic restriction "Public stable method_is_" is
 |
 	Require: nameType is public;
 	Require: message nameType does not specify lexical groups;
-	Require: functionType's parameters are not metatypes or function types;
 	⊤
 ];
 
@@ -1023,12 +926,6 @@ Semantic restriction "Private stable abstract method_is_" is
 |
 	Require: nameType is private;
 	Require: message nameType does not specify lexical groups;
-	If |functionMeta| = 1 then
-	[
-		functionType ::= cast functionMeta's instances→tuple[1] into
-			[ t : function meta | t ];
-		Require: functionType's parameters are not metatypes or function types;
-	];
 	⊤
 ];
 
@@ -1111,12 +1008,6 @@ Semantic restriction "Private stable forward method_is_" is
 |
 	Require: nameType is private;
 	Require: message nameType does not specify lexical groups;
-	If |functionMeta| = 1 then
-	[
-		functionType ::= cast functionMeta's instances→tuple[1] into
-			[ t : function meta | t ];
-		Require: functionType's parameters are not metatypes or function types;
-	];
 	⊤
 ];
 
@@ -1197,7 +1088,6 @@ Semantic restriction "Private stable method_is_" is
 |
 	Require: nameType is private;
 	Require: message nameType does not specify lexical groups;
-	Require: functionType's parameters are not metatypes or function types;
 	⊤
 ];
 

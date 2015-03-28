@@ -1,5 +1,5 @@
 /**
- * P_352_RejectParsing.java
+ * P_703_TupleAppend.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,29 +29,29 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import java.util.List;
-import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import java.util.List;
 
 /**
- * <strong>Primitive 352:</strong> Reject current macro substitution with
- * the specified error string.
+ * <strong>Primitive 703:</strong> Answer a new {@linkplain TupleDescriptor
+ * tuple} like the argument but with the {@linkplain AvailObject
+ * element} appended to its right.
  */
-public final class P_352_RejectParsing
-extends Primitive
+public final class P_703_TupleAppend extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * Construct a new {@link P_703_TupleAppend}.
+	 *
 	 */
 	public final static Primitive instance =
-		new P_352_RejectParsing().init(
-			1, Unknown);
+		new P_703_TupleAppend().init(
+			2, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
@@ -59,13 +59,30 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 1;
-		if (!interpreter.fiber().generalFlag(CAN_REJECT_PARSE))
-		{
-			return interpreter.primitiveFailure(E_UNTIMELY_PARSE_REJECTION);
-		}
-		final A_String rejectionString = args.get(0);
-		throw new AvailRejectedParseException(rejectionString);
+		assert args.size() == 2;
+		final A_Tuple tuple = args.get(0);
+		final A_BasicObject newElement = args.get(1);
+
+		return interpreter.primitiveSuccess(
+			tuple.appendCanDestroy(newElement, true));
+	}
+
+	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type aTupleType = argumentTypes.get(0);
+		final A_Type anElementType = argumentTypes.get(1);
+
+		final A_Type anElementTupleType =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				IntegerRangeTypeDescriptor.singleInt(1),
+				TupleDescriptor.empty(),
+				anElementType);
+
+		return ConcatenatedTupleTypeDescriptor.concatenatingAnd(
+			aTupleType,
+			anElementTupleType);
 	}
 
 	@Override
@@ -73,14 +90,8 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.stringType()),
-			BottomTypeDescriptor.bottom());
-	}
-
-	@Override
-	protected A_Type privateFailureVariableType ()
-	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_UNTIMELY_PARSE_REJECTION.numericCode());
+				TupleTypeDescriptor.mostGeneralType(),
+				ANY.o()),
+				TupleTypeDescriptor.mostGeneralType());
 	}
 }

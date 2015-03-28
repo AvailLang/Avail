@@ -61,7 +61,9 @@ Names
 	"_⊃_",
 	"_∌_",
 	"_⊄_",
-	"_⊅_"
+	"_⊅_",
+	"set body function(_,_)",
+	"a set iteration prefix function"
 Body
 
 /**
@@ -277,7 +279,7 @@ Semantic restriction "For each of⁇_do_" is
  * @returns "[literal phrase ⇒ token, expression phrase ⇒ set]→⊤"
  *          The requested function.
  */
-Private method "a set iteration prefix function" is
+Public method "a set iteration prefix function" is
 [
 	[
 		elementPhrase : literal phrase ⇒ token,
@@ -294,7 +296,7 @@ Private method "a set iteration prefix function" is
 /**
  * Answer a function that computes a body function.
  * 
- * @method "body function(_,_)"
+ * @method "set body function(_,_)"
  * @param "anAtom" "atom" the atom that represents the function that the
  * 		macro builds
  * @param "baseReturnType" "type" the base return type of the method
@@ -302,7 +304,7 @@ Private method "a set iteration prefix function" is
  *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
  *          The requested function.
  */
-Private method "body function(_,_)" is
+Public method "set body function(_,_)" is
 [
  	anAtom : atom,
  	baseReturnType : type
@@ -349,7 +351,7 @@ Private method "body function(_,_)" is
  * Set iterating-loop that invokes {@param "action"} once for every
  * {@param "elementPhrase"} in {@param "aSet"} 
  * 
- * @macro "For each…of_§do_"
+ * @macro "For each…in|of_§do_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
@@ -363,8 +365,8 @@ Private method "body function(_,_)" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Collections" "Sets"
  */
-Macro "For each…of_§do_" is a set iteration prefix function,
-	body function($"For each of⁇_do_", ⊤);
+Macro "For each…in|of_§do_" is a set iteration prefix function,
+	set body function($"For each of⁇_do_", ⊤);
 
 /**
  * Iteratively apply {@param "transformer"} to each element of {@param "aSet"},
@@ -432,7 +434,7 @@ Semantic restriction "map_through_" is
  * collecting the results into a new tuple. The set is traversed in no
  * particular order. Answer the resultant set.
  * 
- * @macro "map each…in_§through_"
+ * @macro "map each…in|of_§through_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
@@ -446,8 +448,8 @@ Semantic restriction "map_through_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Collections" "Sets"
  */
-Macro "map each…in_§through_" is a set iteration prefix function,
-	body function($"map_through_",set);
+Macro "map each…in|of_§through_" is a set iteration prefix function,
+	set body function($"map_through_",set);
 
 /**
  * Iteratively apply {@param "predicate"} to each element of {@param "aSet"}, in
@@ -513,7 +515,7 @@ Semantic restriction "filter_by_" is
  * answers {@method "true"} into a new set. Answer 
  * the new set.
  * 
- * @macro "filter…in_§by_"
+ * @macro "select each…from_§where_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
@@ -527,8 +529,8 @@ Semantic restriction "filter_by_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Collections" "Sets"
  */
-Macro "filter…in_§by_" is a set iteration prefix function,
-	body function($"filter_by_",set);
+Macro "select each…from_§where_" is a set iteration prefix function,
+	set body function($"filter_by_",set);
 
 /**
  * Iteratively apply {@param "accumulator"} to the elements of {@param "aSet"},
@@ -704,7 +706,7 @@ Semantic restriction "each of_satisfies_" is
  * Compute and answer whether any of the elements of {@param "aSet"} satisfies
  * the specified function. Do not examine more elements than necessary.
  * 
- * @macro "any…of_§satisfies_"
+ * @macro "any…in|of_§satisfies_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
@@ -718,14 +720,14 @@ Semantic restriction "each of_satisfies_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Collections" "Sets" "Queries"
  */
-Macro "any…of_§satisfies_" is a set iteration prefix function,
-	body function($"any of_satisfies_", boolean);
+Macro "any…in|of_§satisfies_" is a set iteration prefix function,
+	set body function($"any of_satisfies_", boolean);
 
 /**
  * Compute and answer whether all of the elements of {@param "aSet"} satisfies
  * the specified function. Do not examine more elements than necessary.
  * 
- * @macro "each…of_§satisfies_"
+ * @macro "each…in|of_§satisfies_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
@@ -739,8 +741,8 @@ Macro "any…of_§satisfies_" is a set iteration prefix function,
  * @returns "send phrase ⇒ ⊤"
  * @category "Collections" "Sets" "Queries"
  */
-Macro "each…of_§satisfies_" is a set iteration prefix function,
-	body function($"each of_satisfies_", boolean);
+Macro "each…in|of_§satisfies_" is a set iteration prefix function,
+	set body function($"each of_satisfies_", boolean);
 
 /**
  * Compute and answer the count of elements of {@param "aSet"} that satisfy the
@@ -784,7 +786,7 @@ Semantic restriction "count of_where_" is
  * Compute and answer the count of elements of {@param "aSet"} that satisfy 
  * the given predicate.
  * 
- * @macro "count of…in_§where_"
+ * @macro "count of…from|in|of_§where_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
@@ -798,8 +800,8 @@ Semantic restriction "count of_where_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Queries" "Collections" "Sets"
  */
-Macro "count of…in_§where_" is a set iteration prefix function,
-	body function($"count of_where_", whole number);
+Macro "count of…from|in|of_§where_" is a set iteration prefix function,
+	set body function($"count of_where_", whole number);
 
 /**
  * Compute and answer the symmetric difference between the two sets, being the

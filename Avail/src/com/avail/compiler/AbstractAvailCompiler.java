@@ -3464,7 +3464,7 @@ public abstract class AbstractAvailCompiler
 						code.startingLineNumber());
 				}
 			});
-		fiber.setGeneralFlag(GeneralFlag.APPLYING_SEMANTIC_RESTRICTION);
+		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE);
 		fiber.textInterface(textInterface);
 		fiber.resultContinuation(onSuccess);
 		fiber.failureContinuation(onFailure);
@@ -3517,7 +3517,7 @@ public abstract class AbstractAvailCompiler
 						code.startingLineNumber());
 				}
 			});
-		fiber.setGeneralFlag(GeneralFlag.APPLYING_SEMANTIC_RESTRICTION);
+		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE);
 		A_Map fiberGlobals = fiber.fiberGlobals();
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			clientDataGlobalKey, clientParseData, true);
@@ -5110,6 +5110,7 @@ public abstract class AbstractAvailCompiler
 						code.startingLineNumber());
 				}
 			});
+		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE);
 		A_Map fiberGlobals = fiber.fiberGlobals();
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			clientDataGlobalKey,
@@ -7526,7 +7527,7 @@ public abstract class AbstractAvailCompiler
 								PARSE,
 								"Duplicate expressions were parsed at the same "
 									+ "position (line {0}): {1}",
-								start.position,
+								start.peekToken().lineNumber(),
 								expr)
 							{
 								@Override

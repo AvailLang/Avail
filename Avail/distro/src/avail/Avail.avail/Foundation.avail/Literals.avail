@@ -55,7 +55,10 @@ Names
 	"{«_→_‡,»}",
 	"$…",
 	"$…#",
-	"¢…!"
+	"¢…!",
+	"…#.…#«f»?",
+	"…#.…#…",
+	"…#.…#e|E«+|-»!…#«f»?"
 Body
 
 Method "`|_`|" is stable at
@@ -978,4 +981,157 @@ Macro "{«_→_‡,»}" is
 		into [t : <<>, <<>, any… | 2's type>… | whole number> | t];
 	if literalizable then [‘`bindings→map`’]
 	else [restricted send $"{«_→_‡,»}" with <exprs> : map]
+];
+
+/**
+ * Construct a {@type "double"} from the supplied {@type "literal token"}s that
+ * represent its parts.
+ *
+ * @method "a double from integer=_,fraction=_,exponent=_"
+ * @param "integerPart" "literal token ⇒ whole number"
+ *        The part of the base-10 numeral that occurs before the decimal point.
+ * @param "fractionalPart" "literal token ⇒ whole number"
+ *        The part of the base-10 numeral that occurs after the decimal point.
+ * @param "exponentPart" "literal token ⇒ integer"
+ *        The part of the base-10 numeral that represents the scale factor.
+ * @returns "double"
+ */
+Private method "a double from integer=_,fraction=_,exponent=_" is
+[
+	integerPart : literal token ⇒ whole number,
+	fractionalPart : literal token ⇒ whole number,
+	exponentPart : literal token ⇒ integer
+|
+	Primitive 93;
+] : double;
+
+/**
+ * Construct a {@type "double"} literal from the supplied integral and
+ * fractional parts.
+ *
+ * @macro "…#.…#«f»?"
+ * @param "integerPart" "literal phrase ⇒ (literal token ⇒ whole number)"
+ * @param "fractionalPart" "literal phrase ⇒ (literal token ⇒ whole number)"
+ * @param "isFloat" "literal phrase ⇒ boolean"
+ * @returns "literal phrase ⇒ number"
+ */
+Public macro "…#.…#«f»?" is
+[
+	integerPart : literal phrase ⇒ (literal token ⇒ whole number),
+	fractionalPart : literal phrase ⇒ (literal token ⇒ whole number),
+	isFloatPhrase : literal phrase ⇒ boolean
+|
+	integerToken ::= integerPart's token's value;
+	fractionalToken ::= fractionalPart's token's value;
+	isFloat ::= isFloatPhrase's token's value;
+	d ::= a double from
+		integer = integerToken,
+		fraction = fractionalToken,
+		exponent = `0`;
+	‘`if isFloat then [d→float] else [d]`’
+];
+
+/**
+ * Construct a {@type "double"} or {@type "float"} literal from the supplied
+ * integral, fractional, and exponent parts.
+ *
+ * @macro "…#.…#…"
+ * @param "integerPart" "literal phrase ⇒ (literal token ⇒ whole number)"
+ * @param "fractionalPart" "literal phrase ⇒ (literal token ⇒ whole number)"
+ * @param "exponentPart" "literal phrase ⇒ token"
+ * @returns "literal phrase ⇒ number"
+ */
+Public macro "…#.…#…" is
+[
+	integerPart : literal phrase ⇒ (literal token ⇒ whole number),
+	fractionalPart : literal phrase ⇒ (literal token ⇒ whole number),
+	exponentPart : literal phrase ⇒ token
+|
+	rejectMessage ::=
+		"exponent to comprise e or E followed by one or more digits";
+	integerToken ::= integerPart's token's value;
+	fractionalToken ::= fractionalPart's token's value;
+	exponentString : string := exponentPart's token's lexeme;
+	If ¬exponentString[1] ∈ {¢e, ¢E} then
+	[
+		Reject parse, expected: rejectMessage
+	];
+	exponentString := cast exponentString[2..|exponentString|]
+		into [t : string | t];
+	If |exponentString| = 0 then
+	[
+		Reject parse, expected: rejectMessage
+	];
+	exponent : extended integer := 0;
+	isFloat : boolean := false;
+	From 1 to |exponentString| do
+	[
+		index : natural number
+	|
+		c ::= exponentString[index];
+		/* Conversion of a tuple to a set isn't stable yet, so we can't fold
+		 * it away. Therefore we express the set of digits explicitly, in a way
+		 * that can be folded by the set constructor macro.
+		 */
+		If c ∈ {¢f,  ¢F} then
+		[
+			If index ≠ |exponentString| then
+			[
+				Reject parse, expected: rejectMessage
+			];
+			isFloat := true;
+		]
+		else
+		[
+			If ¬c ∈ {¢0, ¢1, ¢2, ¢3, ¢4, ¢5, ¢6, ¢7, ¢8, ¢9} then
+			[
+				Reject parse, expected: rejectMessage
+			];
+			/* The precedence of "_×_" and "_+_" are not established yet, so use
+			 * parentheses to force the order of operations. 48 is ¢0's code
+			 * point.
+			 */
+			exponent := (eject exponent × 10) + (c's code point - 48);
+		];
+		true
+	];
+	exponentToken ::= `cast exponent into [t : whole number | t]`;
+	d ::= a double from
+		integer = integerToken,
+		fraction = fractionalToken,
+		exponent = exponentToken;
+	‘`if isFloat then [d→float] else [d]`’
+];
+
+/**
+ * Construct a {@type "double"} literal from the supplied integral, fractional,
+ * and exponent parts.
+ *
+ * @macro "…#.…#e|E«+|-»!…#«f»?"
+ * @param "integerPart" "literal phrase ⇒ (literal token ⇒ whole number)"
+ * @param "fractionalPart" "literal phrase ⇒ (literal token ⇒ whole number)"
+ * @param "exponentPart" "literal phrase ⇒ token"
+ * @param "isFloatPhrase" "literal phrase ⇒ boolean"
+ * @returns "literal phrase ⇒ number"
+ */
+Public macro "…#.…#e|E«+|-»!…#«f»?" is
+[
+	integerPart : literal phrase ⇒ (literal token ⇒ whole number),
+	fractionalPart : literal phrase ⇒ (literal token ⇒ whole number),
+	signPart : literal phrase ⇒ [1..2],
+	exponentPart : literal phrase ⇒ (literal token ⇒ integer),
+	isFloatPhrase : literal phrase ⇒ boolean
+|
+	integerToken ::= integerPart's token's value;
+	fractionalToken ::= fractionalPart's token's value;
+	sign ::= signPart's token's value;
+	exponent ::= cast exponentPart's token's value's value × <1, 0 - 1>[sign]
+		into [t : integer | t];
+	exponentToken ::= `exponent`;
+	isFloat ::= isFloatPhrase's token's value;
+	d ::= a double from
+		integer = integerToken,
+		fraction = fractionalToken,
+		exponent = exponentToken;
+	‘`if isFloat then [d→float] else [d]`’
 ];

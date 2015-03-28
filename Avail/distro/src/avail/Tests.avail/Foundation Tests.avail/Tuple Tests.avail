@@ -231,12 +231,12 @@ Test "filter by" in tuple test suite is
 	Require: d = <3,4>;
 ];
 
-Test "filter by (macro)" in tuple test suite is
+Test "select each (macro)" in tuple test suite is
 [
 	a ::= <1,2,3,4>;
-	b ::= filter n in a by [n mod 2 = 0];
-	c ::= filter n in a by [n > 2000];
-	d ::= filter n,i in a by [(n + i) > 5];
+	b ::= select each n from a where [n mod 2 = 0];
+	c ::= select each n from a where [n > 2000];
+	d ::= select each n,i from a where [(n + i) > 5];
 	Require: b = <2,4>;
 	Require: c = <>;
 	Require: d = <3,4>;
@@ -715,7 +715,7 @@ Test "serialization" in tuple test suite is
 			/* Large characters */
 		/* 25      */ ¢𝄞,
 			/* Floats */
-		/* 26      */ 4.0→float,
+		/* 26      */ 4.0f,
 			/* Doubles */
 		/* 27      */ 6.0221413e23,
 			/* General tuples */
@@ -831,4 +831,40 @@ Test "destructuring tuple binding" in tuple test suite is
 	Require: x = t[1] = 1;
 	Require: y = t[2] = 2;
 	Require: z = t[3] = 3;
+];
+
+Test "tuple appending" in tuple test suite is
+[
+	/* strongly typed appends */
+	a : <1's type, 2's type, 3's type…|3> := <1,2,3>;
+	b : <1's type, 2's type, 3's type,4's type…|4> := a + 4;
+	Require: <1,2,3,4> = b;
+	
+	/* strongly typed multiple appends */		
+	c ::= <"b",1,-2>;
+	d : <string,1's type,number,string,number,double…|6> := c + "a" + 5 + 0.1;
+	Require: <"b",1,-2,"a",5,0.1> = d;
+	
+	/* byte tuple / integer interval tuple */
+	ti1 : tuple := <0,2,4,6,8,10,12,14,16,18>;
+	ti2 : tuple := 0 to 18 by 2;	
+	ti1 := ti1 + 20;
+	ti1 := (eject ti1) + 22;
+	ti2 := ti2 + 20;
+	ti2 := (eject ti2) + 22;
+	Require: ti1[1..12] = ti2[1..12];
+	
+	/* byte tuple / repeated tuple */
+	tr1 : tuple := <5,5,5,5,5,5,5,5,5,5>;
+	tr2 : tuple := 10 occurrences of 5;
+	tr1 := tr1 + 5;
+	tr1 := (eject tr1) + 5;
+	tr2 := tr2 + 5;
+	tr2 := (eject tr2) + 5;
+	Require: tr1[1..12] = tr2[1..12];
+	
+	/* two-byte string */
+	s1 ::= "ĀbcdefghijĐz" + ¢!;
+	s2 ::= "ĀbcdefghijĐz!";
+	Require: s1 = s2;
 ];

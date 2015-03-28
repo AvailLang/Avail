@@ -38,13 +38,14 @@ Extends
 	"Foundation" =
 	(
 		"For each of⁇_do_",
-		"For each…of_§do_",
+		"For each…in|of_§do_",
 		"concatenate_",
 		"drop from_until_",
 		"drop from_while_",
 		"filter_by_",
 		"map_through_",
-		"map each…in_§through_",
+		"map each…in|of_§through_",
+		"select each…from_§where_",
 		"take from_until_",
 		"take from_while_",
 		"take…from_§until_",
@@ -903,7 +904,7 @@ Method "zip_" is
 	streams : <stream…|1..>
 |
 	types ::= map streams through [s : stream | s's element type];
-	elementType ::= <types[1..|types| - 1], types[|types|]… | |streams|'s type>;
+	elementType ::= <types[1..|types| - 1], types' last… | |streams|'s type>;
 	a zipped stream with
 		element type ::= elementType,
 		decorated streams ::= streams
@@ -927,7 +928,7 @@ Method "«_‡zip»" is
 	streams : <stream…|2..>
 |
 	types ::= map streams through [s : stream | s's element type];
-	elementType ::= <types[1..|types| - 1], types[|types|]… | |streams|'s type>;
+	elementType ::= <types[1..|types| - 1], types' last… | |streams|'s type>;
 	a zipped stream with
 		element type ::= elementType,
 		decorated streams ::= streams
@@ -953,7 +954,7 @@ Private method "zip semantic restriction" is
 		];
 		nonempty ::= cast types into [ t : <any's type…|1..> | t ];
 		elementType ::=
-			<nonempty[1..|nonempty| - 1], nonempty[|nonempty|]…
+			<nonempty[1..|nonempty| - 1], nonempty's last…
 				| ||streams||>;
 		extend zipped stream with
 			element type : elementType's type,

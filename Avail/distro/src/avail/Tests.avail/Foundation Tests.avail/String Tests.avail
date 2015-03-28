@@ -1,0 +1,166 @@
+/*
+ * String Tests.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "String Tests"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Common"
+Names
+	"string test suite"
+Body
+
+"string test suite" is a new atom;
+
+New test suite string test suite extends foundation test suite;
+
+Test "base n (upper case)" in string test suite is
+[
+	alphabet ::= "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	expected ::= <
+		1,
+		5,
+		27,
+		194,
+		1865,
+		22875,
+		342391,
+		6053444,
+		123456789,
+		2853116705,
+		73686780563,
+		2103299351334,
+		65751519677857,
+		2234152501943159,
+		81985529216486895,
+		3231407272993502984,
+		136146740744970718253,
+		6106233505124424657789,
+		290464265927977839335179,
+		14606467545964956303452810,
+		774212873841767703847271481,
+		43141462809603124037923621715,
+		2521239653781255433741174806887,
+		154197642309049519503282176123724,
+		9849791328331451697274678861440325,
+		655956343554789600515162175472115225,
+		45467109894723422308055868660308101251,
+		3275109889236238692043148233075275671534,
+		244817041729665873959571938168846611177169,
+		18965749034136928842900714476732571951160815,
+		1520813358304789717173449357665226867487963103,
+		126084023523204128749625029233070835487633968144,
+		10795811667005157035274610194040730536839248769117,
+		953726210513969460165905219215837671424690827366389,
+		86846823611197163108337531226495015298096208677436155
+	>;
+	actual ::= map each n in 2 to 36 through [alphabet[1..n] (base n)];
+	For each pair, index of actual zip expected do
+	[
+		a, e ::= pair;
+		Require: a = e (format "base “①”" with index);
+	];
+];
+
+Test "base n (upper case, bad digits)" in string test suite is
+[
+	alphabet ::= "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ@";
+	expected ::= 35 of false;
+	actual ::= map each n in 2 to 36 through
+		[try [alphabet[1..n+1] (base n)] else [false]];
+	For each pair, index of actual zip expected do
+	[
+		a, e ::= pair;
+		Require: a = e (format "base “①”" with index);
+	];
+];
+
+Test "base n (lower case)" in string test suite is
+[
+	alphabet ::= "0123456789abcdefghijklmnopqrstuvwxyz";
+	expected ::= <
+		1,
+		5,
+		27,
+		194,
+		1865,
+		22875,
+		342391,
+		6053444,
+		123456789,
+		2853116705,
+		73686780563,
+		2103299351334,
+		65751519677857,
+		2234152501943159,
+		81985529216486895,
+		3231407272993502984,
+		136146740744970718253,
+		6106233505124424657789,
+		290464265927977839335179,
+		14606467545964956303452810,
+		774212873841767703847271481,
+		43141462809603124037923621715,
+		2521239653781255433741174806887,
+		154197642309049519503282176123724,
+		9849791328331451697274678861440325,
+		655956343554789600515162175472115225,
+		45467109894723422308055868660308101251,
+		3275109889236238692043148233075275671534,
+		244817041729665873959571938168846611177169,
+		18965749034136928842900714476732571951160815,
+		1520813358304789717173449357665226867487963103,
+		126084023523204128749625029233070835487633968144,
+		10795811667005157035274610194040730536839248769117,
+		953726210513969460165905219215837671424690827366389,
+		86846823611197163108337531226495015298096208677436155
+	>;
+	actual ::= map each n in 2 to 36 through [alphabet[1..n] (base n)];
+	For each pair, index of actual zip expected do
+	[
+		a, e ::= pair;
+		Require: a = e (format "base “①”" with index);
+	];
+];
+
+Test "base n (lower case, bad digits)" in string test suite is
+[
+	alphabet ::= "0123456789abcdefghijklmnopqrstuvwxyz@";
+	expected ::= 35 of false;
+	actual ::= map each n in 2 to 36 through
+		[try [alphabet[1..n+1] (base n)] else [false]];
+	For each pair, index of actual zip expected do
+	[
+		a, e ::= pair;
+		Require: a = e (format "base “①”" with index);
+	];
+];

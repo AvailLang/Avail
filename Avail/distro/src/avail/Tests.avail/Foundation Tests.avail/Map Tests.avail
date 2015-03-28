@@ -197,16 +197,16 @@ Test "filter by" in map test suite is
  	Require: c = {};
 ];
 
-Test "filter by (macro)" in map test suite is
+Test "select each (macro)" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
- 	b ::= filter s→n in a by [n mod 2 = 0];
- 	c ::= filter s→n in a by [n > 2000];
+ 	b ::= select each s→n from a where [n mod 2 = 0];
+ 	c ::= select each s→n from a where [n > 2000];
  	Require: b = {"bar"→2,"prince"→4};
  	Require: c = {};
 ];
 
-Test "group by" in map test suite is
+Test "group by (tuples)" in map test suite is
 [
  	/* Group by values */
  	a ::= <1,2,3,4,5>;
@@ -219,7 +219,52 @@ Test "group by" in map test suite is
  	Require: d = 
  		{true→<whole number, natural number, 5's type>, 
  		false→<string, boolean>};
-];		
+];
+
+Test "group by (sets)" in map test suite is
+[
+ 	/* Group by values */
+ 	a ::= {1,2,3,4,5};
+ 	b ::= group a by [n: natural number | n is even]; 	
+ 	Require: b = {false→{1, 3, 5}, true→{2, 4}};
+ 	
+ 	/*Group by types*/
+ 	c ::= {whole number, string, natural number, boolean, 5's type};
+ 	d ::= group c by [t : type | t ⊆ number];
+ 	Require: d = 
+ 		{true→{whole number, natural number, 5's type}, 
+ 		false→{string, boolean}};
+];
+
+Test "macro group by (tuples)" in map test suite is
+[
+ 	/* Group by values */
+ 	a ::= <1,2,3,4,5>;
+ 	b ::= group each n in a by [n is even]; 	
+ 	Require: b = {false→<1, 3, 5>, true→<2, 4>};
+ 	
+ 	/*Group by types*/
+ 	c ::= <whole number, string, natural number, boolean, 5's type>;
+ 	d ::= group each t in c by [t ⊆ number];
+ 	Require: d = 
+ 		{true→<whole number, natural number, 5's type>, 
+ 		false→<string, boolean>};
+];
+
+Test "macro group by (sets)" in map test suite is
+[
+ 	/* Group by values */
+ 	a ::= {1,2,3,4,5};
+ 	b ::= group each n in a by [n is even]; 	
+ 	Require: b = {false→{1, 3, 5}, true→{2, 4}};
+ 	
+ 	/*Group by types*/
+ 	c ::= {whole number, string, natural number, boolean, 5's type};
+ 	d ::= group each t in c by [t ⊆ number];
+ 	Require: d = 
+ 		{true→{whole number, natural number, 5's type}, 
+ 		false→{string, boolean}};
+];
 
 Test "counts for" in map test suite is
 [

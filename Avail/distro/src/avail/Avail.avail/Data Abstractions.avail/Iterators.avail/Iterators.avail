@@ -116,7 +116,7 @@ Private method "body function(_,_)" is
 			];
 			statements ::= predicateBlock's statements;
 			blockReturnType ::= cast statements
-				into [t : phrase+ | t[|t|]'s semantic type]
+				into [t : phrase+ | t's last's semantic type]
 				else [⊤];
 		restricted send anAtom with
 		<
@@ -134,7 +134,7 @@ Private method "body function(_,_)" is
  * Reader iterating-loop that invokes {@param "action"} once for every
  * {@param "elementPhrase"} in {@param "aReader"} 
  * 
- * @macro "For each…of_§do_"
+ * @macro "For each…in|of_§do_"
  * @category "Data Abstractions" "Readers"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
@@ -149,7 +149,7 @@ Private method "body function(_,_)" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Readers" "Data Abstractions"
  */
-Macro "For each…of_§do_" is a reader prefix function,
+Macro "For each…in|of_§do_" is a reader prefix function,
 	body function($"For each of⁇_do_", ⊤);
 
 /**
@@ -245,8 +245,7 @@ Public macro "Drop…from_§while_" is a reader prefix function,
  * the consecutive elements of {@param "aReader"}. The result is lazy, so
  * {@param "aReader"} may be infinite.
  * 
- * @macro "map each…in_§through_"
- * @category "Data Abstractions" "Readers"
+ * @macro "map each…in|of_§through_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
@@ -260,5 +259,28 @@ Public macro "Drop…from_§while_" is a reader prefix function,
  * @returns "send phrase ⇒ ⊤"
  * @category "Loops" "Readers" "Data Abstractions"
  */
-Macro "map each…in_§through_" is a reader prefix function,
+Macro "map each…in|of_§through_" is a reader prefix function,
 	body function($"map_through_", reader);
+
+/**
+ * Iteratively apply {@param "predicate"} to each consecutive element of 
+ * {@param "aReader"}, collecting those elements for which {@param "predicate"} 
+ * answers {@method "true"} into a new reader (and preserving ordering). Answer 
+ * the new reader.
+ * 
+ * @macro "select each…from_§where_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aReader"}.
+ * @param "aReader" "expression phrase ⇒ any"
+ *        An {@type "expression phrase"} that yields the reader to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Loops" "Data Abstractions" "Readers"
+ */
+Macro "select each…from_§where_" is a reader prefix function,
+	body function($"filter_by_",reader);

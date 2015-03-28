@@ -34,7 +34,11 @@ Module "Lincolnshire Poacher"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
-	"Avail"
+	"Avail" =
+	(
+		"IPv4…#.…#.…#.…#" → "…#.…#.…#.…#",
+		…
+	)
 Entries
 	"Start Lincolnshire Poacher",
 	"Stop Lincolnshire Poacher",
@@ -106,7 +110,7 @@ Private method "Start Lincolnshire Poacher" is
 				Guard
 				[
 					server's address reusability := true;
-					Bind server to 127 . 0 . 0 . 1 : 0;
+					Bind server to 127.0.0.1:0;
 					Lock serverMonitor for
 					[
 						serverAddress := server's address;
@@ -217,7 +221,7 @@ Method "Eavesdrop" is
 			Guard
 			[
 				client's address reusability := true;
-				Bind client to 127 . 0 . 0 . 1 : 0;
+				Bind client to 127.0.0.1:0;
 				Connect client to serverAddress;
 				expected ::= (read 1 byte from client)[1];
 				weirdNumbers ::= read expected bytes from client;

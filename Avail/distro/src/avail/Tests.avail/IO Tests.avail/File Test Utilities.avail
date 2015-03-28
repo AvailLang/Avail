@@ -34,6 +34,7 @@ Module "File Test Utilities"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
+	"Avail",
 	"Common"
 Names
 	/* File names. */

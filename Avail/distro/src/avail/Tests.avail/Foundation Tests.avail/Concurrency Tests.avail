@@ -373,6 +373,28 @@ Test "for-each in parallel" in concurrency test suite is
 	Require: count = ∑ 1 to 10;
 ];
 
+Test "macro for-each in parallel" in concurrency test suite is
+[
+	count : whole number := 0;
+	mutex ::= a non-reentrant mutex named "for-each lock";
+	For each i of 1 to 10 in parallel do
+	[
+		Lock mutex for [count := count + i;];
+	];
+	Require: count = ∑ 1 to 10;
+];
+
+Test "macro for-each in parallel tuple index" in concurrency test suite is
+[
+	count : whole number := 0;
+	mutex ::= a non-reentrant mutex named "for-each lock";
+	For each n,i of 1 to 10 in parallel do
+	[
+		Lock mutex for [count := count + i + n;];
+	];
+	Require: count = 2 × ∑ 1 to 10;
+];
+
 Test "for-each in parallel (small window)" in concurrency test suite is
 [
 	ref ::= "abcdefghijklmnopqrstuvwxyz";
@@ -386,6 +408,20 @@ Test "for-each in parallel (small window)" in concurrency test suite is
 	|
 		s ++= ref[i..i];
 	];
+	Require: s = ref;
+];
+
+Test "macro for-each in parallel (small window)" in concurrency test suite is
+[
+	ref ::= "abcdefghijklmnopqrstuvwxyz";
+	s : string := "";
+	/* Test the windowing mechanism by making the loop completely serial, so
+	 * that we don't need a mutex.
+	 */
+	For each i of 1 to |ref| in parallel 1-way do [s ++= ref[i..i];];
+	
+	s2 : string := "";
+	For each n,i of 1 to |ref| in parallel 1-way do [s2 ++= ref[i..n];];
 	Require: s = ref;
 ];
 

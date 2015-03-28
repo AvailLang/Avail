@@ -1012,14 +1012,14 @@ Public stable method "log_of_" is
 	b : float,
 	n : float
 |
-	if b ≤ 0.0→float then
+	if b ≤ 0.0f then
 	[
 		early failure function(
 			cannot-compute-logarithm-for-nonpositive-base code)
 	]
 	else
 	[
-		if n ≤ 0.0→float then
+		if n ≤ 0.0f then
 		[
 			early failure function(
 				cannot-compute-logarithm-of-nonpositive-number code)
@@ -1579,6 +1579,6 @@ Public stable method "least common multiple of_and_" is
  * Strengthen some stable primitive methods.
  */
 
+Method "_^_" is stable at [number, number]→number;
 Method "_→float" is stable at [number]→float;
-
 Method "_→double" is stable at [number]→double;

@@ -407,7 +407,7 @@ Action "shooting" is
 			/* Note that the first shot will never fly wild. */
 			nextRoom ::=
 				If flyingWild
-					∨ the cave[nextId] ∉ path[|path|]'s adjacent rooms then
+					∨ the cave[nextId] ∉ path's last's adjacent rooms then
 				[
 					Unless flyingWild then
 					[
@@ -423,7 +423,7 @@ Action "shooting" is
 						/* Don't allow the arrow to travel back along its
 						 * path; keep it moving forward.
 						 */
-						options ::= p[|p|]'s adjacent rooms - p[|p|-1];
+						options ::= p's last's adjacent rooms - p[|p|-1];
 						the RNG's next element of options
 					]
 				]

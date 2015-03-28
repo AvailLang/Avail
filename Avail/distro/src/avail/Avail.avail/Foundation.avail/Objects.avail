@@ -1924,7 +1924,7 @@ Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
 			assignments := eject assignments + fieldAtom→fieldType;
 		];
 	];
-	missing ::= filter definitions' keys by [a : atom | ¬a ∈ assignments];
+	missing ::= select each a from definitions' keys where [¬a ∈ assignments];
 	If |missing| ≠ 0 then
 	[
 		Reject parse, expected:
@@ -2049,7 +2049,7 @@ Semantic restriction "_as_«with«_::=_‡,»»" is
 			assignments := eject assignments + fieldAtom→fieldType;
 		];
 	];
-	missing ::= filter definitions' keys by [ a : atom | ¬a ∈ assignments ];
+	missing ::= select each a from definitions' keys where [¬a ∈ assignments];
 	If |missing| ≠ 0 then
 	[
 		Reject parse, expected:

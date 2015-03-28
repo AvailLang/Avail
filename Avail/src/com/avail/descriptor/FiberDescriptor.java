@@ -213,7 +213,7 @@ extends Descriptor
 		/**
 		 * Was the fiber started to apply a semantic restriction?
 		 */
-		APPLYING_SEMANTIC_RESTRICTION (_APPLYING_SEMANTIC_RESTRICTION);
+		CAN_REJECT_PARSE (_CAN_REJECT_PARSE);
 
 		/** The {@linkplain BitField bit field}. */
 		final transient BitField bitField;
@@ -309,8 +309,8 @@ extends Descriptor
 			6,
 			1);
 
-		/** See {@link GeneralFlag#APPLYING_SEMANTIC_RESTRICTION}. */
-		static final BitField _APPLYING_SEMANTIC_RESTRICTION = bitField(
+		/** See {@link GeneralFlag#CAN_REJECT_PARSE}. */
+		static final BitField _CAN_REJECT_PARSE = bitField(
 			FLAGS,
 			7,
 			1);

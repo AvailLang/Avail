@@ -270,10 +270,7 @@ Method "_^_" is
 	exponent : whole number
 |
 	/*  Uses the identities: b^(2x) = (b^2)^x; and: b^(2x+1) = (b^2)^x*b. */
-	if exponent = 0 then
-	[
-		1.0→float
-	]
+	if exponent = 0 then [1.0f]
 	else
 	[
 		intermediate ::= (base × base) ^ (exponent ÷ 2);

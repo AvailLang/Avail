@@ -34,6 +34,11 @@ Module "Network Tests"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
+	"Avail" =
+	(
+		"IPv4…#.…#.…#.…#" → "…#.…#.…#.…#",
+		…
+	),
 	"Common"
 Names
 	"network test suite"
@@ -65,7 +70,7 @@ Test "server socket (bind IPv4)" in network test suite is
 [
 	s ::= a server socket named "bogus";
 	Require: s's name = "bogus";
-	addr ::= 127 .0 .0 .1:0;
+	addr ::= 127.0.0.1:0;
 	Guard
 	[
 		Bind s to addr;
@@ -81,8 +86,8 @@ Test "server socket (rebind reusable IPv4)" in network test suite is
 	addr ::=
 		guard
 		[
-			Bind s to 127 .0 .0 .1:0;
-			Require: 127 .0 .0 .1:0 ≠ s's address;
+			Bind s to 127.0.0.1:0;
+			Require: 127.0.0.1:0 ≠ s's address;
 			s's address
 		]
 		ensure [Close s;];
@@ -101,7 +106,7 @@ Test "server socket (bind closed IPv4)" in network test suite is
 [
 	s ::= a server socket named "doomed";
 	Close s;
-	addr ::= 127 .0 .0 .1:0;
+	addr ::= 127.0.0.1:0;
 	Bind s to addr;
 ]
 must raise I/O exception;
@@ -115,7 +120,7 @@ Test "basic connection" in network test suite is
 		guard
 		[
 			server's address reusability := true;
-			Bind server to 127 .0 .0 .1:0;
+			Bind server to 127.0.0.1:0;
 			a fiber waiting until server accepts a new connection,
 				on success doing
 				[
@@ -138,7 +143,7 @@ Test "basic connection" in network test suite is
 		guard
 		[
 			client's address reusability := true;
-			Bind client to 127 .0 .0 .1:0;
+			Bind client to 127.0.0.1:0;
 			a fiber connecting client to server's address,
 				on success doing [/* Nothing. */],
 				on failure doing [e : exception | killer := e;]
@@ -176,7 +181,7 @@ Test "basic transmission" in network test suite is
 	Guard
 	[
 		server's address reusability := true;
-		Bind server to 127 .0 .0. 1:0;
+		Bind server to 127.0.0.1:0;
 		Ignore: a fiber waiting until server accepts a new connection,
 			on success doing
 			[
@@ -200,7 +205,7 @@ Test "basic transmission" in network test suite is
 	Guard
 	[
 		client's address reusability := true;
-		Bind client to 127 .0 .0 .1:0;
+		Bind client to 127.0.0.1:0;
 		Ignore: a fiber connecting client to server's address,
 			on success doing [Signal sem;],
 			on failure doing [e : exception | killer := e; Signal sem;];

@@ -45,6 +45,7 @@ Uses
 	"Functions",
 	"Literals",
 	"Logic",
+	"Maps",
 	"Math",
 	"Objects",
 	"Phrases",
@@ -1197,19 +1198,13 @@ System exception "cannot-compute-logarithm-of-nonpositive-number" (1041)
 Private method "Ensure:all error codes have corresponding exceptions" is [];
 Semantic restriction "Ensure:all error codes have corresponding exceptions" is
 [
-	missingSystemExceptions ::= filter VM error codes by
-	[
-		errorCode : natural number
-	|
-		¬errorCode ∈ exceptionsByCode
-	];
-	missingExceptionClasses ::= filter error codes by
-	[
-		errorCode : natural number,
-		errorName : string
-	|
-		¬errorCode ∈ exceptionsByCode
-	];
+	missingSystemExceptions ::= select each errorCode from VM error codes 
+		where [¬errorCode ∈ exceptionsByCode];
+	
+	missingExceptionClasses ::= 
+		select each errorCode → errorName from error codes 
+			where [¬errorCode ∈ exceptionsByCode];
+	
 	problem : string := "exception classes to be defined for the following";
 	If |missingSystemExceptions| ≠ 0 then
 	[
@@ -1671,7 +1666,7 @@ noUnhandledExceptionHandler :=
 		 * error message to the stardard error stream and terminate the current
 		 * fiber.
 		 */
-		If current fiber is applying a semantic restriction then
+		If current fiber can reject a parse then
 		[
 			Reject parse, expected: msg
 		];
@@ -1727,5 +1722,13 @@ Set stability failure function to
 	op : []→literal phrase,
 	recover : []→(send phrase ⇒ any)
 |
-	guard op intercept [e : exception | recover()]
+	guard op
+	intercept
+	[
+		e : exception
+	|
+		Reject parse, expected:
+			"stable method not to failure during macro evaluation:\n"
+			++ “e” (stack summary)
+	]
 ] : expression phrase ⇒ any;

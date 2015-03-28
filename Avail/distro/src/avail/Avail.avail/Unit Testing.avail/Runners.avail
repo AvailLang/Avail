@@ -660,7 +660,7 @@ Private method "bad results of_" is
 [
 	results : <unit test result…|>
 |
-	filter results by [t : unit test result | t ∈ unit test failure]
+	select each t from results where [t ∈ unit test failure]
 ];
 
 Semantic restriction "bad results of_" is

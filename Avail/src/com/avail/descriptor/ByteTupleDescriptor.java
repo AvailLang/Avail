@@ -98,8 +98,8 @@ extends TupleDescriptor
 		final int originalSize = object.tupleSize();
 		final int intValue;
 		if (originalSize >= maximumCopySize
-			|| !object.isInt()
-			|| ((intValue = object.extractInt()) & 255) != intValue)
+			|| !newElement.isInt()
+			|| ((intValue = ((A_Number) newElement).extractInt()) & 255) != intValue)
 		{
 			// Transition to a tree tuple.
 			final A_Tuple singleton = TupleDescriptor.from(newElement);
@@ -121,7 +121,7 @@ extends TupleDescriptor
 			0,
 			(originalSize & 3) == 0 ? 1 : 0);
 		result.rawByteAtPut(newSize, (short)intValue);
-		object.setSlot(HASH_OR_ZERO, 0);
+		result.setSlot(HASH_OR_ZERO, 0);
 		return result;
 	}
 

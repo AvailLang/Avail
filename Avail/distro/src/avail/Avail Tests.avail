@@ -69,6 +69,7 @@ Extends
 		/*"optional test suite",*/ /*TODO Data Abstractions does not extend Optional where this exists*/
 		"pRNG test suite",
 		"set test suite",
+		"string test suite",
 		"stream reader test suite",
 		"tuple reader test suite",
 		"tuple test suite",

@@ -175,7 +175,7 @@ Uses
 		"arg`«_:_`»",
 		"concatenate_",
 		"current fiber",
-		"current fiber is applying a semantic restriction",
+		"current fiber can reject a parse",
 		"current fiber[_]:=_",
 		"enumeration of_",
 		"fiber→_",
@@ -3918,16 +3918,15 @@ Primitive "Sleep for_millisecond|milliseconds" is
 ] : ⊤;
 
 /**
- * Ascertain whether the current fiber was forked (by the compiler) in order to
- * evaluate a semantic restriction.
+ * Ascertain whether the current fiber can reject an ongoing parse.
  *
- * @category "Primitives" "Concurrency" "Semantic Restrictions"
- * @method "current fiber is applying a semantic restriction"
+ * @category "Primitives" "Concurrency"
+ * @method "current fiber can reject a parse"
  * @returns "boolean"
- *    `true` if the current fiber is applying a semantic restriction, `false`
+ *    `true` if the current fiber can reject a parse, `false`
  *    otherwise.
  */
-Primitive "current fiber is applying a semantic restriction" is
+Primitive "current fiber can reject a parse" is
 [
 	Primitive 625;
 ] : boolean;
@@ -3981,5 +3980,26 @@ Primitive "_reversed" is
 	aTuple : tuple
 |
 	Primitive 702;
+] : tuple;
+
+/**
+ * Compute and answer the tuple when appended with the supplied element 
+ *
+ * @category "Primitives" "Tuples" 
+ * @method "_+_"
+ * @param "aTuple" "tuple"
+ *        A tuple.
+ * @param "newElement" "any"
+ *        The element that must be the tail of the resultant tuple.
+ * @returns "tuple"
+ *    A tuple that has the same elements as {@param "aTuple"} but with
+ *    {@param "newElement"} appended.
+ */
+Primitive "_+_" is
+[
+	aTuple : tuple,
+	newElement : any
+|
+	Primitive 703;
 ] : tuple;
 
