@@ -96,8 +96,8 @@ extends StringDescriptor
 		final int originalSize = object.tupleSize();
 		final int intValue;
 		if (originalSize >= maximumCopySize
-			|| !object.isCharacter()
-			|| ((intValue = object.codePoint()) & 0xFFFF) != intValue)
+			|| !newElement.isCharacter()
+			|| ((intValue = ((A_Character) newElement).codePoint()) & 0xFFFF) != intValue)
 		{
 			// Transition to a tree tuple.
 			final A_Tuple singleton = TupleDescriptor.from(newElement);
@@ -119,7 +119,7 @@ extends StringDescriptor
 			0,
 			(originalSize & 1) == 0 ? 1 : 0);
 		result.rawShortForCharacterAtPut(newSize, intValue);
-		object.setSlot(HASH_OR_ZERO, 0);
+		result.setSlot(HASH_OR_ZERO, 0);
 		return result;
 	}
 

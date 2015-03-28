@@ -120,8 +120,8 @@ extends TupleDescriptor
 			// Create another small integer interval.
 			return createInterval(
 				object.slot(START),
-				(int)(nextValue + deltaValue),
-				originalSize + 1);
+				(int)nextValue,
+				(int)deltaValue);
 		}
 		// Fall back to concatenating a singleton.
 		final A_Tuple singleton = TupleDescriptor.from(newElement);
