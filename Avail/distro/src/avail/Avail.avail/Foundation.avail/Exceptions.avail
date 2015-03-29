@@ -1728,7 +1728,7 @@ Set stability failure function to
 		e : exception
 	|
 		Reject parse, expected:
-			"stable method not to failure during macro evaluation:\n"
+			"stable method not to fail during macro evaluation:\n"
 			++ “e” (stack summary)
 	]
 ] : expression phrase ⇒ any;
