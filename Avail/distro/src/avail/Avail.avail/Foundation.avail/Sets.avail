@@ -312,13 +312,13 @@ Public method "set body function(_,_)" is
 	[
 		elementPhrase : literal phrase ⇒ token,
 		aSet : expression phrase ⇒ set,
-		predicateBlock : block phrase ⇒ []→ ⊤
+		action : block phrase ⇒ []→ ⊤
 	|
 		name ::= elementPhrase's token's lexeme;
 		aSetType ::= aSet's semantic type;
 		elementType ::= aSetType's element type;
 		blockType ::= 
-			[elementType]→(predicateBlock's semantic type's return type);
+			[elementType]→(action's semantic type's return type);
 		restrictions ::= semantic restrictions
 			for method for anAtom
 			given <aSetType, blockType>;
@@ -327,7 +327,7 @@ Public method "set body function(_,_)" is
 			strengthen baseReturnType from <aSetType, blockType> 
 				using restrictions;
 
-		statements ::= predicateBlock's statements;
+		statements ::= action's statements;
 		blockReturnType ::= cast statements
 			into [t : phrase+ | t[|t|]'s semantic type]
 			else [⊤];

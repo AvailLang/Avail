@@ -522,6 +522,7 @@ Extends
 		"For each of⁇_in parallel«_-way»do_",
 		"For each…in|of_§in parallel«_-way»do_",
 		"For each…,…in|of_§in parallel«_-way»do_",
+		"For each…→…in|of_§in parallel«_-way»do_",
 		"Fork_",
 		"In_millisecond|milliseconds,⁇fork_",
 		"Store a runner of_work units into_,\
@@ -536,6 +537,9 @@ Extends
 		"in_millisecond|milliseconds,⁇fork_",
 		"map and filter_in parallel«_-way»by_",
 		"map_in parallel«_-way»through_",
+		"map each…in|of_§in parallel«_-way»through_",
+		"map each…,…in|of_§in parallel«_-way»through_",
+		"map each…→…in|of_§in parallel«_-way»through_",
 		"the future of_",
 		"worker exception"
 	),

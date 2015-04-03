@@ -384,11 +384,36 @@ Test "macro for-each in parallel" in concurrency test suite is
 	Require: count = ∑ 1 to 10;
 ];
 
+Test "macro for-each in parallel (set)" in concurrency test suite is
+[
+	count : whole number := 0;
+	mutex ::= a non-reentrant mutex named "for-each lock";
+	aSet ::= 1 to 10 → set;
+	For each i of aSet in parallel do
+	[
+		Lock mutex for [count := count + i;];
+	];
+	Require: count = ∑ 1 to 10;
+];
+
 Test "macro for-each in parallel tuple index" in concurrency test suite is
 [
 	count : whole number := 0;
 	mutex ::= a non-reentrant mutex named "for-each lock";
 	For each n,i of 1 to 10 in parallel do
+	[
+		Lock mutex for [count := count + i + n;];
+	];
+	Require: count = 2 × ∑ 1 to 10;
+];
+
+Test "macro for-each in parallel (map)" in concurrency test suite is
+[
+	count : whole number := 0;
+	mutex ::= a non-reentrant mutex named "for-each lock";
+	aMap : {[1..10]→[1..10]|} := {};
+	For each i of 1 to 10 do [aMap := aMap + i → i;];
+	For each n→i of aMap in parallel do
 	[
 		Lock mutex for [count := count + i + n;];
 	];
@@ -454,9 +479,23 @@ Test "map in parallel (tuple)" in concurrency test suite is
 	Require: result = expected;
 ];
 
+Test "macro map in parallel (tuple)" in concurrency test suite is
+[
+	result ::= map each i of 1 to 10 in parallel through [i × 5];
+	expected ::= map each i in 1 to 10 through [i × 5];
+	Require: result = expected;
+];
+
 Test "map in parallel (tuple, small window)" in concurrency test suite is
 [
 	result ::= map 1 to 10 in parallel 2-way through [i : [1..10] | i × 5];
+	expected ::= map each i in 1 to 10 through [i × 5];
+	Require: result = expected;
+];
+
+Test "macro map in parallel (tuple, small window)" in concurrency test suite is
+[
+	result ::= map each i of 1 to 10 in parallel 2-way through [i × 5];
 	expected ::= map each i in 1 to 10 through [i × 5];
 	Require: result = expected;
 ];
@@ -479,9 +518,23 @@ Test "map in parallel (set)" in concurrency test suite is
 	Require: result = expected;
 ];
 
+Test "macro map in parallel (set)" in concurrency test suite is
+[
+	result ::= map each i of 1 to 10→set in parallel through [i × 5];
+	expected ::= map each i in 1 to 10→set through [i × 5];
+	Require: result = expected;
+];
+
 Test "map in parallel (set, small window)" in concurrency test suite is
 [
 	result ::= map 1 to 10→set in parallel 3-way through [i : [1..10] | i × 5];
+	expected ::= map each i in 1 to 10→set through [i × 5];
+	Require: result = expected;
+];
+
+Test "macro map in parallel (set, small window)" in concurrency test suite is
+[
+	result ::= map each i of 1 to 10→set in parallel 3-way through [i × 5];
 	expected ::= map each i in 1 to 10→set through [i × 5];
 	Require: result = expected;
 ];
@@ -505,11 +558,27 @@ Test "map in parallel (map)" in concurrency test suite is
 	Require: result = expected;
 ];
 
+Test "macro map in parallel (map)" in concurrency test suite is
+[
+	m ::= 1 to 10 zip map 1 to 10 through [n : [1..10] | n × n]→map;
+	result ::= map each k→v of m in parallel through [k × v];
+	expected ::= map each k→v in m through [k × v];
+	Require: result = expected;
+];
+
 Test "map in parallel (map, small window)" in concurrency test suite is
 [
 	m ::= 1 to 10 zip map each n in 1 to 10 through [n × n]→map;
 	result ::= map m in parallel 5-way
 		through [k : [1..10], v : [1..100] | k × v];
+	expected ::= map each k→v in m through [k × v];
+	Require: result = expected;
+];
+
+Test "macro map in parallel (map, small window)" in concurrency test suite is
+[
+	m ::= 1 to 10 zip map each n in 1 to 10 through [n × n]→map;
+	result ::= map each k→v of m in parallel 5-way through [k × v];
 	expected ::= map each k→v in m through [k × v];
 	Require: result = expected;
 ];

@@ -53,6 +53,7 @@ Uses
 	"Types",
 	"Variables"
 Names
+	"a map iteration prefix function",
 	"any…→…in|of_§satisfies_",
 	"counts for_",
 	"count of…→…from|in|of_§where_",
@@ -228,7 +229,7 @@ Semantic restriction "For each of⁇_do_" is
  * @returns "[literal phrase ⇒ token, expression phrase ⇒ map]→⊤"
  *          The requested function.
  */
-Private method "a map iteration prefix function" is
+Public method "a map iteration prefix function" is
 [
 	[
 		keyPhrase : literal phrase ⇒ token,
@@ -261,7 +262,7 @@ Private method "body function(_,_)" is
 		keyPhrase : literal phrase ⇒ token,
 		valuePhrase : literal phrase ⇒ token,
 		aMap : expression phrase ⇒ map,
-		predicateBlock : block phrase ⇒ []→ ⊤
+		action : block phrase ⇒ []→ ⊤
 	| 
 		keyName ::= keyPhrase's token's lexeme;
 		valueName ::= valuePhrase's token's lexeme;
@@ -269,7 +270,7 @@ Private method "body function(_,_)" is
 		keyType ::= aMapType's key type;
 		valueType ::= aMapType's value type;
 		blockType ::= 
-			[keyType, valueType]→(predicateBlock's semantic type's return type);
+			[keyType, valueType]→(action's semantic type's return type);
 
 		restrictions ::= semantic restrictions
 			for method for anAtom
@@ -278,7 +279,7 @@ Private method "body function(_,_)" is
 		returnType ::= strengthen baseReturnType from <aMapType, blockType> 
 			using restrictions;
 
-		statements ::= predicateBlock's statements;
+		statements ::= action's statements;
 		blockReturnType ::= cast statements
 			into [t : phrase+ | t's last's semantic type]
 			else [⊤];
