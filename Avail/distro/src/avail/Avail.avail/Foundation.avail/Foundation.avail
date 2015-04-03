@@ -506,6 +506,8 @@ Extends
 		"each of_satisfies_",
 		"each…in|of_§satisfies_",
 		"filter_by_",
+		"reject each…from_§where_",
+		"reject each…,…from_§where_",
 		"select each…from_§where_",
 		"group each…in|of_§by_",
 		"group_by_",
@@ -522,6 +524,7 @@ Extends
 		"For each of⁇_in parallel«_-way»do_",
 		"For each…in|of_§in parallel«_-way»do_",
 		"For each…,…in|of_§in parallel«_-way»do_",
+		"For each…→…in|of_§in parallel«_-way»do_",
 		"Fork_",
 		"In_millisecond|milliseconds,⁇fork_",
 		"Store a runner of_work units into_,\
@@ -536,6 +539,9 @@ Extends
 		"in_millisecond|milliseconds,⁇fork_",
 		"map and filter_in parallel«_-way»by_",
 		"map_in parallel«_-way»through_",
+		"map each…in|of_§in parallel«_-way»through_",
+		"map each…,…in|of_§in parallel«_-way»through_",
+		"map each…→…in|of_§in parallel«_-way»through_",
 		"the future of_",
 		"worker exception"
 	),
@@ -856,7 +862,8 @@ Extends
 		"parse map",
 		"parse map:=_",
 		"scope map",
-		"scope map:=_"
+		"scope map:=_",
+		"strengthen_for call of_using_"
 	),
 	"Maps" =
 	(
@@ -865,6 +872,7 @@ Extends
 		"count of…→…from|in|of_§where_",
 		"each…→…in|of_§satisfies_",
 		"environment map",
+		"reject each…→…from_§where_",
 		"select each…→…from_§where_",
 		"For each…→…in|of_§do_",
 		"integrate_and_with_",

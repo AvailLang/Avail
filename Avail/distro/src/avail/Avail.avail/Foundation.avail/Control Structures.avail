@@ -859,23 +859,17 @@ Public macro "For each…from_to_§do_" is
 	startType ::= start's semantic type;
 	endType ::= end's semantic type;
 	stepType ::= 1's type;
+	anAtom ::= $"From_to_by_do_";
 	blockType ::= [⊥]→(action's semantic type's return type);
-	restrictions ::= semantic restrictions
-		for method for $"From_to_by_do_"
-		given <startType, endType, stepType, blockType>;
-	returnType : type := ⊤;
-	From 1 to |restrictions| by 1 do
-	[
-		index : natural number
-	|
-		returnType := returnType
-			∩ restrictions[index](startType, endType, stepType, blockType);
-	];
+	
+	returnType ::= strengthen ⊤ for call of anAtom 
+		using <startType, endType, stepType, blockType>;
+
 	statements ::= action's statements;
 	blockReturnType ::= cast statements
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
-	restricted send $"From_to_by_do_" with
+	restricted send anAtom with
 	<
 		start,
 		end,
@@ -1207,6 +1201,21 @@ Semantic restriction "If|if_then_«else if_then_»«else_»" is
 	]
 ];
 
+/* Macro support for "If|if_then_«else if_then_»«else_»" WIP */
+/*
+Macro "If|if_then_«else if_then_»«else_»" is
+[
+	firstPredicate : expression phrase ⇒ boolean,
+	firstThen : block phrase ⇒ []→⊤,
+	elseIfTuple : expression phrase ⇒ 
+		<expression phrase ⇒ boolean, block phrase ⇒ []→⊤…|2>+,
+	else : expression phrase ⇒ ([]→⊤)?
+|
+	elseIfTupleType ::= elseIfTuple's semantic type;
+	For each index from 1 to | elseIfTupleType |
+
+] : send phrase ⇒ ⊤;
+*/
 /**
  * Given a predicate value and a function, invoke the specified function only if
  * the predicate is {@method "false"}. This is the inverse of {@method 

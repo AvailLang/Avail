@@ -128,28 +128,20 @@ Private method "body function(_,_)" is
 	[
 		elementPhrase : literal phrase ⇒ token,
 		aStream : expression phrase ⇒ stream,
-		predicateBlock : block phrase ⇒ []→ ⊤
+		action : block phrase ⇒ []→ ⊤
 	|
 		name ::= elementPhrase's token's lexeme;
 		aStreamType ::= aStream's semantic type;
 		elementType ::= aStreamType's element type's instance;
 		blockType ::= 
-			[elementType]→(predicateBlock's semantic type's return type);
-		restrictions ::= semantic restrictions
-			for method for anAtom
-			given <aStreamType, blockType>;
-		returnType : type := baseReturnType;
-			From 1 to |restrictions| by 1 do
-			[
-				index : natural number
-			|
-				returnType := returnType
-					∩ restrictions[index](aStreamType, blockType);
-			];
-			statements ::= predicateBlock's statements;
-			blockReturnType ::= cast statements
-				into [t : phrase+ | t's last's semantic type]
-				else [⊤];
+			[elementType]→(action's semantic type's return type);
+		returnType ::= strengthen baseReturnType for call of anAtom 
+			using <aStreamType, blockType>;
+		
+		statements ::= action's statements;
+		blockReturnType ::= cast statements
+			into [t : phrase+ | t's last's semantic type]
+			else [⊤];
 		restricted send anAtom with
 		<
 			aStream, 

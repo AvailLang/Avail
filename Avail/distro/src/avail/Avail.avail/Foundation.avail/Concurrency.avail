@@ -54,8 +54,10 @@ Uses
 	"Literals",
 	"Logic",
 	"Macro Support",
+	"Maps",
 	"Math",
 	"Objects",
+	"Sets",
 	"Synchronization",
 	"Tuples",
 	"Types",
@@ -74,6 +76,7 @@ Names
 	"For each of⁇_in parallel«_-way»do_",
 	"For each…in|of_§in parallel«_-way»do_",
 	"For each…,…in|of_§in parallel«_-way»do_",
+	"For each…→…in|of_§in parallel«_-way»do_",
 	"Store a runner of_work units into_,\
 		\|⁇store a waiter into_,\
 		\|⁇store an exception into_",
@@ -81,6 +84,9 @@ Names
 	"filter_in parallel«_-way»by_",
 	"injector from_to_by_doing_in parallel_-way",
 	"map_in parallel«_-way»through_",
+	"map each…in|of_§in parallel«_-way»through_",
+	"map each…,…in|of_§in parallel«_-way»through_",
+	"map each…→…in|of_§in parallel«_-way»through_",
 	"map and filter_in parallel«_-way»by_",
 
 	/* Futures. */
@@ -760,18 +766,8 @@ Private method "«indexed»?return type(_,_,_,_,_)" is
 		[elementType]→(action's semantic type's return type)
 	];
 
-	restrictions ::= semantic restrictions
-		for method for anAtom
-		given <aTupleType, optionalLimitType, blockType>;
-	returnType : type := baseReturnType;
-	From 1 to |restrictions| by 1 do
-	[
-		index : natural number
-	|
-		returnType := returnType
-			∩ restrictions[index](aTupleType, optionalLimitType, blockType);
-	];
-	returnType
+	strengthen baseReturnType for call of anAtom 
+		using <aTupleType, optionalLimitType, blockType> 
 ]:type;
 
 /**
@@ -882,12 +878,101 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 	if ⎣tupleType⎦ > 0 ∧ action's return type = ⊥ then [⊥] else [⊤]
 ];
 
+/*
+ * Answer a function that computes a concurrent body function.
+ * 
+ * @method "concurrent tuple body function(_,_)"
+ * @param "anAtom" "atom" the atom that represents the function that the
+ * 		macro builds
+ * @param "baseReturnType" "type" the base return type of the method
+ * @returns "[literal phrase ⇒ token, expression phrase ⇒ tuple, 
+ *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
+ *          The requested function.
+ */
+Private method "concurrent tuple body function(_,_)" is
+[
+ 	anAtom : atom,
+ 	baseReturnType : type
+|
+	[
+		elementPhrase : literal phrase ⇒ token,
+		aTuple : expression phrase ⇒ tuple,
+		optionalLimit : expression phrase ⇒ natural number?,
+		action : block phrase ⇒ []→⊤
+	|
+		returnType ::= 
+			return type(aTuple, optionalLimit, action, baseReturnType, anAtom);
+		statements ::= action's statements;
+		blockReturnType ::= cast statements
+			into [t : phrase+ | t[|t|]'s semantic type]
+			else [⊤];
+		name ::= elementPhrase's token's lexeme;
+		restricted send anAtom with
+		<
+			aTuple, 
+			optionalLimit,
+			«[
+				<cast scope map[name] into [d : argument phrase | d]>
+			 | 
+				statements
+			] : blockReturnType»
+		> : returnType
+	] : send phrase ⇒ ⊤
+];
+
+/*
+ * Answer a function that computes a concurrent body function.
+ * 
+ * @method "concurrent two-input tuple body function(_,_)"
+ * @param "anAtom" "atom" the atom that represents the function that the
+ * 		macro builds
+ * @param "baseReturnType" "type" the base return type of the method
+ * @returns "[literal phrase ⇒ token, expression phrase ⇒ tuple, 
+ *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
+ *          The requested function.
+ */
+Private method "concurrent two-input tuple body function(_,_)" is
+[
+ 	anAtom : atom,
+ 	baseReturnType : type
+|
+	[
+		elementPhrase : literal phrase ⇒ token,
+		indexPhrase : literal phrase ⇒ token,
+		aTuple : expression phrase ⇒ tuple,
+		optionalLimit : expression phrase ⇒ natural number?,
+		action : block phrase ⇒ []→⊤
+	|
+		returnType ::= 
+			return type(aTuple, optionalLimit, action, baseReturnType, anAtom);
+		statements ::= action's statements;
+		blockReturnType ::= cast statements
+			into [t : phrase+ | t[|t|]'s semantic type]
+			else [⊤];
+		elementName ::= elementPhrase's token's lexeme;
+		indexName ::= indexPhrase's token's lexeme;
+		
+		castToPhrase ::= [s : nonempty string | 
+			cast scope map[s] into [d : argument phrase | d]];
+		restricted send anAtom with
+		<
+			aTuple, 
+			optionalLimit,
+			«[
+				<castToPhrase(elementName), castToPhrase(indexName)>
+			 | 
+				statements
+			] : blockReturnType»
+		> : returnType
+	] : send phrase ⇒ ⊤
+];
+
 /**
  * Concurrently apply {@param "action"} to each consecutive element of {@param
  * "aTuple"}. Wait until all forked fibers have completed before returning
  * control to the caller.
  * 
- * @method "For each of⁇_in parallel«_-way»do_"
+ * @method "For each…in|of_§in parallel«_-way»do_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
@@ -907,40 +992,16 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
  * @category "Concurrency" "Control Structures" "Loops"
  * @category "Collections" "Tuples"
  */
-Public macro "For each…in|of_§in parallel«_-way»do_" 
-	is a tuple iteration prefix function,
-[
- 	elementPhrase : literal phrase ⇒ token,
- 	aTuple : expression phrase ⇒ tuple,
- 	optionalLimit : expression phrase ⇒ natural number?,
-	action : block phrase ⇒ []→⊤
-|
-	anAtom ::= $"For each of⁇_in parallel«_-way»do_";
-	returnType ::= 
-			return type(aTuple, optionalLimit, action, ⊤, anAtom);
-	statements ::= action's statements;
-	blockReturnType ::= cast statements
-		into [t : phrase+ | t[|t|]'s semantic type]
-		else [⊤];
-	name ::= elementPhrase's token's lexeme;
-	restricted send anAtom with
-	<
-		aTuple, 
-		optionalLimit,
-		«[
-			<cast scope map[name] into [d : argument phrase | d]>
-		 | 
-			statements
-		] : blockReturnType»
-	> : returnType
-] : send phrase ⇒ ⊤;
+Public macro "For each…in|of_§in parallel«_-way»do_" is
+	a tuple iteration prefix function,
+	concurrent tuple body function($"For each of⁇_in parallel«_-way»do_", ⊤);
 
 /**
  * Concurrently apply {@param "action"} to each consecutive element of {@param
  * "aTuple"}. Wait until all forked {@type "fiber"s} have completed before
  * returning control to the caller.
  * 
- * @method "For each of⁇_in parallel«_-way»do_"
+ * @method "For each…,…in|of_§in parallel«_-way»do_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
@@ -961,38 +1022,11 @@ Public macro "For each…in|of_§in parallel«_-way»do_"
  * @category "Concurrency" "Control Structures" "Loops"
  * @category "Collections" "Tuples"
  */
-Public macro "For each…,…in|of_§in parallel«_-way»do_" 
-	is a two-input tuple iteration prefix function,
-[
- 	elementPhrase : literal phrase ⇒ token,
- 	indexPhrase : literal phrase ⇒ token,
- 	aTuple : expression phrase ⇒ tuple,
- 	optionalLimit : expression phrase ⇒ natural number?,
-	action : block phrase ⇒ []→⊤
-|
-	anAtom ::= $"For each of⁇_in parallel«_-way»do_";
-	returnType ::= 
-		return type(aTuple, optionalLimit, action, ⊤, anAtom);
- 	statements ::= action's statements;
-	blockReturnType ::= cast statements
-		into [t : phrase+ | t[|t|]'s semantic type]
-		else [⊤];
-	elementName ::= elementPhrase's token's lexeme;
-	indexName ::= indexPhrase's token's lexeme;
-	
-	castToPhrase ::= [s : nonempty string | 
-		cast scope map[s] into [d : argument phrase | d]];
-	restricted send anAtom with
-	<
-		aTuple, 
-		optionalLimit,
-		«[
-			<castToPhrase(elementName), castToPhrase(indexName)>
-		 | 
-			statements
-		] : blockReturnType»
-	> : returnType
-] : send phrase ⇒ ⊤;
+Public macro "For each…,…in|of_§in parallel«_-way»do_" is
+	a two-input tuple iteration prefix function,
+	concurrent two-input tuple body function(
+		$"For each of⁇_in parallel«_-way»do_", ⊤);
+
 /*	Test code for building this set of macros
 For each n,i of 1 to 10 in parallel do
 [
@@ -1000,6 +1034,55 @@ For each n,i of 1 to 10 in parallel do
 	Print: “i + n”;
 	Print: "\n";
 ];*/
+
+/*
+ * Answer a function that computes a concurrent body function.
+ * 
+ * @method "concurrent set body function(_,_)"
+ * @param "anAtom" "atom" the atom that represents the function that the
+ * 		macro builds
+ * @param "baseReturnType" "type" the base return type of the method
+ * @returns "[literal phrase ⇒ token, expression phrase ⇒ set, 
+ *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
+ *          The requested function.
+ */
+Private method "concurrent set body function(_,_)" is
+[
+ 	anAtom : atom,
+ 	baseReturnType : type
+|
+	[
+		elementPhrase : literal phrase ⇒ token,
+		aSet : expression phrase ⇒ set,
+		optionalLimit : expression phrase ⇒ natural number?,
+		action : block phrase ⇒ []→⊤
+	|
+		name ::= elementPhrase's token's lexeme;
+		aSetType ::= aSet's semantic type;
+		optionalLimitType ::= optionalLimit's semantic type;
+		elementType ::= aSetType's element type;
+		blockType ::= 
+			[elementType]→(action's semantic type's return type);
+
+		returnType ::= strengthen baseReturnType for call of anAtom 
+			using <aSetType, optionalLimitType, blockType>;
+	
+		statements ::= action's statements;
+		blockReturnType ::= cast statements
+			into [t : phrase+ | t[|t|]'s semantic type]
+			else [⊤];
+		restricted send anAtom with
+		<
+			aSet, 
+			optionalLimit,
+			«[
+			  	<cast scope map[name] into [d : argument phrase | d]>
+			 | 
+			 	statements
+			 ] : blockReturnType»
+		> : returnType
+	] : send phrase ⇒ ⊤
+];
 
 /**
  * Concurrently apply {@param "action"} to each element of {@param
@@ -1054,6 +1137,34 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 ];
 
 /**
+ * Concurrently apply {@param "action"} to each consecutive element of {@param
+ * "aSet"}. Wait until all forked fibers have completed before returning
+ * control to the caller.
+ * 
+ * @method "For each…in|of_§in parallel«_-way»do_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aSet"}.
+ * @param "aSet" "expression phrase ⇒ set"
+ * @param "optionalLimit" "expression phrase ⇒ natural number?"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A function that includes the elements of the tuple.
+ * @returns "⊤"
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops" "Sets"
+ */
+Macro "For each…in|of_§in parallel«_-way»do_" is
+	a set iteration prefix function,
+	concurrent set body function($"For each of⁇_in parallel«_-way»do_", ⊤);
+
+/**
  * Concurrently apply {@param "action"} to each key-value pair of {@param
  * "aMap"}. Wait until all forked fibers have completed before returning
  * control to the caller.
@@ -1104,6 +1215,91 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 	Require: action accepts mapType;
 	if ⎣mapType⎦ > 0 ∧ action's return type = ⊥ then [⊥] else [⊤]
 ];
+
+/*
+ * Answer a function that computes a body function.
+ * 
+ * @method "mabody function(_,_)"
+ * @param "anAtom" "atom" the atom that represents the function that the
+ * 		macro builds
+ * @param "baseReturnType" "type" the base return type of the method
+ * @returns "[literal phrase ⇒ token, expression phrase ⇒ map, 
+ *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
+ *          The requested function.
+ */
+Private method "concurrent map body function(_,_)" is
+[
+ 	anAtom : atom,
+ 	baseReturnType : type
+|
+	[
+		keyPhrase : literal phrase ⇒ token,
+		valuePhrase : literal phrase ⇒ token,
+		aMap : expression phrase ⇒ map,
+		optionalLimit : expression phrase ⇒ natural number?,
+		action : block phrase ⇒ []→ ⊤
+	| 
+		keyName ::= keyPhrase's token's lexeme;
+		valueName ::= valuePhrase's token's lexeme;
+		aMapType ::= aMap's semantic type;
+		keyType ::= aMapType's key type;
+		optionalLimitType ::= optionalLimit's semantic type;
+		
+		valueType ::= aMapType's value type;
+		blockType ::= 
+			[keyType, valueType]→(action's semantic type's return type);
+
+		returnType ::= strengthen baseReturnType for call of anAtom 
+				using <aMapType, optionalLimitType, blockType>;
+
+		statements ::= action's statements;
+		blockReturnType ::= cast statements
+			into [t : phrase+ | t's last's semantic type]
+			else [⊤];
+
+		castToPhrase ::= [s : nonempty string | 
+			cast scope map[s] into [d : argument phrase | d]];
+		restricted send anAtom with
+		<
+			aMap, 
+			optionalLimit,
+			«[
+			  	<castToPhrase(keyName), castToPhrase(valueName)>
+			 | 
+			 	statements
+			 ] : blockReturnType»
+		> : returnType
+	] : send phrase ⇒ ⊤
+];
+
+/**
+ * Concurrently apply {@param "action"} to each consecutive element of {@param
+ * "aMap"}. Wait until all forked {@type "fiber"s} have completed before
+ * returning control to the caller.
+ * 
+ * @method "For each…→…in|of_§in parallel«_-way»do_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aMap"}.
+ * @param "aMap" "expression phrase ⇒ map"
+ * @param "optionalLimit" "expression phrase ⇒ natural number?"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A function that includes 1) an element of the tuple and 2) the index
+ *        of that element.
+ * @returns "⊤"
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops" "Maps"
+ */
+Macro "For each…→…in|of_§in parallel«_-way»do_" is 
+	a map iteration prefix function,
+	concurrent map body function($"For each of⁇_in parallel«_-way»do_", ⊤);
 
 "filler" is a new atom;
 	
@@ -1187,8 +1383,8 @@ Public method "map_in parallel«_-way»through_" is
  *          elements of {@param "aTuple"}.
  * @raises "worker exception"
  *         If any of the forked workers raise an exception.
- * @category "Concurrency" "Control Structures" "Loops"
- * @category "Collections" "Tuples" "Transformers"
+ * @category "Concurrency" "Control Structures" "Loops" "Collections" "Tuples" 
+ * "Transformers"
  */
 Public method "map_in parallel«_-way»through_" is
 [
@@ -1232,6 +1428,66 @@ Semantic restriction "map_in parallel«_-way»through_" is
 	];
 	<<>, transformer's return type… | ||tupleType||>
 ];
+
+/**
+ * Concurrently apply {@param "transformer"} to each consecutive element of
+ * {@param "aTuple"}, collecting the results into a new tuple (and preserving
+ * ordering of the transformed elements). Answer this tuple.
+ * 
+ * @method "map each…in|of_§in parallel«_-way»through_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ * @param "optionalLimit" "expression phrase ⇒ natural number?"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A function that includes the elements of the tuple.
+ * @returns "⊤"
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops" "Collections" "Tuples"
+ * 	"Transformers"
+ */
+Public macro "map each…in|of_§in parallel«_-way»through_" is
+	a tuple iteration prefix function,
+	concurrent tuple body function($"map_in parallel«_-way»through_", tuple);
+
+/**
+ * Concurrently apply {@param "transformer"} to each consecutive element of
+ * {@param "aTuple"}, collecting the results into a new tuple (and preserving
+ * ordering of the transformed elements). Answer this tuple.
+ *
+ * @method "map each…,…in|of_§in parallel«_-way»through_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ * @param "optionalLimit" "expression phrase ⇒ natural number?"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A function that includes 1) an element of the tuple and 2) the index
+ *        of that element.
+ * @returns "⊤"
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops" "Collections" "Tuples"
+ * 	"Transformers"
+ */
+Public macro "map each…,…in|of_§in parallel«_-way»through_" is
+	a two-input tuple iteration prefix function,
+	concurrent two-input tuple body function(
+		$"map_in parallel«_-way»through_", tuple);
 
 /**
  * Concurrently apply {@param "transformer"} to each element of a 
@@ -1320,6 +1576,34 @@ Semantic restriction "map_in parallel«_-way»through_" is
 	];
 	{transformer's return type | 1..⎡setType⎤}
 ];
+
+/**
+ * Concurrently apply {@param "transformer"} to each element of a 
+ * {@param "set"}, collecting the results into a new set.
+ * 
+ * @method "map each…in|of_§in parallel«_-way»through_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aSet"}.
+ * @param "aSet" "expression phrase ⇒ set"
+ * @param "optionalLimit" "expression phrase ⇒ natural number?"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A function that includes the elements of the set.
+ * @returns "⊤"
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops" "Collections" "Sets"
+ * 	"Transformers"
+ */
+Public macro "map each…in|of_§in parallel«_-way»through_" is
+	a set iteration prefix function,
+	concurrent set body function($"map_in parallel«_-way»through_", set);
 
 /**
  * Concurrently apply {@param "transformer"} to each binding of a map
@@ -1411,6 +1695,37 @@ Semantic restriction "map_in parallel«_-way»through_" is
 	];
 	{mapType's key type → transformer's return type | ||mapType||}
 ];
+
+/**
+ * Concurrently apply {@param "transformer"} to each consecutive element of
+ * {@param "aMap"}, collecting the results into a new map (and preserving
+ * ordering of the transformed elements). Answer this map.
+ *
+ * @method "map each…→…in|of_§in parallel«_-way»through_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aMap"}.
+ * @param "aMap" "expression phrase ⇒ map"
+ * @param "optionalLimit" "expression phrase ⇒ natural number?"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A function that includes 1) an element of the map and 2) the index
+ *        of that element.
+ * @returns "⊤"
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops" "Collections" "Maps"
+ * 	"Transformers"
+ */
+Public macro "map each…→…in|of_§in parallel«_-way»through_" is
+	a map iteration prefix function,
+	concurrent map body function(
+		$"map_in parallel«_-way»through_", map);
 
 /**
  * Concurrently apply {@param "filter"} to each consecutive element of {@param

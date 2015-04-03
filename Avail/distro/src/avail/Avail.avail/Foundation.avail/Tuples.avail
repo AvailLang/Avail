@@ -360,19 +360,8 @@ Private method "«indexed»?return type(_,_,_,_)" is
 		[elementType]→(action's semantic type's return type)
 	];
 	
-	restrictions ::= semantic restrictions
-		for method for anAtom
-		given <aTupleType, blockType>;
-	returnType : type := baseReturnType;
-	
-	From 1 to |restrictions| by 1 do
-	[
-		index : natural number
-	|
-		returnType := returnType
-			∩ restrictions[index](aTupleType, blockType);
-	];
-	returnType
+	strengthen baseReturnType for call of anAtom using <aTupleType, blockType> 
+
 ]:type;
 	
 /**
@@ -814,8 +803,8 @@ Macro "select each…,…from_§where_" is a two-input tuple iteration prefix fu
 	two-input tuple body function($"filter_by_",tuple);
 
 /**
- * Iteratively apply {@param "predicate"} to each consecutive element of 
- * {@param "aTuple"}, collecting those elements for which {@param "predicate"} 
+ * Iteratively apply {@param "action"} to each consecutive element of 
+ * {@param "aTuple"}, rejecting those elements for which {@param "action"} 
  * answers {@method "true"} into a new tuple (and preserving ordering). Answer 
  * the new tuple.
  * 
@@ -832,7 +821,7 @@ Macro "select each…,…from_§where_" is a two-input tuple iteration prefix fu
  *        loop.
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Collections" "Tuples"
- *
+ */
 Macro "reject each…from_§where_" is a tuple iteration prefix function,
 [
 	elementPhrase : literal phrase ⇒ token,
@@ -840,7 +829,8 @@ Macro "reject each…from_§where_" is a tuple iteration prefix function,
 	action : block phrase ⇒ []→⊤
 |
 	returnType ::= 
-			return type(aTuple, action, boolean, $"filter_by_");
+			return type(aTuple, action, tuple, $"filter_by_");
+
 	statements ::= action's statements;
 	blockReturnType ::= cast statements
 		into [t : phrase+ | t[|t|]'s semantic type]
@@ -851,14 +841,16 @@ Macro "reject each…from_§where_" is a tuple iteration prefix function,
 	else if [size = 1] then
 	[
 	 	i : natural number := cast size into [n : natural number | n];
-	 	c ::= statements[i];
-	 	v ::= restricted send $"¬_" with <c> : boolean;
+	 	c : expression phrase⇒any := cast statements[i] into 
+	 		[e : expression phrase⇒any | e];
 	 	<restricted send $"¬_" with <c>:boolean>
 	] else 
 	[
 	 	end : natural number := cast size-1 into [n : natural number | n];
 	 	i : natural number := cast size into [n : natural number | n];
-	 	statements[..n] ++ <restricted send $"¬_" with <statements[i]>>
+	 	c : expression phrase⇒any := cast statements[i] into 
+		 	[e : expression phrase⇒any | e];
+	 	statements[..end] ++ <restricted send $"¬_" with <c> : boolean>
 	];
 	restricted send $"filter_by_" with
 	<
@@ -869,12 +861,12 @@ Macro "reject each…from_§where_" is a tuple iteration prefix function,
 		 	newStatements
 		] : blockReturnType»
 	> : returnType
-] : send phrase ⇒ ⊤;*/
+] : send phrase ⇒ ⊤;
 
 /**
- * Iteratively apply {@param "predicate"} to each consecutive element and index
- * of {@param "aTuple"}, collecting those elements for which {@param 
- * "predicate"} answers {@method "true"} into a new tuple (and preserving 
+ * Iteratively apply {@param "action"} to each consecutive element and index
+ * of {@param "aTuple"}, rejecting those elements for which {@param 
+ * "action"} answers {@method "true"} into a new tuple (and preserving 
  * ordering). Answer the new tuple.
  * 
  * @macro "reject each…,…from_§where_"
@@ -895,7 +887,7 @@ Macro "reject each…from_§where_" is a tuple iteration prefix function,
  *        loop.
  * @returns "send phrase ⇒ ⊤"
  * @category "Loops" "Collections" "Tuples"
- *
+ */
 Macro "reject each…,…from_§where_" is 
 	a two-input tuple iteration prefix function,
 [
@@ -906,7 +898,7 @@ Macro "reject each…,…from_§where_" is
 |
 	/* Build the block function */
 	returnType ::= 
-		indexed return type(aTuple, action, boolean, $"filter_by_");
+		indexed return type(aTuple, action, tuple, $"filter_by_");
 	statements ::= action's statements;
 	blockReturnType ::= cast statements
 		into [t : phrase+ | t[|t|]'s semantic type]
@@ -917,26 +909,33 @@ Macro "reject each…,…from_§where_" is
 	
 	elementName ::= elementPhrase's token's lexeme;
 	indexName ::= indexPhrase's token's lexeme;
-	size ::= cast |statements| into [n: natural number | n];
-	end ::= cast size-1 into [n : natural number | n];
-	lastPhrase ::= cast statements[size] into [e : expression phrase⇒any | e];
+	size ::= |statements|;
+
+	newStatements ::= if size = 0 then [<>]
+	else if [size = 1] then
+	[
+	 	i : natural number := cast size into [n : natural number | n];
+	 	c : expression phrase⇒any := cast statements[i] into 
+	 		[e : expression phrase⇒any | e];
+	 	<restricted send $"¬_" with <c>:boolean>
+	] else 
+	[
+	 	end : natural number := cast size-1 into [n : natural number | n];
+	 	i : natural number := cast size into [n : natural number | n];
+	 	c : expression phrase⇒any := cast statements[i] into 
+		 	[e : expression phrase⇒any | e];
+	 	statements[..end] ++ <restricted send $"¬_" with <c> : boolean>
+	];
 	restricted send $"filter_by_" with
 	<
 		aTuple,
 		«[
 			<castToPhrase(elementName), castToPhrase(indexName)>
 		|
-			statements[..end] ++ 
-				<restricted send $"¬_" with <lastPhrase> : boolean>
+			newStatements
 		] : blockReturnType»
 	> : returnType
 ] : send phrase ⇒ ⊤;
-		
-rt ::= <1,2,3,5>;
-nt ::= reject each n,i from rt where [n+i < 5];
-Print: "nt=";
-Print: “nt”;
-Print: "\n";*/
 
 /**
  * Iteratively apply {@param "accumulator"} to the consecutive elements of 
