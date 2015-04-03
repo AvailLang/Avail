@@ -138,18 +138,12 @@ Private method "body function(_,_)" is
 		restrictions ::= semantic restrictions
 			for method for anAtom
 			given <aStreamType, blockType>;
-		returnType : type := baseReturnType;
-			From 1 to |restrictions| by 1 do
-			[
-				index : natural number
-			|
-				returnType := returnType
-					∩ restrictions[index](aStreamType, blockType);
-			];
-			statements ::= predicateBlock's statements;
-			blockReturnType ::= cast statements
-				into [t : phrase+ | t's last's semantic type]
-				else [⊤];
+		returnType ::= strengthen baseReturnType from <aStreamType, blockType> 
+			using restrictions;
+		statements ::= predicateBlock's statements;
+		blockReturnType ::= cast statements
+			into [t : phrase+ | t's last's semantic type]
+			else [⊤];
 		restricted send anAtom with
 		<
 			aStream, 

@@ -363,16 +363,8 @@ Private method "«indexed»?return type(_,_,_,_)" is
 	restrictions ::= semantic restrictions
 		for method for anAtom
 		given <aTupleType, blockType>;
-	returnType : type := baseReturnType;
-	
-	From 1 to |restrictions| by 1 do
-	[
-		index : natural number
-	|
-		returnType := returnType
-			∩ restrictions[index](aTupleType, blockType);
-	];
-	returnType
+				
+	strengthen baseReturnType from <aTupleType, blockType> using restrictions
 ]:type;
 	
 /**

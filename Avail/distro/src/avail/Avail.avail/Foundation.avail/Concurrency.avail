@@ -883,6 +883,95 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 ];
 
 /**
+ * Answer a function that computes a concurrent body function.
+ * 
+ * @method "concurrent tuple body function(_,_)"
+ * @param "anAtom" "atom" the atom that represents the function that the
+ * 		macro builds
+ * @param "baseReturnType" "type" the base return type of the method
+ * @returns "[literal phrase ⇒ token, expression phrase ⇒ tuple, 
+ *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
+ *          The requested function.
+ */
+Private method "concurrent tuple body function(_,_)" is
+[
+ 	anAtom : atom,
+ 	baseReturnType : type
+|
+	[
+		elementPhrase : literal phrase ⇒ token,
+		aTuple : expression phrase ⇒ tuple,
+		optionalLimit : expression phrase ⇒ natural number?,
+		action : block phrase ⇒ []→⊤
+	|
+		returnType ::= 
+			return type(aTuple, optionalLimit, action, baseReturnType, anAtom);
+		statements ::= action's statements;
+		blockReturnType ::= cast statements
+			into [t : phrase+ | t[|t|]'s semantic type]
+			else [⊤];
+		name ::= elementPhrase's token's lexeme;
+		restricted send anAtom with
+		<
+			aTuple, 
+			optionalLimit,
+			«[
+				<cast scope map[name] into [d : argument phrase | d]>
+			 | 
+				statements
+			] : blockReturnType»
+		> : returnType
+	] : send phrase ⇒ ⊤
+];
+
+/**
+ * Answer a function that computes a concurrent body function.
+ * 
+ * @method "concurrent two-input tuple body function(_,_)"
+ * @param "anAtom" "atom" the atom that represents the function that the
+ * 		macro builds
+ * @param "baseReturnType" "type" the base return type of the method
+ * @returns "[literal phrase ⇒ token, expression phrase ⇒ tuple, 
+ *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
+ *          The requested function.
+ */
+Private method "concurrent two-input tuple body function(_,_)" is
+[
+ 	anAtom : atom,
+ 	baseReturnType : type
+|
+	[
+		elementPhrase : literal phrase ⇒ token,
+		indexPhrase : literal phrase ⇒ token,
+		aTuple : expression phrase ⇒ tuple,
+		optionalLimit : expression phrase ⇒ natural number?,
+		action : block phrase ⇒ []→⊤
+	|
+		returnType ::= 
+			return type(aTuple, optionalLimit, action, baseReturnType, anAtom);
+		statements ::= action's statements;
+		blockReturnType ::= cast statements
+			into [t : phrase+ | t[|t|]'s semantic type]
+			else [⊤];
+		elementName ::= elementPhrase's token's lexeme;
+		indexName ::= indexPhrase's token's lexeme;
+		
+		castToPhrase ::= [s : nonempty string | 
+			cast scope map[s] into [d : argument phrase | d]];
+		restricted send anAtom with
+		<
+			aTuple, 
+			optionalLimit,
+			«[
+				<castToPhrase(elementName), castToPhrase(indexName)>
+			 | 
+				statements
+			] : blockReturnType»
+		> : returnType
+	] : send phrase ⇒ ⊤
+];
+
+/**
  * Concurrently apply {@param "action"} to each consecutive element of {@param
  * "aTuple"}. Wait until all forked fibers have completed before returning
  * control to the caller.
@@ -909,31 +998,7 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
  */
 Public macro "For each…in|of_§in parallel«_-way»do_" 
 	is a tuple iteration prefix function,
-[
- 	elementPhrase : literal phrase ⇒ token,
- 	aTuple : expression phrase ⇒ tuple,
- 	optionalLimit : expression phrase ⇒ natural number?,
-	action : block phrase ⇒ []→⊤
-|
-	anAtom ::= $"For each of⁇_in parallel«_-way»do_";
-	returnType ::= 
-			return type(aTuple, optionalLimit, action, ⊤, anAtom);
-	statements ::= action's statements;
-	blockReturnType ::= cast statements
-		into [t : phrase+ | t[|t|]'s semantic type]
-		else [⊤];
-	name ::= elementPhrase's token's lexeme;
-	restricted send anAtom with
-	<
-		aTuple, 
-		optionalLimit,
-		«[
-			<cast scope map[name] into [d : argument phrase | d]>
-		 | 
-			statements
-		] : blockReturnType»
-	> : returnType
-] : send phrase ⇒ ⊤;
+	concurrent tuple body function($"For each of⁇_in parallel«_-way»do_", ⊤);
 
 /**
  * Concurrently apply {@param "action"} to each consecutive element of {@param
@@ -963,36 +1028,9 @@ Public macro "For each…in|of_§in parallel«_-way»do_"
  */
 Public macro "For each…,…in|of_§in parallel«_-way»do_" 
 	is a two-input tuple iteration prefix function,
-[
- 	elementPhrase : literal phrase ⇒ token,
- 	indexPhrase : literal phrase ⇒ token,
- 	aTuple : expression phrase ⇒ tuple,
- 	optionalLimit : expression phrase ⇒ natural number?,
-	action : block phrase ⇒ []→⊤
-|
-	anAtom ::= $"For each of⁇_in parallel«_-way»do_";
-	returnType ::= 
-		return type(aTuple, optionalLimit, action, ⊤, anAtom);
- 	statements ::= action's statements;
-	blockReturnType ::= cast statements
-		into [t : phrase+ | t[|t|]'s semantic type]
-		else [⊤];
-	elementName ::= elementPhrase's token's lexeme;
-	indexName ::= indexPhrase's token's lexeme;
-	
-	castToPhrase ::= [s : nonempty string | 
-		cast scope map[s] into [d : argument phrase | d]];
-	restricted send anAtom with
-	<
-		aTuple, 
-		optionalLimit,
-		«[
-			<castToPhrase(elementName), castToPhrase(indexName)>
-		 | 
-			statements
-		] : blockReturnType»
-	> : returnType
-] : send phrase ⇒ ⊤;
+	concurrent two-input tuple body function(
+		$"For each of⁇_in parallel«_-way»do_", ⊤);
+
 /*	Test code for building this set of macros
 For each n,i of 1 to 10 in parallel do
 [

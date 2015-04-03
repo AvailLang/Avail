@@ -863,14 +863,10 @@ Public macro "For each…from_to_§do_" is
 	restrictions ::= semantic restrictions
 		for method for $"From_to_by_do_"
 		given <startType, endType, stepType, blockType>;
-	returnType : type := ⊤;
-	From 1 to |restrictions| by 1 do
-	[
-		index : natural number
-	|
-		returnType := returnType
-			∩ restrictions[index](startType, endType, stepType, blockType);
-	];
+	returnType ::= strengthen ⊤ from 
+		<startType, endType, stepType, blockType> 
+		using restrictions;
+
 	statements ::= action's statements;
 	blockReturnType ::= cast statements
 		into [t : phrase+ | t[|t|]'s semantic type]

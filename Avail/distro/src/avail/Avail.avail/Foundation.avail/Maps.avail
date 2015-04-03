@@ -274,21 +274,17 @@ Private method "body function(_,_)" is
 		restrictions ::= semantic restrictions
 			for method for anAtom
 			given <aMapType, blockType>;
-		returnType : type := baseReturnType;
-			From 1 to |restrictions| by 1 do
-			[
-				index : natural number
-			|
-				returnType := returnType
-					∩ restrictions[index](aMapType, blockType);
-			];
-			statements ::= predicateBlock's statements;
-			blockReturnType ::= cast statements
-				into [t : phrase+ | t's last's semantic type]
-				else [⊤];
+					
+		returnType ::= strengthen baseReturnType from <aMapType, blockType> 
+			using restrictions;
 
-			castToPhrase ::= [s : nonempty string | 
-				cast scope map[s] into [d : argument phrase | d]];
+		statements ::= predicateBlock's statements;
+		blockReturnType ::= cast statements
+			into [t : phrase+ | t's last's semantic type]
+			else [⊤];
+
+		castToPhrase ::= [s : nonempty string | 
+			cast scope map[s] into [d : argument phrase | d]];
 		restricted send anAtom with
 		<
 			aMap, 

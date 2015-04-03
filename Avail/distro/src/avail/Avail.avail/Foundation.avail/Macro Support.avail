@@ -40,10 +40,13 @@ Uses
 	"Bootstrap",
 	"Early Definers",
 	"Early Conditionals",
+	"Early Control Structures",
+	"Early Literals",
 	"Early Maps",
-	"Early Literals"
+	"Early Tuples"
 Names
-	"Declare loop variable_as_"
+	"Declare loop variable_as_",
+	"strengthen_from_using_"
 Body
 
 /*
@@ -71,6 +74,7 @@ Semantic restriction "private invoke_with_" is
  * Create a local variable in a macro and add to the scope
  * 
  * @method "Declare loop variable_as_"
+ * @category "Macros"
  * @param "varNamePhrase" "literal phrase ⇒ token" The name of the variable
  * @param "varTypeFunction" "function accepting <> and returning any meta"
  *        A function that determines the type of the variable
@@ -88,3 +92,37 @@ Public method "Declare loop variable_as_" is
 	varDecl ::= arg «varToken : varType»;
 	scope map := scope map + varName → varDecl;
 ];
+
+/**
+ * A block strengthening method that accepts a base return type, a tuple of
+ * input types for the method, and a tuple of restrictions.  It returns the 
+ * return type of the strengthened type. 
+ *
+ * @method "strengthen_from_using_"
+ * @category "Macros"
+ * @param "baseReturnType" "type" the base return type of the method
+ * @param "inputTypes" "<type…|1..>" the type of the first input of the block
+ * @param "restrictions" "<semantic restriction function…|1..>" 
+ * 	The restrictions to be applied given the input types
+ * @returnType "type"
+ *		the strengthened type
+ */
+Public method "strengthen_from_using_" is
+[
+	baseReturnType : type,
+	inputTypes : type+,
+	restrictions : semantic restriction function*
+|
+	returnType : type := baseReturnType;
+	
+	From 1 to |restrictions| do
+	[
+		index : natural number
+	|
+		returnType := returnType
+			∩ invoke restrictions[index] with inputTypes;
+		true
+	];
+	returnType
+ ]:type;
+
