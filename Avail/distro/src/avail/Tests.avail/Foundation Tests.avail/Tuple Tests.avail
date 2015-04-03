@@ -234,9 +234,20 @@ Test "filter by" in tuple test suite is
 Test "select each (macro)" in tuple test suite is
 [
 	a ::= <1,2,3,4>;
-	b ::= select each n from a where [n mod 2 = 0];
+	b ::= select each n from a where [(n mod 2) = 0];
 	c ::= select each n from a where [n > 2000];
 	d ::= select each n,i from a where [(n + i) > 5];
+	Require: b = <2,4>;
+	Require: c = <>;
+	Require: d = <3,4>;
+];
+
+Test "reject each (macro)" in tuple test suite is
+[
+	a ::= <1,2,3,4>;
+	b ::= reject each n from a where [(n mod 2) ≠ 0];
+	c ::= reject each n from a where [n ≤ 2000];
+	d ::= reject each n,i from a where [(n + i) ≤ 5];
 	Require: b = <2,4>;
 	Require: c = <>;
 	Require: d = <3,4>;

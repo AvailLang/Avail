@@ -58,6 +58,7 @@ Names
 	"counts for_",
 	"count of…→…from|in|of_§where_",
 	"each…→…in|of_§satisfies_",
+	"reject each…→…from_§where_",
 	"select each…→…from_§where_",
 	"For each…→…in|of_§do_",
 	"integrate_and_with_",
@@ -498,6 +499,84 @@ Semantic restriction "filter_by_" is
  */
 Macro "select each…→…from_§where_" is a map iteration prefix function,
 	body function($"filter_by_", map);
+
+/**
+ * Iteratively apply {@param "action"} to each binding of {@param "aMap"}, in
+ * no particular order, rejecting those bindings for which {@param "action"}
+ * answers {@method "true"} into a new map. Answer the new map.
+ * 
+ * @macro "reject each…,…from_§where_"
+ * @param "keyPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aMap"}.
+ * @param "valuePhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop index variable. The generated
+ *        loop variable is given the strongest possible type based on the 
+ *        cardinality of {@param "aMap"}.
+ * @param "aMap" "expression phrase ⇒ map"
+ *        An {@type "expression phrase"} that yields the map to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Loops" "Collections" "Maps"
+ */
+Public macro "reject each…→…from_§where_" is 
+	a map iteration prefix function,
+[
+	keyPhrase : literal phrase ⇒ token,
+	valuePhrase : literal phrase ⇒ token,
+	aMap : expression phrase ⇒ map,
+	action : block phrase ⇒ []→⊤
+|
+	keyName ::= keyPhrase's token's lexeme;
+	valueName ::= valuePhrase's token's lexeme;
+	aMapType ::= aMap's semantic type;
+	keyType ::= aMapType's key type;
+	valueType ::= aMapType's value type;
+	blockType ::= 
+		[keyType, valueType]→(action's semantic type's return type);
+	
+	returnType ::= strengthen map for call of $"filter_by_" 
+		using <aMapType, blockType>;
+	statements ::= action's statements;
+	blockReturnType ::= cast statements
+		into [t : phrase+ | t[|t|]'s semantic type]
+		else [⊤];
+
+	castToPhrase ::= [s : nonempty string | 
+		cast scope map[s] into [d : argument phrase | d]];
+	
+	size ::= |statements|;
+
+	newStatements ::= if size = 0 then [<>]
+	else if [size = 1] then
+	[
+	 	i : natural number := cast size into [n : natural number | n];
+	 	c : expression phrase⇒any := cast statements[i] into 
+	 		[e : expression phrase⇒any | e];
+	 	<restricted send $"¬_" with <c>:boolean>
+	] else 
+	[
+	 	end : natural number := cast size-1 into [n : natural number | n];
+	 	i : natural number := cast size into [n : natural number | n];
+	 	c : expression phrase⇒any := cast statements[i] into 
+		 	[e : expression phrase⇒any | e];
+	 	statements[..end] ++ <restricted send $"¬_" with <c> : boolean>
+	];
+	restricted send $"filter_by_" with
+	<
+		aMap,
+		«[
+			<castToPhrase(keyName), castToPhrase(valueName)>
+		|
+			newStatements
+		] : blockReturnType»
+	> : returnType
+] : send phrase ⇒ ⊤;
 
 /**
  * Iteratively apply {@param "accumulator"} to the bindings of {@param "aMap"},

@@ -526,6 +526,72 @@ Macro "select each…from_§where_" is a set iteration prefix function,
 	set body function($"filter_by_",set);
 
 /**
+ * Iteratively apply {@param "action"} to each consecutive element of 
+ * {@param "aSet"}, rejecting those elements for which {@param "action"} 
+ * answers {@method "true"} into a new set (and preserving ordering). Answer 
+ * the new set.
+ * 
+ * @macro "reject each…from_§where_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aSet"}.
+ * @param "aSet" "expression phrase ⇒ any"
+ *        An {@type "expression phrase"} that yields the set to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Control Structures" "Loops" "Collections" "Sets"
+ */
+Macro "reject each…from_§where_" is a set iteration prefix function,
+[
+	elementPhrase : literal phrase ⇒ token,
+	aSet : expression phrase ⇒ set,
+	action : block phrase ⇒ []→⊤
+|
+	name ::= elementPhrase's token's lexeme;
+	aSetType ::= aSet's semantic type;
+	elementType ::= aSetType's element type;
+	blockType ::= 
+		[elementType]→(action's semantic type's return type);
+	
+	returnType ::= strengthen set for call of $"filter_by_" 
+			using <aSetType, blockType>;
+
+	statements ::= action's statements;
+	blockReturnType ::= cast statements
+		into [t : phrase+ | t[|t|]'s semantic type]
+		else [⊤];
+	size ::= |statements|;
+	newStatements ::= if size = 0 then [<>]
+	else if [size = 1] then
+	[
+	 	i : natural number := cast size into [n : natural number | n];
+	 	c : expression phrase⇒any := cast statements[i] into 
+	 		[e : expression phrase⇒any | e];
+	 	<restricted send $"¬_" with <c>:boolean>
+	] else 
+	[
+	 	end : natural number := cast size-1 into [n : natural number | n];
+	 	i : natural number := cast size into [n : natural number | n];
+	 	c : expression phrase⇒any := cast statements[i] into 
+		 	[e : expression phrase⇒any | e];
+	 	statements[..end] ++ <restricted send $"¬_" with <c> : boolean>
+	];
+	restricted send $"filter_by_" with
+	<
+		aSet, 
+		«[
+			<cast scope map[name] into [d : argument phrase | d]>
+		 | 
+		 	newStatements
+		] : blockReturnType»
+	> : returnType
+] : send phrase ⇒ ⊤;
+
+/**
  * Iteratively apply {@param "accumulator"} to the elements of {@param "aSet"},
  * in no particular order, in order to transform and filter its elements into a
  * new set. When {@param "accumulator"} is invoked, it is passed a "keeper"
