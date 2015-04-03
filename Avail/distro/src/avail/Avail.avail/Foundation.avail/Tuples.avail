@@ -3518,9 +3518,9 @@ Public abstract method "quicksort_" is [<number…|>]→<number…|>;
  * Give quicksort higher precedence than concatenation. 
  * 
  * @method "quicksort_"
- * @forbids "1" "«_‡++»"
+ * @forbids "1" "_++_"
  */
-Grammatical restriction "quicksort_" is <{"«_‡++»"}>;
+Grammatical restriction "quicksort_" is <{"_++_"}>;
 
 /**
  * @method "quicksort_"
@@ -3827,9 +3827,9 @@ Public abstract method "merge sort_" is [<number…|>]→<number…|>;
  * Give merge sort higher precedence than concatenation.
  * 
  * @method "merge sort_"
- * @forbids "1" "«_‡++»"
+ * @forbids "1" "_++_"
  */
-Grammatical restriction "merge sort_" is <{"«_‡++»"}>;
+Grammatical restriction "merge sort_" is <{"_++_"}>;
 
 /**
  * @method "merge sort_"

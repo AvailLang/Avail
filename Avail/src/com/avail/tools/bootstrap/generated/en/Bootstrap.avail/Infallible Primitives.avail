@@ -3982,24 +3982,3 @@ Primitive "_reversed" is
 	Primitive 702;
 ] : tuple;
 
-/**
- * Compute and answer the tuple when appended with the supplied element 
- *
- * @category "Primitives" "Tuples" 
- * @method "_+_"
- * @param "aTuple" "tuple"
- *        A tuple.
- * @param "newElement" "any"
- *        The element that must be the tail of the resultant tuple.
- * @returns "tuple"
- *    A tuple that has the same elements as {@param "aTuple"} but with
- *    {@param "newElement"} appended.
- */
-Primitive "_+_" is
-[
-	aTuple : tuple,
-	newElement : any
-|
-	Primitive 703;
-] : tuple;
-

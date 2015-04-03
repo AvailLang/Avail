@@ -6023,10 +6023,11 @@ public abstract class AbstractAvailCompiler
 			// consume the provided first argument now.
 			assert !canReallyParse;
 
-			// Only accept it if we're expecting a ⊤-valued expression and we
-			// got one (but not a subtype), or we're expecting an any-valued
-			// expression and we got one.
-			if (firstArgOrNull.expressionType().isTop() == wrapInLiteral)
+			// wrapInLiteral allows us to accept anything, even expressions that
+			// are ⊤- or ⊥-valued.
+			if ((!firstArgOrNull.expressionType().isTop()
+					&& !firstArgOrNull.expressionType().isBottom())
+				|| wrapInLiteral)
 			{
 				attempt(
 					start,

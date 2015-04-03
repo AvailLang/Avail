@@ -55,8 +55,7 @@ Extends
 		"_starts with_",
 		"_'s⁇head",
 		"_'s⁇tail",
-		"«_‡zip»",
-		"«_‡++»"
+		"«_‡zip»"
 	)
 Uses
 	"Foundation"
@@ -70,7 +69,8 @@ Names
 	"stream of_",
 	"take«at most»?_from_",
 	"_'s⁇head method is_",
-	"_'s⁇tail method is_"
+	"_'s⁇tail method is_",
+	"«_‡++»"
 
 	/* We don't include "_'s⁇element type" here because it already exists (as
 	 * a method on set types).
@@ -808,7 +808,7 @@ Method "concatenate_" is
  * @returns "stream"
  *    The requested stream.
  */
-Method "«_‡++»" is
+Public method "«_‡++»" is
 [
 	streams : <stream…|2..>
 |
@@ -847,6 +847,8 @@ Private method "concatenation semantic restriction" is
 
 Semantic restriction "concatenate_" is concatenation semantic restriction;
 Semantic restriction "«_‡++»" is concatenation semantic restriction;
+Grammatical restriction {"concatenate_"} is <{"«_‡++»"}>;
+Grammatical restriction {"«_‡++»"} is <{"«_‡++»"}>;
 
 /**
  * A zipped stream produces zipped tuples from a sequenced collection of
