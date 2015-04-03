@@ -319,13 +319,9 @@ Public method "set body function(_,_)" is
 		elementType ::= aSetType's element type;
 		blockType ::= 
 			[elementType]→(action's semantic type's return type);
-		restrictions ::= semantic restrictions
-			for method for anAtom
-			given <aSetType, blockType>;
-		
-		returnType ::= 
-			strengthen baseReturnType from <aSetType, blockType> 
-				using restrictions;
+
+		returnType ::= strengthen baseReturnType for call of anAtom 
+			using <aSetType, blockType>;
 
 		statements ::= action's statements;
 		blockReturnType ::= cast statements

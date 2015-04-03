@@ -859,19 +859,17 @@ Public macro "For each…from_to_§do_" is
 	startType ::= start's semantic type;
 	endType ::= end's semantic type;
 	stepType ::= 1's type;
+	anAtom ::= $"From_to_by_do_";
 	blockType ::= [⊥]→(action's semantic type's return type);
-	restrictions ::= semantic restrictions
-		for method for $"From_to_by_do_"
-		given <startType, endType, stepType, blockType>;
-	returnType ::= strengthen ⊤ from 
-		<startType, endType, stepType, blockType> 
-		using restrictions;
+	
+	returnType ::= strengthen ⊤ for call of anAtom 
+		using <startType, endType, stepType, blockType>;
 
 	statements ::= action's statements;
 	blockReturnType ::= cast statements
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
-	restricted send $"From_to_by_do_" with
+	restricted send anAtom with
 	<
 		start,
 		end,

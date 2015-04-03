@@ -766,11 +766,8 @@ Private method "«indexed»?return type(_,_,_,_,_)" is
 		[elementType]→(action's semantic type's return type)
 	];
 
-	restrictions ::= semantic restrictions
-		for method for anAtom
-		given <aTupleType, optionalLimitType, blockType>;
-	strengthen baseReturnType from 
-		<aTupleType, optionalLimitType, blockType> using restrictions
+	strengthen baseReturnType for call of anAtom 
+		using <aTupleType, optionalLimitType, blockType> 
 ]:type;
 
 /**
@@ -1066,12 +1063,9 @@ Private method "concurrent set body function(_,_)" is
 		elementType ::= aSetType's element type;
 		blockType ::= 
 			[elementType]→(action's semantic type's return type);
-		restrictions ::= semantic restrictions
-			for method for anAtom
-			given <aSetType, optionalLimitType, blockType>;
-		
-		returnType ::= strengthen baseReturnType from 
-			<aSetType, optionalLimitType, blockType> using restrictions;
+
+		returnType ::= strengthen baseReturnType for call of anAtom 
+			using <aSetType, optionalLimitType, blockType>;
 	
 		statements ::= action's statements;
 		blockReturnType ::= cast statements
@@ -1255,12 +1249,8 @@ Private method "concurrent map body function(_,_)" is
 		blockType ::= 
 			[keyType, valueType]→(action's semantic type's return type);
 
-		restrictions ::= semantic restrictions
-			for method for anAtom
-			given <aMapType, optionalLimitType, blockType>;
-					
-		returnType ::= strengthen baseReturnType from 
-			<aMapType, optionalLimitType, blockType> using restrictions;
+		returnType ::= strengthen baseReturnType for call of anAtom 
+				using <aMapType, optionalLimitType, blockType>;
 
 		statements ::= action's statements;
 		blockReturnType ::= cast statements

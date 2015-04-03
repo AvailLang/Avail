@@ -103,11 +103,8 @@ Private method "body function(_,_)" is
 		name ::= elementPhrase's token's lexeme;
 		aReaderType ::= aReader's semantic type;
 		blockType ::= [⊥]→(predicateBlock's semantic type's return type);
-		restrictions ::= semantic restrictions
-			for method for anAtom
-			given <aReaderType, blockType>;
-		returnType ::= strengthen baseReturnType from <aReaderType, blockType> 
-			using restrictions;			
+		returnType ::= strengthen baseReturnType for call of anAtom 
+			using <aReaderType, blockType>; 		
 		statements ::= predicateBlock's statements;
 		blockReturnType ::= cast statements
 			into [t : phrase+ | t's last's semantic type]

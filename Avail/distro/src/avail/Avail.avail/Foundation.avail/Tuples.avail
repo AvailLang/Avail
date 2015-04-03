@@ -360,11 +360,8 @@ Private method "«indexed»?return type(_,_,_,_)" is
 		[elementType]→(action's semantic type's return type)
 	];
 	
-	restrictions ::= semantic restrictions
-		for method for anAtom
-		given <aTupleType, blockType>;
-				
-	strengthen baseReturnType from <aTupleType, blockType> using restrictions
+	strengthen baseReturnType for call of anAtom using <aTupleType, blockType> 
+
 ]:type;
 	
 /**

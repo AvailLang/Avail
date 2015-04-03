@@ -46,7 +46,7 @@ Uses
 	"Early Tuples"
 Names
 	"Declare loop variable_as_",
-	"strengthen_from_using_"
+	"strengthen_for call of_using_"
 Body
 
 /*
@@ -94,26 +94,30 @@ Public method "Declare loop variable_as_" is
 ];
 
 /**
- * A block strengthening method that accepts a base return type, a tuple of
- * input types for the method, and a tuple of restrictions.  It returns the 
- * return type of the strengthened type. 
+ * A return type strengthening method that accepts a base return type, an
+ * atom representing the method to lookup, and a tuple of input types for the
+ *  method.  It returns the strengthened type. 
  *
- * @method "strengthen_from_using_"
+ * @method "strengthen_for call of_using_"
  * @category "Macros"
  * @param "baseReturnType" "type" the base return type of the method
- * @param "inputTypes" "<type…|1..>" the type of the first input of the block
- * @param "restrictions" "<semantic restriction function…|1..>" 
- * 	The restrictions to be applied given the input types
+ * @param "anAtom" "atom" the atom that represents the function that is 
+ * 	strengthened
+ * @param "inputTypes" "<any's type…|>" a tuple of the input types of the method
  * @returnType "type"
  *		the strengthened type
  */
-Public method "strengthen_from_using_" is
+	
+Public method "strengthen_for call of_using_" is
 [
 	baseReturnType : type,
-	inputTypes : type+,
-	restrictions : semantic restriction function*
+	anAtom : atom,
+	inputTypes : any's type+
 |
 	returnType : type := baseReturnType;
+
+	restrictions ::= semantic restrictions for (method for anAtom)
+		given inputTypes;
 	
 	From 1 to |restrictions| do
 	[

@@ -861,7 +861,7 @@ Extends
 		"parse map:=_",
 		"scope map",
 		"scope map:=_",
-		"strengthen_from_using_"
+		"strengthen_for call of_using_"
 	),
 	"Maps" =
 	(

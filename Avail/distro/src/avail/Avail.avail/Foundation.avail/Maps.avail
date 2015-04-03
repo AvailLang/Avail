@@ -272,12 +272,8 @@ Private method "body function(_,_)" is
 		blockType ::= 
 			[keyType, valueType]→(action's semantic type's return type);
 
-		restrictions ::= semantic restrictions
-			for method for anAtom
-			given <aMapType, blockType>;
-					
-		returnType ::= strengthen baseReturnType from <aMapType, blockType> 
-			using restrictions;
+		returnType ::= strengthen baseReturnType for call of anAtom 
+			using <aMapType, blockType>;
 
 		statements ::= action's statements;
 		blockReturnType ::= cast statements
