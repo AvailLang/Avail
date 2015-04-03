@@ -72,12 +72,12 @@ Public method "Connect_to_" is
  * Synchronously write data to a {@type "client socket"}.
  *
  * @method "Write_to_"
- * @param "data" "<byte…|>"
+ * @param "data" "byte*"
  * @returns "⊤"
  */
 Method "Write_to_" is
 [
-	data : <byte…|>,
+	data : byte*,
 	s : client socket
 |
 	semName ::= format "write semaphore for ‘①’" with s's name;
@@ -103,7 +103,7 @@ Method "Write_to_" is
  * @param "count" "whole number"
  *        The maximum number of bytes to read from the connection.
  * @param "s" "client socket"
- * @returns "<byte…|>"
+ * @returns "byte*"
  */
 Method "read«at most»?_byte|bytes from_" is
 [
@@ -113,7 +113,7 @@ Method "read«at most»?_byte|bytes from_" is
 |
 	semName ::= format "read semaphore for ‘①’" with s's name;
 	sem ::= a semaphore named semName with 0 out of 1 permits;
-	data : <byte…|> := <>;
+	data : byte* := <>;
 	killer : exception;
 	endOfStream : boolean := false;
 	Until
@@ -122,7 +122,7 @@ Method "read«at most»?_byte|bytes from_" is
 		Ignore: a fiber reading remaining bytes from s,
 			on success doing
 			[
-				justRead : <byte…|>,
+				justRead : byte*,
 				atEnd : boolean
 			|
 				If atEnd then [endOfStream := true;]
@@ -135,4 +135,4 @@ Method "read«at most»?_byte|bytes from_" is
 		soft ∨ endOfStream ∨ |data| = count
 	];
 	data
-] : <byte…|>;
+] : byte*;

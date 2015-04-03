@@ -1609,7 +1609,7 @@ Private method "Verify all scenes in_are reachable from_" is
 	 * that answer scene variables.
 	 */
 	noted : {scene|} := {openingScene};
-	unvisited : <scene…|> := <openingScene>;
+	unvisited : scene* := <openingScene>;
 	Until unvisited is empty do
 	[
 		/* Extract the next unvisited seen for processing. */

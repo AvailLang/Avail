@@ -783,14 +783,14 @@ Private method "Generate and install_mutator for mutable_" is
  * specified tuple of field atoms.
  * 
  * @method "reconstructor name for_"
- * @param "fieldAtoms" "<atom…|1..>"
+ * @param "fieldAtoms" "atom+"
  *        The atoms of the fields migrated by the reconstructor.
  * @returns "string"
  *          The appropriate method name.
  */
 Private method "reconstructor name for_" is
 [
-	fieldAtoms : <atom…|1..>
+	fieldAtoms : atom+
 |
 	methodName : nonempty string :=
 		fieldAtoms[1]'s default accessor name ++ "::=_";
@@ -808,7 +808,7 @@ Private method "reconstructor name for_" is
  * @method "_reconstructor arguments for_«(for semantic restriction)»?"
  * @param "objectType" "object's type"
  *        The object type.
- * @param "fieldAtoms" "<atom…|1..>"
+ * @param "fieldAtoms" "atom+"
  *        The atoms of the fields migrated by the reconstructor.
  * @param "forSemanticRestriction" "boolean"
  *        {@method "true"} if the argument declarations should be generated for
@@ -822,7 +822,7 @@ Private method "reconstructor name for_" is
 Private method "_reconstructor arguments for_«(for semantic restriction)»?" is
 [
 	objectType : object meta,
-	fieldAtoms : <atom…|1..>,
+	fieldAtoms : atom+,
 	forRestriction : boolean
 |
 	meta ::= if forRestriction then [objectType's type] else [objectType];
@@ -849,13 +849,13 @@ Private method "_reconstructor arguments for_«(for semantic restriction)»?" is
  *
  * @method "Generate and install_reconstructor for_"
  * @param "objectType" "object's type"
- * @param "fieldAtoms" "<atom…|1..>"
+ * @param "fieldAtoms" "atom+"
  * @returns "⊤"
  */
 Private method "Generate and install_reconstructor for_" is
 [
 	objectType : object meta,
-	fieldAtoms : <atom…|1..>
+	fieldAtoms : atom+
 |
 	methodName ::= reconstructor name for fieldAtoms;
 	args ::= objectType reconstructor arguments for fieldAtoms;
@@ -874,7 +874,7 @@ Private method "Generate and install_reconstructor for_" is
 	/* Emit code to clone any mutable fields that are not explicitly being
 	 * shared.
 	 */
-	cloning : <phrase…|> := <>;
+	cloning : phrase* := <>;
 	For each fieldAtom → fieldType of objectType→map do
 	[
 		If ¬shared ∈ fieldAtom ∧ fieldType ⊆ variable then
@@ -909,7 +909,7 @@ Private method "Generate and install_reconstructor for_" is
  * @method "Generate and install_reconstructor's semantic restriction for_"
  * @param "objectType" "object's type"
  *        An object type.
- * @param "fieldAtoms" "<atom…|1..>"
+ * @param "fieldAtoms" "atom+"
  *        A field atoms.
  * @returns "⊤"
  */
@@ -918,7 +918,7 @@ Private method
 is
 [
 	objectType : object meta,
-	fieldAtoms : <atom…|1..>
+	fieldAtoms : atom+
 |
 	methodName ::= reconstructor name for fieldAtoms;
 	args ::= objectType reconstructor arguments for fieldAtoms
@@ -1019,7 +1019,7 @@ is
  *        appear after a field's type, then the accessor, mutator, and referrer
  *        will be given default names as appropriate.
  * @param "optionalReconstructors"
- *        "<<<boolean, <atom…|1..>…|2>…|1..>…|0..1>"
+ *        "<<<boolean, atom+…|2>…|1..>…|0..1>"
  *        The reconstructors of this class. A reconstructor will be generated
  *        for each specification tuple. Each reconstructor tagged as {@code
  *        public} must be exported by the defining module.
@@ -1239,7 +1239,7 @@ is
 		];
 	];
 	/* Determine which reconstructors to create. */
-	reconstructors : <<atom…|1..>…|> := map and filter immutable by
+	reconstructors : <atom+…|> := map and filter immutable by
 		[
 			triple :
 				<
@@ -1249,7 +1249,7 @@ is
 					any meta,
 					nonempty string?…
 				|5>,
-			accept : [<atom…|1..>]→⊤
+			accept : [atom+]→⊤
 		|
 			If triple[2] then
 			[
@@ -1674,7 +1674,7 @@ is
 		spec ::= optionalReconstructors[1][index];
 		publicSpec ::= spec[1]'s instance;
 		atomsType ::= spec[2];
-		fieldAtoms : <atom…|> := <>;
+		fieldAtoms : atom* := <>;
 		For each atomTypeIndex from 1 to relevant |atomsType| do
 		[
 			atomType ::= atomsType[atomTypeIndex];
@@ -1685,7 +1685,7 @@ is
 			];
 			fieldAtoms := eject fieldAtoms ++ <atomType's instance>;
 		];
-		nonemptyFieldAtoms ::= cast fieldAtoms into [ t : <atom…|1..> | t ];
+		nonemptyFieldAtoms ::= cast fieldAtoms into [ t : atom+ | t ];
 		reconstructorName ::= reconstructor name for nonemptyFieldAtoms;
 		If publicSpec then
 		[

@@ -64,7 +64,7 @@ Body
  */
 Class "concatenation reader" extends reader
 	with field
-		readers : <reader…|>
+		readers : reader*
 	with mutable field
 		referable reader index : natural number;
 
@@ -118,7 +118,7 @@ concatenation reader's advance method is
  * specified tuple of readers The result first produces the values of the
  * first element of the tuple, then the second, etc.
  * @method "concatenate_"
- * @param "readers" "<reader…|>"
+ * @param "readers" "reader*"
  *        A tuple of readers.
  * @returns "reader"
  *          The requested reader.
@@ -126,7 +126,7 @@ concatenation reader's advance method is
  */
 Method "concatenate_" is
 [
-	readers : <reader…|>
+	readers : reader*
 |
 	if |readers| = 0 then [an exhausted reader]
 	else if [|readers| = 1] then [readers[1]]
@@ -146,7 +146,7 @@ Method "concatenate_" is
  * specified tuple of readers The result first produces the values of the
  * first lexical argument, then the second, etc.
  * @method "«_‡++»"
- * @param "readers" "<reader…|>"
+ * @param "readers" "reader*"
  *        A tuple of readers.
  * @returns "reader"
  *          The requested reader.
@@ -168,13 +168,13 @@ Method "«_‡++»" is
  * {@method "concatenate_"} and {@method "«_‡++»"} methods.
  * @category "Data Abstractions"
  * @method "concatenation semantic restriction"
- * @returns "[<reader…|>'s type]→(concatenation reader's type)"
+ * @returns "[reader*'s type]→(concatenation reader's type)"
  *          The requested function.
  */
 Private method "concatenation semantic restriction" is
 [
 	[
-		readers : <reader…|>'s type
+		readers : reader*'s type
 	|
 		elementType : any's type's type := ⊥;
 		For each i from 1 to (⎣readers⎦ min (|readers' leading types| + 1)) do
@@ -191,7 +191,7 @@ Private method "concatenation semantic restriction" is
  * Strengthen the {@type "reader"} {@method "concatenate_"} operation.
  * 
  * @method "concatenate_"
- * @restricts "readers" "<reader…|>'s type"
+ * @restricts "readers" "reader*'s type"
  * @returns "concatenation reader"
  * @category "Data Abstractions" "Readers"
  */
@@ -202,7 +202,7 @@ Semantic restriction "concatenate_" is concatenation semantic restriction;
  * "«_‡++»"}).
  * 
  * @method "concatenate_"
- * @restricts "readers" "<reader…|>'s type"
+ * @restricts "readers" "reader*'s type"
  * @returns "concatenation reader"
  * @category "Data Abstractions" "Readers"
  */

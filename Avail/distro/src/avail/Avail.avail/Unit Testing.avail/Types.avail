@@ -261,7 +261,7 @@ Public method "short“_”" is
 Public class "root unit test suite" extends object
 	with fields
 		public suite ID : atom,
-		public reconstructible child suite IDs : <atom…|>,
+		public reconstructible child suite IDs : atom*,
 		public suite fixture setup : <[]→⊤…|>,
 		public suite fixture tear down : <[]→⊤…|>,
 		public test fixture setup : <[]→⊤…|>,

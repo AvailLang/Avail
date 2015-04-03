@@ -113,7 +113,7 @@ Body
  * @method "_'s⁇stack summary"
  * @param "e" "exception"
  *        An {@type "exception"}.
- * @returns "<string…|>"
+ * @returns "string*"
  *          A tuple of strings, each of which describes a continuation.
  * @category "Exceptions" "Queries"
  */
@@ -123,7 +123,7 @@ Public method "_'s⁇stack summary" is
 |
 	Primitive 203 (failureCode : incorrect-argument-type code's type);
 	early failure function(failureCode)
-] : <string…|>;
+] : string*;
 
 /* Private field definitions. */
 "error code" is a new atom;
@@ -628,7 +628,7 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 				"exception handler to accept only exceptions (not “①”)"
 				with argType
 		];
-		hidingArgTypes : <type…|> := <>;
+		hidingArgTypes : type* := <>;
 		For each inner from 1 to index - 1 do
 		[
 			previousArgType ::= handlersType[inner][1];

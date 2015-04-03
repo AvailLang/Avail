@@ -1007,7 +1007,7 @@ Primitive "set meta" is
  *
  * @category "Primitives" "Types"
  * @type "string"
- * @alias "<character…|>"
+ * @alias "character*"
  * @supertype "tuple"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-string.html"
  */
@@ -1064,7 +1064,7 @@ Primitive "nontype" is
  *
  * @category "Primitives" "Types"
  * @type "tuple"
- * @alias "<any…|>"
+ * @alias "any*"
  * @supertype "nontype"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-tuple.html"
  */
@@ -1078,7 +1078,7 @@ Primitive "tuple" is
  *
  * @category "Primitives" "Types"
  * @type "tuple meta"
- * @alias "<any…|>'s type"
+ * @alias "any*'s type"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-tuple.html"
  */
 Primitive "tuple meta" is
@@ -1657,7 +1657,7 @@ Primitive "false" is
  *
  * @category "Primitives" "Types"
  * @type "tuple of string"
- * @alias "<string…|>"
+ * @alias "string*"
  */
 Primitive "tuple of string" is
 [
@@ -1994,7 +1994,7 @@ Primitive "non-empty set" is
  *
  * @category "Primitives" "Types"
  * @type "tuple of tuple"
- * @alias "<tuple…|>"
+ * @alias "tuple*"
  */
 Primitive "tuple of tuple" is
 [

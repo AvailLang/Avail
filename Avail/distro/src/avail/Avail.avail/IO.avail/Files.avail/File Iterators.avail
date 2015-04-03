@@ -183,14 +183,14 @@ _privateReadBuffer ::=
 [
 	fileReader : file reader
 |
-	buffer : <byte…|>;
+	buffer : byte*;
 	readComplete ::= a semaphore named "read is complete" with 0 permits;
 	readFiber ::= a fiber reading fileReader's maximum buffer size bytes
 		at fileReader's position
 		from fileReader's element source
 		on success doing
 			[
-				theBytes : <byte…|>
+				theBytes : byte*
 			|
 				buffer := theBytes;
 				Signal readComplete;
@@ -205,7 +205,7 @@ _privateReadBuffer ::=
 	Await readComplete;
 	If buffer is unassigned then [Raise an I/O exception];
 	buffer
-] : <byte…|>;
+] : byte*;
 
 file reader's fetch current buffer method is _privateReadBuffer;
 
@@ -219,7 +219,7 @@ file reader/writer's fetch current buffer method is
 
 Private method "Private file write_into_at_" is
 [
-	bytes : <byte…|1..>,
+	bytes : byte+,
 	fileWriter : file writer,
 	start : natural number
 |
@@ -256,7 +256,7 @@ _privateWriteBuffer ::=
 	[
 		Assert: |fileWriter's buffer| > 0;
 		Private file
-			write fileWriter's buffer ?→ <byte…|1..>
+			write fileWriter's buffer ?→ byte+
 			into fileWriter
 			at fileWriter's buffer start;
 		fileWriter's buffer is dirty := false;
@@ -516,7 +516,7 @@ Method "Write_to_" is
 			 * flush the entire existing buffer before starting the new write.
 			 */
 			Private file
-				write aWriter's buffer ?→ <byte…|1..>
+				write aWriter's buffer ?→ byte+
 				into aWriter
 				at aWriter's buffer start;
 			aWriter's buffer is dirty := false;
@@ -549,7 +549,7 @@ Method "Write_to_" is
 			residue ::= (endOfBuffer mod aFile's alignment) max 0;
 			toWrite ::= (newBufferSize - residue) ?→ natural number;
 			Private file
-				write newBuffer[1 .. toWrite] ?→ <byte…|1..>
+				write newBuffer[1 .. toWrite] ?→ byte+
 				into aWriter
 				at aWriter's buffer start;
 			aWriter's buffer is dirty := residue ≠ 0;

@@ -69,7 +69,7 @@ extends TypeDescriptor
 		/**
 		 * An {@linkplain IntegerRangeTypeDescriptor integer range type} that
 		 * contains all allowed {@linkplain
-		* TupleDescriptor#o_TupleSize(AvailObject) tuple sizes} for instances
+		 * TupleDescriptor#o_TupleSize(AvailObject) tuple sizes} for instances
 		 * of this type.
 		 */
 		SIZE_RANGE,
@@ -80,7 +80,6 @@ extends TypeDescriptor
 		 * tuple that covers the same range. For example, if the last element
 		 * of this tuple equals the {@link #DEFAULT_TYPE} then this tuple will
 		 * be shortened by one.
-		 *
 		 */
 		TYPE_TUPLE,
 
@@ -161,18 +160,6 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_SizeRange (final AvailObject object)
-	{
-		return object.slot(SIZE_RANGE);
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_TypeTuple (final AvailObject object)
-	{
-		return object.slot(TYPE_TUPLE);
-	}
-
-	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsTupleType(object);
@@ -211,15 +198,15 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_BasicObject anotherObject)
 	{
-		return !anotherObject.isBetterRepresentationThanTupleType(object);
+		return object.representationCostOfTupleType()
+			< anotherObject.representationCostOfTupleType();
 	}
 
 	@Override @AvailMethod
-	boolean o_IsBetterRepresentationThanTupleType (
-		final AvailObject object,
-		final A_Type aTupleType)
+	int o_RepresentationCostOfTupleType (
+		final AvailObject object)
 	{
-		return true;
+		return 1;
 	}
 
 	@Override @AvailMethod
@@ -231,66 +218,6 @@ extends TypeDescriptor
 				object.slot(SIZE_RANGE).hash(),
 				object.slot(TYPE_TUPLE).hash(),
 				object.slot(DEFAULT_TYPE).hash());
-	}
-
-	@Override @AvailMethod
-	A_Type o_TypeAtIndex (
-		final AvailObject object,
-		final int index)
-	{
-		// Answer what type the given index would have in an object instance of
-		// me.  Answer bottom if the index is out of bounds.
-		if (index <= 0)
-		{
-			return BottomTypeDescriptor.bottom();
-		}
-		final A_Number upper = object.slot(SIZE_RANGE).upperBound();
-		if (upper.isInt())
-		{
-			if (upper.extractInt() < index)
-			{
-				return BottomTypeDescriptor.bottom();
-			}
-		}
-		else if (upper.lessThan(IntegerDescriptor.fromInt(index)))
-		{
-			return BottomTypeDescriptor.bottom();
-		}
-		final A_Tuple leading = object.slot(TYPE_TUPLE);
-		if (index <= leading.tupleSize())
-		{
-			return leading.tupleAt(index);
-		}
-		return object.slot(DEFAULT_TYPE);
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_TupleOfTypesFromTo (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex)
-	{
-		// Answer the tuple of types over the given range of indices.  Any
-		// indices out of range for this tuple type will be ⊥.
-		final int size = endIndex - startIndex + 1;
-		final A_Tuple result =
-			ObjectTupleDescriptor.createUninitialized(endIndex);
-		// Initialize the slots JUST for garbage collector safety in future
-		// incarnations.
-		for (int i = 1; i <= size; i++)
-		{
-			result.objectTupleAtPut(i, BottomTypeDescriptor.bottom());
-		}
-		int destIndex = 1;
-		for (
-			int sourceIndex = startIndex;
-			sourceIndex <= endIndex;
-			sourceIndex++, destIndex++)
-		{
-			result.objectTupleAtPut(
-				destIndex, object.typeAtIndex(sourceIndex).makeImmutable());
-		}
-		return result;
 	}
 
 	/**
@@ -400,6 +327,97 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
+	boolean o_IsTupleType (final AvailObject object)
+	{
+		// I am a tupleType, so answer true.
+		return true;
+	}
+
+	@Override
+	@Nullable Object o_MarshalToJava (
+		final AvailObject object,
+		final @Nullable Class<?> ignoredClassHint)
+	{
+		if (object.isSubtypeOf(stringType()))
+		{
+			return String.class;
+		}
+		return super.o_MarshalToJava(object, ignoredClassHint);
+	}
+
+	@Override @AvailMethod @ThreadSafe
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.TUPLE_TYPE;
+	}
+
+	@Override @AvailMethod
+	A_Type o_SizeRange (final AvailObject object)
+	{
+		return object.slot(SIZE_RANGE);
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_TupleOfTypesFromTo (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex)
+	{
+		// Answer the tuple of types over the given range of indices.  Any
+		// indices out of range for this tuple type will be ⊥.
+		final int size = endIndex - startIndex + 1;
+		final A_Tuple result =
+			ObjectTupleDescriptor.createUninitialized(endIndex);
+		// Initialize the slots JUST for garbage collector safety in future
+		// incarnations.
+		for (int i = 1; i <= size; i++)
+		{
+			result.objectTupleAtPut(i, BottomTypeDescriptor.bottom());
+		}
+		int destIndex = 1;
+		for (
+			int sourceIndex = startIndex;
+			sourceIndex <= endIndex;
+			sourceIndex++, destIndex++)
+		{
+			result.objectTupleAtPut(
+				destIndex, object.typeAtIndex(sourceIndex).makeImmutable());
+		}
+		return result;
+	}
+
+	@Override @AvailMethod
+	A_Type o_TypeAtIndex (
+		final AvailObject object,
+		final int index)
+	{
+		// Answer what type the given index would have in an object instance of
+		// me.  Answer bottom if the index is out of bounds.
+		if (index <= 0)
+		{
+			return BottomTypeDescriptor.bottom();
+		}
+		final A_Number upper = object.slot(SIZE_RANGE).upperBound();
+		if (upper.isInt())
+		{
+			if (upper.extractInt() < index)
+			{
+				return BottomTypeDescriptor.bottom();
+			}
+		}
+		else if (upper.lessThan(IntegerDescriptor.fromInt(index)))
+		{
+			return BottomTypeDescriptor.bottom();
+		}
+		final A_Tuple leading = object.slot(TYPE_TUPLE);
+		if (index <= leading.tupleSize())
+		{
+			return leading.tupleAt(index);
+		}
+		return object.slot(DEFAULT_TYPE);
+	}
+
+	@Override @AvailMethod
 	A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
@@ -481,6 +499,12 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
+	A_Tuple o_TypeTuple (final AvailObject object)
+	{
+		return object.slot(TYPE_TUPLE);
+	}
+
+	@Override @AvailMethod
 	A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
@@ -538,42 +562,6 @@ extends TypeDescriptor
 			newSizesObject,
 			newLeading,
 			newDefault);
-	}
-
-	@Override @AvailMethod
-	boolean o_IsTupleType (final AvailObject object)
-	{
-		// I am a tupleType, so answer true.
-		return true;
-	}
-
-	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (final AvailObject object)
-	{
-		return SerializerOperation.TUPLE_TYPE;
-	}
-
-	@Override
-	@Nullable Object o_MarshalToJava (
-		final AvailObject object,
-		final @Nullable Class<?> ignoredClassHint)
-	{
-		if (object.isSubtypeOf(stringType()))
-		{
-			return String.class;
-		}
-		return super.o_MarshalToJava(object, ignoredClassHint);
-	}
-
-	@Override
-	AvailObject o_MakeImmutable (final AvailObject object)
-	{
-		if (isMutable())
-		{
-			// There isn't an immutable descriptor.
-			object.makeShared();
-		}
-		return object;
 	}
 
 	@Override
@@ -823,16 +811,19 @@ extends TypeDescriptor
 		return mutable;
 	}
 
-	/** The shared {@link TupleTypeDescriptor}. */
-	private static final TupleTypeDescriptor shared =
-		new TupleTypeDescriptor(Mutability.SHARED);
+	/** The immutable {@link TupleTypeDescriptor}. */
+	private static final TupleTypeDescriptor immutable =
+		new TupleTypeDescriptor(Mutability.IMMUTABLE);
 
 	@Override
 	TupleTypeDescriptor immutable ()
 	{
-		// There is no immutable descriptor, so use the shared one.
-		return shared;
+		return immutable;
 	}
+
+	/** The shared {@link TupleTypeDescriptor}. */
+	private static final TupleTypeDescriptor shared =
+		new TupleTypeDescriptor(Mutability.SHARED);
 
 	@Override
 	TupleTypeDescriptor shared ()

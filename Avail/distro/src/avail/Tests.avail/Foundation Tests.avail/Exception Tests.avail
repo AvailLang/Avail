@@ -132,7 +132,7 @@ Test "two intercepts (value-producing)" in exception test suite is
 	ref : integer :=
 		guard
 		[
-			t : <integer…|> := <>;
+			t : integer* := <>;
 			t[1]
 		]
 		intercept
@@ -153,7 +153,7 @@ Test "two intercepts (value-producing)" in exception test suite is
 	ref :=
 		guard
 		[
-			t : <integer…|> := <>;
+			t : integer* := <>;
 			t[1]
 		]
 		intercept
@@ -327,7 +327,7 @@ Test "two intercepts, unwind (value-producing)" in exception test suite is
 	curry : string :=
 		guard
 		[
-			t : <string…|> := <>;
+			t : string* := <>;
 			t[1]
 		]
 		intercept
@@ -355,7 +355,7 @@ Test "two intercepts, unwind (value-producing)" in exception test suite is
 	curry :=
 		guard
 		[
-			t : <string…|> := <>;
+			t : string* := <>;
 			t[1]
 		]
 		intercept

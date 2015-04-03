@@ -193,7 +193,7 @@ Private method "Handle_for_" is
  * @method "Play a game,⁇creating a context with_,⁇interacting with_"
  * @param "gameContextCreator" "[]→context"
  *        A function that answers a new {@type "game context"}.
- * @param "interface" "[string, string, <string…|>]→command"
+ * @param "interface" "[string, string, string*]→command"
  *        A function that accepts the scene title, the scene description, and
  *        the tuple of scene transition descriptions, respectively, and answers
  *        a {@type "command"}.
@@ -201,7 +201,7 @@ Private method "Handle_for_" is
 Public method "Play a game,⁇creating a context with_,⁇interacting with_" is
 [
 	gameContextCreator : []→context,
-	interface : [string, string, <string…|>]→command
+	interface : [string, string, string*]→command
 |
 	/* Produce a fresh context for the choosable path story. */
 	aContext : complete context := engine context for gameContextCreator;
@@ -215,7 +215,7 @@ Public method "Play a game,⁇creating a context with_,⁇interacting with_" is
 		[
 			title : string;
 			description : string;
-			transitionDescriptions : <string…|>;
+			transitionDescriptions : string*;
 			currentScene ::= aContext's current scene;
 			If aContext's beginning flag ∨
 				currentScene ≠ aContext's previous scene then

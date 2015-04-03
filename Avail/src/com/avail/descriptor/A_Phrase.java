@@ -356,4 +356,13 @@ extends A_BasicObject
 	 */
 	boolean parseNodeKindIsUnder (
 		ParseNodeKind expectedParseNodeKind);
+
+	/**
+	 * The receiver is a {@link ParseNodeKind#MACRO_SUBSTITUTION macro
+	 * substitution phrase}.  Answer the {@link ParseNodeKind#SEND_NODE send
+	 * phrase} that was transformed by the macro body.
+	 *
+	 * @return The original send phrase of this macro substitution.
+	 */
+	A_Phrase macroOriginalSendNode ();
 }

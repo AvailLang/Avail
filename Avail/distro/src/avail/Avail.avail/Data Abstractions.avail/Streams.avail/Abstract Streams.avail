@@ -728,12 +728,12 @@ Semantic restriction "filter_by_" is
  * @type "concatenation stream"
  * @category "Data Abstractions" "Streams"
  * @supertype "stream"
- * @field "decorated streams" "<stream…|>"
+ * @field "decorated streams" "stream*"
  * @field "stream index" "natural number"
  */
 Class "concatenation stream" extends stream
 	with fields
-		decorated streams : <stream…|>,
+		decorated streams : stream*,
 		stream index : natural number;
 
 Method "_is empty" is
@@ -775,14 +775,14 @@ concatenation stream's tail method is
  * 
  * @method "concatenate_"
  * @category "Data Abstractions" "Streams"
- * @param "streams" "<stream…|>"
+ * @param "streams" "stream*"
  *    streams - A tuple of streams.
  * @returns "stream"
  *    The requested stream.
  */
 Method "concatenate_" is
 [
-	streams : <stream…|>
+	streams : stream*
 |
 	if |streams| = 0 then [ an empty stream ]
 	else if [ |streams| = 1 ] then [ streams[1] ]
@@ -825,13 +825,13 @@ Public method "«_‡++»" is
  * 
  * @method "concatenation semantic restriction"
  * @category "Data Abstractions" "Streams"
- * @returns "[<stream…|>'s type]→concatenation stream"
+ * @returns "[stream*'s type]→concatenation stream"
  *    The requested funcion.
  */
 Private method "concatenation semantic restriction" is
 [
 	[
-		streams : <stream…|>'s type
+		streams : stream*'s type
 	|
 		elementType : any's type's type := ⊥;
 		For each i from 1 to (⎣streams⎦ min (|streams' leading types| + 1)) do
@@ -857,12 +857,12 @@ Grammatical restriction {"«_‡++»"} is <{"«_‡++»"}>;
  * @category "Data Abstractions" "Streams"
  * @supertype "stream"
  * @field "element type" "tuple's type"
- * @field "decorated streams" "<stream…|>"
+ * @field "decorated streams" "stream*"
  */
 Explicit class "zipped stream" extends stream
 	with fields
 		element type : tuple's type,
-		decorated streams : <stream…|>;
+		decorated streams : stream*;
 
 Method "_is empty" is
 [
@@ -896,14 +896,14 @@ zipped stream's tail method is
  * 
  * @method "zip_"
  * @category "Data Abstractions" "Streams"
- * @param "streams" "<stream…|1..>"
+ * @param "streams" "stream+"
  *    streams - A tuple of streams.
  * @returns "stream"
  *    The requested stream.
  */
 Method "zip_" is
 [
-	streams : <stream…|1..>
+	streams : stream+
 |
 	types ::= map streams through [s : stream | s's element type];
 	elementType ::= <types[1..|types| - 1], types' last… | |streams|'s type>;
@@ -941,13 +941,13 @@ Method "«_‡zip»" is
  * and `«_‡zip»` methods.
  * 
  * @method "zip semantic restriction"
- * @returns "[<stream…|1..>'s type]→zipped stream"
+ * @returns "[stream+'s type]→zipped stream"
  *    The requested funcion.
  */
 Private method "zip semantic restriction" is
 [
 	[
-		streams : <stream…|1..>'s type
+		streams : stream+'s type
 	|
 		types : <any's type…|> := <>;
 		For each i from 1 to (⎣streams⎦ min (|streams' leading types| + 1)) do

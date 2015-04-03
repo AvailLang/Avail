@@ -1394,14 +1394,14 @@ Public method "Unless|unless_then_«else unless_then_»«else_»" is
  * @method "Unless|unless_then_«else unless_then_»«else_»"
  * @restricts "boolean's type"
  * @restricts "[]→⊤'s type"
- * @restricts "<<[]→boolean, []→⊤…|2>…|1..>'s type"
+ * @restricts "<[]→boolean, []→⊤…|2>+'s type"
  * @restricts "([]→⊤)?'s type"
  */
 Semantic restriction "Unless|unless_then_«else unless_then_»«else_»" is
 [
 	firstPredicate : boolean's type,
 	firstThen : []→⊤'s type,
-	elseUnlessTuple : <<[]→boolean, []→⊤…|2>…|1..>'s type,
+	elseUnlessTuple : <[]→boolean, []→⊤…|2>+'s type,
 	else : ([]→⊤)?'s type
 |
 	/* `ambiguous` tracks whether any of the predicates cannot be proven to
@@ -1427,7 +1427,7 @@ Semantic restriction "Unless|unless_then_«else unless_then_»«else_»" is
 	 */
 	union : type := ⊥;
 	/* Handle `firstPredicate` specially (because it is lexically distinct from
-	 * `elseIfTuple`).
+	 * `elseUnlessTuple`).
 	 */
 	If firstPredicate = false's type then
 	[
@@ -1446,7 +1446,7 @@ Semantic restriction "Unless|unless_then_«else unless_then_»«else_»" is
 		elseUnlessTupleSize ::= relevant |elseUnlessTuple|;
 		/* `keepLooping` tracks whether it is necessary to continue examining
 		 * predicate/action pairs. It is set to `false` when a predicate is
-		 * discovered that answers `true's type`. No predicate/action pairs
+		 * discovered that answers `false's type`. No predicate/action pairs
 		 * beyond such a one participate in determination of the result type,
 		 * i.e., they are guaranteed not to execute at runtime.
 		 */
@@ -1458,7 +1458,7 @@ Semantic restriction "Unless|unless_then_«else unless_then_»«else_»" is
 			elseUnless ::= elseUnlessTuple[index];
 			predicateReturnType ::= elseUnless[1]'s return type;
 			actionReturnType ::= elseUnless[2]'s return type;
-			If ¬ambiguous ∧ predicateReturnType = true's type then
+			If ¬ambiguous ∧ predicateReturnType = false's type then
 			[
 				exact := actionReturnType;
 			];

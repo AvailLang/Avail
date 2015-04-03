@@ -403,7 +403,7 @@ Public stable method "concatenate_" is
 |
 	path ::=
 		[
-			ns : <string…|>
+			ns : string*
 		|
 			Primitive 446 (e : {invalid-path code}ᵀ);
 			Raise an exception for e
@@ -468,7 +468,7 @@ Public method "«_‡/»" is
 |
 	path ::=
 		[
-			ns : <string…|>
+			ns : string*
 		|
 			Primitive 446 (e : {invalid-path code}ᵀ);
 			Raise an exception for e
@@ -518,7 +518,7 @@ Public stable method "_'s⁇path components" is
 		|
 			Primitive 447 (e : {invalid-path code}ᵀ);
 			Raise an exception for e
-		] : <string…|1..> (fn's name);
+		] : string+ (fn's name);
 	map each c in components through [a file named c]
 ] : <file name…|1..>;
 

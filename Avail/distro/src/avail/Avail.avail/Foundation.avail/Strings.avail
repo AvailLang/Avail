@@ -1103,31 +1103,31 @@ Method "_>_" is
  * Quicksort a tuple of strings in ascending order.
  * 
  * @method "quicksort_"
- * @param "strings" "<string…|>" The {@type "tuple"} of strings to sort
- * @returns "<string…|>" A sorted {@type "tuple"} of strings
+ * @param "strings" "string*" The {@type "tuple"} of strings to sort
+ * @returns "string*" A sorted {@type "tuple"} of strings
  * @category "Strings" "Sorting"
  */
 Method "quicksort_" is
 [
-	strings : <string…|>
+	strings : string*
 |
 	quicksort strings with [a : string, b : string | a ≤ b]
-] : <string…|>;
+] : string*;
 
 /**
  * Merge sort a tuple of strings in ascending order.
  * 
  * @method "merge sort_"
- * @param "strings" "<string…|>" The {@type "tuple"} of strings to sort
- * @returns "<string…|>" A sorted {@type "tuple"} of strings
+ * @param "strings" "string*" The {@type "tuple"} of strings to sort
+ * @returns "string*" A sorted {@type "tuple"} of strings
  * @category "Strings" "Sorting"
  */
 Method "merge sort_" is
 [
-	strings : <string…|>
+	strings : string*
 |
 	merge sort strings with [a : string, b : string | a ≤ b]
-] : <string…|>;
+] : string*;
 
 /**
  * Stringify the argument.

@@ -3763,14 +3763,11 @@ public abstract class AbstractDescriptor
 	 *
 	 * @param object
 	 *            The first object.
-	 * @param aTupleType
-	 *            The second object, a tuple type equal to the first object.
 	 * @return
 	 *            Whether the first object is a better representation to keep.
 	 */
-	abstract boolean o_IsBetterRepresentationThanTupleType (
-		AvailObject object,
-		A_Type aTupleType);
+	abstract int o_RepresentationCostOfTupleType (
+		AvailObject object);
 
 	/**
 	 * @param object
@@ -6228,4 +6225,10 @@ public abstract class AbstractDescriptor
 	abstract void o_StatementsDo (
 		AvailObject object,
 		Continuation1<A_Phrase> continuation);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Phrase o_MacroOriginalSendNode (final AvailObject object);
 }

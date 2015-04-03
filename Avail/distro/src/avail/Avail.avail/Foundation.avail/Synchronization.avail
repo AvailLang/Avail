@@ -207,10 +207,10 @@ Semantic restriction "Atomically update_↑using_" is
  * The type of a {@type "tuple"} of {@type "fiber"}s.
  *
  * @type "parking queue"
- * @supertype "<fiber…|>"
+ * @supertype "fiber*"
  * @category "Synchronization" "Types" "Constants"
  */
-Public method "parking queue" is [<fiber…|>];
+Public method "parking queue" is [fiber*];
 
 /**
  * Queue the specified {@type "fiber"} on the {@type "parking queue"}, spinning
