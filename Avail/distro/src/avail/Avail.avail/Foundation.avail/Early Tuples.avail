@@ -505,37 +505,6 @@ Grammatical restriction {"concatenate_"} is <{"_++_"}>;
 Grammatical restriction {"_++_"} is <∅, {"_++_"}>;
 
 /**
- * Compute and answer a {@type "tuple"} whose first <code>N-1</code> elements
- * are {@param "aTuple"} and whose <code>N<sup>th</sup></code> element is
- * {@param "newElement"}.
- *
- * @category "Primitives" "Tuples" 
- * @method "_with_appended"
- * @param "aTuple" "tuple"
- *        A tuple.
- * @param "newElement" "any"
- *        The element that must be the tail of the resultant tuple.
- * @returns "tuple"
- *    A tuple that has the same elements as {@param "aTuple"} but with
- *    {@param "newElement"} appended.
- */
-Private method "_with_appended" is
-[
-	aTuple : tuple,
-	newElement : any
-|
-	Primitive 703;
-] : tuple;
-
-Semantic restriction "_with_appended" is
-[
-	tupleType : tuple meta,
-	newElementType : any meta
-|
-	tupleType ++ <<>, newElementType…|[1..1]>
-];
-
-/**
  * Compute and answer the minimum size of {@param "tupleType"} for efficient
  * traversal of its relevant element types.
  * 
@@ -1265,8 +1234,6 @@ Public method "_↑++=_" is
 	var ?= eject var ++ t;
 ] : ⊤;
 
-Alias "_++=_" to "_↑++=_";
-
 Semantic restriction "_↑++=_" is
 [
 	varType : (read tuple/write ⊥)'s type,
@@ -1279,3 +1246,60 @@ Semantic restriction "_↑++=_" is
 	];
 	⊤
 ];
+
+/**
+ * Compute and answer a {@type "tuple"} whose first <code>N-1</code> elements
+ * are {@param "aTuple"} and whose <code>N<sup>th</sup></code> element is
+ * {@param "newElement"}.
+ *
+ * @category "Primitives" "Tuples" 
+ * @method "_with_appended"
+ * @param "aTuple" "tuple"
+ *        A tuple.
+ * @param "newElement" "any"
+ *        The element that must be the tail of the resultant tuple.
+ * @returns "tuple"
+ *    A tuple that has the same elements as {@param "aTuple"} but with
+ *    {@param "newElement"} appended.
+ */
+Private method "_with_appended" is
+[
+	aTuple : tuple,
+	newElement : any
+|
+	Primitive 703;
+] : tuple;
+
+Semantic restriction "_with_appended" is
+[
+	tupleType : tuple meta,
+	newElementType : any meta
+|
+	tupleType ++ <<>, newElementType…|[1..1]>
+];
+
+Macro "_↑++=_" is
+[
+	varPhrase : variable reference phrase ⇒ read tuple/write ⊥,
+	elemPhrase : expression phrase ⇒ <<>, any…|[1..1]>
+|
+Print: concatenate <
+	"varPhrase=",
+	“varPhrase”,
+	"\n",
+	"elemPhrase=",
+	“elemPhrase”,
+	"\n",
+	"elemPhrase's semantic type=",
+	“elemPhrase's semantic type”,
+	"\n">;
+	««↓varPhrase» :=
+		restricted send $"_with_appended" with
+		<
+			restricted send $"eject_↑" with <varPhrase> : any,
+			elemPhrase
+		> : tuple
+	»
+];
+
+Alias "_++=_" to "_↑++=_";
