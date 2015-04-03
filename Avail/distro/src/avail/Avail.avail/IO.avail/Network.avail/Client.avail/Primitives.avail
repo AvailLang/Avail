@@ -515,7 +515,7 @@ is
  * @param "count "whole number"
  *        The maximum number of bytes to read from the connection.
  * @param "s" "client socket"
- * @param "success" "[<byte…|>, boolean]→⊤"
+ * @param "success" "[byte*, boolean]→⊤"
  *        The function to apply to the newly read data and end-of-stream
  *        indicator.
  * @param "failure" "[exception]→⊤"
@@ -537,7 +537,7 @@ is
 [
 	count : whole number,
 	s : client socket,
-	success : [<byte…|>, boolean]→⊤,
+	success : [byte*, boolean]→⊤,
 	failure : [exception]→⊤,
 	optionalPriority : byte?
 |
@@ -547,7 +547,7 @@ is
 	[
 		n : [0..2^31-1],
 		h : atom,
-		f1 : [<byte…|>, boolean]→⊤,
+		f1 : [byte*, boolean]→⊤,
 		f2 : [I/O-error code's type]→⊤,
 		p : byte
 	|
@@ -598,10 +598,10 @@ is
  *    "a fiber writing_to_,⁇\
  *    \|on success doing_,⁇\
  *    \|on failure doing_«⁇,forked at priority_»"
- * @param "data "<byte…|>"
+ * @param "data "byte*"
  *        The bytes to write.
  * @param "s" "client socket"
- * @param "success" "[<byte…|>, boolean]→⊤"
+ * @param "success" "[byte*, boolean]→⊤"
  *        The function to apply if the write completes successfully.
  * @param "failure" "[exception]→⊤"
  *        The function to apply to the {@type "exception"} that classifies the
@@ -620,7 +620,7 @@ Public method
 	\|on failure doing_«⁇,forked at priority_»"
 is
 [
-	data : <byte…|>,
+	data : byte*,
 	s : client socket,
 	success : []→⊤,
 	failure : [exception]→⊤,
@@ -629,7 +629,7 @@ is
 	bad ::= [c : natural number | failure(an exception for c);];
 	priority ::= optionalPriority[1] else [current fiber's priority];
 	[
-		d : <byte…|>,
+		d : byte*,
 		h : atom,
 		f1 : []→⊤,
 		f2 : [I/O-error code's type]→⊤,
@@ -650,7 +650,7 @@ is
  *  "a fiber writing_to_,⁇\
  *  \|on success doing_,⁇\
  *  \|on failure doing_«⁇,forked at priority_»"
- * @restricts "<byte…|>'s type"
+ * @restricts "byte*'s type"
  * @restricts "client socket's type"
  * @restricts "[]→⊤'s type"
  * @restricts "[exception]→⊤'s type"
@@ -662,7 +662,7 @@ Semantic restriction
 	\|on failure doing_«⁇,forked at priority_»"
 is
 [
-	data : <byte…|>'s type,
+	data : byte*'s type,
 	s : client socket's type,
 	success : []→⊤'s type,
 	failure : [exception]→⊤'s type,

@@ -43,14 +43,15 @@ import com.avail.utility.json.JSONWriter;
  * ordinary multimethods.  The first difference is which primitive is used to
  * define a macro versus a method.  The other difference is that instead of
  * generating code at an occurrence to call a method (a call site), the macro
- * body is immediately invoked, passing the parse nodes that occupy the
- * corresponding argument positions in the method/macro name.  The macro body
- * will then do what it does and return a suitable parse node.
+ * body is immediately invoked, passing the {@link ParseNodeDescriptor parse
+ * nodes} that occupy the corresponding argument positions in the method/macro
+ * name.  The macro body will then do what it does and return a suitable parse
+ * node.
  *
- * <p>Since the macro is essentially a compile-time construct, there's not much
- * point in letting it have semantic restrictions, so these are forbidden.
- * Instead, the macro is expected to throw a suitable exception if it is being
- * used in an incorrect or unsupported manner.</p>
+ * <p>Instead of returning a new parse node, a macro body may instead reject
+ * parsing, the same way a {@link SemanticRestrictionDescriptor semantic
+ * restriction may}.  As you might expect, the diagnostic message provided to
+ * the parse rejection primitive will be presented to the user.</p>
  *
  * <p>As with methods, repeated arguments of macros are indicated with
  * guillemets («») and the double-dagger (‡).  The type of such an argument for

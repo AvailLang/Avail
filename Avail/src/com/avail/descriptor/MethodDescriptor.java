@@ -1662,7 +1662,10 @@ extends Descriptor
 	@Override @AvailMethod
 	A_Set o_SemanticRestrictions (final AvailObject object)
 	{
-		return object.slot(SEMANTIC_RESTRICTIONS_SET);
+		synchronized (object)
+		{
+			return object.slot(SEMANTIC_RESTRICTIONS_SET);
+		}
 	}
 
 	@Override @AvailMethod @ThreadSafe

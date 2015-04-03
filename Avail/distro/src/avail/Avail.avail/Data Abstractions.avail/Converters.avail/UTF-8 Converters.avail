@@ -56,7 +56,7 @@ Body
  * 
  * @method "bytes from_"
  * @param "codePoint" "code point"
- * @returns "<byte…|>"
+ * @returns "byte*"
  * @category "Data Abstractions" "Converters" "Codecs"
  */
 Abstract method "bytes from_" is [code point] → byte*;
@@ -132,7 +132,7 @@ Public method "a UTF8 encoder" is
  * @method "_process_"
  * @param "encoder" "UTF8 encoder"
  * @param "sourceTuple" "string"
- * @returns "<bytes…|>"
+ * @returns "bytes*"
  * @category "Data Abstractions" "Converters" "Codecs"
  */
 Method "_process_" is

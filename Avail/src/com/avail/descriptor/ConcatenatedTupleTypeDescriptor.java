@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor.ObjectSlots.*;
 import static java.lang.Math.*;
 import com.avail.annotations.*;
@@ -50,6 +51,20 @@ public final class ConcatenatedTupleTypeDescriptor
 extends TypeDescriptor
 {
 	/**
+	 * The layout of integer slots for my instances.
+	 */
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
+	{
+		/**
+		 * The number of layers of virtualized concatenation in this tuple type.
+		 * This may become a conservatively large estimate due to my subobjects
+		 * being coalesced with more direct representations.
+		 */
+		TUPLE_TYPE_COMPLEXITY
+	}
+
+	/**
 	 * The layout of object slots for my instances.
 	 */
 	public enum ObjectSlots
@@ -64,6 +79,43 @@ extends TypeDescriptor
 		 * The type of the right tuple being concatenated.
 		 */
 		SECOND_TUPLE_TYPE
+	}
+
+	/**
+	 * The maximum depth of {@link ConcatenatedTupleTypeDescriptor concatenated
+	 * tuple types} that may exist before converting to a fully reified {@link
+	 * TupleTypeDescriptor tuple type}.
+	 */
+	private static final int maximumConcatenationDepth = 10;
+
+	/**
+	 * Answer the type that my last element must have, if any.  Do not call this
+	 * from within a garbage collection, as it may need to allocate space for
+	 * computing a type union.
+	 */
+	@Override @AvailMethod
+	A_Type o_DefaultType (final AvailObject object)
+	{
+		final A_Type a = object.slot(FIRST_TUPLE_TYPE);
+		final A_Type b = object.slot(SECOND_TUPLE_TYPE);
+		final A_Type bRange = b.sizeRange();
+		assert !bRange.upperBound().equals(IntegerDescriptor.zero());
+		if (a.sizeRange().upperBound().isFinite())
+		{
+			return b.defaultType();
+		}
+		int highIndexInB;
+		if (bRange.upperBound().isFinite())
+		{
+			highIndexInB = bRange.upperBound().extractInt();
+		}
+		else
+		{
+			highIndexInB = b.typeTuple().tupleSize() + 1;
+		}
+		final A_Type typeUnion = a.defaultType().typeUnion(
+			b.unionOfTypesAtThrough(1, highIndexInB));
+		return typeUnion;
 	}
 
 	@Override @AvailMethod
@@ -91,102 +143,28 @@ extends TypeDescriptor
 		{
 			return false;
 		}
-		return object.typeTuple().equals(aTupleType.typeTuple());
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * A {@link ConcatenatedTupleTypeDescriptor concatenated tuple type} isn't
-	 * a very fast representation to use, even though it's easy to construct.
-	 * </p>
-	 */
-	@Override @AvailMethod
-	boolean o_IsBetterRepresentationThan (
-		final AvailObject object,
-		final A_BasicObject anotherObject)
-	{
-		return false;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * I'm not a very time-efficient representation of a tuple type.
-	 * </p>
-	 */
-	@Override @AvailMethod
-	boolean o_IsBetterRepresentationThanTupleType (
-		final AvailObject object,
-		final A_Type aTupleType)
-	{
-		return false;
-	}
-
-	/**
-	 * Expand me into an actual TupleTypeDescriptor, converting my storage into
-	 * an indirection object to the actual tupleType.
-	 *
-	 * @param object
-	 *        The {@linkplain ConcatenatedTupleTypeDescriptor concatenated tuple
-	 *        type} to transform.
-	 */
-	private void becomeRealTupleType (final AvailObject object)
-	{
-		// There isn't even a shared descriptor -- we reify the tuple type upon
-		// sharing.
-		assert !isShared();
-		final A_Type part1 = object.slot(FIRST_TUPLE_TYPE);
-		final A_Number size1 = part1.sizeRange().upperBound();
-		int limit1;
-		if (size1.isFinite())
+		if (!object.typeTuple().equals(aTupleType.typeTuple()))
 		{
-			limit1 = size1.extractInt();
+			return false;
+		}
+		// They're equal, but occupy disjoint storage. If possible, replace one
+		// with an indirection to the other.
+		if (object.representationCostOfTupleType()
+			< aTupleType.representationCostOfTupleType())
+		{
+			if (!aTupleType.descriptor().isShared())
+			{
+				aTupleType.becomeIndirectionTo(object.makeImmutable());
+			}
 		}
 		else
 		{
-			limit1 = max(
-				part1.typeTuple().tupleSize() + 1,
-				part1.sizeRange().lowerBound().extractInt());
+			if (!isShared())
+			{
+				object.becomeIndirectionTo(aTupleType.makeImmutable());
+			}
 		}
-		final A_Type part2 = object.slot(SECOND_TUPLE_TYPE);
-		final A_Number size2 = part2.sizeRange().upperBound();
-		int limit2;
-		if (size2.isFinite())
-		{
-			limit2 = size2.extractInt();
-		}
-		else
-		{
-			limit2 = part2.typeTuple().tupleSize() + 1;
-		}
-		final int total = limit1 + limit2;
-		final A_Tuple typeTuple =
-			ObjectTupleDescriptor.createUninitialized(total);
-		// Make it pointer-safe first.
-		for (int i = 1; i <= total; i++)
-		{
-			typeTuple.objectTupleAtPut(i, NilDescriptor.nil());
-		}
-		final int section1 = min(
-			part1.sizeRange().lowerBound().extractInt(),
-			limit1);
-		for (int i = 1; i <= section1; i++)
-		{
-			typeTuple.objectTupleAtPut(i, part1.typeAtIndex(i));
-		}
-		for (int i = section1 + 1; i <= total; i++)
-		{
-			typeTuple.objectTupleAtPut(i, object.typeAtIndex(i));
-		}
-		final A_Type newObject =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				object.sizeRange(),
-				typeTuple,
-				object.defaultType());
-		object.becomeIndirectionTo(newObject);
+		return true;
 	}
 
 	/**
@@ -202,94 +180,35 @@ extends TypeDescriptor
 		return object.hash();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * A {@link ConcatenatedTupleTypeDescriptor concatenated tuple type} isn't
+	 * a very fast representation to use, even though it's easy to construct.
+	 * </p>
+	 */
 	@Override @AvailMethod
-	A_Type o_UnionOfTypesAtThrough (
+	boolean o_IsBetterRepresentationThan (
 		final AvailObject object,
-		final int startIndex,
-		final int endIndex)
+		final A_BasicObject anotherObject)
 	{
-		// Answer the union of the types that object's instances could have in
-		// the given range of indices. Out-of-range indices are treated as
-		// bottom, which don't affect the union (unless all indices are out
-		// of range).
-
-		assert startIndex <= endIndex;
-		if (startIndex == endIndex)
-		{
-			return object.typeAtIndex(startIndex);
-		}
-		if (endIndex <= 0)
-		{
-			return BottomTypeDescriptor.bottom();
-		}
-		final A_Type firstTupleType = object.slot(FIRST_TUPLE_TYPE);
-		final A_Type secondTupleType = object.slot(SECOND_TUPLE_TYPE);
-		final A_Number firstUpper = firstTupleType.sizeRange().upperBound();
-		final A_Number secondUpper = secondTupleType.sizeRange().upperBound();
-		final A_Number totalUpper =
-			firstUpper.noFailPlusCanDestroy(secondUpper, false);
-		final A_Number startIndexObject = IntegerDescriptor.fromInt(startIndex);
-		if (totalUpper.isFinite())
-		{
-			if (startIndexObject.greaterThan(totalUpper))
-			{
-				return BottomTypeDescriptor.bottom();
-			}
-		}
-		A_Type typeUnion =
-			firstTupleType.unionOfTypesAtThrough(startIndex, endIndex);
-		final A_Number startInSecondObject =
-			startIndexObject.minusCanDestroy(firstUpper, false);
-		final int startInSecond =
-			startInSecondObject.lessThan(IntegerDescriptor.one())
-				? 1
-				: startInSecondObject.extractInt();
-		final A_Number endInSecondObject =
-			IntegerDescriptor.fromInt(endIndex).minusCanDestroy(
-				firstTupleType.sizeRange().lowerBound(),
-				false);
-		final int endInSecond =
-			endInSecondObject.lessThan(IntegerDescriptor.one())
-				? 1
-				: endInSecondObject.isInt()
-					? endInSecondObject.extractInt()
-					: Integer.MAX_VALUE;
-		typeUnion = typeUnion.typeUnion(
-			secondTupleType.unionOfTypesAtThrough(startInSecond, endInSecond));
-		return typeUnion;
+		return object.representationCostOfTupleType()
+			< anotherObject.representationCostOfTupleType();
 	}
 
 	/**
-	 * Answer the type that my last element must have, if any.  Do not call this
-	 * from within a garbage collection, as it may need to allocate space for
-	 * computing a type union.
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * I'm not a very time-efficient representation of a tuple type.
+	 * </p>
 	 */
 	@Override @AvailMethod
-	A_Type o_DefaultType (final AvailObject object)
+	int o_RepresentationCostOfTupleType (
+		final AvailObject object)
 	{
-		final A_Type a = object.slot(FIRST_TUPLE_TYPE);
-		final A_Type b = object.slot(SECOND_TUPLE_TYPE);
-		final A_Type bRange = b.sizeRange();
-		if (bRange.upperBound().equals(IntegerDescriptor.zero()))
-		{
-			return a.defaultType();
-		}
-		if (a.sizeRange().upperBound().isFinite())
-		{
-			return b.defaultType();
-		}
-		int highIndexInB;
-		if (bRange.upperBound().isFinite())
-		{
-			highIndexInB = bRange.upperBound().extractInt();
-		}
-		else
-		{
-			highIndexInB = b.typeTuple().tupleSize() + 1;
-		}
-		final A_Type typeUnion = a.defaultType().typeUnion(
-			b.unionOfTypesAtThrough(1, highIndexInB));
-		return typeUnion;
+		return object.slot(TUPLE_TYPE_COMPLEXITY);
 	}
 
 	/**
@@ -373,6 +292,31 @@ extends TypeDescriptor
 			}
 		}
 		return true;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsTupleType (final AvailObject object)
+	{
+		return true;
+	}
+
+	@Override
+	AvailObject o_MakeShared (final AvailObject object)
+	{
+		// Before an object using this descriptor can be shared, it must first
+		// become (an indirection to) a proper tuple type.
+		assert !isShared();
+		becomeRealTupleType(object);
+		object.makeShared();
+		return object.traversed();
+	}
+
+	@Override
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
+	{
+		becomeRealTupleType(object);
+		return object.serializerOperation();
 	}
 
 	@Override
@@ -577,28 +521,60 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsTupleType (final AvailObject object)
+	A_Type o_UnionOfTypesAtThrough (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex)
 	{
-		return true;
-	}
+		// Answer the union of the types that object's instances could have in
+		// the given range of indices. Out-of-range indices are treated as
+		// bottom, which don't affect the union (unless all indices are out
+		// of range).
 
-	@Override
-	SerializerOperation o_SerializerOperation (
-		final AvailObject object)
-	{
-		becomeRealTupleType(object);
-		return object.serializerOperation();
-	}
-
-	@Override
-	AvailObject o_MakeShared (final AvailObject object)
-	{
-		// Before an object using this descriptor can be shared, it must first
-		// become (an indirection to) a proper tuple type.
-		assert !isShared();
-		becomeRealTupleType(object);
-		object.makeShared();
-		return object.traversed();
+		assert startIndex <= endIndex;
+		if (startIndex == endIndex)
+		{
+			return object.typeAtIndex(startIndex);
+		}
+		if (endIndex <= 0)
+		{
+			return BottomTypeDescriptor.bottom();
+		}
+		final A_Type firstTupleType = object.slot(FIRST_TUPLE_TYPE);
+		final A_Type secondTupleType = object.slot(SECOND_TUPLE_TYPE);
+		final A_Number firstUpper = firstTupleType.sizeRange().upperBound();
+		final A_Number secondUpper = secondTupleType.sizeRange().upperBound();
+		final A_Number totalUpper =
+			firstUpper.noFailPlusCanDestroy(secondUpper, false);
+		final A_Number startIndexObject = IntegerDescriptor.fromInt(startIndex);
+		if (totalUpper.isFinite())
+		{
+			if (startIndexObject.greaterThan(totalUpper))
+			{
+				return BottomTypeDescriptor.bottom();
+			}
+		}
+		A_Type typeUnion =
+			firstTupleType.unionOfTypesAtThrough(startIndex, endIndex);
+		final A_Number startInSecondObject =
+			startIndexObject.minusCanDestroy(firstUpper, false);
+		final int startInSecond =
+			startInSecondObject.lessThan(IntegerDescriptor.one())
+				? 1
+				: startInSecondObject.extractInt();
+		final A_Number endInSecondObject =
+			IntegerDescriptor.fromInt(endIndex).minusCanDestroy(
+				firstTupleType.sizeRange().lowerBound(),
+				false);
+		final int endInSecond =
+			endInSecondObject.lessThan(IntegerDescriptor.one())
+				? 1
+				: endInSecondObject.isInt()
+					? endInSecondObject.extractInt()
+					: Integer.MAX_VALUE;
+		typeUnion = typeUnion.typeUnion(
+			secondTupleType.unionOfTypesAtThrough(startInSecond, endInSecond));
+		return typeUnion;
 	}
 
 	@Override
@@ -618,28 +594,111 @@ extends TypeDescriptor
 	}
 
 	/**
+	 * Expand me into an actual TupleTypeDescriptor, converting my storage into
+	 * an indirection object to the actual tupleType.
+	 *
+	 * @param object
+	 *        The {@linkplain ConcatenatedTupleTypeDescriptor concatenated tuple
+	 *        type} to transform.
+	 */
+	private void becomeRealTupleType (final AvailObject object)
+	{
+		// There isn't even a shared descriptor -- we reify the tuple type upon
+		// sharing.
+		assert !isShared();
+		final A_Type part1 = object.slot(FIRST_TUPLE_TYPE);
+		final A_Number size1 = part1.sizeRange().upperBound();
+		int limit1;
+		if (size1.isFinite())
+		{
+			limit1 = size1.extractInt();
+		}
+		else
+		{
+			limit1 = max(
+				part1.typeTuple().tupleSize() + 1,
+				part1.sizeRange().lowerBound().extractInt());
+		}
+		final A_Type part2 = object.slot(SECOND_TUPLE_TYPE);
+		final A_Number size2 = part2.sizeRange().upperBound();
+		int limit2;
+		if (size2.isFinite())
+		{
+			limit2 = size2.extractInt();
+		}
+		else
+		{
+			limit2 = part2.typeTuple().tupleSize() + 1;
+		}
+		final int total = limit1 + limit2;
+		final A_Tuple typeTuple =
+			ObjectTupleDescriptor.createUninitialized(total);
+		// Make it pointer-safe first.
+		for (int i = 1; i <= total; i++)
+		{
+			typeTuple.objectTupleAtPut(i, NilDescriptor.nil());
+		}
+		final int section1 = min(
+			part1.sizeRange().lowerBound().extractInt(),
+			limit1);
+		for (int i = 1; i <= section1; i++)
+		{
+			typeTuple.objectTupleAtPut(i, part1.typeAtIndex(i));
+		}
+		for (int i = section1 + 1; i <= total; i++)
+		{
+			typeTuple.objectTupleAtPut(i, object.typeAtIndex(i));
+		}
+		final A_Type newObject =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				object.sizeRange(),
+				typeTuple,
+				object.defaultType());
+		object.becomeIndirectionTo(newObject);
+	}
+
+	/**
 	 * Construct a lazy concatenated tuple type object to represent the type
 	 * that is the concatenation of the two tuple types.  Make the objects be
 	 * immutable, because the new type represents the concatenation of the
 	 * objects <em>at the time it was built</em>.
 	 *
-	 * @param firstObject
+	 * @param firstTupleType
 	 *        The first tuple type to concatenate.
-	 * @param secondObject
+	 * @param secondTupleType
 	 *        The second tuple type to concatenate.
 	 * @return
 	 *        A simple representation of the tuple type whose instances are all
-	 *        the concatenations of instances of the two given tupletypes.
+	 *        the concatenations of instances of the two given tuple types.
 	 */
-	public static AvailObject concatenatingAnd (
-		final A_Type firstObject,
-		final A_Type secondObject)
+	public static A_Type concatenatingAnd (
+		final A_Type firstTupleType,
+		final A_Type secondTupleType)
 	{
-		assert firstObject.isTupleType() && !firstObject.isBottom();
-		assert secondObject.isTupleType() && !secondObject.isBottom();
+		assert firstTupleType.isTupleType() && !firstTupleType.isBottom();
+		assert secondTupleType.isTupleType() && !secondTupleType.isBottom();
+		if (secondTupleType.sizeRange().upperBound().equals(
+			IntegerDescriptor.zero()))
+		{
+			return firstTupleType.makeImmutable();
+		}
+		if (firstTupleType.sizeRange().upperBound().equals(
+			IntegerDescriptor.zero()))
+		{
+			return secondTupleType.makeImmutable();
+		}
+		final int maxCost = max(
+			firstTupleType.representationCostOfTupleType(),
+			secondTupleType.representationCostOfTupleType());
 		final AvailObject result = mutable.create();
-		result.setSlot(FIRST_TUPLE_TYPE, firstObject.makeImmutable());
-		result.setSlot(SECOND_TUPLE_TYPE, secondObject.makeImmutable());
+		result.setSlot(TUPLE_TYPE_COMPLEXITY, maxCost + 1);
+		result.setSlot(FIRST_TUPLE_TYPE, firstTupleType.makeImmutable());
+		result.setSlot(SECOND_TUPLE_TYPE, secondTupleType.makeImmutable());
+		if (maxCost > maximumConcatenationDepth)
+		{
+			mutable.becomeRealTupleType(result);
+			return result.makeImmutable();
+		}
 		return result;
 	}
 
@@ -651,7 +710,7 @@ extends TypeDescriptor
 	 */
 	private ConcatenatedTupleTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/** The mutable {@link ConcatenatedTupleTypeDescriptor}. */

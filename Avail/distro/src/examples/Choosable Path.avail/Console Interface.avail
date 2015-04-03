@@ -115,14 +115,14 @@ Private method "prettify_" is
  * Answer a standard console interface for a choosable path story.
  *
  * @method "standard console interface"
- * @returns "[string, string, <string…|>]→command"
+ * @returns "[string, string, string*]→command"
  */
 Public method "standard console interface" is
 [
 	[
 		title : string,
 		description : string,
-		transitionDescriptions : <string…|>
+		transitionDescriptions : string*
 	|
 		$body : command;
 		Unless title is empty then
@@ -178,4 +178,4 @@ Public method "standard console interface" is
 			];
 		]
 	] : command
-] : [string, string, <string…|>]→command;
+] : [string, string, string*]→command;

@@ -1131,12 +1131,10 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsBetterRepresentationThanTupleType (
-		final AvailObject object,
-		final A_Type aTupleType)
+	int o_RepresentationCostOfTupleType (
+		final AvailObject object)
 	{
-		return o_Traversed(object).isBetterRepresentationThanTupleType(
-			aTupleType);
+		return o_Traversed(object).representationCostOfTupleType();
 	}
 
 	@Override
@@ -4804,5 +4802,11 @@ extends AbstractDescriptor
 		final Continuation1<A_Phrase> continuation)
 	{
 		o_Traversed(object).statementsDo(continuation);
+	}
+
+	@Override
+	A_Phrase o_MacroOriginalSendNode (final AvailObject object)
+	{
+		return o_Traversed(object).macroOriginalSendNode();
 	}
 }

@@ -1,5 +1,5 @@
-/*
- * Web Interface.avail
+/**
+ * TraceMacrosAction.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,55 +30,40 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Web Interface"
-Versions
-	"1.0.0 DEV 2014-04-28"
-Uses
-	"Avail",
-	"Commands"
-Names
-	"web interface"
-Body
+package com.avail.environment.actions;
+
+import java.awt.event.*;
+import com.avail.AvailRuntime;
+import com.avail.annotations.*;
+import com.avail.environment.AvailWorkbench;
+import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 
 /**
- * Answer a web interface for a choosable path story.
- *
- * @method "web interface"
- * @returns "[string, string, string*]→command"
+ * A {@code TraceMacrosAction} toggles the flag that indicates whether to show
+ * macro expansions as they happen during compilation.
  */
-Public method "web interface" is
-[
-	[
-		title : string,
-		description : string,
-		transitionDescriptions : string*
-	|
-		$body : command;
-		Print: (<title, description> ++ transitionDescriptions)→JSON;
-		Repeat
-		[
-			line ::= next line from standard input;
-			If line = "quit" then [Exit body with a quit command];
-			If line = "restart" then [Exit body with a restart command];
-			Guard
-			[
-				transitionOrdinal ::= line→integer;
-				If 1 ≤ transitionOrdinal ≤ |transitionDescriptions| then
-				[
-					Cast transitionOrdinal into
-					[
-						validOrdinal : natural number
-					|
-						Exit body with a transition to validOrdinal command
-					] : ⊤;
-				];
-			]
-			intercept
-			[
-				e : invalid-argument exception
-			|
-				/* Ignore malformed input. */
-			];
-		]
-	] : command
-];
+@SuppressWarnings("serial")
+public final class TraceMacrosAction
+extends AbstractWorkbenchAction
+{
+	@Override
+	public void actionPerformed (final @Nullable ActionEvent event)
+	{
+		final AvailRuntime runtime = workbench.availBuilder.runtime;
+		runtime.debugMacroExpansions = !runtime.debugMacroExpansions;
+	}
+
+	/**
+	 * Construct a new {@link TraceMacrosAction}.
+	 *
+	 * @param workbench
+	 *        The owning {@link AvailWorkbench}.
+	 */
+	public TraceMacrosAction (final AvailWorkbench workbench)
+	{
+		super(workbench, "Trace macros");
+		putValue(
+			SHORT_DESCRIPTION,
+			"Show expansions of macros that run during compilation.");
+	}
+}

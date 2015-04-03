@@ -59,9 +59,9 @@ columnCount : natural number;
  * The records of CSV data. The first such record is the header; it names the
  * individual data fields. The subsequent records are actual data records.
  *
- * @global "records" "<<string…|>…|>"
+ * @global "records" "<string*…|>"
  */
-records : <<string…|1..>…|> := <>;
+records : <string+…|> := <>;
 
 /**
  * An invalid-CSV-record exception indicates that a CSV record was invalid for
@@ -78,13 +78,13 @@ Explicit class "invalid-CSV-record exception" extends descriptive exception;
  * specifies the expected column count.
  *
  * @method "Validate_"
- * @param "record" "<string…|1..>"
+ * @param "record" "string+"
  *        A CSV record that includes at least one column.
  * @raises "invalid-CSV-record exception"
  */
 Private method "Validate_" is
 [
-	record : <string…|1..>
+	record : string+
 |
 	/* Get the size of the record. */
 	size ::= |record|;
@@ -108,12 +108,12 @@ Private method "Validate_" is
  * Add the CSV record to {@global "records"}.
  *
  * @method "«_‡,»"
- * @param "record" "<string…|1..>"
+ * @param "record" "string+"
  *        A {@type "tuple"} of {@type "string"}s.
  */
 Public method "«_‡,»" is
 [
-	record : <string…|1..>
+	record : string+
 |
 	Validate record;
 	records ++= <record>;
@@ -124,11 +124,11 @@ Public method "«_‡,»" is
  * statically known.
  *
  * @method "«_‡,»"
- * @restricts "<string…|1..>'s type"
+ * @restricts "string+'s type"
  */
 Semantic restriction "«_‡,»" is
 [
-	recordType : <string…|1..>'s type
+	recordType : string+'s type
 |
 	/* The guillemets in the method name ensure that each CSV record has a
 	 * column count that is entirely *lexical*. The argument therefore has a
@@ -175,7 +175,7 @@ Public method "Reset CSV processor" is
  * Compute the column metrics for the specified {@type "tuple"} of records.
  *
  * @method "column metrics for_"
- * @param "someRecords" "<string…|>"
+ * @param "someRecords" "string*"
  *        Some CSV records.
  * @returns "<natural number…|>"
  *          The column metrics, i.e., the widths of the widest datum within each
@@ -185,7 +185,7 @@ Public method "Reset CSV processor" is
  */
 Private method "column metrics for_" is
 [
-	someRecords : <<string…|1..>…|>
+	someRecords : <string+…|>
 |
 	/* There are no records, so raise an exception. */
 	Raise an invalid-CSV-record exception with
@@ -196,7 +196,7 @@ Private method "column metrics for_" is
  * Compute the column metrics for the specified {@type "tuple"} of records.
  *
  * @method "column metrics for_"
- * @param "someRecords" "<string…|1..>"
+ * @param "someRecords" "string+"
  *        A nonempty {@type "tuple"} of CSV records.
  * @returns "<natural number…|>"
  *          The column metrics, i.e., the widths of the widest datum within each
@@ -206,7 +206,7 @@ Private method "column metrics for_" is
  */
 Private method "column metrics for_" is
 [
-	someRecords : <<string…|1..>…|1..>
+	someRecords : <string+…|1..>
 |
 	map each columnIndex in 1 to |someRecords[1]| through
 	[

@@ -246,7 +246,7 @@ Method "«using_,»roll_" is
  */
 Public class "dice group" extends dice expression
 	with fields
-		members : <die…|>;
+		members : die*;
 
 Method "“_”" is
 [
@@ -311,12 +311,12 @@ Semantic restriction "_d|D_" is
  *
  * @category "Dice" "Constructors"
  * @method "a dice group with_"
- * @param "someDice" "<die…|>"
+ * @param "someDice" "die*"
  *        Some {@type "die" dice}.
  * @returns "dice group"
  *          The requested {@type "dice group"}.
  */
-Public abstract method "a dice group with_" is [<die…|>]→dice group;
+Public abstract method "a dice group with_" is [die*]→dice group;
 
 Method "a dice group with_" is
 [
@@ -334,7 +334,7 @@ Semantic restriction "a dice group with_" is
 
 Method "a dice group with_" is
 [
-	someDice : <die…|1..>
+	someDice : die+
 |
 	min ::= ∑ map each d in someDice through [min d's faces];
 	max ::= ∑ map each d in someDice through [max d's faces];
@@ -345,7 +345,7 @@ Method "a dice group with_" is
 
 Semantic restriction "a dice group with_" is
 [
-	someDice : <die…|1..>'s type
+	someDice : die+'s type
 |
 	leadCount ::= |someDice's leading types|;
 	ranges : <extended integer's type…|> := <>;
@@ -441,7 +441,7 @@ Public method "_(drop the⁇lowest«_»)" is
 |
 	count ::= optionalCount[1] else [1];
 	Assert: count ≤ |group's members|;
-	members ::= cast group's members into [t : <die…|1..> | t];
+	members ::= cast group's members into [t : die+ | t];
 	min ::= min map each aDie in members through [min aDie's faces];
 	max ::= max map each aDie in members through [max aDie's faces];
 	groupType ::= group's result type;
@@ -513,7 +513,7 @@ Public method "_(drop the⁇highest«_»)" is
 |
 	count ::= optionalCount[1] else [1];
 	Assert: count ≤ |group's members|;
-	members ::= cast group's members into [t : <die…|1..> | t];
+	members ::= cast group's members into [t : die+ | t];
 	min ::= min map each aDie in members through [min aDie's faces];
 	max ::= max map each aDie in members through [max aDie's faces];
 	groupType ::= group's result type;

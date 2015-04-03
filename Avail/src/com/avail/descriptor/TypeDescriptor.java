@@ -548,9 +548,8 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsBetterRepresentationThanTupleType (
-		final AvailObject object,
-		final A_Type aTupleType)
+	int o_RepresentationCostOfTupleType (
+		final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

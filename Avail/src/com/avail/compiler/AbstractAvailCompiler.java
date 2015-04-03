@@ -2737,7 +2737,7 @@ public abstract class AbstractAvailCompiler
 	 * @param message
 	 * @param failure
 	 */
-	@InnerAccess void reportError (
+	@InnerAccess synchronized void reportError (
 		final A_Token token,
 		final String headerMessagePattern,
 		final String message,
@@ -3993,7 +3993,7 @@ public abstract class AbstractAvailCompiler
 		clientMap = clientMap.mapAtPuttingCanDestroy(
 			usedTokensKey, TupleDescriptor.empty(), false);
 		parseRestOfSendNode(
-			start,
+			new ParserState(start.position, clientMap),
 			loader().rootBundleTree(),
 			null,
 			start,
@@ -4631,16 +4631,14 @@ public abstract class AbstractAvailCompiler
 								}
 								return;
 							}
-							// Create a variable reference.  Note that we don't
-							// have to test for a non-macro send phrase, since
-							// it has to be a variable use phrase.
+							// Create a variable reference from this use.
 							final A_Phrase rawVariableReference =
 								ReferenceNodeDescriptor.fromUse(rawVariableUse);
 							final A_Phrase variableReference =
 								variableUse.isMacroSubstitutionNode()
 									? MacroSubstitutionNodeDescriptor
-										.fromNameAndNode(
-											variableUse.apparentSendName(),
+										.fromOriginalSendAndReplacement(
+											variableUse.macroOriginalSendNode(),
 											rawVariableReference)
 									: rawVariableReference;
 							eventuallyParseRestOfSendNode(
@@ -5196,6 +5194,9 @@ public abstract class AbstractAvailCompiler
 	 * @param state
 	 *        The {@linkplain ParserState parser state} after the function
 	 *        evaluates successfully.
+	 * @param macroOrNil
+	 *        A {@link MacroDefinitionDescriptor macro definition} if this is
+	 *        for a macro invocation, otherwise {@code nil}.
 	 * @param originalOnSuccess
 	 *        What to do with the strengthened return type.
 	 * @param originalOnFailure
@@ -5204,22 +5205,14 @@ public abstract class AbstractAvailCompiler
 	private void validateArgumentTypes (
 		final A_Bundle bundle,
 		final List<? extends A_Type> argTypes,
+		final A_Definition macroOrNil,
 		final ParserState state,
 		final Continuation1<A_Type> originalOnSuccess,
 		final Continuation1<Describer> originalOnFailure)
 	{
-		final MutableOrNull<A_Tuple> definitionsTuple = new MutableOrNull<>();
-		final MutableOrNull<A_Set> restrictions = new MutableOrNull<>();
 		final A_Method method = bundle.bundleMethod();
-		method.lock(new Continuation0()
-		{
-			@Override
-			public void value ()
-			{
-				definitionsTuple.value = method.definitionsTuple();
-				restrictions.value = method.semanticRestrictions();
-			}
-		});
+		final A_Tuple methodDefinitions = method.definitionsTuple();
+		final A_Set restrictions = method.semanticRestrictions();
 		// Filter the definitions down to those that are locally most specific.
 		// Fail if more than one survives.
 		startWorkUnit();
@@ -5228,7 +5221,7 @@ public abstract class AbstractAvailCompiler
 			state.peekToken(), hasRunEither, originalOnSuccess);
 		final Continuation1<Describer> onFailure = workUnitCompletion(
 			state.peekToken(), hasRunEither, originalOnFailure);
-		if (definitionsTuple.value().tupleSize() > 0)
+		if (methodDefinitions.tupleSize() > 0)
 		{
 			// There are method definitions.
 			for (
@@ -5273,8 +5266,9 @@ public abstract class AbstractAvailCompiler
 		// Only consider definitions that are defined in the current module or
 		// an ancestor.
 		final A_Set allAncestors = module.allAncestors();
-		final List<A_Definition> filteredByTypes =
-			method.filterByTypes(argTypes);
+		final List<A_Definition> filteredByTypes = macroOrNil.equalsNil()
+			? method.filterByTypes(argTypes)
+			: Collections.singletonList(macroOrNil);
 		final List<A_Definition> satisfyingDefinitions = new ArrayList<>();
 		for (final A_Definition definition : filteredByTypes)
 		{
@@ -5288,22 +5282,37 @@ public abstract class AbstractAvailCompiler
 			onFailure.value(describeWhyDefinitionsAreInapplicable(
 				bundle,
 				argTypes,
-				definitionsTuple.value(),
+				macroOrNil.equalsNil()
+					? methodDefinitions
+					: TupleDescriptor.from(macroOrNil),
 				allAncestors));
 			return;
 		}
 		// Compute the intersection of the return types of the possible callees.
-		final Mutable<A_Type> intersection = new Mutable<>(
-			satisfyingDefinitions.get(0).bodySignature().returnType());
-		for (int i = 1, end = satisfyingDefinitions.size(); i < end; i++)
+		// Macro bodies return phrases, but that's not what we want here.
+		final Mutable<A_Type> intersection;
+		if (macroOrNil.equalsNil())
 		{
-			intersection.value = intersection.value.typeIntersection(
-				satisfyingDefinitions.get(i).bodySignature().returnType());
+			intersection = new Mutable<>(
+				satisfyingDefinitions.get(0).bodySignature().returnType());
+			for (int i = 1, end = satisfyingDefinitions.size(); i < end; i++)
+			{
+				intersection.value = intersection.value.typeIntersection(
+					satisfyingDefinitions.get(i).bodySignature().returnType());
+			}
+		}
+		else
+		{
+			// The macro's semantic type (expressionType) is the authoritative
+			// type to check against the macro body's actual return phrase's
+			// semantic type.  Semantic restrictions may still narrow it below.
+			intersection = new Mutable<>(
+				macroOrNil.bodySignature().returnType().expressionType());
 		}
 		// Determine which semantic restrictions are relevant.
 		final List<A_SemanticRestriction> restrictionsToTry =
-			new ArrayList<>(restrictions.value().setSize());
-		for (final A_SemanticRestriction restriction : restrictions.value())
+			new ArrayList<>(restrictions.setSize());
+		for (final A_SemanticRestriction restriction : restrictions)
 		{
 			if (allAncestors.hasElement(restriction.definitionModule()))
 			{
@@ -5519,12 +5528,12 @@ public abstract class AbstractAvailCompiler
 		final A_Tuple definitionsTuple,
 		final A_Set allAncestorModules)
 	{
+		assert definitionsTuple.tupleSize() > 0;
 		return new Describer()
 		{
 			@Override
 			public void describeThen (final Continuation1<String> c)
 			{
-				assert definitionsTuple.tupleSize() > 0;
 				final String kindOfDefinition =
 					definitionsTuple.tupleAt(1).isMacroDefinition()
 						? "macro"
@@ -5737,6 +5746,7 @@ public abstract class AbstractAvailCompiler
 
 		// An applicable macro definition (even if ambiguous) prevents this site
 		// from being a method invocation.
+		A_Definition macro = NilDescriptor.nil();
 		if (macroDefinitionsTuple.tupleSize() > 0)
 		{
 			// Find all macro definitions that could match the argument phrases.
@@ -5755,7 +5765,6 @@ public abstract class AbstractAvailCompiler
 			final List<A_Definition> filtered = new ArrayList<>();
 			final MutableOrNull<AvailErrorCode> errorHolder =
 				new MutableOrNull<>();
-			A_Definition macro = NilDescriptor.nil();
 			if (visibleDefinitions.size() == macroDefinitionsTuple.tupleSize())
 			{
 				// All macro definitions are visible.  Use the lookup tree.
@@ -5878,17 +5887,8 @@ public abstract class AbstractAvailCompiler
 				// also possible, so fall through and treat it as a potential
 				// method invocation site instead.
 			}
-			else
-			{
-				completedSendNodeForMacro(
-					stateBeforeCall,
-					stateAfterCall,
-					argumentsListNode,
-					bundle,
-					macro,
-					continuation);
-				return;
-			}
+			// Fall through to test semantic restrictions and run the macro if
+			// one was found.
 		}
 		// It invokes a method (not a macro).  Note that we grab the lookup
 		// types rather than the argument types, since if this is a supercall we
@@ -5905,22 +5905,59 @@ public abstract class AbstractAvailCompiler
 		final ParserState afterState = new ParserState(
 			stateAfterCall.position,
 			stateBeforeCall.clientDataMap);
+		final A_Definition finalMacro = macro;
 		// Validate the message send before reifying a send phrase.
 		validateArgumentTypes(
 			bundle,
 			argTypes,
+			finalMacro,
 			stateAfterCall,
 			new Continuation1<A_Type>()
 			{
 				@Override
-				public void value (final @Nullable A_Type returnType)
+				public void value (final @Nullable A_Type expectedYieldType)
 				{
-					assert returnType != null;
-					final A_Phrase sendNode = SendNodeDescriptor.from(
-						bundle,
-						argumentsListNode,
-						returnType);
-					attempt(afterState, continuation, sendNode);
+					assert expectedYieldType != null;
+					if (!finalMacro.equalsNil())
+					{
+						completedSendNodeForMacro(
+							stateBeforeCall,
+							stateAfterCall,
+							argumentsListNode,
+							bundle,
+							finalMacro,
+							new Con<A_Phrase>("Check macro's semantic type")
+							{
+								@Override
+								public void valueNotNull(
+									final ParserState afterMacro,
+									final A_Phrase macroResult)
+								{
+									if (macroResult.expressionType()
+										.isSubtypeOf(expectedYieldType))
+									{
+										continuation.value(
+											afterMacro, macroResult);
+										return;
+									}
+									afterMacro.expected(
+										"macro "
+										+ bundle.message().atomName()
+										+ " to produce a phrase that yields "
+										+ expectedYieldType
+										+ ", not "
+										+ macroResult.expressionType());
+								}
+							});
+					}
+					else
+					{
+						final A_Phrase sendNode = SendNodeDescriptor.from(
+							bundle,
+							argumentsListNode,
+							expectedYieldType);
+						attempt(afterState, continuation, sendNode);
+					}
 				}
 			},
 			new Continuation1<Describer>()
@@ -6061,9 +6098,10 @@ public abstract class AbstractAvailCompiler
 		}
 		if (argument.isMacroSubstitutionNode())
 		{
-			return MacroSubstitutionNodeDescriptor.fromNameAndNode(
-				argument.apparentSendName(),
-				LiteralNodeDescriptor.syntheticFrom(argument.stripMacro()));
+			return MacroSubstitutionNodeDescriptor
+				.fromOriginalSendAndReplacement(
+					argument.macroOriginalSendNode(),
+					LiteralNodeDescriptor.syntheticFrom(argument.stripMacro()));
 		}
 		return LiteralNodeDescriptor.syntheticFrom(argument);
 	}
@@ -7270,11 +7308,9 @@ public abstract class AbstractAvailCompiler
 						compilerScopeMapKey, MapDescriptor.empty(), true);
 					clientData = clientData.mapAtPuttingCanDestroy(
 						usedTokensKey, TupleDescriptor.empty(), true);
-					final ParserState initialState = new ParserState(
-						0, clientData);
 					// Rollback the module transaction no matter what happens.
 					parseExpressionThen(
-						initialState,
+						new ParserState(0, clientData),
 						new Con<A_Phrase>("Reached end")
 						{
 							@Override

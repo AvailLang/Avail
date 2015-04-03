@@ -71,11 +71,10 @@ extends ParseNodeDescriptor
 	implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@linkplain AtomDescriptor true name} of the macro that was
-		 * invoked to produce this {@linkplain MacroSubstitutionNodeDescriptor
-		 * macro substitution node}.
+		 * The {@linkplain SendNodeDescriptor send phrase} prior to its
+		 * transformation into the {@link #OUTPUT_PARSE_NODE}.
 		 */
-		MACRO_NAME,
+		MACRO_ORIGINAL_SEND,
 
 		/**
 		 * The {@linkplain ParseNodeDescriptor parse node} that is the result of
@@ -93,8 +92,8 @@ extends ParseNodeDescriptor
 		final int indent)
 	{
 		builder.append("MACRO TRANSFORMATION (");
-		builder.append(object.slot(MACRO_NAME));
-		builder.append(") = ");
+		builder.append(object.slot(MACRO_ORIGINAL_SEND));
+		builder.append(") ➔ ");
 		object.slot(OUTPUT_PARSE_NODE).printOnAvoidingIndent(
 			builder,
 			recursionList,
@@ -102,40 +101,27 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Phrase o_OutputParseNode (final AvailObject object)
-	{
-		return object.slot(OUTPUT_PARSE_NODE);
-	}
-
-	@Override @AvailMethod
-	A_Type o_ExpressionType (final AvailObject object)
-	{
-		return object.slot(OUTPUT_PARSE_NODE).expressionType();
-	}
-
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		return
-			object.slot(MACRO_NAME).hash() * multiplier
-			+ (object.slot(OUTPUT_PARSE_NODE).hash() ^ 0x1d50d7f9);
-	}
-
-	@Override @AvailMethod
-	boolean o_EqualsParseNode (
-		final AvailObject object,
-		final A_Phrase aParseNode)
-	{
-		return aParseNode.isMacroSubstitutionNode()
-			&& object.slot(MACRO_NAME).equals(aParseNode.apparentSendName())
-			&& object.slot(OUTPUT_PARSE_NODE).equals(
-				aParseNode.outputParseNode());
-	}
-
-	@Override @AvailMethod
 	A_Atom o_ApparentSendName (final AvailObject object)
 	{
-		return object.slot(MACRO_NAME);
+		return object.slot(MACRO_ORIGINAL_SEND).apparentSendName();
+	}
+
+	@Override @AvailMethod
+	void o_ChildrenDo (
+		final AvailObject object,
+		final Continuation1<A_Phrase> aBlock)
+	{
+		aBlock.value(object.slot(OUTPUT_PARSE_NODE));
+	}
+
+	@Override @AvailMethod
+	void o_ChildrenMap (
+		final AvailObject object,
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
+	{
+		object.setSlot(
+			OUTPUT_PARSE_NODE,
+			aBlock.valueNotNull(object.slot(OUTPUT_PARSE_NODE)));
 	}
 
 	@Override @AvailMethod
@@ -155,37 +141,21 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_ChildrenMap (
+	boolean o_EqualsParseNode (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+		final A_Phrase aParseNode)
 	{
-		object.setSlot(
-			OUTPUT_PARSE_NODE,
-			aBlock.valueNotNull(object.slot(OUTPUT_PARSE_NODE)));
+		return aParseNode.isMacroSubstitutionNode()
+			&& object.slot(MACRO_ORIGINAL_SEND).equals(
+				aParseNode.macroOriginalSendNode())
+			&& object.slot(OUTPUT_PARSE_NODE).equals(
+				aParseNode.outputParseNode());
 	}
 
 	@Override @AvailMethod
-	void o_ChildrenDo (
-		final AvailObject object,
-		final Continuation1<A_Phrase> aBlock)
+	A_Type o_ExpressionType (final AvailObject object)
 	{
-		aBlock.value(object.slot(OUTPUT_PARSE_NODE));
-	}
-
-	@Override
-	void o_StatementsDo (
-		final AvailObject object,
-		final Continuation1<A_Phrase> continuation)
-	{
-		object.slot(OUTPUT_PARSE_NODE).statementsDo(continuation);
-	}
-
-	@Override @AvailMethod
-	void o_ValidateLocally (
-		final AvailObject object,
-		final @Nullable A_Phrase parent)
-	{
-		// Do nothing.
+		return object.slot(OUTPUT_PARSE_NODE).expressionType();
 	}
 
 	@Override @AvailMethod
@@ -197,29 +167,12 @@ extends ParseNodeDescriptor
 			accumulatedStatements);
 	}
 
-	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
 	{
-		return object.slot(OUTPUT_PARSE_NODE).parseNodeKind();
-	}
-
-	@Override
-	A_Phrase o_StripMacro (final AvailObject object)
-	{
-		return object.slot(OUTPUT_PARSE_NODE);
-	}
-
-	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
-	{
-		writer.startObject();
-		writer.write("kind");
-		writer.write("macro substitution phrase");
-		writer.write("macro name");
-		object.slot(MACRO_NAME).writeTo(writer);
-		writer.write("output phrase");
-		object.slot(OUTPUT_PARSE_NODE).writeTo(writer);
-		writer.endObject();
+		return
+			object.slot(MACRO_ORIGINAL_SEND).hash() * multiplier
+			+ (object.slot(OUTPUT_PARSE_NODE).hash() ^ 0x1d50d7f9);
 	}
 
 	@Override
@@ -228,22 +181,75 @@ extends ParseNodeDescriptor
 		return true;
 	}
 
+	@Override
+	A_Phrase o_MacroOriginalSendNode (final AvailObject object)
+	{
+		return object.slot(MACRO_ORIGINAL_SEND);
+	}
+
+	@Override @AvailMethod
+	A_Phrase o_OutputParseNode (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE);
+	}
+
+	@Override
+	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).parseNodeKind();
+	}
+
+	@Override
+	void o_StatementsDo (
+		final AvailObject object,
+		final Continuation1<A_Phrase> continuation)
+	{
+		object.slot(OUTPUT_PARSE_NODE).statementsDo(continuation);
+	}
+
+	@Override
+	A_Phrase o_StripMacro (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE);
+	}
+
+	@Override @AvailMethod
+	void o_ValidateLocally (
+		final AvailObject object,
+		final @Nullable A_Phrase parent)
+	{
+		// Do nothing.
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("macro substitution phrase");
+		writer.write("macro send");
+		object.slot(MACRO_ORIGINAL_SEND).writeTo(writer);
+		writer.write("output phrase");
+		object.slot(OUTPUT_PARSE_NODE).writeTo(writer);
+		writer.endObject();
+	}
+
 	/**
 	 * Construct a new {@linkplain MacroSubstitutionNodeDescriptor macro
 	 * substitution node}.
 	 *
-	 * @param macroName
-	 *        The name of the macro that produced this node.
+	 * @param macroSend
+	 *        The send of the macro that produced this node.
 	 * @param outputParseNode
 	 *        The expression produced by the macro body.
 	 * @return The new macro substitution node.
 	 */
-	public static AvailObject fromNameAndNode(
-		final A_Atom macroName,
+	public static AvailObject fromOriginalSendAndReplacement (
+		final A_Phrase macroSend,
 		final A_Phrase outputParseNode)
 	{
 		final AvailObject newNode = mutable.create();
-		newNode.setSlot(MACRO_NAME, macroName);
+		newNode.setSlot(MACRO_ORIGINAL_SEND, macroSend);
 		newNode.setSlot(OUTPUT_PARSE_NODE, outputParseNode);
 		newNode.makeShared();
 		return newNode;

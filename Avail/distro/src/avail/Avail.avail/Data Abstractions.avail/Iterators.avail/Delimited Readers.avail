@@ -60,7 +60,7 @@ Body
 Class "delimited reader" extends decorated reader
 	with fields
 		element type : tuple's type,
-		delimiter : <any…|1..>
+		delimiter : any+
 	with mutable fields
 		referable current value : tuple,
 		exhaustion state : boolean;
@@ -138,10 +138,10 @@ delimited reader's advance method is
 Public method "_delimited by_" is
 [
 	aReader : reader,
-	delimiterTuple : <any…|1..>
+	delimiterTuple : any+
 |
 	a delimited reader with
-		element type ::= <aReader's element type…|>,
+		element type ::= aReader's element type*,
 		component reader ::= aReader,
 		delimiter ::= delimiterTuple,
 		exhaustion state := false
@@ -150,10 +150,10 @@ Public method "_delimited by_" is
 Semantic restriction "_delimited by_" is
 [
 	readerType : reader's type,
-	delimiterType : <any…|1..>'s type
+	delimiterType : any+'s type
 |
 	extend delimited reader with
-		element type : <readerType's element type's instance…|>'s type,
+		element type : readerType's element type's instance*'s type,
 		component reader : readerType,
 		delimiter : delimiterType
 ];

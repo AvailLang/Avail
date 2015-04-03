@@ -1415,15 +1415,15 @@ Public stable method "distinct_" is
  * Answer a function that computes the zip of a tuple of tuples.
  * 
  * @method "zip function"
- * @returns "[<tuple…|1..>]→tuple"
+ * @returns "[tuple+]→tuple"
  *          The requested function.
  */
 Private method "zip function" is
 [
 	[
-		tuples : <tuple…|1..>
+		tuples : tuple+
 	|
-		accumulator : <tuple…|> := <>;
+		accumulator : tuple* := <>;
 		limit ::= min map each aTuple in tuples through [|aTuple| ];
 		For each index from 1 to limit do
 		[
@@ -1436,7 +1436,7 @@ Private method "zip function" is
 		];
 		accumulator
 	] : tuple
-] : [<tuple…|1..>]→tuple;
+] : [tuple+]→tuple;
 
 /**
  * Compute and answer the zip of the specified tuples. Given N input tuples, the
@@ -1446,7 +1446,7 @@ Private method "zip function" is
  * inputs.
  * 
  * @method "zip_"
- * @param "tuples" "<tuple…|1..>"
+ * @param "tuples" "tuple+"
  *        A tuple of tuples.
  * @returns "tuple"
  *          The zip of the input tuples.
@@ -1462,7 +1462,7 @@ Public method "zip_" is zip function;
  * inputs.
  * 
  * @method "«_‡zip»"
- * @param "tuples" "<tuple…|1..>"
+ * @param "tuples" "tuple+"
  *        A tuple of tuples.
  * @returns "tuple"
  *          The zip of the input tuples.
@@ -1482,13 +1482,13 @@ Grammatical restriction {"«_‡zip»"} is <{"«_‡zip»"}>;
  * Answer the semantic restriction function for zipping tuples.
  * 
  * @method "zip semantic restriction"
- * @returns "[<tuple…|1..>'s type]→type"
+ * @returns "[tuple+'s type]→type"
  *          The semantic restriction function.
  */
 Private method "zip semantic restriction" is
 [
 	[
-		tuplesType : <tuple…|1..>'s type
+		tuplesType : tuple+'s type
 	|
 		/* Leverage an instance type if possible. */
 		if |tuplesType| = 1 then
@@ -1533,17 +1533,17 @@ Private method "zip semantic restriction" is
 			<nonempty[1..|nonempty| - 1], nonempty[|nonempty|]… | resultSizes>
 		]
 	] : type
-] : [<tuple…|1..>'s type]→type;
+] : [tuple+'s type]→type;
 
 /**
  * @method "zip_"
- * @restricts "<tuple…|1..>'s type"
+ * @restricts "tuple+'s type"
  */
 Semantic restriction "zip_" is zip semantic restriction;
 
 /**
  * @method "«_‡zip»"
- * @restricts "<tuple…|1..>'s type"
+ * @restricts "tuple+'s type"
  */
 Semantic restriction "«_‡zip»" is zip semantic restriction;
 
@@ -1552,7 +1552,7 @@ Semantic restriction "«_‡zip»" is zip semantic restriction;
  * left to right. Answer the result of the reduction.
  *
  * @method "left fold_through_"
- * @param "aTuple" "<any…|1..>"
+ * @param "aTuple" "any+"
  *        A nonempty tuple.
  * @param "transformer" "[⊥, ⊥]→any"
  *        A binary function whose second parameter type matches its return type.
@@ -1568,7 +1568,7 @@ Semantic restriction "«_‡zip»" is zip semantic restriction;
  */
 Public method "left fold_through_" is
 [
-	aTuple : <any…|1..>,
+	aTuple : any+,
 	transformer : [⊥, ⊥]→any
 |
 	result : any := aTuple[1];
@@ -1591,12 +1591,12 @@ Public method "left fold_through_" is
  * the final application of the function.
  * 
  * @method "left fold_through_"
- * @restricts "<any…|1..>'s type"
+ * @restricts "any+'s type"
  * @restricts "[⊥, ⊥]→any's type"
  */
 Semantic restriction "left fold_through_" is
 [
-	tupleType : <any…|1..>'s type,
+	tupleType : any+'s type,
 	transformer : [⊥, ⊥]→any's type
 |
 	headType ::= tupleType[1];
@@ -1637,7 +1637,7 @@ Semantic restriction "left fold_through_" is
  * right to left. Answer the result of the reduction.
  *
  * @method "right fold_through_"
- * @param "aTuple" "<any…|1..>"
+ * @param "aTuple" "any+"
  *        A nonempty tuple.
  * @param "transformer" "[⊥, ⊥]→any"
  *        A binary function whose second parameter type matches its return type.
@@ -1653,7 +1653,7 @@ Semantic restriction "left fold_through_" is
  */
 Public method "right fold_through_" is
 [
-	aTuple : <any…|1..>,
+	aTuple : any+,
 	transformer : [⊥, ⊥]→any
 |
 	result : any := aTuple[|aTuple|];
@@ -1676,12 +1676,12 @@ Public method "right fold_through_" is
  * the final application of the function.
  * 
  * @method "right fold_through_"
- * @restricts "<any…|1..>'s type"
+ * @restricts "any+'s type"
  * @restricts "[⊥, ⊥]→any's type"
  */
 Semantic restriction "right fold_through_" is
 [
-	tupleType : <any…|1..>'s type,
+	tupleType : any+'s type,
 	transformer : [⊥, ⊥]→any's type
 |
 	sizes ::= ||tupleType||;
@@ -1945,7 +1945,7 @@ Semantic restriction "_occurrences⁇of_" is
  *        The first value of the resulting tuple.
  * @param "end" "integer"
  *        The last value of the resulting tuple.
- * @returns "<integer…|>"
+ * @returns "integer*"
  *          The interval from {@param "start"} (inclusive) up to {@param "end"} 
  *          (inclusive).
  * @category "Tuples" "Constructors"
@@ -1956,7 +1956,7 @@ Public stable method "_to_" is
 	end : integer
 |
 	start to end by 1
-] : <integer…|>;
+] : integer*;
 
 /**
  * Construct and answer a string that contains the consecutive characters from
@@ -1970,7 +1970,7 @@ Public stable method "_to_" is
  *        The first value of the resulting tuple.
  * @param "end" "character"
  *        The last value of the resulting tuple.
- * @returns "<character…|>"
+ * @returns "character*"
  *          The interval from {@param "start"} (inclusive) up to {@param "end"}
  *          (inclusive).
  * @category "Tuples" "Constructors"
@@ -2044,7 +2044,7 @@ Semantic restriction "_to_" is
 	]
 ] : type;
 
-Method "_to_by_" is stable at [integer, integer, integer]→<integer…|>;
+Method "_to_by_" is stable at [integer, integer, integer]→integer*;
 
 Method "_to_by_" is
 [
@@ -2519,7 +2519,7 @@ Semantic restriction "split_before_" is
  * Compute and answer the specified stripe of {@param "aTuple"}.
  * 
  * @method "stripe_at_"
- * @param "aTuple" "<<any…|1..>…|>"
+ * @param "aTuple" "<any+…|>"
  *        A tuple of non-empty tuples.
  * @param "index" "natural number"
  *        The stripe index.
@@ -2530,7 +2530,7 @@ Semantic restriction "split_before_" is
  */
 Public stable method "stripe_at_" is
 [
-	aTuple : <<any…|1..>…|>,
+	aTuple : <any+…|>,
 	index : natural number
 |
 	map each inner in aTuple through [inner[index] ]
@@ -2540,12 +2540,12 @@ Public stable method "stripe_at_" is
  * Reject the parse if the stripe index could never be valid.
  * 
  * @method "stripe_at_"
- * @restricts "<<any…|1..>…|>'s type"
+ * @restricts "<any+…|>'s type"
  * @restricts "natural number's type"
  */
 Semantic restriction "stripe_at_" is
 [
-	tupleType : <<any…|1..>…|>'s type,
+	tupleType : <any+…|>'s type,
 	index : natural number's type
 |
 	uncertainty ::= cast ⎡index⎤ - ⎣index⎦
@@ -3133,25 +3133,25 @@ Semantic restriction "_[_↔_]" is
  * Obtain the first element of the specified tuple.
  *
  * @method "_'s⁇head"
- * @param "aTuple" "<any…|1..>"
+ * @param "aTuple" "any+"
  * @returns "any"
  *          The first element of {@param "aTuple"}.
  * @category "Tuples" "Queries"
  */
 Public stable method "_'s⁇head" is
 [
-	aTuple : <any…|1..>
+	aTuple : any+
 |
 	aTuple[1]
 ] : any;
 
 /**
  * @method "_'s⁇head"
- * @restricts "<any…|1..>'s type"
+ * @restricts "any+'s type"
  */
 Semantic restriction "_'s⁇head" is
 [
-	aTupleType : <any…|1..>'s type
+	aTupleType : any+'s type
 |
 	aTupleType[1]
 ];
@@ -3162,13 +3162,13 @@ Semantic restriction "_'s⁇head" is
  * an empty tuple.
  *
  * @method "_'s⁇tail"
- * @param "aTuple" "<any…|1..>"
+ * @param "aTuple" "any+"
  *        A nonempty tuple.
  * @returns "tuple"
  *          The requested tuple slice.
  * @category "Tuples" "Queries"
  */
-Public stable abstract method "_'s⁇tail" is [<any…|1..>]→tuple;
+Public stable abstract method "_'s⁇tail" is [any+]→tuple;
 
 Method "_'s⁇tail" is
 [
@@ -3186,11 +3186,11 @@ Method "_'s⁇tail" is
 
 /**
  * @method "_'s⁇tail"
- * @restricts "<any…|1..>'s type"
+ * @restricts "any+'s type"
  */
 Semantic restriction "_'s⁇tail" is
 [
-	aTupleType : <any…|1..>'s type
+	aTupleType : any+'s type
 |
 	leadingTypes ::= aTupleType's leading types;
 	defaultType ::= aTupleType's default type;
@@ -3211,25 +3211,25 @@ Semantic restriction "_'s⁇tail" is
  * Obtain the last element of the specified tuple.
  *
  * @method "_'s⁇last"
- * @param "aTuple" "<any…|1..>"
+ * @param "aTuple" "any+"
  * @returns "any"
  *          The last element of a {@param "aTuple"}.
  * @category "Tuples" "Queries"
  */
 Public stable method "_'s⁇last" is
 [
-	aTuple : <any…|1..>
+	aTuple : any+
 |
 	aTuple[|aTuple|]
 ] : any;
 
 /**
  * @method "_'s⁇last"
- * @restricts "<any…|1..>'s type"
+ * @restricts "any+'s type"
  */
 Semantic restriction "_'s⁇last" is
 [
-	aTupleType : <any…|1..>'s type
+	aTupleType : any+'s type
 |
 	upper ::= ⎡aTupleType⎤ min (|aTupleType's leading types| + 1);
 	∪ aTupleType[⎣aTupleType⎦..upper max ⎣aTupleType⎦]
@@ -3499,12 +3499,12 @@ Semantic restriction "insertion sort_with_" is
  *
  * @method "quicksort_"
  * @category "Tuples" "Sorting"
- * @param "numbers" "<number…|>"
+ * @param "numbers" "number*"
  *        A tuple of numbers.
- * @returns "<number…|>"
+ * @returns "number*"
  *          A tuple of numbers in ascending order.
  */
-Public abstract method "quicksort_" is [<number…|>]→<number…|>;
+Public abstract method "quicksort_" is [number*]→number*;
 
 /** 
  * Give quicksort higher precedence than concatenation. 
@@ -3806,14 +3806,14 @@ Public method "merge sort_with_" is
  * the merge sort algorithm where n ≤ m.
  *
  * @method "merge sort_"
- * @param "aTuple" "<number…|>" 
+ * @param "aTuple" "number*" 
  *         A tuple.
- * @returns "<number…|>"
+ * @returns "number*"
  *          The sorted tuple.
  * @author "Richard Arriaga"
  * @category "Tuples" "Transformations" "Sorting"
  */
-Public abstract method "merge sort_" is [<number…|>]→<number…|>;
+Public abstract method "merge sort_" is [number*]→number*;
 
 /**
  * Give merge sort higher precedence than concatenation.
@@ -4198,7 +4198,7 @@ Semantic restriction "_[_..]else_" is
  */
 Private method "self overlap_" is
 [
-	aTuple : <any…|1..>
+	aTuple : any+
  |
 	overlap : {tuple→natural number|} := {};
 	position : natural number := 2;
@@ -4250,7 +4250,7 @@ Method "first index of_in_" is
 
 Method "first index of_in_" is
 [
-	subtuple : <any…|1..>,
+	subtuple : any+,
 	aTuple : <any…|0>
  |
 	0
@@ -4259,7 +4259,7 @@ Method "first index of_in_" is
 Method "first index of_in_" is
 [
 	subtuple : <any…|0>,
-	aTuple : <any…|1..>
+	aTuple : any+
  |
 	0
 ] : 0's type;
@@ -4272,8 +4272,8 @@ Method "first index of_in_" is
  */
 Method "first index of_in_" is
 [
-	subtuple : <any…|1..>,
-	aTuple : <any…|1..>
+	subtuple : any+,
+	aTuple : any+
  |
 
 	if |subtuple| > |aTuple| then [0]
@@ -4350,7 +4350,7 @@ Method "all indices of_in_" is
 
 Method "all indices of_in_" is
 [
-	subtuple : <any…|1..>,
+	subtuple : any+,
 	aTuple : <any…|0>
  |
 	<>
@@ -4359,7 +4359,7 @@ Method "all indices of_in_" is
 Method "all indices of_in_" is
 [
 	subtuple : <any…|0>,
-	aTuple : <any…|1..>
+	aTuple : any+
  |
 	<>
 ] : <>'s type;
@@ -4372,8 +4372,8 @@ Method "all indices of_in_" is
  */
 Method "all indices of_in_" is
 [
-	subtuple : <any…|1..>,
-	aTuple : <any…|1..>
+	subtuple : any+,
+	aTuple : any+
  |
 	if |subtuple| > |aTuple| then [<>]
 	else if [|subtuple| = 1] then
@@ -4414,7 +4414,7 @@ Method "all indices of_in_" is
  *
  * @method "replace the first occurrence of_in_with_"
  * @category "Tuples"
- * @param "subtuple" "<any…|1..>"
+ * @param "subtuple" "any+"
  *        The subtuple to locate.
  * @param "aTuple" "tuple" 
  *        The tuple to be searched.
@@ -4427,11 +4427,11 @@ Method "all indices of_in_" is
  * @category "Tuples" "Transformers"
  */
 Public stable abstract method "replace the first occurrence of_in_with_" is 
-	[<any…|1..>,tuple,tuple]→tuple;
+	[any+,tuple,tuple]→tuple;
 
 Method "replace the first occurrence of_in_with_" is
 [
-	subtuple : <any…|1..>,
+	subtuple : any+,
 	aTuple : <any…|0>,
 	replacementTuple : tuple
 |
@@ -4440,8 +4440,8 @@ Method "replace the first occurrence of_in_with_" is
 
 Method "replace the first occurrence of_in_with_" is
 [
-	subtuple : <any…|1..>,
-	aTuple : <any…|1..>,
+	subtuple : any+,
+	aTuple : any+,
 	replacementTuple : tuple
 |
 	if |subtuple| > |aTuple| then [aTuple]
@@ -4462,7 +4462,7 @@ Method "replace the first occurrence of_in_with_" is
 
 Semantic restriction "replace the first occurrence of_in_with_" is
 [
-	subtuple : <any…|1..>'s type,
+	subtuple : any+'s type,
 	aTuple : tuple's type,
 	replacementTuple : tuple's type
 |
@@ -4506,7 +4506,7 @@ Semantic restriction "replace the first occurrence of_in_with_" is
  *
  * @method "replace all occurrences of_in_with_"
  * @category "Tuples"
- * @param "subtuple" "<any…|1..>"
+ * @param "subtuple" "any+"
  *        The subtuple to be replaced.
  * @param "aTuple" "tuple" 
  *        The tuple to be searched.
@@ -4519,11 +4519,11 @@ Semantic restriction "replace the first occurrence of_in_with_" is
  * @category "Tuples" "Transformers"
  */
 Public stable abstract method "replace all occurrences of_in_with_" is 
-	[<any…|1..>,tuple,tuple]→tuple;
+	[any+,tuple,tuple]→tuple;
 
 Method "replace all occurrences of_in_with_" is
 [
-	subtuple : <any…|1..>,
+	subtuple : any+,
 	aTuple : <any…|0>,
 	replacementTuple : tuple
 |
@@ -4532,8 +4532,8 @@ Method "replace all occurrences of_in_with_" is
 
 Method "replace all occurrences of_in_with_" is
 [
-	subtuple : <any…|1..>,
-	aTuple : <any…|1..>,
+	subtuple : any+,
+	aTuple : any+,
 	replacementTuple : tuple
 |
 	if |subtuple| > |aTuple| then [aTuple]
@@ -4584,7 +4584,7 @@ Method "replace all occurrences of_in_with_" is
 
 Semantic restriction "replace all occurrences of_in_with_" is
 [
-	subtuple : <any…|1..>'s type,
+	subtuple : any+'s type,
 	aTuple : tuple's type,
 	replacementTuple : tuple's type
 |

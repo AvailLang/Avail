@@ -127,9 +127,8 @@ extends Descriptor
 		final A_BasicObject anotherObject);
 
 	@Override @AvailMethod
-	abstract boolean o_IsBetterRepresentationThanTupleType (
-		final AvailObject object,
-		final A_Type aTupleType);
+	abstract int o_RepresentationCostOfTupleType (
+		final AvailObject object);
 
 	@Override @AvailMethod
 	abstract boolean o_IsInstanceOfKind (

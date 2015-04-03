@@ -571,8 +571,7 @@ extends JSONFriendly
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	boolean isBetterRepresentationThanTupleType (
-		A_Type aTupleType);
+	int representationCostOfTupleType ();
 
 	/**
 	 * Dispatch to the descriptor.

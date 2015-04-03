@@ -97,7 +97,7 @@ extends StringDescriptor
 		final int intValue;
 		if (originalSize >= maximumCopySize
 			|| !newElement.isCharacter()
-			|| ((intValue = ((A_Character) newElement).codePoint()) & 0xFFFF) != intValue)
+			|| ((intValue = ((A_Character) newElement).codePoint()) & ~0xFFFF) != 0)
 		{
 			// Transition to a tree tuple.
 			final A_Tuple singleton = TupleDescriptor.from(newElement);

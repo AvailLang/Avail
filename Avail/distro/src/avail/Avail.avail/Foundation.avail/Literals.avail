@@ -72,8 +72,7 @@ Semantic restriction "`|_`|" is
 [
 	aTupleType : tuple meta
 |
-	sizes ::= ||aTupleType||;
-	[⎣sizes⎦..⎡sizes⎤ + 1)
+	||aTupleType||
 ];
 
 Method "`|_`|" is stable at
@@ -425,67 +424,6 @@ Method "_[_]" is
 	index : natural number
 |
 	⊥
-];
-
-/**
- * If a lexical tuple is built only from expressions with statically well-known
- * runtime values, then answer the instance type of the tuple that contains
- * those statically known elements. This gives lexical tuples of literals and
- * statically well-known elements the same force as lexical literals, e.g.,
- * numbers and strings.
- *
- * @method "<«_‡,»>"
- * @restricts "tuple meta"
- */
-Semantic restriction "<«_‡,»>" is
-[
-	elements : tuple meta
-|
-	/* Since the argument is derived from a lexically constructed tuple, then
-	 * the cardinality of the argument is guaranteed to be a fixed, finite
-	 * value. Therefore asking for either the lower or upper bound would be
-	 * equivalent.
-	 */
-	limit ::= ⎡elements⎤;
-	accumulator : tuple := <>;
-	From 1 to limit do
-	[
-		index : natural number
-	|
-		if |elements[index]| = 1 then
-		[
-			instance ::= elements[index]'s instance;
-			/* Do not blithely construct a literal-force tuple if any of the
-			 * instances are themselves types. This prevents expressions like
-			 * `<elements[index]>` from asserting the type `<any>'s type` rather
-			 * than `<any's type…|1>`, which frequently leads to (absurd)
-			 * runtime type errors, e.g., if elements[index] has the static type
-			 * [0..5], then the return type verification nybblecode would fail
-			 * because `<[0..5]>` is not a subtype of `<any>`.
-			 */
-			if instance's type ⊆ type then
-			[
-				false
-			]
-			else
-			[
-				accumulator := concatenate <eject accumulator, <instance>>;
-				true
-			]
-		]
-		else
-		[
-			false
-		]
-	];
-	if |accumulator| = limit then
-	[
-		accumulator's type
-	]
-	else
-	[
-		elements
-	]
 ];
 
 Method "_[_]" is stable at
@@ -896,6 +834,70 @@ Macro "<«_‡,»>" is
 	]
 	else [exprs]
 ];
+
+/**
+ * If a lexical tuple is built only from expressions with statically well-known
+ * runtime values, then answer the instance type of the tuple that contains
+ * those statically known elements. This gives lexical tuples of literals and
+ * statically well-known elements the same force as lexical literals, e.g.,
+ * numbers and strings.
+ *
+ * @method "<«_‡,»>"
+ * @restricts "tuple meta"
+ */
+/*
+ * TODO [MvG] REMOVE THIS RESTRICTION.  It's probably pointless with the macro
+ * that was just defined above.
+[
+	elements : tuple meta
+|
+	/* Since the argument is derived from a lexically constructed tuple, then
+	 * the cardinality of the argument is guaranteed to be a fixed, finite
+	 * value. Therefore asking for either the lower or upper bound would be
+	 * equivalent.
+	 */
+	limit ::= ⎡elements⎤;
+	accumulator : tuple := <>;
+	From 1 to limit do
+	[
+		index : natural number
+	|
+		if |elements[index]| = 1 then
+		[
+			instance ::= elements[index]'s instance;
+			/* Do not blithely construct a literal-force tuple if any of the
+			 * instances are themselves types. This prevents expressions like
+			 * `<elements[index]>` from asserting the type `<any>'s type` rather
+			 * than `<any's type…|1>`, which frequently leads to (absurd)
+			 * runtime type errors, e.g., if elements[index] has the static type
+			 * [0..5], then the return type verification nybblecode would fail
+			 * because `<[0..5]>` is not a subtype of `<any>`.
+			 */
+			if instance's type ⊆ type then
+			[
+				false
+			]
+			else
+			[
+				accumulator := concatenate <eject accumulator, <instance>>;
+				true
+			]
+		]
+		else
+		[
+			false
+		]
+	];
+	if |accumulator| = limit then
+	[
+		accumulator's type
+	]
+	else
+	[
+		elements
+	]
+];
+*/
 
 /**
  * Attempt to produce a literal {@type "set"} from the specified lexical
