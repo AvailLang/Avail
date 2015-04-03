@@ -1222,7 +1222,7 @@ Semantic restriction "SHA-_digest of_" is
  * into {@param "var"}.
  *
  * @method "_↑++=_"
- * @param "var" "↑tuple"
+ * @param "var" "read tuple/write ⊥"
  * @param "t" "tuple"
  * @returns "⊤"
  */
@@ -1239,7 +1239,7 @@ Semantic restriction "_↑++=_" is
 	varType : (read tuple/write ⊥)'s type,
 	tupleType : tuple's type
 |
-	resultType ::= tupleType ++ varType's read type;
+	resultType ::= varType's read type ++ tupleType;
 	If ¬resultType ⊆ varType's write type then
 	[
 		Reject parse, expected: "variable to accept " ++ “resultType”
@@ -1278,28 +1278,42 @@ Semantic restriction "_with_appended" is
 	tupleType ++ <<>, newElementType…|[1..1]>
 ];
 
+/**
+ * Since {@param "elemPhrase"} yields a one-element {@type "tuple"}, we can
+ * use a special primitive to append that tuple's element onto the {@type
+ * "tuple"} held in the target {@type "read tuple/write ⊥" variable}. If the
+ * held {@type "tuple"} is mutable, then this append can be destructive. This is
+ * therefore the preferred mechanism for accumulating {@type "tuple"}s one
+ * element at a time.
+ *
+ * @macro "_↑++=_"
+ * @param "varPhrase" "variable reference phrase ⇒ read tuple/write ⊥"
+ * @param "elemPhrase" "expression phrase ⇒ <<>, any…|[1..1]>"
+ * @returns "⊤"
+ */
 Macro "_↑++=_" is
 [
 	varPhrase : variable reference phrase ⇒ read tuple/write ⊥,
 	elemPhrase : expression phrase ⇒ <<>, any…|[1..1]>
 |
-Print: concatenate <
-	"varPhrase=",
-	“varPhrase”,
-	"\n",
-	"elemPhrase=",
-	“elemPhrase”,
-	"\n",
-	"elemPhrase's semantic type=",
-	“elemPhrase's semantic type”,
-	"\n">;
-	««↓varPhrase» :=
+	restricted send $"_`?=_" with
+	<
+		varPhrase,
 		restricted send $"_with_appended" with
 		<
 			restricted send $"eject_↑" with <varPhrase> : any,
-			elemPhrase
+			cast elemPhrase into
+			[
+				lit : literal phrase ⇒ <<>, any…|[1..1]>
+			|
+				‘`lit's token's value[1]`’
+			]
+			else
+			[
+				restricted send $"_[_]" with <elemPhrase, ‘`1`’> : any
+			]
 		> : tuple
-	»
+	> : ⊤
 ];
 
 Alias "_++=_" to "_↑++=_";

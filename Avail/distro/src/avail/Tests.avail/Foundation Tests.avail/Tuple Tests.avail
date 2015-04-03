@@ -848,35 +848,38 @@ Test "tuple appending" in tuple test suite is
 [
 	/* strongly typed appends */
 	a : <1's type, 2's type, 3's type…|3> := <1,2,3>;
-	b : <1's type, 2's type, 3's type,4's type…|4> := a ++ <4>;
-	Require: <1,2,3,4> = b;
+	b : <1's type, 2's type, 3's type,4's type…|3..> := a;
+	b ++= <4>;
+	Require: b = <1,2,3,4>;
 
 	/* strongly typed multiple appends */
-	c ::= <"b",1,-2>;
-	d : <string,1's type,number,string,number,double…|6> :=
-		c ++ <"a"> ++ <5> ++ <0.1>;
-	Require: <"b",1,-2,"a",5,0.1> = d;
+	c ::= <"b", 1, -2>;
+	d : <string, 1's type, number, any…|3..> := c;
+	d ++= <"a">;
+	d ++= <5>;
+	d ++= <0.1>;
+	Require: d = <"b", 1, -2, "a", 5, 0.1>;
 
 	/* byte tuple / integer interval tuple */
-	ti1 : tuple := <0,2,4,6,8,10,12,14,16,18>;
+	ti1 : tuple := <0, 2, 4, 6, 8, 10, 12, 14, 16, 18>;
 	ti2 : tuple := 0 to 18 by 2;
 	ti1 := ti1 ++ <20>;
-	ti1 := (eject ti1) ++ <22>;
+	ti1 ++= <22>;
 	ti2 := ti2 ++ <20>;
-	ti2 := (eject ti2) ++ <22>;
+	ti2 ++= <22>;
 	Require: ti1[1..12] = ti2[1..12];
 
 	/* byte tuple / repeated tuple */
-	tr1 : tuple := <5,5,5,5,5,5,5,5,5,5>;
+	tr1 : tuple := <5, 5, 5, 5, 5, 5, 5, 5, 5, 5>;
 	tr2 : tuple := 10 occurrences of 5;
 	tr1 := tr1 ++ <5>;
-	tr1 := (eject tr1) ++ <5>;
+	tr1 ++= <5>;
 	tr2 := tr2 ++ <5>;
-	tr2 := (eject tr2) ++ <5>;
+	tr2 ++= <5>;
 	Require: tr1[1..12] = tr2[1..12];
 
 	/* two-byte string */
-	s1 ::= "ĀbcdefghijĐz" ++ "!";
-	s2 ::= "ĀbcdefghijĐz!";
-	Require: s1 = s2;
+	s : string := "ĀbcdefghijĐz";
+	s ++= "!";
+	Require: s = "ĀbcdefghijĐz!";
 ];
