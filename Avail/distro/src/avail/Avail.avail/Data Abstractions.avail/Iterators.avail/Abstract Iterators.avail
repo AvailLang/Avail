@@ -39,13 +39,18 @@ Extends
 	(
 		"For each of⁇_do_",
 		"For each…in|of_§do_",
+		"concatenate_",
+		"filter_by_",
 		"map each…in|of_§through_",
 		"reject each…from_§where_",
+		"map_through_",
 		"select each…from_§where_",
 		"take from_until_",
 		"take from_while_",
 		"take…from_§until_",
-		"take…from_§while_"
+		"take…from_§while_",
+		"zip_",
+		"«_‡zip»"
 	)
 Uses
 	"Foundation"

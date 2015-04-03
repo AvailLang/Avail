@@ -33,20 +33,6 @@
 Module "Exhausted Readers"
 Versions
 	"1.0.0 DEV 2014-04-28"
-Extends
-	"Common" = ("element type", "_'s⁇element type"),
-	"Foundation" =
-	(
-		"For each of⁇_do_",
-		"concatenate_",
-		"filter_by_",
-		"map_through_",
-		"take from_until_",
-		"take from_while_",
-		"zip_",
-		"«_‡zip»",
-		"«_‡++»"
-	)
 Uses
 	"Abstract Iterators",
 	"Foundation"

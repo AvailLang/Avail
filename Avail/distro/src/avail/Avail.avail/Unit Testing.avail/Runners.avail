@@ -701,7 +701,7 @@ Private method "«_»banner" is
 	leftSize of _bc ++ h ++ rightSize of _bc
 ] : string;
 
-Grammatical restriction "«_»banner" is <{"«_‡++»"}>;
+Grammatical restriction "«_»banner" is <{"_++_"}>;
 
 /**
  * Generate a textual report from the specified {@type "unit test report"}.

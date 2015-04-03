@@ -105,7 +105,6 @@ Uses
 		"_'s⁇program counter",
 		"_'s⁇public names",
 		"_'s⁇read type",
-		"_'s⁇referent",
 		"_'s⁇result type",
 		"_'s⁇return type",
 		"_'s⁇seals",
@@ -170,6 +169,7 @@ Uses
 		"`«_:_:=_`»",
 		"`«_:_`»",
 		"`«module variable_(_)`»",
+		"`«↓_`»",
 		"`«↓_`»(_)",
 		"`↑_",
 		"arg`«_:_`»",
@@ -3048,13 +3048,13 @@ Primitive "_'s⁇value" is
  * Answer the specified variable reference's referent.
  *
  * @category "Primitives" "Phrases" "Queries"
- * @method "_'s⁇referent"
+ * @method "`«↓_`»"
  * @param "aReference" "variable reference phrase"
  *        A variable reference.
  * @returns "variable use phrase⇒any"
  *    The variable use referenced by the argument.
  */
-Primitive "_'s⁇referent" is
+Primitive "`«↓_`»" is
 [
 	aReference : variable reference phrase
 |
@@ -3980,26 +3980,5 @@ Primitive "_reversed" is
 	aTuple : tuple
 |
 	Primitive 702;
-] : tuple;
-
-/**
- * Compute and answer the tuple with the appended supplied element 
- *
- * @category "Primitives" "Tuples" 
- * @method "_+_"
- * @param "aTuple" "tuple"
- *        A tuple.
- * @param "newElement" "any"
- *        The element that must be the last element of the resultant tuple.
- * @returns "tuple"
- *    A tuple that has the same elements as {@param "aTuple"} but with
- *    {@param "newElement"} appended.
- */
-Primitive "_+_" is
-[
-	aTuple : tuple,
-	newElement : any
-|
-	Primitive 703;
 ] : tuple;
 

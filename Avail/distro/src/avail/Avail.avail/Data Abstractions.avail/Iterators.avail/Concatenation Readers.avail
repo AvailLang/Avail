@@ -40,15 +40,15 @@ Extends
 		"concatenate_",
 		"map_through_",
 		"take from_until_",
-		"take from_while_",
-		"«_‡++»"
+		"take from_while_"
 	)
 Uses
 	"Abstract Iterators",
 	"Exhausted Readers",
 	"Foundation"
 Names
-	"concatenation reader"
+	"concatenation reader",
+	"«_‡++»"
 Body
 
 "readers" is a new field atom;
@@ -207,3 +207,7 @@ Semantic restriction "concatenate_" is concatenation semantic restriction;
  * @category "Data Abstractions" "Readers"
  */
 Semantic restriction "«_‡++»" is concatenation semantic restriction;
+
+Grammatical restriction {"concatenate_"} is <{"«_‡++»"}>;
+Grammatical restriction {"«_‡++»"} is <{"«_‡++»"}>;
+

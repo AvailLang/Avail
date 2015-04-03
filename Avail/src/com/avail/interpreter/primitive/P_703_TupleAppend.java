@@ -92,6 +92,6 @@ public final class P_703_TupleAppend extends Primitive
 			TupleDescriptor.from(
 				TupleTypeDescriptor.mostGeneralType(),
 				ANY.o()),
-				TupleTypeDescriptor.mostGeneralType());
+			TupleTypeDescriptor.mostGeneralType());
 	}
 }

@@ -63,7 +63,7 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Phrase send = args.get(0);
-		return interpreter.primitiveSuccess(send.bundle());
+		return interpreter.primitiveSuccess(send.bundle().bundleMethod());
 	}
 
 	@Override

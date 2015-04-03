@@ -32,7 +32,7 @@
 
 Module "Bad String Addition"
 Uses
-	"Avail" = ("Method_is_", "string", "_+_", "«_‡++»"),
+	"Avail" = ("Method_is_", "string", "_+_", "_++_"),
 	"Dimensional Analysis" = ("_+_")
 Body
 
