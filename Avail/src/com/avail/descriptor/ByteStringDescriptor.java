@@ -96,7 +96,7 @@ extends StringDescriptor
 		final int intValue;
 		if (originalSize >= maximumCopySize
 			|| !newElement.isCharacter()
-			|| ((intValue = ((A_Character) newElement).codePoint()) & 0xFF) != intValue)
+			|| ((intValue = ((A_Character) newElement).codePoint()) & ~0xFF) != 0)
 		{
 			// Transition to a tree tuple.
 			final A_Tuple singleton = TupleDescriptor.from(newElement);
@@ -116,7 +116,7 @@ extends StringDescriptor
 			descriptorFor(MUTABLE, newSize),
 			object,
 			0,
-			(originalSize & 1) == 0 ? 1 : 0);
+			(originalSize & 3) == 0 ? 1 : 0);
 		result.byteSlotAtPut(RAW_QUAD_AT_, newSize, (short)intValue);
 		result.setSlot(HASH_OR_ZERO, 0);
 		return result;

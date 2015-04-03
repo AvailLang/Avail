@@ -68,6 +68,7 @@ import com.avail.io.TextInterface;
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
 import com.avail.stacks.StacksGenerator;
 import com.avail.utility.Mutable;
+import com.avail.utility.Pair;
 import com.avail.utility.evaluation.*;
 
 /**
@@ -269,6 +270,149 @@ extends JFrame
 		protected abstract void executeTask () throws Exception;
 	}
 
+
+	/**
+	 * Whether there is a task queued or running that will check again for
+	 * new changes before giving up control.
+	 */
+	@InnerAccess boolean updatingTranscript = false;
+
+	/**
+	 * A {@link List} of {@link Pair}s, where the first part of each pair is a
+	 * boolean indicating if the entry is for the error stream (true) or the
+	 * regular output stream (false), and the second part of the pair is a
+	 * {@link StringBuilder} that accumulates new {@link String} data to be
+	 * written with the same style.
+	 *
+	 * Additionally, this queue is the monitor on which to synchronize writing
+	 * to either output stream, and to transfer from the queue to the output
+	 * transcript (a {@link StyledDocument}).
+	 */
+	@InnerAccess Deque<Pair<Boolean, StringBuilder>> updateQueue =
+		new ArrayDeque<>();
+
+	/**
+	 * The {@link Style} with which to show error output.  Lazily
+	 * initialized.
+	 */
+	private @Nullable Style errorStyle = null;
+
+	/**
+	 * The {@link Style} with which to show regular output.  Lazily
+	 * initialized.
+	 */
+	private @Nullable Style outputStyle = null;
+
+	/**
+	 * The {@link StyledDocument} into which to write both error and regular
+	 * output.  Lazily initialized.
+	 */
+	private @Nullable StyledDocument document = null;
+
+	/**
+	 * Answer the {@link StyledDocument} into which to write error and regular
+	 * output.
+	 *
+	 * @return The document, retrieving it from the {@link #transcript} if
+	 *         necessary.
+	 */
+	@InnerAccess StyledDocument document ()
+	{
+		StyledDocument d = document;
+		if (d == null)
+		{
+			document = d = transcript.getStyledDocument();
+		}
+		return d;
+	}
+
+	/**
+	 * Answer the style to use, either the error style if isErrorStream is true,
+	 * otherwise the regular output style.
+	 *
+	 * @param isErrorStream Whether to get the error style.
+	 * @return The requested style.
+	 */
+	@InnerAccess Style style (final boolean isErrorStream)
+	{
+		if (isErrorStream)
+		{
+			Style e = errorStyle;
+			if (e == null)
+			{
+				errorStyle = e = document().getStyle(errorStyleName);
+			}
+			return e;
+		}
+		Style o = outputStyle;
+		if (o == null)
+		{
+			outputStyle = o = document().getStyle(outputStyleName);
+		}
+		return o;
+	}
+
+	/**
+	 * Update the {@linkplain #transcript} by appending the (non-empty) queued
+	 * text to it.  Only output what was already queued by the time the UI
+	 * runnable starts; if additional output is detected afterward, another UI
+	 * runnable will be queued to deal with the residue (iteratively).  This
+	 * maximizes efficiency while avoiding starvation of the UI process in the
+	 * event that a high volume of data is being written.
+	 */
+	@InnerAccess void updateTranscript ()
+	{
+		assert Thread.holdsLock(updateQueue);
+		assert updatingTranscript;
+		invokeLater(new Runnable()
+		{
+			@Override
+			public void run ()
+			{
+				final List<Pair<Boolean, StringBuilder>> allPairs;
+				synchronized (updateQueue)
+				{
+					allPairs = new ArrayList<Pair<Boolean, StringBuilder>>(
+						updateQueue);
+					updateQueue.clear();
+				}
+				final StyledDocument doc = document();
+				for (final Pair<Boolean, StringBuilder> pair : allPairs)
+				{
+					try
+					{
+						doc.insertString(
+							doc.getLength(),
+							pair.second().toString(),
+							style(pair.first()));
+					}
+					catch (final BadLocationException e)
+					{
+						// Shouldn't happen.
+						assert false;
+					}
+				}
+				final JScrollBar verticalScrollBar =
+					transcriptScrollArea.getVerticalScrollBar();
+				verticalScrollBar.validate();
+				verticalScrollBar.setValue(verticalScrollBar.getMaximum());
+				synchronized (updateQueue)
+				{
+					if (updateQueue.isEmpty())
+					{
+						updatingTranscript = false;
+					}
+					else
+					{
+						// Queue another task to update the transcript, to
+						// avoid starving other UI interactions.
+						updateTranscript();
+					}
+				}
+			}
+		});
+	}
+
 	/**
 	 * {@linkplain BuildOutputStream} intercepts writes and updates the UI's
 	 * {@linkplain #transcript}.
@@ -277,19 +421,17 @@ extends JFrame
 	extends ByteArrayOutputStream
 	{
 		/**
-		 * The {@linkplain StyledDocument styled document} underlying the
-		 * {@linkplain #transcript}.
+		 * Whether this is the error output stream.  If false, it's the regular
+		 * output stream.
 		 */
-		final StyledDocument doc;
-
-		/** The print {@linkplain Style style}. */
-		final String style;
+		final boolean isErrorStream;
 
 		/**
-		 * Update the {@linkplain #transcript}.
+		 *
 		 */
-		private void updateTranscript ()
+		private void queueForTranscript ()
 		{
+			assert Thread.holdsLock(this);
 			final String text;
 			try
 			{
@@ -300,45 +442,48 @@ extends JFrame
 				assert false : "Somehow Java doesn't support characters";
 				throw new RuntimeException(e);
 			}
-			reset();
-			invokeLater(new Runnable()
+			if (text.isEmpty())
 			{
-				@Override
-				public void run ()
+				// Nothing new to display.
+				return;
+			}
+			reset();
+			synchronized (updateQueue)
+			{
+				final Pair<Boolean, StringBuilder> entry;
+				if (!updateQueue.isEmpty()
+					&& updateQueue.peekLast().first() == isErrorStream)
 				{
-					try
-					{
-						doc.insertString(
-							doc.getLength(),
-							text,
-							doc.getStyle(style));
-						final JScrollBar verticalScrollBar =
-							transcriptScrollArea.getVerticalScrollBar();
-						verticalScrollBar.validate();
-						verticalScrollBar.setValue(
-							verticalScrollBar.getMaximum());
-					}
-					catch (final BadLocationException e)
-					{
-						// Shouldn't happen.
-						assert false;
-					}
+					entry = updateQueue.peekLast();
 				}
-			});
+				else
+				{
+					entry = new Pair<>(isErrorStream, new StringBuilder());
+					updateQueue.addLast(entry);
+				}
+				entry.second().append(text);
+				if (!updatingTranscript)
+				{
+					// The updating Runnable will deal with it afterward.
+					updatingTranscript = true;
+					updateTranscript();
+				}
+			}
 		}
 
 		@Override
 		public synchronized void write (final int b)
 		{
 			super.write(b);
-			updateTranscript();
+			queueForTranscript();
 		}
 
 		@Override
-		public void write (final @Nullable byte[] b) throws IOException
+		public synchronized void write (final @Nullable byte[] b)
+		throws IOException
 		{
 			super.write(b);
-			updateTranscript();
+			queueForTranscript();
 		}
 
 		@Override
@@ -348,7 +493,7 @@ extends JFrame
 			final int len)
 		{
 			super.write(b, off, len);
-			updateTranscript();
+			queueForTranscript();
 		}
 
 		/**
@@ -359,9 +504,8 @@ extends JFrame
 		 */
 		public BuildOutputStream (final boolean isErrorStream)
 		{
-			super(65536);
-			this.doc = transcript.getStyledDocument();
-			this.style = isErrorStream ? errorStyleName : outputStyleName;
+			super(1);
+			this.isErrorStream = isErrorStream;
 		}
 	}
 
@@ -706,6 +850,10 @@ extends JFrame
 	/** The {@linkplain ClearReportAction clear report action}. */
 	@InnerAccess final ClearReportAction clearReportAction =
 		new ClearReportAction(this);
+
+	/** The {@linkplain TraceMacrosAction toggle trace macros action}. */
+	@InnerAccess final TraceMacrosAction debugMacroExpansionsAction =
+		new TraceMacrosAction(this);
 
 	/** The {@linkplain ClearTranscriptAction clear transcript action}. */
 	@InnerAccess final ClearTranscriptAction clearTranscriptAction =
@@ -1561,6 +1709,8 @@ extends JFrame
 			devMenu.add(new JMenuItem(reportAction));
 			devMenu.add(new JMenuItem(clearReportAction));
 			devMenu.addSeparator();
+			devMenu.add(new JCheckBoxMenuItem(debugMacroExpansionsAction));
+			devMenu.addSeparator();
 			devMenu.add(new JMenuItem(graphAction));
 			menuBar.add(devMenu);
 		}
@@ -1807,10 +1957,12 @@ extends JFrame
 				StyleContext.DEFAULT_STYLE);
 		defaultStyle.addAttributes(attributes);
 		StyleConstants.setFontFamily(defaultStyle, "Monospaced");
-		final Style outputStyle = doc.addStyle(outputStyleName, defaultStyle);
-		StyleConstants.setForeground(outputStyle, Color.BLACK);
-		final Style errorStyle = doc.addStyle(errorStyleName, defaultStyle);
-		StyleConstants.setForeground(errorStyle, Color.RED);
+		StyleConstants.setForeground(
+			doc.addStyle(outputStyleName, defaultStyle),
+			Color.BLACK);
+		StyleConstants.setForeground(
+			doc.addStyle(errorStyleName, defaultStyle),
+			Color.RED);
 		final Style inputStyle = doc.addStyle(inputStyleName, defaultStyle);
 		StyleConstants.setForeground(inputStyle, new Color(32, 144, 32));
 		final Style infoStyle = doc.addStyle(infoStyleName, defaultStyle);

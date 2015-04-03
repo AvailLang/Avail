@@ -2323,10 +2323,9 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public boolean isBetterRepresentationThanTupleType (
-		final A_Type aTupleType)
+	public int representationCostOfTupleType ()
 	{
-		return descriptor.o_IsBetterRepresentationThanTupleType(this, aTupleType);
+		return descriptor.o_RepresentationCostOfTupleType(this);
 	}
 
 	/**
@@ -7156,5 +7155,11 @@ implements
 	public void statementsDo (final Continuation1<A_Phrase> continuation)
 	{
 		descriptor.o_StatementsDo(this, continuation);
+	}
+
+	@Override
+	public A_Phrase macroOriginalSendNode ()
+	{
+		return descriptor.o_MacroOriginalSendNode(this);
 	}
 }

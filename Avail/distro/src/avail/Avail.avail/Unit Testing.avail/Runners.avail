@@ -853,7 +853,7 @@ Public method "test suite-oriented“_”" is
  * @method "all tests in_"
  * @param "suiteID" "atom"
  *        The test suite identifier.
- * @returns "<atom…|>"
+ * @returns "atom*"
  *          The test identifiers of all unit tests comprising the argument.
  * @raises "no-such-test-suite exception"
  *         If {@param "suiteID"} does not reference an existing test suite.
@@ -877,7 +877,7 @@ Public method "all tests in_" is
 		|
 			/* No implementation required. */
 		]
-] : <atom…|>;
+] : atom*;
 
 /**
  * Compute and answer the complete collection of {@type "unit test suite"}
@@ -887,7 +887,7 @@ Public method "all tests in_" is
  * @method "all test suites in_"
  * @param "suiteID" "atom"
  *        The test suite identifier.
- * @returns "<atom…|>"
+ * @returns "atom*"
  *          The test suite identifiers of all unit test suites comprising the
  *          argument. The result will not contain the argument.
  * @raises "no-such-test-suite exception"
@@ -912,7 +912,7 @@ Public method "all test suites in_" is
 		|
 			/* No implementation required. */
 		]
-] : <atom…|>;
+] : atom*;
 
 /**
  * Compute and answer the complete collection of {@type "unit test suite"}

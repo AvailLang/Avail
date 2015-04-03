@@ -116,7 +116,7 @@ Private method "_partially evaluate with_" is
 	callArguments : <expression phrase⇒any…|> := <>;
 	argumentDeclarations : <argument phrase⇒⊤…|> := <>;
 	For each pairs do [
-			pair : <<any…|>, boolean…|>,
+			pair : <any*, boolean…|>,
 			n : natural number
 		|
 			if pair[2] then

@@ -2415,9 +2415,8 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsBetterRepresentationThanTupleType (
-		final AvailObject object,
-		final A_Type aTupleType)
+	int o_RepresentationCostOfTupleType (
+		final AvailObject object)
 	{
 		// Given two objects that are known to be equal, the second of which is
 		// in the form of a tuple type, is the first one in a better form than
@@ -4641,6 +4640,12 @@ extends AbstractDescriptor
 	void o_StatementsDo (
 		final AvailObject object,
 		final Continuation1<A_Phrase> continuation)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Phrase o_MacroOriginalSendNode (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

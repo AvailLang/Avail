@@ -51,14 +51,14 @@ Private method "delimiter|delimiters" is [$"delimiter|delimiters"];
  * @supertype "stream"
  * @field "element type" "tuple's type"
  * @field "reconstructible decorated stream" "stream"
- * @field "delimiter" "<any…|1..>"
+ * @field "delimiter" "any+"
  * @category "Data Abstractions" "Streams"
  */
 Class "delimited stream" extends stream
 	with fields
 		element type : tuple's type,
 		reconstructible decorated stream : stream,
-		delimiter : <any…|1..>;
+		delimiter : any+;
 
 Method "_is empty" is
 [
@@ -105,7 +105,7 @@ delimited stream's tail method is
  * @method "_delimited by_"
  * @param "aStream" "stream"
  *    aStream - A stream.
- * @param "delimiterTuple" "<any…|1..>"
+ * @param "delimiterTuple" "any+"
  *    delimiterTuple - The delimiter.
  * @returns "stream of tuple"
  *    The requested stream.
@@ -114,7 +114,7 @@ delimited stream's tail method is
 Public method "_delimited by_" is
 [
 	aStream : stream,
-	delimiterTuple : <any…|1..>
+	delimiterTuple : any+
 |
 	a delimited stream with
 		element type ::= <aStream's element type…|>,
@@ -125,7 +125,7 @@ Public method "_delimited by_" is
 Semantic restriction "_delimited by_" is
 [
 	streamType : stream's type,
-	delimiterType : <any…|1..>'s type
+	delimiterType : any+'s type
 |
 	extend delimited stream with
 		element type : <streamType's element type's instance…|>'s type,
@@ -139,12 +139,12 @@ Semantic restriction "_delimited by_" is
  *
  * @type "multiply delimited stream"
  * @supertype "delimited stream"
- * @field "delimiters" "<<any…|1..>…|1..>;"
+ * @field "delimiters" "<any+…|1..>;"
  * @category "Data Abstractions" "Streams"
  */
 Explicit class "multiply delimited stream" extends delimited stream
 	with fields
-		delimiters : <<any…|1..>…|1..>;
+		delimiters : <any+…|1..>;
 
 multiply delimited stream's head method is
 [
@@ -200,7 +200,7 @@ multiply delimited stream's tail method is
  * @method "_delimited by any of_"
  * @param "aStream" "stream"
  *    aStream - A stream.
- * @param "delimitersTuple" "<<any…|1..>…|1..>"
+ * @param "delimitersTuple" "<any+…|1..>"
  *    delimiterTuple - The delimiter.
  * @returns "stream of tuple"
  *    The requested stream.
@@ -209,7 +209,7 @@ multiply delimited stream's tail method is
 Public method "_delimited by any of_" is
 [
 	aStream : stream,
-	delimitersTuple : <<any…|1..>…|1..>
+	delimitersTuple : <any+…|1..>
 |
 	a multiply delimited stream with
 		element type ::= <aStream's element type…|>,
@@ -220,7 +220,7 @@ Public method "_delimited by any of_" is
 Semantic restriction "_delimited by any of_" is
 [
 	streamType : stream's type,
-	delimitersType : <<any…|1..>…|1..>'s type
+	delimitersType : <any+…|1..>'s type
 |
 	extend multiply delimited stream with
 		element type : <streamType's element type's instance…|>'s type,

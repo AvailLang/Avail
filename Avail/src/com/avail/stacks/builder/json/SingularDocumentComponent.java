@@ -58,7 +58,7 @@ public final class SingularDocumentComponent extends DocumentComponent
 	}
 
 	/**
-	 * The contents of the component.  e.g "<any…|1..>"
+	 * The contents of the component.  e.g "any+"
 	 */
 	final String contents;
 

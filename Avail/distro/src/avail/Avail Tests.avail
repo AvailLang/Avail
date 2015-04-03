@@ -195,7 +195,7 @@ _compareTests ::=
 Private method "Debug tests" is
 [
 	roots ::= quicksort the test suites→tuple with _compareTests;
-	stack : <<atom, <atom…|>…|>…|> := <<root test suite ID, roots>>;
+	stack : <<atom, atom*…|>…|> := <<root test suite ID, roots>>;
 	command : string;
 	Do
 	[

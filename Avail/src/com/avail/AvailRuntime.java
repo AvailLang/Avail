@@ -807,6 +807,12 @@ public final class AvailRuntime
 	}
 
 	/**
+	 * Whether to show all {@link MacroDefinitionDescriptor macro} expansions as
+	 * they happen.
+	 */
+	public boolean debugMacroExpansions = false;
+
+	/**
 	 * The {@linkplain ModuleNameResolver module name resolver} that this
 	 * {@linkplain AvailRuntime runtime} should use to resolve unqualified
 	 * {@linkplain ModuleDescriptor module} names.

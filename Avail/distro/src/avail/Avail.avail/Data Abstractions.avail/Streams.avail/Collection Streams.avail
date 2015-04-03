@@ -50,14 +50,14 @@ Body
  * @type "tuple stream"
  * @supertype "stream"
  * @field "element type" "any's type"
- * @field "collection" "<any…|>"
+ * @field "collection" "any*"
  * @field "index" "natural number"
  * @category "Data Abstractions" "Streams"
  */
 Class "tuple stream" extends stream
 	with fields
 		element type : any's type,
-		collection : <any…|>,
+		collection : any*,
 		index : natural number
 	with reconstructors
 		(element type, index);
@@ -92,7 +92,7 @@ tuple stream's tail method is
  * tuple.
  * 
  * @method "a stream over_"
- * @param "aTuple" "<any…|>"
+ * @param "aTuple" "any*"
  *    aTuple - A tuple.
  * @returns "stream"
  *    The requested stream.
@@ -100,7 +100,7 @@ tuple stream's tail method is
  */
 Public stable method "a stream over_" is
 [
-	aTuple : <any…|>
+	aTuple : any*
 |
 	a tuple stream with
 		element type ::= ∪ aTuple's type[1..|aTuple|],
@@ -110,7 +110,7 @@ Public stable method "a stream over_" is
 
 Semantic restriction "a stream over_" is
 [
-	tupleType : <any…|>'s type
+	tupleType : any*'s type
 |
 	limit ::= ⎡tupleType⎤ min (|tupleType's leading types| + 1);
 	extend tuple stream with

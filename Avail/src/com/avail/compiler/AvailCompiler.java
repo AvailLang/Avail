@@ -227,9 +227,20 @@ extends AbstractAvailCompiler
 						assert replacement != null;
 						assert replacement.isInstanceOfKind(
 							PARSE_NODE.mostGeneralType());
+						final A_Phrase original =
+							SendNodeDescriptor.from(
+								bundle,
+								argumentsListNode,
+								macroDefinitionToInvoke
+									.bodySignature().returnType());
 						final A_Phrase substitution =
-							MacroSubstitutionNodeDescriptor.fromNameAndNode(
-								bundle.message(), replacement);
+							MacroSubstitutionNodeDescriptor
+								.fromOriginalSendAndReplacement(
+									original, replacement);
+						if (runtime.debugMacroExpansions)
+						{
+							System.out.println(substitution);
+						}
 						// Declarations introduced inside the macro should be
 						// removed from the scope (at the parse position after
 						// the macro body runs).  Strip all client data, in

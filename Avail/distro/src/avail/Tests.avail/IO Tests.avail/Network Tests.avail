@@ -239,13 +239,13 @@ Test "basic transmission" in network test suite is
 		Ignore: a fiber writing data to client,
 			on success doing [/* Nothing. */],
 			on failure doing [e : exception | killer := e; Signal sem;];
-		read : <byte…|> := <>;
+		read : byte* := <>;
 		Until
 		[
 			Ignore: a fiber reading (|data| - |read|) max 0 bytes from accepted,
 				on success doing
 				[
-					justRead : <byte…|>,
+					justRead : byte*,
 					endOfStream : boolean
 				|
 					Require: ¬endOfStream;

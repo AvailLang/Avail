@@ -93,9 +93,12 @@ public final class P_136_ConcatenateTuples extends Primitive
 			// A (reasonably small) collection of tuple types.
 			assert lowerBound.isInt();
 			final int bound = lowerBound.extractInt();
-			A_Type concatenatedType =
-				InstanceTypeDescriptor.on(TupleDescriptor.empty());
-			for (int i = 1; i <= bound; i++)
+			if (bound == 0)
+			{
+				return InstanceTypeDescriptor.on(TupleDescriptor.empty());
+			}
+			A_Type concatenatedType = tuplesType.typeAtIndex(1);
+			for (int i = 2; i <= bound; i++)
 			{
 				concatenatedType =
 					ConcatenatedTupleTypeDescriptor.concatenatingAnd(
@@ -121,12 +124,11 @@ public final class P_136_ConcatenateTuples extends Primitive
 					tuplesSizes.upperBound().timesCanDestroy(
 						innerSizes.upperBound(),
 						false);
-				final A_Type newSizeRange =
-					IntegerRangeTypeDescriptor.create(
-						minSize,
-						true,
-						maxSize.plusCanDestroy(IntegerDescriptor.one(), true),
-						false);
+				final A_Type newSizeRange = IntegerRangeTypeDescriptor.create(
+					minSize,
+					true,
+					maxSize.plusCanDestroy(IntegerDescriptor.one(), true),
+					false);
 				return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					newSizeRange,
 					TupleDescriptor.empty(),

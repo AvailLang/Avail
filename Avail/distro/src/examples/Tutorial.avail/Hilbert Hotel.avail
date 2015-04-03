@@ -57,7 +57,7 @@ Public method "a guest named_,_" is
 allTitles ::= <"sir", "miss">;
 titleIndex : [1..2] := a pRNG's next value in [1..2];
 inquiry : room number := 1;
-guests : <guest…|> := <>;
+guests : guest* := <>;
 
 Private method "last available room" is [|guests| + 1];
 

@@ -189,7 +189,7 @@ Semantic restriction "_'s⁇next«value in»⁇_" is
 Public method "_'s⁇next element of_" is
 [
 	rng : pRNG,
-	aTuple : <any…|1..>
+	aTuple : any+
 |
 	result ::= aTuple[rng's next [1..|aTuple|+1)];
 	Advance rng;
@@ -199,7 +199,7 @@ Public method "_'s⁇next element of_" is
 Semantic restriction "_'s⁇next element of_" is
 [
 	rng : pRNG's type,
-	tupleType : <any…|1..>'s type
+	tupleType : any+'s type
 |
 	∪ tupleType[1..⎣tupleType⎦ min (|tupleType's leading types| + 1)]
 ];

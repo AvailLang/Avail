@@ -66,7 +66,7 @@ Body
 Explicit class "zipped reader" extends reader
 	with fields
 		element type : tuple's type,
-		readers : <reader…|>;
+		readers : reader*;
 
 /**
  * Determine if the zipped reader is exhausted.
@@ -110,14 +110,14 @@ zipped reader's advance method is
  * 
  * @category "Data Abstractions" "Readers"
  * @method "zip_"
- * @param "readers" "<reader…|>"
+ * @param "readers" "reader*"
  *        A tuple of readers.
  * @returns "reader"
  *          The requested reader.
  */
 Method "zip_" is
 [
-	readers : <reader…|1..>
+	readers : reader+
 |
 	types ::= map readers through [i : reader | i's element type];
 	elementType ::=
@@ -136,7 +136,7 @@ Method "zip_" is
  * 
  * @category "Data Abstractions" "Readers"
  * @method "«_‡zip»"
- * @param "readers" "<reader…|>"
+ * @param "readers" "reader*"
  *        A tuple of readers.
  * @returns "reader"
  *          The requested reader.
@@ -159,13 +159,13 @@ Method "«_‡zip»" is
  * 
  * @category "Data Abstractions" "Readers"
  * @method "zip semantic restriction"
- * @returns "[<reader…|>'s type]→(zipped reader's type)"
+ * @returns "[reader*'s type]→(zipped reader's type)"
  *          The requested function.
  */
 Private method "zip semantic restriction" is
 [
 	[
-		readers : <reader…|1..>'s type
+		readers : reader+'s type
 	|
 		types : <any's type…|> := <>;
 		For each i from 1 to (⎣readers⎦ min (|readers' leading types| + 1)) do
@@ -186,7 +186,7 @@ Private method "zip semantic restriction" is
  * Strengthen the {@type "reader"} {@method "zip_"} operation.
  * 
  * @method "zip_"
- * @restricts "readers" "<reader…|1..>'s type"
+ * @restricts "readers" "reader+'s type"
  * @returns "zipped reader"
  * @category "Data Abstractions" "Readers"
  */
@@ -196,7 +196,7 @@ Semantic restriction "zip_" is zip semantic restriction;
  * Strengthen the {@type "reader"} {@method "«_‡zip»"} operation.
  * 
  * @method "zip_"
- * @restricts "readers" "<reader…|1..>'s type"
+ * @restricts "readers" "reader+'s type"
  * @returns "zipped reader"
  * @category "Data Abstractions" "Readers"
  */

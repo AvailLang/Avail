@@ -46,7 +46,7 @@ Test "type constructors" in type test suite is
 [
 	Require: 5's type ⊆ integer;
 	Require: {string→integer|} ⊆ map;
-	Require: <string…|> ⊆ tuple;
+	Require: string* ⊆ tuple;
 	Require: {string|} ⊆ set;
 	Require: [⊥]→string ⊆ function;
 ];
@@ -57,7 +57,7 @@ Test "type cardinality" in type test suite is
 	Require: ||{string→integer|..7}|| ⊆ [0..7];
 	Require: ||{string→integer|3..}|| ⊆ [3..∞);
 	Require: ||{string→integer|3..7}|| ⊆ [3..7];
-	Require: ||<string…|>|| ⊆ [0..∞);
+	Require: ||string*|| ⊆ [0..∞);
 	Require: ||<string…|..5>|| ⊆ [0..5];
 	Require: ||<string…|2..>|| ⊆ [2..∞);
 	Require: ||<string…|2..5>|| ⊆ [2..5];

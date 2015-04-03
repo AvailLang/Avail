@@ -281,7 +281,7 @@ Public method "_'s⁇write tuple method is_" is
 			++ ")"
 	];
 	elementType ::= writerType's element type;
-	If ¬ <elementType…|1..> ⊆ implementationType[1] then
+	If ¬ elementType+ ⊆ implementationType[1] then
 	[
 		Reject parse, expected:
 			"function's first parameter type ("

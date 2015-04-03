@@ -305,7 +305,7 @@ Method "«using_,»roll_" is
  */
 Class "operator dice expression" extends dice expression
 	with fields
-		operands : <dice…|1..>;
+		operands : dice+;
 
 /**
  * An addition dice expression {@method "«using_,»roll_" evaluates} its

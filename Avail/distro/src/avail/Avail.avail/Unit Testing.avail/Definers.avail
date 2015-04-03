@@ -100,7 +100,7 @@ Private method "Forget_" is
 		/* Remove the suite atom from the parent's collection of child
 		 * suites.
 		 */
-		childSuites : <atom…|> :=
+		childSuites : atom* :=
 			select each id from parent's child suite IDs where [id ≠ suiteID];
 		If isRootTestSuite then
 		[
@@ -174,7 +174,7 @@ Public method "New test suite,⁇_,⁇extends_" is
 			];
 		/* Record the suite atom in the global collection of suites. */
 		suites by atom := suites by atom + id→suite;
-		childSuites : <atom…|> := parent's child suite IDs ++ <id>;
+		childSuites : atom* := parent's child suite IDs ++ <id>;
 		If isRootTestSuite then
 		[
 			root suite := root suite's child suite IDs ::= childSuites;

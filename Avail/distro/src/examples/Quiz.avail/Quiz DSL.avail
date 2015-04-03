@@ -125,14 +125,14 @@ Private abstract method "_correctly answers_" is [answer, question]→boolean;
  *        The text of the question.
  * @field "weight" "natural number points"
  *        The weight of the question, in {@type "point" points}.
- * @field "answers" "<answer…|1..>"
+ * @field "answers" "answer+"
  *        Every supplied {@type "answer"} to the question.
  * @field "correct answers" "{answer…|1..}"
  *        Every correct {@type "answer"} to the question.
  */
 Class "multiple-choice question" extends question
 	with fields
-		answers : <answer…|1..>,
+		answers : answer+,
 		correct answers : {answer|1..};
 
 /**
@@ -182,14 +182,14 @@ Private method "_correctly answers_" is
  * @supertype "object"
  * @field "title" "string"
  *        The title of the quiz.
- * @field "questions" "<question…|1..>"
+ * @field "questions" "question+"
  *        Every {@type "question"} on the quiz.
  */
 Class "quiz" extends object
 	with field
 		title : string
 	with mutable field
-		questions : <question…|>;
+		questions : question*;
 
 /**
  * Answer the total weight of the specified {@type "quiz"}.
@@ -207,7 +207,7 @@ Private method "_'s⁇total weight" is
 |
 	(cast aQuiz's questions into
 	[
-		qs : <question…|1..>
+		qs : question+
 	|
 		∑ map each q in qs through [q's weight's extent]
 	]
@@ -548,7 +548,7 @@ Semantic restriction "Short Answer(_)._«A:_»" is
 |
 	Require: quiz is defined;
 	uniqueAnswers : {string|} := ∅;
-	noncanonical : <string…|> := <>;
+	noncanonical : string* := <>;
 	For each index from 1 to ⎣correctAnswers⎦ do
 	[
 		anAnswer ::= correctAnswers[index]'s instance;

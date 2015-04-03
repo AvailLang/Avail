@@ -397,56 +397,6 @@ Public method "Method_is stable at_" is
 ] : ⊤;
 
 /**
- * Reject the current parse if the specified message specifies any lexical
- * groups. Take no action if the actual message is not available.
- * 
- * @method "Require:message_does not specify lexical groups"
- * @param "nameType" "string's type"
- *        The type of the method name.
- * @returns "⊤"
- */
-Private method "Require:message_does not specify lexical groups" is
-[
-	nameType : string's type
-|
-	If |nameType| = 1 then
-	[
-		methodName ::= cast nameType's instance into [ t : string | t ];
-		If message methodName contains groups then
-		[
-			messageTuple ::= concatenate <
-				"message name (",
-				“methodName”,
-				") must not specify lexical groups">;
-			Invoke
-			[
-				messageString : string
-			|
-				Reject parse, expected: messageString
-			]
-			with <messageTuple>
-		];
-	];
-] : ⊤;
-
-/**
- * If possible, then ensure that the parameters are not types; because of
- * metacovariance, the operation would not actually be stable.
- * 
- * @method "Method_is stable at_"
- * @restricts "string's type"
- * @restricts "function meta"
- */
-Semantic restriction "Method_is stable at_" is
-[
-	nameType : string's type,
-	functionType : function meta
-|
-	Require: message nameType does not specify lexical groups;
-	⊤
-];
-
-/**
  * Declare a new abstract stable method with the specified name and signature. A
  * concrete implementation is one whose parameter types and return type are
  * strictly more specific than the corresponding types of the abstract
@@ -471,20 +421,6 @@ Public method "Stable abstract method_is_" is
 	Abstract method methodName is aFunctionType;
 	Method methodName is stable at aFunctionType;
 ] : ⊤;
-
-/**
- * @method "Stable abstract method_is_"
- * @restricts "string's type"
- * @restricts "function meta's type"
- */
-Semantic restriction "Stable abstract method_is_" is
-[
-	nameType : string's type,
-	functionMeta : function meta's type
-|
-	Require: message nameType does not specify lexical groups;
-	⊤
-];
 
 /**
  * Declare a new abstract stable method with the specified name and signature. A
@@ -544,21 +480,6 @@ Public method "Stable forward method_is_" is
 ] : ⊤;
 
 /**
- * 
- * @method "Stable forward method_is_"
- * @restricts "string's type"
- * @restricts "function meta's type"
- */
-Semantic restriction "Stable forward method_is_" is
-[
-	nameType : string's type,
-	functionMeta : function meta's type
-|
-	Require: message nameType does not specify lexical groups;
-	⊤
-];
-
-/**
  * Declare the intention to locally define a method with the specified name and
  * signature. If no such method is defined before compilation of the containing
  * module completes, then the compiler will emit an appropriate error message.
@@ -611,20 +532,6 @@ Public method "Stable method_is_" is
 |
 	Method methodName is implementation;
 	Method methodName is stable at implementation's type;
-];
-
-/**
- * @method "Stable method_is_"
- * @restricts "string's type"
- * @restricts "function meta"
- */
-Semantic restriction "Stable method_is_" is
-[
-	nameType : string's type,
-	functionType : function meta
-|
-	Require: message nameType does not specify lexical groups;
-	⊤
 ];
 
 /**
@@ -692,7 +599,6 @@ Semantic restriction "Public stable abstract method_is_" is
 	functionMeta : function meta's type
 |
 	Require: nameType is public;
-	Require: message nameType does not specify lexical groups;
 	⊤
 ];
 
@@ -774,7 +680,6 @@ Semantic restriction "Public stable forward method_is_" is
 	functionMeta : function meta's type
 |
 	Require: nameType is public;
-	Require: message nameType does not specify lexical groups;
 	⊤
 ];
 
@@ -854,7 +759,6 @@ Semantic restriction "Public stable method_is_" is
 	functionType : function meta
 |
 	Require: nameType is public;
-	Require: message nameType does not specify lexical groups;
 	⊤
 ];
 
@@ -925,7 +829,6 @@ Semantic restriction "Private stable abstract method_is_" is
 	functionMeta : function meta's type
 |
 	Require: nameType is private;
-	Require: message nameType does not specify lexical groups;
 	⊤
 ];
 
@@ -1007,7 +910,6 @@ Semantic restriction "Private stable forward method_is_" is
 	functionMeta : function meta's type
 |
 	Require: nameType is private;
-	Require: message nameType does not specify lexical groups;
 	⊤
 ];
 
@@ -1087,7 +989,6 @@ Semantic restriction "Private stable method_is_" is
 	functionType : function meta
 |
 	Require: nameType is private;
-	Require: message nameType does not specify lexical groups;
 	⊤
 ];
 

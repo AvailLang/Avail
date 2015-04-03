@@ -346,7 +346,7 @@ Semantic restriction "Observe|observe_" is
 	implicit observe function :=
 		[
 			f : […]→⊤,
-			args : <any…|>
+			args : any*
 		|
 			Observe [Invoke f with args;];
 		];
