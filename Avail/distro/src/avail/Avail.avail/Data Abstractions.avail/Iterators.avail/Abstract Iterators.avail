@@ -40,6 +40,7 @@ Extends
 		"For each of⁇_do_",
 		"For each…in|of_§do_",
 		"map each…in|of_§through_",
+		"reject each…from_§where_",
 		"select each…from_§where_",
 		"take from_until_",
 		"take from_while_",

@@ -543,30 +543,25 @@ Public macro "reject each…→…from_§where_" is
 	returnType ::= strengthen map for call of $"filter_by_" 
 		using <aMapType, blockType>;
 	statements ::= action's statements;
-	blockReturnType ::= cast statements
-		into [t : phrase+ | t[|t|]'s semantic type]
-		else [⊤];
 
 	castToPhrase ::= [s : nonempty string | 
 		cast scope map[s] into [d : argument phrase | d]];
 	
 	size ::= |statements|;
 
-	newStatements ::= if size = 0 then [<>]
-	else if [size = 1] then
+	newStatements ::= if size = 0 then [<>] else 
 	[
-	 	i : natural number := cast size into [n : natural number | n];
-	 	c : expression phrase⇒any := cast statements[i] into 
-	 		[e : expression phrase⇒any | e];
-	 	<restricted send $"¬_" with <c>:boolean>
-	] else 
-	[
-	 	end : natural number := cast size-1 into [n : natural number | n];
+	 	end : whole number := cast size-1 into [w : whole number | w];
 	 	i : natural number := cast size into [n : natural number | n];
 	 	c : expression phrase⇒any := cast statements[i] into 
 		 	[e : expression phrase⇒any | e];
 	 	statements[..end] ++ <restricted send $"¬_" with <c> : boolean>
 	];
+	
+	blockReturnType ::= cast newStatements
+		into [t : phrase+ | t[|t|]'s semantic type]
+		else [⊤];
+		
 	restricted send $"filter_by_" with
 	<
 		aMap,

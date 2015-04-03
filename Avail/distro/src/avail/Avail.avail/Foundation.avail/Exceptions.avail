@@ -1198,12 +1198,12 @@ System exception "cannot-compute-logarithm-of-nonpositive-number" (1041)
 Private method "Ensure:all error codes have corresponding exceptions" is [];
 Semantic restriction "Ensure:all error codes have corresponding exceptions" is
 [
-	missingSystemExceptions ::= select each errorCode from VM error codes 
-		where [¬errorCode ∈ exceptionsByCode];
+	missingSystemExceptions ::= reject each errorCode from VM error codes 
+		where [errorCode ∈ exceptionsByCode];
 	
 	missingExceptionClasses ::= 
-		select each errorCode → errorName from error codes 
-			where [¬errorCode ∈ exceptionsByCode];
+		reject each errorCode → errorName from error codes 
+			where [errorCode ∈ exceptionsByCode];
 	
 	problem : string := "exception classes to be defined for the following";
 	If |missingSystemExceptions| ≠ 0 then
