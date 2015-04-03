@@ -41,7 +41,6 @@ import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;
-import com.avail.interpreter.levelOne.L1Instruction;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
 
@@ -87,47 +86,39 @@ extends Primitive
 				TupleTypeDescriptor.mostGeneralType());
 			writer.returnType(BottomTypeDescriptor.bottom());
 			writer.write(
-				new L1Instruction(
-					L1Operation.L1_doPushLiteral,
-					writer.addLiteral(function)));
-			writer.write(new L1Instruction(L1Operation.L1_doPushLocal, 1));
-			writer.write(new L1Instruction(L1Operation.L1_doPushLocal, 2));
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(function));
+			writer.write(L1Operation.L1_doPushLocal, 1);
+			writer.write(L1Operation.L1_doPushLocal, 2);
+			writer.write(L1Operation.L1_doMakeTuple, 2);
 			writer.write(
-				new L1Instruction(
-					L1Operation.L1_doMakeTuple,
-					2));
+				L1Operation.L1_doCall,
+				writer.addLiteral(
+					MethodDescriptor.vmFunctionApplyAtom()
+						.bundleOrCreate()),
+				writer.addLiteral(TOP.o()));
+			writer.write(L1Operation.L1_doPop);
+			writer.write(L1Operation.L1Ext_doPushLabel);
 			writer.write(
-				new L1Instruction(
-					L1Operation.L1_doCall,
-					writer.addLiteral(
-						MethodDescriptor.vmFunctionApplyAtom()
-							.bundleOrCreate()),
-					writer.addLiteral(TOP.o())));
-			writer.write(new L1Instruction(L1Operation.L1_doPop));
-			writer.write(new L1Instruction(L1Operation.L1Ext_doPushLabel));
-			writer.write(
-				new L1Instruction(
-					L1Operation.L1_doCall,
-					writer.addLiteral(
-						MethodDescriptor.vmContinuationCallerAtom()
-							.bundleOrCreate()),
-					writer.addLiteral(
-						VariableTypeDescriptor.wrapInnerType(
-							ContinuationTypeDescriptor.mostGeneralType()))));
-			writer.write(
-				new L1Instruction(
-					L1Operation.L1_doCall,
-					writer.addLiteral(
-						MethodDescriptor.vmVariableGetAtom().bundleOrCreate()),
-					writer.addLiteral(
+				L1Operation.L1_doCall,
+				writer.addLiteral(
+					MethodDescriptor.vmContinuationCallerAtom()
+						.bundleOrCreate()),
+				writer.addLiteral(
+					VariableTypeDescriptor.wrapInnerType(
 						ContinuationTypeDescriptor.mostGeneralType())));
 			writer.write(
-				new L1Instruction(
-					L1Operation.L1_doCall,
-					writer.addLiteral(
-						MethodDescriptor.vmResumeContinuationAtom()
-							.bundleOrCreate()),
-					writer.addLiteral(BottomTypeDescriptor.bottom())));
+				L1Operation.L1_doCall,
+				writer.addLiteral(
+					MethodDescriptor.vmVariableGetAtom().bundleOrCreate()),
+				writer.addLiteral(
+					ContinuationTypeDescriptor.mostGeneralType()));
+			writer.write(
+				L1Operation.L1_doCall,
+				writer.addLiteral(
+					MethodDescriptor.vmResumeContinuationAtom()
+						.bundleOrCreate()),
+				writer.addLiteral(BottomTypeDescriptor.bottom()));
 			final A_Function wrapper = FunctionDescriptor.create(
 				writer.compiledCode(),
 				TupleDescriptor.empty());

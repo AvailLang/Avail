@@ -1526,7 +1526,8 @@ public abstract class AbstractAvailCompiler
 			public void value ()
 			{
 				// The counters must be read in this order for correctness.
-				assert workUnitsCompleted.get() == workUnitsQueued.get();
+				final long completed = workUnitsCompleted.get();
+				assert completed == workUnitsQueued.get();
 				// Ambiguity is detected and reported during the parse, and
 				// should never be identified here.
 				if (count.value == 0)
@@ -1540,19 +1541,15 @@ public abstract class AbstractAvailCompiler
 				if (count.value == 1)
 				{
 					assert solution.value != null;
-					supplyAnswer.value(
-						afterStatement.value, solution.value);
+					supplyAnswer.value(afterStatement.value, solution.value);
 				}
 				// Otherwise an ambiguity was already reported when the second
 				// solution arrived (and subsequent solutions may have arrived
 				// and been ignored).  Do nothing.
 			}
 		};
-		final ParserState realStart = new ParserState(
-			start.position,
-			start.clientDataMap);
 		attempt(
-			realStart,
+			start,
 			tryBlock,
 			new Con<A_Phrase>("Record solution")
 			{
@@ -1643,7 +1640,7 @@ public abstract class AbstractAvailCompiler
 		@Override
 		public int hashCode ()
 		{
-			return position * 473897843 ^ clientDataMap.hashCode();
+			return position * 473897843 ^ clientDataMap.hash();
 		}
 
 		@Override
@@ -2536,7 +2533,7 @@ public abstract class AbstractAvailCompiler
 	 *
 	 * @param object
 	 *        The current {@linkplain ParseNodeDescriptor parse node}.
-	 * @param aBlock
+	 * @param transformer
 	 *        What to do with each descendant.
 	 * @param parentNode
 	 *        This node's parent.
@@ -2551,14 +2548,15 @@ public abstract class AbstractAvailCompiler
 	 */
 	static A_Phrase treeMapWithParent (
 		final A_Phrase object,
-		final Transformer3<A_Phrase, A_Phrase, List<A_Phrase>, A_Phrase> aBlock,
+		final Transformer3<A_Phrase, A_Phrase, List<A_Phrase>, A_Phrase>
+			transformer,
 		final A_Phrase parentNode,
 		final List<A_Phrase> outerNodes,
 		final Map<A_Phrase, A_Phrase> nodeMap)
 	{
 		if (nodeMap.containsKey(object))
 		{
-			return object;
+			return nodeMap.get(object);
 		}
 		final A_Phrase objectCopy = object.copyMutableParseNode();
 		objectCopy.childrenMap(
@@ -2570,10 +2568,10 @@ public abstract class AbstractAvailCompiler
 					assert child != null;
 					assert child.isInstanceOfKind(PARSE_NODE.mostGeneralType());
 					return treeMapWithParent(
-						child, aBlock, objectCopy, outerNodes, nodeMap);
+						child, transformer, objectCopy, outerNodes, nodeMap);
 				}
 			});
-		final A_Phrase transformed = aBlock.valueNotNull(
+		final A_Phrase transformed = transformer.valueNotNull(
 			objectCopy, parentNode, outerNodes);
 		transformed.makeShared();
 		nodeMap.put(object, transformed);
@@ -3003,8 +3001,8 @@ public abstract class AbstractAvailCompiler
 		while (true)
 		{
 			assert !node1.value.equals(node2.value);
-			if (!node1.value.kind().parseNodeKind().equals(
-				node2.value.kind().parseNodeKind()))
+			if (!node1.value.parseNodeKind().equals(
+				node2.value.parseNodeKind()))
 			{
 				// The nodes are different kinds, so present them as what's
 				// different.
@@ -3031,7 +3029,7 @@ public abstract class AbstractAvailCompiler
 				// They aren't both macros, but one is, so they're different.
 				return;
 			}
-			if (node1.value.kind().parseNodeKindIsUnder(SEND_NODE)
+			if (node1.value.parseNodeKindIsUnder(SEND_NODE)
 				&& !node1.value.bundle().equals(node2.value.bundle()))
 			{
 				// They're sends of different messages, so don't go any deeper.
@@ -3056,7 +3054,7 @@ public abstract class AbstractAvailCompiler
 					}
 				});
 			final boolean isBlock =
-				node1.value.kind().parseNodeKindIsUnder(BLOCK_NODE);
+				node1.value.parseNodeKindIsUnder(BLOCK_NODE);
 			if (parts1.size() != parts2.size() && !isBlock)
 			{
 				// Different structure at this level.
@@ -3182,7 +3180,6 @@ public abstract class AbstractAvailCompiler
 			{
 				final boolean hadRun = hasRunSafetyCheck.getAndSet(true);
 				assert !hadRun;
-				boolean quiescent = false;
 				try
 				{
 					// Don't actually run tasks if canceling.
@@ -3208,28 +3205,23 @@ public abstract class AbstractAvailCompiler
 					// forever after have that same value.  Note that we
 					// still have to do the fused incrementAndGet so that we
 					// know if *we* were the (sole) cause of exhaustion.
-					final long completed =
-						workUnitsCompleted.incrementAndGet();
+					final long completed = workUnitsCompleted.incrementAndGet();
 					final long queued = workUnitsQueued.get();
 					assert completed <= queued;
 					if (completed == queued)
 					{
-						quiescent = true;
+						try
+						{
+							final Continuation0 noMore = noMoreWorkUnits;
+							noMoreWorkUnits = null;
+							assert noMore != null;
+							noMore.value();
+						}
+						catch (final Exception e)
+						{
+							reportInternalProblem(token, e);
+						}
 					}
-				}
-				try
-				{
-					if (quiescent)
-					{
-						final Continuation0 noMore = noMoreWorkUnits;
-						assert noMore != null;
-						noMoreWorkUnits = null;
-						noMore.value();
-					}
-				}
-				catch (final Exception e)
-				{
-					reportInternalProblem(token, e);
 				}
 			}
 		};
@@ -3580,25 +3572,50 @@ public abstract class AbstractAvailCompiler
 	 *        The start {@link ParserState}, for line number reporting.
 	 * @param afterStatement
 	 *        The {@link ParserState} just after the statement.
-	 * @param expressionOrMacro
+	 * @param expression
 	 *        The expression to compile and evaluate as a top-level statement in
 	 *        the module.
+	 * @param declarationRemap
+	 *        A {@link Map} holding the isomorphism between phrases and their
+	 *        replacements.  This is especially useful for keeping track of how
+	 *        to transform references to prior declarations that have been
+	 *        transformed from local-scoped to module-scoped.
 	 * @param onSuccess
 	 *        What to do after success. Note that the result of executing the
 	 *        statement must be {@linkplain NilDescriptor#nil() nil}, so there
-	 *        is no point accepting in the result. Hence the {@linkplain
-	 *        Continuation0 nullary continuation}.
+	 *        is no point in having the continuation accept this value, hence
+	 *        the {@linkplain Continuation0 nullary continuation}.
 	 * @param afterFail
 	 *        What to do after execution of the top-level statement fails.
 	 */
 	void evaluateModuleStatementThen (
 		final ParserState startState,
 		final ParserState afterStatement,
-		final A_Phrase expressionOrMacro,
+		final A_Phrase expression,
+		final Map<A_Phrase, A_Phrase> declarationRemap,
 		final Continuation0 onSuccess,
 		final Continuation0 afterFail)
 	{
-		final A_Phrase expression = expressionOrMacro.stripMacro();
+		assert !expression.isMacroSubstitutionNode();
+		final A_Phrase replacement = treeMapWithParent (
+			expression,
+			new Transformer3<A_Phrase, A_Phrase, List<A_Phrase>, A_Phrase>()
+			{
+				@Override
+				public @Nullable A_Phrase value (
+					final @Nullable A_Phrase phrase,
+					final @Nullable A_Phrase parent,
+					final @Nullable List<A_Phrase> outerBlocks)
+				{
+					// The mapping through declarationRemap
+					// has already taken place.
+					return phrase;
+				}
+			},
+			NilDescriptor.nil(),
+			new ArrayList<A_Phrase>(),
+			declarationRemap);
+
 		final Continuation1<Throwable> phraseFailure =
 			new Continuation1<Throwable>()
 			{
@@ -3610,14 +3627,12 @@ public abstract class AbstractAvailCompiler
 					if (e instanceof AvailAssertionFailedException)
 					{
 						reportAssertionFailureProblem(
-							token,
-							(AvailAssertionFailedException) e);
+							token, (AvailAssertionFailedException) e);
 					}
 					else if (e instanceof AvailEmergencyExitException)
 					{
 						reportEmergencyExitProblem(
-							token,
-							(AvailEmergencyExitException) e);
+							token, (AvailEmergencyExitException) e);
 					}
 					else
 					{
@@ -3627,13 +3642,13 @@ public abstract class AbstractAvailCompiler
 				}
 			};
 
-		if (!expression.isInstanceOfKind(DECLARATION_NODE.mostGeneralType()))
+		if (!replacement.isInstanceOfKind(DECLARATION_NODE.mostGeneralType()))
 		{
 			// Only record module statements that aren't declarations. Users of
 			// the module don't care if a module variable or constant is only
 			// reachable from the module's methods.
 			evaluatePhraseThen(
-				expression,
+				replacement,
 				startState.peekToken().lineNumber(),
 				true,
 				new Continuation1<AvailObject>()
@@ -3649,14 +3664,14 @@ public abstract class AbstractAvailCompiler
 		}
 		// It's a declaration, but the parser couldn't previously tell that it
 		// was at module scope.
-		final A_String name = expression.token().string();
+		final A_String name = replacement.token().string();
 		final @Nullable String shadowProblem =
 			module.variableBindings().hasKey(name)
 				? "module variable"
 				: module.constantBindings().hasKey(name)
 					? "module constant"
 					: null;
-		switch (expression.declarationKind())
+		switch (replacement.declarationKind())
 		{
 			case LOCAL_CONSTANT:
 			{
@@ -3671,8 +3686,8 @@ public abstract class AbstractAvailCompiler
 					return;
 				}
 				evaluatePhraseThen(
-					expression.initializationExpression(),
-					expression.token().lineNumber(),
+					replacement.initializationExpression(),
+					replacement.token().lineNumber(),
 					false,
 					new Continuation1<AvailObject>()
 					{
@@ -3689,24 +3704,34 @@ public abstract class AbstractAvailCompiler
 								VariableSharedWriteOnceDescriptor
 									.forVariableType(varType);
 							module.addConstantBinding(name, var);
-							// Create a module variable declaration (i.e.,
-							// cheat) JUST for this initializing assignment.
-							final A_Phrase decl =
-								DeclarationNodeDescriptor.newModuleVariable(
-									expression.token(),
+							// Update the map so that the local constant goes to
+							// a module constant.  Then subsequent statements
+							// in this sequence will transform uses of the
+							// constant appropriately.
+							final A_Phrase newConstant =
+								DeclarationNodeDescriptor.newModuleConstant(
+									replacement.token(),
 									var,
-									expression.initializationExpression());
+									replacement.initializationExpression());
+							declarationRemap.put(expression, newConstant);
+							// Now create a module variable declaration (i.e.,
+							// cheat) JUST for this initializing assignment.
+							final A_Phrase newDeclaration =
+								DeclarationNodeDescriptor.newModuleVariable(
+									replacement.token(),
+									var,
+									replacement.initializationExpression());
 							final A_Phrase assign =
 								AssignmentNodeDescriptor.from(
 									VariableUseNodeDescriptor.newUse(
-										expression.token(), decl),
+										replacement.token(), newDeclaration),
 									LiteralNodeDescriptor.syntheticFrom(val),
 									false);
 							final A_Function function =
 								FunctionDescriptor.createFunctionForPhrase(
 									assign,
 									module,
-									expression.token().lineNumber());
+									replacement.token().lineNumber());
 							synchronized (AbstractAvailCompiler.this)
 							{
 								serializer.serialize(function);
@@ -3731,33 +3756,32 @@ public abstract class AbstractAvailCompiler
 					return;
 				}
 				final A_Variable var = VariableDescriptor.forContentType(
-					expression.declaredType());
+					replacement.declaredType());
 				module.addVariableBinding(name, var);
-				if (!expression.initializationExpression().equalsNil())
+				if (!replacement.initializationExpression().equalsNil())
 				{
-					final A_Phrase decl =
+					final A_Phrase newDeclaration =
 						DeclarationNodeDescriptor.newModuleVariable(
-							expression.token(),
+							replacement.token(),
 							var,
-							expression.initializationExpression());
+							replacement.initializationExpression());
+					declarationRemap.put(expression, newDeclaration);
 					final A_Phrase assign = AssignmentNodeDescriptor.from(
 						VariableUseNodeDescriptor.newUse(
-							expression.token(),
-							decl),
-						expression.initializationExpression(),
+							replacement.token(),
+							newDeclaration),
+							replacement.initializationExpression(),
 						false);
 					final A_Function function =
 						FunctionDescriptor.createFunctionForPhrase(
-						assign,
-						module,
-						expression.token().lineNumber());
+							assign, module, replacement.token().lineNumber());
 					synchronized (AbstractAvailCompiler.this)
 					{
 						serializer.serialize(function);
 					}
 					evaluatePhraseThen(
-						expression.initializationExpression(),
-						expression.token().lineNumber(),
+						replacement.initializationExpression(),
+						replacement.token().lineNumber(),
 						false,
 						new Continuation1<AvailObject>()
 						{
@@ -3779,7 +3803,8 @@ public abstract class AbstractAvailCompiler
 			}
 			default:
 				assert false
-					: "Expected top-level declaration to be parsed as local";
+					: "Expected top-level declaration to have been "
+						+ "parsed as local";
 		}
 	}
 
@@ -4574,7 +4599,7 @@ public abstract class AbstractAvailCompiler
 							assert successorTrees.tupleSize() == 1;
 							final A_Phrase rawVariableUse =
 								variableUse.stripMacro();
-							if (!rawVariableUse.parseNodeKind().isSubkindOf(
+							if (!rawVariableUse.parseNodeKindIsUnder(
 								VARIABLE_USE_NODE))
 							{
 								if (consumedAnything)
@@ -6353,7 +6378,13 @@ public abstract class AbstractAvailCompiler
 				nameLiteral,
 				LiteralNodeDescriptor.syntheticFrom(function))),
 			TOP.o());
-		evaluateModuleStatementThen(state, state, send, success, failure);
+		evaluateModuleStatementThen(
+			state,
+			state,
+			send,
+			new HashMap<A_Phrase, A_Phrase>(),
+			success,
+			failure);
 	}
 
 	/**
@@ -6422,7 +6453,13 @@ public abstract class AbstractAvailCompiler
 				LiteralNodeDescriptor.syntheticFrom(functionsTuple),
 				LiteralNodeDescriptor.syntheticFrom(body))),
 			TOP.o());
-		evaluateModuleStatementThen(state, state, send, success, failure);
+		evaluateModuleStatementThen(
+			state,
+			state,
+			send,
+			new HashMap<A_Phrase, A_Phrase>(),
+			success,
+			failure);
 	}
 
 	/**
@@ -6692,7 +6729,13 @@ public abstract class AbstractAvailCompiler
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
 				LiteralNodeDescriptor.syntheticFrom(atom))),
 			TOP.o());
-		evaluateModuleStatementThen(state, state, send, success, failure);
+		evaluateModuleStatementThen(
+			state,
+			state,
+			send,
+			new HashMap<A_Phrase, A_Phrase>(),
+			success,
+			failure);
 	}
 
 	/**
@@ -6898,48 +6941,103 @@ public abstract class AbstractAvailCompiler
 					// The counters must be read in this order for correctness.
 					assert workUnitsCompleted.get() == workUnitsQueued.get();
 
-					evaluateModuleStatementThen(
-						start,
-						afterStatement,
-						unambiguousStatement,
-						new Continuation0()
+					// In case the top level statement is compound, process the
+					// base statements individually.
+					final List<A_Phrase> simpleStatements = new ArrayList<>();
+					unambiguousStatement.statementsDo(
+						new Continuation1<A_Phrase>()
 						{
 							@Override
-							public void value ()
+							public void value (
+								final @Nullable A_Phrase simpleStatement)
 							{
-								if (afterStatement.atEnd())
-								{
-									// It was the last statement.
-									reachedEndOfModule(
-										afterStatement, afterFail);
-									return;
-								}
-								// Not the last statement; report progress.
-								final CompilerProgressReporter reporter =
-									progressReporter;
-								assert reporter != null;
-								reporter.value(
-									moduleName(),
-									(long) source.length(),
-									afterStatement,
-									unambiguousStatement);
-								eventuallyDo(
-									afterStatement.peekToken(),
-									new Continuation0()
-									{
-										@Override
-										public void value ()
-										{
-											parseAndExecuteOutermostStatements(
-												new ParserState(
-													afterStatement.position,
-													start.clientDataMap),
-												afterFail);
-										}
-									});
+								assert simpleStatement != null;
+								assert simpleStatement.parseNodeKind()
+									.isSubkindOf(STATEMENT_NODE);
+								simpleStatements.add(
+									simpleStatement.stripMacro());
 							}
-						},
-						afterFail);
+						});
+
+					// For each top-level simple statement, (1) transform it to
+					// have referenced previously transformed top-level
+					// declarations mapped from local scope into global scope,
+					// (2) if it's itself a declaration, transform it and record
+					// the transformation for subsequent statements, and (3)
+					// execute it.  The declarationRemap accumulates the
+					// transformations.  Parts 2 and 3 actually happen together
+					// so that module constants can have types as strong as the
+					// actual values produced by running their initialization
+					// expressions.
+					final Map<A_Phrase, A_Phrase> declarationRemap =
+						new HashMap<A_Phrase, A_Phrase>();
+					final Iterator<A_Phrase> simpleStatementIterator =
+						simpleStatements.iterator();
+
+					// What to do after running all these simple statements.
+					final Continuation0 resumeParsing = new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							if (afterStatement.atEnd())
+							{
+								// End of the module..
+								reachedEndOfModule(afterStatement, afterFail);
+								return;
+							}
+							// Not the end; report progress.
+							final CompilerProgressReporter reporter =
+								progressReporter;
+							assert reporter != null;
+							reporter.value(
+								moduleName(),
+								(long) source.length(),
+								afterStatement,
+								unambiguousStatement);
+							eventuallyDo(
+								afterStatement.peekToken(),
+								new Continuation0()
+								{
+									@Override
+									public void value ()
+									{
+										parseAndExecuteOutermostStatements(
+											new ParserState(
+												afterStatement.position,
+												start.clientDataMap),
+											afterFail);
+									}
+								});
+						}
+					};
+
+					// What to do after running a simple statement (or to get
+					// the first one to run).
+					final MutableOrNull<Continuation0> executeSimpleStatement =
+						new MutableOrNull<>();
+					executeSimpleStatement.value = new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							if (!simpleStatementIterator.hasNext())
+							{
+								resumeParsing.value();
+								return;
+							}
+							evaluateModuleStatementThen(
+								start,
+								afterStatement,
+								simpleStatementIterator.next(),
+								declarationRemap,
+								executeSimpleStatement.value(),
+								afterFail);
+						}
+					};
+
+					// Kick off execution of these simple statements.
+					executeSimpleStatement.value().value();
 				}
 			},
 			afterFail);

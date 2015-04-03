@@ -1611,6 +1611,13 @@ invalid method send function :=
 		Raise e
 	] : ⊥;
 
+/*
+ * Even though we can in general allow unintended "subexpressions" like <⊥>[2]
+ * to fail, we're not <em>quite</em> far enough along in exception support to be
+ * able to log it sensibly.  See down a few lines for this phantom misparse.
+ */
+Grammatical restriction "$_@pc=_stack=_[_]caller=_" is <∅, ∅, {"_[_]"}, ∅, ∅>;
+
 /* If the unhandled exception handler catches a termination-requested exception,
  * we want the fiber to exit cleanly, so use an uninitialized variable. This is
  * because we don't want the synthetic base continuation to have a calling
@@ -1721,7 +1728,7 @@ Set stability failure function to
 		e : exception
 	|
 		Reject parse, expected:
-			"stable method not to failure during macro evaluation:\n"
+			"stable method not to fail during macro evaluation:\n"
 			++ “e” (stack summary)
 	]
 ] : expression phrase ⇒ any;

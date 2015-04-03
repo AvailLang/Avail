@@ -39,7 +39,8 @@ Extends
 		"Cast|cast_into_else_",
 		"Cast|cast_into_",
 		"Ignore:_",
-		"(_)"
+		"(_)",
+		"((_))"
 	)
 Uses
 	"Bootstrap",

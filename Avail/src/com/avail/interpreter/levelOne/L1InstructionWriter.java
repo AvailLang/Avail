@@ -264,7 +264,7 @@ public class L1InstructionWriter
 	 *
 	 * @param operand
 	 *            An {@code int}-encoded operand of some {@linkplain
-	 *            L1Instruction instruction}.
+	 *            L1Operation operation}.
 	 */
 	private void writeOperand (final int operand)
 	{
@@ -306,16 +306,20 @@ public class L1InstructionWriter
 	}
 
 	/**
-	 * Write an {@linkplain L1Instruction instruction} to the nybblecode stream.
-	 * Some opcodes (automatically) write an extension nybble (0xF).  Also write
-	 * any {@linkplain L1OperandType operands}.
+	 * Write an L1 instruction to the nybblecode stream. Some opcodes
+	 * (automatically) write an extension nybble (0xF).  Also write any
+	 * {@linkplain L1OperandType operands}.  Validate that the right number of
+	 * operands are provided.
 	 *
-	 * @param instruction The instruction to write.
+	 * @param operation The {@link L1Operation} to write.
+	 * @param operands The {@code int} operands for the operation.
 	 */
-	public void write (final L1Instruction instruction)
+	public void write (
+		final L1Operation operation,
+		final int... operands)
 	{
-		stackTracker.track(instruction);
-		final byte opcode = (byte)instruction.operation().ordinal();
+		stackTracker.track(operation, operands);
+		final byte opcode = (byte)operation.ordinal();
 		if (opcode <= 15)
 		{
 			stream.write(opcode);
@@ -325,7 +329,6 @@ public class L1InstructionWriter
 			stream.write(L1Operation.L1_doExtension.ordinal());
 			stream.write(opcode - 16);
 		}
-		final int [] operands = instruction.operands();
 		for (final int operand : operands)
 		{
 			writeOperand(operand);

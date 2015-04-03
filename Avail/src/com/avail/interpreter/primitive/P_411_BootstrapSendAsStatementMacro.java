@@ -73,7 +73,7 @@ public final class P_411_BootstrapSendAsStatementMacro extends Primitive
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
 		final A_Phrase sendPhrase = sendPhraseInLiteral.token().literal();
-		if (!sendPhrase.parseNodeKind().isSubkindOf(SEND_NODE))
+		if (!sendPhrase.parseNodeKindIsUnder(SEND_NODE))
 		{
 			throw new AvailRejectedParseException(
 				"statement to be a ⊤-valued send node, not a "

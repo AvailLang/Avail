@@ -46,7 +46,8 @@ Names
 	"From_to_do_",
 	"Cast|cast_into_else_",
 	"Cast|cast_into_",
-	"(_)"
+	"(_)",
+	"((_))"
 Body
 
 /**
@@ -82,6 +83,10 @@ Public macro "(_)" is
 [
 	expr : expression phrase
 |
+	If expr ∈ super cast phrase then
+	[
+		Reject parse, expected: "argument of parentheses not to be a supercast"
+	];
 	expr
 ];
 
@@ -201,11 +206,13 @@ Public method "Cast|cast_into_" is
 	]
 	else
 	[
+		valueDescription ::= primitive description of value;
+		acceptedDescription ::= primitive description of accept's type[1];
 		t : tuple := concatenate <
 			"Failed run-time cast: ",
-			(primitive description of value),
+			valueDescription,
 			" was not an instance of ",
-			(primitive description of accept's type[1])>;
+			acceptedDescription>;
 		s : string;
 		s ?= t;
 		Assert: false (s)
@@ -225,7 +232,7 @@ Public method "Cast|cast_into_" is
 Semantic restriction "Cast|cast_into_else_" is
 [
 	value : any meta,
-	accept : (function accepting <⊥> and returning ⊤)'s type,
+	accept : function accepting <⊥> and returning ⊤'s type,
 	reject : nullary procedure's type
 |
 	If value ⊆ accept[1] then
@@ -277,7 +284,7 @@ Semantic restriction "Cast|cast_into_else_" is
 Semantic restriction "Cast|cast_into_" is
 [
 	value : any meta,
-	accept : (function accepting <⊥> and returning ⊤)'s type
+	accept : function accepting <⊥> and returning ⊤'s type
 |
 	If value ⊆ accept[1] then
 	[
@@ -319,6 +326,24 @@ Invoke
 	Grammatical restriction names is <names>;
 ]
 with <>;
+
+/**
+ * The parenthesis method "(_)" is not allowed to nest syntactically, which is
+ * dealt with by a grammatical restriction.  However, this can lead to confusing
+ * diagnostics, since attempted grammatical restriction violations are never
+ * reported as compilation errors – they're simply rejected.
+ * 
+ * @method "((_))"
+ * @param "expr" "expression phrase" An expression.
+ * @returns "⊥" Because it always rejects its invocations.
+ * @category "Control Structures"
+ */
+Public macro "((_))" is
+[
+	expr : expression phrase
+|
+	Reject parse, expected: "something other than directly nested parentheses"
+];
 
 /**
  * The cardinality of ⊥ is also ⊥. This is supplied to disambiguate "`|`|_`|`|".

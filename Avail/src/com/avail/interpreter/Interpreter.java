@@ -1985,8 +1985,8 @@ public final class Interpreter
 					final A_RawFunction code = function.code();
 					return StringDescriptor.format(
 						"Outermost %s @ %s:%d",
-						code.methodName(),
-						code.module().moduleName(),
+						code.methodName().asNativeString(),
+						code.module().moduleName().asNativeString(),
 						code.startingLineNumber());
 				}
 			});

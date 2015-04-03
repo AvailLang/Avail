@@ -38,7 +38,6 @@ import com.avail.annotations.Nullable;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
@@ -847,12 +846,6 @@ extends JSONFriendly
 	 * @return
 	 */
 	boolean equalsEnumerationType (A_BasicObject anEnumerationType);
-
-	/**
-	 * @return
-	 */
-	boolean parseNodeKindIsUnder (
-		ParseNodeKind expectedParseNodeKind);
 
 	/**
 	 * @return

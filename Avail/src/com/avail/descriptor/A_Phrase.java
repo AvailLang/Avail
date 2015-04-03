@@ -343,4 +343,17 @@ extends A_BasicObject
 	 *        A continuation.
 	 */
 	void statementsDo (Continuation1<A_Phrase> continuation);
+
+	/**
+	 * Also declared in A_Type, so the same operation applies both to phrases
+	 * and to phrase types.
+	 *
+	 * @param expectedParseNodeKind
+	 *        The {@link ParseNodeKind} to test this phrase for.
+	 * @return Whether the receiver, a phrase, has a type whose {@link
+	 *         #parseNodeKind()} is at or below the specified {@link
+	 *         ParseNodeKind}.
+	 */
+	boolean parseNodeKindIsUnder (
+		ParseNodeKind expectedParseNodeKind);
 }

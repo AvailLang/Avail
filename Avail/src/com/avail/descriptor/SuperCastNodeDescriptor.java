@@ -88,13 +88,13 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Even though the {@link ObjectSlots#TYPE_FOR_LOOKUP} specifies a type that
-	 * is used during lookup, the expression's type is what is needed here.
+	 * Answer the lookup type to ensure polymorphic macro substitutions happen
+	 * the right way.
 	 */
 	@Override @AvailMethod
 	A_Type o_ExpressionType (final AvailObject object)
 	{
-		return object.slot(EXPRESSION).expressionType();
+		return object.slot(TYPE_FOR_LOOKUP);
 	}
 
 	@Override
@@ -127,7 +127,7 @@ extends ParseNodeDescriptor
 		final A_Phrase aParseNode)
 	{
 		return !aParseNode.isMacroSubstitutionNode()
-			&& object.kind().equals(aParseNode.kind())
+			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
 			&& object.expression().equals(aParseNode.expression())
 			&& object.typeForLookup().equals(aParseNode.typeForLookup());
 	}

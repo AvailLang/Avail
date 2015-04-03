@@ -87,18 +87,6 @@ extends ParseNodeDescriptor
 		return e == EXPRESSION_TYPE;
 	}
 
-	@Override
-	A_Phrase o_List (final AvailObject object)
-	{
-		return object.slot(LIST);
-	}
-
-	@Override
-	A_Tuple o_Permutation (final AvailObject object)
-	{
-		return object.slot(PERMUTATION);
-	}
-
 	/**
 	 * Lazily compute and install the expression type of the specified
 	 * {@linkplain PermutedListNodeDescriptor object}.
@@ -129,19 +117,6 @@ extends ParseNodeDescriptor
 		return expressionType;
 	}
 
-	@Override @AvailMethod
-	A_Type o_ExpressionType (final AvailObject object)
-	{
-		if (isShared())
-		{
-			synchronized (object)
-			{
-				return expressionType(object);
-			}
-		}
-		return expressionType(object);
-	}
-
 	@Override
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
@@ -157,41 +132,19 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	void o_ChildrenDo (
+		final AvailObject object,
+		final Continuation1<A_Phrase> aBlock)
 	{
-		return (object.slot(LIST).hash() ^ 0xC8FC27B2)
-			+ object.slot(PERMUTATION).hash();
+		aBlock.value(object.slot(LIST));
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	void o_ChildrenMap (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
-		return !aParseNode.isMacroSubstitutionNode()
-			&& object.kind().equals(aParseNode.kind())
-			&& object.list().equals(aParseNode.list())
-			&& object.permutation().equals(aParseNode.permutation());
-	}
-
-	@Override
-	void o_EmitAllValuesOn (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
-	{
-		object.slot(LIST).emitAllValuesOn(codeGenerator);
-		codeGenerator.emitPermute(object.permutation());
-	}
-
-	@Override @AvailMethod
-	void o_EmitValueOn (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
-	{
-		object.slot(LIST).emitAllValuesOn(codeGenerator);
-		final A_Tuple permutation = object.slot(PERMUTATION);
-		codeGenerator.emitPermute(permutation);
-		codeGenerator.emitMakeTuple(permutation.tupleSize());
+		object.setSlot(LIST, aBlock.valueNotNull(object.slot(LIST)));
 	}
 
 	@Override
@@ -217,6 +170,15 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
+	void o_EmitAllValuesOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		object.slot(LIST).emitAllValuesOn(codeGenerator);
+		codeGenerator.emitPermute(object.permutation());
+	}
+
+	@Override
 	void o_EmitForSuperSendOn (
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
@@ -235,6 +197,28 @@ extends ParseNodeDescriptor
 			object.emitValueOn(codeGenerator);
 			codeGenerator.emitGetType();
 		}
+	}
+
+	@Override @AvailMethod
+	void o_EmitValueOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		object.slot(LIST).emitAllValuesOn(codeGenerator);
+		final A_Tuple permutation = object.slot(PERMUTATION);
+		codeGenerator.emitPermute(permutation);
+		codeGenerator.emitMakeTuple(permutation.tupleSize());
+	}
+
+	@Override @AvailMethod
+	boolean o_EqualsParseNode (
+		final AvailObject object,
+		final A_Phrase aParseNode)
+	{
+		return !aParseNode.isMacroSubstitutionNode()
+			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
+			&& object.list().equals(aParseNode.list())
+			&& object.permutation().equals(aParseNode.permutation());
 	}
 
 	@Override
@@ -257,20 +241,47 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_ChildrenMap (
-		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> aBlock)
+	A_Type o_ExpressionType (final AvailObject object)
 	{
-		final A_Phrase transformedList = aBlock.valueNotNull(object.list());
-		object.setSlot(LIST, transformedList);
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				return expressionType(object);
+			}
+		}
+		return expressionType(object);
 	}
 
 	@Override @AvailMethod
-	void o_ChildrenDo (
-		final AvailObject object,
-		final Continuation1<A_Phrase> aBlock)
+	int o_Hash (final AvailObject object)
 	{
-		aBlock.value(object.slot(LIST));
+		return (object.slot(LIST).hash() ^ 0xC8FC27B2)
+			+ object.slot(PERMUTATION).hash();
+	}
+
+	@Override
+	boolean o_HasSuperCast (final AvailObject object)
+	{
+		return object.slot(LIST).hasSuperCast();
+	}
+
+	@Override
+	A_Phrase o_List (final AvailObject object)
+	{
+		return object.slot(LIST);
+	}
+
+	@Override
+	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	{
+		return PERMUTED_LIST_NODE;
+	}
+
+	@Override
+	A_Tuple o_Permutation (final AvailObject object)
+	{
+		return object.slot(PERMUTATION);
 	}
 
 	@Override
@@ -281,24 +292,29 @@ extends ParseNodeDescriptor
 		throw unsupportedOperationException();
 	}
 
+	@Override
+	A_Phrase o_StripMacro (final AvailObject object)
+	{
+		// Strip away macro substitution nodes inside my recursive list
+		// structure.  This has to be done recursively over list nodes because
+		// of the way the "leaf" nodes are checked for grammatical restrictions,
+		// but the "root" nodes are what get passed into functions.
+		final A_Phrase originalList = object.slot(LIST);
+		final A_Phrase strippedList = originalList.stripMacro();
+		if (strippedList.sameAddressAs(originalList))
+		{
+			// Nothing changed, so return the original permuted list.
+			return object;
+		}
+		return fromListAndPermutation(strippedList, object.slot(PERMUTATION));
+	}
+
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
 		final @Nullable A_Phrase parent)
 	{
 		// Do nothing.
-	}
-
-	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
-	{
-		return PERMUTED_LIST_NODE;
-	}
-
-	@Override
-	boolean o_HasSuperCast (final AvailObject object)
-	{
-		return object.slot(LIST).hasSuperCast();
 	}
 
 	@Override

@@ -235,7 +235,7 @@ extends ParseNodeDescriptor
 		final A_Phrase aParseNode)
 	{
 		return !aParseNode.isMacroSubstitutionNode()
-			&& object.kind().equals(aParseNode.kind())
+			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
 			&& object.argumentsTuple().equals(aParseNode.argumentsTuple())
 			&& object.statementsTuple().equals(aParseNode.statementsTuple())
 			&& object.resultType().equals(aParseNode.resultType())
@@ -258,18 +258,14 @@ extends ParseNodeDescriptor
 		for (int i = 1; i <= arguments.tupleSize(); i++)
 		{
 			arguments = arguments.tupleAtPuttingCanDestroy(
-				i,
-				aBlock.valueNotNull(arguments.tupleAt(i)),
-				true);
+				i, aBlock.valueNotNull(arguments.tupleAt(i)), true);
 		}
 		object.setSlot(ARGUMENTS_TUPLE, arguments);
 		A_Tuple statements = object.statementsTuple();
 		for (int i = 1; i <= statements.tupleSize(); i++)
 		{
 			statements = statements.tupleAtPuttingCanDestroy(
-				i,
-				aBlock.valueNotNull(statements.tupleAt(i)),
-				true);
+				i, aBlock.valueNotNull(statements.tupleAt(i)), true);
 		}
 		object.setSlot(STATEMENTS_TUPLE, statements);
 	}
@@ -597,8 +593,6 @@ extends ParseNodeDescriptor
 			public void value (final @Nullable A_Phrase node)
 			{
 				assert node != null;
-				assert !node.isInstanceOfKind(SEQUENCE_NODE.mostGeneralType())
-				: "Sequence nodes should have been eliminated by this point";
 				if (node.isInstanceOfKind(BLOCK_NODE.mostGeneralType()))
 				{
 					for (final A_Phrase declaration : node.neededVariables())

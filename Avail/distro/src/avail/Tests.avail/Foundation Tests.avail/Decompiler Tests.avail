@@ -1,5 +1,5 @@
-/**
- * L1Instruction.java
+/*
+ * Decompiler Tests.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,63 +30,70 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelOne;
+Module "Decompiler Tests"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Common"
+Names
+	"decompiler test suite"
+Body
 
-import java.util.Arrays;
-/**
- * {@code L1Instruction} combines an {@link L1Operation} with the operands.
- * It represents the smallest atomic step that the Avail interpreter can
- * conceptually execute.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
- */
-public class L1Instruction
-{
-	/** The {@link L1Operation}. */
-	private final L1Operation operation;
+"decompiler test suite" is a new atom;
+New test suite decompiler test suite extends foundation test suite;
 
-	/** The operands. */
-	private final int [] operands;
+Method "Check round-trip for_" is
+[
+	f1 : function
+|
+	block ::= f1 → block phrase;
+	f2 ::= block → function;
+	c1 ::= f1's implementation;
+	c2 ::= f2's implementation;
+	Require: c1's literals = c2's literals;
+	Require: c1's nybblecodes = c2's nybblecodes;
+];
 
-	/**
-	 * Answer the {@link L1Operation}.
-	 *
-	 * @return The {@link L1Operation}.
-	 */
-	public L1Operation operation ()
-	{
-		return operation;
-	}
+/* For testing argument permutation at the top level. */
+Method "subscript_②of_①" is
+[
+	t : tuple,
+	n : natural number
+|
+	t[n]
+];
 
-	/**
-	 * Answer the operands.
-	 *
-	 * @return The operands.
-	 */
-	public int [] operands ()
-	{
-		return operands;
-	}
+/* For testing argument permutation below the top level. */
+Method "reverseMap«_②<-_①‡,»" is
+[
+	pairs : <string, integer…|2>+
+|
+	/* Don't really bother to build a map. */
+	"I like cheese"
+];
 
-	/**
-	 * Construct an {@link L1Instruction}.
-	 *
-	 * @param operation The {@link L1Operation}.
-	 * @param operands The operands.
-	 */
-	public L1Instruction (
-		final L1Operation operation,
-		final int ... operands)
-	{
-		assert operation.operandTypes().length == operands.length;
+Test "simple super-cast" in decompiler test suite is [
+	Check round-trip for [<50,60>[(2 :: natural number)]];
+];
 
-		this.operation = operation;
-		this.operands = operands;
-	}
+Test "permuted super-cast" in decompiler test suite is [
+	Check round-trip for [subscript (2::natural number) of <10,20>];
+];
 
-	@Override
-	public String toString ()
-	{
-		return String.format("%s %s", operation, Arrays.toString(operands));
-	}
-}
+Test "inner super-cast" in decompiler test suite is [
+	Check round-trip for [{(5 :: integer), 6, ("7" :: string)}];
+];
+
+Test "inner permuted" in decompiler test suite is [
+	Check round-trip for [reverseMap 20<-"10", 40<-"30"];
+];
+
+Test "inner permuted super-cast" in decompiler test suite is [
+	Check round-trip for
+	[
+		reverseMap
+			20<-("10"::string),
+			40<-"30",
+			(60::integer)<-("50"::string)
+	];
+];

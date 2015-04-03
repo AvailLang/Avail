@@ -637,4 +637,17 @@ extends A_BasicObject
 	 * @return
 	 */
 	boolean rangeIncludesInt (int anInt);
+
+	/**
+	 * Also declared in A_Phrase, so the same operation applies both to phrases
+	 * and to phrase types.
+	 *
+	 * @param expectedParseNodeKind
+	 *        The {@link ParseNodeKind} to test this phrase type against.
+	 * @return Whether the receiver, a phrase type, has a {@link
+	 *         #parseNodeKind()} at or below the specified {@link
+	 *         ParseNodeKind}.
+	 */
+	boolean parseNodeKindIsUnder (
+		ParseNodeKind expectedParseNodeKind);
 }

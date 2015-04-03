@@ -41,7 +41,7 @@ import java.util.List;
 /**
  * <strong>Primitive 703:</strong> Answer a new {@linkplain TupleDescriptor
  * tuple} like the argument but with the {@linkplain AvailObject
- * element} appended to its left.
+ * element} appended to its right.
  */
 public final class P_703_TupleAppend extends Primitive
 {

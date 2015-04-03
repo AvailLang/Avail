@@ -3521,7 +3521,6 @@ public final class AvailBuilder
 							@Override
 							public A_String value ()
 							{
-								// TODO Auto-generated method stub
 								return StringDescriptor.format(
 									"Running command: %s",
 									phrase);

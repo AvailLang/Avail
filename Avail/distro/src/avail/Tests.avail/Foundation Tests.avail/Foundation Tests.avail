@@ -40,6 +40,7 @@ Extends
 	"Common" = ("Foundation|foundation test suite"),
 	"Concurrency Tests" = ("concurrency test suite"),
 	"Control Structure Tests" = ("control structure test suite"),
+	"Decompiler Tests" = ("decompiler test suite"),
 	"Exception Tests" = ("exception test suite"),
 	"Function Tests" = ("function test suite"),
 	"Logic Tests" = ("logic test suite"),

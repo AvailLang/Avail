@@ -417,9 +417,7 @@ extends TupleDescriptor
 		{
 			/* TODO: [LAS] Later - Create nybble or byte tuples if appropriate. */
 			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
-				index,
-				newValueObject,
-				true);
+				index, newValueObject, true);
 		}
 		object.objectTupleAtPut(index, newValueObject);
 		// Invalidate the hash value.
@@ -454,10 +452,7 @@ extends TupleDescriptor
 			return true;
 		}
 		return super.o_TupleElementsInRangeAreInstancesOf(
-			object,
-			startIndex,
-			endIndex,
-			type);
+			object, startIndex, endIndex, type);
 	}
 
 	@Override @AvailMethod
@@ -485,8 +480,9 @@ extends TupleDescriptor
 		//The interval is mutable and large enough to warrant changing in place.
 		final A_Number newStart = object.slot(END);
 		final A_Number newEnd = object.slot(START);
-		final A_Number newDelta = object.slot(DELTA)
-			.timesCanDestroy(IntegerDescriptor.fromInt(-1), true);
+		final A_Number newDelta =
+			object.slot(DELTA).timesCanDestroy(
+				IntegerDescriptor.fromInt(-1), true);
 
 		object.setSlot(START, newStart);
 		object.setSlot(END, newEnd);

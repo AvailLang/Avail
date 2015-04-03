@@ -48,6 +48,72 @@ public interface A_Tuple
 extends A_BasicObject, Iterable<AvailObject>
 {
 	/**
+	 * Create a tuple with the same elements as the receiver, but with the
+	 * specified newElement appended.
+	 *
+	 * @param newElement
+	 *        The element to append to the receiver to produce a new tuple.
+	 * @param canDestroy
+	 *        Whether the receiver may be destroyed if it's mutable.
+	 * @return The tuple containing all the elements that the receiver had, plus
+	 *         the newElement.
+	 */
+	A_Tuple appendCanDestroy (
+		A_BasicObject newElement,
+		boolean canDestroy);
+
+	/**
+	 * Construct a Java {@linkplain Set set} from the receiver, a {@linkplain
+	 * TupleDescriptor tuple}.
+	 *
+	 * @return A set containing each element in the tuple.
+	 */
+	A_Set asSet ();
+
+	/**
+	 * Answer the approximate memory cost in bets per element of this tuple.
+	 * This is used to decide the direction of {@linkplain IndirectionDescriptor
+	 * indirections} after determining two objects are equal.
+	 *
+	 * @return The approximate cost in bits per element.
+	 */
+	int bitsPerEntry ();
+
+	/**
+	 * Extract the backing {@code byte[]} from this tuple.  Only applicable if
+	 * the tuple's descriptor answers true to {@linkplain
+	 * TupleDescriptor#o_IsByteArrayTuple(AvailObject)}.
+	 *
+	 * @return This tuple's byte array.  Don't modify it.
+	 */
+	byte[] byteArray ();
+
+	/**
+	 * The receiver must be a {@link ByteBufferTupleDescriptor byte buffer
+	 * tuple}; answer its backing {@link ByteBuffer}.
+	 *
+	 * @return The receiver's {@link ByteBuffer}.
+	 */
+	public ByteBuffer byteBuffer ();
+
+	/**
+	 * Answer the N<sup>th</sup> child of this {@linkplain TreeTupleDescriptor
+	 * tree tuple}.
+	 *
+	 * @param childIndex Which child tuple to fetch.
+	 * @return The specified child of the tree tuple node.
+	 */
+	A_Tuple childAt (int childIndex);
+
+	/**
+	 * Answer the number of children this {@linkplain TreeTupleDescriptor tree
+	 * tuple} contains.
+	 *
+	 * @return The width of this tree tuple node.
+	 */
+	int childCount ();
+
+	/**
 	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
 	 * subrange of the given {@linkplain TupleDescriptor tuple}. The size of the
 	 * subrange of both objects is determined by the index range supplied for
@@ -70,18 +136,50 @@ extends A_BasicObject, Iterable<AvailObject>
 		A_Tuple aTuple,
 		int startIndex2);
 
-	/** TODO: [LAS] This signature differs from the others
-	 * @param i
-	 * @param tupleSize
+	/** Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@link ByteArrayTupleDescriptor byte array tuple}.
+	 * The size of the subrange of both objects is determined by the index range
+	 * supplied for the receiver.
+	 *
+	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange
+	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
 	 * @param aByteArrayTuple
-	 * @param j
-	 * @return
+	 *        The {@link ByteArrayTupleDescriptor byte array tuple} used in the
+	 *        comparison
+	 * @param startIndex2
+	 *        The inclusive lower bound of the tuple's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
 	 */
 	boolean compareFromToWithByteArrayTupleStartingAt (
-		int i,
-		int tupleSize,
+		int startIndex1,
+		int endIndex1,
 		A_Tuple aByteArrayTuple,
-		int j);
+		int startIndex2);
+
+	/**
+	 * Test whether the subtuple of the receiver from startIndex1 to endIndex1
+	 * equals the subtuple of the {@link ByteBufferTupleDescriptor byte buffer
+	 * tuple} of the same length starting at startIndex2.
+	 *
+	 * @param startIndex1
+	 *        The first index to examine from the receiver.
+	 * @param endIndex1
+	 *        The last index to examine from the receiver.
+	 * @param aByteBufferTuple
+	 *        The byte buffer tuple to which to compare elements.
+	 * @param startIndex2
+	 *        The first index into the byte buffer tuple at which comparison
+	 *        should take place.
+	 * @return Whether the two subtuples are equal.
+	 */
+	boolean compareFromToWithByteBufferTupleStartingAt (
+		int startIndex1,
+		int endIndex1,
+		A_Tuple aByteBufferTuple,
+		int startIndex2);
 
 	/**
 	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
@@ -154,52 +252,6 @@ extends A_BasicObject, Iterable<AvailObject>
 
 	/**
 	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
-	 * subrange of the given {@linkplain SmallIntegerIntervalTupleDescriptor
-	 * small integer interval tuple}. The size of the subrange of both objects
-	 * is determined by the index range supplied for the receiver.
-	 *
-	 * @param startIndex1
-	 *        The inclusive lower bound of the receiver's subrange.
-	 * @param endIndex1
-	 *        The inclusive upper bound of the receiver's subrange.
-	 * @param aSmallIntegerIntervalTuple
-	 *        The small integer interval tuple used in the comparison.
-	 * @param startIndex2
-	 *        The inclusive lower bound of the byte tuple's subrange.
-	 * @return {@code true} if the contents of the subranges match exactly,
-	 *         {@code false} otherwise.
-	 */
-	boolean compareFromToWithSmallIntegerIntervalTupleStartingAt (
-		int startIndex1,
-		int endIndex1,
-		A_Tuple aSmallIntegerIntervalTuple,
-		int startIndex2);
-
-	/**
-	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
-	 * subrange of the given {@linkplain RepeatedElementTupleDescriptor repeated
-	 * element tuple}. The size of the subrange of both objects is determined
-	 * by the index range supplied for the receiver.
-	 *
-	 * @param startIndex1
-	 *        The inclusive lower bound of the receiver's subrange.
-	 * @param endIndex1
-	 *        The inclusive upper bound of the receiver's subrange.
-	 * @param aRepeatedElementTuple
-	 *        The repeated element tuple used in the comparison.
-	 * @param startIndex2
-	 *        The inclusive lower bound of the byte tuple's subrange.
-	 * @return {@code true} if the contents of the subranges match exactly,
-	 *         {@code false} otherwise.
-	 */
-	boolean compareFromToWithRepeatedElementTupleStartingAt (
-		int startIndex1,
-		int endIndex1,
-		A_Tuple aRepeatedElementTuple,
-		int startIndex2);
-
-	/**
-	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
 	 * subrange of the given {@linkplain NybbleTupleDescriptor nybble tuple}.
 	 * The size of the subrange of both objects is determined by the index range
 	 * supplied for the receiver.
@@ -242,6 +294,52 @@ extends A_BasicObject, Iterable<AvailObject>
 		int startIndex1,
 		int endIndex1,
 		A_Tuple anObjectTuple,
+		int startIndex2);
+
+	/**
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain RepeatedElementTupleDescriptor repeated
+	 * element tuple}. The size of the subrange of both objects is determined
+	 * by the index range supplied for the receiver.
+	 *
+	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
+	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
+	 * @param aRepeatedElementTuple
+	 *        The repeated element tuple used in the comparison.
+	 * @param startIndex2
+	 *        The inclusive lower bound of the byte tuple's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
+	 */
+	boolean compareFromToWithRepeatedElementTupleStartingAt (
+		int startIndex1,
+		int endIndex1,
+		A_Tuple aRepeatedElementTuple,
+		int startIndex2);
+
+	/**
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain SmallIntegerIntervalTupleDescriptor
+	 * small integer interval tuple}. The size of the subrange of both objects
+	 * is determined by the index range supplied for the receiver.
+	 *
+	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
+	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
+	 * @param aSmallIntegerIntervalTuple
+	 *        The small integer interval tuple used in the comparison.
+	 * @param startIndex2
+	 *        The inclusive lower bound of the byte tuple's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
+	 */
+	boolean compareFromToWithSmallIntegerIntervalTupleStartingAt (
+		int startIndex1,
+		int endIndex1,
+		A_Tuple aSmallIntegerIntervalTuple,
 		int startIndex2);
 
 	/**
@@ -308,12 +406,35 @@ extends A_BasicObject, Iterable<AvailObject>
 	A_Tuple concatenateTuplesCanDestroy (boolean canDestroy);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Concatenate the receiver and the argument otherTuple to form a new tuple.
+	 * Assume that the two input tuples may be destroyed or recycled if they're
+	 * mutable.
+	 *
+	 * @param otherTuple The tuple to append.
+	 * @param canDestroy Whether the input tuples can be destroyed or reused.
+	 * @return The concatenation of the two tuples.
+	 */
+	A_Tuple concatenateWith (A_Tuple otherTuple, boolean canDestroy);
+
+	/**
+	 * Make a mutable copy of the tuple but in a form that accepts any objects.
+	 *
+	 * @return The new mutable {@link ObjectTupleDescriptor object tuple}.
 	 */
 	A_Tuple copyAsMutableObjectTuple ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Make a tuple that only contains the given range of elements of the given
+	 * tuple.  Subclasses have different strategies for how to accomplish this
+	 * efficiently.
+	 *
+	 * @param start
+	 *        The start of the range to extract.
+	 * @param end
+	 *        The end of the range to extract.
+	 * @param canDestroy
+	 *        Whether the original object may be destroyed if mutable.
+	 * @return The subtuple.
 	 */
 	A_Tuple copyTupleFromToCanDestroy (
 		int start,
@@ -321,76 +442,34 @@ extends A_BasicObject, Iterable<AvailObject>
 		boolean canDestroy);
 
 	/**
+	 * Extract the specified element from the tuple.  The element must be an
+	 * integer in the range [0..15], and is returned as a Java {@code byte}.
+	 *
+	 * @param index The index into the tuple.
+	 * @return The nybble as a Java byte.
+	 */
+	byte extractNybbleFromTupleAt (int index);
+
+	/**
+	 * Calculate the hash of the subtuple spanning the two indices.
+	 *
+	 * @param startIndex The first index of the subtuple.
+	 * @param endIndex The last index of the subtuple.
+	 * @return The hash of the subtuple.
+	 */
+	int hashFromTo (int startIndex, int endIndex);
+
+	/**
 	 * Given two objects that are known to be equal, is the first one in a
 	 * better form (more compact, more efficient, older generation) than the
 	 * second one?
 	 *
 	 * @param anotherObject
-	 * @return
+	 * @return Whether the receiver has a representation that is superior (less
+	 *         space, faster access) to the argument.
 	 */
 	boolean isBetterRepresentationThan (
 		A_BasicObject anotherObject);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	byte extractNybbleFromTupleAt (int index);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int hashFromTo (int startIndex, int endIndex);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	AvailObject tupleAt (int index);
-
-	/**
-	 * @param index
-	 * @param anObject
-	 */
-	void objectTupleAtPut (int index, A_BasicObject anObject);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Tuple tupleAtPuttingCanDestroy (
-		int index,
-		A_BasicObject newValueObject,
-		boolean canDestroy);
-
-	/**
-	 * Answer the specified element of the tuple.  It must be an {@linkplain
-	 * IntegerDescriptor integer} in the range [-2^31..2^31), and is returned as
-	 * a Java {@code int}.
-	 *
-	 * @param index Which 1-based index to use to subscript the tuple.
-	 * @return The {@code int} form of the specified tuple element.
-	 */
-	int tupleIntAt (int index);
-
-	/**
-	 * Answer the reverse tuple of the tuple receiver.
-	 * Dispatch to the descriptor.
-	 * @return
-	 */
-	A_Tuple tupleReverse();
-
-	/**
-	 * Answer the number of elements in this tuple.
-	 *
-	 * @return The maximum valid 1-based index for this tuple.
-	 */
-	int tupleSize ();
-
-	/**
-	 * Construct a Java {@linkplain Set set} from the receiver, a {@linkplain
-	 * TupleDescriptor tuple}.
-	 *
-	 * @return A set containing each element in the tuple.
-	 */
-	A_Set asSet ();
 
 	/**
 	 * Answer an {@linkplain Iterator iterator} suitable for traversing the
@@ -403,86 +482,72 @@ extends A_BasicObject, Iterable<AvailObject>
 	Iterator<AvailObject> iterator ();
 
 	/**
-	 * @param newElement
-	 * @param canDestroy
-	 * @return
+	 * The receiver is a mutable object tuple; replace the specified element.
+	 *
+	 * @param index The index at which to write the new element.
+	 * @param anObject The replacement element for that index.
 	 */
-	A_Tuple appendCanDestroy (
-		A_BasicObject newElement,
-		boolean canDestroy);
+	void objectTupleAtPut (int index, A_BasicObject anObject);
 
 	/**
-	 * @return
-	 */
-	public ByteBuffer byteBuffer ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	int bitsPerEntry ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void rawNybbleAtPut (int index, byte aNybble);
-
-	/**
-	 * Dispatch to the descriptor.
+	 * The receiver must be a mutable {@linkplain ByteTupleDescriptor byte
+	 * tuple}, {@linkplain ByteArrayTupleDescriptor byte array tuple}, or
+	 * {@linkplain ByteBufferTupleDescriptor byte buffer tuple}; replace the
+	 * specified index with a replacement unsigned byte.
+	 *
+	 * @param index
+	 *        The index at which to write a new byte.
+	 * @param anInteger
+	 *        The replacement unsigned byte, a Java {@code short} in the range
+	 *        [0..255].
 	 */
 	void rawByteAtPut (int index, short anInteger);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * The receiver is a {@linkplain ByteStringDescriptor byte string}; extract
+	 * the {@link A_Character#codePoint() code point} of the {@link A_Character
+	 * character} at the given index as an unsigned byte.
+	 *
+	 * @param index The index of the character to extract.
+	 * @return The code point of the character at the given index, as a Java
+	 *         {@code short} in the range [0..255].
 	 */
 	short rawByteForCharacterAt (int index);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * The receiver must be a mutable {@linkplain NybbleTupleDescriptor nybble
+	 * tuple}; replace the specified index with a replacement nybble.
+	 *
+	 * @param index
+	 *        The index at which to write a new nybble.
+	 * @param aNybble
+	 *        The replacement nybble, a Java {@code byte} in the range [0..15].
+	 */
+	void rawNybbleAtPut (int index, byte aNybble);
+
+	/**
+	 * The receiver is a {@linkplain TwoByteStringDescriptor two-byte string};
+	 * extract the {@link A_Character#codePoint() code point} of the {@link
+	 * A_Character character} at the given index as an unsigned short.
+	 *
+	 * @param index The index of the character to extract.
+	 * @return The code point of the character at the given index, as a Java
+	 *         {@code int} in the range [0..65535].
 	 */
 	int rawShortForCharacterAt (int index);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * The receiver is a mutable {@linkplain TwoByteStringDescriptor two-byte
+	 * string}; overwrite the {@link A_Character character} at the given index
+	 * with the character having the given code point.
+	 *
+	 * @param index
+	 *        The index of the character to overwrite.
+	 * @param anInteger
+	 *        The code point of the character to write at the given index, as a
+	 *        Java {@code int} in the range [0..65535].
 	 */
 	void rawShortForCharacterAtPut (int index, int anInteger);
-
-	/**
-	 * Return the height of this {@linkplain TreeTupleDescriptor tree tuple}.
-	 * Flat tuples and subranges have height 0, and tree tuples have heights
-	 * from 1 to 10.  All of a tree tuple's children have a height of one less
-	 * than the parent tree tuple.
-	 *
-	 * @return The height of the tree tuple.
-	 */
-	int treeTupleLevel ();
-
-	/**
-	 * Answer the number of children this {@linkplain TreeTupleDescriptor tree
-	 * tuple} contains.
-	 *
-	 * @return The width of this tree tuple node.
-	 */
-	int childCount ();
-
-	/**
-	 * Answer the N<sup>th</sup> child of this {@linkplain TreeTupleDescriptor
-	 * tree tuple}.
-	 *
-	 * @param childIndex Which child tuple to fetch.
-	 * @return The specified child of the tree tuple node.
-	 */
-	A_Tuple childAt (int childIndex);
-
-	/**
-	 * Concatenate the receiver and the argument otherTuple to form a new tuple.
-	 * Assume that the two input tuples may be destroyed or recycled if they're
-	 * mutable.
-	 *
-	 * @param otherTuple The tuple to append.
-	 * @param canDestroy Whether the input tuples can be destroyed or reused.
-	 * @return The concatenation of the two tuples.
-	 */
-	A_Tuple concatenateWith (A_Tuple otherTuple, boolean canDestroy);
 
 	/**
 	 * Replace the first child of this {@linkplain TreeTupleDescriptor tree
@@ -494,28 +559,6 @@ extends A_BasicObject, Iterable<AvailObject>
 	 *         destructively.
 	 */
 	A_Tuple replaceFirstChild (A_Tuple newFirst);
-
-	/**
-	 * @param startIndex1
-	 * @param endIndex1
-	 * @param aByteBufferTuple
-	 * @param startIndex2
-	 * @return
-	 */
-	boolean compareFromToWithByteBufferTupleStartingAt (
-		int startIndex1,
-		int endIndex1,
-		A_Tuple aByteBufferTuple,
-		int startIndex2);
-
-	/**
-	 * Extract the backing {@code byte[]} from this tuple.  Only applicable if
-	 * the tuple's descriptor answers true to {@linkplain
-	 * TupleDescriptor#o_IsByteArrayTuple(AvailObject)}.
-	 *
-	 * @return This tuple's byte array.  Don't modify it.
-	 */
-	byte[] byteArray ();
 
 	/**
 	 * Transfer the specified subrange of this tuple of bytes into the provided
@@ -531,6 +574,41 @@ extends A_BasicObject, Iterable<AvailObject>
 		ByteBuffer outputByteBuffer);
 
 	/**
+	 * Return the height of this {@linkplain TreeTupleDescriptor tree tuple}.
+	 * Flat tuples and subranges have height 0, and tree tuples have heights
+	 * from 1 to 10.  All of a tree tuple's children have a height of one less
+	 * than the parent tree tuple.
+	 *
+	 * @return The height of the tree tuple.
+	 */
+	int treeTupleLevel ();
+
+	/**
+	 * Answer the specified element of the tuple.
+	 *
+	 * @param index Which element should be extracted.
+	 * @return The element of the tuple.
+	 */
+	AvailObject tupleAt (int index);
+
+	/**
+	 * Answer a new tuple like the receiver but with a single element replaced
+	 * at the specified index.  If the receiver is mutable and canDestroy is
+	 * true, then the receiver may be modified or destroyed.
+	 *
+	 * @param index The index at which to replace an element.
+	 * @param newValueObject The replacement element.
+	 * @param canDestroy Whether the receiver can be modified if it's mutable.
+	 * @return A tuple containing the elements that were present in the
+	 *         receiver, except that the element at index has been replaced by
+	 *         newValueObject.
+	 */
+	A_Tuple tupleAtPuttingCanDestroy (
+		int index,
+		A_BasicObject newValueObject,
+		boolean canDestroy);
+
+	/**
 	 * Determine whether the specified elements of this tuple each conform to
 	 * the specified {@linkplain TypeDescriptor type}.
 	 *
@@ -543,4 +621,28 @@ extends A_BasicObject, Iterable<AvailObject>
 		int startIndex,
 		int endIndex,
 		A_Type type);
+
+	/**
+	 * Answer the specified element of the tuple.  It must be an {@linkplain
+	 * IntegerDescriptor integer} in the range [-2^31..2^31), and is returned as
+	 * a Java {@code int}.
+	 *
+	 * @param index Which 1-based index to use to subscript the tuple.
+	 * @return The {@code int} form of the specified tuple element.
+	 */
+	int tupleIntAt (int index);
+
+	/**
+	 * Answer a tuple that has the receiver's elements but in reverse order.
+	 *
+	 * @return The reversed tuple.
+	 */
+	A_Tuple tupleReverse();
+
+	/**
+	 * Answer the number of elements in this tuple.
+	 *
+	 * @return The maximum valid 1-based index for this tuple.
+	 */
+	int tupleSize ();
 }

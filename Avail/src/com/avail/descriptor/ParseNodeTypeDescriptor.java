@@ -652,7 +652,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final ParseNodeKind expectedParseNodeKind)
 	{
-		return object.parseNodeKind().isSubkindOf(expectedParseNodeKind);
+		return object.parseNodeKindIsUnder(expectedParseNodeKind);
 	}
 
 	@Override
@@ -811,20 +811,19 @@ extends TypeDescriptor
 		for (int i = 0; i < statementCount; i++)
 		{
 			final A_Phrase statement = flat.get(i);
-			final A_Type kind = statement.kind();
-			assert !kind.parseNodeKindIsUnder(SEQUENCE_NODE);
+			assert !statement.parseNodeKindIsUnder(SEQUENCE_NODE);
 			final boolean valid;
 			if (i + 1 < statementCount)
 			{
 				valid =
-					(kind.parseNodeKindIsUnder(STATEMENT_NODE)
-						|| kind.parseNodeKindIsUnder(ASSIGNMENT_NODE)
-						|| kind.parseNodeKindIsUnder(SEND_NODE))
-					&& kind.expressionType().isTop();
+					(statement.parseNodeKindIsUnder(STATEMENT_NODE)
+						|| statement.parseNodeKindIsUnder(ASSIGNMENT_NODE)
+						|| statement.parseNodeKindIsUnder(SEND_NODE))
+					&& statement.expressionType().isTop();
 			}
 			else
 			{
-				valid = kind.expressionType().isSubtypeOf(resultType);
+				valid = statement.expressionType().isSubtypeOf(resultType);
 			}
 			if (!valid)
 			{

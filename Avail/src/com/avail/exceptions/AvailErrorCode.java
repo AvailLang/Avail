@@ -39,7 +39,7 @@ import com.avail.AvailRuntime;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.interpreter.levelOne.L1Instruction;
+import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.primitive.P_352_RejectParsing;
 import com.avail.serialization.Deserializer;
 import com.avail.serialization.Serializer;
@@ -830,7 +830,7 @@ public enum AvailErrorCode
 
 	/**
 	 * Can the {@linkplain AvailErrorCode error code} result from failure of an
-	 * {@link L1Instruction}?
+	 * {@link L1Operation}?
 	 *
 	 * @return {@code true} if the error code can result from a failed
 	 *         instruction, {@code false} otherwise.

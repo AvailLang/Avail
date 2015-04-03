@@ -230,9 +230,8 @@ public class AvailCodeGenerator
 			{
 				final A_Phrase lastStatement =
 					statementsTuple.tupleAt(statementsCount);
-				final A_Type lastStatementType = lastStatement.kind();
-				if (lastStatementType.parseNodeKindIsUnder(LABEL_NODE)
-					|| (lastStatementType.parseNodeKindIsUnder(ASSIGNMENT_NODE)
+				if (lastStatement.parseNodeKindIsUnder(LABEL_NODE)
+					|| (lastStatement.parseNodeKindIsUnder(ASSIGNMENT_NODE)
 						&& lastStatement.expressionType().isTop()))
 				{
 					// Either the block 1) ends with the label declaration or
