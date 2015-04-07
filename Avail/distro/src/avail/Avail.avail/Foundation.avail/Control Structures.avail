@@ -71,7 +71,6 @@ Names
 	"From_to_by_do_",
 	"From_to_do_",
 	"here",
-	"If|if_then_«else if_then_»«else_»",
 	"If|if_then_«else if_then_»«else_»?",
 	"Repeat_",
 	"Repeat__times",
@@ -83,7 +82,6 @@ Names
 	"While_do_",
 	"While_do_alternate with_",
 	"Unless|unless_then_else_",
-	"Unless|unless_then_«else unless_then_»«else_»",
 	"Unless|unless_then_«else unless_then_»«else_»?",
 
 	/* Support methods for semantic restrictions, exported for use by other
@@ -1107,7 +1105,7 @@ Public method "Require:_'s⁇keeper is valid" is
  * of the predicates answer {@method "true"}, then execute the "else" action. If
  * no "else" action is provided, then do not execute any of the action blocks.
  * 
- * @method "If|if_then_«else if_then_»«else_»"
+ * @method "If|if_then_«else if_then_»«else_»?"
  * @param "firstPredicate" "boolean"
  *        The first predicate. This argument is a raw boolean rather than a
  *        function answering a boolean, because it must always be evalutated
@@ -1127,7 +1125,7 @@ Public method "Require:_'s⁇keeper is valid" is
  *          If used as an expression, then the value of the selected action.
  * @category "Control Structures" "Conditionals"
  */
-Public method "If|if_then_«else if_then_»«else_»" is
+Public method "If|if_then_«else if_then_»«else_»?" is
 [
 	firstPredicate : boolean,
 	firstThen : []→⊤,
@@ -1179,13 +1177,13 @@ Public method "If|if_then_«else if_then_»«else_»" is
  * "true"} is preceded only by actions whose predicates are guaranteed to answer
  * {@method "false"}; in this case, answer this action's return type.
  * 
- * @method "If|if_then_«else if_then_»«else_»"
+ * @method "If|if_then_«else if_then_»«else_»?"
  * @restricts "boolean's type"
  * @restricts "[]→⊤'s type"
  * @restricts "<<[]→boolean, []→⊤…|2>…|1..>'s type"
  * @restricts "([]→⊤)?'s type"
  */
-Semantic restriction "If|if_then_«else if_then_»«else_»" is
+Semantic restriction "If|if_then_«else if_then_»«else_»?" is
 [
 	firstPredicate : boolean's type,
 	firstThen : []→⊤'s type,
@@ -1465,7 +1463,7 @@ Public macro "Unless|unless_then_«else unless_then_»«else_»?" is
  * If no "else" action is provided, then do not execute any of the action 
  * blocks.
  * 
- * @method "Unless|unless_then_«else unless_then_»«else_»"
+ * @method "Unless|unless_then_«else unless_then_»«else_»?"
  * @param "firstPredicate" "boolean"
  *        The first predicate. This argument is a raw boolean rather than a
  *        function answering a boolean, because it must always be evalutated
@@ -1485,7 +1483,7 @@ Public macro "Unless|unless_then_«else unless_then_»«else_»?" is
  *          If used as an expression, then the value of the selected action.
  * @category "Control Structures" "Conditionals"
  */
-Public method "Unless|unless_then_«else unless_then_»«else_»" is
+Public method "Unless|unless_then_«else unless_then_»«else_»?" is
 [
 	firstPredicate : boolean,
 	firstThen : []→⊤,
@@ -1540,13 +1538,13 @@ Public method "Unless|unless_then_«else unless_then_»«else_»" is
  * "false"} is preceded only by actions whose predicates are guaranteed to 
  * answer {@method "true"}; in this case, answer this action's return type.
  * 
- * @method "Unless|unless_then_«else unless_then_»«else_»"
+ * @method "Unless|unless_then_«else unless_then_»«else_»?"
  * @restricts "boolean's type"
  * @restricts "[]→⊤'s type"
  * @restricts "<[]→boolean, []→⊤…|2>+'s type"
  * @restricts "([]→⊤)?'s type"
  */
-Semantic restriction "Unless|unless_then_«else unless_then_»«else_»" is
+Semantic restriction "Unless|unless_then_«else unless_then_»«else_»?" is
 [
 	firstPredicate : boolean's type,
 	firstThen : []→⊤'s type,
