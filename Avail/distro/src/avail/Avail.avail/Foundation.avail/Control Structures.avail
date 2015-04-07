@@ -72,6 +72,7 @@ Names
 	"From_to_do_",
 	"here",
 	"If|if_then_«else if_then_»«else_»",
+	"If|if_then_«else if_then_»«else_»?",
 	"Repeat_",
 	"Repeat__times",
 	"Unless_then_",
@@ -90,6 +91,110 @@ Names
 	"Require:_accepts subscripts from_to_by_",
 	"Require:_'s⁇keeper is valid"
 Body
+
+/*
+ * Helper methods for building macro, "If|if_then_«else if_then_»«else_»?"
+ */
+Private method "block from_" is
+[
+ 	sendPhrase : send phrase ⇒ ⊤
+|
+	returnType ::= sendPhrase's return type;
+	cast «[<sendPhrase>]:returnType» into [b: block phrase ⇒ []→⊤| b]
+]:expression phrase ⇒ []→⊤;
+
+Private method "basic send phrase if_then_else_" is
+[
+ 	predicatePhrase : expression phrase ⇒ boolean,
+ 	thenBlock : expression phrase ⇒ []→⊤,
+	elseBlock : expression phrase ⇒ []→⊤
+|
+	anAtom ::= $"If|if_then_else_";	
+	elseBlockReturnType ::= elseBlock's semantic type;
+	thenBlockReturnType ::= thenBlock's semantic type;
+	
+	boolType ::= predicatePhrase's semantic type;
+
+	returnType ::= strengthen ⊤ for call of anAtom 
+		using <boolType, thenBlockReturnType, elseBlockReturnType>;
+
+	restricted send anAtom with
+		<predicatePhrase, thenBlock, elseBlock> : returnType
+] : send phrase ⇒ ⊤;
+
+/*
+ * Recursive method to build up nested "If|if_then_else_" blocks for the 
+ * macro "If|if_then_«else if_then_»«else_»"
+ */
+Private abstract method "nest_in_" is 
+[
+	expression phrase ⇒ []→⊤,
+	<list phrase ⇒ <boolean, []→⊤…|2>…|1..>
+]→(expression phrase ⇒ []→⊤);
+
+Method "nest_in_" is
+[
+	elseBlock : expression phrase ⇒ []→⊤,
+	elseIfPairTuple : <list phrase ⇒ <boolean, []→⊤…|2>…|1>
+|
+	elseIfPair ::= elseIfPairTuple[1]'s expressions;
+	predicate ::= elseIfPair[1];
+	thenBlock ::= elseIfPair[2];
+	block from basic send phrase if predicate then thenBlock else elseBlock
+]:expression phrase ⇒ []→⊤;
+
+Method "nest_in_" is
+[
+	elseBlock : expression phrase ⇒ []→⊤,
+	elseIfPairTuple : <list phrase ⇒ <boolean, []→⊤…|2>…|2..>
+|
+	size ::= |elseIfPairTuple|;
+	end ::= size - 1;
+	newElseBlock ::= nest elseBlock in <elseIfPairTuple[size]>;
+	nest newElseBlock in elseIfPairTuple[1..end]
+]:expression phrase ⇒ []→⊤;
+
+/**
+ * Multiply branching conditional statement/expression. Execute the first
+ * action for which the associated predicate answers {@method "true"}. If none 
+ * of the predicates answer {@method "true"}, then execute the "else" action. If
+ * no "else" action is provided, then do not execute any of the action blocks.
+ * 
+ * @method "If|if_then_«else if_then_»«else_»?"
+ * @param "firstPredicate" "expression phrase ⇒ boolean"
+ *        The first predicate to check.
+ * @param "firstThen" "expression phrase ⇒ []→⊤"
+ *        The action to perform if {@param "firstPredicate"} is {@method 
+ *        "true"}.
+ * @param "elseIfTuple" "list phrase ⇒ (<boolean, []→⊤…|2>+)"
+ *        A lexically constructed tuple of 2-tuples. Each 2-tuple has as its
+ *        first element a predicate and as its second element an action
+ *        to perform if the predicate answers {@method "true"}.
+ * @param "else" "list phrase ⇒ (([]→⊤)?)"
+ *        A lexically constructed tuple that optionally contains the action to
+ *        perform if {@param "firstPredicate"} is {@method "false"} and all 
+ *        predicates of {@param "elseIfTuple"} answer {@method "false"}.
+ * @returns "⊤"
+ *          If used as an expression, then the value of the selected action.
+ * @category "Control Structures" "Conditionals"
+ */
+Public macro "If|if_then_«else if_then_»«else_»?" is
+[
+	firstPredicate : expression phrase ⇒ boolean,
+	firstThenBlock : expression phrase ⇒ []→⊤,
+	elseIfPairTuplePhrase : list phrase ⇒ (<boolean, []→⊤…|2>+),
+	optionalElseBlock : list phrase ⇒ (([]→⊤)?)
+|
+	elseBlock ::= if |optionalElseBlock's expressions| = 1 then 
+		[optionalElseBlock's expressions[1]] 
+		else [cast «[<>]:⊤» into [b : expression phrase ⇒ []→⊤ | b]];
+	elseIfPairTuple ::= cast elseIfPairTuplePhrase's expressions into
+		[l : <list phrase⇒<boolean, []→⊤…|2>…|1..∞> | l];
+
+	finalElseBlock ::= nest elseBlock in elseIfPairTuple;
+
+	basic send phrase if firstPredicate then firstThenBlock else finalElseBlock
+]: send phrase ⇒ ⊤;
 
 /**
  * Exit the continuation. Execution proceeds as though the continuation had just
@@ -1201,21 +1306,6 @@ Semantic restriction "If|if_then_«else if_then_»«else_»" is
 	]
 ];
 
-/* Macro support for "If|if_then_«else if_then_»«else_»" WIP */
-/*
-Macro "If|if_then_«else if_then_»«else_»" is
-[
-	firstPredicate : expression phrase ⇒ boolean,
-	firstThen : block phrase ⇒ []→⊤,
-	elseIfTuple : expression phrase ⇒ 
-		<expression phrase ⇒ boolean, block phrase ⇒ []→⊤…|2>+,
-	else : expression phrase ⇒ ([]→⊤)?
-|
-	elseIfTupleType ::= elseIfTuple's semantic type;
-	For each index from 1 to | elseIfTupleType |
-
-] : send phrase ⇒ ⊤;
-*/
 /**
  * Given a predicate value and a function, invoke the specified function only if
  * the predicate is {@method "false"}. This is the inverse of {@method 

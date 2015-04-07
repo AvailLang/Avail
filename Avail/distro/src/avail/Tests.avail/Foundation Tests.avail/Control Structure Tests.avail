@@ -134,6 +134,32 @@ Test "if then else" in control structure test suite is
 	Require: f = 24;
 ];
 
+Test "if then else macro" in control structure test suite is
+[
+	c ::= if 5 > 6 then [5] else if 100 < 50 then [6] else [7];
+	Require: c = 7;
+
+	d : integer := 0;
+	If 5 > 6 then [d := 13;] else if 100 < 50 then [d := 14;] else [d := 15;];
+	Require: d = 15;
+
+	e ::=
+		if 5 > 6 then [16] 
+		else if 100 < 50 then [17] 
+		else if false then [18]
+		else if 9 > 1000 then [19]
+		else [20];
+	Require: e = 20;
+
+	f ::=
+		if 5 > 6 then [21] 
+		else if 100 < 50 then [22] 
+		else if false then [23]
+		else if 9 > 1 then [24]
+		else [25];
+	Require: f = 24;
+];
+
 Test "unless then else" in control structure test suite is
 [
 	a ::= unless 5 > 6 then [1] else [2];
