@@ -129,7 +129,7 @@ Method "concatenate_" is
 	readers : reader*
 |
 	if |readers| = 0 then [an exhausted reader]
-	else if [|readers| = 1] then [readers[1]]
+	else if |readers| = 1 then [readers[1]]
 	else
 	[
 		elementTypes ::= map readers through [r : reader | r's element type];

@@ -158,6 +158,14 @@ Test "if then else macro" in control structure test suite is
 		else if 9 > 1 then [24]
 		else [25];
 	Require: f = 24;
+	
+	g ::=
+		if 5 > 6 then [21] 
+		else if 100 < 50 then [22] 
+		else if false then [23]
+		else if 9 > 1 ∧ 10 > 2 + 3 then [24]
+		else [25];
+	Require: g = 24;
 ];
 
 Test "unless then else" in control structure test suite is

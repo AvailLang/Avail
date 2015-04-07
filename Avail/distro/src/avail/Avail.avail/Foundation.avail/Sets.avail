@@ -145,7 +145,7 @@ Semantic restriction "_-_" is
 	[
 		setType
 	]
-	else if [|value| = 1 ∧ |elementType| ≠ ∞] then
+	else if |value| = 1 ∧ |elementType| ≠ ∞ then
 	[
 		instances ::= elementType's instances \ value's instances;
 		newElementType ::=
@@ -498,7 +498,7 @@ Semantic restriction "filter_by_" is
 |
 	Require: predicate accepts setType;
 	if predicate's return type = true's type then [setType]
-	else if [predicate's return type = false's type] then [∅'s type]
+	else if predicate's return type = false's type then [∅'s type]
 	else [{setType's element type|[0..⎡setType⎤ + 1)}]
 ];
 
@@ -1322,7 +1322,7 @@ Semantic restriction "_∌_" is
 	[
 		(valueType's instance ∉ setType's instance)'s type
 	]
-	else if [valueType ∩ (setType's element type) = ⊥] then
+	else if valueType ∩ (setType's element type) = ⊥ then
 	[
 		true's type
 	]

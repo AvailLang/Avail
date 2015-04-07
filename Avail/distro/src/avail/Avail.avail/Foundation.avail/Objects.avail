@@ -153,7 +153,7 @@ Semantic restriction "_→object type" is
 		/* We know one or more fields with which this type is associated, so
 		 * record this knowledge into `constraints`.
 		 */
-		else if [ |atomType| ≠ ∞ ] then
+		else if  |atomType| ≠ ∞ then
 		[
 			atoms ::= atomType's instances;
 			For each fieldAtom of atoms do
@@ -246,7 +246,7 @@ Semantic restriction "_→object" is
 		/* We know one or more fields with which this type is associated, so
 		 * record this knowledge into `constraints`.
 		 */
-		else if [ |atomType| ≠ ∞ ] then
+		else if |atomType| ≠ ∞ then
 		[
 			atoms ::= atomType's instances;
 			For each fieldAtom of atoms do
@@ -1919,7 +1919,7 @@ Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
 		[
 			assignments := eject assignments + fieldAtom→fieldType;
 		]
-		else if [fieldType ⊆ variable] then
+		else if fieldType ⊆ variable then
 		[
 			assignments := eject assignments + fieldAtom→fieldType;
 		];

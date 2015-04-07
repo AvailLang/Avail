@@ -132,7 +132,7 @@ Semantic restriction "_limited to_elements" is
 	limit : [0..∞]'s type
 |
 	if ⎣limit⎦ = ∞ then [readerType]
-	else if [⎡limit⎤ = 0] then [exhausted reader]
+	else if ⎡limit⎤ = 0 then [exhausted reader]
 	else
 	[
 		reader of readerType's element type's instance

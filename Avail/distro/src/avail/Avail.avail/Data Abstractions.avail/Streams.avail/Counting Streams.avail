@@ -258,8 +258,8 @@ Semantic restriction "a counting stream from_to_by_" is
 |
 	elementType ::=
 		if startType ⊆ double ∨ deltaType ⊆ double then [double]
-		else if [startType ⊆ float ∨ endType ⊆ float] then [float]
-		else if [startType⊆extended integer ∧ endType ⊆ extended integer]
+		else if startType ⊆ float ∨ endType ⊆ float then [float]
+		else if startType⊆extended integer ∧ endType ⊆ extended integer
 			then [extended integer]
 		else [number];
 	extend counting number stream with

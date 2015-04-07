@@ -91,12 +91,12 @@ Public method "tokenize_" is
 				While [i++; i ≤ |s| ∧ s[i] is a letter];
 			]
 			/* Consecutive Arabic numerals constitute a token. */
-			else if [c is an Arabic numeral] then
+			else if c is an Arabic numeral then
 			[
 				While [i++; i ≤ |s| ∧ s[i] is an Arabic numeral];
 			]
 			/* A string token begins and ends with a quotation mark ("). */
-			else if [c = ¢"\""] then
+			else if c = ¢"\"" then
 			[
 				While [i++; i ≤ |s| ∧ s[i] ≠ ¢"\""];
 				i++;

@@ -77,7 +77,7 @@ Private method "nearby wumpus message" is
 	[
 		"You have a really bad feeling…\n"
 	]
-	else if [the wumpus is dead] then
+	else if the wumpus is dead then
 	[
 		"Phyek! Smells like dead wumpus!\n"
 	]
@@ -138,13 +138,13 @@ Public method "accumulated sensory information" is
 			info ++= nearby wumpus message;
 		]
 		/* There are two pits; only announce one of them. */
-		else if [¬pitAnnounced ∧ nextRoom contains a pit] then
+		else if ¬pitAnnounced ∧ nextRoom contains a pit then
 		[
 			info ++= nearby pit message;
 			pitAnnounced := true;
 		]
 		/* There are two swarms of bats; only announce one of them. */
-		else if [¬batsAnnounced ∧ nextRoom contains a super bat swarm] then
+		else if ¬batsAnnounced ∧ nextRoom contains a super bat swarm then
 		[
 			info ++= nearby super bat swarm message;
 			batsAnnounced := true;

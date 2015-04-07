@@ -193,7 +193,7 @@ Semantic restriction "For each of⁇_do_" is
 		/* It will always loop forever. */
 		⊥
 	]
-	else if [⎡readerType's size⎤ = 0] then
+	else if ⎡readerType's size⎤ = 0 then
 	[
 		/* It will complete immediately, having never run the action. */
 		⊤
@@ -430,7 +430,7 @@ Semantic restriction "a counting reader from_to_by_" is
 		];
 		elementType ::=
 			if startType ⊆ double ∨ deltaType ⊆ double then [double]
-			else if [startType ⊆ float ∨ deltaType ⊆ float] then [float]
+			else if startType ⊆ float ∨ deltaType ⊆ float then [float]
 			else
 			[
 				cast <startType, deltaType, endType> into

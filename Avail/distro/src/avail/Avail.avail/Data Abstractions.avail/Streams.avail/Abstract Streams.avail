@@ -785,7 +785,7 @@ Method "concatenate_" is
 	streams : stream*
 |
 	if |streams| = 0 then [ an empty stream ]
-	else if [ |streams| = 1 ] then [ streams[1] ]
+	else if |streams| = 1 then [ streams[1] ]
 	else
 	[
 		elementType ::= ∪ map streams through [s : stream | s's element type];

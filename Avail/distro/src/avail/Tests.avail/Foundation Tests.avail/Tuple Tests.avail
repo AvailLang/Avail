@@ -806,7 +806,7 @@ Test "serialization" in tuple test suite is
 			];
 		]
 		/* Functions have identity. */
-		else if [expectedValue ∈ function] then
+		else if expectedValue ∈ function then
 		[
 			expectedFunction ::= expectedValue ?→ function;
 			actualFunction ::= actualValue ?→ function;
@@ -817,7 +817,7 @@ Test "serialization" in tuple test suite is
 			];
 		]
 		/* Variables have identity. */
-		else if [expectedValue ∈ variable] then
+		else if expectedValue ∈ variable then
 		[
 			expectedVariable ::= expectedValue ?→ ↑string;
 			actualVariable ::= expectedValue ?→ ↑string;
@@ -827,7 +827,7 @@ Test "serialization" in tuple test suite is
 			];
 		]
 		/* All other values in the input tuple are identityless. */
-		else if [actualValue ≠ expectedValue] then
+		else if actualValue ≠ expectedValue then
 		[
 			failed := eject failed ++ <index>;
 		];

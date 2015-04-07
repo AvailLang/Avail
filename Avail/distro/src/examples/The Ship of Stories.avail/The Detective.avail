@@ -810,7 +810,7 @@ and is described by
 
 		You are alone. What do you do?"
 		] 
-	else if [the Princess is in the party] then 
+	else if the Princess is in the party then 
 		[
 		"You slip back into the strange twisty passages with The Princess. She seems 
 		amazed to see this side of things. 

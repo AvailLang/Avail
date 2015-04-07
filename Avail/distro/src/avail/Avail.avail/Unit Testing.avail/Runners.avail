@@ -330,7 +330,7 @@ Private method "test metric for_" is
 			[
 				a unit test exclusion with test ID ::= test's test ID
 			]
-			else if [expected is empty] then
+			else if expected is empty then
 			[
 				a unit test failure with
 					test ID ::= id,
@@ -338,7 +338,7 @@ Private method "test metric for_" is
 						test ID ::= id,
 						causal exception (Foundation) ::= e
 			]
-			else if [ ¬e ∈ expected[1] ] then
+			else if ¬e ∈ expected[1] then
 			[
 				exceptionType ::= expected-a-specific-exception exception
 					∩ failed-test exception;

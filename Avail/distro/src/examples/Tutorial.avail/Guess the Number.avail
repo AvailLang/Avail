@@ -63,7 +63,7 @@ Private method "tries to guess_from range_" is
 	alternate with
 	[
 		If guess = sentinel then [/* Don't do anything special. */]
-		else if [guess > theNumber] then
+		else if guess > theNumber then
 		[
 			Print: "Too high.\n";
 			count := count + 1;
@@ -85,7 +85,7 @@ Private method "comment for_tries given a range of_" is
 	/* This is the maximum number of tries using a binary search strategy. */
 	expected ::= ⎡log 2 of (⎡range⎤-⎣range⎦ + 2)⎤;
 	if guesses = 1 then ["Your clairvoyance is superb!\n"]
-	else if [guesses ≤ expected] then
+	else if guesses ≤ expected then
 	[
 		format "“count” guesses? Your clairvoyance is adequate.\n"
 		with count ::= guesses

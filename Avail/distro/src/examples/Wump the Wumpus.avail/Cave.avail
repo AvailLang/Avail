@@ -360,7 +360,7 @@ Public method "a cave" is
 		 */
 		roomType : room's type :=
 			if subscript = 1 then [entrance room]
-			else if [subscript ≤ 3] then [pit room]
+			else if subscript ≤ 3 then [pit room]
 			else [room];
 		s : string := "";
 		theRoom ::= rooms[id] as roomType with label ::= ↑s;

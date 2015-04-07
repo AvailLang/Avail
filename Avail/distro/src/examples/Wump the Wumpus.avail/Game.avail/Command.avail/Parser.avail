@@ -144,7 +144,7 @@ Public method "Read and execute the next command" is
 		/* If the token is a string, then check to see if the special token
 		 * "STRING" is permitted here. Push the token onto the argument list.
 		 */
-		else if [canonicalToken[1] = ¢"\""] then
+		else if canonicalToken[1] = ¢"\"" then
 		[
 			If "STRING" ∈ node's next nodes then
 			[

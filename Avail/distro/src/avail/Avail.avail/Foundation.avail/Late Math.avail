@@ -367,9 +367,9 @@ Method "_^_" is
 		];
 	];
 	if range = ⊥ then [(⎣openLimits⎦..⎡openLimits⎤)]
-	else if [-∞ ∈ openLimits ∧ ∞ ∈ openLimits] then [range ∪ integer]
-	else if [-∞ ∈ openLimits] then [range ∪ (-∞..⎡range⎤)]
-	else if [∞ ∈ openLimits] then [range ∪ (⎣range⎦..∞)]
+	else if -∞ ∈ openLimits ∧ ∞ ∈ openLimits then [range ∪ integer]
+	else if -∞ ∈ openLimits then [range ∪ (-∞..⎡range⎤)]
+	else if ∞ ∈ openLimits then [range ∪ (⎣range⎦..∞)]
 	else [range]
 ] : extended integer's type;
 

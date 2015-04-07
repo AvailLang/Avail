@@ -171,7 +171,7 @@ Method "Handle_'s⁇arrival in_" is
 	/* If a super bat swarm is here, then move the player (and the swarm)
 	 * randomly.
 	 */
-	else if [the agent's location contains a super bat swarm] then
+	else if the agent's location contains a super bat swarm then
 	[
 		Super bat swarm attack;
 	]
@@ -244,7 +244,7 @@ Method "Handle_'s⁇arrival in_" is
 		Kill the agent;
 	]
 	/* If the room contains the wumpus, then kill it. Victory is thine! */
-	else if [aRoom contains the wumpus] then
+	else if aRoom contains the wumpus then
 	[
 		If the wumpus is alive then
 		[
@@ -263,7 +263,7 @@ Method "Handle_'s⁇arrival in_" is
 	 * The agent's subsequent translocation may put her in the arrow's path.
 	 * Super bat swarms are *REALLY FAST*, you know?
 	 */
-	else if [aRoom contains a super bat swarm] then
+	else if aRoom contains a super bat swarm then
 	[
 		swarm ::= if the first swarm is in aRoom
 			then [the first swarm]

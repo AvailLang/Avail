@@ -95,7 +95,7 @@ Private method "Validate_" is
 		columnCount := size;
 	]
 	/* Otherwise, enforce the column count! */
-	else if [size ≠ columnCount] then
+	else if size ≠ columnCount then
 	[
 		Raise a descriptive exception with
 			error message ::=

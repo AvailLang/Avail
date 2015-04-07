@@ -327,7 +327,7 @@ Semantic restriction "When|when_is present do_else_" is
 			with optionalType's actual value[1], presentBlock[1]
 	];
 	if optionalType ⊆ present then [presentBlock's return type]
-	else if [optionalType ⊆ absent] then [elseBlock's return type]
+	else if optionalType ⊆ absent then [elseBlock's return type]
 	else [presentBlock's return type ∪ elseBlock's return type]
 ];
 

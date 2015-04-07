@@ -212,7 +212,7 @@ Semantic restriction "_(««_»«`_»?‡,»)" is
 			argumentType ::= originalFunction[index];
 			argumentTypes := eject argumentTypes ++ <argumentType>;
 		]
-		else if [underscoreType = false's type] then
+		else if underscoreType = false's type then
 		[
 			If ¬ ||pairType[1]|| ⊆ [1..1] then
 			[

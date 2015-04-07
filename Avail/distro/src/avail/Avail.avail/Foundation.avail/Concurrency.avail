@@ -1941,7 +1941,7 @@ Semantic restriction "filter_in parallel«_-way»by_" is
 |
 	Require: predicate accepts setType;
 	if predicate's return type = true's type then [setType]
-	else if [predicate's return type = false's type] then [∅'s type]
+	else if predicate's return type = false's type then [∅'s type]
 	else [{setType's element type|[0..⎡setType⎤ + 1)}]
 ];
 
@@ -2025,7 +2025,7 @@ Semantic restriction "filter_in parallel«_-way»by_" is
 |
 	Require: predicate accepts mapType;
 	if predicate's return type = true's type then [mapType]
-	else if [predicate's return type = false's type] then [{}'s type]
+	else if predicate's return type = false's type then [{}'s type]
 	else [{mapType's key type → mapType's value type|[0..⎡mapType⎤ + 1)}]
 ];
 

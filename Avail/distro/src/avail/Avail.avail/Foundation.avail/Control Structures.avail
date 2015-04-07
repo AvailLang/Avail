@@ -2343,7 +2343,7 @@ Public method "Cast|cast_into«_‡,»«else_»" is
 		[
 			(else[1] else [[]])();
 		]
-		else if [ value ∈ caseTuple[index]'s type[1] ] then
+		else if value ∈ caseTuple[index]'s type[1] then
 		[
 			caseTuple[index](value);
 		]
@@ -2442,7 +2442,7 @@ Public method "Choose|choose_from_where«_is_‡,»«,else_»" is
 		[
 			(else[1] else [[]])();
 		]
-		else if [ caseTuple[index][1] = value ] then
+		else if caseTuple[index][1] = value then
 		[
 			caseTuple[index][2]();
 		]
