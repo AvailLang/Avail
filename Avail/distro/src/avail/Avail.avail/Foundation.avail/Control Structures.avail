@@ -84,6 +84,7 @@ Names
 	"While_do_alternate with_",
 	"Unless|unless_then_else_",
 	"Unless|unless_then_«else unless_then_»«else_»",
+	"Unless|unless_then_«else unless_then_»«else_»?",
 
 	/* Support methods for semantic restrictions, exported for use by other
 	 * library- and user-defined control structures.
@@ -103,13 +104,13 @@ Private method "block from_" is
 	cast «[<sendPhrase>]:returnType» into [b: block phrase ⇒ []→⊤| b]
 ]:expression phrase ⇒ []→⊤;
 
-Private method "basic send phrase if_then_else_" is
+Private method "basic send phrase_conditional_then_else_" is
 [
+	anAtom : atom,
  	predicatePhrase : expression phrase ⇒ boolean,
  	thenBlock : expression phrase ⇒ []→⊤,
 	elseBlock : expression phrase ⇒ []→⊤
-|
-	anAtom ::= $"If|if_then_else_";	
+|	
 	elseBlockReturnType ::= elseBlock's semantic type;
 	thenBlockReturnType ::= thenBlock's semantic type;
 	
@@ -123,35 +124,38 @@ Private method "basic send phrase if_then_else_" is
 ] : send phrase ⇒ ⊤;
 
 /*
- * Recursive method to build up nested "If|if_then_else_" blocks for the 
- * macro "If|if_then_«else if_then_»«else_»"
+ * Recursive method to build up nested blocks for a chained conditional 
+ * macro
  */
-Private abstract method "nest_in_" is 
+Private abstract method "for_nest_in_" is 
 [
-	expression phrase ⇒ []→⊤,
-	<list phrase ⇒ <boolean, []→⊤…|2>…|1..>
+ 	atom, expression phrase ⇒ []→⊤, <list phrase ⇒ <boolean, []→⊤…|2>…|1..>
 ]→(expression phrase ⇒ []→⊤);
 
-Method "nest_in_" is
+Method "for_nest_in_" is
 [
+ 	anAtom : atom,
 	elseBlock : expression phrase ⇒ []→⊤,
-	elseIfPairTuple : <list phrase ⇒ <boolean, []→⊤…|2>…|1>
+	elseConditionalPairTuple : <list phrase ⇒ <boolean, []→⊤…|2>…|1>
 |
-	elseIfPair ::= elseIfPairTuple[1]'s expressions;
-	predicate ::= elseIfPair[1];
-	thenBlock ::= elseIfPair[2];
-	block from basic send phrase if predicate then thenBlock else elseBlock
+	elseConditionalPair ::= elseConditionalPairTuple[1]'s expressions;
+	predicate ::= elseConditionalPair[1];
+	thenBlock ::= elseConditionalPair[2];
+	block from basic send phrase anAtom conditional predicate then 
+		thenBlock else elseBlock
 ]:expression phrase ⇒ []→⊤;
 
-Method "nest_in_" is
+Method "for_nest_in_" is
 [
+	anAtom : atom,
 	elseBlock : expression phrase ⇒ []→⊤,
-	elseIfPairTuple : <list phrase ⇒ <boolean, []→⊤…|2>…|2..>
+	elseConditionalPairTuple : <list phrase ⇒ <boolean, []→⊤…|2>…|2..>
 |
-	size ::= |elseIfPairTuple|;
+	size ::= |elseConditionalPairTuple|;
 	end ::= size - 1;
-	newElseBlock ::= nest elseBlock in <elseIfPairTuple[size]>;
-	nest newElseBlock in elseIfPairTuple[1..end]
+	newElseBlock ::= for anAtom nest elseBlock in 
+		<elseConditionalPairTuple[size]>;
+	for anAtom nest newElseBlock in elseConditionalPairTuple[1..end]
 ]:expression phrase ⇒ []→⊤;
 
 /**
@@ -190,10 +194,12 @@ Public macro "If|if_then_«else if_then_»«else_»?" is
 		else [cast «[<>]:⊤» into [b : expression phrase ⇒ []→⊤ | b]];
 	elseIfPairTuple ::= cast elseIfPairTuplePhrase's expressions into
 		[l : <list phrase⇒<boolean, []→⊤…|2>…|1..∞> | l];
+	
+	anAtom ::= $"If|if_then_else_";
+	finalElseBlock ::= for anAtom nest elseBlock in elseIfPairTuple;
 
-	finalElseBlock ::= nest elseBlock in elseIfPairTuple;
-
-	basic send phrase if firstPredicate then firstThenBlock else finalElseBlock
+	basic send phrase anAtom conditional firstPredicate then firstThenBlock 
+		else finalElseBlock
 ]: send phrase ⇒ ⊤;
 
 /**
@@ -1407,6 +1413,50 @@ Semantic restriction "Unless|unless_then_else_" is
 	trueFunction's return type
 ];
 
+/**
+ * Multiply branching conditional statement/expression. Execute the first
+ * action for which the associated predicate answers {@method "false"}. If none 
+ * of the predicates answer {@method "false"}, then execute the "else" action. 
+ * If no "else" action is provided, then do not execute any of the action 
+ * blocks.
+ * 
+ * @method "Unless|unless_then_«else unless_then_»«else_»?"
+ * @param "firstPredicate" "expression phrase ⇒ boolean"
+ *        The first predicate to check.
+ * @param "firstThen" "expression phrase ⇒ []→⊤"
+ *        The action to perform if {@param "firstPredicate"} is {@method 
+ *        "false"}.
+ * @param "elseIfTuple" "list phrase ⇒ (<boolean, []→⊤…|2>+)"
+ *        A lexically constructed tuple of 2-tuples. Each 2-tuple has as its
+ *        first element a predicate and as its second element an action
+ *        to perform if the predicate answers {@method "true"}.
+ * @param "else" "list phrase ⇒ (([]→⊤)?)"
+ *        A lexically constructed tuple that optionally contains the action to
+ *        perform if {@param "firstPredicate"} is {@method "false"} and all 
+ *        predicates of {@param "elseIfTuple"} answer {@method "false"}.
+ * @returns "⊤"
+ *          If used as an expression, then the value of the selected action.
+ * @category "Control Structures" "Conditionals"
+ */
+Public macro "Unless|unless_then_«else unless_then_»«else_»?" is
+[
+	firstPredicate : expression phrase ⇒ boolean,
+	firstThenBlock : expression phrase ⇒ []→⊤,
+	elseUnlessPairTuplePhrase : list phrase ⇒ (<boolean, []→⊤…|2>+),
+	optionalElseBlock : list phrase ⇒ (([]→⊤)?)
+|
+	elseBlock ::= if |optionalElseBlock's expressions| = 1 then 
+		[optionalElseBlock's expressions[1]] 
+		else [cast «[<>]:⊤» into [b : expression phrase ⇒ []→⊤ | b]];
+	elseUnlessPairTuple ::= cast elseUnlessPairTuplePhrase's expressions into
+		[l : <list phrase⇒<boolean, []→⊤…|2>…|1..∞> | l];
+
+	anAtom ::= $"Unless|unless_then_else_";
+	finalElseBlock ::= for anAtom nest elseBlock in elseUnlessPairTuple;
+
+	basic send phrase anAtom conditional firstPredicate  
+		then firstThenBlock else finalElseBlock
+]: send phrase ⇒ ⊤;
 
 /**
  * Multiply branching conditional statement/expression. Execute the first

@@ -210,6 +210,33 @@ Test "unless then else" in control structure test suite is
 	Require: f = 24;
 ];
 
+Test "unless then else (macro)" in control structure test suite is
+[
+	c ::= unless 5 < 6 then [5] else unless 100 < 50 then [6] else [7];
+	Require: c = 6;
+
+	d : integer := 0;
+	Unless 5 < 6 then [d := 13;] else unless 100 > 50 then [d := 14;] 
+		else [d := 15;];
+	Require: d = 15;
+
+	e ::=
+		unless 5 < 6 then [16] 
+		else unless 100 > 50 then [17] 
+		else unless true then [18]
+		else unless 9 < 1000 then [19]
+		else [20];
+	Require: e = 20;
+
+	f ::=
+		unless 5 < 6 then [21]
+		else unless 100 > 50 then [22]
+		else unless true then [23]
+		else unless 9 < 1 + 3 then [24]
+		else [25];
+	Require: f = 24;
+];
+
 Test "while loops" in control structure test suite is
 [
 	a : whole number := 0;
