@@ -308,7 +308,7 @@ public final class RegisterSet
 		final L2Instruction instruction)
 	{
 		typeAtPut(register, type);
-		if (type.instanceCount().equals(IntegerDescriptor.one())
+		if (type.instanceCount().equalsInt(1)
 			&& !type.isInstanceMeta())
 		{
 			// There is only one value that it could be.

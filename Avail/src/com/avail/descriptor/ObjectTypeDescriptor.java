@@ -101,7 +101,7 @@ extends TypeDescriptor
 				final A_Atom atom = entry.key();
 				final A_Type type = entry.value();
 				if (type.isEnumeration()
-					&& type.instanceCount().equals(IntegerDescriptor.one())
+					&& type.instanceCount().equalsInt(1)
 					&& type.instance().equals(atom))
 				{
 					ignoreKeys = ignoreKeys.setWithElementCanDestroy(

@@ -408,11 +408,9 @@ public final class AvailLoader
 		final MessageSplitter splitter = bundle.messageSplitter();
 		final int numArgs = splitter.numberOfArguments();
 		final A_Type bodyArgsSizes = bodySignature.argsTupleType().sizeRange();
-		assert bodyArgsSizes.lowerBound().equals(
-				IntegerDescriptor.fromInt(numArgs))
+		assert bodyArgsSizes.lowerBound().equalsInt(numArgs)
 			: "Wrong number of arguments in abstract method signature";
-		assert bodyArgsSizes.upperBound().equals(
-				IntegerDescriptor.fromInt(numArgs))
+		assert bodyArgsSizes.upperBound().equalsInt(numArgs)
 			: "Wrong number of arguments in abstract method signature";
 		//  Make it so we can safely hold onto these things in the VM
 		methodName.makeShared();

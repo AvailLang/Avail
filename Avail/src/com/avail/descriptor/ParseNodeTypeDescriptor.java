@@ -505,7 +505,7 @@ extends TypeDescriptor
 		}
 
 		/** An array of all {@link ParseNodeKind} enumeration values. */
-		private static ParseNodeKind[] all = values();
+		private static final ParseNodeKind[] all = values();
 
 		/**
 		 * Answer an array of all {@link ParseNodeKind} enumeration values.
@@ -573,8 +573,8 @@ extends TypeDescriptor
 	 * {@inheritDoc}
 	 *
 	 * <p>
-	 * {@linkplain ParseNodeTypeDescriptor parse node types} are equal when they are
-	 * of the same kind and have the same expression type.
+	 * {@linkplain ParseNodeTypeDescriptor parse node types} are equal when they
+	 * are of the same kind and have the same expression type.
 	 * </p>
 	 */
 	@Override @AvailMethod

@@ -622,8 +622,8 @@ extends TypeDescriptor
 		}
 		assert sizeRange.lowerBound().isFinite();
 		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
-		if (sizeRange.upperBound().equals(IntegerDescriptor.zero())
-				&& sizeRange.lowerBound().equals(IntegerDescriptor.zero()))
+		if (sizeRange.upperBound().equalsInt(0)
+				&& sizeRange.lowerBound().equalsInt(0))
 		{
 			return privateTupleTypeForSizesTypesDefaultType(
 				sizeRange,

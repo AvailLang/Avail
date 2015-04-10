@@ -584,7 +584,8 @@ extends ParseNodeDescriptor
 	 */
 	private void collectNeededVariablesOfOuterBlocks (final AvailObject object)
 	{
-		final Set<A_Phrase> neededDeclarations = new HashSet<>();
+		final List<A_Phrase> neededDeclarations = new ArrayList<>();
+		final Set<A_Phrase> neededDeclarationsSet = new HashSet<>();
 		final Set<A_Phrase> providedByMe = new HashSet<>();
 		providedByMe.addAll(allLocallyDefinedVariables(object));
 		object.childrenDo(new Continuation1<A_Phrase>()
@@ -593,33 +594,40 @@ extends ParseNodeDescriptor
 			public void value (final @Nullable A_Phrase node)
 			{
 				assert node != null;
-				if (node.isInstanceOfKind(BLOCK_NODE.mostGeneralType()))
+				if (node.parseNodeKindIsUnder(BLOCK_NODE))
 				{
 					for (final A_Phrase declaration : node.neededVariables())
 					{
-						if (!providedByMe.contains(declaration))
+						if (!providedByMe.contains(declaration)
+							&& !neededDeclarationsSet.contains(declaration))
 						{
+							neededDeclarationsSet.add(declaration);
 							neededDeclarations.add(declaration);
 						}
 					}
 					return;
 				}
-				node.childrenDo(this);
-				if (node.isInstanceOfKind(VARIABLE_USE_NODE.mostGeneralType()))
+				if (node.parseNodeKindIsUnder(VARIABLE_USE_NODE))
 				{
 					final A_Phrase declaration = node.declaration();
 					if (!providedByMe.contains(declaration)
 						&& declaration.declarationKind() != MODULE_VARIABLE
-						&& declaration.declarationKind() != MODULE_CONSTANT)
+						&& declaration.declarationKind() != MODULE_CONSTANT
+						&& !neededDeclarationsSet.contains(declaration))
 					{
+						neededDeclarationsSet.add(declaration);
 						neededDeclarations.add(declaration);
 					}
+					// Avoid visiting the declaration explicitly, otherwise
+					// uses of declarations that have initializations will cause
+					// variables used in those initializations to accidentally
+					// be captured as well.
+					return;
 				}
+				node.childrenDo(this);
 			}
 		});
-		object.neededVariables(
-			TupleDescriptor.fromList(
-				new ArrayList<A_Phrase>(neededDeclarations)));
+		object.neededVariables(TupleDescriptor.fromList(neededDeclarations));
 	}
 
 	@Override

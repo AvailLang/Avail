@@ -970,16 +970,25 @@ public class TypeConsistencyTest
 			final List<Node> parents = new ArrayList<>();
 			if (parseNodeKind.parentKind() == null)
 			{
-				parents.add(primitiveTypes.get(Types.NONTYPE));
+				final Node outerParent = primitiveTypes.get(Types.NONTYPE);
+				assert outerParent != null;
+				parents.add(outerParent);
 			}
 			else
 			{
-				parents.add(parseNodeTypeMap.get(
-					parseNodeKind.parentKind()).get(innerNode));
+				final Map<Node, Node> m =
+					parseNodeTypeMap.get(parseNodeKind.parentKind());
+				final Node outerParent = m.get(innerNode);
+				if (outerParent != null)
+				{
+					parents.add(outerParent);
+				}
 			}
 			for (final Node parentInnerNode : parentInnerNodes)
 			{
-				parents.add(submap.get(parentInnerNode));
+				final Node outer = submap.get(parentInnerNode);
+				assert outer != null;
+				parents.add(outer);
 			}
 			final Node newNode = new Node(
 				nodeName,
@@ -1108,6 +1117,8 @@ public class TypeConsistencyTest
 							null);
 						break;
 					case STATEMENT_NODE:
+					case SEQUENCE_NODE:
+					case FIRST_OF_SEQUENCE_NODE:
 					case DECLARATION_NODE:
 					case ARGUMENT_NODE:
 					case LABEL_NODE:
@@ -1125,8 +1136,6 @@ public class TypeConsistencyTest
 					case PARSE_NODE:
 					case EXPRESSION_NODE:
 					case SEND_NODE:
-					case SEQUENCE_NODE:
-					case FIRST_OF_SEQUENCE_NODE:
 						addMultiHelper(
 							kind,
 							topNode,

@@ -324,7 +324,12 @@ stateLock : non-reentrant mutex := a non-reentrant mutex named "state lock";
  */
 namesByUnit : {unit→string|} := {};
 
-Public method "names by unit" is [lock stateLock for[namesByUnit]];
+Public method "names by unit" is
+[
+	temp : {unit→string|};
+	lock stateLock for [temp := namesByUnit;];
+	temp
+];
 
 /**
  * Prefer {@param "name"} for printing the specified {@type "unit"}.
@@ -356,7 +361,12 @@ Public method "Prefer_for printing_" is
  */
 symbolsByUnit : {unit→string|} := {};
 
-Public method "symbols by unit" is [lock stateLock for [symbolsByUnit]];
+Public method "symbols by unit" is
+[
+	temp : {unit→string|};
+	lock stateLock for [temp := symbolsByUnit;];
+	temp
+];
 
 /**
  * Prefer {@param "symbol"} for printing {@type "dimensioned quantity"

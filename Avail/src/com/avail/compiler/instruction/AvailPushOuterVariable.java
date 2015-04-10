@@ -47,7 +47,6 @@ import java.util.List;
  */
 public class AvailPushOuterVariable extends AvailPushVariable
 {
-
 	/**
 	 * Construct a new {@link AvailPushOuterVariable}.
 	 *
@@ -59,7 +58,6 @@ public class AvailPushOuterVariable extends AvailPushVariable
 	{
 		super(variableIndex);
 	}
-
 
 	@Override
 	public void writeNybblesOn (
@@ -75,7 +73,6 @@ public class AvailPushOuterVariable extends AvailPushVariable
 		}
 		writeIntegerOn(index, aStream);
 	}
-
 
 	/**
 	 * The instructions of a block are being iterated over.  Coordinate
@@ -125,7 +122,6 @@ public class AvailPushOuterVariable extends AvailPushVariable
 		}
 		note.previousPush(this);
 	}
-
 
 	@Override
 	public boolean isOuterUse ()

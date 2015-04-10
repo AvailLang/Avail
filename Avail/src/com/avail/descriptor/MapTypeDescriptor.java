@@ -391,7 +391,7 @@ extends TypeDescriptor
 		final A_Type newSizeRange;
 		final A_Type newKeyType;
 		final A_Type newValueType;
-		if (sizeRangeKind.upperBound().equals(IntegerDescriptor.zero()))
+		if (sizeRangeKind.upperBound().equalsInt(0))
 		{
 			newSizeRange = sizeRangeKind;
 			newKeyType = BottomTypeDescriptor.bottom();

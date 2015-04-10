@@ -3642,7 +3642,7 @@ public abstract class AbstractAvailCompiler
 				}
 			};
 
-		if (!replacement.isInstanceOfKind(DECLARATION_NODE.mostGeneralType()))
+		if (!replacement.parseNodeKindIsUnder(DECLARATION_NODE))
 		{
 			// Only record module statements that aren't declarations. Users of
 			// the module don't care if a module variable or constant is only
@@ -6464,16 +6464,17 @@ public abstract class AbstractAvailCompiler
 		final A_String availName = StringDescriptor.from(macroName);
 		final A_Phrase nameLiteral =
 			LiteralNodeDescriptor.syntheticFrom(availName);
-		final List<A_Function> functionsList = new ArrayList<>();
+		final List<A_Phrase> functionLiterals = new ArrayList<>();
 		try
 		{
 			for (final int primitiveNumber : primitiveNumbers)
 			{
-				functionsList.add(
-					FunctionDescriptor.newPrimitiveFunction(
-						Primitive.byPrimitiveNumberOrFail(primitiveNumber),
-						module,
-						token.lineNumber()));
+				functionLiterals.add(
+					LiteralNodeDescriptor.syntheticFrom(
+						FunctionDescriptor.newPrimitiveFunction(
+							Primitive.byPrimitiveNumberOrFail(primitiveNumber),
+							module,
+							token.lineNumber())));
 			}
 		}
 		catch (final RuntimeException e)
@@ -6482,14 +6483,15 @@ public abstract class AbstractAvailCompiler
 			failure.value();
 			return;
 		}
-		final A_Function body = functionsList.remove(functionsList.size() - 1);
-		final A_Tuple functionsTuple = TupleDescriptor.fromList(functionsList);
+		final A_Phrase bodyLiteral =
+			functionLiterals.remove(functionLiterals.size() - 1);
 		final A_Phrase send = SendNodeDescriptor.from(
 			MethodDescriptor.vmMacroDefinerAtom().bundleOrNil(),
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
 				nameLiteral,
-				LiteralNodeDescriptor.syntheticFrom(functionsTuple),
-				LiteralNodeDescriptor.syntheticFrom(body))),
+				ListNodeDescriptor.newExpressions(
+					TupleDescriptor.fromList(functionLiterals)),
+				bodyLiteral)),
 			TOP.o());
 		evaluateModuleStatementThen(
 			state,

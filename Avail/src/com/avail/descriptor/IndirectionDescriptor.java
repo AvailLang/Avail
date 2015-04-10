@@ -4809,4 +4809,12 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).macroOriginalSendNode();
 	}
+
+	@Override
+	boolean o_EqualsInt (
+		final AvailObject object,
+		final int theInt)
+	{
+		return o_Traversed(object).equalsInt(theInt);
+	}
 }

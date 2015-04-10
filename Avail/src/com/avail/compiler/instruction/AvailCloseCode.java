@@ -53,7 +53,6 @@ public class AvailCloseCode extends AvailInstructionWithIndex
 	 */
 	int numCopiedVars;
 
-
 	/**
 	 * Construct a new {@link AvailCloseCode}.
 	 *
@@ -68,7 +67,6 @@ public class AvailCloseCode extends AvailInstructionWithIndex
 		super(codeIndex);
 		this.numCopiedVars = numCopiedVars;
 	}
-
 
 	@Override
 	public void writeNybblesOn (

@@ -47,7 +47,6 @@ import java.util.List;
  */
 public class AvailSetOuterVariable extends AvailInstructionWithIndex
 {
-
 	/**
 	 * Construct a new {@link AvailSetOuterVariable}.
 	 *
@@ -60,7 +59,6 @@ public class AvailSetOuterVariable extends AvailInstructionWithIndex
 		super(outerIndex);
 	}
 
-
 	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)
@@ -70,7 +68,6 @@ public class AvailSetOuterVariable extends AvailInstructionWithIndex
 		L1Operation.L1_doSetOuter.writeTo(aStream);
 		writeIntegerOn(index, aStream);
 	}
-
 
 	/**
 	 * The instructions of a block are being iterated over.  Coordinate
@@ -113,5 +110,11 @@ public class AvailSetOuterVariable extends AvailInstructionWithIndex
 		{
 			previousPush.isLastAccess(false);
 		}
+	}
+
+	@Override
+	public boolean isOuterUse ()
+	{
+		return true;
 	}
 }

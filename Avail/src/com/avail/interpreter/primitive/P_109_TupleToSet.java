@@ -93,7 +93,7 @@ public final class P_109_TupleToSet extends Primitive
 		// the empty tuple can produce the empty set, and the set size is never
 		// greater than the tuple size.
 		final A_Number minSize =
-			tupleSizes.lowerBound().equals(IntegerDescriptor.zero())
+			tupleSizes.lowerBound().equalsInt(0)
 				? IntegerDescriptor.zero()
 				: IntegerDescriptor.one();
 		final A_Type setSizes = IntegerRangeTypeDescriptor.create(

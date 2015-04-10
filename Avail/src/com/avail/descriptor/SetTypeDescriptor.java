@@ -317,14 +317,14 @@ extends TypeDescriptor
 
 		final A_Type newSizeRange;
 		final A_Type newContentType;
-		if (sizeRangeKind.upperBound().equals(IntegerDescriptor.zero()))
+		if (sizeRangeKind.upperBound().equalsInt(0))
 		{
 			newSizeRange = sizeRangeKind;
 			newContentType = BottomTypeDescriptor.bottom();
 		}
 		else if (contentType.isBottom())
 		{
-			if (sizeRangeKind.lowerBound().equals(IntegerDescriptor.zero()))
+			if (sizeRangeKind.lowerBound().equalsInt(0))
 			{
 				// sizeRange includes at least 0 and 1, but the content type is
 				// bottom, so no contents exist.

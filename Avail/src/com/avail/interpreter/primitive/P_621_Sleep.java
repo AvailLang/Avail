@@ -74,7 +74,7 @@ extends Primitive
 		// If the requested sleep time is 0 milliseconds, then return
 		// immediately. We could have chosen to yield here, but it was better to
 		// make sleep and yield behave differently.
-		if (sleepMillis.equals(IntegerDescriptor.zero()))
+		if (sleepMillis.equalsInt(0))
 		{
 			return interpreter.primitiveSuccess(NilDescriptor.nil());
 		}

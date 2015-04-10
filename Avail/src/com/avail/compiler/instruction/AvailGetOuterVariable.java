@@ -46,7 +46,6 @@ import java.util.List;
  */
 public class AvailGetOuterVariable extends AvailGetVariable
 {
-
 	/**
 	 * Construct a new {@link AvailGetOuterVariable}.
 	 *
@@ -58,7 +57,6 @@ public class AvailGetOuterVariable extends AvailGetVariable
 	{
 		super(outerIndex);
 	}
-
 
 	@Override
 	public void writeNybblesOn (
@@ -74,7 +72,6 @@ public class AvailGetOuterVariable extends AvailGetVariable
 		}
 		writeIntegerOn(index, aStream);
 	}
-
 
 	/**
 	 * The instructions of a block are being iterated over.  Coordinate
@@ -120,5 +117,11 @@ public class AvailGetOuterVariable extends AvailGetVariable
 		{
 			previousPush.isLastAccess(false);
 		}
+	}
+
+	@Override
+	public boolean isOuterUse ()
+	{
+		return true;
 	}
 }

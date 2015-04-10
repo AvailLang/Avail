@@ -102,7 +102,7 @@ extends Primitive
 			assert pairType.sizeRange().upperBound().extractInt() == 2;
 			final A_Type keyType = pairType.typeAtIndex(1);
 			if (!keyType.isEnumeration()
-				|| !keyType.instanceCount().equals(IntegerDescriptor.one()))
+				|| !keyType.instanceCount().equalsInt(1))
 			{
 				// Can only strengthen if all key atoms are statically known.
 				return super.returnTypeGuaranteedByVM(argumentTypes);

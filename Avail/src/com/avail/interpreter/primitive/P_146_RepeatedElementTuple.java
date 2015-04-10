@@ -102,8 +102,8 @@ extends Primitive
 		final A_Type sizeType = argumentTypes.get(0);
 		final A_Type elementType = argumentTypes.get(1);
 
-		if (sizeType.instanceCount().equals(IntegerDescriptor.one())
-			&& elementType.instanceCount().equals(IntegerDescriptor.one()))
+		if (sizeType.instanceCount().equalsInt(1)
+			&& elementType.instanceCount().equalsInt(1))
 		{
 			return InstanceTypeDescriptor.on(
 				RepeatedElementTupleDescriptor.createRepeatedElementTuple(

@@ -90,15 +90,16 @@ public final class P_083_MapReplacingKey extends Primitive
 		final A_Type addedKeyType = argumentTypes.get(1);
 		final A_Type addedValueType = argumentTypes.get(2);
 
-		final A_Type newKeyType =
-			mapType.keyType().typeUnion(addedKeyType);
+		final A_Type oldMapKeyType = mapType.keyType();
+		final A_Type newKeyType = oldMapKeyType.typeUnion(addedKeyType);
 		final A_Type newValueType =
 			mapType.valueType().typeUnion(addedValueType);
 		final A_Type oldSizes = mapType.sizeRange();
 		// Now there's at least one element.
 		final A_Number newMin =
-			oldSizes.lowerBound().equals(IntegerDescriptor.zero())
-				? IntegerDescriptor.one()
+			oldMapKeyType.typeIntersection(newKeyType).isBottom()
+				? oldSizes.lowerBound().plusCanDestroy(
+					IntegerDescriptor.one(), false)
 				: oldSizes.lowerBound();
 		// ...and at most one more element.  We add two and make the bound
 		// exclusive to accommodate positive infinity.

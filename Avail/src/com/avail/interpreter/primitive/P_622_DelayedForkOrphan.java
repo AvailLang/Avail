@@ -131,7 +131,7 @@ extends Primitive
 		// Inherit the fiber's text interface.
 		orphan.textInterface(current.textInterface());
 		// If the requested sleep time is 0 milliseconds, then fork immediately.
-		if (sleepMillis.equals(IntegerDescriptor.zero()))
+		if (sleepMillis.equalsInt(0))
 		{
 			Interpreter.runOutermostFunction(
 				AvailRuntime.current(),

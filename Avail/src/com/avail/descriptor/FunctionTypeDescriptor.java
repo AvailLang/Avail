@@ -223,7 +223,7 @@ extends TypeDescriptor
 					{
 						list.add(tupleType.typeAtIndex(i));
 					}
-					if (!maxObject.equals(IntegerDescriptor.fromInt(max)))
+					if (!maxObject.equalsInt(max))
 					{
 						// Add "..., 5" or whatever the max size is (or
 						// infinity).
@@ -240,9 +240,7 @@ extends TypeDescriptor
 		}
 		aStream.append("]→");
 		object.returnType().printOnAvoidingIndent(
-			aStream,
-			recursionList,
-			(indent + 1));
+			aStream, recursionList, indent + 1);
 		if (object.declaredExceptions().setSize() > 0)
 		{
 			aStream.append("^");

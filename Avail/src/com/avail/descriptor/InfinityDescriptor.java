@@ -338,7 +338,7 @@ extends ExtendedIntegerDescriptor
 		final A_Number anInteger,
 		final boolean canDestroy)
 	{
-		if (anInteger.equals(IntegerDescriptor.zero()))
+		if (anInteger.equalsInt(0))
 		{
 			throw new ArithmeticException(
 				AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY);

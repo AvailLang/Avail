@@ -2733,7 +2733,7 @@ public class L2Translator
 				// is generated.
 				final L2Instruction success = newLabel("success");
 				addInstruction(
-					L2_SET_VARIABLE.instance,
+					L2_SET_VARIABLE_NO_CHECK.instance,
 					new L2ReadPointerOperand(argumentOrLocal(numArgs + 1)),
 					new L2ReadPointerOperand(fixed(PRIMITIVE_FAILURE)),
 					new L2PcOperand(success));

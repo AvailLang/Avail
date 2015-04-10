@@ -99,7 +99,7 @@ extends TypeDescriptor
 		final A_Type a = object.slot(FIRST_TUPLE_TYPE);
 		final A_Type b = object.slot(SECOND_TUPLE_TYPE);
 		final A_Type bRange = b.sizeRange();
-		assert !bRange.upperBound().equals(IntegerDescriptor.zero());
+		assert !bRange.upperBound().equalsInt(0);
 		if (a.sizeRange().upperBound().isFinite())
 		{
 			return b.defaultType();
@@ -677,13 +677,11 @@ extends TypeDescriptor
 	{
 		assert firstTupleType.isTupleType() && !firstTupleType.isBottom();
 		assert secondTupleType.isTupleType() && !secondTupleType.isBottom();
-		if (secondTupleType.sizeRange().upperBound().equals(
-			IntegerDescriptor.zero()))
+		if (secondTupleType.sizeRange().upperBound().equalsInt(0))
 		{
 			return firstTupleType.makeImmutable();
 		}
-		if (firstTupleType.sizeRange().upperBound().equals(
-			IntegerDescriptor.zero()))
+		if (firstTupleType.sizeRange().upperBound().equalsInt(0))
 		{
 			return secondTupleType.makeImmutable();
 		}

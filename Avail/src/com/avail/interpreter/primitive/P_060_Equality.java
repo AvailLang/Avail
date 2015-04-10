@@ -83,7 +83,7 @@ public final class P_060_Equality extends Primitive
 		}
 		if (type1.isEnumeration()
 			&& type1.equals(type2)
-			&& type1.instanceCount().equals(IntegerDescriptor.one()))
+			&& type1.instanceCount().equalsInt(1))
 		{
 			final A_BasicObject value = type1.instances().iterator().next();
 			// Because of metacovariance, a meta may actually have many
@@ -126,7 +126,7 @@ public final class P_060_Equality extends Primitive
 		}
 		if (type1.isEnumeration()
 			&& type1.equals(type2)
-			&& type1.instanceCount().equals(IntegerDescriptor.one()))
+			&& type1.instanceCount().equalsInt(1))
 		{
 			final A_BasicObject value = type1.instances().iterator().next();
 			// Because of metacovariance, a meta may actually have many

@@ -88,6 +88,14 @@ public final class P_132_TupleReplaceAt extends Primitive
 			TupleTypeDescriptor.mostGeneralType());
 	}
 
+	/**
+	 * A measure of complexity beyond which we don't bother computing a precise
+	 * guarantee about the resulting type, since the cost of computing it might
+	 * be higher than the potential savings.
+	 */
+	private static final A_Number maximumComplexity =
+		IntegerDescriptor.fromInt(1000);
+
 	@Override
 	public A_Type returnTypeGuaranteedByVM (
 		final List<? extends A_Type> argumentTypes)
@@ -98,11 +106,9 @@ public final class P_132_TupleReplaceAt extends Primitive
 		final A_Number lowerBound = subscripts.lowerBound();
 		final A_Number upperBound = subscripts.upperBound();
 		final boolean singleSubscript = lowerBound.equals(upperBound);
-		if (lowerBound.greaterThan(
-				IntegerDescriptor.fromUnsignedByte((short)100))
+		if (lowerBound.greaterThan(maximumComplexity)
 			|| (upperBound.isFinite()
-				&& upperBound.greaterThan(
-					IntegerDescriptor.fromUnsignedByte((short)100))))
+				&& upperBound.greaterThan(maximumComplexity)))
 		{
 			// Too expensive.  Fall back on the primitive's basic type.
 			return super.returnTypeGuaranteedByVM(

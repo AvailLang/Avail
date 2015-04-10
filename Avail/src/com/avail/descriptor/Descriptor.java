@@ -4649,4 +4649,10 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	boolean o_EqualsInt (final AvailObject object, final int theInt)
+	{
+		return false;
+	}
 }

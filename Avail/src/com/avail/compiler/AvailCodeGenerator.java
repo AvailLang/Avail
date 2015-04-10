@@ -338,9 +338,30 @@ public class AvailCodeGenerator
 					P_342_GetGlobalVariableValue.instance.primitiveNumber);
 			}
 		}
+		// Make sure we're not closing over variables that don't get used.
+		final BitSet unusedOuters = new BitSet(outerMap.size());
+		unusedOuters.flip(0, outerMap.size());
 		for (final AvailInstruction instruction : instructions)
 		{
+			if (instruction.isOuterUse())
+			{
+				final int i = ((AvailInstructionWithIndex)instruction).index();
+				unusedOuters.clear(i - 1);
+			}
 			instruction.writeNybblesOn(nybbles);
+		}
+		if (!unusedOuters.isEmpty())
+		{
+			final Set<A_Phrase> unusedOuterDeclarations = new HashSet<>();
+			for (final Map.Entry<A_Phrase, Integer> entry : outerMap.entrySet())
+			{
+				if (unusedOuters.get(entry.getValue() - 1))
+				{
+					unusedOuterDeclarations.add(entry.getKey());
+				}
+			}
+			assert false
+				: "Some outers were unused: " + unusedOuterDeclarations;
 		}
 		final List<Integer> nybblesArray = new ArrayList<>();
 		for (final byte nybble : nybbles.toByteArray())

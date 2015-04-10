@@ -699,4 +699,15 @@ extends A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	void trimExcessInts ();
+
+	/**
+	 * Determine if the receiver is an Avail integer equivalent to the specified
+	 * Java {@code int}.  Note that a non-integer should simply answer false,
+	 * not fail.  This operation was placed in A_Number for organizational
+	 * reasons, not type restriction.
+	 *
+	 * @param theInt The Java int to compare against.
+	 * @return Whether the receiver represents that integer.
+	 */
+	boolean equalsInt (int theInt);
 }

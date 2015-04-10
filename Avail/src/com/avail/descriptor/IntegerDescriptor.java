@@ -191,6 +191,23 @@ extends ExtendedIntegerDescriptor
 		return true;
 	}
 
+	/**
+	 * Check if this is an integer whose value equals the given int.
+	 */
+	@Override @AvailMethod
+	boolean o_EqualsInt (
+		final AvailObject object,
+		final int theInt)
+	{
+		final int slotsCount = object.integerSlotsCount();
+		if (slotsCount != 1)
+		{
+			// Assume it's normalized (trimmed).
+			return false;
+		}
+		return object.slot(RAW_SIGNED_INT_AT_, 1) == theInt;
+	}
+
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
 		final AvailObject object,

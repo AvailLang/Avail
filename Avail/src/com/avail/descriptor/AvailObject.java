@@ -7148,9 +7148,6 @@ implements
 		return descriptor.o_TokenIndex(this);
 	}
 
-	/**
-	 * @param continuation
-	 */
 	@Override
 	public void statementsDo (final Continuation1<A_Phrase> continuation)
 	{
@@ -7161,5 +7158,11 @@ implements
 	public A_Phrase macroOriginalSendNode ()
 	{
 		return descriptor.o_MacroOriginalSendNode(this);
+	}
+
+	@Override
+	public boolean equalsInt (final int theInt)
+	{
+		return descriptor.o_EqualsInt(this, theInt);
 	}
 }

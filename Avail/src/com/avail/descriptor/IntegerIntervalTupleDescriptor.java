@@ -510,7 +510,7 @@ extends TupleDescriptor
 		final A_Number end,
 		final A_Number delta)
 	{
-		assert !delta.equals(IntegerDescriptor.zero());
+		assert !delta.equalsInt(0);
 
 		final A_Number difference = end.minusCanDestroy(start, false);
 		final A_Number zero = IntegerDescriptor.zero();
