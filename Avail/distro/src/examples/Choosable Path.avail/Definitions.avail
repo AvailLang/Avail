@@ -1212,14 +1212,14 @@ Private method "Generate scene transition constructors" is
 						else [argUse]
 					>» : [⊥]→scene
 				]
-				else if [index = 2] then
+				else if index = 2 then
 				[
 					send $"unary wrapper on_" with
 					«<
 						if argType = ⊥ then [‘`[true]`’] else [argUse]
 					>» : [⊥]→boolean
 				]
-				else if [index = 3] then
+				else if index = 3 then
 				[
 					send $"unary wrapper on_" with
 					«<

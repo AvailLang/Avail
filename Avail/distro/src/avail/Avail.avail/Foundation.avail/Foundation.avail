@@ -246,6 +246,7 @@ Extends
 		"`«_:_:=_`»",
 		"`«_:_`»",
 		"`«`↑_`»",
+		"`«↓_`»",
 		"`«↓_`»(_)",
 		"{_`|_}",
 		"{_→_`|_}",
@@ -311,7 +312,6 @@ Extends
 		"_'s⁇program counter",
 		"_'s⁇public names",
 		"_'s⁇read type",
-		"_'s⁇referent",
 		"_'s⁇result",
 		"_'s⁇result type",
 		"_'s⁇return type",
@@ -506,6 +506,8 @@ Extends
 		"each of_satisfies_",
 		"each…in|of_§satisfies_",
 		"filter_by_",
+		"reject each…from_§where_",
+		"reject each…,…from_§where_",
 		"select each…from_§where_",
 		"group each…in|of_§by_",
 		"group_by_",
@@ -555,15 +557,15 @@ Extends
 		"For each…from_to_by_§do_",
 		"From_to_by_do_",
 		"From_to_do_",
-		"If|if_then_«else if_then_»«else_»",
+		"If|if_then_«else if_then_»«else_»?",
 		"Ignore:_",
 		"Repeat_",
 		"Repeat__times",
 		"Require:_accepts subscripts from_to_by_",
 		"Require:_'s⁇keeper is valid",
 		"Unless|unless_then_else_",
-		"Unless|unless_then_«else unless_then_»«else_»",
 		"Unless_then_",
+		"Unless|unless_then_«else unless_then_»«else_»?",
 		"Until_",
 		"Until_do_",
 		"Until_do_alternate with_",
@@ -861,7 +863,7 @@ Extends
 		"parse map:=_",
 		"scope map",
 		"scope map:=_",
-		"strengthen_from_using_"
+		"strengthen_for call of_using_"
 	),
 	"Maps" =
 	(
@@ -870,6 +872,7 @@ Extends
 		"count of…→…from|in|of_§where_",
 		"each…→…in|of_§satisfies_",
 		"environment map",
+		"reject each…→…from_§where_",
 		"select each…→…from_§where_",
 		"For each…→…in|of_§do_",
 		"integrate_and_with_",
@@ -908,7 +911,6 @@ Extends
 		"this token:…",
 		"_compiled",
 		"``_``",
-		"`«↓_`»",
 		"`«<«_‡,»>`»",
 		"`«[_`|_]:_`»",
 		"`«[_]:_`»"
@@ -1077,8 +1079,7 @@ Extends
 		"_++=_",
 		"_↑-=_",
 		"_-=_",
-		"«_‡zip»",
-		"«_‡++»"
+		"«_‡zip»"
 	),
 	"Types" =
 	(

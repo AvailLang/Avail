@@ -1245,10 +1245,7 @@ Private method "_positive range pairs" is
 	range : whole number's type
 |
 	$outer : whole number's type*;
-	If range = ⊥ then
-	[
-		Exit outer with <>
-	];
+	If range = ⊥ then [Exit outer with <>];
 	/* Find the biggest string of rightmost one-bits that can be added to
 	 * low without causing any internal carry and without exceeding the
 	 * range.
@@ -1314,8 +1311,7 @@ Private method "_positive range pairs" is
 		[
 			Exit outer with
 				<[low .. low + strongLowBits]>
-				++ (low + strongLowBits .. ⎡range⎤ + 1)
-					positive range pairs
+				++ (low + strongLowBits .. ⎡range⎤ + 1) positive range pairs
 		];
 		Assert: strongLowBits ≠ 0;
 		strongLowBits := strongLowBits << -1;

@@ -40,7 +40,7 @@ Uses
 	"Control Structures" =
 	(
 		"For each…from_to_§do_",
-		"If|if_then_«else if_then_»«else_»",
+		"If|if_then_«else if_then_»«else_»?",
 		"(_)"
 	),
 	"Definers",
@@ -271,7 +271,7 @@ Public method "Cast|cast_into«_‡,»«else_»" is
 				]
 			])();
 		]
-		else if [value ∈ caseTuple[index]'s type[1]] then
+		else if value ∈ caseTuple[index]'s type[1] then
 		[
 			caseTuple[index](value);
 		]

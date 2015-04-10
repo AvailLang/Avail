@@ -128,19 +128,17 @@ Private method "body function(_,_)" is
 	[
 		elementPhrase : literal phrase ⇒ token,
 		aStream : expression phrase ⇒ stream,
-		predicateBlock : block phrase ⇒ []→ ⊤
+		action : block phrase ⇒ []→ ⊤
 	|
 		name ::= elementPhrase's token's lexeme;
 		aStreamType ::= aStream's semantic type;
 		elementType ::= aStreamType's element type's instance;
 		blockType ::= 
-			[elementType]→(predicateBlock's semantic type's return type);
-		restrictions ::= semantic restrictions
-			for method for anAtom
-			given <aStreamType, blockType>;
-		returnType ::= strengthen baseReturnType from <aStreamType, blockType> 
-			using restrictions;
-		statements ::= predicateBlock's statements;
+			[elementType]→(action's semantic type's return type);
+		returnType ::= strengthen baseReturnType for call of anAtom 
+			using <aStreamType, blockType>;
+		
+		statements ::= action's statements;
 		blockReturnType ::= cast statements
 			into [t : phrase+ | t's last's semantic type]
 			else [⊤];
@@ -268,3 +266,60 @@ Macro "map each…in|of_§through_" is a stream prefix function,
  */
 Macro "select each…from_§where_" is a stream prefix function,
 	body function($"filter_by_",stream);
+
+/**
+ * Iteratively apply {@param "predicate"} to each consecutive element of 
+ * {@param "aStream"}, rejecting those elements for which {@param "predicate"} 
+ * answers {@method "true"} into a new stream (and preserving ordering). Answer 
+ * the new stream.
+ * 
+ * @macro "reject each…from_§where_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aStream"}.
+ * @param "aStream" "expression phrase ⇒ any"
+ *        An {@type "expression phrase"} that yields the stream to iterate over
+ * @param "action" "block phrase ⇒ []→⊤"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        loop.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Loops" "Data Abstractions" "Streams"
+ */
+Macro "reject each…from_§where_" is a stream prefix function,
+[
+	elementPhrase : literal phrase ⇒ token,
+	aStream : expression phrase ⇒ stream,
+	predicateBlock : block phrase ⇒ []→⊤
+|
+	name ::= elementPhrase's token's lexeme;
+	aStreamType ::= aStream's semantic type;
+	blockType ::= [⊥]→(predicateBlock's semantic type's return type);
+	returnType ::= strengthen stream for call of $"filter_by_" 
+		using <aStreamType, blockType>; 		
+	statements ::= predicateBlock's statements;
+
+	size ::= |statements|;
+
+	newStatements ::= if size = 0 then [<>] else 
+	[
+	 	end : whole number := cast size-1 into [w : whole number | w];
+	 	i : natural number := cast size into [n : natural number | n];
+	 	c : expression phrase⇒any := cast statements[i] into 
+		 	[e : expression phrase⇒any | e];
+	 	statements[..end] ++ <restricted send $"¬_" with <c> : boolean>
+	];
+	blockReturnType ::= cast newStatements
+		into [t : phrase+ | t[|t|]'s semantic type]
+		else [⊤];
+	restricted send $"filter_by_" with
+	<
+		aStream, 
+		«[
+		  	<cast scope map[name] into [d : argument phrase | d]>
+		| 
+			newStatements
+		] : blockReturnType»
+	> : returnType
+] : send phrase ⇒ ⊤;

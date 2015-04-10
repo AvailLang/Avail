@@ -407,12 +407,12 @@ Method "“_”" is
 	dropCount ::= expr's drop count;
 	count ::=
 		if |dropCount| = 0 then ["0"]
-		else if [|dropCount| = 1] then [""]
+		else if |dropCount| = 1 then [""]
 		else [“|dropCount|” ++ " "];
 	s ++= count;
 	adjective ::=
 		if dropCount > 0 then ["highest"]
-		else if [dropCount = 0] then [""]
+		else if dropCount = 0 then [""]
 		else ["lowest"];
 	s ++= adjective ++ ")";
 	s

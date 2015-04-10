@@ -44,8 +44,7 @@ Extends
 		"take from_until_",
 		"take from_while_",
 		"zip_",
-		"«_‡zip»",
-		"«_‡++»"
+		"«_‡zip»"
 	)
 Uses
 	"Abstract Iterators",

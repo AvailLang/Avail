@@ -206,6 +206,16 @@ Test "select each (macro)" in map test suite is
  	Require: c = {};
 ];
 
+Test "reject each (macro)" in map test suite is
+[
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+ 	b ::= reject each s→n from a where [n mod 2 = 0];
+ 	c ::= reject each s→n from a where [n < 2000];
+ 	Require: b = {"foo"→1,"frog"→3};
+ 	Require: c = {};
+];
+
+
 Test "group by (tuples)" in map test suite is
 [
  	/* Group by values */

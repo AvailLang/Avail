@@ -332,17 +332,13 @@ Method "_^_" is
 	augmentedPower ::= [⎣power⎦ .. ⎡power⎤];
 	range : extended integer's type := ⊥;
 	openLimits : extended integer's type := ⊥;
-	For each interestingBases do
+	For each interestingBase of interestingBases do
 	[
-		interestingBase : extended integer
-	|
 		If interestingBase ∈ augmentedBase then
 		[
 			baseInclusive ::= interestingBase ∈ base;
-			For each interestingPowers do
+			For each interestingPower of interestingPowers do
 			[
-				interestingPower : [0..∞]
-			|
 				If interestingPower ∈ augmentedPower then
 				[
 					Guard
@@ -370,28 +366,12 @@ Method "_^_" is
 			];
 		];
 	];
-	if range = ⊥ then
-	[
-		(⎣openLimits⎦..⎡openLimits⎤)
-	]
-	else if [-∞ ∈ openLimits ∧ ∞ ∈ openLimits] then
-	[
-		range ∪ integer
-	]
-	else if [-∞ ∈ openLimits] then
-	[
-		range ∪ (-∞..⎡range⎤)
-	]
-	else if [∞ ∈ openLimits] then
-	[
-		range ∪ (⎣range⎦..∞)
-	]
-	else
-	[
-		range
-	]
+	if range = ⊥ then [(⎣openLimits⎦..⎡openLimits⎤)]
+	else if -∞ ∈ openLimits ∧ ∞ ∈ openLimits then [range ∪ integer]
+	else if -∞ ∈ openLimits then [range ∪ (-∞..⎡range⎤)]
+	else if ∞ ∈ openLimits then [range ∪ (⎣range⎦..∞)]
+	else [range]
 ] : extended integer's type;
-
 
 /**
  * Restrict integral exponentiation, in particular when the power is a whole

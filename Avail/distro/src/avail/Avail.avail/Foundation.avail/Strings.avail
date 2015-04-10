@@ -968,8 +968,8 @@ Public stable method "_(base_)" is
 				cp ::= cast digit's code point into [t : [cp_0..cp_z] | t];
 				value ::=
 					if cp_0 ≤ cp ≤ cp_9 then [cp - cp_0]
-					else if [cp_a ≤ cp ≤ cp_z] then [cp - cp_a + 10]
-					else if [cp_A ≤ cp ≤ cp_Z] then [cp - cp_A + 10]
+					else if cp_a ≤ cp ≤ cp_z then [cp - cp_a + 10]
+					else if cp_A ≤ cp ≤ cp_Z then [cp - cp_A + 10]
 					else fail;
 				strongValue ::= cast value into [t : [0..36) | t];
 				partial := eject partial × base + strongValue;
@@ -1029,7 +1029,7 @@ Method "_≤_" is
 		cp1 ::= s1[index]'s code point;
 		cp2 ::= s2[index]'s code point;
 		If cp1 < cp2 then [Exit body with true]
-		else if [cp1 > cp2] then [Exit body with false];
+		else if cp1 > cp2 then [Exit body with false];
 	];
 	|s1| ≤ |s2|
 ] : boolean;
@@ -1075,7 +1075,7 @@ Method "_≥_" is
 		cp1 ::= s1[index]'s code point;
 		cp2 ::= s2[index]'s code point;
 		If cp1 > cp2 then [Exit body with true]
-		else if [cp1 < cp2] then [Exit body with false];
+		else if cp1 < cp2 then [Exit body with false];
 	];
 	|s1| ≥ |s2|
 ] : boolean;

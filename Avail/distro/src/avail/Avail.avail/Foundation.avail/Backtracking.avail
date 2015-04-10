@@ -237,7 +237,7 @@ Public method "trial`#of_" is
 		[
 			current fiber[checkpoint] := previousCheckpoint;
 		]
-		else if [trialNumber = 1] then
+		else if trialNumber = 1 then
 		[
 			current fiber[checkpoint] := newCheckpoint;
 		];

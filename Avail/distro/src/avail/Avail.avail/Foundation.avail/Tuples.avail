@@ -360,11 +360,8 @@ Private method "«indexed»?return type(_,_,_,_)" is
 		[elementType]→(action's semantic type's return type)
 	];
 	
-	restrictions ::= semantic restrictions
-		for method for anAtom
-		given <aTupleType, blockType>;
-				
-	strengthen baseReturnType from <aTupleType, blockType> using restrictions
+	strengthen baseReturnType for call of anAtom using <aTupleType, blockType> 
+
 ]:type;
 	
 /**
@@ -806,8 +803,8 @@ Macro "select each…,…from_§where_" is a two-input tuple iteration prefix fu
 	two-input tuple body function($"filter_by_",tuple);
 
 /**
- * Iteratively apply {@param "predicate"} to each consecutive element of 
- * {@param "aTuple"}, collecting those elements for which {@param "predicate"} 
+ * Iteratively apply {@param "action"} to each consecutive element of 
+ * {@param "aTuple"}, rejecting those elements for which {@param "action"} 
  * answers {@method "true"} into a new tuple (and preserving ordering). Answer 
  * the new tuple.
  * 
@@ -824,7 +821,7 @@ Macro "select each…,…from_§where_" is a two-input tuple iteration prefix fu
  *        loop.
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Collections" "Tuples"
- *
+ */
 Macro "reject each…from_§where_" is a tuple iteration prefix function,
 [
 	elementPhrase : literal phrase ⇒ token,
@@ -832,26 +829,22 @@ Macro "reject each…from_§where_" is a tuple iteration prefix function,
 	action : block phrase ⇒ []→⊤
 |
 	returnType ::= 
-			return type(aTuple, action, boolean, $"filter_by_");
+			return type(aTuple, action, tuple, $"filter_by_");
+
 	statements ::= action's statements;
-	blockReturnType ::= cast statements
-		into [t : phrase+ | t[|t|]'s semantic type]
-		else [⊤];
 	name ::= elementPhrase's token's lexeme;
 	size ::= |statements|;
-	newStatements ::= if size = 0 then [<>]
-	else if [size = 1] then
+	newStatements ::= if size = 0 then [<>] else 
 	[
+	 	end : whole number := cast size-1 into [w : whole number | w];
 	 	i : natural number := cast size into [n : natural number | n];
-	 	c ::= statements[i];
-	 	v ::= restricted send $"¬_" with <c> : boolean;
-	 	<restricted send $"¬_" with <c>:boolean>
-	] else 
-	[
-	 	end : natural number := cast size-1 into [n : natural number | n];
-	 	i : natural number := cast size into [n : natural number | n];
-	 	statements[..n] ++ <restricted send $"¬_" with <statements[i]>>
+	 	c : expression phrase⇒any := cast statements[i] into 
+		 	[e : expression phrase⇒any | e];
+	 	statements[..end] ++ <restricted send $"¬_" with <c> : boolean>
 	];
+	blockReturnType ::= cast newStatements
+		into [t : phrase+ | t[|t|]'s semantic type]
+		else [⊤];
 	restricted send $"filter_by_" with
 	<
 		aTuple, 
@@ -861,12 +854,12 @@ Macro "reject each…from_§where_" is a tuple iteration prefix function,
 		 	newStatements
 		] : blockReturnType»
 	> : returnType
-] : send phrase ⇒ ⊤;*/
+] : send phrase ⇒ ⊤;
 
 /**
- * Iteratively apply {@param "predicate"} to each consecutive element and index
- * of {@param "aTuple"}, collecting those elements for which {@param 
- * "predicate"} answers {@method "true"} into a new tuple (and preserving 
+ * Iteratively apply {@param "action"} to each consecutive element and index
+ * of {@param "aTuple"}, rejecting those elements for which {@param 
+ * "action"} answers {@method "true"} into a new tuple (and preserving 
  * ordering). Answer the new tuple.
  * 
  * @macro "reject each…,…from_§where_"
@@ -887,7 +880,7 @@ Macro "reject each…from_§where_" is a tuple iteration prefix function,
  *        loop.
  * @returns "send phrase ⇒ ⊤"
  * @category "Loops" "Collections" "Tuples"
- *
+ */
 Macro "reject each…,…from_§where_" is 
 	a two-input tuple iteration prefix function,
 [
@@ -898,7 +891,7 @@ Macro "reject each…,…from_§where_" is
 |
 	/* Build the block function */
 	returnType ::= 
-		indexed return type(aTuple, action, boolean, $"filter_by_");
+		indexed return type(aTuple, action, tuple, $"filter_by_");
 	statements ::= action's statements;
 	blockReturnType ::= cast statements
 		into [t : phrase+ | t[|t|]'s semantic type]
@@ -909,26 +902,33 @@ Macro "reject each…,…from_§where_" is
 	
 	elementName ::= elementPhrase's token's lexeme;
 	indexName ::= indexPhrase's token's lexeme;
-	size ::= cast |statements| into [n: natural number | n];
-	end ::= cast size-1 into [n : natural number | n];
-	lastPhrase ::= cast statements[size] into [e : expression phrase⇒any | e];
+	size ::= |statements|;
+
+	newStatements ::= if size = 0 then [<>]
+	else if size = 1 then
+	[
+	 	i : natural number := cast size into [n : natural number | n];
+	 	c : expression phrase⇒any := cast statements[i] into 
+	 		[e : expression phrase⇒any | e];
+	 	<restricted send $"¬_" with <c>:boolean>
+	] else 
+	[
+	 	end : natural number := cast size-1 into [n : natural number | n];
+	 	i : natural number := cast size into [n : natural number | n];
+	 	c : expression phrase⇒any := cast statements[i] into 
+		 	[e : expression phrase⇒any | e];
+	 	statements[..end] ++ <restricted send $"¬_" with <c> : boolean>
+	];
 	restricted send $"filter_by_" with
 	<
 		aTuple,
 		«[
 			<castToPhrase(elementName), castToPhrase(indexName)>
 		|
-			statements[..end] ++ 
-				<restricted send $"¬_" with <lastPhrase> : boolean>
+			newStatements
 		] : blockReturnType»
 	> : returnType
 ] : send phrase ⇒ ⊤;
-		
-rt ::= <1,2,3,5>;
-nt ::= reject each n,i from rt where [n+i < 5];
-Print: "nt=";
-Print: “nt”;
-Print: "\n";*/
 
 /**
  * Iteratively apply {@param "accumulator"} to the consecutive elements of 
@@ -2034,7 +2034,7 @@ Semantic restriction "_to_" is
 		into [t : <integer's type…|1..> | <t[1..|t|-1], defaultType…|sizes>]
 		else [<>'s type]
 	]
-	else if [sizes = ⊥] then
+	else if sizes = ⊥ then
 	[
 		<>'s type
 	]
@@ -2090,7 +2090,7 @@ Semantic restriction "_to_by_" is
 		rangeTo ::= (high - low) ÷ ⎣delta⎦ + 1;
 		sizes := [rangeFrom .. rangeTo + 1);
 	]
-	else if [delta ⊆ (-∞..-1]] then
+	else if delta ⊆ (-∞..-1] then
 	[
 		low := ⎣end⎦;
 		high := ⎡start⎤;
@@ -3510,9 +3510,9 @@ Public abstract method "quicksort_" is [number*]→number*;
  * Give quicksort higher precedence than concatenation. 
  * 
  * @method "quicksort_"
- * @forbids "1" "«_‡++»"
+ * @forbids "1" "_++_"
  */
-Grammatical restriction "quicksort_" is <{"«_‡++»"}>;
+Grammatical restriction "quicksort_" is <{"_++_"}>;
 
 /**
  * @method "quicksort_"
@@ -3657,7 +3657,7 @@ Method "quicksort_with_" is
 	pivot ::= aTuple[pivotIndex];
 	withoutPivot ::= aTuple[..pivotIndex-1] ++ aTuple[pivotIndex+1..];
 	lesser ::= select each a from withoutPivot where [comparator(a, pivot)];
-	greater ::= select each a from withoutPivot where [¬comparator(a, pivot)];
+	greater ::= reject each a from withoutPivot where [comparator(a, pivot)];
 	quicksort lesser with comparator
 		++ <pivot>
 		++ quicksort greater with comparator
@@ -3819,9 +3819,9 @@ Public abstract method "merge sort_" is [number*]→number*;
  * Give merge sort higher precedence than concatenation.
  * 
  * @method "merge sort_"
- * @forbids "1" "«_‡++»"
+ * @forbids "1" "_++_"
  */
-Grammatical restriction "merge sort_" is <{"«_‡++»"}>;
+Grammatical restriction "merge sort_" is <{"_++_"}>;
 
 /**
  * @method "merge sort_"
@@ -4277,7 +4277,7 @@ Method "first index of_in_" is
  |
 
 	if |subtuple| > |aTuple| then [0]
-	else if [|subtuple| = 1] then
+	else if |subtuple| = 1 then
 	[
 		/* if the subtuple has only one element, no benefit from KMP, simply
 		 * walk through aTuple searching for first element that matches the 
@@ -4376,7 +4376,7 @@ Method "all indices of_in_" is
 	aTuple : any+
  |
 	if |subtuple| > |aTuple| then [<>]
-	else if [|subtuple| = 1] then
+	else if |subtuple| = 1 then
 	[
 		/* if the subtuple has only one element, no benefit from KMP, simply
 		 * walk through aTuple searching for first element that matches the 
@@ -4445,7 +4445,7 @@ Method "replace the first occurrence of_in_with_" is
 	replacementTuple : tuple
 |
 	if |subtuple| > |aTuple| then [aTuple]
-	else if [subtuple = aTuple] then [replacementTuple]
+	else if subtuple = aTuple then [replacementTuple]
 	else
 	[
 		subtupleStart : whole number := first index of subtuple in aTuple;
@@ -4468,23 +4468,23 @@ Semantic restriction "replace the first occurrence of_in_with_" is
 |
 	defaultType ::= ∪ aTuple[1..∞] ∪ ∪replacementTuple[1..∞];
 	if ⎡aTuple⎤ = 0 then [<>'s type]
-	else if [⎡aTuple⎤ < ⎣subtuple⎦] then [aTuple]
-	else if [⎡replacementTuple⎤ < ⎣subtuple⎦] then
+	else if ⎡aTuple⎤ < ⎣subtuple⎦ then [aTuple]
+	else if ⎡replacementTuple⎤ < ⎣subtuple⎦ then
 	[
 		lower ::= cast 0 max (⎡aTuple⎤ + ⎡replacementTuple⎤ - ⎣subtuple⎦)
 			into [w : [0..∞) | w];
 		upper ::= ⎡aTuple⎤;
 		<defaultType…|lower..upper>
 	]
-	else if [⎡subtuple⎤ < ⎣replacementTuple⎦] then
+	else if ⎡subtuple⎤ < ⎣replacementTuple⎦ then
 	[
 		lower ::= cast ⎡aTuple⎤ into [w : [0..∞) | w];
 		upper ::= cast 0 max (⎡aTuple⎤ + ⎣replacementTuple⎦ - ⎡subtuple⎤)
 			into [w : [0..∞) | w];
 		<defaultType…|lower..upper>
 	]
-	else if [⎡subtuple⎤ = ⎣replacementTuple⎦ ∧
-		⎡replacementTuple⎤ = ⎣subtuple⎦] then
+	else if ⎡subtuple⎤ = ⎣replacementTuple⎦ ∧
+		⎡replacementTuple⎤ = ⎣subtuple⎦ then
 	[
 		lower ::=  cast ⎡aTuple⎤ into [w : [0..∞) | w];
 		upper ::= cast 0 max (⎡aTuple⎤ + ⎣replacementTuple⎦ - ⎡subtuple⎤)
@@ -4537,8 +4537,8 @@ Method "replace all occurrences of_in_with_" is
 	replacementTuple : tuple
 |
 	if |subtuple| > |aTuple| then [aTuple]
-	else if [subtuple = aTuple] then [replacementTuple]
-	else if [|subtuple| = 1] then
+	else if subtuple = aTuple then [replacementTuple]
+	else if |subtuple| = 1 then
 	[
 		newTuple : tuple := <>;
 		index : natural number := 1;
@@ -4590,7 +4590,7 @@ Semantic restriction "replace all occurrences of_in_with_" is
 |
 	defaultType ::= ∪ aTuple[1..∞] ∪ ∪replacementTuple[1..∞];
 	if ⎡aTuple⎤ = 0 then [<>'s type]
-	else if [⎡aTuple⎤ < ⎣subtuple⎦] then [aTuple]
+	else if ⎡aTuple⎤ < ⎣subtuple⎦ then [aTuple]
 	else
 	[
 		lower ::= min <⎣aTuple⎦,⎣replacementTuple⎦>;

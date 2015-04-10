@@ -101,7 +101,7 @@ Public stable method "_limited to_elements" is
 	limit : [0..∞]
 |
 	if limit = ∞ then [ aStream ]
-	else if [ limit = 0 ] then [ an empty stream ]
+	else if limit = 0 then [ an empty stream ]
 	else
 	[
 		a bounded stream with
@@ -117,7 +117,7 @@ Semantic restriction "_limited to_elements" is
 	limit : [0..∞]'s type
 |
 	if ⎣limit⎦ = ∞ then [ streamType ]
-	else if [ ⎡limit⎤ = 0 ] then [ empty stream ]
+	else if ⎡limit⎤ = 0 then [ empty stream ]
 	else
 	[
 		extend bounded stream with

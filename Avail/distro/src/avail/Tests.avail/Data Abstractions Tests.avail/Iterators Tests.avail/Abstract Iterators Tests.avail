@@ -86,21 +86,21 @@ Test "filter by" in iterators test suite is
 Test "select each (macro)" in iterators test suite is
 [
 	a ::= a reader over <1,2,3,4>;
+	b ::= take at most ∞ from select each n from a where [n mod 2 = 0];
+	c ::= take at most ∞ from select each n from a where [n > 2000];
 	
-	b ::= select each n from a where [n mod 2 = 0];
-	bt : natural number* := <>;
-	For each element of b do
-	[
-	 	If element is even then [bt := bt ++ <element>;];
-	];
+	Require: b = <2,4>;
+	Require: c = <>;
+];
+
+Test "reject each (macro)" in iterators test suite is
+[
+	a ::= a reader over <3,2,3,6>;
+	b ::= take at most ∞ from reject each n from a where [n mod 2 = 0];
 	
-	c ::= select each n from a where [n > 2000];
-	ct : natural number* := <>;
-	For each element of c do
-	[
-	 	If element is even then [ct := ct ++ <element>;];
-	];
+	d ::= a reader over <3,2,3,6>;
+	c ::= take at most ∞ from  reject each n from d where [n > 2000];
 	
-	Require: bt = <2,4>;
-	Require: ct = <>;
+	Require: b = <3,3>;
+	Require: c = <3,2,3,6>;
 ];

@@ -33,7 +33,6 @@
 Module "Early Tuples"
 Versions
 	"1.0.0 DEV 2014-04-28"
-Extends
 Uses
 	"Bootstrap",
 	"Collections" = ("_[_]else_"),
@@ -41,13 +40,14 @@ Uses
 	"Early Conditionals",
 	"Early Control Structures",
 	"Early Logic",
+	"Early Macro Support",
 	"Early Math",
 	"Enumeration Support",
 	"Literals",
+	"Phrases",
 	"Variables"
 Names
 	"relevant`|_`|",
-	"«_‡++»",
 	"_[_..]",
 	"_[.._]",
 	"_*",
@@ -83,6 +83,65 @@ Semantic restriction "_'s⁇default type" is
 ];
 
 /**
+ * If {@param "index"} is a valid subscript for {@param "aTuple"}, then answer
+ * the corresponding element. Otherwise, answer the result obtained by applying
+ * {@param "else"}.
+ *
+ * @method "_[_]else_"
+ * @param "aTuple" "tuple"
+ *        A {@type "tuple"}.
+ * @param "index" "integer"
+ *        An {@type "integer"}.
+ * @param "else" "[]→any"
+ *        The function to apply if {@param "index"} is not a valid subscript
+ *        into {@param "aTuple"}.
+ * @returns "any"
+ *          The {@param "index"}-th element of {@param "aTuple"}, or the result
+ *          of applying {@param "else"} (if {@param "index"} is invalid).
+ * @category "Tuples" "Queries"
+ */
+Method "_[_]else_" is
+[
+	aTuple : tuple,
+	index : integer,
+	else : function accepting <> and returning any
+|
+	if index ∈ [1..|aTuple|]
+	then [aTuple[cast index into [t : natural number | t]]]
+	else else
+] : any;
+
+/**
+ * @method "_[_]else_"
+ * @restricts "tuple meta"
+ * @restricts "integer's type"
+ * @restricts "(function accepting <> and returning any)'s type"
+ */
+Semantic restriction "_[_]else_" is
+[
+	tupleType : tuple meta,
+	index : integer's type,
+	else : (function accepting <> and returning any)'s type
+|
+	if ⎣index⎦ > ⎡tupleType⎤ ∨ ⎡index⎤ < 1 then [else's return type]
+	else
+	[
+		min ::= ⎣index⎦ max 1;
+		max ::= cast ⎡index⎤ min (|tupleType's leading types| + 1)
+			into [t : whole number | t];
+		union ::= ∪ tupleType[min..max];
+		if index ⊆ [1..⎣tupleType⎦] then
+		[
+			union
+		]
+		else
+		[
+			union ∪ else's return type
+		]
+	]
+];
+
+/**
  * Strengthen concatenation of tuple types. This is the most specific type whose
  * instance encompasses all possible concatenations of the two types.
  * 
@@ -100,60 +159,350 @@ Semantic restriction "_++_" is
 	(typeA ++ typeB)'s type
 ];
 
+Method "concatenate_" is stable at
+	function accepting <tuple of tuple> and returning tuple;
+
 /**
- * Make tuple type concatenation left-associative.
- * 
+* @method "concatenate_"
+* @restricts "tuple of tuple's type"
+*/
+Semantic restriction "concatenate_" is
+[
+	tupleType : tuple of tuple's type
+|
+	sizes ::= ||tupleType||;
+	limit ::=
+		if ⎡sizes⎤ is infinite then
+		[
+			⎣sizes⎦ max (cast |tupleType's leading types| + 1
+				into [t : natural number | t])
+		]
+		else [⎡sizes⎤];
+	result : tuple meta := <>'s type;
+	From 1 to limit do
+	[
+		index : natural number
+	|
+		result := eject result ++ tupleType[index];
+		true
+	];
+	If ⎡sizes⎤ is infinite then
+	[
+		slice ::= result[1 .. cast limit into [t : whole number | t]];
+		default ::= tupleType's default type;
+		union ::= ∪ default[1 ..
+			cast |default's leading types| + 1 into [t : whole number | t]];
+		result := <slice, union… | [⎣result⎦..∞)>;
+	];
+	result
+];
+
+/**
+ * Produce a {@type "send phrase" send} of {@method "concatenate_"} for {@param
+ * "left"} and {@param "right"}, respectively.
+ *
+ * @macro "_++_"
+ * @param "left" "expression phrase ⇒ tuple"
+ * @param "right" "expression phrase ⇒ tuple"
+ * @returns "expression phrase ⇒ tuple"
+ */
+Macro "_++_" is
+[
+	left : expression phrase ⇒ tuple,
+	right : expression phrase ⇒ tuple
+|
+	restricted send $"concatenate_" with <«<left, right>»> : tuple
+] : expression phrase ⇒ tuple;
+
+/**
+ * Fold the {@method "concatenate_" concatenation} of two {@type
+ * "literal phrase" literal} {@type "tuple"}s.
+ *
+ * @macro "_++_"
+ * @param "left" "literal phrase ⇒ tuple"
+ * @param "right" "literal phrase ⇒ tuple"
+ * @returns "literal phrase ⇒ tuple"
+ *          The result of {@method "concatenate_" concatenating} {@param "left"}
+ *          and {@param "right"}, respectively.
+ */
+Macro "_++_" is
+[
+	left : literal phrase ⇒ tuple,
+	right : literal phrase ⇒ tuple
+|
+	‘`concatenate <left's token's value, right's token's value>`’
+] : literal phrase ⇒ tuple;
+
+/**
+ * Ignore an empty {@type "tuple"} in a {@method "concatenate_" concatenation}.
+ *
+ * @macro "_++_"
+ * @param "left" "expression phrase ⇒ <<>, any…|[0..0]>"
+ * @param "right" "expression phrase ⇒ tuple"
+ * @returns "expression phrase ⇒ tuple"
+ *          {@param "right"}.
+ */
+Macro "_++_" is
+[
+	left : expression phrase ⇒ <<>, any…|[0..0]>,
+	right : expression phrase ⇒ tuple
+|
+	right
+];
+
+/**
+ * Ignore an empty {@type "tuple"} in a {@method "concatenate_" concatenation}.
+ *
+ * @macro "_++_"
+ * @param "left" "expression phrase ⇒ tuple"
+ * @param "right" "expression phrase ⇒ <<>, any…|[0..0]>"
+ * @returns "expression phrase ⇒ tuple"
+ *          {@param "left"}.
+ */
+Macro "_++_" is
+[
+	left : expression phrase ⇒ tuple,
+	right : expression phrase ⇒ <<>, any…|[0..0]>
+|
+	left
+];
+
+/**
+ * Fold the {@method "concatenate_" concatenation} of two empty {@type
+ * "tuple"}s.
+ *
+ * @macro "_++_"
+ * @param "left" "expression phrase ⇒ <<>, any…|[0..0]>"
+ * @param "right" "expression phrase ⇒ <<>, any…|[0..0]>"
+ * @returns "literal phrase ⇒ (<>'s type)"
+ */
+Macro "_++_" is
+[
+	left : expression phrase ⇒ <<>, any…|[0..0]>,
+	right : expression phrase ⇒ <<>, any…|[0..0]>
+|
+	‘`<>`’
+] : literal phrase ⇒ (<>'s type);
+
+/**
+ * If {@param "left"} is a {@type "send phrase" send} of {@method
+ * "concatenate_"} to a send of the {@method "<«_‡,»>" tuple constructor}, and
+ * the last element of the constructed {@type "tuple"} is a {@type
+ * "literal phrase"}, then fold the concatenation of the last element and
+ * {@param "right"} and produce a new send of {@method "concatenate_"} for the
+ * argument tuple.
+ *
+ * @macro "_++_"
+ * @param "left" "send phrase ⇒ tuple"
+ * @param "right" "literal phrase ⇒ tuple"
+ * @returns "expression phrase ⇒ tuple"
+ *          A revised {@type "send phrase" send} of {@method "concatenate_"}.
+ */
+Macro "_++_" is
+[
+	left : send phrase ⇒ tuple,
+	right : literal phrase ⇒ tuple
+|
+	$body : expression phrase ⇒ tuple;
+	outerMethod ::= left's method;
+	concatenateMethod ::= method for $"concatenate_";
+	If outerMethod = concatenateMethod then
+	[
+		Cast left's arguments' expressions[1] into
+		[
+			send : send phrase ⇒ tuple
+		|
+			innerMethod ::= send's method;
+			constructorMethod ::= method for $"<«_‡,»>";
+			args ::= send's arguments' expressions;
+			If innerMethod = constructorMethod ∧ |args| > 0 then
+			[
+				Cast args[1 max |args|] into
+				[
+					lit : literal phrase ⇒ tuple
+				|
+					upper ::= cast |args| - 1 into [t : whole number | t];
+					unfolded ::= cast args[1 .. upper] into
+						[t : <<>, expression phrase ⇒ tuple…|whole number> | t];
+					folded ::= ‘`concatenate
+						<lit's token's value, right's token's value>`’;
+					Exit body with
+						restricted send $"concatenate_"
+							with concatenate <unfolded, <folded>>
+							: tuple
+				]
+				else [/* Fall through. */];
+			];
+		]
+		else [/* Fall through. */];
+	];
+	restricted send $"concatenate_" with <«<left, right>»> : tuple
+] : expression phrase ⇒ tuple;
+
+/**
+ * If {@param "right"} is a {@type "send phrase" send} of {@method
+ * "concatenate_"} to a send of the {@method "<«_‡,»>" tuple constructor}, and
+ * the first element of the constructed {@type "tuple"} is a {@type
+ * "literal phrase"}, then fold the concatenation of the first element and
+ * {@param "left"} and produce a new send of {@method "concatenate_"} for the
+ * argument tuple.
+ *
+ * @macro "_++_"
+ * @param "left" "literal phrase ⇒ tuple"
+ * @param "right" "send phrase ⇒ tuple"
+ * @returns "expression phrase ⇒ tuple"
+ *          A revised {@type "send phrase" send} of {@method "concatenate_"}.
+ */
+Macro "_++_" is
+[
+	left : literal phrase ⇒ tuple,
+	right : send phrase ⇒ tuple
+|
+	$body : expression phrase ⇒ tuple;
+	outerMethod ::= right's method;
+	concatenateMethod ::= method for $"concatenate_";
+	If outerMethod = concatenateMethod then
+	[
+		Cast right's arguments' expressions[1] into
+		[
+			send : send phrase ⇒ tuple
+		|
+			innerMethod ::= send's method;
+			constructorMethod ::= method for $"<«_‡,»>";
+			args ::= send's arguments' expressions;
+			If innerMethod = constructorMethod ∧ |args| > 0 then
+			[
+				Cast args[1] into
+				[
+					lit : literal phrase ⇒ tuple
+				|
+					folded ::= ‘`concatenate
+						<left's token's value, lit's token's value>`’;
+					upper ::= |args|;
+					unfolded ::= cast args[2 .. upper] into
+						[t : <<>, expression phrase ⇒ tuple…|whole number> | t];
+					Exit body with
+						restricted send $"concatenate_"
+							with concatenate <<folded>, unfolded>
+							: tuple
+				]
+				else [/* Fall through. */];
+			];
+		]
+		else [/* Fall through. */];
+	];
+	restricted send $"concatenate_" with <«<left, right>»> : tuple
+] : expression phrase ⇒ tuple;
+
+/**
+ * If {@param "right"} and {@param "left"} are {@type "send phrase" sends} of
+ * {@method "concatenate_"} to sends of the {@method "<«_‡,»>" tuple
+ * constructor}, then collapse the sends of {@method "concatenate_"} together.
+ * Moreover, if the last element of {@param "right"}'s constructed {@type
+ * "tuple"} is a {@type "literal phrase"}, and the first element of {@param
+ * "left"}'s constructed tuple is a {@type "literal phrase"}, then fold the
+ * concatenation of the two elements together and splice it into the new send of
+ * {@method "concatenate_"}.
+ *
+ * @macro "_++_"
+ * @param "left" "send phrase ⇒ tuple"
+ * @param "right" "send phrase ⇒ tuple"
+ * @returns "expression phrase ⇒ tuple"
+ *          A revised {@type "send phrase" send} of {@method "concatenate_"}.
+ */
+Macro "_++_" is
+[
+	left : send phrase ⇒ tuple,
+	right : send phrase ⇒ tuple
+|
+	$body : expression phrase ⇒ tuple;
+	leftOuterMethod ::= left's method;
+	rightOuterMethod ::= right's method;
+	concatenateMethod ::= method for $"concatenate_";
+	If {leftOuterMethod, rightOuterMethod} = {concatenateMethod} then
+	[
+		constructorMethod ::= method for $"<«_‡,»>";
+		Cast left's arguments' expressions[1] into
+		[
+			leftSend : send phrase ⇒ tuple
+		|
+			leftInnerMethod ::= leftSend's method;
+			Cast right's arguments' expressions[1] into
+			[
+				rightSend : send phrase ⇒ tuple
+			|
+				rightInnerMethod ::= rightSend's method;
+				leftArgs ::= leftSend's arguments' expressions;
+				rightArgs ::= rightSend's arguments' expressions;
+				If {leftInnerMethod, rightInnerMethod} = {constructorMethod}
+					∧ |leftArgs| > 0
+					∧ |rightArgs| > 0
+				then
+				[
+					folded ::=
+						cast leftArgs[1 max |leftArgs|] into
+						[
+							leftLit : literal phrase ⇒ tuple
+						|
+							cast rightArgs[1] into
+							[
+								rightLit : literal phrase ⇒ tuple
+							|
+								<
+									‘`concatenate
+									<
+										leftLit's token's value,
+										rightLit's token's value
+									>`’
+								>
+							]
+							else [<>]
+						]
+						else [<>];
+					leftUnfolded, rightUnfolded ::=
+						cast
+							if |folded| > 0 then
+							[
+								leftUpper ::= cast |leftArgs| - 1 into
+									[t : whole number | t];
+								<
+									leftArgs[1 .. leftUpper],
+									rightArgs[2 .. |rightArgs|]
+								>
+							]
+							else [<leftArgs, rightArgs>]
+						into
+						[
+							t : <
+								<>,
+								<<>, expression phrase ⇒ tuple…|whole number>…
+								| [2..2]>
+						|
+							t
+						];
+					Exit body with restricted send $"concatenate_"
+						with concatenate <leftUnfolded, folded, rightUnfolded>
+						: tuple
+				];
+			]
+			else [/* Fall through. */];
+		]
+		else [/* Fall through. */];
+	];
+	restricted send $"concatenate_" with <«<left, right>»> : tuple
+] : expression phrase ⇒ tuple;
+
+/**
+ * @method "concatenate_"
+ * @forbids 1 "_++_"
+ */
+Grammatical restriction {"concatenate_"} is <{"_++_"}>;
+
+/**
  * @method "_++_"
  * @forbids 2 "_++_"
  */
 Grammatical restriction {"_++_"} is <∅, {"_++_"}>;
-
-/**
- * Concatenate the lexically specified tuples. Answer the result.
- * 
- * @method "«_‡++»"
- * @param "tuples" "<tuple…|2..>"
- *        Some tuples.
- * @returns "tuple"
- *          The result of concatenating the lexically specified tuples
- *          left-to-right.
- * @category "Tuples" "Strings" "Transformers"
- */
-Public method "«_‡++»" is
-[
-	tuples : <<>, tuple…|[2..∞)>
-|
-	Primitive 136;
-] : tuple;
-
-/**
- * Don't parse {@method "«_‡++»"} recursively.
- * 
- * @method "«_‡++»"
- * @forbids 1 "«_‡++»"
- */
-Grammatical restriction "«_‡++»" is <{"«_‡++»"}>;
-
-/**
- * Strengthen the lexical tuple concatenation operation.
- * 
- * @method "«_‡++»"
- * @restricts "<tuple…|2..>'s type"
- */
-Semantic restriction "«_‡++»" is
-[
-	tuplesType : <<>, tuple…|[2..∞)>'s type
-|
-	result : tuple meta := tuplesType[1];
-	From 2 to ⎡tuplesType⎤ do
-	[
-		index : natural number
-	|
-		result := eject result ++ tuplesType[index];
-		true
-	];
-	result
-];
 
 /**
  * Compute and answer the minimum size of {@param "tupleType"} for efficient
@@ -548,69 +897,31 @@ Semantic restriction "_[.._]" is
  * Bind subscripting and slicing tighter than concatenation.
  * 
  * @method "_[_]"
- * @forbids 1 "«_‡++»"
+ * @forbids 1 "_++_"
  */
 
 /**
  * Bind subscripting and slicing tighter than concatenation.
  * 
  * @method "_[_..]"
- * @forbids 1 "«_‡++»"
+ * @forbids 1 "_++_"
  */
 
 /**
  * Bind subscripting and slicing tighter than concatenation.
  * 
  * @method "_[.._]"
- * @forbids 1 "«_‡++»"
+ * @forbids 1 "_++_"
  */
-Grammatical restriction {"_[_]", "_[_..]", "_[.._]"} is <{"«_‡++»"}, ∅>;
+Grammatical restriction {"_[_]", "_[_..]", "_[.._]"} is <{"_++_"}, ∅>;
 
 /**
  * Bind subscripting and slicing tighter than concatenation.
  * 
  * @method "_[_.._]"
- * @forbids 1 "«_‡++»"
+ * @forbids 1 "_++_"
  */
-Grammatical restriction "_[_.._]" is <{"«_‡++»"}, ∅, ∅>;
-
-Method "concatenate_" is stable at
-	function accepting <tuple of tuple> and returning tuple;
-
-/**
- * @method "concatenate_"
- * @restricts "tuple of tuple's type"
- */
-Semantic restriction "concatenate_" is
-[
-	tupleType : tuple of tuple's type
-|
-	sizes ::= ||tupleType||;
-	limit ::=
-		if ⎡sizes⎤ is infinite then
-		[
-			⎣sizes⎦ max (cast |tupleType's leading types| + 1
-				into [t : natural number | t])
-		]
-		else [⎡sizes⎤];
-	result : tuple meta := <>'s type;
-	From 1 to limit do
-	[
-		index : natural number
-	|
-		result := eject result ++ tupleType[index];
-		true
-	];
-	If ⎡sizes⎤ is infinite then
-	[
-		slice ::= result[1 .. cast limit into [t : whole number | t]];
-		default ::= tupleType's default type;
-		union ::= ∪ default[1 ..
-			cast |default's leading types| + 1 into [ t : whole number | t ]];
-		result := <slice, union… | [⎣result⎦..∞)>;
-	];
-	result
-];
+Grammatical restriction "_[_.._]" is <{"_++_"}, ∅, ∅>;
 
 Method "_→set" is stable at function accepting <tuple> and returning set;
 
@@ -714,65 +1025,6 @@ Semantic restriction "_→map" is
  * @forbids 2 "tuple"
  */
 Grammatical restriction "_→_" is <∅, {"tuple"}>;
-
-/**
- * If {@param "index"} is a valid subscript for {@param "aTuple"}, then answer
- * the corresponding element. Otherwise, answer the result obtained by applying
- * {@param "else"}.
- *
- * @method "_[_]else_"
- * @param "aTuple" "tuple"
- *        A {@type "tuple"}.
- * @param "index" "integer"
- *        An {@type "integer"}.
- * @param "else" "[]→any"
- *        The function to apply if {@param "index"} is not a valid subscript
- *        into {@param "aTuple"}.
- * @returns "any"
- *          The {@param "index"}-th element of {@param "aTuple"}, or the result
- *          of applying {@param "else"} (if {@param "index"} is invalid).
- * @category "Tuples" "Queries"
- */
-Method "_[_]else_" is
-[
-	aTuple : tuple,
-	index : integer,
-	else : function accepting <> and returning any
-|
-	if index ∈ [1..|aTuple|]
-	then [aTuple[cast index into [t : natural number | t]]]
-	else else
-] : any;
-
-/**
- * @method "_[_]else_"
- * @restricts "tuple meta"
- * @restricts "integer's type"
- * @restricts "(function accepting <> and returning any)'s type"
- */
-Semantic restriction "_[_]else_" is
-[
-	tupleType : tuple meta,
-	index : integer's type,
-	else : (function accepting <> and returning any)'s type
-|
-	if ⎣index⎦ > ⎡tupleType⎤ ∨ ⎡index⎤ < 1 then [else's return type]
-	else
-	[
-		min ::= ⎣index⎦ max 1;
-		max ::= cast ⎡index⎤ min (|tupleType's leading types| + 1)
-			into [t : whole number | t];
-		union ::= ∪ tupleType[min..max];
-		if index ⊆ [1..⎣tupleType⎦] then
-		[
-			union
-		]
-		else
-		[
-			union ∪ else's return type
-		]
-	]
-];
 
 /**
  * Create an optional type from some (non-top) type.  The optional type based on
@@ -970,7 +1222,7 @@ Semantic restriction "SHA-_digest of_" is
  * into {@param "var"}.
  *
  * @method "_↑++=_"
- * @param "var" "↑tuple"
+ * @param "var" "read tuple/write ⊥"
  * @param "t" "tuple"
  * @returns "⊤"
  */
@@ -982,17 +1234,86 @@ Public method "_↑++=_" is
 	var ?= eject var ++ t;
 ] : ⊤;
 
-Alias "_++=_" to "_↑++=_";
-
 Semantic restriction "_↑++=_" is
 [
 	varType : (read tuple/write ⊥)'s type,
 	tupleType : tuple's type
 |
-	resultType ::= tupleType ++ varType's read type;
+	resultType ::= varType's read type ++ tupleType;
 	If ¬resultType ⊆ varType's write type then
 	[
 		Reject parse, expected: "variable to accept " ++ “resultType”
 	];
 	⊤
 ];
+
+/**
+ * Compute and answer a {@type "tuple"} whose first <code>N-1</code> elements
+ * are {@param "aTuple"} and whose <code>N<sup>th</sup></code> element is
+ * {@param "newElement"}.
+ *
+ * @category "Primitives" "Tuples" 
+ * @method "_with_appended"
+ * @param "aTuple" "tuple"
+ *        A tuple.
+ * @param "newElement" "any"
+ *        The element that must be the tail of the resultant tuple.
+ * @returns "tuple"
+ *    A tuple that has the same elements as {@param "aTuple"} but with
+ *    {@param "newElement"} appended.
+ */
+Private method "_with_appended" is
+[
+	aTuple : tuple,
+	newElement : any
+|
+	Primitive 703;
+] : tuple;
+
+Semantic restriction "_with_appended" is
+[
+	tupleType : tuple meta,
+	newElementType : any meta
+|
+	tupleType ++ <<>, newElementType…|[1..1]>
+];
+
+/**
+ * Since {@param "elemPhrase"} yields a one-element {@type "tuple"}, we can
+ * use a special primitive to append that tuple's element onto the {@type
+ * "tuple"} held in the target {@type "read tuple/write ⊥" variable}. If the
+ * held {@type "tuple"} is mutable, then this append can be destructive. This is
+ * therefore the preferred mechanism for accumulating {@type "tuple"}s one
+ * element at a time.
+ *
+ * @macro "_↑++=_"
+ * @param "varPhrase" "variable reference phrase ⇒ read tuple/write ⊥"
+ * @param "elemPhrase" "expression phrase ⇒ <<>, any…|[1..1]>"
+ * @returns "⊤"
+ */
+Macro "_↑++=_" is
+[
+	varPhrase : variable reference phrase ⇒ read tuple/write ⊥,
+	elemPhrase : expression phrase ⇒ <<>, any…|[1..1]>
+|
+	restricted send $"_`?=_" with
+	<
+		varPhrase,
+		restricted send $"_with_appended" with
+		<
+			restricted send $"eject_↑" with <varPhrase> : any,
+			cast elemPhrase into
+			[
+				lit : literal phrase ⇒ <<>, any…|[1..1]>
+			|
+				‘`lit's token's value[1]`’
+			]
+			else
+			[
+				restricted send $"_[_]" with <elemPhrase, ‘`1`’> : any
+			]
+		> : tuple
+	> : ⊤
+];
+
+Alias "_++=_" to "_↑++=_";

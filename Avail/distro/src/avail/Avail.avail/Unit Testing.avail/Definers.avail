@@ -518,7 +518,7 @@ Semantic restriction "Test_in_is_«must raise_»" is
 					with test's return type
 		];
 	]
-	else if [test's return type ≠ ⊤] then
+	else if test's return type ≠ ⊤ then
 	[
 		Reject parse, expected:
 			format "test function's return type to be ⊤ (not “①”)"

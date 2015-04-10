@@ -471,7 +471,7 @@ Public method "unit map“_”" is
 	[
 		""
 	]
-	else if [unitMap ∈ {atom→1's type|1}] then
+	else if unitMap ∈ {atom→1's type|1} then
 	[
 		/* This is an unnamed base unit. Answer its atom's preferred symbol. */
 		unitAtom ::= unitMap's keys→tuple[1];

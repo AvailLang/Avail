@@ -71,7 +71,7 @@ Names
 	"From_to_by_do_",
 	"From_to_do_",
 	"here",
-	"If|if_then_«else if_then_»«else_»",
+	"If|if_then_«else if_then_»«else_»?",
 	"Repeat_",
 	"Repeat__times",
 	"Unless_then_",
@@ -82,7 +82,7 @@ Names
 	"While_do_",
 	"While_do_alternate with_",
 	"Unless|unless_then_else_",
-	"Unless|unless_then_«else unless_then_»«else_»",
+	"Unless|unless_then_«else unless_then_»«else_»?",
 
 	/* Support methods for semantic restrictions, exported for use by other
 	 * library- and user-defined control structures.
@@ -90,6 +90,115 @@ Names
 	"Require:_accepts subscripts from_to_by_",
 	"Require:_'s⁇keeper is valid"
 Body
+
+/*
+ * Helper methods for building macro, "If|if_then_«else if_then_»«else_»?"
+ */
+Private method "block from_" is
+[
+ 	sendPhrase : send phrase ⇒ ⊤
+|
+	returnType ::= sendPhrase's return type;
+	cast «[<sendPhrase>]:returnType» into [b: block phrase ⇒ []→⊤| b]
+]:expression phrase ⇒ []→⊤;
+
+Private method "basic send phrase_conditional_then_else_" is
+[
+	anAtom : atom,
+ 	predicatePhrase : expression phrase ⇒ boolean,
+ 	thenBlock : expression phrase ⇒ []→⊤,
+	elseBlock : expression phrase ⇒ []→⊤
+|	
+	elseBlockReturnType ::= elseBlock's semantic type;
+	thenBlockReturnType ::= thenBlock's semantic type;
+	
+	boolType ::= predicatePhrase's semantic type;
+
+	returnType ::= strengthen ⊤ for call of anAtom 
+		using <boolType, thenBlockReturnType, elseBlockReturnType>;
+
+	restricted send anAtom with
+		<predicatePhrase, thenBlock, elseBlock> : returnType
+] : send phrase ⇒ ⊤;
+
+/*
+ * Recursive method to build up nested blocks for a chained conditional 
+ * macro
+ */
+Private abstract method "for_nest_in_" is 
+[
+ 	atom, expression phrase ⇒ []→⊤, <list phrase ⇒ <boolean, []→⊤…|2>…|1..>
+]→(expression phrase ⇒ []→⊤);
+
+Method "for_nest_in_" is
+[
+ 	anAtom : atom,
+	elseBlock : expression phrase ⇒ []→⊤,
+	elseConditionalPairTuple : <list phrase ⇒ <boolean, []→⊤…|2>…|1>
+|
+	elseConditionalPair ::= elseConditionalPairTuple[1]'s expressions;
+	predicate ::= elseConditionalPair[1];
+	thenBlock ::= elseConditionalPair[2];
+	block from basic send phrase anAtom conditional predicate then 
+		thenBlock else elseBlock
+]:expression phrase ⇒ []→⊤;
+
+Method "for_nest_in_" is
+[
+	anAtom : atom,
+	elseBlock : expression phrase ⇒ []→⊤,
+	elseConditionalPairTuple : <list phrase ⇒ <boolean, []→⊤…|2>…|2..>
+|
+	size ::= |elseConditionalPairTuple|;
+	end ::= size - 1;
+	newElseBlock ::= for anAtom nest elseBlock in 
+		<elseConditionalPairTuple[size]>;
+	for anAtom nest newElseBlock in elseConditionalPairTuple[1..end]
+]:expression phrase ⇒ []→⊤;
+
+/**
+ * Multiply branching conditional statement/expression. Execute the first
+ * action for which the associated predicate answers {@method "true"}. If none 
+ * of the predicates answer {@method "true"}, then execute the "else" action. If
+ * no "else" action is provided, then do not execute any of the action blocks.
+ * 
+ * @method "If|if_then_«else if_then_»«else_»?"
+ * @param "firstPredicate" "expression phrase ⇒ boolean"
+ *        The first predicate to check.
+ * @param "firstThen" "expression phrase ⇒ []→⊤"
+ *        The action to perform if {@param "firstPredicate"} is {@method 
+ *        "true"}.
+ * @param "elseIfTuple" "list phrase ⇒ (<boolean, []→⊤…|2>+)"
+ *        A lexically constructed tuple of 2-tuples. Each 2-tuple has as its
+ *        first element a predicate and as its second element an action
+ *        to perform if the predicate answers {@method "true"}.
+ * @param "else" "list phrase ⇒ (([]→⊤)?)"
+ *        A lexically constructed tuple that optionally contains the action to
+ *        perform if {@param "firstPredicate"} is {@method "false"} and all 
+ *        predicates of {@param "elseIfTuple"} answer {@method "false"}.
+ * @returns "⊤"
+ *          If used as an expression, then the value of the selected action.
+ * @category "Control Structures" "Conditionals"
+ */
+Public macro "If|if_then_«else if_then_»«else_»?" is
+[
+	firstPredicate : expression phrase ⇒ boolean,
+	firstThenBlock : expression phrase ⇒ []→⊤,
+	elseIfPairTuplePhrase : list phrase ⇒ (<boolean, []→⊤…|2>+),
+	optionalElseBlock : list phrase ⇒ (([]→⊤)?)
+|
+	elseBlock ::= if |optionalElseBlock's expressions| = 1 then 
+		[optionalElseBlock's expressions[1]] 
+		else [cast «[<>]:⊤» into [b : expression phrase ⇒ []→⊤ | b]];
+	elseIfPairTuple ::= cast elseIfPairTuplePhrase's expressions into
+		[l : <list phrase⇒<boolean, []→⊤…|2>…|1..∞> | l];
+	
+	anAtom ::= $"If|if_then_else_";
+	finalElseBlock ::= for anAtom nest elseBlock in elseIfPairTuple;
+
+	basic send phrase anAtom conditional firstPredicate then firstThenBlock 
+		else finalElseBlock
+]: send phrase ⇒ ⊤;
 
 /**
  * Exit the continuation. Execution proceeds as though the continuation had just
@@ -859,19 +968,17 @@ Public macro "For each…from_to_§do_" is
 	startType ::= start's semantic type;
 	endType ::= end's semantic type;
 	stepType ::= 1's type;
+	anAtom ::= $"From_to_by_do_";
 	blockType ::= [⊥]→(action's semantic type's return type);
-	restrictions ::= semantic restrictions
-		for method for $"From_to_by_do_"
-		given <startType, endType, stepType, blockType>;
-	returnType ::= strengthen ⊤ from 
-		<startType, endType, stepType, blockType> 
-		using restrictions;
+	
+	returnType ::= strengthen ⊤ for call of anAtom 
+		using <startType, endType, stepType, blockType>;
 
 	statements ::= action's statements;
 	blockReturnType ::= cast statements
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
-	restricted send $"From_to_by_do_" with
+	restricted send anAtom with
 	<
 		start,
 		end,
@@ -998,7 +1105,7 @@ Public method "Require:_'s⁇keeper is valid" is
  * of the predicates answer {@method "true"}, then execute the "else" action. If
  * no "else" action is provided, then do not execute any of the action blocks.
  * 
- * @method "If|if_then_«else if_then_»«else_»"
+ * @method "If|if_then_«else if_then_»«else_»?"
  * @param "firstPredicate" "boolean"
  *        The first predicate. This argument is a raw boolean rather than a
  *        function answering a boolean, because it must always be evalutated
@@ -1018,7 +1125,7 @@ Public method "Require:_'s⁇keeper is valid" is
  *          If used as an expression, then the value of the selected action.
  * @category "Control Structures" "Conditionals"
  */
-Public method "If|if_then_«else if_then_»«else_»" is
+Public method "If|if_then_«else if_then_»«else_»?" is
 [
 	firstPredicate : boolean,
 	firstThen : []→⊤,
@@ -1070,13 +1177,13 @@ Public method "If|if_then_«else if_then_»«else_»" is
  * "true"} is preceded only by actions whose predicates are guaranteed to answer
  * {@method "false"}; in this case, answer this action's return type.
  * 
- * @method "If|if_then_«else if_then_»«else_»"
+ * @method "If|if_then_«else if_then_»«else_»?"
  * @restricts "boolean's type"
  * @restricts "[]→⊤'s type"
  * @restricts "<<[]→boolean, []→⊤…|2>…|1..>'s type"
  * @restricts "([]→⊤)?'s type"
  */
-Semantic restriction "If|if_then_«else if_then_»«else_»" is
+Semantic restriction "If|if_then_«else if_then_»«else_»?" is
 [
 	firstPredicate : boolean's type,
 	firstThen : []→⊤'s type,
@@ -1203,21 +1310,6 @@ Semantic restriction "If|if_then_«else if_then_»«else_»" is
 	]
 ];
 
-/* Macro support for "If|if_then_«else if_then_»«else_»" WIP */
-/*
-Macro "If|if_then_«else if_then_»«else_»" is
-[
-	firstPredicate : expression phrase ⇒ boolean,
-	firstThen : block phrase ⇒ []→⊤,
-	elseIfTuple : expression phrase ⇒ 
-		<expression phrase ⇒ boolean, block phrase ⇒ []→⊤…|2>+,
-	else : expression phrase ⇒ ([]→⊤)?
-|
-	elseIfTupleType ::= elseIfTuple's semantic type;
-	For each index from 1 to | elseIfTupleType |
-
-] : send phrase ⇒ ⊤;
-*/
 /**
  * Given a predicate value and a function, invoke the specified function only if
  * the predicate is {@method "false"}. This is the inverse of {@method 
@@ -1319,6 +1411,50 @@ Semantic restriction "Unless|unless_then_else_" is
 	trueFunction's return type
 ];
 
+/**
+ * Multiply branching conditional statement/expression. Execute the first
+ * action for which the associated predicate answers {@method "false"}. If none 
+ * of the predicates answer {@method "false"}, then execute the "else" action. 
+ * If no "else" action is provided, then do not execute any of the action 
+ * blocks.
+ * 
+ * @method "Unless|unless_then_«else unless_then_»«else_»?"
+ * @param "firstPredicate" "expression phrase ⇒ boolean"
+ *        The first predicate to check.
+ * @param "firstThen" "expression phrase ⇒ []→⊤"
+ *        The action to perform if {@param "firstPredicate"} is {@method 
+ *        "false"}.
+ * @param "elseIfTuple" "list phrase ⇒ (<boolean, []→⊤…|2>+)"
+ *        A lexically constructed tuple of 2-tuples. Each 2-tuple has as its
+ *        first element a predicate and as its second element an action
+ *        to perform if the predicate answers {@method "true"}.
+ * @param "else" "list phrase ⇒ (([]→⊤)?)"
+ *        A lexically constructed tuple that optionally contains the action to
+ *        perform if {@param "firstPredicate"} is {@method "false"} and all 
+ *        predicates of {@param "elseIfTuple"} answer {@method "false"}.
+ * @returns "⊤"
+ *          If used as an expression, then the value of the selected action.
+ * @category "Control Structures" "Conditionals"
+ */
+Public macro "Unless|unless_then_«else unless_then_»«else_»?" is
+[
+	firstPredicate : expression phrase ⇒ boolean,
+	firstThenBlock : expression phrase ⇒ []→⊤,
+	elseUnlessPairTuplePhrase : list phrase ⇒ (<boolean, []→⊤…|2>+),
+	optionalElseBlock : list phrase ⇒ (([]→⊤)?)
+|
+	elseBlock ::= if |optionalElseBlock's expressions| = 1 then 
+		[optionalElseBlock's expressions[1]] 
+		else [cast «[<>]:⊤» into [b : expression phrase ⇒ []→⊤ | b]];
+	elseUnlessPairTuple ::= cast elseUnlessPairTuplePhrase's expressions into
+		[l : <list phrase⇒<boolean, []→⊤…|2>…|1..∞> | l];
+
+	anAtom ::= $"Unless|unless_then_else_";
+	finalElseBlock ::= for anAtom nest elseBlock in elseUnlessPairTuple;
+
+	basic send phrase anAtom conditional firstPredicate  
+		then firstThenBlock else finalElseBlock
+]: send phrase ⇒ ⊤;
 
 /**
  * Multiply branching conditional statement/expression. Execute the first
@@ -1327,7 +1463,7 @@ Semantic restriction "Unless|unless_then_else_" is
  * If no "else" action is provided, then do not execute any of the action 
  * blocks.
  * 
- * @method "Unless|unless_then_«else unless_then_»«else_»"
+ * @method "Unless|unless_then_«else unless_then_»«else_»?"
  * @param "firstPredicate" "boolean"
  *        The first predicate. This argument is a raw boolean rather than a
  *        function answering a boolean, because it must always be evalutated
@@ -1347,7 +1483,7 @@ Semantic restriction "Unless|unless_then_else_" is
  *          If used as an expression, then the value of the selected action.
  * @category "Control Structures" "Conditionals"
  */
-Public method "Unless|unless_then_«else unless_then_»«else_»" is
+Public method "Unless|unless_then_«else unless_then_»«else_»?" is
 [
 	firstPredicate : boolean,
 	firstThen : []→⊤,
@@ -1402,13 +1538,13 @@ Public method "Unless|unless_then_«else unless_then_»«else_»" is
  * "false"} is preceded only by actions whose predicates are guaranteed to 
  * answer {@method "true"}; in this case, answer this action's return type.
  * 
- * @method "Unless|unless_then_«else unless_then_»«else_»"
+ * @method "Unless|unless_then_«else unless_then_»«else_»?"
  * @restricts "boolean's type"
  * @restricts "[]→⊤'s type"
  * @restricts "<[]→boolean, []→⊤…|2>+'s type"
  * @restricts "([]→⊤)?'s type"
  */
-Semantic restriction "Unless|unless_then_«else unless_then_»«else_»" is
+Semantic restriction "Unless|unless_then_«else unless_then_»«else_»?" is
 [
 	firstPredicate : boolean's type,
 	firstThen : []→⊤'s type,
@@ -2255,7 +2391,7 @@ Public method "Cast|cast_into«_‡,»«else_»" is
 		[
 			(else[1] else [[]])();
 		]
-		else if [ value ∈ caseTuple[index]'s type[1] ] then
+		else if value ∈ caseTuple[index]'s type[1] then
 		[
 			caseTuple[index](value);
 		]
@@ -2354,7 +2490,7 @@ Public method "Choose|choose_from_where«_is_‡,»«,else_»" is
 		[
 			(else[1] else [[]])();
 		]
-		else if [ caseTuple[index][1] = value ] then
+		else if caseTuple[index][1] = value then
 		[
 			caseTuple[index][2]();
 		]

@@ -49,7 +49,6 @@ Names
 	"this token:…",
 	"_compiled",
 	"``_``",
-	"`«↓_`»",
 	"`«<«_‡,»>`»",
 	"`«[_`|_]:_`»",
 	"`«[_]:_`»"
@@ -132,7 +131,7 @@ Semantic restriction "‘_’" is
  *          A variable use expression.
  * @category "Phrases" "Constructors"
  */
-Public method "`«↓_`»" is
+Method "`«↓_`»" is
 [
 	decl : declaration phrase
 |

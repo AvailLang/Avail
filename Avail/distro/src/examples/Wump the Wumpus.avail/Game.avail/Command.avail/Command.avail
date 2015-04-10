@@ -278,7 +278,7 @@ Action "moving" is
 		Move the agent to destination;
 		true
 	]
-	else if [destination = the agent's location] then
+	else if destination = the agent's location then
 	[
 		Report: "You can't go where you already are.\n";
 		false
