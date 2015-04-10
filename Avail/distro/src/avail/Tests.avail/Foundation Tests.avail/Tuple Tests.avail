@@ -294,12 +294,12 @@ Test "tuple search (macros)" in tuple test suite is
 	a ::= <1,2,3,2,1,4,5,6>;
 	b ::= <1,2,3,4,6,2,3>;
 
-	Require: (last index n of a where [n < 5]) = 6;
-	Require: (last index n of a where [n > 10]) = 0;
-	Require: first index n of a where [n < 5] = 1;
-	Require: first index n of a where [n > 10] = 0;
-	Require: all indices n of a where [n < 2] = <1,5>;
-	Require: all indices n of a where [n > 20] = <>;
+	Require: last index of n in a where [n < 5] = 6;
+	Require: last index of n in a where [n > 10] = 0;
+	Require: first index of n in a where [n < 5] = 1;
+	Require: first index of n in a where [n > 10] = 0;
+	Require: all indices of n in a where [n < 2] = <1,5>;
+	Require: all indices of n in a where [n > 20] = <>;
 ];
 
 Test "subtuple replace" in tuple test suite is
