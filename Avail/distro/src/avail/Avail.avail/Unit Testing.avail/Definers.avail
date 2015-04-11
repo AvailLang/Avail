@@ -55,6 +55,7 @@ Body
  *
  * @method "Remember the current module"
  * @returns "⊤"
+ * @category "Modules"
  */
 Private method "Remember the current module" is
 [
@@ -81,6 +82,7 @@ Private method "Remember the current module" is
  * @method "Forget_"
  * @param "suite" "unit test suite"
  * @returns "⊤"
+ * @category "Unit Testing"
  */
 Private method "Forget_" is
 [
@@ -133,6 +135,7 @@ Private method "Forget_" is
  * @raises "no-such-test-element exception"
  *         If the (optional) parent test suite identifiers does not reference an
  *         existing unit test suite.
+ * @category "Unit Testing"
  */
 Public method "New test suite,⁇_,⁇extends_" is
 [
@@ -204,6 +207,7 @@ Public method "New test suite,⁇_,⁇extends_" is
  * @raises "no-such-test-element exception"
  *         If the (optional) parent test suite identifiers does not reference an
  *         existing unit test suite.
+ * @category "Unit Testing"
  */
 Public method "_is a new test suite" is
 [
@@ -224,6 +228,7 @@ Public method "_is a new test suite" is
  * @returns "⊤"
  * @raises "no-such-test-suite exception"
  *         If {@param "id"} does not reference an existing test suite.
+ * @category "Unit Testing"
  */
 Public method "Before running_,⁇do_" is
 [
@@ -282,6 +287,7 @@ Semantic restriction "Before running_,⁇do_"
  * @returns "⊤"
  * @raises "no-such-test-suite exception"
  *         If {@param "id"} does not reference an existing test suite.
+ * @category "Unit Testing"
  */
 Public method "Before running each test in_,⁇do_" is
 [
@@ -319,6 +325,7 @@ Semantic restriction "Before running each test in_,⁇do_"
  * @returns "⊤"
  * @raises "no-such-test-suite exception"
  *         If {@param "id"} does not reference an existing test suite.
+ * @category "Unit Testing"
  */
 Public method "Do not run tests in_in parallel" is
 [
@@ -339,6 +346,7 @@ Public method "Do not run tests in_in parallel" is
  * @returns "⊤"
  * @raises "no-such-test-suite exception"
  *         If {@param "id"} does not reference an existing test suite.
+ * @category "Unit Testing"
  */
 Public method "After running_,⁇do_" is
 [
@@ -380,6 +388,7 @@ Semantic restriction "After running_,⁇do_"
  * @returns "⊤"
  * @raises "no-such-test-suite exception"
  *         If {@param "id"} does not reference an existing test suite.
+ * @category "Unit Testing"
  */
 Public method "After running each test in_,⁇do_" is
 [
@@ -413,6 +422,7 @@ Semantic restriction "After running each test in_,⁇do_"
  * @method "Forget_"
  * @param "test" "unit test"
  * @returns "⊤"
+ * @category "Unit Testing"
  */
 Private method "Forget_" is
 [
@@ -453,6 +463,7 @@ Private method "Forget_" is
  * @returns "⊤"
  * @raises "test-already-exists exception"
  *         If {@param "name"} names an existing unit test.
+ * @category "Unit Testing"
  */
 Public method
 	"Test_in_«,⁇if supported«on this platform»⁇,⁇»?is_«must raise_»"

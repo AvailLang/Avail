@@ -167,7 +167,7 @@ Method "_is exhausted" is
 	]
 ] : boolean;
 
-/**
+/*
  * A converting reader's current element is the start of the buffer.  Populate
  * it if necessary.
  */

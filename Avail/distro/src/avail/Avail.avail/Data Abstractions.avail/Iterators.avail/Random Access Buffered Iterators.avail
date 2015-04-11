@@ -369,7 +369,7 @@ Method "Refresh_" is
  *        A reader.
  * @returns "tuple"
  *          A tuple containing the first {@param "count"} elements of {@param
- *          "aReader"}, possibly less if {@param isLax} is {@code true}.
+ *          "aReader"}, possibly less if {@param "isLax"} is {@code true}.
  * @category "Data Abstractions" "Iterators"
  * @raises "exhausted-iterator exception"
  *         If {@param "isLax"} is {@code false} and {@param "aReader"} does

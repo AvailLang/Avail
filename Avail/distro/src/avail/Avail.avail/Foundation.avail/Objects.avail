@@ -67,6 +67,9 @@ Body
 
 /**
  * Strengthen object field extraction ({@method "_[_]"}).
+ * @method "_[_]"
+ * @restricts "object's type"
+ * @restricts "atom's type"
  */
 Semantic restriction "_[_]" is
 [

@@ -2076,7 +2076,7 @@ Primitive "Forward method_is_" is
 /**
  * Read the next character from the standard input stream.
  *
- * @category "Primitives" "Standard I/O" "Synchronous I/O"
+ * @category "Primitives" "Standard I/O" "Synchronous IO"
  * @method "next character"
  * @returns "character"
  *    The next character from the standard input stream.
@@ -2168,7 +2168,7 @@ Primitive "Grammatical restriction_is_" is
 /**
  * Print the argument to the application's standard output stream.
  *
- * @category "Primitives" "Standard I/O" "Synchronous I/O"
+ * @category "Primitives" "Standard I/O" "Synchronous IO"
  * @method "Print:_"
  * @param "text" "string"
  *        A string.
@@ -2296,7 +2296,7 @@ Primitive "Grammatical restriction_is_" is
 /**
  * Print the argument to the application's standard error stream.
  *
- * @category "Primitives" "Standard I/O" "Synchronous I/O"
+ * @category "Primitives" "Standard I/O" "Synchronous IO"
  * @method "Error:_"
  * @param "text" "string"
  *        A string.

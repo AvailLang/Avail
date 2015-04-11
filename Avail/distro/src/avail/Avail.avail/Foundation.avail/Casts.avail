@@ -521,6 +521,7 @@ Semantic restriction "Cast|cast each of_into_else_" is
  *        Evaluated at compile time to produce the strengthened type of this
  *        call.
  * @returns "any" Restricted to the strongerType.
+ * @category "Casts"
  */
 Public method "_`?→_†" is
 [
@@ -578,7 +579,7 @@ Semantic restriction "_`?→_†" is
  * value at runtime does not comply with this type, return the result of
  * evaluating the zero-argument elseFunction.
  *
- * @method "_`?→_†"
+ * @method "_`?→_†else_"
  * @param "value" "any"
  *        The value whose type is to be strengthened.
  * @param "strongerType" "type"
@@ -590,6 +591,7 @@ Semantic restriction "_`?→_†" is
  * @returns "any"
  *          Restricted to the strongerType, or the result of evaluating the
  *          elseFunction.
+ * @category "Casts"
  */
 Public method "_`?→_†else_" is
 [

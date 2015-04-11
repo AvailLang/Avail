@@ -63,6 +63,7 @@ Body
  * to which resource ownership and access rights may be assigned.
  *
  * @type "principal"
+ * @category "Files" "Security"
  */
 Public class "principal" extends object
 	with field
@@ -73,6 +74,7 @@ Public class "principal" extends object
  *
  * @type "user principal"
  * @supertype "principal"
+ * @category "Files" "Security"
  */
 Public explicit class "user principal" extends principal;
 
@@ -82,6 +84,7 @@ Public explicit class "user principal" extends principal;
  *
  * @type "user principal"
  * @supertype "principal"
+ * @category "Files" "Security"
  */
 Public explicit class "group principal" extends principal;
 
@@ -121,6 +124,7 @@ Method "“_”" is
  * @raises "operation-not-supported exception"
  *         If {@type "user principal"}s are not supported by the host
  *         platform.
+ * @category "Files" "Security"
  */
 Public method "_'s⁇owner(follow if symlink=_)" is
 [
@@ -164,6 +168,7 @@ Public method "_'s⁇owner(follow if symlink=_)" is
  * @raises "operation-not-supported exception"
  *         If {@type "user principal"}s are not supported by the host
  *         platform.
+ * @category "Files" "Security"
  */
 Public method "_'s⁇owner«(don't follow if symlink)»?" is
 [
@@ -193,6 +198,7 @@ Public method "_'s⁇owner«(don't follow if symlink)»?" is
  * @raises "operation-not-supported exception"
  *         If {@type "user principal"}s are not supported by the host
  *         platform.
+ * @category "Files" "Security"
  */
 Public method "_'s⁇owner:=_(follow if symlink=_)" is
 [
@@ -234,6 +240,7 @@ Public method "_'s⁇owner:=_(follow if symlink=_)" is
  * @raises "operation-not-supported exception"
  *         If {@type "user principal"}s are not supported by the host
  *         platform.
+ * @category "Files" "Security"
  */
 Public method "_'s⁇owner:=_«(don't follow if symlink)»?" is
 [
@@ -266,6 +273,7 @@ Public method "_'s⁇owner:=_«(don't follow if symlink)»?" is
  * @raises "operation-not-supported exception"
  *         If {@type "user principal"}s are not supported by the host
  *         platform.
+ * @category "Files" "Security"
  */
 Public method "_'s⁇group(follow if symlink=_)" is
 [
@@ -309,6 +317,7 @@ Public method "_'s⁇group(follow if symlink=_)" is
  * @raises "operation-not-supported exception"
  *         If {@type "user principal"}s are not supported by the host
  *         platform.
+ * @category "Files" "Security"
  */
 Public method "_'s⁇group«(don't follow if symlink)»?" is
 [
@@ -338,6 +347,7 @@ Public method "_'s⁇group«(don't follow if symlink)»?" is
  * @raises "operation-not-supported exception"
  *         If {@type "group principal"}s are not supported by the host
  *         platform.
+ * @category "Files" "Security"
  */
 Public method "_'s⁇group:=_(follow if symlink=_)" is
 [
@@ -379,6 +389,7 @@ Public method "_'s⁇group:=_(follow if symlink=_)" is
  * @raises "operation-not-supported exception"
  *         If {@type "group principal"}s are not supported by the host
  *         platform.
+ * @category "Files" "Security"
  */
 Public method "_'s⁇group:=_«(don't follow if symlink)»?" is
 [

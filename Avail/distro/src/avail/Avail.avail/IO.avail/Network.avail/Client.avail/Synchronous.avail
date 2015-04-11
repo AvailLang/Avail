@@ -52,6 +52,7 @@ Body
  * @param "s" "client socket"
  * @param "peerAddress" "socket address"
  * @returns "⊤"
+ * @category "Synchronous IO" "Networking" "Sockets"
  */
 Public method "Connect_to_" is
 [
@@ -74,6 +75,7 @@ Public method "Connect_to_" is
  * @method "Write_to_"
  * @param "data" "byte*"
  * @returns "⊤"
+ * @category "Synchronous IO" "Networking" "Sockets"
  */
 Method "Write_to_" is
 [
@@ -104,6 +106,7 @@ Method "Write_to_" is
  *        The maximum number of bytes to read from the connection.
  * @param "s" "client socket"
  * @returns "byte*"
+ * @category "Synchronous IO" "Networking" "Sockets"
  */
 Method "read«at most»?_byte|bytes from_" is
 [

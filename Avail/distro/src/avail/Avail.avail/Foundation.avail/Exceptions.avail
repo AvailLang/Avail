@@ -134,6 +134,7 @@ Public method "_'s⁇stack summary" is
  *
  * @method "causal exception"
  * @returns "atom"
+ * @category "Exception Handling"
  */
 "causal exception" is a new atom;
 
@@ -142,6 +143,7 @@ Public method "_'s⁇stack summary" is
  *
  * @method "error message"
  * @returns "atom"
+ * @category "Exception Handling"
  */
 "error message" is a new atom;
 
@@ -151,6 +153,7 @@ Public method "_'s⁇stack summary" is
  *
  * @method "unhandled exception handler"
  * @returns "atom"
+ * @category "Exception Handling"
  */
 "unhandled exception handler" is a new heritable fiber-local atom;
 
@@ -271,7 +274,7 @@ Private method "private-do-and-also-function" is
 	_block → function
 ] : function;
 
-/**
+/*
  * Execute the first block then the second block, but answer the result, if any,
  * of executing the first block.  It must operate this way even if the first
  * block actually passed in is of type ⊤ but secretly returns something more
@@ -365,6 +368,7 @@ Private method "Private guard_intercept_ensure_" is
  *
  * @type "cascade exception"
  * @supertype "exception"
+ * @category "Exceptions"
  */
 Public class "cascade exception" extends exception
 	with fields

@@ -247,6 +247,7 @@ Method "_^_" is
  * @returns "extended integer"
  *          The result of raising {@param "base"} to the {@param "exponent"}
  *          power.
+ * @category "Mathematics" "Numbers"
  */
 Private method "_recursive^_" is
 [
@@ -303,6 +304,7 @@ Method "_^_" is
  * @param "base" "extended integer's type"
  * @param "power" "whole number's type"
  * @returns "extended integer's type"
+ * @category "Mathematics" "Numbers"
  */
 Method "_^_" is
 [
@@ -557,6 +559,7 @@ Grammatical restriction
  *        The {@type "integer"} to encode. It must not overflow the specified
  *        number of bits.
  * @returns "⊤"
+ * @category "Mathematics" "Numbers" "Bits"
  */
 Public stable method "_bits of_" is
 [
@@ -592,6 +595,7 @@ Semantic restriction "_bits of_" is
  *        A {@type "tuple"} that represents an encoding of a signed 2's
  *        complement integer, in network byte order.
  * @returns "integer"
+ * @category "Numbers" "Bits"
  */
 Public stable method "an integer from_" is
 [
@@ -611,6 +615,7 @@ Public stable method "an integer from_" is
  *        A {@type "tuple"} that represents an encoding of an unsigned 2's
  *        complement integer, in network byte order.
  * @returns "whole number"
+ * @category "Numbers" "Bits"
  */
 Public stable method "an unsigned integer from_" is
 [

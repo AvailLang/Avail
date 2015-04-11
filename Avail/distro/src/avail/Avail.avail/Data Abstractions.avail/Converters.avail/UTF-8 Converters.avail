@@ -328,7 +328,9 @@ Public method "“_”(UTF8)" is
  * Protect the constructor expressions from potentially ambiguous
  * interpretations.
  * 
- * @restrict "a|an_«with«_«:»?:=_‡,»»"
+ * @method "a|an_«with«_«:»?:=_‡,»»"
+ * @forbids 1 "UTF8 encoder"
+ * @forbids 1 "UTF8 decoder"
  */
 Grammatical restriction {"a|an_«with«_«:»?:=_‡,»»"} is
 <

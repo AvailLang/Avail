@@ -324,7 +324,7 @@ buffered iterator's advance method is
  *        A reader.
  * @returns "tuple"
  *          A tuple containing the first {@param "count"} elements of {@param
- *          "aReader"}, possibly less if {@param isLax} is {@code true}.
+ *          "aReader"}, possibly less if {@param "isLax"} is {@code "true"}.
  * @category "Data Abstractions" "Iterators"
  * @raises "exhausted-iterator exception"
  *         If {@param "isLax"} is {@code false} and {@param "aReader"} does
@@ -416,6 +416,7 @@ Method "Write_to_" is
  * @method "_'s⁇current element:=_"
  * @param "aWriter" "buffered writer"
  * @param "element" "any"
+ * @returns "⊤"
  * @category "Data Abstractions" "Iterators"
  */
 Method "_'s⁇current element:=_" is

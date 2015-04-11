@@ -88,6 +88,7 @@ Public method "signed long" is [[0..2^63 - 1]];
  * and is outdated immediately thereafter.
  *
  * @type "file metadata"
+ * @category "Files"
  */
 Public class "file metadata" extends object
 	with fields
@@ -118,6 +119,7 @@ Public class "file metadata" extends object
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
+ * @category "Files"
  */
 [
 	fileTypes ::= <regular file, directory, symbolic link, special file>;
@@ -164,6 +166,7 @@ Public class "file metadata" extends object
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
+ * @category "Files"
  */
 Public method "_'s⁇metadata«(don't follow if symlink)»?" is
 [
@@ -187,6 +190,7 @@ Public method "_'s⁇metadata«(don't follow if symlink)»?" is
  * @param "m" "file metadata"
  * @returns "any"
  *          An opaque identifier.
+ * @category "Files"
  */
 
 /**
@@ -199,6 +203,7 @@ Public method "_'s⁇metadata«(don't follow if symlink)»?" is
  * @method "_'s⁇file type"
  * @param "m" "file metadata"
  * @returns "file type"
+ * @category "Files"
  */
 
 /**
@@ -216,6 +221,7 @@ Public method "_'s⁇metadata«(don't follow if symlink)»?" is
  * @returns "[0..2^63 - 1]"
  *          The number of milliseconds since the Unix Epoch (00:00:00 UTC,
  *          Thursday, 1 January 1970).
+ * @category "Files"
  */
 
 /**
@@ -233,6 +239,7 @@ Public method "_'s⁇metadata«(don't follow if symlink)»?" is
  * @returns "[0..2^63 - 1]"
  *          The number of milliseconds since the Unix Epoch (00:00:00 UTC,
  *          Thursday, 1 January 1970).
+ * @category "Files"
  */
 
 /**
@@ -250,6 +257,7 @@ Public method "_'s⁇metadata«(don't follow if symlink)»?" is
  * @returns "[0..2^63 - 1]"
  *          The number of milliseconds since the Unix Epoch (00:00:00 UTC,
  *          Thursday, 1 January 1970).
+ * @category "Files"
  */
 
 /**
@@ -261,4 +269,5 @@ Public method "_'s⁇metadata«(don't follow if symlink)»?" is
  * @method "_'s⁇size"
  * @param "m" "size"
  * @returns "[0..2^63 - 1]"
+ * @category "Files"
  */

@@ -61,6 +61,7 @@ Body
  *
  * @method "append"
  * @returns "open option"
+ * @category "Files"
  */
 Public "append" is a new atom;
 
@@ -70,6 +71,7 @@ Public "append" is a new atom;
  *
  * @method "create"
  * @returns "open option"
+ * @category "Files"
  */
 Public "create" is a new atom;
 
@@ -80,6 +82,7 @@ Public "create" is a new atom;
  *
  * @method "create new"
  * @returns "open option"
+ * @category "Files"
  */
 Public "create new" is a new atom;
 
@@ -90,6 +93,7 @@ Public "create new" is a new atom;
  *
  * @method "delete on close"
  * @returns "open option"
+ * @category "Files"
  */
 Public "delete on close" is a new atom;
 
@@ -98,6 +102,7 @@ Public "delete on close" is a new atom;
  *
  * @method "read"
  * @returns "open option"
+ * @category "Files"
  */
 Public "read" is a new atom;
 
@@ -109,6 +114,7 @@ Public "read" is a new atom;
  *
  * @method "sparse"
  * @returns "open option"
+ * @category "Files"
  */
 Public "sparse" is a new atom;
 
@@ -119,6 +125,7 @@ Public "sparse" is a new atom;
  *
  * @method "synchronize all"
  * @returns "open option"
+ * @category "Files"
  */
 Public "synchronize all" is a new atom;
 
@@ -129,6 +136,7 @@ Public "synchronize all" is a new atom;
  *
  * @method "synchronize data"
  * @returns "open option"
+ * @category "Files"
  */
 Public "synchronize data" is a new atom;
 
@@ -138,6 +146,7 @@ Public "synchronize data" is a new atom;
  *
  * @method "truncate existing"
  * @returns "open option"
+ * @category "Files"
  */
 Public "truncate existing" is a new atom;
 
@@ -147,6 +156,7 @@ Public "truncate existing" is a new atom;
  *
  * @method "write"
  * @returns "open option"
+ * @category "Files"
  */
 Public "write" is a new atom;
 
@@ -171,6 +181,7 @@ _option_type ::= enumeration of _option_map's keys;
  * 
  * @method "open option"
  * @returns "type"
+ * @category "Files"
  */
 Public method "open option" is [_option_type];
 
@@ -181,6 +192,7 @@ Public method "open option" is [_option_type];
  * @method "_→numeric code"
  * @param "option" "open option"
  * @returns "[0..9]"
+ * @category "Files"
  */
 Public method "_→numeric code" is
 [

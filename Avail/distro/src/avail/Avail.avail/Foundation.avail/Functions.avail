@@ -374,6 +374,7 @@ Semantic restriction "_(`…,_)" is
  *        The expected return type of the {@type "method"}.
  * @returns "function"
  *          The requested {@type "function"}.
+ * @category "Function Implementations" "Atoms"
  */
 Public method "unsafe sender of_returning_" is
 [

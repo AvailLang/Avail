@@ -105,7 +105,7 @@ Method "stability failure function" is [failureFunction];
 Method "Set stability failure function to_"
 	is [f : stable guard | failureFunction := f;];
 
-/**
+/*
  * Utility method for {@method "Method_is stable at_"}.  Test whether the
  * given expression is singularly typed, meaning there is only one possible
  * value it could produce. Even though ⊥'s type is technically a metatype rather
@@ -122,7 +122,7 @@ Private method "_is singular expression" is
 	else [expressionType = ⊥'s type's type]
 ] : boolean;
 
-/**
+/*
  * Literal phrases are always foldable, even if they produce a type.  Normally
  * yielding a type means a subtype could be returned instead, but that's not the
  * case for a literal phrase.
@@ -134,7 +134,7 @@ Private method "_is singular expression" is
 	true
 ];
 
-/**
+/*
  * Override to reject folding in the presence of a super cast phrase.
  */
 Private method "_is singular expression" is
@@ -144,7 +144,7 @@ Private method "_is singular expression" is
 	false
 ];
 
-/**
+/*
  * Override to scan list phrases for super cast phrases, which will then be
  * rejected from folding.
  */
@@ -165,7 +165,7 @@ Private method "_is singular expression" is
 	true
 ];
 
-/**
+/*
  * Utility method for {@method "Method_is stable at_"}.  Test whether the
  * elements of the tuple of expressions all have types that have exactly one
  * instance each. Even though ⊥'s type is technically a metatype rather than a

@@ -104,7 +104,7 @@ Public method "Declare loop variable_as_" is
  * @param "anAtom" "atom" the atom that represents the function that is 
  * 	strengthened
  * @param "inputTypes" "<any's type…|>" a tuple of the input types of the method
- * @returnType "type"
+ * @returns "type"
  *		the strengthened type
  */
 	

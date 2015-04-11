@@ -57,6 +57,7 @@ defaultName ::= "«unnamed»";
  * @param "s" "server socket"
  * @returns "client socket"
  *          The newly connected client socket.
+ * @category "Synchronous IO" "Networking" "Sockets"
  */
 Public method "accept a new connection«named_»on_" is
 [

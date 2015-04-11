@@ -88,6 +88,7 @@ Body
  *
  * @method "owner"
  * @returns "file access class"
+ * @category "Files"
  */
 "owner" is a new atom;
 
@@ -96,6 +97,7 @@ Body
  *
  * @method "group"
  * @returns "file access class"
+ * @category "Files"
  */
 "group" is a new atom;
 
@@ -104,6 +106,7 @@ Body
  *
  * @method "others"
  * @returns "file access class"
+ * @category "Files"
  */
 "others" is a new atom;
 
@@ -112,6 +115,7 @@ Body
  * perspective of a file's owner.
  *
  * @type "file access class"
+ * @category "Files"
  */
 fileAccessClass ::= {owner, group, others}ᵀ;
 Method "file access class" is [fileAccessClass];
@@ -121,6 +125,7 @@ Method "file access class" is [fileAccessClass];
  *
  * @method "read"
  * @returns "file permission"
+ * @category "Files"
  */
 "read" is a new atom;
 
@@ -129,6 +134,7 @@ Method "file access class" is [fileAccessClass];
  *
  * @method "write"
  * @returns "file permission"
+ * @category "Files"
  */
 "write" is a new atom;
 
@@ -137,6 +143,7 @@ Method "file access class" is [fileAccessClass];
  *
  * @method "execute"
  * @returns "file permission"
+ * @category "Files"
  */
 "execute" is a new atom;
 
@@ -144,11 +151,13 @@ Method "file access class" is [fileAccessClass];
  * A file permission describes a capability to perform an operation upon a file.
  *
  * @type "file permission"
+ * @category "Files"
  */
 filePermissions ::= {read, write, execute}ᵀ;
 Method "file permission" is [filePermissions];
 
-/* Field atoms. */
+/* Field atoms. * @category "Files"
+ */
 "access`#" is a new field atom;
 "access class" is a new field atom;
 "access right name" is a new field atom;
@@ -159,6 +168,7 @@ Method "file permission" is [filePermissions];
  * "file access class"} and a {@type "file permission"}.
  *
  * @type "file access right"
+ * @category "Files"
  */
 Class "private file access right" extends object
 	with fields
@@ -236,6 +246,7 @@ For each right, index of fileAccessRights do
  * @method "_→numeric code"
  * @param "accessRight" "file access right"
  * @returns "[1..9]"
+ * @category "Files"
  */
 Public method "_→numeric code" is
 [
@@ -250,6 +261,7 @@ Public method "_→numeric code" is
  * "file access class"} and a {@type "file permission"}.
  *
  * @type "file access right"
+ * @category "Files"
  */
 fileAccessRightsEnum ::= enumeration of fileAccessRights→set;
 Method "file access right" is [fileAccessRightsEnum];
@@ -270,6 +282,7 @@ Method "file access right" is [fileAccessRightsEnum];
  *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the specified {@type "file name"}.
+ * @category "Files"
  */
 Public method "_is readable" is
 [
@@ -301,6 +314,7 @@ Public method "_is readable" is
  *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the specified {@type "file name"}.
+ * @category "Files"
  */
 Public method "_is writable" is
 [
@@ -323,7 +337,7 @@ Public method "_is writable" is
  * Note that the answer is only guaranteed valid at the time of the underlying
  * file system query, and is outdated immediately thereafter.
  *
- * @method "_is readable"
+ * @method "_is executable"
  * @param "fn" "file name"
  * @returns "boolean"
  *          {@method "true"} if {@param "fn"} names an existing file that is
@@ -332,6 +346,7 @@ Public method "_is writable" is
  *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the specified {@type "file name"}.
+ * @category "Files"
  */
 Public method "_is executable" is
 [
@@ -369,6 +384,7 @@ Public method "_is executable" is
  * @raises "operation-not-supported exception"
  *         If {@type "file access right"}s are not supported by the host
  *         platform.
+ * @category "Files"
  */
 Public method "_'s⁇access rights(follow if symlink=_)" is
 [
@@ -412,6 +428,7 @@ Public method "_'s⁇access rights(follow if symlink=_)" is
  * @raises "operation-not-supported exception"
  *         If {@type "file access right"}s are not supported by the host
  *         platform.
+ * @category "Files"
  */
 Public method "_'s⁇access rights«(don't follow if symlink)»?" is
 [
@@ -441,6 +458,7 @@ Public method "_'s⁇access rights«(don't follow if symlink)»?" is
  * @raises "operation-not-supported exception"
  *         If {@type "file access right"}s are not supported by the host
  *         platform.
+ * @category "Files"
  */
 Public method "_'s⁇access rights:=_(follow if symlink=_)" is
 [
@@ -483,6 +501,7 @@ Public method "_'s⁇access rights:=_(follow if symlink=_)" is
  * @raises "operation-not-supported exception"
  *         If {@type "file access right"}s are not supported by the host
  *         platform.
+ * @category "Files"
  */
 Public method "_'s⁇access rights:=_«(don't follow if symlink)»?" is
 [
@@ -523,6 +542,7 @@ Public method "_'s⁇access rights:=_«(don't follow if symlink)»?" is
  *    "<{¢r, ¢-}ᵀ, {¢w, ¢-}ᵀ, {¢x, ¢-}ᵀ,
  *    {¢r, ¢-}ᵀ, {¢w, ¢-}ᵀ, {¢x, ¢-}ᵀ,
  *    {¢r, ¢-}ᵀ, {¢w, ¢-}ᵀ, {¢x, ¢-}ᵀ…|9>"
+ * @category "Files"
  */
 [
 	tupleType ::=
@@ -539,6 +559,7 @@ Public method "_'s⁇access rights:=_«(don't follow if symlink)»?" is
  * @method "“_”(file access rights summary)"
  * @param "rights" "{file access rights|}"
  * @returns "file access rights summary"
+ * @category "Files"
  */
 Public method "“_”(file access rights summary)" is
 [
@@ -562,6 +583,7 @@ Public method "“_”(file access rights summary)" is
  * @method "_→file access rights"
  * @param "s" "file access rights summary"
  * @returns "{file access right|0..9}"
+ * @category "Files"
  */
 Public stable method "_→file access rights" is
 [

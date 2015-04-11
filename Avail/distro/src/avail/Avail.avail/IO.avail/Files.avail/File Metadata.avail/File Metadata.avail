@@ -86,6 +86,7 @@ Body
  * @method "_is regular file"
  * @param "m" "file metadata"
  * @returns "boolean"
+ * @category "Files"
  */
 Public method "_is regular file" is
 [
@@ -104,6 +105,7 @@ Public method "_is regular file" is
  * @method "_is regular file"
  * @param "fn" "file name"
  * @returns "boolean"
+ * @category "Files"
  */
 Public method "_is regular file" is
 [
@@ -122,6 +124,7 @@ Public method "_is regular file" is
  * @method "_is directory"
  * @param "m" "file metadata"
  * @returns "boolean"
+ * @category "Files"
  */
 Public method "_is directory" is
 [
@@ -140,6 +143,7 @@ Public method "_is directory" is
  * @method "_is directory"
  * @param "fn" "file name"
  * @returns "boolean"
+ * @category "Files"
  */
 Public method "_is directory" is
 [
@@ -158,6 +162,7 @@ Public method "_is directory" is
  * @method "_is symbolic link"
  * @param "m" "file metadata"
  * @returns "boolean"
+ * @category "Files"
  */
 Public method "_is symbolic link" is
 [
@@ -176,6 +181,7 @@ Public method "_is symbolic link" is
  * @method "_is symbolic link"
  * @param "fn" "file name"
  * @returns "boolean"
+ * @category "Files"
  */
 Public method "_is symbolic link" is
 [
@@ -194,6 +200,7 @@ Public method "_is symbolic link" is
  * @method "_is special file"
  * @param "m" "file metadata"
  * @returns "boolean"
+ * @category "Files"
  */
 Public method "_is special file" is
 [
@@ -212,6 +219,7 @@ Public method "_is special file" is
  * @method "_is special file"
  * @param "fn" "file name"
  * @returns "boolean"
+ * @category "Files"
  */
 Public method "_is special file" is
 [
@@ -237,6 +245,7 @@ Public method "_is special file" is
  * @raises "operation-not-supported exception"
  *         If {@type "file access right"}s are not supported by the host
  *         platform.
+ * @category "Files"
  */
 Public method "_'s⁇access rights" is
 [
@@ -252,6 +261,7 @@ Public method "_'s⁇access rights" is
  * @method "_'s⁇access rights:=_"
  * @param "m" "file metadata"
  * @param "rights" "{file access right|0..9}"
+ * @returns "⊤"
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
@@ -259,6 +269,7 @@ Public method "_'s⁇access rights" is
  * @raises "operation-not-supported exception"
  *         If {@type "file access right"}s are not supported by the host
  *         platform.
+ * @category "Files"
  */
 Public method "_'s⁇access rights:=_" is
 [
@@ -285,6 +296,7 @@ Public method "_'s⁇access rights:=_" is
  * @raises "operation-not-supported exception"
  *         If {@type "user principal"}s are not supported by the host
  *         platform.
+ * @category "Files"
  */
 Public method "_'s⁇owner" is
 [
@@ -308,6 +320,7 @@ Public method "_'s⁇owner" is
  * @raises "operation-not-supported exception"
  *         If {@type "user principal"}s are not supported by the host
  *         platform.
+ * @category "Files"
  */
 Public method "_'s⁇owner:=_" is
 [
@@ -334,6 +347,7 @@ Public method "_'s⁇owner:=_" is
  * @raises "operation-not-supported exception"
  *         If {@type "group principal"}s are not supported by the host
  *         platform.
+ * @category "Files"
  */
 Public method "_'s⁇group" is
 [
@@ -357,6 +371,7 @@ Public method "_'s⁇group" is
  * @raises "operation-not-supported exception"
  *         If {@type "group principal"}s are not supported by the host
  *         platform.
+ * @category "Files"
  */
 Public method "_'s⁇group:=_" is
 [
@@ -380,6 +395,7 @@ Public method "_'s⁇group:=_" is
  * @param "fn" "file name"
  * @returns "any"
  *          An opaque identifier.
+ * @category "Files"
  */
 Method "_'s⁇file ID" is
 [
@@ -398,6 +414,7 @@ Method "_'s⁇file ID" is
  * @method "_'s⁇file type"
  * @param "fn" "file name"
  * @returns "file type"
+ * @category "Files"
  */
 Method "_'s⁇file type" is
 [
@@ -421,6 +438,7 @@ Method "_'s⁇file type" is
  * @returns "[0..2^63 - 1]"
  *          The number of milliseconds since the Unix Epoch (00:00:00 UTC,
  *          Thursday, 1 January 1970).
+ * @category "Files"
  */
 Method "_'s⁇creation time" is
 [
@@ -444,6 +462,7 @@ Method "_'s⁇creation time" is
  * @returns "[0..2^63 - 1]"
  *          The number of milliseconds since the Unix Epoch (00:00:00 UTC,
  *          Thursday, 1 January 1970).
+ * @category "Files"
  */
 Method "_'s⁇last modification time" is
 [
@@ -467,6 +486,7 @@ Method "_'s⁇last modification time" is
  * @returns "[0..2^63 - 1]"
  *          The number of milliseconds since the Unix Epoch (00:00:00 UTC,
  *          Thursday, 1 January 1970).
+ * @category "Files"
  */
 Method "_'s⁇last access time" is
 [
@@ -485,6 +505,7 @@ Method "_'s⁇last access time" is
  * @method "_'s⁇size"
  * @param "fn" "file name"
  * @returns "[0..2^63 - 1]"
+ * @category "Files"
  */
 Method "_'s⁇size" is
 [

@@ -67,6 +67,7 @@ Method "`|_`|" is stable at
 /**
  * @method "`|_`|"
  * @restricts "tuple meta"
+ * @category "Tuples"
  */
 Semantic restriction "`|_`|" is
 [
@@ -81,6 +82,7 @@ Method "`|_`|" is stable at
 /**
  * @method "`|_`|"
  * @restricts "set meta"
+ * @category "Sets"
  */
 Semantic restriction "`|_`|" is
 [
@@ -96,6 +98,7 @@ Method "`|_`|" is stable at
 /**
  * @method "`|_`|"
  * @restricts "map meta"
+ * @category "Maps"
  */
 Semantic restriction "`|_`|" is
 [
@@ -671,6 +674,7 @@ Public method "{«_→_‡,»}" is
  * @method "{«_→_‡,»}"
  * @restricts "key-value tuple's type"
  * @returns "set's type"
+ * @category "Maps"
  */
 Semantic restriction "{«_→_‡,»}" is
 [
@@ -812,6 +816,7 @@ Grammatical restriction {"⎣_⎦", "⎡_⎤"} is <{"`|`|_`|`|"}>;
  * @macro "<«_‡,»>"
  * @param "exprs" "list phrase ⇒ tuple"
  * @returns "phrase ⇒ tuple"
+ * @category "Tuples"
  */
 Macro "<«_‡,»>" is
 [
@@ -909,6 +914,7 @@ Macro "<«_‡,»>" is
  * @macro "{«_‡,»}"
  * @param "exprs" "list phrase ⇒ nonempty tuple"
  * @returns "phrase ⇒ set"
+ * @category "Sets"
  */
 Macro "{«_‡,»}" is
 [
@@ -942,6 +948,7 @@ Macro "{«_‡,»}" is
  * @macro "{«_→_‡,»}"
  * @param "exprs" "list phrase ⇒ tuple"
  * @returns "phrase ⇒ set"
+ * @category "Maps"
  */
 Macro "{«_→_‡,»}" is
 [
@@ -1015,6 +1022,7 @@ Private method "a double from integer=_,fraction=_,exponent=_" is
  * @param "integerPart" "literal phrase ⇒ (literal token ⇒ whole number)"
  * @param "fractionalPart" "literal phrase ⇒ (literal token ⇒ whole number)"
  * @param "isFloat" "literal phrase ⇒ boolean"
+ * @category "Numbers" "Floating Point"
  * @returns "literal phrase ⇒ number"
  */
 Public macro "…#.…#«f»?" is
@@ -1041,6 +1049,7 @@ Public macro "…#.…#«f»?" is
  * @param "integerPart" "literal phrase ⇒ (literal token ⇒ whole number)"
  * @param "fractionalPart" "literal phrase ⇒ (literal token ⇒ whole number)"
  * @param "exponentPart" "literal phrase ⇒ token"
+ * @category "Numbers" "Floating Point"
  * @returns "literal phrase ⇒ number"
  */
 Public macro "…#.…#…" is
@@ -1114,6 +1123,7 @@ Public macro "…#.…#…" is
  * @param "fractionalPart" "literal phrase ⇒ (literal token ⇒ whole number)"
  * @param "exponentPart" "literal phrase ⇒ token"
  * @param "isFloatPhrase" "literal phrase ⇒ boolean"
+ * @category "Numbers" "Floating Point"
  * @returns "literal phrase ⇒ number"
  */
 Public macro "…#.…#e|E«+|-»!…#«f»?" is
@@ -1124,6 +1134,7 @@ Public macro "…#.…#e|E«+|-»!…#«f»?" is
 	exponentPart : literal phrase ⇒ (literal token ⇒ integer),
 	isFloatPhrase : literal phrase ⇒ boolean
 |
+/*TODO RAA _'s⁇leading white space _'s⁇trailing white space called on a token*/
 	integerToken ::= integerPart's token's value;
 	fractionalToken ::= fractionalPart's token's value;
 	sign ::= signPart's token's value;

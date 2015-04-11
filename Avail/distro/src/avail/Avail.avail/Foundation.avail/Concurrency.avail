@@ -684,6 +684,7 @@ Public method "default maximum worker fibers" is [100];
  *        A variable into which to store an {@type "exception"} that terminates
  *        any work unit.
  * @returns "⊤"
+ * @category "Concurrency" "Functions"
  */
 Public method
 	"Store a runner of_work units into_,\

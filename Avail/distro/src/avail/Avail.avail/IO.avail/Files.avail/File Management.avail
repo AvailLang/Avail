@@ -119,6 +119,7 @@ Private method "private rename_to_replace existing_then_else_priority_" is
  * @raises "invalid-path exception"
  *         If either {@param "src"} or {@param "dest"} cannot be understood as a
  *         path.
+ * @category "Files" "Asynchronous IO"
  */
 Public method
 	"a fiber renaming_to_\
@@ -173,6 +174,7 @@ is
  *         "false"}.
  * @raises "I/O exception"
  *         If an I/O error occurs for any reason.
+ * @category "Files" "Synchronous IO"
  */
 Public method "Rename_to_«(overwrite=_)»" is
 [
@@ -227,6 +229,7 @@ Public method "Rename_to_«(overwrite=_)»" is
  * @raises "permission-denied exception"
  *         If permission is denied to use either of the specified {@type "file
  *         name"}s.
+ * @category "Files"
  */
 Public method "Move_to_(overwrite=_)" is
 [
@@ -273,6 +276,7 @@ Public method "Move_to_(overwrite=_)" is
  * @raises "permission-denied exception"
  *         If permission is denied to use either of the specified {@type "file
  *         name"}s.
+ * @category "Files"
  */
 Public method "Move_to_«,⁇overwriting if necessary»?" is
 [
@@ -304,6 +308,7 @@ Public method "Move_to_«,⁇overwriting if necessary»?" is
  * @param "copyAttributes" "boolean"
  *        {@method "true"} if the file attributes of {@param "src"} should be
  *        copied as faithfully as possible, {@method "false"} otherwise.
+ * @returns "⊤"
  * @raises "invalid-path exception"
  *         If either {@param "src"} or {@param "dest"} cannot be understood as a
  *         path.
@@ -317,6 +322,7 @@ Public method "Move_to_«,⁇overwriting if necessary»?" is
  * @raises "permission-denied exception"
  *         If permission is denied to use either of the specified {@type "file
  *         name"}s.
+ * @category "Files"
  */
 Public method
 	"Recursively⁇Copy|copy_to_(follow symlinks=_,overwrite=_,copy attributes=_)"
@@ -367,6 +373,7 @@ is
  * @param "copyAttributes" "boolean"
  *        {@method "true"} if the file attributes of {@param "src"} should be
  *        copied as faithfully as possible, {@method "false"} otherwise.
+ * @returns "⊤"
  * @raises "invalid-path exception"
  *         If either {@param "src"} or {@param "dest"} cannot be understood as a
  *         path.
@@ -380,6 +387,7 @@ is
  * @raises "permission-denied exception"
  *         If permission is denied to use either of the specified {@type "file
  *         name"}s.
+ * @category "Files"
  */
 Public method
 	"Recursively⁇Copy|copy_to_\
@@ -431,6 +439,7 @@ is
  *         a non-empty directory.
  * @raises "I/O exception"
  *         If an I/O error occurs for any reason.
+ * @category "Files"
  */
 Public method "Unlink_(recursive=_,must exist=_,follow symlinks=_)" is
 [
@@ -488,6 +497,7 @@ Public method "Unlink_(recursive=_,must exist=_,follow symlinks=_)" is
  *         a non-empty directory.
  * @raises "I/O exception"
  *         If an I/O error occurs for any reason.
+ * @category "Files"
  */
 Public method
 	"«Recursively»?Unlink|unlink_«if necessary»?«,⁇following symlinks»?"

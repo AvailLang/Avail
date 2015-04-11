@@ -108,6 +108,7 @@ Body
  *
  * @type "file"
  * @supertype "object"
+ * @category "Files"
  */
 Public class "file" extends object
 	with fields
@@ -123,6 +124,7 @@ Public class "file" extends object
  *
  * @type "readable file"
  * @supertype "file"
+ * @category "Files"
  */
 Public class "readable file" extends file
 	with field
@@ -133,6 +135,7 @@ Public class "readable file" extends file
  *
  * @type "writable file"
  * @supertype "file"
+ * @category "Files"
  */
 Public class "writable file" extends file
 	with field
@@ -144,6 +147,7 @@ Public class "writable file" extends file
  * @type "readable,⁇writable file"
  * @supertype "readable file"
  * @supertype "writable file"
+ * @category "Files"
  */
 Public class "readable,⁇writable file" extends readable file ∩ writable file;
 
@@ -174,11 +178,12 @@ _default_access_rights ::= "rw-r--r--" → file access rights;
  * 
  * @method "default file access rights"
  * @returns "{file access right|}"
+ * @category "Files"
  */
 Public method "default file access rights" is [_default_access_rights];
 
 /**
- * Answer an abstraction of the file named {@param "n"} that is open for
+ * Answer an abstraction of the file named {@param "fileName"} that is open for
  * reading. The file position is initially zero ({@code 0}).
  *
  * @method "_opened«with alignment_»with options_«with file access rights_»"
@@ -195,11 +200,12 @@ Public method "default file access rights" is [_default_access_rights];
  *        The initial {@type "file access right"}s to give the file in the event
  *        that a file is created by this operation.
  * @returns "file"
- *          The {@type file}.
+ *          The {@type "file"}.
  * @raises "permission-denied exception"
  *         If permission is denied to use the specified {@type "file name"}.
  * @raises "I/O exception"
  *         If an I/O error occurs for any reason.
+ * @category "Files"
  */
 Public method
 	"_opened«with alignment_»with options_«with file access rights_»" is
@@ -286,6 +292,7 @@ Public method "_is closed" is [f : file | ¬f's open state];
  * @method "“_”"
  * @param "f" "file"
  * @returns "string"
+ * @category "Files"
  */
 Stable method "“_”" is
 [
@@ -312,6 +319,7 @@ Stable method "“_”" is
  *
  * @type "file-closed exception"
  * @supertype "I/O exception"
+ * @category "Exceptions" "Files"
  */
 Public explicit class "file-closed exception" extends I/O exception;
 
@@ -320,8 +328,10 @@ Public explicit class "file-closed exception" extends I/O exception;
  *
  * @method "Close_"
  * @param "f" "file"
+ * @returns "⊤"
  * @raises "file-closed exception"
  *         If {@param "f"} has already been closed.
+ * @category "Files"
  */
 Method "Close_" is
 [
@@ -342,8 +352,10 @@ Method "Close_" is
  *
  * @method "_'s⁇alignment"
  * @param "f" "file"
+ * @returns "natural number"
  * @raises "file-closed exception"
  *         If {@param "f"} has already been closed.
+ * @category "Files"
  */
 Method "_'s⁇alignment" is
 [
@@ -368,6 +380,7 @@ Method "_'s⁇alignment" is
  *         If an I/O error occurs for any reason.
  * @raises "file-closed exception"
  *         If {@param "f"} has already been closed.
+ * @category "Files"
  */
 Public method "_'s⁇size" is
 [
@@ -420,6 +433,7 @@ Private method "private truncate_to_then_else_priority_" is
  *         If {@param "f"} is a special atom.
  * @raises "not open for write"
  *         If {@param "f"} is a valid file handle, but not opened for write.
+ * @category "Asynchronous IO" "Files"
  */
 Public method "a fiber truncating_to_bytes⁇then_else_priority_" is
 [
@@ -528,10 +542,12 @@ Public method
  *
  * @method "Synchronize_with file system"
  * @param "f" "writable file"
+ * @returns "fiber"
  * @raises "I/O exception"
  *         If an I/O error occurs for any reason.
  * @raises "file-closed exception"
  *         If {@param "f"} has already been closed.
+ * @category "Files" "Asynchronous IO"
  */
 Public method "a fiber synchronizing_with file system,then_else_priority_" is
 [
@@ -573,7 +589,10 @@ Private method "private refresh_with file system" is
  * @method "Refresh_with file system"
  * @param "f" "readable file"
  *        The file whose buffers should be discarded.
- * @throws "invalid-handle code"
+ * @returns "⊤"
+ * @category "Files"
+ * @raises "invalid-handle code"
+ * 
  */
 Public method "Refresh_with file system" is
 [
@@ -595,6 +614,7 @@ Public method "Refresh_with file system" is
  *        A function to apply to {@param "f"}.
  * @returns "⊤"
  *          The answer produced by applying {@param "action"} to {@param "f"}.
+ * @category "Files"
  */
 Public method "Using|using_,⁇do_" is
 [
@@ -648,6 +668,7 @@ _default_directory_access_rights ::= "rwxr-xr-x"→file access rights;
  * 
  * @method "default directory access rights"
  * @returns "{file access right|}"
+ * @category "Files"
  */
 Public method "default directory access rights" is
 [
@@ -686,6 +707,7 @@ Public method "default directory access rights" is
  *          "fail"}, as appropriate.
  * @raises "invalid-path exception"
  *         If {@param "fn"} does not represent a valid path.
+ * @category "Asynchronous IO" "Files"
  */
 Public method
 	"a fiber creating a directory named_\
@@ -728,6 +750,7 @@ is
  *         If the operation is not permitted.
  * @raises "I/O exception"
  *         If an I/O error occurred.
+ * @category "Synchronous IO" "Files"
  */
 Public method "Create a directory named_«with file access rights_»" is
 [
