@@ -51,7 +51,7 @@ Uses
 	"Variables"
 Names
 	"unsafe sender of_returning_",
-	"_(««_»«`_»?‡,»)",
+	"_(««_»?«`_»?‡,»)",
 	"_(_,`…)",
 	"_(`…,_)"
 Body
@@ -159,7 +159,7 @@ Private method "_partially evaluate with_" is
  * f(10,20,30).  This is a generalization of currying as found in functional
  * languages.
  * 
- * @method "_(««_»«`_»?‡,»)"
+ * @method "_(««_»?«`_»?‡,»)"
  * @param "originalFunction" "function"
  *        The function to ultimately invoke.
  * @param "pairs" "<<any?, boolean…|2>…|>"
@@ -175,7 +175,7 @@ Private method "_partially evaluate with_" is
  *          the arguments and invokes the original function.
  * @category "Function Application"
  */
-Public method "_(««_»«`_»?‡,»)" is
+Public method "_(««_»?«`_»?‡,»)" is
 [
 	originalFunction : function,
 	pairs : <<any?, boolean…|2>…|>
@@ -184,11 +184,11 @@ Public method "_(««_»«`_»?‡,»)" is
 ] : function;
 
 /**
- * @method "_(««_»«`_»?‡,»)"
+ * @method "_(««_»?«`_»?‡,»)"
  * @restricts "function's type"
  * @restricts "<<any?, boolean…|2>…|>'s type"
  */
-Semantic restriction "_(««_»«`_»?‡,»)" is
+Semantic restriction "_(««_»?«`_»?‡,»)" is
 [
 	originalFunction : function's type,
 	pairs : <<any?, boolean…|2>…|>'s type

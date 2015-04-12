@@ -57,7 +57,6 @@ Names
 	"<«_‡,»`…`|_>",
 	"<«_‡,»`…`|>",
 	/* Set type constructors. */
-	"set«_»of_",
 	"{_`|_.._}",
 	"{_`|_..}",
 	"{_`|.._}",
@@ -852,49 +851,6 @@ Semantic restriction "{_`|}" is
 	elementTypeType : any's type's type
 |
 	{elementTypeType's instance|[0..∞)}'s type
-];
-
-/**
- * Construct and answer a set type with the specified element type and range of
- * cardinalities.
- *
- * @method "set«_»of_"
- * @param "optionalSizes" "whole number meta?"
- *        If specified, then the range of allowed cardinalities. Defaults to
- *        whole number.
- * @param "elementType" "any meta"
- *        The element type.
- * @category "Sets" "Types"
- * @returns "set meta"
- *    The requested set type. Instances have elements that conform to
- *    `elementType` and cardinalities that conform to `optionalSizes`, if
- *    specified, or `whole number`, if unspecified.
- */
-Public method "set«_»of_" is
-[
-	optionalSizes : whole number meta?,
-	elementType : any meta
-|
-	{elementType | optionalSizes[1] else [whole number]}
-] : set meta;
-
-/**
- * @method "set«_»of_"
- * @restricts "whole number meta?'s type"
- * @restricts "any meta's type"
- * @category "Sets" "Types"
- */
-Semantic restriction "set«_»of_" is
-[
-	optionalSizes : whole number meta?'s type,
-	elementType : any meta's type
-|
-	sizes ::= if ⎡optionalSizes⎤ = 0
-		then [whole number]
-		else [optionalSizes[1]'s instance];
-	bound ::= cast ⎡sizes⎤ + 1 into [t : [0..∞] | t];
-	lower ::= ⎣sizes⎦;
-	{elementType's instance|[lower..bound)}'s type
 ];
 
 /**

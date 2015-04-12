@@ -53,7 +53,7 @@ Extends
 		"Try again",
 		"all values of_",
 		"first try",
-		"first«_»value|values of_",
+		"first«_»?value|values of_",
 		"no-backtracking-fence exception",
 		"no-checkpoint exception",
 		"trial element of_",
@@ -757,7 +757,7 @@ Extends
 	(
 		"unsafe sender of_returning_",
 		"_(«_‡,»)",
-		"_(««_»«`_»?‡,»)",
+		"_(««_»?«`_»?‡,»)",
 		"_(_,`…)",
 		"_(`…,_)"
 	),

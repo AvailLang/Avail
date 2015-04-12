@@ -1,5 +1,5 @@
 /*
- * Quick Start.avail
+ * Exploration.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,10 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Quick Start"
-Extends
-	"Exploration",
-	"Using the Standard Library",
-	"Constants",
-	"Variables"
+/* Everything up to and including the keyword "Body" is the module header. */
+Module "Exploration"
+Uses
+	"Avail"
 Body
+
+/* Everything after the keyword "Body" is the module body. */

@@ -77,23 +77,24 @@ Private method "a reader prefix function" is
 			aReaderType's element type's instance
 		];
 	]
-]: [literal phrase ⇒ token, expression phrase ⇒ reader]→⊤;
+] : [literal phrase ⇒ token, expression phrase ⇒ reader]→⊤;
 
 /**
  * Answer a function that computes a body function.
- * 
+ *
  * @method "body function(_,_)"
- * @param "anAtom" "atom" the atom that represents the function that the
- * 		macro builds
- * @param "baseReturnType" "type" the base return type of the method
- * @returns "[literal phrase ⇒ token, expression phrase ⇒ reader, 
+ * @param "anAtom" "atom"
+ *        The atom that represents the function that the macro builds.
+ * @param "baseReturnType" "type"
+ *        The base return type of the method.
+ * @returns "[literal phrase ⇒ token, expression phrase ⇒ reader,
  *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
  *          The requested function.
  */
 Private method "body function(_,_)" is
 [
- 	anAtom : atom,
- 	baseReturnType : type
+	anAtom : atom,
+	baseReturnType : type
 |
 	[
 		elementPhrase : literal phrase ⇒ token,
@@ -111,16 +112,21 @@ Private method "body function(_,_)" is
 			else [⊤];
 		restricted send anAtom with
 		<
-			aReader, 
+			aReader,
 			«[
-			  	<cast scope map[name] into [d : argument phrase | d]>
-			| 
+				<cast scope map[name] into [d : argument phrase | d]>
+			|
 				statements
 			] : blockReturnType»
 		> : returnType
 	] : send phrase ⇒ ⊤
-] : [literal phrase ⇒ token, expression phrase ⇒ reader, 
-     block phrase ⇒ []→ ⊤]→send phrase ⇒ ⊤;
+] :
+	[
+		literal phrase ⇒ token,
+		expression phrase ⇒ reader,
+		block phrase ⇒ []→⊤
+	]→send phrase ⇒ ⊤;
+
 /**
  * Reader iterating-loop that invokes {@param "action"} once for every
  * {@param "elementPhrase"} in {@param "aReader"} 
@@ -306,18 +312,18 @@ Macro "reject each…from_§where_" is a reader prefix function,
 	aReaderType ::= aReader's semantic type;
 	blockType ::= [⊥]→(predicateBlock's semantic type's return type);
 	returnType ::= strengthen reader for call of $"filter_by_" 
-		using <aReaderType, blockType>; 		
+		using <aReaderType, blockType>;
 	statements ::= predicateBlock's statements;
 
 	size ::= |statements|;
 
 	newStatements ::= if size = 0 then [<>] else 
 	[
-	 	end : whole number := cast size-1 into [w : whole number | w];
-	 	i : natural number := cast size into [n : natural number | n];
-	 	c : expression phrase⇒any := cast statements[i] into 
-		 	[e : expression phrase⇒any | e];
-	 	statements[..end] ++ <restricted send $"¬_" with <c> : boolean>
+		end : whole number := cast size-1 into [w : whole number | w];
+		i : natural number := cast size into [n : natural number | n];
+		c : expression phrase⇒any := cast statements[i] into 
+			[e : expression phrase⇒any | e];
+		statements[..end] ++ <restricted send $"¬_" with <c> : boolean>
 	];
 	blockReturnType ::= cast newStatements
 		into [t : phrase+ | t[|t|]'s semantic type]
@@ -326,8 +332,8 @@ Macro "reject each…from_§where_" is a reader prefix function,
 	<
 		aReader, 
 		«[
-		  	<cast scope map[name] into [d : argument phrase | d]>
-		| 
+			<cast scope map[name] into [d : argument phrase | d]>
+		|
 			newStatements
 		] : blockReturnType»
 	> : returnType
