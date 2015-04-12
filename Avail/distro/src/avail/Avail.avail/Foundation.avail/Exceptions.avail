@@ -919,44 +919,212 @@ Public explicit class "variable-use exception" extends exception;
 /* Define specific exception classes for each of the VM and Foundation error
  * codes.
  */
+
+/**
+ * Raised when adding {@method "∞"} and {@method "-∞"}.
+ *
+ * @type "cannot-add-unlike-infinities exception"
+ * @supertype "arithmetic exception"
+ * @category "Exceptions" "Mathematics"
+ */
 System exception "cannot-add-unlike-infinities" (1)
 	extends arithmetic exception;
+
+/**
+ * Raised when subtracting {@type "extended integer" infinities} with the same
+ * sign.
+ *
+ * @type "cannot-subtract-like-infinities exception"
+ * @supertype "arithmetic exception"
+ * @category "Exceptions" "Mathematics"
+ */
 System exception "cannot-subtract-like-infinities" (2)
 	extends arithmetic exception;
+
+/**
+ * Raised when multiplying {@code 0} and {@method "∞"}.
+ *
+ * @type "cannot-multiply-zero-and-infinity exception"
+ * @supertype "arithmetic exception"
+ * @category "Exceptions" "Mathematics"
+ */
 System exception "cannot-multiply-zero-and-infinity" (3)
 	extends arithmetic exception;
+
+/**
+ * Raised when dividing any dividend by {@code 0}.
+ *
+ * @type "cannot-divide-by-zero exception"
+ * @supertype "arithmetic exception"
+ * @category "Exceptions" "Mathematics"
+ */
 System exception "cannot-divide-by-zero" (4)
 	extends arithmetic exception;
+
+/**
+ * Raised when dividing an {@type "extended integer" infinity} by another one.
+ *
+ * @type "cannot-divide-infinities exception"
+ * @supertype "arithmetic exception"
+ * @category "Exceptions" "Mathematics"
+ */
 System exception "cannot-divide-infinities" (5)
 	extends arithmetic exception;
+
+/**
+ * Raised when reading from an {@method "↑_is unassigned" unassigned} {@type
+ * "variable"}.
+ *
+ * @type "cannot-read-unassigned-variable exception"
+ * @supertype "variable-use exception"
+ * @category "Exceptions" "Variables"
+ */
 System exception "cannot-read-unassigned-variable" (6)
 	extends variable-use exception;
+
+/**
+ * Raised when storing an inappropriately typed value into a {@type "variable"}
+ * (using {@method "_`?=_"} or the like).
+ *
+ * @type "cannot-store-incorrectly-typed-value exception"
+ * @supertype "variable-use exception"
+ * @category "Exceptions" "Variables"
+ */
 System exception "cannot-store-incorrectly-typed-value" (7)
 	extends variable-use exception;
+
+/**
+ * Raised when {@method "Swap_↑and_↑" exchanging} the contents of two
+ * incompatibly typed variables.
+ *
+ * @type "cannot-swap-contents-of-differently-typed-variables exception"
+ * @supertype "variable-use exception"
+ * @category "Exceptions" "Variables"
+ */
 System exception "cannot-swap-contents-of-differently-typed-variables" (8)
 	extends variable-use exception;
+
+/**
+ * Raised when reading or removing a nonexistent {@type "fiber"}-local variable.
+ *
+ * @type "no-such-fiber-variable exception"
+ * @supertype "element-access exception"
+ * @category "Exceptions" "Concurrency"
+ */
 System exception "no-such-fiber-variable" (9)
 	extends element-access exception;
+
+/**
+ * Raised when accessing a {@type "tuple"} or {@type "pojo array"} with an index
+ * that is out of bounds, i.e., less than {@code 1} or greater than the
+ * {@method "`|_`|" size} of the target.
+ *
+ * @type "subscript-out-of-bounds exception"
+ * @supertype "element-access exception"
+ * @category "Exceptions" "Tuples" "Pojos"
+ */
 System exception "subscript-out-of-bounds" (10)
 	extends element-access exception;
+
+/**
+ * Raised when performing an operation with the wrong number of arguments.
+ *
+ * @type "incorrect-number-of-arguments exception"
+ * @supertype "invocation exception"
+ * @category "Exceptions"
+ */
 System exception "incorrect-number-of-arguments" (11)
 	extends invocation exception;
+
+/**
+ * Raised when performing an operation with one or more incorrectly typed
+ * arguments.
+ *
+ * @type "incorrect-argument-type exception"
+ * @supertype "invocation exception"
+ * @category "Exceptions"
+ */
 System exception "incorrect-argument-type" (12)
 	extends invocation exception;
+
+/**
+ * Raised when the return type declared or inferred for a particular {@type
+ * "method definition"} does not agree with the return type declared by that
+ * {@type "method definition"}'s {@method "Forward method_is_" forward
+ * declaration}.
+ *
+ * @type "method-return-type-not-as-forward-declared exception"
+ * @supertype "definition exception"
+ * @category "Exceptions"
+ */
 System exception "method-return-type-not-as-forward-declared" (13)
 	extends definition exception;
+
+/**
+ * Raised when attempting to {@method "Exit_" exit} a {@type "continuation"}
+ * with a value insufficiently strong to satisfy the {@type "continuation"}'s
+ * return type.
+ *
+ * @type "continuation-expected-stronger-type exception"
+ * @supertype "invocation exception"
+ * @category "Exceptions" "Continuations"
+ */
 System exception "continuation-expected-stronger-type" (14)
 	extends invocation exception;
+
+/**
+ * Raised when invoking a primitive {@type "method"} that is not supported by
+ * the underlying platform.
+ *
+ * @type "operation-not-supported exception"
+ * @supertype "unsupported-operation"
+ * @category "Exceptions" "Primitives"
+ */
 System exception "operation-not-supported" (15)
 	extends unsupported-operation exception;
+
+/**
+ * Raised when invoking an operation that expects an enumeration type with an
+ * argument that is not an enumeration type.
+ *
+ * @type "not-an-enumeration exception"
+ * @supertype "invocation exception"
+ * @category "Exceptions" "Types" "Enumerations"
+ */
 System exception "not-an-enumeration" (17)
 	extends invocation exception;
+
+/**
+ * Raised by {@method "_<<_keeping_bits"} when the truncation size is negative.
+ *
+ * @type "shift-and-truncate-requires-non-negative exception"
+ * @supertype "arithmetic exception"
+ * @category "Exceptions" "Mathematics"
+ */
 System exception "shift-and-truncate-requires-non-negative" (18)
 	extends arithmetic exception;
+
+/**
+ * Raised when attempting to look up a nonexistent {@type "method"}.
+ *
+ * @type "no-method exception"
+ * @supertype "element-access exception"
+ * @category "Exceptions" "Methods"
+ */
 System exception "no-method" (19)
 	extends element-access exception;
+
+/**
+ * Raised by {@method "function from_and_"} when attempting to create a {@type
+ * "function"} with the wrong number of captured values.
+ *
+ * @type "wrong-outers exception"
+ * @supertype "code-generation"
+ * @category "Exceptions" "Functions"
+ */
 System exception "wrong-outers" (20)
 	extends code-generation exception;
+
 System exception "key-not-found" (21)
 	extends element-access exception;
 System exception "negative-size" (22)
