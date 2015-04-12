@@ -167,6 +167,9 @@ Test "map through" in set test suite is
  	a ::= {1,2,3,4};
  	b ::= map a through [n : natural number | n × 2];
  	Require: b = {2,4,6,8};
+ 	c ::= map {"one", "two", "three", "four", "five"} through 
+ 		[s : string | |s|];
+ 	Require: c = {3, 5, 4};
 ];
 
 Test "map and filter" in set test suite is

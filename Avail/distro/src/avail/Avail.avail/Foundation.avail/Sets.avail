@@ -419,7 +419,7 @@ Semantic restriction "map_through_" is
 				\| ⊥"
 		];
 	];
-	{transformer's return type | ||setType||}
+	{transformer's return type | [0..⎡setType⎤ + 1)}
 ];
 
 /**
