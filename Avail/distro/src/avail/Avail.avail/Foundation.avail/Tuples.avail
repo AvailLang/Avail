@@ -623,7 +623,7 @@ Macro "map each…in|of_§through_" is a tuple iteration prefix function,
  * {@param "aTuple"}, collecting the results into a new tuple (and preserving 
  * ordering of the transformed elements). Answer this {@type "tuple"}.
  * 
- * @macro "map each…in|of_§through_"
+ * @macro "map each…,…in|of_§through_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
