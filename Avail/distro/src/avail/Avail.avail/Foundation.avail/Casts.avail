@@ -435,7 +435,7 @@ Semantic restriction "Cast|cast each of_into_" is
  *        The function to invoke if any element of {@param "values"} is not a
  *        subtype of the corresponding parameter type of {@param "accept"}.
  * @returns "any" 
- * 		The result of {@param "accept"} or {@param "reject"}.
+ *          The result of {@param "accept"} or {@param "reject"}.
  * @category "Casts" "Control Structures" "Conditionals"
  */
 Public method "Cast|cast each of_into_else_" is
@@ -520,7 +520,8 @@ Semantic restriction "Cast|cast each of_into_else_" is
  * @param "strongerType" "type"
  *        Evaluated at compile time to produce the strengthened type of this
  *        call.
- * @returns "any" Restricted to the strongerType.
+ * @returns "any"
+ *          Restricted to the {@param "strongerType"}.
  * @category "Casts"
  */
 Public method "_`?→_†" is
@@ -548,7 +549,6 @@ Public method "_`?→_†" is
  *        Evaluated at compile time to produce the strengthened type of this
  *        call.  The actual type is passed at runtime, but the metatype is what
  *        gets provided to this semantic restriction.
- * @returns "type" The restricted type at this call site.
  */
 Semantic restriction "_`?→_†" is
 [
@@ -629,7 +629,6 @@ Public method "_`?→_†else_" is
  *        What to do in case the value being tested does not comply with the
  *        strengthening type.  The result of running this function will be used
  *        as the call site's resulting value.
- * @returns "type" The restricted type at this call site.
  */
 Semantic restriction "_`?→_†else_" is
 [
