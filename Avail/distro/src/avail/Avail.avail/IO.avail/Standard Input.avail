@@ -45,13 +45,13 @@ Body
 /**
  * Read {@param "count"} characters from the standard input stream.
  *
- * @category "I/O" "Standard I/O"
+ * @category "I/O" "Standard IO"
  * @method "next_character|characters«from standard input»⁇"
  * @param "count" "whole number"
  *        The desired number of characters.
  * @returns "string"
  *          A string containing {@param "count"} characters.
- * @category "Synchronous IO" "Standard Input" "IO"
+ * @category "Synchronous IO" "Standard IO" "IO"
  */
 Public method "next_character|characters«from standard input»⁇" is
 [
@@ -81,11 +81,11 @@ Semantic restriction "next_character|characters«from standard input»⁇" is
  * feed {@code "\\n"} (U+000A) has been consumed. The result does not include
  * any line feeds.
  *
- * @category "I/O" "Standard I/O"
+ * @category "I/O" "Standard IO"
  * @method "next line«from standard input»⁇"
  * @returns "string"
  *          A line of text (not including any line feeds).
- * @category "Synchronous IO" "Standard Input" "IO"
+ * @category "Synchronous IO" "Standard IO" "IO"
  */
 Public method "next line«from standard input»⁇" is
 [
@@ -111,7 +111,7 @@ integerChars ::= "-∞0123456789"→set;
  *        The range within which the extended integer must lie.
  * @returns "extended integer"
  *          An extended integer within the requested range.
- * @category "Synchronous IO" "Standard Input" "IO"
+ * @category "Synchronous IO" "Standard IO" "IO"
  */
 Public method "next«value in»⁇_«from standard input»⁇" is
 [

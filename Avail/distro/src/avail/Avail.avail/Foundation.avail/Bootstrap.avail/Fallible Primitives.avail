@@ -2057,7 +2057,7 @@ Primitive "Forward method_is_" is
 /**
  * Read the next character from the standard input stream.
  *
- * @category "Primitives" "Standard I/O" "Synchronous IO"
+ * @category "Primitives" "Standard IO" "Synchronous IO"
  * @method "next character"
  * @returns "character"
  *    The next character from the standard input stream.
@@ -2149,7 +2149,7 @@ Primitive "Grammatical restriction_is_" is
 /**
  * Print the argument to the application's standard output stream.
  *
- * @category "Primitives" "Standard I/O" "Synchronous IO"
+ * @category "Primitives" "Standard IO" "Synchronous IO"
  * @method "Print:_"
  * @param "text" "string"
  *        A string.
@@ -2168,7 +2168,7 @@ Primitive "Print:_" is
  * Mark the standard input stream to allow at least {@param "count"}
  * characters of read ahead.
  *
- * @category "Primitives" "Standard I/O"
+ * @category "Primitives" "Standard IO"
  * @method "Mark for_character|characters of read ahead"
  * @param "count" "whole number"
  *        The requested number of characters of read ahead.
@@ -2187,7 +2187,7 @@ Primitive "Mark for_character|characters of read ahead" is
 /**
  * Reset the standard input stream to the previously set mark.
  *
- * @category "Primitives" "Standard I/O"
+ * @category "Primitives" "Standard IO"
  * @method "Reset to mark"
  * @returns "⊤"
  * @raises "I/O-error exception"
@@ -2277,7 +2277,7 @@ Primitive "Grammatical restriction_is_" is
 /**
  * Print the argument to the application's standard error stream.
  *
- * @category "Primitives" "Standard I/O" "Synchronous IO"
+ * @category "Primitives" "Standard IO" "Synchronous IO"
  * @method "Error:_"
  * @param "text" "string"
  *        A string.
