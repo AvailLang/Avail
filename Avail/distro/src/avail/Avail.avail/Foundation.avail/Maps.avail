@@ -505,7 +505,7 @@ Macro "select each…→…from_§where_" is a map iteration prefix function,
  * no particular order, rejecting those bindings for which {@param "action"}
  * answers {@method "true"} into a new map. Answer the new map.
  * 
- * @macro "reject each…,…from_§where_"
+ * @macro "reject each…→…from_§where_"
  * @param "keyPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop

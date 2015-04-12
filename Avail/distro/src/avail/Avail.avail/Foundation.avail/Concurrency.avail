@@ -973,7 +973,7 @@ Private method "concurrent two-input tuple body function(_,_)" is
  * "aTuple"}. Wait until all forked fibers have completed before returning
  * control to the caller.
  * 
- * @method "For each…in|of_§in parallel«_-way»do_"
+ * @macro "For each…in|of_§in parallel«_-way»do_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
@@ -1002,7 +1002,7 @@ Public macro "For each…in|of_§in parallel«_-way»do_" is
  * "aTuple"}. Wait until all forked {@type "fiber"s} have completed before
  * returning control to the caller.
  * 
- * @method "For each…,…in|of_§in parallel«_-way»do_"
+ * @macro "For each…,…in|of_§in parallel«_-way»do_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
@@ -1435,7 +1435,7 @@ Semantic restriction "map_in parallel«_-way»through_" is
  * {@param "aTuple"}, collecting the results into a new tuple (and preserving
  * ordering of the transformed elements). Answer this tuple.
  * 
- * @method "map each…in|of_§in parallel«_-way»through_"
+ * @macro "map each…in|of_§in parallel«_-way»through_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
@@ -1464,7 +1464,7 @@ Public macro "map each…in|of_§in parallel«_-way»through_" is
  * {@param "aTuple"}, collecting the results into a new tuple (and preserving
  * ordering of the transformed elements). Answer this tuple.
  *
- * @method "map each…,…in|of_§in parallel«_-way»through_"
+ * @macro "map each…,…in|of_§in parallel«_-way»through_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
@@ -1582,7 +1582,7 @@ Semantic restriction "map_in parallel«_-way»through_" is
  * Concurrently apply {@param "transformer"} to each element of a 
  * {@param "set"}, collecting the results into a new set.
  * 
- * @method "map each…in|of_§in parallel«_-way»through_"
+ * @macro "map each…in|of_§in parallel«_-way»through_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
@@ -1702,7 +1702,7 @@ Semantic restriction "map_in parallel«_-way»through_" is
  * {@param "aMap"}, collecting the results into a new map (and preserving
  * ordering of the transformed elements). Answer this map.
  *
- * @method "map each…→…in|of_§in parallel«_-way»through_"
+ * @macro "map each…→…in|of_§in parallel«_-way»through_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
