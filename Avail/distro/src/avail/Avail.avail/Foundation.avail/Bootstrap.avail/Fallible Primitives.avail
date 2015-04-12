@@ -1102,24 +1102,6 @@ Primitive "method for_" is
  * @raises "no-method exception"
  * @raises "no-method-definition exception"
  * @raises "ambiguous-method-definition exception"
- * @raises "{10}"
- * @raises "{11}"
- * @raises "{12}"
- * @raises "{13}"
- * @raises "{14}"
- * @raises "{15}"
- * @raises "{16}"
- * @raises "{17}"
- * @raises "{18}"
- * @raises "{19}"
- * @raises "{20}"
- * @raises "{21}"
- * @raises "{22}"
- * @raises "{23}"
- * @raises "{24}"
- * @raises "{25}"
- * @raises "{26}"
- * @raises "{27}"
  */
 Primitive "method definition of_for_" is
 [
@@ -1631,7 +1613,6 @@ Primitive "After the current module is unloaded,⁇do_" is
  * @raises "loading-is-over exception"
  * @raises "up-arrow-must-follow-argument exception"
  * @raises "inconsistent-argument-reordering exception"
- * @raises "{35}"
  */
 Primitive "Macro_is«_,»_" is
 [
@@ -3086,7 +3067,6 @@ Primitive "_∈current fiber" is
  * @returns "any"
  *    The value bound to {@param "key"} within the current fiber's environment.
  * @raises "no-such-fiber-variable exception"
- * @raises "{5}"
  */
 Primitive "current fiber[_]" is
 [

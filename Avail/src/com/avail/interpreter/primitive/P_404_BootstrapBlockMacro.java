@@ -362,7 +362,8 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 						/* Primitive declaration */
 						TupleTypeDescriptor.forTypes(
 							/* Primitive number. */
-							TOKEN.o(),
+							LiteralTokenTypeDescriptor.create(
+								IntegerRangeTypeDescriptor.naturalNumbers()),
 							/* Optional failure variable declaration. */
 							TupleTypeDescriptor.zeroOrOneOf(
 								/* Primitive failure variable parts. */

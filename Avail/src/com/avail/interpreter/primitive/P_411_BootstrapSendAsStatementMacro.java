@@ -49,7 +49,8 @@ import com.avail.interpreter.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_411_BootstrapSendAsStatementMacro extends Primitive
+public final class P_411_BootstrapSendAsStatementMacro
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -99,13 +100,13 @@ public final class P_411_BootstrapSendAsStatementMacro extends Primitive
 			TupleDescriptor.from(
 				/* The send node to treat as a statement */
 				LITERAL_NODE.create(SEND_NODE.mostGeneralType())),
-			STATEMENT_NODE.mostGeneralType());
+			EXPRESSION_AS_STATEMENT_NODE.mostGeneralType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_UNTIMELY_PARSE_REJECTION.numericCode());
+			E_LOADING_IS_OVER.numericCode());
 	}
 }
