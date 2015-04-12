@@ -137,7 +137,7 @@ Body
 
 /**
  * Construct and answer a {@type "local variable phrase" local variable
- * declaration} from the supplied identifier and {@type "any meta" type"}.
+ * declaration} from the supplied identifier and {@type "any meta" type}.
  *
  * If this macro is evaluated in the module scope, then the compiler will
  * automatically convert the result into an equivalent {@type
@@ -178,7 +178,7 @@ Body
 
 /**
  * Construct and answer a {@type "local variable phrase" local variable
- * declaration} from the supplied identifier, {@type "any meta" type"}, and
+ * declaration} from the supplied identifier, {@type "any meta" type}, and
  * initial value {@type "expression phrase" expression}.
  *
  * If this macro is evaluated in the module scope, then the compiler will
