@@ -1102,24 +1102,6 @@ Primitive "method for_" is
  * @raises "no-method exception"
  * @raises "no-method-definition exception"
  * @raises "ambiguous-method-definition exception"
- * @raises "{10}"
- * @raises "{11}"
- * @raises "{12}"
- * @raises "{13}"
- * @raises "{14}"
- * @raises "{15}"
- * @raises "{16}"
- * @raises "{17}"
- * @raises "{18}"
- * @raises "{19}"
- * @raises "{20}"
- * @raises "{21}"
- * @raises "{22}"
- * @raises "{23}"
- * @raises "{24}"
- * @raises "{25}"
- * @raises "{26}"
- * @raises "{27}"
  */
 Primitive "method definition of_for_" is
 [
@@ -1631,7 +1613,6 @@ Primitive "After the current module is unloaded,⁇do_" is
  * @raises "loading-is-over exception"
  * @raises "up-arrow-must-follow-argument exception"
  * @raises "inconsistent-argument-reordering exception"
- * @raises "{35}"
  */
 Primitive "Macro_is«_,»_" is
 [
@@ -2076,7 +2057,7 @@ Primitive "Forward method_is_" is
 /**
  * Read the next character from the standard input stream.
  *
- * @category "Primitives" "Standard I/O" "Synchronous I/O"
+ * @category "Primitives" "Standard IO" "Synchronous IO"
  * @method "next character"
  * @returns "character"
  *    The next character from the standard input stream.
@@ -2168,7 +2149,7 @@ Primitive "Grammatical restriction_is_" is
 /**
  * Print the argument to the application's standard output stream.
  *
- * @category "Primitives" "Standard I/O" "Synchronous I/O"
+ * @category "Primitives" "Standard IO" "Synchronous IO"
  * @method "Print:_"
  * @param "text" "string"
  *        A string.
@@ -2187,7 +2168,7 @@ Primitive "Print:_" is
  * Mark the standard input stream to allow at least {@param "count"}
  * characters of read ahead.
  *
- * @category "Primitives" "Standard I/O"
+ * @category "Primitives" "Standard IO"
  * @method "Mark for_character|characters of read ahead"
  * @param "count" "whole number"
  *        The requested number of characters of read ahead.
@@ -2206,7 +2187,7 @@ Primitive "Mark for_character|characters of read ahead" is
 /**
  * Reset the standard input stream to the previously set mark.
  *
- * @category "Primitives" "Standard I/O"
+ * @category "Primitives" "Standard IO"
  * @method "Reset to mark"
  * @returns "⊤"
  * @raises "I/O-error exception"
@@ -2296,7 +2277,7 @@ Primitive "Grammatical restriction_is_" is
 /**
  * Print the argument to the application's standard error stream.
  *
- * @category "Primitives" "Standard I/O" "Synchronous I/O"
+ * @category "Primitives" "Standard IO" "Synchronous IO"
  * @method "Error:_"
  * @param "text" "string"
  *        A string.
@@ -3086,7 +3067,6 @@ Primitive "_∈current fiber" is
  * @returns "any"
  *    The value bound to {@param "key"} within the current fiber's environment.
  * @raises "no-such-fiber-variable exception"
- * @raises "{5}"
  */
 Primitive "current fiber[_]" is
 [

@@ -1,5 +1,5 @@
 /*
- * Synchronous.avail
+ * Variables.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,49 +30,30 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Synchronous"
-Versions
-	"1.0.0 DEV 2014-04-28"
+Module "Variables"
 Uses
-	"Client",
-	"Foundation",
-	"Primitives"
-Names
-	/* Accepting. */
-	"accept a new connection«named_»on_"
+	"Avail"
 Body
 
-/* The default name for unspecified optional names. */
-defaultName ::= "«unnamed»";
+mimesInFrance : whole number;
+favoriteSong : nonempty string := "Amnesia";
 
-/**
- * Synchronously accept an incoming connection on the specified {@type "server
- * socket"}. Answer the resultant {@type "client socket"}.
- *
- * @method "accept a new connection«named_»on_"
- * @param "optionalName" "nonempty string?"
- *        An optional string that describes the purpose of the client socket at
- *        a high level, provided for debugging purposes only. If not specified,
- *        then the default name {@code "«unnamed»"} is used.
- * @param "s" "server socket"
- * @returns "client socket"
- *          The newly connected client socket.
- * @category "Synchronous IO" "Networking" "Sockets"
- */
-Public method "accept a new connection«named_»on_" is
+nextStart : natural number := 1;
+Method "next counter" is
 [
-	optionalName : nonempty string?,
-	s : server socket
-|
-	clientName ::= optionalName[1] else [defaultName];
-	semName ::= format "accept semaphore for ‘①’" with s's name;
-	sem ::= a semaphore named semName with 0 out of 1 permits;
-	client : client socket;
-	killer : exception;
-	Ignore: a fiber waiting until s accepts a new connection named clientName,
-		on success doing [c : client socket | client := c; Signal sem;]
-		on failure doing [e : exception | killer := e; Signal sem;];
-	Await sem;
-	If killer is assigned then [Raise killer];
-	client
-] : client socket;
+	counter : natural number := nextStart;
+	nextStart := nextStart + 1;
+	[
+		value ::= counter;
+		counter := counter + 1;
+		value
+	]
+];
+
+Method "this many_`?" is [count : [0..∞) | true] : boolean;
+Method "How many angels can dance on the head of a pin`?" is
+[
+	angels : whole number := 0;
+	While [this many angels?] do [angels++;];
+	angels
+];

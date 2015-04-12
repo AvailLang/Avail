@@ -51,6 +51,7 @@ Body
  *
  * @method "regular atom"
  * @returns "atom"
+ * @category "Files"
  */
 "regular file" is a new atom;
 
@@ -59,6 +60,7 @@ Body
  *
  * @method "regular atom"
  * @returns "atom"
+ * @category "Files"
  */
 "directory" is a new atom;
 
@@ -67,6 +69,7 @@ Body
  *
  * @method "symbolic link"
  * @returns "atom"
+ * @category "Files"
  */
 "symbolic link" is a new atom;
 
@@ -75,6 +78,7 @@ Body
  *
  * @method "special file"
  * @returns "atom"
+ * @category "Files"
  */
 "special file" is a new atom;
 
@@ -83,6 +87,7 @@ Body
  * {@method "symbolic link"}, or {@method "special file"}.
  *
  * @type "file type"
+ * @category "Files"
  */
 [
 	e ::= {regular file, directory, symbolic link, special file}ᵀ;

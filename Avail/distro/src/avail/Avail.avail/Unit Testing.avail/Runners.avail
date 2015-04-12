@@ -71,6 +71,7 @@ Body
  * @returns "<[]→⊤…|>"
  *          The per-suite test-fixture setup functions required to run the tests
  *          of the specified test suite.
+ * @category "Unit Testing"
  */
 Private method "setup for_" is
 [
@@ -97,6 +98,7 @@ Private method "setup for_" is
  * @returns "<[]→⊤…|>"
  *          The per-test test-fixture setup functions required to run the
  *          specified test.
+ * @category "Unit Testing"
  */
 Private method "setup for_" is
 [
@@ -123,6 +125,7 @@ Private method "setup for_" is
  * @returns "<[]→⊤…|>"
  *          The per-suite test-fixture tear-down functions required to clean up
  *          the tests of the specified test suite.
+ * @category "Unit Testing"
  */
 Private method "tear down for_" is
 [
@@ -149,6 +152,7 @@ Private method "tear down for_" is
  * @returns "<[]→⊤…|>"
  *          The per-test test-fixture tear-down functions required to clean up
  *          the specified test.
+ * @category "Unit Testing"
  */
 Private method "tear down for_" is
 [
@@ -174,6 +178,7 @@ Private method "tear down for_" is
  * @returns "⊤"
  * @raises "test-fixture-setup exception"
  *         If any of the test-fixture setup functions fail.
+ * @category "Unit Testing"
  */
 Private method "Setup:_" is
 [
@@ -202,6 +207,7 @@ Private method "Setup:_" is
  * @returns "⊤"
  * @raises "test-fixture-setup exception"
  *         If any of the test-fixture setup functions fail.
+ * @category "Unit Testing"
  */
 Private method "Setup:_" is
 [
@@ -230,6 +236,7 @@ Private method "Setup:_" is
  * @returns "⊤"
  * @raises "test-fixture-tear-down exception"
  *         If any of the test-fixture tear-down functions fail.
+ * @category "Unit Testing"
  */
 Private method "Tear down:_" is
 [
@@ -258,6 +265,7 @@ Private method "Tear down:_" is
  * @returns "⊤"
  * @raises "test-fixture-tear-down exception"
  *         If any of the test-fixture tear-down functions fail.
+ * @category "Unit Testing"
  */
 Private method "Tear down:_" is
 [
@@ -295,6 +303,7 @@ Private method "Tear down:_" is
  *         If any of the test-fixture setup functions fail.
  * @raises "test-fixture-tear-down exception"
  *         If any of the test-fixture tear-down functions fail.
+ * @category "Unit Testing"
  */
 Private method "test metric for_" is
 [
@@ -368,6 +377,7 @@ Private method "test metric for_" is
  *          A unit test report.
  * @raise "no-such-test exception"
  *        If no such test exists.
+ * @category "Unit Testing"
  */
 Public method "report on_" is
 [
@@ -396,6 +406,7 @@ Public method "report on_" is
  *          A unit test report.
  * @raise "no-such-test exception"
  *        If no such test exists.
+ * @category "Unit Testing"
  */
 Public method "report on_" is
 [
@@ -416,6 +427,7 @@ Public method "report on_" is
  * @returns "⊤"
  * @raises "test-suite exception"
  *         If any of the functions fails.
+ * @category "Unit Testing"
  */
 Private method "Run each_,raising_on error" is
 [
@@ -441,7 +453,7 @@ Forward method "recursively visit_,on entering do_,on leaving do_" is
 		[root unit test suite]→⊤
 	]→tuple;
 
-/**
+/*
 * Recursively visit the specified {@type "root unit test suite"} and its
 * children. Apply {@param "enterAction"} to {@param "aSuite"} and collect its
 * results. Then append the results of applying this method recursively to the
@@ -458,7 +470,8 @@ Forward method "recursively visit_,on entering do_,on leaving do_" is
 * @returns "tuple"
 *          A tuple of results accumulated by recursively visiting the specified
 *          test suite and its children.
-*/
+* @category "Unit Testing"
+ */
 Private method "recursively visit_,on entering do_,on leaving do_" is
 [
 	aSuite : root unit test suite,
@@ -507,6 +520,7 @@ Semantic restriction "recursively visit_,on entering do_,on leaving do_" is
  *         If any of the test-fixture setup functions fail.
  * @raises "test-fixture-tear-down exception"
  *         If any of the test-fixture tear-down functions fail.
+ * @category "Unit Testing"
  */
 Private method "recursively report on all tests in_" is
 [
@@ -524,7 +538,8 @@ Private method "recursively report on all tests in_" is
 			/* Determine which unit tests must run in serial, and which can be
 			 * run in parallel. If a test requires any individual fixtures, then
 			 * it cannot be run in parallel.
-			 */
+			 * @category "Unit Testing"
+ */
 			groups ::= group aSuite's unit tests by
 				[
 					test : unit test
@@ -535,7 +550,8 @@ Private method "recursively report on all tests in_" is
 			computeMetric ::= [test : unit test | test metric for test];
 			/* We are under no obligation to preserve the order of the tests, so
 			 * it is perfectly fine to concatenate the two result tuples.
-			 */
+			 * @category "Unit Testing"
+ */
 			parallel ::= groups[can parallelize] else [<>];
 			serial ::= groups[cannot parallelize] else [<>];
 			map parallel in parallel through computeMetric
@@ -567,6 +583,7 @@ Private method "recursively report on all tests in_" is
  *         If any of the test-fixture setup functions fail.
  * @raises "test-fixture-tear-down exception"
  *         If any of the test-fixture tear-down functions fail.
+ * @category "Unit Testing"
  */
 Public method "report on all tests in_" is
 [
@@ -594,6 +611,7 @@ Public method "report on all tests in_" is
  * @method "report on all tests"
  * @returns "<unit test result…|>"
  *          A tuple of unit test results.
+ * @category "Unit Testing"
  */
 Public method "report on all tests" is
 [
@@ -612,6 +630,7 @@ Public method "report on all tests" is
  * @returns "{module→<unit test result…|>|}"
  *          A map whose keys are modules that defined tests whose metrics are
  *          present in the unit test report. The values are test metric tuples.
+ * @category "Unit Testing"
  */
 Public method "_'s⁇metrics by module" is
 [
@@ -635,6 +654,7 @@ Public method "_'s⁇metrics by module" is
  * @returns "{atom→<unit test result…|>|}"
  *          A map whose keys are test suite identifiers and whose values are
  *          test metric tuples.
+ * @category "Unit Testing"
  */
 Public method "_'s⁇metrics by test suite" is
 [
@@ -655,6 +675,7 @@ Public method "_'s⁇metrics by test suite" is
  * @method "bad results of_"
  * @param "results" "<unit test result…|>"
  * @returns "<unit test failure…|>"
+ * @category "Unit Testing"
  */
 Private method "bad results of_" is
 [
@@ -676,19 +697,19 @@ _bc ::= ¢=;
 /**
  * Answer a textual banner with the specified heading.
  *
- * @method "«_»banner"
+ * @method "«_»?banner"
  * @param "heading" "<character…|0..70>"
  *        The optional heading.
  * @returns "string"
  */
-Private method "«_»banner" is
+Private method "«_»?banner" is
 [
-	heading : <<character…|0..70>…|0..1>
+	heading : <character…|0..70>?
 |
 	80 of _bc
 ] : string;
 
-Private method "«_»banner" is
+Private method "«_»?banner" is
 [
 	heading : <<character…|1..70>…|1>
 |
@@ -701,7 +722,7 @@ Private method "«_»banner" is
 	leftSize of _bc ++ h ++ rightSize of _bc
 ] : string;
 
-Grammatical restriction "«_»banner" is <{"_++_"}>;
+Grammatical restriction "«_»?banner" is <{"_++_"}>;
 
 /**
  * Generate a textual report from the specified {@type "unit test report"}.
@@ -816,6 +837,7 @@ Private method "group header for_" is [a : atom | a's name ++ ":\n"];
  *        A unit test report.
  * @returns "string"
  *          A textual version of the argument, broken down by module.
+ * @category "Unit Testing"
  */
 Public method "module-oriented“_”" is
 [
@@ -835,6 +857,7 @@ Public method "module-oriented“_”" is
  *        A unit test report.
  * @returns "string"
  *          A textual version of the argument, broken down by test suite.
+ * @category "Unit Testing"
  */
 Public method "test suite-oriented“_”" is
 [
@@ -857,6 +880,7 @@ Public method "test suite-oriented“_”" is
  *          The test identifiers of all unit tests comprising the argument.
  * @raises "no-such-test-suite exception"
  *         If {@param "suiteID"} does not reference an existing test suite.
+ * @category "Unit Testing"
  */
 Public method "all tests in_" is
 [
@@ -875,7 +899,8 @@ Public method "all tests in_" is
 		[
 			aSuite : root unit test suite
 		|
-			/* No implementation required. */
+			/* No implementation required. * @category "Unit Testing"
+ */
 		]
 ] : atom*;
 
@@ -892,6 +917,7 @@ Public method "all tests in_" is
  *          argument. The result will not contain the argument.
  * @raises "no-such-test-suite exception"
  *         If {@param "suiteID"} does not reference an existing test suite.
+ * @category "Unit Testing"
  */
 Public method "all test suites in_" is
 [
@@ -921,6 +947,7 @@ Public method "all test suites in_" is
  * @method "all test suites"
  * @returns "{atom|}"
  *          The test suite identifiers of all unit test suites.
+ * @category "Unit Testing"
  */
 Public method "all test suites" is
 [

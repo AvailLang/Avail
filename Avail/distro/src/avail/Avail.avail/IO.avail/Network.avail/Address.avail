@@ -71,6 +71,7 @@ Body
  * that is used to identify a device participating in an IP network.
  *
  * @type "IP Address"
+ * @category "IO" "IP" "Networking"
  */
 Public class "IP address" extends object
 	with field
@@ -82,6 +83,7 @@ Public class "IP address" extends object
  *
  * @type "IPv4 address"
  * @supertype "IP address"
+ * @category "IO" "IP" "Networking"
  */
 Public class "IPv4 address" extends IP address
 	with field
@@ -91,6 +93,7 @@ Public class "IPv4 address" extends IP address
  * @method "“_”"
  * @param "addr" "IPv4 address"
  * @returns "nonempty string"
+ * @category "IO" "IP" "Networking"
  */
 Method "“_”" is
 [
@@ -105,6 +108,7 @@ Method "“_”" is
  *
  * @method "an IP address from_"
  * @param "o" "<byte…|4..16>"
+ * @category "IO" "IP" "Networking"
  * @returns "IPv4 address"
  */
 Public stable abstract method "an IP address from_"
@@ -113,6 +117,7 @@ Public stable abstract method "an IP address from_"
 /**
  * @method "an IP address from_"
  * @restricts "<byte…|4..16>'s type"
+ * @category "IO" "IP" "Networking"
  */
 Semantic restriction "an IP address from_" is
 [
@@ -130,6 +135,7 @@ Semantic restriction "an IP address from_" is
 /**
  * @method "an IP address from_"
  * @param "o" "<byte…|4>"
+ * @category "IO" "IP" "Networking"
  * @returns "IPv4 address"
  */
 Method "an IP address from_" is
@@ -148,6 +154,7 @@ Method "an IP address from_" is
  * @param "o2" "literal phrase ⇒ (literal token ⇒ byte)"
  * @param "o3" "literal phrase ⇒ (literal token ⇒ byte)"
  * @param "o4" "literal phrase ⇒ (literal token ⇒ byte)"
+ * @category "IO" "IP" "Networking"
  * @returns "literal phrase ⇒ IPv4 address"
  */
 Public macro "IPv4…#.…#.…#.…#" is
@@ -167,6 +174,7 @@ Public macro "IPv4…#.…#.…#.…#" is
  *
  * @type "IPv6 address"
  * @supertype "IP address"
+ * @category "IO" "IP" "Networking"
  */
 Public class "IPv6 address" extends object
 	with field
@@ -176,6 +184,7 @@ Public class "IPv6 address" extends object
  * @method "an IP address from_"
  * @param "o" "<byte…|16>"
  * @returns "IPv6 address"
+ * @category "IO" "IP" "Networking"
  */
 Method "an IP address from_" is
 [
@@ -192,6 +201,7 @@ Method "an IP address from_" is
  * @param "hexadecitets"
  *        "list phrase⇒<<(literal token⇒whole number)?, token?…|1..2>…|3..8>"
  * @returns "literal phrase ⇒ IPv6 address"
+ * @category "IO" "IP" "Networking"
  */
 Public macro "IPv6««…#§»?«…§»?‡:»" is
 [
@@ -305,6 +315,7 @@ Public macro "IPv6««…#§»?«…§»?‡:»" is
  * A socket address combines an {@type "IP address"} with a port number.
  *
  * @type "socket address"
+ * @category "IO" "Sockets" "Networking"
  */
 Public class "socket address" extends object
 	with field
@@ -319,6 +330,7 @@ Public class "socket address" extends object
  * @param "o" "<byte…|4..16>"
  * @param "portNumber" "[0..65535]"
  * @returns "socket address"
+ * @category "IO" "Networking" "Sockets"
  */
 Public stable abstract method "a socket address from_and_"
 	is [<byte…|4..16>, [0..65535]]→socket address;
@@ -343,6 +355,7 @@ Semantic restriction "a socket address from_and_" is
  * @param "o" "<byte…|5..13>"
  * @param "portNumber" "[0..65535]"
  * @returns "⊥"
+ * @category "IO" "Networking" "Sockets"
  */
 Method "a socket address from_and_" is
 [
@@ -357,6 +370,7 @@ Method "a socket address from_and_" is
  * @param "o" "<byte…|4>"
  * @param "portNumber" "[0..65535]"
  * @returns "socket address"
+ * @category "IO" "Networking" "Sockets"
  */
 Method "a socket address from_and_" is
 [
@@ -373,6 +387,7 @@ Method "a socket address from_and_" is
  * @param "o" "<byte…|16>"
  * @param "portNumber" "[0..65535]"
  * @returns "socket address"
+ * @category "IO" "Networking" "Sockets"
  */
 Method "a socket address from_and_" is
 [
@@ -392,6 +407,7 @@ Method "a socket address from_and_" is
  * @param "addr" "literal phrase ⇒ IPv4 address"
  * @param "port" "literal phrase ⇒ (literal token ⇒ [0..65535])"
  * @returns "literal phrase ⇒ socket address"
+ * @category "IO" "Networking" "Sockets"
  */
 Public macro "_:…#" is
 [
@@ -411,6 +427,7 @@ Public macro "_:…#" is
  * @param "addr" "literal phrase ⇒ IPv6 address"
  * @param "port" "literal phrase ⇒ (literal token ⇒ [0..65535])"
  * @returns "literal phrase ⇒ socket address"
+ * @category "IO" "Networking" "Sockets"
  */
 Public macro "[_]:…#" is
 [

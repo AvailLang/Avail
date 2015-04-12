@@ -651,6 +651,7 @@ Public method "From_to_by_do_" is
  * @param "end" "extended integer's type"
  * @param "step" "integer's type"
  * @returns "⊤"
+ * @category "Control Structures"
  */
 Public method "Require:_accepts subscripts from_to_by_" is
 [

@@ -49,5 +49,6 @@ Body
  * @method "element type"
  * @returns "atom"
  *          The requested field atom.
+ * @category "Iterators" "Types"
  */
 Public method "element type" is [$"element type"];

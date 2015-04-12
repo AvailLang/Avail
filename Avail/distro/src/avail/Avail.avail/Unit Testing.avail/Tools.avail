@@ -61,6 +61,7 @@ Body
  *
  * @type "explicit-failed-test exception"
  * @supertype "exception"
+ * @category "Exceptions" "Unit Testing"
  */
 Public explicit class "explicit-failed-test exception" extends exception;
 
@@ -71,6 +72,7 @@ Public explicit class "explicit-failed-test exception" extends exception;
  * @returns "⊥"
  * @raises "explicit-failed-test exception"
  *          Always.
+ * @category "Unit Testing"
  */
 Public method "Fail test" is [Raise a explicit-failed-test exception] : ⊥;
 
@@ -83,6 +85,7 @@ Public method "Fail test" is [Raise a explicit-failed-test exception] : ⊥;
  * @returns "⊥"
  * @raises "descriptive explicit-failed-test exception"
  *          Always.
+ * @category "Unit Testing"
  */
 Public method "Fail test:_" is
 [
@@ -99,6 +102,7 @@ Public method "Fail test:_" is
  * @returns "⊥"
  * @raises "unsupported-operation exception"
  *         Always.
+ * @category "Unit Testing"
  */
 Public method "Skip test" is [Raise an unsupported-operation exception] : ⊥;
 
@@ -107,6 +111,7 @@ Public method "Skip test" is [Raise an unsupported-operation exception] : ⊥;
  *
  * @type "failed-requirement exception"
  * @supertype "exception"
+ * @category "Unit Testing" "Exceptions"
  */
 Public explicit class "failed-requirement exception" extends exception;
 
@@ -119,6 +124,7 @@ Public explicit class "failed-requirement exception" extends exception;
  * @returns "⊤"
  * @raises "failed-requirement exception"
  *         If {@param "predicate"} is false.
+ * @category "Unit Testing"
  */
 Public method "Require:_" is [ predicate : boolean | ] : ⊤;
 Method "Require:_" is
@@ -140,6 +146,7 @@ Method "Require:_" is
  * @returns "⊤"
  * @raises "failed-requirement exception"
  *         If {@param "predicate"} is false.
+ * @category "Unit Testing"
  */
 Public method "Require:_(_)" is
 [
@@ -166,6 +173,7 @@ Method "Require:_(_)" is
  * @returns "⊤"
  * @raises "failed-requirement exception"
  *         If {@param "expected"} ≠ {@param "value"}.
+ * @category "Unit Testing"
  */
 Public method "Require:_=_" is
 [
@@ -186,6 +194,7 @@ Public method "Require:_=_" is
  * @method "Require:_=_"
  * @restricts "any's type"
  * @restricts "any's type"
+ * @category "Unit Testing"
  */
 Semantic restriction "Require:_=_" is
 [
@@ -214,6 +223,7 @@ Semantic restriction "Require:_=_" is
  * @returns "⊤"
  * @raises "failed-requirement exception"
  *         If {@param "expected"} ≠ {@param "value"}.
+ * @category "Unit Testing"
  */
 Public method "Require:_=_(_)" is
 [
@@ -237,6 +247,7 @@ Public method "Require:_=_(_)" is
  * @restricts "actual" "any's type"
  * @restricts "expected" "any's type"
  * @restricts "message" "string's type"
+ * @category "Unit Testing"
  */
 Semantic restriction "Require:_=_(_)" is
 [
@@ -264,6 +275,7 @@ Semantic restriction "Require:_=_(_)" is
  * @raises "failed-requirement exception"
  *         If {@param "aFunction"} does not produce an exception of the
  *         appropriate type.
+ * @category "Unit Testing"
  */
 Public method "Require:_raises_" is
 [
@@ -309,6 +321,7 @@ Public method "Require:_raises_" is
  * @raises "failed-requirement exception"
  *         If {@param "aFunction"} does not produce an exception of the
  *         appropriate type.
+ * @category "Unit Testing"
  */
 Public method "Require:_raises_(_)" is
 [
@@ -348,6 +361,7 @@ Public method "Require:_raises_(_)" is
  * @returns "⊤"
  * @raises "failed-requirement exception"
  *         If {@param "aFunction"} answers {@method "false"}.
+ * @category "Unit Testing"
  */
 Public method "Require if supported«on this platform»⁇:_" is
 [
@@ -380,6 +394,7 @@ Public method "Require if supported«on this platform»⁇:_" is
  * @returns "⊤"
  * @raises "failed-requirement exception"
  *         If {@param "aFunction"} answers {@method "false"}.
+ * @category "Unit Testing"
  */
 Public method "Require if supported«on this platform»⁇:_(_)" is
 [
@@ -416,6 +431,7 @@ Public method "Require if supported«on this platform»⁇:_(_)" is
  *         raises an {@type "exception"} that is not a subtype of either
  *         {@param "exceptionType"} or {@type
  *         "unsupported-operation exception"}.
+ * @category "Unit Testing"
  */
 Public method "Require if supported«on this platform»⁇:_raises_" is
 [
@@ -468,6 +484,7 @@ Public method "Require if supported«on this platform»⁇:_raises_" is
  *         raises an {@type "exception"} that is not a subtype of either
  *         {@param "exceptionType"} or {@type
  *         "unsupported-operation exception"}.
+ * @category "Unit Testing"
  */
 Public method "Require if supported«on this platform»⁇:_raises_(_)" is
 [

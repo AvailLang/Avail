@@ -31,4 +31,9 @@
  */
 
 Module "Quick Start"
+Extends
+	"Exploration",
+	"Using the Standard Library",
+	"Constants",
+	"Variables"
 Body

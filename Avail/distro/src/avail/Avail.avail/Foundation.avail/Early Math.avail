@@ -963,6 +963,7 @@ Method "_is infinite" is
  *        answers the result.
  * @returns "[number's type, number's type]→number's type"
  *          A function that handles type promotions for the given operator.
+ * @category "Types"
  */
 Public method "type promotion function for_" is
 [

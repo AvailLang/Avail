@@ -80,6 +80,7 @@ defaultName ::= "«unnamed»";
  * A client socket represents an endpoint of a stream-oriented connection.
  *
  * @type "client socket"
+ * @category "IO" "Networking" "Sockets"
  */
 Public explicit class "client socket" extends object
 	with field
@@ -92,6 +93,7 @@ Public explicit class "client socket" extends object
  * @method "_'s⁇name"
  * @param "s" "client socket"
  * @returns "nonempty string"
+ * @category "IO" "Networking" "Sockets"
  */
 Method "_'s⁇name" is
 [
@@ -120,6 +122,7 @@ Semantic restriction "_'s⁇name" is
  *        a high level, provided for debugging purposes only. If not specified,
  *        then the default name {@code "«unnamed»"} is used.
  * @returns "client socket"
+ * @category "IO" "Networking" "Sockets"
  */
 Public method "a client socket«named_»" is
 [
@@ -144,6 +147,7 @@ Public method "a client socket«named_»" is
  * @param "s" "client socket"
  * @param "options" "<<client socket option, any…|2>…|1..5>"
  * @returns "⊤"
+ * @category "IO" "Networking" "Sockets"
  */
 Method "_'s⁇«_:=_‡,»" is
 [
@@ -191,6 +195,8 @@ Semantic restriction "_'s⁇«_:=_‡,»" is
  * @param "s" "client socket"
  * @param "ipAddress" "IP address"
  * @param "port" "[0..65535]"
+ * @returns "⊤"
+ * @category "IO" "Networking" "Sockets" "IP"
  */
 Private abstract method "Bind_to_on port_"
 	is [client socket, IP address, [0..65535]]→⊤;
@@ -203,6 +209,7 @@ Private abstract method "Bind_to_on port_"
  * @param "ipAddress" "IPv4 address"
  * @param "port" "[0..65535]"
  * @returns "⊤"
+ * @category "IO" "Networking" "Sockets" "IP"
  */
 Method "Bind_to_on port_" is
 [
@@ -234,6 +241,7 @@ Method "Bind_to_on port_" is
  * @param "ipAddress" "IPv6 address"
  * @param "port" "[0..65535]"
  * @returns "⊤"
+ * @category "IO" "Networking" "Sockets" "IP"
  */
 Method "Bind_to_on port_" is
 [
@@ -264,6 +272,7 @@ Method "Bind_to_on port_" is
  * @param "s" "client socket"
  * @param "localAddress" "socket address"
  * @returns "⊤"
+ * @category "IO" "Networking" "Sockets"
  */
 Public method "Bind_to_" is
 [
@@ -286,7 +295,7 @@ Public method "Bind_to_" is
  *   "a fiber connecting_to_on port_,\
  *   \|on success doing_,\
  *   \|on failure doing_,\
- *   \forked at priority_"
+ *   \|forked at priority_"
  * @param "s" "client socket"
  * @param "ipAddress" "IP address"
  * @param "port" "[0..65535]"
@@ -300,6 +309,7 @@ Public method "Bind_to_" is
  * @returns "fiber"
  *          The new fiber which may eventually apply either {@param "success"}
  *          or {@param "failure"}.
+ * @category "IO" "Networking" "Sockets" "IP"
  */
 Private abstract method
 	"a fiber connecting_to_on port_,\
@@ -327,7 +337,7 @@ is
  *   "a fiber connecting_to_on port_,\
  *   \|on success doing_,\
  *   \|on failure doing_,\
- *   \forked at priority_"
+ *   \|forked at priority_"
  * @param "s" "client socket"
  * @param "ipAddress" "IPv4 address"
  * @param "port" "[0..65535]"
@@ -341,6 +351,7 @@ is
  * @returns "fiber"
  *          The new fiber which may eventually apply either {@param "success"}
  *          or {@param "failure"}.
+ * @category "IO" "Networking" "Sockets" "IP"
  */
 Private method 
 	"a fiber connecting_to_on port_,\
@@ -388,7 +399,7 @@ is
  *   "a fiber connecting_to_on port_,\
  *   \|on success doing_,\
  *   \|on failure doing_,\
- *   \forked at priority_"
+ *   \|forked at priority_"
  * @param "s" "client socket"
  * @param "ipAddress" "IPv6 address"
  * @param "port" "[0..65535]"
@@ -402,6 +413,7 @@ is
  * @returns "fiber"
  *          The new fiber which may eventually apply either {@param "success"}
  *          or {@param "failure"}.
+ * @category "IO" "Networking" "Sockets" "IP"
  */
 Private method 
 	"a fiber connecting_to_on port_,\
@@ -463,6 +475,7 @@ is
  * @returns "fiber"
  *          The new fiber which may eventually apply either {@param "success"}
  *          or {@param "failure"}.
+ * @category "IO" "Networking" "Sockets"
  */
 Public method
 	"a fiber connecting_to_,⁇\
@@ -512,7 +525,7 @@ is
  *    "a fiber reading_byte|bytes from_,⁇\
  *    \|on success doing_,⁇\
  *    \|on failure doing_«⁇,forked at priority_»"
- * @param "count "whole number"
+ * @param "count" "whole number"
  *        The maximum number of bytes to read from the connection.
  * @param "s" "client socket"
  * @param "success" "[byte*, boolean]→⊤"
@@ -528,6 +541,7 @@ is
  * @returns "fiber"
  *          The new fiber which may eventually apply either {@param "success"}
  *          or {@param "failure"}.
+ * @category "IO" "Networking" "Sockets"
  */
 Public method
 	"a fiber reading_byte|bytes from_,⁇\
@@ -598,7 +612,7 @@ is
  *    "a fiber writing_to_,⁇\
  *    \|on success doing_,⁇\
  *    \|on failure doing_«⁇,forked at priority_»"
- * @param "data "byte*"
+ * @param "data" "byte*"
  *        The bytes to write.
  * @param "s" "client socket"
  * @param "success" "[byte*, boolean]→⊤"
@@ -613,6 +627,7 @@ is
  * @returns "fiber"
  *          The new fiber which may eventually apply either {@param "success"}
  *          or {@param "failure"}.
+ * @category "IO" "Networking" "Sockets" "IP"
  */
 Public method
 	"a fiber writing_to_,⁇\
@@ -678,6 +693,7 @@ is
  * @method "_'s⁇local address"
  * @param "s" "client socket"
  * @returns "socket address"
+ * @category "IO" "Networking" "Sockets"
  */
 Public method "_'s⁇local address" is
 [
@@ -705,6 +721,7 @@ Public method "_'s⁇local address" is
  * @method "_'s⁇remote address"
  * @param "s" "client socket"
  * @returns "socket address"
+ * @category "IO" "Networking" "Sockets"
  */
 Public method "_'s⁇remote address" is
 [
@@ -731,6 +748,7 @@ Public method "_'s⁇remote address" is
  * @method "Close_"
  * @param "s" "client socket"
  * @returns "⊤"
+ * @category "IO" "Networking" "Sockets"
  */
 Method "Close_" is
 [

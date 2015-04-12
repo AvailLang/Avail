@@ -131,6 +131,7 @@ Body
  *
  * @type "file iterator"
  * @supertype "positionable buffered iterator"
+ * @category "Files" "Iterators"
  */
 Public class "file iterator"
 	extends sizable random access buffered iterator
@@ -144,6 +145,7 @@ Public class "file iterator"
  *
  * @type "file reader"
  * @supertype "file iterator"
+ * @category "Files" "Readers"
  */
 Public explicit class "file reader"
 	extends file iterator ∩ random access buffered reader
@@ -155,6 +157,7 @@ Public explicit class "file reader"
  *
  * @type "file writer"
  * @supertype "file iterator"
+ * @category "Files" "Writers"
  */
 Public class "file writer"
 	extends file iterator ∩ random access buffered writer
@@ -168,6 +171,7 @@ Public class "file writer"
  * @type "file reader/writer"
  * @supertype "file reader"
  * @supertype "file writer"
+ * @category "Files" "Readers" "Writers"
  */
 Public class "file reader/writer"
 	extends file reader ∩ file writer;
@@ -297,6 +301,7 @@ file writer's exit buffer method is _privateWriteBuffer;
  *         If permission is denied to use the specified {@type "file name"}.
  * @raises "I/O exception"
  *         If an I/O error occurs for any reason.
+ * @category "Files" "Iterators" "Readers" "Writers"
  */
 Public method "a_for_\
 	\|«aligning buffers to_bytes»\
@@ -367,6 +372,7 @@ Semantic restriction "a_for_\
  * @returns "boolean"
  *          {@method "true"} if {@param "anIterator"} is open, {@method "false"}
  *          otherwise.
+ * @category "Files" "Iterators"
  */
 Method "_is open" is
 [
@@ -384,6 +390,7 @@ Method "_is open" is
  * @returns "boolean"
  *          {@method "true"} if {@param "anIterator"} is closed, {@method
  *          "false"} otherwise.
+ * @category "Files" "Iterators"
  */
 Method "_is closed" is
 [
@@ -397,8 +404,10 @@ Method "_is closed" is
  *
  * @method "Close_"
  * @param "anIterator" "file iterator"
+ * @returns "⊤"
  * @raises "file-closed exception"
  *         If {@param "anIterator"} has already been closed.
+ * @category "Files" "Iterators"
  */
 Method "Close_" is
 [
@@ -413,8 +422,10 @@ Method "Close_" is
  *
  * @method "Close_"
  * @param "anIterator" "file iterator"
+ * @returns "⊤"
  * @raises "file-closed exception"
  *         If {@param "anIterator"} has already been closed.
+ * @category "Files" "Writers"
  */
 Method "Close_" is
 [
@@ -438,6 +449,7 @@ Method "Close_" is
  * @returns "⊤"
  *          The answer produced by applying {@param "action"} to {@param
  *          "anIterator"}.
+ * @category "Files" "Iterators"
  */
 Method "Using|using_,⁇do_" is
 [
@@ -485,6 +497,7 @@ Semantic restriction "Using|using_,⁇do_" is
  * @param "newElements" "tuple"
  * @param "aWriter" "file writer"
  * @returns "⊤"
+ * @category "Files" "Writers"
  */
 Method "Write_to_" is
 [
@@ -591,6 +604,8 @@ _superRefresh ::= (method definition
  * 
  * @method "Refresh_"
  * @param "aReader" "file reader"
+ * @returns "⊤"
+ * @category "Files" "Readers"
  */
 Method "Refresh_" is
 [
@@ -612,7 +627,9 @@ _superSynchronize ::= (method definition
  * 
  * @method "Synchronize_"
  * @param "anIterator" "file writer"
+ * @returns "⊤"
  * @raises "I/O exception"
+ * @category "Files" "Writers" "Synchronous IO"
  */
 Method "Synchronize_" is
 [
@@ -650,6 +667,8 @@ Method "Synchronize_" is
  * @method "Truncate_to_bytes⁇"
  * @param "anIterator" "file writer"
  * @param "newSize" "whole number"
+ * @returns "⊤"
+ * @category "Files" "Writers"
  */
 Method "Truncate_to_bytes⁇" is
 [

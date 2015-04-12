@@ -62,6 +62,7 @@ Body
  * @param "n" "whole number"
  * @returns "natural number"
  *          The factorial of {@param "n"}.
+ * @category "Mathematics" "Numbers"
  */
 Stable abstract method "_`!" is [[0..∞]]→[1..∞];
 

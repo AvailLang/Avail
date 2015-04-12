@@ -158,7 +158,7 @@ Method "“_”" is
 /**
  * The root exception type for test-centric unit-testing framework exceptions.
  * 
- * @category "Unit Testing"
+ * @category "Unit Testing" "Exceptions"
  * @type "unit-test exception"
  */
 Public explicit class "unit-test exception" extends exception
@@ -171,6 +171,7 @@ Public explicit class "unit-test exception" extends exception
  *
  * @type "test-already-exists exception"
  * @supertype "unit-test exception"
+ * @category "Unit Testing" "Exceptions"
  */
 Public explicit class "test-already-exists exception"
 	extends unit-test exception ∩ element-access exception;
@@ -178,7 +179,7 @@ Public explicit class "test-already-exists exception"
 /**
  * An exception that indicates that the specified test does not exist.
  * 
- * @category "Unit Testing"
+ * @category "Unit Testing" "Exceptions"
  * @type "no-such-test exception"
  * @supertype "unit-test exception"
  * @supertype "element-access exception"
@@ -189,7 +190,7 @@ Public explicit class "no-such-test exception"
 /**
  * An exception that indicates that the specified test failed.
  * 
- * @category "Unit Testing"
+ * @category "Unit Testing" "Exceptions"
  * @type "failed-test exception"
  * @supertype "unit-test exception"
  * @supertype "cascade exception"
@@ -202,7 +203,7 @@ Public explicit class "failed-test exception"
  * particular exception, but it either didn't raise an exception or raised an
  * exception of the wrong type.
  * 
- * @category "Unit Testing"
+ * @category "Unit Testing" "Exceptions"
  * @type "expected-a-specific-exception exception"
  * @supertype "unit-test exception"
  */
@@ -218,6 +219,7 @@ Public explicit class "expected-a-specific-exception exception"
  * @param "anException" "unit-test exception"
  * @returns "string"
  *          A short description of the argument.
+ * @category "Unit Testing"
  */
 Public method "short“_”" is
 [
@@ -257,6 +259,7 @@ Public method "short“_”" is
  * {@method "_is a new test suite"}.
  *
  * @type "root unit test suite"
+ * @category "Unit Testing"
  */
 Public class "root unit test suite" extends object
 	with fields
@@ -276,6 +279,7 @@ Public class "root unit test suite" extends object
  * treated as the parent's own when the parent is run.
  *
  * @type "unit test suite"
+ * @category "Unit Testing"
  */
 Public class "unit test suite" extends root unit test suite
 	with fields
@@ -297,6 +301,7 @@ Method "“_”" is
  * The root exception type for suite-centric unit-testing framework exceptions.
  *
  * @type "test-suite exception"
+ * @category "Unit Testing" "Exceptions"
  */
 Public explicit class "test-suite exception" extends exception
 	with fields
@@ -308,6 +313,7 @@ Public explicit class "test-suite exception" extends exception
  *
  * @type "test-suite-already-exists exception"
  * @supertype "test-suite exception"
+ * @category "Unit Testing" "Exceptions"
  */
 Public explicit class "test-suite-already-exists exception"
 	extends test-suite exception ∩ element-access exception;
@@ -317,6 +323,7 @@ Public explicit class "test-suite-already-exists exception"
  *
  * @type "no-such-test-suite exception"
  * @supertype "test-suite exception"
+ * @category "Unit Testing" "Exceptions"
  */
 Public explicit class "no-such-test-suite exception"
 	extends test-suite exception ∩ element-access exception;
@@ -327,6 +334,7 @@ Public explicit class "no-such-test-suite exception"
  * @type "test-fixture-setup exception"
  * @supertype "test-suite exception"
  * @supertype "cascade exception"
+ * @category "Unit Testing" "Exceptions"
  */
 Public explicit class "test-fixture-setup exception"
 	extends cascade test-suite exception;
@@ -337,6 +345,7 @@ Public explicit class "test-fixture-setup exception"
  * @type "test-fixture-tear-down exception"
  * @supertype "test-suite exception"
  * @supertype "cascade exception"
+ * @category "Unit Testing" "Exceptions"
  */
 Public explicit class "test-fixture-tear-down exception"
 	extends cascade test-suite exception;
@@ -346,6 +355,7 @@ Public explicit class "test-fixture-tear-down exception"
  * only produced when metrics are requested for an entire test suite.
  *
  * @type "unit test result"
+ * @category "Unit Testing"
  */
 Public explicit class "unit test result" extends object
 	with fields
@@ -357,6 +367,7 @@ Public explicit class "unit test result" extends object
  *
  * @type "unit test success"
  * @supertype "unit test result"
+ * @category "Unit Testing"
  */
 Public explicit class "unit test success" extends unit test result;
 
@@ -369,6 +380,7 @@ Public explicit class "unit test success" extends unit test result;
  * @type "unit test failure"
  * @supertype "unit test result"
  * @field "causal exception" "unit-test exception"
+ * @category "Unit Testing"
  */
 Public class "unit test failure" extends unit test result
 	with fields
@@ -380,6 +392,7 @@ Public class "unit test failure" extends unit test result
  *
  * @type "unit test exclusion"
  * @supertype "unit test result"
+ * @category "Unit Testing"
  */
 Public explicit class "unit test exclusion" extends unit test result;
 
@@ -414,6 +427,7 @@ Method "“_”" is
  * @param "result" "unit test result"
  * @returns "string"
  *          A short description of the argument.
+ * @category "Unit Testing"
  */
 Public abstract method "short“_”" is [unit test result]→string;
 

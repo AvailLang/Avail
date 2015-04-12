@@ -1216,11 +1216,11 @@ Semantic restriction "_<<_" is
 
 /**
  * Strengthen the result type of right-bitshift.
-*
-* @method "_>>_"
-* @restricts "baseIntegerType" "integer's type"
-* @restricts "shiftFactorType" "integer's type"
-*/
+ *
+ * @method "_>>_"
+ * @restricts "baseIntegerType" "integer's type"
+ * @restricts "shiftFactorType" "integer's type"
+ */
 Semantic restriction "_>>_" is
 [
 	baseIntegerType : integer's type,

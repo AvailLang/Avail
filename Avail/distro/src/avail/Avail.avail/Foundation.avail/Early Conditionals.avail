@@ -52,6 +52,7 @@ Body
  * @param "trueFunction" "nullary procedure"
  *        What to execute if the predicate is true, which it isn't.
  * @returns "⊤"
+ * @category "Conditionals"
  */
 Method "If_then_" is
 [
@@ -69,6 +70,8 @@ Method "If_then_" is
  *        The boolean, which in this case is true.
  * @param "trueFunction" "nullary procedure"
  *        What to execute if the predicate is true, which it is.
+ * @returns "⊤"
+ * @category "Conditionals"
  */
 Method "If_then_" is
 [
@@ -94,6 +97,8 @@ Method "If_then_" is
  *        What to invoke if the predicate is true, which it isn't.
  * @param "falseFunction" "nullary procedure"
  *        What to invoke if the predicate is false, which it is.
+ * @returns "⊤"
+ * @category "Conditionals"
  */
 Method "If|if_then_else_" is
 [
@@ -114,6 +119,8 @@ Method "If|if_then_else_" is
  *        What to invoke if the predicate is true, which it is.
  * @param "falseFunction" "nullary procedure"
  *        What to invoke if the predicate is false, which it is not.
+ * @returns "⊤"
+ * @category "Conditionals"
  */
 Method "If|if_then_else_" is
 [

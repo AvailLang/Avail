@@ -2373,7 +2373,7 @@ Primitive "_→JSON" is
  * Compute and answer the numeric argument as a single-precision floating point
  * number.
  *
- * @category "Primitives" "Numbers" "Conversion"
+ * @category "Primitives" "Numbers" "Conversions"
  * @method "_→float"
  * @param "aNumber" "number"
  *        A number.
@@ -2391,7 +2391,7 @@ Primitive "_→float" is
  * Compute and answer the numeric argument as a double-precision floating point
  * number.
  *
- * @category "Primitives" "Numbers" "Conversion"
+ * @category "Primitives" "Numbers" "Conversions"
  * @method "_→double"
  * @param "aNumeric" "number"
  *        A number.

@@ -112,9 +112,9 @@ Method "_'s⁇position:=_" is
  * Reject the positioning attempt statically if it's known that the new position
  * is <em>always</em> out of bounds.
  * 
- * @restrict "_'s⁇position:=_" is
- * @param "anIterator" "tuple reader's type"
- * @param "position" "natural number's type"
+ * @method "_'s⁇position:=_"
+ * @restricts "anIterator" "tuple reader's type"
+ * @restricts "position" "natural number's type"
  * @category "Data Abstractions" "Readers"
  */
 Semantic restriction "_'s⁇position:=_" is

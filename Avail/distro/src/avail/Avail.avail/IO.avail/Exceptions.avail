@@ -45,5 +45,6 @@ Body
  * 
  * @type "data-validation exception" 
  * @supertype "exception"
+ * @category "Networking" "Exceptions" "IO"
  */
 Public explicit class "data-validation exception" extends exception;

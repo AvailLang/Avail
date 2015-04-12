@@ -70,6 +70,7 @@ defaultName ::= "«unnamed»";
  * A server socket is capable of receiving incoming connections.
  *
  * @type "server socket"
+ * @category "IO" "Networking" "Sockets"
  */
 Public explicit class "server socket" extends object
 	with field
@@ -82,6 +83,7 @@ Public explicit class "server socket" extends object
  * @method "_'s⁇name"
  * @param "s" "server socket"
  * @returns "nonempty string"
+ * @category "IO" "Networking" "Sockets"
  */
 Method "_'s⁇name" is
 [
@@ -110,6 +112,7 @@ Semantic restriction "_'s⁇name" is
  *        a high level, provided for debugging purposes only. If not specified,
  *        then the default name {@code "«unnamed»"} is used.
  * @returns "server socket"
+ * @category "IO" "Networking" "Sockets"
  */
 Public method "a server socket«named_»" is
 [
@@ -134,6 +137,7 @@ Public method "a server socket«named_»" is
  * @param "s" "server socket"
  * @param "options" "<<server socket option, any…|2>…|1..2>"
  * @returns "⊤"
+ * @category "IO" "Networking" "Sockets"
  */
 Method "_'s⁇«_:=_‡,»" is
 [
@@ -181,6 +185,8 @@ Semantic restriction "_'s⁇«_:=_‡,»" is
  * @param "backlog" "whole number"
  *        The maximum number of pending connections on the server socket. If
  *        {@code 0}, then a system-dependent default will be chosen.
+ * @returns "⊤"
+ * @category "IO" "Networking" "Sockets" "IP"
  */
 Private abstract method "Bind_to_on port_with a backlog of_"
 	is [server socket, IP address, [0..65535], whole number]→⊤;
@@ -192,6 +198,7 @@ Private abstract method "Bind_to_on port_with a backlog of_"
  * @param "port" "[0..65535]"
  * @param "backlog" "whole number"
  * @returns "⊤"
+ * @category "IO" "Networking" "Sockets" "IP"
  */
 Method "Bind_to_on port_with a backlog of_" is
 [
@@ -224,6 +231,7 @@ Method "Bind_to_on port_with a backlog of_" is
  * @param "port" "[0..65535]"
  * @param "backlog" "whole number"
  * @returns "⊤"
+ * @category "IO" "Networking" "Sockets" "IP"
  */
 Method "Bind_to_on port_with a backlog of_" is
 [
@@ -260,6 +268,7 @@ Method "Bind_to_on port_with a backlog of_" is
  *        server socket. If not specified, then a system-dependent default will
  *        be chosen.
  * @returns "⊤"
+ * @category "IO" "Networking" "Sockets"
  */
 Public method "Bind_to_«with a backlog of_connection|connections»" is
 [
@@ -302,6 +311,7 @@ Public method "Bind_to_«with a backlog of_connection|connections»" is
  * @returns "fiber"
  *          The new fiber which may eventually apply either {@param "success"}
  *          or {@param "failure"}.
+ * @category "IO" "Networking" "Sockets"
  */
 Public method
 	"a fiber waiting until_accepts a new connection«named_»,⁇\
@@ -371,6 +381,7 @@ is
  * @method "_'s⁇address"
  * @param "s" "server socket"
  * @returns "socket address"
+ * @category "IO" "Networking" "Sockets"
  */
 Method "_'s⁇address" is
 [
@@ -397,6 +408,7 @@ Method "_'s⁇address" is
  * @method "Close_"
  * @param "s" "server socket"
  * @returns "⊤"
+ * @category "IO" "Networking" "Sockets"
  */
 Method "Close_" is
 [

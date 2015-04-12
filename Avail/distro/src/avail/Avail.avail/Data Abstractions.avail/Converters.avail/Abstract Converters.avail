@@ -153,6 +153,7 @@ Semantic restriction "_process_" is
  * 
  * @method "flush_"
  * @param "aConverter" "converter"
+ * @returns "any*"
  * @category "Data Abstractions" "Converters"
  */
 Public abstract method "flush_" is [converter]→any*;

@@ -64,6 +64,7 @@ Body
 /**
  * @type "private socket option"
  * @supertype "object"
+ * @category "IO" "Networking" "Sockets"
  */
 Class "private socket option" extends object
 	with field
@@ -103,6 +104,7 @@ _socket_option ::= _server_socket_option ∪ _client_socket_option;
  * socket.
  *
  * @type "socket option"
+ * @category "IO" "Networking" "Sockets"
  */
 Public method "socket option" is [_socket_option];
 
@@ -112,6 +114,7 @@ Public method "socket option" is [_socket_option];
  *
  * @type "server socket option"
  * @supertype "socket option"
+ * @category "IO" "Networking" "Sockets"
  */
 Public method "server socket option" is [_server_socket_option];
 
@@ -143,6 +146,7 @@ Public method "server socket option" is [_server_socket_option];
  *
  * @method "receive buffer size"
  * @returns "socket option"
+ * @category "IO" "Networking" "Sockets"
  */
 Public method "receive buffer size" is [_so_rcvbuf];
 
@@ -167,6 +171,7 @@ Public method "receive buffer size" is [_so_rcvbuf];
  *
  * @method "address reusability"
  * @returns "socket option"
+ * @category "IO" "Networking" "Sockets"
  */
 Public method "address reusability" is [_so_reuseaddr];
 
@@ -176,6 +181,7 @@ Public method "address reusability" is [_so_reuseaddr];
  *
  * @type "client socket option"
  * @supertype "socket option"
+ * @category "IO" "Networking" "Sockets"
  */
 Public method "client socket option" is [_client_socket_option];
 
@@ -203,6 +209,7 @@ Public method "client socket option" is [_client_socket_option];
  *
  * @method "transmission buffer size"
  * @returns "socket option"
+ * @category "IO" "Networking" "Sockets"
  */
 Public method "transmission buffer size" is [_so_sndbuf];
 
@@ -222,6 +229,7 @@ Public method "transmission buffer size" is [_so_sndbuf];
  *
  * @method "keep alive"
  * @returns "socket option"
+ * @category "IO" "Networking" "Sockets"
  */
 Public method "keep alive" is [_so_keepalive];
 
@@ -243,6 +251,7 @@ Public method "keep alive" is [_so_keepalive];
  *
  * @method "Nagle's algorithm"
  * @returns "socket option"
+ * @category "IO" "Networking" "Sockets"
  */
 Public method "Nagle's algorithm disablement" is [_tcp_nodelay];
 
@@ -250,6 +259,7 @@ Public method "Nagle's algorithm disablement" is [_tcp_nodelay];
  * @method "“_”"
  * @param "o" "private socket option"
  * @returns "string"
+ * @category "IO" "Networking" "Sockets"
  */
 Method "“_”" is [o : private socket option | o's option name];
 
@@ -260,6 +270,7 @@ Method "“_”" is [o : private socket option | o's option name];
  * @method "Require:_are sensible"
  * @param "options" "<<server socket option, any…|2>…|>'s type"
  * @returns "⊤"
+ * @category "Sockets"
  */
 Public method "Require:_are sensible" is
 [

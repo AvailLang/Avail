@@ -57,6 +57,7 @@ Body
  *
  * @method "parse map"
  * @returns "{atom→any|}"
+ * @category "Macros"
  */
 Method "parse map" is
 [
@@ -75,6 +76,7 @@ Semantic restriction "parse map" is
  * @method "parse map:=_"
  * @param "aMap" "{atom→any|}"
  * @returns "⊤"
+ * @category "Macros"
  */
 Method "parse map:=_" is
 [
@@ -89,6 +91,7 @@ Method "parse map:=_" is
  *
  * @method "scope map"
  * @returns "{nonempty string→declaration phrase|}"
+ * @category "Macros"
  */
 Method "scope map" is
 [
@@ -107,6 +110,7 @@ Semantic restriction "scope map" is
  * @method "scope map:=_"
  * @param "aMap" "{atom→any|}"
  * @returns "⊤"
+ * @category "Macros"
  */
 Method "scope map:=_" is
 [
@@ -142,6 +146,7 @@ Semantic restriction "private concatenate_" is
  * @param "varName" "nonempty string"
  *        The proposed name of the new local.
  * @returns "⊤"
+ * @category "Macros"
  */
 Method "Require:_named_does not shadow" is
 [

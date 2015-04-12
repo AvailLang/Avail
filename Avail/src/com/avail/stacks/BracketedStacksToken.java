@@ -844,6 +844,8 @@ public class BracketedStacksToken extends RegionStacksToken
 								.append("</a>");
 							return stringBuilder.toString();
 						}
+
+							return "<code>" + link.lexeme() + "</code>";
 					}
 					catch (final ClassCastException e)
 					{
@@ -901,8 +903,16 @@ public class BracketedStacksToken extends RegionStacksToken
 						.append("</a>");
 					return stringBuilder.toString();
 				}
-
-			return "<code>" + links.get(0).lexeme() + "</code>";
+				final StringBuilder plainText =
+					new StringBuilder();
+				final int shiftedTokenCount = links.size() - 1;
+				for (int i = 1; i < shiftedTokenCount; i++)
+				{
+					plainText.append(links.get(i).lexeme());
+					plainText.append(' ');
+				}
+				plainText.append(links.get(shiftedTokenCount).lexeme());
+				return plainText.toString();
 			}
 		};
 

@@ -54,7 +54,7 @@ Names
 	"Try again",
 	"all values of_",
 	"first try",
-	"first«_»value|values of_",
+	"first«_»?value|values of_",
 	"trial element of_",
 	"trial`#of_",
 
@@ -411,7 +411,7 @@ Semantic restriction "all values of_" is
  * This method internally uses {@method "Backtracking fence_"}, so the
  * sender need not explicitly establish a fence.
  *
- * @method "first«_»value|values of_"
+ * @method "first«_»?value|values of_"
  * @param "optionalMaxValues" "whole number?"
  *        If specified, then the requested number of values; otherwise, {@code
  *        1}. If fewer than the requested number of values are available, then
@@ -424,7 +424,7 @@ Semantic restriction "all values of_" is
  *          producible through backtracking.
  * @category "Backtracking" "Control Structures"
  */
-Public method "first«_»value|values of_" is
+Public method "first«_»?value|values of_" is
 [
 	optionalMaxValues : [0..∞]?,
 	aFunction : []→any
@@ -456,11 +456,11 @@ Public method "first«_»value|values of_" is
 ] : tuple;
 
 /**
- * @method "first«_»value|values of_"
+ * @method "first«_»?value|values of_"
  * @restricts "[0..∞]?'s type"
  * @restricts "[]→any's type"
  */
-Semantic restriction "first«_»value|values of_" is
+Semantic restriction "first«_»?value|values of_" is
 [
 	optionalMaxValues : [0..∞]?'s type,
 	functionType : []→any's type

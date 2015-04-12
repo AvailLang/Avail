@@ -163,9 +163,9 @@ Method "concatenate_" is stable at
 	function accepting <tuple of tuple> and returning tuple;
 
 /**
-* @method "concatenate_"
-* @restricts "tuple of tuple's type"
-*/
+ * @method "concatenate_"
+ * @restricts "tuple of tuple's type"
+ */
 Semantic restriction "concatenate_" is
 [
 	tupleType : tuple of tuple's type
@@ -220,6 +220,7 @@ Semantic restriction "concatenate_" is
  * @param "left" "expression phrase ⇒ tuple"
  * @param "right" "expression phrase ⇒ tuple"
  * @returns "expression phrase ⇒ tuple"
+ * @category "Tuples"
  */
 Macro "_++_" is
 [
@@ -239,6 +240,7 @@ Macro "_++_" is
  * @returns "literal phrase ⇒ tuple"
  *          The result of {@method "concatenate_" concatenating} {@param "left"}
  *          and {@param "right"}, respectively.
+ * @category "Tuples"
  */
 Macro "_++_" is
 [
@@ -256,6 +258,7 @@ Macro "_++_" is
  * @param "right" "expression phrase ⇒ tuple"
  * @returns "expression phrase ⇒ tuple"
  *          {@param "right"}.
+ * @category "Tuples"
  */
 Macro "_++_" is
 [
@@ -273,6 +276,7 @@ Macro "_++_" is
  * @param "right" "expression phrase ⇒ <<>, any…|[0..0]>"
  * @returns "expression phrase ⇒ tuple"
  *          {@param "left"}.
+ * @category "Tuples"
  */
 Macro "_++_" is
 [
@@ -290,6 +294,7 @@ Macro "_++_" is
  * @param "left" "expression phrase ⇒ <<>, any…|[0..0]>"
  * @param "right" "expression phrase ⇒ <<>, any…|[0..0]>"
  * @returns "literal phrase ⇒ (<>'s type)"
+ * @category "Tuples"
  */
 Macro "_++_" is
 [
@@ -312,6 +317,7 @@ Macro "_++_" is
  * @param "right" "literal phrase ⇒ tuple"
  * @returns "expression phrase ⇒ tuple"
  *          A revised {@type "send phrase" send} of {@method "concatenate_"}.
+ * @category "Tuples"
  */
 Macro "_++_" is
 [
@@ -367,6 +373,7 @@ Macro "_++_" is
  * @param "right" "send phrase ⇒ tuple"
  * @returns "expression phrase ⇒ tuple"
  *          A revised {@type "send phrase" send} of {@method "concatenate_"}.
+ * @category "Tuples"
  */
 Macro "_++_" is
 [
@@ -424,6 +431,7 @@ Macro "_++_" is
  * @param "right" "send phrase ⇒ tuple"
  * @returns "expression phrase ⇒ tuple"
  *          A revised {@type "send phrase" send} of {@method "concatenate_"}.
+ * @category "Tuples"
  */
 Macro "_++_" is
 [
@@ -1051,6 +1059,7 @@ Grammatical restriction "_→_" is <∅, {"tuple"}>;
  * @returns "any?'s type"
  *          A zero-or-one element tuple type whose sole element, if present, has
  *          type t.
+ * @category "Tuples" "Types"
  */
 Public method "_`?" is
 [
@@ -1082,6 +1091,7 @@ Semantic restriction "_`?" is
  *        The type to be made one-or-more.
  * @returns "any+'s type"
  *          A one or more element tuple type whose elements have type t.
+ * @category "Tuples" "Types"
  */
 Public method "_+" is
 [
@@ -1113,6 +1123,7 @@ Semantic restriction "_+" is
  *        The type to be made zero-or-more.
  * @returns "any*'s type"
  *          A zero or more element tuple type whose elements have type t.
+ * @category "Tuples" "Types"
  */
 Public method "_*" is
 [
@@ -1140,6 +1151,7 @@ Semantic restriction "_*" is
  *
  * @type "UUID"
  * @supertype "<byte…|16>"
+ * @category "Tuples" "Cryptography"
  */
 Public method "UUID" is [<<>, byte…|16's type>];
 
@@ -1151,6 +1163,7 @@ Public method "UUID" is [<<>, byte…|16's type>];
  * @method "a UUID"
  * @returns "<byte…|16>"
  *          The requested UUID.
+ * @category "Tuples" "Cryptography"
  */
 Public method "a UUID" is
 [
@@ -1166,6 +1179,7 @@ Public method "a UUID" is
  * @param "value" "any"
  * @returns "byte+"
  *          A serialization of {@param "value"}.
+ * @category "Tuples" "Cryptography"
  */
 Public method "serialize_" is
 [
@@ -1187,6 +1201,7 @@ Public method "serialize_" is
  *        "atom"}s.
  * @returns "any*"
  *          The deserialized values.
+ * @category "Tuples" "Cryptography"
  */
 Public method "deserialize_based on_" is
 [
@@ -1212,6 +1227,7 @@ Public method "deserialize_based on_" is
  * @param "algorithm" "{1, 256, 384, 512}ᵀ"
  * @param "bytes" "byte*"
  * @returns "byte+"
+ * @category "Tuples" "Cryptography"
  */
 Public stable method "SHA-_digest of_" is
 [
@@ -1240,6 +1256,7 @@ Semantic restriction "SHA-_digest of_" is
  * @param "var" "read tuple/write ⊥"
  * @param "t" "tuple"
  * @returns "⊤"
+ * @category "Tuples"
  */
 Public method "_↑++=_" is
 [
@@ -1305,6 +1322,7 @@ Semantic restriction "_with_appended" is
  * @param "varPhrase" "variable reference phrase ⇒ read tuple/write ⊥"
  * @param "elemPhrase" "expression phrase ⇒ <<>, any…|[1..1]>"
  * @returns "⊤"
+ * @category "Tuples"
  */
 Macro "_↑++=_" is
 [

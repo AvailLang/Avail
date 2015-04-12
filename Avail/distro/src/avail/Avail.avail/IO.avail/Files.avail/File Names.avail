@@ -74,6 +74,7 @@ Body
  *
  * @type "file name"
  * @supertype "object"
+ * @category "Files"
  */
 Public class "file name" extends object
 	with fields
@@ -97,6 +98,7 @@ Stable method "“_”" is
  *        relative path rather than an {@method "_is absolute" absolute} one).
  * @returns "file name"
  *          The requested file name.
+ * @category "Files"
  */
 Public stable method "a file named_" is
 [
@@ -123,6 +125,7 @@ Semantic restriction "a file named_" is
  *        relative path rather than an {@method "_is absolute" absolute} one).
  * @returns "file name"
  *          The requested file name.
+ * @category "Files"
  */
 Public stable method "./_" is
 [
@@ -156,6 +159,7 @@ Semantic restriction "./_" is
  *         If {@param "fn"} cannot be understood as a path.
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
+ * @category "Files"
  */
 Public method "_exists(follow if symlink=_)" is
 [
@@ -189,6 +193,7 @@ Public method "_exists(follow if symlink=_)" is
  *          "false"} otherwise.
  * @raises "permission-denied exception"
  *         If permission is denied to use the file named by {@param "fn"}.
+ * @category "Files"
  */
 Public method "_exists«(don't follow if symlink)»?" is
 [
@@ -208,6 +213,7 @@ Public method "_exists«(don't follow if symlink)»?" is
  *          "false"} otherwise.
  * @raises "invalid-path exception"
  *         If {@param "fn"} cannot be understood as a path.
+ * @category "Files"
  */
 Public method "_is absolute" is
 [
@@ -237,6 +243,7 @@ Public method "_is absolute" is
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
+ * @category "Files"
  */
 Public method "_'s⁇absolute path" is
 [
@@ -277,6 +284,7 @@ Public method "_'s⁇absolute path" is
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
+ * @category "Files"
  */
 Public method "_'s⁇real path(follow if symlink=_)" is
 [
@@ -319,6 +327,7 @@ Public method "_'s⁇real path(follow if symlink=_)" is
  *         If permission is denied to use the file named by {@param "fn"}.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
+ * @category "Files"
  */
 Public method "_'s⁇real path«(don't follow if symlink)»?" is
 [
@@ -348,6 +357,7 @@ Public method "_'s⁇real path«(don't follow if symlink)»?" is
  *         "file name"}s.
  * @raises "I/O exception"
  *         If an I/O exception occurs.
+ * @category "Files"
  */
 Public method "_names the⁇same file as_" is
 [
@@ -375,6 +385,7 @@ Public method "_names the⁇same file as_" is
  * @returns "file name"
  *        The {@method "_'s⁇real path(follow if symlink=_)" real path} of the
  *        current working directory.
+ * @category "Files"
  */
 Public method "current working directory" is
 [
@@ -396,6 +407,7 @@ Public method "current working directory" is
  * @raises "invalid-path exception"
  *         If any of the elements of {@param "fns"} cannot be understood as a
  *         path.
+ * @category "Files"
  */
 Public stable method "concatenate_" is
 [
@@ -421,6 +433,7 @@ Public stable method "concatenate_" is
  * @raises "invalid-path exception"
  *         If any of the elements of {@param "fns"} cannot be understood as a
  *         path.
+ * @category "Files"
  */
 Public method "«_‡/»" is
 [
@@ -461,6 +474,7 @@ Semantic restriction "«_‡/»" is
  * @raises "invalid-path exception"
  *         If any of the elements of {@param "fns"} cannot be understood as a
  *         path.
+ * @category "Files"
  */
 Public method "«_‡/»" is
 [
@@ -507,6 +521,7 @@ Semantic restriction "«_‡/»" is
  * @returns "<file name…|1..>"
  * @raises "invalid-path exception"
  *         If {@param "fn"} cannot be understood as a path.
+ * @category "Files"
  */
 Public stable method "_'s⁇path components" is
 [
@@ -531,6 +546,7 @@ Public stable method "_'s⁇path components" is
  * @method "_'s⁇parent path"
  * @param "fn" "file name"
  * @returns "file name"
+ * @category "Files"
  */
 Public stable method "_'s⁇parent path" is
 [
@@ -550,6 +566,7 @@ Grammatical restriction "«_‡/»" is <{"«_‡/»"}>;
  * @returns "file name"
  * @returns "no-file exception"
  *          If the home directory could not be determined.
+ * @category "Files"
  */
 Public method "home directory" is
 [
@@ -567,6 +584,7 @@ Public method "home directory" is
  * @returns "file name"
  * @returns "no-file exception"
  *          If the temporary directory could not be determined.
+ * @category "Files"
  */
 Public method "temporary directory" is
 [

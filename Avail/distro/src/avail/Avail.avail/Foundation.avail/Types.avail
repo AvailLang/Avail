@@ -57,7 +57,6 @@ Names
 	"<«_‡,»`…`|_>",
 	"<«_‡,»`…`|>",
 	/* Set type constructors. */
-	"set«_»of_",
 	"{_`|_.._}",
 	"{_`|_..}",
 	"{_`|.._}",
@@ -82,6 +81,7 @@ Body
  * 	The lexically specified argument types.
  * @param "returnType" "type"
  * 	The return type.
+ * @category "Functions" "Types"
  * @returns "function meta"
  *  The requested function type.
  */
@@ -104,6 +104,7 @@ Grammatical restriction "[`…]→_" is <{"_'s⁇type"}>;
  * @restricts "tuple of any meta's type"
  * @restricts "any meta's type"
  * @restricts "whole number meta's type"
+ * @category "Tuples" "Types"
  */
 Semantic restriction "<_,_`…`|_>" is
 [
@@ -180,6 +181,7 @@ Semantic restriction "<_,_`…`|_>" is
  *		minimum cardinality
  * @param "maximumSize" "[0..∞]"
  *		maximum cardinality
+ * @category "Tuples" "Types"
  * @returns "tuple meta"
  *    The requested tuple's type.
  */
@@ -202,6 +204,7 @@ Public method "<«_‡,»`…`|_.._>" is
  * @restricts "<<>, any's type…|natural number>'s type"
  * @restricts "whole number's type"
  * @restricts "[0..∞]'s type"
+ * @category "Tuples" "Types"
  */ 
 Semantic restriction "<«_‡,»`…`|_.._>" is
 [
@@ -270,6 +273,7 @@ Semantic restriction "<«_‡,»`…`|_.._>" is
  *		a tuple of the types in the tuple
  * @param "minimumSize" "whole number" 
  *		minimum cardinality
+ * @category "Tuples" "Types"
  * @returns "tuple meta"
  *    The requested tuple's type.
  */
@@ -354,6 +358,7 @@ Semantic restriction "<«_‡,»`…`|_..>" is
  *		a tuple of the types in the tuple 
  * @param "maximumSize" "[0..∞]"
  *		maximum cardinality
+ * @category "Tuples" "Types"
  * @returns "tuple meta"
  *    The requested tuple's type.
  */
@@ -372,6 +377,7 @@ Public method "<«_‡,»`…`|.._>" is
 
 /**
  * @method "<«_‡,»`…`|.._>"
+ * @category "Tuples" "Types"
  * @restricts "<<>, any's type…|natural number>'s type"
  * @restricts "[0..∞]'s type"
  */ 
@@ -439,6 +445,7 @@ Semantic restriction "<«_‡,»`…`|.._>" is
  *		a tuple of the types in the tuple
  * @param "exactSize" "whole number" 
  *		the minimum and maximum cardinality
+ * @category "Tuples" "Types"
  * @returns "tuple meta"
  *    The requested tuple's type's type.
  */
@@ -459,6 +466,7 @@ Public method "<«_‡,»`…`|_>" is
  * @method "<«_‡,»`…`|_>"
  * @restricts "<<>, any's type…|natural number>'s type"
  * @restricts "whole number's type"
+ * @category "Tuples" "Types"
  */ 
 Semantic restriction "<«_‡,»`…`|_>" is
 [
@@ -525,6 +533,7 @@ Semantic restriction "<«_‡,»`…`|_>" is
  *		a tuple of the types in the tuple
  * @returns "tuple meta"
  *    The requested tuple's type's type.
+ * @category "Tuples" "Types"
  */
 Public method "<«_‡,»`…`|>" is
 [
@@ -540,6 +549,7 @@ Public method "<«_‡,»`…`|>" is
 /**
  * @method "<«_‡,»`…`|>"
  * @restricts "<<>, any's type…|natural number>'s type"
+ * @category "Tuples" "Types"
  */ 
 Semantic restriction "<«_‡,»`…`|>" is
 [
@@ -598,6 +608,7 @@ Semantic restriction "<«_‡,»`…`|>" is
  * @method "{_`|_}"
  * @restricts "any meta's type"
  * @restricts "whole number meta's type"
+ * @category "Sets" "Types"
  */
 Semantic restriction "{_`|_}" is
 [
@@ -622,6 +633,7 @@ Semantic restriction "{_`|_}" is
  * 		The minimum cardinality of the set.
  * @param "maximumSize" "[0..∞]"
  *		The maximum cardinality of the set.
+ * @category "Sets" "Types"
  * @returns "set meta"
  *    The requested set type. Instances have elements that conform to
  *    `elementType` and cardinalities, using the supplied minimum and maximum 
@@ -653,6 +665,7 @@ Public method "{_`|_.._}" is
  * @restricts "any's type's type"
  * @restricts "whole number's type"
  * @restricts "[0..∞]'s type"
+ * @category "Sets" "Types"
  */
 Semantic restriction "{_`|_.._}" is
 [
@@ -687,6 +700,7 @@ Semantic restriction "{_`|_.._}" is
  *		The element type.
  * @param "minimumSize" "whole number" 
  * 		The minimum cardinality of the set.
+ * @category "Sets" "Types"
  * @returns "set meta"
  *    The requested set type. Instances have elements that conform to
  *    `elementType` and cardinalities, using the supplied minimum value and 
@@ -704,6 +718,7 @@ Public method "{_`|_..}" is
  * @method "{_`|_..}"
  * @restricts "ant's type's type"
  * @restricts "whole number's type"
+ * @category "Sets" "Types"
  */
 Semantic restriction "{_`|_..}" is
 [
@@ -724,6 +739,7 @@ Semantic restriction "{_`|_..}" is
  *		The element type.
  * @param "maximumSize" "[0..∞]"
  *		The maximum cardinality of the set.
+ * @category "Sets" "Types"
  * @returns "set meta"
  *    The requested set type. Instances have elements that conform to
  *    `elementType` and cardinalities, using the supplied maximum value and 
@@ -742,6 +758,7 @@ Public method "{_`|.._}" is
  * @method "{_`|.._}"
  * @restricts "any's type's type"
  * @restricts "[0..∞]'s type"
+ * @category "Sets" "Types"
  */
 Semantic restriction "{_`|.._}" is
 [
@@ -759,6 +776,7 @@ Semantic restriction "{_`|.._}" is
  * @method "{_`|_}"
  * @restricts "any's type"
  * @restricts "whole number"
+ * @category "Sets" "Types"
  */
 Method "{_`|_}" is
 [
@@ -784,6 +802,7 @@ Method "{_`|_}" is
  * @method "{_`|_}"
  * @restricts "any's type's type"
  * @restricts "whole number's type"
+ * @category "Sets" "Types"
  */
 Semantic restriction "{_`|_}" is
 [
@@ -810,6 +829,7 @@ Semantic restriction "{_`|_}" is
  * @method "{_`|}"
  * @param "elementType" "any's type" 
  *        The element type.
+ * @category "Sets" "Types"
  * @returns "set meta"
  *    The requested set type. Instances have elements that conform to
  *    `elementType` and cardinalities, using the supplied maximum value and 
@@ -834,51 +854,11 @@ Semantic restriction "{_`|}" is
 ];
 
 /**
- * Construct and answer a set type with the specified element type and range of
- * cardinalities.
- *
- * @method "set«_»of_"
- * @param "optionalSizes" "whole number meta?"
- *        If specified, then the range of allowed cardinalities. Defaults to
- *        whole number.
- * @param "elementType" "any meta"
- *        The element type.
- * @returns "set meta"
- *    The requested set type. Instances have elements that conform to
- *    `elementType` and cardinalities that conform to `optionalSizes`, if
- *    specified, or `whole number`, if unspecified.
- */
-Public method "set«_»of_" is
-[
-	optionalSizes : whole number meta?,
-	elementType : any meta
-|
-	{elementType | optionalSizes[1] else [whole number]}
-] : set meta;
-
-/**
- * @method "set«_»of_"
- * @restricts "whole number meta?'s type"
- * @restricts "any meta's type"
- */
-Semantic restriction "set«_»of_" is
-[
-	optionalSizes : whole number meta?'s type,
-	elementType : any meta's type
-|
-	sizes ::= if ⎡optionalSizes⎤ = 0
-		then [whole number]
-		else [optionalSizes[1]'s instance];
-	bound ::= cast ⎡sizes⎤ + 1 into [t : [0..∞] | t];
-	lower ::= ⎣sizes⎦;
-	{elementType's instance|[lower..bound)}'s type
-];
-
-/**
  * @method "{_→_`|_}"
  * @restricts "any meta's type"
  * @restricts "any meta's type"
  * @restricts "whole number meta's type"
+ * @category "Maps" "Types"
  */
 Semantic restriction "{_→_`|_}" is
 [
@@ -906,6 +886,7 @@ Semantic restriction "{_→_`|_}" is
  *        The minimum cardinality of the set.
  * @param "maximumSize" "[0..∞]"
  *        The maximum cardinality of the set.
+ * @category "Maps" "Types"
  * @returns "map meta"
  *          The requested map type.
  */
@@ -926,6 +907,7 @@ Public method "{_→_`|_.._}" is
  * @restricts "any's type's type"
  * @restricts "whole number's type"
  * @restricts "[0..∞]'s type"
+ * @category "Maps" "Types"
  */
 Semantic restriction "{_→_`|_.._}" is
 [
@@ -951,6 +933,7 @@ Semantic restriction "{_→_`|_.._}" is
  *        A type to which all values of instances must conform.
  * @param "minimumSize" "whole number"
  *        The minimum cardinality of the set.
+ * @category "Maps" "Types"
  * @returns "map meta"
  *        The requested map type.
  */
@@ -968,6 +951,7 @@ Public method "{_→_`|_..}" is
  * @restricts "any's type's type"
  * @restricts "any's type's type"
  * @restricts "whole number's type"
+ * @category "Maps" "Types"
  */
 Semantic restriction "{_→_`|_..}" is
 [
@@ -991,6 +975,7 @@ Semantic restriction "{_→_`|_..}" is
  *        A type to which all values of instances must conform.
  * @param "maximumSize" "[0..∞]"
  *        The maximum cardinality of the set.
+ * @category "Maps" "Types"
  * @returns "map meta"
  *        The requested map type.
  */
@@ -1009,6 +994,7 @@ Public method "{_→_`|.._}" is
  * @restricts "any's type's type"
  * @restricts "any's type's type"
  * @restricts "[0..∞]'s type"
+ * @category "Maps" "Types"
  */
 Semantic restriction "{_→_`|.._}" is
 [
@@ -1031,6 +1017,7 @@ Semantic restriction "{_→_`|.._}" is
  *        A type to which all values of instances must conform.
  * @param "exact size" "whole number"
  *        The minimum and maximum cardinality.
+ * @category "Maps" "Types"
  * @returns "map meta"
  *        The requested map type.
  */
@@ -1049,6 +1036,7 @@ Method "{_→_`|_}" is
  * @restricts "any meta's type"
  * @restricts "any meta's type"
  * @restricts "whole number's type"
+ * @category "Maps" "Types"
  */
 Semantic restriction "{_→_`|_}" is
 [
@@ -1069,6 +1057,7 @@ Semantic restriction "{_→_`|_}" is
  *        A type to which all keys of instances must conform.
  * @param "valueType" "any meta"
  *        A type to which all values of instances must conform.
+ * @category "Maps" "Types"
  * @returns "map meta"
  *        The requested map type.
  */
@@ -1084,6 +1073,7 @@ Public method "{_→_`|}" is
  * @method "{_→_`|}"
  * @restricts "any meta's type"
  * @restricts "any meta's type"
+ * @category "Maps" "Types"
  */
 Semantic restriction "{_→_`|}" is
 [
@@ -1097,6 +1087,7 @@ Semantic restriction "{_→_`|}" is
  * @method "_∪_"
  * @restricts "type's type"
  * @restricts "type's type"
+ * @category "Types"
  */
 Semantic restriction "_∪_" is
 [
@@ -1110,6 +1101,7 @@ Semantic restriction "_∪_" is
  * @method "_∩_"
  * @restricts "type's type"
  * @restricts "type's type"
+ * @category "Types"
  */
 Semantic restriction "_∩_" is
 [
@@ -1122,6 +1114,7 @@ Semantic restriction "_∩_" is
 /**
  * @method "`|`|_`|`|"
  * @restricts "tuple meta's type"
+ * @category "Tuples" "Types"
  */
 Semantic restriction "`|`|_`|`|" is
 [
@@ -1133,6 +1126,7 @@ Semantic restriction "`|`|_`|`|" is
 /**
  * @method "`|`|_`|`|"
  * @restricts "set meta's type"
+ * @category "Sets" "Types"
  */
 Semantic restriction "`|`|_`|`|" is
 [
@@ -1144,6 +1138,7 @@ Semantic restriction "`|`|_`|`|" is
 /**
  * @method "`|`|_`|`|"
  * @restricts "map meta's type"
+ * @category "Maps" "Types"
  */
 Semantic restriction "`|`|_`|`|" is
 [
@@ -1155,6 +1150,7 @@ Semantic restriction "`|`|_`|`|" is
 /**
  * @method "`|`|_`|`|"
  * @restricts "⊥'s type's type"
+ * @category "Types"
  */
 Semantic restriction "`|`|_`|`|" is
 [
@@ -1169,6 +1165,7 @@ Semantic restriction "`|`|_`|`|" is
  * 
  * @method "[`…]→_"
  * @restricts "type's type"
+ * @category "Functions" "Types"
  */
 Semantic restriction "[`…]→_" is
 [
@@ -1187,6 +1184,7 @@ Semantic restriction "[`…]→_" is
  * @method "[«_‡,»]→_"
  * @restricts "tuple of any meta's type"
  * @restricts "type's type"
+ * @category "Functions" "Types"
  */
 Semantic restriction "[«_‡,»]→_" is
 [
@@ -1215,6 +1213,7 @@ Semantic restriction "[«_‡,»]→_" is
  *
  * @method "“_”(cardinality restriction)"
  * @param "range" "extended integer meta"
+ * @category "Types"
  * @returns "string"
  */
 Public method "“_”(cardinality restriction)" is
@@ -1240,7 +1239,8 @@ Public method "“_”(cardinality restriction)" is
  *
  * @method "∪_"
  * @restricts "tupleOfTypesType" "(tuple of type)'s type"
- * @returns type
+ * @category "Types"
+ * @returns "type"
  */
 Semantic restriction "∪_" is
 [
@@ -1265,6 +1265,7 @@ Semantic restriction "∪_" is
  * @method "_⊈_"
  * @param "a" "type"
  * @param "b" "type"
+ * @category "Types"
  * @returns "boolean"
  *          {@method "true"} if {@param "a"} is not a subtype of {@param "b"},
  *          {@method "false"} otherwise.
@@ -1281,6 +1282,7 @@ Public method "_⊈_" is
  * @method "_⊈_"
  * @restricts "metaA" "type's type"
  * @restricts "metaB" "type's type"
+ * @category "Types"
  */
 Semantic restriction "_⊈_" is
 [

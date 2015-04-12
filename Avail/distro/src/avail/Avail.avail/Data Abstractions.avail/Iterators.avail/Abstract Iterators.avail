@@ -84,7 +84,7 @@ Body
  * "reader"} and {@method "writer"} provide the necessary additional methods for
  * reading and writing data, respectively, at the current position.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Iterators"
  * @type "iterator"
  */
 Public explicit class "iterator" extends object
@@ -92,20 +92,20 @@ Public explicit class "iterator" extends object
 		element type : any's type;
 
 /**
- * A reader is an {@iterator} through which reading may happen, via the method
- * {@method "_'s⁇current element"}.
+ * A reader is an {@type "iterator"} through which reading may happen, via the 
+ * method {@method "_'s⁇current element"}.
  * 
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @type "reader"
  * @supertype "iterator"
  */
 Public explicit class "reader" extends iterator;
 
 /**
- * A writer is an {@iterator} through which writing may happen, via the method
- * {@method "_'s⁇current element:=_"}.
+ * A writer is an {@type "iterator"} through which writing may happen, via the
+ * method {@method "_'s⁇current element:=_"}.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Writers"
  * @type "writer"
  * @supertype "iterator"
  */
@@ -117,13 +117,14 @@ Public explicit class "writer" extends iterator;
  *
  * @type "exhausted-iterator exception"
  * @supertype "exception"
+ * @category "Exceptions" "Iterators"
  */
 Public explicit class "exhausted-iterator exception" extends exception;
 
 /**
  * Is the specified iterator exhausted?
  * 
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Iterators"
  * @method "_is exhausted"
  * @param "anIterator" "iterator"
  *        An iterator.
@@ -137,7 +138,7 @@ Private abstract method $"Private advance_" is [iterator]→⊤;
 /**
  * Ensure that the specified iterator is not exhausted, then advance its state.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Iterators"
  * @method "Advance_"
  * @param "anIterator" "iterator"
  *        An iterator.
@@ -168,12 +169,12 @@ Method "Advance_" is
  * implementations without exposing it for direct use. These mechanisms
  * cooperate to ensure that iterator exhaustion checking is never bypassed.
  *
- * @category "Data Abstractions"
  * @method "_'s⁇advance method is_"
  * @param "iteratorType" "iterator's type"
  *        The iterator's type, as a cross check for the implementation.
  * @param "implementation" "[⊥]→⊤"
  *        The new method extension.
+ * @category "Data Abstractions" "Iterators"
  * @returns "⊤"
  */
 Public method "_'s⁇advance method is_" is
@@ -188,11 +189,10 @@ Public method "_'s⁇advance method is_" is
  * Ensure the supplied function's argument type is the same as the specified
  * {@type "iterator"} type.
  *
- * @category "Data Abstractions"
- * @restrict "_'s⁇advance method is_"
- * @param "iteratorMeta" "iterator's type's type"
- * @param "implementationType" "[⊥]→⊤'s type"
- * @returns "⊤'s type"
+ * @method "_'s⁇advance method is_"
+ * @restricts "iteratorMeta" "iterator's type's type"
+ * @restricts "implementationType" "[⊥]→⊤'s type"
+ * @category "Data Abstractions" "Iterators"
  */
 Semantic restriction "_'s⁇advance method is_" is
 [
@@ -219,7 +219,7 @@ Semantic restriction "_'s⁇advance method is_" is
 /**
  * Seal the advance method at the specified {@type "iterator"} type.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Iterators"
  * @method "Seal_'s⁇advance method"
  * @param "iteratorType" "iterator's type"
  * @returns "⊤"
@@ -235,7 +235,7 @@ Public method "Seal_'s⁇advance method" is
  * Construct and answer a {@type "reader"} type that produces values of the
  * specified type.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "reader of_"
  * @param "elementType" "any's type"
  *        The type of value produced by readers having the answered type.
@@ -255,7 +255,7 @@ Private abstract method $"private_'s⁇current element" is [reader]→any;
  * Ensure that the specified reader is not exhausted, then answer its current
  * element.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "_'s⁇current element"
  * @param "aReader" "reader"
  *        A reader.
@@ -282,7 +282,7 @@ Method "_'s⁇current element" is
  * Strengthen the values produced by any {@type "reader"} to that of the element
  * type of the reader.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "_'s⁇current element"
  * @restricts "readerType" "reader's type"
  *        The type of reader being probed.
@@ -305,7 +305,7 @@ Semantic restriction "_'s⁇current element" is
  * reader implementations without exposing it for direct use. These mechanisms
  * cooperate to ensure that reader exhaustion checking is never bypassed.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "_'s⁇current element method is_"
  * @param "readerType" "reader's type"
  *        The reader's type, as a cross check for the implementation.
@@ -325,7 +325,7 @@ Public method "_'s⁇current element method is_" is
  * Ensure the supplied function's argument type is the same as the specified
  * {@type "reader"} type.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "_'s⁇current element method is_"
  * @restricts "readerType" "reader's type"
  *        The reader's type, as a cross check for the implementation.
@@ -358,7 +358,7 @@ Semantic restriction "_'s⁇current element method is_" is
 /**
  * Seal the current element method at the specified {@type "reader"} type.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "Seal_'s⁇current element method"
  * @param "readerType" "reader's type"
  * @returns "⊤"
@@ -375,7 +375,7 @@ Public method "Seal_'s⁇current element method" is
 /**
  * Construct and answer a writer type that accepts values of the specified type.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "writer of_"
  * @param "elementType" "any's type"
  *        The type of value consumed by writers having the answered type.
@@ -392,7 +392,7 @@ Public method "writer of_" is
 /**
  * Set the specified writer's current element without advancing.
  * 
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Writers"
  * @method "_'s⁇current element:=_"
  * @param "aWriter" "writer"
  *        A writer.
@@ -406,7 +406,7 @@ Public abstract method "_'s⁇current element:=_" is [writer, any]→⊤;
  * Ensure the values provided to any {@type "writer"} are suitable for that
  * writer.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Writers"
  * @method "_'s⁇current element:=_"
  * @restricts "writerType" "writer's type"
  *        The type of writer being probed.
@@ -437,7 +437,7 @@ Seal method "Advance_" at <iterator>;
  * Helper method for semantic restrictions: If `action` does not accept the
  * element type of `readerType`, then reject the current parse.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "Require:_accepts_"
  * @param "action" "[⊥]→⊤'s type"
  *        A function type whose sole parameter must correspond to the element
@@ -466,7 +466,7 @@ Method "Require:_accepts_" is
  * Iteratively apply {@param "action"} to each consecutive element of {@param
  * "anIterator"}.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "For each of⁇_do_"
  * @param "anIterator" "iterator"
  *        An iterator.
@@ -490,7 +490,7 @@ Method "For each of⁇_do_" is
  * Ensure statically that the supplied action will accept values provided by the
  * reader.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "For each of⁇_do_"
  * @restricts "readerType" "reader's type"
  *        A reader.
@@ -511,7 +511,7 @@ Semantic restriction "For each of⁇_do_" is
  * Answer a tuple containing (at most) the first {@param "count"} elements of
  * {@param "aReader"}.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "take«at most»?_from_"
  * @param "isLax" "boolean"
  *        {@code false} if an {@type "exhausted-iterator exception"} should be
@@ -583,7 +583,7 @@ Semantic restriction "take«at most»?_from_" is
 /**
  * Checks to see if the reader is not exhausted.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "_is not exhausted"
  * @param "aReader" "reader"
  * @returns "boolean"
@@ -600,7 +600,7 @@ Public method "_is not exhausted" is
  * Answer a tuple containing the prefix of {@param "aReader"} that answered
  * {@method "true"} to {@param "predicate"}.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "take from_while_"
  * @param "aReader" "reader"
  *        An reader.
@@ -647,7 +647,7 @@ Semantic restriction "take from_while_" is
  * Answer a tuple containing the prefix of {@param "aReader"} that answered
  * {@method "false"} to {@param "predicate"}.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "take from_until_"
  * @param "aReader" "reader"
  *        An reader.
@@ -694,7 +694,7 @@ Semantic restriction "take from_until_" is
  * Forward the specified {@type "reader"} past (at most) the first {@param
  * "count"} elements.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "Drop«at most»?_from_"
  * @param "isLax" "boolean"
  *        {@code false} if an {@type "exhausted-iterator exception"} should be
@@ -732,7 +732,7 @@ Method "Drop«at most»?_from_" is
  * Forward the specified {@type "reader"} past the prefix of elements that
  * answer {@code true} to {@param "predicate"}.
  * 
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "Drop from_while_"
  * @param "aReader" "reader"
  *        An reader.
@@ -773,7 +773,7 @@ Semantic restriction "Drop from_while_" is
  * Forward the specified {@type "reader"} past the prefix of elements that
  * answer {@code false} to {@param "predicate"}.
  *
- * @category "Data Abstractions"
+ * @category "Data Abstractions" "Readers"
  * @method "Drop from_while_"
  * @param "aReader" "reader"
  *        An reader.
@@ -820,6 +820,7 @@ Semantic restriction "Drop from_until_" is
  * @param "newElements" "tuple"
  * @param "aWriter" "writer"
  * @returns "⊤"
+ * @category "Writers" "Data Abstractions"
  */
 Method "Write_to_" is
 [

@@ -45,7 +45,7 @@ Body
 /**
  * I/O operations that do not block the calling fiber.
  *
- * @category "Asynchronous I/O"
+ * @category "Asynchronous IO"
  */
 
 /**
@@ -53,6 +53,12 @@ Body
  * fiber-heritable properties.
  *
  * @category "Atoms" 
+ */
+
+/**
+ * The native syntax of Avail.
+ *
+ * @category "Avail Syntax"
  */
 
 /**
@@ -75,7 +81,7 @@ Body
 
 /**
  * Methods that operate on the 2's complement representation of {@type
- * "extended integers"}.
+ * "extended integer"}.
  *
  * @category "Bits"
  */
@@ -132,6 +138,18 @@ Body
  */
 
 /**
+ * Encoding and decoding streams of data.
+ *
+ * @category "Converters"
+ */
+
+/**
+ * Cryptographic hashing, symmetric encryption, and asymmetric encryption.
+ * 
+ * @category "Cryptography"
+ */
+
+/**
  * Data structures and abstractions.
  *
  * @category "Data Abstractions"
@@ -182,6 +200,18 @@ Body
  */
 
 /**
+ * Interacting specifically with files.
+ *
+ * @category "Files"
+ */
+
+/**
+ * Interactions with floating point numbers.
+ *
+ * @category "Floating Point"
+ */
+
+/**
  * Application and partial application of functions.
  *
  * @category "Function Application"
@@ -214,6 +244,18 @@ Body
  */
 
 /**
+ * All methods involved in any form of IO.
+ *
+ * @category "IO"
+ */
+
+/**
+ * All methods involved in any form of IP manipulation.
+ *
+ * @category "IP"
+ */
+
+/**
  * Logical operators.
  *
  * @category "Logic"
@@ -223,6 +265,12 @@ Body
  * Repeating control structures.
  *
  * @category "Loops"
+ */
+
+/**
+ * Methods used for the development of Avail macros.
+ *
+ * @category "Macros"
  */
 
 /**
@@ -315,9 +363,27 @@ Body
  */
 
 /**
+ * Reader operators.
+ *
+ * @category "Readers"
+ */
+
+/**
  * Relational operators.
  *
  * @category "Relations"
+ */
+
+/**
+ * Pseudorandom number generation.
+ *
+ * @category "Random"
+ */
+
+/**
+ * Application security.
+ *
+ * @category "Security"
  */
 
 /**
@@ -334,10 +400,16 @@ Body
  */
 
 /**
+ * Methods focused sockets.
+ *
+ * @category "Sockets"
+ */
+
+/**
  * Interacting with the virtual machine's standard input, output, and error
  * streams.
  *
- * @category "Standard I/O"
+ * @category "Standard IO"
  */
 
 /**
@@ -361,7 +433,7 @@ Body
 /**
  * I/O operations that block the calling fiber.
  *
- * @category "Synchronous I/O"
+ * @category "Synchronous IO"
  */
 
 /**
@@ -413,4 +485,10 @@ Body
  * Methods focused on variables. Subtypes of {@type "variable"}.
  *
  * @category "Variables"
+ */
+
+/**
+ * Writer operators.
+ *
+ * @category "Writers"
  */

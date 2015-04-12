@@ -623,7 +623,7 @@ Macro "map each…in|of_§through_" is a tuple iteration prefix function,
  * {@param "aTuple"}, collecting the results into a new tuple (and preserving 
  * ordering of the transformed elements). Answer this {@type "tuple"}.
  * 
- * @macro "map each…in|of_§through_"
+ * @macro "map each…,…in|of_§through_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
@@ -3734,7 +3734,7 @@ Private method "merge_with_" is
  * @returns "tuple"
  *          The sorted tuple.
  * @author "Richard Arriaga"
- * @category "Tuples" "Transformations" "Sorting"
+ * @category "Tuples" "Sorting"
  */
 Public abstract method "merge sort_with_" is [tuple, [⊥, ⊥]→boolean]→tuple;
 
@@ -3810,7 +3810,7 @@ Public method "merge sort_with_" is
  * @returns "number*"
  *          The sorted tuple.
  * @author "Richard Arriaga"
- * @category "Tuples" "Transformations" "Sorting"
+ * @category "Tuples" "Sorting"
  */
 Public abstract method "merge sort_" is [number*]→number*;
 
@@ -3873,7 +3873,7 @@ Method "merge sort_" is
  * @returns "tuple"
  *          The requested tuple, which will be {@param "aTuple"} if there were
  *          no occurrences of {@param "doomed"}.
- * @category "Tuples" "Transformations"
+ * @category "Tuples"
  */
 Method "_-_" is
 [
@@ -3929,7 +3929,7 @@ Semantic restriction "_-_" is
  * @param "doomed" "any"
  *        A value.
  * @returns "⊤"
- * @category "Tuples" "Transformations" "Variables"
+ * @category "Tuples" "Variables"
  */
 Public method "_↑-=_" is
 [
