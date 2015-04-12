@@ -33,13 +33,13 @@
 package com.avail.compiler;
 
 import java.util.*;
-import com.avail.compiler.AbstractAvailCompiler.Con;
-import com.avail.compiler.AbstractAvailCompiler.ParserState;
+import com.avail.compiler.AvailCompiler.Con;
+import com.avail.compiler.AvailCompiler.ParserState;
 import com.avail.descriptor.A_Phrase;
 
 /**
  * An {@code AvailCompilerFragmentCache} implements a memoization mechanism for
- * a {@linkplain AbstractAvailCompiler compiler}.  The purpose is to ensure that
+ * a {@linkplain AvailCompiler compiler}.  The purpose is to ensure that
  * the effort to parse a subexpression starting at a specific token is reused
  * when backtracking.
  *

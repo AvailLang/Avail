@@ -41,7 +41,7 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.FileHandle;
 import com.avail.annotations.*;
-import com.avail.compiler.AbstractAvailCompiler.ParserState;
+import com.avail.compiler.AvailCompiler.ParserState;
 import com.avail.compiler.MessageSplitter;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.serialization.*;

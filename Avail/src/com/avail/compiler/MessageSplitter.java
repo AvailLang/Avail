@@ -40,7 +40,7 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import com.avail.annotations.*;
-import com.avail.compiler.AbstractAvailCompiler.ParserState;
+import com.avail.compiler.AvailCompiler.ParserState;
 import com.avail.compiler.scanning.AvailScanner;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
@@ -4145,7 +4145,7 @@ public class MessageSplitter
 					final StringBuilder builder = new StringBuilder();
 					builder.append(errorMessage);
 					final String errorIndicator =
-						AbstractAvailCompiler.errorIndicatorSymbol;
+						AvailCompiler.errorIndicatorSymbol;
 					builder.append(". See arrow (");
 					builder.append(errorIndicator);
 					builder.append(") in: \"");

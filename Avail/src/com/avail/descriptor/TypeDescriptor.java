@@ -167,7 +167,7 @@ extends AbstractTypeDescriptor
 		 * for {@linkplain LiteralTokenDescriptor literal tokens}, which are
 		 * parametrically typed by the type of value they contain.  They are
 		 * produced by a {@linkplain AvailScanner lexical scanner} and are
-		 * consumed by the {@linkplain AbstractAvailCompiler parser}.
+		 * consumed by the {@linkplain AvailCompiler parser}.
 		 */
 		TOKEN(NONTYPE),
 

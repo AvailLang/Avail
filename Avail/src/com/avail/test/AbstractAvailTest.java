@@ -38,7 +38,7 @@ import org.junit.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.builder.*;
-import com.avail.compiler.AbstractAvailCompiler.*;
+import com.avail.compiler.AvailCompiler.*;
 import com.avail.descriptor.*;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;

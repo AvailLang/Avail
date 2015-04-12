@@ -36,7 +36,7 @@ import static javax.swing.SwingUtilities.*;
 import java.awt.*;
 import com.avail.annotations.*;
 import com.avail.builder.*;
-import com.avail.compiler.AbstractAvailCompiler.*;
+import com.avail.compiler.AvailCompiler.*;
 import com.avail.descriptor.*;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;

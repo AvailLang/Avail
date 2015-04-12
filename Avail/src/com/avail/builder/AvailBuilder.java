@@ -57,10 +57,10 @@ import java.util.zip.Checksum;
 import com.avail.*;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
-import com.avail.compiler.AbstractAvailCompiler.CompilerProgressReporter;
-import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
-import com.avail.compiler.AbstractAvailCompiler.ModuleImport;
-import com.avail.compiler.AbstractAvailCompiler.ParserState;
+import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
+import com.avail.compiler.AvailCompiler.ModuleHeader;
+import com.avail.compiler.AvailCompiler.ModuleImport;
+import com.avail.compiler.AvailCompiler.ParserState;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
 import com.avail.compiler.problems.ProblemType;
@@ -78,7 +78,7 @@ import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
 
 /**
- * An {@code AvailBuilder} {@linkplain AbstractAvailCompiler compiles} and
+ * An {@code AvailBuilder} {@linkplain AvailCompiler compiles} and
  * installs into an {@linkplain AvailRuntime Avail runtime} a target
  * {@linkplain ModuleDescriptor module} and each of its dependencies.
  *
@@ -823,16 +823,16 @@ public final class AvailBuilder
 				return;
 			}
 			// Trace the source and write it back to the repository.
-			AbstractAvailCompiler.create(
+			AvailCompiler.create(
 				resolvedName,
 				true,
 				textInterface,
 				pollForAbort,
-				new Continuation1<AbstractAvailCompiler>()
+				new Continuation1<AvailCompiler>()
 				{
 					@Override
 					public void value (
-						final @Nullable AbstractAvailCompiler compiler)
+						final @Nullable AvailCompiler compiler)
 					{
 						assert compiler != null;
 						compiler.parseModuleHeader(
@@ -1335,16 +1335,16 @@ public final class AvailBuilder
 				return;
 			}
 			// Trace the source and write it back to the repository.
-			AbstractAvailCompiler.create(
+			AvailCompiler.create(
 				resolvedName,
 				true,
 				textInterface,
 				pollForAbort,
-				new Continuation1<AbstractAvailCompiler>()
+				new Continuation1<AvailCompiler>()
 				{
 					@Override
 					public void value (
-						final @Nullable AbstractAvailCompiler compiler)
+						final @Nullable AvailCompiler compiler)
 					{
 						assert compiler != null;
 						compiler.parseModuleHeader(
@@ -1532,7 +1532,7 @@ public final class AvailBuilder
 		 * progress while compiling or loading a module.  It accepts:
 		 * <ol>
 		 * <li>the name of the module currently undergoing {@linkplain
-		 * AbstractAvailCompiler compilation} as part of the recursive build
+		 * AvailCompiler compilation} as part of the recursive build
 		 * of target,</li>
 		 * <li>the current line number within the current module,</li>
 		 * <li>the position of the ongoing parse (in bytes), and</li>
@@ -1559,7 +1559,7 @@ public final class AvailBuilder
 		 *        accepts
 		 *        <ol>
 		 *        <li>the name of the module currently undergoing {@linkplain
-		 *        AbstractAvailCompiler compilation} as part of the recursive
+		 *        AvailCompiler compilation} as part of the recursive
 		 *        build of target,</li>
 		 *        <li>the current line number within the current module,</li>
 		 *        <li>the position of the ongoing parse (in bytes), and</li>
@@ -1647,7 +1647,7 @@ public final class AvailBuilder
 		 * {@linkplain AvailRuntime Avail runtime}. If a current compiled
 		 * module is available from the {@linkplain IndexedRepositoryManager
 		 * repository}, then simply load it. Otherwise, {@linkplain
-		 * AbstractAvailCompiler compile} the module, store it into the
+		 * AvailCompiler compile} the module, store it into the
 		 * repository, and then load it.
 		 *
 		 * <p>
@@ -1981,12 +1981,12 @@ public final class AvailBuilder
 			final ModuleVersionKey versionKey =
 				new ModuleVersionKey(moduleName, digest);
 			final Mutable<Long> lastPosition = new Mutable<>(0L);
-			final Continuation1<AbstractAvailCompiler> continuation =
-				new Continuation1<AbstractAvailCompiler>()
+			final Continuation1<AvailCompiler> continuation =
+				new Continuation1<AvailCompiler>()
 				{
 					@Override
 					public void value (
-						final @Nullable AbstractAvailCompiler compiler)
+						final @Nullable AvailCompiler compiler)
 					{
 						assert compiler != null;
 						compiler.parseModule(
@@ -2078,7 +2078,7 @@ public final class AvailBuilder
 							});
 					}
 				};
-			AbstractAvailCompiler.create(
+			AvailCompiler.create(
 				moduleName,
 				false,
 				textInterface,
@@ -2883,7 +2883,7 @@ public final class AvailBuilder
 	 *        A {@linkplain CompilerProgressReporter continuation} that accepts
 	 *        <ol>
 	 *        <li>the name of the module currently undergoing {@linkplain
-	 *        AbstractAvailCompiler compilation} as part of the recursive build
+	 *        AvailCompiler compilation} as part of the recursive build
 	 *        of target,</li>
 	 *        <li>the current line number within the current module,</li>
 	 *        <li>the position of the ongoing parse (in bytes), and</li>
@@ -3248,7 +3248,7 @@ public final class AvailBuilder
 			{
 				module.addImportedName(entry.value());
 			}
-			final AbstractAvailCompiler compiler = new AvailCompiler(
+			final AvailCompiler compiler = new AvailCompiler(
 				module,
 				scanResult,
 				textInterface,

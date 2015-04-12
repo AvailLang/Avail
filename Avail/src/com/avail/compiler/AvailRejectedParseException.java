@@ -39,7 +39,7 @@ import com.avail.utility.Generator;
 
 /**
  * An {@code AvailCompilerException} is thrown by the {@linkplain
- * AbstractAvailCompiler Avail compiler} when compilation fails for any reason.
+ * AvailCompiler Avail compiler} when compilation fails for any reason.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
