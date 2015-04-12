@@ -413,7 +413,7 @@ Semantic restriction "_'s⁇entrance room" is [c : cave's type | entrance room];
  * @method "_'s⁇pit rooms"
  * @param "c" "cave"
  *        A {@type "cave"}.
- * @returns "{room|2}"
+ * @returns "{pit room|2}"
  *         The {@type "pit rooms"} (strengthened by a semantic restriction).
  */
 Public method "_'s⁇pit rooms" is
@@ -421,6 +421,6 @@ Public method "_'s⁇pit rooms" is
 	c : cave
 |
 	map each id in c's pit ids through [c[id]]
-] : {room|2};
+];
 
 Semantic restriction "_'s⁇pit rooms" is [c : cave's type | {pit room|2} ];

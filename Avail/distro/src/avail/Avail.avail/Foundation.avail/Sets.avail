@@ -410,16 +410,19 @@ Semantic restriction "map_through_" is
 	transformer : [⊥]→any's type
 |
 	Require: transformer accepts setType;
-	If ⎣setType⎦ > 0 then
-	[
-		If transformer's return type = ⊥ then
+	lower ::=
+		if ⎣setType⎦ > 0 then
 		[
-			Reject parse, expected:
-				"repeatedly applied function to have a return type other than\
-				\| ⊥"
-		];
-	];
-	{transformer's return type | [0..⎡setType⎤ + 1)}
+			If transformer's return type = ⊥ then
+			[
+				Reject parse, expected:
+					"repeatedly applied function to have a return type other than\
+					\| ⊥"
+			];
+			1
+		]
+		else [0];
+	{transformer's return type | [lower..⎡setType⎤ + 1)}
 ];
 
 /**

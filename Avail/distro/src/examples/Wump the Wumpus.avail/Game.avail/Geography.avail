@@ -60,9 +60,16 @@ Public method "_'s⁇adjacent rooms" is
 [
 	aRoom : room
 |
-	map aRoom's adjacent room ids
-	through [id : room id | the cave's network of rooms[id]]
-] : {room|3};
+	map each id of aRoom's adjacent room ids through
+		[the cave's network of rooms[id]]
+];
+
+Semantic restriction "_'s⁇adjacent rooms" is
+[
+	roomType : room's type
+|
+	{roomType|3}
+];
 
 /**
  * Is {@param "entity"} in {@param "aRoom"}?
