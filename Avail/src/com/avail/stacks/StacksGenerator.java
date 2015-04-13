@@ -98,10 +98,10 @@ public class StacksGenerator
 	StacksErrorLog errorLog;
 
 	/**
-	 * The {@linkplain HTMLFileMap} is a map for all html files in
+	 * The {@linkplain LinkingFileMap} is a map for all html files in
 	 * stacks
 	 */
-	private final HTMLFileMap htmlFileMap;
+	private final LinkingFileMap htmlFileMap;
 
 	/**
 	 * A map of {@linkplain ModuleName module names} to a list of all the method
@@ -132,7 +132,7 @@ public class StacksGenerator
 				outputPath + " exists and is not a directory");
 		}
 		this.outputPath = outputPath;
-		this.htmlFileMap = new HTMLFileMap();
+		this.htmlFileMap = new LinkingFileMap();
 		this.resolver = resolver;
 
 		this.logPath = outputPath.resolve("logs");

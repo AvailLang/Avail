@@ -82,6 +82,48 @@ public class ImplementationGroup
 	}
 
 	/**
+	 * Is this entire implementation for a private method?
+	 */
+	private final boolean isPrivate;
+
+	/**
+	 * @return whether or not the method/class/macro is private
+	 */
+	public boolean isPrivate ()
+	{
+		return isPrivate;
+	}
+
+	/**
+	 * Indicates the implementation group has the
+	 * {@linkplain AbstractCommentImplementation#isSticky() sticky} trait
+	 */
+	private boolean hasStickyComment;
+
+	/**
+	 * @return whether or not this implementation has
+	 * {@linkplain AbstractCommentImplementation#isSticky sticky}
+	 * documentation.
+	 */
+	public boolean hasStickyComment()
+	{
+		return hasStickyComment;
+	}
+
+
+	/**
+	 * set the boolean, {@linkplain #hasStickyComment}, presumably to true
+	 * as the default is false.
+	 *
+	 * @param aSwitch
+	 * 		The boolean value to set
+	 */
+	public void hasStickyComment(final boolean aSwitch)
+	{
+		hasStickyComment = aSwitch;
+	}
+
+	/**
 	 * All the categories this group belongs to.
 	 */
 	private final HashSet<String> categories;
@@ -307,9 +349,11 @@ public class ImplementationGroup
 	 * @param namingModule The name of the module where the implementation was
 	 * 		first named and exported from.
 	 * @param filename The name of the html file that will represent this group.
+	 * @param isPrivate TODO
 	 */
 	public ImplementationGroup (final A_String name,
-		final String namingModule, final StacksFilename filename)
+		final String namingModule, final StacksFilename filename,
+		final boolean isPrivate)
 	{
 		this.name = name;
 		this.methods = new HashMap<String,MethodCommentImplementation>();
@@ -322,6 +366,8 @@ public class ImplementationGroup
 		this.namingModule = namingModule;
 		this.categories = new HashSet<String>();
 		this.filepath = filename;
+		this.isPrivate = isPrivate;
+		this.hasStickyComment = false;
 	}
 
 	/**
@@ -349,6 +395,8 @@ public class ImplementationGroup
 		this.namingModule = namingModule;
 		this.categories = group.categories();
 		this.filepath = fileName;
+		this.isPrivate = false;
+		this.hasStickyComment = false;
 	}
 
 	/**
@@ -385,7 +433,7 @@ public class ImplementationGroup
 			final String htmlOpenContent, final String htmlCloseContent,
 			final StacksSynchronizer synchronizer,
 			final AvailRuntime runtime,
-			final HTMLFileMap htmlFileMap,
+			final LinkingFileMap htmlFileMap,
 			final Path implementationProperties,
 			final int startingTabCount,
 			final String nameOfGroup,

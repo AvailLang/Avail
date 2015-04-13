@@ -43,9 +43,9 @@ import java.util.TreeMap;
 public class CommentImplementationBuilder
 {
 	/**
-	 * The available {@linkplain HTMLFileMap}
+	 * The available {@linkplain LinkingFileMap}
 	 */
-	private HTMLFileMap hTMLFileMap;
+	private LinkingFileMap linkingFileMap;
 
 	/**
 	 * The alias keyword provides alias to which the method/macro is referred
@@ -64,13 +64,13 @@ public class CommentImplementationBuilder
 	 */
 	public void addStacksAliasTag(
 		 final ArrayList<AbstractStacksToken> tagContentTokens,
-		 final HTMLFileMap htmlFileMap)
+		 final LinkingFileMap htmlFileMap)
 			 throws ClassCastException, StacksCommentBuilderException
 	{
 		final ArrayList<QuotedStacksToken> tempTokens =
 			new ArrayList<QuotedStacksToken>();
 
-		hTMLFileMap = htmlFileMap;
+		linkingFileMap = htmlFileMap;
 
 		for (final AbstractStacksToken token : tagContentTokens)
 		{
@@ -131,13 +131,13 @@ public class CommentImplementationBuilder
 	 */
 	public void addStacksCategoryTag(
 		 final ArrayList<AbstractStacksToken> tagContentTokens,
-		 final HTMLFileMap htmlFileMap)
+		 final LinkingFileMap htmlFileMap)
 			 throws ClassCastException, StacksCommentBuilderException
 	{
 		final ArrayList<QuotedStacksToken> tempTokens =
 			new ArrayList<QuotedStacksToken>();
 
-		hTMLFileMap = htmlFileMap;
+		linkingFileMap = htmlFileMap;
 
 		for (final AbstractStacksToken token : tagContentTokens)
 		{
@@ -779,6 +779,37 @@ public class CommentImplementationBuilder
 	}
 
 	/**
+	 * The sticky keyword indicates an implementation should be documented
+	 * regardless of visibility.
+	 */
+	private final ArrayList<StacksStickyTag> stickies;
+
+	/**
+	 * @param tagContentTokens
+	 * 		The tokens held by the tag
+	 * @throws ClassCastException
+	 * @throws StacksCommentBuilderException
+	 */
+	public void addStacksStickyTag(
+		 final ArrayList<AbstractStacksToken> tagContentTokens)
+			 throws ClassCastException, StacksCommentBuilderException
+	{
+		if (tagContentTokens.size() == 0)
+		{
+			stickies.add(new StacksStickyTag ());
+		}
+		else
+		{
+			final String errorMessage = String.format("\n<li><strong>%s"
+				+ "</strong><em> Line #: %d</em>: Malformed @sticky tag section; "
+				+ "expected no tokens to follow @sticky tag.</li>",
+				moduleLeafName,
+				commentStartLine());
+			throw new StacksCommentBuilderException(errorMessage, this);
+		}
+	}
+
+	/**
 	 * The supertype keyword indicates the supertype of the class
 	 * implementation.
 	 */
@@ -903,7 +934,7 @@ public class CommentImplementationBuilder
 		this.supertypes = new ArrayList<StacksSuperTypeTag>(0);
 		this.types = new ArrayList<StacksTypeTag>(0);
 		this.aliases = new ArrayList<StacksAliasTag>(0);
-
+		this.stickies = new ArrayList<StacksStickyTag>(0);
 		final ArrayList<QuotedStacksToken> tempTokens =
 			new ArrayList<QuotedStacksToken>();
 
@@ -973,7 +1004,8 @@ public class CommentImplementationBuilder
 					categories,
 					aliases,
 					supertypes,
-					fields);
+					fields,
+					!stickies.isEmpty());
 			}
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed has wrong # of "
@@ -1044,7 +1076,8 @@ public class CommentImplementationBuilder
 
 					return new MethodCommentImplementation(signature,
 						commentStartLine (), authors, sees, description(),
-						categories, aliases, parameters,returns.get(0), raises);
+						categories, aliases, parameters,returns.get(0), raises,
+						!stickies.isEmpty());
 				}
 
 				if (restricts.isEmpty() && parameters.isEmpty() &&
@@ -1073,7 +1106,8 @@ public class CommentImplementationBuilder
 
 					return new MethodCommentImplementation(signature,
 						commentStartLine (), authors, sees, description(),
-						categories, aliases, parameters, returns.get(0), raises);
+						categories, aliases, parameters, returns.get(0), raises,
+						!stickies.isEmpty());
 				}
 			} else {
 				if (macros.size() > 1)
@@ -1132,7 +1166,8 @@ public class CommentImplementationBuilder
 
 					return new MacroCommentImplementation(signature,
 						commentStartLine (), authors, sees, description(),
-						categories, aliases, parameters,returns.get(0), raises);
+						categories, aliases, parameters,returns.get(0), raises,
+						!stickies.isEmpty());
 				}
 
 				if (restricts.isEmpty() && parameters.isEmpty() &&
@@ -1161,7 +1196,8 @@ public class CommentImplementationBuilder
 
 					return new MacroCommentImplementation(signature,
 						commentStartLine (), authors, sees, description(),
-						categories, aliases, parameters, returns.get(0), raises);
+						categories, aliases, parameters, returns.get(0), raises,
+						!stickies.isEmpty());
 				}
 			}
 		}
@@ -1198,7 +1234,7 @@ public class CommentImplementationBuilder
 
 			if (onlyTag.categories().size() == 1)
 			{
-				hTMLFileMap
+				linkingFileMap
 					.addCategoryToDescription(
 						onlyTag.categories().get(0).lexeme()
 						,description());

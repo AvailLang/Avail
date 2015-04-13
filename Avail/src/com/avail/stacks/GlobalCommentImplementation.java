@@ -85,7 +85,7 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 		final StacksGlobalTag globalTag)
 	{
 		super(signature, commentStartLine, author, sees, description,
-			categories,aliases);
+			categories,aliases, false);
 		this.globalTag = globalTag;
 
 		this.hashID = StringDescriptor.from(
@@ -100,7 +100,7 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 	}
 
 	@Override
-	public String toHTML (final HTMLFileMap htmlFileMap,
+	public String toHTML (final LinkingFileMap htmlFileMap,
 		final String nameOfGroup, final StacksErrorLog errorLog)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()

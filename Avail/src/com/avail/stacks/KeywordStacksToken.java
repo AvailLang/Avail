@@ -356,6 +356,25 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 		 * The supertype keyword indicates the supertype of the class
 		 * implementation.
 		 */
+		STICKY("@sticky")
+		{
+			@Override
+			KeywordStacksToken createToken(
+				final int lineNumber,
+				final int postion,
+				final int startOfTokenLinePostion,
+				final String moduleName)
+			{
+				return SectionKeywordStacksToken.create(
+					lexeme, lineNumber, postion,
+					startOfTokenLinePostion, moduleName);
+			}
+		},
+
+		/**
+		 * The supertype keyword indicates the supertype of the class
+		 * implementation.
+		 */
 		SUPERTYPE("@supertype")
 		{
 			@Override

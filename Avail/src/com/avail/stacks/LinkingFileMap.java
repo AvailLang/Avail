@@ -1,5 +1,5 @@
 /**
- * HTMLFileMap.java
+ * LinkingFileMap.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -51,7 +51,7 @@ import com.avail.utility.json.JSONWriter;
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class HTMLFileMap
+public class LinkingFileMap
 {
 	/**
 	 * The map containing categories.  Keyed by name to description.
@@ -141,10 +141,10 @@ public class HTMLFileMap
 	}
 
 	/**
-	 * Construct a new {@link HTMLFileMap}.
+	 * Construct a new {@link LinkingFileMap}.
 	 *
 	 */
-	public HTMLFileMap ()
+	public LinkingFileMap ()
 	{
 		categoryToDescription = new HashMap<String,StacksDescription>();
 		categoryMethodList =

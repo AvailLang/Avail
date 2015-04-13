@@ -198,7 +198,7 @@ public class StacksUsesModule extends StacksImportModule
 		final StacksFilename newFileName, final boolean deleteOriginal)
 	{
 		ImplementationGroup group = new ImplementationGroup(key,
-			newlyDefinedModule.moduleName(),newFileName);
+			newlyDefinedModule.moduleName(),newFileName, false);
 		for (final ImplementationGroup aGroup :
 			extendsMethodLeafNameToModuleName().get(key).values())
 		{

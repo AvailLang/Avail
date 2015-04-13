@@ -927,7 +927,7 @@ public class StacksScanner extends AbstractStacksScanner
 	 */
 	public static AbstractCommentImplementation processCommentString (
 		final A_Token commentToken, final String moduleName,
-		final HTMLFileMap htmlFileMap)
+		final LinkingFileMap htmlFileMap)
 		throws StacksScannerException, StacksCommentBuilderException
 	{
 		final StacksScanner scanner =

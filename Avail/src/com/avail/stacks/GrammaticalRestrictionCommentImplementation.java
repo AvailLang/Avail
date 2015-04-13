@@ -92,7 +92,7 @@ public class GrammaticalRestrictionCommentImplementation extends
 		final TreeMap<Integer,StacksForbidsTag> forbids)
 	{
 		super(signature, commentStartLine, author, sees, description,
-			categories,aliases);
+			categories,aliases, false);
 		this.forbids = forbids;
 		this.modules = new ArrayList<String>();
 		this.modules.add(signature().module());
@@ -133,7 +133,7 @@ public class GrammaticalRestrictionCommentImplementation extends
 	}
 
 	@Override
-	public String toHTML (final HTMLFileMap htmlFileMap,
+	public String toHTML (final LinkingFileMap htmlFileMap,
 		final String nameOfGroup, final StacksErrorLog errorLog)
 	{
 		final StringBuilder stringBuilder = new StringBuilder();

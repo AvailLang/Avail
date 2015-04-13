@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 import com.avail.AvailRuntime;
 import com.avail.builder.ModuleName;
@@ -79,6 +80,22 @@ public class StacksCommentsModule
 		extendedNamesImplementations ()
 	{
 		return extendedNamesImplementations;
+	}
+
+	/**
+	 * A map of the modules extended by this module to the {@linkplain
+	 * StacksExtendsModule module} content.
+	 */
+	private final HashMap<A_String, HashMap<String,ImplementationGroup>>
+		stickyNamesImplementations;
+
+	/**
+	 * @return the exportedNames
+	 */
+	public HashMap<A_String, HashMap<String,ImplementationGroup>>
+		stickyNamesImplementations ()
+	{
+		return stickyNamesImplementations;
 	}
 
 	/**
@@ -269,14 +286,38 @@ public class StacksCommentsModule
 				final StacksFilename filename = new StacksFilename(moduleName,
 					String.valueOf(hashedName) + ".html");
 
-				privateCommentImplementations
-					.put(nameToCheck,
-						new ImplementationGroup(nameToCheck,
-							moduleName, filename));
+				final ImplementationGroup privateGroup =
+					new ImplementationGroup(
+						nameToCheck, moduleName, filename, true);
+
+				privateCommentImplementations.put(nameToCheck, privateGroup);
 			}
 
 			comment.addToImplementationGroup(
 				privateCommentImplementations.get(nameToCheck));
+		}
+
+		if (comment.isSticky())
+		{
+			long hashedName = nameToCheck.hash();
+			hashedName = hashedName & 0xFFFFFFFFL;
+
+			final StacksFilename filename = new StacksFilename(moduleName,
+				String.valueOf(hashedName) + ".html");
+
+			final ImplementationGroup stickyGroup =
+				new ImplementationGroup(
+					nameToCheck, moduleName, filename, true);
+			comment.addToImplementationGroup(stickyGroup);
+			stickyGroup.hasStickyComment(true);
+			if (!stickyNamesImplementations.keySet()
+				.contains(nameToCheck))
+			{
+				stickyNamesImplementations.put(nameToCheck,
+					new HashMap<String,ImplementationGroup>(0));
+			}
+			stickyNamesImplementations.get(nameToCheck)
+				.put(comment.signature().module(),stickyGroup);
 		}
 	}
 
@@ -303,13 +344,16 @@ public class StacksCommentsModule
 		final StacksErrorLog errorLog,
 		final ModuleNameResolver resolver,
 		final HashMap<String, StacksCommentsModule> moduleToComments,
-		final HTMLFileMap htmlFileMap)
+		final LinkingFileMap htmlFileMap)
 	{
 		this.moduleName = header.moduleName.qualifiedName();
 
 		this.usesModuleToImplementedNamesToImplementation =
 			new HashMap<String,
 				HashMap<A_String, ArrayList<AbstractCommentImplementation>>>();
+
+		this.stickyNamesImplementations =
+			new HashMap<A_String, HashMap<String, ImplementationGroup>>();
 
 		this.privateCommentImplementations =
 			new HashMap<A_String,ImplementationGroup>();
@@ -326,11 +370,32 @@ public class StacksCommentsModule
 		this.inScopeMethodsToFileNames =
 			createFileNames(header.exportedNames, moduleName);
 
+		for (final StacksCommentsModule comment : moduleToComments.values())
+		{
+			for (final Entry <A_String,
+				HashMap<String, ImplementationGroup>> entry :
+				comment.stickyNamesImplementations().entrySet())
+			{
+				final HashMap<String, ImplementationGroup> localEntry =
+					stickyNamesImplementations.get(entry.getKey());
+				if (!(localEntry == null))
+				{
+					localEntry.putAll(entry.getValue());
+					stickyNamesImplementations.put(entry.getKey(), localEntry);
+				}
+				else
+				{
+					stickyNamesImplementations.put(entry.getKey(),
+						entry.getValue());
+				}
+			}
+		}
+
 		for (final A_String implementationName : header.exportedNames)
 		{
 			final ImplementationGroup group =
 				new ImplementationGroup(implementationName, moduleName,
-					inScopeMethodsToFileNames.get(implementationName));
+					inScopeMethodsToFileNames.get(implementationName), false);
 			this.namedPublicCommentImplementations.put(implementationName,
 				group);
 
@@ -348,6 +413,22 @@ public class StacksCommentsModule
 
 		buildModuleImportMaps(
 			header,resolver, moduleToComments);
+
+/*		for (final Entry<A_String, ImplementationGroup> entry :
+			privateCommentImplementations.entrySet())
+		{
+			if (entry.getValue().hasStickyComment())
+			{
+				HashMap<String, ImplementationGroup> mapList =
+					stickyNamesImplementations.get(entry.getKey());
+				if (mapList == null)
+				{
+					mapList = new HashMap<String, ImplementationGroup>(0);
+				}
+				mapList.put(entry.getKey(), entry);
+				stickyNamesImplementations.put(entry.getKey(), mapList);
+			}
+		}*/
 
 		populateExtendsFromUsesExtends();
 
@@ -994,7 +1075,7 @@ public class StacksCommentsModule
 	 * Acquire all distinct implementations being directly exported or extended
 	 * by this module and populate finalImplementationsGroupMap.
 	 *
-	 * @param htmlFileMap
+	 * @param linkingFileMap
 	 *        A map for all html files in stacks
 	 * @param outputPath
 	 *        The path where the files will end up.
@@ -1013,7 +1094,7 @@ public class StacksCommentsModule
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	public int calculateFinalImplementationGroupsMap(
-			final HTMLFileMap htmlFileMap,
+			final LinkingFileMap linkingFileMap,
 			final Path outputPath,
 			final Path implementationWrapperTemplate,
 			final Path implementationProperties,
@@ -1029,7 +1110,9 @@ public class StacksCommentsModule
 			new HashMap<String,ImplementationGroup>();
 
 		int fileCount = 0;
-
+/*TODO Now matches extendsMethodLeafName structure.  Add to method file map here somehow.
+ * Be mindful to activate comment signature feature of "not exported" by checking against
+ * extends list.*/
 		final HashMap<A_String, HashMap<String, ImplementationGroup>>
 		ambiguousMethodFileMap = new
 			HashMap<A_String, HashMap<String, ImplementationGroup>>();
@@ -1038,6 +1121,17 @@ public class StacksCommentsModule
 		{
 			final HashMap<String, ImplementationGroup> tempMap =
 				extendsMethodLeafNameToModuleName.get(key);
+
+			final HashMap<String, ImplementationGroup> stickyMap =
+				stickyNamesImplementations.get(key);
+
+			/* If there is a sticky implementation group, force it into
+			 * the filteredMap for exporting.  If a duplicate file is created,
+			 * the documentation should be updated. */
+			if (!(stickyMap == null))
+			{
+				tempMap.putAll(stickyMap);
+			}
 
 			if (tempMap.size() > 1)
 			{
@@ -1064,25 +1158,17 @@ public class StacksCommentsModule
 
 					for (final String category : implementation.categories())
 					{
-						htmlFileMap.addCategoryMethodPair(category,
+						linkingFileMap.addCategoryMethodPair(category,
 							key.asNativeString(),
 							implementation.filepath().relativeFilePath());
 					}
 
 					if (tempMap.size() == 1)
 					{
-						htmlFileMap.addNamedFileLinks(key.asNativeString(),
+						linkingFileMap.addNamedFileLinks(key.asNativeString(),
 							topLevelLinkFolderPath
 							+ implementation.filepath().relativeFilePath());
 					}
-
-					//Most likely a bug to do this.  Creates ambiguities were none exist
-					//as it thinks renames are the same.
-/*					for (final String alias : implementation.aliases())
-					{
-						htmlFileMap.addAlias(alias, topLevelLinkFolderPath
-							+ implementation.filepath().relativeFilePath());
-					}*/
 
 					fileCount++;
 				}
@@ -1090,6 +1176,68 @@ public class StacksCommentsModule
 				{
 					notPopulated.put(modName + "/" + key.asNativeString(),
 						tempMap.get(modName));
+				}
+			}
+		}
+
+		/* Stage all documents that are sticky but not exported
+		 * to be written to a file.*/
+		for (final A_String key : stickyNamesImplementations.keySet())
+		{
+			final HashMap<String, ImplementationGroup> tempMap =
+				stickyNamesImplementations.get(key);
+
+			final HashMap<String, ImplementationGroup> exportMap =
+				extendsMethodLeafNameToModuleName.get(key);
+
+			if (exportMap == null)
+			{
+				if (tempMap.size() > 1)
+				{
+					ambiguousMethodFileMap.put(key, tempMap);
+				}
+
+				for (final String modName : tempMap.keySet())
+				{
+					final ImplementationGroup implementation =
+						tempMap.get(modName);
+					if (tempMap.get(modName).isPopulated())
+					{
+						if (filteredMap.containsKey(key))
+						{
+							filteredMap.get(key).put(modName, implementation);
+						}
+						else
+						{
+							final HashMap<String, ImplementationGroup>
+							modToImplement =
+								new HashMap<String, ImplementationGroup>();
+							modToImplement.put(modName, implementation);
+							filteredMap.put(key,modToImplement);
+						}
+
+						for (final String category : implementation.categories())
+						{
+							linkingFileMap.addCategoryMethodPair(category,
+								key.asNativeString(),
+								implementation.filepath().relativeFilePath());
+						}
+
+						if (tempMap.size() == 1)
+						{
+							linkingFileMap.addNamedFileLinks(
+								key.asNativeString(),
+								topLevelLinkFolderPath
+								+ implementation.filepath().relativeFilePath());
+						}
+
+						fileCount++;
+					}
+					else
+					{
+						notPopulated.put(modName + "/" + key.asNativeString(),
+							tempMap.get(modName));
+					}
 				}
 			}
 		}
@@ -1107,14 +1255,14 @@ public class StacksCommentsModule
 			writeAmbiguousMethodsHTMLFiles(outputPath,synchronizer,
 				implementationWrapperTemplate, implementationProperties,
 				runtime, ambiguousMethodFileMap, topLevelLinkFolderPath,
-				htmlFileMap);
+				linkingFileMap);
 
 			synchronizer.waitForWorkUnitsToComplete();
 		}
 		writeAmbiguousAliasHTMLFiles(outputPath,
 			implementationWrapperTemplate, implementationProperties,
 			runtime, ambiguousMethodFileMap, topLevelLinkFolderPath,
-			htmlFileMap);
+			linkingFileMap);
 
 		return fileCount;
 	}
@@ -1147,7 +1295,7 @@ public class StacksCommentsModule
 			final Path outputPath,
 			final StacksSynchronizer synchronizer,
 			final AvailRuntime runtime,
-			final HTMLFileMap htmlFileMap,
+			final LinkingFileMap htmlFileMap,
 			final Path templateFilePath,
 			final Path implementationProperties,
 			final StacksErrorLog errorLog)
@@ -1161,20 +1309,20 @@ public class StacksCommentsModule
 			newLogEntry.toString().getBytes(StandardCharsets.UTF_8));
 		errorLog.addLogEntry(errorBuffer,0);
 
+		final String htmlTemplate =
+			HTMLBuilder.getOuterHTMLTemplate(templateFilePath);
+
+		final String [] htmlSplitTemplate = htmlTemplate
+			.split("IMPLEMENTATION-GROUP");
+
 		for (final A_String implementationName :
 			finalImplementationsGroupMap.keySet())
 		{
 			final HashMap<String, ImplementationGroup> tempImplementationMap =
-				extendsMethodLeafNameToModuleName.get(implementationName);
+				finalImplementationsGroupMap.get(implementationName);
 
 			for (final String modulePath : tempImplementationMap.keySet())
 			{
-				final String htmlTemplate =
-					HTMLBuilder.getOuterHTMLTemplate(templateFilePath);
-
-				final String [] htmlSplitTemplate = htmlTemplate
-					.split("IMPLEMENTATION-GROUP");
-
 				final ImplementationGroup implementation =
 					tempImplementationMap.get(modulePath);
 
@@ -1184,6 +1332,21 @@ public class StacksCommentsModule
 					implementationName.asNativeString(), errorLog);
 			}
 		}
+
+		/*for (final HashMap<String, ImplementationGroup> implementationGroups :
+			stickyNamesImplementations.values())
+		{
+			for (final String groupPath :
+				implementationGroups.keySet())
+			{
+				implementationGroups.get(groupPath).toHTML(
+					outputPath,htmlSplitTemplate[0],
+					htmlSplitTemplate[1], synchronizer, runtime, htmlFileMap,
+					implementationProperties, 3,
+					implementationGroups.get(groupPath).name().asNativeString(),
+					errorLog);
+			}
+		}*/
 
 		final StringBuilder closeLogEntry = new StringBuilder()
 			.append("</ol>\n");
@@ -1229,7 +1392,7 @@ public class StacksCommentsModule
 			final HashMap<A_String, HashMap<String, ImplementationGroup>>
 				ambiguousMethodFileMap,
 			final String topLevelLinkFolderPath,
-			final HTMLFileMap htmlFileMap)
+			final LinkingFileMap htmlFileMap)
 		throws IOException
 	{
 		final HashMap<String,String> internalLinks =
@@ -1386,7 +1549,7 @@ public class StacksCommentsModule
 			final HashMap<A_String, HashMap<String, ImplementationGroup>>
 				ambiguousMethodFileMap,
 			final String topLevelLinkFolderPath,
-			final HTMLFileMap htmlFileMap)
+			final LinkingFileMap htmlFileMap)
 		throws IOException
 	{
 

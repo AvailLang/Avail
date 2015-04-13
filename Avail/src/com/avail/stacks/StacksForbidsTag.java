@@ -93,7 +93,7 @@ public class StacksForbidsTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML (final HTMLFileMap htmlFileMap,
+	public String toHTML (final LinkingFileMap htmlFileMap,
 		final int hashID, final StacksErrorLog errorLog, int position)
 	{
 		final int rowSize = forbidMethods.size();
@@ -138,7 +138,7 @@ public class StacksForbidsTag extends AbstractStacksTag
 	 * @param method The method being processed
 	 * @return The string link or string name.
 	 */
-	private String toHTMLLink (final HTMLFileMap htmlFileMap,
+	private String toHTMLLink (final LinkingFileMap htmlFileMap,
 		final String method)
 	{
 

@@ -100,7 +100,7 @@ public class StacksLinkTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML (final HTMLFileMap htmlFileMap,
+	public String toHTML (final LinkingFileMap htmlFileMap,
 		final int hashID, final StacksErrorLog errorLog, int position)
 	{
 		final StringBuilder stringBuilder = new StringBuilder();

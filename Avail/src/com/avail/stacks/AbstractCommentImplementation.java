@@ -59,6 +59,20 @@ public abstract class AbstractCommentImplementation
 	}
 
 	/**
+	 * Indicates whether or not a method/class is to be documented regardless
+	 * of visibility
+	 */
+	final private boolean sticky;
+
+	/**
+	 * @return whether or not the method is {@link #sticky}
+	 */
+	public boolean isSticky()
+	{
+		return sticky;
+	}
+
+	/**
 	 * The start line in the module the comment being parsed appears.
 	 */
 	final int commentStartLine;
@@ -117,6 +131,7 @@ public abstract class AbstractCommentImplementation
 	 * 		The categories the implementation appears in
 	 * @param aliases
 	 * 		The aliases the implementation is known by
+	 * @param sticky TODO
 	 */
 	AbstractCommentImplementation(
 		final CommentSignature signature,
@@ -125,7 +140,7 @@ public abstract class AbstractCommentImplementation
 		final ArrayList<StacksSeeTag> sees,
 		final StacksDescription description,
 		final ArrayList<StacksCategoryTag> categories,
-		final ArrayList<StacksAliasTag> aliases)
+		final ArrayList<StacksAliasTag> aliases, final boolean sticky)
 	{
 		this.signature = signature;
 		this.commentStartLine = commentStartLine;
@@ -134,6 +149,7 @@ public abstract class AbstractCommentImplementation
 		this.description = description;
 		this.categories = categories;
 		this.aliases = aliases;
+		this.sticky = sticky;
 	}
 
 	/**
@@ -163,7 +179,7 @@ public abstract class AbstractCommentImplementation
 	 * @param errorLog The {@linkplain StacksErrorLog}
 	 * @return the HTML tagged content
 	 */
-	public abstract String toHTML(final HTMLFileMap htmlFileMap,
+	public abstract String toHTML(final LinkingFileMap htmlFileMap,
 		final String nameOfGroup, final StacksErrorLog errorLog);
 
 	/**

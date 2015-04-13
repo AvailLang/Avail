@@ -104,7 +104,7 @@ public class BracketedStacksToken extends RegionStacksToken
 	}
 
 	@Override
-	public String toHTML(final HTMLFileMap htmlFileMap, final int hashID,
+	public String toHTML(final LinkingFileMap htmlFileMap, final int hashID,
 		final StacksErrorLog errorLog)
 	{
 		//TODO update with parsed tags with appropriate links.
@@ -136,7 +136,7 @@ public class BracketedStacksToken extends RegionStacksToken
 			@Override
 			String toHTML(
 				final BracketedStacksToken bracketToken,
-				final HTMLFileMap htmlFileMap, final int hashID,
+				final LinkingFileMap htmlFileMap, final int hashID,
 				final StacksErrorLog errorLog)
 			{
 				//TODO address spacing
@@ -172,7 +172,7 @@ public class BracketedStacksToken extends RegionStacksToken
 			@Override
 			String toHTML(
 				final BracketedStacksToken bracketToken,
-				final HTMLFileMap htmlFileMap, final int hashID,
+				final LinkingFileMap htmlFileMap, final int hashID,
 				final StacksErrorLog errorLog)
 			{
 				if (bracketToken.subTokens.size() == 1)
@@ -248,7 +248,7 @@ public class BracketedStacksToken extends RegionStacksToken
 			@Override
 			String toHTML(
 				final BracketedStacksToken bracketToken,
-				final HTMLFileMap htmlFileMap, final int hashID,
+				final LinkingFileMap htmlFileMap, final int hashID,
 				final StacksErrorLog errorLog)
 			{
 				if (bracketToken.subTokens.size() == 1)
@@ -332,7 +332,7 @@ public class BracketedStacksToken extends RegionStacksToken
 			@Override
 			String toHTML(
 				final BracketedStacksToken bracketToken,
-				final HTMLFileMap htmlFileMap, final int hashID,
+				final LinkingFileMap htmlFileMap, final int hashID,
 				final StacksErrorLog errorLog)
 			{
 
@@ -424,7 +424,7 @@ public class BracketedStacksToken extends RegionStacksToken
 			@Override
 			String toHTML(
 				final BracketedStacksToken bracketToken,
-				final HTMLFileMap htmlFileMap, final int hashID,
+				final LinkingFileMap htmlFileMap, final int hashID,
 				final StacksErrorLog errorLog)
 			{
 				if (bracketToken.subTokens.size() == 1)
@@ -546,7 +546,7 @@ public class BracketedStacksToken extends RegionStacksToken
 			@Override
 			String toHTML(
 				final BracketedStacksToken bracketToken,
-				final HTMLFileMap htmlFileMap, final int hashID,
+				final LinkingFileMap htmlFileMap, final int hashID,
 				final StacksErrorLog errorLog)
 			{
 				if (bracketToken.subTokens.size() == 1)
@@ -623,7 +623,7 @@ public class BracketedStacksToken extends RegionStacksToken
 			@Override
 			String toHTML(
 				final BracketedStacksToken bracketToken,
-				final HTMLFileMap htmlFileMap, final int hashID,
+				final LinkingFileMap htmlFileMap, final int hashID,
 				final StacksErrorLog errorLog)
 			{
 				if (bracketToken.subTokens.size() == 1)
@@ -701,7 +701,7 @@ public class BracketedStacksToken extends RegionStacksToken
 			@Override
 			String toHTML(
 				final BracketedStacksToken bracketToken,
-				final HTMLFileMap htmlFileMap, final int hashID,
+				final LinkingFileMap htmlFileMap, final int hashID,
 				final StacksErrorLog errorLog)
 			{
 
@@ -792,7 +792,7 @@ public class BracketedStacksToken extends RegionStacksToken
 			@Override
 			String toHTML(
 				final BracketedStacksToken bracketToken,
-				final HTMLFileMap htmlFileMap, final int hashID,
+				final LinkingFileMap htmlFileMap, final int hashID,
 				final StacksErrorLog errorLog)
 			{
 				if (bracketToken.subTokens.size() == 1)
@@ -967,7 +967,7 @@ public class BracketedStacksToken extends RegionStacksToken
 		 * @return
 		 */
 		 abstract String toHTML(final BracketedStacksToken bracketToken,
-				final HTMLFileMap htmlFileMap, final int hashID,
+				final LinkingFileMap htmlFileMap, final int hashID,
 				final StacksErrorLog errorLog);
 	}
 }

@@ -67,7 +67,7 @@ public class StacksDescription
 	 * @param errorLog The {@linkplain StacksErrorLog}
 	 * @return
 	 */
-	public String toHTML (final HTMLFileMap htmlFileMap,
+	public String toHTML (final LinkingFileMap htmlFileMap,
 		final int hashID, final StacksErrorLog errorLog)
 	{
 		final StringBuilder stringBuilder = new StringBuilder();

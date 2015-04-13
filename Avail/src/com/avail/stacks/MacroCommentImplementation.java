@@ -91,6 +91,9 @@ public class MacroCommentImplementation extends AbstractCommentImplementation
 	 * @param exceptions
 	 * 		A {@link ArrayList} of any {@link StacksRaisesTag exceptions} the method
 	 * 		throws.
+	 * @param sticky
+	 * 		Whether or not the method should be documented regardless of
+	 * 		visibility
 	 */
 	public MacroCommentImplementation (
 		final MethodCommentSignature signature,
@@ -102,10 +105,11 @@ public class MacroCommentImplementation extends AbstractCommentImplementation
 		final ArrayList<StacksAliasTag> aliases,
 		final ArrayList<StacksParameterTag> parameters,
 		final StacksReturnTag returnsContent,
-		final ArrayList<StacksRaisesTag> exceptions)
+		final ArrayList<StacksRaisesTag> exceptions,
+		final boolean sticky)
 	{
 		super(signature, commentStartLine, author, sees, description,
-			categories,aliases);
+			categories,aliases, sticky);
 		this.parameters = parameters;
 		this.returnsContent = returnsContent;
 		this.exceptions = exceptions;
@@ -140,7 +144,7 @@ public class MacroCommentImplementation extends AbstractCommentImplementation
 
 	@Override
 	public String toHTML (
-		final HTMLFileMap htmlFileMap,
+		final LinkingFileMap htmlFileMap,
 		final String nameOfGroup,
 		final StacksErrorLog errorLog)
 	{

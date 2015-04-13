@@ -1,5 +1,5 @@
 /**
- * AbstractStacksTag.java
+ * StacksStickyTag.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,43 +33,29 @@
 package com.avail.stacks;
 
 /**
- * An Avail comment @ tag
+ * A tag that indicates that a method/type not externally available should still
+ * output the associated documentation
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public abstract class AbstractStacksTag
+public class StacksStickyTag extends AbstractStacksTag
 {
-	/**
-	 * Creating a shared super class to move all Tags.
-	 */
 
 	/**
-	 * Create HTML content from implementation
-	 * @param htmlFileMap
-	 * 		The map of all HTML files in Stacks
-	 * @param hashID
-	 * 		The hash portion of the id for linking to this element on page.
-	 * @param errorLog The {@linkplain StacksErrorLog}
-	 * @param position TODO
-	 * @return the HTML tagged content
+	 * Construct a new {@link StacksStickyTag}.
 	 */
-	public abstract String toHTML(final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, int position);
-
-	/**
-	 * @param numberOfTabs
-	 * 		the number of tabs to insert into the string.
-	 * @return
-	 * 		a String consisting of the number of tabs requested in
-	 * 		in numberOfTabs.
-	 */
-	public String tabs(final int numberOfTabs)
+	public StacksStickyTag ()
 	{
-		final StringBuilder stringBuilder = new StringBuilder();
-		for (int i = 1; i <= numberOfTabs; i++)
-		{
-			stringBuilder.append('\t');
-		}
-		return stringBuilder.toString();
 	}
+
+	@Override
+	public String toHTML (
+		final LinkingFileMap htmlFileMap,
+		final int hashID,
+		final StacksErrorLog errorLog,
+		final int position)
+	{
+		return "";
+	}
+
 }

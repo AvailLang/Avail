@@ -65,7 +65,7 @@ public class StacksMacroTag extends AbstractStacksTag
 
 	@Override
 	public String toHTML (
-		final HTMLFileMap htmlFileMap,
+		final LinkingFileMap htmlFileMap,
 		final int hashID,
 		final StacksErrorLog errorLog,
 		final int position)

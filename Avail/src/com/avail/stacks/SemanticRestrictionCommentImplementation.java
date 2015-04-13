@@ -94,7 +94,7 @@ public class SemanticRestrictionCommentImplementation extends
 		final ArrayList<StacksReturnTag> returnsContent)
 	{
 		super(signature, commentStartLine, author, sees, description,
-			categories,aliases);
+			categories,aliases, false);
 		this.restricts = restricts;
 		this.returnsContent = returnsContent;
 
@@ -117,7 +117,7 @@ public class SemanticRestrictionCommentImplementation extends
 	}
 
 	@Override
-	public String toHTML (final HTMLFileMap htmlFileMap,
+	public String toHTML (final LinkingFileMap htmlFileMap,
 		final String nameOfGroup, final StacksErrorLog errorLog)
 	{
 		final int paramCount = restricts.size();

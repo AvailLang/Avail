@@ -81,6 +81,9 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 	 * 		{@link StacksSuperTypeTag supertypes}
 	 * @param fields
 	 * 		The {@link ArrayList} of the class's {@link StacksFieldTag fields}
+	 * @param sticky
+	 * 		Whether or not the method should be documented regardless of
+	 * 		visibility
 	 */
 	public ClassCommentImplementation (
 		final CommentSignature signature,
@@ -91,10 +94,11 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 		final ArrayList<StacksCategoryTag> categories,
 		final ArrayList<StacksAliasTag> aliases,
 		final ArrayList<StacksSuperTypeTag> supertypes,
-		final ArrayList<StacksFieldTag> fields)
+		final ArrayList<StacksFieldTag> fields,
+		final boolean sticky)
 	{
 		super(signature, commentStartLine, author, sees, description,
-			categories, aliases);
+			categories, aliases, sticky);
 		this.supertypes = supertypes;
 		this.fields = fields;
 
@@ -110,7 +114,7 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 	}
 
 	@Override
-	public String toHTML (final HTMLFileMap htmlFileMap,
+	public String toHTML (final LinkingFileMap htmlFileMap,
 		final String nameOfGroup, final StacksErrorLog errorLog)
 	{
 		final int fieldCount = fields.size();

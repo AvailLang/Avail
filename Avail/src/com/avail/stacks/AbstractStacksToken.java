@@ -165,7 +165,7 @@ public abstract class AbstractStacksToken
 	 * @param errorLog The {@linkplain StacksErrorLog}
 	 * @return the HTML tagged content
 	 */
-	public String toHTML(final HTMLFileMap htmlFileMap, final int hashID,
+	public String toHTML(final LinkingFileMap htmlFileMap, final int hashID,
 		final StacksErrorLog errorLog)
 	{
 		return lexeme();
