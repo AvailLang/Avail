@@ -74,7 +74,7 @@ public class SemanticRestrictionCommentSignature extends CommentSignature
 	}
 
 	@Override
-	public String toHTML (final String nameOfGroup)
+	public String toHTML (final String nameOfGroup, boolean sticky)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
 		.append(tabs(2) + "<div "

@@ -120,7 +120,7 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 		final int fieldCount = fields.size();
 		final StringBuilder stringBuilder = new StringBuilder();
 
-		stringBuilder.append(signature().toHTML(nameOfGroup));
+		stringBuilder.append(signature().toHTML(nameOfGroup, isSticky()));
 
 		if (categories.size() > 0)
 		{
@@ -153,6 +153,15 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 				.append(supertypes.get(listSize - 1).toHTML(htmlFileMap,
 					hashID, errorLog, 1))
 				.append("\n" + tabs(2) + "</div>\n");
+		}
+		if (sees.size() > 0)
+		{
+			for (final StacksSeeTag see : sees)
+			{
+				stringBuilder.append(
+					see.toHTML(htmlFileMap, fieldCount, errorLog, 1));
+
+			}
 		}
 
 		stringBuilder.append(tabs(2) + "<div "

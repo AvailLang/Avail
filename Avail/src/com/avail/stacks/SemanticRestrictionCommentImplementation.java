@@ -123,7 +123,7 @@ public class SemanticRestrictionCommentImplementation extends
 		final int paramCount = restricts.size();
 		final int colSpan = 1;
 		final StringBuilder stringBuilder = new StringBuilder()
-			.append(signature().toHTML(nameOfGroup));
+			.append(signature().toHTML(nameOfGroup, false));
 
 		stringBuilder.append(tabs(2) + "<div "
 				+ HTMLBuilder.tagClass(HTMLClass.classSignatureDescription)

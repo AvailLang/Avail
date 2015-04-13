@@ -104,7 +104,7 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 		final String nameOfGroup, final StacksErrorLog errorLog)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
-		.append(signature().toHTML(nameOfGroup));
+		.append(signature().toHTML(nameOfGroup, false));
 
 		if (categories.size() > 0)
 		{

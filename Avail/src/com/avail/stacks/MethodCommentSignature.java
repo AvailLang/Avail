@@ -83,7 +83,7 @@ public class MethodCommentSignature extends CommentSignature
 	}
 
 	@Override
-	public String toHTML (final String nameOfGroup)
+	public String toHTML (final String nameOfGroup, final boolean sticky)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append(tabs(2) + "<div "
@@ -91,6 +91,13 @@ public class MethodCommentSignature extends CommentSignature
 				+ ">");
 
 		final int listSize = orderedInputTypes.size();
+
+		final StringBuilder stickyString = new StringBuilder().append("");
+		if (sticky)
+		{
+			stickyString.append(" <em>(Documentation only; not exported for "
+				+ "use)</em>");
+		}
 
 		if (listSize > 0)
 		{
@@ -111,7 +118,9 @@ public class MethodCommentSignature extends CommentSignature
 					+ "><em>Source</em>: ")
 				.append(module()).append(": <strong>")
 				.append(name().replace("<", "&lt;"))
-				.append("</strong></div>\n");
+				.append("</strong>")
+				.append(stickyString.toString())
+				.append("</div>\n");
 		}
 		else
 		{
@@ -119,6 +128,7 @@ public class MethodCommentSignature extends CommentSignature
 					+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
 					+ "><em>Source</em>: ")
 				.append(module())
+				.append(stickyString.toString())
 				.append("</div>\n");
 		}
 

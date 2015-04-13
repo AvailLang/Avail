@@ -87,9 +87,10 @@ public class CommentSignature
 	 * Create the HTML representation of the signature.
 	 * @param nameOfGroup
 	 * 		The name of the implementation as it is to be displayed.
+	 * @param sticky TODO
 	 * @return
 	 */
-	public String toHTML (final String nameOfGroup)
+	public String toHTML (final String nameOfGroup, final boolean sticky)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append(tabs(2) + "<div "
@@ -98,13 +99,22 @@ public class CommentSignature
 			.append(module).append(": <strong>")
 			.append(name.replace("<", "&lt;")).append("</strong></div>\n");
 
+		final StringBuilder stickyString = new StringBuilder().append("");
+		if (sticky)
+		{
+			stickyString.append(" <em>(Documentation only; not exported for "
+				+ "use)</em>");
+		}
+
 		if (!name().equals(nameOfGroup))
 		{
 			stringBuilder.append(tabs(2) + "<div "
 					+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
 					+ "><em>Source</em>: ")
 				.append(module()).append(": <strong>").append(name())
-				.append("</strong></div>\n");
+				.append("</strong>")
+				.append(stickyString.toString())
+				.append("</div>\n");
 		}
 		else
 		{
@@ -112,6 +122,7 @@ public class CommentSignature
 					+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
 					+ "><em>Source</em>: ")
 				.append(module())
+				.append(stickyString.toString())
 				.append("</div>\n");
 		}
 

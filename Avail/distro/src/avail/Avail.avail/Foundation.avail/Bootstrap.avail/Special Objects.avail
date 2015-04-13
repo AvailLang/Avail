@@ -472,6 +472,7 @@ Primitive "function" is
  * @category "Primitives" "Types"
  * @type "function meta"
  * @alias "[…]→⊤'s type"
+ * @sticky
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-function.html"
  */
 Primitive "function meta" is
@@ -511,6 +512,7 @@ Primitive "variable" is
  * @category "Primitives" "Types"
  * @type "variable meta"
  * @supertype "nontypes type"
+ * @sticky
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-variable.html"
  */
 Primitive "variable meta" is
@@ -537,6 +539,7 @@ Primitive "continuation" is
  * @category "Primitives" "Types"
  * @type "continuation meta"
  * @alias "($[…]→⊥)'s type"
+ * @sticky
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-continuation.html"
  */
 Primitive "continuation meta" is
@@ -760,6 +763,7 @@ Primitive "integer" is
  * @category "Primitives" "Types"
  * @type "extended integer meta"
  * @alias "[-∞..∞]'s type"
+ * @sticky
  * @see {@method "integer range from_(inclusive=_)to_(inclusive=_)"}
  * @see {@method "[_.._]"}
  * @see {@method "[_.._)"}
@@ -791,6 +795,7 @@ Primitive "extended integer meta" is
  * @category "Primitives" "Types"
  * @type "map meta"
  * @alias "{any→any|}'s type"
+ * @sticky
  * @see {@method "{_→_|_}"}
  * @see {@method "{_→_|_.._}"}
  * @see {@method "{_→_|_..}"}
@@ -945,6 +950,7 @@ Primitive "set" is
  * @category "Primitives" "Types"
  * @type "set meta"
  * @alias "{any|}'s type"
+ * @sticky
  * @see {@method "{_|_}"}
  * @see {@method "{_|_.._}"}
  * @see {@method "{_|_..}"}
@@ -1079,6 +1085,7 @@ Primitive "tuple" is
  * @category "Primitives" "Types"
  * @type "tuple meta"
  * @alias "any*'s type"
+ * @sticky
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-tuple.html"
  */
 Primitive "tuple meta" is
@@ -1618,6 +1625,7 @@ Primitive "primitive failure reason phrase" is
  * @type "any meta"
  * @alias "any's type"
  * @supertype "type"
+ * @sticky
  */
 Primitive "any meta" is
 [

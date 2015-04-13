@@ -139,7 +139,7 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		final int exceptionCount = exceptions.size();
 		int colSpan = 1;
 		final StringBuilder stringBuilder = new StringBuilder()
-			.append(signature().toHTML(nameOfGroup));
+			.append(signature().toHTML(nameOfGroup, isSticky()));
 
 		if (categories.size() > 0)
 		{
@@ -151,6 +151,14 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		{
 			stringBuilder.append(aliases.get(0).toHTML(htmlFileMap,
 				hashID, errorLog, 1));
+		}
+		if (sees.size() > 0)
+		{
+			for (final StacksSeeTag see : sees)
+			{
+				stringBuilder.append(
+					see.toHTML(htmlFileMap, exceptionCount, errorLog, 1));
+			}
 		}
 
 		stringBuilder.append(tabs(2) + "<div "

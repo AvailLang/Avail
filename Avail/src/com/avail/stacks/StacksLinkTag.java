@@ -101,23 +101,26 @@ public class StacksLinkTag extends AbstractStacksTag
 
 	@Override
 	public String toHTML (final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, int position)
+		final int hashID, final StacksErrorLog errorLog, final int position)
 	{
 		final StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("<a href\"").append(link).append("\">");
+		stringBuilder.append("<a href=\"")
+			.append(link.toHTML(htmlFileMap, hashID, errorLog)).append("\">");
 
 		if (displayLinkTokens.isEmpty())
 		{
-			stringBuilder.append(link);
+			stringBuilder.append(link.toHTML(htmlFileMap, hashID, errorLog));
 		}
 		else
 		{
 			final int linkTokenSize = displayLinkTokens.size();
 			for (int i = 0; i < linkTokenSize - 1; i++)
 			{
-				stringBuilder.append(displayLinkTokens.get(i)).append(" ");
+				stringBuilder.append(displayLinkTokens.get(i)
+					.toHTML(htmlFileMap, hashID, errorLog)).append(" ");
 			}
-			stringBuilder.append(displayLinkTokens.get(linkTokenSize - 1));
+			stringBuilder.append(displayLinkTokens.get(linkTokenSize - 1)
+				.toHTML(htmlFileMap, hashID, errorLog));
 		}
 
 		return stringBuilder.append("</a>").toString();

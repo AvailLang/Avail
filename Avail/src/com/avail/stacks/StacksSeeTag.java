@@ -66,22 +66,21 @@ public class StacksSeeTag extends AbstractStacksTag
 
 	@Override
 	public String toHTML (final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, int position)
+		final int hashID, final StacksErrorLog errorLog, final int position)
 	{
 		final StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("see: ");
-
+		stringBuilder.append("<div class=\"category-list\"><em>See:</em> ");
 		if (thingToSee.lexeme().startsWith("{", 0))
 		{
 			return stringBuilder
 				.append(thingToSee.toHTML(htmlFileMap, hashID, errorLog))
 				.toString();
 		}
-		stringBuilder.append("<a href=\"")
+		stringBuilder.append("<a class=\"stacks i-code\" href=\"")
 			.append(thingToSee.toHTML(htmlFileMap, hashID, errorLog))
 			.append("\">")
 			.append(thingToSee.toHTML(htmlFileMap, hashID, errorLog))
-			.append("</a>");
+			.append("</a></div>");
 		return stringBuilder.toString();
 	}
 
