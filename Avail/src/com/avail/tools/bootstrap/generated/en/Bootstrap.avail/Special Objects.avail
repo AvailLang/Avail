@@ -796,11 +796,11 @@ Primitive "extended integer meta" is
  * @type "map meta"
  * @alias "{any→any|}'s type"
  * @sticky
- * @see {@method "{_→_|_}"}
- * @see {@method "{_→_|_.._}"}
- * @see {@method "{_→_|_..}"}
- * @see {@method "{_→_|_}"}
- * @see {@method "{_→_|}"}
+ * @see {@method "{_→_`|_}"}
+ * @see {@method "{_→_`|_.._}"}
+ * @see {@method "{_→_`|_..}"}
+ * @see {@method "{_→_`|_}"}
+ * @see {@method "{_→_`|}"}
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-map.html"
  */
 Primitive "map meta" is
