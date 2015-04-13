@@ -697,19 +697,19 @@ _bc ::= ¢=;
 /**
  * Answer a textual banner with the specified heading.
  *
- * @method "«_»banner"
+ * @method "«_»?banner"
  * @param "heading" "<character…|0..70>"
  *        The optional heading.
  * @returns "string"
  */
-Private method "«_»banner" is
+Private method "«_»?banner" is
 [
-	heading : <<character…|0..70>…|0..1>
+	heading : <character…|0..70>?
 |
 	80 of _bc
 ] : string;
 
-Private method "«_»banner" is
+Private method "«_»?banner" is
 [
 	heading : <<character…|1..70>…|1>
 |
@@ -722,7 +722,7 @@ Private method "«_»banner" is
 	leftSize of _bc ++ h ++ rightSize of _bc
 ] : string;
 
-Grammatical restriction "«_»banner" is <{"_++_"}>;
+Grammatical restriction "«_»?banner" is <{"_++_"}>;
 
 /**
  * Generate a textual report from the specified {@type "unit test report"}.

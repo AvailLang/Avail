@@ -297,8 +297,8 @@ public enum ParsingOperation
 	 * SectionCheckpoint} (§), and a copy of the cleaned up parse stack has been
 	 * pushed, so invoke the Nth prefix function associated with the macro.
 	 * Consume the previously pushed copy of the parse stack.  The current
-	 * {@link AbstractAvailCompiler.ParserState}'s {@linkplain
-	 * AbstractAvailCompiler.ParserState#clientDataMap} is stashed in the
+	 * {@link AvailCompiler.ParserState}'s {@linkplain
+	 * AvailCompiler.ParserState#clientDataMap} is stashed in the
 	 * new {@link FiberDescriptor fiber}'s {@linkplain
 	 * AvailObject#fiberGlobals()} and retrieved afterward, so the prefix
 	 * function and macros can alter the scope or communicate with each other

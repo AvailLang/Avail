@@ -874,7 +874,7 @@ extends Descriptor
 	 * @param object The object to hash.
 	 * @return The hash value.
 	 */
-	int computeHashForObject (final A_Tuple object)
+	final int computeHashForObject (final A_Tuple object)
 	{
 		return object.computeHashFromTo(1, object.tupleSize());
 	}

@@ -61,7 +61,7 @@ Names
 	"an empty sequence",
 	"empty sequence",
 	"sequence",
-	"sequence«_»of_",
+	"sequence«_»?of_",
 	"_'s⁇subscript method is_",
 	"_[_]else_"
 Body
@@ -87,7 +87,7 @@ Public explicit class "sequence" extends object
  * Construct and answer a sequence type whose elements are of the specified
  * type.
  *
- * @method "sequence«_»of_"
+ * @method "sequence«_»?of_"
  * @param "optionalSize" "[0..∞]'s type?"
  *        If specified, then the size restriction for instances; defaults to
  *        [0..∞].
@@ -97,7 +97,7 @@ Public explicit class "sequence" extends object
  *          The requested sequence type.
  * @category "Data Abstractions" "Sequences"
  */
-Public method "sequence«_»of_" is
+Public method "sequence«_»?of_" is
 [
 	optionalSizes : [0..∞]'s type?,
 	elementType : any's type

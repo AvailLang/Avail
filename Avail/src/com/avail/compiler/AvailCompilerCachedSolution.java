@@ -33,7 +33,7 @@
 package com.avail.compiler;
 
 import com.avail.annotations.Nullable;
-import com.avail.compiler.AbstractAvailCompiler.ParserState;
+import com.avail.compiler.AvailCompiler.ParserState;
 import com.avail.descriptor.*;
 
 /**

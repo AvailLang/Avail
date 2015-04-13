@@ -40,7 +40,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
 import com.avail.builder.*;
-import com.avail.compiler.AbstractAvailCompiler.*;
+import com.avail.compiler.AvailCompiler.*;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.io.ConsoleInputChannel;

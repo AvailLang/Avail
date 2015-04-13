@@ -194,7 +194,22 @@ Semantic restriction "concatenate_" is
 			cast |default's leading types| + 1 into [t : whole number | t]];
 		result := <slice, union… | [⎣result⎦..∞)>;
 	];
-	result
+	/* Now figure out how short the tuple can be. */
+	minCount ::= ⎣sizes⎦;
+	minSize : extended integer := 0;
+	From 1 to limit min minCount do
+	[
+		index : natural number
+	|
+		minSize := minSize + ⎣tupleType[index]⎦;
+		true
+	];
+	If minCount > limit then
+	[
+		minSize := minSize + ((minCount - limit) × ⎣tupleType's default type⎦); 
+	];
+	range ::= cast [minSize..⎡result⎤ + 1) into [t : whole number's type | t];
+	<result's leading types, result's default type…|range>
 ];
 
 /**

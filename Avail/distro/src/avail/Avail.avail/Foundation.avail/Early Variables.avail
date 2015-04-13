@@ -62,7 +62,6 @@ Names
 	"unsafely atomically compare_to_and,⁇if equal,⁇store_",
 	"_`?=_",
 	"_`?=_'s⁇initialization",
-	"`_↑",
 
 	/* These are bootstrapping methods, and should not leak out of
 	 * Foundation.

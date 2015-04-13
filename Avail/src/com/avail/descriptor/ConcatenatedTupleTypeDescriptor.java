@@ -89,33 +89,14 @@ extends TypeDescriptor
 	private static final int maximumConcatenationDepth = 10;
 
 	/**
-	 * Answer the type that my last element must have, if any.  Do not call this
-	 * from within a garbage collection, as it may need to allocate space for
-	 * computing a type union.
+	 * Answer the type that my last element must have, if any.
 	 */
 	@Override @AvailMethod
 	A_Type o_DefaultType (final AvailObject object)
 	{
 		final A_Type a = object.slot(FIRST_TUPLE_TYPE);
 		final A_Type b = object.slot(SECOND_TUPLE_TYPE);
-		final A_Type bRange = b.sizeRange();
-		assert !bRange.upperBound().equalsInt(0);
-		if (a.sizeRange().upperBound().isFinite())
-		{
-			return b.defaultType();
-		}
-		int highIndexInB;
-		if (bRange.upperBound().isFinite())
-		{
-			highIndexInB = bRange.upperBound().extractInt();
-		}
-		else
-		{
-			highIndexInB = b.typeTuple().tupleSize() + 1;
-		}
-		final A_Type typeUnion = a.defaultType().typeUnion(
-			b.unionOfTypesAtThrough(1, highIndexInB));
-		return typeUnion;
+		return defaultTypeOfConcatenation(a, b);
 	}
 
 	@Override @AvailMethod
@@ -219,15 +200,9 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	A_Type o_SizeRange (final AvailObject object)
 	{
-		final A_Type a = object.slot(FIRST_TUPLE_TYPE).sizeRange();
-		final A_Type b = object.slot(SECOND_TUPLE_TYPE).sizeRange();
-		final A_Number upper = a.upperBound().noFailPlusCanDestroy(
-			b.upperBound(), false);
-		return IntegerRangeTypeDescriptor.create(
-			a.lowerBound().noFailPlusCanDestroy(b.lowerBound(), false),
-			true,
-			upper,
-			upper.isFinite());
+		final A_Type sizeRange1 = object.slot(FIRST_TUPLE_TYPE).sizeRange();
+		final A_Type sizeRange2 = object.slot(SECOND_TUPLE_TYPE).sizeRange();
+		return sizeRangeOfConcatenation(sizeRange1, sizeRange2);
 	}
 
 	/**
@@ -263,29 +238,15 @@ extends TypeDescriptor
 		}
 		final A_Tuple subTuple = aTupleType.typeTuple();
 		final A_Tuple superTuple = object.typeTuple();
-		for (
-			int i = 1, end = max(subTuple.tupleSize(), superTuple.tupleSize());
-			i <= end;
-			i++)
+		final int limit = max(subTuple.tupleSize(), superTuple.tupleSize());
+		for (int i = 1; i <= limit; i++)
 		{
-			A_Type subType;
-			if (i <= subTuple.tupleSize())
-			{
-				subType = subTuple.tupleAt(i);
-			}
-			else
-			{
-				subType = aTupleType.defaultType();
-			}
-			A_Type superType;
-			if (i <= superTuple.tupleSize())
-			{
-				superType = superTuple.tupleAt(i);
-			}
-			else
-			{
-				superType = object.defaultType();
-			}
+			final A_Type subType = i <= subTuple.tupleSize()
+				? subTuple.tupleAt(i)
+				: aTupleType.defaultType();
+			final A_Type superType = i <= superTuple.tupleSize()
+				? superTuple.tupleAt(i)
+				: object.defaultType();
 			if (!subType.isSubtypeOf(superType))
 			{
 				return false;
@@ -336,51 +297,9 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	A_Type o_TypeAtIndex (final AvailObject object, final int index)
 	{
-		if (index <= 0)
-		{
-			return BottomTypeDescriptor.bottom();
-		}
-
-		final A_Number firstUpper =
-			object.slot(FIRST_TUPLE_TYPE).sizeRange().upperBound();
-		final A_Number secondUpper =
-			object.slot(SECOND_TUPLE_TYPE).sizeRange().upperBound();
-		final A_Number totalUpper =
-			firstUpper.noFailPlusCanDestroy(secondUpper, false);
-		if (totalUpper.isFinite())
-		{
-			final A_Number indexObject = IntegerDescriptor.fromInt(index);
-			if (indexObject.greaterThan(totalUpper))
-			{
-				return BottomTypeDescriptor.bottom();
-			}
-		}
-		final A_Number firstLower =
-			object.slot(FIRST_TUPLE_TYPE).sizeRange().lowerBound();
-		if (index <= firstLower.extractInt())
-		{
-			return object.slot(FIRST_TUPLE_TYPE).typeAtIndex(index);
-		}
-		// Besides possibly being at a fixed offset within the firstTupleType,
-		// the index might represent a range of possible indices of the
-		// secondTupleType, depending on the spread between the first tuple
-		// type's lower and upper bounds. Compute the union of these types.
-		final A_Type typeUnion =
-			object.slot(FIRST_TUPLE_TYPE).typeAtIndex(index);
-		int startIndex;
-		if (firstUpper.isFinite())
-		{
-			startIndex = max((index - firstUpper.extractInt()), 1);
-		}
-		else
-		{
-			startIndex = 1;
-		}
-		final int endIndex = index - firstLower.extractInt();
-		assert endIndex >= startIndex;
-		return typeUnion.typeUnion(
-			object.slot(SECOND_TUPLE_TYPE).unionOfTypesAtThrough(
-				startIndex, endIndex));
+		final AvailObject firstTupleType = object.slot(FIRST_TUPLE_TYPE);
+		final AvailObject secondTupleType = object.slot(SECOND_TUPLE_TYPE);
+		return elementOfConcatenation(firstTupleType, secondTupleType, index);
 	}
 
 	@Override @AvailMethod
@@ -606,30 +525,151 @@ extends TypeDescriptor
 		// There isn't even a shared descriptor -- we reify the tuple type upon
 		// sharing.
 		assert !isShared();
-		final A_Type part1 = object.slot(FIRST_TUPLE_TYPE);
-		final A_Number size1 = part1.sizeRange().upperBound();
-		int limit1;
-		if (size1.isFinite())
+		final A_Type newObject = reallyConcatenate(
+			object.slot(FIRST_TUPLE_TYPE),
+			object.slot(SECOND_TUPLE_TYPE));
+		object.becomeIndirectionTo(newObject);
+	}
+
+	/**
+	 * Answer what type the given index would have in a tuple whose type
+	 * complies with the concatenation of the two tuple types.  Answer bottom if
+	 * the index is definitely out of bounds.
+	 *
+	 * @param firstTupleType The first {@link TupleTypeDescriptor tuple type}.
+	 * @param secondTupleType The second tuple type.
+	 * @param index The element index.
+	 * @return The type of the specified index within the concatenated tuple
+	 *         type.
+	 */
+	private static A_Type elementOfConcatenation (
+		final A_Type firstTupleType,
+		final A_Type secondTupleType,
+		final int index)
+	{
+		if (index <= 0)
 		{
-			limit1 = size1.extractInt();
+			return BottomTypeDescriptor.bottom();
+		}
+		final A_Type firstSizeRange = firstTupleType.sizeRange();
+		final A_Number firstUpper = firstSizeRange.upperBound();
+		final A_Number secondUpper = secondTupleType.sizeRange().upperBound();
+		final A_Number totalUpper =
+			firstUpper.noFailPlusCanDestroy(secondUpper, false);
+		if (totalUpper.isFinite())
+		{
+			final A_Number indexObject = IntegerDescriptor.fromInt(index);
+			if (indexObject.greaterThan(totalUpper))
+			{
+				return BottomTypeDescriptor.bottom();
+			}
+		}
+		final A_Number firstLower = firstSizeRange.lowerBound();
+		if (index <= firstLower.extractInt())
+		{
+			return firstTupleType.typeAtIndex(index);
+		}
+		// Besides possibly being at a fixed offset within the firstTupleType,
+		// the index might represent a range of possible indices of the
+		// secondTupleType, depending on the spread between the first tuple
+		// type's lower and upper bounds. Compute the union of these types.
+		final A_Type typeFromFirstTuple = firstTupleType.typeAtIndex(index);
+		int startIndex;
+		if (firstUpper.isFinite())
+		{
+			startIndex = max(index - firstUpper.extractInt(), 1);
 		}
 		else
 		{
-			limit1 = max(
+			startIndex = 1;
+		}
+		final int endIndex = index - firstLower.extractInt();
+		assert endIndex >= startIndex;
+		return typeFromFirstTuple.typeUnion(
+			secondTupleType.unionOfTypesAtThrough(startIndex, endIndex));
+	}
+
+	/**
+	 * Answer the {@linkplain A_Type#sizeRange() size range} of the
+	 * concatenation of tuples having the given size ranges.
+	 *
+	 * @param sizeRange1 The first tuple's sizeRange.
+	 * @param sizeRange2 The second tuple's sizeRange.
+	 * @return The range of sizes of the concatenated tuple.
+	 */
+	private static A_Type sizeRangeOfConcatenation (
+		final A_Type sizeRange1,
+		final A_Type sizeRange2)
+	{
+		final A_Number lower = sizeRange1.lowerBound().noFailPlusCanDestroy(
+			sizeRange2.lowerBound(), false);
+		final A_Number upper = sizeRange1.upperBound().noFailPlusCanDestroy(
+			sizeRange2.upperBound(), false);
+		return IntegerRangeTypeDescriptor.create(
+			lower,
+			true,
+			upper,
+			upper.isFinite());
+	}
+
+	/**
+	 * Given two tuple types, the second of which must not be always empty,
+	 * determine what a complying tuple's last element's type must be.
+	 *
+	 * @param tupleType1 The first tuple type.
+	 * @param tupleType2 The second tuple type.
+	 * @return The type of the last element of the concatenation of the tuple
+	 *         types.
+	 */
+	private static A_Type defaultTypeOfConcatenation (
+		final A_Type tupleType1,
+		final A_Type tupleType2)
+	{
+		final A_Type bRange = tupleType2.sizeRange();
+		assert !bRange.upperBound().equalsInt(0);
+		if (tupleType1.sizeRange().upperBound().isFinite())
+		{
+			return tupleType2.defaultType();
+		}
+		int highIndexInB;
+		if (bRange.upperBound().isFinite())
+		{
+			highIndexInB = bRange.upperBound().extractInt();
+		}
+		else
+		{
+			highIndexInB = tupleType2.typeTuple().tupleSize() + 1;
+		}
+		final A_Type typeUnion = tupleType1.defaultType().typeUnion(
+			tupleType2.unionOfTypesAtThrough(1, highIndexInB));
+		return typeUnion;
+	}
+
+	/**
+	 * Produce a fully reified concatenation (i.e., not a {@link
+	 * ConcatenatedTupleTypeDescriptor instance} of the given pair of tuple
+	 * types.
+	 *
+	 * @param part1 The left tuple type.
+	 * @param part2 The right tuple type.
+	 * @return
+	 */
+	private static A_Type reallyConcatenate (
+		final A_Type part1,
+		final A_Type part2)
+	{
+		final A_Type sizes1 = part1.sizeRange();
+		final A_Number upper1 = sizes1.upperBound();
+		final int limit1 = upper1.isFinite()
+			? upper1.extractInt()
+			: max(
 				part1.typeTuple().tupleSize() + 1,
-				part1.sizeRange().lowerBound().extractInt());
-		}
-		final A_Type part2 = object.slot(SECOND_TUPLE_TYPE);
-		final A_Number size2 = part2.sizeRange().upperBound();
-		int limit2;
-		if (size2.isFinite())
-		{
-			limit2 = size2.extractInt();
-		}
-		else
-		{
-			limit2 = part2.typeTuple().tupleSize() + 1;
-		}
+				sizes1.lowerBound().extractInt());
+		final A_Type sizes2 = part2.sizeRange();
+		final A_Number upper2 = sizes2.upperBound();
+		final int limit2 = upper2.isFinite()
+			? upper2.extractInt()
+			: part2.typeTuple().tupleSize() + 1;
 		final int total = limit1 + limit2;
 		final A_Tuple typeTuple =
 			ObjectTupleDescriptor.createUninitialized(total);
@@ -638,23 +678,22 @@ extends TypeDescriptor
 		{
 			typeTuple.objectTupleAtPut(i, NilDescriptor.nil());
 		}
-		final int section1 = min(
-			part1.sizeRange().lowerBound().extractInt(),
-			limit1);
+		final int section1 = min(sizes1.lowerBound().extractInt(), limit1);
 		for (int i = 1; i <= section1; i++)
 		{
 			typeTuple.objectTupleAtPut(i, part1.typeAtIndex(i));
 		}
 		for (int i = section1 + 1; i <= total; i++)
 		{
-			typeTuple.objectTupleAtPut(i, object.typeAtIndex(i));
+			typeTuple.objectTupleAtPut(
+				i, elementOfConcatenation(part1, part2, i));
 		}
 		final A_Type newObject =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				object.sizeRange(),
+				sizeRangeOfConcatenation(sizes1, sizes2),
 				typeTuple,
-				object.defaultType());
-		object.becomeIndirectionTo(newObject);
+				defaultTypeOfConcatenation(part1, part2));
+		return newObject;
 	}
 
 	/**
@@ -688,15 +727,16 @@ extends TypeDescriptor
 		final int maxCost = max(
 			firstTupleType.representationCostOfTupleType(),
 			secondTupleType.representationCostOfTupleType());
+		if (maxCost > maximumConcatenationDepth)
+		{
+			return reallyConcatenate(
+				firstTupleType.makeImmutable(),
+				secondTupleType.makeImmutable());
+		}
 		final AvailObject result = mutable.create();
 		result.setSlot(TUPLE_TYPE_COMPLEXITY, maxCost + 1);
 		result.setSlot(FIRST_TUPLE_TYPE, firstTupleType.makeImmutable());
 		result.setSlot(SECOND_TUPLE_TYPE, secondTupleType.makeImmutable());
-		if (maxCost > maximumConcatenationDepth)
-		{
-			mutable.becomeRealTupleType(result);
-			return result.makeImmutable();
-		}
 		return result;
 	}
 

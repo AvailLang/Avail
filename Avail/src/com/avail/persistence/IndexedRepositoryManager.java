@@ -44,7 +44,7 @@ import javax.xml.bind.DatatypeConverter;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
 import com.avail.builder.*;
-import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
+import com.avail.compiler.AvailCompiler.ModuleHeader;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.TupleDescriptor;

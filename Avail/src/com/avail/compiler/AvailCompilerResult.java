@@ -42,7 +42,7 @@ import com.avail.descriptor.ModuleDescriptor;
 
 /**
  * A {@code AvailCompilerResult} holds the results of {@linkplain
- * AbstractAvailCompiler compiling} a {@linkplain ModuleDescriptor module}. This
+ * AvailCompiler compiling} a {@linkplain ModuleDescriptor module}. This
  * includes not only the module itself, but any ancillary artifacts produced as
  * side-effects of compilation, e.g., {@linkplain CommentTokenDescriptor Stacks
  * comments}.
@@ -53,13 +53,13 @@ import com.avail.descriptor.ModuleDescriptor;
 public final class AvailCompilerResult
 {
 	/**
-	 * The {@linkplain AbstractAvailCompiler compiled} {@linkplain
+	 * The {@linkplain AvailCompiler compiled} {@linkplain
 	 * ModuleDescriptor module}.
 	 */
 	private final A_Module module;
 
 	/**
-	 * Answer the {@linkplain AbstractAvailCompiler compiled} {@linkplain
+	 * Answer the {@linkplain AvailCompiler compiled} {@linkplain
 	 * ModuleDescriptor module}.
 	 *
 	 * @return The compiled module.
@@ -92,7 +92,7 @@ public final class AvailCompilerResult
 	 * Construct a new {@link AvailCompilerResult}.
 	 *
 	 * @param module
-	 *        The {@linkplain AbstractAvailCompiler compiled} {@linkplain
+	 *        The {@linkplain AvailCompiler compiled} {@linkplain
 	 *        ModuleDescriptor module}.
 	 * @param commentTokens
 	 *        The complete {@linkplain Collections#unmodifiableList(List)

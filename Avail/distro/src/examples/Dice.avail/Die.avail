@@ -56,8 +56,8 @@ Names
 	"_d|D_",
 
 	/* Special directives. */
-	"_(drop the⁇highest«_»)",
-	"_(drop the⁇lowest«_»)"
+	"_(drop the⁇highest«_»?)",
+	"_(drop the⁇lowest«_»?)"
 Body
 
 "face count" is a field atom;
@@ -425,7 +425,7 @@ Method "“_”" is
  * included in the outcome.
  *
  * @category "Dice" "Constructors"
- * @method "_(drop lowest«_»)"
+ * @method "_(drop lowest«_»?)"
  * @param "group" "dice group"
  *        A {@type "dice group"}.
  * @param "optionalCount" "integer?"
@@ -434,7 +434,7 @@ Method "“_”" is
  * @returns "drop dice expression"
  *          The request {@type "dice expression⁇" dice expression}.
  */
-Public method "_(drop the⁇lowest«_»)" is
+Public method "_(drop the⁇lowest«_»?)" is
 [
 	group : dice group,
 	optionalCount : whole number?
@@ -452,7 +452,7 @@ Public method "_(drop the⁇lowest«_»)" is
 		result type ::= resultType
 ] : drop dice expression;
 
-Semantic restriction "_(drop the⁇lowest«_»)" is
+Semantic restriction "_(drop the⁇lowest«_»?)" is
 [
 	group : dice group's type,
 	optionalCount : whole number?'s type
@@ -497,7 +497,7 @@ Semantic restriction "_(drop the⁇lowest«_»)" is
  * included in the outcome.
  *
  * @category "Dice" "Constructors"
- * @method "_(drop lowest«_»)"
+ * @method "_(drop lowest«_»?)"
  * @param "group" "dice group"
  *        A {@type "dice group"}.
  * @param "optionalCount" "integer?"
@@ -506,7 +506,7 @@ Semantic restriction "_(drop the⁇lowest«_»)" is
  * @returns "drop dice expression"
  *          The request {@type "dice expression⁇" dice expression}.
  */
-Public method "_(drop the⁇highest«_»)" is
+Public method "_(drop the⁇highest«_»?)" is
 [
 	group : dice group,
 	optionalCount : whole number?
@@ -524,7 +524,7 @@ Public method "_(drop the⁇highest«_»)" is
 		result type ::= resultType
 ] : drop dice expression;
 
-Semantic restriction "_(drop the⁇highest«_»)" is
+Semantic restriction "_(drop the⁇highest«_»?)" is
 [
 	group : dice group's type,
 	optionalCount : whole number?'s type

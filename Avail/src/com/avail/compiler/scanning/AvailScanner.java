@@ -35,7 +35,7 @@ package com.avail.compiler.scanning;
 import static com.avail.compiler.scanning.AvailScanner.ScannerAction.*;
 import java.util.*;
 import com.avail.annotations.*;
-import com.avail.compiler.AbstractAvailCompiler;
+import com.avail.compiler.AvailCompiler;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.utility.LRUCache;
@@ -44,7 +44,7 @@ import com.avail.utility.evaluation.Transformer1;
 /**
  * An {@code AvailScanner} converts a stream of characters into a {@link List}
  * of {@linkplain TokenDescriptor tokens}, which are tastier for the {@linkplain
- * AbstractAvailCompiler compiler}.
+ * AvailCompiler compiler}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -721,7 +721,7 @@ public class AvailScanner
 					scanner.addCurrentToken(TokenType.KEYWORD);
 				if (scanner.stopAfterBodyToken
 					&& token.string().equals(
-						AbstractAvailCompiler.ExpectedToken.BODY.lexeme()))
+						AvailCompiler.ExpectedToken.BODY.lexeme()))
 				{
 					scanner.encounteredBodyToken = true;
 				}
