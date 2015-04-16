@@ -537,9 +537,8 @@ Private method "recursively report on all tests in_" is
 				on error;
 			/* Determine which unit tests must run in serial, and which can be
 			 * run in parallel. If a test requires any individual fixtures, then
-			 * it cannot be run in parallel.
-			 * @category "Unit Testing"
- */
+			 * it cannot be run in parallel.*/
+
 			groups ::= group aSuite's unit tests by
 				[
 					test : unit test
@@ -549,9 +548,8 @@ Private method "recursively report on all tests in_" is
 				];
 			computeMetric ::= [test : unit test | test metric for test];
 			/* We are under no obligation to preserve the order of the tests, so
-			 * it is perfectly fine to concatenate the two result tuples.
-			 * @category "Unit Testing"
- */
+			 * it is perfectly fine to concatenate the two result tuples. */
+					
 			parallel ::= groups[can parallelize] else [<>];
 			serial ::= groups[cannot parallelize] else [<>];
 			map parallel in parallel through computeMetric
@@ -899,8 +897,7 @@ Public method "all tests in_" is
 		[
 			aSuite : root unit test suite
 		|
-			/* No implementation required. * @category "Unit Testing"
- */
+			/* No implementation required. */ 
 		]
 ] : atom*;
 
