@@ -790,10 +790,6 @@ Public macro "For each…from_to_by_§do_" is
 	action : block phrase ⇒ []→⊤
 |
 	name ::= counterPhrase's token's lexeme;
-	startType ::= start's semantic type;
-	endType ::= end's semantic type;
-	stepType ::= step's semantic type;
-	blockType ::= [⊥]→(action's semantic type's return type);
 	statements ::= action's statements;
 	blockReturnType ::= cast statements
 		into [t : phrase+ | t[|t|]'s semantic type]
@@ -806,7 +802,7 @@ Public macro "For each…from_to_by_§do_" is
 		«[
 			<cast scope map[name] into [d : argument phrase | d]>
 		|
-			action's statements
+			statements
 		] : blockReturnType»
 	> : ⊤
 ] : send phrase ⇒ ⊤;

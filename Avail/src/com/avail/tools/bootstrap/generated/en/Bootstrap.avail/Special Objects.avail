@@ -799,7 +799,7 @@ Primitive "extended integer meta" is
  * @see {@method "{_→_`|_}"}
  * @see {@method "{_→_`|_.._}"}
  * @see {@method "{_→_`|_..}"}
- * @see {@method "{_→_`|_}"}
+ * @see {@method "{_→_`|.._}"}
  * @see {@method "{_→_`|}"}
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-map.html"
  */
