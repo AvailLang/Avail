@@ -269,7 +269,7 @@ restrictedSendAtom ::= atom for "restricted send_with_:_";
 Public method "Method_is stable at_" is
 [
 	methodName : atom,
-	functionType : function meta
+	functionType : ([…]→any)'s type
 |
 	/* The goal is to take an invocation like:
 	 *
@@ -390,7 +390,7 @@ Public method "Method_is stable at_" is
 Public method "Method_is stable at_" is
 [
 	methodName : string,
-	functionType : function meta
+	functionType : ([…]→any)'s type
 |
 	methodAtom ::= atom for methodName;
 	Method methodAtom is stable at functionType;
@@ -416,7 +416,7 @@ Public method "Method_is stable at_" is
 Public method "Stable abstract method_is_" is
 [
 	methodName : string,
-	aFunctionType : function meta
+	aFunctionType : ([…]→any)'s type
 |
 	Abstract method methodName is aFunctionType;
 	Method methodName is stable at aFunctionType;
@@ -442,7 +442,7 @@ Public method "Stable abstract method_is_" is
 Public method "Stable abstract method_is_" is
 [
 	methodAtom : atom,
-	functionType : function meta
+	functionType : ([…]→any)'s type
 |
 	methodName ::= methodAtom's name;
 	Stable abstract method methodName is functionType;
@@ -473,7 +473,7 @@ Public method "Stable abstract method_is_" is
 Public method "Stable forward method_is_" is
 [
 	methodName : string,
-	aFunctionType : function meta
+	aFunctionType : ([…]→any)'s type
 |
 	Forward method methodName is aFunctionType;
 	Method methodName is stable at aFunctionType;
@@ -504,7 +504,7 @@ Public method "Stable forward method_is_" is
 Public method "Stable forward method_is_" is
 [
 	methodAtom : atom,
-	aFunctionType : function meta
+	aFunctionType : ([…]→any)'s type
 |
 	methodName ::= methodAtom's name;
 	Stable forward method methodName is aFunctionType;
@@ -528,7 +528,7 @@ Public method "Stable forward method_is_" is
 Public method "Stable method_is_" is
 [
 	methodName : string,
-	implementation : function
+	implementation : […]→any
 |
 	Method methodName is implementation;
 	Method methodName is stable at implementation's type;
@@ -552,7 +552,7 @@ Public method "Stable method_is_" is
 Public method "Stable method_is_" is
 [
 	methodAtom : atom,
-	implementation : function
+	implementation : […]→any
 |
 	methodName ::= methodAtom's name;
 	Stable method methodName is implementation;
@@ -580,7 +580,7 @@ Public method "Stable method_is_" is
 Public method "Public stable abstract method_is_" is
 [
 	methodName : string,
-	aFunctionType : function meta
+	aFunctionType : ([…]→any)'s type
 |
 	Abstract method methodName is aFunctionType;
 	Method methodName is stable at aFunctionType;
@@ -596,7 +596,7 @@ Public method "Public stable abstract method_is_" is
 Semantic restriction "Public stable abstract method_is_" is
 [
 	nameType : string's type,
-	functionMeta : function meta's type
+	functionMeta : ([…]→any)'s type's type
 |
 	Require: nameType is public;
 	⊤
@@ -624,7 +624,7 @@ Semantic restriction "Public stable abstract method_is_" is
 Public method "Public stable abstract method_is_" is
 [
 	methodAtom : atom,
-	aFunctionType : function meta
+	aFunctionType : ([…]→any)'s type
 |
 	methodName ::= methodAtom's name;
 	Public stable abstract method methodName is aFunctionType;
@@ -661,7 +661,7 @@ Public method "Public stable abstract method_is_" is
 Public method "Public stable forward method_is_" is
 [
 	methodName : string,
-	aFunctionType : function meta
+	aFunctionType : ([…]→any)'s type
 |
 	Forward method methodName is aFunctionType;
 	Method methodName is stable at aFunctionType;
@@ -677,7 +677,7 @@ Public method "Public stable forward method_is_" is
 Semantic restriction "Public stable forward method_is_" is
 [
 	nameType : string's type,
-	functionMeta : function meta's type
+	functionMeta : ([…]→any)'s type's type
 |
 	Require: nameType is public;
 	⊤
@@ -714,7 +714,7 @@ Semantic restriction "Public stable forward method_is_" is
 Public method "Public stable forward method_is_" is
 [
 	methodAtom : atom,
-	aFunctionType : function meta
+	aFunctionType : ([…]→any)'s type
 |
 	methodName ::= methodAtom's name;
 	Public stable forward method methodName is aFunctionType;
@@ -740,7 +740,7 @@ Public method "Public stable forward method_is_" is
 Public method "Public stable method_is_" is
 [
 	methodName : string,
-	implementation : function
+	implementation : […]→any
 |
 	Method methodName is implementation;
 	Method methodName is stable at implementation's type;
@@ -756,7 +756,7 @@ Public method "Public stable method_is_" is
 Semantic restriction "Public stable method_is_" is
 [
 	nameType : string's type,
-	functionType : function meta
+	functionType : ([…]→any)'s type
 |
 	Require: nameType is public;
 	⊤
@@ -782,7 +782,7 @@ Semantic restriction "Public stable method_is_" is
 Public method "Public stable method_is_" is
 [
 	methodAtom : atom,
-	implementation : function
+	implementation : […]→any
 |
 	methodName ::= methodAtom's name;
 	Public stable method methodName is implementation;
@@ -810,7 +810,7 @@ Public method "Public stable method_is_" is
 Public method "Private stable abstract method_is_" is
 [
 	methodName : string,
-	aFunctionType : function meta
+	aFunctionType : ([…]→any)'s type
 |
 	Abstract method methodName is aFunctionType;
 	Method methodName is stable at aFunctionType;
@@ -826,7 +826,7 @@ Public method "Private stable abstract method_is_" is
 Semantic restriction "Private stable abstract method_is_" is
 [
 	nameType : string's type,
-	functionMeta : function meta's type
+	functionMeta : ([…]→any)'s type's type
 |
 	Require: nameType is private;
 	⊤
@@ -854,7 +854,7 @@ Semantic restriction "Private stable abstract method_is_" is
 Public method "Private stable abstract method_is_" is
 [
 	methodAtom : atom,
-	aFunctionType : function meta
+	aFunctionType : ([…]→any)'s type
 |
 	methodName ::= methodAtom's name;
 	Private stable abstract method methodName is aFunctionType;
@@ -891,7 +891,7 @@ Public method "Private stable abstract method_is_" is
 Public method "Private stable forward method_is_" is
 [
 	methodName : string,
-	aFunctionType : function meta
+	aFunctionType : ([…]→any)'s type
 |
 	Forward method methodName is aFunctionType;
 	Method methodName is stable at aFunctionType;
@@ -907,7 +907,7 @@ Public method "Private stable forward method_is_" is
 Semantic restriction "Private stable forward method_is_" is
 [
 	nameType : string's type,
-	functionMeta : function meta's type
+	functionMeta : ([…]→any)'s type's type
 |
 	Require: nameType is private;
 	⊤
@@ -944,7 +944,7 @@ Semantic restriction "Private stable forward method_is_" is
 Public method "Private stable forward method_is_" is
 [
 	methodAtom : atom,
-	aFunctionType : function meta
+	aFunctionType : ([…]→any)'s type
 |
 	methodName ::= methodAtom's name;
 	Private stable forward method methodName is aFunctionType;
@@ -970,7 +970,7 @@ Public method "Private stable forward method_is_" is
 Public method "Private stable method_is_" is
 [
 	methodName : string,
-	implementation : function
+	implementation : […]→any
 |
 	Method methodName is implementation;
 	Method methodName is stable at implementation's type;
@@ -986,7 +986,7 @@ Public method "Private stable method_is_" is
 Semantic restriction "Private stable method_is_" is
 [
 	nameType : string's type,
-	functionType : function meta
+	functionType : ([…]→any)'s type
 |
 	Require: nameType is private;
 	⊤
@@ -1012,7 +1012,7 @@ Semantic restriction "Private stable method_is_" is
 Public method "Private stable method_is_" is
 [
 	methodAtom : atom,
-	implementation : function
+	implementation : […]→any
 |
 	methodName ::= methodAtom's name;
 	Private stable method methodName is implementation;

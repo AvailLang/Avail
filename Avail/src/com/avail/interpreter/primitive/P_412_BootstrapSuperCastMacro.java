@@ -71,17 +71,17 @@ public final class P_412_BootstrapSuperCastMacro extends Primitive
 		if (type.isTop() || type.isBottom())
 		{
 			throw new AvailRejectedParseException(
-				"supercast type to be something other than " + type);
+				"supercast type to be something other than %s",
+				type);
 		}
 		final A_Type expressionType = expressionNode.expressionType();
 		if (!expressionType.isSubtypeOf(type) || expressionType.equals(type))
 		{
 			throw new AvailRejectedParseException(
-				"supercast type ("
-				+ type
-				+ ") to be a (strict) supertype of the expression's type ("
-				+ expressionType
-				+ ")");
+				"supercast type (%s) to be a (strict) supertype of the "
+					+ "expression's type (%s)",
+				type,
+				expressionType);
 		}
 		final A_Phrase superCast =
 			SuperCastNodeDescriptor.create(expressionNode, type);

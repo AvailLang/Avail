@@ -202,9 +202,10 @@ public class MessageSplitter
 	@InnerAccess int messagePartPosition;
 
 	/**
-	 * The number of non-backquoted underscores/ellipses encountered so far.
+	 * A record of where each "underscore" occurred in the list of {@link
+	 * #messageParts}.
 	 */
-	@InnerAccess int numberOfUnderscores;
+	@InnerAccess List<Integer> underscorePartNumbers = new ArrayList<>();
 
 	/**
 	 * The number of {@link SectionCheckpoint}s encountered so far.
@@ -643,11 +644,13 @@ public class MessageSplitter
 
 		/**
 		 * Construct an argument.
+		 *
+		 * @param startTokenIndex The one-based index of the underscore token.
 		 */
-		Argument ()
+		Argument (final int startTokenIndex)
 		{
-			numberOfUnderscores++;
-			absoluteUnderscoreIndex = numberOfUnderscores;
+			underscorePartNumbers.add(startTokenIndex);
+			absoluteUnderscoreIndex = numberOfUnderscores();
 		}
 
 		@Override
@@ -734,6 +737,16 @@ public class MessageSplitter
 	extends Argument
 	{
 		/**
+		 * Construct a new {@link MessageSplitter.ArgumentInModuleScope}.
+		 *
+		 * @param startTokenIndex The one-based token index of this argument.
+		 */
+		public ArgumentInModuleScope (final int startTokenIndex)
+		{
+			super(startTokenIndex);
+		}
+
+		/**
 		 * First parse an argument subexpression, then check that it has an
 		 * acceptable form (i.e., does not violate a grammatical restriction for
 		 * that argument position).  Also ensure that no local declarations that
@@ -781,11 +794,13 @@ public class MessageSplitter
 	extends Argument
 	{
 		/**
-		 * Construct a RawTokenArgument.
+		 * Construct a new {@link MessageSplitter.VariableQuote}.
+		 *
+		 * @param startTokenIndex The one-based token index of this argument.
 		 */
-		VariableQuote ()
+		public VariableQuote (final int startTokenIndex)
 		{
-			super();
+			super(startTokenIndex);
 		}
 
 		@Override
@@ -836,6 +851,16 @@ public class MessageSplitter
 	extends Argument
 	{
 		/**
+		 * Construct a new {@link MessageSplitter.ArgumentForMacroOnly}.
+		 *
+		 * @param startTokenIndex The one-based token index of this argument.
+		 */
+		public ArgumentForMacroOnly (final int startTokenIndex)
+		{
+			super(startTokenIndex);
+		}
+
+		/**
 		 * Parse an argument expression which might be top-valued.
 		 */
 		@Override
@@ -875,11 +900,13 @@ public class MessageSplitter
 	extends Argument
 	{
 		/**
-		 * Construct a RawTokenArgument.
+		 * Construct a new {@link MessageSplitter.RawTokenArgument}.
+		 *
+		 * @param startTokenIndex The one-based token index of this argument.
 		 */
-		RawTokenArgument ()
+		public RawTokenArgument (final int startTokenIndex)
 		{
-			super();
+			super(startTokenIndex);
 		}
 
 		@Override
@@ -918,11 +945,13 @@ public class MessageSplitter
 	extends RawTokenArgument
 	{
 		/**
-		 * Construct a RawKeywordTokenArgument.
+		 * Construct a new {@link MessageSplitter.RawKeywordTokenArgument}.
+		 *
+		 * @param startTokenIndex The one-based token index of this argument.
 		 */
-		RawKeywordTokenArgument ()
+		public RawKeywordTokenArgument (final int startTokenIndex)
 		{
-			super();
+			super(startTokenIndex);
 		}
 
 		@Override
@@ -948,11 +977,13 @@ public class MessageSplitter
 	extends RawTokenArgument
 	{
 		/**
-		 * Construct a RawLiteralTokenArgument.
+		 * Construct a new {@link MessageSplitter.RawLiteralTokenArgument}.
+		 *
+		 * @param startTokenIndex The one-based token index of this argument.
 		 */
-		RawLiteralTokenArgument ()
+		public RawLiteralTokenArgument (final int startTokenIndex)
 		{
-			super();
+			super(startTokenIndex);
 		}
 
 		@Override
@@ -3355,7 +3386,7 @@ public class MessageSplitter
 	 *
 	 * @return The current message part or null.
 	 */
-	public @Nullable A_String currentMessagePartOrNull ()
+	private @Nullable A_String currentMessagePartOrNull ()
 	{
 		return atEnd() ? null : currentMessagePart();
 	}
@@ -3366,7 +3397,7 @@ public class MessageSplitter
 	 *
 	 * @return The current message part.
 	 */
-	public A_String currentMessagePart ()
+	private A_String currentMessagePart ()
 	{
 		assert !atEnd();
 		return messageParts.get(messagePartPosition - 1);
@@ -3384,7 +3415,7 @@ public class MessageSplitter
 	 * @param indent
 	 *        The current indentation level.
 	 */
-	public void printSendNodeOnIndent(
+	public void printSendNodeOnIndent (
 		final A_Phrase sendNode,
 		final StringBuilder builder,
 		final int indent)
@@ -3551,6 +3582,8 @@ public class MessageSplitter
 			}
 			if (token.equals(underscore()))
 			{
+				// Capture the one-based index.
+				final int argStart = messagePartPosition;
 				if (alternatives.size() > 0)
 				{
 					// Alternations may not contain arguments.
@@ -3584,30 +3617,31 @@ public class MessageSplitter
 					if (nextToken.equals(singleDagger()))
 					{
 						messagePartPosition++;
-						argument = new ArgumentInModuleScope();
+						argument = new ArgumentInModuleScope(argStart);
 					}
 					else if (nextToken.equals(upArrow()))
 					{
 						messagePartPosition++;
-						argument = new VariableQuote();
+						argument = new VariableQuote(argStart);
 					}
 					else if (nextToken.equals(exclamationMark()))
 					{
 						messagePartPosition++;
-						argument = new ArgumentForMacroOnly();
+						argument = new ArgumentForMacroOnly(argStart);
 					}
 				}
 				// If the argument wasn't set already (because it wasn't
 				// followed by a modifier), then set it here.
 				if (argument == null)
 				{
-					argument = new Argument();
+					argument = new Argument(argStart);
 				}
 				argument.explicitOrdinal(ordinal);
 				sequence.addExpression(argument);
 			}
 			else if (token.equals(ellipsis()))
 			{
+				final int ellipsisStart = messagePartPosition;
 				if (alternatives.size() > 0)
 				{
 					// Alternations may not contain arguments.
@@ -3620,17 +3654,19 @@ public class MessageSplitter
 				final A_String nextToken = currentMessagePartOrNull();
 				if (nextToken != null && nextToken.equals(exclamationMark()))
 				{
-					sequence.addExpression(new RawTokenArgument());
+					sequence.addExpression(new RawTokenArgument(ellipsisStart));
 					messagePartPosition++;
 				}
 				else if (nextToken != null && nextToken.equals(octothorp()))
 				{
-					sequence.addExpression(new RawLiteralTokenArgument());
+					sequence.addExpression(
+						new RawLiteralTokenArgument(ellipsisStart));
 					messagePartPosition++;
 				}
 				else
 				{
-					sequence.addExpression(new RawKeywordTokenArgument());
+					sequence.addExpression(
+						new RawKeywordTokenArgument(ellipsisStart));
 				}
 			}
 			else if (token.equals(octothorp()))
@@ -4019,7 +4055,7 @@ public class MessageSplitter
 	 */
 	public int numberOfUnderscores ()
 	{
-		return numberOfUnderscores;
+		return underscorePartNumbers.size();
 	}
 
 	/**
@@ -4105,6 +4141,65 @@ public class MessageSplitter
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Answer a String consisting of the name of the message with a visual
+	 * indication inserted at the keyword or argument position related to the
+	 * given program counter.
+	 *
+	 * @param pc The 1-based instruction index into my {@link #instructions}.
+	 * @return The annotated method name.
+	 */
+	public String nameHighlightingPc (final int pc)
+	{
+		if (pc == 0)
+		{
+			return "(any method invocation)";
+		}
+		final int instruction = instructions.get(pc - 1);
+		final ParsingOperation op = ParsingOperation.decode(instruction);
+		int argCounter = 0;
+		final int position;
+		if (op == PARSE_PART || op == PARSE_PART_CASE_INSENSITIVELY)
+		{
+			position = messagePartPositions.get(
+				op.keywordIndex(instruction) - 1);
+		}
+		else
+		{
+			for (final int eachInstruction : instructions.subList(0, pc + 1))
+			{
+				final ParsingOperation eachOp =
+					ParsingOperation.decode(eachInstruction);
+				switch (eachOp)
+				{
+					case PARSE_ARGUMENT:
+					case PARSE_TOP_VALUED_ARGUMENT:
+					case PARSE_VARIABLE_REFERENCE:
+					case PARSE_ARGUMENT_IN_MODULE_SCOPE:
+					case PARSE_ANY_RAW_TOKEN:
+					case PARSE_RAW_KEYWORD_TOKEN:
+					case PARSE_RAW_LITERAL_TOKEN:
+					{
+						argCounter++;
+						break;
+					}
+					default:
+						break;
+				}
+			}
+			assert argCounter > 0;
+			final int argPartNumber = underscorePartNumbers.get(argCounter - 1);
+			position = messagePartPositions.get(argPartNumber - 1);
+		}
+		final String string = messageName.asNativeString();
+		final String annotatedString =
+			string.substring(0, position - 1)
+			+ AvailCompiler.errorIndicatorSymbol
+			+ string.substring(position - 1);
+		final A_String availString = StringDescriptor.from(annotatedString);
+		return availString.toString();
 	}
 
 	/**

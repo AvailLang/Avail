@@ -47,7 +47,8 @@ import com.avail.interpreter.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_407_BootstrapInitializingVariableDeclarationMacro extends Primitive
+public final class P_407_BootstrapInitializingVariableDeclarationMacro
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
@@ -71,7 +72,8 @@ public final class P_407_BootstrapInitializingVariableDeclarationMacro extends P
 		if (type.isTop() || type.isBottom())
 		{
 			throw new AvailRejectedParseException(
-				"variable's declared type to be something other than " + type);
+				"variable's declared type to be something other than %s",
+				type);
 		}
 		if (!initializingExpression.expressionType().isSubtypeOf(type))
 		{

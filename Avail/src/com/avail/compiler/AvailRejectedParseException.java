@@ -127,4 +127,21 @@ extends PrimitiveThrownException
 		};
 		this.rejectionString = null;
 	}
+
+	/**
+	 * Construct a new {@link AvailRejectedParseException} the most general way,
+	 * with a {@link Generator} to produce an {@link A_String Avail string} as
+	 * needed.  If this diagnostic is deemed relevant, the string will be
+	 * presented after the word "Expected...".
+	 *
+	 * @param generator
+	 *        The {@link Generator} that produces a diagnostic {@link A_String
+	 *        Avail string} upon first request.
+	 */
+	public AvailRejectedParseException (
+		final Generator<A_String> generator)
+	{
+		this.rejectionGenerator = generator;
+		this.rejectionString = null;
+	}
 }

@@ -96,3 +96,59 @@ Primitive "Method_is_" is
 	Primitive 228 (failureCode : natural number);
 	Invoke early failure function with <failureCode>;
 ] : ⊤;
+
+/**
+ * This is a helper for the semantic restriction for {@method
+ * "function accepting_and returning_"}, below.  It extracts a metatype's
+ * primary instance, a type.  Note that subtypes of that type are also instances
+ * of the metatype.  The return type from this method will be narrowed by a
+ * semantic restriction so the compiler will know it produces a type.
+ * 
+ * @method "private instance of meta_"
+ * @param "m" "type's type"
+ *        Any metatype.
+ * @returns "any"
+ *          This is strengthened to {@type "type"} below.
+ */
+Method "private instance of meta_" is
+[
+	m : type's type
+|
+	m's instances→tuple[1]
+] : any;
+
+/**
+ * This is a restriction for a helper for the semantic restriction for {@method
+ * "function accepting_and returning_"}, below.  It ensures that a metatype's
+ * instance is strengthened to be a type.
+ *
+ * @method "private instance of meta_"
+ * @param "m" "type's type's type"
+ *        Any metatype's type.
+ * @returns "type's type"
+ *          This strengthens the result of an invocation to be a type.
+ */
+Semantic restriction "private instance of meta_" is
+[
+ 	m : type's type's type
+|
+ 	type
+];
+
+/**
+ * Statically strengthen <em>just the return type</em>.  It's far too early in
+ * the bootstrapping to deal sensibly with the tuple of argument types here.
+ * 
+ * @method "function accepting_and returning_"
+ * @restricts "tuple of any meta's type"
+ * @restricts "type's type"
+ */
+Semantic restriction "function accepting_and returning_" is
+[
+	ignoredArgTypes : tuple of any meta's type,
+	returnMeta : type's type
+|
+	returnType ::= private instance of meta returnMeta;
+	functionType ::= […]→returnType;
+	functionType's type
+];

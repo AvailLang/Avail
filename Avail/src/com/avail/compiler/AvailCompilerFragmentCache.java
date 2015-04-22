@@ -139,33 +139,4 @@ public class AvailCompilerFragmentCache
 		assert Thread.holdsLock(this);
 		solutions.clear();
 	}
-
-	/**
-	 * Answer String describing a reason (any reason will do if there are
-	 * multiple), why an expression was being parsed at the specified location.
-	 *
-	 * @param state
-	 * @return
-	 */
-	String chooseCause (
-		final ParserState state)
-	{
-		assert Thread.holdsLock(this);
-		final AvailCompilerBipartiteRendezvous rendezvous =
-			solutions.get(state);
-		if (rendezvous == null)
-		{
-			return "Unknown reason (no rendezvous)";
-		}
-		final List<Con<A_Phrase>> actions = rendezvous.actions;
-		if (actions.size() == 0)
-		{
-			return "Unknown reason (no actions)";
-		}
-		return
-			"[one reason of "
-			+ actions.size()
-			+ ":] "
-			+ actions.get(0).description;
-	}
 }

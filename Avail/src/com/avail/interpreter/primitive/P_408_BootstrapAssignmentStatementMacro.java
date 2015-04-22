@@ -42,6 +42,7 @@ import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.*;
+import com.avail.utility.Generator;
 
 /**
  * The {@code P_408_BootstrapAssignmentStatementMacro} primitive is used for
@@ -120,21 +121,38 @@ public final class P_408_BootstrapAssignmentStatementMacro extends Primitive
 			throw new AvailRejectedParseException(
 				"variable for assignment to be in scope");
 		}
+		final A_Phrase declarationFinal = declaration;
 		if (!declaration.declarationKind().isVariable())
 		{
 			throw new AvailRejectedParseException(
-				"a name of a variable, not a "
-				+ declaration.declarationKind().nativeKindName());
+				new Generator<A_String>()
+				{
+					@Override
+					public A_String value ()
+					{
+						return StringDescriptor.format(
+							"a name of a variable, not a %s",
+							declarationFinal.declarationKind()
+								.nativeKindName());
+					}
+				});
 		}
 		if (!valueExpression.expressionType().isSubtypeOf(
 			declaration.declaredType()))
 		{
 			throw new AvailRejectedParseException(
-				StringDescriptor.format(
-					"assignment expression's type (%s) "
-					+ "to match variable type (%s)",
-					valueExpression.expressionType(),
-					declaration.declaredType()));
+				new Generator<A_String>()
+				{
+					@Override
+					public A_String value()
+					{
+						return StringDescriptor.format(
+							"assignment expression's type (%s) "
+							+ "to match variable type (%s)",
+							valueExpression.expressionType(),
+							declarationFinal.declaredType());
+					}
+				});
 		}
 		final A_Phrase assignment = AssignmentNodeDescriptor.from(
 			VariableUseNodeDescriptor.newUse(actualToken, declaration),

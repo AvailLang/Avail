@@ -96,7 +96,8 @@ extends Primitive
 		if (!Primitive.supportsPrimitive(primInt))
 		{
 			throw new AvailRejectedParseException(
-				"a supported primitive number, not " + primInt);
+				"a supported primitive number, not %d",
+				primInt);
 		}
 		final Primitive prim = Primitive.byPrimitiveNumberOrNull(primInt);
 		assert prim != null;

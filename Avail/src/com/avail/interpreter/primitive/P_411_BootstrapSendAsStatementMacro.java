@@ -77,16 +77,15 @@ extends Primitive
 		if (!sendPhrase.parseNodeKindIsUnder(SEND_NODE))
 		{
 			throw new AvailRejectedParseException(
-				"statement to be a ⊤-valued send node, not a "
-				+ sendPhrase.parseNodeKind().name()
-				+ ": "
-				+ sendPhrase);
+				"statement to be a ⊤-valued send node, not a %s: %s",
+				sendPhrase.parseNodeKind().name(),
+				sendPhrase);
 		}
 		if (!sendPhrase.expressionType().isTop())
 		{
 			throw new AvailRejectedParseException(
-				"statement's type to be ⊤, but it was "
-				+ sendPhrase.expressionType());
+				"statement's type to be ⊤, but it was %s",
+				sendPhrase.expressionType());
 		}
 		final A_Phrase sendAsStatement =
 			ExpressionAsStatementNodeDescriptor.fromExpression(sendPhrase);

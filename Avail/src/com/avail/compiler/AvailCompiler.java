@@ -61,7 +61,6 @@ import com.avail.compiler.scanning.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.exceptions.AvailEmergencyExitException;
@@ -1263,6 +1262,126 @@ public final class AvailCompiler
 	}
 
 	/**
+	 * A list of subexpressions being parsed, represented by {@link
+	 * A_BundleTree}s holding the positions within all outer send expressions.
+	 */
+	class PartialSubexpressionList
+	{
+		/** The {@link A_BundleTree} being parsed at this node. */
+		public final A_BundleTree bundleTree;
+
+		/** The parent {@link PartialSubexpressionList} being parsed. */
+		public final @Nullable PartialSubexpressionList parent;
+
+		/** How many subexpressions deep that we're parsing. */
+		public final int depth;
+
+		/**
+		 * Create a list like the receiver, but with a different {@link
+		 * A_BundleTree}.
+		 *
+		 * @param newBundleTree
+		 *        The new {@link A_BundleTree} to replace the one in the
+		 *        receiver within the copy.
+		 * @return A {@link PartialSubexpressionList} like the receiver, but
+		 *         with a different message bundle tree.
+		 */
+		PartialSubexpressionList advancedTo (final A_BundleTree newBundleTree)
+		{
+			return new PartialSubexpressionList(newBundleTree, parent);
+		}
+
+		/**
+		 * Construct a new {@link AvailCompiler.PartialSubexpressionList}.
+		 *
+		 * @param bundleTree
+		 *        The current {@link A_BundleTree} being parsed.
+		 * @param parent
+		 *        The enclosing partially-parsed super-expressions being parsed.
+		 */
+		public PartialSubexpressionList (
+			final A_BundleTree bundleTree,
+			final @Nullable PartialSubexpressionList parent)
+		{
+			this.bundleTree = bundleTree;
+			this.parent = parent;
+			this.depth = parent == null ? 1 : parent.depth + 1;
+		}
+	}
+
+	/**
+	 * Output a description of the layers of message sends that are being
+	 * parsed at this point in history.
+	 *
+	 * @param partialSubexpressions
+	 *        The {@link PartialSubexpressionList} that captured the nesting of
+	 *        partially parsed superexpressions.
+	 * @param builder
+	 *        Where to describe the chain of superexpressions.
+	 */
+	static void describeOn (
+		final @Nullable PartialSubexpressionList partialSubexpressions,
+		final StringBuilder builder)
+	{
+		PartialSubexpressionList pointer = partialSubexpressions;
+		if (pointer == null)
+		{
+			builder.append("\n\t(top level expression)");
+			return;
+		}
+		final int maxDepth = 10;
+		final int limit = max(pointer.depth - maxDepth, 0);
+		while (pointer != null && pointer.depth >= limit)
+		{
+			builder.append("\n\t");
+			builder.append(pointer.depth);
+			builder.append(". ");
+			final A_BundleTree bundleTree = pointer.bundleTree;
+			// Adjust the pc to refer to the actual instruction that caused
+			// the argument parse, not the successor instruction that was
+			// captured.
+			final int pc = bundleTree.parsingPc() - 1;
+			final List<A_Bundle> bundles = TupleDescriptor.toList(
+				bundleTree.allBundles().valuesAsTuple());
+			Collections.<A_Bundle>sort(
+				bundles,
+				new Comparator<A_Bundle>()
+				{
+					@Override
+					public int compare (
+						final @Nullable A_Bundle b1,
+						final @Nullable A_Bundle b2)
+					{
+						assert b1 != null && b2 != null;
+						return b1.message().atomName().asNativeString()
+							.compareTo(
+								b2.message().atomName().asNativeString());
+					}
+				});
+			boolean first = true;
+			final int maxBundles = 3;
+			for (final A_Bundle bundle :
+				bundles.subList(0, min(bundles.size(), maxBundles)))
+			{
+				if (!first)
+				{
+					builder.append(", ");
+				}
+				final MessageSplitter splitter = bundle.messageSplitter();
+				builder.append(splitter.nameHighlightingPc(pc));
+				first = false;
+			}
+			if (bundles.size() > maxBundles)
+			{
+				builder.append("… (and ");
+				builder.append(bundles.size() - maxBundles);
+				builder.append(" others)");
+			}
+			pointer = pointer.parent;
+		}
+	}
+
+	/**
 	 * This is actually a two-argument continuation, but it has only a single
 	 * type parameter because the first one is always the {@linkplain
 	 * ParserState parser state} that indicates where the continuation should
@@ -1276,55 +1395,35 @@ public final class AvailCompiler
 	implements Continuation2<ParserState, AnswerType>
 	{
 		/**
-		 * A debugging description of this continuation.
+		 * A {@link PartialSubexpressionList} containing all enclosing
+		 * incomplete expressions currently being parsed along this history.
 		 */
-		final String description;
+		final @Nullable PartialSubexpressionList superexpressions;
 
 		/**
-		 * Parameters to supply to the debugging description pattern of this
-		 * continuation.
-		 */
-		final Object [] descriptionParameters;
-
-		/**
-		 * Construct a new {@link ConNullable} with the provided description.
+		 * Ensure this is not a root {@link PartialSubexpressionList} (i.e., its
+		 * {@link #superexpressions} list is not {@code null}), then answer
+		 * the parent list.
 		 *
-		 * @param description The provided description.
-		 * @param descriptionParameters The description parameters.
+		 * @return The (non-null) parent superexpressions list.
+		 */
+		final PartialSubexpressionList superexpressions ()
+		{
+			final PartialSubexpressionList parent = superexpressions;
+			assert parent != null;
+			return parent;
+		}
+
+		/**
+		 * Construct a new {@link ConNullable}.
+		 *
+		 * @param superexpressions
+		 *        The enclosing partially-parsed expressions.
 		 */
 		ConNullable (
-			final String description,
-			final Object... descriptionParameters)
+			final @Nullable PartialSubexpressionList superexpressions)
 		{
-			this.description = description;
-			this.descriptionParameters = descriptionParameters;
-		}
-
-		@Override
-		public String toString ()
-		{
-			return
-				"Con("
-				+ String.format(description, descriptionParameters)
-				+ ")";
-		}
-
-		/**
-		 * Add to the chain of causes that describes what could be accomplished
-		 * by invoking this continuation with a result.  Answer another
-		 * continuation capable of extending the chain of causes, or if not
-		 * available answer {@code null}.
-		 *
-		 * @param causes
-		 *        The list of strings to append a new cause to.
-		 * @return Either null or a continuation capable of providing more
-		 *         basic causes for this continuation.
-		 */
-		public @Nullable ConNullable<AnswerType> addCauseTo (
-			final List<String> causes)
-		{
-			causes.add(String.format(description, descriptionParameters));
-			return null;
+			this.superexpressions = superexpressions;
 		}
 
 		@Override
@@ -1346,16 +1445,29 @@ public final class AvailCompiler
 	extends ConNullable<AnswerType>
 	{
 		/**
-		 * Construct a new {@link Con} with the provided description.
+		 * Construct a new {@link Con}.
 		 *
-		 * @param description The provided description.
-		 * @param descriptionParameters The description parameters.
+		 * @param superexpressions
+		 *        The enclosing partially-parsed expressions.
 		 */
 		Con (
-			final String description,
-			final Object... descriptionParameters)
+			final @Nullable PartialSubexpressionList superexpressions)
 		{
-			super(description, descriptionParameters);
+			super(superexpressions);
+		}
+
+		/**
+		 * Construct a new {@link Con}, sharing the same {@link
+		 * PartialSubexpressionList superexpressions list} as the given Con.
+		 *
+		 * @param previousContinuation
+		 *        A {@link Con} containing the same enclosing partially-parsed
+		 *        expressions.
+		 */
+		Con (
+			final Con<AnswerType> previousContinuation)
+		{
+			super(previousContinuation.superexpressions);
 		}
 
 		/**
@@ -1390,19 +1502,6 @@ public final class AvailCompiler
 	private static abstract class ParsingTask
 	extends AvailTask
 	{
-		/**
-		 * The description associated with this task. Only used for debugging.
-		 * It's expressed as a format String to be populated with the {@link
-		 * #descriptionArguments}.
-		 */
-		final String descriptionPattern;
-
-		/**
-		 * The arguments to supply to the format String in {@link
-		 * #descriptionPattern}.
-		 */
-		final Object[] descriptionArguments;
-
 		/** The parsing state for this task will operate. */
 		final ParserState state;
 
@@ -1410,27 +1509,12 @@ public final class AvailCompiler
 		 * Construct a new {@link AvailCompiler.ParsingTask}.
 		 *
 		 * @param state The {@linkplain ParserState parser state} for this task.
-		 * @param descriptionPattern
-		 *        A format String describing what this task will do.
-		 * @param descriptionArguments
-		 *        Parameters to supply to the format String.
 		 */
 		public ParsingTask (
-			final ParserState state,
-			final String descriptionPattern,
-			final Object... descriptionArguments)
+			final ParserState state)
 		{
 			super(FiberDescriptor.compilerPriority);
 			this.state = state;
-			this.descriptionPattern = descriptionPattern;
-			this.descriptionArguments = descriptionArguments;
-		}
-
-		@Override
-		public String toString()
-		{
-			return String.format(descriptionPattern, descriptionArguments)
-				+ "@pos(" + state.position + ")";
 		}
 
 		@Override
@@ -1550,7 +1634,7 @@ public final class AvailCompiler
 		attempt(
 			start,
 			tryBlock,
-			new Con<A_Phrase>("Record solution")
+			new Con<A_Phrase>(supplyAnswer.superexpressions)
 			{
 				@Override
 				public void valueNotNull (
@@ -1639,7 +1723,7 @@ public final class AvailCompiler
 		@Override
 		public int hashCode ()
 		{
-			return position * 473897843 ^ clientDataMap.hash();
+			return position * AvailObject.multiplier ^ clientDataMap.hash();
 		}
 
 		@Override
@@ -2899,7 +2983,7 @@ public final class AvailCompiler
 					new Continuation1<String>()
 					{
 						@Override
-						public void value (@Nullable final String message)
+						public void value (final @Nullable String message)
 						{
 							assert message != null;
 							// Suppress duplicate messages.
@@ -3234,17 +3318,10 @@ public final class AvailCompiler
 	 *        What to do at some point in the future.
 	 * @param where
 	 *        Where the parse is happening.
-	 * @param description
-	 *        Debugging information about what is to be parsed, expressed as a
-	 *        format String into which the arguments will be substituted.
-	 * @param descriptionArguments
-	 *        Arguments to supply to the description pattern.
 	 */
 	void workUnitDo (
 		final Continuation0 continuation,
-		final ParserState where,
-		final String description,
-		final Object... descriptionArguments)
+		final ParserState where)
 	{
 		startWorkUnit();
 		final Continuation1<AvailObject> workUnit = workUnitCompletion(
@@ -3259,7 +3336,7 @@ public final class AvailCompiler
 				}
 			});
 		runtime.execute(
-			new ParsingTask(where, description, descriptionArguments)
+			new ParsingTask(where)
 			{
 				@Override
 				public void value ()
@@ -3272,8 +3349,7 @@ public final class AvailCompiler
 	/**
 	 * Wrap the {@linkplain Continuation1 continuation of one argument} inside a
 	 * {@linkplain Continuation0 continuation of zero arguments} and record that
-	 * as per {@linkplain #workUnitDo(Continuation0, ParserState, String,
-	 * Object...)}.
+	 * as per {@linkplain #workUnitDo(Continuation0, ParserState)}.
 	 *
 	 * @param <ArgType>
 	 *        The type of argument to the given continuation.
@@ -3299,9 +3375,7 @@ public final class AvailCompiler
 					continuation.value(here, argument);
 				}
 			},
-			here,
-			continuation.description,
-			continuation.descriptionParameters);
+			here);
 	}
 
 	/**
@@ -3824,12 +3898,16 @@ public final class AvailCompiler
 	 * @param bundleTree
 	 *        The {@linkplain A_BundleTree bundle tree} which was being used to
 	 *        parse these keywords.
+	 * @param excludedString
+	 *        The string to omit from the message, since it was the actual
+	 *        encountered token's text.
 	 */
 	void expectedKeywordsOf (
 		final ParserState where,
 		final A_Map incomplete,
 		final boolean caseInsensitive,
-		final A_BundleTree bundleTree)
+		final A_BundleTree bundleTree,
+		final A_String excludedString)
 	{
 		where.expected(new Describer()
 		{
@@ -3865,50 +3943,24 @@ public final class AvailCompiler
 						for (final MapDescriptor.Entry successorBundleEntry
 							: entry.value().allBundles().mapIterable())
 						{
+							if (successorBundleEntry.key().equals(
+								excludedString))
+							{
+								// Exclude this string since it was encountered.
+								continue;
+							}
 							if (!first)
 							{
 								buffer.append(", ");
 							}
-							final A_Atom atom = successorBundleEntry.key();
-							final A_String name = atom.atomName();
-							try
-							{
-								final MessageSplitter splitter =
-									atom.bundleOrCreate().messageSplitter();
-								final int instruction =
-									splitter.instructionsTuple().tupleIntAt(pc);
-								final ParsingOperation operation =
-									ParsingOperation.decode(instruction);
-								assert operation == PARSE_PART
-									|| operation
-										== PARSE_PART_CASE_INSENSITIVELY;
-								final int operand =
-									operation.keywordIndex(instruction);
-								final int positionInName =
-									splitter.messagePartPositions.get(
-										operand - 1);
-								final A_String prefix =
-									(A_String) name.copyTupleFromToCanDestroy(
-										1, positionInName - 1, false);
-								final A_String indicator =
-									StringDescriptor.from(errorIndicatorSymbol);
-								final A_String suffix =
-									(A_String) name.copyTupleFromToCanDestroy(
-										positionInName,
-										name.tupleSize(),
-										false);
-								final A_Tuple combined =
-									prefix.concatenateWith(indicator, false)
-										.concatenateWith(suffix, false);
-								buffer.append(combined);
-							}
-							catch (final MalformedMessageException e)
-							{
-								// Just use the name without an indicator
-								buffer.append(atom.atomName());
-							}
+							final A_Bundle bundle =
+								successorBundleEntry.value();
+							final MessageSplitter splitter =
+								bundle.messageSplitter();
+							buffer.append(splitter.nameHighlightingPc(pc));
 							buffer.append(" from ");
-							final A_Module issuer = atom.issuingModule();
+							final A_Module issuer =
+								bundle.message().issuingModule();
 							final String issuerName =
 								issuer.moduleName().asNativeString();
 							final String shortIssuer = issuerName.substring(
@@ -3926,12 +3978,16 @@ public final class AvailCompiler
 				}
 				Collections.sort(sorted);
 				boolean startOfLine = true;
-				builder.append("\n\t");
 				final int leftColumn = 4 + 4; // ">>> " and a tab.
 				int column = leftColumn;
 				for (final String s : sorted)
 				{
-					if (!startOfLine)
+					if (startOfLine)
+					{
+						builder.append("\n\t");
+						column = leftColumn;
+					}
+					else
 					{
 						builder.append("  ");
 						column += 2;
@@ -3942,12 +3998,19 @@ public final class AvailCompiler
 					column += builder.length() - lengthBefore;
 					if (detail || column + 2 + s.length() > 80)
 					{
-						builder.append("\n\t");
-						column = leftColumn;
 						startOfLine = true;
 					}
 				}
-				c.value(builder.toString());
+				eventuallyDo(
+					where.peekToken(),
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							c.value(builder.toString());
+						}
+					});
 			}
 		});
 	}
@@ -3999,7 +4062,10 @@ public final class AvailCompiler
 			false,  // Nothing consumed yet.
 			initialParseStack,
 			initialMarkStack,
-			new Con<A_Phrase>("Done parsing leading keyword send")
+			new Con<A_Phrase>(
+				new PartialSubexpressionList(
+					loader().rootBundleTree(),
+					continuation.superexpressions))
 			{
 				@Override
 				public void valueNotNull(
@@ -4048,7 +4114,10 @@ public final class AvailCompiler
 			false,  // Leading argument does not yet count as something parsed.
 			initialParseStack,
 			initialMarkStack,
-			new Con<A_Phrase>("Done parsing leading argument send")
+			new Con<A_Phrase>(
+				new PartialSubexpressionList(
+					loader().rootBundleTree(),
+					continuation.superexpressions))
 			{
 				@Override
 				public void valueNotNull(
@@ -4092,7 +4161,7 @@ public final class AvailCompiler
 		// Try to wrap it in a leading-argument message send.
 		attempt(
 			afterLeadingArgument,
-			new Con<A_Phrase>("Possible leading argument send")
+			new Con<A_Phrase>(continuation.superexpressions)
 			{
 				@Override
 				public void valueNotNull (
@@ -4103,7 +4172,7 @@ public final class AvailCompiler
 						afterLeadingArgument2,
 						node2,
 						startOfLeadingArgument,
-						new Con<A_Phrase>("Leading argument send")
+						new Con<A_Phrase>(continuation.superexpressions)
 						{
 							@Override
 							public void valueNotNull (
@@ -4226,7 +4295,6 @@ public final class AvailCompiler
 						start.afterToken().position,
 						clientMap);
 					eventuallyParseRestOfSendNode(
-						"Continue send after a keyword",
 						afterRecordingToken,
 						incomplete.mapAt(keywordString),
 						null,
@@ -4239,7 +4307,12 @@ public final class AvailCompiler
 			}
 			if (!keywordRecognized && consumedAnything)
 			{
-				expectedKeywordsOf(start, incomplete, false, bundleTree);
+				expectedKeywordsOf(
+					start,
+					incomplete,
+					false,
+					bundleTree,
+					keywordToken.string());
 			}
 		}
 		if (anyCaseInsensitive && firstArgOrNull == null)
@@ -4264,7 +4337,6 @@ public final class AvailCompiler
 						start.afterToken().position,
 						clientMap);
 					eventuallyParseRestOfSendNode(
-						"Continue send after a case-insensitive keyword",
 						afterRecordingToken,
 						caseInsensitive.mapAt(keywordString),
 						null,
@@ -4277,7 +4349,12 @@ public final class AvailCompiler
 			}
 			if (!keywordRecognized && consumedAnything)
 			{
-				expectedKeywordsOf(start, caseInsensitive, true, bundleTree);
+				expectedKeywordsOf(
+					start,
+					caseInsensitive,
+					true,
+					bundleTree,
+					keywordToken.lowerCaseString());
 			}
 		}
 		if (anyPrefilter)
@@ -4292,8 +4369,6 @@ public final class AvailCompiler
 				if (prefilter.hasKey(argumentBundle))
 				{
 					eventuallyParseRestOfSendNode(
-						"Continue send after an effective grammatical "
-							+ "restriction",
 						start,
 						prefilter.mapAt(argumentBundle),
 						firstArgOrNull,
@@ -4336,9 +4411,7 @@ public final class AvailCompiler
 								continuation);
 						}
 					},
-					start,
-					"Continue with instruction: %s",
-					ParsingOperation.decode(entry.key().extractInt()));
+					start);
 			}
 		}
 	}
@@ -4397,7 +4470,6 @@ public final class AvailCompiler
 				final List<A_Phrase> newArgsSoFar =
 					append(argsSoFar, ListNodeDescriptor.empty());
 				eventuallyParseRestOfSendNode(
-					"Continue send after push empty",
 					start,
 					successorTrees.tupleAt(1),
 					firstArgOrNull,
@@ -4421,7 +4493,6 @@ public final class AvailCompiler
 				final List<A_Phrase> newArgsSoFar =
 					append(withoutLast(poppedOnce), listNode);
 				eventuallyParseRestOfSendNode(
-					"Continue send after append",
 					start,
 					successorTrees.tupleAt(1),
 					firstArgOrNull,
@@ -4443,7 +4514,6 @@ public final class AvailCompiler
 				final List<Integer> newMarksSoFar =
 					PrefixSharingList.append(marksSoFar, marker);
 				eventuallyParseRestOfSendNode(
-					"Continue send after push parse position",
 					start,
 					successorTrees.tupleAt(1),
 					firstArgOrNull,
@@ -4459,7 +4529,6 @@ public final class AvailCompiler
 				// Pop from the mark stack.
 				assert successorTrees.tupleSize() == 1;
 				eventuallyParseRestOfSendNode(
-					"Continue send after pop mark stack",
 					start,
 					successorTrees.tupleAt(1),
 					firstArgOrNull,
@@ -4486,7 +4555,6 @@ public final class AvailCompiler
 				final List<Integer> newMarksSoFar =
 					append(withoutLast(marksSoFar), newMarker);
 				eventuallyParseRestOfSendNode(
-					"Continue send after check parse progress",
 					start,
 					successorTrees.tupleAt(1),
 					firstArgOrNull,
@@ -4515,7 +4583,6 @@ public final class AvailCompiler
 				final A_Phrase literalNode =
 					LiteralNodeDescriptor.fromToken(token);
 				eventuallyParseRestOfSendNode(
-					"Continue send after push boolean literal",
 					start,
 					successorTrees.tupleAt(1),
 					firstArgOrNull,
@@ -4531,6 +4598,11 @@ public final class AvailCompiler
 			{
 				// Parse an argument and continue.
 				assert successorTrees.tupleSize() == 1;
+				final PartialSubexpressionList partialSubexpressionList =
+					firstArgOrNull == null
+						? continuation.superexpressions().advancedTo(
+							successorTrees.tupleAt(1))
+						: continuation.superexpressions;
 				parseSendArgumentWithExplanationThen(
 					start,
 					new Generator<String>()
@@ -4538,16 +4610,23 @@ public final class AvailCompiler
 						@Override
 						public String value ()
 						{
-							return op == PARSE_ARGUMENT
-								? "an argument of some message"
-								: "a top-valued argument of some message";
+							final StringBuilder builder = new StringBuilder();
+							builder.append(
+								op == PARSE_ARGUMENT
+									? "an argument"
+									: "a top-valued argument");
+							builder.append(
+								" in this chain of partially completed "
+								+ "messages:");
+							describeOn(partialSubexpressionList, builder);
+							return builder.toString();
 						}
 					},
 					firstArgOrNull,
 					firstArgOrNull == null
 						&& initialTokenPosition.position != start.position,
 					op == PARSE_TOP_VALUED_ARGUMENT,
-					new Con<A_Phrase>("Argument of message send")
+					new Con<A_Phrase>(partialSubexpressionList)
 					{
 						@Override
 						public void valueNotNull (
@@ -4557,7 +4636,6 @@ public final class AvailCompiler
 							final List<A_Phrase> newArgsSoFar =
 								append(argsSoFar, newArg);
 							eventuallyParseRestOfSendNode(
-								"Continue send after argument",
 								afterArg,
 								successorTrees.tupleAt(1),
 								null,
@@ -4574,6 +4652,12 @@ public final class AvailCompiler
 			}
 			case PARSE_VARIABLE_REFERENCE:
 			{
+				assert successorTrees.tupleSize() == 1;
+				final PartialSubexpressionList partialSubexpressionList =
+					firstArgOrNull == null
+						? continuation.superexpressions().advancedTo(
+							successorTrees.tupleAt(1))
+						: continuation.superexpressions;
 				parseSendArgumentWithExplanationThen(
 					start,
 					new Generator<String>()
@@ -4581,14 +4665,19 @@ public final class AvailCompiler
 						@Override
 						public String value ()
 						{
-							return "a variable reference in some message";
+							final StringBuilder builder = new StringBuilder();
+							builder.append(
+								"a variable reference in this chain of "
+								+ "partially completed messages:");
+							describeOn(partialSubexpressionList, builder);
+							return builder.toString();
 						}
 					},
 					firstArgOrNull,
 					firstArgOrNull == null
 						&& initialTokenPosition.position != start.position,
 					false,
-					new Con<A_Phrase>("Variable reference argument")
+					new Con<A_Phrase>(partialSubexpressionList)
 					{
 						@Override
 						public void valueNotNull (
@@ -4641,7 +4730,6 @@ public final class AvailCompiler
 											rawVariableReference)
 									: rawVariableReference;
 							eventuallyParseRestOfSendNode(
-								"Continue send after variable quotation",
 								afterUse,
 								successorTrees.tupleAt(1),
 								null,
@@ -4658,6 +4746,7 @@ public final class AvailCompiler
 			}
 			case PARSE_ARGUMENT_IN_MODULE_SCOPE:
 			{
+				assert successorTrees.tupleSize() == 1;
 				parseArgumentInModuleScopeThen(
 					start,
 					firstArgOrNull,
@@ -4665,7 +4754,16 @@ public final class AvailCompiler
 					marksSoFar,
 					initialTokenPosition,
 					successorTrees,
-					continuation);
+					new Con<A_Phrase>(continuation)
+					{
+						@Override
+						public void valueNotNull(
+							final ParserState state,
+							final A_Phrase answer)
+						{
+							continuation.valueNotNull(state, answer);
+						}
+					});
 				break;
 			}
 			case PARSE_ANY_RAW_TOKEN:
@@ -4731,7 +4829,6 @@ public final class AvailCompiler
 				final List<A_Phrase> newArgsSoFar =
 					append(argsSoFar, literalNode);
 				eventuallyParseRestOfSendNode(
-					"Continue send after raw token for ellipsis",
 					afterToken,
 					successorTrees.tupleAt(1),
 					null,
@@ -4759,8 +4856,6 @@ public final class AvailCompiler
 					final A_BundleTree successorTree =
 						successorTrees.tupleAt(i);
 					eventuallyParseRestOfSendNode(
-						"Continue send after branch or jump (" +
-							(i == 1 ? "not taken)" : "taken)"),
 						start,
 						successorTree,
 						firstArgOrNull,
@@ -4788,7 +4883,6 @@ public final class AvailCompiler
 				assert successorTrees.tupleSize() == 1;
 				assert firstArgOrNull == null;
 				eventuallyParseRestOfSendNode(
-					"Continue send after checkArgument",
 					start,
 					successorTrees.tupleAt(1),
 					null,
@@ -4823,7 +4917,6 @@ public final class AvailCompiler
 									withoutLast(argsSoFar),
 									replacementExpression);
 							eventuallyParseRestOfSendNode(
-								"Continue send after conversion",
 								start,
 								successorTrees.tupleAt(1),
 								firstArgOrNull,
@@ -4865,7 +4958,6 @@ public final class AvailCompiler
 				final List<A_Phrase> newArgsSoFar =
 					append(argsSoFar, literalNode);
 				eventuallyParseRestOfSendNode(
-					"Continue send after push integer literal",
 					start,
 					successorTrees.tupleAt(1),
 					firstArgOrNull,
@@ -4908,7 +5000,6 @@ public final class AvailCompiler
 				for (final A_BundleTree successorTree : successorTrees)
 				{
 					eventuallyParseRestOfSendNode(
-						"Continue after preparing to run prefix function (§)",
 						start,
 						successorTree,
 						firstArgOrNull,
@@ -4991,7 +5082,6 @@ public final class AvailCompiler
 					PermutedListNodeDescriptor.fromListAndPermutation(
 						poppedList, permutation));
 				eventuallyParseRestOfSendNode(
-					"Continue send after permute list",
 					start,
 					successorTrees.tupleAt(1),
 					firstArgOrNull,
@@ -5009,7 +5099,6 @@ public final class AvailCompiler
 				if (top.expressionsSize() >= limit)
 				{
 					eventuallyParseRestOfSendNode(
-						"Continue send after check-at-least",
 						start,
 						successorTrees.tupleAt(1),
 						firstArgOrNull,
@@ -5028,7 +5117,6 @@ public final class AvailCompiler
 				if (top.expressionsSize() <= limit)
 				{
 					eventuallyParseRestOfSendNode(
-						"Continue send after check-at-most",
 						start,
 						successorTrees.tupleAt(1),
 						firstArgOrNull,
@@ -5131,7 +5219,6 @@ public final class AvailCompiler
 					final ParserState newState = new ParserState(
 						start.position, replacementClientDataMap);
 					eventuallyParseRestOfSendNode(
-						"Continue after prefix function (§)",
 						newState,
 						successorTree,
 						firstArgOrNull,
@@ -5161,17 +5248,8 @@ public final class AvailCompiler
 					}
 					else
 					{
-						start.expected(new Describer()
-						{
-							@Override
-							public void describeThen (
-								final Continuation1<String> c)
-							{
-								c.value(
-									"prefix function not to have failed with:\n"
-									+ e.toString());
-							}
-						});
+						start.expected(new FormattingDescriber(
+							"prefix function not to have failed with:\n%s", e));
 					}
 				}
 			}));
@@ -5476,8 +5554,8 @@ public final class AvailCompiler
 					}
 					else
 					{
-						message = new SimpleDescriber(
-							"unexpected error: " + e.toString());
+						message = new FormattingDescriber(
+							"unexpected error: %s", e);
 					}
 					synchronized (outstanding)
 					{
@@ -5925,7 +6003,7 @@ public final class AvailCompiler
 							argumentsListNode,
 							bundle,
 							finalMacro,
-							new Con<A_Phrase>("Check macro's semantic type")
+							new Con<A_Phrase>(continuation.superexpressions)
 							{
 								@Override
 								public void valueNotNull(
@@ -6011,7 +6089,7 @@ public final class AvailCompiler
 			{
 				parseExpressionThen(
 					start,
-					new Con<A_Phrase>("Argument expression")
+					new Con<A_Phrase>(continuation.superexpressions)
 					{
 						@Override
 						public void valueNotNull (
@@ -6040,14 +6118,6 @@ public final class AvailCompiler
 								afterArgument,
 								continuation,
 								wrapAsLiteralIf(argument, wrapInLiteral));
-						}
-
-						@Override
-						public @Nullable ConNullable<A_Phrase> addCauseTo (
-							final List<String> causes)
-						{
-							causes.add(explanation.value());
-							return continuation;
 						}
 					});
 			}
@@ -6172,7 +6242,7 @@ public final class AvailCompiler
 			firstArgOrNull == null
 				&& initialTokenPosition.position != start.position,
 			false,  // Static argument can't be top-valued
-			new Con<A_Phrase>("Global-scoped argument of message")
+			new Con<A_Phrase>(continuation.superexpressions)
 			{
 				@Override
 				public void valueNotNull (
@@ -6206,9 +6276,8 @@ public final class AvailCompiler
 							{
 								@Override
 								public void describeThen (
-									final @Nullable Continuation1<String> c)
+									final Continuation1<String> c)
 								{
-									assert c != null;
 									final List<String> localNames =
 										new ArrayList<>();
 									for (final A_Phrase usedLocal : usedLocals)
@@ -6218,11 +6287,10 @@ public final class AvailCompiler
 										localNames.add(name.asNativeString());
 									}
 									c.value(
-										"A leading argument which "
-										+ "was supposed to be parsed in"
-										+ "module scope actually "
-										+ "referred to some local "
-										+ "variables: "
+										"a leading argument which "
+										+ "was supposed to be parsed in "
+										+ "module scope, but it referred to "
+										+ "some local variables: "
 										+ localNames.toString());
 								}
 							});
@@ -6234,7 +6302,6 @@ public final class AvailCompiler
 					final ParserState afterArgButInScope =
 						new ParserState(afterArg.position, start.clientDataMap);
 					eventuallyParseRestOfSendNode(
-						"Continue send after argument in module scope",
 						afterArgButInScope,
 						successorTrees.tupleAt(1),
 						null,
@@ -7048,7 +7115,7 @@ public final class AvailCompiler
 		recordExpectationsRelativeTo(start.position);
 		parseOutermostStatement(
 			start,
-			new Con<A_Phrase>("Outermost statement")
+			new Con<A_Phrase>((PartialSubexpressionList)null)
 			{
 				@Override
 				public void valueNotNull (
@@ -7069,8 +7136,8 @@ public final class AvailCompiler
 								final @Nullable A_Phrase simpleStatement)
 							{
 								assert simpleStatement != null;
-								assert simpleStatement.parseNodeKind()
-									.isSubkindOf(STATEMENT_NODE);
+								assert simpleStatement.parseNodeKindIsUnder(
+									STATEMENT_NODE);
 								simpleStatements.add(
 									simpleStatement.stripMacro());
 							}
@@ -7390,7 +7457,7 @@ public final class AvailCompiler
 					// Rollback the module transaction no matter what happens.
 					parseExpressionThen(
 						new ParserState(0, clientData),
-						new Con<A_Phrase>("Reached end")
+						new Con<A_Phrase>((PartialSubexpressionList)null)
 						{
 							@Override
 							public void valueNotNull (
@@ -7510,9 +7577,8 @@ public final class AvailCompiler
 					{
 						@Override
 						public void describeThen (
-							final @Nullable Continuation1<String> c)
+							final Continuation1<String> c)
 						{
-							assert c != null;
 							final StringBuilder builder = new StringBuilder();
 							builder.append(
 								expected.size() == 1
@@ -7619,7 +7685,7 @@ public final class AvailCompiler
 			{
 				fragmentCache.indicateParsingHasStartedAt(start);
 				final Con<A_Phrase> action = new Con<A_Phrase>(
-					"Uncached expression")
+					originalContinuation.superexpressions)
 				{
 					@Override
 					public void valueNotNull (
@@ -7653,21 +7719,6 @@ public final class AvailCompiler
 							});
 						}
 					}
-
-					@Override
-					public @Nullable ConNullable<A_Phrase>
-						addCauseTo (
-							final List<String> causes)
-					{
-						final String cause;
-						synchronized (fragmentCache)
-						{
-							cause = fragmentCache.chooseCause(
-								start);
-						}
-						causes.add(cause);
-						return originalContinuation;
-					}
 				};
 				workUnitDo(
 					new Continuation0()
@@ -7678,8 +7729,7 @@ public final class AvailCompiler
 							parseExpressionUncachedThen(start, action);
 						}
 					},
-					start,
-					"Capture expression for caching");
+					start);
 			}
 			workUnitDo(
 				new Continuation0()
@@ -7694,8 +7744,7 @@ public final class AvailCompiler
 						}
 					}
 				},
-				start,
-				"Process captured expression");
+				start);
 		}
 	}
 
@@ -7726,7 +7775,7 @@ public final class AvailCompiler
 			clientDataInModuleScope);
 		parseExpressionThen(
 			startWithoutScope,
-			new Con<A_Phrase>("Evaluate expression")
+			new Con<A_Phrase>(continuation.superexpressions)
 			{
 				@Override
 				public void valueNotNull (
@@ -7862,7 +7911,7 @@ public final class AvailCompiler
 		recordExpectationsRelativeTo(start.position);
 		tryIfUnambiguousThen(
 			start,
-			new Con<Con<A_Phrase>>("Detect ambiguity")
+			new Con<Con<A_Phrase>>((PartialSubexpressionList)null)
 			{
 				@Override
 				public void valueNotNull (
@@ -7871,27 +7920,25 @@ public final class AvailCompiler
 				{
 					parseExpressionThen(
 						realStart,
-						new Con<A_Phrase>("End of statement")
+						new Con<A_Phrase>((PartialSubexpressionList)null)
 						{
 							@Override
 							public void valueNotNull (
 								final ParserState afterExpression,
 								final A_Phrase expression)
 							{
-								final ParseNodeKind parseNodeKind =
-									expression.parseNodeKind();
-								if (!parseNodeKind.isSubkindOf(STATEMENT_NODE))
-								{
-									afterExpression.expected(
-										"an outer level statement, not "
-										+ parseNodeKind.name()
-										+ "(" + expression + ")");
-								}
-								else
+								if (expression.parseNodeKindIsUnder(
+									STATEMENT_NODE))
 								{
 									whenFoundStatement.value(
 										afterExpression, expression);
+									return;
 								}
+								afterExpression.expected(
+									new FormattingDescriber(
+										"an outer level statement, not %s (%s)",
+										expression.parseNodeKind(),
+										expression));
 							}
 						});
 				}
@@ -7914,7 +7961,7 @@ public final class AvailCompiler
 		final Con<A_Phrase> continuation)
 	{
 		final Con<A_Phrase> newContinuation = new Con<A_Phrase>(
-			"Optional leading argument send")
+			continuation.superexpressions)
 		{
 			@Override
 			public void valueNotNull (
@@ -7956,21 +8003,9 @@ public final class AvailCompiler
 				public void describeThen (
 					final Continuation1<String> withDescription)
 				{
-					assert withDescription != null;
-					final List<String> causes = new ArrayList<>();
-					ConNullable<A_Phrase> remainder = continuation;
-					while (causes.size() < 10 && remainder != null)
-					{
-						remainder = remainder.addCauseTo(causes);
-					}
 					final StringBuilder builder = new StringBuilder();
-					builder.append(
-						"simple expression with these causes:");
-					for (final String cause : causes)
-					{
-						builder.append("\n\t");
-						builder.append(cause);
-					}
+					builder.append("a simple expression for this reason:");
+					describeOn(continuation.superexpressions, builder);
 					withDescription.value(builder.toString());
 				}
 			});
@@ -8006,7 +8041,6 @@ public final class AvailCompiler
 	 * A helper method to queue a parsing activity for continuing to parse a
 	 * {@linkplain SendNodeDescriptor send phrase}.
 	 *
-	 * @param description
 	 * @param start
 	 * @param bundleTree
 	 * @param firstArgOrNull
@@ -8017,7 +8051,6 @@ public final class AvailCompiler
 	 * @param continuation
 	 */
 	@InnerAccess void eventuallyParseRestOfSendNode (
-		final String description,
 		final ParserState start,
 		final A_BundleTree bundleTree,
 		final @Nullable A_Phrase firstArgOrNull,
@@ -8044,8 +8077,7 @@ public final class AvailCompiler
 						continuation);
 				}
 			},
-			start,
-			description);
+			start);
 	}
 
 	/**
