@@ -44,6 +44,7 @@ Extends
 		"bounded reader test suite",
 		"buffered iterator test suite",
 		"cast test suite",
+		"character test suite",
 		"concurrency test suite",
 		"control structure test suite",
 		"converters test suite",
