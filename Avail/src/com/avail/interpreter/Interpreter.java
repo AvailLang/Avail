@@ -49,6 +49,7 @@ import com.avail.AvailTask;
 import com.avail.AvailThread;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.exceptions.*;
 import com.avail.interpreter.Primitive.Flag;
@@ -1431,11 +1432,18 @@ public final class Interpreter
 			final A_Type expectedType = caller.stackAt(stackp);
 			if (!value.isInstanceOf(expectedType))
 			{
+				final A_Function callee = pointerAt(FixedRegister.FUNCTION);
+				final A_Variable reportedResult =
+					VariableDescriptor.forContentType(Types.ANY.o());
+				reportedResult.setValueNoCheck(value);
 				wipeObjectRegisters();
 				pointerAtPut(CALLER, caller);
 				invokeFunction(
 					runtime.resultDisagreedWithExpectedTypeFunction(),
-					Collections.<A_BasicObject>emptyList(),
+					Arrays.asList(
+						callee,
+						expectedType,
+						reportedResult),
 					true);
 				return;
 			}
@@ -1817,10 +1825,17 @@ public final class Interpreter
 							continuation.stackAt(stackp);
 						if (!result.isInstanceOf(expectedType))
 						{
+							final A_Variable reportedResult =
+								VariableDescriptor.forContentType(
+									Types.ANY.o());
+							reportedResult.setValueNoCheck(result);
 							invokeFunction(
 								runtime
 									.resultDisagreedWithExpectedTypeFunction(),
-								Collections.<A_BasicObject>emptyList(),
+								Arrays.asList(
+									function,
+									expectedType,
+									reportedResult),
 								true);
 							return;
 						}
@@ -2339,84 +2354,6 @@ public final class Interpreter
 		}
 	}
 
-	/**
-	 * Create a list of descriptions of the current stack frames ({@linkplain
-	 * ContinuationDescriptor continuations}).
-	 *
-	 * @return A list of {@linkplain String strings}, starting with the newest
-	 *         frame.
-	 */
-	private List<String> builtinDumpStack ()
-	{
-		final List<A_Continuation> frames = new ArrayList<>(20);
-		final AvailObject currentFunction =
-			pointers[FixedRegister.FUNCTION.ordinal()];
-		if (currentFunction != null
-			&& !currentFunction.equalsNil())
-		{
-			final A_Continuation syntheticFrame =
-				ContinuationDescriptor.createExceptFrame (
-					currentFunction,
-					NilDescriptor.nil(),
-					0,
-					0,
-					integerAt(
-						// Best guess, but the L2Translator is free to put this
-						// flag anywhere.
-						L1InstructionStepper.skipReturnCheckRegister()) != 0,
-					chunk(),
-					offset);
-			frames.add(syntheticFrame);
-		}
-		A_Continuation c = currentContinuation();
-		// Sometimes the CALLER register contains the current continuation and
-		// sometimes it's really the caller.  Compensate with a good heuristic.
-		if (!c.equalsNil() && c.function() == currentFunction)
-		{
-			c = c.caller();
-		}
-		while (!c.equalsNil())
-		{
-			frames.add(c);
-			c = c.caller();
-		}
-		final List<String> strings = new ArrayList<>(frames.size());
-		int line = frames.size();
-		final StringBuilder signatureBuilder = new StringBuilder(1000);
-		for (final A_Continuation frame : frames)
-		{
-			final A_Function function = frame.function();
-			final A_RawFunction code = function.code();
-			final A_Type functionType = code.functionType();
-			final A_Type paramsType = functionType.argsTupleType();
-			for (int i = 1,
-				limit = paramsType.sizeRange().lowerBound().extractInt();
-				i <= limit;
-				i++)
-			{
-				if (i != 1)
-				{
-					signatureBuilder.append(", ");
-				}
-				signatureBuilder.append(paramsType.typeAtIndex(i));
-			}
-			final String entry = String.format(
-				"#%d (^%s)[%s]: %s [%s] (%s:%d)",
-				line--,
-				frame.skipReturnFlag() ? "skip" : "check",
-				code.startingChunk(),
-				code.methodName().asNativeString(),
-				signatureBuilder.toString(),
-				code.module().equalsNil()
-					? "?"
-					: code.module().moduleName().asNativeString(),
-				code.startingLineNumber());
-			strings.add(entry.replace("\n", "\n\t"));
-			signatureBuilder.setLength(0);
-		}
-		return strings;
-	}
-
 	@Override
 	public String toString ()
 	{
@@ -2434,14 +2371,6 @@ public final class Interpreter
 			if (pointers[CALLER.ordinal()] == null)
 			{
 				builder.append(String.format("%n\t«no stack»"));
-			}
-			else
-			{
-//				final List<String> stack = builtinDumpStack();
-//				for (final String frame : stack)
-//				{
-//					builder.append(String.format("%n\t-- %s", frame));
-//				}
 			}
 			builder.append("\n\n");
 		}

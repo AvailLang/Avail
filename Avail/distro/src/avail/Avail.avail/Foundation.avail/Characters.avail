@@ -1201,3 +1201,89 @@ Stable method "titlecase_" is
 Semantic restriction "titlecase_" is recase restriction
 	for elements ∈ natural number
 	using [c : character | titlecase c];
+
+/**
+ * Is {@param "a"}'s code point greater than {@param "b"}'s code point?
+ * 
+ * @method "_>_"
+ * @param "a" "character"
+ *        A character.
+ * @param "b" "character"
+ *        A character.
+ * @returns "boolean"
+ *          {@method "true"} if {@param "a"}'s code point is greater than 
+ *          {@param "b"}'s code point, {@method "false"} otherwise.
+ * @category "Mathematics" "Relations" "Numbers" "Unicode"
+ */
+Stable method "_>_" is
+[
+	a : character,
+	b : character
+|
+	b's code point < a's code point
+] : boolean;
+
+/**
+ * Is {@param "a"}'s code point lesser than {@param "b"}'s code point?
+ * 
+ * @method "_<_"
+ * @param "a" "character"
+ *        A character.
+ * @param "b" "character"
+ *        A character.
+ * @returns "boolean"
+ *          {@method "true"} if {@param "a"}'s code point is lesser than 
+ *          {@param "b"}'s code point, {@method "false"} otherwise.
+ * @category "Mathematics" "Relations" "Numbers" "Unicode"
+ */
+Stable method "_<_" is
+[
+	a : character,
+	b : character
+|
+	a's code point < b's code point
+] : boolean;
+
+/**
+ * Is {@param "a"}'s code point greater than or equal to {@param "b"}'s 
+ * code point?
+ * 
+ * @method "_≥_"
+ * @param "a" "character"
+ *        A character.
+ * @param "b" "character"
+ *        A character.
+ * @returns "boolean"
+ *          {@method "true"} if {@param "a"}'s code point is greater than or 
+ *          equal to {@param"b"}'s code point, {@method "false"} otherwise.
+ * @category "Mathematics" "Relations" "Numbers" "Unicode"
+ */
+Stable method "_≥_" is
+[
+	a : character,
+	b : character
+|
+	b's code point ≤ a's code point
+] : boolean;
+
+/**
+ * Is {@param "a"}'s code point lesser than or equal to {@param "b"}'s 
+ * code point?
+ * 
+ * @method "_≤_"
+ * @param "a" "character"
+ *        A character.
+ * @param "b" "character"
+ *        A character.
+ * @returns "boolean"
+ *          {@method "true"} if {@param "a"}'s code point is lesser than or 
+ *          equal to {@param"b"}'s code point, {@method "false"} otherwise.
+ * @category "Mathematics" "Relations" "Numbers" "Unicode"
+ */
+Stable method "_≤_" is
+[
+	a : character,
+	b : character
+|
+	a's code point ≤ b's code point
+] : boolean;

@@ -49,7 +49,11 @@ Uses
 	"Definers",
 	"Early Conditionals",
 	"Enumeration Support",
-	"Exceptions",
+	"Exceptions" =
+	(
+		-"expected type",
+		…
+	),
 	"Functions",
 	"Literals",
 	"Logic",

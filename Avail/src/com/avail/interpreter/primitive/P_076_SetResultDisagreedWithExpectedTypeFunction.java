@@ -78,7 +78,10 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				FunctionTypeDescriptor.create(
-					TupleDescriptor.empty(),
+					TupleDescriptor.from(
+						FunctionTypeDescriptor.mostGeneralType(),
+						InstanceMetaDescriptor.topMeta(),
+						VariableTypeDescriptor.wrapInnerType(ANY.o())),
 					BottomTypeDescriptor.bottom())),
 			TOP.o());
 	}

@@ -1120,3 +1120,21 @@ Method "_→extended integer" is
 |
 	anExtendedInteger
 ] : extended integer;
+
+/**
+ * Compute and answer an approximation of the natural logarithm of the argument,
+ * i.e., ln {@param "x"}.
+ *
+ * @category "Primitives" "Numbers" "Mathematics"
+ * @method "ln_"
+ * @param "x" "integer"
+ *        An integer.
+ * @returns "double"
+ *    An approximation of ln {@param "x"}.
+ */
+Method "ln_" is
+[
+	x : integer
+|
+	ln (x → double)
+] : double;

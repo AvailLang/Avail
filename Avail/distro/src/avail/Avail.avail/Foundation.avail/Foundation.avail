@@ -39,6 +39,7 @@ Extends
 		"Assert:_",
 		"Assert:_(_)",
 		"Shouldn't happen",
+		"Shouldn't happen(_)",
 		"assertion-failed exception"
 	),
 	"Atoms" =
@@ -1040,8 +1041,10 @@ Extends
 		"map each…,…in|of_§through_",
 		"merge sort_",
 		"merge sort_with_",
+		"merge sort…,…in|of_§by_",
 		"quicksort_",
 		"quicksort_with_",
+		"quicksort…,…in|of_§by_",
 		"relevant`|_`|",
 		"replace all occurrences of_in_with_",
 		"replace the first occurrence of_in_with_",

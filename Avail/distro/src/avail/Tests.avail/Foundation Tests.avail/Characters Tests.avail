@@ -1,5 +1,5 @@
 /*
- * Foundation Tests.avail
+ * Characters Tests.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,27 +30,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Foundation Tests"
+Module "Characters Tests"
 Versions
 	"1.0.0 DEV 2014-04-28"
-Extends
-	"Assertion Tests" = ("assertion test suite"),
-	"Backtracking Tests" = ("backtracking test suite"),
-	"Cast Tests" = ("cast test suite"),
-	"Characters Tests" = ("character test suite"),
- 	"Common" = ("Foundation|foundation test suite"),
-	"Concurrency Tests" = ("concurrency test suite"),
-	"Control Structure Tests" = ("control structure test suite"),
-	"Decompiler Tests" = ("decompiler test suite"),
-	"Exception Tests" = ("exception test suite"),
-	"Function Tests" = ("function test suite"),
-	"Logic Tests" = ("logic test suite"),
-	"Map Tests" = ("map test suite"),
-	"Math Tests" = ("math test suite"),
-	"Message Tests" = ("message test suite"),
-	"Observation Tests" = ("observation test suite"),
-	"Set Tests" = ("set test suite"),
-	"String Tests" = ("string test suite"),
-	"Tuple Tests" = ("tuple test suite"),
-	"Type Tests" = ("type test suite")
+Uses
+	"Common"
+Names
+	"character test suite"
 Body
+
+"character test suite" is a new atom;
+
+New test suite character test suite extends foundation test suite;
+
+Test "lowercase" in character test suite is
+[
+ 	Require: lowercase ¢R = ¢r;
+	Require: ¢d is lowercase;
+];
+
+Test "uppercase" in character test suite is
+[
+	Require: uppercase ¢g = ¢G;
+	Require: ¢F is uppercase;
+];
+
+Test "comparison" in character test suite is
+[
+	Require: ¢g > ¢G;
+	Require: ¢F < ¢d;
+	Require: ¢z ≥ ¢e;
+	Require: ¢L ≤ ¢Q;
+];

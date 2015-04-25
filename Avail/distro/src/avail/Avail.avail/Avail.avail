@@ -36,7 +36,17 @@ Versions
 Extends
 	"Advanced Math",
 	"Data Abstractions",
-	"Foundation",
-	"IO",
+	"Foundation" =
+	(
+		"concatenate_",
+		"concatenate_" → "tuple concatenate_",
+		…
+	),
+	"IO" =
+	(
+		"concatenate_",
+		"concatenate_" → "file names concatenate_",
+		…
+	),
 	"Unit Testing"
 Body

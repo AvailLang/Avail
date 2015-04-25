@@ -55,6 +55,7 @@ Names
 	"Require:_accepts_«(check indices)»?",
 	"a tuple iteration prefix function",
 	"a two-input tuple iteration prefix function",
+	"a two-input tuple prefix function",
 	"all indices of_in_",
 	"all indices of_where_",
 	"all indices of…in_§where_",
@@ -74,8 +75,10 @@ Names
 	"map each…,…in|of_§through_",
 	"merge sort_",
 	"merge sort_with_",
+	"merge sort…,…in|of_§by_",
 	"quicksort_",
 	"quicksort_with_",
+	"quicksort…,…in|of_§by_",
 	"replace all occurrences of_in_with_",
 	"replace the first occurrence of_in_with_",
 	"right fold_through_",
@@ -316,9 +319,10 @@ Public method "a tuple iteration prefix function" is
 ]: [literal phrase ⇒ token, expression phrase ⇒ tuple]→⊤;
 	
 /**
- * Answer a function that computes a prefix function.
+ * Answer a function that computes a prefix function for an input type
+ * of the tuple and the index type.
  * 
- * @method "a tuple iteration prefix function"
+ * @method "a two-input tuple iteration prefix function"
  * @returns "[literal phrase ⇒ token, expression phrase ⇒ tuple]→⊤"
  *          The requested function.
  */
@@ -336,13 +340,38 @@ Public method "a two-input tuple iteration prefix function" is
 ]: [literal phrase ⇒ token, 
     literal phrase ⇒ token,
     expression phrase ⇒ tuple]→⊤;
+	
+/**
+ * Answer a function that computes a prefix function that takes two
+ * inputs, both to be of types of the elements of the tuple.
+ * 
+ * @method "a tuple iteration prefix function"
+ * @returns "[literal phrase ⇒ token, expression phrase ⇒ tuple]→⊤"
+ *          The requested function.
+ */
+Public method "a two-input tuple prefix function" is
+[
+	[
+		firstInputPhrase : literal phrase ⇒ token,
+		secondInputPhrase : literal phrase ⇒ token,
+		aTuple : expression phrase ⇒ tuple
+	|
+		Declare loop variable firstInputPhrase as 
+			aTuple's strengthening function;
+		Declare loop variable secondInputPhrase as 
+			aTuple's strengthening function;
+	]
+]: [literal phrase ⇒ token, 
+    literal phrase ⇒ token,
+    expression phrase ⇒ tuple]→⊤;
 
 /*The following methods, 
  * 	"return type(_,_,_,_)"
  * 	"index return type(_,_,_,_)"
  * evaluate the return types of methods given a tuple input to a block.*/
-Private method "«indexed»?return type(_,_,_,_)" is
+Private method "«two input»?«indexed»?return type(_,_,_,_)" is
 [
+ 	twoInput : boolean,
  	indexed : boolean,
 	aTuple : expression phrase ⇒ tuple,
 	action : block phrase ⇒ []→⊤,
@@ -351,10 +380,15 @@ Private method "«indexed»?return type(_,_,_,_)" is
 |
 	elementType ::= aTuple's strengthening function();
 	aTupleType ::= aTuple's semantic type;
-	blockType ::= if indexed then
+	blockType ::= if twoInput then
 	[
-		indexingType ::= (0 .. ⎡aTupleType⎤+1);
-		[elementType, indexingType]→(action's semantic type's return type)
+		if indexed then
+		[
+			indexingType ::= (0 .. ⎡aTupleType⎤+1);
+			[elementType, indexingType]→(action's semantic type's return type)
+		] else [
+		    [elementType, elementType]→(action's semantic type's return type)
+		]
 	] else
 	[
 		[elementType]→(action's semantic type's return type)
@@ -408,7 +442,7 @@ Public method "tuple body function(_,_)" is
 /**
  * Answer a function that computes a two-input body function.
  * 
- * @method "tuple body function(_,_)"
+ * @method "two-input tuple body function(_,_)"
  * @param "anAtom" "atom" the atom that represents the function that the
  * 		macro builds
  * @param "baseReturnType" "type" the base return type of the method
@@ -416,20 +450,27 @@ Public method "tuple body function(_,_)" is
  *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
  *          The requested function.
  */
-Private method "two-input tuple body function(_,_)" is
+Private method "«indexed»?two-input tuple body function(_,_)" is
 [
+	indexed : boolean,
 	anAtom : atom,
 	baseReturnType : type
 |
 	[
-		elementPhrase : literal phrase ⇒ token,
-		indexPhrase : literal phrase ⇒ token,
+		firstInputPhrase : literal phrase ⇒ token,
+		secondInputPhrase : literal phrase ⇒ token,
 		aTuple : expression phrase ⇒ tuple,
 		action : block phrase ⇒ []→⊤
 	|
 		/* Build the block function */
-		returnType ::= 
-			indexed return type(aTuple, action, baseReturnType, anAtom);
+		returnType ::= if indexed then
+			[
+			 	two input indexed return type(
+					aTuple, action, baseReturnType, anAtom)
+			] else [
+			    two input return type(
+			    	aTuple, action, baseReturnType, anAtom)        
+			];
 		statements ::= action's statements;
 		blockReturnType ::= cast statements
 			into [t : phrase+ | t[|t|]'s semantic type]
@@ -438,13 +479,14 @@ Private method "two-input tuple body function(_,_)" is
 		castToPhrase ::= [s : nonempty string | 
 			cast scope map[s] into [d : argument phrase | d]];
 		
-		elementName ::= elementPhrase's token's lexeme;
-		indexName ::= indexPhrase's token's lexeme;
+		firstInputName ::= firstInputPhrase's token's lexeme;
+		secondInputName ::= secondInputPhrase's token's lexeme;
+				
 		restricted send anAtom with
 		<
 			aTuple,
 			«[
-				<castToPhrase(elementName), castToPhrase(indexName)>
+				<castToPhrase(firstInputName), castToPhrase(secondInputName)>
 			|
 				statements
 			] : blockReturnType»
@@ -499,7 +541,7 @@ Macro "For each…in|of_§do_" is a tuple iteration prefix function,
  * @category "Control Structures" "Loops" "Collections" "Tuples"
  */
 Macro "For each…,…in|of_§do_" is a two-input tuple iteration prefix function,
-	two-input tuple body function($"For each of⁇_do_", ⊤);
+	indexed two-input tuple body function($"For each of⁇_do_", ⊤);
 
 /**
  * Iteratively apply {@param "transformer"} to each consecutive element of 
@@ -644,7 +686,7 @@ Macro "map each…in|of_§through_" is a tuple iteration prefix function,
  */
 Macro "map each…,…in|of_§through_" is 
 	a two-input tuple iteration prefix function,
-	two-input tuple body function($"map_through_",tuple);
+	indexed two-input tuple body function($"map_through_",tuple);
 
 /**
  * Iteratively apply {@param "predicate"} to each consecutive element of 
@@ -800,7 +842,7 @@ Macro "select each…from_§where_" is a tuple iteration prefix function,
  * @category "Loops" "Collections" "Tuples"
  */
 Macro "select each…,…from_§where_" is a two-input tuple iteration prefix function,
-	two-input tuple body function($"filter_by_",tuple);
+	indexed two-input tuple body function($"filter_by_",tuple);
 
 /**
  * Iteratively apply {@param "action"} to each consecutive element of 
@@ -3665,6 +3707,35 @@ Method "quicksort_with_" is
 Seal method "quicksort_with_" at <tuple, [⊥, ⊥]→boolean>;
 
 /**
+ * Construct and answer a sorted variant of {@param "aTuple"} using the
+ * quicksort algorithm and specified comparison function.
+ *
+ * @method "quicksort…,…in|of_§by_"
+ * @category "Tuples" "Transformers" "Sorting"
+ * @param "firstInputPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the first loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "secondInputPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the second loop variable. The generated
+ *        loop variable is given the strongest possible type based on the type
+ *        union of the leading types and default type of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to sort
+ * @param "comparatorBlock" "block phrase ⇒ []→boolean"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        comparison function.
+ * @returns "tuple"
+ *          A sorted variant of {@param "aTuple"}.
+ */
+Public macro "quicksort…,…in|of_§by_" is 
+	a two-input tuple prefix function,
+	two-input tuple body function($"merge sort_with_",tuple);
+
+
+/**
  * Take two sorted tuples and merge them into one sorted tuple based upon the
  * criteria provided in the comparison function.
  *
@@ -3728,9 +3799,9 @@ Private method "merge_with_" is
  * @param "aTuple" "tuple" 
  *        The tuple to sort.
  * @param "comparator" "[⊥, ⊥]→boolean"
- *        A comparison function that accepts two elements of {@param "aTuple"}
- *        and answers {@method "true"} if the first ≤ second and {@method 
- *        "false"} otherwise.
+ *       A comparison function that accepts two elements of {@param "aTuple"}
+ *       and answers {@method "true"} or {@method "false"} depending on the 
+ *       outcome of the block.
  * @returns "tuple"
  *          The sorted tuple.
  * @author "Richard Arriaga"
@@ -3801,6 +3872,35 @@ Public method "merge sort_with_" is
 ]: tuple;
 
 /**
+ * Construct and answer a sorted variant of {@param "aTuple"} using the
+ * merge sort algorithm and specified comparison function.
+ *
+ * @method "merge sort…,…in|of_§by_"
+ * @param "firstInputPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the first loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "secondInputPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the second loop variable. The generated
+ *        loop variable is given the strongest possible type based on the type
+ *        union of the leading types and default type of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to sort
+ * @param "comparatorBlock" "block phrase ⇒ []→boolean"
+ *        A zero-argument {@type "block phrase"} that represents the body of the
+ *        comparison function.
+ * @returns "tuple"
+ *          The sorted tuple.
+ * @author "Richard Arriaga"
+ * @category "Tuples" "Sorting"
+ */
+Public macro "merge sort…,…in|of_§by_" is 
+	a two-input tuple prefix function,
+	two-input tuple body function($"merge sort_with_",tuple);
+
+/**
  * Construct and answer a sorted variant of {@param "aTuple"} of numbers using
  * the merge sort algorithm where n ≤ m.
  *
@@ -3858,7 +3958,7 @@ Method "merge sort_" is
 [
 	aTuple : <number…|2..>
  |
-	merge sort aTuple with [n : number, m : number | n ≤ m]
+	merge sort n, m of aTuple by [n ≤ m]
 ];
 
 /**

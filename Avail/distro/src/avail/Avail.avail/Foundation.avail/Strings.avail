@@ -1111,7 +1111,7 @@ Method "quicksort_" is
 [
 	strings : string*
 |
-	quicksort strings with [a : string, b : string | a ≤ b]
+	quicksort a, b in strings by [a ≤ b]
 ] : string*;
 
 /**
@@ -1126,7 +1126,7 @@ Method "merge sort_" is
 [
 	strings : string*
 |
-	merge sort strings with [a : string, b : string | a ≤ b]
+	merge sort a, b in strings by [a ≤ b]
 ] : string*;
 
 /**

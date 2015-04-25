@@ -1,5 +1,5 @@
-/*
- * Foundation Tests.avail
+/**
+ * P_219_FunctionMessage.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,27 +30,45 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Foundation Tests"
-Versions
-	"1.0.0 DEV 2014-04-28"
-Extends
-	"Assertion Tests" = ("assertion test suite"),
-	"Backtracking Tests" = ("backtracking test suite"),
-	"Cast Tests" = ("cast test suite"),
-	"Characters Tests" = ("character test suite"),
- 	"Common" = ("Foundation|foundation test suite"),
-	"Concurrency Tests" = ("concurrency test suite"),
-	"Control Structure Tests" = ("control structure test suite"),
-	"Decompiler Tests" = ("decompiler test suite"),
-	"Exception Tests" = ("exception test suite"),
-	"Function Tests" = ("function test suite"),
-	"Logic Tests" = ("logic test suite"),
-	"Map Tests" = ("map test suite"),
-	"Math Tests" = ("math test suite"),
-	"Message Tests" = ("message test suite"),
-	"Observation Tests" = ("observation test suite"),
-	"Set Tests" = ("set test suite"),
-	"String Tests" = ("string test suite"),
-	"Tuple Tests" = ("tuple test suite"),
-	"Type Tests" = ("type test suite")
-Body
+package com.avail.interpreter.primitive;
+
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
+
+/**
+ * <strong>Primitive 219</strong>: Answer the {@linkplain A_String message}
+ * associated with the specified {@linkplain A_Function function}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+public final class P_219_FunctionMessage
+extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class. Accessed through reflection.
+	 */
+	public final static Primitive instance =
+		new P_219_FunctionMessage().init(1, CannotFail, CanFold, CanInline);
+
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
+	{
+		assert args.size() == 1;
+		final A_Function func = args.get(0);
+		return interpreter.primitiveSuccess(func.code().methodName());
+	}
+
+	@Override
+	protected A_Type privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				FunctionTypeDescriptor.mostGeneralType()),
+			TupleTypeDescriptor.stringType());
+	}
+}
