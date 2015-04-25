@@ -482,11 +482,8 @@ Public method "unit map“_”" is
 		/* This is an unnamed derived unit. Compose its description from its
 		 * base units.
 		 */
-		sortedAtoms ::= merge sort unitMap's keys→tuple with
+		sortedAtoms ::= merge sort a, b in unitMap's keys→tuple by
 			[
-				a : atom,
-				b : atom
-			|
 				“a” (unit atom) ≤ “b” (unit atom)
 			];
 		expr ::= left fold <""> ++ sortedAtoms through
