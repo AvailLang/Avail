@@ -255,7 +255,7 @@ Test "reject each (macro)" in tuple test suite is
 
 Test "alternative answer via else" in tuple test suite is
 [
-	a ::= <1,2,3,4>;
+	a : tuple := <1,2,3,4>;
 	Require: a[1] else [5] = 1;
 	Require: a[6] else [5] = 5;
 	Require: a[1..2] else [<5>] = <1,2>;
