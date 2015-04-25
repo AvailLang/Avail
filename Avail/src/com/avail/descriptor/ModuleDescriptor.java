@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.ModuleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ModuleDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.AvailRuntime;

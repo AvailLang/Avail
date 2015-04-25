@@ -35,8 +35,6 @@ package com.avail.environment.actions;
 import static com.avail.environment.AvailWorkbench.StreamStyle.*;
 import java.awt.event.*;
 import java.util.EnumSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.StyledDocument;
 import com.avail.annotations.*;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
