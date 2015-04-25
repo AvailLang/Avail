@@ -1,5 +1,5 @@
 /**
- * P_076_SetResultDisagreedWithExpectedTypeFunction.java
+ * P_219_FunctionMessage.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,30 +32,25 @@
 
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 76</strong>: Set the {@linkplain FunctionDescriptor
- * function} to invoke whenever the result produced by a {@linkplain
- * MethodDescriptor method invocation} disagrees with the type decreed by the
- * applicable semantic restrictions at the call site.
+ * <strong>Primitive 219</strong>: Answer the {@linkplain A_String message}
+ * associated with the specified {@linkplain A_Function function}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_076_SetResultDisagreedWithExpectedTypeFunction
+public final class P_219_FunctionMessage
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_076_SetResultDisagreedWithExpectedTypeFunction().init(
-			1, CannotFail, HasSideEffect);
+		new P_219_FunctionMessage().init(1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
@@ -64,12 +59,8 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_Function function = args.get(0);
-		function.code().setMethodName(
-			StringDescriptor.from("«result disagreed with expected type»"));
-		AvailRuntime.current().setResultDisagreedWithExpectedTypeFunction(
-			function);
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		final A_Function func = args.get(0);
+		return interpreter.primitiveSuccess(func.code().methodName());
 	}
 
 	@Override
@@ -77,12 +68,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.from(
-						FunctionTypeDescriptor.mostGeneralType(),
-						InstanceMetaDescriptor.topMeta(),
-						VariableTypeDescriptor.wrapInnerType(ANY.o())),
-					BottomTypeDescriptor.bottom())),
-			TOP.o());
+				FunctionTypeDescriptor.mostGeneralType()),
+			TupleTypeDescriptor.stringType());
 	}
 }

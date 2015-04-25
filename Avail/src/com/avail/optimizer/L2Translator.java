@@ -2224,12 +2224,17 @@ public class L2Translator
 				// failure function.
 				final L2ObjectRegister reifiedRegister = newObjectRegister();
 				reify(slots, reifiedRegister, unreachable);
+				final L2ObjectRegister expectedTypeRegister =
+					newObjectRegister();
+				moveConstant(expectedType, expectedTypeRegister);
 				addInstruction(
 					L2_INVOKE.instance,
 					new L2ReadPointerOperand(reifiedRegister),
 					new L2ReadPointerOperand(invalidResultFunction),
-					new L2ReadVectorOperand(createVector(
-						Collections.<L2ObjectRegister>emptyList())),
+					new L2ReadVectorOperand(createVector(Arrays.asList(
+						fixed(FUNCTION),
+						expectedTypeRegister,
+						resultRegister))),
 					new L2ImmediateOperand(1));
 				unreachableCode(unreachable);
 				// No need to generate primitive failure handling code, since

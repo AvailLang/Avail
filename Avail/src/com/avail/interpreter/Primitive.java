@@ -55,6 +55,7 @@ import com.avail.interpreter.levelTwo.operation.L2_GET_INVALID_MESSAGE_RESULT_FU
 import com.avail.interpreter.levelTwo.operation.L2_INVOKE;
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK;
+import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.interpreter.primitive.*;
@@ -963,12 +964,18 @@ implements IntegerEnumSlotDescriptionEnum
 					translator.continuationSlotsList(translator.numSlots()),
 					reifiedRegister,
 					unreachableLabel);
+				final L2ObjectRegister expectedTypeRegister =
+					translator.newObjectRegister();
+				translator.moveConstant(expectedType, expectedTypeRegister);
 				translator.addInstruction(
 					L2_INVOKE.instance,
 					new L2ReadPointerOperand(reifiedRegister),
 					new L2ReadPointerOperand(invalidResultFunction),
 					new L2ReadVectorOperand(translator.createVector(
-						Collections.<L2ObjectRegister>emptyList())),
+						Arrays.asList(
+							translator.fixed(FixedRegister.FUNCTION),
+							expectedTypeRegister,
+							resultRegister))),
 					new L2ImmediateOperand(1));
 				translator.unreachableCode(unreachableLabel);
 				translator.addLabel(successLabel);
