@@ -131,7 +131,7 @@ Private method "Assert:__" is
  *        An {@type "expression phrase" expression} that produces an error
  *        message. It is only evaluated if {@param "predicate"} is {@method
  *        "false"}.
- * @returns "send phrase ⇒ ⊥"
+ * @returns "send phrase ⇒ ⊤"
  * @category "Assertions"
  */
 Public macro "Assert:_(_)" is
