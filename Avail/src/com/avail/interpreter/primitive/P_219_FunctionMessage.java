@@ -1,5 +1,5 @@
-/*
- * Avail.avail
+/**
+ * P_219_FunctionMessage.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,23 +30,45 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Avail"
-Versions
-	"1.0.0 DEV 2014-04-28"
-Extends
-	"Advanced Math",
-	"Data Abstractions",
-	"Foundation" =
-	(
-		"concatenate_",
-		"concatenate_" → "tuple concatenate_",
-		…
-	),
-	"IO" =
-	(
-		"concatenate_",
-		"concatenate_" → "file names concatenate_",
-		…
-	),
-	"Unit Testing"
-Body
+package com.avail.interpreter.primitive;
+
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
+
+/**
+ * <strong>Primitive 219</strong>: Answer the {@linkplain A_String message}
+ * associated with the specified {@linkplain A_Function function}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+public final class P_219_FunctionMessage
+extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class. Accessed through reflection.
+	 */
+	public final static Primitive instance =
+		new P_219_FunctionMessage().init(1, CannotFail, CanFold, CanInline);
+
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
+	{
+		assert args.size() == 1;
+		final A_Function func = args.get(0);
+		return interpreter.primitiveSuccess(func.code().methodName());
+	}
+
+	@Override
+	protected A_Type privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				FunctionTypeDescriptor.mostGeneralType()),
+			TupleTypeDescriptor.stringType());
+	}
+}

@@ -1114,7 +1114,12 @@ public final class AvailRuntime
 		final A_Function function = FunctionDescriptor.newCrashFunction(
 			TupleDescriptor.empty());
 		unassignedVariableReadFunction = function;
-		resultDisagreedWithExpectedTypeFunction = function;
+		resultDisagreedWithExpectedTypeFunction =
+			FunctionDescriptor.newCrashFunction(
+				TupleDescriptor.from(
+					FunctionTypeDescriptor.mostGeneralType(),
+					InstanceMetaDescriptor.topMeta(),
+					VariableTypeDescriptor.wrapInnerType(ANY.o())));
 		implicitObserveFunction = FunctionDescriptor.newCrashFunction(
 			TupleDescriptor.from(
 				FunctionTypeDescriptor.mostGeneralType(),

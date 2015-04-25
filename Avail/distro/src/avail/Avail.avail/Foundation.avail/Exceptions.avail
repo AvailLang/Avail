@@ -747,10 +747,10 @@ Private method "System exception_(_)extends_" is
 			error name : exceptionName's type;
 	Export exceptionName as a new name;
 	site ::= cast method definition of atom for exceptionName for <>
-		into [ t : method definition | t ];
+		into [t : method definition | t];
 	implementation ::= cast site's function into [t : []→object meta | t];
 	exceptionType ::= cast implementation()
-		into  [ t : system exception's type | t ];
+		into  [t : system exception's type | t];
 	exceptionsByCode := eject exceptionsByCode + code→exceptionType;
 ];
 
@@ -1372,19 +1372,14 @@ Semantic restriction "Ensure:all error codes have corresponding exceptions" is
 [
 	missingSystemExceptions ::= reject each errorCode from VM error codes 
 		where [errorCode ∈ exceptionsByCode];
-	
 	missingExceptionClasses ::= 
 		reject each errorCode → errorName from error codes 
 			where [errorCode ∈ exceptionsByCode];
-	
 	problem : string := "exception classes to be defined for the following";
 	If |missingSystemExceptions| ≠ 0 then
 	[
 		problem ++= " VM exceptions: " ++ “missingSystemExceptions”;
-		If |missingExceptionClasses| ≠ 0 then
-		[
-			problem ++= " and";
-		];
+		If |missingExceptionClasses| ≠ 0 then [problem ++= " and";];
 	];
 	If |missingExceptionClasses| ≠ 0 then
 	[
@@ -1457,7 +1452,14 @@ Stable method "“_”" is
 [
 	e : descriptive exception
 |
-	(a|an) “e's type” ++ " (" ++ e's error message ++ ")"
+	format
+		"‘①’
+		\|(
+		\|\t‘②’
+		\|)"
+	with
+		(a|an) “e's type”,
+		e's error message
 ];
 
 /**
@@ -1537,7 +1539,10 @@ Method "“_”(stack summary)" is
 [
 	e : descriptive exception
 |
-	"(" ++ e's error message ++ ")\n" ++ “(e :: exception)” (stack summary)
+	"(\n\t"
+	++ e's error message
+	++ "\n)\n"
+	++ “(e :: exception)” (stack summary)
 ];
 
 /**
@@ -1584,7 +1589,9 @@ Method "“_”(frames_of stack summary«,⁇renumbered starting at_»)" is
 	range : [1..∞)'s type,
 	start : natural number?
 |
-	"(" ++ e's error message ++ ")\n"
+	"(\n\t"
+	++ e's error message
+	++ "\n)\n"
 	++ “(e :: exception)” (frames range of stack summary,
 		renumbered starting at start[1] else [1])
 ];
@@ -1699,19 +1706,26 @@ Private method "unassigned variable read function:=_" is
 unassigned variable read function :=
 	[Raise a cannot-read-unassigned-variable exception];
 
+"bad message" is a new field atom;
+"expected type" is a new field atom;
+"actual value" is a new field atom;
+
 /**
  * Set the function that should be invoked whenever a method send produces a
  * result whose type disagrees with the expected type as determined at compile
  * time by applicable semantic restrictions.
  *
  * @method "unexpected result function:=_"
- * @param "aFunction" "[]→⊥"
+ * @param "aFunction" "[function, type, any]→⊥"
+ *        A {@type "function"} that accepts the errant {@type "function"},
+ *        the {@type "type" expected type}, and a {@type "variable"} containing
+ *        the {@type "any" actual value}, respectively.
  * @returns "⊤"
  * @category "Bootstrap" "Primitives" "Exceptions" "Methods"
  */
 Private method "unexpected result function:=_" is
 [
-	aFunction : []→⊥
+	aFunction : [function, type, ↑any]→⊥
 |
 	Primitive 76;
 ] : ⊤;
@@ -1721,7 +1735,32 @@ Private method "unexpected result function:=_" is
  * comile time by applicable semantic restrictions.
  */
 unexpected result function :=
-	[Raise a result-disagreed-with-expected-type exception];
+	[
+		badMessage : function,
+		expectedType : type,
+		actualValue : ↑any
+	|
+		exceptionType ::=
+			descriptive result-disagreed-with-expected-type exception;
+		message ::= badMessage's message;
+		reportedValue ::=
+			if actualValue is assigned then [↓actualValue]
+			else ["«nil»"];
+		e ::= an exceptionType with
+			error message ::=
+				format
+					"message:  ‘①’
+					\|\texpected value:  “②”
+					\|\tactual value:  “③”"
+				with
+					message,
+					expectedType,
+					reportedValue,
+			bad message ::= message,
+			expected type ::= expectedType,
+			actual value ::= reportedValue;
+		Raise e
+	];
 
 /**
  * Set the function that should be invoked whenever a message send encounters
@@ -1753,10 +1792,6 @@ Private method "invalid method send function:=_" is
 
 "looked up method" is a new atom;
 "looked up arguments" is a new atom;
-Class "method lookup exception" extends descriptive exception with fields
-	looked up method : method,
-	looked up arguments : tuple;
-
 
 /* Raise the appropriate exception whenever a message send fails dynamically. */
 invalid method send function :=
@@ -1770,14 +1805,18 @@ invalid method send function :=
 		theMethod : method,
 		arguments : tuple
 	|
-		exceptionType ::= exceptionsByCode[code] ∩ method lookup exception;
+		exceptionType ::= exceptionsByCode[code];
 		name ::= exceptionType's error name's instance;
 		e ::= an exceptionType with
 			error code ::= code,
 			error name ::= name,
 			error message ::=
-				format "“①”\n\tmethod=“②”\n\targuments=“③”" with
-					name, theMethod, arguments,
+				format
+					"method:  “①”
+					\|\targuments:  “②”"
+				with
+					theMethod,
+					arguments,
 			looked up method ::= theMethod,
 			looked up arguments ::= arguments;
 		Raise e
@@ -1825,12 +1864,10 @@ noUnhandledExceptionHandler :=
 				with m's name;
 		]
 		intercept [e : loading-is-over exception |];
-		msg := eject msg ++ "unhandled exception: ";
-		msg := eject msg ++
-			cast unhandled into [e : descriptive exception | e's error message]
-			else [""];
+		msg := eject msg ++ "Unhandled exception: ";
+		msg := eject msg ++ unhandled's type's names→tuple[1];
+		msg := eject msg ++ "\n\nCausal trace follows:\n";
 		msg := eject msg
-			++ "\n"
 			++ “unhandled” (frames [1..∞) of stack summary, cascaded)
 			++ "\nThe current fiber will be terminated.\n";
 		/* If the current fiber was launched in order to apply a semantic

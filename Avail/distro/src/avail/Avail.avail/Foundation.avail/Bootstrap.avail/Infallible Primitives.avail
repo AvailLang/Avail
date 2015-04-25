@@ -92,6 +92,7 @@ Uses
 		"_'s⁇literals",
 		"_'s⁇lookup type",
 		"_'s⁇maximum stack depth",
+		"_'s⁇message",
 		"_'s⁇method",
 		"_'s⁇name",
 		"_'s⁇name:=_",
@@ -2129,6 +2130,23 @@ Primitive "_'s⁇function" is
 |
 	Primitive 217;
 ] : function;
+
+/**
+ * Answer the message associated with the {@type "function"}.
+ *
+ * @category "Primitives"
+ * @method "_'s⁇message"
+ * @param "aFunction" "function"
+ *        A {@type "function"}.
+ * @returns "string"
+ *    The name of the message associated with {@param "_'s⁇message"}.
+ */
+Primitive "_'s⁇message" is
+[
+	aFunction : function
+|
+	Primitive 219;
+] : string;
 
 /**
  * Answer the atom that uniquely identifies the specified message bundle.
