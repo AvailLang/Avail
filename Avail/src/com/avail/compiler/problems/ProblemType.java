@@ -155,6 +155,24 @@ public enum ProblemType
 			assert problem.type == this;
 			handler.handleInternal(problem, decider);
 		}
+	},
+
+	/**
+	 * An external {@link Problem} occurred.  This indicates a failure in
+	 * something outside the control of the virtual machine, for example a disk
+	 * read failure.
+	 */
+	EXTERNAL
+	{
+		@Override
+		void report (
+			final Problem problem,
+			final ProblemHandler handler,
+			final Continuation1<Boolean> decider)
+		{
+			assert problem.type == this;
+			handler.handleExternal(problem, decider);
+		}
 	};
 
 	/**

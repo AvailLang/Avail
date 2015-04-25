@@ -36,6 +36,7 @@ import static java.lang.Math.*;
 import static java.lang.System.arraycopy;
 import static javax.swing.SwingUtilities.*;
 import static javax.swing.JScrollPane.*;
+import static com.avail.environment.AvailWorkbench.StreamStyle.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -88,21 +89,6 @@ extends JFrame
 	/** Determine at startup whether we should show developer commands. */
 	public static final boolean showDeveloperTools =
 		"true".equalsIgnoreCase(System.getProperty("availDeveloper"));
-
-	/** The {@linkplain Style style} to use for standard output. */
-	public static final String outputStyleName = "output";
-
-	/** The {@linkplain Style style} to use for standard error. */
-	public static final String errorStyleName = "error";
-
-	/** The {@linkplain Style style} to use for standard input. */
-	public static final String inputStyleName = "input";
-
-	/** The {@linkplain Style style} to use for notifications. */
-	public static final String infoStyleName = "info";
-
-	/** The {@linkplain Style style} to use for user-supplied commands. */
-	public static final String commandStyleName = "command";
 
 	/**
 	 * The numeric mask for the modifier key suitable for the current platform.
@@ -201,37 +187,30 @@ extends JFrame
 		 */
 		protected void reportDone ()
 		{
-			final StyledDocument doc = workbench.transcript.getStyledDocument();
 			final long durationMillis = stopTimeMillis - startTimeMillis;
 			final String status;
-			if (workbench.availBuilder.shouldStopBuild)
+			final Throwable t = terminator;
+			if (t != null)
 			{
-				status = "Canceled";
+				status = "Aborted ("
+					+ t.getClass().getSimpleName()
+					+ ")";
 			}
-			else if (terminator != null)
+			else if (workbench.availBuilder.shouldStopBuild())
 			{
-				status = "Aborted";
+				status = workbench.availBuilder.stopBuildReason();
 			}
 			else
 			{
 				status = "Done";
 			}
-			try
-			{
-				doc.insertString(
-					doc.getLength(),
-					String.format(
-						"%s (%d.%03ds).%n",
-						status,
-						durationMillis / 1000,
-						durationMillis % 1000),
-					doc.getStyle(infoStyleName));
-			}
-			catch (final BadLocationException e)
-			{
-				// Shouldn't happen.
-				assert false;
-			}
+			workbench.writeText(
+				String.format(
+					"%s (%d.%03ds).%n",
+					status,
+					durationMillis / 1000,
+					durationMillis % 1000),
+				INFO);
 		}
 
 		@Override
@@ -288,20 +267,8 @@ extends JFrame
 	 * to either output stream, and to transfer from the queue to the output
 	 * transcript (a {@link StyledDocument}).
 	 */
-	@InnerAccess Deque<Pair<Boolean, StringBuilder>> updateQueue =
+	@InnerAccess Deque<Pair<StreamStyle, StringBuilder>> updateQueue =
 		new ArrayDeque<>();
-
-	/**
-	 * The {@link Style} with which to show error output.  Lazily
-	 * initialized.
-	 */
-	private @Nullable Style errorStyle = null;
-
-	/**
-	 * The {@link Style} with which to show regular output.  Lazily
-	 * initialized.
-	 */
-	private @Nullable Style outputStyle = null;
 
 	/**
 	 * The {@link StyledDocument} into which to write both error and regular
@@ -327,32 +294,6 @@ extends JFrame
 	}
 
 	/**
-	 * Answer the style to use, either the error style if isErrorStream is true,
-	 * otherwise the regular output style.
-	 *
-	 * @param isErrorStream Whether to get the error style.
-	 * @return The requested style.
-	 */
-	@InnerAccess Style style (final boolean isErrorStream)
-	{
-		if (isErrorStream)
-		{
-			Style e = errorStyle;
-			if (e == null)
-			{
-				errorStyle = e = document().getStyle(errorStyleName);
-			}
-			return e;
-		}
-		Style o = outputStyle;
-		if (o == null)
-		{
-			outputStyle = o = document().getStyle(outputStyleName);
-		}
-		return o;
-	}
-
-	/**
 	 * Update the {@linkplain #transcript} by appending the (non-empty) queued
 	 * text to it.  Only output what was already queued by the time the UI
 	 * runnable starts; if additional output is detected afterward, another UI
@@ -364,32 +305,33 @@ extends JFrame
 	{
 		assert Thread.holdsLock(updateQueue);
 		assert updatingTranscript;
+		assert !updateQueue.isEmpty();
 		invokeLater(new Runnable()
 		{
 			@Override
 			public void run ()
 			{
-				final List<Pair<Boolean, StringBuilder>> allPairs;
+				final List<Pair<StreamStyle, StringBuilder>> allPairs;
 				synchronized (updateQueue)
 				{
-					allPairs = new ArrayList<Pair<Boolean, StringBuilder>>(
+					allPairs = new ArrayList<Pair<StreamStyle, StringBuilder>>(
 						updateQueue);
 					updateQueue.clear();
 				}
+				assert !allPairs.isEmpty();
 				final StyledDocument doc = document();
-				for (final Pair<Boolean, StringBuilder> pair : allPairs)
+				for (final Pair<StreamStyle, StringBuilder> pair : allPairs)
 				{
 					try
 					{
 						doc.insertString(
 							doc.getLength(),
 							pair.second().toString(),
-							style(pair.first()));
+							pair.first().styleIn(doc));
 					}
 					catch (final BadLocationException e)
 					{
-						// Shouldn't happen.
-						assert false;
+						// Just ignore the failed write.
 					}
 				}
 				final JScrollBar verticalScrollBar =
@@ -413,6 +355,69 @@ extends JFrame
 		});
 	}
 
+	/** An abstraction of the styles of streams used by the workbench. */
+	public enum StreamStyle
+	{
+		/** The stream style used to echo user input. */
+		IN_ECHO("input", new Color(32, 144, 32)),
+
+		/** The stream style used to display normal output. */
+		OUT("output", Color.BLACK),
+
+		/** The stream style used to display error output. */
+		ERR("error", Color.RED),
+
+		/** The stream style used to display informational text. */
+		INFO("info", Color.BLUE),
+
+		/** The stream style used to echo commands. */
+		COMMAND("command", Color.MAGENTA);
+
+		/** The name of this style. */
+		final String styleName;
+
+		/** The foreground color for this style. */
+		final Color foregroundColor;
+
+		/**
+		 * Construct a new {@link StreamStyle}.
+		 *
+		 * @param styleName The name of this style.
+		 * @param foregroundColor The color of foreground text in this style.
+		 */
+		StreamStyle (final String styleName, final Color foregroundColor)
+		{
+			this.styleName = styleName;
+			this.foregroundColor = foregroundColor;
+		}
+
+		/**
+		 * Create my corresponding {@link Style} in the {@link StyledDocument}.
+		 *
+		 * @param doc The document in which to define this style.
+		 */
+		void defineStyleIn (final StyledDocument doc)
+		{
+			final Style defaultStyle =
+				StyleContext.getDefaultStyleContext().getStyle(
+					StyleContext.DEFAULT_STYLE);
+			final Style style = doc.addStyle(styleName, defaultStyle);
+			StyleConstants.setForeground(style, foregroundColor);
+		}
+
+		/**
+		 * Extract this style from the given {@link StyledDocument document}.
+		 * Look up my {@link #styleName}.
+		 *
+		 * @param doc The document.
+		 * @return The {@link Style}.
+		 */
+		public Style styleIn (final StyledDocument doc)
+		{
+			return doc.getStyle(styleName);
+		}
+	}
+
 	/**
 	 * {@linkplain BuildOutputStream} intercepts writes and updates the UI's
 	 * {@linkplain #transcript}.
@@ -421,13 +426,13 @@ extends JFrame
 	extends ByteArrayOutputStream
 	{
 		/**
-		 * Whether this is the error output stream.  If false, it's the regular
-		 * output stream.
+		 * What {@link StreamStyle style} to render this stream as.
 		 */
-		final boolean isErrorStream;
+		final StreamStyle streamStyle;
 
 		/**
-		 *
+		 * Transfer any data in my buffer into the updateQueue, starting up a UI
+		 * task to transfer them to the document as needed.
 		 */
 		private void queueForTranscript ()
 		{
@@ -448,27 +453,7 @@ extends JFrame
 				return;
 			}
 			reset();
-			synchronized (updateQueue)
-			{
-				final Pair<Boolean, StringBuilder> entry;
-				if (!updateQueue.isEmpty()
-					&& updateQueue.peekLast().first() == isErrorStream)
-				{
-					entry = updateQueue.peekLast();
-				}
-				else
-				{
-					entry = new Pair<>(isErrorStream, new StringBuilder());
-					updateQueue.addLast(entry);
-				}
-				entry.second().append(text);
-				if (!updatingTranscript)
-				{
-					// The updating Runnable will deal with it afterward.
-					updatingTranscript = true;
-					updateTranscript();
-				}
-			}
+			writeText(text, streamStyle);
 		}
 
 		@Override
@@ -499,13 +484,13 @@ extends JFrame
 		/**
 		 * Construct a new {@link BuildOutputStream}.
 		 *
-		 * @param isErrorStream
-		 *        Is this an error stream?
+		 * @param streamStyle
+		 *        What {@link StreamStyle} should this stream render with?
 		 */
-		public BuildOutputStream (final boolean isErrorStream)
+		public BuildOutputStream (final StreamStyle streamStyle)
 		{
 			super(1);
-			this.isErrorStream = isErrorStream;
+			this.streamStyle = streamStyle;
 		}
 	}
 
@@ -551,26 +536,15 @@ extends JFrame
 			}
 			arraycopy(bytes, 0, buf, count, bytes.length);
 			count += bytes.length;
-			try
-			{
-				doc.insertString(
-					doc.getLength(),
-					text,
-					doc.getStyle(inputStyleName));
-			}
-			catch (final BadLocationException e)
-			{
-				// Should never happen.
-				assert false;
-			}
+			writeText(text, IN_ECHO);
 			inputField.setText("");
 			notifyAll();
 		}
 
 		/**
 		 * The specified command string was just entered.  Present it in the
-		 * {@link #commandStyleName}.  Force a leading new line if necessary to
-		 * keep the text area from looking stupid.  Always end with a new line.
+		 * {@link StreamStyle#COMMAND} style.  Force an extra leading new line
+		 * to keep the text area from looking stupid.  Also end with a new line.
 		 * The passed command should not itself have a new line included.
 		 *
 		 * @param commandText
@@ -580,24 +554,8 @@ extends JFrame
 		public synchronized void feedbackForCommand (
 			final String commandText)
 		{
-			try
-			{
-				String textToInsert = commandText + "\n";
-				final int length = doc.getLength();
-				if (length > 0 && !doc.getText(length - 1, 1).equals("\n"))
-				{
-					textToInsert = "\n" + textToInsert;
-				}
-				doc.insertString(
-					doc.getLength(),
-					textToInsert,
-					doc.getStyle(commandStyleName));
-			}
-			catch (final BadLocationException e)
-			{
-				// Should never happen.
-				assert false;
-			}
+			final String textToInsert = "\n" + commandText + "\n";
+			writeText(textToInsert, COMMAND);
 		}
 
 		@Override
@@ -1328,11 +1286,11 @@ extends JFrame
 		try
 		{
 			outputStream = new PrintStream(
-				new BuildOutputStream(false),
+				new BuildOutputStream(OUT),
 				false,
 				StandardCharsets.UTF_8.name());
 			errorStream = new PrintStream(
-				new BuildOutputStream(true),
+				new BuildOutputStream(ERR),
 				false,
 				StandardCharsets.UTF_8.name());
 		}
@@ -1605,6 +1563,39 @@ extends JFrame
 	}
 
 	/**
+	 * Write text to the transcript with the given {@link StreamStyle}.
+	 *
+	 * @param text The text to write.
+	 * @param streamStyle The style to write it in.
+	 */
+	public void writeText (
+		final String text,
+		final StreamStyle streamStyle)
+	{
+		synchronized (updateQueue)
+		{
+			final Pair<StreamStyle, StringBuilder> entry;
+			if (!updateQueue.isEmpty()
+				&& updateQueue.peekLast().first() == streamStyle)
+			{
+				entry = updateQueue.peekLast();
+			}
+			else
+			{
+				entry = new Pair<>(streamStyle, new StringBuilder());
+				updateQueue.addLast(entry);
+			}
+			entry.second().append(text);
+			if (!updatingTranscript)
+			{
+				// The updating Runnable will deal with it afterward.
+				updatingTranscript = true;
+				updateTranscript();
+			}
+		}
+	}
+
+	/**
 	 * The {@link DefaultTreeCellRenderer} that knows how to render tree nodes
 	 * for my {@link #moduleTree} and my {@link #entryPointsTree}.
 	 */
@@ -1874,8 +1865,7 @@ extends JFrame
 
 		// Create the build progress bar.
 		buildProgress = new JProgressBar(0, 100);
-		buildProgress.setToolTipText(
-			"Progress indicator for the build.");
+		buildProgress.setToolTipText("Progress indicator for the build.");
 		buildProgress.setDoubleBuffered(true);
 		buildProgress.setEnabled(false);
 		buildProgress.setFocusable(false);
@@ -1957,18 +1947,10 @@ extends JFrame
 				StyleContext.DEFAULT_STYLE);
 		defaultStyle.addAttributes(attributes);
 		StyleConstants.setFontFamily(defaultStyle, "Monospaced");
-		StyleConstants.setForeground(
-			doc.addStyle(outputStyleName, defaultStyle),
-			Color.BLACK);
-		StyleConstants.setForeground(
-			doc.addStyle(errorStyleName, defaultStyle),
-			Color.RED);
-		final Style inputStyle = doc.addStyle(inputStyleName, defaultStyle);
-		StyleConstants.setForeground(inputStyle, new Color(32, 144, 32));
-		final Style infoStyle = doc.addStyle(infoStyleName, defaultStyle);
-		StyleConstants.setForeground(infoStyle, Color.BLUE);
-		final Style commandStyle = doc.addStyle(commandStyleName, defaultStyle);
-		StyleConstants.setForeground(commandStyle, Color.MAGENTA);
+		for (final StreamStyle style : StreamStyle.values())
+		{
+			style.defineStyleIn(doc);
+		}
 
 		// Redirect the standard streams.
 		redirectStandardStreams();

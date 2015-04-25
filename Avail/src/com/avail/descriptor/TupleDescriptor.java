@@ -719,11 +719,7 @@ extends Descriptor
 		// nybble from it. Fail if it's not a nybble. Obviously overridden for
 		// speed in NybbleTupleDescriptor.
 		final int nyb = object.tupleIntAt(index);
-		if (!(nyb >= 0 && nyb <= 15))
-		{
-			error("nybble is out of range", object);
-			return 0;
-		}
+		assert (nyb & ~15) == 0;
 		return (byte) nyb;
 	}
 

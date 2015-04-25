@@ -32,9 +32,8 @@
 
 package com.avail.environment.actions;
 
+import static com.avail.environment.AvailWorkbench.StreamStyle.*;
 import java.awt.event.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.StyledDocument;
 import com.avail.annotations.*;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
@@ -55,18 +54,7 @@ extends AbstractWorkbenchAction
 		{
 			report.clear();
 		}
-		final StyledDocument doc = workbench.transcript.getStyledDocument();
-		try
-		{
-			doc.insertString(
-				doc.getLength(),
-				"Statistics cleared.\n",
-				doc.getStyle(AvailWorkbench.infoStyleName));
-		}
-		catch (final BadLocationException e)
-		{
-			assert false : "This never happens.";
-		}
+		workbench.writeText("Statistics cleared.\n", INFO);
 	}
 
 	/**

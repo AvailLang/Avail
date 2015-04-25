@@ -458,7 +458,7 @@ public final class AvailCompiler
 		 * The {@linkplain StringDescriptor names} defined and exported by the
 		 * {@linkplain ModuleDescriptor module} undergoing compilation.
 		 */
-		public final List<A_String> exportedNames = new ArrayList<>();
+		public final Set<A_String> exportedNames = new LinkedHashSet<>();
 
 		/**
 		 * The {@linkplain StringDescriptor names} of {@linkplain
@@ -516,7 +516,8 @@ public final class AvailCompiler
 				StringDescriptor.from(moduleName.qualifiedName()));
 			serializer.serialize(TupleDescriptor.fromList(versions));
 			serializer.serialize(tuplesForSerializingModuleImports());
-			serializer.serialize(TupleDescriptor.fromList(exportedNames));
+			serializer.serialize(TupleDescriptor.fromList(
+				new ArrayList<>(exportedNames)));
 			serializer.serialize(TupleDescriptor.fromList(entryPoints));
 			serializer.serialize(TupleDescriptor.fromList(pragmas));
 		}
@@ -2045,7 +2046,7 @@ public final class AvailCompiler
 	 */
 	private static @Nullable ParserState parseStringLiterals (
 		final ParserState start,
-		final List<A_String> strings)
+		final Collection<A_String> strings)
 	{
 		assert strings.isEmpty();
 
@@ -2058,7 +2059,14 @@ public final class AvailCompiler
 		while (true)
 		{
 			// We just read a string literal.
-			strings.add(token.literal());
+			final A_String string = token.literal();
+			if (strings.contains(string))
+			{
+				state.expected("a distinct name, not another occurrence of "
+					+ string);
+				return null;
+			}
+			strings.add(string);
 			if (!state.peekToken(COMMA))
 			{
 				return state;
@@ -2565,7 +2573,7 @@ public final class AvailCompiler
 				final Problem problem = new Problem(
 					resolvedName,
 					TokenDescriptor.createSyntheticStart(),
-					ProblemType.PARSE,
+					ProblemType.EXTERNAL,
 					"Unable to read source module \"{0}\": {1}\n{2}",
 					resolvedName,
 					e.getLocalizedMessage(),
@@ -2994,11 +3002,22 @@ public final class AvailCompiler
 									"%n>>>\t\t%s",
 									message.replace("\n", "\n>>>\t\t"));
 							}
-							continueReport.value().value();
+							// Avoid using direct recursion to keep the stack
+							// from getting too deep.
+							runtime.execute(new AvailTask(
+								FiberDescriptor.compilerPriority)
+							{
+								@Override
+								public void value ()
+								{
+									continueReport.value().value();
+								}
+							});
 						}
 					});
 			}
 		};
+		// Initiate all the grouped error printing.
 		continueReport.value().value();
 	}
 
@@ -7632,6 +7651,10 @@ public final class AvailCompiler
 			{
 				state = parseStringLiterals(
 					state, moduleHeader().exportedNames);
+				if (state == null)
+				{
+					return null;
+				}
 			}
 			// ON ENTRIES, record the names.
 			else if (lexeme.equals(ENTRIES.lexeme()))
@@ -7705,7 +7728,7 @@ public final class AvailCompiler
 							handleProblem(new Problem(
 								moduleName(),
 								afterExpr.peekToken(),
-								PARSE,
+								INTERNAL,
 								"Duplicate expressions were parsed at the same "
 									+ "position (line {0}): {1}",
 								start.peekToken().lineNumber(),

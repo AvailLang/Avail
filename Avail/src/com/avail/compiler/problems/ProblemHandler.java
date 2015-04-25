@@ -168,6 +168,26 @@ public abstract class ProblemHandler
 	}
 
 	/**
+	 * An external {@link Problem} occurred.  This indicates a failure in
+	 * something outside the control of the virtual machine, for example a disk
+	 * read failure.
+	 *
+	 * @param problem
+	 *        The problem whose type is {@link ProblemType#EXTERNAL}.
+	 * @param decider
+	 *        How to {@linkplain Problem#continueCompilation() continue} or
+	 *        {@linkplain Problem#abortCompilation() abort} compilation.
+	 *        Accepts a {@linkplain Boolean boolean} that is {@code true} iff
+	 *        compilation should continue.
+	 */
+	protected void handleExternal (
+		final Problem problem,
+		final Continuation1<Boolean> decider)
+	{
+		handleGeneric(problem, decider);
+	}
+
+	/**
 	 * One of the {@link ProblemType}-specific handler methods was invoked, but
 	 * (1) it was not specifically overridden in the subclass, and (2) this
 	 * method was not specifically overridden in the subclass.  Always fail in

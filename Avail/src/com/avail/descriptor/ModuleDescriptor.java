@@ -586,11 +586,8 @@ extends Descriptor
 		{
 			final A_String string = trueName.atomName();
 			A_Map newNames = object.slot(NEW_NAMES);
-			if (newNames.hasKey(string))
-			{
-				error("Can't define a new true name twice in a module", object);
-				return;
-			}
+			assert !newNames.hasKey(string)
+				: "Can't define a new true name twice in a module";
 			newNames = newNames.mapAtPuttingCanDestroy(string, trueName, true);
 			object.setSlot(NEW_NAMES, newNames.makeShared());
 			A_Set visibleNames = object.slot(VISIBLE_NAMES);

@@ -32,7 +32,6 @@
 
 package com.avail.compiler;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
 import java.io.ByteArrayOutputStream;
@@ -300,7 +299,6 @@ public class AvailCodeGenerator
 		this.lineNumber = startingLineNumber;
 	}
 
-
 	/**
 	 * Finish compilation of the block, answering the resulting compiledCode
 	 * object.
@@ -436,13 +434,9 @@ public class AvailCodeGenerator
 		final int delta)
 	{
 		depth -= delta;
-		if (depth < 0)
-		{
-			error("Inconsistency - Generated code would pop too much.");
-			return;
-		}
+		assert depth >= 0
+			: "Inconsistency - Generated code would pop too much.";
 	}
-
 
 	/**
 	 * Increase the tracked stack depth by the given amount.
@@ -459,7 +453,6 @@ public class AvailCodeGenerator
 		}
 	}
 
-
 	/**
 	 * Verify that the stack is empty at this point.
 	 */
@@ -467,7 +460,6 @@ public class AvailCodeGenerator
 	{
 		assert depth == 0 : "The stack should be empty here";
 	}
-
 
 	/**
 	 * Write a regular multimethod call.  I expect my arguments to have been
@@ -563,7 +555,6 @@ public class AvailCodeGenerator
 	public void emitGetLiteral (
 		final A_BasicObject aLiteral)
 	{
-		// Push one thing.
 		increaseDepth(1);
 		final int index = indexOfLiteral(aLiteral);
 		instructions.add(new AvailGetLiteralVariable(index));
@@ -588,7 +579,6 @@ public class AvailCodeGenerator
 	public void emitGetLocalOrOuter (
 		final A_BasicObject localOrOuter)
 	{
-		// Push one thing.
 		increaseDepth(1);
 		if (varMap.containsKey(localOrOuter))
 		{
@@ -602,13 +592,9 @@ public class AvailCodeGenerator
 				outerMap.get(localOrOuter)));
 			return;
 		}
-		if (labelInstructions.containsKey(localOrOuter))
-		{
-			error("This case should have been handled a different way!");
-			return;
-		}
-		error("Consistency error - unknown variable.");
-		return;
+		assert !labelInstructions.containsKey(localOrOuter)
+			: "This case should have been handled a different way!";
+		assert false : "Consistency error - unknown variable.";
 	}
 
 	/**
@@ -677,7 +663,6 @@ public class AvailCodeGenerator
 	public void emitPop ()
 	{
 		instructions.add(new AvailPop());
-		//  Pop one thing.
 		decreaseDepth(1);
 	}
 
@@ -689,7 +674,6 @@ public class AvailCodeGenerator
 	public void emitPushLiteral (
 		final A_BasicObject aLiteral)
 	{
-		//  Push one thing.
 		increaseDepth(1);
 		final int index = indexOfLiteral(aLiteral);
 		instructions.add(new AvailPushLiteral(index));
@@ -704,8 +688,6 @@ public class AvailCodeGenerator
 	public void emitPushLocalOrOuter (
 		final A_BasicObject variableDeclaration)
 	{
-		//  Push a variable.
-
 		increaseDepth(1);
 		if (varMap.containsKey(variableDeclaration))
 		{
@@ -719,13 +701,9 @@ public class AvailCodeGenerator
 				new AvailPushOuterVariable(outerMap.get(variableDeclaration)));
 			return;
 		}
-		if (labelInstructions.containsKey(variableDeclaration))
-		{
-			instructions.add(new AvailPushLabel());
-			return;
-		}
-		error("Consistency error - unknown variable.");
-		return;
+		assert labelInstructions.containsKey(variableDeclaration)
+			: "Consistency error - unknown variable.";
+		instructions.add(new AvailPushLabel());
 	}
 
 	/**
@@ -754,8 +732,6 @@ public class AvailCodeGenerator
 	public void emitSetLocalOrOuter (
 		final A_BasicObject localOrOuter)
 	{
-		//  Set a variable to the value popped from the stack.
-
 		decreaseDepth(1);
 		if (varMap.containsKey(localOrOuter))
 		{
@@ -769,13 +745,9 @@ public class AvailCodeGenerator
 				new AvailSetOuterVariable(outerMap.get(localOrOuter)));
 			return;
 		}
-		if (labelInstructions.containsKey(localOrOuter))
-		{
-			error("You can't assign to a label!");
-			return;
-		}
-		error("Consistency error - unknown variable.");
-		return;
+		assert !labelInstructions.containsKey(localOrOuter)
+			: "You can't assign to a label!";
+		assert false : "Consistency error - unknown variable.";
 	}
 
 	/**
@@ -791,7 +763,6 @@ public class AvailCodeGenerator
 		assert primitive == 0 : "Primitive number was already set";
 		primitive = primitiveNumber;
 	}
-
 
 	/**
 	 * Figure out which uses of local and outer variables are final uses.  This

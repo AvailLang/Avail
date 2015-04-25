@@ -38,6 +38,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1037,7 +1038,7 @@ public class StacksCommentsModule
 	 * 		output into.
 	 */
 	private HashMap <A_String, StacksFilename> createFileNames(
-		final List<A_String> names, final String originatingModuleName)
+		final Collection<A_String> names, final String originatingModuleName)
 	{
 		final HashMap<A_String,Integer> newHashNameMap =
 			new HashMap<A_String,Integer>();

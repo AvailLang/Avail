@@ -339,9 +339,51 @@ public final class AvailBuilder
 	}
 
 	/**
-	 * Whether the current build should stop, versus continuing with problems.
+	 * If not-null, an indication of why the current build should stop.
+	 * Otherwise the current build should continue.
 	 */
-	public volatile boolean shouldStopBuild = false;
+	private volatile @Nullable String stopBuildReason = null;
+
+	/**
+	 * Answer whether the current build should stop.
+	 *
+	 * @return Whether the build should stop.
+	 */
+	public boolean shouldStopBuild ()
+	{
+		return stopBuildReason != null;
+	}
+
+	/**
+	 * Answer why the current build should stop.  Answer null if a stop is not
+	 * currently requested.
+	 *
+	 * @return Why the build should stop (or null).
+	 */
+	public @Nullable String stopBuildReason ()
+	{
+		return stopBuildReason;
+	}
+
+	/**
+	 * Answer why the current build should stop.  Answer null if a stop is not
+	 * currently requested.
+	 *
+	 * @param why Why the build should stop (or null).
+	 */
+	public void stopBuildReason (final String why)
+	{
+		stopBuildReason = why;
+	}
+
+	/**
+	 * Clear the indication that the build should stop, presumably in
+	 * preparation for the next build.
+	 */
+	public void clearShouldStopBuild ()
+	{
+		stopBuildReason = null;
+	}
 
 	/** Create a Generator<Boolean> for polling for abort requests. */
 	public final Generator<Boolean> pollForAbort = new Generator<Boolean>()
@@ -349,7 +391,7 @@ public final class AvailBuilder
 		@Override
 		public Boolean value()
 		{
-			return shouldStopBuild;
+			return shouldStopBuild();
 		}
 	};
 
@@ -358,7 +400,7 @@ public final class AvailBuilder
 	 */
 	public void cancel ()
 	{
-		shouldStopBuild = true;
+		stopBuildReason = "Canceled";
 	}
 
 	/**
@@ -472,7 +514,7 @@ public final class AvailBuilder
 		{
 			synchronized (this)
 			{
-				shouldStopBuild = true;
+				stopBuildReason("Build failed");
 			}
 			@SuppressWarnings("resource")
 			final Formatter formatter = new Formatter();
@@ -1204,7 +1246,7 @@ public final class AvailBuilder
 				@Override
 				public void value ()
 				{
-					if (!shouldStopBuild)
+					if (!shouldStopBuild())
 					{
 						ResolvedModuleName resolvedName = null;
 						try
@@ -1220,7 +1262,7 @@ public final class AvailBuilder
 								e,
 								"Fail resolution: %s",
 								qualifiedName);
-							shouldStopBuild = true;
+							stopBuildReason("Module graph tracing failed");
 							final Problem problem = new Problem (
 								resolvedSuccessor != null
 									? resolvedSuccessor
@@ -1245,6 +1287,12 @@ public final class AvailBuilder
 							resolvedSuccessor,
 							recursionSet);
 					}
+					else
+					{
+						// Even though we're shutting down, we still have to
+						// account for the previous increment of traceRequests.
+						indicateTraceCompleted();
+					}
 				}
 			});
 		}
@@ -1252,7 +1300,7 @@ public final class AvailBuilder
 		/**
 		 * Trace the imports of the {@linkplain ModuleDescriptor module}
 		 * specified by the given {@linkplain ModuleName module name}.  If a
-		 * {@link Problem} occurs, log it and set {@link #shouldStopBuild}.
+		 * {@link Problem} occurs, log it and set {@link #stopBuildReason}.
 		 * Whether a success or failure happens, end by invoking {@link
 		 * #indicateTraceCompleted()}.
 		 *
@@ -1286,7 +1334,8 @@ public final class AvailBuilder
 					@Override
 					protected void abortCompilation ()
 					{
-						shouldStopBuild = true;
+						stopBuildReason(
+							"Module graph tracing failed due to recursion");
 						indicateTraceCompleted();
 					}
 				};
@@ -1481,12 +1530,12 @@ public final class AvailBuilder
 					}
 					catch (final InterruptedException e)
 					{
-						shouldStopBuild = true;
+						stopBuildReason("Trace was interrupted");
 					}
 				}
 				runtime.moduleNameResolver().commitRepositories();
 			}
-			if (shouldStopBuild)
+			if (shouldStopBuild())
 			{
 				textInterface.errorChannel().write(
 					"Load failed.\n",
@@ -1617,7 +1666,7 @@ public final class AvailBuilder
 			final Continuation0 completionAction)
 		{
 			// Avoid scheduling new tasks if an exception has happened.
-			if (shouldStopBuild)
+			if (shouldStopBuild())
 			{
 				postLoad(target, 0L);
 				completionAction.value();
@@ -1628,7 +1677,7 @@ public final class AvailBuilder
 				@Override
 				public void value ()
 				{
-					if (shouldStopBuild)
+					if (shouldStopBuild())
 					{
 						// An exception has been encountered since the
 						// earlier check.  Exit quickly.
@@ -1807,7 +1856,8 @@ public final class AvailBuilder
 										@Override
 										public void abortCompilation ()
 										{
-											shouldStopBuild = true;
+											stopBuildReason(
+												"Problem loading module");
 											completionAction.value();
 										}
 									};
@@ -1868,7 +1918,7 @@ public final class AvailBuilder
 					A_Function function = null;
 					try
 					{
-						if (!shouldStopBuild)
+						if (!shouldStopBuild())
 						{
 							function = deserializer.deserialize();
 						}
@@ -1909,7 +1959,7 @@ public final class AvailBuilder
 							function,
 							Collections.<AvailObject>emptyList());
 					}
-					else if (shouldStopBuild)
+					else if (shouldStopBuild())
 					{
 						module.removeFrom(
 							availLoader,
@@ -2145,7 +2195,7 @@ public final class AvailBuilder
 			assert moduleGraph.vertexCount() == vertexCountBefore;
 			runtime.moduleNameResolver().commitRepositories();
 			// Parallel load has now completed or failed.
-			if (shouldStopBuild)
+			if (shouldStopBuild())
 			{
 				// Clean up any modules that didn't load.  There can be no
 				// loaded successors of unloaded modules, so they can all be
@@ -2230,7 +2280,7 @@ public final class AvailBuilder
 					@Override
 					public void abortCompilation ()
 					{
-						shouldStopBuild = true;
+						stopBuildReason("Comment loading failed");
 						completionAction.value();
 					}
 				};
@@ -2261,7 +2311,7 @@ public final class AvailBuilder
 					@Override
 					public void abortCompilation ()
 					{
-						shouldStopBuild = true;
+						stopBuildReason("Comment deserialization failed");
 						completionAction.value();
 					}
 				};
@@ -2289,7 +2339,9 @@ public final class AvailBuilder
 					@Override
 					public void abortCompilation ()
 					{
-						shouldStopBuild = true;
+						stopBuildReason(
+							"Module header deserialization failed when "
+							+ "loading comments");
 						completionAction.value();
 					}
 				};
@@ -2316,7 +2368,7 @@ public final class AvailBuilder
 			final Continuation0 completionAction)
 		{
 			// Avoid scheduling new tasks if an exception has happened.
-			if (shouldStopBuild)
+			if (shouldStopBuild())
 			{
 				completionAction.value();
 				return;
@@ -2326,7 +2378,7 @@ public final class AvailBuilder
 				@Override
 				public void value ()
 				{
-					if (shouldStopBuild)
+					if (shouldStopBuild())
 					{
 						// An exception has been encountered since the
 						// earlier check.  Exit quickly.
@@ -2387,7 +2439,8 @@ public final class AvailBuilder
 					@Override
 					public void abortCompilation ()
 					{
-						shouldStopBuild = true;
+						stopBuildReason(
+							"Unable to generate Stacks documentation");
 					}
 				};
 				buildProblemHandler.handle(problem);
@@ -2543,7 +2596,7 @@ public final class AvailBuilder
 		 */
 		public void traceGraph () throws IOException
 		{
-			if (!shouldStopBuild)
+			if (!shouldStopBuild())
 			{
 				final Graph<ResolvedModuleName> ancestry =
 					moduleGraph.ancestryOfAll(
@@ -2903,13 +2956,13 @@ public final class AvailBuilder
 		final CompilerProgressReporter localTracker,
 		final Continuation3<ModuleName, Long, Long> globalTracker)
 	{
-		shouldStopBuild = false;
+		clearShouldStopBuild();
 		new BuildUnloader().unloadModified();
-		if (!shouldStopBuild)
+		if (!shouldStopBuild())
 		{
 			new BuildTracer().trace(target);
 		}
-		if (!shouldStopBuild)
+		if (!shouldStopBuild())
 		{
 			new BuildLoader(localTracker, globalTracker).load();
 		}
@@ -2926,7 +2979,7 @@ public final class AvailBuilder
 	 */
 	public void unloadTarget (final @Nullable ResolvedModuleName target)
 	{
-		shouldStopBuild = false;
+		clearShouldStopBuild();
 		new BuildUnloader().unload(target);
 	}
 
@@ -2947,18 +3000,18 @@ public final class AvailBuilder
 		final ModuleName target,
 		final Path documentationPath)
 	{
-		shouldStopBuild = false;
+		clearShouldStopBuild();
 		try
 		{
 			final BuildTracer tracer = new BuildTracer();
 			tracer.trace(target);
 			final DocumentationTracer documentationTracer =
 				new DocumentationTracer(documentationPath);
-			if (!shouldStopBuild)
+			if (!shouldStopBuild())
 			{
 				documentationTracer.load();
 			}
-			if (!shouldStopBuild)
+			if (!shouldStopBuild())
 			{
 				documentationTracer.generate(target);
 			}
@@ -2984,14 +3037,14 @@ public final class AvailBuilder
 			final File destinationFile)
 		throws IOException
 	{
-		shouldStopBuild = false;
+		clearShouldStopBuild();
 		try
 		{
 			final BuildTracer tracer = new BuildTracer();
 			tracer.trace(target);
 			final GraphTracer graphTracer = new GraphTracer(
 				target, destinationFile);
-			if (!shouldStopBuild)
+			if (!shouldStopBuild())
 			{
 				graphTracer.traceGraph();
 			}
@@ -3106,7 +3159,7 @@ public final class AvailBuilder
 			AvailObject, Continuation1<Continuation0>> onSuccess,
 		final Continuation0 onFailure)
 	{
-		shouldStopBuild = false;
+		clearShouldStopBuild();
 		runtime.execute(new AvailTask(commandPriority)
 		{
 			@Override
@@ -3296,6 +3349,35 @@ public final class AvailBuilder
 						final Problem problem,
 						final Continuation1<Boolean> decider)
 					{
+						textInterface.errorChannel().write(
+							problem.toString(),
+							null,
+							new CompletionHandler<Integer, Void>()
+							{
+								@Override
+								public void completed (
+									final @Nullable Integer result,
+									final @Nullable Void attachment)
+								{
+									handleGeneric(problem, decider);
+								}
+
+								@Override
+								public void failed (
+									final @Nullable Throwable exc,
+									final @Nullable Void attachment)
+								{
+									handleGeneric(problem, decider);
+								}
+							});
+					}
+
+					@Override
+					public void handleExternal (
+						final Problem problem,
+						final Continuation1<Boolean> decider)
+					{
+						// Same as handleInternal (2015.04.24)
 						textInterface.errorChannel().write(
 							problem.toString(),
 							null,
