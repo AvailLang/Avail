@@ -34,30 +34,21 @@ Module "Assertions"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
-	"Bootstrap"
-Extends
-	"Bootstrap" =
-	(
-		"_∩_",
-		"Reject parse,expected:_",
-		"Semantic restriction_is_",
-		"⊤", "⊥",
-		"boolean", "false",
-		"exception",
-		"string",
-		"_'s⁇type"
-	),
+	"Bootstrap",
 	"Definers",
-/*	"Early Assertions" =
-	(
-		"Static assert:_†"
-	), */
+	"Functions",
+	"Early Conditionals",
 	"Exceptions",
-	"Objects"
+	"Literals",
+	"Macro Support",
+	"Objects",
+	"Phrases",
+	"Types"
 Names
 	"Assert:_",
 	"Assert:_(_)",
 	"Shouldn't happen",
+	"Shouldn't happen(_)",
 	"assertion-failed exception"
 Body
 
@@ -105,52 +96,60 @@ Semantic restriction "Assert:_" is
 [
 	contradiction : false's type's type
 |
-	Reject parse, expected: "an assertion that could ever be true"
+	Reject parse, expected:
+		"an assertion that could ever be true \
+		\|(use \"Shouldn't happen\" instead)"
 ];
 
-/**
- * If the argument is {@code false}, then raise an {@type "descriptive
- * exception" descriptive} {@type "assertion-failed
- * exception"} that includes the specified {@param "message" error message}.
- *
- * @method "Assert:_(_)"
- * @param "predicate" "boolean"
- *        A predicate.
- * @param "message" "string"
- *        An error message.
- * @returns "⊤"
- * @raises "assertion-failed exception"
- *         If {@param "predicate"} is {@code false}.
- * @category "Assertions"
- */
-Public method "Assert:_(_)" is
+Private method "Assert:__" is
 [
 	predicate : boolean,
-	message : string
+	message : []→string
 |
 	/* No implementation required. */
 ] : ⊤;
 
-Public method "Assert:_(_)" is
+Private method "Assert:__" is
 [
 	predicate : false's type,
-	message : string
+	message : []→string
 |
 	Raise an assertion-failed exception ∩ descriptive exception
-		with error message ::= message
+		with error message ::= message()
 ] : ⊥;
 
 /**
- * @method "Assert:_(_)"
- * @restricts "false's type's type"
- * @restricts "string's type"
+ * If {@param "predicate"} evaluates to {@method "false"}, then raise a {@type
+ * "descriptive exception" descriptive} {@type "assertion-failed
+ * exception"} that includes an {@param "message" error message} produced by the
+ * specified {@type "string"} {@type "expression phrase" expression}.
+ *
+ * @macro "Assert:_(_)"
+ * @param "predicate" "expression phrase ⇒ boolean"
+ *        A predicate.
+ * @param "message" "expression phrase ⇒ string"
+ *        An {@type "expression phrase" expression} that produces an error
+ *        message. It is only evaluated if {@param "predicate"} is {@method
+ *        "false"}.
+ * @returns "send phrase ⇒ ⊥"
+ * @category "Assertions"
  */
-Semantic restriction "Assert:_(_)" is
+Public macro "Assert:_(_)" is
 [
-	contradiction : false's type's type,
-	message : string's type
+	predicate : expression phrase ⇒ boolean,
+	message : expression phrase ⇒ string
 |
-	Reject parse, expected: "an assertion that could ever be true"
+	If predicate's semantic type = false's type then
+	[
+		Reject parse, expected:
+			"an assertion that could ever be true \
+			\|(use \"Shouldn't happen(_)\" instead)"
+	];
+	restricted send $"Assert:__" with
+	<
+		predicate,
+		«[<message>] : message's semantic type»
+	> : ⊤
 ];
 
 /**
@@ -167,4 +166,24 @@ Public method "Shouldn't happen" is
 [
 	Raise an assertion-failed exception ∩ descriptive exception
 		with error message ::= "This should not be possible."
+] : ⊥;
+
+/**
+ * Declare that the code path that called this method should never be executed.
+ * It results in an assertion failure.
+ *
+ * @method "Shouldn't happen(_)"
+ * @param "message" "string"
+ *        The error message.
+ * @returns "⊥"
+ * @raises "assertion-failed exception"
+ *         Always.
+ * @category "Assertions"
+ */
+Public method "Shouldn't happen(_)" is
+[
+	message : string
+|
+	Raise an assertion-failed exception ∩ descriptive exception
+		with error message ::= message
 ] : ⊥;
