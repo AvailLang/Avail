@@ -123,20 +123,27 @@ Semantic restriction "_[_]else_" is
 	index : integer's type,
 	else : (function accepting <> and returning any)'s type
 |
-	if ⎣index⎦ > ⎡tupleType⎤ ∨ ⎡index⎤ < 1 then [else's return type]
+	if ⎣index⎦ ≥ 1 ∧ ⎡index⎤ ≤ ⎣tupleType⎦ then
+	[
+		Reject parse, expected:
+			"alternative block to be necessary, but the subscript is \
+			\|guaranteed to be valid"
+	]
 	else
 	[
-		min ::= ⎣index⎦ max 1;
-		max ::= cast ⎡index⎤ min (|tupleType's leading types| + 1)
-			into [t : whole number | t];
-		union ::= ∪ tupleType[min..max];
-		if index ⊆ [1..⎣tupleType⎦] then
+		if ⎣index⎦ > ⎡tupleType⎤ ∨ ⎡index⎤ < 1 then
 		[
-			union
+			Reject parse, expected:
+				"a subscript that could ever be valid"
 		]
 		else
 		[
-			union ∪ else's return type
+			min ::= ⎣index⎦ max 1;
+			max ::= cast ⎡index⎤ min (|tupleType's leading types| + 1)
+				into [t : whole number | t];
+			union ::= ∪ tupleType[min..max];
+			if index ⊆ [1..⎣tupleType⎦] then [union]
+			else [union ∪ else's return type]
 		]
 	]
 ];
@@ -669,7 +676,7 @@ Public method "tuple type of_[_.._]" is
 	|
 		union : type := ⊥;
 		smearEnd ::= cast (i + smearDelta) min limit
-			into [ t : natural number | t ];
+			into [t : natural number | t];
 		From i to smearEnd do
 		[
 			j : natural number
@@ -683,14 +690,14 @@ Public method "tuple type of_[_.._]" is
 	];
 	/* Unless `types` is empty, the last element is the default type. */
 	defaultType ::= cast |types|
-		into [ n : natural number | types[n] ]
-		else [ ⊥ ];
+		into [n : natural number | types[n]]
+		else [⊥];
 	resultMinEnd ::= minEnd min tupleEnd;
 	resultMaxEnd ::= maxEnd min tupleEnd;
 	resultStart ::= cast (resultMinEnd - maxStart + 1) max 0
-		into [ t : whole number | t ];
+		into [t : whole number | t];
 	resultEnd ::= cast ((resultMaxEnd - minStart + 1) max 0) + 1
-		into [ t : [1..∞] | t ];
+		into [t : [1..∞] | t];
 	resultSizes ::= [resultStart..resultEnd);
 	result ::= <types, defaultType…|resultSizes>;
 	result

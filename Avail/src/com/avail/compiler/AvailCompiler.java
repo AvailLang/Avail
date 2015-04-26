@@ -34,6 +34,9 @@ package com.avail.compiler;
 import static com.avail.compiler.AvailCompiler.ExpectedToken.*;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.problems.ProblemType.*;
+import static com.avail.descriptor.AtomDescriptor.compilerScopeMapKey;
+import static com.avail.descriptor.AtomDescriptor.clientDataGlobalKey;
+import static com.avail.descriptor.AtomDescriptor.allTokensKey;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
@@ -458,7 +461,7 @@ public final class AvailCompiler
 		 * The {@linkplain StringDescriptor names} defined and exported by the
 		 * {@linkplain ModuleDescriptor module} undergoing compilation.
 		 */
-		public final List<A_String> exportedNames = new ArrayList<>();
+		public final Set<A_String> exportedNames = new LinkedHashSet<>();
 
 		/**
 		 * The {@linkplain StringDescriptor names} of {@linkplain
@@ -516,7 +519,8 @@ public final class AvailCompiler
 				StringDescriptor.from(moduleName.qualifiedName()));
 			serializer.serialize(TupleDescriptor.fromList(versions));
 			serializer.serialize(tuplesForSerializingModuleImports());
-			serializer.serialize(TupleDescriptor.fromList(exportedNames));
+			serializer.serialize(TupleDescriptor.fromList(
+				new ArrayList<>(exportedNames)));
 			serializer.serialize(TupleDescriptor.fromList(entryPoints));
 			serializer.serialize(TupleDescriptor.fromList(pragmas));
 		}
@@ -893,10 +897,16 @@ public final class AvailCompiler
 	@InnerAccess final String source;
 
 	/**
-	 * The complete {@linkplain List list} of {@linkplain TokenDescriptor
-	 * tokens} extracted from the source text.
+	 * The complete {@linkplain List list} of {@linkplain A_Token tokens}
+	 * extracted from the source text.
 	 */
 	@InnerAccess final List<A_Token> tokens;
+
+	/**
+	 * The complete {@linkplain A_Tuple tuple} of {@linkplain A_Token tokens}
+	 * extracted from the source text.
+	 */
+	@InnerAccess final A_Tuple tokensTuple;
 
 	/**
 	 * The complete {@linkplain List list} of {@linkplain CommentTokenDescriptor
@@ -935,31 +945,6 @@ public final class AvailCompiler
 	/** The memoization of results of previous parsing attempts. */
 	final @InnerAccess AvailCompilerFragmentCache fragmentCache =
 		new AvailCompilerFragmentCache();
-
-	/**
-	 * The special {@linkplain AtomDescriptor atom} used to locate the current
-	 * parsing information in a fiber's globals.
-	 */
-	@InnerAccess static final A_Atom clientDataGlobalKey =
-		AtomDescriptor.clientDataGlobalKey();
-
-	/**
-	 * The special {@linkplain AtomDescriptor atom} used to locate the map of
-	 * declarations that are in scope, within the {@linkplain
-	 * #clientDataGlobalKey current parsing information} stashed within a
-	 * fiber's globals.
-	 */
-	@InnerAccess static final A_Atom compilerScopeMapKey =
-		AtomDescriptor.compilerScopeMapKey();
-
-	/**
-	 * The special {@linkplain AtomDescriptor atom} used to locate the list of
-	 * used tokens so far for the current call site, within the {@linkplain
-	 * #clientDataGlobalKey current parsing information} stashed within a
-	 * fiber's globals.
-	 */
-	@InnerAccess static final A_Atom usedTokensKey =
-		AtomDescriptor.usedTokensKey();
 
 	/**
 	 * The {@link ProblemHandler} used for reporting compilation problems.
@@ -1220,6 +1205,7 @@ public final class AvailCompiler
 		this.module = module;
 		this.source = scannerResult.source();
 		this.tokens = scannerResult.outputTokens();
+		this.tokensTuple = TupleDescriptor.fromList(tokens).makeShared();
 		this.commentTokens = scannerResult.commentTokens();
 		this.textInterface = textInterface;
 		this.pollForAbort = pollForAbort;
@@ -1255,6 +1241,7 @@ public final class AvailCompiler
 			StringDescriptor.from(moduleName.qualifiedName()));
 		this.source = scannerResult.source();
 		this.tokens = scannerResult.outputTokens();
+		this.tokensTuple = TupleDescriptor.fromList(tokens).makeShared();
 		this.commentTokens = scannerResult.commentTokens();
 		this.textInterface = textInterface;
 		this.pollForAbort = pollForAbort;
@@ -1457,20 +1444,6 @@ public final class AvailCompiler
 		}
 
 		/**
-		 * Construct a new {@link Con}, sharing the same {@link
-		 * PartialSubexpressionList superexpressions list} as the given Con.
-		 *
-		 * @param previousContinuation
-		 *        A {@link Con} containing the same enclosing partially-parsed
-		 *        expressions.
-		 */
-		Con (
-			final Con<AnswerType> previousContinuation)
-		{
-			super(previousContinuation.superexpressions);
-		}
-
-		/**
 		 * The method that will be invoked when a value has been produced.
 		 * Neither the value nor the ParserState may be null.
 		 *
@@ -1611,11 +1584,18 @@ public final class AvailCompiler
 				// The counters must be read in this order for correctness.
 				final long completed = workUnitsCompleted.get();
 				assert completed == workUnitsQueued.get();
+				if (pollForAbort.value())
+				{
+					// We may have been asked to abort subtasks by a failure in
+					// another module, so we can't trust the count of solutions.
+					afterFail.value();
+					return;
+				}
 				// Ambiguity is detected and reported during the parse, and
 				// should never be identified here.
 				if (count.value == 0)
 				{
-					// No solutions were found.  Report an error.
+					// No solutions were found.  Report the problems.
 					reportError(afterFail);
 					return;
 				}
@@ -1870,6 +1850,25 @@ public final class AvailCompiler
 		}
 
 		/**
+		 * Answer a {@linkplain A_Tuple tuple} that comprises the {@linkplain
+		 * A_Token tokens} from the receiver's position, inclusive, to the
+		 * argument's position, exclusive.
+		 *
+		 * @param after
+		 *        The {@linkplain A_Token token} strictly after the last token
+		 *        that should appear in the resultant {@linkplain A_Tuple
+		 *        tuple}.
+		 * @return The requested {@linkplain A_Tuple tuple}.
+		 */
+		A_Tuple upTo (final ParserState after)
+		{
+			return tokensTuple.copyTupleFromToCanDestroy(
+				position + 1,
+				after.position,
+				false);
+		}
+
+		/**
 		 * Return a new {@linkplain ParserState parser state} like this one, but
 		 * with the given declaration added.
 		 *
@@ -1881,11 +1880,11 @@ public final class AvailCompiler
 		ParserState withDeclaration (final A_Phrase declaration)
 		{
 			final A_String name = declaration.token().string();
-			A_Map scopeMap = clientDataMap.mapAt(compilerScopeMapKey);
+			A_Map scopeMap = clientDataMap.mapAt(compilerScopeMapKey());
 			assert !scopeMap.hasKey(name);
 			scopeMap = scopeMap.mapAtPuttingCanDestroy(name, declaration, true);
 			final A_Map newClientDataMap = clientDataMap.mapAtPuttingCanDestroy(
-				compilerScopeMapKey, scopeMap, true);
+				compilerScopeMapKey(), scopeMap, true);
 			return new ParserState(
 				position,
 				newClientDataMap);
@@ -2045,7 +2044,7 @@ public final class AvailCompiler
 	 */
 	private static @Nullable ParserState parseStringLiterals (
 		final ParserState start,
-		final List<A_String> strings)
+		final Collection<A_String> strings)
 	{
 		assert strings.isEmpty();
 
@@ -2058,7 +2057,14 @@ public final class AvailCompiler
 		while (true)
 		{
 			// We just read a string literal.
-			strings.add(token.literal());
+			final A_String string = token.literal();
+			if (strings.contains(string))
+			{
+				state.expected("a distinct name, not another occurrence of "
+					+ string);
+				return null;
+			}
+			strings.add(string);
 			if (!state.peekToken(COMMA))
 			{
 				return state;
@@ -2565,7 +2571,7 @@ public final class AvailCompiler
 				final Problem problem = new Problem(
 					resolvedName,
 					TokenDescriptor.createSyntheticStart(),
-					ProblemType.PARSE,
+					ProblemType.EXTERNAL,
 					"Unable to read source module \"{0}\": {1}\n{2}",
 					resolvedName,
 					e.getLocalizedMessage(),
@@ -2994,11 +3000,22 @@ public final class AvailCompiler
 									"%n>>>\t\t%s",
 									message.replace("\n", "\n>>>\t\t"));
 							}
-							continueReport.value().value();
+							// Avoid using direct recursion to keep the stack
+							// from getting too deep.
+							runtime.execute(new AvailTask(
+								FiberDescriptor.compilerPriority)
+							{
+								@Override
+								public void value ()
+								{
+									continueReport.value().value();
+								}
+							});
 						}
 					});
 			}
 		};
+		// Initiate all the grouped error printing.
 		continueReport.value().value();
 	}
 
@@ -3392,7 +3409,7 @@ public final class AvailCompiler
 		final ParserState start,
 		final A_String name)
 	{
-		final A_Map scopeMap = start.clientDataMap.mapAt(compilerScopeMapKey);
+		final A_Map scopeMap = start.clientDataMap.mapAt(compilerScopeMapKey());
 		if (scopeMap.hasKey(name))
 		{
 			return scopeMap.mapAt(name);
@@ -3487,7 +3504,7 @@ public final class AvailCompiler
 			});
 		A_Map fiberGlobals = fiber.fiberGlobals();
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
-			clientDataGlobalKey, clientParseData, true);
+			clientDataGlobalKey(), clientParseData, true);
 		fiber.fiberGlobals(fiberGlobals);
 		fiber.textInterface(textInterface);
 		fiber.resultContinuation(onSuccess);
@@ -3593,7 +3610,7 @@ public final class AvailCompiler
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE);
 		A_Map fiberGlobals = fiber.fiberGlobals();
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
-			clientDataGlobalKey, clientParseData, true);
+			clientDataGlobalKey(), clientParseData, true);
 		fiber.fiberGlobals(fiberGlobals);
 		fiber.textInterface(textInterface);
 		fiber.resultContinuation(onSuccess);
@@ -4053,7 +4070,7 @@ public final class AvailCompiler
 		// Start accumulating tokens related to this leading-keyword message
 		// send at its first token.
 		clientMap = clientMap.mapAtPuttingCanDestroy(
-			usedTokensKey, TupleDescriptor.empty(), false);
+			allTokensKey(), TupleDescriptor.empty(), false);
 		parseRestOfSendNode(
 			new ParserState(start.position, clientMap),
 			loader().rootBundleTree(),
@@ -4105,7 +4122,7 @@ public final class AvailCompiler
 		// Start accumulating tokens related to this leading-argument message
 		// send after the leading argument.
 		clientMap = clientMap.mapAtPuttingCanDestroy(
-			usedTokensKey, TupleDescriptor.empty(), false);
+			allTokensKey(), TupleDescriptor.empty(), false);
 		parseRestOfSendNode(
 			new ParserState(start.position, clientMap),
 			loader().rootBundleTree(),
@@ -4284,18 +4301,8 @@ public final class AvailCompiler
 				if (incomplete.hasKey(keywordString))
 				{
 					keywordRecognized = true;
-					// Record this token for the call site.
-					A_Map clientMap = start.clientDataMap;
-					clientMap = clientMap.mapAtPuttingCanDestroy(
-						usedTokensKey,
-						clientMap.mapAt(usedTokensKey).appendCanDestroy(
-							keywordToken, false),
-						false);
-					final ParserState afterRecordingToken = new ParserState(
-						start.afterToken().position,
-						clientMap);
 					eventuallyParseRestOfSendNode(
-						afterRecordingToken,
+						start.afterToken(),
 						incomplete.mapAt(keywordString),
 						null,
 						initialTokenPosition,
@@ -4329,8 +4336,8 @@ public final class AvailCompiler
 					// Record this token for the call site.
 					A_Map clientMap = start.clientDataMap;
 					clientMap = clientMap.mapAtPuttingCanDestroy(
-						usedTokensKey,
-						clientMap.mapAt(usedTokensKey).appendCanDestroy(
+						allTokensKey(),
+						clientMap.mapAt(allTokensKey()).appendCanDestroy(
 							keywordToken, false),
 						false);
 					final ParserState afterRecordingToken = new ParserState(
@@ -4754,7 +4761,7 @@ public final class AvailCompiler
 					marksSoFar,
 					initialTokenPosition,
 					successorTrees,
-					new Con<A_Phrase>(continuation)
+					new Con<A_Phrase>(continuation.superexpressions)
 					{
 						@Override
 						public void valueNotNull(
@@ -5196,11 +5203,15 @@ public final class AvailCompiler
 				}
 			});
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE);
+		final A_Tuple constituentTokens = initialTokenPosition.upTo(start);
+		assert constituentTokens.tupleSize() != 0;
+		final A_Map withTokens = start.clientDataMap.mapAtPuttingCanDestroy(
+			allTokensKey(),
+			constituentTokens,
+			false).makeImmutable();
 		A_Map fiberGlobals = fiber.fiberGlobals();
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
-			clientDataGlobalKey,
-			start.clientDataMap.makeImmutable(),
-			true);
+			clientDataGlobalKey(), withTokens, true);
 		fiber.fiberGlobals(fiberGlobals);
 		fiber.textInterface(textInterface);
 		final AtomicBoolean hasRunEither = new AtomicBoolean(false);
@@ -5215,7 +5226,7 @@ public final class AvailCompiler
 				{
 					// The prefix function ran successfully.
 					final A_Map replacementClientDataMap =
-						fiber.fiberGlobals().mapAt(clientDataGlobalKey);
+						fiber.fiberGlobals().mapAt(clientDataGlobalKey());
 					final ParserState newState = new ParserState(
 						start.position, replacementClientDataMap);
 					eventuallyParseRestOfSendNode(
@@ -6030,6 +6041,7 @@ public final class AvailCompiler
 					else
 					{
 						final A_Phrase sendNode = SendNodeDescriptor.from(
+							stateBeforeCall.upTo(stateAfterCall),
 							bundle,
 							argumentsListNode,
 							expectedYieldType);
@@ -6222,7 +6234,7 @@ public final class AvailCompiler
 		assert successorTrees.tupleSize() == 1;
 		final A_Map clientDataInGlobalScope =
 			start.clientDataMap.mapAtPuttingCanDestroy(
-				compilerScopeMapKey,
+				compilerScopeMapKey(),
 				MapDescriptor.empty(),
 				false);
 		final ParserState startInGlobalScope = new ParserState(
@@ -6354,12 +6366,20 @@ public final class AvailCompiler
 		{
 			argumentsList.add(argument.stripMacro());
 		}
+		// Capture all of the tokens that comprised the entire macro send.
+		final A_Tuple constituentTokens = stateBeforeCall.upTo(stateAfterCall);
+		assert constituentTokens.tupleSize() != 0;
+		final A_Map withTokens =
+			stateAfterCall.clientDataMap.mapAtPuttingCanDestroy(
+				allTokensKey(),
+				constituentTokens,
+				false).makeImmutable();
 		startWorkUnit();
 		final AtomicBoolean hasRunEither = new AtomicBoolean(false);
 		evaluateMacroFunctionThen(
 			macroDefinitionToInvoke,
 			argumentsList,
-			stateAfterCall.clientDataMap,
+			withTokens,
 			workUnitCompletion(
 				stateAfterCall.peekToken(),
 				hasRunEither,
@@ -6373,6 +6393,7 @@ public final class AvailCompiler
 							PARSE_NODE.mostGeneralType());
 						final A_Phrase original =
 							SendNodeDescriptor.from(
+								stateBeforeCall.upTo(stateAfterCall),
 								bundle,
 								argumentsListNode,
 								macroDefinitionToInvoke
@@ -6555,6 +6576,7 @@ public final class AvailCompiler
 				module,
 				token.lineNumber());
 		final A_Phrase send = SendNodeDescriptor.from(
+			TupleDescriptor.empty(),
 			MethodDescriptor.vmMethodDefinerAtom().bundleOrNil(),
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
 				nameLiteral,
@@ -6630,6 +6652,7 @@ public final class AvailCompiler
 		final A_Phrase bodyLiteral =
 			functionLiterals.remove(functionLiterals.size() - 1);
 		final A_Phrase send = SendNodeDescriptor.from(
+			TupleDescriptor.empty(),
 			MethodDescriptor.vmMacroDefinerAtom().bundleOrNil(),
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
 				nameLiteral,
@@ -6665,6 +6688,7 @@ public final class AvailCompiler
 			names = names.setUnionCanDestroy(entry.value(), false);
 		}
 		final A_Phrase send = SendNodeDescriptor.from(
+			TupleDescriptor.empty(),
 			MethodDescriptor.vmPublishAtomsAtom().bundleOrNil(),
 			ListNodeDescriptor.newExpressions(
 				TupleDescriptor.from(
@@ -6909,6 +6933,7 @@ public final class AvailCompiler
 		}
 		final A_Atom atom = atoms.asTuple().tupleAt(1);
 		final A_Phrase send = SendNodeDescriptor.from(
+			TupleDescriptor.empty(),
 			MethodDescriptor.vmDeclareStringifierAtom().bundleOrNil(),
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
 				LiteralNodeDescriptor.syntheticFrom(atom))),
@@ -7451,9 +7476,9 @@ public final class AvailCompiler
 				{
 					A_Map clientData = MapDescriptor.empty();
 					clientData = clientData.mapAtPuttingCanDestroy(
-						compilerScopeMapKey, MapDescriptor.empty(), true);
+						compilerScopeMapKey(), MapDescriptor.empty(), true);
 					clientData = clientData.mapAtPuttingCanDestroy(
-						usedTokensKey, TupleDescriptor.empty(), true);
+						allTokensKey(), TupleDescriptor.empty(), true);
 					// Rollback the module transaction no matter what happens.
 					parseExpressionThen(
 						new ParserState(0, clientData),
@@ -7509,9 +7534,9 @@ public final class AvailCompiler
 		// names are in scope.
 		A_Map clientData = MapDescriptor.empty();
 		clientData = clientData.mapAtPuttingCanDestroy(
-			compilerScopeMapKey, MapDescriptor.empty(), true);
+			compilerScopeMapKey(), MapDescriptor.empty(), true);
 		clientData = clientData.mapAtPuttingCanDestroy(
-			usedTokensKey, TupleDescriptor.empty(), true);
+			allTokensKey(), TupleDescriptor.empty(), true);
 		ParserState state = new ParserState(0, clientData);
 
 		recordExpectationsRelativeTo(0);
@@ -7632,6 +7657,10 @@ public final class AvailCompiler
 			{
 				state = parseStringLiterals(
 					state, moduleHeader().exportedNames);
+				if (state == null)
+				{
+					return null;
+				}
 			}
 			// ON ENTRIES, record the names.
 			else if (lexeme.equals(ENTRIES.lexeme()))
@@ -7705,7 +7734,7 @@ public final class AvailCompiler
 							handleProblem(new Problem(
 								moduleName(),
 								afterExpr.peekToken(),
-								PARSE,
+								INTERNAL,
 								"Duplicate expressions were parsed at the same "
 									+ "position (line {0}): {1}",
 								start.peekToken().lineNumber(),
@@ -7767,7 +7796,7 @@ public final class AvailCompiler
 	{
 		final A_Map clientDataInModuleScope =
 			start.clientDataMap.mapAtPuttingCanDestroy(
-				compilerScopeMapKey,
+				compilerScopeMapKey(),
 				MapDescriptor.empty(),
 				false);
 		final ParserState startWithoutScope = new ParserState(
@@ -8004,7 +8033,8 @@ public final class AvailCompiler
 					final Continuation1<String> withDescription)
 				{
 					final StringBuilder builder = new StringBuilder();
-					builder.append("a simple expression for this reason:");
+					builder.append(
+						"a simple expression for (at least) this reason:");
 					describeOn(continuation.superexpressions, builder);
 					withDescription.value(builder.toString());
 				}

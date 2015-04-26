@@ -148,6 +148,6 @@ public class AbstractAvailTest
 						position * 100.0d / globalCodeSize);
 				}
 			});
-		assertFalse(builder.shouldStopBuild);
+		assertFalse(builder.shouldStopBuild());
 	}
 }

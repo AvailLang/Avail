@@ -796,6 +796,7 @@ Extends
 		"greatest common denominator of_and_",
 		"least common multiple of_and_",
 		"log_of_",
+		"low_bits of_",
 		"max_",
 		"min_",
 		"negative integer",
@@ -813,13 +814,13 @@ Extends
 		"_is finite",
 		"_is infinite",
 		"_is odd",
-		"_bits of_",
 		"_>_",
 		"_≥_",
 		"_↑+=_", "_+=_",
 		"_↑-=_", "_-=_",
 		"_↑×=_", "_×=_",
 		"_↑÷=_", "_÷=_",
+		"_→_bytes",
 		"«_‡max»",
 		"«_‡min»",
 		"«_‡«=|≤|<»!»",
@@ -859,12 +860,15 @@ Extends
 	"Macro Support" =
 	(
 		"Declare loop variable_as_",
+		"Require:macro send has no internal whitespace(_)",
 		"Require:_named_does not shadow",
+		"constituent tokens",
 		"parse map",
 		"parse map:=_",
 		"scope map",
 		"scope map:=_",
-		"strengthen_for call of_using_"
+		"strengthen_for call of_using_",
+		"_has|have internal whitespace"
 	),
 	"Maps" =
 	(

@@ -6230,7 +6230,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract A_Phrase o_MacroOriginalSendNode (final AvailObject object);
+	abstract A_Phrase o_MacroOriginalSendNode (AvailObject object);
 
 	/**
 	 * @param object
@@ -6240,4 +6240,10 @@ public abstract class AbstractDescriptor
 	abstract boolean o_EqualsInt (
 		final AvailObject object,
 		final int theInt);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Tuple o_Tokens (AvailObject object);
 }

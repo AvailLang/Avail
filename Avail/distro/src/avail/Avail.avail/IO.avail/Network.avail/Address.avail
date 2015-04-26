@@ -164,6 +164,13 @@ Public macro "IPv4…#.…#.…#.…#" is
 	o3 : literal phrase ⇒ (literal token ⇒ byte),
 	o4 : literal phrase ⇒ (literal token ⇒ byte)
 |
+	If any o of <o1, o2, o3> satisfies [o's token's trailing whitespace ≠ ""]
+		∨ any o of <o2, o3, o4> satisfies [o's token's leading whitespace ≠ ""]
+	then
+	[
+		Reject parse, expected:
+			"IPv4 address not to contain whitespace"
+	];
 	‘`an IPv4 address with octets ::=
 		map each o in <o1, o2, o3, o4> through [o's token's value's value]`’
 ];

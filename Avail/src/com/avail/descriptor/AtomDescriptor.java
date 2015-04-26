@@ -528,12 +528,10 @@ extends Descriptor
 	/**
 	 * The atom used as a key in a {@link ParserState}'s {@linkplain
 	 * ParserState#clientDataMap} to accumulate the tuple of tokens that have
-	 * been parsed so far for the current method/macro site.  This only includes
-	 * tokens that were explicitly mentioned in the method name, not tokens
-	 * found in subexpressions.
+	 * been parsed so far for the current method/macro site.
 	 */
-	private static final A_Atom usedTokensKey =
-		createSpecialAtom("Explicit tokens");
+	private static final A_Atom allTokensKey =
+		createSpecialAtom("All tokens");
 
 	/**
 	 * The atom used as a key in a {@linkplain FiberDescriptor fiber}'s global
@@ -635,9 +633,9 @@ extends Descriptor
 	 * @return The tokens that have matched so far with the current method/macro
 	 *         site's tokens (as determined by the {@link MessageSplitter})
 	 */
-	public static A_Atom usedTokensKey ()
+	public static A_Atom allTokensKey ()
 	{
-		return usedTokensKey;
+		return allTokensKey;
 	}
 
 	/**

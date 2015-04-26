@@ -4817,4 +4817,10 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).equalsInt(theInt);
 	}
+
+	@Override
+	A_Tuple o_Tokens (final AvailObject object)
+	{
+		return o_Traversed(object).tokens();
+	}
 }

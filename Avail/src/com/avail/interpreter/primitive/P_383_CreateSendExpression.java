@@ -92,6 +92,7 @@ extends Primitive
 		}
 		return interpreter.primitiveSuccess(
 			SendNodeDescriptor.from(
+				TupleDescriptor.empty(),
 				bundle,
 				argsListNode,
 				returnType));

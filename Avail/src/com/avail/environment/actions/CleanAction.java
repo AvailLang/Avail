@@ -32,10 +32,9 @@
 
 package com.avail.environment.actions;
 
+import static com.avail.environment.AvailWorkbench.StreamStyle.*;
 import java.awt.event.*;
 import java.io.IOException;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.StyledDocument;
 import com.avail.annotations.*;
 import com.avail.builder.ModuleRoot;
 import com.avail.environment.AvailWorkbench;
@@ -67,18 +66,9 @@ extends AbstractWorkbenchAction
 		{
 			throw new IndexedFileException(e);
 		}
-		final StyledDocument doc = workbench.transcript.getStyledDocument();
-		try
-		{
-			doc.insertString(
-				doc.getLength(),
-				String.format("Repository has been cleared.%n"),
-				doc.getStyle(AvailWorkbench.infoStyleName));
-		}
-		catch (final BadLocationException e)
-		{
-			assert false : "This never happens.";
-		}
+		workbench.writeText(
+			String.format("Repository has been cleared.%n"),
+			INFO);
 	}
 
 	/**

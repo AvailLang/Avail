@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.ModuleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ModuleDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.AvailRuntime;
@@ -586,11 +585,8 @@ extends Descriptor
 		{
 			final A_String string = trueName.atomName();
 			A_Map newNames = object.slot(NEW_NAMES);
-			if (newNames.hasKey(string))
-			{
-				error("Can't define a new true name twice in a module", object);
-				return;
-			}
+			assert !newNames.hasKey(string)
+				: "Can't define a new true name twice in a module";
 			newNames = newNames.mapAtPuttingCanDestroy(string, trueName, true);
 			object.setSlot(NEW_NAMES, newNames.makeShared());
 			A_Set visibleNames = object.slot(VISIBLE_NAMES);

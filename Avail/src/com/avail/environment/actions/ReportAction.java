@@ -32,10 +32,9 @@
 
 package com.avail.environment.actions;
 
+import static com.avail.environment.AvailWorkbench.StreamStyle.*;
 import java.awt.event.*;
 import java.util.EnumSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.StyledDocument;
 import com.avail.annotations.*;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
@@ -55,18 +54,7 @@ extends AbstractWorkbenchAction
 		final EnumSet<StatisticReport> reports =
 			EnumSet.allOf(StatisticReport.class);
 		final String reportsString = StatisticReport.produceReports(reports);
-		final StyledDocument doc = workbench.transcript.getStyledDocument();
-		try
-		{
-			doc.insertString(
-				doc.getLength(),
-				reportsString,
-				doc.getStyle(AvailWorkbench.infoStyleName));
-		}
-		catch (final BadLocationException e)
-		{
-			assert false : "This never happens.";
-		}
+		workbench.writeText(reportsString, INFO);
 	}
 
 	/**
