@@ -380,6 +380,23 @@ Test "two intercepts, unwind (value-producing)" in exception test suite is
 	Require: rice = "basmati";
 ];
 
+Test "two intercepts, unwind (mismatched intercept)" in exception test suite is
+[
+	x : boolean := false;
+	Guard
+	[
+		Guard [Raise an exception] : ⊤
+		intercept [e : subscript-out-of-bounds exception | ]
+		ensure [x := true;];
+	]
+	intercept
+	[
+		e : exception
+	|
+		Require: x;
+	];
+];
+
 Test "bad intercept, unwind" in exception test suite is
 [
 	ensured : boolean := false;
