@@ -7165,4 +7165,10 @@ implements
 	{
 		return descriptor.o_EqualsInt(this, theInt);
 	}
+
+	@Override
+	public A_Tuple tokens ()
+	{
+		return descriptor.o_Tokens(this);
+	}
 }

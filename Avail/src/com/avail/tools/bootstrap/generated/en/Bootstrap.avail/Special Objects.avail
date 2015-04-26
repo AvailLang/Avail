@@ -49,6 +49,7 @@ Names
 	/* 111 */ "Euler's number",
 	/*  21 */ "VM error codes",
 	/*  44 */ "abstract definition",
+	/* 145 */ "all tokens key",
 	/*   1 */ "any",
 	/*  69 */ "any meta",
 	/*  62 */ "argument phrase",
@@ -176,7 +177,6 @@ Names
 	/* 106 */ "type of zero",
 	/* 105 */ "unary procedure",
 	/* 103 */ "unsigned short",
-	/* 145 */ "used tokens key",
 	/*   7 */ "variable",
 	/*   8 */ "variable meta",
 	/*  56 */ "variable reference phrase",
@@ -334,7 +334,7 @@ _permuted_list_phrase                   ::= special object 141;
 _super_cast_phrase                      ::= special object 142;
 _parse_map_key                          ::= special object 143;
 _scope_map_key                          ::= special object 144;
-_used_tokens_key                        ::= special object 145;
+_all_tokens_key                         ::= special object 145;
 
 /**
  * The practical abstract root of the Avail type lattice. {@code "any"} is the
@@ -2541,11 +2541,11 @@ Primitive "scope map key" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Constants"
- * @method "used tokens key"
- * @returns "used tokens key's type"
+ * @method "all tokens key"
+ * @returns "all tokens key's type"
  */
-Primitive "used tokens key" is
+Primitive "all tokens key" is
 [
-	_used_tokens_key
+	_all_tokens_key
 ];
 

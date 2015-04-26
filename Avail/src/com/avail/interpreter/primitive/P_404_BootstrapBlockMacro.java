@@ -88,8 +88,8 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 	/** The key to the variable scope map in the client parsing data. */
 	final A_Atom scopeMapKey = AtomDescriptor.compilerScopeMapKey();
 
-	/** The key to the used tokens tuple in the fiber's environment. */
-	final A_Atom usedTokensKey = AtomDescriptor.usedTokensKey();
+	/** The key to the all tokens tuple in the fiber's environment. */
+	final A_Atom allTokensKey = AtomDescriptor.allTokensKey();
 
 	@Override
 	public Result attempt (
@@ -117,13 +117,13 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 			// It looks like somebody removed all the scope information.
 			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION);
 		}
-		if (!clientData.hasKey(usedTokensKey))
+		if (!clientData.hasKey(allTokensKey))
 		{
 			// It looks like somebody removed the used tokens information.
 			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION);
 		}
 		final A_Map scopeMap = clientData.mapAt(scopeMapKey);
-		final A_Tuple tokens = clientData.mapAt(usedTokensKey);
+		final A_Tuple tokens = clientData.mapAt(allTokensKey);
 
 		final List<A_Phrase> allStatements = new ArrayList<>();
 

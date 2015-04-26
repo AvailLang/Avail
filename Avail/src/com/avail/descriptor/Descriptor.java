@@ -4655,4 +4655,10 @@ extends AbstractDescriptor
 	{
 		return false;
 	}
+
+	@Override
+	A_Tuple o_Tokens (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
 }

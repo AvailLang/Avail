@@ -363,7 +363,7 @@ public class L1Decompiler
 					listNode, permutationTuple);
 			}
 			final A_Phrase sendNode = SendNodeDescriptor.from(
-				bundle, listNode, type);
+				TupleDescriptor.empty(), bundle, listNode, type);
 			pushExpression(sendNode);
 		}
 
@@ -836,7 +836,7 @@ public class L1Decompiler
 			final int nArgs = method.numArgs();
 			final A_Phrase argsNode = reconstructListWithSupercasts(nArgs);
 			final A_Phrase sendNode = SendNodeDescriptor.from(
-				bundle, argsNode, type);
+				TupleDescriptor.empty(), bundle, argsNode, type);
 			pushExpression(sendNode);
 		}
 

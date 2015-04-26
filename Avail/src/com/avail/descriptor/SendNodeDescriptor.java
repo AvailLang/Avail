@@ -58,6 +58,12 @@ extends ParseNodeDescriptor
 	implements ObjectSlotsEnum
 	{
 		/**
+		 * The {@linkplain A_Tuple tuple} of {@linkplain A_Token tokens} that
+		 * comprise this {@linkplain SendNodeDescriptor send}.
+		 */
+		TOKENS,
+
+		/**
 		 * A {@link ListNodeDescriptor list node} containing the expressions
 		 * that yield the arguments of the method invocation.
 		 */
@@ -200,6 +206,12 @@ extends ParseNodeDescriptor
 		throw unsupportedOperationException();
 	}
 
+	@Override
+	A_Tuple o_Tokens (final AvailObject object)
+	{
+		return object.slot(TOKENS);
+	}
+
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final AvailObject object,
@@ -229,6 +241,8 @@ extends ParseNodeDescriptor
 		writer.startObject();
 		writer.write("kind");
 		writer.write("send phrase");
+		writer.write("tokens");
+		object.slot(TOKENS).writeTo(writer);
 		writer.write("arguments");
 		object.slot(ARGUMENTS_LIST_NODE).writeTo(writer);
 		writer.write("bundle");
@@ -244,6 +258,9 @@ extends ParseNodeDescriptor
 	 * list node} of argument expressions, and return {@linkplain TypeDescriptor
 	 * type}.
 	 *
+	 * @param tokens
+	 *        The {@linkplain A_Tuple tuple} of {@linkplain A_Token tokens} that
+	 *        comprise the {@linkplain SendNodeDescriptor send}.
 	 * @param bundle
 	 *        The method bundle for which this represents an invocation.
 	 * @param argsListNode
@@ -254,6 +271,7 @@ extends ParseNodeDescriptor
 	 * @return A new send node.
 	 */
 	public static A_Phrase from (
+		final A_Tuple tokens,
 		final A_Bundle bundle,
 		final A_Phrase argsListNode,
 		final A_Type returnType)
@@ -261,11 +279,11 @@ extends ParseNodeDescriptor
 		assert bundle.isInstanceOfKind(Types.MESSAGE_BUNDLE.o());
 		assert argsListNode.parseNodeKindIsUnder(LIST_NODE);
 		final AvailObject newObject = mutable.create();
+		newObject.setSlot(TOKENS, tokens);
 		newObject.setSlot(ARGUMENTS_LIST_NODE, argsListNode);
 		newObject.setSlot(BUNDLE, bundle);
 		newObject.setSlot(RETURN_TYPE, returnType);
-		newObject.makeShared();
-		return newObject;
+		return newObject.makeShared();
 	}
 
 	/**

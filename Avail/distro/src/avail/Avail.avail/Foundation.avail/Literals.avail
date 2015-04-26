@@ -50,6 +50,7 @@ Uses
 	"Early Math",
 	"Early Variables",
 	"Enumeration Support",
+	"Macro Support",
 	"Phrases"
 Names
 	"{«_→_‡,»}",
@@ -1031,17 +1032,11 @@ Public macro "…#.…#«f»?" is
 	fractionalPart : literal phrase ⇒ (literal token ⇒ whole number),
 	isFloatPhrase : literal phrase ⇒ boolean
 |
+	Require: macro send has no internal whitespace
+		("floating-point literal not to contain whitespace");
 	integerToken ::= integerPart's token's value;
 	fractionalToken ::= fractionalPart's token's value;
 	isFloat ::= isFloatPhrase's token's value;
-	If integerToken's trailing whitespace ≠ ""
-		∨ fractionalToken's leading whitespace ≠ ""
-		∨ (isFloat ∧ fractionalToken's trailing whitespace ≠ "")
-	then
-	[
-		Reject parse, expected:
-			"floating-point literal not to contain whitespace"
-	];
 	d ::= a double from
 		integer = integerToken,
 		fraction = fractionalToken,
@@ -1066,6 +1061,8 @@ Public macro "…#.…#…" is
 	fractionalPart : literal phrase ⇒ (literal token ⇒ whole number),
 	exponentPart : literal phrase ⇒ token
 |
+	Require: macro send has no internal whitespace
+		("floating-point literal not to contain whitespace");
 	rejectMessage ::=
 		"exponent to comprise e or E followed by one or more digits";
 	integerToken ::= integerPart's token's value;
@@ -1081,14 +1078,6 @@ Public macro "…#.…#…" is
 	If |exponentString| = 0 then
 	[
 		Reject parse, expected: rejectMessage
-	];
-	If integerToken's trailing whitespace ≠ ""
-		∨ fractionalToken's leading whitespace ≠ ""
-		∨ exponentToken's leading whitespace ≠ ""
-	then
-	[
-		Reject parse, expected:
-			"floating-point literal not to contain whitespace"
 	];
 	exponent : extended integer := 0;
 	isFloat : boolean := false;
@@ -1151,6 +1140,8 @@ Public macro "…#.…#e|E«+|-»!…#«f»?" is
 	exponentPart : literal phrase ⇒ (literal token ⇒ integer),
 	isFloatPhrase : literal phrase ⇒ boolean
 |
+	Require: macro send has no internal whitespace
+		("floating-point literal not to contain whitespace");
 	integerToken ::= integerPart's token's value;
 	fractionalToken ::= fractionalPart's token's value;
 	exponentToken ::= exponentPart's token;
@@ -1158,16 +1149,6 @@ Public macro "…#.…#e|E«+|-»!…#«f»?" is
 	exponent ::= cast exponentToken's value's value × <1, 0 - 1>[sign]
 		into [t : integer | t];
 	isFloat ::= isFloatPhrase's token's value;
-	If integerToken's trailing whitespace ≠ ""
-		∨ fractionalToken's leading whitespace ≠ ""
-		∨ fractionalToken's trailing whitespace ≠ ""
-		∨ exponentToken's leading whitespace ≠ ""
-		∨ (isFloat ∧ exponentToken's trailing whitespace ≠ "")
-	then
-	[
-		Reject parse, expected:
-			"floating-point literal not to contain whitespace"
-	];
 	syntheticExponentToken ::= `exponent`;
 	d ::= a double from
 		integer = integerToken,

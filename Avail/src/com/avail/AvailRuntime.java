@@ -1503,7 +1503,7 @@ public final class AvailRuntime
 		specials[142] = SUPER_CAST_NODE.mostGeneralType();
 		specials[143] = AtomDescriptor.clientDataGlobalKey();
 		specials[144] = AtomDescriptor.compilerScopeMapKey();
-		specials[145] = AtomDescriptor.usedTokensKey();
+		specials[145] = AtomDescriptor.allTokensKey();
 
 		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
 		// depends on the order of this list.
@@ -1526,7 +1526,7 @@ public final class AvailRuntime
 			MethodDescriptor.vmDeclareStringifierAtom(),
 			AtomDescriptor.clientDataGlobalKey(),
 			AtomDescriptor.compilerScopeMapKey(),
-			AtomDescriptor.usedTokensKey()));
+			AtomDescriptor.allTokensKey()));
 
 		for (final A_Atom atom : specialAtomsList)
 		{

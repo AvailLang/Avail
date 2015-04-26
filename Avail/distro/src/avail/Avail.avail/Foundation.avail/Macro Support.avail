@@ -34,7 +34,11 @@ Module "Macro Support"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Extends
-	"Early Macro Support",
+	"Early Macro Support" =
+	(
+		-"private concatenate_",
+		…
+	),
 	"Phrases"
 Uses
 	"Bootstrap",
@@ -42,12 +46,41 @@ Uses
 	"Early Conditionals",
 	"Early Control Structures",
 	"Early Literals",
-	"Early Maps",
-	"Early Tuples"
+	"Early Logic",
+	"Early Macro Support",
+	"Early Math"
 Names
 	"Declare loop variable_as_",
-	"strengthen_for call of_using_"
+	"Require:macro send has no internal whitespace(_)",
+	"strengthen_for call of_using_",
+	"_has|have internal whitespace"
 Body
+
+/**
+ * Does the {@type "tuple"} of {@type "token"}s contain internal whitespace?
+ *
+ * @method "_has|have internal whitespace"
+ * @param "tokens" "token*"
+ * @return "boolean"
+ *         {@method "true"} if {@param "tokens"} have internal whitespace,
+ *         {@method "false"} otherwise.
+ */
+Public method "_has|have internal whitespace" is
+[
+	tokens : <<>, token… | whole number>
+|
+	$body : boolean;
+	limit ::= 0 max (|tokens| - 1);
+	From 1 to limit do
+	[
+		index : natural number
+	|
+		aToken ::= cast tokens[index] into [t : token | t];
+		If aToken's trailing whitespace ≠ "" then [Exit body with true];
+		true
+	];
+	false
+] : boolean;
 
 /*
  * This is a bootstrap function invoker, needed by "Declare loop variable_as_" 
@@ -67,7 +100,36 @@ Semantic restriction "private invoke_with_" is
 	functionType : function meta,
 	argumentsType : tuple meta
 |
-	any's type
+	functionType's return type
+];
+
+Private method "Require:macro send has no internal whitespace_" is
+[
+	message : function accepting <> and returning string
+|
+	If constituent tokens has internal whitespace then
+	[
+		Reject parse, expected: private invoke message with <>
+	];
+] : ⊤;
+
+noWhitespace ::= atom for "Require:macro send has no internal whitespace_";
+
+/**
+ * Reject the current parse if the enclosing macro send contains internal
+ * whitespace.
+ *
+ * @macro "Require:macro send has no internal whitespace(_)"
+ * @param "message" "expression phrase ⇒ string"
+ *        The message to report as the parse rejection. It is only evaluated
+ *        if the parse is rejected.
+ * @returns "send phrase ⇒ string"
+ */
+Public macro "Require:macro send has no internal whitespace(_)" is
+[
+	message : expression phrase ⇒ string
+|
+	restricted send noWhitespace with <«[<> | <message>] : string»> : ⊤
 ];
 
 /**
@@ -90,7 +152,8 @@ Public method "Declare loop variable_as_" is
 	Require: "loop variable" named varName does not shadow;
 	varType ::= private invoke varTypeFunction with <>;
 	varDecl ::= arg «varToken : varType»;
-	scope map := scope map + varName → varDecl;
+	scope map := cast scope map + varName → varDecl into
+		[t : {nonempty string → declaration phrase ⇒ ⊤ | natural number} | t];
 ];
 
 /**
@@ -101,32 +164,30 @@ Public method "Declare loop variable_as_" is
  * @method "strengthen_for call of_using_"
  * @category "Macros"
  * @param "baseReturnType" "type" the base return type of the method
- * @param "anAtom" "atom" the atom that represents the function that is 
- * 	strengthened
- * @param "inputTypes" "<any's type…|>" a tuple of the input types of the method
+ * @param "anAtom" "atom"
+ *        The atom that represents the function that is strengthened.
+ * @param "inputTypes" "<any's type…|>"
+ *        A tuple of the input types of the method.
  * @returns "type"
- *		the strengthened type
+ *          The strengthened type.
  */
-	
 Public method "strengthen_for call of_using_" is
 [
 	baseReturnType : type,
 	anAtom : atom,
-	inputTypes : any's type+
+	inputTypes : <<>, any's type… | natural number>
 |
 	returnType : type := baseReturnType;
-
-	restrictions ::= semantic restrictions for (method for anAtom)
-		given inputTypes;
-	
+	restrictions ::=
+		semantic restrictions for (method for anAtom) given inputTypes;
 	From 1 to |restrictions| do
 	[
 		index : natural number
 	|
-		returnType := returnType
-			∩ invoke restrictions[index] with inputTypes;
+		func ::= cast restrictions[index] into [t : […]→type | t];
+		result ::= private invoke func with inputTypes;
+		returnType := returnType ∩ result;
 		true
 	];
 	returnType
- ]:type;
-
+] : type;

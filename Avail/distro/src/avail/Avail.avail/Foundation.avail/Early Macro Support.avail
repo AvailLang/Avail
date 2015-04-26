@@ -47,8 +47,14 @@ Names
 	"scope map",
 	"scope map:=_",
 
+	/* Access to the constituent tokens. */
+	"constituent tokens",
+
 	/* Shadowing. */
-	"Require:_named_does not shadow"
+	"Require:_named_does not shadow",
+
+	/* Private for "Macro Support". */
+	"private concatenate_"
 Body
 
 /**
@@ -118,6 +124,24 @@ Method "scope map:=_" is
 |
 	parseMap ::= parse map + scope map key → aMap;
 	current fiber[parse map key] := parseMap;
+];
+
+/**
+ * Answer the constituent tokens that comprise the current macro send. This is
+ * available only to macro definitions and their prefix functions.
+ *
+ * @method "constituent tokens"
+ * @returns "token+"
+ * @category "Macros"
+ */
+Method "constituent tokens" is
+[
+	parse map[all tokens key]
+];
+
+Semantic restriction "constituent tokens" is
+[
+	<<>, token… | natural number>
 ];
 
 Method "private concatenate_" is
