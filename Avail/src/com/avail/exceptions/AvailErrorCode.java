@@ -145,6 +145,8 @@ public enum AvailErrorCode
 	 */
 	E_OPERATION_NOT_SUPPORTED (15),
 
+//	E_??? (16),
+
 	/**
 	 * The specified type is not a finite {@linkplain EnumerationTypeDescriptor
 	 * enumeration} of values.
