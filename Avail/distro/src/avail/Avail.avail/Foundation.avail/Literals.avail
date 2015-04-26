@@ -50,6 +50,7 @@ Uses
 	"Early Math",
 	"Early Variables",
 	"Enumeration Support",
+	"Macro Support",
 	"Phrases"
 Names
 	"{«_→_‡,»}",
@@ -1031,6 +1032,8 @@ Public macro "…#.…#«f»?" is
 	fractionalPart : literal phrase ⇒ (literal token ⇒ whole number),
 	isFloatPhrase : literal phrase ⇒ boolean
 |
+	Require: macro send has no internal whitespace
+		("floating-point literal not to contain whitespace");
 	integerToken ::= integerPart's token's value;
 	fractionalToken ::= fractionalPart's token's value;
 	isFloat ::= isFloatPhrase's token's value;
@@ -1058,11 +1061,14 @@ Public macro "…#.…#…" is
 	fractionalPart : literal phrase ⇒ (literal token ⇒ whole number),
 	exponentPart : literal phrase ⇒ token
 |
+	Require: macro send has no internal whitespace
+		("floating-point literal not to contain whitespace");
 	rejectMessage ::=
 		"exponent to comprise e or E followed by one or more digits";
 	integerToken ::= integerPart's token's value;
 	fractionalToken ::= fractionalPart's token's value;
-	exponentString : string := exponentPart's token's lexeme;
+	exponentToken ::= exponentPart's token;
+	exponentString : string := exponentToken's lexeme;
 	If ¬exponentString[1] ∈ {¢e, ¢E} then
 	[
 		Reject parse, expected: rejectMessage
@@ -1106,11 +1112,11 @@ Public macro "…#.…#…" is
 		];
 		true
 	];
-	exponentToken ::= `cast exponent into [t : whole number | t]`;
+	syntheticExponentToken ::= `cast exponent into [t : whole number | t]`;
 	d ::= a double from
 		integer = integerToken,
 		fraction = fractionalToken,
-		exponent = exponentToken;
+		exponent = syntheticExponentToken;
 	‘`if isFloat then [d→float] else [d]`’
 ];
 
@@ -1134,17 +1140,19 @@ Public macro "…#.…#e|E«+|-»!…#«f»?" is
 	exponentPart : literal phrase ⇒ (literal token ⇒ integer),
 	isFloatPhrase : literal phrase ⇒ boolean
 |
-/*TODO RAA _'s⁇leading white space _'s⁇trailing white space called on a token*/
+	Require: macro send has no internal whitespace
+		("floating-point literal not to contain whitespace");
 	integerToken ::= integerPart's token's value;
 	fractionalToken ::= fractionalPart's token's value;
+	exponentToken ::= exponentPart's token;
 	sign ::= signPart's token's value;
-	exponent ::= cast exponentPart's token's value's value × <1, 0 - 1>[sign]
+	exponent ::= cast exponentToken's value's value × <1, 0 - 1>[sign]
 		into [t : integer | t];
-	exponentToken ::= `exponent`;
 	isFloat ::= isFloatPhrase's token's value;
+	syntheticExponentToken ::= `exponent`;
 	d ::= a double from
 		integer = integerToken,
 		fraction = fractionalToken,
-		exponent = exponentToken;
+		exponent = syntheticExponentToken;
 	‘`if isFloat then [d→float] else [d]`’
 ];

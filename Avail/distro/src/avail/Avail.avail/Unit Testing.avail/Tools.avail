@@ -147,7 +147,7 @@ Private method "Require:__" is
 /**
  * Require that the specified predicate is {@method "true"}.
  *
- * @method "Require:_(_)"
+ * @macro "Require:_(_)"
  * @param "predicate" "expression phrase ⇒ boolean"
  *        A predicate that must be {@method "true"}.
  * @param "message" "expression phrase ⇒ string"
@@ -235,7 +235,7 @@ Private method "Require:_=__" is
 /**
  * Require that the arguments are equal.
  *
- * @method "Require:_=_(_)"
+ * @macro "Require:_=_(_)"
  * @param "actual" "expression phrase ⇒ any"
  * @param "expected" "expression phrase ⇒ any"
  * @param "message" "expression phrase ⇒ string"
@@ -339,7 +339,7 @@ Private method "Require:_raises__" is
  * Require that the {@param "aFunction"} raises an exception of type
  * {@param "exceptionType"} when applied.
  *
- * @method "Require:_raises_(_)"
+ * @macro "Require:_raises_(_)"
  * @param "aFunction" "expression phrase ⇒ []→⊤"
  * @param "exceptionType" "expression phrase ⇒ (exception's type)"
  * @param "message" "expression phrase ⇒ string"
@@ -417,7 +417,7 @@ Private method "Require if supported«on this platform»⁇:__" is
  * Require that {@param "aFunction"} answers {@method "true"} or raises an
  * {@type "unsupported-operation exception"}.
  *
- * @method "Require if supported«on this platform»⁇:_(_)"
+ * @macro "Require if supported«on this platform»⁇:_(_)"
  * @param "aFunction" "expression phrase ⇒ []→boolean"
  * @param "message" "expression phrase ⇒ string"
  *        Additional information that should be attached to the exception in the
@@ -444,7 +444,7 @@ Public macro "Require if supported«on this platform»⁇:_(_)" is
  * subtype of either {@param "exceptionType"} or {@type
  * "unsupported-operation exception"}.
  *
- * @method "Require if supported«on this platform»⁇:_raises_"
+ * @macro "Require if supported«on this platform»⁇:_raises_"
  * @param "aFunction" "[]→boolean"
  * @param "exceptionType" "exception's type"
  * @returns "⊤"

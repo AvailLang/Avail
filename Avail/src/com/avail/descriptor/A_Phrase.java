@@ -365,4 +365,12 @@ extends A_BasicObject
 	 * @return The original send phrase of this macro substitution.
 	 */
 	A_Phrase macroOriginalSendNode ();
+
+	/**
+	 * Answer the {@linkplain A_Token tuple} of {@linkplain A_Token tokens} that
+	 * comprise the {@linkplain SendNodeDescriptor send phrase}.
+	 *
+	 * @return The requested {@linkplain A_Token tokens}.
+	 */
+	A_Tuple tokens ();
 }

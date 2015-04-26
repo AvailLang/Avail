@@ -4129,32 +4129,31 @@ Semantic restriction "_[_.._]else_" is
 	end : integer's type,
 	else : (function accepting <> and returning any)'s type
 |
-	if ⎣start⎦- 1 > ⎡tupleType⎤
+	if
+		⎣start⎦ - 1 > ⎡tupleType⎤
 		∨ ⎡start⎤ < 1
 		∨ ⎣end⎦ > ⎡tupleType⎤
 		∨ ⎡end⎤ < 0
-		∨ ⎣start⎦- 1 > ⎡end⎤ then
+		∨ ⎣start⎦ - 1 > ⎡end⎤
+	then
 	[
-		else's return type
+		Reject parse, expected: "slice to ever be valid"
+	]
+	else if
+		⎣start⎦ ≥ 1
+		∧ ⎣end⎦ ≥ 0
+		∧ ⎡start⎤ ≤ ⎣tupleType⎦
+		∧ ⎡end⎤ ≤ ⎣tupleType⎦
+	then
+	[
+		Reject parse, expected:
+			"alternative block to be necessary, but the slice is guaranteed \
+			\|to be valid"
 	]
 	else
 	[
-		min ::= ⎣start⎦ max 1;
-		max ::= cast ⎡end⎤ min (|tupleType's leading types| + 1)
-			into [t : whole number | t];
-		if min - 1 = max then [ <>'s type]
-		else 
-		[
-			union ::= tuple type of tupleType[min's type..max's type];
-			if [min..max] ⊆ [1..⎣tupleType⎦] then
-			[
-				union
-			]
-			else
-			[
-				union ∪ else's return type
-			]
-		]
+		tuple type of tupleType[start ∩ natural number..end ∩ whole number]
+			∪ else's return type
 	]
 ];
 
@@ -4198,24 +4197,24 @@ Semantic restriction "_[.._]else_" is
 	end : integer's type,
 	else : (function accepting <> and returning any)'s type
 |
-	if ⎣end⎦ > ⎡tupleType⎤ ∨ ⎡end⎤ < 0 then [else's return type]
+	if ⎣end⎦ > ⎡tupleType⎤ ∨ ⎡end⎤ < 0 then
+	[
+		Reject parse, expected: "slice to ever be valid"
+	]
+	else if
+		⎣end⎦ ≥ 0
+		∧ 1 ≤ ⎣tupleType⎦
+		∧ ⎡end⎤ ≤ ⎣tupleType⎦
+	then
+	[
+		Reject parse, expected:
+			"alternative block to be necessary, but the slice is guaranteed \
+			\|to be valid"
+	]
 	else
 	[
-		max ::= cast ⎡end⎤ min (|tupleType's leading types| + 1)
-			into [t : whole number | t];
-		if max = 0 then [ <>'s type]
-		else 
-		[
-			union ::= tuple type of tupleType[1's type..max's type];
-			if [1..max] ⊆ [1..⎣tupleType⎦] then
-			[
-				union
-			]
-			else
-			[
-				union ∪ else's return type
-			]
-		]
+		tuple type of tupleType[1's type..end ∩ whole number]
+			∪ else's return type
 	]
 ];
 
@@ -4259,25 +4258,29 @@ Semantic restriction "_[_..]else_" is
 	start : integer's type,
 	else : (function accepting <> and returning any)'s type
 |
-	if ⎣start⎦ - 1 > ⎡tupleType⎤ ∨ ⎡start⎤ < 1 then [else's return type]
+	end ::= ||tupleType||;
+	if
+		⎣start⎦ - 1 > ⎡tupleType⎤
+		∨ ⎡start⎤ < 1
+		∨ ⎣start⎦ - 1 > ⎡end⎤
+	then
+	[
+		Reject parse, expected: "slice to ever be valid"
+	]
+	else if
+		⎣start⎦ ≥ 1
+		∧ ⎡start⎤ ≤ ⎣tupleType⎦
+		∧ ⎡end⎤ ≤ ⎣tupleType⎦
+	then
+	[
+		Reject parse, expected:
+			"alternative block to be necessary, but the slice is guaranteed \
+			\|to be valid"
+	]
 	else
 	[
-		min ::= ⎣start⎦ max 1;
-		max ::= cast ⎡tupleType⎤
-			into [t : whole number | t];
-		if min - 1 = max then [ <>'s type]
-		else 
-		[
-			union ::= tuple type of tupleType[min's type..max's type];
-			if [min..max] ⊆ [1..⎣tupleType⎦] then
-			[
-				union
-			]
-			else
-			[
-				union ∪ else's return type
-			]
-		]
+		tuple type of tupleType[start ∩ natural number..end ∩ whole number]
+			∪ else's return type
 	]
 ];
 

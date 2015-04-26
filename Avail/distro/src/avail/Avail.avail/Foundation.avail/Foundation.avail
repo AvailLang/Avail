@@ -860,12 +860,15 @@ Extends
 	"Macro Support" =
 	(
 		"Declare loop variable_as_",
+		"Require:macro send has no internal whitespace(_)",
 		"Require:_named_does not shadow",
+		"constituent tokens",
 		"parse map",
 		"parse map:=_",
 		"scope map",
 		"scope map:=_",
-		"strengthen_for call of_using_"
+		"strengthen_for call of_using_",
+		"_has|have internal whitespace"
 	),
 	"Maps" =
 	(
