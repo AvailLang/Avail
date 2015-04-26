@@ -267,7 +267,7 @@ Private stable method "format sites for_" is
  *
  * For example:
  * 
- *    Assert:
+ *    {@code Assert:
  *        partially format "‘greeting’, ‘recipient’!\n"
  *            with {"greeting"→"Hello"}
  *        = "Hello, ‘recipient’!\n";
@@ -276,7 +276,7 @@ Private stable method "format sites for_" is
  *            (partially format "‘greeting’, ‘recipient’!\n"
  *                with {"greeting"→"Hello"})
  *            with {"recipient"→"world"}
- *       = "Hello, world!\n";
+ *       = "Hello, world!\n";}
  *
  * @method "partially format_with_"
  * @param "template" "string"
@@ -391,10 +391,10 @@ Semantic restriction "partially format_with_" is
  *
  * For example:
  * 
- *    Assert:
+ *    {@code Assert:
  *        format "‘greeting’, ‘recipient’!\n"
  *            with {"greeting"→"Hello", "recipient"→"world"}
- *        = "Hello, world!\n";
+ *        = "Hello, world!\n";}
  *
  * @method "format_with_"
  * @param "template" "string"
@@ -515,7 +515,7 @@ Private method "format variable for_" is
  *
  * For example:
  * 
- *    Assert:
+ *    {@code Assert:
  *        (partially format "‘greeting’, ‘recipient’!\n"
  *            with greeting ::= "Hello")
  *        = "Hello, “recipient”!\n";
@@ -524,7 +524,7 @@ Private method "format variable for_" is
  *            (partially format "‘greeting’, ‘recipient’!\n"
  *                with greeting ::= "Hello")
  *            with recipient ::= "world")
- *        = "Hello, world!\n";
+ *        = "Hello, world!\n";}
  *
  * The semantic restriction ensures that every lexically specified binding
  * corresponds to a format variable embedded within the template.
@@ -619,10 +619,10 @@ Semantic restriction "partially format_with«…::=_‡,»" is
  *
  * For example:
  * 
- *    Assert:
+ *    {@code Assert:
  *        (format "‘greeting’, ‘recipient’!\n"
  *            with "greeting" ::= "Hello", "recipient" ::= "world")
- *        = "Hello, world!\n";
+ *        = "Hello, world!\n";}
  *
  * @method "format_with«…!::=_‡,»"
  * @param "template" "string"
@@ -722,9 +722,9 @@ Semantic restriction "format_with«…!::=_‡,»" is
  *
  * For example:
  * 
- *    Assert:
+ *    {@code Assert:
  *        format "‘①’, ‘②’!\n" with unchecked <"Hello", "world">
- *        = "Hello, world!\n";
+ *        = "Hello, world!\n";}
  *
  * @method "format_with unchecked_"
  * @param "template" "string"
@@ -826,9 +826,9 @@ Semantic restriction "format_with unchecked_" is
  *
  * For example:
  * 
- *    Assert:
+ *    {@code Assert:
  *        format "‘①’, ‘②’!\n" with "Hello", "world"
- *        = "Hello, world!\n";
+ *        = "Hello, world!\n";}
  *
  * @method "format_with«_‡,»"
  * @param "template" "string"
@@ -1872,9 +1872,9 @@ Semantic restriction "“_”(hex)" is
 /**
  * Render the supplied {@type "UUID"} as a hexadecimal textual representation.
  *
- * @method "“_”(hex)"
- * @param "bytes" "byte*"
- * @returns "string"
+ * @method "“_”(UUID)"
+ * @param "uuid" "UUID"
+ * @returns "nonempty string"
  * @category "Tuples" "Strings" "Transformers"
  */
 Public stable method "“_”(UUID)" is
