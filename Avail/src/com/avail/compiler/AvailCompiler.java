@@ -1458,20 +1458,6 @@ public final class AvailCompiler
 		}
 
 		/**
-		 * Construct a new {@link Con}, sharing the same {@link
-		 * PartialSubexpressionList superexpressions list} as the given Con.
-		 *
-		 * @param previousContinuation
-		 *        A {@link Con} containing the same enclosing partially-parsed
-		 *        expressions.
-		 */
-		Con (
-			final Con<AnswerType> previousContinuation)
-		{
-			super(previousContinuation.superexpressions);
-		}
-
-		/**
 		 * The method that will be invoked when a value has been produced.
 		 * Neither the value nor the ParserState may be null.
 		 *
@@ -1612,11 +1598,18 @@ public final class AvailCompiler
 				// The counters must be read in this order for correctness.
 				final long completed = workUnitsCompleted.get();
 				assert completed == workUnitsQueued.get();
+				if (pollForAbort.value())
+				{
+					// We may have been asked to abort subtasks by a failure in
+					// another module, so we can't trust the count of solutions.
+					afterFail.value();
+					return;
+				}
 				// Ambiguity is detected and reported during the parse, and
 				// should never be identified here.
 				if (count.value == 0)
 				{
-					// No solutions were found.  Report an error.
+					// No solutions were found.  Report the problems.
 					reportError(afterFail);
 					return;
 				}
@@ -4773,7 +4766,7 @@ public final class AvailCompiler
 					marksSoFar,
 					initialTokenPosition,
 					successorTrees,
-					new Con<A_Phrase>(continuation)
+					new Con<A_Phrase>(continuation.superexpressions)
 					{
 						@Override
 						public void valueNotNull(
@@ -8027,7 +8020,8 @@ public final class AvailCompiler
 					final Continuation1<String> withDescription)
 				{
 					final StringBuilder builder = new StringBuilder();
-					builder.append("a simple expression for this reason:");
+					builder.append(
+						"a simple expression for (at least) this reason:");
 					describeOn(continuation.superexpressions, builder);
 					withDescription.value(builder.toString());
 				}

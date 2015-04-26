@@ -54,9 +54,10 @@ Uses
 	"Types",
 	"Variables"
 Names
-	"_bits of_",
+	"_→_bytes",
 	"an integer from_",
 	"an unsigned integer from_",
+	"low_bits of_",
 
 	/* Compound assignment. */
 	"_↑+=_", "_+=_",
@@ -549,41 +550,99 @@ Grammatical restriction
 } is <{"`↑_↑"}, ∅>;
 
 /**
- * Render a 2's complement integer as bytes in network byte order.
- *
- * @method "Write_bits of_to_"
+ * Return the N low order bits of this number.  All bits beyond the Nth will be
+ * zero, so the result is always positive.
+ * 
+ * @method "low_bits of_"
  * @param "bits" "whole number"
- *        The number of bits to render. This must be a multiple of
- *        <code>8</code>.
+ *        The number of low-order bits to extract.
  * @param "anInteger" "integer"
  *        The {@type "integer"} to encode. It must not overflow the specified
  *        number of bits.
- * @returns "⊤"
+ * @returns "whole number"
  * @category "Mathematics" "Numbers" "Bits"
  */
-Public stable method "_bits of_" is
+Public stable method "low_bits of_" is
 [
 	bits : whole number,
 	anInteger : integer
 |
-	Assert: bits bit∧ 7 = 0 ("bits must be multiple of 8");
-	Assert: anInteger >> bits ∈ {0, -1} ("anInteger to be constrained by bits");
+	anInteger bit∧ ((1 << bits) - 1)
+] : whole number;
+
+/**
+ * Narrow this operation by analyzing the ranges of values.
+ * 
+ * @method "low_bits of_"
+ * @restricts "whole number's type"
+ * @restricts "integer's type"
+ */
+Semantic restriction "low_bits of_" is
+[
+	bitsType : whole number's type,
+	integerType : integer's type
+|
+	max ::= cast ⎡bitsType⎤
+		into [maxBits : whole number | (1 << maxBits) - 1] else [∞];
+	if ⎣integerType⎦ < 0 then
+	[
+		/* It includes negatives, so let's assume pretty much any result is
+		 * possible.
+		 */
+		[0 .. max + 1)
+	]
+	else if max = ∞ then
+	[
+		/* Number of output bits may be arbitrarily large. */
+		integerType
+	]
+	else if ⎡integerType⎤ ≤ max then
+	[
+		/* It falls within the range, so no truncation can happen. */
+		integerType
+	]
+	else
+	[
+		[0 .. max)
+	]
+];
+
+/**
+ * Render a 2's complement integer as bytes in network byte order (Big Endian).
+ *
+ * @method "_→_bytes"
+ * @param "anInteger" "integer"
+ *        The {@type "integer"} to encode. It must not overflow the specified
+ *        number of bits, although for signed/unsigned convenience it may range
+ *        from -2^(b-1) to 2^b-1.  For example, if 1 byte is requested,
+ *        anInteger may be anywhere from -128 to 255.
+ * @param "byteCount" "whole number"
+ *        The number of bytes to output.
+ * @returns "byte*"
+ * @category "Mathematics" "Numbers" "Bits"
+ */
+Public stable method "_→_bytes" is
+[
+	anInteger : integer,
+	byteCount : whole number
+|
 	bytes : byte* := <>;
 	residue : integer := anInteger;
 	Repeat
 	[
 		bytes := <residue bit∧ 255> ++ eject bytes;
 		residue := eject residue >> 8;
-	] bits ÷ 8 times;
+	] byteCount times;
+	Assert: residue ∈ {0, -1} ("anInteger to be constrained by byteCount");
 	bytes
 ] : byte*;
 
-Semantic restriction "_bits of_" is
+Semantic restriction "_→_bytes" is
 [
-	bitsType : whole number's type,
-	integerType : integer's type
+	anInteger : integer's type,
+	byteCount : whole number's type
 |
-	if ⎣bitsType⎦ > 0 then [byte+] else [⊤]
+	<<>, byte…|byteCount>
 ];
 
 /**
@@ -621,14 +680,7 @@ Public stable method "an unsigned integer from_" is
 [
 	bytes : byte+
 |
-	value : integer := 0;
-	For each b of bytes do [value := (eject value << 8) bit∨ b;];
+	value : whole number := 0;
+	For each b of bytes do [value := (eject value << 8) + b;];
 	value
-];
-
-Semantic restriction "an unsigned integer from_" is
-[
-	bytes : byte+'s type
-|
-	whole number
-];
+] : whole number;
