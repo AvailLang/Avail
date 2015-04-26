@@ -626,56 +626,56 @@ Public macro "Guard|guard_«intercept_»«ensure_»" is
 	handlers ::= handlersPhrase's expressions;
 	optionalUnwind ::= optionalUnwindPhrase's expressions;
 	unwind ::= optionalUnwind[1] else [«[<>] : ⊤»];
-	realHandlers ::=
-		if handlers is empty then
+	catchAll ::=
 		[
-			/* If only an unwind handler was provided, then synthesize a
-			 * catch-all exception handler.
-			 */
 			outerArg ::= arg «`"e"` : exception»;
 			innerArg ::= arg «`"ex"` : exception»;
-			«<
-				«[
-					<outerArg>
-				|
-					<
-						send $"Handle_with_and_" with
-						«<
-							«↓outerArg»,
-							«[
-								<innerArg>
-							|
-								<send $"Raise_" with «<«↓innerArg»>» : ⊥>
-							] : ⊥»,
-							unwind
-						>» : ⊥
-					>
-				] : ⊥»
-			>»
-		]
-		else
-		[
-			/* Otherwise, wrap each of the handlers. The wrapper will call the
-			 * user-supplied exception handler and then the unwind handler.
-			 */
-			map each handler in handlers through
-			[
-				handlerType ::= handler's semantic type;
-				arg ::= arg «`"originalException"` : handlerType[1]»;
-				«[
-					<arg>
-				|
-					<
-						send $"Handle_with_and_" with
-						«<
-							«↓arg»,
-							handler,
-							unwind
-						>» : handlerType's return type
-					>
-				] : handlerType's return type»
-			] → list phrase
+			«[
+				<outerArg>
+			|
+				<
+					send $"Handle_with_and_" with
+					«<
+						«↓outerArg»,
+						«[
+							<innerArg>
+						|
+							<send $"Raise_" with «<«↓innerArg»>» : ⊥>
+						] : ⊥»,
+						unwind
+					>» : ⊥
+				>
+			] : ⊥»
 		];
+	/* Wrap each of the handlers. The wrapper will call the user-supplied
+	 * exception handler and then the unwind handler. If the user did not supply
+	 * a catch-all, then we need to synthesize one to make sure that the ensure
+	 * mechanism always works.
+	 */
+	needCatchAll : boolean := true;
+	wrappedHandlers ::=
+		map each handler in handlers through
+		[
+			handlerType ::= handler's semantic type;
+			argType ::= handlerType[1];
+			If argType = exception then [needCatchAll := false;];
+			arg ::= arg «`"originalException"` : argType»;
+			«[
+				<arg>
+			|
+				<
+					send $"Handle_with_and_" with
+					«<
+						«↓arg»,
+						handler,
+						unwind
+					>» : handlerType's return type
+				>
+			] : handlerType's return type»
+		];
+	realHandlers ::=
+		(wrappedHandlers ++ if needCatchAll then [<catchAll()>] else [<>])
+			→ list phrase;
 	/* TODO: [TLS/MvG] Once semantic restrictions are enforcing their return
 	 * types on the sends produced by macros, then it should be possible to
 	 * remove this send phrase construction, and change the use of
