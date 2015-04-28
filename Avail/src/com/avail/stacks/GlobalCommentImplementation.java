@@ -35,6 +35,7 @@ package com.avail.stacks;
 import java.util.ArrayList;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A module global variable comment
@@ -126,5 +127,15 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 		final A_String name, final StacksImportModule importModule)
 	{
 		//Do nothing as globals will never be defined outside of its module.
+	}
+
+	@Override
+	public void toJSON (
+		final LinkingFileMap linkingFileMap,
+		final String nameOfGroup,
+		final StacksErrorLog errorLog,
+		final JSONWriter jsonWriter)
+	{
+		//DO NOTHING AS GLOBALS AREN'T WRITEN TO DOCUMENTATION
 	}
 }

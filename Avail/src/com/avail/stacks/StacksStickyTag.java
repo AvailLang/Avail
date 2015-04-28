@@ -32,9 +32,12 @@
 
 package com.avail.stacks;
 
+import com.avail.utility.json.JSONWriter;
+
 /**
  * A tag that indicates that a method/type not externally available should still
- * output the associated documentation
+ * output the associated documentation.  The tag is only structural and will
+ * have no direct output into the file.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
@@ -56,6 +59,18 @@ public class StacksStickyTag extends AbstractStacksTag
 		final int position)
 	{
 		return "";
+	}
+
+	@Override
+	public void toJSON (
+		final LinkingFileMap linkingFileMap,
+		final int hashID,
+		final StacksErrorLog errorLog,
+		final int position,
+		final JSONWriter jsonWriter)
+	{
+		// TODO Auto-generated method stub
+
 	}
 
 }

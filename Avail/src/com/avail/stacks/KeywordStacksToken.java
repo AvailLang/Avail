@@ -131,7 +131,7 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 		},
 
 		/**
-		 * The link keyword creates an external web link.
+		 * This is an inline keyword.  It does not get a top level tag.
 		 */
 		CODE("@code")
 		{

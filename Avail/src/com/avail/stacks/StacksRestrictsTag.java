@@ -32,6 +32,8 @@
 
 package com.avail.stacks;
 
+import com.avail.utility.json.JSONWriter;
+
 /**
  * The "@restricts" tag in an Avail comment that represents the meta type of an
  * Avail method's paramater's type as used in a semantic restriction.
@@ -84,7 +86,7 @@ public class StacksRestrictsTag extends AbstractStacksTag
 
 	@Override
 	public String toHTML (final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, int position)
+		final int hashID, final StacksErrorLog errorLog, final int position)
 	{
 		final StringBuilder paramTypeBuilder = new StringBuilder();
 		if (htmlFileMap.internalLinks().containsKey(paramMetaType.lexeme()))
@@ -124,4 +126,27 @@ public class StacksRestrictsTag extends AbstractStacksTag
 
 		return stringBuilder.toString();
 	}
+
+	@Override
+	public void toJSON (
+		final LinkingFileMap linkingFileMap,
+		final int hashID,
+		final StacksErrorLog errorLog,
+		final int position,
+		final JSONWriter jsonWriter)
+	{
+		jsonWriter.startObject();
+		jsonWriter.write("description");
+		description
+			.toJSON(linkingFileMap, hashID, errorLog, jsonWriter);
+		jsonWriter.write("typeInfo");
+		jsonWriter.startArray();
+			jsonWriter.write(
+				paramMetaType
+					.toJSON(linkingFileMap, hashID, errorLog, jsonWriter));
+			jsonWriter.write(
+				linkingFileMap.internalLinks().get(paramMetaType.lexeme()));
+		jsonWriter.endArray();
+	jsonWriter.endObject();
+}
 }

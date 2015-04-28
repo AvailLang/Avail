@@ -33,6 +33,7 @@
 package com.avail.stacks;
 
 import java.util.ArrayList;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * The "@forbids" tag in an Avail Class comment.
@@ -93,8 +94,8 @@ public class StacksForbidsTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML (final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, int position)
+	public String toHTML (final LinkingFileMap linkingFileMap,
+		final int hashID, final StacksErrorLog errorLog, final int position)
 	{
 		final int rowSize = forbidMethods.size();
 		final StringBuilder stringBuilder = new StringBuilder()
@@ -103,13 +104,13 @@ public class StacksForbidsTag extends AbstractStacksTag
 					.tagClass(HTMLClass.classStacks, HTMLClass.classGCode)
 				+ " rowspan=\"")
 			.append(rowSize).append("\">Argument ")
-			.append(arityIndex.toHTML(htmlFileMap, hashID, errorLog))
+			.append(arityIndex.toHTML(linkingFileMap, hashID, errorLog))
 			.append("</td>\n")
 			.append(tabs(5) + "<td "
 				+ HTMLBuilder
 					.tagClass(HTMLClass.classStacks, HTMLClass.classGCode)
 				+ ">")
-			.append(toHTMLLink(htmlFileMap,forbidMethods.get(0).lexeme))
+			.append(toHTMLLink(linkingFileMap,forbidMethods.get(0).lexeme))
 			.append("</td>\n")
 			.append(tabs(4) + "</tr>\n");
 
@@ -124,7 +125,7 @@ public class StacksForbidsTag extends AbstractStacksTag
 							.tagClass(
 								HTMLClass.classStacks, HTMLClass.classGCode)
 						+ ">")
-					.append(toHTMLLink(htmlFileMap,forbidMethods.get(i).lexeme))
+					.append(toHTMLLink(linkingFileMap,forbidMethods.get(i).lexeme))
 					.append("</td>\n")
 					.append(tabs(4) + "</tr>\n");
 			}
@@ -134,21 +135,21 @@ public class StacksForbidsTag extends AbstractStacksTag
 
 	/**
 	 * Create appropriate link for method if available
-	 * @param htmlFileMap A map for all HTML files ins Stacks
+	 * @param linkingFileMap A map for all HTML files ins Stacks
 	 * @param method The method being processed
 	 * @return The string link or string name.
 	 */
-	private String toHTMLLink (final LinkingFileMap htmlFileMap,
+	private String toHTMLLink (final LinkingFileMap linkingFileMap,
 		final String method)
 	{
 
-		if (htmlFileMap.internalLinks().containsKey(method))
+		if (linkingFileMap.internalLinks().containsKey(method))
 		{
 			final StringBuilder returnTypeBuilder = new StringBuilder();
 			return returnTypeBuilder.append("<a ng-click=\"myParent().changeLinkValue('")
-				.append(htmlFileMap.internalLinks().get(method))
+				.append(linkingFileMap.internalLinks().get(method))
 				.append("')\" href=\"")
-				.append(htmlFileMap.internalLinks().get(method))
+				.append(linkingFileMap.internalLinks().get(method))
 				.append("\">")
 				.append(method.replace("<", "&lt;"))
 				.append("</a>").toString();
@@ -157,4 +158,28 @@ public class StacksForbidsTag extends AbstractStacksTag
 			return method;
 	}
 
+	@Override
+	public void toJSON (
+		final LinkingFileMap linkingFileMap,
+		final int hashID,
+		final StacksErrorLog errorLog,
+		final int position,
+		final JSONWriter jsonWriter)
+	{
+		final int rowSize = forbidMethods.size();
+		jsonWriter.startObject();
+		jsonWriter.write("position");
+		jsonWriter.write("Argument " + arityIndex.lexeme);
+		jsonWriter.write("expressions");
+		jsonWriter.startArray();
+		for (int i = 1; i < rowSize; i++)
+		{
+			final String method = forbidMethods.get(i).lexeme;
+			jsonWriter.write(method);
+			jsonWriter.write(linkingFileMap.internalLinks().get(method));
+		}
+		jsonWriter.endArray();
+		jsonWriter.endObject();
+	}
 }
+

@@ -32,6 +32,8 @@
 
 package com.avail.stacks;
 
+import com.avail.utility.json.JSONWriter;
+
 /**
  * The "@field" tag in an Avail Class comment.
  *
@@ -100,7 +102,7 @@ public class StacksFieldTag extends AbstractStacksTag
 
 	@Override
 	public String toHTML(final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, int position)
+		final int hashID, final StacksErrorLog errorLog, final int position)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
 			.append(tabs(4) + "<tr "
@@ -128,5 +130,35 @@ public class StacksFieldTag extends AbstractStacksTag
 			.append("\n" + tabs(5) + "</td>\n")
 			.append(tabs(4) + "</tr>\n");
 		return stringBuilder.toString();
+	}
+
+	@Override
+	public void toJSON (
+		final LinkingFileMap linkingFileMap,
+		final int hashID,
+		final StacksErrorLog errorLog,
+		final int position,
+		final JSONWriter jsonWriter)
+	{
+		jsonWriter.startObject();
+			jsonWriter.write("description");
+			fieldDescription
+				.toJSON(linkingFileMap, hashID, errorLog, jsonWriter);
+			jsonWriter.write("data");
+			jsonWriter.startArray();
+				jsonWriter.write(position);
+				jsonWriter.write(
+					fieldName
+						.toJSON(linkingFileMap, hashID, errorLog, jsonWriter));
+			jsonWriter.endArray();
+			jsonWriter.write("typeInfo");
+			jsonWriter.startArray();
+				jsonWriter.write(
+					fieldType
+						.toJSON(linkingFileMap, hashID, errorLog, jsonWriter));
+				jsonWriter.write(
+					linkingFileMap.internalLinks().get(fieldType.lexeme()));
+			jsonWriter.endArray();
+		jsonWriter.endObject();
 	}
 }

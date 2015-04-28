@@ -33,6 +33,7 @@
 package com.avail.stacks;
 
 import java.util.ArrayList;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * The defining characteristic of a semantic restriction comment as it pertains
@@ -74,7 +75,7 @@ public class SemanticRestrictionCommentSignature extends CommentSignature
 	}
 
 	@Override
-	public String toHTML (final String nameOfGroup, boolean sticky)
+	public String toHTML (final String nameOfGroup, final boolean sticky)
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
 		.append(tabs(2) + "<div "
@@ -114,5 +115,13 @@ public class SemanticRestrictionCommentSignature extends CommentSignature
 		}
 
 		return stringBuilder.toString();
+	}
+
+	@Override
+	public void toJSON (final String nameOfGroup, final boolean sticky,
+		final JSONWriter jsonWriter)
+	{
+		jsonWriter.write("source");
+		jsonWriter.write(module());
 	}
 }

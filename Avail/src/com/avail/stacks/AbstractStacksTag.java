@@ -32,6 +32,8 @@
 
 package com.avail.stacks;
 
+import com.avail.utility.json.JSONWriter;
+
 /**
  * An Avail comment @ tag
  *
@@ -50,11 +52,28 @@ public abstract class AbstractStacksTag
 	 * @param hashID
 	 * 		The hash portion of the id for linking to this element on page.
 	 * @param errorLog The {@linkplain StacksErrorLog}
-	 * @param position TODO
+	 * @param position The ordered position of the parameter in the method
+	 * 		signature.
 	 * @return the HTML tagged content
 	 */
 	public abstract String toHTML(final LinkingFileMap htmlFileMap,
 		final int hashID, final StacksErrorLog errorLog, int position);
+
+	/**
+	 * Create JSON content from implementation
+	 * @param linkingFileMap
+	 * 		The map of all the files in Stacks
+	 * @param hashID
+	 * 		The hash portion of the id for linking to this element on page.
+	 * @param errorLog The {@linkplain StacksErrorLog}
+	 * @param position The ordered position of the parameter in the method
+	 * 		signature.
+	 * @param jsonWriter The {@linkplain JSONWriter writer} used to build the
+	 * 		document.
+	 */
+	public abstract void toJSON(final LinkingFileMap linkingFileMap,
+		final int hashID, final StacksErrorLog errorLog, int position,
+		JSONWriter jsonWriter);
 
 	/**
 	 * @param numberOfTabs

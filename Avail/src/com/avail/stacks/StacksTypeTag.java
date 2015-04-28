@@ -32,6 +32,8 @@
 
 package com.avail.stacks;
 
+import com.avail.utility.json.JSONWriter;
+
 /**
  * The Avail comment "@type" tag
  *
@@ -66,8 +68,19 @@ public class StacksTypeTag extends AbstractStacksTag
 
 	@Override
 	public String toHTML (final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, int position)
+		final int hashID, final StacksErrorLog errorLog, final int position)
 	{
 		return typeName.lexeme();
+	}
+
+	@Override
+	public void toJSON (
+		final LinkingFileMap linkingFileMap,
+		final int hashID,
+		final StacksErrorLog errorLog,
+		final int position,
+		final JSONWriter jsonWriter)
+	{
+		jsonWriter.write(typeName.lexeme);
 	}
 }

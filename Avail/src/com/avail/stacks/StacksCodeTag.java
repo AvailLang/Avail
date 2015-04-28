@@ -32,8 +32,13 @@
 
 package com.avail.stacks;
 
+import com.avail.utility.json.JSONWriter;
+
 /**
  * The Avail comment "@code" tag. This is used for code like syntax styles.
+ *
+ * THIS IS LIKELY NOT USED AS IT IS A TAG IN DESCRIPTION TEXT
+ * DEPRICATED -- DELETE ME
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
@@ -67,11 +72,22 @@ public class StacksCodeTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML (final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, int position)
+	public String toHTML (final LinkingFileMap linkingFileMap,
+		final int hashID, final StacksErrorLog errorLog, final int position)
 	{
-		return ("<code>" + codeStyledText.toHTML(htmlFileMap, hashID, errorLog)
-			+ "</code>");
+		//DO NOTHING
+		return "";
+	}
+
+	@Override
+	public void toJSON (
+		final LinkingFileMap linkingFileMap,
+		final int hashID,
+		final StacksErrorLog errorLog,
+		final int position,
+		final JSONWriter jsonWriter)
+	{
+		//DO NOTHING
 	}
 
 }

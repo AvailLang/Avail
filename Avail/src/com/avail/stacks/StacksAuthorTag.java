@@ -33,6 +33,7 @@
 package com.avail.stacks;
 
 import java.util.ArrayList;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * he Avail comment "@author" tag
@@ -68,8 +69,19 @@ public class StacksAuthorTag extends AbstractStacksTag
 
 	@Override
 	public String toHTML (final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, int position)
+		final int hashID, final StacksErrorLog errorLog, final int position)
 	{
 		return "";
+	}
+
+	@Override
+	public void toJSON (
+		final LinkingFileMap linkingFileMap,
+		final int hashID,
+		final StacksErrorLog errorLog,
+		final int position,
+		final JSONWriter jsonWriter)
+	{
+		//do nothing
 	}
 }

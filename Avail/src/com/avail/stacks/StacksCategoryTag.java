@@ -34,6 +34,7 @@ package com.avail.stacks;
 
 import java.util.HashSet;
 import java.util.List;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * The Avail comment "@category" tag
@@ -69,7 +70,7 @@ public class StacksCategoryTag extends AbstractStacksTag
 
 	@Override
 	public String toHTML (final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, int position)
+		final int hashID, final StacksErrorLog errorLog, final int position)
 	{
 		final StringBuilder stringBuilder = new StringBuilder();
 		final int listSize = categories.size();
@@ -108,4 +109,16 @@ public class StacksCategoryTag extends AbstractStacksTag
 		return categorySet;
 	}
 
+	@Override
+	public void toJSON (
+		final LinkingFileMap linkingFileMap,
+		final int hashID,
+		final StacksErrorLog errorLog,
+		final int position,
+		final JSONWriter jsonWriter)
+	{
+		jsonWriter.write("categories");
+		jsonWriter.writeArray(
+			categories.toArray(new String[categories.size()]));
+	}
 }

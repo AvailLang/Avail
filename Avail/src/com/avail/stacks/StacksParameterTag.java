@@ -32,6 +32,8 @@
 
 package com.avail.stacks;
 
+import com.avail.utility.json.JSONWriter;
+
 /**
  * The contents of an Avail comment "@param" tag
  *
@@ -99,24 +101,24 @@ public class StacksParameterTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML(final LinkingFileMap htmlFileMap,
+	public String toHTML(final LinkingFileMap linkingFileMap,
 		final int hashID, final StacksErrorLog errorLog, final int position)
 	{
 		final StringBuilder paramTypeBuilder = new StringBuilder();
-		if (htmlFileMap.internalLinks().containsKey(paramType.lexeme()))
+		if (linkingFileMap.internalLinks().containsKey(paramType.lexeme()))
 		{
 			paramTypeBuilder.append("<a ng-click=\"myParent().changeLinkValue('")
-				.append(htmlFileMap.internalLinks().get(paramType.lexeme()))
+				.append(linkingFileMap.internalLinks().get(paramType.lexeme()))
 				.append("')\" href=\"")
-				.append(htmlFileMap.internalLinks().get(paramType.lexeme()))
+				.append(linkingFileMap.internalLinks().get(paramType.lexeme()))
 				.append("\">")
-				.append(paramType.toHTML(htmlFileMap, hashID, errorLog))
+				.append(paramType.toHTML(linkingFileMap, hashID, errorLog))
 				.append("</a>");
 		}
 		else
 		{
 			paramTypeBuilder.append(paramType
-				.toHTML(htmlFileMap, hashID, errorLog));
+				.toHTML(linkingFileMap, hashID, errorLog));
 		}
 
 		final StringBuilder stringBuilder = new StringBuilder()
@@ -134,7 +136,7 @@ public class StacksParameterTag extends AbstractStacksTag
 			.append(HTMLBuilder
 					.tagClass(HTMLClass.classStacks, HTMLClass.classICode)
 				+ ">")
-			.append(paramName.toHTML(htmlFileMap, hashID, errorLog))
+			.append(paramName.toHTML(linkingFileMap, hashID, errorLog))
 			.append("</td>\n")
 			.append(tabs(5) + "<td "
 				+ HTMLBuilder
@@ -146,10 +148,40 @@ public class StacksParameterTag extends AbstractStacksTag
 				+ HTMLBuilder
 					.tagClass(HTMLClass.classStacks, HTMLClass.classIDesc)
 				+ ">\n")
-			.append(tabs(6) + paramDescription.toHTML(htmlFileMap, hashID,
+			.append(tabs(6) + paramDescription.toHTML(linkingFileMap, hashID,
 				errorLog))
 			.append("\n"+ tabs(5) + "</td>\n")
 			.append(tabs(4) + "</tr>\n");
 		return stringBuilder.toString();
+	}
+
+	@Override
+	public void toJSON (
+		final LinkingFileMap linkingFileMap,
+		final int hashID,
+		final StacksErrorLog errorLog,
+		final int position,
+		final JSONWriter jsonWriter)
+	{
+		jsonWriter.startObject();
+			jsonWriter.write("description");
+			paramDescription
+				.toJSON(linkingFileMap, hashID, errorLog, jsonWriter);
+			jsonWriter.write("data");
+			jsonWriter.startArray();
+				jsonWriter.write(position);
+				jsonWriter.write(
+					paramName
+						.toJSON(linkingFileMap, hashID, errorLog, jsonWriter));
+			jsonWriter.endArray();
+			jsonWriter.write("typeInfo");
+			jsonWriter.startArray();
+				jsonWriter.write(
+					paramType
+						.toJSON(linkingFileMap, hashID, errorLog, jsonWriter));
+				jsonWriter.write(
+					linkingFileMap.internalLinks().get(paramType.lexeme()));
+			jsonWriter.endArray();
+		jsonWriter.endObject();
 	}
 }

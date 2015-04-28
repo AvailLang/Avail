@@ -33,6 +33,7 @@
 package com.avail.stacks;
 
 import java.util.ArrayList;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A collection of {@linkplain AbstractStacksToken tokens} that make up a
@@ -61,13 +62,13 @@ public class StacksDescription
 
 	/**
 	 * Create HTML content from the description.
-	 * @param htmlFileMap
-	 * 		A map for all HTML files in Stacks
+	 * @param linkingFileMap
+	 * 		A map for all files in Stacks
 	 * @param hashID The ID for this implementation
 	 * @param errorLog The {@linkplain StacksErrorLog}
 	 * @return
 	 */
-	public String toHTML (final LinkingFileMap htmlFileMap,
+	public String toHTML (final LinkingFileMap linkingFileMap,
 		final int hashID, final StacksErrorLog errorLog)
 	{
 		final StringBuilder stringBuilder = new StringBuilder();
@@ -77,7 +78,7 @@ public class StacksDescription
 			for (int i = 0; i < listSize - 1; i++)
 			{
 				stringBuilder
-					.append(descriptionTokens.get(i).toHTML(htmlFileMap,
+					.append(descriptionTokens.get(i).toHTML(linkingFileMap,
 						hashID, errorLog));
 
 				switch (descriptionTokens.get(i + 1).lexeme()) {
@@ -95,9 +96,49 @@ public class StacksDescription
 			}
 			stringBuilder
 				.append(descriptionTokens.get(listSize - 1)
-					.toHTML(htmlFileMap, hashID, errorLog));
+					.toHTML(linkingFileMap, hashID, errorLog));
 		}
 		return stringBuilder.toString();
 	}
 
+	/**
+	 * Create JSON content from the description
+	 * @param linkingFileMap
+	 * 		A map for all files in Stacks
+	 * @param hashID hashID The ID for this implementation
+	 * @param errorLog errorLog The {@linkplain StacksErrorLog}
+	 * @param jsonWriter The {@linkplain JSONWriter writer} collecting the
+	 * 		stacks content.
+	 */
+	public void toJSON(final LinkingFileMap linkingFileMap, final int hashID,
+		final StacksErrorLog errorLog, final JSONWriter jsonWriter)
+	{
+		final StringBuilder stringBuilder = new StringBuilder();
+		final int listSize = descriptionTokens.size();
+		if (listSize > 0)
+		{
+			for (int i = 0; i < listSize - 1; i++)
+			{
+				stringBuilder
+					.append(descriptionTokens.get(i).toJSON(linkingFileMap,
+						hashID, errorLog, jsonWriter));
+
+				switch (descriptionTokens.get(i + 1).lexeme()) {
+					case ".":
+					case ",":
+					case ":":
+					case "?":
+					case ";":
+					case "!":
+						break;
+					default:
+						stringBuilder.append(" ");
+				}
+			}
+			stringBuilder
+				.append(descriptionTokens.get(listSize - 1)
+					.toHTML(linkingFileMap, hashID, errorLog));
+		}
+		jsonWriter.write(stringBuilder.toString());
+	}
 }

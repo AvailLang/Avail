@@ -32,6 +32,8 @@
 
 package com.avail.stacks;
 
+import com.avail.utility.json.JSONWriter;
+
 /**
  * The defining characteristic of a comment as it pertains to the
  * implementation it describes.
@@ -127,6 +129,35 @@ public class CommentSignature
 		}
 
 		return stringBuilder.toString();
+	}
+
+	/**
+	 * Create the HTML representation of the signature.
+	 * @param nameOfGroup
+	 * 		The name of the implementation as it is to be displayed.
+	 * @param sticky whether or no the method is private and should be
+	 * 		documented
+	 * @param jsonWriter The {@linkplain JSONWriter writer} collecting the
+	 * 		stacks content.
+	 */
+	public void toJSON (final String nameOfGroup, final boolean sticky,
+		final JSONWriter jsonWriter)
+	{
+		jsonWriter.write("sticky");
+		jsonWriter.write(sticky);
+		jsonWriter.write("source");
+
+		if (!name().equals(nameOfGroup))
+		{
+			final StringBuilder stringBuilder = new StringBuilder();
+			stringBuilder
+				.append(module()).append(": ").append(name());
+			jsonWriter.write(stringBuilder.toString());
+		}
+		else
+		{
+			jsonWriter.write(module());
+		}
 	}
 
 	/**

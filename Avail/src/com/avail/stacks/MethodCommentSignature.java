@@ -33,6 +33,7 @@
 package com.avail.stacks;
 
 import java.util.ArrayList;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * The defining characteristic of a method comment as it pertains to the
@@ -131,7 +132,6 @@ public class MethodCommentSignature extends CommentSignature
 				.append(stickyString.toString())
 				.append("</div>\n");
 		}
-
 		return stringBuilder.toString();
 	}
 }

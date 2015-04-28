@@ -35,6 +35,7 @@ package com.avail.stacks;
 import java.util.ArrayList;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A comment that describes a particular method implementation
@@ -132,7 +133,7 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 	}
 
 	@Override
-	public String toHTML (final LinkingFileMap htmlFileMap,
+	public String toHTML (final LinkingFileMap linkingFileMap,
 		final String nameOfGroup, final StacksErrorLog errorLog)
 	{
 		final int paramCount = parameters.size();
@@ -143,13 +144,13 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 
 		if (categories.size() > 0)
 		{
-			stringBuilder.append(categories.get(0).toHTML(htmlFileMap,
+			stringBuilder.append(categories.get(0).toHTML(linkingFileMap,
 				hashID, errorLog, 1));
 		}
 
 		if (aliases.size() > 0)
 		{
-			stringBuilder.append(aliases.get(0).toHTML(htmlFileMap,
+			stringBuilder.append(aliases.get(0).toHTML(linkingFileMap,
 				hashID, errorLog, 1));
 		}
 		if (sees.size() > 0)
@@ -157,14 +158,14 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 			for (final StacksSeeTag see : sees)
 			{
 				stringBuilder.append(
-					see.toHTML(htmlFileMap, exceptionCount, errorLog, 1));
+					see.toHTML(linkingFileMap, exceptionCount, errorLog, 1));
 			}
 		}
 
 		stringBuilder.append(tabs(2) + "<div "
 				+ HTMLBuilder.tagClass(HTMLClass.classSignatureDescription)
 				+ ">\n")
-			.append(tabs(3) + description.toHTML(htmlFileMap, hashID, errorLog))
+			.append(tabs(3) + description.toHTML(linkingFileMap, hashID, errorLog))
 			.append("\n" + tabs(2) + "</div>\n")
 			.append(tabs(2) + "<table "
             	+ HTMLBuilder.tagClass(HTMLClass.classStacks)
@@ -215,7 +216,7 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		int position = 1;
 		for (final StacksParameterTag paramTag : parameters)
 		{
-			stringBuilder.append(paramTag.toHTML(htmlFileMap,
+			stringBuilder.append(paramTag.toHTML(linkingFileMap,
 				hashID, errorLog, position++));
 		}
 
@@ -225,7 +226,7 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 					HTMLClass.classStacks, HTMLClass.classIRowLabel)
 				+ " colspan=\"")
 			.append(colSpan).append("\">Returns</th>\n")
-			.append(returnsContent.toHTML(htmlFileMap,
+			.append(returnsContent.toHTML(linkingFileMap,
 				hashID, errorLog, 1));
 
 		if (exceptionCount > 0)
@@ -239,7 +240,7 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 
 			for (final StacksRaisesTag exception : exceptions)
 			{
-				stringBuilder.append(exception.toHTML(htmlFileMap,
+				stringBuilder.append(exception.toHTML(linkingFileMap,
 					hashID, errorLog, 1));
 			}
 		}
@@ -253,5 +254,71 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		final A_String name, final StacksImportModule importModule)
 	{
 		importModule.addMethodImplementation(name, this);
+	}
+
+	@Override
+	public void toJSON (
+		final LinkingFileMap linkingFileMap,
+		final String nameOfGroup,
+		final StacksErrorLog errorLog,
+		final JSONWriter jsonWriter)
+	{
+		jsonWriter.write("type");
+		jsonWriter.write("method");
+		signature().toJSON(nameOfGroup, isSticky(), jsonWriter);
+
+		if (categories.size() > 0)
+		{
+			categories.get(0).toJSON(linkingFileMap,
+				hashID, errorLog, 1, jsonWriter);
+		} else
+		{
+			jsonWriter.write("categories");
+			jsonWriter.writeArray(new String[0]);
+		}
+
+		if (aliases.size() > 0)
+		{
+			aliases.get(0).toJSON(linkingFileMap,
+				hashID, errorLog, 1, jsonWriter);
+		} else
+		{
+			jsonWriter.write("aliases");
+			jsonWriter.writeArray(new String[0]);
+		}
+
+		jsonWriter.write("sees");
+		jsonWriter.startArray();
+		for (final StacksSeeTag see : sees)
+		{
+			jsonWriter.write(see.thingToSee().toJSON(linkingFileMap, hashID,
+				errorLog, jsonWriter));
+		}
+		jsonWriter.endArray();
+
+		jsonWriter.write("description");
+		description.toJSON(linkingFileMap, hashID, errorLog, jsonWriter);
+
+
+		//The ordered position of the parameter in the method signature.
+		int position = 1;
+		jsonWriter.write("parameters");
+		jsonWriter.startArray();
+		for (final StacksParameterTag paramTag : parameters)
+		{
+			paramTag.toJSON(linkingFileMap, hashID, errorLog, position++,
+				jsonWriter);
+		}
+		jsonWriter.endArray();
+
+		returnsContent.toJSON(linkingFileMap, hashID, errorLog, 1, jsonWriter);
+
+		jsonWriter.write("raises");
+		jsonWriter.startArray();
+		for (final StacksRaisesTag exception : exceptions)
+		{
+			exception.toJSON(linkingFileMap, hashID, errorLog, 1, jsonWriter);
+		}
+		jsonWriter.endArray();
 	}
 }

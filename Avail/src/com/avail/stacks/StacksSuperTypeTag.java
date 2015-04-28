@@ -32,6 +32,8 @@
 
 package com.avail.stacks;
 
+import com.avail.utility.json.JSONWriter;
+
 /**
  * The "@supertype" keyword of an Avail class comment.
  *
@@ -68,7 +70,7 @@ public class StacksSuperTypeTag extends AbstractStacksTag
 
 	@Override
 	public String toHTML (final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, int position)
+		final int hashID, final StacksErrorLog errorLog, final int position)
 	{
 		if (htmlFileMap.internalLinks().containsKey(superType.lexeme()))
 		{
@@ -84,5 +86,22 @@ public class StacksSuperTypeTag extends AbstractStacksTag
 		}
 
 		return superType.toHTML(htmlFileMap, hashID, errorLog);
+	}
+
+	@Override
+	public void toJSON (
+		final LinkingFileMap linkingFileMap,
+		final int hashID,
+		final StacksErrorLog errorLog,
+		final int position,
+		final JSONWriter jsonWriter)
+	{
+		jsonWriter.startObject();
+		jsonWriter.write("type");
+		jsonWriter.write(superType.lexeme());
+		jsonWriter.write("link");
+		jsonWriter.write(linkingFileMap.internalLinks()
+			.get(superType.lexeme()));
+		jsonWriter.endObject();
 	}
 }

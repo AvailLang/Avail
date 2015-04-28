@@ -35,6 +35,7 @@ package com.avail.stacks;
 import java.util.ArrayList;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A comment implementation of grammatical restrictions
@@ -191,5 +192,51 @@ public class SemanticRestrictionCommentImplementation extends
 		final A_String name, final StacksImportModule importModule)
 	{
 		importModule.addSemanticImplementation(name, this);
+	}
+
+	@Override
+	public void toJSON (
+		final LinkingFileMap linkingFileMap,
+		final String nameOfGroup,
+		final StacksErrorLog errorLog,
+		final JSONWriter jsonWriter)
+	{
+		jsonWriter.write("type");
+		jsonWriter.write("method");
+		signature().toJSON(nameOfGroup, isSticky(), jsonWriter);
+
+		jsonWriter.write("sees");
+		jsonWriter.startArray();
+		for (final StacksSeeTag see : sees)
+		{
+			jsonWriter.write(see.thingToSee().toJSON(linkingFileMap, hashID,
+				errorLog, jsonWriter));
+		}
+		jsonWriter.endArray();
+
+		jsonWriter.write("description");
+		description.toJSON(linkingFileMap, hashID, errorLog, jsonWriter);
+
+
+		//The ordered position of the parameter in the method signature.
+		int position = 1;
+		jsonWriter.write("parameters");
+		jsonWriter.startArray();
+		for (final StacksRestrictsTag restrictTag : restricts)
+		{
+			restrictTag.toJSON(linkingFileMap, hashID, errorLog, position++,
+				jsonWriter);
+		}
+		jsonWriter.endArray();
+
+		if (!returnsContent.isEmpty())
+		{
+			returnsContent.get(0)
+				.toJSON(linkingFileMap, hashID, errorLog, 1, jsonWriter);
+		} else
+		{
+			jsonWriter.write("returns");
+			jsonWriter.writeArray(new String[0]);
+		}
 	}
 }

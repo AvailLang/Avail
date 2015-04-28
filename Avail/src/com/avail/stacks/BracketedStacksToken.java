@@ -37,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A stacks token representing a bracketed region in the comment.  This region
@@ -104,11 +105,9 @@ public class BracketedStacksToken extends RegionStacksToken
 	}
 
 	@Override
-	public String toHTML(final LinkingFileMap htmlFileMap, final int hashID,
+	public String toHTML(final LinkingFileMap linkingFileMap, final int hashID,
 		final StacksErrorLog errorLog)
 	{
-		//TODO update with parsed tags with appropriate links.
-
 		final StacksKeyword keyword = StacksKeyword.keywordTable
 			.get(this.subTokens.get(0).lexeme());
 		if (keyword == null)
@@ -117,7 +116,21 @@ public class BracketedStacksToken extends RegionStacksToken
 			return "";
 		}
 
-		return keyword.toHTML(this, htmlFileMap, hashID, errorLog);
+		return keyword.toHTML(this, linkingFileMap, hashID, errorLog);
+	}
+
+	@Override
+	public String toJSON(final LinkingFileMap linkingFileMap, final int hashID,
+		final StacksErrorLog errorLog, final JSONWriter jsonWriter)
+	{
+		final StacksKeyword keyword = StacksKeyword.keywordTable
+			.get(this.subTokens.get(0).lexeme());
+		if (keyword == null)
+		{
+			return "";
+		}
+
+		return keyword.toJSON(this, linkingFileMap, hashID, errorLog, null);
 	}
 
 	/**
@@ -129,14 +142,14 @@ public class BracketedStacksToken extends RegionStacksToken
 	private enum StacksKeyword
 	{
 		/**
-		 * The link keyword creates an external web link.
+		 * The code keyword creates a stylized code section.
 		 */
 		CODE("@code")
 		{
 			@Override
 			String toHTML(
 				final BracketedStacksToken bracketToken,
-				final LinkingFileMap htmlFileMap, final int hashID,
+				final LinkingFileMap linkingFileMap, final int hashID,
 				final StacksErrorLog errorLog)
 			{
 				//TODO address spacing
@@ -162,6 +175,36 @@ public class BracketedStacksToken extends RegionStacksToken
 					.append("</code>");
 				return stringBuilder.toString();
 			}
+
+			@Override
+			String toJSON (
+				final BracketedStacksToken bracketToken,
+				final LinkingFileMap linkingFileMap,
+				final int hashID,
+				final StacksErrorLog errorLog, final JSONWriter jsonWriter)
+			{
+				final StringBuilder stringBuilder = new StringBuilder();
+
+				stringBuilder.append("<code class=\\\"method\\\">");
+				final int tokenCount = bracketToken.subTokens.size();
+				for (int i = 1; i < tokenCount - 1; i++)
+				{
+					final String tokenToWrite = bracketToken
+						.subTokens.get(i).lexeme().replaceAll("<", "&lt;");
+
+					stringBuilder
+						.append(tokenToWrite)
+						.append(" ");
+				}
+
+				final String tokenToWrite = bracketToken
+					.subTokens.get(tokenCount - 1)
+						.lexeme().replaceAll("<", "&lt;");
+				stringBuilder
+					.append(tokenToWrite)
+					.append("<\\/code>");
+				return stringBuilder.toString();
+			}
 		},
 
 		/**
@@ -172,7 +215,7 @@ public class BracketedStacksToken extends RegionStacksToken
 			@Override
 			String toHTML(
 				final BracketedStacksToken bracketToken,
-				final LinkingFileMap htmlFileMap, final int hashID,
+				final LinkingFileMap linkingFileMap, final int hashID,
 				final StacksErrorLog errorLog)
 			{
 				if (bracketToken.subTokens.size() == 1)
@@ -238,6 +281,71 @@ public class BracketedStacksToken extends RegionStacksToken
 
 				return "<code>" + links.get(0).lexeme() + "</code>";
 			}
+
+			@Override
+			String toJSON (
+				final BracketedStacksToken bracketToken,
+				final LinkingFileMap linkingFileMap,
+				final int hashID,
+				final StacksErrorLog errorLog, final JSONWriter jsonWriter)
+			{
+				if (bracketToken.subTokens.size() == 1)
+				{
+					final String errorMessage = String.format("\n<li>"
+						+ "<strong>%s</strong><em> Line #: %d</em>: "
+						+ "Malformed @field tag section; "
+						+ "expected link content immediately "
+						+ "following the @field tag, but tag was empty.</li>",
+						bracketToken.moduleName,
+						bracketToken.lineNumber());
+
+					final ByteBuffer errorBuffer = ByteBuffer.wrap(
+						errorMessage.toString()
+							.getBytes(StandardCharsets.UTF_8));
+					errorLog.addLogEntry(errorBuffer,1);
+
+					return "";
+				}
+				/**
+				 * The method keyword indicates the name of the method
+				 * implementation.
+				 */
+				final List<AbstractStacksToken> links =
+					bracketToken.subTokens
+						.subList(1, bracketToken.subTokens.size());
+
+				if (links.size() == 1)
+				{
+					try
+					{
+						final QuotedStacksToken link =
+							(QuotedStacksToken) links.get(0);
+
+						return linkBuilderNolink(
+							link.lexeme,linkingFileMap, hashID);
+
+					}
+					catch (final ClassCastException e)
+					{
+						final String errorMessage = String.format("\n<li>"
+							+ "<strong>%s</strong><em> Line #: %d</em>: "
+							+ "Malformed @field tag section; "
+							+ "expected a quoted link immediately "
+							+ "following the @field tag.</li>",
+							bracketToken.moduleName,
+							bracketToken.lineNumber());
+
+						final ByteBuffer errorBuffer = ByteBuffer.wrap(
+							errorMessage.toString()
+								.getBytes(StandardCharsets.UTF_8));
+						errorLog.addLogEntry(errorBuffer,1);
+
+						return "";
+					}
+				}
+
+				return "<code>" + links.get(0).lexeme() + "<\\/code>";
+			}
 		},
 
 		/**
@@ -248,7 +356,7 @@ public class BracketedStacksToken extends RegionStacksToken
 			@Override
 			String toHTML(
 				final BracketedStacksToken bracketToken,
-				final LinkingFileMap htmlFileMap, final int hashID,
+				final LinkingFileMap linkingFileMap, final int hashID,
 				final StacksErrorLog errorLog)
 			{
 				if (bracketToken.subTokens.size() == 1)
@@ -283,17 +391,17 @@ public class BracketedStacksToken extends RegionStacksToken
 						final QuotedStacksToken link =
 							(QuotedStacksToken) links.get(0);
 
-						if (htmlFileMap.internalLinks()
+						if (linkingFileMap.internalLinks()
 							.containsKey(link.lexeme()))
 						{
 							final StringBuilder stringBuilder =
 								new StringBuilder();
 							stringBuilder
 								.append("<a ng-click=\"myParent().changeLinkValue('")
-								.append(htmlFileMap.internalLinks()
+								.append(linkingFileMap.internalLinks()
 									.get(link.lexeme()))
 								.append("')\" href=\"")
-								.append(htmlFileMap.internalLinks()
+								.append(linkingFileMap.internalLinks()
 									.get(link.lexeme()))
 								.append("\">")
 								.append(link.lexeme())
@@ -322,6 +430,73 @@ public class BracketedStacksToken extends RegionStacksToken
 
 				return "<code>" + links.get(0).lexeme() + "</code>";
 			}
+
+			@Override
+			String toJSON (
+				final BracketedStacksToken bracketToken,
+				final LinkingFileMap linkingFileMap,
+				final int hashID,
+				final StacksErrorLog errorLog, final JSONWriter jsonWriter)
+			{
+				if (bracketToken.subTokens.size() == 1)
+				{
+					final String errorMessage = String.format("\n<li>"
+						+ "<strong>%s</strong><em> Line #: %d</em>: "
+						+ "Malformed @global tag section; "
+						+ "expected link content immediately "
+						+ "following the @global tag, but tag was empty.</li>",
+						bracketToken.moduleName,
+						bracketToken.lineNumber());
+
+					final ByteBuffer errorBuffer = ByteBuffer.wrap(
+						errorMessage.toString()
+							.getBytes(StandardCharsets.UTF_8));
+					errorLog.addLogEntry(errorBuffer,1);
+
+					return "";
+				}
+				/**
+				 * The method keyword indicates the name of the method
+				 * implementation.
+				 */
+				final List<AbstractStacksToken> links =
+					bracketToken.subTokens
+						.subList(1, bracketToken.subTokens.size());
+
+				if (links.size() == 1)
+				{
+					try
+					{
+						final QuotedStacksToken link =
+							(QuotedStacksToken) links.get(0);
+
+						if (linkingFileMap.internalLinks()
+							.containsKey(link.lexeme()))
+						{
+							return linkBuilder(link.lexeme(), linkingFileMap);
+						}
+					}
+					catch (final ClassCastException e)
+					{
+						final String errorMessage = String.format("\n<li>"
+							+ "<strong>%s</strong><em> Line #: %d</em>: "
+							+ "Malformed @global tag section; "
+							+ "expected a quoted link immediately "
+							+ "following the @global tag.</li>",
+							bracketToken.moduleName,
+							bracketToken.lineNumber());
+
+						final ByteBuffer errorBuffer = ByteBuffer.wrap(
+							errorMessage.toString()
+								.getBytes(StandardCharsets.UTF_8));
+						errorLog.addLogEntry(errorBuffer,1);
+
+						return "";
+					}
+				}
+
+				return "<code>" + links.get(0).lexeme() + "<\\/code>";
+			}
 		},
 
 		/**
@@ -332,7 +507,7 @@ public class BracketedStacksToken extends RegionStacksToken
 			@Override
 			String toHTML(
 				final BracketedStacksToken bracketToken,
-				final LinkingFileMap htmlFileMap, final int hashID,
+				final LinkingFileMap linkingFileMap, final int hashID,
 				final StacksErrorLog errorLog)
 			{
 
@@ -367,7 +542,7 @@ public class BracketedStacksToken extends RegionStacksToken
 					{
 						return new StacksLinkTag (
 							(QuotedStacksToken) links.get(0))
-								.toHTML(htmlFileMap, hashID, errorLog, 1);
+								.toHTML(linkingFileMap, hashID, errorLog, 1);
 					}
 					catch (final ClassCastException e)
 					{
@@ -394,7 +569,103 @@ public class BracketedStacksToken extends RegionStacksToken
 
 					return new StacksLinkTag (link,
 						links.subList(1, links.size()))
-							.toHTML(htmlFileMap, hashID, errorLog, 1);
+							.toHTML(linkingFileMap, hashID, errorLog, 1);
+				}
+				catch (final ClassCastException e)
+				{
+					final String errorMessage = String.format("\n<li>"
+						+ "<strong>%s</strong><em> Line #: %d</em>: "
+						+ "Malformed @link tag section; "
+						+ "expected a quoted link immediately "
+						+ "following the @link tag.</li>",
+						bracketToken.moduleName,
+						bracketToken.lineNumber());
+
+					final ByteBuffer errorBuffer = ByteBuffer.wrap(
+						errorMessage.toString()
+							.getBytes(StandardCharsets.UTF_8));
+					errorLog.addLogEntry(errorBuffer,1);
+
+					return "";
+				}
+			}
+
+			@Override
+			String toJSON (
+				final BracketedStacksToken bracketToken,
+				final LinkingFileMap linkingFileMap,
+				final int hashID,
+				final StacksErrorLog errorLog, final JSONWriter jsonWriter)
+			{
+				if (bracketToken.subTokens.size() == 1)
+				{
+					final String errorMessage = String.format("\n<li>"
+						+ "<strong>%s</strong><em> Line #: %d</em>: "
+						+ "Malformed @link tag section; "
+						+ "expected link content immediately "
+						+ "following the @link tag, but tag was empty.</li>",
+						bracketToken.moduleName,
+						bracketToken.lineNumber());
+
+					final ByteBuffer errorBuffer = ByteBuffer.wrap(
+						errorMessage.toString()
+							.getBytes(StandardCharsets.UTF_8));
+					errorLog.addLogEntry(errorBuffer,1);
+
+					return "";
+				}
+				/**
+				 * The method keyword indicates the name of the method
+				 * implementation.
+				 */
+				final List<AbstractStacksToken> links =
+					bracketToken.subTokens
+						.subList(1, bracketToken.subTokens.size());
+
+				if (links.size() == 1)
+				{
+					try
+					{
+						final QuotedStacksToken link =
+							(QuotedStacksToken) links.get(0);
+						final StringBuilder stringBuilder = new StringBuilder();
+						stringBuilder.append("<a href=\\\"")
+							.append(link.toJSON(
+								linkingFileMap, hashID, errorLog, jsonWriter))
+							.append("\\\">");
+
+						stringBuilder.append(link.toJSON(linkingFileMap, hashID,
+							errorLog, jsonWriter));
+
+						return stringBuilder.append("<\\/a>").toString();
+
+					}
+					catch (final ClassCastException e)
+					{
+						final String errorMessage = String.format("\n<li>"
+							+ "<strong>%s</strong><em> Line #: %d</em>: "
+							+ "Malformed @link tag section; "
+							+ "expected a quoted link immediately "
+							+ "following the @link tag.</li>",
+							bracketToken.moduleName,
+							bracketToken.lineNumber());
+
+						final ByteBuffer errorBuffer = ByteBuffer.wrap(
+							errorMessage.toString()
+								.getBytes(StandardCharsets.UTF_8));
+						errorLog.addLogEntry(errorBuffer,1);
+
+						return "";
+					}
+				}
+				try
+				{
+					final QuotedStacksToken link =
+						(QuotedStacksToken) links.get(0);
+
+					return new StacksLinkTag (link,
+						links.subList(1, links.size()))
+							.toHTML(linkingFileMap, hashID, errorLog, 1);
 				}
 				catch (final ClassCastException e)
 				{
@@ -424,7 +695,7 @@ public class BracketedStacksToken extends RegionStacksToken
 			@Override
 			String toHTML(
 				final BracketedStacksToken bracketToken,
-				final LinkingFileMap htmlFileMap, final int hashID,
+				final LinkingFileMap linkingFileMap, final int hashID,
 				final StacksErrorLog errorLog)
 			{
 				if (bracketToken.subTokens.size() == 1)
@@ -459,17 +730,17 @@ public class BracketedStacksToken extends RegionStacksToken
 						final QuotedStacksToken link =
 							(QuotedStacksToken) links.get(0);
 
-						if (htmlFileMap.internalLinks()
+						if (linkingFileMap.internalLinks()
 							.containsKey(link.lexeme()))
 						{
 							final StringBuilder stringBuilder =
 								new StringBuilder();
 							stringBuilder
 								.append("<a ng-click=\"myParent().changeLinkValue('")
-								.append(htmlFileMap.internalLinks()
+								.append(linkingFileMap.internalLinks()
 									.get(link.lexeme()))
 								.append("')\" href=\"")
-								.append(htmlFileMap.internalLinks()
+								.append(linkingFileMap.internalLinks()
 									.get(link.lexeme()))
 								.append("\">")
 								.append(link.lexeme())
@@ -504,28 +775,28 @@ public class BracketedStacksToken extends RegionStacksToken
 						for (int i = 1; i < listSize - 1; i++)
 						{
 							linkBuilder
-								.append(links.get(i).toHTML(htmlFileMap,
+								.append(links.get(i).toHTML(linkingFileMap,
 									hashID, errorLog))
 								.append(" ");
 						}
 						linkBuilder
 							.append(links.get(listSize - 1)
-								.toHTML(htmlFileMap, hashID, errorLog));
+								.toHTML(linkingFileMap, hashID, errorLog));
 					}
 					final QuotedStacksToken link =
 						(QuotedStacksToken) links.get(0);
 
-					if (htmlFileMap.internalLinks()
+					if (linkingFileMap.internalLinks()
 						.containsKey(link.lexeme()))
 					{
 						final StringBuilder stringBuilder =
 							new StringBuilder();
 						stringBuilder
 							.append("<a ng-click=\"myParent().changeLinkValue('")
-							.append(htmlFileMap.internalLinks()
+							.append(linkingFileMap.internalLinks()
 								.get(link.lexeme()))
 							.append("')\" href=\"")
-							.append(htmlFileMap.internalLinks()
+							.append(linkingFileMap.internalLinks()
 								.get(link.lexeme()))
 							.append("\">")
 							.append(linkBuilder)
@@ -534,6 +805,98 @@ public class BracketedStacksToken extends RegionStacksToken
 					}
 
 				return "<code>" + links.get(0).lexeme() + "</code>";
+			}
+
+			@Override
+			String toJSON (
+				final BracketedStacksToken bracketToken,
+				final LinkingFileMap linkingFileMap,
+				final int hashID,
+				final StacksErrorLog errorLog, final JSONWriter jsonWriter)
+			{
+				if (bracketToken.subTokens.size() == 1)
+				{
+					final String errorMessage = String.format("\n<li>"
+						+ "<strong>%s</strong><em> Line #: %d</em>: "
+						+ "Malformed @method tag section; "
+						+ "expected link content immediately "
+						+ "following the @method tag, but tag was empty.</li>",
+						bracketToken.moduleName,
+						bracketToken.lineNumber());
+
+					final ByteBuffer errorBuffer = ByteBuffer.wrap(
+						errorMessage.toString()
+							.getBytes(StandardCharsets.UTF_8));
+					errorLog.addLogEntry(errorBuffer,1);
+
+					return "";
+				}
+				/**
+				 * The method keyword indicates the name of the method
+				 * implementation.
+				 */
+				final List<AbstractStacksToken> links =
+					bracketToken.subTokens
+						.subList(1, bracketToken.subTokens.size());
+
+				if (links.size() == 1)
+				{
+					try
+					{
+						final QuotedStacksToken link =
+							(QuotedStacksToken) links.get(0);
+
+						if (linkingFileMap.internalLinks()
+							.containsKey(link.lexeme()))
+						{
+							return linkBuilder(link.lexeme(), linkingFileMap);
+						}
+					}
+					catch (final ClassCastException e)
+					{
+						final String errorMessage = String.format("\n<li>"
+							+ "<strong>%s</strong><em> Line #: %d</em>: "
+							+ "Malformed @method tag section; "
+							+ "expected a quoted link immediately "
+							+ "following the @method tag.</li>",
+							bracketToken.moduleName,
+							bracketToken.lineNumber());
+
+						final ByteBuffer errorBuffer = ByteBuffer.wrap(
+							errorMessage.toString()
+								.getBytes(StandardCharsets.UTF_8));
+						errorLog.addLogEntry(errorBuffer,1);
+
+						return "";
+					}
+				}
+				//for links.size() >= 2
+
+					final StringBuilder linkBuilder = new StringBuilder();
+					final int listSize = links.size();
+					if (listSize >= 2)
+					{
+						for (int i = 1; i < listSize - 1; i++)
+						{
+							linkBuilder
+								.append(links.get(i).toHTML(linkingFileMap,
+									hashID, errorLog))
+								.append(" ");
+						}
+						linkBuilder
+							.append(links.get(listSize - 1)
+								.toHTML(linkingFileMap, hashID, errorLog));
+					}
+					final QuotedStacksToken link =
+						(QuotedStacksToken) links.get(0);
+
+					if (linkingFileMap.internalLinks()
+						.containsKey(link.lexeme()))
+					{
+						return linkBuilder(link.lexeme(), linkingFileMap);
+					}
+
+				return "<code>" + links.get(0).lexeme() + "<\\/code>";
 			}
 		},
 
@@ -546,7 +909,7 @@ public class BracketedStacksToken extends RegionStacksToken
 			@Override
 			String toHTML(
 				final BracketedStacksToken bracketToken,
-				final LinkingFileMap htmlFileMap, final int hashID,
+				final LinkingFileMap linkingFileMap, final int hashID,
 				final StacksErrorLog errorLog)
 			{
 				if (bracketToken.subTokens.size() == 1)
@@ -612,6 +975,71 @@ public class BracketedStacksToken extends RegionStacksToken
 
 				return "<code>" + links.get(0).lexeme() + "</code>";
 			}
+
+			@Override
+			String toJSON (
+				final BracketedStacksToken bracketToken,
+				final LinkingFileMap linkingFileMap,
+				final int hashID,
+				final StacksErrorLog errorLog, final JSONWriter jsonWriter)
+			{
+				if (bracketToken.subTokens.size() == 1)
+				{
+					final String errorMessage = String.format("\n<li>"
+						+ "<strong>%s</strong><em> Line #: %d</em>: "
+						+ "Malformed @param tag section; "
+						+ "expected link content immediately "
+						+ "following the @param tag, but tag was empty.</li>",
+						bracketToken.moduleName,
+						bracketToken.lineNumber());
+
+					final ByteBuffer errorBuffer = ByteBuffer.wrap(
+						errorMessage.toString()
+							.getBytes(StandardCharsets.UTF_8));
+					errorLog.addLogEntry(errorBuffer,1);
+
+					return "";
+				}
+				/**
+				 * The method keyword indicates the name of the method
+				 * implementation.
+				 */
+				final List<AbstractStacksToken> links =
+					bracketToken.subTokens
+						.subList(1, bracketToken.subTokens.size());
+
+				if (links.size() == 1)
+				{
+					try
+					{
+						final QuotedStacksToken link =
+							(QuotedStacksToken) links.get(0);
+
+
+						return linkBuilderNolink(
+							link.lexeme,linkingFileMap, hashID);
+					}
+					catch (final ClassCastException e)
+					{
+						final String errorMessage = String.format("\n<li>"
+							+ "<strong>%s</strong><em> Line #: %d</em>: "
+							+ "Malformed @param tag section; "
+							+ "expected a quoted link immediately "
+							+ "following the @param tag.</li>\n",
+							bracketToken.moduleName,
+							bracketToken.lineNumber());
+
+						final ByteBuffer errorBuffer = ByteBuffer.wrap(
+							errorMessage.toString()
+								.getBytes(StandardCharsets.UTF_8));
+						errorLog.addLogEntry(errorBuffer,1);
+
+						return "";
+					}
+				}
+
+				return "<code>" + links.get(0).lexeme() + "<\\/code>";
+			}
 		},
 
 		/**
@@ -623,7 +1051,7 @@ public class BracketedStacksToken extends RegionStacksToken
 			@Override
 			String toHTML(
 				final BracketedStacksToken bracketToken,
-				final LinkingFileMap htmlFileMap, final int hashID,
+				final LinkingFileMap linkingFileMap, final int hashID,
 				final StacksErrorLog errorLog)
 			{
 				if (bracketToken.subTokens.size() == 1)
@@ -690,6 +1118,72 @@ public class BracketedStacksToken extends RegionStacksToken
 
 				return "<code>" + links.get(0).lexeme() + "</code>";
 			}
+
+			@Override
+			String toJSON (
+				final BracketedStacksToken bracketToken,
+				final LinkingFileMap linkingFileMap,
+				final int hashID,
+				final StacksErrorLog errorLog, final JSONWriter jsonWriter)
+			{
+				if (bracketToken.subTokens.size() == 1)
+				{
+					final String errorMessage = String.format("\n<li>"
+						+ "<strong>%s</strong><em> Line #: %d</em>: "
+						+ "Malformed @restricts tag section; "
+						+ "expected link content immediately "
+						+ "following the @restricts tag, but tag was empty."
+						+ "</li>\n",
+						bracketToken.moduleName,
+						bracketToken.lineNumber());
+
+					final ByteBuffer errorBuffer = ByteBuffer.wrap(
+						errorMessage.toString()
+							.getBytes(StandardCharsets.UTF_8));
+					errorLog.addLogEntry(errorBuffer,1);
+
+					return "";
+				}
+				/**
+				 * The method keyword indicates the name of the method
+				 * implementation.
+				 */
+				final List<AbstractStacksToken> links =
+					bracketToken.subTokens
+						.subList(1, bracketToken.subTokens.size());
+
+				if (links.size() == 1)
+				{
+					try
+					{
+						final QuotedStacksToken link =
+							(QuotedStacksToken) links.get(0);
+
+
+						return linkBuilderNolink(
+							link.lexeme,linkingFileMap, hashID);
+					}
+					catch (final ClassCastException e)
+					{
+						final String errorMessage = String.format("\n<li>"
+							+ "<strong>%s</strong><em> Line #: %d</em>: "
+							+ "Malformed @restricts tag section; "
+							+ "expected a quoted link immediately "
+							+ "following the @restricts tag.</li>\n",
+							bracketToken.moduleName,
+							bracketToken.lineNumber());
+
+						final ByteBuffer errorBuffer = ByteBuffer.wrap(
+							errorMessage.toString()
+								.getBytes(StandardCharsets.UTF_8));
+						errorLog.addLogEntry(errorBuffer,1);
+
+						return "";
+					}
+				}
+
+				return "<code>" + links.get(0).lexeme() + "<\\/code>";
+			}
 		},
 
 		/**
@@ -701,7 +1195,7 @@ public class BracketedStacksToken extends RegionStacksToken
 			@Override
 			String toHTML(
 				final BracketedStacksToken bracketToken,
-				final LinkingFileMap htmlFileMap, final int hashID,
+				final LinkingFileMap linkingFileMap, final int hashID,
 				final StacksErrorLog errorLog)
 			{
 
@@ -736,7 +1230,7 @@ public class BracketedStacksToken extends RegionStacksToken
 					{
 						return new StacksLinkTag (
 							(QuotedStacksToken) links.get(0))
-								.toHTML(htmlFileMap, hashID, errorLog, 1);
+								.toHTML(linkingFileMap, hashID, errorLog, 1);
 					}
 					catch (final ClassCastException e)
 					{
@@ -762,7 +1256,93 @@ public class BracketedStacksToken extends RegionStacksToken
 						(RegionStacksToken) links.get(0);
 
 					return new StacksSeeTag (link)
-							.toHTML(htmlFileMap, hashID, errorLog, 1);
+							.toHTML(linkingFileMap, hashID, errorLog, 1);
+				}
+				catch (final ClassCastException e)
+				{
+					final String errorMessage = String.format("\n<li>"
+						+ "<strong>%s</strong><em> Line #: %d</em>: "
+						+ "Malformed @link tag section; "
+						+ "expected a quoted link immediately "
+						+ "following the @link tag.</li>",
+						bracketToken.moduleName,
+						bracketToken.lineNumber());
+
+					final ByteBuffer errorBuffer = ByteBuffer.wrap(
+						errorMessage.toString()
+							.getBytes(StandardCharsets.UTF_8));
+					errorLog.addLogEntry(errorBuffer,1);
+
+					return "";
+				}
+			}
+
+			@Override
+			String toJSON (
+				final BracketedStacksToken bracketToken,
+				final LinkingFileMap linkingFileMap,
+				final int hashID,
+				final StacksErrorLog errorLog, final JSONWriter jsonWriter)
+			{
+
+				if (bracketToken.subTokens.size() == 1)
+				{
+					final String errorMessage = String.format("\n<li>"
+						+ "<strong>%s</strong><em> Line #: %d</em>: "
+						+ "Malformed @see tag section; "
+						+ "expected link content immediately "
+						+ "following the @see tag, but tag was empty.</li>",
+						bracketToken.moduleName,
+						bracketToken.lineNumber());
+
+					final ByteBuffer errorBuffer = ByteBuffer.wrap(
+						errorMessage.toString()
+							.getBytes(StandardCharsets.UTF_8));
+					errorLog.addLogEntry(errorBuffer,1);
+
+					return "";
+				}
+				/**
+				 * The method keyword indicates the name of the method
+				 * implementation.
+				 */
+				final List<AbstractStacksToken> links =
+					bracketToken.subTokens
+						.subList(1, bracketToken.subTokens.size());
+
+				if (links.size() == 1)
+				{
+					try
+					{
+						return new StacksLinkTag (
+							(QuotedStacksToken) links.get(0))
+								.toHTML(linkingFileMap, hashID, errorLog, 1);
+					}
+					catch (final ClassCastException e)
+					{
+						final String errorMessage = String.format("\n<li>"
+							+ "<strong>%s</strong><em> Line #: %d</em>: "
+							+ "Malformed @see tag section; "
+							+ "expected a quoted link immediately "
+							+ "following the @see tag.</li>",
+							bracketToken.moduleName,
+							bracketToken.lineNumber());
+
+						final ByteBuffer errorBuffer = ByteBuffer.wrap(
+							errorMessage.toString()
+								.getBytes(StandardCharsets.UTF_8));
+						errorLog.addLogEntry(errorBuffer,1);
+
+						return "";
+					}
+				}
+				try
+				{
+					final RegionStacksToken link =
+						(RegionStacksToken) links.get(0);
+
+					return new StacksSeeTag (link)
+							.toHTML(linkingFileMap, hashID, errorLog, 1);
 				}
 				catch (final ClassCastException e)
 				{
@@ -792,7 +1372,7 @@ public class BracketedStacksToken extends RegionStacksToken
 			@Override
 			String toHTML(
 				final BracketedStacksToken bracketToken,
-				final LinkingFileMap htmlFileMap, final int hashID,
+				final LinkingFileMap linkingFileMap, final int hashID,
 				final StacksErrorLog errorLog)
 			{
 				if (bracketToken.subTokens.size() == 1)
@@ -827,17 +1407,17 @@ public class BracketedStacksToken extends RegionStacksToken
 						final QuotedStacksToken link =
 							(QuotedStacksToken) links.get(0);
 
-						if (htmlFileMap.internalLinks()
+						if (linkingFileMap.internalLinks()
 							.containsKey(link.lexeme()))
 						{
 							final StringBuilder stringBuilder =
 								new StringBuilder();
 							stringBuilder
 								.append("<a ng-click=\"myParent().changeLinkValue('")
-								.append(htmlFileMap.internalLinks()
+								.append(linkingFileMap.internalLinks()
 									.get(link.lexeme()))
 								.append("')\" href=\"")
-								.append(htmlFileMap.internalLinks()
+								.append(linkingFileMap.internalLinks()
 									.get(link.lexeme()))
 								.append("\">")
 								.append(link.lexeme())
@@ -875,33 +1455,136 @@ public class BracketedStacksToken extends RegionStacksToken
 					for (int i = 1; i < listSize - 1; i++)
 					{
 						linkBuilder
-							.append(links.get(i).toHTML(htmlFileMap,
+							.append(links.get(i).toHTML(linkingFileMap,
 								hashID, errorLog))
 							.append(" ");
 					}
 					linkBuilder
 						.append(links.get(listSize - 1)
-							.toHTML(htmlFileMap, hashID, errorLog));
+							.toHTML(linkingFileMap, hashID, errorLog));
 				}
 				final QuotedStacksToken link =
 					(QuotedStacksToken) links.get(0);
 
-				if (htmlFileMap.internalLinks()
+				if (linkingFileMap.internalLinks()
 					.containsKey(link.lexeme()))
 				{
 					final StringBuilder stringBuilder =
 						new StringBuilder();
 					stringBuilder
 						.append("<a ng-click=\"myParent().changeLinkValue('")
-						.append(htmlFileMap.internalLinks()
+						.append(linkingFileMap.internalLinks()
 							.get(link.lexeme()))
 						.append("')\" href=\"")
-						.append(htmlFileMap.internalLinks()
+						.append(linkingFileMap.internalLinks()
 							.get(link.lexeme()))
 						.append("\">")
 						.append(linkBuilder)
 						.append("</a>");
 					return stringBuilder.toString();
+				}
+				final StringBuilder plainText =
+					new StringBuilder();
+				final int shiftedTokenCount = links.size() - 1;
+				for (int i = 1; i < shiftedTokenCount; i++)
+				{
+					plainText.append(links.get(i).lexeme());
+					plainText.append(' ');
+				}
+				plainText.append(links.get(shiftedTokenCount).lexeme());
+				return plainText.toString();
+			}
+
+			@Override
+			String toJSON (
+				final BracketedStacksToken bracketToken,
+				final LinkingFileMap linkingFileMap,
+				final int hashID,
+				final StacksErrorLog errorLog, final JSONWriter jsonWriter)
+			{
+				if (bracketToken.subTokens.size() == 1)
+				{
+					final String errorMessage = String.format("\n<li>"
+						+ "<strong>%s</strong><em> Line #: %d</em>: "
+						+ "Malformed @type tag section; "
+						+ "expected link content immediately "
+						+ "following the @type tag, but tag was empty.</li>",
+						bracketToken.moduleName,
+						bracketToken.lineNumber());
+
+					final ByteBuffer errorBuffer = ByteBuffer.wrap(
+						errorMessage.toString()
+							.getBytes(StandardCharsets.UTF_8));
+					errorLog.addLogEntry(errorBuffer,1);
+
+					return "";
+				}
+				/**
+				 * The method keyword indicates the name of the method
+				 * implementation.
+				 */
+				final List<AbstractStacksToken> links =
+					bracketToken.subTokens
+						.subList(1, bracketToken.subTokens.size());
+
+				if (links.size() == 1)
+				{
+					try
+					{
+						final QuotedStacksToken link =
+							(QuotedStacksToken) links.get(0);
+
+						if (linkingFileMap.internalLinks()
+							.containsKey(link.lexeme()))
+						{
+							return linkBuilder(link.lexeme(), linkingFileMap);
+						}
+
+							return "<code>" + link.lexeme() + "<\\/code>";
+					}
+					catch (final ClassCastException e)
+					{
+						final String errorMessage = String.format("\n<li>"
+							+ "<strong>%s</strong><em> Line #: %d</em>: "
+							+ "Malformed @type tag section; "
+							+ "expected a quoted link immediately "
+							+ "following the @type tag.</li>",
+							bracketToken.moduleName,
+							bracketToken.lineNumber());
+
+						final ByteBuffer errorBuffer = ByteBuffer.wrap(
+							errorMessage.toString()
+								.getBytes(StandardCharsets.UTF_8));
+						errorLog.addLogEntry(errorBuffer,1);
+
+						return "";
+					}
+				}
+
+				//for links.size() >= 2
+
+				final StringBuilder linkBuilder = new StringBuilder();
+				final int listSize = links.size();
+				if (listSize >= 2)
+				{
+					for (int i = 1; i < listSize - 1; i++)
+					{
+						linkBuilder
+							.append(links.get(i).toHTML(linkingFileMap,
+								hashID, errorLog))
+							.append(" ");
+					}
+					linkBuilder
+						.append(links.get(listSize - 1)
+							.toHTML(linkingFileMap, hashID, errorLog));
+				}
+				final QuotedStacksToken link =
+					(QuotedStacksToken) links.get(0);
+
+				if (linkingFileMap.internalLinks()
+					.containsKey(link.lexeme()))
+				{
+					return linkBuilder(link.lexeme(), linkingFileMap);
 				}
 				final StringBuilder plainText =
 					new StringBuilder();
@@ -961,13 +1644,72 @@ public class BracketedStacksToken extends RegionStacksToken
 		/**
 		 * Create the appropriate keyword token
 		 * @param bracketToken This {@linkplain BracketedStacksToken}
-		 * @param htmlFileMap the internal link map
+		 * @param linkingFileMap the internal link map
 		 * @param hashID The hash id for the implementation this belongs to
 		 * @param errorLog The {@linkplain StacksErrorLog}
 		 * @return
 		 */
 		 abstract String toHTML(final BracketedStacksToken bracketToken,
-				final LinkingFileMap htmlFileMap, final int hashID,
+				final LinkingFileMap linkingFileMap, final int hashID,
 				final StacksErrorLog errorLog);
+
+		/**
+		 * Create the appropriate keyword token
+		 * @param bracketToken This {@linkplain BracketedStacksToken}
+		 * @param linkingFileMap the internal link map
+		 * @param hashID The hash id for the implementation this belongs to
+		 * @param errorLog The {@linkplain StacksErrorLog}
+		 * @param jsonWriter TODO
+		 * @return
+		 */
+		 abstract String toJSON(final BracketedStacksToken bracketToken,
+				final LinkingFileMap linkingFileMap, final int hashID,
+				final StacksErrorLog errorLog, JSONWriter jsonWriter);
+
+		 /**
+		  * Create html link that can be imbedded in JSON
+		  * @param aLexeme the lexeme to get from the
+		  * 	{@linkplain LinkingFileMap linkingFileMap}
+		  * @param linkingFileMap The map containing the links
+		  * @return A constructed string of a link
+		  */
+		 static String linkBuilder(final String aLexeme,
+				final LinkingFileMap linkingFileMap)
+		{
+			final StringBuilder stringBuilder =
+				new StringBuilder();
+			stringBuilder
+				.append("<a ng-click=\\\"myParent().changeLinkValue('")
+				.append(linkingFileMap.internalLinks()
+					.get(aLexeme))
+				.append("')\\\" href=\\\"")
+				.append(linkingFileMap.internalLinks()
+					.get(aLexeme))
+				.append("\\\">")
+				.append(aLexeme)
+				.append("<\\/a>");
+			return stringBuilder.toString();
+		}
+
+		 /**
+		  * Create html link that can be imbedded in JSON
+		  * @param aLexeme the lexeme to get from the
+		  * 	{@linkplain LinkingFileMap linkingFileMap}
+		  * @param linkingFileMap The map containing the links
+		 * @param hashID
+		  * @return A constructed string of a link
+		  */
+		 static String linkBuilderNolink(final String aLexeme,
+				final LinkingFileMap linkingFileMap, final int hashID)
+		{
+			 final StringBuilder stringBuilder =
+					new StringBuilder();
+				stringBuilder.append("<a href=\\\"#")
+					.append(aLexeme).append(hashID)
+					.append("\\\">")
+					.append(aLexeme)
+					.append("<\\/a>");
+				return stringBuilder.toString();
+		}
 	}
 }

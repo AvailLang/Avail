@@ -32,6 +32,8 @@
 
 package com.avail.stacks;
 
+import com.avail.utility.json.JSONWriter;
+
 /**
  * A stacks token representing a quoted region in the comment.
  *
@@ -93,6 +95,13 @@ public class QuotedStacksToken extends RegionStacksToken
 	@Override
 	public String toHTML(final LinkingFileMap htmlFileMap, final int hashID,
 		final StacksErrorLog errorLog)
+	{
+		return lexeme().replace("<", "&lt;");
+	}
+
+	@Override
+	public String toJSON(final LinkingFileMap linkingFileMap, final int hashID,
+		final StacksErrorLog errorLog, final JSONWriter jsonWriter)
 	{
 		return lexeme().replace("<", "&lt;");
 	}

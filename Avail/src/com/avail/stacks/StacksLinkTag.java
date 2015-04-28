@@ -34,6 +34,7 @@ package com.avail.stacks;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * The "@link" tag use in an Avail comment to link to an external web page.
@@ -124,6 +125,17 @@ public class StacksLinkTag extends AbstractStacksTag
 		}
 
 		return stringBuilder.append("</a>").toString();
+	}
+
+	@Override
+	public void toJSON (
+		final LinkingFileMap linkingFileMap,
+		final int hashID,
+		final StacksErrorLog errorLog,
+		final int position,
+		final JSONWriter jsonWriter)
+	{
+		//DO NOTHING AS HANDLED IN BracketStacks
 	}
 
 }

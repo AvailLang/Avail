@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import com.avail.descriptor.A_String;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * An Avail comment implementation
@@ -131,7 +132,8 @@ public abstract class AbstractCommentImplementation
 	 * 		The categories the implementation appears in
 	 * @param aliases
 	 * 		The aliases the implementation is known by
-	 * @param sticky TODO
+	 * @param sticky
+	 * 		Indicates whether or not the comment is sticky
 	 */
 	AbstractCommentImplementation(
 		final CommentSignature signature,
@@ -172,15 +174,29 @@ public abstract class AbstractCommentImplementation
 
 	/**
 	 * Create HTML content from implementation
-	 * @param htmlFileMap
-	 * 		The map of all HTML file linkage
+	 * @param linkingFileMap
+	 * 		The map of file linkage
 	 * @param nameOfGroup
 	 * 		The name of the implementation as it is to be displayed
 	 * @param errorLog The {@linkplain StacksErrorLog}
 	 * @return the HTML tagged content
 	 */
-	public abstract String toHTML(final LinkingFileMap htmlFileMap,
+	public abstract String toHTML(final LinkingFileMap linkingFileMap,
 		final String nameOfGroup, final StacksErrorLog errorLog);
+
+	/**
+	 * Create JSON content from implementation
+	 * @param linkingFileMap
+	 * 		The map of file linkage
+	 * @param nameOfGroup
+	 * 		The name of the implementation as it is to be displayed
+	 * @param errorLog The {@linkplain StacksErrorLog}
+	 * @param jsonWriter The {@linkplain JSONWriter writer} collecting the
+	 * 		stacks content.
+	 */
+	public abstract void toJSON(final LinkingFileMap linkingFileMap,
+		final String nameOfGroup, final StacksErrorLog errorLog,
+		JSONWriter jsonWriter);
 
 	/**
 	 * @return A set of category String names for this implementation.

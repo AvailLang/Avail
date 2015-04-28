@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.TreeMap;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A comment implementation of grammatical restrictions
@@ -183,4 +184,22 @@ public class GrammaticalRestrictionCommentImplementation extends
 	{
 		importModule.addGrammaticalImplementation(name, this);
 	}
+
+	@Override
+	public void toJSON (
+		final LinkingFileMap linkingFileMap,
+		final String nameOfGroup,
+		final StacksErrorLog errorLog,
+		final JSONWriter jsonWriter)
+	{
+		jsonWriter.write("grammaticalRestrictions");
+		jsonWriter.startArray();
+		for (final int arity : forbids.navigableKeySet())
+		{
+			forbids.get(arity)
+				.toJSON(linkingFileMap, hashID, errorLog, 1, jsonWriter);
+		}
+		jsonWriter.endArray();
+	}
 }
+

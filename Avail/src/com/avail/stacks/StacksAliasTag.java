@@ -33,6 +33,7 @@
 package com.avail.stacks;
 
 import java.util.List;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * An @alias tag for listing Stacks aliases
@@ -59,7 +60,7 @@ public class StacksAliasTag extends AbstractStacksTag
 
 	@Override
 	public String toHTML (final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, int position)
+		final int hashID, final StacksErrorLog errorLog, final int position)
 	{
 		final StringBuilder stringBuilder = new StringBuilder();
 		final int listSize = aliases.size();
@@ -93,4 +94,17 @@ public class StacksAliasTag extends AbstractStacksTag
 		return aliases;
 	}
 
+	@Override
+	public void toJSON (
+		final LinkingFileMap linkingFileMap,
+		final int hashID,
+		final StacksErrorLog errorLog,
+		final int position,
+		final JSONWriter jsonWriter)
+	{
+		jsonWriter.write("aliases");
+		jsonWriter.writeArray(
+			aliases.toArray(new String[aliases.size()]));
+
+	}
 }

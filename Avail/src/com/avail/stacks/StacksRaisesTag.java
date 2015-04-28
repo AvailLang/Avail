@@ -32,6 +32,8 @@
 
 package com.avail.stacks;
 
+import com.avail.utility.json.JSONWriter;
+
 /**
  * The "@raises" tag in an Avail comment indicates an exception that is thrown
  * by the method.
@@ -82,24 +84,24 @@ public class StacksRaisesTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML (final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, int position)
+	public String toHTML (final LinkingFileMap linkingFileMap,
+		final int hashID, final StacksErrorLog errorLog, final int position)
 	{
 		final StringBuilder exceptionBuilder = new StringBuilder();
-		if (htmlFileMap.internalLinks().containsKey(exceptionName.lexeme()))
+		if (linkingFileMap.internalLinks().containsKey(exceptionName.lexeme()))
 		{
 			exceptionBuilder.append("<a ng-click=\"myParent().changeLinkValue('")
-				.append(htmlFileMap.internalLinks().get(exceptionName.lexeme()))
+				.append(linkingFileMap.internalLinks().get(exceptionName.lexeme()))
 				.append("')\" href=\"")
-				.append(htmlFileMap.internalLinks().get(exceptionName.lexeme()))
+				.append(linkingFileMap.internalLinks().get(exceptionName.lexeme()))
 				.append("\">")
-				.append(exceptionName.toHTML(htmlFileMap, hashID, errorLog))
+				.append(exceptionName.toHTML(linkingFileMap, hashID, errorLog))
 				.append("</a>");
 		}
 		else
 		{
 			exceptionBuilder
-				.append(exceptionName.toHTML(htmlFileMap, hashID, errorLog));
+				.append(exceptionName.toHTML(linkingFileMap, hashID, errorLog));
 		}
 
 		final StringBuilder stringBuilder = new StringBuilder()
@@ -116,11 +118,31 @@ public class StacksRaisesTag extends AbstractStacksTag
 				+ HTMLBuilder
 					.tagClass(HTMLClass.classStacks, HTMLClass.classIDesc)
 				+ ">\n")
-			.append(tabs(6) + exceptionDescription.toHTML(htmlFileMap, hashID,
+			.append(tabs(6) + exceptionDescription.toHTML(linkingFileMap, hashID,
 				errorLog))
 			.append("\n" + tabs(5) + "</td>\n")
 			.append(tabs(4) + "</tr>\n");
 		return stringBuilder.toString();
 	}
 
+	@Override
+	public void toJSON (
+		final LinkingFileMap linkingFileMap,
+		final int hashID,
+		final StacksErrorLog errorLog,
+		final int position,
+		final JSONWriter jsonWriter)
+	{
+		jsonWriter.startObject();
+			jsonWriter.write("description");
+			exceptionDescription.toJSON(linkingFileMap, hashID, errorLog,
+				jsonWriter);
+			jsonWriter.write("name");
+			jsonWriter.write(exceptionName.toJSON(linkingFileMap, hashID,
+				errorLog, jsonWriter));
+			jsonWriter.write("link");
+			jsonWriter.write(
+				linkingFileMap.internalLinks().get(exceptionName.lexeme()));
+		jsonWriter.endObject();
+	}
 }

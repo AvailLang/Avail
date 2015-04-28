@@ -35,6 +35,7 @@ package com.avail.stacks;
 import java.util.ArrayList;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A comment that describes a particular macro implementation
@@ -260,5 +261,70 @@ public class MacroCommentImplementation extends AbstractCommentImplementation
 
 		return stringBuilder.append(tabs(3) + "</tbody>\n")
 			.append(tabs(2) + "</table>\n").toString();
+	}
+
+	@Override
+	public void toJSON (
+		final LinkingFileMap linkingFileMap,
+		final String nameOfGroup,
+		final StacksErrorLog errorLog,
+		final JSONWriter jsonWriter)
+	{
+		jsonWriter.write("type");
+		jsonWriter.write("macro");
+		signature().toJSON(nameOfGroup, isSticky(), jsonWriter);
+
+		if (categories.size() > 0)
+		{
+			categories.get(0).toJSON(linkingFileMap,
+				hashID, errorLog, 1, jsonWriter);
+		} else
+		{
+			jsonWriter.write("categories");
+			jsonWriter.writeArray(new String[0]);
+		}
+
+		if (aliases.size() > 0)
+		{
+			aliases.get(0).toJSON(linkingFileMap,
+				hashID, errorLog, 1, jsonWriter);
+		} else
+		{
+			jsonWriter.write("aliases");
+			jsonWriter.writeArray(new String[0]);
+		}
+
+		jsonWriter.write("sees");
+		jsonWriter.startArray();
+		for (final StacksSeeTag see : sees)
+		{
+			see.toJSON(linkingFileMap, hashID,errorLog, 1, jsonWriter);
+		}
+		jsonWriter.endArray();
+
+		jsonWriter.write("description");
+		description.toJSON(linkingFileMap, hashID, errorLog, jsonWriter);
+
+
+		//The ordered position of the parameter in the method signature.
+		int position = 1;
+		jsonWriter.write("parameters");
+		jsonWriter.startArray();
+		for (final StacksParameterTag paramTag : parameters)
+		{
+			paramTag.toJSON(linkingFileMap, hashID, errorLog, position++,
+				jsonWriter);
+		}
+		jsonWriter.endArray();
+
+		returnsContent.toJSON(linkingFileMap, hashID, errorLog, 1, jsonWriter);
+
+		jsonWriter.write("raises");
+		jsonWriter.startArray();
+		for (final StacksRaisesTag exception : exceptions)
+		{
+			exception.toJSON(linkingFileMap, hashID, errorLog, 1, jsonWriter);
+		}
+		jsonWriter.endArray();
 	}
 }

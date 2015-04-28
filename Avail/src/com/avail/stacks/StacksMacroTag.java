@@ -32,6 +32,8 @@
 
 package com.avail.stacks;
 
+import com.avail.utility.json.JSONWriter;
+
 /**
  * The Avail comment "@macro" tag
  *
@@ -70,8 +72,17 @@ public class StacksMacroTag extends AbstractStacksTag
 		final StacksErrorLog errorLog,
 		final int position)
 	{
-		// TODO Auto-generated method stub
 		return macroName.toHTML(htmlFileMap, hashID, errorLog);
 	}
 
+	@Override
+	public void toJSON (
+		final LinkingFileMap linkingFileMap,
+		final int hashID,
+		final StacksErrorLog errorLog,
+		final int position,
+		final JSONWriter jsonWriter)
+	{
+		// TODO Is not called, do nothing.
+	}
 }

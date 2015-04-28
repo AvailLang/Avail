@@ -32,6 +32,8 @@
 
 package com.avail.stacks;
 
+import com.avail.utility.json.JSONWriter;
+
 /**
  * The "@returns" component of an Avail comment.
  *
@@ -82,24 +84,24 @@ public class StacksReturnTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML(final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, int position)
+	public String toHTML(final LinkingFileMap linkingFileMap,
+		final int hashID, final StacksErrorLog errorLog, final int position)
 	{
 		final StringBuilder returnTypeBuilder = new StringBuilder();
-		if (htmlFileMap.internalLinks().containsKey(returnType.lexeme()))
+		if (linkingFileMap.internalLinks().containsKey(returnType.lexeme()))
 		{
 			returnTypeBuilder.append("<a ng-click=\"myParent().changeLinkValue('")
-				.append(htmlFileMap.internalLinks().get(returnType.lexeme()))
+				.append(linkingFileMap.internalLinks().get(returnType.lexeme()))
 				.append("')\" href=\"")
-				.append(htmlFileMap.internalLinks().get(returnType.lexeme()))
+				.append(linkingFileMap.internalLinks().get(returnType.lexeme()))
 				.append("\">")
-				.append(returnType.toHTML(htmlFileMap, hashID, errorLog))
+				.append(returnType.toHTML(linkingFileMap, hashID, errorLog))
 				.append("</a>");
 		}
 		else
 		{
 			returnTypeBuilder
-				.append(returnType.toHTML(htmlFileMap, hashID, errorLog));
+				.append(returnType.toHTML(linkingFileMap, hashID, errorLog));
 		}
 
 		final StringBuilder stringBuilder = new StringBuilder()
@@ -113,10 +115,30 @@ public class StacksReturnTag extends AbstractStacksTag
 				+ HTMLBuilder
 					.tagClass(HTMLClass.classStacks, HTMLClass.classIDesc)
 				+ ">\n")
-			.append(tabs(6) + returnDescription.toHTML(htmlFileMap, hashID,
+			.append(tabs(6) + returnDescription.toHTML(linkingFileMap, hashID,
 				errorLog))
 			.append("\n" + tabs(5) + "</td>\n")
 			.append(tabs(4) + "</tr>\n");
 		return stringBuilder.toString();
+	}
+
+	@Override
+	public void toJSON (
+		final LinkingFileMap linkingFileMap,
+		final int hashID,
+		final StacksErrorLog errorLog,
+		final int position,
+		final JSONWriter jsonWriter)
+	{
+		jsonWriter.write("returns");
+		jsonWriter.startArray();
+			jsonWriter.write(
+				returnType.toJSON(linkingFileMap, hashID, errorLog, jsonWriter));
+			returnDescription.toJSON(linkingFileMap, hashID, errorLog,
+				jsonWriter);
+			jsonWriter.write(
+				linkingFileMap.internalLinks().get(returnType.lexeme()));
+		jsonWriter.endArray();
+
 	}
 }

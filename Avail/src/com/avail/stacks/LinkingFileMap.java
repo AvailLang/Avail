@@ -401,7 +401,8 @@ public class LinkingFileMap
 
 
 	/**
-	 * A method that writes an HTML file
+	 * A method that writes a JSON file of all the internal linking of Stacks
+	 * files
 	 * @param path
 	 */
 	public void writeInternalLinksToJSON (final Path path)
