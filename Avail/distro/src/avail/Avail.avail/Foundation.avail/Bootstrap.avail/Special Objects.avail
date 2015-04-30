@@ -88,6 +88,8 @@ Names
 	/*   4 */ "function",
 	/*   6 */ "function implementation",
 	/*   5 */ "function meta",
+	/* 146 */ "int32",
+	/* 147 */ "int64",
 	/*  17 */ "integer",
 	/*  95 */ "key-value tuple",
 	/*  63 */ "label phrase",
@@ -335,6 +337,8 @@ _super_cast_phrase                      ::= special object 142;
 _parse_map_key                          ::= special object 143;
 _scope_map_key                          ::= special object 144;
 _all_tokens_key                         ::= special object 145;
+_int32                                  ::= special object 146;
+_int64                                  ::= special object 147;
 
 /**
  * The practical abstract root of the Avail type lattice. {@code "any"} is the
@@ -2547,5 +2551,29 @@ Primitive "scope map key" is
 Primitive "all tokens key" is
 [
 	_all_tokens_key
+];
+
+/**
+ * Signed 32-bit integers.
+ *
+ * @category "Primitives" "Types"
+ * @type "int32"
+ * @alias "int32"
+ */
+Primitive "int32" is
+[
+	_int32
+];
+
+/**
+ * Signed 64-bit integers.
+ *
+ * @category "Primitives" "Types"
+ * @type "int64"
+ * @alias "int64"
+ */
+Primitive "int64" is
+[
+	_int64
 ];
 

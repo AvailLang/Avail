@@ -1328,7 +1328,7 @@ public final class AvailBuilder
 					resolvedName,
 					TokenDescriptor.createSyntheticStart(),
 					ProblemType.TRACE,
-					"Recursive module dependency:\n{0}",
+					"Recursive module dependency:\n\t{0}",
 					recursionSet)
 				{
 					@Override

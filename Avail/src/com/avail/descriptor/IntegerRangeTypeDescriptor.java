@@ -852,6 +852,40 @@ extends TypeDescriptor
 		return wholeNumbers;
 	}
 
+	/** The range of a signed 32-bit {@code int}, [-2^31..2^31). */
+	private static final A_Type int32 = create(
+		IntegerDescriptor.fromInt(Integer.MIN_VALUE),
+		true,
+		IntegerDescriptor.fromInt(Integer.MAX_VALUE),
+		true).makeShared();
+
+	/**
+	 * Return the range of 32-bit signed ints.
+	 *
+	 * @return [-0x80000000..0x7FFFFFFF].
+	 */
+	public static A_Type int32 ()
+	{
+		return int32;
+	}
+
+	/** The range of a signed 64-bit {@code long}, [-2^63..2^63). */
+	private static final A_Type int64 = create(
+		IntegerDescriptor.fromLong(Long.MIN_VALUE),
+		true,
+		IntegerDescriptor.fromLong(Long.MAX_VALUE),
+		true).makeShared();
+
+	/**
+	 * Return the range of 64-bit signed longs.
+	 *
+	 * @return [-0x8000_0000_0000_0000..0x7FFF_FFFF_FFFF_FFFF].
+	 */
+	public static A_Type int64 ()
+	{
+		return int64;
+	}
+
 	/**
 	 * The metatype for integers. This is an {@linkplain InstanceTypeDescriptor
 	 * instance type} whose base instance is {@linkplain #extendedIntegers

@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.FunctionTypeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.FunctionTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
@@ -314,10 +315,13 @@ extends TypeDescriptor
 		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
 		{
-			hash = 0x63FC934;
-			hash ^= object.slot(RETURN_TYPE).hash();
-			hash = hash * 23 ^ object.slot(DECLARED_EXCEPTIONS).hash();
-			hash = hash * 29 ^ object.slot(ARGS_TUPLE_TYPE).hash();
+			hash = 0x163FC934;
+			hash += object.slot(RETURN_TYPE).hash();
+			hash *= multiplier;
+			hash ^= object.slot(DECLARED_EXCEPTIONS).hash();
+			hash *= multiplier;
+			hash ^= object.slot(ARGS_TUPLE_TYPE).hash();
+			hash += 0x10447107;
 			object.setSlot(HASH_OR_ZERO, hash);
 		}
 		return hash;
