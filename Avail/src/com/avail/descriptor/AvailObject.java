@@ -7058,27 +7058,15 @@ implements
 	}
 
 	@Override
-	public A_Type typeForLookup ()
+	public A_Type superUnionType ()
 	{
-		return descriptor.o_TypeForLookup(this);
+		return descriptor.o_SuperUnionType(this);
 	}
 
 	@Override
 	public boolean hasSuperCast ()
 	{
 		return descriptor.o_HasSuperCast(this);
-	}
-
-	@Override
-	public void emitForSuperSendOn (final AvailCodeGenerator codeGenerator)
-	{
-		descriptor.o_EmitForSuperSendOn(this, codeGenerator);
-	}
-
-	@Override
-	public void emitAllForSuperSendOn (final AvailCodeGenerator codeGenerator)
-	{
-		descriptor.o_EmitAllForSuperSendOn(this, codeGenerator);
 	}
 
 	@Override

@@ -5338,7 +5338,7 @@ public final class AvailCompiler
 										assert s != null;
 										c.value(String.format(
 											"argument #%d of message %s "
-											+ " to have a type other than %s",
+											+ "to have a type other than %s",
 											finalIndex,
 											bundle.message().atomName(),
 											s));
@@ -5978,11 +5978,14 @@ public final class AvailCompiler
 			// Fall through to test semantic restrictions and run the macro if
 			// one was found.
 		}
-		// It invokes a method (not a macro).  Note that we grab the lookup
-		// types rather than the argument types, since if this is a supercall we
-		// want to know what semantic restrictions and function return types
-		// will be reached by the method definition(s) actually being invoked.
-		final A_Type argTupleType = argumentsListNode.typeForLookup();
+		// It invokes a method (not a macro).  We compute the union of the
+		// superUnionType() and the expressionType() for lookup, since if this
+		// is a supercall we want to know what semantic restrictions and
+		// function return types will be reached by the method definition(s)
+		// actually being invoked.
+		final A_Type argTupleType =
+			argumentsListNode.superUnionType().typeUnion(
+				argumentsListNode.expressionType());
 		final int argCount = argumentsListNode.expressionsSize();
 		final List<A_Type> argTypes = new ArrayList<>(argCount);
 		for (int i = 1; i <= argCount; i++)

@@ -4692,31 +4692,15 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Type o_TypeForLookup (final AvailObject object)
+	A_Type o_SuperUnionType (final AvailObject object)
 	{
-		return o_Traversed(object).typeForLookup();
+		return o_Traversed(object).superUnionType();
 	}
 
 	@Override
 	boolean o_HasSuperCast (final AvailObject object)
 	{
 		return o_Traversed(object).hasSuperCast();
-	}
-
-	@Override
-	void o_EmitForSuperSendOn (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
-	{
-		o_Traversed(object).emitForSuperSendOn(codeGenerator);
-	}
-
-	@Override
-	void o_EmitAllForSuperSendOn (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
-	{
-		o_Traversed(object).emitAllForSuperSendOn(codeGenerator);
 	}
 
 	@Override

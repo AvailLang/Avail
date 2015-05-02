@@ -32,29 +32,53 @@
 
 package com.avail.compiler.instruction;
 
+import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.MethodDescriptor;
+import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 
 /**
- * This is a multi-method super-call instruction.  The opcode is followed by the
- * index of the message (a {@linkplain MethodDescriptor method}), then the index
- * of the literal that holds the return type for this call site.
+ * This is a multi-method super-call instruction.  The opcode is followed by:
+ * <ol>
+ * <li>the index of the {@linkplain A_Bundle message bundle} (which itself
+ *     refers to a {@linkplain MethodDescriptor method}), then</li>
+ * <li>the index of the literal that holds the expected return type for this
+ *     call site, then</li>
+ * <li>a {@link TupleTypeDescriptor tuple type} used to direct the method
+ *     lookup.</li>
+ * </ol>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailSuperCall extends AvailCall
 {
 	/**
+	 * The index of the literal that holds a tuple type which is used to direct
+	 * method lookup.  The union of this tuple type and the type of the tuple of
+	 * actual arguments at run time is used to look up the method.
+	 */
+	final int superUnionIndex;
+
+	/**
 	 * Construct a new {@link AvailSuperCall}.
 	 *
-	 * @param messageIndex The index of the literal that holds the message (a
-	 *                     {@linkplain MethodDescriptor method}).
-	 * @param verifyIndex The index of the literal that holds the return type.
+	 * @param messageIndex
+	 *        The index of the literal that holds the message (a {@linkplain
+	 *        MethodDescriptor method}).
+	 * @param verifyIndex
+	 *        The index of the literal that holds the return type.
+	 * @param superUnionIndex
+	 *        The index of the literal that holds a tuple type used to direct
+	 *        method lookup.
 	 */
-	public AvailSuperCall (final int messageIndex, final int verifyIndex)
+	public AvailSuperCall (
+		final int messageIndex,
+		final int verifyIndex,
+		final int superUnionIndex)
 	{
 		super(messageIndex, verifyIndex);
+		this.superUnionIndex = superUnionIndex;
 	}
 
 	@Override
@@ -64,5 +88,6 @@ public class AvailSuperCall extends AvailCall
 		L1Operation.L1Ext_doSuperCall.writeTo(aStream);
 		writeIntegerOn(index, aStream);
 		writeIntegerOn(verifyIndex, aStream);
+		writeIntegerOn(superUnionIndex, aStream);
 	}
 }

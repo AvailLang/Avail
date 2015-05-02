@@ -60,7 +60,7 @@ public final class P_344_SuperCastLookupType extends Primitive
 		assert args.size() == 1;
 		final A_Phrase supercast = args.get(0);
 
-		return interpreter.primitiveSuccess(supercast.typeForLookup());
+		return interpreter.primitiveSuccess(supercast.superUnionType());
 	}
 
 	@Override

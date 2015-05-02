@@ -101,24 +101,6 @@ extends TypeDescriptor
 		return e == HASH_OR_ZERO;
 	}
 
-	@Override @AvailMethod
-	A_Set o_DeclaredExceptions (final AvailObject object)
-	{
-		return object.slot(DECLARED_EXCEPTIONS);
-	}
-
-	@Override @AvailMethod
-	A_Type o_ReturnType (final AvailObject object)
-	{
-		return object.slot(RETURN_TYPE);
-	}
-
-	@Override @AvailMethod
-	A_Type o_ArgsTupleType (final AvailObject object)
-	{
-		return object.slot(ARGS_TUPLE_TYPE);
-	}
-
 	/**
 	 * Prettily print the specified {@linkplain List list} of {@linkplain
 	 * AvailObject objects} to the specified {@linkplain StringBuilder stream}.
@@ -254,51 +236,6 @@ extends TypeDescriptor
 		}
 	}
 
-	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.equalsFunctionType(object);
-	}
-
-	@Override @AvailMethod
-	boolean o_EqualsFunctionType (
-		final AvailObject object,
-		final A_Type aType)
-	{
-		if (object.sameAddressAs(aType))
-		{
-			return true;
-		}
-		if (object.hash() != aType.hash())
-		{
-			return false;
-		}
-		if (!object.slot(ARGS_TUPLE_TYPE).equals(aType.argsTupleType()))
-		{
-			return false;
-		}
-		if (!object.slot(RETURN_TYPE).equals(aType.returnType()))
-		{
-			return false;
-		}
-		if (!object.slot(DECLARED_EXCEPTIONS).equals(
-			aType.declaredExceptions()))
-		{
-			return false;
-		}
-		if (!isShared())
-		{
-			aType.makeImmutable();
-			object.becomeIndirectionTo(aType);
-		}
-		else if (!aType.descriptor().isShared())
-		{
-			object.makeImmutable();
-			aType.becomeIndirectionTo(object);
-		}
-		return true;
-	}
-
 	/**
 	 * The hash value is stored raw in the object's {@linkplain
 	 * IntegerSlots#HASH_OR_ZERO hashOrZero} slot if it has been computed,
@@ -325,19 +262,6 @@ extends TypeDescriptor
 			object.setSlot(HASH_OR_ZERO, hash);
 		}
 		return hash;
-	}
-
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		if (isShared())
-		{
-			synchronized (object)
-			{
-				return hash(object);
-			}
-		}
-		return hash(object);
 	}
 
 	@Override @AvailMethod
@@ -407,6 +331,12 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
+	A_Type o_ArgsTupleType (final AvailObject object)
+	{
+		return object.slot(ARGS_TUPLE_TYPE);
+	}
+
+	@Override @AvailMethod
 	boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
 		final List<? extends A_Type> argTypes)
@@ -423,6 +353,70 @@ extends TypeDescriptor
 			}
 		}
 		return true;
+	}
+
+	@Override @AvailMethod
+	A_Set o_DeclaredExceptions (final AvailObject object)
+	{
+		return object.slot(DECLARED_EXCEPTIONS);
+	}
+
+	@Override @AvailMethod
+	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	{
+		return another.equalsFunctionType(object);
+	}
+
+	@Override @AvailMethod
+	boolean o_EqualsFunctionType (
+		final AvailObject object,
+		final A_Type aType)
+	{
+		if (object.sameAddressAs(aType))
+		{
+			return true;
+		}
+		if (object.hash() != aType.hash())
+		{
+			return false;
+		}
+		if (!object.slot(ARGS_TUPLE_TYPE).equals(aType.argsTupleType()))
+		{
+			return false;
+		}
+		if (!object.slot(RETURN_TYPE).equals(aType.returnType()))
+		{
+			return false;
+		}
+		if (!object.slot(DECLARED_EXCEPTIONS).equals(
+			aType.declaredExceptions()))
+		{
+			return false;
+		}
+		if (!isShared())
+		{
+			aType.makeImmutable();
+			object.becomeIndirectionTo(aType);
+		}
+		else if (!aType.descriptor().isShared())
+		{
+			object.makeImmutable();
+			aType.becomeIndirectionTo(object);
+		}
+		return true;
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				return hash(object);
+			}
+		}
+		return hash(object);
 	}
 
 	@Override @AvailMethod
@@ -470,6 +464,12 @@ extends TypeDescriptor
 		}
 		return object.slot(ARGS_TUPLE_TYPE).isSubtypeOf(
 			aFunctionType.argsTupleType());
+	}
+
+	@Override @AvailMethod
+	A_Type o_ReturnType (final AvailObject object)
+	{
+		return object.slot(RETURN_TYPE);
 	}
 
 	@Override @AvailMethod
@@ -560,21 +560,6 @@ extends TypeDescriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
-	{
-		writer.startObject();
-		writer.write("kind");
-		writer.write("function type");
-		writer.write("arguments type");
-		object.slot(ARGS_TUPLE_TYPE).writeTo(writer);
-		writer.write("return type");
-		object.slot(RETURN_TYPE).writeTo(writer);
-		writer.write("declared exceptions");
-		object.slot(DECLARED_EXCEPTIONS).writeTo(writer);
-		writer.endObject();
-	}
-
-	@Override
 	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
@@ -586,6 +571,21 @@ extends TypeDescriptor
 		object.slot(RETURN_TYPE).writeSummaryTo(writer);
 		writer.write("declared exceptions");
 		object.slot(DECLARED_EXCEPTIONS).writeSummaryTo(writer);
+		writer.endObject();
+	}
+
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("function type");
+		writer.write("arguments type");
+		object.slot(ARGS_TUPLE_TYPE).writeTo(writer);
+		writer.write("return type");
+		object.slot(RETURN_TYPE).writeTo(writer);
+		writer.write("declared exceptions");
+		object.slot(DECLARED_EXCEPTIONS).writeTo(writer);
 		writer.endObject();
 	}
 

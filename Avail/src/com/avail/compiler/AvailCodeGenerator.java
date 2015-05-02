@@ -488,21 +488,29 @@ public class AvailCodeGenerator
 	 * Write a super-call.  I expect my arguments and their types to have been
 	 * pushed already (interleaved).
 	 *
-	 * @param nArgs The number of arguments that the method accepts.
-	 * @param bundle The message bundle for the method in which to look up the
-	 *               method definition being invoked.
-	 * @param returnType The expected return type of the call.
+	 * @param nArgs
+	 *        The number of arguments that the method accepts.
+	 * @param bundle
+	 *        The message bundle for the method in which to look up the method
+	 *        definition being invoked.
+	 * @param returnType
+	 *        The expected return type of the call.
+	 * @param superUnionType
+	 *        The tuple type used to direct method lookup.
 	 */
 	public void emitSuperCall (
 		final int nArgs,
 		final A_Bundle bundle,
-		final A_Type returnType)
+		final A_Type returnType,
+		final A_Type superUnionType)
 	{
 		final int messageIndex = indexOfLiteral(bundle);
 		final int returnIndex = indexOfLiteral(returnType);
-		instructions.add(new AvailSuperCall(messageIndex, returnIndex));
-		// Pops off arguments and their types.
-		decreaseDepth(nArgs * 2);
+		final int superUnionIndex = indexOfLiteral(superUnionType);
+		instructions.add(
+			new AvailSuperCall(messageIndex, returnIndex, superUnionIndex));
+		// Pops all arguments.
+		decreaseDepth(nArgs);
 		// Pushes expected return type, to be overwritten by return value.
 		increaseDepth(1);
 	}
@@ -561,15 +569,6 @@ public class AvailCodeGenerator
 	}
 
 	/**
-	 * Emit code to peek the top of stack and push its type.
-	 */
-	public void emitGetType ()
-	{
-		increaseDepth(1);
-		instructions.add(new AvailGetType());
-	}
-
-	/**
 	 * Emit code to get the value of a local or outer (captured) variable.
 	 *
 	 * @param localOrOuter
@@ -624,24 +623,6 @@ public class AvailCodeGenerator
 		instructions.add(new AvailMakeTuple(count));
 		decreaseDepth(count);
 		increaseDepth(1);
-	}
-
-	/**
-	 * There are N <value, type> pairs on the stack as interleaved values.
-	 * Collect the values into a tuple, and collect the types into a tuple type.
-	 * Replace the 2N entries with the tuple and the tuple type.
-	 *
-	 * @param count
-	 *        The size of the tuple, which is also the size of the tuple type,
-	 *        and which is half the number of elements to consume from the
-	 *        stack.
-	 */
-	public void emitMakeTupleAndType (
-		final int count)
-	{
-		instructions.add(new AvailMakeTupleAndType(count));
-		decreaseDepth(2 * count);
-		increaseDepth(2);
 	}
 
 	/**

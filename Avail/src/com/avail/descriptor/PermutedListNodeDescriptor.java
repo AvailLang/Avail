@@ -148,55 +148,12 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	void o_EmitAllForSuperSendOn (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
-	{
-		object.slot(LIST).emitAllForSuperSendOn(codeGenerator);
-		// We now have valueX, typeX, valueY, typeY, etc. on the stack.  Now do
-		// a permutation that moves pairs of values instead of singles.
-		final A_Tuple permutation = object.slot(PERMUTATION);
-		final int size = permutation.tupleSize();
-		final List<Integer> biggerPermutation = new ArrayList<>(size * 2);
-		for (int i = 1; i <= size; i++)
-		{
-			final int oldTargetIndex = permutation.tupleIntAt(i);
-			biggerPermutation.add(oldTargetIndex * 2 - 1);
-			biggerPermutation.add(oldTargetIndex * 2);
-		}
-		codeGenerator.emitPermute(
-			TupleDescriptor.fromIntegerList(biggerPermutation));
-		// Now we have the permuted <value, type> pairs on the stack.
-	}
-
-	@Override
 	void o_EmitAllValuesOn (
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		object.slot(LIST).emitAllValuesOn(codeGenerator);
 		codeGenerator.emitPermute(object.permutation());
-	}
-
-	@Override
-	void o_EmitForSuperSendOn (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
-	{
-		if (object.hasSuperCast())
-		{
-			object.emitAllForSuperSendOn(codeGenerator);
-			codeGenerator.emitMakeTupleAndType(
-				object.slot(PERMUTATION).tupleSize());
-		}
-		else
-		{
-			// This permuted list node doesn't recursively contain any super
-			// casts, so don't bother constructing the type piecemeal – just get
-			// the whole permuted tuple onto the stack and extract its type.
-			object.emitValueOn(codeGenerator);
-			codeGenerator.emitGetType();
-		}
 	}
 
 	@Override @AvailMethod
@@ -307,6 +264,28 @@ extends ParseNodeDescriptor
 			return object;
 		}
 		return fromListAndPermutation(strippedList, object.slot(PERMUTATION));
+	}
+
+	@Override @AvailMethod
+	A_Type o_SuperUnionType (final AvailObject object)
+	{
+		final A_Phrase list = object.slot(LIST);
+		final A_Type listSuperUnionType = list.superUnionType();
+		if (listSuperUnionType.isBottom())
+		{
+			// It doesn't contain a supercast, so answer bottom.
+			return listSuperUnionType;
+		}
+		final A_Tuple permutation = object.slot(PERMUTATION);
+		final int size = list.expressionsSize();
+		final A_Type [] types = new A_Type[size];
+		for (int i = 1; i <= size; i++)
+		{
+			final A_Type t = listSuperUnionType.typeAtIndex(i);
+			final int index = permutation.tupleIntAt(i);
+			types[index - 1] = t;
+		}
+		return TupleTypeDescriptor.forTypes(types);
 	}
 
 	@Override @AvailMethod

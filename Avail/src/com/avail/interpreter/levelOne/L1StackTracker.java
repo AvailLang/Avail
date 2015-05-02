@@ -266,27 +266,10 @@ abstract class L1StackTracker implements L1OperationDispatcher
 	}
 
 	@Override
-	public void L1Ext_doGetType ()
-	{
-		currentDepth++;
-	}
-
-	@Override
-	public void L1Ext_doMakeTupleAndType ()
-	{
-		// Go from N arguments and N types, interspersed, to a single tuple
-		// of arguments and a single tuple type.
-		final A_Bundle bundle = literalAt(currentOperands()[0]);
-		currentDepth += 2 - (2 * bundle.bundleMethod().numArgs());
-	}
-
-	@Override
 	public void L1Ext_doSuperCall ()
 	{
-		// Go from N arguments and N types, interspersed, to a single return
-		// value.
 		final A_Bundle bundle = literalAt(currentOperands()[0]);
-		currentDepth += 1 - (2 * bundle.bundleMethod().numArgs());
+		currentDepth += 1 - bundle.bundleMethod().numArgs();
 	}
 
 	@Override

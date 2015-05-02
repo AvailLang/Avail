@@ -95,9 +95,7 @@ extends ParseNodeDescriptor
 		final MessageSplitter splitter;
 		splitter = object.bundle().messageSplitter();
 		splitter.printSendNodeOnIndent(
-			object,
-			builder,
-			indent);
+			object, builder, indent);
 	}
 
 	@Override @AvailMethod
@@ -145,15 +143,16 @@ extends ParseNodeDescriptor
 		final A_Bundle bundle = object.slot(BUNDLE);
 		final int argCount = bundle.bundleMethod().numArgs();
 		final A_Phrase arguments = object.slot(ARGUMENTS_LIST_NODE);
-		if (arguments.hasSuperCast())
+		arguments.emitAllValuesOn(codeGenerator);
+		final A_Type superUnionType = arguments.superUnionType();
+		if (superUnionType.isBottom())
 		{
-			arguments.emitAllForSuperSendOn(codeGenerator);
-			codeGenerator.emitSuperCall(argCount, bundle, object.returnType());
+			codeGenerator.emitCall(argCount, bundle, object.returnType());
 		}
 		else
 		{
-			arguments.emitAllValuesOn(codeGenerator);
-			codeGenerator.emitCall(argCount, bundle, object.returnType());
+			codeGenerator.emitSuperCall(
+				argCount, bundle, object.returnType(), superUnionType);
 		}
 	}
 

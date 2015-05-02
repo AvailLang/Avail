@@ -209,38 +209,6 @@ extends ParseNodeDescriptor
 		codeGenerator.emitMakeTuple(childNodes.tupleSize());
 	}
 
-	@Override
-	void o_EmitAllForSuperSendOn (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
-	{
-		for (final A_Phrase expression : object.slot(EXPRESSIONS_TUPLE))
-		{
-			expression.emitForSuperSendOn(codeGenerator);
-		}
-	}
-
-	@Override
-	void o_EmitForSuperSendOn (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
-	{
-		if (object.hasSuperCast())
-		{
-			object.emitAllForSuperSendOn(codeGenerator);
-			codeGenerator.emitMakeTupleAndType(
-				object.slot(EXPRESSIONS_TUPLE).tupleSize());
-		}
-		else
-		{
-			// This list node doesn't recursively contain any super casts, so
-			// don't bother constructing the type piecemeal – just get the whole
-			// tuple onto the stack, then extract its type.
-			object.emitValueOn(codeGenerator);
-			codeGenerator.emitGetType();
-		}
-	}
-
 	@Override @AvailMethod
 	boolean o_EqualsParseNode (
 		final AvailObject object,
@@ -344,21 +312,28 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeForLookup (final AvailObject object)
+	A_Type o_SuperUnionType (final AvailObject object)
 	{
 		final A_Tuple expressions = object.slot(EXPRESSIONS_TUPLE);
-		final A_Type[] types = new A_Type[expressions.tupleSize()];
-		for (int i = 0; i < types.length; i++)
+		final int size = expressions.tupleSize();
+		for (int i = 1; i <= size; i++)
 		{
-			final A_Type lookupType =
-				expressions.tupleAt(i + 1).typeForLookup();
-			if (lookupType.isBottom())
+			final A_Type lookupType = expressions.tupleAt(i).superUnionType();
+			if (!lookupType.isBottom())
 			{
-				return BottomTypeDescriptor.bottom();
+				// An element has a superunion type; build the tuple type.
+				final A_Type [] types = new A_Type[size];
+				Arrays.fill(types, 0, i - 1, BottomTypeDescriptor.bottom());
+				types[i - 1] = lookupType;
+				for (int j = i + 1; j <= size; j++)
+				{
+					types[j - 1] = expressions.tupleAt(j).superUnionType();
+				}
+				return TupleTypeDescriptor.forTypes(types);
 			}
-			types[i] = lookupType;
 		}
-		return TupleTypeDescriptor.forTypes(types);
+		// The elements' superunion types were all bottom, so answer bottom.
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override @AvailMethod

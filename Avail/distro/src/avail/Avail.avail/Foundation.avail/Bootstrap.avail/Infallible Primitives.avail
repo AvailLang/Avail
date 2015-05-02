@@ -922,24 +922,6 @@ Primitive "_→object type" is
 ] : object meta;
 
 /**
- * Construct and answer a map based on the supplied object type.
- *
- * @category "Primitives" "Types" "Objects" "Maps" "Conversions"
- * @method "_→map"
- * @param "anObjectType" "object meta"
- *        An object type whose fields should be the keys of the new map and
- *        whose values are the corresponding values.
- * @returns "{atom→(any)'s type|}"
- *    The requested map.
- */
-Primitive "_→map" is
-[
-	anObjectType : object meta
-|
-	Primitive 64;
-] : field type map;
-
-/**
  * Construct and answer an enumeration whose instances are fully determined by
  * the membership of the specified set.
  *
@@ -1879,26 +1861,6 @@ Primitive "_→object type" is
 |
 	Primitive 150;
 ] : object meta;
-
-/**
- * Construct and answer a tuple based on the supplied object type.
- *
- * @category "Primitives" "Types" "Tuples" "Objects" "Conversions"
- * @method "_→tuple"
- * @param "anObjectType" "object meta"
- *        An object type.
- * @returns "<<atom, (any)'s type…|2>…|>"
- *    A tuple that represents the composition of the object type. Its elements
- *    are 2-tuples. Each 2-tuple's first element is an atom (i.e., the field
- *    identifier) and its second element is the value type permitted by the
- *    field.
- */
-Primitive "_→tuple" is
-[
-	anObjectType : object meta
-|
-	Primitive 151;
-] : field type tuple;
 
 /**
  * Construct and answer an object based on the supplied tuple.

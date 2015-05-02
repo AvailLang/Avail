@@ -158,16 +158,6 @@ extends Descriptor
 		codeGenerator.emitPop();
 	}
 
-	@Override
-	void o_EmitForSuperSendOn (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
-	{
-		// This is a normal argument.  Push it, then push its type.
-		object.emitValueOn(codeGenerator);
-		codeGenerator.emitGetType();
-	}
-
 	/**
 	 * Emit the value of this node.  That means emit a sequence of instructions
 	 * that will cause this node's value to end up on the stack.
@@ -311,9 +301,9 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeForLookup (final AvailObject object)
+	A_Type o_SuperUnionType (final AvailObject object)
 	{
-		return object.expressionType();
+		return BottomTypeDescriptor.bottom();
 	}
 
 	/**
