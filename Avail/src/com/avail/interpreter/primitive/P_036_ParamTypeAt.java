@@ -90,8 +90,7 @@ extends Primitive
 	public Fallibility fallibilityForArgumentTypes (
 		final List<? extends A_Type> argumentTypes)
 	{
-		@SuppressWarnings("unused")
-		final A_Type functionMeta = argumentTypes.get(0);
+//		final A_Type functionMeta = argumentTypes.get(0);
 		final A_Type indexType = argumentTypes.get(1);
 		return indexType.isSubtypeOf(PojoTypeDescriptor.intRange())
 			? CallSiteCannotFail

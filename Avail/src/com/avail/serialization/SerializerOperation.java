@@ -715,7 +715,7 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * A {@linkplain StringDescriptor tuple of integers} whose values all
+	 * A {@linkplain TupleDescriptor tuple of integers} whose values all
 	 * fall in the range 0..255.
 	 */
 	BYTE_TUPLE(28, UNCOMPRESSED_BYTE_TUPLE.as("tuple of bytes"))
@@ -737,8 +737,8 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * A {@linkplain StringDescriptor tuple of integers} whose values fall in
-	 * the range 0..255.
+	 * A {@linkplain TupleDescriptor tuple of integers} whose values fall in
+	 * the range 0..15.
 	 */
 	NYBBLE_TUPLE(29, UNCOMPRESSED_NYBBLE_TUPLE.as("tuple of nybbles"))
 	{

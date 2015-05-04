@@ -641,7 +641,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 				+ "<body>"
 				+ "<strong>WebSocket Version %d Is Not Supported</strong>"
 				+ "</body></html>",
-				HttpStatusCode.BAD_REQUEST,
+				HttpStatusCode.BAD_REQUEST.statusCode(),
 				badVersion);
 			final ByteBuffer bytes = StandardCharsets.US_ASCII.encode(
 				formatter.toString());

@@ -687,8 +687,8 @@ enum SerializerOperandEncoding
 	 * <ul>
 	 * <li>0..127 in one byte</li>
 	 * <li>128..16383 in two bytes</li>
-	 * <li>16384..0x00feffff in three bytes</li>
-	 * <li>0x00ff0000..0x7fffffff in five bytes</li>.
+	 * <li>16384..0x003effff in three bytes</li>
+	 * <li>0x003f0000..0x7fffffff in five bytes</li>.
 	 * </ul>
 	 *
 	 * @param deserializer

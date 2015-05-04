@@ -147,8 +147,7 @@ public final class AvailRuntime
 	public static void readBarrier ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int ignored = synchronizationBarrierField;
+		final int ignored = synchronizationBarrierField;
 	}
 
 	/**

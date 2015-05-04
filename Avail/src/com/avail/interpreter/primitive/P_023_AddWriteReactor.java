@@ -105,11 +105,9 @@ extends Primitive
 	public Fallibility fallibilityForArgumentTypes (
 		final List<? extends A_Type> argumentTypes)
 	{
-		@SuppressWarnings("unused")
-		final A_Type varType = argumentTypes.get(0);
+//		final A_Type varType = argumentTypes.get(0);
 		final A_Type keyType = argumentTypes.get(1);
-		@SuppressWarnings("unused")
-		final A_Type functionType = argumentTypes.get(2);
+//		final A_Type functionType = argumentTypes.get(2);
 		if (keyType.isEnumeration())
 		{
 			boolean allSpecial = true;
