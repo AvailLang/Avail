@@ -743,7 +743,7 @@ public final class AvailBuilder
 								{
 									final String part = element.toString();
 									builder.append("/");
-									part.endsWith(availExtension);
+									assert part.endsWith(availExtension);
 									final String noExtension =
 										part.substring(
 											0,

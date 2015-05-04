@@ -110,7 +110,7 @@ extends TupleDescriptor
 			&& originalSize < Integer.MAX_VALUE)
 		{
 			// Extend the interval.
-			if (canDestroy & isMutable())
+			if (canDestroy && isMutable())
 			{
 				object.setSlot(END, (int)nextValue);
 				object.setSlot(SIZE, originalSize + 1);

@@ -2684,7 +2684,7 @@ public final class AvailCompiler
 	 * {@link String} used to mark the location of the problem in the source
 	 * text.
 	 */
-	private final class ProblemsAtToken
+	private static final class ProblemsAtToken
 	implements Comparable<ProblemsAtToken>
 	{
 		/** The token at which these problems occurred. */

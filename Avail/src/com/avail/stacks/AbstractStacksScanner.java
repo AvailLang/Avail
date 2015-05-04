@@ -496,8 +496,8 @@ public abstract class AbstractStacksScanner
 								String.format(
 									"\n<li><strong>%s</strong><em>Line #: %d"
 									+ "</em>: Scanner Error: Encountered end "
-									+ "of file after backslashin string literal"
-									+ " in module, %s.\n",
+									+ "of file after backslash in string "
+									+ "literal.\n",
 									scanner.obtainModuleSimpleName(),
 									scanner.lineNumber()),
 								scanner);

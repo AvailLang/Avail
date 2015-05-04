@@ -314,7 +314,7 @@ public class StacksScanner extends AbstractStacksScanner
 									"\n<li><strong>%s</strong><em> Line #: %d"
 									+ "</em>: Scanner Error: Encountered end "
 									+ "of file after backslash in string "
-									+ "literal in module, %s.\n",
+									+ "literal.\n",
 									scanner.moduleLeafName(),
 									scanner.lineNumber()),
 								scanner);
@@ -620,7 +620,7 @@ public class StacksScanner extends AbstractStacksScanner
 											+ "Line #: %d </em>: Scanner "
 											+ "Error: Encountered end of "
 											+ "file after backslash in string "
-											+ "literal in module, %s.\n",
+											+ "literal.\n",
 											scanner.moduleLeafName(),
 											scanner.lineNumber()),
 										scanner);
