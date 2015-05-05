@@ -35,14 +35,100 @@ Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
 	"Common"
-
 Names
 	"converters test suite",
+	"Base64 test suite",
 	"UTF8 converters test suite"
 Body
 
 "converters test suite" is a new field atom;
 New test suite converters test suite extends data abstractions test suite;
+
+Public "Base64 test suite" is a new atom;
+New test suite Base64 test suite extends converters test suite;
+
+Test "Base64 encoding" in Base64 test suite is
+[
+	/* These are the standard test vectors from RFC 4648. */
+	vector ::=
+	<
+		<"", "">,
+		<"f", "Zg==">,
+		<"fo", "Zm8=">,
+		<"foo", "Zm9v">,
+		<"foob", "Zm9vYg==">,
+		<"fooba", "Zm9vYmE=">,
+		<"foobar", "Zm9vYmFy">
+	>;
+	For each pair of vector do
+	[
+		in, expected ::= pair;
+		Require: “in→code points ?→ byte*” (Base64) = expected;
+	];
+];
+
+Test "Base64 encoding (converter)" in Base64 test suite is
+[
+	/* These are the standard test vectors from RFC 4648. */
+	vector ::=
+	<
+		<"", "">,
+		<"f", "Zg==">,
+		<"fo", "Zm8=">,
+		<"foo", "Zm9v">,
+		<"foob", "Zm9vYg==">,
+		<"fooba", "Zm9vYmE=">,
+		<"foobar", "Zm9vYmFy">
+	>;
+	For each pair of vector do
+	[
+		in, expected ::= pair;
+		reader ::=
+			a reader over in→code points ?→ byte* converted by a Base64 encoder;
+		Require: take at most ∞ from reader = expected;
+	];
+];
+
+Test "Base64 decoding" in Base64 test suite is
+[
+	/* These are the standard test vectors from RFC 4648. */
+	vector ::=
+	<
+		<"", "">,
+		<"f", "Zg==">,
+		<"fo", "Zm8=">,
+		<"foo", "Zm9v">,
+		<"foob", "Zm9vYg==">,
+		<"fooba", "Zm9vYmE=">,
+		<"foobar", "Zm9vYmFy">
+	>;
+	For each pair of vector do
+	[
+		expected, in ::= pair;
+		Require: in→bytes (Base64)→string = expected;
+	];
+];
+
+Test "Base64 decoding (decoder)" in Base64 test suite is
+[
+	/* These are the standard test vectors from RFC 4648. */
+	vector ::=
+	<
+		<"", "">,
+		<"f", "Zg==">,
+		<"fo", "Zm8=">,
+		<"foo", "Zm9v">,
+		<"foob", "Zm9vYg==">,
+		<"fooba", "Zm9vYmE=">,
+		<"foobar", "Zm9vYmFy">
+	>;
+	For each pair of vector do
+	[
+		expected, in ::= pair;
+		reader ::= a reader over in converted by a Base64 decoder;
+		Require: take at most ∞ from reader→string = expected;
+	];
+];
 
 Public "UTF8 converters test suite" is a new atom;
 New test suite UTF8 converters test suite extends converters test suite;

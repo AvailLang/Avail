@@ -35,6 +35,7 @@ Versions
 	"1.0.0 DEV 2014-04-28"
 Extends
 	"Abstract Converters",
+	"Base64 Converters",
 	"Converting Reader",
 	"UTF-8 Converters"
 Body

@@ -83,7 +83,10 @@ Names
 	"“_”(UUID)",
 
 	/* Trimming. */
-	"trim_"
+	"trim_",
+
+	/* Code points. */
+	"_→code points"
 Body
 
 /* These are the circled numbers. */
@@ -1895,4 +1898,27 @@ Semantic restriction "“_”(UUID)" is
 	uuid : UUID's type
 |
 	<character…|36>
+];
+
+/**
+ * Convert {@param "s"} to a {@type "tuple"} of code points, preserving the
+ * original order.
+ *
+ * @method "_→code points"
+ * @param "s" "string"
+ * @returns "code point*"
+ * @category "Tuples" "Strings" "Transformers" 
+ */
+Public stable method "_→code points" is
+[
+	s : string
+|
+	map each c of s through [c's code point]
+];
+
+Semantic restriction "_→code points" is
+[
+	s : string's type
+|
+	<<>, code point… | ||s||>
 ];

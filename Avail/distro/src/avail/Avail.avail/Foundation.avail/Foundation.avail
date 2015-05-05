@@ -969,6 +969,7 @@ Extends
 		"(a`|an)“_”«else_»",
 		"(the)“_”«else_»",
 		"_(base_)",
+		"_→code points",
 		"_→string",
 		"“_”(hex)",
 		"“_”(UUID)",
