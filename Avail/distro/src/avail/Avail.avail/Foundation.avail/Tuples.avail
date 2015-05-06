@@ -4739,19 +4739,3 @@ Semantic restriction "_padded with_to a multiple of_" is
 	max ::= 0 max (⎡tupleType⎤ + ⎡baseType⎤ - 1);
 	<unionType…|min..max>
 ];
-
-Method "_+_" is stable at [tuple,any]→tuple;
-
-/**
- * @method "_+_"
- * @restricts "tuple's type"
- * @restricts "any's type"
- */
- 
-Semantic restriction "_+_" is
-[
-	tupleType : tuple's type,
-	elementType : any's type
-|
-	tupleType ++ <elementType…|1>
-];
