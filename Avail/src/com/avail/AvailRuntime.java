@@ -1504,6 +1504,7 @@ public final class AvailRuntime
 		specials[145] = AtomDescriptor.allTokensKey();
 		specials[146] = IntegerRangeTypeDescriptor.int32();
 		specials[147] = IntegerRangeTypeDescriptor.int64();
+		specials[148] = STATEMENT_NODE.mostGeneralType();
 
 		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
 		// depends on the order of this list.

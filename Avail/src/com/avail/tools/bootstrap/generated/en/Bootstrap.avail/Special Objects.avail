@@ -153,6 +153,7 @@ Names
 	/* 114 */ "set of atom",
 	/* 134 */ "set of exception",
 	/*  75 */ "set of string",
+	/* 148 */ "statement phrase",
 	/*  28 */ "string",
 	/* 142 */ "super cast phrase",
 	/* 115 */ "token",
@@ -339,6 +340,7 @@ _scope_map_key                          ::= special object 144;
 _all_tokens_key                         ::= special object 145;
 _int32                                  ::= special object 146;
 _int64                                  ::= special object 147;
+_statement_phrase                       ::= special object 148;
 
 /**
  * The practical abstract root of the Avail type lattice. {@code "any"} is the
@@ -2577,3 +2579,14 @@ Primitive "int64" is
 	_int64
 ];
 
+/**
+ * TODO: Special object description goes here.
+ *
+ * @category "Primitives" "Types"
+ * @type "statement phrase"
+ * @alias "statement phrase"
+ */
+Primitive "statement phrase" is
+[
+	_statement_phrase
+];

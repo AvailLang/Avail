@@ -212,6 +212,7 @@ Extends
 		"sequence phrase",
 		"seq`«_`»",
 		"set",
+		"statement phrase",
 		"string",
 		"termination requested",
 		"token",
