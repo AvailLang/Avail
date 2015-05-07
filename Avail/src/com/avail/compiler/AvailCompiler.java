@@ -5250,6 +5250,24 @@ public final class AvailCompiler
 				{
 					assert e != null;
 					// The prefix function failed in some way.
+					if (e instanceof AvailAcceptedParseException)
+					{
+						// Prefix functions are allowed to explicitly accept a
+						// parse.
+						final A_Map replacementClientDataMap =
+							fiber.fiberGlobals().mapAt(clientDataGlobalKey());
+						final ParserState newState = new ParserState(
+							start.position, replacementClientDataMap);
+						eventuallyParseRestOfSendNode(
+							newState,
+							successorTree,
+							firstArgOrNull,
+							initialTokenPosition,
+							consumedAnything,
+							argsSoFar,
+							marksSoFar,
+							continuation);
+					}
 					if (e instanceof AvailRejectedParseException)
 					{
 						final AvailRejectedParseException stronger =
@@ -5514,6 +5532,12 @@ public final class AvailCompiler
 				public void value (final @Nullable Throwable e)
 				{
 					assert e != null;
+					if (e instanceof AvailAcceptedParseException)
+					{
+						// This is really a success.
+						intersectAndDecrement.value(TOP.o());
+						return;
+					}
 					final Describer message;
 					if (e instanceof AvailRejectedParseException)
 					{
@@ -5558,7 +5582,8 @@ public final class AvailCompiler
 						final AvailAssertionFailedException ex =
 							(AvailAssertionFailedException) e;
 						message = new SimpleDescriber(
-							"assertion failed (while parsing send of "
+							"assertion not to have failed "
+							+ "(while parsing send of "
 							+ bundle.message().atomName().asNativeString()
 							+ "):\n\t"
 							+ ex.assertionString().asNativeString());
@@ -5579,6 +5604,7 @@ public final class AvailCompiler
 					}
 				}
 			};
+		// Launch the semantic restriction in parallel.
 		for (final A_SemanticRestriction restriction : restrictionsToTry)
 		{
 			evaluateSemanticRestrictionFunctionThen(
@@ -6428,7 +6454,14 @@ public final class AvailCompiler
 					public void value (final @Nullable Throwable e)
 					{
 						assert e != null;
-						if (e instanceof AvailRejectedParseException)
+						if (e instanceof AvailAcceptedParseException)
+						{
+							stateAfterCall.expected(
+								"macro body to reject the parse or produce "
+								+ "a replacement expression, not merely accept "
+								+ "its phrases like a semantic restriction");
+						}
+						else if (e instanceof AvailRejectedParseException)
 						{
 							final AvailRejectedParseException rej =
 								(AvailRejectedParseException) e;
