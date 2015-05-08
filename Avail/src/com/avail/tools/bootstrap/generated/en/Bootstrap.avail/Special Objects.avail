@@ -145,6 +145,7 @@ Names
 	/*  68 */ "primitive failure reason phrase",
 	/* 131 */ "readable extended integer variable",
 	/* 144 */ "scope map key",
+	/* 149 */ "scope stack key",
 	/* 107 */ "semantic restriction function",
 	/*  57 */ "send phrase",
 	/*  51 */ "sequence phrase",
@@ -341,6 +342,7 @@ _all_tokens_key                         ::= special object 145;
 _int32                                  ::= special object 146;
 _int64                                  ::= special object 147;
 _statement_phrase                       ::= special object 148;
+_scope_stack_key                        ::= special object 149;
 
 /**
  * The practical abstract root of the Avail type lattice. {@code "any"} is the
@@ -2520,7 +2522,8 @@ Primitive "super cast phrase" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * The name of the fiber global through which parsing information is
+ * communicated to and from the compiler.
  *
  * @category "Primitives" "Constants"
  * @method "parse map key"
@@ -2532,7 +2535,8 @@ Primitive "parse map key" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * The key within the client data fiber global that holds a map of all
+ * declarations that are currently in scope during compilation.
  *
  * @category "Primitives" "Constants"
  * @method "scope map key"
@@ -2544,7 +2548,8 @@ Primitive "scope map key" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * The key within the client data fiber global that holds the tuple of tokens
+ * that contributed to the current macro whose body is running.
  *
  * @category "Primitives" "Constants"
  * @method "all tokens key"
@@ -2559,7 +2564,7 @@ Primitive "all tokens key" is
  * Signed 32-bit integers.
  *
  * @category "Primitives" "Types"
- * @type "int32"
+ * @type "[-2147483648..2147483647]"
  * @alias "int32"
  */
 Primitive "int32" is
@@ -2571,7 +2576,7 @@ Primitive "int32" is
  * Signed 64-bit integers.
  *
  * @category "Primitives" "Types"
- * @type "int64"
+ * @type "[-9223372036854775808..9223372036854775807]"
  * @alias "int64"
  */
 Primitive "int64" is
@@ -2580,14 +2585,27 @@ Primitive "int64" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * The type of all statement phrases.
  *
  * @category "Primitives" "Types"
- * @type "statement phrase"
+ * @type "statement phrase⇒⊤"
  * @alias "statement phrase"
  */
 Primitive "statement phrase" is
 [
 	_statement_phrase
+];
+
+/**
+ * The key within the client data fiber global that holds a tuple of maps which
+ * are previously pushed compilation scopes.
+ *
+ * @category "Primitives" "Constants"
+ * @method "scope stack key"
+ * @returns "scope stack key's type"
+ */
+Primitive "scope stack key" is
+[
+	_scope_stack_key
 ];
 

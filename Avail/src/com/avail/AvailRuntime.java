@@ -1505,6 +1505,7 @@ public final class AvailRuntime
 		specials[146] = IntegerRangeTypeDescriptor.int32();
 		specials[147] = IntegerRangeTypeDescriptor.int64();
 		specials[148] = STATEMENT_NODE.mostGeneralType();
+		specials[149] = AtomDescriptor.compilerScopeStackKey();
 
 		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
 		// depends on the order of this list.
@@ -1527,6 +1528,7 @@ public final class AvailRuntime
 			MethodDescriptor.vmDeclareStringifierAtom(),
 			AtomDescriptor.clientDataGlobalKey(),
 			AtomDescriptor.compilerScopeMapKey(),
+			AtomDescriptor.compilerScopeStackKey(),
 			AtomDescriptor.allTokensKey()));
 
 		for (final A_Atom atom : specialAtomsList)
