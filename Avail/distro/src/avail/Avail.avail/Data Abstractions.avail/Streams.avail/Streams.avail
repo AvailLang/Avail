@@ -131,6 +131,8 @@ Private method "body function(_,_)" is
 		action : block phrase ⇒ []→ ⊤
 	|
 		name ::= elementPhrase's token's lexeme;
+		declaration ::= scope map[name];
+		Undeclare name;
 		aStreamType ::= aStream's semantic type;
 		elementType ::= aStreamType's element type's instance;
 		blockType ::= 
@@ -146,7 +148,7 @@ Private method "body function(_,_)" is
 		<
 			aStream, 
 			«[
-			  	<cast scope map[name] into [d : argument phrase | d]>
+			  	<cast declaration into [d : argument phrase | d]>
 			 | 
 			 	statements
 			 ] : blockReturnType»
@@ -313,11 +315,15 @@ Macro "reject each…from_§where_" is a stream prefix function,
 	blockReturnType ::= cast newStatements
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
+
+	declaration ::= scope map[name];
+	Undeclare name;
+
 	restricted send $"filter_by_" with
 	<
 		aStream, 
 		«[
-		  	<cast scope map[name] into [d : argument phrase | d]>
+		  	<cast declaration into [d : argument phrase | d]>
 		| 
 			newStatements
 		] : blockReturnType»

@@ -3573,6 +3573,12 @@ public final class AvailCompiler
 	 * @param clientParseData
 	 *        The map to associate with the {@link
 	 *        AtomDescriptor#clientDataGlobalKey()} atom in the fiber.
+	 * @param clientParseDataOut
+	 *        A {@link MutableOrNull} into which we will store an {@link A_Map}
+	 *        when the fiber completes successfully.  The map will be the
+	 *        content of the fiber variable holding the client data, extracted
+	 *        just after the fiber completes.  If unsuccessful, don't assign to
+	 *        the {@code MutableOrNull}.
 	 * @param onSuccess
 	 *        What to do with the result of the evaluation, a {@linkplain
 	 *        A_Phrase phrase}.
@@ -3583,6 +3589,7 @@ public final class AvailCompiler
 		final A_Definition macro,
 		final List<? extends A_Phrase> args,
 		final A_Map clientParseData,
+		final MutableOrNull<A_Map> clientParseDataOut,
 		final Continuation1<AvailObject> onSuccess,
 		final Continuation1<Throwable> onFailure)
 	{
@@ -3613,7 +3620,18 @@ public final class AvailCompiler
 			clientDataGlobalKey(), clientParseData, true);
 		fiber.fiberGlobals(fiberGlobals);
 		fiber.textInterface(textInterface);
-		fiber.resultContinuation(onSuccess);
+		fiber.resultContinuation(new Continuation1<AvailObject>()
+		{
+			@Override
+			public void value (@Nullable final AvailObject outputPhrase)
+			{
+				assert outputPhrase != null;
+				final A_Map clientDataAfter =
+					fiber.fiberGlobals().mapAt(clientDataGlobalKey());
+				clientParseDataOut.value = clientDataAfter;
+				onSuccess.value(outputPhrase);
+			}
+		});
 		fiber.failureContinuation(onFailure);
 		Interpreter.runOutermostFunction(runtime, fiber, function, args);
 	}
@@ -4089,11 +4107,7 @@ public final class AvailCompiler
 					final ParserState after,
 					final A_Phrase send)
 				{
-					// Discard the client information related to this send, now
-					// that we'll be going back to parsing an outer construct.
-					continuation.value(
-						new ParserState(after.position, start.clientDataMap),
-						send);
+					continuation.value(after, send);
 				}
 			});
 	}
@@ -6358,8 +6372,8 @@ public final class AvailCompiler
 	}
 
 	/**
-	 * A macro invocation has just been parsed.  Run it now if macro execution
-	 * is supported.
+	 * A macro invocation has just been parsed.  Run its body now to produce a
+	 * substitute phrase.
 	 *
 	 * @param stateBeforeCall
 	 *            The initial parsing state, prior to parsing the entire
@@ -6404,11 +6418,14 @@ public final class AvailCompiler
 				constituentTokens,
 				false).makeImmutable();
 		startWorkUnit();
+		final MutableOrNull<A_Map> clientDataAfterRunning =
+			new MutableOrNull<>();
 		final AtomicBoolean hasRunEither = new AtomicBoolean(false);
 		evaluateMacroFunctionThen(
 			macroDefinitionToInvoke,
 			argumentsList,
 			withTokens,
+			clientDataAfterRunning,
 			workUnitCompletion(
 				stateAfterCall.peekToken(),
 				hasRunEither,
@@ -6418,15 +6435,36 @@ public final class AvailCompiler
 					public void value (final @Nullable AvailObject replacement)
 					{
 						assert replacement != null;
-						assert replacement.isInstanceOfKind(
-							PARSE_NODE.mostGeneralType());
-						final A_Phrase original =
-							SendNodeDescriptor.from(
-								stateBeforeCall.upTo(stateAfterCall),
-								bundle,
-								argumentsListNode,
-								macroDefinitionToInvoke
-									.bodySignature().returnType());
+						assert clientDataAfterRunning.value != null;
+						// In theory a fiber can produce anything, although you
+						// have to mess with continuations to get it wrong.
+						if (!replacement.isInstanceOfKind(
+							PARSE_NODE.mostGeneralType()))
+						{
+							stateAfterCall.expected(
+								asList(replacement),
+								new Transformer1<List<String>, String>()
+								{
+									@Override
+									public @Nullable String value (
+										final @Nullable List<String> list)
+									{
+										assert list != null;
+										return String.format(
+											"Macro body for %s to have "
+											+ "produced a phrase, not %s",
+											bundle.message(),
+											list.get(0));
+									}
+								});
+							return;
+						}
+						final A_Phrase original = SendNodeDescriptor.from(
+							constituentTokens,
+							bundle,
+							argumentsListNode,
+							macroDefinitionToInvoke
+								.bodySignature().returnType());
 						final A_Phrase substitution =
 							MacroSubstitutionNodeDescriptor
 								.fromOriginalSendAndReplacement(
@@ -6435,13 +6473,11 @@ public final class AvailCompiler
 						{
 							System.out.println(substitution);
 						}
-						// Declarations introduced inside the macro should be
-						// removed from the scope (at the parse position after
-						// the macro body runs).  Strip all client data, in
-						// fact, to make the default mechanisms nested.
+						// Continue after this macro invocation with whatever
+						// client data was set up by the macro.
 						final ParserState stateAfter = new ParserState(
 							stateAfterCall.position,
-							stateBeforeCall.clientDataMap);
+							clientDataAfterRunning.value());
 						attempt(stateAfter, continuation, substitution);
 					}
 				}),

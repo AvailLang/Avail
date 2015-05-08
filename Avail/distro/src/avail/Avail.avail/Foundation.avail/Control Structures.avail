@@ -790,17 +790,19 @@ Public macro "For each…from_to_by_§do_" is
 	action : block phrase ⇒ []→⊤
 |
 	name ::= counterPhrase's token's lexeme;
+	declaration ::= scope map[name];
 	statements ::= action's statements;
 	blockReturnType ::= cast statements
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
+	Undeclare name;
 	restricted send $"From_to_by_do_" with
 	<
 		start,
 		end,
 		step,
 		«[
-			<cast scope map[name] into [d : argument phrase | d]>
+			<cast declaration into [d : argument phrase | d]>
 		|
 			statements
 		] : blockReturnType»
@@ -962,6 +964,8 @@ Public macro "For each…from_to_§do_" is
 	action : block phrase ⇒ []→⊤
 |
 	name ::= counterPhrase's token's lexeme;
+	declaration ::= scope map[name];
+	Undeclare name;
 	startType ::= start's semantic type;
 	endType ::= end's semantic type;
 	stepType ::= 1's type;
@@ -981,7 +985,7 @@ Public macro "For each…from_to_§do_" is
 		end,
 		‘`1`’,
 		«[
-			<cast scope map[name] into [d : argument phrase | d]>
+			<cast declaration into [d : argument phrase | d]>
 		|
 			statements
 		] : blockReturnType»

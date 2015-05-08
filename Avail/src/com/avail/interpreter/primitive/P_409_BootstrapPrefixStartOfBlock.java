@@ -1,5 +1,5 @@
 /**
- * P_406_BootstrapConstantDeclarationMacro.java
+ * P_409_BootstrapPrefixStartOfBlock.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,29 +33,29 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TokenDescriptor.TokenType.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
-import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * The {@code P_406_BootstrapConstantDeclarationMacro} primitive is used
- * for bootstrapping declaration of a {@link #LOCAL_CONSTANT_NODE local
- * constant declaration}.
+ * The {@code P_409_BootstrapPrefixStartOfBlock} primitive is triggered at the
+ * start of parsing a block.  It pushes the current scope onto the scope stack
+ * so that it can be popped again by the {@link P_404_BootstrapBlockMacro} when
+ * the block parsing completes.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_406_BootstrapConstantDeclarationMacro extends Primitive
+public final class P_409_BootstrapPrefixStartOfBlock
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_406_BootstrapConstantDeclarationMacro().init(
-			2, CannotFail, Bootstrap);
+		new P_409_BootstrapPrefixStartOfBlock().init(
+			0, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
@@ -63,53 +63,38 @@ public final class P_406_BootstrapConstantDeclarationMacro extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 2;
-		final A_Phrase constantNameLiteral = args.get(0);
-		final A_Phrase initializationExpression = args.get(1);
+		assert args.size() == 0;
 
-		final A_Token nameToken = constantNameLiteral.token().literal();
-		final A_String nameString = nameToken.string();
-		if (nameToken.tokenType() != KEYWORD)
+		final AvailLoader loader = interpreter.fiber().availLoader();
+		if (loader == null)
 		{
-			throw new AvailRejectedParseException(
-				"new constant name to be alphanumeric, not %s",
-				nameString);
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
-		final A_Type initializationType =
-			initializationExpression.expressionType();
-		if (initializationType.isTop() || initializationType.isBottom())
-		{
-			throw new AvailRejectedParseException(
-				"constant initialization expression to have a type other "
-				+ "than %s",
-				initializationType);
-		}
-		final A_Phrase constantDeclaration =
-			DeclarationNodeDescriptor.newConstant(
-				nameToken, initializationExpression);
-		final A_Phrase conflictingDeclaration =
-			FiberDescriptor.addDeclaration(constantDeclaration);
-		if (conflictingDeclaration != null)
-		{
-			throw new AvailRejectedParseException(
-				"local constant %s to have a name that doesn't shadow an "
-				+ "existing %s (from line %d)",
-				nameString,
-				conflictingDeclaration.declarationKind().nativeKindName(),
-				conflictingDeclaration.token().lineNumber());
-		}
-		return interpreter.primitiveSuccess(constantDeclaration);
+		final A_Atom clientDataGlobalKey = AtomDescriptor.clientDataGlobalKey();
+		final A_Atom compilerScopeMapKey = AtomDescriptor.compilerScopeMapKey();
+		final A_Atom compilerScopeStackKey =
+			AtomDescriptor.compilerScopeStackKey();
+		final A_Fiber fiber = interpreter.fiber();
+		A_Map fiberGlobals = fiber.fiberGlobals();
+		A_Map clientData = fiberGlobals.mapAt(clientDataGlobalKey);
+		final A_Map bindings = clientData.mapAt(compilerScopeMapKey);
+		A_Tuple stack = clientData.hasKey(compilerScopeStackKey)
+			? clientData.mapAt(compilerScopeStackKey)
+			: TupleDescriptor.empty();
+		stack = stack.appendCanDestroy(bindings, false);
+		clientData = clientData.mapAtPuttingCanDestroy(
+			compilerScopeStackKey, stack, true);
+		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
+			clientDataGlobalKey, clientData, true);
+		fiber.fiberGlobals(fiberGlobals.makeShared());
+		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				/* Constant name token as a literal node */
-				LITERAL_NODE.create(TOKEN.o()),
-				/* Initialization expression */
-				EXPRESSION_NODE.create(ANY.o())),
-			LOCAL_CONSTANT_NODE.mostGeneralType());
+			TupleDescriptor.from(),
+			TOP.o());
 	}
 }

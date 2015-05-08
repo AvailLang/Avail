@@ -59,8 +59,8 @@ import com.avail.interpreter.Primitive;
  * function to add it to the scope.</li>
  * <li>After parsing an optional label declaration, invoke a prefix function to
  * add it to the scope.</li>
- * <li>After parsing a statement, invoke a prefix function to check if it's a
- * declaration, and if so add it to the scope.
+ * <li>When a statement is a local declaration (variable or constant), the macro
+ * that builds it also adds it to the scope.</li>
  * </ul>
  * </p>
  *
@@ -88,6 +88,9 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 	/** The key to the variable scope map in the client parsing data. */
 	final A_Atom scopeMapKey = AtomDescriptor.compilerScopeMapKey();
 
+	/** The key to the tuple of scopes to pop as blocks complete parsing. */
+	final A_Atom scopeStackKey = AtomDescriptor.compilerScopeStackKey();
+
 	/** The key to the all tokens tuple in the fiber's environment. */
 	final A_Atom allTokensKey = AtomDescriptor.allTokensKey();
 
@@ -106,12 +109,12 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 		final A_Phrase optionalReturnType = args.get(5);
 		final A_Phrase optionalExceptionTypes = args.get(6);
 
-		final A_Map fiberGlobals = interpreter.fiber().fiberGlobals();
+		A_Map fiberGlobals = interpreter.fiber().fiberGlobals();
 		if (!fiberGlobals.hasKey(clientDataKey))
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
-		final A_Map clientData = fiberGlobals.mapAt(clientDataKey);
+		A_Map clientData = fiberGlobals.mapAt(clientDataKey);
 		if (!clientData.hasKey(scopeMapKey))
 		{
 			// It looks like somebody removed all the scope information.
@@ -122,7 +125,7 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 			// It looks like somebody removed the used tokens information.
 			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION);
 		}
-		final A_Map scopeMap = clientData.mapAt(scopeMapKey);
+		A_Map scopeMap = clientData.mapAt(scopeMapKey);
 		final A_Tuple tokens = clientData.mapAt(allTokensKey);
 
 		final List<A_Phrase> allStatements = new ArrayList<>();
@@ -335,6 +338,19 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 			exceptionsSet,
 			lineNumber);
 		block.makeImmutable();
+		// Pop the scope stack.
+		final A_Fiber fiber = interpreter.fiber();
+		A_Tuple stack = clientData.mapAt(scopeStackKey);
+		scopeMap = stack.tupleAt(stack.tupleSize());
+		stack = stack.copyTupleFromToCanDestroy(
+			1, stack.tupleSize() - 1, true);
+		clientData = clientData.mapAtPuttingCanDestroy(
+			scopeMapKey, scopeMap, true);
+		clientData = clientData.mapAtPuttingCanDestroy(
+			scopeStackKey, stack, true);
+		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
+			clientDataKey, clientData, true);
+		fiber.fiberGlobals(fiberGlobals.makeShared());
 		return interpreter.primitiveSuccess(block);
 	}
 

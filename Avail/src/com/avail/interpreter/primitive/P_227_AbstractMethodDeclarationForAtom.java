@@ -81,8 +81,8 @@ extends Primitive
 		}
 		final A_Function failureFunction =
 			interpreter.primitiveFunctionBeingAttempted();
-		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		assert failureFunction.code().primitiveNumber() == primitiveNumber;
+		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		interpreter.primitiveSuspend();
 		AvailRuntime.current().whenLevelOneSafeDo(
 			AvailTask.forUnboundFiber(

@@ -64,7 +64,7 @@ Extends
 	(
 		/* Core Avail Syntax */
 		"\
-			\|[\
+			\|[§\
 				\|««…:_†§‡,»`|»?\
 				\|«Primitive…#«(…:_†)»?§;»?\
 				\|«$…«:_†»?;§»?\
@@ -875,6 +875,7 @@ Extends
 		"scope map",
 		"scope map:=_",
 		"strengthen_for call of_using_",
+		"Undeclare_",
 		"_has|have internal whitespace"
 	),
 	"Maps" =

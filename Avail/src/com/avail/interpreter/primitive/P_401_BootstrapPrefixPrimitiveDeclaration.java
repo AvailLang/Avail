@@ -41,7 +41,6 @@ import com.avail.annotations.Nullable;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 
 /**
@@ -115,7 +114,8 @@ extends Primitive
 				final A_Phrase namePhrase = pair.expressionAt(1);
 				final A_String name = namePhrase.token().literal().string();
 				assert name.isString();
-				final A_Phrase declaration = loader.lookupBindingOrNull(name);
+				final A_Phrase declaration =
+					FiberDescriptor.lookupBindingOrNull(name);
 				assert declaration != null;
 				blockArgumentPhrases.add(declaration);
 			}
@@ -152,36 +152,32 @@ extends Primitive
 			}
 			final A_Phrase failureTypePhrase = failurePair.expressionAt(2);
 			final A_Type failureType = failureTypePhrase.token().literal();
-			if (failureType.isBottom())
+			if (failureType.isBottom() || failureType.isTop())
 			{
 				throw new AvailRejectedParseException(
-					"primitive failure variable type not to be ⊥");
+					"primitive failure variable type not to be " + failureType);
 			}
 			final A_Phrase failureDeclaration =
 				DeclarationNodeDescriptor.newPrimitiveFailureVariable(
 					failureName, failureType);
-			final AvailErrorCode error =
-				loader.addDeclaration(failureDeclaration);
-			if (error != null)
-			{
-				if (error == E_LOCAL_DECLARATION_SHADOWS_ANOTHER)
-				{
-					throw new AvailRejectedParseException(
-						"primitive failure variable %s to have a name that "
-						+ "doesn't shadow another local declaration",
-						failureName.string());
-				}
-				return interpreter.primitiveFailure(error);
-			}
-		}
-		else
-		{
-			if (!prim.hasFlag(CannotFail))
+			final A_Phrase conflictingDeclaration =
+				FiberDescriptor.addDeclaration(failureDeclaration);
+			if (conflictingDeclaration != null)
 			{
 				throw new AvailRejectedParseException(
-					"a primitive failure variable declaration for this "
-					+ "fallible primitive");
+					"primitive failure variable %s to have a name that doesn't "
+					+ "shadow an existing %s (from line %d)",
+					failureName.string(),
+					conflictingDeclaration.declarationKind().nativeKindName(),
+					conflictingDeclaration.token().lineNumber());
 			}
+			return interpreter.primitiveSuccess(NilDescriptor.nil());
+		}
+		if (!prim.hasFlag(CannotFail))
+		{
+			throw new AvailRejectedParseException(
+				"a primitive failure variable declaration for this "
+				+ "fallible primitive");
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}

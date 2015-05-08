@@ -52,7 +52,7 @@ extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_625_CanRejectParse().init(
-			0, CannotFail, CanInline, CanFold);
+			0, CannotFail, CanInline);
 
 	@Override
 	public Result attempt (

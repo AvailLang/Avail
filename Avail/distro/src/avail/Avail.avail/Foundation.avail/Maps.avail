@@ -283,11 +283,15 @@ Private method "body function(_,_)" is
 
 		castToPhrase ::= [s : nonempty string | 
 			cast scope map[s] into [d : argument phrase | d]];
+		keyDeclaration ::= castToPhrase(keyName);
+		valueDeclaration ::= castToPhrase(valueName);
+		Undeclare keyName;
+		Undeclare valueName;
 		restricted send anAtom with
 		<
 			aMap, 
 			«[
-			  	<castToPhrase(keyName), castToPhrase(valueName)>
+			  	<keyDeclaration, valueDeclaration>
 			 | 
 			 	statements
 			 ] : blockReturnType»
@@ -561,12 +565,17 @@ Public macro "reject each…→…from_§where_" is
 	blockReturnType ::= cast newStatements
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
+
+	keyDeclaration ::= castToPhrase(keyName);
+	valueDeclaration ::= castToPhrase(valueName);
+	Undeclare keyName;
+	Undeclare valueName;
 		
 	restricted send $"filter_by_" with
 	<
 		aMap,
 		«[
-			<castToPhrase(keyName), castToPhrase(valueName)>
+			<keyDeclaration, valueDeclaration>
 		|
 			newStatements
 		] : blockReturnType»

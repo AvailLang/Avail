@@ -327,11 +327,13 @@ Public method "set body function(_,_)" is
 		blockReturnType ::= cast statements
 			into [t : phrase+ | t[|t|]'s semantic type]
 			else [⊤];
+		declaration ::= scope map[name];
+		Undeclare name;
 		restricted send anAtom with
 		<
 			aSet, 
 			«[
-			  	<cast scope map[name] into [d : argument phrase | d]>
+			  	<cast declaration into [d : argument phrase | d]>
 			 | 
 			 	statements
 			 ] : blockReturnType»
@@ -576,11 +578,15 @@ Macro "reject each…from_§where_" is a set iteration prefix function,
 	blockReturnType ::= cast newStatements
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
+
+	declaration ::= scope map[name];
+	Undeclare name;
+
 	restricted send $"filter_by_" with
 	<
 		aSet, 
 		«[
-			<cast scope map[name] into [d : argument phrase | d]>
+			<cast declaration into [d : argument phrase | d]>
 		 | 
 		 	newStatements
 		] : blockReturnType»

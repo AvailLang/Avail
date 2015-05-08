@@ -48,7 +48,7 @@ import com.avail.interpreter.*;
  * expression} from the specified {@linkplain MessageBundleDescriptor message
  * bundle}, {@linkplain ListNodeDescriptor list node} of {@linkplain
  * ParseNodeKind#EXPRESSION_NODE argument expressions}, and {@linkplain
- * TypeDescriptor return type}.
+ * TypeDescriptor return type}.  Do not apply semantic restrictions.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

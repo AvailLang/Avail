@@ -40,7 +40,6 @@ import java.util.*;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 
 /**
@@ -136,17 +135,16 @@ extends Primitive
 			ContinuationTypeDescriptor.forFunctionType(functionType);
 		final A_Phrase labelDeclaration =
 			DeclarationNodeDescriptor.newLabel(labelName, continuationType);
-		final AvailErrorCode error = loader.addDeclaration(labelDeclaration);
-		if (error != null)
+		final A_Phrase conflictingDeclaration =
+			FiberDescriptor.addDeclaration(labelDeclaration);
+		if (conflictingDeclaration != null)
 		{
-			if (error == E_LOCAL_DECLARATION_SHADOWS_ANOTHER)
-			{
-				throw new AvailRejectedParseException(
-					"label %s to have a name that doesn't shadow another"
-					+ " local declaration",
-					labelName.string());
-			}
-			return interpreter.primitiveFailure(error);
+			throw new AvailRejectedParseException(
+				"label declaration %s to have a name that doesn't "
+				+ "shadow an existing %s (from line %d)",
+				labelName.string(),
+				conflictingDeclaration.declarationKind().nativeKindName(),
+				conflictingDeclaration.token().lineNumber());
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
