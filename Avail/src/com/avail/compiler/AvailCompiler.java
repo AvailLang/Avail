@@ -4155,11 +4155,7 @@ public final class AvailCompiler
 					final ParserState after,
 					final A_Phrase send)
 				{
-					// Discard the client information related to this send, now
-					// that we'll be going back to parsing an outer construct.
-					continuation.value(
-						new ParserState(after.position, start.clientDataMap),
-						send);
+					continuation.value(after, send);
 				}
 			});
 	}
