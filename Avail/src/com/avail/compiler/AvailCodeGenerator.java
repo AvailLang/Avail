@@ -36,6 +36,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
+import com.avail.annotations.Nullable;
 import com.avail.compiler.instruction.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
@@ -119,7 +120,7 @@ public class AvailCodeGenerator
 	 * Which {@linkplain Primitive primitive VM operation} should be invoked, or
 	 * zero if none.
 	 */
-	private int primitive;
+	private @Nullable Primitive primitive;
 
 	/**
 	 * The module in which this code occurs.
@@ -175,7 +176,7 @@ public class AvailCodeGenerator
 	 *
 	 * @param module The module in which the function is defined.
 	 * @param argumentsTuple The tuple of argument declarations.
-	 * @param primitive The primitive number or zero.
+	 * @param primitive The {@link Primitive} or {@code null}.
 	 * @param locals The list of local declarations.
 	 * @param labels The list of (zero or one) label declarations.
 	 * @param outerVariables Any needed outer variable declarations.
@@ -189,7 +190,7 @@ public class AvailCodeGenerator
 	public static A_RawFunction generateFunction (
 		final A_Module module,
 		final A_Tuple argumentsTuple,
-		final int primitive,
+		final @Nullable Primitive primitive,
 		final List<? extends A_Phrase> locals,
 		final List<? extends A_Phrase> labels,
 		final A_Tuple outerVariables,
@@ -212,9 +213,7 @@ public class AvailCodeGenerator
 		generator.stackShouldBeEmpty();
 		final int statementsCount = statementsTuple.tupleSize();
 		if (statementsCount == 0
-			&& (primitive == 0
-				|| Primitive.byPrimitiveNumberOrFail(primitive)
-					.canHaveNybblecodes()))
+			&& (primitive == null || primitive.canHaveNybblecodes()))
 		{
 			generator.emitPushLiteral(NilDescriptor.nil());
 		}
@@ -253,7 +252,7 @@ public class AvailCodeGenerator
 	 *
 	 * @param module The module in which the function is defined.
 	 * @param argumentsTuple The tuple of argument declarations.
-	 * @param primitive The primitive number or zero.
+	 * @param thePrimitive The {@link Primitive} or {@code null}.
 	 * @param locals The list of local declarations.
 	 * @param labels The list of (zero or one) label declarations.
 	 * @param outerVariables Any needed outer variable declarations.
@@ -266,7 +265,7 @@ public class AvailCodeGenerator
 	private AvailCodeGenerator (
 		final A_Module module,
 		final A_Tuple argumentsTuple,
-		final int primitive,
+		final @Nullable Primitive thePrimitive,
 		final List<? extends A_Phrase> locals,
 		final List<? extends A_Phrase> labels,
 		final A_Tuple outerVariables,
@@ -281,7 +280,7 @@ public class AvailCodeGenerator
 		{
 			varMap.put(argumentDeclaration, varMap.size() + 1);
 		}
-		this.primitive = primitive;
+		primitive = thePrimitive;
 		for (final A_Phrase local : locals)
 		{
 			varMap.put(local, varMap.size() + 1);
@@ -311,19 +310,19 @@ public class AvailCodeGenerator
 		final ByteArrayOutputStream nybbles = new ByteArrayOutputStream(50);
 		// Detect blocks that immediately return a constant and mark them with a
 		// special primitive number.
-		if (primitive == 0 && instructions.size() == 1)
+		if (primitive == null && instructions.size() == 1)
 		{
 			final AvailInstruction onlyInstruction = instructions.get(0);
 			if (onlyInstruction instanceof AvailPushLiteral
 				&& ((AvailPushLiteral)onlyInstruction).index() == 1)
 			{
-				primitive(P_340_PushConstant.instance.primitiveNumber);
+				primitive(P_340_PushConstant.instance);
 			}
 			if (numArgs() == 1
 				&& onlyInstruction instanceof AvailPushLocalVariable
 				&& ((AvailPushLocalVariable)onlyInstruction).index() == 1)
 			{
-				primitive(P_341_PushArgument.instance.primitiveNumber);
+				primitive(P_341_PushArgument.instance);
 			}
 			// Only target module constants, not module variables. Module
 			// variables can be unassigned, and reading an unassigned module
@@ -333,7 +332,7 @@ public class AvailCodeGenerator
 				&& literals.get(0).isInitializedWriteOnceVariable())
 			{
 				primitive(
-					P_342_GetGlobalVariableValue.instance.primitiveNumber);
+					P_342_GetGlobalVariableValue.instance);
 			}
 		}
 		// Make sure we're not closing over variables that don't get used.
@@ -736,13 +735,13 @@ public class AvailCodeGenerator
 	 * attempt at running the primitive will be followed by running the level
 	 * one code (nybblecodes) that this class generates.
 	 *
-	 * @param primitiveNumber An integer encoding a {@link Primitive}.
+	 * @param thePrimitive The {@link Primitive} or {@code null}.
 	 */
 	public void primitive (
-		final int primitiveNumber)
+		final Primitive thePrimitive)
 	{
-		assert primitive == 0 : "Primitive number was already set";
-		primitive = primitiveNumber;
+		assert primitive == null : "Primitive was already set";
+		primitive = thePrimitive;
 	}
 
 	/**
@@ -777,15 +776,14 @@ public class AvailCodeGenerator
 				outerData,
 				this);
 		}
-		if (primitive != 0)
+		final @Nullable Primitive p = primitive;
+		if (p != null)
 		{
-			final Primitive prim = Primitive.byPrimitiveNumberOrNull(primitive);
-			assert prim != null;
 			// If necessary, then prevent clearing of the primitive failure
 			// variable after its last usage.
-			if (prim.hasFlag(Flag.PreserveFailureVariable))
+			if (p.hasFlag(Flag.PreserveFailureVariable))
 			{
-				assert !prim.hasFlag(Flag.CannotFail);
+				assert !p.hasFlag(Flag.CannotFail);
 				final AvailInstruction fakeFailureVariableUse =
 					new AvailGetLocalVariable(numArgs + 1);
 				fakeFailureVariableUse
@@ -796,7 +794,7 @@ public class AvailCodeGenerator
 			}
 			// If necessary, then prevent clearing of the primitive arguments
 			// after their last usage.
-			if (prim.hasFlag(Flag.PreserveArguments))
+			if (p.hasFlag(Flag.PreserveArguments))
 			{
 				for (int index = 1; index <= numArgs; index++)
 				{

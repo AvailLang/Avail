@@ -516,6 +516,12 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	@Nullable Primitive o_Primitive (final AvailObject object)
+	{
+		return Primitive.byNumber(object.slot(PRIMITIVE_NUMBER));
+	}
+
+	@Override @AvailMethod
 	int o_PrimitiveNumber (final AvailObject object)
 	{
 		// Answer the primitive number I should try before falling back on
@@ -765,22 +771,21 @@ extends Descriptor
 		final int locals,
 		final int stack,
 		final A_Type functionType,
-		final int primitive,
+		final @Nullable Primitive primitive,
 		final A_Tuple literals,
 		final A_Tuple localTypes,
 		final A_Tuple outerTypes,
 		final A_Module module,
 		final int lineNumber)
 	{
-		if (primitive != 0)
+		if (primitive != null)
 		{
 			// Sanity check for primitive blocks.  Use this to hunt incorrectly
 			// specified primitive signatures.
-			assert primitive == (primitive & 0xFFFF);
-			final Primitive prim = Primitive.byPrimitiveNumberOrFail(primitive);
-			final boolean canHaveCode = prim.canHaveNybblecodes();
+			final boolean canHaveCode = primitive.canHaveNybblecodes();
 			assert canHaveCode == (nybbles.tupleSize() > 0);
-			final A_Type restrictionSignature = prim.blockTypeRestriction();
+			final A_Type restrictionSignature =
+				primitive.blockTypeRestriction();
 			assert restrictionSignature.isSubtypeOf(functionType);
 		}
 		else
@@ -800,7 +805,6 @@ extends Descriptor
 		final int slotCount = numArgs + locals + stack;
 		assert 0 <= slotCount && slotCount <= 0xFFFF;
 		assert 0 <= outersSize && outersSize <= 0xFFFF;
-		assert 0 <= primitive && primitive <= 0xFFFF;
 
 		assert module.equalsNil() || module.isInstanceOf(MODULE.o());
 		assert lineNumber >= 0;
@@ -818,7 +822,9 @@ extends Descriptor
 		code.setSlot(NUM_ARGS, numArgs);
 		code.setSlot(FRAME_SLOTS, slotCount);
 		code.setSlot(NUM_OUTERS, outersSize);
-		code.setSlot(PRIMITIVE_NUMBER, primitive);
+		code.setSlot(
+			PRIMITIVE_NUMBER,
+			primitive == null ? 0 : primitive.primitiveNumber);
 		code.setSlot(NYBBLES, nybbles.makeShared());
 		code.setSlot(FUNCTION_TYPE, functionType.makeShared());
 		code.setSlot(PROPERTY_ATOM, NilDescriptor.nil());

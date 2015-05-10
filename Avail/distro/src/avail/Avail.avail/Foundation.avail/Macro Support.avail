@@ -92,7 +92,7 @@ Private method "private invoke_with_" is
 	aFunction : function,
 	arguments : tuple
 |
-	Primitive 40 (failureCode : natural number);
+	Primitive InvokeWithTuple (failureCode : natural number);
 	Invoke early failure function with <failureCode>
 ] : ⊤;
 

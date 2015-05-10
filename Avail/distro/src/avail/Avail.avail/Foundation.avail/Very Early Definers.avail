@@ -73,7 +73,7 @@ Primitive "Method_is_" is
 	methodName : string,
 	function : function
 |
-	Primitive 253 (failureCode : natural number);
+	Primitive SimpleMethodDeclaration (failureCode : natural number);
 	Invoke early failure function with <failureCode>;
 ] : ⊤;
 
@@ -93,7 +93,7 @@ Primitive "Method_is_" is
 	methodName : atom,
 	function : function
 |
-	Primitive 228 (failureCode : natural number);
+	Primitive MethodDeclarationFromAtom (failureCode : natural number);
 	Invoke early failure function with <failureCode>;
 ] : ⊤;
 

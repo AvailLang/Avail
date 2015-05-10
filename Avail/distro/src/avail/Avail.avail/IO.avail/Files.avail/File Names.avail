@@ -170,7 +170,7 @@ Public method "_exists(follow if symlink=_)" is
 		s : string,
 		b : boolean
 	|
-		Primitive 430 (e : {
+		Primitive FileExists (e : {
 			invalid-path code,
 			permission-denied code}ᵀ);
 		Raise an exception for e
@@ -222,7 +222,7 @@ Public method "_is absolute" is
 	[
 		s : string
 	|
-		Primitive 441 (e : invalid-path code's type);
+		Primitive FileIsAbsolute (e : invalid-path code's type);
 		Raise an exception for e
 	] : boolean (fn's name)
 ] : boolean;
@@ -253,7 +253,7 @@ Public method "_'s⁇absolute path" is
 		[
 			s : string
 		|
-			Primitive 442 (e : {
+			Primitive FileAbsolutePath (e : {
 				invalid-path code,
 				permission-denied code,
 				I/O-error code}ᵀ);
@@ -296,7 +296,7 @@ Public method "_'s⁇real path(follow if symlink=_)" is
 			s : string,
 			b : boolean
 		|
-			Primitive 443 (e : {
+			Primitive FileRealPath (e : {
 				invalid-path code,
 				permission-denied code,
 				I/O-error code}ᵀ);
@@ -368,7 +368,7 @@ Public method "_names the⁇same file as_" is
 		s1 : string,
 		s2 : string
 	|
-		Primitive 444 (e : {
+		Primitive FilesAreSame (e : {
 			invalid-path code,
 			permission-denied code,
 			I/O-error code}ᵀ);
@@ -391,7 +391,7 @@ Public method "current working directory" is
 [
 	cwd ::=
 		[
-			Primitive 445;
+			Primitive CurrentWorkingDirectory;
 		] : string ();
 	a file named cwd
 ] : file name;
@@ -417,7 +417,7 @@ Public stable method "concatenate_" is
 		[
 			ns : string*
 		|
-			Primitive 446 (e : {invalid-path code}ᵀ);
+			Primitive FilePathConcatenation (e : {invalid-path code}ᵀ);
 			Raise an exception for e
 		] : string (map each fn in fns through [fn's name]);
 	a file named path
@@ -484,7 +484,7 @@ Public method "«_‡/»" is
 		[
 			ns : string*
 		|
-			Primitive 446 (e : {invalid-path code}ᵀ);
+			Primitive FilePathConcatenation (e : {invalid-path code}ᵀ);
 			Raise an exception for e
 		] : string (<fns[1]'s name> ++ fns[2..]);
 	a file named path
@@ -531,7 +531,7 @@ Public stable method "_'s⁇path components" is
 		[
 			n : string
 		|
-			Primitive 447 (e : {invalid-path code}ᵀ);
+			Primitive FilePathSplit (e : {invalid-path code}ᵀ);
 			Raise an exception for e
 		] : string+ (fn's name);
 	map each c in components through [a file named c]

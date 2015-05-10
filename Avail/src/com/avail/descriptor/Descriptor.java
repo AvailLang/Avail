@@ -58,6 +58,7 @@ import com.avail.exceptions.SignatureException;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
@@ -2804,7 +2805,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_Primitive (final AvailObject object)
+	@Nullable Primitive o_Primitive (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

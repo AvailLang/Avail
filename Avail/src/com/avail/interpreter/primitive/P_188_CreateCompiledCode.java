@@ -60,7 +60,7 @@ extends Primitive
 	{
 		assert args.size() == 7;
 		final A_Tuple nybs = args.get(0);
-		final A_Number primitive = args.get(1);
+		final A_String primitiveName = args.get(1);
 		final A_Type functionType = args.get(2);
 		final A_Tuple allLiterals = args.get(3);
 		final A_Number locals = args.get(4);
@@ -69,13 +69,12 @@ extends Primitive
 
 		final int nLocals = locals.extractInt();
 		final int nOuters = outers.extractInt();
-		final int primitiveInt = primitive.extractInt();
 		final int nLiteralsTotal = allLiterals.tupleSize();
 
-		if (primitiveInt != 0)
+		if (primitiveName.tupleSize() != 0)
 		{
-			final Primitive prim = Primitive.byPrimitiveNumberOrNull(
-				primitiveInt);
+			final Primitive prim =
+				Primitive.byName(primitiveName.asNativeString());
 			if (prim == null || prim.hasFlag(Private))
 			{
 				return interpreter.primitiveFailure(
@@ -123,7 +122,7 @@ extends Primitive
 				nLocals,
 				stack.extractInt(),
 				functionType,
-				primitive.extractInt(),
+				Primitive.byName(primitiveName.asNativeString()),
 				allLiterals.copyTupleFromToCanDestroy(
 					1,
 					nLiteralsTotal - nLocals - nOuters,

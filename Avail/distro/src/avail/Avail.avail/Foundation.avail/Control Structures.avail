@@ -1012,7 +1012,7 @@ Method "_(«_‡,»)" is
 	aContinuation : continuation,
 	arguments : tuple
 |
-	Primitive 56 (failureCode : natural number);
+	Primitive RestartContinuationWithArguments (failureCode : natural number);
 	Invoke early failure function with <failureCode>
 ] : ⊥;
 

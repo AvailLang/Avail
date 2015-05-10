@@ -64,6 +64,7 @@ import com.avail.exceptions.SignatureException;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
@@ -4129,7 +4130,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract int o_Primitive (AvailObject object);
+	abstract @Nullable Primitive o_Primitive (AvailObject object);
 
 	/**
 	 * @param object

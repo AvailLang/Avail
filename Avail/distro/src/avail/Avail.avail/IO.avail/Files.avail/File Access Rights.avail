@@ -291,7 +291,7 @@ Public method "_is readable" is
 	[
 		s : string
 	|
-		Primitive 431 (e : {
+		Primitive FileCanRead (e : {
 			invalid-path code,
 			permission-denied code}ᵀ);
 		Raise an exception for e
@@ -323,7 +323,7 @@ Public method "_is writable" is
 	[
 		s : string
 	|
-		Primitive 432 (e : {
+		Primitive FileCanWrite (e : {
 			invalid-path code,
 			permission-denied code}ᵀ);
 		Raise an exception for e
@@ -355,7 +355,7 @@ Public method "_is executable" is
 	[
 		s : string
 	|
-		Primitive 433 (e : {
+		Primitive FileCanExecute (e : {
 			invalid-path code,
 			permission-denied code}ᵀ);
 		Raise an exception for e
@@ -396,7 +396,7 @@ Public method "_'s⁇access rights(follow if symlink=_)" is
 			s : string,
 			f : boolean
 		|
-			Primitive 434 (e : {
+			Primitive FileGetPermissions (e : {
 				invalid-path code,
 				permission-denied code,
 				operation-not-supported code,
@@ -472,7 +472,7 @@ Public method "_'s⁇access rights:=_(follow if symlink=_)" is
 		r : {[1..9]|0..9},
 		f : boolean
 	|
-		Primitive 435 (e : {
+		Primitive FileSetPermissions (e : {
 			invalid-path code,
 			permission-denied code,
 			operation-not-supported code,

@@ -75,7 +75,7 @@ Private method "private rename_to_replace existing_then_else_priority_" is
 		]→⊤,
 	priority : byte
 |
-	Primitive 174 (e : invalid-path code's type);
+	Primitive FileRename (e : invalid-path code's type);
 	Raise an exception for e
 ] : fiber→⊤;
 
@@ -242,7 +242,7 @@ Public method "Move_to_(overwrite=_)" is
 		d : string,
 		o : boolean
 	|
-		Primitive 177 (e : {
+		Primitive FileMove (e : {
 			invalid-path code,
 			no-file code,
 			file-exists code,
@@ -341,7 +341,7 @@ is
 		o : boolean,
 		c : boolean
 	|
-		Primitive 178 (e : {
+		Primitive FileCopy (e : {
 			invalid-path code,
 			partial-success code,
 			I/O-error code,
@@ -454,7 +454,7 @@ Public method "Unlink_(recursive=_,must exist=_,follow symlinks=_)" is
 		d : boolean,
 		f : boolean
 	|
-		Primitive 175 (e : {
+		Primitive FileUnlink (e : {
 			invalid-path code,
 			partial-success code,
 			no-file code,

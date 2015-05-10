@@ -228,7 +228,7 @@ Primitive "_<_" is
 	arg1 : number,
 	arg2 : number
 |
-	Primitive 5;
+	Primitive LessThan;
 ] : boolean;
 
 /**
@@ -249,7 +249,7 @@ Primitive "_≤_" is
 	arg1 : number,
 	arg2 : number
 |
-	Primitive 6;
+	Primitive LessOrEqual;
 ] : boolean;
 
 /**
@@ -278,7 +278,7 @@ Primitive "integer range from_(inclusive=_)to_(inclusive=_)" is
 	upperBound : extended integer,
 	upperBoundInclusive : boolean
 |
-	Primitive 7;
+	Primitive CreateIntegerRange;
 ] : extended integer meta;
 
 /**
@@ -295,7 +295,7 @@ Primitive "_'s⁇genuine lower bound" is
 [
 	range : extended integer meta
 |
-	Primitive 8;
+	Primitive LowerBound;
 ] : extended integer;
 
 /**
@@ -312,7 +312,7 @@ Primitive "_'s⁇genuine upper bound" is
 [
 	range : extended integer meta
 |
-	Primitive 9;
+	Primitive UpperBound;
 ] : extended integer;
 
 /**
@@ -329,7 +329,7 @@ Primitive "`↑_" is
 [
 	containmentType : any meta
 |
-	Primitive 13;
+	Primitive CreateVariableType;
 ] : variable meta;
 
 /**
@@ -348,7 +348,7 @@ Primitive "_'s⁇read type" is
 [
 	varType : variable meta
 |
-	Primitive 14;
+	Primitive VariableReadType;
 ] : type;
 
 /**
@@ -366,7 +366,7 @@ Primitive "new`↑_" is
 [
 	containmentType : any meta
 |
-	Primitive 16;
+	Primitive CreateVariable;
 ] : variable;
 
 /**
@@ -384,7 +384,7 @@ Primitive "_↑is unassigned" is
 [
 	var : variable
 |
-	Primitive 17;
+	Primitive HasNoValue;
 ] : boolean;
 
 /**
@@ -403,7 +403,7 @@ Primitive "_'s⁇write type" is
 [
 	varType : variable meta
 |
-	Primitive 19;
+	Primitive VariableWriteType;
 ] : type;
 
 /**
@@ -419,7 +419,7 @@ Primitive "_'s⁇write type" is
  */
 Primitive "milliseconds since the Epoch" is
 [
-	Primitive 27;
+	Primitive CurrentTimeMilliseconds;
 ] : whole number;
 
 /**
@@ -437,7 +437,7 @@ Primitive "`|_`|" is
 [
 	aType : type
 |
-	Primitive 28;
+	Primitive InstanceCount;
 ] : nonnegative extended integer;
 
 /**
@@ -455,7 +455,7 @@ Primitive "_'s⁇type" is
 [
 	value : any
 |
-	Primitive 30;
+	Primitive Type;
 ] : type;
 
 /**
@@ -476,7 +476,7 @@ Primitive "_∪_" is
 	arg1 : type,
 	arg2 : type
 |
-	Primitive 31;
+	Primitive TypeUnion;
 ] : type;
 
 /**
@@ -497,7 +497,7 @@ Primitive "_∩_" is
 	arg1 : type,
 	arg2 : type
 |
-	Primitive 32;
+	Primitive TypeIntersection;
 ] : type;
 
 /**
@@ -520,7 +520,7 @@ Primitive "_⊆_" is
 	arg1 : type,
 	arg2 : type
 |
-	Primitive 33;
+	Primitive IsSubtypeOf;
 ] : boolean;
 
 /**
@@ -543,7 +543,7 @@ Primitive "function accepting_and returning_" is
 	parameterTypes : tuple of any meta,
 	returnType : type
 |
-	Primitive 34;
+	Primitive CreateFunctionType;
 ] : function meta;
 
 /**
@@ -562,7 +562,7 @@ Primitive "_'s⁇parameters'type" is
 [
 	functionType : function meta
 |
-	Primitive 35;
+	Primitive ParamsType;
 ] : tuple meta;
 
 /**
@@ -582,7 +582,7 @@ Primitive "_[_]" is
 	functionType : function meta,
 	index : natural number
 |
-	Primitive 36;
+	Primitive ParamTypeAt;
 ] : any meta;
 
 /**
@@ -599,7 +599,7 @@ Primitive "_'s⁇return type" is
 [
 	functionType : function meta
 |
-	Primitive 37;
+	Primitive ReturnType;
 ] : type;
 
 /**
@@ -617,7 +617,7 @@ Primitive "∪_" is
 [
 	tupleOfTypes : tuple of type
 |
-	Primitive 38;
+	Primitive UnionOfTupleOfTypes;
 ] : type;
 
 /**
@@ -637,7 +637,7 @@ Primitive "[`…]→_" is
 [
 	returnType : type
 |
-	Primitive 39;
+	Primitive CreateGeneralFunctionType;
 ] : function meta;
 
 /**
@@ -654,7 +654,7 @@ Primitive "[`…]→_" is
  */
 Primitive "high-precision timer value" is
 [
-	Primitive 46;
+	Primitive CurrentTimeNanoseconds;
 ] : whole number;
 
 /**
@@ -674,7 +674,7 @@ Primitive "read_/write_" is
 	readType : type,
 	writeType : type
 |
-	Primitive 47;
+	Primitive CreateReadWriteVariableType;
 ] : variable meta;
 
 /**
@@ -691,7 +691,7 @@ Primitive "Resume_" is
 [
 	aContinuation : continuation
 |
-	Primitive 48;
+	Primitive ContinueContinuation;
 ] : ⊥;
 
 /**
@@ -708,7 +708,7 @@ Primitive "_'s⁇function type" is
 [
 	continuationType : continuation meta
 |
-	Primitive 50;
+	Primitive ContinuationTypeToFunctionType;
 ] : function meta;
 
 /**
@@ -726,7 +726,7 @@ Primitive "$_" is
 [
 	functionType : function meta
 |
-	Primitive 51;
+	Primitive FunctionTypeToContinuationType;
 ] : continuation meta;
 
 /**
@@ -746,7 +746,7 @@ Primitive "_'s⁇caller" is
 [
 	aContinuation : continuation
 |
-	Primitive 52;
+	Primitive ContinuationCaller;
 ] : continuation variable;
 
 /**
@@ -764,7 +764,7 @@ Primitive "_'s⁇function" is
 [
 	aContinuation : continuation
 |
-	Primitive 53;
+	Primitive ContinuationFunction;
 ] : function;
 
 /**
@@ -783,7 +783,7 @@ Primitive "_'s⁇program counter" is
 [
 	aContinuation : continuation
 |
-	Primitive 54;
+	Primitive ContinuationPC;
 ] : natural number;
 
 /**
@@ -802,7 +802,7 @@ Primitive "_'s⁇stack pointer" is
 [
 	aContinuation : continuation
 |
-	Primitive 55;
+	Primitive ContinuationStackPointer;
 ] : natural number;
 
 /**
@@ -822,7 +822,7 @@ Primitive "Restart_" is
 [
 	aContinuation : continuation
 |
-	Primitive 58;
+	Primitive RestartContinuation;
 ] : ⊥;
 
 /**
@@ -844,7 +844,7 @@ Primitive "_'s⁇stack" is
 [
 	aContinuation : continuation
 |
-	Primitive 59;
+	Primitive ContinuationStackData;
 ] : tuple;
 
 /**
@@ -864,7 +864,7 @@ Primitive "_=_" is
 	arg1 : any,
 	arg2 : any
 |
-	Primitive 60;
+	Primitive Equality;
 ] : boolean;
 
 /**
@@ -882,7 +882,7 @@ Primitive "_→object" is
 [
 	fieldsToValues : field map
 |
-	Primitive 61;
+	Primitive MapToObject;
 ] : object;
 
 /**
@@ -900,7 +900,7 @@ Primitive "_→map" is
 [
 	anObject : object
 |
-	Primitive 62;
+	Primitive ObjectToMap;
 ] : field map;
 
 /**
@@ -918,7 +918,7 @@ Primitive "_→object type" is
 [
 	fieldsToTypes : field type map
 |
-	Primitive 63;
+	Primitive MapToObjectType;
 ] : object meta;
 
 /**
@@ -936,7 +936,7 @@ Primitive "enumeration of_" is
 [
 	instances : set
 |
-	Primitive 65;
+	Primitive CreateEnumeration;
 ] : type;
 
 /**
@@ -955,7 +955,7 @@ Primitive "_'s⁇names" is
 [
 	anObjectType : object meta
 |
-	Primitive 69;
+	Primitive TypeNames;
 ] : set of string;
 
 /**
@@ -979,7 +979,7 @@ Primitive "_'s⁇hash" is
 [
 	value : any
 |
-	Primitive 70;
+	Primitive Hash;
 ] : integer;
 
 /**
@@ -1003,7 +1003,7 @@ Primitive "new_applying_" is
 	aFunctionType : function meta,
 	functionToApply : function
 |
-	Primitive 71;
+	Primitive CreateStubFunction;
 ] : function;
 
 /**
@@ -1022,7 +1022,7 @@ Primitive "_'s⁇implementation" is
 [
 	aFunction : function
 |
-	Primitive 72;
+	Primitive CompiledCodeOfFunction;
 ] : function implementation;
 
 /**
@@ -1041,7 +1041,7 @@ Primitive "_'s⁇outer variables" is
 [
 	aFunction : function
 |
-	Primitive 73;
+	Primitive OuterVariables;
 ] : tuple;
 
 /**
@@ -1058,7 +1058,7 @@ Primitive "`|_`|" is
 [
 	aMap : map
 |
-	Primitive 80;
+	Primitive MapSize;
 ] : whole number;
 
 /**
@@ -1079,7 +1079,7 @@ Primitive "_∈_" is
 	key : any,
 	aMap : map
 |
-	Primitive 81;
+	Primitive KeyInMap;
 ] : boolean;
 
 /**
@@ -1105,7 +1105,7 @@ Primitive "_+_→_" is
 	key : any,
 	value : any
 |
-	Primitive 83;
+	Primitive MapReplacingKey;
 ] : non-empty map;
 
 /**
@@ -1127,7 +1127,7 @@ Primitive "_-_" is
 	aMap : map,
 	key : any
 |
-	Primitive 84;
+	Primitive MapWithoutKey;
 ] : map;
 
 /**
@@ -1147,7 +1147,7 @@ Primitive "_→map" is
 [
 	bindings : key-value tuple
 |
-	Primitive 85;
+	Primitive CreateMap;
 ] : map;
 
 /**
@@ -1164,7 +1164,7 @@ Primitive "_'s⁇keys" is
 [
 	aMap : map
 |
-	Primitive 86;
+	Primitive MapKeysAsSet;
 ] : set;
 
 /**
@@ -1189,7 +1189,7 @@ Primitive "{_→_`|_}" is
 	valueType : any meta,
 	cardinalityType : whole number meta
 |
-	Primitive 87;
+	Primitive CreateMapType;
 ] : map meta;
 
 /**
@@ -1207,7 +1207,7 @@ Primitive "`|`|_`|`|" is
 [
 	aMapType : map meta
 |
-	Primitive 88;
+	Primitive MapTypeSizes;
 ] : whole number meta;
 
 /**
@@ -1225,7 +1225,7 @@ Primitive "_'s⁇key type" is
 [
 	aMapType : map meta
 |
-	Primitive 89;
+	Primitive MapTypeKeyType;
 ] : any meta;
 
 /**
@@ -1243,7 +1243,7 @@ Primitive "_'s⁇value type" is
 [
 	aMapType : map meta
 |
-	Primitive 90;
+	Primitive MapTypeValueType;
 ] : any meta;
 
 /**
@@ -1261,7 +1261,7 @@ Primitive "_'s⁇values" is
 [
 	aMapType : map
 |
-	Primitive 91;
+	Primitive MapValuesAsTuple;
 ] : tuple;
 
 /**
@@ -1279,7 +1279,7 @@ Primitive "_'s⁇bindings" is
 [
 	aMapType : map
 |
-	Primitive 92;
+	Primitive MapBindings;
 ] : key-value tuple;
 
 /**
@@ -1299,7 +1299,7 @@ Primitive "_bit∧_" is
 	arg1 : integer,
 	arg2 : integer
 |
-	Primitive 97;
+	Primitive BitwiseAnd;
 ] : integer;
 
 /**
@@ -1319,7 +1319,7 @@ Primitive "_bit∨_" is
 	arg1 : integer,
 	arg2 : integer
 |
-	Primitive 98;
+	Primitive BitwiseOr;
 ] : integer;
 
 /**
@@ -1339,7 +1339,7 @@ Primitive "_bit⊕_" is
 	arg1 : integer,
 	arg2 : integer
 |
-	Primitive 99;
+	Primitive BitwiseXor;
 ] : integer;
 
 /**
@@ -1356,7 +1356,7 @@ Primitive "`|_`|" is
 [
 	aSet : set
 |
-	Primitive 100;
+	Primitive SetSize;
 ] : whole number;
 
 /**
@@ -1377,7 +1377,7 @@ Primitive "_∈_" is
 	element : any,
 	aSet : set
 |
-	Primitive 101;
+	Primitive ElementInSet;
 ] : boolean;
 
 /**
@@ -1398,7 +1398,7 @@ Primitive "_∪_" is
 	arg1 : set,
 	arg2 : set
 |
-	Primitive 102;
+	Primitive SetUnion;
 ] : set;
 
 /**
@@ -1419,7 +1419,7 @@ Primitive "_∩_" is
 	arg1 : set,
 	arg2 : set
 |
-	Primitive 103;
+	Primitive SetIntersection;
 ] : set;
 
 /**
@@ -1442,7 +1442,7 @@ Primitive "_\\_" is
 	minuend : set,
 	subtrahend : set
 |
-	Primitive 104;
+	Primitive SetDifference;
 ] : set;
 
 /**
@@ -1464,7 +1464,7 @@ Primitive "_+_" is
 	aSet : set,
 	newElement : any
 |
-	Primitive 105;
+	Primitive SetWith;
 ] : non-empty set;
 
 /**
@@ -1486,7 +1486,7 @@ Primitive "_-_" is
 	aSet : set,
 	oldElement : any
 |
-	Primitive 106;
+	Primitive SetWithout;
 ] : set;
 
 /**
@@ -1507,7 +1507,7 @@ Primitive "_⊆_" is
 	arg1 : set,
 	arg2 : set
 |
-	Primitive 107;
+	Primitive SetIsSubset;
 ] : boolean;
 
 /**
@@ -1525,7 +1525,7 @@ Primitive "_→set" is
 [
 	aTuple : tuple
 |
-	Primitive 109;
+	Primitive TupleToSet;
 ] : set;
 
 /**
@@ -1544,7 +1544,7 @@ Primitive "_→tuple" is
 [
 	aSet : set
 |
-	Primitive 110;
+	Primitive SetToTuple;
 ] : tuple;
 
 /**
@@ -1567,7 +1567,7 @@ Primitive "{_`|_}" is
 	elementType : any meta,
 	cardinalityType : whole number meta
 |
-	Primitive 111;
+	Primitive CreateSetType;
 ] : set meta;
 
 /**
@@ -1585,7 +1585,7 @@ Primitive "`|`|_`|`|" is
 [
 	aSetType : set meta
 |
-	Primitive 112;
+	Primitive SetTypeSizes;
 ] : whole number meta;
 
 /**
@@ -1603,7 +1603,7 @@ Primitive "_'s⁇element|member type" is
 [
 	aSetType : set meta
 |
-	Primitive 113;
+	Primitive SetTypeElementType;
 ] : any meta;
 
 /**
@@ -1625,7 +1625,7 @@ Primitive "new atom named_" is
 [
 	debugName : string
 |
-	Primitive 120;
+	Primitive CreateAtom;
 ] : atom;
 
 /**
@@ -1642,7 +1642,7 @@ Primitive "_'s⁇name" is
 [
 	anAtom : atom
 |
-	Primitive 121;
+	Primitive AtomName;
 ] : string;
 
 /**
@@ -1662,7 +1662,7 @@ Primitive "_is a valid message" is
 [
 	name : atom
 |
-	Primitive 128;
+	Primitive IsCanonicalMessage;
 ] : boolean;
 
 /**
@@ -1679,7 +1679,7 @@ Primitive "`|_`|" is
 [
 	aTuple : tuple
 |
-	Primitive 130;
+	Primitive TupleSize;
 ] : whole number;
 
 /**
@@ -1697,7 +1697,7 @@ Primitive "concatenate_" is
 [
 	tupleOfTuples : tuple of tuple
 |
-	Primitive 136;
+	Primitive ConcatenateTuples;
 ] : tuple;
 
 /**
@@ -1721,7 +1721,7 @@ Primitive "<_,_`…`|_>" is
 	defaultType : any meta,
 	cardinalityType : whole number meta
 |
-	Primitive 137;
+	Primitive CreateTupleType;
 ] : tuple meta;
 
 /**
@@ -1738,7 +1738,7 @@ Primitive "`|`|_`|`|" is
 [
 	aTupleType : tuple meta
 |
-	Primitive 138;
+	Primitive TupleTypeSizes;
 ] : whole number meta;
 
 /**
@@ -1756,7 +1756,7 @@ Primitive "_'s⁇leading types" is
 [
 	aTupleType : tuple meta
 |
-	Primitive 139;
+	Primitive TupleTypeLeadingTypes;
 ] : tuple of any meta;
 
 /**
@@ -1773,7 +1773,7 @@ Primitive "_'s⁇default type" is
 [
 	aTupleType : tuple meta
 |
-	Primitive 140;
+	Primitive TupleTypeDefaultType;
 ] : any meta;
 
 /**
@@ -1795,7 +1795,7 @@ Primitive "_[_]" is
 	aTupleType : tuple meta,
 	index : natural number
 |
-	Primitive 141;
+	Primitive TupleTypeAt;
 ] : any meta;
 
 /**
@@ -1818,7 +1818,7 @@ Primitive "∪_[_.._]" is
 	startIndex : natural number,
 	endIndex : nonnegative extended integer
 |
-	Primitive 143;
+	Primitive TupleTypeAtThrough;
 ] : any meta;
 
 /**
@@ -1840,7 +1840,7 @@ Primitive "_++_" is
 	arg1 : tuple meta,
 	arg2 : tuple meta
 |
-	Primitive 144;
+	Primitive TupleTypeConcatenate;
 ] : tuple meta;
 
 /**
@@ -1859,7 +1859,7 @@ Primitive "_→object type" is
 [
 	fieldDefinitions : field type tuple
 |
-	Primitive 150;
+	Primitive TupleToObjectType;
 ] : object meta;
 
 /**
@@ -1878,7 +1878,7 @@ Primitive "_→object" is
 [
 	fieldAssignments : field tuple
 |
-	Primitive 152;
+	Primitive TupleToObject;
 ] : object;
 
 /**
@@ -1897,7 +1897,7 @@ Primitive "_→tuple" is
 [
 	anObject : object
 |
-	Primitive 153;
+	Primitive ObjectToTuple;
 ] : field tuple;
 
 /**
@@ -1915,7 +1915,7 @@ Primitive "_'s⁇arity" is
 [
 	aFunctionImplementation : function implementation
 |
-	Primitive 180;
+	Primitive CompiledCodeNumArgs;
 ] : whole number;
 
 /**
@@ -1932,7 +1932,7 @@ Primitive "`|_'s⁇local variables`|" is
 [
 	aFunctionImplementation : function implementation
 |
-	Primitive 181;
+	Primitive CompiledCodeNumLocals;
 ] : whole number;
 
 /**
@@ -1949,7 +1949,7 @@ Primitive "`|_'s⁇outer variables`|" is
 [
 	aFunctionImplementation : function implementation
 |
-	Primitive 182;
+	Primitive CompiledCodeNumOuters;
 ] : whole number;
 
 /**
@@ -1968,7 +1968,7 @@ Primitive "_'s⁇maximum stack depth" is
 [
 	aFunctionImplementation : function implementation
 |
-	Primitive 183;
+	Primitive CompiledCodeNumStackSlots;
 ] : whole number;
 
 /**
@@ -1986,7 +1986,7 @@ Primitive "_'s⁇nybblecodes" is
 [
 	aFunctionImplementation : function implementation
 |
-	Primitive 184;
+	Primitive CompiledCodeNybbles;
 ] : tuple of nybble;
 
 /**
@@ -2004,7 +2004,7 @@ Primitive "_'s⁇function type" is
 [
 	aFunctionImplementation : function implementation
 |
-	Primitive 185;
+	Primitive CompiledCodeFunctionType;
 ] : function meta;
 
 /**
@@ -2024,7 +2024,7 @@ Primitive "_'s⁇primitive number" is
 [
 	aFunctionImplementation : function implementation
 |
-	Primitive 186;
+	Primitive CompiledCodePrimitiveNumber;
 ] : unsigned short;
 
 /**
@@ -2041,7 +2041,7 @@ Primitive "_'s⁇literals" is
 [
 	aFunctionImplementation : function implementation
 |
-	Primitive 187;
+	Primitive CompiledCodeLiterals;
 ] : tuple;
 
 /**
@@ -2059,7 +2059,7 @@ Primitive "non-canonical problem with_" is
 [
 	messageName : string
 |
-	Primitive 210;
+	Primitive DescribeNoncanonicalMessage;
 ] : string;
 
 /**
@@ -2076,7 +2076,7 @@ Primitive "_'s⁇function type" is
 [
 	aDefinition : definition
 |
-	Primitive 216;
+	Primitive DefinitionBodySignature;
 ] : function meta;
 
 /**
@@ -2093,7 +2093,7 @@ Primitive "_'s⁇function" is
 [
 	aDefinition : method definition
 |
-	Primitive 217;
+	Primitive MethodDefinitionBody;
 ] : function;
 
 /**
@@ -2110,7 +2110,7 @@ Primitive "_'s⁇message" is
 [
 	aFunction : function
 |
-	Primitive 219;
+	Primitive FunctionMessage;
 ] : string;
 
 /**
@@ -2127,7 +2127,7 @@ Primitive "_'s⁇atom" is
 [
 	aMessageBundle : message bundle
 |
-	Primitive 221;
+	Primitive MessageBundleName;
 ] : atom;
 
 /**
@@ -2144,7 +2144,7 @@ Primitive "`|_'s⁇parameters`|" is
 [
 	aMessageBundle : message bundle
 |
-	Primitive 223;
+	Primitive BundleParametersCount;
 ] : whole number;
 
 /**
@@ -2161,7 +2161,7 @@ Primitive "method exists named_" is
 [
 	trueName : atom
 |
-	Primitive 230;
+	Primitive ExistsMethodWithName;
 ] : boolean;
 
 /**
@@ -2178,7 +2178,7 @@ Primitive "_'s⁇entry points" is
 [
 	aModule : module
 |
-	Primitive 234;
+	Primitive Entries;
 ] : set of string;
 
 /**
@@ -2195,7 +2195,7 @@ Primitive "_'s⁇seals" is
 [
 	aMethod : method
 |
-	Primitive 239;
+	Primitive Seals;
 ] : tuple of tuple of any meta;
 
 /**
@@ -2212,7 +2212,7 @@ Primitive "_'s⁇public names" is
 [
 	aModule : module
 |
-	Primitive 242;
+	Primitive NewNames;
 ] : set of string;
 
 /**
@@ -2229,7 +2229,7 @@ Primitive "_'s⁇name" is
 [
 	aModule : module
 |
-	Primitive 243;
+	Primitive ModuleName;
 ] : string;
 
 /**
@@ -2246,7 +2246,7 @@ Primitive "_is a primitive" is
 [
 	primitiveNumber : unsigned short
 |
-	Primitive 250;
+	Primitive IsPrimitiveDefined;
 ] : boolean;
 
 /**
@@ -2271,7 +2271,7 @@ Primitive "Crash:_" is
 [
 	value : any
 |
-	Primitive 256;
+	Primitive EmergencyExit;
 ] : ⊥;
 
 /**
@@ -2288,7 +2288,7 @@ Primitive "Crash:_" is
  */
 Primitive "Breakpoint" is
 [
-	Primitive 257;
+	Primitive BreakPoint;
 ] : ⊤;
 
 /**
@@ -2310,7 +2310,7 @@ Primitive "primitive description of_" is
 [
 	value : any
 |
-	Primitive 259;
+	Primitive ToString;
 ] : string;
 
 /**
@@ -2332,7 +2332,7 @@ Primitive "Assert:_(_)" is
 	predicate : boolean,
 	message : string
 |
-	Primitive 260;
+	Primitive Assert;
 ] : ⊤;
 
 /**
@@ -2349,7 +2349,7 @@ Primitive "_→JSON" is
 [
 	value : any
 |
-	Primitive 269;
+	Primitive ToJSON;
 ] : string;
 
 /**
@@ -2367,7 +2367,7 @@ Primitive "_→float" is
 [
 	aNumber : number
 |
-	Primitive 280;
+	Primitive AsFloat;
 ] : float;
 
 /**
@@ -2385,7 +2385,7 @@ Primitive "_→double" is
 [
 	aNumeric : number
 |
-	Primitive 281;
+	Primitive AsDouble;
 ] : double;
 
 /**
@@ -2403,7 +2403,7 @@ Primitive "ln_" is
 [
 	x : float
 |
-	Primitive 286;
+	Primitive FloatLn;
 ] : float;
 
 /**
@@ -2424,7 +2424,7 @@ Primitive "_^_" is
 	eulerNumber : type of Euler number,
 	x : float
 |
-	Primitive 287;
+	Primitive FloatExp;
 ] : float;
 
 /**
@@ -2445,7 +2445,7 @@ Primitive "_mod_" is
 	dividend : float,
 	divisor : float
 |
-	Primitive 288;
+	Primitive FloatModulus;
 ] : float;
 
 /**
@@ -2469,7 +2469,7 @@ Primitive "_⨉_^_" is
 	two : type of two,
 	b : integer
 |
-	Primitive 291;
+	Primitive FloatTimesTwoPower;
 ] : float;
 
 /**
@@ -2488,7 +2488,7 @@ Primitive "⎣_⎦" is
 [
 	x : float
 |
-	Primitive 292;
+	Primitive FloatFloor;
 ] : float;
 
 /**
@@ -2507,7 +2507,7 @@ Primitive "⎡_⎤" is
 [
 	x : float
 |
-	Primitive 293;
+	Primitive FloatCeiling;
 ] : float;
 
 /**
@@ -2525,7 +2525,7 @@ Primitive "_reinterpreted as bits" is
 [
 	aFloat : float
 |
-	Primitive 294;
+	Primitive FloatToIntBits;
 ] : int32;
 
 /**
@@ -2543,7 +2543,7 @@ Primitive "_reinterpreted as float" is
 [
 	anInt32 : int32
 |
-	Primitive 295;
+	Primitive FloatFromIntBits;
 ] : float;
 
 /**
@@ -2561,7 +2561,7 @@ Primitive "ln_" is
 [
 	x : double
 |
-	Primitive 316;
+	Primitive DoubleLn;
 ] : double;
 
 /**
@@ -2582,7 +2582,7 @@ Primitive "_^_" is
 	eulerNumber : type of Euler number,
 	x : double
 |
-	Primitive 317;
+	Primitive DoubleExp;
 ] : double;
 
 /**
@@ -2603,7 +2603,7 @@ Primitive "_mod_" is
 	dividend : double,
 	divisor : double
 |
-	Primitive 318;
+	Primitive DoubleModulus;
 ] : double;
 
 /**
@@ -2628,7 +2628,7 @@ Primitive "_⨉_^_" is
 	two : type of two,
 	b : integer
 |
-	Primitive 321;
+	Primitive DoubleTimesTwoPower;
 ] : double;
 
 /**
@@ -2648,7 +2648,7 @@ Primitive "⎣_⎦" is
 [
 	x : double
 |
-	Primitive 322;
+	Primitive DoubleFloor;
 ] : double;
 
 /**
@@ -2667,7 +2667,7 @@ Primitive "⎡_⎤" is
 [
 	x : double
 |
-	Primitive 323;
+	Primitive DoubleCeiling;
 ] : double;
 
 /**
@@ -2685,7 +2685,7 @@ Primitive "_reinterpreted as bits" is
 [
 	aDouble : double
 |
-	Primitive 324;
+	Primitive DoubleToLongBits;
 ] : int64;
 
 /**
@@ -2703,7 +2703,7 @@ Primitive "_reinterpreted as double" is
 [
 	anInt64 : int64
 |
-	Primitive 325;
+	Primitive DoubleFromLongBits;
 ] : double;
 
 /**
@@ -2720,7 +2720,7 @@ Primitive "_'s⁇code point" is
 [
 	aCharacter : character
 |
-	Primitive 330;
+	Primitive CharacterCodePoint;
 ] : code point;
 
 /**
@@ -2737,7 +2737,7 @@ Primitive "_→character" is
 [
 	codePoint : code point
 |
-	Primitive 331;
+	Primitive CharacterFromCodePoint;
 ] : character;
 
 /**
@@ -2754,7 +2754,7 @@ Primitive "_'s⁇lookup type" is
 [
 	aSupercast : super cast phrase
 |
-	Primitive 344;
+	Primitive SuperCastLookupType;
 ] : any meta;
 
 /**
@@ -2772,7 +2772,7 @@ Primitive "_'s⁇expression" is
 [
 	aSupercast : super cast phrase
 |
-	Primitive 345;
+	Primitive SuperCastExpression;
 ] : expression yielding any;
 
 /**
@@ -2790,7 +2790,7 @@ Primitive "_'s⁇leading whitespace" is
 [
 	aToken : token
 |
-	Primitive 347;
+	Primitive TokenLeadingWhitespace;
 ] : string;
 
 /**
@@ -2808,7 +2808,7 @@ Primitive "_'s⁇trailing whitespace" is
 [
 	aToken : token
 |
-	Primitive 348;
+	Primitive TokenTrailingWhitespace;
 ] : string;
 
 /**
@@ -2825,7 +2825,7 @@ Primitive "_'s⁇semantic type" is
 [
 	phraseType : phrase meta
 |
-	Primitive 349;
+	Primitive ParseNodeTypeExpressionType;
 ] : type;
 
 /**
@@ -2845,7 +2845,7 @@ Primitive "_'s⁇semantic type" is
 [
 	node : phrase
 |
-	Primitive 351;
+	Primitive ParseNodeExpressionType;
 ] : type;
 
 /**
@@ -2866,7 +2866,7 @@ Primitive "_⇒_" is
 	aPhrase : phrase meta,
 	semanticType : type
 |
-	Primitive 355;
+	Primitive CreateParseNodeType;
 ] : phrase meta;
 
 /**
@@ -2884,7 +2884,7 @@ Primitive "_'s⁇lexeme" is
 [
 	aToken : token
 |
-	Primitive 356;
+	Primitive TokenLexeme;
 ] : nonempty string;
 
 /**
@@ -2902,7 +2902,7 @@ Primitive "_'s⁇starting position" is
 [
 	aToken : token
 |
-	Primitive 357;
+	Primitive TokenStart;
 ] : natural number;
 
 /**
@@ -2920,7 +2920,7 @@ Primitive "_'s⁇line number" is
 [
 	aToken : token
 |
-	Primitive 358;
+	Primitive TokenLineNumber;
 ] : natural number;
 
 /**
@@ -2937,7 +2937,7 @@ Primitive "_'s⁇value" is
 [
 	aLiteralToken : literal token
 |
-	Primitive 359;
+	Primitive LiteralTokenValue;
 ] : any;
 
 /**
@@ -2957,7 +2957,7 @@ Primitive "``_``(_)" is
 	value : any,
 	fakeText : string
 |
-	Primitive 360;
+	Primitive CreateLiteralToken;
 ] : literal token;
 
 /**
@@ -2974,7 +2974,7 @@ Primitive "_'s⁇arguments" is
 [
 	aBlock : block phrase
 |
-	Primitive 363;
+	Primitive BlockArguments;
 ] : argument tuple;
 
 /**
@@ -2992,7 +2992,7 @@ Primitive "_'s⁇primitive number" is
 [
 	aBlock : block phrase
 |
-	Primitive 364;
+	Primitive BlockPrimitiveNumber;
 ] : whole number;
 
 /**
@@ -3010,7 +3010,7 @@ Primitive "_'s⁇statements" is
 [
 	aBlock : block phrase
 |
-	Primitive 365;
+	Primitive BlockStatements;
 ] : phrase tuple;
 
 /**
@@ -3027,7 +3027,7 @@ Primitive "_'s⁇return type" is
 [
 	aBlock : block phrase
 |
-	Primitive 366;
+	Primitive BlockReturnType;
 ] : type;
 
 /**
@@ -3044,7 +3044,7 @@ Primitive "_'s⁇declared exceptions" is
 [
 	aBlock : block phrase
 |
-	Primitive 367;
+	Primitive BlockDeclaredExceptions;
 ] : set;
 
 /**
@@ -3062,7 +3062,7 @@ Primitive "_'s⁇outer variables" is
 [
 	aBlock : block phrase
 |
-	Primitive 368;
+	Primitive BlockNeededVariables;
 ] : declaration tuple;
 
 /**
@@ -3079,7 +3079,7 @@ Primitive "_'s⁇target" is
 [
 	anAssignment : assignment phrase
 |
-	Primitive 369;
+	Primitive AssignmentTarget;
 ] : variable use phrase;
 
 /**
@@ -3096,7 +3096,7 @@ Primitive "_'s⁇value" is
 [
 	anAssignment : assignment phrase
 |
-	Primitive 370;
+	Primitive AssignmentValue;
 ] : expression yielding any;
 
 /**
@@ -3113,7 +3113,7 @@ Primitive "`«↓_`»" is
 [
 	aReference : variable reference phrase
 |
-	Primitive 371;
+	Primitive ReferenceTarget;
 ] : variable use phrase;
 
 /**
@@ -3133,7 +3133,7 @@ Primitive "arg`«_:_`»" is
 	name : token,
 	declaredType : any meta
 |
-	Primitive 372;
+	Primitive CreateArgumentDeclaration;
 ] : argument phrase;
 
 /**
@@ -3153,7 +3153,7 @@ Primitive "`«$_:_`»" is
 	name : token,
 	declaredType : continuation
 |
-	Primitive 373;
+	Primitive CreateLabelDeclaration;
 ] : label phrase;
 
 /**
@@ -3173,7 +3173,7 @@ Primitive "`«_::=_`»" is
 	name : token,
 	declaredType : expression yielding any
 |
-	Primitive 374;
+	Primitive CreateLocalConstantDeclaration;
 ] : local constant phrase;
 
 /**
@@ -3193,7 +3193,7 @@ Primitive "primfail`«_:_`»" is
 	name : token,
 	declaredType : any meta
 |
-	Primitive 375;
+	Primitive CreatePrimitiveFailureVariableDeclaration;
 ] : primitive failure reason phrase;
 
 /**
@@ -3213,7 +3213,7 @@ Primitive "`«_:_`»" is
 	name : token,
 	declaredType : any meta
 |
-	Primitive 376;
+	Primitive CreateVariableExpression;
 ] : local variable phrase;
 
 /**
@@ -3236,7 +3236,7 @@ Primitive "`«_:_:=_`»" is
 	declaredType : any meta,
 	initializer : expression yielding any
 |
-	Primitive 377;
+	Primitive CreateInitializingVariableDeclaration;
 ] : local variable phrase;
 
 /**
@@ -3254,7 +3254,7 @@ Primitive "_'s⁇token" is
 [
 	aDeclaration : declaration phrase
 |
-	Primitive 378;
+	Primitive DeclarationToken;
 ] : token;
 
 /**
@@ -3272,7 +3272,7 @@ Primitive "_'s⁇declared type" is
 [
 	aDeclaration : declaration phrase
 |
-	Primitive 379;
+	Primitive DeclarationType;
 ] : any meta;
 
 /**
@@ -3289,7 +3289,7 @@ Primitive "‘_’" is
 [
 	aLiteralToken : literal token
 |
-	Primitive 381;
+	Primitive CreateLiteralExpression;
 ] : literal phrase;
 
 /**
@@ -3306,7 +3306,7 @@ Primitive "_'s⁇token" is
 [
 	aLiteral : literal phrase
 |
-	Primitive 382;
+	Primitive LiteralExpressionToken;
 ] : literal token;
 
 /**
@@ -3323,7 +3323,7 @@ Primitive "_'s⁇method" is
 [
 	aSend : send phrase
 |
-	Primitive 384;
+	Primitive SendMethod;
 ] : method;
 
 /**
@@ -3340,7 +3340,7 @@ Primitive "_'s⁇arguments" is
 [
 	aSend : send phrase
 |
-	Primitive 385;
+	Primitive SendArgumentsList;
 ] : list phrase;
 
 /**
@@ -3357,7 +3357,7 @@ Primitive "_'s⁇return type" is
 [
 	aSend : send phrase
 |
-	Primitive 386;
+	Primitive SendReturnType;
 ] : type;
 
 /**
@@ -3374,7 +3374,7 @@ Primitive "_'s⁇statements" is
 [
 	aSequence : sequence phrase
 |
-	Primitive 388;
+	Primitive SequenceStatements;
 ] : phrase tuple;
 
 /**
@@ -3392,7 +3392,7 @@ Primitive "_'s⁇statements" is
 [
 	aFirstOfSequence : first of sequence phrase
 |
-	Primitive 390;
+	Primitive FirstOfSequenceStatements;
 ] : phrase tuple;
 
 /**
@@ -3412,7 +3412,7 @@ Primitive "`«module variable_(_)`»" is
 	aVariable : variable,
 	aToken : token
 |
-	Primitive 391;
+	Primitive CreateModuleVariableDeclaration;
 ] : module variable phrase;
 
 /**
@@ -3429,7 +3429,7 @@ Primitive "_→list phrase" is
 [
 	aTuple : tuple of expressions yielding any
 |
-	Primitive 392;
+	Primitive CreateListExpression;
 ] : list phrase;
 
 /**
@@ -3446,7 +3446,7 @@ Primitive "_'s⁇expressions" is
 [
 	aList : list phrase
 |
-	Primitive 393;
+	Primitive ListExpressions;
 ] : tuple of expressions yielding any;
 
 /**
@@ -3466,7 +3466,7 @@ Primitive "`«↓_`»(_)" is
 	aDeclaration : declaration phrase,
 	aToken : token
 |
-	Primitive 394;
+	Primitive CreateVariableUse;
 ] : variable use phrase;
 
 /**
@@ -3483,7 +3483,7 @@ Primitive "_'s⁇token" is
 [
 	use : variable use phrase
 |
-	Primitive 395;
+	Primitive VariableUseToken;
 ] : token;
 
 /**
@@ -3501,7 +3501,7 @@ Primitive "_'s⁇declaration" is
 [
 	use : variable use phrase
 |
-	Primitive 396;
+	Primitive VariableUseDeclaration;
 ] : declaration phrase;
 
 /**
@@ -3518,7 +3518,7 @@ Primitive "literal token⇒_" is
 [
 	literalValue : any meta
 |
-	Primitive 397;
+	Primitive CreateLiteralTokenType;
 ] : literal token meta;
 
 /**
@@ -3536,7 +3536,7 @@ Primitive "_'s⁇value type" is
 [
 	literalTokenType : literal token meta
 |
-	Primitive 398;
+	Primitive LiteralTokenTypeValueType;
 ] : any meta;
 
 /**
@@ -3554,7 +3554,7 @@ Primitive "_→block phrase" is
 [
 	aFunction : function
 |
-	Primitive 399;
+	Primitive DecompileFunction;
 ] : block phrase;
 
 /**
@@ -3576,7 +3576,7 @@ Primitive "_'s⁇name:=_" is
 	anObjectType : object meta,
 	name : string
 |
-	Primitive 480;
+	Primitive RecordNewTypeName;
 ] : ⊤;
 
 /**
@@ -3597,7 +3597,7 @@ Primitive "Unname_from_" is
 	name : string,
 	anObjectType : object meta
 |
-	Primitive 481;
+	Primitive RemoveTypeName;
 ] : ⊤;
 
 /**
@@ -3618,7 +3618,7 @@ Primitive "_[_]" is
 	elementType : any meta,
 	cardinalityRequirement : whole number meta
 |
-	Primitive 501;
+	Primitive CreatePojoArrayType;
 ] : pojo array meta;
 
 /**
@@ -3639,7 +3639,7 @@ Primitive "new_[_]" is
 	elementType : any meta,
 	length : whole number
 |
-	Primitive 510;
+	Primitive CreatePojoArray;
 ] : pojo array;
 
 /**
@@ -3656,7 +3656,7 @@ Primitive "`|_`|" is
 [
 	anArray : pojo array
 |
-	Primitive 511;
+	Primitive PojoArrayLength;
 ] : whole number;
 
 /**
@@ -3673,7 +3673,7 @@ Primitive "`|`|_`|`|" is
 [
 	pojoArrayType : pojo array meta
 |
-	Primitive 514;
+	Primitive PojoArrayTypeSizes;
 ] : whole number meta;
 
 /**
@@ -3690,7 +3690,7 @@ Primitive "_'s⁇element type" is
 [
 	pojoArrayType : pojo array meta
 |
-	Primitive 515;
+	Primitive PojoArrayTypeContentType;
 ] : any meta;
 
 /**
@@ -3708,7 +3708,7 @@ Primitive "_→tuple" is
 [
 	aPojoArray : pojo array
 |
-	Primitive 516;
+	Primitive CreateTupleFromPojoArray;
 ] : tuple;
 
 /**
@@ -3721,7 +3721,7 @@ Primitive "_→tuple" is
  */
 Primitive "current fiber" is
 [
-	Primitive 600;
+	Primitive CurrentFiber;
 ] : fiber;
 
 /**
@@ -3739,7 +3739,7 @@ Primitive "_'s⁇priority" is
 [
 	aFiber : fiber
 |
-	Primitive 601;
+	Primitive GetFiberPriority;
 ] : byte;
 
 /**
@@ -3759,7 +3759,7 @@ Primitive "_'s⁇priority:=_" is
 	aFiber : fiber,
 	priority : byte
 |
-	Primitive 602;
+	Primitive SetFiberPriority;
 ] : ⊤;
 
 /**
@@ -3782,7 +3782,7 @@ Primitive "current fiber[_]:=_" is
 	key : atom,
 	value : any
 |
-	Primitive 605;
+	Primitive SetFiberVariable;
 ] : ⊤;
 
 /**
@@ -3797,7 +3797,7 @@ Primitive "current fiber[_]:=_" is
  */
 Primitive "termination requested" is
 [
-	Primitive 607;
+	Primitive IsTerminationRequested;
 ] : boolean;
 
 /**
@@ -3815,7 +3815,7 @@ Primitive "Request termination of_" is
 [
 	victim : fiber
 |
-	Primitive 608;
+	Primitive RequestTermination;
 ] : ⊤;
 
 /**
@@ -3827,7 +3827,7 @@ Primitive "Request termination of_" is
  */
 Primitive "Terminate current fiber" is
 [
-	Primitive 609;
+	Primitive TerminateCurrentFiber;
 ] : ⊥;
 
 /**
@@ -3845,7 +3845,7 @@ Primitive "Terminate current fiber" is
  */
 Primitive "Park current fiber" is
 [
-	Primitive 610;
+	Primitive ParkCurrentFiber;
 ] : ⊤;
 
 /**
@@ -3866,7 +3866,7 @@ Primitive "Unpark_" is
 [
 	aFiber : fiber
 |
-	Primitive 611;
+	Primitive UnparkFiber;
 ] : ⊤;
 
 /**
@@ -3879,7 +3879,7 @@ Primitive "Unpark_" is
  */
 Primitive "Yield current fiber" is
 [
-	Primitive 612;
+	Primitive Yield;
 ] : ⊤;
 
 /**
@@ -3896,7 +3896,7 @@ Primitive "_'s⁇name" is
 [
 	aFiber : fiber
 |
-	Primitive 613;
+	Primitive FiberName;
 ] : string;
 
 /**
@@ -3915,7 +3915,7 @@ Primitive "_'s⁇name:=_" is
 	aFiber : fiber,
 	name : string
 |
-	Primitive 614;
+	Primitive SetFiberName;
 ] : ⊤;
 
 /**
@@ -3932,7 +3932,7 @@ Primitive "_has terminated" is
 [
 	aFiber : fiber
 |
-	Primitive 618;
+	Primitive HasTerminated;
 ] : boolean;
 
 /**
@@ -3950,7 +3950,7 @@ Primitive "_has result" is
 [
 	aFiber : fiber
 |
-	Primitive 619;
+	Primitive HasResult;
 ] : boolean;
 
 /**
@@ -3969,7 +3969,7 @@ Primitive "Sleep for_millisecond|milliseconds" is
 [
 	delayMillis : nonnegative extended integer
 |
-	Primitive 621;
+	Primitive Sleep;
 ] : ⊤;
 
 /**
@@ -3983,7 +3983,7 @@ Primitive "Sleep for_millisecond|milliseconds" is
  */
 Primitive "current fiber can reject a parse" is
 [
-	Primitive 625;
+	Primitive CanRejectParse;
 ] : boolean;
 
 /**
@@ -4000,7 +4000,7 @@ Primitive "fiber→_" is
 [
 	resultType : type
 |
-	Primitive 626;
+	Primitive CreateFiberType;
 ] : fiber meta;
 
 /**
@@ -4017,7 +4017,7 @@ Primitive "_'s⁇result type" is
 [
 	fiberType : fiber meta
 |
-	Primitive 627;
+	Primitive FiberTypeResultType;
 ] : type;
 
 /**
@@ -4034,6 +4034,6 @@ Primitive "_reversed" is
 [
 	aTuple : tuple
 |
-	Primitive 702;
+	Primitive ReverseTuple;
 ] : tuple;
 

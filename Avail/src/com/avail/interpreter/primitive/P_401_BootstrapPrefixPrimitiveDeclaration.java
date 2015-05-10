@@ -78,28 +78,22 @@ extends Primitive
 		}
 		assert optionalPrimPhrase.expressionsSize() == 1;
 		final A_Phrase primPhrase = optionalPrimPhrase.expressionAt(1);
-		final A_Phrase primNumberPhrase = primPhrase.expressionAt(1);
-		if (!primNumberPhrase.parseNodeKindIsUnder(LITERAL_NODE))
+		final A_Phrase primNamePhrase = primPhrase.expressionAt(1);
+		if (!primNamePhrase.parseNodeKindIsUnder(LITERAL_NODE))
 		{
 			throw new AvailRejectedParseException(
-				"primitive specification to be a literal");
+				"primitive specification to be a (compiler created) literal "
+				+ "keyword token");
 		}
-		final A_Number primNumber =
-			primNumberPhrase.token().literal().literal();
-		if (!primNumber.isInt())
+		final A_String primName = primNamePhrase.token().string();
+		final @Nullable Primitive prim =
+			Primitive.byName(primName.asNativeString());
+		if (prim == null)
 		{
 			throw new AvailRejectedParseException(
-				"primitive specification to be a literal integer");
+				"a supported primitive name, not %d",
+				primName);
 		}
-		final int primInt = primNumber.extractInt();
-		if (!Primitive.supportsPrimitive(primInt))
-		{
-			throw new AvailRejectedParseException(
-				"a supported primitive number, not %d",
-				primInt);
-		}
-		final Primitive prim = Primitive.byPrimitiveNumberOrNull(primInt);
-		assert prim != null;
 
 		// Check that the primitive signature agrees with the arguments.
 		final List<A_Phrase> blockArgumentPhrases = new ArrayList<>();
@@ -122,7 +116,7 @@ extends Primitive
 		}
 		final @Nullable String problem =
 			Primitive.validatePrimitiveAcceptsArguments(
-				primInt, blockArgumentPhrases);
+				prim.primitiveNumber, blockArgumentPhrases);
 		if (problem != null)
 		{
 			throw new AvailRejectedParseException(problem);

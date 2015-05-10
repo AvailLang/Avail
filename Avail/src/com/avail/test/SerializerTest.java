@@ -450,7 +450,7 @@ public final class SerializerTest
 			NilDescriptor.nil(),
 			0);
 		writer.argumentTypes(FLOAT.o());
-		writer.primitiveNumber(P_292_FloatFloor.instance.primitiveNumber);
+		writer.primitive(P_292_FloatFloor.instance);
 		writer.returnType(FLOAT.o());
 		final A_RawFunction code = writer.compiledCode();
 		final A_Function function = FunctionDescriptor.create(

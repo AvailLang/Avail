@@ -315,7 +315,7 @@ Public method "_<«_‡,»>" is
 	javaName : string,
 	typeParameters : <any's type…|>
 |
-	Primitive 500 (failureCode : {
+	Primitive CreatePojoType (failureCode : {
 		incorrect-number-of-arguments code,
 		Java-class-not-available code}ᵀ);
 	Invoke early failure function with <failureCode>

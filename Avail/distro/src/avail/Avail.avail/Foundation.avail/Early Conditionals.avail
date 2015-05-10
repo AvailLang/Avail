@@ -78,7 +78,7 @@ Method "If_then_" is
 	predicate : true's type,
 	trueFunction : nullary procedure
 |
-	Primitive 45;
+	Primitive ShortCircuitHelper;
 ] : ⊤;
 
 
@@ -106,7 +106,7 @@ Method "If|if_then_else_" is
 	trueFunction : nullary procedure,
 	falseFunction : nullary procedure
 |
-	Primitive 44;
+	Primitive IfFalseThenElse;
 ] : ⊤;
 
 /**
@@ -128,5 +128,5 @@ Method "If|if_then_else_" is
 	trueFunction : nullary procedure,
 	falseFunction : nullary procedure
 |
-	Primitive 43;
+	Primitive IfTrueThenElse;
 ] : ⊤;

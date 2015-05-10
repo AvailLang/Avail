@@ -160,7 +160,7 @@ Private method
 	options : {[0..9]|},
 	rights : {[1..9]|}
 |
-	Primitive 160 (e : {
+	Primitive FileOpen (e : {
 		invalid-path code,
 		illegal-option code,
 		operation-not-supported code,
@@ -341,7 +341,7 @@ Method "Close_" is
 	[
 		h : atom
 	|
-		Primitive 161 (e : invalid-handle code's type);
+		Primitive FileClose (e : invalid-handle code's type);
 		Raise an exception for e
 	] : ⊤ (f's handle);
 	f's open state := false;
@@ -365,7 +365,7 @@ Method "_'s⁇alignment" is
 	[
 		h : atom
 	|
-		Primitive 162 (e : invalid-handle code's type);
+		Primitive FileGetAlignment (e : invalid-handle code's type);
 		Raise an exception for e
 	] : natural number (f's handle)
 ] : natural number;
@@ -389,7 +389,7 @@ Public method "_'s⁇size" is
 	[
 		h : atom
 	|
-		Primitive 166 (e : {invalid-handle code, I/O-error code}ᵀ);
+		Primitive FileSize (e : {invalid-handle code, I/O-error code}ᵀ);
 		Raise an exception for e
 	] : whole number (f's handle)
 ] : whole number;
@@ -403,7 +403,7 @@ Private method "private truncate_to_then_else_priority_" is
 	else : [{I/O-error code}ᵀ]→⊤,
 	priority : byte
 |
-	Primitive 176 (e : {
+	Primitive FileTruncate (e : {
 		invalid-handle code,
 		special-atom code,
 		not-open-for-write code}ᵀ);
@@ -460,7 +460,7 @@ Private method
 	else : [{I/O-error code}ᵀ]→⊤,
 	priority : byte
 |
-	Primitive 164 (e : {
+	Primitive FileRead (e : {
 		invalid-handle code,
 		special-atom code,
 		not-open-for-read code,
@@ -498,7 +498,7 @@ Private method "private starting at_write_to_then_else_priority_" is
 	else : [{I/O-error code}ᵀ]→⊤,
 	priority : byte
 |
-	Primitive 165 (e : {
+	Primitive FileWrite (e : {
 		invalid-handle code,
 		special-atom code,
 		not-open-for-write code,
@@ -562,7 +562,7 @@ Public method "a fiber synchronizing_with file system,then_else_priority_" is
 		fail2 : [{I/O-error code}ᵀ]→⊤,
 		priority2 : byte
 	|
-		Primitive 169 (e : {
+		Primitive FileSync (e : {
 			invalid-handle code,
 			special-atom code,
 			not-open-for-write code}ᵀ);
@@ -574,7 +574,7 @@ Private method "private refresh_with file system" is
 [
 	fileHandle : atom
 |
-	Primitive 168 (e : {
+	Primitive FileRefresh (e : {
 		invalid-handle code,
 		special-atom code,
 		not-open-for-read code}ᵀ);
@@ -656,7 +656,7 @@ is
 	fail : [{file-exists code, I/O-error code, permission-denied code}ᵀ]→⊤,
 	priority : byte
 |
-	Primitive 450 (e : {invalid-path code}ᵀ);
+	Primitive CreateDirectory (e : {invalid-path code}ᵀ);
 	Raise an exception for e
 ] : fiber→⊤;
 

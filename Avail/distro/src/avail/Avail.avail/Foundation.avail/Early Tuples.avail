@@ -1174,7 +1174,7 @@ Public method "UUID" is [<<>, byte…|16's type>];
  */
 Public method "a UUID" is
 [
-	Primitive 134;
+	Primitive CreateUUIDByteTuple;
 ] : <<>, byte…|16's type>;
 
 /**
@@ -1192,7 +1192,7 @@ Public method "serialize_" is
 [
 	value : any
 |
-	Primitive 270 (failureCode : serialization-failed code's type);
+	Primitive Serialize (failureCode : serialization-failed code's type);
 	Invoke early failure function with <failureCode>
 ] : byte+;
 
@@ -1215,7 +1215,7 @@ Public method "deserialize_based on_" is
 	serializedBytes : byte*,
 	context : module
 |
-	Primitive 271 (failureCode : deserialization-failed code's type);
+	Primitive Deserialize (failureCode : deserialization-failed code's type);
 	Invoke early failure function with <failureCode>
 ] : any*;
 
@@ -1241,7 +1241,7 @@ Public stable method "SHA-_digest of_" is
 	algorithm : {1, 256, 384, 512}ᵀ,
 	bytes : byte*
 |
-	Primitive 145;
+	Primitive ComputeDigest;
 ] : byte+;
 
 Semantic restriction "SHA-_digest of_" is
@@ -1306,7 +1306,7 @@ Private method "_with_appended" is
 	aTuple : tuple,
 	newElement : any
 |
-	Primitive 703;
+	Primitive TupleAppend;
 ] : tuple;
 
 Semantic restriction "_with_appended" is

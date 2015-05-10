@@ -6619,8 +6619,8 @@ public final class AvailCompiler
 	 *        string token within the pragma for this purpose.
 	 * @param methodName
 	 *        The name of the primitive method being defined.
-	 * @param primitiveNumber
-	 *        The {@linkplain Primitive#primitiveNumber primitive number} of the
+	 * @param primitiveName
+	 *        The {@linkplain Primitive#name() primitive name} of the
 	 *        {@linkplain MethodDescriptor method} being defined.
 	 * @param success
 	 *        What to do after the method is bootstrapped successfully.
@@ -6631,16 +6631,18 @@ public final class AvailCompiler
 		final ParserState state,
 		final A_Token token,
 		final String methodName,
-		final int primitiveNumber,
+		final String primitiveName,
 		final Continuation0 success,
 		final Continuation0 failure)
 	{
 		final A_String availName = StringDescriptor.from(methodName);
 		final A_Phrase nameLiteral =
 			LiteralNodeDescriptor.syntheticFrom(availName);
+		final Primitive primitive = Primitive.byName(primitiveName);
+		assert primitive != null;
 		final A_Function function =
 			FunctionDescriptor.newPrimitiveFunction(
-				Primitive.byPrimitiveNumberOrFail(primitiveNumber),
+				primitive,
 				module,
 				token.lineNumber());
 		final A_Phrase send = SendNodeDescriptor.from(
@@ -6675,12 +6677,11 @@ public final class AvailCompiler
 	 *        this purpose.
 	 * @param macroName
 	 *        The name of the primitive macro being defined.
-	 * @param primitiveNumbers
-	 *        The array of {@linkplain Primitive#primitiveNumber primitive
-	 *        numbers} of the bodies of the macro being defined.  These
-	 *        correspond to the occurrences of the {@linkplain StringDescriptor
-	 *        #sectionSign() section sign} (§) in the macro name, plus a final
-	 *        body for the complete macro.
+	 * @param primitiveNames
+	 *        The array of {@linkplain String}s that are bootstrap macro names.
+	 *        These correspond to the occurrences of the {@linkplain
+	 *        StringDescriptor #sectionSign() section sign} (§) in the macro
+	 *        name, plus a final body for the complete macro.
 	 * @param success
 	 *        What to do after the macro is defined successfully.
 	 * @param failure
@@ -6690,25 +6691,25 @@ public final class AvailCompiler
 		final ParserState state,
 		final A_Token token,
 		final String macroName,
-		final int[] primitiveNumbers,
+		final String[] primitiveNames,
 		final Continuation0 success,
 		final Continuation0 failure)
 	{
-		assert primitiveNumbers.length > 0;
+		assert primitiveNames.length > 0;
 		final A_String availName = StringDescriptor.from(macroName);
 		final A_Phrase nameLiteral =
 			LiteralNodeDescriptor.syntheticFrom(availName);
 		final List<A_Phrase> functionLiterals = new ArrayList<>();
 		try
 		{
-			for (final int primitiveNumber : primitiveNumbers)
+			for (final String primitiveName: primitiveNames)
 			{
+				final Primitive prim = Primitive.byName(primitiveName);
+				assert prim != null : "Invalid bootstrap macro primitive name";
 				functionLiterals.add(
 					LiteralNodeDescriptor.syntheticFrom(
 						FunctionDescriptor.newPrimitiveFunction(
-							Primitive.byPrimitiveNumberOrFail(primitiveNumber),
-							module,
-							token.lineNumber())));
+							prim, module, token.lineNumber())));
 			}
 		}
 		catch (final RuntimeException e)
@@ -6855,7 +6856,7 @@ public final class AvailCompiler
 		final Continuation0 failure)
 	{
 		final String methodName;
-		final int primNum;
+		final String primName;
 		try
 		{
 			final String[] parts = pragmaValue.split("=", 2);
@@ -6863,9 +6864,8 @@ public final class AvailCompiler
 			{
 				throw new IllegalArgumentException();
 			}
-			final String pragmaPrim = parts[0].trim();
+			primName = parts[0].trim();
 			methodName = parts[1].trim();
-			primNum = Integer.parseInt(pragmaPrim);
 		}
 		catch (final IllegalArgumentException e)
 		{
@@ -6885,7 +6885,7 @@ public final class AvailCompiler
 			return;
 		}
 		bootstrapMethodThen(
-			state, pragmaToken, methodName, primNum, success, failure);
+			state, pragmaToken, methodName, primName, success, failure);
 	}
 
 	/**
@@ -6912,7 +6912,6 @@ public final class AvailCompiler
 		final Continuation0 failure)
 	{
 		final String macroName;
-		final int[] primNums;
 		final String[] parts = pragmaValue.split("=", 2);
 		if (parts.length != 2)
 		{
@@ -6920,20 +6919,13 @@ public final class AvailCompiler
 		}
 		final String pragmaPrim = parts[0].trim();
 		macroName = parts[1].trim();
-		final String[] primNumStrings = pragmaPrim.split(",");
-		primNums = new int[primNumStrings.length];
-		for (int i = 0; i < primNums.length; i++)
+		final String[] primNameStrings = pragmaPrim.split(",");
+		final String[] primNames = new String[primNameStrings.length];
+		for (int i = 0; i < primNames.length; i++)
 		{
-			int primNum;
-			try
-			{
-				primNum = Integer.parseInt(primNumStrings[i]);
-			}
-			catch (final NumberFormatException e)
-			{
-				primNum = 0;
-			}
-			if (!Primitive.supportsPrimitive(primNum))
+			final String primName = primNameStrings[i];
+			final @Nullable Primitive prim = Primitive.byName(primName);
+			if (prim == null)
 			{
 				reportError(
 					pragmaToken,
@@ -6941,14 +6933,14 @@ public final class AvailCompiler
 					String.format(
 						"Expected macro pragma to reference "
 							+ "a valid primitive, not %s",
-						primNum),
+						primName),
 					failure);
 				return;
 			}
-			primNums[i] = primNum;
+			primNames[i] = primName;
 		}
 		bootstrapMacroThen(
-			state, pragmaToken, macroName, primNums, success, failure);
+			state, pragmaToken, macroName, primNames, success, failure);
 	}
 
 	/**

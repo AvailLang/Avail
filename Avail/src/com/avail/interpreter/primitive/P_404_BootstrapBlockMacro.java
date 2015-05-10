@@ -156,24 +156,31 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 		}
 
 		// Deal with the primitive declaration if present.
-		int primNumber = 0;
+		final int primNumber;
 		boolean canHaveStatements = true;
 		assert optionalPrimitive.expressionsSize() <= 1;
 		@Nullable A_Type primitiveReturnType = null;
-		@Nullable Primitive primitive = null;
+		final @Nullable Primitive prim;
 		if (optionalPrimitive.expressionsSize() == 1)
 		{
-			final A_Phrase primitivePart = optionalPrimitive.expressionAt(1);
-			primNumber = primitivePart.expressionAt(1).token()
-				.literal().literal().extractInt();
-			primitive = Primitive.byPrimitiveNumberOrNull(primNumber);
-			if (primitive == null)
+			final A_Phrase primPhrase = optionalPrimitive.expressionAt(1);
+			final A_Phrase primNamePhrase = primPhrase.expressionAt(1);
+			if (!primNamePhrase.parseNodeKindIsUnder(LITERAL_NODE))
+			{
+				throw new AvailRejectedParseException(
+					"primitive specification to be a (compiler created) literal "
+					+ "keyword token");
+			}
+			final A_String primName = primNamePhrase.token().string();
+			prim = Primitive.byName(primName.asNativeString());
+			if (prim == null)
 			{
 				return interpreter.primitiveFailure(
 					E_INCONSISTENT_PREFIX_FUNCTION);
 			}
-			canHaveStatements = !primitive.hasFlag(CannotFail);
-			final A_Phrase optionalFailurePair = primitivePart.expressionAt(2);
+			primNumber = prim.primitiveNumber;
+			canHaveStatements = !prim.hasFlag(CannotFail);
+			final A_Phrase optionalFailurePair = primPhrase.expressionAt(2);
 			assert optionalFailurePair.expressionsSize() <= 1;
 			if ((optionalFailurePair.expressionsSize() == 1)
 				!= canHaveStatements)
@@ -201,7 +208,12 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 					scopeMap.mapAt(failureDeclarationName);
 				allStatements.add(failureDeclaration);
 			}
-			primitiveReturnType = primitive.blockTypeRestriction().returnType();
+			primitiveReturnType = prim.blockTypeRestriction().returnType();
+		}
+		else
+		{
+			prim = null;
+			primNumber = 0;
 		}
 
 		// Deal with the label if present.
@@ -252,11 +264,10 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 		}
 		else
 		{
-			if (primitive != null && primitive.hasFlag(CannotFail))
+			if (prim != null && prim.hasFlag(CannotFail))
 			{
 				// An infallible primitive must have no statements.
-				deducedReturnType =
-					primitive.blockTypeRestriction().returnType();
+				deducedReturnType = prim.blockTypeRestriction().returnType();
 			}
 			else
 			{
@@ -377,9 +388,8 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 					TupleTypeDescriptor.zeroOrOneOf(
 						/* Primitive declaration */
 						TupleTypeDescriptor.forTypes(
-							/* Primitive number. */
-							LiteralTokenTypeDescriptor.create(
-								IntegerRangeTypeDescriptor.naturalNumbers()),
+							/* Primitive name. */
+							TOKEN.o(),
 							/* Optional failure variable declaration. */
 							TupleTypeDescriptor.zeroOrOneOf(
 								/* Primitive failure variable parts. */

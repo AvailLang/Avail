@@ -139,21 +139,21 @@ Primitive "{«_‡,»}" is
 [
 	aTuple : tuple
 |
-	Primitive 109;
+	Primitive TupleToSet;
 ] : set;
 
 Primitive "_ᵀ" is
 [
 	instances : set
 |
-	Primitive 65;
+	Primitive CreateEnumeration;
 ] : type;
 
 Primitive "Private fail primitive with_" is
 [
 	value : any
 |
-	Primitive 256;
+	Primitive EmergencyExit;
 ] : ⊥;
 
 _fail_primitive : primitive failure function :=
@@ -180,7 +180,7 @@ Primitive "Private invoke_with«_‡,»" is
 	aFunction : function,
 	arguments : tuple
 |
-	Primitive 40 (failureCode : natural number);
+	Primitive InvokeWithTuple (failureCode : natural number);
 	Private fail primitive with failureCode
 ] : ⊤;
 
@@ -189,7 +189,7 @@ Primitive "Private semantic restriction_is_" is
 	methodName : string,
 	restriction : semantic restriction function
 |
-	Primitive 248 (failureCode : natural number);
+	Primitive AddSemanticRestriction (failureCode : natural number);
 	Private fail primitive with failureCode
 ] : ⊤;
 
@@ -219,7 +219,7 @@ Primitive "_+_" is
 	augend : number,
 	addend : number
 |
-	Primitive 1 (failureCode : {
+	Primitive Addition (failureCode : {
 		cannot-add-unlike-infinities code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : number;
@@ -242,7 +242,7 @@ Primitive "_-_" is
 	minuend : number,
 	subtrahend : number
 |
-	Primitive 2 (failureCode : {
+	Primitive Subtraction (failureCode : {
 		cannot-subtract-like-infinities code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : number;
@@ -265,7 +265,7 @@ Primitive "_×_" is
 	multiplicand : number,
 	multiplier : number
 |
-	Primitive 3 (failureCode : {
+	Primitive Multiplication (failureCode : {
 		cannot-multiply-zero-and-infinity code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : number;
@@ -289,7 +289,7 @@ Primitive "_÷_" is
 	dividend : number,
 	divisor : number
 |
-	Primitive 4 (failureCode : {
+	Primitive Division (failureCode : {
 		cannot-divide-by-zero code,
 		cannot-divide-infinities code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -311,7 +311,7 @@ Primitive "↓_" is
 [
 	var : variable
 |
-	Primitive 10 (failureCode : {
+	Primitive GetValue (failureCode : {
 		cannot-read-unassigned-variable code,
 		Java-marshaling-failed code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -332,7 +332,7 @@ Primitive "_'s⁇instances" is
 [
 	enum : type
 |
-	Primitive 29 (failureCode : {
+	Primitive Instances (failureCode : {
 		not-an-enumeration code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : set;
@@ -357,7 +357,7 @@ Primitive "Invoke|invoke_with_" is
 	aFunction : function,
 	arguments : tuple
 |
-	Primitive 40 (failureCode : natural number);
+	Primitive InvokeWithTuple (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -396,7 +396,7 @@ Primitive "$_@pc=_stack=_[_]caller=_" is
 	stackPointer : natural number,
 	caller : continuation variable
 |
-	Primitive 49 (failureCode : {
+	Primitive CreateContinuation (failureCode : {
 		cannot-create-continuation-for-infallible-primitive-function code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : continuation;
@@ -423,7 +423,7 @@ Primitive "Restart_with_" is
 	aContinuation : continuation,
 	arguments : tuple
 |
-	Primitive 56 (failureCode : {
+	Primitive RestartContinuationWithArguments (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -450,7 +450,7 @@ Primitive "Exit_with_" is
 	aContinuation : continuation,
 	value : any
 |
-	Primitive 57 (failureCode : {
+	Primitive ExitContinuationWithResult (failureCode : {
 		continuation-expected-stronger-type code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊥;
@@ -470,7 +470,7 @@ Primitive "_→map" is
 [
 	anObjectType : object meta
 |
-	Primitive 64 (failureCode : {
+	Primitive ObjectTypeToMap (failureCode : {
 		no-such-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : field type map;
@@ -493,7 +493,7 @@ Primitive "_[_]" is
 	object : object,
 	field : atom
 |
-	Primitive 66 (failureCode : {
+	Primitive GetObjectField (failureCode : {
 		no-such-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any;
@@ -516,7 +516,7 @@ Primitive "_[_]" is
 	objectType : object meta,
 	field : atom
 |
-	Primitive 67 (failureCode : {
+	Primitive GetObjectTypeField (failureCode : {
 		no-such-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any meta;
@@ -540,7 +540,7 @@ Primitive "function from_and_" is
 	implementation : function implementation,
 	outerVariables : tuple
 |
-	Primitive 74 (failureCode : {
+	Primitive CreateFunction (failureCode : {
 		wrong-outers code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : function;
@@ -563,7 +563,7 @@ Primitive "_[_]" is
 	aMap : map,
 	key : any
 |
-	Primitive 82 (failureCode : {
+	Primitive MapAtKey (failureCode : {
 		key-not-found code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any;
@@ -588,7 +588,7 @@ Primitive "_>>_" is
 	baseInteger : integer,
 	shiftFactor : integer
 |
-	Primitive 94 (failureCode : {
+	Primitive BitShiftRight (failureCode : {
 		too-large-to-represent code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : integer;
@@ -613,7 +613,7 @@ Primitive "_<<_" is
 	baseInteger : integer,
 	shiftFactor : integer
 |
-	Primitive 95 (failureCode : {
+	Primitive BitShiftLeft (failureCode : {
 		too-large-to-represent code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : integer;
@@ -643,7 +643,7 @@ Primitive "_<<_keeping_bits" is
 	shiftFactor : integer,
 	truncationBits : whole number
 |
-	Primitive 96 (failureCode : {
+	Primitive BitShiftWithTruncation (failureCode : {
 		shift-and-truncate-requires-non-negative code,
 		too-large-to-represent code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -669,7 +669,7 @@ Primitive "all atoms for_" is
 [
 	name : string
 |
-	Primitive 114 (failureCode : {
+	Primitive LookupAtomsForName (failureCode : {
 		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : nonempty set of atom;
@@ -693,7 +693,7 @@ Primitive "_∈_" is
 	key : atom,
 	anAtom : atom
 |
-	Primitive 122 (failureCode : {
+	Primitive AtomHasProperty (failureCode : {
 		special-atom code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : boolean;
@@ -719,7 +719,7 @@ Primitive "_[_]" is
 	anAtom : atom,
 	key : atom
 |
-	Primitive 123 (failureCode : {
+	Primitive AtomGetProperty (failureCode : {
 		key-not-found code,
 		no-such-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -747,7 +747,7 @@ Primitive "_[_]:=_" is
 	key : atom,
 	value : any
 |
-	Primitive 124 (failureCode : {
+	Primitive AtomSetProperty (failureCode : {
 		special-atom code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
@@ -770,7 +770,7 @@ Primitive "Remove_[_]" is
 	anAtom : atom,
 	key : atom
 |
-	Primitive 125 (failureCode : {
+	Primitive AtomRemoveProperty (failureCode : {
 		key-not-found code,
 		no-such-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -791,7 +791,7 @@ Primitive "_'s⁇issuing module" is
 [
 	anAtom : atom
 |
-	Primitive 127 (failureCode : {
+	Primitive AtomIssuingModule (failureCode : {
 		special-atom code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : module;
@@ -812,7 +812,7 @@ Primitive "_is unambiguous" is
 [
 	name : string
 |
-	Primitive 129 (failureCode : {
+	Primitive IsUnambiguousName (failureCode : {
 		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : boolean;
@@ -835,7 +835,7 @@ Primitive "_[_]" is
 	aTuple : tuple,
 	index : natural number
 |
-	Primitive 131 (failureCode : {
+	Primitive TupleAt (failureCode : {
 		subscript-out-of-bounds code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any;
@@ -863,7 +863,7 @@ Primitive "_[_]→_" is
 	index : natural number,
 	value : any
 |
-	Primitive 132 (failureCode : {
+	Primitive TupleReplaceAt (failureCode : {
 		subscript-out-of-bounds code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : tuple;
@@ -891,7 +891,7 @@ Primitive "_to_by_" is
 	end : integer,
 	delta : integer
 |
-	Primitive 133 (failureCode : {
+	Primitive IntegerIntervalTuple (failureCode : {
 		incorrect-argument-type code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : tuple of integer;
@@ -917,7 +917,7 @@ Primitive "_[_.._]" is
 	sliceStart : natural number,
 	sliceEnd : whole number
 |
-	Primitive 135 (failureCode : {
+	Primitive ExtractSubtuple (failureCode : {
 		subscript-out-of-bounds code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : tuple;
@@ -945,7 +945,7 @@ Primitive "_[_.._]" is
 	sliceStart : natural number,
 	sliceEnd : whole number
 |
-	Primitive 142 (failureCode : {
+	Primitive TupleTypeSequenceOfTypes (failureCode : {
 		subscript-out-of-bounds code,
 		negative-size code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -969,7 +969,7 @@ Primitive "_occurrences⁇of_" is
 	count : whole number,
 	value : any
 |
-	Primitive 146 (failureCode : {
+	Primitive RepeatedElementTuple (failureCode : {
 		exceeds-vm-limit code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : tuple;
@@ -991,7 +991,7 @@ Primitive "_→tuple" is
 [
 	anObjectType : object meta
 |
-	Primitive 151 (failureCode : natural number);
+	Primitive ObjectTypeToTuple (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : field type tuple;
 
@@ -1032,7 +1032,7 @@ Primitive "_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)" is
 	outersCount : whole number,
 	maximumStackDepth : whole number
 |
-	Primitive 188 (failureCode : {
+	Primitive CreateCompiledCode (failureCode : {
 		invalid-primitive-number code,
 		function-disagrees-with-primitive-restriction code,
 		local-type-literal-is-not-a-type code,
@@ -1080,7 +1080,7 @@ Primitive "Alias_to_" is
 	newName : string,
 	oldAtom : atom
 |
-	Primitive 218 (failureCode : {
+	Primitive Alias (failureCode : {
 		incorrect-argument-type code,
 		incorrect-type-for-group code,
 		ambiguous-name code,
@@ -1123,7 +1123,7 @@ Primitive "method for_" is
 [
 	anAtom : atom
 |
-	Primitive 220 (failureCode : {
+	Primitive MethodFromName (failureCode : {
 		no-method code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : method;
@@ -1152,7 +1152,7 @@ Primitive "method definition of_for_" is
 	methodName : atom,
 	parameterTypes : tuple of any meta
 |
-	Primitive 222 (failureCode : {
+	Primitive DefinitionForArgumentTypes (failureCode : {
 		incorrect-number-of-arguments code,
 		no-method code,
 		no-method-definition code,
@@ -1193,7 +1193,7 @@ Primitive "`|message_'s⁇parameters`|" is
 [
 	methodName : string
 |
-	Primitive 224 (failureCode : {
+	Primitive MethodNameParametersCount (failureCode : {
 		incorrect-argument-type code,
 		incorrect-type-for-group code,
 		exclamation-mark-must-follow-an-alternation-group code,
@@ -1250,7 +1250,7 @@ Primitive "message_contains groups" is
 [
 	methodName : string
 |
-	Primitive 225 (failureCode : {
+	Primitive MethodNameContainsGroups (failureCode : {
 		incorrect-argument-type code,
 		incorrect-type-for-group code,
 		exclamation-mark-must-follow-an-alternation-group code,
@@ -1314,7 +1314,7 @@ Primitive "Seal method_at_" is
 	methodName : string,
 	signature : tuple of any meta
 |
-	Primitive 226 (failureCode : {
+	Primitive SealMethod (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code,
 		incorrect-type-for-group code,
@@ -1385,7 +1385,7 @@ Primitive "Abstract method_is_" is
 	methodName : atom,
 	signature : function meta
 |
-	Primitive 227 (failureCode : {
+	Primitive AbstractMethodDeclarationForAtom (failureCode : {
 		incorrect-argument-type code,
 		incorrect-type-for-group code,
 		exclamation-mark-must-follow-an-alternation-group code,
@@ -1436,7 +1436,7 @@ Primitive "_has definition for_" is
 	methodName : atom,
 	parameterTypes : tuple of any meta
 |
-	Primitive 229 (failureCode : {
+	Primitive BundleHasDefinitionForArgumentTypes (failureCode : {
 		no-method code,
 		no-method-definition code,
 		ambiguous-method-definition code}ᵀ);
@@ -1491,7 +1491,7 @@ Primitive "Semantic restriction_is_" is
 	methodName : atom,
 	restriction : semantic restriction function
 |
-	Primitive 231 (failureCode : {
+	Primitive AddSemanticRestrictionForAtom (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code,
 		type-restriction-must-accept-only-types code,
@@ -1557,7 +1557,7 @@ Primitive "Seal method_at_" is
 	methodName : atom,
 	signature : tuple of any meta
 |
-	Primitive 232 (failureCode : {
+	Primitive SealMethodByAtom (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code,
 		incorrect-type-for-group code,
@@ -1598,7 +1598,7 @@ Primitive "After the current module is unloaded,⁇do_" is
 [
 	aFunction : function
 |
-	Primitive 233 (failureCode : {
+	Primitive AddUnloadFunction (failureCode : {
 		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
@@ -1664,7 +1664,7 @@ Primitive "Macro_is«_,»_" is
 	prefixFunctions : tuple of functions,
 	body : macro function
 |
-	Primitive 236 (failureCode : {
+	Primitive SimpleMacroDefinitionForAtom (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code,
 		incorrect-type-for-group code,
@@ -1706,7 +1706,7 @@ Primitive "Macro_is«_,»_" is
  */
 Primitive "current module" is
 [
-	Primitive 241 (failureCode : {
+	Primitive CurrentModule (failureCode : {
 		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : module;
@@ -1732,7 +1732,7 @@ Primitive "atom for_" is
 [
 	localName : string
 |
-	Primitive 245 (failureCode : {
+	Primitive LookupName (failureCode : {
 		ambiguous-name code,
 		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -1757,7 +1757,7 @@ Primitive "Export_as a new name" is
 [
 	newName : string
 |
-	Primitive 246 (failureCode : {
+	Primitive PublishName (failureCode : {
 		ambiguous-name code,
 		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -1782,7 +1782,7 @@ Primitive "semantic restrictions for_given_" is
 	aMethod : method,
 	arguments : tuple of any meta
 |
-	Primitive 247 (failureCode : {
+	Primitive SemanticRestrictions (failureCode : {
 		incorrect-number-of-arguments code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : tuple of semantic restriction function;
@@ -1835,7 +1835,7 @@ Primitive "Semantic restriction_is_" is
 	methodName : string,
 	restriction : semantic restriction function
 |
-	Primitive 248 (failureCode : {
+	Primitive AddSemanticRestriction (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code,
 		type-restriction-must-accept-only-types code,
@@ -1921,7 +1921,7 @@ Primitive "Macro_is«_,»_" is
 	prefixFunctions : tuple of functions,
 	body : macro function
 |
-	Primitive 249 (failureCode : {
+	Primitive SimpleMacroDeclaration (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code,
 		incorrect-type-for-group code,
@@ -1995,7 +1995,7 @@ Primitive "Abstract method_is_" is
 	methodName : string,
 	aFunctionType : function meta
 |
-	Primitive 251 (failureCode : {
+	Primitive AbstractMethodDeclaration (failureCode : {
 		incorrect-argument-type code,
 		incorrect-type-for-group code,
 		ambiguous-name code,
@@ -2069,7 +2069,7 @@ Primitive "Forward method_is_" is
 	methodName : string,
 	aFunctionType : function meta
 |
-	Primitive 252 (failureCode : {
+	Primitive ForwardMethodDeclaration (failureCode : {
 		incorrect-argument-type code,
 		incorrect-type-for-group code,
 		ambiguous-name code,
@@ -2109,7 +2109,7 @@ Primitive "Forward method_is_" is
  */
 Primitive "next character" is
 [
-	Primitive 254 (failureCode : {
+	Primitive ReadFromStandardInput (failureCode : {
 		I/O-error code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : character;
@@ -2163,7 +2163,7 @@ Primitive "Grammatical restriction_is_" is
 	methodsToRestrict : nonempty set of string,
 	exclusions : tuple of set of string
 |
-	Primitive 255 (failureCode : {
+	Primitive GrammaticalRestriction (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code,
 		incorrect-type-for-group code,
@@ -2203,7 +2203,7 @@ Primitive "Print:_" is
 [
 	text : string
 |
-	Primitive 258 (failureCode : {
+	Primitive PrintToConsole (failureCode : {
 		I/O-error code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
@@ -2223,7 +2223,7 @@ Primitive "Mark for_character|characters of read ahead" is
 [
 	count : whole number
 |
-	Primitive 261 (failureCode : {
+	Primitive MarkStandardInputStream (failureCode : {
 		I/O-error code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
@@ -2238,7 +2238,7 @@ Primitive "Mark for_character|characters of read ahead" is
  */
 Primitive "Reset to mark" is
 [
-	Primitive 262 (failureCode : {
+	Primitive ResetStandardInputStream (failureCode : {
 		I/O-error code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
@@ -2292,7 +2292,7 @@ Primitive "Grammatical restriction_is_" is
 	methodsToRestrict : nonempty set of atom,
 	exclusions : tuple of set of atom
 |
-	Primitive 264 (failureCode : {
+	Primitive GrammaticalRestrictionFromAtoms (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code,
 		incorrect-type-for-group code,
@@ -2331,7 +2331,7 @@ Primitive "Error:_" is
 [
 	text : string
 |
-	Primitive 265 (failureCode : {
+	Primitive PrintToErrorConsole (failureCode : {
 		I/O-error code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
@@ -2347,7 +2347,7 @@ Primitive "Error:_" is
  */
 Primitive "current module's exported names" is
 [
-	Primitive 267 (failureCode : natural number);
+	Primitive ExportedNames (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : set of atom;
 
@@ -2366,7 +2366,7 @@ Primitive "Seal method|methods_at existing definitions" is
 [
 	methodNames : set of atom
 |
-	Primitive 268 (failureCode : {
+	Primitive SealMethodsAtExistingDefinitions (failureCode : {
 		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
@@ -2387,7 +2387,7 @@ Primitive "_→extended integer" is
 [
 	aFloat : float
 |
-	Primitive 289 (failureCode : {
+	Primitive FloatTruncatedAsInteger (failureCode : {
 		cannot-convert-not-a-number-to-integer code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : extended integer;
@@ -2408,7 +2408,7 @@ Primitive "_→extended integer" is
 [
 	aDouble : double
 |
-	Primitive 319 (failureCode : {
+	Primitive DoubleTruncatedAsInteger (failureCode : {
 		cannot-convert-not-a-number-to-integer code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : extended integer;
@@ -2430,7 +2430,7 @@ Primitive "_→extended integer" is
  */
 Primitive "Accept parse" is
 [
-	Primitive 343 (failureCode : {
+	Primitive AcceptParsing (failureCode : {
 		untimely-parse-acceptance code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊥;
@@ -2455,7 +2455,7 @@ Primitive "`«supercast(_::_)`»" is
 	baseExpression : expression yielding any,
 	lookupType : any meta
 |
-	Primitive 346 (failureCode : {
+	Primitive CreateSuperCastExpression (failureCode : {
 		supercast-expression-type-must-not-be-top-or-bottom code,
 		supercast-expression-must-not-also-be-a-supercast code,
 		supercast-must-be-strict-supertype-of-expression-type code}ᵀ);
@@ -2483,7 +2483,7 @@ Primitive "`«(_:=_)`»" is
 	variableUse : variable use phrase,
 	valueExpression : expression yielding any
 |
-	Primitive 350 (failureCode : {
+	Primitive CreateAssignmentExpression (failureCode : {
 		cannot-store-incorrectly-typed-value code,
 		declaration-kind-does-not-support-assignment code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -2520,7 +2520,7 @@ Primitive "Reject parse,expected:_" is
 [
 	expected : string
 |
-	Primitive 352 (failureCode : {
+	Primitive RejectParsing (failureCode : {
 		untimely-parse-rejection code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊥;
@@ -2545,7 +2545,7 @@ Primitive "`«_:=_`»" is
 	variableUse : variable use phrase,
 	valueExpression : expression yielding any
 |
-	Primitive 353 (failureCode : {
+	Primitive CreateAssignmentStatement (failureCode : {
 		cannot-store-incorrectly-typed-value code,
 		declaration-kind-does-not-support-assignment code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -2567,7 +2567,7 @@ Primitive "`«`↑_`»" is
 [
 	variableUse : variable use phrase
 |
-	Primitive 354 (failureCode : {
+	Primitive CreateReferenceExpression (failureCode : {
 		declaration-kind-does-not-support-reference code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : variable reference phrase;
@@ -2602,7 +2602,7 @@ Primitive "`«[_`|Primitive__]:_^_`»" is
 	returnType : type,
 	exceptions : set of exception
 |
-	Primitive 361 (failureCode : {
+	Primitive CreateBlockExpression (failureCode : {
 		block-contains-invalid-statements code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : block phrase;
@@ -2625,7 +2625,7 @@ Primitive "_→function" is
 [
 	aBlock : block phrase
 |
-	Primitive 362 (failureCode : {
+	Primitive GenerateFunctionForBlock (failureCode : {
 		block-is-invalid code,
 		block-must-not-contain-outers code,
 		block-compilation-failed code}ᵀ);
@@ -2674,7 +2674,7 @@ Primitive "send_with_:_" is
 	argumentsList : list phrase,
 	returnType : type
 |
-	Primitive 383 (failureCode : {
+	Primitive CreateSendExpression (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code,
 		incorrect-type-for-group code,
@@ -2714,7 +2714,7 @@ Primitive "seq`«_`»" is
 [
 	statements : phrase tuple
 |
-	Primitive 387 (failureCode : {
+	Primitive CreateSequenceOfStatements (failureCode : {
 		sequence-contains-invalid-statements code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : sequence phrase;
@@ -2735,7 +2735,7 @@ Primitive "first-of-seq`«_`»" is
 [
 	statements : phrase tuple
 |
-	Primitive 389 (failureCode : {
+	Primitive CreateFirstOfSequenceOfStatements (failureCode : {
 		sequence-contains-invalid-statements code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : first of sequence phrase;
@@ -2760,7 +2760,7 @@ Primitive "_parameterized by_" is
 	javaName : string,
 	typeParameters : tuple of any meta
 |
-	Primitive 500 (failureCode : {
+	Primitive CreatePojoType (failureCode : {
 		incorrect-number-of-arguments code,
 		Java-class-not-available code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -2815,7 +2815,7 @@ Primitive "constructor of_,⁇parameterized by_,⁇on failure doing_" is
 	parameterTypes : tuple of any meta,
 	failFunction : pojo failure function
 |
-	Primitive 502 (failureCode : {
+	Primitive CreatePojoConstructorFunction (failureCode : {
 		pojo-type-is-abstract code,
 		Java-method-not-available code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -2842,7 +2842,7 @@ Primitive "_'s⁇_field" is
 	aPojo : pojo,
 	fieldName : string
 |
-	Primitive 504 (failureCode : {
+	Primitive BindPojoInstanceField (failureCode : {
 		Java-field-not-available code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : variable;
@@ -2869,7 +2869,7 @@ Primitive "_'s⁇_field" is
 	aPojoType : pojo meta,
 	fieldName : string
 |
-	Primitive 505 (failureCode : {
+	Primitive BindPojoStaticField (failureCode : {
 		Java-field-not-available code,
 		Java-field-reference-is-ambiguous code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -2928,7 +2928,7 @@ Primitive "method_._,⁇parameterized by_,⁇on failure doing_" is
 	parameterTypes : tuple of any meta,
 	failFunction : pojo failure function
 |
-	Primitive 506 (failureCode : {
+	Primitive CreatePojoInstanceMethodFunction (failureCode : {
 		Java-method-not-available code,
 		Java-method-reference-is-ambiguous code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -2986,7 +2986,7 @@ Primitive "static method_._,⁇parameterized by_,⁇on failure doing_" is
 	parameterTypes : tuple of any meta,
 	failFunction : pojo failure function
 |
-	Primitive 508 (failureCode : {
+	Primitive CreatePojoStaticMethodFunction (failureCode : {
 		Java-method-not-available code,
 		Java-method-reference-is-ambiguous code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -3011,7 +3011,7 @@ Primitive "_[_]" is
 	anArray : pojo array,
 	index : natural number
 |
-	Primitive 512 (failureCode : {
+	Primitive PojoArrayGet (failureCode : {
 		subscript-out-of-bounds code,
 		Java-marshaling-failed code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -3040,7 +3040,7 @@ Primitive "_[_]:=_" is
 	index : natural number,
 	value : any
 |
-	Primitive 513 (failureCode : {
+	Primitive PojoArraySet (failureCode : {
 		cannot-store-incorrectly-typed-value code,
 		subscript-out-of-bounds code,
 		Java-marshaling-failed code}ᵀ);
@@ -3091,7 +3091,7 @@ Primitive "return type of_._«parameterized by»⁇_" is
 	methodName : string,
 	parameterTypes : tuple of any meta
 |
-	Primitive 517 (failureCode : {
+	Primitive PojoMethodReturnType (failureCode : {
 		Java-method-not-available code,
 		Java-method-reference-is-ambiguous code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -3115,7 +3115,7 @@ Primitive "_∈current fiber" is
 [
 	key : atom
 |
-	Primitive 603 (failureCode : {
+	Primitive IsFiberVariable (failureCode : {
 		special-atom code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : boolean;
@@ -3138,7 +3138,7 @@ Primitive "current fiber[_]" is
 [
 	key : atom
 |
-	Primitive 604 (failureCode : {
+	Primitive LookupFiberVariable (failureCode : {
 		no-such-fiber-variable code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any;
@@ -3159,7 +3159,7 @@ Primitive "Remove current fiber[_]" is
 [
 	key : atom
 |
-	Primitive 606 (failureCode : {
+	Primitive RemoveFiberVariable (failureCode : {
 		no-such-fiber-variable code,
 		special-atom code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -3187,7 +3187,7 @@ Primitive "Invoke_with_,⁇forked at priority_" is
 	arguments : tuple,
 	priority : byte
 |
-	Primitive 615 (failureCode : {
+	Primitive ForkOrphan (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -3216,7 +3216,7 @@ Primitive "invoke_with_,⁇forked at priority_" is
 	arguments : tuple,
 	priority : byte
 |
-	Primitive 616 (failureCode : {
+	Primitive Fork (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -3238,7 +3238,7 @@ Primitive "Attempt to join_" is
 [
 	aFiber : fiber
 |
-	Primitive 617 (failureCode : {
+	Primitive AttemptJoinFiber (failureCode : {
 		fiber-cannot-join-itself code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
@@ -3262,7 +3262,7 @@ Primitive "_'s⁇result" is
 [
 	aFiber : fiber
 |
-	Primitive 620 (failureCode : {
+	Primitive FiberResult (failureCode : {
 		fiber-result-unavailable code,
 		fiber-produced-incorrectly-typed-result code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -3296,7 +3296,7 @@ Primitive "In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" i
 	arguments : tuple,
 	priority : byte
 |
-	Primitive 622 (failureCode : {
+	Primitive DelayedForkOrphan (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -3331,7 +3331,7 @@ Primitive "in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" i
 	arguments : tuple,
 	priority : byte
 |
-	Primitive 623 (failureCode : {
+	Primitive DelayedFork (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -3361,7 +3361,7 @@ Primitive "new⁇heritable«fiber-local»⁇atom named_" is
 [
 	debugName : string
 |
-	Primitive 624 (failureCode : {
+	Primitive CreateFiberHeritableAtom (failureCode : {
 		ambiguous-name code,
 		atom-already-exists code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -3392,7 +3392,7 @@ Primitive "_«[_]»→_" is
 	pathTuple : two or more tuple,
 	newValue : any
 |
-	Primitive 700 (failureCode : {
+	Primitive TupleReplaceAtNAry (failureCode : {
 		subscript-out-of-bounds code,
 		incorrect-argument-type code,
 		key-not-found code}ᵀ);
@@ -3424,7 +3424,7 @@ Primitive "_«[_]»→_" is
 	pathTuple : nonempty tuple,
 	newValue : any
 |
-	Primitive 701 (failureCode : {
+	Primitive MapReplacingNAryKey (failureCode : {
 		subscript-out-of-bounds code,
 		incorrect-argument-type code,
 		key-not-found code}ᵀ);

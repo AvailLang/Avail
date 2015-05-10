@@ -172,7 +172,7 @@ extends Primitive
 					TupleTypeDescriptor.zeroOrOneOf(
 						/* Primitive declaration */
 						TupleTypeDescriptor.forTypes(
-							/* Primitive number. */
+							/* Primitive name. */
 							TOKEN.o(),
 							/* Optional failure variable declaration. */
 							TupleTypeDescriptor.zeroOrOneOf(

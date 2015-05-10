@@ -158,9 +158,9 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Primitive (final AvailObject object)
+	@Nullable Primitive o_Primitive (final AvailObject object)
 	{
-		return object.slot(PRIMITIVE);
+		return Primitive.byNumber(object.slot(PRIMITIVE));
 	}
 
 	@Override @AvailMethod
@@ -220,12 +220,13 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
+		final Primitive prim = object.primitive();
 		return
 			(((object.argumentsTuple().hash() * multiplier
 				+ object.statementsTuple().hash()) * multiplier
 				+ object.resultType().hash()) * multiplier
 				+ object.neededVariables().hash()) * multiplier
-				+ object.primitive()
+				+ (prim == null ? 0 : prim.primitiveNumber) * multiplier
 			^ 0x05E6A04A;
 	}
 
@@ -640,7 +641,7 @@ extends ParseNodeDescriptor
 		// Optimize for one-liners...
 		final A_Tuple argumentsTuple = object.argumentsTuple();
 		final int argCount = argumentsTuple.tupleSize();
-		final int primitive = object.primitive();
+		final @Nullable Primitive primitive = object.primitive();
 		final A_Tuple statementsTuple = object.statementsTuple();
 		final int statementsSize = statementsTuple.tupleSize();
 		@Nullable A_Type explicitResultType = object.resultType();
@@ -656,7 +657,7 @@ extends ParseNodeDescriptor
 			declaredExceptions = null;
 		}
 		if (argCount == 0
-			&& primitive == 0
+			&& primitive == null
 			&& statementsSize == 1
 			&& explicitResultType == null
 			&& declaredExceptions == null)
@@ -698,15 +699,14 @@ extends ParseNodeDescriptor
 			builder.append('\t');
 		}
 		boolean skipFailureDeclaration = false;
-		final Primitive prim = Primitive.byPrimitiveNumberOrNull(primitive);
-		if (prim != null
-			&& !prim.hasFlag(Flag.SpecialReturnConstant)
-			&& !prim.hasFlag(Flag.SpecialReturnSoleArgument))
+		if (primitive != null
+			&& !primitive.hasFlag(Flag.SpecialReturnConstant)
+			&& !primitive.hasFlag(Flag.SpecialReturnSoleArgument))
 		{
 			builder.append('\t');
 			builder.append("Primitive ");
 			builder.append(primitive);
-			if (!prim.hasFlag(Flag.CannotFail))
+			if (!primitive.hasFlag(Flag.CannotFail))
 			{
 				builder.append(" (");
 				statementsTuple.tupleAt(1).printOnAvoidingIndent(

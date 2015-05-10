@@ -79,7 +79,7 @@ extends PropertiesFileGenerator
 		A_Set reachableErrorCodes = SetDescriptor.empty();
 		for (
 			int primitiveNumber = 1;
-			primitiveNumber <= Primitive.maxPrimitiveNumber;
+			primitiveNumber <= Primitive.maxPrimitiveNumber();
 			primitiveNumber++)
 		{
 			final Primitive primitive =

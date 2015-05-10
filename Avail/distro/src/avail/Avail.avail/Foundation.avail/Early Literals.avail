@@ -125,7 +125,7 @@ Method "{«_‡,»}" is
 [
 	elements : <<>, any…|natural number>
 |
-	Primitive 109;
+	Primitive TupleToSet;
 ] : set;
 
 /*
@@ -167,7 +167,7 @@ Method "{«_‡,»}(set of string)" is
 [
 	elements : tuple
 |
-	Primitive 109;
+	Primitive TupleToSet;
 ] : set;
 
 Semantic restriction "{«_‡,»}(set of string)" is
@@ -180,7 +180,7 @@ Semantic restriction "{«_‡,»}(set of string)" is
 blockMacro ::= "\
 	\|[§\
 		\|««…:_†§‡,»`|»?\
-		\|«Primitive…#«(…:_†)»?§;»?\
+		\|«Primitive…«(…:_†)»?§;»?\
 		\|«$…«:_†»?;§»?\
 		\|«_!§»\
 		\|«_!»?\

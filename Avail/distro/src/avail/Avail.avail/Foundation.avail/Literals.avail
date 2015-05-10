@@ -1012,7 +1012,7 @@ Private method "a double from integer=_,fraction=_,exponent=_" is
 	fractionalPart : literal token ⇒ whole number,
 	exponentPart : literal token ⇒ integer
 |
-	Primitive 93;
+	Primitive ConstructDoubleFromParts;
 ] : double;
 
 /**

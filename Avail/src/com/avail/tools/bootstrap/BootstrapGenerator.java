@@ -403,7 +403,8 @@ public final class BootstrapGenerator
 	}
 
 	/**
-	 * Answer the selected {@linkplain Primitive primitives}.
+	 * Answer the selected {@linkplain Primitive primitives}, the non-private,
+	 * non-bootstrap ones with the specified fallibility.
 	 *
 	 * @param fallible
 	 *        {@code true} if the fallible primitives should be answered, {@code
@@ -414,7 +415,7 @@ public final class BootstrapGenerator
 	private List<Primitive> primitives (final @Nullable Boolean fallible)
 	{
 		final List<Primitive> primitives = new ArrayList<>();
-		for (int i = 1; i <= Primitive.maxPrimitiveNumber; i++)
+		for (int i = 1; i <= Primitive.maxPrimitiveNumber(); i++)
 		{
 			final Primitive primitive = Primitive.byPrimitiveNumberOrNull(i);
 			if (primitive != null)
@@ -579,7 +580,7 @@ public final class BootstrapGenerator
 				parameterCount.upperBound())
 			: String.format(
 				"Expected %s to have a fixed parameter count",
-				primitive.name());
+				primitive.getClass().getSimpleName());
 		for (
 			int i = 1, end = parameterCount.lowerBound().extractInt();
 			i <= end;
@@ -632,7 +633,7 @@ public final class BootstrapGenerator
 		builder.append('\t');
 		builder.append(preamble.getString(primitiveKeyword.name()));
 		builder.append(' ');
-		builder.append(primitive.primitiveNumber);
+		builder.append(primitive.name());
 		if (!primitive.hasFlag(Flag.CannotFail))
 		{
 			builder.append(" (");
@@ -788,7 +789,8 @@ public final class BootstrapGenerator
 					: 1));
 			final Object[] formatArgs = new Object[templateArgCount];
 			// The method name goes into the first slot…
-			formatArgs[0] = primitiveBundle.getString(primitive.name());
+			formatArgs[0] = primitiveBundle.getString(
+				primitive.getClass().getSimpleName());
 			// …then come the parameter names, followed by their types…
 			final A_Type paramsType =
 				primitive.blockTypeRestriction().argsTupleType();
@@ -949,7 +951,7 @@ public final class BootstrapGenerator
 		statements.append('\t');
 		statements.append(preamble.getString(primitiveKeyword.name()));
 		statements.append(' ');
-		statements.append(primitive.primitiveNumber);
+		statements.append(primitive.name());
 		statements.append(";\n");
 		final String block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
@@ -972,7 +974,7 @@ public final class BootstrapGenerator
 		statements.append('\t');
 		statements.append(preamble.getString(primitiveKeyword.name()));
 		statements.append(' ');
-		statements.append(primitive.primitiveNumber);
+		statements.append(primitive.name());
 		statements.append(";\n");
 		final String block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
@@ -996,7 +998,7 @@ public final class BootstrapGenerator
 		statements.append('\t');
 		statements.append(preamble.getString(primitiveKeyword.name()));
 		statements.append(' ');
-		statements.append(primitive.primitiveNumber);
+		statements.append(primitive.name());
 		statements.append(";\n");
 		final String block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
@@ -1123,7 +1125,7 @@ public final class BootstrapGenerator
 		statements.append('\t');
 		statements.append(preamble.getString(primitiveKeyword.name()));
 		statements.append(' ');
-		statements.append(primitive.primitiveNumber);
+		statements.append(primitive.name());
 		statements.append(" (");
 		statements.append(
 			preamble.getString(primitiveFailureVariableName.name()));
@@ -1163,7 +1165,7 @@ public final class BootstrapGenerator
 		statements.append('\t');
 		statements.append(preamble.getString(primitiveKeyword.name()));
 		statements.append(' ');
-		statements.append(primitive.primitiveNumber);
+		statements.append(primitive.name());
 		statements.append(" (");
 		statements.append(
 			preamble.getString(primitiveFailureVariableName.name()));
@@ -1216,7 +1218,7 @@ public final class BootstrapGenerator
 		final Primitive primitive,
 		final PrintWriter writer)
 	{
-		final String name = primitive.name();
+		final String name = primitive.getClass().getSimpleName();
 		if (!primitiveBundle.containsKey(name)
 			|| primitiveBundle.getString(name).isEmpty())
 		{
@@ -1656,7 +1658,7 @@ public final class BootstrapGenerator
 				&& !primitive.hasFlag(Flag.Bootstrap))
 			{
 				final String value = primitiveBundle.getString(
-					primitive.name());
+					primitive.getClass().getSimpleName());
 				if (value != null && !value.isEmpty())
 				{
 					Set<Primitive> set = primitiveNameMap.get(value);

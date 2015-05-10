@@ -133,7 +133,7 @@ Public class "file metadata" extends object
 				s : string,
 				f : boolean
 			|
-				Primitive 436 (e : {
+				Primitive FileMetadata (e : {
 					invalid-path code,
 					permission-denied code,
 					I/O-error code}ᵀ);

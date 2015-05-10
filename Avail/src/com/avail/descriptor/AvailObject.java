@@ -4587,7 +4587,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public int primitive ()
+	public @Nullable Primitive primitive ()
 	{
 		return descriptor.o_Primitive(this);
 	}

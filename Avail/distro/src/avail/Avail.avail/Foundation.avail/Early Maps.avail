@@ -311,7 +311,7 @@ Semantic restriction "_[_]else_" is
  */
 Public method "environment map" is
 [
-	Primitive 278;
+	Primitive EnvironmentMap;
 ] : {string → string | whole number};
 
 /**

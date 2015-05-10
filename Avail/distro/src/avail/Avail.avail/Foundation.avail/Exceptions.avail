@@ -124,7 +124,8 @@ Public method "_'s⁇stack summary" is
 [
 	e : exception
 |
-	Primitive 203 (failureCode : incorrect-argument-type code's type);
+	Primitive ExceptionStackDump
+		(failureCode : incorrect-argument-type code's type);
 	early failure function(failureCode)
 ] : string*;
 
@@ -226,7 +227,7 @@ Public method "Raise_" is
 [
 	anException : exception
 |
-	Primitive 201 (unhandledException : exception);
+	Primitive RaiseException (unhandledException : exception);
 	If unhandled exception handler ∈ current fiber then
 	[
 		handler ::= current fiber's unhandled exception handler;
@@ -251,7 +252,7 @@ Private method "Mark nearest guard frame with_" is
 [
 	marker : {handler-sentinel code, unwind-sentinel code}ᵀ
 |
-	Primitive 202 (failureCode : 
+	Primitive MarkNearestCatch (failureCode : 
 		{cannot-mark-handler-frame code, no-handler-frame code}ᵀ);
 	early failure function(failureCode)
 ] : ⊤;
@@ -349,7 +350,7 @@ Private method "Private guard_intercept_ensure_" is
 	handlers : <[⊥]→⊤…|>,
 	optionalUnwind : ([]→⊤)?
 |
-	Primitive 200 (failureCode :
+	Primitive CatchException (failureCode :
 		{
 			0,
 			incorrect-argument-type code,
@@ -1842,7 +1843,7 @@ Private method "unassigned variable read function:=_" is
 [
 	aFunction : []→⊥
 |
-	Primitive 75;
+	Primitive SetUnassignedVariableAccessFunction;
 ] : ⊤;
 
 /* Raise a cannot-read-unassigned-variable exception whenever an unassigned
@@ -1872,7 +1873,7 @@ Private method "unexpected result function:=_" is
 [
 	aFunction : [function, type, ↑any]→⊥
 |
-	Primitive 76;
+	Primitive SetResultDisagreedWithExpectedTypeFunction;
 ] : ⊤;
 
 /* Raise a result-disagreed-with-expected-type whenever a method send produces
@@ -1932,7 +1933,7 @@ Private method "invalid method send function:=_" is
 		tuple
 	]→⊥
 |
-	Primitive 78;
+	Primitive SetInvalidMessageSendFunction;
 ] : ⊤;
 
 "looked up method" is a new atom;

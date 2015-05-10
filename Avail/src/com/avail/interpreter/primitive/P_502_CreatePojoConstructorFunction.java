@@ -120,8 +120,7 @@ public final class P_502_CreatePojoConstructorFunction extends Primitive
 		L1InstructionWriter writer = new L1InstructionWriter(
 			NilDescriptor.nil(),
 			0);
-		writer.primitiveNumber(
-			P_503_InvokePojoConstructor.instance.primitiveNumber);
+		writer.primitive(P_503_InvokePojoConstructor.instance);
 		writer.argumentTypes(
 			RAW_POJO.o(),
 			TupleTypeDescriptor.mostGeneralType(),

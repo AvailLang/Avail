@@ -202,19 +202,18 @@ public class L1InstructionWriter
 	 * Primitive#primitiveNumber number} of the {@linkplain
 	 * CompiledCodeDescriptor compiled code object} being generated.
 	 */
-	private int primitiveNumber = 0;
+	private @Nullable Primitive primitive = null;
 
 	/**
-	 * Specify the {@linkplain Primitive#primitiveNumber primitive number} of
-	 * the {@linkplain CompiledCodeDescriptor compiled code object} being
-	 * created.
+	 * Specify the {@linkplain Primitive primitive} of the {@linkplain
+	 * CompiledCodeDescriptor compiled code object} being created.
 	 *
-	 * @param primNumber The primitive number.
+	 * @param thePrimitive The primitive.
 	 */
-	public void primitiveNumber (final int primNumber)
+	public void primitive (final Primitive thePrimitive)
 	{
-		assert this.primitiveNumber == 0 : "Don't set the primitive twice";
-		this.primitiveNumber = primNumber;
+		assert this.primitive == null : "Don't set the primitive twice";
+		this.primitive = thePrimitive;
 	}
 
 	/**
@@ -369,11 +368,10 @@ public class L1InstructionWriter
 	 */
 	public AvailObject compiledCode ()
 	{
-		if (primitiveNumber != 0)
+		final @Nullable Primitive p = primitive;
+		if (p != null)
 		{
-			final Primitive primitive =
-				Primitive.byPrimitiveNumberOrFail(primitiveNumber);
-			if (!primitive.hasFlag(Flag.CannotFail))
+			if (!p.hasFlag(Flag.CannotFail))
 			{
 				// Make sure the first local is set up as a primitive failure
 				// variable.
@@ -391,7 +389,7 @@ public class L1InstructionWriter
 			FunctionTypeDescriptor.create(
 				TupleDescriptor.fromList(argumentTypes),
 				returnType()),
-			primitiveNumber,
+			primitive,
 			TupleDescriptor.fromList(literals),
 			TupleDescriptor.fromList(localTypes),
 			TupleDescriptor.fromList(outerTypes),

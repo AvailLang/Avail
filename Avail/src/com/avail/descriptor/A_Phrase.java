@@ -36,6 +36,7 @@ import java.util.List;
 import com.avail.annotations.Nullable;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.interpreter.Primitive;
 import com.avail.utility.evaluation.*;
 
 /**
@@ -205,7 +206,7 @@ extends A_BasicObject
 	/**
 	 * @return
 	 */
-	int primitive ();
+	@Nullable Primitive primitive ();
 
 	/**
 	 * Also declared in {@link A_Type} for {@linkplain FunctionTypeDescriptor

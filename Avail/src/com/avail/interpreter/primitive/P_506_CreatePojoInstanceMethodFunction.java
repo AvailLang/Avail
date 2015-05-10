@@ -156,8 +156,7 @@ extends Primitive
 		L1InstructionWriter writer = new L1InstructionWriter(
 			NilDescriptor.nil(),
 			0);
-		writer.primitiveNumber(
-			P_507_InvokeInstancePojoMethod.instance.primitiveNumber);
+		writer.primitive(P_507_InvokeInstancePojoMethod.instance);
 		writer.argumentTypes(
 			RAW_POJO.o(),
 			PojoTypeDescriptor.mostGeneralType(),

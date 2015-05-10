@@ -35,11 +35,13 @@ package com.avail.serialization;
 import static com.avail.serialization.SerializerOperandEncoding.*;
 import java.util.*;
 import com.avail.AvailRuntime;
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.MalformedMessageException;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 
 /**
@@ -884,7 +886,7 @@ public enum SerializerOperation
 	 */
 	COMPILED_CODE (35,
 		COMPRESSED_SHORT.as("Total number of frame slots"),
-		COMPRESSED_SHORT.as("Primitive number"),
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("Primitive name"),
 		OBJECT_REFERENCE.as("Function type"),
 		UNCOMPRESSED_NYBBLE_TUPLE.as("Level one nybblecodes"),
 		TUPLE_OF_OBJECTS.as("Regular literals"),
@@ -923,9 +925,19 @@ public enum SerializerOperation
 			final A_String moduleName = module.equalsNil()
 				? TupleDescriptor.empty()
 				: module.moduleName();
+			final @Nullable Primitive primitive = object.primitive();
+			final A_String primName;
+			if (primitive == null)
+			{
+				primName = TupleDescriptor.empty();
+			}
+			else
+			{
+				primName = StringDescriptor.from(primitive.name());
+			}
 			return array(
 				IntegerDescriptor.fromInt(object.numArgsAndLocalsAndStack()),
-				IntegerDescriptor.fromInt(object.primitiveNumber()),
+				primName,
 				object.functionType(),
 				object.nybbles(),
 				regularLiterals,
@@ -941,7 +953,7 @@ public enum SerializerOperation
 			final Deserializer deserializer)
 		{
 			final int numArgsAndLocalsAndStack = subobjects[0].extractInt();
-			final int primitive = subobjects[1].extractInt();
+			final A_String primitive = subobjects[1];
 			final A_Type functionType = subobjects[2];
 			final A_Tuple nybbles = subobjects[3];
 			final A_Tuple regularLiterals = subobjects[4];
@@ -963,7 +975,7 @@ public enum SerializerOperation
 				localTypes.tupleSize(),
 				numArgsAndLocalsAndStack - numLocals - numArgs,
 				functionType,
-				primitive,
+				Primitive.byName(primitive.asNativeString()),
 				regularLiterals,
 				localTypes,
 				outerTypes,

@@ -70,7 +70,7 @@ extends PropertiesFileGenerator
 		final Set<String> keys = new HashSet<>();
 		for (
 			int primitiveNumber = 1;
-			primitiveNumber <= Primitive.maxPrimitiveNumber;
+			primitiveNumber <= Primitive.maxPrimitiveNumber();
 			primitiveNumber++)
 		{
 			final Primitive primitive =
@@ -79,17 +79,17 @@ extends PropertiesFileGenerator
 			{
 				// Write a comment that gives the primitive number and its
 				// arity.
-				keys.add(primitive.name());
+				keys.add(primitive.getClass().getSimpleName());
 				writer.format(
 					"# %3d : _=%d%n",
 					primitive.primitiveNumber,
 					primitive.argCount());
 				// Write the primitive key and any name already associated with
 				// it.
-				writer.print(primitive.name());
+				writer.print(primitive.getClass().getSimpleName());
 				writer.print('=');
 				final String primitiveName =
-					properties.getProperty(primitive.name());
+					properties.getProperty(primitive.getClass().getSimpleName());
 				if (primitiveName != null)
 				{
 					writer.print(escape(primitiveName));

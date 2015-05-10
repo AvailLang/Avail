@@ -52,7 +52,7 @@ Semantic restriction "_'s⁇type" is
 [
 	value : type
 |
-	Primitive 30;
+	Primitive Type;
 ] : type;
 
 /**

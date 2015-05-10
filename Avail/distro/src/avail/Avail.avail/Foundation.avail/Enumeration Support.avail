@@ -186,7 +186,7 @@ Public method "{_}ᵀ" is
 [
 	aType : type
 |
-	Primitive 30;
+	Primitive Type;
 ] : type;
 
 /**
@@ -197,5 +197,5 @@ Semantic restriction "{_}ᵀ" is
 [
 	meta : type's type
 |
-	Primitive 30;
+	Primitive Type;
 ] : type;

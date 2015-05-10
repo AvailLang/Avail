@@ -133,7 +133,7 @@ Public method "a client socket«named_»" is
 		[
 			nm : nonempty string
 		|
-			Primitive 557 (code : {I/O-error code}ᵀ);
+			Primitive SocketOpen (code : {I/O-error code}ᵀ);
 			Raise an exception for code
 		] : atom (name);
 	a client socket with handle ::= h
@@ -163,7 +163,7 @@ Method "_'s⁇«_:=_‡,»" is
 		h : atom,
 		m : {[1..5]→any|0..5}
 	|
-		Primitive 558 (code :
+		Primitive SocketSetOption (code :
 			{
 				invalid-handle code,
 				special-atom code,
@@ -222,7 +222,7 @@ Method "Bind_to_on port_" is
 		octets : <byte…|4>,
 		portNumber : [0..65535]
 	|
-		Primitive 559 (code :
+		Primitive SocketIPv4Bind (code :
 		{
 			invalid-handle code,
 			special-atom code,
@@ -254,7 +254,7 @@ Method "Bind_to_on port_" is
 		octets : <byte…|16>,
 		portNumber : [0..65535]
 	|
-		Primitive 560 (code :
+		Primitive SocketIPv6Bind (code :
 		{
 			invalid-handle code,
 			special-atom code,
@@ -376,7 +376,7 @@ is
 		f2 : [I/O-error code's type]→⊤,
 		p : byte
 	|
-		Primitive 561 (code :
+		Primitive SocketIPv4Connect (code :
 		{
 			invalid-handle code,
 			special-atom code,
@@ -438,7 +438,7 @@ is
 		f2 : [I/O-error code's type]→⊤,
 		p : byte
 	|
-		Primitive 562 (code :
+		Primitive SocketIPv6Connect (code :
 		{
 			invalid-handle code,
 			special-atom code,
@@ -565,7 +565,7 @@ is
 		f2 : [I/O-error code's type]→⊤,
 		p : byte
 	|
-		Primitive 565 (code :
+		Primitive SocketRead (code :
 		{
 			invalid-handle code,
 			special-atom code,
@@ -650,7 +650,7 @@ is
 		f2 : [I/O-error code's type]→⊤,
 		p : byte
 	|
-		Primitive 566 (code :
+		Primitive SocketWrite (code :
 		{
 			invalid-handle code,
 			special-atom code,
@@ -703,7 +703,7 @@ Public method "_'s⁇local address" is
 		[
 			h : atom
 		|
-			Primitive 567 (code :
+			Primitive SocketLocalPeer (code :
 			{
 				invalid-handle code,
 				special-atom code,
@@ -731,7 +731,7 @@ Public method "_'s⁇remote address" is
 		[
 			h : atom
 		|
-			Primitive 568 (code :
+			Primitive SocketRemotePeer (code :
 			{
 				invalid-handle code,
 				special-atom code,
@@ -757,7 +757,7 @@ Method "Close_" is
 	[
 		h : atom
 	|
-		Primitive 569 (code :
+		Primitive SocketClose (code :
 		{
 			invalid-handle code,
 			special-atom code,

@@ -267,7 +267,7 @@ Method "Public abstract method_is_" is
 	methodName : string,
 	aFunctionType : function meta
 |
-	Primitive 251 (failureCode : natural number);
+	Primitive AbstractMethodDeclaration (failureCode : natural number);
 	Invoke early failure function with <failureCode>;
 ] : ⊤;
 
@@ -308,7 +308,7 @@ Method "Public abstract method_is_" is
 	methodName : atom,
 	aFunctionType : function meta
 |
-	Primitive 227 (failureCode : natural number);
+	Primitive AbstractMethodDeclarationForAtom (failureCode : natural number);
 	Invoke early failure function with <failureCode>;
 ] : ⊤;
 
@@ -350,7 +350,7 @@ Method "Public forward method_is_" is
 	methodName : string,
 	aFunctionType : function meta
 |
-	Primitive 252 (failureCode : natural number);
+	Primitive ForwardMethodDeclaration (failureCode : natural number);
 	Invoke early failure function with <failureCode>;
 ] : ⊤;
 
@@ -388,7 +388,7 @@ Method "Public method_is_" is
 	methodName : string,
 	function : function
 |
-	Primitive 253 (failureCode : natural number);
+	Primitive SimpleMethodDeclaration (failureCode : natural number);
 	Invoke early failure function with <failureCode>;
 ] : ⊤;
 
@@ -426,7 +426,7 @@ Public method "Public method_is_" is
 	methodName : atom,
 	function : function
 |
-	Primitive 228 (failureCode : natural number);
+	Primitive MethodDeclarationFromAtom (failureCode : natural number);
 	Invoke early failure function with <failureCode>;
 ] : ⊤;
 
@@ -467,7 +467,7 @@ Public method "Private abstract method_is_" is
 	methodName : string,
 	aFunctionType : function meta
 |
-	Primitive 251 (failureCode : natural number);
+	Primitive AbstractMethodDeclaration (failureCode : natural number);
 	Invoke early failure function with <failureCode>;
 ] : ⊤;
 
@@ -508,7 +508,7 @@ Public method "Private abstract method_is_" is
 	methodName : atom,
 	aFunctionType : function meta
 |
-	Primitive 227 (failureCode : natural number);
+	Primitive AbstractMethodDeclarationForAtom (failureCode : natural number);
 	Invoke early failure function with <failureCode>;
 ] : ⊤;
 
@@ -550,7 +550,7 @@ Public method "Private forward method_is_" is
 	methodName : string,
 	aFunctionType : function meta
 |
-	Primitive 252 (failureCode : natural number);
+	Primitive ForwardMethodDeclaration (failureCode : natural number);
 	Invoke early failure function with <failureCode>;
 ] : ⊤;
 
@@ -588,7 +588,7 @@ Public method "Private method_is_" is
 	methodName : string,
 	function : function
 |
-	Primitive 253 (failureCode : natural number);
+	Primitive SimpleMethodDeclaration (failureCode : natural number);
 	Invoke early failure function with <failureCode>;
 ] : ⊤;
 
@@ -626,7 +626,7 @@ Public method "Private method_is_" is
 	methodName : atom,
 	function : function
 |
-	Primitive 228 (failureCode : natural number);
+	Primitive MethodDeclarationFromAtom (failureCode : natural number);
 	Invoke early failure function with <failureCode>;
 ] : ⊤;
 
@@ -737,7 +737,7 @@ Method "Public macro_is«_,»_" is
 	prefixFunctions : tuple of functions,
 	body : macro function
 |
-	Primitive 249 (failureCode : natural number);
+	Primitive SimpleMacroDeclaration (failureCode : natural number);
 	Invoke early failure function with <failureCode>;
 ] : ⊤;
 

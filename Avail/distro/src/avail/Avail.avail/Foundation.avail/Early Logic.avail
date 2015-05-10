@@ -100,7 +100,7 @@ Public method "_∧_" is
 	a : boolean,
 	b : function accepting <> and returning boolean
 |
-	Primitive 45;
+	Primitive ShortCircuitHelper;
 ] : ⊤;
 
 Public method "_∧_" is
@@ -223,7 +223,7 @@ Public method "_∨_" is
 	a : boolean,
 	b : function accepting <> and returning boolean
 |
-	Primitive 45;
+	Primitive ShortCircuitHelper;
 ] : ⊤;
 
 Public method "_∨_" is

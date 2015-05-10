@@ -474,7 +474,7 @@ extends Descriptor
 		final L1InstructionWriter writer = new L1InstructionWriter(
 			NilDescriptor.nil(),
 			0);
-		writer.primitiveNumber(P_340_PushConstant.instance.primitiveNumber);
+		writer.primitive(P_340_PushConstant.instance);
 		writer.argumentTypes();
 		writer.returnType(TOP.o());
 		writer.write(
@@ -509,7 +509,7 @@ extends Descriptor
 	{
 		final L1InstructionWriter writer = new L1InstructionWriter(
 			module, lineNumber);
-		writer.primitiveNumber(primitive.primitiveNumber);
+		writer.primitive(primitive);
 		final A_Type functionType = primitive.blockTypeRestriction();
 		final A_Type argsTupleType = functionType.argsTupleType();
 		final int numArgs = argsTupleType.sizeRange().upperBound().extractInt();
@@ -571,7 +571,6 @@ extends Descriptor
 		final L1InstructionWriter writer = new L1InstructionWriter(
 			NilDescriptor.nil(),
 			0);
-		writer.primitiveNumber(0);
 		writer.argumentTypesTuple(paramTypes);
 		writer.returnType(BottomTypeDescriptor.bottom());
 		writer.write(

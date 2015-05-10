@@ -63,6 +63,7 @@ import com.avail.optimizer.*;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
+import com.avail.serialization.Serializer;
 
 
 /**
@@ -431,10 +432,12 @@ implements IntegerEnumSlotDescriptionEnum
 	}
 
 	/**
-	 * This primitive's number.  The Avail source code refers to this primitive
-	 * by number.
+	 * This primitive's number.  The Avail source code refers to primitives by
+	 * name, but it has a number associated with it by its position in the list
+	 * within All_Primitives.txt.  {@link CompiledCodeDescriptor compiled code}
+	 * stores the primitive number internally for speed.
 	 */
-	public short primitiveNumber;
+	public int primitiveNumber;
 
 	/**
 	 * The number of arguments this primitive expects.  For {@link
@@ -471,28 +474,122 @@ implements IntegerEnumSlotDescriptionEnum
 		return argCount;
 	}
 
-	/**
-	 * A number at least as large as the highest used primitive number.
-	 */
-	public final static int maxPrimitiveNumber = 1000;
+	/** A helper class to assist with lazy loading of {@link Primitive}s. */
+	private final static class PrimitiveHolder
+	{
+		/** The name by which a primitive function is declared in Avail code. */
+		@InnerAccess final String name;
+
+		/** The full name of the Java class implementing the primitive. */
+		@InnerAccess final String className;
+
+		/**
+		 * The numeric index of the primitive in the {@link
+		 * Primitive#holdersByNumber} array.  This ordering may be arbitrary,
+		 * and should not be included in any serialization of primitive
+		 * functions.
+		 */
+		@InnerAccess final int number;
+
+		/**
+		 * The sole instance of the specific subclass of {@link Primitive}.  It
+		 * is initialized only when needed for the first time, since that causes
+		 * Java class loading to happen, and we'd rather smear out that startup
+		 * performance cost.
+		 */
+		@InnerAccess @Nullable Primitive primitive = null;
+
+		/**
+		 * Get the {@link Primitive} from this {@link PrimitiveHolder}.  Load
+		 * the appropriate class if necessary, which will install
+		 *
+		 * @return The singleton instance of the requested subclass of {@link
+		 *         Primitive}
+		 */
+		public final Primitive primitive ()
+		{
+			Primitive p = primitive;
+			if (p != null)
+			{
+				return p;
+			}
+			synchronized (this)
+			{
+				// The double-check pattern.  Make sure there's a write barrier
+				// *before* and *after* writing the fully initialized primitive
+				// into its slot.
+				p = primitive;
+				if (p == null)
+				{
+					final ClassLoader loader =
+						Primitive.class.getClassLoader();
+					try
+					{
+						final Class<?> primClass =
+							loader.loadClass(className);
+						// Trigger the linker.
+						primClass.getField("instance").get(null);
+						p = primitive;
+						assert p != null
+							: "PrimitiveHolder.primitive field should have "
+							+ "been set during class loading";
+					}
+					catch (final ClassNotFoundException e)
+					{
+						// Ignore if no such primitive.
+					}
+					catch (final NoSuchFieldException e)
+					{
+						throw new RuntimeException(e);
+					}
+					catch (final IllegalAccessException e)
+					{
+						throw new RuntimeException(e);
+					}
+				}
+			}
+			return p;
+		}
+
+		/**
+		 * Construct a new {@link Primitive.PrimitiveHolder}.
+		 *
+		 * @param name The primitive's textual name.
+		 * @param className The fully qualified name of the Primitive subclass.
+		 * @param number The primitive's assigned index in the
+		 */
+		public PrimitiveHolder (
+			final String name,
+			final String className,
+			final int number)
+		{
+			this.name = name;
+			this.className = className;
+			this.number = number;
+		}
+	}
+
+	/** A map of all {@link PrimitiveHolder}s, by name. */
+	private final static Map<String, PrimitiveHolder> holdersByName;
+
+	/** A map of all {@link PrimitiveHolder}s, by class name. */
+	private final static Map<String, PrimitiveHolder> holdersByClassName;
 
 	/**
-	 * Whether an attempt has already been made to load the primitive whose
-	 * {@link #primitiveNumber} is the index into this array of {@code boolean}.
+	 * An array of all {@link Primitive}s encountered so far, indexed by
+	 * primitive number.  Note that the primitive numbers may get assigned
+	 * differently on different runs, so the {@link Serializer} always uses the
+	 * primitive's textual name.
+	 *
+	 * <p>If this array is insufficient to hold all the primitives, it can be
+	 * replaced with a larger one as needed.  However, be careful of the lack of
+	 * write barrier for array elements.  Reads should always be safe, as they
+	 * couldn't be caching stale data from the replacement array, because they
+	 * can't see it until after it has been populated at least to the extent
+	 * that the previous array was.  Writing new elements to the array has to be
+	 * protected </p>
 	 */
-	private final static boolean[] searchedByPrimitiveNumber =
-		new boolean[maxPrimitiveNumber + 1];
-
-	/**
-	 * An array of all primitives, indexed by primitive number.
-	 */
-	private final static Primitive[] byPrimitiveNumber =
-		new Primitive[maxPrimitiveNumber + 1];
-
-	/**
-	 * The cached mapping from primitive numbers to absolute class names.
-	 */
-	private static @Nullable Map<Short, String> primitiveNames;
+	private final static PrimitiveHolder[] holdersByNumber;
 
 	/**
 	 * The name of a generated file which lists all primitive classes.  The file
@@ -505,56 +602,47 @@ implements IntegerEnumSlotDescriptionEnum
 	 * The pattern of the simple names of {@link Primitive} classes.
 	 */
 	private final static Pattern primitiveNamePattern =
-		Pattern.compile("P_(\\d+)_(\\w+)");
+		Pattern.compile("P_((\\d+)_)?(\\w+)");
 
-	/**
-	 * If we're running from the file system (i.e., development time), scan the
-	 * relevant class path directories to locate all primitive files.  Record
-	 * the list of primitive names, one per line, in All_Primitives.txt.
-	 * Otherwise we're running from some packaged representation like a .jar, so
-	 * expect the All_Primitives.txt file to be already present, so just use it
-	 * instead of scanning.
+	/*
+	 * Read from allPrimitivesFileName to get a complete manifest of accessible
+	 * primitives.  Don't actually load the primitives yet.
 	 */
-	private static void findPrimitives()
+	static
 	{
-		final Map<Short, String> names = new HashMap<>();
+		final Map<String, PrimitiveHolder> byNames = new HashMap<>();
+		final Map<String, PrimitiveHolder> byClassNames = new HashMap<>();
+		final List<PrimitiveHolder> byNumbers = new ArrayList<>();
+		byNumbers.add(null);  // Entry zero is reserved for not-a-primitive.
 		final ClassLoader classLoader = Primitive.class.getClassLoader();
 		assert classLoader != null;
+		int counter = 1;
 		try
 		{
-			// Always read the All_Primitives.txt file first, either because
-			// that's all we'll do, or so that we can tell if it needs to be
-			// updated.
-			final URL resource = Primitive.class.getResource(
-				allPrimitivesFileName);
-			BufferedReader input = null;
-			try
+			final URL resource =
+				Primitive.class.getResource(allPrimitivesFileName);
+			try (BufferedReader input = new BufferedReader(
+				new InputStreamReader(
+					resource.openStream(), StandardCharsets.UTF_8)))
 			{
-				input = new BufferedReader(
-					new InputStreamReader(
-						resource.openStream(),
-						StandardCharsets.UTF_8));
-				String line;
-				while ((line = input.readLine()) != null)
+				String className;
+				while ((className = input.readLine()) != null)
 				{
-					final String[] parts = line.split("\\.");
+					final String[] parts = className.split("\\.");
 					final String lastPart = parts[parts.length - 1];
 					final Matcher matcher =
 						primitiveNamePattern.matcher(lastPart);
 					if (matcher.matches())
 					{
-						final Short primNum = Short.valueOf(matcher.group(1));
-						assert !names.containsKey(primNum);
-						names.put(primNum, line);
+						final String name = matcher.group(3);  // for now
+						assert !byNames.containsKey(name);
+						final PrimitiveHolder holder = new PrimitiveHolder(
+							name, className, counter);
+						byNames.put(name, holder);
+						byClassNames.put(className, holder);
+						byNumbers.add(holder);
+						counter++;
 					}
-				}
-				primitiveNames = names;
-			}
-			finally
-			{
-				if (input != null)
-				{
-					input.close();
 				}
 			}
 		}
@@ -562,27 +650,105 @@ implements IntegerEnumSlotDescriptionEnum
 		{
 			throw new RuntimeException(e);
 		}
+		holdersByName = byNames;
+		holdersByClassName = byClassNames;
+		holdersByNumber = byNumbers.toArray(new PrimitiveHolder[counter]);
 	}
 
 	/**
-	 * Answer the primitive with the given number.
+	 * Initialize a newly constructed {@link Primitive}.  The first argument is
+	 * a primitive number, the second is the number of arguments with which the
+	 * primitive expects to be invoked, and the remaining arguments are
+	 * {@linkplain Flag flags}.
 	 *
-	 * @param primitiveNumber The primitive number to look up.  Must be between
-	 *           0 and {@link #maxPrimitiveNumber}.
-	 * @return The primitive.
+	 * <p>Note that it's essential that this method, invoked during static
+	 * initialization of each Primitive subclass, install this new instance into
+	 * this primitive's {@link PrimitiveHolder} in {@link #holdersByClassName}.
 	 *
-	 * @throws RuntimeException if the primitive is not valid.
+	 * @param theArgCount
+	 *        The number of arguments the primitive expects.  The value -1 is
+	 *        used by the special primitive {@link P_340_PushConstant} to
+	 *        indicate it may have any number of arguments.  However, note that
+	 *        that primitive cannot be used explicitly in Avail code.
+	 * @param flags
+	 *        The flags that describe how the {@link L2Translator} should deal
+	 *        with this primitive.
+	 * @return The initialized primitive.
+	 */
+	protected Primitive init (
+		final int theArgCount,
+		final Flag ... flags)
+	{
+		final PrimitiveHolder holder =
+			holdersByClassName.get(getClass().getName());
+		primitiveNumber = holder.number;
+		name = holder.name;
+		argCount = theArgCount;
+		assert primitiveFlags.isEmpty();
+		for (final Flag flag : flags)
+		{
+			assert !primitiveFlags.contains(flag)
+				: "Duplicate flag in " + getClass().getSimpleName();
+			primitiveFlags.add(flag);
+		}
+		// Sanity check certain conditions.
+		assert !primitiveFlags.contains(Flag.CanFold)
+				| primitiveFlags.contains(Flag.CanInline)
+			: "Primitive " + getClass().getSimpleName()
+				+ "has CanFold without CanInline";
+		// Register this instance.
+		assert holder.primitive == null;
+		holder.primitive = this;
+		return this;
+	}
+
+	/**
+	 * Answer the largest primitive number.
+	 *
+	 * @return The largest primitive number.
+	 */
+	public static int maxPrimitiveNumber ()
+	{
+		return holdersByNumber.length - 1;
+	}
+
+	/**
+	 * Given a primitive name, look it up and answer the {@link Primitive} if
+	 * found, or {@code null} if not found.
+	 *
+	 * @param name The primitive name to look up.
+	 * @return The primitive, or null if the name is not a valid primitive.
+	 */
+	public static @Nullable Primitive byName (final String name)
+	{
+		final PrimitiveHolder holder =  holdersByName.get(name);
+		return holder == null ? null : holder.primitive();
+	}
+
+	/**
+	 * Given a primitive number, look it up and answer the {@link Primitive} if
+	 * found, or {@code null} if not found.
+	 *
+	 * @param primitiveNumber The primitive number to look up.
+	 * @return The primitive, or null if the name is not a valid primitive.
+	 */
+	public static @Nullable Primitive byNumber (final int primitiveNumber)
+	{
+		assert primitiveNumber >= 0 && primitiveNumber <= maxPrimitiveNumber();
+		final PrimitiveHolder holder =  holdersByNumber[primitiveNumber];
+		return holder == null ? null : holder.primitive();
+	}
+
+	/**
+	 * Answer the primitive with the given number, loading it if necessary.
+	 *
+	 * @param primitiveNumber The primitive number to look up.
+	 * @return The requested primitive.
 	 */
 	public static Primitive byPrimitiveNumberOrFail (
 		final int primitiveNumber)
 	{
-		final Primitive primitive = byPrimitiveNumberOrNull(primitiveNumber);
-		if (primitive == null)
-		{
-			throw new RuntimeException(
-				"Illegal primitive number: " + primitiveNumber);
-		}
-		return primitive;
+		return holdersByNumber[primitiveNumber].primitive();
 	}
 
 	/**
@@ -594,64 +760,11 @@ implements IntegerEnumSlotDescriptionEnum
 	public static @Nullable Primitive byPrimitiveNumberOrNull (
 		final int primitiveNumber)
 	{
-		assert primitiveNumber >= 0 && primitiveNumber <= maxPrimitiveNumber;
 		if (primitiveNumber == 0)
 		{
 			return null;
 		}
-		if (!searchedByPrimitiveNumber[primitiveNumber])
-		{
-			synchronized (Primitive.class)
-			{
-				if (!searchedByPrimitiveNumber[primitiveNumber])
-				{
-					Map<Short, String> names = primitiveNames;
-					if (names == null)
-					{
-						findPrimitives();
-						names = primitiveNames;
-						assert names != null;
-					}
-					final String className = names.get(
-						Short.valueOf((short)primitiveNumber));
-					if (className != null)
-					{
-						final ClassLoader loader =
-							Primitive.class.getClassLoader();
-						try
-						{
-							final Class<?> primClass =
-								loader.loadClass(className);
-							// Trigger the linker.
-							primClass.getField("instance").get(null);
-							assert byPrimitiveNumber[primitiveNumber] != null;
-						}
-						catch (final ClassNotFoundException e)
-						{
-							// Ignore if no such primitive.
-						}
-						catch (final NoSuchFieldException e)
-						{
-							throw new RuntimeException(e);
-						}
-						catch (final IllegalAccessException e)
-						{
-							throw new RuntimeException(e);
-						}
-					}
-				}
-			}
-			// The two synchronized blocks around this comment must not be
-			// combined, since then the assignment to searchedByPrimitiveNumber
-			// might leak (to the non-synchronized testing read) before the
-			// corresponding write to byPrimitiveNumber.  A volatile write would
-			// also work, but it's an array... and this is Java.
-			synchronized (Primitive.class)
-			{
-				searchedByPrimitiveNumber[primitiveNumber] = true;
-			}
-		}
-		return byPrimitiveNumber[primitiveNumber];
+		return holdersByNumber[primitiveNumber].primitive();
 	}
 
 	/**
@@ -665,9 +778,10 @@ implements IntegerEnumSlotDescriptionEnum
 	 */
 	public static boolean supportsPrimitive (final int primitiveNumber)
 	{
-		final Primitive primitive = Primitive.byPrimitiveNumberOrNull(
-			primitiveNumber);
-		return primitive != null && !primitive.hasFlag(Flag.Private);
+		return primitiveNumber > 0
+			&& primitiveNumber < holdersByNumber.length
+			&& !holdersByNumber[primitiveNumber].primitive().hasFlag(
+				Flag.Private);
 	}
 
 	/**
@@ -750,7 +864,7 @@ implements IntegerEnumSlotDescriptionEnum
 	}
 
 	/** Capture the name of the primitive class once for performance. */
-	final String name = getClass().getSimpleName();
+	@Nullable String name;
 
 	/**
 	 * Answer the name of this primitive, which is just the class's simple name,
@@ -761,7 +875,9 @@ implements IntegerEnumSlotDescriptionEnum
 	@Override
 	public String name ()
 	{
-		return name;
+		final String str = name;
+		assert str != null;
+		return str;
 	}
 
 	/**
@@ -771,6 +887,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 *
 	 * @return The ordinal of this primitive, in theory.
 	 */
+	@Deprecated
 	@Override
 	public int ordinal ()
 	{
@@ -825,53 +942,6 @@ implements IntegerEnumSlotDescriptionEnum
 		final int interpreterIndex)
 	{
 		resultTypeCheckingNanos.record(deltaNanoseconds, interpreterIndex);
-	}
-
-	/**
-	 * Initialize a newly constructed {@link Primitive}.  The first argument is
-	 * a primitive number, the second is the number of arguments with which the
-	 * primitive expects to be invoked, and the remaining arguments are
-	 * {@linkplain Flag flags}.
-	 *
-	 * @param theArgCount
-	 *        The number of arguments the primitive expects.  The value -1 is
-	 *        used by the special primitive {@link P_340_PushConstant} to
-	 *        indicate it may have any number of arguments.  However, note that
-	 *        that primitive cannot be used explicitly in Avail code.
-	 * @param flags
-	 *        The flags that describe how the {@link L2Translator} should deal
-	 *        with this primitive.
-	 * @return The initialized primitive.
-	 */
-	protected Primitive init (
-		final int theArgCount,
-		final Flag ... flags)
-	{
-		assert primitiveNumber == 0;
-		final String className = this.getClass().getName();
-		final String numericPart = className.replaceAll(
-			"^.*P_(\\d+)_(\\w+)$",
-			"$1");
-		primitiveNumber = Short.valueOf(numericPart);
-		argCount = theArgCount;
-		assert primitiveFlags.isEmpty();
-		for (final Flag flag : flags)
-		{
-			assert !primitiveFlags.contains(flag)
-				: "Duplicate flag in " + getClass().getSimpleName();
-			primitiveFlags.add(flag);
-		}
-		// Sanity check certain conditions.
-		assert !primitiveFlags.contains(Flag.CanFold)
-				| primitiveFlags.contains(Flag.CanInline)
-			: "Primitive " + getClass().getSimpleName()
-				+ "has CanFold without CanInline";
-
-		// Register this instance.
-		assert primitiveNumber >= 1 && primitiveNumber <= maxPrimitiveNumber;
-		assert byPrimitiveNumber[primitiveNumber] == null;
-		byPrimitiveNumber[primitiveNumber] = this;
-		return this;
 	}
 
 	/**

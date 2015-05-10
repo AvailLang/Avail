@@ -80,7 +80,6 @@ extends Primitive
 			final L1InstructionWriter writer = new L1InstructionWriter(
 				NilDescriptor.nil(),
 				0);
-			writer.primitiveNumber(0);
 			writer.argumentTypes(
 				FunctionTypeDescriptor.mostGeneralType(),
 				TupleTypeDescriptor.mostGeneralType());

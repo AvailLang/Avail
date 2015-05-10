@@ -136,7 +136,7 @@ Public method "_'s⁇owner(follow if symlink=_)" is
 			s : string,
 			f : boolean
 		|
-			Primitive 437 (e : {
+			Primitive FileGetOwner (e : {
 				invalid-path code,
 				permission-denied code,
 				I/O-error code,
@@ -211,7 +211,7 @@ Public method "_'s⁇owner:=_(follow if symlink=_)" is
 		p : string,
 		f : boolean
 	|
-		Primitive 438 (e : {
+		Primitive FileSetOwner (e : {
 			invalid-path code,
 			permission-denied code,
 			I/O-error code,
@@ -285,7 +285,7 @@ Public method "_'s⁇group(follow if symlink=_)" is
 			s : string,
 			f : boolean
 		|
-			Primitive 439 (e : {
+			Primitive FileGetGroup (e : {
 				invalid-path code,
 				permission-denied code,
 				I/O-error code,
@@ -360,7 +360,7 @@ Public method "_'s⁇group:=_(follow if symlink=_)" is
 		p : string,
 		f : boolean
 	|
-		Primitive 440 (e : {
+		Primitive FileSetGroup (e : {
 			invalid-path code,
 			permission-denied code,
 			I/O-error code,

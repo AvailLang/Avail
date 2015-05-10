@@ -123,7 +123,7 @@ Public method "a server socket«named_»" is
 		[
 			nm : nonempty string
 		|
-			Primitive 550 (code : {I/O-error code}ᵀ);
+			Primitive ServerSocketOpen (code : {I/O-error code}ᵀ);
 			Raise an exception for code
 		] : atom (name);
 	a server socket with handle ::= h
@@ -150,7 +150,7 @@ Method "_'s⁇«_:=_‡,»" is
 		h : atom,
 		m : {[1..2]→any|0..2}
 	|
-		Primitive 551 (code :
+		Primitive ServerSocketSetOption (code :
 			{
 				invalid-handle code,
 				special-atom code,
@@ -213,7 +213,7 @@ Method "Bind_to_on port_with a backlog of_" is
 		portNumber : [0..65535],
 		n : [-2^31..2^31-1]
 	|
-		Primitive 552 (code :
+		Primitive ServerSocketIPv4Bind (code :
 		{
 			invalid-handle code,
 			special-atom code,
@@ -246,7 +246,7 @@ Method "Bind_to_on port_with a backlog of_" is
 		portNumber : [0..65535],
 		n : [-2^31..2^31-1]
 	|
-		Primitive 553 (code :
+		Primitive ServerSocketIPv6Bind (code :
 		{
 			invalid-handle code,
 			special-atom code,
@@ -337,7 +337,7 @@ is
 			f2 : [I/O-error code's type]→⊤,
 			p : byte
 		|
-			Primitive 554 (code :
+			Primitive ServerSocketAccept (code :
 			{
 				invalid-handle code,
 				special-atom code,
@@ -391,7 +391,7 @@ Method "_'s⁇address" is
 		[
 			h : atom
 		|
-			Primitive 555 (code :
+			Primitive ServerSocketAddress (code :
 			{
 				invalid-handle code,
 				special-atom code,
@@ -417,7 +417,7 @@ Method "Close_" is
 	[
 		h : atom
 	|
-		Primitive 556 (code :
+		Primitive ServerSocketClose (code :
 		{
 			invalid-handle code,
 			special-atom code,

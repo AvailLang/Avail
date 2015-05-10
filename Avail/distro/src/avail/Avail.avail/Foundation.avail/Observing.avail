@@ -94,7 +94,7 @@ Public method "_'s⁇write reactors+=_→_" is
 	key : atom,
 	reactor : write reactor
 |
-	Primitive 23 (failureCode : {special-atom code}ᵀ);
+	Primitive AddWriteReactor (failureCode : {special-atom code}ᵀ);
 	Raise an exception for failureCode
 ] : ⊤;
 
@@ -117,7 +117,8 @@ Public method "_'s⁇write reactors-=_" is
 	var : variable,
 	key : atom
 |
-	Primitive 24 (failureCode : {special-atom code, key-not-found code}ᵀ);
+	Primitive RemoveWriteReactor
+		(failureCode : {special-atom code, key-not-found code}ᵀ);
 	Raise an exception for failureCode
 ] : ⊤;
 
@@ -132,7 +133,8 @@ Public method "_'s⁇write reactors-=_" is
  */
 Private method "Track variables that are read before written" is
 [
-	Primitive 25 (failureCode : {illegal-trace-mode code}ᵀ);
+	Primitive TraceVariableReadsBeforeWrites
+		(failureCode : {illegal-trace-mode code}ᵀ);
 	Raise an exception for failureCode
 ] : ⊤;
 
@@ -158,7 +160,8 @@ is
 	key : atom,
 	reactor : write reactor
 |
-	Primitive 26 (failureCode : {illegal-trace-mode code}ᵀ);
+	Primitive DisableTraceVariableReadsBeforeWrites
+		(failureCode : {illegal-trace-mode code}ᵀ);
 	Raise an exception for failureCode
 ] : ⊤;
 
@@ -260,7 +263,7 @@ Semantic restriction "Whenever_changes,⁇do_" is
  */
 Private method "Track variables that are written" is
 [
-	Primitive 41 (failureCode : {illegal-trace-mode code}ᵀ);
+	Primitive TraceVariableWrites (failureCode : {illegal-trace-mode code}ᵀ);
 	Raise an exception for failureCode
 ] : ⊤;
 
@@ -278,7 +281,8 @@ Private method "Track variables that are written" is
  */
 Private method "stop tracking and answer all write reactors" is
 [
-	Primitive 42 (failureCode : {illegal-trace-mode code}ᵀ);
+	Primitive DisableTraceVariableWrites
+		(failureCode : {illegal-trace-mode code}ᵀ);
 	Raise an exception for failureCode
 ] : {[]→⊤|};
 

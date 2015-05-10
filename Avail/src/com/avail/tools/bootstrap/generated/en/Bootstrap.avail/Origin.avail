@@ -49,7 +49,7 @@ Names
 	"\
 		\|[§\
 			\|««…:_†§‡,»`|»?\
-			\|«Primitive…#«(…:_†)»?§;»?\
+			\|«Primitive…«(…:_†)»?§;»?\
 			\|«$…«:_†»?;§»?\
 			\|«_!§»\
 			\|«_!»?\
@@ -65,25 +65,31 @@ Names
 	"(_::_†)"
 Pragma
 	"check=version=1.0.0 DEV 2014-04-28",
-	"method=253=Primitive_is_",
-	"method=240=special object_",
-	"macro=409,400,401,402,403,404=\
-		\|[§\
-			\|««…:_†§‡,»`|»?\
-			\|«Primitive…#«(…:_†)»?§;»?\
-			\|«$…«:_†»?;§»?\
-			\|«_!§»\
-			\|«_!»?\
-		\|]\
-		\|«:_†»?\
-		\|«^«_†‡,»»?",
-	"macro=405=…:_†;",
-	"macro=406=…::=_;",
-	"macro=407=…:_†:=_;",
-	"macro=408=…:=_;",
-	"macro=410=…",
-	"macro=411=_!;",
-	"macro=412=(_::_†)"
+	"method=SimpleMethodDeclaration=Primitive_is_",
+	"method=SpecialObject=special object_",
+	"macro=\
+		\|BootstrapPrefixStartOfBlock,\
+		\|BootstrapPrefixBlockArgument,\
+		\|BootstrapPrefixPrimitiveDeclaration,\
+		\|BootstrapPrefixLabelDeclaration,\
+		\|BootstrapPrefixPostStatement,\
+		\|BootstrapBlockMacro=\
+			\|[§\
+				\|««…:_†§‡,»`|»?\
+				\|«Primitive…«(…:_†)»?§;»?\
+				\|«$…«:_†»?;§»?\
+				\|«_!§»\
+				\|«_!»?\
+			\|]\
+			\|«:_†»?\
+			\|«^«_†‡,»»?",
+	"macro=BootstrapVariableDeclarationMacro=…:_†;",
+	"macro=BootstrapConstantDeclarationMacro=…::=_;",
+	"macro=BootstrapInitializingVariableDeclarationMacro=…:_†:=_;",
+	"macro=BootstrapAssignmentStatementMacro=…:=_;",
+	"macro=BootstrapVariableUseMacro=…",
+	"macro=BootstrapSendAsStatementMacro=_!;",
+	"macro=BootstrapSuperCastMacro=(_::_†)"
 Body
 
 /**
@@ -93,7 +99,7 @@ Body
  *     "\
  *          \|[§\
  *              \|««…:_†§‡,»`|»?\
- *              \|«Primitive…#«(…:_†)»?§;»?\
+ *              \|«Primitive…«(…:_†)»?§;»?\
  *              \|«$…«:_†»?;§»?\
  *              \|«_!§»\
  *              \|«_!»?\

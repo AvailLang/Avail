@@ -62,8 +62,11 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Phrase block = args.get(0);
+		final Primitive prim = block.primitive();
 		return interpreter.primitiveSuccess(
-			IntegerDescriptor.fromInt(block.primitive()));
+			prim == null
+				? IntegerDescriptor.zero()
+				: IntegerDescriptor.fromInt(prim.primitiveNumber));
 	}
 
 	@Override

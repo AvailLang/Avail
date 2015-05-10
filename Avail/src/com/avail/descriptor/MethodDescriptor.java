@@ -660,6 +660,8 @@ extends Descriptor
 					// We have to double-check if another thread has run
 					// chooseCriterion() since our first check.  We're in a
 					// synchronized mutual exclusion, so this is a stable check.
+					// Also, argumentTypeToTest is volatile, ensuring Java's
+					// infamous double-check problem won't bite us.
 					if (argumentTypeToTest == null)
 					{
 						chooseCriterion();

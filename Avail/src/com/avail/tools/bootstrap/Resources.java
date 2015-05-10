@@ -179,7 +179,7 @@ final class Resources
 		final Primitive primitive,
 		final int index)
 	{
-		return primitive.name() + "_" + index;
+		return primitive.getClass().getSimpleName() + "_" + index;
 	}
 
 	/**
@@ -194,7 +194,7 @@ final class Resources
 	public static String primitiveCommentKey (
 		final Primitive primitive)
 	{
-		return primitive.name() + "_comment";
+		return primitive.getClass().getSimpleName() + "_comment";
 	}
 
 	/**

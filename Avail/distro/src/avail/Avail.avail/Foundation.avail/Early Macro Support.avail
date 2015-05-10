@@ -219,7 +219,7 @@ Method "private concatenate_" is
 [
 	tupleOfTuples : tuple of tuple
 |
-	Primitive 136;
+	Primitive ConcatenateTuples;
 ] : tuple;
 
 Semantic restriction "private concatenate_" is
