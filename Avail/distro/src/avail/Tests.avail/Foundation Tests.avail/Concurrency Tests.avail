@@ -602,6 +602,14 @@ Test "filter in parallel (tuple)" in concurrency test suite is
 	Require: result = expected;
 ];
 
+Test "select in parallel (tuple macro)" in concurrency test suite is
+[
+
+	result ::= select each i from 1 to 10 in parallel where [i is odd]; 
+	expected ::= select each i from 1 to 10 where [i is odd];
+	Require: result = expected;
+];
+
 Test "filter in parallel (tuple, small window)" in concurrency test suite is
 [
 	result ::= filter 1 to 10 in parallel by [i : [1..10] | i is odd];

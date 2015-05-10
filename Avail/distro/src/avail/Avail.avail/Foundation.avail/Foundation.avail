@@ -543,6 +543,8 @@ Extends
 		"map each…in|of_§in parallel«_-way»through_",
 		"map each…,…in|of_§in parallel«_-way»through_",
 		"map each…→…in|of_§in parallel«_-way»through_",
+		"select each…from_§in parallel«_-way»where_",
+		"select each…,…from_§in parallel«_-way»where_",
 		"the future of_",
 		"worker exception"
 	),
