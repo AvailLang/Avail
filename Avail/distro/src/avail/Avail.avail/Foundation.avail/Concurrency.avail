@@ -94,6 +94,7 @@ Names
 	"map and filter_in parallel«_-way»by_",
 	"select each…from_§in parallel«_-way»where_",
 	"select each…,…from_§in parallel«_-way»where_",
+	"select each…→…from_§in parallel«_-way»where_",
 
 	/* Futures. */
 	"Cancel_",
@@ -2047,10 +2048,10 @@ Semantic restriction "filter_in parallel«_-way»by_" is
 ];
 	
 /**
- * Concurrently apply {@param "filter"} to each consecutive element of {@param
- * "aTuple"}, collecting elements for which {@param "filter"} answered {@method
- * "true"} into a new tuple (and preserving ordering of the transformed
- * elements). Answer this tuple.
+ * Concurrently apply {@param "predicate"} to each consecutive element of 
+ * {@param "aTuple"}, collecting elements for which {@param "filter"} answered 
+ * {@method "true"} into a new tuple (and preserving ordering of the 
+ * transformed elements). Answer this tuple.
  *
  * @macro "select each…from_§in parallel«_-way»where_"
  * @param "elementPhrase" "literal phrase ⇒ token"
@@ -2058,7 +2059,8 @@ Semantic restriction "filter_in parallel«_-way»by_" is
  *        whose value is the name of the loop variable. The generated loop
  *        variable is given the strongest possible type based on the type union
  *        of the leading types and default type of {@param "aTuple"}.
- * @param "aTuple" "tuple"
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over
  * @param "optionalLimit" "natural number?"
  *        If specified, then the maximum number of worker {@type "fiber"}s
  *        permitted to run in parallel. If not specified, then permit {@method
@@ -2070,7 +2072,7 @@ Semantic restriction "filter_in parallel«_-way»by_" is
  *        the result.
  * @returns "tuple"
  *          A tuple of elements from {@param "aTuple"} for which {@param
- *          "filter"} answered {@method "true"}.
+ *          "predicate"} answered {@method "true"}.
  * @raises "worker exception"
  *         If any of the forked workers raise an exception.
  * @category "Concurrency" "Control Structures" "Loops" "Collections" "Tuples" 
@@ -2081,10 +2083,10 @@ Public macro "select each…from_§in parallel«_-way»where_" is
 	concurrent tuple body function($"filter_in parallel«_-way»by_", tuple);
 	
 /**
- *  Concurrently apply {@param "filter"} to each consecutive element of {@param
- * "aTuple"}, collecting elements for which {@param "filter"} answered {@method
- * "true"} into a new tuple (and preserving ordering of the transformed
- * elements). Answer this tuple.
+ *  Concurrently apply {@param "predicate"} to each consecutive element of 
+ *  {@param "aTuple"}, collecting elements for which {@param "filter"} answered 
+ *  {@method "true"} into a new tuple (and preserving ordering of the 
+ *  transformed elements). Answer this tuple.
  * 
  * @macro "select each…,…from_§in parallel«_-way»where_"
  * @param "elementPhrase" "literal phrase ⇒ token"
@@ -2104,19 +2106,89 @@ Public macro "select each…from_§in parallel«_-way»where_" is
  *        permitted to run in parallel. If not specified, then permit {@method
  *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
  *        parallel.
- * @param "action" "block phrase ⇒ []→⊤"
- *        A function that includes 1) an element of the tuple and 2) the index
- *        of that element.
+ * @param "predicate" "block phrase ⇒ []→⊤"
+ *        A filter function that accepts an arbitrary element of the tuple and 
+ *        that element's index answers {@method "true"} if the element should 
+ *        be accumulated into the result.
  * @returns "⊤"
  * @raises "worker exception"
  *         If any of the forked workers raise an exception.
- * @category "Concurrency" "Control Structures" "Loops"
- * @category "Collections" "Tuples"
+ * @category "Concurrency" "Control Structures" "Loops" "Collections" "Tuples"
  */
 Public macro "select each…,…from_§in parallel«_-way»where_" is
 	a two-input tuple iteration prefix function,
 	concurrent two-input tuple body function(
 		$"filter_in parallel«_-way»by_", tuple);
+
+/**
+ * Concurrently apply {@param "predicate"} to each consecutive element of 
+ * {@param "aSet"}, collecting elements for which {@param "filter"} answered 
+ * {@method "true"} into a new set (and preserving ordering of the transformed
+ * elements). Answer this set.
+ *
+ * @macro "select each…from_§in parallel«_-way»where_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "aSet" "expression phrase ⇒ set"
+ *        An {@type "expression phrase"} that yields the set to iterate over
+ * @param "optionalLimit" "natural number?"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "predicate" "[]→boolean"
+ *        A filter function that accepts an arbitrary element of the set and 
+ *        answers {@method "true"} if the element should be accumulated into 
+ *        the result.
+ * @returns "set"
+ *          A set of elements from {@param "aSet"} for which {@param
+ *          "predicate"} answered {@method "true"}.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops" "Collections" "Sets" 
+ * 		"Transformers"
+ */
+Macro "select each…from_§in parallel«_-way»where_" is
+	a set iteration prefix function,
+	concurrent set body function($"filter_in parallel«_-way»by_", set);
+
+/**
+ *  Concurrently apply {@param "predicate"} to each consecutive pair of {@param
+ * "aMap"}, collecting elements for which {@param "predicate"} answered 
+ * {@method "true"} into a new map.
+ * 
+ * @macro "select each…→…from_§in parallel«_-way»where_"
+ * @param "keyPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop key variable of the map pair. 
+ * @param "valuePhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop value variable of the map pair. 
+ * @param "aMap" "expression phrase ⇒ Map"
+ *        An {@type "expression phrase"} that yields the map to iterate over
+ * @param "optionalLimit" "expression phrase ⇒ natural number?"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "predicate" "block phrase ⇒ []→boolean"
+ *        A filter function that accepts an arbitrary key-value pair of the map 
+ *        and answers {@method "true"} if the element should be accumulated  
+ *        into the result.
+ * @returns "map"
+ * 		A map of elements from {@param "aMap"} for which {@param "predicate"} 
+ * 		answered {@method "true"}.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops"
+ * @category "Collections" "Maps"
+ */
+Public macro "select each…→…from_§in parallel«_-way»where_" is
+	a map iteration prefix function,
+	concurrent map body function($"filter_in parallel«_-way»by_", map);
 
 /**
  * Concurrently apply {@param "accumulator"} to each element of {@param

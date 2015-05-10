@@ -610,6 +610,16 @@ Test "select in parallel (tuple macro)" in concurrency test suite is
 	Require: result = expected;
 ];
 
+Test "select in parallel (tuple macro 2 input)" in concurrency test suite is
+[
+
+	result ::= select each i, j from 1 to 10 in parallel 
+		where [i is odd  ∧ ¬j is even]; 
+	expected ::= select each i, j from 1 to 10 
+		where [i is odd  ∧ ¬j is even];
+	Require: result = expected;
+];
+
 Test "filter in parallel (tuple, small window)" in concurrency test suite is
 [
 	result ::= filter 1 to 10 in parallel by [i : [1..10] | i is odd];
@@ -635,6 +645,14 @@ Test "filter in parallel (set)" in concurrency test suite is
 [
 	result ::= filter 1 to 10→set in parallel by [i : [1..10] | i is odd];
 	expected ::= filter 1 to 10→set by [i : [1..10] | i is odd];
+	Require: result = expected;
+];
+
+Test "select in parallel (set macro)" in concurrency test suite is
+[
+
+	result ::= select each i from 1 to 10→set in parallel where [i is odd]; 
+	expected ::= select each i from 1 to 10→set where [i is odd];
 	Require: result = expected;
 ];
 
@@ -664,6 +682,14 @@ Test "filter in parallel (map)" in concurrency test suite is
 	m ::= 1 to 10 zip map each i in 1 to 10 through [i is odd]→map;
 	result ::= filter m in parallel by [k : [1..10], v : boolean | v];
 	expected ::= filter m by [k : [1..10], v : boolean | v];
+	Require: result = expected;
+];
+
+Test "filter in parallel (map macro)" in concurrency test suite is
+[
+	m ::= 1 to 10 zip map each i in 1 to 10 through [i is odd]→map;
+	result ::= select each k→v from m in parallel where [v];
+	expected ::=  select each k→v from m where [v];
 	Require: result = expected;
 ];
 
