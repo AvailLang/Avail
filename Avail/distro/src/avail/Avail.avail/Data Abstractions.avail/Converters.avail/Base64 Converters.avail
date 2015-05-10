@@ -1,0 +1,484 @@
+/*
+ * Base64 Converters.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Base64 Converters"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Extends
+	"Abstract Converters",
+	"Foundation",
+	"Converting Reader"
+Names
+	"Base64 character",
+	"Base64 string",
+
+	"Base64 encoder",
+	"a Base64 encoder",
+
+	"Base64 decoder",
+	"a Base64 decoder",
+
+	"“_”(Base64)",
+	"_→bytes(Base64)"
+Body
+
+/**
+ * The Base64 alphabet.
+ *
+ * @global "base64Alphabet" "<character…|64>"
+ * @see "RFC 6468 — The Base16, Base32, and Base64 Data Encodings"
+ */
+base64Alphabet ::=
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+/**
+ * The Base64 pad character.
+ *
+ * @global "padCharacter" "character"
+ * @see "RFC 6468 — The Base16, Base32, and Base64 Data Encodings"
+ */
+padCharacter ::= ¢=;
+
+base64Char ::= enumeration of (base64Alphabet ++ <padCharacter>)→set;
+
+/**
+ * A {@type "Base64 character"}, one of:
+ *
+ * {@code ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/}
+ *
+ * @method "Base64 character"
+ * @returns "character's type"
+ */
+Public method "Base64 character" is [base64Char];
+
+/**
+ * A {@type "Base64 string"} comprises only {@type "Base64 character"}s.
+ *
+ * @method "Base64 string"
+ * @returns "<Base64 character…|>"
+ */
+Public method "Base64 string" is [<Base64 character…|>];
+
+/**
+ * Answer the selected character of the Base64 alphabet.
+ *
+ * @method "character_"
+ * @param "index" "integer"
+ * @returns "Base64 character"
+ * @category "Data Abstractions" "Converters" "Codecs" "Base64"
+ */
+Private method "character_" is
+[
+	index : integer
+|
+	base64Alphabet[index+1]
+		else [Shouldn't happen ("the index should never be out of bounds")]
+] : Base64 character;
+
+/**
+ * Produce a sequence of Base64 characters that constitute the encoding of the
+ * given sequence of {@type "byte"}s.
+ *
+ * @method "hextets from_"
+ * @param "bytes" "byte*"
+ * @returns "Base64 string"
+ * @category "Data Abstractions" "Converters" "Codecs" "Base64"
+ */
+Private abstract method "characters from_" is [byte*]→Base64 string;
+
+Private method "characters from_" is
+[
+	bytes : <⊥…|0>
+|
+	<>
+];
+
+Private method "characters from_" is
+[
+	bytes : <byte…|1>
+|
+	b ::= bytes[1];
+	<
+		character (b >> 2) bit∧ 63,
+		character (b << 4) bit∧ 48,
+		padCharacter,
+		padCharacter
+	>
+];
+
+Private method "characters from_" is
+[
+	bytes : <byte…|2>
+|
+	b1, b2 ::= bytes;
+	<
+		character (b1 >> 2) bit∧ 63,
+		character ((b1 << 4) bit∧ 48) bit∨ ((b2 >> 4) bit∧ 15),
+		character (b2 << 2) bit∧ 60,
+		padCharacter
+	>
+];
+
+Private method "characters from_" is
+[
+	bytes : <byte…|3>
+|
+	b1, b2, b3 ::= bytes;
+	<
+		character (b1 >> 2) bit∧ 63,
+		character ((b1 << 4) bit∧ 48) bit∨ ((b2 >> 4) bit∧ 15),
+		character ((b2 << 2) bit∧ 60) bit∨ ((b3 >> 6) bit∧ 3),
+		character b3 bit∧ 63
+	>
+];
+
+Private method "characters from_" is
+[
+	bytes : <byte…|4..>
+|
+	residue : byte* := bytes;
+	result : Base64 string := "";
+	Do
+	[
+		sub ::= residue[1..3] else [residue];
+		result ++= characters from sub;
+		residue := residue[|sub|+1..];
+	]
+	until residue is empty;
+	result
+];
+
+/**
+ * Convert {@param "bytes"} to a Base64 {@type "string"}.
+ *
+ * @method "“_”(Base64)"
+ * @param "bytes" "byte*"
+ * @returns "Base64 string"
+ * @category "Data Abstractions" "Converters" "Codecs" "Base64"
+ */
+Public stable method "“_”(Base64)" is [bytes : byte* | characters from bytes];
+
+"binary residue" is a new field atom;
+
+/**
+ * A {@type "converter"} that translates a {@type "tuple"} of {@type "byte"}s
+ * into a tuple of {@type "Base64 character"}s.
+ *
+ * @type "Base64 encoder"
+ * @supertype "converter"
+ * @field "binary residue" "byte*"
+ *        Bytes that have not yet undergone conversion.
+ * @category "Data Abstractions" "Converters" "Codecs" "Base64"
+ */
+Public class "Base64 encoder" extends converter from byte to Base64 character
+	with mutable field
+		binary residue : byte* (
+			accessor "_'s⁇residue",
+			mutator "_'s⁇residue:=_");
+
+/* Compute [byte]→Base64 character statically, so we have a strong enough
+ * argument type.  That's because of contravariance of argument types, and the
+ * fact that the expression "byte" is theoretically allowed to produce something
+ * more specific than the byte type.
+ */
+byteToChar ::= [byte]→Base64 character;
+
+/**
+ * Create a {@type "Base64 encoder"}.
+ *
+ * @method "a Base64 encoder"
+ * @returns "Base64 encoder"
+ * @category "Data Abstractions" "Converters" "Codecs" "Base64"
+ */
+Public method "a Base64 encoder" is
+[
+	a Base64 encoder with
+		conversion type ::= byteToChar,
+		binary residue := <>
+];
+
+/**
+ * Encode some {@type "byte"}s into {@type "Base64 character"}s.
+ *
+ * @method "_process_"
+ * @param "encoder" "Base64 encoder"
+ * @param "sourceTuple" "byte*"
+ * @returns "Base64 string"
+ * @category "Data Abstractions" "Converters" "Codecs" "Base64"
+ */
+Method "_process_" is
+[
+	encoder : Base64 encoder,
+	sourceTuple : byte*
+|
+	residue : byte* := encoder's residue ++ sourceTuple;
+	result : Base64 string := "";
+	While |residue| ≥ 3 do
+	[
+		sub ::= residue[1..3];
+		result ++= characters from sub;
+		residue := residue[4..];
+	];
+	encoder's residue := residue;
+	result
+];
+
+/**
+ * Flushing a {@type "Base64 encoder"} produces the final characters and any
+ * necessary padding.
+ *
+ * @method "flush_"
+ * @param "encoder" "Base64 encoder"
+ * @returns "Base64 string"
+ * @category "Data Abstractions" "Converters" "Codecs" "Base64"
+ */
+Method "flush_" is
+[
+	encoder : Base64 encoder
+|
+	result ::= characters from encoder's residue;
+	encoder's residue := <>;
+	result
+];
+
+/**
+ * The {@type "map"} used by the decoding algorithm to convert a Base64 {@type
+ * "string"} back to binary.
+ *
+ * @global "decoderMap" "{character→whole number|64}"
+ * @see "RFC 6468 — The Base16, Base32, and Base64 Data Encodings"
+ */
+decoderMap ::= map each c, i of base64Alphabet through [<c, i-1>]→map;
+
+/**
+ * Answer the hextet for the given {@type "Base64 character"}.
+ *
+ * @method "hextet_"
+ * @param "c" "Base64 character"
+ * @returns "[0..63]"
+ * @raises "malformed-encoding exception"
+ *         If {@param "c"} is the {@global "padCharacter" pad character}.
+ */
+Private method "hextet_" is
+[
+	c : Base64 character
+|
+	decoderMap[c] else [Raise a malformed-encoding exception]
+] : [0..63];
+
+/**
+ * Produce a sequence of {@type "byte"}s that constitute the decoding of the
+ * given sequence of {@type "Base64 character"}s.
+ *
+ * @method "hextets from_"
+ * @param "bytes" "Base64 character*"
+ * @returns "byte*"
+ * @raises "malformed-encoding exception"
+ * @category "Data Abstractions" "Converters" "Codecs" "Base64"
+ */
+Private abstract method "bytes from_" is [Base64 character*]→tuple;
+
+Semantic restriction "bytes from_" is
+[
+	s : Base64 character*'s type
+|
+	byte*
+];
+
+Private method "bytes from_" is
+[
+	s : <⊥…|0>
+|
+	<>
+];
+
+Private method "bytes from_" is
+[
+	s : <Base64 character…|1..3>
+|
+	Raise a malformed-encoding exception
+];
+
+Private method "bytes from_" is
+[
+	s : <Base64 character, Base64 character, {¢=}ᵀ…|4>
+|
+	c1, c2 ::= map each c of s[1..2] through [hextet c];
+	<(c1 << 2) bit∨ (c2 >> 4)>
+] : tuple;
+
+Private method "bytes from_" is
+[
+	s : <Base64 character, Base64 character, Base64 character, {¢=}ᵀ…|4>
+|
+	c1, c2, c3 ::= map each c of s[1..3] through [hextet c];
+	<
+		(c1 << 2) bit∨ (c2 >> 4),
+		((c2 bit∧ 15) << 4) bit∨ (c3 >> 2)
+	>
+] : tuple;
+
+Private method "bytes from_" is
+[
+	s : <Base64 character…|4>
+|
+	c1, c2, c3, c4 ::= map each c of s through [hextet c];
+	<
+		(c1 << 2) bit∨ (c2 >> 4),
+		((c2 bit∧ 15) << 4) bit∨ (c3 >> 2),
+		((c3 bit∧ 3) << 6) bit∨ c4
+	>
+] : tuple;
+
+Private method "bytes from_" is
+[
+	s : <Base64 character…|5..>
+|
+	residue : Base64 string := s;
+	result : byte* := <>;
+	Do
+	[
+		sub ::= residue[1..4] else [Raise a malformed-encoding exception];
+		result ++= bytes from sub;
+		residue := residue[5..];
+	]
+	until residue is empty;
+	result
+];
+
+/**
+ * Convert {@param "s"} to {@type "byte*" binary}.
+ *
+ * @method "_→bytes(Base64)"
+ * @param "s" "Base64 string"
+ * @returns "byte*"
+ * @category "Data Abstractions" "Converters" "Codecs" "Base64"
+ */
+Public stable method "_→bytes(Base64)" is [s : Base64 string | bytes from s];
+
+"Base64 residue" is a new field atom;
+
+/**
+ * A {@type "converter"} that translates a {@type "tuple"} of {@type
+ * "Base64 character"}s into a tuple of {@type "byte"}s.
+ *
+ * @type "Base64 decoder"
+ * @supertype "converter"
+ * @field "Base64 residue" "Base64 character*"
+ *        {@type "Base64 character"}s that have not yet undergone conversion.
+ * @category "Data Abstractions" "Converters" "Codecs" "Base64"
+ */
+Public class "Base64 decoder" extends converter from Base64 character to byte
+	with mutable field
+		Base64 residue : Base64 character* (
+			accessor "_'s⁇residue",
+			mutator "_'s⁇residue:=_");
+
+/* Compute [Base64 character]→byte statically, so we have a strong enough
+ * argument type.  That's because of contravariance of argument types, and the
+ * fact that the expression "Base64 character" is theoretically allowed to
+ * produce something more specific than the byte type.
+ */
+charToByte ::= [Base64 character]→byte;
+
+/**
+ * Create a {@type "Base64 decoder"}.
+ *
+ * @method "a Base64 decoder"
+ * @returns "Base64 decoder"
+ * @category "Data Abstractions" "Converters" "Codecs" "Base64"
+ */
+Public method "a Base64 decoder" is
+[
+	a Base64 decoder with
+		conversion type ::= charToByte,
+		Base64 residue := <>
+];
+
+/**
+ * Encode some {@type "Base64 character"}s into {@type "byte"}s.
+ *
+ * @method "_process_"
+ * @param "decoder" "Base64 decoder"
+ * @param "sourceTuple" "Base64 string"
+ * @returns "byte*"
+ * @category "Data Abstractions" "Converters" "Codecs" "Base64"
+ */
+Method "_process_" is
+[
+	decoder : Base64 decoder,
+	sourceTuple : Base64 string
+|
+	residue : Base64 string := decoder's residue ++ sourceTuple;
+	result : byte* := "";
+	While |residue| ≥ 4 do
+	[
+		sub ::= residue[1..4];
+		result ++= bytes from sub;
+		residue := residue[5..];
+	];
+	decoder's residue := residue;
+	result
+];
+
+/**
+ * Flushing a {@type "Base64 decoder"} produces the final {@type "byte"}s and
+ * any necessary padding.
+ *
+ * @method "flush_"
+ * @param "decoder" "Base64 decoder"
+ * @returns "byte*"
+ * @category "Data Abstractions" "Converters" "Codecs" "Base64"
+ */
+Method "flush_" is
+[
+	decoder : Base64 decoder
+|
+	result ::= bytes from decoder's residue;
+	decoder's residue := <>;
+	result
+];
+
+/**
+ * Protect the constructor expressions from potentially ambiguous
+ * interpretations.
+ * 
+ * @method "a|an_«with«_«:»?:=_‡,»»"
+ * @forbids 1 "Base64 encoder"
+ * @forbids 1 "Base64 decoder"
+ */
+Grammatical restriction {"a|an_«with«_«:»?:=_‡,»»"} is
+<
+	{"Base64 encoder", "Base64 decoder"},
+	∅,
+	∅
+>;

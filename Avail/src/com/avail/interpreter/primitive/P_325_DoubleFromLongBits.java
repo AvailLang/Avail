@@ -1,5 +1,5 @@
 /**
- * AvailGetType.java
+ * P_324_DoubleFromLongBits.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,32 +29,50 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.primitive;
 
-package com.avail.compiler.instruction;
-
-import java.io.ByteArrayOutputStream;
-import com.avail.interpreter.levelOne.L1Operation;
-
+import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
 
 /**
- * Push the top of stack's type.
+ * <strong>Primitive 325:</strong> Given a 64-bit signed integer, treat the bit
+ * pattern as a double-precision IEEE-754 representation, and answer that {@link
+ * DoubleDescriptor double} value.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @see P_324_DoubleToLongBits
  */
-public class AvailGetType extends AvailInstruction
+public final class P_325_DoubleFromLongBits extends Primitive
 {
 	/**
-	 * Construct a new {@link AvailGetType}.
+	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public AvailGetType ()
+	public final static Primitive instance =
+		new P_325_DoubleFromLongBits().init(
+			1, CannotFail, CanFold, CanInline);
+
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
-		super();
+		assert args.size() == 1;
+		final A_Number longObject = args.get(0);
+		final long longValue = longObject.extractLong();
+		final double doubleValue = Double.longBitsToDouble(longValue);
+		return interpreter.primitiveSuccess(
+			DoubleDescriptor.fromDouble(doubleValue));
 	}
 
 	@Override
-	public void writeNybblesOn (
-			final ByteArrayOutputStream aStream)
+	protected A_Type privateBlockTypeRestriction ()
 	{
-		L1Operation.L1Ext_doGetType.writeTo(aStream);
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				IntegerRangeTypeDescriptor.int64()),
+			DOUBLE.o());
 	}
 }

@@ -139,6 +139,9 @@ Uses
 		"_is a primitive",
 		"_is a valid message",
 		"_mod_",
+		"_reinterpreted as bits",
+		"_reinterpreted as double",
+		"_reinterpreted as float",
 		"_reversed",
 		"_↑is unassigned",
 		"_→JSON",
@@ -917,24 +920,6 @@ Primitive "_→object type" is
 |
 	Primitive 63;
 ] : object meta;
-
-/**
- * Construct and answer a map based on the supplied object type.
- *
- * @category "Primitives" "Types" "Objects" "Maps" "Conversions"
- * @method "_→map"
- * @param "anObjectType" "object meta"
- *        An object type whose fields should be the keys of the new map and
- *        whose values are the corresponding values.
- * @returns "{atom→(any)'s type|}"
- *    The requested map.
- */
-Primitive "_→map" is
-[
-	anObjectType : object meta
-|
-	Primitive 64;
-] : field type map;
 
 /**
  * Construct and answer an enumeration whose instances are fully determined by
@@ -1878,26 +1863,6 @@ Primitive "_→object type" is
 ] : object meta;
 
 /**
- * Construct and answer a tuple based on the supplied object type.
- *
- * @category "Primitives" "Types" "Tuples" "Objects" "Conversions"
- * @method "_→tuple"
- * @param "anObjectType" "object meta"
- *        An object type.
- * @returns "<<atom, (any)'s type…|2>…|>"
- *    A tuple that represents the composition of the object type. Its elements
- *    are 2-tuples. Each 2-tuple's first element is an atom (i.e., the field
- *    identifier) and its second element is the value type permitted by the
- *    field.
- */
-Primitive "_→tuple" is
-[
-	anObjectType : object meta
-|
-	Primitive 151;
-] : field type tuple;
-
-/**
  * Construct and answer an object based on the supplied tuple.
  *
  * @category "Primitives" "Tuples" "Objects" "Conversions"
@@ -2546,6 +2511,42 @@ Primitive "⎡_⎤" is
 ] : float;
 
 /**
+ * Treat the IEEE-754 single-precision float's representation as a 32 bit
+ * sequence, and answer the (signed) integer having those bits.
+ *
+ * @category "Primitives" "Numbers" "Mathematics"
+ * @method "_reinterpreted as bits"
+ * @param "aFloat" "float"
+ *        The float to reinterpret.
+ * @returns "[-2147483648..2147483647]"
+ *    The float's bit representation as a signed 32-bit integer.
+ */
+Primitive "_reinterpreted as bits" is
+[
+	aFloat : float
+|
+	Primitive 294;
+] : int32;
+
+/**
+ * Reinterpret the 32-bit signed integer as the bit pattern of an IEEE-754
+ * floating point number.
+ *
+ * @category "Primitives" "Numbers" "Mathematics"
+ * @method "_reinterpreted as float"
+ * @param "anInt32" "int32"
+ *        A 32-bit signed integer.
+ * @returns "float"
+ *    The single-precision float having the specified bit representation.
+ */
+Primitive "_reinterpreted as float" is
+[
+	anInt32 : int32
+|
+	Primitive 295;
+] : float;
+
+/**
  * Compute and answer an approximation of the natural logarithm of the argument,
  * i.e., ln {@param "x"}.
  *
@@ -2670,6 +2671,42 @@ Primitive "⎡_⎤" is
 ] : double;
 
 /**
+ * Treat the IEEE-754 double-precision floating point number's representation as
+ * a 64 bit sequence, and answer the (signed) integer having those bits.
+ *
+ * @category "Primitives" "Numbers" "Mathematics"
+ * @method "_reinterpreted as bits"
+ * @param "aDouble" "double"
+ *        The double to reinterpret.
+ * @returns "[-9223372036854775808..9223372036854775807]"
+ *    The double's bit representation as a signed 64-bit integer.
+ */
+Primitive "_reinterpreted as bits" is
+[
+	aDouble : double
+|
+	Primitive 324;
+] : int64;
+
+/**
+ * Reinterpret the 64-bit signed integer as the bit pattern of an IEEE-754
+ * double-precision floating point number.
+ *
+ * @category "Primitives" "Numbers" "Mathematics"
+ * @method "_reinterpreted as double"
+ * @param "anInt64" "int64"
+ *        A 64-bit signed integer.
+ * @returns "double"
+ *    The double having the specified bit representation.
+ */
+Primitive "_reinterpreted as double" is
+[
+	anInt64 : int64
+|
+	Primitive 325;
+] : double;
+
+/**
  * Answer the argument's Unicode code point.
  *
  * @category "Primitives" "Integers" "Unicode" "Conversions"
@@ -2704,13 +2741,13 @@ Primitive "_→character" is
 ] : character;
 
 /**
- * Answer a supercasts lookup type, the type to be used for method lookup.
+ * Answer a supercast's lookup type, the type to be used for method lookup.
  *
  * @category "Primitives"
- * @method "{0}"
- * @param "{1}" "{2}"
+ * @method "_'s⁇lookup type"
+ * @param "aSupercast" "super cast phrase"
  *        The supercast from which to extract the lookup type.
- * @returns "{3}"
+ * @returns "(any)'s type"
  *    The type that the supercast uses during method lookup.
  */
 Primitive "_'s⁇lookup type" is
@@ -2721,14 +2758,14 @@ Primitive "_'s⁇lookup type" is
 ] : any meta;
 
 /**
- * Answer a supercasts base expression.
+ * Answer a supercast's base expression.
  *
  * @category "Primitives"
- * @method "{0}"
- * @param "{1}" "{2}"
+ * @method "_'s⁇expression"
+ * @param "aSupercast" "super cast phrase"
  *        The supercast from which to extract the base expression
- * @returns "{3}"
- *    The supercasts base expression, which provides the actual argument value
+ * @returns "expression phrase⇒any"
+ *    The supercast's base expression, which provides the actual argument value
  *    to a message send.
  */
 Primitive "_'s⁇expression" is

@@ -1,5 +1,5 @@
-/*
- * Feature Renames.avail
+/**
+ * AvailAcceptedParseException.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,70 +30,34 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Feature Renames"
-Versions
-	"1.0.0 DEV 2014-04-28"
-Uses
-	"Avail" =
-	(
-		/* Core Avail Syntax */
-		"\
-			\|[§\
-				\|««…:_†§‡,»`|»?\
-				\|«Primitive…#«(…:_†)»?§;»?\
-				\|«$…«:_†»?;§»?\
-				\|«_!§»\
-				\|«_!»?\
-			\|]\
-			\|«:_†»?\
-			\|«^«_†‡,»»?",
-		"…:_†;",
-		"…::=_;",
-		"…:_†:=_;",
-		"…:=_;",
-		"…",
-		"_!;",
-		"(_::_†)",
+package com.avail.compiler;
 
-		/* Methods */
-		"Export_as a new name",
-		"Method_is_",
-		"atom",
-		"string",
-		"$…#",
-		"_+_",
-		"_-_",
-		"_×_",
-		"_÷_",
-		"-_",
-		"_<_",
-		"_≤_",
-		"_>_",
-		"_≥_",
-		"«_‡«=|≤|<»!»",
-		"«_‡«=|≥|>»!»"
-	)
-Names
-	/* These are dynamically determined. */
-Body
+import com.avail.exceptions.PrimitiveThrownException;
+import com.avail.interpreter.primitive.P_343_AcceptParsing;
 
-Method "Export_as_" is
-[
-	anAtom : atom,
-	aString : string
-|
-	Method aString is [anAtom];
-	Export aString as a new name;
-];
+/**
+ * An {@code AvailAcceptedParseException} is thrown by primitive {@link
+ * P_343_AcceptParsing} to indicate the fiber running a semantic restriction
+ * has accepted the argument types and does not need to restrict the proposed
+ * expression's type.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
+public class AvailAcceptedParseException
+extends PrimitiveThrownException
+{
+	/**
+	 * The serial version identifier.
+	 */
+	private static final long serialVersionUID = 1956015610046321084L;
 
-Export $"_+_" as "plus atom";
-Export $"_-_" as "minus atom";
-Export $"_×_" as "times atom";
-Export $"_÷_" as "divide atom";
-Export $"-_" as "negate atom";
-Export $"_<_" as "less-than atom";
-Export $"_≤_" as "less-than-equal atom";
-Export $"«_‡«=|≤|<»!»" as "chained less-than atom";
-Export $"_>_" as "greater-than atom";
-Export $"_≥_" as "greater-than-equal atom";
-Export $"«_‡«=|≥|>»!»" as "chained greater-than atom";
+	/**
+	 * Construct a new {@link AvailAcceptedParseException}, which can be thrown
+	 * by primitive {@link P_343_AcceptParsing} to indicate a semantic
+	 * restriction has accepted a parse but does not wish to strengthen the
+	 * exrpssion's type.
+	 */
+	public AvailAcceptedParseException ()
+	{
+	}
+}

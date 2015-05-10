@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive;
 
+import static com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -66,8 +67,16 @@ extends Primitive
 		assert args.size() == 3;
 		final A_Phrase variableNameLiteral = args.get(0);
 		final A_Phrase typeLiteral = args.get(1);
-		final A_Phrase initializingExpression = args.get(2);
+		final A_Phrase initializationExpression = args.get(2);
 
+		final A_Token nameToken = variableNameLiteral.token().literal();
+		final A_String nameString = nameToken.string();
+		if (nameToken.tokenType() != KEYWORD)
+		{
+			throw new AvailRejectedParseException(
+				"new variable name to be alphanumeric, not %s",
+				nameString);
+		}
 		final A_Type type = typeLiteral.token().literal();
 		if (type.isTop() || type.isBottom())
 		{
@@ -75,21 +84,37 @@ extends Primitive
 				"variable's declared type to be something other than %s",
 				type);
 		}
-		if (!initializingExpression.expressionType().isSubtypeOf(type))
+		final A_Type initializationType =
+			initializationExpression.expressionType();
+		if (initializationType.isTop() || initializationType.isBottom())
+		{
+			throw new AvailRejectedParseException(
+				"initialization expression to have a type other than %s",
+				initializationType);
+		}
+		if (!initializationType.isSubtypeOf(type))
 		{
 			throw new AvailRejectedParseException(
 				StringDescriptor.format(
-					"initializing assignment expression's type (%s) "
+					"initialization expression's type (%s) "
 					+ "to match variable type (%s)",
-					initializingExpression.expressionType(),
+					initializationType,
 					type));
 		}
 		final A_Phrase variableDeclaration =
 			DeclarationNodeDescriptor.newVariable(
-				variableNameLiteral.token().literal(), // contains another token
-				type,
-				initializingExpression);
-		variableDeclaration.makeImmutable();
+				nameToken, type, initializationExpression);
+		final A_Phrase conflictingDeclaration =
+			FiberDescriptor.addDeclaration(variableDeclaration);
+		if (conflictingDeclaration != null)
+		{
+			throw new AvailRejectedParseException(
+				"local variable %s to have a name that doesn't shadow an "
+				+ "existing %s (from line %d)",
+				nameString,
+				conflictingDeclaration.declarationKind().nativeKindName(),
+				conflictingDeclaration.token().lineNumber());
+		}
 		return interpreter.primitiveSuccess(variableDeclaration);
 	}
 

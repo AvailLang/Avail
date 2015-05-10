@@ -88,6 +88,8 @@ Names
 	/*   4 */ "function",
 	/*   6 */ "function implementation",
 	/*   5 */ "function meta",
+	/* 146 */ "int32",
+	/* 147 */ "int64",
 	/*  17 */ "integer",
 	/*  95 */ "key-value tuple",
 	/*  63 */ "label phrase",
@@ -143,6 +145,7 @@ Names
 	/*  68 */ "primitive failure reason phrase",
 	/* 131 */ "readable extended integer variable",
 	/* 144 */ "scope map key",
+	/* 149 */ "scope stack key",
 	/* 107 */ "semantic restriction function",
 	/*  57 */ "send phrase",
 	/*  51 */ "sequence phrase",
@@ -151,6 +154,7 @@ Names
 	/* 114 */ "set of atom",
 	/* 134 */ "set of exception",
 	/*  75 */ "set of string",
+	/* 148 */ "statement phrase",
 	/*  28 */ "string",
 	/* 142 */ "super cast phrase",
 	/* 115 */ "token",
@@ -335,6 +339,10 @@ _super_cast_phrase                      ::= special object 142;
 _parse_map_key                          ::= special object 143;
 _scope_map_key                          ::= special object 144;
 _all_tokens_key                         ::= special object 145;
+_int32                                  ::= special object 146;
+_int64                                  ::= special object 147;
+_statement_phrase                       ::= special object 148;
+_scope_stack_key                        ::= special object 149;
 
 /**
  * The practical abstract root of the Avail type lattice. {@code "any"} is the
@@ -2514,7 +2522,8 @@ Primitive "super cast phrase" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * The name of the fiber global through which parsing information is
+ * communicated to and from the compiler.
  *
  * @category "Primitives" "Constants"
  * @method "parse map key"
@@ -2526,7 +2535,8 @@ Primitive "parse map key" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * The key within the client data fiber global that holds a map of all
+ * declarations that are currently in scope during compilation.
  *
  * @category "Primitives" "Constants"
  * @method "scope map key"
@@ -2538,7 +2548,8 @@ Primitive "scope map key" is
 ];
 
 /**
- * TODO: Special object description goes here.
+ * The key within the client data fiber global that holds the tuple of tokens
+ * that contributed to the current macro whose body is running.
  *
  * @category "Primitives" "Constants"
  * @method "all tokens key"
@@ -2547,5 +2558,54 @@ Primitive "scope map key" is
 Primitive "all tokens key" is
 [
 	_all_tokens_key
+];
+
+/**
+ * Signed 32-bit integers.
+ *
+ * @category "Primitives" "Types"
+ * @type "[-2147483648..2147483647]"
+ * @alias "int32"
+ */
+Primitive "int32" is
+[
+	_int32
+];
+
+/**
+ * Signed 64-bit integers.
+ *
+ * @category "Primitives" "Types"
+ * @type "[-9223372036854775808..9223372036854775807]"
+ * @alias "int64"
+ */
+Primitive "int64" is
+[
+	_int64
+];
+
+/**
+ * The type of all statement phrases.
+ *
+ * @category "Primitives" "Types"
+ * @type "statement phrase⇒⊤"
+ * @alias "statement phrase"
+ */
+Primitive "statement phrase" is
+[
+	_statement_phrase
+];
+
+/**
+ * The key within the client data fiber global that holds a tuple of maps which
+ * are previously pushed compilation scopes.
+ *
+ * @category "Primitives" "Constants"
+ * @method "scope stack key"
+ * @returns "scope stack key's type"
+ */
+Primitive "scope stack key" is
+[
+	_scope_stack_key
 ];
 

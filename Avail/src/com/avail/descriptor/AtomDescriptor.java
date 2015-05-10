@@ -527,6 +527,14 @@ extends Descriptor
 
 	/**
 	 * The atom used as a key in a {@link ParserState}'s {@linkplain
+	 * ParserState#clientDataMap} to store a tuple of maps to restore as the
+	 * blocks that are being parsed are completed.
+	 */
+	private static final A_Atom compilerScopeStackKey =
+		createSpecialAtom("Compilation scope stack");
+
+	/**
+	 * The atom used as a key in a {@link ParserState}'s {@linkplain
 	 * ParserState#clientDataMap} to accumulate the tuple of tokens that have
 	 * been parsed so far for the current method/macro site.
 	 */
@@ -623,6 +631,19 @@ extends Descriptor
 	public static A_Atom compilerScopeMapKey ()
 	{
 		return compilerScopeMapKey;
+	}
+
+	/**
+	 * Answer the atom used to identify the entry in a {@linkplain
+	 * ParserState}'s {@linkplain ParserState#clientDataMap client data map}
+	 * which holds the tuple of prior scopes.  This should get appended when
+	 * starting work on a block, and popped when the block is completed.
+	 *
+	 * @return An atom to use as a key in a ParserState's client data map.
+	 */
+	public static A_Atom compilerScopeStackKey ()
+	{
+		return compilerScopeStackKey;
 	}
 
 	/**

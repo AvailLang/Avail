@@ -1,5 +1,5 @@
 /**
- * AvailMakeTupleAndType.java
+ * P_324_DoubleToLongBits.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,45 +29,51 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.primitive;
 
-package com.avail.compiler.instruction;
-
-import java.io.ByteArrayOutputStream;
-import com.avail.interpreter.levelOne.L1Operation;
+import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
 
 /**
- * Pop N interleaved values and types off the stack (2N total), then push the
- * N element tuple and N element tuple type constructed from the values and
- * types.
+ * <strong>Primitive 324:</strong> Given a {@linkplain DoubleDescriptor
+ * double}-precision IEEE-754 representation, treat the bit pattern as a 64-bit
+ * (signed) {@code long} and answer the corresponding Avail {@link
+ * IntegerDescriptor integer}.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @see P_325_DoubleFromLongBits
  */
-public class AvailMakeTupleAndType extends AvailInstruction
+public final class P_324_DoubleToLongBits extends Primitive
 {
 	/**
-	 * The size of the tuple to create.  This is also the size of the tuple
-	 * type to create.
+	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	final int count;
-
+	public final static Primitive instance =
+		new P_324_DoubleToLongBits().init(
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
-	public void writeNybblesOn (
-		final ByteArrayOutputStream aStream)
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
 	{
-		L1Operation.L1Ext_doMakeTupleAndType.writeTo(aStream);
-		writeIntegerOn(count, aStream);
+		assert args.size() == 1;
+		final A_Number doubleObject = args.get(0);
+		final double doubleValue = doubleObject.extractDouble();
+		final long doubleBits = Double.doubleToRawLongBits(doubleValue);
+		return interpreter.primitiveSuccess(
+			IntegerDescriptor.fromLong(doubleBits));
 	}
 
-	/**
-	 * Construct a new {@link AvailMakeTupleAndType} that consumes twice the
-	 * specified number of elements from the stack to create a tuple and a
-	 * corresponding type.
-	 *
-	 * @param count Half the number of stack elements to consume.
-	 */
-	public AvailMakeTupleAndType (final int count)
+	@Override
+	protected A_Type privateBlockTypeRestriction ()
 	{
-		this.count = count;
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				DOUBLE.o()),
+			IntegerRangeTypeDescriptor.int64());
 	}
 }

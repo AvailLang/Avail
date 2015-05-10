@@ -914,12 +914,14 @@ Private method "concurrent tuple body function(_,_)" is
 			into [t : phrase+ | t[|t|]'s semantic type]
 			else [⊤];
 		name ::= elementPhrase's token's lexeme;
+		declaration ::= scope map[name];
+		Undeclare name;
 		restricted send anAtom with
 		<
 			aTuple, 
 			optionalLimit,
 			«[
-				<cast scope map[name] into [d : argument phrase | d]>
+				<cast declaration into [d : argument phrase | d]>
 			 | 
 				statements
 			] : blockReturnType»
@@ -958,15 +960,18 @@ Private method "concurrent two-input tuple body function(_,_)" is
 			else [⊤];
 		elementName ::= elementPhrase's token's lexeme;
 		indexName ::= indexPhrase's token's lexeme;
-		
 		castToPhrase ::= [s : nonempty string | 
 			cast scope map[s] into [d : argument phrase | d]];
+		elementDeclaration ::= castToPhrase(elementName);
+		indexDeclaration ::= castToPhrase(indexName);
+		Undeclare elementName;
+		Undeclare indexName;
 		restricted send anAtom with
 		<
 			aTuple, 
 			optionalLimit,
 			«[
-				<castToPhrase(elementName), castToPhrase(indexName)>
+				<elementDeclaration, indexDeclaration>
 			 | 
 				statements
 			] : blockReturnType»
@@ -1078,12 +1083,14 @@ Private method "concurrent set body function(_,_)" is
 		blockReturnType ::= cast statements
 			into [t : phrase+ | t[|t|]'s semantic type]
 			else [⊤];
+		declaration ::= scope map[name];
+		Undeclare name;
 		restricted send anAtom with
 		<
 			aSet, 
 			optionalLimit,
 			«[
-			  	<cast scope map[name] into [d : argument phrase | d]>
+			  	<cast declaration into [d : argument phrase | d]>
 			 | 
 			 	statements
 			 ] : blockReturnType»
@@ -1263,15 +1270,18 @@ Private method "concurrent map body function(_,_)" is
 		blockReturnType ::= cast statements
 			into [t : phrase+ | t's last's semantic type]
 			else [⊤];
-
 		castToPhrase ::= [s : nonempty string | 
 			cast scope map[s] into [d : argument phrase | d]];
+		keyDeclaration ::= castToPhrase(keyName);
+		valueDeclaration ::= castToPhrase(valueName);
+		Undeclare keyName;
+		Undeclare valueName;
 		restricted send anAtom with
 		<
 			aMap, 
 			optionalLimit,
 			«[
-			  	<castToPhrase(keyName), castToPhrase(valueName)>
+			  	<keyDeclaration, valueDeclaration>
 			 | 
 			 	statements
 			 ] : blockReturnType»

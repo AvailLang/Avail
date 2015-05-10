@@ -53,6 +53,7 @@ Names
 	"Declare loop variable_as_",
 	"Require:macro send has no internal whitespace(_)",
 	"strengthen_for call of_using_",
+	"Undeclare_",
 	"_has|have internal whitespace"
 Body
 
@@ -133,7 +134,7 @@ Public macro "Require:macro send has no internal whitespace(_)" is
 ];
 
 /**
- * Create a local variable in a macro and add to the scope
+ * Create a local variable in a macro and add to the scope.
  * 
  * @method "Declare loop variable_as_"
  * @category "Macros"
@@ -153,6 +154,23 @@ Public method "Declare loop variable_as_" is
 	varType ::= private invoke varTypeFunction with <>;
 	varDecl ::= arg «varToken : varType»;
 	scope map := cast scope map + varName → varDecl into
+		[t : {nonempty string → declaration phrase ⇒ ⊤ | natural number} | t];
+];
+
+/**
+ * Remove a declaration from the scope.
+ * 
+ * @method "Undeclare_"
+ * @category "Macros"
+ * @param "declarationName" "nonempty string"
+ *        The name of the declaration to remove.
+ * @returns "⊤"
+ */
+Public method "Undeclare_" is
+[
+	declarationName : nonempty string
+|
+	scope map := cast scope map - declarationName into
 		[t : {nonempty string → declaration phrase ⇒ ⊤ | natural number} | t];
 ];
 

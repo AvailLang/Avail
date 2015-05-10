@@ -42,11 +42,20 @@ Names
 	"converter",
 	"converter from_to_",
 	"_'s⁇conversion type",
-/*	"malformed-encoding exception",*/
-/*	"_'s⁇invalid sequence",*/
 	"flush_",
-	"_process_"
+	"_process_",
+
+	"malformed-encoding exception"
 Body
+
+/**
+ * A {@type "malformed-encoding exception"} indicates than a {@type "converter"}
+ * failed to {@method "_process_" process} some unexpected input.
+ *
+ * @type "malformed-encoding exception"
+ * @supertype "exception"
+ */
+Public explicit class "malformed-encoding exception" extends exception;
 
 Public "conversion type" is a new field atom;
 
@@ -68,10 +77,6 @@ Public "conversion type" is a new field atom;
  * @category "Codecs"
  * @field "conversion type" "([⊥]→tuple)'s type"
  *        How to convert a bufferful of input, empty indicating a final flush.
- * @field "on failure" "[⊥]→tuple"
- *        What to produce when a sequence of input elements is invalid.  It may
- *        raise an exception to indicate the problem, or return a tuple suitable
- *        for use in lieu of the conversion function.
  * @category "Data Abstractions" "Converters"
  */
 Public explicit class "converter" extends object
@@ -117,8 +122,7 @@ Public method "converter from_to_" is
  *          The output values produced by the converter.
  * @category "Data Abstractions" "Converters"
  */
-Public abstract method "_process_" is
-	[converter, tuple] → tuple;
+Public abstract method "_process_" is [converter, tuple]→tuple;
 
 /**
  * Make sure the converter will accept the tuple at this call site, and

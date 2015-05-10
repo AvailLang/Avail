@@ -110,11 +110,13 @@ Private method "body function(_,_)" is
 		blockReturnType ::= cast statements
 			into [t : phrase+ | t's last's semantic type]
 			else [⊤];
+		declaration ::= scope map[name];
+		Undeclare name;
 		restricted send anAtom with
 		<
 			aReader,
 			«[
-				<cast scope map[name] into [d : argument phrase | d]>
+				<cast declaration into [d : argument phrase | d]>
 			|
 				statements
 			] : blockReturnType»
@@ -328,11 +330,15 @@ Macro "reject each…from_§where_" is a reader prefix function,
 	blockReturnType ::= cast newStatements
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
+
+	declaration ::= scope map[name];
+	Undeclare name;
+
 	restricted send $"filter_by_" with
 	<
 		aReader, 
 		«[
-			<cast scope map[name] into [d : argument phrase | d]>
+			<cast declaration into [d : argument phrase | d]>
 		|
 			newStatements
 		] : blockReturnType»

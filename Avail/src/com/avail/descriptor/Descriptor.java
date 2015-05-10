@@ -4533,29 +4533,13 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Type o_TypeForLookup (final AvailObject object)
+	A_Type o_SuperUnionType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
 	boolean o_HasSuperCast (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_EmitForSuperSendOn (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_EmitAllForSuperSendOn (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
 	{
 		throw unsupportedOperationException();
 	}

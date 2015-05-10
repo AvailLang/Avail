@@ -1,5 +1,5 @@
-/*
- * Feature Renames.avail
+/**
+ * P_294_FloatToIntBits.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,71 +29,51 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.primitive;
 
-Module "Feature Renames"
-Versions
-	"1.0.0 DEV 2014-04-28"
-Uses
-	"Avail" =
-	(
-		/* Core Avail Syntax */
-		"\
-			\|[§\
-				\|««…:_†§‡,»`|»?\
-				\|«Primitive…#«(…:_†)»?§;»?\
-				\|«$…«:_†»?;§»?\
-				\|«_!§»\
-				\|«_!»?\
-			\|]\
-			\|«:_†»?\
-			\|«^«_†‡,»»?",
-		"…:_†;",
-		"…::=_;",
-		"…:_†:=_;",
-		"…:=_;",
-		"…",
-		"_!;",
-		"(_::_†)",
+import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
 
-		/* Methods */
-		"Export_as a new name",
-		"Method_is_",
-		"atom",
-		"string",
-		"$…#",
-		"_+_",
-		"_-_",
-		"_×_",
-		"_÷_",
-		"-_",
-		"_<_",
-		"_≤_",
-		"_>_",
-		"_≥_",
-		"«_‡«=|≤|<»!»",
-		"«_‡«=|≥|>»!»"
-	)
-Names
-	/* These are dynamically determined. */
-Body
+/**
+ * <strong>Primitive 294:</strong> Given a {@linkplain FloatDescriptor float} in
+ * single-precision IEEE-754 representation, treat the bit pattern as a 32-bit
+ * (signed) {@code int} and answer the corresponding Avail {@link
+ * IntegerDescriptor integer}.
+ *
+ * @see P_295_FloatFromIntBits
+ */
+public final class P_294_FloatToIntBits extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class.  Accessed through reflection.
+	 */
+	public final static Primitive instance =
+		new P_294_FloatToIntBits().init(
+			1, CannotFail, CanFold, CanInline);
 
-Method "Export_as_" is
-[
-	anAtom : atom,
-	aString : string
-|
-	Method aString is [anAtom];
-	Export aString as a new name;
-];
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
+	{
+		assert args.size() == 1;
+		final A_Number floatObject = args.get(0);
+		final float floatValue = floatObject.extractFloat();
+		final int floatBits = Float.floatToRawIntBits(floatValue);
+		return interpreter.primitiveSuccess(
+			IntegerDescriptor.fromInt(floatBits));
+	}
 
-Export $"_+_" as "plus atom";
-Export $"_-_" as "minus atom";
-Export $"_×_" as "times atom";
-Export $"_÷_" as "divide atom";
-Export $"-_" as "negate atom";
-Export $"_<_" as "less-than atom";
-Export $"_≤_" as "less-than-equal atom";
-Export $"«_‡«=|≤|<»!»" as "chained less-than atom";
-Export $"_>_" as "greater-than atom";
-Export $"_≥_" as "greater-than-equal atom";
-Export $"«_‡«=|≥|>»!»" as "chained greater-than atom";
+	@Override
+	protected A_Type privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				FLOAT.o()),
+			IntegerRangeTypeDescriptor.int32());
+	}
+}

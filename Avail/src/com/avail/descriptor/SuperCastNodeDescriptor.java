@@ -72,31 +72,6 @@ extends ParseNodeDescriptor
 		TYPE_FOR_LOOKUP
 	}
 
-	/**
-	 * Answer the expression producing the actual value.
-	 */
-	@Override
-	A_Phrase o_Expression (final AvailObject object)
-	{
-		return object.slot(EXPRESSION);
-	}
-
-	@Override
-	A_Type o_TypeForLookup (final AvailObject object)
-	{
-		return object.slot(TYPE_FOR_LOOKUP);
-	}
-
-	/**
-	 * Answer the lookup type to ensure polymorphic macro substitutions happen
-	 * the right way.
-	 */
-	@Override @AvailMethod
-	A_Type o_ExpressionType (final AvailObject object)
-	{
-		return object.slot(TYPE_FOR_LOOKUP);
-	}
-
 	@Override
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
@@ -107,47 +82,16 @@ extends ParseNodeDescriptor
 		builder.append("«(");
 		builder.append(object.expression());
 		builder.append(" :: ");
-		builder.append(object.typeForLookup());
+		builder.append(object.superUnionType());
 		builder.append(")»");
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		int h = 0x29490D69;
-		h ^= object.slot(EXPRESSION).hash();
-		h *= multiplier;
-		h ^= object.slot(TYPE_FOR_LOOKUP).hash();
-		return h;
-	}
-
-	@Override @AvailMethod
-	boolean o_EqualsParseNode (
+	void o_ChildrenDo (
 		final AvailObject object,
-		final A_Phrase aParseNode)
+		final Continuation1<A_Phrase> aBlock)
 	{
-		return !aParseNode.isMacroSubstitutionNode()
-			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
-			&& object.expression().equals(aParseNode.expression())
-			&& object.typeForLookup().equals(aParseNode.typeForLookup());
-	}
-
-	@Override @AvailMethod
-	void o_EmitValueOn (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
-	{
-		object.slot(EXPRESSION).emitValueOn(codeGenerator);
-	}
-
-	@Override
-	void o_EmitForSuperSendOn (
-		final AvailObject object,
-		final AvailCodeGenerator codeGenerator)
-	{
-		// This is a super-cast.  Push the value, then push the explicit type.
-		object.slot(EXPRESSION).emitValueOn(codeGenerator);
-		codeGenerator.emitPushLiteral(object.slot(TYPE_FOR_LOOKUP));
+		aBlock.value(object.slot(EXPRESSION));
 	}
 
 	@Override @AvailMethod
@@ -158,31 +102,6 @@ extends ParseNodeDescriptor
 		final A_Phrase expression =
 			aBlock.valueNotNull(object.slot(EXPRESSION));
 		object.setSlot(EXPRESSION, expression);
-	}
-
-
-	@Override @AvailMethod
-	void o_ChildrenDo (
-		final AvailObject object,
-		final Continuation1<A_Phrase> aBlock)
-	{
-		aBlock.value(object.slot(EXPRESSION));
-	}
-
-	@Override
-	void o_StatementsDo (
-		final AvailObject object,
-		final Continuation1<A_Phrase> continuation)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	void o_ValidateLocally (
-		final AvailObject object,
-		final @Nullable A_Phrase parent)
-	{
-		// Do nothing.
 	}
 
 	/**
@@ -203,8 +122,62 @@ extends ParseNodeDescriptor
 		final A_Phrase newParseNode)
 	{
 		final A_Phrase expression = object.slot(EXPRESSION);
-		final A_Type typeForLookup = object.slot(TYPE_FOR_LOOKUP);
-		return SuperCastNodeDescriptor.create(expression, typeForLookup);
+		final A_Type superUnionType = object.slot(TYPE_FOR_LOOKUP);
+		return SuperCastNodeDescriptor.create(expression, superUnionType);
+	}
+
+	@Override @AvailMethod
+	void o_EmitValueOn (
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
+	{
+		object.slot(EXPRESSION).emitValueOn(codeGenerator);
+	}
+
+	/**
+	 * Answer the expression producing the actual value.
+	 */
+	@Override
+	A_Phrase o_Expression (final AvailObject object)
+	{
+		return object.slot(EXPRESSION);
+	}
+
+	/**
+	 * Answer the lookup type to ensure polymorphic macro substitutions happen
+	 * the right way.
+	 */
+	@Override @AvailMethod
+	A_Type o_ExpressionType (final AvailObject object)
+	{
+		return object.slot(TYPE_FOR_LOOKUP);
+	}
+
+	@Override @AvailMethod
+	boolean o_EqualsParseNode (
+		final AvailObject object,
+		final A_Phrase aParseNode)
+	{
+		return !aParseNode.isMacroSubstitutionNode()
+			&& object.parseNodeKind().equals(aParseNode.parseNodeKind())
+			&& object.expression().equals(aParseNode.expression())
+			&& object.superUnionType().equals(aParseNode.superUnionType());
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		int h = 0x29490D69;
+		h ^= object.slot(EXPRESSION).hash();
+		h *= multiplier;
+		h ^= object.slot(TYPE_FOR_LOOKUP).hash();
+		return h;
+	}
+
+	@Override
+	boolean o_HasSuperCast (final AvailObject object)
+	{
+		return true;
 	}
 
 	@Override
@@ -214,9 +187,25 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	boolean o_HasSuperCast (final AvailObject object)
+	void o_StatementsDo (
+		final AvailObject object,
+		final Continuation1<A_Phrase> continuation)
 	{
-		return true;
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Type o_SuperUnionType (final AvailObject object)
+	{
+		return object.slot(TYPE_FOR_LOOKUP);
+	}
+
+	@Override @AvailMethod
+	void o_ValidateLocally (
+		final AvailObject object,
+		final @Nullable A_Phrase parent)
+	{
+		// Do nothing.
 	}
 
 	@Override
@@ -250,17 +239,21 @@ extends ParseNodeDescriptor
 	 * the given {@linkplain ParseNodeDescriptor phrase} and {@linkplain
 	 * TypeDescriptor type} with which to perform a method lookup.
 	 *
-	 * @param expression The base expression.
-	 * @param typeForLookup The type with which to look up the method.
+	 * @param expression
+	 *        The base expression.
+	 * @param superUnionType
+	 *        The type to combine via a {@link A_Type#typeUnion(A_Type) type
+	 *        union} with the type of the actual runtime value produced by the
+	 *        expression, in order to look up the method.
 	 * @return The resulting super cast node.
 	 */
 	public static AvailObject create (
 		final A_Phrase expression,
-		final A_Type typeForLookup)
+		final A_Type superUnionType)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(EXPRESSION, expression);
-		instance.setSlot(TYPE_FOR_LOOKUP, typeForLookup);
+		instance.setSlot(TYPE_FOR_LOOKUP, superUnionType);
 		instance.makeShared();
 		return instance;
 	}

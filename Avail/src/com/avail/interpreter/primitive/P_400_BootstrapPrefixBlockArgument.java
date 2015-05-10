@@ -41,7 +41,6 @@ import java.util.List;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -92,10 +91,13 @@ public final class P_400_BootstrapPrefixBlockArgument extends Primitive
 			LITERAL_NODE.create(InstanceMetaDescriptor.anyMeta()));
 		final A_Token outerArgToken = namePhrase.token();
 		final A_Token argToken = outerArgToken.literal();
+		final A_String argName = argToken.string();
+
 		if (argToken.tokenType() != TokenType.KEYWORD)
 		{
 			throw new AvailRejectedParseException(
-				"argument name to be alphanumeric");
+				"argument name to be alphanumeric, not %s",
+				argName);
 		}
 		final A_Type argType = typePhrase.token().literal();
 		assert argType.isType();
@@ -108,17 +110,16 @@ public final class P_400_BootstrapPrefixBlockArgument extends Primitive
 		final A_Phrase argDeclaration =
 			DeclarationNodeDescriptor.newArgument(argToken, argType);
 		// Add the binding and we're done.
-		final AvailErrorCode error = loader.addDeclaration(argDeclaration);
-		if (error != null)
+		final A_Phrase conflictingDeclaration =
+			FiberDescriptor.addDeclaration(argDeclaration);
+		if (conflictingDeclaration != null)
 		{
-			if (error == E_LOCAL_DECLARATION_SHADOWS_ANOTHER)
-			{
-				throw new AvailRejectedParseException(
-					"argument %s to have a name that doesn't shadow another"
-					+ " local declaration",
-					argToken.string());
-			}
-			return interpreter.primitiveFailure(error);
+			throw new AvailRejectedParseException(
+				"block argument declaration %s to have a name that doesn't "
+				+ "shadow an existing %s (from line %d)",
+				argName,
+				conflictingDeclaration.declarationKind().nativeKindName(),
+				conflictingDeclaration.token().lineNumber());
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
@@ -148,8 +149,6 @@ public final class P_400_BootstrapPrefixBlockArgument extends Primitive
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			SetDescriptor.fromCollection(Arrays.asList(
-				E_DECLARATION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM.numericCode(),
-				E_LOADING_IS_OVER.numericCode(),
-				E_LOCAL_DECLARATION_SHADOWS_ANOTHER.numericCode())));
+				E_LOADING_IS_OVER.numericCode())));
 	}
 }

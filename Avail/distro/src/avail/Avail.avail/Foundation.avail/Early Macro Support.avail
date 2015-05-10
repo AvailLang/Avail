@@ -44,6 +44,8 @@ Names
 	"parse map:=_",
 
 	/* Access to the bootstrap scope map. */
+	"Pop scope",
+	"Push scope",
 	"scope map",
 	"scope map:=_",
 
@@ -123,6 +125,75 @@ Method "scope map:=_" is
 	aMap : {nonempty string → declaration phrase | whole number}
 |
 	parseMap ::= parse map + scope map key → aMap;
+	current fiber[parse map key] := parseMap;
+];
+
+Method "_strengthened to tuple" is
+[
+	value : any
+|
+	value
+];
+
+Semantic restriction "_strengthened to tuple" is
+[
+	value : any's type
+|
+	tuple
+];
+
+Method "_strengthened to tuple of tuple" is
+[
+	value : any
+|
+	value
+];
+
+Semantic restriction "_strengthened to tuple of tuple" is
+[
+	value : any's type
+|
+	<<>, tuple… | whole number>
+];
+
+/**
+ * Push the current scope map onto the scope stack. This is available only to
+ * macro definitions and their prefix functions.
+ *
+ * @method "Push scope"
+ * @returns "⊤"
+ * @category "Macros"
+ */
+Method "Push scope" is
+[
+	newStack : tuple;
+	If scope stack key ∈ parse map then
+	[
+		oldStack ::= parse map[scope stack key] strengthened to tuple;
+		pair ::= <oldStack, <scope map>> strengthened to tuple of tuple;
+		newStack := concatenate pair;
+	]
+	else
+	[
+		newStack := <scope map>;
+	];
+	parseMap ::= parse map + scope stack key → newStack;
+	current fiber[parse map key] := parseMap;
+];
+
+/**
+ * Pop a scope from the scope stack, making it be the current scope map. This is
+ * available only to macro definitions and their prefix functions.
+ *
+ * @method "Pop scope"
+ * @returns "⊤"
+ * @category "Macros"
+ */
+Method "Pop scope" is
+[
+	oldStack ::= parse map[scope stack key] strengthened to tuple;
+	newStack ::= oldStack[1..|oldStack|];
+	parseMap ::= parse map + scope stack key → newStack;
 	current fiber[parse map key] := parseMap;
 ];
 

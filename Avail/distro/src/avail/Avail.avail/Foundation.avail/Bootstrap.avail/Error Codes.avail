@@ -153,6 +153,7 @@ Names
 	/*  30 */ "too-large-to-represent code",
 	/*  31 */ "type-restriction-must-accept-only-types code",
 	/*  44 */ "unbalanced-guillemets code",
+	/*  64 */ "untimely-parse-acceptance code",
 	/*  71 */ "untimely-parse-rejection code",
 	/*  83 */ "unwind-sentinel code",
 	/*  78 */ "up-arrow-must-follow-argument code",
@@ -443,6 +444,11 @@ Primitive "incorrect-type-for-numbered-choice code" is
 Primitive "macro-prefix-functions-must-return-top code" is
 [
 	59
+];
+
+Primitive "untimely-parse-acceptance code" is
+[
+	64
 ];
 
 Primitive "declaration-type-must-not-be-top-or-bottom code" is

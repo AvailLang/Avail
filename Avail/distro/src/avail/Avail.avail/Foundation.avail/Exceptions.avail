@@ -2016,9 +2016,9 @@ noUnhandledExceptionHandler :=
 			++ “unhandled” (frames [1..∞) of stack summary, cascaded)
 			++ "\nThe current fiber will be terminated.\n";
 		/* If the current fiber was launched in order to apply a semantic
-		 * restriction, then reject the current parse. Otherwise, emit the
-		 * error message to the stardard error stream and terminate the current
-		 * fiber.
+		 * restriction, run a macro, or run a macro prefix function, then reject
+		 * the current parse. Otherwise, emit the error message to the stardard
+		 * error stream and terminate the current fiber.
 		 */
 		If current fiber can reject a parse then
 		[

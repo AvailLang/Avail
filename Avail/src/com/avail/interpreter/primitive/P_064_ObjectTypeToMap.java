@@ -32,9 +32,12 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 
 /**
@@ -50,7 +53,7 @@ public final class P_064_ObjectTypeToMap extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_064_ObjectTypeToMap().init(
-			1, CannotFail, CanFold, CanInline);
+			1, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
@@ -60,7 +63,23 @@ public final class P_064_ObjectTypeToMap extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Type objectType = args.get(0);
+		if (objectType.isBottom())
+		{
+			// The correct answer would be a map with *every* atom as a key,
+			// and ⊥ as every corresponding value.  It's easier to just fail
+			// dynamically for this unrepresentable singularity.
+			return interpreter.primitiveFailure(
+				AvailErrorCode.E_NO_SUCH_FIELD);
+		}
 		return interpreter.primitiveSuccess(objectType.fieldTypeMap());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_NO_SUCH_FIELD.numericCode())));
 	}
 
 	@Override

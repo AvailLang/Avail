@@ -67,12 +67,13 @@ public final class P_405_BootstrapVariableDeclarationMacro extends Primitive
 		final A_Phrase variableNameLiteral = args.get(0);
 		final A_Phrase typeLiteral = args.get(1);
 
-		final A_Token name = variableNameLiteral.token().literal();
-		if (name.tokenType() != TokenType.KEYWORD)
+		final A_Token nameToken = variableNameLiteral.token().literal();
+		final A_String nameString = nameToken.string();
+		if (nameToken.tokenType() != TokenType.KEYWORD)
 		{
 			throw new AvailRejectedParseException(
 				"new variable name to be alphanumeric, not %s",
-				name);
+				nameString);
 		}
 		final A_Type type = typeLiteral.token().literal();
 		if (type.isTop() || type.isBottom())
@@ -82,8 +83,18 @@ public final class P_405_BootstrapVariableDeclarationMacro extends Primitive
 				type);
 		}
 		final A_Phrase variableDeclaration =
-			DeclarationNodeDescriptor.newVariable(name, type);
-		variableDeclaration.makeImmutable();
+			DeclarationNodeDescriptor.newVariable(nameToken, type);
+		final A_Phrase conflictingDeclaration =
+			FiberDescriptor.addDeclaration(variableDeclaration);
+		if (conflictingDeclaration != null)
+		{
+			throw new AvailRejectedParseException(
+				"local variable %s to have a name that doesn't shadow an "
+				+ "existing %s (from line %d)",
+				nameString,
+				conflictingDeclaration.declarationKind().nativeKindName(),
+				conflictingDeclaration.token().lineNumber());
+		}
 		return interpreter.primitiveSuccess(variableDeclaration);
 	}
 
@@ -93,13 +104,9 @@ public final class P_405_BootstrapVariableDeclarationMacro extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				/* Variable name phrase. */
-				LITERAL_NODE.create(
-					/* The variable name. */
-					TOKEN.o()),
-				/* Variable type phrase. */
-				LITERAL_NODE.create(
-					/* The variable type. */
-					InstanceMetaDescriptor.anyMeta())),
-			LOCAL_VARIABLE_NODE.mostGeneralType());
+				LITERAL_NODE.create(TOKEN.o()),
+				/* Variable type's literal phrase. */
+				LITERAL_NODE.create(InstanceMetaDescriptor.anyMeta())),
+			DECLARATION_NODE.mostGeneralType());
 	}
 }

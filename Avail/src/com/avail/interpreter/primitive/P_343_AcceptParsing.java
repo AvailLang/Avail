@@ -1,5 +1,5 @@
 /**
- * P_036_ParamTypeAt.java
+ * P_343_AcceptParsing.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,25 +31,45 @@
  */
 package com.avail.interpreter.primitive;
 
+import static com.avail.descriptor.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.Primitive.Fallibility.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.List;
+import com.avail.compiler.AvailAcceptedParseException;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 36:</strong> Answer the type of the parameter at the
- * given index within the given functionType.
+ * <strong>Primitive 343:</strong> Either an expression is having an applicable
+ * semantic checked, a macro body is being executed for some invocation site, or
+ * a {@link A_Method#prefixFunctions() prefix function} for a macro is being
+ * invoked for a tentative prefix of an invocation site.  The Avail code has
+ * decided by invoking this primitive that the terms of the invocation are
+ * acceptable.
+ *
+ * <p>By using this primitive in a semantic restriction rather than simply
+ * returning the value ⊤, we are able to indicate statically that a particular
+ * semantic restriction cannot strengthen the expression's type.  That's because
+ * this primitive is ⊥-valued, and therefore the semantic restriction body can
+ * itself be ⊥-valued.  If all semantic restrictions for a method are ⊥-valued,
+ * and if all method definitions are ⊤-valued, we can be assured that a call
+ * site can never produce a type stronger than ⊤.  Therefore it can never occur
+ * as an argument of a send – other than of a macro that explicitly allows
+ * ⊤-yielding expressions, such as "_!;", which is dealt with specially.  This
+ * distinction allows less pointless parsing to take place, in theory yielding
+ * both faster parsing and better diagnostics.</p>
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_036_ParamTypeAt
+public final class P_343_AcceptParsing
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_036_ParamTypeAt().init(
-			2, CannotFail, CanFold, CanInline);
+		new P_343_AcceptParsing().init(
+			0, Unknown);
 
 	@Override
 	public Result attempt (
@@ -57,43 +77,26 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 2;
-		final A_Type functionType = args.get(0);
-		final A_Number indexObject = args.get(1);
-		final A_Type parametersType = functionType.argsTupleType();
-		if (!indexObject.isInt())
+		assert args.size() == 0;
+		if (!interpreter.fiber().generalFlag(CAN_REJECT_PARSE))
 		{
-			if (parametersType.upperBound().lessThan(indexObject))
-			{
-				return interpreter.primitiveSuccess(
-					BottomTypeDescriptor.bottom());
-			}
-			return interpreter.primitiveSuccess(parametersType.defaultType());
+			return interpreter.primitiveFailure(E_UNTIMELY_PARSE_ACCEPTANCE);
 		}
-		final int index = indexObject.extractInt();
-		final A_Type argumentType =
-			functionType.argsTupleType().typeAtIndex(index);
-		return interpreter.primitiveSuccess(argumentType);
+		throw new AvailAcceptedParseException();
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				FunctionTypeDescriptor.meta(),
-				IntegerRangeTypeDescriptor.naturalNumbers()),
-			InstanceMetaDescriptor.anyMeta());
+			TupleDescriptor.from(),
+			BottomTypeDescriptor.bottom());
 	}
 
 	@Override
-	public Fallibility fallibilityForArgumentTypes (
-		final List<? extends A_Type> argumentTypes)
+	protected A_Type privateFailureVariableType ()
 	{
-//		final A_Type functionMeta = argumentTypes.get(0);
-		final A_Type indexType = argumentTypes.get(1);
-		return indexType.isSubtypeOf(PojoTypeDescriptor.intRange())
-			? CallSiteCannotFail
-			: CallSiteCanFail;
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_UNTIMELY_PARSE_ACCEPTANCE.numericCode());
 	}
 }

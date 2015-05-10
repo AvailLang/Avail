@@ -1220,23 +1220,33 @@ public class L2Translator
 		}
 
 		/**
-		 * Generate code to perform a multimethod invocation.
+		 * Generate code to perform a method invocation.  If a superUnionType
+		 * other than {@link BottomTypeDescriptor#bottom() bottom} is supplied,
+		 * produce a super-directed multimethod invocation.
 		 *
 		 * @param bundle
-		 *            The {@linkplain MessageBundleDescriptor message bundle} to
-		 *            invoke.
+		 *        The {@linkplain MessageBundleDescriptor message bundle} to
+		 *        invoke.
 		 * @param expectedType
-		 *            The expected return {@linkplain TypeDescriptor type}.
+		 *        The expected return {@linkplain TypeDescriptor type}.
+		 * @param superUnionType
+		 *        A tuple type to combine through a type union with the pushed
+		 *        arguments' dynamic types, to use during method lookup.  This
+		 *        is {@link BottomTypeDescriptor#bottom() bottom} for non-super
+		 *        calls.
 		 */
 		private void generateCall (
 			final A_Bundle bundle,
-			final A_Type expectedType)
+			final A_Type expectedType,
+			final A_Type superUnionType)
 		{
 			final A_Method method = bundle.bundleMethod();
 			contingentValues =
 				contingentValues.setWithElementCanDestroy(method, true);
-			final L2Instruction afterCall =
-				newLabel("After call"); // + bundle.message().toString());
+			final L2Instruction afterCall = newLabel(
+				superUnionType.isBottom()
+					? "After call"
+					: "After super call");
 			final int nArgs = method.numArgs();
 			final List<A_Type> argTypes = new ArrayList<>(nArgs);
 			final int initialStackp = stackp;
@@ -1248,7 +1258,9 @@ public class L2Translator
 			final List<A_Definition> allPossible = new ArrayList<>();
 			for (final A_Definition definition : method.definitionsTuple())
 			{
-				if (definition.bodySignature().couldEverBeInvokedWith(argTypes))
+				final A_Type signature = definition.bodySignature();
+				if (signature.couldEverBeInvokedWith(argTypes)
+					&& superUnionType.isSubtypeOf(signature.argsTupleType()))
 				{
 					allPossible.add(definition);
 					if (allPossible.size() > maxPolymorphismToInlineDispatch)
@@ -1256,7 +1268,7 @@ public class L2Translator
 						// It has too many possible implementations to be worth
 						// inlining all of them.
 						generateSlowPolymorphicCall(
-							bundle, expectedType, false);
+							bundle, expectedType, superUnionType);
 						return;
 					}
 				}
@@ -1264,7 +1276,7 @@ public class L2Translator
 			// NOTE: Don't use the method's testing tree.  It encodes
 			// information about the known types of arguments that may be too
 			// weak for our purposes.  It's still correct, but it may produce
-			// extra tests that supplying this site's argTypes would eliminate.
+			// extra tests that this site's argTypes would eliminate.
 			final LookupTree tree =
 				LookupTree.createRoot(method, allPossible, argTypes);
 			final Mutable<Integer> branchLabelCounter = new Mutable<Integer>(1);
@@ -1285,10 +1297,16 @@ public class L2Translator
 								argumentIndexToTest,
 								typeToTest,
 								branchLabelCounter.value++);
-						final L2ObjectRegister argRegister = stackRegister(
+						if (naiveRegisters == null)
+						{
+							// This code path is unreachable, so both children
+							// are as well.  Don't generate anything.
+							return memento;
+						}
+						final L2ObjectRegister argReg = stackRegister(
 							stackp + nArgs - argumentIndexToTest);
 						final A_Type existingType =
-							naiveRegisters().typeAt(argRegister);
+							naiveRegisters().typeAt(argReg);
 						// Strengthen the test based on what's already known
 						// about the argument.  Eventually we can decide whether
 						// to strengthen based on the expected cost of the type
@@ -1298,18 +1316,75 @@ public class L2Translator
 						assert
 							!intersection.isBottom()
 							: "Impossible condition should have been excluded";
-						if (intersection.isEnumeration()
+						// Tricky here.  We have the type we want to test for,
+						// and we have the argument for which we want to test
+						// the type, but we also have an element of the
+						// superUnionType to consider.  And that element might
+						// be a combination of restrictions and bottoms.  Deal
+						// with the easy, common cases first.
+						final A_Type superUnionElementType =
+							superUnionType.typeAtIndex(argumentIndexToTest);
+						if (naiveRegisters().hasConstantAt(argReg))
+						{
+							// The argument is a constant, so test it now.
+							// Take into account any supercasts.
+							final A_BasicObject value =
+								naiveRegisters().constantAt(argReg)
+									.typeUnion(superUnionElementType);
+							if (value.isInstanceOf(intersection))
+							{
+								// Generate code to always fall through to the
+								// true case, which comes first.
+							}
+							else
+							{
+								// Generate code to always jump to the false
+								// case.
+								addInstruction(
+									L2_JUMP.instance,
+									new L2PcOperand(memento.failCheckLabel));
+							}
+						}
+						else if (existingType.isSubtypeOf(
+							superUnionElementType))
+						{
+							// It's a pure supercast of this argument, not a mix
+							// of parts being supercast and others not.  Do the
+							// test once, right now.
+							if (superUnionElementType.isSubtypeOf(existingType))
+							{
+								// Only the true case should be reached.
+								// Let the code just fall through to it, and
+								// rely on dead code elimination to remove the
+								// false case.
+							}
+							else
+							{
+								// Only the false case should be reached.  Jump
+								// unconditionally to it, and rely on dead code
+								// elimination to remove the unreachable true
+								// case.
+								addInstruction(
+									L2_JUMP.instance,
+									new L2PcOperand(memento.failCheckLabel));
+							}
+						}
+						else if (superUnionElementType.isBottom()
+							&& intersection.isEnumeration()
 							&& !intersection.isInstanceMeta()
 							&& intersection.instanceCount().extractInt() <=
 								maxExpandedEqualityChecks)
 						{
+							// It doesn't contain a supercast, and the type is
+							// a small non-meta enumeration.  Use equality
+							// checks rather than the more general type checks.
 							final A_Set instances = intersection.instances();
 							if (instances.setSize() == 1)
 							{
 								addInstruction(
 									L2_JUMP_IF_DOES_NOT_EQUAL_CONSTANT.instance,
 									new L2PcOperand(memento.failCheckLabel),
-									new L2ReadPointerOperand(argRegister),
+									new L2ReadPointerOperand(argReg),
 									new L2ConstantOperand(
 										instances.iterator().next()));
 							}
@@ -1322,7 +1397,7 @@ public class L2Translator
 									addInstruction(
 										L2_JUMP_IF_EQUALS_CONSTANT.instance,
 										new L2PcOperand(matchedLabel),
-										new L2ReadPointerOperand(argRegister),
+										new L2ReadPointerOperand(argReg),
 										new L2ConstantOperand(instance));
 								}
 								addInstruction(
@@ -1331,12 +1406,48 @@ public class L2Translator
 								addLabel(matchedLabel);
 							}
 						}
-						else
+						else if (superUnionElementType.isBottom())
 						{
+							// Use the argument's type unaltered.  In fact, just
+							// check if the argument is an instance of the type.
 							addInstruction(
 								L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT.instance,
 								new L2PcOperand(memento.failCheckLabel),
-								new L2ReadPointerOperand(argRegister),
+								new L2ReadPointerOperand(argReg),
+								new L2ConstantOperand(intersection));
+						}
+						else
+						{
+							// This argument dispatch type is a mixture of
+							// supercasts and non-supercasts.  Do it the slow
+							// way with a type union.  Technically, the
+							// superUnionElementType's recursive tuple structure
+							// mimics the call site, so it must have a fixed,
+							// finite structure corresponding with occurrences
+							// of supercasts syntactically.  Thus, in theory we
+							// could analyze the superUnionElementType and
+							// generate a more complex collection of branches –
+							// but this is already a pretty rare case.
+							final L2ObjectRegister argTypeReg =
+								newObjectRegister();
+							final L2ObjectRegister superUnionReg =
+								newObjectRegister();
+							final L2ObjectRegister unionReg =
+								newObjectRegister();
+							addInstruction(
+								L2_GET_TYPE.instance,
+								new L2ReadPointerOperand(argReg),
+								new L2WritePointerOperand(argTypeReg));
+							moveConstant(superUnionElementType, superUnionReg);
+							addInstruction(
+								L2_TYPE_UNION.instance,
+								new L2ReadPointerOperand(argTypeReg),
+								new L2ReadPointerOperand(superUnionReg),
+								new L2WritePointerOperand(unionReg));
+							addInstruction(
+								L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT.instance,
+								new L2PcOperand(memento.failCheckLabel),
+								new L2ReadPointerOperand(unionReg),
 								new L2ConstantOperand(intersection));
 						}
 						return memento;
@@ -1384,13 +1495,19 @@ public class L2Translator
 					{
 						assert solutions != null;
 						assert stackp == initialStackp;
+						if (naiveRegisters == null)
+						{
+							// This leaf code path is unreachable, so don't
+							// generate anything.
+							return;
+						}
 						A_Definition solution;
 						if (solutions.size() == 1
 							&& (solution = solutions.get(0)).isInstanceOf(
 								METHOD_DEFINITION.o()))
 						{
 							generateFunctionInvocation(
-								solution.bodyBlock(), expectedType, false);
+								solution.bodyBlock(), expectedType);
 							// Reset for next type test or call.
 							stackp = initialStackp;
 						}
@@ -1404,10 +1521,8 @@ public class L2Translator
 								new ArrayList<>(nArgs);
 							for (int i = nArgs - 1; i >= 0; i--)
 							{
-								final L2ObjectRegister arg =
-									stackRegister(stackp + i);
-								assert naiveRegisters().hasTypeAt(arg);
-								argumentRegisters.add(arg);
+								argumentRegisters.add(
+									stackRegister(stackp + i));
 							}
 							final L2ObjectRegister errorCodeReg =
 								newObjectRegister();
@@ -1460,213 +1575,6 @@ public class L2Translator
 		}
 
 		/**
-		 * Generate code to perform a multimethod invocation.
-		 *
-		 * @param bundle
-		 *            The {@linkplain MessageBundleDescriptor message bundle} to
-		 *            invoke.
-		 * @param expectedType
-		 *            The expected return {@linkplain TypeDescriptor type}.
-		 */
-		private void generateSuperCall (
-			final A_Bundle bundle,
-			final A_Type expectedType)
-		{
-			final A_Method method = bundle.bundleMethod();
-			contingentValues =
-				contingentValues.setWithElementCanDestroy(method, true);
-			final L2Instruction afterCall =
-				newLabel("After super call"); // + bundle.message().toString());
-			final int nArgs = method.numArgs();
-			final List<A_Type> argTypes = new ArrayList<>(nArgs);
-			final int initialStackp = stackp;
-			for (int i = nArgs * 2 - 2; i >= 0; i -= 2)
-			{
-				final L2ObjectRegister typeReg = stackRegister(stackp + i);
-				final A_Type meta = naiveRegisters().typeAt(typeReg);
-				final A_Type type = meta.instance();
-				// Note that we lose information about exact types being used
-				// for a lookup.  At most we'd save some redundant type tests.
-				argTypes.add(type);
-			}
-			final List<A_Definition> allPossible = new ArrayList<>();
-			for (final A_Definition definition : method.definitionsTuple())
-			{
-				if (definition.bodySignature().couldEverBeInvokedWith(argTypes))
-				{
-					allPossible.add(definition);
-					if (allPossible.size() > maxPolymorphismToInlineDispatch)
-					{
-						// It has too many possible implementations to be worth
-						// inlining all of them.
-						generateSlowPolymorphicCall(
-							bundle, expectedType, true);
-						return;
-					}
-				}
-			}
-			// NOTE: Don't use the method's testing tree.  It encodes
-			// information about the known types of arguments that may be too
-			// weak for our purposes.  It's still correct, but it may produce
-			// extra tests that supplying this site's argTypes would eliminate.
-			final LookupTree tree =
-				LookupTree.createRoot(method, allPossible, argTypes);
-			final Mutable<Integer> branchLabelCounter = new Mutable<Integer>(1);
-			tree.<InternalNodeMemento>traverseEntireTree(
-				// preInternalNode
-				new Transformer2<Integer, A_Type, InternalNodeMemento>()
-				{
-					@Override
-					public @Nullable InternalNodeMemento value (
-						final @Nullable Integer argumentIndexToTest,
-						final @Nullable A_Type typeToTest)
-					{
-						assert argumentIndexToTest != null;
-						assert typeToTest != null;
-						assert stackp == initialStackp;
-						final InternalNodeMemento memento =
-							new InternalNodeMemento(
-								argumentIndexToTest,
-								typeToTest,
-								branchLabelCounter.value++);
-						final L2ObjectRegister argTypeReg = stackRegister(
-							stackp + (nArgs - argumentIndexToTest) * 2);
-						final A_Type existingType =
-							naiveRegisters().typeAt(argTypeReg).instance();
-						// Strengthen the test based on what's already known
-						// about the argument.  Eventually we can decide whether
-						// to strengthen based on the expected cost of the type
-						// check.
-						final A_Type intersection =
-							existingType.typeIntersection(typeToTest);
-						assert
-							!intersection.isBottom()
-							: "Impossible condition should have been excluded";
-						addInstruction(
-							L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT.instance,
-							new L2PcOperand(memento.failCheckLabel),
-							new L2ReadPointerOperand(argTypeReg),
-							new L2ConstantOperand(intersection));
-						return memento;
-					}
-				},
-				// intraInternalNode
-				new Continuation1<InternalNodeMemento> ()
-				{
-					@Override
-					public void value (
-						final @Nullable InternalNodeMemento memento)
-					{
-						assert memento != null;
-						if (naiveRegisters != null)
-						{
-							addInstruction(
-								L2_JUMP.instance,
-								new L2PcOperand(afterCall));
-						}
-						addLabel(memento.failCheckLabel);
-					}
-				},
-				// postInternalNode
-				new Continuation1<InternalNodeMemento> ()
-				{
-					@Override
-					public void value (
-						final @Nullable InternalNodeMemento memento)
-					{
-						assert memento != null;
-						if (naiveRegisters != null)
-						{
-							addInstruction(
-								L2_JUMP.instance,
-								new L2PcOperand(afterCall));
-						}
-					}
-				},
-				// forEachLeafNode
-				new Continuation1<List<A_Definition>>()
-				{
-					@Override
-					public void value(
-						final @Nullable List<A_Definition> solutions)
-					{
-						assert solutions != null;
-						assert stackp == initialStackp;
-						A_Definition solution;
-						if (solutions.size() == 1
-							&& (solution = solutions.get(0)).isInstanceOf(
-								METHOD_DEFINITION.o()))
-						{
-							generateFunctionInvocation(
-								solution.bodyBlock(), expectedType, true);
-							// Reset for next type test or call.
-							stackp = initialStackp;
-						}
-						else
-						{
-							// Collect the arguments into a tuple and invoke the
-							// handler for failed method lookups.
-							final A_Set solutionsSet =
-								SetDescriptor.fromCollection(solutions);
-							final List<L2ObjectRegister> argumentRegisters =
-								new ArrayList<>(nArgs);
-							for (int i = (nArgs - 1) * 2 + 1; i >= 1; i -= 2)
-							{
-								final L2ObjectRegister argReg =
-									stackRegister(stackp + i);
-								argumentRegisters.add(argReg);
-							}
-							final L2ObjectRegister errorCodeReg =
-								newObjectRegister();
-							addInstruction(
-								L2_DIAGNOSE_LOOKUP_FAILURE.instance,
-								new L2ConstantOperand(solutionsSet),
-								new L2WritePointerOperand(errorCodeReg));
-							final L2ObjectRegister invalidSendReg =
-								newObjectRegister();
-							addInstruction(
-								L2_GET_INVALID_MESSAGE_SEND_FUNCTION.instance,
-								new L2WritePointerOperand(invalidSendReg));
-							// Make the method itself accessible to the code.
-							final L2ObjectRegister methodReg =
-								newObjectRegister();
-							moveConstant(method, methodReg);
-							// Collect the arguments into a tuple.
-							final L2ObjectRegister argumentsTupleReg =
-								newObjectRegister();
-							addInstruction(
-								L2_CREATE_TUPLE.instance,
-								new L2ReadVectorOperand(
-									createVector(argumentRegisters)),
-								new L2WritePointerOperand(argumentsTupleReg));
-							final List<L2ObjectRegister> slots =
-								continuationSlotsList(numSlots);
-							// The continuation must be reified prior to
-							// invoking the failure function.
-							final L2Instruction unreachable =
-								newLabel("unreachable");
-							final L2ObjectRegister reifiedRegister =
-								newObjectRegister();
-							reify(slots, reifiedRegister, unreachable);
-							addInstruction(
-								L2_INVOKE.instance,
-								new L2ReadPointerOperand(reifiedRegister),
-								new L2ReadPointerOperand(invalidSendReg),
-								new L2ReadVectorOperand(createVector(
-									Arrays.asList(
-										errorCodeReg,
-										methodReg,
-										argumentsTupleReg))),
-								new L2ImmediateOperand(1));
-							unreachableCode(unreachable);
-						}
-					}
-				});
-			addLabel(afterCall);
-			stackp = initialStackp + nArgs * 2 - 1;
-		}
-
-		/**
 		 * Generate code to perform a monomorphic invocation.  The exact method
 		 * definition is known, so no lookup is needed at this position in the
 		 * code stream.
@@ -1675,15 +1583,10 @@ public class L2Translator
 		 *            The {@linkplain FunctionDescriptor function} to invoke.
 		 * @param expectedType
 		 *            The expected return {@linkplain TypeDescriptor type}.
-		 * @param argsAreInSuperLayout
-		 *            Whether this was looked up as a super call, with the
-		 *            arguments interspersed with their argument lookup types on
-		 *            the stack.
 		 */
 		public void generateFunctionInvocation (
 			final A_Function originalFunction,
-			final A_Type expectedType,
-			final boolean argsAreInSuperLayout)
+			final A_Type expectedType)
 		{
 			// The registers holding slot values that will constitute the
 			// continuation *during* a non-primitive call.
@@ -1702,16 +1605,6 @@ public class L2Translator
 			final List<A_Type> argTypes = new ArrayList<>(nArgs);
 			for (int i = nArgs; i >= 1; i--)
 			{
-				if (argsAreInSuperLayout)
-				{
-					// Skip an argument type slot.  Note that argTypes will
-					// still get the argument's type, not the argument *lookup*
-					// type.
-					preSlots.set(
-						numArgs + numLocals + stackp - 1,
-						fixed(NULL));
-					stackp++;
-				}
 				final L2ObjectRegister arg = stackRegister(stackp);
 				assert naiveRegisters().hasTypeAt(arg);
 				argTypes.add(0, naiveRegisters().typeAt(arg));
@@ -1848,10 +1741,7 @@ public class L2Translator
 								true);
 					}
 				}
-				// But the place we want to write this slot during explosion is
-				// the architectural register.  Eventually we'll support a
-				// throw-away target register for don't-cares like nil stack
-				// slots.
+				// Write the result to the architectural stack slot register.
 				postSlots.add(continuationSlot(slotIndex));
 			}
 			final L2Instruction postCallLabel = newLabel("postCall");
@@ -1933,14 +1823,16 @@ public class L2Translator
 		 *            containing the definition to invoke.
 		 * @param expectedType
 		 *            The expected return {@linkplain TypeDescriptor type}.
-		 * @param argsAreInSuperLayout
-		 *            Whether the arguments are interspersed with their argument
-		 *            lookup types on the stack for a super call.
+		 * @param superUnionType
+		 *            A tuple type whose union with the type of the arguments
+		 *            tuple at runtime is used for lookup.  The type ⊥ ({@link
+		 *            BottomTypeDescriptor#bottom() bottom}) is used to indicate
+		 *            this is not a super call.
 		 */
 		private void generateSlowPolymorphicCall (
 			final A_Bundle bundle,
 			final A_Type expectedType,
-			final boolean argsAreInSuperLayout)
+			final A_Type superUnionType)
 		{
 			final A_Method method = bundle.bundleMethod();
 			// The registers holding slot values that will constitute the
@@ -1955,29 +1847,12 @@ public class L2Translator
 			final List<L2ObjectRegister> preserved = new ArrayList<>(preSlots);
 			assert preserved.size() == numSlots;
 			final List<L2ObjectRegister> argRegs = new ArrayList<>(nArgs);
-			final List<L2ObjectRegister> argTypeRegs =
-				new ArrayList<L2ObjectRegister>();
 			for (int i = nArgs; i >= 1; i--)
 			{
-				if (argsAreInSuperLayout)
-				{
-					// Skip an argument type slot.  Note that argTypes will
-					// still get the argument's type, not the argument *lookup*
-					// type.
-					final L2ObjectRegister argTypeReg = stackRegister(stackp);
-					argTypeRegs.add(argTypeReg);
-					assert naiveRegisters().hasTypeAt(argTypeReg);
-					preSlots.set(
-						numArgs + numLocals + stackp - 1,
-						fixed(NULL));
-					stackp++;
-				}
 				final L2ObjectRegister argReg = stackRegister(stackp);
 				assert naiveRegisters().hasTypeAt(argReg);
 				argRegs.add(0, argReg);
-				preSlots.set(
-					numArgs + numLocals + stackp - 1,
-					fixed(NULL));
+				preSlots.set(numArgs + numLocals + stackp - 1, fixed(NULL));
 				stackp++;
 			}
 			stackp--;
@@ -2041,28 +1916,71 @@ public class L2Translator
 				// slots.
 				postSlots.add(continuationSlot(slotIndex));
 			}
-			final L2Instruction postCallLabel =
-				newLabel("postCall"); // + bundle.message().atomName());
+			final L2Instruction postCallLabel = newLabel("postCall");
 			reify(preSlots, tempCallerRegister, postCallLabel);
 			final L2Instruction lookupSucceeded = newLabel("lookupSucceeded");
 			final L2ObjectRegister functionReg = newObjectRegister();
 			final L2ObjectRegister errorCodeReg = newObjectRegister();
-			if (argsAreInSuperLayout)
+			if (superUnionType.isBottom())
 			{
 				addInstruction(
-					L2_LOOKUP_BY_TYPES.instance,
+					L2_LOOKUP_BY_VALUES.instance,
 					new L2SelectorOperand(bundle),
-					new L2ReadVectorOperand(createVector(argTypeRegs)),
+					new L2ReadVectorOperand(createVector(argRegs)),
 					new L2WritePointerOperand(functionReg),
 					new L2PcOperand(lookupSucceeded),
 					new L2WritePointerOperand(errorCodeReg));
 			}
 			else
 			{
+				// Extract a tuple type from the runtime types of the arguments,
+				// take the type union with the superUnionType, then perform a
+				// lookup-by-types using that tuple type.
+				final List<L2ObjectRegister> argTypeRegs =
+					new ArrayList<L2ObjectRegister>(nArgs);
+				for (int i = 1; i <= nArgs; i++)
+				{
+					final L2ObjectRegister argReg = argRegs.get(i - 1);
+					final A_Type argStaticType =
+						naiveRegisters().typeAt(argReg);
+					final A_Type superUnionElementType =
+						superUnionType.typeAtIndex(i);
+					final L2ObjectRegister argTypeReg = newObjectRegister();
+					if (argStaticType.isSubtypeOf(superUnionElementType))
+					{
+						// The lookup is entirely determined by the superunion.
+						moveConstant(superUnionElementType, argTypeReg);
+					}
+					else
+					{
+						addInstruction(
+							L2_GET_TYPE.instance,
+							new L2ReadPointerOperand(argReg),
+							new L2WritePointerOperand(argTypeReg));
+						if (!superUnionElementType.isBottom())
+						{
+							// The lookup is constrained by the actual
+							// argument's type *and* the superunion.  This is
+							// possible because this is a top-level argument,
+							// but it's the leaf arguments that individually
+							// specify supercasts.
+							final L2ObjectRegister superUnionElementReg =
+								newObjectRegister();
+							moveConstant(
+								superUnionElementType, superUnionElementReg);
+							addInstruction(
+								L2_TYPE_UNION.instance,
+								new L2ReadPointerOperand(argTypeReg),
+								new L2ReadPointerOperand(superUnionElementReg),
+								new L2WritePointerOperand(argTypeReg));
+						}
+					}
+					argTypeRegs.add(argTypeReg);
+				}
 				addInstruction(
-					L2_LOOKUP_BY_VALUES.instance,
+					L2_LOOKUP_BY_TYPES.instance,
 					new L2SelectorOperand(bundle),
-					new L2ReadVectorOperand(createVector(argRegs)),
+					new L2ReadVectorOperand(createVector(argTypeRegs)),
 					new L2WritePointerOperand(functionReg),
 					new L2PcOperand(lookupSucceeded),
 					new L2WritePointerOperand(errorCodeReg));
@@ -2819,7 +2737,10 @@ public class L2Translator
 		{
 			final AvailObject method = code.literalAt(getInteger());
 			final AvailObject expectedType = code.literalAt(getInteger());
-			generateCall(method, expectedType);
+			generateCall(
+				method,
+				expectedType,
+				BottomTypeDescriptor.bottom());
 		}
 
 		@Override
@@ -3164,102 +3085,12 @@ public class L2Translator
 		}
 
 		@Override
-		public void L1Ext_doGetType ()
-		{
-			final L2ObjectRegister valueReg = stackRegister(stackp);
-			stackp--;
-			final L2ObjectRegister typeReg = stackRegister(stackp);
-			addInstruction(
-				L2_GET_TYPE.instance,
-				new L2ReadPointerOperand(valueReg),
-				new L2WritePointerOperand(typeReg));
-		}
-
-		@Override
-		public void L1Ext_doMakeTupleAndType ()
-		{
-			final int count = getInteger();
-			final List<L2ObjectRegister> valuesVector = new ArrayList<>(count);
-			final List<L2ObjectRegister> typesVector = new ArrayList<>(count);
-			for (int i = 1; i <= count; i++)
-			{
-				typesVector.add(0, stackRegister(stackp++));
-				valuesVector.add(0, stackRegister(stackp++));
-			}
-			final L2ObjectRegister valueReg = stackRegister(--stackp);
-			final L2ObjectRegister typeReg = stackRegister(--stackp);
-			// Fold the values into a constant tuple if possible.
-{
-			final List<AvailObject> constants = new ArrayList<>(count);
-			for (final L2ObjectRegister reg : valuesVector)
-			{
-				if (!naiveRegisters().hasConstantAt(reg))
-				{
-					break;
-				}
-				constants.add(naiveRegisters().constantAt(reg));
-			}
-			if (constants.size() == count)
-			{
-				// The tuple elements are all constants.  Fold it.
-				final A_Tuple tuple = TupleDescriptor.fromList(constants);
-				addInstruction(
-					L2_MOVE_CONSTANT.instance,
-					new L2ConstantOperand(tuple),
-					new L2WritePointerOperand(valueReg));
-			}
-			else
-			{
-				addInstruction(
-					L2_CREATE_TUPLE.instance,
-					new L2ReadVectorOperand(createVector(valuesVector)),
-					new L2WritePointerOperand(valueReg));
-			}
-}
-			// Fold the types into constant tuple type if possible.
-			final List<AvailObject> constantTypes = new ArrayList<>(count);
-			for (final L2ObjectRegister reg : typesVector)
-			{
-				if (!naiveRegisters().hasConstantAt(reg))
-				{
-					break;
-				}
-				constantTypes.add(naiveRegisters().constantAt(reg));
-			}
-			if (constantTypes.size() == count)
-			{
-				// The types are all constants.  Fold it.
-				final A_Type tupleType = TupleTypeDescriptor.forTypes(
-					constantTypes.toArray(new A_Type[count]));
-				addInstruction(
-					L2_MOVE_CONSTANT.instance,
-					new L2ConstantOperand(tupleType),
-					new L2WritePointerOperand(typeReg));
-			}
-			else
-			{
-				addInstruction(
-					L2_CREATE_TUPLE_TYPE.instance,
-					new L2ReadVectorOperand(createVector(typesVector)),
-					new L2WritePointerOperand(valueReg));
-			}
-			// Clean up the stack slots.  That's all but the first two slots,
-			// which were just replaced by the tuple and tuple type.  Those two
-			// slots are also the first elements of the valuesVector and
-			// typesVector.
-			for (int i = 1; i < count; i++)
-			{
-				moveNil(valuesVector.get(i));
-				moveNil(typesVector.get(i));
-			}
-		}
-
-		@Override
 		public void L1Ext_doSuperCall ()
 		{
 			final AvailObject method = code.literalAt(getInteger());
 			final AvailObject expectedType = code.literalAt(getInteger());
-			generateSuperCall(method, expectedType);
+			final AvailObject superUnionType = code.literalAt(getInteger());
+			generateCall(method, expectedType, superUnionType);
 		}
 
 		@Override

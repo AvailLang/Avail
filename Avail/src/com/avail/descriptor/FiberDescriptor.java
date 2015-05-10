@@ -1570,6 +1570,71 @@ extends Descriptor
 	}
 
 	/**
+	 * Look up the {@linkplain DeclarationNodeDescriptor declaration} with the
+	 * given name in the current compiler scope.  This information is associated
+	 * with the current {@link Interpreter}, and therefore the {@linkplain
+	 * A_Fiber fiber} that it is executing.  If no such binding exists, answer
+	 * {@code null}.  The module scope is not consulted by this mechanism.
+	 *
+	 * @param name
+	 *        The name of the binding to look up in the current scope.
+	 * @return The {@linkplain DeclarationNodeDescriptor declaration} that was
+	 *         requested, or {@code null} if there is no binding in scope with
+	 *         that name.
+	 */
+	public static @Nullable A_Phrase lookupBindingOrNull (
+		final A_String name)
+	{
+		final A_Fiber fiber = current();
+		final A_Map fiberGlobals = fiber.fiberGlobals();
+		final A_Map clientData = fiberGlobals.mapAt(
+			AtomDescriptor.clientDataGlobalKey());
+		final A_Map bindings = clientData.mapAt(
+			AtomDescriptor.compilerScopeMapKey());
+		if (bindings.hasKey(name))
+		{
+			return bindings.mapAt(name);
+		}
+		return null;
+	}
+
+	/**
+	 * Attempt to add the declaration to the compiler scope information within
+	 * the client data stored in the current fiber.  If there is already a
+	 * declaration by that name, return it; otherwise return {@code null}.
+	 *
+	 * @param declaration A {@link DeclarationNodeDescriptor declaration}.
+	 * @return {@code Null} if successful, otherwise the existing {@link
+	 *         DeclarationNodeDescriptor declaration} that was in conflict.
+	 */
+	public static @Nullable A_Phrase addDeclaration (
+		final A_Phrase declaration)
+	{
+		final A_Atom clientDataGlobalKey =
+			AtomDescriptor.clientDataGlobalKey();
+		final A_Atom compilerScopeMapKey =
+			AtomDescriptor.compilerScopeMapKey();
+		final A_Fiber fiber = current();
+		A_Map fiberGlobals = fiber.fiberGlobals();
+		A_Map clientData = fiberGlobals.mapAt(clientDataGlobalKey);
+		A_Map bindings = clientData.mapAt(compilerScopeMapKey);
+		final A_String declarationName = declaration.token().string();
+		assert declarationName.isString();
+		if (bindings.hasKey(declarationName))
+		{
+			return bindings.mapAt(declarationName);
+		}
+		bindings = bindings.mapAtPuttingCanDestroy(
+			declarationName, declaration, true);
+		clientData = clientData.mapAtPuttingCanDestroy(
+			compilerScopeMapKey, bindings, true);
+		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
+			clientDataGlobalKey, clientData, true);
+		fiber.fiberGlobals(fiberGlobals.makeShared());
+		return null;
+	}
+
+	/**
 	 * Construct a new {@link FiberDescriptor}.
 	 *
 	 * @param mutability

@@ -59,11 +59,9 @@ public final class P_200_CatchException extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 3;
-		@SuppressWarnings("unused")
-		final A_BasicObject bodyBlock = args.get(0);
+//		final A_BasicObject bodyBlock = args.get(0);
 		final A_Tuple handlerBlocks = args.get(1);
-		@SuppressWarnings("unused")
-		final A_BasicObject optionalEnsureBlock = args.get(2);
+//		final A_BasicObject optionalEnsureBlock = args.get(2);
 		for (final A_BasicObject block : handlerBlocks)
 		{
 			if (!block.kind().argsTupleType().typeAtIndex(1).isSubtypeOf(

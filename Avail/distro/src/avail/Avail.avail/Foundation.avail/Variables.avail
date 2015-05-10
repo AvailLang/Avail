@@ -662,7 +662,18 @@ Public macro "«…‡,»::=_;" is
 		true
 	];
 	strongBindings ::=
-		cast bindings into [t : <<>, phrase…|natural number> | t];
+		cast bindings into [t : <<>, declaration phrase…|natural number> | t];
+	/* Now add them all to the scope. */
+	From 2 to |strongBindings| do
+	[
+		index : natural number
+	|
+		declaration ::= strongBindings[index];
+		name ::= declaration's token's lexeme;
+		scope map := cast scope map + name→declaration
+			into [t : {nonempty string → declaration phrase|whole number} | t];
+		true
+	];
 	seq «strongBindings»
 ];
 
@@ -735,7 +746,18 @@ Public macro "«…‡,»::=_;" is
 		true
 	];
 	strongBindings ::=
-		cast bindings into [t : <<>, phrase…|natural number> | t];
+		cast bindings into [t : <<>, declaration phrase…|natural number> | t];
+	/* Now add them all to the scope. */
+	From 2 to |strongBindings| do
+	[
+		index : natural number
+	|
+		declaration ::= strongBindings[index];
+		name ::= declaration's token's lexeme;
+		scope map := cast scope map + name→declaration
+			into [t : {nonempty string → declaration phrase|whole number} | t];
+		true
+	];
 	seq «strongBindings»
 ];
 

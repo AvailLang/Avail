@@ -58,8 +58,7 @@ public final class P_317_DoubleExp extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
-		@SuppressWarnings("unused")
-		final A_BasicObject euler = args.get(0);
+//		final A_BasicObject euler = args.get(0);
 		final AvailObject a = args.get(1);
 		return interpreter.primitiveSuccess(
 			DoubleDescriptor.objectFromDoubleRecycling(

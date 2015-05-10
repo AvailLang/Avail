@@ -147,10 +147,8 @@ public final class AvailRuntime
 	public static void readBarrier ()
 	{
 		@SuppressWarnings("unused")
-		final
-		int ignored = synchronizationBarrierField;
+		final int ignored = synchronizationBarrierField;
 	}
-
 
 	/**
 	 * Answer the build version, as set by the build process.
@@ -1184,7 +1182,7 @@ public final class AvailRuntime
 	 * AvailRuntime runtime}.
 	 */
 	private static final AvailObject[] specialObjects =
-		new AvailObject[150];
+		new AvailObject[160];
 
 	/**
 	 * An unmodifiable {@link List} of the {@linkplain AvailRuntime runtime}'s
@@ -1504,6 +1502,10 @@ public final class AvailRuntime
 		specials[143] = AtomDescriptor.clientDataGlobalKey();
 		specials[144] = AtomDescriptor.compilerScopeMapKey();
 		specials[145] = AtomDescriptor.allTokensKey();
+		specials[146] = IntegerRangeTypeDescriptor.int32();
+		specials[147] = IntegerRangeTypeDescriptor.int64();
+		specials[148] = STATEMENT_NODE.mostGeneralType();
+		specials[149] = AtomDescriptor.compilerScopeStackKey();
 
 		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
 		// depends on the order of this list.
@@ -1526,6 +1528,7 @@ public final class AvailRuntime
 			MethodDescriptor.vmDeclareStringifierAtom(),
 			AtomDescriptor.clientDataGlobalKey(),
 			AtomDescriptor.compilerScopeMapKey(),
+			AtomDescriptor.compilerScopeStackKey(),
 			AtomDescriptor.allTokensKey()));
 
 		for (final A_Atom atom : specialAtomsList)

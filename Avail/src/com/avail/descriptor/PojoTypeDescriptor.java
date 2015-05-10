@@ -287,9 +287,7 @@ extends TypeDescriptor
 	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
 	 * corresponds to Java {@code int}.
 	 */
-	private static final A_Type intRange = IntegerRangeTypeDescriptor.inclusive(
-		IntegerDescriptor.fromInt(Integer.MIN_VALUE),
-		IntegerDescriptor.fromInt(Integer.MAX_VALUE)).makeShared();
+	private static final A_Type intRange = IntegerRangeTypeDescriptor.int32();
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -306,10 +304,7 @@ extends TypeDescriptor
 	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
 	 * corresponds to Java {@code long}.
 	 */
-	private static final A_Type longRange =
-		IntegerRangeTypeDescriptor.inclusive(
-			IntegerDescriptor.fromLong(Long.MIN_VALUE),
-			IntegerDescriptor.fromLong(Long.MAX_VALUE)).makeShared();
+	private static final A_Type longRange = IntegerRangeTypeDescriptor.int64();
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}

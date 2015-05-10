@@ -140,7 +140,7 @@ public class AvailDocumentationJSONObjectGenerator
 
 		} catch (final IOException e) {
 			throw new IOException(
-				String.format("Could not create/write to", filePathName));
+				String.format("Could not create/write to %s.", filePathName));
 		}
 	}
 

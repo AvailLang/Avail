@@ -64,42 +64,40 @@ public final class P_406_BootstrapConstantDeclarationMacro extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
-		final A_Phrase constantNameLiteralNode = args.get(0);
+		final A_Phrase constantNameLiteral = args.get(0);
 		final A_Phrase initializationExpression = args.get(1);
 
-		assert constantNameLiteralNode.isInstanceOfKind(
-			LITERAL_NODE.mostGeneralType());
-		final A_Token syntheticLiteralNameToken =
-			constantNameLiteralNode.token();
-		assert syntheticLiteralNameToken.isLiteralToken();
-		assert syntheticLiteralNameToken.tokenType() == SYNTHETIC_LITERAL;
-		final A_Token innerNameToken = syntheticLiteralNameToken.literal();
-		assert innerNameToken.isInstanceOfKind(TOKEN.o());
-		if (innerNameToken.tokenType() != KEYWORD)
+		final A_Token nameToken = constantNameLiteral.token().literal();
+		final A_String nameString = nameToken.string();
+		if (nameToken.tokenType() != KEYWORD)
 		{
 			throw new AvailRejectedParseException(
-				"new constant name to be alphanumeric");
+				"new constant name to be alphanumeric, not %s",
+				nameString);
 		}
 		final A_Type initializationType =
 			initializationExpression.expressionType();
-		if (initializationType.isTop())
+		if (initializationType.isTop() || initializationType.isBottom())
 		{
 			throw new AvailRejectedParseException(
-				"constant initialization expression to have a type"
-				+ " other than ⊤");
+				"constant initialization expression to have a type other "
+				+ "than %s",
+				initializationType);
 		}
-		if (initializationType.isBottom())
-		{
-			throw new AvailRejectedParseException(
-				"constant initialization expression to have a type"
-				+ " other than ⊥");
-		}
-
 		final A_Phrase constantDeclaration =
 			DeclarationNodeDescriptor.newConstant(
-				innerNameToken,
-				initializationExpression);
-		constantDeclaration.makeImmutable();
+				nameToken, initializationExpression);
+		final A_Phrase conflictingDeclaration =
+			FiberDescriptor.addDeclaration(constantDeclaration);
+		if (conflictingDeclaration != null)
+		{
+			throw new AvailRejectedParseException(
+				"local constant %s to have a name that doesn't shadow an "
+				+ "existing %s (from line %d)",
+				nameString,
+				conflictingDeclaration.declarationKind().nativeKindName(),
+				conflictingDeclaration.token().lineNumber());
+		}
 		return interpreter.primitiveSuccess(constantDeclaration);
 	}
 

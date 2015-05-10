@@ -287,12 +287,18 @@ extends A_BasicObject
 	void emitAllValuesOn (AvailCodeGenerator codeGenerator);
 
 	/**
-	 * This is a {@link SuperCastNodeDescriptor super cast node}; answer the
-	 * type by which this argument should be looked up.
+	 * If this is a {@link SuperCastNodeDescriptor super cast node}, then answer
+	 * the type by which this argument should be looked up.  If it is not and
+	 * does not contain a super cast node in its recursive list node structure,
+	 * then answer bottom.  Otherwise create a (recursive) tuple type where
+	 * elements that are supercasts provide their lookup types and the rest
+	 * provide bottom.
 	 *
-	 * @return The type to use for this argument when performing a call.
+	 * @return A tuple type with which to compute a type union with the runtime
+	 *         argument types to use for looking up a method definition at a
+	 *         call site.  May be bottom.
 	 */
-	A_Type typeForLookup ();
+	A_Type superUnionType ();
 
 	/**
 	 * This is an expression acting as an argument, a recursive {@linkplain
@@ -306,21 +312,6 @@ extends A_BasicObject
 	 *         list containing one.
 	 */
 	boolean hasSuperCast ();
-
-	/**
-	 * Emit code for this phrase, leaving its value and its type on the stack.
-	 *
-	 * @param codeGenerator Where to emit the code.
-	 */
-	void emitForSuperSendOn (AvailCodeGenerator codeGenerator);
-
-	/**
-	 * Emit code for each element of this list phrase, leaving the values and
-	 * types interspersed on the stack.
-	 *
-	 * @param codeGenerator Where to emit the code.
-	 */
-	void emitAllForSuperSendOn (AvailCodeGenerator codeGenerator);
 
 	/**
 	 * Answer the number of expressions in this list phrase.

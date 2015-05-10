@@ -36,6 +36,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 
 /**
@@ -54,7 +55,8 @@ extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public static final Primitive instance =
-		new P_151_ObjectTypeToTuple().init(1, CannotFail, CanFold, CanInline);
+		new P_151_ObjectTypeToTuple().init(
+			1, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
@@ -64,6 +66,15 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Type objectType = args.get(0);
+		if (objectType.isBottom())
+		{
+			// The correct answer would be a tuple of pairs, where *every* atom
+			// occurs as a first element, and ⊥ occurs as every second element.
+			// It's easier to just fail dynamically for this unrepresentable
+			// singularity.
+			return interpreter.primitiveFailure(
+				AvailErrorCode.E_NO_SUCH_FIELD);
+		}
 		return interpreter.primitiveSuccess(objectType.fieldTypeTuple());
 	}
 

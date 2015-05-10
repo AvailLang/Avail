@@ -1,5 +1,5 @@
 /**
- * P_403_BootstrapBlockLocalDeclarationMacro.java
+ * P_403_BootstrapPrefixPostStatement.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,35 +32,28 @@
 
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
-import com.avail.annotations.Nullable;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
-import com.avail.utility.MutableOrNull;
-import com.avail.utility.evaluation.Continuation1;
 
 /**
- * The {@code P_403_BootstrapBlockLocalDeclarationMacro} primitive is used for
- * bootstrapping a {@linkplain DeclarationNodeDescriptor declaration} of a
- * {@link #LOCAL_VARIABLE} or {@link #LOCAL_CONSTANT} within a block.
+ * The {@code P_403_BootstrapPrefixPostStatement} primitive is used for
+ * ensuring that statements are top-valued before over-parsing.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_403_BootstrapBlockLocalDeclarationMacro extends Primitive
+public final class P_403_BootstrapPrefixPostStatement extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_403_BootstrapBlockLocalDeclarationMacro().init(
+		new P_403_BootstrapPrefixPostStatement().init(
 			4, Unknown, Bootstrap);
 
 	@Override
@@ -90,56 +83,10 @@ public final class P_403_BootstrapBlockLocalDeclarationMacro extends Primitive
 			statementsPhrase.expressionAt(statementCountSoFar);
 		final A_Phrase latestStatement =
 			latestStatementLiteral.token().literal();
-		final MutableOrNull<AvailErrorCode> error = new MutableOrNull<>();
-		latestStatement.statementsDo(new Continuation1<A_Phrase>()
+		if (!latestStatement.expressionType().equals(TOP.o()))
 		{
-			@Override
-			public void value (final @Nullable A_Phrase statement)
-			{
-				assert statement != null;
-				if (!statement.parseNodeKindIsUnder(DECLARATION_NODE))
-				{
-					// This isn't a declaration, it's some other kind of
-					// statement. For now, just ensure it has type ⊤.  The
-					// macro body will deal with it later.
-					if (!statement.expressionType().equals(TOP.o()))
-					{
-						throw new AvailRejectedParseException(
-							"statement to have type ⊤");
-					}
-					return;
-				}
-				final DeclarationKind declarationKind =
-					statement.declarationKind();
-				if (declarationKind != LOCAL_CONSTANT
-					&& declarationKind != LOCAL_VARIABLE)
-				{
-					// I don't know why there's a non-local declaration in here.
-					throw new AvailRejectedParseException(
-						"declaration to be a local variable or constant, "
-						+ "not %s",
-						declarationKind.name());
-				}
-				error.value = loader.addDeclaration(statement);
-				if (error.value != null)
-				{
-					if (error.value() == E_LOCAL_DECLARATION_SHADOWS_ANOTHER)
-					{
-						throw new AvailRejectedParseException(
-							"local %s %s to have a name that doesn't shadow "
-							+ "another local declaration",
-							declarationKind == LOCAL_CONSTANT
-								? "constant"
-								: "variable",
-							statement.token().string());
-					}
-					return;
-				}
-			}
-		});
-		if (error.value != null)
-		{
-			return interpreter.primitiveFailure(error.value());
+			throw new AvailRejectedParseException(
+				"statement to have type ⊤");
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}

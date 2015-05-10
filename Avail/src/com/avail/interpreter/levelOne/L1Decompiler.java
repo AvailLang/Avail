@@ -307,11 +307,6 @@ public class L1Decompiler
 		dup,
 
 		/**
-		 * A marker standing for the type of some value that was on the stack.
-		 */
-		getType,
-
-		/**
 		 * A marker indicating the value below it has been permuted, and should
 		 * be checked by a subsequent call operation;
 		 */
@@ -813,28 +808,16 @@ public class L1Decompiler
 		}
 
 		@Override
-		public void L1Ext_doGetType ()
-		{
-			pushExpression(MarkerTypes.getType.marker);
-		}
-
-		@Override
-		public void L1Ext_doMakeTupleAndType ()
-		{
-			final int listSize = getInteger();
-			final A_Phrase listNode = reconstructListWithSupercasts(listSize);
-			pushExpression(listNode);
-			pushExpression(MarkerTypes.getType.marker);
-		}
-
-		@Override
 		public void L1Ext_doSuperCall ()
 		{
 			final A_Bundle bundle = code.literalAt(getInteger());
 			final A_Type type = code.literalAt(getInteger());
+			final A_Type superUnionType = code.literalAt(getInteger());
+
 			final A_Method method = bundle.bundleMethod();
 			final int nArgs = method.numArgs();
-			final A_Phrase argsNode = reconstructListWithSupercasts(nArgs);
+			final A_Phrase argsNode =
+				reconstructListWithSuperUnionType(nArgs, superUnionType);
 			final A_Phrase sendNode = SendNodeDescriptor.from(
 				TupleDescriptor.empty(), bundle, argsNode, type);
 			pushExpression(sendNode);
@@ -864,21 +847,24 @@ public class L1Decompiler
 		}
 
 		/**
-		 * Given that there are {@code nArgs} values and types interleaved on
-		 * the stack, pop all 2*nArgs of them, and build a suitable list phrase
-		 * (or permuted list phrase if there was also a permutation literal and
-		 * permute marker pushed after).  The list phrase either includes at
-		 * least one supercast directly, or contains at least one list phrase
-		 * recursively that includes one or more supercasts.  The non-supercast
-		 * elements have getType markers instead of type literals.
+		 * There are {@code nArgs} values on the stack.  Pop them all, and build
+		 * a suitable list phrase (or permuted list phrase if there was also a
+		 * permutation literal and permute marker pushed after).  The passed
+		 * superUnionType is a tuple type that says how to adjust the lookup by
+		 * first producing a type union with it and the actual arguments' types.
 		 *
 		 * @param nArgs
-		 *        The number of <argument, type> pairs to expect on the stack.
-		 *        This is also the size of the resulting list phrase.
+		 *        The number of arguments to expect on the stack.  This is also
+		 *        the size of the resulting list phrase.
+		 * @param superUnionType
+		 *        The tuple type which will be type unioned with the runtime
+		 *        argument types prior to lookup.
 		 * @return A list phrase or permuted list phrase containing at least one
 		 *         supercast somewhere within the recursive list structure.
 		 */
-		private A_Phrase reconstructListWithSupercasts (final int nArgs)
+		private A_Phrase reconstructListWithSuperUnionType (
+			final int nArgs,
+			final A_Type superUnionType)
 		{
 			@Nullable A_Tuple permutationTuple = null;
 			if (nArgs > 1
@@ -893,46 +879,70 @@ public class L1Decompiler
 				popExpression();
 				final A_Phrase permutationLiteral = popExpression();
 				assert permutationLiteral.parseNodeKindIsUnder(LITERAL_NODE);
-				final A_Tuple bigPermutationTuple =
-					permutationLiteral.token().literal();
-				// Since this is a super call, the permutation tuple was doubled
-				// in length to cause the <value,type> pairs (found in
-				// consecutive slots) to be permuted as a unit.  Undo the
-				// doubling to get the original permutation.
-				final int bigPermutationSize = bigPermutationTuple.tupleSize();
-				final List<Integer> undoubled =
-					new ArrayList<>(bigPermutationSize >> 1);
-				for (int i = 2; i <= bigPermutationSize; i += 2)
-				{
-					undoubled.add(bigPermutationTuple.tupleIntAt(i) >> 1);
-				}
-				permutationTuple = TupleDescriptor.fromIntegerList(undoubled);
+				permutationTuple = permutationLiteral.token().literal();
 			}
-			final List<A_Phrase> argsList = new ArrayList<>(nArgs);
-			for (int i = 1; i <= nArgs; i++)
-			{
-				final A_Phrase argTypeExpr = popExpression();
-				final A_Phrase arg = popExpression();
-				if (argTypeExpr.equals(MarkerTypes.getType.marker))
-				{
-					argsList.add(0, arg);
-				}
-				else
-				{
-					argsList.add(
-						0,
-						SuperCastNodeDescriptor.create(
-							arg,
-							argTypeExpr.token().literal()));
-				}
-			}
+			final List<A_Phrase> argsList = popExpressions(nArgs);
 			final A_Phrase listNode = ListNodeDescriptor.newExpressions(
 				TupleDescriptor.fromList(argsList));
 			final A_Phrase argsNode = permutationTuple != null
 				? PermutedListNodeDescriptor.fromListAndPermutation(
 					listNode, permutationTuple)
 				: listNode;
-			return argsNode;
+			return adjustSuperCastsIn(argsNode, superUnionType);
+		}
+
+		/**
+		 * Convert some of the descendants within a {@link ListNodeDescriptor
+		 * list phrase} into {@link SuperCastNodeDescriptor supercasts}, based
+		 * on the given superUnionType.  Because the phrase is processed
+		 * recursively, some invocations will pass a non-list phrase.
+		 */
+		private A_Phrase adjustSuperCastsIn (
+			final A_Phrase phrase,
+			final A_Type superUnionType)
+		{
+			if (superUnionType.isBottom())
+			{
+				// No supercasts in this argument.
+				return phrase;
+			}
+			else if (phrase.parseNodeKindIsUnder(PERMUTED_LIST_NODE))
+			{
+				// Apply the superUnionType's elements to the permuted list.
+				final A_Tuple permutation = phrase.permutation();
+				final A_Phrase list = phrase.list();
+				final int size = list.expressionsSize();
+				final A_Phrase[] outputArray = new A_Phrase[size];
+				for (int i = 1; i <= size; i++)
+				{
+					final int index = permutation.tupleIntAt(i);
+					final A_Phrase element = list.expressionAt(index);
+					outputArray[index - 1] = adjustSuperCastsIn(
+						element, superUnionType.typeAtIndex(i));
+				}
+				return PermutedListNodeDescriptor.fromListAndPermutation(
+					ListNodeDescriptor.newExpressions(
+						TupleDescriptor.from(outputArray)),
+						permutation);
+			}
+			else if (phrase.parseNodeKindIsUnder(LIST_NODE))
+			{
+				// Apply the superUnionType's elements to the list.
+				final int size = phrase.expressionsSize();
+				final A_Phrase[] outputArray = new A_Phrase[size];
+				for (int i = 1; i <= size; i++)
+				{
+					final A_Phrase element = phrase.expressionAt(i);
+					outputArray[i - 1] = adjustSuperCastsIn(
+						element, superUnionType.typeAtIndex(i));
+				}
+				return ListNodeDescriptor.newExpressions(
+					TupleDescriptor.from(outputArray));
+			}
+			else
+			{
+				return SuperCastNodeDescriptor.create(phrase, superUnionType);
+			}
 		}
 	};
 

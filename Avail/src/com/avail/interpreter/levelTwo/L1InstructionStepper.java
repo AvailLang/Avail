@@ -838,37 +838,11 @@ implements L1OperationDispatcher
 	}
 
 	@Override
-	public void L1Ext_doGetType ()
-	{
-		final int stackp = integerAt(stackpRegister());
-		final AvailObject value = pointerAt(stackp);
-		// It's still on the stack and referenced from the type, so make it
-		// immutable.
-		value.makeImmutable();
-		push(AbstractEnumerationTypeDescriptor.withInstance(value));
-	}
-
-	@Override
-	public void L1Ext_doMakeTupleAndType ()
-	{
-		final int count = getInteger();
-		final A_Tuple tuple = ObjectTupleDescriptor.createUninitialized(count);
-		final A_Type[] types = new A_Type[count];
-		for (int i = count; i >= 1; i--)
-		{
-			types[i - 1] = pop();
-			tuple.objectTupleAtPut(i, pop());
-		}
-		tuple.hashOrZero(0);
-		push(tuple);
-		push(TupleTypeDescriptor.forTypes(types));
-	}
-
-	@Override
 	public void L1Ext_doSuperCall ()
 	{
 		final A_Bundle bundle = literalAt(getInteger());
 		final A_Type expectedReturnType = literalAt(getInteger());
+		final A_Type superUnionType = literalAt(getInteger());
 		final int numArgs = bundle.bundleMethod().numArgs();
 		if (debugL1)
 		{
@@ -879,22 +853,22 @@ implements L1OperationDispatcher
 				bundle.message().atomName());
 		}
 		argsBuffer.clear();
-		final A_Tuple typesTuple =
-			ObjectTupleDescriptor.createUninitialized(numArgs);
+		final A_Type[] typesArray = new A_Type[numArgs];
 		for (int i = numArgs; i >= 1; i--)
 		{
-			typesTuple.objectTupleAtPut(i, pop());
-			argsBuffer.add(0, pop());
+			final AvailObject arg = pop();
+			argsBuffer.add(0, arg);
+			typesArray[i - 1] =
+				AbstractEnumerationTypeDescriptor.withInstance(arg).typeUnion(
+					superUnionType.typeAtIndex(i));
 		}
-		typesTuple.hashOrZero(0);
-
-
 		final A_Method method = bundle.bundleMethod();
 		final MutableOrNull<AvailErrorCode> errorCode = new MutableOrNull<>();
 		A_Definition matching;
 		try
 		{
-			matching = method.lookupByTypesFromTuple(typesTuple);
+			matching = method.lookupByTypesFromTuple(
+				TupleDescriptor.from(typesArray));
 		}
 		catch (final MethodDefinitionException e)
 		{

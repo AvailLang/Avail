@@ -426,11 +426,13 @@ Public method "tuple body function(_,_)" is
 			into [t : phrase+ | t[|t|]'s semantic type]
 			else [⊤];
 		name ::= elementPhrase's token's lexeme;
+		declaration ::= scope map[name];
+		Undeclare name;
 		restricted send anAtom with
 		<
 			aTuple, 
 			«[
-				<cast scope map[name] into [d : argument phrase | d]>
+				<cast declaration into [d : argument phrase | d]>
 			 | 
 				statements
 			] : blockReturnType»
@@ -481,12 +483,16 @@ Private method "«indexed»?two-input tuple body function(_,_)" is
 		
 		firstInputName ::= firstInputPhrase's token's lexeme;
 		secondInputName ::= secondInputPhrase's token's lexeme;
-				
+		firstInputDeclaration ::= castToPhrase(firstInputName);
+		secondInputDeclaration ::= castToPhrase(secondInputName);
+		Undeclare firstInputName;
+		Undeclare secondInputName;
+
 		restricted send anAtom with
 		<
 			aTuple,
 			«[
-				<castToPhrase(firstInputName), castToPhrase(secondInputName)>
+				<firstInputDeclaration, secondInputDeclaration>
 			|
 				statements
 			] : blockReturnType»
@@ -887,11 +893,15 @@ Macro "reject each…from_§where_" is a tuple iteration prefix function,
 	blockReturnType ::= cast newStatements
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
+
+	declaration ::= scope map[name];
+	Undeclare name;
+
 	restricted send $"filter_by_" with
 	<
 		aTuple, 
 		«[
-			<cast scope map[name] into [d : argument phrase | d]>
+			<cast declaration into [d : argument phrase | d]>
 		 | 
 		 	newStatements
 		] : blockReturnType»
@@ -961,11 +971,17 @@ Macro "reject each…,…from_§where_" is
 		 	[e : expression phrase⇒any | e];
 	 	statements[..end] ++ <restricted send $"¬_" with <c> : boolean>
 	];
+	
+	elementDeclaration ::= castToPhrase(elementName);
+	indexDeclaration ::= castToPhrase(indexName);
+	Undeclare elementName;
+	Undeclare indexName;
+	
 	restricted send $"filter_by_" with
 	<
 		aTuple,
 		«[
-			<castToPhrase(elementName), castToPhrase(indexName)>
+			<elementDeclaration, indexDeclaration>
 		|
 			newStatements
 		] : blockReturnType»
@@ -4738,20 +4754,4 @@ Semantic restriction "_padded with_to a multiple of_" is
 	min ::= ⎣tupleType⎦;
 	max ::= 0 max (⎡tupleType⎤ + ⎡baseType⎤ - 1);
 	<unionType…|min..max>
-];
-
-Method "_+_" is stable at [tuple,any]→tuple;
-
-/**
- * @method "_+_"
- * @restricts "tuple's type"
- * @restricts "any's type"
- */
- 
-Semantic restriction "_+_" is
-[
-	tupleType : tuple's type,
-	elementType : any's type
-|
-	tupleType ++ <elementType…|1>
 ];

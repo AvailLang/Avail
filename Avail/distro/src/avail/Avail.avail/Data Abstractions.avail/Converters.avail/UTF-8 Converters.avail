@@ -37,8 +37,7 @@ Uses
 	"Abstract Converters",
 	"Foundation",
 	"Iterators",
-	"Converting Reader",
-	"Unit Testing"
+	"Converting Reader"
 Names
 	"a UTF8 decoder",
 	"a UTF8 encoder",
@@ -57,9 +56,9 @@ Body
  * @method "bytes from_"
  * @param "codePoint" "code point"
  * @returns "byte*"
- * @category "Data Abstractions" "Converters" "Codecs"
+ * @category "Data Abstractions" "Converters" "Codecs" "UTF-8"
  */
-Abstract method "bytes from_" is [code point] → byte*;
+Private abstract method "bytes from_" is [code point] → byte*;
 
 Private method "bytes from_" is
 [
@@ -101,7 +100,7 @@ Private method "bytes from_" is
  * 
  * @type "UTF8 encoder"
  * @supertype "converter"
- * @category "Data Abstractions" "Converters" "Codecs"
+ * @category "Data Abstractions" "Converters" "Codecs" "UTF-8"
  */
 Public explicit class "UTF8 encoder"
 	extends converter from character to byte;
@@ -118,9 +117,8 @@ charToByte ::= [character]→byte;
  * 
  * @method "a UTF8 encoder"
  * @returns "UTF8 encoder"
- * @category "Data Abstractions" "Converters" "Codecs"
+ * @category "Data Abstractions" "Converters" "Codecs" "UTF-8"
  */
-
 Public method "a UTF8 encoder" is
 [
 	a UTF8 encoder with conversion type ::= charToByte
@@ -132,8 +130,8 @@ Public method "a UTF8 encoder" is
  * @method "_process_"
  * @param "encoder" "UTF8 encoder"
  * @param "sourceTuple" "string"
- * @returns "bytes*"
- * @category "Data Abstractions" "Converters" "Codecs"
+ * @returns "byte*"
+ * @category "Data Abstractions" "Converters" "Codecs" "UTF-8"
  */
 Method "_process_" is
 [
@@ -169,7 +167,7 @@ Method "flush_" is
  * 
  * @type "UTF8 decoder"
  * @supertype "converter"
- * @category "Data Abstractions" "Converters" "Codecs"
+ * @category "Data Abstractions" "Converters" "Codecs" "UTF-8"
  */
 Public explicit class "UTF8 decoder"
 	extends converter from byte to character
@@ -200,7 +198,7 @@ Public method "a UTF8 decoder" is
  * @method "byte count for_"
  * @param "leadingByte" "byte"
  * @returns "[0..4]"
- * @category "Data Abstractions" "Converters" "Codecs"
+ * @category "Data Abstractions" "Converters" "Codecs" "UTF-8"
  */
 Private method "byte count for_" is [leadingByte : byte | 0] : [0..4];
 Private method "byte count for_" is [leadingByte : [0..127] | 1];
@@ -219,7 +217,7 @@ Private method "byte count for_" is [leadingByte : [240..244] | 4];
  * @method "_process_"
  * @param "decoder" "UTF8 decoder"
  * @returns "bytes" "byte*"
- * @category "Data Abstractions" "Converters" "Codecs"
+ * @category "Data Abstractions" "Converters" "Codecs" "UTF-8"
  */
 Method "_process_" is
 [
@@ -282,7 +280,7 @@ Method "_process_" is
  * @method "flush_"
  * @param "decoder" "UTF8 decoder"
  * @returns "bytes" "byte*"
- * @category "Data Abstractions" "Converters" "Codecs"
+ * @category "Data Abstractions" "Converters" "Codecs" "UTF-8"
  */
 Method "flush_" is
 [
@@ -299,9 +297,9 @@ Method "flush_" is
  * @method "_→UTF8"
  * @param "s" "string"
  * @returns "byte*"
- * @category "Data Abstractions" "Converters" "Codecs"
+ * @category "Data Abstractions" "Converters" "Codecs" "UTF-8"
  */
-Public method "_→UTF8" is
+Public stable method "_→UTF8" is
 [
 	s : string
 |
@@ -315,9 +313,9 @@ Public method "_→UTF8" is
  * @method "“_”(UTF8)"
  * @param "t" "byte*"
  * @returns "string"
- * @category "Data Abstractions" "Converters" "Codecs"
+ * @category "Data Abstractions" "Converters" "Codecs" "UTF-8"
  */
-Public method "“_”(UTF8)" is
+Public stable method "“_”(UTF8)" is
 [
 	t : byte*
 |

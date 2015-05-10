@@ -743,7 +743,7 @@ public final class AvailBuilder
 								{
 									final String part = element.toString();
 									builder.append("/");
-									part.endsWith(availExtension);
+									assert part.endsWith(availExtension);
 									final String noExtension =
 										part.substring(
 											0,
@@ -1328,7 +1328,7 @@ public final class AvailBuilder
 					resolvedName,
 					TokenDescriptor.createSyntheticStart(),
 					ProblemType.TRACE,
-					"Recursive module dependency:\n{0}",
+					"Recursive module dependency:\n\t{0}",
 					recursionSet)
 				{
 					@Override
