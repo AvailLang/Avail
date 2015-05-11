@@ -495,7 +495,7 @@ Semantic restriction "filter_by_" is
  *        the map value type of {@param "aMap"}.
  * @param "aMap" "expression phrase ⇒ map"
  *        An {@type "expression phrase"} that yields the map to iterate over
- * @param "action" "block phrase ⇒ []→⊤"
+ * @param "predicate" "block phrase ⇒ []→⊤"
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        loop.
  * @returns "send phrase ⇒ ⊤"
@@ -505,8 +505,8 @@ Macro "select each…→…from_§where_" is a map iteration prefix function,
 	body function($"filter_by_", map);
 
 /**
- * Iteratively apply {@param "action"} to each binding of {@param "aMap"}, in
- * no particular order, rejecting those bindings for which {@param "action"}
+ * Iteratively apply {@param "predicate"} to each binding of {@param "aMap"}, in
+ * no particular order, rejecting those bindings for which {@param "predicate"}
  * answers {@method "true"} into a new map. Answer the new map.
  * 
  * @macro "reject each…→…from_§where_"
@@ -522,7 +522,7 @@ Macro "select each…→…from_§where_" is a map iteration prefix function,
  *        cardinality of {@param "aMap"}.
  * @param "aMap" "expression phrase ⇒ map"
  *        An {@type "expression phrase"} that yields the map to iterate over
- * @param "action" "block phrase ⇒ []→⊤"
+ * @param "predicate" "block phrase ⇒ []→⊤"
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        loop.
  * @returns "send phrase ⇒ ⊤"
@@ -534,7 +534,7 @@ Public macro "reject each…→…from_§where_" is
 	keyPhrase : literal phrase ⇒ token,
 	valuePhrase : literal phrase ⇒ token,
 	aMap : expression phrase ⇒ map,
-	action : block phrase ⇒ []→⊤
+	predicate : block phrase ⇒ []→⊤
 |
 	keyName ::= keyPhrase's token's lexeme;
 	valueName ::= valuePhrase's token's lexeme;
@@ -542,11 +542,11 @@ Public macro "reject each…→…from_§where_" is
 	keyType ::= aMapType's key type;
 	valueType ::= aMapType's value type;
 	blockType ::= 
-		[keyType, valueType]→(action's semantic type's return type);
+		[keyType, valueType]→(predicate's semantic type's return type);
 	
 	returnType ::= strengthen map for call of $"filter_by_" 
 		using <aMapType, blockType>;
-	statements ::= action's statements;
+	statements ::= predicate's statements;
 
 	castToPhrase ::= [s : nonempty string | 
 		cast scope map[s] into [d : argument phrase | d]];

@@ -610,12 +610,30 @@ Test "select in parallel (tuple macro)" in concurrency test suite is
 	Require: result = expected;
 ];
 
+Test "reject in parallel (tuple macro)" in concurrency test suite is
+[
+
+	result ::= reject each i from 1 to 10 in parallel where [i is odd]; 
+	expected ::= reject each i from 1 to 10 where [i is odd];
+	Require: result = expected;
+];
+
 Test "select in parallel (tuple macro 2 input)" in concurrency test suite is
 [
 
 	result ::= select each i, j from 1 to 10 in parallel 
 		where [i is odd  ∧ ¬j is even]; 
 	expected ::= select each i, j from 1 to 10 
+		where [i is odd  ∧ ¬j is even];
+	Require: result = expected;
+];
+
+Test "reject in parallel (tuple macro 2 input)" in concurrency test suite is
+[
+
+	result ::= reject each i, j from 1 to 10 in parallel 
+		where [i is odd  ∧ ¬j is even]; 
+	expected ::= reject each i, j from 1 to 10 
 		where [i is odd  ∧ ¬j is even];
 	Require: result = expected;
 ];
@@ -656,6 +674,14 @@ Test "select in parallel (set macro)" in concurrency test suite is
 	Require: result = expected;
 ];
 
+Test "reject in parallel (set macro)" in concurrency test suite is
+[
+
+	result ::= reject each i from {1,2,3,4,5,6,7,8,9,10} in parallel where [i is odd]; 
+	expected ::= reject each i from 1 to 10→set where [i is odd];
+	Require: result = expected;
+];
+
 Test "filter in parallel (set, small window)" in concurrency test suite is
 [
 	result ::= filter 1 to 10→set in parallel by [i : [1..10] | i is odd];
@@ -685,11 +711,19 @@ Test "filter in parallel (map)" in concurrency test suite is
 	Require: result = expected;
 ];
 
-Test "filter in parallel (map macro)" in concurrency test suite is
+Test "select in parallel (map macro)" in concurrency test suite is
 [
 	m ::= 1 to 10 zip map each i in 1 to 10 through [i is odd]→map;
 	result ::= select each k→v from m in parallel where [v];
 	expected ::=  select each k→v from m where [v];
+	Require: result = expected;
+];
+
+Test "reject in parallel (map macro)" in concurrency test suite is
+[
+	m ::= 1 to 10 zip map each i in 1 to 10 through [i is odd]→map;
+	result ::= reject each k→v from m in parallel where [v];
+	expected ::=  reject each k→v from m where [v];
 	Require: result = expected;
 ];
 

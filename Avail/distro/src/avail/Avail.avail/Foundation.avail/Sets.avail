@@ -531,8 +531,8 @@ Macro "select each…from_§where_" is a set iteration prefix function,
 	set body function($"filter_by_",set);
 
 /**
- * Iteratively apply {@param "action"} to each consecutive element of 
- * {@param "aSet"}, rejecting those elements for which {@param "action"} 
+ * Iteratively apply {@param "predicate"} to each consecutive element of 
+ * {@param "aSet"}, rejecting those elements for which {@param "predicate"} 
  * answers {@method "true"} into a new set (and preserving ordering). Answer 
  * the new set.
  * 
@@ -544,7 +544,7 @@ Macro "select each…from_§where_" is a set iteration prefix function,
  *        of the leading types and default type of {@param "aSet"}.
  * @param "aSet" "expression phrase ⇒ any"
  *        An {@type "expression phrase"} that yields the set to iterate over
- * @param "action" "block phrase ⇒ []→⊤"
+ * @param "predicate" "block phrase ⇒ []→⊤"
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        loop.
  * @returns "send phrase ⇒ ⊤"
@@ -554,18 +554,19 @@ Macro "reject each…from_§where_" is a set iteration prefix function,
 [
 	elementPhrase : literal phrase ⇒ token,
 	aSet : expression phrase ⇒ set,
-	action : block phrase ⇒ []→⊤
+	predicate : block phrase ⇒ []→⊤
 |
+	anAtom ::= $"filter_by_";
 	name ::= elementPhrase's token's lexeme;
 	aSetType ::= aSet's semantic type;
 	elementType ::= aSetType's element type;
 	blockType ::= 
-		[elementType]→(action's semantic type's return type);
+		[elementType]→(predicate's semantic type's return type);
 	
-	returnType ::= strengthen set for call of $"filter_by_" 
+	returnType ::= strengthen set for call of anAtom 
 			using <aSetType, blockType>;
 
-	statements ::= action's statements;
+	statements ::= predicate's statements;
 	size ::= |statements|;
 	newStatements ::= if size = 0 then [<>] else 
 	[
@@ -582,7 +583,7 @@ Macro "reject each…from_§where_" is a set iteration prefix function,
 	declaration ::= scope map[name];
 	Undeclare name;
 
-	restricted send $"filter_by_" with
+	restricted send anAtom with
 	<
 		aSet, 
 		«[

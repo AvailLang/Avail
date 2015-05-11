@@ -62,7 +62,7 @@ Body
  *
  * @method "_has|have internal whitespace"
  * @param "tokens" "token*"
- * @return "boolean"
+ * @returns "boolean"
  *         {@method "true"} if {@param "tokens"} have internal whitespace,
  *         {@method "false"} otherwise.
  */

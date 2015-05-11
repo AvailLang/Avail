@@ -1255,7 +1255,7 @@ Stable method "_<_" is
  *        A character.
  * @returns "boolean"
  *          {@method "true"} if {@param "a"}'s code point is greater than or 
- *          equal to {@param"b"}'s code point, {@method "false"} otherwise.
+ *          equal to {@param "b"}'s code point, {@method "false"} otherwise.
  * @category "Mathematics" "Relations" "Numbers" "Unicode"
  */
 Stable method "_≥_" is
@@ -1277,7 +1277,7 @@ Stable method "_≥_" is
  *        A character.
  * @returns "boolean"
  *          {@method "true"} if {@param "a"}'s code point is lesser than or 
- *          equal to {@param"b"}'s code point, {@method "false"} otherwise.
+ *          equal to {@param "b"}'s code point, {@method "false"} otherwise.
  * @category "Mathematics" "Relations" "Numbers" "Unicode"
  */
 Stable method "_≤_" is
