@@ -92,6 +92,12 @@ Names
 	"map each…,…in|of_§in parallel«_-way»through_",
 	"map each…→…in|of_§in parallel«_-way»through_",
 	"map and filter_in parallel«_-way»by_",
+	"reject each…from_§in parallel«_-way»where_",
+	"reject each…,…from_§in parallel«_-way»where_",
+	"reject each…→…from_§in parallel«_-way»where_",
+	"select each…from_§in parallel«_-way»where_",
+	"select each…,…from_§in parallel«_-way»where_",
+	"select each…→…from_§in parallel«_-way»where_",
 
 	/* Futures. */
 	"Cancel_",
@@ -1823,7 +1829,7 @@ Public method "filter_in parallel«_-way»by_" is
  *        permitted to run in parallel. If not specified, then permit {@method
  *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
  *        parallel.
- * @param "predicate" "[⊥, ⊥]→boolean"
+ * @param "predicate" "[⊥]→boolean"
  *        A function that accepts an arbitrary element of the tuple and answers
  *        {@method "true"} if the element should be accumulated into the result.
  * @returns "tuple"
@@ -1831,8 +1837,8 @@ Public method "filter_in parallel«_-way»by_" is
  *          "filter"} answered {@method "true"}.
  * @raises "worker exception"
  *         If any of the forked workers raise an exception.
- * @category "Concurrency" "Control Structures" "Loops"
- * @category "Collections" "Tuples" "Transformers"
+ * @category "Concurrency" "Control Structures" "Loops" "Collections" "Tuples" 
+ * 		"Transformers"
  */
 Public method "filter_in parallel«_-way»by_" is
 [
@@ -2043,6 +2049,485 @@ Semantic restriction "filter_in parallel«_-way»by_" is
 	else if predicate's return type = false's type then [{}'s type]
 	else [{mapType's key type → mapType's value type|[0..⎡mapType⎤ + 1)}]
 ];
+	
+/**
+ * Concurrently apply {@param "predicate"} to each consecutive element of 
+ * {@param "aTuple"}, collecting elements for which {@param "filter"} answered 
+ * {@method "true"} into a new tuple (and preserving ordering of the 
+ * transformed elements). Answer this tuple.
+ *
+ * @macro "select each…from_§in parallel«_-way»where_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over
+ * @param "optionalLimit" "natural number?"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "predicate" "[]→boolean"
+ *        A filter function that accepts an arbitrary element of the tuple and 
+ *        answers {@method "true"} if the element should be accumulated into 
+ *        the result.
+ * @returns "tuple"
+ *          A tuple of elements from {@param "aTuple"} for which {@param
+ *          "predicate"} answered {@method "true"}.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops" "Collections" "Tuples" 
+ * 		"Transformers"
+ */
+Public macro "select each…from_§in parallel«_-way»where_" is
+	a tuple iteration prefix function,
+	concurrent tuple body function($"filter_in parallel«_-way»by_", tuple);
+	
+/**
+ *  Concurrently apply {@param "predicate"} to each consecutive element of 
+ *  {@param "aTuple"}, collecting elements for which {@param "filter"} answered 
+ *  {@method "true"} into a new tuple (and preserving ordering of the 
+ *  transformed elements). Answer this tuple.
+ * 
+ * @macro "select each…,…from_§in parallel«_-way»where_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "indexPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop index variable. The generated
+ *        loop variable is given the strongest possible type based on the 
+ *        cardinality of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over
+ * @param "optionalLimit" "expression phrase ⇒ natural number?"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "predicate" "block phrase ⇒ []→⊤"
+ *        A filter function that accepts an arbitrary element of the tuple and 
+ *        that element's index answers {@method "true"} if the element should 
+ *        be accumulated into the result.
+ * @returns "⊤"
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops" "Collections" "Tuples"
+ */
+Public macro "select each…,…from_§in parallel«_-way»where_" is
+	a two-input tuple iteration prefix function,
+	concurrent two-input tuple body function(
+		$"filter_in parallel«_-way»by_", tuple);
+
+/**
+ * Concurrently apply {@param "predicate"} to each consecutive element of 
+ * {@param "aSet"}, collecting elements for which {@param "filter"} answered 
+ * {@method "true"} into a new set (and preserving ordering of the transformed
+ * elements). Answer this set.
+ *
+ * @macro "select each…from_§in parallel«_-way»where_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "aSet" "expression phrase ⇒ set"
+ *        An {@type "expression phrase"} that yields the set to iterate over
+ * @param "optionalLimit" "natural number?"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "predicate" "[]→boolean"
+ *        A filter function that accepts an arbitrary element of the set and 
+ *        answers {@method "true"} if the element should be accumulated into 
+ *        the result.
+ * @returns "set"
+ *          A set of elements from {@param "aSet"} for which {@param
+ *          "predicate"} answered {@method "true"}.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops" "Collections" "Sets" 
+ * 		"Transformers"
+ */
+Macro "select each…from_§in parallel«_-way»where_" is
+	a set iteration prefix function,
+	concurrent set body function($"filter_in parallel«_-way»by_", set);
+
+/**
+ *  Concurrently apply {@param "predicate"} to each consecutive pair of {@param
+ * "aMap"}, collecting elements for which {@param "predicate"} answered 
+ * {@method "true"} into a new map.
+ * 
+ * @macro "select each…→…from_§in parallel«_-way»where_"
+ * @param "keyPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop key variable of the map pair. 
+ * @param "valuePhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop value variable of the map pair. 
+ * @param "aMap" "expression phrase ⇒ Map"
+ *        An {@type "expression phrase"} that yields the map to iterate over
+ * @param "optionalLimit" "expression phrase ⇒ natural number?"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "predicate" "block phrase ⇒ []→boolean"
+ *        A filter function that accepts an arbitrary key-value pair of the map 
+ *        and answers {@method "true"} if the element should be accumulated  
+ *        into the result.
+ * @returns "map"
+ * 		A map of elements from {@param "aMap"} for which {@param "predicate"} 
+ * 		answered {@method "true"}.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops"
+ * @category "Collections" "Maps"
+ */
+Public macro "select each…→…from_§in parallel«_-way»where_" is
+	a map iteration prefix function,
+	concurrent map body function($"filter_in parallel«_-way»by_", map);
+
+/**
+ * Concurrently apply {@param "predicate"} to each consecutive element of 
+ * {@param "aTuple"}, collecting elements for which {@param "predicate"} 
+ * answered {@method "false"} into a new tuple (and preserving ordering of the 
+ * transformed elements). Answer this tuple.
+ *
+ * @macro "reject each…from_§in parallel«_-way»where_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over
+ * @param "optionalLimit" "natural number?"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "predicate" "[]→boolean"
+ *        A filter function that accepts an arbitrary element of the tuple and 
+ *        answers {@method "true"} if the element should be accumulated into 
+ *        the result.
+ * @returns "tuple"
+ *          A tuple of elements from {@param "aTuple"} for which {@param
+ *          "predicate"} answered {@method "false"}.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops" "Collections" "Tuples" 
+ * 		"Transformers"
+ */
+Public macro "reject each…from_§in parallel«_-way»where_" is 
+a tuple iteration prefix function,
+[
+	elementPhrase : literal phrase ⇒ token,
+	aTuple : expression phrase ⇒ tuple,
+	optionalLimit : expression phrase ⇒ natural number?,
+	predicate : block phrase ⇒ []→⊤
+|
+	anAtom ::= $"filter_in parallel«_-way»by_";
+	returnType ::= 
+		return type(aTuple, optionalLimit, predicate, tuple, anAtom);
+	statements ::= predicate's statements;
+	name ::= elementPhrase's token's lexeme;
+	size ::= |statements|;
+	newStatements ::= if size = 0 then [<>] else 
+	[
+	 	end : whole number := cast size-1 into [w : whole number | w];
+	 	i : natural number := cast size into [n : natural number | n];
+	 	c : expression phrase⇒any := cast statements[i] into 
+		 	[e : expression phrase⇒any | e];
+	 	statements[..end] ++ <restricted send $"¬_" with <c> : boolean>
+	];
+	
+	blockReturnType ::= cast statements
+			into [t : phrase+ | t[|t|]'s semantic type]
+			else [⊤];
+	declaration ::= scope map[name];
+	Undeclare name;
+	restricted send anAtom with
+	<
+		aTuple, 
+		optionalLimit,
+		«[
+			<cast declaration into [d : argument phrase | d]>
+		 | 
+		 	newStatements
+		] : blockReturnType»
+	> : returnType
+] : send phrase ⇒ ⊤;
+		 
+/**
+ * Concurrently apply {@param "predicate"} to each consecutive element of 
+ * {@param "aTuple"}, collecting elements for which {@param "predicate"} 
+ * answered {@method "false"} into a new tuple (and preserving ordering of the 
+ * transformed elements). Answer this tuple.
+ *
+ * @macro "reject each…,…from_§in parallel«_-way»where_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "indexPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop index variable. The generated
+ *        loop variable is given the strongest possible type based on the 
+ *        cardinality of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over
+ * @param "optionalLimit" "natural number?"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "predicate" "[]→boolean"
+ *        A filter function that accepts an arbitrary element of the tuple and 
+ *        answers {@method "true"} if the element should be accumulated into 
+ *        the result.
+ * @returns "tuple"
+ *          A tuple of elements from {@param "aTuple"} for which {@param
+ *          "predicate"} answered {@method "false"}.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops" "Collections" "Tuples" 
+ * 		"Transformers"
+ */
+ Public macro "reject each…,…from_§in parallel«_-way»where_" is 
+ a two-input tuple iteration prefix function,
+ [
+ 	elementPhrase : literal phrase ⇒ token,
+ 	indexPhrase : literal phrase ⇒ token,
+ 	aTuple : expression phrase ⇒ tuple,
+ 	optionalLimit : expression phrase ⇒ natural number?,
+ 	predicate : block phrase ⇒ []→⊤
+ |
+ 
+ 	anAtom ::= $"filter_in parallel«_-way»by_";
+ 	returnType ::= 
+ 		indexed return type(aTuple, optionalLimit, predicate, tuple, anAtom);
+ 	statements ::= predicate's statements;
+ 	elementName ::= elementPhrase's token's lexeme;
+	indexName ::= indexPhrase's token's lexeme;
+	size ::= |statements|;
+	newStatements ::= if size = 0 then [<>]
+	else if size = 1 then
+	[
+	 	i : natural number := cast size into [n : natural number | n];
+	 	c : expression phrase⇒any := cast statements[i] into 
+	 		[e : expression phrase⇒any | e];
+	 	<restricted send $"¬_" with <c>:boolean>
+	] else 
+	[
+	 	end : natural number := cast size-1 into [n : natural number | n];
+	 	i : natural number := cast size into [n : natural number | n];
+	 	c : expression phrase⇒any := cast statements[i] into 
+		 	[e : expression phrase⇒any | e];
+	 	statements[..end] ++ <restricted send $"¬_" with <c> : boolean>
+	];
+	castToPhrase ::= [s : nonempty string | 
+		cast scope map[s] into [d : argument phrase | d]];
+	elementDeclaration ::= castToPhrase(elementName);
+	indexDeclaration ::= castToPhrase(indexName);
+	Undeclare elementName;
+	Undeclare indexName;
+ 	
+ 	blockReturnType ::= cast statements
+ 			into [t : phrase+ | t[|t|]'s semantic type]
+ 			else [⊤];
+
+ 	restricted send anAtom with
+ 	<
+ 		aTuple, 
+ 		optionalLimit,
+ 		«[
+ 			<elementDeclaration, indexDeclaration>
+ 		 | 
+ 		 	newStatements
+ 		] : blockReturnType»
+ 	> : returnType
+] : send phrase ⇒ ⊤;
+ 		 
+/**
+ * Concurrently apply {@param "predicate"} to each consecutive element of 
+ * {@param "aSet"}, collecting elements for which {@param "predicate"} 
+ * answered {@method "false"} into a new set (and preserving ordering of the 
+ * transformed elements). Answer this set.
+ *
+ * @macro "reject each…from_§in parallel«_-way»where_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aSet"}.
+ * @param "aSet" "expression phrase ⇒ set"
+ *        An {@type "expression phrase"} that yields the set to iterate over
+ * @param "optionalLimit" "natural number?"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "predicate" "[]→boolean"
+ *        A filter function that accepts an arbitrary element of the set and 
+ *        answers {@method "true"} if the element should be accumulated into 
+ *        the result.
+ * @returns "set"
+ *          A set of elements from {@param "aSet"} for which {@param
+ *          "predicate"} answered {@method "false"}.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops" "Collections" "Sets" 
+ * 		"Transformers"
+ */
+Public macro "reject each…from_§in parallel«_-way»where_" is 
+a set iteration prefix function,
+[
+	elementPhrase : literal phrase ⇒ token,
+	aSet : expression phrase ⇒ set,
+	optionalLimit : expression phrase ⇒ natural number?,
+	predicate : block phrase ⇒ []→⊤
+|
+
+	anAtom ::= $"filter_in parallel«_-way»by_";
+	name ::= elementPhrase's token's lexeme;
+	aSetType ::= aSet's semantic type;
+	optionalLimitType ::= optionalLimit's semantic type;
+	elementType ::= aSetType's element type;
+	blockType ::= 
+		[elementType]→(predicate's semantic type's return type);
+	
+	returnType ::= strengthen set for call of anAtom 
+			using <aSetType, optionalLimitType, blockType>;
+	
+	statements ::= predicate's statements;
+	size ::= |statements|;
+	newStatements ::= if size = 0 then [<>] else 
+	[
+	 	end : whole number := cast size-1 into [w : whole number | w];
+	 	i : natural number := cast size into [n : natural number | n];
+	 	c : expression phrase⇒any := cast statements[i] into 
+		 	[e : expression phrase⇒any | e];
+	 	statements[..end] ++ <restricted send $"¬_" with <c> : boolean>
+	];
+	blockReturnType ::= cast newStatements
+		into [t : phrase+ | t[|t|]'s semantic type]
+		else [⊤];
+	
+	declaration ::= scope map[name];
+	Undeclare name;
+	
+	restricted send anAtom with
+	<
+		aSet, 
+		optionalLimit,
+		«[
+			<cast declaration into [d : argument phrase | d]>
+		 | 
+		 	newStatements
+		] : blockReturnType»
+	> : returnType
+] : send phrase ⇒ ⊤;
+		 
+/**
+ * Concurrently apply {@param "predicate"} to each consecutive element of 
+ * {@param "aMap"}, collecting elements for which {@param "predicate"} 
+ * answered {@method "false"} into a new map (and preserving ordering of the 
+ * transformed elements). Answer this map.
+ *
+ * @macro "reject each…→…from_§in parallel«_-way»where_"
+ * @param "keyPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aMap"}.
+ * @param "valuePhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop index variable. The generated
+ *        loop variable is given the strongest possible type based on the 
+ *        cardinality of {@param "aMap"}.
+ * @param "aMap" "expression phrase ⇒ map"
+ *        An {@type "expression phrase"} that yields the map to iterate over
+ * @param "optionalLimit" "natural number?"
+ *        If specified, then the maximum number of worker {@type "fiber"}s
+ *        permitted to run in parallel. If not specified, then permit {@method
+ *        "default maximum worker fibers"} worker {@type "fiber"}s to run in
+ *        parallel.
+ * @param "predicate" "[]→boolean"
+ *        A filter function that accepts an arbitrary element of the map and 
+ *        answers {@method "true"} if the element should be accumulated into 
+ *        the result.
+ * @returns "map"
+ *          A map of elements from {@param "aMap"} for which {@param
+ *          "predicate"} answered {@method "false"}.
+ * @raises "worker exception"
+ *         If any of the forked workers raise an exception.
+ * @category "Concurrency" "Control Structures" "Loops" "Collections" "Maps" 
+ * 		"Transformers"
+ */
+ Public macro "reject each…→…from_§in parallel«_-way»where_" is 
+ a map iteration prefix function,
+ [
+ 	keyPhrase : literal phrase ⇒ token,
+ 	valuePhrase : literal phrase ⇒ token,
+ 	aMap : expression phrase ⇒ map,
+ 	optionalLimit : expression phrase ⇒ natural number?,
+ 	predicate : block phrase ⇒ []→⊤
+ |
+  	anAtom ::= $"filter_in parallel«_-way»by_";
+	keyName ::= keyPhrase's token's lexeme;
+	optionalLimitType ::= optionalLimit's semantic type;
+	valueName ::= valuePhrase's token's lexeme;
+	aMapType ::= aMap's semantic type;
+	keyType ::= aMapType's key type;
+	valueType ::= aMapType's value type;
+	blockType ::= 
+		[keyType, valueType]→(predicate's semantic type's return type);
+	
+	returnType ::= strengthen map for call of anAtom 
+		using <aMapType, optionalLimitType, blockType>;
+	statements ::= predicate's statements;
+
+	castToPhrase ::= [s : nonempty string | 
+		cast scope map[s] into [d : argument phrase | d]];
+	
+	size ::= |statements|;
+
+	newStatements ::= if size = 0 then [<>] else 
+	[
+	 	end : whole number := cast size-1 into [w : whole number | w];
+	 	i : natural number := cast size into [n : natural number | n];
+	 	c : expression phrase⇒any := cast statements[i] into 
+		 	[e : expression phrase⇒any | e];
+	 	statements[..end] ++ <restricted send $"¬_" with <c> : boolean>
+	];
+	
+	blockReturnType ::= cast newStatements
+		into [t : phrase+ | t[|t|]'s semantic type]
+		else [⊤];
+
+	keyDeclaration ::= castToPhrase(keyName);
+	valueDeclaration ::= castToPhrase(valueName);
+	Undeclare keyName;
+	Undeclare valueName;
+		
+	restricted send anAtom with
+	<
+		aMap,
+		optionalLimit,
+		«[
+			<keyDeclaration, valueDeclaration>
+		|
+			newStatements
+		] : blockReturnType»
+	> : returnType
+] : send phrase ⇒ ⊤;
 
 /**
  * Concurrently apply {@param "accumulator"} to each element of {@param
