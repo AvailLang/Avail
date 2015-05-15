@@ -1,5 +1,5 @@
 /*
- * English.avail
+ * English Wumpus.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "English"
+Module "English Wumpus"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses

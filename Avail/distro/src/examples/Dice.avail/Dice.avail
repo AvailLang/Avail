@@ -33,8 +33,10 @@
 Module "Dice"
 Versions
 	"1.0.0 DEV 2014-04-28"
+Uses
+	"Avail"
 Extends
-	"Avail" = ("<«_‡,»>"),
+	"Avail",
 	"Avail Restrictions",
 	"Dice Restrictions",
 	"Die",
@@ -42,5 +44,24 @@ Extends
 	"Expressions",
 	"Random"
 Entries
-	"«using_,»roll_"
+	"`!_"
 Body
+
+/**
+ * A simple Avail {@type "dice⁇expression" dice expression} evaluator
+ * ("Availuator") that lets the Avail compiler do all of the heavy lifting. Just
+ * answer the argument.
+ *
+ * @method "`!_"
+ * @category "Availuator" "Dice"
+ * @param "x" "any"
+ *        An arbitrary value.
+ * @returns "any"
+ *          The argument.
+ */
+Method "`!_" is [x : any | x];
+
+/* Just in case the library ever wants to export its own "`!_", have the
+ * Avail expression evaluator forbid a recursive send of itself.
+ */
+Grammatical restriction "`!_" is <{"`!_"}>;
