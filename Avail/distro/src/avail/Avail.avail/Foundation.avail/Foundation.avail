@@ -287,6 +287,7 @@ Extends
 		"_'s⁇default type",
 		"_'s⁇element|member type",
 		"_'s⁇entry points",
+		"_'s⁇expression",
 		"_'s⁇expressions",
 		"_'s⁇function",
 		"_'s⁇function type",
@@ -364,6 +365,7 @@ Extends
 		"_→object",
 		"_→object type",
 		"_→set",
+		"_→statement",
 		"_→tuple",
 		"_⇒_",
 		"_∈current fiber",
@@ -873,6 +875,8 @@ Extends
 	"Macro Support" =
 	(
 		"Declare loop variable_as_",
+		"Push scope",
+		"Pop scope",
 		"Require:macro send has no internal whitespace(_)",
 		"Require:_named_does not shadow",
 		"constituent tokens",

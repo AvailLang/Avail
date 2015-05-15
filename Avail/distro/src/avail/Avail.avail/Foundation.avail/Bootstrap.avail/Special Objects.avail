@@ -71,6 +71,7 @@ Names
 	/*  96 */ "empty map",
 	/* 104 */ "empty tuple",
 	/*  24 */ "exception",
+	/* 150 */ "expression as statement phrase",
 	/*  52 */ "expression phrase",
 	/* 126 */ "expression yielding any",
 	/*  13 */ "extended integer",
@@ -343,6 +344,7 @@ _int32                                  ::= special object 146;
 _int64                                  ::= special object 147;
 _statement_phrase                       ::= special object 148;
 _scope_stack_key                        ::= special object 149;
+_expression_as_statement_phrase         ::= special object 150;
 
 /**
  * The practical abstract root of the Avail type lattice. {@code "any"} is the
@@ -2578,6 +2580,7 @@ Primitive "int32" is
  * @category "Primitives" "Types"
  * @type "[-9223372036854775808..9223372036854775807]"
  * @alias "int64"
+ * @supertype "phrase"
  */
 Primitive "int64" is
 [
@@ -2607,5 +2610,18 @@ Primitive "statement phrase" is
 Primitive "scope stack key" is
 [
 	_scope_stack_key
+];
+
+/**
+ * TODO: Special object description goes here.
+ *
+ * @category "Primitives" "Types"
+ * @type "expression as statement phrase⇒⊤"
+ * @alias "expression as statement phrase"
+ * @supertype "statement phrase"
+ */
+Primitive "expression as statement phrase" is
+[
+	_expression_as_statement_phrase
 ];
 

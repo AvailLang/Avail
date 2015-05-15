@@ -154,6 +154,7 @@ Uses
 		"_→object",
 		"_→object type",
 		"_→set",
+		"_→statement",
 		"_→tuple",
 		"_⇒_",
 		"_∈_",
@@ -4036,4 +4037,40 @@ Primitive "_reversed" is
 |
 	Primitive ReverseTuple;
 ] : tuple;
+
+/**
+ * Convert the {@type "expression phrase"} into a
+ * {@type "expression as statement phrase⇒⊤"}.
+ *
+ * @category "Primitives"
+ * @method "_→statement"
+ * @param "expr" "expression phrase"
+ *        An {@type "expression phrase"}.
+ * @returns "expression as statement phrase⇒⊤"
+ *    The wrapping {@type "expression as statement phrase⇒⊤"}.
+ */
+Primitive "_→statement" is
+[
+	expr : expression phrase
+|
+	Primitive CreateExpressionAsStatementPhrase;
+] : expression as statement phrase;
+
+/**
+ * Answer the {@type "expression phrase⇒⊤"} wrapped by the {@type
+ * "expression as statement phrase"}.
+ *
+ * @category "Primitives"
+ * @method "_'s⁇expression"
+ * @param "stmt" "expression as statement phrase"
+ *        An {@type "expression as statement phrase"}.
+ * @returns "expression phrase⇒⊤"
+ *    The wrapped {@type "expression phrase⇒⊤"}.
+ */
+Primitive "_'s⁇expression" is
+[
+	stmt : expression as statement phrase
+|
+	Primitive ExpressionAsStatementExpression;
+] : expression phrase;
 
