@@ -718,7 +718,7 @@ implements AutoCloseable
 							break;
 						// Carriage return.
 						case '\r':
-							privateWrite("\\t");
+							privateWrite("\\r");
 							break;
 						default:
 							privateWrite(String.format("\\u%04X", codePoint));
