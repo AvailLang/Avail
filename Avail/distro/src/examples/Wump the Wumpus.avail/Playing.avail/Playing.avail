@@ -34,5 +34,15 @@ Module "Playing"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Extends
-	"English"
+	"English Wumpus",
+	"Smalltalk Wumpus" =
+	(
+		"self playWumpTheWumpus" → "Game playWumpTheWumpus"
+	)
+Entries
+	/* English. */
+	"Play Wump the Wumpus",
+
+	/* Smalltalk */
+	"Game playWumpTheWumpus"
 Body

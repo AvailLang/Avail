@@ -1,5 +1,5 @@
 /*
- * English Wumpus.avail
+ * Smalltalk Lite.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,64 +30,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "English Wumpus"
+Module "Smalltalk Lite"
 Versions
 	"1.0.0 DEV 2014-04-28"
-Uses
-	"Avail",
-	"Game"
-Names
-	"Play Wump the Wumpus with reader_with reporter_"
+Extends
+	"Smalltalk Lite Implementation" =
+	(
+		"(Smalltalk)[]" → "[]",
+		"(Smalltalk)[§«_!»_!]" → "[§«_!»_!]",
+		"(Smalltalk)[§`|«…§»`|«_!»_!]" → "[§`|«…§»`|«_!»_!]",
+		…
+	)
 Body
-
-/**
- * Play a game of Wump the Wumpus.
- *
- * @method "Play Wump the Wumpus with reader_with reporter_"
- * @param "reader" "[]→string"
- *        The {@type "function"} that supplies input from the user.
- * @param "writer" "[string]→⊤"
- *        The {@type "function"} that displays output to the user.
- */
-Public method "Play Wump the Wumpus with reader_with reporter_" is
-[
-	reader : []→string,
-	writer : [string]→⊤
-|
-	Wump the Wumpus reader := reader;
-	Wump the Wumpus reporter := writer;
-	newGame ::= a game of Wump the Wumpus;
-	Use newGame as the implied game and do
-	[
-		Welcome;
-		Look around, having just entered;
-		Until the game is over, do
-		[
-			Give the agent a turn;
-			Give the first swarm a turn;
-			Give the second swarm a turn;
-			Give the wumpus a turn;
-		];
-		If the agent is alive then
-		[
-			If the wumpus is dead then [Report victory;]
-			else [Report cowardice;];
-		]
-		else [Report defeat;];
-		Goodbye;
-	];
-] : ⊤;
-
-/**
- * Play a game of Wump the Wumpus, using standard input and standard output to
- * interact with the user.
- *
- * @method "Play Wump the Wumpus"
- * @returns "⊤"
- */
-Method "Play Wump the Wumpus" is
-[
-	Play Wump the Wumpus
-		with reader Wump the Wumpus reader
-		with reporter Wump the Wumpus reporter;
-];

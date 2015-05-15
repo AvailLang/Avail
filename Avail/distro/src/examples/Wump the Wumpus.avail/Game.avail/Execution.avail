@@ -39,7 +39,8 @@ Uses
 Extends
 	"Common" =
 	(
-		"a game of Wump the Wumpus"
+		"a game of Wump the Wumpus",
+		"Wump the Wumpus"
 	),
 	"Context" =
 	(
