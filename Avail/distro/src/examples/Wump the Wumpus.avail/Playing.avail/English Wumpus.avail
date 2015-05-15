@@ -37,7 +37,8 @@ Uses
 	"Avail",
 	"Game"
 Names
-	"Play Wump the Wumpus with reader_with reporter_"
+	"Play Wump the Wumpus with reader_with reporter_",
+	"Play Wump the Wumpus"
 Body
 
 /**
