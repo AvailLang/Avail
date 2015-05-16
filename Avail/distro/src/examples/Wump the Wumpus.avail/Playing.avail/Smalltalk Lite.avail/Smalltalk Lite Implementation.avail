@@ -139,21 +139,23 @@ Public macro "`!Game class methodsFor:'wumping'`!«…:…§»`|«…§»`|«_!�
 	stmtsPhrase : list phrase ⇒ (statement phrase*)
 |
 	argsTuple ::= argsPhrase's expressions ?→ (list phrase ⇒ <token…|2>)+;
-	selector ::= left fold <"self "> ++ argsTuple through
+	args, selector ::= left fold <<<>, "self ">> ++ argsTuple through
 		[
 			pairPhrase : list phrase ⇒ <token…|2>,
-			partial : string
+			partial : <declaration phrase*, string…|2>
 		|
-			selectorPiecePhrase, _ ::= pairPhrase's expressions
+			selectorPiecePhrase, argPhrase ::= pairPhrase's expressions
 				?→ <literal phrase ⇒ token…|2>;
-			partial ++ selectorPiecePhrase's token's lexeme ++ ":_"
+			<
+				partial[1] ++ <scope map[argPhrase's token's lexeme]>,
+				partial[2] ++ selectorPiecePhrase's token's lexeme ++ ":_"
+			>
 		];
 	send $"Method_is_" with
 	«<
 		‘`selector`’,
 		«[
-			select each decl from scope map's values where
-				[decl ∈ argument phrase] ?→ (argument phrase+)
+			args ?→ argument phrase*
 		|
 			select each decl from scope map's values where
 				[decl ∈ local variable phrase]

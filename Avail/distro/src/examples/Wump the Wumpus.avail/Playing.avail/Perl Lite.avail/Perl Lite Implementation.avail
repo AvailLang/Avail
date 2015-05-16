@@ -118,6 +118,32 @@ Names
 Body
 
 /**
+ * Answer the {@type "argument phrase" arguments} declared thus far, preserving
+ * order.
+ *
+ * @method "args"
+ * @returns "argument phrase*"
+ */
+Private method "args" is
+[
+	parse map[$"args"] else [<>] ?→ argument phrase*
+];
+
+/**
+ * Update the {@type "argument phrase" arguments} declared thus far.
+ *
+ * @method "args:=_"
+ * @param "newArgs" "argument phrase*"
+ * @returns "⊤"
+ */
+Private method "args:=_" is
+[
+	newArgs : argument phrase*
+|
+	parse map := parse map + $"args" → newArgs;
+];
+
+/**
  * Declare the {@type "argument phrase" arguments} of the enclosing subroutine,
  * and bring them immediately into scope.
  *
@@ -136,6 +162,7 @@ Public macro "my(«$…§‡,»)=@`_;" is
 	Require: "parameter" named argName does not shadow;
 	argDecl ::= arg «argToken : any»;
 	scope map := scope map + argName → argDecl;
+	args := args ++ <argDecl>;
 ],
 [
 	argsPhrase : list phrase ⇒ (token+)
@@ -234,15 +261,13 @@ Public macro "sub…{§«_!»}" is
 	namePhrase : literal phrase ⇒ token,
 	stmtsPhrase : list phrase ⇒ (phrase*)
 |
-	args ::= select each decl from scope map's values where
-		[decl ∈ argument phrase] ?→ (argument phrase*);
 	nameToken ::= namePhrase's token;
 	name : string :=
 		replace all occurrences of "_" in nameToken's lexeme with "`_";
 	If |args| > 0 then
 	[
 		name ++= "(";
-		For each arg, i of args do
+		For each i from 1 to |args| do
 		[
 			If i ≠ 1 then [name ++= ",";];
 			name ++= "_";
