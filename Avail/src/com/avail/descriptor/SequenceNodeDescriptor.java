@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.SequenceNodeDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
@@ -74,8 +75,9 @@ extends ParseNodeDescriptor
 	A_Type o_ExpressionType (final AvailObject object)
 	{
 		final A_Tuple statements = object.slot(STATEMENTS);
-		assert statements.tupleSize() > 0;
-		return statements.tupleAt(statements.tupleSize()).expressionType();
+		return statements.tupleSize() > 0
+			? statements.tupleAt(statements.tupleSize()).expressionType()
+			: TOP.o();
 	}
 
 	@Override @AvailMethod
@@ -101,12 +103,14 @@ extends ParseNodeDescriptor
 	{
 		final A_Tuple statements = object.slot(STATEMENTS);
 		final int statementsCount = statements.tupleSize();
-		assert statements.tupleSize() > 0;
-		for (int i = 1; i < statementsCount; i++)
+		if (statements.tupleSize() > 0)
 		{
-			statements.tupleAt(i).emitEffectOn(codeGenerator);
+			for (int i = 1; i < statementsCount; i++)
+			{
+				statements.tupleAt(i).emitEffectOn(codeGenerator);
+			}
+			statements.tupleAt(statementsCount).emitValueOn(codeGenerator);
 		}
-		statements.tupleAt(statementsCount).emitValueOn(codeGenerator);
 	}
 
 	@Override @AvailMethod

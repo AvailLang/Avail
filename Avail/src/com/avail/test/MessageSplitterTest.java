@@ -131,6 +131,22 @@ public class MessageSplitterTest
 			A("Foo"),
 			A(
 				PARSE_PART.encoding(1))),
+		C("Moo`_Sauce",
+			A("Moo_Sauce"),
+			A(
+				PARSE_PART.encoding(1))),
+		C("`_Moo`_Saucier",
+			A("_Moo_Saucier"),
+			A(
+				PARSE_PART.encoding(1))),
+		C("Moo`_`_`_Sauciest",
+			A("Moo___Sauciest"),
+			A(
+				PARSE_PART.encoding(1))),
+		C("Most`_Sauceulent`_",
+			A("Most_Sauceulent_"),
+			A(
+				PARSE_PART.encoding(1))),
 		C("Print_",
 			A("Print", "_"),
 			A(
@@ -893,8 +909,7 @@ public class MessageSplitterTest
 				PARSE_PART.encoding(4),
 				PUSH_INTEGER_LITERAL.encoding(2),
 				APPEND_ARGUMENT.encoding())),
-//		C("[««…:_†§‡,»`|»«Primitive_«(…:_†)§»;»«$…:_†§»«_§»«_»]«:_†»«^«_†‡,»»",
-		C("[««…:_†§‡,»`|»?«Primitive…«(…:_†)»?§;»?«$…«:_†»?;§»?«_!»«_!»?]«:_†»?«^«_†‡,»»?",
+		C("[««…:_†§‡,»`|»?«Primitive…#«(…:_†)»?§;»?«$…«:_†»?;§»?«_!»«_!»?]«:_†»?«^«_†‡,»»?",
 			A("[",
 					"«", "«", "…", ":", "_", "†", "§", "‡", ",", "»",
 						"`", "|", "»", "?",

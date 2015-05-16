@@ -3498,6 +3498,88 @@ public class MessageSplitter
 						"Expected alphanumeric character after space");
 				}
 			}
+			else if (ch == '`')
+			{
+				// Despite what the method comment says, backquote needs to be
+				// processed specially when followed by an underscore so that
+				// identifiers containing (escaped) underscores can be treated
+				// as a single token. Otherwise, they are unparseable.
+				if (position == messageName.tupleSize()
+					|| messageName.tupleAt(position + 1).codePoint() != '_')
+				{
+					// We didn't find an underscore, so we need to deal with the
+					// backquote in the usual way.
+					messageParts.add(
+						(A_String)(messageName.copyTupleFromToCanDestroy(
+							position,
+							position,
+							false)));
+					messagePartPositions.add(position);
+					position++;
+				}
+				else
+				{
+					boolean sawRegular = false;
+					final int start = position;
+					while (position <= messageName.tupleSize())
+					{
+						if (!isCharacterAnUnderscoreOrSpaceOrOperator(
+							(char) messageName.tupleAt(position).codePoint()))
+						{
+							sawRegular = true;
+							position++;
+						}
+						else if (
+							messageName.tupleAt(position).codePoint() == '`'
+							&& position + 1 <= messageName.tupleSize()
+							&& messageName.tupleAt(position + 1).codePoint()
+								== '_')
+						{
+							position += 2;
+						}
+						else
+						{
+							break;
+						}
+					}
+					if (sawRegular)
+					{
+						// If we ever saw something other than `_ in the
+						// sequence, then produce a single token that includes
+						// the underscores (but not the backquotes).
+						final StringBuilder builder = new StringBuilder();
+						for (int i = start, limit = position - 1;
+							i <= limit;
+							i++)
+						{
+							final int cp = messageName.tupleAt(i).codePoint();
+							if (cp != '`')
+							{
+								builder.appendCodePoint(cp);
+							}
+						}
+						messageParts.add(
+							StringDescriptor.from(builder.toString()));
+						messagePartPositions.add(position);
+					}
+					else
+					{
+						// If we never saw a regular character, then produce a
+						// token for each character.
+						for (int i = start, limit = position - 1;
+							i <= limit;
+							i++)
+						{
+							messageParts.add((A_String)
+								(messageName.copyTupleFromToCanDestroy(
+									i,
+									i,
+									false)));
+							messagePartPositions.add(i);
+						}
+					}
+				}
+			}
 			else if (isCharacterAnUnderscoreOrSpaceOrOperator(ch))
 			{
 				messageParts.add(
@@ -3511,18 +3593,48 @@ public class MessageSplitter
 			else
 			{
 				messagePartPositions.add(position);
+				boolean sawIdentifierUnderscore = false;
 				final int start = position;
-				while (position <= messageName.tupleSize()
-						&& !isCharacterAnUnderscoreOrSpaceOrOperator(
-							(char) messageName.tupleAt(position).codePoint()))
+				while (position <= messageName.tupleSize())
 				{
-					position++;
+					if (!isCharacterAnUnderscoreOrSpaceOrOperator(
+						(char) messageName.tupleAt(position).codePoint()))
+					{
+						position++;
+					}
+					else if (messageName.tupleAt(position).codePoint() == '`'
+						&& position + 1 <= messageName.tupleSize()
+						&& messageName.tupleAt(position + 1).codePoint() == '_')
+					{
+						sawIdentifierUnderscore = true;
+						position += 2;
+					}
+					else
+					{
+						break;
+					}
 				}
-				messageParts.add(
-					(A_String)messageName.copyTupleFromToCanDestroy(
-						start,
-						position - 1,
-						false));
+				if (sawIdentifierUnderscore)
+				{
+					final StringBuilder builder = new StringBuilder();
+					for (int i = start, limit = position - 1; i <= limit; i++)
+					{
+						final int cp = messageName.tupleAt(i).codePoint();
+						if (cp != '`')
+						{
+							builder.appendCodePoint(cp);
+						}
+					}
+					messageParts.add(StringDescriptor.from(builder.toString()));
+				}
+				else
+				{
+					messageParts.add(
+						(A_String)messageName.copyTupleFromToCanDestroy(
+							start,
+							position - 1,
+							false));
+				}
 			}
 		}
 	}

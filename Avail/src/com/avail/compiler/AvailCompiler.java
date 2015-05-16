@@ -5214,7 +5214,6 @@ public final class AvailCompiler
 			});
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE);
 		final A_Tuple constituentTokens = initialTokenPosition.upTo(start);
-		assert constituentTokens.tupleSize() != 0;
 		final A_Map withTokens = start.clientDataMap.mapAtPuttingCanDestroy(
 			allTokensKey(),
 			constituentTokens,
