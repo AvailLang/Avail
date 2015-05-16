@@ -52,6 +52,7 @@ Body
  * @method "Give_a turn"
  * @param "critter" "creature"
  *        A {@type "creature"}.
+ * @returns "⊤"
  */
 Public abstract method "Give_a turn" is [creature]→⊤;
 

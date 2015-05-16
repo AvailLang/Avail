@@ -1,0 +1,433 @@
+/*
+ * Perl Lite Implementation.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Perl Lite Implementation"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Avail",
+	"Game" =
+	(
+		"Look around«,having just entered»?" → "Look around(just entered=_)",
+		…
+	),
+	"Movable Entities"
+Extends
+	"Avail" =
+	(
+		/* Statements. */
+		"_!;",
+		"_!;" → "_!",
+		"…" → "(Perl)$…",
+
+		/* Array construction. */
+		"<«_‡,»>" → "(Perl)(«_‡,»)",
+
+		/* Negation. */
+		"¬_" → "`!_",
+
+		/* Control structures. */
+		"If|if_then_else_" → "if(_)_else_"
+	),
+	"Game" =
+	(
+		/* I/O. */
+		"Wump the Wumpus reader" → "WumpTheWumpus::default`_reader",
+		"Wump the Wumpus reporter" → "WumpTheWumpus::default`_reporter",
+
+		/* Creating a new game. */
+		"a game of Wump the Wumpus" → "WumpTheWumpus::new",
+
+		/* Fiber-specific state. */
+		"the agent" → "agent",
+		"the first swarm" → "first`_swarm",
+		"the second swarm" → "second`_swarm",
+		"the wumpus" → "wumpus",
+
+		/* Main activities. */
+		"Until the game is over,do_" → "until(is`_over)_",
+		"Welcome" → "welcome",
+		"Report cowardice" → "report`_cowardice",
+		"Report defeat" → "report`_defeat",
+		"Report victory" → "report`_victory",
+		"Goodbye" → "goodbye"
+	)
+Names
+	/* Statements. */
+	"_!",
+
+	/* Variable use. */
+	"@…",
+
+	/* Argument declaration. */
+	"my(«$…§‡,»)=@`_;",
+
+	/* Local declarations. */
+	"my$…=_;",
+	"my@…=_;",
+
+	/* Subroutine declaration. */
+	"sub…{§«_!»}",
+
+	/* Block declaration. */
+	"sub⁇{§«_!»_!}",
+
+	/* I/O. */
+	"$game->{reader}=_",
+	"$game->{reporter}=_",
+
+	/* Queries. */
+	"_->{is`_alive}",
+
+	/* Activities. */
+	"look`_around(_)",
+	"take`_turn(_)",
+
+	/* Control structures. */
+	"_!for_",
+	"_->be`_implied`_during(_)"
+Body
+
+/**
+ * Declare the {@type "argument phrase" arguments} of the enclosing subroutine,
+ * and bring them immediately into scope.
+ *
+ * @method "my(«$…§‡,»)=@`_;"
+ * @param "argsPhrase" "list phrase ⇒ (token+)"
+ * @returns "sequence phrase"
+ */
+Public macro "my(«$…§‡,»)=@`_;" is
+[
+	argsPhrase : list phrase ⇒ (token+)
+|
+	argsTuple ::= argsPhrase's expressions ?→ (literal phrase ⇒ token)+;
+	argPhrase ::= argsTuple's last;
+	argToken ::= argPhrase's token;
+	argName ::= argToken's lexeme;
+	Require: "parameter" named argName does not shadow;
+	argDecl ::= arg «argToken : any»;
+	scope map := scope map + argName → argDecl;
+],
+[
+	argsPhrase : list phrase ⇒ (token+)
+|
+	/* The arguments were brought into scope by the prefix function, so there's
+	 * nothing interesting for the macro body to do. Just answer an empty
+	 * sequence of statements.
+	 */
+	seq «<>»
+];
+
+/**
+ * Define a local scalar variable.
+ *
+ * @method "my$…=_;"
+ * @param "localPhrase" "literal phrase ⇒ token"
+ * @param "initPhrase" "expression phrase ⇒ any"
+ * @returns "local variable phrase"
+ */
+Public macro "my$…=_;" is
+[
+	localPhrase : literal phrase ⇒ token,
+	initPhrase : expression phrase ⇒ any
+|
+	localToken ::= localPhrase's token;
+	localName ::= localToken's lexeme;
+	Require: "local" named localName does not shadow;
+	localDecl ::= «localToken : any := initPhrase»;
+	scope map := scope map + localName → localDecl;
+	localDecl
+];
+
+/**
+ * Define a local array variable.
+ *
+ * @method "my@…=_;"
+ * @param "localPhrase" "literal phrase ⇒ token"
+ * @param "initPhrase" "expression phrase ⇒ tuple"
+ * @returns "local variable phrase"
+ */
+Public macro "my@…=_;" is
+[
+	localPhrase : literal phrase ⇒ token,
+	initPhrase : expression phrase ⇒ tuple
+|
+	localToken ::= localPhrase's token;
+	localName ::= localToken's lexeme;
+	Require: "local" named localName does not shadow;
+	localDecl ::= «localToken : tuple := initPhrase»;
+	scope map := scope map + localName → localDecl;
+	localDecl
+];
+
+/**
+ * Answer a {@type "variable use phrase"} for the specified {@type "tuple"
+ * array} {@type "local variable phrase" variable}.
+ *
+ * @method "@…"
+ * @param "varNamePhrase" "literal phrase ⇒ token"
+ * @returns "variable use phrase"
+ */
+Public macro "@…" is
+[
+	varNamePhrase : literal phrase ⇒ token
+|
+	varNameToken ::= varNamePhrase's token;
+	varName ::= varNameToken's lexeme;
+	varDecl ::= scope map[varName] ?→ local variable phrase;
+	varType ::= varDecl's declared type;
+	Unless varType ⊆ tuple then
+	[
+		Reject parse, expected:
+			"variable to hold an array"
+	];
+	«↓varDecl»
+];
+
+/**
+ * Declare a subroutine.
+ *
+ * @method "sub…{§«_!»}"
+ * @param "namePhrase" "literal phrase ⇒ token"
+ * @param "stmtsPhrase" "list phrase ⇒ (phrase*)"
+ * @returns "expression as statement phrase"
+ */
+Public macro "sub…{§«_!»}" is
+[
+	namePhrase : literal phrase ⇒ token
+|
+	defaultScalarToken ::= `"_"` ("_");
+	defaultScalarName ::= defaultScalarToken's lexeme;
+	defaultScalarDecl ::= «defaultScalarToken : any»;
+	scope map := scope map + defaultScalarName → defaultScalarDecl;
+],
+[
+	namePhrase : literal phrase ⇒ token,
+	stmtsPhrase : list phrase ⇒ (phrase*)
+|
+	args ::= select each decl from scope map's values where
+		[decl ∈ argument phrase] ?→ (argument phrase*);
+	nameToken ::= namePhrase's token;
+	name : string :=
+		replace all occurrences of "_" in nameToken's lexeme with "`_";
+	If |args| > 0 then
+	[
+		name ++= "(";
+		For each arg, i of args do
+		[
+			If i ≠ 1 then [name ++= ",";];
+			name ++= "_";
+		];
+		name ++= ")";
+	];
+	defaultScalarDecl ::= scope map["_"];
+	send $"Method_is_" with
+	«<
+		‘`name`’,
+		«[
+			args
+		|
+			<defaultScalarDecl>
+			++ map each lit of stmtsPhrase's expressions
+				?→ ((literal phrase ⇒ phrase)*) through
+					[lit's token's value]
+		] : ⊤»
+	>» : ⊤ → statement
+];
+
+/**
+ * Declare a block or anonymous subroutine.
+ *
+ * @method "sub⁇{§«_!»}"
+ * @param "stmtsPhrase" "list phrase ⇒ (phrase*)"
+ * @param "lastStmtPhrase" "literal phrase ⇒ phrase"
+ * @returns "block phrase"
+ */
+Public macro "sub⁇{§«_!»_!}" is
+[
+	Push scope;
+	defaultScalarToken ::= `"_"` ("_");
+	defaultScalarName ::= defaultScalarToken's lexeme;
+	defaultScalarDecl ::= «defaultScalarToken : any»;
+	scope map := scope map + defaultScalarName → defaultScalarDecl;
+],
+[
+	stmtsPhrase : list phrase ⇒ (phrase*),
+	lastStmtPhrase : literal phrase ⇒ phrase
+|
+	defaultScalarDecl ::= scope map["_"];
+	Pop scope;
+	«[
+		<defaultScalarDecl>
+		++ map each lit of stmtsPhrase's expressions
+			?→ ((literal phrase ⇒ phrase)*) through
+				[lit's token's value]
+		++ <lastStmtPhrase's token's value>
+	] : lastStmtPhrase's token's value's semantic type»
+];
+
+/**
+ * Set the {@param "function"} used to read commands from the player.
+ *
+ * @method "$game->{reader}=_"
+ * @param "reader" "any"
+ *        This must be a {@type "[]→string"}.
+ * @returns "⊤"
+ */
+Public method "$game->{reader}=_" is
+[
+	reader : any
+|
+	Wump the Wumpus reader := reader ?→ []→string;
+];
+
+/**
+ * Set the {@param "function"} used to report information to the player.
+ *
+ * @method "$game->{reporter}=_"
+ * @param "reporter" "any"
+ *        This must be a {@type "[string]→⊤"}.
+ * @returns "⊤"
+ */
+Public method "$game->{reporter}=_" is
+[
+	reporter : any
+|
+	Wump the Wumpus reporter := reporter ?→ [string]→⊤;
+];
+
+/**
+ * Assess the vitality of the specified creature.
+ *
+ * @method "_->{is`_alive}"
+ * @param "critter" "creature"
+ *        A {@type "creature"}.
+ * @returns "boolean"
+ *          {@method "true"} if {@param "critter"} is alive, {@method "false"}
+ *          otherwise.
+ */
+Public method "_->{is`_alive}" is [critter : creature | critter is alive];
+
+/**
+ * Is the argument {@method "true"} using Perl's notion of truth?
+ *
+ * @method "_'s⁇Perl truthiness"
+ * @param "fakeBoolean" "any"
+ * @returns "boolean"
+ */
+Private method "_'s⁇Perl truthiness" is
+[
+	fakeBoolean : any
+|
+	¬fakeBoolean ∈ {0, "0", <>}
+];
+
+/**
+ * Report the description of the {@type "agent"}'s {@type "room" location}.
+ *
+ * @method "look`_around(_)"
+ * @param "justArrived" "boolean"
+ *        {@method "true"} if the {@type "agent"} is just entering the {@type
+ *        "room"}, {@method "false"} otherwise.
+ */
+Public method "look`_around(_)" is
+[
+	justArrived : any
+|
+	/* This uses Perl's notion of boolean truth. */
+	Look around (just entered = justArrived's Perl truthiness);
+];
+
+/**
+ * Give the specified {@type "creature"} an opportunity to act.
+ *
+ * @method "take`_turn(_)"
+ * @param "critter" "any"
+ *        A {@type "creature"}.
+ * @returns "⊤"
+ */
+Public method "take`_turn(_)" is
+[
+	critter : any
+|
+	Give critter ?→ creature a turn;
+];
+
+/**
+ * Treat {@param "game"} as the {@type "Wump the Wumpus"} game implied by any
+ * game-specific methods invoked from within {@param "action"}.
+ *
+ * @method "_->be`_implied`_during(_)"
+ * @param "game" "any"
+ *        The reference game. This must be a {@type "Wump the Wumpus"}.
+ * @param "action" "[]→⊤"
+ *        The body of code that should use {@param "game"} as the reference
+ *        game.
+ */
+Public method "_->be`_implied`_during(_)" is
+[
+	game : any,
+	action : []→⊤
+|
+	Use game ?→ Wump the Wumpus as the implied game and do action;
+];
+
+/**
+ * Iterate through the array, performing {@param "exprPhrase"} for each element.
+ * {@param "exprPhrase"} is wrapped in a {@type "block phrase"} whose {@type
+ * "argument phrase" argument} is assigned to the default scalar immediately.
+ *
+ * @macro "_!for_"
+ * @param "exprPhrase" "literal phrase ⇒ phrase"
+ * @param "arrayPhrase" "expression phrase ⇒ tuple"
+ * @returns "expression as statement phrase"
+ */
+Public macro "_!for_" is
+[
+	exprPhrase : literal phrase ⇒ phrase,
+	arrayPhrase : expression phrase ⇒ tuple
+|
+	argDecl ::= arg «`"arg"` : any»;
+	defaultScalarDecl ::= scope map["_"];
+	send $"For each of⁇_do_" with
+	«<
+		arrayPhrase,
+		«[
+			<argDecl>
+		|
+			<
+				««↓defaultScalarDecl» := «↓argDecl»»,
+				exprPhrase's token's value
+			>
+		] : ⊤»
+	>» : ⊤ → statement
+];
