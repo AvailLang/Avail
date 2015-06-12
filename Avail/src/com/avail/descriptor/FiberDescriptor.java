@@ -584,7 +584,7 @@ extends Descriptor
 		},
 
 		/**
-		 * The fiber has terminated successfully. This state is permanent.
+		 * The fiber has terminated successfully.
 		 */
 		TERMINATED
 		{
@@ -597,14 +597,35 @@ extends Descriptor
 			@Override
 			protected Set<ExecutionState> privateSuccessors ()
 			{
-				return EnumSet.of(ABORTED);
+				return EnumSet.of(ABORTED, RETIRED);
 			}
 		},
 
 		/**
-		 * The fiber has aborted (due to an exception). This state is permanent.
+		 * The fiber has aborted (due to an exception).
 		 */
 		ABORTED
+		{
+			@Override
+			public boolean indicatesTermination ()
+			{
+				return true;
+			}
+
+			@Override
+			protected Set<ExecutionState> privateSuccessors ()
+			{
+				return EnumSet.of(RETIRED);
+			}
+		},
+
+		/**
+		 * The fiber has run either its {@linkplain
+		 * AvailObject#resultContinuation() result} or {@linkplain
+		 * AvailObject#failureContinuation() failure continuation}. This state
+		 * is permanent.
+		 */
+		RETIRED
 		{
 			@Override
 			public boolean indicatesTermination ()
@@ -1445,6 +1466,7 @@ extends Descriptor
 					case ASLEEP:
 					case INTERRUPTED:
 					case PARKED:
+					case RETIRED:
 					case SUSPENDED:
 					case TERMINATED:
 					case UNSTARTED:

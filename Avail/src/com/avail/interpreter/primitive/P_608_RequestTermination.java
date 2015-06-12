@@ -112,6 +112,7 @@ extends Primitive
 					case INTERRUPTED:
 					case TERMINATED:
 					case ABORTED:
+					case RETIRED:
 						break;
 				}
 			}
