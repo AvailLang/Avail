@@ -36,7 +36,7 @@ import static com.avail.descriptor.FunctionDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import java.util.Collections;
-import java.util.List;
+import java.util.IdentityHashMap;
 import com.avail.annotations.*;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedMessageException;
@@ -72,31 +72,10 @@ extends Descriptor
 	}
 
 	@Override
-	AvailObject o_OuterVarAt (final AvailObject object, final int subscript)
-	{
-		return object.slot(OUTER_VAR_AT_, subscript);
-	}
-
-	@Override
-	void o_OuterVarAtPut (
-		final AvailObject object,
-		final int subscript,
-		final AvailObject value)
-	{
-		object.setSlot(OUTER_VAR_AT_, subscript, value);
-	}
-
-	@Override
-	A_RawFunction o_Code (final AvailObject object)
-	{
-		return object.slot(CODE);
-	}
-
-	@Override
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		switch (mutability)
@@ -115,8 +94,14 @@ extends Descriptor
 		}
 		L1Decompiler.parse(object).printOnAvoidingIndent(
 			aStream,
-			recursionList,
+			recursionMap,
 			indent + 1);
+	}
+
+	@Override
+	A_RawFunction o_Code (final AvailObject object)
+	{
+		return object.slot(CODE);
 	}
 
 	@Override
@@ -200,6 +185,22 @@ extends Descriptor
 	}
 
 	@Override
+	String o_NameForDebugger (final AvailObject object)
+	{
+		return super.o_NameForDebugger(object) + ": "
+			+ object.code().methodName();
+	}
+
+	/**
+	 * Answer how many outer vars I've copied.
+	 */
+	@Override
+	int o_NumOuterVars (final AvailObject object)
+	{
+		return object.variableObjectSlotsCount();
+	}
+
+	@Override
 	boolean o_OptionallyNilOuterVar (
 		final AvailObject object,
 		final int index)
@@ -212,13 +213,19 @@ extends Descriptor
 		return false;
 	}
 
-	/**
-	 * Answer how many outer vars I've copied.
-	 */
 	@Override
-	int o_NumOuterVars (final AvailObject object)
+	AvailObject o_OuterVarAt (final AvailObject object, final int subscript)
 	{
-		return object.variableObjectSlotsCount();
+		return object.slot(OUTER_VAR_AT_, subscript);
+	}
+
+	@Override
+	void o_OuterVarAtPut (
+		final AvailObject object,
+		final int subscript,
+		final AvailObject value)
+	{
+		object.setSlot(OUTER_VAR_AT_, subscript, value);
 	}
 
 	@Override
@@ -233,36 +240,9 @@ extends Descriptor
 	}
 
 	@Override
-	String o_NameForDebugger (final AvailObject object)
-	{
-		return super.o_NameForDebugger(object) + ": "
-			+ object.code().methodName();
-	}
-
-	@Override
 	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
 	{
 		return true;
-	}
-
-	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
-	{
-		writer.startObject();
-		writer.write("kind");
-		writer.write("function");
-		writer.write("function implementation");
-		object.slot(CODE).writeTo(writer);
-		writer.write("outers");
-		writer.startArray();
-		for (int i = 1, limit = object.variableObjectSlotsCount();
-			i <= limit;
-			i++)
-		{
-			object.slot(OUTER_VAR_AT_, i).writeSummaryTo(writer);
-		}
-		writer.endArray();
-		writer.endObject();
 	}
 
 	@Override
@@ -285,6 +265,25 @@ extends Descriptor
 		writer.endObject();
 	}
 
+	@Override
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("function");
+		writer.write("function implementation");
+		object.slot(CODE).writeTo(writer);
+		writer.write("outers");
+		writer.startArray();
+		for (int i = 1, limit = object.variableObjectSlotsCount();
+			i <= limit;
+			i++)
+		{
+			object.slot(OUTER_VAR_AT_, i).writeSummaryTo(writer);
+		}
+		writer.endArray();
+		writer.endObject();
+	}
 
 	/**
 	 * Create a function that takes arguments of the specified types, then turns
@@ -560,13 +559,18 @@ extends Descriptor
 	 * Construct a bootstrap {@linkplain FunctionDescriptor function} that
 	 * crashes when invoked.
 	 *
+	 * @param messageString
+	 *        The message string to prepend to the list of arguments, indicating
+	 *        the basic nature of the failure.
 	 * @param paramTypes
 	 *        The {@linkplain TupleDescriptor tuple} of parameter {@linkplain
 	 *        TypeDescriptor types}.
 	 * @return The requested crash function.
 	 * @see MethodDescriptor#vmCrashAtom()
 	 */
-	public static A_Function newCrashFunction (final A_Tuple paramTypes)
+	public static A_Function newCrashFunction (
+		final String messageString,
+		final A_Tuple paramTypes)
 	{
 		final L1InstructionWriter writer = new L1InstructionWriter(
 			NilDescriptor.nil(),
@@ -575,8 +579,7 @@ extends Descriptor
 		writer.returnType(BottomTypeDescriptor.bottom());
 		writer.write(
 			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(StringDescriptor.from(
-				"unexpected VM failure")));
+			writer.addLiteral(StringDescriptor.from(messageString)));
 		final int numArgs = paramTypes.tupleSize();
 		for (int i = 1; i <= numArgs; i++)
 		{
@@ -597,8 +600,11 @@ extends Descriptor
 			assert false : "This should not happen!";
 			throw new AvailRuntimeException(e.errorCode());
 		}
+		final A_RawFunction code = writer.compiledCode();
+		code.setMethodName(StringDescriptor.from(
+			"VM crash function: " + messageString));
 		final A_Function function = FunctionDescriptor.create(
-			writer.compiledCode(),
+			code,
 			TupleDescriptor.empty());
 		function.makeShared();
 		return function;

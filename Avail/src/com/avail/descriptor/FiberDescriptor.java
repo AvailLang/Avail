@@ -584,7 +584,7 @@ extends Descriptor
 		},
 
 		/**
-		 * The fiber has terminated successfully. This state is permanent.
+		 * The fiber has terminated successfully.
 		 */
 		TERMINATED
 		{
@@ -597,14 +597,35 @@ extends Descriptor
 			@Override
 			protected Set<ExecutionState> privateSuccessors ()
 			{
-				return EnumSet.of(ABORTED);
+				return EnumSet.of(ABORTED, RETIRED);
 			}
 		},
 
 		/**
-		 * The fiber has aborted (due to an exception). This state is permanent.
+		 * The fiber has aborted (due to an exception).
 		 */
 		ABORTED
+		{
+			@Override
+			public boolean indicatesTermination ()
+			{
+				return true;
+			}
+
+			@Override
+			protected Set<ExecutionState> privateSuccessors ()
+			{
+				return EnumSet.of(RETIRED);
+			}
+		},
+
+		/**
+		 * The fiber has run either its {@linkplain
+		 * AvailObject#resultContinuation() result} or {@linkplain
+		 * AvailObject#failureContinuation() failure continuation}. This state
+		 * is permanent.
+		 */
+		RETIRED
 		{
 			@Override
 			public boolean indicatesTermination ()
@@ -724,17 +745,6 @@ extends Descriptor
 		return true;
 	}
 
-	/**
-	 * Answer whether a monitor lock should be acquired around flag access for
-	 * an object having this descriptor.
-	 *
-	 * @return a boolean.
-	 */
-	public final boolean shouldLockToAccessFlags ()
-	{
-		return true;
-	}
-
 	@Override @AvailMethod
 	ExecutionState o_ExecutionState (final AvailObject object)
 	{
@@ -744,22 +754,7 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_ExecutionState (final AvailObject object, final ExecutionState value)
 	{
-		if (shouldLockToAccessFlags())
-		{
-			synchronized (object)
-			{
-				final ExecutionState current = ExecutionState.all()
-					[object.mutableSlot(EXECUTION_STATE)];
-				assert current.mayTransitionTo(value);
-				object.setSlot(EXECUTION_STATE, value.ordinal());
-				if (debugFibers)
-				{
-					log(object, "ExecState: %s -> %s (protected/shared)",
-						current, value);
-				}
-			}
-		}
-		else
+		synchronized (object)
 		{
 			final ExecutionState current = ExecutionState.all()
 				[object.mutableSlot(EXECUTION_STATE)];
@@ -767,7 +762,7 @@ extends Descriptor
 			object.setSlot(EXECUTION_STATE, value.ordinal());
 			if (debugFibers)
 			{
-				log(object, "ExecState: %s -> %s (UNprotected/UNshared)",
+				log(object, "ExecState: %s -> %s (protected/shared)",
 					current, value);
 			}
 		}
@@ -833,19 +828,10 @@ extends Descriptor
 		final AvailObject object,
 		final InterruptRequestFlag flag)
 	{
-		final int value;
-		if (shouldLockToAccessFlags())
+		synchronized (object)
 		{
-			synchronized (object)
-			{
-				value = object.slot(flag.bitField);
-			}
+			return object.slot(flag.bitField) == 1;
 		}
-		else
-		{
-			value = object.slot(flag.bitField);
-		}
-		return value == 1;
 	}
 
 	@Override @AvailMethod
@@ -853,14 +839,7 @@ extends Descriptor
 		final AvailObject object,
 		final InterruptRequestFlag flag)
 	{
-		if (shouldLockToAccessFlags())
-		{
-			synchronized (object)
-			{
-				object.setSlot(flag.bitField, 1);
-			}
-		}
-		else
+		synchronized (object)
 		{
 			object.setSlot(flag.bitField, 1);
 		}
@@ -871,21 +850,12 @@ extends Descriptor
 		final AvailObject object,
 		final InterruptRequestFlag flag)
 	{
-		final int value;
-		if (shouldLockToAccessFlags())
+		synchronized (object)
 		{
-			synchronized (object)
-			{
-				value = object.slot(flag.bitField);
-				object.setSlot(flag.bitField, 0);
-			}
-		}
-		else
-		{
-			value = object.slot(flag.bitField);
+			final int value = object.slot(flag.bitField);
 			object.setSlot(flag.bitField, 0);
+			return value == 1;
 		}
-		return value == 1;
 	}
 
 	@Override @AvailMethod
@@ -896,15 +866,7 @@ extends Descriptor
 	{
 		final int value;
 		final int newBit = newValue ? 1 : 0;
-		if (shouldLockToAccessFlags())
-		{
-			synchronized (object)
-			{
-				value = object.slot(flag.bitField);
-				object.setSlot(flag.bitField, newBit);
-			}
-		}
-		else
+		synchronized (object)
 		{
 			value = object.slot(flag.bitField);
 			object.setSlot(flag.bitField, newBit);
@@ -921,14 +883,7 @@ extends Descriptor
 	boolean o_GeneralFlag (final AvailObject object, final GeneralFlag flag)
 	{
 		final int value;
-		if (shouldLockToAccessFlags())
-		{
-			synchronized (object)
-			{
-				value = object.slot(flag.bitField);
-			}
-		}
-		else
+		synchronized (object)
 		{
 			value = object.slot(flag.bitField);
 		}
@@ -944,14 +899,7 @@ extends Descriptor
 		final AvailObject object,
 		final GeneralFlag flag)
 	{
-		if (shouldLockToAccessFlags())
-		{
-			synchronized (object)
-			{
-				object.setSlot(flag.bitField, 1);
-			}
-		}
-		else
+		synchronized (object)
 		{
 			object.setSlot(flag.bitField, 1);
 		}
@@ -966,14 +914,7 @@ extends Descriptor
 		final AvailObject object,
 		final GeneralFlag flag)
 	{
-		if (shouldLockToAccessFlags())
-		{
-			synchronized (object)
-			{
-				object.setSlot(flag.bitField, 0);
-			}
-		}
-		else
+		synchronized (object)
 		{
 			object.setSlot(flag.bitField, 0);
 		}
@@ -986,19 +927,10 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_TraceFlag (final AvailObject object, final TraceFlag flag)
 	{
-		final int value;
-		if (shouldLockToAccessFlags())
+		synchronized (object)
 		{
-			synchronized (object)
-			{
-				value = object.slot(flag.bitField);
-			}
+			return object.slot(flag.bitField) == 1;
 		}
-		else
-		{
-			value = object.slot(flag.bitField);
-		}
-		return value == 1;
 	}
 
 	@Override @AvailMethod
@@ -1006,14 +938,7 @@ extends Descriptor
 		final AvailObject object,
 		final TraceFlag flag)
 	{
-		if (shouldLockToAccessFlags())
-		{
-			synchronized (object)
-			{
-				object.setSlot(flag.bitField, 1);
-			}
-		}
-		else
+		synchronized (object)
 		{
 			object.setSlot(flag.bitField, 1);
 		}
@@ -1028,14 +953,7 @@ extends Descriptor
 		final AvailObject object,
 		final TraceFlag flag)
 	{
-		if (shouldLockToAccessFlags())
-		{
-			synchronized (object)
-			{
-				object.setSlot(flag.bitField, 0);
-			}
-		}
-		else
+		synchronized (object)
 		{
 			object.setSlot(flag.bitField, 0);
 		}
@@ -1445,6 +1363,7 @@ extends Descriptor
 					case ASLEEP:
 					case INTERRUPTED:
 					case PARKED:
+					case RETIRED:
 					case SUSPENDED:
 					case TERMINATED:
 					case UNSTARTED:

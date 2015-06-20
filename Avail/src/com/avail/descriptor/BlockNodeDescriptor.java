@@ -113,6 +113,131 @@ extends ParseNodeDescriptor
 		DECLARED_EXCEPTIONS
 	}
 
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder builder,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
+		final int indent)
+	{
+		// Optimize for one-liners...
+		final A_Tuple argumentsTuple = object.argumentsTuple();
+		final int argCount = argumentsTuple.tupleSize();
+		final @Nullable Primitive primitive = object.primitive();
+		final A_Tuple statementsTuple = object.statementsTuple();
+		final int statementsSize = statementsTuple.tupleSize();
+		@Nullable A_Type explicitResultType = object.resultType();
+		if (statementsSize >= 1
+			&& statementsTuple.tupleAt(statementsSize).expressionType()
+				.equals(explicitResultType))
+		{
+			explicitResultType = null;
+		}
+		@Nullable A_Set declaredExceptions = object.declaredExceptions();
+		if (declaredExceptions.setSize() == 0)
+		{
+			declaredExceptions = null;
+		}
+		if (argCount == 0
+			&& primitive == null
+			&& statementsSize == 1
+			&& explicitResultType == null
+			&& declaredExceptions == null)
+		{
+			builder.append('[');
+			statementsTuple.tupleAt(1).printOnAvoidingIndent(
+				builder,
+				recursionMap,
+				indent + 1);
+			builder.append("]");
+			return;
+		}
+
+		// Use multiple lines instead...
+		builder.append('[');
+		if (argCount > 0)
+		{
+			argumentsTuple.tupleAt(1).printOnAvoidingIndent(
+				builder,
+				recursionMap,
+				indent + 2);
+			for (int argIndex = 2; argIndex <= argCount; argIndex++)
+			{
+				builder.append(", ");
+				argumentsTuple.tupleAt(argIndex).printOnAvoidingIndent(
+					builder,
+					recursionMap,
+					indent + 2);
+			}
+			builder.append(" |");
+		}
+		builder.append('\n');
+		for (int i = 1; i <= indent; i++)
+		{
+			builder.append('\t');
+		}
+		boolean skipFailureDeclaration = false;
+		if (primitive != null
+			&& !primitive.hasFlag(Flag.SpecialReturnConstant)
+			&& !primitive.hasFlag(Flag.SpecialReturnSoleArgument)
+			&& !primitive.hasFlag(Flag.SpecialReturnGlobalValue))
+		{
+			builder.append('\t');
+			builder.append("Primitive ");
+			builder.append(primitive.name());
+			if (!primitive.hasFlag(Flag.CannotFail))
+			{
+				builder.append(" (");
+				statementsTuple.tupleAt(1).printOnAvoidingIndent(
+					builder,
+					recursionMap,
+					indent + 2);
+				builder.append(")");
+				skipFailureDeclaration = true;
+			}
+			builder.append(";");
+			builder.append('\n');
+			for (int i = 1; i <= indent; i++)
+			{
+				builder.append('\t');
+			}
+		}
+		for (int index = 1; index <= statementsSize; index++)
+		{
+			final A_Phrase statement = statementsTuple.tupleAt(index);
+			if (skipFailureDeclaration)
+			{
+				assert statement.isInstanceOf(
+					DECLARATION_NODE.mostGeneralType());
+				skipFailureDeclaration = false;
+			}
+			else
+			{
+				builder.append('\t');
+				statement.printOnAvoidingIndent(
+					builder,
+					recursionMap,
+					indent + 2);
+				builder.append('\n');
+				for (int i = 1; i <= indent; i++)
+				{
+					builder.append('\t');
+				}
+			}
+		}
+		builder.append(']');
+		if (explicitResultType != null)
+		{
+			builder.append(" : ");
+			builder.append(explicitResultType.toString());
+		}
+		if (declaredExceptions != null)
+		{
+			builder.append(" ^ ");
+			builder.append(declaredExceptions.toString());
+		}
+	}
+
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
@@ -629,139 +754,6 @@ extends ParseNodeDescriptor
 			}
 		});
 		object.neededVariables(TupleDescriptor.fromList(neededDeclarations));
-	}
-
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder builder,
-		final List<A_BasicObject> recursionList,
-		final int indent)
-	{
-		// Optimize for one-liners...
-		final A_Tuple argumentsTuple = object.argumentsTuple();
-		final int argCount = argumentsTuple.tupleSize();
-		final @Nullable Primitive primitive = object.primitive();
-		final A_Tuple statementsTuple = object.statementsTuple();
-		final int statementsSize = statementsTuple.tupleSize();
-		@Nullable A_Type explicitResultType = object.resultType();
-		if (statementsSize >= 1
-			&& statementsTuple.tupleAt(statementsSize).expressionType()
-				.equals(explicitResultType))
-		{
-			explicitResultType = null;
-		}
-		@Nullable A_Set declaredExceptions = object.declaredExceptions();
-		if (declaredExceptions.setSize() == 0)
-		{
-			declaredExceptions = null;
-		}
-		if (argCount == 0
-			&& primitive == null
-			&& statementsSize == 1
-			&& explicitResultType == null
-			&& declaredExceptions == null)
-		{
-			builder.append('[');
-			statementsTuple.tupleAt(1).printOnAvoidingIndent(
-				builder,
-				recursionList,
-				indent + 1);
-			if (statementsTuple.tupleAt(1).expressionType().isTop())
-			{
-				builder.append(";");
-			}
-			builder.append("]");
-			return;
-		}
-
-		// Use multiple lines instead...
-		builder.append('[');
-		if (argCount > 0)
-		{
-			argumentsTuple.tupleAt(1).printOnAvoidingIndent(
-				builder,
-				recursionList,
-				indent + 2);
-			for (int argIndex = 2; argIndex <= argCount; argIndex++)
-			{
-				builder.append(", ");
-				argumentsTuple.tupleAt(argIndex).printOnAvoidingIndent(
-					builder,
-					recursionList,
-					indent + 2);
-			}
-			builder.append(" |");
-		}
-		builder.append('\n');
-		for (int i = 1; i <= indent; i++)
-		{
-			builder.append('\t');
-		}
-		boolean skipFailureDeclaration = false;
-		if (primitive != null
-			&& !primitive.hasFlag(Flag.SpecialReturnConstant)
-			&& !primitive.hasFlag(Flag.SpecialReturnSoleArgument))
-		{
-			builder.append('\t');
-			builder.append("Primitive ");
-			builder.append(primitive);
-			if (!primitive.hasFlag(Flag.CannotFail))
-			{
-				builder.append(" (");
-				statementsTuple.tupleAt(1).printOnAvoidingIndent(
-					builder,
-					recursionList,
-					indent + 2);
-				builder.append(")");
-				skipFailureDeclaration = true;
-			}
-			builder.append(";");
-			builder.append('\n');
-			for (int i = 1; i <= indent; i++)
-			{
-				builder.append('\t');
-			}
-		}
-		for (int index = 1; index <= statementsSize; index++)
-		{
-			final A_Phrase statement = statementsTuple.tupleAt(index);
-			if (skipFailureDeclaration)
-			{
-				assert statement.isInstanceOf(
-					DECLARATION_NODE.mostGeneralType());
-				skipFailureDeclaration = false;
-			}
-			else
-			{
-				builder.append('\t');
-				statement.printOnAvoidingIndent(
-					builder,
-					recursionList,
-					indent + 2);
-				if (index < statementsSize
-					|| statement.expressionType().isTop())
-				{
-					builder.append(';');
-				}
-				builder.append('\n');
-				for (int i = 1; i <= indent; i++)
-				{
-					builder.append('\t');
-				}
-			}
-		}
-		builder.append(']');
-		if (explicitResultType != null)
-		{
-			builder.append(" : ");
-			builder.append(explicitResultType.toString());
-		}
-		if (declaredExceptions != null)
-		{
-			builder.append(" ^ ");
-			builder.append(declaredExceptions.toString());
-		}
 	}
 
 	/**

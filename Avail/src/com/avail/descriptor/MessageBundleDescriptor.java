@@ -36,6 +36,7 @@ import static com.avail.descriptor.MessageBundleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.IdentityHashMap;
 import java.util.List;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.MessageSplitter;
@@ -359,7 +360,7 @@ extends Descriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		// The existing definitions are also printed in parentheses to help

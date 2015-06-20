@@ -50,7 +50,7 @@ Names
 	"_(_)is an SI base unit",
 	"_(_)is an SI derived unit equivalent to_"
 Body
-
+ 
 /**
  * The table of standard SI scaling prefixes.
  *
@@ -157,12 +157,12 @@ Public method "_(_)is an SI base unit" is
 				unit map ::= def,
 				scale factor ::= prefix[3];
 			impl ::= «[ <> | <‘`aUnit` ("")’> ] : aUnit's type»→function;
-			Method longName is impl;
+			Stable method longName is impl;
 			publicNames ::= current module's public names;
 			Unless longName ∈ publicNames then [Export longName as a new name;];
 			Unless longName = shortName then
 			[
-				Method shortName is impl;
+				Alias shortName to longName;
 				Unless shortName ∈ publicNames then
 				[
 					Export shortName as a new name;
@@ -175,7 +175,7 @@ Public method "_(_)is an SI base unit" is
 	aUnit ::= a unitType with unit map ::= def, scale factor ::= 0;
 	Prefer symbol for printing aUnit in a dimensioned quantity;
 	scalingFunction ::= SI scaling function for unitType;
-	Method $"_converted to_" is scalingFunction;
+	Stable method $"_converted to_" is scalingFunction;
 ] : ⊤;
 
 Completely seal method "_(_)is an SI base unit";
@@ -221,12 +221,12 @@ Public method "_(_)is an SI derived unit equivalent to_" is
 				unit map ::= def,
 				scale factor ::= baseScaleFactor + prefix[3];
 			impl ::= «[ <> | <‘`aUnit` ("")’> ] : aUnit's type»→function;
-			Method longName is impl;
+			Stable method longName is impl;
 			publicNames ::= current module's public names;
 			Unless longName ∈ publicNames then [Export longName as a new name;];
 			Unless longName = shortName then
 			[
-				Method shortName is impl;
+				Alias shortName to longName;
 				Unless shortName ∈ publicNames then
 				[
 					Export shortName as a new name;
@@ -240,7 +240,7 @@ Public method "_(_)is an SI derived unit equivalent to_" is
 	Unless $"_converted to_" has definition for <quantityType, unitType> then
 	[
 		scalingFunction ::= SI scaling function for unitType;
-		Method $"_converted to_" is scalingFunction;
+		Stable method $"_converted to_" is scalingFunction;
 	];
 ] : ⊤;
 
@@ -284,9 +284,11 @@ Private method "function for scaling from_to_by_using_" is
 	extentSend ::= send $"_'s⁇extent" with «<«↓args[1]»>» : number;
 	siScaled ::= send $"_×_" with «<extentSend, siScaleFactor>» : number;
 	/* Construct the expression to obtain the final scaled magnitude. */
-	scaled ::= send scaleOperator with «<siScaled, ‘`scaleFactor`’>» : number;
+	scaled ::= restricted send scaleOperator
+		with «<siScaled, ‘`scaleFactor`’>»
+		: number;
 	/* Construct the expression to obtain the resultant dimensioned quantity. */
-	juxtapositionSend ::= send $"__"
+	juxtapositionSend ::= restricted send $"__"
 		with «<scaled, «↓args[2]»>»
 		: qB;
 	/* Construct and answer the requested function. */
@@ -330,14 +332,16 @@ Private method "function for scaling from_to_by_using_" is
 		>;
 	/* Construct the expression to obtain the scaled magnitude. */
 	extentSend ::= send $"_'s⁇extent" with «<«↓args[1]»>» : number;
-	scaled ::= send scaleOperator with «<extentSend, ‘`scaleFactor`’>» : number;
+	scaled ::= restricted send scaleOperator
+		with «<extentSend, ‘`scaleFactor`’>»
+		: number;
 	/* Construct the expression to obtain the SI scaling factor. */
 	exponent ::= send $"_'s⁇scale factor" with «<«↓args[2]»>» : integer;
 	siScaleFactor ::= send $"_^_" with «<‘`10`’, exponent>» : number;
 	/* Construct the expression to obtain the final scaled magnitude. */
 	siScaled ::= send $"_÷_" with «<scaled, siScaleFactor>» : number;
 	/* Construct the expression to obtain the resultant dimensioned quantity. */
-	juxtapositionSend ::= send $"__"
+	juxtapositionSend ::= restricted send $"__"
 		with «<siScaled, «↓args[2]»>»
 		: qB;
 	/* Construct and answer the requested function. */
@@ -368,12 +372,12 @@ Method "Conversion rule:_≍_" is
 	metricA ::= a's metric;
 	metricB ::= b's metric;
 	scaleFactor ::= b's extent;
-	Method $"_converted to_" is function for scaling
+	Stable method $"_converted to_" is function for scaling
 		from metricA
 		to metricB
 		by scaleFactor
 		using $"_×_";
-	Method $"_converted to_" is function for scaling
+	Stable method $"_converted to_" is function for scaling
 		from metricB
 		to metricA
 		by scaleFactor
@@ -403,12 +407,12 @@ Method "Conversion rule:_≍_" is
 	metricA ::= a's metric;
 	metricB ::= b's metric;
 	scaleFactor ::= b's extent;
-	Method $"_converted to_" is function for scaling
+	Stable method $"_converted to_" is function for scaling
 		from metricA
 		to metricB
 		by scaleFactor
 		using $"_×_";
-	Method $"_converted to_" is function for scaling
+	Stable method $"_converted to_" is function for scaling
 		from metricB
 		to metricA
 		by scaleFactor

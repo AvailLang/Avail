@@ -209,14 +209,6 @@ extends A_BasicObject
 	@Nullable Primitive primitive ();
 
 	/**
-	 * Also declared in {@link A_Type} for {@linkplain FunctionTypeDescriptor
-	 * function types}.
-	 *
-	 * @return The type of this {@linkplain SendNodeDescriptor send node}.
-	 */
-	A_Type returnType ();
-
-	/**
 	 * Also defined in {@link A_RawFunction}.
 	 *
 	 * @return The source code line number on which this {@linkplain

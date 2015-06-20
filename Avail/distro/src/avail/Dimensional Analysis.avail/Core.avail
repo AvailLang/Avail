@@ -2339,9 +2339,11 @@ Private method "function for scaling from_to_by_using_" is
 	args ::= <arg «`"quantity"` : qA», arg «`"aUnit"` : b's type»>;
 	/* Construct the expression to obtain the scaled magnitude. */
 	extentSend ::= send $"_'s⁇extent" with «<«↓args[1]»>» : number;
-	scaled ::= send scaleOperator with «<extentSend, ‘`scaleFactor`’>» : number;
+	scaled ::= restricted send scaleOperator
+		with «<extentSend, ‘`scaleFactor`’>»
+		: number;
 	/* Construct the expression to obtain the resultant dimensioned quantity. */
-	juxtapositionSend ::= send $"__"
+	juxtapositionSend ::= restricted send $"__"
 		with «<scaled, «↓args[2]»>»
 		: qB;
 	/* Construct and answer the requested function. */

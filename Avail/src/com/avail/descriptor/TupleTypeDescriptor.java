@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TupleTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
-import java.util.List;
+import java.util.IdentityHashMap;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -94,7 +94,7 @@ extends TypeDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		if (object.slot(TYPE_TUPLE).tupleSize() == 0)
@@ -116,7 +116,7 @@ extends TypeDescriptor
 				aStream.append('<');
 				object.defaultType().printOnAvoidingIndent(
 					aStream,
-					recursionList,
+					recursionMap,
 					(indent + 1));
 				aStream.append("…|>");
 				return;
@@ -128,26 +128,26 @@ extends TypeDescriptor
 		{
 			object.typeAtIndex(i).printOnAvoidingIndent(
 				aStream,
-				recursionList,
+				recursionMap,
 				indent + 1);
 			aStream.append(", ");
 		}
 		object.slot(DEFAULT_TYPE).printOnAvoidingIndent(
 			aStream,
-			recursionList,
+			recursionMap,
 			indent + 1);
 		aStream.append("…|");
 		final A_Type sizeRange = object.slot(SIZE_RANGE);
 		sizeRange.lowerBound().printOnAvoidingIndent(
 			aStream,
-			recursionList,
+			recursionMap,
 			indent + 1);
 		if (!sizeRange.lowerBound().equals(sizeRange.upperBound()))
 		{
 			aStream.append("..");
 			sizeRange.upperBound().printOnAvoidingIndent(
 				aStream,
-				recursionList,
+				recursionMap,
 				indent + 1);
 		}
 		aStream.append('>');

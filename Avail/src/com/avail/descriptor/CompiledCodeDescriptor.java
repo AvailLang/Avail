@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.*;
@@ -295,7 +296,7 @@ extends Descriptor
 		}
 		final StringBuilder disassembled = new StringBuilder();
 		object.printOnAvoidingIndent(
-			disassembled, new ArrayList<A_BasicObject>(), 0);
+			disassembled, new IdentityHashMap<A_BasicObject, Void>(), 0);
 		final String[] content = new String[1];
 		content[0] = disassembled.toString();
 		fields.add(
@@ -730,13 +731,13 @@ extends Descriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		super.printObjectOnAvoidingIndent(
 			object,
 			builder,
-			recursionList,
+			recursionMap,
 			indent);
 		builder.append('\n');
 		for (int i = indent; i > 0; i--)
@@ -747,7 +748,7 @@ extends Descriptor
 		L1Disassembler.disassemble(
 			object,
 			builder,
-			recursionList,
+			recursionMap,
 			indent + 1);
 	}
 

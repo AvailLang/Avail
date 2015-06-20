@@ -36,7 +36,7 @@ import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.PrimitiveTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.PrimitiveTypeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.util.List;
+import java.util.IdentityHashMap;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -107,7 +107,7 @@ extends TypeDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		aStream.append(object.slot(NAME).asNativeString());

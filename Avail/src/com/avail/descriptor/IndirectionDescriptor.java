@@ -158,12 +158,12 @@ extends AbstractDescriptor
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		object.traversed().printOnAvoidingIndent(
 			aStream,
-			recursionList,
+			recursionMap,
 			indent);
 	}
 

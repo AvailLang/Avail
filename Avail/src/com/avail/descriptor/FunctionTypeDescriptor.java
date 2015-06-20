@@ -107,13 +107,13 @@ extends TypeDescriptor
 	 *
 	 * @param objects The objects to print.
 	 * @param aStream Where to print the objects.
-	 * @param recursionList Which ancestor objects are currently being printed.
+	 * @param recursionMap Which ancestor objects are currently being printed.
 	 * @param indent What level to indent subsequent lines.
 	 */
 	private static void printListOnAvoidingIndent (
 		final List<A_BasicObject> objects,
 		final StringBuilder aStream,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		final int objectCount = objects.size();
@@ -148,7 +148,7 @@ extends TypeDescriptor
 				{
 					item.printOnAvoidingIndent(
 						aStream,
-						recursionList,
+						recursionMap,
 						indent + 1);
 				}
 				else
@@ -174,7 +174,7 @@ extends TypeDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		aStream.append('[');
@@ -214,7 +214,7 @@ extends TypeDescriptor
 						list.add(maxObject);
 					}
 				}
-				printListOnAvoidingIndent(list, aStream, recursionList, indent);
+				printListOnAvoidingIndent(list, aStream, recursionMap, indent);
 			}
 			else
 			{
@@ -223,7 +223,7 @@ extends TypeDescriptor
 		}
 		aStream.append("]→");
 		object.returnType().printOnAvoidingIndent(
-			aStream, recursionList, indent + 1);
+			aStream, recursionMap, indent + 1);
 		if (object.declaredExceptions().setSize() > 0)
 		{
 			aStream.append("^");
@@ -232,7 +232,7 @@ extends TypeDescriptor
 			{
 				list.add(elem);
 			}
-			printListOnAvoidingIndent(list, aStream, recursionList, indent);
+			printListOnAvoidingIndent(list, aStream, recursionMap, indent);
 		}
 	}
 

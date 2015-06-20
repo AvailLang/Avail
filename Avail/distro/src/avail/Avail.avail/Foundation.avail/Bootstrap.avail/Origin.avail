@@ -53,7 +53,7 @@ Names
 			\|«$…«:_†»?;§»?\
 			\|«_!§»\
 			\|«_!»?\
-		\|]\
+		\|]§\
 		\|«:_†»?\
 		\|«^«_†‡,»»?",
 	"…:_†;",
@@ -73,6 +73,7 @@ Pragma
 		\|BootstrapPrefixPrimitiveDeclaration,\
 		\|BootstrapPrefixLabelDeclaration,\
 		\|BootstrapPrefixPostStatement,\
+		\|BootstrapPrefixEndOfBlockBody,\
 		\|BootstrapBlockMacro=\
 			\|[§\
 				\|««…:_†§‡,»`|»?\
@@ -80,7 +81,7 @@ Pragma
 				\|«$…«:_†»?;§»?\
 				\|«_!§»\
 				\|«_!»?\
-			\|]\
+			\|]§\
 			\|«:_†»?\
 			\|«^«_†‡,»»?",
 	"macro=BootstrapVariableDeclarationMacro=…:_†;",
@@ -103,7 +104,7 @@ Body
  *              \|«$…«:_†»?;§»?\
  *              \|«_!§»\
  *              \|«_!»?\
- *          \|]\
+ *          \|]§\
  *          \|«:_†»?\
  *          \|«^«_†‡,»»?"
  * @param "argPhrases" "list phrase⇒(<token, any meta…|>?*)"

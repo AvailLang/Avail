@@ -138,16 +138,16 @@ implements
 	 * {@code AvailObject}s for Java-side debugging.</p>
 	 *
 	 * @param builder A {@link StringBuilder}.
-	 * @param recursionList A {@linkplain List list} containing {@link
-	 *                      AvailObject}s already visited during the recursive
-	 *                      print.
+	 * @param recursionMap An {@linkplain IdentityHashMap} whose keys are {@link
+	 *                     A_BasicObject}s already visited during the recursive
+	 *                     print.  The values are unused.
 	 * @param indent The indent level, in horizontal tabs, at which the {@link
 	 *               AvailObject} should be printed.
 	 */
 	@Override
 	public void printOnAvoidingIndent (
 		final StringBuilder builder,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		try
@@ -162,26 +162,23 @@ implements
 				builder.append("*** DEPTH ***");
 				return;
 			}
-			for (final A_BasicObject candidate : recursionList)
+			if (recursionMap.containsKey(this))
 			{
-				if (candidate == this)
-				{
-					builder.append("**RECURSION**");
-					return;
-				}
+				builder.append("**RECURSION**");
+				return;
 			}
-			recursionList.add(this);
+			recursionMap.put(this, null);
 			try
 			{
 				descriptor.printObjectOnAvoidingIndent(
 					this,
 					builder,
-					recursionList,
+					recursionMap,
 					indent);
 			}
 			finally
 			{
-				recursionList.remove(recursionList.size() - 1);
+				recursionMap.remove(this);
 			}
 		}
 		catch (final Exception e)
@@ -243,10 +240,10 @@ implements
 	public String toString ()
 	{
 		final StringBuilder stringBuilder = new StringBuilder(100);
-		final List<A_BasicObject> recursionList =
-			new ArrayList<>(10);
-		printOnAvoidingIndent(stringBuilder, recursionList, 1);
-		assert recursionList.size() == 0;
+		final IdentityHashMap<A_BasicObject, Void> recursionMap =
+			new IdentityHashMap<>(10);
+		printOnAvoidingIndent(stringBuilder, recursionMap, 1);
+		assert recursionMap.size() == 0;
 		return stringBuilder.toString();
 	}
 

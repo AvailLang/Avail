@@ -70,7 +70,7 @@ Extends
 				\|«$…«:_†»?;§»?\
 				\|«_!§»\
 				\|«_!»?\
-			\|]\
+			\|]§\
 			\|«:_†»?\
 			\|«^«_†‡,»»?",
 		"…:_†;",
@@ -206,6 +206,7 @@ Extends
 		"primitive description of_",
 		"primitive failure reason phrase",
 		"read_/write_",
+		"restricted send_with_:_",
 		"semantic restrictions for_given_",
 		"send phrase",
 		"send_with_:_",
@@ -930,7 +931,6 @@ Extends
 	"Phrases" =
 	(
 		"Evaluate|evaluate_",
-		"restricted send_with_:_",
 		"this token:…",
 		"_compiled",
 		"``_``",

@@ -330,14 +330,14 @@ Public method "set body function(_,_)" is
 		declaration ::= scope map[name];
 		Undeclare name;
 		restricted send anAtom with
-		<
-			aSet, 
-			«[
-			  	<cast declaration into [d : argument phrase | d]>
-			 | 
-			 	statements
-			 ] : blockReturnType»
-		> : returnType
+			«<
+				aSet, 
+				«[
+				  	<cast declaration into [d : argument phrase | d]>
+				 | 
+				 	statements
+				 ] : blockReturnType»
+			>» : returnType
 	] : send phrase ⇒ ⊤
 ] : [literal phrase ⇒ token, expression phrase ⇒ set, 
      block phrase ⇒ []→ ⊤]→send phrase ⇒ ⊤;
@@ -574,7 +574,7 @@ Macro "reject each…from_§where_" is a set iteration prefix function,
 	 	i : natural number := cast size into [n : natural number | n];
 	 	c : expression phrase⇒any := cast statements[i] into 
 		 	[e : expression phrase⇒any | e];
-	 	statements[..end] ++ <restricted send $"¬_" with <c> : boolean>
+	 	statements[..end] ++ <restricted send $"¬_" with «<c>» : boolean>
 	];
 	blockReturnType ::= cast newStatements
 		into [t : phrase+ | t[|t|]'s semantic type]
@@ -584,14 +584,14 @@ Macro "reject each…from_§where_" is a set iteration prefix function,
 	Undeclare name;
 
 	restricted send anAtom with
-	<
-		aSet, 
-		«[
-			<cast declaration into [d : argument phrase | d]>
-		 | 
-		 	newStatements
-		] : blockReturnType»
-	> : returnType
+		«<
+			aSet, 
+			«[
+				<cast declaration into [d : argument phrase | d]>
+			 | 
+			 	newStatements
+			] : blockReturnType»
+		>» : returnType
 ] : send phrase ⇒ ⊤;
 
 /**

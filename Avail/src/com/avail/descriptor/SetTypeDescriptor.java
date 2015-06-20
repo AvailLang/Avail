@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.SetTypeDescriptor.ObjectSlots.*;
-import java.util.List;
+import java.util.IdentityHashMap;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -76,7 +76,7 @@ extends TypeDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		if (object.slot(CONTENT_TYPE).equals(ANY.o())
@@ -88,7 +88,7 @@ extends TypeDescriptor
 		}
 		aStream.append('{');
 		object.slot(CONTENT_TYPE).printOnAvoidingIndent(
-			aStream, recursionList, indent + 1);
+			aStream, recursionMap, indent + 1);
 		aStream.append('|');
 		final A_Type sizeRange = object.slot(SIZE_RANGE);
 		if (sizeRange.equals(IntegerRangeTypeDescriptor.wholeNumbers()))
@@ -97,12 +97,12 @@ extends TypeDescriptor
 			return;
 		}
 		sizeRange.lowerBound().printOnAvoidingIndent(
-			aStream, recursionList, indent + 1);
+			aStream, recursionMap, indent + 1);
 		if (!sizeRange.lowerBound().equals(sizeRange.upperBound()))
 		{
 			aStream.append("..");
 			sizeRange.upperBound().printOnAvoidingIndent(
-				aStream, recursionList, indent + 1);
+				aStream, recursionMap, indent + 1);
 		}
 		aStream.append('}');
 	}

@@ -1109,20 +1109,23 @@ public final class AvailRuntime
 	}
 
 	{
-		final A_Function function = FunctionDescriptor.newCrashFunction(
+		unassignedVariableReadFunction = FunctionDescriptor.newCrashFunction(
+			"attempted to read from unassigned variable",
 			TupleDescriptor.empty());
-		unassignedVariableReadFunction = function;
 		resultDisagreedWithExpectedTypeFunction =
 			FunctionDescriptor.newCrashFunction(
+				"return result disagreed with expected type",
 				TupleDescriptor.from(
 					FunctionTypeDescriptor.mostGeneralType(),
 					InstanceMetaDescriptor.topMeta(),
 					VariableTypeDescriptor.wrapInnerType(ANY.o())));
 		implicitObserveFunction = FunctionDescriptor.newCrashFunction(
+			"variable with a write reactor was written with write-tracing off",
 			TupleDescriptor.from(
 				FunctionTypeDescriptor.mostGeneralType(),
 				TupleTypeDescriptor.mostGeneralType()));
 		invalidMessageSendFunction = FunctionDescriptor.newCrashFunction(
+			"failed method lookup",
 			TupleDescriptor.from(
 				AbstractEnumerationTypeDescriptor.withInstances(
 					TupleDescriptor.from(

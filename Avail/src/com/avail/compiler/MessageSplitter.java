@@ -707,7 +707,7 @@ public class MessageSplitter
 			assert arguments != null;
 			arguments.next().printOnAvoidingIndent(
 				builder,
-				new ArrayList<A_BasicObject>(),
+				new IdentityHashMap<A_BasicObject, Void>(),
 				indent + 1);
 		}
 
@@ -776,7 +776,7 @@ public class MessageSplitter
 			// Describe the token that was parsed as this raw token argument.
 			arguments.next().printOnAvoidingIndent(
 				builder,
-				new ArrayList<A_BasicObject>(),
+				new IdentityHashMap<A_BasicObject, Void>(),
 				indent + 1);
 			builder.append("†");
 		}
@@ -823,7 +823,7 @@ public class MessageSplitter
 			// Describe the variable reference that was parsed as this argument.
 			arguments.next().printOnAvoidingIndent(
 				builder,
-				new ArrayList<A_BasicObject>(),
+				new IdentityHashMap<A_BasicObject, Void>(),
 				indent + 1);
 			builder.append("↑");
 		}
@@ -884,7 +884,7 @@ public class MessageSplitter
 			// might have an expression type of top.
 			arguments.next().printOnAvoidingIndent(
 				builder,
-				new ArrayList<A_BasicObject>(),
+				new IdentityHashMap<A_BasicObject, Void>(),
 				indent + 1);
 		}
 	}
@@ -928,7 +928,7 @@ public class MessageSplitter
 			// Describe the token that was parsed as this raw token argument.
 			arguments.next().printOnAvoidingIndent(
 				builder,
-				new ArrayList<A_BasicObject>(),
+				new IdentityHashMap<A_BasicObject, Void>(),
 				indent + 1);
 		}
 	}

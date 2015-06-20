@@ -454,7 +454,7 @@ extends PojoTypeDescriptor
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		final A_Map ancestors = object.slot(JAVA_ANCESTORS);
@@ -500,7 +500,7 @@ extends PojoTypeDescriptor
 						builder.append(", ");
 					}
 					firstParam = false;
-					param.printOnAvoidingIndent(builder, recursionList, indent);
+					param.printOnAvoidingIndent(builder, recursionMap, indent);
 				}
 				builder.append('>');
 			}

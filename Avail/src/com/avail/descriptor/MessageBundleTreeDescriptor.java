@@ -304,7 +304,7 @@ extends Descriptor
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		builder.append("BundleTree[pc=");

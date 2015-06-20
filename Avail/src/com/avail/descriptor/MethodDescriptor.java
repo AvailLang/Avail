@@ -107,6 +107,9 @@ extends Descriptor
 		 * method itself has no intrinsic name, as its bundles completely
 		 * determine what it is called in various modules (based on the module
 		 * scope of the bundles' {@linkplain AtomDescriptor atomic names}).
+		 *
+		 * TODO [MvG] - This should be a weak set, and the members should first
+		 * be forced to be traversed (across indirections) and Shared.
 		 */
 		OWNING_BUNDLES,
 
@@ -1086,7 +1089,7 @@ extends Descriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		final int size =

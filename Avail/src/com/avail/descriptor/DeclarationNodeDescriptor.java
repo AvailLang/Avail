@@ -38,7 +38,7 @@ import static com.avail.descriptor.DeclarationNodeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.DeclarationNodeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import java.util.List;
+import java.util.IdentityHashMap;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.TypeDescriptor.Types;
@@ -129,14 +129,14 @@ extends ParseNodeDescriptor
 			public void print (
 				final A_Phrase object,
 				final StringBuilder builder,
-				final List<A_BasicObject> recursionList,
+				final IdentityHashMap<A_BasicObject, Void> recursionMap,
 				final int indent)
 			{
 				builder.append(object.token().string().asNativeString());
 				builder.append(" : ");
 				object.declaredType().printOnAvoidingIndent(
 					builder,
-					recursionList,
+					recursionMap,
 					indent + 1);
 			}
 		},
@@ -170,7 +170,7 @@ extends ParseNodeDescriptor
 			public void print (
 				final A_Phrase object,
 				final StringBuilder builder,
-				final List<A_BasicObject> recursionList,
+				final IdentityHashMap<A_BasicObject, Void> recursionMap,
 				final int indent)
 			{
 				builder.append('$');
@@ -180,7 +180,7 @@ extends ParseNodeDescriptor
 					object.declaredType().functionType();
 				functionType.returnType().printOnAvoidingIndent(
 					builder,
-					recursionList,
+					recursionMap,
 					indent + 1);
 			}
 		},
@@ -233,23 +233,24 @@ extends ParseNodeDescriptor
 			public void print (
 				final A_Phrase object,
 				final StringBuilder builder,
-				final List<A_BasicObject> recursionList,
+				final IdentityHashMap<A_BasicObject, Void> recursionMap,
 				final int indent)
 			{
 				builder.append(object.token().string().asNativeString());
 				builder.append(" : ");
 				object.declaredType().printOnAvoidingIndent(
 					builder,
-					recursionList,
+					recursionMap,
 					indent + 1);
 				if (!object.initializationExpression().equalsNil())
 				{
 					builder.append(" := ");
 					object.initializationExpression().printOnAvoidingIndent(
 						builder,
-						recursionList,
+						recursionMap,
 						indent + 1);
 				}
+				builder.append(";");
 			}
 		},
 
@@ -281,15 +282,18 @@ extends ParseNodeDescriptor
 			public void print (
 				final A_Phrase object,
 				final StringBuilder builder,
-				final List<A_BasicObject> recursionList,
+				final IdentityHashMap<A_BasicObject, Void> recursionMap,
 				final int indent)
 			{
 				builder.append(object.token().string().asNativeString());
 				builder.append(" ::= ");
 				object.initializationExpression().printOnAvoidingIndent(
 					builder,
-					recursionList,
+					recursionMap,
 					indent + 1);
+//TODO[MvG] REMOVE DEBUG!!!
+builder.append("[type=" + object.declaredType() + "]");
+				builder.append(";");
 			}
 		},
 
@@ -327,23 +331,24 @@ extends ParseNodeDescriptor
 			public void print (
 				final A_Phrase object,
 				final StringBuilder builder,
-				final List<A_BasicObject> recursionList,
+				final IdentityHashMap<A_BasicObject, Void> recursionMap,
 				final int indent)
 			{
 				builder.append(object.token().string().asNativeString());
 				builder.append(" : ");
 				object.declaredType().printOnAvoidingIndent(
 					builder,
-					recursionList,
+					recursionMap,
 					indent + 1);
 				if (!object.initializationExpression().equalsNil())
 				{
 					builder.append(" := ");
 					object.initializationExpression().printOnAvoidingIndent(
 						builder,
-						recursionList,
+						recursionMap,
 						indent + 1);
 				}
+				builder.append(";");
 			}
 		},
 
@@ -365,15 +370,16 @@ extends ParseNodeDescriptor
 			public void print (
 				final A_Phrase object,
 				final StringBuilder builder,
-				final List<A_BasicObject> recursionList,
+				final IdentityHashMap<A_BasicObject, Void> recursionMap,
 				final int indent)
 			{
 				builder.append(object.token().string().asNativeString());
 				builder.append(" ::= ");
 				object.initializationExpression().printOnAvoidingIndent(
 					builder,
-					recursionList,
+					recursionMap,
 					indent + 1);
+				builder.append(";");
 			}
 		},
 
@@ -406,14 +412,14 @@ extends ParseNodeDescriptor
 			public void print (
 				final A_Phrase object,
 				final StringBuilder builder,
-				final List<A_BasicObject> recursionList,
+				final IdentityHashMap<A_BasicObject, Void> recursionMap,
 				final int indent)
 			{
 				builder.append(object.token().string().asNativeString());
 				builder.append(" : ");
 				object.declaredType().printOnAvoidingIndent(
 					builder,
-					recursionList,
+					recursionMap,
 					indent + 1);
 			}
 		};
@@ -609,15 +615,20 @@ extends ParseNodeDescriptor
 		/**
 		 * Print a declaration of this kind.
 		 *
-		 * @param object The declaration.
-		 * @param builder Where to print.
-		 * @param recursionList A list of parent objects that are printing.
-		 * @param indent The indentation depth.
+		 * @param object
+		 *        The declaration.
+		 * @param builder
+		 *        Where to print.
+		 * @param recursionMap
+		 *        An {@link IdentityHashMap} of parent objects that are
+		 *        printing.
+		 * @param indent
+		 *        The indentation depth.
 		 */
 		public abstract void print (
 			final A_Phrase object,
 			final StringBuilder builder,
-			final List<A_BasicObject> recursionList,
+			final IdentityHashMap<A_BasicObject, Void> recursionMap,
 			final int indent);
 	}
 
@@ -804,13 +815,13 @@ extends ParseNodeDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		object.declarationKind().print(
 			object,
 			builder,
-			recursionList,
+			recursionMap,
 			indent);
 	}
 

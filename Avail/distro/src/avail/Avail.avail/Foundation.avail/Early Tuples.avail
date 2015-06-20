@@ -234,7 +234,7 @@ Macro "_++_" is
 	left : expression phrase ⇒ tuple,
 	right : expression phrase ⇒ tuple
 |
-	restricted send $"concatenate_" with <«<left, right>»> : tuple
+	restricted send $"concatenate_" with «<«<left, right>»>» : tuple
 ] : expression phrase ⇒ tuple;
 
 /**
@@ -356,7 +356,7 @@ Macro "_++_" is
 						<lit's token's value, right's token's value>`’;
 					Exit body with
 						restricted send $"concatenate_"
-							with concatenate <unfolded, <folded>>
+							with concatenate <unfolded, <folded>> → list phrase
 							: tuple
 				]
 				else [/* Fall through. */];
@@ -364,7 +364,7 @@ Macro "_++_" is
 		]
 		else [/* Fall through. */];
 	];
-	restricted send $"concatenate_" with <«<left, right>»> : tuple
+	restricted send $"concatenate_" with «<«<left, right>»>» : tuple
 ] : expression phrase ⇒ tuple;
 
 /**
@@ -412,7 +412,7 @@ Macro "_++_" is
 						[t : <<>, expression phrase ⇒ tuple…|whole number> | t];
 					Exit body with
 						restricted send $"concatenate_"
-							with concatenate <<folded>, unfolded>
+							with concatenate <<folded>, unfolded> → list phrase
 							: tuple
 				]
 				else [/* Fall through. */];
@@ -420,7 +420,7 @@ Macro "_++_" is
 		]
 		else [/* Fall through. */];
 	];
-	restricted send $"concatenate_" with <«<left, right>»> : tuple
+	restricted send $"concatenate_" with «<«<left, right>»>» : tuple
 ] : expression phrase ⇒ tuple;
 
 /**
@@ -440,6 +440,7 @@ Macro "_++_" is
  *          A revised {@type "send phrase" send} of {@method "concatenate_"}.
  * @category "Tuples"
  */
+
 Macro "_++_" is
 [
 	left : send phrase ⇒ tuple,
@@ -511,7 +512,9 @@ Macro "_++_" is
 							t
 						];
 					Exit body with restricted send $"concatenate_"
-						with concatenate <leftUnfolded, folded, rightUnfolded>
+						with
+							(concatenate <leftUnfolded, folded, rightUnfolded>)
+								→ list phrase
 						: tuple
 				];
 			]
@@ -519,7 +522,7 @@ Macro "_++_" is
 		]
 		else [/* Fall through. */];
 	];
-	restricted send $"concatenate_" with <«<left, right>»> : tuple
+	restricted send $"concatenate_" with «<«<left, right>»>» : tuple
 ] : expression phrase ⇒ tuple;
 
 /**
@@ -1337,11 +1340,11 @@ Macro "_↑++=_" is
 	elemPhrase : expression phrase ⇒ <<>, any…|[1..1]>
 |
 	restricted send $"_`?=_" with
-	<
+	«<
 		varPhrase,
 		restricted send $"_with_appended" with
-		<
-			restricted send $"eject_↑" with <varPhrase> : any,
+		«<
+			restricted send $"eject_↑" with «<varPhrase>» : any,
 			cast elemPhrase into
 			[
 				lit : literal phrase ⇒ <<>, any…|[1..1]>
@@ -1350,10 +1353,10 @@ Macro "_↑++=_" is
 			]
 			else
 			[
-				restricted send $"_[_]" with <elemPhrase, ‘`1`’> : any
+				restricted send $"_[_]" with «<elemPhrase, ‘`1`’>» : any
 			]
-		> : tuple
-	> : ⊤
+		>» : tuple
+	>» : ⊤
 ];
 
 Alias "_++=_" to "_↑++=_";

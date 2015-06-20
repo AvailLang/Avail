@@ -130,7 +130,7 @@ Public macro "Require:macro send has no internal whitespace(_)" is
 [
 	message : expression phrase ⇒ string
 |
-	restricted send noWhitespace with <«[<> | <message>] : string»> : ⊤
+	restricted send noWhitespace with «<«[<> | <message>] : string»>» : ⊤
 ];
 
 /**

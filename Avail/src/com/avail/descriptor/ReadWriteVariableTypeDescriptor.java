@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.ReadWriteVariableTypeDescriptor.ObjectSlots.*;
-import java.util.List;
+import java.util.IdentityHashMap;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -73,18 +73,18 @@ extends TypeDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		aStream.append("read ");
 		object.slot(READ_TYPE).printOnAvoidingIndent(
 			aStream,
-			recursionList,
+			recursionMap,
 			(indent + 1));
 		aStream.append("/write ");
 		object.slot(WRITE_TYPE).printOnAvoidingIndent(
 			aStream,
-			recursionList,
+			recursionMap,
 			(indent + 1));
 	}
 

@@ -116,7 +116,7 @@ extends Descriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		boolean multiline = false;
@@ -128,10 +128,10 @@ extends Descriptor
 			aStream.append(first ? "" : ", ");
 			final int entryStart = aStream.length();
 			entry.key().printOnAvoidingIndent(
-				aStream, recursionList, indent + 2);
+				aStream, recursionMap, indent + 2);
 			aStream.append("→");
 			entry.value().printOnAvoidingIndent(
-				aStream, recursionList, indent + 1);
+				aStream, recursionMap, indent + 1);
 			if (aStream.length() - startPosition > 100
 				|| aStream.indexOf("\n", entryStart) != -1)
 			{
@@ -154,7 +154,7 @@ extends Descriptor
 				}
 				final int entryStart = aStream.length();
 				entry.key().printOnAvoidingIndent(
-					aStream, recursionList, indent + 2);
+					aStream, recursionMap, indent + 2);
 				if (aStream.indexOf("\n", entryStart) != -1)
 				{
 					aStream.append("\n");
@@ -165,7 +165,7 @@ extends Descriptor
 				}
 				aStream.append("→");
 				entry.value().printOnAvoidingIndent(
-					aStream, recursionList, indent + 1);
+					aStream, recursionMap, indent + 1);
 				first = false;
 			}
 			aStream.append("\n");

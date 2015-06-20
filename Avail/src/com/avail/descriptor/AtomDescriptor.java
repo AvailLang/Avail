@@ -136,7 +136,7 @@ extends Descriptor
 	public final void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		final String nativeName = object.atomName().asNativeString();

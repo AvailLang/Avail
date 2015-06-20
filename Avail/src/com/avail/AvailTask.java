@@ -101,14 +101,9 @@ implements Comparable<AvailTask>, Runnable
 				});
 				final MutableOrNull<Continuation0> postExitContinuation =
 					new MutableOrNull<>();
-				ExecutionState finalState = null;
 				try
 				{
-					// Capture the return value from the transformer, so that
-					// we can tell if *we* made the fiber terminate, versus
-					// another thread resuming its execution and reaching
-					// termination quickly.
-					finalState = transformer.value();
+					transformer.value();
 				}
 				catch (final Throwable e)
 				{
@@ -125,6 +120,7 @@ implements Comparable<AvailTask>, Runnable
 						fiber.executionState(ABORTED);
 					}
 					fiber.failureContinuation().value(e);
+					fiber.executionState(RETIRED);
 				}
 				finally
 				{
@@ -141,16 +137,16 @@ implements Comparable<AvailTask>, Runnable
 				}
 				// If the fiber has terminated, then report its
 				// result via its result continuation.
-				final ExecutionState finalFinalState = finalState;
 				fiber.lock(new Continuation0()
 				{
 					@Override
 					public void value ()
 					{
-						if (finalFinalState == TERMINATED)
+						if (fiber.executionState() == TERMINATED)
 						{
 							fiber.resultContinuation().value(
 								fiber.fiberResult());
+							fiber.executionState(RETIRED);
 						}
 					}
 				});

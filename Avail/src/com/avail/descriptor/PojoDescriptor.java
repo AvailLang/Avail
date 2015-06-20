@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.PojoDescriptor.ObjectSlots.*;
-import java.util.List;
+import java.util.IdentityHashMap;
 import com.avail.annotations.*;
 import com.avail.utility.json.JSONWriter;
 
@@ -173,13 +173,13 @@ extends Descriptor
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		builder.append(String.valueOf(object.slot(RAW_POJO).javaObject()));
 		builder.append(" ∈ ");
 		object.slot(KIND).printOnAvoidingIndent(
-			builder, recursionList, indent);
+			builder, recursionMap, indent);
 	}
 
 	/**

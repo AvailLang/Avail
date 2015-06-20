@@ -1430,7 +1430,7 @@ Private method "dynamic opening scene variable for_" is
 		«[
 			<>
 		|
-			<send openingSceneAtom with «<>» : ↑sceneType>
+			<restricted send openingSceneAtom with «<>» : ↑sceneType>
 		] : ↑sceneType»→function;
 	openingSceneFunction()
 ] : variable;

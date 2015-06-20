@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.ContinuationTypeDescriptor.ObjectSlots.*;
-import java.util.List;
+import java.util.IdentityHashMap;
 import com.avail.annotations.*;
 import com.avail.interpreter.primitive.*;
 import com.avail.serialization.SerializerOperation;
@@ -93,13 +93,13 @@ extends TypeDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		aStream.append('$');
 		object.functionType().printOnAvoidingIndent(
 			aStream,
-			recursionList,
+			recursionMap,
 			(indent + 1));
 	}
 

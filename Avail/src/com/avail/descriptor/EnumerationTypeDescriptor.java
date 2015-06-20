@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.EnumerationTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.AvailObject.multiplier;
+import java.util.IdentityHashMap;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
@@ -189,7 +190,7 @@ extends AbstractEnumerationTypeDescriptor
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		// Print boolean specially.
@@ -202,7 +203,7 @@ extends AbstractEnumerationTypeDescriptor
 		aStream.append("enumeration of ");
 		getInstances(object).printOnAvoidingIndent(
 			aStream,
-			recursionList,
+			recursionMap,
 			indent + 1);
 	}
 

@@ -1,5 +1,5 @@
 /**
- * P_800_CreateRestrictedSendExpression.java
+ * P_CreateRestrictedSendExpression.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -53,14 +53,15 @@ import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
 
 /**
- * <strong>Primitive 800</strong>: Create a {@linkplain SendNodeDescriptor send
- * phrase} from the specified {@linkplain MessageBundleDescriptor message
- * bundle}, {@linkplain ListNodeDescriptor list node} of {@linkplain
- * ParseNodeKind#EXPRESSION_NODE argument expressions}, and {@linkplain
- * TypeDescriptor return type}.  In addition, run all semantic restrictions in
- * separate fibers.  The resulting send phrase's return type will be the
- * intersection of the supplied type, the return types produced by the semantic
- * restrictions, and the applicable method definitions' return types.
+ * <strong>Primitive CreateRestrictedSendExpression</strong>: Create a
+ * {@linkplain SendNodeDescriptor send phrase} from the specified {@linkplain
+ * A_Bundle message bundle}, {@linkplain ListNodeDescriptor list node} of
+ * {@linkplain ParseNodeKind#EXPRESSION_NODE argument expressions}, and
+ * {@linkplain TypeDescriptor return type}.  In addition, run all semantic
+ * restrictions in separate fibers.  The resulting send phrase's return type
+ * will be the intersection of the supplied type, the return types produced by
+ * the semantic restrictions, and the applicable method definitions' return
+ * types.
  *
  * <p>In the event that one or more semantic restrictions should fail, their
  * failure reasons will be captured and combined into a suitable composite
@@ -76,14 +77,14 @@ import com.avail.utility.evaluation.Continuation1;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_800_CreateRestrictedSendExpression
+public final class P_CreateRestrictedSendExpression
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_800_CreateRestrictedSendExpression().init(
+		new P_CreateRestrictedSendExpression().init(
 			3, Unknown);
 
 	@Override
@@ -137,18 +138,37 @@ extends Primitive
 		final A_Set allVisibleModules = currentModule.allAncestors();
 		final Mutable<A_Type> intersection = new Mutable<>(returnType);
 		// Merge in the applicable (and visible) definition return types.
+		boolean anyDefinitionsApplicable = false;
 		for (final A_Definition definition :
-			bundle.bundleMethod().definitionsTuple())
+			bundle.bundleMethod().filterByTypes(argTypesList))
 		{
 			if (allVisibleModules.hasElement(definition.definitionModule()))
 			{
-				final A_Type signature = definition.bodySignature();
-				if (signature.acceptsListOfArgTypes(argTypesList))
+				intersection.value = intersection.value.typeIntersection(
+					definition.bodySignature().returnType());
+				anyDefinitionsApplicable = true;
+			}
+		}
+		if (!anyDefinitionsApplicable)
+		{
+			// TODO [MvG]:  DEBUG ONLY...
+			for (final A_Definition definition :
+				bundle.bundleMethod().definitionsTuple())
+			{
+				if (allVisibleModules.hasElement(definition.definitionModule()))
 				{
-					intersection.value = intersection.value.typeIntersection(
-						signature.returnType());
+					final A_Type signature = definition.bodySignature();
+					if (signature.acceptsListOfArgTypes(argTypesList))
+					{
+						intersection.value = intersection.value.typeIntersection(
+							signature.returnType());
+						anyDefinitionsApplicable = true;
+					}
 				}
 			}
+			// ...TO HERE.
+			return interpreter.primitiveFailure(
+				E_NO_METHOD_DEFINITION.numericCode());
 		}
 		final List<A_SemanticRestriction> applicableRestrictions =
 			new ArrayList<>();
@@ -157,7 +177,8 @@ extends Primitive
 		{
 			if (allVisibleModules.hasElement(restriction.definitionModule()))
 			{
-				if (restriction.function().kind().acceptsListOfArgTypes(
+				// The semantic restriction takes the *types* as arguments.
+				if (restriction.function().kind().acceptsListOfArgValues(
 					argTypesList))
 				{
 					applicableRestrictions.add(restriction);
@@ -372,7 +393,8 @@ extends Primitive
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			SetDescriptor.fromCollection(Arrays.asList(
-					E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode()))
+					E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode(),
+					E_NO_METHOD_DEFINITION.numericCode()))
 				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
 	}
 }

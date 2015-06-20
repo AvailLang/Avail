@@ -108,7 +108,7 @@ extends Descriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		final A_Tuple tuple = object.asTuple();
@@ -126,7 +126,7 @@ extends Descriptor
 					aStream.append(", ");
 				}
 				tuple.tupleAt(i).printOnAvoidingIndent(
-					aStream, recursionList, indent + 1);
+					aStream, recursionMap, indent + 1);
 			}
 			aStream.append('}');
 		}

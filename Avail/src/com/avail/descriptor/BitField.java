@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import java.util.List;
+import java.util.IdentityHashMap;
 import com.avail.annotations.*;
 
 /**
@@ -89,7 +89,8 @@ implements Comparable<BitField>
 	/**
 	 * The name of this {@code BitField}.  This is filled in as needed by the
 	 * default {@linkplain AbstractDescriptor#printObjectOnAvoidingIndent(
-	 * AvailObject, StringBuilder, List, int) object printing} mechanism.
+	 * AvailObject, StringBuilder, IdentityHashMap, int) object printing}
+	 * mechanism.
 	 */
 	@Nullable String name;
 

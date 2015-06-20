@@ -37,7 +37,7 @@ import static com.avail.descriptor.ArrayPojoTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import java.io.Serializable;
 import java.lang.reflect.Array;
-import java.util.List;
+import java.util.IdentityHashMap;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -356,17 +356,17 @@ extends PojoTypeDescriptor
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		object.slot(CONTENT_TYPE).printOnAvoidingIndent(
-			builder, recursionList, indent);
+			builder, recursionMap, indent);
 		builder.append('[');
 		final AvailObject range = object.slot(SIZE_RANGE);
 		if (range.lowerBound().equals(range.upperBound()))
 		{
 			range.lowerBound().printOnAvoidingIndent(
-				builder, recursionList, indent);
+				builder, recursionMap, indent);
 		}
 		else if (IntegerRangeTypeDescriptor.wholeNumbers().isSubtypeOf(range))
 		{
@@ -376,10 +376,10 @@ extends PojoTypeDescriptor
 		else
 		{
 			range.lowerBound().printOnAvoidingIndent(
-				builder, recursionList, indent);
+				builder, recursionMap, indent);
 			builder.append("..");
 			range.upperBound().printOnAvoidingIndent(
-				builder, recursionList, indent);
+				builder, recursionMap, indent);
 		}
 		builder.append(']');
 	}

@@ -231,10 +231,10 @@ Macro "_`↑_" is
 	b : expression phrase ⇒ boolean
 |
 	restricted send atom for "_`↑_" with
-	<
+	«<
 		a,
 		«[<> | <b>] : boolean»
-	> : boolean
+	>» : boolean
 ];
 
 /**
@@ -353,10 +353,10 @@ Macro "_↓_" is
 	b : expression phrase ⇒ boolean
 |
 	restricted send atom for "_↓_" with
-	<
+	«<
 		a,
 		«[<> | <b>] : boolean»
-	> : boolean
+	>» : boolean
 ];
 
 /**
@@ -441,10 +441,10 @@ Macro "_→_" is
 	b : expression phrase ⇒ boolean
 |
 	restricted send atom for "_→_" with
-	<
+	«<
 		a,
 		«[<> | <b>] : boolean»
-	> : boolean
+	>» : boolean
 ];
 
 /**
@@ -528,10 +528,10 @@ Macro "_←_" is
 	b : expression phrase ⇒ boolean
 |
 	restricted send atom for "_←_" with
-	<
+	«<
 		a,
 		«[<> | <b>] : boolean»
-	> : boolean
+	>» : boolean
 ];
 
 /**
@@ -654,10 +654,10 @@ Macro "_↛_" is
 	b : expression phrase ⇒ boolean
 |
 	restricted send atom for "_↛_" with
-	<
+	«<
 		a,
 		«[<> | <b>] : boolean»
-	> : boolean
+	>» : boolean
 ];
 
 /**
@@ -760,10 +760,10 @@ Macro "_↚_" is
 	b : expression phrase ⇒ boolean
 |
 	restricted send atom for "_↚_" with
-	<
+	«<
 		a,
 		«[<> | <b>] : boolean»
-	> : boolean
+	>» : boolean
 ];
 
 /**

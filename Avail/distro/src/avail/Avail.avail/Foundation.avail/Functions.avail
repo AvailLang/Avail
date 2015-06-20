@@ -81,73 +81,77 @@ Method "“_”" is
 invokeAtom ::= atom for "Invoke|invoke_with_";
 
 /**
- * Convert a function of N arguments into a function of M arguments, where
- * 0 < M < N.  The decisions about which arguments to provide and which to defer
- * are made by providing an array of <<value>, boolean> pairs.  If the boolean
- * is false, use the value (i.e., a supplied argument), otherwise expect the
- * value to be absent (i.e., and empty tuple instead of <value>), and defer this
- * argument -- the returned function will require it and pass it through.
- *
- * @method "_partially evaluate with_"
- * @param "originalFunction" "function"
- *        The function to ultimately invoke.
- * @param "pairs" "<<any?, boolean…|2>…|>"
- *        The arguments and place-holder underscores.  Either the first element
- *        must be a size one tuple and the second element is false, or the first
- *        element is the empty tuple and the second element is true.
- * @returns "function"
- *          A function that takes some arguments destined for the original
- *          function and returns another function that takes the remainder of
- *          the arguments and invokes the original function.
+ * Help to convert an expression like f(a,_,_,d,_) into one like:
+ *   invoke [f2 : function, a2 : any, d2 : any |
+ *       [b : any, c : any, e : any | f2(a2,b,c,d2,e)]]
+ *   with <f, a, d>
+ * 
+ * @method "_partial evaluator with_"
+ * @param "originalFunctionPhrase" "expression phrase ⇒ function"
+ *        The expression providing the function to ultimately invoke.
+ * @param "providedExpressions" "(expression phrase ⇒ any)?*"
+ *        A tuple of optional argument expressions.  Where an argument is
+ *        present, the value is captured in a variable in a function that
+ *        lexically encloses the function to be produced.  Where an argument is
+ *        absent, produce a corresponding parameter in the resulting function.
+ *        The produced function, when invoked with the missing arguments, will
+ *        invoke the original function with both the new and the captured
+ *        arguments.
+ * @returns "expression phrase ⇒ function"
+ *          An expression which, when evaluated, will produce a function which,
+ *          when itself is invoked with the missing arguments, will invoke the
+ *          original function.
  * @category "Bootstrap" "Function Application"
  */
-Private method "_partially evaluate with_" is
+Private method "_partial evaluator with_" is
 [
-	originalFunction : function,
-	pairs : <<any?, boolean…|2>…|>
+	originalFunctionPhrase : expression phrase ⇒ function,
+	providedExpressions : (expression phrase ⇒ any)?*
 |
-	originalType ::= originalFunction's type;
-	argumentTypes ::= originalType's parameters' type;
-	Assert: ⎣argumentTypes⎦ = ⎡argumentTypes⎤;
-	Assert: ⎣argumentTypes⎦ = |pairs|;
-	weakOriginalFunctionConstant ::= ‘`originalFunction`("originalFunction")’;
-	originalFunctionConstant ::= cast weakOriginalFunctionConstant
-		into [lit : literal phrase ⇒ function | lit];
-	callArguments : <expression phrase⇒any…|> := <>;
-	argumentDeclarations : <argument phrase⇒⊤…|> := <>;
-	For each pairs do [
-			pair : <any*, boolean…|>,
-			n : natural number
-		|
-			if pair[2] then
-			[
-				/* An underscore. */
-				Assert: |pair[1]| = 0;
-				token ::= `"arg" ++ “n”`;
-				arg ::= arg «token : argumentTypes[n]»;
-				argumentDeclarations := eject argumentDeclarations ++ <arg>;
-				callArguments := eject callArguments ++ <«↓arg»>;
-			]
-			else
-			[
-				/* An actual value. */
-				Assert: |pair[1]| = 1; 
-				literalToken ::= `pair[1][1]`("value" ++ “n”);
-				callArguments := eject callArguments ++ <‘literalToken’>;
-			];
+	originalFunctionType ::= originalFunctionPhrase's semantic type;
+	paramTypes ::= originalFunctionType's parameters' type;
+	Assert: ⎣paramTypes⎦ = ⎡paramTypes⎤;
+	Assert: ⎣paramTypes⎦ = |providedExpressions|;
+	functionItselfParam ::= arg «`"theFunction"` : originalFunctionType»;
+	innerParams : argument phrase* := <>;
+	outerParams : argument phrase* := <functionItselfParam>;
+	allParamUses : variable use phrase* := <>;
+	outerInvokeArgs : (expression phrase ⇒ any)* := <originalFunctionPhrase>;
+	For each optionalExpr, index of providedExpressions do
+	[
+		param ::= arg «`"arg" ++ “index”` : paramTypes[index]»;
+		paramUse ::= «↓param»;
+		allParamUses ++= <paramUse>;
+		If optionalExpr = <> then
+		[
+			innerParams ++= <param>;
+		]
+		else
+		[
+			outerParams ++= <param>;
+			outerInvokeArgs ++= <optionalExpr[1]>;
+		];
 	];
-	blockToReturn ::=
-		«[ argumentDeclarations |
+	innerFunction ::=
+		«[innerParams |
 			<
-				send invokeAtom with
+				restricted send invokeAtom with
 				«<
-					originalFunctionConstant,
-					(callArguments → list phrase)
-				>» : (originalType's return type)
+					«↓functionItselfParam»,
+					allParamUses → list phrase
+				>» : originalFunctionType's return type
 			>
-		] : originalType's return type»;
-	blockToReturn→function
-] : function;
+		] : originalFunctionType's return type»;
+	outerFunction ::= 
+		«[outerParams |
+			<innerFunction>
+		] : innerFunction's semantic type»;
+	restricted send invokeAtom with
+	«<
+		outerFunction,
+		outerInvokeArgs → list phrase
+	>» : innerFunction's semantic type
+];
 
 /**
  * Convert a function of N arguments into a function of M arguments, where
@@ -159,42 +163,71 @@ Private method "_partially evaluate with_" is
  * f(10,20,30).  This is a generalization of currying as found in functional
  * languages.
  * 
+ * In particular, convert an expression like f(a,_,_,d,_) into one like:
+ *   invoke [f2 : function, a2 : any, d2 : any |
+ *       [b : any, c : any, e : any | f2(a2,b,c,d2,e)]]
+ *   with <f, a, d>
+ * 
  * @method "_(««_»?«`_»?‡,»)"
- * @param "originalFunction" "function"
- *        The function to ultimately invoke.
- * @param "pairs" "<<any?, boolean…|2>…|>"
+ * @param "originalFunction" "expression phrase ⇒ function"
+ *        An expression producing the function to ultimately invoke.
+ * @param "pairs" "list phrase ⇒ (<any?, boolean…|2>*)"
  *        The arguments and place-holder underscores.  Either the first element
- *        must be a size one tuple and the second element is false, or the first
- *        element is the empty tuple and the second element is true. At least
- *        one of the pairs must be the former and at least one must be the
- *        latter, otherwise the useless form f(_,_,_) would be allowed, and the
- *        form f(5,6,7) would be confused with actual function invocation.
- * @returns "function"
- *          A function that takes some arguments destined for the original
- *          function and returns another function that takes the remainder of
- *          the arguments and invokes the original function.
+ *        must produce a size one tuple and the second element a literal
+ *        producing false, or the first element must produce the empty tuple and
+ *        the second element true. At least one of the pairs must be the former
+ *        and at least one the latter, otherwise the useless form f(_,_,_) would
+ *        be allowed, and the form f(5,6,7) would be confused with actual
+ *        function invocation.
+ * @returns "expression phrase ⇒ function"
+ *          An expression producing a function that takes some arguments
+ *          destined for the original function and returns another function that
+ *          takes the remainder of the arguments and invokes the original
+ *          function.
  * @category "Function Application"
  */
-Public method "_(««_»?«`_»?‡,»)" is
+Public macro "_(««_»?«`_»?‡,»)" is
 [
-	originalFunction : function,
-	pairs : <<any?, boolean…|2>…|>
+	originalFunction : expression phrase ⇒ function,
+	pairs : list phrase ⇒ (<any?, boolean…|2>*)
 |
-	originalFunction partially evaluate with pairs
-] : function;
+	pairExprs ::= cast pairs' expressions into
+		[x : (list phrase ⇒ <any?, boolean…|2>)* | x];
+	providedExprs ::= map each pairExpr of pairExprs through
+	[
+		twoExprs ::= cast pairExpr's expressions into
+			[x : <list phrase⇒(any?), literal phrase⇒boolean…|2> | x];
+		twoExprs[1]'s expressions
+	];
+	originalFunction partial evaluator with providedExprs
+] : expression phrase ⇒ function;
 
 /**
  * @method "_(««_»?«`_»?‡,»)"
  * @restricts "function's type"
- * @restricts "<<any?, boolean…|2>…|>'s type"
+ * @restricts "<any?, boolean…|2>*'s type"
  */
 Semantic restriction "_(««_»?«`_»?‡,»)" is
 [
 	originalFunction : function's type,
-	pairs : <<any?, boolean…|2>…|>'s type
+	pairs : <any?, boolean…|2>*'s type
 |
 	Assert: ⎣pairs⎦ = ⎡pairs⎤ (
 		"Need a definite number of arguments and underscores");
+	paramTypes ::= originalFunction's parameters' type;
+	If ⎣paramTypes⎦ ≠ ⎡paramTypes⎤ then
+	[
+		Reject parse, expected:
+			"function for partial application to have \
+			\|a statically known number of arguments"
+	];
+	If ⎣paramTypes⎦ ≠ ⎣pairs⎦ then
+	[
+		Reject parse, expected:
+			"agreement between number of supplied arguments and function \
+			\|parameters (for partial application)"
+	];
+
 	pairTypes ::= pairs[1..⎣pairs⎦];
 	argumentTypes : <any's type…|> := <>;
 	For each pairType, index of pairTypes do
@@ -251,28 +284,30 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 ];
 
 /**
- * Partially evaluate a function, providing the first argument.  Answer a
+ * Partially evaluate a function, providing the first argument.  Produce a
  * function which takes the remaining arguments and evaluates the original
  * function with the first argument combined with the remaining arguments.
  *
  * @method "_(_,`…)"
- * @param "originalFunction" "function"
- *        The function to ultimately invoke.
- * @param "firstValue" "any"
+ * @param "originalFunction" "expression phrase ⇒ function"
+ *        An expression that produces the function to ultimately invoke.
+ * @param "firstValue" "expression phrase ⇒ any"
  *        The first argument to supply to the function.
  * @returns "function"
  *    A function that takes the remaining N-1 arguments and invokes the original
  *    function.
  * @category "Function Application"
  */
-Public method "_(_,`…)" is [
-	originalFunction : function,
-	firstValue : any
+Public macro "_(_,`…)" is [
+	originalFunction : expression phrase ⇒ function,
+	firstValueExpr : expression phrase ⇒ any
 |
-	pairs : <<any?, boolean…|2>…|> := <<<firstValue>, false>>;
-	argumentsType ::= originalFunction's type's parameters' type;
-	For each index from 2 to ⎣argumentsType⎦ do [pairs ++= <<<>, true>>;];
-	originalFunction partially evaluate with pairs
+	functionType ::= originalFunction's semantic type;
+	argTypes ::= functionType's parameters' type;
+	Assert: ⎣argTypes⎦ = ⎡argTypes⎤;
+	argCount ::= cast ⎣argTypes⎦ into [n : natural number | n];
+	originalFunction partial evaluator
+		with <<firstValueExpr>> ++ argCount - 1 occurrences of <>
 ];
 
 /**
@@ -307,27 +342,30 @@ Semantic restriction "_(_,`…)" is
 ] : function's type;
 
 /**
- * Partially evaluate a function, providing the last argument.  Answer a
- * function which takes the initial arguments and evaluates the original
- * function with the last argument combined with the remaining arguments.
+ * Partially evaluate a function, providing the last argument.  Produce a
+ * function which takes the remaining arguments and evaluates the original
+ * function with remaining argumenst combined with the last argument.
+ *
  * @method "_(`…,_)"
- * @param "originalFunction" "function"
- * 		The function to ultimately invoke.
- * @param "lastValue" "any"
+ * @param "originalFunction" "expression phrase ⇒ function"
+ *        An expression that produces the function to ultimately invoke.
+ * @param "lastValue" "expression phrase ⇒ any"
+ *        The last argument to supply to the function.
  * @returns "function"
- *    A function that takes the initial N-1 arguments and invokes the original
+ *    A function that takes the leading N-1 arguments and invokes the original
  *    function.
  * @category "Function Application"
  */
-Public method "_(`…,_)" is [
-	originalFunction : function,
-	lastValue : any
+Public macro "_(`…,_)" is [
+	originalFunction : expression phrase ⇒ function,
+	lastValueExpr : expression phrase ⇒ any
 |
-	pairs : <<any?, boolean…|2>…|> := <<<lastValue>, false>>;
-	argumentsType ::= originalFunction's type's parameters' type;
-	For each index from 2 to ⎣argumentsType⎦
-		do [pairs := <<<>, true>> ++ pairs;];
-	originalFunction partially evaluate with pairs
+	functionType ::= originalFunction's semantic type;
+	argTypes ::= functionType's parameters' type;
+	Assert: ⎣argTypes⎦ = ⎡argTypes⎤;
+	argCount ::= cast ⎣argTypes⎦ into [n : natural number | n];
+	originalFunction partial evaluator
+		with (argCount - 1 occurrences of <>) ++ <<lastValueExpr>>
 ];
 
 /**

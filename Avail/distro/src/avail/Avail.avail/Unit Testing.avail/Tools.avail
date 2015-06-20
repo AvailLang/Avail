@@ -164,10 +164,10 @@ Public macro "Require:_(_)" is
 	message : expression phrase ⇒ string
 |
 	restricted send $"Require:__" with
-	<
-		predicate,
-		«[<message>] : message's semantic type»
-	> : ⊤
+		«<
+			predicate,
+			«[<message>] : message's semantic type»
+		>» : ⊤
 ];
 
 /**
@@ -258,11 +258,11 @@ Public macro "Require:_=_(_)" is
 			with actual's semantic type, expected's semantic type
 	];
 	restricted send $"Require:_=__" with
-	<
-		actual,
-		expected,
-		«[<message>] : message's semantic type»
-	> : ⊤
+		«<
+			actual,
+			expected,
+			«[<message>] : message's semantic type»
+		>» : ⊤
 ];
 
 /**
@@ -355,11 +355,11 @@ Public macro "Require:_raises_(_)" is
 	message : expression phrase ⇒ string
 |
 	restricted send $"Require:_raise__" with
-	<
-		aFunction,
-		exceptionType,
-		«[<message>] : message's semantic type»
-	> : ⊤
+		«<
+			aFunction,
+			exceptionType,
+			«[<message>] : message's semantic type»
+		>» : ⊤
 ];
 
 /**
@@ -433,10 +433,10 @@ Public macro "Require if supported«on this platform»⁇:_(_)" is
 	message : expression phrase ⇒ string
 |
 	restricted send $"Require if supported«on this platform»⁇:__" with
-	<
-		aFunction,
-		«[<message>] : message's semantic type»
-	> : ⊤
+		«<
+			aFunction,
+			«[<message>] : message's semantic type»
+		>» : ⊤
 ];
 
 /**
@@ -545,11 +545,11 @@ Public method "Require if supported«on this platform»⁇:_raises_(_)" is
 	message : expression phrase ⇒ string
 |
 	restricted send $"Require if supported«on this platform»⁇:_raises__" with
-	<
-		aFunction,
-		exceptionType,
-		«[<message>] : message's semantic type»
-	> : ⊤
+		«<
+			aFunction,
+			exceptionType,
+			«[<message>] : message's semantic type»
+		>» : ⊤
 ];
 
 [

@@ -123,6 +123,7 @@ Uses
 		"method_._,⁇parameterized by_,⁇on failure doing_",
 		"new⁇heritable«fiber-local»⁇atom named_",
 		"next character",
+		"restricted send_with_:_",
 		"return type of_._«parameterized by»⁇_",
 		"semantic restrictions for_given_",
 		"send_with_:_",
@@ -3430,4 +3431,79 @@ Primitive "_«[_]»→_" is
 		key-not-found code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : map;
+
+/**
+ * Create a send phrase from the supplied message name (atom), list phrase of
+ * arguments, and return type.  Strengthen the return type based on the
+ * applicable method definitions.  Also launch a fiber for each applicable
+ * semantic restriction and strengthen the return type with their eventual
+ * results.  If any semantic restrictions reject parsing, collect the failures
+ * into an aggregate message and reject the parse in the original fiber (the
+ * one running this primitive).
+ *
+ * @category "Primitives"
+ * @method "restricted send_with_:_"
+ * @param "message" "atom"
+ *        The atom that names the method to be invoked by the send phrase.
+ * @param "args" "list phrase"
+ *        The list phrase of phrases that are supplied as arguments of the send
+ *        phrase.
+ * @param "basicReturnType" "type"
+ *        The return type of the send phrase, prior to strengthening by
+ *        applicable method definitions and semantic restrictions.
+ * @returns "send phrase⇒⊤"
+ *        A send phrase with a strengthened return type.
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "tilde-must-not-follow-argument exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "up-arrow-must-follow-argument exception"
+ * @raises "no-method-definition exception"
+ */
+Primitive "restricted send_with_:_" is
+[
+	message : atom,
+	args : list phrase,
+	basicReturnType : type
+|
+	Primitive CreateRestrictedSendExpression (failureCode : {
+		incorrect-number-of-arguments code,
+		incorrect-argument-type code,
+		incorrect-type-for-group code,
+		exclamation-mark-must-follow-an-alternation-group code,
+		incorrect-type-for-complex-group code,
+		incorrect-use-of-double-dagger code,
+		unbalanced-guillemets code,
+		method-name-is-not-canonical code,
+		expected-operator-after-backquote code,
+		incorrect-type-for-boolean-group code,
+		incorrect-type-for-counting-group code,
+		octothorp-must-follow-a-simple-group code,
+		question-mark-must-follow-a-simple-group code,
+		case-insensitive-expression-canonization code,
+		tilde-must-not-follow-argument code,
+		double-question-mark-must-follow-a-token-or-simple-group code,
+		alternative-must-not-contain-arguments code,
+		vertical-bar-must-separate-tokens-or-simple-groups code,
+		incorrect-type-for-numbered-choice code,
+		up-arrow-must-follow-argument code,
+		no-method-definition code,
+		inconsistent-argument-reordering code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : send phrase;
 

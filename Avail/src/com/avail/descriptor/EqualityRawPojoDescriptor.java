@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import java.util.List;
+import java.util.IdentityHashMap;
 import com.avail.annotations.*;
 
 /**
@@ -165,7 +165,7 @@ extends RawPojoDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		builder.append("equality raw pojo: ");

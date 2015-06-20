@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.ForwardDefinitionDescriptor.ObjectSlots.*;
-import java.util.List;
+import java.util.IdentityHashMap;
 import com.avail.annotations.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
@@ -92,15 +92,15 @@ extends DefinitionDescriptor
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		object.slot(DEFINITION_METHOD).bundles().iterator().next().message()
 			.printOnAvoidingIndent(
-				builder, recursionList, indent);
+				builder, recursionMap, indent);
 		builder.append(' ');
 		object.slot(BODY_SIGNATURE).printOnAvoidingIndent(
-			builder, recursionList, indent + 1);
+			builder, recursionMap, indent + 1);
 	}
 
 	@Override @AvailMethod

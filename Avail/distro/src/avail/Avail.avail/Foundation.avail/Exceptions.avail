@@ -636,15 +636,15 @@ Public macro "Guard|guard_«intercept_»«ensure_»" is
 			|
 				<
 					send $"Handle_with_and_" with
-					«<
-						«↓outerArg»,
-						«[
-							<innerArg>
-						|
-							<send $"Raise_" with «<«↓innerArg»>» : ⊥>
-						] : ⊥»,
-						unwind
-					>» : ⊥
+						«<
+							«↓outerArg»,
+							«[
+								<innerArg>
+							|
+								<send $"Raise_" with «<«↓innerArg»>» : ⊥>
+							] : ⊥»,
+							unwind
+						>» : ⊥
 				>
 			] : ⊥»
 		];
@@ -666,35 +666,23 @@ Public macro "Guard|guard_«intercept_»«ensure_»" is
 			|
 				<
 					send $"Handle_with_and_" with
-					«<
-						«↓arg»,
-						handler,
-						unwind
-					>» : handlerType's return type
+						«<
+							«↓arg»,
+							handler,
+							unwind
+						>» : handlerType's return type
 				>
 			] : handlerType's return type»
 		];
 	realHandlers ::=
 		(wrappedHandlers ++ if needCatchAll then [<catchAll()>] else [<>])
 			→ list phrase;
-	/* TODO: [TLS/MvG] Once semantic restrictions are enforcing their return
-	 * types on the sends produced by macros, then it should be possible to
-	 * remove this send phrase construction, and change the use of
-	 * "fakeSend's semantic type" below to just "⊤".
-	 */
-	fakeSend ::=
-		restricted send $"Guard|guard_«intercept_»«ensure_»" with
-		<
+	restricted send $"Private guard_intercept_ensure_" with
+		«<
 			bodyPhrase,
 			realHandlers,
 			optionalUnwindPhrase
-		> : ⊤;
-	restricted send $"Private guard_intercept_ensure_" with
-	<
-		bodyPhrase,
-		realHandlers,
-		optionalUnwindPhrase
-	> : fakeSend's semantic type
+		>» : ⊤
 ];
 
 /**

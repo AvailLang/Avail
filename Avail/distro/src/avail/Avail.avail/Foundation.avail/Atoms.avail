@@ -49,6 +49,41 @@ Names
 	"«Public»?_is a|an new⁇field⁇atom"
 Body
 
+/**
+ * Alias {@param "newName"} to {@param "oldName"}. This has the same effect
+ * as import renaming, but behaves dynamically.
+ *
+ * @category "Primitives"
+ * @method "Alias_to_"
+ * @param "newName" "string"
+ *        A {@type "string"} that represents the alias.
+ * @param "oldName" "string"
+ *        A {@type "string"} that represents the original name.
+ * @returns "⊤"
+ * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "ambiguous-name exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "special-atom exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "tilde-must-not-follow-argument exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "loading-is-over exception"
+ * @raises "atom-already-exists exception"
+ * @raises "up-arrow-must-follow-argument exception"
+ */
 Method "Alias_to_" is
 [
 	newName : string,

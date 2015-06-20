@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.InstanceMetaDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import java.util.IdentityHashMap;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.descriptor.TypeDescriptor.Types;
@@ -121,13 +122,13 @@ extends AbstractEnumerationTypeDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		aStream.append("(");
 		getInstance(object).printOnAvoidingIndent(
 			aStream,
-			recursionList,
+			recursionMap,
 			indent);
 		aStream.append(")'s type");
 	}

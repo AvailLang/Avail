@@ -53,6 +53,7 @@ import com.avail.interpreter.Primitive;
  * reached during block parsing.  The prefix functions are invoked with all
  * arguments that have been parsed up to that point.
  * <ul>
+ * <li>After the open square bracket ("["), push the existing scope stack.</li>
  * <li>After parsing each argument declaration, invoke a prefix function that
  * adds it to the scope.</li>
  * <li>After parsing an optional primitive failure variable, invoke a prefix
@@ -61,6 +62,7 @@ import com.avail.interpreter.Primitive;
  * add it to the scope.</li>
  * <li>When a statement is a local declaration (variable or constant), the macro
  * that builds it also adds it to the scope.</li>
+ * <li>After the close square bracket ("]"), pop the scope stack.</li>
  * </ul>
  * </p>
  *
@@ -125,7 +127,21 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 			// It looks like somebody removed the used tokens information.
 			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION);
 		}
-		A_Map scopeMap = clientData.mapAt(scopeMapKey);
+		// Primitive P_BootstrapPrefixEndOfBlockBody already popped the scope
+		// stack to the map, then pushed the map with the block's local
+		// declarations back onto the stack.  So we can simply look up the local
+		// declarations in the top map of the stack, then pop it to nowhere when
+		// we're done.
+		if (!clientData.hasKey(scopeStackKey))
+		{
+			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION);
+		}
+		A_Tuple scopeStack = clientData.mapAt(scopeStackKey);
+		if (!scopeStack.isTuple() || scopeStack.tupleSize() == 0)
+		{
+			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION);
+		}
+		final A_Map scopeMap = scopeStack.tupleAt(scopeStack.tupleSize());
 		final A_Tuple tokens = clientData.mapAt(allTokensKey);
 
 		final List<A_Phrase> allStatements = new ArrayList<>();
@@ -337,7 +353,8 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 			exceptionsSet = exceptionsSet.makeImmutable();
 		}
 		// The block's line number is the line of the first token that's part of
-		// the block but not part of any subexpression.
+		// the block, even if it's part of a subexpression (which it won't be
+		// with the core Avail syntax).
 		final int lineNumber = tokens.tupleSize() == 0
 			? 0
 			: tokens.tupleAt(1).lineNumber();
@@ -349,16 +366,12 @@ public final class P_404_BootstrapBlockMacro extends Primitive
 			exceptionsSet,
 			lineNumber);
 		block.makeImmutable();
-		// Pop the scope stack.
+		// Pop and discard the top entry from the scope stack.
 		final A_Fiber fiber = interpreter.fiber();
-		A_Tuple stack = clientData.mapAt(scopeStackKey);
-		scopeMap = stack.tupleAt(stack.tupleSize());
-		stack = stack.copyTupleFromToCanDestroy(
-			1, stack.tupleSize() - 1, true);
+		scopeStack = scopeStack.copyTupleFromToCanDestroy(
+			1, scopeStack.tupleSize() - 1, true);
 		clientData = clientData.mapAtPuttingCanDestroy(
-			scopeMapKey, scopeMap, true);
-		clientData = clientData.mapAtPuttingCanDestroy(
-			scopeStackKey, stack, true);
+			scopeStackKey, scopeStack, true);
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			clientDataKey, clientData, true);
 		fiber.fiberGlobals(fiberGlobals.makeShared());

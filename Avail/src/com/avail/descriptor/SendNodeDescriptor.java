@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.SendNodeDescriptor.ObjectSlots.*;
-import java.util.List;
+import java.util.IdentityHashMap;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
@@ -89,7 +89,7 @@ extends ParseNodeDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		final MessageSplitter splitter;
@@ -147,12 +147,12 @@ extends ParseNodeDescriptor
 		final A_Type superUnionType = arguments.superUnionType();
 		if (superUnionType.isBottom())
 		{
-			codeGenerator.emitCall(argCount, bundle, object.returnType());
+			codeGenerator.emitCall(argCount, bundle, object.expressionType());
 		}
 		else
 		{
 			codeGenerator.emitSuperCall(
-				argCount, bundle, object.returnType(), superUnionType);
+				argCount, bundle, object.expressionType(), superUnionType);
 		}
 	}
 
@@ -166,7 +166,7 @@ extends ParseNodeDescriptor
 			&& object.slot(BUNDLE).equals(aParseNode.bundle())
 			&& object.slot(ARGUMENTS_LIST_NODE).equals(
 				aParseNode.argumentsListNode())
-			&& object.slot(RETURN_TYPE).equals(aParseNode.returnType());
+			&& object.slot(RETURN_TYPE).equals(aParseNode.expressionType());
 	}
 
 	@Override @AvailMethod
@@ -189,12 +189,6 @@ extends ParseNodeDescriptor
 	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return SEND_NODE;
-	}
-
-	@Override @AvailMethod
-	A_Type o_ReturnType (final AvailObject object)
-	{
-		return object.slot(RETURN_TYPE);
 	}
 
 	@Override

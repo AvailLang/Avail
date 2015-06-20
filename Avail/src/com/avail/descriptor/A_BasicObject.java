@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 import com.avail.annotations.Nullable;
@@ -139,15 +140,15 @@ extends JSONFriendly
 	 * {@code AvailObject}s for Java-side debugging.</p>
 	 *
 	 * @param builder A {@link StringBuilder}.
-	 * @param recursionList A {@linkplain List list} containing {@link
-	 *                      AvailObject}s already visited during the recursive
-	 *                      print.
+	 * @param recursionMap An {@link IdentityHashMap} whose keys are {@link
+	 *                     AvailObject}s already visited during the recursive
+	 *                     print.  The associated values are unused.
 	 * @param indent The indent level, in horizontal tabs, at which the {@link
 	 *               AvailObject} should be printed.
 	 */
 	void printOnAvoidingIndent (
 		StringBuilder builder,
-		List<A_BasicObject> recursionList,
+		IdentityHashMap<A_BasicObject, Void> recursionMap,
 		int indent);
 
 	/**

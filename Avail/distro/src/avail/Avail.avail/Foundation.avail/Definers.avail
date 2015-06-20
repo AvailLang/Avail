@@ -88,7 +88,12 @@ Private method "stable guard" is
  *         "[[]→literal phrase, []→send phrase⇒any]→expression phrase⇒any"
  */
 failureFunction : stable guard :=
-	[f : stable invoker, r : recovery invoker | invoke f with <>];
+	[
+		f : stable invoker,
+		r : recovery invoker
+	|
+		invoke f with <>
+	];
 
 Method "stability failure function" is [failureFunction];
 
@@ -102,24 +107,30 @@ Method "stability failure function" is [failureFunction];
  *        The new wrapper {@type "function"}.
  * @returns "⊤"
  */
-Method "Set stability failure function to_"
-	is [f : stable guard | failureFunction := f;];
+Method "Set stability failure function to_" is
+[
+	f : stable guard
+|
+	failureFunction := f;
+];
+
+Method "Run stability failure function protecting_with_" is
+[
+	f : stable invoker,
+	r : recovery invoker
+|
+	invoke stability failure function with <f,r>
+];
 
 /*
  * Utility method for {@method "Method_is stable at_"}.  Test whether the
- * given expression is singularly typed, meaning there is only one possible
- * value it could produce. Even though ⊥'s type is technically a metatype rather
- * than a pure enumeration, it only has one instance (⊥).
+ * given expression is constant-valued.
  */
-Private method "_is singular expression" is
+Private method "_is constant expression" is
 [
 	anExpression : expression phrase
 |
-	$method : boolean;
-	expressionType ::= anExpression's semantic type;
-	If (|expressionType| = 1) = false then [Exit method with false];
-	if (expressionType's instance ∈ type) = false then [true]
-	else [expressionType = ⊥'s type's type]
+	false
 ] : boolean;
 
 /*
@@ -127,7 +138,7 @@ Private method "_is singular expression" is
  * yielding a type means a subtype could be returned instead, but that's not the
  * case for a literal phrase.
  */
-Private method "_is singular expression" is
+Private method "_is constant expression" is
 [
 	anExpression : literal phrase
 |
@@ -135,79 +146,68 @@ Private method "_is singular expression" is
 ];
 
 /*
- * Override to reject folding in the presence of a super cast phrase.
+ * A list is constant if its elements are.
  */
-Private method "_is singular expression" is
-[
-	anExpression : super cast phrase
-|
-	false
-];
-
-/*
- * Override to scan list phrases for super cast phrases, which will then be
- * rejected from folding.
- */
-Private method "_is singular expression" is
+Private method "_is constant expression" is
 [
 	anExpression : list phrase
 |
-	$method : boolean;
+	allConstant : boolean := true;
 	expressions ::= anExpression's expressions;
 	From 1 to |expressions| do
 	[
 		index : natural number
 	|
 		element ::= cast expressions[index] into [t : expression phrase | t];
-		if element is singular expression then [true]
-		else [Exit method with false]
+		if element is constant expression then [true]
+		else
+		[
+			allConstant := false;
+			false
+		]
 	];
-	true
+	allConstant
 ];
 
 /*
- * Utility method for {@method "Method_is stable at_"}.  Test whether the
- * elements of the tuple of expressions all have types that have exactly one
- * instance each. Even though ⊥'s type is technically a metatype rather than a
- * pure enumeration, it only has one instance (⊥).
+ * A use of a module constant is constant.
  */
-Private method "«_‡,»are all singular expressions" is
+Private method "_is constant expression" is
 [
-	argExpressions : <<>, expression phrase…|whole number>
+	anExpression : variable use phrase
 |
-	$method : boolean;
-	From 1 to |argExpressions| do
-	[
-		index : natural number
-	|
-		arg ::= cast argExpressions[index] into [t : expression phrase | t];
-		if arg is singular expression then [true]
-		else [Exit method with false]
-	];
-	true
+	declaration ::= anExpression's declaration;
+	declaration ∈ module constant phrase
 ];
 
 /*
- * Given an expression that answered true to "_is singular expression", extract
- * the singular value that would be produced by the phrase.
+ * Given an expression that answered true to "_is constant expression", extract
+ * the constant value that would be produced by the phrase.
  */
-Private method "extract singular value from_" is
+Private abstract method "extract constant value from_" is
+	function
+		accepting <expression phrase>
+		and returning any;
+
+/*
+ * Overridden to extract the token's value.  This allows constant expressions
+ * to be folded, even if they result in a type (which would normally be blocked
+ * from folding because metacovariance causes subtypes to also comply with that
+ * type's type).
+ */
+Private method "extract constant value from_" is
 [
-	anExpression : expression phrase
+	anExpression : literal phrase
 |
-	t ::= anExpression's semantic type;
-	Assert: |t| = 1
-		("The expression produced a type, which is not stable \
-		\|due to metacovariance.");
-	t's instance
+	anExpression's token's value
 ] : any;
 
 /*
  * Overridden to extract each list element's value, assembling them into a
  * tuple.  This is to agree with the list phrase's implementation of
- * "_is singular expression".
+ * "_is constant expression".
  */
-Private method "extract singular value from_" is
+Private method "extract constant value from_" is
 [
 	anExpression : list phrase
 |
@@ -219,7 +219,7 @@ Private method "extract singular value from_" is
 	|
 		elementExpression ::= cast expressions[i]
 			into [e : expression phrase | e];
-		value ::= extract singular value from elementExpression;
+		value ::= extract constant value from elementExpression;
 		valueTuple := concatenate <eject valueTuple, <value>>;
 		true
 	];
@@ -227,29 +227,58 @@ Private method "extract singular value from_" is
 ] : any;
 
 /*
- * Overridden to extract the token's value.  This allows constant expressions
- * to be folded, even if they result in a type (which would normally be blocked
- * from folding because metacovariance causes subtypes to also comply with that
- * type's type).
+ * Overridden to extract the used module constant's value.
  */
-Private method "extract singular value from_" is
+Private method "extract constant value from_" is
 [
-	anExpression : literal phrase
+	anExpression : variable use phrase
 |
-	anExpression's token's value
-] : any;
+	cast anExpression's declaration into
+	[
+		d : module constant phrase
+	|
+		invoke anExpression compiled with <>
+	]
+];
 
+
+
+Private method "stability body for_with«_‡,»" is
+[
+	methodName : atom,
+	argumentExpressions : <<>, expression phrase⇒any…|whole number>
+|
+	argumentList ::= argumentExpressions → list phrase;
+	if argumentList is constant expression then
+	[
+		argValuesWeak ::= extract constant value from argumentList;
+		argValues ::= cast argValuesWeak into [t : tuple | t];
+		argTypes ::= argValues's type [1..|argValues|];
+		Run stability failure function protecting
+		[
+			definition ::= method definition of methodName for argTypes;
+			cast definition into
+			[
+				d : method definition
+			|
+				f ::= cast d's function into [f1 : […]→any | f1];
+				value ::= invoke f with argValues;
+				‘`value`’
+			]
+		]
+		with
+		[
+			restricted send methodName with argumentList : any
+		]
+	]
+	else
+	[
+		restricted send methodName with argumentList : any
+	]
+];
 
 /* These methods are needed for autogeneration of stable method restrictions. */
-ifThenElseAtom ::= atom for "If|if_then_else_";
-areAllSingularAtom ::= atom for "«_‡,»are all singular expressions";
-invokeAtom ::= atom for "Invoke|invoke_with_";
-readVarAtom ::= atom for "↓_";
-extractValueAtom ::= atom for "extract singular value from_";
-tokenAtom ::= atom for "``_``";
-literalAtom ::= atom for "‘_’";
-restrictedSendAtom ::= atom for "restricted send_with_:_";
-
+stabilityBodyAtom ::= atom for "stability body for_with«_‡,»";
 
 /**
  * Declare that the {@type "method"} referenced by {@param "methodName"} is
@@ -283,90 +312,43 @@ Public method "Method_is stable at_" is
 	 *        arg2 : expression phrase ⇒ natural number,
 	 *        arg3 : expression phrase ⇒ any
 	 *    |
-	 *        if <arg1, arg2, arg3> are all singular expressions then
-	 *        [
-	 *            invoke failureFunction with
-	 *            <
-	 *                [
-	 *                    ‘`(extract singular value from arg1
-	 *                        [extract singular value from arg2]
-	 *                        →extract singular value from arg3)`’
-	 *                ],
-	 *                [
-	 *                    restricted send "_[_]→_"
-	 *                        with <arg1, arg2, arg3> : any
-	 *                ]
-	 *            >
-	 *        ]
-	 *        else
-	 *        [
-	 *            restricted send "_[_]→_"
-	 *                with <arg1, arg2, arg3> : any
-	 *        ]
+	 *        stability body for $"_[_]→_" with arg1, arg2, arg3
 	 *    ];
 	 *
 	 * The code below generalizes the above to any method name and set of
-	 * parameter types. Note that we do not actually have to synthesize an
-	 * invocation of "<«_‡,»>".
+	 * parameter types.
 	 */
 	resultType ::= cast functionType's return type into [t : any meta | t];
 	argDecls : <<>, argument phrase…|whole number> := <>;
 	argUses : <<>, variable use phrase…|whole number> := <>;
-	instances : <<>, send phrase⇒any…|whole number> := <>;
-	/* Construct the tuples of argument declarations, argument uses, expressions
-	 * to extract semantic types, and expressions to extract the singular
-	 * instances.
-	 */
+	/* Construct the tuples of argument declarations and argument uses. */
 	From 1 to |message methodName's name's parameters| do
 	[
 		index : natural number
 	|
-		argName ::= cast concatenate <"arg", “index”> into [t : string | t];
+		argName ::=
+			cast concatenate <"argument", “index”> into [t : string | t];
 		argType ::= functionType[index];
-		argToken ::= `argName`;
+		argToken ::= `argName` (argName);
 		argDecl ::= arg «argToken : expression phrase ⇒ argType»;
 		argDecls := cast concatenate <eject argDecls, <argDecl>>
 			into [t : <<>, argument phrase…|whole number> | t];
 		argUse ::= «↓argDecl»;
 		argUses := cast concatenate <eject argUses, <argUse>>
 			into [t : <<>, variable use phrase…|whole number> | t];
-		instance ::= send extractValueAtom with «<argUse>» : argType;
-		instances := cast concatenate <eject instances, <instance>>
-			into [t : <<>, send phrase⇒any…|whole number> | t];
 		true
 	];
-	/* Construct the predicate. */
-	check ::=
-		send areAllSingularAtom with «<argUses → list phrase>» : boolean;
-	/* Construct the false block, i.e., the one that doesn't fold. */
-	sendPhrase ::=
-		send restrictedSendAtom with
-		«<
-			‘`methodName`’,
-			argUses → list phrase,
-			‘`resultType`’
-		>» : (send phrase ⇒ any);
-	falseBlock ::= «[<sendPhrase>] : send phrase ⇒ any»;
-	/* Construct the true block, i.e., the one that folds. */
-	answer ::= send methodName with instances → list phrase : resultType;
-	answerToken ::=
-		send tokenAtom with «<answer>» : (literal token ⇒ resultType);
-	answerPhrase ::=
-		send literalAtom with «<answerToken>» : (literal phrase ⇒ resultType);
-	answerBlock ::= «[<answerPhrase>] : (literal phrase ⇒ resultType)»;
-	read ::= send readVarAtom with «<‘`↑failureFunction`’>» : function;
-	invoke ::=
-		send invokeAtom
-		with «<read, «<answerBlock, falseBlock>»>»
-		: (expression phrase ⇒ resultType);
-	trueBlock ::= «[<invoke>] : expression phrase ⇒ resultType»;
-	/* Construct the branch. */
-	branch ::=
-		send ifThenElseAtom
-		with «<check, trueBlock, falseBlock>» : expression phrase ⇒ any;
+	sendStabilityBody ::=
+		restricted send stabilityBodyAtom
+		with
+			«<
+				‘`methodName`’,
+				argUses → list phrase
+			>»
+		: (expression phrase ⇒ any);
 	/* Construct the function. */
-	macroBody ::= «[argDecls | <branch>] : expression phrase ⇒ any»;
-	macroFunction ::= macroBody→function;
+	macroBody ::= «[argDecls | <sendStabilityBody>] : expression phrase ⇒ any»;
+	macroFunction ::= macroBody → function;
 	/* Install the macro. */
 	Macro methodName is macroFunction;
 ] : ⊤;

@@ -118,7 +118,7 @@ Private method "basic send phrase_conditional_then_else_" is
 		using <boolType, thenBlockReturnType, elseBlockReturnType>;
 
 	restricted send anAtom with
-		<predicatePhrase, thenBlock, elseBlock> : returnType
+		«<predicatePhrase, thenBlock, elseBlock>» : returnType
 ] : send phrase ⇒ ⊤;
 
 /*
@@ -797,16 +797,16 @@ Public macro "For each…from_to_by_§do_" is
 		else [⊤];
 	Undeclare name;
 	restricted send $"From_to_by_do_" with
-	<
-		start,
-		end,
-		step,
-		«[
-			<cast declaration into [d : argument phrase | d]>
-		|
-			statements
-		] : blockReturnType»
-	> : ⊤
+		«<
+			start,
+			end,
+			step,
+			«[
+				<cast declaration into [d : argument phrase | d]>
+			|
+				statements
+			] : blockReturnType»
+		>» : ⊤
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -980,16 +980,16 @@ Public macro "For each…from_to_§do_" is
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
 	restricted send anAtom with
-	<
-		start,
-		end,
-		‘`1`’,
-		«[
-			<cast declaration into [d : argument phrase | d]>
-		|
-			statements
-		] : blockReturnType»
-	> : returnType
+		«<
+			start,
+			end,
+			‘`1`’,
+			«[
+				<cast declaration into [d : argument phrase | d]>
+			|
+				statements
+			] : blockReturnType»
+		>» : returnType
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -1827,9 +1827,9 @@ Macro "While_do_" is
 	action : block phrase ⇒ []→⊤
 |
 	restricted send $"While_do_" with
-	<
-		«[<> | <expressionPhrase>] : boolean», action
-	> : ⊤
+		«<
+			«[<> | <expressionPhrase>] : boolean», action
+		>» : ⊤
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -1901,9 +1901,9 @@ Macro "Until_do_" is
 	action : block phrase ⇒ []→⊤
 |
 	restricted send $"Until_do_" with
-	<
-		«[<> | <expressionPhrase>] : boolean», action
-	> : ⊤
+		«<
+			«[<> | <expressionPhrase>] : boolean», action
+		>» : ⊤
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -1970,9 +1970,9 @@ Macro "Do_while_" is
 	expressionPhrase : expression phrase ⇒ boolean
 |
 	restricted send $"Do_while_" with
-	<
-		action,	«[<> | <expressionPhrase>] : boolean»
-	> : ⊤
+		«<
+			action,	«[<> | <expressionPhrase>] : boolean»
+		>» : ⊤
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -2049,9 +2049,9 @@ Macro "Do_while_alternate with_" is
 	between : block phrase ⇒ []→⊤
 |
 	restricted send $"Do_while_alternate with_" with
-	<
-		action,	«[<> | <expressionPhrase>] : boolean», between
-	> : ⊤
+		«<
+			action,	«[<> | <expressionPhrase>] : boolean», between
+		>» : ⊤
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -2128,9 +2128,9 @@ Macro "While_do_alternate with_" is
 	between : block phrase ⇒ []→⊤
 |
 	restricted send $"While_do_alternate with_" with
-	<
-		«[<> | <expressionPhrase>] : boolean», action, between
-	> : ⊤
+		«<
+			«[<> | <expressionPhrase>] : boolean», action, between
+		>» : ⊤
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -2197,9 +2197,9 @@ Macro "Do_until_" is
 	expressionPhrase : expression phrase ⇒ boolean
 |
 	restricted send $"Do_until_" with
-	<
-		action,	«[<> | <expressionPhrase>] : boolean»
-	> : ⊤
+		«<
+			action,	«[<> | <expressionPhrase>] : boolean»
+		>» : ⊤
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -2276,9 +2276,9 @@ Macro "Do_until_alternate with_" is
 	between : block phrase ⇒ []→⊤
 |
 	restricted send $"Do_until_alternate with_" with
-	<
-		action,	«[<> | <expressionPhrase>] : boolean», between
-	> : ⊤
+		«<
+			action,	«[<> | <expressionPhrase>] : boolean», between
+		>» : ⊤
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -2355,9 +2355,9 @@ Macro "Until_do_alternate with_" is
 	between : block phrase ⇒ []→⊤
 |
 	restricted send $"Until_do_alternate with_" with
-	<
-		«[<> | <expressionPhrase>] : boolean», action, between
-	> : ⊤
+		«<
+			«[<> | <expressionPhrase>] : boolean», action, between
+		>» : ⊤
 ] : send phrase ⇒ ⊤;
 
 /**

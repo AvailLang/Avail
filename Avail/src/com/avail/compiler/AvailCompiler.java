@@ -2889,10 +2889,17 @@ public final class AvailCompiler
 		final int finalLineNumber = lastProblem.token.lineNumber();
 		final int startOfLine =
 			source.lastIndexOf('\n', lastProblem.token.start() - 1) + 1;
-		int startOfNextLine = source.indexOf('\n', startOfLine) + 1;
-		startOfNextLine = (startOfNextLine != 0)
-			? startOfNextLine
-			: source.length();
+		int startOfNextLine = startOfLine;
+		// Eat 1 + the number of embedded line breaks.
+		int lineBreaksToEat =
+			lastProblem.token.string().asNativeString().split("\n").length;
+		while (lineBreaksToEat-- > 0)
+		{
+			startOfNextLine = source.indexOf('\n', startOfNextLine) + 1;
+			startOfNextLine = (startOfNextLine != 0)
+				? startOfNextLine
+				: source.length();
+		}
 		int startOfSecondNextLine = source.indexOf('\n', startOfNextLine) + 1;
 		startOfSecondNextLine = (startOfSecondNextLine != 0)
 			? startOfSecondNextLine
@@ -6045,39 +6052,7 @@ public final class AvailCompiler
 				public void value (final @Nullable A_Type expectedYieldType)
 				{
 					assert expectedYieldType != null;
-					if (!finalMacro.equalsNil())
-					{
-						completedSendNodeForMacro(
-							stateBeforeCall,
-							stateAfterCall,
-							argumentsListNode,
-							bundle,
-							finalMacro,
-							new Con<A_Phrase>(continuation.superexpressions)
-							{
-								@Override
-								public void valueNotNull(
-									final ParserState afterMacro,
-									final A_Phrase macroResult)
-								{
-									if (macroResult.expressionType()
-										.isSubtypeOf(expectedYieldType))
-									{
-										continuation.value(
-											afterMacro, macroResult);
-										return;
-									}
-									afterMacro.expected(
-										"macro "
-										+ bundle.message().atomName()
-										+ " to produce a phrase that yields "
-										+ expectedYieldType
-										+ ", not "
-										+ macroResult.expressionType());
-								}
-							});
-					}
-					else
+					if (finalMacro.equalsNil())
 					{
 						final A_Phrase sendNode = SendNodeDescriptor.from(
 							stateBeforeCall.upTo(stateAfterCall),
@@ -6085,7 +6060,26 @@ public final class AvailCompiler
 							argumentsListNode,
 							expectedYieldType);
 						attempt(afterState, continuation, sendNode);
+						return;
 					}
+					completedSendNodeForMacro(
+						stateBeforeCall,
+						stateAfterCall,
+						argumentsListNode,
+						bundle,
+						finalMacro,
+						expectedYieldType,
+						new Con<A_Phrase>(continuation.superexpressions)
+						{
+							@Override
+							public void valueNotNull(
+								final ParserState afterMacro,
+								final A_Phrase macroResult)
+							{
+								assert macroResult.isMacroSubstitutionNode();
+								continuation.value(afterMacro, macroResult);
+							}
+						});
 				}
 			},
 			new Continuation1<Describer>()
@@ -6385,6 +6379,12 @@ public final class AvailCompiler
 	 * @param macroDefinitionToInvoke
 	 *            The actual {@link MacroDefinitionDescriptor macro definition}
 	 *            to invoke (statically).
+	 * @param expectedYieldType
+	 *            What semantic type the expression returned from the macro
+	 *            invocation is expected to yield.  This will be narrowed
+	 *            further by the actual phrase returned by the macro body,
+	 *            although if it's not a send phrase then the resulting phrase
+	 *            is <em>checked</em> against this expected yield type instead.
 	 * @param continuation
 	 *            What to do with the resulting send node.
 	 */
@@ -6394,6 +6394,7 @@ public final class AvailCompiler
 		final A_Phrase argumentsListNode,
 		final A_Bundle bundle,
 		final A_Definition macroDefinitionToInvoke,
+		final A_Type expectedYieldType,
 		final Con<A_Phrase> continuation)
 	{
 		final A_Tuple argumentsTuple = argumentsListNode.expressionsTuple();
@@ -6455,6 +6456,44 @@ public final class AvailCompiler
 								});
 							return;
 						}
+						final A_Phrase adjustedReplacement;
+						if (replacement.expressionType().isSubtypeOf(
+							expectedYieldType))
+						{
+							// No adjustment necessary.
+							adjustedReplacement = replacement;
+						}
+						else if (replacement.parseNodeKindIsUnder(SEND_NODE))
+						{
+							// Strengthen the send node produced by the macro.
+							adjustedReplacement = SendNodeDescriptor.from(
+								replacement.tokens(),
+								replacement.bundle(),
+								replacement.argumentsListNode(),
+								replacement.expressionType().typeIntersection(
+									expectedYieldType));
+						}
+						else
+						{
+							// Not a send node, so it's impossible to
+							// strengthen it to what the semantic
+							// restrictions promised it should be.
+							stateAfterCall.expected(
+								"macro "
+								+ bundle.message().atomName()
+								+ " to produce either a send node to "
+								+ "be strengthened, or a phrase that "
+								+ "yields "
+								+ expectedYieldType
+								+ ", not "
+								+ replacement);
+							return;
+						}
+						// Continue after this macro invocation with whatever
+						// client data was set up by the macro.
+						final ParserState stateAfter = new ParserState(
+							stateAfterCall.position,
+							clientDataAfterRunning.value());
 						final A_Phrase original = SendNodeDescriptor.from(
 							constituentTokens,
 							bundle,
@@ -6464,16 +6503,11 @@ public final class AvailCompiler
 						final A_Phrase substitution =
 							MacroSubstitutionNodeDescriptor
 								.fromOriginalSendAndReplacement(
-									original, replacement);
+									original, adjustedReplacement);
 						if (runtime.debugMacroExpansions)
 						{
 							System.out.println(substitution);
 						}
-						// Continue after this macro invocation with whatever
-						// client data was set up by the macro.
-						final ParserState stateAfter = new ParserState(
-							stateAfterCall.position,
-							clientDataAfterRunning.value());
 						attempt(stateAfter, continuation, substitution);
 					}
 				}),

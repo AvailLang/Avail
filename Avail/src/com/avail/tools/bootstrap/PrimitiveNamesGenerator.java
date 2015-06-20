@@ -81,8 +81,8 @@ extends PropertiesFileGenerator
 				// arity.
 				keys.add(primitive.getClass().getSimpleName());
 				writer.format(
-					"# %3d : _=%d%n",
-					primitive.primitiveNumber,
+					"# %s : _=%d%n",
+					primitive.name(),
 					primitive.argCount());
 				// Write the primitive key and any name already associated with
 				// it.

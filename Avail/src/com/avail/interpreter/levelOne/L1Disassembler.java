@@ -33,7 +33,7 @@
 package com.avail.interpreter.levelOne;
 
 import static com.avail.descriptor.AvailObject.error;
-import java.util.List;
+import java.util.IdentityHashMap;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
 
@@ -60,10 +60,11 @@ public class L1Disassembler
 	StringBuilder builder;
 
 	/**
-	 * The (mutable) {@link List} of {@link AvailObject}s to avoid recursing
-	 * into while printing the {@linkplain L1Operation level one operations}.
+	 * The (mutable) {@link IdentityHashMap} of {@link A_BasicObject}s to avoid
+	 * recursing into while printing the {@linkplain L1Operation level one
+	 * operations}.
 	 */
-	List<A_BasicObject> recursionList;
+	IdentityHashMap<A_BasicObject, Void> recursionMap;
 
 	/**
 	 * The number of tabs to output after each line break.
@@ -103,7 +104,7 @@ public class L1Disassembler
 			builder.append("literal#" + index + "=");
 			code.literalAt(index).printOnAvoidingIndent(
 				builder,
-				recursionList,
+				recursionMap,
 				indent + 1);
 		}
 
@@ -142,7 +143,7 @@ public class L1Disassembler
 	 *        The {@linkplain CompiledCodeDescriptor code} to decompile.
 	 * @param builder
 	 *        Where to write the decompilation.
-	 * @param recursionList
+	 * @param recursionMap
 	 *        Which objects are already being visited.
 	 * @param indent
 	 *        The indentation level.
@@ -151,11 +152,11 @@ public class L1Disassembler
 	public static void disassemble (
 		final A_RawFunction code,
 		final StringBuilder builder,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		// The constructor does all the work...
-		new L1Disassembler(code, builder, recursionList, indent);
+		new L1Disassembler(code, builder, recursionMap, indent);
 	}
 
 	/**
@@ -166,7 +167,7 @@ public class L1Disassembler
 	 *        The {@linkplain CompiledCodeDescriptor code} to decompile.
 	 * @param builder
 	 *        Where to write the decompilation.
-	 * @param recursionList
+	 * @param recursionMap
 	 *        Which objects are already being visited.
 	 * @param indent
 	 *        The indentation level.
@@ -174,12 +175,12 @@ public class L1Disassembler
 	private L1Disassembler (
 		final A_RawFunction code,
 		final StringBuilder builder,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		this.code = code;
 		this.builder = builder;
-		this.recursionList = recursionList;
+		this.recursionMap = recursionMap;
 		this.indent = indent;
 		this.nybbles = code.nybbles();
 		this.pc = 1;

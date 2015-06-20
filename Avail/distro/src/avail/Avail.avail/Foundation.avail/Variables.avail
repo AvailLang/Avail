@@ -600,7 +600,7 @@ Semantic restriction "↓_else_" is
  * tuple, where N is the size of the {@type "tuple"} denoted by {@param
  * "namesPhrase"}.
  *
- * @macro "«…‡,»::=_"
+ * @macro "«…‡,»::=_;"
  * @param "namesPhrase" "list phrase ⇒ <<>, token…|[2..∞)>"
  *        A {@type "list phrase"} that evaluates to the {@type "tuple"} of
  *        {@type "token"}s corresponding to the names of the local constants
@@ -649,14 +649,16 @@ Public macro "«…‡,»::=_;" is
 	 * programmer can't refer to it. It doesn't matter if subsequent operations
 	 * shadow it.
 	 */
-	tupleBinding ::= «`"\"aTuple\""` ::= tuplePhrase»;
+	tupleBinding ::= «`"temp tuple"`("temp tuple") ::= tuplePhrase»;
 	bindings : tuple := <tupleBinding>;
 	From 1 to |strongNameTokens| do
 	[
 		index : natural number
 	|
 		nameToken ::= strongNameTokens[index];
-		at ::= restricted send $"_[_]" with <«↓tupleBinding», ‘`index`’> : any;
+		at ::= restricted send $"_[_]"
+			with «<«↓tupleBinding», ‘`index`’>»
+			: tupleType[index];
 		binding ::= «nameToken ::= at»;
 		bindings := concatenate <eject bindings, <binding>>;
 		true
@@ -683,7 +685,7 @@ Public macro "«…‡,»::=_;" is
  * elements of the tuple type, where N is the size of the {@type "tuple"}
  * denoted by {@param "namesPhrase"}.
  *
- * @macro "«…‡,»::=_"
+ * @macro "«…‡,»::=_;"
  * @param "namesPhrase" "list phrase ⇒ <<>, token…|[2..∞)>"
  *        A {@type "list phrase"} that evaluates to the {@type "tuple"} of
  *        {@type "token"}s corresponding to the names of the local constants
@@ -732,15 +734,17 @@ Public macro "«…‡,»::=_;" is
 	 * programmer can't refer to it. It doesn't matter if subsequent operations
 	 * shadow it.
 	 */
-	tupleTypeBinding ::= «`"\"aTupleType\""` ::= tupleTypePhrase»;
+	tupleTypeBinding ::=
+		«`"temp tuple type"`("temp tuple type") ::= tupleTypePhrase»;
 	bindings : tuple := <tupleTypeBinding>;
 	From 1 to |strongNameTokens| do
 	[
 		index : natural number
 	|
 		nameToken ::= strongNameTokens[index];
-		at ::=
-			restricted send $"_[_]" with <«↓tupleTypeBinding», ‘`index`’> : any;
+		at ::= restricted send $"_[_]"
+			with «<«↓tupleTypeBinding», ‘`index`’>»
+			: (tupleType[index]'s type);
 		binding ::= «nameToken ::= at»;
 		bindings := concatenate <eject bindings, <binding>>;
 		true

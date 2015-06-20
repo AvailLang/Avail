@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import java.util.IdentityHashMap;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
@@ -54,7 +55,7 @@ extends AbstractEnumerationTypeDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		builder.append("⊥");

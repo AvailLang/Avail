@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.MacroSubstitutionNodeDescriptor.ObjectSlots.*;
+import java.util.IdentityHashMap;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
@@ -88,16 +89,24 @@ extends ParseNodeDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
-		builder.append("MACRO TRANSFORMATION (");
-		builder.append(object.slot(MACRO_ORIGINAL_SEND));
-		builder.append(") ➔ ");
-		object.slot(OUTPUT_PARSE_NODE).printOnAvoidingIndent(
-			builder,
-			recursionList,
-			indent);
+		final A_Phrase original = object.slot(MACRO_ORIGINAL_SEND);
+		final A_Phrase replacement = object.slot(OUTPUT_PARSE_NODE);
+		builder.append("MACRO ");
+		builder.append(original.apparentSendName().atomName());
+		builder.append(" (");
+		original.printOnAvoidingIndent(
+			builder, recursionMap, indent);
+		builder.append(")[");
+		builder.append(original.expressionType());
+		builder.append("]  ➔  (");
+		replacement.printOnAvoidingIndent(
+			builder, recursionMap, indent);
+		builder.append(")[");
+		builder.append(replacement.expressionType());
+		builder.append("]");
 	}
 
 	@Override @AvailMethod

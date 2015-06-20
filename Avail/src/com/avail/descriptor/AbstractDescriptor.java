@@ -587,7 +587,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @param object The object to print (its descriptor is me).
 	 * @param builder Where to print the object.
-	 * @param recursionList Which ancestor objects are currently being printed.
+	 * @param recursionMap Which ancestor objects are currently being printed.
 	 * @param indent What level to indent subsequent lines.
 	 */
 	@SuppressWarnings("unchecked")
@@ -595,7 +595,7 @@ public abstract class AbstractDescriptor
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		builder.append('a');
@@ -720,7 +720,7 @@ public abstract class AbstractDescriptor
 					builder.append("] = ");
 					object.slot(slot, subscript).printOnAvoidingIndent(
 						builder,
-						recursionList,
+						recursionMap,
 						indent + 1);
 				}
 				else
@@ -729,7 +729,7 @@ public abstract class AbstractDescriptor
 					builder.append(" = ");
 					object.slot(slot).printOnAvoidingIndent(
 						builder,
-						recursionList,
+						recursionMap,
 						indent + 1);
 				}
 			}

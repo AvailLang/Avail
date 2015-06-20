@@ -36,7 +36,7 @@ import static java.lang.reflect.Modifier.*;
 import static com.avail.descriptor.UnfusedPojoTypeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.UnfusedPojoTypeDescriptor.ObjectSlots.*;
 import java.lang.reflect.*;
-import java.util.List;
+import java.util.IdentityHashMap;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -476,7 +476,7 @@ extends PojoTypeDescriptor
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		final AvailObject javaClass = object.slot(JAVA_CLASS);
@@ -494,7 +494,7 @@ extends PojoTypeDescriptor
 					builder.append(", ");
 				}
 				first = false;
-				param.printOnAvoidingIndent(builder, recursionList, indent);
+				param.printOnAvoidingIndent(builder, recursionMap, indent);
 			}
 			builder.append('>');
 		}

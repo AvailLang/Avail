@@ -145,11 +145,11 @@ Public macro "Assert:_(_)" is
 			"an assertion that could ever be true \
 			\|(use \"Shouldn't happen(_)\" instead)"
 	];
-	restricted send $"Assert:__" with
-	<
-		predicate,
-		«[<message>] : message's semantic type»
-	> : ⊤
+	send $"Assert:__" with
+		«<
+			predicate,
+			«[<message>] : message's semantic type»
+		>» : ⊤
 ];
 
 /**

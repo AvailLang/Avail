@@ -145,14 +145,14 @@ Private method "body function(_,_)" is
 			into [t : phrase+ | t's last's semantic type]
 			else [⊤];
 		restricted send anAtom with
-		<
+		«<
 			aStream, 
 			«[
 			  	<cast declaration into [d : argument phrase | d]>
 			 | 
 			 	statements
 			 ] : blockReturnType»
-		> : returnType
+		>» : returnType
 	] : send phrase ⇒ ⊤
 ] : [literal phrase ⇒ token, expression phrase ⇒ stream, 
      block phrase ⇒ []→ ⊤]→send phrase ⇒ ⊤;
@@ -310,7 +310,7 @@ Macro "reject each…from_§where_" is a stream prefix function,
 	 	i : natural number := cast size into [n : natural number | n];
 	 	c : expression phrase⇒any := cast statements[i] into 
 		 	[e : expression phrase⇒any | e];
-	 	statements[..end] ++ <restricted send $"¬_" with <c> : boolean>
+	 	statements[..end] ++ <restricted send $"¬_" with «<c>» : boolean>
 	];
 	blockReturnType ::= cast newStatements
 		into [t : phrase+ | t[|t|]'s semantic type]
@@ -320,12 +320,12 @@ Macro "reject each…from_§where_" is a stream prefix function,
 	Undeclare name;
 
 	restricted send $"filter_by_" with
-	<
-		aStream, 
-		«[
-		  	<cast declaration into [d : argument phrase | d]>
-		| 
-			newStatements
-		] : blockReturnType»
-	> : returnType
+		«<
+			aStream, 
+			«[
+			  	<cast declaration into [d : argument phrase | d]>
+			| 
+				newStatements
+			] : blockReturnType»
+		>» : returnType
 ] : send phrase ⇒ ⊤;

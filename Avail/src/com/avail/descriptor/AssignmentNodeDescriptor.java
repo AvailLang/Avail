@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.AssignmentNodeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AssignmentNodeDescriptor.ObjectSlots.*;
-import java.util.List;
+import java.util.IdentityHashMap;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
@@ -91,14 +91,14 @@ extends ParseNodeDescriptor
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		builder.append(object.slot(VARIABLE).token().string().asNativeString());
 		builder.append(" := ");
 		object.slot(EXPRESSION).printOnAvoidingIndent(
 			builder,
-			recursionList,
+			recursionMap,
 			indent + 1);
 	}
 

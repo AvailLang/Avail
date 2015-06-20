@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.FiberTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import java.util.List;
+import java.util.IdentityHashMap;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
@@ -200,12 +200,12 @@ extends TypeDescriptor
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		builder.append("fiber→");
 		object.slot(RESULT_TYPE).printOnAvoidingIndent(
-			builder, recursionList, indent);
+			builder, recursionMap, indent);
 	}
 
 	/**

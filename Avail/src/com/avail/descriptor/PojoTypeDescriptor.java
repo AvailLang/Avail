@@ -768,7 +768,7 @@ extends TypeDescriptor
 	abstract void printObjectOnAvoidingIndent (
 		AvailObject object,
 		StringBuilder builder,
-		List<A_BasicObject> recursionList,
+		IdentityHashMap<A_BasicObject, Void> recursionMap,
 		int indent);
 
 	/**

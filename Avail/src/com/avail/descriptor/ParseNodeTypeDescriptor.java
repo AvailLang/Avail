@@ -37,6 +37,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import java.util.IdentityHashMap;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
@@ -749,7 +750,7 @@ extends TypeDescriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		final ParseNodeKind kind = object.parseNodeKind();
@@ -767,7 +768,7 @@ extends TypeDescriptor
 		builder.append("⇒");
 		object.expressionType().printOnAvoidingIndent(
 			builder,
-			recursionList,
+			recursionMap,
 			indent + 1);
 	}
 

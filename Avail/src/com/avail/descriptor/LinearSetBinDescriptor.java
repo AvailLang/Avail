@@ -121,6 +121,12 @@ extends SetBinDescriptor
 		// It's not present, so grow the list.  Keep it simple for now by always
 		// replacing the list.
 		final int oldSize = object.variableObjectSlotsCount();
+		if (oldSize == 0)
+		{
+			// Bin transitioned from empty to single, but every object can act
+			// as a singleton set bin.
+			return elementObject;
+		}
 		AvailObject result;
 		if (myLevel < numberOfLevels - 1 && oldSize >= 10)
 		{

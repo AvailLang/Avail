@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import java.util.List;
+import java.util.IdentityHashMap;
 /**
  * {@code FillerDescriptor} represents an unreachable {@link AvailObject} of
  * arbitrary size. It exists solely to occupy dead space during an object
@@ -45,7 +45,7 @@ extends Descriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		builder.append("(*** a destroyed object ***)");

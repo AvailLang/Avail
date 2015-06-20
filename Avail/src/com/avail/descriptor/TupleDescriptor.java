@@ -113,7 +113,7 @@ extends Descriptor
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
-		final List<A_BasicObject> recursionList,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		if (object.tupleSize() == 0)
@@ -165,7 +165,7 @@ extends Descriptor
 			final StringBuilder localBuilder = new StringBuilder();
 			element.printOnAvoidingIndent(
 				localBuilder,
-				recursionList,
+				recursionMap,
 				indent + 1);
 			totalChars += localBuilder.length();
 			if (!anyBreaks)
