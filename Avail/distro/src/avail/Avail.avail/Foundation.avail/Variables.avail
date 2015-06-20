@@ -133,6 +133,7 @@ Alias "_is unassigned" to "_↑is unassigned";
  * Does the specified variable contain a value?
  *
  * @method "_↑is assigned"
+ * @alias "_is assigned"
  * @category "Variables"
  * @param "var" "variable"
  * @returns "boolean"
@@ -255,6 +256,7 @@ Private method "increment/decrement semantic restriction" is
  * Increment the variable by one. This is intended for use as a statement.
  * 
  * @method "_↑++"
+ * @alias "_++"
  * @category "Variables" "Mathematics" "Integers"
  * @param "var" "read number/write ⊥"
  *        A numeric variable.
@@ -283,6 +285,7 @@ Semantic restriction "_↑++" is increment/decrement semantic restriction;
  * expression.
  * 
  * @method "(_↑++)"
+ * @alias "(_++)"
  * @category "Variables" "Mathematics" "Integers"
  * @param "var" "read number/write ⊥"
  *        A numeric variable.
@@ -322,6 +325,7 @@ Semantic restriction "(_↑++)" is
  * Increment the variable by one. This is intended for use as a statement.
  * 
  * @method "++_↑"
+ * @alias "++_"
  * @category "Variables" "Mathematics" "Integers"
  * @param "var" "read number/write ⊥"
  *        A numeric variable.
@@ -348,6 +352,7 @@ Semantic restriction "++_↑" is increment/decrement semantic restriction;
  * Increment the specified value and answer its new value.
  * 
  * @method "(++_↑)"
+ * @alias "(++_)"
  * @category "Variables" "Mathematics" "Integers"
  * @param "var" "read number/write ⊥"
  *        A numeric variable.
@@ -399,6 +404,7 @@ Semantic restriction "(++_↑)" is
  * Decrement the variable by one. This is intended for use as a statement.
  * 
  * @method "_↑--"
+ * @alias "_--"
  * @category "Variables" "Mathematics" "Integers"
  * @param "var" "read number/write ⊥"
  *        A numeric variable.
@@ -427,6 +433,7 @@ Semantic restriction "_↑--" is increment/decrement semantic restriction;
  * expression.
  * 
  * @method "(_↑--)"
+ * @alias "(_--)"
  * @category "Variables" "Mathematics" "Integers"
  * @param "var" "read number/write ⊥"
  *        A numeric variable.
@@ -466,6 +473,7 @@ Semantic restriction "(_↑--)" is
  * Decrement the variable by one. This is intended for use as a statement.
  *
  * @method "--_↑"
+ * @alias "--_"
  * @category "Variables" "Mathematics" "Integers"
  * @param "var" "read number/write ⊥"
  *        A numeric variable.
@@ -492,6 +500,7 @@ Semantic restriction "--_↑" is increment/decrement semantic restriction;
  * Decrement the specified value and answer its new value.
  *
  * @method "(--_↑)"
+ * @alias "(--_)"
  * @category "Variables" "Mathematics" "Integers"
  * @param "var" "read number/write ⊥"
  *        A numeric variable.

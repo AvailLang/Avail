@@ -50,7 +50,7 @@ Body
 /**
  * Report the description of the {@type "agent"}'s {@type "room" location}.
  *
- * @method "Look around"
+ * @method "Look around«,having just entered»?"
  * @param "justArrived" "boolean"
  *        {@method "true"} if the {@type "agent"} is just entering the {@type
  *        "room"}, {@method "false"} otherwise.

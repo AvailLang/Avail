@@ -1,5 +1,5 @@
 /*
- * Playing.avail
+ * Perl Lite.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,26 +30,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Playing"
+Module "Perl Lite"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Extends
-	"English Wumpus",
-	"Smalltalk Wumpus" =
+	"Perl Lite Implementation" =
 	(
-		"self playWumpTheWumpus" → "Game playWumpTheWumpus"
-	),
-	"Perl Wumpus" =
-	(
-		"play`_wump`_the`_wumpus"
+		"(Perl)$…" → "$…",
+		"(Perl)(«_‡,»)" → "(«_‡,»)",
+		…
 	)
-Entries
-	/* English. */
-	"Play Wump the Wumpus",
-
-	/* Smalltalk */
-	"Game playWumpTheWumpus",
-
-	/* Perl. */
-	"play`_wump`_the`_wumpus"
 Body
