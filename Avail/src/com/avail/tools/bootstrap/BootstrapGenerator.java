@@ -45,6 +45,11 @@ import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.*;
 import com.avail.interpreter.primitive.*;
+import com.avail.interpreter.primitive.controlflow.P_040_InvokeWithTuple;
+import com.avail.interpreter.primitive.general.P_256_EmergencyExit;
+import com.avail.interpreter.primitive.methods.P_248_AddSemanticRestriction;
+import com.avail.interpreter.primitive.sets.P_109_TupleToSet;
+import com.avail.interpreter.primitive.types.P_065_CreateEnumeration;
 import com.avail.utility.UTF8ResourceBundleControl;
 
 /**

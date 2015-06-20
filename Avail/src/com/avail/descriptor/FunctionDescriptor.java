@@ -42,7 +42,7 @@ import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.*;
-import com.avail.interpreter.primitive.P_340_PushConstant;
+import com.avail.interpreter.primitive.privatehelpers.P_340_PushConstant;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 

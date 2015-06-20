@@ -33,6 +33,7 @@
 package com.avail.exceptions;
 
 import com.avail.interpreter.primitive.*;
+import com.avail.interpreter.primitive.general.P_257_BreakPoint;
 
 /**
  * {@code AvailBreakpointException} is thrown by {@linkplain

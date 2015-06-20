@@ -35,7 +35,7 @@ package com.avail.compiler;
 import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.exceptions.PrimitiveThrownException;
-import com.avail.interpreter.primitive.P_352_RejectParsing;
+import com.avail.interpreter.primitive.phrases.P_352_RejectParsing;
 import com.avail.utility.Generator;
 
 /**

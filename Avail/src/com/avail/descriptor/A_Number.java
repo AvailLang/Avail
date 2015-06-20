@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import java.math.BigInteger;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
-import com.avail.interpreter.primitive.P_006_LessOrEqual;
+import com.avail.interpreter.primitive.numbers.P_006_LessOrEqual;
 
 /**
  * {@code A_Number} is an interface that specifies the number-specific

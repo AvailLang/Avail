@@ -33,7 +33,7 @@
 package com.avail.compiler;
 
 import com.avail.exceptions.PrimitiveThrownException;
-import com.avail.interpreter.primitive.P_343_AcceptParsing;
+import com.avail.interpreter.primitive.phrases.P_343_AcceptParsing;
 
 /**
  * An {@code AvailAcceptedParseException} is thrown by primitive {@link

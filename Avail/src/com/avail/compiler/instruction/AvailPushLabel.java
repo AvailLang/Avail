@@ -38,6 +38,9 @@ import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.primitive.*;
+import com.avail.interpreter.primitive.controlflow.P_056_RestartContinuationWithArguments;
+import com.avail.interpreter.primitive.controlflow.P_057_ExitContinuationWithResult;
+import com.avail.interpreter.primitive.controlflow.P_058_RestartContinuation;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 

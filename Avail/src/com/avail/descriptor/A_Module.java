@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.interpreter.AvailLoader;
-import com.avail.interpreter.primitive.P_246_PublishName;
+import com.avail.interpreter.primitive.modules.P_246_PublishName;
 import com.avail.utility.evaluation.Continuation0;
 
 /**

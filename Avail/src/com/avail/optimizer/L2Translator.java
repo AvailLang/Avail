@@ -56,7 +56,7 @@ import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.*;
 import com.avail.interpreter.levelTwo.register.*;
-import com.avail.interpreter.primitive.P_058_RestartContinuation;
+import com.avail.interpreter.primitive.controlflow.P_058_RestartContinuation;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
 

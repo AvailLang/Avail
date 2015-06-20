@@ -70,7 +70,7 @@ import com.avail.exceptions.AvailEmergencyExitException;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;
-import com.avail.interpreter.primitive.P_352_RejectParsing;
+import com.avail.interpreter.primitive.phrases.P_352_RejectParsing;
 import com.avail.io.TextInterface;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.serialization.*;

@@ -43,7 +43,7 @@ import com.avail.annotations.*;
 import com.avail.builder.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelOne.*;
-import com.avail.interpreter.primitive.P_292_FloatFloor;
+import com.avail.interpreter.primitive.floats.P_292_FloatFloor;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.serialization.*;
 

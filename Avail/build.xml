@@ -70,7 +70,7 @@ POSSIBILITY OF SUCH DAMAGE.
 			<uptodate targetfile="${path.primitives-list}">
 				<srcfiles
 					dir="${path.avail.src}"
-					includes="com/avail/interpreter/primitive/*.java"/>
+					includes="com/avail/interpreter/primitive/**/*.java"/>
 			</uptodate>
 		</and>
 	</condition>
@@ -145,8 +145,8 @@ POSSIBILITY OF SUCH DAMAGE.
 		<fileset
 				id="primitives"
 				dir="${path.primitives}"
-				includes="P_*.class"
-				excludes="*$*.class">
+				includes="**/P_*.class"
+				excludes="**/*$*.class">
 		</fileset>
 		<pathconvert
 			property="one-primitive-per-line"
@@ -165,8 +165,13 @@ POSSIBILITY OF SUCH DAMAGE.
 			name = "primitive.package"
 			value="com.avail.interpreter.primitive"/>
 		<replaceregexp file="${path.primitives-list}"
-			match=".*[\\/]([^\\/]+)\.class"
+			match=".*[\\\\/]primitive[\\\\/](.+)\.class"
 			replace="${primitive.package}.\1"
+			byline="true"/>
+		<replaceregexp file="${path.primitives-list}"
+			match="[\\\\/]"
+			replace="."
+			flags="g"
 			byline="true"/>
 	</target>
 

@@ -36,6 +36,8 @@ import static com.avail.descriptor.ContinuationTypeDescriptor.ObjectSlots.*;
 import java.util.IdentityHashMap;
 import com.avail.annotations.*;
 import com.avail.interpreter.primitive.*;
+import com.avail.interpreter.primitive.controlflow.P_056_RestartContinuationWithArguments;
+import com.avail.interpreter.primitive.controlflow.P_057_ExitContinuationWithResult;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 

@@ -39,7 +39,7 @@ import com.avail.descriptor.A_RawFunction;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.primitive.P_058_RestartContinuation;
+import com.avail.interpreter.primitive.controlflow.P_058_RestartContinuation;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 

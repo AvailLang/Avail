@@ -40,8 +40,8 @@ import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.levelOne.L1Operation;
-import com.avail.interpreter.primitive.P_343_AcceptParsing;
-import com.avail.interpreter.primitive.P_352_RejectParsing;
+import com.avail.interpreter.primitive.phrases.P_343_AcceptParsing;
+import com.avail.interpreter.primitive.phrases.P_352_RejectParsing;
 import com.avail.serialization.Deserializer;
 import com.avail.serialization.Serializer;
 

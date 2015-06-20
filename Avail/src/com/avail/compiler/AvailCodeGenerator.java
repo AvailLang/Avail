@@ -43,6 +43,9 @@ import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.primitive.*;
+import com.avail.interpreter.primitive.privatehelpers.P_340_PushConstant;
+import com.avail.interpreter.primitive.privatehelpers.P_341_PushArgument;
+import com.avail.interpreter.primitive.privatehelpers.P_342_GetGlobalVariableValue;
 
 /**
  * An {@link AvailCodeGenerator} is used to convert a {@linkplain
