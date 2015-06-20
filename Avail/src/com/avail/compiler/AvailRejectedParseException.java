@@ -35,12 +35,12 @@ package com.avail.compiler;
 import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.exceptions.PrimitiveThrownException;
-import com.avail.interpreter.primitive.phrases.P_352_RejectParsing;
+import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 import com.avail.utility.Generator;
 
 /**
  * An {@code AvailRejectedParseException} is thrown by primitive {@link
- * P_352_RejectParsing} to indicate the fiber running a semantic restriction
+ * P_RejectParsing} to indicate the fiber running a semantic restriction
  * (or macro body or prefix function) has rejected the argument types or phrases
  * for the reason specified in the exception's constructor.
  *

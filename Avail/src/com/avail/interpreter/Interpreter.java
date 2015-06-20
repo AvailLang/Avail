@@ -59,9 +59,9 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
-import com.avail.interpreter.primitive.controlflow.P_200_CatchException;
-import com.avail.interpreter.primitive.privatehelpers.P_340_PushConstant;
-import com.avail.interpreter.primitive.variables.P_011_SetValue;
+import com.avail.interpreter.primitive.controlflow.P_CatchException;
+import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
+import com.avail.interpreter.primitive.variables.P_SetValue;
 import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
@@ -837,7 +837,7 @@ public final class Interpreter
 	/**
 	 * A place to store the primitive {@linkplain CompiledCodeDescriptor
 	 * compiled code} being attempted.  That allows {@linkplain
-	 * P_340_PushConstant} to get to the first literal in order to return it
+	 * P_PushConstant} to get to the first literal in order to return it
 	 * from the primitive.
 	 */
 	private @Nullable A_Function primitiveFunctionBeingAttempted;
@@ -1553,7 +1553,7 @@ public final class Interpreter
 
 	/**
 	 * Raise an exception. Scan the stack of continuations until one is found
-	 * for a function whose code specifies {@linkplain P_200_CatchException}.
+	 * for a function whose code specifies {@linkplain P_CatchException}.
 	 * Get that continuation's second argument (a handler block of one
 	 * argument), and check if that handler block will accept the
 	 * exceptionValue. If not, keep looking. If it will accept it, unwind the
@@ -1570,7 +1570,7 @@ public final class Interpreter
 		// an exception augmented with stack information.
 		assert argsBuffer.size() == 1;
 		argsBuffer.set(0, exceptionValue);
-		final int primNum = P_200_CatchException.instance.primitiveNumber;
+		final int primNum = P_CatchException.instance.primitiveNumber;
 		A_Continuation continuation = pointerAt(CALLER);
 		while (!continuation.equalsNil())
 		{
@@ -1615,7 +1615,7 @@ public final class Interpreter
 
 	/**
 	 * Scan the stack of continuations until one is found for a function whose
-	 * code specifies {@linkplain P_200_CatchException}. Write the specified
+	 * code specifies {@linkplain P_CatchException}. Write the specified
 	 * marker into its primitive failure variable to indicate the current
 	 * exception handling state.
 	 *
@@ -1624,7 +1624,7 @@ public final class Interpreter
 	 */
 	public Result markNearestGuard (final A_Number marker)
 	{
-		final int primNum = P_200_CatchException.instance.primitiveNumber;
+		final int primNum = P_CatchException.instance.primitiveNumber;
 		A_Continuation continuation = pointerAt(CALLER);
 		while (!continuation.equalsNil())
 		{
@@ -2508,17 +2508,17 @@ public final class Interpreter
 	}
 
 	/**
-	 * The bootstrapped {@linkplain P_011_SetValue assignment function} used to
+	 * The bootstrapped {@linkplain P_SetValue assignment function} used to
 	 * restart implicitly observed assignments.
 	 */
 	private static final A_Function assignmentFunction =
 		FunctionDescriptor.newPrimitiveFunction(
-			P_011_SetValue.instance,
+			P_SetValue.instance,
 			NilDescriptor.nil(),
 			0);
 
 	/**
-	 * Answer the bootstrapped {@linkplain P_011_SetValue assignment function}
+	 * Answer the bootstrapped {@linkplain P_SetValue assignment function}
 	 * used to restart implicitly observed assignments.
 	 *
 	 * @return The assignment function.

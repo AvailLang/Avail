@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import java.math.BigInteger;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
-import com.avail.interpreter.primitive.numbers.P_006_LessOrEqual;
+import com.avail.interpreter.primitive.numbers.P_LessOrEqual;
 
 /**
  * {@code A_Number} is an interface that specifies the number-specific
@@ -532,7 +532,7 @@ extends A_BasicObject
 	 * numeric ordering.
 	 *
 	 * <p>The numeric order is not directly exposed to Avail, but it can be
-	 * reconstructed by computing the {@link P_006_LessOrEqual} predicate on
+	 * reconstructed by computing the {@link P_LessOrEqual} predicate on
 	 * two values and also on the two values interchanged.  If one but not the
 	 * other is true, the order is either {@link Order#LESS} or {@link
 	 * Order#MORE}.  If both are true, the values are {@link Order#EQUAL}, and

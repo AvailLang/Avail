@@ -70,7 +70,7 @@ import com.avail.exceptions.AvailEmergencyExitException;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;
-import com.avail.interpreter.primitive.phrases.P_352_RejectParsing;
+import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 import com.avail.io.TextInterface;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.serialization.*;
@@ -5306,7 +5306,7 @@ public final class AvailCompiler
 	 * Check the proposed message send for validity. Use not only the applicable
 	 * {@linkplain MethodDefinitionDescriptor method definitions}, but also any
 	 * semantic restrictions. The semantic restrictions may choose to
-	 * {@linkplain P_352_RejectParsing reject the parse}, indicating that the
+	 * {@linkplain P_RejectParsing reject the parse}, indicating that the
 	 * argument types are mutually incompatible.
 	 *
 	 * @param bundle

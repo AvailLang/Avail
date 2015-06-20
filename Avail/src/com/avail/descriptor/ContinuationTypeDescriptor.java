@@ -35,9 +35,8 @@ package com.avail.descriptor;
 import static com.avail.descriptor.ContinuationTypeDescriptor.ObjectSlots.*;
 import java.util.IdentityHashMap;
 import com.avail.annotations.*;
-import com.avail.interpreter.primitive.*;
-import com.avail.interpreter.primitive.controlflow.P_056_RestartContinuationWithArguments;
-import com.avail.interpreter.primitive.controlflow.P_057_ExitContinuationWithResult;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
+import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -49,11 +48,11 @@ import com.avail.utility.json.JSONWriter;
  *
  * <p>
  * Continuations can be {@linkplain
- * P_056_RestartContinuationWithArguments restarted with a new tuple of
+ * P_RestartContinuationWithArguments restarted with a new tuple of
  * arguments}, so continuation types are contravariant with respect to their
  * function types' argument types.  Surprisingly, continuation types are also
  * contravariant with respect to their function types' return types.  This is
- * due to the capability to {@linkplain P_057_ExitContinuationWithResult exit} a
+ * due to the capability to {@linkplain P_ExitContinuationWithResult exit} a
  * continuation with a specific value.
  * </p>
  *

@@ -112,7 +112,7 @@ Public method "_∧_" is
 ] : false's type;
 
 /**
- * Improve on Primitive 45's return type.
+ * Improve on the ShortCircuitHelper primitive's return type.
  * 
  * @method "_∧_"
  * @restricts "boolean's type"
@@ -235,7 +235,7 @@ Public method "_∨_" is
 ] : true's type;
 
 /**
- * Improve on Primitive 45's return type.
+ * Improve on the ShortCircuitHelper primitive's return type.
  * 
  * @method "_∨_"
  * @restricts "boolean's type"

@@ -48,17 +48,16 @@ import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
-import com.avail.interpreter.primitive.*;
-import com.avail.interpreter.primitive.continuations.P_052_ContinuationCaller;
-import com.avail.interpreter.primitive.controlflow.P_040_InvokeWithTuple;
-import com.avail.interpreter.primitive.controlflow.P_079_ResumeContinuation;
-import com.avail.interpreter.primitive.general.P_256_EmergencyExit;
-import com.avail.interpreter.primitive.general.P_266_DeclareStringificationAtom;
-import com.avail.interpreter.primitive.methods.P_228_MethodDeclarationFromAtom;
-import com.avail.interpreter.primitive.methods.P_249_SimpleMacroDeclaration;
-import com.avail.interpreter.primitive.methods.P_253_SimpleMethodDeclaration;
-import com.avail.interpreter.primitive.modules.P_263_DeclareAllExportedAtoms;
-import com.avail.interpreter.primitive.variables.P_010_GetValue;
+import com.avail.interpreter.primitive.continuations.P_ContinuationCaller;
+import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple;
+import com.avail.interpreter.primitive.controlflow.P_ResumeContinuation;
+import com.avail.interpreter.primitive.general.P_EmergencyExit;
+import com.avail.interpreter.primitive.general.P_DeclareStringificationAtom;
+import com.avail.interpreter.primitive.methods.P_MethodDeclarationFromAtom;
+import com.avail.interpreter.primitive.methods.P_SimpleMacroDeclaration;
+import com.avail.interpreter.primitive.methods.P_SimpleMethodDeclaration;
+import com.avail.interpreter.primitive.modules.P_DeclareAllExportedAtoms;
+import com.avail.interpreter.primitive.variables.P_GetValue;
 import com.avail.optimizer.L2Translator;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
@@ -1937,7 +1936,7 @@ extends Descriptor
 	 */
 	private static final A_Atom vmCrashAtom = createSpecialMethodAtom(
 		"vm crash:(«_‡,»)",
-		P_256_EmergencyExit.instance);
+		P_EmergencyExit.instance);
 
 	/**
 	 * Answer the {@linkplain AtomDescriptor atom} used by the VM to name the
@@ -1955,8 +1954,8 @@ extends Descriptor
 	 */
 	private static final A_Atom vmMethodDefinerAtom = createSpecialMethodAtom(
 		"vm method_is_",
-		P_253_SimpleMethodDeclaration.instance,
-		P_228_MethodDeclarationFromAtom.instance);
+		P_SimpleMethodDeclaration.instance,
+		P_MethodDeclarationFromAtom.instance);
 
 	/**
 	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
@@ -1974,7 +1973,7 @@ extends Descriptor
 	 */
 	private static final A_Atom vmMacroDefinerAtom = createSpecialMethodAtom(
 		"vm macro_is«_,»_",
-		P_249_SimpleMacroDeclaration.instance);
+		P_SimpleMacroDeclaration.instance);
 
 	/**
 	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
@@ -1992,7 +1991,7 @@ extends Descriptor
 	 */
 	private static final A_Atom vmFunctionApplyAtom = createSpecialMethodAtom(
 		"vm function apply_(«_‡,»)",
-		P_040_InvokeWithTuple.instance);
+		P_InvokeWithTuple.instance);
 
 	/**
 	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM's
@@ -2010,7 +2009,7 @@ extends Descriptor
 	 */
 	private static final A_Atom vmPublishAtomsAtom = createSpecialMethodAtom(
 		"vm publish atom set_(public=_)",
-		P_263_DeclareAllExportedAtoms.instance);
+		P_DeclareAllExportedAtoms.instance);
 
 	/**
 	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM's
@@ -2029,7 +2028,7 @@ extends Descriptor
 	private static final A_Atom vmDeclareStringifierAtom =
 		createSpecialMethodAtom(
 			"vm stringifier:=_",
-			P_266_DeclareStringificationAtom.instance);
+			P_DeclareStringificationAtom.instance);
 
 	/**
 	 * Answer the (special) name of the VM-built stringifier declaration atom.
@@ -2047,7 +2046,7 @@ extends Descriptor
 	private static final A_Atom vmContinuationCallerAtom =
 		createSpecialMethodAtom(
 			"vm_'s caller",
-			P_052_ContinuationCaller.instance);
+			P_ContinuationCaller.instance);
 
 	/**
 	 * Answer the (special) name of the VM-built continuation caller atom.
@@ -2065,7 +2064,7 @@ extends Descriptor
 	private static final A_Atom vmVariableGetAtom =
 		createSpecialMethodAtom(
 			"vm↓_",
-			P_010_GetValue.instance);
+			P_GetValue.instance);
 
 	/**
 	 * Answer the (special) name of the VM-built variable accessor atom.
@@ -2083,7 +2082,7 @@ extends Descriptor
 	private static final A_Atom vmResumeContinuationAtom =
 		createSpecialMethodAtom(
 			"vm resume_",
-			P_079_ResumeContinuation.instance);
+			P_ResumeContinuation.instance);
 
 	/**
 	 * Answer the (special) name of the VM-built continuation resumption atom.

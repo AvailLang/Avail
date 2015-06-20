@@ -33,11 +33,11 @@
 package com.avail.compiler;
 
 import com.avail.exceptions.PrimitiveThrownException;
-import com.avail.interpreter.primitive.phrases.P_343_AcceptParsing;
+import com.avail.interpreter.primitive.phrases.P_AcceptParsing;
 
 /**
  * An {@code AvailAcceptedParseException} is thrown by primitive {@link
- * P_343_AcceptParsing} to indicate the fiber running a semantic restriction
+ * P_AcceptParsing} to indicate the fiber running a semantic restriction
  * has accepted the argument types and does not need to restrict the proposed
  * expression's type.
  *
@@ -53,7 +53,7 @@ extends PrimitiveThrownException
 
 	/**
 	 * Construct a new {@link AvailAcceptedParseException}, which can be thrown
-	 * by primitive {@link P_343_AcceptParsing} to indicate a semantic
+	 * by primitive {@link P_AcceptParsing} to indicate a semantic
 	 * restriction has accepted a parse but does not wish to strengthen the
 	 * exrpssion's type.
 	 */

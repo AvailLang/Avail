@@ -42,7 +42,7 @@ import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.*;
-import com.avail.interpreter.primitive.privatehelpers.P_340_PushConstant;
+import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -473,7 +473,7 @@ extends Descriptor
 		final L1InstructionWriter writer = new L1InstructionWriter(
 			NilDescriptor.nil(),
 			0);
-		writer.primitive(P_340_PushConstant.instance);
+		writer.primitive(P_PushConstant.instance);
 		writer.argumentTypes();
 		writer.returnType(TOP.o());
 		writer.write(

@@ -43,7 +43,7 @@ import com.avail.annotations.*;
 import com.avail.builder.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelOne.*;
-import com.avail.interpreter.primitive.floats.P_292_FloatFloor;
+import com.avail.interpreter.primitive.floats.P_FloatFloor;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.serialization.*;
 
@@ -450,7 +450,7 @@ public final class SerializerTest
 			NilDescriptor.nil(),
 			0);
 		writer.argumentTypes(FLOAT.o());
-		writer.primitive(P_292_FloatFloor.instance);
+		writer.primitive(P_FloatFloor.instance);
 		writer.returnType(FLOAT.o());
 		final A_RawFunction code = writer.compiledCode();
 		final A_Function function = FunctionDescriptor.create(

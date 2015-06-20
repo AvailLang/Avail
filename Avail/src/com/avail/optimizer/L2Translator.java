@@ -56,7 +56,7 @@ import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.*;
 import com.avail.interpreter.levelTwo.register.*;
-import com.avail.interpreter.primitive.controlflow.P_058_RestartContinuation;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
 
@@ -739,7 +739,7 @@ public class L2Translator
 		 * A label (i.e., an {@link L2Instruction} whose operation is an {@link
 		 * L2_LABEL}).  This is output right at the start of naive code
 		 * generation.  It is reached through normal invocation, but it can also
-		 * be reached by {@linkplain P_058_RestartContinuation restarting} a
+		 * be reached by {@linkplain P_RestartContinuation restarting} a
 		 * continuation created by a {@linkplain #L1Ext_doPushLabel()
 		 * push-label} nybblecode instruction.
 		 */

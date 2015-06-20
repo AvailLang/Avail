@@ -58,8 +58,10 @@ import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE_NO_C
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import com.avail.interpreter.primitive.*;
-import com.avail.interpreter.primitive.privatehelpers.P_340_PushConstant;
+import com.avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue;
+import com.avail.interpreter.primitive.privatehelpers.P_PushArgument;
+import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
+import com.avail.interpreter.primitive.rawfunctions.P_CreateCompiledCode;
 import com.avail.optimizer.*;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.performance.Statistic;
@@ -169,21 +171,21 @@ implements IntegerEnumSlotDescriptionEnum
 
 		/**
 		 * The primitive returns some constant. Currently this is only used for
-		 * {@link P_340_PushConstant}, which always returns the first literal of
+		 * {@link P_PushConstant}, which always returns the first literal of
 		 * the {@linkplain CompiledCodeDescriptor compiled code}.
 		 */
 		SpecialReturnConstant,
 
 		/**
 		 * The primitive returns the only argument.  This is only used for
-		 * {@link P_341_PushArgument}, which is detected automatically at code
+		 * {@link P_PushArgument}, which is detected automatically at code
 		 * generation time.
 		 */
 		SpecialReturnSoleArgument,
 
 		/**
 		 * The primitive returns the value of some global variable.  This is
-		 * only used for {@link P_342_GetGlobalVariableValue}, which is detected
+		 * only used for {@link P_GetGlobalVariableValue}, which is detected
 		 * automatically at code generation time.
 		 */
 		SpecialReturnGlobalValue,
@@ -198,7 +200,7 @@ implements IntegerEnumSlotDescriptionEnum
 		/**
 		 * The primitive is not exposed to an Avail program. The compiler
 		 * forbids direct compilation of primitive linkages to such primitives.
-		 * {@linkplain P_188_CreateCompiledCode} also forbids creation of
+		 * {@linkplain P_CreateCompiledCode} also forbids creation of
 		 * {@linkplain CompiledCodeDescriptor compiled code} that links a {@code
 		 * Private} primitive.
 		 */
@@ -442,7 +444,7 @@ implements IntegerEnumSlotDescriptionEnum
 
 	/**
 	 * The number of arguments this primitive expects.  For {@link
-	 * P_340_PushConstant} this is -1, but that primitive cannot be used
+	 * P_PushConstant} this is -1, but that primitive cannot be used
 	 * explicitly in Avail code – it's plugged in automatically for functions
 	 * that immediately return a constant.
 	 */
@@ -668,7 +670,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 *
 	 * @param theArgCount
 	 *        The number of arguments the primitive expects.  The value -1 is
-	 *        used by the special primitive {@link P_340_PushConstant} to
+	 *        used by the special primitive {@link P_PushConstant} to
 	 *        indicate it may have any number of arguments.  However, note that
 	 *        that primitive cannot be used explicitly in Avail code.
 	 * @param flags

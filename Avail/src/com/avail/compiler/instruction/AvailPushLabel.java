@@ -37,10 +37,9 @@ import com.avail.compiler.instruction.AvailInstruction;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
-import com.avail.interpreter.primitive.*;
-import com.avail.interpreter.primitive.controlflow.P_056_RestartContinuationWithArguments;
-import com.avail.interpreter.primitive.controlflow.P_057_ExitContinuationWithResult;
-import com.avail.interpreter.primitive.controlflow.P_058_RestartContinuation;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
+import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
@@ -53,9 +52,9 @@ import java.util.List;
  *
  * <p>
  * The new continuation can subsequently be {@linkplain
- * P_058_RestartContinuation restarted}, {@linkplain
- * P_056_RestartContinuationWithArguments restarted with new arguments}, or
- * {@linkplain P_057_ExitContinuationWithResult exited}.
+ * P_RestartContinuation restarted}, {@linkplain
+ * P_RestartContinuationWithArguments restarted with new arguments}, or
+ * {@linkplain P_ExitContinuationWithResult exited}.
  * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

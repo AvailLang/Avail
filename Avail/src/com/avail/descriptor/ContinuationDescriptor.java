@@ -40,11 +40,10 @@ import com.avail.annotations.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
-import com.avail.interpreter.primitive.*;
-import com.avail.interpreter.primitive.continuations.P_059_ContinuationStackData;
-import com.avail.interpreter.primitive.controlflow.P_056_RestartContinuationWithArguments;
-import com.avail.interpreter.primitive.controlflow.P_057_ExitContinuationWithResult;
-import com.avail.interpreter.primitive.controlflow.P_058_RestartContinuation;
+import com.avail.interpreter.primitive.continuations.P_ContinuationStackData;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
+import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
@@ -58,13 +57,13 @@ import com.avail.utility.evaluation.*;
  *
  * <p>
  * A continuation can be {@linkplain
- * P_057_ExitContinuationWithResult exited}, which causes
+ * P_ExitContinuationWithResult exited}, which causes
  * the current fiber's continuation to be replaced by the specified
  * continuation's caller.  A return value is supplied to this caller.  A
  * continuation can also be {@linkplain
- * P_056_RestartContinuationWithArguments restarted},
+ * P_RestartContinuationWithArguments restarted},
  * either with a specified tuple of arguments or {@linkplain
- * P_058_RestartContinuation with the original arguments}.
+ * P_RestartContinuation with the original arguments}.
  * </p>
  *
  * @author Mark van Gulik&lt;mark@availlang.org&gt;
@@ -561,7 +560,7 @@ extends Descriptor
 
 	/**
 	 * A substitute for {@linkplain AvailObject nil}, for use by
-	 * {@link P_059_ContinuationStackData}.
+	 * {@link P_ContinuationStackData}.
 	 */
 	private static final AvailObject nilSubstitute =
 		VariableDescriptor.forContentType(
@@ -569,7 +568,7 @@ extends Descriptor
 
 	/**
 	 * Answer a substitute for {@linkplain AvailObject nil}. This is
-	 * primarily for use by {@link P_059_ContinuationStackData}.
+	 * primarily for use by {@link P_ContinuationStackData}.
 	 *
 	 * @return An immutable bottom-typed variable.
 	 */

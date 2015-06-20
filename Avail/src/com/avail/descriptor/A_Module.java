@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.interpreter.AvailLoader;
-import com.avail.interpreter.primitive.modules.P_246_PublishName;
+import com.avail.interpreter.primitive.modules.P_PublishName;
 import com.avail.utility.evaluation.Continuation0;
 
 /**
@@ -76,7 +76,7 @@ extends A_BasicObject
 	 * Answer a {@linkplain A_Map map} from {@linkplain A_String strings} to
 	 * {@linkplain A_Atom atoms}. These atoms prevent or at least clarify name
 	 * conflicts. These names are those introduced by the {@linkplain A_Module
-	 * module}'s {@code "Names"} section or {@link P_246_PublishName}.
+	 * module}'s {@code "Names"} section or {@link P_PublishName}.
 	 *
 	 * @return The map of new names.
 	 */

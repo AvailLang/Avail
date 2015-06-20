@@ -67,7 +67,7 @@ import com.avail.utility.evaluation.Continuation1;
  * failure reasons will be captured and combined into a suitable composite
  * string.  This primitive will then fail with the composite string as the
  * failure value.  It is expected that the Avail primitive failure code will
- * simply invoke {@link P_352_RejectParsing} with that string to report the
+ * simply invoke {@link P_RejectParsing} with that string to report the
  * encountered problems within the original fiber.</p>
  *
  * <p>The primitive may also fail (with a suitable string) if the number of

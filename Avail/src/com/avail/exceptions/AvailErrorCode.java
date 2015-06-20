@@ -40,8 +40,8 @@ import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.levelOne.L1Operation;
-import com.avail.interpreter.primitive.phrases.P_343_AcceptParsing;
-import com.avail.interpreter.primitive.phrases.P_352_RejectParsing;
+import com.avail.interpreter.primitive.phrases.P_AcceptParsing;
+import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 import com.avail.serialization.Deserializer;
 import com.avail.serialization.Serializer;
 
@@ -412,7 +412,7 @@ public enum AvailErrorCode
 
 	/**
 	 * The {@linkplain FiberDescriptor#current() current fiber} attempted to
-	 * {@linkplain P_343_AcceptParsing accept the current parse}, but it isn't
+	 * {@linkplain P_AcceptParsing accept the current parse}, but it isn't
 	 * actually running a semantic restriction.
 	 */
 	E_UNTIMELY_PARSE_ACCEPTANCE (64),
@@ -460,7 +460,7 @@ public enum AvailErrorCode
 
 	/**
 	 * The {@linkplain FiberDescriptor#current() current fiber} attempted to
-	 * {@linkplain P_352_RejectParsing reject the current parse}, but it isn't
+	 * {@linkplain P_RejectParsing reject the current parse}, but it isn't
 	 * actually running a semantic restriction.
 	 */
 	E_UNTIMELY_PARSE_REJECTION (71),

@@ -42,10 +42,9 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
-import com.avail.interpreter.primitive.*;
-import com.avail.interpreter.primitive.privatehelpers.P_340_PushConstant;
-import com.avail.interpreter.primitive.privatehelpers.P_341_PushArgument;
-import com.avail.interpreter.primitive.privatehelpers.P_342_GetGlobalVariableValue;
+import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
+import com.avail.interpreter.primitive.privatehelpers.P_PushArgument;
+import com.avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue;
 
 /**
  * An {@link AvailCodeGenerator} is used to convert a {@linkplain
@@ -319,13 +318,13 @@ public class AvailCodeGenerator
 			if (onlyInstruction instanceof AvailPushLiteral
 				&& ((AvailPushLiteral)onlyInstruction).index() == 1)
 			{
-				primitive(P_340_PushConstant.instance);
+				primitive(P_PushConstant.instance);
 			}
 			if (numArgs() == 1
 				&& onlyInstruction instanceof AvailPushLocalVariable
 				&& ((AvailPushLocalVariable)onlyInstruction).index() == 1)
 			{
-				primitive(P_341_PushArgument.instance);
+				primitive(P_PushArgument.instance);
 			}
 			// Only target module constants, not module variables. Module
 			// variables can be unassigned, and reading an unassigned module
@@ -335,7 +334,7 @@ public class AvailCodeGenerator
 				&& literals.get(0).isInitializedWriteOnceVariable())
 			{
 				primitive(
-					P_342_GetGlobalVariableValue.instance);
+					P_GetGlobalVariableValue.instance);
 			}
 		}
 		// Make sure we're not closing over variables that don't get used.

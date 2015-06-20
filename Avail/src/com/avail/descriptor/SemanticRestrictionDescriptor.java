@@ -34,14 +34,14 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.SemanticRestrictionDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
-import com.avail.interpreter.primitive.phrases.P_352_RejectParsing;
+import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 
 /**
  * A {@code SemanticRestrictionDescriptor semantic restriction} holds a function
  * to invoke when <em>compiling</em> a potential call site of a method.  The
  * arguments' static types at the call site are passed to the function, and if
  * successful it produces a result type used to further restrict the expected
- * type at that call site.  Or instead it may invoke {@link P_352_RejectParsing}
+ * type at that call site.  Or instead it may invoke {@link P_RejectParsing}
  * to cause that call site to be rejected as a possible parse, supplying a
  * message describing the nature of the rejection.  The message will be shown to
  * the user if no significant parsing beyond this point in the source file was

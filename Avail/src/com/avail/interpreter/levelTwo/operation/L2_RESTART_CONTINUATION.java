@@ -39,7 +39,7 @@ import com.avail.descriptor.A_RawFunction;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.primitive.controlflow.P_058_RestartContinuation;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -47,7 +47,7 @@ import com.avail.optimizer.RegisterSet;
  * Restart the given {@link A_Continuation continuation}, which already has the
  * correct program counter and level two offset (in case the {@link L2Chunk} is
  * still valid).  This operation does the same thing as running {@link
- * P_058_RestartContinuation}, but avoids the need for a reified calling
+ * P_RestartContinuation}, but avoids the need for a reified calling
  * continuation.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
