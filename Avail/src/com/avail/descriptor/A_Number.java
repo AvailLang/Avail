@@ -141,24 +141,54 @@ extends A_BasicObject
 	 * Convert the receiver, which must be an integer, into a Java {@link
 	 * BigInteger}.
 	 *
-	 * @return
+	 * @return a Java {@code BigInteger}.
 	 */
 	BigInteger asBigInteger ();
 
 	/**
+	 * Shift this integer left by the specified number of bits.  If the shift
+	 * amount is negative, perform a right shift instead (of the negation of the
+	 * specified amount).  In the case that the receiver is negative, shift in
+	 * zeroes on the right or ones on the left.
+	 *
 	 * @param shiftFactor
+	 *        How much to shift left, or if negative, the negation of how much
+	 *        to shift right.
 	 * @param canDestroy
+	 *        Whether either input can be destroyed or recycled if it's mutable.
 	 * @return
+	 *        The shifted Avail {@link IntegerDescriptor integer}.
 	 */
 	A_Number bitShift (
 		A_Number shiftFactor,
 		boolean canDestroy);
 
 	/**
+	 * Shift the non-negative integer to the left by the specified number of
+	 * bits, then truncate the representation to force bits above the specified
+	 * position to be zeroed.  The shift factor may be negative, indicating a
+	 * right shift by the corresponding positive amount, in which case
+	 * truncation will still happen.
+	 *
+	 * <p>
+	 * For example, shifting the binary number 1011<sub>2</sub> to the left by 2
+	 * positions will produce 101100<sub>2</sub>, then truncating it to, say 5
+	 * bits, would produce 01100<sub>2</sub>.  For a second example, the
+	 * positive number 110101 can be shifted left by -2 positions (which is a
+	 * right shift of 2) to get 1101, and a subsequent truncation to 10 bits
+	 * would leave it unaffected.
+	 * </p>
+	 *
 	 * @param shiftFactor
+	 *        How much to shift the receiver left (may be negative to indicate a
+	 *        right shift).
 	 * @param truncationBits
+	 *        A positive integer indicating how many low-order bits of the
+	 *        shifted value should be preserved.
 	 * @param canDestroy
-	 * @return
+	 *        Whether it is permitted to alter the receiver if it happens to be
+	 *        mutable.
+	 * @return (object × 2<sup>shiftFactor</sup>) mod 2<sup>truncationBits</sup>
 	 */
 	A_Number bitShiftLeftTruncatingToBits (
 		A_Number shiftFactor,
@@ -166,27 +196,64 @@ extends A_BasicObject
 		boolean canDestroy);
 
 	/**
+	 * Compute the boolean <code>and</code> operation for the corresponding bits
+	 * of the receiver and anInteger.  Both values are signed 2's complement
+	 * integers.
+	 *
+	 * <p>For example, if ...11001<sub>2</sub> (negative seven) and
+	 * ...01010<sub>2</sub> (ten) are provided, the result will be ...01000
+	 * (eight).
+	 *
 	 * @param anInteger
+	 *        The integer to combine with the receiver using the bitwise
+	 *        <code>and</code> operation.
 	 * @param canDestroy
-	 * @return
+	 *        Whether the receiver or anInteger can be recycled or destroyed if
+	 *        it happens to be mutable.
+	 * @return The bitwise <code>and</code> of the receiver and anInteger.
 	 */
 	A_Number bitwiseAnd (
 		A_Number anInteger,
 		boolean canDestroy);
 
 	/**
+	 * Compute the boolean <code>or</code> operation for the corresponding bits
+	 * of the receiver and anInteger.  Both values are signed 2's complement
+	 * integers.
+	 *
+	 * <p>For example, if ...11001<sub>2</sub> (negative seven) and
+	 * ...01010<sub>2</sub> (ten) are provided, the result will be ...11011
+	 * (negative five).
+	 *
 	 * @param anInteger
+	 *        The integer to combine with the receiver using the bitwise
+	 *        <code>or</code> operation.
 	 * @param canDestroy
-	 * @return
+	 *        Whether the receiver or anInteger can be recycled or destroyed if
+	 *        it happens to be mutable.
+	 * @return The bitwise <code>or</code> of the receiver and anInteger.
 	 */
 	A_Number bitwiseOr (
 		A_Number anInteger,
 		boolean canDestroy);
 
 	/**
+	 * Compute the boolean <code>exclusive-or</code> operation for the
+	 * corresponding bits of the receiver and anInteger.  Both values are
+	 * signed 2's complement integers.
+	 *
+	 * <p>For example, if ...11001<sub>2</sub> (negative seven) and
+	 * ...01010<sub>2</sub> (ten) are provided, the result will be ...10011
+	 * (negative thirteen).
+	 *
 	 * @param anInteger
+	 *        The integer to combine with the receiver using the bitwise
+	 *        <code>exclusive-or</code> operation.
 	 * @param canDestroy
-	 * @return
+	 *        Whether the receiver or anInteger can be recycled or destroyed if
+	 *        it happens to be mutable.
+	 * @return The bitwise <code>exclusive-or</code> of the receiver and
+	 *         anInteger.
 	 */
 	A_Number bitwiseXor (
 		A_Number anInteger,
@@ -231,16 +298,36 @@ extends A_BasicObject
 		boolean canDestroy);
 
 	/**
+	 * Divide the {@linkplain InfinityDescriptor infinity} having the specified
+	 * {@link Sign} by the receiver, destroying one or the other if it's mutable
+	 * and canDestroy is true.  Because of the requirement that the argument be
+	 * an infinity rather than an arbitrary {@link A_Number}, this is usually
+	 * only used for double-dispatching.
+	 *
 	 * @param sign
+	 *        The {@link Sign} of the infinity to divide by the receiver.
 	 * @param canDestroy
-	 * @return
+	 *        Whether a mutable receiver or argument may be destroyed and/or
+	 *        recycled to hold the quotient.
+	 * @return The quotient, possibly recycling one of the inputs if
+	 *         canDestroy is true.
 	 */
 	A_Number divideIntoInfinityCanDestroy (Sign sign, boolean canDestroy);
 
 	/**
+	 * Divide the Avail {@linkplain IntegerDescriptor integer} argument by the
+	 * receiver, destroying one or the other if it's mutable and canDestroy is
+	 * true.  Because of the requirement that the argument be an integer rather
+	 * than an arbitrary {@link A_Number}, this is usually only used for
+	 * double-dispatching.
+	 *
 	 * @param anInteger
+	 *        The integer to divide by the receiver.
 	 * @param canDestroy
-	 * @return
+	 *        Whether a mutable receiver or argument may be destroyed and/or
+	 *        recycled to hold the quotient.
+	 * @return The quotient, possibly recycling one of the inputs if
+	 *         canDestroy is true.
 	 */
 	A_Number divideIntoIntegerCanDestroy (
 		A_Number anInteger,
@@ -254,8 +341,8 @@ extends A_BasicObject
 	 * #divideIntoIntegerCanDestroy(A_Number, boolean)
 	 * divideIntoIntegerCanDestroy} or {@link
 	 * #divideIntoInfinityCanDestroy(Sign, boolean)
-	 * divideIntoInfinityCanDestroy}, where actual implementations of the
-	 * division operation should reside.</p>
+	 * divideIntoInfinityCanDestroy} (or others), where actual implementations
+	 * of the division operation should reside.</p>
 	 *
 	 * @param aNumber
 	 *        An integral numeric.
@@ -293,7 +380,10 @@ extends A_BasicObject
 	short extractUnsignedByte ();
 
 	/**
-	 * @return
+	 * Extract an unsigned short from the {@linkplain AvailObject receiver}.
+	 * Return it in a Java {@code int} to avoid sign bit reinterpretation.
+	 *
+	 * @return An {@code int} in the range [0..65535].
 	 */
 	int extractUnsignedShort ();
 
@@ -343,7 +433,12 @@ extends A_BasicObject
 	boolean isNumericallyIntegral ();
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether this integral {@linkplain InfinityDescriptor infinity} is
+	 * positive.
+	 *
+	 * @return {@code true} if the receiver is positive integral infinity, or
+	 *         {@code false} if the receiver is negative integral infinity.
+	 *         No other values are permitted.
 	 */
 	boolean isPositive ();
 
@@ -427,16 +522,34 @@ extends A_BasicObject
 		boolean canDestroy);
 
 	/**
+	 * Multiply the receiver by the {@linkplain InfinityDescriptor infinity}
+	 * with the given {@linkplain Sign sign}, potentially destroying the
+	 * receiver if it's mutable and canDestroy is true.
+	 *
 	 * @param sign
+	 *        The sign of the infinity by which to multiply the receiver.
 	 * @param canDestroy
-	 * @return
+	 *        Whether a mutable receiver may be destroyed and/or recycled to
+	 *        hold the product.
+	 * @return The product, possibly recycling the receiver if canDestroy is
+	 *         true.
 	 */
 	A_Number multiplyByInfinityCanDestroy (Sign sign, boolean canDestroy);
 
 	/**
+	 * Multiply the receiver by the given {@linkplain IntegerDescriptor
+	 * integer}, destroying one or the other if it's mutable and canDestroy is
+	 * true.  Because of the requirement that the argument be an integer rather
+	 * than an arbitrary {@link A_Number}, this is usually only used for
+	 * double-dispatching.
+	 *
 	 * @param anInteger
+	 *        The integer to multiply the receiver by.
 	 * @param canDestroy
-	 * @return
+	 *        Whether a mutable receiver or argument may be destroyed and/or
+	 *        recycled to hold the product.
+	 * @return The product, possibly recycling one of the inputs if
+	 *         canDestroy is true.
 	 */
 	A_Number multiplyByIntegerCanDestroy (
 		A_Number anInteger,
@@ -598,22 +711,52 @@ extends A_BasicObject
 		boolean canDestroy);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Extract a (signed) base 2^32 digit from the integer.  The index must be
+	 * in range for the integer's representation.
+	 *
+	 * @param index
+	 *        The one-based, little-endian index of the digit to extract.  It
+	 *        must be between 1 and the number of digits present.
+	 * @return The base 2^32 digit as a signed {@code int}.
 	 */
 	int rawSignedIntegerAt (int index);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Replace a (signed) base 2^32 digit of the integer.  The index must be
+	 * in range for the integer's representation, and the receiver must be
+	 * mutable.
+	 *
+	 * @param index
+	 *        The one-based, little-endian index of the digit to replace.  It
+	 *        must be between 1 and the number of digits present.
+	 * @param value
+	 *        The replacement base 2^32 digit as a signed {@code int}.
 	 */
 	void rawSignedIntegerAtPut (int index, int value);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Extract an unsigned base 2^32 digit from the integer.  The index must be
+	 * in range for the integer's representation.
+	 *
+	 * @param index
+	 *        The one-based, little-endian index of the digit to extract.  It
+	 *        must be between 1 and the number of digits present.
+	 * @return The unsigned base 2^32 digit as a signed {@code long} to avoid
+	 *         misinterpreting the sign.
 	 */
 	long rawUnsignedIntegerAt (int index);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Replace an unsigned base 2^32 digit of the integer.  The index must be
+	 * in range for the integer's representation, and the receiver must be
+	 * mutable.
+	 *
+	 * @param index
+	 *        The one-based, little-endian index of the digit to replace.  It
+	 *        must be between 1 and the number of digits present.
+	 * @param value
+	 *        The replacement base 2^32 digit as an {@code int}.  This does the
+	 *        same thing as {@link #rawSignedIntegerAtPut(int, int)}.
 	 */
 	void rawUnsignedIntegerAtPut (int index, int value);
 
@@ -656,16 +799,32 @@ extends A_BasicObject
 		boolean canDestroy);
 
 	/**
+	 * Subtract the receiver from the {@linkplain InfinityDescriptor infinity}
+	 * with the specified {@linkplain Sign sign}, destroying one or the other if
+	 * it's mutable and canDestroy is true.
+	 *
 	 * @param sign
+	 *        The sign of the infinity to subtract from.
 	 * @param canDestroy
-	 * @return
+	 *        Whether a mutable receiver or argument may be destroyed and/or
+	 *        recycled to hold the difference.
+	 * @return The difference, possibly recycling one of the inputs if
+	 *         canDestroy is true.
 	 */
 	A_Number subtractFromInfinityCanDestroy (Sign sign, boolean canDestroy);
 
 	/**
+	 * Subtract the receiver from the given {@linkplain IntegerDescriptor
+	 * integer}, destroying one or the other if it's mutable and canDestroy is
+	 * true.
+	 *
 	 * @param anInteger
+	 *        The integer to subtract from.
 	 * @param canDestroy
-	 * @return
+	 *        Whether a mutable receiver or argument may be destroyed and/or
+	 *        recycled to hold the difference.
+	 * @return The difference, possibly recycling one of the inputs if
+	 *         canDestroy is true.
 	 */
 	A_Number subtractFromIntegerCanDestroy (
 		A_Number anInteger,
@@ -696,7 +855,7 @@ extends A_BasicObject
 		boolean canDestroy);
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Normalize the integer to have the minimum number of base 2^32 digits.
 	 */
 	void trimExcessInts ();
 

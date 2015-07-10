@@ -31,7 +31,7 @@
 
 package com.avail.compiler;
 
-import static com.avail.compiler.AvailCompiler.ExpectedToken.*;
+import static com.avail.compiler.ExpectedToken.*;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.problems.ProblemType.*;
 import static com.avail.descriptor.AtomDescriptor.compilerScopeMapKey;
@@ -64,11 +64,9 @@ import com.avail.compiler.scanning.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
-import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.exceptions.AvailEmergencyExitException;
 import com.avail.exceptions.AvailErrorCode;
-import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 import com.avail.io.TextInterface;
@@ -117,723 +115,6 @@ public final class AvailCompiler
 	 * efficient access.
 	 */
 	final AvailRuntime runtime = AvailRuntime.current();
-
-	/**
-	 * An {@code ImportValidationException} is raised by the constructor of
-	 * {@link ModuleImport} when it is supplied with arguments that constitute
-	 * an invalid import specification.
-	 */
-	private static final class ImportValidationException
-	extends Exception
-	{
-		/** The serial version identifier. */
-		private static final long serialVersionUID = 4925679877429696123L;
-
-		/**
-		 * Construct a new {@link ImportValidationException}.
-		 *
-		 * @param message
-		 *        A message suitable for use as a parse rejection.
-		 */
-		public ImportValidationException (final String message)
-		{
-			super(message);
-		}
-	}
-
-	/**
-	 * Information that a {@link ModuleHeader} uses to keep track of a module
-	 * import, whether from an {@linkplain ExpectedToken#EXTENDS Extends} or a
-	 * {@linkplain ExpectedToken#USES Uses} clause.
-	 */
-	public static class ModuleImport
-	{
-		/**
-		 * The name of the module being imported.
-		 */
-		public final A_String moduleName;
-
-		/**
-		 * A {@linkplain SetDescriptor set} of {@linkplain StringDescriptor
-		 * strings} which, when intersected with the declared version strings
-		 * for the actual module being imported, must be nonempty.
-		 */
-		public final A_Set acceptableVersions;
-
-		/**
-		 * Whether this {@link ModuleImport} is due to a {@linkplain
-		 * ExpectedToken#EXTENDS Extends} clause rather than a {@linkplain
-		 * ExpectedToken#USES Uses} clause.
-		 */
-		public final boolean isExtension;
-
-		/**
-		 * The {@linkplain SetDescriptor set} of names ({@linkplain
-		 * StringDescriptor strings}) explicitly imported through this import
-		 * declaration.  If no names or renames were specified, then this is
-		 * {@linkplain NilDescriptor#nil() nil} instead.
-		 */
-		public final A_Set names;
-
-		/**
-		 * The {@linkplain MapDescriptor map} of renames ({@linkplain
-		 * StringDescriptor string} → string) explicitly specified in this
-		 * import declaration.  The keys are the newly introduced names and the
-		 * values are the names provided by the predecessor module.  If no names
-		 * or renames were specified, then this is {@linkplain
-		 * NilDescriptor#nil() nil} instead.
-		 */
-		public final A_Map renames;
-
-		/**
-		 * The {@linkplain SetDescriptor set} of names to specifically exclude
-		 * from being imported from the predecessor module.
-		 */
-		public final A_Set excludes;
-
-		/**
-		 * Whether to include all names exported by the predecessor module that
-		 * are not otherwise excluded by this import.
-		 */
-		public final boolean wildcard;
-
-		/**
-		 * Construct a new {@link ModuleImport}.
-		 *
-		 * @param moduleName
-		 *            The non-resolved {@linkplain StringDescriptor name} of the
-		 *            module to import.
-		 * @param acceptableVersions
-		 *            The {@linkplain SetDescriptor set} of version {@linkplain
-		 *            StringDescriptor strings} from which to look for a match
-		 *            in the actual imported module's list of compatible
-		 *            versions.
-		 * @param isExtension
-		 *            True if these imported declarations are supposed to be
-		 *            re-exported from the current module.
-		 * @param names
-		 *            The {@linkplain SetDescriptor set} of names ({@linkplain
-		 *            StringDescriptor strings}) imported from the module.  They
-		 *            will be cause atoms to be looked up within the predecessor
-		 *            module, and will be re-exported verbatim if isExtension is
-		 *            true.
-		 * @param renames
-		 *            The {@linkplain MapDescriptor map} from new names to old
-		 *            names (both {@linkplain StringDescriptor strings}) that
-		 *            are imported from the module.  The new names will become
-		 *            new atoms in the importing module, and exported if
-		 *            isExtension is true.
-		 * @param excludes
-		 *            The {@linkplain SetDescriptor set} of names ({@linkplain
-		 *            StringDescriptor strings}) to exclude from being imported.
-		 * @param wildcard
-		 *            Whether to import any published names not explicitly
-		 *            excluded.
-		 * @throws ImportValidationException
-		 *         If the specification is invalid.
-		 */
-		ModuleImport (
-				final A_String moduleName,
-				final A_Set acceptableVersions,
-				final boolean isExtension,
-				final A_Set names,
-				final A_Map renames,
-				final A_Set excludes,
-				final boolean wildcard)
-			throws ImportValidationException
-		{
-			this.moduleName = moduleName.makeShared();
-			this.acceptableVersions = acceptableVersions.makeShared();
-			this.isExtension = isExtension;
-			this.names = names.makeShared();
-			this.renames = renames.makeShared();
-			this.excludes = excludes.makeShared();
-			this.wildcard = wildcard;
-			validate();
-		}
-
-		/**
-		 * Produce an {@linkplain ModuleImport import} that represents an
-		 * {@link ExpectedToken#EXTENDS Extend} of the provided {@linkplain
-		 * A_Module module}.
-		 *
-		 * @param module
-		 *        A module.
-		 * @return The desired import.
-		 */
-		public static ModuleImport extend (final A_Module module)
-		{
-			try
-			{
-				final ModuleName name =
-					new ModuleName(module.moduleName().asNativeString());
-				return new ModuleImport(
-					StringDescriptor.from(name.localName()),
-					module.versions(),
-					true,
-					SetDescriptor.empty(),
-					MapDescriptor.empty(),
-					SetDescriptor.empty(),
-					true);
-			}
-			catch (final ImportValidationException e)
-			{
-				assert false : "This shouldn't happen";
-				throw new RuntimeException(e);
-			}
-		}
-
-		/**
-		 * Validate the module import specification.
-		 *
-		 * @throws ImportValidationException
-		 *         If the specification is invalid.
-		 */
-		private void validate () throws ImportValidationException
-		{
-			final A_Set renameOriginals = renames.valuesAsTuple().asSet();
-			if (wildcard)
-			{
-				if (!names.isSubsetOf(renameOriginals))
-				{
-					throw new ImportValidationException(
-						"wildcard import not to be specified or "
-						+ "explicit positive imports only to be used to force "
-						+ "inclusion of source names of renames");
-				}
-			}
-			else
-			{
-				if (excludes.setSize() != 0)
-				{
-					throw new ImportValidationException(
-						"wildcard import to be specified or "
-						+ "explicit negative imports not to be specified");
-				}
-			}
-			final A_Set redundantExclusions =
-				renameOriginals.setIntersectionCanDestroy(
-					excludes,
-					false);
-			if (redundantExclusions.setSize() != 0)
-			{
-				final StringBuilder builder = new StringBuilder(100);
-				builder.append(
-					"source names of renames not to overlap explicit "
-					+ "negative imports (the redundant name");
-				if (redundantExclusions.setSize() == 1)
-				{
-					builder.append(" is ");
-				}
-				else
-				{
-					builder.append("s are ");
-				}
-				boolean first = true;
-				for (final A_String redundant : redundantExclusions)
-				{
-					if (first)
-					{
-						first = !first;
-					}
-					else
-					{
-						builder.append(", ");
-					}
-					// This will quote the string.
-					builder.append(redundant);
-				}
-				builder.append(")");
-				throw new ImportValidationException(builder.toString());
-			}
-		}
-
-		/**
-		 * Answer a tuple suitable for serializing this import information.
-		 *
-		 * <p>
-		 * This currently consists of exactly 7 elements:
-		 * <ol>
-		 * <li>The unresolved module name.</li>
-		 * <li>The tuple of acceptable version strings.</li>
-		 * <li>True if this is an "Extends" import, false if it's a "Uses".</li>
-		 * <li>The set of names (strings) to explicitly import.</li>
-		 * <li>The map from new names to old names (all strings) to explicitly
-		 * import and rename.</li>
-		 * <li>The set of names (strings) to explicitly exclude from
-		 * importing.</li>
-		 * <li>True to include all names not explicitly excluded, otherwise
-		 * false</li>
-		 * </ol>
-		 *
-		 * @see #fromSerializedTuple(A_Tuple)
-		 * @return The tuple to serialize.
-		 */
-		A_Tuple tupleForSerialization ()
-		{
-			return TupleDescriptor.from(
-				moduleName,
-				acceptableVersions,
-				AtomDescriptor.objectFromBoolean(isExtension),
-				names,
-				renames,
-				excludes,
-				AtomDescriptor.objectFromBoolean(wildcard));
-		}
-
-		/**
-		 * Convert the provided {@linkplain TupleDescriptor tuple} into a
-		 * {@link ModuleImport}.  This is the reverse of the transformation
-		 * provided by {@link #tupleForSerialization()}.
-		 *
-		 * @param serializedTuple The tuple from which to build a ModuleImport.
-		 * @return The ModuleImport.
-		 * @throws MalformedSerialStreamException
-		 *         If the module import specification is invalid.
-		 */
-		public static ModuleImport fromSerializedTuple (
-				final A_Tuple serializedTuple)
-			throws MalformedSerialStreamException
-		{
-			final int tupleSize = serializedTuple.tupleSize();
-			assert tupleSize == 7;
-			try
-			{
-				return new ModuleImport(
-					serializedTuple.tupleAt(1), // moduleName
-					serializedTuple.tupleAt(2), // acceptableVersions
-					serializedTuple.tupleAt(3).extractBoolean(), // isExtension
-					serializedTuple.tupleAt(4), // names
-					serializedTuple.tupleAt(5), // renames
-					serializedTuple.tupleAt(6), // excludes
-					serializedTuple.tupleAt(7).extractBoolean() // wildcard
-				);
-			}
-			catch (final ImportValidationException e)
-			{
-				throw new MalformedSerialStreamException(e);
-			}
-		}
-	}
-
-	/**
-	 * A module's header information.
-	 */
-	public static class ModuleHeader
-	{
-		/**
-		 * The {@link ModuleName} of the module undergoing compilation.
-		 */
-		public final ResolvedModuleName moduleName;
-
-		/**
-		 * The versions for which the module undergoing compilation guarantees
-		 * support.
-		 */
-		public final List<A_String> versions = new ArrayList<>();
-
-		/**
-		 * The {@linkplain ModuleImport module imports} imported by the module
-		 * undergoing compilation.  This includes both modules being extended
-		 * and modules being simply used.
-		 */
-		public final List<ModuleImport> importedModules = new ArrayList<>();
-
-		/**
-		 * Answer the list of local module {@linkplain String names} imported by
-		 * this module header, in the order they appear in the Uses and Extends
-		 * clauses.
-		 *
-		 * @return The list of local module names.
-		 */
-		public final List<String> importedModuleNames ()
-		{
-			final List<String> localNames =
-				new ArrayList<>(importedModules.size());
-			for (final ModuleImport moduleImport : importedModules)
-			{
-				localNames.add(moduleImport.moduleName.asNativeString());
-			}
-			return localNames;
-		}
-
-		/**
-		 * The {@linkplain StringDescriptor names} defined and exported by the
-		 * {@linkplain ModuleDescriptor module} undergoing compilation.
-		 */
-		public final Set<A_String> exportedNames = new LinkedHashSet<>();
-
-		/**
-		 * The {@linkplain StringDescriptor names} of {@linkplain
-		 * MethodDescriptor methods} that are {@linkplain ModuleDescriptor
-		 * module} entry points.
-		 */
-		public final List<A_String> entryPoints = new ArrayList<>();
-
-		/**
-		 * Answer a {@link List} of {@link String}s which name entry points
-		 * defined in this module header.
-		 *
-		 * @return The list of this module's entry point names.
-		 */
-		public final List<String> entryPointNames ()
-		{
-			final List<String> javaStrings =
-				new ArrayList<>(entryPoints.size());
-			for (final A_String entryPoint : entryPoints)
-			{
-				javaStrings.add(entryPoint.asNativeString());
-			}
-			return javaStrings;
-		}
-
-		/**
-		 * The {@linkplain TokenDescriptor pragma tokens}, which are always
-		 * string {@linkplain LiteralTokenDescriptor literals}.
-		 */
-		public final List<A_Token> pragmas = new ArrayList<>();
-
-		/**
-		 * The token index at which the pragma section starts, if any, otherwise
-		 * zero.
-		 */
-		public int pragmaStart = 0;
-
-		/**
-		 * Construct a new {@link AvailCompiler.ModuleHeader}.
-		 *
-		 * @param moduleName
-		 *        The {@link ResolvedModuleName resolved name} of the module.
-		 */
-		public ModuleHeader (final ResolvedModuleName moduleName)
-		{
-			this.moduleName = moduleName;
-		}
-
-		/**
-		 * @param serializer
-		 */
-		public void serializeHeaderOn (final Serializer serializer)
-		{
-			serializer.serialize(
-				StringDescriptor.from(moduleName.qualifiedName()));
-			serializer.serialize(TupleDescriptor.fromList(versions));
-			serializer.serialize(tuplesForSerializingModuleImports());
-			serializer.serialize(TupleDescriptor.fromList(
-				new ArrayList<>(exportedNames)));
-			serializer.serialize(TupleDescriptor.fromList(entryPoints));
-			serializer.serialize(TupleDescriptor.fromList(pragmas));
-		}
-
-		/**
-		 * Convert the information about the imported modules into a {@linkplain
-		 * TupleDescriptor tuple} of tuples suitable for serialization.
-		 *
-		 * @return A tuple encoding the module imports of this module header.
-		 */
-		private A_Tuple tuplesForSerializingModuleImports ()
-		{
-			final List<A_Tuple> list = new ArrayList<>();
-			for (final ModuleImport moduleImport : importedModules)
-			{
-				list.add(moduleImport.tupleForSerialization());
-			}
-			return TupleDescriptor.fromList(list);
-		}
-
-		/**
-		 * Convert the information encoded in a tuple into a {@link List} of
-		 * {@link ModuleImport}s.
-		 *
-		 * @param serializedTuple An encoding of a list of ModuleImports.
-		 * @return The list of ModuleImports.
-		 * @throws MalformedSerialStreamException
-		 *         If the module import specification is invalid.
-		 */
-		private List<ModuleImport> moduleImportsFromTuple (
-				final A_Tuple serializedTuple)
-			throws MalformedSerialStreamException
-		{
-			final List<ModuleImport> list = new ArrayList<>();
-			for (final A_Tuple importTuple : serializedTuple)
-			{
-				list.add(ModuleImport.fromSerializedTuple(importTuple));
-			}
-			return list;
-		}
-
-		/**
-		 * Extract the module's header information from the {@link
-		 * Deserializer}.
-		 *
-		 * @param deserializer The source of the header information.
-		 * @throws MalformedSerialStreamException if malformed.
-		 */
-		public void deserializeHeaderFrom (final Deserializer deserializer)
-			throws MalformedSerialStreamException
-		{
-			final A_String name = deserializer.deserialize();
-			assert name != null;
-			if (!name.asNativeString().equals(moduleName.qualifiedName()))
-			{
-				throw new RuntimeException("Incorrect module name");
-			}
-			final A_Tuple theVersions = deserializer.deserialize();
-			assert theVersions != null;
-			versions.clear();
-			versions.addAll(TupleDescriptor.<A_String>toList(theVersions));
-			final A_Tuple theExtended = deserializer.deserialize();
-			assert theExtended != null;
-			importedModules.clear();
-			importedModules.addAll(moduleImportsFromTuple(theExtended));
-			final A_Tuple theExported = deserializer.deserialize();
-			assert theExported != null;
-			exportedNames.clear();
-			exportedNames.addAll(TupleDescriptor.<A_String>toList(theExported));
-			final A_Tuple theEntryPoints = deserializer.deserialize();
-			assert theEntryPoints != null;
-			entryPoints.clear();
-			entryPoints.addAll(
-				TupleDescriptor.<A_String>toList(theEntryPoints));
-			final A_Tuple thePragmas = deserializer.deserialize();
-			assert thePragmas != null;
-			pragmas.clear();
-			// Synthesize fake tokens for the pragma strings.
-			for (final A_String pragmaString : thePragmas)
-			{
-				pragmas.add(LiteralTokenDescriptor.create(
-					pragmaString,
-					TupleDescriptor.empty(),
-					TupleDescriptor.empty(),
-					0,
-					0,
-					-1,
-					LITERAL,
-					pragmaString));
-			}
-		}
-
-		/**
-		 * Update the given module to correspond with information that has been
-		 * accumulated in this {@link ModuleHeader}.
-		 *
-		 * @param module The module to update.
-		 * @param runtime The current {@link AvailRuntime}.
-		 * @return An error message {@link String} if there was a problem, or
-		 *         {@code null} if no problems were encountered.
-		 */
-		public @Nullable String applyToModule (
-			final A_Module module,
-			final AvailRuntime runtime)
-		{
-			final ModuleNameResolver resolver = runtime.moduleNameResolver();
-			module.versions(SetDescriptor.fromCollection(versions));
-
-			for (final A_String name : exportedNames)
-			{
-				assert name.isString();
-				final A_Atom trueName =
-					AtomWithPropertiesDescriptor.create(name, module);
-				module.introduceNewName(trueName);
-				module.addImportedName(trueName);
-			}
-
-			for (final ModuleImport moduleImport : importedModules)
-			{
-				final ResolvedModuleName ref;
-				try
-				{
-					ref = resolver.resolve(
-						moduleName.asSibling(
-							moduleImport.moduleName.asNativeString()),
-						null);
-				}
-				catch (final UnresolvedDependencyException e)
-				{
-					assert false : "This never happens";
-					throw new RuntimeException(e);
-				}
-				final A_String availRef = StringDescriptor.from(
-					ref.qualifiedName());
-				if (!runtime.includesModuleNamed(availRef))
-				{
-					return
-						"module \"" + ref.qualifiedName()
-						+ "\" to be loaded already";
-				}
-
-				final A_Module mod = runtime.moduleAt(availRef);
-				final A_Set reqVersions = moduleImport.acceptableVersions;
-				if (reqVersions.setSize() > 0)
-				{
-					final A_Set modVersions = mod.versions();
-					final A_Set intersection =
-						modVersions.setIntersectionCanDestroy(
-							reqVersions, false);
-					if (intersection.setSize() == 0)
-					{
-						return
-							"version compatibility; module \"" + ref.localName()
-							+ "\" guarantees versions " + modVersions
-							+ " but the current module requires " + reqVersions;
-					}
-				}
-				module.addAncestors(mod.allAncestors());
-
-				// Figure out which strings to make available.
-				A_Set stringsToImport;
-				final A_Map importedNamesMultimap = mod.importedNames();
-				if (moduleImport.wildcard)
-				{
-					final A_Set renameSourceNames =
-						moduleImport.renames.valuesAsTuple().asSet();
-					stringsToImport = importedNamesMultimap.keysAsSet();
-					stringsToImport = stringsToImport.setMinusCanDestroy(
-						renameSourceNames, true);
-					stringsToImport = stringsToImport.setUnionCanDestroy(
-						moduleImport.names, true);
-					stringsToImport = stringsToImport.setMinusCanDestroy(
-						moduleImport.excludes, true);
-				}
-				else
-				{
-					stringsToImport = moduleImport.names;
-				}
-
-				// Look up the strings to get existing atoms.  Don't complain
-				// about ambiguity, just export all that match.
-				A_Set atomsToImport = SetDescriptor.empty();
-				for (final A_String string : stringsToImport)
-				{
-					if (!importedNamesMultimap.hasKey(string))
-					{
-						return
-							"module \"" + ref.qualifiedName()
-							+ "\" to export " + string;
-					}
-					atomsToImport = atomsToImport.setUnionCanDestroy(
-						importedNamesMultimap.mapAt(string), true);
-				}
-
-				// Perform renames.
-				for (final MapDescriptor.Entry entry
-					: moduleImport.renames.mapIterable())
-				{
-					final A_String newString = entry.key();
-					final A_String oldString = entry.value();
-					// Find the old atom.
-					if (!importedNamesMultimap.hasKey(oldString))
-					{
-						return
-							"module \"" + ref.qualifiedName()
-							+ "\" to export " + oldString
-							+ " for renaming to " + newString;
-					}
-					final A_Set oldCandidates =
-						importedNamesMultimap.mapAt(oldString);
-					if (oldCandidates.setSize() != 1)
-					{
-						return
-							"module \"" + ref.qualifiedName()
-							+ "\" to export a unique name " + oldString
-							+ " for renaming to " + newString;
-					}
-					final A_Atom oldAtom = oldCandidates.iterator().next();
-					// Find or create the new atom.
-					A_Atom newAtom;
-					final A_Map newNames = module.newNames();
-					if (newNames.hasKey(newString))
-					{
-						// Use it.  It must have been declared in the
-						// "Names" clause.
-						newAtom = module.newNames().mapAt(newString);
-					}
-					else
-					{
-						// Create it.
-						newAtom = AtomWithPropertiesDescriptor.create(
-							newString, module);
-						module.introduceNewName(newAtom);
-					}
-					// Now tie the bundles together.
-					assert newAtom.bundleOrNil().equalsNil();
-					final A_Bundle newBundle;
-					try
-					{
-						final A_Bundle oldBundle = oldAtom.bundleOrCreate();
-						final A_Method method = oldBundle.bundleMethod();
-						newBundle = MessageBundleDescriptor.newBundle(
-							newAtom, method, new MessageSplitter(newString));
-					}
-					catch (final MalformedMessageException e)
-					{
-						return
-							"well-formed signature for " + newString
-							+ ", a rename of " + oldString
-							+ " from \"" + ref.qualifiedName()
-							+ "\"";
-					}
-					newAtom.setAtomProperty(
-						AtomDescriptor.messageBundleKey(), newBundle);
-					atomsToImport = atomsToImport.setWithElementCanDestroy(
-						newAtom, true);
-				}
-
-				// Actually make the atoms available in this module.
-				if (moduleImport.isExtension)
-				{
-					for (final A_Atom trueName : atomsToImport)
-					{
-						module.addImportedName(trueName);
-					}
-				}
-				else
-				{
-					module.addPrivateNames(atomsToImport);
-				}
-			}
-
-			for (final A_String name : entryPoints)
-			{
-				assert name.isString();
-				try
-				{
-					final A_Set trueNames = module.trueNamesForStringName(name);
-					final int size = trueNames.setSize();
-					final AvailObject trueName;
-					if (size == 0)
-					{
-						trueName = AtomWithPropertiesDescriptor.create(
-							name, module);
-						module.addPrivateName(trueName);
-					}
-					else if (size == 1)
-					{
-						// Just validate the name.
-						@SuppressWarnings("unused")
-						final MessageSplitter splitter =
-							new MessageSplitter(name);
-						trueName = trueNames.iterator().next();
-					}
-					else
-					{
-						return
-							"entry point \"" + name.asNativeString()
-							+ "\" to be unambiguous";
-					}
-					module.addEntryPoint(name, trueName);
-				}
-				catch (final MalformedMessageException e)
-				{
-					return
-						"entry point \"" + name.asNativeString()
-						+ "\" to be a valid name";
-				}
-			}
-
-			return null;
-		}
-	}
 
 	/**
 	 * The header information for the current module being parsed.
@@ -957,144 +238,6 @@ public final class AvailCompiler
 	 * compiler}.
 	 */
 	@InnerAccess final TextInterface textInterface;
-
-	/**
-	 * These are the tokens that are understood directly by the Avail compiler.
-	 */
-	public enum ExpectedToken
-	{
-		/** Module header token: Precedes the name of the defined module. */
-		MODULE("Module", KEYWORD),
-
-		/**
-		 * Module header token: Precedes the list of versions for which the
-		 * defined module guarantees compatibility.
-		 */
-		VERSIONS("Versions", KEYWORD),
-
-		/** Module header token: Precedes the list of pragma strings. */
-		PRAGMA("Pragma", KEYWORD),
-
-		/**
-		 * Module header token: Occurs in pragma strings to assert some quality
-		 * of the virtual machine.
-		 */
-		PRAGMA_CHECK("check", KEYWORD),
-
-		/**
-		 * Module header token: Occurs in pragma strings to define bootstrap
-		 * method.
-		 */
-		PRAGMA_METHOD("method", KEYWORD),
-
-		/**
-		 * Module header token: Occurs in pragma strings to define bootstrap
-		 * macros.
-		 */
-		PRAGMA_MACRO("macro", KEYWORD),
-
-		/**
-		 * Module header token: Occurs in a pragma string to define the
-		 * stringification method.
-		 */
-		PRAGMA_STRINGIFY("stringify", KEYWORD),
-
-		/**
-		 * Module header token: Precedes the list of imported modules whose
-		 * (filtered) names should be re-exported to clients of the defined
-		 * module.
-		 */
-		EXTENDS("Extends", KEYWORD),
-
-		/**
-		 * Module header token: Precedes the list of imported modules whose
-		 * (filtered) names are imported only for the private use of the
-		 * defined module.
-		 */
-		USES("Uses", KEYWORD),
-
-		/**
-		 * Module header token: Precedes the list of names exported for use by
-		 * clients of the defined module.
-		 */
-		NAMES("Names", KEYWORD),
-
-		/** Module header token: Precedes the list of entry points. */
-		ENTRIES("Entries", KEYWORD),
-
-		/** Module header token: Precedes the contents of the defined module. */
-		BODY("Body", KEYWORD),
-
-		/** Module header token: Separates string literals. */
-		COMMA(",", OPERATOR),
-
-		/** Module header token: Separates string literals for renames. */
-		RIGHT_ARROW("→", OPERATOR),
-
-		/** Module header token: Prefix to indicate exclusion. */
-		MINUS("-", OPERATOR),
-
-		/** Module header token: Indicates wildcard import */
-		ELLIPSIS("…", OPERATOR),
-
-		/** Uses related to declaration and assignment. */
-		EQUALS("=", OPERATOR),
-
-		/** Module header token: Uses related to grouping. */
-		OPEN_PARENTHESIS("(", OPERATOR),
-
-		/** Module header token: Uses related to grouping. */
-		CLOSE_PARENTHESIS(")", OPERATOR);
-
-		/** The Java {@link String} form of the lexeme. */
-		public final String lexemeJavaString;
-
-		/**
-		 * The {@linkplain StringDescriptor Avail string} form of the lexeme.
-		 */
-		private final A_String lexeme;
-
-		/** The {@linkplain TokenType token type}. */
-		private final TokenType tokenType;
-
-		/**
-		 * Answer the {@linkplain StringDescriptor lexeme}.
-		 *
-		 * @return The lexeme as an Avail string.
-		 */
-		public A_String lexeme ()
-		{
-			return lexeme;
-		}
-
-		/**
-		 * Answer the {@linkplain TokenType token type}.
-		 *
-		 * @return The token type.
-		 */
-		TokenType tokenType ()
-		{
-			return tokenType;
-		}
-
-		/**
-		 * Construct a new {@link ExpectedToken}.
-		 *
-		 * @param lexemeJavaString
-		 *        The Java {@linkplain String lexeme string}, i.e. the text
-		 *        of the token.
-		 * @param tokenType
-		 *        The {@linkplain TokenType token type}.
-		 */
-		ExpectedToken (
-			final String lexemeJavaString,
-			final TokenType tokenType)
-		{
-			this.tokenType = tokenType;
-			this.lexemeJavaString = lexemeJavaString;
-			this.lexeme = StringDescriptor.from(lexemeJavaString).makeShared();
-		}
-	}
 
 	/**
 	 * Asynchronously construct a suitable {@linkplain AvailCompiler
@@ -1252,7 +395,7 @@ public final class AvailCompiler
 	 * A list of subexpressions being parsed, represented by {@link
 	 * A_BundleTree}s holding the positions within all outer send expressions.
 	 */
-	class PartialSubexpressionList
+	static class PartialSubexpressionList
 	{
 		/** The {@link A_BundleTree} being parsed at this node. */
 		public final A_BundleTree bundleTree;
@@ -6161,7 +5304,9 @@ public final class AvailCompiler
 							attempt(
 								afterArgument,
 								continuation,
-								wrapAsLiteralIf(argument, wrapInLiteral));
+								wrapInLiteral
+									? wrapAsLiteral(argument)
+									: argument);
 						}
 					});
 			}
@@ -6182,42 +5327,38 @@ public final class AvailCompiler
 				attempt(
 					start,
 					continuation,
-					wrapAsLiteralIf(firstArgOrNull, wrapInLiteral));
+					wrapInLiteral
+						? wrapAsLiteral(firstArgOrNull)
+						: firstArgOrNull);
 			}
 		}
 	}
 
 	/**
-	 * If wrapInLiteral is true, transform the argument, a {@linkplain A_Phrase
-	 * phrase}, into a {@link LiteralNodeDescriptor literal phrase} whose value
-	 * is the original phrase.  However, if the given phrase is a {@linkplain
-	 * MacroSubstitutionNodeDescriptor macro substitution phrase} then extract
-	 * its {@link A_Phrase#apparentSendName()}, strip off the macro
-	 * substitution, wrap the resulting expression in a literal node, then
-	 * re-apply the same apparentSendName to the new literal node.
+	 * Transform the argument, a {@linkplain A_Phrase phrase}, into a {@link
+	 * LiteralNodeDescriptor literal phrase} whose value is the original phrase.
+	 * If the given phrase is a {@linkplain MacroSubstitutionNodeDescriptor
+	 * macro substitution phrase} then extract its {@link
+	 * A_Phrase#apparentSendName()}, strip off the macro substitution, wrap the
+	 * resulting expression in a literal node, then re-apply the same
+	 * apparentSendName to the new literal node to produce another macro
+	 * substitution phrase.
 	 *
-	 * @param argument
+	 * @param phrase
 	 *        A phrase.
-	 * @param wrapInLiteral
-	 *        Whether to wrap the phrase inside a literal.
 	 * @return
 	 */
-	@InnerAccess A_Phrase wrapAsLiteralIf (
-		final A_Phrase argument,
-		final boolean wrapInLiteral)
+	@InnerAccess A_Phrase wrapAsLiteral (
+		final A_Phrase phrase)
 	{
-		if (!wrapInLiteral)
-		{
-			return argument;
-		}
-		if (argument.isMacroSubstitutionNode())
+		if (phrase.isMacroSubstitutionNode())
 		{
 			return MacroSubstitutionNodeDescriptor
 				.fromOriginalSendAndReplacement(
-					argument.macroOriginalSendNode(),
-					LiteralNodeDescriptor.syntheticFrom(argument.stripMacro()));
+					phrase.macroOriginalSendNode(),
+					LiteralNodeDescriptor.syntheticFrom(phrase.stripMacro()));
 		}
-		return LiteralNodeDescriptor.syntheticFrom(argument);
+		return LiteralNodeDescriptor.syntheticFrom(phrase);
 	}
 
 	/**
@@ -7657,8 +6798,8 @@ public final class AvailCompiler
 		state = state.afterToken();
 
 		// Module header section tracking.
-		final List<ExpectedToken> expected = new ArrayList<>(
-			asList(VERSIONS, EXTENDS, USES, NAMES, ENTRIES, PRAGMA, BODY));
+		final List<ExpectedToken> expected = new ArrayList<>(asList(
+			VERSIONS, EXTENDS, USES, NAMES, ENTRIES, PRAGMA, FILES, BODY));
 		final Set<A_String> seen = new HashSet<>();
 
 		// Permit the other sections to appear optionally, singly, and in any
@@ -7727,6 +6868,11 @@ public final class AvailCompiler
 			if (lexeme.equals(BODY.lexeme()))
 			{
 				return state;
+			}
+			else if (lexeme.equals(FILES.lexeme()))
+			{
+				//TODO Finish this before commit.
+//				state = parseFilesSection(state, moduleHeader().filePatterns);
 			}
 			// On VERSIONS, record the versions.
 			else if (lexeme.equals(VERSIONS.lexeme()))

@@ -36,6 +36,7 @@ import static com.avail.compiler.scanning.AvailScanner.ScannerAction.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCompiler;
+import com.avail.compiler.ExpectedToken;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.utility.LRUCache;
@@ -721,7 +722,7 @@ public class AvailScanner
 					scanner.addCurrentToken(TokenType.KEYWORD);
 				if (scanner.stopAfterBodyToken
 					&& token.string().equals(
-						AvailCompiler.ExpectedToken.BODY.lexeme()))
+						ExpectedToken.BODY.lexeme()))
 				{
 					scanner.encounteredBodyToken = true;
 				}
