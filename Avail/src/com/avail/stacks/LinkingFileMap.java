@@ -217,6 +217,70 @@ public class LinkingFileMap
 	}
 
 	/**
+	 * A method that writes a JSON file of all the internal linking of Stacks
+	 * files
+	 * @param path
+	 */
+	public void writeCategoryLinksToJSON (final Path path)
+	{
+		final StandardOpenOption[] options = new StandardOpenOption[]
+			{CREATE, TRUNCATE_EXISTING, WRITE};
+		Writer writer;
+		try
+		{
+			writer = Files.newBufferedWriter(
+				path,
+				StandardCharsets.UTF_8,
+				options);
+
+			final JSONWriter jsonWriter = new JSONWriter(writer);
+
+			jsonWriter.startObject();
+			jsonWriter.write("categories");
+			jsonWriter.startArray();
+
+			for (final String key : categoryMethodList.keySet())
+			{
+				jsonWriter.startObject();
+				jsonWriter.write("selected");
+				jsonWriter.write(false);
+				jsonWriter.write("category");
+				jsonWriter.write(key);
+				jsonWriter.write("methods");
+				final ArrayList<Pair<String,String>> pairs =
+					categoryMethodList.get(key);
+				jsonWriter.startArray();
+				for(final Pair<String,String> pair : pairs)
+				{
+					final String distinct = (
+						new StringBuilder().append(pair.first())
+						.append(pair.second())).toString();
+					final String relativeLink = pair.second().substring(1);
+					jsonWriter.startObject();
+					jsonWriter.write("methodName");
+					jsonWriter.write(pair.first());
+					jsonWriter.write("link");
+					jsonWriter.write(relativeLink);
+					jsonWriter.write("distinct");
+					jsonWriter.write(distinct);
+					jsonWriter.endObject();
+				}
+				jsonWriter.endArray();
+				jsonWriter.endObject();
+			}
+			jsonWriter.endArray();
+			jsonWriter.endObject();
+			jsonWriter.close();
+		}
+		catch (final IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	/**
 	 * Create a json file that has the the categories' methods
 	 * links.
 	 * @return

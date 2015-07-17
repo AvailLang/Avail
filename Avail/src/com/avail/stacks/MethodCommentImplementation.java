@@ -263,8 +263,6 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		final StacksErrorLog errorLog,
 		final JSONWriter jsonWriter)
 	{
-		jsonWriter.write("type");
-		jsonWriter.write("method");
 		signature().toJSON(nameOfGroup, isSticky(), jsonWriter);
 
 		if (categories.size() > 0)
@@ -274,7 +272,8 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		} else
 		{
 			jsonWriter.write("categories");
-			jsonWriter.writeArray(new String[0]);
+			jsonWriter.startArray();
+			jsonWriter.endArray();
 		}
 
 		if (aliases.size() > 0)
@@ -284,7 +283,8 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		} else
 		{
 			jsonWriter.write("aliases");
-			jsonWriter.writeArray(new String[0]);
+			jsonWriter.startArray();
+			jsonWriter.endArray();
 		}
 
 		jsonWriter.write("sees");

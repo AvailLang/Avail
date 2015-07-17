@@ -172,11 +172,13 @@ public class StacksForbidsTag extends AbstractStacksTag
 		jsonWriter.write("Argument " + arityIndex.lexeme);
 		jsonWriter.write("expressions");
 		jsonWriter.startArray();
-		for (int i = 1; i < rowSize; i++)
+		for (int i = 0; i < rowSize; i++)
 		{
 			final String method = forbidMethods.get(i).lexeme;
+			jsonWriter.startArray();
 			jsonWriter.write(method);
 			jsonWriter.write(linkingFileMap.internalLinks().get(method));
+			jsonWriter.endArray();
 		}
 		jsonWriter.endArray();
 		jsonWriter.endObject();

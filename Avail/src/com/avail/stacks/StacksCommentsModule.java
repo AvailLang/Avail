@@ -48,8 +48,8 @@ import com.avail.AvailRuntime;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.UnresolvedDependencyException;
-import com.avail.compiler.AvailCompiler.ModuleHeader;
-import com.avail.compiler.AvailCompiler.ModuleImport;
+import com.avail.compiler.ModuleHeader;
+import com.avail.compiler.ModuleImport;
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
@@ -58,6 +58,7 @@ import com.avail.descriptor.A_String;
 import com.avail.descriptor.SetDescriptor;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.utility.Pair;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A representation of all the fully parsed {@linkplain CommentTokenDescriptor
@@ -82,6 +83,11 @@ public class StacksCommentsModule
 	{
 		return extendedNamesImplementations;
 	}
+
+	/**
+	 * The name of the file extension being used in this method.
+	 */
+	private final String fileExtensionName;
 
 	/**
 	 * A map of the modules extended by this module to the {@linkplain
@@ -285,7 +291,7 @@ public class StacksCommentsModule
 				hashedName = hashedName & 0xFFFFFFFFL;
 
 				final StacksFilename filename = new StacksFilename(moduleName,
-					String.valueOf(hashedName) + ".html");
+					String.valueOf(hashedName) + "." + fileExtensionName);
 
 				final ImplementationGroup privateGroup =
 					new ImplementationGroup(
@@ -304,7 +310,7 @@ public class StacksCommentsModule
 			hashedName = hashedName & 0xFFFFFFFFL;
 
 			final StacksFilename filename = new StacksFilename(moduleName,
-				String.valueOf(hashedName) + ".html");
+				String.valueOf(hashedName) + "." + fileExtensionName);
 
 			final ImplementationGroup stickyGroup =
 				new ImplementationGroup(
@@ -349,6 +355,9 @@ public class StacksCommentsModule
 	{
 		this.moduleName = header.moduleName.qualifiedName();
 
+		//Change to html to write HTML files
+		this.fileExtensionName = "json";
+
 		this.usesModuleToImplementedNamesToImplementation =
 			new HashMap<String,
 				HashMap<A_String, ArrayList<AbstractCommentImplementation>>>();
@@ -369,7 +378,8 @@ public class StacksCommentsModule
 			new HashMap<A_String, HashMap<String, ImplementationGroup>>();
 
 		this.inScopeMethodsToFileNames =
-			createFileNames(header.exportedNames, moduleName);
+			createFileNames(header.exportedNames, moduleName,
+				fileExtensionName);
 
 		for (final StacksCommentsModule comment : moduleToComments.values())
 		{
@@ -563,7 +573,8 @@ public class StacksCommentsModule
 
 					final HashMap<A_String, StacksFilename>
 						renameFileNames =
-						createFileNames(renameValues,moduleName);
+						createFileNames(renameValues,moduleName,
+							fileExtensionName);
 
 					inScopeMethodsToFileNames.putAll(renameFileNames);
 
@@ -642,7 +653,7 @@ public class StacksCommentsModule
 
 					final HashMap<A_String, StacksFilename>
 						visibleFileNames =
-						createFileNames(visibleValues);
+						createFileNames(visibleValues, fileExtensionName);
 
 					inScopeMethodsToFileNames.putAll(visibleFileNames);
 				}
@@ -703,7 +714,7 @@ public class StacksCommentsModule
 
 					final HashMap<A_String, StacksFilename>
 						renameFileNames =
-						createFileNames(renameValues, moduleName);
+						createFileNames(renameValues, moduleName, ".json");
 
 					for (final  A_String rename :
 						moduleImport.renames.keysAsSet())
@@ -781,7 +792,7 @@ public class StacksCommentsModule
 
 					final HashMap<A_String, StacksFilename>
 						visibleFileNames =
-						createFileNames(visibleValues);
+						createFileNames(visibleValues, "json");
 
 
 					inScopeMethodsToFileNames.putAll(visibleFileNames);
@@ -987,14 +998,16 @@ public class StacksCommentsModule
 
 	/**
 	 * Create the String file names for the methods defined in this module.
+	 *
 	 * @param names A pair of {@linkplain A_String name} and {@linkplain
 	 * 		ImplementationGroup group}  that are to have file names constructed
 	 * 		for them.
-	 * @return A map of method name to the html file name where it will be
+	 * @param fileExtension TODO
+	 * @return A map of method name to the file name where it will be
 	 * 		output into.
 	 */
 	private HashMap <A_String, StacksFilename> createFileNames(
-		final List<Pair<A_String,ImplementationGroup>> names)
+		final List<Pair<A_String,ImplementationGroup>> names, final String fileExtension)
 	{
 		final HashMap<A_String,Integer> newHashNameMap =
 			new HashMap<A_String,Integer>();
@@ -1034,11 +1047,14 @@ public class StacksCommentsModule
 	 * 		constructed for them.
 	 * @param originatingModuleName
 	 * 		The name of the module the method comes from.
+	 * @param fileExtension
+	 *		The type of file extension of the output file (e.g. html, json)
 	 * @return A map of method name to the html file name where it will be
 	 * 		output into.
 	 */
 	private HashMap <A_String, StacksFilename> createFileNames(
-		final Collection<A_String> names, final String originatingModuleName)
+		final Collection<A_String> names, final String originatingModuleName,
+		final String fileExtension)
 	{
 		final HashMap<A_String,Integer> newHashNameMap =
 			new HashMap<A_String,Integer>();
@@ -1063,7 +1079,8 @@ public class StacksCommentsModule
 
 			long hashedName = nameToBeHashed.hash();
 			hashedName = hashedName & 0xFFFFFFFFL;
-			final String fileName = String.valueOf(hashedName) + ".html";
+			final String fileName = String.valueOf(hashedName) + "."
+				+ fileExtension;
 
 			namesToFileNames.put(key,
 				new StacksFilename(originatingModuleName, fileName));
@@ -1253,15 +1270,13 @@ public class StacksCommentsModule
 			final StacksSynchronizer synchronizer =
 				new StacksSynchronizer(ambiguousFileCount);
 
-			writeAmbiguousMethodsHTMLFiles(outputPath,synchronizer,
-				implementationWrapperTemplate, implementationProperties,
+			writeAmbiguousMethodsJSONFiles(outputPath,synchronizer,
 				runtime, ambiguousMethodFileMap, topLevelLinkFolderPath,
 				linkingFileMap);
 
 			synchronizer.waitForWorkUnitsToComplete();
 		}
-		writeAmbiguousAliasHTMLFiles(outputPath,
-			implementationWrapperTemplate, implementationProperties,
+		writeAmbiguousAliasJSONFiles(outputPath,
 			runtime, ambiguousMethodFileMap, topLevelLinkFolderPath,
 			linkingFileMap);
 
@@ -1348,6 +1363,69 @@ public class StacksCommentsModule
 					errorLog);
 			}
 		}*/
+
+		final StringBuilder closeLogEntry = new StringBuilder()
+			.append("</ol>\n");
+
+		final ByteBuffer closeErrorBuffer = ByteBuffer.wrap(
+			closeLogEntry.toString().getBytes(StandardCharsets.UTF_8));
+		errorLog.addLogEntry(closeErrorBuffer,0);
+	}
+
+	/**
+	 * Write all the methods and extends methods to file.
+	 *
+	 * @param outputPath
+	 *        The {@linkplain Path path} to the output {@linkplain
+	 *        BasicFileAttributes#isDirectory() directory} for documentation and
+	 *        data files.
+	 * @param synchronizer
+	 *        The {@linkplain StacksSynchronizer} used to control the creation
+	 *        of Stacks documentation
+	 * @param runtime
+	 *        An {@linkplain AvailRuntime runtime}.
+	 * @param linkingFileMap
+	 *        A map for all htmlFiles in stacks.
+	 * @param implementationProperties
+	 *        The file path location of the HTML properties used to generate
+	 *        the bulk of the inner html of the implementations.
+	 * @param errorLog
+	 *        The file for outputting all errors.
+	 * @throws IOException
+	 *         If an {@linkplain IOException I/O exception} occurs.
+	 */
+	public void writeMethodsToJSONFiles(
+			final Path outputPath,
+			final StacksSynchronizer synchronizer,
+			final AvailRuntime runtime,
+			final LinkingFileMap linkingFileMap,
+			final Path implementationProperties,
+			final StacksErrorLog errorLog)
+		throws IOException
+	{
+		final StringBuilder newLogEntry = new StringBuilder()
+			.append("<h3>Internal Link Errors</h3>\n")
+			.append("<ol>\n");
+
+		final ByteBuffer errorBuffer = ByteBuffer.wrap(
+			newLogEntry.toString().getBytes(StandardCharsets.UTF_8));
+		errorLog.addLogEntry(errorBuffer,0);
+
+		for (final A_String implementationName :
+			finalImplementationsGroupMap.keySet())
+		{
+			final HashMap<String, ImplementationGroup> tempImplementationMap =
+				finalImplementationsGroupMap.get(implementationName);
+
+			for (final String modulePath : tempImplementationMap.keySet())
+			{
+				final ImplementationGroup implementation =
+					tempImplementationMap.get(modulePath);
+				implementation.toJSON(outputPath, synchronizer, runtime,
+					linkingFileMap, implementationName.asNativeString(),
+					errorLog);
+			}
+		}
 
 		final StringBuilder closeLogEntry = new StringBuilder()
 			.append("</ol>\n");
@@ -1525,6 +1603,156 @@ public class StacksCommentsModule
 	 *        The {@linkplain Path path} to the output {@linkplain
 	 *        BasicFileAttributes#isDirectory() directory} for documentation and
 	 *        data files.
+	 * @param synchronizer
+	 *        The {@linkplain StacksSynchronizer} used to control the creation
+	 *        of Stacks documentation
+	 * @param runtime
+	 *        An {@linkplain AvailRuntime runtime}.
+	 * @param ambiguousMethodFileMap
+	 *        The map of ambiguous names requiring ambiguous files.
+	 * @param topLevelLinkFolderPath
+	 *        The folder that the Avail documentation sits in above the
+	 *        providedDocumentPath.
+	 * @param linkingFileMap
+	 *        A map for all HTML files ins Stacks
+	 * @throws IOException
+	 *         If an {@linkplain IOException I/O exception} occurs.
+	 */
+	private void writeAmbiguousMethodsJSONFiles (
+			final Path outputPath,
+			final StacksSynchronizer synchronizer,
+			final AvailRuntime runtime,
+			final HashMap<A_String, HashMap<String, ImplementationGroup>>
+				ambiguousMethodFileMap,
+			final String topLevelLinkFolderPath,
+			final LinkingFileMap linkingFileMap)
+		throws IOException
+	{
+		final HashMap<String,String> internalLinks =
+			new HashMap<String,String>();
+
+		final Path outputFolder = outputPath
+			.resolve("library-documentation/_Ambiguities");
+
+		final String linkLocation = topLevelLinkFolderPath + "/_Ambiguities";
+
+		//Get aliases from ambiguous implementations
+		for (final A_String key :
+			ambiguousMethodFileMap.keySet())
+		{
+			final HashMap<String, ImplementationGroup> tempImplementationMap =
+				ambiguousMethodFileMap.get(key);
+
+			for (final String modulePath : tempImplementationMap.keySet())
+			{
+				final ImplementationGroup group =
+					tempImplementationMap.get(modulePath);
+
+				if (group.isPopulated())
+				{
+					for (final String alias : group.aliases())
+					{
+						internalLinks.put(alias, linkLocation
+							+ group.filepath().relativeFilePath());
+					}
+				}
+			}
+		}
+
+		for (final A_String key :
+			ambiguousMethodFileMap.keySet())
+		{
+			final HashMap<String, ImplementationGroup> tempImplementationMap =
+				ambiguousMethodFileMap.get(key);
+
+			final HashSet<String> ambiguousLinks = new HashSet<String>();
+			final HashSet<String> ambiguousNoLinks = new HashSet<String>();
+
+			if (linkingFileMap.aliasesToFileLink()
+				.containsKey(key.asNativeString()))
+			{
+				for (final String link : linkingFileMap.aliasesToFileLink()
+					.get(key.asNativeString()))
+				{
+					ambiguousLinks.add(link);
+				}
+			}
+
+			//Create ambiguous link list
+			for (final String modulePath : tempImplementationMap.keySet())
+			{
+				final ImplementationGroup group =
+					tempImplementationMap.get(modulePath);
+
+				if (group.isPopulated())
+				{
+					ambiguousLinks.add(topLevelLinkFolderPath
+						+ group.filepath().relativeFilePath());
+				}
+				else
+				{
+					ambiguousNoLinks.add(group.filepath().pathName());
+				}
+			}
+
+			final int trim = topLevelLinkFolderPath.length();
+
+			final JSONWriter jsonWriter = new JSONWriter();
+			jsonWriter.startObject();
+			jsonWriter.write("type");
+			jsonWriter.write("ambiguous");
+			jsonWriter.write("files");
+			jsonWriter.startArray();
+
+			for (final String link : ambiguousLinks)
+			{
+				jsonWriter.startObject();
+				jsonWriter.write("link");
+				jsonWriter.write(link);
+				jsonWriter.write("module");
+				jsonWriter.write(
+					link.subSequence(trim, link.lastIndexOf("/")).toString());
+				jsonWriter.endObject();
+			}
+
+			for (final String noLink : ambiguousNoLinks)
+			{
+				jsonWriter.startObject();
+				jsonWriter.write("link");
+				jsonWriter.write("");
+				jsonWriter.write("module");
+				jsonWriter.write(noLink);
+				jsonWriter.endObject();
+			}
+
+			jsonWriter.endArray();
+			jsonWriter.endObject();
+
+			final String fileName = String.valueOf(key.hash()
+				& 0xFFFFFFFFL) + "." + fileExtensionName;
+
+			internalLinks.put(key.asNativeString(),
+				linkLocation + "/"  + fileName);
+
+			final StacksOutputFile linkingFile = new StacksOutputFile(
+				outputFolder, synchronizer, fileName,
+				runtime, key.asNativeString());
+
+			linkingFile
+				.write(jsonWriter.toString());
+			jsonWriter.close();
+		}
+
+			linkingFileMap.internalLinks(internalLinks);
+	}
+
+	/**
+	 * Write all the methods and extends methods to file.
+	 *
+	 * @param outputPath
+	 *        The {@linkplain Path path} to the output {@linkplain
+	 *        BasicFileAttributes#isDirectory() directory} for documentation and
+	 *        data files.
 	 * @param templateFilePath
 	 *        The path of the template file used to wrap the generated HTML
 	 * @param implementationProperties
@@ -1664,5 +1892,118 @@ public class StacksCommentsModule
 			stringBuilder.append('\t');
 		}
 		return stringBuilder.toString();
+	}
+
+	/**
+	 * Write all the methods and extends methods to file.
+	 *
+	 * @param outputPath
+	 *        The {@linkplain Path path} to the output {@linkplain
+	 *        BasicFileAttributes#isDirectory() directory} for documentation and
+	 *        data files.
+	 * @param runtime
+	 *        An {@linkplain AvailRuntime runtime}.
+	 * @param ambiguousMethodFileMap
+	 *        The map of ambiguous names requiring ambiguous files.
+	 * @param topLevelLinkFolderPath
+	 *        The folder that the Avail documentation sits in above the
+	 *        providedDocumentPath.
+	 * @param linkingFileMap
+	 *        A map for all HTML files ins Stacks
+	 * @throws IOException
+	 *         If an {@linkplain IOException I/O exception} occurs.
+	 */
+	private void writeAmbiguousAliasJSONFiles (
+			final Path outputPath,
+			final AvailRuntime runtime,
+			final HashMap<A_String, HashMap<String, ImplementationGroup>>
+				ambiguousMethodFileMap,
+			final String topLevelLinkFolderPath,
+			final LinkingFileMap linkingFileMap)
+		throws IOException
+	{
+
+		final HashMap<String,String> internalLinks =
+			new HashMap<String,String>();
+
+		final Path outputFolder = outputPath
+			.resolve("library-documentation/_Ambiguities");
+
+		final HashMap<String,HashSet<String>> tempAmbiguousAliasMap =
+			new HashMap<String,HashSet<String>>();
+
+		for (final String key : linkingFileMap.namedFileLinks().keySet())
+		{
+			if (!linkingFileMap.aliasesToFileLink().containsKey(key))
+			{
+				internalLinks.put(key, linkingFileMap.namedFileLinks().get(key));
+			}
+			else
+			{
+				tempAmbiguousAliasMap.put(key,
+					linkingFileMap.aliasesToFileLink().get(key));
+
+				tempAmbiguousAliasMap.get(key)
+					.add(linkingFileMap.namedFileLinks().get(key));
+
+				if (tempAmbiguousAliasMap.get(key).size() == 1)
+				{
+					internalLinks.put(key,
+						linkingFileMap.namedFileLinks().get(key));
+					tempAmbiguousAliasMap.remove(key);
+				}
+			}
+		}
+
+		final int additionalAmbiguityFileCount = tempAmbiguousAliasMap.size();
+
+		if (additionalAmbiguityFileCount > 0)
+		{
+			final StacksSynchronizer ambiguousAliasSynchronizer =
+				new StacksSynchronizer(additionalAmbiguityFileCount);
+
+			for (final String ambiguousAliasKey : tempAmbiguousAliasMap.keySet())
+			{
+				final HashSet<String> ambiguousLinks =
+					tempAmbiguousAliasMap.get(ambiguousAliasKey);
+
+				final JSONWriter jsonWriter = new JSONWriter();
+				jsonWriter.startObject();
+				jsonWriter.write("type");
+				jsonWriter.write("ambiguous");
+				jsonWriter.write("files");
+				//Create ambiguous link list
+				jsonWriter.startArray();
+				for (final String ambiguousLink : ambiguousLinks)
+				{
+					jsonWriter.startObject();
+					jsonWriter.write("link");
+					jsonWriter.write(ambiguousLink);
+					jsonWriter.write("module");
+					jsonWriter.write(ambiguousLink);
+					jsonWriter.endObject();
+				}
+
+				jsonWriter.endArray();
+				jsonWriter.endObject();
+				final String fileName = String.valueOf(
+					StringDescriptor.from(ambiguousAliasKey).hash()
+						& 0xFFFFFFFFL) + "." + fileExtensionName;
+
+				internalLinks.put(ambiguousAliasKey,
+					topLevelLinkFolderPath + "/_Ambiguities/" + fileName);
+
+				final StacksOutputFile jsonFile = new StacksOutputFile(
+					outputFolder, ambiguousAliasSynchronizer, fileName,
+					runtime, ambiguousAliasKey);
+
+				jsonFile.write(jsonWriter.toString());
+				jsonWriter.close();
+			}
+
+			ambiguousAliasSynchronizer.waitForWorkUnitsToComplete();
+		}
+
+		linkingFileMap.internalLinks().putAll(internalLinks);
 	}
 }

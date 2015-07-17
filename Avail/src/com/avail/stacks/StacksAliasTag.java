@@ -103,8 +103,13 @@ public class StacksAliasTag extends AbstractStacksTag
 		final JSONWriter jsonWriter)
 	{
 		jsonWriter.write("aliases");
-		jsonWriter.writeArray(
-			aliases.toArray(new String[aliases.size()]));
+		jsonWriter.startArray();
+		for(final QuotedStacksToken token : aliases)
+		{
+			jsonWriter.write(
+				token.toJSON(linkingFileMap, hashID, errorLog, jsonWriter));
+		}
+		jsonWriter.endArray();
 
 	}
 }

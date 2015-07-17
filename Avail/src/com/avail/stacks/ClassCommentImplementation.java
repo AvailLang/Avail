@@ -231,9 +231,14 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 		final StacksErrorLog errorLog,
 		final JSONWriter jsonWriter)
 	{
-		jsonWriter.write("type");
-		jsonWriter.write("class");
 		signature().toJSON(nameOfGroup, isSticky(), jsonWriter);
+		jsonWriter.write("supertypes");
+		jsonWriter.startArray();
+		for(final StacksSuperTypeTag supertype : supertypes)
+		{
+			supertype.toJSON(linkingFileMap, hashID, errorLog, 1, jsonWriter);
+		}
+		jsonWriter.endArray();
 
 		if (categories.size() > 0)
 		{
@@ -242,7 +247,8 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 		} else
 		{
 			jsonWriter.write("categories");
-			jsonWriter.writeArray(new String[0]);
+			jsonWriter.startArray();
+			jsonWriter.endArray();
 		}
 
 		if (aliases.size() > 0)
@@ -252,7 +258,8 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 		} else
 		{
 			jsonWriter.write("aliases");
-			jsonWriter.writeArray(new String[0]);
+			jsonWriter.startArray();
+			jsonWriter.endArray();
 		}
 
 		jsonWriter.write("sees");

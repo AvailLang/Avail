@@ -281,7 +281,8 @@ public class MacroCommentImplementation extends AbstractCommentImplementation
 		} else
 		{
 			jsonWriter.write("categories");
-			jsonWriter.writeArray(new String[0]);
+			jsonWriter.startArray();
+			jsonWriter.endArray();
 		}
 
 		if (aliases.size() > 0)
@@ -291,7 +292,8 @@ public class MacroCommentImplementation extends AbstractCommentImplementation
 		} else
 		{
 			jsonWriter.write("aliases");
-			jsonWriter.writeArray(new String[0]);
+			jsonWriter.startArray();
+			jsonWriter.endArray();
 		}
 
 		jsonWriter.write("sees");

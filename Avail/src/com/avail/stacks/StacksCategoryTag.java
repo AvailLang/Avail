@@ -118,7 +118,12 @@ public class StacksCategoryTag extends AbstractStacksTag
 		final JSONWriter jsonWriter)
 	{
 		jsonWriter.write("categories");
-		jsonWriter.writeArray(
-			categories.toArray(new String[categories.size()]));
+		jsonWriter.startArray();
+		for (final QuotedStacksToken token : categories)
+		{
+			jsonWriter.write(
+				token.toJSON(linkingFileMap, hashID, errorLog, jsonWriter));
+		}
+		jsonWriter.endArray();
 	}
 }

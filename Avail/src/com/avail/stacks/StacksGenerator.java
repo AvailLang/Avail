@@ -48,8 +48,8 @@ import java.util.HashMap;
 import com.avail.AvailRuntime;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleNameResolver;
-import com.avail.compiler.AvailCompiler.ModuleHeader;
-import com.avail.compiler.AvailCompiler.ModuleImport;
+import com.avail.compiler.ModuleHeader;
+import com.avail.compiler.ModuleImport;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
@@ -101,7 +101,7 @@ public class StacksGenerator
 	 * The {@linkplain LinkingFileMap} is a map for all html files in
 	 * stacks
 	 */
-	private final LinkingFileMap htmlFileMap;
+	private final LinkingFileMap linkingFileMap;
 
 	/**
 	 * A map of {@linkplain ModuleName module names} to a list of all the method
@@ -132,7 +132,7 @@ public class StacksGenerator
 				outputPath + " exists and is not a directory");
 		}
 		this.outputPath = outputPath;
-		this.htmlFileMap = new LinkingFileMap();
+		this.linkingFileMap = new LinkingFileMap();
 		this.resolver = resolver;
 
 		this.logPath = outputPath.resolve("logs");
@@ -162,7 +162,7 @@ public class StacksGenerator
 		StacksCommentsModule commentsModule = null;
 		commentsModule = new StacksCommentsModule(
 			header,commentTokens,errorLog, resolver,
-			moduleToComments,htmlFileMap);
+			moduleToComments,linkingFileMap);
 		updateModuleToComments(commentsModule);
 	}
 
@@ -227,7 +227,7 @@ public class StacksGenerator
 			templatePackageName.resolve("implementation html.properties");
 
 		final int fileToOutPutCount =
-			outerMost.calculateFinalImplementationGroupsMap(htmlFileMap,
+			outerMost.calculateFinalImplementationGroupsMap(linkingFileMap,
 				outputPath, implementationWrapperTemplate,
 				implementationProperties, runtime,
 				"/about-avail/documentation/stacks"
@@ -243,17 +243,29 @@ public class StacksGenerator
 			final StacksSynchronizer synchronizer =
 				new StacksSynchronizer(fileToOutPutCount);
 
-			moduleToComments
+		//THIS IS WHERE WE SWITCH OUT JSON AND HTML FILES
+		//HTML
+		/*	moduleToComments
 				.get(outermostModule.qualifiedName())
 					.writeMethodsToHTMLFiles(providedDocumentPath,synchronizer,
-						runtime,htmlFileMap,implementationWrapperTemplate,
+						runtime,linkingFileMap,implementationWrapperTemplate,
 						implementationProperties, errorLog);
+		*/
+		//JSON
+			moduleToComments
+			.get(outermostModule.qualifiedName())
+				.writeMethodsToJSONFiles(providedDocumentPath,
+					synchronizer, runtime, linkingFileMap,
+					implementationProperties, errorLog);
+
 
 			synchronizer.waitForWorkUnitsToComplete();
 		}
 
-		htmlFileMap.writeInternalLinksToJSON(
+		linkingFileMap.writeInternalLinksToJSON(
 			providedDocumentPath.resolve("internalLink.json"));
+		linkingFileMap.writeCategoryLinksToJSON(
+			providedDocumentPath.resolve("categories.json"));
 		IO.close(errorLog.file());
 
 		clear();
@@ -267,7 +279,7 @@ public class StacksGenerator
 	public synchronized void clear ()
 	{
 		moduleToComments.clear();
-		htmlFileMap.clear();
+		linkingFileMap.clear();
 	}
 
 	/**
@@ -288,7 +300,7 @@ public class StacksGenerator
 
 		swapPairs.add(new Pair<CharSequence,CharSequence>(
 			"{[{CATEGORY-CONTENT}]}",
-			htmlFileMap.categoryMethodsToJson()));
+			linkingFileMap.categoryMethodsToJson()));
 
 		createFileFromTemplate(stacksAppTemplatePath,stacksAppFilePath,
 			swapPairs);
@@ -347,7 +359,7 @@ public class StacksGenerator
 
 		swapPairs.add(new Pair<CharSequence,CharSequence>(
 			"{[{GENERATED-CONTENT}]}",
-			htmlFileMap.categoryDescriptionTable()));
+			linkingFileMap.categoryDescriptionTable()));
 
 		createFileFromTemplate(landingTemplatePath, landingPath,swapPairs);
 	}

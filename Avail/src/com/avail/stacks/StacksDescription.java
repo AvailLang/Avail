@@ -137,7 +137,7 @@ public class StacksDescription
 			}
 			stringBuilder
 				.append(descriptionTokens.get(listSize - 1)
-					.toHTML(linkingFileMap, hashID, errorLog));
+					.toJSON(linkingFileMap, hashID, errorLog, jsonWriter));
 		}
 		jsonWriter.write(stringBuilder.toString());
 	}

@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.A_String;
+import com.avail.utility.json.JSONWriter;
 
 /**
  * A grouping of {@linkplain AbstractCommentImplementation implementations}
@@ -605,6 +606,186 @@ public class ImplementationGroup
 			runtime, name.asNativeString());
 
 		htmlFile.write(stringBuilder.append(htmlCloseContent).toString());
+	}
+
+
+	/**
+	 * Create HTML file from implementation
+	 * @param outputPath
+	 *        The {@linkplain Path path} to the output {@linkplain
+	 *        BasicFileAttributes#isDirectory() directory} for documentation and
+	 *        data files.
+	 * @param synchronizer
+	 *        The {@linkplain StacksSynchronizer} used to control the creation
+	 *        of Stacks documentation
+	 * @param runtime
+	 *        An {@linkplain AvailRuntime runtime}.
+	 * @param linkingFileMap
+	 *        A mapping object for all files in stacks
+	 * @param nameOfGroup
+	 *        The name of the implementation as it is to be displayed.
+	 * @param errorLog
+	 *        The accumulating {@linkplain StacksErrorLog}
+	 * @throws IOException
+	 *         If an {@linkplain IOException I/O exception} occurs.
+	 */
+	public void toJSON (
+			final Path outputPath,
+			final StacksSynchronizer synchronizer,
+			final AvailRuntime runtime,
+			final LinkingFileMap linkingFileMap,
+			final String nameOfGroup,
+			final StacksErrorLog errorLog)
+		throws IOException
+	{
+		final JSONWriter jsonWriter = new JSONWriter();
+		jsonWriter.startObject();
+		if (categories.size() > 1)
+		{
+			if (categories.contains("Unclassified"))
+			{
+				categories.remove("Unclassified");
+			}
+		}
+
+		if (!methods.isEmpty())
+		{
+			jsonWriter.write("type");
+			jsonWriter.write("method");
+			jsonWriter.write("name");
+			jsonWriter.write(nameOfGroup);
+			if (!grammaticalRestrictions.isEmpty())
+			{
+				final int listSize = grammaticalRestrictions.size();
+				final ArrayList<GrammaticalRestrictionCommentImplementation>
+					restrictions = new ArrayList
+						<GrammaticalRestrictionCommentImplementation>();
+				restrictions.addAll(grammaticalRestrictions.values());
+				if (listSize > 1)
+				{
+					for (int i = 1; i < listSize; i++)
+					{
+						restrictions.get(0)
+							.mergeGrammaticalRestrictionImplementations(
+								restrictions.get(i));
+					}
+
+				}
+				restrictions.get(0)
+					.toJSON(linkingFileMap, nameOfGroup, errorLog, jsonWriter);
+
+			}
+			jsonWriter.write("definitions");
+			jsonWriter.startArray();
+			for (final MethodCommentImplementation implementation :
+				methods.values())
+			{
+				jsonWriter.startObject();
+				implementation
+					.toJSON(linkingFileMap, nameOfGroup, errorLog, jsonWriter);
+				jsonWriter.endObject();
+			}
+			jsonWriter.endArray();
+
+			if (!semanticRestrictions.isEmpty())
+			{
+				jsonWriter.write("semanticRestrictions");
+				jsonWriter.startArray();
+				for (final SemanticRestrictionCommentImplementation
+					implementation : semanticRestrictions.values())
+				{
+					jsonWriter.startObject();
+					implementation
+						.toJSON(linkingFileMap, nameOfGroup, errorLog,
+							jsonWriter);
+					jsonWriter.endObject();
+				}
+				jsonWriter.endArray();
+			}
+		}
+		else if (!macros.isEmpty()) {
+			jsonWriter.write("type");
+			jsonWriter.write("macro");
+			jsonWriter.write("name");
+			jsonWriter.write(nameOfGroup);
+			if (!grammaticalRestrictions.isEmpty())
+			{
+				final int listSize = grammaticalRestrictions.size();
+				final ArrayList<GrammaticalRestrictionCommentImplementation>
+					restrictions = new ArrayList
+						<GrammaticalRestrictionCommentImplementation>();
+				restrictions.addAll(grammaticalRestrictions.values());
+				if (listSize > 1)
+				{
+					for (int i = 1; i < listSize; i++)
+					{
+						restrictions.get(0)
+							.mergeGrammaticalRestrictionImplementations(
+								restrictions.get(i));
+					}
+
+				}
+				restrictions.get(0)
+					.toJSON(linkingFileMap, nameOfGroup, errorLog, jsonWriter);
+			}
+			jsonWriter.write("definitions");
+			jsonWriter.startArray();
+			for (final MacroCommentImplementation implementation :
+				macros.values())
+			{
+				jsonWriter.startObject();
+				implementation.toJSON(linkingFileMap, nameOfGroup, errorLog,
+					jsonWriter);
+				jsonWriter.endObject();
+			}
+			jsonWriter.endArray();
+
+			if (!semanticRestrictions.isEmpty())
+			{
+				jsonWriter.write("semanticRestrictions");
+				jsonWriter.startArray();
+				for (final SemanticRestrictionCommentImplementation
+					implementation : semanticRestrictions.values())
+				{
+					jsonWriter.startObject();
+					implementation
+						.toJSON(linkingFileMap, nameOfGroup, errorLog,
+							jsonWriter);
+					jsonWriter.endObject();
+				}
+				jsonWriter.endArray();
+			}
+		}
+		else if (!(global == null))
+		{
+			global().toJSON(linkingFileMap, nameOfGroup, errorLog, jsonWriter);
+		}
+		else if (!(classImplementation == null))
+		{
+			jsonWriter.write("type");
+			jsonWriter.write("class");
+			jsonWriter.write("name");
+			jsonWriter.write(nameOfGroup);
+			classImplementation.toJSON(linkingFileMap, nameOfGroup, errorLog,
+				jsonWriter);
+		}
+
+		Path fullFilePath = outputPath;
+		final String [] directoryTree = filepath.pathName().split("/");
+
+		for (final String directory : directoryTree)
+		{
+			fullFilePath = fullFilePath.resolve(directory);
+		}
+
+		final StacksOutputFile jsonFile = new StacksOutputFile(
+			fullFilePath, synchronizer,
+			filepath.leafFilename(),
+			runtime, name.asNativeString());
+
+		jsonWriter.endObject();
+		jsonFile.write(jsonWriter.toString());
+		jsonWriter.close();
 	}
 
 	/**

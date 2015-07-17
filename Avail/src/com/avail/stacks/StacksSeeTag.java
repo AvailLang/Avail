@@ -95,8 +95,6 @@ public class StacksSeeTag extends AbstractStacksTag
 		final JSONWriter jsonWriter)
 	{
 		/*TODO FIX ME, NO HTML RAA */
-		final StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("<div class=\"category-list\"><em>See:</em> ");
 		if (thingToSee.lexeme().startsWith("{", 0))
 		{
 			thingToSee.toJSON(linkingFileMap, hashID, errorLog, jsonWriter);
@@ -104,6 +102,7 @@ public class StacksSeeTag extends AbstractStacksTag
 		}
 		else
 		{
+			final StringBuilder stringBuilder = new StringBuilder();
 			stringBuilder.append("<a class=\"stacks i-code\" href=\"")
 				.append(thingToSee.toHTML(linkingFileMap, hashID, errorLog))
 				.append("\">")
@@ -113,4 +112,36 @@ public class StacksSeeTag extends AbstractStacksTag
 		}
 	}
 
+	/**
+	 * @param linkingFileMap
+	 * @param hashID
+	 * @param errorLog
+	 * @param jsonWriter
+	 * @return
+	 */
+	public String toJSON (
+		final LinkingFileMap linkingFileMap,
+		final int hashID,
+		final StacksErrorLog errorLog,
+		final JSONWriter jsonWriter)
+	{
+		final StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder
+			.append("<a class=")
+			.append('"')
+			.append("stacks i-code")
+			.append('"')
+			.append(" href=")
+			.append('"')
+			.append(thingToSee
+				.toJSON(linkingFileMap, hashID, errorLog, jsonWriter))
+			.append('"')
+			.append(">")
+			.append(thingToSee.lexeme)
+			//.append('<')
+			//.append('\\')
+			.append("</a>");
+
+		return stringBuilder.toString();
+	}
 }

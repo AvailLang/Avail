@@ -236,7 +236,8 @@ public class SemanticRestrictionCommentImplementation extends
 		} else
 		{
 			jsonWriter.write("returns");
-			jsonWriter.writeArray(new String[0]);
+			jsonWriter.startArray();
+			jsonWriter.endArray();
 		}
 	}
 }

@@ -101,16 +101,16 @@ public class StacksLinkTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML (final LinkingFileMap htmlFileMap,
+	public String toHTML (final LinkingFileMap linkingFileMap,
 		final int hashID, final StacksErrorLog errorLog, final int position)
 	{
 		final StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("<a href=\"")
-			.append(link.toHTML(htmlFileMap, hashID, errorLog)).append("\">");
+			.append(link.toHTML(linkingFileMap, hashID, errorLog)).append("\">");
 
 		if (displayLinkTokens.isEmpty())
 		{
-			stringBuilder.append(link.toHTML(htmlFileMap, hashID, errorLog));
+			stringBuilder.append(link.toHTML(linkingFileMap, hashID, errorLog));
 		}
 		else
 		{
@@ -118,10 +118,10 @@ public class StacksLinkTag extends AbstractStacksTag
 			for (int i = 0; i < linkTokenSize - 1; i++)
 			{
 				stringBuilder.append(displayLinkTokens.get(i)
-					.toHTML(htmlFileMap, hashID, errorLog)).append(" ");
+					.toHTML(linkingFileMap, hashID, errorLog)).append(" ");
 			}
 			stringBuilder.append(displayLinkTokens.get(linkTokenSize - 1)
-				.toHTML(htmlFileMap, hashID, errorLog));
+				.toHTML(linkingFileMap, hashID, errorLog));
 		}
 
 		return stringBuilder.append("</a>").toString();
@@ -138,4 +138,48 @@ public class StacksLinkTag extends AbstractStacksTag
 		//DO NOTHING AS HANDLED IN BracketStacks
 	}
 
+	/**
+	 * @param linkingFileMap
+	 * @param hashID
+	 * @param errorLog
+	 * @param jsonWriter
+	 * @return
+	 */
+	public String toJSON (
+		final LinkingFileMap linkingFileMap,
+		final int hashID,
+		final StacksErrorLog errorLog,
+		final JSONWriter jsonWriter)
+	{
+		final StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder
+			.append("<a href=")
+			.append('"')
+			.append(link.toJSON(linkingFileMap, hashID, errorLog, jsonWriter))
+			.append('"')
+			.append(">");
+
+		if (displayLinkTokens.isEmpty())
+		{
+			stringBuilder.append(link
+				.toJSON(linkingFileMap, hashID, errorLog, jsonWriter));
+		}
+		else
+		{
+			final int linkTokenSize = displayLinkTokens.size();
+			for (int i = 0; i < linkTokenSize - 1; i++)
+			{
+				stringBuilder.append(displayLinkTokens.get(i)
+						.toJSON(linkingFileMap, hashID, errorLog, jsonWriter))
+					.append(" ");
+			}
+			stringBuilder.append(displayLinkTokens.get(linkTokenSize - 1)
+				.toJSON(linkingFileMap, hashID, errorLog, jsonWriter));
+		}
+
+		return stringBuilder
+			//.append('<')
+			//.append('\\')
+			.append("</a>").toString();
+	}
 }
