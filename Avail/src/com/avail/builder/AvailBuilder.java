@@ -58,8 +58,6 @@ import com.avail.*;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
-import com.avail.compiler.AvailCompiler.ModuleHeader;
-import com.avail.compiler.AvailCompiler.ModuleImport;
 import com.avail.compiler.AvailCompiler.ParserState;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;

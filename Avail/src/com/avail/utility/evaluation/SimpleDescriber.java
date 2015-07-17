@@ -1,5 +1,5 @@
 /**
- * FormattingDescriber.java
+ * SimpleDescriber.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,53 +30,39 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
-
-import java.util.Formatter;
-import com.avail.utility.evaluation.*;
+package com.avail.utility.evaluation;
 
 /**
- * A {@code FormattingDescriber} is a {@link Describer} that is given a {@link
- * String} to act as a {@link Formatter} pattern, and an array of {@link
- * Object}s to supply to it.
+ * A {@code SimpleDescriber} is a {@link Describer} that is given an
+ * already-constructed {@link String} at construction time.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-final class FormattingDescriber extends Describer
+public class SimpleDescriber extends Describer
 {
-	/** The {@link String} to use as a {@link Formatter} pattern. */
-	final String patternString;
-
-	/** The arguments to supply to the pattern. */
-	final Object[] arguments;
+	/** The string provided at construction time. */
+	final String string;
 
 	/**
-	 * Construct a new {@link FormattingDescriber}.
+	 * Construct a new {@link SimpleDescriber} with an already-computed String.
 	 *
-	 * @param patternString The pattern {@link String}.
-	 * @param arguments The arguments to populate the pattern.
+	 * @param string The String that this describer describes itself as.
 	 */
-	public FormattingDescriber (
-		final String patternString,
-		final Object... arguments)
+	public SimpleDescriber (final String string)
 	{
-		this.patternString = patternString;
-		this.arguments = arguments;
+		this.string = string;
 	}
 
 	/**
-	 * Produce the formatted string and pass it to the specified {@linkplain
-	 * Continuation1 continuation}.
+	 * Use the previously stored String as the description, passing it into the
+	 * specified {@linkplain Continuation1 continuation}.
 	 *
 	 * @param continuation
-	 *        What to do with the formatted {@link String}.
+	 *        What to do with the message.
 	 */
 	@Override
 	public void describeThen (final Continuation1<String> continuation)
 	{
-		@SuppressWarnings("resource")
-		final Formatter formatter = new Formatter();
-		formatter.format(patternString, arguments);
-		continuation.value(formatter.toString());
+		continuation.value(string);
 	}
 }

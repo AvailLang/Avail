@@ -30,9 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.utility.evaluation;
 
-import com.avail.utility.evaluation.*;
+import com.avail.compiler.AvailCompiler;
 
 /**
  * A {@code Describer} produces a message and forwards it to a supplied
@@ -42,7 +42,7 @@ import com.avail.utility.evaluation.*;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-abstract class Describer
+public abstract class Describer
 {
 	/**
 	 * Assemble a message and pass it into the specified {@linkplain

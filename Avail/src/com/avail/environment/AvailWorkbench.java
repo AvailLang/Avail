@@ -951,7 +951,9 @@ extends JFrame
 					}
 					catch (final UnresolvedDependencyException e)
 					{
-						throw new RuntimeException(e);
+						// The directory didn't contain the necessary package
+						// representative, so simply skip the whole directory.
+						return FileVisitResult.SKIP_SUBTREE;
 					}
 					final ModuleOrPackageNode node =
 						new ModuleOrPackageNode(availBuilder, resolved, true);
