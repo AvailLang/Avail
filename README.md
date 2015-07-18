@@ -78,12 +78,6 @@ Otherwise, the latest version of the JDK can be obtained at:
 Please follow any installation directions provided by the Oracle website or
 included with the JDK.
 
-(As of the time of writing, Avail has not yet been tested on Java 1.8, which has
-only been officially released for a few days. If you try it and it works, then
-great; otherwise, try running Java 1.7. To obtain Java 1.7, you will need to
-visit the link above and scroll down; the top part of the page is pushing Java
-1.8. Make sure to grab the JDK, not the JRE.)
-
 The commands of interest are "java" and "javac". Please make sure that these are
 on your path.
 
