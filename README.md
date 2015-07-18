@@ -76,7 +76,11 @@ Otherwise, the latest version of the JDK can be obtained at:
 	http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
 Please follow any installation directions provided by the Oracle website or
-included with the JDK.
+included with the JDK. Be warned that the Java installer may offer to install
+sponsored software from third parties (i.e. malware) or change settings on your
+computer to favor their sponsors. You are encouraged to read the install screens
+carefully, and to uncheck any of the sponsor options which are checked by
+default.
 
 The commands of interest are "java" and "javac". Please make sure that these are
 on your path.
