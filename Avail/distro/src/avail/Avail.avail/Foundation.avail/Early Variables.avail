@@ -492,7 +492,7 @@ with <>;
  *
  * @category "Primitives" "Variables" "Phrases" "Queries" "Mutators"
  * @method "_↑`?=_'s⁇initialization"
- * @param "var" "write-only expression variable"
+ * @param "var" "write-only variable"
  *        A variable.
  * @param "aDeclaration" "declaration phrase"
  *        A declaration.
@@ -506,7 +506,7 @@ Invoke
 	f : function;
 	f :=
 		[
-			var : write-only expression variable,
+			var : write-only variable,
 			aDeclaration : declaration phrase
 		|
 			Primitive DeclarationInitializingExpression

@@ -54,6 +54,7 @@ Uses
 	"Variables"
 Names
 	"a|an_«with«_«:»?:=_‡,»»",
+	"explicit atom",
 	"extend_with«_:_‡,»",
 	"«Public»?«Explicit|explicit»?\
 		\|Class|class_extends_\
@@ -64,6 +65,15 @@ Names
 	"_as_«with«_::=_‡,»»"
 Body
 
+/**
+ * The explicit atom is installed as a property into any {@type "atom"} that is
+ * created in order to ensure explicitness of {@type "object"} type lineage.
+ *
+ * @method "explicit atom"
+ * @returns "atom"
+ * @category "Objects" "Types"
+ */
+Public "explicit atom" is a new atom;
 
 /**
  * Strengthen object field extraction ({@method "_[_]"}).
@@ -1127,6 +1137,7 @@ is
 	If explicit then
 	[
 		explicitAtom ::= atom for "explicit-" ++ className;
+		explicitAtom[explicit atom] := explicit atom;
 		explicitDef := <<explicitAtom, explicitAtom's type>>;
 	];
 	/* Construct and verify the subtype. */

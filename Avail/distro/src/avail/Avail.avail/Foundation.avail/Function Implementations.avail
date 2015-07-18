@@ -1,0 +1,992 @@
+/*
+ * Function Implementations.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Function Implementations"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Atoms",
+	"Bootstrap",
+	"Control Structures",
+	"Definers",
+	"Early Conditionals",
+	"Enumeration Support",
+	"Late Math",
+	"Literals",
+	"Logic",
+	"Math",
+	"Strings",
+	"Tuples",
+	"Types",
+	"Variables"
+Names
+	/* Types. */
+	"L1 operation",
+	"L1 operand",
+	"L1 raw instruction",
+	"L1 instruction",
+
+	/* The L1 operations. */
+	"L1 call",
+	"L1 push literal",
+	"L1 push last local",
+	"L1 push local",
+	"L1 push last outer",
+	"L1 close",
+	"L1 set local",
+	"L1 get local clearing",
+	"L1 push outer",
+	"L1 pop",
+	"L1 get outer clearing",
+	"L1 set outer",
+	"L1 get local",
+	"L1 make tuple",
+	"L1 get outer",
+
+	/* The L1 extension operations. */
+	"L1 push label",
+	"L1 get literal",
+	"L1 set literal",
+	"L1 duplicate",
+	"L1 permute",
+	"L1 super call",
+
+	/* The L1 instructions. */
+	"_instruction",
+	"_raw instruction",
+
+	/* Disassembly. */
+	"L1 disassembly of_",
+	"L1 operations for_",
+	"L1 raw disassembly of_",
+
+	/* Low-level disassembly. */
+	"_'s⁇nybblecoded operation[_]",
+	"_'s⁇nybblecoded operand[_]",
+
+	/* Queries. */
+	"`|_'s⁇operands`|",
+
+	/* Printing. */
+	"“_”(L1 operation short name)",
+	"“_”(L1 instructions)"
+Body
+
+/**
+ * Invoke a method.
+ *
+ * The first operand is an index into the current {@type
+ * "function implementation"}'s {@method "_'s⁇literals" literals}, which
+ * specifies a {@type "method"} that contains a collection of {@type
+ * "method definition"}s that might be invoked. The arguments are expected to
+ * already have been pushed. They are popped from the stack and the literal
+ * specified by the second operand is pushed. This is the expected type of the
+ * {@type "send phrase" send}. When the invoked method eventually returns, the
+ * proposed return value is checked against the pushed type, and if it agrees
+ * then this stack entry is replaced by the returned value. If it disagrees,
+ * a {@type "result-disagreed-with-expected-type exception"} should take place
+ * instead.
+ *
+ * @method "L1 call"
+ * @category "Disassembly" "Function Implementations"
+ * @returns "atom"
+ */
+Public "L1 call" is a new atom;
+
+/**
+ * Push the literal whose index is specified by the operand.
+ *
+ * @method "L1 push literal"
+ * @category "Disassembly" "Function Implementations"
+ * @returns "atom"
+ */
+Public "L1 push literal" is a new atom;
+
+/**
+ * Push a local {@type "variable"} — not its value, but the variable itself.
+ * This should be the last use of the variable, so erase it from the
+ * {@type "continuation"} at the same time.
+ *
+ * Clearing the variable keeps the variable's reference count from changing, so
+ * it may stay internally mutable if it was before.
+ *
+ * If an argument is specified then push the value, since there is no actual
+ * variable to operate on. Clear the slot of the continuation reserved for the
+ * argument. Constants are treated like ordinary local variables, except that
+ * they can not be assigned after their definition, nor can a reference to the
+ * constant be taken.
+ *
+ * @method "L1 push last local"
+ * @category "Disassembly" "Function Implementations"
+ * @returns "atom"
+ */
+Public "L1 push last local" is a new atom;
+
+/**
+ * Push a local {@type "variable"} — not its value, but the variable itself. If
+ * an argument or constant is specified then push the value, since there is no
+ * actual variable to operate on.
+ *
+ * @method "L1 push local"
+ * @category "Disassembly" "Function Implementations"
+ * @returns "atom"
+ */
+Public "L1 push local" is a new atom;
+
+/**
+ * Push an outer, i.e. a variable lexically captured by the current {@type
+ * "function"}. This should be the last use of the outer, so clear it from the
+ * function if the function is still internally mutable.
+ *
+ * @method "L1 push last outer"
+ * @category "Disassembly" "Function Implementations"
+ * @returns "atom"
+ */
+Public "L1 push last outer" is a new atom;
+
+/**
+ * Create a {@type "function"} from the specified number of pushed outers and
+ * the specified literal {@type "function implementation"}.
+ *
+ * @method "L1 close"
+ * @category "Disassembly" "Function Implementations"
+ * @returns "atom"
+ */
+Public "L1 close" is a new atom;
+
+/**
+ * Pop the stack and write the value into the specified local {@type "variable"}
+ * or constant (the latter should only happen once).
+ *
+ * @method "L1 set local"
+ * @category "Disassembly" "Function Implementations"
+ * @returns "atom"
+ */
+Public "L1 set local" is a new atom;
+
+/**
+ * Extract the value from the specified local {@type "variable"} or constant. If
+ * the variable is internally mutable, nil it out in the {@type "continuation"}.
+ * Raise a {@type "cannot-read-unassigned-variable exception"} if the variable
+ * does not have a value.
+ *
+ * @method "L1 get local clearing"
+ * @category "Disassembly" "Function Implementations"
+ * @returns "atom"
+ */
+Public "L1 get local clearing" is a new atom;
+
+/**
+ * Push the specified outer of the {@type "function"}.
+ *
+ * @method "L1 push outer"
+ * @category "Disassembly" "Function Implementations"
+ * @returns "atom"
+ */
+Public "L1 push outer" is a new atom;
+
+/**
+ * Discard the top element of the stack.
+ *
+ * @method "L1 pop"
+ * @category "Disassembly" "Function Implementations"
+ * @returns "atom"
+ */
+Public "L1 pop" is a new atom;
+
+/**
+ * Push the current value of the specified outer {@type "variable"}. The outer
+ * is part of the {@tyep "function"} being executed. Clear this outer variable
+ * if it is internally mutable. Raise a {@type
+ * "cannot-read-unassigned-variable exception"} if the variable does not have a
+ * value.
+ *
+ * @method "L1 get outer clearing"
+ * @category "Disassembly" "Function Implementations"
+ * @returns "atom"
+ */
+Public "L1 get outer clearing" is a new atom;
+
+/**
+ * Pop the stack and write it to the specified outer of the {@type "function"}.
+ *
+ * @method "L1 set outer"
+ * @category "Disassembly" "Function Implementations"
+ * @returns "atom"
+ */
+Public "L1 set outer" is a new atom;
+
+/**
+ * Push the value of the specified local {@type "variable"} or constant. Make it
+ * internally immutable, since it may still be needed by subsequent
+ * instructions. Raise a {@type "cannot-read-unassigned-variable exception"} if
+ * the variable does not have a value.
+ *
+ * @method "L1 get local"
+ * @category "Disassembly" "Function Implementations"
+ * @returns "atom"
+ */
+Public "L1 get local" is a new atom;
+
+/**
+ * Pop the specified number of elements from the stack and assemble them into a
+ * {@type "tuple"}. Push the tuple.
+ *
+ * @method "L1 make tuple"
+ * @category "Disassembly" "Function Implementations"
+ * @returns "atom"
+ */
+Public "L1 make tuple" is a new atom;
+
+/**
+ * Push the current value of the specified outer {@type "variable"} of the
+ * {@type "function"}. Raise a {@type
+ * "cannot-read-unassigned-variable exception"} if the variable does not have a
+ * value.
+ *
+ * @method "L1 get outer"
+ * @category "Disassembly" "Function Implementations"
+ * @returns "atom"
+ */
+Public "L1 get outer" is a new atom;
+
+/**
+ * Push a {@type "continuation"} just like the current one, such that if it is
+ * ever {@method "Resume_" resumed} it will have the same effect as {@method
+ * "Restart_with_" restarting} the current one.
+ *
+ * @method "L1 push label"
+ * @category "Disassembly" "Function Implementations"
+ * @returns "atom"
+ */
+Public "L1 push label" is a new atom;
+
+/**
+ * Get the value of a {@type "variable"} literal. Raise a {@type
+ * "cannot-read-unassigned-variable exception"} if the variable does not have a
+ * value. This is used only to read from module variables.
+ *
+ * @method "L1 push label"
+ * @category "Disassembly" "Function Implementations"
+ * @returns "atom"
+ */
+Public "L1 get literal" is a new atom;
+
+/**
+ * Pop the stack and write the value into a {@type "variable"} literal. This is
+ * used to write to module variables.
+ *
+ * @method "L1 set literal"
+ * @category "Disassembly" "Function Implementations"
+ * @returns "atom"
+ */
+Public "L1 set literal" is a new atom;
+
+/**
+ * Duplicate the top stack element (i.e., push another occurrence of the top
+ * of stack}.  Make the object internally immutable since it now has an
+ * additional reference.
+ *
+ * @method "L1 duplicate"
+ * @category "Disassembly" "Function Implementations"
+ * @returns "atom"
+ */
+Public "L1 duplicate" is a new atom;
+
+/**
+ * Permute the top N stack elements based on the literal which is an {@type
+ * "tuple" N-tuple} of distinct integers in [1..N] (i.e., a permutation). The
+ * internal mutability of the values is unaffected.
+ *
+ * The first pushed value is considered position 1, and the most recently
+ * pushed value (the top of stack) is considered position N. The algorithm
+ * behaves as though a scratch N-array is available. The elements of the
+ * stack and of the permutation tuple are examined in lock-step, and each
+ * value is placed into the temporary array at the position indicated in the
+ * permutation tuple. The entire array is then pushed back on the stack
+ * (starting with the first element of the array).
+ *
+ * As an example, if the nybblecodes have already pushed A, B, and C, in
+ * that order, the permute nybblecode with the tuple <2,3,1> would transfer
+ * A into array slot 2, B into array slot 3, and C into array slot 1,
+ * yielding the array [C,A,B].  These would then replace the original values
+ * as though C, A, and B had been pushed, in that order.
+ *
+ * @method "L1 permute"
+ * @category "Disassembly" "Function Implementations"
+ * @returns "atom"
+ */
+Public "L1 permute" is a new atom;
+
+/**
+ * Invoke a method with a supercall.
+ *
+ * The first operand is an index into the current {@type
+ * "function implementation"}'s {@method "_'s⁇literals" literals}, which
+ * specifies a {@type "message bundle"} that is a particular naming of a
+ * {@type "method"} which itself contains a collection of {@type
+ * "method definition"}s that might be invoked. The stack is expected to contain
+ * the top-level arguments, from which their types will be extracted and
+ * assembled into a {@type "tuple"} {@type "type"}, which itself will undergo a
+ * {@method "_∪_" union} with this instruction's third operand, a literal tuple
+ * type. The resulting tuple type (the union) will be used to select the method
+ * definition to invoke.
+ *
+ * The second operand specifies a literal which is the expected return type of
+ * the end. When the invoked method eventually returns, the proposed return
+ * value is checked against the pushed type, and if it agrees then this stack
+ * entry is replaced by the returned value. If it disagrees, a {@type
+ * {@type "result-disagreed-with-expected-type exception"} is raised instead.
+ *
+ * The third operand specifies a literal which directs the method search.
+ * The union of the tuple type derived from the actual arguments' types and
+ * this literal tuple type provides a tuple type that can be used to select
+ * the method definition that will be invoked.
+ *
+ * @method "L1 super call"
+ * @category "Disassembly" "Function Implementations"
+ * @returns "atom"
+ */
+Public "L1 super call" is a new atom;
+
+/**
+ * A {@type "tuple"} indexed by nybble number. A value is an {@type
+ * "L1 operation"}.
+ *
+ * @global "nybbleOperations" "<L1 operation…|16>"
+ */
+nybbleOperations ::=
+	<
+		/*  1 */ L1 call,
+		/*  2 */ L1 push literal,
+		/*  3 */ L1 push last local,
+		/*  4 */ L1 push local,
+		/*  5 */ L1 push last outer,
+		/*  6 */ L1 close,
+		/*  7 */ L1 set local,
+		/*  8 */ L1 get local clearing,
+		/*  9 */ L1 push outer,
+		/* 10 */ L1 pop,
+		/* 11 */ L1 get outer clearing,
+		/* 12 */ L1 set outer,
+		/* 13 */ L1 get local,
+		/* 14 */ L1 make tuple,
+		/* 15 */ L1 get outer,
+		/* 16 */ L1 push label,
+		/* 17 */ L1 get literal,
+		/* 18 */ L1 set literal,
+		/* 19 */ L1 duplicate,
+		/* 20 */ L1 permute,
+		/* 21 */ L1 super call
+	>;
+
+/**
+ * {@type "L1 operation"} represents the fundamental operations of Avail's L1
+ * instruction set.
+ *
+ * @type "L1 operation"
+ * @supertype "atom"
+ * @category "Disassembly" "Function Implementations"
+ */
+Public stable method "L1 operation" is [enumeration of nybbleOperations→set];
+
+/**
+ * An L1 operand is an integer that represents an immediate, literal, local, or
+ * outer.
+ *
+ * @type "L1 operand"
+ * @alias "[0..2147483647]"
+ */
+Public stable method "L1 operand" is [[0..2147483647]];
+
+/**
+ * Answer the number of operands required by the specified {@type
+ * "L1 operation"}.
+ *
+ * @method "`|_'s⁇operands`|"
+ * @category "Disassembly" "Function Implementations"
+ * @param "operation" "L1 operation"
+ *        An {@type "L1 operation"}.
+ */
+Public stable abstract method "`|_'s⁇operands`|" is [L1 operation]→[0..3];
+
+Public method "`|_'s⁇operands`|" is
+[
+	operation : {L1 pop, L1 push label, L1 duplicate}ᵀ
+|
+	0
+];
+
+Public method "`|_'s⁇operands`|" is
+[
+	operation :
+		{
+			L1 push literal,
+			L1 push last local,
+			L1 push local,
+			L1 push last outer,
+			L1 set local,
+			L1 get local clearing,
+			L1 push outer,
+			L1 get outer clearing,
+			L1 set outer,
+			L1 get local,
+			L1 make tuple,
+			L1 get outer,
+			L1 get literal,
+			L1 set literal,
+			L1 permute
+		}ᵀ
+|
+	1
+];
+
+Public method "`|_'s⁇operands`|" is
+[
+	operation : {L1 call, L1 close}ᵀ
+|
+	2
+];
+
+Public method "`|_'s⁇operands`|" is
+[
+	operation : {L1 super call}ᵀ
+|
+	3
+];
+
+/**
+ * Answer the {@type "L1 operation"} encoded at the specified index of the
+ * supplied {@type "tuple"}.
+ *
+ * @method "_'s⁇nybblecoded operation[_]"
+ * @category "Disassembly" "Function Implementations"
+ * @param "nybblecodes" "nybble*"
+ *        A {@type "tuple"} of nybblecodes that represents an L1 instruction
+ *        stream.
+ * @param "index" "natural number"
+ *        A index into {@param "nybblecodes"}. An {@type "L1 operation"} must be
+ *        encoded starting here.
+ * @returns "<L1 operation, natural number…|2>"
+ *          A {@type "tuple" 2-tuple} of the decoded {@type "L1 operation"} and
+ *          the index at which to continue scanning {@param "nybblecodes"},
+ *          respectively.
+ * @raises "subscript-out-of-bounds exception"
+ *         If {@param "index"} is invalid.
+ */
+Public stable method "_'s⁇nybblecoded operation[_]" is
+[
+	nybblecodes : nybble*,
+	index : natural number
+|
+	nybblecode : natural number := nybblecodes[index] + 1;
+	end : natural number := index + 1;
+	If nybblecode = 16 then
+	[
+		nybblecode := nybblecodes[index + 1] + 15;
+		end++;
+	];
+	<nybbleOperations[nybblecode], end>
+] : <L1 operation, natural number…|2>;
+
+/**
+ * A {@type "tuple"} indexed by the first nybble of an encoded integer within a
+ * nybblecode stream. A value represents the number of nybbles that follow for
+ * this encoding.
+ *
+ * @global "nybbleCounts" "<[0..8]…|16>"
+ */
+nybbleCounts ::= <0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 4, 8>;
+
+/**
+ * A {@type "tuple"} indexed by the first nybble of an encoded integer within a
+ * nybblecode stream. A value represents the additive offset for this encoding.
+ *
+ * @global "nybbleCounts" "<[0..58]…|16>"
+ */
+nybbleOffsets ::= <0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 26, 42, 58, 0, 0>;
+
+/**
+ * Answer the {@type "whole number"} encoded at the specified index of the
+ * supplied {@type "tuple"}.
+ *
+ * @method "_'s⁇nybblecoded operand[_]"
+ * @category "Disassembly" "Function Implementations"
+ * @param "nybblecodes" "nybble*"
+ *        A {@type "tuple"} of nybblecodes that represents an L1 instruction
+ *        stream.
+ * @param "index" "natural number"
+ *        A index into {@param "nybblecodes"}. A {@type "whole number"} must be
+ *        encoded starting here.
+ * @returns "<L1 operand, natural number…|2>"
+ *          A {@type "tuple" 2-tuple} of the decoded {@type "whole number"} and
+ *          the index at which to continue scanning {@param "nybblecodes"},
+ *          respectively.
+ * @raises "subscript-out-of-bounds exception"
+ *         If {@param "index"} is invalid.
+ */
+Public stable method "_'s⁇nybblecoded operand[_]" is
+[
+	nybblecodes : nybble*,
+	index : natural number
+|
+	firstNybble ::= nybblecodes[index] + 1;
+	value : whole number := 0;
+	end ::= index + nybbleCounts[firstNybble];
+	For each i from index + 1 to end do
+	[
+		value := (value << 4) + nybblecodes[index];
+	];
+	value += nybbleOffsets[firstNybble];
+	<value, end + 1>
+] : <whole number, natural number…|2>;
+
+Semantic restriction "_'s⁇nybblecoded operand[_]" is
+[
+	nybblecodes : nybble*'s type,
+	index : natural number's type
+|
+	<L1 operand, natural number…|2>
+];
+
+/**
+ * Answer the {@type "tuple"} of {@type "L1 operation"}s encoded by the
+ * specified nybblecode {@type "tuple"}. Operands are not decoded.
+ *
+ * @method "L1 operations for_"
+ * @category "Disassembly" "Function Implementations"
+ * @param "nybblecodes" "nybble*"
+ *        A {@type "tuple"} of nybblecodes that represents an L1 instruction
+ *        stream.
+ * @returns "L1 operation*"
+ *          The decoded {@type "L1 operation"}s.
+ */
+Public stable method "L1 operations for_" is
+[
+	nybblecodes : nybble*
+|
+	operations : L1 operation* := <>;
+	index : natural number := 1;
+	While index ≤ |nybblecodes| do
+	[
+		operation, newIndex ::= nybblecodes' nybblecoded operation[index];
+		operations ++= <operation>;
+		index := newIndex;
+		/* Skip over the appropriate number of encoded operands. */
+		Repeat
+		[
+			index += nybbleCounts[nybblecodes[index] + 1] + 1;
+		] |operation's operands| times;
+	];
+	operations
+] : L1 operation*;
+
+/**
+ * Answer the {@type "tuple"} of {@type "L1 operation"}s encoded by the
+ * specified {@type "function implementation"}. Operands are not decoded.
+ *
+ * @method "L1 operations for_"
+ * @category "Disassembly" "Function Implementations"
+ * @param "impl" "function implementation"
+ *        The {@type "function implementation"} to disassemble.
+ * @returns "L1 operation*"
+ *          The decoded {@type "L1 operation"}s.
+ */
+Public stable method "L1 operations for_" is
+[
+	impl : function implementation
+|
+	L1 operations for impl's nybblecodes
+] : L1 operation*;
+
+/**
+ * Answer the {@type "tuple"} of {@type "L1 operation"}s encoded by the
+ * specified {@type "function"}'s {@type "function implementation"
+ * implementation}. Operands are not decoded.
+ *
+ * @method "L1 operations for_"
+ * @category "Disassembly" "Function Implementations"
+ * @param "f" "function"
+ *        The {@type "function"} to disassemble.
+ * @returns "L1 operation*"
+ *          The decoded {@type "L1 operation"}s.
+ */
+Public stable method "L1 operations for_" is
+[
+	f : function
+|
+	L1 operations for f's implementation's nybblecodes
+] : L1 operation*;
+
+/**
+ * {@type "L1 raw instruction"} represents {@type "L1 operation"}s conjoined
+ * with their {@type "L1 operand"}s.
+ *
+ * @type "L1 raw instruction"
+ * @alias "<L1 operation, L1 operand…|1..>"
+ * @category "Disassembly" "Function Implementations"
+ */
+Public stable method "L1 raw instruction" is [<L1 operation, L1 operand…|1..>];
+
+/**
+ * Answer an {@type "L1 raw instruction"} {@type "type"} based on the supplied
+ * {@type "L1 operation"}.
+ *
+ * @method "_raw instruction"
+ * @category "Disassembly" "Function Implementations"
+ * @param "operation" "L1 operation"
+ *        The {@type "L1 operation"} whose {@type "L1 raw instruction"} {@type
+ *        "type"} is available.
+ * @returns "L1 raw instruction's type"
+ *          The request {@type "L1 raw instruction"} {@type "type"}.
+ */
+Public stable method "_raw instruction" is
+[
+	operation : L1 operation
+|
+	operands ::= |operation's operands| of L1 operand;
+	<<operation's type> ++ operands, L1 operand… | (|operands| + 1)'s type>
+] : L1 raw instruction's type;
+
+/**
+ * Answer the {@type "tuple"} of {@type "L1 raw instruction"}s encoded by the
+ * specified nybblecode {@type "tuple"}.
+ *
+ * @method "L1 raw disassembly of_"
+ * @category "Disassembly" "Function Implementations"
+ * @param "nybblecodes" "nybble*"
+ *        A {@type "tuple"} of nybblecodes that represents an L1 instruction
+ *        stream.
+ * @returns "L1 raw instruction*"
+ *          The decoded {@type "L1 raw instruction"}s.
+ */
+Public stable method "L1 raw disassembly of_" is
+[
+	nybblecodes : nybble*
+|
+	instructions : L1 raw instruction* := <>;
+	index : natural number := 1;
+	While index ≤ |nybblecodes| do
+	[
+		operation, operandIndex ::= nybblecodes' nybblecoded operation[index];
+		instruction : L1 raw instruction := <operation>;
+		index := operandIndex;
+		Repeat
+		[
+			operand, nextOperandIndex ::=
+				nybblecodes' nybblecoded operand[index];
+			instruction ++= <operand>;
+			index := nextOperandIndex;
+		] |operation's operands| times;
+		instructions ++= <instruction>;
+	];
+	instructions
+] : L1 raw instruction*;
+
+/**
+ * Answer the {@type "tuple"} of {@type "L1 raw instruction"}s encoded by the
+ * specified {@type "function implementation"}.
+ *
+ * @method "L1 raw disassembly of_"
+ * @category "Disassembly" "Function Implementations"
+ * @param "impl" "function implementation"
+ *        The {@type "function implementation"} to disassemble.
+ * @returns "L1 raw instruction*"
+ *          The decoded {@type "L1 raw instruction"}s.
+ */
+Public stable method "L1 raw disassembly of_" is
+[
+	impl : function implementation
+|
+	L1 raw disassembly of impl's nybblecodes
+] : L1 raw instruction*;
+
+/**
+ * Answer the {@type "tuple"} of {@type "L1 raw instruction"}s encoded by the
+ * specified {@type "function"}'s {@type "function implementation"
+ * implementation}.
+ *
+ * @method "L1 raw disassembly of_"
+ * @category "Disassembly" "Function Implementations"
+ * @param "f" "function"
+ *        The {@type "function"} to disassemble.
+ * @returns "L1 raw instruction*"
+ *          The decoded {@type "L1 raw instruction"}s.
+ */
+Public stable method "L1 raw disassembly of_" is
+[
+	f : function
+|
+	L1 raw disassembly of f's implementation's nybblecodes
+] : L1 raw instruction*;
+
+/**
+ * {@type "L1 instruction"} represents {@type "L1 operation"}s conjoined
+ * with their operands.
+ *
+ * @type "L1 instruction"
+ * @alias "<L1 operation, any…|1..>"
+ * @category "Disassembly" "Function Implementations"
+ */
+Public stable method "L1 instruction" is [<L1 operation, any…|1..>];
+
+/**
+ * Answer an {@type "L1 instruction"} {@type "type"} based on the supplied
+ * {@type "L1 operation"}.
+ *
+ * @method "_instruction"
+ * @category "Disassembly" "Function Implementations"
+ * @param "operation" "L1 operation"
+ *        The {@type "L1 operation"} whose {@type "L1 raw instruction"} {@type
+ *        "type"} is available.
+ * @returns "L1 instruction's type"
+ *          The request {@type "L1 instruction"} {@type "type"}.
+ */
+Public stable method "_instruction" is
+[
+	operation : L1 operation
+|
+	operands ::= |operation's operands| of any;
+	<<operation's type> ++ operands, any… | (|operands| + 1)'s type>
+] : L1 instruction's type;
+
+/**
+ * Given the specified {@type "L1 raw instruction"} and its enclosing {@type
+ * "function implementation"}'s {@type "tuple"} of literals, produce an
+ * appropriate {@type "L1 instruction"}.
+ *
+ * @method "_→instruction for_"
+ * @category "Disassembly" "Function Implementations"
+ * @param "inst" "L1 raw instruction"
+ * @param "literals" "any*"
+ * @returns "L1 instruction"
+ */
+Private method "_→instruction for_" is
+[
+	inst : L1 raw instruction,
+	literals : any*
+|
+	inst
+] : L1 instruction;
+
+Private method "_→instruction for_" is
+[
+	inst : L1 call raw instruction,
+	literals : any*
+|
+	<inst[1], literals[inst[2] max 1], literals[inst[3] max 1]>
+];
+
+Private method "_→instruction for_" is
+[
+	inst : L1 push literal raw instruction,
+	literals : any*
+|
+	<inst[1], literals[inst[2] max 1]>
+];
+
+Private method "_→instruction for_" is
+[
+	inst : L1 close raw instruction,
+	literals : any*
+|
+	inst[1..2] ++ <literals[inst[3] max 1]>
+];
+
+Private method "_→instruction for_" is
+[
+	inst : L1 get literal raw instruction,
+	literals : any*
+|
+	<inst[1], literals[inst[2] max 1]>
+];
+
+Private method "_→instruction for_" is
+[
+	inst : L1 set literal raw instruction,
+	literals : any*
+|
+	<inst[1], literals[inst[2] max 1]>
+];
+
+Private method "_→instruction for_" is
+[
+	inst : L1 permute raw instruction,
+	literals : any*
+|
+	<inst[1], literals[inst[2] max 1]>
+];
+
+Private method "_→instruction for_" is
+[
+	inst : L1 super call raw instruction,
+	literals : any*
+|
+	<
+		inst[1],
+		literals[inst[2] max 1],
+		literals[inst[3] max 1],
+		literals[inst[4] max 1]
+	>
+];
+
+/**
+ * Answer the {@type "tuple"} of {@type "L1 instruction"}s encoded by the
+ * specified {@type "function implementation"}.
+ *
+ * @method "L1 disassembly of_"
+ * @category "Disassembly" "Function Implementations"
+ * @param "impl" "function implementation"
+ *        The {@type "function implementation"} to disassemble.
+ * @returns "L1 instruction*"
+ *          The decoded {@type "L1 instruction"}s.
+ */
+Public stable method "L1 disassembly of_" is
+[
+	impl : function implementation
+|
+	literals ::= impl's literals;
+	map each raw of L1 raw disassembly of impl's nybblecodes through
+	[
+		raw→instruction for literals
+	]
+] : L1 instruction*;
+
+/**
+ * Answer the {@type "tuple"} of {@type "L1 instruction"}s encoded by the
+ * specified {@type "function"}'s {@type "function implementation"
+ * implementation}.
+ *
+ * @method "L1 disassembly of_"
+ * @category "Disassembly" "Function Implementations"
+ * @param "f" "function"
+ *        The {@type "function"} to disassemble.
+ * @returns "L1 instruction*"
+ *          The decoded {@type "L1 instruction"}s.
+ */
+Public stable method "L1 disassembly of_" is
+[
+	f : function
+|
+	L1 disassembly of f's implementation
+] : L1 instruction*;
+
+/**
+ * Produce a shortened variant of the specified {@type "L1 operation"}'s name;
+ * it omits the prefix <code>"L1 "</code>.
+ *
+ * @method "“_”(L1 operation short name)"
+ * @category "Disassembly" "Function Implementations"
+ * @param "operation" "L1 operation"
+ * @returns "nonempty string"
+ */
+Public method "“_”(L1 operation short name)" is
+[
+	operation : L1 operation
+|
+	operation's name[4..]
+] : string;
+
+Semantic restriction "“_”(L1 operation short name)" is
+[
+	operation : L1 operation's type
+|
+	nonempty string
+];
+
+/**
+ * Render the specified {@type "L1 instruction"}s as a textual disassembly.
+ *
+ * @method "“_”(L1 instructions)"
+ * @category "Disassembly" "Function Implementations"
+ * @param "insts" "L1 instruction*"
+ *        The {@type "L1 instruction"}s.
+ * @returns "string"
+ *          The requested textual rendering.
+ */
+Public stable method "“_”(L1 instructions)" is
+[
+	insts : L1 instruction*
+|
+	s : string := "";
+	For each inst of insts do
+	[
+		/* Don't print "L1 " at the beginning of each instruction. */
+		s ++= “inst[1]” (L1 operation short name)
+			padded with ¢" "
+			to a multiple of 16;
+		For each i from 2 to |inst| do
+		[
+			op ::= inst[i];
+			s ++= “op”;
+			If i ≠ |inst| then [s ++= ", ";];
+		];
+		s ++= "\n";
+	];
+	s
+];
+
+/**
+ * Render a textual disassembly of the specified {@type
+ * "function implementation"}.
+ *
+ * @method "“_”(L1 instructions)"
+ * @category "Disassembly" "Function Implementations"
+ * @param "impl" "function implementation"
+ *        The {@type "function implementation"} to render.
+ * @returns "string"
+ *          The requested textual rendering.
+ */
+Public stable method "“_”(L1 instructions)" is
+[
+	impl : function implementation
+|
+	“L1 disassembly of impl” (L1 instructions)
+];
+
+/**
+ * Render a textual disassembly of the specified {@type
+ * "function"}'s {@type "function implementation" implementation}.
+ *
+ * @method "“_”(L1 instructions)"
+ * @category "Disassembly" "Function Implementations"
+ * @param "f" "functionn"
+ *        The {@type "function"} to render.
+ * @returns "string"
+ *          The requested textual rendering.
+ */
+Public stable method "“_”(L1 instructions)" is
+[
+	f : function
+|
+	“L1 disassembly of f's implementation” (L1 instructions)
+];

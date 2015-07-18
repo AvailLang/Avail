@@ -1,5 +1,5 @@
-/*
- * Playing.avail
+/**
+ * P_MethodDefinitions.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,26 +30,46 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Playing"
-Versions
-	"1.0.0 DEV 2014-04-28"
-Extends
-	"English Wumpus",
-	"Smalltalk Wumpus" =
-	(
-		"self playWumpTheWumpus" → "Game playWumpTheWumpus"
-	),
-	"Perl Wumpus" =
-	(
-		"play`_wump`_the`_wumpus" → "Game::play`_wump`_the`_wumpus"
-	)
-Entries
-	/* English. */
-	"Play Wump the Wumpus",
+package com.avail.interpreter.primitive.methods;
 
-	/* Smalltalk */
-	"Game playWumpTheWumpus",
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
 
-	/* Perl. */
-	"Game::play`_wump`_the`_wumpus"
-Body
+/**
+ * <strong>Primitive</strong>: Answer the {@linkplain A_Definition definitions}
+ * of the specified {@linkplain A_Method method}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+public final class P_MethodDefinitions
+extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class. Accessed through reflection.
+	 */
+	public final static Primitive instance =
+		new P_MethodDefinitions().init(1, CannotFail, CanInline);
+
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
+	{
+		assert args.size() == 1;
+		final A_Method method = args.get(0);
+		return interpreter.primitiveSuccess(method.definitionsTuple());
+	}
+
+	@Override
+	protected A_Type privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				METHOD.o()),
+			TupleTypeDescriptor.zeroOrMoreOf(DEFINITION.o()));
+	}
+}

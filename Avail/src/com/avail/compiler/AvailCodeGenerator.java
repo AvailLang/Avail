@@ -143,7 +143,6 @@ public class AvailCodeGenerator
 	public int indexOfLiteral (
 		final A_BasicObject aLiteral)
 	{
-
 		int index;
 		index = literals.indexOf(aLiteral) + 1;
 		if (index == 0)

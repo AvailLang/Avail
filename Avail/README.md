@@ -42,13 +42,13 @@ OBTAINING AVAIL ================================================================
 The preferred method of acquiring Avail is from The Avail Foundation's official
 public repository. This repository is located at:
 
-	git://www.availlang.org/Avail
+	https://github.com/AvailLang/Avail.git
 
 Choose the directory where you would like the local copy of the Avail repository 
 to reside (the path to which is hereafter denoted as $PROJ). Clone the official 
 public repository into it like this:
 
-	$ git clone git://www.availlang.org/Avail $PROJ
+	$ git clone https://github.com/AvailLang/Avail.git $PROJ
 
 Even if you are planning to install Avail for system-wide usage, you will
 probably want to choose a non-system directory to house the local copy of the

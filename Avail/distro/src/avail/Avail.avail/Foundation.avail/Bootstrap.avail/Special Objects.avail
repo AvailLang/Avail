@@ -127,6 +127,7 @@ Names
 	/*  22 */ "object",
 	/*  23 */ "object meta",
 	/* 143 */ "parse map key",
+	/* 151 */ "permutation tuple",
 	/* 141 */ "permuted list phrase",
 	/*  50 */ "phrase",
 	/* 113 */ "phrase meta",
@@ -163,8 +164,9 @@ Names
 	/*  32 */ "tuple",
 	/*  33 */ "tuple meta",
 	/* 117 */ "tuple of any meta",
+	/* 152 */ "tuple of definition",
 	/* 125 */ "tuple of expressions yielding any",
-	/*  48 */ "tuple of functions",
+	/*  48 */ "tuple of function",
 	/* 138 */ "tuple of integer",
 	/* 102 */ "tuple of nybble",
 	/* 108 */ "tuple of semantic restriction function",
@@ -182,13 +184,13 @@ Names
 	/* 106 */ "type of zero",
 	/* 105 */ "unary procedure",
 	/* 103 */ "unsigned short",
-	/*   7 */ "variable",
+	/* 124 */ "variable",
 	/*   8 */ "variable meta",
 	/*  56 */ "variable reference phrase",
 	/*  60 */ "variable use phrase",
 	/*  36 */ "whole number",
 	/*  98 */ "whole number meta",
-	/* 124 */ "write-only expression variable",
+	/* 124 */ "write-only variable",
 	/*  77 */ "∅",
 	/*  79 */ "∞",
 	/*  35 */ "⊤",
@@ -243,7 +245,7 @@ _abstract_definition                    ::= special object 44;
 _forward_definition                     ::= special object 45;
 _method_definition                      ::= special object 46;
 _macro_definition                       ::= special object 47;
-_tuple_of_functions                     ::= special object 48;
+_tuple_of_function                      ::= special object 48;
 _phrase                                 ::= special object 50;
 _sequence_phrase                        ::= special object 51;
 _expression_phrase                      ::= special object 52;
@@ -318,7 +320,7 @@ _field_tuple                            ::= special object 120;
 _phrase_tuple                           ::= special object 121;
 _argument_tuple                         ::= special object 122;
 _declaration_tuple                      ::= special object 123;
-_write_only_expression_variable         ::= special object 124;
+_write_only_variable                    ::= special object 124;
 _tuple_of_expressions_yielding_any      ::= special object 125;
 _expression_yielding_any                ::= special object 126;
 _pojo_failure_function                  ::= special object 127;
@@ -345,6 +347,8 @@ _int64                                  ::= special object 147;
 _statement_phrase                       ::= special object 148;
 _scope_stack_key                        ::= special object 149;
 _expression_as_statement_phrase         ::= special object 150;
+_permutation_tuple                      ::= special object 151;
+_tuple_of_definition                    ::= special object 152;
 
 /**
  * The practical abstract root of the Avail type lattice. {@code "any"} is the
@@ -1354,12 +1358,12 @@ Primitive "macro definition" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "tuple of functions"
+ * @type "tuple of function"
  * @alias "<[…]→⊤…|>"
  */
-Primitive "tuple of functions" is
+Primitive "tuple of function" is
 [
-	_tuple_of_functions
+	_tuple_of_function
 ];
 
 /**
@@ -2299,12 +2303,12 @@ Primitive "declaration tuple" is
  * TODO: Special object description goes here.
  *
  * @category "Primitives" "Types"
- * @type "write-only expression variable"
+ * @type "write-only variable"
  * @supertype "variable"
  */
-Primitive "write-only expression variable" is
+Primitive "write-only variable" is
 [
-	_write_only_expression_variable
+	_write_only_variable
 ];
 
 /**
@@ -2623,5 +2627,29 @@ Primitive "scope stack key" is
 Primitive "expression as statement phrase" is
 [
 	_expression_as_statement_phrase
+];
+
+/**
+ * TODO: Special object description goes here.
+ *
+ * @category "Primitives" "Types"
+ * @type "<[1..∞)…|1..∞>"
+ * @alias "permutation tuple"
+ */
+Primitive "permutation tuple" is
+[
+	_permutation_tuple
+];
+
+/**
+ * TODO: Special object description goes here.
+ *
+ * @category "Primitives" "Types"
+ * @type "<definition…|>"
+ * @alias "tuple of definition"
+ */
+Primitive "tuple of definition" is
+[
+	_tuple_of_definition
 ];
 

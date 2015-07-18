@@ -1,0 +1,175 @@
+/*
+ * Phrase Deconstruction.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Phrase Deconstruction"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Foundation"
+Names
+	"_'s⁇subphrases"
+Body
+
+/**
+ * Answer the {@type "phrase" subphrases} that comprise the specified value.
+ * If the argument is not a {@type "phrase"}, then answer an empty {@type
+ * "tuple"}.
+ *
+ * @method "_'s⁇subphrases"
+ * @param "value" "any"
+ *        The value to deconstruct.
+ * @returns "tuple"
+ *          The {@type "phrase" subphrases}, or an empty {@type "tuple"} if
+ *          {@param "value"} is not a {@type "phrase"}.
+ */
+Public method "_'s⁇subphrases" is [value : any | <>] : tuple;
+
+Public abstract method "_'s⁇subphrases" is [phrase]→tuple;
+Public abstract method "_'s⁇subphrases" is [expression phrase]→tuple;
+
+Seal method "_'s⁇subphrases" at <atom>;
+Seal method "_'s⁇subphrases" at <character>;
+Seal method "_'s⁇subphrases" at <continuation>;
+Seal method "_'s⁇subphrases" at <definition>;
+Seal method "_'s⁇subphrases" at <fiber>;
+Seal method "_'s⁇subphrases" at <function>;
+Seal method "_'s⁇subphrases" at <function implementation>;
+Seal method "_'s⁇subphrases" at <map>;
+Seal method "_'s⁇subphrases" at <method>;
+Seal method "_'s⁇subphrases" at <module>;
+Seal method "_'s⁇subphrases" at <number>;
+Seal method "_'s⁇subphrases" at <object>;
+Seal method "_'s⁇subphrases" at <pojo>;
+Seal method "_'s⁇subphrases" at <set>;
+Seal method "_'s⁇subphrases" at <token>;
+Seal method "_'s⁇subphrases" at <tuple>;
+Seal method "_'s⁇subphrases" at <type>;
+Seal method "_'s⁇subphrases" at <variable>;
+
+Public method "_'s⁇subphrases" is
+[
+	value : assignment phrase
+|
+	<value's target, value's value>
+];
+
+Public method "_'s⁇subphrases" is
+[
+	value : block phrase
+|
+	value's arguments ++ value's statements
+];
+
+Public method "_'s⁇subphrases" is
+[
+	value : declaration phrase
+|
+	expr : expression phrase;
+	if expr ?= value's initialization then [<expr>] else [<>]
+];
+
+Public method "_'s⁇subphrases" is
+[
+	value : expression as statement phrase
+|
+	<value's expression>
+];
+
+Public method "_'s⁇subphrases" is
+[
+	value : first of sequence phrase
+|
+	value's statements
+];
+
+Public method "_'s⁇subphrases" is
+[
+	value : literal phrase
+|
+	<>
+];
+
+Public method "_'s⁇subphrases" is
+[
+	value : list phrase
+|
+	value's expressions
+];
+
+Public method "_'s⁇subphrases" is
+[
+	value : permuted list phrase
+|
+	<value's list>
+];
+
+Public method "_'s⁇subphrases" is
+[
+	value : send phrase
+|
+	<value's arguments>
+];
+
+Public method "_'s⁇subphrases" is
+[
+	value : sequence phrase
+|
+	value's statements
+];
+
+Public method "_'s⁇subphrases" is
+[
+	value : statement phrase
+|
+	<>
+] : tuple;
+
+Public method "_'s⁇subphrases" is
+[
+	value : super cast phrase
+|
+	<value's expression>
+];
+
+Public method "_'s⁇subphrases" is
+[
+	value : variable reference phrase
+|
+	<«↓value»>
+];
+
+Public method "_'s⁇subphrases" is
+[
+	value : variable use phrase
+|
+	<value's declaration>
+];

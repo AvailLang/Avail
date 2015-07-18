@@ -72,6 +72,7 @@ Uses
 		"_'s⁇declared exceptions",
 		"_'s⁇declared type",
 		"_'s⁇default type",
+		"_'s⁇definitions",
 		"_'s⁇element type",
 		"_'s⁇element|member type",
 		"_'s⁇entry points",
@@ -89,6 +90,7 @@ Uses
 		"_'s⁇leading whitespace",
 		"_'s⁇lexeme",
 		"_'s⁇line number",
+		"_'s⁇list",
 		"_'s⁇literals",
 		"_'s⁇lookup type",
 		"_'s⁇maximum stack depth",
@@ -100,6 +102,7 @@ Uses
 		"_'s⁇nybblecodes",
 		"_'s⁇outer variables",
 		"_'s⁇parameters'type",
+		"_'s⁇permutation",
 		"_'s⁇primitive number",
 		"_'s⁇priority",
 		"_'s⁇priority:=_",
@@ -138,7 +141,9 @@ Uses
 		"_has terminated",
 		"_is a primitive",
 		"_is a valid message",
+		"_is special",
 		"_mod_",
+		"_permuted by_",
 		"_reinterpreted as bits",
 		"_reinterpreted as double",
 		"_reinterpreted as float",
@@ -210,6 +215,25 @@ Uses
 	)
 Names
 Body
+
+/**
+ * Is the specified {@type "atom"} special, i.e., well-known to the Avail
+ * implementation?
+ *
+ * @category "Primitives"
+ * @method "_is special"
+ * @param "anAtom" "atom"
+ *        An arbitrary {@type "atom"}.
+ * @returns "boolean"
+ *    {@method "true"} if {@param "anAtom"} is special, {@method "false"}
+ *    otherwise.
+ */
+Primitive "_is special" is
+[
+	anAtom : atom
+|
+	Primitive AtomIsSpecial;
+] : boolean;
 
 /**
  * Answer the debug name of the specified atom.
@@ -1994,6 +2018,23 @@ Primitive "_'s⁇function" is
 ] : function;
 
 /**
+ * Answer the {@type "definition"}s of the specified {@type "method"}.
+ *
+ * @category "Primitives"
+ * @method "_'s⁇definitions"
+ * @param "aMethod" "method"
+ *        An arbitrary {@type "method"}.
+ * @returns "<definition…|>"
+ *    A {@type "tuple"} of {@type "definition"}s.
+ */
+Primitive "_'s⁇definitions" is
+[
+	aMethod : method
+|
+	Primitive MethodDefinitions;
+] : tuple of definition;
+
+/**
  * Answer all seals applied to the specified method.
  *
  * @category "Primitives" "Methods" "Queries"
@@ -2592,7 +2633,7 @@ Primitive "`«_::=_`»" is
  *
  * @category "Primitives"
  * @method "`«module variable_(_)`»"
- * @param "aVariable" "variable"
+ * @param "aVariable" "write-only variable"
  *        TODO
  * @param "aToken" "token"
  *        TODO
@@ -2601,7 +2642,7 @@ Primitive "`«_::=_`»" is
  */
 Primitive "`«module variable_(_)`»" is
 [
-	aVariable : variable,
+	aVariable : write-only variable,
 	aToken : token
 |
 	Primitive CreateModuleVariableDeclaration;
@@ -2627,6 +2668,29 @@ Primitive "_⇒_" is
 |
 	Primitive CreateParseNodeType;
 ] : phrase meta;
+
+/**
+ * Construct and answer a {@type "permuted list phrase"} given the specified
+ * {@type "list phrase"} and permutation {@type "tuple"}.
+ *
+ * @category "Primitives"
+ * @method "_permuted by_"
+ * @param "list" "list phrase"
+ *        The {@type "list phrase"} whose subexpressions should be permuted.
+ * @param "permutation" "permutation tuple"
+ *        The permutation imposed by the resultant {@type
+ *        "permuted list phrase"}. This is a {@type "tuple"} of target indices,
+ *        index by source index.
+ * @returns "permuted list phrase⇒tuple"
+ *    The requested {@type "permuted list phrase"}.
+ */
+Primitive "_permuted by_" is
+[
+	list : list phrase,
+	permutation : permutation tuple
+|
+	Primitive CreatePermutedListPhrase;
+] : permuted list phrase;
 
 /**
  * Construct and answer a primitive failure local constant declaration.
@@ -2865,6 +2929,43 @@ Primitive "_'s⁇semantic type" is
 |
 	Primitive ParseNodeTypeExpressionType;
 ] : type;
+
+/**
+ * Answer the {@type "list phrase"} wrapped by the specified {@type
+ * "permuted list phrase"}.
+ *
+ * @category "Primitives"
+ * @method "_'s⁇list"
+ * @param "permuted" "permuted list phrase"
+ *        A {@type "permuted list phrase"}.
+ * @returns "list phrase⇒tuple"
+ *    The {@type "list phrase"} permuted by {@param "permuted"}.
+ */
+Primitive "_'s⁇list" is
+[
+	permuted : permuted list phrase
+|
+	Primitive PermutedListList;
+] : list phrase;
+
+/**
+ * Answer the permutation {@type "tuple"} for the specified {@type
+ * "permuted list phrase"}.
+ *
+ * @category "Primitives"
+ * @method "_'s⁇permutation"
+ * @param "permuted" "permuted list phrase"
+ *        A {@type "permuted list phrase"}.
+ * @returns "<[1..∞)…|1..∞>"
+ *    The permutation {@type "tuple"}. This comprises the target indices,
+ *    indexed by source index.
+ */
+Primitive "_'s⁇permutation" is
+[
+	permuted : permuted list phrase
+|
+	Primitive PermutedListPermutation;
+] : permutation tuple;
 
 /**
  * Answer the specified variable reference's referent.
@@ -3999,7 +4100,7 @@ Primitive "new`↑_" is
 	containmentType : any meta
 |
 	Primitive CreateVariable;
-] : variable;
+] : write-only variable;
 
 /**
  * Construct and answer a variable type with the specified containment type.
@@ -4023,7 +4124,7 @@ Primitive "`↑_" is
  *
  * @category "Primitives" "Variables" "Queries"
  * @method "_↑is unassigned"
- * @param "var" "variable"
+ * @param "var" "write-only variable"
  *        A variable.
  * @returns "boolean"
  *    {@method "true"} if the variable does not contain a value, {@method
@@ -4031,7 +4132,7 @@ Primitive "`↑_" is
  */
 Primitive "_↑is unassigned" is
 [
-	var : variable
+	var : write-only variable
 |
 	Primitive HasNoValue;
 ] : boolean;

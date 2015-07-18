@@ -2028,7 +2028,7 @@ Primitive "semantic restrictions for_given_" is
  * @method "Macro_is«_,»_"
  * @param "macroName" "string"
  *        The name of the macro to define.
- * @param "prefixFunctions" "tuple of functions"
+ * @param "prefixFunctions" "tuple of function"
  *        A tuple of zero or more prefix functions.
  * @param "body" "macro function"
  *        The function that implements the macro.
@@ -2061,7 +2061,7 @@ Primitive "semantic restrictions for_given_" is
 Primitive "Macro_is«_,»_" is
 [
 	macroName : string,
-	prefixFunctions : tuple of functions,
+	prefixFunctions : tuple of function,
 	body : macro function
 |
 	Primitive SimpleMacroDeclaration (failureCode : {
@@ -2118,7 +2118,7 @@ Primitive "Macro_is«_,»_" is
  * @method "Macro_is«_,»_"
  * @param "macroName" "atom"
  *        The name of the macro to define.
- * @param "prefixFunctions" "tuple of functions"
+ * @param "prefixFunctions" "tuple of function"
  *        A tuple of zero or more prefix functions.
  * @param "body" "macro function"
  *        The function that implements the macro.
@@ -2154,7 +2154,7 @@ Primitive "Macro_is«_,»_" is
 Primitive "Macro_is«_,»_" is
 [
 	macroName : atom,
-	prefixFunctions : tuple of functions,
+	prefixFunctions : tuple of function,
 	body : macro function
 |
 	Primitive SimpleMacroDefinitionForAtom (failureCode : {
@@ -2898,7 +2898,7 @@ Primitive "_'s⁇_field" is
 	Primitive BindPojoInstanceField (failureCode : {
 		Java-field-not-available code}ᵀ);
 	Private invoke _fail_primitive with failureCode
-] : variable;
+] : write-only variable;
 
 /**
  * Construct and answer a variable that, when read or written, will pass
@@ -2926,7 +2926,7 @@ Primitive "_'s⁇_field" is
 		Java-field-not-available code,
 		Java-field-reference-is-ambiguous code}ᵀ);
 	Private invoke _fail_primitive with failureCode
-] : variable;
+] : write-only variable;
 
 /**
  * Construct and answer a function that, when applied with arguments
@@ -3490,7 +3490,7 @@ Primitive "_'s⁇instances" is
  *
  * @category "Primitives" "Variables" "Queries"
  * @method "↓_"
- * @param "var" "variable"
+ * @param "var" "write-only variable"
  *        A variable.
  * @returns "any"
  *    The value contained within the specified variable.
@@ -3499,7 +3499,7 @@ Primitive "_'s⁇instances" is
  */
 Primitive "↓_" is
 [
-	var : variable
+	var : write-only variable
 |
 	Primitive GetValue (failureCode : {
 		cannot-read-unassigned-variable code,

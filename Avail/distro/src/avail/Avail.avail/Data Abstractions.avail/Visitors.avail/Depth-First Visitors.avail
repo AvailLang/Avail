@@ -1,5 +1,5 @@
 /*
- * Playing.avail
+ * Depth-First Visitors.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,26 +30,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Playing"
+Module "Depth-First Visitors"
 Versions
 	"1.0.0 DEV 2014-04-28"
-Extends
-	"English Wumpus",
-	"Smalltalk Wumpus" =
-	(
-		"self playWumpTheWumpus" → "Game playWumpTheWumpus"
-	),
-	"Perl Wumpus" =
-	(
-		"play`_wump`_the`_wumpus" → "Game::play`_wump`_the`_wumpus"
-	)
-Entries
-	/* English. */
-	"Play Wump the Wumpus",
-
-	/* Smalltalk */
-	"Game playWumpTheWumpus",
-
-	/* Perl. */
-	"Game::play`_wump`_the`_wumpus"
+Uses
+	"Abstract Visitors",
+	"Foundation"
 Body
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	aVisitor : visitor,
+	value : any,
+	deconstructor : [⊥]→tuple,
+	breadthFirst : false's type
+|
+	substitute ::= Before visiting aVisitor upon value;
+	If substitute = do not visit then
+	[
+		/* Do nothing. */
+	]
+	else if substitute = value then
+	[
+		For each component of deconstructor(substitute) do
+		[
+			Visit aVisitor upon component deconstructed by deconstructor
+				(breadth first = false);
+		];
+		After visiting aVisitor upon substitute;
+	]
+	else
+	[
+		Visit aVisitor upon substitute deconstructed by deconstructor
+			(breadth first = false);
+	];
+];
