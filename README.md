@@ -1,4 +1,5 @@
-OVERVIEW =======================================================================
+OVERVIEW
+--------------------------------------------------------------------------------
 
 This document describes the entire process of obtaining, installing,
 configuring, and running the Avail development workbench. Depending on how you
@@ -7,7 +8,8 @@ already installed on your system, you may be able to skip some of the sections
 of this document.
 
 
-BEFORE OBTAINING AVAIL =========================================================
+BEFORE OBTAINING AVAIL
+--------------------------------------------------------------------------------
 
 In order to obtain Avail, you will need to make sure that you have obtained and
 installed the prerequisite software:
@@ -37,7 +39,8 @@ The main command is called "git". Please make sure that "git" is available on
 your path.
 
 
-OBTAINING AVAIL ================================================================
+OBTAINING AVAIL
+--------------------------------------------------------------------------------
 
 The preferred method of acquiring Avail is from The Avail Foundation's official
 public repository. This repository is located at:
@@ -55,7 +58,8 @@ probably want to choose a non-system directory to house the local copy of the
 Avail repository.
 
 
-BEFORE INSTALLING ==============================================================
+BEFORE INSTALLING
+--------------------------------------------------------------------------------
 
 Before installing Avail, you will need to make sure that you have obtained and
 installed the prerequisite software:
@@ -111,7 +115,8 @@ included with the distribution of your choice.
 The main command is "ant". Please make sure that "ant" is on your path.
 
 
-BUILDING =======================================================================
+BUILDING
+--------------------------------------------------------------------------------
 
 You will need to compile Avail using the provided build script, "build.xml". To
 build Avail:
@@ -149,7 +154,8 @@ If your transcript ends with "BUILD SUCCESSFUL", then your build is ready for
 installation.
 
 
-INSTALLATION ===================================================================
+INSTALLATION
+--------------------------------------------------------------------------------
 
 Once you have successfully built the Avail project, you can then install it for
 either user-specific or system-wide usage. The installation directory
@@ -228,7 +234,8 @@ environment for Avail development. Please be sure to follow these instructions
 (reiterated in more detail below).
 
 
-AFTER INSTALLING ==============================================================
+AFTER INSTALLING
+--------------------------------------------------------------------------------
 
 In order to develop Avail libraries and programs, you will need to configure
 your environment appropriately. On Unix, this is best accomplished by updating
@@ -292,7 +299,8 @@ For more information on this topic, please visit this webpage:
 
 	http://www.availlang.org/about-avail/documentation/modules/module-discovery.html
 
-RUNNING AVAIL ==================================================================
+RUNNING AVAIL
+--------------------------------------------------------------------------------
 
 To run an Avail program, launch the Avail development workbench:
 
@@ -306,7 +314,8 @@ Avail commands, please visit:
 	http://www.availlang.org/about-avail/learn/tutorials/workbench.html
 
 
-DEVELOPING AVAIL ===============================================================
+DEVELOPING AVAIL
+--------------------------------------------------------------------------------
 
 At the time of writing, there is not an integrated development environment (IDE)
 that specifically targets Avail. To develop Avail, The Avail Foundation
@@ -321,7 +330,8 @@ formatting practices. You are also strive to imitate the existing stylistic
 conventions, just as you would for any other established code base.
 
 
-STAYING CURRENT ================================================================
+STAYING CURRENT
+--------------------------------------------------------------------------------
 
 To keep up-to-date with the latest Avail development, you will want to refresh
 the Avail project directory from Git every once in a while:
@@ -350,7 +360,8 @@ Be sure to visit the official Avail website frequently for updates and news:
 	http://www.availlang.org
 
 
-UNINSTALLATION =================================================================
+UNINSTALLATION
+--------------------------------------------------------------------------------
 
 Once you have installed Avail, should you decide to uninstall it, you can do so
 with a command like:
@@ -375,7 +386,8 @@ structure, you may wish to uninstall Avail preceding a rebuild:
 	$ ant install
 
 
-REPORTING PROBLEMS =============================================================
+REPORTING PROBLEMS
+--------------------------------------------------------------------------------
 
 To report a problem with the Avail virtual machine or standard library, please
 take the following steps:
