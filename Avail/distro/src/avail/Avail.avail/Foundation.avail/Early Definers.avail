@@ -734,7 +734,7 @@ Method "Grammatical restriction_is_" is
 Method "Public macro_is«_,»_" is
 [
 	macroName : string,
-	prefixFunctions : tuple of functions,
+	prefixFunctions : tuple of function,
 	body : macro function
 |
 	Primitive SimpleMacroDeclaration (failureCode : natural number);
@@ -751,7 +751,7 @@ Method "Public macro_is«_,»_" is
 Semantic restriction "Public macro_is«_,»_" is
 [
 	macroNameType : string's type,
-	prefixFunctionsType : tuple of functions's type,
+	prefixFunctionsType : tuple of function's type,
 	bodyType : macro function's type
 |
 	Require: macroNameType is public;

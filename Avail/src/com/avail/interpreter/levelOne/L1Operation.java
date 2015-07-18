@@ -209,8 +209,7 @@ public enum L1Operation
 	/**
 	 * Push the current value of the specified outer variable.  The outer
 	 * variable is part of the {@linkplain FunctionDescriptor function} being
-	 * executed.  Clear the slot holding this outer variable if the function is
-	 * mutable.
+	 * executed. Clear this outer variable if it is mutable.
 	 */
 	L1_doGetOuterClearing(10, L1OperandType.OUTER)
 	{

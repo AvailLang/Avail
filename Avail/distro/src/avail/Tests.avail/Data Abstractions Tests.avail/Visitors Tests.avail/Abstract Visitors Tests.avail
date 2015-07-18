@@ -1,5 +1,5 @@
 /*
- * Playing.avail
+ * Abstract Visitors Tests.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,26 +30,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Playing"
+Module "Abstract Visitors Tests"
 Versions
 	"1.0.0 DEV 2014-04-28"
-Extends
-	"English Wumpus",
-	"Smalltalk Wumpus" =
-	(
-		"self playWumpTheWumpus" → "Game playWumpTheWumpus"
-	),
-	"Perl Wumpus" =
-	(
-		"play`_wump`_the`_wumpus" → "Game::play`_wump`_the`_wumpus"
-	)
-Entries
-	/* English. */
-	"Play Wump the Wumpus",
-
-	/* Smalltalk */
-	"Game playWumpTheWumpus",
-
-	/* Perl. */
-	"Game::play`_wump`_the`_wumpus"
+Uses
+	"Common"
+Names
+	"visitors test suite"
 Body
+
+Public "visitors test suite" is a new field atom;
+New test suite visitors test suite extends data abstractions test suite;

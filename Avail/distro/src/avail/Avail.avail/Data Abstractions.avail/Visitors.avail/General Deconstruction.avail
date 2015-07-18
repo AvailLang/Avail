@@ -1,5 +1,5 @@
 /*
- * Playing.avail
+ * General Deconstruction.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,26 +30,101 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Playing"
+Module "General Deconstruction"
 Versions
 	"1.0.0 DEV 2014-04-28"
-Extends
-	"English Wumpus",
-	"Smalltalk Wumpus" =
-	(
-		"self playWumpTheWumpus" → "Game playWumpTheWumpus"
-	),
-	"Perl Wumpus" =
-	(
-		"play`_wump`_the`_wumpus" → "Game::play`_wump`_the`_wumpus"
-	)
-Entries
-	/* English. */
-	"Play Wump the Wumpus",
-
-	/* Smalltalk */
-	"Game playWumpTheWumpus",
-
-	/* Perl. */
-	"Game::play`_wump`_the`_wumpus"
+Uses
+	"Foundation",
+	"Phrase Deconstruction"
+Names
+	"_'s⁇subcomponents"
 Body
+
+/**
+ * Answer the subcomponents that comprise the specified value.
+ *
+ * @method "_'s⁇subcomponents"
+ * @param "value" "any"
+ *        The value to deconstruct.
+ * @returns "tuple"
+ *          The subcomponents.
+ */
+Public method "_'s⁇subcomponents" is [value : any | <>] : tuple;
+
+Public method "_'s⁇subcomponents" is
+[
+	value : map
+|
+	visitable : tuple := <>;
+	For each k → v of value do [visitable ++= <k, v>;];
+	visitable
+];
+
+/**
+ * Should the argument be visited if it is a field value within an {@type
+ * "object"}?
+ *
+ * @method "_is visitable field"
+ * @param "value" "any"
+ * @returns "boolean"
+ *          {@method "true"} if the field should be visited, {@method "false"}
+ *          otherwise.
+ */
+Private method "_is visitable field" is
+[
+	value : any
+|
+	true
+] : boolean;
+
+Private method "_is visitable field" is
+[
+	value : atom
+|
+	¬explicit atom ∈ value
+];
+
+Public method "_'s⁇subcomponents" is
+[
+	value : object
+|
+	map and filter value→map by
+	[
+		k : atom,
+		v : any,
+		accept : [<atom, any…|2>]→⊤
+	|
+		If k is visitable field then
+		[
+			accept(<k, v>);
+		];
+	]'s bindings
+];
+
+Public method "_'s⁇subcomponents" is
+[
+	value : phrase
+|
+	value's subphrases
+];
+
+Public method "_'s⁇subcomponents" is
+[
+	value : set
+|
+	value→tuple
+];
+
+Public method "_'s⁇subcomponents" is
+[
+	value : tuple
+|
+	value
+];
+
+Public method "_'s⁇subcomponents" is
+[
+	value : variable
+|
+	<↓value>
+];

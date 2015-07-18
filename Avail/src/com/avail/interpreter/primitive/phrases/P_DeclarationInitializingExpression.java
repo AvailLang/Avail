@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.phrases;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -68,8 +68,8 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
-		final A_Phrase decl = args.get(0);
-		final A_Variable var = args.get(1);
+		final A_Variable var = args.get(0);
+		final A_Phrase decl = args.get(1);
 		final A_Phrase initializer = decl.initializationExpression();
 		try
 		{
@@ -95,7 +95,7 @@ extends Primitive
 			TupleDescriptor.from(
 				VariableTypeDescriptor.fromReadAndWriteTypes(
 					TOP.o(),
-					EXPRESSION_NODE.create(BottomTypeDescriptor.bottom())),
+					BottomTypeDescriptor.bottom()),
 				DECLARATION_NODE.mostGeneralType()),
 			EnumerationTypeDescriptor.booleanObject());
 	}
@@ -103,7 +103,10 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED.numericCode());
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			TupleDescriptor.from(
+				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE.numericCode(),
+				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED.numericCode()
+			).asSet());
 	}
 }

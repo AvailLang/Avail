@@ -4750,7 +4750,7 @@ Semantic restriction "_padded with_to a multiple of_" is
 	padType : any's type,
 	baseType : whole number's type
 |
-	unionType ::= ∪ tupleType[1..relevant |tupleType|] ∪ padType;
+	unionType ::= ∪ tupleType[1..|tupleType's leading types| + 1] ∪ padType;
 	min ::= ⎣tupleType⎦;
 	max ::= 0 max (⎡tupleType⎤ + ⎡baseType⎤ - 1);
 	<unionType…|min..max>

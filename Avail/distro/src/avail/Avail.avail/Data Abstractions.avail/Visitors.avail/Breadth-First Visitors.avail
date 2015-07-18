@@ -1,5 +1,5 @@
 /*
- * Playing.avail
+ * Breadth-First Visitors.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,26 +30,39 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Playing"
+Module "Breadth-First Visitors"
 Versions
 	"1.0.0 DEV 2014-04-28"
-Extends
-	"English Wumpus",
-	"Smalltalk Wumpus" =
-	(
-		"self playWumpTheWumpus" → "Game playWumpTheWumpus"
-	),
-	"Perl Wumpus" =
-	(
-		"play`_wump`_the`_wumpus" → "Game::play`_wump`_the`_wumpus"
-	)
-Entries
-	/* English. */
-	"Play Wump the Wumpus",
-
-	/* Smalltalk */
-	"Game playWumpTheWumpus",
-
-	/* Perl. */
-	"Game::play`_wump`_the`_wumpus"
+Uses
+	"Abstract Visitors",
+	"Foundation"
 Body
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	aVisitor : visitor,
+	value : any,
+	deconstructor : [⊥]→tuple,
+	breadthFirst : true's type
+|
+	queue : tuple := <value>;
+	While ¬queue is empty do
+	[
+		head ::= queue[1];
+		queue := queue[2..];
+		substitute ::= Before visiting aVisitor upon head;
+		If substitute = do not visit then
+		[
+			/* Do nothing. */
+		]
+		else if substitute = value then
+		[
+			queue ++= deconstructor(substitute);
+			After visiting aVisitor upon substitute;
+		]
+		else
+		[
+			queue := <substitute> ++ queue;
+		];
+	];
+];

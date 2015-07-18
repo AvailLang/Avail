@@ -59,7 +59,8 @@ Names
 	"¢…!",
 	"…#.…#«f»?",
 	"…#.…#…",
-	"…#.…#e|E«+|-»!…#«f»?"
+	"…#.…#e|E«+|-»!…#«f»?",
+	"enclosing module"
 Body
 
 Method "`|_`|" is stable at
@@ -1156,3 +1157,12 @@ Public macro "…#.…#e|E«+|-»!…#«f»?" is
 		exponent = syntheticExponentToken;
 	‘`if isFloat then [d→float] else [d]`’
 ];
+
+/**
+ * Answer the lexically enclosing {@type "module"}.
+ *
+ * @macro "enclosing module"
+ * @category "Modules"
+ * @returns "literal phrase⇒module"
+ */
+Public macro "enclosing module" is [‘`current module`’];

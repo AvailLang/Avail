@@ -1,5 +1,5 @@
-/*
- * Playing.avail
+/**
+ * P_CreatePermutedListPhrase.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,26 +30,52 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Playing"
-Versions
-	"1.0.0 DEV 2014-04-28"
-Extends
-	"English Wumpus",
-	"Smalltalk Wumpus" =
-	(
-		"self playWumpTheWumpus" → "Game playWumpTheWumpus"
-	),
-	"Perl Wumpus" =
-	(
-		"play`_wump`_the`_wumpus" → "Game::play`_wump`_the`_wumpus"
-	)
-Entries
-	/* English. */
-	"Play Wump the Wumpus",
+package com.avail.interpreter.primitive.phrases;
 
-	/* Smalltalk */
-	"Game playWumpTheWumpus",
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
 
-	/* Perl. */
-	"Game::play`_wump`_the`_wumpus"
-Body
+/**
+ * <strong>Primitive</strong>: Create a {@linkplain PermutedListNodeDescriptor
+ * permuted list phrase} from the given {@linkplain ListNodeDescriptor list
+ * phrase} and permutation {@linkplain TupleDescriptor tuple}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+public final class P_CreatePermutedListPhrase
+extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class. Accessed through reflection.
+	 */
+	public final static Primitive instance =
+		new P_CreatePermutedListPhrase().init(2, CannotFail, CanInline);
+
+	@Override
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter,
+		final boolean skipReturnCheck)
+	{
+		assert args.size() == 2;
+		final A_Phrase list = args.get(0);
+		final A_Tuple permutation = args.get(1);
+		return interpreter.primitiveSuccess(
+			PermutedListNodeDescriptor.fromListAndPermutation(
+				list, permutation));
+	}
+
+	@Override
+	protected A_Type privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				LIST_NODE.mostGeneralType(),
+				TupleTypeDescriptor.oneOrMoreOf(
+					IntegerRangeTypeDescriptor.naturalNumbers())),
+			PERMUTED_LIST_NODE.mostGeneralType());
+	}
+}

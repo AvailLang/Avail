@@ -44,5 +44,6 @@ Extends
 		"Mersenne Twister test suite",
 		"pRNG test suite"
 	),
-	"Streams Tests" = ("streams test suite")
+	"Streams Tests" = ("streams test suite"),
+	"Visitors Tests"
 Body

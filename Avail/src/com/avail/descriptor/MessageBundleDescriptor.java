@@ -366,7 +366,7 @@ extends Descriptor
 		// The existing definitions are also printed in parentheses to help
 		// distinguish polymorphism from occurrences of non-polymorphic
 		// homonyms.
-		aStream.append("bundle\"");
+		aStream.append("bundle \"");
 		aStream.append(object.message().atomName().asNativeString());
 		aStream.append("\"");
 	}

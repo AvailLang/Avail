@@ -1456,7 +1456,7 @@ public final class AvailRuntime
 		specials[124] =
 			VariableTypeDescriptor.fromReadAndWriteTypes(
 				TOP.o(),
-				EXPRESSION_NODE.create(BottomTypeDescriptor.bottom()));
+				BottomTypeDescriptor.bottom());
 		specials[125] =
 			TupleTypeDescriptor.zeroOrMoreOf(EXPRESSION_NODE.create(ANY.o()));
 		specials[126] = EXPRESSION_NODE.create(ANY.o());
@@ -1510,6 +1510,9 @@ public final class AvailRuntime
 		specials[148] = STATEMENT_NODE.mostGeneralType();
 		specials[149] = AtomDescriptor.compilerScopeStackKey();
 		specials[150] = EXPRESSION_AS_STATEMENT_NODE.mostGeneralType();
+		specials[151] = TupleTypeDescriptor.oneOrMoreOf(
+			IntegerRangeTypeDescriptor.naturalNumbers());
+		specials[152] = TupleTypeDescriptor.zeroOrMoreOf(DEFINITION.o());
 
 		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
 		// depends on the order of this list.

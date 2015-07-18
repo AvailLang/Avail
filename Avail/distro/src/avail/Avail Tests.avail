@@ -60,6 +60,7 @@ Extends
 		"function test suite",
 		"generator test suite",
 		"I/O test suite",
+		"identity visitors test suite",
 		"iterators test suite",
 		"logic test suite",
 		"map test suite",
@@ -67,7 +68,6 @@ Extends
 		"Mersenne Twister test suite",
 		"network test suite",
 		"observation test suite",
-		/*"optional test suite",*/ /*TODO Data Abstractions does not extend Optional where this exists*/
 		"pRNG test suite",
 		"set test suite",
 		"string test suite",
@@ -75,7 +75,8 @@ Extends
 		"tuple reader test suite",
 		"tuple test suite",
 		"type test suite",
-		"UTF8 converters test suite"
+		"UTF8 converters test suite",
+		"visitors test suite"
 	),
 	"Dimensional Analysis" =
 	(

@@ -39,5 +39,6 @@ Extends
 	"Iterators",
 	"Pseudorandom Number Generation",
 	"Sequences",
-	"Streams"
+	"Streams",
+	"Visitors"
 Body

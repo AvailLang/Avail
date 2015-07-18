@@ -1,0 +1,394 @@
+/*
+ * Mutability Visitors.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Mutability Visitors"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Abstract Visitors",
+	"Depth-First Visitors",
+	"Foundation",
+	"General Deconstruction",
+	"Identity Visitors"
+Names
+	/* Types. */
+	"anti-mutability revisitor",
+
+	/* Mutability queries. */
+	"_is immutable",
+	"_is mutable"
+Body
+
+"escape continuation" is a new field atom;
+
+/**
+ * An {@type "private mutability visitor"} retains a {@type "continuation"} that
+ * enables fast escape upon affirmative discovery that a value is mutable.
+ *
+ * @type "private mutability visitor"
+ * @supertype "visitor"
+ * @field "escape continuation" "$[…]→boolean"
+ *        The {@type "continuation"} to {@method "Exit_with_" exit} if the
+ *        target value is determined to be mutable.
+ */
+Class "private mutability visitor" extends visitor
+	with field
+		escape continuation : $[…]→boolean;
+
+Method "Before visiting_upon_" is
+[
+	aVisitor : private mutability visitor,
+	value : atom
+|
+	If ¬value is special then [Exit aVisitor's escape continuation with true];
+	value
+];
+
+Method "Before visiting_upon_" is
+[
+	aVisitor : private mutability visitor,
+	value : fiber
+|
+	Exit aVisitor's escape continuation with true
+];
+
+Method "Before visiting_upon_" is
+[
+	aVisitor : private mutability visitor,
+	value : function
+|
+	/* A function is only mutable if any of its outers could be cleared by its
+	 * instructions.
+	 */
+	If ¬value's outer variables is empty then
+	[
+		insts ::= L1 operations for value;
+		For each inst of insts do
+		[
+			If inst = L1 push last outer then
+			[
+				Exit aVisitor's escape continuation with true
+			];
+		];
+	];
+	value
+];
+
+Method "Before visiting_upon_" is
+[
+	aVisitor : private mutability visitor,
+	value : method
+|
+	Exit aVisitor's escape continuation with true
+];
+
+Method "Before visiting_upon_" is
+[
+	aVisitor : private mutability visitor,
+	value : module
+|
+	Exit aVisitor's escape continuation with true
+];
+
+Method "Before visiting_upon_" is
+[
+	aVisitor : private mutability visitor,
+	value : pojo
+|
+	Exit aVisitor's escape continuation with true
+];
+
+Method "Before visiting_upon_" is
+[
+	aVisitor : private mutability visitor,
+	value : variable
+|
+	Exit aVisitor's escape continuation with true
+];
+
+/**
+ * Answer the components of the specified value that are considered visitable by
+ * an {@type "private mutability visitor"}.
+ *
+ * @method "_'s⁇visitable components"
+ * @param "value" "any"
+ *        A value.
+ * @returns "tuple"
+ *          The components of the value that are considered visitable by an
+ *          {@type "private mutability visitor"}.
+ */
+Private method "_'s⁇visitable components" is
+[
+	value : any
+|
+	value's subcomponents
+] : tuple;
+
+Private method "_'s⁇visitable components" is
+[
+	value : continuation
+|
+	<value's function, value's stack, value's caller>
+];
+
+Private method "_'s⁇visitable components" is
+[
+	value : function implementation
+|
+	value's literals
+];
+
+Private method "_'s⁇visitable components" is
+[
+	value : literal phrase
+|
+	<value's token>
+];
+
+Private method "_'s⁇visitable components" is
+[
+	value : literal token
+|
+	<value's value>
+];
+
+/**
+ * Should the argument be visited if it is a field value within an {@type
+ * "object"}?
+ *
+ * @method "_is visitable object value"
+ * @param "value" "any"
+ * @returns "boolean"
+ *          {@method "true"} if the value should be visited, {@method "false"}
+ *          otherwise.
+ */
+Private method "_is visitable object value" is
+[
+	value : any
+|
+	true
+] : boolean;
+
+Private method "_is visitable object value" is
+[
+	value : atom
+|
+	¬explicit atom ∈ value
+];
+
+Private method "_'s⁇visitable components" is
+[
+	value : object
+|
+	select each v from value→map's values where [v is visitable object value]
+];
+
+Private method "_'s⁇visitable components" is
+[
+	value : type
+|
+	if |value| ≠ ∞ then [value's instances→tuple] else [<>]
+];
+
+Private method "_'s⁇visitable components" is
+[
+	value : variable
+|
+	<>
+];
+
+/**
+ * Is the target semantically mutable? A value is mutable if any of its
+ * components, recursively, are mutable.
+ *
+ * The Avail implementation has an internal concept of mutability, that
+ * indicates that a quasi-destructive operation is allowed to mutate a value
+ * rather than deriving a new one based on the modification. The Avail language
+ * is opaque to this implementation detail, and this sense is not intended here.
+ * This query pertains only to semantic mutability, i.e., whether it is possible
+ * to observe, from within an Avail program, a change to the structure or
+ * content of a value.
+ *
+ * @method "_is mutable"
+ * @param "value" "any"
+ *        The value being interrogated.
+ * @returns "boolean"
+ *          {@method "true"} if the value is mutable, {@method "false"}
+ *          otherwise.
+ */
+Public stable method "_is mutable" is
+[
+	value : any
+|
+	$body : boolean;
+	aVisitor ::= a private mutability visitor with escape continuation ::= body;
+	Visit aVisitor
+		upon value
+		deconstructed by [a : any | a's visitable components]
+		(breadth first = false);
+	false
+] : boolean;
+
+/**
+ * Is the target semantically immutable? A value is immutable if none of its
+ * components, recursively, are mutable.
+ *
+ * The Avail implementation has an internal concept of mutability, that
+ * indicates that a quasi-destructive operation is allowed to mutate a value
+ * rather than deriving a new one based on the modification. The Avail language
+ * is opaque to this implementation detail, and this sense is not intended here.
+ * This query pertains only to semantic mutability, i.e., whether it is possible
+ * to observe, from within an Avail program, a change to the structure or
+ * content of a value.
+ *
+ * @method "_is immutable"
+ * @param "value" "any"
+ *        The value being interrogated.
+ * @returns "boolean"
+ *          {@method "true"} if the value is immutable, {@method "false"}
+ *          otherwise.
+ */
+Public stable method "_is immutable" is
+[
+	value : any
+|
+	¬value is mutable
+];
+
+/**
+ * An {@type "anti-mutability revisitor"} does not {@method
+ * "Visit_upon_deconstructed by_(breadth first=_)" visit} a value that {@method
+ * "_is mutable" is mutable} more than once.
+ *
+ * @type "anti-mutability revisitor"
+ * @supertype "visitor"
+ * @field "visited values" "set"
+ *        The values that have already been visited.
+ */
+Public explicit class "anti-mutability revisitor" extends visitor
+	with mutable field
+		visited values : set;
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	aVisitor : anti-mutability revisitor,
+	value : any,
+	deconstructor : [⊥]→tuple,
+	breadthFirst : false's type
+|
+	substitute ::= Before visiting aVisitor upon value;
+	If substitute = do not visit then
+	[
+		/* Do nothing. */
+	]
+	else if substitute = value then
+	[
+		For each component of deconstructor(value) do
+		[
+			If ¬component ∈ aVisitor's visited values then
+			[
+				If component is mutable then
+				[
+					aVisitor's visited values :=
+						aVisitor's visited values + component;
+				];
+				Visit aVisitor upon component deconstructed by deconstructor
+					(breadth first = false);
+			];
+		];
+		After visiting aVisitor upon value;
+	]
+	else
+	[
+		If ¬substitute ∈ aVisitor's visited values then
+		[
+			If substitute is mutable then
+			[
+				aVisitor's visited values :=
+					aVisitor's visited values + substitute;
+			];
+			Visit aVisitor upon substitute deconstructed by deconstructor
+				(breadth first = false);
+		];
+	];
+];
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	aVisitor : anti-mutability revisitor,
+	value : any,
+	deconstructor : [⊥]→tuple,
+	breadthFirst : true's type
+|
+	queue : tuple := <value>;
+	While ¬queue is empty do
+	[
+		head ::= queue[1];
+		If head is mutable then
+		[
+			aVisitor's visited values := aVisitor's visited values + head;
+		];
+		queue := queue[2..];
+		substitute ::= Before visiting aVisitor upon head;
+		If substitute = do not visit then
+		[
+			/* Do nothing. */
+		]
+		else if substitute = head then
+		[
+			queue ++= select each component from deconstructor(head) where
+				[¬component ∈ aVisitor's visited values];
+			After visiting aVisitor upon head;
+		]
+		else
+		[
+			queue := <substitute> ++ queue;
+		];
+	];
+];
+
+Method "Visit_upon_deconstructed by_(breadth first=_)" is
+[
+	aVisitor : anti-identity revisitor ∩ anti-mutability revisitor,
+	value : any,
+	deconstructor : [⊥]→tuple,
+	breadthFirst : boolean
+|
+	/* The visitation algorithm for anti-identity revisitors prevents re-examination of
+	 * more values than the anti-mutability revisitor's visitation algorithm; a
+	 * superset, in fact.
+	 */
+	Visit (aVisitor :: anti-identity revisitor)
+		upon value
+		deconstructed by deconstructor
+		(breadth first = breadthFirst);
+];

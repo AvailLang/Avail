@@ -1,5 +1,5 @@
 /*
- * Playing.avail
+ * Phrase Visitors.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,26 +30,26 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Playing"
+Module "Phrase Visitors"
 Versions
 	"1.0.0 DEV 2014-04-28"
-Extends
-	"English Wumpus",
-	"Smalltalk Wumpus" =
-	(
-		"self playWumpTheWumpus" → "Game playWumpTheWumpus"
-	),
-	"Perl Wumpus" =
-	(
-		"play`_wump`_the`_wumpus" → "Game::play`_wump`_the`_wumpus"
-	)
-Entries
-	/* English. */
-	"Play Wump the Wumpus",
-
-	/* Smalltalk */
-	"Game playWumpTheWumpus",
-
-	/* Perl. */
-	"Game::play`_wump`_the`_wumpus"
+Uses
+	"Abstract Visitors",
+	"Depth-First Visitors",
+	"Foundation",
+	"Identity Visitors"
+Names
+	"phrase visitor"
 Body
+
+/**
+ * A {@type "phrase visitor"} does not {@method
+ * "Visit_upon_deconstructed by_(breadth first=_)" visit} a {@type "phrase"}
+ * more than once.
+ *
+ * @type "phrase visitor"
+ * @supertype "anti-identity revisitor"
+ * @field "visited values" "set"
+ *        The values that have already been visited.
+ */
+Public explicit class "phrase visitor" extends anti-identity revisitor;
