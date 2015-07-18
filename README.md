@@ -116,31 +116,31 @@ BUILDING =======================================================================
 You will need to compile Avail using the provided build script, "build.xml". To
 build Avail:
 
-	$ cd $PROJ/Avail
+	$ cd $PROJ
 	$ ant
 
 (When no arguments are provided, Ant will search the current directory for a 
 "build.xml" and, if one was found, run its default target. If you are invoking
-Ant from a different directory than $PROJ/Avail, your invocation should read 
-"ant -f $PROJ/Avail/build.xml".)
+Ant from a different directory than $PROJ, your invocation should read
+"ant -f $PROJ/build.xml".)
 
 You should see output similar to this:
 
-	Buildfile: $PROJ/Avail/build.xml
+	Buildfile: $PROJ/build.xml
 
 	build-sources:
-		[mkdir] Created dir: $PROJ/Avail/bin
-		[javac] Compiling 1022 source files to $PROJ/Avail/bin
+		[mkdir] Created dir: $PROJ/bin
+		[javac] Compiling 1022 source files to $PROJ/bin
 
 	generate-build-time:
 
 	generate-primitives-list:
 
 	avail-vm:
-		[jar] Building jar: $PROJ/Avail/distro/lib/Avail.jar
+		[jar] Building jar: $PROJ/distro/lib/Avail.jar
 
 	avail-dev:
-		[jar] Building jar: $PROJ/Avail/distro/lib/AvailDev.jar
+		[jar] Building jar: $PROJ/distro/lib/AvailDev.jar
 
 	BUILD SUCCESSFUL
 	Total time: 14 seconds
@@ -158,7 +158,7 @@ set this property by providing the -Dpath.install=... option to Ant.
 
 You can install Avail into a specific installation directory like this:
 
-	$ cd $PROJ/Avail
+	$ cd $PROJ
 	$ ant -Dpath.install=$INSTALL install
 
 If you do not specify -Dpath.install=... explicitly, then $INSTALL defaults to
@@ -169,7 +169,7 @@ administrative account.
 
 Your transcript should look similar to this:
 
-	Buildfile: $PROJ/Avail/build.xml
+	Buildfile: $PROJ/build.xml
 
 	build-sources:
 
@@ -178,10 +178,10 @@ Your transcript should look similar to this:
 	generate-primitives-list:
 
 	avail-vm:
-		[jar] Building jar: $PROJ/Avail/distro/lib/Avail.jar
+		[jar] Building jar: $PROJ/distro/lib/Avail.jar
 
 	avail-dev:
-		[jar] Building jar: $PROJ/Avail/distro/lib/AvailDev.jar
+		[jar] Building jar: $PROJ/distro/lib/AvailDev.jar
 
 	install:
 		[copy] Copying 229 files to $INSTALL
@@ -315,11 +315,10 @@ good support for Unicode and user templates.
 
 For those who wish to contribute source code to Avail itself, please use the
 latest version of Eclipse and the "eclipse-luna.epf" preferences file and the
-"avail-templates.xml" code templates files provided in $PROJ/Avail. This
-practice assists the Avail team in maintaining consistency in coding,
-documentation, and formatting practices. You are also strive to imitate the
-existing stylistic conventions, just as you would for any other established code
-base.
+"avail-templates.xml" code templates files provided in $PROJ. This practice
+assists the Avail team in maintaining consistency in coding, documentation, and
+formatting practices. You are also strive to imitate the existing stylistic
+conventions, just as you would for any other established code base.
 
 
 STAYING CURRENT ================================================================
