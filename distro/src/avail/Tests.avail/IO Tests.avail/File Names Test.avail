@@ -74,7 +74,6 @@ Test "real path" in file names test suite is
 	Require: real is absolute;
 	Require: real names the same file as fn;
 	Require: real names the same file as fn's absolute path;
-	Require: real's metadata's file ID = fn's metadata's file ID;
 ];
 
 Test "same file" in file names test suite is

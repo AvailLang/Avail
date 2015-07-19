@@ -38,11 +38,13 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.*;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.FileSystem;
 import java.nio.file.InvalidPathException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.EnumSet;
@@ -50,6 +52,7 @@ import java.util.List;
 import java.util.Set;
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.FileHandle;
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
@@ -103,24 +106,36 @@ extends Primitive
 	 * file permissions} that correspond to the supplied {@linkplain
 	 * SetDescriptor set} of integral option indicators.
 	 *
+	 * @param runtime
+	 *        The {@linkplain AvailRuntime runtime}.
 	 * @param optionInts
 	 *        Some integral option indicators.
-	 * @return A set containing an attribute that specifies the implied POSIX
+	 * @return An array whose lone element is a set containing an attribute that
+	 *         specifies the implied POSIX file permissions, or an empty array
+	 *         if the {@linkplain FileSystem file system} does not support POSIX
 	 *         file permissions.
 	 */
-	private FileAttribute<?> permissionsFor (final A_Set optionInts)
+	private @Nullable FileAttribute<?>[] permissionsFor (
+		final AvailRuntime runtime,
+		final A_Set optionInts)
 	{
-		final PosixFilePermission[] allPermissions =
-			AvailRuntime.posixPermissions();
-		final Set<PosixFilePermission> permissions = EnumSet.noneOf(
-			PosixFilePermission.class);
-		for (final A_Number optionInt : optionInts)
+		if (runtime.fileSystem().supportedFileAttributeViews().contains(
+			"posix"))
 		{
-			final PosixFilePermission permission =
-				allPermissions[optionInt.extractInt() - 1];
-			permissions.add(permission);
+			final PosixFilePermission[] allPermissions =
+				AvailRuntime.posixPermissions();
+			final Set<PosixFilePermission> permissions = EnumSet.noneOf(
+				PosixFilePermission.class);
+			for (final A_Number optionInt : optionInts)
+			{
+				final PosixFilePermission permission =
+					allPermissions[optionInt.extractInt() - 1];
+				permissions.add(permission);
+			}
+			return new FileAttribute<?>[]
+				{PosixFilePermissions.asFileAttribute(permissions)};
 		}
-		return PosixFilePermissions.asFileAttribute(permissions);
+		return new FileAttribute<?>[0];
 	}
 
 	@Override
@@ -150,7 +165,8 @@ extends Primitive
 		assert alignmentInt > 0;
 		final AvailRuntime runtime = AvailRuntime.current();
 		final Set<? extends OpenOption> fileOptions = openOptionsFor(options);
-		final FileAttribute<?> fileAttributes = permissionsFor(permissions);
+		final FileAttribute<?>[] fileAttributes = permissionsFor(
+			runtime, permissions);
 		if (!fileOptions.contains(READ) && !fileOptions.contains(WRITE))
 		{
 			return interpreter.primitiveFailure(E_ILLEGAL_OPTION);

@@ -85,12 +85,18 @@ Test "file times" in file metadata test suite is
 	Require:
 		fn's creation time
 		≤ fn's last modification time
+		≤ milliseconds since the Epoch;
+	Require:
+		fn's creation time
 		≤ fn's last access time
 		≤ milliseconds since the Epoch;
 	m ::= fn's metadata;
 	Require:
 		m's creation time
 		≤ m's last modification time
+		≤ milliseconds since the Epoch;
+	Require:
+		m's creation time
 		≤ m's last access time
 		≤ milliseconds since the Epoch;
 	Require: m's creation time = fn's creation time;
