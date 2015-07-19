@@ -802,12 +802,19 @@ extends JFrame
 	@InnerAccess final SetDocumentationPathAction setDocumentationPathAction =
 		new SetDocumentationPathAction(this);
 
-	/** The {@linkplain ReportAction report action}. */
-	@InnerAccess final ReportAction reportAction = new ReportAction(this);
+	/** The {@linkplain ShowVMReportAction show VM report action}. */
+	@InnerAccess final ShowVMReportAction showVMReportAction = new ShowVMReportAction(this);
 
-	/** The {@linkplain ClearReportAction clear report action}. */
-	@InnerAccess final ClearReportAction clearReportAction =
-		new ClearReportAction(this);
+	/** The {@linkplain ResetVMReportDataAction reset VM report data action}. */
+	@InnerAccess final ResetVMReportDataAction resetVMReportDataAction =
+		new ResetVMReportDataAction(this);
+
+	/** The {@linkplain ShowCCReportAction show CC report action}. */
+	@InnerAccess final @Nullable ShowCCReportAction showCCReportAction;
+
+	/** The {@linkplain ResetCCReportDataAction reset CC report data action}. */
+	@InnerAccess final @Nullable
+		ResetCCReportDataAction resetCCReportDataAction;
 
 	/** The {@linkplain TraceMacrosAction toggle trace macros action}. */
 	@InnerAccess final TraceMacrosAction debugMacroExpansionsAction =
@@ -824,6 +831,20 @@ extends JFrame
 	/** The {@linkplain BuildAction action to build an entry point module}. */
 	@InnerAccess final BuildAction buildEntryPointModuleAction =
 		new BuildAction(this, true);
+
+	/**
+	 * The {@linkplain DisplayCodeCoverageReport action to display the current
+	 * code coverage session's report data}.
+	 */
+//	@InnerAccess final DisplayCodeCoverageReport displayCodeCoverageReport =
+//		new DisplayCodeCoverageReport(this, true);
+
+	/**
+	 * The {@linkplain ResetCodeCoverageDataAction action to reset the code
+	 * coverage data and thereby start a new code coverage session}.
+	 */
+//	@InnerAccess final ResetCodeCoverageDataAction resetCodeCoverageDataAction =
+//		new ResetCodeCoverageDataAction(this, true);
 
 	/** Whether an entry point invocation (command line) is executing. */
 	public boolean isRunning = false;
@@ -1699,13 +1720,23 @@ extends JFrame
 		if (showDeveloperTools)
 		{
 			final JMenu devMenu = new JMenu("Developer");
-			devMenu.add(new JMenuItem(reportAction));
-			devMenu.add(new JMenuItem(clearReportAction));
+			devMenu.add(new JMenuItem(showVMReportAction));
+			devMenu.add(new JMenuItem(resetVMReportDataAction));
+			devMenu.addSeparator();
+			showCCReportAction = new ShowCCReportAction(this, runtime);
+			devMenu.add(new JMenuItem(showCCReportAction));
+			resetCCReportDataAction = new ResetCCReportDataAction(this, runtime);
+			devMenu.add(new JMenuItem(resetCCReportDataAction));
 			devMenu.addSeparator();
 			devMenu.add(new JCheckBoxMenuItem(debugMacroExpansionsAction));
 			devMenu.addSeparator();
 			devMenu.add(new JMenuItem(graphAction));
 			menuBar.add(devMenu);
+		}
+		else
+		{
+			showCCReportAction = null;
+			resetCCReportDataAction = null;
 		}
 		setJMenuBar(menuBar);
 

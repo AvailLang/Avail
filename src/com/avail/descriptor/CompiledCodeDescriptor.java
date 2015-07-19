@@ -34,12 +34,17 @@ package com.avail.descriptor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
+import com.avail.AvailRuntime;
+import com.avail.AvailTask;
 import com.avail.annotations.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.Primitive;
@@ -224,14 +229,21 @@ extends Descriptor
 		 * this code has been invoked.  This statistic can be useful during
 		 * optimization.
 		 */
-		volatile AtomicLong totalInvocations = new AtomicLong(0);
+		final AtomicLong totalInvocations = new AtomicLong(0);
 
 		/**
 		 * An {@link AtomicLong} that indicates how many more invocations can
 		 * take place before the corresponding {@link L2Chunk} should be
 		 * re-optimized.
 		 */
-		volatile AtomicLong countdownToReoptimize = new AtomicLong(0);
+		final AtomicLong countdownToReoptimize = new AtomicLong(0);
+
+		/**
+		 * A boolean indicating whether the current {@linkplain
+		 * CompiledCodeDescriptor compiled code object} has been run during the
+		 * current code coverage session.
+		 */
+		public volatile boolean hasRun = false;
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
@@ -333,6 +345,205 @@ extends Descriptor
 	{
 		final AvailObject pojo = object.slot(INVOCATION_STATISTIC);
 		return (InvocationStatistic) pojo.javaObject();
+	}
+
+	/** The set of all active {@link CompiledCodeDescriptor raw functions}. */
+	@InnerAccess static final Set<A_RawFunction> activeRawFunctions =
+		Collections.newSetFromMap(new WeakHashMap<A_RawFunction, Boolean>());
+
+	/**
+	 * Reset the code coverage details of all {@link CompiledCodeDescriptor raw
+	 * functions} by discarding their L2 optimized chunks and clearing their
+	 * flags. When complete, resume the supplied {@link Continuation0
+	 * continuation}.
+	 *
+	 * @param resume
+	 *        The {@link Continuation0 continuation to be executed upon
+	 *        completion}.
+	 */
+	@AvailMethod
+	public static void ResetCodeCoverageDetailsThen (final Continuation0 resume)
+	{
+		AvailRuntime.current().whenLevelOneSafeDo(
+			new AvailTask(FiberDescriptor.commandPriority)
+			{
+				@Override
+				public void value ()
+				{
+					L2Chunk.invalidationLock.lock();
+					try
+					{
+						// Loop over each instance, setting the touched flag to
+						// false and discarding optimizations.
+						for (final A_RawFunction function : activeRawFunctions)
+						{
+							final AvailObject object = (AvailObject) function;
+							getInvocationStatistic(object).hasRun = false;
+							if (!function.module().equalsNil())
+							{
+								object.startingChunk().invalidate();
+							}
+						}
+						AvailRuntime.current().whenLevelOneUnsafeDo(
+							new AvailTask(FiberDescriptor.commandPriority)
+							{
+								@Override
+								public void value ()
+								{
+									resume.value();
+								}
+							});
+					}
+					finally
+					{
+						L2Chunk.invalidationLock.unlock();
+					}
+				}
+			});
+	}
+
+	/**
+	 * Contains and presents the details of this raw function pertinent to code
+	 * coverage reporting.
+	 *
+	 * @author Leslie Schultz &lt;leslie@availlang.org&gt;
+	 */
+	public static class CodeCoverageReport
+	implements Comparable<CodeCoverageReport>
+	{
+		/**
+		 * Whether this raw function has been run during this code coverage
+		 * session.
+		 */
+		public final boolean hasRun;
+
+		/**
+		 * Whether this raw function has been translated during this code
+		 * coverage session.
+		 */
+		public final boolean isTranslated;
+
+		/** The starting line number of this raw function. */
+		public final int startingLineNumber;
+
+		/** The module this raw function appears in. */
+		public final String moduleName;
+
+		/** The method this raw function appears in. */
+		public final String methodName;
+
+		/**
+		 * Construct a new {@link CodeCoverageReport}.
+		 *
+		 * @param hasRun
+		 *        Whether this raw function has been run during this code
+		 *        coverage session.
+		 * @param isTranslated
+		 *        Whether this raw function has been translated during this code
+		 *        coverage session.
+		 * @param startingLineNumber
+		 *        The starting line number of this raw function.
+		 * @param moduleName
+		 *        The module this raw function appears in.
+		 * @param methodName
+		 *        The method this raw function appears in.
+		 */
+		public CodeCoverageReport (
+			final boolean hasRun,
+			final boolean isTranslated,
+			final int startingLineNumber,
+			final String moduleName,
+			final String methodName)
+		{
+			this.hasRun = hasRun;
+			this.isTranslated = isTranslated;
+			this.startingLineNumber = startingLineNumber;
+			this.moduleName = moduleName;
+			this.methodName = methodName;
+		}
+
+		@Override
+		public int compareTo (final @Nullable CodeCoverageReport o)
+		{
+			assert o != null;
+
+			final int moduleComp = this.moduleName.compareTo(o.moduleName);
+			if (moduleComp != 0)
+			{
+				return moduleComp;
+			}
+			final int lineComp =
+				Integer.compare(this.startingLineNumber, o.startingLineNumber);
+			if (lineComp != 0)
+			{
+				return lineComp;
+			}
+			final int methodComp = this.methodName.compareTo(o.methodName);
+			return methodComp;
+		}
+
+		@Override
+		public String toString ()
+		{
+			return String.format(
+				"%c %c  m: %s,  l: %d,  f: %s",
+				hasRun ? 'r' : ' ',
+				isTranslated ? 't' : ' ',
+				moduleName,
+				startingLineNumber,
+				methodName);
+		}
+	}
+
+	/**
+	 * Collect and return the code coverage reports for all the raw functions.
+	 *
+	 * @param resume
+	 *        The continuation to pass the return value to.
+	 */
+	public static void codeCoverageReportsThen (
+		final Continuation1<List<CodeCoverageReport>> resume)
+	{
+		AvailRuntime.current().whenLevelOneSafeDo(
+			new AvailTask(FiberDescriptor.commandPriority)
+			{
+				@Override
+				public void value ()
+				{
+					final List<CodeCoverageReport> reports =
+						new ArrayList<>(activeRawFunctions.size());
+
+					// Loop over each instance, creating its report object.
+					for (final A_RawFunction function : activeRawFunctions)
+					{
+						final A_Module module = function.module();
+						if (!module.equalsNil())
+						{
+							final CodeCoverageReport report = new CodeCoverageReport(
+								getInvocationStatistic(
+									(AvailObject) function).hasRun,
+								function.startingChunk()
+									!= L2Chunk.unoptimizedChunk(),
+								function.startingLineNumber(),
+								module.moduleName().asNativeString(),
+								function.methodName().asNativeString());
+							if (!reports.contains(report))
+							{
+								reports.add(report);
+							}
+						}
+					}
+					AvailRuntime.current().whenLevelOneUnsafeDo(
+						new AvailTask(FiberDescriptor.commandPriority)
+						{
+							@Override
+							public void value ()
+							{
+								resume.value(reports);
+							}
+						});
+				}
+			});
 	}
 
 	@Override @AvailMethod
@@ -540,7 +751,10 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_TallyInvocation (final AvailObject object)
 	{
-		getInvocationStatistic(object).totalInvocations.incrementAndGet();
+		final InvocationStatistic invocationStatistic =
+			getInvocationStatistic(object);
+		invocationStatistic.totalInvocations.incrementAndGet();
+		invocationStatistic.hasRun = true;
 	}
 
 	/**
@@ -578,6 +792,7 @@ extends Descriptor
 		final AvailObject object,
 		final A_String methodName)
 	{
+		assert methodName.isString();
 		methodName.makeImmutable();
 		final A_Atom propertyAtom = object.mutableSlot(PROPERTY_ATOM);
 		propertyAtom.setAtomProperty(methodNameKeyAtom(), methodName);
@@ -603,14 +818,11 @@ extends Descriptor
 			}
 			if (subCode != null)
 			{
-				final String prefix = String.format(
-					"[#%d] of ",
-					counter);
+				final String suffix = String.format("[%d]", counter);
 				counter++;
-				final A_Tuple newName =
-					StringDescriptor.from(prefix).concatenateWith(
-						methodName,
-						true);
+				final A_Tuple newName = methodName.concatenateWith(
+					StringDescriptor.from(suffix),
+					true);
 				subCode.setMethodName((A_String)newName);
 			}
 		}
@@ -861,6 +1073,11 @@ extends Descriptor
 		final int hash = propertyAtom.hash() ^ -0x3087B215;
 		code.setSlot(HASH, hash);
 		code.makeShared();
+
+		// Add the newborn raw function to the weak set being used for code
+		// coverage tracking.
+		activeRawFunctions.add(code);
+
 		return code;
 	}
 

@@ -1,5 +1,5 @@
 /**
- * ClearReportAction.java
+ * ResetCCReportDataAction.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -34,40 +34,62 @@ package com.avail.environment.actions;
 
 import static com.avail.environment.AvailWorkbench.StreamStyle.*;
 import java.awt.event.*;
+import com.avail.AvailRuntime;
+import com.avail.AvailTask;
 import com.avail.annotations.*;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.FiberDescriptor;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
-import com.avail.performance.StatisticReport;
+import com.avail.utility.evaluation.Continuation0;
 
 /**
- * A {@code ClearReportAction} clears performance information obtained from
- * running.
+ * A {@code ResetCCReportDataAction} clears code coverage information obtained
+ * from running.
  */
 @SuppressWarnings("serial")
-public final class ClearReportAction
+public final class ResetCCReportDataAction
 extends AbstractWorkbenchAction
 {
+	/** The current runtime. */
+	final AvailRuntime runtime;
+
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-		for (final StatisticReport report : StatisticReport.values())
+		runtime.execute(new AvailTask(FiberDescriptor.commandPriority)
 		{
-			report.clear();
-		}
-		workbench.writeText("Statistics cleared.\n", INFO);
+			@Override
+			public void value ()
+			{
+				CompiledCodeDescriptor.ResetCodeCoverageDetailsThen(
+					new Continuation0()
+				{
+					@Override
+					public void value ()
+					{
+						workbench.writeText("Code coverage data reset.\n", INFO);
+					}
+				});
+			}
+		});
 	}
 
 	/**
-	 * Construct a new {@link ClearReportAction}.
+	 * Construct a new {@link ResetCCReportDataAction}.
 	 *
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.
+	 * @param runtime
 	 */
-	public ClearReportAction (final AvailWorkbench workbench)
+	public ResetCCReportDataAction (
+		final AvailWorkbench workbench,
+		final AvailRuntime runtime)
 	{
-		super(workbench, "Clear VM report");
+		super(workbench, "Clear code coverage data");
+		this.runtime = runtime;
 		putValue(
 			SHORT_DESCRIPTION,
-			"Clear any diagnostic information collected by the VM.");
+			"Reset the code coverage data.");
 	}
 }

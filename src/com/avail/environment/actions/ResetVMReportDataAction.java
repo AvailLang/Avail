@@ -1,5 +1,5 @@
 /**
- * ReportAction.java
+ * ResetVMReportDataAction.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -34,40 +34,40 @@ package com.avail.environment.actions;
 
 import static com.avail.environment.AvailWorkbench.StreamStyle.*;
 import java.awt.event.*;
-import java.util.EnumSet;
 import com.avail.annotations.*;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 import com.avail.performance.StatisticReport;
 
 /**
- * A {@code ReportAction} dumps performance information obtained from
- * running.
+ * A {@code ResetVMReportDataAction} clears performance information obtained
+ * from running.
  */
 @SuppressWarnings("serial")
-public final class ReportAction
+public final class ResetVMReportDataAction
 extends AbstractWorkbenchAction
 {
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-		final EnumSet<StatisticReport> reports =
-			EnumSet.allOf(StatisticReport.class);
-		final String reportsString = StatisticReport.produceReports(reports);
-		workbench.writeText(reportsString, INFO);
+		for (final StatisticReport report : StatisticReport.values())
+		{
+			report.clear();
+		}
+		workbench.writeText("Statistics cleared.\n", INFO);
 	}
 
 	/**
-	 * Construct a new {@link ReportAction}.
+	 * Construct a new {@link ResetVMReportDataAction}.
 	 *
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.
 	 */
-	public ReportAction (final AvailWorkbench workbench)
+	public ResetVMReportDataAction (final AvailWorkbench workbench)
 	{
-		super(workbench, "Generate VM report");
+		super(workbench, "Clear VM report");
 		putValue(
 			SHORT_DESCRIPTION,
-			"Report any diagnostic information collected by the VM.");
+			"Clear any diagnostic information collected by the VM.");
 	}
 }

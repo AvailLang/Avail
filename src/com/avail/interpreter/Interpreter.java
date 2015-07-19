@@ -1818,7 +1818,7 @@ public final class Interpreter
 					assert exitNow;
 					return;
 				case SUCCESS:
-					assert chunk().isValid();
+//					assert chunk().isValid();
 					final int stackp = continuation.stackp();
 					final AvailObject result = latestResult();
 					if (!skipReturnCheck)
