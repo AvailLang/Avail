@@ -809,8 +809,27 @@ public class BracketedStacksToken extends RegionStacksToken
 							.append(links.get(listSize - 1)
 								.toHTML(linkingFileMap, hashID, errorLog));
 					}
-					final QuotedStacksToken link =
-						(QuotedStacksToken) links.get(0);
+
+					final QuotedStacksToken link;
+					try
+					{
+						link = (QuotedStacksToken) links.get(0);
+					}
+					catch (final ClassCastException e)
+					{
+						final String errorMessage = String.format("\n<li>"
+							+ "<strong>%s</strong><em> Line #: %d</em>: "
+							+ "Malformed @method tag section.</li>",
+							bracketToken.moduleName,
+							bracketToken.lineNumber());
+
+						final ByteBuffer errorBuffer = ByteBuffer.wrap(
+							errorMessage.toString()
+								.getBytes(StandardCharsets.UTF_8));
+						errorLog.addLogEntry(errorBuffer,1);
+
+						return "";
+					}
 
 					if (linkingFileMap.internalLinks()
 						.containsKey(link.lexeme()))
@@ -915,8 +934,28 @@ public class BracketedStacksToken extends RegionStacksToken
 								.toJSON(linkingFileMap, hashID, errorLog,
 									jsonWriter));
 					}
-					final QuotedStacksToken link =
-						(QuotedStacksToken) links.get(0);
+
+					final QuotedStacksToken link;
+
+					try
+					{
+						link = (QuotedStacksToken) links.get(0);
+					}
+					catch (final ClassCastException e)
+					{
+						final String errorMessage = String.format("\n<li>"
+							+ "<strong>%s</strong><em> Line #: %d</em>: "
+							+ "Malformed @method tag section.</li>",
+							bracketToken.moduleName,
+							bracketToken.lineNumber());
+
+						final ByteBuffer errorBuffer = ByteBuffer.wrap(
+							errorMessage.toString()
+								.getBytes(StandardCharsets.UTF_8));
+						errorLog.addLogEntry(errorBuffer,1);
+
+						return "";
+					}
 
 					if (linkingFileMap.internalLinks()
 						.containsKey(link.lexeme()))
@@ -1640,8 +1679,28 @@ public class BracketedStacksToken extends RegionStacksToken
 							.toJSON(linkingFileMap, hashID, errorLog,
 								jsonWriter));
 				}
-				final QuotedStacksToken link =
-					(QuotedStacksToken) links.get(0);
+
+				final QuotedStacksToken link;
+				try
+				{
+					link = (QuotedStacksToken) links.get(0);
+				}
+				catch (final ClassCastException e)
+				{
+					final String errorMessage = String.format("\n<li>"
+						+ "<strong>%s</strong><em> Line #: %d</em>: "
+						+ "Malformed @type tag section.</li>",
+						bracketToken.moduleName,
+						bracketToken.lineNumber());
+
+					final ByteBuffer errorBuffer = ByteBuffer.wrap(
+						errorMessage.toString()
+							.getBytes(StandardCharsets.UTF_8));
+					errorLog.addLogEntry(errorBuffer,1);
+
+					return "";
+				}
+
 
 				if (linkingFileMap.internalLinks()
 					.containsKey(link.lexeme()))

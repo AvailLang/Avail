@@ -364,7 +364,7 @@ Public "L1 permute" is a new atom;
  * The second operand specifies a literal which is the expected return type of
  * the end. When the invoked method eventually returns, the proposed return
  * value is checked against the pushed type, and if it agrees then this stack
- * entry is replaced by the returned value. If it disagrees, a {@type
+ * entry is replaced by the returned value. If it disagrees, a
  * {@type "result-disagreed-with-expected-type exception"} is raised instead.
  *
  * The third operand specifies a literal which directs the method search.
@@ -436,6 +436,7 @@ Public stable method "L1 operand" is [[0..2147483647]];
  * @category "Disassembly" "Function Implementations"
  * @param "operation" "L1 operation"
  *        An {@type "L1 operation"}.
+ * @returns "[0..3]"
  */
 Public stable abstract method "`|_'s⁇operands`|" is [L1 operation]→[0..3];
 
@@ -902,7 +903,7 @@ Public stable method "L1 disassembly of_" is
 
 /**
  * Produce a shortened variant of the specified {@type "L1 operation"}'s name;
- * it omits the prefix <code>"L1 "</code>.
+ * it omits the prefix <code>"L1"</code>.
  *
  * @method "“_”(L1 operation short name)"
  * @category "Disassembly" "Function Implementations"
