@@ -1800,14 +1800,7 @@ public class BracketedStacksToken extends RegionStacksToken
 			final StringBuilder stringBuilder =
 				new StringBuilder();
 			stringBuilder
-				.append("<a ng-click=")
-				.append('"')
-				.append("myParent().changeLinkValue('")
-				.append(linkingFileMap.internalLinks()
-					.get(aLexeme))
-				.append("')")
-				.append('"')
-				.append("href=")
+				.append("<a href=")
 				.append('"')
 				.append(linkingFileMap.internalLinks()
 					.get(aLexeme))

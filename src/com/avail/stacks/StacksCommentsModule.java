@@ -76,6 +76,11 @@ public class StacksCommentsModule
 		extendedNamesImplementations;
 
 	/**
+	 * An optional prefix to the stacks file link location in the website
+	 */
+	private final String linkPrefix;
+
+	/**
 	 * @return the exportedNames
 	 */
 	public HashMap<String, StacksExtendsModule>
@@ -342,8 +347,10 @@ public class StacksCommentsModule
 	 * @param moduleToComments
 	 * 		A map of {@linkplain ModuleName module names} to a list of all
 	 * 		the method names exported from said module
-	 * @param htmlFileMap
-	 * 		A map for all HTML files ins Stacks
+	 * @param linkingFileMap
+	 * 		A map for all output files in Stacks
+	 * @param linkPrefix
+	 * 		An optional prefix to all files' link web links
 	 */
 	public StacksCommentsModule(
 		final ModuleHeader header,
@@ -351,9 +358,11 @@ public class StacksCommentsModule
 		final StacksErrorLog errorLog,
 		final ModuleNameResolver resolver,
 		final HashMap<String, StacksCommentsModule> moduleToComments,
-		final LinkingFileMap htmlFileMap)
+		final LinkingFileMap linkingFileMap,
+		final String linkPrefix)
 	{
 		this.moduleName = header.moduleName.qualifiedName();
+		this.linkPrefix = linkPrefix;
 
 		//Change to html to write HTML files
 		this.fileExtensionName = "json";
@@ -452,7 +461,7 @@ public class StacksCommentsModule
 			{
 				final AbstractCommentImplementation implementation =
 					StacksScanner.processCommentString(
-						aToken,moduleName,htmlFileMap);
+						aToken,moduleName,linkingFileMap);
 
 				if (!(implementation == null))
 				{
@@ -1002,12 +1011,14 @@ public class StacksCommentsModule
 	 * @param names A pair of {@linkplain A_String name} and {@linkplain
 	 * 		ImplementationGroup group}  that are to have file names constructed
 	 * 		for them.
-	 * @param fileExtension TODO
+	 * @param fileExtension The string extension the stacks output files should
+	 * 		have (e.g. "json")
 	 * @return A map of method name to the file name where it will be
 	 * 		output into.
 	 */
 	private HashMap <A_String, StacksFilename> createFileNames(
-		final List<Pair<A_String,ImplementationGroup>> names, final String fileExtension)
+		final List<Pair<A_String,ImplementationGroup>> names,
+		final String fileExtension)
 	{
 		final HashMap<A_String,Integer> newHashNameMap =
 			new HashMap<A_String,Integer>();
@@ -1033,7 +1044,8 @@ public class StacksCommentsModule
 
 			long hashedName = nameToBeHashed.hash();
 			hashedName = hashedName & 0xFFFFFFFFL;
-			final String fileName = String.valueOf(hashedName) + ".html";
+			final String fileName = String.valueOf(hashedName) + "."
+				+ fileExtension;
 
 			namesToFileNames.put(pair.first(),
 				new StacksFilename(pair.second().namingModule(), fileName));
@@ -1049,8 +1061,7 @@ public class StacksCommentsModule
 	 * 		The name of the module the method comes from.
 	 * @param fileExtension
 	 *		The type of file extension of the output file (e.g. html, json)
-	 * @return A map of method name to the html file name where it will be
-	 * 		output into.
+	 * @return A map of method name to the file name of the output.
 	 */
 	private HashMap <A_String, StacksFilename> createFileNames(
 		final Collection<A_String> names, final String originatingModuleName,
@@ -1128,9 +1139,7 @@ public class StacksCommentsModule
 			new HashMap<String,ImplementationGroup>();
 
 		int fileCount = 0;
-/*TODO Now matches extendsMethodLeafName structure.  Add to method file map here somehow.
- * Be mindful to activate comment signature feature of "not exported" by checking against
- * extends list.*/
+
 		final HashMap<A_String, HashMap<String, ImplementationGroup>>
 		ambiguousMethodFileMap = new
 			HashMap<A_String, HashMap<String, ImplementationGroup>>();
@@ -1184,7 +1193,7 @@ public class StacksCommentsModule
 					if (tempMap.size() == 1)
 					{
 						linkingFileMap.addNamedFileLinks(key.asNativeString(),
-							topLevelLinkFolderPath
+							linkPrefix
 							+ implementation.filepath().relativeFilePath());
 					}
 
@@ -1245,7 +1254,7 @@ public class StacksCommentsModule
 						{
 							linkingFileMap.addNamedFileLinks(
 								key.asNativeString(),
-								topLevelLinkFolderPath
+								linkPrefix
 								+ implementation.filepath().relativeFilePath());
 						}
 
@@ -1614,7 +1623,7 @@ public class StacksCommentsModule
 	 *        The folder that the Avail documentation sits in above the
 	 *        providedDocumentPath.
 	 * @param linkingFileMap
-	 *        A map for all HTML files ins Stacks
+	 *        A map for all files in Stacks
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
@@ -1665,7 +1674,8 @@ public class StacksCommentsModule
 			final HashMap<String, ImplementationGroup> tempImplementationMap =
 				ambiguousMethodFileMap.get(key);
 
-			final HashSet<String> ambiguousLinks = new HashSet<String>();
+			final HashSet<Pair<String, String>> ambiguousLinks =
+				new HashSet<Pair<String,String>>();
 			final HashSet<String> ambiguousNoLinks = new HashSet<String>();
 
 			if (linkingFileMap.aliasesToFileLink()
@@ -1674,7 +1684,7 @@ public class StacksCommentsModule
 				for (final String link : linkingFileMap.aliasesToFileLink()
 					.get(key.asNativeString()))
 				{
-					ambiguousLinks.add(link);
+					ambiguousLinks.add(new Pair<String, String>(link, link));
 				}
 			}
 
@@ -1686,16 +1696,15 @@ public class StacksCommentsModule
 
 				if (group.isPopulated())
 				{
-					ambiguousLinks.add(topLevelLinkFolderPath
-						+ group.filepath().relativeFilePath());
+					ambiguousLinks.add(new Pair<String, String>(linkPrefix
+						+ group.filepath().relativeFilePath(),
+						group.namingModule()));
 				}
 				else
 				{
 					ambiguousNoLinks.add(group.filepath().pathName());
 				}
 			}
-
-			final int trim = topLevelLinkFolderPath.length();
 
 			final JSONWriter jsonWriter = new JSONWriter();
 			jsonWriter.startObject();
@@ -1704,14 +1713,13 @@ public class StacksCommentsModule
 			jsonWriter.write("files");
 			jsonWriter.startArray();
 
-			for (final String link : ambiguousLinks)
+			for (final Pair<String, String> link : ambiguousLinks)
 			{
 				jsonWriter.startObject();
 				jsonWriter.write("link");
-				jsonWriter.write(link);
+				jsonWriter.write(link.first());
 				jsonWriter.write("module");
-				jsonWriter.write(
-					link.subSequence(trim, link.lastIndexOf("/")).toString());
+				jsonWriter.write(link.second());
 				jsonWriter.endObject();
 			}
 
@@ -1909,7 +1917,7 @@ public class StacksCommentsModule
 	 *        The folder that the Avail documentation sits in above the
 	 *        providedDocumentPath.
 	 * @param linkingFileMap
-	 *        A map for all HTML files ins Stacks
+	 *        A map for all files in Stacks
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */

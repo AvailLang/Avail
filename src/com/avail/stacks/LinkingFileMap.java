@@ -115,7 +115,7 @@ public class LinkingFileMap
 	 */
 	public void addNamedFileLinks (final String alias, final String fileLink)
 	{
-		namedFileLinks.put(alias,fileLink);
+		namedFileLinks.put(alias, fileLink);
 	}
 
 	/**
@@ -195,14 +195,15 @@ public class LinkingFileMap
 	 * @param methodLeafName
 	 * 		The non-qualified method name
 	 * @param methodAndMethodLink
-	 * 		The link to the HTML file.
+	 * 		The link to the file.
 	 *
 	 */
 	public void addCategoryMethodPair (final String categoryName,
 		final String methodLeafName, final String methodAndMethodLink)
 	{
 		final Pair<String,String> methodPair =
-			new Pair<String,String>(methodLeafName,methodAndMethodLink);
+			new Pair<String,String>(methodLeafName,
+				methodAndMethodLink);
 		if (categoryMethodList.containsKey(categoryName))
 		{
 			categoryMethodList.get(categoryName).add(methodPair);

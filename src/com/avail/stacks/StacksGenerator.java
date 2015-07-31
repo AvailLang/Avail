@@ -77,6 +77,11 @@ public class StacksGenerator
 	Path providedDocumentPath;
 
 	/**
+	 * An optional prefix to the stacks file link location in the website
+	 */
+	private final String linkPrefix;
+
+	/**
 	 * The original incoming base path.
 	 */
 	final Path outputPath;
@@ -132,11 +137,14 @@ public class StacksGenerator
 				outputPath + " exists and is not a directory");
 		}
 		this.outputPath = outputPath;
+		this.linkPrefix =
+			"/about-avail/documentation/stacks/library-documentation/index.html#/method";
 		this.linkingFileMap = new LinkingFileMap();
 		this.resolver = resolver;
 
 		this.logPath = outputPath.resolve("logs");
 		this.errorLog = new StacksErrorLog(logPath);
+
 
 		this.providedDocumentPath = outputPath.resolve("library-documentation");
 
@@ -162,7 +170,8 @@ public class StacksGenerator
 		StacksCommentsModule commentsModule = null;
 		commentsModule = new StacksCommentsModule(
 			header,commentTokens,errorLog, resolver,
-			moduleToComments,linkingFileMap);
+			moduleToComments,linkingFileMap,
+			linkPrefix);
 		updateModuleToComments(commentsModule);
 	}
 
