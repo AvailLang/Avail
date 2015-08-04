@@ -1643,7 +1643,7 @@ public class StacksCommentsModule
 		final Path outputFolder = outputPath
 			.resolve("library-documentation/_Ambiguities");
 
-		final String linkLocation = topLevelLinkFolderPath + "/_Ambiguities";
+		final String linkLocation = linkPrefix + "/_Ambiguities";
 
 		//Get aliases from ambiguous implementations
 		for (final A_String key :
@@ -1999,7 +1999,7 @@ public class StacksCommentsModule
 						& 0xFFFFFFFFL) + "." + fileExtensionName;
 
 				internalLinks.put(ambiguousAliasKey,
-					topLevelLinkFolderPath + "/_Ambiguities/" + fileName);
+					linkPrefix + "/_Ambiguities/" + fileName);
 
 				final StacksOutputFile jsonFile = new StacksOutputFile(
 					outputFolder, ambiguousAliasSynchronizer, fileName,

@@ -1083,7 +1083,7 @@ public class BracketedStacksToken extends RegionStacksToken
 					bracketToken.subTokens
 						.subList(1, bracketToken.subTokens.size());
 
-				if (links.size() == 1)
+				/*if (links.size() == 1)
 				{
 					try
 					{
@@ -1111,7 +1111,7 @@ public class BracketedStacksToken extends RegionStacksToken
 
 						return "";
 					}
-				}
+				}*/
 
 				final StringBuilder stringBuilder = new StringBuilder();
 				stringBuilder
