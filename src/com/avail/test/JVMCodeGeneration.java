@@ -56,9 +56,9 @@ import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 public class JVMCodeGeneration
 {
 	/**
-	 * {@code ByteStreamClassLoader} loads provides facilities for loading a
-	 * single Java {@linkplain Class class} from a {@link
-	 * ByteArrayOutputStream} that contains a binary class file.
+	 * {@code ByteStreamClassLoader} provides facilities for loading a single
+	 * Java {@linkplain Class class} from a {@link ByteArrayOutputStream} that
+	 * contains a binary class file.
 	 */
 	private static final class ByteStreamClassLoader
 	extends ClassLoader

@@ -48,7 +48,7 @@ import com.avail.annotations.Nullable;
  *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.3">
  *    Descriptors and Signatures</a>
  */
-final class JavaDescriptors
+public final class JavaDescriptors
 {
 	/**
 	 * Construct and answer the internal Java {@linkplain Class class} name for
@@ -282,6 +282,34 @@ final class JavaDescriptors
 		}
 		builder.append(')');
 		builder.append(forType(returnType));
+		return builder.toString();
+	}
+
+	/**
+	 * Construct and answer the Java descriptor for a method with the specified
+	 * (exploded) signature.
+	 *
+	 * @param returnType
+	 *        The return type descriptor.
+	 * @param parameterTypes
+	 *        The parameter types.
+	 * @return The requested descriptor.
+	 * @see <a
+	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.3.3">
+	 *    Method descriptors</a>
+	 */
+	public static String forMethod (
+		final String returnType,
+		final Class<?>... parameterTypes)
+	{
+		final StringBuilder builder = new StringBuilder(100);
+		builder.append('(');
+		for (final Class<?> parameterType : parameterTypes)
+		{
+			builder.append(forType(parameterType));
+		}
+		builder.append(')');
+		builder.append(returnType);
 		return builder.toString();
 	}
 

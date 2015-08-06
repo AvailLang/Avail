@@ -33,7 +33,9 @@
 package com.avail.interpreter.jvm;
 
 import static com.avail.interpreter.jvm.ClassModifier.*;
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.Formatter;
@@ -89,6 +91,7 @@ extends Emitter<ClassModifier>
 	/** The package for anonymous {@linkplain Class classes}. */
 	private static final String anonymousPackage =
 		"com.avail.interpreter.jvm.dynamic$$";
+
 	/**
 	 * The {@linkplain Formatter#format(String, Object...) pattern} to use for
 	 * anonymous {@linkplain Class class} names.
@@ -121,6 +124,17 @@ extends Emitter<ClassModifier>
 	 * Class class}.
 	 */
 	final ClassEntry classEntry;
+
+	/**
+	 * Answer the {@linkplain ClassEntry class entry} for the target {@linkplain
+	 * Class class}.
+	 *
+	 * @return The class entry.
+	 */
+	public ClassEntry classEntry ()
+	{
+		return classEntry;
+	}
 
 	/**
 	 * Answer the name of the {@linkplain Class class} being defined.
@@ -480,6 +494,22 @@ extends Emitter<ClassModifier>
 	public void emitOn (final DataOutput out) throws IOException
 	{
 		writeTo(out);
+	}
+
+	/**
+	 * Emit the Java class file represented by the {@linkplain CodeGenerator
+	 * code generator} to a new {@code byte} array.
+	 *
+	 * @return A {@code byte} array containing the binary class file.
+	 * @throws IOException
+	 *         If the operation fails.
+	 */
+	public byte[] generate () throws IOException
+	{
+		final ByteArrayOutputStream bs = new ByteArrayOutputStream(1000);
+		final DataOutputStream out = new DataOutputStream(bs);
+		writeTo(out);
+		return bs.toByteArray();
 	}
 
 	@Override

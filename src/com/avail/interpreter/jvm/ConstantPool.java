@@ -34,6 +34,7 @@ package com.avail.interpreter.jvm;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Formatter;
 import java.util.LinkedHashMap;
@@ -537,7 +538,7 @@ public class ConstantPool
 	 *    href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.1">
 	 *    The <code>CONSTANT_Class_info</code> Structure</a>
 	 */
-	static final class ClassEntry
+	public static final class ClassEntry
 	extends ConstantEntry
 	{
 		@Override
@@ -557,7 +558,7 @@ public class ConstantPool
 		 *
 		 * @return The fully-qualified class name.
 		 */
-		String name ()
+		public String name ()
 		{
 			return nameEntry.data().replace('/', '.');
 		}
@@ -578,7 +579,7 @@ public class ConstantPool
 		 *
 		 * @return The class descriptor.
 		 */
-		String descriptor ()
+		public String descriptor ()
 		{
 			return JavaDescriptors.forClassName(nameEntry.data());
 		}
@@ -811,7 +812,7 @@ public class ConstantPool
 	 *    <code>CONSTANT_Methodref_info</code>,
 	 *    and <code>CONSTANT_InterfaceMethodref_info</code> Structures</a>
 	 */
-	static final class FieldrefEntry
+	public static final class FieldrefEntry
 	extends RefEntry
 	{
 		@Override
@@ -857,7 +858,7 @@ public class ConstantPool
 	 *    <code>CONSTANT_Methodref_info</code>,
 	 *    and <code>CONSTANT_InterfaceMethodref_info</code> Structures</a>
 	 */
-	static final class MethodrefEntry
+	public static final class MethodrefEntry
 	extends RefEntry
 	{
 		@Override
@@ -903,7 +904,7 @@ public class ConstantPool
 	 *    <code>CONSTANT_Methodref_info</code>,
 	 *    and <code>CONSTANT_InterfaceMethodref_info</code> Structures</a>
 	 */
-	static final class InterfaceMethodrefEntry
+	public static final class InterfaceMethodrefEntry
 	extends RefEntry
 	{
 		@Override
@@ -1509,7 +1510,7 @@ public class ConstantPool
 	 * @return The entry associated with the specified value.
 	 */
 	@ThreadSafe
-	ClassEntry classConstant (final String name)
+	public ClassEntry classConstant (final String name)
 	{
 		final String internalName = JavaDescriptors.asInternalName(name);
 		final ClassKey key = new ClassKey(internalName);
@@ -1774,7 +1775,7 @@ public class ConstantPool
 	 *        The name of the referent.
 	 * @param methodDescriptor
 	 *        The descriptor of the referent.
-	 * @return The entry associated with the specified field reference.
+	 * @return The entry associated with the specified method reference.
 	 */
 	@ThreadSafe
 	public MethodrefEntry methodref (
@@ -1812,7 +1813,7 @@ public class ConstantPool
 	 *        The return type of the referent.
 	 * @param parameterTypes
 	 *        The parameter types of the referent.
-	 * @return The entry associated with the specified field reference.
+	 * @return The entry associated with the specified method reference.
 	 */
 	@ThreadSafe
 	public MethodrefEntry methodref (
@@ -1833,7 +1834,7 @@ public class ConstantPool
 	 *
 	 * @param method
 	 *        The {@linkplain Method referent}.
-	 * @return The entry associated with the specified field reference.
+	 * @return The entry associated with the specified method reference.
 	 */
 	@ThreadSafe
 	public MethodrefEntry methodref (final Method method)
@@ -1844,6 +1845,24 @@ public class ConstantPool
 			method.getName(),
 			method.getReturnType(),
 			method.getParameterTypes());
+	}
+
+	/**
+	 * Answer a {@link MethodrefEntry} for the specified constructor reference,
+	 * constructing and installing a new entry if necessary.
+	 *
+	 * @param constructor
+	 *        The {@linkplain Constructor referent}.
+	 * @return The entry associated with the specified method reference.
+	 */
+	@ThreadSafe
+	public MethodrefEntry methodref (final Constructor<?> constructor)
+	{
+		return methodref(
+			constructor.getDeclaringClass(),
+			constructor.getName(),
+			constructor.getDeclaringClass(),
+			constructor.getParameterTypes());
 	}
 
 	/**

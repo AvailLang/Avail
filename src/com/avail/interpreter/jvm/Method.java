@@ -36,6 +36,7 @@ import static com.avail.interpreter.jvm.JavaBytecode.*;
 import static com.avail.interpreter.jvm.MethodModifier.*;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.util.*;
 import com.avail.annotations.Nullable;
 import com.avail.interpreter.jvm.ConstantPool.ClassEntry;
@@ -1577,10 +1578,23 @@ extends Emitter<MethodModifier>
 	 * arguments are sourced from the operand stack.
 	 *
 	 * @param methodref
+	 *        A {@linkplain MethodrefEntry method reference}.
 	 */
 	public void invokeInterface (final MethodrefEntry methodref)
 	{
 		writer.append(invokeinterface.create(methodref));
+	}
+
+	/**
+	 * Emit code to invoke an {@code interface} method. The receiver and
+	 * arguments are sourced from the operand stack.
+	 *
+	 * @param method
+	 *        A {@linkplain java.lang.reflect.Method method}.
+	 */
+	public void invokeInterface (final java.lang.reflect.Method method)
+	{
+		writer.append(invokeinterface.create(constantPool.methodref(method)));
 	}
 
 	/**
@@ -1597,6 +1611,33 @@ extends Emitter<MethodModifier>
 	}
 
 	/**
+	 * Emit code to invoke a {@code super}, {@code private}, or instance
+	 * initialization ({@code "<init>"}) method. The receiver and arguments are
+	 * sourced from the operand stack.
+	 *
+	 * @param method
+	 *        A {@linkplain java.lang.reflect.Method method}.
+	 */
+	public void invokeSpecial (final java.lang.reflect.Method method)
+	{
+		writer.append(invokespecial.create(constantPool.methodref(method)));
+	}
+
+	/**
+	 * Emit code to invoke a {@code super}, {@code private}, or instance
+	 * initialization ({@code "<init>"}) method. The receiver and arguments are
+	 * sourced from the operand stack.
+	 *
+	 * @param constructor
+	 *        A {@linkplain Constructor constructor}.
+	 */
+	public void invokeSpecial (final Constructor<?> constructor)
+	{
+		writer.append(invokespecial.create(
+			constantPool.methodref(constructor)));
+	}
+
+	/**
 	 * Emit code to invoke a static method. The arguments are sourced from the
 	 * operand stack.
 	 *
@@ -1606,6 +1647,18 @@ extends Emitter<MethodModifier>
 	public void invokeStatic (final MethodrefEntry methodref)
 	{
 		writer.append(invokestatic.create(methodref));
+	}
+
+	/**
+	 * Emit code to invoke a static method. The arguments are sourced from the
+	 * operand stack.
+	 *
+	 * @param method
+	 *        A {@linkplain java.lang.reflect.Method method}.
+	 */
+	public void invokeStatic (final java.lang.reflect.Method method)
+	{
+		writer.append(invokestatic.create(constantPool.methodref(method)));
 	}
 
 	/**
@@ -1619,6 +1672,19 @@ extends Emitter<MethodModifier>
 	public void invokeVirtual (final MethodrefEntry methodref)
 	{
 		writer.append(invokevirtual.create(methodref));
+	}
+
+	/**
+	 * Emit code to invoke a method. The method will be dispatched based on the
+	 * {@linkplain Class class} of the receiver. The receiver and arguments are
+	 * sourced from the operand stack.
+	 *
+	 * @param method
+	 *        A {@linkplain java.lang.reflect.Method method}.
+	 */
+	public void invokeVirtual (final java.lang.reflect.Method method)
+	{
+		writer.append(invokevirtual.create(constantPool.methodref(method)));
 	}
 
 	/**
