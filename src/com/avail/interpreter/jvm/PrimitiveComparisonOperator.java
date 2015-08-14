@@ -42,6 +42,26 @@ import static com.avail.interpreter.jvm.JavaBytecode.*;
  */
 public enum PrimitiveComparisonOperator
 {
+	/** Specify that the operand should be compared against {@code true}. */
+	EQUALS_TRUE (ifne)
+	{
+		@Override
+		PrimitiveComparisonOperator inverse ()
+		{
+			return EQUALS_FALSE;
+		}
+	},
+
+	/** Specify that the operand should be compared against {@code false}. */
+	EQUALS_FALSE (ifeq)
+	{
+		@Override
+		PrimitiveComparisonOperator inverse ()
+		{
+			return EQUALS_TRUE;
+		}
+	},
+
 	/** Specify that the operands should be compared for equality. */
 	EQUALS (if_icmpeq)
 	{
