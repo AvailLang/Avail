@@ -147,6 +147,11 @@ public class MessageSplitterTest
 			A("Most_Sauceulent_"),
 			A(
 				PARSE_PART.encoding(1))),
+		C("Most `_Sauceulent",
+			A("Most", "_Sauceulent"),
+			A(
+				PARSE_PART.encoding(1),
+				PARSE_PART.encoding(2))),
 		C("Print_",
 			A("Print", "_"),
 			A(

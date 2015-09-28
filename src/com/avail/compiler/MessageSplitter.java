@@ -3487,15 +3487,26 @@ public class MessageSplitter
 						|| isCharacterAnUnderscoreOrSpaceOrOperator(
 							(char) messageName.tupleAt(position).codePoint()))
 				{
-					// Problem is after the space.
-					messageParts.add(
-						(A_String)messageName.copyTupleFromToCanDestroy(
-							position, messageName.tupleSize(), false));
-					messagePartPositions.add(position);
-					messagePartPosition = messageParts.size();
-					throwMalformedMessageException(
-						E_METHOD_NAME_IS_NOT_CANONICAL,
-						"Expected alphanumeric character after space");
+					if ((char) messageName.tupleAt(position).codePoint() == '`'
+						&& position != messageName.tupleSize()
+						&& (char) messageName.tupleAt(position + 1).codePoint()
+							== '_')
+					{
+						// This is legal; we want to be able to parse
+						// expressions like "a _b".
+					}
+					else
+					{
+						// Problem is after the space.
+						messageParts.add(
+							(A_String)messageName.copyTupleFromToCanDestroy(
+								position, messageName.tupleSize(), false));
+						messagePartPositions.add(position);
+						messagePartPosition = messageParts.size();
+						throwMalformedMessageException(
+							E_METHOD_NAME_IS_NOT_CANONICAL,
+							"Expected alphanumeric character after space");
+					}
 				}
 			}
 			else if (ch == '`')
