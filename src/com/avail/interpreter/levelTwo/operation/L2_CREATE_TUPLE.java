@@ -40,6 +40,7 @@ import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.*;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.utility.Generator;
 
 /**
  * Create a {@link TupleDescriptor tuple} from the {@linkplain AvailObject
@@ -66,12 +67,18 @@ public class L2_CREATE_TUPLE extends L2Operation
 			instruction.writeObjectRegisterAt(1);
 
 		final List<L2ObjectRegister> registers = elementsVector.registers();
-		final int size = registers.size();
-		final A_Tuple tuple = ObjectTupleDescriptor.createUninitialized(size);
-		for (int i = 1; i <= size; i++)
-		{
-			tuple.objectTupleAtPut(i, registers.get(i - 1).in(interpreter));
-		}
+		final A_Tuple tuple = ObjectTupleDescriptor.generateFrom(
+			registers.size(),
+			new Generator<A_BasicObject>()
+			{
+				private int i = 0;
+
+				@Override
+				public A_BasicObject value ()
+				{
+					return registers.get(i++).in(interpreter);
+				}
+			});
 		destinationReg.set(tuple, interpreter);
 	}
 

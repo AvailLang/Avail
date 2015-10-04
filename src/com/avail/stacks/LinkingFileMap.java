@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import com.avail.utility.Pair;
 import com.avail.utility.json.JSONWriter;
 
@@ -240,18 +241,18 @@ public class LinkingFileMap
 			jsonWriter.write("categories");
 			jsonWriter.startArray();
 
-			for (final String key : categoryMethodList.keySet())
+			for (final Map.Entry<String, ArrayList<Pair<String, String>>> entry
+				: categoryMethodList.entrySet())
 			{
 				jsonWriter.startObject();
 				jsonWriter.write("selected");
 				jsonWriter.write(false);
 				jsonWriter.write("category");
-				jsonWriter.write(key);
+				jsonWriter.write(entry.getKey());
 				jsonWriter.write("methods");
-				final ArrayList<Pair<String,String>> pairs =
-					categoryMethodList.get(key);
+				final ArrayList<Pair<String,String>> pairs = entry.getValue();
 				jsonWriter.startArray();
-				for(final Pair<String,String> pair : pairs)
+				for (final Pair<String,String> pair : pairs)
 				{
 					final String distinct = (
 						new StringBuilder().append(pair.first())

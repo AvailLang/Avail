@@ -91,17 +91,24 @@ extends Descriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The hash value of this {@linkplain AtomDescriptor atom}.  It is a
-		 * random number (but not 0), computed at construction time.
+		 * {@link BitField}s for the hash and the argument count.  See below.
 		 */
 		@HideFieldInDebugger
-		HASH,
+		HASH_AND_NUM_ARGS;
+
+		/**
+		 * The hash of this method.  It's set to a random number during
+		 * construction.
+		 */
+		static final BitField HASH = bitField(
+			HASH_AND_NUM_ARGS, 0, 32);
 
 		/**
 		 * The number of arguments expected by this method.  Set at construction
 		 * time.
 		 */
-		NUM_ARGS
+		static final BitField NUM_ARGS = bitField(
+			HASH_AND_NUM_ARGS, 32, 32);
 	}
 
 	/**

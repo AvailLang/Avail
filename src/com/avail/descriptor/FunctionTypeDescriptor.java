@@ -61,9 +61,16 @@ extends TypeDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
+		 * The low 32 bits are used for caching the hash, but the upper 32 can
+		 * be used by other {@link BitField}s in subclasses.
+		 */
+		@HideFieldInDebugger
+		HASH_AND_MORE;
+
+		/**
 		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
 		 */
-		HASH_OR_ZERO
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
 	}
 
 	/**
@@ -98,7 +105,7 @@ extends TypeDescriptor
 	@Override
 	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
-		return e == HASH_OR_ZERO;
+		return e == HASH_AND_MORE;
 	}
 
 	/**

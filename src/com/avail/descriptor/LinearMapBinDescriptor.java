@@ -56,28 +56,41 @@ extends MapBinDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The sum of the hashes of the keys within this bin.
+		 * A long holding {@link BitField}s containing the combined keys hash
+		 * and the combined values hash or zero.
 		 */
-		KEYS_HASH,
-
-		/**
-		 * The sum of the hashes of the values within this bin.
-		 */
-		VALUES_HASH_OR_ZERO,
+		COMBINED_HASHES,
 
 		/**
 		 * The hash values of the keys present in this bin.  These are recorded
 		 * separately here to reduce the cost of locating a particular key.
 		 */
-		KEY_HASHES_;
+		KEY_HASHES_AREA_;
+
+		/**
+		 * The sum of the hashes of the elements recursively within this bin.
+		 */
+		public static BitField KEYS_HASH = bitField(
+			COMBINED_HASHES, 0, 32);
+
+		/**
+		 * The sum of the hashes of the elements recursively within this bin,
+		 * or zero if not computed.
+		 */
+		public static BitField VALUES_HASH_OR_ZERO = bitField(
+			COMBINED_HASHES, 32, 32);
 
 		static
 		{
-			assert MapBinDescriptor.IntegerSlots.KEYS_HASH.ordinal()
-				== KEYS_HASH.ordinal();
-			assert MapBinDescriptor.IntegerSlots.VALUES_HASH_OR_ZERO.ordinal()
-				== VALUES_HASH_OR_ZERO.ordinal();
+			assert MapBinDescriptor.IntegerSlots.COMBINED_HASHES.ordinal()
+				== COMBINED_HASHES.ordinal();
+			assert MapBinDescriptor.IntegerSlots.KEYS_HASH
+				.isSamePlaceAs(KEYS_HASH);
+			assert MapBinDescriptor.IntegerSlots.VALUES_HASH_OR_ZERO
+				.isSamePlaceAs(VALUES_HASH_OR_ZERO);
 		}
+
+
 	}
 
 	/**
@@ -96,13 +109,13 @@ extends MapBinDescriptor
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == VALUES_HASH_OR_ZERO;
+		return e == COMBINED_HASHES;
 	}
 
 	/**
 	 * Debugging flag to force deep, expensive consistency checks.
 	 */
-	private final static boolean shouldCheckConsistency = false;
+	private final static boolean shouldCheckConsistency = false; //XXX
 
 	/**
 	 * When a {@linkplain LinearMapBinDescriptor linear bin} reaches this many
@@ -122,12 +135,17 @@ extends MapBinDescriptor
 		if (shouldCheckConsistency)
 		{
 			assert object.descriptor() instanceof LinearMapBinDescriptor;
+			final int numObjectSlots = object.variableObjectSlotsCount();
+			assert (numObjectSlots & 1) == 0;
+			final int numEntries = numObjectSlots >> 1;
+			assert numEntries == entryCount(object);
+			final int numIntegerSlots = object.variableIntegerSlotsCount();
+			assert numIntegerSlots == ((numEntries + 1) >> 1);
 			int computedKeyHashSum = 0;
 			int computedValueHashSum = 0;
-			final int size = object.variableIntegerSlotsCount();
-			for (int i = 1; i <= size; i++)
+			for (int i = 1; i <= numEntries; i++)
 			{
-				final int keyHash = object.slot(KEY_HASHES_, i);
+				final int keyHash = object.intSlot(KEY_HASHES_AREA_, i);
 				final A_BasicObject key = object.slot(BIN_SLOT_AT_, i * 2 - 1);
 				final A_BasicObject value = object.slot(BIN_SLOT_AT_, i * 2);
 				assert key.hash() == keyHash;
@@ -143,6 +161,20 @@ extends MapBinDescriptor
 		}
 	}
 
+	/**
+	 * Answer how many <key,value> pairs are present in the given linear map
+	 * bin.
+	 *
+	 * @param object
+	 *        An {@link AvailObject} whose descriptor is a {@link
+	 *        LinearMapBinDescriptor}.
+	 * @return The number of entries in the bin.
+	 */
+	@InnerAccess static final int entryCount (final AvailObject object)
+	{
+		return object.variableObjectSlotsCount() >> 1;
+	}
+
 	@Override @AvailMethod
 	AvailObject o_BinElementAt (final AvailObject object, final int subscript)
 	{
@@ -150,19 +182,10 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_BinElementAtPut (
-		final AvailObject object,
-		final int subscript,
-		final A_BasicObject value)
-	{
-		object.setSlot(BIN_SLOT_AT_, subscript, value);
-	}
-
-	@Override @AvailMethod
 	int o_BinSize (final AvailObject object)
 	{
 		// Answer how many (key,value) pairs this bin contains.
-		return object.variableIntegerSlotsCount();
+		return entryCount(object);
 	}
 
 	@Override
@@ -171,10 +194,10 @@ extends MapBinDescriptor
 		final A_BasicObject key,
 		final int keyHash)
 	{
-		final int limit = object.variableIntegerSlotsCount();
+		final int limit = entryCount(object);
 		for (int i = 1; i <= limit; i++)
 		{
-			if (object.slot(KEY_HASHES_, i) == keyHash
+			if (object.intSlot(KEY_HASHES_AREA_, i) == keyHash
 				&& object.slot(BIN_SLOT_AT_, i * 2 - 1).equals(key))
 			{
 				return object.slot(BIN_SLOT_AT_, i * 2);
@@ -198,10 +221,10 @@ extends MapBinDescriptor
 		// client is responsible for marking the key and value as immutable if
 		// other references exist.
 		assert myLevel == level;
-		final int limit = object.variableIntegerSlotsCount();
-		for (int i = 1; i <= limit; i++)
+		final int oldSize = entryCount(object);
+		for (int i = 1; i <= oldSize; i++)
 		{
-			if (object.slot(KEY_HASHES_, i) == keyHash
+			if (object.intSlot(KEY_HASHES_AREA_, i) == keyHash
 				&& object.slot(BIN_SLOT_AT_, i * 2 - 1).equals(key))
 			{
 				final A_BasicObject oldValue = object.slot(BIN_SLOT_AT_, i * 2);
@@ -251,17 +274,17 @@ extends MapBinDescriptor
 		}
 		// It's not present, so grow the list.  Keep it simple for now by always
 		// replacing the list.
-		final int oldSize = object.variableIntegerSlotsCount();
 		if (myLevel < numberOfLevels - 1 && oldSize >= thresholdToHash)
 		{
 			// Convert to a hashed bin.
-			int bitPosition = bitShift(keyHash, -5 * myLevel) & 31;
-			int bitVector = bitShift(1, bitPosition);
+			int bitPosition = bitShift(keyHash, -6 * myLevel) & 63;
+			long bitVector = bitShift(1L, bitPosition);
 			for (int i = 1; i <= oldSize; i++)
 			{
-				final int anotherKeyHash = object.slot(KEY_HASHES_, i);
-				bitPosition = bitShift(anotherKeyHash, -5 * myLevel) & 31;
-				bitVector |= bitShift(1, bitPosition);
+				final int anotherKeyHash =
+					object.intSlot(KEY_HASHES_AREA_, i);
+				bitPosition = bitShift(anotherKeyHash, -6 * myLevel) & 63;
+				bitVector |= bitShift(1L, bitPosition);
 			}
 			final AvailObject result =
 				HashedMapBinDescriptor.createLevelBitVector(myLevel, bitVector);
@@ -279,7 +302,7 @@ extends MapBinDescriptor
 				else
 				{
 					eachKey = object.slot(BIN_SLOT_AT_, i * 2 - 1);
-					eachHash = object.slot(KEY_HASHES_, i);
+					eachHash = object.intSlot(KEY_HASHES_AREA_, i);
 					eachValue = object.slot(BIN_SLOT_AT_, i * 2);
 				}
 				assert result.descriptor().isMutable();
@@ -291,7 +314,7 @@ extends MapBinDescriptor
 						myLevel,
 						true);
 				assert localAddResult.sameAddressAs(result)
-				: "The element should have been added without copying";
+					: "The element should have been added without copying";
 			}
 			assert result.binSize() == oldSize + 1;
 			HashedMapBinDescriptor.check(result);
@@ -302,10 +325,10 @@ extends MapBinDescriptor
 			descriptorFor(MUTABLE, myLevel),
 			object,
 			2,
-			1);
+			(oldSize & 1) ^ 1);  // Grow if it had an even number of ints
 		result.setSlot(KEYS_HASH, object.mapBinKeysHash() + keyHash);
 		result.setSlot(VALUES_HASH_OR_ZERO, 0);
-		result.setSlot(KEY_HASHES_, oldSize + 1, keyHash);
+		result.setIntSlot(KEY_HASHES_AREA_, oldSize + 1, keyHash);
 		result.setSlot(BIN_SLOT_AT_, oldSize * 2 + 1, key);
 		result.setSlot(BIN_SLOT_AT_, oldSize * 2 + 2, value);
 		if (canDestroy && isMutable())
@@ -335,10 +358,10 @@ extends MapBinDescriptor
 		final boolean canDestroy)
 	{
 		check(object);
-		final int oldSize = object.variableIntegerSlotsCount();
+		final int oldSize = entryCount(object);
 		for (int searchIndex = 1; searchIndex <= oldSize; searchIndex++)
 		{
-			if (object.slot(KEY_HASHES_, searchIndex) == keyHash
+			if (object.intSlot(KEY_HASHES_AREA_, searchIndex) == keyHash
 				&& object.slot(BIN_SLOT_AT_, searchIndex * 2 - 1).equals(key))
 			{
 				if (oldSize == 1)
@@ -349,13 +372,13 @@ extends MapBinDescriptor
 					descriptorFor(MUTABLE, level),
 					object,
 					-2,
-					-1);
+					-(oldSize & 1));  // Reduce size only if it was odd
 				if (searchIndex < oldSize)
 				{
-					result.setSlot(
-						KEY_HASHES_,
+					result.setIntSlot(
+						KEY_HASHES_AREA_,
 						searchIndex,
-						object.slot(KEY_HASHES_, oldSize));
+						object.intSlot(KEY_HASHES_AREA_, oldSize));
 					result.setSlot(
 						BIN_SLOT_AT_,
 						searchIndex * 2 - 1,
@@ -389,9 +412,9 @@ extends MapBinDescriptor
 	{
 		// Answer the union of the types of this bin's keys. I'm supposed to be
 		// small, so recalculate it per request.
-		A_Type unionKind = BottomTypeDescriptor.bottom();
-		final int limit = object.variableIntegerSlotsCount();
-		for (int index = 1; index <= limit; index++)
+		A_Type unionKind = object.slot(BIN_SLOT_AT_, 1).kind();
+		final int limit = entryCount(object);
+		for (int index = 2; index <= limit; index++)
 		{
 			unionKind = unionKind.typeUnion(
 				object.slot(BIN_SLOT_AT_, index * 2 - 1).kind());
@@ -404,9 +427,9 @@ extends MapBinDescriptor
 	{
 		// Answer the union of the types of this bin's values. I'm supposed to
 		// be small, so recalculate it per request.
-		A_Type unionKind = BottomTypeDescriptor.bottom();
-		final int limit = object.variableIntegerSlotsCount();
-		for (int index = 1; index <= limit; index++)
+		A_Type unionKind = object.slot(BIN_SLOT_AT_, 2).kind();
+		final int limit = entryCount(object);
+		for (int index = 2; index <= limit; index++)
 		{
 			unionKind = unionKind.typeUnion(
 				object.slot(BIN_SLOT_AT_, index * 2).kind());
@@ -415,8 +438,8 @@ extends MapBinDescriptor
 	}
 
 	/**
-	 * Lazily compute and install the hash of the specified {@linkplain
-	 * LinearMapBinDescriptor object}.
+	 * Lazily compute and install the hash of the values within the specified
+	 * {@link LinearMapBinDescriptor}.
 	 *
 	 * @param object An object.
 	 * @return A hash.
@@ -426,11 +449,10 @@ extends MapBinDescriptor
 		int valuesHash = object.slot(VALUES_HASH_OR_ZERO);
 		if (valuesHash == 0)
 		{
-			final int size = object.variableIntegerSlotsCount();
+			final int size = entryCount(object);
 			for (int i = 1; i <= size; i++)
 			{
-				final int valueHash = object.slot(BIN_SLOT_AT_, i * 2).hash();
-				valuesHash += valueHash;
+				valuesHash += object.slot(BIN_SLOT_AT_, i * 2).hash();
 			}
 			object.setSlot(VALUES_HASH_OR_ZERO, valuesHash);
 		}
@@ -455,7 +477,7 @@ extends MapBinDescriptor
 	{
 		return new MapIterable()
 		{
-			final int limit = object.variableIntegerSlotsCount();
+			final int limit = entryCount(object);
 			int nextIndex = 1;
 
 			@Override
@@ -463,7 +485,7 @@ extends MapBinDescriptor
 			{
 				entry.setKeyAndHashAndValue(
 					object.slot(BIN_SLOT_AT_, nextIndex * 2 - 1),
-					object.slot(KEY_HASHES_, nextIndex),
+					object.intSlot(KEY_HASHES_AREA_, nextIndex),
 					object.slot(BIN_SLOT_AT_, nextIndex * 2));
 				nextIndex++;
 				return entry;
@@ -501,7 +523,7 @@ extends MapBinDescriptor
 				descriptor);
 		bin.setSlot(KEYS_HASH, keyHash);
 		bin.setSlot(VALUES_HASH_OR_ZERO, 0);
-		bin.setSlot(KEY_HASHES_, 1, keyHash);
+		bin.setIntSlot(KEY_HASHES_AREA_, 1, keyHash);
 		bin.setSlot(BIN_SLOT_AT_, 1, key);
 		bin.setSlot(BIN_SLOT_AT_, 2, value);
 		check(bin);

@@ -52,16 +52,17 @@ extends Descriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The sum of the hashes of the elements recursively within this bin.
+		 * The low 32 bits are used for the {@link #BIN_HASH}, but the upper
+		 * 32 can be used by other {@link BitField}s in subclasses.
 		 */
-		BIN_HASH
-	}
+		@HideFieldInDebugger
+		BIN_HASH_AND_MORE;
 
-
-	@Override @AvailMethod
-	void o_BinHash (final AvailObject object, final int value)
-	{
-		object.setSlot(BIN_HASH, value);
+		/**
+		 * A slot to hold the bin's hash value, or zero if it has not been
+		 * computed.
+		 */
+		static final BitField BIN_HASH = bitField(BIN_HASH_AND_MORE, 0, 32);
 	}
 
 	@Override @AvailMethod
@@ -97,9 +98,9 @@ extends Descriptor
 
 	/**
 	 * The level of my objects in their enclosing bin trees. The top node is
-	 * level 0 (using hash bits 0..4), and the bottom hashed node is level 6
+	 * level 0 (using hash bits 0..5), and the bottom hashed node is level 5
 	 * (using hash bits 30..34, the top three of which are always zero). There
-	 * can be a level 7 {@linkplain LinearSetBinDescriptor linear bin}, but it
+	 * can be a level 6 {@linkplain LinearSetBinDescriptor linear bin}, but it
 	 * represents elements which all have the same hash value, so it should
 	 * never be hashed.
 	 */

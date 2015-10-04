@@ -484,27 +484,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_BinElementAtPut (
-		final AvailObject object,
-		final int index,
-		final A_BasicObject value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_BinHash (final AvailObject object, final int value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_BinSize (final AvailObject object, final int value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	void o_BreakpointBlock (final AvailObject object, final AvailObject value)
 	{
 		throw unsupportedOperationException();
@@ -1049,25 +1028,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_RawByteAtPut (
-		final AvailObject object,
-		final int index,
-		final short anInteger)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	short o_RawByteForCharacterAt (final AvailObject object, final int index)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_RawNybbleAtPut (
-		final AvailObject object,
-		final int index,
-		final byte aNybble)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1322,15 +1283,6 @@ extends AbstractDescriptor
 
 	@Override
 	AvailObject o_TupleAt (final AvailObject object, final int index)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_ObjectTupleAtPut (
-		final AvailObject object,
-		final int index,
-		final A_BasicObject anObject)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2603,16 +2555,14 @@ extends AbstractDescriptor
 		{
 			return object;
 		}
-		// Create a linear bin with two slots.
-		final AvailObject result = LinearSetBinDescriptor.createPair(
-			myLevel,
-			object,
-			elementObject);
 		if (!canDestroy)
 		{
-			result.makeImmutable();
+			object.makeImmutable();
+			elementObject.makeImmutable();
 		}
-		return result;
+		// Create a linear bin with two slots.
+		return LinearSetBinDescriptor.createPair(
+			myLevel, object, elementObject);
 	}
 
 	@Override
@@ -2680,10 +2630,9 @@ extends AbstractDescriptor
 	@Override
 	int o_BinHash (final AvailObject object)
 	{
-		// An object masquerading as a size one bin has a bin hash which is the
-		// sum of
-		// the elements' hashes, which in this case is just the object's hash.
-
+		// An object masquerading as a size one bin has a binHash which is the
+		// sum of the elements' hashes, which in this case is just the object's
+		// hash.
 		return object.hash();
 	}
 

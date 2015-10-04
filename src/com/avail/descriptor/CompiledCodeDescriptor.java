@@ -92,25 +92,27 @@ extends Descriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The hash value of this {@linkplain CompiledCodeDescriptor compiled
-		 * code object}. It is computed at construction time.
+		 * A compound field consisting of the hash value, computed at
+		 * construction time, and the {@link Primitive} number or zero.
 		 */
 		@HideFieldInDebugger
-		HASH,
+		HASH_AND_PRIMITIVE,
 
 		/**
 		 * A compound field consisting of the number of outer variables/values
-		 * to be captured by my {@linkplain FunctionDescriptor functions}, and
-		 * the variable number of slots that should be allocated for a
-		 * {@linkplain ContinuationDescriptor continuation} running this code.
+		 * to be captured by my {@linkplain FunctionDescriptor functions}, the
+		 * variable number of slots that should be allocated for a {@linkplain
+		 * ContinuationDescriptor continuation} running this code, the number of
+		 * local variables, and the number of arguments.
 		 */
-		HI_NUM_OUTERS_LOW_FRAME_SLOTS,
+		NUM_OUTERS_FRAMES_LOCALS_AND_ARGS;
 
 		/**
-		 * A compound field consisting of the number of locals variables and the
-		 * number of arguments.
+		 * The hash value of this {@linkplain CompiledCodeDescriptor compiled
+		 * code object}. It is computed at construction time.
 		 */
-		HI_NUM_LOCALS_LOW_NUM_ARGS,
+		static final BitField HASH = bitField(
+			HASH_AND_PRIMITIVE, 0, 32);
 
 		/**
 		 * The primitive number or zero. This does not correspond with the
@@ -121,19 +123,15 @@ extends Descriptor
 		 * nybblecodes. The nybblecode instructions are only run if the
 		 * primitive was unsuccessful.
 		 */
-		@EnumField(
-			describedBy=Primitive.class,
-			lookupMethodName="byPrimitiveNumberOrNull")
-		PRIMITIVE_NUMBER;
+		static final BitField PRIMITIVE_NUMBER = bitField(
+			HASH_AND_PRIMITIVE, 32, 32);
 
 		/**
 		 * The number of outer variables that must captured by my {@linkplain
 		 * FunctionDescriptor functions}.
 		 */
 		static final BitField NUM_OUTERS = bitField(
-			HI_NUM_OUTERS_LOW_FRAME_SLOTS,
-			16,
-			16);
+			NUM_OUTERS_FRAMES_LOCALS_AND_ARGS, 48, 16);
 
 		/**
 		 * The number of {@linkplain
@@ -141,27 +139,21 @@ extends Descriptor
 		 * for continuations running this code.
 		 */
 		static final BitField FRAME_SLOTS = bitField(
-			HI_NUM_OUTERS_LOW_FRAME_SLOTS,
-			0,
-			16);
+			NUM_OUTERS_FRAMES_LOCALS_AND_ARGS, 32, 16);
 
 		/**
 		 * The number of local variables and constants declared in this code,
 		 * not counting the arguments. Also don't count locals in nested code.
 		 */
 		static final BitField NUM_LOCALS = bitField(
-			HI_NUM_LOCALS_LOW_NUM_ARGS,
-			16,
-			16);
+			NUM_OUTERS_FRAMES_LOCALS_AND_ARGS, 16, 16);
 
 		/**
 		 * The number of {@link DeclarationKind#ARGUMENT arguments} that this
 		 * code expects.
 		 */
 		static final BitField NUM_ARGS = bitField(
-			HI_NUM_LOCALS_LOW_NUM_ARGS,
-			0,
-			16);
+			NUM_OUTERS_FRAMES_LOCALS_AND_ARGS, 0, 16);
 	}
 
 	/**

@@ -134,26 +134,20 @@ extends TupleDescriptor
 		}
 		// Fall back to building a general object tuple containing Avail
 		// character objects.
-		final A_String tuple = ObjectTupleDescriptor.mutable.create(count);
-		// Make it pointer-safe first, since we'll be allocating character
-		// objects.
-		for (int i = 1; i <= count; i++)
-		{
-			tuple.objectTupleAtPut(i, NilDescriptor.nil());
-		}
-		index = 0;
-		count = 1;  // One-based tuple index
-		while (index < charCount)
-		{
-			final int codePoint = aNativeString.codePointAt(index);
-			tuple.objectTupleAtPut(
-				count,
-				CharacterDescriptor.fromCodePoint(
-					codePoint));
-			count++;
-			index += Character.charCount(codePoint);
-		}
-		assert count == tuple.tupleSize() + 1;
+		final A_String tuple = ObjectTupleDescriptor.generateFrom(
+			count,
+			new Generator<A_BasicObject>()
+			{
+				private int charIndex = 0;
+
+				@Override
+				public A_BasicObject value ()
+				{
+					final int codePoint = aNativeString.codePointAt(charIndex);
+					charIndex += Character.charCount(codePoint);
+					return CharacterDescriptor.fromCodePoint(codePoint);
+				}
+			});
 		return tuple;
 	}
 
@@ -185,11 +179,10 @@ extends TupleDescriptor
 	 */
 	public static A_String mutableByteStringFromGenerator(
 		final int size,
-		final Generator<Integer> generator)
+		final Generator<Character> generator)
 	{
 		return ByteStringDescriptor.generateByteString(
-			size,
-			generator);
+			size, generator);
 	}
 
 	/**
@@ -205,11 +198,10 @@ extends TupleDescriptor
 	 */
 	public static A_String mutableTwoByteStringFromGenerator(
 		final int size,
-		final Generator<Integer> generator)
+		final Generator<Character> generator)
 	{
 		return TwoByteStringDescriptor.generateTwoByteString(
-			size,
-			generator);
+			size, generator);
 	}
 
 	/** A tuple containing just the underscore character. */

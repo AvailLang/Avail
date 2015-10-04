@@ -210,11 +210,6 @@ extends JSONFriendly
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	void binElementAtPut (int index, A_BasicObject value);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	boolean binHasElementWithHash (
 		A_BasicObject elementObject,
 		int elementObjectHash);
@@ -223,11 +218,6 @@ extends JSONFriendly
 	 * Dispatch to the descriptor.
 	 */
 	int binHash ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void binHash (int value);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -242,11 +232,6 @@ extends JSONFriendly
 	 * Dispatch to the descriptor.
 	 */
 	int binSize ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void binSize (int value);
 
 	/**
 	 * {@inheritDoc}

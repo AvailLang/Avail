@@ -96,7 +96,7 @@ public class StacksOutputFile
 	{
 		final ByteBuffer buffer = ByteBuffer.wrap(
 			(outputText.getBytes(StandardCharsets.UTF_8)));
-		final Mutable<Integer> pos = new Mutable<Integer>(0);
+		final Mutable<Long> pos = new Mutable<Long>(0L);
 		outputFile.write(
 			buffer,
 			pos.value,

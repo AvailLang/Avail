@@ -54,10 +54,10 @@ implements A_BasicObject
 	 * occasionally valuable to enable for a short time, especially right after
 	 * introducing new descriptor subclasses.
 	 */
-	private final static boolean shouldCheckSlots = false;
+	public final static boolean shouldCheckSlots = false; //XXX
 
-	/** An {@code int} array encoding all of my digital state. */
-	private int[] intSlots;
+	/** A {@code long} array encoding all of my digital state. */
+	private long[] longSlots;
 
 	/** An array of all my references to other {@link AvailObject}s. */
 	private AvailObject[] objectSlots;
@@ -112,25 +112,99 @@ implements A_BasicObject
 	}
 
 	/**
-	 * Verify that the slot is an appropriate way to access this object (i.e.,
-	 * that the slot is defined in an enumeration within the class of this
-	 * object's descriptor).  It fails (an assertion) if it's inappropriate, and
-	 * if {@link #shouldCheckSlots} is enabled.
+	 * Verify that the object slot is an appropriate way to access this object
+	 * (i.e., that the slot is defined in an enumeration within the class of
+	 * this object's descriptor).  It fails (an assertion) if it's
+	 * inappropriate, and if {@link #shouldCheckSlots} is enabled.
 	 *
-	 * @param field The slot to validate for the receiver.
+	 * @param field The object slot to validate for the receiver.
 	 */
-	private void checkSlot (final AbstractSlotsEnum field)
+	private final void checkSlot (final ObjectSlotsEnum field)
 	{
 		if (shouldCheckSlots)
 		{
+			@Nullable
+			final ObjectSlotsEnum [] permittedFields =
+				descriptor.debugObjectSlots[field.ordinal()];
+			if (permittedFields != null)
+			{
+				for (int i = 0; i < permittedFields.length; i++)
+				{
+					if (permittedFields[i] == field)
+					{
+						return;
+					}
+				}
+			}
+			// Check it the slow way.
 			final Class<?> definitionClass =
 				field.getClass().getEnclosingClass();
 			assert definitionClass.isInstance(descriptor);
+			// Cache that field for next time.
+			final ObjectSlotsEnum [] newPermittedFields;
+			if (permittedFields == null)
+			{
+				newPermittedFields = new ObjectSlotsEnum[] {field};
+			}
+			else
+			{
+				newPermittedFields = Arrays.copyOf(
+					permittedFields, permittedFields.length + 1);
+				newPermittedFields[permittedFields.length] = field;
+			}
+			descriptor.debugObjectSlots[field.ordinal()] = newPermittedFields;
 		}
 	}
 
 	/**
-	 * Extract the value of the {@link BitField} of the receiver.
+	 * Verify that the integer slot is an appropriate way to access this object
+	 * (i.e., that the slot is defined in an enumeration within the class of
+	 * this object's descriptor).  It fails (an assertion) if it's
+	 * inappropriate, and if {@link #shouldCheckSlots} is enabled.
+	 *
+	 * @param field The integer slot to validate for the receiver.
+	 */
+	private final void checkSlot (final IntegerSlotsEnum field)
+	{
+		if (shouldCheckSlots)
+		{
+			@Nullable
+			final IntegerSlotsEnum [] permittedFields =
+				descriptor.debugIntegerSlots[field.ordinal()];
+			if (permittedFields != null)
+			{
+				for (int i = 0; i < permittedFields.length; i++)
+				{
+					if (permittedFields[i] == field)
+					{
+						return;
+					}
+				}
+			}
+			// Check it the slow way.
+			final Class<?> definitionClass =
+				field.getClass().getEnclosingClass();
+			assert definitionClass.isInstance(descriptor);
+			// Cache that field for next time.
+			final IntegerSlotsEnum [] newPermittedFields;
+			if (permittedFields == null)
+			{
+				newPermittedFields = new IntegerSlotsEnum[] {field};
+			}
+			else
+			{
+				newPermittedFields = Arrays.copyOf(
+					permittedFields, permittedFields.length + 1);
+				newPermittedFields[permittedFields.length] = field;
+			}
+			descriptor.debugIntegerSlots[field.ordinal()] = newPermittedFields;
+		}
+	}
+
+	/**
+	 * Extract the value of the {@link BitField} of the receiver.  Note that
+	 * it's an {@code int} even though the underlying longSlots array contains
+	 * {@code long}s.
 	 *
 	 * @param bitField
 	 *            A {@code BitField} that defines the object's layout.
@@ -140,8 +214,8 @@ implements A_BasicObject
 		final BitField bitField)
 	{
 		checkSlot(bitField.integerSlot);
-		final int value = intSlots[bitField.integerSlotIndex];
-		return (value >>> bitField.shift) & bitField.lowMask;
+		final long value = longSlots[bitField.integerSlotIndex];
+		return (int)((value >>> bitField.shift) & bitField.lowMask);
 	}
 
 	/**
@@ -156,10 +230,10 @@ implements A_BasicObject
 	{
 		checkWriteForField(bitField.integerSlot);
 		checkSlot(bitField.integerSlot);
-		int value = intSlots[bitField.integerSlotIndex];
+		long value = longSlots[bitField.integerSlotIndex];
 		value &= bitField.invertedMask;
-		value |= (anInteger << bitField.shift) & bitField.mask;
-		intSlots[bitField.integerSlotIndex] = value;
+		value |= (((long)anInteger) << bitField.shift) & bitField.mask;
+		longSlots[bitField.integerSlotIndex] = value;
 	}
 
 	/**
@@ -170,16 +244,16 @@ implements A_BasicObject
 	 * @param byteSubscript Which byte to extract.
 	 * @return The unsigned byte as a short.
 	 */
-	public final short byteSlotAt (
+	public final short byteSlot (
 		final IntegerSlotsEnum field,
 		final int byteSubscript)
 	{
 		checkSlot(field);
 		final int zeroBasedSubscript = byteSubscript - 1;
-		final int wordIndex = field.ordinal() + (zeroBasedSubscript >> 2);
-		final int word = intSlots[wordIndex];
-		final int rightShift = (zeroBasedSubscript & 0x03) << 3;
-		return (short) ((word >>> rightShift) & 0xFF);
+		final int wordIndex = field.ordinal() + (zeroBasedSubscript >> 3);
+		final long word = longSlots[wordIndex];
+		final int rightShift = (zeroBasedSubscript & 0x07) << 3;
+		return (short) ((word >>> rightShift) & 0xFFL);
 	}
 
 	/**
@@ -190,7 +264,7 @@ implements A_BasicObject
 	 * @param byteSubscript Which byte to extract.
 	 * @param aByte The unsigned byte to write, passed as a short.
 	 */
-	public final void byteSlotAtPut (
+	public final void setByteSlot (
 		final IntegerSlotsEnum field,
 		final int byteSubscript,
 		final short aByte)
@@ -199,12 +273,12 @@ implements A_BasicObject
 		checkWriteForField(field);
 		checkSlot(field);
 		final int zeroBasedSubscript = byteSubscript - 1;
-		final int wordIndex = field.ordinal() + (zeroBasedSubscript >> 2);
-		int word = intSlots[wordIndex];
-		final int leftShift = (zeroBasedSubscript & 0x03) << 3;
-		word &= ~(0xFF << leftShift);
-		word |= aByte << leftShift;
-		intSlots[wordIndex] = word;
+		final int wordIndex = field.ordinal() + (zeroBasedSubscript >> 3);
+		long word = longSlots[wordIndex];
+		final int leftShift = (zeroBasedSubscript & 0x07) << 3;
+		word &= ~(0xFFL << leftShift);
+		word |= ((long)aByte) << leftShift;
+		longSlots[wordIndex] = word;
 	}
 
 	/**
@@ -212,17 +286,17 @@ implements A_BasicObject
 	 * receiver.
 	 *
 	 * @param field The enumeration value that identifies the base field.
-	 * @param shortIndex The index in bytes (must be even).
+	 * @param shortIndex The one-base index in shorts.
 	 * @return The unsigned {@code short} (as an {@code int} found at the given
 	 *         short-index.
 	 */
-	public final int shortSlotAt (
+	public final int shortSlot (
 		final IntegerSlotsEnum field,
 		final int shortIndex)
 	{
 		checkSlot(field);
-		final int word = intSlots[field.ordinal() + (shortIndex - 1) / 2];
-		return (word >>> ((shortIndex - 1 & 1) << 4)) & 0xFFFF;
+		final long word = longSlots[field.ordinal() + ((shortIndex - 1) >>> 2)];
+		return (int)((word >>> ((shortIndex - 1 & 3) << 4)) & 0xFFFF);
 	}
 
 	/**
@@ -230,125 +304,165 @@ implements A_BasicObject
 	 * receiver.
 	 *
 	 * @param field The enumeration value that identifies the base field.
-	 * @param shortIndex The index in bytes (must be even).
+	 * @param shortIndex The one-based index in shorts.
 	 * @param aShort The {@code short} to store at the given short-index, passed
 	 *               as an {@code int} for safety.
 	 */
-	public final void shortSlotAtPut (
+	public final void setShortSlot (
 		final IntegerSlotsEnum field,
 		final int shortIndex,
 		final int aShort)
 	{
 		checkWriteForField(field);
 		checkSlot(field);
-		final int shift = (shortIndex - 1 & 1) << 4;
-		final int wordIndex = field.ordinal() + (shortIndex - 1) / 2;
-		int word = intSlots[wordIndex];
-		word &= ~(0xFFFF << shift);
-		word |= aShort << shift;
-		intSlots[wordIndex] = word;
+		final int shift = (shortIndex - 1 & 3) << 4;
+		final int wordIndex = field.ordinal() + ((shortIndex - 1) >>> 2);
+		long word = longSlots[wordIndex];
+		word &= ~(0xFFFFL << shift);
+		word |= ((long)aShort) << shift;
+		longSlots[wordIndex] = word;
+	}
+
+	/**
+	 * Extract a (32-bit signed) {@code int} at the given int-index of the
+	 * receiver.
+	 *
+	 * @param field The enumeration value that identifies the base field.
+	 * @param intIndex The one-base index in ints.
+	 * @return The signed {@code int} found at the given int-index.
+	 */
+	public final int intSlot (
+		final IntegerSlotsEnum field,
+		final int intIndex)
+	{
+		checkSlot(field);
+		final long word = longSlots[field.ordinal() + ((intIndex - 1) >>> 1)];
+		return (int)(word >> ((intIndex - 1 & 1) << 5));
+	}
+
+	/**
+	 * Store the (32-bit signed) {@code int} at the given int-index of the
+	 * receiver.
+	 *
+	 * @param field The enumeration value that identifies the base field.
+	 * @param intIndex The one-based index in ints.
+	 * @param anInt The {@code int} to store at the given int-index.
+	 */
+	public final void setIntSlot (
+		final IntegerSlotsEnum field,
+		final int intIndex,
+		final int anInt)
+	{
+		checkWriteForField(field);
+		checkSlot(field);
+		final int shift = (intIndex - 1 & 1) << 5;
+		final int wordIndex = field.ordinal() + ((intIndex - 1) >>> 1);
+		long word = longSlots[wordIndex];
+		word &= ~(0xFFFFFFFFL << shift);
+		word |= (anInt & 0xFFFFFFFFL) << shift;
+		longSlots[wordIndex] = word;
 	}
 
 	@Override
 	public final int integerSlotsCount ()
 	{
-		return intSlots.length;
+		return longSlots.length;
 	}
 
 	/**
-	 * Extract the (signed 32-bit) integer for the given field {@code enum}
+	 * Extract the (signed 64-bit) integer for the given field {@code enum}
 	 * value.
 	 *
 	 * @param field An enumeration value that defines the field ordering.
-	 * @return An {@code int} extracted from this object.
+	 * @return A {@code long} extracted from this object.
 	 */
-	public final int slot (final IntegerSlotsEnum field)
+	public final long slot (final IntegerSlotsEnum field)
 	{
 		checkSlot(field);
-		return intSlots[field.ordinal()];
+		return longSlots[field.ordinal()];
 	}
 
 	/**
-	 * Store the (signed 32-bit) integer in the four bytes starting at the
+	 * Store the (signed 64-bit) integer in the eight bytes starting at the
 	 * given field {@code enum} value.
 	 *
 	 * @param field An enumeration value that defines the field ordering.
-	 * @param anInteger An {@code int} to store in the indicated slot.
+	 * @param anInteger A {@code long} to store in the indicated slot.
 	 */
 	public final void setSlot (
 		final IntegerSlotsEnum field,
-		final int anInteger)
+		final long anInteger)
 	{
 		checkWriteForField(field);
 		checkSlot(field);
-		intSlots[field.ordinal()] = anInteger;
+		longSlots[field.ordinal()] = anInteger;
 	}
 
 	/**
-	 * Extract the (signed 32-bit) integer at the given field enum value.
+	 * Extract the (signed 64-bit) integer at the given field enum value.
 	 *
 	 * @param field An enumeration value that defines the field ordering.
 	 * @param subscript The positive one-based subscript to apply.
-	 * @return An {@code int} extracted from this object.
+	 * @return A {@code long} extracted from this object.
 	 */
-	public final int slot (
+	public final long slot (
 		final IntegerSlotsEnum field,
 		final int subscript)
 	{
 		checkSlot(field);
-		return intSlots[field.ordinal() + subscript - 1];
+		return longSlots[field.ordinal() + subscript - 1];
 	}
 
 	/**
-	 * Store the (signed 32-bit) integer in the four bytes starting at the
+	 * Store the (signed 64-bit) integer in the eight bytes starting at the
 	 * given field {@code enum} value.
 	 *
 	 * @param field An enumeration value that defines the field ordering.
 	 * @param subscript The positive one-based subscript to apply.
-	 * @param anInteger An {@code int} to store in the indicated slot.
+	 * @param anInteger A {@code long} to store in the indicated slot.
 	 */
 	public final void setSlot (
 		final IntegerSlotsEnum field,
 		final int subscript,
-		final int anInteger)
+		final long anInteger)
 	{
 		checkWriteForField(field);
 		checkSlot(field);
-		intSlots[field.ordinal() + subscript - 1] = anInteger;
+		longSlots[field.ordinal() + subscript - 1] = anInteger;
 	}
 
 	/**
-	 * Extract the (signed 32-bit) integer for the given field {@code enum}
+	 * Extract the (signed 64-bit) integer for the given field {@code enum}
 	 * value. If the receiver is {@linkplain Mutability#SHARED shared}, then
 	 * acquire its monitor.
 	 *
 	 * @param field An enumeration value that defines the field ordering.
-	 * @return An {@code int} extracted from this object.
+	 * @return A {@code long} extracted from this object.
 	 */
-	public final int mutableSlot (final IntegerSlotsEnum field)
+	public final long mutableSlot (final IntegerSlotsEnum field)
 	{
 		checkSlot(field);
 		if (descriptor.isShared())
 		{
 			synchronized (this)
 			{
-				return intSlots[field.ordinal()];
+				return longSlots[field.ordinal()];
 			}
 		}
-		return intSlots[field.ordinal()];
+		return longSlots[field.ordinal()];
 	}
 
 	/**
-	 * Store the (signed 32-bit) integer in the four bytes starting at the
+	 * Store the (signed 64-bit) integer in the eight bytes starting at the
 	 * given field {@code enum} value. If the receiver is {@linkplain
 	 * Mutability#SHARED shared}, then acquire its monitor.
 	 *
 	 * @param field An enumeration value that defines the field ordering.
-	 * @param anInteger An {@code int} to store in the indicated slot.
+	 * @param anInteger A {@code long} to store in the indicated slot.
 	 */
 	public final void setMutableSlot (
 		final IntegerSlotsEnum field,
-		final int anInteger)
+		final long anInteger)
 	{
 		checkWriteForField(field);
 		checkSlot(field);
@@ -356,49 +470,108 @@ implements A_BasicObject
 		{
 			synchronized (this)
 			{
-				intSlots[field.ordinal()] = anInteger;
+				longSlots[field.ordinal()] = anInteger;
 			}
 		}
 		else
 		{
-			intSlots[field.ordinal()] = anInteger;
+			longSlots[field.ordinal()] = anInteger;
 		}
 	}
 
 	/**
-	 * Extract the (signed 32-bit) integer at the given field enum value. If the
+	 * Extract an integer (at most 32 bits) from the given {@link BitField}.
+	 * If the receiver is {@linkplain Mutability#SHARED shared}, then
+	 * acquire its monitor.
+	 *
+	 * @param bitField A {@link BitField}.
+	 * @return An {@code int} extracted from this object.
+	 */
+	public final int mutableSlot (final BitField bitField)
+	{
+		checkSlot(bitField.integerSlot);
+		final long fieldValue;
+		if (descriptor.isShared())
+		{
+			synchronized (this)
+			{
+				fieldValue = longSlots[bitField.integerSlotIndex];
+			}
+		}
+		else
+		{
+			fieldValue = longSlots[bitField.integerSlotIndex];
+		}
+		return (int)((fieldValue >>> bitField.shift) & bitField.lowMask);
+	}
+
+	/**
+	 * Store the (signed 32-bit) integer into the specified {@link BitField}.
+	 * If the receiver is {@linkplain Mutability#SHARED shared}, then acquire
+	 * its monitor.
+	 *
+	 * @param bitField A {@link BitField}.
+	 * @param anInteger An {@code int} to store in the indicated slot.
+	 */
+	public final void setMutableSlot (
+		final BitField bitField,
+		final int anInteger)
+	{
+		checkWriteForField(bitField.integerSlot);
+		checkSlot(bitField.integerSlot);
+		if (descriptor.isShared())
+		{
+			synchronized (this)
+			{
+				long value = longSlots[bitField.integerSlotIndex];
+				value &= bitField.invertedMask;
+				value |= (((long)anInteger) << bitField.shift) & bitField.mask;
+				longSlots[bitField.integerSlotIndex] = value;
+			}
+		}
+		else
+		{
+			long value = longSlots[bitField.integerSlotIndex];
+			value &= bitField.invertedMask;
+			value |= (((long)anInteger) << bitField.shift) & bitField.mask;
+			longSlots[bitField.integerSlotIndex] = value;
+		}
+	}
+
+	/**
+	 * Extract the (signed 64-bit) integer at the given field enum value. If the
 	 * receiver is {@linkplain Mutability#SHARED shared}, then acquire its
 	 * monitor.
 	 *
 	 * @param field An enumeration value that defines the field ordering.
 	 * @param subscript The positive one-based subscript to apply.
-	 * @return An {@code int} extracted from this object.
+	 * @return A {@code long} extracted from this object.
 	 */
-	public final int mutableSlot (
+	public final long mutableSlot (
 		final IntegerSlotsEnum field,
 		final int subscript)
 	{
 		checkSlot(field);
 		if (descriptor.isShared())
 		{
-			return intSlots[field.ordinal() + subscript - 1];
+			return longSlots[field.ordinal() + subscript - 1];
 		}
-		return intSlots[field.ordinal() + subscript - 1];
+		return longSlots[field.ordinal() + subscript - 1];
 	}
 
 	/**
-	 * Store the (signed 32-bit) integer in the four bytes starting at the
+	 * Store the (signed 64-bit) integer in the eight bytes starting at the
 	 * given field {@code enum} value. If the receiver is {@linkplain
 	 * Mutability#SHARED shared}, then acquire its monitor.
 	 *
 	 * @param field An enumeration value that defines the field ordering.
 	 * @param subscript The positive one-based subscript to apply.
-	 * @param anInteger An {@code int} to store in the indicated slot.
+	 * @param anInteger A {@code long} to store in the indicated slot.
 	 */
 	public final void setMutableSlot (
 		final IntegerSlotsEnum field,
 		final int subscript,
-		final int anInteger)
+		final long anInteger)
 	{
 		checkWriteForField(field);
 		checkSlot(field);
@@ -406,12 +579,12 @@ implements A_BasicObject
 		{
 			synchronized (this)
 			{
-				intSlots[field.ordinal() + subscript - 1] = anInteger;
+				longSlots[field.ordinal() + subscript - 1] = anInteger;
 			}
 		}
 		else
 		{
-			intSlots[field.ordinal() + subscript - 1] = anInteger;
+			longSlots[field.ordinal() + subscript - 1] = anInteger;
 		}
 	}
 
@@ -645,10 +818,10 @@ implements A_BasicObject
 	}
 
 	/**
-	 * Reduce the number of int slots occupied by this object.  In a raw memory
-	 * model we would split the object representation into two objects, one
-	 * at the original address, and a separate filler object occupying the int
-	 * slots that were chopped off.
+	 * Reduce the number of {@code long} slots occupied by this object.  In a
+	 * raw memory model we would split the object representation into two
+	 * objects, one at the original address, and a separate filler object
+	 * occupying the long slots that were chopped off.
 	 *
 	 * In the current Java object implementation, we simply shorten the int
 	 * array by replacing it.
@@ -659,9 +832,9 @@ implements A_BasicObject
 	{
 		final int oldIntegerSlotsCount = integerSlotsCount();
 		assert newIntegerSlotsCount < oldIntegerSlotsCount;
-		final int[] newIntSlots = new int[newIntegerSlotsCount];
-		System.arraycopy(intSlots, 0, newIntSlots, 0, newIntegerSlotsCount);
-		intSlots = newIntSlots;
+		final long[] newLongSlots = new long[newIntegerSlotsCount];
+		System.arraycopy(longSlots, 0, newLongSlots, 0, newIntegerSlotsCount);
+		longSlots = newLongSlots;
 	}
 
 	/**
@@ -697,14 +870,14 @@ implements A_BasicObject
 	/**
 	 * Create a new {@link AvailObject} with the specified {@linkplain
 	 * AbstractDescriptor descriptor}, the specified number of object slots, and
-	 * the specified number of integer slots.  Also copy the fields from the
+	 * the specified number of long slots.  Also copy the fields from the
 	 * specified object, which must have a descriptor of the same class.  If the
-	 * sizes of the int arrays differ, only transfer the minimum of the two
-	 * sizes, and do the same for the object slots.
+	 * sizes of the long arrays differ, only transfer the minimum of the two
+	 * sizes; do the same for the object slots.
 	 *
 	 * <p>
 	 * It is the client's responsibility to mark the shared fields as immutable
-	 * if necessary.  Also, any new {@code int} fields beyond the end of the
+	 * if necessary.  Also, any new {@code long} fields beyond the end of the
 	 * original array will be initialized to 0, and any new {@code AvailObject}
 	 * slots will contain a Java {@code null} (requiring initialization by the
 	 * client).
@@ -718,7 +891,7 @@ implements A_BasicObject
 	 *            How many AvailObject fields to add (or if negative, to
 	 *            subtract).
 	 * @param deltaIntegerSlots
-	 *            How many int fields to add (or if negative, to subtract).
+	 *            How many long fields to add (or if negative, to subtract).
 	 * @return A new object.
 	 */
 	static AvailObject newLike (
@@ -733,7 +906,7 @@ implements A_BasicObject
 		final int newObjectSlotCount =
 			objectToCopy.objectSlots.length + deltaObjectSlots;
 		final int newIntegerSlotCount =
-			objectToCopy.intSlots.length + deltaIntegerSlots;
+			objectToCopy.longSlots.length + deltaIntegerSlots;
 		assert newObjectSlotCount >= descriptor.numberOfFixedObjectSlots;
 		assert newIntegerSlotCount >= descriptor.numberOfFixedIntegerSlots;
 		final AvailObject newObject =
@@ -748,13 +921,13 @@ implements A_BasicObject
 		// verifier.
 		final AvailObjectRepresentation weakerNewObject = newObject;
 		System.arraycopy(
-			objectToCopy.intSlots,
+			objectToCopy.longSlots,
 			0,
-			weakerNewObject.intSlots,
+			weakerNewObject.longSlots,
 			0,
 			Math.min(
-				objectToCopy.intSlots.length,
-				weakerNewObject.intSlots.length));
+				objectToCopy.longSlots.length,
+				weakerNewObject.longSlots.length));
 		System.arraycopy(
 			objectToCopy.objectSlots,
 			0,
@@ -767,34 +940,91 @@ implements A_BasicObject
 	}
 
 	/**
-	 * Search for the key in the {@linkplain #intSlots integer slots} that occur
+	 * Search for the key in the {@linkplain #longSlots long slots} that occur
 	 * within those identified with the specified {@link IntegerSlotsEnum}.
-	 * These ints must be in ascending sorted order, and must be distinct.  If
-	 * the exact int is found, answer its zero-based index within this repeated
-	 * slot (i.e., ≥0).  If the exact int is not found, answer (-n-1), where
+	 * These longs must be in ascending sorted order, and must be distinct.  If
+	 * the exact long is found, answer its zero-based index within this repeated
+	 * slot (i.e., ≥0).  If the exact long is not found, answer (-n-1), where
 	 * n is the zero-based position of the leftmost element of the repeated slot
 	 * which is greater than the key (if it was equal, the "if found" case would
 	 * have applied).
 	 *
 	 * @param slot
 	 *            The final integer slot, which must be the variable-length part
-	 *            of the intSlots array.
+	 *            of the longSlots array.
 	 * @param key
-	 *            The value to seek in the designated region of the intSlots
-	 *            array.
+	 *            The long value to seek in the designated region of the
+	 *            longSlots array.
 	 * @return
 	 *            The zero-based index of the key within the variable-length
 	 *            repeated slot if found, or else (-n-1) where n is the
 	 *            zero-based index of the leftmost int that is greater than the
 	 *            key.
 	 */
-	public final int binarySearch (final IntegerSlotsEnum slot, final int key)
+	public final int binarySearch (final IntegerSlotsEnum slot, final long key)
 	{
 		return Arrays.binarySearch(
-			intSlots,
+			longSlots,
 			slot.ordinal(),
-			intSlots.length,
+			longSlots.length,
 			key);
+	}
+
+	/**
+	 * Search for the key in the 32-bit ints encoded within the {@linkplain
+	 * #longSlots long slots} that occur within those slots identified with the
+	 * specified {@link IntegerSlotsEnum}.  The int slots must be in ascending
+	 * sorted order, and must be distinct.  If the exact int is found, answer
+	 * its zero-based index within this repeated slot (i.e., ≥0).  If the exact
+	 * int is not found, answer (-n-1), where n is the zero-based position of
+	 * the leftmost element of the repeated slot which is greater than the key
+	 * (if it was equal, the "if found" case would have applied).
+	 *
+	 * @param slot
+	 *            The final integer slot, which must be the variable-length part
+	 *            of the longSlots array.
+	 * @param slotCount
+	 *            The number of valid int-sized slots (starting at the specified
+	 *            slot's ordinal).
+	 * @param key
+	 *            The long value to seek in the designated region of the
+	 *            longSlots array.
+	 * @return
+	 *            The zero-based index of the key within the variable-length
+	 *            repeated slot if found, or else (-n-1) where n is the
+	 *            zero-based index of the leftmost int that is greater than the
+	 *            key.
+	 */
+	public final int intBinarySearch (
+		final IntegerSlotsEnum slot,
+		final int slotCount,
+		final int key)
+	{
+		final int fromIntIndex = slot.ordinal() << 1;
+		final int toIntIndex = fromIntIndex + slotCount;
+		int low = fromIntIndex;
+		int high = toIntIndex - 1;
+
+		while (low <= high) {
+			final int mid = (low + high) >>> 1;
+			final long longMidVal = longSlots[mid >>> 1];
+			// The following shift maintains the little-Endian convention set up
+			// by intSlot() and setIntSlot().
+			final int midVal = (int)(longMidVal >>> ((mid & 1) << 5));
+			if (midVal < key)
+			{
+				low = mid + 1;
+			}
+			else if (midVal > key)
+			{
+				high = mid - 1;
+			}
+			else
+			{
+				return mid - fromIntIndex; // key found
+			}
+		}
+		return -((low - fromIntIndex) + 1);  // key not found.
 	}
 
 	/**
@@ -807,7 +1037,7 @@ implements A_BasicObject
 	 * A reusable empty array of {@code int}s for objects that have no int
 	 * slots.
 	 */
-	private static final int[] emptyIntegerSlots = new int[0];
+	private static final long[] emptyIntegerSlots = new long[0];
 
 	/**
 	 * {@inheritDoc}
@@ -844,19 +1074,19 @@ implements A_BasicObject
 	 *
 	 * @param descriptor This object's {@link AbstractDescriptor}.
 	 * @param objectSlotsSize The number of object slots to allocate.
-	 * @param intSlotsCount The number of integer slots to allocate.
+	 * @param integerSlotsCount The number of integer slots to allocate.
 	 */
 	protected AvailObjectRepresentation (
 		final AbstractDescriptor descriptor,
 		final int objectSlotsSize,
-		final int intSlotsCount)
+		final int integerSlotsCount)
 	{
 		super(descriptor);
 		objectSlots = objectSlotsSize == 0
 			? emptyObjectSlots
 			: new AvailObject[objectSlotsSize];
-		intSlots = intSlotsCount == 0
+		longSlots = integerSlotsCount == 0
 			? emptyIntegerSlots
-			:new int[intSlotsCount];
+			:new long[integerSlotsCount];
 	}
 }

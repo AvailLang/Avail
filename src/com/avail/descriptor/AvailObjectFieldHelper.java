@@ -182,7 +182,7 @@ public class AvailObjectFieldHelper
 			{
 				AbstractDescriptor.describeIntegerSlot(
 					(AvailObject)parentObject,
-					((AvailIntegerValueHelper)val).intValue,
+					((AvailIntegerValueHelper)val).longValue,
 					(IntegerSlotsEnum)slot,
 					builder);
 			}

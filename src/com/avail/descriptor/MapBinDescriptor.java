@@ -52,14 +52,23 @@ extends Descriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The sum of the hashes of the keys recursively within this bin.
+		 * A long holding {@link BitField}s containing the combined keys hash
+		 * and the combined values hash or zero.
 		 */
-		KEYS_HASH,
+		COMBINED_HASHES;
 
 		/**
-		 * The sum of the hashes of the values recursively within this bin.
+		 * The sum of the hashes of the elements recursively within this bin.
 		 */
-		VALUES_HASH_OR_ZERO
+		public static BitField KEYS_HASH = bitField(
+			COMBINED_HASHES, 0, 32);
+
+		/**
+		 * The sum of the hashes of the elements recursively within this bin,
+		 * or zero if not computed.
+		 */
+		public static BitField VALUES_HASH_OR_ZERO = bitField(
+			COMBINED_HASHES, 32, 32);
 	}
 
 	@Override @AvailMethod
@@ -95,9 +104,9 @@ extends Descriptor
 
 	/**
 	 * The level of my objects in their enclosing bin trees. The top node is
-	 * level 0 (using hash bits 0..4), and the bottom hashed node is level 6
-	 * (using hash bits 30..34, the top three of which are always zero). There
-	 * can be a level 7 {@linkplain LinearMapBinDescriptor linear bin}, but it
+	 * level 0 (using hash bits 0..5), and the bottom hashed node is level 5
+	 * (using hash bits 30..35, the top four of which are always zero). There
+	 * can be a level 6 {@linkplain LinearMapBinDescriptor linear bin}, but it
 	 * represents elements which all have the same hash value, so it should
 	 * never be hashed.
 	 */

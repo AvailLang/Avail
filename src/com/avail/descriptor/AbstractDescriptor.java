@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.Mutability.*;
+import static java.lang.Math.max;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.math.BigInteger;
@@ -236,7 +237,6 @@ public abstract class AbstractDescriptor
 	 */
 	final boolean hasVariableIntegerSlots;
 
-
 	/**
 	 * Can an {@linkplain AvailObject object} using this {@linkplain
 	 * AbstractDescriptor descriptor} have more than the {@linkplain
@@ -251,6 +251,19 @@ public abstract class AbstractDescriptor
 	{
 		return hasVariableIntegerSlots;
 	}
+
+	/**
+	 * Used for quickly checking object fields when {@link
+	 * AvailObjectRepresentation#shouldCheckSlots} is enabled.
+	 */
+	public final ObjectSlotsEnum [][] debugObjectSlots;
+
+	/**
+	 * Used for quickly checking integer fields when {@link
+	 * AvailObjectRepresentation#shouldCheckSlots} is enabled.
+	 */
+	public final IntegerSlotsEnum [][] debugIntegerSlots;
+
 
 	/**
 	 * Note: This is a logical shift *without* Java's implicit modulus on the
@@ -358,6 +371,8 @@ public abstract class AbstractDescriptor
 		final ObjectSlotsEnum [] objectSlots = objectSlotsEnumClass != null
 			? objectSlotsEnumClass.getEnumConstants()
 			: new ObjectSlotsEnum[0];
+		debugObjectSlots =
+			new ObjectSlotsEnum[max(objectSlots.length, 1)][];
 		hasVariableObjectSlots =
 			objectSlots.length > 0
 			&& objectSlots[objectSlots.length - 1].name().endsWith("_");
@@ -367,6 +382,8 @@ public abstract class AbstractDescriptor
 		final IntegerSlotsEnum [] integerSlots = integerSlotsEnumClass != null
 			? integerSlotsEnumClass.getEnumConstants()
 			: new IntegerSlotsEnum[0];
+		debugIntegerSlots =
+			new IntegerSlotsEnum [max(integerSlots.length, 1)][];
 		hasVariableIntegerSlots =
 			integerSlots.length > 0
 			&& integerSlots[integerSlots.length - 1].name().endsWith("_");
@@ -660,7 +677,7 @@ public abstract class AbstractDescriptor
 				}
 				final String slotName = slot.name();
 				assert slotName != null;
-				int value;
+				long value;
 				if (slotName.charAt(slotName.length() - 1) == '_')
 				{
 					final int subscript = i - intSlots.length + 1;
@@ -736,6 +753,56 @@ public abstract class AbstractDescriptor
 		}
 	}
 
+	@Override
+	public String toString ()
+	{
+		final StringBuilder builder = new StringBuilder();
+		final Class<? extends AbstractDescriptor> thisClass = getClass();
+		builder.append(thisClass.getSimpleName());
+		int fieldCount = 0;
+		final List<Class<?>> supers = new ArrayList<>();
+		for (
+			Class<? extends Object> cls = thisClass;
+			cls != Object.class;
+			cls = cls.getSuperclass())
+		{
+			supers.add(0, cls);  // top-down
+		}
+		for (final Class<?> cls : supers)
+		{
+			for (final Field f : cls.getDeclaredFields())
+			{
+				if (!Modifier.isStatic(f.getModifiers()))
+				{
+					fieldCount++;
+					if (fieldCount == 1)
+					{
+						builder.append("(");
+					}
+					else
+					{
+						builder.append(", ");
+					}
+					builder.append(f.getName());
+					builder.append("=");
+					try
+					{
+						builder.append(f.get(this));
+					}
+					catch (IllegalArgumentException | IllegalAccessException e)
+					{
+						builder.append("(inaccessible)");
+					}
+				}
+			}
+		}
+		if (fieldCount > 0)
+		{
+			builder.append(")");
+		}
+		return builder.toString();
+	}
+
 	/**
 	 * A static cache of mappings from {@link IntegerSlotsEnum integer slots} to
 	 * {@link List}s of {@link BitField}s.  Access to the map must be
@@ -759,7 +826,7 @@ public abstract class AbstractDescriptor
 	 */
 	static void describeIntegerSlot (
 		final AvailObject object,
-		final int value,
+		final long value,
 		final IntegerSlotsEnum slot,
 		final StringBuilder builder)
 	{
@@ -808,13 +875,14 @@ public abstract class AbstractDescriptor
 					if (0 <= value && value < allValues.length)
 					{
 						builder.append(" = ");
-						builder.append(allValues[value].name());
+						builder.append(allValues[(int)value].name());
 					}
 					else
 					{
 						builder.append(
 							new Formatter().format(
-								" (enum out of range: 0x%08X)",
+								" (enum out of range: 0x%08X %08X)",
+								value >>> 32L,
 								value & 0xFFFFFFFFL));
 					}
 				}
@@ -836,7 +904,8 @@ public abstract class AbstractDescriptor
 					{
 						builder.append(
 							new Formatter().format(
-								" (enum out of range: 0x%08X)",
+								" (enum out of range: 0x%08X %08X)",
+								value >>> 32L,
 								value & 0xFFFFFFFFL));
 					}
 					else
@@ -874,7 +943,9 @@ public abstract class AbstractDescriptor
 			else
 			{
 				builder.append(
-					new Formatter().format(" = 0x%08X", value & 0xFFFFFFFFL));
+					new Formatter().format(" = 0x%08X %08X",
+						value >>> 32L,
+						value & 0xFFFFFFFFL));
 			}
 		}
 		catch (final NoSuchFieldException e)
@@ -1190,28 +1261,6 @@ public abstract class AbstractDescriptor
 	abstract AvailObject o_BinElementAt (
 		AvailObject object,
 		int index);
-
-	/**
-	 * @param object
-	 * @param index
-	 * @param value
-	 */
-	abstract void o_BinElementAtPut (
-		AvailObject object,
-		int index,
-		A_BasicObject value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_BinHash (AvailObject object, int value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_BinSize (AvailObject object, int value);
 
 	/**
 	 * @param object
@@ -2144,31 +2193,11 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @param index
-	 * @param anInteger
-	 */
-	abstract void o_RawByteAtPut (
-		AvailObject object,
-		int index,
-		short anInteger);
-
-	/**
-	 * @param object
-	 * @param index
 	 * @return
 	 */
 	abstract short o_RawByteForCharacterAt (
 		AvailObject object,
 		int index);
-
-	/**
-	 * @param object
-	 * @param index
-	 * @param aNybble
-	 */
-	abstract void o_RawNybbleAtPut (
-		AvailObject object,
-		int index,
-		byte aNybble);
 
 	/**
 	 * @param object
@@ -5429,16 +5458,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract A_String o_ModuleName (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @param index
-	 * @param anObject
-	 */
-	abstract void o_ObjectTupleAtPut (
-		final AvailObject object,
-		final int index,
-		final A_BasicObject anObject);
 
 	/**
 	 * @param object

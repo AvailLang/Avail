@@ -150,15 +150,12 @@ public class AvailScanner
 	/**
 	 * Create an ordinary {@linkplain TokenDescriptor token}, initialize it, and
 	 * add it to my sequence of parsed tokens. In particular, create the token
-	 * and set its:
+	 * and set its start position
 	 * <ul>
-	 * <li>{@link com.avail.descriptor.TokenDescriptor.IntegerSlots#START
-	 * start},</li>
-	 * <li>{@link com.avail.descriptor.TokenDescriptor.ObjectSlots#STRING
-	 * string}, and</li>
-	 * <li>{@link
-	 * com.avail.descriptor.TokenDescriptor.IntegerSlots#TOKEN_TYPE_CODE token
-	 * type} based on the passed {@link TokenType}.</li>
+	 * <li>{@link A_Token#start() start} position,</li>
+	 * <li>{@link A_Token#string() string} content, and</li>
+	 * <li>{@link A_Token#tokenType() token type} based on the passed {@link
+	 * TokenType}.</li>
 	 * </ul>
 	 *
 	 * @param tokenType

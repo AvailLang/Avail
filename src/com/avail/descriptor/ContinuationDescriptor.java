@@ -89,7 +89,6 @@ extends Descriptor
 		 */
 		LEVEL_TWO_OFFSET;
 
-
 		/**
 		 * A flag that indicates that this continuation does not need to check
 		 * its return type when it returns.  This is not a property of the
@@ -361,7 +360,7 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_LevelTwoOffset (final AvailObject object)
 	{
-		return object.mutableSlot(LEVEL_TWO_OFFSET);
+		return (int)object.mutableSlot(LEVEL_TWO_OFFSET);
 	}
 
 	/**

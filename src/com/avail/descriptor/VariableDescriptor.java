@@ -115,10 +115,16 @@ extends Descriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
+		 * 32 can be used by subclasses.
 		 */
 		@HideFieldInDebugger
-		HASH_OR_ZERO
+		HASH_AND_MORE;
+
+		/**
+		 * A slot to hold the cached hash value.  Zero if not yet computed.
+		 */
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
 	}
 
 	/**
@@ -154,7 +160,7 @@ extends Descriptor
 		final AbstractSlotsEnum e)
 	{
 		return e == VALUE
-			|| e == HASH_OR_ZERO
+			|| e == HASH_AND_MORE
 			|| e == WRITE_REACTORS;
 	}
 
@@ -565,6 +571,9 @@ extends Descriptor
 	AvailObject o_MakeShared (final AvailObject object)
 	{
 		assert !isShared();
+		// Force the hash to be computed when sharing.  Otherwise we would have
+		// to use locks (or other fences) just to get the hash.
+		object.hash();
 		final A_Type kind = object.slot(KIND).makeShared();
 		final AvailObject value = object.slot(VALUE).makeShared();
 		// The value might refer recursively to the variable, so it is possible

@@ -34,8 +34,9 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.LinearSetBinDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.LinearSetBinDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.AvailObjectRepresentation.*;
 import static com.avail.descriptor.Mutability.*;
-import static java.lang.Integer.bitCount;
+import static java.lang.Long.bitCount;
 import com.avail.annotations.*;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 
@@ -58,14 +59,24 @@ extends SetBinDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The sum of the hashes of the elements within this bin.
+		 * The low 32 bits are used for the {@link #BIN_HASH}, but the upper
+		 * 32 can be used by other {@link BitField}s in subclasses.
 		 */
-		BIN_HASH;
+		@HideFieldInDebugger
+		BIN_HASH_AND_MORE;
+
+		/**
+		 * A slot to hold the bin's hash value, or zero if it has not been
+		 * computed.
+		 */
+		static final BitField BIN_HASH = bitField(BIN_HASH_AND_MORE, 0, 32);
 
 		static
 		{
-			assert SetBinDescriptor.IntegerSlots.BIN_HASH.ordinal()
-				== BIN_HASH.ordinal();
+			assert SetBinDescriptor.IntegerSlots.BIN_HASH_AND_MORE.ordinal()
+				== BIN_HASH_AND_MORE.ordinal();
+			assert SetBinDescriptor.IntegerSlots.BIN_HASH.isSamePlaceAs(
+				BIN_HASH);
 		}
 	}
 
@@ -82,19 +93,29 @@ extends SetBinDescriptor
 		BIN_ELEMENT_AT_
 	}
 
+	/**
+	 * Check that this linear bin has a correct binHash.
+	 *
+	 * @param object A linear set bin.
+	 */
+	public final static void checkBinHash (final AvailObject object)
+	{
+		assert object.descriptor instanceof LinearSetBinDescriptor;
+		final int stored = object.binHash();
+		int calculated = 0;
+		for (int i = object.variableObjectSlotsCount(); i >= 1; i--)
+		{
+			final AvailObject subBin = object.slot(BIN_ELEMENT_AT_, i);
+			final int subBinHash = subBin.hash();
+			calculated += subBinHash;
+		}
+		assert calculated == stored : "Failed bin hash cross-check";
+	}
+
 	@Override @AvailMethod
 	AvailObject o_BinElementAt (final AvailObject object, final int subscript)
 	{
 		return object.slot(BIN_ELEMENT_AT_, subscript);
-	}
-
-	@Override @AvailMethod
-	void o_BinElementAtPut (
-		final AvailObject object,
-		final int subscript,
-		final A_BasicObject value)
-	{
-		object.setSlot(BIN_ELEMENT_AT_, subscript, value);
 	}
 
 	@Override @AvailMethod
@@ -109,6 +130,7 @@ extends SetBinDescriptor
 		// canDestroy and it's mutable.  Answer the new bin.  Note that the
 		// client is responsible for marking elementObject as immutable if
 		// another reference exists.
+		checkBinHash(object);
 		assert myLevel == level;
 		if (object.binHasElementWithHash(elementObject, elementObjectHash))
 		{
@@ -127,35 +149,23 @@ extends SetBinDescriptor
 			// as a singleton set bin.
 			return elementObject;
 		}
+		final int oldHash = object.binHash();
 		AvailObject result;
 		if (myLevel < numberOfLevels - 1 && oldSize >= 10)
 		{
-			int bitPosition = bitShift(elementObjectHash, -5 * myLevel) & 31;
-			int bitVector = bitShift(1, bitPosition);
+			final byte shift = (byte)(6 * myLevel);
+			assert shift < 32;
+			int bitPosition = (elementObjectHash >>> shift) & 63;
+			long bitVector = bitShift(1L, bitPosition);
 			for (int i = 1; i <= oldSize; i++)
 			{
 				final A_BasicObject element = object.slot(BIN_ELEMENT_AT_, i);
-				bitPosition = bitShift(element.hash(), -5 * myLevel) & 31;
-				bitVector |= bitShift(1, bitPosition);
+				bitPosition = (element.hash() >>> shift) & 63;
+				bitVector |= bitShift(1L, bitPosition);
 			}
-			final int newSize = bitCount(bitVector);
-			result = HashedSetBinDescriptor.createBin(
-				myLevel,
-				newSize,
-				0,
-				0,
-				bitVector,
-				NilDescriptor.nil());
-			final AvailObject emptySubBin =
-				emptyBinForLevel((byte) (myLevel + 1));
-			for (int i = 1; i <= newSize; i++)
-			{
-				result.setSlot(
-					HashedSetBinDescriptor.ObjectSlots.BIN_ELEMENT_AT_,
-					i,
-					emptySubBin);
-			}
-			A_BasicObject localAddResult;
+			final int newLocalSize = bitCount(bitVector);
+			result = HashedSetBinDescriptor.createInitializedBin(
+				myLevel, newLocalSize, 0, 0, bitVector, NilDescriptor.nil());
 			for (int i = 0; i <= oldSize; i++)
 			{
 				final A_BasicObject eachElement;
@@ -170,58 +180,35 @@ extends SetBinDescriptor
 					eachElement = object.slot(BIN_ELEMENT_AT_, i);
 					eachHash = eachElement.hash();
 				}
-				assert result.descriptor().isMutable();
-				localAddResult = result.setBinAddingElementHashLevelCanDestroy(
-					eachElement,
-					eachHash,
-					myLevel,
-					true);
+				final A_BasicObject localAddResult =
+					result.setBinAddingElementHashLevelCanDestroy(
+						eachElement, eachHash, myLevel, true);
 				assert localAddResult.sameAddressAs(result)
 				: "The element should have been added without reallocation";
 			}
-			final int newHash = object.binHash() + elementObjectHash;
-			assert result.binHash() == newHash;
 			assert result.binSize() == oldSize + 1;
+			assert object.binHash() == oldHash;
+			final int newHash = oldHash + elementObjectHash;
+			assert result.binHash() == newHash;
+			HashedSetBinDescriptor.checkBinHash(result);
 			return result;
 		}
 		// Make a slightly larger linear bin and populate it.
-		result = LinearSetBinDescriptor.createBin(
-			myLevel,
-			oldSize + 1,
-			object.binHash() + elementObjectHash);
+		result = newLike(descriptorFor(MUTABLE, level), object, 1, 0);
 		result.setSlot(BIN_ELEMENT_AT_, oldSize + 1, elementObject);
-		if (canDestroy && isMutable())
+		result.setSlot(BIN_HASH, oldHash + elementObjectHash);
+		if (isMutable())
 		{
-			for (int i = 1; i <= oldSize; i++)
+			if (canDestroy)
 			{
-				result.setSlot(
-					BIN_ELEMENT_AT_,
-					i,
-					object.slot(BIN_ELEMENT_AT_, i));
-				// Clear old slot for safety.
-				object.setSlot(BIN_ELEMENT_AT_, i, NilDescriptor.nil());
+				object.destroy();
+			}
+			else
+			{
+				object.makeSubobjectsImmutable();
 			}
 		}
-		else if (isMutable())
-		{
-			for (int i = 1; i <= oldSize; i++)
-			{
-				result.setSlot(
-					BIN_ELEMENT_AT_,
-					i,
-					object.slot(BIN_ELEMENT_AT_, i).makeImmutable());
-			}
-		}
-		else
-		{
-			for (int i = 1; i <= oldSize; i++)
-			{
-				result.setSlot(
-					BIN_ELEMENT_AT_,
-					i,
-					object.slot(BIN_ELEMENT_AT_, i));
-			}
-		}
+		checkBinHash(result);
 		return result;
 	}
 
@@ -270,31 +257,25 @@ extends SetBinDescriptor
 					}
 					return survivor;
 				}
-				final AvailObject result = LinearSetBinDescriptor.createBin(
-					level,
-					oldSize - 1,
-					object.binHash() - elementObjectHash);
-				for (int copyIndex = 1; copyIndex < searchIndex; copyIndex++)
+				// Produce a smaller copy, truncating the last entry, then
+				// replace the found element with the last entry of the original
+				// bin.  Note that this changes the (irrelevant) order.
+				final int oldHash = object.slot(BIN_HASH);
+				final AvailObject result = newLike(
+					descriptorFor(MUTABLE, level), object, -1, 0);
+				if (searchIndex != oldSize)
 				{
 					result.setSlot(
 						BIN_ELEMENT_AT_,
-						copyIndex,
-						object.slot(BIN_ELEMENT_AT_, copyIndex));
+						searchIndex,
+						object.slot(BIN_ELEMENT_AT_, oldSize));
 				}
-				for (
-					int copyIndex = searchIndex + 1;
-					copyIndex <= oldSize;
-					copyIndex++)
-				{
-					result.setSlot(
-						BIN_ELEMENT_AT_,
-						copyIndex - 1,
-						object.slot(BIN_ELEMENT_AT_, copyIndex));
-				}
+				result.setSlot(BIN_HASH, oldHash - elementObjectHash);
 				if (!canDestroy)
 				{
 					result.makeSubobjectsImmutable();
 				}
+				checkBinHash(result);
 				return result;
 			}
 		}
@@ -376,7 +357,7 @@ extends SetBinDescriptor
 			public AvailObject next ()
 			{
 				assert index <= limit;
-				return object.binElementAt(index++);
+				return object.slot(BIN_ELEMENT_AT_, index++);
 			}
 
 			@Override
@@ -426,6 +407,7 @@ extends SetBinDescriptor
 		instance.setSlot(BIN_ELEMENT_AT_, 1, firstElement);
 		instance.setSlot(BIN_ELEMENT_AT_, 2, secondElement);
 		instance.setSlot(BIN_HASH, firstElement.hash() + secondElement.hash());
+		checkBinHash(instance);
 		return instance;
 	}
 
@@ -433,7 +415,7 @@ extends SetBinDescriptor
 	 * The number of distinct levels at which {@linkplain LinearSetBinDescriptor
 	 * linear bins} may occur.
 	 */
-	static final byte numberOfLevels = 7;
+	static final byte numberOfLevels = 6;
 
 	/**
 	 * Answer a suitable descriptor for a linear bin with the specified
@@ -477,12 +459,11 @@ extends SetBinDescriptor
 		int target = 0;
 		for (int level = 0; level < numberOfLevels; level++)
 		{
-			descriptors[target++] =
-				new LinearSetBinDescriptor(MUTABLE, level);
-			descriptors[target++] =
-				new LinearSetBinDescriptor(IMMUTABLE, level);
-			descriptors[target++] =
-				new LinearSetBinDescriptor(SHARED, level);
+			for (final Mutability mut : Mutability.values())
+			{
+				descriptors[target++] =
+					new LinearSetBinDescriptor(mut, level);
+			}
 		}
 	}
 

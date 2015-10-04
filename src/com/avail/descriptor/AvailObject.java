@@ -763,20 +763,6 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public void binElementAtPut (
-		final int index,
-		final A_BasicObject value)
-	{
-		descriptor.o_BinElementAtPut(
-			this,
-			index,
-			value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public boolean binHasElementWithHash (
 		final A_BasicObject elementObject,
 		final int elementObjectHash)
@@ -794,16 +780,6 @@ implements
 	public int binHash ()
 	{
 		return descriptor.o_BinHash(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public void binHash (
-		final int value)
-	{
-		descriptor.o_BinHash(this, value);
 	}
 
 	/**
@@ -831,16 +807,6 @@ implements
 	public int binSize ()
 	{
 		return descriptor.o_BinSize(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public void binSize (
-		final int value)
-	{
-		descriptor.o_BinSize(this, value);
 	}
 
 	/**
@@ -3508,38 +3474,10 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public void rawByteAtPut (
-		final int index,
-		final short anInteger)
-	{
-		descriptor.o_RawByteAtPut(
-			this,
-			index,
-			anInteger);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
 	public short rawByteForCharacterAt (
 		final int index)
 	{
 		return descriptor.o_RawByteForCharacterAt(this, index);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public void rawNybbleAtPut (
-		final int index,
-		final byte aNybble)
-	{
-		descriptor.o_RawNybbleAtPut(
-			this,
-			index,
-			aNybble);
 	}
 
 	/**
@@ -4072,20 +4010,6 @@ implements
 		final int index)
 	{
 		return descriptor.o_TupleAt(this, index);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public void objectTupleAtPut (
-		final int index,
-		final A_BasicObject anObject)
-	{
-		descriptor.o_ObjectTupleAtPut(
-			this,
-			index,
-			anObject);
 	}
 
 	/**

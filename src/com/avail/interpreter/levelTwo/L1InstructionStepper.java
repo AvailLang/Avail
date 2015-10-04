@@ -37,6 +37,7 @@ import static com.avail.interpreter.Interpreter.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import java.util.*;
 import java.util.logging.Level;
+import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MethodDefinitionException;
@@ -49,6 +50,7 @@ import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_UNTIL_INTERRUPT;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
+import com.avail.utility.Generator;
 import com.avail.utility.MutableOrNull;
 
 /**
@@ -165,7 +167,7 @@ implements L1OperationDispatcher
 	 * @param index Which object register to read.
 	 * @return The value from that register.
 	 */
-	private AvailObject pointerAt (final int index)
+	@InnerAccess AvailObject pointerAt (final int index)
 	{
 		return interpreter.pointerAt(index);
 	}
@@ -176,7 +178,7 @@ implements L1OperationDispatcher
 	 * @param index Which object register to write.
 	 * @param value The value to write to that register.
 	 */
-	private void pointerAtPut (
+	@InnerAccess void pointerAtPut (
 		final int index,
 		final A_BasicObject value)
 	{
@@ -680,12 +682,24 @@ implements L1OperationDispatcher
 	public void L1_doMakeTuple ()
 	{
 		final int count = getInteger();
-		final A_Tuple tuple = ObjectTupleDescriptor.createUninitialized(count);
-		for (int i = count; i >= 1; i--)
-		{
-			tuple.objectTupleAtPut(i, pop());
-		}
-		tuple.hashOrZero(0);
+		final int poppedStackp = integerAt(stackpRegister()) + count;
+		final A_Tuple tuple = ObjectTupleDescriptor.generateFrom(
+			count,
+			new Generator<A_BasicObject>()
+			{
+				int reverseOrderPointer = poppedStackp - 1;
+
+				@Override
+				public A_BasicObject value ()
+				{
+					final AvailObject popped = pointerAt(reverseOrderPointer);
+					// Clear the stack slot
+					pointerAtPut(reverseOrderPointer, NilDescriptor.nil());
+					reverseOrderPointer--;
+					return popped;
+				}
+			});
+		integerAtPut(stackpRegister(), poppedStackp);
 		push(tuple);
 	}
 

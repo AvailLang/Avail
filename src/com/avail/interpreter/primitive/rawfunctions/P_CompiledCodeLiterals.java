@@ -36,6 +36,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.utility.Generator;
 
 /**
  * <strong>Primitive:</strong> Answer a {@linkplain TupleDescriptor
@@ -60,25 +61,21 @@ public final class P_CompiledCodeLiterals extends Primitive
 		assert args.size() == 1;
 		final A_RawFunction code = args.get(0);
 
-		A_Tuple tupleObject = ObjectTupleDescriptor.createUninitialized(
-			code.numLiterals());
-		final int tupleSize = tupleObject.tupleSize();
-		for (int i = 1; i <= tupleSize; i++)
-		{
-			tupleObject.objectTupleAtPut(i, NilDescriptor.nil());
-		}
-		for (int i = 1; i <= tupleSize; i++)
-		{
-			A_BasicObject literal = code.literalAt(i);
-			if (literal.equalsNil())
+		final A_Tuple tupleObject = ObjectTupleDescriptor.generateFrom(
+			code.numLiterals(),
+			new Generator<A_BasicObject>()
 			{
-				literal = IntegerDescriptor.zero();
-			}
-			tupleObject = tupleObject.tupleAtPuttingCanDestroy(
-				i,
-				literal,
-				true);
-		}
+				private int index = 1;
+
+				@Override
+				public A_BasicObject value ()
+				{
+					final A_BasicObject literal = code.literalAt(index++);
+					return literal.equalsNil()
+						? IntegerDescriptor.zero()
+						: literal;
+				}
+			});
 		return interpreter.primitiveSuccess(tupleObject);
 	}
 

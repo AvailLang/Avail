@@ -81,6 +81,18 @@ extends Descriptor
 	implements IntegerSlotsEnum
 	{
 		/**
+		 * {@link BitField}s for the hash and the parsing pc.  See below.
+		 */
+		@HideFieldInDebugger
+		HASH_AND_PARSING_PC;
+
+		/**
+		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
+		 */
+		static final BitField HASH_OR_ZERO = bitField(
+			HASH_AND_PARSING_PC, 0, 32);
+
+		/**
 		 * The subscript into the {@linkplain TupleDescriptor tuple} of encoded
 		 * parsing instructions. These instructions are produced by the {@link
 		 * MessageSplitter} as a way to interpret the tokens, underscores, and
@@ -91,13 +103,8 @@ extends Descriptor
 		 * for each message – otherwise the message bundle tree would have
 		 * diverged into multiple subtrees.
 		 */
-		PARSING_PC,
-
-		/**
-		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
-		 */
-		@HideFieldInDebugger
-		HASH_OR_ZERO
+		static final BitField PARSING_PC = bitField(
+			HASH_AND_PARSING_PC, 32, 32);
 	}
 
 	/**
@@ -290,7 +297,7 @@ extends Descriptor
 	boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == HASH_OR_ZERO
+		return e == HASH_AND_PARSING_PC
 			|| e == ALL_BUNDLES
 			|| e == UNCLASSIFIED
 			|| e == LAZY_COMPLETE

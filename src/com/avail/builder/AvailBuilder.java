@@ -2895,7 +2895,8 @@ public final class AvailBuilder
 						position.value += result;
 						if (buffer.hasRemaining())
 						{
-							channel.write(buffer, position.value, null, this);
+							channel.write(
+								buffer, position.value.intValue(), null, this);
 						}
 					}
 

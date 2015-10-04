@@ -36,6 +36,7 @@ import static com.avail.descriptor.VariableSharedWriteOnceDescriptor.IntegerSlot
 import static com.avail.descriptor.VariableSharedWriteOnceDescriptor.ObjectSlots.*;
 import java.util.Map;
 import java.util.WeakHashMap;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailErrorCode;
@@ -62,15 +63,24 @@ extends VariableSharedDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
+		 * The low 32 bits are used for the hash, but the upper 32 can be used
+		 * by subclasses.
 		 */
 		@HideFieldInDebugger
-		HASH_OR_ZERO;
+		HASH_AND_MORE;
+
+		/**
+		 * A slot to hold the hash value.  Must be computed when (or before)
+		 * making a variable shared.
+		 */
+		static final BitField HASH_ALWAYS_SET = bitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{
-			assert VariableDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
-				== HASH_OR_ZERO.ordinal();
+			assert VariableSharedDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
+				== HASH_AND_MORE.ordinal();
+			assert VariableSharedDescriptor.IntegerSlots.HASH_ALWAYS_SET
+				.isSamePlaceAs(HASH_ALWAYS_SET);
 		}
 	}
 
@@ -130,7 +140,6 @@ extends VariableSharedDescriptor
 	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return super.allowsImmutableToMutableReferenceInField(e)
-			|| e == HASH_OR_ZERO
 			|| e == VALUE
 			|| e == WRITE_REACTORS
 			|| e == DEPENDENT_CHUNKS_WEAK_SET_POJO;
@@ -246,7 +255,7 @@ extends VariableSharedDescriptor
 	{
 		final AvailObject result = mutableWriteOnce.create();
 		result.setSlot(KIND, variableType);
-		result.setSlot(HASH_OR_ZERO, 0);
+		result.setSlot(HASH_ALWAYS_SET, AvailRuntime.nextHash());
 		result.setSlot(VALUE, NilDescriptor.nil());
 		result.setSlot(WRITE_REACTORS, NilDescriptor.nil());
 		result.setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, NilDescriptor.nil());

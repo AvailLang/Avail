@@ -37,6 +37,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.Generator;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -326,7 +327,7 @@ extends Descriptor
 			smaller = otherSet.traversed();
 		}
 		boolean intersected = false;
-		A_Set result = smaller;
+		A_Set result = smaller.makeImmutable();
 		for (final AvailObject element : smaller)
 		{
 			if (!larger.hasElement(element))
@@ -516,21 +517,18 @@ extends Descriptor
 	@Override @AvailMethod
 	A_Tuple o_AsTuple (final AvailObject object)
 	{
-		final int size = object.setSize();
-		final A_Tuple result = ObjectTupleDescriptor.createUninitialized(size);
-		for (int i = 1; i <= size; i++)
-		{
-			// Initialize it for when we use our own garbage collection again.
-			result.objectTupleAtPut(i, NilDescriptor.nil());
-		}
-		int index = 1;
-		for (final A_BasicObject element : object)
-		{
-			result.objectTupleAtPut(index, element.makeImmutable());
-			index++;
-		}
-		assert index == size + 1;
-		result.hashOrZero(0);
+		final A_Tuple result = ObjectTupleDescriptor.generateFrom(
+			object.setSize(),
+			new Generator<A_BasicObject>()
+			{
+				private final Iterator<AvailObject> iterator = object.iterator();
+
+				@Override
+				public A_BasicObject value ()
+				{
+					return iterator.next().makeImmutable();
+				}
+			});
 		return result;
 	}
 

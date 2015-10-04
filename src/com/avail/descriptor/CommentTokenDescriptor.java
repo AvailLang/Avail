@@ -56,11 +56,21 @@ extends TokenDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
+		 * {@link BitField}s for the token type code and the starting byte
+		 * position.
+		 */
+		TOKEN_TYPE_AND_START,
+
+		/** {@link BitField}s for the line number and token index. */
+		LINE_AND_TOKEN_INDEX;
+
+		/**
 		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
 		 * indicates what basic kind of token this is.
 		 */
 		@EnumField(describedBy=TokenType.class)
-		TOKEN_TYPE_CODE,
+		final static BitField TOKEN_TYPE_CODE =
+			bitField(TOKEN_TYPE_AND_START, 0, 32);
 
 		/**
 		 * The starting position in the source file. Currently signed 32 bits,
@@ -68,30 +78,37 @@ extends TokenDescriptor
 		 * 2GB of <em>Avail</em> source in one file, due to its deeply flexible
 		 * syntax.
 		 */
-		START,
+		final static BitField START =
+			bitField(TOKEN_TYPE_AND_START, 32, 32);
 
 		/**
 		 * The line number in the source file. Currently signed 32 bits, which
 		 * should be plenty.
 		 */
-		LINE_NUMBER,
+		final static BitField LINE_NUMBER =
+			bitField(LINE_AND_TOKEN_INDEX, 0, 32);
 
 		/**
 		 * The zero-based token number within the source file's tokenization.
 		 * Currently signed 32 bits, which should be plenty.
 		 */
-		TOKEN_INDEX;
+		final static BitField TOKEN_INDEX =
+			bitField(LINE_AND_TOKEN_INDEX, 32, 32);
 
 		static
 		{
-			assert TokenDescriptor.IntegerSlots.TOKEN_TYPE_CODE.ordinal()
-				== TOKEN_TYPE_CODE.ordinal();
-			assert TokenDescriptor.IntegerSlots.START.ordinal()
-				== START.ordinal();
-			assert TokenDescriptor.IntegerSlots.LINE_NUMBER.ordinal()
-				== LINE_NUMBER.ordinal();
-			assert TokenDescriptor.IntegerSlots.TOKEN_INDEX.ordinal()
-				== TOKEN_INDEX.ordinal();
+			assert TokenDescriptor.IntegerSlots.TOKEN_TYPE_AND_START.ordinal()
+				== TOKEN_TYPE_AND_START.ordinal();
+			assert TokenDescriptor.IntegerSlots.LINE_AND_TOKEN_INDEX.ordinal()
+				== LINE_AND_TOKEN_INDEX.ordinal();
+			assert TokenDescriptor.IntegerSlots.TOKEN_TYPE_CODE.isSamePlaceAs(
+				TOKEN_TYPE_CODE);
+			assert TokenDescriptor.IntegerSlots.START.isSamePlaceAs(
+				START);
+			assert TokenDescriptor.IntegerSlots.LINE_NUMBER.isSamePlaceAs(
+				LINE_NUMBER);
+			assert TokenDescriptor.IntegerSlots.TOKEN_INDEX.isSamePlaceAs(
+				TOKEN_INDEX);
 		}
 	}
 

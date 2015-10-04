@@ -999,7 +999,6 @@ class StackMapFrame
 	 * @throws JVMCodeGenerationException
 	 *
 	 */
-	@SuppressWarnings("null")
 	public StackMapFrame (
 			final byte frameTypeValue,
 			final List<VerificationTypeInfo> stack,

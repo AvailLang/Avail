@@ -73,16 +73,25 @@ extends AtomWithPropertiesDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The hash value of this {@linkplain AtomDescriptor atom}.  It is a
-		 * random number (not 0), computed on demand.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
+		 * 32 can be used by other {@link BitField}s in subclasses.
 		 */
 		@HideFieldInDebugger
-		HASH_OR_ZERO;
+		HASH_AND_MORE;
+
+		/**
+		 * A slot to hold the hash value, or zero if it has not been computed.
+		 * The hash of an atom is a random number, computed once.
+		 */
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{
-			assert AtomDescriptor.IntegerSlots.HASH.ordinal()
-				== HASH_OR_ZERO.ordinal();
+			assert AtomWithPropertiesDescriptor.IntegerSlots.HASH_AND_MORE
+					.ordinal()
+				== HASH_AND_MORE.ordinal();
+			assert AtomWithPropertiesDescriptor.IntegerSlots.HASH_OR_ZERO
+				.isSamePlaceAs(HASH_OR_ZERO);
 		}
 	}
 

@@ -39,6 +39,7 @@ import com.avail.annotations.*;
 import com.avail.exceptions.MapException;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.Generator;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -495,20 +496,17 @@ extends Descriptor
 	A_Tuple o_ValuesAsTuple (final AvailObject object)
 	{
 		final int size = object.mapSize();
-		final A_Tuple result = ObjectTupleDescriptor.createUninitialized(size);
-//		for (int i = 1; i <= size; i++)
-//		{
-//			// Initialize it for when we have our own garbage collector again.
-//			result.objectTupleAtPut(i, NilDescriptor.nil());
-//		}
-		result.hashOrZero(0);
-		int index = 1;
-		for (final Entry entry : object.mapIterable())
-		{
-			result.objectTupleAtPut(index, entry.value().makeImmutable());
-			index++;
-		}
-		assert index == size + 1;
+		final MapIterable mapIterable = object.mapIterable();
+		final AvailObject result = ObjectTupleDescriptor.generateFrom(
+			size,
+			new Generator<A_BasicObject>()
+			{
+				@Override
+				public A_BasicObject value ()
+				{
+					return mapIterable.next().value().makeImmutable();
+				}
+			});
 		return result;
 	}
 

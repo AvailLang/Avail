@@ -151,22 +151,6 @@ extends Primitive
 		}
 		if (!anyDefinitionsApplicable)
 		{
-			// TODO [MvG]:  DEBUG ONLY...
-			for (final A_Definition definition :
-				bundle.bundleMethod().definitionsTuple())
-			{
-				if (allVisibleModules.hasElement(definition.definitionModule()))
-				{
-					final A_Type signature = definition.bodySignature();
-					if (signature.acceptsListOfArgTypes(argTypesList))
-					{
-						intersection.value = intersection.value.typeIntersection(
-							signature.returnType());
-						anyDefinitionsApplicable = true;
-					}
-				}
-			}
-			// ...TO HERE.
 			return interpreter.primitiveFailure(
 				E_NO_METHOD_DEFINITION.numericCode());
 		}

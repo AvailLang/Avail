@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.*;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -51,22 +52,34 @@ extends PrimitiveTypeDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The hash of this primitive type, computed at construction time.
+		 * The low 32 bits are used for caching the hash, and the upper 32 are
+		 * for the ordinal of the primitive type.
 		 */
-		HASH,
+		@HideFieldInDebugger
+		HASH_AND_PRIMITIVE_TYPE_ORDINAL;
+
+		/**
+		 * The hash, populated during construction.
+		 */
+		static final BitField HASH = bitField(
+			HASH_AND_PRIMITIVE_TYPE_ORDINAL, 0, 32);
 
 		/**
 		 * This primitive type's (mutually) unique ordinal number.
 		 */
-		PRIMITIVE_TYPE_ORDINAL;
+		@EnumField(describedBy=ParseNodeKind.class)
+		static final BitField PRIMITIVE_TYPE_ORDINAL = bitField(
+			HASH_AND_PRIMITIVE_TYPE_ORDINAL, 32, 32);
 
 		static
 		{
-			assert PrimitiveTypeDescriptor.IntegerSlots.HASH.ordinal()
-				== HASH.ordinal();
+			assert PrimitiveTypeDescriptor.IntegerSlots
+					.HASH_AND_PRIMITIVE_TYPE_ORDINAL.ordinal()
+				== IntegerSlots.HASH_AND_PRIMITIVE_TYPE_ORDINAL.ordinal();
+			assert PrimitiveTypeDescriptor.IntegerSlots.HASH
+				.isSamePlaceAs(HASH);
 			assert PrimitiveTypeDescriptor.IntegerSlots.PRIMITIVE_TYPE_ORDINAL
-					.ordinal()
-				== PRIMITIVE_TYPE_ORDINAL.ordinal();
+				.isSamePlaceAs(PRIMITIVE_TYPE_ORDINAL);
 		}
 	}
 

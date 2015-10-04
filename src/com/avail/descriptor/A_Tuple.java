@@ -482,28 +482,6 @@ extends A_BasicObject, Iterable<AvailObject>
 	Iterator<AvailObject> iterator ();
 
 	/**
-	 * The receiver is a mutable object tuple; replace the specified element.
-	 *
-	 * @param index The index at which to write the new element.
-	 * @param anObject The replacement element for that index.
-	 */
-	void objectTupleAtPut (int index, A_BasicObject anObject);
-
-	/**
-	 * The receiver must be a mutable {@linkplain ByteTupleDescriptor byte
-	 * tuple}, {@linkplain ByteArrayTupleDescriptor byte array tuple}, or
-	 * {@linkplain ByteBufferTupleDescriptor byte buffer tuple}; replace the
-	 * specified index with a replacement unsigned byte.
-	 *
-	 * @param index
-	 *        The index at which to write a new byte.
-	 * @param anInteger
-	 *        The replacement unsigned byte, a Java {@code short} in the range
-	 *        [0..255].
-	 */
-	void rawByteAtPut (int index, short anInteger);
-
-	/**
 	 * The receiver is a {@linkplain ByteStringDescriptor byte string}; extract
 	 * the {@link A_Character#codePoint() code point} of the {@link A_Character
 	 * character} at the given index as an unsigned byte.
@@ -513,17 +491,6 @@ extends A_BasicObject, Iterable<AvailObject>
 	 *         {@code short} in the range [0..255].
 	 */
 	short rawByteForCharacterAt (int index);
-
-	/**
-	 * The receiver must be a mutable {@linkplain NybbleTupleDescriptor nybble
-	 * tuple}; replace the specified index with a replacement nybble.
-	 *
-	 * @param index
-	 *        The index at which to write a new nybble.
-	 * @param aNybble
-	 *        The replacement nybble, a Java {@code byte} in the range [0..15].
-	 */
-	void rawNybbleAtPut (int index, byte aNybble);
 
 	/**
 	 * The receiver is a {@linkplain TwoByteStringDescriptor two-byte string};

@@ -35,6 +35,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.utility.Generator;
 
 /**
  * <strong>Primitive:</strong> Answer a {@linkplain TupleDescriptor
@@ -60,19 +61,22 @@ public final class P_ContinuationStackData extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Continuation con = args.get(0);
-		final int count = con.function().code().numArgsAndLocalsAndStack();
-		final A_Tuple tuple = ObjectTupleDescriptor.createUninitialized(count);
-		for (int i = 1; i <= count; i++)
-		{
-			AvailObject entry = con.argOrLocalOrStackAt(i);
-			if (entry.equalsNil())
+		final A_Tuple tuple = ObjectTupleDescriptor.generateFrom(
+			con.function().code().numArgsAndLocalsAndStack(),
+			new Generator<A_BasicObject>()
 			{
-				// Objects of this kind cannot be constructed from Avail
-				// code.
-				entry = ContinuationDescriptor.nilSubstitute();
-			}
-			tuple.objectTupleAtPut(i, entry);
-		}
+				private int index = 1;
+
+				@Override
+				public A_BasicObject value ()
+				{
+					final A_BasicObject entry =
+						con.argOrLocalOrStackAt(index++);
+					return entry.equalsNil()
+						? ContinuationDescriptor.nilSubstitute()
+						: entry;
+				}
+			});
 		tuple.makeSubobjectsImmutable();
 		return interpreter.primitiveSuccess(tuple);
 	}

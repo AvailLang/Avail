@@ -2640,7 +2640,7 @@ public final class AvailCompiler
 		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 			function.kind().returnType(),
 			loader(),
-			new Generator<A_String> ()
+			new Generator<A_String>()
 			{
 				@Override
 				public A_String value ()
@@ -2749,7 +2749,7 @@ public final class AvailCompiler
 		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 			function.kind().returnType(),
 			loader(),
-			new Generator<A_String> ()
+			new Generator<A_String>()
 			{
 				@Override
 				public A_String value ()

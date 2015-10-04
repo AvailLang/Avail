@@ -60,25 +60,34 @@ extends TupleDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
+		 * 32 can be used by other {@link BitField}s in subclasses of {@link
+		 * TupleDescriptor}.
+		 */
+		@HideFieldInDebugger
+		HASH_AND_MORE,
+
+		/**
+		 * The number of elements in the 1<sup>st</sup> through N<sup>th</sup>
+		 * subtuples, as {@code int} slots.
+		 */
+		CUMULATIVE_SIZES_AREA_;
+
+		/**
 		 * The hash value of this tree tuple, or zero.  If the hash value
 		 * happens to equal zero it will have to be recomputed each time it is
 		 * requested.  Note that the hash function for tuples was chosen in such
 		 * a way that the hash value of the concatenation of subtuples is easily
 		 * computable from the hashes of the subtuples and their lengths.
 		 */
-		@HideFieldInDebugger
-		HASH_OR_ZERO,
-
-		/**
-		 * The number of elements in the 1<sup>st</sup> through N<sup>th</sup>
-		 * subtuples.
-		 */
-		CUMULATIVE_SIZE_AT_;
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{
-			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
-				== HASH_OR_ZERO.ordinal();
+			assert TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
+				== HASH_AND_MORE.ordinal();
+			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
+				HASH_OR_ZERO);
 		}
 	}
 
@@ -169,7 +178,8 @@ extends TupleDescriptor
 		{
 			final A_Tuple child = object.slot(SUBTUPLE_AT_, childIndex);
 			final int childOffset = offsetForChildSubscript(object, childIndex);
-			final int childSize = object.slot(CUMULATIVE_SIZE_AT_, childIndex)
+			final int childSize = object.intSlot(
+					CUMULATIVE_SIZES_AREA_, childIndex)
 				- childOffset;
 			final int startIndexInChild = max(startIndex1 - childOffset, 1);
 			final int endIndexInChild = min(endIndex1 - childOffset, childSize);
@@ -284,7 +294,7 @@ extends TupleDescriptor
 		{
 			// At least one element of this child is involved in the hash.
 			final int startOfChild = offsetForChildSubscript(object, i) + 1;
-			final int endOfChild = object.slot(CUMULATIVE_SIZE_AT_, i);
+			final int endOfChild = object.intSlot(CUMULATIVE_SIZES_AREA_, i);
 			final int startIndexInChild =
 				max(0, startIndex - startOfChild) + 1;
 			final int endIndexInChild =
@@ -355,8 +365,7 @@ extends TupleDescriptor
 		final A_Tuple leftPart =
 			object.childAt(lowChildIndex).copyTupleFromToCanDestroy(
 				start - leftOffset,
-				offsetForChildSubscript(object, lowChildIndex + 1)
-					- leftOffset,
+				offsetForChildSubscript(object, lowChildIndex + 1) - leftOffset,
 				canDestroy);
 		final A_Tuple rightPart =
 			object.childAt(highChildIndex).copyTupleFromToCanDestroy(
@@ -369,9 +378,9 @@ extends TupleDescriptor
 			// There are enough inner children that we can add them more
 			// efficiently in a bunch than one at a time.
 			final AvailObject innerSection = createUninitializedTree(
-				level,
-				highChildIndex - lowChildIndex - 1);
-			final int delta = object.slot(CUMULATIVE_SIZE_AT_, lowChildIndex);
+				level, highChildIndex - lowChildIndex - 1);
+			final int delta = object.intSlot(
+				CUMULATIVE_SIZES_AREA_, lowChildIndex);
 			int dest = 1;
 			for (
 				int src = lowChildIndex + 1;
@@ -380,10 +389,10 @@ extends TupleDescriptor
 			{
 				final A_Tuple completeChild = object.slot(SUBTUPLE_AT_, src);
 				innerSection.setSlot(SUBTUPLE_AT_, dest, completeChild);
-				innerSection.setSlot(
-					CUMULATIVE_SIZE_AT_,
+				innerSection.setIntSlot(
+					CUMULATIVE_SIZES_AREA_,
 					dest,
-					object.slot(CUMULATIVE_SIZE_AT_, src) - delta);
+					object.intSlot(CUMULATIVE_SIZES_AREA_, src) - delta);
 			}
 			assert dest == innerSection.childCount() + 1;
 			innerSection.setSlot(HASH_OR_ZERO, 0);
@@ -473,10 +482,10 @@ extends TupleDescriptor
 		{
 			for (int childIndex = 1; childIndex <= childCount; childIndex++)
 			{
-				result.setSlot(
-					CUMULATIVE_SIZE_AT_,
+				result.setIntSlot(
+					CUMULATIVE_SIZES_AREA_,
 					childIndex,
-					result.slot(CUMULATIVE_SIZE_AT_, childIndex) + delta);
+					result.intSlot(CUMULATIVE_SIZES_AREA_, childIndex) + delta);
 			}
 		}
 		check(result);
@@ -577,9 +586,7 @@ extends TupleDescriptor
 			result.setSlot(HASH_OR_ZERO, oldHash + scaledAdjustment);
 		}
 		final A_Tuple newSubtuple = oldSubtuple.tupleAtPuttingCanDestroy(
-			index - delta,
-			newValueObject,
-			canDestroy);
+			index - delta, newValueObject, canDestroy);
 		result.setSlot(SUBTUPLE_AT_, subtupleSubscript, newSubtuple);
 		check(result);
 		return result;
@@ -608,9 +615,8 @@ extends TupleDescriptor
 		{
 			// At least one element of this child is involved in the hash.
 			final int startOfChild = offsetForChildSubscript(object, i) + 1;
-			final int endOfChild = object.slot(CUMULATIVE_SIZE_AT_, i);
-			final int startIndexInChild =
-				max(0, startIndex - startOfChild) + 1;
+			final int endOfChild = object.intSlot(CUMULATIVE_SIZES_AREA_, i);
+			final int startIndexInChild = max(0, startIndex - startOfChild) + 1;
 			final int endIndexInChild =
 				min(endOfChild, endIndex) - startOfChild + 1;
 			final A_Tuple child = object.slot(SUBTUPLE_AT_, i);
@@ -641,8 +647,8 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	int o_TupleSize (final AvailObject object)
 	{
-		return object.slot(
-			CUMULATIVE_SIZE_AT_,
+		return object.intSlot(
+			CUMULATIVE_SIZES_AREA_,
 			object.variableObjectSlotsCount());
 	}
 
@@ -685,9 +691,9 @@ extends TupleDescriptor
 			// Fits in a single node.
 			final AvailObject newNode = newLike(
 				tuple1.descriptor().mutable(),
-				(AvailObjectRepresentation)tuple1,
+				(AvailObject)tuple1,
 				count2,
-				count2);
+				((count1 + count2 + 1) >> 1) - ((count1 + 1) >> 1));
 			int size = tuple1.tupleSize();
 			int dest = count1 + 1;
 			for (int src = 1; src <= count2; src++, dest++)
@@ -695,7 +701,7 @@ extends TupleDescriptor
 				final A_Tuple child = tuple2.childAt(src);
 				newNode.setSlot(SUBTUPLE_AT_, dest, child);
 				size += child.tupleSize();
-				newNode.setSlot(CUMULATIVE_SIZE_AT_, dest, size);
+				newNode.setIntSlot(CUMULATIVE_SIZES_AREA_, dest, size);
 			}
 			newNode.setSlot(HASH_OR_ZERO, newHash);
 			check(newNode);
@@ -729,7 +735,7 @@ extends TupleDescriptor
 				}
 				size += child.tupleSize();
 				target.setSlot(SUBTUPLE_AT_, dest, child);
-				target.setSlot(CUMULATIVE_SIZE_AT_, dest, size);
+				target.setIntSlot(CUMULATIVE_SIZES_AREA_, dest, size);
 			}
 		}
 		assert target == newRight;
@@ -773,12 +779,16 @@ extends TupleDescriptor
 			return concatenateSameLevel(tuple1, tuple2);
 		}
 		// Work out the resulting hash if it's inexpensive.
-		final int newHash =
-			tuple1.hashOrZero() == 0 || tuple2.hashOrZero() == 0
-				? 0
-				: tuple1.hashOrZero()
-					+ (tuple2.hashOrZero()
-						* multiplierRaisedTo(size1));
+		int newHash = 0;
+		final int h1 = tuple1.hashOrZero();
+		if (h1 != 0)
+		{
+			final int h2 = tuple2.hashOrZero();
+			if (h2 != 0)
+			{
+				newHash = h1 + (h2 * multiplierRaisedTo(size1));
+			}
+		}
 		if (level1 > level2)
 		{
 			final int childCount1 = tuple1.childCount();
@@ -787,9 +797,19 @@ extends TupleDescriptor
 			if (newLast.treeTupleLevel() == level1)
 			{
 				// Last child overflowed.  Combine myself minus the last, with
-				// the new peer.
-				final AvailObject withoutLast =
-					newLike(descriptorFor(MUTABLE, level1), tuple1, -1, -1);
+				// the new peer.  Be careful of the int-packed cumulative sizes
+				// area.
+				final AvailObject withoutLast = newLike(
+					descriptorFor(MUTABLE, level1),
+					tuple1,
+					-1,
+					0 - (childCount1 & 1));
+				if ((childCount1 & 1) == 0)
+				{
+					// Be tidy.
+					withoutLast.setIntSlot(
+						CUMULATIVE_SIZES_AREA_, childCount1, 0);
+				}
 				withoutLast.setSlot(HASH_OR_ZERO, 0);
 				return concatenateSameLevel(withoutLast, newLast);
 			}
@@ -800,10 +820,10 @@ extends TupleDescriptor
 					? tuple1
 					: newLike(descriptorFor(MUTABLE, level1), tuple1, 0, 0);
 			result.setSlot(SUBTUPLE_AT_, childCount1, newLast);
-			result.setSlot(
-				CUMULATIVE_SIZE_AT_,
+			result.setIntSlot(
+				CUMULATIVE_SIZES_AREA_,
 				childCount1,
-				tuple1.slot(CUMULATIVE_SIZE_AT_, childCount1) + size2);
+				tuple1.intSlot(CUMULATIVE_SIZES_AREA_, childCount1) + size2);
 			result.setSlot(HASH_OR_ZERO, newHash);
 			check(result);
 			return result;
@@ -827,7 +847,7 @@ extends TupleDescriptor
 				final A_Tuple child = tuple2.childAt(src);
 				size += child.tupleSize();
 				withoutFirst.setSlot(SUBTUPLE_AT_, src - 1, child);
-				withoutFirst.setSlot(CUMULATIVE_SIZE_AT_, src - 1, size);
+				withoutFirst.setIntSlot(CUMULATIVE_SIZES_AREA_, src - 1, size);
 			}
 			withoutFirst.setSlot(HASH_OR_ZERO, 0);
 			check(withoutFirst);
@@ -839,9 +859,9 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * Answer the one-based subscript into the {@link
-	 * IntegerSlots#CUMULATIVE_SIZE_AT_} repeated field in which the specified
-	 * tuple index occurs.
+	 * Answer the one-based subscript into the 32-bit int fields of {@link
+	 * IntegerSlots#CUMULATIVE_SIZES_AREA_}, in which the specified tuple index
+	 * occurs.
 	 *
 	 * @param object The tree tuple node to search.
 	 * @param index The 1-based tuple index to search for.
@@ -853,12 +873,11 @@ extends TupleDescriptor
 	{
 		final int childCount = object.variableObjectSlotsCount();
 		assert index >= 1;
-		assert index <= object.slot(CUMULATIVE_SIZE_AT_, childCount);
-		final int childSlotIndex = object.binarySearch(
-			CUMULATIVE_SIZE_AT_,
-			index);
+		assert index <= object.intSlot(CUMULATIVE_SIZES_AREA_, childCount);
+		final int childSlotIndex = object.intBinarySearch(
+			CUMULATIVE_SIZES_AREA_, childCount, index);
 		return (childSlotIndex >= 0 ? childSlotIndex : ~childSlotIndex)
-			- CUMULATIVE_SIZE_AT_.ordinal() + 1;
+			- CUMULATIVE_SIZES_AREA_.ordinal() + 2;
 	}
 
 	/**
@@ -878,7 +897,7 @@ extends TupleDescriptor
 	{
 		return childSubscript == 1
 			? 0
-			: object.slot(CUMULATIVE_SIZE_AT_, childSubscript - 1);
+			: object.intSlot(CUMULATIVE_SIZES_AREA_, childSubscript - 1);
 	}
 
 	/**
@@ -889,15 +908,15 @@ extends TupleDescriptor
 	private static void check (final AvailObject object)
 	{
 		assert object.descriptor() instanceof TreeTupleDescriptor;
-		assert object.variableIntegerSlotsCount()
-			== object.variableObjectSlotsCount();
+		assert (object.variableObjectSlotsCount() + 1) >> 1
+			== object.variableIntegerSlotsCount();
 		final int childCount = object.childCount();
 		int cumulativeSize = 0;
 		for (int childIndex = 1; childIndex <= childCount; childIndex++)
 		{
 			final A_Tuple child = object.slot(SUBTUPLE_AT_, childIndex);
 			cumulativeSize += child.tupleSize();
-			assert object.slot(CUMULATIVE_SIZE_AT_, childIndex)
+			assert object.intSlot(CUMULATIVE_SIZES_AREA_, childIndex)
 				== cumulativeSize;
 		}
 	}
@@ -910,7 +929,7 @@ extends TupleDescriptor
 	 * @param size The number of children this tree tuple should have.
 	 * @return A new tree tuple with uninitialized {@linkplain
 	 *         ObjectSlots#SUBTUPLE_AT_ subtuple} slots and {@linkplain
-	 *         IntegerSlots#CUMULATIVE_SIZE_AT_ cumulative size} slots.
+	 *         IntegerSlots#CUMULATIVE_SIZES_AREA_ cumulative size} slots.
 	 */
 	public static AvailObject createUninitializedTree (
 		final int level,
@@ -919,7 +938,7 @@ extends TupleDescriptor
 		final AvailObject instance =
 			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
 				size,
-				size,
+				(size + 1) >> 1,
 				descriptorFor(MUTABLE, level));
 		instance.setSlot(HASH_OR_ZERO, 0);
 		return instance;
@@ -946,11 +965,9 @@ extends TupleDescriptor
 		final AvailObject newNode = createUninitializedTree(newLevel, 2);
 		newNode.setSlot(SUBTUPLE_AT_, 1, left);
 		newNode.setSlot(SUBTUPLE_AT_, 2, right);
-		newNode.setSlot(CUMULATIVE_SIZE_AT_, 1, left.tupleSize());
-		newNode.setSlot(
-			CUMULATIVE_SIZE_AT_,
-			2,
-			left.tupleSize() + right.tupleSize());
+		newNode.setIntSlot(CUMULATIVE_SIZES_AREA_, 1, left.tupleSize());
+		newNode.setIntSlot(
+			CUMULATIVE_SIZES_AREA_, 2, left.tupleSize() + right.tupleSize());
 		newNode.setSlot(HASH_OR_ZERO, newHashOrZero);
 		check(newNode);
 		return newNode;
@@ -970,15 +987,9 @@ extends TupleDescriptor
 		for (int src = childCount, dest = 1; src > 0; src--, dest++)
 		{
 			final A_Tuple child = object.childAt(src);
-			newTree.setSlot(
-				SUBTUPLE_AT_,
-				dest,
-				child.tupleReverse());
+			newTree.setSlot(SUBTUPLE_AT_, dest, child.tupleReverse());
 			cumulativeSize += child.tupleSize();
-			newTree.setSlot(
-				CUMULATIVE_SIZE_AT_,
-				dest,
-				cumulativeSize);
+			newTree.setIntSlot(CUMULATIVE_SIZES_AREA_, dest, cumulativeSize);
 		}
 		assert cumulativeSize == object.tupleSize();
 		newTree.setSlot(HASH_OR_ZERO,0);
@@ -1050,12 +1061,11 @@ extends TupleDescriptor
 		int target = 0;
 		for (int level = 0; level < numberOfLevels; level++)
 		{
-			descriptors[target++] =
-				new TreeTupleDescriptor(MUTABLE, level);
-			descriptors[target++] =
-				new TreeTupleDescriptor(IMMUTABLE, level);
-			descriptors[target++] =
-				new TreeTupleDescriptor(SHARED, level);
+			for (final Mutability mut : Mutability.values())
+			{
+				descriptors[target++] =
+					new TreeTupleDescriptor(mut, level);
+			}
 		}
 	}
 

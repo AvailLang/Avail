@@ -289,6 +289,7 @@ public final class ArithmeticTest
 	@Test
 	public void testBitShift ()
 	{
+		checkBitShift(BigInteger.valueOf(2), 94);
 		for (final String baseNeighborhoodString : baseNeighborhoodsForShifting)
 		{
 			final BigInteger baseNeighborhood =

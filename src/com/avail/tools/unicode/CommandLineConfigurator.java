@@ -53,7 +53,7 @@ import com.avail.utility.evaluation.Continuation2;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class CommandLineConfigurator
-implements Configurator<Configuration>
+implements Configurator<UnicodeConfiguration>
 {
 	/**
 	 * {@code OptionKey} enumerates the valid configuration options.
@@ -71,8 +71,8 @@ implements Configurator<Configuration>
 		TARGET_PATH
 	}
 
-	/** The {@linkplain Configuration configuration}. */
-	@InnerAccess final Configuration configuration;
+	/** The {@linkplain UnicodeConfiguration configuration}. */
+	@InnerAccess final UnicodeConfiguration configuration;
 
 	/** The command line arguments. */
 	private final String[] commandLineArguments;
@@ -87,14 +87,14 @@ implements Configurator<Configuration>
 	 * Construct a new {@link CommandLineConfigurator}.
 	 *
 	 * @param configuration
-	 *        The base {@linkplain Configuration configuration}.
+	 *        The base {@linkplain UnicodeConfiguration configuration}.
 	 * @param commandLineArguments
 	 *        The command-line arguments.
 	 * @param helpStream
 	 *        The {@link Appendable} to which help text should be written.
 	 */
 	public CommandLineConfigurator (
-		final Configuration configuration,
+		final UnicodeConfiguration configuration,
 		final String[] commandLineArguments,
 		final Appendable helpStream)
 	{
@@ -106,7 +106,7 @@ implements Configurator<Configuration>
 	/**
 	 * Create an {@linkplain OptionProcessor option processor} suitable for
 	 * {@linkplain #updateConfiguration() updating} a {@linkplain
-	 * Configuration configuration}.
+	 * UnicodeConfiguration configuration}.
 	 *
 	 * @return An option processor.
 	 */
@@ -168,7 +168,7 @@ implements Configurator<Configuration>
 	}
 
 	@Override
-	public Configuration configuration ()
+	public UnicodeConfiguration configuration ()
 	{
 		return configuration;
 	}

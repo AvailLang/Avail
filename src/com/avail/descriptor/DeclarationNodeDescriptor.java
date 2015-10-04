@@ -42,6 +42,7 @@ import java.util.IdentityHashMap;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.Primitive;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 
@@ -55,6 +56,29 @@ import com.avail.utility.json.JSONWriter;
 public final class DeclarationNodeDescriptor
 extends ParseNodeDescriptor
 {
+	/**
+	 * My slots of type {@linkplain Integer int}.
+	 *
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
+	 */
+	public enum IntegerSlots implements IntegerSlotsEnum
+	{
+		/**
+		 * A compound field consisting of the hash value, computed at
+		 * construction time, and the {@link Primitive} number or zero.
+		 */
+		@HideFieldInDebugger
+		DECLARATION_KIND_AND_MORE;
+
+		/**
+		 * The hash value of this {@linkplain CompiledCodeDescriptor compiled
+		 * code object}. It is computed at construction time.
+		 */
+		@EnumField(describedBy=DeclarationKind.class)
+		static final BitField DECLARATION_KIND = bitField(
+			DECLARATION_KIND_AND_MORE, 0, 32);
+	}
+
 	/**
 	 * My slots of type {@link AvailObject}.
 	 *
@@ -86,20 +110,6 @@ extends ParseNodeDescriptor
 		 * either a module constant value or a module variable.
 		 */
 		LITERAL_OBJECT
-	}
-
-	/**
-	 * My slots of type {@linkplain Integer int}.
-	 *
-	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
-	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
-	{
-		/**
-		 * Flags encoded as an {@code int}.
-		 */
-		@EnumField(describedBy=DeclarationKind.class)
-		DECLARATION_KIND
 	}
 
 	/**

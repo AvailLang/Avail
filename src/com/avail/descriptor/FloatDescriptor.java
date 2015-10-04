@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.FloatDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import java.util.IdentityHashMap;
@@ -54,9 +55,15 @@ extends AbstractNumberDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
+		 * Only the low 32 bits are used for the {@link #RAW_INT}.
+		 */
+		@HideFieldInDebugger
+		RAW_INT_AND_MORE;
+
+		/**
 		 * The Java {@code float} value, packed into an {@code int} field.
 		 */
-		RAW_INT
+		static final BitField RAW_INT = bitField(RAW_INT_AND_MORE, 0, 32);
 	}
 
 	/**
@@ -384,7 +391,7 @@ extends AbstractNumberDescriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		return object.slot(RAW_INT) ^ 0x16AE2BFD;
+		return (object.slot(RAW_INT) ^ 0x16AE2BFD) * multiplier;
 	}
 
 	@Override @AvailMethod

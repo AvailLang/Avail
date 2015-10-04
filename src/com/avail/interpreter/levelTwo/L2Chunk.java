@@ -109,13 +109,11 @@ public final class L2Chunk
 	 * this chunk depends. If one of these changes significantly, this chunk
 	 * must be invalidated (at which time this set will be emptied).
 	 */
-	@SuppressWarnings("null")
 	A_Set contingentValues;
 
 	/**
 	 * The sequence of {@link L2Instruction}s that make up this L2Chunk.
 	 */
-	@SuppressWarnings("null")
 	public L2Instruction[] instructions;
 
 	/**
@@ -125,7 +123,6 @@ public final class L2Chunk
 	 * present in {@link #instructions}, which is suitable for inlining into
 	 * callers.
 	 */
-	@SuppressWarnings("null")
 	public L2Instruction[] executableInstructions;
 
 	/**
@@ -310,7 +307,7 @@ public final class L2Chunk
 		final List<L2Instruction> executableInstructions,
 		final A_Set contingentValues)
 	{
-		final L2Chunk chunk = create(
+		final L2Chunk chunk = new L2Chunk(
 			numObjects,
 			numIntegers,
 			numFloats,
@@ -328,6 +325,37 @@ public final class L2Chunk
 			value.addDependentChunk(chunk);
 		}
 		return chunk;
+	}
+
+	/**
+	 * Create a new {@linkplain L2Chunk level two chunk} with the given
+	 * information.
+	 *
+	 * @param numObjects The number of object registers needed.
+	 * @param numIntegers The number of integer registers needed.
+	 * @param numFloats The number of float registers needed.
+	 * @param theInstructions The instructions that can be inlined into callers.
+	 * @param executableInstructions The actual instructions to execute.
+	 * @param contingentValues The set of contingent {@link A_ChunkDependable}.
+	 */
+	private L2Chunk (
+		final int numObjects,
+		final int numIntegers,
+		final int numFloats,
+		final List<L2Instruction> theInstructions,
+		final List<L2Instruction> executableInstructions,
+		final A_Set contingentValues)
+	{
+		// A new chunk starts out valid.
+		this.valid = true;
+		this.numObjects = numObjects;
+		this.numIntegers = numIntegers;
+		this.numDoubles = numFloats;
+		this.instructions = theInstructions.toArray(
+			new L2Instruction[theInstructions.size()]);
+		this.executableInstructions = executableInstructions.toArray(
+			new L2Instruction[executableInstructions.size()]);
+		this.contingentValues = contingentValues;
 	}
 
 	/**
@@ -357,40 +385,6 @@ public final class L2Chunk
 		{
 			value.removeDependentChunk(this);
 		}
-	}
-
-	/**
-	 * Create a new {@linkplain L2Chunk level two chunk} with the given
-	 * information.
-	 *
-	 * @param numObjects The number of object registers needed.
-	 * @param numIntegers The number of integer registers needed.
-	 * @param numFloats The number of float registers needed.
-	 * @param theInstructions The instructions that can be inlined into callers.
-	 * @param executableInstructions The actual instructions to execute.
-	 * @param contingentValues The set of contingent {@link A_ChunkDependable}.
-	 * @return The new chunk.
-	 */
-	private static L2Chunk create (
-		final int numObjects,
-		final int numIntegers,
-		final int numFloats,
-		final List<L2Instruction> theInstructions,
-		final List<L2Instruction> executableInstructions,
-		final A_Set contingentValues)
-	{
-		final L2Chunk chunk = new L2Chunk();
-		// A new chunk starts out valid.
-		chunk.valid = true;
-		chunk.numObjects = numObjects;
-		chunk.numIntegers = numIntegers;
-		chunk.numDoubles = numFloats;
-		chunk.instructions = theInstructions.toArray(
-			new L2Instruction[theInstructions.size()]);
-		chunk.executableInstructions = executableInstructions.toArray(
-			new L2Instruction[executableInstructions.size()]);
-		chunk.contingentValues = contingentValues;
-		return chunk;
 	}
 
 	/**

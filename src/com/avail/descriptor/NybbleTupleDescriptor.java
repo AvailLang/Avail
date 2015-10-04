@@ -40,6 +40,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import java.nio.ByteBuffer;
 import com.avail.annotations.*;
+import com.avail.utility.Generator;
 
 /**
  * {@code NybbleTupleDescriptor} represents a tuple of integers that happen to
@@ -63,24 +64,33 @@ extends TupleDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The hash of the tuple or zero.  In the rare case that the hash is
-		 * actually zero, it will have to be recalculated each time it is
-		 * requested.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
+		 * 32 can be used by other {@link BitField}s in subclasses of {@link
+		 * TupleDescriptor}.
 		 */
 		@HideFieldInDebugger
-		HASH_OR_ZERO,
+		HASH_AND_MORE,
 
 		/**
-		 * The {@code int} slots that hold the nybble values of the tuple, eight
-		 * per slot (except the last one which may be less), in Little Endian
-		 * order.
+		 * The raw 64-bit machine words that constitute the representation of
+		 * the {@linkplain NybbleTupleDescriptor nybble tuple}.
 		 */
-		RAW_QUAD_AT_;
+		RAW_LONG_AT_;
+
+		/**
+		 * A slot to hold the cached hash value of a tuple.  If zero, then the
+		 * hash value must be computed upon request.  Note that in the very rare
+		 * case that the hash value actually equals zero, the hash value has to
+		 * be computed every time it is requested.
+		 */
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{
-			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
-				== HASH_OR_ZERO.ordinal();
+			assert TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
+				== HASH_AND_MORE.ordinal();
+			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
+				HASH_OR_ZERO);
 		}
 	}
 
@@ -92,10 +102,11 @@ extends TupleDescriptor
 	private static final int maximumCopySize = 128;
 
 	/**
-	 * The number of nybbles of the last {@linkplain IntegerSlots#RAW_QUAD_AT_
-	 * integer slot} that are not considered part of the tuple.
+	 * The number of nybbles of the last {@code long} {@linkplain
+	 * IntegerSlots#RAW_LONG_AT_ integer slot} that are not considered part of
+	 * the tuple.
 	 */
-	int unusedNybblesOfLastWord;
+	int unusedNybblesOfLastLong;
 
 	@Override @AvailMethod
 	A_Tuple o_AppendCanDestroy (
@@ -107,7 +118,8 @@ extends TupleDescriptor
 		final int intValue;
 		if (originalSize >= maximumCopySize
 			|| !newElement.isInt()
-			|| ((intValue = ((A_Number) newElement).extractInt()) & 0xF) != intValue)
+			|| ((intValue = ((A_Number) newElement).extractInt()) & 15)
+				!= intValue)
 		{
 			// Transition to a tree tuple.
 			final A_Tuple singleton = TupleDescriptor.from(newElement);
@@ -115,7 +127,7 @@ extends TupleDescriptor
 		}
 		final int newSize = originalSize + 1;
 		final AvailObject result;
-		if (isMutable() && canDestroy && (originalSize & 7) != 0)
+		if (isMutable() && canDestroy && (originalSize & 15) != 0)
 		{
 			// Enlarge it in place, using more of the final partial int field.
 			result = object;
@@ -127,7 +139,7 @@ extends TupleDescriptor
 				descriptorFor(MUTABLE, newSize),
 				object,
 				0,
-				(originalSize & 7) == 0 ? 1 : 0);
+				(originalSize & 15) == 0 ? 1 : 0);
 		}
 		setNybble(result, newSize, (byte)intValue);
 		result.setSlot(HASH_OR_ZERO, 0);
@@ -235,7 +247,7 @@ extends TupleDescriptor
 		if (newSize <= maximumCopySize)
 		{
 			// Copy the nybbles.
-			final int newWordCount = (newSize + 7) >>> 3;
+			final int newWordCount = (newSize + 15) >>> 4;
 			final int deltaSlots =
 				newWordCount - object.variableIntegerSlotsCount();
 			final AvailObject copy;
@@ -296,12 +308,18 @@ extends TupleDescriptor
 			// Just copy the applicable nybbles out.  In theory we could use
 			// newLike() if start is 1.  Make sure to mask the last word in that
 			// case.
-			final AvailObject result = mutableObjectOfSize(size);
-			int dest = 1;
-			for (int src = start; src <= end; src++, dest++)
-			{
-				setNybble(result, dest, getNybble(object, src));
-			}
+			final AvailObject result = generateFrom(
+				size,
+				new Generator<Byte>()
+				{
+					private int index = start;
+
+					@Override
+					public Byte value()
+					{
+						return getNybble(object, index++);
+					}
+				});
 			if (canDestroy)
 			{
 				object.assertObjectUnreachableIfMutable();
@@ -344,9 +362,9 @@ extends TupleDescriptor
 		{
 			return false;
 		}
-		// They're equal, but occupy disjoint storage. If possible, then replace
-		// one with an indirection to the other to reduce storage costs and the
-		// frequency of nybble-wise comparisons.
+		// They're equal, but occupy disjoint storage. If, then replace one with
+		// an indirection to the other to reduce storage costs and the frequency
+		// of nybble-wise comparisons.
 		if (!isShared())
 		{
 			aNybbleTuple.makeImmutable();
@@ -376,7 +394,8 @@ extends TupleDescriptor
 		// Given two objects that are known to be equal, is the first one in a
 		// better form (more compact, more efficient, older generation) than the
 		// second one? Currently there is no more desirable representation than
-		// a nybble tuple.
+		// a nybble tuple.  [NB MvG 2015.09.24 - other than integer interval
+		// tuples.  Update this at some point, perhaps.]
 		return true;
 	}
 
@@ -443,16 +462,6 @@ extends TupleDescriptor
 		return object;
 	}
 
-	@Override @AvailMethod
-	void o_RawNybbleAtPut (
-		final AvailObject object,
-		final int nybbleIndex,
-		final byte aNybble)
-	{
-		assert isMutable();
-		setNybble(object, nybbleIndex, aNybble);
-	}
-
 	@Override
 	void o_TransferIntoByteBuffer (
 		final AvailObject object,
@@ -499,20 +508,22 @@ extends TupleDescriptor
 				newValueObject,
 				true);
 		}
-		if (!canDestroy || !isMutable())
+		final AvailObject result;
+		if (canDestroy && isMutable())
 		{
-			return copyAsMutableByteTuple(object).tupleAtPuttingCanDestroy(
-				nybbleIndex,
-				newValueObject,
-				true);
+			result = object;
+		}
+		else
+		{
+			result = newLike(mutable(), object, 0, 0);
 		}
 		// All clear.  Clobber the object in place...
-		final AvailObject strongValue = (AvailObject)newValueObject;
-		object.rawNybbleAtPut(nybbleIndex, strongValue.extractNybble());
-		object.hashOrZero(0);
+		final byte newNybble = ((A_Number)newValueObject).extractNybble();
+		setNybble(result, nybbleIndex, newNybble);
+		result.hashOrZero(0);
 		//  ...invalidate the hash value. Probably cheaper than computing the
 		// difference or even testing for an actual change.
-		return object;
+		return result;
 	}
 
 	@Override
@@ -554,19 +565,26 @@ extends TupleDescriptor
 		// Just copy the applicable nybbles out.  In theory we could use
 		// newLike() if start is 1.  Make sure to mask the last word in that
 		// case.
-		final AvailObject result = mutableObjectOfSize(size);
-		for (int i = 1; i <= size; i++)
-		{
-			setNybble(result, i, getNybble(object, size-i+1));
-		}
+		final AvailObject result = generateFrom(
+			size,
+			new Generator<Byte>()
+			{
+				private int index = size;
+
+				@Override
+				public Byte value ()
+				{
+					return getNybble(object, index--);
+				}
+			});
 		return result;
 	}
 
 	@Override @AvailMethod
 	int o_TupleSize (final AvailObject object)
 	{
-		return (object.variableIntegerSlotsCount() << 3)
-			- unusedNybblesOfLastWord;
+		return (object.variableIntegerSlotsCount() << 4)
+			- unusedNybblesOfLastLong;
 	}
 
 	/**
@@ -577,15 +595,15 @@ extends TupleDescriptor
 	 * @param nybbleIndex The index.
 	 * @return The nybble at that index.
 	 */
-	private static byte getNybble (
+	@InnerAccess static byte getNybble (
 		final AvailObject object,
 		final int nybbleIndex)
 	{
 		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
-		final int quadIndex = (nybbleIndex + 7) >>> 3;
-		final int quad = object.slot(RAW_QUAD_AT_, quadIndex);
-		final int shift = (nybbleIndex - 1 & 7) * 4;
-		return (byte) (quad>>>shift & 0x0F);
+		final int longIndex = (nybbleIndex + 15) >>> 4;
+		final long longValue = object.slot(RAW_LONG_AT_, longIndex);
+		final int shift = ((nybbleIndex - 1) & 15) << 2;
+		return (byte) ((longValue >>> shift) & 0x0F);
 	}
 
 	/**
@@ -603,12 +621,12 @@ extends TupleDescriptor
 	{
 		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
 		assert (aNybble & 15) == aNybble;
-		final int wordIndex = (nybbleIndex + 7) >>> 3;
-		int quad = object.slot(RAW_QUAD_AT_, wordIndex);
-		final int leftShift = (nybbleIndex - 1 & 7) * 4;
-		quad &= ~(0x0F << leftShift);
-		quad |= aNybble << leftShift;
-		object.setSlot(RAW_QUAD_AT_, wordIndex, quad);
+		final int longIndex = (nybbleIndex + 15) >>> 4;
+		long longValue = object.slot(RAW_LONG_AT_, longIndex);
+		final int leftShift = ((nybbleIndex - 1) & 15) << 2;
+		longValue &= ~(0x0FL << leftShift);
+		longValue |= ((long)aNybble) << leftShift;
+		object.setSlot(RAW_LONG_AT_, longIndex, longValue);
 	}
 
 	/**
@@ -623,7 +641,7 @@ extends TupleDescriptor
 		final int unusedNybbles)
 	{
 		super(mutability, null, IntegerSlots.class);
-		unusedNybblesOfLastWord = unusedNybbles;
+		unusedNybblesOfLastLong = unusedNybbles;
 	}
 
 	/**
@@ -631,53 +649,80 @@ extends TupleDescriptor
 	 * {@link #descriptorFor(Mutability, int)} can find them by mutability and
 	 * number of unused nybbles in the last word.
 	 */
-	static final NybbleTupleDescriptor[] descriptors =
-	{
-		new NybbleTupleDescriptor(MUTABLE, 0),
-		new NybbleTupleDescriptor(IMMUTABLE, 0),
-		new NybbleTupleDescriptor(SHARED, 0),
-		new NybbleTupleDescriptor(MUTABLE, 7),
-		new NybbleTupleDescriptor(IMMUTABLE, 7),
-		new NybbleTupleDescriptor(SHARED, 7),
-		new NybbleTupleDescriptor(MUTABLE, 6),
-		new NybbleTupleDescriptor(IMMUTABLE, 6),
-		new NybbleTupleDescriptor(SHARED, 6),
-		new NybbleTupleDescriptor(MUTABLE, 5),
-		new NybbleTupleDescriptor(IMMUTABLE, 5),
-		new NybbleTupleDescriptor(SHARED, 5),
-		new NybbleTupleDescriptor(MUTABLE, 4),
-		new NybbleTupleDescriptor(IMMUTABLE, 4),
-		new NybbleTupleDescriptor(SHARED, 4),
-		new NybbleTupleDescriptor(MUTABLE, 3),
-		new NybbleTupleDescriptor(IMMUTABLE, 3),
-		new NybbleTupleDescriptor(SHARED, 3),
-		new NybbleTupleDescriptor(MUTABLE, 2),
-		new NybbleTupleDescriptor(IMMUTABLE, 2),
-		new NybbleTupleDescriptor(SHARED, 2),
-		new NybbleTupleDescriptor(MUTABLE, 1),
-		new NybbleTupleDescriptor(IMMUTABLE, 1),
-		new NybbleTupleDescriptor(SHARED, 1)
-	};
+	/** The {@link NybbleTupleDescriptor} instances. */
+	private static final NybbleTupleDescriptor[] descriptors =
+		new NybbleTupleDescriptor[16 * 3];
+
+	static {
+		int i = 0;
+		for (final int excess
+			: new int[] {0,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1})
+		{
+			for (final Mutability mut : Mutability.values())
+			{
+				descriptors[i++] = new NybbleTupleDescriptor(mut, excess);
+			}
+		}
+	}
 
 	@Override
 	NybbleTupleDescriptor mutable ()
 	{
 		return descriptors[
-			((8 - unusedNybblesOfLastWord) & 7) * 3 + MUTABLE.ordinal()];
+			((16 - unusedNybblesOfLastLong) & 15) * 3 + MUTABLE.ordinal()];
 	}
 
 	@Override
 	NybbleTupleDescriptor immutable ()
 	{
 		return descriptors[
-			((8 - unusedNybblesOfLastWord) & 7) * 3 + IMMUTABLE.ordinal()];
+			((16 - unusedNybblesOfLastLong) & 15) * 3 + IMMUTABLE.ordinal()];
 	}
 
 	@Override
 	NybbleTupleDescriptor shared ()
 	{
 		return descriptors[
-			((8 - unusedNybblesOfLastWord) & 7) * 3 + SHARED.ordinal()];
+			((16 - unusedNybblesOfLastLong) & 15) * 3 + SHARED.ordinal()];
+	}
+
+	/**
+	 * Create an object of the appropriate size, whose descriptor is an instance
+	 * of {@link NybbleTupleDescriptor}.  Run the generator for each position in
+	 * ascending order to produce the nybbles with which to populate the tuple.
+	 *
+	 * @param size The size of nybble tuple to create.
+	 * @param generator A generator to provide nybbles to store.
+	 * @return The new {@linkplain NybbleTupleDescriptor tuple}.
+	 */
+	public static AvailObject generateFrom(
+		final int size,
+		final Generator<Byte> generator)
+	{
+		final AvailObject result = mutableObjectOfSize(size);
+		// Aggregate sixteen writes at a time for the bulk of the tuple.
+		for (
+			int slotIndex = 1, limit = size >>> 4;
+			slotIndex <= limit;
+			slotIndex++)
+		{
+			long combined = 0;
+			for (int shift = 0; shift < 64; shift += 4)
+			{
+				final byte nybble = generator.value();
+				assert (nybble & 15) == nybble;
+				combined |= ((long)nybble) << shift;
+			}
+			result.setSlot(RAW_LONG_AT_, slotIndex, combined);
+		}
+		// Do the last 0-15 writes the slow way.
+		for (int index = (size & ~15) + 1; index <= size; index++)
+		{
+			final byte nybble = generator.value();
+			assert (nybble & 15) == nybble;
+			setNybble(result, index, nybble);
+		}
+		return result;
 	}
 
 	/**
@@ -693,13 +738,19 @@ extends TupleDescriptor
 	 */
 	private A_Tuple copyAsMutableByteTuple (final AvailObject object)
 	{
-		final A_Tuple result =
-			ByteTupleDescriptor.mutableObjectOfSize(object.tupleSize());
+		final AvailObject result = ByteTupleDescriptor.generateFrom(
+			object.tupleSize(),
+			new Generator<Short>()
+			{
+				private int index = 1;
+
+				@Override
+				public Short value ()
+				{
+					return (short)getNybble(object, index++);
+				}
+			});
 		result.hashOrZero(object.hashOrZero());
-		for (int i = 1, end = result.tupleSize(); i <= end; i++)
-		{
-			result.rawByteAtPut(i, getNybble(object, i));
-		}
 		return result;
 	}
 
@@ -712,8 +763,8 @@ extends TupleDescriptor
 	public static AvailObject mutableObjectOfSize (final int size)
 	{
 		final NybbleTupleDescriptor d = descriptorFor(MUTABLE, size);
-		assert (size + d.unusedNybblesOfLastWord & 7) == 0;
-		final AvailObject result = d.create((size + 7) >>> 3);
+		assert (size + d.unusedNybblesOfLastLong & 15) == 0;
+		final AvailObject result = d.create((size + 15) >>> 4);
 		return result;
 	}
 
@@ -735,6 +786,6 @@ extends TupleDescriptor
 		final Mutability flag,
 		final int size)
 	{
-		return descriptors[(size & 7) * 3 + flag.ordinal()];
+		return descriptors[(size & 15) * 3 + flag.ordinal()];
 	}
 }

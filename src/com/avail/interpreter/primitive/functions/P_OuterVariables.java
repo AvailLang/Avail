@@ -35,6 +35,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.utility.Generator;
 
 /**
  * <strong>Primitive:</strong> Answer the {@linkplain TupleDescriptor
@@ -58,20 +59,21 @@ public final class P_OuterVariables extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Function aFunction = args.get(0);
-		final A_Tuple newTupleObject =
-			ObjectTupleDescriptor.createUninitialized(aFunction.numOuterVars());
-		for (int i = 1, end = aFunction.numOuterVars(); i <= end; i++)
-		{
-			final A_BasicObject outer = aFunction.outerVarAt(i);
-			if (outer.equalsNil())
+		final A_Tuple newTupleObject = ObjectTupleDescriptor.generateFrom(
+			aFunction.numOuterVars(),
+			new Generator<A_BasicObject>()
 			{
-				newTupleObject.objectTupleAtPut(i, IntegerDescriptor.zero());
-			}
-			else
-			{
-				newTupleObject.objectTupleAtPut(i, outer);
-			}
-		}
+				private int index = 1;
+
+				@Override
+				public A_BasicObject value ()
+				{
+					final A_BasicObject outer = aFunction.outerVarAt(index++);
+					return outer.equalsNil()
+						? IntegerDescriptor.zero()
+						: outer;
+				}
+			});
 		return interpreter.primitiveSuccess(newTupleObject);
 	}
 

@@ -36,6 +36,7 @@ import static org.junit.Assert.*;
 import java.nio.ByteBuffer;
 import org.junit.Test;
 import com.avail.descriptor.*;
+import com.avail.utility.Generator;
 
 /**
  * A test of TupleReverseDescriptor as it is implemented on all other
@@ -201,48 +202,60 @@ public class TupleReverseTest
 	@Test
 	public void testByteTupleDescriptorReverse()
 	{
-		final A_Tuple myByteTuple =
-			ByteTupleDescriptor.mutableObjectOfSize(36);
-
+		A_Tuple myByteTuple = ByteTupleDescriptor.mutableObjectOfSize(36);
 		for (int i = 1; i < 37; i++)
 		{
-			myByteTuple.rawByteAtPut(i, (short) (1 + i));
+			myByteTuple = myByteTuple.tupleAtPuttingCanDestroy(
+				i, IntegerDescriptor.fromInt(1 + i), true);
 		}
-
 		myByteTuple.makeImmutable();
 
-		final A_Tuple myByteTupleReverse =
+		A_Tuple myByteTupleReverse =
 			ByteTupleDescriptor.mutableObjectOfSize(36);
-
 		for (int i = 36; i > 0; i--)
 		{
-			myByteTupleReverse.rawByteAtPut(
-			37-i, (short)(1 + i));
+			myByteTupleReverse = myByteTupleReverse.tupleAtPuttingCanDestroy(
+				37 - i, IntegerDescriptor.fromInt(1 + i), true);
 		}
-
 		myByteTupleReverse.makeImmutable();
+
 		final A_Tuple shouldBeSame = myByteTuple.tupleReverse().tupleReverse();
 
 		assertEquals(myByteTuple.tupleReverse(), myByteTupleReverse);
 		assertEquals(myByteTuple, shouldBeSame);
-		assertEquals(myByteTuple.tupleAt(2),
+		assertEquals(
+			myByteTuple.tupleAt(2),
 			myByteTuple.tupleReverse().tupleAt(35));
 
-		//Small size where copies are made
+		// Small size where copies are made
 
-		final AvailObject myByteTupleSmall =
-			ByteTupleDescriptor.mutableObjectOfSize(3);
-		myByteTupleSmall.rawByteAtPut(1, (short) 1);
-		myByteTupleSmall.rawByteAtPut(2, (short) 2);
-		myByteTupleSmall.rawByteAtPut(3, (short) 3);
+		final AvailObject myByteTupleSmall = ByteTupleDescriptor.generateFrom(
+			3,
+			new Generator<Short>()
+			{
+				private short counter = 1;
 
+				@Override
+				public Short value ()
+				{
+					return counter++;
+				}
+			});
 		final AvailObject myByteTupleSmallReversed =
-			ByteTupleDescriptor.mutableObjectOfSize(3);
-		myByteTupleSmallReversed.rawByteAtPut(1, (short) 3);
-		myByteTupleSmallReversed.rawByteAtPut(2, (short) 2);
-		myByteTupleSmallReversed.rawByteAtPut(3, (short) 1);
+			ByteTupleDescriptor.generateFrom(
+				3,
+				new Generator<Short>()
+				{
+					private short counter = 3;
 
-		assertEquals(myByteTupleSmall.tupleReverse(),
+					@Override
+					public Short value ()
+					{
+						return counter--;
+					}
+				});
+		assertEquals(
+			myByteTupleSmall.tupleReverse(),
 			myByteTupleSmallReversed);
 	}
 
@@ -457,34 +470,45 @@ public class TupleReverseTest
 	@Test
 	public void testNybbleTupleDescriptorReverse ()
 	{
-		final A_Tuple nybbleTuple =
-			NybbleTupleDescriptor.mutableObjectOfSize(65);
-		nybbleTuple
+		A_Tuple nybbleTuple =
+			NybbleTupleDescriptor.mutableObjectOfSize(17);
+		nybbleTuple = nybbleTuple
+			.tupleAtPuttingCanDestroy(1, IntegerDescriptor.fromInt(1), true)
 			.tupleAtPuttingCanDestroy(2, IntegerDescriptor.fromInt(7), true)
+			.tupleAtPuttingCanDestroy(17, IntegerDescriptor.fromInt(9), true)
 			.makeImmutable();
 
-		final A_Tuple nybbleTupleReverse =
-			NybbleTupleDescriptor.mutableObjectOfSize(65);
-		nybbleTupleReverse
-			.tupleAtPuttingCanDestroy(64, IntegerDescriptor.fromInt(7), true)
+		A_Tuple nybbleTupleReverse =
+			NybbleTupleDescriptor.mutableObjectOfSize(17);
+		nybbleTupleReverse = nybbleTupleReverse
+			.tupleAtPuttingCanDestroy(1, IntegerDescriptor.fromInt(9), true)
+			.tupleAtPuttingCanDestroy(16, IntegerDescriptor.fromInt(7), true)
+			.tupleAtPuttingCanDestroy(17, IntegerDescriptor.fromInt(1), true)
 			.makeImmutable();
 
 		final A_Tuple shouldBeSame = nybbleTuple.tupleReverse().tupleReverse();
 
-		assertEquals(nybbleTuple.tupleReverse(),nybbleTupleReverse);
-		assertEquals(nybbleTuple.tupleReverse().tupleAt(64),
+		assertEquals(nybbleTuple.tupleReverse(), nybbleTupleReverse);
+		assertEquals(
+			nybbleTuple.tupleReverse().tupleAt(17),
+			nybbleTuple.tupleAt(1));
+		assertEquals(
+			nybbleTuple.tupleReverse().tupleAt(16),
 			nybbleTuple.tupleAt(2));
+		assertEquals(
+			nybbleTuple.tupleReverse().tupleAt(15),
+			nybbleTuple.tupleAt(3));
 		assertEquals(shouldBeSame, nybbleTuple);
 
-		final A_Tuple nybbleTupleSmall =
+		A_Tuple nybbleTupleSmall =
 			NybbleTupleDescriptor.mutableObjectOfSize(5);
-		nybbleTupleSmall
+		nybbleTupleSmall = nybbleTupleSmall
 			.tupleAtPuttingCanDestroy(2, IntegerDescriptor.fromInt(7), true)
 			.makeImmutable();
 
-		final A_Tuple nybbleTupleReverseSmall =
+		A_Tuple nybbleTupleReverseSmall =
 			NybbleTupleDescriptor.mutableObjectOfSize(5);
-		nybbleTupleReverseSmall
+		nybbleTupleReverseSmall = nybbleTupleReverseSmall
 			.tupleAtPuttingCanDestroy(4, IntegerDescriptor.fromInt(7), true)
 			.makeImmutable();
 

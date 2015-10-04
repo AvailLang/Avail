@@ -43,6 +43,7 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.utility.Generator;
 
 /**
  * A {@code SerializerOpcode} describes how to disassemble and assemble the
@@ -903,24 +904,42 @@ public enum SerializerOperation
 			final int numOuters = object.numOuters();
 			final int numRegularLiterals =
 				object.numLiterals() - numLocals - numOuters;
-			final A_Tuple regularLiterals =
-				ObjectTupleDescriptor.createUninitialized(numRegularLiterals);
-			for (int i = 1; i <= numRegularLiterals; i++)
-			{
-				regularLiterals.objectTupleAtPut(i, object.literalAt(i));
-			}
-			final A_Tuple localTypes =
-				ObjectTupleDescriptor.createUninitialized(numLocals);
-			for (int i = 1; i <= numLocals; i++)
-			{
-				localTypes.objectTupleAtPut(i, object.localTypeAt(i));
-			}
-			final A_Tuple outerTypes =
-				ObjectTupleDescriptor.createUninitialized(numOuters);
-			for (int i = 1; i <= numOuters; i++)
-			{
-				outerTypes.objectTupleAtPut(i, object.outerTypeAt(i));
-			}
+			final A_Tuple regularLiterals = ObjectTupleDescriptor.generateFrom(
+				numRegularLiterals,
+				new Generator<A_BasicObject>()
+				{
+					private int index = 1;
+
+					@Override
+					public A_BasicObject value ()
+					{
+						return object.literalAt(index++);
+					}
+				});
+			final A_Tuple localTypes = ObjectTupleDescriptor.generateFrom(
+				numLocals,
+				new Generator<A_BasicObject>()
+				{
+					private int index = 1;
+
+					@Override
+					public A_BasicObject value ()
+					{
+						return object.localTypeAt(index++);
+					}
+				});
+			final A_Tuple outerTypes = ObjectTupleDescriptor.generateFrom(
+				numOuters,
+				new Generator<A_BasicObject>()
+				{
+					private int index = 1;
+
+					@Override
+					public A_BasicObject value ()
+					{
+						return object.outerTypeAt(index++);
+					}
+				});
 			final A_Module module = object.module();
 			final A_String moduleName = module.equalsNil()
 				? TupleDescriptor.empty()
@@ -1020,13 +1039,18 @@ public enum SerializerOperation
 		@Override
 		A_BasicObject[] decompose (final AvailObject object)
 		{
-			final int numOuters = object.numOuterVars();
-			final A_Tuple outers =
-				ObjectTupleDescriptor.createUninitialized(numOuters);
-			for (int i = 1; i <= numOuters; i++)
-			{
-				outers.objectTupleAtPut(i, object.outerVarAt(i));
-			}
+			final A_Tuple outers = ObjectTupleDescriptor.generateFrom(
+				object.numOuterVars(),
+				new Generator<A_BasicObject>()
+				{
+					private int index = 1;
+
+					@Override
+					public A_BasicObject value ()
+					{
+						return object.outerVarAt(index++);
+					}
+				});
 			return array(
 				object.code(),
 				outers);

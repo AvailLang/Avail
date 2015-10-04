@@ -40,6 +40,7 @@ import static java.lang.Math.min;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import com.avail.annotations.*;
+import com.avail.utility.Generator;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -59,15 +60,27 @@ extends TupleDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
+		 * 32 can be used by other {@link BitField}s in subclasses of {@link
+		 * TupleDescriptor}.
 		 */
 		@HideFieldInDebugger
-		HASH_OR_ZERO;
+		HASH_AND_MORE;
+
+		/**
+		 * A slot to hold the cached hash value of a tuple.  If zero, then the
+		 * hash value must be computed upon request.  Note that in the very rare
+		 * case that the hash value actually equals zero, the hash value has to
+		 * be computed every time it is requested.
+		 */
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{
-			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
-				== HASH_OR_ZERO.ordinal();
+			assert TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
+				== HASH_AND_MORE.ordinal();
+			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
+				HASH_OR_ZERO);
 		}
 	}
 
@@ -101,7 +114,8 @@ extends TupleDescriptor
 		final int intValue;
 		if (originalSize >= maximumCopySize
 			|| !newElement.isInt()
-			|| ((intValue = ((A_Number) newElement).extractInt()) & 255) != intValue)
+			|| ((intValue = ((A_Number) newElement).extractInt()) & 255)
+				!= intValue)
 		{
 			// Transition to a tree tuple.
 			final A_Tuple singleton = TupleDescriptor.from(newElement);
@@ -111,13 +125,20 @@ extends TupleDescriptor
 		final byte[] array =
 			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
 		final int newSize = originalSize + 1;
-		final AvailObject result =
-			ByteTupleDescriptor.mutableObjectOfSize(newSize);
-		for (int i = 1; i <= newSize; i++)
-		{
-			result.rawByteAtPut(i, (short)(array[i - 1] & 0xFF));
-		}
-		result.rawByteAtPut(newSize, (short)intValue);
+		final AvailObject result = ByteTupleDescriptor.generateFrom(
+			newSize,
+			new Generator<Short>()
+			{
+				private int index = 0;
+
+				@Override
+				public Short value ()
+				{
+					return index < newSize
+						? (short)(array[index++] & 255)
+						: (short)intValue;
+				}
+			});
 		return result;
 	}
 
@@ -263,16 +284,18 @@ extends TupleDescriptor
 			// newLike() if start is 1.  Make sure to mask the last word in that
 			// case.
 			final byte[] originalBytes = object.byteArray();
-			final AvailObject result =
-				ByteTupleDescriptor.mutableObjectOfSize(size);
-			int dest = 1;
-			for (int src = start; src <= end; src++, dest++)
-			{
-				// Remember to adjust between 1-based inclusive and 0-based
-				// inclusive/exclusive.
-				result.rawByteAtPut(
-					dest, (short)(originalBytes[src - 1] & 255));
-			}
+			final AvailObject result = ByteTupleDescriptor.generateFrom(
+				size,
+				new Generator<Short>()
+				{
+					private int index = start;
+
+					@Override
+					public Short value ()
+					{
+						return (short)(originalBytes[index++] & 255);
+					}
+				});
 			if (canDestroy)
 			{
 				object.assertObjectUnreachableIfMutable();
@@ -413,21 +436,6 @@ extends TupleDescriptor
 		return object;
 	}
 
-	@Override @AvailMethod
-	void o_RawByteAtPut (
-		final AvailObject object,
-		final int index,
-		final short anInteger)
-	{
-		// Set the byte at the given index.
-		assert isMutable();
-		assert index >= 1 && index <= object.tupleSize();
-		final byte theByte = (byte) anInteger;
-		final byte[] array =
-			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
-		array[index - 1] = theByte;
-	}
-
 	@Override
 	void o_TransferIntoByteBuffer (
 		final AvailObject object,
@@ -519,7 +527,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_TupleReverse(final AvailObject object)
+	A_Tuple o_TupleReverse (final AvailObject object)
 	{
 		final int size = object.tupleSize();
 		if (size >= maximumCopySize)
@@ -532,14 +540,18 @@ extends TupleDescriptor
 		// newLike() if start is 1.  Make sure to mask the last word in that
 		// case.
 		final byte[] originalBytes = object.byteArray();
-		final AvailObject result =
-			ByteTupleDescriptor.mutableObjectOfSize(size);
-		for (int i = 1; i <= size; i++)
-		{
-			// Remember to adjust between 1-based inclusive and 0-based
-			// inclusive/exclusive.
-			result.rawByteAtPut(size-i+1, originalBytes[i - 1]);
-		}
+		final AvailObject result = ByteTupleDescriptor.generateFrom(
+			size,
+			new Generator<Short>()
+			{
+				private int index = size - 1;
+
+				@Override
+				public Short value ()
+				{
+					return (short)(originalBytes[index--] & 255);
+				}
+			});
 		result.hashOrZero(0);
 		return result;
 

@@ -37,6 +37,7 @@ import static com.avail.descriptor.ObjectTupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import com.avail.annotations.*;
+import com.avail.utility.Generator;
 
 /**
  * This is a representation for {@linkplain TupleDescriptor tuples} that can
@@ -54,16 +55,27 @@ extends TupleDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The tuple's hash value or zero if not computed.  If the hash value
-		 * happens to be zero (very rare) we have to recalculate it on demand.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
+		 * 32 can be used by other {@link BitField}s in subclasses of {@link
+		 * TupleDescriptor}.
 		 */
 		@HideFieldInDebugger
-		HASH_OR_ZERO;
+		HASH_AND_MORE;
+
+		/**
+		 * A slot to hold the cached hash value of a tuple.  If zero, then the
+		 * hash value must be computed upon request.  Note that in the very rare
+		 * case that the hash value actually equals zero, the hash value has to
+		 * be computed every time it is requested.
+		 */
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{
-			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
-				== HASH_OR_ZERO.ordinal();
+			assert TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
+				== HASH_AND_MORE.ordinal();
+			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
+				HASH_OR_ZERO);
 		}
 	}
 
@@ -108,7 +120,7 @@ extends TupleDescriptor
 			}
 		}
 		final AvailObject newTuple = newLike(mutable, object, 1, 0);
-		newTuple.objectTupleAtPut(originalSize + 1, newElement);
+		newTuple.setSlot(TUPLE_AT_, originalSize + 1, newElement);
 		newTuple.setSlot(HASH_OR_ZERO, 0);
 		return newTuple;
 	}
@@ -359,20 +371,6 @@ extends TupleDescriptor
 		return false;
 	}
 
-	/**
-	 * @param object
-	 * @param index
-	 * @param anObject
-	 */
-	@Override @AvailMethod
-	void o_ObjectTupleAtPut (
-		final AvailObject object,
-		final int index,
-		final A_BasicObject anObject)
-	{
-		object.setSlot(TUPLE_AT_, index, anObject);
-	}
-
 	@Override @AvailMethod
 	AvailObject o_TupleAt (final AvailObject object, final int subscript)
 	{
@@ -397,9 +395,8 @@ extends TupleDescriptor
 				newValueObject,
 				true);
 		}
-		object.objectTupleAtPut(index, newValueObject);
-		// Invalidate the hash value.
-		object.hashOrZero(0);
+		object.setSlot(TUPLE_AT_, index, newValueObject);
+		object.setSlot(HASH_OR_ZERO, 0);
 		return object;
 	}
 
@@ -411,7 +408,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_TupleReverse(final AvailObject object)
+	A_Tuple o_TupleReverse (final AvailObject object)
 	{
 		final int size = object.tupleSize();
 		if (size >= maximumCopySize)
@@ -419,14 +416,19 @@ extends TupleDescriptor
 			return super.o_TupleReverse(object);
 		}
 
-		final AvailObject instance =
-			mutable.create(size);
+		final AvailObject newTuple = generateFrom(
+			size,
+			new Generator<A_BasicObject>()
+			{
+				private int index = size;
 
-		for (int i = 1; i <= size; i++)
-		{
-			instance.objectTupleAtPut(size-i+1, object.tupleAt(i));
-		}
-		return instance;
+				@Override
+				public A_BasicObject value ()
+				{
+					return object.tupleAt(index--);
+				}
+			});
+		return newTuple;
 	}
 
 	@Override @AvailMethod
@@ -446,6 +448,34 @@ extends TupleDescriptor
 	public static AvailObject createUninitialized (final int size)
 	{
 		return mutable.create(size);
+	}
+
+	/**
+	 * Create an object of the appropriate size, whose descriptor is an instance
+	 * of {@link ObjectTupleDescriptor}.  Run the generator for each position in
+	 * ascending order to produce the {@link AvailObject}s with which to
+	 * populate the tuple.
+	 *
+	 * @param size The size of the object tuple to create.
+	 * @param generator A generator to provide {@link AvailObject}s to store.
+	 * @return The new object tuple.
+	 */
+	public static AvailObject generateFrom (
+		final int size,
+		final Generator<A_BasicObject> generator)
+	{
+		final AvailObject result = createUninitialized(size);
+		for (int i = 1; i <= size; i++)
+		{
+			// Initialize it for safe GC within the loop below.  Might be
+			// unnecessary if the substrate already initialized it safely.
+			result.setSlot(TUPLE_AT_, i, NilDescriptor.nil());
+		}
+		for (int i = 1; i <= size; i++)
+		{
+			result.setSlot(TUPLE_AT_, i, generator.value());
+		}
+		return result;
 	}
 
 	/**

@@ -42,6 +42,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.Generator;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -64,20 +65,27 @@ extends Descriptor
 	implements IntegerSlotsEnum
 	{
 		/**
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
+		 * 32 can be used by other {@link BitField}s in subclasses of {@link
+		 * TupleDescriptor}.
+		 */
+		@HideFieldInDebugger
+		HASH_AND_MORE;
+
+		/**
 		 * A slot to hold the cached hash value of a tuple.  If zero, then the
 		 * hash value must be computed upon request.  Note that in the very rare
 		 * case that the hash value actually equals zero, the hash value has to
 		 * be computed every time it is requested.
 		 */
-		@HideFieldInDebugger
-		HASH_OR_ZERO
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
 	}
 
 	@Override
 	final boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == HASH_OR_ZERO;
+		return e == HASH_AND_MORE;
 	}
 
 	@Override @AvailMethod
@@ -116,7 +124,8 @@ extends Descriptor
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
-		if (object.tupleSize() == 0)
+		final int size = object.tupleSize();
+		if (size == 0)
 		{
 			aStream.append("<>");
 			return;
@@ -124,7 +133,7 @@ extends Descriptor
 		if (object.isString())
 		{
 			aStream.append('"');
-			for (int i = 1, limit = object.tupleSize(); i <= limit; i++)
+			for (int i = 1; i <= size; i++)
 			{
 				final A_Character availChar = object.tupleAt(i);
 				final int c = availChar.codePoint();
@@ -157,11 +166,12 @@ extends Descriptor
 			aStream.appendCodePoint('"');
 			return;
 		}
-		final List<String> strings = new ArrayList<>(object.tupleSize());
+		final List<String> strings = new ArrayList<>(size);
 		int totalChars = 0;
 		boolean anyBreaks = false;
-		for (final A_BasicObject element : object)
+		for (int i = 1; i <= size; i++)
 		{
+			final A_BasicObject element = object.tupleAt(i);
 			final StringBuilder localBuilder = new StringBuilder();
 			element.printOnAvoidingIndent(
 				localBuilder,
@@ -665,14 +675,23 @@ extends Descriptor
 		{
 			return TupleDescriptor.empty();
 		}
-		if (!canDestroy)
+		A_Tuple accumulator = object.tupleAt(1);
+		if (canDestroy)
+		{
+			for (int i = 2; i <= tupleSize; i++)
+			{
+				accumulator = accumulator.concatenateWith(
+					object.tupleAt(i), true);
+			}
+		}
+		else
 		{
 			object.makeImmutable();
-		}
-		A_Tuple accumulator = object.tupleAt(1);
-		for (int i = 2; i <= tupleSize; i++)
-		{
-			accumulator = accumulator.concatenateWith(object.tupleAt(i), true);
+			for (int i = 2; i <= tupleSize; i++)
+			{
+				accumulator = accumulator.concatenateWith(
+					object.tupleAt(i).makeImmutable(), true);
+			}
 		}
 		return accumulator;
 	}
@@ -1003,13 +1022,19 @@ extends Descriptor
 	A_Tuple o_CopyAsMutableObjectTuple (final AvailObject object)
 	{
 		final int size = object.tupleSize();
-		final AvailObject result =
-			ObjectTupleDescriptor.createUninitialized(size);
+		final AvailObject result = ObjectTupleDescriptor.generateFrom(
+			size,
+			new Generator<A_BasicObject>()
+			{
+				int index = 1;
+
+				@Override
+				public A_BasicObject value ()
+				{
+					return object.tupleAt(index++);
+				}
+			});
 		result.hashOrZero(object.hashOrZero());
-		for (int i = 1; i <= size; i++)
-		{
-			result.objectTupleAtPut(i, object.tupleAt(i));
-		}
 		return result;
 	}
 
@@ -1196,7 +1221,17 @@ extends Descriptor
 
 	static
 	{
-		final A_Tuple tuple = NybbleTupleDescriptor.mutableObjectOfSize(0);
+		final A_Tuple tuple = NybbleTupleDescriptor.generateFrom(
+			0,
+			new Generator<Byte>()
+			{
+				@Override
+				public Byte value ()
+				{
+					assert false : "This should be an empty nybble tuple";
+					return 0;
+				}
+			});
 		tuple.hash();
 		emptyTuple = tuple.makeShared();
 	}
@@ -1228,13 +1263,18 @@ extends Descriptor
 		{
 			return empty();
 		}
-		A_Tuple tuple;
-		final int size = elements.length;
-		tuple = ObjectTupleDescriptor.createUninitialized(size);
-		for (int i = 1; i <= size; i++)
-		{
-			tuple.objectTupleAtPut(i, elements[i - 1]);
-		}
+		final A_Tuple tuple = ObjectTupleDescriptor.generateFrom(
+			elements.length,
+			new Generator<A_BasicObject>()
+			{
+				private int index = 0;
+
+				@Override
+				public A_BasicObject value ()
+				{
+					return elements[index++];
+				}
+			});
 		return tuple;
 	}
 
@@ -1256,11 +1296,18 @@ extends Descriptor
 		{
 			return empty();
 		}
-		final A_Tuple tuple = ObjectTupleDescriptor.createUninitialized(size);
-		for (int i = 0; i < size; i++)
-		{
-			tuple.objectTupleAtPut(i + 1, list.get(i));
-		}
+		final A_Tuple tuple = ObjectTupleDescriptor.generateFrom(
+			size,
+			new Generator<A_BasicObject>()
+			{
+				private int index = 0;
+
+				@Override
+				public A_BasicObject value ()
+				{
+					return list.get(index++);
+				}
+			});
 		return tuple;
 	}
 
@@ -1329,16 +1376,24 @@ extends Descriptor
 		{
 			if (originalTuple.tupleAt(seekIndex).equals(elementToExclude))
 			{
-				final A_Tuple newTuple =
-					ObjectTupleDescriptor.createUninitialized(originalSize - 1);
-				for (int i = 1; i < seekIndex; i++)
-				{
-					newTuple.objectTupleAtPut(i, originalTuple.tupleAt(i));
-				}
-				for (int i = seekIndex + 1; i <= originalSize; i++)
-				{
-					newTuple.objectTupleAtPut(i - 1, originalTuple.tupleAt(i));
-				}
+				final int finalSeekIndex = seekIndex;
+				final AvailObject newTuple = ObjectTupleDescriptor.generateFrom(
+					originalSize - 1,
+					new Generator<A_BasicObject>()
+					{
+						private int index = 1;
+
+						@Override
+						public A_BasicObject value ()
+						{
+							if (index == finalSeekIndex)
+							{
+								// Skip that element.
+								index++;
+							}
+							return originalTuple.tupleAt(index++);
+						}
+					});
 				return newTuple;
 			}
 		}
@@ -1366,30 +1421,50 @@ extends Descriptor
 			final int maxValue = max(list);
 			if (maxValue <= 15)
 			{
-				tuple = NybbleTupleDescriptor.mutableObjectOfSize(list.size());
-				for (int i = 1; i <= list.size(); i++)
-				{
-					tuple.rawNybbleAtPut(i, list.get(i - 1).byteValue());
-				}
+				tuple = NybbleTupleDescriptor.generateFrom(
+					list.size(),
+					new Generator<Byte>()
+					{
+						private int index = 0;
+
+						@Override
+						public Byte value ()
+						{
+							return list.get(index++).byteValue();
+						}
+					});
 				return tuple;
 			}
 			if (maxValue <= 255)
 			{
-				tuple = ByteTupleDescriptor.mutableObjectOfSize(list.size());
-				for (int i = 1; i <= list.size(); i++)
-				{
-					tuple.rawByteAtPut(i, list.get(i - 1).shortValue());
-				}
+				tuple = ByteTupleDescriptor.generateFrom(
+					list.size(),
+					new Generator<Short>()
+					{
+						private int index = 0;
+
+						@Override
+						public Short value ()
+						{
+							return list.get(index++).shortValue();
+						}
+					});
 				return tuple;
 			}
 		}
-		tuple = ObjectTupleDescriptor.createUninitialized(list.size());
-		for (int i = 1; i <= list.size(); i++)
-		{
-			tuple.objectTupleAtPut(
-				i,
-				IntegerDescriptor.fromInt(list.get(i - 1).intValue()));
-		}
+		tuple = ObjectTupleDescriptor.generateFrom(
+			list.size(),
+			new Generator<A_BasicObject>()
+			{
+				private int index = 0;
+
+				@Override
+				public A_BasicObject value ()
+				{
+					return IntegerDescriptor.fromInt(
+						list.get(index++).intValue());
+				}
+			});
 		return tuple;
 	}
 

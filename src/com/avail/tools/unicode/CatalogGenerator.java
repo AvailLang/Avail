@@ -128,7 +128,7 @@ public final class CatalogGenerator
 		throws Exception
 	{
 		// Produce a configuration.
-		final Configuration configuration = new Configuration();
+		final UnicodeConfiguration configuration = new UnicodeConfiguration();
 		final CommandLineConfigurator configurator =
 				new CommandLineConfigurator(
 					configuration, commandLineArguments, System.out);

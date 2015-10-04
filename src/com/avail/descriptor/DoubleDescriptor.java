@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.DoubleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.IdentityHashMap;
@@ -56,14 +57,9 @@ extends AbstractNumberDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The low 32 bits of a packed Java {@code double} value.
+		 * A {@code long} whose bits are to be interpreted as a {@code double}.
 		 */
-		LOW_INT,
-
-		/**
-		 * The high 32 bits of a packed Java {@code double} value.
-		 */
-		HIGH_INT
+		LONG_BITS;
 	}
 
 	/**
@@ -75,10 +71,7 @@ extends AbstractNumberDescriptor
 	 */
 	private static double getDouble (final AvailObject object)
 	{
-		final int low = object.slot(LOW_INT);
-		final int high = object.slot(HIGH_INT);
-		final long castAsLong = (low & 0xFFFFFFFFL) | (((long) high) << 32L);
-		return Double.longBitsToDouble(castAsLong);
+		return Double.longBitsToDouble(object.slot(LONG_BITS));
 	}
 
 	/**
@@ -235,8 +228,7 @@ extends AbstractNumberDescriptor
 	{
 		final AvailObject result = mutable.create();
 		final long castAsLong = Double.doubleToRawLongBits(aDouble);
-		result.setSlot(LOW_INT, (int)castAsLong);
-		result.setSlot(HIGH_INT, (int)(castAsLong >> 32));
+		result.setSlot(LONG_BITS, castAsLong);
 		return result;
 	}
 
@@ -265,8 +257,7 @@ extends AbstractNumberDescriptor
 			? (AvailObject)recyclable1
 			: mutable.create();
 		final long castAsLong = Double.doubleToRawLongBits(aDouble);
-		result.setSlot(LOW_INT, (int)castAsLong);
-		result.setSlot(HIGH_INT, (int)(castAsLong >> 32));
+		result.setSlot(LONG_BITS, castAsLong);
 		return result;
 	}
 
@@ -309,8 +300,7 @@ extends AbstractNumberDescriptor
 			result = mutable.create();
 		}
 		final long castAsLong = Double.doubleToRawLongBits(aDouble);
-		result.setSlot(LOW_INT, (int)castAsLong);
-		result.setSlot(HIGH_INT, (int)(castAsLong >> 32));
+		result.setSlot(LONG_BITS, castAsLong);
 		return result;
 	}
 
@@ -513,9 +503,10 @@ extends AbstractNumberDescriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		final int low = object.slot(LOW_INT);
-		final int high = object.slot(HIGH_INT);
-		return (low ^ 0x29F2EAB8) - (high ^ 0x07C453FD);
+		final long bits = object.slot(LONG_BITS);
+		final int low = (int)(bits >> 32);
+		final int high = (int)bits;
+		return (low ^ 0x29F2EAB8) * multiplier - (high ^ 0x07C453FD);
 	}
 
 	@Override @AvailMethod

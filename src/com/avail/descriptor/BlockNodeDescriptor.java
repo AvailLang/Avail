@@ -62,6 +62,11 @@ extends ParseNodeDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
+		 * A slot containing multiple {@link BitField}s.
+		 */
+		PRIMITIVE_AND_STARTING_LINE_NUMBER;
+
+		/**
 		 * The {@linkplain Primitive primitive} number to invoke for this block.
 		 * This is not the {@link Enum#ordinal()} of the primitive, but rather
 		 * its {@link Primitive#primitiveNumber}.
@@ -69,12 +74,18 @@ extends ParseNodeDescriptor
 		@EnumField(
 			describedBy=Primitive.class,
 			lookupMethodName="byPrimitiveNumberOrNull")
-		PRIMITIVE,
+		static final BitField PRIMITIVE = bitField(
+			PRIMITIVE_AND_STARTING_LINE_NUMBER,
+			0,
+			32);
 
 		/**
 		 * The line number on which this block starts.
 		 */
-		STARTING_LINE_NUMBER;
+		static final BitField STARTING_LINE_NUMBER = bitField(
+			PRIMITIVE_AND_STARTING_LINE_NUMBER,
+			32,
+			32);
 	}
 
 	/**

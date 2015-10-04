@@ -434,15 +434,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_BinElementAtPut (
-		final AvailObject object,
-		final int index,
-		final A_BasicObject value)
-	{
-		o_Traversed(object).binElementAtPut(index, value);
-	}
-
-	@Override
 	boolean o_BinHasElementWithHash (
 		final AvailObject object,
 		final A_BasicObject elementObject,
@@ -451,12 +442,6 @@ extends AbstractDescriptor
 		return o_Traversed(object).binHasElementWithHash(
 			elementObject,
 			elementObjectHash);
-	}
-
-	@Override
-	void o_BinHash (final AvailObject object, final int value)
-	{
-		o_Traversed(object).binHash(value);
 	}
 
 	@Override
@@ -472,12 +457,6 @@ extends AbstractDescriptor
 			elementObjectHash,
 			myLevel,
 			canDestroy);
-	}
-
-	@Override
-	void o_BinSize (final AvailObject object, final int value)
-	{
-		o_Traversed(object).binSize(value);
 	}
 
 	@Override
@@ -1480,29 +1459,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_RawByteAtPut (
-		final AvailObject object,
-		final int index,
-		final short anInteger)
-	{
-		o_Traversed(object).rawByteAtPut(index, anInteger);
-	}
-
-	@Override
 	short o_RawByteForCharacterAt (
 		final AvailObject object,
 		final int index)
 	{
 		return o_Traversed(object).rawByteForCharacterAt(index);
-	}
-
-	@Override
-	void o_RawNybbleAtPut (
-		final AvailObject object,
-		final int index,
-		final byte aNybble)
-	{
-		o_Traversed(object).rawNybbleAtPut(index, aNybble);
 	}
 
 	@Override
@@ -4046,15 +4007,6 @@ extends AbstractDescriptor
 	A_String o_ModuleName (final AvailObject object)
 	{
 		return o_Traversed(object).moduleName();
-	}
-
-	@Override
-	void o_ObjectTupleAtPut (
-		final AvailObject object,
-		final int index,
-		final A_BasicObject anObject)
-	{
-		o_Traversed(object).objectTupleAtPut(index, anObject);
 	}
 
 	@Override

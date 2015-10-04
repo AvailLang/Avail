@@ -57,11 +57,21 @@ extends Descriptor
 	implements IntegerSlotsEnum
 	{
 		/**
+		 * {@link BitField}s for the token type code and the starting byte
+		 * position.
+		 */
+		TOKEN_TYPE_AND_START,
+
+		/** {@link BitField}s for the line number and token index. */
+		LINE_AND_TOKEN_INDEX;
+
+		/**
 		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
 		 * indicates what basic kind of token this is.
 		 */
 		@EnumField(describedBy=TokenType.class)
-		TOKEN_TYPE_CODE,
+		final static BitField TOKEN_TYPE_CODE =
+			bitField(TOKEN_TYPE_AND_START, 0, 32);
 
 		/**
 		 * The starting position in the source file. Currently signed 32 bits,
@@ -69,19 +79,22 @@ extends Descriptor
 		 * 2GB of <em>Avail</em> source in one file, due to its deeply flexible
 		 * syntax.
 		 */
-		START,
+		final static BitField START =
+			bitField(TOKEN_TYPE_AND_START, 32, 32);
 
 		/**
 		 * The line number in the source file. Currently signed 32 bits, which
 		 * should be plenty.
 		 */
-		LINE_NUMBER,
+		final static BitField LINE_NUMBER =
+			bitField(LINE_AND_TOKEN_INDEX, 0, 32);
 
 		/**
 		 * The zero-based token number within the source file's tokenization.
 		 * Currently signed 32 bits, which should be plenty.
 		 */
-		TOKEN_INDEX;
+		final static BitField TOKEN_INDEX =
+			bitField(LINE_AND_TOKEN_INDEX, 32, 32);
 	}
 
 	/**
@@ -185,24 +198,25 @@ extends Descriptor
 
 	/**
 	 * Lazily compute and install the lowercase variant of the specified
-	 * {@linkplain TokenDescriptor token}'s lexeme.
+	 * {@linkplain TokenDescriptor token}'s lexeme.  The caller must handle
+	 * locking as needed.  Cache the lowercase variant within the object.
 	 *
-	 * @param object A token.
-	 * @return The lowercase lexeme.
+	 * @param token A token.
+	 * @return The lowercase lexeme (an Avail string).
 	 */
-	private A_String lowerCaseString (final AvailObject object)
+	private A_String lowerCaseStringFrom (final AvailObject token)
 	{
-		A_String lowerCase = object.slot(LOWER_CASE_STRING);
+		A_String lowerCase = token.slot(LOWER_CASE_STRING);
 		if (lowerCase.equalsNil())
 		{
-			final String nativeOriginal = object.slot(STRING).asNativeString();
+			final String nativeOriginal = token.slot(STRING).asNativeString();
 			final String nativeLowerCase = nativeOriginal.toLowerCase();
 			lowerCase = StringDescriptor.from(nativeLowerCase);
 			if (isShared())
 			{
 				lowerCase = lowerCase.traversed().makeShared();
 			}
-			object.setSlot(LOWER_CASE_STRING, lowerCase);
+			token.setSlot(LOWER_CASE_STRING, lowerCase);
 		}
 		return lowerCase;
 	}
@@ -259,10 +273,10 @@ extends Descriptor
 		{
 			synchronized (object)
 			{
-				return lowerCaseString(object);
+				return lowerCaseStringFrom(object.slot(STRING));
 			}
 		}
-		return lowerCaseString(object);
+		return lowerCaseStringFrom(object);
 	}
 
 	@Override

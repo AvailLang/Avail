@@ -87,11 +87,17 @@ extends Descriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * A slot to hold the cached hash value of a grammatical restriction.
-		 * It's set to a random value at construction time.
+		 * The low 32 bits are used for the {@link #HASH}, but the upper
+		 * 32 can be used by other {@link BitField}s in subclasses.
 		 */
 		@HideFieldInDebugger
-		HASH
+		HASH_AND_MORE;
+
+		/**
+		 * A slot to hold the hash value, a random value computed at
+		 * construction time.
+		 */
+		static final BitField HASH = bitField(HASH_AND_MORE, 0, 32);
 	}
 
 	/**

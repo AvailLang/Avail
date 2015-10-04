@@ -54,6 +54,32 @@ public final class ParseNodeTypeDescriptor
 extends TypeDescriptor
 {
 	/**
+	 * My slots of type {@linkplain Integer int}.
+	 */
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
+	{
+		/**
+		 * The low 32 bits are used for caching the hash, and the upper 32 are
+		 * for the parse node kind.
+		 */
+		@HideFieldInDebugger
+		HASH_AND_KIND;
+
+		/**
+		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
+		 */
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_KIND, 0, 32);
+
+		/**
+		 * The {@linkplain ParseNodeKind kind} of parse node, encoded as an
+		 * {@code int}.
+		 */
+		@EnumField(describedBy=ParseNodeKind.class)
+		static final BitField KIND = bitField(HASH_AND_KIND, 32, 32);
+	}
+
+	/**
 	 * My slots of type {@link AvailObject}.
 	 */
 	public enum ObjectSlots
@@ -70,20 +96,6 @@ extends TypeDescriptor
 		 * is to be interpreted.
 		 */
 		COVARIANT_PHRASE_PARAMETERIZATIONS
-	}
-
-	/**
-	 * My slots of type {@linkplain Integer int}.
-	 */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
-	{
-		/**
-		 * The {@linkplain ParseNodeKind kind} of parse node, encoded as an
-		 * {@code int}.
-		 */
-		@EnumField(describedBy=ParseNodeKind.class)
-		KIND;
 	}
 
 	public final static class CovariantPhraseParameterization

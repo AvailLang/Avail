@@ -99,11 +99,17 @@ extends Descriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The hash value of this {@linkplain AtomDescriptor atom}.  It is a
-		 * random number (not 0), computed on demand.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
+		 * 32 can be used by other {@link BitField}s in subclasses.
 		 */
 		@HideFieldInDebugger
-		HASH
+		HASH_AND_MORE;
+
+		/**
+		 * A slot to hold the hash value, or zero if it has not been computed.
+		 * The hash of an atom is a random number, computed once.
+		 */
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
 	}
 
 	/**
@@ -129,7 +135,7 @@ extends Descriptor
 	@Override
 	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
-		return e == HASH;
+		return e == HASH_AND_MORE;
 	}
 
 	@Override
@@ -194,7 +200,7 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		int hash = object.slot(HASH);
+		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
 		{
 			do
@@ -202,7 +208,7 @@ extends Descriptor
 				hash = AvailRuntime.nextHash();
 			}
 			while (hash == 0);
-			object.setSlot(HASH, hash);
+			object.setSlot(HASH_OR_ZERO, hash);
 		}
 		return hash;
 	}
@@ -257,7 +263,7 @@ extends Descriptor
 				AtomWithPropertiesDescriptor.createWithNameAndModuleAndHash(
 					object.slot(NAME),
 					object.slot(ISSUING_MODULE),
-					object.slot(HASH));
+					object.slot(HASH_OR_ZERO));
 			object.becomeIndirectionTo(substituteAtom);
 			object.makeShared();
 			return substituteAtom;
@@ -284,7 +290,7 @@ extends Descriptor
 			AtomWithPropertiesDescriptor.createWithNameAndModuleAndHash(
 				object.slot(NAME),
 				object.slot(ISSUING_MODULE),
-				object.slot(HASH));
+				object.slot(HASH_OR_ZERO));
 		object.becomeIndirectionTo(substituteAtom);
 		substituteAtom.setAtomProperty(key, value);
 	}
@@ -458,7 +464,7 @@ extends Descriptor
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(NAME, name);
-		instance.setSlot(HASH, 0);
+		instance.setSlot(HASH_OR_ZERO, 0);
 		instance.setSlot(ISSUING_MODULE, issuingModule);
 		return instance.makeImmutable();
 	}
@@ -479,7 +485,7 @@ extends Descriptor
 	{
 		AvailObject atom = mutable.create();
 		atom.setSlot(NAME, StringDescriptor.from(name).makeShared());
-		atom.setSlot(HASH, 0);
+		atom.setSlot(HASH_OR_ZERO, 0);
 		atom.setSlot(ISSUING_MODULE, NilDescriptor.nil());
 		atom = atom.makeShared();
 		atom.descriptor = AtomWithPropertiesSharedDescriptor.sharedAndSpecial;

@@ -39,6 +39,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 import static java.lang.Math.min;
 import java.nio.ByteBuffer;
 import com.avail.annotations.*;
+import com.avail.utility.Generator;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -59,15 +60,27 @@ extends TupleDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
+		 * 32 can be used by other {@link BitField}s in subclasses of {@link
+		 * TupleDescriptor}.
 		 */
 		@HideFieldInDebugger
-		HASH_OR_ZERO;
+		HASH_AND_MORE;
+
+		/**
+		 * A slot to hold the cached hash value of a tuple.  If zero, then the
+		 * hash value must be computed upon request.  Note that in the very rare
+		 * case that the hash value actually equals zero, the hash value has to
+		 * be computed every time it is requested.
+		 */
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{
-			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
-				== HASH_OR_ZERO.ordinal();
+			assert TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
+				== HASH_AND_MORE.ordinal();
+			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
+				HASH_OR_ZERO);
 		}
 	}
 
@@ -112,13 +125,20 @@ extends TupleDescriptor
 		final ByteBuffer buffer =
 			(ByteBuffer) object.slot(BYTE_BUFFER).javaObjectNotNull();
 		final int newSize = originalSize + 1;
-		final AvailObject result =
-			ByteTupleDescriptor.mutableObjectOfSize(newSize);
-		for (int i = 1; i <= newSize; i++)
-		{
-			result.rawByteAtPut(i, (short)(buffer.get(i - 1) & 0xFF));
-		}
-		result.rawByteAtPut(newSize, (short)intValue);
+		final AvailObject result = ByteTupleDescriptor.generateFrom(
+			newSize,
+			new Generator<Short>()
+			{
+				private int index = 0;
+
+				@Override
+				public Short value ()
+				{
+					return index < newSize
+						? (short)(buffer.get(index++) & 255)
+						: (short)intValue;
+				}
+			});
 		return result;
 	}
 
@@ -339,21 +359,6 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_RawByteAtPut (
-		final AvailObject object,
-		final int index,
-		final short anInteger)
-	{
-		// Set the byte at the given index.
-		assert isMutable();
-		assert index >= 1 && index <= object.tupleSize();
-		final byte theByte = (byte) anInteger;
-		final ByteBuffer buffer =
-			(ByteBuffer) object.slot(BYTE_BUFFER).javaObjectNotNull();
-		buffer.put(index - 1, theByte);
-	}
-
-	@Override @AvailMethod
 	int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		// Answer the integer element at the given index in the tuple object.
@@ -377,14 +382,18 @@ extends TupleDescriptor
 		// newLike() if start is 1.  Make sure to mask the last word in that
 		// case.
 		final ByteBuffer originalBuffer = object.byteBuffer();
-		final AvailObject result =
-			ByteTupleDescriptor.mutableObjectOfSize(size);
-		for (int i = 1; i <= size; i++)
-		{
-			// Remember to adjust between 1-based inclusive and 0-based
-			// inclusive/exclusive.
-			result.rawByteAtPut(size - i + 1, originalBuffer.get(i - 1));
-		}
+		final AvailObject result = ByteTupleDescriptor.generateFrom(
+			size,
+			new Generator<Short>()
+			{
+				private int index = size - 1;
+
+				@Override
+				public Short value ()
+				{
+					return (short)(originalBuffer.get(index--) & 255);
+				}
+			});
 		result.hashOrZero(0);
 		return result;
 	}
@@ -477,16 +486,18 @@ extends TupleDescriptor
 			// newLike() if start is 1.  Make sure to mask the last word in that
 			// case.
 			final ByteBuffer originalBuffer = object.byteBuffer();
-			final AvailObject result =
-				ByteTupleDescriptor.mutableObjectOfSize(size);
-			int dest = 1;
-			for (int src = start; src <= end; src++, dest++)
-			{
-				// Remember to adjust between 1-based inclusive and 0-based
-				// inclusive/exclusive.
-				result.rawByteAtPut(
-					dest, (short)(originalBuffer.get(src - 1) & 255));
-			}
+			final AvailObject result = ByteTupleDescriptor.generateFrom(
+				size,
+				new Generator<Short>()
+				{
+					private int index = start - 1;
+
+					@Override
+					public Short value ()
+					{
+						return (short)(originalBuffer.get(index++) & 255);
+					}
+				});
 			if (canDestroy)
 			{
 				object.assertObjectUnreachableIfMutable();

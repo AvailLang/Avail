@@ -71,7 +71,7 @@ extends PojoTypeDescriptor
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 * @param <T> The element type.
 	 */
-	static final class PojoArray<T>
+	static abstract class PojoArray<T>
 	implements Cloneable, Serializable
 	{
 		/** The serial version identifier. */
@@ -83,11 +83,17 @@ extends PojoTypeDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The {@linkplain AvailObject#hash() hash}, or zero ({@code 0}) if the
-		 * hash should be computed.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
+		 * 32 can be used by other {@link BitField}s in subclasses.
 		 */
 		@HideFieldInDebugger
-		HASH_OR_ZERO
+		HASH_AND_MORE;
+
+		/**
+		 * A slot to hold the hash value, or zero if it has not been computed.
+		 * The hash of an atom is a random number, computed once.
+		 */
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
 	}
 
 	/** The layout of the object slots. */
@@ -121,7 +127,7 @@ extends PojoTypeDescriptor
 	boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == HASH_OR_ZERO;
+		return e == HASH_AND_MORE;
 	}
 
 	@Override

@@ -53,23 +53,37 @@ extends StringDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The hash value of this two-byte string or zero.  In the rare case
-		 * that the hash of the string is actually zero, it must be recomputed
-		 * every time.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
+		 * 32 can be used by other {@link BitField}s in subclasses of {@link
+		 * TupleDescriptor}.
 		 */
-		HASH_OR_ZERO,
+		@HideFieldInDebugger
+		HASH_AND_MORE,
 
 		/**
-		 * A sequence of {@code int}s that encode the two-byte characters of the
-		 * string.  Each int stores two two-byte characters, in Little Endian
-		 * order.
+		 * The raw 64-bit ({@code long}s) that constitute the representation of
+		 * the {@linkplain TwoByteStringDescriptor two-byte string}.
 		 */
-		RAW_QUAD_AT_;
+		RAW_LONGS_;
+
+		/**
+		 * A slot to hold the cached hash value of a tuple.  If zero, then the
+		 * hash value must be computed upon request.  Note that in the very rare
+		 * case that the hash value actually equals zero, the hash value has to
+		 * be computed every time it is requested.
+		 */
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{
-			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
-				== HASH_OR_ZERO.ordinal();
+			assert TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
+				== HASH_AND_MORE.ordinal();
+		}
+
+		static
+		{
+			assert TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
+				== HASH_AND_MORE.ordinal();
 		}
 	}
 
@@ -82,10 +96,9 @@ extends StringDescriptor
 
 	/**
 	 * The number of shorts that are unused in the last {@linkplain
-	 * IntegerSlots#RAW_QUAD_AT_ integer slot}. Zero when the number of
-	 * characters is even, one if odd.
+	 * IntegerSlots#RAW_LONGS_ long slot}. Must be between 0 and 3.
 	 */
-	int unusedShortsOfLastWord;
+	int unusedShortsOfLastLong;
 
 	@Override @AvailMethod
 	A_Tuple o_AppendCanDestroy (
@@ -97,14 +110,15 @@ extends StringDescriptor
 		final int intValue;
 		if (originalSize >= maximumCopySize
 			|| !newElement.isCharacter()
-			|| ((intValue = ((A_Character) newElement).codePoint()) & ~0xFFFF) != 0)
+			|| ((intValue = ((A_Character)newElement).codePoint()) & ~0xFFFF)
+				!= 0)
 		{
 			// Transition to a tree tuple.
 			final A_Tuple singleton = TupleDescriptor.from(newElement);
 			return object.concatenateWith(singleton, canDestroy);
 		}
 		final int newSize = originalSize + 1;
-		if (isMutable() && canDestroy && (originalSize & 1) != 0)
+		if (isMutable() && canDestroy && (originalSize & 3) != 0)
 		{
 			// Enlarge it in place, using more of the final partial int field.
 			object.descriptor = descriptorFor(MUTABLE, newSize);
@@ -117,7 +131,7 @@ extends StringDescriptor
 			descriptorFor(MUTABLE, newSize),
 			object,
 			0,
-			(originalSize & 1) == 0 ? 1 : 0);
+			(originalSize & 3) == 0 ? 1 : 0);
 		result.rawShortForCharacterAtPut(newSize, intValue);
 		result.setSlot(HASH_OR_ZERO, 0);
 		return result;
@@ -196,9 +210,9 @@ extends StringDescriptor
 		{
 			return false;
 		}
-		// They're equal, but occupy disjoint storage. If possible, then replace
-		// one with an indirection to the other to keep down the frequency of
-		// byte-wise comparisons.
+		// They're equal, but occupy disjoint storage. If possible, replace one
+		// with an indirection to the other to keep down the frequency of
+		// character comparisons.
 		if (!isShared())
 		{
 			aTwoByteString.makeImmutable();
@@ -244,7 +258,7 @@ extends StringDescriptor
 	@Override @AvailMethod
 	int o_RawShortForCharacterAt (final AvailObject object, final int index)
 	{
-		return object.shortSlotAt(RAW_QUAD_AT_, index);
+		return object.shortSlot(RAW_LONGS_, index);
 	}
 
 	@Override @AvailMethod
@@ -255,7 +269,7 @@ extends StringDescriptor
 	{
 		// Set the character at the given index based on the given byte.
 		assert isMutable();
-		object.shortSlotAtPut(RAW_QUAD_AT_, index, anInteger);
+		object.setShortSlot(RAW_LONGS_, index, anInteger);
 	}
 
 	@Override @AvailMethod
@@ -265,7 +279,7 @@ extends StringDescriptor
 		// two-byte character.
 		assert index >= 1 && index <= object.tupleSize();
 		return CharacterDescriptor.fromCodePoint(
-			object.shortSlotAt(RAW_QUAD_AT_, index) & 0xFFFF);
+			object.shortSlot(RAW_LONGS_, index));
 	}
 
 	@Override @AvailMethod
@@ -282,11 +296,11 @@ extends StringDescriptor
 		if (newValueObject.isCharacter())
 		{
 			final int codePoint = ((A_Character)newValueObject).codePoint();
-			if (codePoint >= 0 && codePoint <= 0xFFFF)
+			if ((codePoint & 0xFFFF) == codePoint)
 			{
 				if (canDestroy && isMutable())
 				{
-					object.rawShortForCharacterAtPut(index, (short)codePoint);
+					object.rawShortForCharacterAtPut(index, codePoint);
 					object.hashOrZero(0);
 					return object;
 				}
@@ -298,11 +312,9 @@ extends StringDescriptor
 						true);
 			}
 		}
-		// Convert to an arbitrary Tuple instead.
+		// Convert to a general object tuple instead.
 		return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
-			index,
-			newValueObject,
-			true);
+			index, newValueObject, true);
 	}
 
 	@Override @AvailMethod
@@ -321,20 +333,17 @@ extends StringDescriptor
 		}
 
 		// It's not empty, it's not a total copy, and it's reasonably small.
-		// Just copy the applicable bytes out.  In theory we could use
-		// newLike() if start is 1.  Make sure to mask the last word in that
-		// case.
+		// Just copy the applicable two-byte characters in reverse.
 		return generateTwoByteString(
 			size,
-			new Generator<Integer>()
+			new Generator<Character>()
 			{
 				private int sourceIndex = size;
 
 				@Override
-				public Integer value ()
+				public Character value ()
 				{
-					return (int)object.shortSlotAt(
-						RAW_QUAD_AT_, sourceIndex--);
+					return (char)object.shortSlot(RAW_LONGS_, sourceIndex--);
 				}
 			});
 	}
@@ -342,7 +351,8 @@ extends StringDescriptor
 	@Override @AvailMethod
 	int o_TupleSize (final AvailObject object)
 	{
-		return object.variableIntegerSlotsCount() * 2 - unusedShortsOfLastWord;
+		return (object.variableIntegerSlotsCount() << 2)
+			- unusedShortsOfLastLong;
 	}
 
 	@Override @AvailMethod
@@ -365,7 +375,7 @@ extends StringDescriptor
 		{
 			final int itemHash =
 				CharacterDescriptor.computeHashOfCharacterWithCodePoint(
-					object.rawShortForCharacterAt(index))
+					object.shortSlot(RAW_LONGS_, index))
 				^ preToggle;
 			hash = (hash + itemHash) * multiplier;
 		}
@@ -408,9 +418,9 @@ extends StringDescriptor
 		if (otherTuple.isTwoByteString() && newSize <= maximumCopySize)
 		{
 			// Copy the characters.
-			final int newWordCount = (newSize + 1) >> 1;
+			final int newLongCount = (newSize + 3) >> 2;
 			final int deltaSlots =
-				newWordCount - object.variableIntegerSlotsCount();
+				newLongCount - object.variableIntegerSlotsCount();
 			final AvailObject result;
 			if (canDestroy && isMutable() && deltaSlots == 0)
 			{
@@ -426,8 +436,8 @@ extends StringDescriptor
 			int dest = size1 + 1;
 			for (int src = 1; src <= size2; src++, dest++)
 			{
-				result.shortSlotAtPut(
-					RAW_QUAD_AT_,
+				result.setShortSlot(
+					RAW_LONGS_,
 					dest,
 					otherTuple.rawShortForCharacterAt(src));
 			}
@@ -444,9 +454,7 @@ extends StringDescriptor
 			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
 		}
 		return TreeTupleDescriptor.concatenateAtLeastOneTree(
-			object,
-			otherTuple,
-			true);
+			object, otherTuple, true);
 	}
 
 	@Override
@@ -460,7 +468,7 @@ extends StringDescriptor
 		final int tupleSize = object.tupleSize();
 		assert 0 <= end && end <= tupleSize;
 		final int size = end - start + 1;
-		if (size > 0 && size < tupleSize && size < 16)
+		if (size > 0 && size < tupleSize && size <= maximumCopySize)
 		{
 			// It's not empty, it's not a total copy, and it's reasonably small.
 			// Just copy the applicable shorts out.  In theory we could use
@@ -468,16 +476,15 @@ extends StringDescriptor
 			// case.
 			return generateTwoByteString(
 				size,
-				new Generator<Integer>()
+				new Generator<Character>()
 				{
 					private int sourceIndex = start;
 
 					@Override
-					public Integer value ()
+					public Character value ()
 					{
-						return (int)object.shortSlotAt(
-							RAW_QUAD_AT_,
-							sourceIndex++);
+						return (char)object.shortSlot(
+							RAW_LONGS_, sourceIndex++);
 					}
 				});
 		}
@@ -498,43 +505,47 @@ extends StringDescriptor
 		final int unusedShortsOfLastWord)
 	{
 		super(mutability, null, IntegerSlots.class);
-		this.unusedShortsOfLastWord = unusedShortsOfLastWord;
+		this.unusedShortsOfLastLong = unusedShortsOfLastWord;
 	}
 
 	/**
 	 * The static list of descriptors of this kind, organized in such a way that
 	 * {@link #descriptorFor(Mutability, int)} can find them by mutability and
-	 * number of unused shorts in the last word.
+	 * number of unused shorts in the last long.
 	 */
-	static final TwoByteStringDescriptor[] descriptors =
-	{
-		new TwoByteStringDescriptor(MUTABLE, 0),
-		new TwoByteStringDescriptor(IMMUTABLE, 0),
-		new TwoByteStringDescriptor(SHARED, 0),
-		new TwoByteStringDescriptor(MUTABLE, 1),
-		new TwoByteStringDescriptor(IMMUTABLE, 1),
-		new TwoByteStringDescriptor(SHARED, 1)
-	};
+	private static final TwoByteStringDescriptor[] descriptors =
+		new TwoByteStringDescriptor[4 * 3];
+
+	static {
+		int i = 0;
+		for (final int excess : new int[] {0,3,2,1})
+		{
+			for (final Mutability mut : Mutability.values())
+			{
+				descriptors[i++] = new TwoByteStringDescriptor(mut, excess);
+			}
+		}
+	}
 
 	@Override
 	TwoByteStringDescriptor mutable ()
 	{
 		return descriptors[
-			((2 - unusedShortsOfLastWord) & 1) * 3 + MUTABLE.ordinal()];
+			((4 - unusedShortsOfLastLong) & 3) * 3 + MUTABLE.ordinal()];
 	}
 
 	@Override
 	TwoByteStringDescriptor immutable ()
 	{
 		return descriptors[
-			((2 - unusedShortsOfLastWord) & 1) * 3 + IMMUTABLE.ordinal()];
+			((4 - unusedShortsOfLastLong) & 3) * 3 + IMMUTABLE.ordinal()];
 	}
 
 	@Override
 	TwoByteStringDescriptor shared ()
 	{
 		return descriptors[
-			((2 - unusedShortsOfLastWord) & 1) * 3 + SHARED.ordinal()];
+			((4 - unusedShortsOfLastLong) & 3) * 3 + SHARED.ordinal()];
 	}
 
 	/**
@@ -546,7 +557,7 @@ extends StringDescriptor
 	 */
 	static AvailObject mutableObjectOfSize (final int size)
 	{
-		return descriptorFor(MUTABLE, size).create(size + 1 >> 1);
+		return descriptorFor(MUTABLE, size).create(size + 3 >> 2);
 	}
 
 	/**
@@ -582,7 +593,7 @@ extends StringDescriptor
 		final Mutability flag,
 		final int size)
 	{
-		return descriptors[(size & 1) * 3 + flag.ordinal()];
+		return descriptors[(size & 3) * 3 + flag.ordinal()];
 	}
 
 	/**
@@ -591,7 +602,7 @@ extends StringDescriptor
 	 *
 	 * @param aNativeTwoByteString
 	 *        A Java String that may contain characters outside the Latin-1
-	 *        range (0-255).
+	 *        range (0-255), but not beyond 65535.
 	 * @return A two-byte string with the given content.
 	 */
 	static AvailObject mutableObjectFromNativeTwoByteString (
@@ -599,14 +610,15 @@ extends StringDescriptor
 	{
 		return generateTwoByteString(
 			aNativeTwoByteString.length(),
-			new Generator<Integer>()
+			new Generator<Character>()
 			{
 				private int sourceIndex = 0;
 
 				@Override
-				public Integer value ()
+				public Character value ()
 				{
-					return aNativeTwoByteString.codePointAt(sourceIndex++);
+					return (char)aNativeTwoByteString.codePointAt(
+						sourceIndex++);
 				}
 			});
 	}
@@ -622,17 +634,32 @@ extends StringDescriptor
 	 * @param generator A generator to provide code points to store.
 	 * @return The new Avail {@linkplain TwoByteStringDescriptor string}.
 	 */
-	static AvailObject generateTwoByteString (
+	static AvailObject generateTwoByteString(
 		final int size,
-		final Generator<Integer> generator)
+		final Generator<Character> generator)
 	{
-		final AvailObject result =
-			TwoByteStringDescriptor.mutableObjectOfSize(size);
-		for (int index = 1; index <= size; index++)
+		final AvailObject result = mutableObjectOfSize(size);
+		// Aggregate four writes at a time for the bulk of the string.
+		for (
+			int slotIndex = 1, limit = size >>> 2;
+			slotIndex <= limit;
+			slotIndex++)
 		{
-			result.rawShortForCharacterAtPut(
-				index,
-				(short)(int)generator.value());
+			long combined = 0;
+			for (int shift = 0; shift < 64; shift += 16)
+			{
+				final long c = generator.value();
+				assert (c & 0xFFFF) == c;
+				combined += c << shift;
+			}
+			result.setSlot(RAW_LONGS_, slotIndex, combined);
+		}
+		// Do the last 0-3 writes the slow way.
+		for (int index = (size & ~3) + 1; index <= size; index++)
+		{
+			final long c = generator.value();
+			assert (c & 0xFFFF) == c;
+			result.setShortSlot(RAW_LONGS_, index, (int)c);
 		}
 		return result;
 	}

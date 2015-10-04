@@ -37,6 +37,7 @@ import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor.ObjectSlots.*
 import static java.lang.Math.*;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.Generator;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -57,11 +58,18 @@ extends TypeDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
+		 * {@link BitField}s holding the tuple type complexity and other fields
+		 * if needed.
+		 */
+		TUPLE_TYPE_COMPLEXITY_AND_MORE;
+
+		/**
 		 * The number of layers of virtualized concatenation in this tuple type.
 		 * This may become a conservatively large estimate due to my subobjects
 		 * being coalesced with more direct representations.
 		 */
-		TUPLE_TYPE_COMPLEXITY
+		final static BitField TUPLE_TYPE_COMPLEXITY =
+			bitField(TUPLE_TYPE_COMPLEXITY_AND_MORE, 0, 32);
 	}
 
 	/**
@@ -542,7 +550,7 @@ extends TypeDescriptor
 	 * @return The type of the specified index within the concatenated tuple
 	 *         type.
 	 */
-	private static A_Type elementOfConcatenation (
+	@InnerAccess static A_Type elementOfConcatenation (
 		final A_Type firstTupleType,
 		final A_Type secondTupleType,
 		final int index)
@@ -671,23 +679,23 @@ extends TypeDescriptor
 			? upper2.extractInt()
 			: part2.typeTuple().tupleSize() + 1;
 		final int total = limit1 + limit2;
-		final A_Tuple typeTuple =
-			ObjectTupleDescriptor.createUninitialized(total);
-		// Make it pointer-safe first.
-		for (int i = 1; i <= total; i++)
-		{
-			typeTuple.objectTupleAtPut(i, NilDescriptor.nil());
-		}
 		final int section1 = min(sizes1.lowerBound().extractInt(), limit1);
-		for (int i = 1; i <= section1; i++)
-		{
-			typeTuple.objectTupleAtPut(i, part1.typeAtIndex(i));
-		}
-		for (int i = section1 + 1; i <= total; i++)
-		{
-			typeTuple.objectTupleAtPut(
-				i, elementOfConcatenation(part1, part2, i));
-		}
+		final A_Tuple typeTuple = ObjectTupleDescriptor.generateFrom(
+			total,
+			new Generator<A_BasicObject>()
+			{
+				private int index = 1;
+
+				@Override
+				public A_BasicObject value ()
+				{
+					if (index <= section1)
+					{
+						return part1.typeAtIndex(index++);
+					}
+					return elementOfConcatenation(part1, part2, index++);
+				}
+			});
 		final A_Type newObject =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				sizeRangeOfConcatenation(sizes1, sizes2),

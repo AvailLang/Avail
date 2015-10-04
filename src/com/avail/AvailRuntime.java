@@ -56,7 +56,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.avail.annotations.*;
@@ -784,10 +783,49 @@ public final class AvailRuntime
 		true);
 
 	/**
+	 * Utility class for wrapping a volatile counter that can be polled.
+	 */
+	public class Clock
+	{
+		/**
+		 * The current value of the monotonic counter.  It's a volatile to
+		 * ensure the polling code doesn't cache a stale copy, and to ensure the
+		 * incrementing code doesn't hoard its updates locally.
+		 */
+		private volatile long counter = 0;
+
+		/**
+		 * Advance the clock.  Note that incrementing a volatile is not
+		 * guaranteed to be atomic, but
+		 * <ol>
+		 * <li>We only run one timer task at a time that might increment it.
+		 * </li>
+		 * <li>It wouldn't really matter if we skipped a beat or leapt forward
+		 * every now and then, since we only use this clock to trigger voluntary
+		 * context switches to maintain fair scheduling.</li>
+		 * </ol>
+		 */
+		public void increment ()
+		{
+			counter++;
+		}
+
+		/**
+		 * Poll the monotonic counter of the clock.
+		 *
+		 * @return The current clock value.
+		 */
+		public long get ()
+		{
+			return counter;
+		}
+	}
+
+	/**
 	 * The number of clock ticks since this {@linkplain AvailRuntime runtime}
 	 * was created.
 	 */
-	public final AtomicLong clock = new AtomicLong(0);
+	public final Clock clock = new Clock();
 
 	{
 		// Schedule a fixed-rate timer task to increment the runtime clock.
@@ -797,7 +835,7 @@ public final class AvailRuntime
 				@Override
 				public void run ()
 				{
-					clock.incrementAndGet();
+					clock.increment();
 				}
 			},
 			1,

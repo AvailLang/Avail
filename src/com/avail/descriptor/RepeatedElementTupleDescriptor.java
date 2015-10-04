@@ -56,29 +56,40 @@ extends TupleDescriptor
 	public enum IntegerSlots
 	implements IntegerSlotsEnum
 	{
+
 		/**
-		 * A slot to hold the cached hash value of a tuple. If zero, then the
-		 * hash value must be computed upon request. Note that in the very rare
-		 * case that the hash value actually equals zero, the hash value has to
-		 * be computed every time it is requested.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
+		 * 32 can be used by other {@link BitField}s in subclasses of {@link
+		 * TupleDescriptor}.
 		 */
 		@HideFieldInDebugger
-		HASH_OR_ZERO,
+		HASH_AND_MORE;
 
 		/**
 		 * The number of elements in the tuple.
 		 *
 		 * The API's {@link AvailObject#tupleSize() tuple size accessor}
-		 * currently returns a Java integer, because there wasn't much of a
+		 * currently returns a Java {@code int}, because there wasn't much of a
 		 * problem limiting manually-constructed tuples to two billion elements.
 		 * This restriction will eventually be removed.
 		 */
-		SIZE;
+		static final BitField SIZE = bitField(
+			HASH_AND_MORE, 32, 32);
+
+		/**
+		 * A slot to hold the cached hash value of a tuple.  If zero, then the
+		 * hash value must be computed upon request.  Note that in the very rare
+		 * case that the hash value actually equals zero, the hash value has to
+		 * be computed every time it is requested.
+		 */
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{
-			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
-				== HASH_OR_ZERO.ordinal();
+			assert TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
+				== HASH_AND_MORE.ordinal();
+			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
+				HASH_OR_ZERO);
 		}
 	}
 
@@ -161,11 +172,11 @@ extends TupleDescriptor
 		final A_Tuple aRepeatedElementTuple,
 		final int startIndex2)
 	{
-		// If the objects refer to the same memory, and the indices match
-		// up, the subranges are the same.
-		if (object.sameAddressAs(aRepeatedElementTuple) &&
-			startIndex1 == startIndex2)
+		if (object.sameAddressAs(aRepeatedElementTuple))
 		{
+			// The objects refer to the same memory, and the lengths being
+			// compared are the same, and we don't care about the offsets, so
+			// they're equal.
 			return true;
 		}
 
@@ -317,6 +328,7 @@ extends TupleDescriptor
 	{
 		// Answer the value at the given index in the tuple object.
 		// Every element in this tuple is identical.
+		assert index >= 1 && index <= object.slot(SIZE);
 		return object.slot(ELEMENT);
 	}
 
@@ -330,7 +342,8 @@ extends TupleDescriptor
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject. This may destroy the original
 		// tuple if canDestroy is true.
-		assert index >= 1 && index <= object.tupleSize();
+		final int size = object.slot(SIZE);
+		assert index >= 1 && index <= size;
 		final AvailObject element = object.slot(ELEMENT);
 		if (element.equals(newValueObject))
 		{
@@ -341,10 +354,9 @@ extends TupleDescriptor
 			}
 			return object;
 		}
-		final int size = object.slot(SIZE);
-		// The result will be reasonably small, so make it flat.
 		if (size < 64)
 		{
+			// The result will be reasonably small, so make it flat.
 			element.makeImmutable();
 			A_Tuple result = null;
 			if (element.isInt())
@@ -361,12 +373,12 @@ extends TupleDescriptor
 				{
 					result = StringDescriptor.mutableByteStringFromGenerator(
 						size,
-						new Generator<Integer>()
+						new Generator<Character>()
 						{
 							@Override
-							public Integer value ()
+							public Character value ()
 							{
-								return codePoint;
+								return (char)codePoint;
 							}
 						});
 				}
@@ -374,23 +386,28 @@ extends TupleDescriptor
 				{
 					result = StringDescriptor.mutableTwoByteStringFromGenerator(
 						size,
-						new Generator<Integer>()
+						new Generator<Character>()
 						{
 							@Override
-							public Integer value ()
+							public Character value ()
 							{
-								return codePoint;
+								return (char)codePoint;
 							}
 						});
 				}
 			}
 			if (result == null)
 			{
-				result = ObjectTupleDescriptor.createUninitialized(size);
-				for (int i = 1; i <= size; i++)
-				{
-					result.objectTupleAtPut(i, element);
-				}
+				result = ObjectTupleDescriptor.generateFrom(
+					size,
+					new Generator<A_BasicObject>()
+					{
+						@Override
+						public A_BasicObject value ()
+						{
+							return element;
+						}
+					});
 			}
 			// Replace the element, which might need to switch representation in
 			// some cases which we assume are infrequent.
@@ -430,6 +447,7 @@ extends TupleDescriptor
 	int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		// Answer the value at the given index in the tuple object.
+		assert 1 <= index && index <= object.slot(SIZE);
 		return object.slot(ELEMENT).extractInt();
 	}
 

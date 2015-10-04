@@ -38,6 +38,7 @@ import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
+import com.avail.utility.Generator;
 
 /**
  * An instance of this class can be used to construct a {@linkplain
@@ -345,14 +346,20 @@ public class L1InstructionWriter
 	 */
 	private AvailObject nybbles ()
 	{
-		final AvailObject nybbles =
-			NybbleTupleDescriptor.mutableObjectOfSize(stream.size());
-		nybbles.hashOrZero(0);
+		final int size = stream.size();
 		final byte [] byteArray = stream.toByteArray();
-		for (int i = 0; i < byteArray.length; i++)
-		{
-			nybbles.rawNybbleAtPut(i + 1, byteArray[i]);
-		}
+		final AvailObject nybbles = NybbleTupleDescriptor.generateFrom(
+			size,
+			new Generator<Byte>()
+			{
+				private int i = 0;
+
+				@Override
+				public Byte value ()
+				{
+					return byteArray[i++];
+				}
+			});
 		nybbles.makeImmutable();
 		return nybbles;
 	}

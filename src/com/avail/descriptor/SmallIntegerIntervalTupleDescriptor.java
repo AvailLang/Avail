@@ -35,11 +35,12 @@ package com.avail.descriptor;
 import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor.IntegerSlots.*;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.utility.Generator;
 
 /**
  * {@code SmallIntegerIntervalTupleDescriptor} represents an {@linkplain
  * IntegerIntervalTupleDescriptor integer interval tuple} whose slots are all
- * Java primitive numerics.
+ * Java {@code long}s.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
@@ -59,32 +60,43 @@ extends TupleDescriptor
 		 * be computed every time it is requested.
 		 */
 		@HideFieldInDebugger
-		HASH_OR_ZERO,
+		HASH_AND_MORE,
 
-		/** The first value in the tuple, inclusive. */
-		START,
-
-		/**
-		 * The last value in the tuple, inclusive. Within the constructor,
-		 * the supplied END is normalized to the actual last value.
-		 */
-		END,
+		/** {@link BitField}s containing the extrema of the tuple. */
+		START_AND_END,
 
 		/**
 		 * The difference between a value and its subsequent neighbor in the
 		 * tuple.
 		 */
-		DELTA,
+		DELTA;
+
+		/** The number of elements in the tuple. */
+		static final BitField SIZE = bitField(HASH_AND_MORE, 32, 32);
+
+		/** The first value in the tuple, inclusive. */
+		static final BitField START = bitField(START_AND_END, 32, 32);
 
 		/**
-		 * The number of elements in the tuple.
+		 * The last value in the tuple, inclusive. Within the constructor,
+		 * the supplied END is normalized to the actual last value.
 		 */
-		SIZE;
+		static final BitField END = bitField(START_AND_END, 0, 32);
+
+		/**
+		 * A slot to hold the cached hash value of a tuple.  If zero, then the
+		 * hash value must be computed upon request.  Note that in the very rare
+		 * case that the hash value actually equals zero, the hash value has to
+		 * be computed every time it is requested.
+		 */
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{
-			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
-				== HASH_OR_ZERO.ordinal();
+			assert TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
+				== HASH_AND_MORE.ordinal();
+			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
+				HASH_OR_ZERO);
 		}
 	}
 
@@ -106,7 +118,7 @@ extends TupleDescriptor
 		final long deltaValue = object.slot(DELTA);
 		final long nextValue = endValue + deltaValue;
 		if (newElement.isInt()
-			&& ((A_Number)newElement).extractInt() == endValue + deltaValue
+			&& ((A_Number)newElement).extractInt() == nextValue
 			&& originalSize < Integer.MAX_VALUE)
 		{
 			// Extend the interval.
@@ -145,11 +157,12 @@ extends TupleDescriptor
 		final A_Tuple anotherObject,
 		final int startIndex2)
 	{
-		return anotherObject.compareFromToWithSmallIntegerIntervalTupleStartingAt(
-			startIndex2,
-			startIndex2 + endIndex1 - startIndex1,
-			object,
-			startIndex1);
+		return anotherObject
+			.compareFromToWithSmallIntegerIntervalTupleStartingAt(
+				startIndex2,
+				startIndex2 + endIndex1 - startIndex1,
+				object,
+				startIndex1);
 	}
 
 	@Override @AvailMethod
@@ -197,13 +210,13 @@ extends TupleDescriptor
 			startIndex1,
 			endIndex1,
 			false);
-		final A_Tuple second = aSmallIntegerIntervalTuple.copyTupleFromToCanDestroy(
-			startIndex2,
-			startIndex2 + endIndex1 - startIndex1,
-			false);
+		final A_Tuple second =
+			aSmallIntegerIntervalTuple.copyTupleFromToCanDestroy(
+				startIndex2,
+				startIndex2 + endIndex1 - startIndex1,
+				false);
 		return first.equals(second);
 	}
-
 
 	@Override
 	A_Tuple o_ConcatenateWith (
@@ -222,24 +235,24 @@ extends TupleDescriptor
 		if (otherTuple.isSmallIntegerIntervalTuple())
 		{
 			final AvailObject otherDirect = otherTuple.traversed();
-			final int delta = object.slot(DELTA);
+			final long delta = object.slot(DELTA);
 
 			// If the other's delta is the same as mine,
 			if (delta == otherDirect.slot(DELTA))
 			{
+				final long newSize = object.slot(SIZE) + otherDirect.slot(SIZE);
 				// and the other's start is one delta away from my end,
-				if (object.slot(END) + delta == otherDirect.slot(START))
+				if (object.slot(END) + delta == otherDirect.slot(START)
+					&& newSize == (int)newSize)
 				{
 					// then we're adjacent.
-					final int newSize = object.slot(SIZE) +
-						otherDirect.slot(SIZE);
 
 					// If we can do replacement in place,
 					// use me for the return value.
 					if (isMutable())
 					{
 						object.setSlot(END, otherDirect.slot(END));
-						object.setSlot(SIZE, newSize);
+						object.setSlot(SIZE, (int)newSize);
 						object.hashOrZero(0);
 						return object;
 					}
@@ -247,7 +260,7 @@ extends TupleDescriptor
 					if (otherDirect.descriptor().isMutable())
 					{
 						otherDirect.setSlot(START, object.slot(START));
-						otherDirect.setSlot(SIZE, newSize);
+						otherDirect.setSlot(SIZE, (int)newSize);
 						otherDirect.hashOrZero(0);
 						return otherDirect;
 					}
@@ -283,32 +296,35 @@ extends TupleDescriptor
 		final int newSize = end - start + 1;
 		assert 0 <= end && end <= oldSize;
 
-		// If the requested copy is a proper subrange, create it.
-		if (newSize != oldSize)
+		if (newSize == oldSize)
 		{
-			final int delta = object.slot(DELTA);
-			final int oldStartValue = object.slot(START);
-
-			final int newStartValue = oldStartValue + delta * (start - 1);
-			final int newEndValue = newStartValue + delta * (newSize - 1);
-
-			if (isMutable() && canDestroy)
+			// This method is requesting a full copy of the original.
+			if (isMutable() && !canDestroy)
 			{
-				// Recycle the object.
-				object.setSlot(START, newStartValue);
-				object.setSlot(END, newEndValue);
-				object.setSlot(SIZE, newSize);
-				return object;
+				object.makeImmutable();
 			}
-			return createInterval(newStartValue, newEndValue, delta);
+			return object;
 		}
 
-		// Otherwise, this method is requesting a full copy of the original.
-		if (isMutable() && !canDestroy)
+		// The request is for a proper subrange.
+		final long delta = object.slot(DELTA);
+		final int oldStartValue = object.slot(START);
+
+		final long newStartValue = oldStartValue + delta * (start - 1);
+		assert newStartValue == (int)newStartValue;
+		final long newEndValue = newStartValue + delta * (newSize - 1);
+		assert newEndValue == (int)newEndValue;
+
+		if (isMutable() && canDestroy)
 		{
-			object.makeImmutable();
+			// Recycle the object.
+			object.setSlot(START, (int)newStartValue);
+			object.setSlot(END, (int)newEndValue);
+			object.setSlot(SIZE, newSize);
+			return object;
 		}
-		return object;
+		return createInterval((int)newStartValue, (int)newEndValue, delta);
+
 	}
 
 	@Override @AvailMethod
@@ -381,10 +397,10 @@ extends TupleDescriptor
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) × DELTA
 		assert index >= 1 && index <= object.tupleSize();
-		int temp = index - 1;
+		long temp = index - 1;
 		temp = temp * object.slot(DELTA);
 		temp = temp + object.slot(START);
-		return (AvailObject) IntegerDescriptor.fromInt(temp);
+		return (AvailObject) IntegerDescriptor.fromInt((int)temp);
 	}
 
 	@Override @AvailMethod
@@ -398,18 +414,72 @@ extends TupleDescriptor
 		// index we should have newValueObject. This may destroy the original
 		// tuple if canDestroy is true.
 		assert index >= 1 && index <= object.tupleSize();
-		if (!canDestroy || !isMutable())
+		if (newValueObject.isInt()
+			&& object.tupleIntAt(index)
+				== ((A_Number)newValueObject).extractInt())
 		{
-			/* TODO: [LAS] Later - Create nybble or byte tuples if appropriate. */
-			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
-				index,
-				newValueObject,
-				true);
+			// The element is to be replaced with itself.
+			if (!canDestroy)
+			{
+				object.makeImmutable();
+			}
+			return object;
 		}
-		object.objectTupleAtPut(index, newValueObject);
-		// Invalidate the hash value.
-		object.hashOrZero(0);
-		return object;
+		final int start = object.slot(START);
+		final int end = object.slot(END);
+		final long delta = object.slot(DELTA);
+		final AvailObject result;
+		if ((start & ~255) == 0
+			&& (end & ~255) == 0
+			&& newValueObject.isUnsignedByte())
+		{
+			// Everything will be bytes.  Synthesize a byte tuple.
+			result = ByteTupleDescriptor.generateFrom(
+				object.slot(SIZE),
+				new Generator<Short>()
+				{
+					private int counter = 1;
+					private long currentValue = start;
+
+					@Override
+					public Short value ()
+					{
+						final long element = counter == index
+							? ((A_Number)newValueObject).extractUnsignedByte()
+							: currentValue;
+						counter++;
+						currentValue += delta;
+						return (short)element;
+					}
+				});
+		}
+		else
+		{
+			// Synthesize a general object tuple instead.
+			result = ObjectTupleDescriptor.generateFrom(
+				object.slot(SIZE),
+				new Generator<A_BasicObject>()
+				{
+					private int counter = 1;
+					private long currentValue = start;
+
+					@Override
+					public A_BasicObject value ()
+					{
+						final A_BasicObject element = counter == index
+							? newValueObject
+							: IntegerDescriptor.fromInt((int)currentValue);
+						counter++;
+						currentValue += delta;
+						return element;
+					}
+				});
+		}
+		if (!canDestroy)
+		{
+			object.makeImmutable();
+		}
+		return result;
 	}
 
 	@Override
@@ -451,20 +521,20 @@ extends TupleDescriptor
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) × DELTA
 		assert index >= 1 && index <= object.tupleSize();
-		int temp = index - 1;
+		long temp = index - 1;
 		temp = temp * object.slot(DELTA);
 		temp = temp + object.slot(START);
-		return temp;
+		assert temp == (int)temp;
+		return (int)temp;
 	}
 
 	@Override @AvailMethod
 	A_Tuple o_TupleReverse(final AvailObject object)
 	{
-		//If tuple is small enough or is immutable, create a new Interval
+		final long newDelta = 0 - object.slot(DELTA);
+		// If tuple is small enough or is immutable, create a new interval.
 		if (object.tupleSize() < maximumCopySize || !isMutable())
 		{
-			final int newDelta = object.slot(DELTA) * -1;
-
 			return createInterval (
 				object.slot(END),
 				object.slot(START),
@@ -474,8 +544,6 @@ extends TupleDescriptor
 		//The interval is mutable and large enough to warrant changing in place.
 		final int newStart = object.slot(END);
 		final int newEnd = object.slot(START);
-		final int newDelta = object.slot(DELTA) * -1;
-
 		object.setSlot(START, newStart);
 		object.setSlot(END, newEnd);
 		object.setSlot(DELTA, newDelta);
@@ -560,7 +628,6 @@ extends TupleDescriptor
 		}
 		return true;
 	}
-
 	/**
 	 * Create a new interval according to the parameters.
 	 *
@@ -573,15 +640,17 @@ extends TupleDescriptor
 	public static A_Tuple createInterval (
 		final int newStart,
 		final int newEnd,
-		final int delta)
+		final long delta)
 	{
+		assert delta != 0;
 		final long size = ((long)newEnd - (long)newStart) / delta + 1L;
 		assert size == (int)size
 			: "Proposed tuple has too many elements";
-		final int adjustedEnd = newStart + delta * ((int)size - 1);
+		final long adjustedEnd = newStart + delta * ((int)size - 1);
+		assert adjustedEnd == (int)adjustedEnd;
 		final AvailObject interval = mutable.create();
 		interval.setSlot(START, newStart);
-		interval.setSlot(END, adjustedEnd);
+		interval.setSlot(END, (int)adjustedEnd);
 		interval.setSlot(DELTA, delta);
 		interval.setSlot(HASH_OR_ZERO, 0);
 		interval.setSlot(SIZE, (int)size);

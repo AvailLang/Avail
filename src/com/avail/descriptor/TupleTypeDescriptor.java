@@ -38,6 +38,7 @@ import static java.lang.Math.*;
 import java.util.IdentityHashMap;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.Generator;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -365,24 +366,23 @@ extends TypeDescriptor
 	{
 		// Answer the tuple of types over the given range of indices.  Any
 		// indices out of range for this tuple type will be ⊥.
+		assert startIndex >= 1;
 		final int size = endIndex - startIndex + 1;
-		final A_Tuple result =
-			ObjectTupleDescriptor.createUninitialized(endIndex);
-		// Initialize the slots JUST for garbage collector safety in future
-		// incarnations.
-		for (int i = 1; i <= size; i++)
-		{
-			result.objectTupleAtPut(i, BottomTypeDescriptor.bottom());
-		}
-		int destIndex = 1;
-		for (
-			int sourceIndex = startIndex;
-			sourceIndex <= endIndex;
-			sourceIndex++, destIndex++)
-		{
-			result.objectTupleAtPut(
-				destIndex, object.typeAtIndex(sourceIndex).makeImmutable());
-		}
+		assert size >= 0;
+		final A_Tuple result = ObjectTupleDescriptor.generateFrom(
+			size,
+			new Generator<A_BasicObject>()
+			{
+				private int index = startIndex;
+
+				@Override
+				public A_BasicObject value ()
+				{
+					return index <= endIndex
+						? object.typeAtIndex(index++).makeImmutable()
+						: BottomTypeDescriptor.bottom();
+				}
+			});
 		return result;
 	}
 

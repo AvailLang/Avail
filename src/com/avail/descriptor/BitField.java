@@ -64,27 +64,28 @@ implements Comparable<BitField>
 	final int shift;
 
 	/**
-	 * The number of bits that this BitField occupies within an int.
+	 * The number of bits that this BitField occupies within a {@code long}.
 	 */
 	final int bits;
 
 	/**
 	 * A string of 1's of length {@link #bits}, right aligned in the {@code
-	 * int}.
+	 * long}.  Even though bit fields can't be more than 32 long, it's a long
+	 * to avoid sign extension problems.
 	 */
-	final int lowMask;
+	final long lowMask;
 
 	/**
 	 * An integer containing 1-bits in exactly the positions reserved for this
 	 * bit field.
 	 */
-	final int mask;
+	final long mask;
 
 	/**
 	 * An integer containing 0-bits in exactly the positions reserved for this
 	 * bit field.
 	 */
-	final int invertedMask;
+	final long invertedMask;
 
 	/**
 	 * The name of this {@code BitField}.  This is filled in as needed by the
@@ -111,16 +112,17 @@ implements Comparable<BitField>
 		final int shift,
 		final int bits)
 	{
-		assert shift == (shift & 31);
+		assert shift == (shift & 63);
 		assert bits > 0;
-		assert shift + bits <= 32;
+		assert bits <= 32;  // Must use at most 32 bytes of the long.
+		assert shift + bits <= 64;
 
 		this.integerSlot = integerSlot;
 		this.shift = shift;
 		this.bits = bits;
 
 		integerSlotIndex = integerSlot.ordinal();
-		lowMask = (1 << bits) - 1;
+		lowMask = ((1L << bits) - 1);
 		mask = lowMask << shift;
 		invertedMask = ~mask;
 	}
@@ -133,6 +135,21 @@ implements Comparable<BitField>
 			: "Bit fields of different slots are incomparable";
 		// Order by descending shift values.
 		return Integer.compare(bitField.shift, shift);
+	}
+
+	/**
+	 * Answer whether the receiver and the passed {@link BitField} occupy the
+	 * same span of bits at the same integer slot number.
+	 *
+	 * @param bitField The other {@link BitField}.
+	 * @return Whether the two BitFields have the same slot number, start bit,
+	 *         and end bit.
+	 */
+	public boolean isSamePlaceAs (final BitField bitField)
+	{
+		return integerSlotIndex == bitField.integerSlotIndex
+			&& shift == bitField.shift
+			&& bits == bitField.bits;
 	}
 
 	@Override

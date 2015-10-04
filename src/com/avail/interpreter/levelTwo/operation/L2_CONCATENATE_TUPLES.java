@@ -68,14 +68,22 @@ public class L2_CONCATENATE_TUPLES extends L2Operation
 			instruction.readObjectRegisterAt(1);
 
 		final List<L2ObjectRegister> registers = vector.registers();
-		final A_Tuple tuples =
-			ObjectTupleDescriptor.createUninitialized(registers.size());
-		for (int i = 1; i <= registers.size(); i++)
+		final int tupleCount = registers.size();
+		A_Tuple accumulator;
+		if (tupleCount == 0)
 		{
-			tuples.objectTupleAtPut(i, registers.get(i - 1).in(interpreter));
+			accumulator = TupleDescriptor.empty();
 		}
-		final A_Tuple concatenated = tuples.concatenateTuplesCanDestroy(true);
-		targetTupleReg.set(concatenated, interpreter);
+		else
+		{
+			accumulator = registers.get(0).in(interpreter);
+			for (int i = 1; i < tupleCount; i++)
+			{
+				accumulator = accumulator.concatenateWith(
+					registers.get(i).in(interpreter), true);
+			}
+		}
+		targetTupleReg.set(accumulator, interpreter);
 	}
 
 	@Override

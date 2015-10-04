@@ -38,6 +38,7 @@ import static com.avail.descriptor.PrimitiveTypeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.IdentityHashMap;
 import com.avail.annotations.*;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -76,14 +77,24 @@ extends TypeDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The hash of this primitive type, computed at construction time.
+		 * The low 32 bits are used for caching the hash, and the upper 32 are
+		 * for the ordinal of the primitive type.
 		 */
-		HASH,
+		@HideFieldInDebugger
+		HASH_AND_PRIMITIVE_TYPE_ORDINAL;
+
+		/**
+		 * The hash, populated during construction.
+		 */
+		static final BitField HASH = bitField(
+			HASH_AND_PRIMITIVE_TYPE_ORDINAL, 0, 32);
 
 		/**
 		 * This primitive type's (mutually) unique ordinal number.
 		 */
-		PRIMITIVE_TYPE_ORDINAL
+		@EnumField(describedBy=ParseNodeKind.class)
+		static final BitField PRIMITIVE_TYPE_ORDINAL = bitField(
+			HASH_AND_PRIMITIVE_TYPE_ORDINAL, 32, 32);
 	}
 
 	/**

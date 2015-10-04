@@ -54,30 +54,41 @@ extends StringDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
+		 * 32 can be used by other {@link BitField}s in subclasses of {@link
+		 * TupleDescriptor}.
 		 */
-		HASH_OR_ZERO,
+		@HideFieldInDebugger
+		HASH_AND_MORE,
 
 		/**
-		 * The raw 32-bit machine words ({@code int}s) that constitute the
-		 * representation of the {@linkplain ByteStringDescriptor byte string}.
-		 * The bytes occur in Little Endian order within each int.
+		 * The raw 64-bit ({@code long}s) that constitute the representation of
+		 * the {@linkplain ByteStringDescriptor byte string}.  The bytes occur
+		 * in Little Endian order within each long.
 		 */
-		RAW_QUAD_AT_;
+		RAW_LONGS_;
+
+		/**
+		 * A slot to hold the cached hash value of a tuple.  If zero, then the
+		 * hash value must be computed upon request.  Note that in the very rare
+		 * case that the hash value actually equals zero, the hash value has to
+		 * be computed every time it is requested.
+		 */
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{
-			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
-				== HASH_OR_ZERO.ordinal();
+			assert TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
+				== HASH_AND_MORE.ordinal();
 		}
 	}
 
 	/**
-	 * The number of bytes of the last {@code int} that do not participate in
+	 * The number of bytes of the last {@code long} that do not participate in
 	 * the representation of the {@linkplain ByteStringDescriptor byte string}.
-	 * Must be between 0 and 3.
+	 * Must be between 0 and 7.
 	 */
-	private final int unusedBytesOfLastWord;
+	private final int unusedBytesOfLastLong;
 
 	/**
 	 * Defined threshold for making copies versus using {@linkplain
@@ -96,18 +107,18 @@ extends StringDescriptor
 		final int intValue;
 		if (originalSize >= maximumCopySize
 			|| !newElement.isCharacter()
-			|| ((intValue = ((A_Character) newElement).codePoint()) & ~0xFF) != 0)
+			|| ((intValue = ((A_Character)newElement).codePoint()) & ~255) != 0)
 		{
 			// Transition to a tree tuple.
 			final A_Tuple singleton = TupleDescriptor.from(newElement);
 			return object.concatenateWith(singleton, canDestroy);
 		}
 		final int newSize = originalSize + 1;
-		if (isMutable() && canDestroy && (originalSize & 3) != 0)
+		if (isMutable() && canDestroy && (originalSize & 7) != 0)
 		{
-			// Enlarge it in place, using more of the final partial int field.
+			// Enlarge it in place, using more of the final partial long field.
 			object.descriptor = descriptorFor(MUTABLE, newSize);
-			object.byteSlotAtPut(RAW_QUAD_AT_, newSize, (short)intValue);
+			object.setByteSlot(RAW_LONGS_, newSize, (short)intValue);
 			object.setSlot(HASH_OR_ZERO, 0);
 			return object;
 		}
@@ -116,8 +127,8 @@ extends StringDescriptor
 			descriptorFor(MUTABLE, newSize),
 			object,
 			0,
-			(originalSize & 3) == 0 ? 1 : 0);
-		result.byteSlotAtPut(RAW_QUAD_AT_, newSize, (short)intValue);
+			(originalSize & 7) == 0 ? 1 : 0);
+		result.setByteSlot(RAW_LONGS_, newSize, (short)intValue);
 		result.setSlot(HASH_OR_ZERO, 0);
 		return result;
 	}
@@ -168,8 +179,8 @@ extends StringDescriptor
 			&& endIndex1 == aByteString.tupleSize())
 		{
 			// They're *completely* equal (but occupy disjoint storage). If
-			// possible, then replace one with an indirection to the other to
-			// keep down the frequency of byte-wise comparisons.
+			// possible, replace one with an indirection to the other to keep
+			// down the frequency of byte-wise comparisons.
 			if (!isShared())
 			{
 				aByteString.makeImmutable();
@@ -246,7 +257,7 @@ extends StringDescriptor
 	{
 		//  Answer the byte that encodes the character at the given index.
 		assert index >= 1 && index <= object.tupleSize();
-		return object.byteSlotAt(RAW_QUAD_AT_, index);
+		return object.byteSlot(RAW_LONGS_, index);
 	}
 
 	@Override @AvailMethod
@@ -255,7 +266,7 @@ extends StringDescriptor
 		// Answer the element at the given index in the tuple object.  It's a
 		// one-byte character.
 		assert index >= 1 && index <= object.tupleSize();
-		final short codePoint = object.byteSlotAt(RAW_QUAD_AT_, index);
+		final short codePoint = object.byteSlot(RAW_LONGS_, index);
 		return CharacterDescriptor.fromByteCodePoint(codePoint);
 	}
 
@@ -278,7 +289,7 @@ extends StringDescriptor
 				final AvailObject result = canDestroy && isMutable()
 					? object
 					: newLike(mutable(), object, 0, 0);
-				result.byteSlotAtPut(RAW_QUAD_AT_, index, (short) codePoint);
+				result.setByteSlot(RAW_LONGS_, index, (short) codePoint);
 				result.hashOrZero(0);
 				return result;
 			}
@@ -320,15 +331,14 @@ extends StringDescriptor
 		// case.
 		return generateByteString(
 			size,
-			new Generator<Integer>()
+			new Generator<Character>()
 			{
 				private int sourceIndex = size;
 
 				@Override
-				public Integer value ()
+				public Character value ()
 				{
-					return (int)object.byteSlotAt(
-						RAW_QUAD_AT_, sourceIndex--);
+					return (char)object.byteSlot(RAW_LONGS_, sourceIndex--);
 				}
 			});
 	}
@@ -337,8 +347,8 @@ extends StringDescriptor
 	int o_TupleSize (final AvailObject object)
 	{
 		// Answer the number of elements in the object.
-		return (object.variableIntegerSlotsCount() << 2)
-			- unusedBytesOfLastWord;
+		return (object.variableIntegerSlotsCount() << 3)
+			- unusedBytesOfLastLong;
 	}
 
 	@Override @AvailMethod
@@ -368,7 +378,7 @@ extends StringDescriptor
 		{
 			final int itemHash =
 				CharacterDescriptor.hashOfByteCharacterWithCodePoint(
-					object.rawByteForCharacterAt(index))
+					object.byteSlot(RAW_LONGS_, index))
 				^ preToggle;
 			hash = (hash + itemHash) * multiplier;
 		}
@@ -408,15 +418,14 @@ extends StringDescriptor
 			// case.
 			return generateByteString(
 				size,
-				new Generator<Integer>()
+				new Generator<Character>()
 				{
 					private int sourceIndex = start;
 
 					@Override
-					public Integer value ()
+					public Character value ()
 					{
-						return (int)object.byteSlotAt(
-							RAW_QUAD_AT_, sourceIndex++);
+						return (char)object.byteSlot(RAW_LONGS_, sourceIndex++);
 					}
 				});
 		}
@@ -452,9 +461,9 @@ extends StringDescriptor
 		if (otherTuple.isByteString() && newSize <= maximumCopySize)
 		{
 			// Copy the characters.
-			final int newWordCount = (newSize + 3) >>> 2;
+			final int newLongCount = (newSize + 7) >>> 3;
 			final int deltaSlots =
-				newWordCount - object.variableIntegerSlotsCount();
+				newLongCount - object.variableIntegerSlotsCount();
 			final AvailObject result;
 			if (canDestroy && isMutable() && deltaSlots == 0)
 			{
@@ -470,8 +479,8 @@ extends StringDescriptor
 			int dest = size1 + 1;
 			for (int src = 1; src <= size2; src++, dest++)
 			{
-				result.byteSlotAtPut(
-					RAW_QUAD_AT_,
+				result.setByteSlot(
+					RAW_LONGS_,
 					dest,
 					otherTuple.rawByteForCharacterAt(src));
 			}
@@ -488,11 +497,8 @@ extends StringDescriptor
 			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
 		}
 		return TreeTupleDescriptor.concatenateAtLeastOneTree(
-			object,
-			otherTuple,
-			true);
+			object, otherTuple, true);
 	}
-
 
 	/**
 	 * Create an object of the appropriate size, whose descriptor is an instance
@@ -507,36 +513,31 @@ extends StringDescriptor
 	 */
 	static AvailObject generateByteString(
 		final int size,
-		final Generator<Integer> generator)
+		final Generator<Character> generator)
 	{
 		final ByteStringDescriptor descriptor = descriptorFor(MUTABLE, size);
 		final AvailObject result = descriptor.mutableObjectOfSize(size);
-		// Aggregate four writes at a time for the bulk of the string.
-		int index;
-		for (index = 1; index <= size - 3; index += 4)
+		// Aggregate eight writes at a time for the bulk of the string.
+		for (
+			int slotIndex = 1, limit = size >>> 3;
+			slotIndex <= limit;
+			slotIndex++)
 		{
-			final int byte1 = generator.value();
-			assert (byte1 & 255) == byte1;
-			final int byte2 = generator.value();
-			assert (byte2 & 255) == byte2;
-			final int byte3 = generator.value();
-			assert (byte3 & 255) == byte3;
-			final int byte4 = generator.value();
-			assert (byte4 & 255) == byte4;
-			// Use little-endian, since that's what byteSlotAtPut(...) uses.
-			final int combined =
-				byte1
-				+ (byte2 << 8)
-				+ (byte3 << 16)
-				+ (byte4 << 24);
-			result.setSlot(RAW_QUAD_AT_, (index + 3) >> 2, combined);
+			long combined = 0;
+			for (int shift = 0; shift < 64; shift += 8)
+			{
+				final long c = generator.value();
+				assert (c & 255) == c;
+				combined += c << shift;
+			}
+			result.setSlot(RAW_LONGS_, slotIndex, combined);
 		}
-		// Do the last 0-3 writes the slow way.
-		for (; index <= size; index++)
+		// Do the last 0-7 writes the slow way.
+		for (int index = (size & ~7) + 1; index <= size; index++)
 		{
-			final int b = generator.value();
-			assert (b & 255) == b;
-			result.byteSlotAtPut(RAW_QUAD_AT_, index, (short) b);
+			final long c = generator.value();
+			assert (c & 255) == c;
+			result.setByteSlot(RAW_LONGS_, index, (short)c);
 		}
 		return result;
 	}
@@ -558,7 +559,7 @@ extends StringDescriptor
 		{
 			result.rawShortForCharacterAtPut(
 				i,
-				object.byteSlotAt(RAW_QUAD_AT_, i));
+				object.byteSlot(RAW_LONGS_, i));
 		}
 		return result;
 	}
@@ -573,8 +574,8 @@ extends StringDescriptor
 	private AvailObject mutableObjectOfSize (final int size)
 	{
 		assert isMutable();
-		assert (size + unusedBytesOfLastWord & 3) == 0;
-		final AvailObject result = create((size + 3) >> 2);
+		assert ((size + unusedBytesOfLastLong) & 7) == 0;
+		final AvailObject result = create((size + 7) >> 3);
 		return result;
 	}
 
@@ -593,14 +594,14 @@ extends StringDescriptor
 	{
 		return generateByteString(
 			aNativeByteString.length(),
-			new Generator<Integer>()
+			new Generator<Character>()
 			{
 				private int sourceIndex = 0;
 
 				@Override
-				public Integer value ()
+				public Character value ()
 				{
-					return (int)aNativeByteString.charAt(sourceIndex++);
+					return aNativeByteString.charAt(sourceIndex++);
 				}
 			});
 	}
@@ -611,52 +612,50 @@ extends StringDescriptor
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param unusedBytes
-	 *            The number of unused bytes of the last word.
+	 *            The number of unused bytes of the last long.
 	 */
 	protected ByteStringDescriptor (
 		final Mutability mutability,
 		final int unusedBytes)
 	{
 		super(mutability, null, IntegerSlots.class);
-		unusedBytesOfLastWord = unusedBytes;
+		unusedBytesOfLastLong = unusedBytes;
 	}
 
 	/** The {@link ByteStringDescriptor} instances. */
 	private static final ByteStringDescriptor[] descriptors =
-	{
-		new ByteStringDescriptor(MUTABLE, 0),
-		new ByteStringDescriptor(IMMUTABLE, 0),
-		new ByteStringDescriptor(SHARED, 0),
-		new ByteStringDescriptor(MUTABLE, 3),
-		new ByteStringDescriptor(IMMUTABLE, 3),
-		new ByteStringDescriptor(SHARED, 3),
-		new ByteStringDescriptor(MUTABLE, 2),
-		new ByteStringDescriptor(IMMUTABLE, 2),
-		new ByteStringDescriptor(SHARED, 2),
-		new ByteStringDescriptor(MUTABLE, 1),
-		new ByteStringDescriptor(IMMUTABLE, 1),
-		new ByteStringDescriptor(SHARED, 1)
-	};
+		new ByteStringDescriptor[8 * 3];
+
+	static {
+		int i = 0;
+		for (final int excess : new int[] {0,7,6,5,4,3,2,1})
+		{
+			for (final Mutability mut : Mutability.values())
+			{
+				descriptors[i++] = new ByteStringDescriptor(mut, excess);
+			}
+		}
+	}
 
 	@Override
 	ByteStringDescriptor mutable ()
 	{
 		return descriptors[
-			((4 - unusedBytesOfLastWord) & 3) * 3 + MUTABLE.ordinal()];
+			((8 - unusedBytesOfLastLong) & 7) * 3 + MUTABLE.ordinal()];
 	}
 
 	@Override
 	ByteStringDescriptor immutable ()
 	{
 		return descriptors[
-			((4 - unusedBytesOfLastWord) & 3) * 3 + IMMUTABLE.ordinal()];
+			((8 - unusedBytesOfLastLong) & 7) * 3 + IMMUTABLE.ordinal()];
 	}
 
 	@Override
 	ByteStringDescriptor shared ()
 	{
 		return descriptors[
-			((4 - unusedBytesOfLastWord) & 3) * 3 + SHARED.ordinal()];
+			((8 - unusedBytesOfLastLong) & 7) * 3 + SHARED.ordinal()];
 	}
 
 	/**
@@ -676,6 +675,6 @@ extends StringDescriptor
 		final Mutability flag,
 		final int size)
 	{
-		return descriptors[(size & 3) * 3 + flag.ordinal()];
+		return descriptors[(size & 7) * 3 + flag.ordinal()];
 	}
 }

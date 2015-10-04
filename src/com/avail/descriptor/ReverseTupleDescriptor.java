@@ -32,10 +32,10 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.ObjectTupleDescriptor.ObjectSlots.TUPLE_AT_;
 import static com.avail.descriptor.ReverseTupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ReverseTupleDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
+import com.avail.utility.Generator;
 
 /**
  * A reverse tuple holds a reference to an "origin" tuple and the origin
@@ -57,21 +57,30 @@ extends TupleDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The tuple's hash value or zero if not computed.  If the hash value
-		 * happens to be zero (very rare) we have to recalculate it on demand.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
+		 * 32 can be used by other {@link BitField}s in subclasses of {@link
+		 * TupleDescriptor}.
 		 */
 		@HideFieldInDebugger
-		HASH_OR_ZERO,
+		HASH_AND_MORE;
 
 		/**
-		 * The number of elements in the originating tuple.
+		 * A slot to hold the cached hash value of a tuple.  If zero, then the
+		 * hash value must be computed upon request.  Note that in the very rare
+		 * case that the hash value actually equals zero, the hash value has to
+		 * be computed every time it is requested.
 		 */
-		SIZE;
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
+
+		/** The number of elements in this tuple. */
+		static final BitField SIZE = bitField(HASH_AND_MORE, 32, 32);
 
 		static
 		{
-			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
-				== HASH_OR_ZERO.ordinal();
+			assert TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
+				== HASH_AND_MORE.ordinal();
+			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
+				HASH_OR_ZERO);
 		}
 	}
 
@@ -178,7 +187,7 @@ extends TupleDescriptor
 		final A_Tuple otherTuple,
 		final boolean canDestroy)
 	{
-		//If the receiver tuple is empty return the target tuple, otherTuple
+		// If the receiver tuple is empty return the otherTuple.
 		final int size1 = object.tupleSize();
 		if (size1 == 0)
 		{
@@ -188,7 +197,7 @@ extends TupleDescriptor
 			}
 			return otherTuple;
 		}
-		//If the target tuple is empty return the receiver tuple, object
+		// If otherTuple is empty return the receiver tuple, object.
 		final int size2 = otherTuple.tupleSize();
 		if (size2 == 0)
 		{
@@ -198,25 +207,35 @@ extends TupleDescriptor
 			}
 			return object;
 		}
-
 		final int newSize = size1 + size2;
 		if (newSize <= maximumCopySize)
 		{
 			// Copy the objects.
-			final AvailObject result =
-				ObjectTupleDescriptor.createUninitialized(newSize);
-			int dest = 1;
+			final AvailObject result = ObjectTupleDescriptor.generateFrom(
+				newSize,
+				new Generator<A_BasicObject>()
+				{
+					private A_Tuple currentTuple = object.slot(ORIGIN_TUPLE);
+					private int sourceIndex = size1;
+					private int direction = -1;
 
-			for (int src = 1; src <= size2; src++, dest++)
-			{
-				result.setSlot(ORIGIN_TUPLE, dest, object.tupleAt(src));
-			}
-
-			for (int src = 1; src <= size2; src++, dest++)
-			{
-				result.setSlot(ORIGIN_TUPLE,dest,otherTuple.tupleAt(src));
-			}
-			result.setSlot(HASH_OR_ZERO, 0);
+					@Override
+					public A_BasicObject value ()
+					{
+						if (sourceIndex == 0)
+						{
+							// Reached start of (de-reversed) first tuple.
+							// Next, visit the second tuple ascending.
+							currentTuple = otherTuple;
+							sourceIndex = 1;
+							direction = 1;
+						}
+						final AvailObject element =
+							currentTuple.tupleAt(sourceIndex);
+						sourceIndex += direction;
+						return element;
+					}
+				});
 			return result;
 		}
 		if (!canDestroy)
@@ -238,7 +257,6 @@ extends TupleDescriptor
 
 		final AvailObject newTree =
 			TreeTupleDescriptor.internalTreeReverse(object.slot(ORIGIN_TUPLE));
-		newTree.setSlot(HASH_OR_ZERO, object.slot(HASH_OR_ZERO));
 		return TreeTupleDescriptor.concatenateAtLeastOneTree(
 			newTree,
 			otherTuple,
@@ -276,13 +294,18 @@ extends TupleDescriptor
 		{
 			// It's not empty, it's not a total copy, and it's reasonably small.
 			// Just copy the applicable entries out.
-			final AvailObject result =
-				ObjectTupleDescriptor.createUninitialized(subrangeSize);
-			int dest = 1;
-			for (int src = start; src <= end; src++, dest++)
-			{
-				result.setSlot(TUPLE_AT_, dest, object.tupleAt(src));
-			}
+			final AvailObject result = ObjectTupleDescriptor.generateFrom(
+				subrangeSize,
+				new Generator<A_BasicObject>()
+				{
+					private int src = start;
+
+					@Override
+					public A_BasicObject value ()
+					{
+						return object.tupleAt(src++);
+					}
+				});
 			if (canDestroy)
 			{
 				object.assertObjectUnreachableIfMutable();

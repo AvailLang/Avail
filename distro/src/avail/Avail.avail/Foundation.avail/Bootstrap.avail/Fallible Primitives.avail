@@ -136,6 +136,10 @@ Names
 	"Set early failure function to_"
 Body
 
+x ::= 6;
+y ::= [x];
+
+
 Primitive "{«_‡,»}" is
 [
 	aTuple : tuple

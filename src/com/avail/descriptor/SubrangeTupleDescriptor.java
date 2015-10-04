@@ -63,31 +63,42 @@ extends TupleDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The hash value of this subrange tuple, or zero.  If the hash value
-		 * happens to equal zero it will have to be recomputed each time it is
-		 * requested.  Note that the hash function for tuples was chosen in such
-		 * a way that the hash value of the concatenation of subtuples is easily
-		 * computable from the hashes of the subtuples and their lengths.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
+		 * 32 can be used by other {@link BitField}s in subclasses of {@link
+		 * TupleDescriptor}.
 		 */
 		@HideFieldInDebugger
-		HASH_OR_ZERO,
+		HASH_AND_MORE,
+
+		/**
+		 * {@link BitField}s holding the starting position and tuple size.
+		 */
+		START_AND_SIZE;
+
+		/**
+		 * A slot to hold the cached hash value of a tuple.  If zero, then the
+		 * hash value must be computed upon request.  Note that in the very rare
+		 * case that the hash value actually equals zero, the hash value has to
+		 * be computed every time it is requested.
+		 */
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
 
 		/**
 		 * The first index of the basis tuple that is within this subrange.
 		 */
-		START_INDEX,
+		static final BitField START_INDEX = bitField(START_AND_SIZE, 0, 32);
 
 		/**
 		 * The number of elements in this subrange tuple, starting at the
 		 * {@link #START_INDEX}.  Must not be zero, and should probably be at
 		 * least some reasonable size to avoid time and space overhead.
 		 */
-		SIZE;
+		static final BitField SIZE = bitField(START_AND_SIZE, 32, 32);
 
 		static
 		{
-			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
-				== HASH_OR_ZERO.ordinal();
+			assert TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
+				== HASH_AND_MORE.ordinal();
 		}
 	}
 

@@ -62,7 +62,11 @@ extends Descriptor
 	public enum IntegerSlots
 	implements IntegerSlotsEnum
 	{
-		/** The Unicode code point. */
+		/**
+		 * The Unicode code point.  Don't bother with a {@link BitField}, as all
+		 * uses should restrict this to a valid Unicode range, which fits in 21
+		 * bits.
+		 */
 		CODE_POINT
 	}
 
@@ -74,7 +78,19 @@ extends Descriptor
 		final int indent)
 	{
 		aStream.append("¢");
-		final int codePoint = object.slot(CODE_POINT);
+		final int codePoint = (int)object.slot(CODE_POINT);
+		// Check for linefeed, carriage return, tab, double quote ("), and
+		// backslash (\).  These have pretty escape forms inside string
+		// literals.
+		final int escapeIndex = "\n\r\t\\\"".indexOf(codePoint);
+		if (escapeIndex != -1)
+		{
+			final char escapedChar = "nrt\\\"".charAt(escapeIndex);
+			aStream.append("\"\\");
+			aStream.append(escapedChar);
+			aStream.append('"');
+			return;
+		}
 		switch (Character.getType(codePoint))
 		{
 			case Character.COMBINING_SPACING_MARK:
@@ -90,18 +106,7 @@ extends Descriptor
 				new Formatter(aStream).format("\"\\(%x)\"", codePoint);
 				break;
 			default:
-				// Check for double quote (") and backslash (\).
-				boolean mustCloseQuote = false;
-				if (codePoint == 0x22 || codePoint == 0x5C)
-				{
-					aStream.append("\"\\");
-					mustCloseQuote = true;
-				}
 				aStream.appendCodePoint(codePoint);
-				if (mustCloseQuote)
-				{
-					aStream.append('"');
-				}
 		}
 	}
 
@@ -133,13 +138,14 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_CodePoint (final AvailObject object)
 	{
-		return object.slot(CODE_POINT);
+		return (int)object.slot(CODE_POINT);
 	}
 
 	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
-		return another.equalsCharacterWithCodePoint(object.slot(CODE_POINT));
+		return another.equalsCharacterWithCodePoint(
+			(int)object.slot(CODE_POINT));
 	}
 
 	@Override @AvailMethod
@@ -153,7 +159,7 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		final int codePoint = object.slot(CODE_POINT);
+		final int codePoint = (int)object.slot(CODE_POINT);
 		if (codePoint >= 0 && codePoint <= 255)
 		{
 			return hashesOfByteCharacters[codePoint];
@@ -199,7 +205,7 @@ extends Descriptor
 		final AvailObject object,
 		final @Nullable Class<?> classHint)
 	{
-		final int codePoint = object.slot(CODE_POINT);
+		final int codePoint = (int)object.slot(CODE_POINT);
 		// Force marshaling to Java's primitive int type.
 		if (Integer.TYPE.equals(classHint))
 		{
@@ -229,7 +235,7 @@ extends Descriptor
 	@Override @AvailMethod
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
-		final int codePoint = object.slot(CODE_POINT);
+		final int codePoint = (int)object.slot(CODE_POINT);
 		if (codePoint < 256)
 		{
 			return SerializerOperation.BYTE_CHARACTER;

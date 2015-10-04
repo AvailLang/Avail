@@ -62,7 +62,7 @@ extends TupleDescriptor
 		 * be computed every time it is requested.
 		 */
 		@HideFieldInDebugger
-		HASH_OR_ZERO,
+		HASH_AND_MORE;
 
 		/**
 		 * The number of elements in the tuple.
@@ -72,12 +72,22 @@ extends TupleDescriptor
 		 * problem limiting manually-constructed tuples to two billion elements.
 		 * This restriction will eventually be removed.
 		 */
-		SIZE;
+		static final BitField SIZE = bitField(HASH_AND_MORE, 32, 32);
+
+		/**
+		 * A slot to hold the cached hash value of a tuple.  If zero, then the
+		 * hash value must be computed upon request.  Note that in the very rare
+		 * case that the hash value actually equals zero, the hash value has to
+		 * be computed every time it is requested.
+		 */
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{
-			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
-				== HASH_OR_ZERO.ordinal();
+			assert TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
+				== HASH_AND_MORE.ordinal();
+			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
+				HASH_OR_ZERO);
 		}
 	}
 
@@ -413,16 +423,25 @@ extends TupleDescriptor
 		// index we should have newValueObject. This may destroy the original
 		// tuple if canDestroy is true.
 		assert index >= 1 && index <= object.tupleSize();
-		if (!canDestroy || !isMutable())
+		if (newValueObject.isInt()
+			&& object.tupleIntAt(index)
+				== ((A_Number)newValueObject).extractInt())
 		{
-			/* TODO: [LAS] Later - Create nybble or byte tuples if appropriate. */
-			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
-				index, newValueObject, true);
+			// The element is to be replaced with itself.
+			if (!canDestroy)
+			{
+				object.makeImmutable();
+			}
+			return object;
 		}
-		object.objectTupleAtPut(index, newValueObject);
-		// Invalidate the hash value.
-		object.hashOrZero(0);
-		return object;
+		final A_Tuple result =
+			object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
+				index, newValueObject, true);
+		if (!canDestroy)
+		{
+			object.makeImmutable();
+		}
+		return result;
 	}
 
 	@Override
@@ -517,7 +536,7 @@ extends TupleDescriptor
 
 		// If there is only one member in the range, return that integer in
 		// its own tuple.
-		if (difference.equals(zero))
+		if (difference.equalsInt(0))
 		{
 			return TupleDescriptor.from(start);
 		}

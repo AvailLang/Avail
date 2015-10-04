@@ -34,24 +34,24 @@ package com.avail.descriptor;
 
 /**
  * A helper class used by Eclipse to show Logical Structures in the debugger.
- * In particular, it shows integer-valued slots in {@link AvailObject}s.
+ * In particular, it shows long-valued slots in {@link AvailObject}s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailIntegerValueHelper
 {
 	/**
-	 * The {@code int} value to present.
+	 * The {@code long} value to present.
 	 */
-	public final int intValue;
+	public final long longValue;
 
 	/** Construct a new {@link AvailIntegerValueHelper}.
 	 *
-	 * @param intValue The {@code int} value.
+	 * @param longValue The {@code long} value.
 	 */
 	public AvailIntegerValueHelper (
-		final int intValue)
+		final long longValue)
 	{
-		this.intValue = intValue;
+		this.longValue = longValue;
 	}
 }

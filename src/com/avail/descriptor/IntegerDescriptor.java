@@ -32,11 +32,12 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
 import static com.avail.descriptor.IntegerDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.Mutability.*;
 import java.math.BigInteger;
 import java.util.*;
 import com.avail.annotations.*;
@@ -54,9 +55,20 @@ import com.avail.utility.json.JSONWriter;
  * <p>
  * Avail integers should always occupy the fewest number of slots to
  * unambiguously indicate the represented integer.  A zero integer is
- * represented by a single slot containing a zero {@code int}.  Any {@code int}
- * can be converted to an Avail integer by using a single slot, and any {@code
- * long} can be represented with at most two slots.
+ * represented by a single int slot containing a zero {@code int}.  Any {@code
+ * int} can be converted to an Avail integer by using a single slot, and any
+ * {@code long} can be represented with at most two slots.
+ * </p>
+ *
+ * <p>
+ * Since Avail will soon (2015.09.28) require 8-byte alignment, its
+ * representation has been updated to use 64-bit longs.  Rather than rewrite the
+ * painstakingly difficult operations to uee 64-bit longs directly, we fetch and
+ * update 32-bit ints using {@link AvailObject#intSlot(IntegerSlotsEnum, int)},
+ * a temporary compatibility mechanism to make this global refactoring
+ * tractable.  However, we also introduce the {@link #unusedIntsOfLastLong}
+ * field in the descriptor to maintain the invariant that the number of occupied
+ * 32-bit int fields is always minimized.
  * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -89,7 +101,29 @@ extends ExtendedIntegerDescriptor
 		 * range <nobr>{@code 0..0x7FFFFFFF}</nobr>).
 		 * </p>
 		 */
-		RAW_SIGNED_INT_AT_
+		RAW_LONG_SLOTS_;
+	}
+
+	/**
+	 * The number of ints of the last {@code long} that do not participate in
+	 * the representation of the {@linkplain IntegerDescriptor integer}.
+	 * Must be 0 or 1.
+	 */
+	private final byte unusedIntsOfLastLong;
+
+	/**
+	 * Answer the number of int slots in the passed integer object (it must not
+	 * be an indirection).
+	 *
+	 * @param object The integer object.
+	 * @return The number of occupied int slots in the object.
+	 */
+	public static int intCount (final A_Number object)
+	{
+		final IntegerDescriptor descriptor =
+			(IntegerDescriptor)object.descriptor();
+		return (object.integerSlotsCount() << 1)
+			- descriptor.unusedIntsOfLastLong;
 	}
 
 	@Override
@@ -108,15 +142,20 @@ extends ExtendedIntegerDescriptor
 		{
 			// A slower approach that deals with huge numbers.  Collect groups
 			// of 18 digits at a time by repeatedly dividing by a quintillion
-			// and recording the moduli.
-			A_Number residue = object.makeImmutable();
+			// and recording the moduli.  Avoid making the original object
+			// immutable unnecessarily, as printing is performed by the Java
+			// debugger, and printing a mutable integer can cause subsequent
+			// initializing/updating writes to fail.
+			A_Number residue = object.descriptor().isMutable()
+				? newLike(mutable(), object, 0, 0).makeImmutable()
+				: object;
 			if (object.lessThan(zero()))
 			{
 				aStream.append('-');
 				residue = zero().minusCanDestroy(residue, false);
 			}
 			// Make room for a little more than is needed.
-			final long[] digitGroups = new long[object.integerSlotsCount()];
+			final long[] digitGroups = new long[intCount(object)];
 			int digitGroupSubscript = 0;
 			do
 			{
@@ -147,7 +186,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	int o_RawSignedIntegerAt (final AvailObject object, final int subscript)
 	{
-		return object.slot(RAW_SIGNED_INT_AT_, subscript);
+		return object.intSlot(RAW_LONG_SLOTS_, subscript);
 	}
 
 	@Override @AvailMethod
@@ -156,7 +195,7 @@ extends ExtendedIntegerDescriptor
 		final int subscript,
 		final int value)
 	{
-		object.setSlot(RAW_SIGNED_INT_AT_, subscript, value);
+		object.setIntSlot(RAW_LONG_SLOTS_, subscript, value);
 	}
 
 	@Override @AvailMethod
@@ -173,15 +212,15 @@ extends ExtendedIntegerDescriptor
 		final AvailObject object,
 		final A_Number anAvailInteger)
 	{
-		final int slotsCount = object.integerSlotsCount();
-		if (slotsCount != anAvailInteger.integerSlotsCount())
+		final int slotsCount = intCount(object);
+		if (slotsCount != intCount(anAvailInteger))
 		{
 			// Assume integers being compared are always normalized (trimmed).
 			return false;
 		}
 		for (int i = 1; i <= slotsCount; i++)
 		{
-			final int a = object.slot(RAW_SIGNED_INT_AT_, i);
+			final int a = object.intSlot(RAW_LONG_SLOTS_, i);
 			final int b = anAvailInteger.rawSignedIntegerAt(i);
 			if (a != b)
 			{
@@ -199,13 +238,12 @@ extends ExtendedIntegerDescriptor
 		final AvailObject object,
 		final int theInt)
 	{
-		final int slotsCount = object.integerSlotsCount();
-		if (slotsCount != 1)
+		if (intCount(object) != 1)
 		{
 			// Assume it's normalized (trimmed).
 			return false;
 		}
-		return object.slot(RAW_SIGNED_INT_AT_, 1) == theInt;
+		return object.intSlot(RAW_LONG_SLOTS_, 1) == theInt;
 	}
 
 	@Override @AvailMethod
@@ -317,7 +355,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	boolean o_IsNybble (final AvailObject object)
 	{
-		if (object.integerSlotsCount() > 1)
+		if (intCount(object) > 1)
 		{
 			return false;
 		}
@@ -328,7 +366,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	boolean o_IsSignedByte (final AvailObject object)
 	{
-		if (object.integerSlotsCount() > 1)
+		if (intCount(object) > 1)
 		{
 			return false;
 		}
@@ -339,7 +377,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	boolean o_IsUnsignedByte (final AvailObject object)
 	{
-		if (object.integerSlotsCount() > 1)
+		if (intCount(object) > 1)
 		{
 			return false;
 		}
@@ -350,7 +388,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	boolean o_IsSignedShort (final AvailObject object)
 	{
-		if (object.integerSlotsCount() > 1)
+		if (intCount(object) > 1)
 		{
 			return false;
 		}
@@ -361,7 +399,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	boolean o_IsUnsignedShort (final AvailObject object)
 	{
-		if (object.integerSlotsCount() > 1)
+		if (intCount(object) > 1)
 		{
 			return false;
 		}
@@ -372,19 +410,19 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	boolean o_IsInt (final AvailObject object)
 	{
-		return object.integerSlotsCount() == 1;
+		return intCount(object) == 1;
 	}
 
 	@Override @AvailMethod
 	boolean o_IsLong (final AvailObject object)
 	{
-		return object.integerSlotsCount() <= 2;
+		return intCount(object) <= 2;
 	}
 
 	@Override @AvailMethod
 	byte o_ExtractNybble (final AvailObject object)
 	{
-		assert object.integerSlotsCount() == 1;
+		assert intCount(object) == 1;
 		final int value = object.rawSignedIntegerAt(1);
 		assert value == (value & 15) : "Value is out of range for a nybble";
 		return (byte)value;
@@ -393,7 +431,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	byte o_ExtractSignedByte (final AvailObject object)
 	{
-		assert object.integerSlotsCount() == 1;
+		assert intCount(object) == 1;
 		final int value = object.rawSignedIntegerAt(1);
 		assert value == (byte) value : "Value is out of range for a byte";
 		return (byte) value;
@@ -402,7 +440,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	short o_ExtractUnsignedByte (final AvailObject object)
 	{
-		assert object.integerSlotsCount() == 1;
+		assert intCount(object) == 1;
 		final int value = object.rawSignedIntegerAt(1);
 		assert value == (value & 255) : "Value is out of range for a byte";
 		return (short)value;
@@ -411,7 +449,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	short o_ExtractSignedShort (final AvailObject object)
 	{
-		assert object.integerSlotsCount() == 1;
+		assert intCount(object) == 1;
 		final int value = object.rawSignedIntegerAt(1);
 		assert value == (short) value : "Value is out of range for a short";
 		return (short) value;
@@ -420,7 +458,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	int o_ExtractUnsignedShort (final AvailObject object)
 	{
-		assert object.integerSlotsCount() == 1;
+		assert intCount(object) == 1;
 		final int value = object.rawSignedIntegerAt(1);
 		assert value == (value & 65535) : "Value is out of range for a short";
 		return value;
@@ -429,7 +467,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	int o_ExtractInt (final AvailObject object)
 	{
-		assert object.integerSlotsCount() == 1 : "Integer value out of bounds";
+		assert intCount(object) == 1 : "Integer value out of bounds";
 		return object.rawSignedIntegerAt(1);
 	}
 
@@ -437,10 +475,10 @@ extends ExtendedIntegerDescriptor
 	long o_ExtractLong (final AvailObject object)
 	{
 		assert
-			object.integerSlotsCount() >= 1 && object.integerSlotsCount() <= 2
+			intCount(object) >= 1 && intCount(object) <= 2
 			: "Integer value out of bounds";
 
-		if (object.integerSlotsCount() == 1)
+		if (intCount(object) == 1)
 		{
 			return object.rawSignedIntegerAt(1);
 		}
@@ -476,7 +514,7 @@ extends ExtendedIntegerDescriptor
 		final AvailObject object,
 		final int subscript)
 	{
-		final int signedInt = object.slot(RAW_SIGNED_INT_AT_, subscript);
+		final int signedInt = object.intSlot(RAW_LONG_SLOTS_, subscript);
 		return signedInt & 0xFFFFFFFFL;
 	}
 
@@ -491,7 +529,7 @@ extends ExtendedIntegerDescriptor
 		final int subscript,
 		final int value)
 	{
-		object.setSlot(RAW_SIGNED_INT_AT_, subscript, value);
+		object.setIntSlot(RAW_LONG_SLOTS_, subscript, value);
 	}
 
 	@Override @AvailMethod
@@ -501,29 +539,50 @@ extends ExtendedIntegerDescriptor
 		// Endian representation, I can simply be truncated with no need to
 		// shift data around.
 		assert isMutable();
-		int size = object.integerSlotsCount();
+		int size = intCount(object);
 		if (size > 1)
 		{
-			if (object.rawSignedIntegerAt(size) >= 0)
+			if (object.intSlot(RAW_LONG_SLOTS_, size) >= 0)
 			{
 				while (size > 1
-						&& object.rawSignedIntegerAt(size) == 0
-						&& object.rawSignedIntegerAt(size - 1) >= 0)
+						&& object.intSlot(RAW_LONG_SLOTS_, size) == 0
+						&& object.intSlot(RAW_LONG_SLOTS_, size - 1) >= 0)
 				{
 					size--;
-					object.truncateWithFillerForNewIntegerSlotsCount(size);
+					if ((size & 1) == 0)
+					{
+						// Remove an entire long.
+						object.truncateWithFillerForNewIntegerSlotsCount(
+							(size + 1) >> 1);
+					}
+					else
+					{
+						// Safety: Zero the bytes if the size is now odd.
+						object.setIntSlot(RAW_LONG_SLOTS_, size + 1, 0);
+					}
 				}
 			}
 			else
 			{
 				while (size > 1
-						&& object.rawSignedIntegerAt(size) == -1
-						&& object.rawSignedIntegerAt(size - 1) < 0)
+						&& object.intSlot(RAW_LONG_SLOTS_, size) == -1
+						&& object.intSlot(RAW_LONG_SLOTS_, size - 1) < 0)
 				{
 					size--;
-					object.truncateWithFillerForNewIntegerSlotsCount(size);
+					if ((size & 1) == 0)
+					{
+						// Remove an entire long.
+						object.truncateWithFillerForNewIntegerSlotsCount(
+							(size + 1) >> 1);
+					}
+					else
+					{
+						// Safety: Zero the bytes if the size is now odd.
+						object.setIntSlot(RAW_LONG_SLOTS_, size + 1, 0);
+					}
 				}
 			}
+			object.descriptor = descriptorFor(MUTABLE, size);
 		}
 	}
 
@@ -548,13 +607,13 @@ extends ExtendedIntegerDescriptor
 	 * @return One of the arguments, or {@code null} if neither argument was
 	 *         suitable.
 	 */
-	private @Nullable A_Number largerMutableOf (
-		final A_Number object,
-		final A_Number another)
+	private @Nullable AvailObject largerMutableOf (
+		final AvailObject object,
+		final AvailObject another)
 	{
-		final int objectSize = object.integerSlotsCount();
-		final int anIntegerSize = another.integerSlotsCount();
-		A_Number output = null;
+		final int objectSize = intCount(object);
+		final int anIntegerSize = intCount(another);
+		AvailObject output = null;
 		if (objectSize == anIntegerSize)
 		{
 			output =
@@ -585,10 +644,10 @@ extends ExtendedIntegerDescriptor
 		// flags, but Java doesn't let us actually go down to the metal (nor do
 		// C and C++). Our best recourse without reverting to assembly language
 		// is to use 64-bit.
-		final int objectSize = object.integerSlotsCount();
-		final int anIntegerSize = anInteger.integerSlotsCount();
-		A_Number output = canDestroy
-			? largerMutableOf(object, anInteger)
+		final int objectSize = intCount(object);
+		final int anIntegerSize = intCount(anInteger);
+		AvailObject output = canDestroy
+			? largerMutableOf(object, (AvailObject)anInteger)
 			: null;
 		if (objectSize == 1 && anIntegerSize == 1)
 		{
@@ -601,9 +660,9 @@ extends ExtendedIntegerDescriptor
 				// object if they were both immutable...
 				if (output == null)
 				{
-					output = mutable().create(1);
+					output = createUninitialized(1);
 				}
-				assert output.integerSlotsCount() == 1;
+				assert intCount(output) == 1;
 				output.rawSignedIntegerAtPut(1, (int)sum);
 				return output;
 			}
@@ -615,9 +674,9 @@ extends ExtendedIntegerDescriptor
 		// be pretty rare, and they're handled by output.trimExcessInts().
 		if (output == null)
 		{
-			output = mutable().create(max(objectSize, anIntegerSize));
+			output = createUninitialized(max(objectSize, anIntegerSize));
 		}
-		final int outputSize = output.integerSlotsCount();
+		final int outputSize = intCount(output);
 		final long extendedObject =
 			object.rawSignedIntegerAt(objectSize) >> 31 & 0xFFFFFFFFL;
 		final long extendedAnInteger =
@@ -644,11 +703,13 @@ extends ExtendedIntegerDescriptor
 		{
 			// Top bit of last word no longer agrees with sign of result. Extend
 			// it.
-			final AvailObject newOutput = mutable().create(outputSize + 1);
+			final AvailObject newOutput = createUninitialized(outputSize + 1);
 			for (int i = 1; i <= outputSize; i++)
 			{
-				newOutput.rawSignedIntegerAtPut(
-					i, output.rawSignedIntegerAt(i));
+				newOutput.setIntSlot(
+					RAW_LONG_SLOTS_,
+					i,
+					output.intSlot(RAW_LONG_SLOTS_, i));
 			}
 			newOutput.rawSignedIntegerAtPut(outputSize + 1, (int) partial);
 			// No need to truncate it in this case.
@@ -782,9 +843,9 @@ extends ExtendedIntegerDescriptor
 					: null;
 				if (output == null)
 				{
-					output = mutable().create(1);
+					output = createUninitialized(1);
 				}
-				assert output.integerSlotsCount() == 1;
+				assert intCount(output) == 1;
 				output.rawSignedIntegerAtPut(1, (int)quotient);
 				return output;
 			}
@@ -814,7 +875,7 @@ extends ExtendedIntegerDescriptor
 		A_Number fullQuotient = zero();
 		A_Number partialQuotient = zero();
 
-		final int divisorSlotsCount = object.integerSlotsCount();
+		final int divisorSlotsCount = intCount(object);
 		// Power of two by which to scale doubleDivisor to get actual value
 		final long divisorScale = (divisorSlotsCount - 1) * 32L;
 		final long divisorHigh = object.rawUnsignedIntegerAt(divisorSlotsCount);
@@ -834,7 +895,7 @@ extends ExtendedIntegerDescriptor
 			// Estimate partialQuotient = remainder / object, using the
 			// uppermost 3 words of each. Allow a slightly negative remainder
 			// due to rounding.  Compensate at the bottom of the loop.
-			final int dividendSlotsCount = remainder.integerSlotsCount();
+			final int dividendSlotsCount = intCount(remainder);
 		   // Power of two by which to scale doubleDividend to get actual value
 			final long dividendScale = (dividendSlotsCount - 1) * 32L;
 			final long dividendHigh =
@@ -880,20 +941,21 @@ extends ExtendedIntegerDescriptor
 			// final iteration which must converge in at most one more step.
 			// Note that we could have used just a few bits in the floating
 			// point division and still always converged in time proportional to
-			// the difference in bit lengths divided by the number
+			// the difference in bit lengths divided by the number of bits of
+			// accuracy in the floating point quotient.
 			final double doubleQuotient = doubleDividend / doubleDivisor;
 			final long quotientScale = dividendScale - divisorScale;
 			assert quotientScale >= 0L;
 
 			// Include room for sign bit plus safety margin.
-			partialQuotient = mutable().create(
+			partialQuotient = createUninitialized(
 				(int)((quotientScale + 2 >> 5) + 1));
 
 			final long bitShift = quotientScale
-				- (((long) partialQuotient.integerSlotsCount() - 1) << 5L);
+				- (((long) intCount(partialQuotient) - 1) << 5L);
 			assert -100L < bitShift && bitShift < 100L;
 			double scaledDoubleQuotient = scalb(doubleQuotient, (int)bitShift);
-			for (int i = partialQuotient.integerSlotsCount(); i >= 1; --i)
+			for (int i = intCount(partialQuotient); i >= 1; --i)
 			{
 				long word = 0;
 				if (scaledDoubleQuotient != 0.0d)
@@ -968,7 +1030,7 @@ extends ExtendedIntegerDescriptor
 		// that is still in range.  Avoid the overflow in that case by working
 		// with a scaled down version of the integer: target a "significand"
 		// below about 2^96.
-		final int scale = Math.max(object.integerSlotsCount() - 4, 0) * 32;
+		final int scale = Math.max(intCount(object) - 4, 0) * 32;
 		final double scaledIntAsDouble = extractDoubleScaled(object, scale);
 		assert !Double.isInfinite(scaledIntAsDouble);
 		final double scaledQuotient =
@@ -992,7 +1054,7 @@ extends ExtendedIntegerDescriptor
 		// possible, but it's easier to just make it match the double case.
 		// Avoid the overflow by working with a scaled down version of the
 		// integer: target a "significand" below about 2^96.
-		final int scale = Math.max(object.integerSlotsCount() - 4, 0) * 32;
+		final int scale = Math.max(intCount(object) - 4, 0) * 32;
 		final double scaledIntAsDouble = extractDoubleScaled(object, scale);
 		assert !Double.isInfinite(scaledIntAsDouble);
 		final double scaledQuotient =
@@ -1040,9 +1102,9 @@ extends ExtendedIntegerDescriptor
 				output = canDestroy ? mutableOf(object, anInteger) : null;
 				if (output == null)
 				{
-					output = mutable().create(1);
+					output = createUninitialized(1);
 				}
-				assert output.integerSlotsCount() == 1;
+				assert intCount(output) == 1;
 				output.rawSignedIntegerAtPut(1, (int)prod);
 				return output;
 			}
@@ -1050,11 +1112,11 @@ extends ExtendedIntegerDescriptor
 			// bits, even with the sign.
 			return fromLong(prod);
 		}
-		final int size1 = object.integerSlotsCount();
-		final int size2 = anInteger.integerSlotsCount();
+		final int size1 = intCount(object);
+		final int size2 = intCount(anInteger);
 		// The following is a safe upper bound.  See below.
 		final int targetSize = size1 + size2;
-		output = mutable().create(targetSize);
+		output = createUninitialized(targetSize);
 		final long extension1 =
 			(object.rawSignedIntegerAt(size1) >> 31) & 0xFFFFFFFFL;
 		final long extension2 =
@@ -1125,7 +1187,7 @@ extends ExtendedIntegerDescriptor
 		// that is still in range.  Avoid the overflow in that case by working
 		// with a scaled down version of the integer: target a "significand"
 		// below about 2^96.
-		final int scale = Math.max(object.integerSlotsCount() - 4, 0) * 32;
+		final int scale = Math.max(intCount(object) - 4, 0) * 32;
 		final double scaledIntAsDouble = extractDoubleScaled(object, scale);
 		assert !Double.isInfinite(scaledIntAsDouble);
 		final double scaledProduct =
@@ -1149,7 +1211,7 @@ extends ExtendedIntegerDescriptor
 		// possible, but it's easier to just make it match the double case.
 		// Avoid the overflow by working with a scaled down version of the
 		// integer: target a "significand" below about 2^96.
-		final int scale = Math.max(object.integerSlotsCount() - 4, 0) * 32;
+		final int scale = Math.max(intCount(object) - 4, 0) * 32;
 		final double scaledIntAsDouble = extractDoubleScaled(object, scale);
 		assert !Double.isInfinite(scaledIntAsDouble);
 		final double scaledProduct =
@@ -1182,10 +1244,10 @@ extends ExtendedIntegerDescriptor
 		// flags, but Java doesn't let us actually go down to the metal (nor do
 		// C and C++). Our best recourse without reverting to assembly language
 		// is to use 64-bit arithmetic.
-		final int objectSize = object.integerSlotsCount();
-		final int anIntegerSize = anInteger.integerSlotsCount();
-		A_Number output = canDestroy
-			? largerMutableOf(object, anInteger)
+		final int objectSize = intCount(object);
+		final int anIntegerSize = intCount(anInteger);
+		AvailObject output = canDestroy
+			? largerMutableOf(object, (AvailObject)anInteger)
 			: null;
 		if (objectSize == 1 && anIntegerSize == 1)
 		{
@@ -1198,14 +1260,14 @@ extends ExtendedIntegerDescriptor
 				// object if they were both immutable...
 				if (output == null)
 				{
-					output = mutable().create(1);
+					output = createUninitialized(1);
 				}
-				assert output.integerSlotsCount() == 1;
+				assert intCount(output) == 1;
 				output.rawSignedIntegerAtPut(1, (int)diff);
 				return output;
 			}
 			// Doesn't fit in 32 bits; use two 32-bit words.
-			output = mutable().create(2);
+			output = createUninitialized(2);
 			output.rawSignedIntegerAtPut(1, (int)diff);
 			output.rawSignedIntegerAtPut(2, (int)(diff>>32));
 			return output;
@@ -1215,9 +1277,9 @@ extends ExtendedIntegerDescriptor
 		// be pretty rare, and they're handled by output.trimExcessInts().
 		if (output == null)
 		{
-			output = mutable().create(max(objectSize, anIntegerSize));
+			output = createUninitialized(max(objectSize, anIntegerSize));
 		}
-		final int outputSize = output.integerSlotsCount();
+		final int outputSize = intCount(output);
 		final long extendedObject =
 			(object.rawSignedIntegerAt(objectSize) >> 31) & 0xFFFFFFFFL;
 		final long extendedAnInteger =
@@ -1244,7 +1306,7 @@ extends ExtendedIntegerDescriptor
 		{
 			// Top bit of last word no longer agrees with sign of result.
 			// Extend it.
-			final AvailObject newOutput = mutable().create(outputSize + 1);
+			final AvailObject newOutput = createUninitialized(outputSize + 1);
 			for (int i = 1; i <= outputSize; i++)
 			{
 				newOutput.rawSignedIntegerAtPut(
@@ -1299,9 +1361,9 @@ extends ExtendedIntegerDescriptor
 		final AvailObject object,
 		final A_Number anInteger)
 	{
-		final int size1 = object.integerSlotsCount();
-		final int size2 = anInteger.integerSlotsCount();
-		final int high1 = object.slot(RAW_SIGNED_INT_AT_, size1);
+		final int size1 = intCount(object);
+		final int size2 = intCount(anInteger);
+		final int high1 = object.intSlot(RAW_LONG_SLOTS_, size1);
 		final int high2 = anInteger.rawSignedIntegerAt(size2);
 		final int composite1 = high1 >= 0 ? size1 : -size1;
 		final int composite2 = high2 >= 0 ? size2 : -size2;
@@ -1318,7 +1380,7 @@ extends ExtendedIntegerDescriptor
 		}
 		for (int i = size1 - 1; i >= 1; i--)
 		{
-			final int a = object.slot(RAW_SIGNED_INT_AT_, i);
+			final int a = object.intSlot(RAW_LONG_SLOTS_, i);
 			final int b = anInteger.rawSignedIntegerAt(i);
 			if (a != b)
 			{
@@ -1351,10 +1413,10 @@ extends ExtendedIntegerDescriptor
 		final A_Number anInteger,
 		final boolean canDestroy)
 	{
-		final int objectSize = object.integerSlotsCount();
-		final int anIntegerSize = anInteger.integerSlotsCount();
-		A_Number output = canDestroy
-			? largerMutableOf(object, anInteger)
+		final int objectSize = intCount(object);
+		final int anIntegerSize = intCount(anInteger);
+		AvailObject output = canDestroy
+			? largerMutableOf(object, (AvailObject)anInteger)
 			: null;
 		// Both integers are 32 bits. This is by far the most common case.
 		if (objectSize == 1 && anIntegerSize == 1)
@@ -1363,7 +1425,7 @@ extends ExtendedIntegerDescriptor
 				& anInteger.rawSignedIntegerAt(1);
 			if (output == null)
 			{
-				output = mutable().create(1);
+				output = createUninitialized(1);
 			}
 			output.rawSignedIntegerAtPut(1, result);
 			return output;
@@ -1372,10 +1434,10 @@ extends ExtendedIntegerDescriptor
 		// a new one whose size is that of the larger input.
 		if (output == null)
 		{
-			output = mutable().create(max(objectSize, anIntegerSize));
+			output = createUninitialized(max(objectSize, anIntegerSize));
 		}
 		// Handle larger integers.
-		final int outputSize = output.integerSlotsCount();
+		final int outputSize = intCount(output);
 		final int extendedObject = object.rawSignedIntegerAt(objectSize) >> 31;
 		final int extendedAnInteger =
 			anInteger.rawSignedIntegerAt(anIntegerSize) >> 31;
@@ -1400,10 +1462,10 @@ extends ExtendedIntegerDescriptor
 		final A_Number anInteger,
 		final boolean canDestroy)
 	{
-		final int objectSize = object.integerSlotsCount();
-		final int anIntegerSize = anInteger.integerSlotsCount();
-		A_Number output = canDestroy
-			? largerMutableOf(object, anInteger)
+		final int objectSize = intCount(object);
+		final int anIntegerSize = intCount(anInteger);
+		AvailObject output = canDestroy
+			? largerMutableOf(object, (AvailObject)anInteger)
 			: null;
 		// Both integers are 32 bits. This is by far the most common case.
 		if (objectSize == 1 && anIntegerSize == 1)
@@ -1412,7 +1474,7 @@ extends ExtendedIntegerDescriptor
 				| anInteger.rawSignedIntegerAt(1);
 			if (output == null)
 			{
-				output = mutable().create(1);
+				output = createUninitialized(1);
 			}
 			output.rawSignedIntegerAtPut(1, result);
 			return output;
@@ -1421,10 +1483,10 @@ extends ExtendedIntegerDescriptor
 		// a new one whose size is that of the larger input.
 		if (output == null)
 		{
-			output = mutable().create(max(objectSize, anIntegerSize));
+			output = createUninitialized(max(objectSize, anIntegerSize));
 		}
 		// Handle larger integers.
-		final int outputSize = output.integerSlotsCount();
+		final int outputSize = intCount(output);
 		final int extendedObject = object.rawSignedIntegerAt(objectSize) >> 31;
 		final int extendedAnInteger =
 			anInteger.rawSignedIntegerAt(anIntegerSize) >> 31;
@@ -1449,10 +1511,10 @@ extends ExtendedIntegerDescriptor
 		final A_Number anInteger,
 		final boolean canDestroy)
 	{
-		final int objectSize = object.integerSlotsCount();
-		final int anIntegerSize = anInteger.integerSlotsCount();
-		A_Number output = canDestroy
-			? largerMutableOf(object, anInteger)
+		final int objectSize = intCount(object);
+		final int anIntegerSize = intCount(anInteger);
+		AvailObject output = canDestroy
+			? largerMutableOf(object, (AvailObject)anInteger)
 			: null;
 		// Both integers are 32 bits. This is by far the most common case.
 		if (objectSize == 1 && anIntegerSize == 1)
@@ -1461,7 +1523,7 @@ extends ExtendedIntegerDescriptor
 				^ anInteger.rawSignedIntegerAt(1);
 			if (output == null)
 			{
-				output = mutable().create(1);
+				output = createUninitialized(1);
 			}
 			output.rawSignedIntegerAtPut(1, result);
 			return output;
@@ -1470,10 +1532,10 @@ extends ExtendedIntegerDescriptor
 		// a new one whose size is that of the larger input.
 		if (output == null)
 		{
-			output = mutable().create(max(objectSize, anIntegerSize));
+			output = createUninitialized(max(objectSize, anIntegerSize));
 		}
 		// Handle larger integers.
-		final int outputSize = output.integerSlotsCount();
+		final int outputSize = intCount(output);
 		final int extendedObject = object.rawSignedIntegerAt(objectSize) >> 31;
 		final int extendedAnInteger =
 			anInteger.rawSignedIntegerAt(anIntegerSize) >> 31;
@@ -1582,7 +1644,7 @@ extends ExtendedIntegerDescriptor
 					if (resultLong == (int)resultLong)
 					{
 						// Fits in an int.  Try to recycle.
-						if (object.integerSlotsCount() == 1)
+						if (intCount(object) == 1)
 						{
 							object.rawSignedIntegerAtPut(1, (int)resultLong);
 							return object;
@@ -1591,7 +1653,7 @@ extends ExtendedIntegerDescriptor
 					else
 					{
 						// *Fills* a long.  Try to recycle.
-						if (object.integerSlotsCount() == 2)
+						if (intCount(object) == 2)
 						{
 							object.rawSignedIntegerAtPut(
 								1,
@@ -1608,12 +1670,12 @@ extends ExtendedIntegerDescriptor
 			}
 		}
 		// Answer doesn't (necessarily) fit in a long.
-		final int sourceSlots = object.integerSlotsCount();
+		final int sourceSlots = intCount(object);
 		int estimatedBits = (sourceSlots << 5) + shiftInt;
 		estimatedBits = min(estimatedBits, truncationInt + 1);
 		estimatedBits = max(estimatedBits, 1);
 		final int slotCount = (estimatedBits + 31) >> 5;
-		final A_Number result = mutable().create(slotCount);
+		final A_Number result = createUninitialized(slotCount);
 		final int shortShift = shiftInt & 31;
 		int sourceIndex = slotCount - (shiftInt >> 5);
 		long accumulator = 0xDEADCAFEBABEBEEFL;
@@ -1713,7 +1775,7 @@ extends ExtendedIntegerDescriptor
 					if (resultLong == (int)resultLong)
 					{
 						// Fits in an int.  Try to recycle.
-						if (object.integerSlotsCount() == 1)
+						if (intCount(object) == 1)
 						{
 							object.rawSignedIntegerAtPut(1, (int)resultLong);
 							return object;
@@ -1722,7 +1784,7 @@ extends ExtendedIntegerDescriptor
 					else
 					{
 						// *Fills* a long.  Try to recycle.
-						if (object.integerSlotsCount() == 2)
+						if (intCount(object) == 2)
 						{
 							object.rawSignedIntegerAtPut(
 								1,
@@ -1739,20 +1801,20 @@ extends ExtendedIntegerDescriptor
 			}
 		}
 		// Answer doesn't (necessarily) fit in a long.
-		final int sourceSlots = object.integerSlotsCount();
+		final int sourceSlots = intCount(object);
 		int estimatedBits = (sourceSlots << 5) + shiftInt;
 		estimatedBits = max(estimatedBits, 1);
-		final int slotCount = (estimatedBits + 31) >> 5;
-		final A_Number result = mutable().create(slotCount);
+		final int intSlotCount = (estimatedBits + 31) >> 5;
+		final A_Number result = createUninitialized(intSlotCount);
 		final int shortShift = shiftInt & 31;
-		int sourceIndex = slotCount - (shiftInt >> 5);
+		int sourceIndex = intSlotCount - (shiftInt >> 5);
 		long accumulator = 0xDEADCAFEBABEBEEFL;
 		final int signExtension =
 			object.numericCompareToInteger(zero()) == LESS
 				? -1
 				: 0;
 		// We range from slotCount+1 to 1 to pre-load the accumulator.
-		for (int destIndex = slotCount + 1; destIndex >= 1; destIndex--)
+		for (int destIndex = intSlotCount + 1; destIndex >= 1; destIndex--)
 		{
 			final int nextWord =
 				sourceIndex < 1
@@ -1762,7 +1824,7 @@ extends ExtendedIntegerDescriptor
 						: object.rawSignedIntegerAt(sourceIndex);
 			accumulator <<= 32;
 			accumulator |= (nextWord & 0xFFFFFFFFL) << shortShift;
-			if (destIndex <= slotCount)
+			if (destIndex <= intSlotCount)
 			{
 				result.rawSignedIntegerAtPut(
 					destIndex,
@@ -1885,7 +1947,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	public BigInteger o_AsBigInteger (final AvailObject object)
 	{
-		final int integerCount = object.integerSlotsCount();
+		final int integerCount = intCount(object);
 		if (integerCount <= 2)
 		{
 			return BigInteger.valueOf(object.extractLong());
@@ -1893,7 +1955,7 @@ extends ExtendedIntegerDescriptor
 		final byte[] bytes = new byte[integerCount << 2];
 		for (int i = integerCount, b = 0; i > 0; i--)
 		{
-			final int integer = object.slot(RAW_SIGNED_INT_AT_, i);
+			final int integer = object.intSlot(RAW_LONG_SLOTS_, i);
 			bytes[b++] = (byte) (integer >> 24);
 			bytes[b++] = (byte) (integer >> 16);
 			bytes[b++] = (byte) (integer >> 8);
@@ -1936,13 +1998,13 @@ extends ExtendedIntegerDescriptor
 		}
 		if (aLong == (int)aLong)
 		{
-			final A_Number result = mutable.create(1);
-			result.rawSignedIntegerAtPut(1, (int) aLong);
+			final AvailObject result = createUninitialized(1);
+			result.setIntSlot(RAW_LONG_SLOTS_, 1, (int) aLong);
 			return result;
 		}
-		final A_Number result = mutable.create(2);
-		result.rawSignedIntegerAtPut(1, (int) aLong);
-		result.rawSignedIntegerAtPut(2, (int) (aLong >> 32L));
+		final AvailObject result = createUninitialized(2);
+		result.setIntSlot(RAW_LONG_SLOTS_, 1, (int) aLong);
+		result.setIntSlot(RAW_LONG_SLOTS_, 2, (int) (aLong >> 32L));
 		return result;
 	}
 
@@ -1962,7 +2024,7 @@ extends ExtendedIntegerDescriptor
 		}
 		final int signByte = ((bytes[0] >> 7) & 1) * 255;
 		final int intCount = (bytes.length + 4) >> 2;
-		final AvailObject result = mutable.create(intCount);
+		final AvailObject result = createUninitialized(intCount);
 		// Start with the least significant bits.
 		int byteIndex = bytes.length - 1;
 		for (int destIndex = 1; destIndex <= intCount; destIndex++)
@@ -1983,7 +2045,7 @@ extends ExtendedIntegerDescriptor
 				intValue += ((byteIndex >= 2 ? bytes[byteIndex - 2] : signByte) & 255) << 16;
 				intValue += ((byteIndex >= 3 ? bytes[byteIndex - 3] : signByte) & 255) << 24;
 			}
-			result.rawSignedIntegerAtPut(destIndex, intValue);
+			result.setIntSlot(RAW_LONG_SLOTS_, destIndex, intValue);
 			byteIndex -= 4;
 		}
 		result.trimExcessInts();
@@ -2013,19 +2075,19 @@ extends ExtendedIntegerDescriptor
 		truncated = abs(truncated);
 		final int exponent = getExponent(truncated);
 		final int slots = exponent + 31 / 32;  // probably needs work
-		A_Number out = mutable.create(slots);
+		final AvailObject out = createUninitialized(slots);
 		truncated = scalb(truncated, (1 - slots) * 32);
 		for (int i = slots; i >= 1; --i)
 		{
 			final long intSlice = (int) truncated;
-			out.rawUnsignedIntegerAtPut(i, (int)intSlice);
+			out.setIntSlot(RAW_LONG_SLOTS_, i, (int)intSlice);
 			truncated -= intSlice;
 			truncated = scalb(truncated, 32);
 		}
 		out.trimExcessInts();
 		if (neg)
 		{
-			out = zero().noFailMinusCanDestroy(out, true);
+			return zero().noFailMinusCanDestroy(out, true);
 		}
 		return out;
 	}
@@ -2044,8 +2106,8 @@ extends ExtendedIntegerDescriptor
 		{
 			return immutableByteObjects[anInteger];
 		}
-		final AvailObject result = mutable.create(1);
-		result.rawSignedIntegerAtPut(1, anInteger);
+		final AvailObject result = createUninitialized(1);
+		result.setIntSlot(RAW_LONG_SLOTS_, 1, anInteger);
 		return result;
 	}
 
@@ -2082,7 +2144,7 @@ extends ExtendedIntegerDescriptor
 		// Extract and scale the top three ints from anInteger, if available.
 		// This guarantees at least 64 correct upper bits were extracted (if
 		// available), which is better than a double can represent.
-		final int slotsCount = object.integerSlotsCount();
+		final int slotsCount = intCount(object);
 		final long high = object.rawSignedIntegerAt(slotsCount);
 		double d = Math.scalb(
 			(double)high,
@@ -2117,50 +2179,6 @@ extends ExtendedIntegerDescriptor
 		final A_Number neg = negativeOne;
 		assert neg != null;
 		return neg;
-	}
-
-	/**
-	 * Answer an {@link AvailObject} representing the {@linkplain
-	 * IntegerDescriptor integer} zero (0).
-	 *
-	 * @return The Avail integer zero.
-	 */
-	public static A_Number zero ()
-	{
-		return immutableByteObjects[0];
-	}
-
-	/**
-	 * Answer an {@link AvailObject} representing the {@linkplain
-	 * IntegerDescriptor integer} one (1).
-	 *
-	 * @return The Avail integer one.
-	 */
-	public static A_Number one ()
-	{
-		return immutableByteObjects[1];
-	}
-
-	/**
-	 * Answer an {@link AvailObject} representing the {@linkplain
-	 * IntegerDescriptor integer} two (2).
-	 *
-	 * @return The Avail integer two.
-	 */
-	public static A_Number two ()
-	{
-		return immutableByteObjects[2];
-	}
-
-	/**
-	 * Answer an {@link AvailObject} representing the {@linkplain
-	 * IntegerDescriptor integer} ten (10).
-	 *
-	 * @return The Avail integer ten.
-	 */
-	public static A_Number ten ()
-	{
-		return immutableByteObjects[10];
 	}
 
 	/**
@@ -2228,7 +2246,7 @@ extends ExtendedIntegerDescriptor
 	static int computeHashOfIntegerObject (final A_Number anIntegerObject)
 	{
 		int output = initialHashValue;
-		for (int i = anIntegerObject.integerSlotsCount(); i > 0; i--)
+		for (int i = intCount(anIntegerObject); i > 0; i--)
 		{
 			output += anIntegerObject.rawSignedIntegerAt(i);
 			output *= multiplier;
@@ -2240,15 +2258,16 @@ extends ExtendedIntegerDescriptor
 	}
 
 	/**
-	 * Create an {@linkplain IntegerDescriptor integer} of the specified size,
-	 * but with uninitialized slots.
+	 * Create a mutable {@linkplain IntegerDescriptor integer} with the
+	 * specified number of uninitialized int slots.
 	 *
-	 * @param size The number of slots to have in the result.
+	 * @param size The number of int slots to have in the result.
 	 * @return An uninitialized, mutable integer.
 	 */
-	public static A_Number createUninitialized (final int size)
+	public static AvailObject createUninitialized (final int size)
 	{
-		return mutable.create(size);
+		final IntegerDescriptor descriptor = descriptorFor(MUTABLE, size);
+		return descriptor.create((size + 1) >> 1);
 	}
 
 	/**
@@ -2256,40 +2275,78 @@ extends ExtendedIntegerDescriptor
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param unusedIntsOfLastLong
+	 *        The number of unused {@code int}s in the last {@code long}.  Must
+	 *        be 0 or 1.
 	 */
-	private IntegerDescriptor (final Mutability mutability)
+	private IntegerDescriptor (
+		final Mutability mutability,
+		final byte unusedIntsOfLastLong)
 	{
 		super(mutability, null, IntegerSlots.class);
+		assert (unusedIntsOfLastLong & ~1) == 0;
+		this.unusedIntsOfLastLong = unusedIntsOfLastLong;
 	}
 
-	/** The mutable {@link IntegerDescriptor}. */
-	public static final IntegerDescriptor mutable =
-		new IntegerDescriptor(Mutability.MUTABLE);
+	/**
+	 * The static list of descriptors of this kind, organized in such a way that
+	 * they can be found by mutability and the number of unused ints in the last
+	 * long.
+	 */
+	private static final IntegerDescriptor[] descriptors =
+		new IntegerDescriptor[2 * 3];
+
+	static {
+		int i = 0;
+		for (final byte excess : new byte[] {0,1})
+		{
+			for (final Mutability mut : Mutability.values())
+			{
+				descriptors[i++] = new IntegerDescriptor(mut, excess);
+			}
+		}
+	}
+
+	/**
+	 * Answer the descriptor that has the specified mutability flag and is
+	 * suitable to describe a tuple with the given number of elements.
+	 *
+	 * @param flag
+	 *            Whether the requested descriptor should be mutable.
+	 * @param size
+	 *            How many elements are in a tuple to be represented by the
+	 *            descriptor.
+	 * @return
+	 *            A {@link TwoByteStringDescriptor} suitable for representing a
+	 *            two-byte string of the given mutability and {@link
+	 *            AvailObject#tupleSize() size}.
+	 */
+	private static IntegerDescriptor descriptorFor (
+		final Mutability flag,
+		final int size)
+	{
+		return descriptors[(size & 1) * 3 + flag.ordinal()];
+	}
 
 	@Override
 	IntegerDescriptor mutable ()
 	{
-		return mutable;
+		return descriptors[
+			(unusedIntsOfLastLong & 1) * 3 + MUTABLE.ordinal()];
 	}
-
-	/** The immutable {@link IntegerDescriptor}. */
-	private static final IntegerDescriptor immutable =
-		new IntegerDescriptor(Mutability.IMMUTABLE);
 
 	@Override
 	IntegerDescriptor immutable ()
 	{
-		return immutable;
+		return descriptors[
+			(unusedIntsOfLastLong & 1) * 3 + IMMUTABLE.ordinal()];
 	}
-
-	/** The shared {@link IntegerDescriptor}. */
-	private static final IntegerDescriptor shared =
-		new IntegerDescriptor(Mutability.SHARED);
 
 	@Override
 	IntegerDescriptor shared ()
 	{
-		return shared;
+		return descriptors[
+			(unusedIntsOfLastLong & 1) * 3 + SHARED.ordinal()];
 	}
 
 	/**
@@ -2321,23 +2378,77 @@ extends ExtendedIntegerDescriptor
 		final AvailObject[] bytes = new AvailObject [256];
 		for (int i = 0; i <= 255; i++)
 		{
-			final AvailObject object = mutable.create(1);
+			final AvailObject object = createUninitialized(1);
 			object.rawSignedIntegerAtPut(1, i);
 			bytes[i] = object.makeShared();
 		}
 		immutableByteObjects = bytes;
 	}
 
-	/**
-	 * The Avail integer negative one (-1).
-	 */
+	/** An Avail integer representing zero (0). */
+	private static A_Number zero = immutableByteObjects[0];
+
+	/** An Avail integer representing one (1). */
+	private static A_Number one = immutableByteObjects[1];
+
+	/** An Avail integer representing two (2). */
+	private static A_Number two = immutableByteObjects[2];
+
+	/** An Avail integer representing ten (10). */
+	private static A_Number ten = immutableByteObjects[10];
+
+	/** The Avail integer negative one (-1). */
 	private static final A_Number negativeOne;
 
 	static
 	{
-		final AvailObject neg = mutable.create(1);
+		final AvailObject neg = createUninitialized(1);
 		neg.rawSignedIntegerAtPut(1, -1);
 		negativeOne = neg.makeShared();
+	}
+
+	/**
+	 * Answer an {@link AvailObject} representing the {@linkplain
+	 * IntegerDescriptor integer} zero (0).
+	 *
+	 * @return The Avail integer zero.
+	 */
+	public static A_Number zero ()
+	{
+		return zero;
+	}
+
+	/**
+	 * Answer an {@link AvailObject} representing the {@linkplain
+	 * IntegerDescriptor integer} one (1).
+	 *
+	 * @return The Avail integer one.
+	 */
+	public static A_Number one ()
+	{
+		return one;
+	}
+
+	/**
+	 * Answer an {@link AvailObject} representing the {@linkplain
+	 * IntegerDescriptor integer} two (2).
+	 *
+	 * @return The Avail integer two.
+	 */
+	public static A_Number two ()
+	{
+		return two;
+	}
+
+	/**
+	 * Answer an {@link AvailObject} representing the {@linkplain
+	 * IntegerDescriptor integer} ten (10).
+	 *
+	 * @return The Avail integer ten.
+	 */
+	public static A_Number ten ()
+	{
+		return ten;
 	}
 
 	/**

@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static java.lang.Integer.bitCount;
+import static java.lang.Long.bitCount;
 import static com.avail.descriptor.HashedMapBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.HashedMapBinDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.Mutability.*;
@@ -47,16 +47,16 @@ import com.avail.descriptor.MapDescriptor.Entry;
  * for use by a {@linkplain MapDescriptor map} rather than a {@linkplain
  * SetDescriptor set}.  The basic idea is that small bins are simple {@linkplain
  * LinearMapBinDescriptor linear structures}, but larger bins use the hash of
- * the key to determine which one of the up to 32 child bins is responsible for
- * that key.  Different levels of the tree use different 5-bit regions of the
- * hash values.  We could always store 32 slots, but Bagwell's mechanism is to
- * store a 32-bit vector where a 1 bit indicates that the corresponding index
- * (0..31) extracted from the hash value has a pointer to the corresponding
+ * the key to determine which one of the up to 64 child bins is responsible for
+ * that key.  Different levels of the tree use different 6-bit regions of the
+ * hash values.  We could always store 64 slots, but Bagwell's mechanism is to
+ * store a 64-bit vector where a 1 bit indicates that the corresponding index
+ * (0..63) extracted from the hash value has a pointer to the corresponding
  * sub-bin.  If the bit is 0 then that pointer is elided entirely.  By suitable
  * use of bit shifting, masking, and {@linkplain Integer#bitCount counting}, one
- * is able to extract the 5 appropriate dispatch bits and access the Nth sub-bin
+ * is able to extract the 6 appropriate dispatch bits and access the Nth sub-bin
  * or determine that it's not already present.  This mechanism produces a hash
- * tree no deeper than about 7 levels, even for a huge number of entries.  It
+ * tree no deeper than about 6 levels, even for a huge number of entries.  It
  * also allows efficient "persistent" manipulation (in the function programming
  * sense).  Given a map one can produce another map that has a small number of
  * edits (new keys, removed keys, new values for existing keys) using only a few
@@ -71,7 +71,7 @@ extends MapBinDescriptor
 	/**
 	 * A static switch for enabling slow, detailed correctness checks.
 	 */
-	private final static boolean shouldCheck = false;
+	private final static boolean shouldCheck = false; //XXX
 
 	/**
 	 * Make sure the {@link HashedMapBinDescriptor hashed map bin} is
@@ -111,15 +111,10 @@ extends MapBinDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The sum of the hashes of the elements recursively within this bin.
+		 * A long holding {@link BitField}s containing the combined keys hash
+		 * and the combined values hash or zero.
 		 */
-		KEYS_HASH,
-
-		/**
-		 * The sum of the hashes of the elements recursively within this bin,
-		 * or zero if not computed.
-		 */
-		VALUES_HASH_OR_ZERO,
+		COMBINED_HASHES,
 
 		/**
 		 * The total number of elements recursively contained within this bin.
@@ -132,12 +127,27 @@ extends MapBinDescriptor
 		 */
 		BIT_VECTOR;
 
+		/**
+		 * The sum of the hashes of the elements recursively within this bin.
+		 */
+		public static BitField KEYS_HASH = bitField(
+			COMBINED_HASHES, 0, 32);
+
+		/**
+		 * The sum of the hashes of the elements recursively within this bin,
+		 * or zero if not computed.
+		 */
+		public static BitField VALUES_HASH_OR_ZERO = bitField(
+			COMBINED_HASHES, 32, 32);
+
 		static
 		{
-			assert MapBinDescriptor.IntegerSlots.KEYS_HASH.ordinal()
-				== KEYS_HASH.ordinal();
-			assert MapBinDescriptor.IntegerSlots.VALUES_HASH_OR_ZERO.ordinal()
-				== VALUES_HASH_OR_ZERO.ordinal();
+			assert MapBinDescriptor.IntegerSlots.COMBINED_HASHES.ordinal()
+				== COMBINED_HASHES.ordinal();
+			assert MapBinDescriptor.IntegerSlots.KEYS_HASH
+				.isSamePlaceAs(KEYS_HASH);
+			assert MapBinDescriptor.IntegerSlots.VALUES_HASH_OR_ZERO
+				.isSamePlaceAs(VALUES_HASH_OR_ZERO);
 		}
 	}
 
@@ -171,7 +181,7 @@ extends MapBinDescriptor
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == VALUES_HASH_OR_ZERO
+		return e == COMBINED_HASHES
 			|| e == BIN_KEY_UNION_KIND_OR_NULL
 			|| e == BIN_VALUE_UNION_KIND_OR_NULL;
 	}
@@ -183,24 +193,9 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_BinElementAtPut (
-		final AvailObject object,
-		final int subscript,
-		final A_BasicObject value)
-	{
-		object.setSlot(SUB_BINS_, subscript, value);
-	}
-
-	@Override @AvailMethod
-	void o_BinSize (final AvailObject object, final int value)
-	{
-		object.setSlot(BIN_SIZE, value);
-	}
-
-	@Override @AvailMethod
 	int o_BinSize (final AvailObject object)
 	{
-		return object.slot(BIN_SIZE);
+		return (int)object.slot(BIN_SIZE);
 	}
 
 	/**
@@ -336,23 +331,21 @@ extends MapBinDescriptor
 	{
 		assert myLevel == level;
 		check(object);
-		// First, grab the appropriate 5 bits from the hash.
+		// First, grab the appropriate 6 bits from the hash.
 		final int oldKeysHash = object.mapBinKeysHash();
 		final int oldSize = object.binSize();
 		final int objectEntryCount = object.variableObjectSlotsCount();
-		final int logicalIndex = bitShift(keyHash, -5 * level) & 31;
-		final int vector = object.slot(BIT_VECTOR);
-		final int masked = vector & bitShift(1, logicalIndex) - 1;
+		final int logicalIndex = (keyHash >>> shift) & 63;
+		final long vector = object.slot(BIT_VECTOR);
+		final long masked = vector & bitShift(1L, logicalIndex) - 1;
 		final int physicalIndex = bitCount(masked) + 1;
 		final int delta;
 		final int hashDelta;
 		AvailObject objectToModify;
-		if ((vector & bitShift(1, logicalIndex)) != 0)
+		if ((vector & bitShift(1L, logicalIndex)) != 0)
 		{
 			// Sub-bin already exists for those hash bits.  Update the sub-bin.
-			final AvailObject oldSubBin = object.slot(
-				SUB_BINS_,
-				physicalIndex);
+			final AvailObject oldSubBin = object.slot(SUB_BINS_, physicalIndex);
 			final int oldSubBinSize = oldSubBin.binSize();
 			final int oldSubBinKeyHash = oldSubBin.mapBinKeysHash();
 			final A_BasicObject newSubBin =
@@ -381,6 +374,7 @@ extends MapBinDescriptor
 		}
 		else
 		{
+			// Add a sub-bin for that hash slot.
 			delta = 1;
 			hashDelta = keyHash;
 			if (!canDestroy & isMutable())
@@ -390,7 +384,7 @@ extends MapBinDescriptor
 			objectToModify = descriptorFor(MUTABLE, level).create(
 				objectEntryCount + 1);
 			objectToModify.setSlot(
-				BIT_VECTOR, vector | bitShift(1, logicalIndex));
+				BIT_VECTOR, vector | bitShift(1L, logicalIndex));
 			for (int i = 1, end = physicalIndex - 1; i <= end; i++)
 			{
 				objectToModify.setSlot(SUB_BINS_, i, object.slot(SUB_BINS_,i));
@@ -401,7 +395,7 @@ extends MapBinDescriptor
 					keyHash,
 					value,
 					(byte)(myLevel + 1));
-			objectToModify.binElementAtPut(physicalIndex, newSingleBin);
+			objectToModify.setSlot(SUB_BINS_, physicalIndex, newSingleBin);
 			for (int i = physicalIndex; i <= objectEntryCount; i++)
 			{
 				objectToModify.setSlot(
@@ -425,17 +419,17 @@ extends MapBinDescriptor
 		final A_BasicObject key,
 		final int keyHash)
 	{
-		// First, grab the appropriate 5 bits from the hash.
-		final int logicalIndex = bitShift(keyHash, -5 * level) & 31;
-		final int vector = object.slot(BIT_VECTOR);
-		if ((vector & bitShift(1, logicalIndex)) == 0)
+		// First, grab the appropriate 6 bits from the hash.
+		final int logicalIndex = (keyHash >>> shift) & 63;
+		final long vector = object.slot(BIT_VECTOR);
+		if ((vector & bitShift(1L, logicalIndex)) == 0)
 		{
 			// Not found.  Answer nil.
 			return NilDescriptor.nil();
 		}
 		// There's an entry.  Count the 1-bits below it to compute its
 		// zero-relative physicalIndex.
-		final int masked = vector & bitShift(1, logicalIndex) - 1;
+		final long masked = vector & bitShift(1L, logicalIndex) - 1;
 		final int physicalIndex = bitCount(masked) + 1;
 		final AvailObject subBin = object.slot(SUB_BINS_, physicalIndex);
 		return subBin.mapBinAtHash(key, keyHash);
@@ -457,19 +451,19 @@ extends MapBinDescriptor
 		{
 			object.makeImmutable();
 		}
-		// First, grab the appropriate 5 bits from the hash.
-		final int logicalIndex = bitShift(keyHash, -5 * level) & 31;
-		final int vector = object.slot(BIT_VECTOR);
-		if ((vector & bitShift(1, logicalIndex)) == 0)
+		// First, grab the appropriate 6 bits from the hash.
+		final int logicalIndex = (keyHash >>> shift) & 63;
+		final long vector = object.slot(BIT_VECTOR);
+		if ((vector & bitShift(1L, logicalIndex)) == 0)
 		{
 			// Definitely not present.
 			return object;
 		}
 		// There's an entry which might contain the key and value.  Count the
 		// 1-bits below it to compute its zero-relative physicalIndex.
-		final int oldSize = object.slot(BIN_SIZE);
+		final int oldSize = (int)object.slot(BIN_SIZE);
 		final int oldKeysHash = object.slot(KEYS_HASH);
-		final int masked = vector & bitShift(1, logicalIndex) - 1;
+		final long masked = vector & bitShift(1L, logicalIndex) - 1;
 		final int physicalIndex = bitCount(masked) + 1;
 		final AvailObject oldSubBin = object.slot(SUB_BINS_, physicalIndex);
 		final int oldSubBinKeysHash = oldSubBin.mapBinKeysHash();
@@ -481,11 +475,11 @@ extends MapBinDescriptor
 		final AvailObject objectToModify;
 		if (newSubBin.equalsNil())
 		{
-			// The entire subBin can be removed.
+			// The entire subBin must be removed.
 			final int oldSlotCount = bitCount(vector);
 			if (oldSlotCount == 1)
 			{
-				// ...and so can this one.
+				// ...and so must this one.
 				return NilDescriptor.nil();
 			}
 			objectToModify = AvailObject.newIndexedDescriptor(
@@ -505,7 +499,7 @@ extends MapBinDescriptor
 			deltaHash = -oldSubBinKeysHash;
 			objectToModify.setSlot(
 				BIT_VECTOR,
-				object.slot(BIT_VECTOR) & ~bitShift(1, logicalIndex));
+				object.slot(BIT_VECTOR) & ~bitShift(1L, logicalIndex));
 		}
 		else
 		{
@@ -615,22 +609,24 @@ extends MapBinDescriptor
 				// Nil may only occur at the top of the bin tree.
 				assert binStack.isEmpty();
 				assert subscriptStack.isEmpty();
-				//entry.keyHash = 0;
 				entry.setKeyAndHashAndValue(null, 0, null);
+				return;
 			}
-			else
+			AvailObject currentBin = bin.traversed();
+			while (currentBin.isHashedMapBin())
 			{
-				AvailObject currentBin = bin;
-				while (currentBin.isHashedMapBin())
-				{
-					binStack.addLast(currentBin);
-					subscriptStack.addLast(1);
-					currentBin = currentBin.binElementAt(1);
-				}
 				binStack.addLast(currentBin);
-				subscriptStack.addLast(1);
-				assert binStack.size() == subscriptStack.size();
+				final int count = currentBin.variableObjectSlotsCount();
+				// Move right to left for a simpler limit check.
+				subscriptStack.addLast(count);
+				currentBin = currentBin.binElementAt(count).traversed();
 			}
+			binStack.addLast(currentBin);
+			// Move leftward in this linear bin.  Note that slots are
+			// alternating keys and values.
+			final int linearSlotCount = currentBin.variableObjectSlotsCount();
+			subscriptStack.addLast(linearSlotCount >> 1);
+			assert binStack.size() == subscriptStack.size();
 		}
 
 		@Override
@@ -640,20 +636,20 @@ extends MapBinDescriptor
 			final AvailObject linearBin = binStack.getLast().traversed();
 			final Integer linearIndex = subscriptStack.getLast();
 			entry.setKeyAndHashAndValue(
-				linearBin.binElementAt(linearIndex * 2 - 1),
-				linearBin.slot(
-					LinearMapBinDescriptor.IntegerSlots.KEY_HASHES_,
+				linearBin.binElementAt((linearIndex << 1) - 1),
+				linearBin.intSlot(
+					LinearMapBinDescriptor.IntegerSlots.KEY_HASHES_AREA_,
 					linearIndex),
-				linearBin.binElementAt(linearIndex * 2));
+				linearBin.binElementAt(linearIndex << 1));
 			// Got the result.  Now advance the state...
-			if (linearIndex < linearBin.variableIntegerSlotsCount())
+			if (linearIndex > 1)
 			{
 				// Continue in same leaf bin.
 				subscriptStack.removeLast();
-				subscriptStack.addLast(linearIndex + 1);
+				subscriptStack.addLast(linearIndex - 1);
 				return entry;
 			}
-
+			// Find another leaf bin.
 			binStack.removeLast();
 			subscriptStack.removeLast();
 			assert binStack.size() == subscriptStack.size();
@@ -664,20 +660,17 @@ extends MapBinDescriptor
 					// This was the last entry in the map.
 					return entry;
 				}
-				final AvailObject internalBin = binStack.getLast().traversed();
-				final int internalSubscript = subscriptStack.getLast();
-				final int maxSubscript = internalBin.variableObjectSlotsCount();
-				if (internalSubscript != maxSubscript)
+				final int nextSubscript = subscriptStack.removeLast() - 1;
+				if (nextSubscript != 0)
 				{
 					// Continue in current internal (hashed) bin.
-					subscriptStack.addLast(subscriptStack.removeLast() + 1);
+					subscriptStack.addLast(nextSubscript);
 					assert binStack.size() == subscriptStack.size();
 					followLeftmost(
-						binStack.getLast().binElementAt(internalSubscript + 1));
+						binStack.getLast().binElementAt(nextSubscript));
 					assert binStack.size() == subscriptStack.size();
 					return entry;
 				}
-				subscriptStack.removeLast();
 				binStack.removeLast();
 				assert binStack.size() == subscriptStack.size();
 			}
@@ -697,13 +690,24 @@ extends MapBinDescriptor
 	}
 
 	/**
+	 * Create a hashed map bin at the given level and with the given bit vector.
+	 * The number of 1 bits in the bit vector determine how many sub-bins to
+	 * allocate.  Start each sub-bin as {@link NilDescriptor#nil() nil}, with
+	 * the expectation that it will be populated during subsequent
+	 * initialization of this bin.
+	 *
 	 * @param myLevel
+	 *        The hash tree depth, which controls how much to shift hashes.
 	 * @param bitVector
+	 *        The {@code long} containing a 1 bit for each sub-bin slot.
 	 * @return
+	 *        A hash map bin suitable for adding entries to.  The bin is
+	 *        denormalized, with all sub-bins set to {@link NilDescriptor#nil()
+	 *        nil}.
 	 */
 	static AvailObject createLevelBitVector (
 		final byte myLevel,
-		final int bitVector)
+		final long bitVector)
 	{
 		AvailObject result;
 		final int newSize = bitCount(bitVector);
@@ -726,7 +730,7 @@ extends MapBinDescriptor
 	 * The number of distinct levels that my instances can occupy in a set's
 	 * hash tree.
 	 */
-	private static final byte numberOfLevels = 7;
+	private static final byte numberOfLevels = 6;
 
 	/**
 	 * Answer the appropriate {@link HashedMapBinDescriptor} to use for the
@@ -745,6 +749,13 @@ extends MapBinDescriptor
 	}
 
 	/**
+	 * The number of bits to shift a hash value to the right before extracting
+	 * six bits to determine a bin number.  This is a function of the level,
+	 * so that each level is hashed with a different part of the hash value.
+	 */
+	private final byte shift;
+
+	/**
 	 * Construct a new {@link HashedMapBinDescriptor}.
 	 *
 	 * @param mutability
@@ -757,6 +768,8 @@ extends MapBinDescriptor
 		final int level)
 	{
 		super(mutability, ObjectSlots.class, IntegerSlots.class, level);
+		shift = (byte)(level * 6);
+		assert shift < 32;
 	}
 
 	/**

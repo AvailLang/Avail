@@ -34,6 +34,7 @@ package com.avail.tools.unicode;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import com.avail.utility.configuration.Configuration;
 
 /**
  * {@code Configuration} describes the configuration of {@link
@@ -41,8 +42,8 @@ import java.nio.file.Paths;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class Configuration
-implements com.avail.utility.configuration.Configuration
+public class UnicodeConfiguration
+implements Configuration
 {
 	/** The {@linkplain Path directory} containing the JSON files. */
 	Path catalogPath = Paths.get(

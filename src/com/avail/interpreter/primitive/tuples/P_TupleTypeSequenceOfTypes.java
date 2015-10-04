@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.utility.Generator;
 
 /**
  * <strong>Primitive:</strong> Answer a {@linkplain TupleDescriptor
@@ -75,18 +76,18 @@ public final class P_TupleTypeSequenceOfTypes extends Primitive
 		{
 			return interpreter.primitiveFailure(E_NEGATIVE_SIZE);
 		}
-		final A_Tuple tupleObject =
-			ObjectTupleDescriptor.createUninitialized(tupleSize);
-		for (int i = 1; i <= tupleSize; i++)
-		{
-			tupleObject.objectTupleAtPut(i, NilDescriptor.nil());
-		}
-		for (int i = 1; i <= tupleSize; i++)
-		{
-			tupleObject.objectTupleAtPut(
-				i,
-				tupleType.typeAtIndex(startInt + i - 1).makeImmutable());
-		}
+		final A_Tuple tupleObject = ObjectTupleDescriptor.generateFrom(
+			tupleSize,
+			new Generator<A_BasicObject>()
+			{
+				private int index = startInt;
+
+				@Override
+				public A_BasicObject value ()
+				{
+					return tupleType.typeAtIndex(index++).makeImmutable();
+				}
+			});
 		return interpreter.primitiveSuccess(tupleObject);
 	}
 
