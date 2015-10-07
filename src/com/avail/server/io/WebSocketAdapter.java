@@ -459,7 +459,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						channel,
 						HttpStatusCode.BAD_REQUEST,
 						String.format(
-							"Invalid Server Authority (%s ≠ %s)",
+							"Invalid Server Authority (%s != %s)",
 							adapter.serverAuthority,
 							hostParts[0]));
 					return null;
