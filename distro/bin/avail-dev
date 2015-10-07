@@ -110,4 +110,4 @@ VMARGS=-classpath\ "$AVAIL_HOME/lib"\ $OSARGS\ "-Djava.util.logging.config.file=
 
 # Launch the Avail development environment in the background.
 DEVJAR=$AVAIL_HOME/lib/AvailDev.jar
-$VM $VMARGS -jar $DEVJAR &
+$VM $VMARGS -jar $DEVJAR $* &
