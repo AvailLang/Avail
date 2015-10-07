@@ -458,7 +458,10 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					badHandshake(
 						channel,
 						HttpStatusCode.BAD_REQUEST,
-						"Invalid Server Authority");
+						String.format(
+							"Invalid Server Authority (%s ≠ %s)",
+							adapter.serverAuthority,
+							hostParts[0]));
 					return null;
 				}
 				if (hostParts.length == 2
