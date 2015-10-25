@@ -49,6 +49,7 @@ Uses
 	"Sets",
 	"Variables"
 Names
+	"Arabic numeral",
 	"capitalize_",
 	"uppercase_",
 	"lowercase_",
@@ -1287,3 +1288,12 @@ Stable method "_≤_" is
 |
 	a's code point ≤ b's code point
 ] : boolean;
+
+arabicNumeralCharactersEnum ::= enumeration of "0123456789" → set;
+
+/**
+ * Answer the type of an Arabic numeral.
+ *
+ * @type "Arabic numeral"
+ */
+Public method "Arabic numeral" is [arabicNumeralCharactersEnum];
