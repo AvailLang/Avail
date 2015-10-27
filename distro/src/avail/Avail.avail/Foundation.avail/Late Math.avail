@@ -37,7 +37,14 @@ Extends
 	"Math"
 Uses
 	"Bootstrap",
-	"Control Structures",
+	"Casts",
+	"Characters",
+	"Control Structures" =
+	(
+		-"Cast_into_",
+		-"Cast|cast_into_else_",
+		…
+	),
 	"Definers",
 	"Early Assertions",
 	"Early Conditionals",
@@ -50,14 +57,17 @@ Uses
 	"Literals",
 	"Objects",
 	"Sets",
+	"Strings",
 	"Tuples",
 	"Types",
 	"Variables"
 Names
+	"a double from integer=_,fraction=_,exponent=_",
 	"_→_bytes",
 	"an integer from_",
 	"an unsigned integer from_",
 	"low_bits of_",
+	"_(decimal)",
 
 	/* Compound assignment. */
 	"_↑+=_", "_+=_",
@@ -684,3 +694,56 @@ Public stable method "an unsigned integer from_" is
 	For each b of bytes do [value := (eject value << 8) + b;];
 	value
 ] : whole number;
+
+/**
+ * Answer a {@type "double"} from the following components.
+ *
+ * @param "integerPart" "Arbaic numeral*"
+ * @param "fractionalPart" "Arabic numeral*"
+ * @param "exponent" "integer"
+ * @returns "double"
+ * @category "Numbers" "Integers" "Conversions" "Stringification"
+ */
+Public stable method "a double from integer=_,fraction=_,exponent=_" is
+[
+	integerPart : Arabic numeral*,
+	fractionalPart : Arabic numeral*,
+	exponent : integer
+|
+	contributionFromInteger ::=
+		if integerPart is empty
+		then [0.0]
+		else [integerPart (base 10) × 10^exponent];
+	contributionFromFraction ::=
+		if fractionalPart is empty
+		then [0.0]
+		else
+		[
+			fractionalPart (base 10) → double
+				× 10^(exponent - |fractionalPart|)
+		];
+	contributionFromInteger + contributionFromFraction
+] : double;
+
+/**
+ * Convert the specified string, in simple decimal notation, to a {@type
+ * "double"}.
+ *
+ * @method "_(decimal)"
+ * @param "digits" "string"
+ * @returns "double"
+ * @category "Numbers" "Integers" "Conversions" "Stringification"
+ */
+Public stable method "_(decimal)" is
+[
+	digits : string
+|
+	/* Note that the fractional part includes a leading period. */
+	integerPart, fractionalPart ::=
+		split digits before [c : character | c = ¢.];
+	a double from
+		integer=integerPart ?→ Arabic numeral*,
+		fraction=fractionalPart[2..] ?→ Arabic numeral*,
+		exponent=0
+] : double;
+

@@ -102,4 +102,4 @@ VMARGS=-classpath\ "$AVAIL_HOME/lib"\ "-Djava.util.logging.config.file=$HOME/.av
 
 # Launch the Avail server in the background.
 SERVJAR=$AVAIL_HOME/lib/AvailServer.jar
-$VM $VMARGS -jar $SERVJAR &
+$VM $VMARGS -jar $SERVJAR $* &

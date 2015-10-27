@@ -1832,8 +1832,9 @@ public final class AvailServer
 		})
 		final WebSocketAdapter adapter = new WebSocketAdapter(
 			server,
-			new InetSocketAddress(40000),
-			"localhost");
+			new InetSocketAddress(
+				args.length > 1 ? Integer.parseInt(args[1]) : 40000),
+			args.length > 0 ? args[0] : "localhost");
 		new Semaphore(0).acquire();
 	}
 }

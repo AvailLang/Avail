@@ -501,6 +501,7 @@ Extends
 	"Categories",
 	"Characters" =
 	(
+		"Arabic numeral",
 		"capitalize_",
 		"uppercase_",
 		"lowercase_",
@@ -853,6 +854,7 @@ Extends
 	),
 	"Late Math" =
 	(
+		"a double from integer=_,fraction=_,exponent=_",
 		"an integer from_",
 		"an unsigned integer from_",
 		"greatest common denominator of_and_",
@@ -876,6 +878,7 @@ Extends
 		"_is finite",
 		"_is infinite",
 		"_is odd",
+		"_(decimal)",
 		"_>_",
 		"_≥_",
 		"_↑+=_", "_+=_",
