@@ -604,7 +604,7 @@ Avail.prototype.reportError = function ()
 {
 	console.log(
 		'[ERROR#' + this.id + '] '
-		+ Array.prototype.slice.call(arguments).join(' '));
+		+ Array.prototype.slice.call(arguments).join(''));
 };
 
 AvailIO.prototype.dispatch = function (data)
