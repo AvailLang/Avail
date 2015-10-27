@@ -32,6 +32,7 @@
 
 package com.avail.stacks;
 
+import static com.avail.utility.Strings.*;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -1883,23 +1884,6 @@ public class StacksCommentsModule
 		}
 
 		htmlFileMap.internalLinks().putAll(internalLinks);
-	}
-
-	/**
-	 * @param numberOfTabs
-	 * 		the number of tabs to insert into the string.
-	 * @return
-	 * 		a String consisting of the number of tabs requested in
-	 * 		in numberOfTabs.
-	 */
-	public String tabs(final int numberOfTabs)
-	{
-		final StringBuilder stringBuilder = new StringBuilder();
-		for (int i = 1; i <= numberOfTabs; i++)
-		{
-			stringBuilder.append('\t');
-		}
-		return stringBuilder.toString();
 	}
 
 	/**

@@ -41,6 +41,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.RegisterState;
 
@@ -114,7 +115,7 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 	@Override
 	public boolean regenerate (
 		final L2Instruction instruction,
-		final List<L2Instruction> newInstructions,
+		final L1NaiveTranslator naiveTranslator,
 		final RegisterSet registerSet)
 	{
 		assert instruction.operation == this;
@@ -141,8 +142,8 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 					outerType,
 					registerSet,
 					destinationRegister,
-					newInstructions);
+					naiveTranslator);
 		}
-		return super.regenerate(instruction, newInstructions, registerSet);
+		return super.regenerate(instruction, naiveTranslator, registerSet);
 	}
 }

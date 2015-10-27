@@ -185,7 +185,7 @@ extends ParseNodeDescriptor
 			{
 				builder.append('$');
 				builder.append(object.token().string().asNativeString());
-				builder.append(':');
+				builder.append(" : ");
 				final A_Type functionType =
 					object.declaredType().functionType();
 				functionType.returnType().printOnAvoidingIndent(
@@ -260,7 +260,6 @@ extends ParseNodeDescriptor
 						recursionMap,
 						indent + 1);
 				}
-				builder.append(";");
 			}
 		},
 
@@ -301,9 +300,6 @@ extends ParseNodeDescriptor
 					builder,
 					recursionMap,
 					indent + 1);
-//TODO[MvG] REMOVE DEBUG!!!
-builder.append("[type=" + object.declaredType() + "]");
-				builder.append(";");
 			}
 		},
 
@@ -358,7 +354,6 @@ builder.append("[type=" + object.declaredType() + "]");
 						recursionMap,
 						indent + 1);
 				}
-				builder.append(";");
 			}
 		},
 
@@ -389,7 +384,6 @@ builder.append("[type=" + object.declaredType() + "]");
 					builder,
 					recursionMap,
 					indent + 1);
-				builder.append(";");
 			}
 		},
 

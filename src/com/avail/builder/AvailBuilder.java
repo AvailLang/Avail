@@ -210,6 +210,130 @@ public final class AvailBuilder
 	private final Set<Continuation2<LoadedModule, Boolean>> subscriptions =
 		new HashSet<>();
 
+	/** DEBUG:  A way to track loading/compiling parallelism and progress. */
+	class DebugLoadStatusTracker
+	{
+		/**
+		 * Debug: The set of names of modules in the process of being loaded
+		 * from repositories.
+		 */
+		private final Set<ModuleName> namesOfModulesBeingLoaded =
+			new HashSet<ModuleName>();
+
+		/**
+		 * Debug: The set of names of modules in the process of being compiled
+		 * from source code.
+		 */
+		private final Set<ModuleName> namesOfModulesBeingCompiled =
+			new HashSet<ModuleName>();
+
+		/** Debug: Write to System.out what's loading and compiling. */
+		public synchronized void update ()
+		{
+			final StringBuilder builder = new StringBuilder();
+			if (namesOfModulesBeingLoaded.isEmpty()
+				&& namesOfModulesBeingCompiled.isEmpty())
+			{
+				builder.append("(nothing being compiled or loaded)");
+			}
+			else
+			{
+				if (!namesOfModulesBeingLoaded.isEmpty())
+				{
+					builder.append("Loading ");
+					builder.append(namesOfModulesBeingLoaded.size());
+					builder.append(": ");
+					boolean first = true;
+					for (final ModuleName name : namesOfModulesBeingLoaded)
+					{
+						if (first)
+						{
+							first = false;
+						}
+						else
+						{
+							builder.append(", ");
+						}
+						builder.append(name.localName());
+					}
+					builder.append("\n");
+				}
+				if (!namesOfModulesBeingCompiled.isEmpty())
+				{
+					if (!namesOfModulesBeingLoaded.isEmpty())
+					{
+						builder.append("    & ");
+					}
+					builder.append("Compiling ");
+					builder.append(namesOfModulesBeingCompiled.size());
+					builder.append(": ");
+					boolean first = true;
+					for (final ModuleName name : namesOfModulesBeingCompiled)
+					{
+						if (first)
+						{
+							first = false;
+						}
+						else
+						{
+							builder.append(", ");
+						}
+						builder.append(name.localName());
+					}
+					builder.append("\n");
+				}
+			}
+			System.out.append(builder);
+		}
+
+		/**
+		 * Debug: Record that a module is loading.
+		 *
+		 * @param name The name of the module.
+		 */
+		public synchronized void startedLoading (final ModuleName name)
+		{
+			namesOfModulesBeingLoaded.add(name);
+			update();
+		}
+
+		/**
+		 * Debug: Record that a module is no longer loading.
+		 *
+		 * @param name The name of the module.
+		 */
+		public synchronized void stoppedLoading (final ModuleName name)
+		{
+			namesOfModulesBeingLoaded.remove(name);
+			update();
+		}
+
+		/**
+		 * Debug: Record that a module is compiling.
+		 *
+		 * @param name The name of the module.
+		 */
+		public synchronized void startCompiling (final ModuleName name)
+		{
+			namesOfModulesBeingCompiled.add(name);
+			update();
+		}
+
+		/**
+		 * Debug: Record that a module no longer compiling.
+		 *
+		 * @param name The name of the module.
+		 */
+		public synchronized void stoppedCompiling (final ModuleName name)
+		{
+			namesOfModulesBeingCompiled.remove(name);
+			update();
+		}
+	}
+
+	final DebugLoadStatusTracker debugLoadStatusTracker =
+		new DebugLoadStatusTracker();
+
 	/**
 	 * Record a new party to notify about module loading and unloading.
 	 *
@@ -2022,6 +2146,7 @@ public final class AvailBuilder
 			final ModuleCompilationKey compilationKey,
 			final Continuation0 completionAction)
 		{
+
 			final IndexedRepositoryManager repository = moduleName.repository();
 			final ModuleArchive archive = repository.getArchive(
 				moduleName.rootRelativeName());
@@ -2744,10 +2869,7 @@ public final class AvailBuilder
 				public void value (final @Nullable Integer count)
 				{
 					assert count != null;
-					for (int i = count; i > 0; i--)
-					{
-						out.append('\t');
-					}
+					Strings.tab(out, count);
 				}
 			};
 			root.recursiveDo(

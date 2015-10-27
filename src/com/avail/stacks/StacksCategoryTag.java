@@ -32,6 +32,7 @@
 
 package com.avail.stacks;
 
+import static com.avail.utility.Strings.*;
 import java.util.HashSet;
 import java.util.List;
 import com.avail.utility.json.JSONWriter;

@@ -605,7 +605,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * The pattern of the simple names of {@link Primitive} classes.
 	 */
 	private final static Pattern primitiveNamePattern =
-		Pattern.compile("P_((\\d+)_)?(\\w+)");
+		Pattern.compile("P_(\\w+)");
 
 	/*
 	 * Read from allPrimitivesFileName to get a complete manifest of accessible
@@ -637,7 +637,7 @@ implements IntegerEnumSlotDescriptionEnum
 						primitiveNamePattern.matcher(lastPart);
 					if (matcher.matches())
 					{
-						final String name = matcher.group(3);  // for now
+						final String name = matcher.group(1);
 						assert !byNames.containsKey(name);
 						final PrimitiveHolder holder = new PrimitiveHolder(
 							name, className, counter);
@@ -1140,5 +1140,32 @@ implements IntegerEnumSlotDescriptionEnum
 			: "Primitive subclass with Invokes flag should have "
 				+ "overriden foldOutInvoker()";
 		throw new RuntimeException("Unreachable");
+	}
+
+	/**
+	 * An {@link L2Instruction} whose operation is {@link L2_INVOKE} now has the
+	 * opportunity to replace itself with an alternate sequence of {@link
+	 * L2Instruction}s.  This is the {@link Primitive} of the raw function in
+	 * the function to be invoked.
+	 *
+	 * @param instruction
+	 *        The invocation instruction.
+	 * @param naiveTranslator
+	 *        The {@link L1NaiveTranslator} into which to write the replacement
+	 *        instructions.
+	 * @param registerSet
+	 *        The {@link RegisterSet} visible after this instruction.
+	 * @return
+	 *        Whether a transformation took place.  If false, no new
+	 *        instructions were output, and the original instruction should be
+	 *        kept.
+	 */
+	public boolean regenerate (
+		final L2Instruction instruction,
+		final L1NaiveTranslator naiveTranslator,
+		final RegisterSet registerSet)
+	{
+		// By default don't transform it into alternate code.
+		return false;
 	}
 }

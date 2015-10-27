@@ -43,6 +43,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
+import com.avail.utility.Strings;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 
@@ -149,43 +150,54 @@ extends ParseNodeDescriptor
 		{
 			declaredExceptions = null;
 		}
+		final boolean endsWithStatement = statementsSize < 1
+			|| statementsTuple.tupleAt(statementsSize).expressionType().isTop();
 		if (argCount == 0
 			&& primitive == null
 			&& statementsSize == 1
 			&& explicitResultType == null
 			&& declaredExceptions == null)
 		{
-			builder.append('[');
+			// See if the lone statement fits on a line.
+			final StringBuilder tempBuilder = new StringBuilder();
 			statementsTuple.tupleAt(1).printOnAvoidingIndent(
-				builder,
+				tempBuilder,
 				recursionMap,
 				indent + 1);
-			builder.append("]");
-			return;
+			if (tempBuilder.indexOf("\n") == -1
+				&& tempBuilder.length() < 100)
+			{
+				builder.append('[');
+				builder.append(tempBuilder);
+				if (endsWithStatement)
+				{
+					builder.append(';');
+				}
+				builder.append(']');
+				return;
+			}
 		}
 
 		// Use multiple lines instead...
 		builder.append('[');
+		boolean wroteAnything = false;
 		if (argCount > 0)
 		{
-			argumentsTuple.tupleAt(1).printOnAvoidingIndent(
-				builder,
-				recursionMap,
-				indent + 2);
-			for (int argIndex = 2; argIndex <= argCount; argIndex++)
+			wroteAnything = true;
+			for (int argIndex = 1; argIndex <= argCount; argIndex++)
 			{
-				builder.append(", ");
+				Strings.newlineTab(builder, indent + 1);
 				argumentsTuple.tupleAt(argIndex).printOnAvoidingIndent(
 					builder,
 					recursionMap,
 					indent + 2);
+				if (argIndex < argCount)
+				{
+					builder.append(",");
+				}
 			}
-			builder.append(" |");
-		}
-		builder.append('\n');
-		for (int i = 1; i <= indent; i++)
-		{
-			builder.append('\t');
+			Strings.newlineTab(builder, indent);
+			builder.append("|");
 		}
 		boolean skipFailureDeclaration = false;
 		if (primitive != null
@@ -193,7 +205,8 @@ extends ParseNodeDescriptor
 			&& !primitive.hasFlag(Flag.SpecialReturnSoleArgument)
 			&& !primitive.hasFlag(Flag.SpecialReturnGlobalValue))
 		{
-			builder.append('\t');
+			wroteAnything = true;
+			Strings.newlineTab(builder, indent + 1);
 			builder.append("Primitive ");
 			builder.append(primitive.name());
 			if (!primitive.hasFlag(Flag.CannotFail))
@@ -207,11 +220,6 @@ extends ParseNodeDescriptor
 				skipFailureDeclaration = true;
 			}
 			builder.append(";");
-			builder.append('\n');
-			for (int i = 1; i <= indent; i++)
-			{
-				builder.append('\t');
-			}
 		}
 		for (int index = 1; index <= statementsSize; index++)
 		{
@@ -224,17 +232,21 @@ extends ParseNodeDescriptor
 			}
 			else
 			{
-				builder.append('\t');
+				wroteAnything = true;
+				Strings.newlineTab(builder, indent + 1);
 				statement.printOnAvoidingIndent(
 					builder,
 					recursionMap,
 					indent + 2);
-				builder.append('\n');
-				for (int i = 1; i <= indent; i++)
+				if (index < statementsSize || endsWithStatement)
 				{
-					builder.append('\t');
+					builder.append(";");
 				}
 			}
+		}
+		if (wroteAnything)
+		{
+			Strings.newlineTab(builder, indent);
 		}
 		builder.append(']');
 		if (explicitResultType != null)

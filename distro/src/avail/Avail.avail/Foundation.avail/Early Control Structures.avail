@@ -44,7 +44,6 @@ Uses
 Names
 	"Ignore:_",
 	"From_to_do_",
-	"Cast|cast_into_else_",
 	"Cast|cast_into_",
 	"(_)",
 	"((_))"
@@ -147,42 +146,6 @@ Semantic restriction "If|if_then_else_" is
 /**
  * If the function {@param "accept"} accepts {@param "value"} as an argument 
  * (based on its runtime type), then invoke {@param "accept"} with {@param 
- * "value"}. Otherwise, invoke {@param "reject"} instead.
- * 
- * This method effects a dynamic type cast of {@param "value"} to the type of 
- * {@param "accept"}'s only parameter. While type casts are occasionally 
- * necessary even in runtime code, this facility is primarily intended for use 
- * by semantic restriction functions. Used in this way it leads to a stronger 
- * static type system.
- *
- * @method "Cast|cast_into_else_"
- * @param "value" "any"
- *        A value.
- * @param "accept" "function accepting <⊥> and returning ⊤"
- *        The function to invoke if {@param "value"} is a subtype of the its 
- *        parameter type.
- * @param "reject" "nullary procedure"
- *        The function to invoke if {@param "value"} is not a subtype of the 
- *        parameter type of {@param "accept"}.
- * @returns "⊤"
- * @category "Bootstrap" "Casts" "Conditionals"
- */
-Public method "Cast|cast_into_else_" is
-[
-	value : any,
-	accept : function accepting <⊥> and returning ⊤,
-	reject : nullary procedure
-|
-	if value's type ⊆ accept's type[1] then
-	[
-		invoke accept with <value>;
-	]
-	else reject;
-] : ⊤;
-
-/**
- * If the function {@param "accept"} accepts {@param "value"} as an argument 
- * (based on its runtime type), then invoke {@param "accept"} with {@param 
  * "value"}. Otherwise, cause an assertion failure. This is obsolete once 
  * exceptions are available, and should not be exported beyond this package.
  *
@@ -232,7 +195,7 @@ Public method "Cast|cast_into_" is
 Semantic restriction "Cast|cast_into_else_" is
 [
 	value : any meta,
-	accept : function accepting <⊥> and returning ⊤'s type,
+	accept : (function accepting <⊥> and returning ⊤)'s type,
 	reject : nullary procedure's type
 |
 	If value ⊆ accept[1] then
@@ -249,19 +212,14 @@ Semantic restriction "Cast|cast_into_else_" is
 			Reject parse, expected: message
 		];
 	];
-	If value ∪ accept[1] = value then
-	[
-		/* This is the expected case, i.e., the function argument is a subtype
-		 * of value, but logical negation isn't available yet.
-		 */
-	]
-	else
+	If accept[1] ∩ value = ⊥ then
 	[
 		messageTuple ::= concatenate <
 			"allowed cast expression, but ",
 			“value”,
-			" is not a supertype of ",
-			“accept[1]”>;
+			" and ",
+			“accept[1]”,
+			" are disjoint">;
 		cast messageTuple into
 		[
 			message : string
@@ -284,7 +242,7 @@ Semantic restriction "Cast|cast_into_else_" is
 Semantic restriction "Cast|cast_into_" is
 [
 	value : any meta,
-	accept : function accepting <⊥> and returning ⊤'s type
+	accept : (function accepting <⊥> and returning ⊤)'s type
 |
 	If value ⊆ accept[1] then
 	[

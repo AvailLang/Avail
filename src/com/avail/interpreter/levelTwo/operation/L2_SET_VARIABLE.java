@@ -39,6 +39,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -104,7 +105,7 @@ extends L2Operation
 	@Override
 	public boolean regenerate (
 		final L2Instruction instruction,
-		final List<L2Instruction> newInstructions,
+		final L1NaiveTranslator naiveTranslator,
 		final RegisterSet registerSet)
 	{
 		final L2ObjectRegister variableReg =
@@ -117,15 +118,14 @@ extends L2Operation
 		{
 			// Type propagation has strengthened the value's type enough to
 			// be able to avoid the check.
-			newInstructions.add(new L2Instruction(
+			naiveTranslator.addInstruction(
 				L2_SET_VARIABLE_NO_CHECK.instance,
 				instruction.operands[0],
 				instruction.operands[1],
-				instruction.operands[2]));
+				instruction.operands[2]);
 			return true;
-
 		}
-		return super.regenerate(instruction, newInstructions, registerSet);
+		return super.regenerate(instruction, naiveTranslator, registerSet);
 	}
 
 	@Override

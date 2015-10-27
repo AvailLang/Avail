@@ -217,6 +217,7 @@ Semantic restriction "_+_→_" is
 	 */
 	else
 	[
+		lower := eject lower max 1;
 		bound := eject bound + 1;
 	];
 	{newKeyType→newValueType | [lower..bound+1)}

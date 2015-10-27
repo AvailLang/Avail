@@ -41,6 +41,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -77,7 +78,7 @@ public class L2_JUMP_IF_DOES_NOT_EQUAL_CONSTANT extends L2Operation
 	@Override
 	public boolean regenerate (
 		final L2Instruction instruction,
-		final List<L2Instruction> newInstructions,
+		final L1NaiveTranslator naiveTranslator,
 		final RegisterSet registerSet)
 	{
 		// Eliminate tests due to type propagation.
@@ -105,9 +106,9 @@ public class L2_JUMP_IF_DOES_NOT_EQUAL_CONSTANT extends L2Operation
 			// It can never be that value.  Always jump.  The instructions that
 			// follow the jump will die and be eliminated next pass.
 			assert canJump;
-			newInstructions.add(new L2Instruction(
+			naiveTranslator.addInstruction(
 				L2_JUMP.instance,
-				instruction.operands[0]));
+				instruction.operands[0]);
 			return true;
 		}
 		assert !mustJump;
@@ -117,7 +118,7 @@ public class L2_JUMP_IF_DOES_NOT_EQUAL_CONSTANT extends L2Operation
 			return true;
 		}
 		// The test could not be eliminated or improved.
-		return super.regenerate(instruction, newInstructions, registerSet);
+		return super.regenerate(instruction, naiveTranslator, registerSet);
 	}
 
 	@Override

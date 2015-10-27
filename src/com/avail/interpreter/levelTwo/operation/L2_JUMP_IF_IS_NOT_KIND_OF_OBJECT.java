@@ -32,10 +32,19 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import java.util.List;
+import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 
 
 /**
@@ -67,6 +76,70 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_OBJECT extends L2Operation
 		{
 			interpreter.offset(target);
 		}
+	}
+
+	@Override
+	public boolean regenerate (
+		final L2Instruction instruction,
+		final L1NaiveTranslator naiveTranslator,
+		final RegisterSet registerSet)
+	{
+		final L2PcOperand target = (L2PcOperand)(instruction.operands[0]);
+		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(1);
+		final L2ObjectRegister typeReg = instruction.readObjectRegisterAt(2);
+
+		if (registerSet.hasConstantAt(typeReg))
+		{
+			// Replace this compare-and-branch with one that compares against
+			// a constant.  This further opens the possibility of eliminating
+			// one of the branches.
+			final A_Type constantType = registerSet.constantAt(typeReg);
+			naiveTranslator.addInstruction(
+				L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT.instance,
+				target,
+				new L2ReadPointerOperand(valueReg),
+				new L2ConstantOperand(constantType));
+			return true;
+		}
+		return super.regenerate(instruction, naiveTranslator, registerSet);
+	}
+
+	@Override
+	protected void propagateTypes (
+		final L2Instruction instruction,
+		final List<RegisterSet> registerSets,
+		final L2Translator translator)
+	{
+//		final int target = instruction.pcAt(0);
+		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
+		final L2ObjectRegister typeReg = instruction.readObjectRegisterAt(2);
+
+		assert registerSets.size() == 2;
+		final RegisterSet fallThroughSet = registerSets.get(0);
+//		final RegisterSet postJumpSet = registerSets.get(1);
+
+		A_Type type;
+		if (fallThroughSet.hasConstantAt(typeReg))
+		{
+			// The type is statically known.
+			type = fallThroughSet.constantAt(typeReg);
+		}
+		else if (fallThroughSet.hasTypeAt(typeReg))
+		{
+			// The exact type being tested against isn't known, but the metatype
+			// is.
+			final A_Type meta = fallThroughSet.typeAt(typeReg);
+			assert meta.isInstanceMeta();
+			type = meta.instance();
+		}
+		else
+		{
+			type = ANY.o();
+		}
+		fallThroughSet.typeAtPut(
+			typeReg,
+			type.typeIntersection(fallThroughSet.typeAt(objectReg)),
+			instruction);
 	}
 
 	@Override

@@ -131,6 +131,17 @@ public class L2_LOOKUP_BY_TYPES extends L2Operation
 		interpreter.offset(lookedSucceeded);
 	}
 
+	/** The type of failure codes that a failed lookup can produce. */
+	private final A_Type failureCodesType =
+		AbstractEnumerationTypeDescriptor.withInstances(
+			TupleDescriptor.from(
+					E_NO_METHOD.numericCode(),
+					E_NO_METHOD_DEFINITION.numericCode(),
+					E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
+					E_FORWARD_METHOD_DEFINITION.numericCode(),
+					E_ABSTRACT_METHOD_DEFINITION.numericCode())
+				.asSet());
+
 	@Override
 	protected void propagateTypes (
 		final L2Instruction instruction,
@@ -148,16 +159,7 @@ public class L2_LOOKUP_BY_TYPES extends L2Operation
 			instruction.writeObjectRegisterAt(4);
 		// If the lookup fails, then only the error code register changes.
 		registerSets.get(0).typeAtPut(
-			errorCodeReg,
-			AbstractEnumerationTypeDescriptor.withInstances(
-				TupleDescriptor.from(
-						E_NO_METHOD.numericCode(),
-						E_NO_METHOD_DEFINITION.numericCode(),
-						E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
-						E_FORWARD_METHOD_DEFINITION.numericCode(),
-						E_ABSTRACT_METHOD_DEFINITION.numericCode())
-					.asSet()),
-			instruction);
+			errorCodeReg, failureCodesType, instruction);
 		// If the lookup succeeds, then the situation is more complex.
 		final RegisterSet registerSet = registerSets.get(1);
 		final List<L2ObjectRegister> argRegisters = argsVector.registers();

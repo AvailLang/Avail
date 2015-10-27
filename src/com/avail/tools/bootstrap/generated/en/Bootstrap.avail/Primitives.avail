@@ -55,6 +55,7 @@ Names
 	"Assert:_(_)",
 	"Attempt to join_",
 	"Breakpoint",
+	"Cast|cast_into_else_",
 	"Crash:_",
 	"Error:_",
 	"Exit_with_",

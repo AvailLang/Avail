@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.Nullable;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
@@ -203,6 +204,13 @@ extends A_BasicObject
 	 *         implementation is not linked to a primitive.
 	 */
 	int primitiveNumber();
+
+	/**
+	 * Answer this raw function's {@link Primitive} or {@code null}.
+	 *
+	 * @return The Primitive, or null if this raw function is not primitive.
+	 */
+	@Nullable Primitive primitive ();
 
 	/**
 	 * Answer the {@linkplain L2Chunk chunk} that the {@linkplain Interpreter

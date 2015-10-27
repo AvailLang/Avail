@@ -1316,7 +1316,7 @@ public final class Interpreter
 	/**
 	 * The size of a {@linkplain FiberDescriptor fiber}'s time slice, in ticks.
 	 */
-	private static final int timeSliceTicks = 10;
+	private static final int timeSliceTicks = 5;
 
 	/**
 	 * Answer true if an interrupt has been requested. The interrupt may be

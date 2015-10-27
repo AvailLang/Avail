@@ -40,6 +40,7 @@ import com.avail.exceptions.MapException;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
+import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -116,28 +117,31 @@ extends Descriptor
 	@Override
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
-		final StringBuilder aStream,
+		final StringBuilder builder,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
 		boolean multiline = false;
-		aStream.append('{');
-		final int startPosition = aStream.length();
+		builder.append('{');
+		final int startPosition = builder.length();
 		boolean first = true;
 		for (final MapDescriptor.Entry entry : object.mapIterable())
 		{
-			aStream.append(first ? "" : ", ");
-			final int entryStart = aStream.length();
+			if (!first)
+			{
+				builder.append(", ");
+			}
+			final int entryStart = builder.length();
 			entry.key().printOnAvoidingIndent(
-				aStream, recursionMap, indent + 2);
-			aStream.append("→");
+				builder, recursionMap, indent + 2);
+			builder.append("→");
 			entry.value().printOnAvoidingIndent(
-				aStream, recursionMap, indent + 1);
-			if (aStream.length() - startPosition > 100
-				|| aStream.indexOf("\n", entryStart) != -1)
+				builder, recursionMap, indent + 1);
+			if (builder.length() - startPosition > 100
+				|| builder.indexOf("\n", entryStart) != -1)
 			{
 				// Start over with multiple line formatting.
-				aStream.setLength(startPosition);
+				builder.setLength(startPosition);
 				multiline = true;
 				break;
 			}
@@ -148,34 +152,26 @@ extends Descriptor
 			first = true;
 			for (final MapDescriptor.Entry entry : object.mapIterable())
 			{
-				aStream.append(first ? "\n" : ",\n");
-				for (int i = indent; i > 0; i--)
+				if (!first)
 				{
-					aStream.append('\t');
+					builder.append(',');
 				}
-				final int entryStart = aStream.length();
+				Strings.newlineTab(builder, indent + 1);
+				final int entryStart = builder.length();
 				entry.key().printOnAvoidingIndent(
-					aStream, recursionMap, indent + 2);
-				if (aStream.indexOf("\n", entryStart) != -1)
+					builder, recursionMap, indent + 2);
+				if (builder.indexOf("\n", entryStart) != -1)
 				{
-					aStream.append("\n");
-					for (int i = indent + 1; i > 0; i--)
-					{
-						aStream.append('\t');
-					}
+					Strings.newlineTab(builder, indent + 1);
 				}
-				aStream.append("→");
+				builder.append("→");
 				entry.value().printOnAvoidingIndent(
-					aStream, recursionMap, indent + 1);
+					builder, recursionMap, indent + 1);
 				first = false;
 			}
-			aStream.append("\n");
-			for (int i = indent - 1; i > 0; i--)
-			{
-				aStream.append('\t');
-			}
+			Strings.newlineTab(builder, indent);
 		}
-		aStream.append('}');
+		builder.append('}');
 	}
 
 	/**
@@ -289,10 +285,6 @@ extends Descriptor
 			return false;
 		}
 		final int mapSize = object.mapSize();
-		if (mapSize == 0)
-		{
-			return true;
-		}
 		if (!aTypeObject.sizeRange().rangeIncludesInt(mapSize))
 		{
 			return false;
@@ -300,14 +292,20 @@ extends Descriptor
 		final A_Type keyType = aTypeObject.keyType();
 		final A_Type valueType = aTypeObject.valueType();
 		final AvailObject rootBin = rootBin(object);
+		final boolean keyTypeIsEnumeration = keyType.isEnumeration();
+		final boolean valueTypeIsEnumeration = valueType.isEnumeration();
+		@Nullable A_Type keyUnionKind = null;
+		@Nullable A_Type valueUnionKind = null;
 		final boolean keysMatch =
 			keyType.equals(ANY.o())
-			|| (!keyType.isEnumeration()
-				&& rootBin.mapBinKeyUnionKind().isSubtypeOf(keyType));
+			|| (!keyTypeIsEnumeration
+				&& (keyUnionKind = rootBin.mapBinKeyUnionKind())
+					.isSubtypeOf(keyType));
 		final boolean valuesMatch =
 			valueType.equals(ANY.o())
-			|| (!valueType.isEnumeration()
-				&& rootBin.mapBinValueUnionKind().isSubtypeOf(valueType));
+			|| (!valueTypeIsEnumeration
+				&& (valueUnionKind = rootBin.mapBinValueUnionKind())
+					.isSubtypeOf(valueType));
 		if (keysMatch)
 		{
 			if (valuesMatch)
@@ -319,13 +317,13 @@ extends Descriptor
 			// If the valueUnionKind and the expected valueType don't intersect
 			// then the actual map can't comply.  The empty map was already
 			// special-cased.
-			final boolean valuesCantMatch = !valueType.isEnumeration() &&
-				rootBin.mapBinValueUnionKind()
-					.typeIntersection(valueType)
-					.equals(BottomTypeDescriptor.bottom());
-			if (valuesCantMatch)
+			if (!valueTypeIsEnumeration)
 			{
-				return false;
+				assert valueUnionKind != null;
+				if (valueUnionKind.typeIntersection(valueType).isBottom())
+				{
+					return false;
+				}
 			}
 			for (final Entry entry : object.mapIterable())
 			{
@@ -340,13 +338,13 @@ extends Descriptor
 			// If the keyUnionKind and the expected keyType don't intersect
 			// then the actual map can't comply.  The empty map was already
 			// special-cased.
-			final boolean keysCantMatch = !keyType.isEnumeration() &&
-				rootBin.mapBinKeyUnionKind()
-					.typeIntersection(keyType)
-					.equals(BottomTypeDescriptor.bottom());
-			if (keysCantMatch)
+			if (!keyTypeIsEnumeration)
 			{
-				return false;
+				assert keyUnionKind != null;
+				if (keyUnionKind.typeIntersection(keyType).isBottom())
+				{
+					return false;
+				}
 			}
 			if (valuesMatch)
 			{
@@ -365,13 +363,13 @@ extends Descriptor
 				// If the valueUnionKind and the expected valueType don't
 				// intersect then the actual map can't comply.  The empty map
 				// was already special-cased.
-				final boolean valuesCantMatch = !valueType.isEnumeration() &&
-					rootBin.mapBinValueUnionKind()
-						.typeIntersection(valueType)
-						.equals(BottomTypeDescriptor.bottom());
-				if (valuesCantMatch)
+				if (!valueTypeIsEnumeration)
 				{
-					return false;
+					assert valueUnionKind != null;
+					if (valueUnionKind.typeIntersection(valueType).isBottom())
+					{
+						return false;
+					}
 				}
 				for (final Entry entry : object.mapIterable())
 				{

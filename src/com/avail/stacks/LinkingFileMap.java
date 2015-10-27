@@ -32,6 +32,7 @@
 
 package com.avail.stacks;
 
+import static com.avail.utility.Strings.*;
 import static java.nio.file.StandardOpenOption.*;
 import java.io.IOException;
 import java.io.Writer;
@@ -447,24 +448,6 @@ public class LinkingFileMap
 		categoryMethodList.clear();
 		categoryToDescription.clear();
 	}
-
-	/**
-	 * @param numberOfTabs
-	 * 		the number of tabs to insert into the string.
-	 * @return
-	 * 		a String consisting of the number of tabs requested in
-	 * 		in numberOfTabs.
-	 */
-	private String tabs(final int numberOfTabs)
-	{
-		final StringBuilder stringBuilder = new StringBuilder();
-		for (int i = 1; i <= numberOfTabs; i++)
-		{
-			stringBuilder.append('\t');
-		}
-		return stringBuilder.toString();
-	}
-
 
 	/**
 	 * A method that writes a JSON file of all the internal linking of Stacks

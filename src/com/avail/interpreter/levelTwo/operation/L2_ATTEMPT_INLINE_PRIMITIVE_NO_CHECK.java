@@ -104,7 +104,7 @@ extends L2Operation
 		{
 			interpreter.argsBuffer.add(register.in(interpreter));
 		}
-		assert function.code().primitiveNumber() == primitive.primitiveNumber;
+		assert function.code().primitive() == primitive;
 		final Result res = interpreter.attemptPrimitive(
 			primitive.primitiveNumber,
 			function,

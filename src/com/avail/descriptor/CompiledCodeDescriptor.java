@@ -51,6 +51,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.Strings;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 
@@ -943,11 +944,7 @@ extends Descriptor
 			builder,
 			recursionMap,
 			indent);
-		builder.append('\n');
-		for (int i = indent; i > 0; i--)
-		{
-			builder.append('\t');
-		}
+		Strings.newlineTab(builder, indent);
 		builder.append("Nybblecodes:\n");
 		L1Disassembler.disassemble(
 			object,

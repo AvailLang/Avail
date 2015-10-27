@@ -783,12 +783,11 @@ extends MapBinDescriptor
 		int target = 0;
 		for (int level = 0; level < numberOfLevels; level++)
 		{
-			descriptors[target++] =
-				new HashedMapBinDescriptor(MUTABLE, level);
-			descriptors[target++] =
-				new HashedMapBinDescriptor(IMMUTABLE, level);
-			descriptors[target++] =
-				new HashedMapBinDescriptor(SHARED, level);
+			for (final Mutability mut : Mutability.values())
+			{
+				descriptors[target++] =
+					new HashedMapBinDescriptor(mut, level);
+			}
 		}
 	}
 

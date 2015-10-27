@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.interpreter.Interpreter.*;
 import static com.avail.interpreter.levelTwo.L1InstructionStepper.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Flag;
@@ -91,11 +92,11 @@ public class L2_PREPARE_NEW_FRAME extends L2Operation
 		interpreter.integerAtPut(
 			stackpRegister(),
 			argumentOrLocalRegister(numSlots + 1));
-		if (code.primitiveNumber() != 0)
+		final @Nullable Primitive primitive = code.primitive();
+		if (primitive != null)
 		{
 			// A failed primitive.
-			assert !Primitive.byPrimitiveNumberOrFail(code.primitiveNumber())
-				.hasFlag(Flag.CannotFail);
+			assert !primitive.hasFlag(Flag.CannotFail);
 			final A_BasicObject primitiveFailureValue =
 				interpreter.pointerAt(PRIMITIVE_FAILURE);
 			final A_Variable primitiveFailureVariable =

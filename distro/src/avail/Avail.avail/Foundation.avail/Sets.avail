@@ -102,7 +102,7 @@ Semantic restriction "_+_" is
 	/* If the element type is an instance type and equal to `valueType`,
 	 * then the value is already present; the set type does not change.
 	 */
-	if |elementType| = 1 ∧ elementType = valueType then
+	if |elementType| = 1 ∧ elementType ∈ nontype ∧ elementType = valueType then
 	[
 		setType
 	]

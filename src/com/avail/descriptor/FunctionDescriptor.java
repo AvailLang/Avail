@@ -78,20 +78,6 @@ extends Descriptor
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
-		switch (mutability)
-		{
-			case MUTABLE:
-				aStream.append("Mutable function with code: ");
-				break;
-			case IMMUTABLE:
-				aStream.append("Immutable function with code: ");
-				break;
-			case SHARED:
-				aStream.append("Shared function with code: ");
-				break;
-			default:
-				assert false;
-		}
 		L1Decompiler.parse(object).printOnAvoidingIndent(
 			aStream,
 			recursionMap,

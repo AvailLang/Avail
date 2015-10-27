@@ -36,6 +36,7 @@ import static com.avail.descriptor.ObjectTypeDescriptor.ObjectSlots.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -131,11 +132,7 @@ extends TypeDescriptor
 				{
 					builder.append(",");
 				}
-				builder.append('\n');
-				for (int tab = 0; tab < indent; tab++)
-				{
-					builder.append('\t');
-				}
+				Strings.newlineTab(builder, indent);
 				builder.append(entry.key().atomName().asNativeString());
 				builder.append(" : ");
 				entry.value().printOnAvoidingIndent(

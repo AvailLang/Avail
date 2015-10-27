@@ -391,6 +391,34 @@ public class L2Translator
 		FixedRegister.all().length;
 
 	/**
+	 * An {@link EnumMap} from each {@link FixedRegister} to its manifestation
+	 * as an architectural {@link L2ObjectRegister}.
+	 */
+	@InnerAccess final EnumMap<FixedRegister, L2ObjectRegister>
+		fixedRegisterMap;
+
+	/**
+	 * A label (i.e., an {@link L2Instruction} whose operation is an {@link
+	 * L2_LABEL}).  This is output right at the start of naive code generation.
+	 * It is reached through normal invocation, but it can also be reached by
+	 * {@linkplain P_RestartContinuation restarting} a continuation created by a
+	 * {@linkplain L1NaiveTranslator#L1Ext_doPushLabel() push-label} nybblecode
+	 * instruction.
+	 */
+	final L2Instruction startLabel = newLabel("start");
+
+	/**
+	 * A label (i.e., an {@link L2Instruction} whose operation is an {@link
+	 * L2_LABEL}).  This is only output after naive code generation if a
+	 * {@linkplain L1NaiveTranslator#L1Ext_doPushLabel() push-label} instruction
+	 * was encountered.  If so, a coda will be output starting with this
+	 * restartLabel so that restarts of the created label continuations can
+	 * correctly explode the fields into registers then jump to the main
+	 * entry point at the {@link #startLabel}.
+	 */
+	final L2Instruction restartLabel = newLabel("restart");
+
+	/**
 	 * Answer the specified fixed register.
 	 *
 	 * @param registerEnum The {@link FixedRegister} identifying the register.
@@ -400,13 +428,6 @@ public class L2Translator
 	{
 		return architecturalRegisters.get(registerEnum.ordinal());
 	}
-
-	/**
-	 * An {@link EnumMap} from each {@link FixedRegister} to its manifestation
-	 * as an architectural {@link L2ObjectRegister}.
-	 */
-	@InnerAccess final EnumMap<FixedRegister, L2ObjectRegister>
-		fixedRegisterMap;
 
 	/**
 	 * Answer the register holding the specified continuation slot.  The slots
@@ -709,7 +730,8 @@ public class L2Translator
 		 * a label phrase causes construction of a continuation which uses the
 		 * restartLabel.
 		 */
-		@Nullable RegisterSet naiveRegisters = new RegisterSet(fixedRegisterMap);
+		@Nullable RegisterSet naiveRegisters =
+			new RegisterSet(fixedRegisterMap);
 
 		/**
 		 * Answer the {@link RegisterSet} information at the current position in
@@ -736,27 +758,6 @@ public class L2Translator
 			new HashMap<>();
 
 		/**
-		 * A label (i.e., an {@link L2Instruction} whose operation is an {@link
-		 * L2_LABEL}).  This is output right at the start of naive code
-		 * generation.  It is reached through normal invocation, but it can also
-		 * be reached by {@linkplain P_RestartContinuation restarting} a
-		 * continuation created by a {@linkplain #L1Ext_doPushLabel()
-		 * push-label} nybblecode instruction.
-		 */
-		final L2Instruction startLabel = newLabel("start");
-
-		/**
-		 * A label (i.e., an {@link L2Instruction} whose operation is an {@link
-		 * L2_LABEL}).  This is only output after naive code generation if a
-		 * {@linkplain #L1Ext_doPushLabel() push-label} instruction was
-		 * encountered.  If so, a coda will be output starting with this
-		 * restartLabel so that restarts of the created label continuations can
-		 * correctly explode the fields into registers then jump to the main
-		 * entry point at the start.
-		 */
-		final L2Instruction restartLabel = newLabel("restart");
-
-		/**
 		 * Whether any uses of the {@linkplain #L1Ext_doPushLabel() push-label}
 		 * nybblecode instruction have been encountered so far.  After naive
 		 * translation, if any push-labels occurred then the {@link
@@ -764,6 +765,16 @@ public class L2Translator
 		 * the continuation and jump to the start.
 		 */
 		boolean anyPushLabelsEncountered = false;
+
+		/**
+		 * Return the {@link List} of {@link L2Instruction}s.
+		 *
+		 * @return The current list of instructions.
+		 */
+		public List<L2Instruction> instructions ()
+		{
+			return instructions;
+		}
 
 		/**
 		 * Answer the specified fixed register.
@@ -924,10 +935,19 @@ public class L2Translator
 			final L2Operation operation,
 			final L2Operand... operands)
 		{
-			assert operation != L2_LABEL.instance
+			addInstruction(new L2Instruction(operation, operands));
+		}
+
+		/**
+		 * Add an {@link L2Instruction}.
+		 *
+		 * @param instruction The instruction to add.
+		 */
+		public void addInstruction (
+			final L2Instruction instruction)
+		{
+			assert instruction.operation != L2_LABEL.instance
 				: "Use newLabel() and addLabel(...) to add a label";
-			final L2Instruction instruction =
-				new L2Instruction(operation, operands);
 			RegisterSet naiveRegs = naiveRegisters;
 			if (naiveRegs == null)
 			{
@@ -2113,10 +2133,9 @@ public class L2Translator
 			final Mutable<Boolean> canFailPrimitive,
 			final RegisterSet registerSet)
 		{
-			final int primitiveNumber =
-				primitiveFunction.code().primitiveNumber();
-			final Primitive primitive =
-				Primitive.byPrimitiveNumberOrFail(primitiveNumber);
+			final @Nullable Primitive primitive =
+				primitiveFunction.code().primitive();
+			assert primitive != null;
 			if (primitive.hasFlag(SpecialReturnConstant))
 			{
 				// Use the first literal as the return value.
@@ -2290,7 +2309,7 @@ public class L2Translator
 				// The skipReturnCheck is irrelevant if the primitive can be
 				// folded.
 				final Result success = interpreter().attemptPrimitive(
-					primitiveNumber,
+					primitive.primitiveNumber,
 					primitiveFunction,
 					argValues,
 					false);
@@ -3113,9 +3132,7 @@ public class L2Translator
 			assert stackp == code.maxStackDepth();
 			stackp = Integer.MIN_VALUE;
 		}
-
 	}
-
 
 	/**
 	 * Optimize the stream of instructions.
@@ -3351,13 +3368,17 @@ public class L2Translator
 					log.value(formatter.toString(), null);
 				}
 			});
-		final List<L2Instruction> newInstructions =
-			new ArrayList<>(instructions.size());
 		boolean anyChanges = instructions.retainAll(neededInstructions);
-		anyChanges |= regenerateInstructions(newInstructions);
+		final List<L2Instruction> oldInstructions =
+			new ArrayList<>(instructions);
 		instructions.clear();
-		instructions.addAll(newInstructions);
+		final List<RegisterSet> oldRegisterSets =
+			new ArrayList<>(instructionRegisterSets);
 		instructionRegisterSets.clear();
+		final L1NaiveTranslator newNaiveTranslator = new L1NaiveTranslator();
+		anyChanges |= regenerateInstructions(
+			oldInstructions, oldRegisterSets, newNaiveTranslator);
+//		instructionRegisterSets.clear();
 		for (int i = 0, end = instructions.size(); i < end; i++)
 		{
 			instructions.get(i).setOffset(i);
@@ -3524,22 +3545,33 @@ public class L2Translator
 	 * by unconditional branches.  Fallible primitives may also be effectively
 	 * infallible with a particular subtype of arguments.
 	 *
-	 * @param newInstructions
-	 *            Where to write the original or replacement instructions.
+	 * @param oldInstructions
+	 *        The original sequence of instructions being examined.
+	 * @param oldRegisterSets
+	 *        The old list of {@link RegisterSet}s, indexed by instruction
+	 *        offset.
+	 * @param naiveTranslator
+	 *        The {@link L1NaiveTranslator} to which the replacement sequence of
+	 *        instructions is being written.
 	 * @return Whether there were any significant changes.  This must eventually
 	 *         converge to {@code false} after multiple passes in order to
 	 *         ensure termination.
 	 */
 	private boolean regenerateInstructions (
-		final List<L2Instruction> newInstructions)
+		final List<L2Instruction> oldInstructions,
+		final List<RegisterSet> oldRegisterSets,
+		final L1NaiveTranslator naiveTranslator)
 	{
 		boolean anyChanges = false;
-		for (final L2Instruction instruction : instructions)
+		for (final L2Instruction instruction : oldInstructions)
 		{
+			final RegisterSet registerSet =
+				oldRegisterSets.get(instruction.offset());
+			// Adjust the original instruction's offset.
+			instruction.setOffset(instructions.size());
+//			System.out.println(instruction + "\n" + registerSet + "\n\n");
 			anyChanges |= instruction.operation.regenerate(
-				instruction,
-				newInstructions,
-				instructionRegisterSets.get(instruction.offset()));
+				instruction, naiveTranslator, registerSet);
 		}
 		return anyChanges;
 	}

@@ -36,7 +36,6 @@ Versions
 Extends
 	"Early Control Structures" =
 	(
-		"Cast|cast_into_else_",
 		"Cast|cast_into_",
 		"Ignore:_",
 		"(_)",
@@ -673,7 +672,8 @@ Public method "Require:_accepts subscripts from_to_by_" is
 			]
 			else
 			[
-				(start ∪ end) ∩ integer
+				union ::= (start ∪ end) ∩ integer;
+				(⎣union⎦ - 1 .. ⎡union⎤ + 1)
 			]
 		];
 	If action[1] ≠ ⊥ ∧ ¬subscripts ⊆ action[1] then

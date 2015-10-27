@@ -136,7 +136,7 @@ Body
 Public class "file iterator"
 	extends sizable random access buffered iterator
 	with fields
-		alignment : whole number,
+		alignment : natural number,
 		element type : byte's type,
 		element source : file;
 

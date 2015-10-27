@@ -87,6 +87,7 @@ Extends
 		"Alias_to_",
 		"Attempt to join_",
 		"Breakpoint",
+		"Cast|cast_into_else_",
 		"Exit_with_",
 		"Euler's number",
 		"Forward method_is_",
@@ -493,7 +494,6 @@ Extends
 		"Cast|cast each of_into_",
 		"Cast|cast each of_into_else_",
 		"Cast|cast_into_",
-		"Cast|cast_into_else_",
 		"Cast|cast_into«_‡,»«else_»",
 		"bad-cast exception",
 		"bad-multiway-cast exception"

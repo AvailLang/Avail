@@ -39,6 +39,7 @@ import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -126,7 +127,7 @@ public class L2_CREATE_FUNCTION extends L2Operation
 		final A_Type outerType,
 		final RegisterSet registerSet,
 		final L2ObjectRegister targetRegister,
-		final List<L2Instruction> newInstructions)
+		final L1NaiveTranslator naiveTranslator)
 	{
 //TODO[MvG] - Get back to this primitive cancellation stuff
 //		final L2RegisterVector outersVector =
@@ -143,6 +144,6 @@ public class L2_CREATE_FUNCTION extends L2Operation
 			outerType,
 			registerSet,
 			targetRegister,
-			newInstructions);
+			naiveTranslator);
 	}
 }

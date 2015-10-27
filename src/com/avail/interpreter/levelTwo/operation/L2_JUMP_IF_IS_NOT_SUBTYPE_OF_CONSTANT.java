@@ -43,6 +43,7 @@ import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -80,7 +81,7 @@ public class L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT extends L2Operation
 	@Override
 	public boolean regenerate (
 		final L2Instruction instruction,
-		final List<L2Instruction> newInstructions,
+		final L1NaiveTranslator naiveTranslator,
 		final RegisterSet registerSet)
 	{
 		// Eliminate tests due to type propagation.
@@ -124,9 +125,9 @@ public class L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT extends L2Operation
 			// instructions that follow the jump will become dead code and
 			// be eliminated next pass.
 			assert canJump;
-			newInstructions.add(new L2Instruction(
+			naiveTranslator.addInstruction(
 				L2_JUMP.instance,
-				instruction.operands[0]));
+				instruction.operands[0]);
 			return true;
 		}
 		assert !mustJump;
@@ -142,15 +143,15 @@ public class L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT extends L2Operation
 		// want to dispatch based on the tuple's size.
 		if (!intersection.equals(constantType))
 		{
-			newInstructions.add(new L2Instruction(
+			naiveTranslator.addInstruction(
 				L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT.instance,
 				instruction.operands[0],
 				new L2ReadPointerOperand(typeReg),
-				new L2ConstantOperand(intersection)));
+				new L2ConstantOperand(intersection));
 			return true;
 		}
 		// The test could not be eliminated or improved.
-		return super.regenerate(instruction, newInstructions, registerSet);
+		return super.regenerate(instruction, naiveTranslator, registerSet);
 	}
 
 	@Override

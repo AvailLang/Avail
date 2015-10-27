@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_VECTOR;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import java.util.List;
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.ContinuationTypeDescriptor;
@@ -113,10 +114,9 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 			translator.fixed(FUNCTION),
 			code.functionType(),
 			instruction);
-		final int prim = code.primitiveNumber();
-		if (prim != 0)
+		final @Nullable Primitive primitive = code.primitive();
+		if (primitive != null)
 		{
-			final Primitive primitive = Primitive.byPrimitiveNumberOrFail(prim);
 			if (!primitive.hasFlag(Flag.CannotFail))
 			{
 				registerSet.typeAtPut(

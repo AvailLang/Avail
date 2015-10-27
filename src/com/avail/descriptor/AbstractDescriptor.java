@@ -71,6 +71,7 @@ import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
 import com.avail.utility.MutableOrNull;
+import com.avail.utility.Strings;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
@@ -670,11 +671,7 @@ public abstract class AbstractDescriptor
 				&& getAnnotation((Enum<?>)slot, HideFieldJustForPrinting.class)
 					== null)
 			{
-				builder.append('\n');
-				for (int tab = 0; tab < indent; tab++)
-				{
-					builder.append('\t');
-				}
+				Strings.newlineTab(builder, indent);
 				final String slotName = slot.name();
 				assert slotName != null;
 				long value;
@@ -721,11 +718,7 @@ public abstract class AbstractDescriptor
 				&& getAnnotation((Enum<?>)slot, HideFieldJustForPrinting.class)
 					== null)
 			{
-				builder.append('\n');
-				for (int tab = 0; tab < indent; tab++)
-				{
-					builder.append('\t');
-				}
+				Strings.newlineTab(builder, indent);
 				final String slotName = slot.name();
 				assert slotName != null;
 				if (slotName.charAt(slotName.length() - 1) == '_')

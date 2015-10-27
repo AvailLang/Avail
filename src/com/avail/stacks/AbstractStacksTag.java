@@ -32,6 +32,7 @@
 
 package com.avail.stacks;
 
+import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -74,21 +75,4 @@ public abstract class AbstractStacksTag
 	public abstract void toJSON(final LinkingFileMap linkingFileMap,
 		final int hashID, final StacksErrorLog errorLog, int position,
 		JSONWriter jsonWriter);
-
-	/**
-	 * @param numberOfTabs
-	 * 		the number of tabs to insert into the string.
-	 * @return
-	 * 		a String consisting of the number of tabs requested in
-	 * 		in numberOfTabs.
-	 */
-	public String tabs(final int numberOfTabs)
-	{
-		final StringBuilder stringBuilder = new StringBuilder();
-		for (int i = 1; i <= numberOfTabs; i++)
-		{
-			stringBuilder.append('\t');
-		}
-		return stringBuilder.toString();
-	}
 }

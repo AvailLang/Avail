@@ -124,4 +124,88 @@ public final class Strings
 			return formatter.toString();
 		}
 	}
+
+	/** Strings containing a reasonably small number of tabs. */
+	private final static String tabs[] = new String[10];
+
+	static
+	{
+		String str = "";
+		for (int i = 0; i < tabs.length; i++)
+		{
+			tabs[i] = str;
+			str += "\t";
+		}
+	}
+
+	/**
+	 * Answer a String containing the specified number of tabs.
+	 *
+	 * @param indent The number of tabs.
+	 * @return The string.
+	 */
+	public static String tabs (final int indent)
+	{
+		if (indent < tabs.length)
+		{
+			return tabs[indent];
+		}
+		final StringBuilder builder = new StringBuilder(indent);
+		for (int i = 1; i <= indent; i++)
+		{
+			builder.append('\t');
+		}
+		return builder.toString();
+	}
+
+	/**
+	 * Append the specified number of tab ('\t') characters to the given {@link
+	 * StringBuilder}.
+	 *
+	 * @param builder A {@link StringBuilder}.
+	 * @param indent The number of tabs to append.
+	 */
+	public static void tab (
+		final StringBuilder builder,
+		final int indent)
+	{
+		for (int i = 1; i <= indent; i++)
+		{
+			builder.append('\t');
+		}
+	}
+
+	/**
+	 * Append a newline ('\n' = U+000A) then the specified number of tab ('\t' =
+	 * U+0009) characters to the given {@link StringBuilder}.
+	 *
+	 * @param builder A {@link StringBuilder}.
+	 * @param indent The number of tabs to append after the newline.
+	 */
+	public static void newlineTab (
+		final StringBuilder builder,
+		final int indent)
+	{
+		builder.append('\n');
+		for (int i = 1; i <= indent; i++)
+		{
+			builder.append('\t');
+		}
+	}
+
+	/**
+	 * Append each provided string to the {@link StringBuilder}.
+	 *
+	 * @param builder The {@link StringBuilder}.
+	 * @param strings The vararg array of strings to append.
+	 */
+	public void appendAll (
+		final StringBuilder builder,
+		final String... strings)
+	{
+		for (int i = 0; i < strings.length; i++)
+		{
+			builder.append(strings[i]);
+		}
+	}
 }

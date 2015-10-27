@@ -39,6 +39,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -145,11 +146,7 @@ extends TypeDescriptor
 				{
 					aStream.append(',');
 				}
-				aStream.append('\n');
-				for (int count = 1; count <= indent; count++)
-				{
-					aStream.append('\t');
-				}
+				Strings.newlineTab(aStream, indent);
 				final A_BasicObject item = objects.get(i);
 				if (item != null)
 				{

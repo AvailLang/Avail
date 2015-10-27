@@ -171,7 +171,7 @@ Public method "Undeclare_" is
 	declarationName : nonempty string
 |
 	scope map := cast scope map - declarationName into
-		[t : {nonempty string → declaration phrase ⇒ ⊤ | natural number} | t];
+		[t : {nonempty string → declaration phrase ⇒ ⊤ | whole number} | t];
 ];
 
 /**

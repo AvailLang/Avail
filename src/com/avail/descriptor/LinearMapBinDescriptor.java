@@ -100,6 +100,20 @@ extends MapBinDescriptor
 	implements ObjectSlotsEnum
 	{
 		/**
+		 * The union of the types of all keys recursively within this bin.
+		 * If this is {@linkplain NilDescriptor#nil() top}, then it can
+		 * be recomputed when needed and cached.
+		 */
+		BIN_KEY_UNION_KIND_OR_NULL,
+
+		/**
+		 * The union of the types of all keys recursively within this bin.
+		 * If this is {@linkplain NilDescriptor#nil() top}, then it can
+		 * be recomputed when needed and cached.
+		 */
+		BIN_VALUE_UNION_KIND_OR_NULL,
+
+		/**
 		 * The elements of this bin. The elements are never sub-bins, since
 		 * this is a {@linkplain LinearMapBinDescriptor linear bin}, a leaf bin.
 		 */
@@ -109,7 +123,9 @@ extends MapBinDescriptor
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == COMBINED_HASHES;
+		return e == COMBINED_HASHES
+			|| e == BIN_KEY_UNION_KIND_OR_NULL
+			|| e == BIN_VALUE_UNION_KIND_OR_NULL;
 	}
 
 	/**
@@ -240,6 +256,10 @@ extends MapBinDescriptor
 						// didn't clear the values hash here, it would stay
 						// wrong after this compound operation.
 						object.setSlot(VALUES_HASH_OR_ZERO, 0);
+						object.setSlot(
+							BIN_VALUE_UNION_KIND_OR_NULL, NilDescriptor.nil());
+						// No need to clear the key union kind, since the keys
+						// didn't change.
 						if (!canDestroy)
 						{
 							object.makeImmutable();
@@ -268,6 +288,9 @@ extends MapBinDescriptor
 				}
 				newBin.setSlot(BIN_SLOT_AT_, i * 2, value);
 				newBin.setSlot(VALUES_HASH_OR_ZERO, 0);
+				newBin.setSlot(BIN_KEY_UNION_KIND_OR_NULL, NilDescriptor.nil());
+				newBin.setSlot(
+					BIN_VALUE_UNION_KIND_OR_NULL, NilDescriptor.nil());
 				check(newBin);
 				return newBin;
 			}
@@ -331,6 +354,20 @@ extends MapBinDescriptor
 		result.setIntSlot(KEY_HASHES_AREA_, oldSize + 1, keyHash);
 		result.setSlot(BIN_SLOT_AT_, oldSize * 2 + 1, key);
 		result.setSlot(BIN_SLOT_AT_, oldSize * 2 + 2, value);
+		final A_Type oldKeyKind = object.slot(BIN_KEY_UNION_KIND_OR_NULL);
+		if (!oldKeyKind.equalsNil())
+		{
+			result.setSlot(
+				BIN_KEY_UNION_KIND_OR_NULL,
+				oldKeyKind.typeUnion(key.kind()));
+		}
+		final A_Type oldValueKind = object.slot(BIN_VALUE_UNION_KIND_OR_NULL);
+		if (!oldValueKind.equalsNil())
+		{
+			result.setSlot(
+				BIN_VALUE_UNION_KIND_OR_NULL,
+				oldValueKind.typeUnion(value.kind()));
+		}
 		if (canDestroy && isMutable())
 		{
 			// Ensure destruction of the old object doesn't drag along anything
@@ -391,6 +428,9 @@ extends MapBinDescriptor
 				// Adjust keys hash by the removed key.
 				result.setSlot(KEYS_HASH, object.slot(KEYS_HASH) - keyHash);
 				result.setSlot(VALUES_HASH_OR_ZERO, 0);
+				result.setSlot(BIN_KEY_UNION_KIND_OR_NULL, NilDescriptor.nil());
+				result.setSlot(
+					BIN_VALUE_UNION_KIND_OR_NULL, NilDescriptor.nil());
 				if (!canDestroy)
 				{
 					result.makeSubobjectsImmutable();
@@ -407,34 +447,108 @@ extends MapBinDescriptor
 		return object;
 	}
 
+	/**
+	 * Compute this bin's key type, hoisted up to the nearest kind.
+	 *
+	 * @param object The {@link LinearMapBinDescriptor bin} to scan.
+	 * @return The union of the kinds of this bin's keys.
+	 */
+	private A_Type computeKeyKind (final AvailObject object)
+	{
+		A_Type keyType = BottomTypeDescriptor.bottom();
+		for (int i = entryCount(object) * 2 - 1; i >= 1; i -= 2)
+		{
+			final AvailObject entry = object.slot(BIN_SLOT_AT_, i);
+			keyType = keyType.typeUnion(entry.kind());
+		}
+		if (isShared())
+		{
+			keyType = keyType.makeShared();
+		}
+		return keyType;
+	}
+
+	/**
+	 * Compute and install the bin key union kind for the specified
+	 * {@linkplain LinearMapBinDescriptor object}.
+	 *
+	 * @param object A linear map bin.
+	 * @return The union of the key types as a kind.
+	 */
+	private A_Type mapBinKeyUnionKind (final AvailObject object)
+	{
+		A_Type keyType = object.slot(BIN_KEY_UNION_KIND_OR_NULL);
+		if (keyType.equalsNil())
+		{
+			keyType = computeKeyKind(object);
+			object.setSlot(BIN_KEY_UNION_KIND_OR_NULL, keyType);
+		}
+		return keyType;
+	}
+
 	@Override @AvailMethod
 	A_Type o_MapBinKeyUnionKind (final AvailObject object)
 	{
-		// Answer the union of the types of this bin's keys. I'm supposed to be
-		// small, so recalculate it per request.
-		A_Type unionKind = object.slot(BIN_SLOT_AT_, 1).kind();
-		final int limit = entryCount(object);
-		for (int index = 2; index <= limit; index++)
+		if (isShared())
 		{
-			unionKind = unionKind.typeUnion(
-				object.slot(BIN_SLOT_AT_, index * 2 - 1).kind());
+			synchronized (object)
+			{
+				return mapBinKeyUnionKind(object);
+			}
 		}
-		return unionKind;
+		return mapBinKeyUnionKind(object);
+	}
+
+	/**
+	 * Compute this bin's value type, hoisted up to the nearest kind.
+	 *
+	 * @param object The {@link LinearMapBinDescriptor bin} to scan.
+	 * @return The union of the kinds of this bin's values.
+	 */
+	private A_Type computeValueKind (final AvailObject object)
+	{
+		A_Type valueType = BottomTypeDescriptor.bottom();
+		for (int i = entryCount(object) * 2; i >= 1; i -= 2)
+		{
+			final AvailObject entry = object.slot(BIN_SLOT_AT_, i);
+			valueType = valueType.typeUnion(entry.kind());
+		}
+		if (isShared())
+		{
+			valueType = valueType.makeShared();
+		}
+		return valueType;
+	}
+
+	/**
+	 * Compute and install the bin value union kind for the specified
+	 * {@linkplain LinearMapBinDescriptor object}.
+	 *
+	 * @param object An object.
+	 * @return A key type.
+	 */
+	private A_Type mapBinValueUnionKind (final AvailObject object)
+	{
+		A_Type valueType = object.slot(BIN_VALUE_UNION_KIND_OR_NULL);
+		if (valueType.equalsNil())
+		{
+			valueType = computeValueKind(object);
+			object.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, valueType);
+		}
+		return valueType;
 	}
 
 	@Override @AvailMethod
 	A_Type o_MapBinValueUnionKind (final AvailObject object)
 	{
-		// Answer the union of the types of this bin's values. I'm supposed to
-		// be small, so recalculate it per request.
-		A_Type unionKind = object.slot(BIN_SLOT_AT_, 2).kind();
-		final int limit = entryCount(object);
-		for (int index = 2; index <= limit; index++)
+		if (isShared())
 		{
-			unionKind = unionKind.typeUnion(
-				object.slot(BIN_SLOT_AT_, index * 2).kind());
+			synchronized (object)
+			{
+				return mapBinValueUnionKind(object);
+			}
 		}
-		return unionKind;
+		return mapBinValueUnionKind(object);
 	}
 
 	/**
@@ -518,11 +632,11 @@ extends MapBinDescriptor
 			LinearMapBinDescriptor.descriptorFor(MUTABLE, myLevel);
 		final AvailObject bin =
 			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
-				2,
-				1,
-				descriptor);
+				2, 1, descriptor);
 		bin.setSlot(KEYS_HASH, keyHash);
 		bin.setSlot(VALUES_HASH_OR_ZERO, 0);
+		bin.setSlot(BIN_KEY_UNION_KIND_OR_NULL, NilDescriptor.nil());
+		bin.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, NilDescriptor.nil());
 		bin.setIntSlot(KEY_HASHES_AREA_, 1, keyHash);
 		bin.setSlot(BIN_SLOT_AT_, 1, key);
 		bin.setSlot(BIN_SLOT_AT_, 2, value);
@@ -578,12 +692,11 @@ extends MapBinDescriptor
 		int target = 0;
 		for (int level = 0; level < numberOfLevels; level++)
 		{
-			descriptors[target++] =
-				new LinearMapBinDescriptor(MUTABLE, level);
-			descriptors[target++] =
-				new LinearMapBinDescriptor(IMMUTABLE, level);
-			descriptors[target++] =
-				new LinearMapBinDescriptor(SHARED, level);
+			for (final Mutability mut : Mutability.values())
+			{
+				descriptors[target++] =
+					new LinearMapBinDescriptor(mut, level);
+			}
 		}
 	}
 

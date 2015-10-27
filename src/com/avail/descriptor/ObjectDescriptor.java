@@ -38,6 +38,7 @@ import java.util.*;
 import com.avail.annotations.*;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -312,11 +313,7 @@ extends Descriptor
 				{
 					builder.append(",");
 				}
-				builder.append('\n');
-				for (int tab = 0; tab < indent; tab++)
-				{
-					builder.append('\t');
-				}
+				Strings.newlineTab(builder, indent);
 				builder.append(entry.key().atomName().asNativeString());
 				builder.append(" = ");
 				entry.value().printOnAvoidingIndent(

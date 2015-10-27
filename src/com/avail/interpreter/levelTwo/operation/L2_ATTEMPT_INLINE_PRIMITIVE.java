@@ -33,6 +33,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.List;
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
@@ -108,7 +109,7 @@ extends L2Operation
 		{
 			interpreter.argsBuffer.add(register.in(interpreter));
 		}
-		assert function.code().primitiveNumber() == primitive.primitiveNumber;
+		assert function.code().primitive() == primitive;
 		// We'll check the return type on success, below.
 		final Result res = interpreter.attemptPrimitive(
 			primitive.primitiveNumber,
@@ -172,5 +173,23 @@ extends L2Operation
 	{
 		// It could fail and jump.
 		return true;
+	}
+
+	/**
+	 * Answer the register that will hold the top-of-stack register of the given
+	 * continuation creation
+	 * instruction's stack pointer.
+	 *
+	 * @param instruction
+	 *        The continuation creation instruction.
+	 * @return The stack pointer of the continuation to be created by the
+	 *         give instruction.
+	 */
+	@Override
+	public final @Nullable L2ObjectRegister primitiveResultRegister (
+		final L2Instruction instruction)
+	{
+		assert instruction.operation == instance;
+		return instruction.writeObjectRegisterAt(4);
 	}
 }

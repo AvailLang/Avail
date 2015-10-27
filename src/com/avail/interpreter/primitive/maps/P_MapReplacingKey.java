@@ -96,11 +96,12 @@ public final class P_MapReplacingKey extends Primitive
 			mapType.valueType().typeUnion(addedValueType);
 		final A_Type oldSizes = mapType.sizeRange();
 		// Now there's at least one element.
-		final A_Number newMin =
-			oldMapKeyType.typeIntersection(newKeyType).isBottom()
-				? oldSizes.lowerBound().plusCanDestroy(
-					IntegerDescriptor.one(), false)
-				: oldSizes.lowerBound();
+		A_Number newMin = oldSizes.lowerBound();
+		if (oldMapKeyType.typeIntersection(newKeyType).isBottom()
+			|| newMin.equalsInt(0))
+		{
+			newMin = newMin.plusCanDestroy(IntegerDescriptor.one(), false);
+		}
 		// ...and at most one more element.  We add two and make the bound
 		// exclusive to accommodate positive infinity.
 		final A_Number newMaxPlusOne =

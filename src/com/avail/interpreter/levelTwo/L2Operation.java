@@ -38,9 +38,11 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operation.L2_LABEL;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.*;
+import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 
@@ -370,7 +372,7 @@ public abstract class L2Operation
 	 *
 	 * @param instruction
 	 *            The {@link L2Instruction} containing this operation.
-	 * @param newInstructions
+	 * @param naiveTranslator
 	 *            The list of instructions to augment.
 	 * @param registerSet
 	 *            The state of registers upon starting this instruction.
@@ -379,12 +381,20 @@ public abstract class L2Operation
 	 */
 	public boolean regenerate (
 		final L2Instruction instruction,
-		final List<L2Instruction> newInstructions,
+		final L1NaiveTranslator naiveTranslator,
 		final RegisterSet registerSet)
 	{
 		// By default just produce the same instruction.
 		assert instruction.operation == this;
-		newInstructions.add(instruction);
+		if (instruction.operation instanceof L2_LABEL)
+		{
+			instruction.setOffset(-1);
+			naiveTranslator.addLabel(instruction);
+		}
+		else
+		{
+			naiveTranslator.addInstruction(instruction);
+		}
 		return false;
 	}
 
@@ -409,9 +419,9 @@ public abstract class L2Operation
 	 * @param targetRegister
 	 *            The {@link L2ObjectRegister} into which the new code should
 	 *            cause the outer to be written.
-	 * @param newInstructions
-	 *            The mutable {@link List} of {@link L2Instruction}s onto which
-	 *            to append the new code.
+	 * @param naiveTranslator
+	 *            The {@link L1NaiveTranslator} into which to write the new
+	 *            code.
 	 * @return A boolean indicating whether an instruction substitution took
 	 *         place which may warrant another pass of optimization.
 	 */
@@ -422,17 +432,36 @@ public abstract class L2Operation
 		final A_Type outerType,
 		final RegisterSet registerSet,
 		final L2ObjectRegister targetRegister,
-		final List<L2Instruction> newInstructions)
+		final L1NaiveTranslator naiveTranslator)
 	{
 		assert instruction.operation == this;
 		// By default we simply extract the outer from the function.  Since this
 		// instruction is supposed to have placed the function into
-		newInstructions.add(new L2Instruction(
+		naiveTranslator.addInstruction(
 			L2_MOVE_OUTER_VARIABLE.instance,
 			new L2ImmediateOperand(outerIndex),
 			new L2ReadPointerOperand(functionRegister),
 			new L2WritePointerOperand(targetRegister),
-			new L2ConstantOperand(outerType)));
+			new L2ConstantOperand(outerType));
 		return false;
+	}
+
+	/**
+	 * If this instruction is an attempt to execute a primitive, answer the
+	 * register into which the primitive's result will be written if successful.
+	 * Otherwise answer {@code null}.
+	 *
+	 * @param instruction
+	 *        The {@link L2Instruction} for which the receiver is the {@link
+	 *        L2Operation}.
+	 * @return The register into which the primitive attempted by this
+	 *         instruction will write its result, or null if the instruction
+	 *         isn't an attempt to run a primitive.
+	 */
+	public @Nullable L2ObjectRegister primitiveResultRegister (
+		final L2Instruction instruction)
+	{
+		assert instruction.operation == this;
+		return null;
 	}
 }

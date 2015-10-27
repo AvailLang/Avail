@@ -32,6 +32,7 @@
 
 package com.avail.stacks;
 
+import static com.avail.utility.Strings.*;
 import java.util.ArrayList;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;

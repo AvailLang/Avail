@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.*;
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.*;
@@ -146,5 +147,13 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK extends L2Operation
 			|| primitive.hasFlag(Flag.SwitchesContinuation)
 			|| primitive.hasFlag(Flag.Unknown);
 		return mustKeep;
+	}
+
+	@Override
+	public @Nullable L2ObjectRegister primitiveResultRegister (
+		final L2Instruction instruction)
+	{
+		assert instruction.operation == instance;
+		return instruction.writeObjectRegisterAt(2);
 	}
 }

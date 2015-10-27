@@ -51,6 +51,7 @@ Uses
 		"<_,_`…`|_>",
 		"Assert:_(_)",
 		"Breakpoint",
+		"Cast|cast_into_else_",
 		"Crash:_",
 		"Park current fiber",
 		"Request termination of_",
@@ -1336,24 +1337,6 @@ Primitive "_'s⁇return type" is
 	functionType : function meta
 |
 	Primitive ReturnType;
-] : type;
-
-/**
- * Compute and answer the type union of the elements of the given tuple of
- * types.
- *
- * @category "Primitives" "Types" "Tuples" "Queries"
- * @method "∪_"
- * @param "tupleOfTypes" "tuple of type"
- *        A tuple of types.
- * @returns "(⊤)'s type"
- *    The type union of the elements of the argument.
- */
-Primitive "∪_" is
-[
-	tupleOfTypes : tuple of type
-|
-	Primitive UnionOfTupleOfTypes;
 ] : type;
 
 /**
@@ -3944,6 +3927,52 @@ Primitive "`|`|_`|`|" is
 |
 	Primitive TupleTypeSizes;
 ] : whole number meta;
+
+/**
+ * Compute and answer the type union of the elements of the given tuple of
+ * types.
+ *
+ * @category "Primitives" "Types" "Tuples" "Queries"
+ * @method "∪_"
+ * @param "tupleOfTypes" "tuple of type"
+ *        A tuple of types.
+ * @returns "(⊤)'s type"
+ *    The type union of the elements of the argument.
+ */
+Primitive "∪_" is
+[
+	tupleOfTypes : tuple of type
+|
+	Primitive UnionOfTupleOfTypes;
+] : type;
+
+/**
+ * If {@param "value"} is type-compatible with the parameter expected by the
+ * function {@param "intoBlock"}, then invoke it with that argument, otherwise
+ * invoke {@param "elseBlock"} with no arguments.  Answer the result of
+ * whichever function was evaluated (they may be ⊤-valued).
+ *
+ * @category "Primitives"
+ * @method "Cast|cast_into_else_"
+ * @param "value" "any"
+ *        A value to type-test.
+ * @param "intoBlock" "unary procedure"
+ *        A function to invoke with the provided value if its type is
+ *        compatible with the parameter type.
+ * @param "elseBlock" "nullary procedure"
+ *        A zero-argument function to invoke if the value was not compatible
+ *        with the first functions parameter.
+ * @returns "{7}"
+ *    The value produced by whichever function ran.  May be ⊤-valued.
+ */
+Primitive "Cast|cast_into_else_" is
+[
+	value : any,
+	intoBlock : unary procedure,
+	elseBlock : nullary procedure
+|
+	Primitive CastIntoElse;
+] : ⊤;
 
 /**
  * Construct and answer an enumeration whose instances are fully determined by
