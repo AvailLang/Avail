@@ -34,25 +34,21 @@
  * @author Todd L Smith <todd@availlang.org>
  */
 
-// These can be changed to reuse this client for another choosable path
-// story.
-var targetModule = '/examples/The Ship of Stories';
-var storyCommand = 'Play the Ship of Stories by web';
+var targetModule = '/avail/Availuator';
+var avail = null;
 
 /**
  * Connect a command channel to the Avail server. Assuming that the connection
- * completes successfully, load the target module and then run the story
- * command.
+ * completes successfully, load the target module.
  */
 function connect ()
 {
 	var totalBytes = 0;
 	var errorReported = false;
-	var copyright = null;
 
 	// Configure the server connection.
 	var hostName = location.hostname == '' ? 'localhost' : location.hostname;
-	var avail = new Avail(hostName, 40000);
+	avail = new Avail(hostName, 40000);
 	avail.connectFailed = function (event)
 	{
 		reportError(
@@ -96,7 +92,7 @@ function connect ()
 	avail.loadModuleEnded = function (data)
 	{
 		deactivateProgressBar();
-		this.command(storyCommand);
+		presentUI();
 	};
 	avail.upgrade = function (io, data)
 	{
@@ -118,32 +114,20 @@ function connect ()
 			}
 			case 'run entry point':
 			{
-				io.closed = function (event)
-				{
-					avail.close(1000, event.reason);
-				};
-				io.ready = function ()
-				{
-					// We are ready to start processing key events.
-					$('body').keydown(function (event)
-					{
-						handleGameKeydown(event, io);
-					});
-				};
 				io.stdout = function (msg)
 				{
-					var content = JSON.parse(msg);
-					if (copyright === null)
-					{
-						copyright = content;
-					}
-					else
-					{
-						updateUI(content, copyright, this);
-					}
+					presentStdout(msg);
+				};
+				io.stderr = function (msg)
+				{
+					presentCompilerError(msg);
 				};
 			}
 		}
+	};
+	avail.commandCompleted = function (data)
+	{
+		presentResult(data.content.result);
 	};
 
 	// Connect!
@@ -174,138 +158,117 @@ function deactivateProgressBar ()
  */
 function clearUI ()
 {
-	$(".scene-title").remove();
-	$(".scene-description").remove();
-	$(".scene-transition").remove();
-	$(".game-over").remove();
-	$('.copyright').remove();
+	$(".title").remove();
+	$(".source").remove();
+	$('.result').remove();
+	$('.stdout').remove();
+	$('.compiler').remove();
 }
 
 /**
- * Update the user interface based on the supplied scene content.
- *
- * @param array
- *        The scene content:
- *        - [0]   The scene title.
- *        - [1]   The scene description.
- *        - [2..] The transitions.
- * @param copyright
- *        The copyright information, as an array of lines.
- * @param channel
- *        The I/O channel.
+ * Present the user interface.
  */
-function updateUI (array, copyright, channel)
+function presentUI ()
 {
-	var title = array[0];
-	var description = array[1];
-	var transitions = array.slice(2);
-	clearUI();
-	// Animation parameters.
-	var easing = 'blind';
-	var options = {};
-	var duration = 600;
-	// Add the scene title.
 	var main = $("#client-ui");
-	var div = document.createElement('div');
-	div.className = 'scene-title';
-	var p = document.createElement('p');
-	p.innerHTML = title;
-	div.appendChild(p);
-	main.append(div);
-	// Add the scene description.
-	div = document.createElement('div');
-	div.className = 'scene-description';
-	p = document.createElement('p');
-	p.innerHTML = description;
-	div.appendChild(p);
-	main.append(div);
-	$('.scene-description').show(easing, options, duration);
-	// If there are no transitions, then the game is
-	// over.
-	if (transitions.length === 0)
+	var div0 = document.createElement('div');
+	div0.className = 'title';
+	var title = document.createElement('p');
+	title.innerHTML = 'Evaluate an Avail Expression';
+	div0.appendChild(title);
+	var div1 = document.createElement('div');
+	div1.className = 'source';
+	var form = document.createElement('form');
+	form.id = 'expression-form';
+	var input = document.createElement('input');
+	input.id = 'expression';
+	input.type = 'text';
+	input.autocomplete = 'off';
+	input.placeholder = 'Evaluate me!';
+	form.appendChild(input);
+	div1.appendChild(form);
+	var div2 = document.createElement('div');
+	div2.className = 'result';
+	var output = document.createElement('p');
+	output.id = 'output';
+	output.innerHTML = '&nbsp;';
+	div2.appendChild(output);
+	main.append(div0);
+	main.append(div1);
+	main.append(div2);
+	$("#expression-form").submit(function (event)
 	{
-		div = document.createElement('div');
-		div.className = 'game-over';
-		p = document.createElement('p');
-		p.innerHTML =
-			'Game over! Press [Space] to restart, or [Escape] to quit.';
-		div.appendChild(p);
-		main.append(div);
-		$('.game-over').show(easing, options, duration);
-	}
-	// Otherwise, add the transitions.
-	else
-	{
-		for (var i = 0; i < transitions.length; i++)
-		{
-			var transition = transitions[i];
-			var id = 'transition-' + i;
-			div = document.createElement('div');
-			div.id = id;
-			div.className = 'scene-transition';
-			p = document.createElement('p');
-			p.innerHTML = transition;
-			div.appendChild(p);
-			main.append(div);
-			(function (i)
-			{
-				$('#transition-' + i).click(function (ev)
-				{
-					var c = (i + 1).toString();
-					channel.stdin(c + '\n');
-				});
-			})(i);
-		}
-		$('.scene-transition').show(easing, options, duration);
-	}
-	// Add the copyright notice.
-	div = document.createElement('div');
-	div.className = 'copyright';
-	p = document.createElement('pre');
-	copyright.forEach(function (line)
-	{
-		p.innerHTML = p.innerHTML + line + '\n';
+		return false;
 	});
-	div.appendChild(p);
-	main.append(div);
+	$("#expression").keyup(function (event)
+	{
+		// Submit on [Return].
+		if (event.keyCode == 13)
+		{
+			$(".stdout").remove();
+			avail.command('! ' + input.value);
+		}
+	});
+	$('body').keydown(function (event)
+	{
+		// Quit on [Escape].
+		if (event.keyCode === 27)
+		{
+			avail.close();
+		}
+	});
 }
 
 /**
- * React to an incoming keydown.
+ * Present the result.
  *
- * @param ev
- *        The keydown event.
- * @param channel
- *        The I/O channel.
+ * @param result
+ *        The result.
  */
-function handleGameKeydown (ev, channel)
+function presentResult (result)
 {
-	// Quit on [Escape].
-	if (ev.keyCode === 27)
+	$(".compiler").remove();
+	$("#output").html(result);
+}
+
+/**
+ * Present a message written to standard output.
+ *
+ * @param result
+ *        The result.
+ */
+function presentStdout (result)
+{
+	if ($("#stdout").length === 0)
 	{
-		// If shift is pressed also, then close the client connection.
-		if (ev.shiftKey)
-		{
-			channel.close();
-		}
-		else
-		{
-			channel.stdin('quit\n');
-		}
+		var div = document.createElement('div');
+		div.className = 'stdout';
+		var pre = document.createElement('pre');
+		pre.id = 'stdout';
+		div.appendChild(pre);
+		$("#client-ui").append(div);
 	}
-	else
+	$("#stdout").html($("#stdout").html() + result);
+}
+
+/**
+ * Present a compiler error.
+ *
+ * @param result
+ */
+function presentCompilerError (result)
+{
+	$(".stdout").remove();
+	if ($("#compiler").length === 0)
 	{
-		var ch = String.fromCharCode(ev.keyCode);
-		if (ch === ' ')
-		{
-			channel.stdin('restart\n');
-		}
-		else if (!isNaN(parseInt(ch)))
-		{
-			channel.stdin(ch + '\n');
-		}
+		var div = document.createElement('div');
+		div.className = 'compiler';
+		var pre = document.createElement('pre');
+		pre.id = 'compiler';
+		div.appendChild(pre);
+		$("#client-ui").append(div);
 	}
-	ev.preventDefault();
+	$("#compiler").html(result);
 }
 
 /**

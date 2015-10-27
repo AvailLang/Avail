@@ -34,25 +34,21 @@
  * @author Todd L Smith <todd@availlang.org>
  */
 
-// These can be changed to reuse this client for another choosable path
-// story.
-var targetModule = '/examples/The Ship of Stories';
-var storyCommand = 'Play the Ship of Stories by web';
+var targetModule = '/examples/Leet';
+var avail = null;
 
 /**
  * Connect a command channel to the Avail server. Assuming that the connection
- * completes successfully, load the target module and then run the story
- * command.
+ * completes successfully, load the target module.
  */
 function connect ()
 {
 	var totalBytes = 0;
 	var errorReported = false;
-	var copyright = null;
 
 	// Configure the server connection.
 	var hostName = location.hostname == '' ? 'localhost' : location.hostname;
-	var avail = new Avail(hostName, 40000);
+	avail = new Avail(hostName, 40000);
 	avail.connectFailed = function (event)
 	{
 		reportError(
@@ -96,7 +92,7 @@ function connect ()
 	avail.loadModuleEnded = function (data)
 	{
 		deactivateProgressBar();
-		this.command(storyCommand);
+		presentUI();
 	};
 	avail.upgrade = function (io, data)
 	{
@@ -116,34 +112,14 @@ function connect ()
 				};
 				return;
 			}
-			case 'run entry point':
-			{
-				io.closed = function (event)
-				{
-					avail.close(1000, event.reason);
-				};
-				io.ready = function ()
-				{
-					// We are ready to start processing key events.
-					$('body').keydown(function (event)
-					{
-						handleGameKeydown(event, io);
-					});
-				};
-				io.stdout = function (msg)
-				{
-					var content = JSON.parse(msg);
-					if (copyright === null)
-					{
-						copyright = content;
-					}
-					else
-					{
-						updateUI(content, copyright, this);
-					}
-				};
-			}
 		}
+	};
+	avail.commandCompleted = function (data)
+	{
+		var result = data.content.result;
+		result = result.substring(1, result.length - 1);
+		result = result.replace(/\\(.)/g, '$1');
+		updateTranslation(result);
 	};
 
 	// Connect!
@@ -174,138 +150,64 @@ function deactivateProgressBar ()
  */
 function clearUI ()
 {
-	$(".scene-title").remove();
-	$(".scene-description").remove();
-	$(".scene-transition").remove();
-	$(".game-over").remove();
-	$('.copyright').remove();
+	$(".title").remove();
+	$(".source").remove();
+	$(".translation").remove();
 }
 
 /**
- * Update the user interface based on the supplied scene content.
- *
- * @param array
- *        The scene content:
- *        - [0]   The scene title.
- *        - [1]   The scene description.
- *        - [2..] The transitions.
- * @param copyright
- *        The copyright information, as an array of lines.
- * @param channel
- *        The I/O channel.
+ * Present the user interface.
  */
-function updateUI (array, copyright, channel)
+function presentUI ()
 {
-	var title = array[0];
-	var description = array[1];
-	var transitions = array.slice(2);
-	clearUI();
-	// Animation parameters.
-	var easing = 'blind';
-	var options = {};
-	var duration = 600;
-	// Add the scene title.
 	var main = $("#client-ui");
-	var div = document.createElement('div');
-	div.className = 'scene-title';
-	var p = document.createElement('p');
-	p.innerHTML = title;
-	div.appendChild(p);
-	main.append(div);
-	// Add the scene description.
-	div = document.createElement('div');
-	div.className = 'scene-description';
-	p = document.createElement('p');
-	p.innerHTML = description;
-	div.appendChild(p);
-	main.append(div);
-	$('.scene-description').show(easing, options, duration);
-	// If there are no transitions, then the game is
-	// over.
-	if (transitions.length === 0)
-	{
-		div = document.createElement('div');
-		div.className = 'game-over';
-		p = document.createElement('p');
-		p.innerHTML =
-			'Game over! Press [Space] to restart, or [Escape] to quit.';
-		div.appendChild(p);
-		main.append(div);
-		$('.game-over').show(easing, options, duration);
-	}
-	// Otherwise, add the transitions.
-	else
-	{
-		for (var i = 0; i < transitions.length; i++)
+	var div0 = document.createElement('div');
+	div0.className = 'title';
+	var title = document.createElement('p');
+	title.innerHTML = 'Leet Translator';
+	div0.appendChild(title);
+	var div1 = document.createElement('div');
+	div1.className = 'source';
+	var form = document.createElement('form');
+	var input = document.createElement('input');
+	input.type = 'text';
+	input.placeholder = 'Translate me!';
+	input.onkeyup =
+		function ()
 		{
-			var transition = transitions[i];
-			var id = 'transition-' + i;
-			div = document.createElement('div');
-			div.id = id;
-			div.className = 'scene-transition';
-			p = document.createElement('p');
-			p.innerHTML = transition;
-			div.appendChild(p);
-			main.append(div);
-			(function (i)
-			{
-				$('#transition-' + i).click(function (ev)
-				{
-					var c = (i + 1).toString();
-					channel.stdin(c + '\n');
-				});
-			})(i);
-		}
-		$('.scene-transition').show(easing, options, duration);
-	}
-	// Add the copyright notice.
-	div = document.createElement('div');
-	div.className = 'copyright';
-	p = document.createElement('pre');
-	copyright.forEach(function (line)
+			avail.command(
+				'"' + input.value.replace(/[\\"]/g, '\\$&') + '" translated');
+		};
+	form.appendChild(input);
+	div1.appendChild(form);
+	var div2 = document.createElement('div');
+	div2.className = 'translation';
+	var output = document.createElement('p');
+	output.id = 'output';
+	output.innerHTML = '&nbsp;';
+	div2.appendChild(output);
+	main.append(div0);
+	main.append(div1);
+	main.append(div2);
+	$('body').keydown(function (event)
 	{
-		p.innerHTML = p.innerHTML + line + '\n';
+		// Quit on [Escape].
+		if (event.keyCode === 27)
+		{
+			avail.close();
+		}
 	});
-	div.appendChild(p);
-	main.append(div);
 }
 
 /**
- * React to an incoming keydown.
+ * Update the translation.
  *
- * @param ev
- *        The keydown event.
- * @param channel
- *        The I/O channel.
+ * @param translation
+ *        The leet translation.
  */
-function handleGameKeydown (ev, channel)
+function updateTranslation (translation)
 {
-	// Quit on [Escape].
-	if (ev.keyCode === 27)
-	{
-		// If shift is pressed also, then close the client connection.
-		if (ev.shiftKey)
-		{
-			channel.close();
-		}
-		else
-		{
-			channel.stdin('quit\n');
-		}
-	}
-	else
-	{
-		var ch = String.fromCharCode(ev.keyCode);
-		if (ch === ' ')
-		{
-			channel.stdin('restart\n');
-		}
-		else if (!isNaN(parseInt(ch)))
-		{
-			channel.stdin(ch + '\n');
-		}
-	}
-	ev.preventDefault();
+	$("#output").html(translation != '' ? translation : '&nbsp;');
 }
 
 /**

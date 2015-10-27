@@ -359,7 +359,7 @@ Avail.prototype.loadModule = function (moduleName)
  * @param {string} command -
  *        An entry point command.
  */
-Avail.prototype.runCommand = function (command)
+Avail.prototype.command = function (command)
 {
 	this.ws.send('run ' + command);
 };
@@ -465,6 +465,10 @@ Avail.prototype.dispatch = function (data)
 				this.upgrade(io, data);
 				io.connect();
 			}
+			else
+			{
+				this.commandCompleted(data);
+			}
 			return;
 		}
 		default:
@@ -562,6 +566,18 @@ Avail.prototype.loadModuleUpdated = function (data)
  *        The server's response.
  */
 Avail.prototype.loadModuleEnded = function (data)
+{
+	// Do nothing.
+};
+
+/**
+ * This method is invoked when the Avail server reports that an entry point
+ * command has completed.
+ *
+ * @param {object} data -
+ *        The server's response.
+ */
+Avail.prototype.commandCompleted = function (data)
 {
 	// Do nothing.
 };
