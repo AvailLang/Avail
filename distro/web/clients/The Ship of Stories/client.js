@@ -46,215 +46,107 @@ var storyCommand = 'Play the Ship of Stories by web';
  */
 function connect ()
 {
-	var availURI = "ws://localhost:40000/avail";
-
-	// Open the command channel. This is needed only to run the entry point.
-	var cmdChannel = new WebSocket(availURI);
 	var totalBytes = 0;
-	var connected = false;
 	var errorReported = false;
 	var copyright = null;
-	cmdChannel.onopen = function (e)
+
+	// Configure the server connection.
+	var avail = new Avail('localhost', 40000);
+	avail.connectFailed = function (event)
 	{
-		connected = true;
-		cmdChannel.send('version ' + protocolVersion);
+		reportError(
+			'Unable to connect to Avail server at ' + this.url + '.',
+			'Make sure that the Avail server is running, and that '
+			+ 'your browser correctly supports WebSocket.');
+
 	};
-	cmdChannel.onclose = function (e)
+	avail.closed = function (event)
 	{
-		if (connected)
+		if (!errorReported)
 		{
-			if (!errorReported)
+			reportSessionClosed();
+		}
+	};
+	avail.failed = function (event)
+	{
+		errorReported = true;
+		reportError(event.data);
+	};
+	avail.ready = function ()
+	{
+		this.loadModule(targetModule);
+	};
+	avail.loadModuleStarted = function (data)
+	{
+		activateProgressBar();
+	};
+	avail.loadModuleUpdated = function (data)
+	{
+		data.content.global.forEach(function (update)
+		{
+			if (totalBytes === 0)
 			{
-				reportSessionClosed();
+				totalBytes = update.totalBytes;
 			}
-		}
-		else
-		{
-			errorReported = true;
-			reportError(
-				'Unable to connect to Avail server at ' + availURI + '.',
-				'Make sure that the Avail server is running, and that '
-				+ 'your browser correctly supports WebSocket.');
-		}
+			var fraction = update.bytesSoFar / totalBytes;
+			$('#progress-bar').progressbar('value', fraction * 100);
+		});
 	};
-	cmdChannel.onerror = function (e)
+	avail.loadModuleEnded = function (data)
 	{
-		if (connected)
-		{
-			errorReported = true;
-			cmdChannel.close();
-			reportError(e.data);
-		}
+		deactivateProgressBar();
+		this.runCommand(storyCommand);
 	};
-	cmdChannel.onmessage = function (e)
+	avail.upgrade = function (io, data)
 	{
-		var response = JSON.parse(e.data);
-		if ('command' in response)
+		switch (data.command)
 		{
-			switch (response.command)
+			case 'load module':
 			{
-				// Process a response from a 'version' command.
-				case 'version':
+				io.failed = function (event)
 				{
-					negotiateVersions(
-						response.content,
-						function ()
-						{
-							// Success! Now load the target module.
-							cmdChannel.send('load module ' + targetModule);
-						},
-						function ()
-						{
-							// Failure.
-							errorReported = true;
-							cmdChannel.close();
-							reportError('Version negotiation failed.');
-						});
-					break;
-				}
-				// Process a response from a 'load module' command.
-				case 'load module':
+					avail.close(1000, event.reason);
+				};
+				io.stderr = function (msg)
 				{
-					// Process an upgrade request.
-					if ('upgrade' in response)
-					{
-						ioConnection(
-							availURI,
-							response.upgrade,
-							function (channel)
-							{
-								// Don't do anything special when the
-								// upgrade completes.
-							},
-							function (channel, response)
-							{
-								// Nothing is expected on the error stream, so
-								// close the channels and report the error if
-								// it does.
-								if (response.tag === 'err')
-								{
-									errorReported = true;
-									channel.close();
-									cmdChannel.close();
-									reportLoadError(response.content);
-								}
-								else
-								{
-									// Ignore standard output. This will only
-									// be debug information, if anything.
-								}
-							},
-							function (channel, msg)
-							{
-								errorReported = true;
-								cmdChannel.close();
-								reportError(msg);
-							},
-							function (channel)
-							{
-								// Ignore closes.
-							})
-						return;
-					}
-					var content = response.content;
-					switch (typeof content)
-					{
-						case 'object':
-						{
-							if ('global' in content)
-							{
-								content.global.forEach(function (update)
-								{
-									if (totalBytes === 0)
-									{
-										totalBytes = update.totalBytes;
-									}
-									var fraction =
-										update.bytesSoFar / totalBytes;
-									$('#progress-bar').progressbar(
-										'value', fraction * 100);
-								});
-							}
-							break;
-						}
-						case 'string':
-						{
-							if (content === 'begin')
-							{
-								activateProgressBar();
-							}
-							else if (content === 'end')
-							{
-								deactivateProgressBar();
-								cmdChannel.send('run ' + storyCommand);
-							}
-							break;
-						}
-					}
-					break;
-				}
-				// Process a response from a 'run entry point' command.
-				case 'run entry point':
+					errorReported = true;
+					this.close(1000, 'compilation error');
+					reportLoadError(msg);
+				};
+				return;
+			}
+			case 'run entry point':
+			{
+				io.closed = function (event)
 				{
-					// Process an upgrade request.
-					if ('upgrade' in response)
+					avail.close(1000, event.reason);
+				};
+				io.ready = function ()
+				{
+					// We are ready to start processing key events.
+					$('body').keydown(function (event)
 					{
-						ioConnection(
-							availURI,
-							response.upgrade,
-							function (channel)
-							{
-								// We are ready to start processing key events.
-								$('body').keydown(function (ev)
-								{
-									handleGameKeydown(ev, channel);
-								});
-							},
-							function (channel, response)
-							{
-								// Treat the error stream as a source of debug
-								// information. Log anything that arrives thence.
-								if (response.tag === 'err')
-								{
-									console.log(response.content);
-								}
-								else
-								{
-									// The tag should be 'out'. The content
-									// should be a JSON encoded array. The
-									// first message will be the copyright
-									// notice. Story data will follow.
-									var content = JSON.parse(response.content);
-									if (copyright === null)
-									{
-										copyright = content;
-									}
-									else
-									{
-										updateUI(
-											content,
-											copyright,
-											channel);
-									}
-								}
-							},
-							function (channel, msg)
-							{
-								errorReported = true;
-								cmdChannel.close();
-								reportError(msg);
-							},
-							function (channel)
-							{
-								cmdChannel.close();
-							})
-						return;
+						handleGameKeydown(event, io);
+					});
+				};
+				io.stdout = function (msg)
+				{
+					var content = JSON.parse(msg);
+					if (copyright === null)
+					{
+						copyright = content;
 					}
-					break;
-				}
+					else
+					{
+						updateUI(content, copyright, this);
+					}
+				};
 			}
 		}
 	};
+
+	// Connect!
+	avail.connect();
 }
 
 /**
@@ -359,7 +251,7 @@ function updateUI (array, copyright, channel)
 				$('#transition-' + i).click(function (ev)
 				{
 					var c = (i + 1).toString();
-					channel.send(c + '\n');
+					channel.stdin(c + '\n');
 				});
 			})(i);
 		}
@@ -397,7 +289,7 @@ function handleGameKeydown (ev, channel)
 		}
 		else
 		{
-			channel.send('quit\n');
+			channel.stdin('quit\n');
 		}
 	}
 	else
@@ -405,11 +297,11 @@ function handleGameKeydown (ev, channel)
 		var ch = String.fromCharCode(ev.keyCode);
 		if (ch === ' ')
 		{
-			channel.send('restart\n');
+			channel.stdin('restart\n');
 		}
 		else if (!isNaN(parseInt(ch)))
 		{
-			channel.send(ch + '\n');
+			channel.stdin(ch + '\n');
 		}
 	}
 	ev.preventDefault();

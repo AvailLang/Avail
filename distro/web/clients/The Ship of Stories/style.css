@@ -72,6 +72,7 @@
 	border-radius: 25px;
 	background-color: red;
 	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
+	overflow: auto;
 }
 
 #error > p
