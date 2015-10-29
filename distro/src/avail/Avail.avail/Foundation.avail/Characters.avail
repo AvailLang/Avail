@@ -49,17 +49,24 @@ Uses
 	"Sets",
 	"Variables"
 Names
+	/* Character types. */
 	"Arabic numeral",
-	"capitalize_",
-	"uppercase_",
-	"lowercase_",
-	"titlecase_",
+	"Avail message⁇metacharacter",
+
+	/* Character type testing. */
 	"_is an Arabic numeral",
+	"_is an Avail message⁇metacharacter",
 	"_is a letter",
 	"_is uppercase",
 	"_is lowercase",
 	"_is titlecase",
-	"_is whitespace"
+	"_is whitespace",
+
+	/* Character conversions. */
+	"capitalize_",
+	"uppercase_",
+	"lowercase_",
+	"titlecase_"
 Body
 
 /* Mark some character-related operations as stable. */
@@ -1297,3 +1304,28 @@ arabicNumeralCharactersEnum ::= enumeration of "0123456789" → set;
  * @type "Arabic numeral"
  */
 Public method "Arabic numeral" is [arabicNumeralCharactersEnum];
+
+metacharactersEnum ::= enumeration of "_«»‡`…#?⁇!↑~|†§" → set;
+
+/**
+ * Answer the type of an Avail metacharacter.
+ *
+ * @type "Avail message⁇metacharacter"
+ */
+Public method "Avail message⁇metacharacter" is [metacharactersEnum];
+
+/**
+ * Is the argument an Avail metacharacter?
+ *
+ * @method "_is an Avail message⁇metacharacter"
+ * @param "c" "character"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "c"} is an Avail metacharacter, {@method
+ *          "false"} otherwise.
+ */
+Public method "_is an Avail message⁇metacharacter" is
+[
+	c : character
+|
+	c ∈ metacharactersEnum
+];

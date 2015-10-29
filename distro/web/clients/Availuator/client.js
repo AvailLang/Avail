@@ -206,7 +206,7 @@ function presentUI ()
 		if (event.keyCode == 13)
 		{
 			$(".stdout").remove();
-			avail.command('! ' + input.value);
+			avail.command('Run [' + input.value + ']');
 		}
 	});
 	$('body').keydown(function (event)
