@@ -41,7 +41,6 @@ import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
@@ -97,28 +96,37 @@ public class L2_FUNCTION_PARAMETER_TYPE extends L2Operation
 		// Function types are contravariant, so we may have to fall back on
 		// just saying the parameter type must be a type and can't be top –
 		// i.e., any's type.
-		A_Type type = InstanceMetaDescriptor.anyMeta();
 		if (registerSet.hasConstantAt(functionReg))
 		{
 			// Exact function is known.
-			final A_Type functionType = registerSet.constantAt(functionReg);
-			type = functionType.argsTupleType().typeAtIndex(paramIndex);
+			final A_Function function = registerSet.constantAt(functionReg);
+			final A_Type functionType = function.code().functionType();
+			registerSet.constantAtPut(
+				outputParamTypeReg,
+				functionType.argsTupleType().typeAtIndex(paramIndex),
+				instruction);
+			return;
 		}
-		else
+		final List<L2Instruction> sources =
+			registerSet.stateForReading(functionReg).sourceInstructions();
+		if (sources.size() == 1)
 		{
-			final List<L2Instruction> sources =
-				registerSet.stateForReading(functionReg).sourceInstructions();
-			if (sources.size() == 1)
+			final L2Instruction source = sources.get(0);
+			if (source.operation == L2_CREATE_FUNCTION.instance)
 			{
-				if (sources.get(0).operation == L2_CREATE_FUNCTION.instance)
-				{
-					final A_RawFunction code = sources.get(0).constantAt(0);
-					final A_Type functionType = code.functionType();
-					type = functionType.argsTupleType().typeAtIndex(paramIndex);
-				}
+				final A_RawFunction code = sources.get(0).constantAt(0);
+				final A_Type functionType = code.functionType();
+				registerSet.constantAtPut(
+					outputParamTypeReg,
+					functionType.argsTupleType().typeAtIndex(paramIndex),
+					instruction);
+				return;
 			}
 		}
-		registerSet.typeAtPut(outputParamTypeReg, type, instruction);
+		// We don't know the exact type of the block argument, so since it's
+		// contravariant we can only assume it's some non-top type.
+		registerSet.typeAtPut(
+			outputParamTypeReg, InstanceMetaDescriptor.anyMeta(), instruction);
 	}
 
 	@Override
@@ -131,7 +139,7 @@ public class L2_FUNCTION_PARAMETER_TYPE extends L2Operation
 			instruction.readObjectRegisterAt(0);
 		final int paramIndex = instruction.immediateAt(1);
 		final L2ObjectRegister outputParamTypeReg =
-			instruction.readObjectRegisterAt(2);
+			instruction.writeObjectRegisterAt(2);
 
 		@Nullable A_Type functionType = null;
 		if (registerSet.hasConstantAt(functionReg))

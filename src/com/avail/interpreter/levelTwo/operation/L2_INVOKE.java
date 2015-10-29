@@ -33,14 +33,18 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.List;
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 
 /**
@@ -113,5 +117,61 @@ public class L2_INVOKE extends L2Operation
 	{
 		// Eventually returns to the level two pc saved in the continuation.
 		return false;
+	}
+
+	@Override
+	public boolean regenerate (
+		final L2Instruction instruction,
+		final L1NaiveTranslator naiveTranslator,
+		final RegisterSet registerSet)
+	{
+		final L2ObjectRegister continuationReg =
+			instruction.readObjectRegisterAt(0);
+		final L2ObjectRegister functionReg =
+			instruction.readObjectRegisterAt(1);
+//		final L2RegisterVector argumentsReg =
+//			instruction.readVectorRegisterAt(2);
+//		final boolean skipReturnCheck = instruction.immediateAt(3) != 0;
+
+		// Extract information about the continuation's construction.  Hopefully
+		// we'll switch to SSA form before implementing code movement, so assume
+		// the registers populating the continuation are still live after the
+		// type test and branch, whether taken or not.
+		final List<L2Instruction> continuationCreationInstructions =
+			registerSet.stateForReading(continuationReg).sourceInstructions();
+		if (continuationCreationInstructions.size() != 1)
+		{
+			// We can't figure out where the continuation got built.  Give up.
+			return false;
+		}
+		final L2Instruction continuationCreationInstruction =
+			continuationCreationInstructions.get(0);
+		if (!(continuationCreationInstruction.operation
+			instanceof L2_CREATE_CONTINUATION))
+		{
+			// We found the origin of the continuation register, but not the
+			// creation instruction itself.  Give up.
+			return false;
+		}
+
+		if (registerSet.hasConstantAt(functionReg))
+		{
+			final A_Function function = registerSet.constantAt(functionReg);
+			final A_RawFunction code = function.code();
+			final @Nullable Primitive primitive = code.primitive();
+			if (primitive != null)
+			{
+				// It's a primitive, so maybe it can inline or fold or
+				// invoke-reduce itself better than it already has, or even
+				// rewrite itself as alternative L2Instructions.
+				final boolean transformed = primitive.regenerate(
+					instruction, naiveTranslator, registerSet);
+				if (transformed)
+				{
+					return true;
+				}
+			}
+		}
+		return super.regenerate(instruction, naiveTranslator, registerSet);
 	}
 }
