@@ -342,7 +342,9 @@ extends Descriptor
 
 	/** The set of all active {@link CompiledCodeDescriptor raw functions}. */
 	@InnerAccess static final Set<A_RawFunction> activeRawFunctions =
-		Collections.newSetFromMap(new WeakHashMap<A_RawFunction, Boolean>());
+		Collections.synchronizedSet(
+			Collections.newSetFromMap(
+				new WeakHashMap<A_RawFunction, Boolean>()));
 
 	/**
 	 * Reset the code coverage details of all {@link CompiledCodeDescriptor raw
