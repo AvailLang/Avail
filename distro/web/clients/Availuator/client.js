@@ -171,22 +171,20 @@ function clearUI ()
 function presentUI ()
 {
 	var main = $("#client-ui");
+	
 	var div0 = document.createElement('div');
 	div0.className = 'title';
 	var title = document.createElement('p');
-	title.innerHTML = 'Evaluate an Avail Expression';
+	title.innerHTML = 'Evalute Avail';
 	div0.appendChild(title);
+	
 	var div1 = document.createElement('div');
-	div1.className = 'source';
-	var form = document.createElement('form');
-	form.id = 'expression-form';
-	var input = document.createElement('input');
+	var input = document.createElement('textarea');
 	input.id = 'expression';
-	input.type = 'text';
-	input.autocomplete = 'off';
+	input.rows = 10;
 	input.placeholder = 'Evaluate me!';
-	form.appendChild(input);
-	div1.appendChild(form);
+	div1.appendChild(input);
+	
 	var div2 = document.createElement('div');
 	div2.className = 'result';
 	var output = document.createElement('p');
@@ -200,13 +198,15 @@ function presentUI ()
 	{
 		return false;
 	});
-	$("#expression").keyup(function (event)
+	$("#expression").keypress(function (event)
 	{
 		// Submit on [Return].
-		if (event.keyCode == 13)
-		{
+		if (event.shiftKey && event.keyCode == 13)
+		{ 
+			event.preventDefault();
 			$(".stdout").remove();
 			avail.command('Run [' + input.value + ']');
+			
 		}
 	});
 	$('body').keydown(function (event)
