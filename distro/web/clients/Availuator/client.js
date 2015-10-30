@@ -172,8 +172,8 @@ function presentUI ()
 	div0.className = 'title';
 	var title = document.createElement('p');
 	title.innerHTML = 'Evaluate Avail';
-	div0.appendChild(title);
-
+	div0.appendChild(title);	
+	
 	var div1 = document.createElement('div');
 	var input = document.createElement('textarea');
 	div1.title = 'Press Shift+Enter to submit Avail for evaluation';
@@ -210,44 +210,33 @@ function presentUI ()
 				});
 		} 
 	});
-	/*$(document).delegate('#textbox', 'keydown', function(e) {
-		  var keyCode = e.keyCode || e.which;
-
-		  if (keyCode == 9) {
-		    e.preventDefault();
-		    var start = $(this).get(0).selectionStart;
-		    var end = $(this).get(0).selectionEnd;
-
-		    // set textarea value to: text before caret + tab + text after caret
-		    $(this).val($(this).val().substring(0, start)
-		                + "\t"
-		                + $(this).val().substring(end));
-
-		    // put caret at right position again
-		    $(this).get(0).selectionStart =
-		    $(this).get(0).selectionEnd = start + 1;
-		  }
-		});*/
 	$('body').keydown(function (event)
 	{
 		// Quit on [Escape].
 		if (event.keyCode === 27)
 		{
 			avail.close();
-		} else {
-			if (event.keyCode == 9) { 
+		} 
+		else 
+		{
+			if (event.keyCode == 9) 
+			{ 
 			    event.preventDefault(); 
+			    
+			    var selectedText = getSelectionText();
 			    var start = $("#expression").get(0).selectionStart;
 			    var end = $("#expression").get(0).selectionEnd;
 
-			    // set textarea value to: text before caret + tab + text after caret
+			    // set textarea value to: text before caret + tab + text 
+			    // after caret
 			    $("#expression").val($("#expression").val().substring(0, start)
-			                + "\t"
-			                + $("#expression").val().substring(end));
+			    	+ "\t"
+			        + selectedText
+			        + $("#expression").val().substring(end));
 
 			    // put caret at right position again
 			    $("#expression").get(0).selectionStart =
-			    $("#expression").get(0).selectionEnd = start + 1;
+			    	$("#expression").get(0).selectionEnd = start + 1;
 			 }
 		}
 	});
@@ -263,6 +252,20 @@ function presentResult (result)
 {
 	$(".compiler").remove();
 	$("#output").html(result);
+}
+
+/**
+ * Get the text highlighted by the user
+ * @returns {String}
+ */
+function getSelectionText() {
+    var text = "";
+    if (window.getSelection) {
+        text = window.getSelection().toString();
+    } else if (document.selection && document.selection.type != "Control") {
+        text = document.selection.createRange().text;
+    }
+    return text;
 }
 
 /**
