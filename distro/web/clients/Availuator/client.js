@@ -175,7 +175,7 @@ function presentUI ()
 	var div0 = document.createElement('div');
 	div0.className = 'title';
 	var title = document.createElement('p');
-	title.innerHTML = 'Evalute Avail';
+	title.innerHTML = 'Evaluate Avail';
 	div0.appendChild(title);
 	
 	var div1 = document.createElement('div');
