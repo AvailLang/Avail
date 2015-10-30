@@ -42,7 +42,7 @@ import com.avail.server.io.AvailServerChannel;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class Message
+public final class Message
 {
 	/** The maximum allowed size of a frame. */
 	public static final int MAX_SIZE = 1_024_000;
@@ -76,7 +76,7 @@ public class Message
 	 * @return {@code true} if the channel should be closed after sending,
 	 *         {@code false} otherwise.
 	 */
-	public final boolean closeAfterSending ()
+	public boolean closeAfterSending ()
 	{
 		return closeAfterSending;
 	}

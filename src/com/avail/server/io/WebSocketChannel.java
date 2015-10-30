@@ -130,7 +130,17 @@ extends AbstractTransportChannel<AsynchronousSocketChannel>
 	{
 		if (handshakeSucceeded)
 		{
-			adapter.sendClose(this);
+			synchronized (sendQueue)
+			{
+				if (!sendQueue.isEmpty())
+				{
+					closeAfterEmptyingSendQueue = true;
+				}
+				else
+				{
+					adapter.sendClose(this);
+				}
+			}
 		}
 		else
 		{

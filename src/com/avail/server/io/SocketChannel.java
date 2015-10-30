@@ -112,6 +112,16 @@ extends AbstractTransportChannel<AsynchronousSocketChannel>
 	@Override
 	public void close () throws Exception
 	{
-		adapter.sendClose(this);
+		synchronized (sendQueue)
+		{
+			if (!sendQueue.isEmpty())
+			{
+				closeAfterEmptyingSendQueue = true;
+			}
+			else
+			{
+				adapter.sendClose(this);
+			}
+		}
 	}
 }
