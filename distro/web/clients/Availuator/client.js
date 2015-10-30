@@ -219,25 +219,46 @@ function presentUI ()
 		} 
 		else 
 		{
-			if (event.keyCode == 9) 
-			{ 
-			    event.preventDefault(); 
+			if (event.shiftKey && event.keyCode == 9)
+			{
+				event.preventDefault(); 
 			    
-			    var selectedText = getSelectionText();
+			    var selectedText = getSelectionText().replace(/\n\t/g,"\n");
 			    var start = $("#expression").get(0).selectionStart;
 			    var end = $("#expression").get(0).selectionEnd;
 
 			    // set textarea value to: text before caret + tab + text 
 			    // after caret
 			    $("#expression").val($("#expression").val().substring(0, start)
-			    	+ "\t"
 			        + selectedText
 			        + $("#expression").val().substring(end));
 
 			    // put caret at right position again
 			    $("#expression").get(0).selectionStart =
 			    	$("#expression").get(0).selectionEnd = start + 1;
-			 }
+			} 
+			else
+			{
+				if (event.keyCode == 9) 
+				{ 
+				    event.preventDefault(); 
+				    
+				    var selectedText = getSelectionText().replace(/\n/g,"\n\t");
+				    var start = $("#expression").get(0).selectionStart;
+				    var end = $("#expression").get(0).selectionEnd;
+	
+				    // set textarea value to: text before caret + tab + text 
+				    // after caret
+				    $("#expression").val($("#expression").val().substring(0, start)
+				    	+ "\t"
+				        + selectedText
+				        + $("#expression").val().substring(end));
+	
+				    // put caret at right position again
+				    $("#expression").get(0).selectionStart =
+				    	$("#expression").get(0).selectionEnd = start + 1;
+				 }
+			}
 		}
 	});
 }
