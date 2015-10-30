@@ -114,13 +114,6 @@ function connect ()
 			}
 		}
 	};
-	avail.commandCompleted = function (data)
-	{
-		var result = data.content.result;
-		result = result.substring(1, result.length - 1);
-		result = result.replace(/\\(.)/g, '$1');
-		updateTranslation(result);
-	};
 
 	// Connect!
 	avail.connect();
@@ -176,7 +169,14 @@ function presentUI ()
 		function ()
 		{
 			avail.command(
-				'"' + input.value.replace(/[\\"]/g, '\\$&') + '" translated');
+				'"' + input.value.replace(/[\\"]/g, '\\$&') + '" translated',
+				function (data)
+				{
+					var result = data.content.result;
+					result = result.substring(1, result.length - 1);
+					result = result.replace(/\\(.)/g, '$1');
+					updateTranslation(result);
+				});
 		};
 	form.appendChild(input);
 	div1.appendChild(form);

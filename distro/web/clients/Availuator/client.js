@@ -125,10 +125,6 @@ function connect ()
 			}
 		}
 	};
-	avail.commandCompleted = function (data)
-	{
-		presentResult(data.content.result);
-	};
 
 	// Connect!
 	avail.connect();
@@ -171,20 +167,20 @@ function clearUI ()
 function presentUI ()
 {
 	var main = $("#client-ui");
-	
+
 	var div0 = document.createElement('div');
 	div0.className = 'title';
 	var title = document.createElement('p');
 	title.innerHTML = 'Evaluate Avail';
 	div0.appendChild(title);
-	
+
 	var div1 = document.createElement('div');
 	var input = document.createElement('textarea');
 	input.id = 'expression';
 	input.rows = 10;
 	input.placeholder = 'Evaluate me!';
 	div1.appendChild(input);
-	
+
 	var div2 = document.createElement('div');
 	div2.className = 'result';
 	var output = document.createElement('p');
@@ -202,11 +198,15 @@ function presentUI ()
 	{
 		// Submit on [Return].
 		if (event.shiftKey && event.keyCode == 13)
-		{ 
+		{
 			event.preventDefault();
 			$(".stdout").remove();
-			avail.command('Run [' + input.value + ']');
-			
+			avail.command(
+				'Run [' + input.value + ']',
+				function (data)
+				{
+					presentResult(data.content.result);
+				});
 		}
 	});
 	$('body').keydown(function (event)
